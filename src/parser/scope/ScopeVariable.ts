@@ -27,6 +27,11 @@ export class ScopeVariable {
    *   `~/languages/spell`) treats it as `isNewVariable` and `variables.replace()`s it.
    */
   declare isAlias: boolean
+  /**
+   * Match whose `mutateScope()` declared this variable, if it came from source -- for go-to-definition etc.
+   * - `undefined` for built-ins and for variables tests add by hand.
+   */
+  declare declaredBy: P.Match | undefined
 
   /** Create with a string name or `ScopeVariableProps` object. */
   constructor(input: string | ScopeVariableProps) {
@@ -57,4 +62,6 @@ export type ScopeVariableProps = {
   isAlias?: boolean
   /** Pointer to the scope where this variable was defined. */
   scope?: P.Scope
+  /** See `ScopeVariable.declaredBy`. */
+  declaredBy?: P.Match
 }

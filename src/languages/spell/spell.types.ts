@@ -73,10 +73,13 @@ export type ProjectPathList = string[]
 
 // ## SpellProjectRoot
 
-/** Every valid project root `path`, e.g. `@user:projects` -- keys of `SpellSetup.projectRoots`. */
+/** The BUILT-IN project root `path`s, e.g. `@user:projects` -- `SpellSetup.projectRoots` starts with these. */
 export const ProjectRootPaths = ["@user:projects", "@system:examples", "@system:guides"] as const
-/** One of `ProjectRootPaths`. */
-export type ProjectRootPath = (typeof ProjectRootPaths)[number]
+/**
+ * A project root `path`, `@owner:domain`:  one of `ProjectRootPaths`,
+ * or one added at runtime with `SpellSetup.addProjectRoot()`, e.g. `@workspace:my-folder`.
+ */
+export type ProjectRootPath = `@${string}:${string}`
 
 /**
  * One entry in the set of "roots" a project can live under.
@@ -98,6 +101,11 @@ export type ProjectRootSpec = {
   type: string
   /** User friendly description of project. */
   description: string
+  /**
+   * Folder on disk holding this root's projects (one sub-folder each) -- SERVER ONLY.
+   * - Built-in roots leave it out:  `project-utils.ts` derives theirs from `environment`.
+   */
+  serverPath?: string
   /** Semantic UI icon of project. */
   icon: string
 }

@@ -10,10 +10,7 @@ export class Token<ValueType = any, RecordType extends P.TokenProps<ValueType> =
    */
   readonly record: RecordType
 
-  /**
-   * Build token wrapping `record`.
-   * - TODO: do speed test to see if using getters is slower than direct assignment.
-   */
+  /** Build a token by wrapping `record`. */
   constructor(record: RecordType) {
     this.record = record
   }
@@ -29,16 +26,8 @@ export class Token<ValueType = any, RecordType extends P.TokenProps<ValueType> =
   }
 
   /** Start character position in stream. */
-  get offset() {
-    return this.record.offset
-  }
-
-  /**
-   * Start character position in stream.
-   * - REFACTOR: why do we have both `start` and `offset`?
-   */
   get start() {
-    return this.offset
+    return this.record.start
   }
 
   /** Length of the token -- number of characters consumed, INCLUDING whitespace. */
@@ -46,9 +35,14 @@ export class Token<ValueType = any, RecordType extends P.TokenProps<ValueType> =
     return (this.raw?.length || 0) + (this.whitespace?.length || 0)
   }
 
-  /** End character position in stream (non-inclusive), INCLUDING whitespace. */
+  /** Character position just past our `raw` text (non-inclusive), NOT including trailing whitespace. */
   get end() {
-    return this.offset + this.length
+    return this.start + (this.raw?.length || 0)
+  }
+
+  /** Character position where the next token starts:  `end` plus our trailing `whitespace`. */
+  get next() {
+    return this.start + this.length
   }
 
   /** `value` of this token. */
@@ -111,6 +105,11 @@ export class WhitespaceToken extends Token<string> {
    */
   get length() {
     return this.value.length
+  }
+
+  /** Whitespace IS our text, so `end` ~== `next`. */
+  get end() {
+    return this.start + this.length
   }
 }
 
@@ -299,6 +298,16 @@ export class JSXExpressionToken extends JSXToken<string, JSXExpressionTokenProps
   get contents() {
     return this.record.contents
   }
+  /**
+   * Tokens a rule made by parsing `contents` later, moved to file positions -- see `placeInFile()` in spell.
+   * - `Tokenizer.forEachToken()` reaches them through here, so they move with us after an edit.
+   */
+  get innerTokens() {
+    return this.record.innerTokens
+  }
+  set innerTokens(innerTokens: Token[] | undefined) {
+    this.record.innerTokens = innerTokens
+  }
 }
 /** Extra `record` props for `JSXExpressionToken`. */
 export type JSXExpressionTokenProps = Prettify<P.TokenProps<string>> & {
@@ -307,6 +316,8 @@ export type JSXExpressionTokenProps = Prettify<P.TokenProps<string>> & {
    * be a `Token`, e.g. as set by `matchJSXAttributeValueIdentifier`.
    */
   contents: string | Token
+  /** See `JSXExpressionToken.innerTokens`. */
+  innerTokens?: Token[]
 }
 
 ////////////////
@@ -342,7 +353,7 @@ export type CommentTokenProps = Prettify<P.TokenProps<string>> & {
 
 /**
  * `LineToken` class for `Tokenizer.breakIntoLines()`.
- * - `.offset` is line start offset in source.
+ * - `.start` is line start offset in source.
  * - `.leading` (optional) is leading whitespace at start of line.
  * - `.tokens` is (possibly empty) array of tokens other than indent/newline.
  * - `.newline` (optional) is newline token AT END OF LINE.
@@ -395,7 +406,7 @@ export type LineTokenProps = Prettify<P.TokenProps<string>> & {
 
 /**
  * `BlockToken` class for `Tokenizer.breakIntoIndentedBlocks()`.
- * - `.offset` is block start offset char in source.
+ * - `.start` is block start offset char in source.
  * - `.tokens` is (possibly empty) array of `LineToken`s or `BlockToken`s.
  */
 export class BlockToken extends Token<string, BlockTokenProps> {

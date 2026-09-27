@@ -85,14 +85,3 @@ One `##` heading per item, `---` between items, then:
 - **Fix**: give user files their own root and make `project-utils.ts` honor the split, or delete
   the two constants so no one trusts a boundary that isn't there.
 - **Pinned at**: `NOTE:` above the assignment in `environment.ts`.
-
----
-
-## `Token.start` duplicates `Token.offset`
-
-- **Cost**: two names for one value across ~16 call sites, so neither reads as authoritative and
-  new code picks arbitrarily.
-- **Cause**: `get start()` returns `this.offset` and nothing else.  History unknown.
-- **Fix**: pick one name, migrate call sites, delete the other.  Small but wide -- hence here
-  rather than as a passing cleanup.
-- **Pinned at**: `REFACTOR:` marker on `Token.start` in `parser/tokenizer/Tokens.ts`.

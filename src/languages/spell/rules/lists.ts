@@ -704,8 +704,9 @@ function getWhereScope(parentScope: P.Scope, arg: P.Match): P.MethodScope {
   const name = singularize(arg.value)
   return new P.MethodScope({
     parentScope,
-    args: [new P.ScopeVariable(name)],
-    mapItTo: name
+    args: [new P.ScopeVariable({ name, declaredBy: arg })],
+    mapItTo: name,
+    declaredBy: arg
   })
 }
 
@@ -1380,7 +1381,8 @@ class repeat_n_times extends SpellStatement<"number|body?"> {
     return new P.MethodScope({
       parentScope: match.scope,
       args: [new P.ScopeVariable("number")],
-      mapItTo: "number"
+      mapItTo: "number",
+      declaredBy: match
     })
   }
 
@@ -1468,12 +1470,13 @@ class list_iteration extends SpellStatement<"item|position?|list|body?"> {
   /** Nested scope for body -- `{item}` (and optional numeric `{position}`) vars, `it` aliased to `{item}`. */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
     const { item, position } = match.groups
-    const args: P.ScopeVariable[] = [new P.ScopeVariable({ name: item.value })]
-    if (position) args.push(new P.ScopeVariable({ name: position.value, datatype: "number" }))
+    const args: P.ScopeVariable[] = [new P.ScopeVariable({ name: item.value, declaredBy: item })]
+    if (position) args.push(new P.ScopeVariable({ name: position.value, datatype: "number", declaredBy: position }))
     return new P.MethodScope({
       parentScope: match.scope,
       args,
-      mapItTo: item.value
+      mapItTo: item.value,
+      declaredBy: match
     })
   }
   /**
@@ -1595,10 +1598,11 @@ class list_range_iteration extends SpellStatement<"item|start|end|body?"> {
    *   `mapItTo` -- `it` is NOT aliased to `{item}` here, possibly a missed feature.
    */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
-    const arg = singularize(match.groups.item.value)
+    const { item } = match.groups
     return new P.MethodScope({
       parentScope: match.scope,
-      args: [new P.ScopeVariable(arg)]
+      args: [new P.ScopeVariable({ name: singularize(item.value), declaredBy: item })],
+      declaredBy: match
     })
   }
   getAST(match: P.MatchFor<this>): P.ASTExpression {

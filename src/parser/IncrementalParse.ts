@@ -158,7 +158,7 @@ export class IncrementalParse {
           }))
           this.items = [...kept, ...region, ...later]
           this.match = this.assemble(newRoot, tokens)
-          this.parser.tokenizer.moveTokens(laterTokens, newItems[index]!.offset - laterTokens[0]!.offset, text)
+          this.parser.tokenizer.moveTokens(laterTokens, newItems[index]!.start - laterTokens[0]!.start, text)
           return "region"
         }
       }
@@ -229,7 +229,7 @@ export class IncrementalParse {
     this.items[position] = { ...item, match: newMatch }
     this.match = this.assemble(newRoot, tokens)
     // ...moved by however much the body grew or shrank.
-    const delta = laterTokens.length ? newRoot.tokens[index + 1]!.offset - laterTokens[0]!.offset : 0
+    const delta = laterTokens.length ? newRoot.tokens[index + 1]!.start - laterTokens[0]!.start : 0
     this.parser.tokenizer.moveTokens(laterTokens, delta, text)
     this.text = text
     return true
@@ -331,7 +331,7 @@ export type IncrementalUpdate = "same" | "body" | "region" | "rewound"
 
 /**
  * Is old item `oldIndex` the same as new item `newIndex`:  same kind, same source text, same indent?
- * - An item's source runs from its `offset` to the next item's, as `LineToken` / `BlockToken` have no `raw`.
+ * - An item's source runs from its `start` to the next item's, as `LineToken` / `BlockToken` have no `raw`.
  * - Compares `indent` too, as a blank line's comes from the line AFTER it.
  */
 function itemsMatch(
@@ -351,5 +351,5 @@ function itemsMatch(
 
 /** Source text of item `index`, up to the next item. */
 function itemText(items: P.Token[], text: string, index: number) {
-  return text.slice(items[index]!.offset, items[index + 1]?.offset ?? text.length)
+  return text.slice(items[index]!.start, items[index + 1]?.start ?? text.length)
 }

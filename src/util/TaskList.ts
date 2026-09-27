@@ -243,6 +243,8 @@ export class TaskList extends Task {
   /**
    * Create a `TaskList` from `list`, calling `getTask(item)` to build a `Task` per item.
    * - `list` can be an array or a `function` which returns an array dynamically.
+   * - A `function` is read EACH TIME the list runs (`getTasks()`), not when it's built,
+   *   so a list built early still sees what an earlier task loaded, e.g. a project's memoized `parser`.
    * - All other props are passed directly to the `TaskList`.
    */
   static forEach<T>({
@@ -250,12 +252,26 @@ export class TaskList extends Task {
     getTask,
     ...props
   }: { list: T[] | (() => T[]); getTask: (input: T) => Task<unknown> } & Omit<TaskListProps, "run">) {
-    const inputs = typeof list === "function" ? [...list()] : [...list]
-    return new TaskList({
-      resolveWith: TaskResolveWith.RESULTS,
-      tasks: inputs.map((input) => getTask(input)),
-      ...props
-    })
+    return new ForEachTaskList({ resolveWith: TaskResolveWith.RESULTS, ...props }, list, getTask)
+  }
+}
+
+/** `TaskList.forEach()`'s list:  rebuilds its tasks from `list` every time it runs. */
+class ForEachTaskList<T> extends TaskList {
+  constructor(
+    props: Partial<TaskListProps>,
+    private readonly list: T[] | (() => T[]),
+    private readonly getTask: (input: T) => Task<unknown>
+  ) {
+    super(props)
+  }
+
+  /** Fresh tasks for the CURRENT `list`. */
+  getTasks() {
+    const inputs = typeof this.list === "function" ? this.list() : this.list
+    this.tasks = []
+    this.addTasks(...inputs.map((input) => this.getTask(input)))
+    return this.tasks
   }
 }
 

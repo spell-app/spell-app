@@ -18,6 +18,11 @@ export class TypeScope extends BlockScope {
   declare superType?: string
   /** If true, the type was created as a stub. */
   declare stub?: boolean
+  /**
+   * Match whose `mutateScope()` declared this type, if it came from source -- for go-to-definition etc.
+   * - For a `stub`, its FIRST mention, e.g. a property definition before the type's own `is a` line.
+   */
+  declare declaredBy: P.Match | undefined
 
   /** Create with a string `typeName`, or `TypeScopeProps` object; normalizes `name`/`superType` to Type_Case. */
   constructor(typeName: string)
@@ -91,6 +96,8 @@ export type TypeScopeProps = {
   superType?: string
   /** If true, the type was created as a stub. */
   stub?: boolean
+  /** See `TypeScope.declaredBy`. */
+  declaredBy?: P.Match
   /** Instance methods, including `constructor` if provided. */
   methods?: P.MethodScope[]
   /** Instance variables. */

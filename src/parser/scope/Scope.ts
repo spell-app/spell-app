@@ -53,19 +53,21 @@ export class Scope extends Derivative {
    * Register `rule` on our `parser` and record the pair in `this.rules`, so the scope knows what it created.
    * - Use this for rules built WHILE PARSING, e.g. the call-site rule for a method the file just defined.
    * - `definition` is type-checked against `rule`'s own props, exactly as `parser.addRule()` is.
+   * - `declaredBy` is the match declaring it (the method definition, say), kept for go-to-definition etc.
    * - Returns what `parser.addRule()` returned:  the rule instance(s), or `undefined` if `definition.skip`.
    */
   addRule<RuleType extends P.Rule>(
     rule: Class<RuleType>,
-    definition?: P.DefinitionFor<RuleType>
+    definition?: P.DefinitionFor<RuleType>,
+    declaredBy?: P.Match
   ): P.Rule | P.Rule[] | undefined {
     const { parser } = this
     if (!parser) throw new TypeError(`scope.addRule(): called on scope without a parser.`)
     const added = parser.addRule(rule, definition)
     // NOTE: `definition` may be undefined -- store an empty object so an export can always spread it.
     if (!added) return undefined
-    const name = (Array.isArray(added) ? added[0]!.name : added.name)!
-    this.rules?.add({ name, rule, definition: definition ?? {} })
+    const instances = Array.isArray(added) ? added : [added]
+    this.rules?.add({ name: instances[0]!.name!, rule, definition: definition ?? {}, declaredBy, instances })
     return added
   }
 

@@ -84,7 +84,8 @@ class on extends SpellStatement<"eventName|props?|body?"> {
     const methodScopeProps: P.MethodScopeProps = {
       parentScope: match.scope,
       name: eventName.value,
-      args
+      args,
+      declaredBy: match
     }
     return new P.MethodScope(methodScopeProps)
   }
@@ -124,6 +125,7 @@ class on extends SpellStatement<"eventName|props?|body?"> {
 events.addRule(on, {
   alias: "statement",
   syntax: "on event? {eventName:keyword} {props:with_props_arg}? :? {statement_body}?",
+  declares: { kind: "event", name: "eventName" },
   tests: [
     {
       compileAs: "block",

@@ -9,7 +9,7 @@ export type TokenConstructor = new (args: any) => P.Token
  */
 export type TokenProps<ValueType = any> = {
   /** Start character position in full source stream. */
-  offset: number
+  start: number
   /** Raw input string which was matched, generally NOT including leading/trailing whitespace. */
   raw?: string
   /** Whitespace string which was matched between this token and the next in the stream. */

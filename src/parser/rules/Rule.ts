@@ -265,6 +265,8 @@ export abstract class Rule<
    * - Leave `undefined` to work it out from whether we override `mutateScope()`.
    */
   @proto static changesScope?: P.ScopeChanges = undefined
+  /** What our matches declare, for editors' symbol lists -- see `getDeclaration()`. */
+  @proto static declares?: P.DeclaresSpec = undefined
   /** Datatype. */
   static datatype?: string
   /** Description. */
@@ -324,6 +326,8 @@ export abstract class Rule<
   declare isLeftRecursive: boolean | undefined
   /** What committing our match changes in scope, if set explicitly -- see `getScopeChanges()`. */
   declare changesScope: P.ScopeChanges | undefined
+  /** What our matches declare, for editors' symbol lists -- see `getDeclaration()`. */
+  declare declares: P.DeclaresSpec | undefined
 
   ////////////////
   // ## Type arguments -- type-only, nothing here exists at runtime
@@ -455,6 +459,31 @@ export abstract class Rule<
   }
 
   ////////////////
+  // ## Declarations
+  ////////////////
+
+  /**
+   * What `match` declares, for editors' symbol lists (outline, go to symbol), or `undefined` if nothing.
+   * - Default reads our `declares` spec, e.g. `declares: { kind: "property", name: "property", of: "type" }`.
+   * - Override for what a spec can't say, e.g. when only SOME matches declare something.
+   * - Pure, like `getAST()`:  reads `match` and its `data`, NEVER scope.
+   */
+  getDeclaration(match: P.MatchFor<this>): P.Declaration | undefined {
+    const { declares } = this
+    // Generic `Groups` keeps `MatchFor<this>` from narrowing to a plain `P.Match` -- cast once.
+    const plainMatch = match as P.Match
+    const nameMatch = declares && groupAt(plainMatch, declares.name)
+    if (!declares || !nameMatch) return undefined
+    return {
+      kind: declares.kind,
+      name: nameMatch.inputText.trimEnd(),
+      nameMatch,
+      of: declares.of && textOf(groupAt(plainMatch, declares.of)),
+      detail: declares.detail && textOf(groupAt(plainMatch, declares.detail))
+    }
+  }
+
+  ////////////////
   // ## Rulex syntax
   ////////////////
 
@@ -512,6 +541,8 @@ export type RuleProps = {
   isLeftRecursive?: boolean
   /** What committing our match changes in scope -- see `getScopeChanges()`. */
   changesScope?: P.ScopeChanges
+  /** What our matches declare, for editors' symbol lists -- see `getDeclaration()`. */
+  declares?: P.DeclaresSpec
 }
 
 /**
@@ -526,3 +557,19 @@ const STRUCTURE_PROPS = ["rules", "rule", "literal", "literals"]
  *   silently ignores its own definition.
  */
 const PLAIN_STATICS = ["ruleName", "tests", "skip"]
+
+////////////////
+// ## Helpers
+////////////////
+
+/** Group at dotted `path` in `match`, e.g. `type_property.property`, if it's a single match. */
+function groupAt(match: P.Match, path: string): P.Match | undefined {
+  let found: unknown = match
+  for (const name of path.split(".")) found = found instanceof P.Match ? found.groups[name] : undefined
+  return found instanceof P.Match ? found : undefined
+}
+
+/** `match`'s source text without trailing whitespace, or `undefined` if there's no match. */
+function textOf(match: P.Match | undefined): string | undefined {
+  return match?.inputText.trimEnd()
+}

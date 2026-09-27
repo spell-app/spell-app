@@ -1,0 +1,50 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`SpellLanguageService > structure > document symbols:  properties and methods nest under their type 1`] = `
+[
+  "Card (Class)
+  rank (Property)
+  suit (Property)
+  color (Property)
+  value (Property)
+  direction (Property)
+  "is face up" (Method)
+  "is face down" (Method)
+  "is a face card" (Method)
+  "is a (suit)" (Method)
+  "is a (rank)" (Method)
+  "is the (rank) of (suits)" (Method)
+  name (Property)
+  short-suit (Property)
+  short-rank (Property)
+  short-direction (Property)
+  short-name (Property)
+  state (Property)
+  turn (a card) face up (Method)
+  turn (a card) face down (Method)
+  turn (a card) over (Method)
+  draw (a card) (Method)
+    className (Variable)",
+  "card setup (Function)
+  the card (Variable)",
+]
+`;
+
+exports[`SpellLanguageService > structure > folding ranges 1`] = `
+[
+  "36-41",
+  "43-46",
+  "48-50",
+  "60-62",
+  "63-65",
+  "69-72",
+  "74-81",
+  "76-77",
+  "84-117",
+  "78-81",
+  "4-5 comment",
+  "20-21 comment",
+  "58-59 comment",
+  "67-68 comment",
+]
+`;

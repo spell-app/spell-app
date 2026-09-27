@@ -15,10 +15,15 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - comments are a single `CommentToken` to end of line
 - Some tokens span lines:  a JSX element (e.g. a whole `return <div>...</div>` body) or a string with `\n`
   is ONE token inside ONE `LineToken`.  JSX `{...}` contents are re-tokenized later from a collapsed copy.
-- Every token has an absolute `offset`.  `Tokenizer.setPositions()` works out `line` / `ch` FROM it,
+- Every token has an absolute `start`.  `Tokenizer.setPositions()` works out `line` / `ch` FROM it,
   via `getLineStarts()` + `positionForOffset()` (`tokenizer.types.ts`), including tokens nested in JSX.
-  - NOTE: `LineToken` / `BlockToken` copy `line` from their first token;  JSX `{...}` contents re-tokenized
-    later from a collapsed copy have offsets relative to that copy, NOT the file.
+  - NOTE: `LineToken` / `BlockToken` copy `line` from their first token.
+  - JSX `{...}` contents are parsed later from a trimmed, newline-collapsed copy (same length), so the JSX rules
+    (`placeInFile()` in `rules/JSX.ts`) shift those tokens to their file positions and hang them on the
+    `JSXExpressionToken` as `innerTokens`, where `Tokenizer.forEachToken()` (so `moveTokens()`) reaches them.
+- A token's / match's `end` is where its TEXT stops;  `next` is where the next token starts, i.e. `end` plus
+  the trailing whitespace (tokens carry the whitespace after them).  Ranges a user sees use `end`;
+  "which match is the cursor in" (`matchForOffset()`) uses `next`.
 
 ## Rules and matching
 
@@ -68,6 +73,8 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     `if`/`else` => new `BlockScope`;  methods, events, property getters, list loops => new `MethodScope`
 - Errors are never thrown.  `parse_error` matches roll up into `match.data.errors` on `line` / `block`
   matches (`getParseErrors()`), and compile to `/* PARSE ERROR: ... */`.
+  - errors inside JSX `{...}` live in the JSX rules' `match.data`, not `matched`;  `BlockLine` gathers them from
+    anywhere in its statement (`getJSXParseErrors()`) into `data.errors` too -- reported, but compiled in place
 
 ## Scope:  what's stored where
 
@@ -86,8 +93,15 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     so inside a body they stay local
   - `get` / `set it to` ALWAYS declare a new `it` (`declareIt()`):  plain `it`, then `it_2`, `it_3`... numbered
     from the visible `it`'s `output`, skipping names in use -- so callbacks keep the `it` they captured
-  - types:  `create_type`, `create_list_type` (`classes.ts`)
+  - types:  `create_type`, `create_list_type` (`classes.ts`);  a type mentioned before its own line is a
+    `stub`, which its real declaration later claims (`claimStubType()`, journaled)
   - properties:  `define_property_has` adds type variables, constants for each value, AND a rule
+- Every record a `mutateScope()` adds -- `ScopeVariable`, `ScopeConstant`, `TypeScope`, `ScopeRule` -- carries
+  `declaredBy`, the match which declared it (for go-to-definition etc.), and a `ScopeRule` its built
+  `instances`, so a call-site `match.rule` maps back to its definition.  `MethodScope` stamps its
+  `declaredBy` on the argument / alias variables it makes.
+- What a statement declares, for editors' symbol lists, comes from its rule:  `declares` in the definition, or a
+  `getDeclaration()` override (`assignment` only counts NEW variables, `MethodDefinition` reads its signature).
   - quoted aliases (`a card "is face up" if ...`):  `quoted_property_formula` adds an `expression_suffix` rule
   - methods (`to turn (a card) over`):  `MethodDefinition` adds a rule (`methods.ts`).  Methods live ONLY as
     parser rules;  `scope.methods` is never filled in production.
@@ -110,6 +124,8 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 
 - `SpellProject` (`src/languages/spell/SpellProject.ts`):  files in `.imports.json` order,
   e.g. Card → Deck → Pile → Solitaire.
+- `SpellProject` / `SpellFile` load over HTTP (`$fetch()` on `/api/projects/...`) -- via `LoadableFile.fetch`,
+  which a node host swaps for `diskFetch()` (`src/server/disk-fetch.ts`) to answer the same URLs from disk.
 - Each project `parse()` / `compile()` builds a FRESH `ProjectScope` with `parser.clone()` (empty own rules,
   imports the base spell parser).  Every file gets a `FileScope` under it and SHARES that parser.
 - So one file's types, constants and rules are visible to every later file.

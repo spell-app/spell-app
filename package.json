@@ -1,13 +1,8 @@
 {
   "name": "spell-parser",
-  "repository": "https://github.com/oakjs/parser",
   "license": "MIT",
+  "repository": "https://github.com/oakjs/parser",
   "type": "module",
-  "engines": {
-    "node": ">=22.17"
-  },
-  "packageManager": "yarn@4.18.0",
-  "browserslist": "> 1%, node > 22",
   "scripts": {
     "docker": "docker compose up",
     "docker-bg": "docker compose up --detach",
@@ -15,6 +10,7 @@
     "dev": "vite",
     "server": "tsx watch src/server/index.ts",
     "server:prod": "tsx src/server/index.ts",
+    "lsp": "tsx src/lsp/server.ts --stdio",
     "start": "yarn; concurrently \"yarn dev\" \"yarn server\"",
     "build": "tsc && vite build",
     "preview": "vite preview",
@@ -69,7 +65,9 @@
     "react-router-dom": "^6.22.3",
     "semantic-ui-css": "^2.5.0",
     "semantic-ui-react": "3.0.0-beta.2",
-    "uuid": "^8.2.0"
+    "uuid": "^8.2.0",
+    "vscode-languageserver": "^10.1.2",
+    "vscode-languageserver-textdocument": "^1.0.15"
   },
   "devDependencies": {
     "@types/codemirror": "^5.60.18",
@@ -96,5 +94,10 @@
     "typescript": "^7.0.2",
     "vite": "^8.3.0",
     "vitest": "^5.0.1"
-  }
+  },
+  "browserslist": "> 1%, node > 22",
+  "engines": {
+    "node": ">=22.17"
+  },
+  "packageManager": "yarn@4.18.0"
 }

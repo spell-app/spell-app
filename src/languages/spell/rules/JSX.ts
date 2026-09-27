@@ -298,7 +298,8 @@ class SpellJSXAttribute extends P.TokenType<never, JSXMatchData> {
         const methodScopeProps: P.MethodScopeProps = {
           parentScope: scope,
           args: ["event"],
-          mapItTo: "this"
+          mapItTo: "this",
+          declaredBy: match
         }
         const methodScope = new P.MethodScope(methodScopeProps)
         const statement = methodScope.parse(input, "statement")
@@ -316,6 +317,7 @@ class SpellJSXAttribute extends P.TokenType<never, JSXMatchData> {
       // if neither worked, parse error
       if (!match.data.expression && !match.data.statement) match.data.error = scope.parse(input, "parse_error")
       // console.warn({ match, name: match.data.attribute, inputIsExpression, value, input })
+      if (inputIsExpression) placeInFile(match.data.statement ?? match.data.expression ?? match.data.error, value)
     }
     return match
   }
@@ -424,7 +426,8 @@ class SpellJSXExpression extends P.TokenType<never, JSXMatchData> {
     if (!match) return undefined
     // trim and remove newlines from expression (???)
     // See note above re: `JSXExpression.contents` being typed `string | Token`.
-    const input = ((match.matched[0] as P.JSXExpressionToken).contents as string).trim().replace(/\n/g, " ")
+    const jsxToken = match.matched[0] as P.JSXExpressionToken
+    const input = (jsxToken.contents as string).trim().replace(/\n/g, " ")
     // only match expression if we used all of the input
     const expression = scope.parse(input, "expression")
     if (expression && expression.inputText.length === input.length) {
@@ -432,6 +435,7 @@ class SpellJSXExpression extends P.TokenType<never, JSXMatchData> {
     } else {
       match.data.error = scope.parse(input, "parse_error")
     }
+    placeInFile(match.data.expression ?? match.data.error, jsxToken)
     return match
   }
   getAST(match: P.MatchFor<this>) {
@@ -449,11 +453,58 @@ JSX.addRule(SpellJSXExpression, {
 })
 
 /**
- * `match.data.error`, but only for matches from JSX rules that can ever carry one (`jsxAttribute` and
- * `jsxExpression` -- `jsxElement` never sets it).  Lets a caller check an arbitrary match (e.g. a
- * `statement` match of unknown concrete rule) for this without an ad hoc field on `Match` itself.
+ * Parse errors from JSX `{...}` contents anywhere in `statement`, e.g. `print <div>{foo bar}</div>`.
+ * - JSX rules keep what they parse out of their tokens in `match.data`, not `matched`,
+ *   so nothing else finds these.
+ * - Looks through the statement's own matches and any inline body.
+ *   NOT an indented body:  that's a `block`, which gathers its own errors.
+ * - The errors still compile where they are, inside the JSX.  This is just so they're REPORTED.
  */
-export function getJSXParseError(match: P.Match): P.Match | undefined {
-  if (match.is(SpellJSXAttribute) || match.is(SpellJSXExpression)) return match.data.error
-  return undefined
+export function getJSXParseErrors(statement: P.Match): P.Match[] {
+  const errors: P.Match[] = []
+  visit(statement)
+  return errors
+
+  /** Collect `match`'s JSX error, if it has one, then look below it. */
+  function visit(match: P.Match) {
+    if (match.rule.name === "block") return
+    const below: Array<P.Match | P.Token | undefined> = [...match.matched]
+    if (match.is(SpellJSX)) below.push(...(match.data.attributes ?? []), ...(match.data.children ?? []))
+    if (match.is(SpellJSXAttribute) || match.is(SpellJSXExpression)) {
+      if (match.data.error) errors.push(match.data.error)
+      below.push(match.data.expression, match.data.statement)
+    }
+    below.push(match.data.body as P.Match | undefined)
+    for (const item of below) if (item instanceof P.Match) visit(item)
+  }
+}
+
+////////////////
+// ## Helpers
+////////////////
+
+/**
+ * Move tokens `parsed` from a COPY of `jsxToken`'s `{...}` contents to where that text sits in the FILE,
+ * so errors and positions inside JSX line up with the source.
+ * - The copy is trimmed, with newlines collapsed to spaces:  same length, so one shift puts every token right.
+ * - Copy's char 0 is the file's `{`, plus 1, plus whatever whitespace `trim()` dropped in front.
+ * - `line` / `ch` come from `jsxToken`'s own, counting the newlines in its `raw` up to each inner token.
+ *   The copy lost them, and we haven't got the file text here.
+ * - SIDE EFFECT:  remembers the tokens as `jsxToken.innerTokens`,
+ *   so `Tokenizer.forEachToken()` keeps them current after an edit.
+ * - Losing candidates parse the same token too, so `innerTokens` may hold tokens of matches nobody kept.
+ *   Moving those as well is harmless.
+ */
+function placeInFile(parsed: P.Match | undefined, jsxToken: P.JSXExpressionToken) {
+  const { contents, raw, start, line = 0, ch = 0 } = jsxToken
+  if (!parsed || typeof contents !== "string" || !raw) return
+  const lead = contents.length - contents.trimStart().length
+  P.Tokenizer.shiftTokens(parsed.tokens, start + raw.indexOf("{") + 1 + lead)
+  P.Tokenizer.forEachToken(parsed.tokens, (token) => {
+    const before = raw.slice(0, token.start - start)
+    const lastNewline = before.lastIndexOf("\n")
+    token.record.line = line + (before.split("\n").length - 1)
+    token.record.ch = lastNewline === -1 ? ch + before.length : before.length - lastNewline - 1
+  })
+  ;(jsxToken.innerTokens ??= []).push(...parsed.tokens)
 }

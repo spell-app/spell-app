@@ -34,17 +34,27 @@ SP.SpellLocation.useRegistry = false
  */
 Object.defineProperty(SP.SpellLocation.prototype, "serverPath", {
   get() {
-    const path = [
-      this.owner === "@system" ? environment.systemFilesRoot : environment.userFilesRoot,
-      this.domain,
-      this.projectName
-    ]
+    const path = [serverPathForRoot(this.projectRoot), this.projectName]
     if (this.filePath) path.push(...this.filePath.split("/"))
     const serverPath = fileUtils.normalizePath(...path.filter(Boolean))
     console.warn(`Server path for path '${this.path}' => '${serverPath}'`)
     return serverPath
   }
 })
+
+/**
+ * Folder on disk holding project root `rootPath`'s projects, one sub-folder each.
+ * - A root added at runtime says where with `spec.serverPath`.
+ * - A built-in root lives in a folder named for its `domain`,
+ *   under `environment.systemFilesRoot` or `userFilesRoot` by its `owner`.
+ * - Throws if `rootPath` isn't a known root.
+ */
+export function serverPathForRoot(rootPath: SP.ProjectRootPath): string {
+  const spec = SP.SpellSetup.projectSpectForRootPath(rootPath)
+  if (spec.serverPath) return spec.serverPath
+  const filesRoot = spec.owner === "@system" ? environment.systemFilesRoot : environment.userFilesRoot
+  return fileUtils.normalizePath(filesRoot, spec.domain)
+}
 
 /** Default file created for a brand-new project, or when `getIndex()` finds a project with zero files. */
 const DEFAULT_FILE = {

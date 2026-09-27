@@ -28,4 +28,21 @@ describe("testing spell module assignment", () => {
       expect(newIt?.output).toBeUndefined()
     })
   })
+
+  describe("declarations", () => {
+    test("a new variable's `declaredBy` is the assignment", () => {
+      const scope = spellParser.getScope("assignment-declaration")
+      scope.parse("set foo to 1", "block")
+      expect(scope.variables.get("foo")?.declaredBy?.rule.name).toBe("assignment")
+    })
+    test("a numbered `it`'s `declaredBy` is its `get`", () => {
+      const scope = spellParser.getScope("get-declaration")
+      scope.variables.add("thing")
+      scope.parse("get thing\nget thing", "block")
+      const it = scope.variables.get("it")
+      expect(it?.output).toBe("it_2")
+      expect(it?.declaredBy?.rule.name).toBe("get")
+      expect(it?.declaredBy?.line).toBe(1)
+    })
+  })
 })

@@ -70,7 +70,7 @@ export const outputOptions: SpellCodeMirrorOptions = {
 CodeMirror.defineMode("spell", (): CodeMirror.Mode<SpellModeState> => {
   /** Return token that starts at numeric `offset`, or `undefined` if none does. */
   function getToken(tokens: P.Token[] | undefined, offset: number): P.Token | undefined {
-    return tokens?.find((token) => token.offset >= offset)
+    return tokens?.find((token) => token.start >= offset)
   }
 
   /** Advance `stream` past `token`, one char at a time (CodeMirror has no bulk-advance API). */

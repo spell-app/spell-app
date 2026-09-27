@@ -47,3 +47,7 @@ Log of things that slowed down development. Date · symptom · fix · project.
 - 2026-09-27 · `console.log` inside a TEST body also vanished from `npx vitest run <file> --silent=false` with the
   default reporter -- first run printed nothing, looked like the probe didn't execute. · Add `--reporter=verbose`
   (or write to a scratch file, as above). · spell/parser
+- 2026-09-27 · "Type errors" in `SpellLanguageServer.ts` in the editor, but `tsc` (TS 7) AND the editor's own TS 6 build
+  both passed clean.  They were oxlint's TYPE-AWARE rules (`typescript(no-floating-promises)`), which the Oxc extension
+  shows as red squiggles just like tsc. · Run `npx oxlint src/<path>` before hunting TS versions.  Dropped
+  `connection.sendDiagnostics()` / `sendNotification()` promises need `.catch()` or `await`. · spell/parser

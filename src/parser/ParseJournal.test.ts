@@ -13,7 +13,12 @@ describe("ParseJournal", () => {
     const rootScope = SP.SpellParser.rootScope
     const parser = rootScope.parser!.clone({ module: "/journal-test" })
     parser.journal = new P.ParseJournal()
-    const projectScope = new P.ProjectScope({ name: "journal-test", path: "/journal-test", parser, parentScope: rootScope })
+    const projectScope = new P.ProjectScope({
+      name: "journal-test",
+      path: "/journal-test",
+      parser,
+      parentScope: rootScope
+    })
     const fileScopes = loadExampleProject("Solitaire").map(
       ({ path }) => new P.FileScope({ name: path, path, parentScope: projectScope })
     )
@@ -31,6 +36,26 @@ describe("ParseJournal", () => {
 
     parser.journal.replay(undone)
     expect(describeState(parser, projectScope, fileScopes)).toEqual(parsed)
+  })
+
+  test("declared records point at their declaring match, and go with a rewind", () => {
+    const rootScope = SP.SpellParser.rootScope
+    const parser = rootScope.parser!.clone({ module: "/journal-declarations" })
+    parser.journal = new P.ParseJournal()
+    const projectScope = new P.ProjectScope({ name: "decl", path: "/decl", parser, parentScope: rootScope })
+    const fileScope = new P.FileScope({ name: "/Card.spell", path: "/Card.spell", parentScope: projectScope })
+    const mark = parser.journal.mark()
+    fileScope.parse(loadExampleProject("Solitaire")[0]!.contents, "block")
+
+    const card = projectScope.types.get("Card")
+    expect(card?.declaredBy?.rule.name).toBe("create_type")
+    expect(card?.declaredBy?.getScopeOfType(P.FileScope)).toBe(fileScope)
+    const rule = projectScope.rules.get().find((it) => it.declaredBy?.rule.name === "to_do_something")
+    expect(rule?.instances?.length).toBeGreaterThan(0)
+
+    parser.journal.rewindTo(mark)
+    expect(projectScope.types.get("Card")).toBeUndefined()
+    expect(projectScope.rules.get()).toEqual([])
   })
 })
 
@@ -51,6 +76,8 @@ function describeState(parser: P.Parser, projectScope: P.ProjectScope, fileScope
     constants: names(projectScope.constants),
     scopeRules: names(projectScope.rules),
     fileVariables: fileScopes.map((scope) => names(scope.variables)),
-    rules: Object.entries(parser.rules).map(([name, rule]) => `${name}:${rule instanceof P.Group ? rule.rules.length : 1}`)
+    rules: Object.entries(parser.rules).map(
+      ([name, rule]) => `${name}:${rule instanceof P.Group ? rule.rules.length : 1}`
+    )
   }
 }

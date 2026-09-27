@@ -93,3 +93,12 @@ describe("match.is()", () => {
     expect(match.is(P.Pattern)).toBe(false)
   })
 })
+
+describe("Match positions", () => {
+  test("`end` stops at the text, `next` includes trailing whitespace", () => {
+    const match = makeParser().parse("a is b   ", "typed")!
+    expect(match.start).toBe(0)
+    expect(match.end).toBe("a is b".length)
+    expect(match.next).toBe("a is b   ".length)
+  })
+})

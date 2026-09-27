@@ -46,13 +46,31 @@ export const classes = new SpellParser({ module: "classes" })
  * Look up `typeName` in `scope.types`, creating a stub (`{ stub: true }`) entry if it isn't defined yet.
  * - Lets a property/method be declared on a type before that type's own `is a` statement has been parsed,
  *   e.g. forward references or types defined later in the same file.
+ * - `declaredBy` (the mentioning match) becomes the stub's `declaredBy` until `claimStubType()` upgrades it.
  */
-function getOrStubType(scope: P.Scope, typeName: string): P.TypeScope {
+function getOrStubType(scope: P.Scope, typeName: string, declaredBy: P.Match): P.TypeScope {
   let typeScope = scope.types?.get(typeName)
   if (!typeScope) {
-    ;[typeScope] = scope.types!.add({ name: typeName, stub: true })
+    ;[typeScope] = scope.types!.add({ name: typeName, stub: true, declaredBy })
   }
   return typeScope
+}
+
+/**
+ * `typeScope` was stubbed by an earlier mention (see `getOrStubType()`), and `match` now really declares it.
+ * - Clears `stub` and makes `match` its `declaredBy`, journaled so incremental parsing can take that back.
+ * - Changes the existing object in place, NOT `types.replace()`:
+ *   matches parsed so far point at it (`data.scopeType`), and it may already hold property `classVariables`.
+ * - NOTE: `superType` is left alone -- compiled output never reads it from the `TypeScope`.
+ */
+function claimStubType(typeScope: P.TypeScope, match: P.Match) {
+  const previous = { stub: typeScope.stub, declaredBy: typeScope.declaredBy }
+  const next = { stub: false, declaredBy: match }
+  Object.assign(typeScope, next)
+  match.scope.parser?.journal?.record({
+    undo: () => Object.assign(typeScope, previous),
+    redo: () => Object.assign(typeScope, next)
+  })
 }
 
 ////////////////
@@ -70,10 +88,14 @@ function getOrStubType(scope: P.Scope, typeName: string): P.TypeScope {
 class create_type extends SpellStatement<"type|superType"> {
   mutateScope(match: P.MatchFor<this>) {
     const { type, superType } = match.groups
-    // Forget it if type is already defined.
+    // Forget it if type is already defined, unless it was only stubbed by an earlier mention.
     // TODO: complain if existing type is set up differently!
-    if (match.scope.types?.get(type.value)) return
-    match.scope.types?.add({ name: type.value, superType: superType.value })
+    const existing = match.scope.types?.get(type.value)
+    if (existing) {
+      if (existing.stub) claimStubType(existing, match)
+      return
+    }
+    match.scope.types?.add({ name: type.value, superType: superType.value, declaredBy: match })
   }
   getAST(match: P.MatchFor<this>): P.ASTStatementGroup {
     const { type, superType } = match.groups
@@ -95,6 +117,7 @@ classes.addRule(create_type, {
   precedence: 10,
   alias: "statement",
   syntax: "(a|an) {type} is (a|an) {superType:type}",
+  declares: { kind: "type", name: "type", detail: "superType" },
   tests: [
     {
       compileAs: "statement",
@@ -123,11 +146,14 @@ classes.addRule(create_type, {
 class create_list_type extends SpellStatement<"type|instanceType"> {
   mutateScope(match: P.MatchFor<this>) {
     const { type } = match.groups
-    // Forget it if type is already defined.
+    // Forget it if type is already defined, unless it was only stubbed by an earlier mention.
     // TODO: complain if existing type is set up differently!
-    if (match.scope.types?.get(type.value)) return
-
-    match.scope.types?.add({ name: type.value, superType: "list" })
+    const existing = match.scope.types?.get(type.value)
+    if (existing) {
+      if (existing.stub) claimStubType(existing, match)
+      return
+    }
+    match.scope.types?.add({ name: type.value, superType: "list", declaredBy: match })
   }
   getAST(match: P.MatchFor<this>): P.ASTStatementGroup {
     const { type, instanceType } = match.groups
@@ -159,6 +185,7 @@ classes.addRule(create_list_type, {
     "(a|an) {type} is a list of {instanceType:type}"
     // TODO: "{plural_type} are a list of ..."
   ],
+  declares: { kind: "type", name: "type", detail: "instanceType" },
   tests: [
     {
       compileAs: "statement",
@@ -458,7 +485,7 @@ class define_property_has extends SpellStatement<"type|property|specifier?", { r
     const specifierAST = specifier?.AST
 
     const typeName = type.value
-    const typeScope = getOrStubType(scope, typeName)
+    const typeScope = getOrStubType(scope, typeName, match)
 
     // If there is a specifier as enumerated values, add rules to match it
     if (specifierAST instanceof P.ASTEnumeration) {
@@ -468,7 +495,8 @@ class define_property_has extends SpellStatement<"type|property|specifier?", { r
       const varProps: P.ScopeVariableProps & { enumeration: Array<string | number> } = {
         name: groupName,
         enumeration: values,
-        initializer: `[${values.join(", ")}]`
+        initializer: `[${values.join(", ")}]`,
+        declaredBy: match
       }
       // Add variables to scope for lookup elsewhere
       typeScope.classVariables.add({ ...varProps })
@@ -476,7 +504,7 @@ class define_property_has extends SpellStatement<"type|property|specifier?", { r
 
       // Add enumeration string values to scope as constants.
       values.forEach((value) => {
-        if (typeof value === "string") scope.constants?.add(value)
+        if (typeof value === "string") scope.constants?.add({ name: value, declaredBy: match })
       })
 
       // Add multi-word identifier rule which returns enumeration, e.g. `card suits` or `Card Suits`
@@ -495,7 +523,8 @@ class define_property_has extends SpellStatement<"type|property|specifier?", { r
             })
           }
         },
-        { name: `${typeName}_${groupName}`, precedence: 20, alias: "expression", literals }
+        { name: `${typeName}_${groupName}`, precedence: 20, alias: "expression", literals },
+        match
       )
 
       // Add comment string which we'll output below
@@ -558,6 +587,7 @@ classes.addRule(define_property_has, {
     "(a|an) {type:singular_type} has (a|an|a property) {property} {specifier:type_specifier}?",
     "{type:plural_type} have (a|an|a property) {property} {specifier:type_specifier}?"
   ],
+  declares: { kind: "property", name: "property", of: "type", detail: "specifier" },
   tests: [
     {
       compileAs: "block",
@@ -670,14 +700,15 @@ class property_value_either extends SpellStatement<PropertyValueEitherGroups> {
     const { value, otherValue, type_property } = match.groups
     const { type } = type_property.groups
     // make sure type is defined
-    getOrStubType(scope, type.value)
+    getOrStubType(scope, type.value, match)
     // `is()` narrows `data` to what `SpellConstant` stashes on its matches.
     // Declare any unknown constant values, and record them on their matches for `SpellConstant.getAST()`.
     for (const constant of [value, otherValue]) {
       if (!constant?.is(SpellConstant)) continue
       const found = constant.data.scopeConstant
       if (found && found !== NONE) continue
-      const known = scope.constants?.get(constant.raw!) ?? scope.constants?.add(constant.raw!)[0]
+      const known =
+        scope.constants?.get(constant.raw!) ?? scope.constants?.add({ name: constant.raw!, declaredBy: match })[0]
       if (known) constant.data.scopeConstant = known
     }
   }
@@ -708,6 +739,7 @@ classes.addRule(property_value_either, {
   alias: "statement",
   syntax:
     "{type_property} is (value:{constant}|{expression}) if {condition:expression} (otherwise it is (otherValue:{constant}|{expression}))?",
+  declares: { kind: "property", name: "type_property.property", of: "type_property.type" },
   tests: [
     {
       compileAs: "statement",
@@ -766,7 +798,8 @@ class property_value_getter extends SpellStatement<"property|type|body?"> {
     return new P.MethodScope({
       parentScope: match.scope,
       thisVar: getKnownType(type).instanceName,
-      mapItTo: "this"
+      mapItTo: "this",
+      declaredBy: match
     })
   }
   getAST(match: P.MatchFor<this>): P.ASTPropertyDefinition {
@@ -783,6 +816,7 @@ class property_value_getter extends SpellStatement<"property|type|body?"> {
 classes.addRule(property_value_getter, {
   alias: "statement",
   syntax: "the {property} of (a|an) {type:known_type} is :? {expression_body}?",
+  declares: { kind: "property", name: "property", of: "type" },
   tests: [
     {
       compileAs: "block",
@@ -1013,7 +1047,8 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources", Quote
           })
         }
       },
-      { name: property, precedence: 20, alias: "expression_suffix", syntax }
+      { name: property, precedence: 20, alias: "expression_suffix", syntax },
+      match
     )
 
     // Add comment string which we'll output below
@@ -1060,6 +1095,7 @@ classes.addRule(quoted_property_formula, {
   precedence: 10,
   alias: "statement",
   syntax: "(a|an) {type} {alias:text} for [sources:(its {property}) and]",
+  declares: { kind: "method", name: "alias", of: "type" },
   tests: [
     {
       beforeEach(scope: P.Scope) {

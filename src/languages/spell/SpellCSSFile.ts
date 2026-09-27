@@ -146,7 +146,7 @@ export class SpellCSSFile extends TextFile {
     if (this.match) return this.match
     await this.load(undefined)
     this.resetCompiled()
-    const token = new P.TextToken({ value: this.contents, raw: this.contents, offset: 0 })
+    const token = new P.TextToken({ value: this.contents, raw: this.contents, start: 0 })
     const scope = this.getScope(parentScope)
     // NOTE: `Scope.parse()` is typed for string input only; call `parser.parse()` directly
     // (exactly what `Scope.parse()` would do internally) so we can pass tokens instead.

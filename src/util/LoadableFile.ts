@@ -10,6 +10,13 @@ export type JSONFileType = Record<string, any> | Array<any>
 
 /** Load a single file from `url`, process according to `format` before returning. */
 export class LoadableFile<FileType, SaveResult = any> extends Loadable<FileType, SaveResult> {
+  /**
+   * How EVERY `LoadableFile` reaches its `url`:  `$fetch()` over HTTP by default.
+   * - Replace it to answer in-process, e.g. from disk under node -- see `src/server/disk-fetch.ts`.
+   * - Same signature and same result shape as `$fetch()`, `format` / `defaultContents` included.
+   */
+  static fetch: typeof $fetch = $fetch
+
   /** Initialize with just a string to set `url` only. */
   constructor(props: LoadableFileProps<FileType> | string) {
     super(typeof props === "string" ? { url: props } : props)
@@ -98,7 +105,7 @@ export class LoadableFile<FileType, SaveResult = any> extends Loadable<FileType,
         params: $params
       })
     }
-    return $fetch($params) as Promise<FileType>
+    return LoadableFile.fetch($params) as Promise<FileType>
   }
 
   /**
@@ -121,7 +128,7 @@ export class LoadableFile<FileType, SaveResult = any> extends Loadable<FileType,
         params: $params
       })
     }
-    return $fetch<SaveResult>($params).then((result) => {
+    return LoadableFile.fetch<SaveResult>($params).then((result) => {
       if (this.autoUpdateContentsOnSave && this.contents !== $params.contents) {
         this.contents = $params.contents
       }

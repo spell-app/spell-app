@@ -97,6 +97,11 @@ when working with code in this repository.
   - `{expression_body}` ~== `({inline_expression}|{nested_statements})`
   - see `BODY_KEYWORDS` in `Statement.ts` for the rest
   - read the parsed body with `this.getBody(match)`, NEVER `match.groups.body` -- see `SpellStatement`
+- A statement that DECLARES something -- a type, property, method, variable, event handler -- says so for
+  editors' symbol lists with `declares` in its definition, naming the groups that hold the name and owning type,
+  e.g. `declares: { kind: "property", name: "property", of: "type" }`.
+  - Override `getDeclaration(match)` for what a spec can't say, e.g. when only SOME matches declare something.
+  - NEVER make editor code switch on rule names -- see `Rule.getDeclaration()`.
 - Rule module layout, top to bottom:
   - header docstring, imports
   - `export const <module> = new SpellParser({ module: "<module>" })` -- at the TOP, classes can't be hoisted to it
@@ -133,8 +138,10 @@ when working with code in this repository.
   `scopeVar` / `scopeConstant` / `scopeType`.
 - ONLY `mutateScope()` changes scope.  `getAST()` MUST be pure:  NEVER change scope, NEVER look it up -- ASTs are
   built lazily, when scope may have moved on.  Look up what the AST needs WHILE PARSING, into `match.data`.
-- A rule built WHILE PARSING goes through `scope.addRule(RuleClass, definition)` -- never `parser.addRule()`
+- A rule built WHILE PARSING goes through `scope.addRule(RuleClass, definition, match)` -- never `parser.addRule()`
   directly -- so the scope records the class + definition pair and can hand on the rules it created.
+- A `mutateScope()` that adds a scope record -- a variable, constant, type, rule or `MethodScope` -- passes
+  `declaredBy: match` (the third argument for `scope.addRule()`), so editors can find where it was declared.
 - Rules are IMMUTABLE (frozen on registration) and shared by every parse.
   NEVER store per-parse state on a rule, NEVER add ad hoc fields to a `Match` -- use `match.data`.
 - Exception to "one exported class per file":  a rule module holds many snake_case rule classes.

@@ -2,7 +2,7 @@ import { P } from "~/parser"
 import { SP } from "~/languages/spell"
 import { SpellStatement, commitStatement } from "./Statement"
 import { Block, type BlockMatchData } from "./Block"
-import { getJSXParseError } from "./JSX"
+import { getJSXParseErrors } from "./JSX"
 
 /**
  * Blank line, compiling to `P.ASTBlankLine` -- generic `P.BlankLine` has no `getAST()` of its own,
@@ -91,6 +91,9 @@ export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
       }
 
       if (statement) {
+        // Errors inside JSX `{...}` -- reported here, but compiled where they are, so NOT added to `matched`.
+        errors.push(...getJSXParseErrors(statement))
+
         const nextItem = lines[1]
         const inlineBody = statement.rule instanceof SpellStatement ? statement.rule.getBody(statement) : undefined
         const committed = commitStatement(statement, nextItem)
@@ -102,15 +105,6 @@ export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
           if (nestedBlockMatch.is(Block) && nestedBlockMatch.data.errors) errors.push(...nestedBlockMatch.data.errors)
           // add the nestedBlock to `tokensMatched` to account for it in the output
           tokensMatched.push(nextItem!)
-        }
-
-        // TODO: not sure if this is needed anymore
-        // Check JSX, that seems to be setting it???
-        const statementError = getJSXParseError(statement)
-        if (statementError) {
-          console.warn("Got unexpected statement.error for", statement.rule.name)
-          errors.push(statementError)
-          matched.push(statementError)
         }
 
         // Add parse error if we got both an inline body and a nested one
@@ -198,4 +192,3 @@ export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
     })
   }
 }
-

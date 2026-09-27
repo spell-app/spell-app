@@ -36,45 +36,47 @@ describe("incremental parsing ~== full parse", () => {
   })
 
   for (const file of files) {
-    test(
-      `edits in ${file.path}`,
-      () => {
-        const project = newProject(files)
-        const lines = file.contents.split("\n")
-        const counts = { same: 0, body: 0, region: 0, rewound: 0, threw: 0 }
-        for (let index = 0, edit = 0; index < lines.length; index += STEP) {
-          const [name, applyEdit] = Object.entries(EDITS)[edit++ % 4]!
-          const edited = [...lines]
-          applyEdit(edited, index)
-          const where = `${file.path} line ${index + 1}, ${name}`
+    test(`edits in ${file.path}`, () => {
+      const project = newProject(files)
+      const lines = file.contents.split("\n")
+      const counts = { same: 0, body: 0, region: 0, rewound: 0, threw: 0 }
+      for (let index = 0, edit = 0; index < lines.length; index += STEP) {
+        const [name, applyEdit] = Object.entries(EDITS)[edit++ % 4]!
+        const edited = [...lines]
+        applyEdit(edited, index)
+        const where = `${file.path} line ${index + 1}, ${name}`
 
-          const editedFiles = files.map((it) => (it.path === file.path ? { ...it, contents: edited.join("\n") } : it))
-          const result = outcome(() => {
-            project.update(file.path, edited.join("\n"))
-            return summarizeIncremental(project)
-          })
-          expect(result, where).toEqual(outcome(() => summarize(parseSpellProject(editedFiles))))
-          if (typeof result === "string") counts.threw++
-          else {
-            counts[project.getFile(file.path)!.lastUpdate!]++
-            expectPositions(project, where)
-          }
-
-          // ...and back again.
-          project.update(file.path, file.contents)
-          expect(summarizeIncremental(project), `${where}, undone`).toEqual(original)
+        const editedFiles = files.map((it) => (it.path === file.path ? { ...it, contents: edited.join("\n") } : it))
+        const result = outcome(() => {
+          project.update(file.path, edited.join("\n"))
+          return summarizeIncremental(project)
+        })
+        expect(result, where).toEqual(outcome(() => summarize(parseSpellProject(editedFiles))))
+        if (typeof result === "string") counts.threw++
+        else {
+          counts[project.getFile(file.path)!.lastUpdate!]++
+          expectPositions(project, where)
         }
-        console.log(`INCREMENTAL ${file.path}: ${JSON.stringify(counts)}`)
-      },
-      600_000
-    )
+
+        // ...and back again.
+        project.update(file.path, file.contents)
+        expect(summarizeIncremental(project), `${where}, undone`).toEqual(original)
+      }
+      console.log(`INCREMENTAL ${file.path}: ${JSON.stringify(counts)}`)
+    }, 600_000)
   }
 
   test("a body can't see names declared after it", () => {
     // `all-piles` is declared in Solitaire.spell, AFTER Card.spell -- a full parse doesn't know it yet.
     const edited = files.map((it) =>
       it.path === "/Card.spell"
-        ? { ...it, contents: it.contents.replace("\tset its direction to up\n", "\tset its direction to up\n\tprint all-piles\n") }
+        ? {
+            ...it,
+            contents: it.contents.replace(
+              "\tset its direction to up\n",
+              "\tset its direction to up\n\tprint all-piles\n"
+            )
+          }
         : it
     )
     const project = newProject(files)
@@ -142,7 +144,11 @@ describe("incremental parsing ~== full parse", () => {
   test.skipIf(!process.env.BENCH)("benchmark", () => {
     const cases: Record<string, [path: string, from: string, to: string]> = {
       "body edit, Solitaire.spell": ["/Solitaire.spell", "pause for 500 msec", "pause for 400 msec"],
-      "declaration edit, bottom of Solitaire.spell": ["/Solitaire.spell", "reset the game\nstart", "reset the game\n\nstart"],
+      "declaration edit, bottom of Solitaire.spell": [
+        "/Solitaire.spell",
+        "reset the game\nstart",
+        "reset the game\n\nstart"
+      ],
       "blank line, top of Card.spell": ["/Card.spell", "a card is a thing", "a card is a thing\n"],
       "declaration edit, top of Card.spell": ["/Card.spell", "hearts or spades", "spades or hearts"],
       "comment edit, top of Card.spell": ["/Card.spell", "## definition of a Card", "## definition of a card"],
@@ -202,19 +208,42 @@ function summarizeIncremental(project: P.IncrementalProject): SpellProjectSummar
   }))
 }
 
-/** Every file's tokens MUST be where a fresh tokenize of its text puts them. */
+/**
+ * Every file's tokens MUST be where a fresh tokenize of its text puts them, and every token -- the ones parsed
+ * later out of JSX `{...}` included -- MUST sit over its own text in the file, `line` / `ch` agreeing with `start`.
+ */
 function expectPositions(project: P.IncrementalProject, where: string) {
   for (const { path, parse } of project.files) {
+    const tokens = parse.match?.tokens ?? []
     const fresh = parse.parser.tokenizeRoot(parse.text)
-    expect(positions(parse.match?.tokens ?? []), `${where}: ${path} token positions`).toEqual(
-      positions(fresh ? [fresh] : [])
-    )
+    expect(positions(tokens), `${where}: ${path} token positions`).toEqual(positions(fresh ? [fresh] : []))
+
+    const lineStarts = P.getLineStarts(parse.text)
+    const misplaced: string[] = []
+    P.Tokenizer.forEachToken(tokens, (token) => {
+      if (token instanceof P.LineToken || token instanceof P.BlockToken || typeof token.raw !== "string") return
+      const { start, raw, line, ch } = token
+      const position = P.positionForOffset(lineStarts, start)
+      if (parse.text.slice(start, start + raw.length) !== raw || position.line !== line || position.ch !== ch)
+        misplaced.push(`${start}:${line}:${ch} ${JSON.stringify(raw)} (${position.line}:${position.ch})`)
+    })
+    expect(misplaced, `${where}: ${path} tokens not over their text`).toEqual([])
   }
 }
 
-/** `offset:line:ch` of every token in `tokens`, nested ones included. */
+/**
+ * `start:line:ch` of every token in `tokens`, nested ones included -- EXCEPT tokens parsed later out of JSX
+ * `{...}` contents (`JSXExpressionToken.innerTokens`), which a plain tokenize never makes.
+ */
 function positions(tokens: P.Token[]) {
+  const inner = new Set<P.Token>()
+  P.Tokenizer.forEachToken(tokens, (token) => {
+    if (token instanceof P.JSXExpressionToken && token.innerTokens)
+      P.Tokenizer.forEachToken(token.innerTokens, (it) => void inner.add(it))
+  })
   const result: string[] = []
-  P.Tokenizer.forEachToken(tokens, ({ offset, line, ch }) => void result.push(`${offset}:${line}:${ch}`))
+  P.Tokenizer.forEachToken(tokens, (token) => {
+    if (!inner.has(token)) result.push(`${token.start}:${token.line}:${token.ch}`)
+  })
   return result
 }

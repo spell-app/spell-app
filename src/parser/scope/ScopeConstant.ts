@@ -17,6 +17,8 @@ export class ScopeConstant {
   declare output: string
   /** Scope where constant was defined. */
   declare scope: P.Scope
+  /** Match whose `mutateScope()` declared this constant, if it came from source -- for go-to-definition etc. */
+  declare declaredBy: P.Match | undefined
 
   /** Create with a string `name`, or `ScopeConstantProps` object; strips quotes and defaults `output`. */
   constructor(name: string)
@@ -64,4 +66,6 @@ export type ScopeConstantProps = {
   output?: string
   /** Scope where constant was defined. */
   scope?: P.Scope
+  /** See `ScopeConstant.declaredBy`. */
+  declaredBy?: P.Match
 }

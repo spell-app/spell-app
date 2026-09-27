@@ -105,11 +105,27 @@ export class Match<
 
   /** Character offset of start position in the source stream. */
   get start(): number | undefined {
-    return this.tokens[0]?.offset
+    return this.tokens[0]?.start
   }
 
-  /** Character offset of end position in the source stream. */
+  /**
+   * Character offset just past the last character of matched TEXT, NOT including trailing whitespace.
+   * - Use `end` for anything a user sees as a range, e.g. an editor underline.
+   * - Use `next` for "where does the next token start", e.g. `matchForOffset()`.
+   * - Works from the last of every token in `tokens`, nested ones included,
+   *   so a `LineToken` / `BlockToken` gives its last real token's end, not its newline.
+   */
   get end(): number | undefined {
+    let end: number | undefined
+    P.Tokenizer.forEachToken(this.tokens, (token) => {
+      if (token instanceof P.LineToken || token instanceof P.BlockToken || token instanceof P.WhitespaceToken) return
+      if (end === undefined || token.end > end) end = token.end
+    })
+    return end
+  }
+
+  /** Character offset where whatever follows us starts:  `end` plus trailing whitespace. */
+  get next(): number | undefined {
     const { start, inputText } = this
     return start === undefined ? undefined : start + inputText.length
   }
@@ -121,8 +137,8 @@ export class Match<
   matchForOffset(offset: number) {
     return this.matched.find((match) => {
       if (!(match instanceof Match)) return false
-      const { start, end } = match
-      return start !== undefined && start <= offset && end !== undefined && end > offset
+      const { start, next } = match
+      return start !== undefined && start <= offset && next !== undefined && next > offset
     }) as Match | undefined
   }
 

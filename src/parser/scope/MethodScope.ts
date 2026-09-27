@@ -20,14 +20,17 @@ export class MethodScope extends BlockScope {
   /**
    * Create with optional `args` (added to `variables` with `kind: "argument"`), and set up `thisVar`/
    * `mapItTo` as variable aliases if not already locally defined.
+   * - `declaredBy` is the statement match which made this scope.  Every variable we add here takes it
+   *   as its own `declaredBy`, unless it already has a more precise one.
    */
-  constructor({ args, ...props }: MethodScopeProps) {
+  constructor({ args, declaredBy, ...props }: MethodScopeProps) {
     super(props)
     // Add `args` to our variables list
     if (args && args.length) {
       args.forEach((input) => {
         const arg = input instanceof P.ScopeVariable ? input : new P.ScopeVariable(input)
         arg.kind = "argument"
+        arg.declaredBy ??= declaredBy
         this.variables.add(arg)
       })
     }
@@ -36,11 +39,11 @@ export class MethodScope extends BlockScope {
     const { thisVar, mapItTo } = this
     if (thisVar && !this.variables.get(thisVar, "LOCAL_ONLY")) {
       // TODO: scope:this ??
-      this.variables.add({ name: thisVar, output: "this", isAlias: true })
+      this.variables.add({ name: thisVar, output: "this", isAlias: true, declaredBy })
     }
     if (mapItTo && !this.variables.get("it", "LOCAL_ONLY")) {
       // TODO: scope:this ??
-      this.variables.add({ name: "it", output: mapItTo, isAlias: true })
+      this.variables.add({ name: "it", output: mapItTo, isAlias: true, declaredBy })
     }
   }
 
@@ -65,4 +68,6 @@ export type MethodScopeProps = P.ScopeProps & {
   thisVar?: string
   /** Map `it` to this output var name. */
   mapItTo?: string
+  /** Statement match which made this scope -- `declaredBy` for the variables it adds. */
+  declaredBy?: P.Match
 }

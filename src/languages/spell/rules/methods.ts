@@ -291,17 +291,41 @@ export class MethodDefinition<
    */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
     const { methodName, args, extraVars, instanceType } = this.getSignature(match)!
+    // Generic `Groups` keeps `MatchFor<this>` from narrowing to a plain `P.Match` -- cast once.
+    const declaredBy = match as P.Match
     const methodScope = new P.MethodScope({
       parentScope: match.scope,
       name: methodName,
       args: args.map((arg) => new P.ScopeVariable(arg.name)),
       thisVar: instanceType,
-      mapItTo: instanceType && "this"
+      mapItTo: instanceType && "this",
+      declaredBy
     })
 
     // add other random variables
-    if (extraVars.length) methodScope.variables.add(...extraVars)
+    if (extraVars.length) {
+      methodScope.variables.add(
+        ...extraVars.map((it) => (typeof it === "string" ? { name: it, declaredBy } : { ...it, declaredBy }))
+      )
+    }
     return methodScope
+  }
+
+  /**
+   * The method `match` defines:  an instance method of `instanceType` if it has one, else a loose function.
+   * - Reads the signature `getSignature()` cached while parsing -- pure, like `getAST()`.
+   */
+  getDeclaration(match: P.MatchFor<this>): P.Declaration | undefined {
+    const signature = (match.data as Partial<MethodDefinitionData>).signature
+    const nameMatch = (match.groups as { signature?: P.Match }).signature
+    if (!signature || !nameMatch) return undefined
+    return {
+      kind: signature.instanceType ? "method" : "function",
+      name: nameMatch.inputText.trimEnd(),
+      nameMatch,
+      of: signature.instanceType,
+      detail: signature.methodName && `${signature.methodName}()`
+    }
   }
 
   /** SIDE EFFECT: registers the generated call-site rule (`getRule()`) onto `scope.parser`, making the new
@@ -343,6 +367,8 @@ export class MethodDefinition<
       shouldNegateOutput = () => false
     } = this.getSignature(match)!
     const { scope } = match
+    // Generic `Groups` keeps `MatchFor<this>` from narrowing to a plain `P.Match` -- cast once.
+    const declaredBy = match as P.Match
 
     if (asPostfixExpression) {
       class _dynamicMethodRulePostfix extends PostfixOperatorSuffix {
@@ -356,12 +382,16 @@ export class MethodDefinition<
           })
         }
       }
-      scope.addRule(_dynamicMethodRulePostfix, {
-        name: methodName,
-        precedence: 20,
-        alias: "expression_suffix",
-        syntax
-      })
+      scope.addRule(
+        _dynamicMethodRulePostfix,
+        {
+          name: methodName,
+          precedence: 20,
+          alias: "expression_suffix",
+          syntax
+        },
+        declaredBy
+      )
       return
     }
     if (asInfixExpression) {
@@ -378,21 +408,29 @@ export class MethodDefinition<
           })
         }
       }
-      scope.addRule(_dynamicMethodRuleInfix, {
-        name: methodName,
-        precedence: 20,
-        alias: "expression_suffix",
-        syntax,
-        parenthesize: true
-      })
+      scope.addRule(
+        _dynamicMethodRuleInfix,
+        {
+          name: methodName,
+          precedence: 20,
+          alias: "expression_suffix",
+          syntax,
+          parenthesize: true
+        },
+        declaredBy
+      )
       return
     }
-    scope.addRule(DynamicMethodRule, {
-      name: methodName,
-      alias: asTest ? "statement" : ["statement", "expression"],
-      syntax,
-      methodName
-    })
+    scope.addRule(
+      DynamicMethodRule,
+      {
+        name: methodName,
+        alias: asTest ? "statement" : ["statement", "expression"],
+        syntax,
+        methodName
+      },
+      declaredBy
+    )
   }
 
   /** If `signature.props` return `DestructuredAssignment` to pull those props into scope. */

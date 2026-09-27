@@ -42,12 +42,12 @@ export class Tokenizer {
     const tokens = this.consume(this.matchTopTokens, text, start, end)
     if (!tokens || tokens.length === 0) return []
 
-    const lastEnd = tokens[tokens.length - 1].end
+    const lastEnd = tokens[tokens.length - 1].next
     if (lastEnd !== end) {
       this.logger.warn("tokenize(): didn't consume: `", text.slice(start, end), "`")
     }
 
-    // Set `line` and `ch`(ar), which is sometimes more useful than the raw `offset` within the file.
+    // Set `line` and `ch`(ar), which is sometimes more useful than the raw `start` offset within the file.
     this.setPositions(tokens, text)
 
     // Return tokens filtered according to our whitespace policy
@@ -62,15 +62,15 @@ export class Tokenizer {
   }
 
   /**
-   * Set `line` / `ch` on `tokens` and every token nested in them, worked out from each `offset` in `text`.
+   * Set `line` / `ch` on `tokens` and every token nested in them, worked out from each `start` in `text`.
    * - Counts EVERY `\n` in `text`, so multi-line JSX / strings don't throw later lines off.
-   * - NOTE: `offset`s must be absolute within `text`, even when tokenizing from a `start` offset.
+   * - NOTE: each `start` must be absolute within `text`, even when tokenizing from part way through it.
    * - SIDE EFFECT: writes `record.line` / `record.ch`.
    */
   setPositions(tokens: P.Token[], text: string) {
     const lineStarts = P.getLineStarts(text)
     Tokenizer.forEachToken(tokens, (token) => {
-      const { line, ch } = P.positionForOffset(lineStarts, token.offset)
+      const { line, ch } = P.positionForOffset(lineStarts, token.start)
       token.record.line = line
       token.record.ch = ch
     })
@@ -79,11 +79,21 @@ export class Tokenizer {
   /**
    * Move `tokens` and every token nested in them by `delta` characters, then re-work-out their `line` / `ch`
    * in `text` -- for tokens we're keeping after an edit earlier in the text.
-   * - SIDE EFFECT: writes `record.offset` / `record.line` / `record.ch`.
+   * - SIDE EFFECT: writes `record.start` / `record.line` / `record.ch`.
    */
   moveTokens(tokens: P.Token[], delta: number, text: string) {
-    if (delta) Tokenizer.forEachToken(tokens, (token) => (token.record.offset += delta))
+    Tokenizer.shiftTokens(tokens, delta)
     this.setPositions(tokens, text)
+  }
+
+  /**
+   * Move `tokens` and every token nested in them by `delta` characters -- `start` ONLY.
+   * - `line` / `ch` are left as they were.
+   * - For tokens parsed from a copy of some text, to put them where that text sits in the file.
+   * - SIDE EFFECT: writes `record.start`.
+   */
+  static shiftTokens(tokens: P.Token[], delta: number) {
+    if (delta) Tokenizer.forEachToken(tokens, (token) => (token.record.start += delta))
   }
 
   /**
@@ -91,8 +101,7 @@ export class Tokenizer {
    * - `LineToken` tokens + its `newline`
    * - `BlockToken` lines / blocks
    * - JSX element attributes + children, attribute values, expression `contents` when it's a token
-   * - NOTE: JSX `{...}` contents re-tokenized later from a collapsed copy are NOT reached -- they aren't
-   *   tokens until then, and their offsets are relative to that copy anyway.
+   * - JSX expression `innerTokens`, once a rule has parsed its `{...}` contents
    */
   static forEachToken(tokens: P.Token[], callback: (token: P.Token) => void) {
     tokens.forEach(visit)
@@ -113,6 +122,7 @@ export class Tokenizer {
         visit(token.value)
       } else if (token instanceof P.JSXExpressionToken) {
         visit(token.contents)
+        token.innerTokens?.forEach(visit)
       }
     }
   }
@@ -168,11 +178,11 @@ export class Tokenizer {
       if (!token) break
       results.push(token)
 
-      if (token.end === nextStart) {
+      if (token.next === nextStart) {
         this.logger.warn("error: got token but didn't advance in stream")
         break
       }
-      nextStart = token.end
+      nextStart = token.next
     }
     return results
   }
@@ -212,7 +222,7 @@ export class Tokenizer {
     const props = {
       value,
       raw: value,
-      offset: start
+      start
     }
     // if at start of text or after a newline, return an `IndentToken`
     if (start === 0 || text[start - 1] === "\n") return new P.IndentToken(props)
@@ -227,7 +237,7 @@ export class Tokenizer {
   matchNewline = (text: string, start = 0, end?: number): P.NewlineToken | undefined => {
     if (typeof end !== "number" || end > text.length) end = text.length
     if (start >= end || text[start] !== "\n") return undefined
-    return new P.NewlineToken({ offset: start })
+    return new P.NewlineToken({ start })
   }
 
   ////////////////
@@ -261,7 +271,7 @@ export class Tokenizer {
     if (wordEnd === start) return undefined
 
     const value = text.slice(start, wordEnd)
-    return new P.WordToken({ value, raw: value, offset: start })
+    return new P.WordToken({ value, raw: value, start })
   }
 
   /**
@@ -276,7 +286,7 @@ export class Tokenizer {
     return new P.SymbolToken({
       value,
       raw: value,
-      offset: start
+      start
     })
   }
 
@@ -311,7 +321,7 @@ export class Tokenizer {
     return new P.TextToken({
       value,
       raw: value,
-      offset: start
+      start
     })
   }
 
@@ -344,7 +354,7 @@ export class Tokenizer {
     return new P.NumberToken({
       value,
       raw: input,
-      offset: start
+      start
     })
   }
 
@@ -385,10 +395,10 @@ export class Tokenizer {
     if (!jsxElement) return undefined
 
     if (!jsxElement.record.isUnaryTag) {
-      const children = this.matchJSXChildren(jsxElement.tagName, text, jsxElement.end, end)
+      const children = this.matchJSXChildren(jsxElement.tagName, text, jsxElement.next, end)
       if (children && children.length) {
         jsxElement.record.children = children as P.JSXElementToken[]
-        jsxElement.record.raw = text.slice(start, children[children.length - 1].end)
+        jsxElement.record.raw = text.slice(start, children[children.length - 1].next)
       }
     }
 
@@ -414,7 +424,7 @@ export class Tokenizer {
     let [matchText, tagName, endBit] = tagMatch
     nextStart += matchText.length
 
-    const jsxElement = new P.JSXElementToken({ tagName, offset: start })
+    const jsxElement = new P.JSXElementToken({ tagName, start })
 
     // If unary tag, mark as such and return.
     endBit = endBit.trim()
@@ -429,7 +439,7 @@ export class Tokenizer {
       const attrs = this.consume(this.matchJSXAttribute, text, nextStart, end)
       if (attrs && attrs.length) {
         jsxElement.record.attributes = attrs
-        nextStart = attrs[attrs.length - 1].end
+        nextStart = attrs[attrs.length - 1].next
       }
 
       // see if we got an end marker after attributes
@@ -462,7 +472,7 @@ export class Tokenizer {
       const child = this.matchJSXChild(endTagName, text, nextStart, end)
       if (!child) break
       children.push(child)
-      nextStart = child.end
+      nextStart = child.next
 
       // If we got an endTag for endTagName, update nesting and break out of loop if nesting !== 0
       if (child instanceof P.JSXEndTagToken && child.tagName === endTagName) {
@@ -512,7 +522,7 @@ export class Tokenizer {
     return new P.JSXEndTagToken({
       raw: text.slice(start, end),
       tagName: endTagName,
-      offset: start
+      start
     })
   }
 
@@ -533,7 +543,7 @@ export class Tokenizer {
     const [match, name, equals] = result
     if (!this.WORD_START.test(name)) return undefined
 
-    const attribute = new P.JSXAttributeToken({ name, offset: start })
+    const attribute = new P.JSXAttributeToken({ name, start })
     let nextStart = start + match.length
 
     // if there was an equals char, parse the value
@@ -541,7 +551,7 @@ export class Tokenizer {
       const value = this.matchJSXAttributeValue(text, nextStart, end)
       if (value) {
         attribute.record.value = value
-        nextStart = value.end
+        nextStart = value.next
       }
     }
     // eat whitespace before the next attribute / tag end
@@ -574,7 +584,7 @@ export class Tokenizer {
       // TODO: `contents` as the token???
       contents,
       raw: contents.value,
-      offset: start
+      start
     })
   }
 
@@ -598,7 +608,7 @@ export class Tokenizer {
     return new P.JSXExpressionToken({
       contents,
       raw: text.slice(start, endIndex + 1),
-      offset: start
+      start
     })
   }
 
@@ -627,7 +637,7 @@ export class Tokenizer {
     return new P.JSXTextToken({
       value,
       raw: value,
-      offset: start
+      start
     })
   }
 
@@ -659,7 +669,7 @@ export class Tokenizer {
       commentSymbol, // actual comment symbol
       initialWhitespace, // whitespace between commentSymbol and comment value
       raw,
-      offset: start
+      start
     })
   }
 
@@ -672,7 +682,7 @@ export class Tokenizer {
     const lines: P.LineToken[] = []
     let line = new P.LineToken({
       tokens: [],
-      offset: 0,
+      start: 0,
       line: 0,
       ch: 0,
       // indent is -1 as flag that we haven't set it yet
@@ -685,7 +695,7 @@ export class Tokenizer {
         if (line.indent === -1 && line.tokens.length) line.record.indent = 0
         line = new P.LineToken({
           tokens: [],
-          offset: token.offset + 1,
+          start: token.start + 1,
           line: token.line! + 1,
           ch: 0,
           // indent is -1 as flag that we haven't set it yet
@@ -743,7 +753,7 @@ export class Tokenizer {
     // in case the top of the block is indented LESS than somewhere below.
     // TODO: ??? seems like this should be a top-level error???
     const block = new P.BlockToken({
-      offset: 0,
+      start: 0,
       line: 0,
       ch: 0,
       indent: Math.min(...lines.map((line) => line.indent ?? 0)),
@@ -757,7 +767,7 @@ export class Tokenizer {
       // If indenting, push a new block
       while (line.indent > topBlock.indent) {
         const newBlock = new P.BlockToken({
-          offset: line.offset,
+          start: line.start,
           line: line.line,
           ch: line.ch,
           indent: topBlock.indent + 1,
@@ -885,7 +895,7 @@ export class Tokenizer {
       else if (char === "'" || char === '"') {
         const token = this.matchText(text, current, end)
         if (token) {
-          current = token.end
+          current = token.next
           // continue so we don't add 1 to curent below
           continue
         }

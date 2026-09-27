@@ -38,6 +38,10 @@ export type ScopeRule = {
   rule: RuleConstructor
   /** Definition it was registered with, e.g. `{ alias, syntax, literals }`. */
   definition: RuleDefinitionProps
+  /** Match whose `mutateScope()` registered it, e.g. the method definition -- for go-to-definition etc. */
+  declaredBy?: P.Match
+  /** Built rule instance(s) `parser.addRule()` made, so a call-site `match.rule` can be traced back here. */
+  instances?: P.Rule[]
 }
 
 /** Anything `parser.addRule()` accepts:  a rule class (the normal way) or a ready-made instance. */
@@ -54,6 +58,41 @@ export type RuleMap = Record<string, P.Rule>
  *   anything after it parses -- even in other files.
  */
 export type ScopeChanges = "internal" | "global"
+
+// ## Declarations
+
+/**
+ * What a rule's matches DECLARE, for editors' symbol lists -- `declares` in a rule's definition.
+ * - Each value is a GROUP name, dotted to reach into that group's own groups, e.g. `type_property.property`.
+ * - See `Rule.getDeclaration()`, which a rule overrides for what a spec can't say.
+ */
+export type DeclaresSpec = {
+  /** What's declared. */
+  kind: DeclarationKind
+  /** Group holding the declared name, e.g. `type` for `a card is a thing`. */
+  name: string
+  /** Group holding the type a property or method belongs to, e.g. `type` for `a card has a suit`. */
+  of?: string
+  /** Group whose text says more about it, e.g. `superType` for `a card is a thing`. */
+  detail?: string
+}
+
+/** Kind of thing a statement can declare -- see `DeclaresSpec`. */
+export type DeclarationKind = "type" | "property" | "method" | "function" | "variable" | "event"
+
+/** One thing a match declares, as `Rule.getDeclaration()` reports it.  Names are the source text, as written. */
+export type Declaration = {
+  /** What's declared. */
+  kind: DeclarationKind
+  /** Declared name, e.g. `card`. */
+  name: string
+  /** Match holding the name, e.g. to select it in an editor. */
+  nameMatch: P.Match
+  /** Type a property or method belongs to, e.g. `cards`. */
+  of?: string
+  /** More about it, e.g. the javascript method name. */
+  detail?: string
+}
 
 /** Syntax flags for outputting a rule in rulex syntax. */
 export type SyntaxFlags = {
