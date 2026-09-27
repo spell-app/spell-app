@@ -46,12 +46,14 @@ export class SpellConstant extends P.Pattern<never, ConstantMatchData> {
     return match
   }
 
-  /** Build `P.ASTConstantExpression`, falling back to a fresh, unnamed `ScopeConstant` if unknown. */
+  /**
+   * Build `P.ASTConstantExpression`, falling back to a fresh, unnamed `ScopeConstant` if unknown.
+   * - Uses ONLY the constant found while parsing -- NOT looked up again, as scope may have changed by now.
+   *   A statement which declares a constant it also uses records it on that match, e.g. `property_value_either`.
+   */
   getAST(match: P.MatchFor<this>): P.ASTConstantExpression {
-    // Constant found while parsing, else look again -- it may have been defined since.
-    const known = match.data.scopeConstant === NONE ? undefined : match.data.scopeConstant
-    const name: string = known ? known.name : match.value
-    const scopeConst = known || match.scope.constants?.get(name)
+    const scopeConst = match.data.scopeConstant === NONE ? undefined : match.data.scopeConstant
+    const name: string = scopeConst ? scopeConst.name : match.value
     return new P.ASTConstantExpression(match, {
       name,
       output: (scopeConst || new P.ScopeConstant(name)).toString(),
@@ -108,7 +110,7 @@ constants.addRule(known_constant, {
     {
       compileAs: "known_constant", // TODO: to "expression"
       beforeEach(scope: P.Scope) {
-        // `Scope.constants` is typed narrowly (`IndexedList<ScopeConstant>`); the concrete `RootScope`
+        // `Scope.constants` is typed narrowly (`ScopeList<ScopeConstant>`); the concrete `RootScope`
         // accepts a plain name string or `ScopeConstantProps` too -- see report.
         const { constants } = scope as P.RootScope
         constants.add("red")

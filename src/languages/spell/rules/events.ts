@@ -9,14 +9,6 @@ import { SpellStatement } from "./Statement"
 import { with_props_arg } from "./methods"
 
 /**
- * `Match.AST` is typed generically as `ASTNode | undefined`; narrow to the concrete AST subclass that the
- * referenced sub-rule's `getAST()` is known (by inspection) to always produce.
- */
-function ast<T extends P.ASTNode>(node: P.ASTNode | undefined): T {
-  return node as T
-}
-
-/**
  * Rule module for `trigger`/`on` -- events fired/watched on the `spellCore.RUNTIME` singleton.
  */
 export const events = new SpellParser({ module: "events" })
@@ -37,7 +29,7 @@ class trigger extends SpellStatement<"eventName|props?"> {
     const { eventName, props } = match.groups
     // Use the `raw` eventName, dashes are ok!
     const args: P.ASTExpression[] = [new P.ASTQuotedExpression(match, eventName.raw!)]
-    if (props) args.push(ast<P.ASTExpression>(props.AST))
+    if (props) args.push(P.asAST<P.ASTExpression>(props.AST))
     return new P.ASTRuntimeMethodInvocation(match, {
       methodName: "trigger",
       args
@@ -78,7 +70,7 @@ events.addRule(trigger, {
  *   card` => `let { card } = event`.
  * - Compiles to `spellCore.RUNTIME.on(name, handler?)`; `handler` omitted entirely when there's no body.
  */
-class on extends SpellStatement<"eventName|props?|inlineStatement?|nestedBlock?"> {
+class on extends SpellStatement<"eventName|props?|body?"> {
   /** Nested scope for the handler body -- named for `eventName`, args are `event` plus any `props`. */
   getNestedScopeForMatch(match: P.MatchFor<this>) {
     const { eventName, props } = match.groups
@@ -98,15 +90,16 @@ class on extends SpellStatement<"eventName|props?|inlineStatement?|nestedBlock?"
   }
 
   getAST(match: P.MatchFor<this>) {
-    const { eventName, props, inlineStatement, nestedBlock } = match.groups
+    const { eventName, props } = match.groups
+    const body = this.getBody(match)
     // event variable
     const event = new P.ASTVariableExpression(match, { name: "event", type: "argument" })
     // Use the `raw` eventName, dashes are ok!
     const args: P.ASTExpression[] = [new P.ASTQuotedExpression(match, eventName.raw!)]
-    if (nestedBlock || inlineStatement) {
+    if (body) {
       const method = new P.ASTMethodDefinition(match, {
         inline: true,
-        body: ast<P.ASTStatementBlock | P.ASTStatement | P.ASTExpression>((nestedBlock || inlineStatement)!.AST),
+        body: P.asAST<P.ASTStatementBlock | P.ASTStatement | P.ASTExpression>(body.AST),
         args: [event]
       })
       // If they specified event props to pay attention to,
@@ -130,9 +123,7 @@ class on extends SpellStatement<"eventName|props?|inlineStatement?|nestedBlock?"
 }
 events.addRule(on, {
   alias: "statement",
-  syntax: "on event? {eventName:keyword} {props:with_props_arg}? :?",
-  wantsInlineStatement: true,
-  wantsNestedBlock: true,
+  syntax: "on event? {eventName:keyword} {props:with_props_arg}? :? {statement_body}?",
   tests: [
     {
       compileAs: "block",

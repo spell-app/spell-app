@@ -252,7 +252,7 @@ types.addRule(known_type, {
   tests: [
     {
       beforeEach(scope: P.Scope) {
-        // `Scope.types` is typed narrowly (`IndexedList<TypeScope>`); the concrete `RootScope` accepts
+        // `Scope.types` is typed narrowly (`ScopeList<TypeScope>`); the concrete `RootScope` accepts
         // plain `TypeScopeProps` too -- see report.
         const { types } = scope as P.RootScope
         types.add({ name: "Thing" })

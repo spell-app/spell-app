@@ -19,6 +19,8 @@ type AssignmentMatchData = {
   isNewVariable?: boolean
   /** Original scope `ScopeVariable` for `thing`, before any alias redefinition hackery. */
   originalVar?: P.ScopeVariable
+  /** When `thing` is `it`:  the NEW `it` variable we declared -- see `declareIt()`. */
+  newIt?: P.ScopeVariable
 }
 
 /**
@@ -31,15 +33,14 @@ type AssignmentMatchData = {
  *   already exists).
  * - SIDE EFFECT: `mutateScope()` declares a new scope variable for `thing` if it's a `{variable}` and
  *   isn't already declared (or is only an alias, e.g. `it`) -- see `match.data.isNewVariable`/`originalVar`.
- * - HACK: also mutates `scope` again in `getAST()`, to redefine an alias `thing` as a real variable --
- *   must happen after building the `value` AST, in case `value` itself refers to the alias.
+ *   An alias `thing` is redefined as a real variable.  Safe even if `value` refers to the alias:
+ *   identifiers remember what they named when PARSED -- see `SpellIdentifier`.
  * - Compiles to `let thing = value` (new variable) or `thing = value` (existing).
  */
 class assignment_statement extends SpellStatement<"thing|value", AssignmentMatchData> {
   /**
-   * HACK: we also mutate scope in `getAST()`...  :-(
-   * - Declares a new scope variable for `thing` (if it's a `{variable}` and not already declared,
-   *   or only an alias) so later statements in the block see it -- see rule doc above.
+   * Declares a new scope variable for `thing` (if it's a `{variable}` and not already declared,
+   * or only an alias) so later statements in the block see it -- see rule doc above.
    */
   mutateScope(match: P.MatchFor<this>) {
     const { thing } = match.groups
@@ -54,41 +55,39 @@ class assignment_statement extends SpellStatement<"thing|value", AssignmentMatch
       // `match.scope` is typed as `P.Scope`, whose `.variables` getter can be `undefined` (it just
       // forwards to `parentScope.variables`) -- cast to `P.BlockScope` for its non-optional override,
       // which already accepts a plain name string as `.add()`/`.get()` input.
-      const { variables } = match.scope as P.BlockScope
+      const scope = match.scope as P.BlockScope
+      const { variables } = scope
+      // `set it to ...` always declares a new `it` -- see `declareIt()`
+      if (varName === "it") {
+        match.data.newIt = declareIt(scope)
+        match.data.isNewVariable = true
+        return
+      }
       const scopeVar = variables.get(varName)
       match.data.isNewVariable = !scopeVar || scopeVar.isAlias
-      // define a new variable in `scope` if not already defined
+      // define a new variable in `scope` if not already defined, or redefine an alias as a real one
       if (!scopeVar) variables.add(varName)
-      // Remember the original scopeVar for hackery in getAST() below
+      else if (scopeVar.isAlias) variables.replace(scopeVar.name)
+      // Remember the original scopeVar for `getAST()` below
       match.data.originalVar = scopeVar
     }
   }
-  /**
-   * Build `P.ASTAssignmentStatement`.
-   * - HACK: if `originalVar` was an alias (e.g. `it`), redefines it as a real variable in `scope`
-   *   here -- must happen after building `thing`/`value` ASTs, in case the alias appeared inside
-   *   `value` itself.
-   */
+  /** Build `P.ASTAssignmentStatement` -- a clean variable for `thing` if it's a new `it`, or was an alias. */
   getAST(match: P.MatchFor<this>): P.ASTAssignmentStatement {
     const { thing, value } = match.groups
-    const { originalVar } = match.data
-    const ast = new P.ASTAssignmentStatement(match, {
-      // if we got an originalVar which was an alias, get a clean VariableExpression for the original name
-      thing: originalVar?.isAlias
-        ? new P.ASTVariableExpression(match, { name: originalVar.name })
-        : (thing.AST as P.ASTExpression),
+    const { originalVar, newIt } = match.data
+    const cleanName = newIt ? (newIt.output ?? newIt.name) : originalVar?.isAlias ? originalVar.name : undefined
+    return new P.ASTAssignmentStatement(match, {
+      thing: cleanName ? new P.ASTVariableExpression(match, { name: cleanName }) : (thing.AST as P.ASTExpression),
       value: value.AST as P.ASTExpression,
       isNewVariable: match.data.isNewVariable
     })
-    // HACK: if `originalVar` was an alias, redefine as a normal variable.
-    // We have to do this AFTER the above in case the alias variable was in the value expression.
-    if (originalVar?.isAlias) (match.scope as P.BlockScope).variables.replace(originalVar.name)
-    return ast
   }
 }
 assignment.addRule(assignment_statement, {
   name: "assignment",
   alias: "statement",
+  changesScope: "internal",
   syntax: [
     "(thing:{expression}|{variable}) = {value:expression}",
     "let (thing:{expression}|{variable}) = {value:expression}",
@@ -155,59 +154,36 @@ assignment.addRule(assignment_statement, {
 
 /** What `get` stashes on its match. */
 type GetMatchData = {
-  /** Whether the assigned-to variable is newly declared by this statement. */
-  isNewVariable?: boolean
-  /** Original local `it` `ScopeVariable`, if one already existed, before any alias redefinition hackery. */
+  /** The NEW `it` variable we declared -- see `declareIt()`. */
   itVar?: P.ScopeVariable
 }
 
 /**
- * `get {value}` -- assign `value` to (possibly-new) variable `it`.
- * - SIDE EFFECT: `mutateScope()` declares a LOCAL `it` variable if one isn't already locally defined
- *   (an inherited/aliased `it` from an outer scope doesn't count -- see `"LOCAL_ONLY"` lookup).
- * - HACK: also mutates scope again in `getAST()` to redefine `it` as a real variable -- see there.
- * - Compiles to `let it = value` (new) or `it = value` (existing).
+ * `get {value}` -- assign `value` to a NEW `it`.
+ * - SIDE EFFECT: `mutateScope()` declares that `it`:  plain `it` the first time, then `it_2`, `it_3`...
+ *   so a callback which captured an earlier `it` keeps it -- see `declareIt()`.
+ * - Compiles to `let it = value`, `let it_2 = value`, ...
  */
 class get extends SpellStatement<"value", GetMatchData> {
-  /**
-   * NOTE: we also mutate scope in `getAST()`...  :-(
-   * - Declares a LOCAL `it` variable if one isn't already locally defined.
-   */
+  /** Declare a new `it` -- see `declareIt()`. */
   mutateScope(match: P.MatchFor<this>) {
-    // `match.scope` is typed as `P.Scope`, whose `.variables` getter can be `undefined` (it just
-    // forwards to `parentScope.variables`) -- cast to `P.BlockScope` for its non-optional override,
-    // which already accepts a plain name string as `.add()`/`.get()` input.
-    const { variables } = match.scope as P.BlockScope
-    // Did we have a LOCAL `it` variable?
-    const itVar = variables.get("it", "LOCAL_ONLY")
-    // Remember the original itVar for hackery in getAST() below
-    match.data.itVar = itVar
-    match.data.isNewVariable = !itVar || itVar.isAlias
-    // Define a new local "it" variable if we don't have one
-    if (!itVar) variables.add("it")
+    // `match.scope` is typed as `P.Scope`, whose `.variables` getter can be `undefined` -- we know it's a block.
+    match.data.itVar = declareIt(match.scope as P.BlockScope)
   }
-  /**
-   * Build `P.ASTAssignmentStatement` assigning `value` to `it`.
-   * - HACK: unconditionally redefines `it` as a real (non-alias) variable in `scope` -- regardless
-   *   of whether `match.data.itVar` was actually an alias, unlike `assignment_statement.getAST()`'s
-   *   guarded `if (originalVar?.isAlias)` equivalent.
-   * - TODO: should this be guarded the same way?  As written a real `it` variable loses its `kind`/`datatype`.
-   */
+  /** Build `P.ASTAssignmentStatement` declaring our new `it` as `value`. */
   getAST(match: P.MatchFor<this>): P.ASTAssignmentStatement {
     const { value } = match.groups
-    const ast = new P.ASTAssignmentStatement(match, {
-      thing: new P.ASTVariableExpression(match, { name: "it" }),
+    const { itVar } = match.data
+    return new P.ASTAssignmentStatement(match, {
+      thing: new P.ASTVariableExpression(match, { name: itVar?.output ?? "it" }),
       value: value.AST as P.ASTExpression,
-      isNewVariable: match.data.isNewVariable
+      isNewVariable: true
     })
-    // HACK: redefine `it` as a normal variable -- unconditionally (see docstring above).
-    // We have to do this AFTER the above in case the alias `it` was in the value expression.
-    ;(match.scope as P.BlockScope).variables.replace("it")
-    return ast
   }
 }
 assignment.addRule(get, {
   alias: ["assignment", "statement"],
+  changesScope: "internal",
   syntax: "get {value:expression}",
   tests: [
     {
@@ -230,8 +206,36 @@ assignment.addRule(get, {
         variables.add("thing")
       },
       tests: [
-        ["get thing", "it = thing"],
-        ["get the foo of the thing", "it = thing.foo"]
+        ["get thing", "let it_2 = thing"],
+        ["get the foo of the thing", "let it_2 = thing.foo"]
+      ]
+    },
+    {
+      title: "each `get` declares a new `it`, so a callback which captured an earlier one keeps it",
+      compileAs: "block",
+      beforeEach(scope: P.Scope) {
+        ;(scope as P.BlockScope).variables.add("thing")
+      },
+      tests: [
+        {
+          input: ["get thing", "get the foo of the thing", "print it"],
+          output: ["let it = thing", "let it_2 = thing.foo", "spellCore.console.log(it_2)"]
+        }
+      ]
+    },
+    {
+      title: "numbered `it`s skip names already in use",
+      compileAs: "block",
+      beforeEach(scope: P.Scope) {
+        const { variables } = scope as P.BlockScope
+        variables.add("thing")
+        variables.add("it-2")
+      },
+      tests: [
+        {
+          input: ["get thing", "get the foo of the thing"],
+          output: ["let it = thing", "let it_3 = thing.foo"]
+        }
       ]
     },
     {
@@ -266,24 +270,20 @@ assignment.addRule(get, {
 ////////////////
 
 /**
- * `(return|exit with?) {expression}?` -- return a value.
+ * `(return|exit with?) {expression}? {nested_expression}?` -- return a value.
  * - `(return|exit with?)` accepts `return`, `exit`, or `exit with` as equivalent keywords.
- * - Accepts the returned expression inline (`return thing`) or in a nested indented block
- *   (`return\n\t1 + 2`), via `wantsInlineStatement`/`wantsNestedBlock` (both parsed as `"expression"`).
+ * - Accepts the returned expression inline (`return thing`) or as ONE line in a nested indented block
+ *   (`return\n\t1 + 2`).
  */
-class return_statement extends SpellStatement<"expression?|nestedBlock?"> {
+class return_statement extends SpellStatement<"expression?|body?"> {
   getAST(match: P.MatchFor<this>): P.ASTReturnStatement {
-    const result = match.groups.expression || match.groups.nestedBlock
+    const result = match.groups.expression || this.getBody(match)
     return new P.ASTReturnStatement(match, { value: result?.AST as P.ASTExpression | undefined })
   }
 }
 assignment.addRule(return_statement, {
   alias: "statement",
-  syntax: "(return|exit with?) {expression}?",
-  wantsInlineStatement: true,
-  parseInlineStatementAs: "expression",
-  wantsNestedBlock: true,
-  parseNestedBlockAs: "expression",
+  syntax: "(return|exit with?) {expression}? {nested_expression}?",
   tests: [
     {
       title: "Simple return with inline expression",
@@ -321,3 +321,33 @@ assignment.addRule(return_statement, {
     }
   ]
 })
+
+////////////////
+// ## `it` versions -- shared by `get` and `set it to`
+////////////////
+
+/**
+ * Declare a NEW `it` variable in `scope`, for `get` / `set it to`, and return it.
+ * - Every `it` value gets its own javascript variable, so a callback which captured an earlier `it` keeps it:
+ *   plain `it` if no real `it` is visible, else the next of `it_2`, `it_3`, ...
+ * - NEVER reuses a name visible here:
+ *   - an outer `it` -- `let it = it.name` in a nested block would read the NEW, unset `it`
+ *   - a user's own variable which happens to be called `it_2`
+ * - An alias `it`, e.g. a method's `it` meaning `this`, doesn't count as visible:  its javascript name isn't `it`.
+ * - Numbered from the visible `it`'s `output`, NOT a counter, so incremental parsing's journal covers it.
+ * - SIDE EFFECT: replaces `scope`'s own `it` with the new one, so later lines' `it` means it.
+ */
+function declareIt(scope: P.BlockScope): P.ScopeVariable {
+  const { variables } = scope
+  const visible = variables.get("it")
+  let number = visible && !visible.isAlias ? itNumber(visible) + 1 : 1
+  while (number > 1 && variables.get(`it_${number}`)) number++
+  const [it] = variables.replace(number === 1 ? { name: "it" } : { name: "it", output: `it_${number}` })
+  return it!
+}
+
+/** Which `it` `variable` is:  1 for plain `it`, 2 for `it_2`... */
+function itNumber(variable: P.ScopeVariable): number {
+  const number = /^it_(\d+)$/.exec(variable.output ?? "")?.[1]
+  return number ? Number(number) : 1
+}

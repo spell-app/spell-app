@@ -138,6 +138,7 @@ export class SpellFile extends TextFile {
     this.resetState("scope", "inputLines", "match", "AST", "compiled")
   }
 
+
   /**
    * Return a `Scope` for parsing this file.
    * - If `parentScope` has `types` (a real project scope), returns a `P.FileScope` under it, reusing its
@@ -177,26 +178,45 @@ export class SpellFile extends TextFile {
     batch(() => {
       this.setState("inputLines", this.contents!.split("\n"))
       this.setState("scope", this.getScope(parentScope))
-      // HACK: things get wierd downstream if we don't get a `match` at all
-      // If contents is empty, use a default comment so we'll at least match something.
-      const contents = this.contents!.trim() ? this.contents! : `// Blank file ${this.file}`
-      const match = this.scope!.parse(contents, "block")
-      // console.warn(this.filePath, match)
+      const match = this.scope!.parse(this.parseText, "block")
       this.setState("match", match)
-      // Show errors on the console
-      const errors = match && SP.getParseErrors(match)
-      if (errors) {
-        errors.forEach((error) => {
-          // TODO(ast): remove cast when AST/ASTNode typing lands -- `.value` is subclass-specific.
-          const value = (error.AST as unknown as { value: string } | undefined)?.value
-          let message = `${value} on line ${error.line! + 1}`
-          const fileScope = error.getScopeOfType(P.FileScope)
-          if (fileScope) message += ` of ${fileScope.name}`
-          spellCore.console.error(error, message)
-        })
-      }
+      this.logParseErrors()
     })
     return this.match
+  }
+
+  /**
+   * Text we actually parse:  our `contents`, or a stand-in comment if blank.
+   * - HACK: things get weird downstream if we don't get a `match` at all.
+   */
+  get parseText(): string {
+    return this.contents?.trim() ? this.contents : `// Blank file ${this.file}`
+  }
+
+  /**
+   * Take on the result of an incremental parse of our `parseText` -- see `SpellProject.updatedContentsFor()`.
+   * - SIDE EFFECT: clears `AST` / `compiled`, to rebuild from the new `match`.
+   */
+  setParsed(parse: P.IncrementalParse): void {
+    batch(() => {
+      this.setState("scope", parse.scope as P.FileScope)
+      this.setState("inputLines", this.contents?.split("\n"))
+      this.setState("match", parse.match)
+      this.resetState("AST", "compiled")
+    })
+  }
+
+  /** Show our `match`'s parse errors on the `spellCore` console. */
+  logParseErrors(): void {
+    const errors = this.match && SP.getParseErrors(this.match)
+    errors?.forEach((error) => {
+      // TODO(ast): remove cast when AST/ASTNode typing lands -- `.value` is subclass-specific.
+      const value = (error.AST as unknown as { value: string } | undefined)?.value
+      let message = `${value} on line ${error.line! + 1}`
+      const fileScope = error.getScopeOfType(P.FileScope)
+      if (fileScope) message += ` of ${fileScope.name}`
+      spellCore.console.error(error, message)
+    })
   }
 
   /** Compile our content. */

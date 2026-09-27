@@ -15,15 +15,6 @@ import { SpellExpression, InfixOperatorSuffix } from "./expressions"
  */
 export const math = new SpellParser({ module: "math" })
 
-/**
- * Narrow `node` to concrete AST subclass `T`.
- * - `Match.AST` is typed generically as `ASTNode | undefined`; this asserts the referenced sub-rule's
- *   `getAST()` is known (by inspection) to always produce `T`, since that's not statically checkable here.
- */
-function ast<T extends P.ASTNode>(node: P.ASTNode | undefined): T {
-  return node as T
-}
-
 ////////////////
 // ## `gt_lt` rule
 //    e.g. "salary > expenses"
@@ -42,7 +33,7 @@ class gt_lt extends InfixOperatorSuffix<"operator|expression"> {
     const { operator, expression } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
       methodName: operator.value,
-      args: [ast<P.ASTExpression>(expression.AST)]
+      args: [P.asAST<P.ASTExpression>(expression.AST)]
     })
   }
 }
@@ -93,7 +84,7 @@ class is_gt_lt extends InfixOperatorSuffix<"operator|expression"> {
     const { operator, expression } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
       methodName: operator.value,
-      args: [ast<P.ASTExpression>(expression.AST)]
+      args: [P.asAST<P.ASTExpression>(expression.AST)]
     })
   }
 }
@@ -268,7 +259,7 @@ class absolute_value extends SpellExpression<"operator|expression"> {
     return new P.ASTCoreMethodInvocation(match, {
       datatype: "number",
       methodName: "absoluteValue", // TODO: implement in spellCore
-      args: [ast<P.ASTExpression>(expression.AST)]
+      args: [P.asAST<P.ASTExpression>(expression.AST)]
     })
   }
 }
@@ -301,7 +292,7 @@ class max extends SpellExpression<"operator|argument?|expression"> {
     return new P.ASTCoreMethodInvocation(match, {
       datatype: "number",
       methodName: "largestOf",
-      args: [ast<P.ASTExpression>(expression.AST)]
+      args: [P.asAST<P.ASTExpression>(expression.AST)]
     })
   }
 }
@@ -339,7 +330,7 @@ class min extends SpellExpression<"operator|argument?|expression"> {
     return new P.ASTCoreMethodInvocation(match, {
       datatype: "number",
       methodName: "smallestOf",
-      args: [ast<P.ASTExpression>(expression.AST)]
+      args: [P.asAST<P.ASTExpression>(expression.AST)]
     })
   }
 }
@@ -380,7 +371,7 @@ class round_number extends SpellExpression<"expression|operator?"> {
     return new P.ASTCoreMethodInvocation(match, {
       datatype: "number",
       methodName, // TODO: implement in spellCore
-      args: [ast<P.ASTExpression>(expression.AST)]
+      args: [P.asAST<P.ASTExpression>(expression.AST)]
     })
   }
 }

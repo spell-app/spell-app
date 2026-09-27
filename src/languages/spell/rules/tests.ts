@@ -14,16 +14,6 @@ import { SpellStatement } from "./Statement"
  */
 export const tests = new SpellParser({ module: "tests" })
 
-/**
- * Narrow `node` from `P.ASTNode | undefined` to concrete subtype `T`.
- * - `Match.AST` is typed generically as `ASTNode | undefined`; use this where a referenced sub-rule's
- *   `getAST()` is known (by inspection, not statically provable) to always produce `T`.
- * - Does not actually check `node`'s type or that it's defined -- purely a compile-time cast.
- */
-function ast<T extends P.ASTNode>(node: P.ASTNode | undefined): T {
-  return node as T
-}
-
 ////////////////
 // ## `expect_test` rule
 //    e.g. 'expect the rank of it to be "queen"'
@@ -40,9 +30,9 @@ class expect_test extends SpellStatement<"expression|value?"> {
     // (TS treats the "absent" branch as `never`); use nullish coalescing for the same runtime fallback.
     const valueString: string | undefined = value ? (value.raw ?? value.value) : undefined
     return new P.ASTExpectMethodInvocation(match, {
-      expression: ast<P.ASTExpression>(expression.AST),
+      expression: P.asAST<P.ASTExpression>(expression.AST),
       expressionString: expression.value,
-      value: value && ast<P.ASTExpression>(value.AST),
+      value: value && P.asAST<P.ASTExpression>(value.AST),
       valueString
     })
   }
@@ -129,7 +119,7 @@ class echo extends SpellStatement<"expression"> {
   getAST(match: P.MatchFor<this>) {
     const { expression } = match.groups
     return new P.ASTEchoInvocation(match, {
-      expression: ast<P.ASTExpression>(expression.AST)
+      expression: P.asAST<P.ASTExpression>(expression.AST)
     })
   }
 }

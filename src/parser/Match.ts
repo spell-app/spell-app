@@ -161,6 +161,21 @@ export class Match<
   declare private _data: MatchData | undefined
 
   /**
+   * New match with our plumbing fields plus a shallow copy of `data`, changed by `overrides`.
+   * - Memoized `groups` / `nestedScope` / `AST` are NOT copied:  the clone works them out afresh,
+   *   e.g. a fresh nested scope for re-parsing a statement's body -- see `BlockLine.reparseBody()`.
+   */
+  clone(overrides: Partial<MatchProps> = {}): Match<Groups, MatchData> {
+    const { scope, rule, tokens, matched, items, matchGroup, raw, value, message, choiceRule } = this
+    const clone = new Match<Groups, MatchData>({
+      ...{ scope, rule, tokens, matched, items, matchGroup, raw, value, message, choiceRule },
+      ...overrides
+    })
+    if (this._data) clone._data = { ...this._data }
+    return clone
+  }
+
+  /**
    * Was this match produced by (a subclass of) `ruleConstructor`?
    * - Type guard:  narrows `groups` and `data` to the shapes declared by that rule, and `rule` to that class,
    *   so you can call its methods:  `if (match.is(some_rule)) match.rule.someMethod(match)`.

@@ -21,28 +21,6 @@ export const lists = new SpellParser({ module: "lists" })
 /** What `P.ASTMethodDefinition`'s `body` prop accepts. */
 type MethodBody = P.ASTStatementBlock | P.ASTStatement | P.ASTExpression
 
-/**
- * Narrow `match.AST` to a concrete `P.ASTNode` subtype.
- * - `Match.AST` (`src/parser/Match.ts`) is always typed as `ASTNode` because `Rule.getAST()`'s return type
- *   isn't parameterized per the specific rule a rulex group refers to -- only the rule's own semantics
- *   (which we know, writing the rule) tell us which concrete node type comes back.
- * - Narrow once here instead of casting inline at every call site.
- */
-function astAs<T extends P.ASTNode = P.ASTExpression>(match: P.Match): T
-function astAs<T extends P.ASTNode = P.ASTExpression>(match: P.Match | undefined): T | undefined
-function astAs<T extends P.ASTNode = P.ASTExpression>(match: P.Match | undefined): T | undefined {
-  return match?.AST as T | undefined
-}
-
-/**
- * Build a `MethodScope`, typed to accept `parentScope` etc. directly.
- * - TODO: drop this helper and just call `new P.MethodScope(props)` at call sites?  `classes.ts` has an
- *   identical copy.
- */
-function newMethodScope(props: P.MethodScopeProps): P.MethodScope {
-  return new P.MethodScope(props)
-}
-
 ////////////////
 // ## `identifier_list` rule
 //    e.g. "up or down"
@@ -56,7 +34,7 @@ function newMethodScope(props: P.MethodScopeProps): P.MethodScope {
 class identifier_list extends P.Repeat {
   getAST(match: P.MatchFor<this>): P.ASTListExpression {
     const { items } = match
-    return new P.ASTListExpression(match, { items: items.map((item) => astAs(item)) })
+    return new P.ASTListExpression(match, { items: items.map((item) => P.matchAST(item)) })
   }
 }
 lists.addRule(identifier_list, {
@@ -87,7 +65,7 @@ lists.addRule(identifier_list, {
 class bracketed_list extends P.Sequence<"list?"> {
   getAST(match: P.MatchFor<this>): P.ASTListExpression {
     const { list } = match.groups
-    const items = list ? list.items.map((item) => astAs(item)) : undefined
+    const items = list ? list.items.map((item) => P.matchAST(item)) : undefined
     return new P.ASTListExpression(match, { items })
   }
 }
@@ -131,8 +109,8 @@ lists.addRule(bracketed_list, {
 class copy_list extends SpellExpression<"expression|type?"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { expression, type } = match.groups
-    const args = [astAs(expression)]
-    if (type) args.push(astAs(type))
+    const args = [P.matchAST(expression)]
+    if (type) args.push(P.matchAST(type))
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "duplicateCollection",
       args
@@ -168,8 +146,8 @@ lists.addRule(copy_list, {
 class merge_lists extends SpellExpression<"expression|type?"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { expression, type } = match.groups
-    const args = [astAs(expression)]
-    if (type) args.push(astAs(type))
+    const args = [P.matchAST(expression)]
+    if (type) args.push(P.matchAST(type))
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "mergeCollections",
       args
@@ -222,7 +200,7 @@ class list_length extends SpellExpression<"arg|list"> {
     const { list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "itemCountOf",
-      args: [astAs(list)]
+      args: [P.matchAST(list)]
     })
   }
 }
@@ -262,7 +240,7 @@ class list_position extends SpellExpression<"thing|list"> {
     const { thing, list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "itemOf",
-      args: [astAs(list), astAs(thing)]
+      args: [P.matchAST(list), P.matchAST(thing)]
     })
   }
 }
@@ -450,7 +428,7 @@ class position_expression extends SpellExpression<"arg|position|expression"> {
     const { position, expression } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "getItemOf",
-      args: [astAs(expression), astAs(position)]
+      args: [P.matchAST(expression), P.matchAST(position)]
     })
   }
 }
@@ -488,7 +466,7 @@ class ordinal_position_expression extends SpellExpression<"ordinal|arg|expressio
     const { ordinal, expression } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "getItemOf",
-      args: [astAs(expression), astAs(ordinal)]
+      args: [P.matchAST(expression), P.matchAST(ordinal)]
     })
   }
 }
@@ -526,7 +504,7 @@ class random_item_expression extends SpellExpression<"arg|list"> {
     const { list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "randomItemOf",
-      args: [astAs(list)]
+      args: [P.matchAST(list)]
     })
   }
 }
@@ -564,7 +542,7 @@ class random_items_expression extends SpellExpression<"number|arg|list"> {
     const { number, list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "randomItemsOf",
-      args: [astAs(list), astAs(number)]
+      args: [P.matchAST(list), P.matchAST(number)]
     })
   }
 }
@@ -603,7 +581,7 @@ class range_between_expression extends SpellExpression<"arg|start|end|list"> {
     const { list, start, end } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "rangeBetween",
-      args: [astAs(list), astAs(start), astAs(end)]
+      args: [P.matchAST(list), P.matchAST(start), P.matchAST(end)]
     })
   }
 }
@@ -643,11 +621,11 @@ class range_starting_with_expression extends SpellExpression<"arg|list|thing"> {
     const { thing, list } = match.groups
     const itemExpression = new P.ASTCoreMethodInvocation(match, {
       methodName: "itemOf",
-      args: [astAs(list), astAs(thing)]
+      args: [P.matchAST(list), P.matchAST(thing)]
     })
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "rangeStartingAt",
-      args: [astAs(list), itemExpression]
+      args: [P.matchAST(list), itemExpression]
     })
   }
 }
@@ -691,7 +669,7 @@ class range_count_expression extends SpellExpression<"ordinal|number|arg|list"> 
     const { list, ordinal, number } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "rangeStartingAt",
-      args: [astAs(list), astAs(ordinal), astAs(number)]
+      args: [P.matchAST(list), P.matchAST(ordinal), P.matchAST(number)]
     })
   }
 }
@@ -714,46 +692,62 @@ lists.addRule(range_count_expression, {
 })
 
 ////////////////
+// ## `where` clause helpers
+//    shared by `list_filter`, `list_membership_test` and `list_remove_where`
+////////////////
+
+/**
+ * Nested scope for a `where` clause's predicate:  singularized `arg` is the current item, also aliased from `it`,
+ * e.g. `word` for `words in my-list where word starts with "a"`.
+ */
+function getWhereScope(parentScope: P.Scope, arg: P.Match): P.MethodScope {
+  const name = singularize(arg.value)
+  return new P.MethodScope({
+    parentScope,
+    args: [new P.ScopeVariable(name)],
+    mapItTo: name
+  })
+}
+
+/** Inline method for a `where` clause's predicate `body`, e.g. `(word) => word.startsWith("a")`. */
+function getWhereMethod(match: P.Match, arg: P.Match, body: P.Match | undefined): P.ASTMethodDefinition {
+  return new P.ASTMethodDefinition(body || match, {
+    inline: true,
+    args: [new P.ASTVariableExpression(arg, { name: singularize(arg.value) })],
+    body: P.matchAST(body)
+  })
+}
+
+////////////////
 // ## `list_filter` rule
 //    e.g. words in "a word list" where
 ////////////////
 
 /**
  * List filter, e.g. `words in "a word list" where word starts with "a"`.
- * - Trailing `where` expects an inline `{expression}` statement or nested block as filter body
- *   (`wantsInlineStatement`), parsed in a nested `MethodScope` where singularized `{arg}` (e.g. `word`
+ * - Trailing `where` expects an inline expression as filter body (`{inline_expression}?`),
+ *   parsed in a nested `MethodScope` where singularized `{arg}` (e.g. `word`
  *   for `words`) and `it` both map to current item.
  * - `precedence: 2` -- preferred over lower-precedence expression rules when tokens are ambiguous.
  * - Compiles to `spellCore.filter(list, (item) => { ... })`.
  */
-class list_filter extends SpellExpression<"arg|list|inlineStatement?"> {
+class list_filter extends SpellExpression<"arg|list|body?"> {
   /** Nested scope for filter body -- singularized `{arg}` variable, also aliased from `it`. */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
-    const arg = singularize(match.groups.arg.value)
-    return newMethodScope({
-      parentScope: match.scope,
-      args: [new P.ScopeVariable(arg)],
-      mapItTo: arg
-    })
+    return getWhereScope(match.scope, match.groups.arg)
   }
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
-    const { arg, list, inlineStatement } = match.groups
-    const filter = new P.ASTMethodDefinition(inlineStatement || match, {
-      inline: true,
-      args: [new P.ASTVariableExpression(arg, { name: singularize(arg.value) })],
-      body: astAs(inlineStatement)
-    })
+    const { arg, list } = match.groups
+    const filter = getWhereMethod(match, arg, this.getBody(match))
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "filter",
-      args: [astAs(list), filter]
+      args: [P.matchAST(list), filter]
     })
   }
 }
 lists.addRule(list_filter, {
-  syntax: "the? {arg:plural_identifier} (in|of) {list:expression} where",
+  syntax: "the? {arg:plural_identifier} (in|of) {list:expression} where {inline_expression}?",
   precedence: 2,
-  wantsInlineStatement: true,
-  parseInlineStatementAs: "expression",
   tests: [
     {
       compileAs: "expression",
@@ -792,32 +786,23 @@ lists.addRule(list_filter, {
 /**
  * Set membership test, e.g. `my-list has items where the item is 1`.
  * - `isLeftRecursive` -- `{list}` on left, so chains after another expression (e.g. `bar.foo has items where`).
- * - Trailing `where` expects an inline `{expression}` statement or nested block as predicate.
+ * - Trailing `where` expects an inline expression as predicate (`{inline_expression}?`) -- see `getWhereScope()`.
  * - `precedence: 2` -- preferred over lower-precedence expression rules when tokens are ambiguous.
  * - Compiles to `spellCore.any(list, (item) => { ... })`, negated (wrapped in `NotExpression`) unless
  *   `operator` is exactly `has`.
  * TODO: this is a postfix_operator expression
  */
-class list_membership_test extends SpellExpression<"list|operator|arg|inlineStatement?"> {
+class list_membership_test extends SpellExpression<"list|operator|arg|body?"> {
   /** Nested scope for predicate body -- singularized `{arg}` variable, also aliased from `it`. */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
-    const arg = singularize(match.groups.arg.value)
-    return newMethodScope({
-      parentScope: match.scope,
-      args: [new P.ScopeVariable(arg)],
-      mapItTo: arg
-    })
+    return getWhereScope(match.scope, match.groups.arg)
   }
   getAST(match: P.MatchFor<this>): P.ASTExpression {
-    const { list, operator, arg, inlineStatement } = match.groups
-    const filter = new P.ASTMethodDefinition(inlineStatement || match, {
-      inline: true,
-      args: [new P.ASTVariableExpression(arg, { name: singularize(arg.value) })],
-      body: astAs(inlineStatement)
-    })
+    const { list, operator, arg } = match.groups
+    const filter = getWhereMethod(match, arg, this.getBody(match))
     const expression = new P.ASTCoreMethodInvocation(match, {
       methodName: "any",
-      args: [astAs(list), filter],
+      args: [P.matchAST(list), filter],
       datatype: "boolean"
     })
     // Wrap in NotExpression for some operators
@@ -826,11 +811,10 @@ class list_membership_test extends SpellExpression<"list|operator|arg|inlineStat
   }
 }
 lists.addRule(list_membership_test, {
-  syntax: "{list:simple_expression} (operator:has|has no|doesnt have|does not have) {arg:plural_identifier} where",
+  syntax:
+    "{list:simple_expression} (operator:has|has no|doesnt have|does not have) {arg:plural_identifier} where {inline_expression}?",
   precedence: 2,
   isLeftRecursive: true,
-  wantsInlineStatement: true,
-  parseInlineStatementAs: "expression",
   tests: [
     {
       compileAs: "expression",
@@ -882,7 +866,7 @@ class list_add extends SpellStatement<"thing|method?|list"> {
     const spellMethod = method && ["start", "front", "top"].includes(method.value) ? "prepend" : "append"
     return new P.ASTCoreMethodInvocation(match, {
       methodName: spellMethod,
-      args: [astAs(list), astAs(thing)]
+      args: [P.matchAST(list), P.matchAST(thing)]
     })
   }
 }
@@ -921,7 +905,7 @@ class list_prepend extends SpellStatement<"thing|list"> {
     const { thing, list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "prepend",
-      args: [astAs(list), astAs(thing)]
+      args: [P.matchAST(list), P.matchAST(thing)]
     })
   }
 }
@@ -951,7 +935,7 @@ class list_append extends SpellStatement<"thing|list"> {
     const { thing, list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "append",
-      args: [astAs(list), astAs(thing)]
+      args: [P.matchAST(list), P.matchAST(thing)]
     })
   }
 }
@@ -993,7 +977,7 @@ class list_add_relative extends SpellStatement<"thing|list|operator|item"> {
     const { thing, list, operator, item } = match.groups
     let position: P.ASTExpression = new P.ASTCoreMethodInvocation(match, {
       methodName: "itemOf",
-      args: [astAs(list), astAs(item)]
+      args: [P.matchAST(list), P.matchAST(item)]
     })
     if (operator.value === "after") {
       position = new P.ASTInfixExpression(match, {
@@ -1004,7 +988,7 @@ class list_add_relative extends SpellStatement<"thing|list|operator|item"> {
     }
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "addAtPosition",
-      args: [astAs(list), position, astAs(thing)]
+      args: [P.matchAST(list), position, P.matchAST(thing)]
     })
   }
 }
@@ -1051,7 +1035,7 @@ class list_empty extends SpellStatement<"list"> {
     const { list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "clear",
-      args: [astAs(list)]
+      args: [P.matchAST(list)]
     })
   }
 }
@@ -1088,7 +1072,7 @@ class list_remove_ordinal extends SpellStatement<"position|arg|list"> {
     const { position, list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "removeItemOf",
-      args: [astAs(list), astAs(position)]
+      args: [P.matchAST(list), P.matchAST(position)]
     })
   }
 }
@@ -1125,7 +1109,7 @@ class list_remove_position extends SpellStatement<"arg|number|list"> {
     const { number, list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "removeItemOf",
-      args: [astAs(list), astAs(number)]
+      args: [P.matchAST(list), P.matchAST(number)]
     })
   }
 }
@@ -1159,7 +1143,7 @@ class list_remove_range extends SpellStatement<"arg|start|end|list"> {
     const { start, end, list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "removeRangeBetween",
-      args: [astAs(list), astAs(start), astAs(end)]
+      args: [P.matchAST(list), P.matchAST(start), P.matchAST(end)]
     })
   }
 }
@@ -1192,7 +1176,7 @@ class list_remove_range_ordinal extends SpellStatement<"start|end|arg|list"> {
     const { start, end, list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "removeRangeBetween",
-      args: [astAs(list), astAs(start), astAs(end)]
+      args: [P.matchAST(list), P.matchAST(start), P.matchAST(end)]
     })
   }
 }
@@ -1228,7 +1212,7 @@ class list_remove extends SpellStatement<"thing|list"> {
     const { thing, list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "remove",
-      args: [astAs(list), astAs(thing)]
+      args: [P.matchAST(list), P.matchAST(thing)]
     })
   }
 }
@@ -1254,38 +1238,27 @@ lists.addRule(list_remove, {
 
 /**
  * Remove all items from list where condition is true, e.g. `remove items from my-list where item is not "ace"`.
- * - Trailing `where` expects an inline `{expression}` statement or nested block as predicate.
+ * - Trailing `where` expects an inline expression as predicate (`{inline_expression}?`) -- see `getWhereScope()`.
  * - Compiles to `spellCore.removeWhere(list, (item) => { ... })`.
  */
-class list_remove_where extends SpellStatement<"arg|list|inlineStatement?"> {
+class list_remove_where extends SpellStatement<"arg|list|body?"> {
   /** Nested scope for predicate body -- singularized `{arg}` variable, also aliased from `it`. */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
-    const arg = singularize(match.groups.arg.value)
-    return newMethodScope({
-      parentScope: match.scope,
-      args: [new P.ScopeVariable(arg)],
-      mapItTo: arg
-    })
+    return getWhereScope(match.scope, match.groups.arg)
   }
 
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
-    const { arg, list, inlineStatement } = match.groups
-    const filter = new P.ASTMethodDefinition(inlineStatement || match, {
-      inline: true,
-      args: [new P.ASTVariableExpression(arg, { name: singularize(arg.value) })],
-      body: astAs(inlineStatement)
-    })
+    const { arg, list } = match.groups
+    const filter = getWhereMethod(match, arg, this.getBody(match))
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "removeWhere",
-      args: [astAs(list), filter]
+      args: [P.matchAST(list), filter]
     })
   }
 }
 lists.addRule(list_remove_where, {
   alias: "statement",
-  syntax: "remove {arg:plural_identifier} (in|of|from) {list:expression} where",
-  wantsInlineStatement: true,
-  parseInlineStatementAs: "expression",
+  syntax: "remove {arg:plural_identifier} (in|of|from) {list:expression} where {inline_expression}?",
   tests: [
     {
       compileAs: "statement",
@@ -1332,7 +1305,7 @@ class list_reverse extends SpellStatement<"arg?|list"> {
     const { list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "reverse",
-      args: [astAs(list)]
+      args: [P.matchAST(list)]
     })
   }
 }
@@ -1365,7 +1338,7 @@ class list_shuffle extends SpellStatement<"arg?|list"> {
     const { list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "randomize",
-      args: [astAs(list)]
+      args: [P.matchAST(list)]
     })
   }
 }
@@ -1396,15 +1369,15 @@ lists.addRule(list_shuffle, {
 /**
  * Repeat an action `N` times, e.g. `repeat 3 times: print the number`.
  * - Both a `statement` and an `expression` -- usable inline or as a block.
- * - Body runs as a nested block or inline statement (`wantsInlineStatement` / `wantsNestedBlock`);
+ * - Body runs as a nested block or inline statement (`{statement_body}?`);
  *   current iteration number is available as `number` (also aliased from `it`).
  * - Compiles to `spellCore.map(spellCore.getRange(0, number), (number) => { ... })`, or
  *   `await spellCore.forEachSequential(...)` if body contains an `await` (`method.isAsync`).
  */
-class repeat_n_times extends SpellStatement<"number|inlineStatement?|nestedBlock?"> {
+class repeat_n_times extends SpellStatement<"number|body?"> {
   /** Nested scope for body -- `number` variable (current iteration index), also aliased from `it`. */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
-    return newMethodScope({
+    return new P.MethodScope({
       parentScope: match.scope,
       args: [new P.ScopeVariable("number")],
       mapItTo: "number"
@@ -1417,15 +1390,15 @@ class repeat_n_times extends SpellStatement<"number|inlineStatement?|nestedBlock
    *   `method.isAsync` -- set by an `await` expression somewhere in body.
    */
   getAST(match: P.MatchFor<this>): P.ASTExpression {
-    const { number, inlineStatement, nestedBlock } = match.groups
+    const { number } = match.groups
     const method = new P.ASTMethodDefinition(match, {
       inline: true,
       args: [new P.ASTVariableExpression(match, { name: "number" })],
-      body: astAs<MethodBody>(nestedBlock || inlineStatement)
+      body: P.matchAST<MethodBody>(this.getBody(match))
     })
     const getRange = new P.ASTCoreMethodInvocation(match, {
       methodName: "getRange",
-      args: [new P.ASTNumericLiteral(match, 0), astAs(number)]
+      args: [new P.ASTNumericLiteral(match, 0), P.matchAST(number)]
     })
     const expression = new P.ASTCoreMethodInvocation(match, {
       methodName: method.isAsync ? "forEachSequential" : "map",
@@ -1437,9 +1410,7 @@ class repeat_n_times extends SpellStatement<"number|inlineStatement?|nestedBlock
 }
 lists.addRule(repeat_n_times, {
   alias: ["statement", "expression"],
-  syntax: "repeat {number:expression} (time|times) :?",
-  wantsInlineStatement: true,
-  wantsNestedBlock: true,
+  syntax: "repeat {number:expression} (time|times) :? {statement_body}?",
   tests: [
     {
       compileAs: "block",
@@ -1493,13 +1464,13 @@ lists.addRule(repeat_n_times, {
  * TODO: can work for object enumeration as well (maybe with 'of'?)
  * TODO: return values e.g. array.map() ???
  */
-class list_iteration extends SpellStatement<"item|position?|list|inlineStatement?|nestedBlock?"> {
+class list_iteration extends SpellStatement<"item|position?|list|body?"> {
   /** Nested scope for body -- `{item}` (and optional numeric `{position}`) vars, `it` aliased to `{item}`. */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
     const { item, position } = match.groups
     const args: P.ScopeVariable[] = [new P.ScopeVariable({ name: item.value })]
     if (position) args.push(new P.ScopeVariable({ name: position.value, datatype: "number" }))
-    return newMethodScope({
+    return new P.MethodScope({
       parentScope: match.scope,
       args,
       mapItTo: item.value
@@ -1511,13 +1482,13 @@ class list_iteration extends SpellStatement<"item|position?|list|inlineStatement
    *   `method.isAsync` -- set by an `await` expression somewhere in body.
    */
   getAST(match: P.MatchFor<this>): P.ASTExpression {
-    const { list, item, position, inlineStatement, nestedBlock } = match.groups
+    const { list, item, position } = match.groups
     const args = [new P.ASTVariableExpression(item, { name: item.value })]
     if (position) args.push(new P.ASTVariableExpression(position))
     const method = new P.ASTMethodDefinition(match, {
       inline: true,
       args,
-      body: astAs<MethodBody>(nestedBlock || inlineStatement)
+      body: P.matchAST<MethodBody>(this.getBody(match))
     })
 
     if (method.isAsync) {
@@ -1525,22 +1496,21 @@ class list_iteration extends SpellStatement<"item|position?|list|inlineStatement
       return new P.ASTAwaitExpression(match, {
         expression: new P.ASTCoreMethodInvocation(match, {
           methodName: "forEachSequential",
-          args: [astAs(list), method]
+          args: [P.matchAST(list), method]
         })
       })
     }
 
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "map", // TODO...
-      args: [astAs(list), method]
+      args: [P.matchAST(list), method]
     })
   }
 }
 lists.addRule(list_iteration, {
   alias: ["statement", "expression"],
-  syntax: "for each? {item:singular_identifier} ((and|,) {position:singular_identifier})? (in|of) {list:expression} :?",
-  wantsInlineStatement: true,
-  wantsNestedBlock: true,
+  syntax:
+    "for each? {item:singular_identifier} ((and|,) {position:singular_identifier})? (in|of) {list:expression} :? {statement_body}?",
   tests: [
     {
       compileAs: "block",
@@ -1618,7 +1588,7 @@ lists.addRule(list_iteration, {
  * TODO: this only works if you `from 1 to 10`, a more general solution which also supports `in {list}` is needed.
  * TODO: `down` is not accounted for in the output
  */
-class list_range_iteration extends SpellStatement<"item|start|end|inlineStatement?|nestedBlock?"> {
+class list_range_iteration extends SpellStatement<"item|start|end|body?"> {
   /**
    * Nested scope for body -- singularized `{item}` variable.
    * - NOTE: unlike sibling iteration rules (`repeat_n_times`, `list_iteration`), doesn't pass
@@ -1626,21 +1596,21 @@ class list_range_iteration extends SpellStatement<"item|start|end|inlineStatemen
    */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
     const arg = singularize(match.groups.item.value)
-    return newMethodScope({
+    return new P.MethodScope({
       parentScope: match.scope,
       args: [new P.ScopeVariable(arg)]
     })
   }
   getAST(match: P.MatchFor<this>): P.ASTExpression {
-    const { item, start, end, inlineStatement, nestedBlock } = match.groups
+    const { item, start, end } = match.groups
     const getRange = new P.ASTCoreMethodInvocation(match, {
       methodName: "getRange",
-      args: [astAs(start), astAs(end)]
+      args: [P.matchAST(start), P.matchAST(end)]
     })
     const method = new P.ASTMethodDefinition(match, {
       inline: true,
       args: [new P.ASTVariableExpression(item)],
-      body: astAs<MethodBody>(nestedBlock || inlineStatement)
+      body: P.matchAST<MethodBody>(this.getBody(match))
     })
     const expression = new P.ASTCoreMethodInvocation(match, {
       methodName: method.isAsync ? "forEachSequential" : "map",
@@ -1652,9 +1622,7 @@ class list_range_iteration extends SpellStatement<"item|start|end|inlineStatemen
 }
 lists.addRule(list_range_iteration, {
   alias: "statement",
-  syntax: "for each? {item:singular_identifier} from {start:expression} down? to {end:expression} :?",
-  wantsInlineStatement: true,
-  wantsNestedBlock: true,
+  syntax: "for each? {item:singular_identifier} from {start:expression} down? to {end:expression} :? {statement_body}?",
   tests: [
     {
       compileAs: "block",

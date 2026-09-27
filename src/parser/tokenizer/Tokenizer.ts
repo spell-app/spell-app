@@ -47,20 +47,8 @@ export class Tokenizer {
       this.logger.warn("tokenize(): didn't consume: `", text.slice(start, end), "`")
     }
 
-    // Iterate through tokens setting `line` and `ch`(ar),
-    // which is sometimes more useful than the raw `offset` within the file.
-    // REFACTOR: can we do this in the `consume` method?
-    let line = 0
-    let ch = 0
-    tokens.forEach((token) => {
-      token.record.line = line
-      token.record.ch = ch
-      ch += token.length
-      if (token instanceof P.NewlineToken) {
-        line++
-        ch = 0
-      }
-    })
+    // Set `line` and `ch`(ar), which is sometimes more useful than the raw `offset` within the file.
+    this.setPositions(tokens, text)
 
     // Return tokens filtered according to our whitespace policy
     switch (this.whitespacePolicy) {
@@ -70,6 +58,62 @@ export class Tokenizer {
         return this.filterWhitespace(tokens, P.InlineWhitespaceToken)
       default:
         return tokens
+    }
+  }
+
+  /**
+   * Set `line` / `ch` on `tokens` and every token nested in them, worked out from each `offset` in `text`.
+   * - Counts EVERY `\n` in `text`, so multi-line JSX / strings don't throw later lines off.
+   * - NOTE: `offset`s must be absolute within `text`, even when tokenizing from a `start` offset.
+   * - SIDE EFFECT: writes `record.line` / `record.ch`.
+   */
+  setPositions(tokens: P.Token[], text: string) {
+    const lineStarts = P.getLineStarts(text)
+    Tokenizer.forEachToken(tokens, (token) => {
+      const { line, ch } = P.positionForOffset(lineStarts, token.offset)
+      token.record.line = line
+      token.record.ch = ch
+    })
+  }
+
+  /**
+   * Move `tokens` and every token nested in them by `delta` characters, then re-work-out their `line` / `ch`
+   * in `text` -- for tokens we're keeping after an edit earlier in the text.
+   * - SIDE EFFECT: writes `record.offset` / `record.line` / `record.ch`.
+   */
+  moveTokens(tokens: P.Token[], delta: number, text: string) {
+    if (delta) Tokenizer.forEachToken(tokens, (token) => (token.record.offset += delta))
+    this.setPositions(tokens, text)
+  }
+
+  /**
+   * Call `callback` for each of `tokens` and every token nested inside them, parents first:
+   * - `LineToken` tokens + its `newline`
+   * - `BlockToken` lines / blocks
+   * - JSX element attributes + children, attribute values, expression `contents` when it's a token
+   * - NOTE: JSX `{...}` contents re-tokenized later from a collapsed copy are NOT reached -- they aren't
+   *   tokens until then, and their offsets are relative to that copy anyway.
+   */
+  static forEachToken(tokens: P.Token[], callback: (token: P.Token) => void) {
+    tokens.forEach(visit)
+
+    /** `callback` for `token`, then recurse into anything nested inside it.  Ignores non-tokens. */
+    function visit(token: unknown) {
+      if (!(token instanceof P.Token)) return
+      callback(token)
+      if (token instanceof P.LineToken) {
+        token.tokens.forEach(visit)
+        visit(token.newline)
+      } else if (token instanceof P.BlockToken) {
+        token.tokens.forEach(visit)
+      } else if (token instanceof P.JSXElementToken) {
+        token.attributes?.forEach(visit)
+        token.children?.forEach(visit)
+      } else if (token instanceof P.JSXAttributeToken) {
+        visit(token.value)
+      } else if (token instanceof P.JSXExpressionToken) {
+        visit(token.contents)
+      }
     }
   }
 

@@ -1,4 +1,4 @@
-import { IndexedList, typeCase, instanceCase, snakeCase } from "~/util"
+import { typeCase, instanceCase, snakeCase } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { BlockScope } from "./BlockScope"
@@ -48,7 +48,7 @@ export class TypeScope extends BlockScope {
     return this.derived(
       "classVariables",
       () =>
-        new IndexedList({
+        new P.ScopeList({
           target: this,
           keyProp: "name",
           normalizeKey: snakeCase,
@@ -68,7 +68,7 @@ export class TypeScope extends BlockScope {
     return this.derived(
       "classMethods",
       () =>
-        new IndexedList({
+        new P.ScopeList({
           target: this,
           keyProp: "name",
           normalizeKey: snakeCase,

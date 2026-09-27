@@ -39,6 +39,8 @@ export class Parser extends Derivative {
     const allProps = { ...this, ...properties } as Record<string, unknown>
     // clear imports...
     delete allProps.imports
+    // ...and journal, which belongs to one project's parse
+    delete allProps.journal
     const constructor = this.constructor as new (properties?: ParserProps) => this
     const clone = new constructor(allProps as ParserProps)
     // ...so we can import this parser (and all of ITS imports)
@@ -110,6 +112,74 @@ export class Parser extends Derivative {
   }
 
   /**
+   * Lock in `match`, parsed on its own and being kept, e.g. by a rule unit test:  apply its scope changes.
+   * - Default just calls `rule.mutateScope()`.  Languages override, e.g. `SpellParser` also commits
+   *   inline statements -- see `SP.commitStatement()`.
+   * - NOTE: only for matches parsed OUTSIDE a language's own block parsing, which commits each line itself.
+   */
+  commit(match: P.Match) {
+    match.rule.mutateScope(match)
+  }
+
+  ////////////////
+  // ## Incremental parsing -- see `P.IncrementalParse`
+  ////////////////
+
+  /**
+   * Root `BlockToken` for a whole file's `text`:  its `tokens` are the file's top-level items.
+   * - `undefined` if we don't break files into indented blocks, so can't re-parse them incrementally.
+   */
+  tokenizeRoot(text: string): P.BlockToken | undefined {
+    const [root] = this.tokenize(text, "block") ?? []
+    return root instanceof P.BlockToken ? root : undefined
+  }
+
+  /**
+   * Parse the top-level item at the start of `items`, e.g. a line plus any indented body it takes.
+   * - Returns its match, whose `length` says how many of `items` it took, or `undefined` if it didn't parse.
+   * - Default:  `undefined`, i.e. can't parse item by item.  Languages with indented blocks override.
+   */
+  parseItem(_scope: P.Scope, _items: P.Token[]): P.Match | undefined {
+    return undefined
+  }
+
+  /**
+   * Is top-level `item` broken, e.g. has parse errors?  `P.IncrementalParse` can keep a broken item's last
+   * working declarations -- see `keepLastGood`.
+   * - Default:  only if it didn't parse at all.
+   */
+  isBrokenItem(item: P.Match | undefined): boolean {
+    return !item
+  }
+
+  /**
+   * Journal mark taken just before top-level `item`'s indented body was parsed, if it has one.
+   * - `P.IncrementalParse` rewinds to it to re-parse just the body.  Default:  `undefined`.
+   */
+  getBodyMark(_item: P.Match): P.JournalMark | undefined {
+    return undefined
+  }
+
+  /**
+   * Re-parse ONLY the indented `body` of top-level `item`, keeping its header line's match as-is.
+   * - Shared state has already been rewound to `getBodyMark(item)`.
+   * - Returns a new match for the whole item, or `undefined` if that's not safe, e.g. the body changes
+   *   more than its own scope -- caller then re-parses from the item on.
+   * - Default:  never safe.  Languages with bodies override, e.g. `SpellParser`.
+   */
+  reparseBody(_item: P.Match, _body: P.BlockToken): P.Match | undefined {
+    return undefined
+  }
+
+  /**
+   * File match for `root` from the matches of its top-level `items`, as a full parse would build it.
+   * - Default:  `undefined`, i.e. can't.  Languages which support `reparseBody()` override.
+   */
+  assembleFile(_scope: P.Scope, _root: P.BlockToken, _items: P.Match[]): P.Match | undefined {
+    return undefined
+  }
+
+  /**
    * Parse `input` and return the resulting output (source code for language parsers).
    * - If one string argument, compiles as `"block"`.
    * - Throws if not parseable.
@@ -136,6 +206,14 @@ export class Parser extends Derivative {
    * - Use `parser.rules` to get ALL rules, including those from imports.
    */
   #ownRules: P.RuleMap = {}
+
+  /**
+   * Records every rule added while parsing, so incremental parsing can take it back -- see `P.ParseJournal`.
+   * - `undefined` => nothing's recorded.  Set by whoever wants incremental parsing, e.g. `P.IncrementalProject`.
+   * - Scope lists record themselves here too, as `scope.parser.journal`.
+   * - NOTE: NOT copied by `clone()`.
+   */
+  journal: P.ParseJournal | undefined
 
   /** All rules, including those merged in from `imports`. */
   get rules(): P.RuleMap {
@@ -236,10 +314,23 @@ export class Parser extends Derivative {
     }
     // Add to our list of rules
     else {
+      const previous = this.#ownRules[ruleName]
       this.mergeRule(this.#ownRules, ruleName, rule)
+      const next = this.#ownRules[ruleName]
+      this.journal?.record({
+        undo: () => this.setOwnRule(ruleName, previous),
+        redo: () => this.setOwnRule(ruleName, next)
+      })
     }
 
     return rule
+  }
+
+  /** Set (or with no `rule`, remove) one of our own rules directly, e.g. to undo `addRule()`. */
+  private setOwnRule(ruleName: string, rule: P.Rule | undefined) {
+    if (rule) this.#ownRules[ruleName] = rule
+    else delete this.#ownRules[ruleName]
+    this.clearDerived("rules")
   }
 
   /**
@@ -390,7 +481,10 @@ export class Parser extends Derivative {
             let result: unknown
             try {
               const match = scope.parse(input, compileAs!)
-              if (match) result = match.compile()
+              if (match) {
+                scope.parser?.commit(match)
+                result = match.compile()
+              }
             } catch (e) {
               result = e
             }

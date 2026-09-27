@@ -137,6 +137,39 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   }
 
   /**
+   * Parses our spell files so an edit re-parses as little as possible -- see `updatedContentsFor()`.
+   * - Built by our `parser` task list, whenever we haven't got one we can trust.
+   * - NOTE: plain field, not state:  files hold the results.
+   */
+  incremental: P.IncrementalProject | undefined
+
+  /** Do we need to parse our spell files from scratch, rather than trust `incremental`? */
+  get needsFullParse(): boolean {
+    if (!this.incremental || this.incremental.isBroken) return true
+    const spellFiles = this.activeImports.filter((file) => file instanceof SP.SpellFile)
+    if (spellFiles.length !== this.incremental.files.length) return true
+    return spellFiles.some((file, index) => !file.match || this.incremental!.files[index]!.path !== file.path)
+  }
+
+  /**
+   * Parse our active spell files from scratch into `scope`, in order, and hand each file its result.
+   * - Other files, e.g. `.css`, parse themselves.
+   */
+  parseImports(): void {
+    const spellFiles = this.activeImports.filter((file) => file instanceof SP.SpellFile)
+    this.incremental = new P.IncrementalProject({
+      scope: this.scope!,
+      // one half-typed line shouldn't break every line after it
+      keepLastGood: true,
+      files: spellFiles.map((file) => ({ path: file.path, name: file.file, text: file.parseText }))
+    })
+    spellFiles.forEach((file) => {
+      file.setParsed(this.incremental!.getFile(file.path)!)
+      file.logParseErrors()
+    })
+  }
+
+  /**
    * Parse project: cancel any in-flight parse, then run `this.parser` `TaskList`.
    * - NOTE: `parser` arg is actually `parentScope` to parse from -- passed straight through
    *   to `this.parser.start()`, which calls `getScope(parentScope)` for the first task.
@@ -184,21 +217,33 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
         tasks: [
           new Task({
             name: `Loading ${this.type}`,
-            run: (parentScope) => {
-              this.resetCompiled()
-              const scope = this.getScope(parentScope as P.Scope | undefined)
-              this.setState("scope", scope)
-              return this.load(undefined)
+            run: async (parentScope) => {
+              await this.load(undefined)
+              // Keep our scope while `incremental` is good:  files' matches belong to it.
+              if (this.needsFullParse) {
+                this.resetCompiled()
+                this.incremental = undefined
+                this.setState("scope", this.getScope(parentScope as P.Scope | undefined))
+              }
             }
           }),
           TaskList.forEach({
-            name: `Parsing imports`,
+            name: `Loading imports`,
             list: () => this.activeImports,
-            getTask: (file: SP.AnySpellFile) =>
+            getTask: (file: SP.CompilableSpellFile) =>
               new Task({
-                name: `Parsing import: ${file.file}`,
-                run: () => (file as SP.CompilableSpellFile).parse(this.scope)
+                name: `Loading import: ${file.file}`,
+                run: () => file.load(undefined)
               })
+          }),
+          new Task({
+            name: `Parsing imports`,
+            run: async () => {
+              if (!this.incremental) this.parseImports()
+              for (const file of this.activeImports) {
+                if (!(file instanceof SP.SpellFile)) await file.parse(this.scope)
+              }
+            }
           })
         ]
       })
@@ -220,10 +265,10 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
           TaskList.forEach({
             name: `Compiling imports`,
             list: () => this.activeImports,
-            getTask: (file: SP.AnySpellFile) =>
+            getTask: (file: SP.CompilableSpellFile) =>
               new Task({
                 name: `Compiling import: ${file.file}`,
-                run: () => (file as SP.CompilableSpellFile).compile()
+                run: () => file.compile()
               })
           }),
           new Task({
@@ -272,9 +317,9 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
     // Unfortunately, we don't get the line number of the error
     // (although Chrome does get the line number if we re-throw the error.)
     try {
-      const url = this.outputFile.url
-      // REFACTOR: ???  Use `?<timestamp>` to create a unique URL each time
-      // url += `?${Date.now()
+      // Unique URL each time:  the browser caches modules by URL, so re-importing the same one would
+      // re-run NOTHING and hand back the OLD module, never our new `compiled`.
+      const url = `${this.outputFile.url}?${Date.now()}`
       this.exports = await import(/* @vite-ignore */ url)
       return this.exports
     } catch (e) {
@@ -301,11 +346,28 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   }
 
   /**
-   * One of our `file`s has updated its contents.
-   * Have all of our files `resetCompiled()` so they'll compile again.
+   * One of our `file`s has updated its contents, e.g. on each keystroke:  re-parse as little as possible.
+   * - A spell file we've parsed => `incremental` re-parses what changed:  maybe just one indented body, else from
+   *   the first changed line on, plus every later file.  Each changed file gets its new `match`.
+   * - Otherwise, or if that throws, has ALL of our files `resetCompiled()` so they'll parse + compile again.
    */
-  updatedContentsFor(_file: SP.AnySpellFile): void {
-    ;(this.activeImports as SP.CompilableSpellFile[]).forEach((item) => item.resetCompiled())
+  updatedContentsFor(file: SP.AnySpellFile): void {
+    const { incremental } = this
+    if (file instanceof SP.SpellFile && incremental?.getFile(file.path) && !incremental.isBroken) {
+      try {
+        const changed = incremental.update(file.path, file.parseText)
+        changed.forEach((parse) => {
+          const path = incremental.files.find((it) => it.parse === parse)!.path
+          const changedFile = this.activeImports.find((it) => it.path === path)
+          if (changedFile instanceof SP.SpellFile) changedFile.setParsed(parse)
+        })
+        return
+      } catch (error) {
+        console.error("SpellProject.updatedContentsFor(): incremental parse failed", error)
+      }
+    }
+    this.incremental = undefined
+    this.activeImports.forEach((item) => item.resetCompiled())
   }
 
   ////////////////
@@ -323,6 +385,8 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
    *   to avoid react-easy-state rendering errors  :-(
    */
   onContentsUpdated(): void {
+    // Which files we have, or their order, may have changed:  parse from scratch next time.
+    this.incremental = undefined
     const { manifest, files, imports, activeImports } = this
     void manifest
     void files
@@ -414,18 +478,20 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   }
 
   /**
-   * Return array of `SpellFile` (etc) objects from our `active` imports.
-   * Returns `[]` if we're not loaded or index is malformed.
+   * Return `SpellFile` / `SpellCSSFile` objects for our `active` imports -- the ones we parse + compile.
+   * - Returns `[]` if we're not loaded or index is malformed.
+   * - NOTE: skips anything we can't compile, e.g. an active `.js` import, which has no `parse()`.
    */
   /*@memoizeForProp("contents")*/
-  get activeImports(): SP.AnySpellFile[] {
+  get activeImports(): SP.CompilableSpellFile[] {
     return this.derivedFrom(
       "activeImports",
       () => {
         const { manifest } = this
         return this.imports //
           .filter((item) => item.active)
-          .map((item) => manifest[item.path]?.file) as SP.AnySpellFile[]
+          .map((item) => manifest[item.path]?.file)
+          .filter((file) => file instanceof SP.SpellFile || file instanceof SP.SpellCSSFile)
       },
       [this.contents]
     )

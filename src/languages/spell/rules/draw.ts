@@ -13,16 +13,6 @@ import { SpellStatement } from "./Statement"
  */
 export const draw = new SpellParser({ module: "draw" })
 
-/**
- * Narrow `node` from `P.ASTNode | undefined` to concrete subtype `T`.
- * - `Match.AST` is typed generically as `ASTNode | undefined`; use this where a referenced sub-rule's
- *   `getAST()` is known (by inspection, not statically provable) to always produce `T`.
- * - Does not actually check `node`'s type or that it's defined -- purely a compile-time cast.
- */
-function ast<T extends P.ASTNode>(node: P.ASTNode | undefined): T {
-  return node as T
-}
-
 ////////////////
 // ## `draw_thing` rule
 //    e.g. "draw the card"
@@ -38,7 +28,7 @@ class draw_thing extends SpellStatement<"expression"> {
   getAST(match: P.MatchFor<this>) {
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "drawThing",
-      args: [ast<P.ASTExpression>(match.groups.expression.AST)]
+      args: [P.asAST<P.ASTExpression>(match.groups.expression.AST)]
     })
   }
 }
@@ -63,7 +53,7 @@ class draw_items extends SpellStatement<"variable?|plural_identifier?|expression
   getAST(match: P.MatchFor<this>) {
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "drawItems",
-      args: [ast<P.ASTExpression>(match.groups.expression.AST)]
+      args: [P.asAST<P.ASTExpression>(match.groups.expression.AST)]
     })
   }
 }
@@ -97,7 +87,7 @@ draw.addRule(draw_items, {
 class start_app extends SpellStatement<"app"> {
   getAST(match: P.MatchFor<this>) {
     return new P.ASTScopedMethodInvocation(match, {
-      thing: ast<P.ASTExpression>(match.groups.app.AST),
+      thing: P.asAST<P.ASTExpression>(match.groups.app.AST),
       methodName: "start"
     })
   }

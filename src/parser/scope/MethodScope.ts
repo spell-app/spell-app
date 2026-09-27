@@ -16,8 +16,6 @@ export class MethodScope extends BlockScope {
   declare thisVar: string
   /** Map `it` to this output var name, if set on construction. */
   declare mapItTo: string
-  /** Set to `true` (e.g. by an `await` expression in the body) to compile the method as `async`. */
-  declare async: boolean | undefined
 
   /**
    * Create with optional `args` (added to `variables` with `kind: "argument"`), and set up `thisVar`/
@@ -67,6 +65,4 @@ export type MethodScopeProps = P.ScopeProps & {
   thisVar?: string
   /** Map `it` to this output var name. */
   mapItTo?: string
-  /** Compile method as `async`. */
-  async?: boolean
 }

@@ -1,4 +1,4 @@
-import { IndexedList, typeCase, snakeCase } from "~/util"
+import { typeCase, snakeCase } from "~/util"
 import { P } from "~/parser"
 
 import { BlockScope } from "./BlockScope"
@@ -12,11 +12,11 @@ export class RootScope extends BlockScope {
    * Named `TypeScope`s known in this scope, keyed by (Type_Case-normalized) name.
    * New entries get wrapped in `TypeScope` and parented here.
    */
-  get types(): IndexedList<P.TypeScope, string | P.TypeScope | P.TypeScopeProps> {
+  get types(): P.ScopeList<P.TypeScope, string | P.TypeScope | P.TypeScopeProps> {
     return this.derived(
       "types",
       () =>
-        new IndexedList({
+        new P.ScopeList({
           target: this,
           keyProp: "name",
           parentProp: "parentScope.types",
@@ -34,11 +34,11 @@ export class RootScope extends BlockScope {
    * Named `ScopeConstant`s known in this scope, keyed by (snake_case-normalized) name.
    * New entries get wrapped in `ScopeConstant`.
    */
-  get constants(): IndexedList<P.ScopeConstant, string | P.ScopeConstant | P.ScopeConstantProps> {
+  get constants(): P.ScopeList<P.ScopeConstant, string | P.ScopeConstant | P.ScopeConstantProps> {
     return this.derived(
       "constants",
       () =>
-        new IndexedList({
+        new P.ScopeList({
           target: this,
           keyProp: "name",
           parentProp: "parentScope.constants",
@@ -57,7 +57,7 @@ export class RootScope extends BlockScope {
    * - Written by `Scope.addRule()`, which is what actually registers them on the `parser`.
    * - Kept so the rules a scope created can later be EXPORTED, by re-registering each pair on another scope.
    */
-  get rules(): IndexedList<P.ScopeRule> {
-    return this.derived("rules", () => new IndexedList<P.ScopeRule>({ target: this, keyProp: "name" }))
+  get rules(): P.ScopeList<P.ScopeRule> {
+    return this.derived("rules", () => new P.ScopeList<P.ScopeRule>({ target: this, keyProp: "name" }))
   }
 }

@@ -23,14 +23,24 @@ export const variables = new SpellParser({ module: "variables" })
 //    e.g. "thing", "bank-account"
 ////////////////
 
+/** What every `SpellIdentifier` stashes on its match. */
+type IdentifierMatchData = {
+  /** Scope variable for the word, or `NONE` if we looked and scope doesn't know it. */
+  scopeVar?: P.ScopeVariable | typeof NONE
+}
+
 /**
  * Single word variable name, known or unknown.
- * - NOTE: when compiling, we'll look for `scope.variables.get(varName)`
- *   -- if we find one, you can override what's output with `variable.output`.
+ * - Looks the word up in `scope.variables` WHILE PARSING, as `match.data.scopeVar` -- if found, you can override
+ *   what's output with `variable.output`.  NOT when building the AST:  scope may have changed by then,
+ *   e.g. `it` redefined by a later `get`.
  * - TODO: type based on scope variable type?
  * - TODO: higher precedence if variable is known?
  */
-export class SpellIdentifier<MatchData extends P.AnyMatchData = P.AnyMatchData> extends P.Pattern<never, MatchData> {
+export class SpellIdentifier<MatchData extends P.AnyMatchData = P.AnyMatchData> extends P.Pattern<
+  never,
+  MatchData & IdentifierMatchData
+> {
   /** Every identifier rule matches the same thing:  alpha-numeric word (dashes / underscores OK), not blacklisted. */
   constructor(props?: Partial<P.PatternProps>) {
     super({ pattern: P.ALPHANUMERIC_WORD_WITH_DASHES, blacklist: identifierBlacklist, ...props })
@@ -52,12 +62,20 @@ export class SpellIdentifier<MatchData extends P.AnyMatchData = P.AnyMatchData> 
   }
 
   /**
-   * Build `P.ASTVariableExpression`, resolving `match.value` against `scope.variables` if possible.
+   * Build `P.ASTVariableExpression`, resolving `match.value` to the scope variable it named when parsed, if any.
    * - AST only knows singular / plural, so `"either"` goes out as `"singular"`.
    */
+  /** Match a word, remembering the scope variable it names as `match.data.scopeVar` -- see class docs. */
+  parse(scope: P.Scope, tokens: P.Token[]) {
+    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
+    if (match) match.data.scopeVar = scope.variables?.get(match.value) ?? NONE
+    return match
+  }
+
   getAST(match: P.MatchFor<this>): P.ASTVariableExpression {
-    // Get scope Variable, if there is one
-    const variable = match.scope.variables?.get(match.value)
+    // Scope variable it named when parsed, if any
+    const { scopeVar } = match.data
+    const variable = scopeVar === NONE ? undefined : scopeVar
     // Allow variable to override name if it wants to (e.g. "it")
     const name = variable && variable.output ? variable.output : match.value
     const plurality = this.getPlurality(match) === "plural" ? "plural" : "singular"
@@ -152,10 +170,7 @@ variables.addRule(plural_identifier, {
 const VARIABLE_SYNTAX = "the? {identifier}"
 
 /** What `variable` / `known_variable` stash on their matches. */
-type VariableMatchData = {
-  /** Scope variable for the identifier, or `NONE` if we looked and scope doesn't know it. */
-  scopeVar?: P.ScopeVariable | typeof NONE
-}
+type VariableMatchData = IdentifierMatchData
 
 /**
  * `SpellIdentifier` which may or may not be known, with optional `the` prefix, e.g. `the thing`.
@@ -167,7 +182,7 @@ export class variable extends P.Sequence<"identifier", VariableMatchData> {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
     if (!match) return undefined
     // Remember scope variable for the identifier, if there is one.
-    match.data.scopeVar = scope.variables?.get(match.groups.identifier.value) ?? NONE
+    match.data.scopeVar = (match.groups.identifier.data as IdentifierMatchData).scopeVar ?? NONE
     return match
   }
   getAST(match: P.MatchFor<this>): P.ASTVariableExpression {
@@ -226,7 +241,7 @@ variables.addRule(known_variable, {
     {
       compileAs: "known_variable", // TODO: "expression"
       beforeEach(scope: P.Scope) {
-        // `Scope.variables` is typed narrowly (`IndexedList<ScopeVariable>`);
+        // `Scope.variables` is typed narrowly (`ScopeList<ScopeVariable>`);
         // the concrete `BlockScope` accepts a plain name string too -- see report.
         const { variables } = scope as P.BlockScope
         variables.add("thing")

@@ -10,7 +10,7 @@ exports[`testing spell module classes > rule group specs > match snapshot -- if 
   "new_list": "instanceType?",
   "new_thing": "type|props?",
   "property_value_either": "type_property|value|condition|otherValue?",
-  "property_value_getter": "property|type",
+  "property_value_getter": "property|type|body?",
   "quoted_property_formula": "type|alias|sources",
   "the_property_of_a_thing": "property|type",
   "type_specifier_datatype": "datatype",

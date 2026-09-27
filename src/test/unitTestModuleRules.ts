@@ -149,6 +149,8 @@ export function unitTestModuleRules(parser: P.Parser, moduleName: string, initia
     try {
       const match = scope.parse(input, ruleName)
       if (!match) return undefined
+      // Lock it in, as block parsing would -- e.g. a new variable's `let`.
+      scope.parser?.commit(match)
       try {
         return match.compile()
       } catch (e) {

@@ -5,6 +5,13 @@ when working with code in this repository.
 
 ## Overview
 
+## How parsing works
+
+- `PARSING.md` is a compact map of the parse pipeline:  tokens, block / line / statement, when scope changes,
+  how projects share a parser.  Read it BEFORE digging into parser internals.
+- MUST keep it up to date in the same change whenever the parsing mechanism changes -- generic `Parser`, `SpellParser`,
+  scopes, or the `Block` / `BlockLine` / `SpellStatement` machinery.
+
 ## Long-term debt
 
 - `CODE-DEBT.md` tracks structural debt we have knowingly chosen NOT to fix yet.
@@ -56,6 +63,14 @@ when working with code in this repository.
  ****************/
 ```
 
+## Functions
+
+- An inner helper that doesn't use `this` is NOT an inline arrow (`const visit = (...) => ...`).  Either:
+  - make it a private helper function, or
+  - declare it `function visit(...) {...}` at the BOTTOM of the enclosing function, after any `return`,
+    with a docstring saying what it does -- hoisting makes it callable from above.
+- Arrow functions stay fine for short callbacks passed inline, e.g. `tokens.map((token) => token.value)`.
+
 ## Parser rules
 
 - A rule is a CLASS (behaviour) plus a DEFINITION (props) passed when registering it:
@@ -71,11 +86,17 @@ when working with code in this repository.
     `parser/rules/Rule.ts` for all the ways to make a rule.
   - `@proto static` (from `~/util`) is for a shared base class's DEFAULTS -- values true of every subclass,
     e.g. `SpellExpression`'s `alias = "expression"`, `InfixOperatorSuffix`'s `alias = "expression_suffix"`,
-    `SpellStatement`'s `wantsNestedBlock = false`.  A rule's own definition OVERRIDES the default
+    `MethodDefinition`'s `inlineInitialType = false`.  A rule's own definition OVERRIDES the default
     (props are assigned after the prototype), so an exception just states its own value.
   - Put a prop on the base class when EVERY subclass wants the same value;  leave it in the definition when
-    rules differ (`wantsInlineStatement` is true for only 12 of ~50 statements, so it stays per-rule).
+    rules differ (e.g. `precedence`).
     A REGISTERED rule never uses `@proto static` -- its values go in its `addRule()` definition.
+- A statement with a BODY -- an inline statement, or an indented block under it -- says so with a body
+  keyword at the END of its `syntax`, e.g. `if {condition:expression} (then|:)? {statement_body}?`:
+  - `{statement_body}` ~== `({inline_statement}|{nested_statements})`
+  - `{expression_body}` ~== `({inline_expression}|{nested_statements})`
+  - see `BODY_KEYWORDS` in `Statement.ts` for the rest
+  - read the parsed body with `this.getBody(match)`, NEVER `match.groups.body` -- see `SpellStatement`
 - Rule module layout, top to bottom:
   - header docstring, imports
   - `export const <module> = new SpellParser({ module: "<module>" })` -- at the TOP, classes can't be hoisted to it
@@ -110,6 +131,8 @@ when working with code in this repository.
   NEVER override `getGroupsForMatch()` to add derived values.
 - In `match.data`, use `NONE` (from `~/util`) for "looked, not found" rather than `null`;  name scope lookups
   `scopeVar` / `scopeConstant` / `scopeType`.
+- ONLY `mutateScope()` changes scope.  `getAST()` MUST be pure:  NEVER change scope, NEVER look it up -- ASTs are
+  built lazily, when scope may have moved on.  Look up what the AST needs WHILE PARSING, into `match.data`.
 - A rule built WHILE PARSING goes through `scope.addRule(RuleClass, definition)` -- never `parser.addRule()`
   directly -- so the scope records the class + definition pair and can hand on the rules it created.
 - Rules are IMMUTABLE (frozen on registration) and shared by every parse.
@@ -128,7 +151,7 @@ when working with code in this repository.
 - Use STANDARD (TC39 2023-11) decorators, NEVER `experimentalDecorators`.  General-purpose ones live in `~/util/decorators.ts`.
 - Lowered by esbuild via `vite.decorators.ts`, used by BOTH `vite.config.ts` and `vitest.config.ts` -- vite 8's own
   transformer (oxc) doesn't do it yet.  Server is fine as `tsx` is esbuild already.
-- A decorator MUST be the first thing on its line (`@proto static wantsNestedBlock = false` is fine,
+- A decorator MUST be the first thing on its line (`@proto static inlineInitialType = false` is fine,
   and preferred) or that plugin won't notice the file.
 
 ## Types / Exports

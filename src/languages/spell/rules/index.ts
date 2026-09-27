@@ -12,7 +12,7 @@ import { SpellParser } from "~/languages/spell/SpellParser"
 // Structural rule classes, registered directly below.
 import { Block, getParseErrors } from "./Block"
 import { BlockLine, blank_line } from "./BlockLine"
-import "./Statement"
+import { commitStatement } from "./Statement"
 
 // The following define "modules" of rule sets, which will be combined below.
 import { core } from "./core"
@@ -56,6 +56,10 @@ export const parseExpression = (expression: string | P.Token | P.Token[], scope?
 export { ParseError }
 /** Export so callers can get at parse errors collected on a `block` / `line` match. */
 export { getParseErrors }
+/** Export so anything which parses a statement on its own can lock it in, e.g. `SpellParser.commit()`. */
+export { commitStatement }
+/** Export so `SpellParser`'s incremental parsing hooks can narrow to them. */
+export { Block, BlockLine }
 
 /** `JSX.ts`'s `match.data` shape for `jsxElement`/`jsxAttribute`/`jsxExpression` matches -- e.g. for UI code that reads them. */
 export type { JSXMatchData }

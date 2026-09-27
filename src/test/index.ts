@@ -4,3 +4,5 @@
 //
 
 export { unitTestModuleRules } from "./unitTestModuleRules"
+export { parseSpellProject, loadExampleProject, summarize, describeParseErrors } from "./parseSpellProject"
+export type { SpellSourceFile, ParsedSpellProject, SpellProjectSummary } from "./parseSpellProject"

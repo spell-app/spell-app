@@ -4,6 +4,6 @@ exports[`testing spell module assignment > rule group specs > match snapshot -- 
 {
   "assignment": "thing|value",
   "get": "value",
-  "return_statement": "expression?",
+  "return_statement": "expression?|body?",
 }
 `;

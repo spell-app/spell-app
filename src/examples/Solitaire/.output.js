@@ -309,8 +309,8 @@ function test_deck_creation() {
 		spellCore.echoTestAction(`display the deck`)
 		deck.display()
 		spellCore.echoTestAction(`get the first card of the deck`)
-		it = spellCore.getItemOf(deck, 1)
-		spellCore.expect(it.is_the_$rank_of_$suits('ace', 'clubs'), `it is the ace of clubs`, false, `no`)
+		let it_2 = spellCore.getItemOf(deck, 1)
+		spellCore.expect(it_2.is_the_$rank_of_$suits('ace', 'clubs'), `it is the ace of clubs`, false, `no`)
 	})
 }
 test_deck_creation()
@@ -418,24 +418,24 @@ let it = new Foundation({
 	droppable: true
 })
 spellCore.append(foundations, it)
-it = new Foundation({
+let it_2 = new Foundation({
 	name: 'diamonds',
 	symbol: "♦️",
 	droppable: true
 })
-spellCore.append(foundations, it)
-it = new Foundation({
+spellCore.append(foundations, it_2)
+let it_3 = new Foundation({
 	name: 'hearts',
 	symbol: "♥️",
 	droppable: true
 })
-spellCore.append(foundations, it)
-it = new Foundation({
+spellCore.append(foundations, it_3)
+let it_4 = new Foundation({
 	name: 'spades',
 	symbol: "♠️",
 	droppable: true
 })
-spellCore.append(foundations, it)
+spellCore.append(foundations, it_4)
 spellCore.map(foundations, (pile) => {
 	spellCore.append(all_piles, pile)
 })
@@ -457,9 +457,9 @@ spellCore.define(Tableau.prototype, 'can_play_$card', {
 	}
 })
 spellCore.map(spellCore.getRange(1, 7), (number) => {
-	let it = new Tableau({ name: ("T" + number), droppable: true })
-	spellCore.append(tableaus, it)
-	spellCore.append(all_piles, it)
+	let it_5 = new Tableau({ name: ("T" + number), droppable: true })
+	spellCore.append(tableaus, it_5)
+	spellCore.append(all_piles, it_5)
 })
 
 
@@ -508,10 +508,10 @@ async function play_from_the_stock_pile() {
 	try {
 		if (spellCore.isEmpty(stock)) { await reset_the_stock_pile() }
 		
-		let it = spellCore.getItemOf(stock, -1)
-		it.turn_face_up()
+		let it_5 = spellCore.getItemOf(stock, -1)
+		it_5.turn_face_up()
 		// pause for 150 msec
-		it.move_to_$pile(discards)
+		it_5.move_to_$pile(discards)
 	}
 	finally {
 		spellCore.stopProcess('play_from_the_stock_pile')

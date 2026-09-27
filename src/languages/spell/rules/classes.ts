@@ -43,17 +43,6 @@ export const classes = new SpellParser({ module: "classes" })
 ////////////////
 
 /**
- * `Match.AST` (src/parser/Match.ts) is always typed as `ASTNode` because `Rule.getAST()`'s return type isn't
- * parameterized per the specific rule a rulex group refers to -- only the rule's own semantics (which we know,
- * writing the rule) tell us which concrete node type comes back. Narrow once here instead of casting inline.
- */
-function astAs<T extends P.ASTNode = P.ASTExpression>(match: P.Match): T
-function astAs<T extends P.ASTNode = P.ASTExpression>(match: P.Match | undefined): T | undefined
-function astAs<T extends P.ASTNode = P.ASTExpression>(match: P.Match | undefined): T | undefined {
-  return match?.AST as T | undefined
-}
-
-/**
  * Look up `typeName` in `scope.types`, creating a stub (`{ stub: true }`) entry if it isn't defined yet.
  * - Lets a property/method be declared on a type before that type's own `is a` statement has been parsed,
  *   e.g. forward references or types defined later in the same file.
@@ -91,12 +80,12 @@ class create_type extends SpellStatement<"type|superType"> {
     return new P.ASTStatementGroup(match, {
       statements: [
         new P.ASTClassDeclaration(match, {
-          type: astAs<P.ASTTypeExpression>(type),
-          superType: astAs<P.ASTTypeExpression>(superType)
+          type: P.matchAST<P.ASTTypeExpression>(type),
+          superType: P.matchAST<P.ASTTypeExpression>(superType)
         }),
         new P.ASTExportInvocation(match, {
           property: type.value,
-          value: astAs(type)
+          value: P.matchAST(type)
         })
       ]
     })
@@ -146,17 +135,17 @@ class create_list_type extends SpellStatement<"type|instanceType"> {
       statements: [
         // Declare the class
         new P.ASTClassDeclaration(match, {
-          type: astAs<P.ASTTypeExpression>(type),
+          type: P.matchAST<P.ASTTypeExpression>(type),
           superType: new P.ASTTypeExpression(match, { raw: "list", name: "List" })
         }),
         new P.ASTExportInvocation(match, {
           property: type.value,
-          value: astAs(type)
+          value: P.matchAST(type)
         }),
         new P.ASTPropertyDefinition(match, {
-          thing: new P.ASTPrototypeExpression(match, { type: astAs<P.ASTTypeExpression>(type) }),
+          thing: new P.ASTPrototypeExpression(match, { type: P.matchAST<P.ASTTypeExpression>(type) }),
           property: "instanceType",
-          value: astAs(instanceType)
+          value: P.matchAST(instanceType)
         })
       ]
     })
@@ -201,8 +190,8 @@ class new_thing extends SpellStatement<"type|props?"> {
   getAST(match: P.MatchFor<this>): P.ASTNewInstanceExpression {
     const { type, props } = match.groups
     return new P.ASTNewInstanceExpression(match, {
-      type: astAs<P.ASTTypeExpression>(type),
-      props: astAs<P.ASTObjectLiteral>(props)
+      type: P.matchAST<P.ASTTypeExpression>(type),
+      props: P.matchAST<P.ASTObjectLiteral>(props)
     })
   }
 }
@@ -289,8 +278,8 @@ class create_thing extends SpellStatement<"type|props?"> {
   getAST(match: P.MatchFor<this>): P.ASTNewInstanceExpression {
     const { type, props } = match.groups
     return new P.ASTNewInstanceExpression(match, {
-      type: astAs<P.ASTTypeExpression>(type),
-      props: astAs<P.ASTObjectLiteral>(props)
+      type: P.matchAST<P.ASTTypeExpression>(type),
+      props: P.matchAST<P.ASTObjectLiteral>(props)
     })
   }
 }
@@ -347,7 +336,7 @@ classes.addRule(create_thing, {
  */
 class type_specifier_enum extends P.Sequence<"enumeration"> {
   getAST(match: P.MatchFor<this>): P.ASTEnumeration {
-    const enumeration = match.groups.enumeration.items.map((item) => astAs(item))
+    const enumeration = match.groups.enumeration.items.map((item) => P.matchAST(item))
     return new P.ASTEnumeration(match, {
       enumeration,
       // Every item here comes from `identifier_list`, which only ever matches `known_variable`,
@@ -381,7 +370,7 @@ classes.addRule(type_specifier_enum, {
  */
 class type_specifier_datatype extends P.Sequence<"datatype"> {
   getAST(match: P.MatchFor<this>): P.ASTTypeExpression {
-    return astAs<P.ASTTypeExpression>(match.groups.datatype)
+    return P.matchAST<P.ASTTypeExpression>(match.groups.datatype)
   }
 }
 classes.addRule(type_specifier_datatype, {
@@ -408,7 +397,7 @@ classes.addRule(type_specifier_datatype, {
  */
 class type_specifier_instance extends P.Sequence<"new_thing"> {
   getAST(match: P.MatchFor<this>): P.ASTNewInstanceExpression {
-    return astAs<P.ASTNewInstanceExpression>(match.groups.new_thing)
+    return P.matchAST<P.ASTNewInstanceExpression>(match.groups.new_thing)
   }
 }
 classes.addRule(type_specifier_instance, {
@@ -501,7 +490,7 @@ class define_property_has extends SpellStatement<"type|property|specifier?", { r
         class typename_groupname extends P.Literals {
           getAST(_match: P.MatchFor<this>): P.ASTPropertyExpression {
             return new P.ASTPropertyExpression(_match, {
-              object: astAs(type),
+              object: P.matchAST(type),
               property: new P.ASTPropertyLiteral(property, groupName)
             })
           }
@@ -556,7 +545,7 @@ class define_property_has extends SpellStatement<"type|property|specifier?", { r
     statements.push(
       new P.ASTCoreMethodInvocation(match, {
         methodName: "defineProperty",
-        args: [new P.ASTPrototypeExpression(type, { type: astAs<P.ASTTypeExpression>(type) }), props]
+        args: [new P.ASTPrototypeExpression(type, { type: P.matchAST<P.ASTTypeExpression>(type) }), props]
       })
     )
     return new P.ASTStatementGroup(match, { statements })
@@ -683,37 +672,34 @@ class property_value_either extends SpellStatement<PropertyValueEitherGroups> {
     // make sure type is defined
     getOrStubType(scope, type.value)
     // `is()` narrows `data` to what `SpellConstant` stashes on its matches.
-    if (value.is(SpellConstant)) {
-      // TODO: scope.constants.addMissing(value.raw)
-      const found = value.data.scopeConstant
-      const known = (found && found !== NONE) || scope.constants?.get(value.raw!)
-      if (!known) scope.constants?.add(value.raw!)
-    }
-    if (otherValue?.is(SpellConstant)) {
-      const found = otherValue.data.scopeConstant
-      const known = (found && found !== NONE) || scope.constants?.get(otherValue.raw!)
-      if (!known) scope.constants?.add(otherValue.raw!)
+    // Declare any unknown constant values, and record them on their matches for `SpellConstant.getAST()`.
+    for (const constant of [value, otherValue]) {
+      if (!constant?.is(SpellConstant)) continue
+      const found = constant.data.scopeConstant
+      if (found && found !== NONE) continue
+      const known = scope.constants?.get(constant.raw!) ?? scope.constants?.add(constant.raw!)[0]
+      if (known) constant.data.scopeConstant = known
     }
   }
   getAST(match: P.MatchFor<this>): P.ASTPropertyDefinition {
     const { value, otherValue, type_property, condition } = match.groups
     const { type, property } = type_property.groups
-    const prototype = new P.ASTPrototypeExpression(type, { type: astAs<P.ASTTypeExpression>(type) })
+    const prototype = new P.ASTPrototypeExpression(type, { type: P.matchAST<P.ASTTypeExpression>(type) })
     const ifAST = new P.ASTIfStatement(match, {
-      condition: astAs(condition),
-      statements: new P.ASTReturnStatement(match, { value: astAs(value) })
+      condition: P.matchAST(condition),
+      statements: new P.ASTReturnStatement(match, { value: P.matchAST(value) })
     })
     let getterBody: P.ASTStatement
     if (!otherValue) {
       getterBody = ifAST
     } else {
       getterBody = new P.ASTStatementGroup(match, {
-        statements: [ifAST, new P.ASTReturnStatement(match, { value: astAs(otherValue) })]
+        statements: [ifAST, new P.ASTReturnStatement(match, { value: P.matchAST(otherValue) })]
       })
     }
     return new P.ASTPropertyDefinition(match, {
       thing: prototype,
-      property: astAs<P.ASTPropertyLiteral>(property),
+      property: P.matchAST<P.ASTPropertyLiteral>(property),
       get: new P.ASTMethodDefinition(match, { body: getterBody })
     })
   }
@@ -766,49 +752,37 @@ classes.addRule(property_value_either, {
 type MethodBody = P.ASTStatementBlock | P.ASTStatement | P.ASTExpression
 
 /**
- * Construct a `P.MethodScope` for the property-getter's nested body below.
- * - TODO: drop this helper and just call `new P.MethodScope(props)` at call sites?  `lists.ts` has an
- *   identical copy.
- */
-function newMethodScope(props: P.MethodScopeProps): P.MethodScope {
-  return new P.MethodScope(props)
-}
-
-/**
- * `the value of a card is:` -- defines a property getter whose body is an inline statement or nested
- * block (`wantsInlineStatement`/`wantsNestedBlock`), with `its`/`it` mapped to `this` inside.
+ * `the value of a card is:` -- defines a property getter whose body is an inline EXPRESSION or nested
+ * block (`{expression_body}?`), with `its`/`it` mapped to `this` inside.
  * - `getNestedScopeForMatch()` maps `it`/`its` to `this` via `mapItTo`, so the body can say
  *   `return the first word of the name` instead of repeating `of the card`.
  * - Compiles to `spellCore.define()` with a `get()` running the parsed body, e.g. `the value of a card
  *   is its name` => `spellCore.define(Card.prototype, 'value', { get() { return this.name } })`.
  */
-class property_value_getter extends SpellStatement<"property|type|inlineStatement?|nestedBlock?"> {
+class property_value_getter extends SpellStatement<"property|type|body?"> {
   /** Nested scope for the getter body -- maps `its`/`it` to `this` so the body can say `its name`. */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
     const { type } = match.groups
-    return newMethodScope({
+    return new P.MethodScope({
       parentScope: match.scope,
       thisVar: getKnownType(type).instanceName,
       mapItTo: "this"
     })
   }
   getAST(match: P.MatchFor<this>): P.ASTPropertyDefinition {
-    const { type, property, inlineStatement, nestedBlock } = match.groups
+    const { type, property } = match.groups
     return new P.ASTPropertyDefinition(match, {
-      thing: new P.ASTPrototypeExpression(match, { type: astAs<P.ASTTypeExpression>(type) }),
-      property: astAs<P.ASTPropertyLiteral>(property),
+      thing: new P.ASTPrototypeExpression(match, { type: P.matchAST<P.ASTTypeExpression>(type) }),
+      property: P.matchAST<P.ASTPropertyLiteral>(property),
       get: new P.ASTMethodDefinition(match, {
-        body: astAs<MethodBody>(nestedBlock || inlineStatement)
+        body: P.matchAST<MethodBody>(this.getBody(match))
       })
     })
   }
 }
 classes.addRule(property_value_getter, {
   alias: "statement",
-  syntax: "the {property} of (a|an) {type:known_type} is :?",
-  wantsInlineStatement: true,
-  parseInlineStatementAs: "expression",
-  wantsNestedBlock: true,
+  syntax: "the {property} of (a|an) {type:known_type} is :? {expression_body}?",
   tests: [
     {
       compileAs: "block",
@@ -1068,7 +1042,7 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources", Quote
     const statements: Array<P.ASTStatement | P.ASTExpression | P.ASTComment | P.ASTBlankLine> = [
       match.data.ruleComment!,
       new P.ASTPropertyDefinition(match, {
-        thing: new P.ASTPrototypeExpression(type, { type: astAs<P.ASTTypeExpression>(type) }),
+        thing: new P.ASTPrototypeExpression(type, { type: P.matchAST<P.ASTTypeExpression>(type) }),
         property,
         value: new P.ASTMethodDefinition(match, {
           args,

@@ -1,4 +1,4 @@
-import { IndexedList, snakeCase } from "~/util"
+import { snakeCase } from "~/util"
 import { P } from "~/parser"
 import { Scope } from "./Scope"
 
@@ -12,11 +12,11 @@ export class BlockScope extends Scope {
    * Named `ScopeVariable`s declared in this block, keyed by (snake_case-normalized) name.
    * Falls through to `parentScope.variables` if not found locally.
    */
-  get variables(): IndexedList<P.ScopeVariable, string | P.ScopeVariable | P.ScopeVariableProps> {
+  get variables(): P.ScopeList<P.ScopeVariable, string | P.ScopeVariable | P.ScopeVariableProps> {
     return this.derived(
       "variables",
       () =>
-        new IndexedList({
+        new P.ScopeList({
           target: this,
           keyProp: "name",
           parentProp: "parentScope.variables",
@@ -34,11 +34,11 @@ export class BlockScope extends Scope {
    * Named `MethodScope`s declared in this block, keyed by (snake_case-normalized) name.
    * Falls through to `parentScope.methods` if not found locally.
    */
-  get methods(): IndexedList<P.MethodScope, P.MethodScope | P.MethodScopeProps> {
+  get methods(): P.ScopeList<P.MethodScope, P.MethodScope | P.MethodScopeProps> {
     return this.derived(
       "methods",
       () =>
-        new IndexedList({
+        new P.ScopeList({
           target: this,
           keyProp: "name",
           parentProp: "parentScope.methods",

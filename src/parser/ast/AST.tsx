@@ -667,15 +667,10 @@ export type ASTAwaitExpressionProps = Prettify<{ expression: ASTExpression }>
 
 export class ASTAwaitExpression extends ASTExpression {
   declare expression: ASTExpression
-  /** SIDE EFFECT: walks up scope chain to nearest `MethodScope` and marks it `async = true`. */
+  /** NOTE: the method we're in becomes `async` because its body contains us -- see `ASTMethodDefinition.isAsync`. */
   constructor(match: P.AnyMatch, props: ASTAwaitExpressionProps) {
     super(match, props)
     this.assertType("expression", ASTExpression)
-    // Work our way up the scope chain
-    // -- if we find a MethodScope, mark it as asynchronous
-    let scope: P.Scope | undefined = this.parentScope
-    while (scope && !(scope instanceof P.MethodScope)) scope = scope.parentScope
-    if (scope instanceof P.MethodScope) scope.async = true
   }
   compile(): string {
     return `await ${this.expression.compile()}`
@@ -1283,8 +1278,8 @@ export class ASTConstantExpression extends ASTExpression {
  * - `methodName` (optional) is the method's name -- required when `asProperty` or non-`inline`.
  * - `error` (optional) is an `ASTParseError` rendered/compiled right after the method body.
  * - `datatype` (optional) is return datatype as string, try to set if you can.
- * - `async` (optional) set to `true` to force method to be async; if not set, we'll use
- *   `match.nestedScope.async`.
+ * - `async` (optional) set to `true` / `false` to force method to be async or not; if not set, we're async
+ *   if our `body` contains an `await` -- see `isAsync`.
  */
 export type ASTMethodDefinitionProps = Prettify<{
   args?: ASTVariableExpression[]
@@ -1338,10 +1333,13 @@ export class ASTMethodDefinition extends ASTExpression {
     // ALWAYS wrap the body
     this.body.wrap = true
   }
-  /** Explicit `async` prop wins; otherwise inherit from enclosing `match.nestedScope.async`. */
+  /**
+   * Explicit `async` prop wins;  otherwise `true` if our `body` contains an `await`.
+   * - Not counting awaits inside a method nested in our body:  that one's async, not us.
+   */
   get isAsync(): boolean {
     if (typeof this.async === "boolean") return this.async
-    return !!(this.match.nestedScope as (P.Scope & { async?: boolean }) | undefined)?.async
+    return containsAwait(this.body)
   }
   /** `methodName`, quoted when used `asProperty` with a non-legal-identifier name; `""` if unset. */
   getMethodName(): string {
@@ -1734,17 +1732,18 @@ export class ASTAssignmentStatement extends ASTStatement {
   }
   /** Should we `export` top-level vars?  Global toggle -- flip to `false` to disable entirely. */
   static EXPORT_VARS = true
-  /** Names of top-level vars that we NEVER export, e.g. Mocha's implicit `it`. */
-  static EXPORT_BLACKLIST: Record<string, boolean> = {
-    it: true
-  }
+  /**
+   * Names of top-level vars that we NEVER export:  `it`, e.g. Mocha's implicit `it`, and spell's numbered `it`s,
+   * `it_2`, `it_3`... -- temporaries, not something another file should use.
+   */
+  static EXPORT_BLACKLIST = /^it(_\d+)?$/
   /** `true` only for a new-variable declaration at `ProjectScope`/`FileScope` whose name isn't blacklisted. */
   get exportVar(): boolean {
     if (!ASTAssignmentStatement.EXPORT_VARS || !this.isNewVariable) return false
     const { scope } = this.match
     if (!(scope instanceof P.ProjectScope || scope instanceof P.FileScope)) return false
     const varName = String(this.thing.compile())
-    return !ASTAssignmentStatement.EXPORT_BLACKLIST[varName]
+    return !ASTAssignmentStatement.EXPORT_BLACKLIST.test(varName)
   }
   compile(): string {
     const { thing, value, isNewVariable } = this
@@ -2397,4 +2396,18 @@ export class ASTJSXExpression extends ASTExpression {
       return this.expression
     })
   }
+}
+
+/**
+ * Does AST `node` contain an `ASTAwaitExpression`, not counting any inside a nested `ASTMethodDefinition`?
+ * - Walks every AST node found in `node`'s own fields, and in arrays of them.  Skips `match`, which isn't AST.
+ */
+function containsAwait(node: unknown): boolean {
+  if (node instanceof ASTAwaitExpression) return true
+  if (!(node instanceof ASTNode) || node instanceof ASTMethodDefinition) return false
+  return Object.entries(node).some(([key, value]) => {
+    if (key === "match") return false
+    if (Array.isArray(value)) return value.some(containsAwait)
+    return containsAwait(value)
+  })
 }

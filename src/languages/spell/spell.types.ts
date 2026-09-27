@@ -2,8 +2,11 @@
  * Shared types for spell language layer.
  * - `import type` only, per `AGENTS.md` -- the `~/languages/rulex` registration this file used to carry
  *   now lives in `SpellParser.ts`, which every rule module imports anyway.
+ * - NOTE: `rules/Statement.ts` imports `BODY_KEYWORDS` from here directly, so this MUST stay free of
+ *   runtime imports.
  */
 
+import type { P } from "~/parser"
 import type { SpellLocation } from "./SpellLocation"
 import type { SpellFile } from "./SpellFile"
 import type { SpellJSFile } from "./SpellJSFile"
@@ -97,4 +100,42 @@ export type ProjectRootSpec = {
   description: string
   /** Semantic UI icon of project. */
   icon: string
+}
+
+// ## Statements
+
+/** What a `SpellStatement` takes as its body -- decoded from the body keyword ending its `syntax`. */
+export type StatementBodySpec = {
+  /** Rule to parse rest of the line as, if we take an inline body. */
+  inlineAs?: "statement" | "expression"
+  /** How to parse the indented block after us, if we take one:  every line as a `"block"`, or ONE line. */
+  nestedAs?: "block" | "expression"
+  /** Body keyword rule from `syntax`, e.g. `{statement_body}?`, echoed back by `toRulexSyntax()`. */
+  syntaxRule: P.Rule
+}
+
+/**
+ * Body keywords which may END a `SpellStatement`'s `syntax`, alone or as a choice,
+ * e.g. `({inline_statement}|{nested_statements})?`.
+ * - Not registered rules:  `SpellStatement` takes them out of `rules`, so they're never parsed as rules.
+ */
+export const BODY_KEYWORDS: Record<string, Omit<StatementBodySpec, "syntaxRule">> = {
+  // Statement bodies, e.g. `if`, `for each`, method definitions.
+  /** Usual case:  `{statement_body}` ~== `({inline_statement}|{nested_statements})`. */
+  statement_body: { inlineAs: "statement", nestedAs: "block" },
+  /** Rest of the line, as a statement. */
+  inline_statement: { inlineAs: "statement" },
+  /** Indented block of statements after the line, wrapped in `{}` when compiled. */
+  nested_statements: { nestedAs: "block" },
+
+  // Expression bodies, e.g. property getters, `where` clauses, `return`.
+  /** Getter-style body:  `{expression_body}` ~== `({inline_expression}|{nested_statements})`. */
+  expression_body: { inlineAs: "expression", nestedAs: "block" },
+  /** Rest of the line, as an expression. */
+  inline_expression: { inlineAs: "expression" },
+  /**
+   * ONE indented line after the line, as an expression, e.g. `return` + indented JSX.
+   * - TODO: review -- only `return` uses it, and only because a line can't see the indented lines under it.
+   */
+  nested_expression: { nestedAs: "expression" }
 }

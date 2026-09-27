@@ -44,3 +44,31 @@ export const BACKSLASH = `\\` as const
 export const DOUBLE_QUOTE = `"` as const
 /** Single-quote symbol, one of the default `Tokenizer.quoteSymbols`. */
 export const SINGLE_QUOTE = `'` as const
+
+////////////////
+// ## Line / char positions
+////////////////
+
+/**
+ * Offset where each line of `text` starts -- `[0, <after first \n>, ...]`.
+ * - Build once per text, then `positionForOffset()` is a binary search.
+ */
+export function getLineStarts(text: string): number[] {
+  const starts = [0]
+  for (let index = text.indexOf("\n"); index !== -1; index = text.indexOf("\n", index + 1)) {
+    starts.push(index + 1)
+  }
+  return starts
+}
+
+/** 0-based `{ line, ch }` for `offset`, given `lineStarts` from `getLineStarts()`. */
+export function positionForOffset(lineStarts: number[], offset: number): { line: number; ch: number } {
+  let low = 0
+  let high = lineStarts.length - 1
+  while (low < high) {
+    const middle = (low + high + 1) >> 1
+    if (lineStarts[middle]! <= offset) low = middle
+    else high = middle - 1
+  }
+  return { line: low, ch: offset - lineStarts[low]! }
+}

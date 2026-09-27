@@ -14,17 +14,6 @@ import { SpellExpression } from "./expressions"
  */
 export const _async = new SpellParser({ module: "async" })
 
-/**
- * Narrow `node` from `P.ASTNode | undefined` to concrete subtype `T`.
- * - `Match.AST` (`src/parser/Match.ts`) is always typed as `ASTNode` because `Rule.getAST()`'s return type
- *   isn't parameterized per the specific rule a rulex group refers to -- only the rule's own semantics
- *   (which we know, writing the rule) tell us which concrete node type comes back.
- * - Does not actually check `node`'s type or that it's defined -- purely a compile-time cast.
- */
-function ast<T extends P.ASTNode>(node: P.ASTNode | undefined): T {
-  return node as T
-}
-
 ////////////////
 // ## `await` rule
 //    e.g. "await"
@@ -44,7 +33,7 @@ class _await extends SpellStatement<"expression?"> {
   getAST(match: P.MatchFor<this>) {
     const { expression } = match.groups
     return new P.ASTAwaitExpression(match, {
-      expression: (expression && ast<P.ASTExpression>(expression.AST)) || new P.ASTUndefinedLiteral(match)
+      expression: (expression && P.asAST<P.ASTExpression>(expression.AST)) || new P.ASTUndefinedLiteral(match)
     })
   }
 }
@@ -58,7 +47,7 @@ _async.addRule(_await, {
       tests: [
         ["await", "await undefined"],
         ["wait for 1", "await 1"],
-        ["set the result to wait for 1", "result = await 1"]
+        ["set the result to wait for 1", "export let result = await 1"]
       ]
     },
     {
@@ -98,7 +87,7 @@ class pause extends SpellStatement<"number|units"> {
     return new P.ASTAwaitExpression(match, {
       expression: new P.ASTCoreMethodInvocation(match, {
         methodName: "pauseFor",
-        args: [ast<P.ASTExpression>(number.AST), new P.ASTQuotedExpression(units, units.value)]
+        args: [P.asAST<P.ASTExpression>(number.AST), new P.ASTQuotedExpression(units, units.value)]
       })
     })
   }

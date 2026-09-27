@@ -67,6 +67,12 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 - `parser/ast/renderAST.tsx` `InCurlies` / `InSquareBrackets`: no empty-children case, unlike `stringifyAST.ts` twins.
   Latent: `DestructuredAssignment.renderChildren()` calls `render.InCurlies` directly.
 
+- `[V]` `languages/spell/rules/classes.ts` `quoted_property_formula`:  a quoted alias of an UNKNOWN property, e.g.
+  `a card "is a (rank)" for its ranksx`, still registers `_quoted_property_rule`, with no enumeration part in its
+  syntax -- then compiling any use of it (`the card is a queen`) crashes in `compileASTExpression()`:
+  `Cannot read properties of undefined (reading 'value')`, as `rhs` is `undefined`.  Crashes a full parse too.
+  Probably wants a parse error instead of registering the rule -- see the `FIXME` in `computeBits()`.
+
 ## 2. Server robustness / security
 
 - [V] `server/lock-utils.ts`: whole module has zero callers, while `saveFile()` / `saveImports()` / `getIndex()`

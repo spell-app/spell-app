@@ -13,14 +13,6 @@ import { SpellStatement } from "./Statement"
  */
 export const UI = new SpellParser({ module: "UI" })
 
-/**
- * Narrow `node` (typed generically as `P.ASTNode | undefined`) to concrete AST subclass `T`.
- * - `T` is chosen by inspection: referenced sub-rule's `getAST()` is known to always produce it.
- */
-function ast<T extends P.ASTNode>(node: P.ASTNode | undefined): T {
-  return node as T
-}
-
 ////////////////
 // ## `print` rule
 //    e.g. "print "Yo!""
@@ -46,7 +38,7 @@ class print extends SpellStatement<"operator?|expressions"> {
     const methodName = this.operatorMap[operator?.value || "default"]
     return new P.ASTConsoleMethodInvocation(match, {
       methodName,
-      args: expressions.items.map((item) => ast<P.ASTExpression>(item.AST))
+      args: expressions.items.map((item) => P.asAST<P.ASTExpression>(item.AST))
     })
   }
 }
@@ -102,8 +94,8 @@ UI.addRule(end_print_group, {
 class notify extends SpellStatement<"message|okButton?"> {
   getAST(match: P.MatchFor<this>) {
     const { message, okButton } = match.groups
-    const args: P.ASTExpression[] = [ast<P.ASTExpression>(message.AST)]
-    if (okButton) args.push(ast<P.ASTExpression>(okButton.AST))
+    const args: P.ASTExpression[] = [P.asAST<P.ASTExpression>(message.AST)]
+    if (okButton) args.push(P.asAST<P.ASTExpression>(okButton.AST))
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "notify",
       args
@@ -138,8 +130,8 @@ UI.addRule(notify, {
 class alert extends SpellStatement<"message|okButton?"> {
   getAST(match: P.MatchFor<this>) {
     const { message, okButton } = match.groups
-    const args: P.ASTExpression[] = [ast<P.ASTExpression>(message.AST)]
-    if (okButton) args.push(ast<P.ASTExpression>(okButton.AST))
+    const args: P.ASTExpression[] = [P.asAST<P.ASTExpression>(message.AST)]
+    if (okButton) args.push(P.asAST<P.ASTExpression>(okButton.AST))
     return new P.ASTAwaitExpression(match, {
       expression: new P.ASTCoreMethodInvocation(match, {
         methodName: "alert",
@@ -176,8 +168,8 @@ UI.addRule(alert, {
 class warn extends SpellStatement<"message|okButton?"> {
   getAST(match: P.MatchFor<this>) {
     const { message, okButton } = match.groups
-    const args: P.ASTExpression[] = [ast<P.ASTExpression>(message.AST)]
-    if (okButton) args.push(ast<P.ASTExpression>(okButton.AST))
+    const args: P.ASTExpression[] = [P.asAST<P.ASTExpression>(message.AST)]
+    if (okButton) args.push(P.asAST<P.ASTExpression>(okButton.AST))
     return new P.ASTAwaitExpression(match, {
       expression: new P.ASTCoreMethodInvocation(match, {
         methodName: "warn",
@@ -214,9 +206,9 @@ UI.addRule(warn, {
 class confirm extends SpellStatement<"message|okButton?|cancelButton?"> {
   getAST(match: P.MatchFor<this>) {
     const { message, okButton, cancelButton } = match.groups
-    const args: P.ASTExpression[] = [ast<P.ASTExpression>(message.AST)]
-    if (okButton) args.push(ast<P.ASTExpression>(okButton.AST))
-    if (cancelButton) args.push(ast<P.ASTExpression>(cancelButton.AST))
+    const args: P.ASTExpression[] = [P.asAST<P.ASTExpression>(message.AST)]
+    if (okButton) args.push(P.asAST<P.ASTExpression>(okButton.AST))
+    if (cancelButton) args.push(P.asAST<P.ASTExpression>(cancelButton.AST))
     return new P.ASTAwaitExpression(match, {
       expression: new P.ASTCoreMethodInvocation(match, {
         methodName: "confirm",
@@ -255,8 +247,8 @@ UI.addRule(confirm, {
 class prompt extends SpellStatement<"message|defaultValue?"> {
   getAST(match: P.MatchFor<this>) {
     const { message, defaultValue } = match.groups
-    const args: P.ASTExpression[] = [ast<P.ASTExpression>(message.AST)]
-    if (defaultValue) args.push(ast<P.ASTExpression>(defaultValue.AST))
+    const args: P.ASTExpression[] = [P.asAST<P.ASTExpression>(message.AST)]
+    if (defaultValue) args.push(P.asAST<P.ASTExpression>(defaultValue.AST))
     return new P.ASTAwaitExpression(match, {
       expression: new P.ASTCoreMethodInvocation(match, {
         methodName: "prompt",

@@ -209,7 +209,7 @@ export type DynamicMethodRuleProps = Prettify<SpellStatementProps & { methodName
  * - Also registers the generated call-site rule (`getRule()`) onto `scope.parser` (`mutateScope()`), so the
  *   new syntax is usable immediately after the definition.
  * - Generic pass-through: each subclass has its own `signature` group typing, e.g. `to_do_something extends
- *   MethodDefinition<"asTest?|signature|inlineStatement?|nestedBlock?">`.  `MethodDefinitionData` (`signature`,
+ *   MethodDefinition<"asTest?|signature|body?">`.  `MethodDefinitionData` (`signature`,
  *   the processed/cached result of `getSignature()`) is ALWAYS added on top of whatever `MatchData` a
  *   subclass declares.
  */
@@ -226,9 +226,6 @@ export class MethodDefinition<
   @proto static inlineInitialType = false
   /** TYPE-ONLY: props `parser.addRule()` accepts for this rule -- see `P.Rule`'s `Props`. */
   declare readonly Props: MethodDefinitionProps
-
-  @proto static wantsInlineStatement = true
-  @proto static wantsNestedBlock = true
 
   /**
    * Promote a captured type argument to an instance-method receiver (`thisArg`), when `inlineInitialType`.
@@ -427,11 +424,9 @@ export class MethodDefinition<
    *   `asTest`) a loose function whose body is itself a `test(...)` call.
    */
   getAST(match: P.MatchFor<this>): P.ASTStatementGroup {
-    const { asTest, asAnimation, inlineStatement, nestedBlock } = match.groups as {
+    const { asTest, asAnimation } = match.groups as {
       asTest?: P.Match
       asAnimation?: P.Match
-      inlineStatement?: P.Match
-      nestedBlock?: P.Match
     }
     const signature = this.getSignature(match)!
     const { methodName = "", args, props, instanceType, asPostfixExpression } = signature
@@ -444,9 +439,9 @@ export class MethodDefinition<
     const method = new P.ASTMethodDefinition(match, {
       methodName,
       args,
-      // `nestedBlock`/`inlineStatement`'s `.AST` is generically typed `ASTNode`, but is always a
+      // body's `.AST` is generically typed `ASTNode`, but is always a
       // StatementBlock/Statement/Expression by construction of block / inline-statement parsing.
-      body: (nestedBlock || inlineStatement)?.AST as P.ASTStatementBlock | P.ASTStatement | P.ASTExpression | undefined
+      body: this.getBody(match)?.AST as P.ASTStatementBlock | P.ASTStatement | P.ASTExpression | undefined
     })
 
     if (asTest) {
@@ -889,11 +884,11 @@ methods.addRule(quoted_method_signature, {
  * - Trailing `:` is optional so both `to foo the bar` (no body) and `to foo the bar:` (body follows)
  *   parse.
  */
-class to_do_something extends MethodDefinition<"asTest?|signature|inlineStatement?|nestedBlock?"> {}
+class to_do_something extends MethodDefinition<"asTest?|signature|body?"> {}
 methods.addRule(to_do_something, {
   alias: "statement",
   // TODO: add tests for `test` case
-  syntax: `to (asTest:test)? {signature:method_signature} :?`,
+  syntax: `to (asTest:test)? {signature:method_signature} :? {statement_body}?`,
   // promote the first captured type arg (e.g. `(a card)`) to an instance-method receiver
   inlineInitialType: true,
   tests: [
@@ -1366,10 +1361,10 @@ methods.addRule(to_do_something, {
  *   StopProcessInvocation }` -- which is what makes re-invoking a running animation a no-op (see
  *   `spellCore.processIsRunning()` in the compiled output) and always stops the process on the way out.
  */
-class create_animation extends MethodDefinition<"asAnimation|signature|inlineStatement?|nestedBlock?"> {}
+class create_animation extends MethodDefinition<"asAnimation|signature|body?"> {}
 methods.addRule(create_animation, {
   alias: "statement",
-  syntax: `(asAnimation:create? animation) {signature:method_signature} :?`,
+  syntax: `(asAnimation:create? animation) {signature:method_signature} :? {statement_body}?`,
   // NOTE: `inlineInitialType` is declared as a plain field on `MethodDefinition` (TS doesn't allow a
   // subclass to override a field with an accessor), so set the default the same way `to_do_something` does.
   inlineInitialType: true,
@@ -1434,7 +1429,7 @@ methods.addRule(create_animation, {
  *   `has`, `can`, `will`, ...) that would otherwise collide with other statement/expression rules.
  * - Trailing `if`/`is` is a no-op keyword purely for readability (`a thing "is a bug" if` vs. plain
  *   `a thing "is a bug"`); neither is captured into `match.groups`.
- * - `parseInlineStatementAs: "expression"` -- the inline body (`a thing "nerds out" if yes`) parses as an
+ * - `{expression_body}?` -- the inline body (`a thing "nerds out" if yes`) parses as an
  *   `expression`, not a `statement` like other `MethodDefinition` subclasses, since the result compiles
  *   to a getter/method returning a value.
  * - `parse()` rejects signatures that don't start with a keyword, or that captured more than one
@@ -1445,7 +1440,7 @@ methods.addRule(create_animation, {
  *   phrasing (`is`/`is not`/`isn't`/`isnt`) compile to the same rule with `shouldNegateOutput()` flipping
  *   the output.
  */
-class quoted_type_expression extends MethodDefinition<"type|signature|inlineStatement?|nestedBlock?"> {
+class quoted_type_expression extends MethodDefinition<"type|signature|body?"> {
   /**
    * Reject the match if its (quoted) signature doesn't start with a keyword, or captured more than one
    * arg -- `quoted_type_expression` only supports plain (`nerds out`) or single-arg (`nerds out with
@@ -1523,10 +1518,7 @@ class quoted_type_expression extends MethodDefinition<"type|signature|inlineStat
 methods.addRule(quoted_type_expression, {
   precedence: 9, // defer to more-specific methods in `classes`, e.g. `define_property_has`, ...
   alias: "statement",
-  syntax: "(a|an) {type:singular_type} {signature:quoted_method_signature} (if|is)? :?",
-  // NOTE: `parseInlineStatementAs` is declared as a plain field on `SpellStatement` (TS doesn't allow a
-  // subclass to override a field with an accessor), so set the default via the definition instead.
-  parseInlineStatementAs: "expression",
+  syntax: "(a|an) {type:singular_type} {signature:quoted_method_signature} (if|is)? :? {expression_body}?",
   tests: [
     {
       title: "fails if",

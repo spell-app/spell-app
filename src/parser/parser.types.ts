@@ -75,6 +75,50 @@ export type MatchFor<RuleType extends RuleTypeArgs> = P.Match<RuleType["Groups"]
 /** Type-only members of `P.Rule` which re-publish its type arguments -- see `MatchFor`, `Rule.Groups`. */
 export type RuleTypeArgs = { readonly Groups: AnyGroups; readonly MatchData: AnyMatchData }
 
+// ## Journal -- see `ParseJournal`
+
+/** One change to shared parse state which a `ParseJournal` can take back, and put back again. */
+export type JournalChange = {
+  /** Put state back to how it was before the change. */
+  undo: () => void
+  /** Make the change again, e.g. after `undo()`. */
+  redo: () => void
+}
+
+/** Point in a `ParseJournal` to rewind to -- from `journal.mark()`, compared by identity. */
+export type JournalMark = { readonly isMark: true }
+
+/** Anything in a `ParseJournal`. */
+export type JournalEntry = JournalChange | JournalMark
+
+// ## AST casts
+
+// TODO: review `MatchGroups` / `GroupsFor` to add an optional AST type per group, so most `asAST()` / `matchAST()`
+//  casts go away.  The syntax already says which rule a group is parsed as, e.g. `{number:expression}`,
+//  and in spell an `expression` always builds a `P.ASTExpression`.  Needs a per-language table of rule name
+//  => AST type, plus `Match` generic on its AST type.
+
+/**
+ * Narrow `node` to concrete AST subclass `T`.
+ * - `Match.AST` is typed generically as `ASTNode | undefined`, as `Rule.getAST()`'s return type isn't
+ *   parameterized per rule.  Only the referenced rule's semantics (which we know, writing the rule) say
+ *   which concrete node comes back -- this asserts that, since it's not statically checkable.
+ * - NOTE: also asserts `node` is defined.  Use `matchAST()` for an optional match.
+ */
+export function asAST<T extends P.ASTNode>(node: P.ASTNode | undefined): T {
+  return node as T
+}
+
+/**
+ * `match.AST`, narrowed to concrete AST subclass `T` (default `ASTExpression`) -- see `asAST()`.
+ * - `undefined` in => `undefined` out, e.g. for an optional group.
+ */
+export function matchAST<T extends P.ASTNode = P.ASTExpression>(match: P.Match): T
+export function matchAST<T extends P.ASTNode = P.ASTExpression>(match: P.Match | undefined): T | undefined
+export function matchAST<T extends P.ASTNode = P.ASTExpression>(match: P.Match | undefined): T | undefined {
+  return match?.AST as T | undefined
+}
+
 // ## Errors
 
 /** Error we'll throw when setting up / executing parser. */

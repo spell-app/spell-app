@@ -1171,3 +1171,38 @@ describe("matchJSXChild()", () => {
     expect(token.end).toBe(6)
   })
 })
+
+//
+//  line / ch positions
+//
+describe("tokenize() line / ch", () => {
+  /** First token whose `raw` / `value` is `word`. */
+  function find(tokens: ReturnType<typeof tokenizer.tokenize>, word: string) {
+    return tokens.find((token) => token.value === word)!
+  }
+
+  test("counts plain newlines", () => {
+    const tokens = tokenizer.tokenize("a\n  b\nc")
+    expect(find(tokens, "b")).toMatchObject({ line: 1, ch: 2 })
+    expect(find(tokens, "c")).toMatchObject({ line: 2, ch: 0 })
+  })
+
+  test("counts newlines INSIDE a multi-line string", () => {
+    const tokens = tokenizer.tokenize(`x = "one\ntwo\nthree" y\nz`)
+    expect(find(tokens, "y")).toMatchObject({ line: 2, ch: 7 })
+    expect(find(tokens, "z")).toMatchObject({ line: 3, ch: 0 })
+  })
+
+  test("counts newlines INSIDE a multi-line JSX element, and positions its children", () => {
+    const tokens = tokenizer.tokenize("return <div>\n  <span>hi</span>\n</div>\nprint 1")
+    expect(find(tokens, "print")).toMatchObject({ line: 3, ch: 0 })
+    const div = tokens.find((token) => token instanceof JSXElementToken)!
+    const span = (div as JSXElementToken).children!.find((child) => child instanceof JSXElementToken)!
+    expect(span).toMatchObject({ line: 1, ch: 2 })
+  })
+
+  test("is absolute when tokenizing from a `start` offset", () => {
+    const tokens = tokenizer.tokenize("skip\nme\nb", 5)
+    expect(find(tokens, "b")).toMatchObject({ line: 2, ch: 0 })
+  })
+})

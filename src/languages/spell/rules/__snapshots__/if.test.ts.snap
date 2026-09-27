@@ -3,7 +3,8 @@
 exports[`testing spell module if > rule group specs > match snapshot -- if this fails, update rule's \`Groups\` type argument, then the snapshot 1`] = `
 {
   "backwards_if": "operator|expression",
-  "else_if": "condition",
-  "if": "condition",
+  "else": "body?",
+  "else_if": "condition|body?",
+  "if": "condition|body?",
 }
 `;

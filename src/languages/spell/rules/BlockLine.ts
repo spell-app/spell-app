@@ -1,6 +1,6 @@
 import { P } from "~/parser"
 import { SP } from "~/languages/spell"
-import { SpellStatement } from "./Statement"
+import { SpellStatement, commitStatement } from "./Statement"
 import { Block, type BlockMatchData } from "./Block"
 import { getJSXParseError } from "./JSX"
 
@@ -19,8 +19,8 @@ export class blank_line extends P.BlankLine {
  * Parse a single `LineToken` in a `BlockToken` as:
  * - a `statement`
  * - an optional `comment` at the end of the line
- * - if `statement.wantsNestedBlock` and the next item in `lines` is a `BlockToken`, we'll let the
- *   statement attempt to parse that next line as well.
+ * - if the statement takes a nested body and the next item in `lines` is a `BlockToken`, we'll let the
+ *   statement attempt to parse that next line as well -- see `commitStatement()`.
  */
 export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
   /**
@@ -33,6 +33,9 @@ export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
     const matched: (P.Match | P.Token)[] = []
     const errors: P.Match[] = []
     const tokensMatched: P.Token[] = [line]
+    let lineStatement: P.Match | undefined
+    let lineBodyMark: P.JournalMark | undefined
+    let bodyErrorsAt: number | undefined
     if (!(line instanceof P.LineToken)) {
       console.warn("BlockLine.parse(): got non-line", line)
       return undefined
@@ -69,10 +72,11 @@ export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
         matched.push(comment)
       }
 
-      // parse the statement (which may parse an inlineStatement as well)
+      // parse the statement (which may parse an inline body as well)
       const unparsed = tokens.slice(start, end)
       const statement = scope.parser?.parse(unparsed, "statement", scope)
       if (statement) {
+        lineStatement = statement
         matched.push(statement)
         unparsed.splice(0, statement.length)
       }
@@ -87,30 +91,18 @@ export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
       }
 
       if (statement) {
-        // We've locked in this statement -- update scope if necessary.
-        // This is used, e.g. by assignment to add new variables to the scope, etc.
-        statement.rule.mutateScope(statement)
-
-        // Some statements `.wantsNestedBlock` -- give it a chance to parse the next item.
         const nextItem = lines[1]
-        if (
-          statement.rule instanceof SpellStatement &&
-          statement.rule.wantsNestedBlock &&
-          nextItem instanceof P.BlockToken
-        ) {
-          const nestedBlock = statement.rule.parseNestedBlock(statement, nextItem)
-          if (nestedBlock) {
-            // add any errors in the nestedBlock to `errors`
-            if (nestedBlock.is(Block) && nestedBlock.data.errors) errors.push(...nestedBlock.data.errors)
-            // add the nestedBlock to `tokensMatched` to account for it in the output
-            tokensMatched.push(nextItem)
-          }
+        const inlineBody = statement.rule instanceof SpellStatement ? statement.rule.getBody(statement) : undefined
+        const committed = commitStatement(statement, nextItem)
+        const nestedBlockMatch = committed.body
+        lineBodyMark = committed.bodyMark
+        if (nestedBlockMatch) {
+          // add any errors in the nestedBlock to `errors`
+          bodyErrorsAt = errors.length
+          if (nestedBlockMatch.is(Block) && nestedBlockMatch.data.errors) errors.push(...nestedBlockMatch.data.errors)
+          // add the nestedBlock to `tokensMatched` to account for it in the output
+          tokensMatched.push(nextItem!)
         }
-
-        // HACK HACK HACK
-        // OK, we've procesed the statement and its nested block if there is one.
-        // Lock in it's (memoized) AST in case the rule's `getAST()` method ALSO mutates scope.
-        void statement.AST
 
         // TODO: not sure if this is needed anymore
         // Check JSX, that seems to be setting it???
@@ -121,9 +113,8 @@ export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
           matched.push(statementError)
         }
 
-        // Add parse error if we got both a `nestedBlock` and an `inlineStatement`
-        const { inlineStatement, nestedBlock } = statement.groups
-        if (inlineStatement && nestedBlock) {
+        // Add parse error if we got both an inline body and a nested one
+        if (inlineBody && nestedBlockMatch) {
           const error = SP.spellParser.createParseError(
             scope,
             [line, nextItem].filter((item): item is P.Token => item !== undefined),
@@ -141,6 +132,47 @@ export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
       scope
     })
     if (errors.length) result.data.errors = errors
+    if (lineStatement) result.data.statement = lineStatement
+    if (bodyErrorsAt !== undefined) result.data.bodyErrorsAt = bodyErrorsAt
+    if (lineBodyMark) result.data.bodyMark = lineBodyMark
+    return result
+  }
+
+  /**
+   * Re-parse ONLY the nested body of `line` from `blockToken`, keeping its header statement's match -- and so the
+   * scope changes that made -- as they are.  See `P.IncrementalParse`.
+   * - Returns a new `line` match, or `undefined` if that's not safe, so caller does a full parse:
+   *   - no statement, or its body isn't an indented block of statements
+   *   - body shares the header's scope, so its variables land outside it
+   *   - old or new body `changesGlobalScope()`, e.g. declares a type or a method
+   * - The new body gets a FRESH nested scope:  we re-parse on a clone of the statement, without its old body.
+   */
+  reparseBody(line: P.MatchFor<this>, blockToken: P.BlockToken): P.Match | undefined {
+    const { statement, bodyErrorsAt } = line.data
+    if (!statement || !(statement.rule instanceof SpellStatement) || bodyErrorsAt === undefined) return undefined
+    const oldBody = statement.rule.getBody(statement)
+    if (!oldBody?.is(Block) || line.tokens[1] !== oldBody.tokens[0]) return undefined
+    if (statement.nestedScope === statement.scope || P.IncrementalParse.changesGlobalScope(oldBody)) return undefined
+
+    // Statement without its old body, re-bodied.
+    const bodyTokens = new Set(oldBody.tokens)
+    const header = statement.clone({
+      matched: statement.matched.filter((item) => item !== oldBody),
+      tokens: statement.tokens.filter((token) => !bodyTokens.has(token))
+    })
+    header.data.body = undefined
+    const newBody = statement.rule.parseNestedBlock(header, blockToken)
+    if (!newBody?.is(Block) || P.IncrementalParse.changesGlobalScope(newBody)) return undefined
+
+    // Swap the old body's errors for the new body's, in place.
+    const errors = [...(line.data.errors ?? [])]
+    errors.splice(bodyErrorsAt, oldBody.data.errors?.length ?? 0, ...(newBody.data.errors ?? []))
+    const result = line.clone({
+      matched: line.matched.map((item) => (item === statement ? header : item)),
+      tokens: [line.tokens[0]!, blockToken]
+    })
+    result.data.statement = header
+    result.data.errors = errors.length ? errors : undefined
     return result
   }
 
@@ -166,3 +198,4 @@ export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
     })
   }
 }
+

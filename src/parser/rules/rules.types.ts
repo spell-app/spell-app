@@ -17,7 +17,7 @@ export type RuleDefinitionProps = Omit<P.RuleProps, "syntax"> & {
 }
 
 /**
- * `RuleDefinitionProps` for a specific rule class, so its own props (e.g. `pattern`, `wantsNestedBlock`) are
+ * `RuleDefinitionProps` for a specific rule class, so its own props (e.g. `pattern`, `blacklist`) are
  * checked too -- a typo is a compile error.
  * - All optional:  structure normally comes from `syntax`, not from e.g. `rules`.
  */
@@ -32,7 +32,7 @@ export type DefinitionFor<RuleType extends { readonly Props: P.RuleProps }> = Pr
  *   `otherScope.addRule(entry.rule, entry.definition)`.  A built rule is frozen and already bound to a name.
  */
 export type ScopeRule = {
-  /** Name the rule registered under -- the `IndexedList` keys on this. */
+  /** Name the rule registered under -- the `ScopeList` keys on this. */
   name: string
   /** Rule class, typically a closure over the match which caused it. */
   rule: RuleConstructor
@@ -45,6 +45,15 @@ export type RuleInput = P.Rule | RuleConstructor
 
 /** Map of `{ ruleName: rule }`. */
 export type RuleMap = Record<string, P.Rule>
+
+/**
+ * What committing a rule's match changes in scope -- see `Rule.getScopeChanges()`.  `undefined` => nothing.
+ * - `"internal"`:  only its OWN `match.scope`, e.g. `set x to 1` adds a variable there,
+ *   so a method body's changes stay inside that body.
+ * - `"global"`:  reaches the project, e.g. types, constants or rules, so re-parsing it can change how
+ *   anything after it parses -- even in other files.
+ */
+export type ScopeChanges = "internal" | "global"
 
 /** Syntax flags for outputting a rule in rulex syntax. */
 export type SyntaxFlags = {

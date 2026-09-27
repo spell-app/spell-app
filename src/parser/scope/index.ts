@@ -4,6 +4,7 @@
  *   that a scope holds.
  */
 
+export * from "./ScopeList"
 export * from "./Scope"
 export * from "./BlockScope"
 export * from "./RootScope"

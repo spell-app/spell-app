@@ -3,6 +3,7 @@
 // TODO: constructor
 // TODO: mixins / traits / composed classes / annotations
 
+import { NONE } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
@@ -20,10 +21,6 @@ export const properties = new SpellParser({ module: "properties" })
  * - `T` is chosen by inspection: referenced sub-rule's `getAST()` is known to always produce it.
  */
 // CLAUDE TODO: should this be `AST.is()` in AST.ts?
-function ast<T extends P.ASTNode>(node: P.ASTNode | undefined): T {
-  return node as T
-}
-
 ////////////////
 // ## `property` rule
 //    e.g. "foo"
@@ -96,8 +93,8 @@ class property_expression extends SpellExpression<"property_accessor|expression"
   getAST(match: P.MatchFor<this>) {
     const { property_accessor, expression } = match.groups
     return new P.ASTPropertyExpression(match, {
-      object: ast<P.ASTExpression>(expression.AST),
-      property: ast<P.ASTPropertyLiteral>(property_accessor.AST)
+      object: P.asAST<P.ASTExpression>(expression.AST),
+      property: P.asAST<P.ASTPropertyLiteral>(property_accessor.AST)
     })
   }
 }
@@ -125,15 +122,26 @@ properties.addRule(property_expression, {
 //    e.g. "its foo"
 ////////////////
 
+/** What `its_property` / `its_ordinal` stash on their matches. */
+type ItsMatchData = {
+  /** `it` in scope when parsed, or `NONE` => means `this`.  Looked up THEN, not in `getAST()` -- see `SpellIdentifier`. */
+  itVar?: P.ScopeVariable | typeof NONE
+}
+
 /**
  * `its {property}` -- possessive shorthand.
  * - Tracks `it`:  `get it` / `put its foo in the bar`.
  * - Synonym for `this` if `it` is not (yet) defined in scope.
  */
-class its_property extends SpellExpression<"property"> {
+class its_property extends SpellExpression<"property", ItsMatchData> {
+  parse(scope: P.Scope, tokens: P.Token[]) {
+    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
+    if (match) match.data.itVar = scope.variables?.get("it") ?? NONE
+    return match
+  }
   getAST(match: P.MatchFor<this>) {
-    const property = ast<P.ASTPropertyLiteral>(match.groups.property.AST)
-    const itVar = match.scope.variables?.get("it")
+    const property = P.asAST<P.ASTPropertyLiteral>(match.groups.property.AST)
+    const itVar = match.data.itVar === NONE ? undefined : match.data.itVar
     const object = itVar
       ? new P.ASTVariableExpression(match, { raw: "it", name: itVar.output || itVar.name })
       : new P.ASTThisLiteral(match)
@@ -197,16 +205,21 @@ properties.addRule(its_property, {
  * - Synonym for `this` if `it` is not (yet) defined in scope.
  * - Compiles to `spellCore.getItemOf(object, ordinal)` rather than a plain property access.
  */
-class its_ordinal extends SpellExpression<"ordinal|arg"> {
+class its_ordinal extends SpellExpression<"ordinal|arg", ItsMatchData> {
+  parse(scope: P.Scope, tokens: P.Token[]) {
+    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
+    if (match) match.data.itVar = scope.variables?.get("it") ?? NONE
+    return match
+  }
   getAST(match: P.MatchFor<this>) {
     const { ordinal } = match.groups
-    const itVar = match.scope.variables?.get("it")
+    const itVar = match.data.itVar === NONE ? undefined : match.data.itVar
     const object = itVar
       ? new P.ASTVariableExpression(match, { raw: "it", name: itVar.output || itVar.name })
       : new P.ASTThisLiteral(match)
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "getItemOf",
-      args: [object, ast<P.ASTExpression>(ordinal.AST)]
+      args: [object, P.asAST<P.ASTExpression>(ordinal.AST)]
     })
   }
 }
@@ -261,8 +274,8 @@ class object_literal_property extends P.Sequence<"property|value"> {
   getAST(match: P.MatchFor<this>) {
     const { property, value } = match.groups
     return new P.ASTObjectLiteralProperty(match, {
-      property: ast<P.ASTPropertyLiteral>(property.AST),
-      value: ast<P.ASTExpression>(value.AST)
+      property: P.asAST<P.ASTPropertyLiteral>(property.AST),
+      value: P.asAST<P.ASTExpression>(value.AST)
     })
   }
 }
@@ -299,7 +312,7 @@ properties.addRule(object_literal_property, {
 class object_literal_properties extends P.Repeat {
   getAST(match: P.MatchFor<this>) {
     return new P.ASTObjectLiteral(match, {
-      properties: match.items.map((propMatch) => ast<P.ASTObjectLiteralProperty>(propMatch.AST))
+      properties: match.items.map((propMatch) => P.asAST<P.ASTObjectLiteralProperty>(propMatch.AST))
     })
   }
 }

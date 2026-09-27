@@ -6,20 +6,13 @@
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
+import { commitStatement } from "./Statement"
 
 /**
  * Rule module for JSX rules (`jsxElement`, `jsxAttribute`, `jsxText`, `jsxEndTag`, `jsxExpression`).
  * - Each rule class below is followed by the `JSX.addRule()` call which defines and registers it.
  */
 export const JSX = new SpellParser({ module: "JSX" })
-
-/**
- * Narrow `node` (typed generically as `P.ASTNode | undefined`) to concrete AST subclass `T`.
- * - `T` is chosen by inspection: referenced sub-rule's `getAST()` is known to always produce it.
- */
-function ast<T extends P.ASTNode>(node: P.ASTNode | undefined): T {
-  return node as T
-}
 
 ////////////////
 // ## `jsxElement` rule
@@ -73,10 +66,10 @@ class SpellJSX extends P.TokenType<never, JSXMatchData> {
   /** Build `P.ASTJSXElement`; drops falsy child ASTs (e.g. blank `jsxText`) via `.filter(Boolean)`. */
   getAST(match: P.MatchFor<this>) {
     const { tagName } = match.matched[0] as P.JSXElementToken
-    const attrs = match.data.attributes?.map((attr) => ast<P.ASTJSXAttribute>(attr?.AST))
+    const attrs = match.data.attributes?.map((attr) => P.asAST<P.ASTJSXAttribute>(attr?.AST))
     const children =
       match.data.children
-        ?.map((child) => ast<P.ASTJSXElement | P.ASTJSXEndTag | P.ASTJSXText | P.ASTJSXExpression>(child?.AST))
+        ?.map((child) => P.asAST<P.ASTJSXElement | P.ASTJSXEndTag | P.ASTJSXText | P.ASTJSXExpression>(child?.AST))
         .filter(Boolean) ?? []
     return new P.ASTJSXElement(match, { tagName, attrs, children })
   }
@@ -310,6 +303,8 @@ class SpellJSXAttribute extends P.TokenType<never, JSXMatchData> {
         const methodScope = new P.MethodScope(methodScopeProps)
         const statement = methodScope.parse(input, "statement")
         if (statement && statement.inputText.length === input.length) {
+          // We're keeping it, so lock it in -- its scope changes happen now, in the handler's own scope.
+          commitStatement(statement)
           match.data.statement = statement
         }
       } else {
@@ -334,7 +329,7 @@ class SpellJSXAttribute extends P.TokenType<never, JSXMatchData> {
     const { attribute, expression, statement, error } = match.data
     const { value } = match
     let valueAST: P.ASTExpression | undefined
-    if (expression) valueAST = ast<P.ASTExpression>(expression.AST)
+    if (expression) valueAST = P.asAST<P.ASTExpression>(expression.AST)
     else if (statement) {
       valueAST = new P.ASTMethodDefinition(match, {
         inline: true,
@@ -343,7 +338,7 @@ class SpellJSXAttribute extends P.TokenType<never, JSXMatchData> {
         args: attribute!.toLowerCase().startsWith("on")
           ? [new P.ASTVariableExpression(match, { name: "event" })]
           : undefined,
-        body: ast<P.ASTStatementBlock | P.ASTStatement | P.ASTExpression>(statement.AST)
+        body: P.asAST<P.ASTStatementBlock | P.ASTStatement | P.ASTExpression>(statement.AST)
       })
     } else if (value === undefined) {
       valueAST = new P.ASTBooleanLiteral(match, { value: true })

@@ -15,6 +15,12 @@ export type BlockMatchData = {
   errors?: P.Match[]
   /** Set on a `block` match by `SpellStatement.parseNestedBlock()` so it compiles wrapped in `{}`. */
   enclose?: boolean
+  /** On a `line` match:  its statement, if one parsed -- see `BlockLine.reparseBody()`. */
+  statement?: P.Match
+  /** On a `line` match with a nested body:  where that body's errors start in `errors`. */
+  bodyErrorsAt?: number
+  /** On a `line` match with a nested body:  journal mark just before the body was parsed, if journaled. */
+  bodyMark?: P.JournalMark
 }
 
 /**
@@ -43,28 +49,12 @@ export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
 
     // build up matches for individual items
     const matched: P.Match[] = []
-    const errors: P.Match[] = []
     const items: (P.LineToken | P.BlockToken)[] = [...block.tokens]
     while (items.length) {
-      let match: P.Match | undefined
-      const first = items[0]!
-      // recurse for nested block
-      if (first instanceof P.BlockToken) {
-        match = this.parse(scope, [first])
-      }
-      // process Line as "line" -- a statement with optional comment, etc.
-      else if (first instanceof P.LineToken) {
-        // NOTE: `Scope.parse()` is typed for string input only; call `parser.parse()` directly
-        // (exactly what `Scope.parse()` would do internally) so we can pass tokens instead.
-        match = scope.parser?.parse(items, "line", scope)
-      } else {
-        console.warn("Block.parse(): Don't know what to do with token", first)
-      }
-
+      // a nested block, or a line plus any indented body it takes -- see `SpellParser.parseItem()`
+      const match = scope.parser?.parseItem(scope, items)
       if (match) {
         matched.push(match)
-        // Bubble up errors from the line / nested block.
-        errors.push(...(getParseErrors(match) ?? []))
         // pop the matched items off of the list
         items.splice(0, match.length)
       } else {
@@ -72,15 +62,24 @@ export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
         items.shift()
       }
     }
-    // Forget it if we didn't match anything
-    if (matched.length === 0) return undefined
+    return this.assembleBlock(scope, block, matched)
+  }
 
+  /**
+   * Build the match for `block` once its items are parsed, collecting their parse errors into `data.errors`.
+   * - `matched` is one match per item:  a line (with any body it took), or a nested block.
+   * - Returns `undefined` if no items matched.
+   * - `parse()` ends with this, and so does an incremental re-parse -- see `SpellParser.assembleFile()`.
+   */
+  assembleBlock(scope: P.Scope, block: P.BlockToken, matched: P.Match[]): P.MatchFor<this> | undefined {
+    if (matched.length === 0) return undefined
     const result: P.MatchFor<this> = new P.Match({
       rule: this,
       matched,
       scope,
       tokens: [block]
     })
+    const errors = matched.flatMap((match) => getParseErrors(match) ?? [])
     if (errors.length) result.data.errors = errors
     return result
   }

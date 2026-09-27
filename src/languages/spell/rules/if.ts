@@ -18,31 +18,28 @@ export const _if_ = new SpellParser({ module: "if" })
  * `if {condition} (then|:)?` statement, with an inline statement or an indented nested block as body.
  * - Named `_if` to avoid the reserved word `if` -- `name: "if"` keeps the actual rule name;
  *   the module export below is `_if_` for the same reason.
- * - `wantsInlineStatement`/`wantsNestedBlock`: doesn't parse its own body -- `SpellStatement` parses a
- *   trailing inline statement, or `BlockLine` parses a following indented block, into `match.groups`.
+ * - `{statement_body}?`: doesn't parse its own body -- `SpellStatement` parses a trailing inline statement,
+ *   or `commitStatement()` a following indented block, into `getBody(match)`.
  * - Compiles body in a nested `BlockScope` (named `"if"`) via `getNestedScopeForMatch()`.
- * - Prefers `nestedBlock` over `inlineStatement` when (invalidly) given both.
+ * - Prefers nested block over inline statement when (invalidly) given both -- see `getBody()`.
  * - Compiles to `if (condition) { ...statements }`.
  */
-class _if extends SpellStatement<"condition|inlineStatement?|nestedBlock?"> {
+class _if extends SpellStatement<"condition|body?"> {
   getNestedScopeForMatch(match: P.MatchFor<this>): P.Scope {
     return new P.BlockScope({ name: "if", parentScope: match.scope })
   }
   getAST(match: P.MatchFor<this>): P.ASTIfStatement {
-    const { condition, inlineStatement, nestedBlock } = match.groups
-    // Prefer nestedBlock if we get both
+    const { condition } = match.groups
     return new P.ASTIfStatement(match, {
       condition: condition.AST as P.ASTExpression,
-      statements: (nestedBlock || inlineStatement)?.AST as P.ASTStatement | P.ASTStatementBlock | undefined
+      statements: this.getBody(match)?.AST as P.ASTStatement | P.ASTStatementBlock | undefined
     })
   }
 }
 _if_.addRule(_if, {
   name: "if",
   alias: "statement",
-  syntax: "if {condition:expression} (then|:)?",
-  wantsInlineStatement: true,
-  wantsNestedBlock: true,
+  syntax: "if {condition:expression} (then|:)? {statement_body}?",
   tests: [
     {
       title: "correctly matches single-line if statements",
@@ -117,27 +114,25 @@ _if_.addRule(_if, {
  * - `precedence: 1` (default 0) also biases resolution toward this rule over `else` when ambiguous.
  *   TODO: is `precedence` load-bearing here, or does rule-definition order (see NOTE above) suffice?
  * - Compiles body in a nested `BlockScope` (named `"elseif"`) via `getNestedScopeForMatch()`.
- * - Prefers `nestedBlock` over `inlineStatement` when (invalidly) given both.
+ * - Prefers nested block over inline statement when (invalidly) given both -- see `getBody()`.
  * - Compiles to `else if (condition) { ...statements }`.
  */
-class else_if extends SpellStatement<"condition|inlineStatement?|nestedBlock?"> {
+class else_if extends SpellStatement<"condition|body?"> {
   getNestedScopeForMatch(match: P.MatchFor<this>): P.Scope {
     return new P.BlockScope({ name: "elseif", parentScope: match.scope })
   }
   getAST(match: P.MatchFor<this>): P.ASTElseIfStatement {
-    const { condition, inlineStatement, nestedBlock } = match.groups
+    const { condition } = match.groups
     return new P.ASTElseIfStatement(match, {
       condition: condition.AST as P.ASTExpression,
-      statements: (nestedBlock || inlineStatement)?.AST as P.ASTStatement | P.ASTStatementBlock | undefined
+      statements: this.getBody(match)?.AST as P.ASTStatement | P.ASTStatementBlock | undefined
     })
   }
 }
 _if_.addRule(else_if, {
   alias: "statement",
-  syntax: "(else|otherwise) if {condition:expression} (then|:)?",
+  syntax: "(else|otherwise) if {condition:expression} (then|:)? {statement_body}?",
   precedence: 1,
-  wantsInlineStatement: true,
-  wantsNestedBlock: true,
   tests: [
     {
       title: "correctly matches single-line else_if statements",
@@ -207,23 +202,20 @@ _if_.addRule(else_if, {
  * - Compiles body in a nested `BlockScope` (named `"else"`) via `getNestedScopeForMatch()`.
  * - Compiles to `else { ...statements }`.
  */
-class _else extends SpellStatement<"inlineStatement?|nestedBlock?"> {
+class _else extends SpellStatement<"body?"> {
   getNestedScopeForMatch(match: P.MatchFor<this>): P.Scope {
     return new P.BlockScope({ name: "else", parentScope: match.scope })
   }
   getAST(match: P.MatchFor<this>): P.ASTElseStatement {
-    const { inlineStatement, nestedBlock } = match.groups
     return new P.ASTElseStatement(match, {
-      statements: (nestedBlock || inlineStatement)?.AST as P.ASTStatement | P.ASTStatementBlock | undefined
+      statements: this.getBody(match)?.AST as P.ASTStatement | P.ASTStatementBlock | undefined
     })
   }
 }
 _if_.addRule(_else, {
   name: "else",
   alias: "statement",
-  syntax: "(else|otherwise) :?",
-  wantsInlineStatement: true,
-  wantsNestedBlock: true,
+  syntax: "(else|otherwise) :? {statement_body}?",
   tests: [
     {
       title: "correctly matches single-line else statements",

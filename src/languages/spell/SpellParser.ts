@@ -99,6 +99,40 @@ export class SpellParser extends P.Parser {
     return tokens
   }
 
+  /** Commit a spell statement parsed on its own -- see `SP.commitStatement()`. */
+  commit(match: P.Match) {
+    SP.commitStatement(match)
+  }
+
+  /** Parse one item of a block:  a nested block, or a line plus any indented body it takes. */
+  parseItem(scope: P.Scope, items: P.Token[]): P.Match | undefined {
+    const [first] = items
+    if (first instanceof P.BlockToken) return this.getRuleOrDie("block").parse(scope, [first])
+    if (first instanceof P.LineToken) return this.parse(items, "line", scope)
+    return undefined
+  }
+
+  /** A top-level item is broken if it didn't parse, or has parse errors -- its own or its body's. */
+  isBrokenItem(item: P.Match | undefined): boolean {
+    return !item || !!SP.getParseErrors(item)?.length
+  }
+
+  /** Journal mark just before a `line`'s nested body was parsed -- see `commitStatement()`. */
+  getBodyMark(item: P.Match): P.JournalMark | undefined {
+    return item.is(SP.BlockLine) ? item.data.bodyMark : undefined
+  }
+
+  /** Re-parse a top-level `line`'s nested body -- see `BlockLine.reparseBody()`. */
+  reparseBody(item: P.Match, body: P.BlockToken): P.Match | undefined {
+    return item.is(SP.BlockLine) ? item.rule.reparseBody(item, body) : undefined
+  }
+
+  /** File match from its top-level item matches, as `Block.parse()` builds it -- see `Block.assembleBlock()`. */
+  assembleFile(scope: P.Scope, root: P.BlockToken, items: P.Match[]): P.Match | undefined {
+    const rule = this.getRuleOrDie("block")
+    return rule instanceof SP.Block ? rule.assembleBlock(scope, root, items) : undefined
+  }
+
   /**
    * Build a `P.Match` for the `parse_error` rule, so a failed parse still produces a `Match` in the tree
    * (rather than `undefined`) -- callers can inspect/report on it, e.g. `SpellFile.parse()`'s `errors` walk.

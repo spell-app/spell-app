@@ -1,4 +1,4 @@
-import { Derivative, IndexedList } from "~/util"
+import { Derivative } from "~/util"
 import { P } from "~/parser"
 
 /**
@@ -25,27 +25,27 @@ export class Scope extends Derivative {
 
   /**
    * NOTE: `.methods`, `.variables`, `.types`, `.constants` and `.rules` all forward to `parentScope` by
-   * default.  Subclasses may choose to implement these directly, generally as `IndexedList`s (see
+   * default.  Subclasses may choose to implement these directly, generally as `ScopeList`s (see
    * `BlockScope`, `RootScope`).
    */
   /** Forwards to `parentScope.methods`. */
-  get methods(): IndexedList<P.MethodScope, P.MethodScope | P.MethodScopeProps> | undefined {
+  get methods(): P.ScopeList<P.MethodScope, P.MethodScope | P.MethodScopeProps> | undefined {
     return this.parentScope?.methods
   }
   /** Forwards to `parentScope.variables`. */
-  get variables(): IndexedList<P.ScopeVariable, string | P.ScopeVariable | P.ScopeVariableProps> | undefined {
+  get variables(): P.ScopeList<P.ScopeVariable, string | P.ScopeVariable | P.ScopeVariableProps> | undefined {
     return this.parentScope?.variables
   }
   /** Forwards to `parentScope.types`. */
-  get types(): IndexedList<P.TypeScope, string | P.TypeScope | P.TypeScopeProps> | undefined {
+  get types(): P.ScopeList<P.TypeScope, string | P.TypeScope | P.TypeScopeProps> | undefined {
     return this.parentScope?.types
   }
   /** Forwards to `parentScope.constants`. */
-  get constants(): IndexedList<P.ScopeConstant, string | P.ScopeConstant | P.ScopeConstantProps> | undefined {
+  get constants(): P.ScopeList<P.ScopeConstant, string | P.ScopeConstant | P.ScopeConstantProps> | undefined {
     return this.parentScope?.constants
   }
   /** Forwards to `parentScope.rules`. */
-  get rules(): IndexedList<P.ScopeRule> | undefined {
+  get rules(): P.ScopeList<P.ScopeRule> | undefined {
     return this.parentScope?.rules
   }
 

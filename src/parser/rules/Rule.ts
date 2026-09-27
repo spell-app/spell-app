@@ -260,6 +260,11 @@ export abstract class Rule<
   static alias?: string | string[]
   /** Precedence.  Default lives on prototype, so only rules with non-default precedence carry their own. */
   @proto static precedence?: number = 0
+  /**
+   * What committing our match changes in scope -- see `getScopeChanges()`.
+   * - Leave `undefined` to work it out from whether we override `mutateScope()`.
+   */
+  @proto static changesScope?: P.ScopeChanges = undefined
   /** Datatype. */
   static datatype?: string
   /** Description. */
@@ -317,6 +322,8 @@ export abstract class Rule<
   declare optional: boolean | undefined
   /** Whether this rule is left-recursive (e.g. `{expression} + {expression}`). */
   declare isLeftRecursive: boolean | undefined
+  /** What committing our match changes in scope, if set explicitly -- see `getScopeChanges()`. */
+  declare changesScope: P.ScopeChanges | undefined
 
   ////////////////
   // ## Type arguments -- type-only, nothing here exists at runtime
@@ -436,6 +443,17 @@ export abstract class Rule<
    */
   mutateScope(match: P.MatchFor<this>) {}
 
+  /**
+   * What committing one of our matches changes in scope -- lets incremental parsing tell whether re-parsing
+   * a match could affect anything outside it.
+   * - `changesScope` if set, e.g. `changesScope: "internal"` in a definition.
+   * - Else `undefined` if we don't override `mutateScope()`, or `"global"` if we do -- assume the worst.
+   */
+  getScopeChanges(): P.ScopeChanges | undefined {
+    if (this.changesScope) return this.changesScope
+    return this.mutateScope === Rule.prototype.mutateScope ? undefined : "global"
+  }
+
   ////////////////
   // ## Rulex syntax
   ////////////////
@@ -492,6 +510,8 @@ export type RuleProps = {
   isEscaped?: boolean
   /** Whether this rule is left-recursive (e.g. `{expression} + {expression}`). */
   isLeftRecursive?: boolean
+  /** What committing our match changes in scope -- see `getScopeChanges()`. */
+  changesScope?: P.ScopeChanges
 }
 
 /**
