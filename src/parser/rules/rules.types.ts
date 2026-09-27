@@ -8,6 +8,41 @@ export type RuleConstructor = Class<P.Rule>
 /** One variant of a rule class's `static syntax`, with its own quick `testRule` if needed. */
 export type RuleSyntaxVariant = { syntax?: string; testRule?: P.Rule | string }
 
+/**
+ * What `parser.addRule(RuleClass, definition)` accepts for any rule:  constructor props, except that
+ * - `syntax` may be an array => one rule instance per variant, each optionally with its own `testRule`
+ * - `skip: true` registers nothing, e.g. for a rule which isn't working yet
+ * - `name` defaults to the class name
+ */
+export type RuleDefinitionProps = Omit<P.RuleProps, "syntax"> & {
+  syntax?: string | Array<string | RuleSyntaxVariant>
+  skip?: boolean
+}
+
+/**
+ * `RuleDefinitionProps` for a specific rule class, so its own props (e.g. `pattern`, `wantsNestedBlock`) are
+ * checked too -- a typo is a compile error.
+ * - All optional:  structure normally comes from `syntax`, not from e.g. `rules`.
+ */
+export type DefinitionFor<RuleType extends { readonly Props: P.RuleProps }> = Prettify<
+  Omit<Partial<RuleType["Props"]>, "syntax"> & RuleDefinitionProps
+>
+
+/**
+ * One rule registered on a SCOPE while parsing:  the rule CLASS plus the definition it was registered with.
+ * - Stored as a pair (rather than the built `Rule`) because that is what re-registering it elsewhere needs --
+ *   e.g. exporting a method defined in one file to another file which imports it, via
+ *   `otherScope.addRule(entry.rule, entry.definition)`.  A built rule is frozen and already bound to a name.
+ */
+export type ScopeRule = {
+  /** Name the rule registered under -- the `IndexedList` keys on this. */
+  name: string
+  /** Rule class, typically a closure over the match which caused it. */
+  rule: RuleConstructor
+  /** Definition it was registered with, e.g. `{ alias, syntax, literals }`. */
+  definition: RuleDefinitionProps
+}
+
 /** Anything `parser.addRule()` accepts:  a rule class (the normal way) or a ready-made instance. */
 export type RuleInput = P.Rule | RuleConstructor
 

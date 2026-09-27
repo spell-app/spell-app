@@ -1,12 +1,27 @@
 /**
- * Rules for variables -- single-word identifiers, known or unknown, singular or plural, with or without
- * a leading `the`.
+ * Rules for variables -- single-word identifiers, known or unknown, singular or plural.
+ * - NOTE the split, which the `_identifier` / `variable` suffixes are there to tell you:
+ *   - `identifier` / `singular_identifier` / `plural_identifier` match a BARE word, no `the`.
+ *   - `variable` / `known_variable` also allow a leading `the`, e.g. `the thing`.
+ * - Only classes something OUTSIDE this file needs are exported (`SpellIdentifier` to subclass,
+ *   `variable` to narrow with `match.is()`);  the rest are reached through `parser.rules` by name.
  */
-import { NONE, getPlurality, proto, type Plurality } from "~/util"
+import { NONE, getPlurality, type Plurality } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { identifierBlacklist } from "./identifier-blacklist"
+
+/**
+ * Rule module for variable rules (`identifier`, `variable`, `known_variable`, plurality variants).
+ * - Each rule class below is followed by the `variables.addRule()` call which defines and registers it.
+ */
+export const variables = new SpellParser({ module: "variables" })
+
+////////////////
+// ## `SpellIdentifier` base class
+//    e.g. "thing", "bank-account"
+////////////////
 
 /**
  * Single word variable name, known or unknown.
@@ -15,16 +30,17 @@ import { identifierBlacklist } from "./identifier-blacklist"
  * - TODO: type based on scope variable type?
  * - TODO: higher precedence if variable is known?
  */
-export class VariableIdentifier<MatchData extends P.AnyMatchData = P.AnyMatchData> extends P.Pattern<never, MatchData> {
-  // Alpha-numeric word, including dashes or underscores.
-  @proto static pattern = P.ALPHANUMERIC_WORD_WITH_DASHES
-  @proto static blacklist = identifierBlacklist
+export class SpellIdentifier<MatchData extends P.AnyMatchData = P.AnyMatchData> extends P.Pattern<never, MatchData> {
+  /** Every identifier rule matches the same thing:  alpha-numeric word (dashes / underscores OK), not blacklisted. */
+  constructor(props?: Partial<P.PatternProps>) {
+    super({ pattern: P.ALPHANUMERIC_WORD_WITH_DASHES, blacklist: identifierBlacklist, ...props })
+  }
 
   /**
    * Plurality of the word `match`ed:  `"either"` for uncountable words like `sheep`.
    * - A METHOD rather than something stashed in `parse()`:  only worked out when someone asks,
-   *   and subclasses which know better override it, e.g. `singular_variable` always says `"singular"`.
-   * - Ask from elsewhere as `if (match.is(VariableIdentifier)) match.rule.getPlurality(match)`.
+   *   and subclasses which know better override it, e.g. `singular_identifier` always says `"singular"`.
+   * - Ask from elsewhere as `if (match.is(SpellIdentifier)) match.rule.getPlurality(match)`.
    */
   getPlurality(match: P.MatchFor<this>): Plurality {
     return getPlurality(`${match.raw ?? match.value}`)
@@ -49,11 +65,91 @@ export class VariableIdentifier<MatchData extends P.AnyMatchData = P.AnyMatchDat
   }
 }
 
+////////////////
+// ## `identifier` rule
+//    e.g. "thing"
+////////////////
+
 /**
  * Variable identifier with no adornments (no leading `the`, no known/unknown check).
  * - You won't generally use this directly -- use `variable` or `known_variable` instead.
  */
-export class variable_identifier extends VariableIdentifier {}
+class identifier extends SpellIdentifier {}
+variables.addRule(identifier)
+
+////////////////
+// ## `singular_identifier` rule
+//    e.g. "thing", not "things"
+////////////////
+
+/** Possibly-unknown variable identifier which MUST be singular, WITHOUT `the` -- fails on plural input. */
+class singular_identifier extends SpellIdentifier {
+  parse(scope: P.Scope, tokens: P.Token[]) {
+    const match = super.parse(scope, tokens)
+    // Anything but a definite plural will do -- uncountable words (`"either"`) match here AND in `plural_identifier`.
+    if (!match || super.getPlurality(match) === "plural") return undefined
+    return match
+  }
+
+  /** Whatever the word, a match of ours IS singular as far as anyone downstream is concerned. */
+  getPlurality(_match: P.MatchFor<this>): Plurality {
+    return "singular"
+  }
+}
+variables.addRule(singular_identifier, {
+  tests: [
+    {
+      tests: [
+        { title: "singular, single word", input: "thing", output: "thing" },
+        { title: "singular, multi-word", input: "bank-account", output: "bank_account" },
+        { title: "uncountable, matches as singular too", input: "sheep", output: "sheep" },
+        { title: "plural, single word", input: "things", output: undefined },
+        { title: "plural, multi-word", input: "bank-accounts", output: undefined }
+      ]
+    }
+  ]
+})
+
+////////////////
+// ## `plural_identifier` rule
+//    e.g. "things", not "thing"
+////////////////
+
+/** Possibly-unknown variable identifier which MUST be plural, WITHOUT `the` -- fails on singular input. */
+class plural_identifier extends SpellIdentifier {
+  parse(scope: P.Scope, tokens: P.Token[]) {
+    const match = super.parse(scope, tokens)
+    // Anything but a definite singular will do -- uncountable words (`"either"`) match here AND in `singular_identifier`.
+    if (!match || super.getPlurality(match) === "singular") return undefined
+    return match
+  }
+
+  /** Whatever the word, a match of ours IS plural as far as anyone downstream is concerned. */
+  getPlurality(_match: P.MatchFor<this>): Plurality {
+    return "plural"
+  }
+}
+variables.addRule(plural_identifier, {
+  tests: [
+    {
+      tests: [
+        { title: "uncountable, matches as plural too", input: "sheep", output: "sheep" },
+        { title: "plural, single word", input: "things", output: "things" },
+        { title: "plural, multi-word", input: "bank-accounts", output: "bank_accounts" },
+        { title: "singular, single word", input: "thing", output: undefined },
+        { title: "singular, multi-word", input: "bank-account", output: undefined }
+      ]
+    }
+  ]
+})
+
+////////////////
+// ## `variable` rule
+//    e.g. "the thing"
+////////////////
+
+/** Syntax shared by `variable` and `known_variable`:  identifier with optional `the`, e.g. `the thing`. */
+const VARIABLE_SYNTAX = "the? {identifier}"
 
 /** What `variable` / `known_variable` stash on their matches. */
 type VariableMatchData = {
@@ -62,12 +158,10 @@ type VariableMatchData = {
 }
 
 /**
- * `VariableIdentifier` which may or may not be known, with optional `the` prefix, e.g. `the thing`.
+ * `SpellIdentifier` which may or may not be known, with optional `the` prefix, e.g. `the thing`.
  * - `match.data.scopeVar` is set to the scope `ScopeVariable` if known, `NONE` if not.
  */
 export class variable extends P.Sequence<"identifier", VariableMatchData> {
-  @proto static syntax = "the? {identifier:variable_identifier}"
-
   parse(scope: P.Scope, tokens: P.Token[]) {
     // `super.parse()` is typed for any rule -- we know it's ours.
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
@@ -81,7 +175,20 @@ export class variable extends P.Sequence<"identifier", VariableMatchData> {
     return match.groups.identifier.AST as P.ASTVariableExpression
   }
 
-  static tests: P.RuleTests = [
+  /**
+   * Plurality of our identifier -- `the` adds nothing here either.
+   * - Same signature as `SpellIdentifier.getPlurality()`, so callers needn't care which they've got.
+   */
+  getPlurality(match: P.MatchFor<this>): Plurality {
+    const { identifier } = match.groups
+    // Syntax guarantees this, but the type system can't know which rule `{identifier}` resolves to.
+    if (!identifier.is(SpellIdentifier)) throw new TypeError(`Expected an identifier, got '${identifier.raw}'.`)
+    return identifier.rule.getPlurality(identifier)
+  }
+}
+variables.addRule(variable, {
+  syntax: VARIABLE_SYNTAX,
+  tests: [
     {
       tests: [
         { title: "single word", input: "thing", output: "thing" },
@@ -92,24 +199,30 @@ export class variable extends P.Sequence<"identifier", VariableMatchData> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `known_variable` rule
+//    e.g. "the thing", if `thing` is in scope
+////////////////
 
 /**
  * Single word variable which is already known by our scope, with optional `the` prefix
- * -- unlike `singular_variable`, this fails if unresolvable.
+ * -- unlike `singular_identifier`, this fails if unresolvable.
  * - Matched as an `expression`, unlike plain `variable`, because it only succeeds when resolvable.
  */
-export class known_variable extends variable {
-  @proto static alias = "expression"
-
+class known_variable extends variable {
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens)
     // Succeed only if `variable.parse()` found the scope variable for the identifier.
     if (match?.data.scopeVar !== NONE) return match
     return undefined
   }
-
-  static tests: P.RuleTests = [
+}
+variables.addRule(known_variable, {
+  alias: "expression",
+  syntax: VARIABLE_SYNTAX,
+  tests: [
     {
       compileAs: "known_variable", // TODO: "expression"
       beforeEach(scope: P.Scope) {
@@ -126,64 +239,4 @@ export class known_variable extends variable {
       ]
     }
   ]
-}
-
-/** Possibly-unknown variable identifier which MUST be singular, WITHOUT `the` -- fails on plural input. */
-export class singular_variable extends VariableIdentifier {
-  parse(scope: P.Scope, tokens: P.Token[]) {
-    const match = super.parse(scope, tokens)
-    // Anything but a definite plural will do -- uncountable words (`"either"`) match here AND in `plural_variable`.
-    if (!match || super.getPlurality(match) === "plural") return undefined
-    return match
-  }
-
-  /** Whatever the word, a match of ours IS singular as far as anyone downstream is concerned. */
-  getPlurality(_match: P.MatchFor<this>): Plurality {
-    return "singular"
-  }
-
-  static tests: P.RuleTests = [
-    {
-      tests: [
-        { title: "singular, single word", input: "thing", output: "thing" },
-        { title: "singular, multi-word", input: "bank-account", output: "bank_account" },
-        { title: "uncountable, matches as singular too", input: "sheep", output: "sheep" },
-        { title: "plural, single word", input: "things", output: undefined },
-        { title: "plural, multi-word", input: "bank-accounts", output: undefined }
-      ]
-    }
-  ]
-}
-
-/** Possibly-unknown variable identifier which MUST be plural, WITHOUT `the` -- fails on singular input. */
-export class plural_variable extends VariableIdentifier {
-  parse(scope: P.Scope, tokens: P.Token[]) {
-    const match = super.parse(scope, tokens)
-    // Anything but a definite singular will do -- uncountable words (`"either"`) match here AND in `singular_variable`.
-    if (!match || super.getPlurality(match) === "singular") return undefined
-    return match
-  }
-
-  /** Whatever the word, a match of ours IS plural as far as anyone downstream is concerned. */
-  getPlurality(_match: P.MatchFor<this>): Plurality {
-    return "plural"
-  }
-
-  static tests: P.RuleTests = [
-    {
-      tests: [
-        { title: "uncountable, matches as plural too", input: "sheep", output: "sheep" },
-        { title: "plural, single word", input: "things", output: "things" },
-        { title: "plural, multi-word", input: "bank-accounts", output: "bank_accounts" },
-        { title: "singular, single word", input: "thing", output: undefined },
-        { title: "singular, multi-word", input: "bank-account", output: undefined }
-      ]
-    }
-  ]
-}
-
-/** Rule module for variable rules (`variable_identifier`, `variable`, `known_variable`, plurality variants). */
-export const variables = new SpellParser({
-  module: "variables",
-  rules: [variable_identifier, variable, known_variable, singular_variable, plural_variable]
 })

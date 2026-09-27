@@ -2,11 +2,17 @@
  * Rules for constants -- e.g. `red`, `green`, either free-standing (possibly-unknown, quoted as a string
  * literal) or resolved against `scope.constants` (`known_constant`).
  */
-import { NONE, proto } from "~/util"
+import { NONE } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { identifierBlacklist } from "./identifier-blacklist"
+
+/**
+ * Rule module for constant rules (`constant`, `known_constant`).
+ * - Each rule class below is followed by the `constants.addRule()` call which defines and registers it.
+ */
+export const constants = new SpellParser({ module: "constants" })
 
 /** What constant rules stash on their matches. */
 type ConstantMatchData = {
@@ -14,16 +20,22 @@ type ConstantMatchData = {
   scopeConstant?: P.ScopeConstant | typeof NONE
 }
 
+////////////////
+// ## `SpellConstant` base class
+//    e.g. "red", "orangish-red"
+////////////////
+
 /**
  * Base pattern rule for matching a single-word constant identifier (alpha-numeric, dashes/underscores).
  * - Sets `match.data.scopeConstant` to the existing `ScopeConstant` looked up by `scope.constants`, if any --
  *   subclasses (e.g. `known_constant`) use this to require/reject a known constant.
- * - Other rules read it as `if (match.is(SpellConstant)) match.data.constant`.
+ * - Other rules read it as `if (match.is(SpellConstant)) match.data.scopeConstant`.
  */
 export class SpellConstant extends P.Pattern<never, ConstantMatchData> {
-  // Alpha-numeric word, including dashes or underscores.
-  @proto static pattern = P.ALPHANUMERIC_WORD_WITH_DASHES
-  @proto static blacklist = identifierBlacklist
+  /** Every constant rule matches the same thing:  alpha-numeric word (dashes / underscores OK), not blacklisted. */
+  constructor(props?: Partial<P.PatternProps>) {
+    super({ pattern: P.ALPHANUMERIC_WORD_WITH_DASHES, blacklist: identifierBlacklist, ...props })
+  }
 
   /** Match, then look up (but don't require) `match.data.scopeConstant` from `scope.constants`. */
   parse(scope: P.Scope, tokens: P.Token[]) {
@@ -48,13 +60,19 @@ export class SpellConstant extends P.Pattern<never, ConstantMatchData> {
   }
 }
 
+////////////////
+// ## `constant` rule
+//    e.g. "red"
+////////////////
+
 /**
  * Possibly-unknown constant identifier.
  * - `match.data.scopeConstant` will be the existing `ScopeConstant` if one already exists.
  * - Compiles to a quoted string literal of its own name when unknown, e.g. `red` => `'red'`.
  */
-export class constant extends SpellConstant {
-  static tests: P.RuleTests = [
+class constant extends SpellConstant {}
+constants.addRule(constant, {
+  tests: [
     {
       tests: [
         { title: "single word", input: "red", output: "'red'" },
@@ -63,7 +81,12 @@ export class constant extends SpellConstant {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `known_constant` rule
+//    e.g. "red", if `red` is in scope
+////////////////
 
 /**
  * Single-word constant that MUST already be known in `scope.constants` -- fails otherwise.
@@ -71,17 +94,17 @@ export class constant extends SpellConstant {
  *   resolvable, so it can't spuriously eat an unrelated identifier.
  * - Compiles to the constant's own `output` if it set one, else a quoted string literal of its name.
  */
-export class known_constant extends SpellConstant {
-  @proto static alias = "expression"
-
+class known_constant extends SpellConstant {
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens)
     // Succeed only if `SpellConstant.parse()` found the scope constant.
     if (match?.data.scopeConstant !== NONE) return match
     return undefined
   }
-
-  static tests: P.RuleTests = [
+}
+constants.addRule(known_constant, {
+  alias: "expression",
+  tests: [
     {
       compileAs: "known_constant", // TODO: to "expression"
       beforeEach(scope: P.Scope) {
@@ -98,10 +121,4 @@ export class known_constant extends SpellConstant {
       ]
     }
   ]
-}
-
-/** Rule module for constant rules (`constant`, `known_constant`). */
-export const constants = new SpellParser({
-  module: "constants",
-  rules: [constant, known_constant]
 })

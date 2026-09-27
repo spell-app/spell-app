@@ -3,7 +3,7 @@ import * as SUI from "semantic-ui-react"
 import { view } from "~/util"
 
 import { spellCore } from "~/spellCore"
-import { store } from "~/app/store"
+import { editor } from "~/app/editor"
 import type { UI } from "~/app/ui"
 
 /****************
@@ -18,7 +18,7 @@ import type { UI } from "~/app/ui"
  * NOTE: deliberately NOT a `view()`.  This render reads only its own props, so `view()`'s
  * observer half would track nothing, and its `memo()` half never hits either -- every call site
  * passes a fresh `onClick={() => ...}` closure, so the shallow prop compare always fails.
- * Reactivity belongs on whichever entry in `Actions` derives props from the store.
+ * Reactivity belongs on whichever entry in `Actions` derives props from `editor`.
  ****************/
 function Action({ title, button = false, ...props }: ActionProps) {
   const Component = button ? SUI.Button : SUI.Menu.Item
@@ -28,12 +28,12 @@ function Action({ title, button = false, ...props }: ActionProps) {
 /**
  * Constructors for `<Menu.Item>`s for public actions.
  *
- * NOTE: an entry MUST wrap itself in `view()` when it reads `store`/`spellCore` while computing
+ * NOTE: an entry MUST wrap itself in `view()` when it reads `editor`/`spellCore` while computing
  * the props it hands to `<Action>` -- `view()` only tracks observables read during that
  * component's own render, and `<Action>` itself reads nothing but props.
- * - e.g. `saveFile` reads `store.file?.isDirty` to colour itself -- drop its `view()` and the
+ * - e.g. `saveFile` reads `editor.file?.isDirty` to colour itself -- drop its `view()` and the
  *   button silently stops reacting when the file goes dirty.
- * - Entries that only touch the store inside `onClick` stay plain -- those run after render.
+ * - Entries that only touch `editor` inside `onClick` stay plain -- those run after render.
  */
 export const Actions = {
   ////////////////
@@ -41,53 +41,53 @@ export const Actions = {
   ////////////////
 
   aboutSpell: (props: ActionProps) => (
-    <Action title="About Spell" icon="wizard" onClick={() => store.aboutSpell()} {...props} />
+    <Action title="About Spell" icon="wizard" onClick={() => editor.aboutSpell()} {...props} />
   ),
   showEditor: view((props: ActionProps) => (
-    <Action title={`Edit ${store.appType}`} icon="edit outline" onClick={() => store.showEditor()} {...props} />
+    <Action title={`Edit ${editor.appType}`} icon="edit outline" onClick={() => editor.showEditor()} {...props} />
   )),
   showRunner: (props: ActionProps) => (
-    <Action title="Preview" icon="hand point up" onClick={() => store.showRunner()} {...props} />
+    <Action title="Preview" icon="hand point up" onClick={() => editor.showRunner()} {...props} />
   ),
   showProjectSettings: (props: ActionProps) => (
-    <Action title="Settings" icon="setting" onClick={() => store.showProjectSettings()} {...props} />
+    <Action title="Settings" icon="setting" onClick={() => editor.showProjectSettings()} {...props} />
   ),
   showProjectChooser: (props: ActionProps) => (
-    <Action title="Open or Create..." icon="app store ios" onClick={() => store.showProjectChooser()} {...props} />
+    <Action title="Open or Create..." icon="app store ios" onClick={() => editor.showProjectChooser()} {...props} />
   ),
   showDocs: (props: ActionProps) => (
-    <Action title="Docs" icon="newspaper outline" onClick={() => store.showDocs()} {...props} />
+    <Action title="Docs" icon="newspaper outline" onClick={() => editor.showDocs()} {...props} />
   ),
   showHelp: (props: ActionProps) => (
-    <Action title="Help" icon="help circle" onClick={() => store.showHelp()} {...props} />
+    <Action title="Help" icon="help circle" onClick={() => editor.showHelp()} {...props} />
   ),
-  logIn: (props: ActionProps) => <Action title="Log In" icon="user outline" onClick={() => store.logIn()} {...props} />,
+  logIn: (props: ActionProps) => <Action title="Log In" icon="user outline" onClick={() => editor.logIn()} {...props} />,
 
   ////////////////
-  // ## App actions -- work on `store.project`, create according to `store.projectRoot`
+  // ## App actions -- work on `editor.project`, create according to `editor.projectRoot`
   ////////////////
   createApp: view((props: ActionProps) => (
-    <Action title={`Create ${store.appType}`} icon="pencil" onClick={() => store.createApp()} {...props} />
+    <Action title={`Create ${editor.appType}`} icon="pencil" onClick={() => editor.createApp()} {...props} />
   )),
   duplicateApp: view((props: ActionProps) => (
-    <Action title={`Duplicate ${store.appType}`} icon="clone outline" onClick={() => store.duplicateApp()} {...props} />
+    <Action title={`Duplicate ${editor.appType}`} icon="clone outline" onClick={() => editor.duplicateApp()} {...props} />
   )),
   renameApp: view((props: ActionProps) => (
-    <Action title={`Rename ${store.appType}`} icon="edit outline" onClick={() => store.renameApp()} {...props} />
+    <Action title={`Rename ${editor.appType}`} icon="edit outline" onClick={() => editor.renameApp()} {...props} />
   )),
   deleteApp: view((props: ActionProps) => (
     <Action
-      title={`Delete ${store.appType}`}
+      title={`Delete ${editor.appType}`}
       icon="trash alternate outline"
-      onClick={() => store.deleteApp()}
+      onClick={() => editor.deleteApp()}
       {...props}
     />
   )),
   appSettings: (props: ActionProps) => (
-    <Action title="Settings" icon="setting" onClick={() => store.showProjectSettings()} {...props} />
+    <Action title="Settings" icon="setting" onClick={() => editor.showProjectSettings()} {...props} />
   ),
   compileApp: view((props: ActionProps) => {
-    const { file } = store
+    const { file } = editor
     // `compiled` only exists on `SpellFile`/`SpellCSSFile`, not `SpellJSFile`.
     const isCompiled = !!file && "compiled" in file && !!file.compiled
     const fileNeedsCompilation = !!file?.isLoaded && !isCompiled
@@ -98,76 +98,76 @@ export const Actions = {
         color="blue"
         icon="paper plane"
         className="no-border"
-        onClick={() => store.compileApp()}
+        onClick={() => editor.compileApp()}
         {...props}
       />
     )
   }),
   publishApp: (props: ActionProps) => (
-    <Action title="Publish" icon="world" onClick={() => store.publishApp()} {...props} />
+    <Action title="Publish" icon="world" onClick={() => editor.publishApp()} {...props} />
   ),
   restartApp: (props: ActionProps) => (
-    <Action title="Restart" icon="redo" onClick={() => store.compileApp()} {...props} />
+    <Action title="Restart" icon="redo" onClick={() => editor.compileApp()} {...props} />
   ),
 
   ////////////////
   // ## Project actions
   ////////////////
   createProject: (props: ActionProps) => (
-    <Action title="New Project" icon="pencil" onClick={() => store.createProject()} {...props} />
+    <Action title="New Project" icon="pencil" onClick={() => editor.createProject()} {...props} />
   ),
 
   ////////////////
   // ## Examples actions
   ////////////////
   createExample: (props: ActionProps) => (
-    <Action title="New Example" icon="pencil" onClick={() => store.createExample()} {...props} />
+    <Action title="New Example" icon="pencil" onClick={() => editor.createExample()} {...props} />
   ),
 
   ////////////////
   // ## Guides actions
   ////////////////
   createGuide: (props: ActionProps) => (
-    <Action title="New Guide" icon="pencil" onClick={() => store.createGuide()} {...props} />
+    <Action title="New Guide" icon="pencil" onClick={() => editor.createGuide()} {...props} />
   ),
 
   ////////////////
-  // ## File Actions -- work on `store.file`
+  // ## File Actions -- work on `editor.file`
   ////////////////
   createFile: (props: ActionProps) => (
-    <Action title="New File" icon="pencil" onClick={() => store.createFile()} {...props} />
+    <Action title="New File" icon="pencil" onClick={() => editor.createFile()} {...props} />
   ),
   duplicateFile: (props: ActionProps) => (
-    <Action title="Duplicate File" icon="clone outline" onClick={() => store.duplicateFile()} {...props} />
+    <Action title="Duplicate File" icon="clone outline" onClick={() => editor.duplicateFile()} {...props} />
   ),
   renameFile: (props: ActionProps) => (
-    <Action title="Rename File" icon="edit outline" onClick={() => store.renameFile()} {...props} />
+    <Action title="Rename File" icon="edit outline" onClick={() => editor.renameFile()} {...props} />
   ),
   deleteFile: (props: ActionProps) => (
-    <Action title="Delete File" icon="trash alternate outline" onClick={() => store.deleteFile()} {...props} />
+    <Action title="Delete File" icon="trash alternate outline" onClick={() => editor.deleteFile()} {...props} />
   ),
   saveFile: view((props: ActionProps) => {
-    const fileIsDirty = store.file?.isDirty
+    const fileIsDirty = editor.file?.isDirty
     return (
       <Action
         title="Save"
         active={fileIsDirty}
         color="green"
         icon="cloud upload"
-        onClick={() => store.saveFile()}
+        onClick={() => editor.saveFile()}
         {...props}
       />
     )
   }),
   reloadFile: view((props: ActionProps) => {
-    const fileIsDirty = store.file?.isDirty
+    const fileIsDirty = editor.file?.isDirty
     return (
       <Action
         title="Reload"
         active={fileIsDirty}
         color="red"
         icon="cloud download"
-        onClick={() => store.reloadFile()}
+        onClick={() => editor.reloadFile()}
         {...props}
       />
     )
@@ -194,12 +194,12 @@ export const Actions = {
   // ## MatchViewer
   ////////////////
   toggleMatchRuleNames: view((props: ActionProps) => {
-    const { showingMatchRuleNames: showNames } = store
+    const { showingMatchRuleNames: showNames } = editor
     return (
       <Action
         icon={showNames ? "eye" : "eye slash outline"}
         content={(showNames ? "Show" : "Hide") + " Rule Names"}
-        onClick={() => store.toggleMatchRuleNames()}
+        onClick={() => editor.toggleMatchRuleNames()}
         {...props}
       />
     )
@@ -219,7 +219,7 @@ export const Actions = {
     ...modalProps
   }: DialogActionProps<UI.AlertModalProps>) => {
     itemProps = { title, icon, ...itemProps }
-    return <Action title={title} icon={icon} {...itemProps} onClick={() => store.alert(modalProps).then(callback)} />
+    return <Action title={title} icon={icon} {...itemProps} onClick={() => editor.alert(modalProps).then(callback)} />
   },
   confirm: ({
     callback = console.log,
@@ -229,7 +229,7 @@ export const Actions = {
     ...modalProps
   }: DialogActionProps<UI.ConfirmModalProps>) => {
     itemProps = { title, icon, ...itemProps }
-    return <Action {...itemProps} onClick={() => store.confirm(modalProps).then(callback)} />
+    return <Action {...itemProps} onClick={() => editor.confirm(modalProps).then(callback)} />
   },
   prompt: ({
     callback = console.log,
@@ -239,7 +239,7 @@ export const Actions = {
     ...modalProps
   }: DialogActionProps<UI.PromptModalProps>) => {
     itemProps = { title, icon, ...itemProps }
-    return <Action {...itemProps} onClick={() => store.prompt(modalProps).then(callback)} />
+    return <Action {...itemProps} onClick={() => editor.prompt(modalProps).then(callback)} />
   },
   promptForNumber: ({
     callback = console.log,
@@ -249,7 +249,7 @@ export const Actions = {
     ...modalProps
   }: DialogActionProps<UI.PromptModalProps>) => {
     itemProps = { title, icon, ...itemProps }
-    return <Action {...itemProps} onClick={() => store.promptForNumber(modalProps).then(callback)} />
+    return <Action {...itemProps} onClick={() => editor.promptForNumber(modalProps).then(callback)} />
   },
   choose: ({
     callback = console.log,
@@ -259,7 +259,7 @@ export const Actions = {
     ...modalProps
   }: DialogActionProps<UI.ChooserModalProps>) => {
     itemProps = { title, icon, ...itemProps }
-    return <Action {...itemProps} onClick={() => store.choose(modalProps).then(callback)} />
+    return <Action {...itemProps} onClick={() => editor.choose(modalProps).then(callback)} />
   },
   ////////////////
   // ## groups of actions

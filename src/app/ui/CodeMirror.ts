@@ -22,7 +22,7 @@ import "codemirror/addon/lint/javascript-lint"
 
 import { P } from "~/parser"
 import { SP } from "~/languages/spell"
-import { store } from "~/app/store"
+import { editor } from "~/app/editor"
 
 // NOTE: kept last so it wins the cascade over codemirror's own stylesheets above.
 import "./CodeMirror.css"
@@ -47,9 +47,9 @@ export const inputOptions: SpellCodeMirrorOptions = {
   ...codeMirrorOptions,
   mode: "spell",
   extraKeys: {
-    "Cmd-S": () => void store.saveFile(),
-    "Shift-Cmd-R": () => void store.reloadFile(),
-    "Cmd-Enter": () => void store.compileApp()
+    "Cmd-S": () => void editor.saveFile(),
+    "Shift-Cmd-R": () => void editor.reloadFile(),
+    "Cmd-Enter": () => void editor.compileApp()
   },
   scrollbarStyle: "native"
 }

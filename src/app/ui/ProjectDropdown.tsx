@@ -5,16 +5,16 @@ import * as SUI from "semantic-ui-react"
 import { view } from "~/util"
 
 import { SP } from "~/languages/spell"
-import { store } from "~/app/store"
+import { editor } from "~/app/editor"
 
 import { UI } from "~/app/ui"
 
 /****************
  * ### `<ProjectMenu>`
- * Reactive menu for all available projects for a random `projectRoot`, defaulting to `store.projectRoot`.
+ * Reactive menu for all available projects for a random `projectRoot`, defaulting to `editor.projectRoot`.
  ****************/
 export const ProjectMenu = view(function ProjectMenu({
-  projectRoot = store.projectRoot,
+  projectRoot = editor.projectRoot,
   useRunner = false,
   itemProps,
   className = "",
@@ -39,7 +39,7 @@ export const ProjectMenu = view(function ProjectMenu({
               {location.projectName}
             </span>
           }
-          onClick={() => (useRunner ? store.showRunner(path) : store.showEditor(path))}
+          onClick={() => (useRunner ? editor.showRunner(path) : editor.showEditor(path))}
           {...itemProps}
         />
       )
@@ -59,7 +59,7 @@ export const ProjectMenu = view(function ProjectMenu({
 
 /** Props for `<ProjectMenu>`.  Extra keys pass through to the underlying `SUI.Menu`. */
 export type ProjectMenuProps = SUI.MenuProps & {
-  /** Root whose projects to list.  Defaults to `store.projectRoot`. */
+  /** Root whose projects to list.  Defaults to `editor.projectRoot`. */
   projectRoot?: SP.SpellProjectRoot
   /** Open `<SpellRunner>` instead of `<SpellEditor>` when an item is clicked. */
   useRunner?: boolean
@@ -69,11 +69,11 @@ export type ProjectMenuProps = SUI.MenuProps & {
 
 /****************
  * ### `<ProjectDropdown>`
- * Reactive dropdown Menu of all available projects for a random projectRoot, defaulting to `store.projectRoot`.
+ * Reactive dropdown Menu of all available projects for a random projectRoot, defaulting to `editor.projectRoot`.
  ****************/
 export const ProjectDropdown = view(function ProjectDropdown({
-  projectRoot = store.projectRoot,
-  project = store.project,
+  projectRoot = editor.projectRoot,
+  project = editor.project,
   useRunner = false,
   showLabel = true,
   extraActions,
@@ -97,7 +97,7 @@ export const ProjectDropdown = view(function ProjectDropdown({
           key={path}
           text={location.projectName}
           icon={projectRoot.icon}
-          onClick={() => (useRunner ? store.showRunner(path) : store.showEditor(path))}
+          onClick={() => (useRunner ? editor.showRunner(path) : editor.showEditor(path))}
           {...itemProps}
         />
       )
@@ -135,9 +135,9 @@ export const ProjectDropdown = view(function ProjectDropdown({
 
 /** Props for `<ProjectDropdown>`.  Extra keys pass through to the underlying `SUI.Dropdown`. */
 export type ProjectDropdownProps = SUI.DropdownProps & {
-  /** Root whose projects to list.  Defaults to `store.projectRoot`. */
+  /** Root whose projects to list.  Defaults to `editor.projectRoot`. */
   projectRoot?: SP.SpellProjectRoot
-  /** Currently selected project, shown as the dropdown's text.  Defaults to `store.project`. */
+  /** Currently selected project, shown as the dropdown's text.  Defaults to `editor.project`. */
   project?: SP.SpellProject
   /** Open `<SpellRunner>` instead of `<SpellEditor>` when an item is clicked. */
   useRunner?: boolean
@@ -171,7 +171,7 @@ export type ProjectDropdownProps = SUI.DropdownProps & {
 //         key={path}
 //         text={location.projectName}
 //         icon={icon}
-//         onClick={() => (useRunner ? store.showRunner(path) : store.showEditor(path))}
+//         onClick={() => (useRunner ? editor.showRunner(path) : editor.showEditor(path))}
 //         {...itemProps}
 //       />
 //     )

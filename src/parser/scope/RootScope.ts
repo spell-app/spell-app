@@ -53,25 +53,11 @@ export class RootScope extends BlockScope {
   }
 
   /**
-   * Rules added to this scope while parsing;  each is also added to the scope's `parser`.
-   * - Add a rule CLASS (typically a closure over the match which caused it) or a rule instance.
-   * - List holds the (first) registered rule instance.
+   * Rules added to this scope while parsing, as `class` + `definition` pairs -- see `P.ScopeRule`.
+   * - Written by `Scope.addRule()`, which is what actually registers them on the `parser`.
+   * - Kept so the rules a scope created can later be EXPORTED, by re-registering each pair on another scope.
    */
-  get rules(): IndexedList<P.Rule, P.RuleInput> {
-    return this.derived(
-      "rules",
-      () =>
-        new IndexedList<P.Rule, P.RuleInput>({
-          target: this,
-          keyProp: "name",
-          transformer(item) {
-            const { parser } = this.target
-            if (!parser) throw new TypeError(`rules.add(): called on scope without a parser.`)
-            const added = parser.addRule(item)
-            if (!added) throw new TypeError(`rules.add(): rule class is marked 'skip'.`)
-            return Array.isArray(added) ? added[0]! : added
-          }
-        })
-    )
+  get rules(): IndexedList<P.ScopeRule> {
+    return this.derived("rules", () => new IndexedList<P.ScopeRule>({ target: this, keyProp: "name" }))
   }
 }

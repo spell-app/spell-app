@@ -24,14 +24,17 @@ describe("production build", () => {
         .filter((file) => file.endsWith(".js"))
         .map((file) => readFileSync(join(assets, file), "utf8"))
         .join("\n")
-      // `VariableIdentifier` is a rule class -- mangled, it'd be e.g. `Ab=class extends ...`
       // No raw decorator syntax survived -- e.g. `@proto static alias = ...`
       // NOTE: bare `@proto` DOES legitimately appear, in error message strings.
       expect(js).not.toMatch(/@proto\s+static\s+\w+\s*=/)
-      // Name survives in one of three shapes:  `X = class`, `class X`, or for decorated classes
-      // esbuild's `__name(cls, "X")` helper call, minified to e.g. `Px(uS,`X`)`.
+      // `define_property_has` is a REGISTERED rule, so its class name IS its name in the grammar -- that's
+      // what `keepNames` protects.  Minified without it, it'd be e.g. `Ab=class extends ...` and the rule
+      // would register under a garbage name.
+      // Survives in one of three shapes:  `X = class`, `class X`, or, for a decorated class, esbuild's
+      // `__name(cls, "X")` helper, itself minified to e.g. ``Px(uS,`X`)``.
+      const RULE = "define_property_has"
       expect(js).toMatch(
-        /\bVariableIdentifier\s*=\s*class\b|\bclass VariableIdentifier\b|\(\w+,\s*[`"']VariableIdentifier[`"']\)/
+        new RegExp(String.raw`\b${RULE}\s*=\s*class\b|\bclass ${RULE}\b|\(\w+,\s*[\`"']${RULE}[\`"']\)`)
       )
     } finally {
       rmSync(outDir, { recursive: true, force: true })

@@ -80,6 +80,13 @@ describe("match.is()", () => {
       expect(match.groups.rhs).toBeUndefined()
     }
   })
+  test("narrows `rule` too, so rule methods are callable", () => {
+    const match = makeParser().parse("a is b", "typed")!
+    if (!match.is(typed_sequence)) throw new Error("expected typed_sequence match")
+    expectTypeOf(match.rule).toExtend<typed_sequence>()
+    match.rule.mutateScope(match)
+    expect(match.data.note).toBe("saw a")
+  })
   test("accepts base classes, rejects unrelated ones", () => {
     const match = makeParser().parse("a is b", "typed")!
     expect(match.is(P.Sequence)).toBe(true)

@@ -26,8 +26,6 @@ export function getParseErrors(match: P.Match): P.Match[] | undefined {
 }
 
 export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
-  static ruleName = "block"
-
   /**
    * Recurse into nested `BlockToken`s, parsing each `LineToken` as `"line"` (via `BlockLine`).
    * - SIDE EFFECT: `console.warn`s (rather than throwing) on unproductive items, then skips past them --

@@ -1,14 +1,14 @@
 import { view } from "~/util"
-import { store } from "~/app/store"
+import { editor } from "~/app/editor"
 import { CodeMirror, outputOptions } from "./CodeMirror"
 
 /****************
  * ### `<OutputEditor>`
- * Use CodeMirror to display `store.file` output.
+ * Use CodeMirror to display `editor.file` output.
  * NOTE: not currently used.
  ****************/
 export const OutputEditor = view(function OutputEditor() {
-  const { file } = store
+  const { file } = editor
   const compiled = (file && "compiled" in file ? file.compiled : undefined) ?? ""
   // console.info("OutputEditor", { file, compiled })
   return (

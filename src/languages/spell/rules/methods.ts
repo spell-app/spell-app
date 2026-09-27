@@ -4,10 +4,32 @@ import { instanceCase, typeCase, proto } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
-import { SpellStatement } from "./Statement"
+import { SpellStatement, type SpellStatementProps } from "./Statement"
 import { SpellType } from "./types"
-import { VariableIdentifier } from "./variables"
+import { SpellIdentifier } from "./variables"
 import { PostfixOperatorSuffix, InfixOperatorSuffix } from "./expressions"
+
+/**
+ * Rule module for dynamic method definitions (`to foo ...`, `animation ...`) and their call sites, plus
+ * quoted ad-hoc expressions on a type (`a thing "..." if`), and the method-signature/method-arg building
+ * blocks they all share.
+ * - e.g. signature shapes handled by `method_signature`:
+ *   - `to foo the bar`
+ *   - `to foo (a thing)`
+ *   - `to foo (a thing) in (a thing)`
+ *   - `to foo (bar)`
+ *   - `to foo the (bar as text)`
+ *   - `to foo (with bar)`
+ *   - `to foo (with a bar)`
+ *   - `to foo (with baz = "baz")`
+ *   - `to foo (with bar as text)`
+ *   - `to foo (with bar and baz = "baz" and bong as text)`
+ */
+export const methods = new SpellParser({ module: "methods" })
+
+////////////////
+// ## Method-signature data types
+////////////////
 
 /** Info about a `{type}` capture within a method signature, e.g. the `(a card)` in `to create (a card)`. */
 type MethodTypeInfo = {
@@ -43,7 +65,7 @@ type MethodExtraVar = string | { name: string; output?: string; type?: string }
 type MethodArgData = {
   /** Matched bare word, set by `method_keyword`. */
   keyword?: P.Match
-  /** Matched `variable_identifier`, set by `var_method_arg` / `valued_var_method_arg` / `typed_method_arg`. */
+  /** Matched `identifier`, set by `var_method_arg` / `valued_var_method_arg` / `typed_method_arg`. */
   variable?: P.Match
   /** Matched type name, set by `type_method_arg` / `typed_method_arg`. */
   type?: P.Match
@@ -115,13 +137,18 @@ type OperatorOperands = {
   rhs?: P.ASTExpression
 }
 
+////////////////
+// ## `DynamicMethodRule` base class
+//    e.g. "notify 1", after "to notify (message): ..." defined it
+////////////////
+
 /** `match.groups` for `DynamicMethodRule`, once `getGroupsForMatch()` has normalized `callArgs` to an array. */
 type DynamicMethodRuleGroups = P.GroupsFor<"thisArg?|callArgs[]?|props?">
 
 /**
  * Rule `constructor` for a plain (non-instance, non-operator) dynamically-defined method's CALL SITE, e.g.
- * matching `notify 1` after `to notify (message): ...` defined it.  Used as the default base class in
- * `MethodDefinition.getRule()`, for every generated method that isn't a postfix/infix expression.
+ * matching `notify 1` after `to notify (message): ...` defined it.  Registered directly (no subclass
+ * needed) by `MethodDefinition.getRule()`, for every generated method that isn't a postfix/infix expression.
  * - NOTE: not made a generic pass-through like `MethodDefinition` -- every dynamically-generated rule built
  *   on top of it uses the same `thisArg`/`callArgs`/`props` syntax convention, so there's no subclass that
  *   needs a different `Groups`/`MatchData`.
@@ -131,6 +158,8 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
    *  shared by every match of this rule. */
   declare methodName: string
   @proto static methodName?: string
+  /** TYPE-ONLY: props `parser.addRule()` accepts for this rule -- see `P.Rule`'s `Props`. */
+  declare readonly Props: DynamicMethodRuleProps
 
   /** Normalize `callArgs` to an array -- a single arg's `{callArgs:expression}` match isn't already one. */
   getGroupsForMatch(match: P.MatchFor<this>): DynamicMethodRuleGroups {
@@ -141,8 +170,8 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
   }
 
   /**
-   * Build the `P.ASTMethodInvocation` (loose function call) or `P.ASTScopedMethodInvocation` (instance method
-   * call, when `thisArg` matched) for one call site.
+   * Build the `P.ASTMethodInvocation` (loose function call) or `P.ASTScopedMethodInvocation` (instance
+   * method call, when `thisArg` matched) for one call site.
    * - `props` (from a `with_props_arg`) is always appended as the LAST arg -- see the NOTE below on the
    *   required-args assumption this depends on.
    */
@@ -164,12 +193,20 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
   }
 }
 
+/** Props bag accepted by `DynamicMethodRule` -- `methodName` is the generated method it compiles a call to. */
+export type DynamicMethodRuleProps = Prettify<SpellStatementProps & { methodName?: string }>
+
+////////////////
+// ## `MethodDefinition` base class
+//    e.g. "to notify (message): print the message"
+////////////////
+
 /**
  * Base for method-DEFINITION rules built on `method_signature`: `to_do_something`, `create_animation` and
  * `quoted_type_expression`.  See `to_do_something` below.
  * - Turns a parsed signature into either a loose function, an instance method (when a captured type is
  *   promoted via `inlineInitialType`), or a postfix/infix expression (`quoted_type_expression` only).
- * - Also registers the generated call-site rule (`getRule()`) onto `scope.rules` (`mutateScope()`), so the
+ * - Also registers the generated call-site rule (`getRule()`) onto `scope.parser` (`mutateScope()`), so the
  *   new syntax is usable immediately after the definition.
  * - Generic pass-through: each subclass has its own `signature` group typing, e.g. `to_do_something extends
  *   MethodDefinition<"asTest?|signature|inlineStatement?|nestedBlock?">`.  `MethodDefinitionData` (`signature`,
@@ -187,6 +224,9 @@ export class MethodDefinition<
    */
   declare inlineInitialType: boolean
   @proto static inlineInitialType = false
+  /** TYPE-ONLY: props `parser.addRule()` accepts for this rule -- see `P.Rule`'s `Props`. */
+  declare readonly Props: MethodDefinitionProps
+
   @proto static wantsInlineStatement = true
   @proto static wantsNestedBlock = true
 
@@ -267,10 +307,10 @@ export class MethodDefinition<
     return methodScope
   }
 
-  /** SIDE EFFECT: registers the generated call-site rule (`getRule()`) onto `scope.rules`, making the new
+  /** SIDE EFFECT: registers the generated call-site rule (`getRule()`) onto `scope.parser`, making the new
    *  syntax immediately usable after this definition. */
   mutateScope(match: P.MatchFor<this>): void {
-    match.scope.rules?.add(this.getRule(match))
+    this.getRule(match)
   }
 
   /** Human-readable annotation text (wrapped in a comment by `getAST()`'s `ParserAnnotation`) -- differs for
@@ -282,17 +322,21 @@ export class MethodDefinition<
   }
 
   /**
-   * Build the `RuleConstructor` for the CALL SITE -- registered onto `scope.rules` by `mutateScope()`, this is
-   * what makes `notify 1`, `card.play()`, `card is a bug`, etc. parseable after their `to`/`animation`/quoted
-   * definitions.
+   * Register the CALL SITE rule directly onto `match.scope.parser` -- called by `mutateScope()`, this is
+   * what makes `notify 1`, `card.play()`, `card is a bug`, etc. parseable after their
+   * `to`/`animation`/quoted definitions.
    * - `asPostfixExpression`/`asInfixExpression` (set by `quoted_type_expression.processSignature()`) each
-   *   return a closure class aliased `"expression_suffix"` extending `PostfixOperatorSuffix`/
+   *   register a closure class aliased `"expression_suffix"` extending `PostfixOperatorSuffix`/
    *   `InfixOperatorSuffix` that compiles to a `PropertyExpression`/`ScopedMethodInvocation` and applies
    *   `shouldNegateOutput()`.
-   * - Otherwise returns a closure class extending `DynamicMethodRule`, aliased `"statement"` when `asTest`
-   *   (so it can't be used as an expression), else `["statement", "expression"]`.
+   * - Otherwise registers `DynamicMethodRule` directly -- no subclass needed, aliased `"statement"` when
+   *   `asTest` (so it can't be used as an expression), else `["statement", "expression"]`.
+   * - Registers through `scope.addRule(RuleClass, definition)`, which puts the rule on the scope's parser and
+   *   records the class + definition on the scope itself -- these generated rules MUST keep their alias so the
+   *   parser finds them by category (`statement`/`expression`/`expression_suffix`) on the very next line,
+   *   and the recorded pair is what lets a scope export the methods it defined.
    */
-  getRule(match: P.MatchFor<this>): P.RuleConstructor {
+  getRule(match: P.MatchFor<this>): void {
     const { asTest } = match.groups as { asTest?: P.Match }
     const {
       methodName = "",
@@ -301,34 +345,30 @@ export class MethodDefinition<
       asInfixExpression,
       shouldNegateOutput = () => false
     } = this.getSignature(match)!
+    const { scope } = match
 
     if (asPostfixExpression) {
-      return class _dynamicMethodRulePostfix extends PostfixOperatorSuffix {
-        static ruleName = methodName
-        @proto static precedence = 20
-        @proto static alias = "expression_suffix"
-        @proto static syntax = syntax
-
+      class _dynamicMethodRulePostfix extends PostfixOperatorSuffix {
         shouldNegateOutput(operator: P.Match): boolean {
           return shouldNegateOutput(operator)
         }
         compileASTExpression(_match: P.Match, { lhs }: OperatorOperands): P.ASTExpression {
           return new P.ASTPropertyExpression(_match, {
-            // `lhs` is always populated for a `PostfixOperatorSuffix`.
             object: lhs!,
             property: new P.ASTPropertyLiteral(_match, methodName)
           })
         }
       }
+      scope.addRule(_dynamicMethodRulePostfix, {
+        name: methodName,
+        precedence: 20,
+        alias: "expression_suffix",
+        syntax
+      })
+      return
     }
     if (asInfixExpression) {
-      return class _dynamicMethodRuleInfix extends InfixOperatorSuffix {
-        static ruleName = methodName
-        @proto static precedence = 20
-        @proto static alias = "expression_suffix"
-        @proto static syntax = syntax
-        @proto static parenthesize = true
-
+      class _dynamicMethodRuleInfix extends InfixOperatorSuffix {
         shouldNegateOutput(operator: P.Match): boolean {
           return shouldNegateOutput(operator)
         }
@@ -341,13 +381,21 @@ export class MethodDefinition<
           })
         }
       }
+      scope.addRule(_dynamicMethodRuleInfix, {
+        name: methodName,
+        precedence: 20,
+        alias: "expression_suffix",
+        syntax,
+        parenthesize: true
+      })
+      return
     }
-    return class extends DynamicMethodRule {
-      static ruleName = methodName
-      @proto static alias = asTest ? "statement" : ["statement", "expression"]
-      @proto static syntax = syntax
-      @proto static methodName = methodName
-    }
+    scope.addRule(DynamicMethodRule, {
+      name: methodName,
+      alias: asTest ? "statement" : ["statement", "expression"],
+      syntax,
+      methodName
+    })
   }
 
   /** If `signature.props` return `DestructuredAssignment` to pull those props into scope. */
@@ -480,8 +528,15 @@ export class MethodDefinition<
   }
 }
 
+/**
+ * Props bag accepted by `MethodDefinition`.
+ * - `inlineInitialType`:  first arg's type is part of the method name, e.g. `to draw a card` => `Card.draw()`.
+ */
+export type MethodDefinitionProps = Prettify<SpellStatementProps & { inlineInitialType?: boolean }>
+
 ////////////////
-// ## Method-signature building blocks
+// ## `method_keyword` rule
+//    e.g. "foo" in "to foo the bar"
 ////////////////
 
 /**
@@ -489,9 +544,7 @@ export class MethodDefinition<
  * - `method` contributes the (dash-normalized) word to the signature's `methodBits`; `syntax` contributes
  *   its raw, unmodified text to the rule's rulex `syntax`.
  */
-export class method_keyword extends P.Pattern<never, MethodArgData> {
-  @proto static pattern = /^[a-zA-Z][\w-]*$/
-
+class method_keyword extends P.Pattern<never, MethodArgData> {
   /** Convert dashes to underscores so e.g. `at-rest` becomes `at_rest` in the generated method name. */
   mapValue<T = string>(value: string): T {
     return `${value}`.replace(/-/g, "_") as T
@@ -507,6 +560,14 @@ export class method_keyword extends P.Pattern<never, MethodArgData> {
     return match
   }
 }
+methods.addRule(method_keyword, {
+  pattern: /^[a-zA-Z][\w-]*$/
+})
+
+////////////////
+// ## `var_method_arg` rule
+//    e.g. "message" in "(message)"
+////////////////
 
 /**
  * Untyped variable inside parens, e.g. `(message)` in `to notify (message): ...`.
@@ -515,9 +576,7 @@ export class method_keyword extends P.Pattern<never, MethodArgData> {
  * - `syntax` always contributes `{callArgs:expression}` -- the call-site value is parsed as a plain
  *   expression.
  */
-export class var_method_arg extends VariableIdentifier<MethodArgData> {
-  @proto static alias = ["method_arg", "simple_method_arg"]
-
+class var_method_arg extends SpellIdentifier<MethodArgData> {
   /** Stash this arg's contribution (`method` / `syntax` / `arg`) in `match.data`. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
@@ -530,6 +589,14 @@ export class var_method_arg extends VariableIdentifier<MethodArgData> {
     return match
   }
 }
+methods.addRule(var_method_arg, {
+  alias: ["method_arg", "simple_method_arg"]
+})
+
+////////////////
+// ## `valued_var_method_arg` rule
+//    e.g. `message = "Really?"`
+////////////////
 
 /**
  * Variable arg with a default value, e.g. `(message = "Really?")` in
@@ -539,25 +606,31 @@ export class var_method_arg extends VariableIdentifier<MethodArgData> {
  * - `method`/`syntax` are the same as `var_method_arg`'s (`$name` / `{callArgs:expression}`) -- the default
  *   value only affects the generated function parameter (`arg.default`), not the call syntax.
  */
-export class valued_var_method_arg extends SpellStatement<"variable_identifier|value", MethodArgData> {
-  @proto static alias = ["method_arg", "simple_method_arg"]
-  @proto static syntax = `{variable_identifier} (=|is|of|as|set to) {value:expression}`
-
+class valued_var_method_arg extends SpellStatement<"identifier|value", MethodArgData> {
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
     if (!match) return undefined
-    const { variable_identifier, value } = match.groups
-    match.data.variable = variable_identifier
-    match.data.method = `$${variable_identifier.value}`
+    const { identifier, value } = match.groups
+    match.data.variable = identifier
+    match.data.method = `$${identifier.value}`
     match.data.syntax = "{callArgs:expression}"
     match.data.arg = new P.ASTVariableExpression(match, {
-      name: variable_identifier.value,
+      name: identifier.value,
       default: value.AST as P.ASTExpression,
       type: "argument"
     })
     return match
   }
 }
+methods.addRule(valued_var_method_arg, {
+  alias: ["method_arg", "simple_method_arg"],
+  syntax: `{identifier} (=|is|of|as|set to) {value:expression}`
+})
+
+////////////////
+// ## `type_method_arg` rule
+//    e.g. "a card"
+////////////////
 
 /**
  * Bare type name inside parens, e.g. `(a card)` in `to create (a card): ...`.
@@ -567,10 +640,7 @@ export class valued_var_method_arg extends SpellStatement<"variable_identifier|v
  *   `parse()` records it in `types`, and `MethodDefinition.processSignature()` later promotes
  *   it to an instance-method receiver (`thisArg`) rather than a call argument.
  */
-export class type_method_arg extends P.Sequence<"type", MethodArgData> {
-  @proto static alias = ["method_arg", "simple_method_arg"]
-  @proto static syntax = `(a|an) {type}`
-
+class type_method_arg extends P.Sequence<"type", MethodArgData> {
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
     if (!match) return undefined
@@ -583,6 +653,15 @@ export class type_method_arg extends P.Sequence<"type", MethodArgData> {
     return match
   }
 }
+methods.addRule(type_method_arg, {
+  alias: ["method_arg", "simple_method_arg"],
+  syntax: `(a|an) {type}`
+})
+
+////////////////
+// ## `typed_method_arg` rule
+//    e.g. "thing as a card"
+////////////////
 
 /**
  * Variable arg with explicit type, e.g. `(thing as a card)` in `to show (thing as a card): ...`.
@@ -592,28 +671,34 @@ export class type_method_arg extends P.Sequence<"type", MethodArgData> {
  * - `method`/`syntax` match `var_method_arg`'s (`$name` / `{callArgs:expression}`) -- the type only
  *   annotates the arg, it doesn't change the generated method name or call syntax.
  */
-export class typed_method_arg extends P.Sequence<"variable_identifier|type", MethodArgData> {
-  @proto static alias = ["method_arg", "simple_method_arg"]
-  @proto static syntax = `{variable_identifier} as (a|an)? {type}`
-
+class typed_method_arg extends P.Sequence<"identifier|type", MethodArgData> {
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
     if (!match) return undefined
-    const { variable_identifier, type } = match.groups
+    const { identifier, type } = match.groups
     // `arg.datatype` is a real settable accessor inherited from `ASTNode`, and `VariableExpressionProps`
     // declares it too -- set here via the accessor after construction rather than through the
     // constructor props.
     // TODO: any reason not to just pass `datatype: type.value` into the constructor above?
-    const arg = new P.ASTVariableExpression(match, { name: variable_identifier.value, type: "argument" })
+    const arg = new P.ASTVariableExpression(match, { name: identifier.value, type: "argument" })
     arg.datatype = type.value
-    match.data.variable = variable_identifier
+    match.data.variable = identifier
     match.data.type = type
-    match.data.method = `$${variable_identifier.value}`
+    match.data.method = `$${identifier.value}`
     match.data.syntax = "{callArgs:expression}"
     match.data.arg = arg
     return match
   }
 }
+methods.addRule(typed_method_arg, {
+  alias: ["method_arg", "simple_method_arg"],
+  syntax: `{identifier} as (a|an)? {type}`
+})
+
+////////////////
+// ## `with_props_arg` rule
+//    e.g. "with bar and baz = \"baz\" and bong as text"
+////////////////
 
 /**
  * `with`-prefixed prop list, e.g. `(with bar and baz = "baz" and bong as text)` in
@@ -633,9 +718,6 @@ export class typed_method_arg extends P.Sequence<"variable_identifier|type", Met
  *   directly off a matched `{props:with_props_arg}` group -- see `on.getNestedScopeForMatch()`/`getAST()`.
  */
 export class with_props_arg extends P.Sequence<never, MethodArgData> {
-  @proto static alias = ["method_arg"]
-  @proto static syntax = "with [{simple_method_arg}(,|and)]"
-
   /** Map each comma/`and`-joined item's `arg` into `props`, and build the synthetic `props` catch-all arg. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
@@ -654,6 +736,15 @@ export class with_props_arg extends P.Sequence<never, MethodArgData> {
     return match
   }
 }
+methods.addRule(with_props_arg, {
+  alias: ["method_arg"],
+  syntax: "with [{simple_method_arg}(,|and)]"
+})
+
+////////////////
+// ## `method_signature` rule
+//    e.g. "foo the (bar as a thing)"
+////////////////
 
 /**
  * Full method signature: alternating keywords and parenthesized args, e.g. `foo the (bar as a thing)`.
@@ -664,9 +755,7 @@ export class with_props_arg extends P.Sequence<never, MethodArgData> {
  *   `methodName`/`syntax` by `MethodDefinition.computeSignature()`), `args`, `types` (candidate
  *   instance-method receivers), `extraVars` and `props` into `match.data` -- see `MethodSignatureData`.
  */
-export class method_signature extends P.Repeat<never, MethodSignatureData> {
-  @proto static syntax = `({method_keyword}|\\({method_arg}\\))+`
-
+class method_signature extends P.Repeat<never, MethodSignatureData> {
   /** Build `match.data`, then reject the match entirely if no keyword was found -- arg-only signatures
    *  (e.g. `to (foo)`) are invalid. */
   parse(scope: P.Scope, tokens: P.Token[]) {
@@ -745,6 +834,14 @@ export class method_signature extends P.Repeat<never, MethodSignatureData> {
     })
   }
 }
+methods.addRule(method_signature, {
+  syntax: `({method_keyword}|\\({method_arg}\\))+`
+})
+
+////////////////
+// ## `quoted_method_signature` rule
+//    e.g. "\"nerds out with (another as a thing)\""
+////////////////
 
 /**
  * Method signature surrounded by quotes.  A "good idea"???
@@ -755,9 +852,7 @@ export class method_signature extends P.Repeat<never, MethodSignatureData> {
  * - SIDE EFFECT: bails (`undefined`) if the recovered signature has no keyword, same rule as plain
  *   `method_signature`.
  */
-export class quoted_method_signature extends P.TokenType {
-  @proto static tokenType = P.TextToken
-
+class quoted_method_signature extends P.TokenType {
   /**
    * Parse the token's text as JSON to get the raw signature string, then reparse THAT as
    * `method_signature`.
@@ -775,26 +870,14 @@ export class quoted_method_signature extends P.TokenType {
     return signature
   }
 }
+methods.addRule(quoted_method_signature, {
+  tokenType: P.TextToken
+})
 
 ////////////////
-// ## Method-definition rules
+// ## `to_do_something` rule
+//    e.g. "to start the game"
 ////////////////
-
-/**
- * Rules for dynamic method definitions (`to foo ...`, `animation ...`) and their call sites, plus quoted
- * ad-hoc expressions on a type (`a thing "..." if`).
- * - e.g. signature shapes handled by `method_signature`:
- *   - `to foo the bar`
- *   - `to foo (a thing)`
- *   - `to foo (a thing) in (a thing)`
- *   - `to foo (bar)`
- *   - `to foo the (bar as text)`
- *   - `to foo (with bar)`
- *   - `to foo (with a bar)`
- *   - `to foo (with baz = "baz")`
- *   - `to foo (with bar as text)`
- *   - `to foo (with bar and baz = "baz" and bong as text)`
- */
 
 /**
  * Define a new method/statement: `to foo the bar`, `to create (a card)`, `to notify (message)`, etc.
@@ -806,14 +889,14 @@ export class quoted_method_signature extends P.TokenType {
  * - Trailing `:` is optional so both `to foo the bar` (no body) and `to foo the bar:` (body follows)
  *   parse.
  */
-export class to_do_something extends MethodDefinition<"asTest?|signature|inlineStatement?|nestedBlock?"> {
-  @proto static alias = "statement"
+class to_do_something extends MethodDefinition<"asTest?|signature|inlineStatement?|nestedBlock?"> {}
+methods.addRule(to_do_something, {
+  alias: "statement",
   // TODO: add tests for `test` case
-  @proto static syntax = `to (asTest:test)? {signature:method_signature} :?`
+  syntax: `to (asTest:test)? {signature:method_signature} :?`,
   // promote the first captured type arg (e.g. `(a card)`) to an instance-method receiver
-  @proto static inlineInitialType = true
-
-  static tests: P.RuleTests = [
+  inlineInitialType: true,
+  tests: [
     {
       title: "inline method signatures & variables",
       compileAs: "block",
@@ -1266,7 +1349,12 @@ export class to_do_something extends MethodDefinition<"asTest?|signature|inlineS
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `create_animation` rule
+//    e.g. "animation deal the cards"
+////////////////
 
 /**
  * Define an animation method: `animation deal the cards`, or `create animation deal the cards`.
@@ -1278,14 +1366,14 @@ export class to_do_something extends MethodDefinition<"asTest?|signature|inlineS
  *   StopProcessInvocation }` -- which is what makes re-invoking a running animation a no-op (see
  *   `spellCore.processIsRunning()` in the compiled output) and always stops the process on the way out.
  */
-export class create_animation extends MethodDefinition<"asAnimation|signature|inlineStatement?|nestedBlock?"> {
-  @proto static alias = "statement"
-  @proto static syntax = `(asAnimation:create? animation) {signature:method_signature} :?`
+class create_animation extends MethodDefinition<"asAnimation|signature|inlineStatement?|nestedBlock?"> {}
+methods.addRule(create_animation, {
+  alias: "statement",
+  syntax: `(asAnimation:create? animation) {signature:method_signature} :?`,
   // NOTE: `inlineInitialType` is declared as a plain field on `MethodDefinition` (TS doesn't allow a
   // subclass to override a field with an accessor), so set the default the same way `to_do_something` does.
-  @proto static inlineInitialType = true
-
-  static tests: P.RuleTests = [
+  inlineInitialType: true,
+  tests: [
     {
       title: "inline method signatures & variables",
       compileAs: "block",
@@ -1330,7 +1418,12 @@ export class create_animation extends MethodDefinition<"asAnimation|signature|in
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `quoted_type_expression` rule
+//    e.g. `a thing "nerds out" if`
+////////////////
 
 /**
  * Define an ad-hoc expression on a type from a QUOTED signature, e.g. `a thing "nerds out" if`,
@@ -1352,14 +1445,7 @@ export class create_animation extends MethodDefinition<"asAnimation|signature|in
  *   phrasing (`is`/`is not`/`isn't`/`isnt`) compile to the same rule with `shouldNegateOutput()` flipping
  *   the output.
  */
-export class quoted_type_expression extends MethodDefinition<"type|signature|inlineStatement?|nestedBlock?"> {
-  @proto static precedence = 9 // defer to more-specific methods in `classes`, e.g. `define_property_has`, ...
-  @proto static alias = "statement"
-  @proto static syntax = "(a|an) {type:singular_type} {signature:quoted_method_signature} (if|is)? :?"
-  // NOTE: `parseInlineStatementAs` is declared as a plain field on `SpellStatement` (TS doesn't allow a
-  // subclass to override a field with an accessor), so set the default via `@proto static` instead.
-  @proto static parseInlineStatementAs = "expression"
-
+class quoted_type_expression extends MethodDefinition<"type|signature|inlineStatement?|nestedBlock?"> {
   /**
    * Reject the match if its (quoted) signature doesn't start with a keyword, or captured more than one
    * arg -- `quoted_type_expression` only supports plain (`nerds out`) or single-arg (`nerds out with
@@ -1433,8 +1519,15 @@ export class quoted_type_expression extends MethodDefinition<"type|signature|inl
     // console.warn(signature)
     return signature
   }
-
-  static tests: P.RuleTests = [
+}
+methods.addRule(quoted_type_expression, {
+  precedence: 9, // defer to more-specific methods in `classes`, e.g. `define_property_has`, ...
+  alias: "statement",
+  syntax: "(a|an) {type:singular_type} {signature:quoted_method_signature} (if|is)? :?",
+  // NOTE: `parseInlineStatementAs` is declared as a plain field on `SpellStatement` (TS doesn't allow a
+  // subclass to override a field with an accessor), so set the default via the definition instead.
+  parseInlineStatementAs: "expression",
+  tests: [
     {
       title: "fails if",
       compileAs: "block",
@@ -1647,22 +1740,5 @@ export class quoted_type_expression extends MethodDefinition<"type|signature|inl
         }
       ]
     }
-  ]
-}
-
-export const methods = new SpellParser({
-  module: "methods",
-  rules: [
-    method_keyword,
-    var_method_arg,
-    valued_var_method_arg,
-    type_method_arg,
-    typed_method_arg,
-    with_props_arg,
-    method_signature,
-    quoted_method_signature,
-    to_do_something,
-    create_animation,
-    quoted_type_expression
   ]
 })

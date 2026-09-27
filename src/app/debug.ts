@@ -7,7 +7,7 @@ import * as SUI from "semantic-ui-react"
 import { P } from "~/parser"
 import { spellCore } from "~/spellCore"
 import { SP } from "~/languages/spell"
-import { store } from "~/app/store"
+import { editor } from "~/app/editor"
 
 // Stick interesting bits on `global` to make console debugging easier.
 Object.assign(global, {
@@ -23,6 +23,6 @@ Object.assign(global, {
   tokenizer: SP.spellParser.tokenizer,
   tokenize: SP.spellParser.tokenize.bind(SP.spellParser),
   rulex: P.Parser.rulexParser,
-  store,
+  editor,
   SUI
 })

@@ -55,7 +55,7 @@ export function AppToolbar() {
 /****************
  * ### `<AppContainer>`
  * Holds the DOM mount point (`id={spellCore.REACT_APP_ROOT_ID}`) the compiled spell app's own React
- * root attaches to -- see `store.selectPath()`, which unmounts whatever's there when switching projects.
+ * root attaches to -- see `editor.selectPath()`, which unmounts whatever's there when switching projects.
  ****************/
 export function AppContainer({ scrolling, padded }: AppContainerProps) {
   const classNames = ["AppContainer"]

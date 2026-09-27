@@ -4,7 +4,7 @@ import type { RouteComponentProps } from "@reach/router"
 
 import { SP } from "~/languages/spell"
 import { UI, Actions } from "~/app/ui"
-import { store } from "~/app/store"
+import { editor } from "~/app/editor"
 import type { SpellRouteParams } from "./pages.types"
 
 /****************
@@ -12,28 +12,28 @@ import type { SpellRouteParams } from "./pages.types"
  * Main editing page: `<UI.InputRoot>` (code editor) plus `<UI.ConsoleRoot>` (compile/run log) on the left,
  * `<UI.AppRoot>` (live rendered app) plus `<UI.ASTRoot>`/`<UI.MatchRoot>` (parse tree / match inspector)
  * on the right.
- * - SIDE EFFECT: sets `store.projectPage = "editor"` on every render.
+ * - SIDE EFFECT: sets `editor.projectPage = "editor"` on every render.
  * - Wires up save/reload/compile/new-file hotkeys that only fire outside CodeMirror -- CodeMirror.js
  *   duplicates the same bindings for use inside the editor itself.
  * - Note that this does not need to be a `view()`, it redraws automatically when the file changes.
  ****************/
 export const SpellEditor = React.memo(function SpellEditor() {
-  store.projectPage = "editor"
+  editor.projectPage = "editor"
   // Set up hotkey when NOT in codemirror
   // Note these are duplicated in CodeMirror.js
   useHotkeys("command+s", (event) => {
     event.preventDefault()
-    void store.saveFile()
+    void editor.saveFile()
   })
   useHotkeys("shift-command+r", () => {
-    void store.reloadFile()
+    void editor.reloadFile()
   })
   useHotkeys("command+enter", () => {
-    void store.compileApp()
+    void editor.compileApp()
   })
   useHotkeys("command+n", (event) => {
     event.preventDefault()
-    void store.createFile()
+    void editor.createFile()
   })
 
   return (
@@ -96,6 +96,6 @@ export function SpellEditorRoute(props: RouteComponentProps<SpellRouteParams>) {
   const path = SP.SpellLocation.pathForUrl({ domain, project, filePath })
   // console.info("SpellRoute", path, props)
   // HACK: Actually navigate on a timeout to avoid hook / rerender problems.
-  setTimeout(() => store.selectPath(path), 0)
+  setTimeout(() => editor.selectPath(path), 0)
   return <SpellEditor />
 }

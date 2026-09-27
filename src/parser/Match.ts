@@ -162,9 +162,12 @@ export class Match<
 
   /**
    * Was this match produced by (a subclass of) `ruleConstructor`?
-   * - Type guard:  narrows `groups` and `data` to the shapes declared by that rule.
+   * - Type guard:  narrows `groups` and `data` to the shapes declared by that rule, and `rule` to that class,
+   *   so you can call its methods:  `if (match.is(some_rule)) match.rule.someMethod(match)`.
    */
-  is<RuleType extends P.RuleTypeArgs>(ruleConstructor: AbstractClass<RuleType>): this is P.MatchFor<RuleType> {
+  is<RuleType extends P.RuleTypeArgs>(
+    ruleConstructor: AbstractClass<RuleType>
+  ): this is P.MatchFor<RuleType> & { rule: RuleType } {
     return this.rule instanceof ruleConstructor
   }
 

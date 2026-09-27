@@ -26,6 +26,8 @@ export class SpellStatement<
   @proto static parseInlineStatementAs = "statement"
   @proto static wantsNestedBlock = false
   @proto static parseNestedBlockAs = "block"
+  /** TYPE-ONLY: props `parser.addRule()` accepts for this rule -- see `P.Rule`'s `Props`. */
+  declare readonly Props: SpellStatementProps
 
   /**
    * Parse the statement itself -- assume comment was already popped off the end.
@@ -110,3 +112,18 @@ export class SpellStatement<
     return result
   }
 }
+
+/**
+ * Props bag accepted by `SpellStatement` -- adds spell's inline-statement / nested-block behaviour.
+ * - `wantsInlineStatement`:  parse leftover tokens on the same line, e.g. `if x then <inline>`.
+ * - `wantsNestedBlock`:  take the indented block which follows, e.g. `if x:` + indented lines.
+ * - `parse*As` name the rule each is parsed with.
+ */
+export type SpellStatementProps = Prettify<
+  P.SequenceProps & {
+    wantsInlineStatement?: boolean
+    parseInlineStatementAs?: string
+    wantsNestedBlock?: boolean
+    parseNestedBlockAs?: string
+  }
+>

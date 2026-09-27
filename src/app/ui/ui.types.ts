@@ -4,7 +4,7 @@
 
 // ## Editor selection
 
-/** Cursor/scroll selection remembered per-file, as stored/restored via `store.lastSelectionForFile()`. */
+/** Cursor/scroll selection remembered per-file, as stored/restored via `editor.lastSelectionForFile()`. */
 export type EditorSelection = {
   /** Scroll position/direction at the time of selection. */
   scroll?: EditorScrollInfo

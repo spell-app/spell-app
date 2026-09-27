@@ -1,10 +1,17 @@
 /** Rules for assignment and returning values. */
 
-import { proto } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
+
+/** Rule module for assignment / return rules (`assignment`, `get`, `return_statement`). */
+export const assignment = new SpellParser({ module: "assignment" })
+
+////////////////
+// ## `assignment` rule
+//    e.g. "unknown-var = yes"
+////////////////
 
 /** What `assignment` stashes on its match. */
 type AssignmentMatchData = {
@@ -14,19 +21,11 @@ type AssignmentMatchData = {
   originalVar?: P.ScopeVariable
 }
 
-/** What `get` stashes on its match. */
-type GetMatchData = {
-  /** Whether the assigned-to variable is newly declared by this statement. */
-  isNewVariable?: boolean
-  /** Original local `it` `ScopeVariable`, if one already existed, before any alias redefinition hackery. */
-  itVar?: P.ScopeVariable
-}
-
 /**
  * Assignment, via any of 4 equivalent surface forms:  `{thing} = {value}`, `let {thing} = {value}`,
  * `set {thing} to {value}`, or `{variable} is {value}`.
  * - Named `assignment_statement` to avoid colliding with the `assignment` module export below --
- *   `static ruleName = "assignment"` keeps the actual rule name.
+ *   `name: "assignment"` keeps the actual rule name.
  * - `thing` may be a plain `{variable}` (declares/updates a scope variable) or an arbitrary
  *   `{expression}` (e.g. property assignment `let the name of X = ...`, which only compiles if `X`
  *   already exists).
@@ -36,16 +35,7 @@ type GetMatchData = {
  *   must happen after building the `value` AST, in case `value` itself refers to the alias.
  * - Compiles to `let thing = value` (new variable) or `thing = value` (existing).
  */
-export class assignment_statement extends SpellStatement<"thing|value", AssignmentMatchData> {
-  static ruleName = "assignment"
-  @proto static alias = "statement"
-  @proto static syntax = [
-    { syntax: "(thing:{expression}|{variable}) = {value:expression}", testRule: "…=" },
-    { syntax: "let (thing:{expression}|{variable}) = {value:expression}", testRule: "let" },
-    { syntax: "set (thing:{expression}|{variable}) to {value:expression}", testRule: "set" },
-    { syntax: "(thing:{variable}) is {value: expression}", testRule: "…is" }
-  ]
-
+class assignment_statement extends SpellStatement<"thing|value", AssignmentMatchData> {
   /**
    * HACK: we also mutate scope in `getAST()`...  :-(
    * - Declares a new scope variable for `thing` (if it's a `{variable}` and not already declared,
@@ -95,8 +85,17 @@ export class assignment_statement extends SpellStatement<"thing|value", Assignme
     if (originalVar?.isAlias) (match.scope as P.BlockScope).variables.replace(originalVar.name)
     return ast
   }
-
-  static tests: P.RuleTests = [
+}
+assignment.addRule(assignment_statement, {
+  name: "assignment",
+  alias: "statement",
+  syntax: [
+    { syntax: "(thing:{expression}|{variable}) = {value:expression}", testRule: "…=" },
+    { syntax: "let (thing:{expression}|{variable}) = {value:expression}", testRule: "let" },
+    { syntax: "set (thing:{expression}|{variable}) to {value:expression}", testRule: "set" },
+    { syntax: "(thing:{variable}) is {value: expression}", testRule: "…is" }
+  ],
+  tests: [
     {
       compileAs: "block",
       beforeEach(scope: P.Scope) {
@@ -147,6 +146,19 @@ export class assignment_statement extends SpellStatement<"thing|value", Assignme
       ]
     }
   ]
+})
+
+////////////////
+// ## `get` rule
+//    e.g. "get thing"
+////////////////
+
+/** What `get` stashes on its match. */
+type GetMatchData = {
+  /** Whether the assigned-to variable is newly declared by this statement. */
+  isNewVariable?: boolean
+  /** Original local `it` `ScopeVariable`, if one already existed, before any alias redefinition hackery. */
+  itVar?: P.ScopeVariable
 }
 
 /**
@@ -156,11 +168,7 @@ export class assignment_statement extends SpellStatement<"thing|value", Assignme
  * - HACK: also mutates scope again in `getAST()` to redefine `it` as a real variable -- see there.
  * - Compiles to `let it = value` (new) or `it = value` (existing).
  */
-export class get extends SpellStatement<"value", GetMatchData> {
-  @proto static alias = ["assignment", "statement"]
-  @proto static syntax = "get {value:expression}"
-  @proto static testRule = "get"
-
+class get extends SpellStatement<"value", GetMatchData> {
   /**
    * NOTE: we also mutate scope in `getAST()`...  :-(
    * - Declares a LOCAL `it` variable if one isn't already locally defined.
@@ -197,8 +205,12 @@ export class get extends SpellStatement<"value", GetMatchData> {
     ;(match.scope as P.BlockScope).variables.replace("it")
     return ast
   }
-
-  static tests: P.RuleTests = [
+}
+assignment.addRule(get, {
+  alias: ["assignment", "statement"],
+  syntax: "get {value:expression}",
+  testRule: "get",
+  tests: [
     {
       title: "`it` is not already defined",
       compileAs: "block",
@@ -243,10 +255,15 @@ export class get extends SpellStatement<"value", GetMatchData> {
       ]
     }
   ]
-}
+})
+
+////////////////////////////////////////
+// # Returns
+////////////////////////////////////////
 
 ////////////////
-// ## Returns
+// ## `return_statement` rule
+//    e.g. "return"
 ////////////////
 
 /**
@@ -255,21 +272,21 @@ export class get extends SpellStatement<"value", GetMatchData> {
  * - Accepts the returned expression inline (`return thing`) or in a nested indented block
  *   (`return\n\t1 + 2`), via `wantsInlineStatement`/`wantsNestedBlock` (both parsed as `"expression"`).
  */
-export class return_statement extends SpellStatement<"expression?|nestedBlock?"> {
-  @proto static alias = "statement"
-  @proto static syntax = "(return|exit with?) {expression}?"
-  @proto static testRule = "(return|exit)"
-  @proto static wantsInlineStatement = true
-  @proto static parseInlineStatementAs = "expression"
-  @proto static wantsNestedBlock = true
-  @proto static parseNestedBlockAs = "expression"
-
+class return_statement extends SpellStatement<"expression?|nestedBlock?"> {
   getAST(match: P.MatchFor<this>): P.ASTReturnStatement {
     const result = match.groups.expression || match.groups.nestedBlock
     return new P.ASTReturnStatement(match, { value: result?.AST as P.ASTExpression | undefined })
   }
-
-  static tests: P.RuleTests = [
+}
+assignment.addRule(return_statement, {
+  alias: "statement",
+  syntax: "(return|exit with?) {expression}?",
+  testRule: "(return|exit)",
+  wantsInlineStatement: true,
+  parseInlineStatementAs: "expression",
+  wantsNestedBlock: true,
+  parseNestedBlockAs: "expression",
+  tests: [
     {
       title: "Simple return with inline expression",
       compileAs: "statement",
@@ -305,10 +322,4 @@ export class return_statement extends SpellStatement<"expression?|nestedBlock?">
       ]
     }
   ]
-}
-
-/** Rule module for assignment / return rules (`assignment`, `get`, `return_statement`). */
-export const assignment = new SpellParser({
-  module: "assignment",
-  rules: [assignment_statement, get, return_statement]
 })

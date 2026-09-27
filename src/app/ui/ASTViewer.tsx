@@ -2,7 +2,7 @@ import React from "react"
 
 import { view, scrollForElement, centerElementInParent } from "~/util"
 import { P } from "~/parser"
-import { store } from "~/app/store"
+import { editor } from "~/app/editor"
 
 import { UI } from "~/app/ui"
 import { ErrorHandler, type ErrorHandlerState, type ErrorHandlerWrapperProps } from "./ErrorHandler"
@@ -19,9 +19,9 @@ export const ASTRoot = view(function ASTRoot({ showToolbar = true, scrolling = t
       {!!showToolbar && <ASTToolbar />}
       <ASTViewer
         scrolling={scrolling}
-        ast={store.file && "AST" in store.file ? store.file.AST : undefined}
-        selection={store.selection}
-        showError={store.showError}
+        ast={editor.file && "AST" in editor.file ? editor.file.AST : undefined}
+        selection={editor.selection}
+        showError={editor.showError}
       />
     </div>
   )

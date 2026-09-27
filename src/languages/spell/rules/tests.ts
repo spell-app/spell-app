@@ -3,11 +3,16 @@
  * debug output directly in spell source rather than in a separate test language.
  */
 
-import { proto } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
+
+/**
+ * Rule module for inline test rules (`expect_test`, `start_test`, `end_test`, `echo`).
+ * - Each rule class below is followed by the `tests.addRule()` call which defines and registers it.
+ */
+export const tests = new SpellParser({ module: "tests" })
 
 /**
  * Narrow `node` from `P.ASTNode | undefined` to concrete subtype `T`.
@@ -19,17 +24,18 @@ function ast<T extends P.ASTNode>(node: P.ASTNode | undefined): T {
   return node as T
 }
 
+////////////////
+// ## `expect_test` rule
+//    e.g. 'expect the rank of it to be "queen"'
+////////////////
+
 /**
  * `expect {expression}` or `expect {expression} to be {value}` -- an assertion.
  * - `testRule: "expect"` is a quick keyword pre-check (compiled from rulex syntax) so the full
  *   sequence match is only attempted when the line actually starts with `expect`.
  * - e.g. `expect the rank of it to be "queen"` => `spellCore.expect(it.rank, ..., "queen", ...)`.
  */
-export class expect_test extends SpellStatement<"expression|value?"> {
-  @proto static alias = ["statement"]
-  @proto static syntax = "expect that? {expression} (to be {value:expression})?"
-  @proto static testRule = "expect"
-
+class expect_test extends SpellStatement<"expression|value?"> {
   getAST(match: P.MatchFor<this>) {
     const { expression, value } = match.groups
     // `Match.raw` is a `declare`d field, always statically present, so `"raw" in value` can't narrow it here
@@ -42,8 +48,12 @@ export class expect_test extends SpellStatement<"expression|value?"> {
       valueString
     })
   }
-
-  static tests: P.RuleTests = [
+}
+tests.addRule(expect_test, {
+  alias: ["statement"],
+  syntax: "expect that? {expression} (to be {value:expression})?",
+  testRule: "expect",
+  tests: [
     {
       beforeEach(scope: P.Scope) {
         // `Scope.compile()`'s `ruleName` has no default even though the `Parser.compile()` it delegates
@@ -67,16 +77,18 @@ export class expect_test extends SpellStatement<"expression|value?"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `start_test` rule
+//    e.g. 'start test "my test"'
+////////////////
 
 /**
  * `start test {message}` or `start quiet test {message}` -- marks beginning of a named test run.
  * - `quiet` suppresses normal test output (e.g. for tests nested inside other tests).
  */
-export class start_test extends SpellStatement<"quiet?|message"> {
-  @proto static alias = "statement"
-  @proto static syntax = "start (quiet:quiet)? test {message:text}"
-
+class start_test extends SpellStatement<"quiet?|message"> {
   getAST(match: P.MatchFor<this>) {
     const { quiet, message } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -87,32 +99,47 @@ export class start_test extends SpellStatement<"quiet?|message"> {
     })
   }
 }
+tests.addRule(start_test, {
+  alias: "statement",
+  syntax: "start (quiet:quiet)? test {message:text}"
+})
+
+////////////////
+// ## `end_test` rule
+//    e.g. "end test"
+////////////////
 
 /** `end test` -- marks end of the current named test run started by `start_test`. */
-export class end_test extends SpellStatement {
-  @proto static alias = "statement"
-  @proto static syntax = "end test"
-
+class end_test extends SpellStatement {
   getAST(match: P.MatchFor<this>) {
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "endTest"
     })
   }
 }
+tests.addRule(end_test, {
+  alias: "statement",
+  syntax: "end test"
+})
+
+////////////////
+// ## `echo` rule
+//    e.g. "echo 1"
+////////////////
 
 /** `echo {expression}` -- print `expression`'s value, e.g. for debugging. */
-export class echo extends SpellStatement<"expression"> {
-  @proto static alias = ["statement"]
-  @proto static syntax = "echo {expression}"
-
+class echo extends SpellStatement<"expression"> {
   getAST(match: P.MatchFor<this>) {
     const { expression } = match.groups
     return new P.ASTEchoInvocation(match, {
       expression: ast<P.ASTExpression>(expression.AST)
     })
   }
-
-  static tests: P.RuleTests = [
+}
+tests.addRule(echo, {
+  alias: ["statement"],
+  syntax: "echo {expression}",
+  tests: [
     {
       tests: [
         [`echo 1`, `spellCore.echo(1)`],
@@ -121,10 +148,4 @@ export class echo extends SpellStatement<"expression"> {
       ]
     }
   ]
-}
-
-/** Rule module for inline test rules (`expect_test`, `start_test`, `end_test`, `echo`). */
-export const tests = new SpellParser({
-  module: "tests",
-  rules: [expect_test, start_test, end_test, echo]
 })

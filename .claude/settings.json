@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(npx tsc *)",
-      "Bash(perl -pi -e ' *)"
+      "Bash(perl -pi -e ' *)",
+      "Bash(grep -v \"^src/app/store.ts$\")"
     ]
   }
 }

@@ -27,46 +27,49 @@ import { P } from "~/parser"
  *
  * ## Ways to make a rule
  *
- * ### 1. Named rule for a language ~== a class, registered with a parser  (the normal way)
+ * ### 1. Named rule for a language ~== a class + a DEFINITION, registered with a parser  (the normal way)
  * ```ts
  * export class define_property_has extends SpellStatement<
  *   "type|property|specifier?",                  // `Groups`:  see `P.GroupsFor`, copy from module's `__snapshots__`
  *   { ruleComment?: P.ASTParserAnnotation }      // `MatchData`:  what we stash in `match.data`
  * > {
- *   @proto static alias = "statement"
- *   @proto static precedence = 10
- *   @proto static syntax = ["(a|an) {type} has {property} {specifier}?", "{type} have {property} {specifier}?"]
- *   @proto static testRule = "…(has|have)"
- *   static tests = [...]
- *   getAST(match: P.MatchFor<this>) {...}
+ *   getAST(match: P.MatchFor<this>) {...}        // the class holds BEHAVIOUR only
  * }
- * parser.addRule(define_property_has)             // or `new Parser({ rules: [define_property_has, ...] })`
+ * classes.addRule(define_property_has, {         // ...the definition holds everything else
+ *   alias: "statement",
+ *   precedence: 10,
+ *   syntax: ["(a|an) {type} has {property} {specifier}?", "{type} have {property} {specifier}?"],
+ *   testRule: "…(has|have)",
+ *   tests: [...]
+ * })
  * ```
- * - Class name IS the rule name;  `static ruleName = "if"` for reserved words (`class _if`).
- * - `@proto static` puts value on the PROTOTYPE:  inherited by subclasses and visible in our constructor,
- *   which plain instance fields are not.  Forgetting `@proto` throws at registration.
- * - `ruleName`, `tests`, `skip` are plain statics, NOT inherited.
- * - `parser.addRule()` calls `instantiate()`:  one frozen instance per `syntax` variant.
+ * - The definition is type-checked against the class's own `Props` -- a typo'd prop is a compile error.
+ * - Class name IS the rule name;  pass `name: "if"` for reserved words (`class _if`) or a computed name.
+ * - `syntax` may be an array => one frozen rule instance per variant, each optionally `{ syntax, testRule }`.
+ * - NOTHING is inherited from a parent rule's definition -- share with a `const` (see `variables.ts`).
+ * - What EVERY rule of a base class has in common goes in that base's CONSTRUCTOR instead, as defaults:
+ *   `constructor(props?: Partial<P.PatternProps>) { super({ pattern, blacklist, ...props }) }`.
  *
  * ### 2. Leaf rules take their structure the same way
  * ```ts
- * class color extends P.Keyword { @proto static literal = ["red", "green"] }
- * class number_word extends P.Pattern { @proto static pattern = /^\d+$/ }
- * class word extends P.TokenType { @proto static tokenType = P.WordToken }
- * class yes_no extends P.Literal { @proto static syntax = "(yes|no)" }
+ * class color extends P.Keyword {}
+ * parser.addRule(color, { literal: ["red", "green"] })
+ * parser.addRule(class number_word extends P.Pattern {}, { pattern: /^\d+$/ })
+ * parser.addRule(class word extends P.TokenType {}, { tokenType: P.WordToken })
  * ```
  *
- * ### 3. Rule added WHILE PARSING ~== a closure class, added to scope
+ * ### 3. Rule added WHILE PARSING ~== a closure class, registered on the scope
  * ```ts
- * match.scope.rules?.add(
+ * match.scope.addRule(
  *   class card_suits extends P.Keywords {
- *     static ruleName = `${typeName}_${groupName}`   // computed name
- *     @proto static alias = "expression"
- *     @proto static literals = literals                // closes over current match
- *     getAST(match: P.MatchFor<this>) {...}
- *   }
+ *     getAST(match: P.MatchFor<this>) {...}      // closes over the match which caused it
+ *   },
+ *   { name: `${typeName}_${groupName}`, alias: "expression", literals }
  * )
  * ```
+ * - `scope.addRule()` registers on the scope's `parser` AND records the class + definition on the scope
+ *   (`scope.rules`, a `P.ScopeRule` list), so the scope can later hand on what it created -- that pair is
+ *   what re-registering somewhere else needs.  A built rule is frozen and already bound to its name.
  *
  * ### 4. Anonymous building blocks ~== plain `new`
  * ```ts
@@ -80,7 +83,6 @@ import { P } from "~/parser"
  * ### 5. From rulex syntax directly
  * ```ts
  * P.Rule.compileSyntax("give {thing:expression} (to {recipient})?")   // anonymous, as in 4
- * new give_statement()                                                   // class with single `syntax`, unregistered
  * ```
  */
 export abstract class Rule<
@@ -113,13 +115,19 @@ export abstract class Rule<
    *   - a constructor can only return ONE instance, `syntax` variants need several
    *   - rule name comes from the CLASS here, `new` leaves rules anonymous on purpose (see `name`)
    *   - `freeze()` has to wait until subclass constructors are done, base constructor is too early
-   * - `extraProps` are per-registration things only the caller knows, e.g. `module`.
+   * - `definition` is what `parser.addRule(RuleClass, definition)` was given -- `syntax`, `alias`, `tests` etc --
+   *   plus per-registration things only the caller knows, e.g. `module`.  Wins over class-level statics.
    * - Only first variant carries `tests` so we don't run same tests repeatedly.
    * - Throws if definition is unusable, e.g. anonymous class with no `ruleName`, or forgotten `@proto`.
    */
-  static instantiate(extraProps?: RuleProps): Rule[] {
-    if (Object.hasOwn(this, "skip") && this.skip) return []
-    const name = (Object.hasOwn(this, "ruleName") && this.ruleName) || this.name
+  static instantiate(definition: P.RuleDefinitionProps = {}): Rule[] {
+    const {
+      syntax = (this.prototype as { syntax?: P.RuleDefinitionProps["syntax"] }).syntax,
+      skip,
+      ...extraProps
+    } = definition
+    if (skip || (Object.hasOwn(this, "skip") && this.skip)) return []
+    const name = extraProps.name || (Object.hasOwn(this, "ruleName") && this.ruleName) || this.name
     if (!name) {
       throw new P.ParserError({
         message: "Rule class must have a name or `static ruleName`.",
@@ -140,15 +148,15 @@ export abstract class Rule<
         params: { forgotten }
       })
     }
-    const { syntax } = this.prototype as { syntax?: string | Array<string | P.RuleSyntaxVariant> }
     const variants: P.RuleSyntaxVariant[] =
       syntax === undefined
         ? [{}]
         : (Array.isArray(syntax) ? syntax : [syntax]).map((it) => (typeof it === "string" ? { syntax: it } : it))
-    const tests = Object.hasOwn(this, "tests") ? this.tests : undefined
+    const tests = extraProps.tests ?? (Object.hasOwn(this, "tests") ? this.tests : undefined)
+    delete extraProps.tests
     const constructor = this as unknown as new (props: RuleProps) => Rule
     return variants.map((variant, index) => {
-      const props: RuleProps = { ...extraProps, name, ...variant }
+      const props = { ...extraProps, name, ...variant } as RuleProps
       if (index === 0 && tests) props.tests = tests
       return new constructor(props).freeze()
     })
@@ -321,6 +329,8 @@ export abstract class Rule<
   // ## Type arguments -- type-only, nothing here exists at runtime
   ////////////////
 
+  /** TYPE-ONLY: our `Props` type argument, so `parser.addRule(RuleClass, props)` can type-check `props`. */
+  declare readonly Props: Props
   /**
    * TYPE-ONLY: our `Groups` type argument, resolved to the object shape of `match.groups` -- see `P.GroupsFor`.
    * - `declare` emits no code:  this property does NOT exist at runtime, NEVER read it.

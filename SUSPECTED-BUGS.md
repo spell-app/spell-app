@@ -13,6 +13,33 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 ## 1. Behavior bugs
 
+- `test/unitTestModuleRules.ts` `compileMatch()`: a rule unit test NEVER checks that the rule consumed the
+  whole input.  `compileMatch()` is `scope.parse(input, ruleName)` then `match.compile()` -- it compiles
+  whatever matched and silently drops any tokens left over, so trailing garbage passes.  Two tests prove it:
+  `` `pause for 2 seconds"` `` (async.ts `pause`) and `` `end print group"` `` (UI.ts `end_print_group`) each
+  carry a stray `"`, and both are green.  (Those quotes are pre-existing -- they are in the file at HEAD --
+  but the reason nobody ever noticed is this harness.)
+  Real parsing does NOT behave this way:  `BlockLine.parse()` feeds leftover tokens to the `parse_error` rule
+  and collects them into `match.data.errors`.  So every rule's unit tests are weaker than the parser they
+  cover -- a `syntax` that under-matches its own test input looks correct.
+  Likely fix: in `compileMatch()`, after a successful parse, fail unless `match.length` equals the tokenized
+  input length.  MEASURED 2026-09-20 by adding exactly that check and running the suite:  only **10 of 1423**
+  tests leave input unconsumed, in two clearly different groups --
+  - 5 are the stray-`"` typos of §3 plus one more:  `pause` x3 (async.ts), `end_print_group` (UI.ts),
+    `do_nothing` (`` `do nothing"` ``, statements.ts).  Fixing the typo fixes the test.
+  - 5 are real "rule under-matches its own test input" cases worth a look:  rulex `list` on `` `[]` `` and
+    `` `[{sub}]` ``, rulex `subrule` on `` `{}` ``, rulex `symbol` on `` `::` ``, and spell `number` on `` `1.` ``
+    (does `1.` legitimately match just `1` and leave the `.`?).
+  So the fix is small and tractable, not a 100-test cleanup;  left undone only because the 5 real cases each
+  need a judgement call about the grammar.  Found 2026-09-20 during the `addRule()` definition rollout.
+
+- `parser/rules/Choice.ts` `getBestMatch()`: two comments claimed it prefers LATER-defined rules on a tie ("takes
+  LATEST one", "we run this BACKWARDS to put later-defined rules first").  It has always done the OPPOSITE -- the
+  precedence loop runs forwards, and the length loop scans backwards with `>=`, so an equally-long EARLIER match
+  replaces a later one.  Verified 2026-09-20 with a two-rule `Group`: the first-registered rule wins.  Comments now
+  describe the real behaviour and `Rule.test.ts` pins it, but if the author's stated INTENT was right then the code
+  is wrong and rule-ordering across every module would flip -- someone who knows the grammar should decide.
+
 - `languages/spell/rules/UI.ts` `css`: reads `match.data.file` (was ad hoc `match.file`, documented as "set externally by `SpellCSSFile`") but NOTHING sets it -- `SpellCSSFile.parse()` doesn't.  So compiled output is always `spellCore.installStyles(undefined, ...)`.  Likely fix: `match.data.file = this.file` after parsing, but untested so left alone.
 
 - `languages/spell/rules/draw.ts` `draw_items`: `draw the cards of the deck` compiles to `spellCore.drawThing(deck.cards)`, test expects `spellCore.drawItems(deck)`.  `draw_thing` wins on `precedence: 100` (see §3).  Never noticed because `draw.ts` had no `draw.test.ts`, so its embedded tests never ran -- file added 2026-09-20, this one case marked `skip`.
@@ -66,6 +93,10 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 - `languages/spell/rules/methods.ts` `type_method_arg`: `method` fragment from `type.raw`, sibling `arg.name` uses `instanceCase(type.value)`.
 
+- `languages/spell/rules/async.ts` `pause` tests: 3 of 4 input strings have a stray trailing `"` (`` `pause for 2 seconds"` ``, `` `pause for 500 msec"` ``, `` `pause for 10 ticks"` ``) that the 4th (`pause for (10 + 10) sec`) doesn't -- looks like a copy-paste typo, not intentional. Left byte-for-byte while converting to `addRule()` per the rollout guide.
+
+- `languages/spell/rules/UI.ts` `end_print_group` test: input `` `end print group"` `` has the same stray trailing `"`. Same as above.
+
 ## 4. Dead / redundant code
 
 - `parser/rules/Choice.ts` constructor: used to assign copied `rules` onto caller's `props` -- with `clone()` passing the rule itself, that re-wrote the ORIGINAL group's `rules` on every clone.  Harmless (equal copy) but fixed in passing.
@@ -105,7 +136,7 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 - `app/pages/ProjectChooser.tsx` `ProjectRootDisplay`: no call sites.
 
-- `app/pages/ProjectSettings.tsx`: unrouted, hardcoded demo data; `store.showProjectSettings()` is a stub.
+- `app/pages/ProjectSettings.tsx`: unrouted, hardcoded demo data; `editor.showProjectSettings()` is a stub.
 
 - `environment.ts`: `systemFilesRoot` and `userFilesRoot` both `srcDir`; server's owner-based split is a no-op.
 

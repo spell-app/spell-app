@@ -17,13 +17,13 @@
  */
 export type ModalComponentProps<Props, Result = unknown> = {
   /** NOTE: `<ModalRoot>` does not actually pass this -- it forwards only `props`/`resolve`/`reject`;
-   *  the modal's id travels as React's own `key` instead (see `props.id` in `store.ts`'s `showModal()`). */
+   *  the modal's id travels as React's own `key` instead (see `props.id` in `editor.ts`'s `showModal()`). */
   id?: string | number
   /** The modal's own props, e.g. `AlertModalProps`. */
   props: Props
-  /** Call to close the modal and resolve `store.showModal()`'s promise with `value`. */
+  /** Call to close the modal and resolve `editor.showModal()`'s promise with `value`. */
   resolve: (value?: Result) => void
-  /** Call to close the modal and reject `store.showModal()`'s promise with `reason`. */
+  /** Call to close the modal and reject `editor.showModal()`'s promise with `reason`. */
   reject?: (reason?: unknown) => void
 }
 

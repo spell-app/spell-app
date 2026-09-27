@@ -2,13 +2,24 @@
  * Core rules -- simple datatypes (`number`, `boolean`, `text`, `undefined`), whitespace/newline/comment
  * tokens, and the `keyword` identifier pattern used by method/type definitions elsewhere.
  */
-import { assert, proto } from "~/util"
+import { assert } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 
+/**
+ * Rule module for core rules (whitespace variants, simple datatypes, `keyword`).
+ * - Each rule class below is followed by the `core.addRule()` call which defines and registers it.
+ */
+export const core = new SpellParser({ module: "core" })
+
+////////////////////////////////////////
+// # Various flavors of whitespace
+////////////////////////////////////////
+
 ////////////////
-// ## Various flavors of whitespace
+// ## `eat_whitespace` rule
+//    e.g. "  ", eats leading whitespace tokens greedily
 ////////////////
 
 /**
@@ -17,60 +28,90 @@ import { SpellParser } from "~/languages/spell/SpellParser"
  *   `whitespace` `Subrule`), matching zero-or-more times.  See report: the old bag form got away with
  *   `constructor: class ... extends P.Subrule` only because it's dead code, never referenced elsewhere.
  */
-export class eat_whitespace extends P.Repeat {
-  @proto static syntax = "{whitespace}*"
-  @proto static datatype = "string"
-}
+class eat_whitespace extends P.Repeat {}
+core.addRule(eat_whitespace, {
+  syntax: "{whitespace}*",
+  datatype: "string"
+})
+
+////////////////
+// ## `whitespace` rule
+//    e.g. " ", any whitespace token
+////////////////
 
 /** Any whitespace token -- space, tab, newline, etc., wrapped as-is into a `StringLiteral`. */
-export class whitespace extends P.TokenType {
-  @proto static datatype = "string"
-  @proto static tokenType = P.WhitespaceToken
-
+class whitespace extends P.TokenType {
   getAST(match: P.MatchFor<this>): P.ASTStringLiteral {
     const { value, raw } = match
     return new P.ASTStringLiteral(match, { value: assert.string(value), raw })
   }
 }
+core.addRule(whitespace, {
+  datatype: "string",
+  tokenType: P.WhitespaceToken
+})
+
+////////////////
+// ## `indent` rule
+//    e.g. "    ", leading whitespace at start of a line
+////////////////
 
 /** Indent whitespace specifically, e.g. leading spaces/tabs at start of a line. */
-export class indent extends P.TokenType {
-  @proto static datatype = "string"
-  @proto static tokenType = P.IndentToken
-
+class indent extends P.TokenType {
   getAST(match: P.MatchFor<this>): P.ASTStringLiteral {
     const { value, raw } = match
     return new P.ASTStringLiteral(match, { value: assert.string(value), raw })
   }
 }
+core.addRule(indent, {
+  datatype: "string",
+  tokenType: P.IndentToken
+})
+
+////////////////
+// ## `newline` rule
+//    e.g. "\n"
+////////////////
 
 /** Single newline. */
-export class newline extends P.TokenType {
-  @proto static datatype = "string"
-  @proto static tokenType = P.NewlineToken
-
+class newline extends P.TokenType {
   getAST(match: P.MatchFor<this>): P.ASTStringLiteral {
     const { value, raw } = match
     return new P.ASTStringLiteral(match, { value: assert.string(value), raw })
   }
 }
+core.addRule(newline, {
+  datatype: "string",
+  tokenType: P.NewlineToken
+})
+
+////////////////
+// ## `inline_whitespace` rule
+//    e.g. " ", between tokens on the same line
+////////////////
 
 /**
  * Inline whitespace only, e.g. spaces/tabs between tokens on same line.
  * - NOTE: normally filtered out when tokenizing, so this rule rarely matches in practice.
  */
-export class inline_whitespace extends P.TokenType {
-  @proto static datatype = "string"
-  @proto static tokenType = P.InlineWhitespaceToken
-
+class inline_whitespace extends P.TokenType {
   getAST(match: P.MatchFor<this>): P.ASTStringLiteral {
     const { value, raw } = match
     return new P.ASTStringLiteral(match, { value: assert.string(value), raw })
   }
 }
+core.addRule(inline_whitespace, {
+  datatype: "string",
+  tokenType: P.InlineWhitespaceToken
+})
+
+////////////////////////////////////////
+// # Simple types:  number, boolean, text (string), etc.
+////////////////////////////////////////
 
 ////////////////
-// ## Simple types:  number, boolean, text (string), etc.
+// ## `number` rule (class `numeric`)
+//    e.g. "1"
 ////////////////
 
 /**
@@ -78,18 +119,18 @@ export class inline_whitespace extends P.TokenType {
  * - Class named `numeric`, not `number` -- `number` is a reserved TS type keyword.
  * - TODO:  `integer` and `decimal`?  too techy?
  */
-export class numeric extends P.TokenType {
-  static ruleName = "number"
-  @proto static alias = "expression"
-  @proto static datatype = "number"
-  @proto static tokenType = P.NumberToken
-
+class numeric extends P.TokenType {
   getAST(match: P.MatchFor<this>): P.ASTNumericLiteral {
     const { value, raw } = match
     return new P.ASTNumericLiteral(match, { value: assert.number(value), raw })
   }
-
-  static tests: P.RuleTests = [
+}
+core.addRule(numeric, {
+  name: "number",
+  alias: "expression",
+  datatype: "number",
+  tokenType: P.NumberToken,
+  tests: [
     {
       title: "correctly matches numbers",
       tests: [
@@ -117,14 +158,25 @@ export class numeric extends P.TokenType {
       tests: [["- 1", undefined]]
     }
   ]
-}
+})
+
+////////////////
+// ## `number_as_string` rule
+//    e.g. "zero", -> 0
+////////////////
 
 /** `number` spelled out as a string, `zero` to `ten` -- `VALUE_MAP` does the word-to-number lookup. */
-export class number_as_string extends P.Pattern {
-  @proto static alias = ["expression", "number"]
-  @proto static datatype = "number"
-  @proto static pattern = /^(zero|one|two|three|four|five|six|seven|eight|nine|ten)$/
-  @proto static VALUE_MAP = {
+class number_as_string extends P.Pattern {
+  getAST(match: P.MatchFor<this>): P.ASTNumericLiteral {
+    const { value, raw } = match
+    return new P.ASTNumericLiteral(match, { value: assert.number(value), raw })
+  }
+}
+core.addRule(number_as_string, {
+  alias: ["expression", "number"],
+  datatype: "number",
+  pattern: /^(zero|one|two|three|four|five|six|seven|eight|nine|ten)$/,
+  VALUE_MAP: {
     zero: 0,
     one: 1,
     two: 2,
@@ -136,14 +188,8 @@ export class number_as_string extends P.Pattern {
     eight: 8,
     nine: 9,
     ten: 10
-  }
-
-  getAST(match: P.MatchFor<this>): P.ASTNumericLiteral {
-    const { value, raw } = match
-    return new P.ASTNumericLiteral(match, { value: assert.number(value), raw })
-  }
-
-  static tests: P.RuleTests = [
+  },
+  tests: [
     {
       title: "correctly matches number strings",
       tests: [
@@ -161,19 +207,30 @@ export class number_as_string extends P.Pattern {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `boolean` rule (class `_boolean`)
+//    e.g. "true", also accepts synonyms like "yes"/"ok"/"always"
+////////////////
 
 /**
  * Boolean literal -- also accepts common synonyms like `yes`/`no`, `ok`/`cancel`, `always`/`never`.
  * - Class named `_boolean`, not `boolean` -- `boolean` is a reserved TS type keyword.
  * - TODO: better name for this?  "flag"?  "truism"?
  */
-export class _boolean extends P.Pattern {
-  static ruleName = "boolean"
-  @proto static alias = "expression"
-  @proto static datatype = "boolean"
-  @proto static pattern = /^(true|false|yes|no|ok|cancel|always|never)$/
-  @proto static VALUE_MAP = {
+class _boolean extends P.Pattern {
+  getAST(match: P.MatchFor<this>): P.ASTBooleanLiteral {
+    const { value, raw } = match
+    return new P.ASTBooleanLiteral(match, { value: assert.boolean(value), raw })
+  }
+}
+core.addRule(_boolean, {
+  name: "boolean",
+  alias: "expression",
+  datatype: "boolean",
+  pattern: /^(true|false|yes|no|ok|cancel|always|never)$/,
+  VALUE_MAP: {
     true: true,
     false: false,
     yes: true,
@@ -182,14 +239,8 @@ export class _boolean extends P.Pattern {
     cancel: false,
     always: true,
     never: false
-  }
-
-  getAST(match: P.MatchFor<this>): P.ASTBooleanLiteral {
-    const { value, raw } = match
-    return new P.ASTBooleanLiteral(match, { value: assert.boolean(value), raw })
-  }
-
-  static tests: P.RuleTests = [
+  },
+  tests: [
     {
       title: "correctly matches booleans",
       tests: [
@@ -213,24 +264,29 @@ export class _boolean extends P.Pattern {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `text` rule
+//    e.g. '""'
+////////////////
 
 /**
  * Literal `text` string.
  * - NOTE: in spell you must use DOUBLE QUOTES (`"`) -- single quotes are treated as a single symbol.
  * - Returned value has original enclosing quotes.
  */
-export class text extends P.TokenType {
-  @proto static alias = "expression"
-  @proto static datatype = "string"
-  @proto static tokenType = P.TextToken
-
+class text extends P.TokenType {
   getAST(match: P.MatchFor<this>): P.ASTStringLiteral {
     const { value, raw } = match
     return new P.ASTStringLiteral(match, { value: assert.string(value), raw })
   }
-
-  static tests: P.RuleTests = [
+}
+core.addRule(text, {
+  alias: "expression",
+  datatype: "string",
+  tokenType: P.TextToken,
+  tests: [
     {
       title: "correctly matches text",
       tests: [
@@ -242,12 +298,15 @@ export class text extends P.TokenType {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `comment` rule
+//    e.g. "//"
+////////////////
 
 /** Line comment token -- wraps a `CommentToken` into a `LineComment` AST node, e.g. `// foo`. */
-export class comment extends P.TokenType {
-  @proto static tokenType = P.CommentToken
-
+class comment extends P.TokenType {
   getAST(match: P.MatchFor<this>): P.ASTLineComment {
     const [token] = match.matched
     // `tokenType: CommentToken` guarantees the single matched token is a `CommentToken`.
@@ -255,8 +314,10 @@ export class comment extends P.TokenType {
     const { commentSymbol, initialWhitespace, value } = token
     return new P.ASTLineComment(match, { commentSymbol, initialWhitespace, value })
   }
-
-  static tests: P.RuleTests = [
+}
+core.addRule(comment, {
+  tokenType: P.CommentToken,
+  tests: [
     {
       compileAs: "comment",
       tests: [
@@ -268,23 +329,28 @@ export class comment extends P.TokenType {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `undefined` rule (class `undefined_literal`)
+//    e.g. "nothing"
+////////////////
 
 /**
  * `undefined` as an expression... ???
  * - Class named `undefined_literal`, not `undefined` -- `undefined` is a reserved word.
  */
-export class undefined_literal extends P.Literal {
-  static ruleName = "undefined"
-  @proto static alias = "expression"
-  @proto static datatype = "undefined"
-  @proto static syntax = "(undefined|nothing)"
-
+class undefined_literal extends P.Literal {
   getAST(match: P.MatchFor<this>): P.ASTUndefinedLiteral {
     return new P.ASTUndefinedLiteral(match)
   }
-
-  static tests: P.RuleTests = [
+}
+core.addRule(undefined_literal, {
+  name: "undefined",
+  alias: "expression",
+  datatype: "undefined",
+  syntax: "(undefined|nothing)",
+  tests: [
     {
       compileAs: "expression",
       tests: [
@@ -293,15 +359,18 @@ export class undefined_literal extends P.Literal {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `keyword` rule
+//    e.g. "abc"
+////////////////
 
 /**
  * Single alphanumeric word used as a keyword, e.g. in a method definition.
  * - Case is not a factor, but it must start with a letter.
  */
-export class keyword extends P.Pattern {
-  @proto static pattern = /^[a-zA-Z][\w-]*$/
-
+class keyword extends P.Pattern {
   /** Converts dashes to underscores when compiling, so `abc-def` outputs as valid JS identifier `abc_def`. */
   mapValue<T = string>(value: string): T {
     return `${value}`.replace(/-/g, "_") as T
@@ -311,8 +380,10 @@ export class keyword extends P.Pattern {
     const { value, raw } = match
     return new P.ASTKeywordLiteral(match, { value: assert.string(value), raw })
   }
-
-  static tests: P.RuleTests = [
+}
+core.addRule(keyword, {
+  pattern: /^[a-zA-Z][\w-]*$/,
+  tests: [
     {
       title: "correctly matches words",
       tests: [
@@ -330,24 +401,5 @@ export class keyword extends P.Pattern {
         ["(asda)", undefined] // TODO... ???
       ]
     }
-  ]
-}
-
-/** Rule module for core rules (whitespace variants, simple datatypes, `keyword`). */
-export const core = new SpellParser({
-  module: "core",
-  rules: [
-    eat_whitespace,
-    whitespace,
-    indent,
-    newline,
-    inline_whitespace,
-    numeric,
-    number_as_string,
-    _boolean,
-    text,
-    comment,
-    undefined_literal,
-    keyword
   ]
 })

@@ -9,6 +9,6 @@ declare module "global" {
  *   and `type` cannot merge.  This is the documented exception to the "always use `type`" rule.
  */
 interface Window {
-  /** DEBUG: current `SpellProject`, set by `store.selectPath()` for console access. */
+  /** DEBUG: current `SpellProject`, set by `editor.selectPath()` for console access. */
   project?: import("~/languages/spell").SP.SpellProject
 }

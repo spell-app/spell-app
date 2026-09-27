@@ -1,7 +1,7 @@
 //
 //  ## Master import file for the app's modals.
 //
-//  NOTE: `./ModalRoot` renders whichever modal `store.showModal()` pushed onto `store.modals`;
+//  NOTE: `./ModalRoot` renders whichever modal `editor.showModal()` pushed onto `editor.modals`;
 //  the rest are the modals it can show.
 //
 

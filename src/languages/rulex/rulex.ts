@@ -8,7 +8,6 @@
  *   with meaningful names for debugging.
  */
 
-import { proto } from "~/util/decorators"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { Parser } from "~/parser/Parser"
@@ -25,22 +24,27 @@ export const rulex = new RulexParser({ module: "rulex" })
 // see `~/languages/rulex/index.ts` and `Parser.rulexParser`.
 Parser.rulexParser = rulex
 
+////////////////
+// ## `testLocation` rule
+//    e.g. "…"
+////////////////
+
 /**
  * Optional test-location prefix `…` or `^`, adorning most other rules below.
  * - Compiles to `P.ANYWHERE` for `…`, `P.AT_START` for `^`.
  * - TODO: this mapping looks reversed from `Rule.getRulexFlags()` (`~/parser/rules/Rule.ts`), which
  *   stringifies `AT_START` back to `…` and `ANYWHERE` back to `^` -- see `## Suspected bugs` in doc-pass report.
  */
-export class testLocationRule extends P.Symbol {
-  static ruleName = "testLocation"
-  @proto static literal = ["…", "^"]
-  @proto static optional = true
-
+class testLocationRule extends P.Symbol {
   compile(match: P.MatchFor<this>) {
     return match.matched[0]!.value === "…" ? P.ANYWHERE : P.AT_START
   }
-
-  static tests: P.RuleTests = [
+}
+rulex.addRule(testLocationRule, {
+  name: "testLocation",
+  literal: ["…", "^"],
+  optional: true,
+  tests: [
     {
       title: "matches testLocation",
       tests: [
@@ -50,22 +54,27 @@ export class testLocationRule extends P.Symbol {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `matchGroup` rule
+//    e.g. "arg:"
+////////////////
 
 /**
  * Optional `name:` prefix, adorning rules that can carry an `matchGroup` (e.g. `{arg:sub}`, `(arg:a|b)`).
  * - Compiles to just the name string, e.g. `"arg:"` => `"arg"`.
  */
-export class matchGroupRule extends P.Sequence<"matchGroup"> {
-  static ruleName = "matchGroup"
-  @proto static rules = [new P.Word({ matchGroup: "matchGroup" }), new P.Symbol(":")]
-  @proto static optional = true
-
+class matchGroupRule extends P.Sequence<"matchGroup"> {
   compile(match: P.MatchFor<this>) {
     return match.groups.matchGroup.value
   }
-
-  static tests: P.RuleTests = [
+}
+rulex.addRule(matchGroupRule, {
+  name: "matchGroup",
+  rules: [new P.Word({ matchGroup: "matchGroup" }), new P.Symbol(":")],
+  optional: true,
+  tests: [
     {
       title: "matches matchGroup",
       tests: [
@@ -74,22 +83,27 @@ export class matchGroupRule extends P.Sequence<"matchGroup"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `repeatFlag` rule
+//    e.g. "?"
+////////////////
 
 /**
  * Optional trailing repeat flag `?` / `*` / `+`, adorning most other rules below.
  * - Compiles to the matched flag character itself; `applyFlags()` interprets it into `optional` / `P.Repeat`.
  */
-export class repeatFlagRule extends P.Symbol {
-  static ruleName = "repeatFlag"
-  @proto static literal = ["?", "*", "+"]
-  @proto static optional = true
-
+class repeatFlagRule extends P.Symbol {
   compile(match: P.MatchFor<this>) {
     return match.matched[0]!.value
   }
-
-  static tests: P.RuleTests = [
+}
+rulex.addRule(repeatFlagRule, {
+  name: "repeatFlag",
+  literal: ["?", "*", "+"],
+  optional: true,
+  tests: [
     {
       title: "matches repeatFlag",
       tests: [
@@ -100,44 +114,42 @@ export class repeatFlagRule extends P.Symbol {
       ]
     }
   ]
-}
+})
 
-// Register base rules `testLocation`, `matchGroup` and `repeatFlag` FIRST -- the rules below put these
-// registered INSTANCES directly inside their own `rules` arrays, so they must already be registered.
-rulex.addRule(testLocationRule)
-rulex.addRule(matchGroupRule)
-rulex.addRule(repeatFlagRule)
+// `testLocation` / `matchGroup` / `repeatFlag` are registered ABOVE first, so we can pull their registered
+// INSTANCES out here -- the rules below put these instances directly inside their own `rules` arrays.
 const { testLocation, matchGroup, repeatFlag } = rulex.rules as Record<
   "testLocation" | "matchGroup" | "repeatFlag",
   P.Rule
 >
 
 ////////////////
-// ## Combo rules
+// ## `symbol` rule
+//    e.g. ":"
 ////////////////
 
 /**
  * A single symbol, or `\<symbol>` so we can escape special symbols like `?` and `*`.
  * - Compiles to a `P.Symbol`, adorned by `testLocation` / `repeatFlag` via `applyFlags()`.
  */
-export class symbolRule extends P.Sequence<"testLocation?|isEscaped?|literal|repeatFlag?"> {
-  static ruleName = "symbol"
-  @proto static alias = "rule"
-  @proto static rules = [
-    testLocation,
-    new P.Pattern({ matchGroup: "isEscaped", pattern: /^\\$/, optional: true }),
-    new P.TokenType({ tokenType: P.SymbolToken, matchGroup: "literal" }),
-    repeatFlag
-  ]
-
+class symbolRule extends P.Sequence<"testLocation?|isEscaped?|literal|repeatFlag?"> {
   compile(match: P.MatchFor<this>) {
     const { literal, isEscaped } = match.groups
     const rule = new P.Symbol(literal.value)
     if (isEscaped) rule.isEscaped = true
     return rulex.applyFlags(rule, match)
   }
-
-  static tests: P.RuleTests = [
+}
+rulex.addRule(symbolRule, {
+  name: "symbol",
+  alias: "rule",
+  rules: [
+    testLocation,
+    new P.Pattern({ matchGroup: "isEscaped", pattern: /^\\$/, optional: true }),
+    new P.TokenType({ tokenType: P.SymbolToken, matchGroup: "literal" }),
+    repeatFlag
+  ],
+  tests: [
     {
       title: "matches symbol",
       tests: [
@@ -179,7 +191,12 @@ export class symbolRule extends P.Sequence<"testLocation?|isEscaped?|literal|rep
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `keyword` rule
+//    e.g. "word"
+////////////////
 
 /**
  * A single keyword word, with an optional trailing repeat flag.
@@ -188,17 +205,17 @@ export class symbolRule extends P.Sequence<"testLocation?|isEscaped?|literal|rep
  *   stands for.
  * - Compiles to a `P.Keyword`, adorned by `testLocation` / `repeatFlag` via `applyFlags()`.
  */
-export class keyword extends P.Sequence<"testLocation?|literal|repeatFlag?"> {
-  @proto static alias = "rule"
-  @proto static rules = [testLocation, new P.Word({ matchGroup: "literal" }), repeatFlag]
-
+class keyword extends P.Sequence<"testLocation?|literal|repeatFlag?"> {
   compile(match: P.MatchFor<this>) {
     const { literal } = match.groups
     const rule = new P.Keyword(literal.value)
     return rulex.applyFlags(rule, match)
   }
-
-  static tests: P.RuleTests = [
+}
+rulex.addRule(keyword, {
+  alias: "rule",
+  rules: [testLocation, new P.Word({ matchGroup: "literal" }), repeatFlag],
+  tests: [
     {
       title: "matches single keyword",
       tests: [
@@ -217,25 +234,30 @@ export class keyword extends P.Sequence<"testLocation?|literal|repeatFlag?"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `number` rule
+//    e.g. "1"
+////////////////
 
 /**
  * Match a SPECIFIC number literal.
  * - The returned rule is a `Keyword` rule, so it can be combined with alpha-numeric keywords.
  * - TODO: how is this used?
  */
-export class numberRule extends P.Sequence<"testLocation?|number|repeatFlag?"> {
-  static ruleName = "number"
-  @proto static alias = "rule"
-  @proto static rules = [testLocation, new P.TokenType({ tokenType: P.NumberToken, matchGroup: "number" }), repeatFlag]
-
+class numberRule extends P.Sequence<"testLocation?|number|repeatFlag?"> {
   compile(match: P.MatchFor<this>) {
     const { number } = match.groups
     const rule = new P.Keyword({ literal: number.value })
     return rulex.applyFlags(rule, match)
   }
-
-  static tests: P.RuleTests = [
+}
+rulex.addRule(numberRule, {
+  name: "number",
+  alias: "rule",
+  rules: [testLocation, new P.TokenType({ tokenType: P.NumberToken, matchGroup: "number" }), repeatFlag],
+  tests: [
     {
       title: "matches single keyword",
       tests: [
@@ -250,15 +272,30 @@ export class numberRule extends P.Sequence<"testLocation?|number|repeatFlag?"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `subrule` rule
+//    e.g. "{sub}"
+////////////////
 
 /**
  * `Subrule`: match a named rule, as part of a larger sequence.
  * - `{name}` references rule `name`; `{arg:name}` also sets `matchGroup` on the resulting `P.Subrule`.
  */
-export class subrule extends P.Sequence<"testLocation[]?|matchGroup?|rule|repeatFlag?"> {
-  @proto static alias = "rule"
-  @proto static rules = [
+class subrule extends P.Sequence<"testLocation[]?|matchGroup?|rule|repeatFlag?"> {
+  compile(match: P.MatchFor<this>) {
+    const rule = new P.Subrule(String(match.groups.rule.compile()))
+    // `testLocation` appears TWICE in `rules` below (once before `{`, once right inside it -- e.g. `…{sub}`
+    // vs `{…sub}` both set it), so its group type is an array.  Valid rulex syntax only ever supplies one of
+    // the two at once, so at runtime it's really a single `Match` -- this cast narrows for `applyFlags()`,
+    // which only reads the 3 shared flag groups (and tolerates them being absent).
+    return rulex.applyFlags(rule, match as unknown as P.Match<P.GroupsFor<"repeatFlag?|matchGroup?|testLocation?">>)
+  }
+}
+rulex.addRule(subrule, {
+  alias: "rule",
+  rules: [
     testLocation,
     new P.Symbol("{"),
     testLocation,
@@ -266,18 +303,8 @@ export class subrule extends P.Sequence<"testLocation[]?|matchGroup?|rule|repeat
     new P.Word({ matchGroup: "rule" }),
     new P.Symbol("}"),
     repeatFlag
-  ]
-
-  compile(match: P.MatchFor<this>) {
-    const rule = new P.Subrule(String(match.groups.rule.compile()))
-    // `testLocation` appears TWICE in `rules` above (once before `{`, once right inside it -- e.g. `…{sub}`
-    // vs `{…sub}` both set it), so its group type is an array.  Valid rulex syntax only ever supplies one of
-    // the two at once, so at runtime it's really a single `Match` -- this cast narrows for `applyFlags()`,
-    // which only reads the 3 shared flag groups (and tolerates them being absent).
-    return rulex.applyFlags(rule, match as unknown as P.Match<P.GroupsFor<"repeatFlag?|matchGroup?|testLocation?">>)
-  }
-
-  static tests: P.RuleTests = [
+  ],
+  tests: [
     {
       title: "matches subrule",
       compileAs: "rule",
@@ -297,24 +324,19 @@ export class subrule extends P.Sequence<"testLocation[]?|matchGroup?|rule|repeat
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `list` rule
+//    e.g. "[{sub},]"
+////////////////
 
 /**
  * `[rule delimiter]`: match a list of `rule`, separated by `delimiter`, with an optional repeat flag.
  * - Both `rule` and `delimiter` MUST themselves be `{subrule}` references, not inline rulex.
  * - Compiles to a `P.Repeat` with `rule` / `delimiter` set from the two subrules.
  */
-export class list extends P.Sequence<"matchGroup?|ruleName|delimiter|repeatFlag?"> {
-  @proto static alias = "rule"
-  @proto static rules = [
-    new P.Symbol("["),
-    matchGroup,
-    new P.Subrule({ matchGroup: "ruleName", rule: "rule" }),
-    new P.Subrule({ matchGroup: "delimiter", rule: "rule" }),
-    new P.Symbol("]"),
-    new P.Symbol({ matchGroup: "repeatFlag", literal: "?", optional: true })
-  ]
-
+class list extends P.Sequence<"matchGroup?|ruleName|delimiter|repeatFlag?"> {
   compile(match: P.MatchFor<this>) {
     const { ruleName, delimiter } = match.groups
     const rule = new P.Repeat({
@@ -323,8 +345,18 @@ export class list extends P.Sequence<"matchGroup?|ruleName|delimiter|repeatFlag?
     })
     return rulex.applyFlags(rule, match)
   }
-
-  static tests: P.RuleTests = [
+}
+rulex.addRule(list, {
+  alias: "rule",
+  rules: [
+    new P.Symbol("["),
+    matchGroup,
+    new P.Subrule({ matchGroup: "ruleName", rule: "rule" }),
+    new P.Subrule({ matchGroup: "delimiter", rule: "rule" }),
+    new P.Symbol("]"),
+    new P.Symbol({ matchGroup: "repeatFlag", literal: "?", optional: true })
+  ],
+  tests: [
     {
       title: "matches list",
       compileAs: "rule",
@@ -342,7 +374,12 @@ export class list extends P.Sequence<"matchGroup?|ruleName|delimiter|repeatFlag?
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `choices` rule
+//    e.g. "(>|a)"
+////////////////
 
 /** `match.groups` for `choices` -- `split`'s nested groups (`items` / `prefix`) come from `P.NestedSplit`. */
 type ChoicesGroups = P.GroupsFor<"testLocation?|repeatFlag?"> & { split: P.Match<P.NestedSplitGroups> }
@@ -356,21 +393,7 @@ type ChoicesGroups = P.GroupsFor<"testLocation?|repeatFlag?"> & { split: P.Match
  * - If exactly one choice remains after consolidation, returns that rule directly instead of wrapping it in
  *   a `P.Choice` -- NOTE: in that case the choice's own flags "beat" the rule's flags if they conflict.
  */
-export class choices extends P.Sequence<ChoicesGroups> {
-  @proto static alias = "rule"
-  @proto static rules = [
-    testLocation,
-    new P.NestedSplit({
-      matchGroup: "split",
-      start: new P.Symbol("("),
-      prefix: matchGroup,
-      item: new P.Subrule({ rule: "sequence", matchGroup: "choices" }),
-      delimiter: new P.Symbol("|"),
-      end: new P.Symbol(")")
-    }),
-    repeatFlag
-  ]
-
+class choices extends P.Sequence<ChoicesGroups> {
   compile(match: P.MatchFor<this>) {
     const { items, prefix: matchGroup } = match.groups.split.groups
     let choices: P.Rule[] = items.map((item) => RulexParser.compileMatchOrDie(item))
@@ -392,8 +415,22 @@ export class choices extends P.Sequence<ChoicesGroups> {
     if (matchGroup) rule.matchGroup = String(matchGroup.compile())
     return rule
   }
-
-  static tests: P.RuleTests = [
+}
+rulex.addRule(choices, {
+  alias: "rule",
+  rules: [
+    testLocation,
+    new P.NestedSplit({
+      matchGroup: "split",
+      start: new P.Symbol("("),
+      prefix: matchGroup,
+      item: new P.Subrule({ rule: "sequence", matchGroup: "choices" }),
+      delimiter: new P.Symbol("|"),
+      end: new P.Symbol(")")
+    }),
+    repeatFlag
+  ],
+  tests: [
     {
       title: "single rule in a choice block",
       compileAs: "rule",
@@ -462,7 +499,12 @@ export class choices extends P.Sequence<ChoicesGroups> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `sequence` rule
+//    e.g. "aa bb cc"
+////////////////
 
 /**
  * `sequence`: a sequence of rules -- our top-level rule, and `rulex`'s `defaultRule`.
@@ -474,9 +516,7 @@ export class choices extends P.Sequence<ChoicesGroups> {
  *   wrapping it in a `P.Sequence`.
  * - TODO: `consume all tokens`...
  */
-export class sequence extends P.Repeat {
-  @proto static rule = new P.Subrule("rule")
-
+class sequence extends P.Repeat {
   compile(match: P.MatchFor<this>) {
     let matched: P.Rule[] = match.items.map((item) => RulexParser.compileMatchOrDie(item))
 
@@ -499,8 +539,10 @@ export class sequence extends P.Repeat {
 
     return new P.Sequence(rules)
   }
-
-  static tests: P.RuleTests = [
+}
+rulex.addRule(sequence, {
+  rule: new P.Subrule("rule"),
+  tests: [
     {
       title: "sequences",
       showAll: true,
@@ -549,13 +591,4 @@ export class sequence extends P.Repeat {
       ]
     }
   ]
-}
-
-// Register the rest, in order.
-rulex.addRule(symbolRule)
-rulex.addRule(keyword)
-rulex.addRule(numberRule)
-rulex.addRule(subrule)
-rulex.addRule(list)
-rulex.addRule(choices)
-rulex.addRule(sequence)
+})

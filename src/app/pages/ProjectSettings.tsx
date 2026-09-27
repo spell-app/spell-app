@@ -16,7 +16,7 @@ const SubmitButton = UI.SubmitButton as ReactComponentType<{ children?: ReactNod
  * ### `<ProjectSettings />`
  * Form scaffold for project settings.
  * - `values`/`onSubmit` are hardcoded placeholders -- not yet wired to a real project setting or
- *   `store.showProjectSettings()` (still a TODO stub), and currently commented out of `<SpellEditor>`.
+ *   `editor.showProjectSettings()` (still a TODO stub), and currently commented out of `<SpellEditor>`.
  ****************/
 export const ProjectSettings = view(function ProjectSettings() {
   const values = {

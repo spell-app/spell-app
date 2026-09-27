@@ -1,16 +1,22 @@
 /**
  * Rules for dealing with lists -- literals, membership, indexing, in-place mutation, iteration.
- * - NOTE: several rules capture a `{arg:singular_variable}`/`{arg:plural_variable}` classifier noun
+ * - NOTE: several rules capture a `{arg:singular_identifier}`/`{arg:plural_identifier}` classifier noun
  *   (e.g. `card`, `items`) that's matched for readability only and never read back out of `match.groups`.
  * TODO: sort
  */
 
-import { proto, singularize } from "~/util"
+import { singularize } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 import { SpellExpression, InfixOperatorSuffix } from "./expressions"
+
+/**
+ * Rule module for list rules -- literals, membership, indexing, in-place mutation, iteration.
+ * - Each rule class below is followed by the `lists.addRule()` call which defines and registers it.
+ */
+export const lists = new SpellParser({ module: "lists" })
 
 /** What `P.ASTMethodDefinition`'s `body` prop accepts. */
 type MethodBody = P.ASTStatementBlock | P.ASTStatement | P.ASTExpression
@@ -37,21 +43,26 @@ function newMethodScope(props: P.MethodScopeProps): P.MethodScope {
   return new P.MethodScope(props)
 }
 
+////////////////
+// ## `identifier_list` rule
+//    e.g. "up or down"
+////////////////
+
 /**
  * List of identifiers and/or numbers, e.g. `clubs or hearts`, `jack, queen, king`.
  * - NOTE: not a generic `expression` -- deliberately narrow to known variables / constants / numbers,
  *   else it'd swallow anything.
  */
-export class identifier_list extends P.Repeat {
-  @proto static syntax = "[({known_variable}|{constant}|{number})(,|or|and|nor)]"
-  @proto static datatype = "array" // TODO: array of what?
-
+class identifier_list extends P.Repeat {
   getAST(match: P.MatchFor<this>): P.ASTListExpression {
     const { items } = match
     return new P.ASTListExpression(match, { items: items.map((item) => astAs(item)) })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(identifier_list, {
+  syntax: "[({known_variable}|{constant}|{number})(,|or|and|nor)]",
+  datatype: "array", // TODO: array of what?
+  tests: [
     {
       tests: [
         ["up or down", "['up', 'down']"],
@@ -62,25 +73,30 @@ export class identifier_list extends P.Repeat {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `bracketed_list` rule
+//    e.g. "[1,2,3]"
+////////////////
 
 /**
  * Bracketed list (array) literal, e.g. `[1,2 , true,false ]`.
  * TODO: nested lists????
  */
-export class bracketed_list extends P.Sequence<"list?"> {
-  @proto static alias = "expression"
-  @proto static datatype = "array" // TODO: array of what?
-  @proto static syntax = "\\[ [list:{expression},]? \\]"
-  @proto static testRule = "\\["
-
+class bracketed_list extends P.Sequence<"list?"> {
   getAST(match: P.MatchFor<this>): P.ASTListExpression {
     const { list } = match.groups
     const items = list ? list.items.map((item) => astAs(item)) : undefined
     return new P.ASTListExpression(match, { items })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(bracketed_list, {
+  alias: "expression",
+  datatype: "array", // TODO: array of what?
+  syntax: "\\[ [list:{expression},]? \\]",
+  testRule: "\\[",
+  tests: [
     {
       title: "correctly matches literal lists",
       tests: [
@@ -101,17 +117,19 @@ export class bracketed_list extends P.Sequence<"list?"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `copy_list` rule
+//    e.g. "a copy of the piles"
+////////////////
 
 /**
  * Duplicate a list, e.g. `a copy of the piles` => `spellCore.duplicateCollection(piles)`.
  * - QUESTIONABLE SYNTAX: `as (a|an) {type}` clause ??? -- picks constructor for result, e.g.
  *   `a duplicate of list the piles as a list` => `spellCore.duplicateCollection(piles, List)`.
  */
-export class copy_list extends SpellExpression<"expression|type?"> {
-  @proto static alias = "expression"
-  @proto static syntax = "a (copy|duplicate) of list? {expression} (as (a|an) {type:known_type})?"
-
+class copy_list extends SpellExpression<"expression|type?"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { expression, type } = match.groups
     const args = [astAs(expression)]
@@ -121,8 +139,10 @@ export class copy_list extends SpellExpression<"expression|type?"> {
       args
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(copy_list, {
+  syntax: "a (copy|duplicate) of list? {expression} (as (a|an) {type:known_type})?",
+  tests: [
     {
       compileAs: "expression",
       beforeEach(scope: P.Scope) {
@@ -134,17 +154,19 @@ export class copy_list extends SpellExpression<"expression|type?"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `merge_lists` rule
+//    e.g. "merge the piles"
+////////////////
 
 /**
  * Merge a set of lists together, e.g. `merge the piles` => `spellCore.mergeCollections(piles)`.
  * - QUESTIONABLE SYNTAX: `(as|into) (a|an) new? {type}` clause picks constructor for result, e.g.
  *   `merge the piles as a list` => `spellCore.mergeCollections(piles, List)`.
  */
-export class merge_lists extends SpellExpression<"expression|type?"> {
-  @proto static alias = "expression"
-  @proto static syntax = "merge lists? {expression} ((as|into) (a|an) new? {type:known_type})?"
-
+class merge_lists extends SpellExpression<"expression|type?"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { expression, type } = match.groups
     const args = [astAs(expression)]
@@ -154,8 +176,10 @@ export class merge_lists extends SpellExpression<"expression|type?"> {
       args
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(merge_lists, {
+  syntax: "merge lists? {expression} ((as|into) (a|an) new? {type:known_type})?",
+  tests: [
     {
       compileAs: "expression",
       beforeEach(scope: P.Scope) {
@@ -167,7 +191,7 @@ export class merge_lists extends SpellExpression<"expression|type?"> {
       ]
     }
   ]
-}
+})
 
 // WORKING FROM OTHER RULES (testme)
 //  `the length of <list>`
@@ -184,17 +208,17 @@ export class merge_lists extends SpellExpression<"expression|type?"> {
 // TODO:  `Set` for a unique list?
 // TODO:  list which won't take null/undefined
 
+////////////////
+// ## `list_length` rule
+//    e.g. "number of items in my-list"
+////////////////
+
 /**
  * Return length of a list, e.g. `number of items in my-list` => `spellCore.itemCountOf(my_list)`.
  * - `{arg}` (e.g. `items`) captured for readability only, unused in output.
  * - `precedence: 3` -- preferred over lower-precedence expression rules when tokens are ambiguous.
  */
-export class list_length extends SpellExpression<"arg|list"> {
-  @proto static alias = "expression"
-  @proto static syntax = "the? number of {arg:plural_variable} (in|of) {list:expression}"
-  @proto static testRule = "…(number of)"
-  @proto static precedence = 3
-
+class list_length extends SpellExpression<"arg|list"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -202,8 +226,12 @@ export class list_length extends SpellExpression<"arg|list"> {
       args: [astAs(list)]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(list_length, {
+  syntax: "the? number of {arg:plural_identifier} (in|of) {list:expression}",
+  testRule: "…(number of)",
+  precedence: 3,
+  tests: [
     {
       compileAs: "expression",
       beforeEach(scope: P.Scope) {
@@ -217,7 +245,12 @@ export class list_length extends SpellExpression<"arg|list"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `list_position` rule
+//    e.g. "position of thing in my-list"
+////////////////
 
 /**
  * Return position of an item in a list, e.g. `position of thing in my-list` => `spellCore.itemOf(my_list, thing)`.
@@ -226,12 +259,7 @@ export class list_length extends SpellExpression<"arg|list"> {
  * - `precedence: 3` -- preferred over lower-precedence expression rules when tokens are ambiguous.
  * TODO: `positions`, `last position`, `after...`
  */
-export class list_position extends SpellExpression<"thing|list"> {
-  @proto static alias = "expression"
-  @proto static syntax = "the? position of {thing:expression} in {list:expression}"
-  @proto static testRule = "…(position of)"
-  @proto static precedence = 3
-
+class list_position extends SpellExpression<"thing|list"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { thing, list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -239,8 +267,12 @@ export class list_position extends SpellExpression<"thing|list"> {
       args: [astAs(list), astAs(thing)]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(list_position, {
+  syntax: "the? position of {thing:expression} in {list:expression}",
+  testRule: "…(position of)",
+  precedence: 3,
+  tests: [
     {
       compileAs: "expression",
       beforeEach(scope: P.Scope) {
@@ -255,18 +287,18 @@ export class list_position extends SpellExpression<"thing|list"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `starts_with` rule
+//    e.g. "my-list starts with thing"
+////////////////
 
 /**
  * Does list start with some value, e.g. `my-list starts with thing` => `spellCore.startsWith(my_list, thing)`.
  * - `precedence: 11` -- high, so this infix suffix binds before lower-precedence operators.
  */
-export class starts_with extends InfixOperatorSuffix<"operator|expression"> {
-  @proto static alias = "expression_suffix"
-  @proto static precedence = 11
-  @proto static syntax =
-    "(operator:starts with|does not start with|doesnt start with|doesn't start with) {expression:simple_expression}"
-
+class starts_with extends InfixOperatorSuffix<"operator|expression"> {
   /** Negate result for the `does not` / `doesnt` / `doesn't` spellings of `operator`. */
   shouldNegateOutput(operator: P.Match): boolean {
     return operator.value.includes("not") || operator.value.includes("doesn")
@@ -280,8 +312,12 @@ export class starts_with extends InfixOperatorSuffix<"operator|expression"> {
       args: [lhs!, rhs!]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(starts_with, {
+  precedence: 11,
+  syntax:
+    "(operator:starts with|does not start with|doesnt start with|doesn't start with) {expression:simple_expression}",
+  tests: [
     {
       compileAs: "expression",
       beforeEach(scope: P.Scope) {
@@ -297,16 +333,15 @@ export class starts_with extends InfixOperatorSuffix<"operator|expression"> {
       ]
     }
   ]
-}
+})
 
-/**
- * Does list end with some value, e.g. `my-list ends with thing` => `spellCore.endsWith(my_list, thing)`.
- */
-export class ends_with extends InfixOperatorSuffix<"operator|expression"> {
-  @proto static alias = "expression_suffix"
-  @proto static syntax =
-    "(operator:ends with|does not end with|doesnt end with|doesn't end with) {expression:simple_expression}"
+////////////////
+// ## `ends_with` rule
+//    e.g. "my-list ends with thing"
+////////////////
 
+/** Does list end with some value, e.g. `my-list ends with thing` => `spellCore.endsWith(my_list, thing)`. */
+class ends_with extends InfixOperatorSuffix<"operator|expression"> {
   /** Negate result for the `does not` / `doesnt` / `doesn't` spellings of `operator`. */
   shouldNegateOutput(operator: P.Match): boolean {
     return operator.value.includes("not") || operator.value.includes("doesn")
@@ -320,8 +355,10 @@ export class ends_with extends InfixOperatorSuffix<"operator|expression"> {
       args: [lhs!, rhs!]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(ends_with, {
+  syntax: "(operator:ends with|does not end with|doesnt end with|doesn't end with) {expression:simple_expression}",
+  tests: [
     {
       compileAs: "expression",
       beforeEach(scope: P.Scope) {
@@ -337,17 +374,27 @@ export class ends_with extends InfixOperatorSuffix<"operator|expression"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `ordinal` rule
+//    e.g. "first"
+////////////////
 
 /**
  * Ordinal numbers (`first`, `second`, `last`, etc.), mapped to numeric literals via `VALUE_MAP`.
  * TODO: sixty-fifth, two hundred forty ninth... with custom parser?
  */
-export class ordinal extends P.Pattern {
-  @proto static matchGroup = "ordinal"
-  @proto static pattern =
-    /^(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|penultimate|final|last|top|bottom)$/
-  @proto static VALUE_MAP = {
+class ordinal extends P.Pattern {
+  getAST(match: P.MatchFor<this>): P.ASTNumericLiteral {
+    const { value, raw } = match
+    return new P.ASTNumericLiteral(match, { value, raw })
+  }
+}
+lists.addRule(ordinal, {
+  matchGroup: "ordinal",
+  pattern: /^(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth|penultimate|final|last|top|bottom)$/,
+  VALUE_MAP: {
     first: 1,
     second: 2,
     third: 3,
@@ -363,14 +410,8 @@ export class ordinal extends P.Pattern {
     last: -1,
     top: 1,
     bottom: -1
-  }
-
-  getAST(match: P.MatchFor<this>): P.ASTNumericLiteral {
-    const { value, raw } = match
-    return new P.ASTNumericLiteral(match, { value, raw })
-  }
-
-  static tests: P.RuleTests = [
+  },
+  tests: [
     {
       tests: [
         ["first", 1],
@@ -393,7 +434,12 @@ export class ordinal extends P.Pattern {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `position_expression` rule
+//    e.g. "item 1 of my-list"
+////////////////
 
 /**
  * Numeric-position index expression, e.g. `card 1 of the pile`, `card #2 of the pile`.
@@ -402,11 +448,7 @@ export class ordinal extends P.Pattern {
  * - NOTE: positions are **1-based** while Javascript is **0-based**, e.g. `item 1 of the array` => `array[0]`.
  * - Compiles to `spellCore.getItemOf(list, position)`.
  */
-export class position_expression extends SpellExpression<"arg|position|expression"> {
-  @proto static alias = "expression"
-  @proto static syntax = "{arg:singular_variable} {position:expression} of {expression}"
-  @proto static testRule = "…of"
-
+class position_expression extends SpellExpression<"arg|position|expression"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { position, expression } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -414,8 +456,11 @@ export class position_expression extends SpellExpression<"arg|position|expressio
       args: [astAs(expression), astAs(position)]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(position_expression, {
+  syntax: "{arg:singular_identifier} {position:expression} of {expression}",
+  testRule: "…of",
+  tests: [
     {
       compileAs: "expression",
       beforeEach(scope: P.Scope) {
@@ -430,18 +475,19 @@ export class position_expression extends SpellExpression<"arg|position|expressio
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `ordinal_position_expression` rule
+//    e.g. "the first item of my-list"
+////////////////
 
 /**
  * Ordinal-word index expression, e.g. `the first item of my-list`, `the tenth card of deck`.
  * - `{arg}` (e.g. `item`) captured for readability only, unused in output.
  * - Shares same `getItemOf` compile target as `position_expression`, with `{ordinal}` resolved to a number.
  */
-export class ordinal_position_expression extends SpellExpression<"ordinal|arg|expression"> {
-  @proto static alias = "expression"
-  @proto static syntax = "the {ordinal} {arg:singular_variable} (in|of) {expression}"
-  @proto static testRule = "…(in|of)"
-
+class ordinal_position_expression extends SpellExpression<"ordinal|arg|expression"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { ordinal, expression } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -449,8 +495,11 @@ export class ordinal_position_expression extends SpellExpression<"ordinal|arg|ex
       args: [astAs(expression), astAs(ordinal)]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(ordinal_position_expression, {
+  syntax: "the {ordinal} {arg:singular_identifier} (in|of) {expression}",
+  testRule: "…(in|of)",
+  tests: [
     {
       compileAs: "expression",
       beforeEach(scope: P.Scope) {
@@ -465,18 +514,19 @@ export class ordinal_position_expression extends SpellExpression<"ordinal|arg|ex
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `random_item_expression` rule
+//    e.g. "a random item of my-list"
+////////////////
 
 /**
  * Pick a single random item from list, e.g. `a random item of my-list`.
  * - `{arg}` (e.g. `item`) captured for readability only, unused in output.
  * - Compiles to `spellCore.randomItemOf(list)`.
  */
-export class random_item_expression extends SpellExpression<"arg|list"> {
-  @proto static alias = "expression"
-  @proto static syntax = "a random {arg:singular_variable} (of|from|in) {list:expression}"
-  @proto static testRule = "a random"
-
+class random_item_expression extends SpellExpression<"arg|list"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -484,8 +534,11 @@ export class random_item_expression extends SpellExpression<"arg|list"> {
       args: [astAs(list)]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(random_item_expression, {
+  syntax: "a random {arg:singular_identifier} (of|from|in) {list:expression}",
+  testRule: "a random",
+  tests: [
     {
       compileAs: "expression",
       beforeEach(scope: P.Scope) {
@@ -499,7 +552,12 @@ export class random_item_expression extends SpellExpression<"arg|list"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `random_items_expression` rule
+//    e.g. "2 random items of my-list"
+////////////////
 
 /**
  * Pick a unique set of random items from list, returning an array.
@@ -507,11 +565,7 @@ export class random_item_expression extends SpellExpression<"arg|list"> {
  * - Compiles to `spellCore.randomItemsOf(list, count)`.
  * TODO: `two random items...`
  */
-export class random_items_expression extends SpellExpression<"number|arg|list"> {
-  @proto static alias = "expression"
-  @proto static syntax = "{number} random {arg:plural_variable} (of|from|in) {list:expression}"
-  @proto static testRule = "…random"
-
+class random_items_expression extends SpellExpression<"number|arg|list"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { number, list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -519,8 +573,11 @@ export class random_items_expression extends SpellExpression<"number|arg|list"> 
       args: [astAs(list), astAs(number)]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(random_items_expression, {
+  syntax: "{number} random {arg:plural_identifier} (of|from|in) {list:expression}",
+  testRule: "…random",
+  tests: [
     {
       compileAs: "expression",
       beforeEach(scope: P.Scope) {
@@ -534,7 +591,12 @@ export class random_items_expression extends SpellExpression<"number|arg|list"> 
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `range_between_expression` rule
+//    e.g. "item 1 to 2 of my-list"
+////////////////
 
 /**
  * Range expression, e.g. `item 1 to 2 of my-list` => `spellCore.rangeBetween(my_list, 1, 2)`.
@@ -543,11 +605,7 @@ export class random_items_expression extends SpellExpression<"number|arg|list"> 
  * - NOTE: `start` is **1-based**.
  * - NOTE: `end` is inclusive!
  */
-export class range_between_expression extends SpellExpression<"arg|start|end|list"> {
-  @proto static alias = "expression"
-  @proto static syntax = "{arg:variable} {start:expression} to {end:expression} (of|in|from) {list:expression}"
-  @proto static testRule = "…(of|in|from)"
-
+class range_between_expression extends SpellExpression<"arg|start|end|list"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { list, start, end } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -555,8 +613,11 @@ export class range_between_expression extends SpellExpression<"arg|start|end|lis
       args: [astAs(list), astAs(start), astAs(end)]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(range_between_expression, {
+  syntax: "{arg:variable} {start:expression} to {end:expression} (of|in|from) {list:expression}",
+  testRule: "…(of|in|from)",
+  tests: [
     {
       compileAs: "expression",
       beforeEach(scope: P.Scope) {
@@ -570,7 +631,12 @@ export class range_between_expression extends SpellExpression<"arg|start|end|lis
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `range_starting_with_expression` rule
+//    e.g. "items in my-list starting with thing"
+////////////////
 
 /**
  * Range expression starting at some item in list, inclusive, e.g. `items in my-list starting with thing`.
@@ -580,11 +646,7 @@ export class range_between_expression extends SpellExpression<"arg|start|end|lis
  *   position first, then takes range from there to end.
  * - If item is not found, returns an empty list. (???)
  */
-export class range_starting_with_expression extends SpellExpression<"arg|list|thing"> {
-  @proto static alias = "expression"
-  @proto static syntax = "{arg:plural_variable} (in|of) {list:expression} starting with {thing:expression}"
-  @proto static testRule = "…(starting with)"
-
+class range_starting_with_expression extends SpellExpression<"arg|list|thing"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { thing, list } = match.groups
     const itemExpression = new P.ASTCoreMethodInvocation(match, {
@@ -596,8 +658,11 @@ export class range_starting_with_expression extends SpellExpression<"arg|list|th
       args: [astAs(list), itemExpression]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(range_starting_with_expression, {
+  syntax: "{arg:plural_identifier} (in|of) {list:expression} starting with {thing:expression}",
+  testRule: "…(starting with)",
+  tests: [
     {
       compileAs: "expression",
       beforeEach(scope: P.Scope) {
@@ -616,7 +681,12 @@ export class range_starting_with_expression extends SpellExpression<"arg|list|th
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `range_count_expression` rule
+//    e.g. "top 2 items of my-list"
+////////////////
 
 /**
  * Alternative form of range expression.
@@ -625,11 +695,7 @@ export class range_starting_with_expression extends SpellExpression<"arg|list|th
  * - e.g. `top 2 items of my-list` => `spellCore.rangeStartingAt(my_list, 1, 2)`.
  * TODO: restrict ordinals to `first`, `last`, `final`, `top`, etc
  */
-export class range_count_expression extends SpellExpression<"ordinal|number|arg|list"> {
-  @proto static alias = "expression"
-  @proto static syntax = "{ordinal} {number} {arg:plural_variable} (of|in|from) {list:expression}"
-  @proto static testRule = "…(of|in|from)"
-
+class range_count_expression extends SpellExpression<"ordinal|number|arg|list"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { list, ordinal, number } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -637,8 +703,11 @@ export class range_count_expression extends SpellExpression<"ordinal|number|arg|
       args: [astAs(list), astAs(ordinal), astAs(number)]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(range_count_expression, {
+  syntax: "{ordinal} {number} {arg:plural_identifier} (of|in|from) {list:expression}",
+  testRule: "…(of|in|from)",
+  tests: [
     {
       compileAs: "expression",
       beforeEach(scope: P.Scope) {
@@ -652,7 +721,12 @@ export class range_count_expression extends SpellExpression<"ordinal|number|arg|
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `list_filter` rule
+//    e.g. words in "a word list" where
+////////////////
 
 /**
  * List filter, e.g. `words in "a word list" where word starts with "a"`.
@@ -662,14 +736,7 @@ export class range_count_expression extends SpellExpression<"ordinal|number|arg|
  * - `precedence: 2` -- preferred over lower-precedence expression rules when tokens are ambiguous.
  * - Compiles to `spellCore.filter(list, (item) => { ... })`.
  */
-export class list_filter extends SpellExpression<"arg|list|inlineStatement?"> {
-  @proto static alias = "expression"
-  @proto static syntax = "the? {arg:plural_variable} (in|of) {list:expression} where"
-  @proto static testRule = "…where"
-  @proto static precedence = 2
-  @proto static wantsInlineStatement = true
-  @proto static parseInlineStatementAs = "expression"
-
+class list_filter extends SpellExpression<"arg|list|inlineStatement?"> {
   /** Nested scope for filter body -- singularized `{arg}` variable, also aliased from `it`. */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
     const arg = singularize(match.groups.arg.value)
@@ -691,8 +758,14 @@ export class list_filter extends SpellExpression<"arg|list|inlineStatement?"> {
       args: [astAs(list), filter]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(list_filter, {
+  syntax: "the? {arg:plural_identifier} (in|of) {list:expression} where",
+  testRule: "…where",
+  precedence: 2,
+  wantsInlineStatement: true,
+  parseInlineStatementAs: "expression",
+  tests: [
     {
       compileAs: "expression",
       showAll: true,
@@ -720,7 +793,12 @@ export class list_filter extends SpellExpression<"arg|list|inlineStatement?"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `list_membership_test` rule
+//    e.g. "my-list has items where"
+////////////////
 
 /**
  * Set membership test, e.g. `my-list has items where the item is 1`.
@@ -731,17 +809,7 @@ export class list_filter extends SpellExpression<"arg|list|inlineStatement?"> {
  *   `operator` is exactly `has`.
  * TODO: this is a postfix_operator expression
  */
-export class list_membership_test extends SpellExpression<"list|operator|arg|inlineStatement?"> {
-  @proto static alias = "expression"
-  @proto static syntax =
-    "{list:simple_expression} (operator:has|has no|doesnt have|does not have) {arg:plural_variable} where"
-  @proto static testRule = "…(has|have)"
-  @proto static precedence = 2
-
-  @proto static isLeftRecursive = true
-  @proto static wantsInlineStatement = true
-  @proto static parseInlineStatementAs = "expression"
-
+class list_membership_test extends SpellExpression<"list|operator|arg|inlineStatement?"> {
   /** Nested scope for predicate body -- singularized `{arg}` variable, also aliased from `it`. */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
     const arg = singularize(match.groups.arg.value)
@@ -767,8 +835,15 @@ export class list_membership_test extends SpellExpression<"list|operator|arg|inl
     if (operator.value === "has") return expression
     return new P.ASTNotExpression(match, { expression })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(list_membership_test, {
+  syntax: "{list:simple_expression} (operator:has|has no|doesnt have|does not have) {arg:plural_identifier} where",
+  testRule: "…(has|have)",
+  precedence: 2,
+  isLeftRecursive: true,
+  wantsInlineStatement: true,
+  parseInlineStatementAs: "expression",
+  tests: [
     {
       compileAs: "expression",
       showAll: true,
@@ -797,10 +872,15 @@ export class list_membership_test extends SpellExpression<"list|operator|arg|inl
       ]
     }
   ]
-}
+})
+
+////////////////////////////////////////
+// # Adding to list (in-place)
+////////////////////////////////////////
 
 ////////////////
-// ## Adding to list (in-place)
+// ## `list_add` rule
+//    e.g. "add thing to the start of my-list"
 ////////////////
 
 /**
@@ -808,12 +888,7 @@ export class list_membership_test extends SpellExpression<"list|operator|arg|inl
  * - Compiles to `spellCore.prepend(list, thing)` when `method` is `start`/`front`/`top`,
  *   else `spellCore.append(list, thing)`.
  */
-export class list_add extends SpellStatement<"thing|method?|list"> {
-  @proto static alias = "statement"
-  @proto static syntax =
-    "add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {list:expression}"
-  @proto static testRule = "add"
-
+class list_add extends SpellStatement<"thing|method?|list"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { thing, list, method } = match.groups
     const spellMethod = method && ["start", "front", "top"].includes(method.value) ? "prepend" : "append"
@@ -822,8 +897,12 @@ export class list_add extends SpellStatement<"thing|method?|list"> {
       args: [astAs(list), astAs(thing)]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(list_add, {
+  alias: "statement",
+  syntax: "add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {list:expression}",
+  testRule: "add",
+  tests: [
     {
       compileAs: "statement",
       beforeEach(scope: P.Scope) {
@@ -842,14 +921,15 @@ export class list_add extends SpellStatement<"thing|method?|list"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `list_prepend` rule
+//    e.g. "prepend thing to my-list"
+////////////////
 
 /** Prepend to list, e.g. `prepend thing to my-list` => `spellCore.prepend(my_list, thing)`. */
-export class list_prepend extends SpellStatement<"thing|list"> {
-  @proto static alias = "statement"
-  @proto static syntax = "prepend {thing:expression} to {list:expression}"
-  @proto static testRule = "prepend"
-
+class list_prepend extends SpellStatement<"thing|list"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { thing, list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -857,8 +937,12 @@ export class list_prepend extends SpellStatement<"thing|list"> {
       args: [astAs(list), astAs(thing)]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(list_prepend, {
+  alias: "statement",
+  syntax: "prepend {thing:expression} to {list:expression}",
+  testRule: "prepend",
+  tests: [
     {
       compileAs: "statement",
       beforeEach(scope: P.Scope) {
@@ -868,14 +952,15 @@ export class list_prepend extends SpellStatement<"thing|list"> {
       tests: [["prepend thing to my-list", "spellCore.prepend(my_list, thing)"]]
     }
   ]
-}
+})
+
+////////////////
+// ## `list_append` rule
+//    e.g. "append thing to my-list"
+////////////////
 
 /** Append to list, e.g. `append thing to my-list` => `spellCore.append(my_list, thing)`. */
-export class list_append extends SpellStatement<"thing|list"> {
-  @proto static alias = "statement"
-  @proto static syntax = "append {thing:expression} to {list:expression}"
-  @proto static testRule = "append"
-
+class list_append extends SpellStatement<"thing|list"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { thing, list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -883,8 +968,12 @@ export class list_append extends SpellStatement<"thing|list"> {
       args: [astAs(list), astAs(thing)]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(list_append, {
+  alias: "statement",
+  syntax: "append {thing:expression} to {list:expression}",
+  testRule: "append",
+  tests: [
     {
       compileAs: "statement",
       beforeEach(scope: P.Scope) {
@@ -894,14 +983,19 @@ export class list_append extends SpellStatement<"thing|list"> {
       tests: [["append thing to my-list", "spellCore.append(my_list, thing)"]]
     }
   ]
-}
+})
 
-////////////////
-// ## Add to middle of list, pushing existing items out of the way
-////////////////
+////////////////////////////////////////
+// # Add to middle of list, pushing existing items out of the way
+////////////////////////////////////////
 
 // TODO: Add to middle of list, pushing existing items out of the way.
 //       "add {thing:expression} to position {position:expression} of {list:expression}",
+
+////////////////
+// ## `list_add_relative` rule
+//    e.g. "add thing to my-list before other-thing"
+////////////////
 
 /**
  * Add to list before/after some other item, e.g. `add thing to my-list before other-thing`.
@@ -909,11 +1003,7 @@ export class list_append extends SpellStatement<"thing|list"> {
  *   index (via `itemOf`), `+ 1` for `after`.
  * TODO: `relative_position_expression` rule?
  */
-export class list_add_relative extends SpellStatement<"thing|list|operator|item"> {
-  @proto static alias = "statement"
-  @proto static syntax = "add {thing:expression} to {list:expression} (operator:before|after) {item:expression}"
-  @proto static testRule = "add"
-
+class list_add_relative extends SpellStatement<"thing|list|operator|item"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { thing, list, operator, item } = match.groups
     let position: P.ASTExpression = new P.ASTCoreMethodInvocation(match, {
@@ -932,8 +1022,12 @@ export class list_add_relative extends SpellStatement<"thing|list|operator|item"
       args: [astAs(list), position, astAs(thing)]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(list_add_relative, {
+  alias: "statement",
+  syntax: "add {thing:expression} to {list:expression} (operator:before|after) {item:expression}",
+  testRule: "add",
+  tests: [
     {
       compileAs: "statement",
       beforeEach(scope: P.Scope) {
@@ -953,21 +1047,22 @@ export class list_add_relative extends SpellStatement<"thing|list|operator|item"
       ]
     }
   ]
-}
+})
+
+////////////////////////////////////////
+// # Removing from list (in-place)
+////////////////////////////////////////
 
 ////////////////
-// ## Removing from list (in-place)
+// ## `list_empty` rule
+//    e.g. "empty my-list"
 ////////////////
 
 /**
  * Empty a list in-place, e.g. `empty my-list` => `spellCore.clear(my_list)`.
  * TODO: make `empty` and/or `clear` a generic statement???
  */
-export class list_empty extends SpellStatement<"list"> {
-  @proto static alias = "statement"
-  @proto static syntax = "(empty|clear) {list:expression}"
-  @proto static testRule = "(empty|clear)"
-
+class list_empty extends SpellStatement<"list"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -975,8 +1070,12 @@ export class list_empty extends SpellStatement<"list"> {
       args: [astAs(list)]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(list_empty, {
+  alias: "statement",
+  syntax: "(empty|clear) {list:expression}",
+  testRule: "(empty|clear)",
+  tests: [
     {
       compileAs: "statement",
       beforeEach(scope: P.Scope) {
@@ -989,18 +1088,19 @@ export class list_empty extends SpellStatement<"list"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `list_remove_ordinal` rule
+//    e.g. "remove last card of deck"
+////////////////
 
 /**
  * Remove one item from list by ordinal position, e.g. `remove last card of deck` =>
  * `spellCore.removeItemOf(deck, -1)`.
  * - `{arg}` (e.g. `card`) captured for readability only, unused in output.
  */
-export class list_remove_ordinal extends SpellStatement<"position|arg|list"> {
-  @proto static alias = "statement"
-  @proto static syntax = "remove the? {position:ordinal} {arg:singular_variable} of {list:expression}"
-  @proto static testRule = "remove"
-
+class list_remove_ordinal extends SpellStatement<"position|arg|list"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { position, list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -1008,8 +1108,12 @@ export class list_remove_ordinal extends SpellStatement<"position|arg|list"> {
       args: [astAs(list), astAs(position)]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(list_remove_ordinal, {
+  alias: "statement",
+  syntax: "remove the? {position:ordinal} {arg:singular_identifier} of {list:expression}",
+  testRule: "remove",
+  tests: [
     {
       compileAs: "statement",
       beforeEach(scope: P.Scope) {
@@ -1021,7 +1125,12 @@ export class list_remove_ordinal extends SpellStatement<"position|arg|list"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `list_remove_position` rule
+//    e.g. "remove item 4 of my-list"
+////////////////
 
 /**
  * Remove one item from list by numeric position.
@@ -1029,11 +1138,7 @@ export class list_remove_ordinal extends SpellStatement<"position|arg|list"> {
  * - Compiles to `spellCore.removeItemOf(list, number)`, e.g. `remove item 4 of my-list` =>
  *   `spellCore.removeItemOf(my_list, 4)`.
  */
-export class list_remove_position extends SpellStatement<"arg|number|list"> {
-  @proto static alias = "statement"
-  @proto static syntax = "remove {arg:singular_variable} {number:expression} of {list:expression}"
-  @proto static testRule = "remove"
-
+class list_remove_position extends SpellStatement<"arg|number|list"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { number, list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -1041,8 +1146,12 @@ export class list_remove_position extends SpellStatement<"arg|number|list"> {
       args: [astAs(list), astAs(number)]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(list_remove_position, {
+  alias: "statement",
+  syntax: "remove {arg:singular_identifier} {number:expression} of {list:expression}",
+  testRule: "remove",
+  tests: [
     {
       compileAs: "statement",
       beforeEach(scope: P.Scope) {
@@ -1051,7 +1160,12 @@ export class list_remove_position extends SpellStatement<"arg|number|list"> {
       tests: [["remove item 4 of my-list", "spellCore.removeItemOf(my_list, 4)"]]
     }
   ]
-}
+})
+
+////////////////
+// ## `list_remove_range` rule
+//    e.g. "remove items 2 to 4 of my-list"
+////////////////
 
 /**
  * Remove range of items from list, e.g. `remove items 2 to 4 of my-list`.
@@ -1059,11 +1173,7 @@ export class list_remove_position extends SpellStatement<"arg|number|list"> {
  * - NOTE: `start` is **1-based**.
  * - NOTE: `end` is inclusive!
  */
-export class list_remove_range extends SpellStatement<"arg|start|end|list"> {
-  @proto static alias = "statement"
-  @proto static syntax = "remove {arg:plural_variable} {start:expression} to {end:expression} of {list:expression}"
-  @proto static testRule = "remove"
-
+class list_remove_range extends SpellStatement<"arg|start|end|list"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { start, end, list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -1071,8 +1181,12 @@ export class list_remove_range extends SpellStatement<"arg|start|end|list"> {
       args: [astAs(list), astAs(start), astAs(end)]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(list_remove_range, {
+  alias: "statement",
+  syntax: "remove {arg:plural_identifier} {start:expression} to {end:expression} of {list:expression}",
+  testRule: "remove",
+  tests: [
     {
       compileAs: "statement",
       beforeEach(scope: P.Scope) {
@@ -1081,18 +1195,19 @@ export class list_remove_range extends SpellStatement<"arg|start|end|list"> {
       tests: [["remove items 2 to 4 of my-list", "spellCore.removeRangeBetween(my_list, 2, 4)"]]
     }
   ]
-}
+})
+
+////////////////
+// ## `list_remove_range_ordinal` rule
+//    e.g. "remove first to third cards of the deck"
+////////////////
 
 /**
  * Remove range of items from list using ordinal words for both ends, e.g.
  * `remove first to third cards of the deck` => `spellCore.removeRangeBetween(deck, 1, 3)`.
  * - `{arg}` (e.g. `cards`) captured for readability only, unused in output.
  */
-export class list_remove_range_ordinal extends SpellStatement<"start|end|arg|list"> {
-  @proto static alias = "statement"
-  @proto static syntax = "remove {start:ordinal} to {end:ordinal} {arg:plural_variable} of {list:expression}"
-  @proto static testRule = "remove"
-
+class list_remove_range_ordinal extends SpellStatement<"start|end|arg|list"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { start, end, list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -1100,8 +1215,12 @@ export class list_remove_range_ordinal extends SpellStatement<"start|end|arg|lis
       args: [astAs(list), astAs(start), astAs(end)]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(list_remove_range_ordinal, {
+  alias: "statement",
+  syntax: "remove {start:ordinal} to {end:ordinal} {arg:plural_identifier} of {list:expression}",
+  testRule: "remove",
+  tests: [
     {
       compileAs: "statement",
       beforeEach(scope: P.Scope) {
@@ -1110,21 +1229,22 @@ export class list_remove_range_ordinal extends SpellStatement<"start|end|arg|lis
       tests: [["remove first to third cards of the deck", "spellCore.removeRangeBetween(deck, 1, 3)"]]
     }
   ]
-}
+})
 
 // TODO: `remove last card from the deck`
 // TODO: `remove last two cards from the deck`
+
+////////////////
+// ## `list_remove` rule
+//    e.g. "remove thing from my-list"
+////////////////
 
 /**
  * Remove all instances of something from a list.
  * - Compiles to `spellCore.remove(list, thing)`, e.g. `remove thing from my-list` =>
  *   `spellCore.remove(my_list, thing)`.
  */
-export class list_remove extends SpellStatement<"thing|list"> {
-  @proto static alias = "statement"
-  @proto static syntax = "remove {thing:expression} from {list:expression}"
-  @proto static testRule = "remove"
-
+class list_remove extends SpellStatement<"thing|list"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { thing, list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -1132,8 +1252,12 @@ export class list_remove extends SpellStatement<"thing|list"> {
       args: [astAs(list), astAs(thing)]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(list_remove, {
+  alias: "statement",
+  syntax: "remove {thing:expression} from {list:expression}",
+  testRule: "remove",
+  tests: [
     {
       compileAs: "statement",
       beforeEach(scope: P.Scope) {
@@ -1143,20 +1267,19 @@ export class list_remove extends SpellStatement<"thing|list"> {
       tests: [["remove thing from my-list", "spellCore.remove(my_list, thing)"]]
     }
   ]
-}
+})
+
+////////////////
+// ## `list_remove_where` rule
+//    e.g. "remove items from my-list where"
+////////////////
 
 /**
  * Remove all items from list where condition is true, e.g. `remove items from my-list where item is not "ace"`.
  * - Trailing `where` expects an inline `{expression}` statement or nested block as predicate.
  * - Compiles to `spellCore.removeWhere(list, (item) => { ... })`.
  */
-export class list_remove_where extends SpellStatement<"arg|list|inlineStatement?"> {
-  @proto static alias = "statement"
-  @proto static syntax = "remove {arg:plural_variable} (in|of|from) {list:expression} where"
-  @proto static testRule = "remove"
-
-  @proto static wantsInlineStatement = true
-  @proto static parseInlineStatementAs = "expression"
+class list_remove_where extends SpellStatement<"arg|list|inlineStatement?"> {
   /** Nested scope for predicate body -- singularized `{arg}` variable, also aliased from `it`. */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
     const arg = singularize(match.groups.arg.value)
@@ -1179,8 +1302,14 @@ export class list_remove_where extends SpellStatement<"arg|list|inlineStatement?
       args: [astAs(list), filter]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(list_remove_where, {
+  alias: "statement",
+  syntax: "remove {arg:plural_identifier} (in|of|from) {list:expression} where",
+  testRule: "remove",
+  wantsInlineStatement: true,
+  parseInlineStatementAs: "expression",
+  tests: [
     {
       compileAs: "statement",
       beforeEach(scope: P.Scope) {
@@ -1209,18 +1338,19 @@ export class list_remove_where extends SpellStatement<"arg|list|inlineStatement?
       ]
     }
   ]
-}
+})
+
+////////////////////////////////////////
+// # Random (in-place) list manipulation
+////////////////////////////////////////
 
 ////////////////
-// ## Random (in-place) list manipulation
+// ## `list_reverse` rule
+//    e.g. "reverse the cards of the deck"
 ////////////////
 
 /** Reverse list in-place, e.g. `reverse my-list` => `spellCore.reverse(my_list)`. */
-export class list_reverse extends SpellStatement<"arg?|list"> {
-  @proto static alias = "statement"
-  @proto static syntax = "reverse ((the? {arg:plural_variable}) (in|of))? {list:expression}"
-  @proto static testRule = "reverse"
-
+class list_reverse extends SpellStatement<"arg?|list"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -1228,8 +1358,12 @@ export class list_reverse extends SpellStatement<"arg?|list"> {
       args: [astAs(list)]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(list_reverse, {
+  alias: "statement",
+  syntax: "reverse ((the? {arg:plural_identifier}) (in|of))? {list:expression}",
+  testRule: "reverse",
+  tests: [
     {
       compileAs: "statement",
       beforeEach(scope: P.Scope) {
@@ -1242,14 +1376,15 @@ export class list_reverse extends SpellStatement<"arg?|list"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `list_shuffle` rule
+//    e.g. "shuffle cards of deck"
+////////////////
 
 /** Shuffle (randomize) list in-place, e.g. `shuffle my-list` => `spellCore.randomize(my_list)`. */
-export class list_shuffle extends SpellStatement<"arg?|list"> {
-  @proto static alias = "statement"
-  @proto static syntax = "(randomize|shuffle) ((the? {arg:plural_variable}) (in|of))? {list:expression}"
-  @proto static testRule = "(randomize|shuffle)"
-
+class list_shuffle extends SpellStatement<"arg?|list"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -1257,8 +1392,12 @@ export class list_shuffle extends SpellStatement<"arg?|list"> {
       args: [astAs(list)]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(list_shuffle, {
+  alias: "statement",
+  syntax: "(randomize|shuffle) ((the? {arg:plural_identifier}) (in|of))? {list:expression}",
+  testRule: "(randomize|shuffle)",
+  tests: [
     {
       compileAs: "statement",
       beforeEach(scope: P.Scope) {
@@ -1272,7 +1411,12 @@ export class list_shuffle extends SpellStatement<"arg?|list"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `repeat_n_times` rule
+//    e.g. "repeat 1 time:"
+////////////////
 
 /**
  * Repeat an action `N` times, e.g. `repeat 3 times: print the number`.
@@ -1282,13 +1426,7 @@ export class list_shuffle extends SpellStatement<"arg?|list"> {
  * - Compiles to `spellCore.map(spellCore.getRange(0, number), (number) => { ... })`, or
  *   `await spellCore.forEachSequential(...)` if body contains an `await` (`method.isAsync`).
  */
-export class repeat_n_times extends SpellStatement<"number|inlineStatement?|nestedBlock?"> {
-  @proto static alias = ["statement", "expression"]
-  @proto static syntax = "repeat {number:expression} (time|times) :?"
-  @proto static testRule = "repeat"
-  @proto static wantsInlineStatement = true
-  @proto static wantsNestedBlock = true
-
+class repeat_n_times extends SpellStatement<"number|inlineStatement?|nestedBlock?"> {
   /** Nested scope for body -- `number` variable (current iteration index), also aliased from `it`. */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
     return newMethodScope({
@@ -1321,8 +1459,14 @@ export class repeat_n_times extends SpellStatement<"number|inlineStatement?|nest
     if (method.isAsync) return new P.ASTAwaitExpression(match, { expression })
     return expression
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(repeat_n_times, {
+  alias: ["statement", "expression"],
+  syntax: "repeat {number:expression} (time|times) :?",
+  testRule: "repeat",
+  wantsInlineStatement: true,
+  wantsNestedBlock: true,
+  tests: [
     {
       compileAs: "block",
       tests: [
@@ -1358,7 +1502,12 @@ export class repeat_n_times extends SpellStatement<"number|inlineStatement?|nest
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `list_iteration` rule
+//    e.g. "for each card in deck:"
+////////////////
 
 /**
  * Generic `for each` list iteration, e.g. `for each card in deck:`, `for item, index in my-list:`.
@@ -1370,14 +1519,7 @@ export class repeat_n_times extends SpellStatement<"number|inlineStatement?|nest
  * TODO: can work for object enumeration as well (maybe with 'of'?)
  * TODO: return values e.g. array.map() ???
  */
-export class list_iteration extends SpellStatement<"item|position?|list|inlineStatement?|nestedBlock?"> {
-  @proto static alias = ["statement", "expression"]
-  @proto static syntax =
-    "for each? {item:singular_variable} ((and|,) {position:singular_variable})? (in|of) {list:expression} :?"
-  @proto static testRule = "for"
-  @proto static wantsInlineStatement = true
-  @proto static wantsNestedBlock = true
-
+class list_iteration extends SpellStatement<"item|position?|list|inlineStatement?|nestedBlock?"> {
   /** Nested scope for body -- `{item}` (and optional numeric `{position}`) vars, `it` aliased to `{item}`. */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
     const { item, position } = match.groups
@@ -1419,8 +1561,14 @@ export class list_iteration extends SpellStatement<"item|position?|list|inlineSt
       args: [astAs(list), method]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(list_iteration, {
+  alias: ["statement", "expression"],
+  syntax: "for each? {item:singular_identifier} ((and|,) {position:singular_identifier})? (in|of) {list:expression} :?",
+  testRule: "for",
+  wantsInlineStatement: true,
+  wantsNestedBlock: true,
+  tests: [
     {
       compileAs: "block",
       beforeEach(scope: P.Scope) {
@@ -1483,7 +1631,12 @@ export class list_iteration extends SpellStatement<"item|position?|list|inlineSt
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `list_range_iteration` rule
+//    e.g. "for each number from 1 to 10:"
+////////////////
 
 /**
  * Number range-specific iteration, e.g. `for each number from 1 to 10:`.
@@ -1492,13 +1645,7 @@ export class list_iteration extends SpellStatement<"item|position?|list|inlineSt
  * TODO: this only works if you `from 1 to 10`, a more general solution which also supports `in {list}` is needed.
  * TODO: `down` is not accounted for in the output
  */
-export class list_range_iteration extends SpellStatement<"item|start|end|inlineStatement?|nestedBlock?"> {
-  @proto static alias = "statement"
-  @proto static syntax = "for each? {item:singular_variable} from {start:expression} down? to {end:expression} :?"
-  @proto static testRule = "for"
-  @proto static wantsInlineStatement = true
-  @proto static wantsNestedBlock = true
-
+class list_range_iteration extends SpellStatement<"item|start|end|inlineStatement?|nestedBlock?"> {
   /**
    * Nested scope for body -- singularized `{item}` variable.
    * - NOTE: unlike sibling iteration rules (`repeat_n_times`, `list_iteration`), doesn't pass
@@ -1529,8 +1676,14 @@ export class list_range_iteration extends SpellStatement<"item|start|end|inlineS
     if (method.isAsync) return new P.ASTAwaitExpression(match, { expression })
     return expression
   }
-
-  static tests: P.RuleTests = [
+}
+lists.addRule(list_range_iteration, {
+  alias: "statement",
+  syntax: "for each? {item:singular_identifier} from {start:expression} down? to {end:expression} :?",
+  testRule: "for",
+  wantsInlineStatement: true,
+  wantsNestedBlock: true,
+  tests: [
     {
       compileAs: "block",
       tests: [
@@ -1545,46 +1698,5 @@ export class list_range_iteration extends SpellStatement<"item|start|end|inlineS
         ]
       ]
     }
-  ]
-}
-
-/** Rule module for list rules -- literals, membership, indexing, in-place mutation, iteration. */
-export const lists = new SpellParser({
-  module: "lists",
-  rules: [
-    identifier_list,
-    bracketed_list,
-    copy_list,
-    merge_lists,
-    list_length,
-    list_position,
-    starts_with,
-    ends_with,
-    ordinal,
-    position_expression,
-    ordinal_position_expression,
-    random_item_expression,
-    random_items_expression,
-    range_between_expression,
-    range_starting_with_expression,
-    range_count_expression,
-    list_filter,
-    list_membership_test,
-    list_add,
-    list_prepend,
-    list_append,
-    list_add_relative,
-    list_empty,
-    list_remove_ordinal,
-    list_remove_position,
-    list_remove_range,
-    list_remove_range_ordinal,
-    list_remove,
-    list_remove_where,
-    list_reverse,
-    list_shuffle,
-    repeat_n_times,
-    list_iteration,
-    list_range_iteration
   ]
 })

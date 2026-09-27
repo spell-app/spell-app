@@ -229,8 +229,8 @@ describe("rules defined as classes", () => {
     })
   })
 
-  describe("scope.rules.add()", () => {
-    test("accepts a rule class, e.g. a closure defined while parsing", () => {
+  describe("scope.addRule()", () => {
+    test("registers a closure class on the parser, keeping its alias, and records the pair", () => {
       const parser = makeParser()
       const scope = parser.getScope()
       const rootScope = new P.RootScope({ parser })
@@ -238,15 +238,30 @@ describe("rules defined as classes", () => {
         ["card", "Card"],
         ["suits", "Suits"]
       ]
-      rootScope.rules.add(
-        class card_suits extends P.Keywords {
-          @proto static alias = "expression"
-          @proto static literals = literals
-        }
-      )
-      expect(parser.rules.card_suits).toBeInstanceOf(P.Keywords)
+      class card_suits extends P.Keywords {}
+      rootScope.addRule(card_suits, { alias: "expression", literals })
+
+      // registered under BOTH its name and its alias -- the alias is what other rules reach it by
+      expect(parser.rules.card_suits).toBeInstanceOf(card_suits)
       expect(parser.rules.expression).toBe(parser.rules.card_suits)
       expect(scope.parse("Card suits", "expression")).toBeDefined()
+
+      // and the scope kept the class + definition, so the pair can be re-registered elsewhere
+      const entry = rootScope.rules.get("card_suits")
+      expect(entry?.rule).toBe(card_suits)
+      expect(entry?.definition).toEqual({ alias: "expression", literals })
+    })
+
+    test("re-registering a recorded pair on another parser reproduces the rule", () => {
+      const source = new P.RootScope({ parser: makeParser() })
+      class greeting extends P.Keyword {}
+      source.addRule(greeting, { alias: "expression", literal: "hi" })
+
+      const target = new P.RootScope({ parser: makeParser() })
+      const entry = source.rules.get("greeting")!
+      target.addRule(entry.rule, entry.definition)
+      expect(target.parser!.rules.greeting).toBeInstanceOf(greeting)
+      expect(target.parser!.rules.expression).toBe(target.parser!.rules.greeting)
     })
   })
 })

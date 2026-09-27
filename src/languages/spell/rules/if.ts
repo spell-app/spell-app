@@ -1,15 +1,22 @@
 /** Rules for `if`/`else if`/`else` statements, plus the backwards `if...else` ternary suffix. */
 
-import { proto } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 import { InfixOperatorSuffix } from "./expressions"
 
+/** Rule module for `if`/`else if`/`else` statement rules, plus the `backwards_if` ternary suffix. */
+export const _if_ = new SpellParser({ module: "if" })
+
+////////////////
+// ## `if` rule
+//    e.g. "if a"
+////////////////
+
 /**
  * `if {condition} (then|:)?` statement, with an inline statement or an indented nested block as body.
- * - Named `_if` to avoid the reserved word `if` -- `static ruleName = "if"` keeps the actual rule name;
+ * - Named `_if` to avoid the reserved word `if` -- `name: "if"` keeps the actual rule name;
  *   the module export below is `_if_` for the same reason.
  * - `wantsInlineStatement`/`wantsNestedBlock`: doesn't parse its own body -- `SpellStatement` parses a
  *   trailing inline statement, or `BlockLine` parses a following indented block, into `match.groups`.
@@ -17,14 +24,7 @@ import { InfixOperatorSuffix } from "./expressions"
  * - Prefers `nestedBlock` over `inlineStatement` when (invalidly) given both.
  * - Compiles to `if (condition) { ...statements }`.
  */
-export class _if extends SpellStatement<"condition|inlineStatement?|nestedBlock?"> {
-  static ruleName = "if"
-  @proto static alias = "statement"
-  @proto static syntax = "if {condition:expression} (then|:)?"
-  @proto static testRule = "if"
-  @proto static wantsInlineStatement = true
-  @proto static wantsNestedBlock = true
-
+class _if extends SpellStatement<"condition|inlineStatement?|nestedBlock?"> {
   getNestedScopeForMatch(match: P.MatchFor<this>): P.Scope {
     return new P.BlockScope({ name: "if", parentScope: match.scope })
   }
@@ -36,8 +36,15 @@ export class _if extends SpellStatement<"condition|inlineStatement?|nestedBlock?
       statements: (nestedBlock || inlineStatement)?.AST as P.ASTStatement | P.ASTStatementBlock | undefined
     })
   }
-
-  static tests: P.RuleTests = [
+}
+_if_.addRule(_if, {
+  name: "if",
+  alias: "statement",
+  syntax: "if {condition:expression} (then|:)?",
+  testRule: "if",
+  wantsInlineStatement: true,
+  wantsNestedBlock: true,
+  tests: [
     {
       title: "correctly matches single-line if statements",
       compileAs: "block",
@@ -98,25 +105,23 @@ export class _if extends SpellStatement<"condition|inlineStatement?|nestedBlock?
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `else_if` rule
+//    e.g. "else if a"
+////////////////
 
 /**
  * `(else|otherwise) if {condition} (then|:)?` -- else-if branch, chained after `if`.
  * - NOTE: this MUST be before `else` or that will eat `else if` statements... :-(
- * - `precedence: 1` (default 0) also biases resolution toward this rule over `_else` when ambiguous.
+ * - `precedence: 1` (default 0) also biases resolution toward this rule over `else` when ambiguous.
  *   TODO: is `precedence` load-bearing here, or does rule-definition order (see NOTE above) suffice?
  * - Compiles body in a nested `BlockScope` (named `"elseif"`) via `getNestedScopeForMatch()`.
  * - Prefers `nestedBlock` over `inlineStatement` when (invalidly) given both.
  * - Compiles to `else if (condition) { ...statements }`.
  */
-export class else_if extends SpellStatement<"condition|inlineStatement?|nestedBlock?"> {
-  @proto static alias = "statement"
-  @proto static syntax = "(else|otherwise) if {condition:expression} (then|:)?"
-  @proto static testRule = "(else|otherwise)"
-  @proto static precedence = 1
-  @proto static wantsInlineStatement = true
-  @proto static wantsNestedBlock = true
-
+class else_if extends SpellStatement<"condition|inlineStatement?|nestedBlock?"> {
   getNestedScopeForMatch(match: P.MatchFor<this>): P.Scope {
     return new P.BlockScope({ name: "elseif", parentScope: match.scope })
   }
@@ -127,8 +132,15 @@ export class else_if extends SpellStatement<"condition|inlineStatement?|nestedBl
       statements: (nestedBlock || inlineStatement)?.AST as P.ASTStatement | P.ASTStatementBlock | undefined
     })
   }
-
-  static tests: P.RuleTests = [
+}
+_if_.addRule(else_if, {
+  alias: "statement",
+  syntax: "(else|otherwise) if {condition:expression} (then|:)?",
+  testRule: "(else|otherwise)",
+  precedence: 1,
+  wantsInlineStatement: true,
+  wantsNestedBlock: true,
+  tests: [
     {
       title: "correctly matches single-line else_if statements",
       compileAs: "block",
@@ -184,7 +196,12 @@ export class else_if extends SpellStatement<"condition|inlineStatement?|nestedBl
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `else` rule (class `_else`)
+//    e.g. "else"
+////////////////
 
 /**
  * `(else|otherwise) :?` -- else branch; must be tried after `else_if` (see NOTE there) so this
@@ -192,13 +209,7 @@ export class else_if extends SpellStatement<"condition|inlineStatement?|nestedBl
  * - Compiles body in a nested `BlockScope` (named `"else"`) via `getNestedScopeForMatch()`.
  * - Compiles to `else { ...statements }`.
  */
-export class _else extends SpellStatement<"inlineStatement?|nestedBlock?"> {
-  @proto static alias = "statement"
-  @proto static syntax = "(else|otherwise) :?"
-  @proto static testRule = "(else|otherwise)"
-  @proto static wantsInlineStatement = true
-  @proto static wantsNestedBlock = true
-
+class _else extends SpellStatement<"inlineStatement?|nestedBlock?"> {
   getNestedScopeForMatch(match: P.MatchFor<this>): P.Scope {
     return new P.BlockScope({ name: "else", parentScope: match.scope })
   }
@@ -208,8 +219,15 @@ export class _else extends SpellStatement<"inlineStatement?|nestedBlock?"> {
       statements: (nestedBlock || inlineStatement)?.AST as P.ASTStatement | P.ASTStatementBlock | undefined
     })
   }
-
-  static tests: P.RuleTests = [
+}
+_if_.addRule(_else, {
+  name: "else",
+  alias: "statement",
+  syntax: "(else|otherwise) :?",
+  testRule: "(else|otherwise)",
+  wantsInlineStatement: true,
+  wantsNestedBlock: true,
+  tests: [
     {
       title: "correctly matches single-line else statements",
       compileAs: "block",
@@ -254,7 +272,12 @@ export class _else extends SpellStatement<"inlineStatement?|nestedBlock?"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `backwards_if` rule
+//    e.g. "1 if bar else 2"
+////////////////
 
 /**
  * Postfix ternary: `{expr} if {condition} (else|otherwise) {expr}` -- English word order
@@ -264,10 +287,7 @@ export class _else extends SpellStatement<"inlineStatement?|nestedBlock?"> {
  *   expression here) and the trailing `rhs` expression.
  * - Compiles to `P.ASTTernaryExpression`.
  */
-export class backwards_if extends InfixOperatorSuffix<"operator|expression"> {
-  @proto static alias = "expression_suffix"
-  @proto static syntax = "if {operator:expression} (else|otherwise) {expression}"
-
+class backwards_if extends InfixOperatorSuffix<"operator|expression"> {
   compileASTExpression(
     match: P.Match,
     { lhs, operator, rhs }: { lhs: P.ASTExpression; operator: P.Match; rhs: P.ASTExpression }
@@ -278,8 +298,10 @@ export class backwards_if extends InfixOperatorSuffix<"operator|expression"> {
       falseValue: rhs
     })
   }
-
-  static tests: P.RuleTests = [
+}
+_if_.addRule(backwards_if, {
+  syntax: "if {operator:expression} (else|otherwise) {expression}",
+  tests: [
     {
       title: "correctly matches single-line backwards_if statements",
       compileAs: "block",
@@ -301,10 +323,4 @@ export class backwards_if extends InfixOperatorSuffix<"operator|expression"> {
       ]
     }
   ]
-}
-
-/** Rule module for `if`/`else if`/`else` statement rules, plus the `backwards_if` ternary suffix. */
-export const _if_ = new SpellParser({
-  module: "if",
-  rules: [_if, else_if, _else, backwards_if]
 })

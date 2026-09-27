@@ -7,7 +7,7 @@ import { spellCore } from "~/spellCore"
 import type { ConsoleLine as ConsoleLineData, SpellConsoleGroup } from "~/spellCore/console"
 import { SP } from "~/languages/spell"
 
-import { store } from "~/app/store"
+import { editor } from "~/app/editor"
 
 import { UI } from "~/app/ui"
 import { Actions } from "./Actions"
@@ -252,7 +252,7 @@ function onObservableClick(thing: unknown): void {
   console.log(`it =`, thing)
 
   // If we got a match, try to select the text in the editor
-  if (thing instanceof P.Match) void store.showMatch(thing)
+  if (thing instanceof P.Match) void editor.showMatch(thing)
 }
 
 /** Props for `<ConsoleValue>`. */

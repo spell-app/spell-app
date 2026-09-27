@@ -1,7 +1,17 @@
-import { proto } from "~/util"
+/**
+ * Rules for JSX -- elements (`<tag attr=.../>`), attributes, text, end tags, and `{...}` expression
+ * containers, all tokenized up front by `P.JSXElementToken` & friends and re-parsed here.
+ */
+
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
+
+/**
+ * Rule module for JSX rules (`jsxElement`, `jsxAttribute`, `jsxText`, `jsxEndTag`, `jsxExpression`).
+ * - Each rule class below is followed by the `JSX.addRule()` call which defines and registers it.
+ */
+export const JSX = new SpellParser({ module: "JSX" })
 
 /**
  * Narrow `node` (typed generically as `P.ASTNode | undefined`) to concrete AST subclass `T`.
@@ -10,6 +20,11 @@ import { SpellParser } from "~/languages/spell/SpellParser"
 function ast<T extends P.ASTNode>(node: P.ASTNode | undefined): T {
   return node as T
 }
+
+////////////////
+// ## `jsxElement` rule
+//    e.g. "<a/>"
+////////////////
 
 /**
  * What JSX rules (`jsxElement`, `jsxAttribute`, `jsxExpression`) stash on their matches.
@@ -38,11 +53,7 @@ export type JSXMatchData = {
  * - Compiles to `spellCore.element({ tag, props, children })`.
  * - NOTE: rule name is `jsxElement`, kept distinct from class name `SpellJSX` (pre-existing convention).
  */
-export class SpellJSX extends P.TokenType<never, JSXMatchData> {
-  static ruleName = "jsxElement"
-  @proto static alias = ["jsxChild", "expression"]
-  @proto static tokenType = P.JSXElementToken
-
+class SpellJSX extends P.TokenType<never, JSXMatchData> {
   /** Parse element's `attributes`/`children` tokens (see note below re: calling `parser.parse()` directly). */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
@@ -69,8 +80,12 @@ export class SpellJSX extends P.TokenType<never, JSXMatchData> {
         .filter(Boolean) ?? []
     return new P.ASTJSXElement(match, { tagName, attrs, children })
   }
-
-  static tests: P.RuleTests = [
+}
+JSX.addRule(SpellJSX, {
+  name: "jsxElement",
+  alias: ["jsxChild", "expression"],
+  tokenType: P.JSXElementToken,
+  tests: [
     {
       title: "Simple nested elements",
       compileAs: "expression",
@@ -251,7 +266,12 @@ export class SpellJSX extends P.TokenType<never, JSXMatchData> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `jsxAttribute` rule
+//    e.g. "foo" (bare attribute), "foo=1", or "foo={expression}"
+////////////////
 
 /**
  * Match a single JSX attribute (`name`, `name=value`, or `name={expression}`).
@@ -260,10 +280,7 @@ export class SpellJSX extends P.TokenType<never, JSXMatchData> {
  * - Falls back to `parse_error` if neither an `expression` nor `on*` `statement` consumes the whole value.
  * - NOTE: rule name is `jsxAttribute`, kept distinct from class name `SpellJSXAttribute` (pre-existing convention).
  */
-export class SpellJSXAttribute extends P.TokenType<never, JSXMatchData> {
-  static ruleName = "jsxAttribute"
-  @proto static tokenType = P.JSXAttributeToken
-
+class SpellJSXAttribute extends P.TokenType<never, JSXMatchData> {
   /**
    * Parse `value` as an expression, or (for `on*` attribute names) as a `statement` with an
    * implicit `event` argument -- falls back to a `parse_error` match if neither consumes it all.
@@ -343,16 +360,21 @@ export class SpellJSXAttribute extends P.TokenType<never, JSXMatchData> {
     })
   }
 }
+JSX.addRule(SpellJSXAttribute, {
+  name: "jsxAttribute",
+  tokenType: P.JSXAttributeToken
+})
+
+////////////////
+// ## `jsxText` rule
+//    e.g. "hello" (literal text between JSX tags)
+////////////////
 
 /**
  * Match literal text between JSX tags (`jsxChild`).  Blank text yields no AST node -- see below.
  * - NOTE: rule name is `jsxText`, kept distinct from class name `SpellJSXText` (pre-existing convention).
  */
-export class SpellJSXText extends P.TokenType {
-  static ruleName = "jsxText"
-  @proto static alias = "jsxChild"
-  @proto static tokenType = P.JSXTextToken
-
+class SpellJSXText extends P.TokenType {
   /** Build `P.ASTJSXText`; returns `undefined` for blank text since there's nothing to render. */
   getAST(match: P.MatchFor<this>) {
     const { raw, quotedText } = match.matched[0] as P.JSXTextToken
@@ -362,21 +384,37 @@ export class SpellJSXText extends P.TokenType {
     return new P.ASTJSXText(match, { raw, value: quotedText })
   }
 }
+JSX.addRule(SpellJSXText, {
+  name: "jsxText",
+  alias: "jsxChild",
+  tokenType: P.JSXTextToken
+})
+
+////////////////
+// ## `jsxEndTag` rule
+//    e.g. "</a>"
+////////////////
 
 /**
  * Match a JSX closing tag (`</tag>`), tracked as a `jsxChild` alongside element/text/expression children.
  * - NOTE: rule name is `jsxEndTag`, kept distinct from class name `SpellJSXEndTag` (pre-existing convention).
  */
-export class SpellJSXEndTag extends P.TokenType {
-  static ruleName = "jsxEndTag"
-  @proto static alias = "jsxChild"
-  @proto static tokenType = P.JSXEndTagToken
-
+class SpellJSXEndTag extends P.TokenType {
   getAST(match: P.MatchFor<this>) {
     const { tagName } = match.matched[0] as P.JSXEndTagToken
     return new P.ASTJSXEndTag(match, { tagName })
   }
 }
+JSX.addRule(SpellJSXEndTag, {
+  name: "jsxEndTag",
+  alias: "jsxChild",
+  tokenType: P.JSXEndTagToken
+})
+
+////////////////
+// ## `jsxExpression` rule
+//    e.g. "{1}"
+////////////////
 
 /**
  * Match a `{...}` JSX expression container (a `jsxChild`, e.g. `<div>{1 + 2}</div>`).
@@ -384,11 +422,7 @@ export class SpellJSXEndTag extends P.TokenType {
  * - Falls back to `parse_error` if the expression doesn't consume the entire contents.
  * - NOTE: rule name is `jsxExpression`, kept distinct from class name `SpellJSXExpression` (pre-existing convention).
  */
-export class SpellJSXExpression extends P.TokenType<never, JSXMatchData> {
-  static ruleName = "jsxExpression"
-  @proto static alias = "jsxChild"
-  @proto static tokenType = P.JSXExpressionToken
-
+class SpellJSXExpression extends P.TokenType<never, JSXMatchData> {
   /** Parse `contents` as an `expression`; falls back to `parse_error` if it doesn't consume it all. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
@@ -413,6 +447,11 @@ export class SpellJSXExpression extends P.TokenType<never, JSXMatchData> {
     })
   }
 }
+JSX.addRule(SpellJSXExpression, {
+  name: "jsxExpression",
+  alias: "jsxChild",
+  tokenType: P.JSXExpressionToken
+})
 
 /**
  * `match.data.error`, but only for matches from JSX rules that can ever carry one (`jsxAttribute` and
@@ -423,8 +462,3 @@ export function getJSXParseError(match: P.Match): P.Match | undefined {
   if (match.is(SpellJSXAttribute) || match.is(SpellJSXExpression)) return match.data.error
   return undefined
 }
-
-export const JSX = new SpellParser({
-  module: "JSX",
-  rules: [SpellJSX, SpellJSXAttribute, SpellJSXText, SpellJSXEndTag, SpellJSXExpression]
-})

@@ -2,7 +2,7 @@ import React from "react"
 import * as SUI from "semantic-ui-react"
 
 import { view, CustomError } from "~/util"
-import { store } from "~/app/store"
+import { editor } from "~/app/editor"
 
 /****************
  * ### `<ErrorDisplay>`
@@ -73,14 +73,14 @@ const FIXED_ERROR_STYLE = { position: "fixed", top: 60, left: "calc(50% - 250px)
 
 /****************
  * ### `<ErrorNotice>`
- * Display `store.error` over page content, via `<ErrorDisplay>`.
+ * Display `editor.error` over page content, via `<ErrorDisplay>`.
  ****************/
 export const ErrorNotice = view(function ErrorNotice() {
-  const { error } = store
+  const { error } = editor
   if (!error) return null
   const props = {
     error,
-    onDismiss: store.hideError,
+    onDismiss: editor.hideError,
     style: FIXED_ERROR_STYLE
   }
   return <ErrorDisplay {...props} />

@@ -2,7 +2,7 @@ import React from "react"
 
 import { view } from "~/util"
 
-import { store } from "~/app/store"
+import { editor } from "~/app/editor"
 
 import { UI } from "~/app/ui"
 import { Actions } from "./Actions"
@@ -19,7 +19,7 @@ export const InputRoot = React.memo(function InputRoot({ showToolbar = true }: I
   return (
     <div className="InputRoot">
       {!!showToolbar && <InputToolbar />}
-      <InputEditor showError={store.showError} />
+      <InputEditor showError={editor.showError} />
     </div>
   )
 })
@@ -83,30 +83,30 @@ export class InputEditor extends ErrorHandler<InputEditorProps> {
   }
 
   /**
-   * `<CodeMirror>` bound to `store.file`'s contents, wired to save/reload/compile keys and to
-   * push cursor/scroll/change events back into `store`.
+   * `<CodeMirror>` bound to `editor.file`'s contents, wired to save/reload/compile keys and to
+   * push cursor/scroll/change events back into `editor`.
    * NOTE: was previously worded as if for a `spellFile.match` producing `<MatchView>`/`<TokenView>`
    * elements -- stale, copy-pasted from `MatchViewer`'s equivalent field.  Corrected here.
    */
   Component = view(function InputEditorInner() {
-    const { file } = store
-    // Call `store.onInputEffect()` after each render to adjust selection.
-    // NOTE: wrapped in an inline function rather than passed directly -- `store.onInputEffect` is an
-    // opaque store method, so the hooks lint rule can't see what it depends on.
+    const { file } = editor
+    // Call `editor.onInputEffect()` after each render to adjust selection.
+    // NOTE: wrapped in an inline function rather than passed directly -- `editor.onInputEffect` is an
+    // opaque `editor` method, so the hooks lint rule can't see what it depends on.
     // NOTE: intentionally no dep array -- selection must be re-applied on every render.
     React.useEffect(() => {
-      store.onInputEffect()
+      editor.onInputEffect()
     })
     return (
       <CodeMirror
         key={file?.path || "loading"}
         value={file?.contents ?? "Loading"}
         options={inputOptions}
-        editorDidMount={store.onInputDidMount}
-        editorWillUnmount={store.onInputWillUnmount}
-        onBeforeChange={store.onInputChanged}
-        onCursorActivity={store.onInputCursor}
-        onScroll={store.onInputCursor}
+        editorDidMount={editor.onInputDidMount}
+        editorWillUnmount={editor.onInputWillUnmount}
+        onBeforeChange={editor.onInputChanged}
+        onCursorActivity={editor.onInputCursor}
+        onScroll={editor.onInputCursor}
       />
     )
   })
@@ -119,14 +119,14 @@ export class InputEditor extends ErrorHandler<InputEditorProps> {
    * elements -- stale, copy-pasted from `MatchViewer`'s equivalent field.  Corrected here.
    */
   ErrorComponent = view(function InputEditorInner(_props: InputEditorProps & { error: Error }) {
-    const { file } = store
+    const { file } = editor
 
-    // Call `store.onInputEffect()` after each render to adjust selection.
-    // NOTE: wrapped in an inline function rather than passed directly -- `store.onInputEffect` is an
-    // opaque store method, so the hooks lint rule can't see what it depends on.
+    // Call `editor.onInputEffect()` after each render to adjust selection.
+    // NOTE: wrapped in an inline function rather than passed directly -- `editor.onInputEffect` is an
+    // opaque `editor` method, so the hooks lint rule can't see what it depends on.
     // NOTE: intentionally no dep array -- selection must be re-applied on every render.
     React.useEffect(() => {
-      store.onInputEffect()
+      editor.onInputEffect()
     })
 
     // if we got a CodeMirror `error` in a previous draw,
@@ -138,11 +138,11 @@ export class InputEditor extends ErrorHandler<InputEditorProps> {
         key="error"
         value={file?.contents ?? "Loading"}
         options={options}
-        editorDidMount={store.onInputDidMount}
-        editorWillUnmount={store.onInputWillUnmount}
-        onBeforeChange={store.onInputChanged}
-        onCursorActivity={store.onInputCursor}
-        onScroll={store.onInputCursor}
+        editorDidMount={editor.onInputDidMount}
+        editorWillUnmount={editor.onInputWillUnmount}
+        onBeforeChange={editor.onInputChanged}
+        onCursorActivity={editor.onInputCursor}
+        onScroll={editor.onInputCursor}
       />
     )
   })

@@ -47,18 +47,17 @@ export class SpellParser extends P.Parser {
   }
 
   /**
-   * Override `addRule` to also add to `simple_expression` or `simple_statement` as necessary.
+   * Also register expressions / statements as `simple_expression` / `simple_statement`.
    * - Skips this for left-recursive rules (`rule.isLeftRecursive`): those already reference
    *   `simple_expression`/`simple_statement` in their own `syntax` to chain onto a prior expression, so
    *   adding them under those names too would let them recurse into themselves.
    */
-  addRule(rule: P.Rule | P.RuleConstructor, names?: string | string[]) {
-    // NOTE: a rule CLASS comes back through here once per instance, with its `names` array.
-    if (rule instanceof P.Rule && Array.isArray(names) && !rule.isLeftRecursive) {
-      if (names.includes("expression")) names.push("simple_expression")
-      if (names.includes("statement")) names.push("simple_statement")
-    }
-    return super.addRule(rule, names)
+  protected getNamesForRule(rule: P.Rule, names: string[]): string[] {
+    if (rule.isLeftRecursive) return names
+    const extras: string[] = []
+    if (names.includes("expression")) extras.push("simple_expression")
+    if (names.includes("statement")) extras.push("simple_statement")
+    return [...names, ...extras]
   }
 
   /**

@@ -2,31 +2,35 @@
  * Random statements that didn't earn their own file.
  */
 
-import { proto } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 
-/** No-op statement -- compiles to `spellCore.doNothing()`. */
-export class do_nothing extends SpellStatement {
-  @proto static alias = "statement"
-  @proto static syntax = "do nothing"
+/**
+ * Rule module for miscellaneous statements (currently just `do_nothing`).
+ * - Each rule class below is followed by the `statements.addRule()` call which defines and registers it.
+ */
+export const statements = new SpellParser({ module: "statements" })
 
+////////////////
+// ## `do_nothing` rule
+//    e.g. "do nothing"
+////////////////
+
+/** No-op statement -- compiles to `spellCore.doNothing()`. */
+class do_nothing extends SpellStatement {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     return new P.ASTCoreMethodInvocation(match, { methodName: "doNothing" })
   }
-
-  static tests: P.RuleTests = [
+}
+statements.addRule(do_nothing, {
+  alias: "statement",
+  syntax: "do nothing",
+  tests: [
     {
       compileAs: "statement",
       tests: [[`do nothing"`, `spellCore.doNothing()`]]
     }
   ]
-}
-
-/** Rule module for miscellaneous statements (currently just `do_nothing`). */
-export const statements = new SpellParser({
-  module: "statements",
-  rules: [do_nothing]
 })

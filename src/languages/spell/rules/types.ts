@@ -2,11 +2,21 @@
  * Rules for type names -- e.g. `thing`, `bank-account`, singular or plural, possibly unknown, resolved
  * against `scope.types` when known.
  */
-import { NONE, typeCase, instanceCase, singularize, pluralize, proto } from "~/util"
+import { NONE, typeCase, instanceCase, singularize, pluralize } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { identifierBlacklist } from "./identifier-blacklist"
+
+/**
+ * Rule module for type-name rules (`type`, `singular_type`, `plural_type`, `known_type`).
+ */
+export const types = new SpellParser({ module: "types" })
+
+////////////////
+// ## `SpellType` base class
+//    e.g. "thing", resolved against `scope.types` when known
+////////////////
 
 /**
  * Map raw matched type-name text to its canonical output name.
@@ -70,11 +80,16 @@ export function getKnownType(match: P.Match): P.TypeScope {
  * - Other rules read it as `if (match.is(SpellType)) match.data.scopeType`.
  */
 export class SpellType extends P.Pattern<never, TypeMatchData> {
-  // Alpha-numeric word, including dashes or underscores.
-  @proto static pattern = P.ALPHANUMERIC_WORD_WITH_DASHES
-  @proto static datatype = "type"
-  @proto static blacklist = identifierBlacklist
-  @proto static VALUE_MAP = TYPE_VALUE_MAP
+  /** Every type rule matches the same thing: alpha-numeric word (dashes/underscores OK), not blacklisted. */
+  constructor(props?: Partial<P.PatternProps>) {
+    super({
+      pattern: P.ALPHANUMERIC_WORD_WITH_DASHES,
+      datatype: "type",
+      blacklist: identifierBlacklist,
+      VALUE_MAP: TYPE_VALUE_MAP,
+      ...props
+    })
+  }
 
   /** Lookup table for `isSimpleType()` -- the built-in primitive type names, in canonical instance case. */
   static SIMPLE_TYPES: Record<string, number> = {
@@ -117,9 +132,15 @@ export class SpellType extends P.Pattern<never, TypeMatchData> {
   }
 }
 
+////////////////
+// ## `type` rule
+//    e.g. "thing" => "Thing"
+////////////////
+
 /** Possibly-unknown type identifier, singular or plural, e.g. `thing` or `things` => `Thing`. */
-export class type extends SpellType {
-  static tests: P.RuleTests = [
+class type extends SpellType {}
+types.addRule(type, {
+  tests: [
     {
       tests: [
         { title: "lower case", input: "thing", output: "Thing" },
@@ -131,10 +152,15 @@ export class type extends SpellType {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `singular_type` rule
+//    e.g. "thing", not "things"
+////////////////
 
 /** Possibly-unknown type identifier which MUST be singular -- fails on plural input. */
-export class singular_type extends SpellType {
+class singular_type extends SpellType {
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens)
     if (match && typeof match.raw === "string" && match.raw === singularize(match.raw)) return match
@@ -145,8 +171,9 @@ export class singular_type extends SpellType {
     type.plurality = "singular"
     return type
   }
-
-  static tests: P.RuleTests = [
+}
+types.addRule(singular_type, {
+  tests: [
     {
       tests: [
         { title: "singular, lower case", input: "thing", output: "Thing" },
@@ -161,13 +188,18 @@ export class singular_type extends SpellType {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `plural_type` rule
+//    e.g. "things", not "thing"
+////////////////
 
 /**
  * Possibly-unknown type identifier which MUST be plural -- fails on singular input.
  * - NOTE: the output type name will be SINGULAR, e.g. `things` => `Thing`.
  */
-export class plural_type extends SpellType {
+class plural_type extends SpellType {
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens)
     if (match && typeof match.raw === "string" && match.raw === pluralize(match.raw)) return match
@@ -178,8 +210,9 @@ export class plural_type extends SpellType {
     type.plurality = "plural"
     return type
   }
-
-  static tests: P.RuleTests = [
+}
+types.addRule(plural_type, {
+  tests: [
     {
       tests: [
         { title: "plural, lower case", input: "things", output: "Thing" },
@@ -194,14 +227,19 @@ export class plural_type extends SpellType {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `known_type` rule
+//    e.g. "thing", if `Thing` is a known type
+////////////////
 
 /**
  * Known type identifier, NOT including built-in types like `Object`.
  * - `match.data.scopeType` will be the existing `TypeScope`.
  */
-export class known_type extends SpellType {
-  //      @proto static alias = "expression"
+class known_type extends SpellType {
+  // alias: "expression",
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens)
     // Succeed only if `SpellType.parse()` found the scope type.
@@ -209,8 +247,9 @@ export class known_type extends SpellType {
     if (match?.data.scopeType !== NONE) return match
     return undefined
   }
-
-  static tests: P.RuleTests = [
+}
+types.addRule(known_type, {
+  tests: [
     {
       beforeEach(scope: P.Scope) {
         // `Scope.types` is typed narrowly (`IndexedList<TypeScope>`); the concrete `RootScope` accepts
@@ -235,10 +274,4 @@ export class known_type extends SpellType {
       ]
     }
   ]
-}
-
-/** Rule module for type-name rules (`type`, `singular_type`, `plural_type`, `known_type`). */
-export const types = new SpellParser({
-  module: "types",
-  rules: [type, singular_type, plural_type, known_type]
 })

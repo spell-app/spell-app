@@ -3,7 +3,7 @@ import React from "react"
 import { view, scrollForElement, centerElementInParent } from "~/util"
 import { P } from "~/parser"
 
-import { store } from "~/app/store"
+import { editor } from "~/app/editor"
 
 import { UI } from "~/app/ui"
 import { Actions } from "./Actions"
@@ -18,16 +18,16 @@ import "./MatchViewer.less"
  * Root element to show the `<MatchViewer/>` in `SpellEditor`.
  ****************/
 export const MatchRoot = view(function MatchRoot({ showToolbar = true, scrolling = true }: MatchRootProps) {
-  const { showingMatchRuleNames: showNames } = store
+  const { showingMatchRuleNames: showNames } = editor
   return (
     <div className="MatchRoot">
       {!!showToolbar && <MatchToolbar />}
       <MatchViewer //
         scrolling={scrolling}
         compact={showNames}
-        match={store.file && "match" in store.file ? store.file.match : undefined}
-        selection={store.selection}
-        showError={store.showError}
+        match={editor.file && "match" in editor.file ? editor.file.match : undefined}
+        selection={editor.selection}
+        showError={editor.showError}
       />
     </div>
   )

@@ -21,7 +21,7 @@ spellCore.registerElements({ UI, SUI })
 /**
  * Mount app into `#react-root`.
  * - `<Routes>` picks `ProjectChooser`/`SpellEditor`/`SpellRunner` by URL.
- * - `<UI.ModalRoot>`/`<Notice>`/`<ErrorNotice>` render `store.modals`/`store.notice`/`store.error`.
+ * - `<UI.ModalRoot>`/`<Notice>`/`<ErrorNotice>` render `editor.modals`/`editor.notice`/`editor.error`.
  */
 function renderApp() {
   const container = document.getElementById("react-root")!

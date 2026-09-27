@@ -515,6 +515,39 @@ describe("P.Subrule", () => {
   })
 })
 
+describe("P.Choice tie-breaking", () => {
+  /** Two interchangeable single-token rules registered under one `alias`, so both match the same input. */
+  function tieParser(secondPrecedence?: number) {
+    class first_rule extends P.Keyword {}
+    class second_rule extends P.Keyword {}
+    const parser = new Parser()
+    parser.addRule(first_rule, { alias: "either", literal: "x" })
+    parser.addRule(second_rule, { alias: "either", literal: "x", precedence: secondPrecedence })
+    return parser
+  }
+
+  test("same precedence and length -- EARLIEST-registered rule wins", () => {
+    // NOTE: `getBestMatch()` long claimed the opposite in its comments -- see SUSPECTED-BUGS.md.
+    expect(tieParser().parse("x", "either")?.rule.name).toBe("first_rule")
+  })
+
+  test("higher precedence beats earlier registration", () => {
+    expect(tieParser(1).parse("x", "either")?.rule.name).toBe("second_rule")
+  })
+
+  test("precedence beats a LONGER match -- it filters first, length only breaks ties within the top band", () => {
+    class long_rule extends P.Keywords {}
+    class short_rule extends P.Keyword {}
+    const parser = new Parser()
+    parser.addRule(long_rule, { alias: "either", literals: ["x", "y"] })
+    parser.addRule(short_rule, { alias: "either", literal: "x", precedence: 1 })
+    // `long_rule` matches both tokens, but `short_rule` outranks it and wins with just one.
+    const match = parser.parse("x y", "either")
+    expect(match?.rule.name).toBe("short_rule")
+    expect(match?.length).toBe(1)
+  })
+})
+
 describe("P.Choice", () => {
   const parser = new Parser()
   const scope = parser.getScope()

@@ -6,7 +6,7 @@ exports[`testing spell module methods > rule group specs > match snapshot -- if 
   "quoted_type_expression": "type|signature",
   "to_do_something": "asTest?|signature",
   "type_method_arg": "type",
-  "typed_method_arg": "variable_identifier|type",
-  "valued_var_method_arg": "variable_identifier|value",
+  "typed_method_arg": "identifier|type",
+  "valued_var_method_arg": "identifier|value",
 }
 `;

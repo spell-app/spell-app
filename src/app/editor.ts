@@ -13,38 +13,38 @@ import type * as UIT from "~/app/ui/ui.types"
 import * as Modals from "~/app/ui/modals"
 
 ////////////////
-// ## The store
+// ## The editor
 ////////////////
 
 setPrefKey("spellEditor:")
 /**
- * Initial contents of the `store` singleton.
- * - NOTE: `SpellStore` is derived from this with `typeof`,
+ * Initial contents of the `editor` singleton.
+ * - NOTE: `EditorStore` is derived from this with `typeof`,
  *   so the docstrings below serve BOTH the constant and the type.
- * - NOTE: methods reach the reactive proxy via `store.x`, NEVER `this` -- see `showModal()`.
+ * - NOTE: methods reach the reactive proxy via `editor.x`, NEVER `this` -- see `showModal()`.
  * - MUST annotate any property whose initializer is narrower than its real type
  *   (e.g. `undefined as Foo | undefined`), or `typeof` will infer the narrow one.
  */
-const initialStore = {
+const EDITOR_DEFAULTS = {
   ////////////////
   // ## Project and project actions
   ////////////////
 
   /**
    * `SP.SpellProjectRoot` shown in `SpellEditor`.
-   * Update with `store.showEditor()
+   * Update with `editor.showEditor()
    */
   projectRoot: undefined as SP.SpellProjectRoot | undefined,
   /** Get/save last viewed `projectPath` for `projectRootPath`. */
   lastProjectForRoot,
   /** Human-readable type of current `projectRoot`, e.g. `"Example"` -- falls back to `"Project"` if none selected. */
   get appType(): string {
-    return store.projectRoot?.Type || "Project"
+    return editor.projectRoot?.Type || "Project"
   },
 
   /**
    * Current `SP.SpellProject` shown in `SpellEditor`.
-   * Update with `store.showEditor()`
+   * Update with `editor.showEditor()`
    */
   project: undefined as SP.SpellProject | undefined,
   /** Get/save last viewed full `filePath` for `projectPath`. */
@@ -52,9 +52,9 @@ const initialStore = {
 
   /**
    * `SpellFile` etc shown in `SpellEditor`.
-   * Update with `store.showEditor()`
+   * Update with `editor.showEditor()`
    */
-  file: undefined as StoreFile | undefined,
+  file: undefined as EditorFile | undefined,
   /** Get/save last `selection` for `filePath`.  */
   lastSelectionForFile,
 
@@ -65,51 +65,51 @@ const initialStore = {
 
   /** Show `<SpellEditor>` for a `path` by updating the URL, which will eventually call `selectPath` */
   showEditor(path?: string, selection?: UIT.EditorSelection): void {
-    if (!path) path = store.file?.path
+    if (!path) path = editor.file?.path
     // TODO: selection!!!!
     try {
       void navigate(new SP.SpellLocation(path!).editorUrl)
-      void store.compileApp()
+      void editor.compileApp()
     } catch {
-      store.showError(`Path '${path}' is invalid!`)
+      editor.showError(`Path '${path}' is invalid!`)
     }
   },
 
   /** Show `<SpellRunner>` for a `path` by updating the URL, which will eventually call `selectPath` */
   async showRunner(path?: string): Promise<void> {
-    if (!path) path = store.file?.path
+    if (!path) path = editor.file?.path
     try {
       await navigate(new SP.SpellLocation(path!).runnerUrl)
-      void store.compileApp()
+      void editor.compileApp()
     } catch {
-      store.showError(`Path '${path}' is invalid!`)
+      editor.showError(`Path '${path}' is invalid!`)
     }
   },
 
   // TODO: these are referenced by `~/app/ui/Actions` but not yet implemented.
   /** Show settings for the current `project`. TODO: not yet implemented. */
   showProjectSettings(): void {
-    console.warn("TODO: store.showProjectSettings() not yet implemented")
+    console.warn("TODO: editor.showProjectSettings() not yet implemented")
   },
   /** Show the "About Spell" dialog. TODO: not yet implemented. */
   aboutSpell(): void {
-    console.warn("TODO: store.aboutSpell() not yet implemented")
+    console.warn("TODO: editor.aboutSpell() not yet implemented")
   },
   /** Show documentation. TODO: not yet implemented. */
   showDocs(): void {
-    console.warn("TODO: store.showDocs() not yet implemented")
+    console.warn("TODO: editor.showDocs() not yet implemented")
   },
   /** Show help. TODO: not yet implemented. */
   showHelp(): void {
-    console.warn("TODO: store.showHelp() not yet implemented")
+    console.warn("TODO: editor.showHelp() not yet implemented")
   },
   /** Log the user in. TODO: not yet implemented. */
   logIn(): void {
-    console.warn("TODO: store.logIn() not yet implemented")
+    console.warn("TODO: editor.logIn() not yet implemented")
   },
   /** Publish the current `project`. TODO: not yet implemented. */
   publishApp(): void {
-    console.warn("TODO: store.publishApp() not yet implemented")
+    console.warn("TODO: editor.publishApp() not yet implemented")
   },
 
   /**
@@ -127,18 +127,18 @@ const initialStore = {
     try {
       location = new SP.SpellLocation(path)
     } catch {
-      console.warn(`store.selectPath('${path}'): invalid path`)
+      console.warn(`editor.selectPath('${path}'): invalid path`)
       // default to user projects if `new SP.SpellLocation()` throws
       location = new SP.SpellLocation("@user:projects")
     }
-    console.info("store.selectPath", { path, location })
+    console.info("editor.selectPath", { path, location })
 
     const projectRoot = new SP.SpellProjectRoot(location.projectRoot)
-    const sameRoot = store.projectRoot === projectRoot
+    const sameRoot = editor.projectRoot === projectRoot
     if (!sameRoot) {
       console.info("selecting projectRoot", projectRoot)
       await projectRoot.load(undefined)
-      store.projectRoot = projectRoot
+      editor.projectRoot = projectRoot
     }
     const projectPaths = projectRoot.projectPaths
 
@@ -146,19 +146,19 @@ const initialStore = {
     let projectPath =
       location.isProjectPath || location.isFilePath //
         ? location.projectPath
-        : store.lastProjectForRoot(location.projectRoot)
+        : editor.lastProjectForRoot(location.projectRoot)
     if (!projectPath || !projectPaths.includes(projectPath)) projectPath = projectPaths[0]
     // TODO: what if no project???
     const project = new SP.SpellProject(projectPath)
     // DEBUG: access globally as `window.project`
     window.project = project
-    const sameProject = store.project === project
+    const sameProject = editor.project === project
     if (!sameProject) {
       console.info("selecting project", project)
       // stop current compilation
-      store.clearCompileAppSoon()
+      editor.clearCompileAppSoon()
       // remember this project was selected for projectRoot
-      store.lastProjectForRoot(location.projectRoot, projectPath)
+      editor.lastProjectForRoot(location.projectRoot, projectPath)
       await project.load(undefined)
       // Clear application display when switching projects
       const oldProjectRoot = document.getElementById(spellCore.REACT_APP_ROOT_ID) as
@@ -172,37 +172,37 @@ const initialStore = {
     // Figure out which file to show, using pref if not specified in `path`
     let filePath = location.isFilePath //
       ? location.filePath
-      : store.lastFileForProject(project.path)
+      : editor.lastFileForProject(project.path)
     if (!filePath || !project.getFile(filePath)) {
       filePath = project.activeImports[0]?.path || project.files[0]?.path || ""
     }
     // TODO: what if no file???
 
-    const file: StoreFile | undefined = project.getFile(filePath)
-    if (!file) throw new Error(`store.selectPath('${path}'): no file found for '${filePath}'.`)
+    const file: EditorFile | undefined = project.getFile(filePath)
+    if (!file) throw new Error(`editor.selectPath('${path}'): no file found for '${filePath}'.`)
     // if we landed on something else other than the original path, navigate to it
     if (path !== file.path) {
       // console.warn({ path, file: file.path })
-      const url = file.location[store.projectPage === "editor" ? "editorUrl" : "runnerUrl"]
+      const url = file.location[editor.projectPage === "editor" ? "editorUrl" : "runnerUrl"]
       return navigate(url, { replace: true })
     }
 
-    const sameFile = store.file === file
+    const sameFile = editor.file === file
     if (!sameFile) {
       console.info("selecting file", file)
-      store.lastFileForProject(project.path, file.path)
+      editor.lastFileForProject(project.path, file.path)
       // restore file selection -- we'll use this below as a flag to reselect
-      file.initialSelection = store.lastSelectionForFile(file.path)
+      file.initialSelection = editor.lastSelectionForFile(file.path)
     }
     // if we were passed a `selection` and path matches full path passed in, select it
     if (selection && path === file.path) file.initialSelection = selection
 
-    // Set store and file together, else <FileDropdown> will blow up.  :-(
-    store.project = project
-    store.file = file
+    // Set project and file together, else <FileDropdown> will blow up.  :-(
+    editor.project = project
+    editor.file = file
     await file.load(undefined)
     // If we switched projects, recompile
-    if (!sameProject) void store.compileApp()
+    if (!sameProject) void editor.compileApp()
   },
 
   /**
@@ -219,9 +219,9 @@ const initialStore = {
       scroll: { event: "cursor", percent: 0, max: 0, current: 0, total: 0, visible: 0 }
     }
     // TODO: showEditor...
-    await store.selectPath(path, selection)
+    await editor.selectPath(path, selection)
     // TODO....???
-    store.onInputEffect()
+    editor.onInputEffect()
   },
 
   /**
@@ -229,57 +229,57 @@ const initialStore = {
    * `projectId` is optional, if you don't specify we'll ask the user for one.
    */
   async createApp(projectRoot?: SP.SpellProjectRoot, projectId?: string): Promise<void> {
-    // NOTE: defaulted here, NOT in the signature -- a default referencing `store` would make
-    // `typeof initialStore` circular, since defaults are part of the member's type.
-    projectRoot ??= store.projectRoot!
+    // NOTE: defaulted here, NOT in the signature -- a default referencing `editor` would make
+    // `typeof EDITOR_DEFAULTS` circular, since defaults are part of the member's type.
+    projectRoot ??= editor.projectRoot!
     try {
       const project = await projectRoot.createApp(projectId)
       if (project) {
-        store.showEditor(project.path)
-        store.showNotice(`Created ${project.type} ${project.projectName}.`)
+        editor.showEditor(project.path)
+        editor.showNotice(`Created ${project.type} ${project.projectName}.`)
       }
     } catch (e) {
-      store.showError(e)
+      editor.showError(e)
     }
   },
 
   /** Duplicate current `project` under `newProjectId` (auto-generated if omitted) and show it. */
   async duplicateApp(newProjectId?: string): Promise<void> {
     try {
-      const newProject = await store.projectRoot!.duplicateApp(store.project!.projectId, newProjectId)
+      const newProject = await editor.projectRoot!.duplicateApp(editor.project!.projectId, newProjectId)
       // console.warn({ newProject })
       if (newProject) {
-        store.showEditor(newProject.path)
-        store.showNotice(`${newProject.Type} duplicated.`)
+        editor.showEditor(newProject.path)
+        editor.showNotice(`${newProject.Type} duplicated.`)
       }
     } catch (e) {
-      store.showError(e)
+      editor.showError(e)
     }
   },
   /** Rename current `project` to `newProjectId` and show it. */
   async renameApp(newProjectId?: string): Promise<void> {
     try {
-      const project = await store.projectRoot!.renameApp(store.project!.projectId, newProjectId)
+      const project = await editor.projectRoot!.renameApp(editor.project!.projectId, newProjectId)
       if (project) {
-        store.showEditor(project.path)
-        store.showNotice(`${project.Type} renamed.`)
+        editor.showEditor(project.path)
+        editor.showNotice(`${project.Type} renamed.`)
       }
     } catch (e) {
-      store.showError(e)
+      editor.showError(e)
     }
   },
   /** Delete current `project` (after `CONFIRM`), then navigate to `projectRoot`, which selects another project. */
   async deleteApp(): Promise<void> {
     try {
-      const { projectRoot, project } = store
+      const { projectRoot, project } = editor
       const removed = await projectRoot!.deleteApp(project!.projectId, CONFIRM)
       if (removed) {
         // Navigate to nextProject, or the projectRoot, which will select another project
-        store.showEditor(projectRoot!.path)
-        store.showNotice(`${projectRoot!.Type} removed.`)
+        editor.showEditor(projectRoot!.path)
+        editor.showNotice(`${projectRoot!.Type} removed.`)
       }
     } catch (e) {
-      store.showError(e)
+      editor.showError(e)
     }
   },
 
@@ -288,14 +288,14 @@ const initialStore = {
    * - SIDE EFFECT: clears `spellCore.console` and cancels any pending `compileAppSoon()` timer first.
    */
   async compileApp(): Promise<void> {
-    const { project, file } = store
+    const { project, file } = editor
     if (!project || !file) return
 
     spellCore.console.clear()
     try {
       spellCore.console.group("Compiling", project)
 
-      store.clearCompileAppSoon()
+      editor.clearCompileAppSoon()
       await project.compile()
       const { compiled } = project
 
@@ -309,7 +309,7 @@ const initialStore = {
         spellCore.console.log(lines)
         spellCore.console.groupEnd()
 
-        await store.executeCompiledApp()
+        await editor.executeCompiledApp()
       }
     } finally {
       spellCore.console.groupEnd()
@@ -321,7 +321,7 @@ const initialStore = {
    * - Throws if execution errored, so browser devtools print the right stack/line number too.
    */
   async executeCompiledApp(): Promise<void> {
-    const { project } = store
+    const { project } = editor
     if (!project?.compiled) return
     spellCore.console.group(`Executing ${project.type}`)
     const result = await project.executeCompiled()
@@ -340,14 +340,14 @@ const initialStore = {
   compileAppSoonTimer: undefined as ReturnType<typeof setTimeout> | undefined,
   /** Compile after `delay` seconds. */
   compileAppSoon(delay: number = 1): void {
-    store.clearCompileAppSoon()
-    store.compileAppSoonTimer = setTimeout(store.compileApp, delay * 1000)
+    editor.clearCompileAppSoon()
+    editor.compileAppSoonTimer = setTimeout(editor.compileApp, delay * 1000)
   },
   /** Cancel pending `compileAppSoon()` timer, if any. */
   clearCompileAppSoon(): void {
-    if (store.compileAppSoonTimer) {
-      clearTimeout(store.compileAppSoonTimer)
-      store.compileAppSoonTimer = undefined
+    if (editor.compileAppSoonTimer) {
+      clearTimeout(editor.compileAppSoonTimer)
+      editor.compileAppSoonTimer = undefined
     }
   },
 
@@ -356,7 +356,7 @@ const initialStore = {
   ////////////////
   /** Create a new project under `SP.SpellProjectRoot.projects`. */
   createProject(projectId?: string): Promise<void> {
-    return store.createApp(SP.SpellProjectRoot.projects, projectId)
+    return editor.createApp(SP.SpellProjectRoot.projects, projectId)
   },
 
   ////////////////
@@ -364,7 +364,7 @@ const initialStore = {
   ////////////////
   /** Create a new example under `SP.SpellProjectRoot.examples`. */
   async createExample(projectId?: string): Promise<void> {
-    return store.createApp(SP.SpellProjectRoot.examples, projectId)
+    return editor.createApp(SP.SpellProjectRoot.examples, projectId)
   },
 
   ////////////////
@@ -372,7 +372,7 @@ const initialStore = {
   ////////////////
   /** Create a new guide under `SP.SpellProjectRoot.guides`. */
   async createGuide(projectId?: string): Promise<void> {
-    return store.createApp(SP.SpellProjectRoot.guides, projectId)
+    return editor.createApp(SP.SpellProjectRoot.guides, projectId)
   },
 
   ////////////////
@@ -381,63 +381,63 @@ const initialStore = {
 
   /** Save current `file` if it's loaded. */
   async saveFile(): Promise<void> {
-    const { file } = store
+    const { file } = editor
     if (file?.isLoaded) await file.save(undefined)
   },
   /** Reload current `file` from disk/storage and recompile. */
   async reloadFile(): Promise<void> {
-    store.clearCompileAppSoon()
-    const { file } = store
+    editor.clearCompileAppSoon()
+    const { file } = editor
     if (file) {
       await file.reload()
-      void store.compileApp()
+      void editor.compileApp()
     }
   },
   /** Create `filePath` (with optional `contents`) in current `project` and show it. */
   async createFile(filePath?: string, contents?: string): Promise<void> {
-    store.clearCompileAppSoon()
+    editor.clearCompileAppSoon()
     try {
-      const newFile = await store.project!.createFile(filePath, contents)
+      const newFile = await editor.project!.createFile(filePath, contents)
       if (newFile) {
-        store.showEditor(newFile.path)
-        store.showNotice("File created.")
+        editor.showEditor(newFile.path)
+        editor.showNotice("File created.")
       }
     } catch (e) {
-      store.showError(e)
+      editor.showError(e)
     }
   },
   /** Duplicate current `file` to `newPath` and show it. */
   async duplicateFile(newPath?: string): Promise<void> {
-    store.clearCompileAppSoon()
+    editor.clearCompileAppSoon()
     try {
-      const newFile = await store.project!.duplicateFile(store.file!.filePath!, newPath)
+      const newFile = await editor.project!.duplicateFile(editor.file!.filePath!, newPath)
       if (newFile) {
-        store.showEditor(newFile.path)
-        store.showNotice("File duplicated.")
+        editor.showEditor(newFile.path)
+        editor.showNotice("File duplicated.")
       }
     } catch (e) {
-      store.showError(e)
+      editor.showError(e)
     }
   },
   /** Rename current `file` to `newPath` and show it. */
   async renameFile(newPath?: string): Promise<void> {
-    store.clearCompileAppSoon()
+    editor.clearCompileAppSoon()
     try {
-      const renamedFile = await store.project!.renameFile(store.file!.filePath!, newPath)
+      const renamedFile = await editor.project!.renameFile(editor.file!.filePath!, newPath)
       if (renamedFile) {
-        store.showEditor(renamedFile.path)
-        store.showNotice("File renamed.")
+        editor.showEditor(renamedFile.path)
+        editor.showNotice("File renamed.")
       }
     } catch (e) {
-      store.showError(e)
+      editor.showError(e)
     }
   },
   /** Delete current `file` (after `CONFIRM`), then show next import or `project`. */
   async deleteFile(): Promise<void> {
-    store.clearCompileAppSoon()
+    editor.clearCompileAppSoon()
     try {
-      const project = store.project!
-      const file = store.file!
+      const project = editor.project!
+      const file = editor.file!
       // figure out what to select next out of `project.imports`
       const files = project.imports.map(({ file }) => file)
       const fileIndex = files.indexOf(file)
@@ -446,11 +446,11 @@ const initialStore = {
       const removed = await project.deleteFile(file.filePath!, CONFIRM)
       if (removed) {
         // select the nextFile, or the project (which will select another file)
-        store.showEditor(nextFile?.path || project.path)
-        store.showNotice("File removed.")
+        editor.showEditor(nextFile?.path || project.path)
+        editor.showNotice("File removed.")
       }
     } catch (e) {
-      store.showError(e)
+      editor.showError(e)
     }
   },
 
@@ -460,7 +460,7 @@ const initialStore = {
 
   /** Dev helper -- show a `confirm()` dialog and log the resolved answer. */
   async testDialog(): Promise<void> {
-    const reply = await store.confirm({ header: "Header", message: "Message?", ok: "Yep", cancel: "Nope" })
+    const reply = await editor.confirm({ header: "Header", message: "Message?", ok: "Yep", cancel: "Nope" })
     console.warn("testDialog resolved with ", reply)
   },
 
@@ -483,35 +483,35 @@ const initialStore = {
     // `Modals.Alert` always resolves `undefined` (only an OK button); narrow past `showModal()`'s
     // generic `Promise<unknown>` (`Modals.Alert`'s own `Modals.ModalComponentProps<Modals.AlertModalProps>` defaults
     // its resolve value to `unknown`).
-    return store.showModal(props, Modals.Alert) as Promise<undefined>
+    return editor.showModal(props, Modals.Alert) as Promise<undefined>
   },
 
   /** See `alert()` above for shared `props` docs.  Resolves `true`/`false` for OK/Cancel button. */
   confirm(props: string | Modals.ConfirmModalProps): Promise<boolean> {
     if (typeof props === "string") props = { message: props }
-    return store.showModal(props, Modals.Confirm)
+    return editor.showModal(props, Modals.Confirm)
   },
 
   /** See `alert()` above for shared `props` docs.  Resolves field's string value, or `undefined` if cancelled. */
   prompt(props: string | Modals.PromptModalProps): Promise<string | undefined> {
     if (typeof props === "string") props = { message: props }
-    return store.showModal(props, Modals.Prompt)
+    return editor.showModal(props, Modals.Prompt)
   },
 
   /** Like `prompt()`, but numeric input -- defaults `type: "number"` and `step: 1`. */
   promptForNumber(props: string | Modals.PromptModalProps): Promise<string | undefined> {
     if (typeof props === "string") props = { message: props }
     props = { type: "number", inputProps: { step: 1 }, ...props }
-    return store.showModal(props, Modals.Prompt)
+    return editor.showModal(props, Modals.Prompt)
   },
 
   /** Show a chooser modal.  Rejects instead of showing anything if `message`/`options` are missing. */
   choose(props?: Modals.ChooserModalProps): Promise<unknown> {
     if (!props?.message || !props.options) {
-      console.warn("store.choose(): must pass 'message' and 'options', got:", props)
+      console.warn("editor.choose(): must pass 'message' and 'options', got:", props)
       return Promise.reject(undefined)
     }
-    return store.showModal(props, Modals.Chooser)
+    return editor.showModal(props, Modals.Chooser)
   },
 
   /** Sequence to generate unique modal `id`s. */
@@ -538,13 +538,13 @@ const initialStore = {
   /** Remember `inputEditor` in our <InputEditor editorDidMount /> event. */
   onInputDidMount(codeMirror: CodeMirror.Editor): void {
     // console.info("initializing", { codeMirror })
-    store.inputEditor = codeMirror
-    codeMirror.on("refresh", store.onInputCursor)
+    editor.inputEditor = codeMirror
+    codeMirror.on("refresh", editor.onInputCursor)
   },
   /** Forget `inputEditor` in our <InputEditor editorWillUnmount /> event. */
   onInputWillUnmount(codeMirror: CodeMirror.Editor): void {
-    store.inputEditor = null
-    codeMirror.off("refresh", store.onInputCursor)
+    editor.inputEditor = null
+    codeMirror.off("refresh", editor.onInputCursor)
   },
 
   /** Handle cursor move or scroll in our inputEditor, remembering the `selection`  */
@@ -554,15 +554,15 @@ const initialStore = {
 
   /**
    * Called from a `useEffect()` hook in our `<InputEditor />`,
-   * if `store.file.initialSelection` is set and things are ready to go
+   * if `editor.file.initialSelection` is set and things are ready to go
    * scroll the codeMirror `inportEditor` and reset the selection.
    */
   onInputEffect(): void {
-    const { inputEditor, file } = store
+    const { inputEditor, file } = editor
     const { initialSelection, isLoaded } = file || {}
     if (!inputEditor || !isLoaded || !initialSelection) return
 
-    console.info("TODO: DEFERRING onInputEffect():  see store.onInputEffect")
+    console.info("TODO: DEFERRING onInputEffect():  see editor.onInputEffect")
     // console.info("initializing input", { path, initialSelection, inputEditor })
     // try {
     //   // HACK: manually set the height of the codeMirror instance
@@ -578,11 +578,11 @@ const initialStore = {
 
     //   // turn into a `cursor` event so we'll scroll the views
     //   if (initialSelection.scroll) initialSelection.scroll.event = "cursor"
-    //   store.lastSelectionForFile(file.path, initialSelection)
-    //   // Set `store.selection` after a delay so rendering works better
+    //   editor.lastSelectionForFile(file.path, initialSelection)
+    //   // Set `editor.selection` after a delay so rendering works better
     //   setTimeout(() => {
     //     console.info("onInputEffect setting selection to ", initialSelection)
-    //     store.selection = initialSelection
+    //     editor.selection = initialSelection
     //   }, 10)
 
     //   // scroll the inputEditor itself to match
@@ -597,13 +597,13 @@ const initialStore = {
 
   /** Handle change event from our inputEditor. */
   onInputChanged(_codeMirror: CodeMirror.Editor, _change: CodeMirror.EditorChange, value: string): void {
-    const { file, project } = store
+    const { file, project } = editor
     if (!file || !project) return
     file.contents = value
     file.isDirty = true
     project.updatedContentsFor(file)
     // auto-compile 2 seconds after input settles
-    store.compileAppSoon(2)
+    editor.compileAppSoon(2)
   },
 
   ////////////////
@@ -615,8 +615,8 @@ const initialStore = {
   /** Toggle (or force via `on`) `showingMatchRuleNames`. */
   toggleMatchRuleNames(on?: boolean): void {
     // NOTE: defaulted here rather than in the signature -- see `createApp()` above.
-    on ??= !store.showingMatchRuleNames
-    store.showingMatchRuleNames = on
+    on ??= !editor.showingMatchRuleNames
+    editor.showingMatchRuleNames = on
   },
 
   /** Single `notice` display. */
@@ -624,11 +624,11 @@ const initialStore = {
   /** Show `notice` banner with `notice` text. */
   showNotice(notice: string): void {
     console.info("showNotice:", notice)
-    store.notice = notice
+    editor.notice = notice
   },
   /** Clear `notice` banner. */
   hideNotice(): void {
-    store.notice = undefined
+    editor.notice = undefined
   },
 
   /** Single error display. */
@@ -636,44 +636,44 @@ const initialStore = {
   /** Show an error to the user. */
   showError(error: unknown): void {
     console.dir(error)
-    store.error = error instanceof Error ? error : new UIError(String(error))
+    editor.error = error instanceof Error ? error : new UIError(String(error))
   },
   /** Clear `error` banner. */
   hideError(): void {
-    store.error = undefined
+    editor.error = undefined
   }
 }
 
-/** Type of the `store` singleton, derived from `initialStore` above. */
-export type SpellStore = typeof initialStore
+/** Type of the `editor` singleton, derived from `EDITOR_DEFAULTS` above. */
+export type EditorStore = typeof EDITOR_DEFAULTS
 
-/** The `store` singleton -- a reactive proxy over `initialStore`. */
-export const store: SpellStore = createStore(initialStore)
+/** The `editor` singleton -- a reactive proxy over `EDITOR_DEFAULTS`. */
+export const editor: EditorStore = createStore(EDITOR_DEFAULTS)
 
 ////////////////
 // ## Supporting types
 ////////////////
 
 /**
- * Any of the file classes `store.file` can hold, plus the ad-hoc `initialSelection` that
- * `store.selectPath()` stashes on it to tell `<InputEditor>` where to restore the cursor.
+ * Any of the file classes `editor.file` can hold, plus the ad-hoc `initialSelection` that
+ * `editor.selectPath()` stashes on it to tell `<InputEditor>` where to restore the cursor.
  */
-export type StoreFile = SP.AnySpellFile & { initialSelection?: UIT.EditorSelection }
+export type EditorFile = SP.AnySpellFile & { initialSelection?: UIT.EditorSelection }
 
-/** Loose prop bag passed to a modal shown with `store.showModal()`. */
+/** Loose prop bag passed to a modal shown with `editor.showModal()`. */
 export type ModalProps = Record<string, unknown>
 
 /** A modal component (`Modals.Alert`, `Modals.Confirm`, etc), as rendered by `<Modals.ModalRoot>`. */
 export type ModalComponent = ComponentType<Modals.ModalComponentProps<ModalProps, unknown>>
 
 /**
- * One entry in `store.modals`, the stack of currently-showing modals.
+ * One entry in `editor.modals`, the stack of currently-showing modals.
  * NOTE: this is a heterogeneous stack -- each entry's real `component` is typed for its own
  * specific props/resolve-value types (e.g. `Modals.Confirm` wants `Modals.ModalComponentProps<Modals.ConfirmModalProps,
  * boolean>`) -- so `component`/`resolve`/`reject` are type-erased to `ModalComponent`/`unknown` here.
  */
 export type ModalEntry = {
-  /** Props passed to `component`, plus generated `id` used to remove this entry from `store.modals`. */
+  /** Props passed to `component`, plus generated `id` used to remove this entry from `editor.modals`. */
   props: ModalProps & { id: string }
   /** Modal component to render -- type-erased, see note above. */
   component: ModalComponent
@@ -718,7 +718,7 @@ function onInputCursor(codeMirror: CodeMirror.Editor): void
 function onInputCursor(codeMirror: CodeMirror.Editor, data: CodeMirror.ScrollInfo): void
 function onInputCursor(codeMirror: CodeMirror.Editor, _data?: CodeMirror.ScrollInfo): void {
   const event: UIT.EditorScrollInfo["event"] = arguments.length === 1 ? "cursor" : "scroll"
-  const { direction, current: oldCurrent } = store.selection?.scroll || {}
+  const { direction, current: oldCurrent } = editor.selection?.scroll || {}
   // allocate this way to make console debugging easier
   const scroll: UIT.EditorScrollInfo = { event, direction, percent: 0, max: 0, current: 0, total: 0, visible: 0 }
 
@@ -748,7 +748,7 @@ function onInputCursor(codeMirror: CodeMirror.Editor, _data?: CodeMirror.ScrollI
   // scroll.mouseLine = codeMirror.lineAtHeight(<global-mouse-position>, "window")
 
   const range = cm.doc.sel.ranges[0]
-  const { file } = store
+  const { file } = editor
   // `offsetForPosition()` only exists on `SpellFile`/`SpellCSSFile`, not `SpellJSFile`.
   const offsetForPosition = (pos: CodeMirror.Position): number | undefined =>
     file && "offsetForPosition" in file ? file.offsetForPosition(pos) : undefined
@@ -767,9 +767,9 @@ function onInputCursor(codeMirror: CodeMirror.Editor, _data?: CodeMirror.ScrollI
     offset: offsetForPosition(range.head)
   }
 
-  store.selection = { scroll, anchor, head }
+  editor.selection = { scroll, anchor, head }
   // store selection as file `pref`, we'll reload it in `selectPath()` above.
-  if (file) store.lastSelectionForFile(file.path, store.selection)
+  if (file) editor.lastSelectionForFile(file.path, editor.selection)
 }
 
 /**
@@ -786,21 +786,21 @@ function showModal<P extends ModalProps, R = unknown>(
   let modalProps!: ModalEntry
   const promise = new Promise<R>((resolve, reject) => {
     modalProps = {
-      props: { ...props, id: `Modal-${store.modalId++}` },
-      // NOTE: `store.modals` is a heterogeneous stack whose entries are typed for different
+      props: { ...props, id: `Modal-${editor.modalId++}` },
+      // NOTE: `editor.modals` is a heterogeneous stack whose entries are typed for different
       // props/resolve-value types; type-erase to `ModalComponent`/`unknown` here, right at the
       // boundary where we know which `component`/`props`/`resolve`/`reject` set actually belongs together.
       component: component as unknown as ModalComponent,
       resolve: (value?: unknown) => resolve(value as R),
       reject: (reason?: unknown) => reject(reason)
     }
-    store.modals = [modalProps, ...store.modals]
+    editor.modals = [modalProps, ...editor.modals]
   }).finally(() => {
-    // make sure `store.modals` gets cleaned up however we resolve the promise
-    store.modals = store.modals.filter((it) => it.props.id !== modalProps.props.id)
+    // make sure `editor.modals` gets cleaned up however we resolve the promise
+    editor.modals = editor.modals.filter((it) => it.props.id !== modalProps.props.id)
   })
 
-  if (store.debugModals) {
+  if (editor.debugModals) {
     // NOTE: don't put this in the promise returned to the caller
     void promise.then((value) => console.info("Modal resolved with:", value, "\nprops:", modalProps))
     promise.catch((error) => console.info("Modal rejected with:", error, "\nprops:", modalProps))

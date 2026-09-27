@@ -4,7 +4,7 @@ import * as SUI from "semantic-ui-react"
 import { view } from "~/util"
 import type { SP } from "~/languages/spell"
 
-import { store } from "~/app/store"
+import { editor } from "~/app/editor"
 
 import { UI } from "~/app/ui"
 import { Actions } from "./Actions"
@@ -19,7 +19,7 @@ const FileDropdownAction = React.memo(({ useRunner, path, location, active }: Fi
     value={path}
     icon={UI.FILE_ICON}
     active={active}
-    onClick={() => (useRunner ? store.showRunner(path) : store.showEditor(path))}
+    onClick={() => (useRunner ? editor.showRunner(path) : editor.showEditor(path))}
   />
 ))
 
@@ -31,20 +31,20 @@ export type FileDropdownActionProps = {
   path: string
   /** Parsed location for `path`, used to show its file name. */
   location: SP.SpellLocation
-  /** Whether this is `store.file`, the currently selected file. */
+  /** Whether this is `editor.file`, the currently selected file. */
   active: boolean
 }
 
 /****************
  * ### `<FileDropdown>`
- * Menu of all available files for the selected project (`store.project`).
+ * Menu of all available files for the selected project (`editor.project`).
  ****************/
 export const FileDropdown = view(function FileDropdown({
   useRunner = false,
   showLabel = true,
   showActions = false
 }: FileDropdownProps) {
-  const { project, file }: { project?: SP.SpellProject; file?: SP.AnySpellFile } = store
+  const { project, file }: { project?: SP.SpellProject; file?: SP.AnySpellFile } = editor
   const ready = project?.isLoaded && !!file
   const dropdownProps: SUI.DropdownProps = {
     id: "FileDropdown",

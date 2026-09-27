@@ -173,18 +173,34 @@ export class Parser extends Derivative {
    * Add a `rule` to our list of rules!
    * - Rule CLASS is `instantiate()`d -- one frozen instance per `syntax` variant -- and added under
    *   its name + aliases, plus `_testable_` if it has tests.  Returns array if there are several.
+   *   Pass its `definition` (`syntax`, `alias`, `tests`...) as second argument, type-checked against that
+   *   class's props:  `parser.addRule(give_statement, { alias: "statement", syntax: "give {thing}" })`.
    * - Rule INSTANCE is added under `ruleName`, defaulting to `rule.name`.
    * - Converts to `P.Group` on re-defining the same rule.
    * - Throws on anything unusable, e.g. bad `syntax` -- better at startup than a mystery parse failure later.
    */
-  addRule(rule: P.Rule | P.RuleConstructor, ruleName?: string | string[]): P.Rule | P.Rule[] | undefined {
+  addRule<RuleType extends P.Rule>(
+    rule: Class<RuleType>,
+    definition?: P.DefinitionFor<RuleType>
+  ): P.Rule | P.Rule[] | undefined
+  addRule(rule: P.Rule | P.RuleConstructor, ruleName?: string | string[]): P.Rule | P.Rule[] | undefined
+  addRule(
+    rule: P.Rule | P.RuleConstructor,
+    namesOrDefinition?: string | string[] | P.RuleDefinitionProps
+  ): P.Rule | P.Rule[] | undefined {
     // Clear memoized "rules" so we'll recalculate them
     this.clearDerived("rules")
+
+    // Second argument is either explicit name(s) or, for a rule class, its definition props.
+    const isNames = typeof namesOrDefinition === "string" || Array.isArray(namesOrDefinition)
+    let ruleName = isNames ? namesOrDefinition : undefined
 
     // If rule is a Rule subclass, instantiate it and add each instance under all of its names
     if (typeof rule === "function") {
       const ruleClass = rule as unknown as typeof P.Rule
-      const instances = ruleClass.instantiate(this.module ? { module: this.module } : undefined)
+      const definition: P.RuleDefinitionProps = isNames ? {} : { ...namesOrDefinition }
+      if (this.module) definition.module = this.module
+      const instances = ruleClass.instantiate(definition)
       instances.forEach((instance) => {
         const names: string[] = ruleName ? [ruleName].flat() : instance.names
         this.addRule(instance, instance.tests ? [...names, "_testable_"] : names)
@@ -216,7 +232,7 @@ export class Parser extends Derivative {
 
     // If we got an array of `ruleName`s, recursively add under each name with the same `rule`.
     if (Array.isArray(ruleName)) {
-      ruleName.forEach((name) => this.addRule(rule, name))
+      this.getNamesForRule(rule, ruleName).forEach((name) => this.addRule(rule, name))
     }
     // Add to our list of rules
     else {
@@ -224,6 +240,14 @@ export class Parser extends Derivative {
     }
 
     return rule
+  }
+
+  /**
+   * All names `rule` should be registered under, given the `names` it asked for.
+   * - Override to add language-specific collections, e.g. spell's `simple_expression`.
+   */
+  protected getNamesForRule(_rule: P.Rule, names: string[]): string[] {
+    return names
   }
 
   /** Add rules from other `Parser`s (`imports`) to this parser. */

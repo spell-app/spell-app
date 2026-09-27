@@ -121,13 +121,15 @@ export class Choice<
    * Return the "best" match given more than one matches at the head of the tokens.
    * - First we find the match(es) with the highest precedence.
    * - Then we take the one with the longest matched string.
-   * - If more than one rule with same length, takes LATEST one.
+   * - If more than one rule with same length, takes the EARLIEST one -- so in a `(a|b)` choice, `a` wins a tie,
+   *   and in a `Group` of same-named rules the FIRST-registered wins.  Pinned by `Rule.test.ts`.
+   * - NOTE: both loops below were commented as preferring LATER rules;  they never did -- see SUSPECTED-BUGS.md.
    */
   getBestMatch(matches: P.Match[]) {
     if (matches.length === 1) return matches[0]
 
     // Filter to rules with highest precedence.
-    // NOTE: we run this BACKWARDS to put later-defined rules first
+    // NOTE: forwards, so `highPriority` keeps `matches` order (earliest first)
     let match
     let highPriority: P.Match[] = []
     for (let max = -Infinity, i = 0; (match = matches[i++]);) {
@@ -142,7 +144,8 @@ export class Choice<
 
     if (highPriority.length === 1) return highPriority[0]
 
-    // Return the longest rule (???)
+    // Longest wins;  scanning backwards with `>=` means an equally-long EARLIER match replaces a later one,
+    // so ties end up on the earliest.
     let longest
     for (let i = highPriority.length; (match = highPriority[--i]);) {
       if (!longest || match.length >= longest.length) longest = match

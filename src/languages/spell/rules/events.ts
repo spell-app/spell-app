@@ -2,7 +2,6 @@
  * Rules for firing and watching global events on the `spellCore.RUNTIME` singleton -- `trigger`/`fire`/`send`
  * and `on`.
  */
-import { proto } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
@@ -18,15 +17,22 @@ function ast<T extends P.ASTNode>(node: P.ASTNode | undefined): T {
 }
 
 /**
+ * Rule module for `trigger`/`on` -- events fired/watched on the `spellCore.RUNTIME` singleton.
+ */
+export const events = new SpellParser({ module: "events" })
+
+////////////////
+// ## `trigger` rule
+//    e.g. "trigger card-click"
+////////////////
+
+/**
  * `trigger card-click` / `fire event card-click with card = 1` -- fires a global event on the
  * `spellCore.RUNTIME` singleton, optionally with a `props` object.
  * - `eventName` is a bare `keyword`, so its `raw` form (with dashes) is used directly as the event name.
  * - Compiles to `spellCore.RUNTIME.trigger(name, props?)`.
  */
-export class trigger extends SpellStatement<"eventName|props?"> {
-  @proto static alias = "statement"
-  @proto static syntax = "(trigger|fire|send) event? {eventName:keyword} (with {props:object_literal_properties})?"
-
+class trigger extends SpellStatement<"eventName|props?"> {
   getAST(match: P.MatchFor<this>) {
     const { eventName, props } = match.groups
     // Use the `raw` eventName, dashes are ok!
@@ -37,8 +43,11 @@ export class trigger extends SpellStatement<"eventName|props?"> {
       args
     })
   }
-
-  static tests: P.RuleTests = [
+}
+events.addRule(trigger, {
+  alias: "statement",
+  syntax: "(trigger|fire|send) event? {eventName:keyword} (with {props:object_literal_properties})?",
+  tests: [
     {
       compileAs: "statement",
       tests: [
@@ -51,7 +60,12 @@ export class trigger extends SpellStatement<"eventName|props?"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `on` rule
+//    e.g. "on card-click"
+////////////////
 
 /**
  * `on event card-click: ...` / `on event card-click with a card: ...` -- watches a global event on the
@@ -64,12 +78,7 @@ export class trigger extends SpellStatement<"eventName|props?"> {
  *   card` => `let { card } = event`.
  * - Compiles to `spellCore.RUNTIME.on(name, handler?)`; `handler` omitted entirely when there's no body.
  */
-export class on extends SpellStatement<"eventName|props?|inlineStatement?|nestedBlock?"> {
-  @proto static alias = "statement"
-  @proto static syntax = "on event? {eventName:keyword} {props:with_props_arg}? :?"
-  @proto static wantsInlineStatement = true
-  @proto static wantsNestedBlock = true
-
+class on extends SpellStatement<"eventName|props?|inlineStatement?|nestedBlock?"> {
   /** Nested scope for the handler body -- named for `eventName`, args are `event` plus any `props`. */
   getNestedScopeForMatch(match: P.MatchFor<this>) {
     const { eventName, props } = match.groups
@@ -118,8 +127,13 @@ export class on extends SpellStatement<"eventName|props?|inlineStatement?|nested
       args
     })
   }
-
-  static tests: P.RuleTests = [
+}
+events.addRule(on, {
+  alias: "statement",
+  syntax: "on event? {eventName:keyword} {props:with_props_arg}? :?",
+  wantsInlineStatement: true,
+  wantsNestedBlock: true,
+  tests: [
     {
       compileAs: "block",
       beforeEach(scope: P.Scope) {
@@ -157,9 +171,4 @@ export class on extends SpellStatement<"eventName|props?|inlineStatement?|nested
       ]
     }
   ]
-}
-
-export const events = new SpellParser({
-  module: "events",
-  rules: [trigger, on]
 })

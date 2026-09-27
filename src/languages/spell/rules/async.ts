@@ -3,12 +3,16 @@
  * start/stop/check process.
  */
 
-import { proto } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 import { SpellExpression } from "./expressions"
+
+/**
+ * Rule module for async/process rules (`await`, `pause`, `start_process`, `stop_process`, `check_process`).
+ */
+export const _async = new SpellParser({ module: "async" })
 
 /**
  * Narrow `node` from `P.ASTNode | undefined` to concrete subtype `T`.
@@ -21,6 +25,11 @@ function ast<T extends P.ASTNode>(node: P.ASTNode | undefined): T {
   return node as T
 }
 
+////////////////
+// ## `await` rule
+//    e.g. "await"
+////////////////
+
 /**
  * `await`/`wait for` an expression, with the expression itself optional (bare `await`).
  * - `:?` in `syntax` is an optional literal colon in the source text (e.g. `await:`), matched but
@@ -31,19 +40,19 @@ function ast<T extends P.ASTNode>(node: P.ASTNode | undefined): T {
  * - TODO: add test to make sure parents are made async properly, especially for `await` inside an
  *   if block, etc.
  */
-export class _await extends SpellStatement<"expression?"> {
-  static ruleName = "await"
-  @proto static alias = ["expression", "statement"]
-  @proto static syntax = "(await|wait for) :? {expression}?"
-
+class _await extends SpellStatement<"expression?"> {
   getAST(match: P.MatchFor<this>) {
     const { expression } = match.groups
     return new P.ASTAwaitExpression(match, {
       expression: (expression && ast<P.ASTExpression>(expression.AST)) || new P.ASTUndefinedLiteral(match)
     })
   }
-
-  static tests: P.RuleTests = [
+}
+_async.addRule(_await, {
+  name: "await",
+  alias: ["expression", "statement"],
+  syntax: "(await|wait for) :? {expression}?",
+  tests: [
     {
       compileAs: "statement",
       tests: [
@@ -71,18 +80,19 @@ export class _await extends SpellStatement<"expression?"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `pause` rule
+//    e.g. "pause for 2 seconds"
+////////////////
 
 /**
  * Delay for a certain amount of time, e.g. `pause for 2 seconds`.
  * - Compiles to `await spellCore.pauseFor(number, 'units')`.
  * - TODO: "a second", "a little bit", "a while", "a noticeable amount".
  */
-export class pause extends SpellStatement<"number|units"> {
-  @proto static alias = "statement"
-  @proto static syntax =
-    "pause for {number:expression} (units:second|seconds|sec|millisecond|milliseconds|msec|tick|ticks)"
-
+class pause extends SpellStatement<"number|units"> {
   getAST(match: P.MatchFor<this>) {
     const { number, units } = match.groups
     return new P.ASTAwaitExpression(match, {
@@ -92,8 +102,11 @@ export class pause extends SpellStatement<"number|units"> {
       })
     })
   }
-
-  static tests: P.RuleTests = [
+}
+_async.addRule(pause, {
+  alias: "statement",
+  syntax: "pause for {number:expression} (units:second|seconds|sec|millisecond|milliseconds|msec|tick|ticks)",
+  tests: [
     {
       compileAs: "statement",
       tests: [
@@ -104,7 +117,12 @@ export class pause extends SpellStatement<"number|units"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `start_process` rule
+//    e.g. "start process dealing"
+////////////////
 
 /**
  * Start a conceptual animation or process, e.g. `start animation dealing`.
@@ -112,10 +130,7 @@ export class pause extends SpellStatement<"number|units"> {
  *   already running, then starts it flagged `'EXCLUSIVE'`.
  * - `animation`/`process` are synonyms in the syntax -- purely for readability at the call site.
  */
-export class start_process extends SpellStatement<"operator?|name"> {
-  @proto static alias = "statement"
-  @proto static syntax = "start (operator:exclusive|non-exclusive|nonexclusive)? (animation|process) {name:constant}"
-
+class start_process extends SpellStatement<"operator?|name"> {
   getAST(match: P.MatchFor<this>) {
     const { operator, name } = match.groups
     return new P.ASTStartProcessInvocation(match, {
@@ -123,8 +138,11 @@ export class start_process extends SpellStatement<"operator?|name"> {
       exclusive: operator?.value === "exclusive"
     })
   }
-
-  static tests: P.RuleTests = [
+}
+_async.addRule(start_process, {
+  alias: "statement",
+  syntax: "start (operator:exclusive|non-exclusive|nonexclusive)? (animation|process) {name:constant}",
+  tests: [
     {
       compileAs: "statement",
       tests: [
@@ -139,13 +157,15 @@ export class start_process extends SpellStatement<"operator?|name"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `stop_process` rule
+//    e.g. "stop animation dealing"
+////////////////
 
 /** Stop a conceptual animation or process, e.g. `stop animation dealing` => `spellCore.stopProcess('dealing')`. */
-export class stop_process extends SpellStatement<"name"> {
-  @proto static alias = "statement"
-  @proto static syntax = "(stop|end|finish|cancel) (animation|process) {name:constant}"
-
+class stop_process extends SpellStatement<"name"> {
   getAST(match: P.MatchFor<this>) {
     const { name } = match.groups
     const args = [new P.ASTQuotedExpression(match, name.value)]
@@ -154,8 +174,11 @@ export class stop_process extends SpellStatement<"name"> {
       args
     })
   }
-
-  static tests: P.RuleTests = [
+}
+_async.addRule(stop_process, {
+  alias: "statement",
+  syntax: "(stop|end|finish|cancel) (animation|process) {name:constant}",
+  tests: [
     {
       compileAs: "statement",
       tests: [
@@ -167,17 +190,19 @@ export class stop_process extends SpellStatement<"name"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `check_process` rule
+//    e.g. "animation dealing is running"
+////////////////
 
 /**
  * Check whether a conceptual animation or process is currently running, e.g.
  * `animation dealing is running`.
  * - `is not`/`isn't`/`isnt` negate the check via `P.ASTNotExpression`.
  */
-export class check_process extends SpellExpression<"name|operator"> {
-  @proto static alias = "expression"
-  @proto static syntax = "(animation|process) {name:constant} (operator:is|is not|isn't|isnt) (running|active)"
-
+class check_process extends SpellExpression<"name|operator"> {
   getAST(match: P.MatchFor<this>) {
     const { operator, name } = match.groups
     const expression = new P.ASTCoreMethodInvocation(match, {
@@ -187,17 +212,13 @@ export class check_process extends SpellExpression<"name|operator"> {
     if (operator.value === "is") return expression
     return new P.ASTNotExpression(match, { expression })
   }
-
-  static tests: P.RuleTests = [
+}
+_async.addRule(check_process, {
+  syntax: "(animation|process) {name:constant} (operator:is|is not|isn't|isnt) (running|active)",
+  tests: [
     {
       compileAs: "expression",
       tests: [[`animation dealing is running`, `spellCore.processIsRunning('dealing')`]]
     }
   ]
-}
-
-/** Rule module for async/process rules (`await`, `pause`, `start_process`, `stop_process`, `check_process`). */
-export const _async = new SpellParser({
-  module: "async",
-  rules: [_await, pause, start_process, stop_process, check_process]
 })

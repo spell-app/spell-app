@@ -3,11 +3,15 @@
  * plus inline `css` string installation.
  */
 
-import { proto } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
+
+/**
+ * Rule module for UI rules (`print`, `end_print_group`, `notify`, `alert`, `warn`, `confirm`, `prompt`, `css`).
+ */
+export const UI = new SpellParser({ module: "UI" })
 
 /**
  * Narrow `node` (typed generically as `P.ASTNode | undefined`) to concrete AST subclass `T`.
@@ -17,15 +21,17 @@ function ast<T extends P.ASTNode>(node: P.ASTNode | undefined): T {
   return node as T
 }
 
+////////////////
+// ## `print` rule
+//    e.g. "print "Yo!""
+////////////////
+
 /**
  * Print an expression (to the console currently).
  * - `operator` (`info`/`warning`/`error`/`group`/`collapsed group`) selects the `console` method
  *   via `operatorMap`; omitted operator defaults to `log`.
  */
-export class print extends SpellStatement<"operator?|expressions"> {
-  @proto static alias = "statement"
-  @proto static syntax = "print (operator:info|warning|error|collapsed? group)? [expressions: {expression} ,]"
-
+class print extends SpellStatement<"operator?|expressions"> {
   /** Maps `operator` group value to `console` method name; `default` is used when `operator` is absent. */
   operatorMap: Record<string, string> = {
     info: "info",
@@ -43,8 +49,11 @@ export class print extends SpellStatement<"operator?|expressions"> {
       args: expressions.items.map((item) => ast<P.ASTExpression>(item.AST))
     })
   }
-
-  static tests: P.RuleTests = [
+}
+UI.addRule(print, {
+  alias: "statement",
+  syntax: "print (operator:info|warning|error|collapsed? group)? [expressions: {expression} ,]",
+  tests: [
     {
       compileAs: "statement",
       tests: [
@@ -56,35 +65,41 @@ export class print extends SpellStatement<"operator?|expressions"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `end_print_group` rule
+//    e.g. "end print group"
+////////////////
 
 /** Stop a previous `print group...` */
-export class end_print_group extends SpellStatement {
-  @proto static alias = "statement"
-  @proto static syntax = "end print group"
-
+class end_print_group extends SpellStatement {
   getAST(match: P.MatchFor<this>) {
     return new P.ASTConsoleMethodInvocation(match, { methodName: "groupEnd" })
   }
-
-  static tests: P.RuleTests = [
+}
+UI.addRule(end_print_group, {
+  alias: "statement",
+  syntax: "end print group",
+  tests: [
     {
       compileAs: "statement",
       tests: [[`end print group"`, `spellCore.console.groupEnd()`]]
     }
   ]
-}
+})
+
+////////////////
+// ## `notify` rule
+//    e.g. "notify "Yo!""
+////////////////
 
 /**
  * Notify user about `message` in a non-modal (popup?) interface.
  * - Returns a promise which `resolve()`s when notice is hidden (manually or otherwise).
  * - NOTE: we DO NOT actually `await` the promise!  ???
  */
-export class notify extends SpellStatement<"message|okButton?"> {
-  @proto static alias = ["statement", "async"]
-  @proto static syntax = "notify {message:expression} (with {okButton:text})?" // TODO: "with close" ?
-  @proto static testRule = "notify"
-
+class notify extends SpellStatement<"message|okButton?"> {
   getAST(match: P.MatchFor<this>) {
     const { message, okButton } = match.groups
     const args: P.ASTExpression[] = [ast<P.ASTExpression>(message.AST)]
@@ -94,8 +109,12 @@ export class notify extends SpellStatement<"message|okButton?"> {
       args
     })
   }
-
-  static tests: P.RuleTests = [
+}
+UI.addRule(notify, {
+  alias: ["statement", "async"],
+  syntax: "notify {message:expression} (with {okButton:text})?", // TODO: "with close" ?
+  testRule: "notify",
+  tests: [
     {
       compileAs: "statement",
       tests: [
@@ -104,7 +123,12 @@ export class notify extends SpellStatement<"message|okButton?"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `alert` rule
+//    e.g. "alert "Yo!""
+////////////////
 
 /**
  * Show user a `message` in a modal alert.
@@ -112,11 +136,7 @@ export class notify extends SpellStatement<"message|okButton?"> {
  * - NOTE: we'll `await` the promise!
  * - TODO: `the result = await ...` ?
  */
-export class alert extends SpellStatement<"message|okButton?"> {
-  @proto static alias = ["statement", "async"]
-  @proto static syntax = "alert {message:expression} (with {okButton:text})?"
-  @proto static testRule = "alert"
-
+class alert extends SpellStatement<"message|okButton?"> {
   getAST(match: P.MatchFor<this>) {
     const { message, okButton } = match.groups
     const args: P.ASTExpression[] = [ast<P.ASTExpression>(message.AST)]
@@ -128,8 +148,12 @@ export class alert extends SpellStatement<"message|okButton?"> {
       })
     })
   }
-
-  static tests: P.RuleTests = [
+}
+UI.addRule(alert, {
+  alias: ["statement", "async"],
+  syntax: "alert {message:expression} (with {okButton:text})?",
+  testRule: "alert",
+  tests: [
     {
       compileAs: "statement",
       tests: [
@@ -138,7 +162,12 @@ export class alert extends SpellStatement<"message|okButton?"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `warn` rule
+//    e.g. "warn "Yo!""
+////////////////
 
 /**
  * Warning message -- like alert but more dire.
@@ -146,11 +175,7 @@ export class alert extends SpellStatement<"message|okButton?"> {
  * - NOTE: we'll `await` the promise!
  * - TODO: `the result = await ...` ?
  */
-export class warn extends SpellStatement<"message|okButton?"> {
-  @proto static alias = "statement"
-  @proto static syntax = "warn {message:expression} (with {okButton:text})?"
-  @proto static testRule = "warn"
-
+class warn extends SpellStatement<"message|okButton?"> {
   getAST(match: P.MatchFor<this>) {
     const { message, okButton } = match.groups
     const args: P.ASTExpression[] = [ast<P.ASTExpression>(message.AST)]
@@ -162,8 +187,12 @@ export class warn extends SpellStatement<"message|okButton?"> {
       })
     })
   }
-
-  static tests: P.RuleTests = [
+}
+UI.addRule(warn, {
+  alias: "statement",
+  syntax: "warn {message:expression} (with {okButton:text})?",
+  testRule: "warn",
+  tests: [
     {
       compileAs: "statement",
       tests: [
@@ -172,7 +201,12 @@ export class warn extends SpellStatement<"message|okButton?"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `confirm` rule
+//    e.g. "confirm "Yo!""
+////////////////
 
 /**
  * Confirm message -- present a question with two answers.
@@ -180,11 +214,7 @@ export class warn extends SpellStatement<"message|okButton?"> {
  * - NOTE: we'll `await` the promise!
  * - TODO: `the result = await ...` ?
  */
-export class confirm extends SpellStatement<"message|okButton?|cancelButton?"> {
-  @proto static alias = "statement"
-  @proto static syntax = "confirm {message:expression} (with {okButton:text} ((and|or) {cancelButton:text})?)?"
-  @proto static testRule = "confirm"
-
+class confirm extends SpellStatement<"message|okButton?|cancelButton?"> {
   getAST(match: P.MatchFor<this>) {
     const { message, okButton, cancelButton } = match.groups
     const args: P.ASTExpression[] = [ast<P.ASTExpression>(message.AST)]
@@ -197,8 +227,12 @@ export class confirm extends SpellStatement<"message|okButton?|cancelButton?"> {
       })
     })
   }
-
-  static tests: P.RuleTests = [
+}
+UI.addRule(confirm, {
+  alias: "statement",
+  syntax: "confirm {message:expression} (with {okButton:text} ((and|or) {cancelButton:text})?)?",
+  testRule: "confirm",
+  tests: [
     {
       compileAs: "statement",
       tests: [
@@ -208,7 +242,12 @@ export class confirm extends SpellStatement<"message|okButton?|cancelButton?"> {
       ]
     }
   ]
-}
+})
+
+////////////////
+// ## `prompt` rule
+//    e.g. "prompt "Name for the new baby?""
+////////////////
 
 /**
  * Prompt user to specify a value in response to `message` with `defaultValue`.
@@ -217,11 +256,7 @@ export class confirm extends SpellStatement<"message|okButton?|cancelButton?"> {
  * - NOTE: we'll `await` the promise!
  * - TODO: `the result = await ...` ?
  */
-export class prompt extends SpellStatement<"message|defaultValue?"> {
-  @proto static alias = "statement"
-  @proto static syntax = "prompt {message:expression} (with {defaultValue:expression})?"
-  @proto static testRule = "prompt"
-
+class prompt extends SpellStatement<"message|defaultValue?"> {
   getAST(match: P.MatchFor<this>) {
     const { message, defaultValue } = match.groups
     const args: P.ASTExpression[] = [ast<P.ASTExpression>(message.AST)]
@@ -233,8 +268,12 @@ export class prompt extends SpellStatement<"message|defaultValue?"> {
       })
     })
   }
-
-  static tests: P.RuleTests = [
+}
+UI.addRule(prompt, {
+  alias: "statement",
+  syntax: "prompt {message:expression} (with {defaultValue:expression})?",
+  testRule: "prompt",
+  tests: [
     {
       compileAs: "statement",
       tests: [
@@ -243,7 +282,7 @@ export class prompt extends SpellStatement<"message|defaultValue?"> {
       ]
     }
   ]
-}
+})
 
 // Chose one or more items from `collection` (of strings???)
 // Returns a promise which `resolve()`s if they "OK" with a value, `reject()`s if they "cancel".
@@ -251,7 +290,7 @@ export class prompt extends SpellStatement<"message|defaultValue?"> {
 //     {
 //       name: "choose_one",
 //       alias: "statement",
-//       syntax: "choose ((a|an)? {singular_variable} (from|of)|one of) {collection:expression} with (prompt|message)? {message:expression}",
+//       syntax: "choose ((a|an)? {singular_identifier} (from|of)|one of) {collection:expression} with (prompt|message)? {message:expression}",
 //          => `await spellCore.chooseOne(message, list, defaultValue)`
 //     },
 
@@ -261,12 +300,17 @@ export class prompt extends SpellStatement<"message|defaultValue?"> {
 //     {
 //       name: "choose_multiple",
 //       alias: "statement",
-//       syntax: "choose multiple {plural_variable} (of|from) {collection:expression} with (prompt|message)? {message:expression}",
+//       syntax: "choose multiple {plural_identifier} (of|from) {collection:expression} with (prompt|message)? {message:expression}",
 //          => `await spellCore.chooseMultiple(message, list, defaultValues)`
 //     }
 
+////////////////
+// ## `css` rule
+//    e.g. ""
+////////////////
+
 /** What `css` rule expects on its matches. */
-export type CSSMatchData = {
+type CSSMatchData = {
   /**
    * Name of file the CSS came from, first argument to `spellCore.installStyles()`.
    * - Meant to be set by whoever parsed the file, i.e. `SpellCSSFile.parse()`.
@@ -280,10 +324,7 @@ export type CSSMatchData = {
  * - Compiles to `spellCore.installStyles(file, css)`; newlines in `css` are escaped to `¬` so the
  *   value survives being embedded in a backtick template literal.
  */
-export class css extends P.TokenType<never, CSSMatchData> {
-  @proto static alias = "expression"
-  @proto static tokenType = P.TextToken
-
+class css extends P.TokenType<never, CSSMatchData> {
   getAST(match: P.MatchFor<this>) {
     // HACK: `file` is meant to come from `SpellCSSFile` -- see `CSSMatchData`.
     const { value } = match
@@ -298,8 +339,11 @@ export class css extends P.TokenType<never, CSSMatchData> {
       ]
     })
   }
-
-  static tests: P.RuleTests = [
+}
+UI.addRule(css, {
+  alias: "expression",
+  tokenType: P.TextToken,
+  tests: [
     {
       title: "correctly matches css",
       tests: [
@@ -311,10 +355,4 @@ export class css extends P.TokenType<never, CSSMatchData> {
       ]
     }
   ]
-}
-
-/** Rule module for UI rules (`print`, `end_print_group`, `notify`, `alert`, `warn`, `confirm`, `prompt`, `css`). */
-export const UI = new SpellParser({
-  module: "UI",
-  rules: [print, end_print_group, notify, alert, warn, confirm, prompt, css]
 })

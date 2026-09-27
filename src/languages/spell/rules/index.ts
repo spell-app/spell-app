@@ -60,11 +60,11 @@ export { getParseErrors }
 /** `JSX.ts`'s `match.data` shape for `jsxElement`/`jsxAttribute`/`jsxExpression` matches -- e.g. for UI code that reads them. */
 export type { JSXMatchData }
 
-// Structural rules:  `blank_line`, `block`, `line`, `parse_error` (last three name themselves with `static ruleName`).
+// Structural rules.  The last three take a `name` since their class names are `Type_Case`, not rule case.
 spellParser.addRule(blank_line)
-spellParser.addRule(Block)
-spellParser.addRule(BlockLine)
-spellParser.addRule(ParseError)
+spellParser.addRule(Block, { name: "block" })
+spellParser.addRule(BlockLine, { name: "line" })
+spellParser.addRule(ParseError, { name: "parse_error" })
 
 // Import the other rules defined above.
 spellParser.import(

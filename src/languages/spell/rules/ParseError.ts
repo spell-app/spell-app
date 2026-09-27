@@ -7,8 +7,6 @@ import { P } from "~/parser"
  * - `SpellParser.createParseError()` builds one directly (with a custom `message`) rather than parsing.
  */
 export class ParseError extends P.Rule {
-  static ruleName = "parse_error"
-
   /** Eat all of `tokens` unconditionally -- never fails. */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match {
     return new P.Match({
