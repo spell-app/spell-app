@@ -36,14 +36,14 @@ export abstract class Literal<
   }
 
   /** `true` if token at `start` equals `this.literal` (or one of them, when it's an array). */
-  testAtStart(scope: P.Scope, tokens: P.Token[], start = 0) {
+  test(scope: P.Scope, tokens: P.Token[], start = 0) {
     if (start >= tokens.length) return false
     return tokens[start].matchesLiteral(this.literal)
   }
 
   /** Match a single token literally against `this.literal`. */
   parse(scope: P.Scope, tokens: P.Token[]) {
-    if (!this.testAtStart(scope, tokens, 0)) return undefined
+    if (!this.test(scope, tokens, 0)) return undefined
     return new P.Match({
       rule: this,
       matched: [tokens[0]],
@@ -65,9 +65,9 @@ export abstract class Literal<
     if (isVariable) literalString = (this.literal as string[]).join("|")
     else if (this.isEscaped) literalString = `\\${this.literal}`
 
-    const { testLocation, matchGroup, optional } = this.getRulexFlags()
+    const { matchGroup, optional } = this.getRulexFlags()
     const wrapInParens = isVariable || matchGroup || (this.isEscaped && optional)
-    if (wrapInParens) return `${testLocation}(${matchGroup}${literalString})${optional}`
-    return `${testLocation}${literalString}${optional}`
+    if (wrapInParens) return `(${matchGroup}${literalString})${optional}`
+    return `${literalString}${optional}`
   }
 }

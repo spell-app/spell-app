@@ -29,18 +29,17 @@ export class RulexParser extends Parser {
   }
 
   /**
-   * Apply `repeatFlag` / `matchGroup` / `testLocation` groups from `match` onto `rule`.
-   * - SIDE EFFECT: mutates `rule` directly for `matchGroup` and `testLocation`.
+   * Apply `repeatFlag` / `matchGroup` groups from `match` onto `rule`.
+   * - SIDE EFFECT: mutates `rule` directly for `matchGroup`.
    * - `repeatFlag` of `+` or `*` instead wraps `rule` in a new `P.Repeat` and returns that, since a single
    *   rule can't represent "one or more" / "zero or more" on its own -- so the return value may not be `rule`.
-   * - `match` is typed loosely (just these 3 groups, all optional) rather than any one caller's real `Groups`
-   *   -- every rulex rule in `rulex.ts` that adorns itself with `testLocation` / `matchGroup` / `repeatFlag`
+   * - `match` is typed loosely (just these 2 groups, both optional) rather than any one caller's real `Groups`
+   *   -- every rulex rule in `rulex.ts` that adorns itself with `matchGroup` / `repeatFlag`
    *   passes its own, differently-shaped match here, so callers need no casts.
    */
-  applyFlags(rule: P.Rule, match: P.Match<P.GroupsFor<"repeatFlag?|matchGroup?|testLocation?">>): P.Rule {
+  applyFlags(rule: P.Rule, match: P.Match<P.GroupsFor<"repeatFlag?|matchGroup?">>): P.Rule {
     const repeatFlag = match.groups.repeatFlag?.compile()
     const matchGroup = match.groups.matchGroup?.compile()
-    const testLocation = match.groups.testLocation?.compile()
 
     // handle repeat, which may nest the rule in a repeat
     if (repeatFlag === "?") rule.optional = true
@@ -48,7 +47,6 @@ export class RulexParser extends Parser {
     else if (repeatFlag === "*") rule = new P.Repeat({ rule, optional: true })
 
     if (typeof matchGroup === "string" && matchGroup) rule.matchGroup = matchGroup
-    if (testLocation === P.ANYWHERE || testLocation === P.AT_START) rule.testLocation = testLocation
 
     return rule
   }
@@ -57,7 +55,7 @@ export class RulexParser extends Parser {
    * Consolidate consecutive runs of `constructor` (`P.Keyword` / `P.Symbol`) literals in `rules` into a single
    * `GroupConstructor` (`P.Keywords` / `P.Symbols`) instance, so e.g. `a b c` compiles to one `Keywords`
    * instead of three separate `Keyword` sequence entries.
-   * - Skips rules that are `isAdorned` (have an `matchGroup` or `testLocation`) -- those must stay separate since
+   * - Skips rules that are `isAdorned` (have a `matchGroup`) -- those must stay separate since
    *   the combined group can't carry a single rule's individual adornment.
    * - An optional literal within a run is combined too, but recorded as `{ literal, optional: true }` so the
    *   group knows that one entry is skippable.

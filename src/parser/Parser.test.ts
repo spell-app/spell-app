@@ -139,7 +139,6 @@ class cat extends P.Sequence {
 class dog_and_cat extends P.Sequence {
   @proto static alias = ["statement"]
   @proto static syntax = "{dog} and {cat}"
-  @proto static testRule = "{dog}"
 }
 parser.addRule(dog)
 parser.addRule(cat)

@@ -36,9 +36,15 @@ export class Repeat<
     super(props instanceof Rule ? { rule: props } : props)
   }
 
+  /** We match at least once, so can only start where `rule` could. */
+  test(scope: P.Scope, tokens: P.Token[], start = 0) {
+    if (start >= tokens.length) return false
+    return this.rule.test(scope, tokens, start)
+  }
+
   /** Greedily match `this.rule` (optionally separated by `this.delimiter`) as many times as possible. */
   parse(scope: P.Scope, tokens: P.Token[]) {
-    if (this.testAtStart(scope, tokens, 0) === false) return undefined
+    if (this.test(scope, tokens) === false) return undefined
 
     // everything that was matched
     const matched = []

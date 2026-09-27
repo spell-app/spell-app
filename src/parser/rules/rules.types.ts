@@ -5,17 +5,14 @@ import type { P } from "~/parser"
 /** Constructor for a `Rule` subclass. */
 export type RuleConstructor = Class<P.Rule>
 
-/** One variant of a rule class's `static syntax`, with its own quick `testRule` if needed. */
-export type RuleSyntaxVariant = { syntax?: string; testRule?: P.Rule | string }
-
 /**
  * What `parser.addRule(RuleClass, definition)` accepts for any rule:  constructor props, except that
- * - `syntax` may be an array => one rule instance per variant, each optionally with its own `testRule`
+ * - `syntax` may be an array => one rule instance per variant
  * - `skip: true` registers nothing, e.g. for a rule which isn't working yet
  * - `name` defaults to the class name
  */
 export type RuleDefinitionProps = Omit<P.RuleProps, "syntax"> & {
-  syntax?: string | Array<string | RuleSyntaxVariant>
+  syntax?: string | string[]
   skip?: boolean
 }
 
@@ -51,9 +48,7 @@ export type RuleMap = Record<string, P.Rule>
 
 /** Syntax flags for outputting a rule in rulex syntax. */
 export type SyntaxFlags = {
-  /** `…` for `AT_START`, `^` for `ANYWHERE`, or `""`. */
-  testLocation: string
-  /** `:` if rule has an `matchGroup`, else `""`. */
+  /** `<matchGroup>:` if rule has a `matchGroup`, else `""`. */
   matchGroup: string
   /** `?` if rule is `optional`, else `""`. */
   optional: string

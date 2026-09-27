@@ -297,7 +297,6 @@ class create_thing extends SpellStatement<"type|props?"> {
 classes.addRule(create_thing, {
   alias: ["expression", "statement"],
   syntax: "create (a|an) {type:known_type} ((with|where|whose) {props:object_literal_properties})?",
-  testRule: "create",
   tests: [
     {
       title: "creates normal objects properly",
@@ -455,7 +454,6 @@ classes.addRule(type_specifier_yes_or_no, {
  * `a card has a suit as one of clubs, diamonds, hearts, spades` / `todos have a title as text` -- declares
  * an instance property on `type`, optionally constrained/initialized by a `type_specifier`.
  * - `precedence: 10` so this wins over other `{type} has|have ...` -ish statement rules.
- * - `testRule: "…(has|have)"` for a cheap upfront reject before attempting the full match.
  * - SIDE EFFECT: `getOrStubType()`s `type` into `scope.types` if not yet declared.
  * - SIDE EFFECT: when `specifier` is an enumeration, also adds a pluralized class variable (e.g. `Suits`)
  *   holding the raw values, adds string values to `scope.constants`, and dynamically registers a new
@@ -571,7 +569,6 @@ classes.addRule(define_property_has, {
     "(a|an) {type:singular_type} has (a|an|a property) {property} {specifier:type_specifier}?",
     "{type:plural_type} have (a|an|a property) {property} {specifier:type_specifier}?"
   ],
-  testRule: "…(has|have)",
   tests: [
     {
       compileAs: "block",

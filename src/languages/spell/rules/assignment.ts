@@ -90,10 +90,10 @@ assignment.addRule(assignment_statement, {
   name: "assignment",
   alias: "statement",
   syntax: [
-    { syntax: "(thing:{expression}|{variable}) = {value:expression}", testRule: "…=" },
-    { syntax: "let (thing:{expression}|{variable}) = {value:expression}", testRule: "let" },
-    { syntax: "set (thing:{expression}|{variable}) to {value:expression}", testRule: "set" },
-    { syntax: "(thing:{variable}) is {value: expression}", testRule: "…is" }
+    "(thing:{expression}|{variable}) = {value:expression}",
+    "let (thing:{expression}|{variable}) = {value:expression}",
+    "set (thing:{expression}|{variable}) to {value:expression}",
+    "(thing:{variable}) is {value: expression}"
   ],
   tests: [
     {
@@ -209,7 +209,6 @@ class get extends SpellStatement<"value", GetMatchData> {
 assignment.addRule(get, {
   alias: ["assignment", "statement"],
   syntax: "get {value:expression}",
-  testRule: "get",
   tests: [
     {
       title: "`it` is not already defined",
@@ -281,7 +280,6 @@ class return_statement extends SpellStatement<"expression?|nestedBlock?"> {
 assignment.addRule(return_statement, {
   alias: "statement",
   syntax: "(return|exit with?) {expression}?",
-  testRule: "(return|exit)",
   wantsInlineStatement: true,
   parseInlineStatementAs: "expression",
   wantsNestedBlock: true,

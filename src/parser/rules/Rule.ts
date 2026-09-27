@@ -39,13 +39,14 @@ import { P } from "~/parser"
  *   alias: "statement",
  *   precedence: 10,
  *   syntax: ["(a|an) {type} has {property} {specifier}?", "{type} have {property} {specifier}?"],
- *   testRule: "…(has|have)",
  *   tests: [...]
  * })
  * ```
  * - The definition is type-checked against the class's own `Props` -- a typo'd prop is a compile error.
  * - Class name IS the rule name;  pass `name: "if"` for reserved words (`class _if`) or a computed name.
- * - `syntax` may be an array => one frozen rule instance per variant, each optionally `{ syntax, testRule }`.
+ * - `syntax` may be an array => one frozen rule instance per variant.
+ * - A `Sequence` tests its own words / symbols before parsing any subrule, e.g. `remove {thing} from {list}`
+ *   needs `remove`, then `from` somewhere later -- see `Sequence.test()`.  Override `test()` to do better.
  * - NOTHING is inherited from a parent rule's definition -- share with a `const` (see `variables.ts`).
  * - What EVERY rule of a base class has in common goes in that base's CONSTRUCTOR instead, as defaults:
  *   `constructor(props?: Partial<P.PatternProps>) { super({ pattern, blacklist, ...props }) }`.
@@ -97,15 +98,13 @@ export abstract class Rule<
   /**
    * Assign `props` directly onto `this` -- subclasses may normalize `props` before calling `super()`.
    * - Class-level definition (`@proto static ...`) is already visible here, through our prototype.
-   * - String `testRule` is compiled with rulex.
    * - SIDE EFFECT: given `syntax` but no structure, decomposes it right here -- see `initFromSyntax()`.
    * - HOT: rules are constructed while parsing too (group clones, dynamic rules) -- keep this cheap.
    */
   constructor(props?: Props) {
     super()
     if (props) Object.assign(this, props)
-    const { testRule, syntax } = this as { testRule?: Rule | string; syntax?: unknown }
-    if (typeof testRule === "string") this.testRule = Rule.compileSyntax(testRule, this)
+    const { syntax } = this as { syntax?: unknown }
     if (typeof syntax === "string" && !this.hasStructure) this.initFromSyntax(syntax)
   }
 
@@ -118,7 +117,9 @@ export abstract class Rule<
    * - `definition` is what `parser.addRule(RuleClass, definition)` was given -- `syntax`, `alias`, `tests` etc --
    *   plus per-registration things only the caller knows, e.g. `module`.  Wins over class-level statics.
    * - Only first variant carries `tests` so we don't run same tests repeatedly.
-   * - Throws if definition is unusable, e.g. anonymous class with no `ruleName`, or forgotten `@proto`.
+   * - Throws if definition is unusable, e.g.
+   *   - anonymous class with no `ruleName`
+   *   - plain `static` default that should be `@proto static`
    */
   static instantiate(definition: P.RuleDefinitionProps = {}): Rule[] {
     const {
@@ -135,7 +136,8 @@ export abstract class Rule<
         activity: "instantiate"
       })
     }
-    // Any own static data field which never reached our prototype is a forgotten `@proto`.
+    // Any own static data field which never reached our prototype is a plain `static` default
+    // that should be `@proto static` -- rule instances would never see it.
     // NOTE: `ALL_CAPS` statics are taken to be constants / lookup tables, e.g. `SpellType.SIMPLE_TYPES`.
     const forgotten = Object.keys(this).filter(
       (key) => !PLAIN_STATICS.includes(key) && !/^[A-Z][A-Z0-9_]*$/.test(key) && !(key in this.prototype)
@@ -148,10 +150,8 @@ export abstract class Rule<
         params: { forgotten }
       })
     }
-    const variants: P.RuleSyntaxVariant[] =
-      syntax === undefined
-        ? [{}]
-        : (Array.isArray(syntax) ? syntax : [syntax]).map((it) => (typeof it === "string" ? { syntax: it } : it))
+    const variants: Array<{ syntax?: string }> =
+      syntax === undefined ? [{}] : (Array.isArray(syntax) ? syntax : [syntax]).map((it) => ({ syntax: it }))
     const tests = extraProps.tests ?? (Object.hasOwn(this, "tests") ? this.tests : undefined)
     delete extraProps.tests
     const constructor = this as unknown as new (props: RuleProps) => Rule
@@ -167,7 +167,7 @@ export abstract class Rule<
    * - `Sequence` subclass whose syntax compiles to a single non-sequence rule wraps it as `rules: [rule]`.
    * - Otherwise compiled rule must share a concrete base class with us, e.g. `"(a|b)"` compiles to `Keyword`
    *   which is fine for any `Literal` -- throws if not, as its props would be meaningless to us.
-   * - Flags from syntax (`matchGroup`, `optional`, `testLocation`) come along, explicit props win.
+   * - Flags from syntax (`matchGroup`, `optional`) come along, explicit props win.
    */
   protected initFromSyntax(syntax: string) {
     const compiled = Rule.compileSyntax(syntax, this)
@@ -267,11 +267,8 @@ export abstract class Rule<
   /**
    * Rulex syntax string(s), decomposed into `rules` etc. at construction.
    * - Array => one rule instance per variant, all registered under same name -- see `instantiate()`.
-   * - Variant may be `{ syntax, testRule }` to give it its own quick test.
    */
-  static syntax?: string | Array<string | P.RuleSyntaxVariant>
-  /** Quick test rule, as `Rule` or rulex syntax string. */
-  static testRule?: Rule | string
+  static syntax?: string | string[]
 
   ////////////////
   // ## Identity -- what this rule is called and where it came from
@@ -314,10 +311,6 @@ export abstract class Rule<
 
   /** Precedence of this rule, used to distinguish between ambiguous matches.  Default = 0, from prototype. */
   declare precedence: number
-  /** Test rule to use to quickly determine if this rule can be matched. */
-  declare testRule: Rule | undefined
-  /** Test location to use to determine if this rule can be matched. */
-  declare testLocation: P.TestLocation | undefined
   /** Name our match goes under in containing rule's `match.groups`, e.g. `thing` for `{thing:expression}`. */
   declare matchGroup: string | undefined
   /** Whether this rule is optional. */
@@ -373,56 +366,15 @@ export abstract class Rule<
   ////////////////
 
   /**
-   * Test to see if this rule is matched in `tokens`.
-   *
-   * You shouldn't override this, override `testAtStart()` instead,
-   * or just provide a `testRule`.
-   *
-   * - By default, we respect our `testLocation` parameter to test
-   *   either at the beginning of the tokens or anywhere in the run.
-   * - Pass in specific `testLocation` to override the `testLocation` at runtime.
+   * Is there ANY WAY this rule could match at `start` of `tokens`?  Used to bail before an expensive `parse()`.
+   * - `true` => MIGHT match
+   * - `false` => can NOT match
+   * - `undefined` => can't tell cheaply
+   * - Override in subclasses -- including a registered rule, when it knows better, e.g. `property_expression`.
    */
-  test(scope: P.Scope, tokens: P.Token[], testLocation = this.testLocation): boolean | undefined {
-    if (!tokens.length) return false
-    if (this.testRule) return this.testRule.test(scope, tokens, testLocation)
-
-    if (testLocation === P.TestLocation.ANYWHERE) return this.testAnywhere(scope, tokens)
-    return this.testAtStart(scope, tokens, 0)
-  }
-
-  /**
-   * Test to see if there is ANY WAY that we can be found
-   * starting at `start` position of `tokens`.
-   *
-   * This is used to exit quickly if there is no chance of success,
-   * and is especially useful for rules which call themselves recursively.
-   *
-   * Returns:
-   *  - `true` if the rule MIGHT be matched.
-   *  - `false` if there is NO WAY the rule can be matched.
-   *  - `undefined` if not determinstic (eg: no way to tell quickly).
-   */
-  testAtStart(scope: P.Scope, tokens: P.Token[], start = 0): boolean | undefined {
+  test(scope: P.Scope, tokens: P.Token[], start = 0): boolean | undefined {
     if (start >= tokens.length) return false
-    if (this.testRule) return this.testRule.testAtStart(scope, tokens, start)
     return undefined
-  }
-
-  /**
-   * Test if this rule is matched anywhere in the tokens
-   * by exhaustively testing at each start position.
-   *
-   * - This might be less efficient than just trying to match the rule itself!
-   */
-  testAnywhere(scope: P.Scope, tokens: P.Token[]): boolean | undefined {
-    let undefinedFound = false
-    for (let start = 0, last = tokens.length; start < last; start++) {
-      const result = this.testAtStart(scope, tokens, start)
-      if (result) return true
-      if (result === undefined) undefinedFound = true
-    }
-    if (undefinedFound) return undefined
-    return false
   }
 
   ////////////////
@@ -496,7 +448,7 @@ export abstract class Rule<
    * - DEPRECATED
    */
   get isAdorned() {
-    return !!(this.matchGroup || this.testLocation)
+    return !!this.matchGroup
   }
 
   /** Return rulex string for this rule. */
@@ -506,11 +458,9 @@ export abstract class Rule<
 
   /** Return rulex syntax strings for rule flags. */
   getRulexFlags(): P.SyntaxFlags {
-    const { testLocation, matchGroup, optional } = this
+    const { matchGroup, optional } = this
     return {
-      testLocation:
-        testLocation === P.TestLocation.ANYWHERE ? "…" : testLocation === P.TestLocation.AT_START ? "^" : "",
-      matchGroup: matchGroup ? ":" : "",
+      matchGroup: matchGroup ? `${matchGroup}:` : "",
       optional: optional ? "?" : ""
     }
   }
@@ -532,10 +482,6 @@ export type RuleProps = {
   syntax?: string | string[]
   /** Precedence of this rule, used to distinguish between ambiguous matches.  Default = 0. */
   precedence?: number
-  /** Test rule to use to quickly determine if this rule can be matched, as rule or rulex syntax. */
-  testRule?: Rule | string
-  /** Test location to use to determine if this rule can be matched. */
-  testLocation?: P.TestLocation
   /** Tests for this rule. */
   tests?: P.RuleTests
   /** Name our match goes under in containing rule's `match.groups`. */

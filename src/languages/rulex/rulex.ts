@@ -25,38 +25,6 @@ export const rulex = new RulexParser({ module: "rulex" })
 Parser.rulexParser = rulex
 
 ////////////////
-// ## `testLocation` rule
-//    e.g. "…"
-////////////////
-
-/**
- * Optional test-location prefix `…` or `^`, adorning most other rules below.
- * - Compiles to `P.ANYWHERE` for `…`, `P.AT_START` for `^`.
- * - TODO: this mapping looks reversed from `Rule.getRulexFlags()` (`~/parser/rules/Rule.ts`), which
- *   stringifies `AT_START` back to `…` and `ANYWHERE` back to `^` -- see `## Suspected bugs` in doc-pass report.
- */
-class testLocationRule extends P.Symbol {
-  compile(match: P.MatchFor<this>) {
-    return match.matched[0]!.value === "…" ? P.ANYWHERE : P.AT_START
-  }
-}
-rulex.addRule(testLocationRule, {
-  name: "testLocation",
-  literal: ["…", "^"],
-  optional: true,
-  tests: [
-    {
-      title: "matches testLocation",
-      tests: [
-        ["", undefined],
-        ["…", P.ANYWHERE],
-        ["^", P.AT_START]
-      ]
-    }
-  ]
-})
-
-////////////////
 // ## `matchGroup` rule
 //    e.g. "arg:"
 ////////////////
@@ -116,12 +84,9 @@ rulex.addRule(repeatFlagRule, {
   ]
 })
 
-// `testLocation` / `matchGroup` / `repeatFlag` are registered ABOVE first, so we can pull their registered
+// `matchGroup` / `repeatFlag` are registered ABOVE first, so we can pull their registered
 // INSTANCES out here -- the rules below put these instances directly inside their own `rules` arrays.
-const { testLocation, matchGroup, repeatFlag } = rulex.rules as Record<
-  "testLocation" | "matchGroup" | "repeatFlag",
-  P.Rule
->
+const { matchGroup, repeatFlag } = rulex.rules as Record<"matchGroup" | "repeatFlag", P.Rule>
 
 ////////////////
 // ## `symbol` rule
@@ -130,9 +95,9 @@ const { testLocation, matchGroup, repeatFlag } = rulex.rules as Record<
 
 /**
  * A single symbol, or `\<symbol>` so we can escape special symbols like `?` and `*`.
- * - Compiles to a `P.Symbol`, adorned by `testLocation` / `repeatFlag` via `applyFlags()`.
+ * - Compiles to a `P.Symbol`, adorned by `repeatFlag` via `applyFlags()`.
  */
-class symbolRule extends P.Sequence<"testLocation?|isEscaped?|literal|repeatFlag?"> {
+class symbolRule extends P.Sequence<"isEscaped?|literal|repeatFlag?"> {
   compile(match: P.MatchFor<this>) {
     const { literal, isEscaped } = match.groups
     const rule = new P.Symbol(literal.value)
@@ -144,7 +109,6 @@ rulex.addRule(symbolRule, {
   name: "symbol",
   alias: "rule",
   rules: [
-    testLocation,
     new P.Pattern({ matchGroup: "isEscaped", pattern: /^\\$/, optional: true }),
     new P.TokenType({ tokenType: P.SymbolToken, matchGroup: "literal" }),
     repeatFlag
@@ -154,9 +118,9 @@ rulex.addRule(symbolRule, {
       title: "matches symbol",
       tests: [
         ["", undefined],
-        // can't match flags by themselves
-        ["…", undefined],
-        ["^", undefined],
+        // `…` and `^` used to be test-location flags, now they're just symbols
+        ["…", new P.Symbol({ literal: "…" })],
+        ["^", new P.Symbol({ literal: "^" })],
 
         [":", new P.Symbol({ literal: ":" })],
 
@@ -176,18 +140,10 @@ rulex.addRule(symbolRule, {
         ["\\(", new P.Symbol({ literal: "(", isEscaped: true })],
         ["\\[", new P.Symbol({ literal: "[", isEscaped: true })],
 
-        // testLocation
-        ["…:", new P.Symbol({ literal: ":", testLocation: P.ANYWHERE })],
-        ["^:", new P.Symbol({ literal: ":", testLocation: P.AT_START })],
-        ["…\\:", new P.Symbol({ literal: ":", isEscaped: true, testLocation: P.ANYWHERE })],
-
         // repeat
         [">?", new P.Symbol({ literal: ">", optional: true })],
         [">+", new P.Repeat(new P.Symbol({ literal: ">" }))],
-        [">*", new P.Repeat({ optional: true, rule: new P.Symbol({ literal: ">" }) })],
-
-        ["…>?", new P.Symbol({ testLocation: P.ANYWHERE, literal: ">", optional: true })],
-        ["^>*", new P.Repeat({ testLocation: P.AT_START, optional: true, rule: new P.Symbol({ literal: ">" }) })]
+        [">*", new P.Repeat({ optional: true, rule: new P.Symbol({ literal: ">" }) })]
       ]
     }
   ]
@@ -203,9 +159,9 @@ rulex.addRule(symbolRule, {
  * - NOTE: matches only ONE word per occurrence in rulex syntax -- `repeatFlag` controls how many times the
  *   resulting `P.Keyword` rule must match at parse time, not how many literal keywords this rulex token
  *   stands for.
- * - Compiles to a `P.Keyword`, adorned by `testLocation` / `repeatFlag` via `applyFlags()`.
+ * - Compiles to a `P.Keyword`, adorned by `repeatFlag` via `applyFlags()`.
  */
-class keyword extends P.Sequence<"testLocation?|literal|repeatFlag?"> {
+class keyword extends P.Sequence<"literal|repeatFlag?"> {
   compile(match: P.MatchFor<this>) {
     const { literal } = match.groups
     const rule = new P.Keyword(literal.value)
@@ -214,7 +170,7 @@ class keyword extends P.Sequence<"testLocation?|literal|repeatFlag?"> {
 }
 rulex.addRule(keyword, {
   alias: "rule",
-  rules: [testLocation, new P.Word({ matchGroup: "literal" }), repeatFlag],
+  rules: [new P.Word({ matchGroup: "literal" }), repeatFlag],
   tests: [
     {
       title: "matches single keyword",
@@ -224,9 +180,6 @@ rulex.addRule(keyword, {
         [":", undefined],
 
         ["word", new P.Keyword({ literal: "word" })],
-
-        ["…word", new P.Keyword({ literal: "word", testLocation: P.ANYWHERE })],
-        ["^word", new P.Keyword({ literal: "word", testLocation: P.AT_START })],
 
         ["word?", new P.Keyword({ literal: "word", optional: true })],
         ["word+", new P.Repeat({ rule: new P.Keyword({ literal: "word" }) })],
@@ -246,7 +199,7 @@ rulex.addRule(keyword, {
  * - The returned rule is a `Keyword` rule, so it can be combined with alpha-numeric keywords.
  * - TODO: how is this used?
  */
-class numberRule extends P.Sequence<"testLocation?|number|repeatFlag?"> {
+class numberRule extends P.Sequence<"number|repeatFlag?"> {
   compile(match: P.MatchFor<this>) {
     const { number } = match.groups
     const rule = new P.Keyword({ literal: number.value })
@@ -256,15 +209,12 @@ class numberRule extends P.Sequence<"testLocation?|number|repeatFlag?"> {
 rulex.addRule(numberRule, {
   name: "number",
   alias: "rule",
-  rules: [testLocation, new P.TokenType({ tokenType: P.NumberToken, matchGroup: "number" }), repeatFlag],
+  rules: [new P.TokenType({ tokenType: P.NumberToken, matchGroup: "number" }), repeatFlag],
   tests: [
     {
       title: "matches single keyword",
       tests: [
         ["1", new P.Keyword({ literal: 1 as unknown as string })],
-
-        ["…1", new P.Keyword({ literal: 1 as unknown as string, testLocation: P.ANYWHERE })],
-        ["^1", new P.Keyword({ literal: 1 as unknown as string, testLocation: P.AT_START })],
 
         ["1?", new P.Keyword({ literal: 1 as unknown as string, optional: true })],
         ["1+", new P.Repeat({ rule: new P.Keyword({ literal: 1 as unknown as string }) })],
@@ -283,27 +233,15 @@ rulex.addRule(numberRule, {
  * `Subrule`: match a named rule, as part of a larger sequence.
  * - `{name}` references rule `name`; `{arg:name}` also sets `matchGroup` on the resulting `P.Subrule`.
  */
-class subrule extends P.Sequence<"testLocation[]?|matchGroup?|rule|repeatFlag?"> {
+class subrule extends P.Sequence<"matchGroup?|rule|repeatFlag?"> {
   compile(match: P.MatchFor<this>) {
     const rule = new P.Subrule(String(match.groups.rule.compile()))
-    // `testLocation` appears TWICE in `rules` below (once before `{`, once right inside it -- e.g. `…{sub}`
-    // vs `{…sub}` both set it), so its group type is an array.  Valid rulex syntax only ever supplies one of
-    // the two at once, so at runtime it's really a single `Match` -- this cast narrows for `applyFlags()`,
-    // which only reads the 3 shared flag groups (and tolerates them being absent).
-    return rulex.applyFlags(rule, match as unknown as P.Match<P.GroupsFor<"repeatFlag?|matchGroup?|testLocation?">>)
+    return rulex.applyFlags(rule, match)
   }
 }
 rulex.addRule(subrule, {
   alias: "rule",
-  rules: [
-    testLocation,
-    new P.Symbol("{"),
-    testLocation,
-    matchGroup,
-    new P.Word({ matchGroup: "rule" }),
-    new P.Symbol("}"),
-    repeatFlag
-  ],
+  rules: [new P.Symbol("{"), matchGroup, new P.Word({ matchGroup: "rule" }), new P.Symbol("}"), repeatFlag],
   tests: [
     {
       title: "matches subrule",
@@ -314,8 +252,6 @@ rulex.addRule(subrule, {
 
         ["{sub}", new P.Subrule({ rule: "sub" })],
 
-        ["…{sub}", new P.Subrule({ rule: "sub", testLocation: P.ANYWHERE })],
-        ["{…sub}", new P.Subrule({ rule: "sub", testLocation: P.ANYWHERE })],
         ["{arg:sub}", new P.Subrule({ rule: "sub", matchGroup: "arg" })],
 
         ["{sub}?", new P.Subrule({ rule: "sub", optional: true })],
@@ -382,7 +318,7 @@ rulex.addRule(list, {
 ////////////////
 
 /** `match.groups` for `choices` -- `split`'s nested groups (`items` / `prefix`) come from `P.NestedSplit`. */
-type ChoicesGroups = P.GroupsFor<"testLocation?|repeatFlag?"> & { split: P.Match<P.NestedSplitGroups> }
+type ChoicesGroups = P.GroupsFor<"repeatFlag?"> & { split: P.Match<P.NestedSplitGroups> }
 
 /**
  * `(a|b|c)`: match one of a list of `sequence` rules, separated by `|`, with an optional repeat flag.
@@ -419,7 +355,6 @@ class choices extends P.Sequence<ChoicesGroups> {
 rulex.addRule(choices, {
   alias: "rule",
   rules: [
-    testLocation,
     new P.NestedSplit({
       matchGroup: "split",
       start: new P.Symbol("("),
@@ -446,7 +381,6 @@ rulex.addRule(choices, {
         ["([{sub},])", new P.Repeat({ rule: new P.Subrule("sub"), delimiter: new P.Symbol(",") })],
 
         // Pass flags whether they were set on the choices or the single rule (a bit confusing)
-        ["(…{sub})", new P.Subrule({ rule: "sub", testLocation: P.ANYWHERE })],
         ["(arg:{sub})", new P.Subrule({ rule: "sub", matchGroup: "arg" })],
         ["({arg:sub})", new P.Subrule({ rule: "sub", matchGroup: "arg" })],
         ["({sub}?)", new P.Subrule({ rule: "sub", optional: true })],
@@ -469,8 +403,6 @@ rulex.addRule(choices, {
       compileAs: "rule",
       tests: [
         ["(>|a)", new P.Choice({ rules: [new P.Symbol(">"), new P.Keyword("a")] })],
-
-        ["…(>|a)", new P.Choice({ testLocation: P.ANYWHERE, rules: [new P.Symbol(">"), new P.Keyword("a")] })],
 
         ["(arg:>|a)", new P.Choice({ matchGroup: "arg", rules: [new P.Symbol(">"), new P.Keyword("a")] })],
 

@@ -19,10 +19,9 @@ export class Subrule<
     else super(props)
   }
 
-  /** Ask the subrule to figure out if a match is possible. */
-  test(scope: P.Scope, tokens: P.Token[], testLocation = this.testLocation) {
-    const rule = scope.getRuleOrDie(this.rule)
-    return rule.test(scope, tokens, testLocation)
+  /** Ask the rule we point at whether it could match at `start`. */
+  test(scope: P.Scope, tokens: P.Token[], start = 0) {
+    return scope.getRuleOrDie(this.rule).test(scope, tokens, start)
   }
 
   /** Look up `this.rule` in `scope` and delegate parsing to it. */
@@ -51,8 +50,8 @@ export class Subrule<
 
   /** Return rulex string for this rule, e.g. `{ruleName}`. */
   toRulexSyntax() {
-    const { testLocation, matchGroup, optional } = this.getRulexFlags()
-    return `${testLocation}{${matchGroup}${this.rule}}${optional}`
+    const { matchGroup, optional } = this.getRulexFlags()
+    return `{${matchGroup}${this.rule}}${optional}`
   }
 }
 

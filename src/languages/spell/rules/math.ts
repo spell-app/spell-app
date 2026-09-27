@@ -261,7 +261,6 @@ math.addRule(divided_by, {
 
 /**
  * `the absolute value of {expression}`.
- * - `testRule: "…absolute"` lets shunting-yard test for `absolute` occurring anywhere, not just at start.
  */
 class absolute_value extends SpellExpression<"operator|expression"> {
   getAST(match: P.MatchFor<this>) {
@@ -275,7 +274,6 @@ class absolute_value extends SpellExpression<"operator|expression"> {
 }
 math.addRule(absolute_value, {
   syntax: "(operator:the? absolute value of) {expression}",
-  testRule: "…absolute",
   tests: [
     {
       compileAs: "expression",
@@ -310,7 +308,6 @@ class max extends SpellExpression<"operator|argument?|expression"> {
 math.addRule(max, {
   precedence: 2,
   syntax: "(operator:the? (biggest|largest)) {argument:singular_identifier}? (of|in) {expression}",
-  testRule: "…(biggest|largest)",
   tests: [
     {
       compileAs: "expression",
@@ -349,7 +346,6 @@ class min extends SpellExpression<"operator|argument?|expression"> {
 math.addRule(min, {
   precedence: 2,
   syntax: "(operator:the? smallest) {argument:singular_identifier}? (of|in) {expression}",
-  testRule: "…smallest",
   tests: [
     {
       compileAs: "expression",
@@ -390,7 +386,6 @@ class round_number extends SpellExpression<"expression|operator?"> {
 }
 math.addRule(round_number, {
   syntax: "round {expression} (operator:off|up|down)?",
-  testRule: "round",
   precedence: 1,
   tests: [
     {

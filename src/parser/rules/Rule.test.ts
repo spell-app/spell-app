@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest"
 import { proto } from "~/util"
-import { P, Match, Parser, TestLocation, Tokenizer, WhitespacePolicy } from "~/parser"
+import { P, Match, Parser, Tokenizer, WhitespacePolicy } from "~/parser"
 // These tests define rules with rulex `syntax`, so they must opt into the rulex parser.
 import "~/languages/rulex"
 
@@ -69,7 +69,7 @@ describe("P.Symbols", () => {
     })
 
     describe("test() method", () => {
-      describe("TEST_AT_START", () => {
+      describe("tested at start", () => {
         const rule = new P.Symbols(">")
         test("returns false if present at the start of tokens", () => {
           const test = rule.test(scope, tokenize(">"))
@@ -78,24 +78,6 @@ describe("P.Symbols", () => {
 
         test("returns false if not present at the start of tokens", () => {
           const test = rule.test(scope, tokenize("a > b"))
-          expect(test).toBe(false)
-        })
-      })
-
-      describe("TEST_ANYWHERE", () => {
-        const rule = new P.Symbols({ literals: [">"], testLocation: TestLocation.ANYWHERE })
-        test("returns true if present at the start of tokens", () => {
-          const test = rule.test(scope, tokenize(">"))
-          expect(test).toBe(true)
-        })
-
-        test("returns true if present in the middle of tokens", () => {
-          const test = rule.test(scope, tokenize("a > b"))
-          expect(test).toBe(true)
-        })
-
-        test("returns false if NOT present anywhere in tokens", () => {
-          const test = rule.test(scope, tokenize("a b c"))
           expect(test).toBe(false)
         })
       })
@@ -117,7 +99,7 @@ describe("P.Symbols", () => {
 
   describe("with multiple symbols", () => {
     describe("test() method", () => {
-      describe("TEST_AT_START", () => {
+      describe("tested at start", () => {
         const rule = new P.Symbols([">", "="])
         test("returns true if present at the start of tokens", () => {
           const test = rule.test(scope, tokenize(">= b"))
@@ -126,24 +108,6 @@ describe("P.Symbols", () => {
 
         test("returns false if not present at the start of tokens", () => {
           const test = rule.test(scope, tokenize("a >= b"))
-          expect(test).toBe(false)
-        })
-      })
-
-      describe("TEST_ANYWHERE", () => {
-        const rule = new P.Symbols({ literals: [">", "="], testLocation: TestLocation.ANYWHERE })
-        test("returns true if present at the start of tokens", () => {
-          const test = rule.test(scope, tokenize(">="))
-          expect(test).toBe(true)
-        })
-
-        test("returns true if present in the middle of tokens", () => {
-          const test = rule.test(scope, tokenize("a >= b"))
-          expect(test).toBe(true)
-        })
-
-        test("returns false if NOT present anywhere in tokens", () => {
-          const test = rule.test(scope, tokenize("a b c"))
           expect(test).toBe(false)
         })
       })
@@ -223,25 +187,7 @@ describe("P.Keywords", () => {
   const scope = parser.getScope()
   describe("with a single keyword", () => {
     describe("test() method", () => {
-      describe("TEST_ANYWHERE", () => {
-        const rule = new P.Keywords({ literals: ["this"], testLocation: TestLocation.ANYWHERE })
-        test("returns true if present at the start of tokens", () => {
-          const test = rule.test(scope, tokenize("this"))
-          expect(test).toBe(true)
-        })
-
-        test("returns true if present anywhere in tokens", () => {
-          const test = rule.test(scope, tokenize("start this end"))
-          expect(test).toBe(true)
-        })
-
-        test("returns false if NOT present anywhere in tokens", () => {
-          const test = rule.test(scope, tokenize("start middle end"))
-          expect(test).toBe(false)
-        })
-      })
-
-      describe("TEST_AT_START", () => {
+      describe("tested at start", () => {
         const rule = new P.Keywords("this")
         test("returns true if present at the start of tokens", () => {
           const test = rule.test(scope, tokenize("this"))
@@ -271,25 +217,7 @@ describe("P.Keywords", () => {
 
   describe("with multiple keywords", () => {
     describe("test() method", () => {
-      describe("TEST_ANYWHERE", () => {
-        const rule = new P.Keywords({ literals: ["this", "that"], testLocation: TestLocation.ANYWHERE })
-        test("returns true if present at the start of tokens", () => {
-          const test = rule.test(scope, tokenize("this that"))
-          expect(test).toBe(true)
-        })
-
-        test("returns true if present anywhere in tokens", () => {
-          const test = rule.test(scope, tokenize("start this this that end"))
-          expect(test).toBe(true)
-        })
-
-        test("returns false if NOT present anywhere in tokens", () => {
-          const test = rule.test(scope, tokenize("start middle end"))
-          expect(test).toBe(false)
-        })
-      })
-
-      describe("TEST_AT_START", () => {
+      describe("tested at start", () => {
         const rule = new P.Keywords(["this", "that"])
         test("returns true if present at the start of tokens", () => {
           const test = rule.test(scope, tokenize("this that"))
@@ -331,11 +259,6 @@ describe("P.Pattern", () => {
     pattern: /^[a-z][\w-]*$/,
     blacklist: ["nope"]
   })
-  const ruleAnywhere = new P.Pattern({
-    pattern: /^[a-z][\w-]*$/,
-    blacklist: ["nope"],
-    testLocation: TestLocation.ANYWHERE
-  })
 
   test("converts array blacklist to a map", () => {
     expect(ruleAtStart.blacklist!.constructor).toBe(Object)
@@ -343,7 +266,7 @@ describe("P.Pattern", () => {
   })
 
   describe("test() method", () => {
-    describe("TEST_AT_START", () => {
+    describe("tested at start", () => {
       test("returns true if present at the start of tokens", () => {
         const test = ruleAtStart.test(scope, tokenize("a-word"))
         expect(test).toBe(true)
@@ -356,23 +279,6 @@ describe("P.Pattern", () => {
 
       test("returns false if NOT present anywhere in tokens", () => {
         const test = ruleAtStart.test(scope, tokenize("Type 2 3"))
-        expect(test).toBe(false)
-      })
-    })
-
-    describe("TEST_ANYWHERE", () => {
-      test("returns true if present at the start of tokens", () => {
-        const test = ruleAnywhere.test(scope, tokenize("a-word"))
-        expect(test).toBe(true)
-      })
-
-      test("returns true if present anywhere in tokens", () => {
-        const test = ruleAnywhere.test(scope, tokenize("Type a-word 2"))
-        expect(test).toBe(true)
-      })
-
-      test("returns false if NOT present anywhere in tokens", () => {
-        const test = ruleAnywhere.test(scope, tokenize("Type 2 3"))
         expect(test).toBe(false)
       })
     })
@@ -404,13 +310,12 @@ describe("P.Subrule", () => {
   parser.addRule(new P.Keywords({ name: "that", literals: ["that"] }))
   class sequence extends P.Sequence {
     @proto static syntax = "{this} {that}"
-    @proto static testRule = "this that"
   }
   parser.addRule(sequence)
 
   describe("simple rules", () => {
     describe("test() method", () => {
-      describe("TEST_AT_START", () => {
+      describe("tested at start", () => {
         const rule = new P.Subrule({ rule: "this" })
         test("returns true if present at the start of tokens", () => {
           const test = rule.test(scope, tokenize("this that other"))
@@ -420,24 +325,6 @@ describe("P.Subrule", () => {
         test("returns false if not present at start of tokens", () => {
           const test = rule.test(scope, tokenize("that this other"))
           expect(test).toBe(false)
-        })
-
-        test("returns false if NOT present anywhere in tokens", () => {
-          const test = rule.test(scope, tokenize("that other else"))
-          expect(test).toBe(false)
-        })
-      })
-
-      describe("TEST_ANYWHERE", () => {
-        const rule = new P.Subrule({ rule: "this", testLocation: TestLocation.ANYWHERE })
-        test("returns true if present at the start of tokens", () => {
-          const test = rule.test(scope, tokenize("this that other"))
-          expect(test).toBe(true)
-        })
-
-        test("returns true if present anywhere in tokens", () => {
-          const test = rule.test(scope, tokenize("that this other"))
-          expect(test).toBe(true)
         })
 
         test("returns false if NOT present anywhere in tokens", () => {
@@ -463,7 +350,7 @@ describe("P.Subrule", () => {
 
   describe("sequence rules", () => {
     describe("test() method", () => {
-      describe("TEST_AT_START", () => {
+      describe("tested at start", () => {
         const rule = new P.Subrule({ rule: "this" })
         test("returns 1 if present at the start of tokens", () => {
           const test = rule.test(scope, tokenize("this that"))
@@ -473,24 +360,6 @@ describe("P.Subrule", () => {
         test("returns false if not present at start of tokens", () => {
           const test = rule.test(scope, tokenize("that this that"))
           expect(test).toBe(false)
-        })
-
-        test("returns false if NOT present anywhere in tokens", () => {
-          const test = rule.test(scope, tokenize("that that that"))
-          expect(test).toBe(false)
-        })
-      })
-
-      describe("TEST_AT_START", () => {
-        const rule = new P.Subrule({ rule: "this", testLocation: TestLocation.ANYWHERE })
-        test("returns true if present at the start of tokens", () => {
-          const test = rule.test(scope, tokenize("this that"))
-          expect(test).toBe(true)
-        })
-
-        test("returns true if present anywhere in tokens", () => {
-          const test = rule.test(scope, tokenize("that this that"))
-          expect(test).toBe(true)
         })
 
         test("returns false if NOT present anywhere in tokens", () => {
@@ -557,14 +426,8 @@ describe("P.Choice", () => {
     matchGroup: "arg"
   })
 
-  const ruleAnywhere = new P.Choice({
-    rules: [new P.Keywords("this"), new P.Keywords("that"), new P.Keywords("other")],
-    matchGroup: "arg",
-    testLocation: TestLocation.ANYWHERE
-  })
-
   describe("test() method", () => {
-    describe("TEST_AT_START", () => {
+    describe("tested at start", () => {
       test("returns true if present at the start of tokens", () => {
         const test = ruleStart.test(scope, tokenize("this that other"))
         expect(test).toBe(true)
@@ -572,23 +435,6 @@ describe("P.Choice", () => {
 
       test("returns false if NOT present at start of tokens", () => {
         const test = ruleStart.test(scope, tokenize("start this middle end"))
-        expect(test).toBe(false)
-      })
-    })
-
-    describe("TEST_ANYWHERE", () => {
-      test("returns true if present at the start of tokens", () => {
-        const test = ruleAnywhere.test(scope, tokenize("this that other"))
-        expect(test).toBe(true)
-      })
-
-      test("returns true if present anywhere in tokens", () => {
-        const test = ruleAnywhere.test(scope, tokenize("start that end"))
-        expect(test).toBe(true)
-      })
-
-      test("returns false if NOT present anywhere in tokens", () => {
-        const test = ruleAnywhere.test(scope, tokenize("start middle end"))
         expect(test).toBe(false)
       })
     })
@@ -630,79 +476,39 @@ describe("P.Choice", () => {
 describe("P.Repeat", () => {
   const parser = new Parser()
   const scope = parser.getScope()
-  const ruleNoTest = new P.Repeat(new P.Keywords("word"))
-  const ruleStart = new P.Repeat({
-    testRule: new P.Keywords("word"),
-    rule: new P.Keywords("word")
-  })
-  const ruleAnywhere = new P.Repeat({
-    testRule: new P.Keywords("word"),
-    rule: new P.Keywords("word"),
-    testLocation: TestLocation.ANYWHERE
-  })
+  const ruleWord = new P.Repeat(new P.Keywords("word"))
   const ruleDelimiter = new P.Repeat({
     rule: new P.Keywords("word"),
     delimiter: new P.Symbol(",")
   })
 
   describe("test() method", () => {
-    describe("without a testRule", () => {
-      test("returns undefined", () => {
-        const test = ruleNoTest.test(scope, tokenize("word"))
-        expect(test).toBe(undefined)
-      })
-    })
-
-    describe("TEST_AT_START", () => {
-      test("returns true if present at the start of tokens", () => {
-        const test = ruleStart.test(scope, tokenize("word"))
-        expect(test).toBe(true)
-      })
-
-      test("returns false if NOT present at start of tokens", () => {
-        const test = ruleStart.test(scope, tokenize("nope word nope"))
-        expect(test).toBe(false)
-      })
-    })
-
-    describe("TEST_ANYWHERE", () => {
-      test("returns true if present at the start of tokens", () => {
-        const test = ruleAnywhere.test(scope, tokenize("word"))
-        expect(test).toBe(true)
-      })
-
-      test("returns true if present anywhere in tokens", () => {
-        const test = ruleAnywhere.test(scope, tokenize("nope word nope"))
-        expect(test).toBe(true)
-      })
-
-      test("returns false if NOT present anywhere in tokens", () => {
-        const test = ruleAnywhere.test(scope, tokenize("nope nope nope"))
-        expect(test).toBe(false)
-      })
+    test("can only start where its rule could", () => {
+      expect(ruleWord.test(scope, tokenize("word"))).toBe(true)
+      expect(ruleWord.test(scope, tokenize("nope word nope"))).toBe(false)
     })
   })
 
   describe("parse() method without a delimiter", () => {
     test("returns an array when compiled", () => {
-      const match = ruleStart.parse(scope, tokenize("word nope nope"))!
+      const match = ruleWord.parse(scope, tokenize("word nope nope"))!
       expect(match.compile()).toBeInstanceOf(Array)
     })
 
     test("parses once at the start of tokens", () => {
-      const match = ruleStart.parse(scope, tokenize("word nope nope"))!
+      const match = ruleWord.parse(scope, tokenize("word nope nope"))!
       expect(match.length).toBe(1)
       expect(match.compile()).toEqual(["word"])
     })
 
     test("parses multiple times at the start of tokens", () => {
-      const match = ruleStart.parse(scope, tokenize("word word nope nope"))!
+      const match = ruleWord.parse(scope, tokenize("word word nope nope"))!
       expect(match.length).toBe(2)
       expect(match.compile()).toEqual(["word", "word"])
     })
 
     test("does not parse in the middle of tokens", () => {
-      const match = ruleStart.parse(scope, tokenize("nope word word"))
+      const match = ruleWord.parse(scope, tokenize("nope word word"))
       expect(match).toBeUndefined()
     })
   })
@@ -753,23 +559,12 @@ describe("P.Sequence", () => {
   parser.addRule(new P.Keywords({ name: "that", literals: ["that"] }))
   parser.addRule(new P.Keywords({ name: "other", literals: ["other"] }))
   class noTest extends P.Sequence {
-    @proto static syntax = "this {that} the {other}"
-  }
-  class atStart extends P.Sequence {
-    @proto static syntax = "this {that} the {other}"
-    @proto static testRule = "this"
-  }
-  class anywhere extends P.Sequence {
-    @proto static syntax = "this {that} the {other}"
-    @proto static testRule = "this"
-    @proto static testLocation = TestLocation.ANYWHERE
+    @proto static syntax = "{that} {other}"
   }
   class noCompile extends P.Sequence {
     @proto static syntax = "this {that} the {other}"
   }
   parser.addRule(noTest)
-  parser.addRule(atStart)
-  parser.addRule(anywhere)
   parser.addRule(noCompile)
 
   describe("sequences without a compile method", () => {
@@ -782,48 +577,63 @@ describe("P.Sequence", () => {
 
   describe("simple sequences", () => {
     describe("test() method", () => {
-      describe("without a testRule", () => {
+      describe("all subrules", () => {
         const rule = parser.rules.noTest
-        test("returns undefined", () => {
-          const test = rule.test(scope, tokenize("word"))
-          expect(test).toBe(undefined)
+        test("each subrule needs at least one token", () => {
+          expect(rule.test(scope, tokenize("word"))).toBe(false)
+          expect(rule.test(scope, tokenize("some words"))).toBe(true)
         })
       })
 
-      describe("TEST_AT_START", () => {
-        const rule = parser.rules.atStart
-        test("returns true if present at the start of tokens", () => {
-          const test = rule.test(scope, tokenize("this that other"))
-          expect(test).toBe(true)
+      describe("tests its own words, skipping subrules", () => {
+        const check = (syntax: string, input: string) => {
+          class tested extends P.Sequence {}
+          return tested.instantiate({ syntax })[0]!.test(scope, tokenize(input))
+        }
+        test("words must be where they belong", () => {
+          expect(check("this {that} the {other}", "this that the other")).toBe(true)
+          expect(check("this {that} the {other}", "this x y the z")).toBe(true)
+          expect(check("this {that} the {other}", "this that a other")).toBe(false)
+          expect(check("this {that} the {other}", "that the other")).toBe(false)
         })
-
-        test("returns false if NOT present anywhere at start of tokens", () => {
-          const test = rule.test(scope, tokenize("start this middle end"))
-          expect(test).toBe(false)
+        test("each subrule needs at least one token", () => {
+          expect(check("this {that} the {other}", "this the other")).toBe(false)
+          expect(check("this {that} the {other}", "this that the")).toBe(false)
         })
-      })
-
-      describe("TEST_ANYWHERE", () => {
-        const rule = parser.rules.anywhere
-        test("returns true if present at the start of tokens", () => {
-          const test = rule.test(scope, tokenize("this that other"))
-          expect(test).toBe(true)
+        test("tries every occurrence, not just the first", () => {
+          expect(check("{that} is {other} if {that}", "x is y is z if w")).toBe(true)
+          expect(check("{that} is {other} if {that}", "x is y is z")).toBe(false)
         })
-
-        test("returns true if present anywhere in tokens", () => {
-          const test = rule.test(scope, tokenize("other this that"))
-          expect(test).toBe(true)
+        test("optional words are tried both ways", () => {
+          expect(check("(operator:is not? exactly) {that}", "is exactly x")).toBe(true)
+          expect(check("(operator:is not? exactly) {that}", "is not exactly x")).toBe(true)
+          expect(check("(operator:is not? exactly) {that}", "is not x")).toBe(false)
+          // not greedy:  optional `not` is skipped so required `not` can match
+          expect(check("is not? not {that}", "is not x")).toBe(true)
         })
-
-        test("returns false if NOT present anywhere in tokens", () => {
-          const test = rule.test(scope, tokenize("start middle end"))
-          expect(test).toBe(false)
+        test("choice => each alternative", () => {
+          const syntax = "there (operator:is not? (a|an)|is no such) {that}"
+          expect(check(syntax, "there is a that")).toBe(true)
+          expect(check(syntax, "there is not an that")).toBe(true)
+          expect(check(syntax, "there is no such that")).toBe(true)
+          expect(check(syntax, "there was a that")).toBe(false)
+          expect(check(syntax, "there is no that")).toBe(false)
+          expect(check(syntax, "there is 1 a that")).toBe(false)
+        })
+        test("subclass can override test(), and parse() respects it", () => {
+          class picky extends P.Sequence {
+            test() {
+              return false
+            }
+          }
+          const [rule] = picky.instantiate({ syntax: "this {that}" })
+          expect(rule!.parse(scope, tokenize("this that"))).toBeUndefined()
         })
       })
     })
 
     describe("parse() method", () => {
-      const rule = parser.rules.atStart
+      const rule = parser.rules.noCompile
       test("parses at the start of tokens", () => {
         const match = rule.parse(scope, tokenize("this that the other"))!
         expect(match.length).toBe(4)

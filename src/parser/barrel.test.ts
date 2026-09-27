@@ -19,7 +19,6 @@ import { proto } from "~/util/decorators"
 const VALUES = [
   // `./parser.types`
   "ParserError",
-  "TestLocation",
   "normalizeRuleTest",
   // `./tokenizer`
   "Token",
@@ -51,7 +50,7 @@ const VALUES = [
 ] as const
 
 /** Rules `rulex` defines at module scope -- the canary for the opt-in actually landing. */
-const RULEX_RULES = ["testLocation", "matchGroup", "repeatFlag", "symbol", "keyword", "subrule", "sequence"]
+const RULEX_RULES = ["matchGroup", "repeatFlag", "symbol", "keyword", "subrule", "sequence"]
 
 /**
  * Modules which are safe to import BEFORE `~/parser`.

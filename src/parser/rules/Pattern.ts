@@ -45,14 +45,14 @@ export class Pattern<
   }
 
   /** `true` if token at `start` matches `this.pattern` and isn't in `this.blacklist`. */
-  testAtStart(scope: P.Scope, tokens: P.Token[], start = 0) {
+  test(scope: P.Scope, tokens: P.Token[], start = 0) {
     if (start >= tokens.length) return false
     return tokens[start].matchesPattern(this.pattern, this.blacklist)
   }
 
   /** Match a single token against `this.pattern`, running its value through `mapValue()`. */
   parse(scope: P.Scope, tokens: P.Token[]) {
-    if (!this.testAtStart(scope, tokens, 0)) return undefined
+    if (!this.test(scope, tokens, 0)) return undefined
     const raw = tokens[0].value // raw value, used by subclasses
     const value = this.mapValue(raw) // possibly normalized value, used by subclasses
     return new P.Match({

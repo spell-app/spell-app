@@ -8,7 +8,7 @@ import { Rule } from "./Rule"
 /**
  * Sequence of rules to match, in order.
  * - `rule.rules` is the array of rules to match.
- * - `rule.testRule` is a QUICK rule to test if there's any way the sequence can match.
+ * - `test()` checks our own words / symbols before `parse()` goes near a subrule -- see "Quick testing" below.
  */
 export class Sequence<
   Groups extends string | P.AnyGroups = P.AnyGroups,
@@ -106,6 +106,26 @@ export class Sequence<
     if (optional || matchGroup) return `(${matchGroup}${rules})${optional}`
     return `${rules}${optional}`
   }
+
+  ////////////////
+  // ## Quick testing
+  ////////////////
+
+  /**
+   * Could we match at `start` of `tokens`?  Checks our own words / symbols BEFORE `parse()` tries any subrule,
+   * e.g. `{expression}`, which is what's expensive.
+   * - Word, symbol, pattern or token type => checked where it must be.
+   * - Choice => each alternative.  Optional => with and without.
+   * - Anything else, e.g. subrule => skips 1+ tokens, so what follows is searched for later on,
+   *   e.g. `the? {arg} (in|of) {list} where` ~== `the? … (in|of) … where`.
+   * - Tracks EVERY place we could be up to, so never rejects a real match, e.g. `x is y is z if w`
+   *   for `{thing} is {value} if {condition}` -- the `is` which works isn't the first one.
+   * - NOTE: can still say `true` for a non-match, as it can't know where a subrule actually ends.
+   */
+  test(scope: P.Scope, tokens: P.Token[], start = 0): boolean | undefined {
+    if (start >= tokens.length) return false
+    return testPlacesAfterRules(this.rules, scope, tokens, [{ start, skipped: false }]).length > 0
+  }
 }
 
 /** Props bag accepted by `Sequence`'s constructor. */
@@ -115,3 +135,78 @@ export type SequenceProps = Prettify<
     rules: P.Rule[]
   }
 >
+
+////////////////
+// ## Quick testing helpers -- see `Sequence.test()`
+////////////////
+
+/**
+ * Where a quick test could be up to in `tokens`.
+ * - `start` ~== where next rule starts...
+ * - `skipped` ~== ...or anywhere from there on, as we just skipped a subrule.
+ */
+type TestPlace = { start: number; skipped: boolean }
+
+/** Places we could be after testing `rules`, in order, starting from any of `places`.  Empty => no match. */
+function testPlacesAfterRules(rules: P.Rule[], scope: P.Scope, tokens: P.Token[], places: TestPlace[]): TestPlace[] {
+  for (const rule of rules) {
+    if (!places.length) break
+    places = testPlacesAfterRule(rule, scope, tokens, places)
+  }
+  return places
+}
+
+/** Places we could be after testing `rule`, starting from any of `places`.  Empty => no match. */
+function testPlacesAfterRule(rule: P.Rule, scope: P.Scope, tokens: P.Token[], places: TestPlace[]): TestPlace[] {
+  let after: TestPlace[]
+  if (rule instanceof Sequence) {
+    after = testPlacesAfterRules(rule.rules, scope, tokens, places)
+  } else if (rule instanceof P.Choice && rule.rules.length) {
+    after = rule.rules.flatMap((alternative) => testPlacesAfterRule(alternative, scope, tokens, places))
+  } else if (rule instanceof P.Literals) {
+    after = places
+    for (const { literal, optional } of rule.literals) {
+      const matched = testPlacesAfterToken((index) => !!tokens[index]?.matchesLiteral(literal), tokens, after)
+      after = optional ? [...after, ...matched] : matched
+    }
+  } else if (rule instanceof P.Literal || rule instanceof P.Pattern || rule instanceof P.TokenType) {
+    after = testPlacesAfterToken((index) => rule.test(scope, tokens, index) !== false, tokens, places)
+  } else {
+    // Can't test cheaply, e.g. a subrule:  skip 1+ tokens.
+    after = places.map(({ start }) => ({ start: start + 1, skipped: true }))
+  }
+  if (rule.optional) after = [...places, ...after]
+  return pruneTestPlaces(after, tokens)
+}
+
+/** Places just after a single token which passes `test`, starting from any of `places`. */
+function testPlacesAfterToken(test: (index: number) => boolean, tokens: P.Token[], places: TestPlace[]): TestPlace[] {
+  const after: TestPlace[] = []
+  for (const { start, skipped } of places) {
+    const last = skipped ? tokens.length - 1 : start
+    for (let index = start; index <= last; index++) {
+      if (test(index)) after.push({ start: index + 1, skipped: false })
+    }
+  }
+  return after
+}
+
+/**
+ * Drop duplicate / redundant `places`, and any past the end of `tokens`.
+ * - A `skipped` place covers every place at or after it, so we keep at most one.
+ */
+function pruneTestPlaces(places: TestPlace[], tokens: P.Token[]): TestPlace[] {
+  let skippedFrom = tokens.length + 1
+  for (const { start, skipped } of places) {
+    if (skipped && start < skippedFrom) skippedFrom = start
+  }
+  const pruned: TestPlace[] = []
+  const seen = new Set<number>()
+  for (const place of places) {
+    if (place.start > tokens.length || place.start >= skippedFrom || seen.has(place.start)) continue
+    seen.add(place.start)
+    pruned.push(place)
+  }
+  if (skippedFrom <= tokens.length) pruned.push({ start: skippedFrom, skipped: true })
+  return pruned
+}

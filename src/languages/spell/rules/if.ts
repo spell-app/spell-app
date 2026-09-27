@@ -41,7 +41,6 @@ _if_.addRule(_if, {
   name: "if",
   alias: "statement",
   syntax: "if {condition:expression} (then|:)?",
-  testRule: "if",
   wantsInlineStatement: true,
   wantsNestedBlock: true,
   tests: [
@@ -136,7 +135,6 @@ class else_if extends SpellStatement<"condition|inlineStatement?|nestedBlock?"> 
 _if_.addRule(else_if, {
   alias: "statement",
   syntax: "(else|otherwise) if {condition:expression} (then|:)?",
-  testRule: "(else|otherwise)",
   precedence: 1,
   wantsInlineStatement: true,
   wantsNestedBlock: true,
@@ -224,7 +222,6 @@ _if_.addRule(_else, {
   name: "else",
   alias: "statement",
   syntax: "(else|otherwise) :?",
-  testRule: "(else|otherwise)",
   wantsInlineStatement: true,
   wantsNestedBlock: true,
   tests: [

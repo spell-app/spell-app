@@ -38,3 +38,12 @@ Log of things that slowed down development. Date · symptom · fix · project.
   TODO: a test which fails if any `SpellParser` module has testable rules but no test file. · spell/parser
 - 2026-09-20 · NEVER `git stash` to "check how it was on HEAD" while background agents are editing the same working
   tree -- it yanks their files out from under them mid-edit. · Use `git show HEAD:path` or a `git worktree`. · spell/parser
+- 2026-09-27 · `console.log` from rule constructors (module-eval time) mostly never shows in `vitest run` output --
+  a temporary probe printed only a handful of test-fixture rules, none of the spell ones. · Probe with
+  `require("fs").appendFileSync("<scratch>/probe.txt", ...)` instead, then read the file. · spell/parser
+- 2026-09-27 · Ran `npx prettier --write` on two files -- this repo formats with OXFMT (`yarn format`), and prettier's
+  80-col / semicolon style reflowed them;  oxfmt then kept prettier's multi-line object breaks. · Use `npx oxfmt <files>`;
+  to undo, rebuild from `git show HEAD:<file>` rather than hoping oxfmt reverts it. · spell/parser
+- 2026-09-27 · `console.log` inside a TEST body also vanished from `npx vitest run <file> --silent=false` with the
+  default reporter -- first run printed nothing, looked like the probe didn't execute. · Add `--reporter=verbose`
+  (or write to a scratch file, as above). · spell/parser

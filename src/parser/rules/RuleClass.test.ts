@@ -19,7 +19,6 @@ class word extends P.TokenType {
 class give_statement extends TestStatement<"thing|recipient?"> {
   @proto static precedence = 10
   @proto static syntax = "give {thing:word} (to {recipient:word})?"
-  @proto static testRule = "give"
   static tests: P.RuleTests = [{ tests: [] }]
   compile(match: P.MatchFor<this>) {
     const { thing, recipient } = match.groups
@@ -29,10 +28,7 @@ class give_statement extends TestStatement<"thing|recipient?"> {
 
 class _if extends TestStatement {
   static ruleName = "if"
-  @proto static syntax = [
-    { syntax: "if {condition:word}", testRule: "if" },
-    "when {condition:word} (then {action:word})?"
-  ]
+  @proto static syntax = ["if {condition:word}", "when {condition:word} (then {action:word})?"]
 }
 
 /** Parser with all of the above installed. */
@@ -84,8 +80,6 @@ describe("rules defined as classes", () => {
         "when {condition:word} (then {action:word})?"
       ])
       expect(group.rules.every((rule) => rule instanceof _if)).toBe(true)
-      expect(group.rules[0]!.testRule).toBeInstanceOf(P.Keyword)
-      expect(group.rules[1]!.testRule).toBeUndefined()
     })
     test("plain `static` where `@proto static` is needed throws, rather than being silently ignored", () => {
       class forgetful extends P.Sequence {
@@ -108,10 +102,9 @@ describe("rules defined as classes", () => {
   })
 
   describe("construction", () => {
-    test("decomposes `syntax` and compiles string `testRule`", () => {
+    test("decomposes `syntax`", () => {
       const rule = makeParser().rules.give_statement as give_statement
       expect(rule.rules.length).toBe(3)
-      expect(rule.testRule).toBeInstanceOf(P.Keyword)
       expect(rule.syntax).toBe("give {thing:word} (to {recipient:word})?")
     })
     test("`Sequence` subclass wraps syntax which compiles to a single rule", () => {
@@ -155,7 +148,7 @@ describe("rules defined as classes", () => {
       expect(rule.alias).toBe("statement")
       expect(rule.precedence).toBe(10)
       expect(rule.names).toEqual(["give_statement", "statement"])
-      expect(Object.keys(rule).sort()).toEqual(["name", "rules", "syntax", "testRule", "tests"])
+      expect(Object.keys(rule).sort()).toEqual(["name", "rules", "syntax", "tests"])
     })
     test("prefer instance props", () => {
       const rule = new give_statement({ rules: [], alias: "other", precedence: 3 })
@@ -175,7 +168,6 @@ describe("rules defined as classes", () => {
       expect(Object.isFrozen(rule)).toBe(true)
       expect(Object.isFrozen(rule.rules)).toBe(true)
       expect(rule.rules.every((it) => Object.isFrozen(it))).toBe(true)
-      expect(Object.isFrozen(rule.testRule)).toBe(true)
     })
     test("mutating a registered rule throws", () => {
       const rule = makeParser().rules.give_statement as give_statement

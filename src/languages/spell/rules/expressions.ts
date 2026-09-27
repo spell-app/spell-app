@@ -176,7 +176,6 @@ export class PostfixOperatorSuffix<
 
 /**
  * `(expression)` -- parenthesized sub-expression.
- * - `testRule: "\\("` lets shunting-yard skip the full grammar when there's no leading `(`.
  * - `getAST()` relies on `ParenthesizedExpression`'s own constructor to collapse nested parens,
  *   e.g. `((thing))` compiles down to `(thing)`.
  */
@@ -190,7 +189,6 @@ class parenthesized_expression extends SpellExpression<"expression"> {
 }
 expressions.addRule(parenthesized_expression, {
   syntax: "\\( {expression} \\)",
-  testRule: "\\(",
   tests: [
     {
       title: "correctly matches parenthesized expressions",
@@ -961,7 +959,10 @@ class as_a_type extends PostfixOperatorSuffix<"type"> {
 }
 expressions.addRule(as_a_type, {
   precedence: 11,
-  syntax: ["as (a|an) (type:string|number|fraction|integer)", "as (type:text)"],
+  syntax: [
+    "as (a|an) (type:string|number|fraction|integer)",
+    "as (type:text)"
+  ],
   // es: "como (un|una) (type:cadena|numero|fracción|entero)"
   description: "Convert a value to a specific type, e.g. an integer.",
   tests: [

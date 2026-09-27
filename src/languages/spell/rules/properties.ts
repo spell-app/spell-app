@@ -74,8 +74,7 @@ class the_property_of extends P.Sequence<"property"> {
 }
 properties.addRule(the_property_of, {
   alias: "property_accessor",
-  syntax: "the {property} of",
-  testRule: "the"
+  syntax: "the {property} of"
 })
 
 ////////////////
@@ -89,6 +88,11 @@ properties.addRule(the_property_of, {
  * - TODO: multiple identifiers would be cool...
  */
 class property_expression extends SpellExpression<"property_accessor|expression"> {
+  /** Our syntax is all subrules, so ask `property_accessor` whether it could start here, e.g. `the foo of`. */
+  test(scope: P.Scope, tokens: P.Token[], start = 0) {
+    if (super.test(scope, tokens, start) === false) return false
+    return scope.getRuleOrDie("property_accessor").test(scope, tokens, start)
+  }
   getAST(match: P.MatchFor<this>) {
     const { property_accessor, expression } = match.groups
     return new P.ASTPropertyExpression(match, {
@@ -99,7 +103,6 @@ class property_expression extends SpellExpression<"property_accessor|expression"
 }
 properties.addRule(property_expression, {
   syntax: "{property_accessor} {expression:simple_expression}",
-  testRule: "{property_accessor}", // ???
   tests: [
     {
       compileAs: "expression",
@@ -139,7 +142,6 @@ class its_property extends SpellExpression<"property"> {
 }
 properties.addRule(its_property, {
   syntax: "its {property}",
-  testRule: "its",
   tests: [
     {
       title: "tracks `it` when it var defined explicitly",
@@ -211,7 +213,6 @@ class its_ordinal extends SpellExpression<"ordinal|arg"> {
 properties.addRule(its_ordinal, {
   alias: ["expression", "property_accessor"],
   syntax: "its {ordinal} {arg:singular_identifier}",
-  testRule: "its",
   tests: [
     {
       title: "tracks `it` when it var defined explicitly",

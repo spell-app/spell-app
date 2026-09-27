@@ -31,8 +31,6 @@ function ast<T extends P.ASTNode>(node: P.ASTNode | undefined): T {
 
 /**
  * `expect {expression}` or `expect {expression} to be {value}` -- an assertion.
- * - `testRule: "expect"` is a quick keyword pre-check (compiled from rulex syntax) so the full
- *   sequence match is only attempted when the line actually starts with `expect`.
  * - e.g. `expect the rank of it to be "queen"` => `spellCore.expect(it.rank, ..., "queen", ...)`.
  */
 class expect_test extends SpellStatement<"expression|value?"> {
@@ -52,7 +50,6 @@ class expect_test extends SpellStatement<"expression|value?"> {
 tests.addRule(expect_test, {
   alias: ["statement"],
   syntax: "expect that? {expression} (to be {value:expression})?",
-  testRule: "expect",
   tests: [
     {
       beforeEach(scope: P.Scope) {

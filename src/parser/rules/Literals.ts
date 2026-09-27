@@ -44,8 +44,8 @@ export abstract class Literals<
     }
   }
 
-  /** `true` if `matchAtStart()` consumed at least one token. */
-  testAtStart(scope: P.Scope, tokens: P.Token[], start = 0) {
+  /** `true` if `matchAtStart()` consumed at least one token at `start`. */
+  test(scope: P.Scope, tokens: P.Token[], start = 0) {
     return this.matchAtStart(tokens, start) > 0
   }
 
@@ -83,18 +83,20 @@ export abstract class Literals<
 
   /** Return rulex string for this rule, joining literals with `literalSeparator` and applying rule flags. */
   toRulexSyntax() {
-    const { testLocation, matchGroup, optional } = this.getRulexFlags()
+    const { matchGroup, optional } = this.getRulexFlags()
 
     const literalStrings = this.literals
       .map(({ literal, optional }) => {
+        // Parens around alternatives, else `(else|otherwise) if` would read as `else|otherwise if`.
+        if (typeof literal !== "string" && literal.length > 1) return `(${literal.join("|")})${optional ? "?" : ""}`
         const matchString = typeof literal === "string" ? literal : literal.join("|")
         if (optional) return `(${matchString})?`
         return matchString
       })
       .join(this.literalSeparator)
 
-    const wrapInParens = matchGroup || ((testLocation || optional) && this.literals.length > 1)
-    if (wrapInParens) return `${testLocation}(${matchGroup}${literalStrings})${optional}`
-    return `${testLocation}${literalStrings}${optional}`
+    const wrapInParens = matchGroup || (optional && this.literals.length > 1)
+    if (wrapInParens) return `(${matchGroup}${literalStrings})${optional}`
+    return `${literalStrings}${optional}`
   }
 }

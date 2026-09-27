@@ -113,7 +113,6 @@ class notify extends SpellStatement<"message|okButton?"> {
 UI.addRule(notify, {
   alias: ["statement", "async"],
   syntax: "notify {message:expression} (with {okButton:text})?", // TODO: "with close" ?
-  testRule: "notify",
   tests: [
     {
       compileAs: "statement",
@@ -152,7 +151,6 @@ class alert extends SpellStatement<"message|okButton?"> {
 UI.addRule(alert, {
   alias: ["statement", "async"],
   syntax: "alert {message:expression} (with {okButton:text})?",
-  testRule: "alert",
   tests: [
     {
       compileAs: "statement",
@@ -191,7 +189,6 @@ class warn extends SpellStatement<"message|okButton?"> {
 UI.addRule(warn, {
   alias: "statement",
   syntax: "warn {message:expression} (with {okButton:text})?",
-  testRule: "warn",
   tests: [
     {
       compileAs: "statement",
@@ -231,7 +228,6 @@ class confirm extends SpellStatement<"message|okButton?|cancelButton?"> {
 UI.addRule(confirm, {
   alias: "statement",
   syntax: "confirm {message:expression} (with {okButton:text} ((and|or) {cancelButton:text})?)?",
-  testRule: "confirm",
   tests: [
     {
       compileAs: "statement",
@@ -272,7 +268,6 @@ class prompt extends SpellStatement<"message|defaultValue?"> {
 UI.addRule(prompt, {
   alias: "statement",
   syntax: "prompt {message:expression} (with {defaultValue:expression})?",
-  testRule: "prompt",
   tests: [
     {
       compileAs: "statement",

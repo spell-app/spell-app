@@ -95,7 +95,6 @@ lists.addRule(bracketed_list, {
   alias: "expression",
   datatype: "array", // TODO: array of what?
   syntax: "\\[ [list:{expression},]? \\]",
-  testRule: "\\[",
   tests: [
     {
       title: "correctly matches literal lists",
@@ -229,7 +228,6 @@ class list_length extends SpellExpression<"arg|list"> {
 }
 lists.addRule(list_length, {
   syntax: "the? number of {arg:plural_identifier} (in|of) {list:expression}",
-  testRule: "…(number of)",
   precedence: 3,
   tests: [
     {
@@ -270,7 +268,6 @@ class list_position extends SpellExpression<"thing|list"> {
 }
 lists.addRule(list_position, {
   syntax: "the? position of {thing:expression} in {list:expression}",
-  testRule: "…(position of)",
   precedence: 3,
   tests: [
     {
@@ -459,7 +456,6 @@ class position_expression extends SpellExpression<"arg|position|expression"> {
 }
 lists.addRule(position_expression, {
   syntax: "{arg:singular_identifier} {position:expression} of {expression}",
-  testRule: "…of",
   tests: [
     {
       compileAs: "expression",
@@ -498,7 +494,6 @@ class ordinal_position_expression extends SpellExpression<"ordinal|arg|expressio
 }
 lists.addRule(ordinal_position_expression, {
   syntax: "the {ordinal} {arg:singular_identifier} (in|of) {expression}",
-  testRule: "…(in|of)",
   tests: [
     {
       compileAs: "expression",
@@ -537,7 +532,6 @@ class random_item_expression extends SpellExpression<"arg|list"> {
 }
 lists.addRule(random_item_expression, {
   syntax: "a random {arg:singular_identifier} (of|from|in) {list:expression}",
-  testRule: "a random",
   tests: [
     {
       compileAs: "expression",
@@ -576,7 +570,6 @@ class random_items_expression extends SpellExpression<"number|arg|list"> {
 }
 lists.addRule(random_items_expression, {
   syntax: "{number} random {arg:plural_identifier} (of|from|in) {list:expression}",
-  testRule: "…random",
   tests: [
     {
       compileAs: "expression",
@@ -616,7 +609,6 @@ class range_between_expression extends SpellExpression<"arg|start|end|list"> {
 }
 lists.addRule(range_between_expression, {
   syntax: "{arg:variable} {start:expression} to {end:expression} (of|in|from) {list:expression}",
-  testRule: "…(of|in|from)",
   tests: [
     {
       compileAs: "expression",
@@ -661,7 +653,6 @@ class range_starting_with_expression extends SpellExpression<"arg|list|thing"> {
 }
 lists.addRule(range_starting_with_expression, {
   syntax: "{arg:plural_identifier} (in|of) {list:expression} starting with {thing:expression}",
-  testRule: "…(starting with)",
   tests: [
     {
       compileAs: "expression",
@@ -706,7 +697,6 @@ class range_count_expression extends SpellExpression<"ordinal|number|arg|list"> 
 }
 lists.addRule(range_count_expression, {
   syntax: "{ordinal} {number} {arg:plural_identifier} (of|in|from) {list:expression}",
-  testRule: "…(of|in|from)",
   tests: [
     {
       compileAs: "expression",
@@ -761,7 +751,6 @@ class list_filter extends SpellExpression<"arg|list|inlineStatement?"> {
 }
 lists.addRule(list_filter, {
   syntax: "the? {arg:plural_identifier} (in|of) {list:expression} where",
-  testRule: "…where",
   precedence: 2,
   wantsInlineStatement: true,
   parseInlineStatementAs: "expression",
@@ -838,7 +827,6 @@ class list_membership_test extends SpellExpression<"list|operator|arg|inlineStat
 }
 lists.addRule(list_membership_test, {
   syntax: "{list:simple_expression} (operator:has|has no|doesnt have|does not have) {arg:plural_identifier} where",
-  testRule: "…(has|have)",
   precedence: 2,
   isLeftRecursive: true,
   wantsInlineStatement: true,
@@ -901,7 +889,6 @@ class list_add extends SpellStatement<"thing|method?|list"> {
 lists.addRule(list_add, {
   alias: "statement",
   syntax: "add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {list:expression}",
-  testRule: "add",
   tests: [
     {
       compileAs: "statement",
@@ -941,7 +928,6 @@ class list_prepend extends SpellStatement<"thing|list"> {
 lists.addRule(list_prepend, {
   alias: "statement",
   syntax: "prepend {thing:expression} to {list:expression}",
-  testRule: "prepend",
   tests: [
     {
       compileAs: "statement",
@@ -972,7 +958,6 @@ class list_append extends SpellStatement<"thing|list"> {
 lists.addRule(list_append, {
   alias: "statement",
   syntax: "append {thing:expression} to {list:expression}",
-  testRule: "append",
   tests: [
     {
       compileAs: "statement",
@@ -1026,7 +1011,6 @@ class list_add_relative extends SpellStatement<"thing|list|operator|item"> {
 lists.addRule(list_add_relative, {
   alias: "statement",
   syntax: "add {thing:expression} to {list:expression} (operator:before|after) {item:expression}",
-  testRule: "add",
   tests: [
     {
       compileAs: "statement",
@@ -1074,7 +1058,6 @@ class list_empty extends SpellStatement<"list"> {
 lists.addRule(list_empty, {
   alias: "statement",
   syntax: "(empty|clear) {list:expression}",
-  testRule: "(empty|clear)",
   tests: [
     {
       compileAs: "statement",
@@ -1112,7 +1095,6 @@ class list_remove_ordinal extends SpellStatement<"position|arg|list"> {
 lists.addRule(list_remove_ordinal, {
   alias: "statement",
   syntax: "remove the? {position:ordinal} {arg:singular_identifier} of {list:expression}",
-  testRule: "remove",
   tests: [
     {
       compileAs: "statement",
@@ -1150,7 +1132,6 @@ class list_remove_position extends SpellStatement<"arg|number|list"> {
 lists.addRule(list_remove_position, {
   alias: "statement",
   syntax: "remove {arg:singular_identifier} {number:expression} of {list:expression}",
-  testRule: "remove",
   tests: [
     {
       compileAs: "statement",
@@ -1185,7 +1166,6 @@ class list_remove_range extends SpellStatement<"arg|start|end|list"> {
 lists.addRule(list_remove_range, {
   alias: "statement",
   syntax: "remove {arg:plural_identifier} {start:expression} to {end:expression} of {list:expression}",
-  testRule: "remove",
   tests: [
     {
       compileAs: "statement",
@@ -1219,7 +1199,6 @@ class list_remove_range_ordinal extends SpellStatement<"start|end|arg|list"> {
 lists.addRule(list_remove_range_ordinal, {
   alias: "statement",
   syntax: "remove {start:ordinal} to {end:ordinal} {arg:plural_identifier} of {list:expression}",
-  testRule: "remove",
   tests: [
     {
       compileAs: "statement",
@@ -1256,7 +1235,6 @@ class list_remove extends SpellStatement<"thing|list"> {
 lists.addRule(list_remove, {
   alias: "statement",
   syntax: "remove {thing:expression} from {list:expression}",
-  testRule: "remove",
   tests: [
     {
       compileAs: "statement",
@@ -1306,7 +1284,6 @@ class list_remove_where extends SpellStatement<"arg|list|inlineStatement?"> {
 lists.addRule(list_remove_where, {
   alias: "statement",
   syntax: "remove {arg:plural_identifier} (in|of|from) {list:expression} where",
-  testRule: "remove",
   wantsInlineStatement: true,
   parseInlineStatementAs: "expression",
   tests: [
@@ -1362,7 +1339,6 @@ class list_reverse extends SpellStatement<"arg?|list"> {
 lists.addRule(list_reverse, {
   alias: "statement",
   syntax: "reverse ((the? {arg:plural_identifier}) (in|of))? {list:expression}",
-  testRule: "reverse",
   tests: [
     {
       compileAs: "statement",
@@ -1396,7 +1372,6 @@ class list_shuffle extends SpellStatement<"arg?|list"> {
 lists.addRule(list_shuffle, {
   alias: "statement",
   syntax: "(randomize|shuffle) ((the? {arg:plural_identifier}) (in|of))? {list:expression}",
-  testRule: "(randomize|shuffle)",
   tests: [
     {
       compileAs: "statement",
@@ -1463,7 +1438,6 @@ class repeat_n_times extends SpellStatement<"number|inlineStatement?|nestedBlock
 lists.addRule(repeat_n_times, {
   alias: ["statement", "expression"],
   syntax: "repeat {number:expression} (time|times) :?",
-  testRule: "repeat",
   wantsInlineStatement: true,
   wantsNestedBlock: true,
   tests: [
@@ -1565,7 +1539,6 @@ class list_iteration extends SpellStatement<"item|position?|list|inlineStatement
 lists.addRule(list_iteration, {
   alias: ["statement", "expression"],
   syntax: "for each? {item:singular_identifier} ((and|,) {position:singular_identifier})? (in|of) {list:expression} :?",
-  testRule: "for",
   wantsInlineStatement: true,
   wantsNestedBlock: true,
   tests: [
@@ -1680,7 +1653,6 @@ class list_range_iteration extends SpellStatement<"item|start|end|inlineStatemen
 lists.addRule(list_range_iteration, {
   alias: "statement",
   syntax: "for each? {item:singular_identifier} from {start:expression} down? to {end:expression} :?",
-  testRule: "for",
   wantsInlineStatement: true,
   wantsNestedBlock: true,
   tests: [

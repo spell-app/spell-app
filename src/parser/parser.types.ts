@@ -3,21 +3,6 @@ import type { P } from "~/parser"
 
 export type { RulexParser } from "~/languages/rulex/RulexParser"
 
-// ## Parser test rules
-
-/** Test at the start of the token stream. */
-export const AT_START = "AT_START"
-/** Test anywhere within the token stream. */
-export const ANYWHERE = "ANYWHERE"
-
-/**
- * Start testing:
- * - `AT_START` of the token stream, or
- * - `ANYWHERE` within the stream?
- */
-export const TestLocation = { AT_START, ANYWHERE } as const
-export type TestLocation = keyof typeof TestLocation
-
 // ## Patterns
 
 /** Alpha-numeric word, including dashes or underscores. */

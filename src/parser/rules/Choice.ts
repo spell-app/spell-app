@@ -58,11 +58,11 @@ export class Choice<
    * - If ANY rules return `undefined`, this will return `undefined`.
    * - If ALL rules return `false`, this will return `false`.
    */
-  testAtStart(scope: P.Scope, tokens: P.Token[], start = 0) {
+  test(scope: P.Scope, tokens: P.Token[], start = 0) {
     if (start >= tokens.length) return false
     let undefinedFound = false
     for (let i = 0, rule; (rule = this.rules[i]); i++) {
-      const result = rule.testAtStart(scope, tokens, start)
+      const result = rule.test(scope, tokens, start)
       if (result) return true
       if (result === undefined) undefinedFound = true
     }
@@ -84,7 +84,7 @@ export class Choice<
 
     // Try to match each rule in turn.
     // For efficiency, complicated rules (e.g. sequences or recursive rules)
-    //  should exit quickly via a `testRule` or similar mechanism.
+    //  should exit quickly via their own `test()`, see `Sequence.parse()`.
     const matches: P.Match[] = []
     for (let i = 0, rule; (rule = this.rules[i++]);) {
       if (DEBUG_CHOICES) console.group("parsing rule", rule.name)
@@ -155,9 +155,9 @@ export class Choice<
 
   /** Return rulex string for this rule:  `(rule1|rule2|...)`, with flags applied. */
   toRulexSyntax() {
-    const { testLocation, matchGroup, optional } = this.getRulexFlags()
+    const { matchGroup, optional } = this.getRulexFlags()
     const rules = this.rules.map((rule) => rule.toRulexSyntax()).join("|")
-    return `${testLocation}(${matchGroup}${rules})${optional}`
+    return `(${matchGroup}${rules})${optional}`
   }
 }
 

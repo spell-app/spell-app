@@ -28,13 +28,13 @@ export class TokenType<
   }
 
   /** `true` if token at `start` is an instance of `this.tokenType`. */
-  testAtStart(scope: P.Scope, tokens: P.Token[], start = 0) {
+  test(scope: P.Scope, tokens: P.Token[], start = 0) {
     return tokens[start] instanceof this.tokenType
   }
 
   /** Match a single token whose type is `this.tokenType`. */
   parse(scope: P.Scope, tokens: P.Token[]) {
-    if (!this.testAtStart(scope, tokens, 0)) return undefined
+    if (!this.test(scope, tokens, 0)) return undefined
     return new P.Match({
       rule: this,
       matched: [tokens[0]],

@@ -8,3 +8,4 @@ dist
 _parser.code-workspace
 .yarn/install-state.gz
 graphify-out/cost.json
+.venv

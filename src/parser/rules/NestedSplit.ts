@@ -100,13 +100,13 @@ export class NestedSplit<
    * - Returns `undefined` if not found or not balanced.
    */
   findNestedEnd(scope: P.Scope, tokens: P.Token[], start = 0) {
-    if (!this.start.testAtStart(scope, tokens, start)) return undefined
+    if (!this.start.test(scope, tokens, start)) return undefined
     let nesting = 0
     for (let end = start + 1, last = tokens.length; end < last; end++) {
-      if (this.start.testAtStart(scope, tokens, end)) {
+      if (this.start.test(scope, tokens, end)) {
         nesting++
       }
-      if (this.end.testAtStart(scope, tokens, end)) {
+      if (this.end.test(scope, tokens, end)) {
         if (nesting === 0) return end
         nesting--
       }
@@ -123,14 +123,14 @@ export class NestedSplit<
     let current: P.Token[] = []
     for (let i = 0, token; (token = tokens[i]); i++) {
       // handle alternate marker
-      if (this.delimiter.testAtStart(scope, tokens, i)) {
+      if (this.delimiter.test(scope, tokens, i)) {
         items.push(current)
         current = []
 
         continue
       }
       // handle nested start/emd
-      if (this.start.testAtStart(scope, tokens, i)) {
+      if (this.start.test(scope, tokens, i)) {
         const end = this.findNestedEnd(scope, tokens, i)
         if (end) {
           current = current.concat(tokens.slice(i, end + 1))
