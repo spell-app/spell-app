@@ -1,0 +1,138 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ScopeExplorer > a node lists the rules its statement made 1`] = `
+{
+  "Suits": [
+    {
+      "name": "Card_Suits",
+      "syntax": "(Card|card),(Suits|suits)",
+    },
+  ],
+  "draw (a card)": [
+    {
+      "name": "draw",
+      "syntax": "draw {thisArg:expression}",
+    },
+  ],
+}
+`;
+
+exports[`ScopeExplorer > a type's members:  properties, actions, then each enumeration and its constants -- each with hover markdown 1`] = `
+[
+  "property color",
+  "property direction",
+  "property name",
+  "property rank",
+  "property short_direction",
+  "property short_name",
+  "property short_rank",
+  "property short_suit",
+  "property state",
+  "property suit",
+  "property value",
+  "method draw (a card)",
+  "method is a (rank)",
+  "method is a (suit)",
+  "method is a face card",
+  "method is face down",
+  "method is face up",
+  "method is the (rank) of (suits)",
+  "method move (a card) to (a pile)",
+  "method play (a card)",
+  "method turn (a card) face down",
+  "method turn (a card) face up",
+  "method turn (a card) over",
+  "enumeration Directions",
+  "constant up",
+  "constant down",
+  "enumeration Ranks",
+  "constant ace",
+  "constant jack",
+  "constant queen",
+  "constant king",
+  "enumeration Suits",
+  "constant clubs",
+  "constant diamonds",
+  "constant hearts",
+  "constant spades",
+  "constant black",
+  "constant red",
+]
+`;
+
+exports[`ScopeExplorer > root holds the built-in types, then the project:  its files, and what each declares 1`] = `
+"root spellRoot (built in)
+  type Object
+  type Thing
+  type List
+  type App
+  project Solitaire
+    file Card.spell
+      type Card (is a Thing)
+      function test card setup
+    file Deck.spell
+      type Deck (is a List)
+      function test deck creation
+    file Pile.spell
+      type Pile (is a List)
+    file Solitaire.spell
+      type Game (is a App)
+      variable game
+      variable all_piles
+      variable foundations
+      variable tableaus
+      type Stock_Pile (is a Pile)
+      variable stock
+      type Discard_Pile (is a Pile)
+      variable discards
+      type Foundation (is a Pile)
+      variable it
+      type Tableau (is a Pile)
+      variable deck
+      function debug the game
+      function reset the stock pile
+      function play from the stock pile
+      function deal the cards
+      function auto-play
+      function reset the game
+      function cheat"
+`;
+
+exports[`ScopeExplorer of a project importing another, compiled > the imported project shows, with its own files and types, ahead of ours 1`] = `
+"root spellRoot (built in)
+  type Object
+  type Thing
+  type List
+  type App
+  project lib (imported)
+    file Card.spell
+      type Card (is a Thing)
+      function test card setup
+    file Deck.spell
+      type Deck (is a List)
+      function test deck creation
+    file Pile.spell
+      type Pile (is a List)
+  project app
+    file Solitaire.spell
+      type Game (is a App)
+      variable game
+      variable all_piles
+      variable foundations
+      variable tableaus
+      type Stock_Pile (is a Pile)
+      variable stock
+      type Discard_Pile (is a Pile)
+      variable discards
+      type Foundation (is a Pile)
+      variable it
+      type Tableau (is a Pile)
+      variable deck
+      function debug the game
+      function reset the stock pile
+      function play from the stock pile
+      function deal the cards
+      function auto-play
+      function reset the game
+      function cheat"
+`;

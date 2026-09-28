@@ -52,7 +52,7 @@ export class SpellLanguageService {
   /** Whole-file semantic tokens builder per file, remembering what it built last -- see `semanticTokensDelta()`. */
   #tokenBuilders = new WeakMap<SP.SpellFile, SemanticTokensBuilder>()
   /** Docstrings of each file's declarations, by statement -- keyed by the file's `match`, so one per parse. */
-  #docsCache = new WeakMap<P.Match, Map<P.Match, string>>()
+  #docsCache = new WeakMap<P.Match, Map<P.Match, SP.DocComment>>()
 
   constructor(addresses: LSP.FileAddresses) {
     this.addresses = addresses
@@ -530,6 +530,139 @@ export class SpellLanguageService {
   }
 
   /**
+   * Scope record `subject` described as hover does, with no cursor -- e.g. for `ScopeExplorer`:
+   * - `hover`:  all of it, as markdown
+   * - `summary`:  just what it is, e.g. `type **Card** is a Thing` -- the hover's first paragraph
+   * - `description`:  its docstring, as markdown -- see `docMarkdown()`
+   * - `location`:  where it was declared
+   * - NOTE: `describeSubject()` only reads `nameMatch` for a property WITHOUT a record, which a `ScopeRecord` can't be.
+   */
+  describeRecord(subject: LSP.ScopeRecord): {
+    hover: string
+    summary: string
+    description?: string
+    location?: Location
+  } {
+    const full = subject as LSP.SpellSubject
+    const [declared] = this.declarationsOf(full)
+    const hover = this.describeSubject(full)
+    return {
+      hover,
+      summary: hover.split("\n\n")[0]!,
+      description: this.docMarkdownOf(full),
+      location: declared && this.locationOf(declared)
+    }
+  }
+
+  /**
+   * Edits making `text` the docstring of what the statement starting at `position` in `file` declares -- see
+   * `SP.Block.getDocComments()`.  `null` if no declaring statement starts there.
+   * - `text` is markdown, as `docMarkdown()` gives:  a `#`, `##` ... line becomes that heading comment,
+   *   any other line a `// ` comment -- indented like the statement.  Empty `text` removes the docstring.
+   * - Replaces the comment lines above it -- a heading directly above included -- or else the comment at the end
+   *   of its line.  With neither, adds lines directly above it.
+   */
+  descriptionEdits(file: SP.SpellFile, position: Position, text: string): TextEdit[] | null {
+    const found = file.match && this.declarationStartingAt(file, this.offsetAt(file, position))
+    if (!found) return null
+    const { statement, doc } = found
+    const lineStart = { line: this.positionAt(file, statement.start!).line, character: 0 }
+    const indent = file.parseText.slice(this.offsetAt(file, lineStart), statement.start).match(/^[ \t]*/)![0]
+    const block = SpellLanguageService.commentLines(text, indent)
+    const comments = doc?.comments
+    if (!comments?.length) return block ? [{ range: { start: lineStart, end: lineStart }, newText: block }] : []
+    const first = this.rangeOf(file, comments[0]!)!
+    const last = this.rangeOf(file, comments.at(-1)!)!
+    // a comment at the end of the statement's own line:  drop it, and its space before
+    if (first.start.line === lineStart.line) {
+      const before = file.parseText.slice(0, comments[0]!.start).match(/[ \t]*$/)![0].length
+      const range = { start: this.positionAt(file, comments[0]!.start! - before), end: last.end }
+      return [
+        { range, newText: "" },
+        ...(block ? [{ range: { start: lineStart, end: lineStart }, newText: block }] : [])
+      ]
+    }
+    // whole comment lines above it
+    const range = { start: { line: first.start.line, character: 0 }, end: { line: last.end.line + 1, character: 0 } }
+    return [{ range, newText: block }]
+  }
+
+  /**
+   * Docstring of `file`, as markdown:  the comment lines at its very top, if the first is a `#` heading --
+   * e.g. `# Solitaire cards`.  See `docMarkdown()`.
+   */
+  fileDescription(file: SP.SpellFile): string | undefined {
+    const doc = this.fileDocComment(file)
+    return doc && SpellLanguageService.docMarkdown(doc)
+  }
+
+  /**
+   * Edits making `text` the docstring of `file` -- see `fileDescription()`.
+   * - Replaces its comment lines at the top, or adds them there.  Empty `text` removes them.
+   * - Its first line becomes a `#` heading if it isn't a heading already, or it wouldn't read as the file's.
+   */
+  fileDescriptionEdits(file: SP.SpellFile, text: string): TextEdit[] {
+    const heading = text.trim() && !/^#/.test(text.trimStart()) ? `# ${text.trimStart()}` : text
+    const block = SpellLanguageService.commentLines(heading, "")
+    const top = { line: 0, character: 0 }
+    const doc = this.fileDocComment(file)
+    if (!doc) return block ? [{ range: { start: top, end: top }, newText: block }] : []
+    const last = this.rangeOf(file, doc.comments.at(-1)!)!
+    return [{ range: { start: top, end: { line: last.end.line + 1, character: 0 } }, newText: block }]
+  }
+
+  /** Comment-only lines at the very top of `file`, if the first is a `#` heading -- see `fileDescription()`. */
+  private fileDocComment(file: SP.SpellFile): SP.DocComment | undefined {
+    const comments: P.Match[] = []
+    for (const item of file.match?.matched ?? []) {
+      const only = item instanceof P.Match && item.matched.length === 1 ? item.matched[0] : undefined
+      if (!(only instanceof P.Match) || only.tokens.length !== 1 || !(only.tokens[0] instanceof P.CommentToken)) break
+      comments.push(only)
+    }
+    const first = comments[0]?.tokens[0] as P.CommentToken | undefined
+    if (first?.commentSymbol !== "#") return undefined
+    return { comments, lines: comments.map((comment) => (comment.tokens[0] as P.CommentToken).value) }
+  }
+
+  /**
+   * Markdown `text` as spell comment lines, each ending in a newline:  a `#`, `##` ... line as that heading
+   * comment, any other as a `// ` one, all indented `indent`.  `""` for empty `text`.
+   */
+  static commentLines(text: string, indent: string): string {
+    if (!text.trim()) return ""
+    return text
+      .trimEnd()
+      .split("\n")
+      .map((line) => {
+        const heading = /^(#+)\s*(.*)$/.exec(line.trim())
+        return `${indent}${heading ? `${heading[1]} ${heading[2]}` : `// ${line}`}`.trimEnd() + "\n"
+      })
+      .join("")
+  }
+
+  /**
+   * Statement starting at `offset` in `file` that declares something, and its docstring if any.
+   * - Asks each block for its docstrings, as they're per block -- see `SP.Block.getDocComments()`.
+   */
+  private declarationStartingAt(
+    file: SP.SpellFile,
+    offset: number
+  ): { statement: P.Match; doc?: SP.DocComment } | undefined {
+    let found: { statement: P.Match; doc?: SP.DocComment } | undefined
+    this.walk(file.match!, (match) => {
+      if (found || !(match.rule instanceof SP.Block)) return
+      const docs = match.rule.getDocComments(match)
+      for (const line of match.matched) {
+        const statement = line instanceof P.Match ? line.data.statement : undefined
+        if (statement instanceof P.Match && statement.start === offset && statement.rule.getDeclaration(statement)) {
+          found = { statement, doc: docs.get(statement) }
+        }
+      }
+    })
+    return found
+  }
+
+  /**
    * Docstring of what `subject` names:  the comments documenting its declaration -- see `SP.Block.getDocComments()`.
    * - Only if that declaration really names it:  an argument's `declaredBy` is its METHOD, whose docs aren't its own.
    * - Properties only when we know which type they're on.
@@ -538,14 +671,41 @@ export class SpellLanguageService {
     return subject.record && this.docsOfRecord(subject.record, subject.kind === "method")
   }
 
+  /** Docstring of what `subject` names, as markdown -- see `docMarkdown()`. */
+  docMarkdownOf(subject: LSP.SpellSubject): string | undefined {
+    const doc = subject.record && this.docCommentOfRecord(subject.record, subject.kind === "method")
+    return doc && SpellLanguageService.docMarkdown(doc)
+  }
+
   /** Docstring of scope record `record`, if its declaration names it -- or always for a method's rule. */
   private docsOfRecord(record: { name: string; declaredBy?: P.Match }, isMethod = false): string | undefined {
+    return this.docCommentOfRecord(record, isMethod)?.lines.join("\n")
+  }
+
+  /** Doc comment of scope record `record`, if its declaration names it -- or always for a method's rule. */
+  private docCommentOfRecord(
+    record: { name: string; declaredBy?: P.Match },
+    isMethod = false
+  ): SP.DocComment | undefined {
     const { declaredBy } = record
     const file = declaredBy && this.fileOf(declaredBy)
     const declaration = declaredBy?.rule.getDeclaration(declaredBy)
     if (!file || !declaration) return undefined
     const isNamed = isMethod || SpellLanguageService.sameName(`${this.nameLeaf(declaration).raw}`, record.name)
-    return isNamed ? this.docsIn(file).get(declaredBy) : undefined
+    return isNamed ? this.docCommentsIn(file).get(declaredBy) : undefined
+  }
+
+  /**
+   * `doc` as markdown:  a heading comment as a heading of its level -- `# Cards` => `# Cards` -- the rest as is.
+   * - Round-trips through `descriptionEdits()`, which turns each line back into its comment.
+   */
+  static docMarkdown(doc: SP.DocComment): string {
+    return doc.comments
+      .map((comment, index) => {
+        const { commentSymbol } = comment.tokens[0] as P.CommentToken
+        return commentSymbol.startsWith("#") ? `${commentSymbol} ${doc.lines[index]}` : doc.lines[index]
+      })
+      .join("\n")
   }
 
   /** `text` as markdown for an editor, e.g. completion `documentation`. */
@@ -553,15 +713,15 @@ export class SpellLanguageService {
     return text ? { kind: MarkupKind.Markdown, value: text } : undefined
   }
 
-  /** Docstring of each declaration in `file`, by its statement -- worked out once per parse of `file`. */
-  private docsIn(file: SP.SpellFile): Map<P.Match, string> {
+  /** Doc comment of each declaration in `file`, by its statement -- worked out once per parse of `file`. */
+  private docCommentsIn(file: SP.SpellFile): Map<P.Match, SP.DocComment> {
     if (!file.match) return new Map()
     let docs = this.#docsCache.get(file.match)
     if (!docs) {
-      const found = new Map<P.Match, string>()
+      const found = new Map<P.Match, SP.DocComment>()
       this.walk(file.match, (match) => {
         if (!(match.rule instanceof SP.Block)) return
-        for (const [statement, doc] of match.rule.getDocComments(match)) found.set(statement, doc.lines.join("\n"))
+        for (const [statement, doc] of match.rule.getDocComments(match)) found.set(statement, doc)
       })
       docs = found
       this.#docsCache.set(file.match, docs)

@@ -201,9 +201,9 @@ export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
     return item instanceof P.Match && item.tokens.length === 1 && item.tokens[0] instanceof P.CommentToken
   }
 
-  /** Is `comment` a `##` section heading? */
+  /** Is `comment` a section heading -- `#`, `##`, `###` ...? */
   private isHeading(comment: P.Match): boolean {
-    return (comment.tokens[0] as P.CommentToken).commentSymbol === "##"
+    return (comment.tokens[0] as P.CommentToken).commentSymbol.startsWith("#")
   }
 
   /** Text of `comment`, without its comment symbol. */

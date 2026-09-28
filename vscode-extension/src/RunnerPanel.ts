@@ -6,6 +6,7 @@
  * - Also re-runs when the project's `<Project>.compiled.js` changes on disk, e.g. compiled by the web app.
  */
 import { existsSync } from "fs"
+import JSON5 from "json5"
 import { resolve } from "path"
 import * as vscode from "vscode"
 import type { LanguageClient } from "vscode-languageclient/node"
@@ -19,6 +20,8 @@ import type { LanguageClient } from "vscode-languageclient/node"
  * - `<Project>.compiled.js` changing on disk runs it too, unless it has parse errors -- see `compiledChanged()`.
  * - A failed compile sends nothing, so the last good app keeps running.
  * - Runs the same javascript only ONCE, unless asked to -- a compile both notifies AND rewrites the file.
+ * - Remembers how the runner shows the project -- console, tab, Type Explorer -- in the project's
+ *   `settings.json5`, and sends it back on `ready`.  See `readSettings()`.
  ****************/
 export class RunnerPanel {
   /** Open panels, by project id. */
@@ -32,6 +35,12 @@ export class RunnerPanel {
   declare project: string
   /** One of the project's spell files, to name the project in requests. */
   declare uri: string
+  /** The project's `settings.json5`, beside its `project.json` -- see `readSettings()`. */
+  declare settingsUri: vscode.Uri
+  /** Its settings, as last read or saved. */
+  #settings: ProjectSettings = {}
+  /** Pending write of `#settings` -- see `saveSettings()`. */
+  #settingsTimer: ReturnType<typeof setTimeout> | undefined
   /** Javascript we last ran -- see `run()`. */
   #lastRun: string | undefined
   /** Run the next `spell/projectCompiled` even if it's what we last ran:  Restart, or the webview is new. */
@@ -41,6 +50,8 @@ export class RunnerPanel {
     this.client = client
     this.project = info.project
     this.uri = uri
+    // the compiled file is in the project's folder too
+    this.settingsUri = vscode.Uri.joinPath(vscode.Uri.parse(info.compiledUri), "..", SETTINGS_FILE)
     const runner = vscode.Uri.file(resolve(parserRoot, "dist-runner"))
     const statics = vscode.Uri.file(resolve(parserRoot, "static"))
     this.panel = vscode.window.createWebviewPanel(
@@ -51,7 +62,15 @@ export class RunnerPanel {
     )
     this.panel.webview.html = RunnerPanel.html(this.panel.webview, runner, statics)
     this.panel.webview.onDidReceiveMessage((message: FromRunnerMessage) => {
-      if (message.type === "ready" || message.type === "restart") void this.compile()
+      if (message.type === "ready") {
+        void this.readSettings().then((settings) => {
+          this.post({ type: "settings", settings })
+          void this.compile()
+        })
+      } else if (message.type === "restart") void this.compile()
+      else if (message.type === "saveSettings") this.saveSettings(message.settings)
+      else if (message.type === "open") void RunnerPanel.open(message.href)
+      else if (message.type === "setDescription") void this.setDescription(message)
     })
     const watcher = RunnerPanel.watch(vscode.Uri.parse(info.compiledUri))
     watcher.onDidChange((uri) => void this.compiledChanged(uri))
@@ -136,14 +155,88 @@ export class RunnerPanel {
   }
 
   /**
-   * Run `compiled`, the project's javascript, afresh in the webview.
+   * Run `compiled`, the project's javascript, afresh in the webview -- then send its Type Explorer the scopes.
    * - Skipped if it's what we last ran, unless `force`.
    */
   run(compiled: string, force = false): void {
     if (!force && compiled === this.#lastRun) return
     this.#lastRun = compiled
-    const message: ToRunnerMessage = { type: "run", compiled }
+    this.post({ type: "run", compiled })
+    void this.sendScopes()
+  }
+
+  /** Send the webview the project's live scope tree, from the server's `spell/scopes`, for its Type Explorer. */
+  async sendScopes(): Promise<void> {
+    const tree = await this.client.sendRequest<unknown>("spell/scopes", { uri: this.uri })
+    if (tree) this.post({ type: "scopes", tree })
+  }
+
+  /**
+   * Make `text` the docstring of what's declared at `position` in `uri` -- then send fresh scopes to show it.
+   * - The server works out the edit (`spell/setDescription`);  WE apply it, so it's in the editor, undoable, unsaved.
+   */
+  async setDescription({ uri, position, file, text }: SetDescriptionParams): Promise<void> {
+    const edit = await this.client.sendRequest<object | null>("spell/setDescription", { uri, position, file, text })
+    if (!edit) {
+      void vscode.window.showWarningMessage("Spell:  couldn't find that declaration to describe -- has it moved?")
+      return
+    }
+    await vscode.workspace.applyEdit(await this.client.protocol2CodeConverter.asWorkspaceEdit(edit))
+    await this.sendScopes()
+  }
+
+  /**
+   * Our project's `settings.json5`, read afresh -- how it's shown in the runner, and more to come.
+   * - `{}` if it's missing or won't parse:  it's a convenience, so it just starts afresh.
+   */
+  async readSettings(): Promise<ProjectSettings> {
+    try {
+      const text = new TextDecoder().decode(await vscode.workspace.fs.readFile(this.settingsUri))
+      this.#settings = JSON5.parse(text) as ProjectSettings
+    } catch {
+      this.#settings = {}
+    }
+    return this.#settings
+  }
+
+  /**
+   * Remember the `changed` sections of our project's settings -- each replaces that section whole.
+   * - Writes `settings.json5` a moment after the last change, so a flurry of clicks writes once.
+   * - NOTE: written from what we hold, so a hand edit made while the runner's open is overwritten.
+   */
+  saveSettings(changed: ProjectSettings): void {
+    this.#settings = { ...this.#settings, ...changed }
+    clearTimeout(this.#settingsTimer)
+    this.#settingsTimer = setTimeout(() => void this.writeSettings(), SETTINGS_DELAY)
+  }
+
+  /** Write `settings.json5` from what we hold -- errors just show in the status bar, as it's a convenience. */
+  private async writeSettings(): Promise<void> {
+    const text = `${SETTINGS_HEADER}\n${JSON5.stringify(this.#settings, null, 2)}\n`
+    try {
+      await vscode.workspace.fs.writeFile(this.settingsUri, new TextEncoder().encode(text))
+    } catch (error) {
+      vscode.window.setStatusBarMessage(`Spell:  couldn't save ${SETTINGS_FILE} -- ${error}`, 5000)
+    }
+  }
+
+  /** Send `message` to the webview. */
+  post(message: ToRunnerMessage): void {
     void this.panel.webview.postMessage(message)
+  }
+
+  /**
+   * Open link `href` from the webview in an editor, e.g. `file:///…/Card.spell#L12` at line 12.
+   * - Beside the runner:  in the column of a spell editor, if one's showing.
+   */
+  static async open(href: string): Promise<void> {
+    const uri = vscode.Uri.parse(href)
+    const line = Number(/^L(\d+)$/.exec(uri.fragment)?.[1] ?? 1) - 1
+    const column = vscode.window.visibleTextEditors.find(({ document }) => document.languageId === "spell")?.viewColumn
+    await vscode.window.showTextDocument(uri.with({ fragment: "" }), {
+      viewColumn: column ?? vscode.ViewColumn.One,
+      selection: new vscode.Range(line, 0, line, 0)
+    })
   }
 
   /**
@@ -223,8 +316,38 @@ type ProjectCompiled = {
   compiled: string
 }
 
-/** Message to the runner webview, as `ToRunnerMessage` in `src/app/runner/runner.types.ts`. */
-type ToRunnerMessage = { type: "run"; compiled: string }
+/**
+ * Message to the runner webview, as `ToRunnerMessage` in `src/app/runner/runner.types.ts`.
+ * - `tree` is an `LSP.ScopeNode`, passed through as is.
+ */
+type ToRunnerMessage =
+  | { type: "run"; compiled: string }
+  | { type: "scopes"; tree: unknown }
+  | { type: "settings"; settings: ProjectSettings }
 
 /** Message from the runner webview, as `FromRunnerMessage` in `src/app/runner/runner.types.ts`. */
-type FromRunnerMessage = { type: "ready" } | { type: "restart" }
+type FromRunnerMessage =
+  | { type: "ready" }
+  | { type: "restart" }
+  | { type: "open"; href: string }
+  | ({ type: "setDescription" } & SetDescriptionParams)
+  | { type: "saveSettings"; settings: ProjectSettings }
+
+/** Params of `spell/setDescription`, as `LSP.SetDescriptionParams` -- `file` for the file's own docstring. */
+type SetDescriptionParams = { uri: string; position: unknown; file?: boolean; text: string }
+
+/**
+ * A project's `settings.json5`, as `ProjectSettings` in `src/app/runner/runner.types.ts` -- its top-level sections,
+ * which we just hold and write, NOT read.
+ */
+type ProjectSettings = Record<string, unknown>
+
+/** Name of a project's settings file, beside its `project.json`.  Git-ignored, and not one of its files in the editor. */
+const SETTINGS_FILE = "settings.json5"
+
+/** First line of `settings.json5`, saying what it is. */
+const SETTINGS_HEADER =
+  "// How this project shows in the spell runner -- written by the spell extension.  Safe to delete."
+
+/** How long after the last change to write `settings.json5`, in msec. */
+const SETTINGS_DELAY = 500

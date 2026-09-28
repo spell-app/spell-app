@@ -14,4 +14,5 @@ export * as LSP from "."
 export * from "./lsp.types"
 
 export * from "./SpellLanguageService"
+export * from "./ScopeExplorer"
 export * from "./SpellLanguageServer"

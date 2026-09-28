@@ -82,6 +82,11 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   node claims the definition's source position, e.g. for source maps / editor ranges.  Found 2026-09-27
   while mapping dynamic rules' closures for precompiled packages.
 
+- `Rule.toRulexSyntax()` on an enumeration's rule (`EnumerationRule`, e.g. `Card_Suits`, `specialize()`d with no
+  `syntax`) gives `(Card|card),(Suits|suits)` -- a COMMA between the two words, where its compiled comment says
+  `'(Card|card) (Suits|suits)'`.  Looks like a `Literals` list joined with `Array.toString()`.  Shows in hover's
+  rule line and the Type Explorer's "Rules".  Found 2026-09-28, not checked against the code.
+
 ## 2. Server robustness / security
 
 - [V] `server/lock-utils.ts`: whole module has zero callers, while `saveFile()` / `saveImports()` / `getIndex()`

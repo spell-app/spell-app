@@ -4,32 +4,41 @@ import * as SUI from "semantic-ui-react"
 
 import { view } from "~/util"
 import { spellCore } from "~/spellCore"
-import type { FromRunnerMessage, ToRunnerMessage } from "~/app/runner"
+import type { LSP } from "~/lsp"
+import type { UI } from "~/app/ui"
+import type { FromRunnerMessage, ProjectSettings, RunnerPane, ToRunnerMessage } from "~/app/runner"
 // Import directly, NOT through the `UI` barrel, which would pull in the whole editor.
 import { AppContainer } from "~/app/ui/AppContainer"
 import { ConsoleLines } from "~/app/ui/ConsoleLines"
+import { TypeExplorer } from "~/app/ui/TypeExplorer"
 
 import "./VSCodeRunner.less"
 
 /****************
  * ### `<VSCodeRunner>`
  * Runs a spell project inside the VS Code extension's "Run Project" webview:  a toolbar, `<AppContainer>`,
- * then `spellCore.console` if shown.
+ * then, if shown, a pane switching between "Type Explorer" and "Program Output".
  * - Runs whatever the extension sends in a `run` message, afresh each time -- see `runCompiled()`.
  * - Says `ready` once listening, so the extension knows to compile.  Messages sent before then are lost.
+ * - How it's shown -- console, tab, the Type Explorer's state -- comes from the extension, which remembers it in
+ *   the project's `settings.json5`.  See `ProjectSettings`.
  ****************/
 export function VSCodeRunner({ post }: VSCodeRunnerProps) {
   const [error, setError] = React.useState<string>()
-  const [showConsole, setShowConsole] = React.useState(false)
+  const [settings, setSettings] = React.useState<ProjectSettings>({})
+  const { showConsole = false, pane = "types" } = settings.runner ?? {}
+  const [tree, setTree] = React.useState<LSP.ScopeNode>()
 
   React.useEffect(() => {
     window.addEventListener("message", onMessage)
     post({ type: "ready" })
     return () => window.removeEventListener("message", onMessage)
 
-    /** Run what a `run` message carries, showing any error it throws. */
+    /** Run what a `run` message carries, showing any error it throws, or keep a `scopes` message's tree. */
     function onMessage({ data }: MessageEvent<ToRunnerMessage>) {
       if (data?.type === "run") void runCompiled(data.compiled).then(setError)
+      else if (data?.type === "scopes") setTree(data.tree)
+      else if (data?.type === "settings") setSettings(data.settings)
     }
   }, [post])
 
@@ -39,12 +48,27 @@ export function VSCodeRunner({ post }: VSCodeRunnerProps) {
         error={error}
         onRestart={() => post({ type: "restart" })}
         showConsole={showConsole}
-        onToggleConsole={() => setShowConsole(!showConsole)}
+        onToggleConsole={() => save({ runner: { ...settings.runner, showConsole: !showConsole } })}
       />
       <AppContainer scrolling padded />
-      {showConsole && <VSCodeRunnerConsole />}
+      {showConsole && (
+        <VSCodeRunnerPane
+          tree={tree}
+          post={post}
+          pane={pane}
+          onPane={(showing) => save({ runner: { ...settings.runner, pane: showing } })}
+          explorerState={settings.typeExplorer}
+          onExplorerStateChange={(typeExplorer) => save({ typeExplorer })}
+        />
+      )}
     </div>
   )
+
+  /** Change `changed` sections of our settings here, and have the extension write them to `settings.json5`. */
+  function save(changed: ProjectSettings) {
+    setSettings({ ...settings, ...changed })
+    post({ type: "saveSettings", settings: changed })
+  }
 }
 
 /** Props for `<VSCodeRunner>`. */
@@ -84,6 +108,58 @@ type VSCodeRunnerToolbarProps = {
   showConsole: boolean
   /** "Show Console" / "Hide Console" pressed. */
   onToggleConsole: () => void
+}
+
+/****************
+ * ### `<VSCodeRunnerPane>`
+ * Pane below the app:  a toolbar switching between "Type Explorer" and "Program Output", then that.
+ ****************/
+function VSCodeRunnerPane({ tree, post, pane, onPane, explorerState, onExplorerStateChange }: VSCodeRunnerPaneProps) {
+  return (
+    <div className="VSCodeRunnerPane">
+      <SUI.Menu attached size="mini" className="VSCodeRunnerPaneToolbar">
+        <SUI.Menu.Item
+          icon="sitemap"
+          content="Type Explorer"
+          active={pane === "types"}
+          onClick={() => onPane("types")}
+        />
+        <SUI.Menu.Item
+          icon="terminal"
+          content="Program Output"
+          active={pane === "output"}
+          onClick={() => onPane("output")}
+        />
+      </SUI.Menu>
+      {pane === "types" ? (
+        <TypeExplorer
+          tree={tree}
+          onOpen={(href) => post({ type: "open", href })}
+          onSaveDescription={({ descriptionAt }, text) => post({ type: "setDescription", ...descriptionAt!, text })}
+          state={explorerState}
+          onStateChange={onExplorerStateChange}
+        />
+      ) : (
+        <VSCodeRunnerConsole />
+      )}
+    </div>
+  )
+}
+
+/** Props for `<VSCodeRunnerPane>`. */
+type VSCodeRunnerPaneProps = {
+  /** Scope tree for the Type Explorer, if we've had one. */
+  tree?: LSP.ScopeNode
+  /** Send a message to the extension. */
+  post: VSCodeRunnerProps["post"]
+  /** Tab showing. */
+  pane: RunnerPane
+  /** Tab clicked. */
+  onPane: (pane: RunnerPane) => void
+  /** Type Explorer's state to start with, as remembered. */
+  explorerState?: UI.TypeExplorerState
+  /** Type Explorer's state changed. */
+  onExplorerStateChange: (state: UI.TypeExplorerState) => void
 }
 
 /****************

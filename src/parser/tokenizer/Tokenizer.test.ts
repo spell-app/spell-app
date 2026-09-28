@@ -647,6 +647,11 @@ describe("matchComment()", () => {
     expect(token.end).toBe(15)
   })
 
+  test("Matches `#` and `###` heading comments", () => {
+    expect(tokenizer.matchComment("# Solitaire")).toMatchObject({ commentSymbol: "#", value: "Solitaire" })
+    expect(tokenizer.matchComment("### rules")).toMatchObject({ commentSymbol: "###", value: "rules" })
+  })
+
   test("Matches empty `//` comment", () => {
     const token = tokenizer.matchComment("//")!
     expect(token).toBeInstanceOf(CommentToken)

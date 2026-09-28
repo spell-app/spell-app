@@ -46,3 +46,18 @@ export type EditorPosition = {
   /** Character offset into file contents.  Wins over `line` / `ch` when restoring a selection. */
   offset?: number
 }
+
+// ## Type Explorer
+
+/**
+ * What a `<TypeExplorer>` remembers between runs -- plain JSON, for whoever stores it, e.g. the VS Code runner's
+ * `settings.json5`.
+ */
+export type TypeExplorerState = {
+  /** `id` of the selected node. */
+  selected?: string
+  /** Ids of the open tree rows:  nodes, and each type's "Properties", "Actions" ... groups. */
+  open?: string[]
+  /** Titles of the details sections open, e.g. `Spell` -- the same for every node. */
+  openSections?: string[]
+}

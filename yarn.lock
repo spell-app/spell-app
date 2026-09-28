@@ -3226,6 +3226,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"marked@npm:^14.0.0":
+  version: 14.1.4
+  resolution: "marked@npm:14.1.4"
+  bin:
+    marked: bin/marked.js
+  checksum: 10c0/7ccc4c9b58d430b68eb878133fc284235ef3022b1a465345d2464712bf7d47507203b54639826839b6cb8d8847cf46f2e382588b9e1fc1d98b657520e16bfa62
+  languageName: node
+  linkType: hard
+
 "math-intrinsics@npm:^1.1.0":
   version: 1.1.0
   resolution: "math-intrinsics@npm:1.1.0"
@@ -4546,6 +4555,7 @@ __metadata:
     less: "npm:^4"
     lodash: "npm:^4.17.21"
     lodash-inflection: "npm:^1.5.0"
+    marked: "npm:^14.0.0"
     monaco-editor: "npm:^0.57.0"
     node-filter-async: "npm:^3.0.0"
     node-storage-shim: "npm:^2.0.1"

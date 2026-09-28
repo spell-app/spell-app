@@ -14,6 +14,7 @@ import {
 } from "vscode-languageserver/node"
 
 import environment from "~/environment"
+import type { LSP } from "~/lsp"
 
 /**
  * The language server as an editor runs it:  a separate `yarn start:lsp` process, speaking JSON-RPC over stdio.
@@ -127,6 +128,25 @@ describe("spell language server over stdio", () => {
     // ...and wrote it where `spell/project` says, for editors to watch
     expect(compiledUri).toMatch(/\/Runs\/Runs\.compiled\.js$/)
     expect(readFileSync(fileURLToPath(compiledUri), "utf8")).toBe(sent.compiled)
+  }, 30_000)
+
+  test("`spell/scopes` answers the project's live scope tree", async () => {
+    const projectDir = resolve(mkdtempSync(resolve(tmpdir(), "spell-stdio-")), "Scoped")
+    mkdirSync(projectDir)
+    writeFileSync(
+      resolve(projectDir, "project.json"),
+      JSON.stringify({ imports: [{ path: "/main.spell", active: true }] })
+    )
+    const text = "a card is a thing\ncards have a suit as one of hearts or spades"
+    writeFileSync(resolve(projectDir, "main.spell"), text)
+    const uri = pathToFileURL(resolve(projectDir, "main.spell")).href
+    await connection.sendNotification("textDocument/didOpen", {
+      textDocument: { uri, languageId: "spell", version: 1, text }
+    })
+    const tree = (await connection.sendRequest("spell/scopes", { uri })) as LSP.ScopeNode
+    const project = tree.children.find((child) => child.name === "Scoped")!
+    const card = project.children[0]!.children.find((child) => child.name === "Card")!
+    expect(card.members.map((member) => member.name)).toContain("suit")
   }, 30_000)
 
   test("`spell/compileProject` of a project that doesn't parse:  not ok, and sends nothing", async () => {

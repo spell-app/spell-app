@@ -12,7 +12,8 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - result is ONE root `BlockToken` holding `LineToken`s and nested `BlockToken`s
   - indent ~== count of leading whitespace chars (tab === space === 1);  each extra level pushes a `BlockToken`
   - a blank line takes the indent of the NEXT non-blank line, so it doesn't break a nested block (lookahead)
-  - comments are a single `CommentToken` to end of line
+  - comments are a single `CommentToken` to end of line:  `//`, `--`, or a heading's `#`, `##`, `###` ...
+    (a markdown-style level -- see `Block.getDocComments()`)
 - Some tokens span lines:  a JSX element (e.g. a whole `return <div>...</div>` body) or a string with `\n`
   is ONE token inside ONE `LineToken`.  JSX `{...}` contents are re-tokenized later from a collapsed copy.
 - Every token has an absolute `start`.  `Tokenizer.setPositions()` works out `line` / `ch` FROM it,

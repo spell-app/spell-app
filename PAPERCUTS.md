@@ -83,3 +83,6 @@ Log of things that slowed down development. Date · symptom · fix · project.
 
 - 2026-09-28 · `yarn -s build` printed yarn's command list instead of building.  Yarn berry has no `-s`
   (silent) flag. · Plain `yarn build`. · spell/parser
+- 2026-09-28 · A changed vitest snapshot was rewritten to the NEW output instead of failing -- once even with the old
+  test names, while the test file had new ones.  Another process (a concurrent session?) seemingly ran vitest with
+  `-u` meanwhile.  · Delete the `.snap` and re-run alone, then read what it wrote.  · spell/parser

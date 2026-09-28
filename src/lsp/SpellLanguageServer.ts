@@ -59,6 +59,8 @@ export class SpellLanguageServer {
   declare readonly workspace: SpellDiskWorkspace
   /** Answers requests about parsed files. */
   declare readonly service: LSP.SpellLanguageService
+  /** Answers `spell/scopes`. */
+  declare readonly scopes: LSP.ScopeExplorer
 
   /** Every change so far, in order -- see `enqueue()`. */
   #queue: Promise<unknown> = Promise.resolve()
@@ -71,6 +73,7 @@ export class SpellLanguageServer {
     this.connection = connection
     this.workspace = workspace
     this.service = new LSP.SpellLanguageService(workspace)
+    this.scopes = new LSP.ScopeExplorer(this.service)
   }
 
   /** Answer the editor from now on. */
@@ -169,6 +172,14 @@ export class SpellLanguageServer {
       this.answer(uri, null, (file) => service.projectInfo(file))
     )
     connection.onRequest("spell/compileProject", ({ uri }: { uri: string }) => this.compileProject(uri))
+    connection.onRequest("spell/scopes", ({ uri }: { uri: string }) => this.scopeTree(uri))
+    // an edit for the editor to apply, NOT a change to the file:  so it's undoable, and the editor stays in charge
+    connection.onRequest("spell/setDescription", ({ uri, position, file: ofFile, text }: LSP.SetDescriptionParams) =>
+      this.answer(uri, null, (file) => {
+        const edits = ofFile ? service.fileDescriptionEdits(file, text) : service.descriptionEdits(file, position, text)
+        return edits && { changes: { [uri]: edits } }
+      })
+    )
     documents.onDidSave(({ document }) => this.compileOnSave(document.uri))
 
     documents.listen(connection)
@@ -208,36 +219,60 @@ export class SpellLanguageServer {
    *   So "cleanly" means no parse errors in any of the project's files, too.
    */
   private compileProject(uri: string): Promise<{ ok: boolean }> {
+    return this.inQueue(uri, { ok: false }, async (file) => {
+      const { project } = file
+      try {
+        await project.compile()
+      } catch (error) {
+        this.logError(error)
+        return { ok: false }
+      }
+      const { compiled } = project
+      const errors = this.service.projectInfo(file).files.reduce((sum, { errors }) => sum + errors, 0)
+      const ok = !!compiled && !errors
+      if (ok) {
+        // What it WROTE, not just `compiled`:  so it matches the file, which editors may watch too.
+        const params: LSP.ProjectCompiled = {
+          project: project.projectId,
+          compiled: project.outputFile.contents ?? compiled
+        }
+        this.connection
+          .sendNotification("spell/projectCompiled", params)
+          .catch((error: unknown) => this.logError(error))
+      }
+      return { ok }
+    })
+  }
+
+  /**
+   * Live scope tree of the project of document `uri`, for a scope explorer -- see `LSP.ScopeExplorer`.
+   * - Parses each project it imports compiled, if not yet parsed, to show their sources.
+   * - Queued like a change, as parsing those changes things.
+   */
+  private scopeTree(uri: string): Promise<LSP.ScopeNode | null> {
+    return this.inQueue(uri, null, async ({ project }) => {
+      for (const imported of LSP.ScopeExplorer.importedProjects(project)) {
+        if (!imported.scope) await imported.parse().catch((error: unknown) => this.logError(error))
+      }
+      return this.scopes.tree(project)
+    })
+  }
+
+  /**
+   * Answer with `run(file)` for document `uri`'s file, run in the queue -- after every change so far, before any later one.
+   * - `fallback` if `uri` isn't a spell file, or `run()` throws (which is logged).
+   * - NOTE: looks the file up once queued:  a just-opened file isn't parsed before then.
+   */
+  private inQueue<T>(uri: string, fallback: T, run: (file: SP.SpellFile) => Promise<T>): Promise<T> {
     return new Promise((resolve) => {
       this.enqueue(async () => {
-        // Look up once queued:  a just-opened file isn't parsed before then.
         const file = this.workspace.fileFor(uri)
-        if (!file) {
-          resolve({ ok: false })
-          return []
-        }
-        const { project } = file
         try {
-          await project.compile()
+          resolve(file ? await run(file) : fallback)
         } catch (error) {
           this.logError(error)
-          resolve({ ok: false })
-          return []
+          resolve(fallback)
         }
-        const { compiled } = project
-        const errors = this.service.projectInfo(file).files.reduce((sum, { errors }) => sum + errors, 0)
-        const ok = !!compiled && !errors
-        if (ok) {
-          // What it WROTE, not just `compiled`:  so it matches the file, which editors may watch too.
-          const params: LSP.ProjectCompiled = {
-            project: project.projectId,
-            compiled: project.outputFile.contents ?? compiled
-          }
-          this.connection
-            .sendNotification("spell/projectCompiled", params)
-            .catch((error: unknown) => this.logError(error))
-        }
-        resolve({ ok })
         return []
       })
     })

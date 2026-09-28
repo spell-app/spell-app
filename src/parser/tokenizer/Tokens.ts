@@ -326,12 +326,12 @@ export type JSXExpressionTokenProps = Prettify<P.TokenProps<string>> & {
 
 /**
  * `CommentToken` class for single-line comments.
- * - `comment.commentSymbol` is initial comment symbol, one of `"--"`, `"//"`, `"##"`.
+ * - `comment.commentSymbol` is initial comment symbol, e.g. `"--"`, `"//"`, or a heading's `"#"`, `"##"` ...
  * - `comment.initialWhitespace` is whitespace BETWEEN comment symbol and comment text.
  * - `comment.value` is comment text (until end of line).
  */
 export class CommentToken extends Token<string, CommentTokenProps> {
-  /** Initial comment symbol, e.g.  `--`, `//`, `##` */
+  /** Initial comment symbol, e.g.  `--`, `//`, `#`, `##` */
   get commentSymbol() {
     return this.record.commentSymbol
   }
@@ -343,7 +343,7 @@ export class CommentToken extends Token<string, CommentTokenProps> {
 }
 /** Extra `record` props for `CommentToken`. */
 export type CommentTokenProps = Prettify<P.TokenProps<string>> & {
-  /** Initial comment symbol, e.g.  `--`, `//`, `##` */
+  /** Initial comment symbol, e.g.  `--`, `//`, `#`, `##` */
   commentSymbol: string
   /** Whitespace between the comment symbol and the comment text. */
   initialWhitespace: string

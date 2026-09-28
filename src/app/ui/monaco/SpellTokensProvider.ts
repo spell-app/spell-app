@@ -42,7 +42,7 @@ export class SpellTokensProvider implements monaco.languages.TokensProvider {
 
   /** Theme scope to colour `token` with, or `undefined` for none. */
   private scopesFor(token: P.Token): string | undefined {
-    if (token instanceof P.CommentToken) return token.commentSymbol === "##" ? "comment.header" : "comment"
+    if (token instanceof P.CommentToken) return token.commentSymbol.startsWith("#") ? "comment.header" : "comment"
     if (token instanceof P.TextToken) return "string"
     if (token instanceof P.NumberToken) return "number"
     if (token instanceof P.SymbolToken) return "operator"

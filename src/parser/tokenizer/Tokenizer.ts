@@ -645,9 +645,12 @@ export class Tokenizer {
   // ## Source Code -- Comment, Line, Block
   ////////////////
 
-  /** Regex splitting a comment line into its symbol (`--`, `//`, `##`), leading whitespace and text. */
+  /**
+   * Regex splitting a comment line into its symbol (`--`, `//`, `#`, `##` ...), leading whitespace and text.
+   * - Any run of `#` is a HEADING, like markdown's:  `#` for the top level, `##` below it, and so on.
+   */
   get COMMENT_START() {
-    return /^(##+|--+|\/\/+)(\s*)(.*)/
+    return /^(#+|--+|\/\/+)(\s*)(.*)/
   }
 
   /** Match a single-line comment at `start` of `text`, returning a `CommentToken` if matched. */
@@ -656,7 +659,7 @@ export class Tokenizer {
     if (start >= end) return undefined
 
     const commentStart = text.slice(start, start + 2)
-    if (commentStart !== "--" && commentStart !== "//" && commentStart !== "##") return undefined
+    if (commentStart !== "--" && commentStart !== "//" && text[start] !== "#") return undefined
 
     // comments eat until the end of the line
     const line = this.getLineAtHead(text, start, end)
