@@ -127,6 +127,7 @@ class numeric extends P.TokenType {
 }
 core.addRule(numeric, {
   name: "number",
+  highlightAs: "number",
   alias: "expression",
   datatype: "number",
   tokenType: P.NumberToken,
@@ -284,6 +285,7 @@ class text extends P.TokenType {
 }
 core.addRule(text, {
   alias: "expression",
+  highlightAs: "string",
   datatype: "string",
   tokenType: P.TextToken,
   tests: [
@@ -317,6 +319,7 @@ class comment extends P.TokenType {
 }
 core.addRule(comment, {
   tokenType: P.CommentToken,
+  highlightAs: "comment",
   tests: [
     {
       compileAs: "comment",

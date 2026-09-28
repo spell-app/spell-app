@@ -6,7 +6,7 @@
  * - Only classes something OUTSIDE this file needs are exported (`SpellIdentifier` to subclass,
  *   `variable` to narrow with `match.is()`);  the rest are reached through `parser.rules` by name.
  */
-import { NONE, getPlurality, type Plurality } from "~/util"
+import { NONE, getPlurality, proto, type Plurality } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
@@ -41,6 +41,9 @@ export class SpellIdentifier<MatchData extends P.AnyMatchData = P.AnyMatchData> 
   never,
   MatchData & IdentifierMatchData
 > {
+  /** Editors colour every identifier as a variable -- `SpellLanguageService` refines to `parameter` for arguments. */
+  @proto static highlightAs?: P.HighlightKind = "variable"
+
   /** Every identifier rule matches the same thing:  alpha-numeric word (dashes / underscores OK), not blacklisted. */
   constructor(props?: Partial<P.PatternProps>) {
     super({ pattern: P.ALPHANUMERIC_WORD_WITH_DASHES, blacklist: identifierBlacklist, ...props })

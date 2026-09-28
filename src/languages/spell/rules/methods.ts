@@ -594,7 +594,8 @@ class method_keyword extends P.Pattern<never, MethodArgData> {
   }
 }
 methods.addRule(method_keyword, {
-  pattern: /^[a-zA-Z][\w-]*$/
+  pattern: /^[a-zA-Z][\w-]*$/,
+  highlightAs: "function"
 })
 
 ////////////////
@@ -623,7 +624,8 @@ class var_method_arg extends SpellIdentifier<MethodArgData> {
   }
 }
 methods.addRule(var_method_arg, {
-  alias: ["method_arg", "simple_method_arg"]
+  alias: ["method_arg", "simple_method_arg"],
+  highlightAs: "parameter"
 })
 
 ////////////////
@@ -904,7 +906,8 @@ class quoted_method_signature extends P.TokenType {
   }
 }
 methods.addRule(quoted_method_signature, {
-  tokenType: P.TextToken
+  tokenType: P.TextToken,
+  highlightAs: "function"
 })
 
 ////////////////

@@ -1,3 +1,4 @@
+import { proto } from "~/util"
 import type { P } from "~/parser"
 // Import directly to avoid circular import
 import { Literal } from "./Literal"
@@ -9,4 +10,7 @@ import { Literal } from "./Literal"
 export class Keyword<
   Groups extends string | P.AnyGroups = P.AnyGroups,
   MatchData extends P.AnyMatchData = P.AnyMatchData
-> extends Literal<Groups, MatchData> {}
+> extends Literal<Groups, MatchData> {
+  /** Editors colour us as a keyword -- unless a generated method rule holds us, see `SpellLanguageService`. */
+  @proto static highlightAs?: P.HighlightKind = "keyword"
+}

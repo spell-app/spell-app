@@ -29,11 +29,20 @@ export class SpellLanguageServer {
    * - NOTE: a feature goes in only once it works.
    */
   static capabilities: ServerCapabilities = {
-    textDocumentSync: TextDocumentSyncKind.Incremental,
+    textDocumentSync: { openClose: true, change: TextDocumentSyncKind.Incremental, save: { includeText: false } },
     documentSymbolProvider: true,
     workspaceSymbolProvider: true,
     foldingRangeProvider: true,
-    selectionRangeProvider: true
+    selectionRangeProvider: true,
+    semanticTokensProvider: { legend: LSP.SpellLanguageService.TOKEN_LEGEND, full: true, range: true },
+    hoverProvider: true,
+    definitionProvider: true,
+    typeDefinitionProvider: true,
+    referencesProvider: true,
+    documentHighlightProvider: true,
+    renameProvider: { prepareProvider: true },
+    inlayHintProvider: true,
+    completionProvider: { triggerCharacters: [" "] }
   }
 
   /** Connection to the editor. */
@@ -93,6 +102,48 @@ export class SpellLanguageServer {
       return service.workspaceSymbols(query)
     })
 
+    connection.languages.semanticTokens.on(({ textDocument }) =>
+      this.answer(textDocument.uri, { data: [] }, (file) => service.semanticTokens(file))
+    )
+    connection.languages.semanticTokens.onRange(({ textDocument, range }) =>
+      this.answer(textDocument.uri, { data: [] }, (file) => service.semanticTokens(file, range))
+    )
+    connection.onHover(({ textDocument, position }) =>
+      this.answer(textDocument.uri, null, (file) => service.hover(file, position))
+    )
+    connection.onDefinition(({ textDocument, position }) =>
+      this.answer(textDocument.uri, [], (file) => service.definition(file, position))
+    )
+    connection.onTypeDefinition(({ textDocument, position }) =>
+      this.answer(textDocument.uri, [], (file) => service.typeDefinition(file, position))
+    )
+    connection.onReferences(({ textDocument, position, context }) =>
+      this.answer(textDocument.uri, [], (file) => service.references(file, position, context.includeDeclaration))
+    )
+    connection.onDocumentHighlight(({ textDocument, position }) =>
+      this.answer(textDocument.uri, [], (file) => service.documentHighlights(file, position))
+    )
+    connection.onPrepareRename(({ textDocument, position }) =>
+      this.answer(textDocument.uri, null, (file) => service.prepareRename(file, position))
+    )
+    connection.onRenameRequest(({ textDocument, position, newName }) =>
+      this.answer(textDocument.uri, null, (file) => service.rename(file, position, newName))
+    )
+    connection.languages.inlayHint.on(({ textDocument, range }) =>
+      this.answer(textDocument.uri, [], (file) => service.inlayHints(file, range))
+    )
+    connection.onCompletion(({ textDocument, position }) =>
+      this.answer(textDocument.uri, [], (file) => service.completion(file, position))
+    )
+
+    connection.onRequest("spell/compiled", ({ uri }: { uri: string }) =>
+      this.answer(uri, null, (file) => service.compiled(file))
+    )
+    connection.onRequest("spell/project", ({ uri }: { uri: string }) =>
+      this.answer(uri, null, (file) => service.projectInfo(file))
+    )
+    documents.onDidSave(({ document }) => this.compileOnSave(document.uri))
+
     documents.listen(connection)
     connection.listen()
   }
@@ -107,6 +158,24 @@ export class SpellLanguageServer {
         watchers: [{ globPattern: "**/.imports.json" }, { globPattern: "**/*.spell" }]
       })
       .catch(() => undefined)
+  }
+
+  /**
+   * If the `spell.compileOnSave` setting is on, compile the project of saved document `uri` to its `.output.js`,
+   * so a running app picks it up.
+   * - Queued like a change, so it compiles what's been parsed.
+   * - Off unless the editor tells us otherwise, or can't be asked.
+   */
+  private async compileOnSave(uri: string) {
+    const settings = (await this.connection.workspace.getConfiguration("spell").catch(() => undefined)) as
+      | { compileOnSave?: boolean }
+      | undefined
+    const file = this.workspace.fileFor(uri)
+    if (!settings?.compileOnSave || !file) return
+    this.enqueue(async () => {
+      await file.project.compile()
+      return []
+    })
   }
 
   /**

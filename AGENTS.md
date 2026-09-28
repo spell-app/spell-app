@@ -102,6 +102,9 @@ when working with code in this repository.
   e.g. `declares: { kind: "property", name: "property", of: "type" }`.
   - Override `getDeclaration(match)` for what a spec can't say, e.g. when only SOME matches declare something.
   - NEVER make editor code switch on rule names -- see `Rule.getDeclaration()`.
+- A rule whose matches hold words an editor should colour says how with `highlightAs`, e.g.
+  `highlightAs: "property"` -- see `P.HighlightKind`.  Base classes set it for their family
+  (`SpellIdentifier` => `"variable"`, `Keyword` => `"keyword"`), so most rules need nothing.
 - Rule module layout, top to bottom:
   - header docstring, imports
   - `export const <module> = new SpellParser({ module: "<module>" })` -- at the TOP, classes can't be hoisted to it

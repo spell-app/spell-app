@@ -30,6 +30,28 @@ describe("testing spell module classes", () => {
       expect(card?.classVariables.get("Suits")?.declaredBy?.rule.name).toBe("define_property_has")
       expect(scope.constants.get("clubs")?.declaredBy?.rule.name).toBe("define_property_has")
     })
+    test("every property statement records the property on its type, with what declared it", () => {
+      const scope = spellParser.getScope("property-declaration")
+      scope.parse(
+        [
+          "a card is a thing",
+          "a card has a rank as a number",
+          "cards have a suit as one of clubs, diamonds",
+          "the color of a card is red if its suit is clubs",
+          "the name of a card is: its suit",
+          "the rank of a card is: 1"
+        ].join("\n"),
+        "block"
+      )
+      const card = scope.types.get("Card")!
+      const declaredBy = (name: string) => card.variables.get(name, "LOCAL_ONLY")?.declaredBy?.rule.name
+      expect(card.variables.get("rank", "LOCAL_ONLY")?.datatype).toBe("number")
+      // the FIRST declaration wins
+      expect(declaredBy("rank")).toBe("define_property_has")
+      expect(declaredBy("suit")).toBe("define_property_has")
+      expect(declaredBy("color")).toBe("property_value_either")
+      expect(declaredBy("name")).toBe("property_value_getter")
+    })
     test("a generated rule's `ScopeRule` has its `declaredBy` and built `instances`", () => {
       const scope = spellParser.getScope("rule-declaration")
       scope.parse("a card is a thing\na card has a suit as one of clubs, diamonds", "block")

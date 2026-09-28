@@ -41,6 +41,9 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   Card.spell (121 lines) ~14ms, Solitaire.spell (259 lines) ~77ms, whole Solitaire project ~100ms.
   Compiling is <1ms per file, tokenizing about the same.  Parsing is the whole cost.
   `parser.rules` rebuilds after mid-parse `addRule()`s:  38 per project parse, ~1ms total -- not worth optimizing.
+- NOTE: nothing answers "what can come NEXT after these tokens" -- `test()` only says yes / no.  Editor
+  completion needs it (`SpellLanguageService.expectedNext()` is a stub):  a `rule.expectedAfter(tokens)` which
+  walks like `Sequence.test()` but returns the literals / `{subrule}`s that could follow.
 
 ## File => block => line => statement
 
@@ -95,13 +98,19 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     from the visible `it`'s `output`, skipping names in use -- so callbacks keep the `it` they captured
   - types:  `create_type`, `create_list_type` (`classes.ts`);  a type mentioned before its own line is a
     `stub`, which its real declaration later claims (`claimStubType()`, journaled)
-  - properties:  `define_property_has` adds type variables, constants for each value, AND a rule
+  - properties:  every property statement records the property in its type's `variables`, with `declaredBy`
+    (`declareProperty()` in `classes.ts`) -- for editors only, nothing parsed later reads them, so a getter is
+    `changesScope: "internal"`.  An enumerated one (`define_property_has`) also adds constants for each value,
+    a plural `classVariables` entry (e.g. `Suits`), AND a rule
 - Every record a `mutateScope()` adds -- `ScopeVariable`, `ScopeConstant`, `TypeScope`, `ScopeRule` -- carries
   `declaredBy`, the match which declared it (for go-to-definition etc.), and a `ScopeRule` its built
   `instances`, so a call-site `match.rule` maps back to its definition.  `MethodScope` stamps its
   `declaredBy` on the argument / alias variables it makes.
 - What a statement declares, for editors' symbol lists, comes from its rule:  `declares` in the definition, or a
   `getDeclaration()` override (`assignment` only counts NEW variables, `MethodDefinition` reads its signature).
+- How editors colour a match's OWN tokens comes from its rule's `highlightAs`, e.g. `property`:  defaults on
+  `Keyword(s)` / `Symbol(s)` / `SpellIdentifier` / `SpellType` / `SpellConstant`, else in the definition.
+  `SpellLanguageService` refines it from `match.data`, e.g. an argument's `variable` becomes `parameter`.
   - quoted aliases (`a card "is face up" if ...`):  `quoted_property_formula` adds an `expression_suffix` rule
   - methods (`to turn (a card) over`):  `MethodDefinition` adds a rule (`methods.ts`).  Methods live ONLY as
     parser rules;  `scope.methods` is never filled in production.

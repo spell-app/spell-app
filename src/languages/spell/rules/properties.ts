@@ -50,7 +50,8 @@ class property extends P.Pattern {
 }
 properties.addRule(property, {
   pattern: LOWER_INITIAL_WORD,
-  blacklist: identifierBlacklist
+  blacklist: identifierBlacklist,
+  highlightAs: "property"
 })
 
 ////////////////

@@ -2,7 +2,7 @@
  * Rules for type names -- e.g. `thing`, `bank-account`, singular or plural, possibly unknown, resolved
  * against `scope.types` when known.
  */
-import { NONE, typeCase, instanceCase, singularize, pluralize } from "~/util"
+import { NONE, proto, typeCase, instanceCase, singularize, pluralize } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
@@ -80,6 +80,9 @@ export function getKnownType(match: P.Match): P.TypeScope {
  * - Other rules read it as `if (match.is(SpellType)) match.data.scopeType`.
  */
 export class SpellType extends P.Pattern<never, TypeMatchData> {
+  /** Editors colour every type name as a type. */
+  @proto static highlightAs?: P.HighlightKind = "type"
+
   /** Every type rule matches the same thing: alpha-numeric word (dashes/underscores OK), not blacklisted. */
   constructor(props?: Partial<P.PatternProps>) {
     super({

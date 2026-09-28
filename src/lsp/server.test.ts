@@ -9,6 +9,7 @@ import {
   StreamMessageReader,
   StreamMessageWriter,
   type DocumentSymbol,
+  type Hover,
   type PublishDiagnosticsParams
 } from "vscode-languageserver/node"
 
@@ -47,7 +48,7 @@ describe("spell language server over stdio", () => {
     child.kill()
   })
 
-  test("initialize, open a file, get its diagnostics and outline", async () => {
+  test("initialize, open a file, get its diagnostics, outline and a hover", async () => {
     const init = (await connection.sendRequest("initialize", {
       processId: process.pid,
       rootUri: null,
@@ -55,7 +56,12 @@ describe("spell language server over stdio", () => {
     })) as {
       capabilities: Record<string, unknown>
     }
-    expect(init.capabilities).toMatchObject({ documentSymbolProvider: true, foldingRangeProvider: true })
+    expect(init.capabilities).toMatchObject({
+      documentSymbolProvider: true,
+      foldingRangeProvider: true,
+      hoverProvider: true,
+      semanticTokensProvider: { full: true, range: true }
+    })
     await connection.sendNotification("initialized", {})
 
     const projectDir = resolve(mkdtempSync(resolve(tmpdir(), "spell-stdio-")), "Tiny")
@@ -81,5 +87,11 @@ describe("spell language server over stdio", () => {
       textDocument: { uri }
     })) as DocumentSymbol[]
     expect(symbols.map(({ name }) => name)).toEqual(["foo"])
+
+    const hover = (await connection.sendRequest("textDocument/hover", {
+      textDocument: { uri },
+      position: { line: 0, character: 5 }
+    })) as Hover
+    expect((hover.contents as { value: string }).value).toContain("variable **foo**")
   }, 30_000)
 })

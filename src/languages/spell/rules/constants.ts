@@ -2,7 +2,7 @@
  * Rules for constants -- e.g. `red`, `green`, either free-standing (possibly-unknown, quoted as a string
  * literal) or resolved against `scope.constants` (`known_constant`).
  */
-import { NONE } from "~/util"
+import { NONE, proto } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
@@ -32,6 +32,9 @@ type ConstantMatchData = {
  * - Other rules read it as `if (match.is(SpellConstant)) match.data.scopeConstant`.
  */
 export class SpellConstant extends P.Pattern<never, ConstantMatchData> {
+  /** Editors colour every constant as an enum member -- they're the values of enumerated properties. */
+  @proto static highlightAs?: P.HighlightKind = "enumMember"
+
   /** Every constant rule matches the same thing:  alpha-numeric word (dashes / underscores OK), not blacklisted. */
   constructor(props?: Partial<P.PatternProps>) {
     super({ pattern: P.ALPHANUMERIC_WORD_WITH_DASHES, blacklist: identifierBlacklist, ...props })

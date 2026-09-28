@@ -8,7 +8,7 @@ import { BlockScope } from "./BlockScope"
  *  - `name` is the name of the type.
  *  - `superType` is name of the superclass, if any.
  *  - `methods` (from BlockScope) are instance methods, including `constructor` if provided.
- *  - `variables` (from BlockScope) are instance variables
+ *  - `variables` (from BlockScope) are instance fields
  *  - `classMethods` and `classVariables` are static to the class.
  */
 export class TypeScope extends BlockScope {

@@ -267,6 +267,8 @@ export abstract class Rule<
   @proto static changesScope?: P.ScopeChanges = undefined
   /** What our matches declare, for editors' symbol lists -- see `getDeclaration()`. */
   @proto static declares?: P.DeclaresSpec = undefined
+  /** How editors colour our matches' own tokens -- see `P.HighlightKind`. */
+  @proto static highlightAs?: P.HighlightKind = undefined
   /** Datatype. */
   static datatype?: string
   /** Description. */
@@ -328,6 +330,8 @@ export abstract class Rule<
   declare changesScope: P.ScopeChanges | undefined
   /** What our matches declare, for editors' symbol lists -- see `getDeclaration()`. */
   declare declares: P.DeclaresSpec | undefined
+  /** How editors colour our matches' own tokens -- see `P.HighlightKind`. */
+  declare highlightAs: P.HighlightKind | undefined
 
   ////////////////
   // ## Type arguments -- type-only, nothing here exists at runtime
@@ -543,6 +547,8 @@ export type RuleProps = {
   changesScope?: P.ScopeChanges
   /** What our matches declare, for editors' symbol lists -- see `getDeclaration()`. */
   declares?: P.DeclaresSpec
+  /** How editors colour our matches' own tokens -- see `P.HighlightKind`. */
+  highlightAs?: P.HighlightKind
 }
 
 /**

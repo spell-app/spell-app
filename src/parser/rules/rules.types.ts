@@ -52,8 +52,9 @@ export type RuleMap = Record<string, P.Rule>
 
 /**
  * What committing a rule's match changes in scope -- see `Rule.getScopeChanges()`.  `undefined` => nothing.
- * - `"internal"`:  only its OWN `match.scope`, e.g. `set x to 1` adds a variable there,
- *   so a method body's changes stay inside that body.
+ * - `"internal"`:  nothing parsed AFTER it can see the change:
+ *   - its OWN `match.scope`, e.g. `set x to 1` adds a variable there, so a method body's changes stay in that body
+ *   - or a record only editors read, e.g. a getter's property on its type -- see `property_value_getter`
  * - `"global"`:  reaches the project, e.g. types, constants or rules, so re-parsing it can change how
  *   anything after it parses -- even in other files.
  */
@@ -93,6 +94,26 @@ export type Declaration = {
   /** More about it, e.g. the javascript method name. */
   detail?: string
 }
+
+// ## Highlighting
+
+/**
+ * How an editor should colour the tokens a rule's matches hold directly -- `highlightAs` in a rule's definition.
+ * - Named for the Language Server Protocol's standard semantic token types, so editor themes already colour them.
+ * - Only a match's OWN tokens:  a `Sequence`'s words come from the literal rules inside it.
+ */
+export type HighlightKind =
+  | "keyword"
+  | "operator"
+  | "variable"
+  | "parameter"
+  | "type"
+  | "enumMember"
+  | "function"
+  | "property"
+  | "number"
+  | "string"
+  | "comment"
 
 /** Syntax flags for outputting a rule in rulex syntax. */
 export type SyntaxFlags = {

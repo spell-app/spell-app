@@ -57,6 +57,21 @@ function getOrStubType(scope: P.Scope, typeName: string, declaredBy: P.Match): P
 }
 
 /**
+ * Record `property` (the match naming it) as one of `typeScope`'s instance `variables`, declared by `declaredBy`.
+ * - For editors:  a property's declaration, and its `datatype` if the statement gives one, e.g. `number`.
+ *   Nothing parsed later reads these -- compiled output comes from each statement's own AST.
+ * - The FIRST declaration of a name wins, as for types:  a later getter for the same property adds nothing.
+ * - NOTE: a getter is `changesScope: "internal"`, so editing one doesn't re-parse the getters after it.
+ *   Rename the first of two getters for one property and the property has no record until the second re-parses
+ *   -- editors then find it by name instead.
+ */
+function declareProperty(typeScope: P.TypeScope, property: P.Match, declaredBy: P.Match, datatype?: string) {
+  const name = `${property.value}`
+  if (typeScope.variables.get(name, "LOCAL_ONLY")) return
+  typeScope.variables.add({ name, datatype, declaredBy })
+}
+
+/**
  * `typeScope` was stubbed by an earlier mention (see `getOrStubType()`), and `match` now really declares it.
  * - Clears `stub` and makes `match` its `declaredBy`, journaled so incremental parsing can take that back.
  * - Changes the existing object in place, NOT `types.replace()`:
@@ -486,6 +501,8 @@ class define_property_has extends SpellStatement<"type|property|specifier?", { r
 
     const typeName = type.value
     const typeScope = getOrStubType(scope, typeName, match)
+    const datatype = specifierAST instanceof P.ASTTypeExpression ? specifierAST.name : undefined
+    declareProperty(typeScope, property, match, datatype)
 
     // If there is a specifier as enumerated values, add rules to match it
     if (specifierAST instanceof P.ASTEnumeration) {
@@ -698,9 +715,9 @@ class property_value_either extends SpellStatement<PropertyValueEitherGroups> {
   mutateScope(match: P.MatchFor<this>) {
     const { scope } = match
     const { value, otherValue, type_property } = match.groups
-    const { type } = type_property.groups
+    const { type, property } = type_property.groups
     // make sure type is defined
-    getOrStubType(scope, type.value, match)
+    declareProperty(getOrStubType(scope, type.value, match), property, match)
     // `is()` narrows `data` to what `SpellConstant` stashes on its matches.
     // Declare any unknown constant values, and record them on their matches for `SpellConstant.getAST()`.
     for (const constant of [value, otherValue]) {
@@ -792,6 +809,11 @@ type MethodBody = P.ASTStatementBlock | P.ASTStatement | P.ASTExpression
  *   is its name` => `spellCore.define(Card.prototype, 'value', { get() { return this.name } })`.
  */
 class property_value_getter extends SpellStatement<"property|type|body?"> {
+  /** SIDE EFFECT:  records the property on its type, for editors -- see `declareProperty()`. */
+  mutateScope(match: P.MatchFor<this>) {
+    const { type, property } = match.groups
+    declareProperty(getKnownType(type), property, match)
+  }
   /** Nested scope for the getter body -- maps `its`/`it` to `this` so the body can say `its name`. */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
     const { type } = match.groups
@@ -815,6 +837,9 @@ class property_value_getter extends SpellStatement<"property|type|body?"> {
 }
 classes.addRule(property_value_getter, {
   alias: "statement",
+  // Its `mutateScope()` only records the property, which nothing parsed later reads:
+  // editing a getter's body needn't re-parse the rest of the project.
+  changesScope: "internal",
   syntax: "the {property} of (a|an) {type:known_type} is :? {expression_body}?",
   declares: { kind: "property", name: "property", of: "type" },
   tests: [

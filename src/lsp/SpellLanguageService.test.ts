@@ -3,7 +3,7 @@ import { cpSync, mkdtempSync, readFileSync } from "fs"
 import { tmpdir } from "os"
 import { resolve } from "path"
 import { pathToFileURL } from "url"
-import type { DocumentSymbol, Position, SelectionRange } from "vscode-languageserver"
+import type { DocumentSymbol, Position, Range, SelectionRange, SemanticTokens, TextEdit } from "vscode-languageserver"
 
 import environment from "~/environment"
 import { SP } from "~/languages/spell"
@@ -19,13 +19,19 @@ describe("SpellLanguageService", () => {
   const cardPath = resolve(dir, "Solitaire/Card.spell")
   const cardUri = pathToFileURL(cardPath).href
   const cardText = readFileSync(cardPath, "utf8")
+  const solitaireUri = pathToFileURL(resolve(dir, "Solitaire/Solitaire.spell")).href
+  const deckUri = pathToFileURL(resolve(dir, "Solitaire/Deck.spell")).href
   const workspace = new LSP.SpellWorkspace()
   const service = new LSP.SpellLanguageService(workspace)
   let card: SP.SpellFile
+  let deck: SP.SpellFile
+  let solitaire: SP.SpellFile
 
   beforeAll(async () => {
     const changed = await workspace.update(cardUri, cardText)
     card = workspace.fileFor(cardUri)!
+    deck = workspace.fileFor(deckUri)!
+    solitaire = workspace.fileFor(solitaireUri)!
     expect(changed.map((file) => file.file)).toEqual(["Card.spell", "Deck.spell", "Pile.spell", "Solitaire.spell"])
   })
 
@@ -126,6 +132,165 @@ describe("SpellLanguageService", () => {
     })
   })
 
+  describe("highlighting", () => {
+    test("semantic tokens", () => {
+      // declarations, enumerations, method definitions and calls, JSX
+      expect(describeTokens(card, [2, 6, 22, 60, 70, 77])).toMatchSnapshot()
+    })
+
+    test("a declared name, a built-in type, and calls to the project's own methods", () => {
+      const tokens = describeTokens(card, [2, 60, 70])
+      expect(tokens).toContain(`2:2 "card" type declaration`)
+      expect(tokens).toContain(`2:12 "thing" type defaultLibrary`)
+      expect(tokens).toContain(`60:3 "turn" function declaration`)
+      expect(tokens).toContain(`70:25 "turn" function`)
+      expect(tokens).toContain(`70:30 "it" variable`)
+    })
+
+    test("a range request only covers that range", () => {
+      const range = { start: { line: 1, character: 0 }, end: { line: 2, character: 0 } }
+      const lines = new Set(describeTokens(card, undefined, range).map((token) => token.split(":")[0]))
+      expect([...lines]).toEqual(["2"])
+    })
+  })
+
+  describe("hover", () => {
+    test("on a type:  what it is, and where it's declared", () => {
+      const hover = service.hover(deck, at(deck, 9, "card"))
+      const markdown = (hover!.contents as { value: string }).value
+      expect(markdown).toContain("type **Card** is a Thing")
+      expect(markdown).toContain("[Card.spell:2]")
+    })
+
+    test("on a method call:  its signature, and the javascript it becomes", () => {
+      const markdown = (service.hover(card, at(card, 70, "turn"))!.contents as { value: string }).value
+      expect(markdown).toContain("method **turn (a card) face down**")
+      expect(markdown).toContain("compiles to `turn_face_down()`")
+      expect(markdown).toContain("```js\nif (this.direction == 'up') { this.turn_face_down() }\n```")
+    })
+
+    test("nothing on a blank line", () => {
+      expect(service.hover(card, { line: 2, character: 0 })).toBeNull()
+    })
+  })
+
+  describe("navigation", () => {
+    test("definition of a type, from another file", () => {
+      expect(service.definition(deck, at(deck, 9, "card"))).toEqual([
+        { uri: cardUri, range: { start: { line: 1, character: 2 }, end: { line: 1, character: 6 } } }
+      ])
+    })
+
+    test("definition of a method, from a call", () => {
+      const [location] = service.definition(card, at(card, 70, "turn"))
+      expect(location!.range.start).toEqual({ line: 62, character: 3 })
+    })
+
+    test("type definition of a method's `it`:  the type the method is on", () => {
+      const [location] = service.typeDefinition(card, at(card, 70, "it", 1))
+      expect(location).toEqual({
+        uri: cardUri,
+        range: { start: { line: 1, character: 2 }, end: { line: 1, character: 6 } }
+      })
+    })
+
+    test("definition of a property, from `its ...`:  exactly where its type declares it", () => {
+      expect(service.definition(card, at(card, 61, "direction"))).toEqual([
+        { uri: cardUri, range: { start: { line: 17, character: 13 }, end: { line: 17, character: 22 } } }
+      ])
+      const markdown = (service.hover(card, at(card, 61, "direction"))!.contents as { value: string }).value
+      expect(markdown).toContain("property **direction** of Card")
+    })
+
+    test("references to a property skip a same-named property of another type", () => {
+      const lines = (uri: string) =>
+        service
+          .references(card, at(card, 34, "name"))
+          .filter((location) => location.uri === uri)
+          .map(({ range }) => range.start.line + 1)
+      // `the name of the card` in Card's test -- `the card`'s type isn't known, so it counts
+      expect(lines(cardUri)).toEqual(expect.arrayContaining([34, 89]))
+      // `its name` in a method on `foundation`, which is a pile, not a card
+      expect(lines(solitaireUri)).not.toContain(31)
+    })
+
+    test("references to a property, across files", () => {
+      const files = service.references(deck, at(deck, 16, "short-name")).map(({ uri }) => uri.split("/").pop())
+      expect(new Set(files)).toEqual(new Set(["Card.spell", "Deck.spell"]))
+    })
+
+    test("document highlights:  the declaration writes, the rest read", () => {
+      const highlights = service
+        .documentHighlights(card, at(card, 75, "className"))
+        .map(({ range, kind }) => `${range.start.line + 1}:${range.start.character} ${kind}`)
+      expect(highlights).toEqual(["75:5 3", "77:72 2", "78:71 2"])
+    })
+
+    test("rename a variable everywhere, and the project still parses the same", async () => {
+      const position = at(solitaire, 57, "deck")
+      expect(service.prepareRename(solitaire, position)).toMatchObject({ placeholder: "deck" })
+      const edit = service.rename(solitaire, position, "stack")!
+      const edits = edit.changes![solitaireUri]!
+      expect(edits.map(({ range }) => range.start.line + 1)).toEqual([57, 58, 60])
+      const renamed = applyEdits(solitaire.parseText, edits)
+      expect(renamed).toContain("set the stack to a new deck\nset up the stack\n")
+      await withText(solitaireUri, solitaire.parseText, renamed, () => {
+        expect(service.diagnostics(solitaire)).toEqual([])
+      })
+    })
+
+    test("won't rename `it`, a property, or a type written in more than one way", () => {
+      expect(service.prepareRename(card, at(card, 70, "it", 1))).toBeNull()
+      expect(service.prepareRename(card, at(card, 61, "direction"))).toBeNull()
+      expect(service.prepareRename(card, at(card, 2, "card"))).toBeNull()
+      expect(service.rename(solitaire, at(solitaire, 57, "deck"), "not a word")).toBeNull()
+    })
+  })
+
+  test("inlay hints:  a numbered `it`, and a method's javascript name", () => {
+    const everything = { start: { line: 0, character: 0 }, end: { line: 999, character: 0 } }
+    const hints = (file: SP.SpellFile) =>
+      service
+        .inlayHints(file, everything)
+        .map(({ position, label }) => `${position.line + 1}:${position.character} ${label as string}`)
+    // `get a new foundation ...` then `add it to the foundations`, for the second foundation
+    expect(hints(solitaire)).toContain("35:6 : it_2")
+    expect(hints(card)).toContain("60:24 → turn_face_up()")
+  })
+
+  describe("completion", () => {
+    test("at the start of a statement:  names, statement starts, and the project's methods", () => {
+      const labels = service.completion(solitaire, { line: 54, character: 0 }).map(({ label }) => label)
+      expect(labels).toEqual(expect.arrayContaining(["to", "if", "set", "card", "deck", "all-piles", "clubs"]))
+      expect(labels).toContain("turn (a card) face up")
+      // declared after the cursor
+      expect(labels).not.toContain("start-pile")
+    })
+
+    test("a method comes as a snippet, with its arguments' names", () => {
+      const item = service
+        .completion(solitaire, { line: 54, character: 0 })
+        .find(({ label }) => label === "move (a card) to (a pile)")
+      expect(item).toMatchObject({ insertText: "move ${1:card} to ${2:pile}", insertTextFormat: 2 })
+    })
+
+    test("mid-statement:  names, but no statement starts", () => {
+      const labels = service.completion(solitaire, at(solitaire, 87, "the bottom")).map(({ label }) => label)
+      expect(labels).toEqual(expect.arrayContaining(["game", "stock", "card"]))
+      expect(labels).not.toContain("to")
+    })
+  })
+
+  test("custom requests:  compiled javascript, and the project's files", () => {
+    expect(service.compiled(card)).toContain("export class Card extends Thing {}")
+    expect(service.projectInfo(card).files.map(({ file, errors }) => `${file} ${errors}`)).toEqual([
+      "Card.spell 0",
+      "Deck.spell 0",
+      "Pile.spell 0",
+      "Solitaire.spell 0"
+    ])
+  })
+
   test("closing a file puts it back to what's on disk", async () => {
     await workspace.update(cardUri, `${cardText}\nfoo bar baz`)
     expect(service.diagnostics(card)).toHaveLength(1)
@@ -135,14 +300,64 @@ describe("SpellLanguageService", () => {
   })
 
   /** Run `check` with Card.spell's open text set to `text`, then ALWAYS put the original back. */
-  async function withCardText(text: string, check: (changed: SP.SpellFile[]) => void) {
+  function withCardText(text: string, check: (changed: SP.SpellFile[]) => void) {
+    return withText(cardUri, cardText, text, check)
+  }
+
+  /** Run `check` with document `uri`'s open text set to `text`, then ALWAYS put back `original`. */
+  async function withText(uri: string, original: string, text: string, check: (changed: SP.SpellFile[]) => void) {
     try {
-      check(await workspace.update(cardUri, text))
+      check(await workspace.update(uri, text))
     } finally {
-      await workspace.update(cardUri, cardText)
+      await workspace.update(uri, original)
     }
   }
+
+  /**
+   * `file`'s semantic tokens on 1-based `lines` (all if not given), as `line:character "text" type modifiers...`.
+   * - Decodes the protocol's relative encoding, so a snapshot reads as the file does.
+   */
+  function describeTokens(file: SP.SpellFile, lines?: number[], range?: Range): string[] {
+    const { tokenTypes, tokenModifiers } = LSP.SpellLanguageService.TOKEN_LEGEND
+    const { data } = service.semanticTokens(file, range) as SemanticTokens
+    const text = file.parseText.split("\n")
+    const tokens: string[] = []
+    let line = 0
+    let character = 0
+    for (let index = 0; index < data.length; index += 5) {
+      const [deltaLine, deltaChar, length, type, modifierBits] = data.slice(index, index + 5) as number[]
+      line += deltaLine!
+      character = deltaLine ? deltaChar! : character + deltaChar!
+      if (lines && !lines.includes(line + 1)) continue
+      const modifiers = tokenModifiers.filter((_, bit) => modifierBits! & (1 << bit))
+      const word = JSON.stringify(text[line]!.slice(character, character + length!))
+      tokens.push([`${line + 1}:${character} ${word} ${tokenTypes[type!]}`, ...modifiers].join(" "))
+    }
+    return tokens
+  }
 })
+
+/** Position of the `nth` (0-based) `word` on 1-based `line` of `file`. */
+function at(file: SP.SpellFile, line: number, word: string, nth = 0): Position {
+  const text = file.parseText.split("\n")[line - 1]!
+  let character = -1
+  for (let count = 0; count <= nth; count++) character = text.indexOf(word, character + 1)
+  if (character < 0) throw new Error(`No '${word}' on line ${line} of ${file.file}`)
+  return { line: line - 1, character }
+}
+
+/** `text` with `edits` applied -- edits must not overlap. */
+function applyEdits(text: string, edits: TextEdit[]): string {
+  const lineStarts = [0, ...[...text.matchAll(/\n/g)].map(({ index }) => index + 1)]
+  const offsetOf = ({ line, character }: Position) => lineStarts[line]! + character
+  return [...edits]
+    .sort((a, b) => offsetOf(b.range.start) - offsetOf(a.range.start))
+    .reduce(
+      (result, { range, newText }) =>
+        result.slice(0, offsetOf(range.start)) + newText + result.slice(offsetOf(range.end)),
+      text
+    )
+}
 
 /** `name (Kind)`, then its children indented -- a compact outline to snapshot. */
 function describeSymbol({ name, kind, children }: DocumentSymbol): string {
