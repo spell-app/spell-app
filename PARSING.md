@@ -200,7 +200,7 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 
 ## Language server
 
-- `src/lsp/` (`LSP`), run as `yarn lsp` -- or by the VS Code extension in `vscode-extension/`, which spawns the
+- `src/lsp/` (`LSP`), run as `yarn start:lsp` -- or by the VS Code extension in `vscode-extension/`, which spawns the
   repo's own `tsx` on `src/lsp/server.ts`.  `stdioGuard.ts` sends `console.*` to stderr first:  stdout is the protocol.
 - Hosts the SAME `SpellProject` / `SpellFile` the app uses, loading from disk via `LoadableFile.fetch` (above).
   `SpellWorkspace` maps a `.spell` file to its project (nearest `.imports.json`), parses the project on first sight,

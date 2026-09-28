@@ -184,7 +184,7 @@ docker compose down
 
 - **Base Image**: Node 20
 - **Port**: 3000
-- **Command**: `yarn dev --host`
+- **Command**: `yarn start:dev --host`
 - **Volume Mounts**:
   - Source code mounted for hot reloading
   - Node modules isolated in container
@@ -193,7 +193,7 @@ docker compose down
 
 - **Base Image**: Node 20
 - **Port**: 3001
-- **Command**: `yarn server`
+- **Command**: `yarn start:server`
 - **Volume Mounts**:
   - Source code mounted for hot reloading
   - Node modules isolated in container
@@ -204,7 +204,7 @@ docker compose down
 - **Multi-stage Build**: Separate build and runtime stages
 - **Security**: Non-root user execution
 - **Ports**: 3000 (frontend) and 3001 (API)
-- **Command**: `yarn server:prod`
+- **Command**: `yarn start:server:prod`
 - **Features**:
   - Built frontend served by Express
   - Production dependencies only

@@ -1,5 +1,5 @@
 /**
- * Language server process for spell:  `yarn lsp`, i.e. `tsx src/lsp/server.ts --stdio` -- see `SpellLanguageServer`.
+ * Language server process for spell:  `yarn start:lsp`, i.e. `tsx src/lsp/server.ts --stdio` -- see `SpellLanguageServer`.
  * - `stdioGuard` comes FIRST, and everything else only after it, via dynamic `import()`.
  *   Stdout carries the protocol, and modules log as they load, e.g. `environment.ts`.
  */

@@ -16,7 +16,7 @@ import {
 import environment from "~/environment"
 
 /**
- * The language server as an editor runs it:  a separate `yarn lsp` process, speaking JSON-RPC over stdio.
+ * The language server as an editor runs it:  a separate `yarn start:lsp` process, speaking JSON-RPC over stdio.
  * - Catches anything printing to stdout, which would corrupt the protocol -- see `stdioGuard.ts`.
  */
 describe("spell language server over stdio", () => {

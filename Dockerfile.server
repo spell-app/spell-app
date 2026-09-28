@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 3001
 
 # Start the server
-CMD ["yarn", "server"] 
+CMD ["yarn", "start:server"] 

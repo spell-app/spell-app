@@ -49,4 +49,4 @@ EXPOSE 3000 3001
 ENTRYPOINT ["dumb-init", "--"]
 
 # Start the production server
-CMD ["yarn", "server:prod"] 
+CMD ["yarn", "start:server:prod"] 

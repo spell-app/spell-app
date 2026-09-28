@@ -5,14 +5,11 @@
   "repository": "https://github.com/oakjs/parser",
   "type": "module",
   "scripts": {
-    "docker": "docker compose up",
-    "docker-bg": "docker compose up --detach",
-    "docker-build": "docker compose build",
-    "dev": "vite",
-    "server": "tsx watch src/server/index.ts",
-    "server:prod": "tsx src/server/index.ts",
-    "lsp": "tsx src/lsp/server.ts --stdio",
-    "start": "yarn; concurrently \"yarn dev\" \"yarn server\"",
+    "start:dev": "vite",
+    "start:server": "tsx watch src/server/index.ts",
+    "start:server:prod": "tsx src/server/index.ts",
+    "start:lsp": "tsx src/lsp/server.ts --stdio",
+    "start": "yarn; concurrently \"yarn start:dev\" \"yarn start:server\"",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "clean": "rm -rf ./.cache; rm -rf ./build",
@@ -31,7 +28,11 @@
     "/////// VSCODE EXTENSION": "",
     "vscode": "yarn vscode:build && yarn vscode:install",
     "vscode:build": "cd vscode-extension && yarn install && yarn build && yarn package",
-    "vscode:install": "cd vscode-extension && yarn install-extension"
+    "vscode:install": "cd vscode-extension && yarn install-extension",
+    "/////// DOCKER (out of date)": "",
+    "docker": "docker compose up",
+    "docker-bg": "docker compose up --detach",
+    "docker-build": "docker compose build"
   },
   "dependencies": {
     "@nx-js/observer-util": "^4.2.2",
