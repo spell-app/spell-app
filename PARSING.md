@@ -41,9 +41,19 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   Card.spell (121 lines) ~14ms, Solitaire.spell (259 lines) ~77ms, whole Solitaire project ~100ms.
   Compiling is <1ms per file, tokenizing about the same.  Parsing is the whole cost.
   `parser.rules` rebuilds after mid-parse `addRule()`s:  38 per project parse, ~1ms total -- not worth optimizing.
-- NOTE: nothing answers "what can come NEXT after these tokens" -- `test()` only says yes / no.  Editor
-  completion needs it (`SpellLanguageService.expectedNext()` is a stub):  a `rule.expectedAfter(tokens)` which
-  walks like `Sequence.test()` but returns the literals / `{subrule}`s that could follow.
+- "What can come NEXT?" -- `parser.expectedAfter(input, ruleName, scope)` parses a half-typed line in
+  EXPECTING mode (`P.Expectations`), for editor completion:
+  - rules record what they were waiting for where they ran out of tokens:  `Sequence` the child it hadn't got to
+    (and any optional ones after it), `Repeat` another item, `Subrule` / `Choice` themselves
+  - a `Sequence` failing after a child ran out of tokens INSIDE itself records that child as `within`:  partway
+    through it, e.g. an argument being typed -- for signature help;  completion skips these
+  - each is a `P.Expectation`:  the rule, the `Sequence` + index it sits at (e.g. for the rest of a method's
+    syntax), depth, and `continues` -- it only EXTENDS something complete, e.g. an operator after `x`:
+    a `Choice` marks what its other alternatives recorded once one matched every token
+  - `Sequence.test()` lets a rule whose words fit but ran short through (`allowRunOut`, a module flag:  the
+    test walk is too hot for an argument)
+  - `Subrule` parses are memoized for the one call (`Expectations.memoized()`), or it's ~40x slower
+  - normal parsing pays ~1%:  one static read per hook
 
 ## File => block => line => statement
 
@@ -224,8 +234,23 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   (which nest one per whitespace character).  It re-tokenizes its result and gives up if anything but whitespace
   changed.  NOTE: a blank line takes the indent of the line AFTER it, unless it has its own -- so dropping the tab
   on a blank line can move that blank line in the compiled javascript, never the code.
-- Stubs, waiting on the parser (see `## Stubs` in the service):  completion of "what can follow" and signature help
-  need `rule.expectedAfter(tokens)` (see Rules and matching).
+- Completion mid-statement is `expectedNext()`:  the line up to the cursor through `parser.expectedAfter()`
+  (see Rules and matching).  Each expectation offers the rest of a method call as a snippet, the names that fit
+  it -- by the `highlightAs` of the rules it can start with (`firstKinds()`), never rule names -- and its words.
+  What only `continues` something complete, e.g. operators, only when the word being typed starts it.
+- Signature help is `signatureHelp()`, from the same parse:  the INNERMOST call to one of the project's methods
+  anything was waiting in (next, or `within`), its arguments its call rule's `{subrules}`, the active one counted
+  from where it was waiting.
+- Quick fix (`codeActions()`):  words that didn't parse get "Define `to <phrase>`" -- the phrase a whole line, or
+  a statement that parsed (an inline body's too) PLUS the words left over after it:  `shuffle the deck 3 times`.
+  Its words become a signature, each longest run that parses as an expression a parameter, inserted above its
+  top-level statement, as a method is only visible AFTER it.  Once defined, the longest match wins, so the line
+  parses as the new method.  NOT for a phrase that's just unfinished (`expectedAfter()` again):  `set x to`.
+- Code lens (`codeLens()`):  "N references" above each type and method, counted only when an editor resolves it
+  (`resolveCodeLens()`) -- counting walks the project.  Clicking runs `SHOW_REFERENCES`, which each EDITOR defines:
+  the VS Code extension's `spell.showReferences`;  in the app, Monaco's own `editor.action.showReferences`.
+- Semantic tokens come as DELTAS too (`semanticTokensDelta()`), from one kept `SemanticTokensBuilder` per file.
+  NOTE: a builder keeps what was pushed until `previousResult()` starts afresh -- `build()` doesn't.
 
 ## Testing a whole project
 

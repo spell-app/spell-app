@@ -164,7 +164,7 @@ The Spell Parser is a sophisticated parsing and compilation system for the Spell
 - `yarn start:dev` - Start development server
 - `yarn start:server` - Start API server
 - `yarn start` - Start both dev and API servers
-- `yarn stop` - Stop every server started from this repo:  dev, API, and the language server
+- `yarn stop` - Stop every server started from this repo:  dev and API -- NOT the language server an editor started (`scripts/stop.mjs`)
 - `yarn build` - Build for production
 - `yarn test` - Run tests
 - `yarn lint` - Lint code

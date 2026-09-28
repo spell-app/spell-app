@@ -1,4 +1,5 @@
 import {
+  CodeActionKind,
   CompletionItemKind,
   DiagnosticSeverity,
   DocumentHighlightKind,
@@ -7,6 +8,8 @@ import {
   MarkupKind,
   SemanticTokensBuilder,
   SymbolKind,
+  type CodeAction,
+  type CodeLens,
   type CompletionItem,
   type Diagnostic,
   type DocumentHighlight,
@@ -16,11 +19,14 @@ import {
   type Hover,
   type Location,
   type MarkupContent,
+  type ParameterInformation,
   type Position,
   type Range,
   type SelectionRange,
   type SemanticTokens,
+  type SemanticTokensDelta,
   type SemanticTokensLegend,
+  type SignatureHelp,
   type TextEdit,
   type WorkspaceEdit,
   type WorkspaceSymbol
@@ -43,6 +49,8 @@ export class SpellLanguageService {
   declare addresses: LSP.FileAddresses
   /** Line-start offsets of each file, with the text they were worked out from. */
   #lineStartsCache = new WeakMap<SP.SpellFile, { text: string; lineStarts: number[] }>()
+  /** Whole-file semantic tokens builder per file, remembering what it built last -- see `semanticTokensDelta()`. */
+  #tokenBuilders = new WeakMap<SP.SpellFile, SemanticTokensBuilder>()
   /** Docstrings of each file's declarations, by statement -- keyed by the file's `match`, so one per parse. */
   #docsCache = new WeakMap<P.Match, Map<P.Match, string>>()
 
@@ -289,9 +297,40 @@ export class SpellLanguageService {
    * - A token running over several lines, e.g. a multi-line string, is sent once per line, as the protocol requires.
    */
   semanticTokens(file: SP.SpellFile, range?: Range): SemanticTokens {
-    const builder = new SemanticTokensBuilder()
-    const from = range ? this.offsetAt(file, range.start) : 0
-    const to = range ? this.offsetAt(file, range.end) : Infinity
+    if (range) {
+      const builder = new SemanticTokensBuilder()
+      this.pushTokens(builder, file, this.offsetAt(file, range.start), this.offsetAt(file, range.end))
+      return builder.build()
+    }
+    const builder = this.tokensBuilderFor(file)
+    // NOTE: a builder keeps what was pushed until `previousResult()` starts afresh -- `build()` doesn't.
+    // An id that matches nothing starts afresh with nothing to diff against.
+    builder.previousResult("")
+    this.pushTokens(builder, file)
+    return builder.build()
+  }
+
+  /**
+   * `file`'s semantic tokens as EDITS to what we sent as `previousResultId` -- or all of them, if that isn't the
+   * last whole-file result we sent for it, e.g. after a restart.
+   * - Diffs the token data, so an edit to one line sends that line's tokens, not the file's.
+   */
+  semanticTokensDelta(file: SP.SpellFile, previousResultId: string): SemanticTokens | SemanticTokensDelta {
+    const builder = this.tokensBuilderFor(file)
+    builder.previousResult(previousResultId)
+    this.pushTokens(builder, file)
+    return builder.canBuildEdits() ? builder.buildEdits() : builder.build()
+  }
+
+  /** Builder for `file`'s whole-file tokens:  kept, as it remembers what it built last, for `semanticTokensDelta()`. */
+  private tokensBuilderFor(file: SP.SpellFile): SemanticTokensBuilder {
+    let builder = this.#tokenBuilders.get(file)
+    if (!builder) this.#tokenBuilders.set(file, (builder = new SemanticTokensBuilder()))
+    return builder
+  }
+
+  /** Push `file`'s tokens from offset `from` up to `to` onto `builder`. */
+  private pushTokens(builder: SemanticTokensBuilder, file: SP.SpellFile, from = 0, to = Infinity): void {
     for (const span of this.highlightSpans(file)) {
       if (span.end <= from || span.start >= to) continue
       const kind = SpellLanguageService.HIGHLIGHT_KINDS.indexOf(span.kind)
@@ -301,7 +340,6 @@ export class SpellLanguageService {
         builder.push(line, character, end - start, kind, modifiers)
       }
     }
-    return builder.build()
   }
 
   /**
@@ -847,11 +885,11 @@ export class SpellLanguageService {
 
   /**
    * What could be typed at `position`:
-   * - names visible there:  variables declared before it, types, constants
+   * - mid-statement:  what can come NEXT, if the parser can say -- see `expectedNext()`
+   * - otherwise, names visible there:  variables declared before it, types, constants
    * - at the start of a statement:  the first words of every kind of statement (`to`, `if`, `set`...),
    *   and calls to the project's own methods, as snippets
-   * - mid-statement:  calls to methods usable as expressions
-   * - NOTE: not what can follow the words typed so far -- see `expectedNext()`.
+   * - mid-statement, if `expectedNext()` has nothing:  calls to methods usable as expressions
    */
   completion(file: SP.SpellFile, position: Position): CompletionItem[] {
     if (!file.match) return []
@@ -859,47 +897,407 @@ export class SpellLanguageService {
     const text = file.parseText
     const lineText = text.slice(text.lastIndexOf("\n", offset - 1) + 1, offset)
     const atStatementStart = /^\s*[\w-]*$/.test(lineText)
-    const scope = this.deepestMatchesAt(file.match, offset).at(-1)!.scope
-    const isLater = (declaredBy: P.Match | undefined) =>
-      !!declaredBy && this.fileOf(declaredBy) === file && declaredBy.start! > offset
-
-    const items: CompletionItem[] = []
-    for (const variable of SpellLanguageService.visible(scope.variables)) {
-      if (isLater(variable.declaredBy)) continue
-      const { name, kind, output } = variable
-      const detail = [kind ?? "variable", output && output !== name ? `as ${output}` : ""].filter(Boolean).join(" ")
-      const documentation = this.markdown(this.docsOfRecord(variable))
-      items.push({
-        label: SpellLanguageService.asWritten(name),
-        kind: CompletionItemKind.Variable,
-        detail,
-        documentation
-      })
+    if (!atStatementStart) {
+      const expected = this.expectedNext(file, position)
+      if (expected.length) return expected
     }
-    for (const type of SpellLanguageService.visible(scope.types)) {
-      if (isLater(type.declaredBy)) continue
-      const label = SpellLanguageService.asWritten(type.instanceName)
-      const documentation = this.markdown(this.docsOfRecord(type))
-      items.push({ label, kind: CompletionItemKind.Class, detail: `type ${type.name}`, documentation })
-    }
-    for (const constant of SpellLanguageService.visible(scope.constants)) {
-      if (isLater(constant.declaredBy)) continue
-      items.push({ label: constant.name, kind: CompletionItemKind.EnumMember, detail: "constant" })
-    }
-    const alias = atStatementStart ? "statement" : "expression"
-    for (const scopeRule of SpellLanguageService.visible(scope.rules)) {
-      // Ask the BUILT rule -- `alias` usually lives on its class (`@proto static`), not in `definition`.
-      const ruleAlias = scopeRule.instance?.alias
-      if (isLater(scopeRule.declaredBy) || ![ruleAlias].flat().includes(alias)) continue
-      const item = this.methodCompletion(scopeRule)
-      if (item) items.push({ ...item, documentation: this.markdown(this.docsOfRecord(scopeRule, true)) })
-    }
+    const scope = this.scopeAt(file, offset)
+    const items = [
+      ...this.variableItems(file, scope, offset),
+      ...this.typeItems(file, scope, offset),
+      ...this.constantItems(file, scope, offset),
+      ...this.methodItems(file, scope, offset, atStatementStart ? "statement" : "expression")
+    ]
     if (atStatementStart && scope.parser) {
       for (const word of this.statementWords(scope.parser, file.project)) {
         items.push({ label: word, kind: CompletionItemKind.Keyword, detail: "statement" })
       }
     }
     return items
+  }
+
+  /**
+   * What can come NEXT in the statement being typed at `position`, e.g. `to` after `set x` -- `[]` if nothing
+   * is typed yet, or the parser can't say.
+   * - Parses the line up to the cursor in expecting mode -- see `P.Parser.expectedAfter()`.
+   *   A word the cursor is touching is still being typed:  it's what the editor filters by, NOT input.
+   * - Each expectation offers:
+   *   - partway through a call to one of the project's methods:  the REST of it, as a snippet -- see `methodTail()`
+   *   - the names that fit it, by the `highlightAs` of the rules it can start with -- see `firstKinds()`:
+   *     `{type}` => types, `{expression}` => variables, constants, methods...
+   *   - the words it can start with, e.g. `to`, or `the` / `a` / `its`... for an `{expression}`
+   * - What only EXTENDS something complete (`continues`), e.g. an operator after `x`, only if the word being
+   *   typed starts it:  `if x a` => `and`, but `if x ` offers no operators.
+   * - Ranked by `sortText`:  what's needed before what continues, shallower before deeper, then snippet, names,
+   *   words.
+   */
+  expectedNext(file: SP.SpellFile, position: Position): CompletionItem[] {
+    if (!file.match) return []
+    const offset = this.offsetAt(file, position)
+    const text = file.parseText
+    const beforeCursor = text.slice(text.lastIndexOf("\n", offset - 1) + 1, offset)
+    const typed = /[\w-]*$/.exec(beforeCursor)![0]
+    const input = beforeCursor.slice(0, beforeCursor.length - typed.length).trim()
+    const scope = this.scopeAt(file, offset)
+    if (!input || !scope.parser) return []
+
+    const items = new Map<string, CompletionItem>()
+    for (const expectation of scope.parser.expectedAfter(input, "statement", scope)) {
+      // partway through something, not what's next -- see `signatureHelp()`
+      if (expectation.within) continue
+      const rank = `${expectation.continues ? 1 : 0}${String(expectation.depth).padStart(2, "0")}`
+      for (const [order, item] of this.expectedItems(expectation, file, scope, offset)) {
+        if (expectation.continues && (!typed || !item.label.startsWith(typed))) continue
+        const key = `${item.kind}:${item.label}`
+        if (!items.has(key)) items.set(key, { ...item, sortText: `${rank}${order}:${item.label}` })
+      }
+    }
+    return [...items.values()]
+  }
+
+  /**
+   * Completions for one `expectation`, each with its order within it:  `0` snippet, `1` names, `2` words.
+   * - see `expectedNext()`
+   */
+  private expectedItems(
+    { rule, sequence, index }: P.Expectation,
+    file: SP.SpellFile,
+    scope: P.Scope,
+    offset: number
+  ): Array<[order: number, item: CompletionItem]> {
+    const parser = scope.parser!
+    const items: Array<[number, CompletionItem]> = []
+    const tail = sequence && index !== undefined ? this.methodTail(file.project, parser, sequence, index) : undefined
+    if (tail) items.push([0, tail])
+    for (const kind of SpellLanguageService.firstKinds(rule, parser, new Set())) {
+      const names =
+        kind === "type"
+          ? this.typeItems(file, scope, offset)
+          : kind === "variable"
+            ? this.variableItems(file, scope, offset)
+            : kind === "enumMember"
+              ? this.constantItems(file, scope, offset)
+              : this.methodItems(file, scope, offset, "expression")
+      for (const name of names) items.push([1, name])
+    }
+    // Words from categories too, e.g. `{expression}` => `the`, `a`, `its`... -- NOT `Card` when there's `card`
+    const words = new Set(SpellLanguageService.firstWords(rule, parser, new Set(), true))
+    for (const word of words) {
+      if (word !== word.toLowerCase() && words.has(word.toLowerCase())) continue
+      items.push([2, { label: word, kind: CompletionItemKind.Keyword, detail: "next" }])
+    }
+    return items
+  }
+
+  /**
+   * The rest of a call to one of `project`'s methods, from child `index` of its call rule `sequence`, as a
+   * snippet, e.g. `to ${1:pile}` after `move the card` for `to move (a card) to (a pile)`.
+   * - `undefined` if `sequence` isn't a method's call rule.
+   * - Leaves out optional parts;  placeholders are named for the signature's arguments.
+   */
+  private methodTail(
+    project: SP.SpellProject,
+    parser: P.Parser,
+    sequence: P.Sequence,
+    index: number
+  ): CompletionItem | undefined {
+    const scopeRule = this.generatedRules(project).get(sequence)
+    const declaration = scopeRule?.declaredBy?.rule.getDeclaration(scopeRule.declaredBy)
+    if (!scopeRule || !declaration) return undefined
+    const argNames = SpellLanguageService.argNamesOf(declaration.name)
+    let argIndex = sequence.rules.slice(0, index).filter((rule) => rule instanceof P.Subrule).length
+    const label: string[] = []
+    const snippet: string[] = []
+    let placeholder = 0
+    for (const rule of sequence.rules.slice(index)) {
+      if (rule.optional) continue
+      if (rule instanceof P.Subrule) {
+        const name = argNames[argIndex++] ?? rule.matchGroup ?? rule.rule
+        label.push(`(${name})`)
+        snippet.push(`\${${++placeholder}:${name}}`)
+      } else {
+        const word = SpellLanguageService.firstWords(rule, parser, new Set())[0] ?? rule.toRulexSyntax()
+        label.push(word)
+        snippet.push(word.replace(/[$}\\]/g, "\\$&"))
+      }
+    }
+    if (!snippet.length) return undefined
+    return {
+      label: label.join(" "),
+      kind: declaration.kind === "method" ? CompletionItemKind.Method : CompletionItemKind.Function,
+      detail: declaration.name,
+      documentation: this.markdown(this.docsOfRecord(scopeRule, true)),
+      insertText: snippet.join(" "),
+      insertTextFormat: InsertTextFormat.Snippet
+    }
+  }
+
+  ////////////////
+  // ## Signature help
+  ////////////////
+
+  /**
+   * The call to one of the project's methods being typed at `position`, e.g. `move (a card) to (a pile)`, with
+   * the argument being typed -- or next -- as `activeParameter`.  `null` if not in one.
+   * - Parses the line up to the cursor in expecting mode, as `expectedNext()` does, then takes the INNERMOST
+   *   method call rule anything was waiting in:  what comes next in it, or what we're partway `within`.
+   * - Its arguments are the call rule's `{subrules}`, in order, named by the signature's `(args)`.
+   */
+  signatureHelp(file: SP.SpellFile, position: Position): SignatureHelp | null {
+    if (!file.match) return null
+    const offset = this.offsetAt(file, position)
+    const text = file.parseText
+    const input = text.slice(text.lastIndexOf("\n", offset - 1) + 1, offset).trim()
+    const scope = this.scopeAt(file, offset)
+    if (!input || !scope.parser) return null
+
+    const generated = this.generatedRules(file.project)
+    let call: P.Expectation | undefined
+    for (const expectation of scope.parser.expectedAfter(input, "statement", scope)) {
+      const { sequence, continues, depth } = expectation
+      if (continues || !sequence || !generated.has(sequence)) continue
+      if (!call || depth > call.depth) call = expectation
+    }
+    const scopeRule = call && generated.get(call.sequence!)
+    const declaration = scopeRule?.declaredBy?.rule.getDeclaration(scopeRule.declaredBy)
+    if (!call || !scopeRule || !declaration) return null
+
+    const label = declaration.name
+    const parameters: ParameterInformation[] = [...label.matchAll(/\([^)]*\)/g)].map((arg) => ({
+      label: [arg.index, arg.index + arg[0].length]
+    }))
+    // args before `index`:  the one we're in, or the next one after a word like `to`
+    const activeParameter = call.sequence!.rules.slice(0, call.index).filter((rule) => rule instanceof P.Subrule).length
+    return {
+      signatures: [{ label, documentation: this.markdown(this.docsOfRecord(scopeRule, true)), parameters }],
+      activeSignature: 0,
+      activeParameter: Math.min(activeParameter, Math.max(parameters.length - 1, 0))
+    }
+  }
+
+  ////////////////
+  // ## Code lens
+  ////////////////
+
+  /**
+   * Command a code lens runs to show references, with arguments `uri`, `position`, `locations`.
+   * - The EDITOR defines it:  `vscode-extension/src/extension.ts`, `SpellLanguageFeatures` in the app.
+   */
+  static SHOW_REFERENCES = "spell.showReferences"
+
+  /** Kinds of declaration that get a code lens. */
+  static LENS_KINDS: P.DeclarationKind[] = ["type", "method", "function"]
+
+  /**
+   * An "N references" lens above each type and method `file` declares, on its name.
+   * - Unresolved:  no count yet -- `resolveCodeLens()` counts, so an editor only pays for the lenses on screen.
+   *   Counting walks every file of the project.
+   * - `data` carries what resolving needs:  the file's URI, and the name's position.
+   */
+  codeLens(file: SP.SpellFile): CodeLens[] {
+    if (!file.match) return []
+    const uri = this.addresses.uriFor(file)
+    const lenses: CodeLens[] = []
+    this.walk(file.match, (match) => {
+      const declaration = match.rule.getDeclaration(match)
+      if (!declaration || !SpellLanguageService.LENS_KINDS.includes(declaration.kind)) return
+      const range = this.rangeOf(file, declaration.nameMatch)
+      if (range) lenses.push({ range, data: { uri, position: range.start } satisfies CodeLensData })
+    })
+    return lenses
+  }
+
+  /** `lens` from `codeLens()`, with its count:  "3 references", which shows them when clicked. */
+  resolveCodeLens(file: SP.SpellFile, lens: CodeLens): CodeLens {
+    const { uri, position } = lens.data as CodeLensData
+    const locations = this.references(file, position, false)
+    const count = locations.length
+    return {
+      ...lens,
+      command: {
+        title: `${count} reference${count === 1 ? "" : "s"}`,
+        command: SpellLanguageService.SHOW_REFERENCES,
+        arguments: [uri, position, locations]
+      }
+    }
+  }
+
+  ////////////////
+  // ## Code actions
+  ////////////////
+
+  /**
+   * Quick fixes for `range` of `file`:  for each WHOLE line in it that didn't parse, "Define `to <phrase>`" --
+   * a method whose signature is the line's words, so the line becomes a call to it.
+   * - The phrase is the whole line -- or, for words left over after a statement that parsed, that statement AND
+   *   its leftovers:  `shuffle the deck 3 times`, where `shuffle the deck` parsed, => `to shuffle (a deck) (number) times`.
+   *   Once defined, the line parses as the new method:  it matches every word, and the longest match wins.
+   * - NOT for a line that's just unfinished, e.g. `set x to` -- see `isUnfinished()`.
+   * - Goes just above the top-level statement the line is in, as a method is only visible to lines AFTER it.
+   * - See `methodSignatureFor()` for how the words become a signature.
+   */
+  codeActions(file: SP.SpellFile, range: Range): CodeAction[] {
+    if (!file.match) return []
+    const text = file.parseText
+    const from = this.offsetAt(file, range.start)
+    const to = this.offsetAt(file, range.end)
+    const actions: CodeAction[] = []
+    for (const error of SP.Block.getParseErrors(file.match) ?? []) {
+      const { start, end } = error
+      if (start === undefined || end === undefined || end < from || start > to) continue
+      const lineStart = text.lastIndexOf("\n", start - 1) + 1
+      const scope = this.scopeAt(file, start)
+      // after a statement that parsed, from its start -- else only a WHOLE line
+      const before = this.statementBefore(file, start)
+      if (!before && text.slice(lineStart, start).trim()) continue
+      const phraseStart = before?.start ?? start
+      const words = text.slice(phraseStart, end)
+      if (this.isUnfinished(words, scope)) continue
+      const signature = this.methodSignatureFor(words, scope)
+      const at = this.topLevelLineStart(file, start)
+      const diagnostic = this.diagnostics(file).find((it) => this.offsetAt(file, it.range.start) === start)
+      if (!signature || at === undefined) continue
+      const newText = `${signature}:\n\t// TODO\n\n`
+      const position = this.positionAt(file, at)
+      actions.push({
+        title: `Define \`${signature}\``,
+        kind: CodeActionKind.QuickFix,
+        diagnostics: diagnostic ? [diagnostic] : undefined,
+        isPreferred: true,
+        edit: { changes: { [this.addresses.uriFor(file)]: [{ range: { start: position, end: position }, newText }] } }
+      })
+    }
+    return actions
+  }
+
+  /**
+   * Method signature a line of `words` would call, e.g. `shuffle the deck twice` => `to shuffle (a deck) twice`.
+   * - The first word stays a word:  it's the method's name.
+   * - After that, the LONGEST run of words that parses as a whole expression in `scope` becomes a parameter:
+   *   - a type's name, e.g. `the deck` if there's a type `deck` => `(a deck)`
+   *   - a number => `(number)`, text => `(text)`
+   *   - otherwise its last word => `(deck)`, numbered if it's already taken
+   * - `undefined` if there are no words, or `scope` has no parser.
+   */
+  private methodSignatureFor(words: string, scope: P.Scope): string | undefined {
+    const parser = scope.parser
+    const tokens = parser?.tokenize(words.trim())?.filter((token) => !(token instanceof P.WhitespaceToken)) ?? []
+    if (!parser || !tokens.length) return undefined
+    const types = new Set(SpellLanguageService.visible(scope.types).map((type) => type.instanceName))
+    const bits: string[] = [tokens[0]!.raw ?? ""]
+    const names = new Set<string>()
+    for (let index = 1; index < tokens.length;) {
+      let length = tokens.length - index
+      for (; length > 0; length--) {
+        const match = parser.parse(tokens.slice(index, index + length), "expression", scope)
+        if (match?.length === length) break
+      }
+      if (!length) {
+        bits.push(tokens[index++]!.raw ?? "")
+        continue
+      }
+      const expression = tokens.slice(index, index + length)
+      index += length
+      const last = expression.at(-1)!
+      const word = (last.raw ?? "").toLowerCase()
+      const param =
+        last instanceof P.NumberToken
+          ? "number"
+          : last instanceof P.TextToken
+            ? "text"
+            : types.has(word)
+              ? `a ${word}`
+              : word
+      let name = param
+      for (let count = 2; names.has(name); count++) name = `${param}${count}`
+      names.add(name)
+      bits.push(`(${name})`)
+    }
+    return `to ${bits.join(" ")}`
+  }
+
+  /**
+   * Statement that parsed just before `offset` on its line, if any, e.g. `shuffle the deck` before leftover `3 times`.
+   * - The innermost match there whose rule is a `statement`, ending before `offset`.
+   */
+  private statementBefore(file: SP.SpellFile, offset: number): P.Match | undefined {
+    const text = file.parseText
+    let before = offset - 1
+    while (before >= 0 && /[ \t]/.test(text[before]!)) before--
+    if (before < 0 || text[before] === "\n") return undefined
+    const stack = this.deepestMatchesAt(file.match!, before)
+    for (let index = stack.length - 1; index >= 0; index--) {
+      const match = stack[index]!
+      if ([match.rule.alias].flat().includes("statement") && match.end! <= offset) return match
+    }
+    return undefined
+  }
+
+  /** Is `words` the start of a statement, just not finished?  i.e. does any statement need more after it? */
+  private isUnfinished(words: string, scope: P.Scope): boolean {
+    const expected = scope.parser?.expectedAfter(words.trim(), "statement", scope) ?? []
+    return expected.some(({ continues, within, depth }) => !continues && !within && depth === 0)
+  }
+
+  /** Offset of the start of the top-level line `offset` is in -- its own, if it's top-level. */
+  private topLevelLineStart(file: SP.SpellFile, offset: number): number | undefined {
+    const item = file.match!.matched.find((it) => it instanceof P.Match && it.start! <= offset && offset <= it.end!)
+    const start = item instanceof P.Match ? item.start : undefined
+    return start === undefined ? undefined : file.parseText.lastIndexOf("\n", start - 1) + 1
+  }
+
+  ////////////////
+  // ## Completion helpers
+  ////////////////
+
+  /** Variables visible in `scope`, declared before `offset`. */
+  private variableItems(file: SP.SpellFile, scope: P.Scope, offset: number): CompletionItem[] {
+    return SpellLanguageService.visible(scope.variables).flatMap((variable) => {
+      if (this.isLater(file, offset, variable.declaredBy)) return []
+      const { name, kind, output } = variable
+      const detail = [kind ?? "variable", output && output !== name ? `as ${output}` : ""].filter(Boolean).join(" ")
+      const documentation = this.markdown(this.docsOfRecord(variable))
+      return [{ label: SpellLanguageService.asWritten(name), kind: CompletionItemKind.Variable, detail, documentation }]
+    })
+  }
+
+  /** Types visible in `scope`, declared before `offset`. */
+  private typeItems(file: SP.SpellFile, scope: P.Scope, offset: number): CompletionItem[] {
+    return SpellLanguageService.visible(scope.types).flatMap((type) => {
+      if (this.isLater(file, offset, type.declaredBy)) return []
+      const label = SpellLanguageService.asWritten(type.instanceName)
+      const documentation = this.markdown(this.docsOfRecord(type))
+      return [{ label, kind: CompletionItemKind.Class, detail: `type ${type.name}`, documentation }]
+    })
+  }
+
+  /** Constants visible in `scope`, declared before `offset`. */
+  private constantItems(file: SP.SpellFile, scope: P.Scope, offset: number): CompletionItem[] {
+    return SpellLanguageService.visible(scope.constants).flatMap((constant) => {
+      if (this.isLater(file, offset, constant.declaredBy)) return []
+      return [{ label: constant.name, kind: CompletionItemKind.EnumMember, detail: "constant" }]
+    })
+  }
+
+  /** Calls to the project's methods visible in `scope` which are `alias`es, e.g. `"expression"`, as snippets. */
+  private methodItems(file: SP.SpellFile, scope: P.Scope, offset: number, alias: string): CompletionItem[] {
+    return SpellLanguageService.visible(scope.rules).flatMap((scopeRule) => {
+      // Ask the BUILT rule -- `alias` usually lives on its class (`@proto static`), not in `definition`.
+      const ruleAlias = scopeRule.instance?.alias
+      if (this.isLater(file, offset, scopeRule.declaredBy) || ![ruleAlias].flat().includes(alias)) return []
+      const item = this.methodCompletion(scopeRule)
+      return item ? [{ ...item, documentation: this.markdown(this.docsOfRecord(scopeRule, true)) }] : []
+    })
+  }
+
+  /** Was `declaredBy` later in `file` than `offset`, so not usable there yet? */
+  private isLater(file: SP.SpellFile, offset: number, declaredBy: P.Match | undefined): boolean {
+    return !!declaredBy && this.fileOf(declaredBy) === file && declaredBy.start! > offset
+  }
+
+  /** Scope at `offset` in `file`:  of the deepest match there. */
+  private scopeAt(file: SP.SpellFile, offset: number): P.Scope {
+    return this.deepestMatchesAt(file.match!, offset).at(-1)!.scope
   }
 
   /**
@@ -911,12 +1309,7 @@ export class SpellLanguageService {
     const { syntax } = definition
     const declaration = declaredBy?.rule.getDeclaration(declaredBy)
     if (!syntax || !declaration) return undefined
-    const argNames = [...declaration.name.matchAll(/\(([^)]*)\)/g)].map(([, arg]) =>
-      arg!
-        .replace(/^(a|an|the)\s+/i, "")
-        .replace(/\s+as\s+.*$/, "")
-        .trim()
-    )
+    const argNames = SpellLanguageService.argNamesOf(declaration.name)
     let argIndex = 0
     const snippet = syntax
       .split(/\s+/)
@@ -1000,56 +1393,6 @@ export class SpellLanguageService {
   /** Edit replacing `file`'s text from offset `start` to `end` with `newText`. */
   private editFor(file: SP.SpellFile, start: number, end: number, newText: string): TextEdit {
     return { range: { start: this.positionAt(file, start), end: this.positionAt(file, end) }, newText }
-  }
-
-  ////////////////
-  // ## Stubs
-  ////////////////
-
-  /**
-   * STUB:  what can follow the words typed so far on the line at `position`, e.g. `to` after `set x`.
-   * - Needs a parser-level `rule.expectedAfter(tokens)`:  `Sequence.test()`'s walk, returning the literals
-   *   (and `{subrule}`s) that could come next instead of yes / no -- see `PARSING.md`.
-   * - Until then `completion()` offers names and statement starts, not what fits the statement being typed.
-   */
-  expectedNext(_file: SP.SpellFile, _position: Position): null {
-    return null
-  }
-
-  /**
-   * STUB:  the syntax of the method call being typed at `position`, with the current argument highlighted.
-   * - Needs `rule.expectedAfter(tokens)` too -- see `expectedNext()` -- to tell WHICH method's syntax the
-   *   words so far are heading into, and how far along it they are.
-   */
-  signatureHelp(_file: SP.SpellFile, _position: Position): null {
-    return null
-  }
-
-  /**
-   * STUB:  quick fixes for `range`, e.g. "define `to <phrase>`" on a line that didn't parse.
-   * - Could be built now from `SP.Block.getParseErrors()`:  a `parse_error` line's words become a method signature.
-   *   Left for later to keep the first release small.
-   */
-  codeActions(_file: SP.SpellFile, _range: Range): null {
-    return null
-  }
-
-  /**
-   * STUB:  "N references" above each declaration.
-   * - Cheap now that `references()` exists:  one per `documentSymbols()` entry.  Left out to keep the first
-   *   release small, and because counting walks every file of the project for each lens.
-   */
-  codeLens(_file: SP.SpellFile): null {
-    return null
-  }
-
-  /**
-   * STUB:  semantic tokens changed since `previousResultId`, rather than all of them.
-   * - Needs result ids, and a diff of the `highlightSpans()` sent last time.  `semanticTokens()` for a whole
-   *   file is fast enough without it:  one walk of the match tree.
-   */
-  semanticTokensDelta(_file: SP.SpellFile, _previousResultId: string): null {
-    return null
   }
 
   ////////////////
@@ -1280,9 +1623,10 @@ export class SpellLanguageService {
 
   /**
    * Words `rule` can start with:  its leading literals, through sequences, choices and repeats.
-   * - Follows a `{subrule}` only to a single rule, NOT a category like `{expression}`, which could start with anything.
+   * - Follows a `{subrule}` only to a single rule, NOT a category like `{expression}`, which could start with
+   *   anything -- unless `followGroups`, e.g. for operators, filtered by what's being typed.
    */
-  static firstWords(rule: P.Rule, parser: P.Parser, visited: Set<P.Rule>): string[] {
+  static firstWords(rule: P.Rule, parser: P.Parser, visited: Set<P.Rule>, followGroups = false): string[] {
     if (visited.has(rule)) return []
     visited.add(rule)
     let words: string[] = []
@@ -1294,18 +1638,58 @@ export class SpellLanguageService {
       }
     } else if (rule instanceof P.Sequence) {
       for (const child of rule.rules) {
-        words.push(...SpellLanguageService.firstWords(child, parser, visited))
+        words.push(...SpellLanguageService.firstWords(child, parser, visited, followGroups))
         if (!child.optional) break
       }
     } else if (rule instanceof P.Choice) {
-      words = rule.rules.flatMap((child) => SpellLanguageService.firstWords(child, parser, visited))
+      words = rule.rules.flatMap((child) => SpellLanguageService.firstWords(child, parser, visited, followGroups))
     } else if (rule instanceof P.Repeat) {
-      words = SpellLanguageService.firstWords(rule.rule, parser, visited)
+      words = SpellLanguageService.firstWords(rule.rule, parser, visited, followGroups)
     } else if (rule instanceof P.Subrule) {
       const target = parser.rules[rule.rule]
-      if (target && !(target instanceof P.Group)) words = SpellLanguageService.firstWords(target, parser, visited)
+      if (target && (followGroups || !(target instanceof P.Group))) {
+        words = SpellLanguageService.firstWords(target, parser, visited, followGroups)
+      }
     }
     return words.filter((word) => /^[a-z][\w-]*$/i.test(word))
+  }
+
+  /** Kinds of NAME a completion can offer, by the `highlightAs` of the rule that matches them -- see `firstKinds()`. */
+  static NAME_KINDS: P.HighlightKind[] = ["type", "variable", "enumMember", "function"]
+
+  /**
+   * Kinds of name `rule` can start with, e.g. `{type}` => `type`, `{expression}` => `variable`, `enumMember`...
+   * - By the `highlightAs` of the rules it can start with -- NOT by rule names -- through sequences, choices,
+   *   repeats and subrules, categories too.
+   */
+  static firstKinds(rule: P.Rule, parser: P.Parser, visited: Set<P.Rule>, kinds = new Set<P.HighlightKind>()) {
+    if (visited.has(rule)) return kinds
+    visited.add(rule)
+    if (rule.highlightAs && SpellLanguageService.NAME_KINDS.includes(rule.highlightAs)) kinds.add(rule.highlightAs)
+    if (rule instanceof P.Sequence) {
+      for (const child of rule.rules) {
+        SpellLanguageService.firstKinds(child, parser, visited, kinds)
+        if (!child.optional) break
+      }
+    } else if (rule instanceof P.Choice) {
+      for (const child of rule.rules) SpellLanguageService.firstKinds(child, parser, visited, kinds)
+    } else if (rule instanceof P.Repeat) {
+      SpellLanguageService.firstKinds(rule.rule, parser, visited, kinds)
+    } else if (rule instanceof P.Subrule) {
+      const target = parser.rules[rule.rule]
+      if (target) SpellLanguageService.firstKinds(target, parser, visited, kinds)
+    }
+    return kinds
+  }
+
+  /** Argument names of a method declared as `name`, e.g. `move (a card) to (a pile)` => `card`, `pile`. */
+  static argNamesOf(name: string): string[] {
+    return [...name.matchAll(/\(([^)]*)\)/g)].map(([, arg]) =>
+      arg!
+        .replace(/^(a|an|the)\s+/i, "")
+        .replace(/\s+as\s+.*$/, "")
+        .trim()
+    )
   }
 
   /**
@@ -1401,4 +1785,12 @@ export class SpellLanguageService {
   static propertyKey(name: string): string {
     return name.toLowerCase().replace(/-/g, "_")
   }
+}
+
+/** What a code lens from `codeLens()` carries until it's resolved. */
+type CodeLensData = {
+  /** URI of the file it's in. */
+  uri: string
+  /** Where the declared name starts. */
+  position: Position
 }

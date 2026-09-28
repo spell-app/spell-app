@@ -145,3 +145,72 @@ nested object, and a cache filled there keeps the proxy.
   - `editor.getInputEditor()`:  the Monaco editor lives outside the store (`src/app/editor.ts`)
   - `SpellModels.#toSave` and `editor.onFileEdited()` compare by `path`
 
+
+---
+
+## Review:  editor features added by Claude, 2026-09-27 / 28
+
+Everything below went in over two long sessions, tested (vitest, tsc, lint, a headless-Chromium run of the app,
+parser speed test) but NOT yet reviewed line by line.  Check each area, then delete its bullet.
+
+- **Cost**:  a lot of new code in the parser's hot path, the language server and the app editor, reviewed only by
+  its tests.  Mistakes in expecting mode or the Monaco glue would show up as odd completions, stale markers or a
+  hung editor, not as test failures.
+- **Cause**:  built quickly in phases, each stopped for a quick review, not a detailed one.
+- **Fix**:  review each area below;  fix, or record here what's knowingly left.
+- **Pinned at** -- by area, with the files each touched:
+  - **Language server + VS Code extension** (commits `762b1dd`..`4c27a34`)
+    - `src/lsp/`:  `SpellLanguageService.ts` (+ test, `__snapshots__`), `SpellLanguageServer.ts`, `server.ts`,
+      `stdioGuard.ts`, `lsp.types.ts`, `index.ts`, `server.test.ts`
+    - `vscode-extension/` (whole project), `.vscode/launch.json` + `tasks.json`, root `package.json` `vscode*` scripts
+    - parser support:  `Rule.declares` / `getDeclaration()`, `highlightAs` (`src/parser/rules/Rule.ts`,
+      `rules.types.ts`, and `@proto static highlightAs` on `Keyword` / `Symbol` / spell base rules),
+      `TypeScope.getOrStub()` / `claim()` / `declareProperty()`, `P.TokenFormatter` (`src/parser/tokenizer/`)
+    - docstrings:  `Block.getDocComments()`, `ASTDocComment` / `ASTBannerComment` (`src/parser/ast/AST.tsx`),
+      `Block.ts` + `Block.test.ts`
+  - **Scripts** (`eab5832`):  `start:*` renames, `yarn stop` (`package.json`, `Dockerfile.*`, `DOCKER.md`,
+    `CODEBASE_INDEX.md`).  NOTE: `yarn stop` also kills the language server VS Code started.
+  - **Browser-safe `~/lsp` + editing on `SpellProject`** (in `bdc9610`)
+    - `src/lsp/SpellWorkspace.ts` removed => `LSP.FileAddresses` (`lsp.types.ts`) + node-only
+      `src/lsp/SpellDiskWorkspace.ts`;  `src/lsp/barrel.test.ts`
+    - `SpellProject.spellFiles` / `parseError` / `updateText()`, `SpellFile.isActive`
+      (`src/languages/spell/SpellProject.ts`, `SpellFile.ts`, `SpellProject.editing.test.ts`)
+  - **CodeMirror => Monaco** (in `bdc9610`)
+    - new `src/app/ui/monaco/`:  `monaco.ts`, `SpellMonaco.ts`, `SpellTokensProvider.ts`, `MonacoEditor.tsx` (+ `.less`),
+      `SpellModels.ts`, `SpellLanguageFeatures.ts`, `LspToMonaco.ts` (+ test), `AppAddresses.ts`, `index.ts`
+    - `src/app/editor.ts` (Monaco outside the store, `onInputCursor`, `onInputEffect`, `onFileEdited`, `showFileAt`),
+      `InputEditor.tsx`, `OutputEditor.tsx`, `ui/index.ts`, `ui.types.ts`, `pages/SpellEditor.tsx`, `debug.ts`
+    - `src/types/monaco-internals.d.ts`, `src/util/Observable.ts` (`raw()`), `package.json` / `yarn.lock` (deps)
+    - removed:  `src/app/ui/CodeMirror*`, `codemirror-classes.txt`, `SpellFile.offsetForPosition` / `positionForOffset`
+    - see "Store proxies stand in for the real objects" above for the workarounds this needed
+  - **Expecting mode:  what can come next** (in `95cbc54`, plus what's staged after it)
+    - new `src/parser/Expectations.ts` (+ test), `P.Expectation` (`parser.types.ts`), `Parser.expectedAfter()`
+    - hooks in `src/parser/rules/Sequence.ts` (incl. `allowRunOut`, `within`), `Choice.ts`, `Repeat.ts`, `Subrule.ts`
+    - cost:  ~+1% normal parsing per round of hooks (twice);  `Expectations.memoized()` SHARES matches -- only safe
+      because expecting-mode matches are thrown away
+  - **Completion, signature help, quick fixes** (staged)
+    - `SpellLanguageService.ts`:  `expectedNext()`, `expectedItems()`, `methodTail()`, `firstKinds()`, `argNamesOf()`,
+      `signatureHelp()`, `codeActions()`, `methodSignatureFor()`, `statementBefore()`, `isUnfinished()`,
+      the item builders (`variableItems()`...), `firstWords(followGroups)`
+    - `SpellLanguageServer.ts` (signature help + code action capabilities), `server.test.ts`,
+      `SpellLanguageFeatures.ts` + `LspToMonaco.ts` (Monaco providers), their tests
+    - heuristics to check:  what counts as `continues` (`Choice` with a complete alternative);  the quick fix's
+      parameter guessing
+    - **quick fix is broad**:  offered for ANY statement with words left over, e.g. `set x to 1 2` => "Define
+      `to set (x) to (number) (number)`".  Maybe limit it, e.g. to leftovers after a call to a method or a
+      built-in like `shuffle` -- `codeActions()` / `statementBefore()` in `SpellLanguageService.ts`.
+  - **Not tried by hand in VS Code** -- only through the service tests and the app's Monaco editor:
+    completion (`set y `, `a thingy is a `, `move the card `), signature help (`move `), the quick fix (an unknown
+    line), code lens.  Reload the window after `yarn vscode`.
+  - **Lazy Monaco + `yarn stop`** (staged)
+    - `src/app/ui/LazyMonaco.tsx`, `src/app/ui/monaco/FileEditor.tsx`;  `~/app/ui/monaco` out of the `UI` barrel;
+      `editor.ts` (`onInputDidMount(editor, api)`, `inputEditorPath`), `InputEditor.tsx`, `OutputEditor.tsx`,
+      `debug.ts` (globals now set by `LazyMonaco`), `MonacoEditor.tsx` (`onMount` gets `monaco`)
+    - `scripts/stop.mjs`:  `yarn stop` spares the language server an editor started
+  - **Code lens + semantic token deltas** (staged)
+    - `SpellLanguageService.ts`:  `codeLens()`, `resolveCodeLens()`, `semanticTokensDelta()`, `tokensBuilderFor()`,
+      `pushTokens()`;  `SpellLanguageServer.ts`;  `vscode-extension/src/extension.ts` (`spell.showReferences`);
+      `SpellLanguageFeatures.ts` + `LspToMonaco.ts` (`semanticTokens()`);  their tests
+    - needs `yarn vscode` to rebuild + reinstall the extension, for the lens command
+  - Docs touched throughout:  `PARSING.md` ("Rules and matching", "Language server"), `AGENTS.md` (Overview),
+    `readme.md`, `PAPERCUTS.md`, `SUSPECTED-BUGS.md`

@@ -1,4 +1,5 @@
 import {
+  CodeActionKind,
   DidChangeWatchedFilesNotification,
   FileChangeType,
   TextDocuments,
@@ -35,7 +36,7 @@ export class SpellLanguageServer {
     workspaceSymbolProvider: true,
     foldingRangeProvider: true,
     selectionRangeProvider: true,
-    semanticTokensProvider: { legend: LSP.SpellLanguageService.TOKEN_LEGEND, full: true, range: true },
+    semanticTokensProvider: { legend: LSP.SpellLanguageService.TOKEN_LEGEND, full: { delta: true }, range: true },
     hoverProvider: true,
     definitionProvider: true,
     typeDefinitionProvider: true,
@@ -43,13 +44,11 @@ export class SpellLanguageServer {
     documentHighlightProvider: true,
     renameProvider: { prepareProvider: true },
     completionProvider: { triggerCharacters: [" "] },
+    signatureHelpProvider: { triggerCharacters: [" "] },
+    codeActionProvider: { codeActionKinds: [CodeActionKind.QuickFix] },
+    codeLensProvider: { resolveProvider: true },
     documentFormattingProvider: true,
     documentRangeFormattingProvider: true
-    // STUBS, not advertised until they work -- see `## Stubs` in `SpellLanguageService`:
-    // signatureHelpProvider: { triggerCharacters: [" "] },
-    // codeActionProvider: true,
-    // codeLensProvider: {},
-    // semanticTokensProvider: { ..., full: { delta: true } },
   }
 
   /** Connection to the editor. */
@@ -115,6 +114,9 @@ export class SpellLanguageServer {
     connection.languages.semanticTokens.on(({ textDocument }) =>
       this.answer(textDocument.uri, { data: [] }, (file) => service.semanticTokens(file))
     )
+    connection.languages.semanticTokens.onDelta(({ textDocument, previousResultId }) =>
+      this.answer(textDocument.uri, { data: [] }, (file) => service.semanticTokensDelta(file, previousResultId))
+    )
     connection.languages.semanticTokens.onRange(({ textDocument, range }) =>
       this.answer(textDocument.uri, { data: [] }, (file) => service.semanticTokens(file, range))
     )
@@ -147,6 +149,17 @@ export class SpellLanguageServer {
     )
     connection.onCompletion(({ textDocument, position }) =>
       this.answer(textDocument.uri, [], (file) => service.completion(file, position))
+    )
+    connection.onSignatureHelp(({ textDocument, position }) =>
+      this.answer(textDocument.uri, null, (file) => service.signatureHelp(file, position))
+    )
+    connection.onCodeAction(({ textDocument, range }) =>
+      this.answer(textDocument.uri, [], (file) => service.codeActions(file, range))
+    )
+    connection.onCodeLens(({ textDocument }) => this.answer(textDocument.uri, [], (file) => service.codeLens(file)))
+    // a lens carries its file's URI -- see `SpellLanguageService.codeLens()`
+    connection.onCodeLensResolve((lens) =>
+      this.answer((lens.data as { uri: string }).uri, lens, (file) => service.resolveCodeLens(file, lens))
     )
 
     connection.onRequest("spell/compiled", ({ uri }: { uri: string }) =>

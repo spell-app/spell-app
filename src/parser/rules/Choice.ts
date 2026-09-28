@@ -82,16 +82,28 @@ export class Choice<
     const CHOICE = `choice '${this.name || this.matchGroup}:'`
     if (DEBUG_CHOICES) console.group(`${CHOICE} start matching '${P.Tokenizer.join(tokens)}'`, this)
 
+    // In expecting mode (see `P.Expectations`):  out of tokens, we're what comes next.  Else note what each
+    // alternative records, so what only extends a complete alternative can be marked as such.
+    const expecting = P.Expectations.current
+    if (expecting && !tokens.length) expecting.expect(this)
+    // NOTE: only allocated when expecting:  `Choice.parse()` is too hot for an array per call
+    const alternatives: Array<{ from: number; to: number; complete: boolean }> | undefined = expecting ? [] : undefined
+
     // Try to match each rule in turn.
     // For efficiency, complicated rules (e.g. sequences or recursive rules)
     //  should exit quickly via their own `test()`, see `Sequence.parse()`.
     const matches: P.Match[] = []
     for (let i = 0, rule; (rule = this.rules[i++]);) {
       if (DEBUG_CHOICES) console.group("parsing rule", rule.name)
+      const from = expecting ? expecting.records.length : 0
       const match = rule.parse(scope, tokens)
       if (match) matches.push(match)
+      if (expecting) {
+        alternatives!.push({ from, to: expecting.records.length, complete: match?.length === tokens.length })
+      }
       if (DEBUG_CHOICES) console.groupEnd()
     }
+    if (expecting) expecting.endChoice(alternatives!)
 
     let match: P.Match | undefined = matches[0]
     if (DEBUG_CHOICES) {

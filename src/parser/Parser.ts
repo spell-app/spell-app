@@ -112,6 +112,26 @@ export class Parser extends Derivative {
   }
 
   /**
+   * What could come after `input`, a half-typed `ruleName`, e.g. `to` after `set x` -- for editor completion.
+   * - Parses `input` in expecting mode:  rules record what they were waiting for where they ran out of tokens.
+   *   See `P.Expectations` for what each kind of rule records, and `P.Expectation` for what you get back.
+   * - Nothing typed yet => `ruleName` itself.
+   * - Side-effect free:  parsing never changes scope, only `commit()` / `mutateScope()` do.
+   */
+  expectedAfter(
+    input: string | P.Token | P.Token[],
+    ruleName = this.defaultRule,
+    scope = this.getScope()
+  ): P.Expectation[] {
+    const tokens = this.tokenize(input, ruleName) ?? []
+    const rule = scope.getRuleOrDie(ruleName)
+    return P.Expectations.collect(() => {
+      if (tokens.length) rule.parse(scope, tokens)
+      else P.Expectations.current!.expect(rule)
+    })
+  }
+
+  /**
    * Lock in `match`, parsed on its own and being kept, e.g. by a rule unit test:  apply its scope changes.
    * - Default just calls `rule.mutateScope()`.  Languages override, e.g. `SpellParser` also commits
    *   inline statements -- see `SP.commitStatement()`.

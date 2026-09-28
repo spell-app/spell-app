@@ -119,6 +119,33 @@ export function matchAST<T extends P.ASTNode = P.ASTExpression>(match: P.Match |
   return match?.AST as T | undefined
 }
 
+// ## Expecting -- see `Expectations`
+
+/**
+ * Something a half-typed statement could go on with -- see `Parser.expectedAfter()`.
+ * - Recorded where a rule ran out of tokens:  what it was waiting for, and where that sits.
+ */
+export type Expectation = {
+  /** Rule that could come next, e.g. a `Literal`, a `Subrule` (`{type}`), a `Choice`, a `Repeat`. */
+  rule: P.Rule
+  /** `Sequence` it's a child of, if any -- e.g. for the REST of a method's syntax, or which argument is next. */
+  sequence?: P.Sequence
+  /** Its index in `sequence.rules`. */
+  index?: number
+  /** How many `Sequence`s deep, `0` for the rule parsed:  shallower ~== more relevant. */
+  depth: number
+  /**
+   * Only EXTENDS something already complete, e.g. an operator after `x`, which is a whole expression already.
+   * - NOT what the statement still needs, e.g. `to` after `set x`.
+   */
+  continues: boolean
+  /**
+   * NOT what comes next:  the tokens ran out partway THROUGH `rule`, e.g. an argument of a method call being
+   * typed.  For signature help -- completion skips these.
+   */
+  within: boolean
+}
+
 // ## Errors
 
 /** Error we'll throw when setting up / executing parser. */

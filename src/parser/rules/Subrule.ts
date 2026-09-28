@@ -24,12 +24,23 @@ export class Subrule<
     return scope.getRuleOrDie(this.rule).test(scope, tokens, start)
   }
 
-  /** Look up `this.rule` in `scope` and delegate parsing to it. */
+  /**
+   * Look up `this.rule` in `scope` and delegate parsing to it.
+   * - In expecting mode (see `P.Expectations`):
+   *   - out of tokens, we're what comes next
+   *   - each rule parses once per place -- see `P.Expectations.memoized()`
+   */
   parse(scope: P.Scope, tokens: P.Token[]) {
-    if (!tokens.length) return undefined
+    if (!tokens.length) {
+      P.Expectations.current?.expect(this)
+      return undefined
+    }
     const rule = scope.getRuleOrDie(this.rule)
 
-    const match = rule.parse(scope, tokens)
+    const expecting = P.Expectations.current
+    const match = expecting
+      ? expecting.memoized(this.rule, scope, tokens, () => rule.parse(scope, tokens))
+      : rule.parse(scope, tokens)
     if (!match) return undefined
     if (this.matchGroup) match.matchGroup = this.matchGroup
     return match

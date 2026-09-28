@@ -5,9 +5,9 @@ import { view } from "~/util"
 import { editor } from "~/app/editor"
 
 import { UI } from "~/app/ui"
-import { MonacoEditor, SpellMonaco } from "~/app/ui/monaco"
 import { Actions } from "./Actions"
 import { ErrorHandler, type ErrorHandlerState, type ErrorHandlerWrapperProps } from "./ErrorHandler"
+import { LazyMonaco } from "./LazyMonaco"
 
 import "./InputEditor.less"
 
@@ -83,7 +83,7 @@ export class InputEditor extends ErrorHandler<InputEditorProps> {
   }
 
   /**
-   * `<MonacoEditor>` showing `editor.file`'s model -- see `SpellModels`, which keeps it and the file in step.
+   * `<FileEditor>` on `editor.file` -- Monaco, loaded on first use (see `LazyMonaco`).
    * - A fresh editor per file (`key`).
    * - `editor.onInputDidMount()` wires save/reload/compile keys, and cursor/scroll events back into `editor`.
    */
@@ -97,13 +97,14 @@ export class InputEditor extends ErrorHandler<InputEditorProps> {
       editor.onInputEffect()
     })
     return (
-      <MonacoEditor
-        key={file?.path || "loading"}
-        model={file && SpellMonaco.models.modelFor(file)}
-        value={file ? undefined : "Loading"}
-        onMount={editor.onInputDidMount}
-        onUnmount={editor.onInputWillUnmount}
-      />
+      <React.Suspense fallback={<LazyMonaco.Loading />}>
+        <LazyMonaco.FileEditor
+          key={file?.path || "loading"}
+          file={file}
+          onMount={editor.onInputDidMount}
+          onUnmount={editor.onInputWillUnmount}
+        />
+      </React.Suspense>
     )
   })
 
@@ -123,14 +124,16 @@ export class InputEditor extends ErrorHandler<InputEditorProps> {
     })
 
     return (
-      <MonacoEditor
-        key="error"
-        value={file?.contents ?? "Loading"}
-        language="plaintext"
-        onMount={editor.onInputDidMount}
-        onUnmount={editor.onInputWillUnmount}
-        onChange={editor.onInputChanged}
-      />
+      <React.Suspense fallback={<LazyMonaco.Loading />}>
+        <LazyMonaco.MonacoEditor
+          key="error"
+          value={file?.contents ?? "Loading"}
+          language="plaintext"
+          onMount={editor.onInputDidMount}
+          onUnmount={editor.onInputWillUnmount}
+          onChange={editor.onInputChanged}
+        />
+      </React.Suspense>
     )
   })
 }

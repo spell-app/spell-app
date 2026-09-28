@@ -78,6 +78,52 @@ describe("LspToMonaco", () => {
     expect(steps.map((step) => step.range)).toEqual([LspToMonaco.range(range), LspToMonaco.range(outer)])
   })
 
+  test("signature help:  parameters stay offsets into the label, docs become markdown", () => {
+    const help = LspToMonaco.signatureHelp({
+      signatures: [
+        {
+          label: "move (a card) to (a pile)",
+          documentation: "Move it",
+          parameters: [{ label: [5, 13] }, { label: [17, 25] }]
+        }
+      ],
+      activeSignature: 0,
+      activeParameter: 1
+    })
+    expect(help.activeParameter).toBe(1)
+    expect(help.signatures[0]!.parameters.map(({ label }) => label)).toEqual([
+      [5, 13],
+      [17, 25]
+    ])
+    expect(help.signatures[0]!.documentation).toEqual({ value: "Move it" })
+  })
+
+  test("code action:  its edit, and the diagnostics it fixes as markers", () => {
+    const action = LspToMonaco.codeAction({
+      title: "Define `to juggle (a deck)`",
+      kind: "quickfix",
+      isPreferred: true,
+      diagnostics: [{ range, message: "Don't understand", severity: DiagnosticSeverity.Error }],
+      edit: { changes: { "file:///x.spell": [{ range, newText: "to juggle (a deck):\n" }] } }
+    })
+    expect(action).toMatchObject({ title: "Define `to juggle (a deck)`", kind: "quickfix", isPreferred: true })
+    expect(action.diagnostics![0]!.severity).toBe(MarkerSeverity.Error)
+    expect((action.edit!.edits[0] as { textEdit: { text: string } }).textEdit.text).toBe("to juggle (a deck):\n")
+  })
+
+  test("semantic tokens:  all of them, or edits to a previous result, as typed arrays", () => {
+    const full = LspToMonaco.semanticTokens({ resultId: "1", data: [0, 0, 3, 1, 0] })
+    expect(full).toEqual({ resultId: "1", data: Uint32Array.from([0, 0, 3, 1, 0]) })
+    const delta = LspToMonaco.semanticTokens({
+      resultId: "2",
+      edits: [{ start: 5, deleteCount: 0, data: [1, 0, 2, 3, 0] }]
+    })
+    expect(delta).toEqual({
+      resultId: "2",
+      edits: [{ start: 5, deleteCount: 0, data: Uint32Array.from([1, 0, 2, 3, 0]) }]
+    })
+  })
+
   describe("on real answers, for Solitaire", () => {
     const deckPath = resolve(environment.srcDir, "examples/Solitaire/Deck.spell")
     const deckUri = pathToFileURL(deckPath).href

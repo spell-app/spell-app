@@ -3,7 +3,16 @@ import { cpSync, mkdtempSync, readFileSync } from "fs"
 import { tmpdir } from "os"
 import { resolve } from "path"
 import { pathToFileURL } from "url"
-import type { DocumentSymbol, Position, Range, SelectionRange, SemanticTokens, TextEdit } from "vscode-languageserver"
+import {
+  CompletionItemKind,
+  type CompletionItem,
+  type DocumentSymbol,
+  type Position,
+  type Range,
+  type SelectionRange,
+  type SemanticTokens,
+  type TextEdit
+} from "vscode-languageserver"
 
 import environment from "~/environment"
 import { SP } from "~/languages/spell"
@@ -265,6 +274,20 @@ describe("SpellLanguageService", () => {
     expect(hover(card, at(card, 60, "turn"))).toContain("compiles to `turn_face_up()`")
   })
 
+  /**
+   * Type `line` as a new last line of Solitaire.spell, then `check` at its end -- and put the file back.
+   */
+  async function typedAtEnd(line: string, check: (position: Position) => void) {
+    const original = solitaire.contents!
+    const text = `${original.trimEnd()}\n${line}`
+    try {
+      await workspace.update(solitaireUri, text)
+      check({ line: text.split("\n").length - 1, character: line.length })
+    } finally {
+      await workspace.update(solitaireUri, original)
+    }
+  }
+
   describe("completion", () => {
     test("at the start of a statement:  names, statement starts, and the project's methods", () => {
       const labels = service.completion(solitaire, { line: 54, character: 0 }).map(({ label }) => label)
@@ -291,10 +314,187 @@ describe("SpellLanguageService", () => {
       expect(item).toMatchObject({ insertText: "move ${1:card} to ${2:pile}", insertTextFormat: 2 })
     })
 
+    describe("what can come next, typed at the end of Solitaire.spell", () => {
+      /** Completions at the end of `line`, typed as a new last line of Solitaire.spell. */
+      async function typed(line: string, check: (items: CompletionItem[]) => void) {
+        await typedAtEnd(line, (position) => check(service.completion(solitaire, position)))
+      }
+      const labels = (items: CompletionItem[]) => items.map(({ label }) => label)
+
+      test("`set y ` => `to`", async () => {
+        await typed("set y ", (items) => expect(labels(items)).toContain("to"))
+      })
+
+      test("...and it's what the word being typed filters", async () => {
+        await typed("set y t", (items) => expect(labels(items)).toContain("to"))
+      })
+
+      test("`a thingy is a ` => types, and ONLY types", async () => {
+        await typed("a thingy is a ", (items) => {
+          expect(labels(items)).toEqual(expect.arrayContaining(["card", "deck", "pile"]))
+          expect(items.every(({ kind }) => kind === CompletionItemKind.Class)).toBe(true)
+        })
+      })
+
+      test("`if stock ` => `then`, but NO operators;  `if stock a` => `and`", async () => {
+        await typed("if stock ", (items) => {
+          expect(labels(items)).toContain("then")
+          expect(labels(items)).not.toContain("and")
+          expect(labels(items)).not.toContain("is")
+        })
+        await typed("if stock a", (items) => expect(labels(items)).toContain("and"))
+      })
+
+      test("partway through a call to a method => the rest of it, as a snippet", async () => {
+        await typed("move the top card of stock ", (items) => {
+          const rest = items.find(({ detail }) => detail === "move (a card) to (a pile)")
+          expect(rest).toMatchObject({ label: "to (pile)", insertText: "to ${1:pile}", insertTextFormat: 2 })
+        })
+      })
+
+      test("what the statement needs comes before what's deeper", async () => {
+        await typed("set y ", (items) => {
+          const sorted = [...items].sort((a, b) => a.sortText!.localeCompare(b.sortText!))
+          expect(sorted[0]!.label).toBe("to")
+        })
+      })
+    })
+
+    describe("signature help, typed at the end of Solitaire.spell", () => {
+      /** Signature help at the end of `line`:  its label, and the active parameter's text. */
+      async function help(line: string, check: (help: { label?: string; active?: string } | null) => void) {
+        await typedAtEnd(line, (position) => {
+          const result = service.signatureHelp(solitaire, position)
+          const signature = result?.signatures[0]
+          const range = signature?.parameters?.[result!.activeParameter!]?.label as [number, number] | undefined
+          check(result && { label: signature?.label, active: range && signature!.label.slice(...range) })
+        })
+      }
+
+      test("after the method's first word => its first argument", async () => {
+        await help("move ", (result) =>
+          expect(result).toEqual({ label: "move (a card) to (a pile)", active: "(a card)" })
+        )
+      })
+
+      test("while typing an argument => that argument", async () => {
+        await help("move the top card of", (result) => expect(result?.active).toBe("(a card)"))
+      })
+
+      test("after an argument, before the next word => the NEXT argument", async () => {
+        await help("move the top card of stock ", (result) => expect(result?.active).toBe("(a pile)"))
+        await help("move the top card of stock to ", (result) => expect(result?.active).toBe("(a pile)"))
+      })
+
+      test("not in a method call => nothing", async () => {
+        await help("set y ", (result) => expect(result).toBeNull())
+      })
+    })
+
     test("mid-statement:  names, but no statement starts", () => {
       const labels = service.completion(solitaire, at(solitaire, 87, "the bottom")).map(({ label }) => label)
       expect(labels).toEqual(expect.arrayContaining(["game", "stock", "card"]))
       expect(labels).not.toContain("to")
+    })
+  })
+
+  describe("code lens", () => {
+    test("one per type and method declared, on its name -- unresolved until asked", () => {
+      const lenses = service.codeLens(card)
+      const names = lenses.map(({ range }) =>
+        card.parseText.split("\n")[range.start.line]!.slice(range.start.character, range.end.character)
+      )
+      expect(names).toEqual(expect.arrayContaining(["card", "turn (a card) face up"]))
+      expect(lenses.every(({ command }) => command === undefined)).toBe(true)
+    })
+
+    test("resolved:  how many references, which show them when clicked", () => {
+      const [lens] = service.codeLens(card).filter(({ range }) => range.start.line === at(card, 2, "card").line)
+      const { command } = service.resolveCodeLens(card, lens!)
+      expect(command!.title).toMatch(/^\d+ references$/)
+      expect(command!.command).toBe(LSP.SpellLanguageService.SHOW_REFERENCES)
+      const [uri, , locations] = command!.arguments as [string, Position, unknown[]]
+      expect(uri).toBe(cardUri)
+      expect(locations.length).toBe(Number(command!.title.split(" ")[0]))
+    })
+  })
+
+  describe("semantic tokens delta", () => {
+    test("nothing changed => no edits;  a change => edits, not every token again", async () => {
+      const full = service.semanticTokens(card)
+      const same = service.semanticTokensDelta(card, full.resultId!)
+      expect(same).toMatchObject({ edits: [] })
+
+      const original = card.contents!
+      try {
+        await workspace.update(cardUri, `${original.trimEnd()}\nprint 1`)
+        const changed = service.semanticTokensDelta(card, (same as { resultId: string }).resultId)
+        expect("edits" in changed && changed.edits.length).toBeGreaterThan(0)
+        const sent = (changed as { edits: Array<{ data?: number[] }> }).edits.flatMap(({ data = [] }) => data).length
+        expect(sent).toBeLessThan(full.data.length)
+      } finally {
+        await workspace.update(cardUri, original)
+      }
+    })
+
+    test("an unknown previous result => all the tokens", () => {
+      expect(service.semanticTokensDelta(card, "nope")).toHaveProperty("data")
+    })
+  })
+
+  describe("code actions", () => {
+    /** Quick fixes for the last line of Solitaire.spell, typed as `line`, and the text with the first applied. */
+    async function fixes(line: string, check: (titles: string[], fixed: string | undefined) => Promise<void> | void) {
+      const original = solitaire.contents!
+      const text = `${original.trimEnd()}\n${line}`
+      try {
+        await workspace.update(solitaireUri, text)
+        const last = text.split("\n").length - 1
+        const range = { start: { line: last, character: 0 }, end: { line: last, character: line.length } }
+        const actions = service.codeActions(solitaire, range)
+        const edits = actions[0]?.edit?.changes?.[solitaireUri]
+        await check(
+          actions.map(({ title }) => title),
+          edits && applyEdits(text, edits)
+        )
+      } finally {
+        await workspace.update(solitaireUri, original)
+      }
+    }
+
+    test("a line that didn't parse => define a method it would call, its expressions as parameters", async () => {
+      await fixes("juggle the deck 3 times", (titles) => {
+        expect(titles).toEqual(["Define `to juggle (a deck) (number) times`"])
+      })
+    })
+
+    test("...which goes above the line's top-level statement, and makes the line parse", async () => {
+      await fixes("juggle the deck 3 times", async (_titles, fixed) => {
+        expect(fixed).toMatch(/\nto juggle \(a deck\) \(number\) times:\n\t\/\/ TODO\n\njuggle the deck 3 times$/)
+        await workspace.update(solitaireUri, fixed!)
+        expect(service.diagnostics(solitaire)).toEqual([])
+      })
+    })
+
+    test("a statement that parsed, with words left over => the statement AND its leftovers", async () => {
+      // `shuffle the deck` is the built-in `shuffle {list}`, leaving `3 times`
+      await fixes("shuffle the deck 3 times", async (titles, fixed) => {
+        expect(titles).toEqual(["Define `to shuffle (a deck) (number) times`"])
+        await workspace.update(solitaireUri, fixed!)
+        expect(service.diagnostics(solitaire)).toEqual([])
+      })
+    })
+
+    test("...an inline body's statement too, NOT the line's", async () => {
+      await fixes("if stock: shuffle the deck 3 times", async (titles, fixed) => {
+        expect(titles).toEqual(["Define `to shuffle (a deck) (number) times`"])
+        await workspace.update(solitaireUri, fixed!)
+        expect(service.diagnostics(solitaire)).toEqual([])
+      })
+    })
+
+    test("NOT for a line that's just unfinished", async () => {
+      await fixes("set y to", (titles) => expect(titles).toEqual([]))
     })
   })
 

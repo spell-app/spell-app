@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "yarn && yarn stop && concurrently \"yarn start:dev\" \"yarn start:server\"",
-    "stop": "pkill -f \"$PROJECT_CWD/node_modules/(concurrently/|vite/|tsx/|\\.bin/tsx)\"; echo \"Stopped spell servers\"",
+    "stop": "node scripts/stop.mjs",
     "start:dev": "vite",
     "start:server": "tsx watch src/server/index.ts",
     "start:server:prod": "tsx src/server/index.ts",

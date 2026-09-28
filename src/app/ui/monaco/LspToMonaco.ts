@@ -2,6 +2,7 @@ import {
   CompletionItemKind as LspCompletionItemKind,
   DiagnosticSeverity,
   InsertTextFormat,
+  type CodeAction,
   type CompletionItem,
   type Diagnostic,
   type DocumentHighlight,
@@ -14,6 +15,9 @@ import {
   type Position,
   type Range,
   type SelectionRange,
+  type SemanticTokens,
+  type SemanticTokensDelta,
+  type SignatureHelp,
   type TextEdit,
   type WorkspaceEdit
 } from "vscode-languageserver"
@@ -145,6 +149,58 @@ export class LspToMonaco {
       ranges.push({ range: LspToMonaco.range(step.range) })
     }
     return ranges
+  }
+
+  /** Monaco signature help for LSP `help`:  parameter labels as `[start, end]` offsets into the signature stay as they are. */
+  static signatureHelp({
+    signatures,
+    activeSignature,
+    activeParameter
+  }: SignatureHelp): monaco.languages.SignatureHelp {
+    return {
+      signatures: signatures.map(({ label, documentation, parameters = [] }) => ({
+        label,
+        documentation: documentation === undefined ? undefined : LspToMonaco.markdown(documentation),
+        parameters: parameters.map((parameter) => ({
+          label: parameter.label,
+          documentation:
+            parameter.documentation === undefined ? undefined : LspToMonaco.markdown(parameter.documentation)
+        }))
+      })),
+      activeSignature: activeSignature ?? 0,
+      activeParameter: activeParameter ?? 0
+    }
+  }
+
+  /** Monaco code action for LSP `action`, e.g. a quick fix:  its edit, and the diagnostics it fixes as markers. */
+  static codeAction({ title, kind, diagnostics, edit, isPreferred }: CodeAction): monaco.languages.CodeAction {
+    return {
+      title,
+      kind,
+      isPreferred,
+      diagnostics: diagnostics?.map((diagnostic) => LspToMonaco.marker(diagnostic)),
+      edit: edit && LspToMonaco.workspaceEdit(edit)
+    }
+  }
+
+  /**
+   * Monaco semantic tokens for LSP `tokens` -- all of them, or edits to an earlier result (a delta).
+   * - Same encoding either way:  just typed arrays, and `resultId` kept for the next delta.
+   */
+  static semanticTokens(
+    tokens: SemanticTokens | SemanticTokensDelta
+  ): monaco.languages.SemanticTokens | monaco.languages.SemanticTokensEdits {
+    if ("edits" in tokens) {
+      return {
+        resultId: tokens.resultId,
+        edits: tokens.edits.map(({ start, deleteCount, data }) => ({
+          start,
+          deleteCount,
+          data: data && Uint32Array.from(data)
+        }))
+      }
+    }
+    return { resultId: tokens.resultId, data: Uint32Array.from(tokens.data) }
   }
 
   /** Monaco text edit for LSP `edit`. */

@@ -8,7 +8,7 @@ import { P } from "~/parser"
 import { spellCore } from "~/spellCore"
 import { SP } from "~/languages/spell"
 import type * as UIT from "~/app/ui/ui.types"
-import { monaco, AppAddresses, SpellMonaco } from "~/app/ui/monaco"
+import type { monaco } from "~/app/ui/monaco"
 // NOTE: import `Modals` directly rather than through `UI` barrel to avoid circular import.
 import * as Modals from "~/app/ui/modals"
 
@@ -540,13 +540,15 @@ const EDITOR_DEFAULTS = {
     return inputEditorInstance
   },
   /**
-   * Remember `inputEditor` in our `<InputEditor onMount />` event.
+   * Remember `inputEditor`, showing `editor.file`, in our `<InputEditor onMount />` event.
+   * - `api` is Monaco itself, handed over as Monaco is loaded lazily -- see `UI.LazyMonaco`.
    * - SIDE EFFECT:  adds our save / reload / compile keys, and follows its cursor + scrolling into `selection`.
    *   Monaco disposes of both with the editor.
    */
-  onInputDidMount(inputEditor: monaco.editor.IStandaloneCodeEditor): void {
+  onInputDidMount(inputEditor: monaco.editor.IStandaloneCodeEditor, api: typeof monaco): void {
     inputEditorInstance = inputEditor
-    const { KeyMod, KeyCode } = monaco
+    inputEditorPath = editor.file?.path
+    const { KeyMod, KeyCode } = api
     inputEditor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyS, () => void editor.saveFile())
     inputEditor.addCommand(KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyR, () => void editor.reloadFile())
     inputEditor.addCommand(KeyMod.CtrlCmd | KeyCode.Enter, () => void editor.compileApp())
@@ -578,7 +580,7 @@ const EDITOR_DEFAULTS = {
     const { initialSelection } = file || {}
     if (!inputEditor || !model || !file?.isLoaded || !initialSelection) return
     // still showing the last file:  the new one's editor will do it when it mounts
-    if (AppAddresses.pathOf(model.uri) !== file.path) return
+    if (inputEditorPath !== file.path) return
     delete file.initialSelection
 
     const { scroll, anchor, head } = initialSelection
@@ -586,9 +588,14 @@ const EDITOR_DEFAULTS = {
     if (anchor && head) {
       const start = positionIn(model, anchor)
       const end = positionIn(model, head)
-      const selection = new monaco.Selection(start.lineNumber, start.column, end.lineNumber, end.column)
+      const selection = {
+        selectionStartLineNumber: start.lineNumber,
+        selectionStartColumn: start.column,
+        positionLineNumber: end.lineNumber,
+        positionColumn: end.column
+      }
       inputEditor.setSelection(selection)
-      inputEditor.revealRangeInCenterIfOutsideViewport(selection)
+      inputEditor.revealRangeInCenterIfOutsideViewport(inputEditor.getSelection()!)
     }
     inputEditor.focus()
 
@@ -676,17 +683,13 @@ const EDITOR_DEFAULTS = {
 /** Type of the `editor` singleton, derived from `EDITOR_DEFAULTS` above. */
 export type EditorStore = typeof EDITOR_DEFAULTS
 
-/** The `editor` singleton -- a reactive proxy over `EDITOR_DEFAULTS`. */
 /** Monaco editor of our `<InputEditor>`, if one's mounted -- OUTSIDE the store, see `editor.getInputEditor()`. */
 let inputEditorInstance: monaco.editor.IStandaloneCodeEditor | undefined
+/** Path of the file `inputEditorInstance` shows. */
+let inputEditorPath: string | undefined
 
+/** The `editor` singleton -- a reactive proxy over `EDITOR_DEFAULTS`. */
 export const editor: EditorStore = createStore(EDITOR_DEFAULTS)
-
-// The Monaco editor tells us about edits, and asks us to show other files.
-SpellMonaco.hooks = {
-  onEdit: (file) => editor.onFileEdited(file),
-  open: (path, selection) => void editor.showFileAt(path, selection)
-}
 
 ////////////////
 // ## Supporting types

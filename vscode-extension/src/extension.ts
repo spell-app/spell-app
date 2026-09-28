@@ -11,8 +11,11 @@ import {
   LanguageClient,
   TransportKind,
   type LanguageClientOptions,
+  type Location,
+  type Position,
   type ServerOptions
 } from "vscode-languageclient/node"
+
 
 /** Scheme of the read-only documents showing a spell file's compiled javascript -- see `CompiledProvider`. */
 const COMPILED_SCHEME = "spell-compiled"
@@ -57,7 +60,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     client,
     vscode.workspace.registerTextDocumentContentProvider(COMPILED_SCHEME, compiled),
     vscode.workspace.onDidChangeTextDocument(({ document }) => compiled.sourceChanged(document.uri)),
-    vscode.commands.registerCommand("spell.showCompiled", () => showCompiled())
+    vscode.commands.registerCommand("spell.showCompiled", () => showCompiled()),
+    vscode.commands.registerCommand("spell.showReferences", showReferences)
   )
   await client.start()
 }
@@ -74,6 +78,21 @@ export function deactivate(): Promise<void> | undefined {
 function getParserRoot(): string {
   const configured = vscode.workspace.getConfiguration("spell").get<string>("parserRoot")
   return configured ? resolve(configured) : PARSER_ROOT
+}
+
+/**
+ * Show `locations` in VS Code's references peek, at `position` in `uri` -- what the server's "N references"
+ * code lenses run (`SpellLanguageService.SHOW_REFERENCES`).
+ * - Arguments come over the protocol as plain JSON:  VS Code's own command wants its own `Uri` / `Position` / `Location`.
+ */
+async function showReferences(uri: string, position: Position, locations: Location[]): Promise<void> {
+  const { protocol2CodeConverter: convert } = client!
+  await vscode.commands.executeCommand(
+    "editor.action.showReferences",
+    vscode.Uri.parse(uri),
+    convert.asPosition(position),
+    locations.map((location) => convert.asLocation(location))
+  )
 }
 
 /** Open the active spell file's compiled javascript beside it, read-only. */

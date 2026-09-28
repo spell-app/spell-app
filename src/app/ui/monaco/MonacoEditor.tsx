@@ -49,7 +49,7 @@ export function MonacoEditor({
       if (!isApplyingValue.current) latestOnChange.current?.(editor.getValue())
     })
     setInstance(editor)
-    onMount?.(editor)
+    onMount?.(editor, monaco)
     return () => {
       onUnmount?.(editor)
       listener.dispose()
@@ -97,8 +97,8 @@ export type MonacoEditorProps = {
   options?: monaco.editor.IStandaloneEditorConstructionOptions
   /** Called with the editor's whole text after each edit the USER makes. */
   onChange?: (value: string) => void
-  /** Called with the editor once it's made. */
-  onMount?: (editor: monaco.editor.IStandaloneCodeEditor) => void
+  /** Called with the editor once it's made -- and Monaco itself, as it's loaded lazily (see `UI.LazyMonaco`). */
+  onMount?: (editor: monaco.editor.IStandaloneCodeEditor, api: typeof monaco) => void
   /** Called with the editor just before it's disposed of. */
   onUnmount?: (editor: monaco.editor.IStandaloneCodeEditor) => void
 }

@@ -1,3 +1,5 @@
+import type { CodeLens, Location, Position } from "vscode-languageserver"
+
 import type { SP } from "~/languages/spell"
 import { LSP } from "~/lsp"
 import type * as UIT from "~/app/ui/ui.types"
@@ -9,7 +11,8 @@ import type { SpellModels } from "./SpellModels"
 /**
  * Monaco's language features for spell, answered IN-PROCESS by `LSP.SpellLanguageService` --
  * the same service the VS Code extension talks to over the Language Server Protocol.
- * - Hover, completion, definition / type definition, references, highlights, rename, outline,
+ * - Hover, completion, signature help, quick fixes, "N references" code lenses, definition / type definition,
+ *   references, highlights, rename, outline,
  *   folding, expand selection, formatting and semantic colouring.
  * - Answers from each file's current parse, kept up to date by `SpellModels` + `project.updateText()`.
  *   Asks nothing of a model whose file hasn't parsed, or whose text isn't its file's.
@@ -18,6 +21,8 @@ import type { SpellModels } from "./SpellModels"
  */
 export class SpellLanguageFeatures {
   declare service: LSP.SpellLanguageService
+  /** The service's code lens behind each of ours, until it's resolved -- see `codeLenses()`. */
+  #lspLenses = new WeakMap<monaco.languages.CodeLens, CodeLens>()
   declare addresses: AppAddresses
   declare models: SpellModels
   /** Show the file at `path`, selecting `selection` -- e.g. `editor.selectPath()`. */
@@ -30,13 +35,22 @@ export class SpellLanguageFeatures {
   /** Register everything with Monaco for `language`.  Returns what unregisters it all. */
   register(language: string): monaco.IDisposable[] {
     const { languages, editor } = monaco
+    const lensesChanged = new monaco.Emitter<monaco.languages.CodeLensProvider>()
+    const lenses: monaco.languages.CodeLensProvider = {
+      onDidChange: lensesChanged.event,
+      provideCodeLenses: (model) => this.codeLenses(model),
+      resolveCodeLens: (model, lens) => this.resolveCodeLens(model, lens)
+    }
     return [
       languages.registerDocumentSemanticTokensProvider(language, {
         onDidChange: this.models.onDidParse,
         getLegend: () => LSP.SpellLanguageService.TOKEN_LEGEND,
-        provideDocumentSemanticTokens: (model) => this.semanticTokens(model),
+        provideDocumentSemanticTokens: (model, lastResultId) => this.semanticTokens(model, lastResultId),
         releaseDocumentSemanticTokens: () => {}
       }),
+      languages.registerCodeLensProvider(language, lenses),
+      // lenses move as the parse does -- Monaco wants the provider itself with the change
+      this.models.onDidParse(() => lensesChanged.fire(lenses)),
       languages.registerHoverProvider(language, {
         provideHover: (model, position) => this.hover(model, position)
       }),
@@ -44,6 +58,16 @@ export class SpellLanguageFeatures {
         triggerCharacters: [" "],
         provideCompletionItems: (model, position) => this.completion(model, position)
       }),
+      languages.registerSignatureHelpProvider(language, {
+        signatureHelpTriggerCharacters: [" "],
+        signatureHelpRetriggerCharacters: [" "],
+        provideSignatureHelp: (model, position) => this.signatureHelp(model, position)
+      }),
+      languages.registerCodeActionProvider(
+        language,
+        { provideCodeActions: (model, range) => this.codeActions(model, range) },
+        { providedCodeActionKinds: ["quickfix"] }
+      ),
       languages.registerDefinitionProvider(language, {
         provideDefinition: (model, position) => this.locations(model, position, "definition")
       }),
@@ -98,10 +122,59 @@ export class SpellLanguageFeatures {
   }
 
   /** Semantic colouring of `model`, from its parse. */
-  private semanticTokens(model: monaco.editor.ITextModel): monaco.languages.SemanticTokens | null {
+  /**
+   * Semantic colouring of `model`, from its parse -- as edits to `lastResultId`, what we sent last, if we can.
+   */
+  private semanticTokens(
+    model: monaco.editor.ITextModel,
+    lastResultId: string | null
+  ): monaco.languages.SemanticTokens | monaco.languages.SemanticTokensEdits | null {
     const file = this.fileOf(model)
     if (!file) return null
-    return { data: Uint32Array.from(this.service.semanticTokens(file).data) }
+    const tokens = lastResultId
+      ? this.service.semanticTokensDelta(file, lastResultId)
+      : this.service.semanticTokens(file)
+    return LspToMonaco.semanticTokens(tokens)
+  }
+
+  /** "N references" lenses above each type and method `model` declares -- counted in `resolveCodeLens()`. */
+  private codeLenses(model: monaco.editor.ITextModel): monaco.languages.CodeLensList {
+    const file = this.fileOf(model)
+    const lenses = file ? this.service.codeLens(file) : []
+    return {
+      lenses: lenses.map((lens) => {
+        const monacoLens = { range: LspToMonaco.range(lens.range) }
+        this.#lspLenses.set(monacoLens, lens)
+        return monacoLens
+      }),
+      dispose() {}
+    }
+  }
+
+  /**
+   * `lens`, counted:  "3 references", showing them in Monaco's own references peek when clicked.
+   * - The service's `SHOW_REFERENCES` command is the editor's to define:  here it's Monaco's
+   *   `editor.action.showReferences`, given Monaco's own URI, position and locations.
+   */
+  private resolveCodeLens(model: monaco.editor.ITextModel, lens: monaco.languages.CodeLens): monaco.languages.CodeLens {
+    const file = this.fileOf(model)
+    const lspLens = this.#lspLenses.get(lens)
+    if (!file || !lspLens) return lens
+    const { command } = this.service.resolveCodeLens(file, lspLens)
+    if (!command) return lens
+    const [uri, position, locations] = command.arguments as [string, Position, Location[]]
+    return {
+      ...lens,
+      command: {
+        id: "editor.action.showReferences",
+        title: command.title,
+        arguments: [
+          monaco.Uri.parse(uri),
+          LspToMonaco.position(position),
+          locations.map((location) => LspToMonaco.location(location))
+        ]
+      }
+    }
   }
 
   /** Hover at `position`, e.g. what a word is and its docstring. */
@@ -124,6 +197,23 @@ export class SpellLanguageFeatures {
     }
     const items = this.service.completion(file, LspToMonaco.lspPosition(position))
     return { suggestions: items.map((item) => LspToMonaco.completion(item, range)) }
+  }
+
+  /** The method call being typed at `position`, with the argument being typed highlighted. */
+  private signatureHelp(
+    model: monaco.editor.ITextModel,
+    position: monaco.Position
+  ): monaco.languages.SignatureHelpResult | null {
+    const file = this.fileOf(model)
+    const help = file && this.service.signatureHelp(file, LspToMonaco.lspPosition(position))
+    return help ? { value: LspToMonaco.signatureHelp(help), dispose() {} } : null
+  }
+
+  /** Quick fixes for `range`, e.g. "Define `to <phrase>`" on a line that didn't parse. */
+  private codeActions(model: monaco.editor.ITextModel, range: monaco.Range): monaco.languages.CodeActionList {
+    const file = this.fileOf(model)
+    const actions = file ? this.service.codeActions(file, LspToMonaco.lspRange(range)) : []
+    return { actions: actions.map((action) => LspToMonaco.codeAction(action)), dispose() {} }
   }
 
   /** Locations the service's `method` finds for the thing at `position`, e.g. its `definition`. */

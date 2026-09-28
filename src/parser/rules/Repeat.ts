@@ -53,7 +53,10 @@ export class Repeat<
     let length = 0
 
     let remainingTokens = tokens
+    // what we'd look for next:  another item, or a delimiter before it
+    let next = this.rule
     while (remainingTokens.length) {
+      next = this.rule
       const match = this.rule.parse(scope, remainingTokens)
       if (!match) break
       matched.push(match)
@@ -62,14 +65,19 @@ export class Repeat<
       remainingTokens = remainingTokens.slice(match.length)
 
       if (this.delimiter) {
+        next = this.delimiter
+        if (!remainingTokens.length) break
         // get delimiter, exiting if not found
         const delimiter = this.delimiter.parse(scope, remainingTokens)
         if (!delimiter) break
         matched.push(delimiter)
         length += delimiter.length
         remainingTokens = remainingTokens.slice(delimiter.length)
+        next = this.rule
       }
     }
+    // In expecting mode (see `P.Expectations`), out of tokens after an item:  more would only EXTEND us.
+    if (items.length && !remainingTokens.length) P.Expectations.current?.expect(next, undefined, undefined, true)
 
     // Forget it if nothing matched at all
     if (matched.length === 0) return undefined

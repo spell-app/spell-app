@@ -35,23 +35,44 @@ export class Sequence<
     }
   }
 
-  /** Match each rule in `this.rules` in order against `tokens`, bailing unless every non-optional rule matches. */
+  /**
+   * Match each rule in `this.rules` in order against `tokens`, bailing unless every non-optional rule matches.
+   * - In expecting mode (see `P.Expectations`):
+   *   - out of tokens before a child, records it -- and each optional one after it, up to the first we can't
+   *     do without
+   *   - failing on a child after one ran out of tokens INSIDE it, records that one as `within`:  we're partway
+   *     through it, e.g. an argument of a method call being typed -- for signature help
+   *   - children parse one level deeper
+   * - NOTE: HOT -- normal parsing reads `P.Expectations.current` once, and only after `test()` passes.
+   */
   parse(scope: P.Scope, tokens: P.Token[]) {
     if (this.test(scope, tokens) === false) return undefined
+    const expecting = P.Expectations.current
 
     const matched = []
     let length = 0
+    // expecting only:  index of the last child which ran out of tokens inside itself
+    let within = -1
 
     let remainingTokens = tokens
     for (let i = 0, rule; (rule = this.rules[i++]);) {
       // If we're out of tokens, bail if rule is not optional
       if (remainingTokens.length === 0) {
+        if (expecting) expecting.expect(rule, this, i - 1)
         if (rule.optional) continue
         return undefined
       }
-      const match = rule.parse(scope, remainingTokens)
+      let match: P.Match | undefined
+      if (expecting) {
+        const from = expecting.records.length
+        match = expecting.nested(() => rule.parse(scope, remainingTokens))
+        if (expecting.records.length > from) within = i - 1
+      } else {
+        match = rule.parse(scope, remainingTokens)
+      }
       if (!match) {
         if (rule.optional) continue
+        if (expecting && within >= 0) expecting.expect(this.rules[within]!, this, within, false, true)
         return undefined
       }
 
@@ -121,9 +142,12 @@ export class Sequence<
    * - Tracks EVERY place we could be up to, so never rejects a real match, e.g. `x is y is z if w`
    *   for `{thing} is {value} if {condition}` -- the `is` which works isn't the first one.
    * - NOTE: can still say `true` for a non-match, as it can't know where a subrule actually ends.
+   * - In expecting mode (see `P.Expectations`), running out of tokens is NOT a mismatch:  the rest may not be
+   *   typed yet.  Words that ARE there still have to fit.
    */
   test(scope: P.Scope, tokens: P.Token[], start = 0): boolean | undefined {
     if (start >= tokens.length) return false
+    allowRunOut = P.Expectations.current !== undefined
     return testPlacesAfterRules(this.rules, scope, tokens, [{ start, skipped: false }]).length > 0
   }
 }
@@ -146,6 +170,14 @@ export type SequenceProps = Prettify<
  * - `skipped` ~== ...or anywhere from there on, as we just skipped a subrule.
  */
 type TestPlace = { start: number; skipped: boolean }
+
+/**
+ * Expecting mode (see `P.Expectations`), for the walk under way:  a rule with no tokens left to test could
+ * still match, e.g. the rest isn't typed yet.  Set by `Sequence.test()`.
+ * - NOTE: a module flag, NOT an argument threaded through the helpers below:  `test()` is the hottest path
+ *   in parsing, and the argument alone cost ~2% of a whole parse.
+ */
+let allowRunOut = false
 
 /** Places we could be after testing `rules`, in order, starting from any of `places`.  Empty => no match. */
 function testPlacesAfterRules(rules: P.Rule[], scope: P.Scope, tokens: P.Token[], places: TestPlace[]): TestPlace[] {
@@ -174,6 +206,7 @@ function testPlacesAfterRule(rule: P.Rule, scope: P.Scope, tokens: P.Token[], pl
   } else {
     // Can't test cheaply, e.g. a subrule:  skip 1+ tokens.
     after = places.map(({ start }) => ({ start: start + 1, skipped: true }))
+    if (allowRunOut) after = runOutPlaces(places, after, tokens)
   }
   if (rule.optional) after = [...places, ...after]
   return pruneTestPlaces(after, tokens)
@@ -188,7 +221,16 @@ function testPlacesAfterToken(test: (index: number) => boolean, tokens: P.Token[
       if (test(index)) after.push({ start: index + 1, skipped: false })
     }
   }
-  return after
+  return allowRunOut ? runOutPlaces(places, after, tokens) : after
+}
+
+/**
+ * `allowRunOut` only:  `after`, plus the end of `tokens` if any of `places` is there already,
+ * or could be, after a skipped subrule -- what's next may not be typed yet.
+ */
+function runOutPlaces(places: TestPlace[], after: TestPlace[], tokens: P.Token[]): TestPlace[] {
+  if (!places.some(({ start, skipped }) => skipped || start >= tokens.length)) return after
+  return [...after, { start: tokens.length, skipped: false }]
 }
 
 /**

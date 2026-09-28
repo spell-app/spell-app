@@ -10,6 +10,8 @@ when working with code in this repository.
   its own yarn project (own `package.json` + `yarn.lock`), NOT a workspace of the repo's.  See "Language server" in `PARSING.md`.
 - `src/app/ui/monaco/` is the app's Monaco editor, whose language features call the SAME `LSP.SpellLanguageService`
   in-process.  `~/lsp` MUST stay browser-safe for it.
+  - Loaded LAZILY, through `UI.LazyMonaco`:  NEVER import `~/app/ui/monaco` statically outside its folder -- types
+    aside -- or Monaco (~4.4 MB) lands in the main bundle again.
 
 ## How parsing works
 

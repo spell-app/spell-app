@@ -1,6 +1,8 @@
+import React from "react"
+
 import { view } from "~/util"
 import { editor } from "~/app/editor"
-import { MonacoEditor } from "~/app/ui/monaco"
+import { LazyMonaco } from "./LazyMonaco"
 
 /****************
  * ### `<OutputEditor>`
@@ -10,5 +12,9 @@ import { MonacoEditor } from "~/app/ui/monaco"
 export const OutputEditor = view(function OutputEditor() {
   const { file } = editor
   const compiled = (file && "compiled" in file ? file.compiled : undefined) ?? ""
-  return <MonacoEditor value={compiled} language="javascript" options={{ readOnly: true }} />
+  return (
+    <React.Suspense fallback={<LazyMonaco.Loading />}>
+      <LazyMonaco.MonacoEditor value={compiled} language="javascript" options={{ readOnly: true }} />
+    </React.Suspense>
+  )
 })
