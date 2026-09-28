@@ -230,8 +230,12 @@ describe("rules defined as classes", () => {
         ["card", "Card"],
         ["suits", "Suits"]
       ]
-      class card_suits extends P.Keywords {}
-      rootScope.addRule(card_suits, { alias: "expression", literals })
+      // Statics may use the enclosing function's locals, e.g. `literals` -- the definition stays empty.
+      class card_suits extends P.Keywords {
+        @proto static alias = "expression"
+        @proto static literals = literals
+      }
+      rootScope.addRule(card_suits)
 
       // registered under BOTH its name and its alias -- the alias is what other rules reach it by
       expect(parser.rules.card_suits).toBeInstanceOf(card_suits)
@@ -241,13 +245,15 @@ describe("rules defined as classes", () => {
       // and the scope kept the class + definition, so the pair can be re-registered elsewhere
       const entry = rootScope.rules.get("card_suits")
       expect(entry?.rule).toBe(card_suits)
-      expect(entry?.definition).toEqual({ alias: "expression", literals })
+      expect(entry?.definition).toEqual({})
     })
 
     test("re-registering a recorded pair on another parser reproduces the rule", () => {
       const source = new P.RootScope({ parser: makeParser() })
-      class greeting extends P.Keyword {}
-      source.addRule(greeting, { alias: "expression", literal: "hi" })
+      class greeting extends P.Keyword {
+        @proto static alias = "expression"
+      }
+      source.addRule(greeting, { syntax: "hi" })
 
       const target = new P.RootScope({ parser: makeParser() })
       const entry = source.rules.get("greeting")!

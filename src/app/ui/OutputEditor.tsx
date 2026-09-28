@@ -1,19 +1,14 @@
 import { view } from "~/util"
 import { editor } from "~/app/editor"
-import { CodeMirror, outputOptions } from "./CodeMirror"
+import { MonacoEditor } from "~/app/ui/monaco"
 
 /****************
  * ### `<OutputEditor>`
- * Use CodeMirror to display `editor.file` output.
+ * Read-only Monaco showing `editor.file`'s compiled javascript.
  * NOTE: not currently used.
  ****************/
 export const OutputEditor = view(function OutputEditor() {
   const { file } = editor
   const compiled = (file && "compiled" in file ? file.compiled : undefined) ?? ""
-  // console.info("OutputEditor", { file, compiled })
-  return (
-    <div className="CodeMirrorContainer">
-      <CodeMirror value={compiled} options={outputOptions} onBeforeChange={() => {}} />
-    </div>
-  )
+  return <MonacoEditor value={compiled} language="javascript" options={{ readOnly: true }} />
 })

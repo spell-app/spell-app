@@ -7,9 +7,10 @@ import "./stdioGuard"
 
 const { createConnection, ProposedFeatures } = await import("vscode-languageserver/node")
 const { LSP } = await import("~/lsp")
+const { SpellDiskWorkspace } = await import("~/lsp/SpellDiskWorkspace")
 
 const connection = createConnection(ProposedFeatures.all)
 // `createConnection()` sends `console.*` to the editor's log.  Drop `info` / `debug`, which are parser chatter,
 // e.g. `TaskList` dumping every parse's results.
 console.info = console.debug = () => {}
-new LSP.SpellLanguageServer(connection).listen()
+new LSP.SpellLanguageServer(connection, new SpellDiskWorkspace()).listen()

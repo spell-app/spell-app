@@ -7,7 +7,7 @@
  * - `the_property_of_a_thing` / `a_things_property` are the two `type_property` spellings shared by
  *   `property_value_either` / `property_value_getter`.
  */
-import { NONE, upperFirst, pluralize, singularize } from "~/util"
+import { NONE, pluralize, proto, singularize, upperFirst } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
@@ -51,6 +51,10 @@ export const classes = new SpellParser({ module: "classes" })
  *   `export class Card extends Thing {}\nspellCore.addExport('Card', Card)`.
  */
 class create_type extends SpellStatement<"type|superType"> {
+  @proto static precedence = 10
+  @proto static alias = "statement"
+  @proto static declares: P.DeclaresSpec = { kind: "type", name: "type", detail: "superType" }
+
   mutateScope(match: P.MatchFor<this>) {
     const { type, superType } = match.groups
     // Forget it if type is already defined, unless it was only stubbed by an earlier mention.
@@ -79,10 +83,7 @@ class create_type extends SpellStatement<"type|superType"> {
   }
 }
 classes.addRule(create_type, {
-  precedence: 10,
-  alias: "statement",
   syntax: "(a|an) {type} is (a|an) {superType:type}",
-  declares: { kind: "type", name: "type", detail: "superType" },
   tests: [
     {
       compileAs: "statement",
@@ -109,6 +110,10 @@ classes.addRule(create_type, {
  *   `spellCore.define(Deck.prototype, 'instanceType', { value: Card })`.
  */
 class create_list_type extends SpellStatement<"type|instanceType"> {
+  @proto static precedence = 10
+  @proto static alias = "statement"
+  @proto static declares: P.DeclaresSpec = { kind: "type", name: "type", detail: "instanceType" }
+
   mutateScope(match: P.MatchFor<this>) {
     const { type } = match.groups
     // Forget it if type is already defined, unless it was only stubbed by an earlier mention.
@@ -143,14 +148,11 @@ class create_list_type extends SpellStatement<"type|instanceType"> {
   }
 }
 classes.addRule(create_list_type, {
-  precedence: 10,
-  alias: "statement",
   syntax: [
     "create a type (named|called) {type} as a list of {instanceType:type}",
     "(a|an) {type} is a list of {instanceType:type}"
     // TODO: "{plural_type} are a list of ..."
   ],
-  declares: { kind: "type", name: "type", detail: "instanceType" },
   tests: [
     {
       compileAs: "statement",
@@ -179,6 +181,8 @@ classes.addRule(create_list_type, {
  * - Compiles to `new Type(...)`, e.g. `a new Thing with a = 1, b = yes` => `new Thing({ a: 1, b: true })`.
  */
 class new_thing extends SpellStatement<"type|props?"> {
+  @proto static alias = "expression"
+
   getAST(match: P.MatchFor<this>): P.ASTNewInstanceExpression {
     const { type, props } = match.groups
     return new P.ASTNewInstanceExpression(match, {
@@ -188,7 +192,6 @@ class new_thing extends SpellStatement<"type|props?"> {
   }
 }
 classes.addRule(new_thing, {
-  alias: "expression",
   syntax: "a new {type:known_type} ((with|where|whose) {props:object_literal_properties})?",
   tests: [
     {
@@ -220,6 +223,8 @@ classes.addRule(new_thing, {
  * - Compiles to `new List(...)`, e.g. `a new list of Todos` => `new List({ instanceType: "Todo" })`.
  */
 class new_list extends SpellStatement<"instanceType?"> {
+  @proto static alias = "expression"
+
   getAST(match: P.MatchFor<this>): P.ASTNewInstanceExpression {
     const { instanceType } = match.groups
     return new P.ASTNewInstanceExpression(match, {
@@ -238,7 +243,6 @@ class new_list extends SpellStatement<"instanceType?"> {
   }
 }
 classes.addRule(new_list, {
-  alias: "expression",
   syntax: "a new (list|List) (of {instanceType:type}?)",
   tests: [
     {
@@ -267,6 +271,8 @@ classes.addRule(new_list, {
  * - FIXME: `list`, `text`, etc don't follow these semantics???
  */
 class create_thing extends SpellStatement<"type|props?"> {
+  @proto static alias = ["expression", "statement"]
+
   getAST(match: P.MatchFor<this>): P.ASTNewInstanceExpression {
     const { type, props } = match.groups
     return new P.ASTNewInstanceExpression(match, {
@@ -276,7 +282,6 @@ class create_thing extends SpellStatement<"type|props?"> {
   }
 }
 classes.addRule(create_thing, {
-  alias: ["expression", "statement"],
   syntax: "create (a|an) {type:known_type} ((with|where|whose) {props:object_literal_properties})?",
   tests: [
     {
@@ -327,6 +332,8 @@ classes.addRule(create_thing, {
  * - Compiles (via `getAST()`) to a `P.ASTEnumeration` array literal, e.g. `['red', 'black']`.
  */
 class type_specifier_enum extends P.Sequence<"enumeration"> {
+  @proto static alias = "type_specifier"
+
   getAST(match: P.MatchFor<this>): P.ASTEnumeration {
     const enumeration = match.groups.enumeration.items.map((item) => P.matchAST(item))
     return new P.ASTEnumeration(match, {
@@ -339,7 +346,6 @@ class type_specifier_enum extends P.Sequence<"enumeration"> {
   }
 }
 classes.addRule(type_specifier_enum, {
-  alias: "type_specifier",
   syntax: "as (either|one of) {enumeration:identifier_list}",
   tests: [
     {
@@ -361,12 +367,13 @@ classes.addRule(type_specifier_enum, {
  * - Compiles (via `getAST()`) directly to the `datatype`'s `TypeExpression`, e.g. `number` or `Automobile`.
  */
 class type_specifier_datatype extends P.Sequence<"datatype"> {
+  @proto static alias = "type_specifier"
+
   getAST(match: P.MatchFor<this>): P.ASTTypeExpression {
     return P.matchAST<P.ASTTypeExpression>(match.groups.datatype)
   }
 }
 classes.addRule(type_specifier_datatype, {
-  alias: "type_specifier",
   syntax: "as (a|an)? {datatype:singular_type}",
   tests: [
     {
@@ -388,12 +395,13 @@ classes.addRule(type_specifier_datatype, {
  * - Compiles (via `getAST()`) to the nested `NewInstanceExpression`, e.g. `new Thing()`.
  */
 class type_specifier_instance extends P.Sequence<"new_thing"> {
+  @proto static alias = "type_specifier"
+
   getAST(match: P.MatchFor<this>): P.ASTNewInstanceExpression {
     return P.matchAST<P.ASTNewInstanceExpression>(match.groups.new_thing)
   }
 }
 classes.addRule(type_specifier_instance, {
-  alias: "type_specifier",
   syntax: "as {new_thing}",
   tests: [
     {
@@ -416,12 +424,13 @@ classes.addRule(type_specifier_instance, {
  *   matches spell's `choice` vocabulary (see `type_specifier_enum`'s "either" wording too).
  */
 class type_specifier_yes_or_no extends P.Sequence {
+  @proto static alias = "type_specifier"
+
   getAST(match: P.MatchFor<this>): P.ASTTypeExpression {
     return new P.ASTTypeExpression(match, { raw: "yes or no", name: "choice" })
   }
 }
 classes.addRule(type_specifier_yes_or_no, {
-  alias: "type_specifier",
   syntax: "as either? (yes or no|true or false)",
   tests: [{ tests: [["as yes or no", "choice"]] }]
 })
@@ -444,6 +453,10 @@ classes.addRule(type_specifier_yes_or_no, {
  *   `spellCore.defineProperty(Player.prototype, { property: 'name', type: 'text' })`.
  */
 class define_property_has extends SpellStatement<"type|property|specifier?", { ruleComment?: P.ASTParserAnnotation }> {
+  @proto static precedence = 10
+  @proto static alias = "statement"
+  @proto static declares: P.DeclaresSpec = { kind: "property", name: "property", of: "type", detail: "specifier" }
+
   mutateScope(match: P.MatchFor<this>) {
     const { scope } = match
     const { type, property, specifier } = match.groups
@@ -483,6 +496,11 @@ class define_property_has extends SpellStatement<"type|property|specifier?", { r
       // so `print Card suits` finds it via the `expression` alias and the scope can export it later.
       scope.addRule(
         class typename_groupname extends P.Literals {
+          static ruleName = `${typeName}_${groupName}`
+          @proto static precedence = 20
+          @proto static alias = "expression"
+          @proto static literals = literals
+
           getAST(_match: P.MatchFor<this>): P.ASTPropertyExpression {
             return new P.ASTPropertyExpression(_match, {
               object: P.matchAST(type),
@@ -490,7 +508,7 @@ class define_property_has extends SpellStatement<"type|property|specifier?", { r
             })
           }
         },
-        { name: `${typeName}_${groupName}`, precedence: 20, alias: "expression", literals },
+        {},
         match
       )
 
@@ -548,13 +566,10 @@ class define_property_has extends SpellStatement<"type|property|specifier?", { r
   }
 }
 classes.addRule(define_property_has, {
-  precedence: 10,
-  alias: "statement",
   syntax: [
     "(a|an) {type:singular_type} has (a|an|a property) {property} {specifier:type_specifier}?",
     "{type:plural_type} have (a|an|a property) {property} {specifier:type_specifier}?"
   ],
-  declares: { kind: "property", name: "property", of: "type", detail: "specifier" },
   tests: [
     {
       compileAs: "block",
@@ -623,9 +638,10 @@ classes.addRule(define_property_has, {
  * `the color of a card` -- one of two `type_property` spellings consumed by `property_value_either` and
  * `property_value_getter` below.  No `getAST()`: callers read `match.groups.type`/`.property` directly.
  */
-class the_property_of_a_thing extends P.Sequence<"property|type"> {}
+class the_property_of_a_thing extends P.Sequence<"property|type"> {
+  @proto static alias = "type_property"
+}
 classes.addRule(the_property_of_a_thing, {
-  alias: "type_property",
   syntax: "the {property} of (a|an) {type}"
 })
 
@@ -635,9 +651,10 @@ classes.addRule(the_property_of_a_thing, {
 ////////////////
 
 /** `a cards color` -- the other `type_property` spelling, see `the_property_of_a_thing` above. */
-class a_things_property extends P.Sequence<"type|property"> {}
+class a_things_property extends P.Sequence<"type|property"> {
+  @proto static alias = "type_property"
+}
 classes.addRule(a_things_property, {
-  alias: "type_property",
   syntax: "(a|an) {type:plural_type} {property}"
 })
 
@@ -662,6 +679,13 @@ type PropertyValueEitherGroups = P.GroupsFor<"type_property", P.Match<P.GroupsFo
  *   (or falling through) when absent.
  */
 class property_value_either extends SpellStatement<PropertyValueEitherGroups> {
+  @proto static alias = "statement"
+  @proto static declares: P.DeclaresSpec = {
+    kind: "property",
+    name: "type_property.property",
+    of: "type_property.type"
+  }
+
   mutateScope(match: P.MatchFor<this>) {
     const { scope } = match
     const { value, otherValue, type_property } = match.groups
@@ -703,10 +727,8 @@ class property_value_either extends SpellStatement<PropertyValueEitherGroups> {
   }
 }
 classes.addRule(property_value_either, {
-  alias: "statement",
   syntax:
     "{type_property} is (value:{constant}|{expression}) if {condition:expression} (otherwise it is (otherValue:{constant}|{expression}))?",
-  declares: { kind: "property", name: "type_property.property", of: "type_property.type" },
   tests: [
     {
       compileAs: "statement",
@@ -759,6 +781,12 @@ type MethodBody = P.ASTStatementBlock | P.ASTStatement | P.ASTExpression
  *   is its name` => `spellCore.define(Card.prototype, 'value', { get() { return this.name } })`.
  */
 class property_value_getter extends SpellStatement<"property|type|body?"> {
+  @proto static alias = "statement"
+  // Its `mutateScope()` only records the property, which nothing parsed later reads:
+  // editing a getter's body needn't re-parse the rest of the project.
+  @proto static changesScope: P.ScopeChanges = "internal"
+  @proto static declares: P.DeclaresSpec = { kind: "property", name: "property", of: "type" }
+
   /** SIDE EFFECT:  records the property on its type, for editors -- see `P.TypeScope.declareProperty()`. */
   mutateScope(match: P.MatchFor<this>) {
     const { type, property } = match.groups
@@ -786,12 +814,7 @@ class property_value_getter extends SpellStatement<"property|type|body?"> {
   }
 }
 classes.addRule(property_value_getter, {
-  alias: "statement",
-  // Its `mutateScope()` only records the property, which nothing parsed later reads:
-  // editing a getter's body needn't re-parse the rest of the project.
-  changesScope: "internal",
   syntax: "the {property} of (a|an) {type:known_type} is :? {expression_body}?",
-  declares: { kind: "property", name: "property", of: "type" },
   tests: [
     {
       compileAs: "block",
@@ -890,6 +913,10 @@ type QuotedPropertyFormulaMatchData = {
  *   `this.rank === rank && this.suit === suit`.
  */
 class quoted_property_formula extends SpellStatement<"type|alias|sources", QuotedPropertyFormulaMatchData> {
+  @proto static precedence = 10
+  @proto static alias = "statement"
+  @proto static declares: P.DeclaresSpec = { kind: "method", name: "alias", of: "type" }
+
   /** Reject the match unless `alias`'s first quoted word is `"is"` -- see rule NOTE above. */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
@@ -977,6 +1004,9 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources", Quote
     // See `scope.addRule()` -- registers on the parser and records the pair for export.
     match.scope.addRule(
       class _quoted_property_rule extends InfixOperatorSuffix {
+        static ruleName = property
+        @proto static precedence = 20
+
         /** `true` if the matched `operator` includes `not`, e.g. `is not a queen`. */
         shouldNegateOutput(operator: P.Match): boolean {
           return operator.value.includes("not")
@@ -1022,7 +1052,7 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources", Quote
           })
         }
       },
-      { name: property, precedence: 20, alias: "expression_suffix", syntax },
+      { syntax },
       match
     )
 
@@ -1067,10 +1097,7 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources", Quote
   }
 }
 classes.addRule(quoted_property_formula, {
-  precedence: 10,
-  alias: "statement",
   syntax: "(a|an) {type} {alias:text} for [sources:(its {property}) and]",
-  declares: { kind: "method", name: "alias", of: "type" },
   tests: [
     {
       beforeEach(scope: P.Scope) {

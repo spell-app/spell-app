@@ -5,9 +5,9 @@ import { view } from "~/util"
 import { editor } from "~/app/editor"
 
 import { UI } from "~/app/ui"
+import { MonacoEditor, SpellMonaco } from "~/app/ui/monaco"
 import { Actions } from "./Actions"
 import { ErrorHandler, type ErrorHandlerState, type ErrorHandlerWrapperProps } from "./ErrorHandler"
-import { CodeMirror, inputOptions } from "./CodeMirror"
 
 import "./InputEditor.less"
 
@@ -54,7 +54,7 @@ export function InputToolbar() {
 
 /****************
  * ### `<InputEditor>`
- * Top-level error-handling wrapper around the CodeMirror `spell` source editor.
+ * Top-level error-handling wrapper around the Monaco source editor.
  ****************/
 export class InputEditor extends ErrorHandler<InputEditorProps> {
   /** Clear `state.error` if `props.match` changes. */
@@ -83,10 +83,9 @@ export class InputEditor extends ErrorHandler<InputEditorProps> {
   }
 
   /**
-   * `<CodeMirror>` bound to `editor.file`'s contents, wired to save/reload/compile keys and to
-   * push cursor/scroll/change events back into `editor`.
-   * NOTE: was previously worded as if for a `spellFile.match` producing `<MatchView>`/`<TokenView>`
-   * elements -- stale, copy-pasted from `MatchViewer`'s equivalent field.  Corrected here.
+   * `<MonacoEditor>` showing `editor.file`'s model -- see `SpellModels`, which keeps it and the file in step.
+   * - A fresh editor per file (`key`).
+   * - `editor.onInputDidMount()` wires save/reload/compile keys, and cursor/scroll events back into `editor`.
    */
   Component = view(function InputEditorInner() {
     const { file } = editor
@@ -98,25 +97,19 @@ export class InputEditor extends ErrorHandler<InputEditorProps> {
       editor.onInputEffect()
     })
     return (
-      <CodeMirror
+      <MonacoEditor
         key={file?.path || "loading"}
-        value={file?.contents ?? "Loading"}
-        options={inputOptions}
-        editorDidMount={editor.onInputDidMount}
-        editorWillUnmount={editor.onInputWillUnmount}
-        onBeforeChange={editor.onInputChanged}
-        onCursorActivity={editor.onInputCursor}
-        onScroll={editor.onInputCursor}
+        model={file && SpellMonaco.models.modelFor(file)}
+        value={file ? undefined : "Loading"}
+        onMount={editor.onInputDidMount}
+        onUnmount={editor.onInputWillUnmount}
       />
     )
   })
 
   /**
-   * Fallback `<CodeMirror>` rendered after a caught error.
-   * - SIDE EFFECT: strips `mode` from `inputOptions` -- re-attaching the `spell` mode after an
-   *   error previously caused an endless loop of pain (see inline comment below).
-   * NOTE: was previously worded as if for a `spellFile.match` producing `<MatchView>`/`<TokenView>`
-   * elements -- stale, copy-pasted from `MatchViewer`'s equivalent field.  Corrected here.
+   * Fallback `<MonacoEditor>` rendered after a caught error:  plain text, NO spell colouring,
+   * in case colouring is what threw -- re-attaching it would just throw again.
    */
   ErrorComponent = view(function InputEditorInner(_props: InputEditorProps & { error: Error }) {
     const { file } = editor
@@ -129,20 +122,14 @@ export class InputEditor extends ErrorHandler<InputEditorProps> {
       editor.onInputEffect()
     })
 
-    // if we got a CodeMirror `error` in a previous draw,
-    // remove the `mode` or we'll get an endless loop of pain
-    const { mode: _mode, ...options } = inputOptions
-
     return (
-      <CodeMirror
+      <MonacoEditor
         key="error"
         value={file?.contents ?? "Loading"}
-        options={options}
-        editorDidMount={editor.onInputDidMount}
-        editorWillUnmount={editor.onInputWillUnmount}
-        onBeforeChange={editor.onInputChanged}
-        onCursorActivity={editor.onInputCursor}
-        onScroll={editor.onInputCursor}
+        language="plaintext"
+        onMount={editor.onInputDidMount}
+        onUnmount={editor.onInputWillUnmount}
+        onChange={editor.onInputChanged}
       />
     )
   })

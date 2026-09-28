@@ -2,7 +2,7 @@
  * Core rules -- simple datatypes (`number`, `boolean`, `text`, `undefined`), whitespace/newline/comment
  * tokens, and the `keyword` identifier pattern used by method/type definitions elsewhere.
  */
-import { assert } from "~/util"
+import { assert, proto } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
@@ -28,10 +28,11 @@ export const core = new SpellParser({ module: "core" })
  *   `whitespace` `Subrule`), matching zero-or-more times.  See report: the old bag form got away with
  *   `constructor: class ... extends P.Subrule` only because it's dead code, never referenced elsewhere.
  */
-class eat_whitespace extends P.Repeat {}
+class eat_whitespace extends P.Repeat {
+  @proto static datatype = "string"
+}
 core.addRule(eat_whitespace, {
-  syntax: "{whitespace}*",
-  datatype: "string"
+  syntax: "{whitespace}*"
 })
 
 ////////////////
@@ -41,15 +42,15 @@ core.addRule(eat_whitespace, {
 
 /** Any whitespace token -- space, tab, newline, etc., wrapped as-is into a `StringLiteral`. */
 class whitespace extends P.TokenType {
+  @proto static datatype = "string"
+  @proto static tokenType = P.WhitespaceToken
+
   getAST(match: P.MatchFor<this>): P.ASTStringLiteral {
     const { value, raw } = match
     return new P.ASTStringLiteral(match, { value: assert.string(value), raw })
   }
 }
-core.addRule(whitespace, {
-  datatype: "string",
-  tokenType: P.WhitespaceToken
-})
+core.addRule(whitespace)
 
 ////////////////
 // ## `indent` rule
@@ -58,15 +59,15 @@ core.addRule(whitespace, {
 
 /** Indent whitespace specifically, e.g. leading spaces/tabs at start of a line. */
 class indent extends P.TokenType {
+  @proto static datatype = "string"
+  @proto static tokenType = P.IndentToken
+
   getAST(match: P.MatchFor<this>): P.ASTStringLiteral {
     const { value, raw } = match
     return new P.ASTStringLiteral(match, { value: assert.string(value), raw })
   }
 }
-core.addRule(indent, {
-  datatype: "string",
-  tokenType: P.IndentToken
-})
+core.addRule(indent)
 
 ////////////////
 // ## `newline` rule
@@ -75,15 +76,15 @@ core.addRule(indent, {
 
 /** Single newline. */
 class newline extends P.TokenType {
+  @proto static datatype = "string"
+  @proto static tokenType = P.NewlineToken
+
   getAST(match: P.MatchFor<this>): P.ASTStringLiteral {
     const { value, raw } = match
     return new P.ASTStringLiteral(match, { value: assert.string(value), raw })
   }
 }
-core.addRule(newline, {
-  datatype: "string",
-  tokenType: P.NewlineToken
-})
+core.addRule(newline)
 
 ////////////////
 // ## `inline_whitespace` rule
@@ -95,15 +96,15 @@ core.addRule(newline, {
  * - NOTE: normally filtered out when tokenizing, so this rule rarely matches in practice.
  */
 class inline_whitespace extends P.TokenType {
+  @proto static datatype = "string"
+  @proto static tokenType = P.InlineWhitespaceToken
+
   getAST(match: P.MatchFor<this>): P.ASTStringLiteral {
     const { value, raw } = match
     return new P.ASTStringLiteral(match, { value: assert.string(value), raw })
   }
 }
-core.addRule(inline_whitespace, {
-  datatype: "string",
-  tokenType: P.InlineWhitespaceToken
-})
+core.addRule(inline_whitespace)
 
 ////////////////////////////////////////
 // # Simple types:  number, boolean, text (string), etc.
@@ -120,17 +121,18 @@ core.addRule(inline_whitespace, {
  * - TODO:  `integer` and `decimal`?  too techy?
  */
 class numeric extends P.TokenType {
+  static ruleName = "number"
+  @proto static highlightAs: P.HighlightKind = "number"
+  @proto static alias = "expression"
+  @proto static datatype = "number"
+  @proto static tokenType = P.NumberToken
+
   getAST(match: P.MatchFor<this>): P.ASTNumericLiteral {
     const { value, raw } = match
     return new P.ASTNumericLiteral(match, { value: assert.number(value), raw })
   }
 }
 core.addRule(numeric, {
-  name: "number",
-  highlightAs: "number",
-  alias: "expression",
-  datatype: "number",
-  tokenType: P.NumberToken,
   tests: [
     {
       title: "correctly matches numbers",
@@ -168,16 +170,10 @@ core.addRule(numeric, {
 
 /** `number` spelled out as a string, `zero` to `ten` -- `VALUE_MAP` does the word-to-number lookup. */
 class number_as_string extends P.Pattern {
-  getAST(match: P.MatchFor<this>): P.ASTNumericLiteral {
-    const { value, raw } = match
-    return new P.ASTNumericLiteral(match, { value: assert.number(value), raw })
-  }
-}
-core.addRule(number_as_string, {
-  alias: ["expression", "number"],
-  datatype: "number",
-  pattern: /^(zero|one|two|three|four|five|six|seven|eight|nine|ten)$/,
-  VALUE_MAP: {
+  @proto static alias = ["expression", "number"]
+  @proto static datatype = "number"
+  @proto static pattern = /^(zero|one|two|three|four|five|six|seven|eight|nine|ten)$/
+  @proto static VALUE_MAP = {
     zero: 0,
     one: 1,
     two: 2,
@@ -189,7 +185,14 @@ core.addRule(number_as_string, {
     eight: 8,
     nine: 9,
     ten: 10
-  },
+  }
+
+  getAST(match: P.MatchFor<this>): P.ASTNumericLiteral {
+    const { value, raw } = match
+    return new P.ASTNumericLiteral(match, { value: assert.number(value), raw })
+  }
+}
+core.addRule(number_as_string, {
   tests: [
     {
       title: "correctly matches number strings",
@@ -221,17 +224,11 @@ core.addRule(number_as_string, {
  * - TODO: better name for this?  "flag"?  "truism"?
  */
 class _boolean extends P.Pattern {
-  getAST(match: P.MatchFor<this>): P.ASTBooleanLiteral {
-    const { value, raw } = match
-    return new P.ASTBooleanLiteral(match, { value: assert.boolean(value), raw })
-  }
-}
-core.addRule(_boolean, {
-  name: "boolean",
-  alias: "expression",
-  datatype: "boolean",
-  pattern: /^(true|false|yes|no|ok|cancel|always|never)$/,
-  VALUE_MAP: {
+  static ruleName = "boolean"
+  @proto static alias = "expression"
+  @proto static datatype = "boolean"
+  @proto static pattern = /^(true|false|yes|no|ok|cancel|always|never)$/
+  @proto static VALUE_MAP = {
     true: true,
     false: false,
     yes: true,
@@ -240,7 +237,14 @@ core.addRule(_boolean, {
     cancel: false,
     always: true,
     never: false
-  },
+  }
+
+  getAST(match: P.MatchFor<this>): P.ASTBooleanLiteral {
+    const { value, raw } = match
+    return new P.ASTBooleanLiteral(match, { value: assert.boolean(value), raw })
+  }
+}
+core.addRule(_boolean, {
   tests: [
     {
       title: "correctly matches booleans",
@@ -278,16 +282,17 @@ core.addRule(_boolean, {
  * - Returned value has original enclosing quotes.
  */
 class text extends P.TokenType {
+  @proto static alias = "expression"
+  @proto static highlightAs: P.HighlightKind = "string"
+  @proto static datatype = "string"
+  @proto static tokenType = P.TextToken
+
   getAST(match: P.MatchFor<this>): P.ASTStringLiteral {
     const { value, raw } = match
     return new P.ASTStringLiteral(match, { value: assert.string(value), raw })
   }
 }
 core.addRule(text, {
-  alias: "expression",
-  highlightAs: "string",
-  datatype: "string",
-  tokenType: P.TextToken,
   tests: [
     {
       title: "correctly matches text",
@@ -309,6 +314,9 @@ core.addRule(text, {
 
 /** Line comment token -- wraps a `CommentToken` into a `LineComment` AST node, e.g. `// foo`. */
 class comment extends P.TokenType {
+  @proto static tokenType = P.CommentToken
+  @proto static highlightAs: P.HighlightKind = "comment"
+
   getAST(match: P.MatchFor<this>): P.ASTLineComment {
     const [token] = match.matched
     // `tokenType: CommentToken` guarantees the single matched token is a `CommentToken`.
@@ -318,8 +326,6 @@ class comment extends P.TokenType {
   }
 }
 core.addRule(comment, {
-  tokenType: P.CommentToken,
-  highlightAs: "comment",
   tests: [
     {
       compileAs: "comment",
@@ -344,14 +350,15 @@ core.addRule(comment, {
  * - Class named `undefined_literal`, not `undefined` -- `undefined` is a reserved word.
  */
 class undefined_literal extends P.Literal {
+  static ruleName = "undefined"
+  @proto static alias = "expression"
+  @proto static datatype = "undefined"
+
   getAST(match: P.MatchFor<this>): P.ASTUndefinedLiteral {
     return new P.ASTUndefinedLiteral(match)
   }
 }
 core.addRule(undefined_literal, {
-  name: "undefined",
-  alias: "expression",
-  datatype: "undefined",
   syntax: "(undefined|nothing)",
   tests: [
     {
@@ -374,6 +381,8 @@ core.addRule(undefined_literal, {
  * - Case is not a factor, but it must start with a letter.
  */
 class keyword extends P.Pattern {
+  @proto static pattern = /^[a-zA-Z][\w-]*$/
+
   /** Converts dashes to underscores when compiling, so `abc-def` outputs as valid JS identifier `abc_def`. */
   mapValue<T = string>(value: string): T {
     return `${value}`.replace(/-/g, "_") as T
@@ -385,7 +394,6 @@ class keyword extends P.Pattern {
   }
 }
 core.addRule(keyword, {
-  pattern: /^[a-zA-Z][\w-]*$/,
   tests: [
     {
       title: "correctly matches words",

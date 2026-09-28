@@ -100,6 +100,8 @@ constants.addRule(constant, {
  * - Compiles to the constant's own `output` if it set one, else a quoted string literal of its name.
  */
 class known_constant extends SpellConstant {
+  @proto static alias = "expression"
+
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens)
     // Succeed only if `SpellConstant.parse()` found the scope constant.
@@ -108,7 +110,6 @@ class known_constant extends SpellConstant {
   }
 }
 constants.addRule(known_constant, {
-  alias: "expression",
   tests: [
     {
       compileAs: "known_constant", // TODO: to "expression"

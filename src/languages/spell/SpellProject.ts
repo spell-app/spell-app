@@ -1,4 +1,4 @@
-import { JSON5File, $fetch, CONFIRM, TaskList, Task, getDier, type KnownFormatMimeType } from "~/util"
+import { JSON5File, $fetch, CONFIRM, TaskList, Task, getDier, raw, type KnownFormatMimeType } from "~/util"
 import { P } from "~/parser"
 import { spellCore } from "~/spellCore"
 import { SP } from "~/languages/spell"
@@ -122,6 +122,14 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
     this.setState("compiled", compiled)
   }
 
+  /**
+   * Why our last parse of our imports crashed, e.g. a rule threw -- `undefined` once one succeeds.
+   * - Parse ERRORS in the spell, e.g. a line it can't make sense of, are NOT this:  they're in each file's `match`.
+   */
+  /*@state*/ get parseError(): string | undefined {
+    return this.getState("parseError", () => undefined)
+  }
+
   /** `SpellJSFile` for this project's compiled `.output.js`. */
   /*@memoize*/
   get outputFile(): SP.SpellJSFile {
@@ -146,7 +154,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   /** Do we need to parse our spell files from scratch, rather than trust `incremental`? */
   get needsFullParse(): boolean {
     if (!this.incremental || this.incremental.isBroken) return true
-    const spellFiles = this.activeImports.filter((file) => file instanceof SP.SpellFile)
+    const { spellFiles } = this
     if (spellFiles.length !== this.incremental.files.length) return true
     return spellFiles.some((file, index) => !file.match || this.incremental!.files[index]!.path !== file.path)
   }
@@ -156,7 +164,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
    * - Other files, e.g. `.css`, parse themselves.
    */
   parseImports(): void {
-    const spellFiles = this.activeImports.filter((file) => file instanceof SP.SpellFile)
+    const { spellFiles } = this
     this.incremental = new P.IncrementalProject({
       scope: this.scope!,
       // one half-typed line shouldn't break every line after it
@@ -239,9 +247,15 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
           new Task({
             name: `Parsing imports`,
             run: async () => {
-              if (!this.incremental) this.parseImports()
-              for (const file of this.activeImports) {
-                if (!(file instanceof SP.SpellFile)) await file.parse(this.scope)
+              try {
+                if (!this.incremental) this.parseImports()
+                for (const file of this.activeImports) {
+                  if (!(file instanceof SP.SpellFile)) await file.parse(this.scope)
+                }
+                this.setState("parseError", undefined)
+              } catch (error) {
+                this.setState("parseError", error instanceof Error ? error.message : String(error))
+                throw error
               }
             }
           })
@@ -370,6 +384,24 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
     this.activeImports.forEach((item) => item.resetCompiled())
   }
 
+  /**
+   * An editor changed `file`'s text to `text`, e.g. on a keystroke:  take it, and re-parse as little as possible.
+   * - Returns the spell files whose parse changed -- one edit can change LATER files, e.g. by renaming a type.
+   * - A file we don't parse (see `SpellFile.isActive`) just takes the text, so it's there if it becomes active.
+   * - If the incremental parse couldn't cope, parses from scratch straight away, rather than leaving every file
+   *   without a `match` until the next `compile()`.  A crash there is left in `parseError`, NOT thrown.
+   * - Does NOT mark `file` dirty or save it:  that's the editor's business.
+   */
+  async updateText(file: SP.SpellFile, text: string): Promise<SP.SpellFile[]> {
+    if (file.contents !== text) file.contents = text
+    if (!file.isActive) return [file]
+
+    const before = new Map(this.spellFiles.map((it) => [it, it.match]))
+    this.updatedContentsFor(file)
+    if (!this.incremental) await this.parse().catch(() => undefined)
+    return this.spellFiles.filter((it) => it.match !== before.get(it))
+  }
+
   ////////////////
   // ## Loading / contents
   ////////////////
@@ -495,6 +527,15 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
       },
       [this.contents]
     )
+  }
+
+  /**
+   * Spell files we parse:  our active `.spell` imports, in order -- see `activeImports`.
+   * - The REAL files, never store proxies, so `===` against a file from anywhere else works, e.g. `isActive`:
+   *   `activeImports` is cached, and filled inside a `view()` render it holds proxies -- see `raw()`.
+   */
+  get spellFiles(): SP.SpellFile[] {
+    return this.activeImports.filter((file) => file instanceof SP.SpellFile).map((file) => raw(file))
   }
 
   ////////////////

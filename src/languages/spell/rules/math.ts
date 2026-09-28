@@ -4,6 +4,7 @@
  * - NOTE: this must come after "operators".
  */
 
+import { proto } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
@@ -29,6 +30,9 @@ export const math = new SpellParser({ module: "math" })
  *   TODO: confirm this is genuinely dead code, and if so remove it.
  */
 class gt_lt extends InfixOperatorSuffix<"operator|expression"> {
+  @proto static precedence = 11
+  @proto static parenthesize = true
+
   getAST(match: P.MatchFor<this>) {
     const { operator, expression } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -38,9 +42,7 @@ class gt_lt extends InfixOperatorSuffix<"operator|expression"> {
   }
 }
 math.addRule(gt_lt, {
-  precedence: 11,
   syntax: "(operator:(<|>) =?) {expression:simple_expression}",
-  parenthesize: true,
   tests: [
     {
       compileAs: "expression",
@@ -77,6 +79,9 @@ math.addRule(gt_lt, {
  * - `getAST()` below looks unreachable in practice, same as `gt_lt` above -- see `TODO` there.
  */
 class is_gt_lt extends InfixOperatorSuffix<"operator|expression"> {
+  @proto static precedence = 11
+  @proto static parenthesize = true
+
   getOutputOperator({ value }: P.Match) {
     return (value.includes("greater") ? ">" : "<") + (value.includes("equal") ? "=" : "")
   }
@@ -89,9 +94,7 @@ class is_gt_lt extends InfixOperatorSuffix<"operator|expression"> {
   }
 }
 math.addRule(is_gt_lt, {
-  precedence: 11,
   syntax: "(operator:is (greater|less) than (or equal to)?) {expression:simple_expression}",
-  parenthesize: true,
   tests: [
     {
       compileAs: "expression",
@@ -116,14 +119,15 @@ math.addRule(is_gt_lt, {
 
 /** `plus` / `+`, e.g. `price + tax` -- precedence 13, above comparison operators, below `*`/`/`. */
 class plus extends InfixOperatorSuffix {
+  @proto static precedence = 13
+  @proto static parenthesize = true
+
   getOutputOperator() {
     return "+"
   }
 }
 math.addRule(plus, {
-  precedence: 13,
   syntax: "(operator:plus|+) {expression:simple_expression}",
-  parenthesize: true,
   tests: [
     {
       compileAs: "expression",
@@ -151,14 +155,15 @@ math.addRule(plus, {
  *   see commented-out test below.
  */
 class minus extends InfixOperatorSuffix {
+  @proto static precedence = 13
+  @proto static parenthesize = true
+
   getOutputOperator() {
     return "-"
   }
 }
 math.addRule(minus, {
-  precedence: 13,
   syntax: "(operator:minus|-) {expression:simple_expression}",
-  parenthesize: true,
   tests: [
     {
       compileAs: "expression",
@@ -182,14 +187,15 @@ math.addRule(minus, {
 
 /** `*` / `times`, e.g. `price * taxRate` -- precedence 14, highest, alongside `/`. */
 class times extends InfixOperatorSuffix {
+  @proto static precedence = 14
+  @proto static parenthesize = true
+
   getOutputOperator() {
     return "*"
   }
 }
 math.addRule(times, {
-  precedence: 14,
   syntax: "(operator:*|times) {expression:simple_expression}",
-  parenthesize: true,
   tests: [
     {
       compileAs: "expression",
@@ -213,14 +219,15 @@ math.addRule(times, {
 
 /** `/` / `divided by`, e.g. `price / taxRate` -- precedence 14, same as `*`. */
 class divided_by extends InfixOperatorSuffix {
+  @proto static precedence = 14
+  @proto static parenthesize = true
+
   getOutputOperator() {
     return "/"
   }
 }
 math.addRule(divided_by, {
-  precedence: 14,
   syntax: "(operator:/|divided by) {expression:simple_expression}",
-  parenthesize: true,
   tests: [
     {
       compileAs: "expression",
@@ -287,6 +294,8 @@ math.addRule(absolute_value, {
  *   specific already claimed the tokens.
  */
 class max extends SpellExpression<"operator|argument?|expression"> {
+  @proto static precedence = 2
+
   getAST(match: P.MatchFor<this>) {
     const { expression } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -297,7 +306,6 @@ class max extends SpellExpression<"operator|argument?|expression"> {
   }
 }
 math.addRule(max, {
-  precedence: 2,
   syntax: "(operator:the? (biggest|largest)) {argument:singular_identifier}? (of|in) {expression}",
   tests: [
     {
@@ -325,6 +333,8 @@ math.addRule(max, {
  * - `precedence: 2`, same reasoning as `max` above.
  */
 class min extends SpellExpression<"operator|argument?|expression"> {
+  @proto static precedence = 2
+
   getAST(match: P.MatchFor<this>) {
     const { expression } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -335,7 +345,6 @@ class min extends SpellExpression<"operator|argument?|expression"> {
   }
 }
 math.addRule(min, {
-  precedence: 2,
   syntax: "(operator:the? smallest) {argument:singular_identifier}? (of|in) {expression}",
   tests: [
     {
@@ -362,6 +371,8 @@ math.addRule(min, {
  * - `precedence: 1`, lowest of the `expression` alternatives here.
  */
 class round_number extends SpellExpression<"expression|operator?"> {
+  @proto static precedence = 1
+
   /** Maps `off`/`up`/`down` suffix to `round`/`roundUp`/`roundDown` spellCore method. */
   getAST(match: P.MatchFor<this>) {
     const { expression, operator } = match.groups
@@ -377,7 +388,6 @@ class round_number extends SpellExpression<"expression|operator?"> {
 }
 math.addRule(round_number, {
   syntax: "round {expression} (operator:off|up|down)?",
-  precedence: 1,
   tests: [
     {
       compileAs: "expression",

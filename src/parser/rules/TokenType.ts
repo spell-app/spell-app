@@ -4,6 +4,8 @@ import { Rule } from "./Rule"
 
 /**
  * Abstract rule for matching a single token of a particular type.
+ * - (optional) `blacklist` lists token values we will NOT accept, e.g. rulex's unescaped `symbol`
+ *   refusing `|` and `)` so `choices` can see them.
  */
 export class TokenType<
   Groups extends string | P.AnyGroups = P.AnyGroups,
@@ -11,6 +13,9 @@ export class TokenType<
 > extends Rule<TokenTypeProps, Groups, MatchData> {
   /** Class-level `tokenType`, for rules defined as classes -- declare as `@proto static`. */
   static tokenType?: P.TokenConstructor
+
+  /** Token values we will NOT accept, e.g. `["|", ")"]`. */
+  declare blacklist: string[] | undefined
 
   /**
    * Accessor pair (rather than a plain field) so subclasses like `Word` can override the getter.
@@ -27,9 +32,11 @@ export class TokenType<
     this._tokenType = value
   }
 
-  /** `true` if token at `start` is an instance of `this.tokenType`. */
+  /** `true` if token at `start` is an instance of `this.tokenType` and not in `this.blacklist`. */
   test(scope: P.Scope, tokens: P.Token[], start = 0) {
-    return tokens[start] instanceof this.tokenType
+    const token = tokens[start]
+    if (!(token instanceof this.tokenType)) return false
+    return !this.blacklist?.includes(token.value as string)
   }
 
   /** Match a single token whose type is `this.tokenType`. */
@@ -56,5 +63,7 @@ export type TokenTypeProps = Prettify<
   P.RuleProps & {
     /** Constructor for the token type we match. */
     tokenType?: P.TokenConstructor
+    /** Token values we will NOT accept, e.g. `["|", ")"]`. */
+    blacklist?: string[]
   }
 >

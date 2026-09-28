@@ -2,6 +2,7 @@
  * Random statements that didn't earn their own file.
  */
 
+import { proto } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
@@ -20,12 +21,13 @@ export const statements = new SpellParser({ module: "statements" })
 
 /** No-op statement -- compiles to `spellCore.doNothing()`. */
 class do_nothing extends SpellStatement {
+  @proto static alias = "statement"
+
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     return new P.ASTCoreMethodInvocation(match, { methodName: "doNothing" })
   }
 }
 statements.addRule(do_nothing, {
-  alias: "statement",
   syntax: "do nothing",
   tests: [
     {

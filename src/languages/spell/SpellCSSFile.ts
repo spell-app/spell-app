@@ -186,19 +186,6 @@ export class SpellCSSFile extends TextFile {
   }
 
   ////////////////
-  // ## Rendering utilities
-  ////////////////
-
-  /**
-   * Convert CodeMirror Position: `{ line, ch }` to char `offset`.
-   * - NOTE: unlike `SpellFile`, always returns `undefined` here -- `SpellCSSFile` never tracks `inputLines`.
-   */
-  offsetForPosition(_position: { line: number; ch: number }): number | undefined {
-    // NOTE: unlike `SpellFile`, `SpellCSSFile` never tracks `inputLines`, so this always returns `undefined`.
-    return undefined
-  }
-
-  ////////////////
   // ## Debug
   ////////////////
 

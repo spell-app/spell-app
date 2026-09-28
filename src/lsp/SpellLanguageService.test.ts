@@ -8,6 +8,7 @@ import type { DocumentSymbol, Position, Range, SelectionRange, SemanticTokens, T
 import environment from "~/environment"
 import { SP } from "~/languages/spell"
 import { LSP } from "~/lsp"
+import { SpellDiskWorkspace } from "~/lsp/SpellDiskWorkspace"
 
 /**
  * The language service over a real project:  a temp copy of the Solitaire example,
@@ -21,7 +22,7 @@ describe("SpellLanguageService", () => {
   const cardText = readFileSync(cardPath, "utf8")
   const solitaireUri = pathToFileURL(resolve(dir, "Solitaire/Solitaire.spell")).href
   const deckUri = pathToFileURL(resolve(dir, "Solitaire/Deck.spell")).href
-  const workspace = new LSP.SpellWorkspace()
+  const workspace = new SpellDiskWorkspace()
   const service = new LSP.SpellLanguageService(workspace)
   let card: SP.SpellFile
   let deck: SP.SpellFile
@@ -36,7 +37,7 @@ describe("SpellLanguageService", () => {
   })
 
   test("opening a file parses its whole project, cleanly", () => {
-    for (const file of workspace.spellFiles(card.project)) {
+    for (const file of card.project.spellFiles) {
       expect(file.match, file.path).toBeDefined()
       expect(service.diagnostics(file), file.path).toEqual([])
     }

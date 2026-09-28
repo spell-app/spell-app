@@ -26,6 +26,14 @@ export type DefinitionFor<RuleType extends { readonly Props: P.RuleProps }> = Pr
 >
 
 /**
+ * ALL a rule class is registered with when the class holds everything else as `@proto static`.
+ * - Why:  the class is the rule, reusable by another language's parser with its own `syntax`.
+ * - Not per-class like `DefinitionFor`:  `syntax` / `tests` mean the same for every rule.
+ * - Used by `scope.addRule()` and `SpellParser.addRule()`.
+ */
+export type SyntaxAndTests = Pick<RuleDefinitionProps, "syntax" | "tests">
+
+/**
  * One rule registered on a SCOPE while parsing:  the rule CLASS plus the definition it was registered with.
  * - Stored as a pair (rather than the built `Rule`) because that is what re-registering it elsewhere needs --
  *   e.g. exporting a method defined in one file to another file which imports it, via
@@ -36,8 +44,8 @@ export type ScopeRule = {
   name: string
   /** Rule class, typically a closure over the match which caused it. */
   rule: RuleConstructor
-  /** Definition it was registered with, e.g. `{ alias, syntax, literals }`. */
-  definition: RuleDefinitionProps
+  /** Definition it was registered with -- just `{ syntax }`, the rest is on `rule` as `@proto static`. */
+  definition: SyntaxAndTests
   /** Match whose `mutateScope()` registered it, e.g. the method definition -- for go-to-definition etc. */
   declaredBy?: P.Match
   /** Built rule instance(s) `parser.addRule()` made, so a call-site `match.rule` can be traced back here. */
@@ -63,7 +71,7 @@ export type ScopeChanges = "internal" | "global"
 // ## Declarations
 
 /**
- * What a rule's matches DECLARE, for editors' symbol lists -- `declares` in a rule's definition.
+ * What a rule's matches DECLARE, for editors' symbol lists -- a rule's `@proto static declares`.
  * - Each value is a GROUP name, dotted to reach into that group's own groups, e.g. `type_property.property`.
  * - See `Rule.getDeclaration()`, which a rule overrides for what a spec can't say.
  */
@@ -98,7 +106,7 @@ export type Declaration = {
 // ## Highlighting
 
 /**
- * How an editor should colour the tokens a rule's matches hold directly -- `highlightAs` in a rule's definition.
+ * How an editor should colour the tokens a rule's matches hold directly -- a rule's `@proto static highlightAs`.
  * - Named for the Language Server Protocol's standard semantic token types, so editor themes already colour them.
  * - Only a match's OWN tokens:  a `Sequence`'s words come from the literal rules inside it.
  */

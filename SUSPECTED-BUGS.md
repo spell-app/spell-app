@@ -56,8 +56,6 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 - [V] `spellCore/SpellEvent.ts` instance `trigger`: calls `SpellEvent.trigger(this, event, props)` without `return`; typed `unknown[]`, results dropped.
 
 - [V] `spellCore/classes/List.tsx` `_getZeroIndex`: `if (oneIndex === 0) return 1 // ???` -- returns second item.
-- [V] `app/ui/CodeMirror.ts`: `import "./CodeMirror-JSHINT"` is commented out, so `global.JSHINT` never set;
-  `outputOptions.lint: true` has nothing to call.  Output editor lint gutter silently dead.
 
 - `app/ui/ConsoleViewer.tsx` `getDerivedStateFromProps`: says "Clear `state.error` if ...???" but `return oldState || {}` never clears it,
   unlike `MatchViewer` / `ASTViewer`.
@@ -72,6 +70,11 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   syntax -- then compiling any use of it (`the card is a queen`) crashes in `compileASTExpression()`:
   `Cannot read properties of undefined (reading 'value')`, as `rhs` is `undefined`.  Crashes a full parse too.
   Probably wants a parse error instead of registering the rule -- see the `FIXME` in `computeBits()`.
+
+- `spellCore/classes/App.tsx` `App.show()`:  calls `createRoot(element)` on the SAME `#REACT_APP_ROOT_ID` element every
+  time a compiled app runs, e.g. each compile in the editor -- React warns "You are calling ReactDOMClient.createRoot()
+  on a container that has already been passed to createRoot() before".  Probably wants to reuse (or unmount) the
+  `REACT_ROOT` it already stashed on the element.
 
 ## 2. Server robustness / security
 

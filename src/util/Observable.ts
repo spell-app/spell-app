@@ -1,12 +1,21 @@
 import _set from "lodash/set"
 import _unset from "lodash/unset"
 import { store as createStore, view, batch, autoEffect, clearEffect } from "@risingstack/react-easy-state"
+import { raw } from "@nx-js/observer-util"
 
 import { Derivative } from "./Derivative"
 import * as extend from "./extend"
 
 /** Re-export `react-easy-state` primitives for convenience, so callers don't need a second import. */
 export { createStore, view, batch, autoEffect, clearEffect }
+
+/**
+ * The real object behind a store proxy, or `object` itself if it isn't one.
+ * - Read inside a reaction, e.g. a `view()` render, a store hands back PROXIES of nested objects -- and a cache
+ *   filled there keeps them.  A proxy is a different object from the real one:  `===`, `includes()`, `Map` keys
+ *   and `WeakMap` keys all miss.  Unwrap with this where identity matters.
+ */
+export { raw }
 
 /**
  * Base class giving subclasses reactive `props` and `state`, backed by `react-easy-state`.

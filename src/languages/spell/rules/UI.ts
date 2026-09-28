@@ -3,6 +3,7 @@
  * plus inline `css` string installation.
  */
 
+import { proto } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
@@ -24,6 +25,8 @@ export const UI = new SpellParser({ module: "UI" })
  *   via `operatorMap`; omitted operator defaults to `log`.
  */
 class print extends SpellStatement<"operator?|expressions"> {
+  @proto static alias = "statement"
+
   /** Maps `operator` group value to `console` method name; `default` is used when `operator` is absent. */
   operatorMap: Record<string, string> = {
     info: "info",
@@ -43,7 +46,6 @@ class print extends SpellStatement<"operator?|expressions"> {
   }
 }
 UI.addRule(print, {
-  alias: "statement",
   syntax: "print (operator:info|warning|error|collapsed? group)? [expressions: {expression} ,]",
   tests: [
     {
@@ -66,12 +68,13 @@ UI.addRule(print, {
 
 /** Stop a previous `print group...` */
 class end_print_group extends SpellStatement {
+  @proto static alias = "statement"
+
   getAST(match: P.MatchFor<this>) {
     return new P.ASTConsoleMethodInvocation(match, { methodName: "groupEnd" })
   }
 }
 UI.addRule(end_print_group, {
-  alias: "statement",
   syntax: "end print group",
   tests: [
     {
@@ -92,6 +95,8 @@ UI.addRule(end_print_group, {
  * - NOTE: we DO NOT actually `await` the promise!  ???
  */
 class notify extends SpellStatement<"message|okButton?"> {
+  @proto static alias = ["statement", "async"]
+
   getAST(match: P.MatchFor<this>) {
     const { message, okButton } = match.groups
     const args: P.ASTExpression[] = [P.asAST<P.ASTExpression>(message.AST)]
@@ -103,7 +108,6 @@ class notify extends SpellStatement<"message|okButton?"> {
   }
 }
 UI.addRule(notify, {
-  alias: ["statement", "async"],
   syntax: "notify {message:expression} (with {okButton:text})?", // TODO: "with close" ?
   tests: [
     {
@@ -128,6 +132,8 @@ UI.addRule(notify, {
  * - TODO: `the result = await ...` ?
  */
 class alert extends SpellStatement<"message|okButton?"> {
+  @proto static alias = ["statement", "async"]
+
   getAST(match: P.MatchFor<this>) {
     const { message, okButton } = match.groups
     const args: P.ASTExpression[] = [P.asAST<P.ASTExpression>(message.AST)]
@@ -141,7 +147,6 @@ class alert extends SpellStatement<"message|okButton?"> {
   }
 }
 UI.addRule(alert, {
-  alias: ["statement", "async"],
   syntax: "alert {message:expression} (with {okButton:text})?",
   tests: [
     {
@@ -166,6 +171,8 @@ UI.addRule(alert, {
  * - TODO: `the result = await ...` ?
  */
 class warn extends SpellStatement<"message|okButton?"> {
+  @proto static alias = "statement"
+
   getAST(match: P.MatchFor<this>) {
     const { message, okButton } = match.groups
     const args: P.ASTExpression[] = [P.asAST<P.ASTExpression>(message.AST)]
@@ -179,7 +186,6 @@ class warn extends SpellStatement<"message|okButton?"> {
   }
 }
 UI.addRule(warn, {
-  alias: "statement",
   syntax: "warn {message:expression} (with {okButton:text})?",
   tests: [
     {
@@ -204,6 +210,8 @@ UI.addRule(warn, {
  * - TODO: `the result = await ...` ?
  */
 class confirm extends SpellStatement<"message|okButton?|cancelButton?"> {
+  @proto static alias = "statement"
+
   getAST(match: P.MatchFor<this>) {
     const { message, okButton, cancelButton } = match.groups
     const args: P.ASTExpression[] = [P.asAST<P.ASTExpression>(message.AST)]
@@ -218,7 +226,6 @@ class confirm extends SpellStatement<"message|okButton?|cancelButton?"> {
   }
 }
 UI.addRule(confirm, {
-  alias: "statement",
   syntax: "confirm {message:expression} (with {okButton:text} ((and|or) {cancelButton:text})?)?",
   tests: [
     {
@@ -245,6 +252,8 @@ UI.addRule(confirm, {
  * - TODO: `the result = await ...` ?
  */
 class prompt extends SpellStatement<"message|defaultValue?"> {
+  @proto static alias = "statement"
+
   getAST(match: P.MatchFor<this>) {
     const { message, defaultValue } = match.groups
     const args: P.ASTExpression[] = [P.asAST<P.ASTExpression>(message.AST)]
@@ -258,7 +267,6 @@ class prompt extends SpellStatement<"message|defaultValue?"> {
   }
 }
 UI.addRule(prompt, {
-  alias: "statement",
   syntax: "prompt {message:expression} (with {defaultValue:expression})?",
   tests: [
     {
@@ -312,6 +320,9 @@ type CSSMatchData = {
  *   value survives being embedded in a backtick template literal.
  */
 class css extends P.TokenType<never, CSSMatchData> {
+  @proto static alias = "expression"
+  @proto static tokenType = P.TextToken
+
   getAST(match: P.MatchFor<this>) {
     // HACK: `file` is meant to come from `SpellCSSFile` -- see `CSSMatchData`.
     const { value } = match
@@ -328,8 +339,6 @@ class css extends P.TokenType<never, CSSMatchData> {
   }
 }
 UI.addRule(css, {
-  alias: "expression",
-  tokenType: P.TextToken,
   tests: [
     {
       title: "correctly matches css",

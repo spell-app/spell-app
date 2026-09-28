@@ -230,6 +230,8 @@ variables.addRule(variable, {
  * - Matched as an `expression`, unlike plain `variable`, because it only succeeds when resolvable.
  */
 class known_variable extends variable {
+  @proto static alias = "expression"
+
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens)
     // Succeed only if `variable.parse()` found the scope variable for the identifier.
@@ -238,7 +240,6 @@ class known_variable extends variable {
   }
 }
 variables.addRule(known_variable, {
-  alias: "expression",
   syntax: VARIABLE_SYNTAX,
   tests: [
     {

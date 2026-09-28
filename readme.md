@@ -35,6 +35,14 @@ Experimental [Deepwiki Documentation](https://deepwiki.com/oakjs/parser)
 - `yarn test` or `yarn test:ui`
 
 
+### Editing spell in the app
+
+The app's editor (Monaco) gets the same language features as VS Code, from the same language service, run in
+the page:  errors as you type, hover, completion, go to definition (F12, into other files too), find references
+(Shift-F12), rename (F2, which saves every file it changes), outline (Cmd-Shift-O), folding, expand selection
+and Format Document.
+
+
 ### Edit spell in VS Code
 
 The repo has a language server for spell (`src/lsp/`) and a VS Code extension to run it (`vscode-extension/`):

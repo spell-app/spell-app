@@ -95,6 +95,8 @@ const { matchGroup, repeatFlag } = rulex.rules as Record<"matchGroup" | "repeatF
 
 /**
  * A single symbol, or `\<symbol>` so we can escape special symbols like `?` and `*`.
+ * - NEVER matches an unescaped `|` or `)` -- those end a `choices` item, so `choices`
+ *   can be a plain `Sequence`.  Write `\|` / `\)` for the literal symbol.
  * - Compiles to a `P.Symbol`, adorned by `repeatFlag` via `applyFlags()`.
  */
 class symbolRule extends P.Sequence<"isEscaped?|literal|repeatFlag?"> {
@@ -109,8 +111,17 @@ rulex.addRule(symbolRule, {
   name: "symbol",
   alias: "rule",
   rules: [
-    new P.Pattern({ matchGroup: "isEscaped", pattern: /^\\$/, optional: true }),
-    new P.TokenType({ tokenType: P.SymbolToken, matchGroup: "literal" }),
+    new P.Choice({
+      rules: [
+        // escaped:  any symbol at all, e.g. `\|`
+        new P.Sequence([
+          new P.Symbol({ literal: "\\", matchGroup: "isEscaped" }),
+          new P.TokenType({ tokenType: P.SymbolToken, matchGroup: "literal" })
+        ]),
+        // unescaped:  anything but the `|` / `)` which `choices` needs to see
+        new P.TokenType({ tokenType: P.SymbolToken, matchGroup: "literal", blacklist: ["|", ")"] })
+      ]
+    }),
     repeatFlag
   ],
   tests: [
@@ -139,6 +150,12 @@ rulex.addRule(symbolRule, {
         ["\\?", new P.Symbol({ literal: "?", isEscaped: true })],
         ["\\(", new P.Symbol({ literal: "(", isEscaped: true })],
         ["\\[", new P.Symbol({ literal: "[", isEscaped: true })],
+
+        // `|` and `)` only when escaped -- `choices` needs to see them bare
+        ["|", undefined],
+        [")", undefined],
+        ["\\|", new P.Symbol({ literal: "|", isEscaped: true })],
+        ["\\)", new P.Symbol({ literal: ")", isEscaped: true })],
 
         // repeat
         [">?", new P.Symbol({ literal: ">", optional: true })],
@@ -317,22 +334,20 @@ rulex.addRule(list, {
 //    e.g. "(>|a)"
 ////////////////
 
-/** `match.groups` for `choices` -- `split`'s nested groups (`items` / `prefix`) come from `P.NestedSplit`. */
-type ChoicesGroups = P.GroupsFor<"repeatFlag?"> & { split: P.Match<P.NestedSplitGroups> }
 
 /**
  * `(a|b|c)`: match one of a list of `sequence` rules, separated by `|`, with an optional repeat flag.
- * - Uses `P.NestedSplit` to find the balanced `(...)` span and split its contents on `|`, so choices can
- *   themselves contain nested parens, e.g. `(>|(b|c|d))`.
+ * - Plain `Sequence`:  `(`, optional `name:`, `[{sequence}|]`, `)`.  Each `sequence` stops at `|` or `)`
+ *   because `symbol` never matches them unescaped.  Nested parens, e.g. `(>|(b|c|d))`, are just
+ *   `choices` matching again inside a `sequence`.
  * - Consolidates runs of plain `Keyword` / `Symbol` choices into a single `Keyword` / `Symbol` with an array
  *   literal, e.g. `(a|b|c)` compiles to one `P.Keyword({ literal: ["a", "b", "c"] })`, not a `P.Choice`.
  * - If exactly one choice remains after consolidation, returns that rule directly instead of wrapping it in
  *   a `P.Choice` -- NOTE: in that case the choice's own flags "beat" the rule's flags if they conflict.
  */
-class choices extends P.Sequence<ChoicesGroups> {
+class choices extends P.Sequence<"matchGroup?|choices|repeatFlag?"> {
   compile(match: P.MatchFor<this>) {
-    const { items, prefix: matchGroup } = match.groups.split.groups
-    let choices: P.Rule[] = items.map((item) => RulexParser.compileMatchOrDie(item))
+    let choices: P.Rule[] = match.groups.choices.items.map((item) => RulexParser.compileMatchOrDie(item))
 
     // Combine single keyword, keywords, symbol, symbols
     choices = rulex.consolidateLiterals(choices, P.Keyword, "literal")
@@ -347,22 +362,16 @@ class choices extends P.Sequence<ChoicesGroups> {
       rule = new P.Choice({ rules: choices })
     }
 
-    rule = rulex.applyFlags(rule, match)
-    if (matchGroup) rule.matchGroup = String(matchGroup.compile())
-    return rule
+    return rulex.applyFlags(rule, match)
   }
 }
 rulex.addRule(choices, {
   alias: "rule",
   rules: [
-    new P.NestedSplit({
-      matchGroup: "split",
-      start: new P.Symbol("("),
-      prefix: matchGroup,
-      item: new P.Subrule({ rule: "sequence", matchGroup: "choices" }),
-      delimiter: new P.Symbol("|"),
-      end: new P.Symbol(")")
-    }),
+    new P.Symbol("("),
+    matchGroup,
+    new P.Repeat({ matchGroup: "choices", rule: new P.Subrule("sequence"), delimiter: new P.Symbol("|") }),
+    new P.Symbol(")"),
     repeatFlag
   ],
   tests: [
@@ -403,6 +412,7 @@ rulex.addRule(choices, {
       compileAs: "rule",
       tests: [
         ["(>|a)", new P.Choice({ rules: [new P.Symbol(">"), new P.Keyword("a")] })],
+        ["(\\||a)", new P.Choice({ rules: [new P.Symbol({ literal: "|", isEscaped: true }), new P.Keyword("a")] })],
 
         ["(arg:>|a)", new P.Choice({ matchGroup: "arg", rules: [new P.Symbol(">"), new P.Keyword("a")] })],
 

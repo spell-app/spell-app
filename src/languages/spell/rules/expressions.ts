@@ -36,7 +36,7 @@ export class SpellExpression<
   declare parenthesize: boolean
   @proto static parenthesize = false
 
-  /** Every spell expression is registered as an `"expression"` unless its definition says otherwise. */
+  /** Every spell expression is registered as an `"expression"` unless a subclass says otherwise. */
   @proto static alias: string | string[] = "expression"
 
   /** TYPE-ONLY: props `parser.addRule()` accepts for this rule -- see `P.Rule`'s `Props`. */
@@ -239,6 +239,9 @@ expressions.addRule(parenthesized_expression, {
  *   precedence operators first (infix), finally draining `opStack` left to right.
  */
 class compound_expression extends SpellExpression<"lhs|rhsChain"> {
+  @proto static precedence = 12
+  @proto static isLeftRecursive = true
+
   /**
    * Runs shunting-yard over `rhsChain` to combine `lhs` with each suffix in precedence order.
    * - `compile()` normalizes a matched sub-`Match`/array down to plain `ASTNode`(s).
@@ -357,9 +360,7 @@ class compound_expression extends SpellExpression<"lhs|rhsChain"> {
   }
 }
 expressions.addRule(compound_expression, {
-  precedence: 12,
   syntax: "{lhs:simple_expression} {rhsChain:expression_suffix}+",
-  isLeftRecursive: true,
   // test multiple infix expressions in a row
   tests: [
     {
@@ -389,14 +390,15 @@ expressions.addRule(compound_expression, {
 
 /** `{lhs} and {rhs}`, e.g. `thing and other` -- precedence 6, below `is`/`includes` etc, above `or`. */
 class and extends InfixOperatorSuffix<"operator|expression"> {
+  @proto static precedence = 6
+  @proto static parenthesize = true
+
   getOutputOperator(): string {
     return "&&"
   }
 }
 expressions.addRule(and, {
   syntax: "(operator:and) {expression:simple_expression}",
-  precedence: 6,
-  parenthesize: true,
   tests: [
     {
       compileAs: "expression",
@@ -421,14 +423,15 @@ expressions.addRule(and, {
 
 /** `{lhs} or {rhs}`, e.g. `thing or other` -- precedence 5, lowest of the boolean/comparison suffixes. */
 class or extends InfixOperatorSuffix<"operator|expression"> {
+  @proto static precedence = 5
+  @proto static parenthesize = true
+
   getOutputOperator(): string {
     return "||"
   }
 }
 expressions.addRule(or, {
   syntax: "(operator:or) {expression:simple_expression}",
-  precedence: 5,
-  parenthesize: true,
   tests: [
     {
       compileAs: "expression",
@@ -448,14 +451,15 @@ expressions.addRule(or, {
 
 /** `{lhs} is [not] {rhs}`, e.g. `thing is other` -- compiles to `==`/`!=`. */
 class is extends InfixOperatorSuffix<"operator|expression"> {
+  @proto static precedence = 10
+  @proto static parenthesize = true
+
   getOutputOperator(operator: P.Match): string {
     return operator.value === "is not" ? "!=" : "=="
   }
 }
 expressions.addRule(is, {
-  precedence: 10,
   syntax: "(operator:is not?) {expression:simple_expression}",
-  parenthesize: true,
   tests: [
     {
       compileAs: "expression",
@@ -478,14 +482,15 @@ expressions.addRule(is, {
 
 /** `{lhs} is [not] exactly {rhs}`, e.g. `thing is exactly other` -- compiles to `===`/`!==`. */
 class is_exactly extends InfixOperatorSuffix<"operator|expression"> {
+  @proto static precedence = 10
+  @proto static parenthesize = true
+
   getOutputOperator(operator: P.Match): string {
     return operator.value === "is not exactly" ? "!==" : "==="
   }
 }
 expressions.addRule(is_exactly, {
-  precedence: 10,
   syntax: "(operator:is not? exactly) {expression:simple_expression}",
-  parenthesize: true,
   tests: [
     {
       compileAs: "expression",
@@ -512,6 +517,8 @@ expressions.addRule(is_exactly, {
  * - Compiles to `spellCore.isOfType(lhs, 'TypeName')`, wrapping type name via `QuotedExpression`.
  */
 class is_a extends InfixOperatorSuffix<"operator|expression"> {
+  @proto static precedence = 11
+
   shouldNegateOutput(operator: P.Match): boolean {
     return typeof operator.value === "string" && operator.value.includes("not")
   }
@@ -524,7 +531,6 @@ class is_a extends InfixOperatorSuffix<"operator|expression"> {
   }
 }
 expressions.addRule(is_a, {
-  precedence: 11,
   syntax: "(operator:is not? (a|an)) {expression:type}",
   tests: [
     {
@@ -553,6 +559,8 @@ expressions.addRule(is_a, {
  * - Compiles to `spellCore.matchesType(lhs, rhs)`.
  */
 class is_same_type_as extends InfixOperatorSuffix<"operator|expression"> {
+  @proto static precedence = 11
+
   shouldNegateOutput(operator: P.Match): boolean {
     return typeof operator.value === "string" && operator.value.includes("not")
   }
@@ -564,7 +572,6 @@ class is_same_type_as extends InfixOperatorSuffix<"operator|expression"> {
   }
 }
 expressions.addRule(is_same_type_as, {
-  precedence: 11,
   syntax: "(operator:is not? the same type as) {expression:simple_expression}",
   tests: [
     {
@@ -595,6 +602,8 @@ expressions.addRule(is_same_type_as, {
  * - Compiles to `spellCore.includes(list, lhs)` -- NOTE argument order is reversed from `lhs`/`rhs`.
  */
 class is_in extends InfixOperatorSuffix<"operator|expression"> {
+  @proto static precedence = 11
+
   shouldNegateOutput(operator: P.Match): boolean {
     const { value } = operator
     return typeof value === "string" && (value.includes("not") || value.includes("neither"))
@@ -607,7 +616,6 @@ class is_in extends InfixOperatorSuffix<"operator|expression"> {
   }
 }
 expressions.addRule(is_in, {
-  precedence: 11,
   syntax:
     "(operator:is (not? in|not? one of|either|not either of?|neither)) (expression:{simple_expression}|{identifier_list})",
   tests: [
@@ -643,6 +651,8 @@ expressions.addRule(is_in, {
  * - Compiles to `spellCore.includes(lhs, rhs)`.
  */
 class includes extends InfixOperatorSuffix<"operator|expression"> {
+  @proto static precedence = 11
+
   compileASTExpression(match: P.MatchFor<this>, { lhs, rhs }: OperatorOperands): P.ASTCoreMethodInvocation {
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "includes",
@@ -651,7 +661,6 @@ class includes extends InfixOperatorSuffix<"operator|expression"> {
   }
 }
 expressions.addRule(includes, {
-  precedence: 11,
   syntax: "(operator:includes|contains) {expression:simple_expression}",
   tests: [
     {
@@ -678,6 +687,8 @@ expressions.addRule(includes, {
  * - Always negates via `shouldNegateOutput()`, then delegates to same `spellCore.includes()` as `includes`.
  */
 class does_not_include extends InfixOperatorSuffix<"operator|expression"> {
+  @proto static precedence = 11
+
   shouldNegateOutput(): boolean {
     return true
   }
@@ -689,7 +700,6 @@ class does_not_include extends InfixOperatorSuffix<"operator|expression"> {
   }
 }
 expressions.addRule(does_not_include, {
-  precedence: 11,
   syntax: "(operator:does not (include|contain)) {expression:simple_expression}",
   tests: [
     {
@@ -717,6 +727,8 @@ expressions.addRule(does_not_include, {
  * - Compiles to `spellCore.isDefined(lhs)`, negated as needed.
  */
 class is_defined extends PostfixOperatorSuffix {
+  @proto static precedence = 11
+
   shouldNegateOutput(operator: P.Match): boolean {
     return operator.value !== "is defined"
   }
@@ -728,7 +740,6 @@ class is_defined extends PostfixOperatorSuffix {
   }
 }
 expressions.addRule(is_defined, {
-  precedence: 11,
   syntax: "is (defined|undefined|not defined)",
   tests: [
     {
@@ -755,6 +766,8 @@ expressions.addRule(is_defined, {
  * - Same underlying `spellCore.isDefined()` as `is_defined`, just different surface syntax.
  */
 class exists extends PostfixOperatorSuffix {
+  @proto static precedence = 11
+
   shouldNegateOutput(operator: P.Match): boolean {
     return operator.value !== "exists"
   }
@@ -766,7 +779,6 @@ class exists extends PostfixOperatorSuffix {
   }
 }
 expressions.addRule(exists, {
-  precedence: 11,
   syntax: "(exists|does not exist)",
   tests: [
     {
@@ -795,6 +807,8 @@ expressions.addRule(exists, {
  * - Compiles to `spellCore.isDefined(expression)`, negated as needed.
  */
 class there_is_a extends SpellExpression<"operator|expression"> {
+  @proto static precedence = 11
+
   getAST(match: P.MatchFor<this>): P.ASTNode {
     const { operator } = match.groups
     const expression = new P.ASTCoreMethodInvocation(match, {
@@ -808,7 +822,6 @@ class there_is_a extends SpellExpression<"operator|expression"> {
   }
 }
 expressions.addRule(there_is_a, {
-  precedence: 11,
   syntax: "there (operator:is not? (a|an)|is no such) {expression}",
   tests: [
     {
@@ -837,6 +850,8 @@ expressions.addRule(there_is_a, {
  * - Compiles to `spellCore.isEmpty(lhs)`, negated for `is not empty`.
  */
 class is_empty extends PostfixOperatorSuffix<"operator"> {
+  @proto static precedence = 11
+
   shouldNegateOutput(operator: P.Match): boolean {
     return typeof operator.value === "string" && operator.value.includes("not")
   }
@@ -848,7 +863,6 @@ class is_empty extends PostfixOperatorSuffix<"operator"> {
   }
 }
 expressions.addRule(is_empty, {
-  precedence: 11,
   syntax: "(operator:is not? empty)",
   tests: [
     {
@@ -875,6 +889,8 @@ expressions.addRule(is_empty, {
 
 /** `as upper case`/`uppercase` postfix, e.g. `"foo" as upper case` -- compiles to `spellCore.upperCase(lhs)`. */
 class as_uppercase extends PostfixOperatorSuffix {
+  @proto static precedence = 11
+
   compileASTExpression(match: P.MatchFor<this>, { lhs }: OperatorOperands): P.ASTCoreMethodInvocation {
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "upperCase",
@@ -883,7 +899,6 @@ class as_uppercase extends PostfixOperatorSuffix {
   }
 }
 expressions.addRule(as_uppercase, {
-  precedence: 11,
   syntax: "as (upper case|uppercase)",
   tests: [
     {
@@ -903,6 +918,8 @@ expressions.addRule(as_uppercase, {
 
 /** `as lower case`/`lowercase` postfix, e.g. `"foo" as lower case` -- compiles to `spellCore.lowerCase(lhs)`. */
 class as_lowercase extends PostfixOperatorSuffix {
+  @proto static precedence = 11
+
   compileASTExpression(match: P.MatchFor<this>, { lhs }: OperatorOperands): P.ASTCoreMethodInvocation {
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "lowerCase",
@@ -911,7 +928,6 @@ class as_lowercase extends PostfixOperatorSuffix {
   }
 }
 expressions.addRule(as_lowercase, {
-  precedence: 11,
   syntax: "as (lower case|lowercase)",
   tests: [
     {
@@ -936,6 +952,9 @@ expressions.addRule(as_lowercase, {
  * - `number`/`fraction` compile to `parseFloat()`, `integer` to `parseInt()`.
  */
 class as_a_type extends PostfixOperatorSuffix<"type"> {
+  @proto static precedence = 11
+  @proto static description = "Convert a value to a specific type, e.g. an integer."
+
   compileASTExpression(
     match: P.MatchFor<this>,
     { lhs }: OperatorOperands
@@ -958,10 +977,8 @@ class as_a_type extends PostfixOperatorSuffix<"type"> {
   }
 }
 expressions.addRule(as_a_type, {
-  precedence: 11,
   syntax: ["as (a|an) (type:string|number|fraction|integer)", "as (type:text)"],
   // es: "como (un|una) (type:cadena|numero|fracción|entero)"
-  description: "Convert a value to a specific type, e.g. an integer.",
   tests: [
     {
       compileAs: "expression",

@@ -64,11 +64,11 @@ export { Block, BlockLine }
 /** `JSX.ts`'s `match.data` shape for `jsxElement`/`jsxAttribute`/`jsxExpression` matches -- e.g. for UI code that reads them. */
 export type { JSXMatchData }
 
-// Structural rules.  The last three take a `name` since their class names are `Type_Case`, not rule case.
+// Structural rules.  The last three set `static ruleName` since their class names are `Type_Case`, not rule case.
 spellParser.addRule(blank_line)
-spellParser.addRule(Block, { name: "block" })
-spellParser.addRule(BlockLine, { name: "line" })
-spellParser.addRule(ParseError, { name: "parse_error" })
+spellParser.addRule(Block)
+spellParser.addRule(BlockLine)
+spellParser.addRule(ParseError)
 
 // Import the other rules defined above.
 spellParser.import(

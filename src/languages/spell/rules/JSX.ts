@@ -3,6 +3,7 @@
  * containers, all tokenized up front by `P.JSXElementToken` & friends and re-parsed here.
  */
 
+import { proto } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
@@ -47,6 +48,10 @@ export type JSXMatchData = {
  * - NOTE: rule name is `jsxElement`, kept distinct from class name `SpellJSX` (pre-existing convention).
  */
 export class SpellJSX extends P.TokenType<never, JSXMatchData> {
+  static ruleName = "jsxElement"
+  @proto static alias = ["jsxChild", "expression"]
+  @proto static tokenType = P.JSXElementToken
+
   /** Parse element's `attributes`/`children` tokens (see note below re: calling `parser.parse()` directly). */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
@@ -103,9 +108,6 @@ export class SpellJSX extends P.TokenType<never, JSXMatchData> {
   }
 }
 JSX.addRule(SpellJSX, {
-  name: "jsxElement",
-  alias: ["jsxChild", "expression"],
-  tokenType: P.JSXElementToken,
   tests: [
     {
       title: "Simple nested elements",
@@ -340,6 +342,9 @@ class SpellJSXContent extends P.TokenType<never, JSXMatchData> {
  * - NOTE: rule name is `jsxAttribute`, kept distinct from class name `SpellJSXAttribute` (pre-existing convention).
  */
 class SpellJSXAttribute extends SpellJSXContent {
+  static ruleName = "jsxAttribute"
+  @proto static tokenType = P.JSXAttributeToken
+
   /**
    * Parse `value` as an expression, or (for `on*` attribute names) as a `statement` with an
    * implicit `event` argument -- falls back to a `parse_error` match if neither consumes it all.
@@ -423,10 +428,7 @@ class SpellJSXAttribute extends SpellJSXContent {
     })
   }
 }
-JSX.addRule(SpellJSXAttribute, {
-  name: "jsxAttribute",
-  tokenType: P.JSXAttributeToken
-})
+JSX.addRule(SpellJSXAttribute)
 
 ////////////////
 // ## `jsxText` rule
@@ -438,6 +440,10 @@ JSX.addRule(SpellJSXAttribute, {
  * - NOTE: rule name is `jsxText`, kept distinct from class name `SpellJSXText` (pre-existing convention).
  */
 class SpellJSXText extends P.TokenType {
+  static ruleName = "jsxText"
+  @proto static alias = "jsxChild"
+  @proto static tokenType = P.JSXTextToken
+
   /** Build `P.ASTJSXText`; returns `undefined` for blank text since there's nothing to render. */
   getAST(match: P.MatchFor<this>) {
     const { raw, quotedText } = match.matched[0] as P.JSXTextToken
@@ -447,11 +453,7 @@ class SpellJSXText extends P.TokenType {
     return new P.ASTJSXText(match, { raw, value: quotedText })
   }
 }
-JSX.addRule(SpellJSXText, {
-  name: "jsxText",
-  alias: "jsxChild",
-  tokenType: P.JSXTextToken
-})
+JSX.addRule(SpellJSXText)
 
 ////////////////
 // ## `jsxEndTag` rule
@@ -463,16 +465,16 @@ JSX.addRule(SpellJSXText, {
  * - NOTE: rule name is `jsxEndTag`, kept distinct from class name `SpellJSXEndTag` (pre-existing convention).
  */
 class SpellJSXEndTag extends P.TokenType {
+  static ruleName = "jsxEndTag"
+  @proto static alias = "jsxChild"
+  @proto static tokenType = P.JSXEndTagToken
+
   getAST(match: P.MatchFor<this>) {
     const { tagName } = match.matched[0] as P.JSXEndTagToken
     return new P.ASTJSXEndTag(match, { tagName })
   }
 }
-JSX.addRule(SpellJSXEndTag, {
-  name: "jsxEndTag",
-  alias: "jsxChild",
-  tokenType: P.JSXEndTagToken
-})
+JSX.addRule(SpellJSXEndTag)
 
 ////////////////
 // ## `jsxExpression` rule
@@ -486,6 +488,10 @@ JSX.addRule(SpellJSXEndTag, {
  * - NOTE: rule name is `jsxExpression`, kept distinct from class name `SpellJSXExpression` (pre-existing convention).
  */
 class SpellJSXExpression extends SpellJSXContent {
+  static ruleName = "jsxExpression"
+  @proto static alias = "jsxChild"
+  @proto static tokenType = P.JSXExpressionToken
+
   /** Parse `contents` as an `expression`; falls back to `parse_error` if it doesn't consume it all. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
@@ -512,8 +518,4 @@ class SpellJSXExpression extends SpellJSXContent {
     })
   }
 }
-JSX.addRule(SpellJSXExpression, {
-  name: "jsxExpression",
-  alias: "jsxChild",
-  tokenType: P.JSXExpressionToken
-})
+JSX.addRule(SpellJSXExpression)

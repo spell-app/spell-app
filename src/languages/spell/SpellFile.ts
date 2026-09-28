@@ -1,4 +1,4 @@
-import { TextFile, batch } from "~/util"
+import { TextFile, batch, raw } from "~/util"
 import { P } from "~/parser"
 import { SP } from "~/languages/spell"
 import { spellCore } from "~/spellCore"
@@ -79,6 +79,14 @@ export class SpellFile extends TextFile {
   /*@memoize*/
   get project(): SP.SpellProject {
     return this.derived("project", () => new SP.SpellProject(this.projectId))
+  }
+
+  /**
+   * Does our project parse us, i.e. are we active in its `.imports.json`?
+   * - `raw(this)`:  we may be called through a store proxy, and `spellFiles` are the real files.
+   */
+  get isActive(): boolean {
+    return this.project.spellFiles.includes(raw(this))
   }
 
   /**
@@ -193,7 +201,7 @@ export class SpellFile extends TextFile {
   }
 
   /**
-   * Take on the result of an incremental parse of our `parseText` -- see `SpellProject.updatedContentsFor()`.
+   * Take on the result of an incremental parse of our `parseText` -- see `SpellProject.updateText()`.
    * - SIDE EFFECT: clears `AST` / `compiled`, to rebuild from the new `match`.
    */
   setParsed(parse: P.IncrementalParse): void {
@@ -280,30 +288,6 @@ export class SpellFile extends TextFile {
   /** URL to serve the file. */
   get url(): string {
     return `/api/projects/file/${this.projectId}${this.filePath}`
-  }
-
-  ////////////////
-  // ## Rendering utilities
-  ////////////////
-
-  /** Convert CodeMirror Position: `{ line, ch }` to char `offset`. */
-  offsetForPosition({ line, ch }: { line: number; ch: number }): number | undefined {
-    if (!this.inputLines) return undefined
-    if (line === 0) return ch
-    return this.inputLines.slice(0, line).join("\n").length + 1 + ch
-  }
-
-  /** Convert char `offset` to CodeMirror Position: `{ line, ch }`. */
-  positionForOffset(offset: number): { line: number; ch: number } {
-    let line = 0
-    let ch = 0
-    if (typeof this.contents === "string") {
-      // TODO: offset + 1?
-      const lines = this.contents.substr(0, offset).split("\n")
-      line = lines.length - 1
-      ch = lines[line].length
-    }
-    return { line, ch }
   }
 
   ////////////////

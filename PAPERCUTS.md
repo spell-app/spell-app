@@ -55,3 +55,29 @@ Log of things that slowed down development. Date · symptom · fix · project.
   default `whitespacePolicy` is `ALL` (whitespace as TOKENS), while every `Parser`'s -- spell's too -- is
   `LEADING_ONLY` (whitespace on each token's `.whitespace`).  Code that walks tokens only worked for one. ·
   Skip `P.WhitespaceToken`s and measure gaps from the text, so either policy works. · spell/parser
+- 2026-09-27 · `console.log()` from inside a vitest test (e.g. to read `SP.spellParser.speedTest()` results)
+  printed nothing -- test console output is swallowed. · Write results to a file from the test
+  (`fs.appendFileSync`) and read that. · spell/parser
+- 2026-09-27 · After adding `monaco-editor`, the ALREADY-RUNNING `vite` dev server served every page as
+  `504 (Outdated Optimize Dep)` -- blank app, even after reloads. · Restart `vite` with `--force` after adding
+  or removing a dependency. · spell/parser
+- 2026-09-27 · oxlint `import(default)`:  "No default export found" on Vite's `import X from "...?worker"`, though
+  `tsc` is happy (`vite/client` types it). · `// oxlint-disable-next-line import/default` with a reason. · spell/parser
+- 2026-09-27 · Codemod script couldn't `require("typescript")` for an AST:  `typescript` is v7 (native `tsgo`),
+  which ships no JS compiler API. · Use `@babel/parser` (already in `node_modules`) with
+  `plugins: ["typescript", "decorators"]`. · spell/parser
+- 2026-09-27 · `F="a.ts b.ts"; tool $F` passed ONE argument -- zsh doesn't word-split unquoted variables. ·
+  Spell paths out, use brace expansion (`rules/{a,b}.ts`), or `${=F}`. · spell/parser
+- 2026-09-27 · "Rendered more hooks than during the previous render" in `<InputEditor>`, as soon as the Monaco
+  models came in.  `react-easy-state`'s `autoEffect()` quietly becomes a `useEffect()` HOOK when it's called
+  during a render -- and `SpellModels.modelFor()` runs during one. · Use `observe()` / `unobserve()` from
+  `@nx-js/observer-util` for effects that aren't a component's. · spell/parser
+- 2026-09-27 · The app's editor page hung, 100% CPU, stack always in Monaco's `getOffsetAt()`.  A store read
+  inside a reaction returns PROXIES;  `setValue()` inside an `observe()` fired `onInputCursor()`, which reached
+  the Monaco editor through the store, and Monaco crawled its own internals through a proxy.  Profiler couldn't
+  even stop. · Find it with CDP `Debugger.pause` (Playwright `newCDPSession`), sampled a few times.  Keep Monaco
+  out of stores, and touch it outside reactions.  See CODE-DEBT "Store proxies". · spell/parser
+- 2026-09-27 · Language features answered nothing for other files, though hover worked.  `file.isActive` was
+  false:  `project.activeImports`, cached during a render, held PROXIES of the files, and `includes()` missed the
+  real one. · `raw()` (now in `~/util`) where identity matters.  See CODE-DEBT "Store proxies". · spell/parser
+

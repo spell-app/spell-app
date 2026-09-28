@@ -23,6 +23,9 @@ export class blank_line extends P.BlankLine {
  *   statement attempt to parse that next line as well -- see `commitStatement()`.
  */
 export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
+  /** Registered as `line` -- class name isn't rule case. */
+  static ruleName = "line"
+
   /**
    * SIDE EFFECT: calls `statement.rule.mutateScope()` on the parsed statement (and on any nested block's
    * errors are folded in too), so a locked-in statement can e.g. add variables to `scope` as it's parsed.

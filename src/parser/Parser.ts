@@ -251,8 +251,8 @@ export class Parser extends Derivative {
    * Add a `rule` to our list of rules!
    * - Rule CLASS is `instantiate()`d -- one frozen instance per `syntax` variant -- and added under
    *   its name + aliases, plus `_testable_` if it has tests.  Returns array if there are several.
-   *   Pass its `definition` (`syntax`, `alias`, `tests`...) as second argument, type-checked against that
-   *   class's props:  `parser.addRule(give_statement, { alias: "statement", syntax: "give {thing}" })`.
+   *   Pass its `definition` -- normally just `syntax` + `tests`, the rest lives on the class as `@proto static` --
+   *   as second argument, type-checked against that class's props:  `parser.addRule(give, { syntax: "give {thing}" })`.
    * - Rule INSTANCE is added under `ruleName`, defaulting to `rule.name`.
    * - Converts to `P.Group` on re-defining the same rule.
    * - Throws on anything unusable, e.g. bad `syntax` -- better at startup than a mystery parse failure later.

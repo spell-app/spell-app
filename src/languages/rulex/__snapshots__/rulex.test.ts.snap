@@ -2,7 +2,7 @@
 
 exports[`testing language rulex > rule group specs > match snapshot -- if this fails, update rule's \`Groups\` type argument, then the snapshot 1`] = `
 {
-  "choices": "split|repeatFlag?",
+  "choices": "matchGroup?|choices|repeatFlag?",
   "keyword": "literal|repeatFlag?",
   "list": "matchGroup?|ruleName|delimiter|repeatFlag?",
   "matchGroup": "matchGroup",

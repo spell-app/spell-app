@@ -2,6 +2,7 @@
  * Rules for firing and watching global events on the `spellCore.RUNTIME` singleton -- `trigger`/`fire`/`send`
  * and `on`.
  */
+import { proto } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
@@ -25,6 +26,8 @@ export const events = new SpellParser({ module: "events" })
  * - Compiles to `spellCore.RUNTIME.trigger(name, props?)`.
  */
 class trigger extends SpellStatement<"eventName|props?"> {
+  @proto static alias = "statement"
+
   getAST(match: P.MatchFor<this>) {
     const { eventName, props } = match.groups
     // Use the `raw` eventName, dashes are ok!
@@ -37,7 +40,6 @@ class trigger extends SpellStatement<"eventName|props?"> {
   }
 }
 events.addRule(trigger, {
-  alias: "statement",
   syntax: "(trigger|fire|send) event? {eventName:keyword} (with {props:object_literal_properties})?",
   tests: [
     {
@@ -71,6 +73,9 @@ events.addRule(trigger, {
  * - Compiles to `spellCore.RUNTIME.on(name, handler?)`; `handler` omitted entirely when there's no body.
  */
 class on extends SpellStatement<"eventName|props?|body?"> {
+  @proto static alias = "statement"
+  @proto static declares: P.DeclaresSpec = { kind: "event", name: "eventName" }
+
   /** Nested scope for the handler body -- named for `eventName`, args are `event` plus any `props`. */
   getNestedScopeForMatch(match: P.MatchFor<this>) {
     const { eventName, props } = match.groups
@@ -123,9 +128,7 @@ class on extends SpellStatement<"eventName|props?|body?"> {
   }
 }
 events.addRule(on, {
-  alias: "statement",
   syntax: "on event? {eventName:keyword} {props:with_props_arg}? :? {statement_body}?",
-  declares: { kind: "event", name: "eventName" },
   tests: [
     {
       compileAs: "block",

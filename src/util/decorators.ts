@@ -13,10 +13,12 @@
  * - Inherited through prototype chain;  instances may shadow with their own value, e.g. `Object.assign(this, props)`.
  * - Non-enumerable, so it stays out of `Object.keys()` / spreads -- instances only show what's theirs.
  * - NOTE: static keeps its value too, harmless.
+ * - Field name MUST be something instances already declare, e.g. `declare alias: ...` on `Rule` --
+ *   so a typo like `@proto static alais` is a compile error rather than a silently-ignored static.
  */
 export function proto<This extends AbstractClass<object>, Value>(
   _target: undefined,
-  context: ClassFieldDecoratorContext<This, Value>
+  context: ClassFieldDecoratorContext<This, Value> & { name: keyof InstanceType<This> }
 ) {
   if (!context.static) {
     throw new TypeError(`@proto ${String(context.name)}: only works on 'static' fields.`)

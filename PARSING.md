@@ -106,10 +106,10 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   `declaredBy`, the match which declared it (for go-to-definition etc.), and a `ScopeRule` its built
   `instances`, so a call-site `match.rule` maps back to its definition.  `MethodScope` stamps its
   `declaredBy` on the argument / alias variables it makes.
-- What a statement declares, for editors' symbol lists, comes from its rule:  `declares` in the definition, or a
+- What a statement declares, for editors' symbol lists, comes from its rule:  `@proto static declares`, or a
   `getDeclaration()` override (`assignment` only counts NEW variables, `MethodDefinition` reads its signature).
 - How editors colour a match's OWN tokens comes from its rule's `highlightAs`, e.g. `property`:  defaults on
-  `Keyword(s)` / `Symbol(s)` / `SpellIdentifier` / `SpellType` / `SpellConstant`, else in the definition.
+  `Keyword(s)` / `Symbol(s)` / `SpellIdentifier` / `SpellType` / `SpellConstant`, else on the rule class.
   `SpellLanguageService` refines it from `match.data`, e.g. an argument's `variable` becomes `parameter`.
   - quoted aliases (`a card "is face up" if ...`):  `quoted_property_formula` adds an `expression_suffix` rule
   - methods (`to turn (a card) over`):  `MethodDefinition` adds a rule (`methods.ts`).  Methods live ONLY as
@@ -139,9 +139,11 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   imports the base spell parser).  Every file gets a `FileScope` under it and SHARES that parser.
 - So one file's types, constants and rules are visible to every later file.
 - ALL files parse first, then ALL compile, so lazy compile-time lookups see the whole project.
-- Editor (`src/app/editor.ts` `onInputChanged`) => `project.updatedContentsFor(file)` on every keystroke:
-  `project.incremental.update()` re-parses what changed right away, and hands changed files their new match.
+- Editor (`src/app/editor.ts` `onInputChanged`) => `project.updateText(file, text)` on every keystroke, which calls
+  `updatedContentsFor(file)`:  `project.incremental.update()` re-parses what changed right away, and hands changed
+  files their new match.  If that couldn't cope, `updateText()` parses from scratch straight away.
   After 2s:  compiles, saves `.output.js` and runs it.
+- A crash while parsing (a rule threw, NOT an error in the spell) is left in `project.parseError`.
 - `SpellProject`'s parse task list keeps its scope + `incremental` while they're good (`needsFullParse`), else
   starts over:  new project scope, `parseImports()` builds a new `IncrementalProject`.
 
@@ -175,7 +177,7 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     keeps everything after it:  same `lastGood` => same changes.  Deliberately NOT what a full parse gives.
     NOTE: a header broken so badly it no longer takes its indented body changes size => not kept.
   - file match rebuilt with `parser.assembleFile()` => `Block.assembleBlock()`.
-- `rule.getScopeChanges()`:  `changesScope` if set (`@proto static`, or in a definition), else `undefined` (no
+- `rule.getScopeChanges()`:  `changesScope` if set (`@proto static`), else `undefined` (no
   `mutateScope()`) or `"global"` (has one -- assume the worst).  `assignment` / `get` say `"internal"`:  their
   variables go in their own `match.scope`.
 - If an `update()` throws (a rule crashed committing a line), `IncrementalProject.isBroken`:  next update re-parses
@@ -202,9 +204,15 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 
 - `src/lsp/` (`LSP`), run as `yarn start:lsp` -- or by the VS Code extension in `vscode-extension/`, which spawns the
   repo's own `tsx` on `src/lsp/server.ts`.  `stdioGuard.ts` sends `console.*` to stderr first:  stdout is the protocol.
-- Hosts the SAME `SpellProject` / `SpellFile` the app uses, loading from disk via `LoadableFile.fetch` (above).
-  `SpellWorkspace` maps a `.spell` file to its project (nearest `.imports.json`), parses the project on first sight,
-  then feeds each edit through `project.updatedContentsFor()`, exactly as the app's editor does.
+- Hosts the SAME `SpellProject` / `SpellFile` the app uses, and takes everything from them:  `project.spellFiles`,
+  `file.isActive`, `project.parseError`, and edits through `project.updateText()`, exactly as the app's editor does.
+  All `SpellLanguageService` adds is `LSP.FileAddresses`:  the editor's URI for each file.
+- Used twice:  by VS Code over stdio, and IN-PROCESS by the app's Monaco editor (`src/app/ui/monaco/`), whose
+  `SpellModels` keep one Monaco model per file in step with `file.contents` (edits go through `updateText()`),
+  and whose `SpellLanguageFeatures` call the service and convert its answers with `LspToMonaco`.
+- `SpellDiskWorkspace` is the stdio server's:  loads from disk via `LoadableFile.fetch` (above), maps a `.spell`
+  file to its project (nearest `.imports.json`), parses the project on first sight, and reacts to disk changes.
+  Node-only, so it's NOT in the `~/lsp` barrel, which MUST stay browser-safe (`src/lsp/barrel.test.ts`).
 - `SpellLanguageService` answers from each file's current `match`, never re-parsing:
   - positions from match / token OFFSETS, never `token.line` / `ch`
   - symbols from `rule.getDeclaration()`, colours from `rule.highlightAs`

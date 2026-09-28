@@ -13,14 +13,14 @@ import type { SpellRouteParams } from "./pages.types"
  * `<UI.AppRoot>` (live rendered app) plus `<UI.ASTRoot>`/`<UI.MatchRoot>` (parse tree / match inspector)
  * on the right.
  * - SIDE EFFECT: sets `editor.projectPage = "editor"` on every render.
- * - Wires up save/reload/compile/new-file hotkeys that only fire outside CodeMirror -- CodeMirror.js
- *   duplicates the same bindings for use inside the editor itself.
+ * - Wires up save/reload/compile/new-file hotkeys that only fire outside the Monaco editor --
+ *   `editor.onInputDidMount()` adds the same keys inside it.
  * - Note that this does not need to be a `view()`, it redraws automatically when the file changes.
  ****************/
 export const SpellEditor = React.memo(function SpellEditor() {
   editor.projectPage = "editor"
-  // Set up hotkey when NOT in codemirror
-  // Note these are duplicated in CodeMirror.js
+  // Set up hotkey when NOT in the Monaco editor
+  // Note these are duplicated in `editor.onInputDidMount()`
   useHotkeys("command+s", (event) => {
     event.preventDefault()
     void editor.saveFile()

@@ -8,6 +8,17 @@ import type { SP } from "~/languages/spell"
 
 // ## Workspace
 
+/**
+ * How an editor addresses spell files:  by URI, e.g. a `file:` URL on disk, or `spell:///...` in the app.
+ * - All `SpellLanguageService` needs beyond the files themselves:  projects, files and parses are `SP`'s.
+ */
+export type FileAddresses = {
+  /** `SpellFile` for document `uri`, or `undefined` if it isn't a spell file we can place in a project. */
+  fileFor(uri: string): SP.SpellFile | undefined
+  /** Editor's URI for `file`. */
+  uriFor(file: SP.SpellFile): string
+}
+
 /** What happened to a file on disk, from the editor's file watcher. */
 export type DiskChange = "created" | "changed" | "deleted"
 

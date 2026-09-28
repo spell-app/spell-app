@@ -1,5 +1,6 @@
 /** Rules for assignment and returning values. */
 
+import { proto } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
@@ -38,6 +39,11 @@ type AssignmentMatchData = {
  * - Compiles to `let thing = value` (new variable) or `thing = value` (existing).
  */
 class assignment_statement extends SpellStatement<"thing|value", AssignmentMatchData> {
+  static ruleName = "assignment"
+  @proto static alias = "statement"
+  @proto static changesScope: P.ScopeChanges = "internal"
+  @proto static declares: P.DeclaresSpec = { kind: "variable", name: "thing" }
+
   /**
    * Declares a new scope variable for `thing` (if it's a `{variable}` and not already declared,
    * or only an alias) so later statements in the block see it -- see rule doc above.
@@ -118,16 +124,12 @@ class assignment_statement extends SpellStatement<"thing|value", AssignmentMatch
   }
 }
 assignment.addRule(assignment_statement, {
-  name: "assignment",
-  alias: "statement",
-  changesScope: "internal",
   syntax: [
     "(thing:{expression}|{variable}) = {value:expression}",
     "let (thing:{expression}|{variable}) = {value:expression}",
     "set (thing:{expression}|{variable}) to {value:expression}",
     "(thing:{variable}) is {value: expression}"
   ],
-  declares: { kind: "variable", name: "thing" },
   tests: [
     {
       compileAs: "block",
@@ -199,6 +201,9 @@ type GetMatchData = {
  * - Compiles to `let it = value`, `let it_2 = value`, ...
  */
 class get extends SpellStatement<"value", GetMatchData> {
+  @proto static alias = ["assignment", "statement"]
+  @proto static changesScope: P.ScopeChanges = "internal"
+
   /** Declare a new `it` -- see `assignment_statement.declareIt()`. */
   mutateScope(match: P.MatchFor<this>) {
     // `match.scope` is typed as `P.Scope`, whose `.variables` getter can be `undefined` -- we know it's a block.
@@ -216,8 +221,6 @@ class get extends SpellStatement<"value", GetMatchData> {
   }
 }
 assignment.addRule(get, {
-  alias: ["assignment", "statement"],
-  changesScope: "internal",
   syntax: "get {value:expression}",
   tests: [
     {
@@ -310,13 +313,14 @@ assignment.addRule(get, {
  *   (`return\n\t1 + 2`).
  */
 class return_statement extends SpellStatement<"expression?|body?"> {
+  @proto static alias = "statement"
+
   getAST(match: P.MatchFor<this>): P.ASTReturnStatement {
     const result = match.groups.expression || this.getBody(match)
     return new P.ASTReturnStatement(match, { value: result?.AST as P.ASTExpression | undefined })
   }
 }
 assignment.addRule(return_statement, {
-  alias: "statement",
   syntax: "(return|exit with?) {expression}? {nested_expression}?",
   tests: [
     {

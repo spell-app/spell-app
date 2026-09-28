@@ -3,6 +3,7 @@
  * debug output directly in spell source rather than in a separate test language.
  */
 
+import { proto } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
@@ -24,6 +25,8 @@ export const tests = new SpellParser({ module: "tests" })
  * - e.g. `expect the rank of it to be "queen"` => `spellCore.expect(it.rank, ..., "queen", ...)`.
  */
 class expect_test extends SpellStatement<"expression|value?"> {
+  @proto static alias = ["statement"]
+
   getAST(match: P.MatchFor<this>) {
     const { expression, value } = match.groups
     // `Match.raw` is a `declare`d field, always statically present, so `"raw" in value` can't narrow it here
@@ -38,7 +41,6 @@ class expect_test extends SpellStatement<"expression|value?"> {
   }
 }
 tests.addRule(expect_test, {
-  alias: ["statement"],
   syntax: "expect that? {expression} (to be {value:expression})?",
   tests: [
     {
@@ -76,6 +78,8 @@ tests.addRule(expect_test, {
  * - `quiet` suppresses normal test output (e.g. for tests nested inside other tests).
  */
 class start_test extends SpellStatement<"quiet?|message"> {
+  @proto static alias = "statement"
+
   getAST(match: P.MatchFor<this>) {
     const { quiet, message } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
@@ -87,7 +91,6 @@ class start_test extends SpellStatement<"quiet?|message"> {
   }
 }
 tests.addRule(start_test, {
-  alias: "statement",
   syntax: "start (quiet:quiet)? test {message:text}"
 })
 
@@ -98,6 +101,8 @@ tests.addRule(start_test, {
 
 /** `end test` -- marks end of the current named test run started by `start_test`. */
 class end_test extends SpellStatement {
+  @proto static alias = "statement"
+
   getAST(match: P.MatchFor<this>) {
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "endTest"
@@ -105,7 +110,6 @@ class end_test extends SpellStatement {
   }
 }
 tests.addRule(end_test, {
-  alias: "statement",
   syntax: "end test"
 })
 
@@ -116,6 +120,8 @@ tests.addRule(end_test, {
 
 /** `echo {expression}` -- print `expression`'s value, e.g. for debugging. */
 class echo extends SpellStatement<"expression"> {
+  @proto static alias = ["statement"]
+
   getAST(match: P.MatchFor<this>) {
     const { expression } = match.groups
     return new P.ASTEchoInvocation(match, {
@@ -124,7 +130,6 @@ class echo extends SpellStatement<"expression"> {
   }
 }
 tests.addRule(echo, {
-  alias: ["statement"],
   syntax: "echo {expression}",
   tests: [
     {

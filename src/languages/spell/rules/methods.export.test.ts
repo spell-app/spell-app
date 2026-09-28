@@ -19,8 +19,10 @@ describe("scope records the rules it creates, for export", () => {
     const entry = scope.rules?.get("frobnicate_$thing")
     expect(entry).toBeDefined()
     expect(typeof entry!.rule).toBe("function")
-    // the alias is what makes it reachable as a statement -- this is what `add()` used to drop
-    expect(entry!.definition.alias).toEqual(["statement", "expression"])
+    // the alias is what makes it reachable as a statement -- it travels ON THE CLASS, as `@proto static`
+    expect(entry!.rule.prototype.alias).toEqual(["statement", "expression"])
+    // ...so the definition holds only `syntax`, like every other spell rule's
+    expect(Object.keys(entry!.definition)).toEqual(["syntax"])
   })
 
   test("re-registering that pair on another scope makes the method callable there", () => {

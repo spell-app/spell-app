@@ -6,17 +6,16 @@ import { installDiskFetch, locationForDiskPath } from "~/server/disk-fetch"
 import type { LSP } from "~/lsp"
 
 /**
- * The spell projects an editor has open, hosted on `SP.SpellProject` / `SP.SpellFile` loading from disk.
- * - Maps editor document URIs <=> `SpellFile`s.
+ * The stdio language server's view of the editor's files, hosted on `SP.SpellProject` / `SP.SpellFile` loading from disk.
+ * - Maps editor document URIs <=> `SpellFile`s (`LSP.FileAddresses`).
  *   A file's project is its nearest `.imports.json` folder -- see `locationForDiskPath()`.
- * - Open documents' text wins over disk:  it goes into `file.contents`,
- *   then re-parses as little as possible through `project.updatedContentsFor()`, as the app's editor does.
+ * - Open documents' text wins over disk:  it goes through `project.updateText()`, as the app's editor's does.
  * - Every method that changes anything returns the spell files whose parse changed,
  *   so the server can publish their diagnostics.
  * - SIDE EFFECT (constructor):  makes EVERY `LoadableFile` load from disk -- see `installDiskFetch()`.
- * - NOTE: `SpellProject` / `SpellFile` are process-wide singletons, so one workspace per process.
+ * - NOTE: node-only, so deliberately NOT in the `~/lsp` barrel:  import it from this file.
  */
-export class SpellWorkspace {
+export class SpellDiskWorkspace implements LSP.FileAddresses {
   /** Latest text of each open document, by URI. */
   #openText = new Map<string, string>()
   /** URI for each file we've mapped, by `file.path` -- the one the editor sent, if it has one. */
@@ -25,8 +24,6 @@ export class SpellWorkspace {
   #fileByUri = new Map<string, SP.SpellFile | null>()
   /** First full parse of each project we've seen:  resolves once it's done, successfully or not. */
   #firstParses = new Map<SP.SpellProject, Promise<void>>()
-  /** Why each project's last full parse failed, if it did, e.g. a rule crashed. */
-  readonly problems = new Map<SP.SpellProject, string>()
 
   /** SIDE EFFECT:  `installDiskFetch()`. */
   constructor() {
@@ -36,21 +33,6 @@ export class SpellWorkspace {
   ////////////////
   // ## Files
   ////////////////
-
-  /** Projects we've loaded, in the order we met them. */
-  get projects(): SP.SpellProject[] {
-    return [...this.#firstParses.keys()]
-  }
-
-  /** Spell files `project` parses:  its active `.spell` imports, in order. */
-  spellFiles(project: SP.SpellProject): SP.SpellFile[] {
-    return project.activeImports.filter((file): file is SP.SpellFile => file instanceof SP.SpellFile)
-  }
-
-  /** Does `file`'s project parse it, i.e. is it active in `.imports.json`? */
-  isActive(file: SP.SpellFile): boolean {
-    return this.spellFiles(file.project).includes(file)
-  }
 
   /**
    * `SpellFile` for document `uri`, or `undefined` if it isn't a `.spell` file on disk we can place in a project.
@@ -94,8 +76,8 @@ export class SpellWorkspace {
     const isFirst = !this.#firstParses.has(project)
     await this.parseOnce(project)
     // Another change may have come in while we waited:  apply the latest.
-    const changed = await this.applyText(file, this.#openText.get(uri) ?? text)
-    return isFirst ? this.spellFiles(project) : changed
+    const changed = await project.updateText(file, this.#openText.get(uri) ?? text)
+    return isFirst ? project.spellFiles : changed
   }
 
   /** Document `uri` closed:  its file goes back to what's on disk. */
@@ -137,21 +119,16 @@ export class SpellWorkspace {
     return firstParse
   }
 
-  /** Parse `project` (from scratch unless its incremental parse is good), recording any failure in `problems`. */
+  /** Parse `project` (from scratch unless its incremental parse is good).  A crash is left in `project.parseError`. */
   private async parseProject(project: SP.SpellProject): Promise<void> {
-    try {
-      await project.parse()
-      this.problems.delete(project)
-    } catch (error) {
-      this.problems.set(project, error instanceof Error ? error.message : String(error))
-    }
+    await project.parse().catch(() => undefined)
   }
 
   /** Re-read `project`'s index -- which drops its incremental parse -- and parse it from scratch. */
   private async refresh(project: SP.SpellProject): Promise<SP.SpellFile[]> {
     await project.reload(undefined).catch(() => undefined)
     await this.parseProject(project)
-    return this.spellFiles(project)
+    return project.spellFiles
   }
 
   /** Reload `file` from disk and re-parse whatever that changes. */
@@ -161,22 +138,6 @@ export class SpellWorkspace {
     } catch {
       return []
     }
-    return this.applyText(file, file.contents ?? "")
-  }
-
-  /**
-   * `file` now has `text`:  re-parse as little as possible, and return the spell files whose parse changed.
-   * - A file its project doesn't parse just takes the text, so it's there if it becomes active.
-   * - If the incremental parse couldn't cope, `updatedContentsFor()` dropped it:  parse from scratch.
-   */
-  private async applyText(file: SP.SpellFile, text: string): Promise<SP.SpellFile[]> {
-    const { project } = file
-    if (file.contents !== text) file.contents = text
-    if (!this.isActive(file)) return [file]
-
-    const before = new Map(this.spellFiles(project).map((it) => [it, it.match]))
-    project.updatedContentsFor(file)
-    if (!project.incremental) await this.parseProject(project)
-    return this.spellFiles(project).filter((it) => it.match !== before.get(it))
+    return file.project.updateText(file, file.contents ?? "")
   }
 }

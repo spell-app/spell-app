@@ -2,6 +2,7 @@
  * Draw utilities, tightly tied into `App`, `Drawable` and `List`.
  */
 
+import { proto } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
@@ -25,6 +26,9 @@ export const draw = new SpellParser({ module: "draw" })
  *   figure out if it can be lowered to be consistent with the rest of the precedence scale.
  */
 class draw_thing extends SpellStatement<"expression"> {
+  @proto static alias = "expression"
+  @proto static precedence = 100
+
   getAST(match: P.MatchFor<this>) {
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "drawThing",
@@ -33,9 +37,7 @@ class draw_thing extends SpellStatement<"expression"> {
   }
 }
 draw.addRule(draw_thing, {
-  alias: "expression",
-  syntax: "draw {expression}",
-  precedence: 100
+  syntax: "draw {expression}"
 })
 
 ////////////////
@@ -50,6 +52,8 @@ draw.addRule(draw_thing, {
  *   `draw each card in the deck` => `spellCore.drawItems(deck)`.
  */
 class draw_items extends SpellStatement<"variable?|plural_identifier?|expression"> {
+  @proto static alias = "expression"
+
   getAST(match: P.MatchFor<this>) {
     return new P.ASTCoreMethodInvocation(match, {
       methodName: "drawItems",
@@ -58,7 +62,6 @@ class draw_items extends SpellStatement<"variable?|plural_identifier?|expression
   }
 }
 draw.addRule(draw_items, {
-  alias: "expression",
   syntax: "draw (each {variable}|(the|all)? {plural_identifier}) (of|in) {expression}",
   tests: [
     {
@@ -85,6 +88,8 @@ draw.addRule(draw_items, {
 
 /** Start a scoped `App`/`Drawable`, e.g. `start the game` => `game.start()` (a method call, not a global). */
 class start_app extends SpellStatement<"app"> {
+  @proto static alias = "statement"
+
   getAST(match: P.MatchFor<this>) {
     return new P.ASTScopedMethodInvocation(match, {
       thing: P.asAST<P.ASTExpression>(match.groups.app.AST),
@@ -93,6 +98,5 @@ class start_app extends SpellStatement<"app"> {
   }
 }
 draw.addRule(start_app, {
-  alias: "statement",
   syntax: "start {app:expression}"
 })

@@ -8,6 +8,7 @@ import { P } from "~/parser"
 import { spellCore } from "~/spellCore"
 import { SP } from "~/languages/spell"
 import { editor } from "~/app/editor"
+import { SpellMonaco, monaco } from "~/app/ui/monaco"
 
 // Stick interesting bits on `global` to make console debugging easier.
 Object.assign(global, {
@@ -24,5 +25,7 @@ Object.assign(global, {
   tokenize: SP.spellParser.tokenize.bind(SP.spellParser),
   rulex: P.Parser.rulexParser,
   editor,
+  SpellMonaco,
+  monaco,
   SUI
 })

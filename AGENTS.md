@@ -8,6 +8,8 @@ when working with code in this repository.
 - `src/parser/` (`P`) is a generic rule-based parser;  `src/languages/spell/` (`SP`) is the spell language on it.
 - `src/lsp/` (`LSP`) is spell's language server, and `vscode-extension/` the VS Code extension that runs it --
   its own yarn project (own `package.json` + `yarn.lock`), NOT a workspace of the repo's.  See "Language server" in `PARSING.md`.
+- `src/app/ui/monaco/` is the app's Monaco editor, whose language features call the SAME `LSP.SpellLanguageService`
+  in-process.  `~/lsp` MUST stay browser-safe for it.
 
 ## How parsing works
 
@@ -77,24 +79,31 @@ when working with code in this repository.
 
 ## Parser rules
 
-- A rule is a CLASS (behaviour) plus a DEFINITION (props) passed when registering it:
-  `parser.addRule(RuleClass, { syntax, alias, precedence, testRule, tests, ... })`.
-  - Definition is type-checked against that class's `Props` -- a typo'd prop is a compile error.
-  - Class name IS the rule name.  Pass `name: "if"` only for reserved words (`class _if`) or computed names.
+- A rule is a CLASS (behaviour AND what the rule is) plus its `syntax` + `tests`, passed when registering it:
+  `parser.addRule(RuleClass, { syntax, tests })`.
+  - Everything else -- `alias`, `precedence`, `declares`, `highlightAs`, `datatype`, `tokenType`, `pattern` ... --
+    goes ON THE CLASS as `@proto static` (from `~/util`), e.g. `@proto static alias = "expression"`.
+    Why:  the class is the rule, reusable by other languages' parsers with their own `syntax`.
+  - `@proto` only accepts a prop the rule declares -- `@proto static alais` is a compile error.
+  - Class name IS the rule name.  Use plain `static ruleName = "if"` only for reserved words (`class _if`)
+    or when class name isn't rule case (`class Block` => `"block"`).
     Prod build MUST keep `output.keepNames` (`vite.config.ts`), pinned by `parser/build.test.ts`.
-  - `syntax` may be an array:  one rule instance per variant, each optionally `{ syntax, testRule }`.
-  - Nothing is inherited from a parent rule's definition.  Share with a constant, e.g. `VARIABLE_SYNTAX`.
-  - What EVERY rule of a base class has in common (e.g. `SpellIdentifier`'s `pattern` + `blacklist`) goes in
-    that base class's constructor as defaults:  `super({ pattern, blacklist, ...props })`.
+  - `syntax` may be an array:  one rule instance per variant.
+  - `@proto static` values are INHERITED:  a subclass of a registered rule gets its parent's `alias` etc.
+    State its own value to differ.  `syntax`, `tests` and `ruleName` are NOT inherited --
+    share syntax with a constant, e.g. `VARIABLE_SYNTAX`.
+  - Put a prop on a base class when EVERY subclass wants the same value, e.g. `SpellExpression`'s
+    `alias = "expression"`, `MethodDefinition`'s `inlineInitialType = false`.  A subclass just states its own
+    value for an exception.
+  - Constructor defaults (`super({ pattern, blacklist, ...props })`, see `SpellIdentifier`) also work for
+    what every rule of a base class has in common.
   - See `languages/spell/rules/variables.ts` for the finished shape, and the top docstring in
     `parser/rules/Rule.ts` for all the ways to make a rule.
-  - `@proto static` (from `~/util`) is for a shared base class's DEFAULTS -- values true of every subclass,
-    e.g. `SpellExpression`'s `alias = "expression"`, `InfixOperatorSuffix`'s `alias = "expression_suffix"`,
-    `MethodDefinition`'s `inlineInitialType = false`.  A rule's own definition OVERRIDES the default
-    (props are assigned after the prototype), so an exception just states its own value.
-  - Put a prop on the base class when EVERY subclass wants the same value;  leave it in the definition when
-    rules differ (e.g. `precedence`).
-    A REGISTERED rule never uses `@proto static` -- its values go in its `addRule()` definition.
+  - `SpellParser.addRule()` and `scope.addRule()` only TYPE `{ syntax, tests }` (`P.SyntaxAndTests`),
+    so a stray `alias` there is a compile error.
+  - Rules built WHILE PARSING (`scope.addRule()`) follow the same shape:  a closure class's statics can use
+    the enclosing function's locals, so even a computed name goes on the class --
+    `static ruleName = methodName` -- and the definition is still just `{ syntax }`.
 - A statement with a BODY -- an inline statement, or an indented block under it -- says so with a body
   keyword at the END of its `syntax`, e.g. `if {condition:expression} (then|:)? {statement_body}?`:
   - `{statement_body}` ~== `({inline_statement}|{nested_statements})`
@@ -102,12 +111,12 @@ when working with code in this repository.
   - see `BODY_KEYWORDS` in `Statement.ts` for the rest
   - read the parsed body with `this.getBody(match)`, NEVER `match.groups.body` -- see `SpellStatement`
 - A statement that DECLARES something -- a type, property, method, variable, event handler -- says so for
-  editors' symbol lists with `declares` in its definition, naming the groups that hold the name and owning type,
-  e.g. `declares: { kind: "property", name: "property", of: "type" }`.
+  editors' symbol lists with `@proto static declares`, naming the groups that hold the name and owning type,
+  e.g. `@proto static declares = { kind: "property", name: "property", of: "type" }`.
   - Override `getDeclaration(match)` for what a spec can't say, e.g. when only SOME matches declare something.
   - NEVER make editor code switch on rule names -- see `Rule.getDeclaration()`.
 - A rule whose matches hold words an editor should colour says how with `highlightAs`, e.g.
-  `highlightAs: "property"` -- see `P.HighlightKind`.  Base classes set it for their family
+  `@proto static highlightAs = "property"` -- see `P.HighlightKind`.  Base classes set it for their family
   (`SpellIdentifier` => `"variable"`, `Keyword` => `"keyword"`), so most rules need nothing.
 - Rule module layout, top to bottom:
   - header docstring, imports
@@ -126,8 +135,9 @@ when working with code in this repository.
       uses a wider banner one level up:  `// # Various flavors of whitespace`.
     - supporting constants / types for that rule (`VARIABLE_SYNTAX`, `type VariableMatchData`) -- the header
       goes ABOVE these, it marks where the rule starts, not where its class starts
-    - docstring + `class known_variable extends ... {}` (exported only if something outside the file needs it)
-    - `<module>.addRule(known_variable, {...})` immediately after the class, `tests` LAST in the definition
+    - docstring + `class known_variable extends ... {}` (exported only if something outside the file needs it),
+      its `@proto static` props FIRST in the class body
+    - `<module>.addRule(known_variable, { syntax, tests })` immediately after the class
   - Tests need no type annotations there.  Each module needs a sibling `<module>.test.ts` calling
     `unitTestModuleRules()`, or its tests never run.
 - Type arguments:  `Rule<Props, Groups, MatchData>`, all defaulted so bare `P.Rule` / `P.Sequence` / `P.Match` work.

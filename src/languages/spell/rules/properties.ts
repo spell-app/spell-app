@@ -3,7 +3,7 @@
 // TODO: constructor
 // TODO: mixins / traits / composed classes / annotations
 
-import { NONE } from "~/util"
+import { NONE, proto } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
@@ -36,6 +36,10 @@ const LOWER_INITIAL_WORD = /^[a-z][\w-]*$/
  */
 // TODO: property_name
 class property extends P.Pattern {
+  @proto static pattern = LOWER_INITIAL_WORD
+  @proto static blacklist = identifierBlacklist
+  @proto static highlightAs: P.HighlightKind = "property"
+
   /**
    * Convert dashes to underscores.
    * - NOTE: `Rules.Pattern.mapValue` is generic (`<T = string>`) for subclasses that map to non-string
@@ -48,11 +52,7 @@ class property extends P.Pattern {
     return new P.ASTPropertyLiteral(match)
   }
 }
-properties.addRule(property, {
-  pattern: LOWER_INITIAL_WORD,
-  blacklist: identifierBlacklist,
-  highlightAs: "property"
-})
+properties.addRule(property)
 
 ////////////////
 // ## `the_property_of` rule
@@ -65,13 +65,14 @@ properties.addRule(property, {
  * - Reuses `property`'s already-parsed `value`/`raw` group rather than re-deriving them.
  */
 class the_property_of extends P.Sequence<"property"> {
+  @proto static alias = "property_accessor"
+
   getAST(match: P.MatchFor<this>) {
     const { value, raw } = match.groups.property
     return new P.ASTPropertyLiteral(match, { value, raw })
   }
 }
 properties.addRule(the_property_of, {
-  alias: "property_accessor",
   syntax: "the {property} of"
 })
 
@@ -207,6 +208,8 @@ properties.addRule(its_property, {
  * - Compiles to `spellCore.getItemOf(object, ordinal)` rather than a plain property access.
  */
 class its_ordinal extends SpellExpression<"ordinal|arg", ItsMatchData> {
+  @proto static alias = ["expression", "property_accessor"]
+
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
     if (match) match.data.itVar = scope.variables?.get("it") ?? NONE
@@ -225,7 +228,6 @@ class its_ordinal extends SpellExpression<"ordinal|arg", ItsMatchData> {
   }
 }
 properties.addRule(its_ordinal, {
-  alias: ["expression", "property_accessor"],
   syntax: "its {ordinal} {arg:singular_identifier}",
   tests: [
     {

@@ -33,21 +33,21 @@ import type { LSP } from "~/lsp"
 
 /**
  * Answers editor questions about parsed spell files, in Language Server Protocol shapes -- one method per request.
- * - Works from each file's current `match`, as kept up to date by `SpellWorkspace`.
+ * - Works from each file's current `match`, as kept up to date by `SpellProject.updateText()`.
  * - Positions come from match / token OFFSETS in `file.parseText`, turned into line + character here.
  *   NEVER from `token.line` / `ch`:  offsets are what incremental parsing keeps exact.
  * - `character` counts UTF-16 code units, as JS strings do, which is the protocol's default encoding.
  */
 export class SpellLanguageService {
-  /** Workspace whose files we answer about. */
-  declare workspace: LSP.SpellWorkspace
+  /** How the editor addresses the files we answer about. */
+  declare addresses: LSP.FileAddresses
   /** Line-start offsets of each file, with the text they were worked out from. */
   #lineStartsCache = new WeakMap<SP.SpellFile, { text: string; lineStarts: number[] }>()
   /** Docstrings of each file's declarations, by statement -- keyed by the file's `match`, so one per parse. */
   #docsCache = new WeakMap<P.Match, Map<P.Match, string>>()
 
-  constructor(workspace: LSP.SpellWorkspace) {
-    this.workspace = workspace
+  constructor(addresses: LSP.FileAddresses) {
+    this.addresses = addresses
   }
 
   ////////////////
@@ -107,11 +107,11 @@ export class SpellLanguageService {
    */
   diagnostics(file: SP.SpellFile): Diagnostic[] {
     const top: Range = { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } }
-    if (!this.workspace.isActive(file)) {
+    if (!file.isActive) {
       const message = `Not parsed:  '${file.file}' isn't active in this project's .imports.json`
       return [{ range: top, severity: DiagnosticSeverity.Information, source: "spell", message }]
     }
-    const problem = this.workspace.problems.get(file.project)
+    const problem = file.project.parseError
     if (problem) {
       const message = `Parser crashed, will try again after the next edit:  ${problem}`
       return [{ range: top, severity: DiagnosticSeverity.Error, source: "spell", message }]
@@ -194,12 +194,12 @@ export class SpellLanguageService {
     return this.nestUnderTypes(this.symbolsIn(file, file.match))
   }
 
-  /** Declarations in all loaded projects whose names contain `query`'s characters in order, ignoring case. */
+  /** Declarations in every project we've parsed (see `SP.SpellProject.registry`) whose names contain `query`'s characters in order, ignoring case. */
   workspaceSymbols(query: string): WorkspaceSymbol[] {
     const results: WorkspaceSymbol[] = []
-    for (const project of this.workspace.projects) {
-      for (const file of this.workspace.spellFiles(project)) {
-        const uri = this.workspace.uriFor(file)
+    for (const project of SP.SpellProject.registry.values()) {
+      for (const file of project.spellFiles) {
+        const uri = this.addresses.uriFor(file)
         for (const { symbol, containerName } of this.allSymbols(this.documentSymbols(file))) {
           const { name, kind, selectionRange } = symbol
           if (this.isSubsequence(query, name))
@@ -534,7 +534,7 @@ export class SpellLanguageService {
   /** Markdown link to `match` in `file`, as `File.spell:12`. */
   private linkTo({ file, match }: LSP.FileMatch): string {
     const line = match.start === undefined ? 1 : this.positionAt(file, match.start).line + 1
-    return `[${file.file}:${line}](${this.workspace.uriFor(file)}#L${line})`
+    return `[${file.file}:${line}](${this.addresses.uriFor(file)}#L${line})`
   }
 
   ////////////////
@@ -605,7 +605,7 @@ export class SpellLanguageService {
     const changes: Record<string, TextEdit[]> = {}
     for (const { file: at, match } of occurrences) {
       const range = this.rangeOf(at, match)
-      if (range) (changes[this.workspace.uriFor(at)] ??= []).push({ range, newText: newName })
+      if (range) (changes[this.addresses.uriFor(at)] ??= []).push({ range, newText: newName })
     }
     return { changes }
   }
@@ -772,7 +772,7 @@ export class SpellLanguageService {
     if (!project) return []
     const occurrences: LSP.FileMatch[] = includeDeclaration ? this.declarationsOf(subject) : []
     const seen = new Set(occurrences.map(({ match }) => match))
-    for (const file of this.workspace.spellFiles(project)) {
+    for (const file of project.spellFiles) {
       if (!file.match) continue
       const parents = new Map<P.Match, P.Match | undefined>()
       this.walk(file.match, (match, parent) => {
@@ -832,12 +832,12 @@ export class SpellLanguageService {
     const { project } = file
     return {
       project: project.projectId,
-      files: this.workspace.spellFiles(project).map((it) => ({
-        uri: this.workspace.uriFor(it),
+      files: project.spellFiles.map((it) => ({
+        uri: this.addresses.uriFor(it),
         file: it.file ?? it.path,
         errors: (it.match && SP.Block.getParseErrors(it.match)?.length) ?? 0
       })),
-      problem: this.workspace.problems.get(project)
+      problem: project.parseError
     }
   }
 
@@ -888,7 +888,9 @@ export class SpellLanguageService {
     }
     const alias = atStatementStart ? "statement" : "expression"
     for (const scopeRule of SpellLanguageService.visible(scope.rules)) {
-      if (isLater(scopeRule.declaredBy) || ![scopeRule.definition.alias].flat().includes(alias)) continue
+      // Ask the BUILT rule -- `alias` usually lives on its class (`@proto static`), not in `definition`.
+      const ruleAlias = scopeRule.instances?.[0]?.alias
+      if (isLater(scopeRule.declaredBy) || ![ruleAlias].flat().includes(alias)) continue
       const item = this.methodCompletion(scopeRule)
       if (item) items.push({ ...item, documentation: this.markdown(this.docsOfRecord(scopeRule, true)) })
     }
@@ -1058,11 +1060,8 @@ export class SpellLanguageService {
   fileOf(match: P.Match): SP.SpellFile | undefined {
     const path = match.getScopeOfType(P.FileScope)?.path
     if (!path) return undefined
-    for (const project of this.workspace.projects) {
-      const file = this.workspace.spellFiles(project).find((it) => it.path === path)
-      if (file) return file
-    }
-    return undefined
+    const file = SP.SpellFile.registry.get(path)
+    return file?.isActive ? file : undefined
   }
 
   /** Every rule `project`'s files generated while parsing, e.g. a method's call-site rule, to the record of it. */
@@ -1079,7 +1078,7 @@ export class SpellLanguageService {
     const project = this.fileOf(match)?.project
     if (!project) return []
     const declarations: Array<{ file: SP.SpellFile; declaration: P.Declaration }> = []
-    for (const file of this.workspace.spellFiles(project)) {
+    for (const file of project.spellFiles) {
       if (!file.match) continue
       this.walk(file.match, (item) => {
         const declaration = item.rule.getDeclaration(item)
@@ -1119,7 +1118,7 @@ export class SpellLanguageService {
   /** `Location` of `match` in `file`, for the editor. */
   private locationOf({ file, match }: LSP.FileMatch): Location {
     const range = this.rangeOf(file, match) ?? { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } }
-    return { uri: this.workspace.uriFor(file), range }
+    return { uri: this.addresses.uriFor(file), range }
   }
 
   ////////////////

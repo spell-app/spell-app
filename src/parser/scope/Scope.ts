@@ -52,13 +52,15 @@ export class Scope extends Derivative {
   /**
    * Register `rule` on our `parser` and record the pair in `this.rules`, so the scope knows what it created.
    * - Use this for rules built WHILE PARSING, e.g. the call-site rule for a method the file just defined.
-   * - `definition` is type-checked against `rule`'s own props, exactly as `parser.addRule()` is.
+   * - `definition` is ONLY `syntax` + `tests` -- everything else goes on `rule` as `@proto static`,
+   *   computed values included:  a closure class's statics can use the enclosing function's locals,
+   *   e.g. `static ruleName = methodName`.  See "Ways to make a rule" 3. in `Rule.ts`.
    * - `declaredBy` is the match declaring it (the method definition, say), kept for go-to-definition etc.
-   * - Returns what `parser.addRule()` returned:  the rule instance(s), or `undefined` if `definition.skip`.
+   * - Returns what `parser.addRule()` returned:  the rule instance(s), or `undefined` if `rule` has `static skip`.
    */
-  addRule<RuleType extends P.Rule>(
-    rule: Class<RuleType>,
-    definition?: P.DefinitionFor<RuleType>,
+  addRule(
+    rule: Class<P.Rule>,
+    definition?: P.SyntaxAndTests,
     declaredBy?: P.Match
   ): P.Rule | P.Rule[] | undefined {
     const { parser } = this

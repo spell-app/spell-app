@@ -1,5 +1,4 @@
 import type { ComponentType } from "react"
-import type * as CodeMirror from "codemirror"
 import type { createRoot } from "react-dom/client"
 import { navigate } from "@reach/router"
 
@@ -9,6 +8,7 @@ import { P } from "~/parser"
 import { spellCore } from "~/spellCore"
 import { SP } from "~/languages/spell"
 import type * as UIT from "~/app/ui/ui.types"
+import { monaco, AppAddresses, SpellMonaco } from "~/app/ui/monaco"
 // NOTE: import `Modals` directly rather than through `UI` barrel to avoid circular import.
 import * as Modals from "~/app/ui/modals"
 
@@ -213,8 +213,8 @@ const EDITOR_DEFAULTS = {
     const path = match.getScopeOfType(P.FileScope)?.path
     if (!path) return
     const selection: UIT.EditorSelection = {
-      anchor: { line: match.line ?? 0, ch: match.char ?? 0 },
-      head: { line: match.line ?? 0, ch: (match.char ?? 0) + match.inputText.length },
+      anchor: { line: match.line ?? 0, ch: match.char ?? 0, offset: match.start },
+      head: { line: match.line ?? 0, ch: (match.char ?? 0) + match.inputText.length, offset: match.end },
       // TODO: scroll!!!?!?!?!
       scroll: { event: "cursor", percent: 0, max: 0, current: 0, total: 0, visible: 0 }
     }
@@ -531,20 +531,33 @@ const EDITOR_DEFAULTS = {
   ////////////////
 
   /**
-   * Pointer to the `codeMirror` instance for our InputEditor.
+   * Monaco editor of our `<InputEditor>`, if one's mounted.
+   * - NEVER kept in the store:  read through it inside a reaction, it would come back wrapped in a tracking proxy,
+   *   and Monaco's internals would crawl through it -- see `inputEditorInstance`.
    * TODO: generalize this for multiple editors!
    */
-  inputEditor: undefined as CodeMirror.Editor | null | undefined,
-  /** Remember `inputEditor` in our <InputEditor editorDidMount /> event. */
-  onInputDidMount(codeMirror: CodeMirror.Editor): void {
-    // console.info("initializing", { codeMirror })
-    editor.inputEditor = codeMirror
-    codeMirror.on("refresh", editor.onInputCursor)
+  getInputEditor(): monaco.editor.IStandaloneCodeEditor | undefined {
+    return inputEditorInstance
   },
-  /** Forget `inputEditor` in our <InputEditor editorWillUnmount /> event. */
-  onInputWillUnmount(codeMirror: CodeMirror.Editor): void {
-    editor.inputEditor = null
-    codeMirror.off("refresh", editor.onInputCursor)
+  /**
+   * Remember `inputEditor` in our `<InputEditor onMount />` event.
+   * - SIDE EFFECT:  adds our save / reload / compile keys, and follows its cursor + scrolling into `selection`.
+   *   Monaco disposes of both with the editor.
+   */
+  onInputDidMount(inputEditor: monaco.editor.IStandaloneCodeEditor): void {
+    inputEditorInstance = inputEditor
+    const { KeyMod, KeyCode } = monaco
+    inputEditor.addCommand(KeyMod.CtrlCmd | KeyCode.KeyS, () => void editor.saveFile())
+    inputEditor.addCommand(KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KeyR, () => void editor.reloadFile())
+    inputEditor.addCommand(KeyMod.CtrlCmd | KeyCode.Enter, () => void editor.compileApp())
+    inputEditor.onDidChangeCursorSelection(() => editor.onInputCursor("cursor"))
+    inputEditor.onDidScrollChange((event) => {
+      if (event.scrollTopChanged) editor.onInputCursor("scroll")
+    })
+  },
+  /** Forget `inputEditor` in our `<InputEditor onUnmount />` event. */
+  onInputWillUnmount(inputEditor: monaco.editor.IStandaloneCodeEditor): void {
+    if (inputEditorInstance === inputEditor) inputEditorInstance = undefined
   },
 
   /** Handle cursor move or scroll in our inputEditor, remembering the `selection`  */
@@ -553,55 +566,71 @@ const EDITOR_DEFAULTS = {
   onInputCursor,
 
   /**
-   * Called from a `useEffect()` hook in our `<InputEditor />`,
-   * if `editor.file.initialSelection` is set and things are ready to go
-   * scroll the codeMirror `inportEditor` and reset the selection.
+   * Called from a `useEffect()` hook in our `<InputEditor />`:  if `editor.file.initialSelection` is set and
+   * things are ready to go, scroll `inputEditor` and select it.
+   * - Prefers each position's `offset` over its `line` / `ch`, which go stale as the text changes.
+   * - SIDE EFFECT:  clears `initialSelection`, so we only do it once, and focuses `inputEditor`.
    */
   onInputEffect(): void {
-    const { inputEditor, file } = editor
-    const { initialSelection, isLoaded } = file || {}
-    if (!inputEditor || !isLoaded || !initialSelection) return
+    const { file } = editor
+    const inputEditor = inputEditorInstance
+    const model = inputEditor?.getModel()
+    const { initialSelection } = file || {}
+    if (!inputEditor || !model || !file?.isLoaded || !initialSelection) return
+    // still showing the last file:  the new one's editor will do it when it mounts
+    if (AppAddresses.pathOf(model.uri) !== file.path) return
+    delete file.initialSelection
 
-    console.info("TODO: DEFERRING onInputEffect():  see editor.onInputEffect")
-    // console.info("initializing input", { path, initialSelection, inputEditor })
-    // try {
-    //   // HACK: manually set the height of the codeMirror instance
-    //   // so that the bottom scrollbar shows up in the right place.
-    //   // ????
-    //   // const { clientWidth, clientHeight } = document.querySelector("#InputEditor")
-    //   // inputEditor.setSize(clientWidth, clientHeight - 1)
-    //   // inputEditor.resize()
-    //   // console.info(inputEditor)
+    const { scroll, anchor, head } = initialSelection
+    if (scroll) inputEditor.setScrollTop(scroll.current)
+    if (anchor && head) {
+      const start = positionIn(model, anchor)
+      const end = positionIn(model, head)
+      const selection = new monaco.Selection(start.lineNumber, start.column, end.lineNumber, end.column)
+      inputEditor.setSelection(selection)
+      inputEditor.revealRangeInCenterIfOutsideViewport(selection)
+    }
+    inputEditor.focus()
 
-    //   // clear the `initialSelection` flag so we don't try to scroll again
-    //   delete file.initialSelection
-
-    //   // turn into a `cursor` event so we'll scroll the views
-    //   if (initialSelection.scroll) initialSelection.scroll.event = "cursor"
-    //   editor.lastSelectionForFile(file.path, initialSelection)
-    //   // Set `editor.selection` after a delay so rendering works better
-    //   setTimeout(() => {
-    //     console.info("onInputEffect setting selection to ", initialSelection)
-    //     editor.selection = initialSelection
-    //   }, 10)
-
-    //   // scroll the inputEditor itself to match
-    //   const { scroll, anchor, head } = initialSelection
-    //   inputEditor.scrollTo(0, scroll?.scroll || 0)
-    //   if (anchor && head) inputEditor.doc.setSelection(anchor, head)
-    //   inputEditor.focus()
-    // } catch (e) {
-    //   console.warn("CM scroll error:", e)
-    // }
+    /** Monaco position of `position` in `model`:  by `offset` if it has one, else `line` / `ch`. */
+    function positionIn(textModel: monaco.editor.ITextModel, position: UIT.EditorPosition): monaco.IPosition {
+      if (position.offset !== undefined) return textModel.getPositionAt(position.offset)
+      return textModel.validatePosition({ lineNumber: position.line + 1, column: position.ch + 1 })
+    }
   },
 
-  /** Handle change event from our inputEditor. */
-  onInputChanged(_codeMirror: CodeMirror.Editor, _change: CodeMirror.EditorChange, value: string): void {
+  /**
+   * `file` was edited in its Monaco model, and has taken the text -- see `SpellModels`.
+   * - Compiles 2 seconds after input settles, if it's in the project we're showing.
+   */
+  onFileEdited(file: SP.AnySpellFile): void {
+    // by path:  one of them may be a store proxy of the other
+    if (file.project.path === editor.project?.path) editor.compileAppSoon(2)
+  },
+
+  /**
+   * Show the file at `path`, selecting `selection`, e.g. "go to definition" in another file.
+   * - Selects it straight away, THEN updates the URL, whose route finds the file already showing.
+   */
+  async showFileAt(path: string, selection?: UIT.EditorSelection): Promise<void> {
+    await editor.selectPath(path, selection)
+    void navigate(new SP.SpellLocation(path).editorUrl)
+    editor.onInputEffect()
+  },
+
+  /**
+   * The user edited `inputEditor`'s text to `value`, in `<InputEditor>`'s fallback editor, which has no model.
+   * - The normal editor's edits go through `SpellModels` instead -- see `onFileEdited()`.
+   */
+  onInputChanged(value: string): void {
     const { file, project } = editor
     if (!file || !project) return
-    file.contents = value
     file.isDirty = true
-    project.updatedContentsFor(file)
+    if (file instanceof SP.SpellFile) void project.updateText(file, value)
+    else {
+      file.contents = value
+      project.updatedContentsFor(file)
+    }
     // auto-compile 2 seconds after input settles
     editor.compileAppSoon(2)
   },
@@ -648,7 +677,16 @@ const EDITOR_DEFAULTS = {
 export type EditorStore = typeof EDITOR_DEFAULTS
 
 /** The `editor` singleton -- a reactive proxy over `EDITOR_DEFAULTS`. */
+/** Monaco editor of our `<InputEditor>`, if one's mounted -- OUTSIDE the store, see `editor.getInputEditor()`. */
+let inputEditorInstance: monaco.editor.IStandaloneCodeEditor | undefined
+
 export const editor: EditorStore = createStore(EDITOR_DEFAULTS)
+
+// The Monaco editor tells us about edits, and asks us to show other files.
+SpellMonaco.hooks = {
+  onEdit: (file) => editor.onFileEdited(file),
+  open: (path, selection) => void editor.showFileAt(path, selection)
+}
 
 ////////////////
 // ## Supporting types
@@ -713,28 +751,23 @@ function lastSelectionForFile(filePath: string, selection?: UIT.EditorSelection)
   return setPref(filePath, selection)
 }
 
-/** Handle cursor move (`onCursorActivity`, one arg) or scroll (`onScroll`, two args) from CodeMirror. */
-function onInputCursor(codeMirror: CodeMirror.Editor): void
-function onInputCursor(codeMirror: CodeMirror.Editor, data: CodeMirror.ScrollInfo): void
-function onInputCursor(codeMirror: CodeMirror.Editor, _data?: CodeMirror.ScrollInfo): void {
-  const event: UIT.EditorScrollInfo["event"] = arguments.length === 1 ? "cursor" : "scroll"
+/**
+ * `inputEditor`'s cursor moved (`event` `"cursor"`) or it scrolled (`"scroll"`):  remember where, in `selection`.
+ * - SIDE EFFECT:  saves it as the file's pref too, for `selectPath()` to restore.
+ */
+function onInputCursor(event: UIT.EditorScrollInfo["event"]): void {
+  const { file } = editor
+  const inputEditor = inputEditorInstance
+  const model = inputEditor?.getModel()
+  const selection = inputEditor?.getSelection()
+  if (!inputEditor || !model || !selection) return
+
   const { direction, current: oldCurrent } = editor.selection?.scroll || {}
   // allocate this way to make console debugging easier
   const scroll: UIT.EditorScrollInfo = { event, direction, percent: 0, max: 0, current: 0, total: 0, visible: 0 }
-
-  // NOTE: `.doc`/`.display` aren't part of the published `CodeMirror.Editor` types -- this is a
-  // real dynamic boundary onto CodeMirror's undocumented internals, narrowed to just what we use.
-  const cm = codeMirror as CodeMirror.Editor & {
-    doc: CodeMirror.Doc & {
-      scrollTop: number
-      height: number
-      sel: { ranges: { anchor: CodeMirror.Position; head: CodeMirror.Position }[] }
-    }
-    display: { lastWrapHeight: number }
-  }
-  scroll.current = Math.floor(cm.doc.scrollTop)
-  scroll.total = Math.floor(cm.doc.height)
-  scroll.visible = cm.display.lastWrapHeight
+  scroll.current = Math.floor(inputEditor.getScrollTop())
+  scroll.total = Math.floor(inputEditor.getScrollHeight())
+  scroll.visible = inputEditor.getLayoutInfo().height
   scroll.max = scroll.total - scroll.visible
   scroll.percent = parseFloat((scroll.current / scroll.max).toPrecision(4))
   // update "direction" if we can
@@ -742,34 +775,21 @@ function onInputCursor(codeMirror: CodeMirror.Editor, _data?: CodeMirror.ScrollI
     scroll.direction = oldCurrent < scroll.current ? "down" : "up"
   }
 
-  // Extra stuff we COULD get from codeMirror
-  // See:  https://codemirror.net/doc/manual.html#api_sizing
-  // scroll.lineHeight = codeMirror.defaultTextHeight()
-  // scroll.mouseLine = codeMirror.lineAtHeight(<global-mouse-position>, "window")
-
-  const range = cm.doc.sel.ranges[0]
-  const { file } = editor
-  // `offsetForPosition()` only exists on `SpellFile`/`SpellCSSFile`, not `SpellJSFile`.
-  const offsetForPosition = (pos: CodeMirror.Position): number | undefined =>
-    file && "offsetForPosition" in file ? file.offsetForPosition(pos) : undefined
-
-  const anchor: UIT.EditorPosition = {
-    line: range.anchor.line,
-    ch: range.anchor.ch,
-    top: Math.floor(cm.cursorCoords(range.anchor, "local").top),
-    offset: offsetForPosition(range.anchor)
-  }
-
-  const head: UIT.EditorPosition = {
-    line: range.head.line,
-    ch: range.head.ch,
-    top: Math.floor(cm.cursorCoords(range.head, "local").top),
-    offset: offsetForPosition(range.head)
-  }
-
+  const anchor = editorPosition(selection.selectionStartLineNumber, selection.selectionStartColumn)
+  const head = editorPosition(selection.positionLineNumber, selection.positionColumn)
   editor.selection = { scroll, anchor, head }
   // store selection as file `pref`, we'll reload it in `selectPath()` above.
   if (file) editor.lastSelectionForFile(file.path, editor.selection)
+
+  /** `UIT.EditorPosition` for Monaco's 1-based `lineNumber` + `column`. */
+  function editorPosition(lineNumber: number, column: number): UIT.EditorPosition {
+    return {
+      line: lineNumber - 1,
+      ch: column - 1,
+      top: Math.floor(inputEditor!.getTopForPosition(lineNumber, column)),
+      offset: model!.getOffsetAt({ lineNumber, column })
+    }
+  }
 }
 
 /**

@@ -1,5 +1,6 @@
 /** Rules for `if`/`else if`/`else` statements, plus the backwards `if...else` ternary suffix. */
 
+import { proto } from "~/util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
@@ -25,6 +26,9 @@ export const _if_ = new SpellParser({ module: "if" })
  * - Compiles to `if (condition) { ...statements }`.
  */
 class _if extends SpellStatement<"condition|body?"> {
+  static ruleName = "if"
+  @proto static alias = "statement"
+
   getNestedScopeForMatch(match: P.MatchFor<this>): P.Scope {
     return new P.BlockScope({ name: "if", parentScope: match.scope })
   }
@@ -37,8 +41,6 @@ class _if extends SpellStatement<"condition|body?"> {
   }
 }
 _if_.addRule(_if, {
-  name: "if",
-  alias: "statement",
   syntax: "if {condition:expression} (then|:)? {statement_body}?",
   tests: [
     {
@@ -118,6 +120,9 @@ _if_.addRule(_if, {
  * - Compiles to `else if (condition) { ...statements }`.
  */
 class else_if extends SpellStatement<"condition|body?"> {
+  @proto static alias = "statement"
+  @proto static precedence = 1
+
   getNestedScopeForMatch(match: P.MatchFor<this>): P.Scope {
     return new P.BlockScope({ name: "elseif", parentScope: match.scope })
   }
@@ -130,9 +135,7 @@ class else_if extends SpellStatement<"condition|body?"> {
   }
 }
 _if_.addRule(else_if, {
-  alias: "statement",
   syntax: "(else|otherwise) if {condition:expression} (then|:)? {statement_body}?",
-  precedence: 1,
   tests: [
     {
       title: "correctly matches single-line else_if statements",
@@ -203,6 +206,9 @@ _if_.addRule(else_if, {
  * - Compiles to `else { ...statements }`.
  */
 class _else extends SpellStatement<"body?"> {
+  static ruleName = "else"
+  @proto static alias = "statement"
+
   getNestedScopeForMatch(match: P.MatchFor<this>): P.Scope {
     return new P.BlockScope({ name: "else", parentScope: match.scope })
   }
@@ -213,8 +219,6 @@ class _else extends SpellStatement<"body?"> {
   }
 }
 _if_.addRule(_else, {
-  name: "else",
-  alias: "statement",
   syntax: "(else|otherwise) :? {statement_body}?",
   tests: [
     {

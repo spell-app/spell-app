@@ -27,29 +27,33 @@ import { P } from "~/parser"
  *
  * ## Ways to make a rule
  *
- * ### 1. Named rule for a language ~== a class + a DEFINITION, registered with a parser  (the normal way)
+ * ### 1. Named rule for a language ~== a class, registered with a parser along with `syntax` + `tests`  (the normal way)
  * ```ts
  * export class define_property_has extends SpellStatement<
  *   "type|property|specifier?",                  // `Groups`:  see `P.GroupsFor`, copy from module's `__snapshots__`
  *   { ruleComment?: P.ASTParserAnnotation }      // `MatchData`:  what we stash in `match.data`
  * > {
- *   getAST(match: P.MatchFor<this>) {...}        // the class holds BEHAVIOUR only
+ *   @proto static precedence = 10                // the class says what the rule IS...
+ *   @proto static declares = {...}
+ *   getAST(match: P.MatchFor<this>) {...}        // ...and how it behaves
  * }
- * classes.addRule(define_property_has, {         // ...the definition holds everything else
- *   alias: "statement",
- *   precedence: 10,
+ * classes.addRule(define_property_has, {         // ...registering says how it's WRITTEN in this language
  *   syntax: ["(a|an) {type} has {property} {specifier}?", "{type} have {property} {specifier}?"],
  *   tests: [...]
  * })
  * ```
- * - The definition is type-checked against the class's own `Props` -- a typo'd prop is a compile error.
- * - Class name IS the rule name;  pass `name: "if"` for reserved words (`class _if`) or a computed name.
+ * - Why only `syntax` + `tests` at registration:  the class can then be reused by another language's parser.
+ * - `@proto static` values are inherited by subclasses;  `@proto` rejects a prop the rule doesn't declare.
+ * - Class name IS the rule name;  plain `static ruleName = "if"` for reserved words (`class _if`).
  * - `syntax` may be an array => one frozen rule instance per variant.
  * - A `Sequence` tests its own words / symbols before parsing any subrule, e.g. `remove {thing} from {list}`
  *   needs `remove`, then `from` somewhere later -- see `Sequence.test()`.  Override `test()` to do better.
- * - NOTHING is inherited from a parent rule's definition -- share with a `const` (see `variables.ts`).
- * - What EVERY rule of a base class has in common goes in that base's CONSTRUCTOR instead, as defaults:
+ * - `syntax`, `tests` and `ruleName` are NOT inherited -- share syntax with a `const` (see `variables.ts`).
+ * - What EVERY rule of a base class has in common can go in that base's CONSTRUCTOR, as defaults:
  *   `constructor(props?: Partial<P.PatternProps>) { super({ pattern, blacklist, ...props }) }`.
+ * - A definition MAY still carry any prop, winning over the class -- `P.Parser.addRule()` accepts them all.
+ *   `scope.addRule()` and `SpellParser.addRule()` narrow it to `P.SyntaxAndTests`, so spell's rule modules
+ *   and rules built while parsing can't.
  *
  * ### 2. Leaf rules take their structure the same way
  * ```ts
@@ -63,9 +67,12 @@ import { P } from "~/parser"
  * ```ts
  * match.scope.addRule(
  *   class card_suits extends P.Keywords {
- *     getAST(match: P.MatchFor<this>) {...}      // closes over the match which caused it
+ *     static ruleName = `${typeName}_${groupName}` // statics may use the enclosing function's locals...
+ *     @proto static alias = "expression"
+ *     @proto static literals = literals            // ...so computed values go on the class too
+ *     getAST(match: P.MatchFor<this>) {...}        // closes over the match which caused it
  *   },
- *   { name: `${typeName}_${groupName}`, alias: "expression", literals }
+ *   {}
  * )
  * ```
  * - `scope.addRule()` registers on the scope's `parser` AND records the class + definition on the scope
@@ -114,8 +121,9 @@ export abstract class Rule<
    *   - a constructor can only return ONE instance, `syntax` variants need several
    *   - rule name comes from the CLASS here, `new` leaves rules anonymous on purpose (see `name`)
    *   - `freeze()` has to wait until subclass constructors are done, base constructor is too early
-   * - `definition` is what `parser.addRule(RuleClass, definition)` was given -- `syntax`, `alias`, `tests` etc --
-   *   plus per-registration things only the caller knows, e.g. `module`.  Wins over class-level statics.
+   * - `definition` is what `parser.addRule(RuleClass, definition)` was given -- normally just `syntax` + `tests`,
+   *   anything else computed (see "Ways to make a rule" 3.) -- plus per-registration things only the caller
+   *   knows, e.g. `module`.  Wins over class-level statics.
    * - Only first variant carries `tests` so we don't run same tests repeatedly.
    * - Throws if definition is unusable, e.g.
    *   - anonymous class with no `ruleName`

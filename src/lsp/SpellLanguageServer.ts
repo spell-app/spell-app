@@ -10,9 +10,10 @@ import { TextDocument } from "vscode-languageserver-textdocument"
 
 import type { SP } from "~/languages/spell"
 import { LSP } from "~/lsp"
+import type { SpellDiskWorkspace } from "./SpellDiskWorkspace"
 
 /**
- * Spell language server:  wires a `SpellWorkspace` + `SpellLanguageService` to an LSP `connection`.
+ * Spell language server:  wires a `SpellDiskWorkspace` + `SpellLanguageService` to an LSP `connection`.
  * - Document changes go through ONE queue, in order.
  *   Requests wait for every change before them, so they always see the parse of the editor's text.
  * - Diagnostics publish for every file a change re-parsed, not just the edited one:
@@ -56,9 +57,9 @@ export class SpellLanguageServer {
   /** Open documents' text, kept in step with the editor's edits. */
   readonly documents = new TextDocuments(TextDocument)
   /** Spell projects of the open documents. */
-  readonly workspace = new LSP.SpellWorkspace()
+  declare readonly workspace: SpellDiskWorkspace
   /** Answers requests about parsed files. */
-  readonly service = new LSP.SpellLanguageService(this.workspace)
+  declare readonly service: LSP.SpellLanguageService
 
   /** Every change so far, in order -- see `enqueue()`. */
   #queue: Promise<unknown> = Promise.resolve()
@@ -66,8 +67,11 @@ export class SpellLanguageServer {
   #toPublish = new Set<SP.SpellFile>()
   #publishTimer: ReturnType<typeof setTimeout> | undefined
 
-  constructor(connection: Connection) {
+  /** `workspace` is a `SpellDiskWorkspace`:  node-only, so `server.ts` makes it, NOT this (portable) file. */
+  constructor(connection: Connection, workspace: SpellDiskWorkspace) {
     this.connection = connection
+    this.workspace = workspace
+    this.service = new LSP.SpellLanguageService(workspace)
   }
 
   /** Answer the editor from now on. */

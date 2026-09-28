@@ -16,10 +16,10 @@ export type EditorSelection = {
 
 /**
  * Scroll state tracked alongside a cursor/scroll `EditorSelection`.
- * - Every measurement is required: `onInputCursor()` fills them all in from CodeMirror at once.
+ * - Every measurement is required: `onInputCursor()` fills them all in from Monaco at once.
  */
 export type EditorScrollInfo = {
-  /** Whether this update came from a cursor move (one-arg `onCursorActivity`) or a scroll (two-arg `onScroll`). */
+  /** Whether this update came from a cursor move or a scroll. */
   event: "cursor" | "scroll"
   /** Scroll direction since the last update, if `current` changed. */
   direction?: "up" | "down"
@@ -27,22 +27,22 @@ export type EditorScrollInfo = {
   percent: number
   /** Maximum scroll offset, i.e. `total - visible`. */
   max: number
-  /** Current scroll offset, from CodeMirror's `doc.scrollTop`. */
+  /** Current scroll offset, from Monaco's `getScrollTop()`. */
   current: number
-  /** Total scrollable height, from CodeMirror's `doc.height`. */
+  /** Total scrollable height, from Monaco's `getScrollHeight()`. */
   total: number
-  /** Visible height, from CodeMirror's `display.lastWrapHeight`. */
+  /** Visible height, from Monaco's `getLayoutInfo().height`. */
   visible: number
 }
 
-/** CodeMirror-style `{ line, ch }` position, augmented with pixel/offset info. */
+/** Zero-based `{ line, ch }` position, augmented with pixel/offset info. */
 export type EditorPosition = {
   /** Zero-based line number. */
   line: number
   /** Character offset within `line`. */
   ch: number
-  /** Pixel offset from top of editor, from CodeMirror's `cursorCoords()`. */
+  /** Pixel offset from top of the text, from Monaco's `getTopForPosition()`. */
   top?: number
-  /** Character offset into file contents -- only set for `SpellFile`/`SpellCSSFile`, not `SpellJSFile`. */
+  /** Character offset into file contents.  Wins over `line` / `ch` when restoring a selection. */
   offset?: number
 }

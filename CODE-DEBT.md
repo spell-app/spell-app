@@ -119,3 +119,29 @@ One `##` heading per item, `---` between items, then:
   `bank-account account-types` -- and apply it in `define_property_has`'s generated rule, its `enumerationProp`,
   and `spellCore.defineProperty()`.  Then decide whether `the number of {expression}` should count.
 - **Pinned at**:  nowhere yet -- no test covers the instance form or dashed names.
+
+---
+
+## Store proxies stand in for the real objects
+
+`SP` objects (`SpellProject`, `SpellFile`...) keep their state in `react-easy-state` stores.  Read INSIDE a
+reaction -- a `view()` render, an `autoEffect()`, an `observe()` -- a store hands back a tracking PROXY of any
+nested object, and a cache filled there keeps the proxy.
+
+- **Cost**:
+  - identity breaks:  a proxy is not `===` the real object, so `includes()`, `Map` / `WeakMap` keys and `===`
+    all miss.  Found when `project.activeImports`, filled during a render, made `file.isActive` false for
+    every file, and the app editor's references / rename / cross-file definition came back empty.
+  - speed:  anything walked through a proxy inside a reaction registers every read.  Monaco's text model,
+    reached through the store inside an `observe()`, never finished.
+- **Cause**:  `@nx-js/observer-util` wraps nested objects lazily, only while a reaction is running (see
+  `isInsideRender()` in `util/extend.ts`).  `derivedFrom()` caches keep whatever they were computed with.
+- **Fix**:  keep non-state objects out of stores, and have caches store raw values -- e.g. `raw()` in
+  `derivedFrom()` -- or stop computing caches inside reactions.  Then drop the `raw()` calls below.
+- **Pinned at**:
+  - `SpellProject.spellFiles` and `SpellFile.isActive` unwrap with `raw()`
+  - `SpellModels.modelFor()` unwraps the file it's given;  it and `SpellModels` follow files with `observe()`,
+    touching Monaco only in microtasks OUTSIDE the reaction
+  - `editor.getInputEditor()`:  the Monaco editor lives outside the store (`src/app/editor.ts`)
+  - `SpellModels.#toSave` and `editor.onFileEdited()` compare by `path`
+
