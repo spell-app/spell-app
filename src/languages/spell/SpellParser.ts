@@ -114,7 +114,7 @@ export class SpellParser extends P.Parser {
 
   /** A top-level item is broken if it didn't parse, or has parse errors -- its own or its body's. */
   isBrokenItem(item: P.Match | undefined): boolean {
-    return !item || !!SP.getParseErrors(item)?.length
+    return !item || !!SP.Block.getParseErrors(item)?.length
   }
 
   /** Journal mark just before a `line`'s nested body was parsed -- see `commitStatement()`. */

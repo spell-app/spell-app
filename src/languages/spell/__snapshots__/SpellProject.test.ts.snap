@@ -3,28 +3,30 @@
 exports[`Solitaire project > compiled output + errors 1`] = `
 [
   {
-    "compiled": "//## definition of a Card with nice english aliases for working with it
+    "compiled": "/** definition of a Card with nice english aliases for working with it */
 export class Card extends Thing {}
 spellCore.addExport('Card', Card)
 
-//## properties of cards
-// card ranks
+/////////////////////////
+// ## properties of cards
+/////////////////////////
 /* SPELL: added rule: '(Card|card) (Ranks|ranks)' */
+/** card ranks */
 spellCore.defineProperty(Card.prototype, {
 	property: 'rank',
 	enumeration: ['ace', 2, 3, 4, 5, 6, 7, 8, 9, 10, 'jack', 'queen', 'king'],
 	enumerationProp: 'Ranks'
 })
 
-// card suits
 /* SPELL: added rule: '(Card|card) (Suits|suits)' */
+/** card suits */
 spellCore.defineProperty(Card.prototype, {
 	property: 'suit',
 	enumeration: ['clubs', 'diamonds', 'hearts', 'spades'],
 	enumerationProp: 'Suits'
 })
 
-// color as derivation of suit
+/** color as derivation of suit */
 spellCore.define(Card.prototype, 'color', {
 	get() {
 		if (spellCore.includes(['diamonds', 'hearts'], this.suit)) { return 'red' }
@@ -32,24 +34,26 @@ spellCore.define(Card.prototype, 'color', {
 	}
 })
 
-// value as a derivation of rank
+/** value as a derivation of rank */
 spellCore.define(Card.prototype, 'value', {
 	get() {
 		return spellCore.itemOf(Card.Ranks, this.rank)
 	}
 })
 
-// card direction:  up or down
 /* SPELL: added rule: '(Card|card) (Directions|directions)' */
+/** card direction:  up or down */
 spellCore.defineProperty(Card.prototype, {
 	property: 'direction',
 	enumeration: ['up', 'down'],
 	enumerationProp: 'Directions'
 })
 
-//## aliases
-// "card is face up/down"
+/////////////
+// ## aliases
+/////////////
 /* SPELL: added expression \`{thing:simple_expression} (operator:is not?|isn't|isnt) face up\` */
+/** "card is face up/down" */
 spellCore.define(Card.prototype, 'is_face_up', {
 	get() {
 		return (this.direction == 'up')
@@ -61,36 +65,36 @@ spellCore.define(Card.prototype, 'is_face_down', {
 		return (this.direction == 'down')
 	}
 })
-// \`card is a face card\`
 /* SPELL: added expression \`{thing:simple_expression} (operator:is not?|isn't|isnt) a face card\` */
+/** \`card is a face card\` */
 spellCore.define(Card.prototype, 'is_a_face_card', {
 	get() {
 		return spellCore.includes(['jack', 'queen', 'king'], this.rank)
 	}
 })
-// "card is a spade", "...is a club" etc
 /* SPELL: added expression: '(operator:is not?) (a|an) (expression:club|diamond|heart|spade)' */
+/** "card is a spade", "...is a club" etc */
 spellCore.define(Card.prototype, 'is_a_$suit', {
 	value(suit) {
 		return this.suit === suit
 	}
 })
-// "card is a queen", "...is an ace" etc
 /* SPELL: added expression: '(operator:is not?) (a|an) (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)' */
+/** "card is a queen", "...is an ace" etc */
 spellCore.define(Card.prototype, 'is_a_$rank', {
 	value(rank) {
 		return this.rank === rank
 	}
 })
-// "card is the queen of spades" etc
 /* SPELL: added expression: '(operator:is not?) the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)' */
+/** "card is the queen of spades" etc */
 spellCore.define(Card.prototype, 'is_the_$rank_of_$suits', {
 	value(rank, suit) {
 		return this.rank === rank && this.suit === suit
 	}
 })
 
-// name as a derivation of name/suit
+/** name as a derivation of name/suit */
 spellCore.define(Card.prototype, 'name', {
 	get() {
 		return ((this.rank + "-of-") + this.suit)
@@ -136,9 +140,11 @@ spellCore.define(Card.prototype, 'state', {
 
 //## actions
 
-// Turn card face up or face down
-// Note that this will animate if you \`wait for turn the card face up\`
 /* SPELL: added rule: \`turn {thisArg:expression} face up\` */
+/**
+ * Turn card face up or face down
+ * Note that this will animate if you \`wait for turn the card face up\`
+ */
 spellCore.define(Card.prototype, 'turn_face_up', {
 	async value() {
 		this.direction = 'up'
@@ -153,9 +159,11 @@ spellCore.define(Card.prototype, 'turn_face_down', {
 	}
 })
 
-// Flip card to opposite direction
-// Note that this will animate if you \`wait for turn the card face up\`
 /* SPELL: added rule: \`turn {thisArg:expression} over\` */
+/**
+ * Flip card to opposite direction
+ * Note that this will animate if you \`wait for turn the card face up\`
+ */
 spellCore.define(Card.prototype, 'turn_over', {
 	async value() {
 		if (this.direction == 'up') { this.turn_face_down() }
@@ -198,8 +206,8 @@ spellCore.define(Card.prototype, 'draw', {
 	}
 })
 
-//## create a card instance with default properties
 /* SPELL: added rule: \`test card setup\` */
+/** create a card instance with default properties */
 function test_card_setup() {
 	return spellCore.test('test card setup', function test_card_setup() {
 		spellCore.echoTestAction(\`the card is a new card whose rank is queen, suit is spades and direction is up\`)
@@ -326,7 +334,7 @@ test_deck_creation()",
     "path": "/Deck.spell",
   },
   {
-    "compiled": "//## Pile of playing cards
+    "compiled": "/** Pile of playing cards */
 export class Pile extends List {}
 spellCore.addExport('Pile', Pile)
 spellCore.define(Pile.prototype, 'instanceType', { value: Card })
@@ -345,10 +353,12 @@ spellCore.define(Pile.prototype, 'value', {
 		
 	}
 })
-// "move" a card
-// NOTE: use this rather than \`add\` to make sure card is only in one pile at a time
-// if you \`wait for: move the card to the pile\` the move will be animated
 /* SPELL: added rule: \`move {thisArg:expression} to {callArgs:expression}\` */
+/**
+ * "move" a card
+ * NOTE: use this rather than \`add\` to make sure card is only in one pile at a time
+ * if you \`wait for: move the card to the pile\` the move will be animated
+ */
 spellCore.define(Card.prototype, 'move_to_$pile', {
 	async value(pile) {
 		if (spellCore.isDefined(this.pile)) { spellCore.remove(this.pile, this) }
@@ -372,22 +382,24 @@ spellCore.define(Pile.prototype, 'state', {
     "path": "/Pile.spell",
   },
   {
-    "compiled": "//## Klondike Solitaire Card Game
+    "compiled": "//////////////////////////////////
+// ## Klondike Solitaire Card Game
+//////////////////////////////////
 //-- See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for rules & naming conventions.
 
-//## Game bits
+/** Game bits */
 export class Game extends App {}
 spellCore.addExport('Game', Game)
 spellCore.defineProperty(Game.prototype, { property: 'score', type: 'number' })
 export let game = new Game()
 spellCore.console.log(game)
 
-//## set up all piles
+/** set up all piles */
 export let all_piles = new List({ instanceType: "Pile" })
 export let foundations = new List({ instanceType: "Pile" })
 export let tableaus = new List({ instanceType: "Pile" })
 
-// set up stock pile: unplayed cards
+/** set up stock pile: unplayed cards */
 export class Stock_Pile extends Pile {}
 spellCore.addExport('Stock_Pile', Stock_Pile)
 /* SPELL: added expression \`{thing:simple_expression} (operator:can not?|cannot|can't|cant) pick up {expression:simple_expression}\` */
@@ -399,7 +411,7 @@ spellCore.define(Stock_Pile.prototype, 'can_pick_up_$card', {
 export let stock = new Stock_Pile({ name: "stock", droppable: false })
 spellCore.append(all_piles, stock)
 
-// set up discards: where played cards go when turning over stock
+/** set up discards: where played cards go when turning over stock */
 export class Discard_Pile extends Pile {}
 spellCore.addExport('Discard_Pile', Discard_Pile)
 /* SPELL: added expression \`{thing:simple_expression} (operator:can not?|cannot|can't|cant) pick up {expression:simple_expression}\` */
@@ -411,7 +423,7 @@ spellCore.define(Discard_Pile.prototype, 'can_pick_up_$card', {
 export let discards = new Discard_Pile({ name: "discards", droppable: false })
 spellCore.append(all_piles, discards)
 
-// set up foundation piles: where we build up from ace => king
+/** set up foundation piles: where we build up from ace => king */
 export class Foundation extends Pile {}
 spellCore.addExport('Foundation', Foundation)
 /* SPELL: added expression \`{thing:simple_expression} (operator:can not?|cannot|can't|cant) pick up {expression:simple_expression}\` */
@@ -454,7 +466,7 @@ spellCore.map(foundations, (pile) => {
 	spellCore.append(all_piles, pile)
 })
 
-// set up tableau piles: vertical piles where we arrange from king to ace
+/** set up tableau piles: vertical piles where we arrange from king to ace */
 export class Tableau extends Pile {}
 spellCore.addExport('Tableau', Tableau)
 /* SPELL: added expression \`{thing:simple_expression} (operator:can not?|cannot|can't|cant) pick up {expression:simple_expression}\` */
@@ -477,7 +489,7 @@ spellCore.map(spellCore.getRange(1, 7), (number) => {
 })
 
 
-// set up deck of cards
+/** set up deck of cards */
 export let deck = new Deck()
 deck.set_up()
 // start with cards in the stock pile
@@ -537,7 +549,7 @@ async function deal_the_cards() {
 	if (spellCore.processIsRunning('deal_the_cards')) { return }
 	spellCore.startProcess('deal_the_cards', 'EXCLUSIVE')
 	try {
-		// pull all cards into stock with a nice animation
+		/** pull all cards into stock with a nice animation */
 		let cards = (spellCore.mergeCollections(all_piles, Pile))
 		spellCore.reverse(cards)
 		await spellCore.forEachSequential(cards, async (card) => {

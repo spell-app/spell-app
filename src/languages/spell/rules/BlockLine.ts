@@ -2,7 +2,7 @@ import { P } from "~/parser"
 import { SP } from "~/languages/spell"
 import { SpellStatement, commitStatement } from "./Statement"
 import { Block, type BlockMatchData } from "./Block"
-import { getJSXParseErrors } from "./JSX"
+import { SpellJSX } from "./JSX"
 
 /**
  * Blank line, compiling to `P.ASTBlankLine` -- generic `P.BlankLine` has no `getAST()` of its own,
@@ -92,7 +92,7 @@ export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
 
       if (statement) {
         // Errors inside JSX `{...}` -- reported here, but compiled where they are, so NOT added to `matched`.
-        errors.push(...getJSXParseErrors(statement))
+        errors.push(...SpellJSX.parseErrorsIn(statement))
 
         const nextItem = lines[1]
         const inlineBody = statement.rule instanceof SpellStatement ? statement.rule.getBody(statement) : undefined

@@ -138,7 +138,6 @@ export class SpellFile extends TextFile {
     this.resetState("scope", "inputLines", "match", "AST", "compiled")
   }
 
-
   /**
    * Return a `Scope` for parsing this file.
    * - If `parentScope` has `types` (a real project scope), returns a `P.FileScope` under it, reusing its
@@ -208,7 +207,7 @@ export class SpellFile extends TextFile {
 
   /** Show our `match`'s parse errors on the `spellCore` console. */
   logParseErrors(): void {
-    const errors = this.match && SP.getParseErrors(this.match)
+    const errors = this.match && SP.Block.getParseErrors(this.match)
     errors?.forEach((error) => {
       // TODO(ast): remove cast when AST/ASTNode typing lands -- `.value` is subclass-specific.
       const value = (error.AST as unknown as { value: string } | undefined)?.value

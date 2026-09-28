@@ -169,6 +169,14 @@ describe("SpellLanguageService", () => {
       expect(markdown).toContain("```js\nif (this.direction == 'up') { this.turn_face_down() }\n```")
     })
 
+    test("a declaration's docstring, just under its name", () => {
+      // `// set up tableau piles: ...` is directly above `a tableau is a pile`
+      const markdown = (service.hover(solitaire, at(solitaire, 45, "tableau"))!.contents as { value: string }).value
+      expect(markdown).toContain(
+        "type **Tableau** is a Pile\n\nset up tableau piles: vertical piles where we arrange from king to ace\n\n"
+      )
+    })
+
     test("nothing on a blank line", () => {
       expect(service.hover(card, { line: 2, character: 0 })).toBeNull()
     })
@@ -263,6 +271,16 @@ describe("SpellLanguageService", () => {
       expect(labels).toContain("turn (a card) face up")
       // declared after the cursor
       expect(labels).not.toContain("start-pile")
+    })
+
+    test("with docstrings", () => {
+      const items = service.completion(solitaire, { line: 54, character: 0 })
+      const docs = (label: string) =>
+        (items.find((item) => item.label === label)?.documentation as { value: string })?.value
+      expect(docs("card")).toBe("definition of a Card with nice english aliases for working with it")
+      expect(docs("turn (a card) face up")).toBe(
+        "Turn card face up or face down\nNote that this will animate if you `wait for turn the card face up`"
+      )
     })
 
     test("a method comes as a snippet, with its arguments' names", () => {

@@ -34,7 +34,7 @@ export * from "./SpellParser"
 export {
   spellParser,
   ParseError,
-  getParseErrors,
+  type DocComment,
   commitStatement,
   Block,
   BlockLine,

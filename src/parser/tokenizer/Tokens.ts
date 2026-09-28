@@ -299,7 +299,7 @@ export class JSXExpressionToken extends JSXToken<string, JSXExpressionTokenProps
     return this.record.contents
   }
   /**
-   * Tokens a rule made by parsing `contents` later, moved to file positions -- see `placeInFile()` in spell.
+   * Tokens a rule made by parsing `contents` later, moved to file positions -- see `SpellJSXContent.placeInFile()` in spell.
    * - `Tokenizer.forEachToken()` reaches them through here, so they move with us after an edit.
    */
   get innerTokens() {

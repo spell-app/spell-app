@@ -15,6 +15,7 @@ import {
   type FormattingOptions,
   type Hover,
   type Location,
+  type MarkupContent,
   type Position,
   type Range,
   type SelectionRange,
@@ -42,6 +43,8 @@ export class SpellLanguageService {
   declare workspace: LSP.SpellWorkspace
   /** Line-start offsets of each file, with the text they were worked out from. */
   #lineStartsCache = new WeakMap<SP.SpellFile, { text: string; lineStarts: number[] }>()
+  /** Docstrings of each file's declarations, by statement -- keyed by the file's `match`, so one per parse. */
+  #docsCache = new WeakMap<P.Match, Map<P.Match, string>>()
 
   constructor(workspace: LSP.SpellWorkspace) {
     this.workspace = workspace
@@ -115,7 +118,7 @@ export class SpellLanguageService {
     }
     if (!file.match) return []
 
-    return (SP.getParseErrors(file.match) ?? []).flatMap((error) => {
+    return (SP.Block.getParseErrors(file.match) ?? []).flatMap((error) => {
       const range = this.rangeOf(file, error)
       if (!range) return []
       const text = file.parseText.slice(error.start, error.end)
@@ -482,7 +485,50 @@ export class SpellLanguageService {
       .map((it) => this.linkTo(it))
       .join(", ")
     if (declared) lines.push(`declared in ${declared}`)
-    return lines.join("  \n")
+    // docstring as its own paragraph, just under the name
+    const [title, ...rest] = lines
+    const docs = this.docsOf(subject)
+    return [title, docs, rest.join("  \n")].filter(Boolean).join("\n\n")
+  }
+
+  /**
+   * Docstring of what `subject` names:  the comments documenting its declaration -- see `SP.Block.getDocComments()`.
+   * - Only if that declaration really names it:  an argument's `declaredBy` is its METHOD, whose docs aren't its own.
+   * - Properties only when we know which type they're on.
+   */
+  docsOf(subject: LSP.SpellSubject): string | undefined {
+    return subject.record && this.docsOfRecord(subject.record, subject.kind === "method")
+  }
+
+  /** Docstring of scope record `record`, if its declaration names it -- or always for a method's rule. */
+  private docsOfRecord(record: { name: string; declaredBy?: P.Match }, isMethod = false): string | undefined {
+    const { declaredBy } = record
+    const file = declaredBy && this.fileOf(declaredBy)
+    const declaration = declaredBy?.rule.getDeclaration(declaredBy)
+    if (!file || !declaration) return undefined
+    const isNamed = isMethod || SpellLanguageService.sameName(`${this.nameLeaf(declaration).raw}`, record.name)
+    return isNamed ? this.docsIn(file).get(declaredBy) : undefined
+  }
+
+  /** `text` as markdown for an editor, e.g. completion `documentation`. */
+  private markdown(text: string | undefined): MarkupContent | undefined {
+    return text ? { kind: MarkupKind.Markdown, value: text } : undefined
+  }
+
+  /** Docstring of each declaration in `file`, by its statement -- worked out once per parse of `file`. */
+  private docsIn(file: SP.SpellFile): Map<P.Match, string> {
+    if (!file.match) return new Map()
+    let docs = this.#docsCache.get(file.match)
+    if (!docs) {
+      const found = new Map<P.Match, string>()
+      this.walk(file.match, (match) => {
+        if (!(match.rule instanceof SP.Block)) return
+        for (const [statement, doc] of match.rule.getDocComments(match)) found.set(statement, doc.lines.join("\n"))
+      })
+      docs = found
+      this.#docsCache.set(file.match, docs)
+    }
+    return docs
   }
 
   /** Markdown link to `match` in `file`, as `File.spell:12`. */
@@ -789,7 +835,7 @@ export class SpellLanguageService {
       files: this.workspace.spellFiles(project).map((it) => ({
         uri: this.workspace.uriFor(it),
         file: it.file ?? it.path,
-        errors: (it.match && SP.getParseErrors(it.match)?.length) ?? 0
+        errors: (it.match && SP.Block.getParseErrors(it.match)?.length) ?? 0
       })),
       problem: this.workspace.problems.get(project)
     }
@@ -822,12 +868,19 @@ export class SpellLanguageService {
       if (isLater(variable.declaredBy)) continue
       const { name, kind, output } = variable
       const detail = [kind ?? "variable", output && output !== name ? `as ${output}` : ""].filter(Boolean).join(" ")
-      items.push({ label: SpellLanguageService.asWritten(name), kind: CompletionItemKind.Variable, detail })
+      const documentation = this.markdown(this.docsOfRecord(variable))
+      items.push({
+        label: SpellLanguageService.asWritten(name),
+        kind: CompletionItemKind.Variable,
+        detail,
+        documentation
+      })
     }
     for (const type of SpellLanguageService.visible(scope.types)) {
       if (isLater(type.declaredBy)) continue
       const label = SpellLanguageService.asWritten(type.instanceName)
-      items.push({ label, kind: CompletionItemKind.Class, detail: `type ${type.name}` })
+      const documentation = this.markdown(this.docsOfRecord(type))
+      items.push({ label, kind: CompletionItemKind.Class, detail: `type ${type.name}`, documentation })
     }
     for (const constant of SpellLanguageService.visible(scope.constants)) {
       if (isLater(constant.declaredBy)) continue
@@ -837,7 +890,7 @@ export class SpellLanguageService {
     for (const scopeRule of SpellLanguageService.visible(scope.rules)) {
       if (isLater(scopeRule.declaredBy) || ![scopeRule.definition.alias].flat().includes(alias)) continue
       const item = this.methodCompletion(scopeRule)
-      if (item) items.push(item)
+      if (item) items.push({ ...item, documentation: this.markdown(this.docsOfRecord(scopeRule, true)) })
     }
     if (atStatementStart && scope.parser) {
       for (const word of this.statementWords(scope.parser, file.project)) {
@@ -972,7 +1025,7 @@ export class SpellLanguageService {
 
   /**
    * STUB:  quick fixes for `range`, e.g. "define `to <phrase>`" on a line that didn't parse.
-   * - Could be built now from `SP.getParseErrors()`:  a `parse_error` line's words become a method signature.
+   * - Could be built now from `SP.Block.getParseErrors()`:  a `parse_error` line's words become a method signature.
    *   Left for later to keep the first release small.
    */
   codeActions(_file: SP.SpellFile, _range: Range): null {

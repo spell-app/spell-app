@@ -49,7 +49,7 @@ export type SpellSubject = { nameMatch: P.Match } & (
       name: string
       /** Type the property was used on, if what's around it says, e.g. the method's type for `its suit`. */
       owner?: P.TypeScope
-      /** Property's record on `owner` or one of its super-types, if found -- see `declareProperty()` in spell. */
+      /** Property's record on `owner` or one of its super-types, if found -- see `P.TypeScope.declareProperty()`. */
       record?: P.ScopeVariable
     }
 )

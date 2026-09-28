@@ -19,7 +19,7 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   via `getLineStarts()` + `positionForOffset()` (`tokenizer.types.ts`), including tokens nested in JSX.
   - NOTE: `LineToken` / `BlockToken` copy `line` from their first token.
   - JSX `{...}` contents are parsed later from a trimmed, newline-collapsed copy (same length), so the JSX rules
-    (`placeInFile()` in `rules/JSX.ts`) shift those tokens to their file positions and hang them on the
+    (`SpellJSXContent.placeInFile()` in `rules/JSX.ts`) shift those tokens to their file positions and hang them on the
     `JSXExpressionToken` as `innerTokens`, where `Tokenizer.forEachToken()` (so `moveTokens()`) reaches them.
 - A token's / match's `end` is where its TEXT stops;  `next` is where the next token starts, i.e. `end` plus
   the trailing whitespace (tokens carry the whitespace after them).  Ranges a user sees use `end`;
@@ -75,9 +75,9 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - `nestedScope` comes from `rule.getNestedScopeForMatch()`:  default is the same scope;
     `if`/`else` => new `BlockScope`;  methods, events, property getters, list loops => new `MethodScope`
 - Errors are never thrown.  `parse_error` matches roll up into `match.data.errors` on `line` / `block`
-  matches (`getParseErrors()`), and compile to `/* PARSE ERROR: ... */`.
+  matches (`Block.getParseErrors()`), and compile to `/* PARSE ERROR: ... */`.
   - errors inside JSX `{...}` live in the JSX rules' `match.data`, not `matched`;  `BlockLine` gathers them from
-    anywhere in its statement (`getJSXParseErrors()`) into `data.errors` too -- reported, but compiled in place
+    anywhere in its statement (`SpellJSX.parseErrorsIn()`) into `data.errors` too -- reported, but compiled in place
 
 ## Scope:  what's stored where
 
@@ -97,9 +97,9 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - `get` / `set it to` ALWAYS declare a new `it` (`declareIt()`):  plain `it`, then `it_2`, `it_3`... numbered
     from the visible `it`'s `output`, skipping names in use -- so callbacks keep the `it` they captured
   - types:  `create_type`, `create_list_type` (`classes.ts`);  a type mentioned before its own line is a
-    `stub`, which its real declaration later claims (`claimStubType()`, journaled)
+    `stub`, which its real declaration later claims (`TypeScope.claim()`, journaled)
   - properties:  every property statement records the property in its type's `variables`, with `declaredBy`
-    (`declareProperty()` in `classes.ts`) -- for editors only, nothing parsed later reads them, so a getter is
+    (`TypeScope.declareProperty()`) -- for editors only, nothing parsed later reads them, so a getter is
     `changesScope: "internal"`.  An enumerated one (`define_property_has`) also adds constants for each value,
     a plural `classVariables` entry (e.g. `Suits`), AND a rule
 - Every record a `mutateScope()` adds -- `ScopeVariable`, `ScopeConstant`, `TypeScope`, `ScopeRule` -- carries
@@ -191,6 +191,12 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 - `Match.compile()` => `match.AST?.compile()`.  `Match.AST` is memoized;  `ASTNode.compile()` is not.
 - A block compiles as its statements joined with `\n`;  nesting indents by re-joining with `\n\t`,
   so a statement's output doesn't depend on its depth.
+- A DECLARATION's docstring -- comment-only lines directly above it, else the comment on its own line --
+  compiles as one `/** ... */` in place of those `//` lines (`getDocComments()`, `Block.ts`), right on its code:
+  after any `/* SPELL: added rule ... */` notes the statement makes.  A `##` heading
+  is part of it only if DIRECTLY above;  one followed by a regular comment compiles as a `// ## heading` banner.  Worked out from
+  the block's lines when asked, never stored while parsing:  an edited comment line re-parses on its own.
+  The language server shows the same docstring on hover and in completion.
 
 ## Language server
 
@@ -204,7 +210,7 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - symbols from `rule.getDeclaration()`, colours from `rule.highlightAs`
   - definition / references from the scope record a word resolved to while parsing (`data.scopeVar` etc.)
     and that record's `declaredBy`;  method calls from `ScopeRule.instances`;  properties from their type's
-    `variables` (`declareProperty()`), else by name
+    `variables` (`TypeScope.declareProperty()`), else by name
 - Formatting is `P.TokenFormatter` (`src/parser/tokenizer/`), indenting with TABS always:  whitespace only, from the tokens -- no
   pretty-printer, the AST is a javascript tree.  Indent LEVELS come from indent widths, not the tokenizer's blocks
   (which nest one per whitespace character).  It re-tokenizes its result and gives up if anything but whitespace

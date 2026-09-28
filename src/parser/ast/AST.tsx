@@ -745,6 +745,59 @@ export class ASTBlockComment extends ASTComment {
   }
 }
 
+/** DocComment type -- a JSDoc comment documenting what follows it, e.g. `/** A card. *\/`.
+ *  - `lines` are its lines of text, without comment symbols.
+ *  - `*\/` in the text is escaped, so it can't end the comment early.
+ */
+export type ASTDocCommentProps = Prettify<{ lines: string[] }>
+
+export class ASTDocComment extends ASTComment {
+  declare lines: string[]
+  constructor(match: P.AnyMatch, props: ASTDocCommentProps) {
+    super(match, props)
+    this.assertArrayType("lines", "string")
+  }
+  /** `/** text *\/` for one line;  one ` * ` line each for several. */
+  compile(): string {
+    const lines = this.lines.map((line) => line.replace(/\*\//g, "*\\/"))
+    if (lines.length === 1) return `/** ${lines[0]} */`
+    return ["/**", ...lines.map((line) => ` * ${line}`), " */"].join("\n")
+  }
+  renderChildren(): ReactNode {
+    return render.Fragment(
+      render.OPEN_COMMENT,
+      <span className="comment">{this.lines.join("\n")}</span>,
+      render.CLOSE_COMMENT
+    )
+  }
+}
+
+/** BannerComment type -- a section heading, boxed in rows of slashes as wide as its text line:
+ *    ```
+ *    /////////////
+ *    // ## Setup
+ *    /////////////
+ *    ```
+ *  - `value` is the heading's text.
+ */
+export type ASTBannerCommentProps = Prettify<{ value: string }>
+
+export class ASTBannerComment extends ASTComment {
+  declare value: string
+  constructor(match: P.AnyMatch, props: ASTBannerCommentProps) {
+    super(match, props)
+    this.assertType("value", "string")
+  }
+  compile(): string {
+    const heading = `// ## ${this.value}`
+    const rule = "/".repeat(heading.length)
+    return [rule, heading, rule].join("\n")
+  }
+  renderChildren(): ReactNode {
+    return <span className="comment">{this.compile()}</span>
+  }
+}
+
 /** ParserAnnotation type, used for parser annotations injected into output.
  *  - `value` is text of annotation.
  *  - `annotation` (overridable getter) is the leading tag, `"SPELL:"` by default -- `ASTParseError` overrides it.

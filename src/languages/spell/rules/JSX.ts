@@ -46,7 +46,7 @@ export type JSXMatchData = {
  * - Compiles to `spellCore.element({ tag, props, children })`.
  * - NOTE: rule name is `jsxElement`, kept distinct from class name `SpellJSX` (pre-existing convention).
  */
-class SpellJSX extends P.TokenType<never, JSXMatchData> {
+export class SpellJSX extends P.TokenType<never, JSXMatchData> {
   /** Parse element's `attributes`/`children` tokens (see note below re: calling `parser.parse()` directly). */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
@@ -72,6 +72,34 @@ class SpellJSX extends P.TokenType<never, JSXMatchData> {
         ?.map((child) => P.asAST<P.ASTJSXElement | P.ASTJSXEndTag | P.ASTJSXText | P.ASTJSXExpression>(child?.AST))
         .filter(Boolean) ?? []
     return new P.ASTJSXElement(match, { tagName, attrs, children })
+  }
+
+  /**
+   * Parse errors from JSX `{...}` contents anywhere in `statement`, e.g. `print <div>{foo bar}</div>`.
+   * - JSX rules keep what they parse out of their tokens in `match.data`, not `matched`,
+   *   so nothing else finds these.
+   * - Looks through the statement's own matches and any inline body.
+   *   NOT an indented body:  that's a `block`, which gathers its own errors.
+   * - The errors still compile where they are, inside the JSX.  This is just so they're REPORTED.
+   * - Static:  `BlockLine` asks, about any statement.
+   */
+  static parseErrorsIn(statement: P.Match): P.Match[] {
+    const errors: P.Match[] = []
+    visit(statement)
+    return errors
+
+    /** Collect `match`'s JSX error, if it has one, then look below it. */
+    function visit(match: P.Match) {
+      if (match.rule.name === "block") return
+      const below: Array<P.Match | P.Token | undefined> = [...match.matched]
+      if (match.is(SpellJSX)) below.push(...(match.data.attributes ?? []), ...(match.data.children ?? []))
+      if (match.is(SpellJSXContent)) {
+        if (match.data.error) errors.push(match.data.error)
+        below.push(match.data.expression, match.data.statement)
+      }
+      below.push(match.data.body as P.Match | undefined)
+      for (const item of below) if (item instanceof P.Match) visit(item)
+    }
   }
 }
 JSX.addRule(SpellJSX, {
@@ -262,6 +290,44 @@ JSX.addRule(SpellJSX, {
 })
 
 ////////////////
+// ## `SpellJSXContent` base class
+//    e.g. "{1}" or "onClick={fire event x}" -- JSX whose contents parse as spell
+////////////////
+
+/**
+ * Base for JSX rules which parse spell out of their token's text:  `jsxAttribute` values and `jsxExpression`s.
+ * - What they parse goes in `match.data` (`expression` / `statement` / `error`), NOT `matched` --
+ *   see `SpellJSX.parseErrorsIn()`, which finds errors there.
+ */
+class SpellJSXContent extends P.TokenType<never, JSXMatchData> {
+  /**
+   * Move tokens `parsed` from a COPY of `jsxToken`'s `{...}` contents to where that text sits in the FILE,
+   * so errors and positions inside JSX line up with the source.
+   * - The copy is trimmed, with newlines collapsed to spaces:  same length, so one shift puts every token right.
+   * - Copy's char 0 is the file's `{`, plus 1, plus whatever whitespace `trim()` dropped in front.
+   * - `line` / `ch` come from `jsxToken`'s own, counting the newlines in its `raw` up to each inner token.
+   *   The copy lost them, and we haven't got the file text here.
+   * - SIDE EFFECT:  remembers the tokens as `jsxToken.innerTokens`,
+   *   so `Tokenizer.forEachToken()` keeps them current after an edit.
+   * - Losing candidates parse the same token too, so `innerTokens` may hold tokens of matches nobody kept.
+   *   Moving those as well is harmless.
+   */
+  protected placeInFile(parsed: P.Match | undefined, jsxToken: P.JSXExpressionToken) {
+    const { contents, raw, start, line = 0, ch = 0 } = jsxToken
+    if (!parsed || typeof contents !== "string" || !raw) return
+    const lead = contents.length - contents.trimStart().length
+    P.Tokenizer.shiftTokens(parsed.tokens, start + raw.indexOf("{") + 1 + lead)
+    P.Tokenizer.forEachToken(parsed.tokens, (token) => {
+      const before = raw.slice(0, token.start - start)
+      const lastNewline = before.lastIndexOf("\n")
+      token.record.line = line + (before.split("\n").length - 1)
+      token.record.ch = lastNewline === -1 ? ch + before.length : before.length - lastNewline - 1
+    })
+    ;(jsxToken.innerTokens ??= []).push(...parsed.tokens)
+  }
+}
+
+////////////////
 // ## `jsxAttribute` rule
 //    e.g. "foo" (bare attribute), "foo=1", or "foo={expression}"
 ////////////////
@@ -273,7 +339,7 @@ JSX.addRule(SpellJSX, {
  * - Falls back to `parse_error` if neither an `expression` nor `on*` `statement` consumes the whole value.
  * - NOTE: rule name is `jsxAttribute`, kept distinct from class name `SpellJSXAttribute` (pre-existing convention).
  */
-class SpellJSXAttribute extends P.TokenType<never, JSXMatchData> {
+class SpellJSXAttribute extends SpellJSXContent {
   /**
    * Parse `value` as an expression, or (for `on*` attribute names) as a `statement` with an
    * implicit `event` argument -- falls back to a `parse_error` match if neither consumes it all.
@@ -317,7 +383,7 @@ class SpellJSXAttribute extends P.TokenType<never, JSXMatchData> {
       // if neither worked, parse error
       if (!match.data.expression && !match.data.statement) match.data.error = scope.parse(input, "parse_error")
       // console.warn({ match, name: match.data.attribute, inputIsExpression, value, input })
-      if (inputIsExpression) placeInFile(match.data.statement ?? match.data.expression ?? match.data.error, value)
+      if (inputIsExpression) this.placeInFile(match.data.statement ?? match.data.expression ?? match.data.error, value)
     }
     return match
   }
@@ -419,7 +485,7 @@ JSX.addRule(SpellJSXEndTag, {
  * - Falls back to `parse_error` if the expression doesn't consume the entire contents.
  * - NOTE: rule name is `jsxExpression`, kept distinct from class name `SpellJSXExpression` (pre-existing convention).
  */
-class SpellJSXExpression extends P.TokenType<never, JSXMatchData> {
+class SpellJSXExpression extends SpellJSXContent {
   /** Parse `contents` as an `expression`; falls back to `parse_error` if it doesn't consume it all. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
@@ -435,7 +501,7 @@ class SpellJSXExpression extends P.TokenType<never, JSXMatchData> {
     } else {
       match.data.error = scope.parse(input, "parse_error")
     }
-    placeInFile(match.data.expression ?? match.data.error, jsxToken)
+    this.placeInFile(match.data.expression ?? match.data.error, jsxToken)
     return match
   }
   getAST(match: P.MatchFor<this>) {
@@ -451,60 +517,3 @@ JSX.addRule(SpellJSXExpression, {
   alias: "jsxChild",
   tokenType: P.JSXExpressionToken
 })
-
-/**
- * Parse errors from JSX `{...}` contents anywhere in `statement`, e.g. `print <div>{foo bar}</div>`.
- * - JSX rules keep what they parse out of their tokens in `match.data`, not `matched`,
- *   so nothing else finds these.
- * - Looks through the statement's own matches and any inline body.
- *   NOT an indented body:  that's a `block`, which gathers its own errors.
- * - The errors still compile where they are, inside the JSX.  This is just so they're REPORTED.
- */
-export function getJSXParseErrors(statement: P.Match): P.Match[] {
-  const errors: P.Match[] = []
-  visit(statement)
-  return errors
-
-  /** Collect `match`'s JSX error, if it has one, then look below it. */
-  function visit(match: P.Match) {
-    if (match.rule.name === "block") return
-    const below: Array<P.Match | P.Token | undefined> = [...match.matched]
-    if (match.is(SpellJSX)) below.push(...(match.data.attributes ?? []), ...(match.data.children ?? []))
-    if (match.is(SpellJSXAttribute) || match.is(SpellJSXExpression)) {
-      if (match.data.error) errors.push(match.data.error)
-      below.push(match.data.expression, match.data.statement)
-    }
-    below.push(match.data.body as P.Match | undefined)
-    for (const item of below) if (item instanceof P.Match) visit(item)
-  }
-}
-
-////////////////
-// ## Helpers
-////////////////
-
-/**
- * Move tokens `parsed` from a COPY of `jsxToken`'s `{...}` contents to where that text sits in the FILE,
- * so errors and positions inside JSX line up with the source.
- * - The copy is trimmed, with newlines collapsed to spaces:  same length, so one shift puts every token right.
- * - Copy's char 0 is the file's `{`, plus 1, plus whatever whitespace `trim()` dropped in front.
- * - `line` / `ch` come from `jsxToken`'s own, counting the newlines in its `raw` up to each inner token.
- *   The copy lost them, and we haven't got the file text here.
- * - SIDE EFFECT:  remembers the tokens as `jsxToken.innerTokens`,
- *   so `Tokenizer.forEachToken()` keeps them current after an edit.
- * - Losing candidates parse the same token too, so `innerTokens` may hold tokens of matches nobody kept.
- *   Moving those as well is harmless.
- */
-function placeInFile(parsed: P.Match | undefined, jsxToken: P.JSXExpressionToken) {
-  const { contents, raw, start, line = 0, ch = 0 } = jsxToken
-  if (!parsed || typeof contents !== "string" || !raw) return
-  const lead = contents.length - contents.trimStart().length
-  P.Tokenizer.shiftTokens(parsed.tokens, start + raw.indexOf("{") + 1 + lead)
-  P.Tokenizer.forEachToken(parsed.tokens, (token) => {
-    const before = raw.slice(0, token.start - start)
-    const lastNewline = before.lastIndexOf("\n")
-    token.record.line = line + (before.split("\n").length - 1)
-    token.record.ch = lastNewline === -1 ? ch + before.length : before.length - lastNewline - 1
-  })
-  ;(jsxToken.innerTokens ??= []).push(...parsed.tokens)
-}

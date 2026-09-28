@@ -476,15 +476,27 @@ export abstract class Rule<
     const { declares } = this
     // Generic `Groups` keeps `MatchFor<this>` from narrowing to a plain `P.Match` -- cast once.
     const plainMatch = match as P.Match
-    const nameMatch = declares && groupAt(plainMatch, declares.name)
+    const nameMatch = declares && this.groupAt(plainMatch, declares.name)
     if (!declares || !nameMatch) return undefined
     return {
       kind: declares.kind,
       name: nameMatch.inputText.trimEnd(),
       nameMatch,
-      of: declares.of && textOf(groupAt(plainMatch, declares.of)),
-      detail: declares.detail && textOf(groupAt(plainMatch, declares.detail))
+      of: declares.of && this.textOf(this.groupAt(plainMatch, declares.of)),
+      detail: declares.detail && this.textOf(this.groupAt(plainMatch, declares.detail))
     }
+  }
+
+  /** Group at dotted `path` in `match`, e.g. `type_property.property`, if it's a single match. */
+  private groupAt(match: P.Match, path: string): P.Match | undefined {
+    let found: unknown = match
+    for (const name of path.split(".")) found = found instanceof P.Match ? found.groups[name] : undefined
+    return found instanceof P.Match ? found : undefined
+  }
+
+  /** `match`'s source text without trailing whitespace, or `undefined` if there's no match. */
+  private textOf(match: P.Match | undefined): string | undefined {
+    return match?.inputText.trimEnd()
   }
 
   ////////////////
@@ -563,19 +575,3 @@ const STRUCTURE_PROPS = ["rules", "rule", "literal", "literals"]
  *   silently ignores its own definition.
  */
 const PLAIN_STATICS = ["ruleName", "tests", "skip"]
-
-////////////////
-// ## Helpers
-////////////////
-
-/** Group at dotted `path` in `match`, e.g. `type_property.property`, if it's a single match. */
-function groupAt(match: P.Match, path: string): P.Match | undefined {
-  let found: unknown = match
-  for (const name of path.split(".")) found = found instanceof P.Match ? found.groups[name] : undefined
-  return found instanceof P.Match ? found : undefined
-}
-
-/** `match`'s source text without trailing whitespace, or `undefined` if there's no match. */
-function textOf(match: P.Match | undefined): string | undefined {
-  return match?.inputText.trimEnd()
-}

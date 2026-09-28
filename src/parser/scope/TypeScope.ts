@@ -39,6 +39,51 @@ export class TypeScope extends BlockScope {
     if (this.superType) this.superType = typeCase(this.superType)
   }
 
+  ////////////////
+  // ## Declaring
+  ////////////////
+
+  /**
+   * Type `name` in `scope.types`, or a new STUB for it if there isn't one yet.
+   * - Lets a property or method be declared on a type before the type's own `is a` line,
+   *   e.g. a forward reference, or a type defined later in the same file.
+   * - `declaredBy` (the mentioning match) is a stub's `declaredBy`, until `claim()` upgrades it.
+   */
+  static getOrStub(scope: P.Scope, name: string, declaredBy: P.Match): TypeScope {
+    return scope.types?.get(name) ?? scope.types!.add({ name, stub: true, declaredBy })[0]!
+  }
+
+  /**
+   * We were stubbed by an earlier mention (see `getOrStub()`), and `declaredBy` now really declares us.
+   * - Clears `stub` and takes `declaredBy`, journaled so incremental parsing can take that back.
+   * - Changes THIS object, NOT `types.replace()`:  matches parsed so far point at it (`data.scopeType`),
+   *   and it may already hold property `classVariables`.
+   * - NOTE: `superType` is left alone -- compiled output never reads it from the `TypeScope`.
+   */
+  claim(declaredBy: P.Match): void {
+    const previous = { stub: this.stub, declaredBy: this.declaredBy }
+    const next = { stub: false, declaredBy }
+    Object.assign(this, next)
+    declaredBy.scope.parser?.journal?.record({
+      undo: () => Object.assign(this, previous),
+      redo: () => Object.assign(this, next)
+    })
+  }
+
+  /**
+   * Record property `name` as one of our instance `variables`, declared by `declaredBy`.
+   * - For editors:  a property's declaration, and its `datatype` if the statement gives one, e.g. `number`.
+   *   Nothing parsed later reads these -- compiled output comes from each statement's own AST.
+   * - The FIRST declaration of a name wins, as for types:  a later getter for the same property adds nothing.
+   * - NOTE: spell's getter rule is `changesScope: "internal"`, so editing one doesn't re-parse the getters after it.
+   *   Rename the first of two getters for one property and the property has no record until the second re-parses
+   *   -- editors then find it by name instead.
+   */
+  declareProperty(name: string, declaredBy: P.Match, datatype?: string): void {
+    if (this.variables.get(name, "LOCAL_ONLY")) return
+    this.variables.add({ name, datatype, declaredBy })
+  }
+
   /**
    * Syntactic sugar for the type name.
    * - e.g. if type name is `Card`, `instanceName` would be `card`.

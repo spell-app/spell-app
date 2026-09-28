@@ -60,7 +60,9 @@ describe("Solitaire project", () => {
     }
 
     for (const [path, { parse, compile }] of Object.entries(perFile)) {
-      console.log(`BENCH ${path.padEnd(18)} parse ${median(parse).toFixed(1)}ms  compile ${median(compile).toFixed(1)}ms`)
+      console.log(
+        `BENCH ${path.padEnd(18)} parse ${median(parse).toFixed(1)}ms  compile ${median(compile).toFixed(1)}ms`
+      )
     }
     console.log(`BENCH total (median of ${RUNS}) ${median(totals).toFixed(1)}ms`)
     console.log(`BENCH rules rebuilds per project parse ${rebuilds / RUNS}, ${(rebuildMsec / RUNS).toFixed(1)}ms`)

@@ -19,7 +19,7 @@ type AssignmentMatchData = {
   isNewVariable?: boolean
   /** Original scope `ScopeVariable` for `thing`, before any alias redefinition hackery. */
   originalVar?: P.ScopeVariable
-  /** When `thing` is `it`:  the NEW `it` variable we declared -- see `declareIt()`. */
+  /** When `thing` is `it`:  the NEW `it` variable we declared -- see `assignment_statement.declareIt()`. */
   newIt?: P.ScopeVariable
 }
 
@@ -57,9 +57,9 @@ class assignment_statement extends SpellStatement<"thing|value", AssignmentMatch
       // which already accepts a plain name string as `.add()`/`.get()` input.
       const scope = match.scope as P.BlockScope
       const { variables } = scope
-      // `set it to ...` always declares a new `it` -- see `declareIt()`
+      // `set it to ...` always declares a new `it` -- see `assignment_statement.declareIt()`
       if (varName === "it") {
-        match.data.newIt = declareIt(scope, match)
+        match.data.newIt = assignment_statement.declareIt(scope, match)
         match.data.isNewVariable = true
         return
       }
@@ -87,6 +87,34 @@ class assignment_statement extends SpellStatement<"thing|value", AssignmentMatch
       value: value.AST as P.ASTExpression,
       isNewVariable: match.data.isNewVariable
     })
+  }
+
+  /**
+   * Declare a NEW `it` variable in `scope`, for `get` / `set it to` (its `declaredBy`), and return it.
+   * - Every `it` value gets its own javascript variable, so a callback which captured an earlier `it` keeps it:
+   *   plain `it` if no real `it` is visible, else the next of `it_2`, `it_3`, ...
+   * - NEVER reuses a name visible here:
+   *   - an outer `it` -- `let it = it.name` in a nested block would read the NEW, unset `it`
+   *   - a user's own variable which happens to be called `it_2`
+   * - An alias `it`, e.g. a method's `it` meaning `this`, doesn't count as visible:  its javascript name isn't `it`.
+   * - Numbered from the visible `it`'s `output`, NOT a counter, so incremental parsing's journal covers it.
+   * - Static, as `get` declares an `it` too.
+   * - SIDE EFFECT: replaces `scope`'s own `it` with the new one, so later lines' `it` means it.
+   */
+  static declareIt(scope: P.BlockScope, declaredBy: P.Match): P.ScopeVariable {
+    const { variables } = scope
+    const visible = variables.get("it")
+    let number = visible && !visible.isAlias ? assignment_statement.itNumber(visible) + 1 : 1
+    while (number > 1 && variables.get(`it_${number}`)) number++
+    const output = number === 1 ? undefined : `it_${number}`
+    const [it] = variables.replace({ name: "it", output, declaredBy })
+    return it!
+  }
+
+  /** Which `it` `variable` is:  1 for plain `it`, 2 for `it_2`... */
+  private static itNumber(variable: P.ScopeVariable): number {
+    const number = /^it_(\d+)$/.exec(variable.output ?? "")?.[1]
+    return number ? Number(number) : 1
   }
 }
 assignment.addRule(assignment_statement, {
@@ -160,21 +188,21 @@ assignment.addRule(assignment_statement, {
 
 /** What `get` stashes on its match. */
 type GetMatchData = {
-  /** The NEW `it` variable we declared -- see `declareIt()`. */
+  /** The NEW `it` variable we declared -- see `assignment_statement.declareIt()`. */
   itVar?: P.ScopeVariable
 }
 
 /**
  * `get {value}` -- assign `value` to a NEW `it`.
  * - SIDE EFFECT: `mutateScope()` declares that `it`:  plain `it` the first time, then `it_2`, `it_3`...
- *   so a callback which captured an earlier `it` keeps it -- see `declareIt()`.
+ *   so a callback which captured an earlier `it` keeps it -- see `assignment_statement.declareIt()`.
  * - Compiles to `let it = value`, `let it_2 = value`, ...
  */
 class get extends SpellStatement<"value", GetMatchData> {
-  /** Declare a new `it` -- see `declareIt()`. */
+  /** Declare a new `it` -- see `assignment_statement.declareIt()`. */
   mutateScope(match: P.MatchFor<this>) {
     // `match.scope` is typed as `P.Scope`, whose `.variables` getter can be `undefined` -- we know it's a block.
-    match.data.itVar = declareIt(match.scope as P.BlockScope, match)
+    match.data.itVar = assignment_statement.declareIt(match.scope as P.BlockScope, match)
   }
   /** Build `P.ASTAssignmentStatement` declaring our new `it` as `value`. */
   getAST(match: P.MatchFor<this>): P.ASTAssignmentStatement {
@@ -327,34 +355,3 @@ assignment.addRule(return_statement, {
     }
   ]
 })
-
-////////////////
-// ## `it` versions -- shared by `get` and `set it to`
-////////////////
-
-/**
- * Declare a NEW `it` variable in `scope`, for `get` / `set it to` (its `declaredBy`), and return it.
- * - Every `it` value gets its own javascript variable, so a callback which captured an earlier `it` keeps it:
- *   plain `it` if no real `it` is visible, else the next of `it_2`, `it_3`, ...
- * - NEVER reuses a name visible here:
- *   - an outer `it` -- `let it = it.name` in a nested block would read the NEW, unset `it`
- *   - a user's own variable which happens to be called `it_2`
- * - An alias `it`, e.g. a method's `it` meaning `this`, doesn't count as visible:  its javascript name isn't `it`.
- * - Numbered from the visible `it`'s `output`, NOT a counter, so incremental parsing's journal covers it.
- * - SIDE EFFECT: replaces `scope`'s own `it` with the new one, so later lines' `it` means it.
- */
-function declareIt(scope: P.BlockScope, declaredBy: P.Match): P.ScopeVariable {
-  const { variables } = scope
-  const visible = variables.get("it")
-  let number = visible && !visible.isAlias ? itNumber(visible) + 1 : 1
-  while (number > 1 && variables.get(`it_${number}`)) number++
-  const output = number === 1 ? undefined : `it_${number}`
-  const [it] = variables.replace({ name: "it", output, declaredBy })
-  return it!
-}
-
-/** Which `it` `variable` is:  1 for plain `it`, 2 for `it_2`... */
-function itNumber(variable: P.ScopeVariable): number {
-  const number = /^it_(\d+)$/.exec(variable.output ?? "")?.[1]
-  return number ? Number(number) : 1
-}

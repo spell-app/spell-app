@@ -10,7 +10,7 @@ import { P } from "~/parser"
 import { SpellParser } from "~/languages/spell/SpellParser"
 
 // Structural rule classes, registered directly below.
-import { Block, getParseErrors } from "./Block"
+import { Block, type DocComment } from "./Block"
 import { BlockLine, blank_line } from "./BlockLine"
 import { commitStatement } from "./Statement"
 
@@ -55,7 +55,7 @@ export const parseExpression = (expression: string | P.Token | P.Token[], scope?
 /** Export ParseError so we can create them programmatically. */
 export { ParseError }
 /** Export so callers can get at parse errors collected on a `block` / `line` match. */
-export { getParseErrors }
+export { type DocComment }
 /** Export so anything which parses a statement on its own can lock it in, e.g. `SpellParser.commit()`. */
 export { commitStatement }
 /** Export so `SpellParser`'s incremental parsing hooks can narrow to them. */

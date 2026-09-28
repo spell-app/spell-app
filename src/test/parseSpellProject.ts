@@ -62,7 +62,7 @@ export function summarize(project: ParsedSpellProject): SpellProjectSummary {
 /** `"<line>:<ch> <message>"` for each parse error in `match`, 1-based line to match editor. */
 export function describeParseErrors(match: P.Match | undefined): string[] {
   if (!match) return ["no match"]
-  return (SP.getParseErrors(match) ?? []).map((error) => {
+  return (SP.Block.getParseErrors(match) ?? []).map((error) => {
     // `.value` is `ASTParseError`-specific -- same lookup as `SpellFile.parse()`.
     const message = (error.AST as unknown as { value?: string } | undefined)?.value ?? error.inputText
     return `${(error.line ?? 0) + 1}:${error.char ?? 0} ${message}`

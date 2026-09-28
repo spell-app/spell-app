@@ -39,56 +39,6 @@ declare module "~/parser/scope/ScopeVariable" {
 export const classes = new SpellParser({ module: "classes" })
 
 ////////////////
-// ## Shared helpers
-////////////////
-
-/**
- * Look up `typeName` in `scope.types`, creating a stub (`{ stub: true }`) entry if it isn't defined yet.
- * - Lets a property/method be declared on a type before that type's own `is a` statement has been parsed,
- *   e.g. forward references or types defined later in the same file.
- * - `declaredBy` (the mentioning match) becomes the stub's `declaredBy` until `claimStubType()` upgrades it.
- */
-function getOrStubType(scope: P.Scope, typeName: string, declaredBy: P.Match): P.TypeScope {
-  let typeScope = scope.types?.get(typeName)
-  if (!typeScope) {
-    ;[typeScope] = scope.types!.add({ name: typeName, stub: true, declaredBy })
-  }
-  return typeScope
-}
-
-/**
- * Record `property` (the match naming it) as one of `typeScope`'s instance `variables`, declared by `declaredBy`.
- * - For editors:  a property's declaration, and its `datatype` if the statement gives one, e.g. `number`.
- *   Nothing parsed later reads these -- compiled output comes from each statement's own AST.
- * - The FIRST declaration of a name wins, as for types:  a later getter for the same property adds nothing.
- * - NOTE: a getter is `changesScope: "internal"`, so editing one doesn't re-parse the getters after it.
- *   Rename the first of two getters for one property and the property has no record until the second re-parses
- *   -- editors then find it by name instead.
- */
-function declareProperty(typeScope: P.TypeScope, property: P.Match, declaredBy: P.Match, datatype?: string) {
-  const name = `${property.value}`
-  if (typeScope.variables.get(name, "LOCAL_ONLY")) return
-  typeScope.variables.add({ name, datatype, declaredBy })
-}
-
-/**
- * `typeScope` was stubbed by an earlier mention (see `getOrStubType()`), and `match` now really declares it.
- * - Clears `stub` and makes `match` its `declaredBy`, journaled so incremental parsing can take that back.
- * - Changes the existing object in place, NOT `types.replace()`:
- *   matches parsed so far point at it (`data.scopeType`), and it may already hold property `classVariables`.
- * - NOTE: `superType` is left alone -- compiled output never reads it from the `TypeScope`.
- */
-function claimStubType(typeScope: P.TypeScope, match: P.Match) {
-  const previous = { stub: typeScope.stub, declaredBy: typeScope.declaredBy }
-  const next = { stub: false, declaredBy: match }
-  Object.assign(typeScope, next)
-  match.scope.parser?.journal?.record({
-    undo: () => Object.assign(typeScope, previous),
-    redo: () => Object.assign(typeScope, next)
-  })
-}
-
-////////////////
 // ## `create_type` rule
 //    e.g. "a card is a thing"
 ////////////////
@@ -107,7 +57,7 @@ class create_type extends SpellStatement<"type|superType"> {
     // TODO: complain if existing type is set up differently!
     const existing = match.scope.types?.get(type.value)
     if (existing) {
-      if (existing.stub) claimStubType(existing, match)
+      if (existing.stub) existing.claim(match)
       return
     }
     match.scope.types?.add({ name: type.value, superType: superType.value, declaredBy: match })
@@ -165,7 +115,7 @@ class create_list_type extends SpellStatement<"type|instanceType"> {
     // TODO: complain if existing type is set up differently!
     const existing = match.scope.types?.get(type.value)
     if (existing) {
-      if (existing.stub) claimStubType(existing, match)
+      if (existing.stub) existing.claim(match)
       return
     }
     match.scope.types?.add({ name: type.value, superType: "list", declaredBy: match })
@@ -485,7 +435,7 @@ classes.addRule(type_specifier_yes_or_no, {
  * `a card has a suit as one of clubs, diamonds, hearts, spades` / `todos have a title as text` -- declares
  * an instance property on `type`, optionally constrained/initialized by a `type_specifier`.
  * - `precedence: 10` so this wins over other `{type} has|have ...` -ish statement rules.
- * - SIDE EFFECT: `getOrStubType()`s `type` into `scope.types` if not yet declared.
+ * - SIDE EFFECT: stubs `type` into `scope.types` if not yet declared -- see `P.TypeScope.getOrStub()`.
  * - SIDE EFFECT: when `specifier` is an enumeration, also adds a pluralized class variable (e.g. `Suits`)
  *   holding the raw values, adds string values to `scope.constants`, and dynamically registers a new
  *   `expression` rule so `Card Suits` / `card suits` resolve to that property -- `match.data.ruleComment`
@@ -500,9 +450,9 @@ class define_property_has extends SpellStatement<"type|property|specifier?", { r
     const specifierAST = specifier?.AST
 
     const typeName = type.value
-    const typeScope = getOrStubType(scope, typeName, match)
+    const typeScope = P.TypeScope.getOrStub(scope, typeName, match)
     const datatype = specifierAST instanceof P.ASTTypeExpression ? specifierAST.name : undefined
-    declareProperty(typeScope, property, match, datatype)
+    typeScope.declareProperty(`${property.value}`, match, datatype)
 
     // If there is a specifier as enumerated values, add rules to match it
     if (specifierAST instanceof P.ASTEnumeration) {
@@ -706,7 +656,7 @@ type PropertyValueEitherGroups = P.GroupsFor<"type_property", P.Match<P.GroupsFo
 /**
  * `the color of a card is red if its suit is either diamonds or hearts (otherwise it is X)?` -- defines a
  * property getter whose value is conditional on `condition`.
- * - SIDE EFFECT: `getOrStubType()`s `type` into scope, and adds any bare constant `value`/`otherValue`
+ * - SIDE EFFECT: stubs `type` into scope (`P.TypeScope.getOrStub()`), and adds any bare constant `value`/`otherValue`
  *   to `scope.constants` if not already known.
  * - Compiles to `spellCore.define()` with a `get()` that `if`s on `condition`, returning `otherValue`
  *   (or falling through) when absent.
@@ -717,7 +667,7 @@ class property_value_either extends SpellStatement<PropertyValueEitherGroups> {
     const { value, otherValue, type_property } = match.groups
     const { type, property } = type_property.groups
     // make sure type is defined
-    declareProperty(getOrStubType(scope, type.value, match), property, match)
+    P.TypeScope.getOrStub(scope, type.value, match).declareProperty(`${property.value}`, match)
     // `is()` narrows `data` to what `SpellConstant` stashes on its matches.
     // Declare any unknown constant values, and record them on their matches for `SpellConstant.getAST()`.
     for (const constant of [value, otherValue]) {
@@ -809,10 +759,10 @@ type MethodBody = P.ASTStatementBlock | P.ASTStatement | P.ASTExpression
  *   is its name` => `spellCore.define(Card.prototype, 'value', { get() { return this.name } })`.
  */
 class property_value_getter extends SpellStatement<"property|type|body?"> {
-  /** SIDE EFFECT:  records the property on its type, for editors -- see `declareProperty()`. */
+  /** SIDE EFFECT:  records the property on its type, for editors -- see `P.TypeScope.declareProperty()`. */
   mutateScope(match: P.MatchFor<this>) {
     const { type, property } = match.groups
-    declareProperty(getKnownType(type), property, match)
+    getKnownType(type).declareProperty(`${property.value}`, match)
   }
   /** Nested scope for the getter body -- maps `its`/`it` to `this` so the body can say `its name`. */
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
