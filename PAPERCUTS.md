@@ -51,3 +51,7 @@ Log of things that slowed down development. Date · symptom · fix · project.
   both passed clean.  They were oxlint's TYPE-AWARE rules (`typescript(no-floating-promises)`), which the Oxc extension
   shows as red squiggles just like tsc. · Run `npx oxlint src/<path>` before hunting TS versions.  Dropped
   `connection.sendDiagnostics()` / `sendNotification()` promises need `.catch()` or `await`. · spell/parser
+- 2026-09-27 · A `TokenFormatter` built on `new P.Tokenizer()` silently formatted nothing:  the bare tokenizer's
+  default `whitespacePolicy` is `ALL` (whitespace as TOKENS), while every `Parser`'s -- spell's too -- is
+  `LEADING_ONLY` (whitespace on each token's `.whitespace`).  Code that walks tokens only worked for one. ·
+  Skip `P.WhitespaceToken`s and measure gaps from the text, so either policy works. · spell/parser

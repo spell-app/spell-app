@@ -41,8 +41,14 @@ export class SpellLanguageServer {
     referencesProvider: true,
     documentHighlightProvider: true,
     renameProvider: { prepareProvider: true },
-    inlayHintProvider: true,
-    completionProvider: { triggerCharacters: [" "] }
+    completionProvider: { triggerCharacters: [" "] },
+    documentFormattingProvider: true,
+    documentRangeFormattingProvider: true
+    // STUBS, not advertised until they work -- see `## Stubs` in `SpellLanguageService`:
+    // signatureHelpProvider: { triggerCharacters: [" "] },
+    // codeActionProvider: true,
+    // codeLensProvider: {},
+    // semanticTokensProvider: { ..., full: { delta: true } },
   }
 
   /** Connection to the editor. */
@@ -129,8 +135,11 @@ export class SpellLanguageServer {
     connection.onRenameRequest(({ textDocument, position, newName }) =>
       this.answer(textDocument.uri, null, (file) => service.rename(file, position, newName))
     )
-    connection.languages.inlayHint.on(({ textDocument, range }) =>
-      this.answer(textDocument.uri, [], (file) => service.inlayHints(file, range))
+    connection.onDocumentFormatting(({ textDocument, options }) =>
+      this.answer(textDocument.uri, [], (file) => service.formatting(file, options))
+    )
+    connection.onDocumentRangeFormatting(({ textDocument, range, options }) =>
+      this.answer(textDocument.uri, [], (file) => service.formatting(file, options, range))
     )
     connection.onCompletion(({ textDocument, position }) =>
       this.answer(textDocument.uri, [], (file) => service.completion(file, position))

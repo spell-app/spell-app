@@ -1,5 +1,6 @@
 {
   "name": "spell-parser",
+  "version": "0.8.0",
   "license": "MIT",
   "repository": "https://github.com/oakjs/parser",
   "type": "module",
@@ -26,7 +27,11 @@
     "test": "echo '>>>>>>>>>>>\n>> RUNNING TESTS'; vitest run;  echo '<< TESTS PASSED\n'",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "/////// VSCODE EXTENSION": "",
+    "vscode": "yarn vscode:build && yarn vscode:install",
+    "vscode:build": "cd vscode-extension && yarn install && yarn build && yarn package",
+    "vscode:install": "cd vscode-extension && yarn install-extension"
   },
   "dependencies": {
     "@nx-js/observer-util": "^4.2.2",

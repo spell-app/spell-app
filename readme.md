@@ -34,6 +34,46 @@ Experimental [Deepwiki Documentation](https://deepwiki.com/oakjs/parser)
 - To run tests
 - `yarn test` or `yarn test:ui`
 
+
+### Edit spell in VS Code
+
+The repo has a language server for spell (`src/lsp/`) and a VS Code extension to run it (`vscode-extension/`):
+errors as you type, hover, completion, go to definition, find references, rename, outline, folding, formatting.
+
+**Install it in your VS Code:**
+
+- `yarn` in the repo, if you haven't already -- the extension runs the repo's own language server.
+- `yarn vscode` -- builds the extension and installs it in VS Code.  It's the two steps below.
+  - `yarn vscode:build` -- installs the extension's packages, bundles it, and packages
+    `vscode-extension/spell-language.vsix`.
+  - `yarn vscode:install` -- installs that file with `code --install-extension`.  Or in VS Code:
+    Extensions view => `...` menu => `Install from VSIX...`.
+    (No `code` command?  In VS Code:  `Shell Command: Install 'code' command in PATH`.)
+- Reload VS Code, and open a `.spell` file.
+
+Notes:
+
+- The extension runs the parser straight from this repo, so parser changes need no rebuild:  just
+  `Developer: Restart Extension Host`, or reload the window.  Rebuild and reinstall only when `vscode-extension/`
+  itself changes.
+- The extension's version is pinned to the parser's (`version` in both `package.json`s):  the build fails if they
+  differ, so bump them together.
+- The build records where this repo is.  Move the repo and either rebuild, or set `spell.parserRoot` to its new
+  folder.
+- If nothing happens, look at the "Spell" entry in the Output panel.  The language server needs `node` on
+  VS Code's `PATH`.
+
+**Work on the extension:**  open the repo in VS Code and press `F5` ("Run Spell Extension").  A new window opens on
+the Solitaire example with the extension loaded.
+
+**Using it:**
+
+- `Spell: Show Compiled JavaScript` (or the button at the top of a `.spell` editor) shows the file's javascript,
+  updating as you type.
+- Spell indents with tabs:  the extension sets `.spell` files to tabs, and formatting always uses them.
+- Settings:  `spell.compileOnSave` writes the project's `.output.js` on save;  `spell.parserRoot` points at another
+  checkout of this repo.
+
 ---
 
 ## To see server logs

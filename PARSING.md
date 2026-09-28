@@ -192,6 +192,27 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 - A block compiles as its statements joined with `\n`;  nesting indents by re-joining with `\n\t`,
   so a statement's output doesn't depend on its depth.
 
+## Language server
+
+- `src/lsp/` (`LSP`), run as `yarn lsp` -- or by the VS Code extension in `vscode-extension/`, which spawns the
+  repo's own `tsx` on `src/lsp/server.ts`.  `stdioGuard.ts` sends `console.*` to stderr first:  stdout is the protocol.
+- Hosts the SAME `SpellProject` / `SpellFile` the app uses, loading from disk via `LoadableFile.fetch` (above).
+  `SpellWorkspace` maps a `.spell` file to its project (nearest `.imports.json`), parses the project on first sight,
+  then feeds each edit through `project.updatedContentsFor()`, exactly as the app's editor does.
+- `SpellLanguageService` answers from each file's current `match`, never re-parsing:
+  - positions from match / token OFFSETS, never `token.line` / `ch`
+  - symbols from `rule.getDeclaration()`, colours from `rule.highlightAs`
+  - definition / references from the scope record a word resolved to while parsing (`data.scopeVar` etc.)
+    and that record's `declaredBy`;  method calls from `ScopeRule.instances`;  properties from their type's
+    `variables` (`declareProperty()`), else by name
+- Formatting is `P.TokenFormatter` (`src/parser/tokenizer/`), indenting with TABS always:  whitespace only, from the tokens -- no
+  pretty-printer, the AST is a javascript tree.  Indent LEVELS come from indent widths, not the tokenizer's blocks
+  (which nest one per whitespace character).  It re-tokenizes its result and gives up if anything but whitespace
+  changed.  NOTE: a blank line takes the indent of the line AFTER it, unless it has its own -- so dropping the tab
+  on a blank line can move that blank line in the compiled javascript, never the code.
+- Stubs, waiting on the parser (see `## Stubs` in the service):  completion of "what can follow" and signature help
+  need `rule.expectedAfter(tokens)` (see Rules and matching).
+
 ## Testing a whole project
 
 - `parseSpellProject()` / `loadExampleProject()` / `summarize()` (`src/test/parseSpellProject.ts`) parse + compile

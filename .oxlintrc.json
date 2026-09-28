@@ -23,7 +23,8 @@
     "static",
     "src/examples",
     "src/projects",
-    "**/.output.js"
+    "**/.output.js",
+    "vscode-extension/out"
   ],
 
   // NOTE: only rules that DIFFER from the `correctness` defaults belong here.  Anything listed

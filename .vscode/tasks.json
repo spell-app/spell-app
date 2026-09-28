@@ -1,0 +1,13 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      // Install the extension's own dev packages (it's its own yarn project), then bundle it.
+      "label": "Build Spell Extension",
+      "type": "shell",
+      "command": "yarn install && yarn build",
+      "options": { "cwd": "${workspaceFolder}/vscode-extension" },
+      "problemMatcher": []
+    }
+  ]
+}

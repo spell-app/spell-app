@@ -247,15 +247,13 @@ describe("SpellLanguageService", () => {
     })
   })
 
-  test("inlay hints:  a numbered `it`, and a method's javascript name", () => {
-    const everything = { start: { line: 0, character: 0 }, end: { line: 999, character: 0 } }
-    const hints = (file: SP.SpellFile) =>
-      service
-        .inlayHints(file, everything)
-        .map(({ position, label }) => `${position.line + 1}:${position.character} ${label as string}`)
+  test("javascript names show on hover only, not inline:  a numbered `it`, and a method's name", () => {
+    const hover = (file: SP.SpellFile, position: Position) =>
+      (service.hover(file, position)!.contents as { value: string }).value
     // `get a new foundation ...` then `add it to the foundations`, for the second foundation
-    expect(hints(solitaire)).toContain("35:6 : it_2")
-    expect(hints(card)).toContain("60:24 → turn_face_up()")
+    expect(hover(solitaire, at(solitaire, 35, "it"))).toContain("variable **it** · as `it_2`")
+    // the signature of `to turn (a card) face up`
+    expect(hover(card, at(card, 60, "turn"))).toContain("compiles to `turn_face_up()`")
   })
 
   describe("completion", () => {
@@ -278,6 +276,57 @@ describe("SpellLanguageService", () => {
       const labels = service.completion(solitaire, at(solitaire, 87, "the bottom")).map(({ label }) => label)
       expect(labels).toEqual(expect.arrayContaining(["game", "stock", "card"]))
       expect(labels).not.toContain("to")
+    })
+  })
+
+  describe("formatting", () => {
+    const tabs = { tabSize: 4, insertSpaces: false }
+
+    test("every Solitaire file compiles the same after formatting, and a second format changes nothing", async () => {
+      for (const name of ["Card.spell", "Deck.spell", "Pile.spell", "Solitaire.spell"]) {
+        const uri = pathToFileURL(resolve(dir, "Solitaire", name)).href
+        const file = workspace.fileFor(uri)!
+        const original = file.contents!
+        const compiled = withoutBlankLines(service.compiled(file))
+        const formatted = applyEdits(original, service.formatting(file, tabs))
+        await withText(uri, original, formatted, () => {
+          expect(service.diagnostics(file), name).toEqual([])
+          // Blank lines compile as they're written, and one with a tab on it belongs to the block it's indented
+          // into -- so without the tab, a blank line can move in the javascript.  The code itself can't change.
+          expect(withoutBlankLines(service.compiled(file)), name).toBe(compiled)
+          expect(service.formatting(file, tabs), name).toEqual([])
+        })
+      }
+    })
+
+    test("one edit per changed line", () => {
+      const edits = service
+        .formatting(card, tabs)
+        .map(({ range, newText }) => `${range.start.line + 1}: ${JSON.stringify(newText)}`)
+      expect(edits).toEqual([
+        // a tab alone on a blank line
+        '51: ""',
+        // trailing spaces
+        '60: "to turn (a card) face up:"',
+        '63: "to turn (a card) face down:"',
+        // a tab between two words
+        expect.stringMatching(/^75: "\\tset className to \\"Card face-\\" \+ its direction \+ \\" \\" \+ its rank/),
+        '76: "\\tif it is face down"'
+      ])
+    })
+
+    test("a range formats only the lines it touches", () => {
+      const range = { start: { line: 74, character: 0 }, end: { line: 74, character: 5 } }
+      expect(service.formatting(card, tabs, range).map(({ range }) => range.start.line + 1)).toEqual([75])
+    })
+
+    test("tabs, even if the editor says spaces", () => {
+      // the whole body of `to turn (a card) face up`, indented with spaces
+      const spaced = card.contents!.replace("\tset its direction to up\n\tpause", "  set its direction to up\n  pause")
+      return withText(cardUri, cardText, spaced, () => {
+        const edits = service.formatting(card, { tabSize: 2, insertSpaces: true })
+        expect(edits.find(({ range }) => range.start.line === 60)?.newText).toBe("\tset its direction to up")
+      })
     })
   })
 
@@ -344,6 +393,15 @@ function at(file: SP.SpellFile, line: number, word: string, nth = 0): Position {
   for (let count = 0; count <= nth; count++) character = text.indexOf(word, character + 1)
   if (character < 0) throw new Error(`No '${word}' on line ${line} of ${file.file}`)
   return { line: line - 1, character }
+}
+
+/** `text` without blank lines, or whitespace at the end of any line. */
+function withoutBlankLines(text: string): string {
+  return text
+    .split("\n")
+    .map((line) => line.trimEnd())
+    .filter(Boolean)
+    .join("\n")
 }
 
 /** `text` with `edits` applied -- edits must not overlap. */

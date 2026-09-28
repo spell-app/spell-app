@@ -10,3 +10,4 @@ export * from "./tokenizer.types"
 export * from "./Tokens"
 
 export * from "./Tokenizer"
+export * from "./TokenFormatter"

@@ -12,8 +12,8 @@ import {
   type DocumentHighlight,
   type DocumentSymbol,
   type FoldingRange,
+  type FormattingOptions,
   type Hover,
-  type InlayHint,
   type Location,
   type Position,
   type Range,
@@ -405,6 +405,10 @@ export class SpellLanguageService {
    * - the rule that matched there, its syntax and an example from its tests
    * - what the word refers to and where that was declared, e.g. a variable's kind and output name
    * - the javascript its statement compiles to
+   * - TODO: tune for who's reading.  The rule + javascript sections are for parser developers, and for a method
+   *   call the rule's syntax repeats `describeSubject()`'s.  Idea:  a `spell.hover` setting, read like
+   *   `compileOnSave` -- `"simple"` shows only `describeSubject()`, in plain words;  `"full"` is today's.
+   *   Or show a rule's `description` (none set yet) instead of its raw syntax.
    */
   hover(file: SP.SpellFile, position: Position): Hover | null {
     const stack = this.matchesAt(file, position)
@@ -571,34 +575,6 @@ export class SpellLanguageService {
     const occurrences = this.occurrencesOf(subject, true)
     const allSame = occurrences.every(({ match }) => match.tokens.length === 1 && match.raw === word)
     return allSame ? occurrences : undefined
-  }
-
-  /**
-   * Hints shown inline in `range`:
-   * - after a numbered `it`, the variable it really is, e.g. `: it_2`
-   * - after a method's signature, the javascript method it becomes, e.g. `→ turn_face_up()`
-   */
-  inlayHints(file: SP.SpellFile, range: Range): InlayHint[] {
-    if (!file.match) return []
-    const from = this.offsetAt(file, range.start)
-    const to = this.offsetAt(file, range.end)
-    const hints: InlayHint[] = []
-    this.walk(file.match, (match) => {
-      const { end } = match
-      if (end === undefined || end < from || end > to) return
-      const { scopeVar } = match.data as { scopeVar?: unknown }
-      const isIt = match.rule.highlightAs === "variable" && match.raw === "it"
-      if (isIt && scopeVar instanceof P.ScopeVariable && scopeVar.output?.startsWith("it_")) {
-        hints.push({ position: this.positionAt(file, end), label: `: ${scopeVar.output}`, paddingLeft: true })
-      }
-      const declaration = match.rule.getDeclaration(match)
-      const isMethod = declaration?.kind === "method" || declaration?.kind === "function"
-      if (isMethod && declaration.detail && declaration.nameMatch.end !== undefined) {
-        const position = this.positionAt(file, declaration.nameMatch.end)
-        hints.push({ position, label: `→ ${declaration.detail}`, paddingLeft: true })
-      }
-    })
-    return hints
   }
 
   /**
@@ -922,6 +898,56 @@ export class SpellLanguageService {
   }
 
   ////////////////
+  // ## Formatting
+  ////////////////
+
+  /** Spacing around spell's punctuation -- see `P.TokenFormatter`. */
+  static FORMAT_SPACING = {
+    spaceAfter: [",", ":"],
+    noSpaceBefore: [",", ":", ")", "]"],
+    noSpaceAfter: ["(", "["]
+  }
+
+  /**
+   * Edits formatting `file`, or just the lines overlapping `range` -- whitespace ONLY, see `P.TokenFormatter`:
+   * - one TAB per level, ALWAYS -- spell indents with tabs, whatever the editor's `insertSpaces` says
+   * - one space between words;  one after `,` and `:`, none before them or just inside brackets,
+   *   and none at the end of a line
+   * - at most 2 blank lines in a row;  comments, strings and JSX left as written
+   * - `trimFinalNewlines` / `insertFinalNewline` if `options` ask, as VS Code settings of those names do
+   * - One edit per changed line, so the editor keeps the cursor in place.  None if it can't format safely.
+   */
+  formatting(file: SP.SpellFile, options: FormattingOptions, range?: Range): TextEdit[] {
+    const text = file.contents ?? ""
+    if (!text.trim()) return []
+    const formatter = new P.TokenFormatter({
+      tokenizer: SP.spellParser.tokenizer,
+      indent: "\t",
+      trimFinalBlankLines: !range && !!options.trimFinalNewlines,
+      ...SpellLanguageService.FORMAT_SPACING
+    })
+    const lines = formatter.formatLines(text)
+    if (!lines) return []
+    const from = range ? this.offsetAt(file, range.start) : 0
+    const to = range ? this.offsetAt(file, range.end) : text.length
+    const edits: TextEdit[] = []
+    for (const { start, end, next, text: formatted } of lines) {
+      if (start > to || next <= from) continue
+      if (formatted === undefined) edits.push(this.editFor(file, start, next, ""))
+      else if (formatted !== text.slice(start, end)) edits.push(this.editFor(file, start, end, formatted))
+    }
+    if (!range && options.insertFinalNewline && !text.endsWith("\n")) {
+      edits.push(this.editFor(file, text.length, text.length, "\n"))
+    }
+    return edits
+  }
+
+  /** Edit replacing `file`'s text from offset `start` to `end` with `newText`. */
+  private editFor(file: SP.SpellFile, start: number, end: number, newText: string): TextEdit {
+    return { range: { start: this.positionAt(file, start), end: this.positionAt(file, end) }, newText }
+  }
+
+  ////////////////
   // ## Stubs
   ////////////////
 
@@ -932,6 +958,42 @@ export class SpellLanguageService {
    * - Until then `completion()` offers names and statement starts, not what fits the statement being typed.
    */
   expectedNext(_file: SP.SpellFile, _position: Position): null {
+    return null
+  }
+
+  /**
+   * STUB:  the syntax of the method call being typed at `position`, with the current argument highlighted.
+   * - Needs `rule.expectedAfter(tokens)` too -- see `expectedNext()` -- to tell WHICH method's syntax the
+   *   words so far are heading into, and how far along it they are.
+   */
+  signatureHelp(_file: SP.SpellFile, _position: Position): null {
+    return null
+  }
+
+  /**
+   * STUB:  quick fixes for `range`, e.g. "define `to <phrase>`" on a line that didn't parse.
+   * - Could be built now from `SP.getParseErrors()`:  a `parse_error` line's words become a method signature.
+   *   Left for later to keep the first release small.
+   */
+  codeActions(_file: SP.SpellFile, _range: Range): null {
+    return null
+  }
+
+  /**
+   * STUB:  "N references" above each declaration.
+   * - Cheap now that `references()` exists:  one per `documentSymbols()` entry.  Left out to keep the first
+   *   release small, and because counting walks every file of the project for each lens.
+   */
+  codeLens(_file: SP.SpellFile): null {
+    return null
+  }
+
+  /**
+   * STUB:  semantic tokens changed since `previousResultId`, rather than all of them.
+   * - Needs result ids, and a diff of the `highlightSpans()` sent last time.  `semanticTokens()` for a whole
+   *   file is fast enough without it:  one walk of the match tree.
+   */
+  semanticTokensDelta(_file: SP.SpellFile, _previousResultId: string): null {
     return null
   }
 

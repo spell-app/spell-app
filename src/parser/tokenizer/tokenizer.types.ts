@@ -72,3 +72,21 @@ export function positionForOffset(lineStarts: number[], offset: number): { line:
   }
   return { line: low, ch: offset - lineStarts[low]! }
 }
+
+// ## Formatting
+
+/**
+ * One line of text as `TokenFormatter.formatLines()` formats it, by offsets into the ORIGINAL text.
+ * - Replace `start`..`end` with `text`;  the line's newline, if any, runs from `end` to `next`.
+ * - `text` is `undefined` for a blank line to drop:  remove `start`..`next`.
+ */
+export type FormattedLine = {
+  /** Offset of the line's first character, indent included. */
+  start: number
+  /** Offset just before its newline, or the end of the text. */
+  end: number
+  /** Offset where the next line starts, or the end of the text. */
+  next: number
+  /** Line as formatted, without its newline -- `undefined` to drop it. */
+  text: string | undefined
+}

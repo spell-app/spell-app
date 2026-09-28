@@ -1,0 +1,53 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Spell",
+  "scopeName": "source.spell",
+  "comment": "Coarse colouring until the language server's semantic tokens arrive:  comments, strings, numbers, statement words.",
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#string" },
+    { "include": "#number" },
+    { "include": "#keyword" }
+  ],
+  "repository": {
+    "comment": {
+      "patterns": [
+        { "name": "comment.line.double-slash.spell", "match": "//.*$" },
+        { "name": "comment.line.double-dash.spell", "match": "--.*$" },
+        { "name": "comment.line.number-sign.spell", "match": "##.*$" }
+      ]
+    },
+    "string": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.spell",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [{ "name": "constant.character.escape.spell", "match": "\\\\." }]
+        },
+        {
+          "name": "string.quoted.single.spell",
+          "begin": "'",
+          "end": "'",
+          "patterns": [{ "name": "constant.character.escape.spell", "match": "\\\\." }]
+        }
+      ]
+    },
+    "number": {
+      "name": "constant.numeric.spell",
+      "match": "(?<![\\w-])-?\\d+(\\.\\d+)?\\b"
+    },
+    "keyword": {
+      "patterns": [
+        {
+          "name": "keyword.control.spell",
+          "match": "^\\s*(to|if|otherwise|else|repeat|for each|while|until|return|wait for|get|set|put|add|remove|print|echo|expect|on|when)\\b"
+        },
+        {
+          "name": "keyword.operator.word.spell",
+          "match": "\\b(is not|is|isn't|are|and|or|not|either|one of|as|a|an|the|its|of|in|with|then)\\b"
+        }
+      ]
+    }
+  }
+}

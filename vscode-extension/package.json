@@ -1,0 +1,88 @@
+{
+  "name": "spell-language",
+  "displayName": "Spell",
+  "version": "0.8.0",
+  "private": true,
+  "description": "Spell language support:  errors, hover, completion, go to definition, rename -- from the spell parser's language server.",
+  "license": "MIT",
+  "repository": "https://github.com/oakjs/parser",
+  "publisher": "oakjs",
+  "main": "./out/extension.js",
+  "scripts": {
+    "build": "node build.mjs",
+    "check": "../node_modules/.bin/tsc --noEmit -p .",
+    "package": "vsce package --no-dependencies --skip-license --out spell-language.vsix",
+    "install-extension": "code --install-extension spell-language.vsix --force"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.100.0",
+    "@vscode/vsce": "^4.0.0",
+    "vscode-languageclient": "^10.1.2"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "spell.showCompiled",
+        "title": "Show Compiled JavaScript",
+        "category": "Spell",
+        "enablement": "editorLangId == spell"
+      }
+    ],
+    "configuration": {
+      "title": "Spell",
+      "properties": {
+        "spell.parserRoot": {
+          "type": "string",
+          "default": "",
+          "description": "Folder of the spell parser repo, whose language server to run.  Empty:  the repo the extension was built in."
+        },
+        "spell.compileOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "On save, compile the project to its .output.js, so a running app picks it up."
+        }
+      }
+    },
+    "grammars": [
+      {
+        "language": "spell",
+        "scopeName": "source.spell",
+        "path": "./syntaxes/spell.tmLanguage.json"
+      }
+    ],
+    "languages": [
+      {
+        "id": "spell",
+        "aliases": [
+          "Spell",
+          "spell"
+        ],
+        "extensions": [
+          ".spell"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "spell.showCompiled",
+          "when": "editorLangId == spell",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configurationDefaults": {
+      "[spell]": {
+        "editor.insertSpaces": false,
+        "editor.detectIndentation": false
+      }
+    }
+  },
+  "activationEvents": [],
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "packageManager": "yarn@4.18.0"
+}

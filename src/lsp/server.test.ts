@@ -60,6 +60,7 @@ describe("spell language server over stdio", () => {
       documentSymbolProvider: true,
       foldingRangeProvider: true,
       hoverProvider: true,
+      documentFormattingProvider: true,
       semanticTokensProvider: { full: true, range: true }
     })
     await connection.sendNotification("initialized", {})

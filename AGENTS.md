@@ -5,6 +5,10 @@ when working with code in this repository.
 
 ## Overview
 
+- `src/parser/` (`P`) is a generic rule-based parser;  `src/languages/spell/` (`SP`) is the spell language on it.
+- `src/lsp/` (`LSP`) is spell's language server, and `vscode-extension/` the VS Code extension that runs it --
+  its own yarn project (own `package.json` + `yarn.lock`), NOT a workspace of the repo's.  See "Language server" in `PARSING.md`.
+
 ## How parsing works
 
 - `PARSING.md` is a compact map of the parse pipeline:  tokens, block / line / statement, when scope changes,
