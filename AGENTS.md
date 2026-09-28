@@ -88,7 +88,8 @@ when working with code in this repository.
   - Class name IS the rule name.  Use plain `static ruleName = "if"` only for reserved words (`class _if`)
     or when class name isn't rule case (`class Block` => `"block"`).
     Prod build MUST keep `output.keepNames` (`vite.config.ts`), pinned by `parser/build.test.ts`.
-  - `syntax` may be an array:  one rule instance per variant.
+  - ONE `syntax` per registration.  A rule with several calls `addRule()` once per syntax, each with the
+    `tests` for that syntax, e.g. `assignment_statement`.  Instances merge into a `P.Group` under the rule's name.
   - `@proto static` values are INHERITED:  a subclass of a registered rule gets its parent's `alias` etc.
     State its own value to differ.  `syntax`, `tests` and `ruleName` are NOT inherited --
     share syntax with a constant, e.g. `VARIABLE_SYNTAX`.
@@ -133,11 +134,17 @@ when working with code in this repository.
       A base class which is never registered gets `` // ## `SpellIdentifier` base class ``;  a rule whose class
       name differs gets `` // ## `number` rule (class `numeric`) ``.  A broad SECTION spanning several rules
       uses a wider banner one level up:  `// # Various flavors of whitespace`.
-    - supporting constants / types for that rule (`VARIABLE_SYNTAX`, `type VariableMatchData`) -- the header
-      goes ABOVE these, it marks where the rule starts, not where its class starts
+    - constants the rule's registration reads (`VARIABLE_SYNTAX`) -- the header goes ABOVE these, it marks
+      where the rule starts, not where its class starts.  They MUST precede `addRule()`:  a `const` isn't hoisted
     - docstring + `class known_variable extends ... {}` (exported only if something outside the file needs it),
       its `@proto static` props FIRST in the class body
-    - `<module>.addRule(known_variable, { syntax, tests })` immediately after the class
+    - `<module>.addRule(known_variable, { syntax, tests })` immediately after the class, once per syntax
+    - THEN types and helper functions only this rule uses (`type VariableMatchData`, `setup_assignment_statement()`)
+      -- types and function declarations are hoisted, so they can follow what uses them
+  - Types and helpers SHARED by several rules go in a section at the BOTTOM of the module, e.g.
+    `// ## Shared types`, so none sits above a rule that needs it.
+  - Test setup shared by a rule's registrations:  `setup_<rule_class>()` returning `{ compileAs, beforeEach }`,
+    spread into each block -- `{ ...setup_assignment_statement(), tests: [...] }`.
   - Tests need no type annotations there.  Each module needs a sibling `<module>.test.ts` calling
     `unitTestModuleRules()`, or its tests never run.
 - Type arguments:  `Rule<Props, Groups, MatchData>`, all defaulted so bare `P.Rule` / `P.Sequence` / `P.Match` work.

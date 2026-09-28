@@ -148,11 +148,26 @@ class create_list_type extends SpellStatement<"type|instanceType"> {
   }
 }
 classes.addRule(create_list_type, {
-  syntax: [
-    "create a type (named|called) {type} as a list of {instanceType:type}",
-    "(a|an) {type} is a list of {instanceType:type}"
-    // TODO: "{plural_type} are a list of ..."
-  ],
+  syntax: "create a type (named|called) {type} as a list of {instanceType:type}",
+  tests: [
+    {
+      compileAs: "statement",
+      tests: [
+        [
+          "create a type named hand as a list of cards",
+          [
+            "export class Hand extends List {}",
+            "spellCore.addExport('Hand', Hand)",
+            "spellCore.define(Hand.prototype, 'instanceType', { value: Card })"
+          ]
+        ]
+      ]
+    }
+  ]
+})
+// TODO: "{plural_type} are a list of ..."
+classes.addRule(create_list_type, {
+  syntax: "(a|an) {type} is a list of {instanceType:type}",
   tests: [
     {
       compileAs: "statement",
@@ -566,10 +581,41 @@ class define_property_has extends SpellStatement<"type|property|specifier?", { r
   }
 }
 classes.addRule(define_property_has, {
-  syntax: [
-    "(a|an) {type:singular_type} has (a|an|a property) {property} {specifier:type_specifier}?",
-    "{type:plural_type} have (a|an|a property) {property} {specifier:type_specifier}?"
-  ],
+  syntax: "(a|an) {type:singular_type} has (a|an|a property) {property} {specifier:type_specifier}?",
+  tests: [
+    {
+      compileAs: "block",
+      tests: [
+        [
+          "a player has a name as text",
+          "spellCore.defineProperty(Player.prototype, { property: 'name', type: 'text' })"
+        ]
+      ]
+    },
+    {
+      title: "declares type's enumeration and property",
+      beforeEach(scope: P.Scope) {
+        scope.compile(
+          [
+            "a card is a thing",
+            "a card has a suit as one of clubs, diamonds, hearts or spades",
+            "card = a new card"
+          ].join("\n"),
+          "block"
+        )
+      },
+      compileAs: "statement",
+      tests: [
+        ["print Card suits", "spellCore.console.log(Card.Suits)"],
+        ["print card suits", "spellCore.console.log(Card.Suits)"],
+        ["print the suit of the card", "spellCore.console.log(card.suit)"],
+        ["print the suits of the card", "spellCore.console.log(card.suits)"]
+      ]
+    }
+  ]
+})
+classes.addRule(define_property_has, {
+  syntax: "{type:plural_type} have (a|an|a property) {property} {specifier:type_specifier}?",
   tests: [
     {
       compileAs: "block",
@@ -584,10 +630,6 @@ classes.addRule(define_property_has, {
             `\tenumerationProp: 'Directions'`,
             `})`
           ]
-        ],
-        [
-          "a player has a name as text",
-          "spellCore.defineProperty(Player.prototype, { property: 'name', type: 'text' })"
         ],
         ["todos have a title as text", "spellCore.defineProperty(Todo.prototype, { property: 'title', type: 'text' })"],
         [
@@ -605,25 +647,6 @@ classes.addRule(define_property_has, {
             `})`
           ]
         ]
-      ]
-    },
-    {
-      beforeEach(scope: P.Scope) {
-        scope.compile(
-          [
-            "a card is a thing",
-            "a card has a suit as one of clubs, diamonds, hearts or spades",
-            "card = a new card"
-          ].join("\n"),
-          "block"
-        )
-      },
-      compileAs: "statement",
-      tests: [
-        ["print Card suits", "spellCore.console.log(Card.Suits)"],
-        ["print card suits", "spellCore.console.log(Card.Suits)"],
-        ["print the suit of the card", "spellCore.console.log(card.suit)"],
-        ["print the suits of the card", "spellCore.console.log(card.suits)"]
       ]
     }
   ]
@@ -662,13 +685,6 @@ classes.addRule(a_things_property, {
 // ## `property_value_either` rule
 //    e.g. "the color of a card is red if its suit is either diamonds or hearts"
 ////////////////
-
-/**
- * Match groups for `property_value_either`'s `syntax` -- `type_property` nests its own `type`/`property`
- * groups, whichever `type_property` alternative matched (`the_property_of_a_thing`/`a_things_property`).
- */
-type PropertyValueEitherGroups = P.GroupsFor<"type_property", P.Match<P.GroupsFor<"property|type">>> &
-  P.GroupsFor<"value|condition|otherValue?">
 
 /**
  * `the color of a card is red if its suit is either diamonds or hearts (otherwise it is X)?` -- defines a
@@ -764,13 +780,17 @@ classes.addRule(property_value_either, {
   ]
 })
 
+/**
+ * Match groups for `property_value_either`'s `syntax` -- `type_property` nests its own `type`/`property`
+ * groups, whichever `type_property` alternative matched (`the_property_of_a_thing`/`a_things_property`).
+ */
+type PropertyValueEitherGroups = P.GroupsFor<"type_property", P.Match<P.GroupsFor<"property|type">>> &
+  P.GroupsFor<"value|condition|otherValue?">
+
 ////////////////
 // ## `property_value_getter` rule
 //    e.g. "the value of a card is:"
 ////////////////
-
-/** What `P.ASTMethodDefinition`'s `body` prop accepts. */
-type MethodBody = P.ASTStatementBlock | P.ASTStatement | P.ASTExpression
 
 /**
  * `the value of a card is:` -- defines a property getter whose body is an inline EXPRESSION or nested
@@ -857,45 +877,13 @@ classes.addRule(property_value_getter, {
   ]
 })
 
+/** What `P.ASTMethodDefinition`'s `body` prop accepts. */
+type MethodBody = P.ASTStatementBlock | P.ASTStatement | P.ASTExpression
+
 ////////////////
 // ## `quoted_property_formula` rule
 //    e.g. 'a card "is a (rank)" for its ranks'
 ////////////////
-
-/**
- * Extra `bits` `quoted_property_formula` derives (and caches in `match.data.bits` via `getBits()`) to hand
- * off from there to `mutateScope()`/`getAST()`.
- */
-type QuotedPropertyFormulaBits = {
-  /** Owning type name, e.g. `"card"`. */
-  type: string
-  /** Rulex syntax generated for the dynamically-added `expression_suffix` rule (see `mutateScope()`). */
-  syntax: string
-  /** One entry per `(var)` placeholder found in the quoted alias, in source order. */
-  ruleData: Array<{
-    /** `true` if the placeholder's inflection matched its singular form, e.g. `(rank)` not `(ranks)`. */
-    isSingular: boolean
-    /** Raw placeholder text as written, e.g. `"ranks"`. */
-    instanceVar: string
-    /** Enumeration values inflected to match `isSingular`, used to match the spoken word at parse time. */
-    enumeration: Array<string | number>
-    /** Enumeration values as they should appear in compiled output, e.g. quoted strings. */
-    values: Array<string | number>
-  }>
-  /** Singularized variable names, in source order -- used as the generated method's argument names. */
-  vars: string[]
-  /** Generated method/property name, e.g. `"is_the_$rank_of_$suits"`. */
-  property: string
-}
-
-/** What `quoted_property_formula` stashes in `match.data`. */
-type QuotedPropertyFormulaMatchData = {
-  /** Cached result of `getBits()` -- see the type above. */
-  bits?: QuotedPropertyFormulaBits
-  /** Comment recording a rule that was dynamically added to scope while parsing this match, so it can be
-   *  echoed back out as an annotation in the compiled output. */
-  ruleComment?: P.ASTParserAnnotation
-}
 
 /**
  * `a card "is a (rank) of (suits)" for its ranks and its suits` -- defines a templated boolean method
@@ -1158,3 +1146,38 @@ classes.addRule(quoted_property_formula, {
     }
   ]
 })
+
+/**
+ * Extra `bits` `quoted_property_formula` derives (and caches in `match.data.bits` via `getBits()`) to hand
+ * off from there to `mutateScope()`/`getAST()`.
+ */
+type QuotedPropertyFormulaBits = {
+  /** Owning type name, e.g. `"card"`. */
+  type: string
+  /** Rulex syntax generated for the dynamically-added `expression_suffix` rule (see `mutateScope()`). */
+  syntax: string
+  /** One entry per `(var)` placeholder found in the quoted alias, in source order. */
+  ruleData: Array<{
+    /** `true` if the placeholder's inflection matched its singular form, e.g. `(rank)` not `(ranks)`. */
+    isSingular: boolean
+    /** Raw placeholder text as written, e.g. `"ranks"`. */
+    instanceVar: string
+    /** Enumeration values inflected to match `isSingular`, used to match the spoken word at parse time. */
+    enumeration: Array<string | number>
+    /** Enumeration values as they should appear in compiled output, e.g. quoted strings. */
+    values: Array<string | number>
+  }>
+  /** Singularized variable names, in source order -- used as the generated method's argument names. */
+  vars: string[]
+  /** Generated method/property name, e.g. `"is_the_$rank_of_$suits"`. */
+  property: string
+}
+
+/** What `quoted_property_formula` stashes in `match.data`. */
+type QuotedPropertyFormulaMatchData = {
+  /** Cached result of `getBits()` -- see the type above. */
+  bits?: QuotedPropertyFormulaBits
+  /** Comment recording a rule that was dynamically added to scope while parsing this match, so it can be
+   *  echoed back out as an annotation in the compiled output. */
+  ruleComment?: P.ASTParserAnnotation
+}

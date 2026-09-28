@@ -14,16 +14,6 @@ export const assignment = new SpellParser({ module: "assignment" })
 //    e.g. "unknown-var = yes"
 ////////////////
 
-/** What `assignment` stashes on its match. */
-type AssignmentMatchData = {
-  /** Whether the assigned-to variable is newly declared by this statement. */
-  isNewVariable?: boolean
-  /** Original scope `ScopeVariable` for `thing`, before any alias redefinition hackery. */
-  originalVar?: P.ScopeVariable
-  /** When `thing` is `it`:  the NEW `it` variable we declared -- see `assignment_statement.declareIt()`. */
-  newIt?: P.ScopeVariable
-}
-
 /**
  * Assignment, via any of 4 equivalent surface forms:  `{thing} = {value}`, `let {thing} = {value}`,
  * `set {thing} to {value}`, or `{variable} is {value}`.
@@ -124,50 +114,45 @@ class assignment_statement extends SpellStatement<"thing|value", AssignmentMatch
   }
 }
 assignment.addRule(assignment_statement, {
-  syntax: [
-    "(thing:{expression}|{variable}) = {value:expression}",
-    "let (thing:{expression}|{variable}) = {value:expression}",
-    "set (thing:{expression}|{variable}) to {value:expression}",
-    "(thing:{variable}) is {value: expression}"
-  ],
+  syntax: "(thing:{expression}|{variable}) = {value:expression}",
   tests: [
     {
-      compileAs: "block",
-      beforeEach(scope: P.Scope) {
-        // `scope` is typed as `P.Scope`, whose `.variables`/`.types` getters can be `undefined` --
-        // cast to `P.RootScope` for their non-optional override, which already accepts a plain
-        // name string as `.add()`/`.get()` input.
-        const { variables, types } = scope as P.RootScope
-        variables.add("thing")
-        variables.add({ name: "it", output: "this", isAlias: true })
-        types.add("Person")
-      },
+      ...setup_assignment_statement(),
       tests: [
-        { title: "non-existing var: equals", input: "unknown-var = yes", output: "export let unknown_var = true" },
-        {
-          title: "non-existing var: set",
-          input: "set unknown-var to yes",
-          output: "export let unknown_var = true"
-        },
-        {
-          title: "non-existing var: variable is",
-          input: `bob is a new person whose name is "bob"`,
-          output: `export let bob = new Person({ name: "bob" })`
-        },
+        { title: "non-existing var", input: "unknown-var = yes", output: "export let unknown_var = true" },
+        { title: "existing var", input: "thing = yes", output: "thing = true" }
+      ]
+    }
+  ]
+})
+assignment.addRule(assignment_statement, {
+  syntax: "let (thing:{expression}|{variable}) = {value:expression}",
+  tests: [
+    {
+      ...setup_assignment_statement(),
+      tests: [
         {
           title: "non-existing var: property set (won't work)",
           input: `let the name of unknown-var = "bob"`,
           output: `/* PARSE ERROR: Don't understand "let the name of unknown-var = "bob"" */`
         },
-
-        { title: "existing var: equals", input: "thing = yes", output: "thing = true" },
-        { title: "existing var: set", input: "set thing to yes", output: "thing = true" },
-        { title: "existing var: variable is", input: "thing is a new person", output: "thing = new Person()" },
         {
           title: "existing var: property set",
           input: `let the name of thing = "bob"`,
           output: `thing.name = "bob"`
-        },
+        }
+      ]
+    }
+  ]
+})
+assignment.addRule(assignment_statement, {
+  syntax: "set (thing:{expression}|{variable}) to {value:expression}",
+  tests: [
+    {
+      ...setup_assignment_statement(),
+      tests: [
+        { title: "non-existing var", input: "set unknown-var to yes", output: "export let unknown_var = true" },
+        { title: "existing var", input: "set thing to yes", output: "thing = true" },
         {
           title: "alias var reassign works",
           input: "set it to the name of it",
@@ -182,17 +167,57 @@ assignment.addRule(assignment_statement, {
     }
   ]
 })
+assignment.addRule(assignment_statement, {
+  syntax: "(thing:{variable}) is {value: expression}",
+  tests: [
+    {
+      ...setup_assignment_statement(),
+      tests: [
+        {
+          title: "non-existing var",
+          input: `bob is a new person whose name is "bob"`,
+          output: `export let bob = new Person({ name: "bob" })`
+        },
+        { title: "existing var", input: "thing is a new person", output: "thing = new Person()" }
+      ]
+    }
+  ]
+})
+
+/**
+ * Test setup shared by each `assignment` syntax:  spread into a test block, e.g.
+ * `{ ...setup_assignment_statement(), tests: [...] }`.
+ * - `beforeEach` adds variable `thing`, alias `it` (=> `this`) and type `Person`.
+ */
+function setup_assignment_statement(): Pick<P.RuleTestBlock, "compileAs" | "beforeEach"> {
+  return {
+    compileAs: "block",
+    beforeEach(scope: P.Scope) {
+      // `scope` is typed as `P.Scope`, whose `.variables`/`.types` getters can be `undefined` --
+      // cast to `P.RootScope` for their non-optional override, which already accepts a plain
+      // name string as `.add()`/`.get()` input.
+      const { variables, types } = scope as P.RootScope
+      variables.add("thing")
+      variables.add({ name: "it", output: "this", isAlias: true })
+      types.add("Person")
+    }
+  }
+}
+
+/** What `assignment` stashes on its match. */
+type AssignmentMatchData = {
+  /** Whether the assigned-to variable is newly declared by this statement. */
+  isNewVariable?: boolean
+  /** Original scope `ScopeVariable` for `thing`, before any alias redefinition hackery. */
+  originalVar?: P.ScopeVariable
+  /** When `thing` is `it`:  the NEW `it` variable we declared -- see `assignment_statement.declareIt()`. */
+  newIt?: P.ScopeVariable
+}
 
 ////////////////
 // ## `get` rule
 //    e.g. "get thing"
 ////////////////
-
-/** What `get` stashes on its match. */
-type GetMatchData = {
-  /** The NEW `it` variable we declared -- see `assignment_statement.declareIt()`. */
-  itVar?: P.ScopeVariable
-}
 
 /**
  * `get {value}` -- assign `value` to a NEW `it`.
@@ -296,6 +321,12 @@ assignment.addRule(get, {
     }
   ]
 })
+
+/** What `get` stashes on its match. */
+type GetMatchData = {
+  /** The NEW `it` variable we declared -- see `assignment_statement.declareIt()`. */
+  itVar?: P.ScopeVariable
+}
 
 ////////////////////////////////////////
 // # Returns

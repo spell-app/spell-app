@@ -58,7 +58,7 @@ describe("testing spell module classes", () => {
       const scopeRule = scope.rules.get().find((it) => it.declaredBy?.rule.name === "define_property_has")
       expect(scopeRule?.name).toBe("Card_Suits")
       const use = scope.parse("card suits", "expression")
-      expect(scopeRule?.instances).toContain(use?.rule)
+      expect(scopeRule?.instance).toBe(use?.rule)
     })
   })
 })

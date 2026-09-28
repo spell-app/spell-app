@@ -588,7 +588,7 @@ describe("P.Sequence", () => {
       describe("tests its own words, skipping subrules", () => {
         const check = (syntax: string, input: string) => {
           class tested extends P.Sequence {}
-          return tested.instantiate({ syntax })[0]!.test(scope, tokenize(input))
+          return tested.instantiate({ syntax })!.test(scope, tokenize(input))
         }
         test("words must be where they belong", () => {
           expect(check("this {that} the {other}", "this that the other")).toBe(true)
@@ -626,7 +626,7 @@ describe("P.Sequence", () => {
               return false
             }
           }
-          const [rule] = picky.instantiate({ syntax: "this {that}" })
+          const rule = picky.instantiate({ syntax: "this {that}" })
           expect(rule!.parse(scope, tokenize("this that"))).toBeUndefined()
         })
       })

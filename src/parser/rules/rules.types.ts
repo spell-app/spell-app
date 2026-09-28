@@ -6,13 +6,12 @@ import type { P } from "~/parser"
 export type RuleConstructor = Class<P.Rule>
 
 /**
- * What `parser.addRule(RuleClass, definition)` accepts for any rule:  constructor props, except that
- * - `syntax` may be an array => one rule instance per variant
+ * What `parser.addRule(RuleClass, definition)` accepts for any rule:  constructor props, plus
  * - `skip: true` registers nothing, e.g. for a rule which isn't working yet
  * - `name` defaults to the class name
+ * - NOTE: ONE `syntax`.  A rule with several calls `addRule()` once per syntax, each with its own `tests`.
  */
-export type RuleDefinitionProps = Omit<P.RuleProps, "syntax"> & {
-  syntax?: string | string[]
+export type RuleDefinitionProps = P.RuleProps & {
   skip?: boolean
 }
 
@@ -22,7 +21,7 @@ export type RuleDefinitionProps = Omit<P.RuleProps, "syntax"> & {
  * - All optional:  structure normally comes from `syntax`, not from e.g. `rules`.
  */
 export type DefinitionFor<RuleType extends { readonly Props: P.RuleProps }> = Prettify<
-  Omit<Partial<RuleType["Props"]>, "syntax"> & RuleDefinitionProps
+  Partial<RuleType["Props"]> & RuleDefinitionProps
 >
 
 /**
@@ -48,8 +47,8 @@ export type ScopeRule = {
   definition: SyntaxAndTests
   /** Match whose `mutateScope()` registered it, e.g. the method definition -- for go-to-definition etc. */
   declaredBy?: P.Match
-  /** Built rule instance(s) `parser.addRule()` made, so a call-site `match.rule` can be traced back here. */
-  instances?: P.Rule[]
+  /** Built rule instance `parser.addRule()` made, so a call-site `match.rule` can be traced back here. */
+  instance?: P.Rule
 }
 
 /** Anything `parser.addRule()` accepts:  a rule class (the normal way) or a ready-made instance. */

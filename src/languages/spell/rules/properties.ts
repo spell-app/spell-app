@@ -124,12 +124,6 @@ properties.addRule(property_expression, {
 //    e.g. "its foo"
 ////////////////
 
-/** What `its_property` / `its_ordinal` stash on their matches. */
-type ItsMatchData = {
-  /** `it` in scope when parsed, or `NONE` => means `this`.  Looked up THEN, not in `getAST()` -- see `SpellIdentifier`. */
-  itVar?: P.ScopeVariable | typeof NONE
-}
-
 /**
  * `its {property}` -- possessive shorthand.
  * - Tracks `it`:  `get it` / `put its foo in the bar`.
@@ -341,3 +335,13 @@ properties.addRule(object_literal_properties, {
     }
   ]
 })
+
+////////////////
+// ## Shared types
+////////////////
+
+/** What `its_property` / `its_ordinal` stash on their matches. */
+type ItsMatchData = {
+  /** `it` in scope when parsed, or `NONE` => means `this`.  Looked up THEN, not in `getAST()` -- see `SpellIdentifier`. */
+  itVar?: P.ScopeVariable | typeof NONE
+}

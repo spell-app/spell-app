@@ -56,21 +56,16 @@ export class Scope extends Derivative {
    *   computed values included:  a closure class's statics can use the enclosing function's locals,
    *   e.g. `static ruleName = methodName`.  See "Ways to make a rule" 3. in `Rule.ts`.
    * - `declaredBy` is the match declaring it (the method definition, say), kept for go-to-definition etc.
-   * - Returns what `parser.addRule()` returned:  the rule instance(s), or `undefined` if `rule` has `static skip`.
+   * - Returns what `parser.addRule()` returned:  the rule instance, or `undefined` if `rule` has `static skip`.
    */
-  addRule(
-    rule: Class<P.Rule>,
-    definition?: P.SyntaxAndTests,
-    declaredBy?: P.Match
-  ): P.Rule | P.Rule[] | undefined {
+  addRule(rule: Class<P.Rule>, definition?: P.SyntaxAndTests, declaredBy?: P.Match): P.Rule | undefined {
     const { parser } = this
     if (!parser) throw new TypeError(`scope.addRule(): called on scope without a parser.`)
-    const added = parser.addRule(rule, definition)
+    const instance = parser.addRule(rule, definition)
+    if (!instance) return undefined
     // NOTE: `definition` may be undefined -- store an empty object so an export can always spread it.
-    if (!added) return undefined
-    const instances = Array.isArray(added) ? added : [added]
-    this.rules?.add({ name: instances[0]!.name!, rule, definition: definition ?? {}, declaredBy, instances })
-    return added
+    this.rules?.add({ name: instance.name!, rule, definition: definition ?? {}, declaredBy, instance })
+    return instance
   }
 
   ////////////////

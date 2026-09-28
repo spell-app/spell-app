@@ -14,7 +14,7 @@ describe("testing spell module methods", () => {
       const scopeRule = scope.rules.get().find((it) => it.declaredBy?.rule.name === "to_do_something")
       expect(scopeRule).toBeDefined()
       const call = scope.parse("notify 1", "statement")
-      expect(scopeRule?.instances).toContain(call?.rule)
+      expect(scopeRule?.instance).toBe(call?.rule)
 
       // `message` was declared by the definition, inside its method scope
       const definition = scopeRule!.declaredBy!

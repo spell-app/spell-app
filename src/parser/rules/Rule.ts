@@ -38,14 +38,19 @@ import { P } from "~/parser"
  *   getAST(match: P.MatchFor<this>) {...}        // ...and how it behaves
  * }
  * classes.addRule(define_property_has, {         // ...registering says how it's WRITTEN in this language
- *   syntax: ["(a|an) {type} has {property} {specifier}?", "{type} have {property} {specifier}?"],
+ *   syntax: "(a|an) {type} has {property} {specifier}?",
+ *   tests: [...]                                 // tests for THIS syntax
+ * })
+ * classes.addRule(define_property_has, {         // another way to write it:  register again
+ *   syntax: "{type} have {property} {specifier}?",
  *   tests: [...]
  * })
  * ```
  * - Why only `syntax` + `tests` at registration:  the class can then be reused by another language's parser.
  * - `@proto static` values are inherited by subclasses;  `@proto` rejects a prop the rule doesn't declare.
  * - Class name IS the rule name;  plain `static ruleName = "if"` for reserved words (`class _if`).
- * - `syntax` may be an array => one frozen rule instance per variant.
+ * - Several syntaxes => register the class once per syntax, each with its own `tests`.  Instances merge into
+ *   a `P.Group` under the rule's name.
  * - A `Sequence` tests its own words / symbols before parsing any subrule, e.g. `remove {thing} from {list}`
  *   needs `remove`, then `from` somewhere later -- see `Sequence.test()`.  Override `test()` to do better.
  * - `syntax`, `tests` and `ruleName` are NOT inherited -- share syntax with a `const` (see `variables.ts`).
@@ -116,26 +121,25 @@ export abstract class Rule<
   }
 
   /**
-   * Create rule instance(s) from class-level definition:  one per `syntax` variant, else exactly one.
+   * Create a frozen, named rule instance from class-level definition, or `undefined` if `skip`ped.
    * - Why this exists rather than plain `new`:
-   *   - a constructor can only return ONE instance, `syntax` variants need several
    *   - rule name comes from the CLASS here, `new` leaves rules anonymous on purpose (see `name`)
    *   - `freeze()` has to wait until subclass constructors are done, base constructor is too early
    * - `definition` is what `parser.addRule(RuleClass, definition)` was given -- normally just `syntax` + `tests`,
    *   anything else computed (see "Ways to make a rule" 3.) -- plus per-registration things only the caller
    *   knows, e.g. `module`.  Wins over class-level statics.
-   * - Only first variant carries `tests` so we don't run same tests repeatedly.
    * - Throws if definition is unusable, e.g.
    *   - anonymous class with no `ruleName`
    *   - plain `static` default that should be `@proto static`
    */
-  static instantiate(definition: P.RuleDefinitionProps = {}): Rule[] {
+  static instantiate(definition: P.RuleDefinitionProps = {}): Rule | undefined {
     const {
       syntax = (this.prototype as { syntax?: P.RuleDefinitionProps["syntax"] }).syntax,
       skip,
+      tests = Object.hasOwn(this, "tests") ? this.tests : undefined,
       ...extraProps
     } = definition
-    if (skip || (Object.hasOwn(this, "skip") && this.skip)) return []
+    if (skip || (Object.hasOwn(this, "skip") && this.skip)) return undefined
     const name = extraProps.name || (Object.hasOwn(this, "ruleName") && this.ruleName) || this.name
     if (!name) {
       throw new P.ParserError({
@@ -158,16 +162,11 @@ export abstract class Rule<
         params: { forgotten }
       })
     }
-    const variants: Array<{ syntax?: string }> =
-      syntax === undefined ? [{}] : (Array.isArray(syntax) ? syntax : [syntax]).map((it) => ({ syntax: it }))
-    const tests = extraProps.tests ?? (Object.hasOwn(this, "tests") ? this.tests : undefined)
-    delete extraProps.tests
+    const props = { ...extraProps, name } as RuleProps
+    if (syntax !== undefined) props.syntax = syntax
+    if (tests) props.tests = tests
     const constructor = this as unknown as new (props: RuleProps) => Rule
-    return variants.map((variant, index) => {
-      const props = { ...extraProps, name, ...variant } as RuleProps
-      if (index === 0 && tests) props.tests = tests
-      return new constructor(props).freeze()
-    })
+    return new constructor(props).freeze()
   }
 
   /**
@@ -282,10 +281,10 @@ export abstract class Rule<
   /** Description. */
   static description?: string
   /**
-   * Rulex syntax string(s), decomposed into `rules` etc. at construction.
-   * - Array => one rule instance per variant, all registered under same name -- see `instantiate()`.
+   * Rulex syntax string, decomposed into `rules` etc. at construction.
+   * - Several syntaxes => register the class once per syntax -- see "Ways to make a rule" above.
    */
-  static syntax?: string | string[]
+  static syntax?: string
 
   ////////////////
   // ## Identity -- what this rule is called and where it came from
@@ -317,8 +316,8 @@ export abstract class Rule<
   // ## Definition -- what this rule was made from
   ////////////////
 
-  /** Rulex syntax string used to define this rule (this instance's variant, if class has several). */
-  declare syntax: string | string[] | undefined
+  /** Rulex syntax string used to define this rule -- ONE of them, if class was registered with several. */
+  declare syntax: string | undefined
   /** Tests for this rule. */
   declare tests: P.RuleTests | undefined
 
@@ -417,7 +416,7 @@ export abstract class Rule<
    * `P.GroupsFor` spec for groups our `syntax` will produce, e.g. `"type|property|specifier?"`.
    * - Use to write / check `Groups` type argument -- type args are erased, this is computed from real structure.
    * - Only knows what default `getGroupsForMatch()` does -- groups derived in an override are NOT included.
-   * - One instance ~== one `syntax` variant:  use `P.mergeGroupSpecs()` to combine variants.
+   * - One instance ~== one `syntax`:  use `P.mergeGroupSpecs()` to combine a rule's instances.
    */
   get groupSpec(): string {
     return P.stringifyGroupSpec(this.getGroupSpecEntries())
@@ -549,8 +548,8 @@ export type RuleProps = {
   alias?: string | string[]
   /** Datatype which rule result represents, e.g. `string`, `number`, custom type. */
   datatype?: string
-  /** Rulex syntax string(s) used to define this rule. */
-  syntax?: string | string[]
+  /** Rulex syntax string used to define this rule. */
+  syntax?: string
   /** Precedence of this rule, used to distinguish between ambiguous matches.  Default = 0. */
   precedence?: number
   /** Tests for this rule. */

@@ -23,12 +23,6 @@ export const variables = new SpellParser({ module: "variables" })
 //    e.g. "thing", "bank-account"
 ////////////////
 
-/** What every `SpellIdentifier` stashes on its match. */
-type IdentifierMatchData = {
-  /** Scope variable for the word, or `NONE` if we looked and scope doesn't know it. */
-  scopeVar?: P.ScopeVariable | typeof NONE
-}
-
 /**
  * Single word variable name, known or unknown.
  * - Looks the word up in `scope.variables` WHILE PARSING, as `match.data.scopeVar` -- if found, you can override
@@ -172,9 +166,6 @@ variables.addRule(plural_identifier, {
 /** Syntax shared by `variable` and `known_variable`:  identifier with optional `the`, e.g. `the thing`. */
 const VARIABLE_SYNTAX = "the? {identifier}"
 
-/** What `variable` / `known_variable` stash on their matches. */
-type VariableMatchData = IdentifierMatchData
-
 /**
  * `SpellIdentifier` which may or may not be known, with optional `the` prefix, e.g. `the thing`.
  * - `match.data.scopeVar` is set to the scope `ScopeVariable` if known, `NONE` if not.
@@ -219,6 +210,9 @@ variables.addRule(variable, {
   ]
 })
 
+/** What `variable` / `known_variable` stash on their matches. */
+type VariableMatchData = IdentifierMatchData
+
 ////////////////
 // ## `known_variable` rule
 //    e.g. "the thing", if `thing` is in scope
@@ -259,3 +253,13 @@ variables.addRule(known_variable, {
     }
   ]
 })
+
+////////////////
+// ## Shared types
+////////////////
+
+/** What every `SpellIdentifier` stashes on its match. */
+type IdentifierMatchData = {
+  /** Scope variable for the word, or `NONE` if we looked and scope doesn't know it. */
+  scopeVar?: P.ScopeVariable | typeof NONE
+}

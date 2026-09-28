@@ -76,6 +76,12 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   on a container that has already been passed to createRoot() before".  Probably wants to reuse (or unmount) the
   `REACT_ROOT` it already stashed on the element.
 
+- `rules/methods.ts` `MethodDefinition.getRule()`, `_dynamicMethodRuleInfix.compileASTExpression()`:  builds
+  `new P.ASTScopedMethodInvocation(match, ...)` with the OUTER `match` -- the method DEFINITION -- not the
+  call-site `_match` it's given.  Its postfix sibling just above uses `_match`.  So every infix call's AST
+  node claims the definition's source position, e.g. for source maps / editor ranges.  Found 2026-09-27
+  while mapping dynamic rules' closures for precompiled packages.
+
 ## 2. Server robustness / security
 
 - [V] `server/lock-utils.ts`: whole module has zero callers, while `saveFile()` / `saveImports()` / `getIndex()`

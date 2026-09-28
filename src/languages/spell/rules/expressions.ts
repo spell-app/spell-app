@@ -51,16 +51,6 @@ export type SpellExpressionProps = Prettify<SpellStatementProps & { parenthesize
 //    e.g. base for suffix rules with an explicit `rhs`, like "thing and other"
 ////////////////
 
-/** Operands passed to `compileASTExpression()`/`compileAST()` while running the shunting-yard algorithm. */
-type OperatorOperands = {
-  /** Operator `Match` -- rule-specific token(s) deciding the concrete operator, e.g. `is not exactly`. */
-  operator: P.Match
-  /** Left-hand-side AST -- always populated for infix operators; also populated for postfix operators. */
-  lhs?: P.ASTExpression
-  /** Right-hand-side AST -- only populated for infix operators. */
-  rhs?: P.ASTExpression
-}
-
 /**
  * Base class for expression-suffix rules that take an explicit `rhs`, e.g. `is`, `and`, `includes`.
  * - Matched as part of `compound_expression`'s shunting-yard algorithm -- never parsed standalone.
@@ -977,7 +967,7 @@ class as_a_type extends PostfixOperatorSuffix<"type"> {
   }
 }
 expressions.addRule(as_a_type, {
-  syntax: ["as (a|an) (type:string|number|fraction|integer)", "as (type:text)"],
+  syntax: "as (a|an) (type:string|number|fraction|integer)",
   // es: "como (un|una) (type:cadena|numero|fracción|entero)"
   tests: [
     {
@@ -993,3 +983,26 @@ expressions.addRule(as_a_type, {
     }
   ]
 })
+expressions.addRule(as_a_type, {
+  syntax: "as (type:text)",
+  tests: [
+    {
+      compileAs: "expression",
+      tests: [["1 as text", "`${1}`"]]
+    }
+  ]
+})
+
+////////////////
+// ## Shared types
+////////////////
+
+/** Operands passed to `compileASTExpression()`/`compileAST()` while running the shunting-yard algorithm. */
+type OperatorOperands = {
+  /** Operator `Match` -- rule-specific token(s) deciding the concrete operator, e.g. `is not exactly`. */
+  operator: P.Match
+  /** Left-hand-side AST -- always populated for infix operators; also populated for postfix operators. */
+  lhs?: P.ASTExpression
+  /** Right-hand-side AST -- only populated for infix operators. */
+  rhs?: P.ASTExpression
+}

@@ -31,119 +31,10 @@ export const methods = new SpellParser({ module: "methods" })
 // ## Method-signature data types
 ////////////////
 
-/** Info about a `{type}` capture within a method signature, e.g. the `(a card)` in `to create (a card)`. */
-type MethodTypeInfo = {
-  /** Raw matched type name, e.g. `card`. */
-  name: string
-  /** Arg's own variable name, if the type came from a `typed_method_arg` (e.g. `another` in `(another as a
-   *  thing)`) -- `undefined` for a bare `type_method_arg` like `(a card)`. */
-  varName: string | undefined
-  /** `true` for a built-in/primitive type (`SpellType.isSimpleType()`) -- these are never promoted to an
-   *  instance-method receiver by `MethodDefinition.processSignature()`. */
-  isSimple: boolean
-  /** Index into `MethodSignatureData.args` at the moment this type was found -- lets `processSignature()`
-   *  splice the promoted arg back out. */
-  argIndex: number
-  /** Index into `MethodSignatureData.methodBits` at the moment this type was found -- same splice purpose. */
-  methodIndex: number
-  /** Index into `MethodSignatureData.syntaxBits` at the moment this type was found -- `processSignature()`
-   *  overwrites this slot with `{thisArg:expression}` when promoting. */
-  syntaxIndex: number
-}
-
-/** Extra random variable to add to a method's nested scope, e.g. an alias for `this`. */
-type MethodExtraVar = string | { name: string; output?: string; type?: string }
-
-/**
- * `match.data` shape shared by the `method_arg`/`simple_method_arg` alternatives (`var_method_arg`,
- * `valued_var_method_arg`, `type_method_arg`, `typed_method_arg`, `with_props_arg`) and by `method_keyword`.
- * Each of these rules only ever fills in a subset of these fields.
- * - NOTE: these are all DERIVED values (strings, AST nodes, arrays) the rule computes from its real matched
- *   groups while parsing -- not real `Match`-valued groups themselves, so they live in `match.data`, not
- *   `match.groups` -- see `GROUPS ARE ONLY WHAT THE SYNTAX MATCHED` in the migration guide.
- */
-type MethodArgData = {
-  /** Matched bare word, set by `method_keyword`. */
-  keyword?: P.Match
-  /** Matched `identifier`, set by `var_method_arg` / `valued_var_method_arg` / `typed_method_arg`. */
-  variable?: P.Match
-  /** Matched type name, set by `type_method_arg` / `typed_method_arg`. */
-  type?: P.Match
-  /** Bit contributed to the generated `methodName`, e.g. a raw keyword, or `$varName` -- `undefined` for
-   *  `with_props_arg`, since prop names don't appear in the method name. */
-  method?: string
-  /** Bit contributed to the rule's rulex `syntax`, e.g. a raw keyword or `{callArgs:expression}`. */
-  syntax?: string
-  /** This arg as a `P.ASTVariableExpression`, used for the generated method's parameter list. */
-  arg?: P.ASTVariableExpression
-  /** `with_props_arg` only: the individual prop `arg`s pulled out of its comma/`and`-joined item list. */
-  props?: P.ASTVariableExpression[]
-  /** `with_props_arg` only: raw matched items behind `props`, before mapping to `arg`s. */
-  items?: P.Match[]
-}
-
-/**
- * Data `method_signature`'s `parse()` builds into `match.data`, then `MethodDefinition.processSignature()`
- * (and overrides, e.g. `quoted_type_expression`) further mutates.
- */
-type MethodSignatureData = {
-  items: MethodArgData[]
-  /** `true` if the first item is a keyword. */
-  startsWithKeyword: boolean
-  /** `true` if we found at least one keyword. Arg-only signatures are invalid! */
-  foundKeyword: boolean
-  /** Method signature bits. Converted to `methodName` string at end of `parse()`. */
-  methodBits: string[]
-  /** Rule syntax bits. Converted to a string at end of `parse()`. */
-  syntaxBits: string[]
-  /** Types we found in the signature. */
-  types: MethodTypeInfo[]
-  /** Method arguments, as `P.ASTVariableExpression`s. */
-  args: P.ASTVariableExpression[]
-  /** Random extra vars we should enable (e.g. aliases for `this`). */
-  extraVars: MethodExtraVar[]
-  /** `with_props_arg`'s props, if any. */
-  props: P.ASTVariableExpression[] | undefined
-  /** Full methodName from `methodBits`, set at the end of `parse()`. */
-  methodName: string | undefined
-  /** Full method syntax, set at the end of `parse()`. */
-  syntax: string | undefined
-  /** Type to add an instance method to, set by `processSignature()`. */
-  instanceType: string | undefined
-  /** `true` when the definition compiles to a postfix expression (e.g. `card.is_a_bug`) instead of a callable
-   *  method -- set by `MethodDefinition.processSignature()` / `quoted_type_expression.processSignature()`. */
-  asPostfixExpression?: boolean
-  /** `true` when it compiles to an infix expression (e.g. `card.nerds_out_with_$another(thing)`) -- set by
-   *  `MethodDefinition.processSignature()` / `quoted_type_expression.processSignature()`. */
-  asInfixExpression?: boolean
-  /** Given the matched `operator` token, `true` if output should be negated (e.g. `isn't`, `can't`) -- set
-   *  by `quoted_type_expression.processSignature()`; defaults to always `false`. */
-  shouldNegateOutput?: (operator: P.Match) => boolean
-}
-
-/** What `MethodDefinition` (and subclasses) stash in `match.data`, on top of whatever they declare via `MatchData`. */
-type MethodDefinitionData = {
-  /** Cached result of `getSignature()` -- see that method. */
-  signature?: MethodSignatureData
-}
-
-/** Operands passed to `compileASTExpression()` -- matches the (unexported) type of the same name in `./expressions`. */
-type OperatorOperands = {
-  /** Matched operator token, e.g. `is`/`isn't` -- passed to `shouldNegateOutput()`. */
-  operator: P.Match
-  /** Left-hand expression -- always populated for `PostfixOperatorSuffix`/`InfixOperatorSuffix`. */
-  lhs?: P.ASTExpression
-  /** Right-hand expression -- always populated for `InfixOperatorSuffix`, never for a postfix suffix. */
-  rhs?: P.ASTExpression
-}
-
 ////////////////
 // ## `DynamicMethodRule` base class
 //    e.g. "notify 1", after "to notify (message): ..." defined it
 ////////////////
-
-/** `match.groups` for `DynamicMethodRule`, once `getGroupsForMatch()` has normalized `callArgs` to an array. */
-type DynamicMethodRuleGroups = P.GroupsFor<"thisArg?|callArgs[]?|props?">
 
 /**
  * Rule `constructor` for a plain (non-instance, non-operator) dynamically-defined method's CALL SITE, e.g.
@@ -196,6 +87,9 @@ export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|prop
 
 /** Props bag accepted by `DynamicMethodRule` -- `methodName` is the generated method it compiles a call to. */
 export type DynamicMethodRuleProps = Prettify<SpellStatementProps & { methodName?: string }>
+
+/** `match.groups` for `DynamicMethodRule`, once `getGroupsForMatch()` has normalized `callArgs` to an array. */
+type DynamicMethodRuleGroups = P.GroupsFor<"thisArg?|callArgs[]?|props?">
 
 ////////////////
 // ## `MethodDefinition` base class
@@ -553,6 +447,22 @@ export class MethodDefinition<
  * - `inlineInitialType`:  first arg's type is part of the method name, e.g. `to draw a card` => `Card.draw()`.
  */
 export type MethodDefinitionProps = Prettify<SpellStatementProps & { inlineInitialType?: boolean }>
+
+/** What `MethodDefinition` (and subclasses) stash in `match.data`, on top of whatever they declare via `MatchData`. */
+type MethodDefinitionData = {
+  /** Cached result of `getSignature()` -- see that method. */
+  signature?: MethodSignatureData
+}
+
+/** Operands passed to `compileASTExpression()` -- matches the (unexported) type of the same name in `./expressions`. */
+type OperatorOperands = {
+  /** Matched operator token, e.g. `is`/`isn't` -- passed to `shouldNegateOutput()`. */
+  operator: P.Match
+  /** Left-hand expression -- always populated for `PostfixOperatorSuffix`/`InfixOperatorSuffix`. */
+  lhs?: P.ASTExpression
+  /** Right-hand expression -- always populated for `InfixOperatorSuffix`, never for a postfix suffix. */
+  rhs?: P.ASTExpression
+}
 
 ////////////////
 // ## `method_keyword` rule
@@ -1768,3 +1678,97 @@ methods.addRule(quoted_type_expression, {
     }
   ]
 })
+
+////////////////
+// ## Method-signature data types
+////////////////
+
+/**
+ * Data `method_signature`'s `parse()` builds into `match.data`, then `MethodDefinition.processSignature()`
+ * (and overrides, e.g. `quoted_type_expression`) further mutates.
+ */
+type MethodSignatureData = {
+  items: MethodArgData[]
+  /** `true` if the first item is a keyword. */
+  startsWithKeyword: boolean
+  /** `true` if we found at least one keyword. Arg-only signatures are invalid! */
+  foundKeyword: boolean
+  /** Method signature bits. Converted to `methodName` string at end of `parse()`. */
+  methodBits: string[]
+  /** Rule syntax bits. Converted to a string at end of `parse()`. */
+  syntaxBits: string[]
+  /** Types we found in the signature. */
+  types: MethodTypeInfo[]
+  /** Method arguments, as `P.ASTVariableExpression`s. */
+  args: P.ASTVariableExpression[]
+  /** Random extra vars we should enable (e.g. aliases for `this`). */
+  extraVars: MethodExtraVar[]
+  /** `with_props_arg`'s props, if any. */
+  props: P.ASTVariableExpression[] | undefined
+  /** Full methodName from `methodBits`, set at the end of `parse()`. */
+  methodName: string | undefined
+  /** Full method syntax, set at the end of `parse()`. */
+  syntax: string | undefined
+  /** Type to add an instance method to, set by `processSignature()`. */
+  instanceType: string | undefined
+  /** `true` when the definition compiles to a postfix expression (e.g. `card.is_a_bug`) instead of a callable
+   *  method -- set by `MethodDefinition.processSignature()` / `quoted_type_expression.processSignature()`. */
+  asPostfixExpression?: boolean
+  /** `true` when it compiles to an infix expression (e.g. `card.nerds_out_with_$another(thing)`) -- set by
+   *  `MethodDefinition.processSignature()` / `quoted_type_expression.processSignature()`. */
+  asInfixExpression?: boolean
+  /** Given the matched `operator` token, `true` if output should be negated (e.g. `isn't`, `can't`) -- set
+   *  by `quoted_type_expression.processSignature()`; defaults to always `false`. */
+  shouldNegateOutput?: (operator: P.Match) => boolean
+}
+
+/**
+ * `match.data` shape shared by the `method_arg`/`simple_method_arg` alternatives (`var_method_arg`,
+ * `valued_var_method_arg`, `type_method_arg`, `typed_method_arg`, `with_props_arg`) and by `method_keyword`.
+ * Each of these rules only ever fills in a subset of these fields.
+ * - NOTE: these are all DERIVED values (strings, AST nodes, arrays) the rule computes from its real matched
+ *   groups while parsing -- not real `Match`-valued groups themselves, so they live in `match.data`, not
+ *   `match.groups` -- see `GROUPS ARE ONLY WHAT THE SYNTAX MATCHED` in the migration guide.
+ */
+type MethodArgData = {
+  /** Matched bare word, set by `method_keyword`. */
+  keyword?: P.Match
+  /** Matched `identifier`, set by `var_method_arg` / `valued_var_method_arg` / `typed_method_arg`. */
+  variable?: P.Match
+  /** Matched type name, set by `type_method_arg` / `typed_method_arg`. */
+  type?: P.Match
+  /** Bit contributed to the generated `methodName`, e.g. a raw keyword, or `$varName` -- `undefined` for
+   *  `with_props_arg`, since prop names don't appear in the method name. */
+  method?: string
+  /** Bit contributed to the rule's rulex `syntax`, e.g. a raw keyword or `{callArgs:expression}`. */
+  syntax?: string
+  /** This arg as a `P.ASTVariableExpression`, used for the generated method's parameter list. */
+  arg?: P.ASTVariableExpression
+  /** `with_props_arg` only: the individual prop `arg`s pulled out of its comma/`and`-joined item list. */
+  props?: P.ASTVariableExpression[]
+  /** `with_props_arg` only: raw matched items behind `props`, before mapping to `arg`s. */
+  items?: P.Match[]
+}
+
+/** Info about a `{type}` capture within a method signature, e.g. the `(a card)` in `to create (a card)`. */
+type MethodTypeInfo = {
+  /** Raw matched type name, e.g. `card`. */
+  name: string
+  /** Arg's own variable name, if the type came from a `typed_method_arg` (e.g. `another` in `(another as a
+   *  thing)`) -- `undefined` for a bare `type_method_arg` like `(a card)`. */
+  varName: string | undefined
+  /** `true` for a built-in/primitive type (`SpellType.isSimpleType()`) -- these are never promoted to an
+   *  instance-method receiver by `MethodDefinition.processSignature()`. */
+  isSimple: boolean
+  /** Index into `MethodSignatureData.args` at the moment this type was found -- lets `processSignature()`
+   *  splice the promoted arg back out. */
+  argIndex: number
+  /** Index into `MethodSignatureData.methodBits` at the moment this type was found -- same splice purpose. */
+  methodIndex: number
+  /** Index into `MethodSignatureData.syntaxBits` at the moment this type was found -- `processSignature()`
+   *  overwrites this slot with `{thisArg:expression}` when promoting. */
+  syntaxIndex: number
+}
+
+/** Extra random variable to add to a method's nested scope, e.g. an alias for `this`. */
+type MethodExtraVar = string | { name: string; output?: string; type?: string }

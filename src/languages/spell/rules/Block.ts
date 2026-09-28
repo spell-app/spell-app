@@ -6,22 +6,6 @@ import { P } from "~/parser"
  * - Composed of `block_lines` and nested `blocks`, and correspond roughly to a `Scope`
  *   (see `parser/scope/Scope`).
  */
-/**
- * What `block` and `line` rules stash on their matches.
- * - Shared by `Block` and `BlockLine` because errors bubble up through both.
- */
-export type BlockMatchData = {
-  /** Parse errors found while parsing this block / line, including those from nested blocks. */
-  errors?: P.Match[]
-  /** Set on a `block` match by `SpellStatement.parseNestedBlock()` so it compiles wrapped in `{}`. */
-  enclose?: boolean
-  /** On a `line` match:  its statement, if one parsed -- see `BlockLine.reparseBody()`. */
-  statement?: P.Match
-  /** On a `line` match with a nested body:  where that body's errors start in `errors`. */
-  bodyErrorsAt?: number
-  /** On a `line` match with a nested body:  journal mark just before the body was parsed, if journaled. */
-  bodyMark?: P.JournalMark
-}
 
 export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
   /** Registered as `block` -- class name isn't rule case. */
@@ -234,4 +218,21 @@ export type DocComment = {
   lines: string[]
   /** Comment matches it came from. */
   comments: P.Match[]
+}
+
+/**
+ * What `block` and `line` rules stash on their matches.
+ * - Shared by `Block` and `BlockLine` because errors bubble up through both.
+ */
+export type BlockMatchData = {
+  /** Parse errors found while parsing this block / line, including those from nested blocks. */
+  errors?: P.Match[]
+  /** Set on a `block` match by `SpellStatement.parseNestedBlock()` so it compiles wrapped in `{}`. */
+  enclose?: boolean
+  /** On a `line` match:  its statement, if one parsed -- see `BlockLine.reparseBody()`. */
+  statement?: P.Match
+  /** On a `line` match with a nested body:  where that body's errors start in `errors`. */
+  bodyErrorsAt?: number
+  /** On a `line` match with a nested body:  journal mark just before the body was parsed, if journaled. */
+  bodyMark?: P.JournalMark
 }

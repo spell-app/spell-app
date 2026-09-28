@@ -28,7 +28,6 @@ class give_statement extends TestStatement<"thing|recipient?"> {
 
 class _if extends TestStatement {
   static ruleName = "if"
-  @proto static syntax = ["if {condition:word}", "when {condition:word} (then {action:word})?"]
 }
 
 /** Parser with all of the above installed. */
@@ -36,7 +35,8 @@ function makeParser(props?: P.ParserProps) {
   const parser = new Parser(props)
   parser.addRule(word)
   parser.addRule(give_statement)
-  parser.addRule(_if)
+  parser.addRule(_if, { syntax: "if {condition:word}" })
+  parser.addRule(_if, { syntax: "when {condition:word} (then {action:word})?" })
   return parser
 }
 
@@ -54,7 +54,7 @@ describe("rules defined as classes", () => {
       const parser = makeParser()
       expect(parser.rules.if).toBeDefined()
       expect(parser.rules._if).toBeUndefined()
-      parser.addRule(if_subclass)
+      parser.addRule(if_subclass, { syntax: "if {condition:word}" })
       expect(parser.rules.if_subclass).toBeDefined()
     })
     test("anonymous class without `ruleName` throws", () => {
@@ -72,7 +72,7 @@ describe("rules defined as classes", () => {
     test("tags rules with parser's `module`", () => {
       expect(makeParser({ module: "testing" }).rules.give_statement!.module).toBe("testing")
     })
-    test("`syntax` array makes one instance per variant, tests on first only", () => {
+    test("registering a class once per `syntax` makes a `P.Group` of instances", () => {
       const group = makeParser().rules.if as P.Group
       expect(group).toBeInstanceOf(P.Group)
       expect(group.rules.map((rule) => rule.syntax)).toEqual([

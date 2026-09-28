@@ -18,9 +18,6 @@ import { SpellExpression, InfixOperatorSuffix } from "./expressions"
  */
 export const lists = new SpellParser({ module: "lists" })
 
-/** What `P.ASTMethodDefinition`'s `body` prop accepts. */
-type MethodBody = P.ASTStatementBlock | P.ASTStatement | P.ASTExpression
-
 ////////////////
 // ## `identifier_list` rule
 //    e.g. "up or down"
@@ -697,34 +694,6 @@ lists.addRule(range_count_expression, {
     }
   ]
 })
-
-////////////////
-// ## `where` clause helpers
-//    shared by `list_filter`, `list_membership_test` and `list_remove_where`
-////////////////
-
-/**
- * Nested scope for a `where` clause's predicate:  singularized `arg` is the current item, also aliased from `it`,
- * e.g. `word` for `words in my-list where word starts with "a"`.
- */
-function getWhereScope(parentScope: P.Scope, arg: P.Match): P.MethodScope {
-  const name = singularize(arg.value)
-  return new P.MethodScope({
-    parentScope,
-    args: [new P.ScopeVariable({ name, declaredBy: arg })],
-    mapItTo: name,
-    declaredBy: arg
-  })
-}
-
-/** Inline method for a `where` clause's predicate `body`, e.g. `(word) => word.startsWith("a")`. */
-function getWhereMethod(match: P.Match, arg: P.Match, body: P.Match | undefined): P.ASTMethodDefinition {
-  return new P.ASTMethodDefinition(body || match, {
-    inline: true,
-    args: [new P.ASTVariableExpression(arg, { name: singularize(arg.value) })],
-    body: P.matchAST(body)
-  })
-}
 
 ////////////////
 // ## `list_filter` rule
@@ -1669,3 +1638,38 @@ lists.addRule(list_range_iteration, {
     }
   ]
 })
+
+////////////////
+// ## Shared types
+////////////////
+
+/** What `P.ASTMethodDefinition`'s `body` prop accepts. */
+type MethodBody = P.ASTStatementBlock | P.ASTStatement | P.ASTExpression
+
+////////////////
+// ## `where` clause helpers
+//    shared by `list_filter`, `list_membership_test` and `list_remove_where`
+////////////////
+
+/**
+ * Nested scope for a `where` clause's predicate:  singularized `arg` is the current item, also aliased from `it`,
+ * e.g. `word` for `words in my-list where word starts with "a"`.
+ */
+function getWhereScope(parentScope: P.Scope, arg: P.Match): P.MethodScope {
+  const name = singularize(arg.value)
+  return new P.MethodScope({
+    parentScope,
+    args: [new P.ScopeVariable({ name, declaredBy: arg })],
+    mapItTo: name,
+    declaredBy: arg
+  })
+}
+
+/** Inline method for a `where` clause's predicate `body`, e.g. `(word) => word.startsWith("a")`. */
+function getWhereMethod(match: P.Match, arg: P.Match, body: P.Match | undefined): P.ASTMethodDefinition {
+  return new P.ASTMethodDefinition(body || match, {
+    inline: true,
+    args: [new P.ASTVariableExpression(arg, { name: singularize(arg.value) })],
+    body: P.matchAST(body)
+  })
+}

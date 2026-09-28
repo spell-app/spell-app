@@ -791,7 +791,7 @@ export class SpellLanguageService {
 
     /** Is `match` a use of `subject`, which isn't a property? */
     function isOccurrence(match: P.Match): boolean {
-      if (subject.kind === "method") return !!subject.record.instances?.includes(match.rule)
+      if (subject.kind === "method") return subject.record.instance === match.rule
       if (!match.rule.highlightAs) return false
       const { scopeVar, scopeType, scopeConstant } = match.data as Record<string, unknown>
       return (scopeVar ?? scopeType ?? scopeConstant) === (subject as { record?: unknown }).record
@@ -889,7 +889,7 @@ export class SpellLanguageService {
     const alias = atStatementStart ? "statement" : "expression"
     for (const scopeRule of SpellLanguageService.visible(scope.rules)) {
       // Ask the BUILT rule -- `alias` usually lives on its class (`@proto static`), not in `definition`.
-      const ruleAlias = scopeRule.instances?.[0]?.alias
+      const ruleAlias = scopeRule.instance?.alias
       if (isLater(scopeRule.declaredBy) || ![ruleAlias].flat().includes(alias)) continue
       const item = this.methodCompletion(scopeRule)
       if (item) items.push({ ...item, documentation: this.markdown(this.docsOfRecord(scopeRule, true)) })
@@ -908,7 +908,7 @@ export class SpellLanguageService {
    */
   private methodCompletion(scopeRule: P.ScopeRule): CompletionItem | undefined {
     const { declaredBy, definition } = scopeRule
-    const syntax = [definition.syntax].flat()[0]
+    const { syntax } = definition
     const declaration = declaredBy?.rule.getDeclaration(declaredBy)
     if (!syntax || !declaration) return undefined
     const argNames = [...declaration.name.matchAll(/\(([^)]*)\)/g)].map(([, arg]) =>
@@ -1068,7 +1068,7 @@ export class SpellLanguageService {
   generatedRules(project: SP.SpellProject): Map<P.Rule, P.ScopeRule> {
     const generated = new Map<P.Rule, P.ScopeRule>()
     for (const scopeRule of SpellLanguageService.visible(project.scope?.rules)) {
-      for (const rule of scopeRule.instances ?? []) generated.set(rule, scopeRule)
+      if (scopeRule.instance) generated.set(scopeRule.instance, scopeRule)
     }
     return generated
   }

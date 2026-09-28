@@ -51,15 +51,12 @@ export class SpellParser extends P.Parser {
    * - Why:  the class is the rule, reusable by another language's parser with its own `syntax`.
    * - TYPE-ONLY narrowing of `P.Parser.addRule()`, same behaviour.
    */
-  addRule<RuleType extends P.Rule>(
-    rule: Class<RuleType>,
-    definition?: P.SyntaxAndTests
-  ): P.Rule | P.Rule[] | undefined
-  addRule(rule: P.Rule | P.RuleConstructor, ruleName?: string | string[]): P.Rule | P.Rule[] | undefined
+  addRule<RuleType extends P.Rule>(rule: Class<RuleType>, definition?: P.SyntaxAndTests): P.Rule | undefined
+  addRule(rule: P.Rule | P.RuleConstructor, ruleName?: string | string[]): P.Rule | undefined
   addRule(
     rule: P.Rule | P.RuleConstructor,
     namesOrDefinition?: string | string[] | P.RuleDefinitionProps
-  ): P.Rule | P.Rule[] | undefined {
+  ): P.Rule | undefined {
     // Overloads hide `super`'s implementation signature -- it takes either shape, so any overload will do.
     return super.addRule(rule as Class<P.Rule>, namesOrDefinition as P.DefinitionFor<P.Rule>)
   }

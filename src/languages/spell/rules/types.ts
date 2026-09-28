@@ -56,23 +56,6 @@ const TYPE_VALUE_MAP: Record<string, string> = {
   Choices: "boolean"
 }
 
-/** What type rules stash on their matches. */
-type TypeMatchData = {
-  /** Existing `TypeScope` looked up in `scope.types` while parsing, or `NONE` if scope doesn't know it. */
-  scopeType?: P.TypeScope | typeof NONE
-}
-
-/**
- * `TypeScope` found by a `known_type` (or other `SpellType`) `match`.
- * - Use where syntax guarantees it, e.g. `{type:known_type}`.
- * - Throws otherwise, which means grammar and code disagree -- better than a confusing `undefined` later.
- */
-export function getKnownType(match: P.Match): P.TypeScope {
-  const scopeType = match.is(SpellType) ? match.data.scopeType : undefined
-  if (!scopeType || scopeType === NONE) throw new TypeError(`Expected match for a known type, got '${match.raw}'.`)
-  return scopeType
-}
-
 /**
  * Base pattern rule for matching a single type-name identifier (alpha-numeric, dashes/underscores),
  * singular or plural, known or unknown.
@@ -133,6 +116,23 @@ export class SpellType extends P.Pattern<never, TypeMatchData> {
     if (typeof value !== "string") throw new TypeError(`Expected a string value, got ${typeof value}`)
     return new P.ASTTypeExpression(match, { raw, name: value })
   }
+}
+
+/** What type rules stash on their matches. */
+type TypeMatchData = {
+  /** Existing `TypeScope` looked up in `scope.types` while parsing, or `NONE` if scope doesn't know it. */
+  scopeType?: P.TypeScope | typeof NONE
+}
+
+/**
+ * `TypeScope` found by a `known_type` (or other `SpellType`) `match`.
+ * - Use where syntax guarantees it, e.g. `{type:known_type}`.
+ * - Throws otherwise, which means grammar and code disagree -- better than a confusing `undefined` later.
+ */
+export function getKnownType(match: P.Match): P.TypeScope {
+  const scopeType = match.is(SpellType) ? match.data.scopeType : undefined
+  if (!scopeType || scopeType === NONE) throw new TypeError(`Expected match for a known type, got '${match.raw}'.`)
+  return scopeType
 }
 
 ////////////////

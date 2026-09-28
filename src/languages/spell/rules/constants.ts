@@ -14,12 +14,6 @@ import { identifierBlacklist } from "./identifier-blacklist"
  */
 export const constants = new SpellParser({ module: "constants" })
 
-/** What constant rules stash on their matches. */
-type ConstantMatchData = {
-  /** Existing `ScopeConstant` looked up in `scope.constants` while parsing, or `NONE` if scope doesn't know it. */
-  scopeConstant?: P.ScopeConstant | typeof NONE
-}
-
 ////////////////
 // ## `SpellConstant` base class
 //    e.g. "red", "orangish-red"
@@ -63,6 +57,12 @@ export class SpellConstant extends P.Pattern<never, ConstantMatchData> {
       constant: scopeConst
     })
   }
+}
+
+/** What constant rules stash on their matches. */
+type ConstantMatchData = {
+  /** Existing `ScopeConstant` looked up in `scope.constants` while parsing, or `NONE` if scope doesn't know it. */
+  scopeConstant?: P.ScopeConstant | typeof NONE
 }
 
 ////////////////

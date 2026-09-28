@@ -51,7 +51,7 @@ describe("ParseJournal", () => {
     expect(card?.declaredBy?.rule.name).toBe("create_type")
     expect(card?.declaredBy?.getScopeOfType(P.FileScope)).toBe(fileScope)
     const rule = projectScope.rules.get().find((it) => it.declaredBy?.rule.name === "to_do_something")
-    expect(rule?.instances?.length).toBeGreaterThan(0)
+    expect(rule?.instance).toBeDefined()
 
     parser.journal.rewindTo(mark)
     expect(projectScope.types.get("Card")).toBeUndefined()

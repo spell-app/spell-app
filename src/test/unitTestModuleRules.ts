@@ -72,9 +72,12 @@ export function unitTestModuleRules(parser: P.Parser, moduleName: string, initia
     return groupBy(testable.rules, "module")[module]
   }
 
-  /** Register a `describe()` block for one `rule`, running each of its (non-`skip`) `tests` entries. */
-  function executeRuleTests({ name, tests }: P.Rule) {
-    describe(`rule '${name}'`, () => {
+  /**
+   * Register a `describe()` block for one `rule`, running each of its (non-`skip`) `tests` entries.
+   * - Title includes `syntax`:  a rule registered once per syntax has one block per instance, all one `name`.
+   */
+  function executeRuleTests({ name, syntax, tests }: P.Rule) {
+    describe(syntax ? `rule '${name}': ${syntax}` : `rule '${name}'`, () => {
       tests?.forEach((testBlock) => {
         if (testBlock.skip) return
         if (testBlock.title) describe(testBlock.title, () => executeTestBlock(name, testBlock))
