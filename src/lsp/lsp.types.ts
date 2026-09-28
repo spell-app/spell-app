@@ -15,8 +15,8 @@ import type { SP } from "~/languages/spell"
 export type FileAddresses = {
   /** `SpellFile` for document `uri`, or `undefined` if it isn't a spell file we can place in a project. */
   fileFor(uri: string): SP.SpellFile | undefined
-  /** Editor's URI for `file`. */
-  uriFor(file: SP.SpellFile): string
+  /** Editor's URI for `file`, e.g. a project's compiled javascript. */
+  uriFor(file: SP.SpellFile | SP.SpellJSFile): string
 }
 
 /** What happened to a file on disk, from the editor's file watcher. */
@@ -89,4 +89,14 @@ export type ProjectInfo = {
   files: Array<{ uri: string; file: string; errors: number }>
   /** Why the last full parse crashed, if it did. */
   problem?: string
+  /** URI of its compiled javascript, `<Project>.compiled.js` -- whether or not it's been compiled yet. */
+  compiledUri: string
+}
+
+/** Sent as `spell/projectCompiled` after a project compiles, e.g. from `spell/compileProject`. */
+export type ProjectCompiled = {
+  /** Project id, as `ProjectInfo.project`. */
+  project: string
+  /** Project's javascript, EXACTLY as written to its `<Project>.compiled.js` -- see `ProjectInfo.compiledUri`. */
+  compiled: string
 }

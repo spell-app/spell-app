@@ -27,6 +27,13 @@
         "title": "Show Compiled JavaScript",
         "category": "Spell",
         "enablement": "editorLangId == spell"
+      },
+      {
+        "command": "spell.runProject",
+        "title": "Run Project",
+        "category": "Spell",
+        "icon": "$(play)",
+        "enablement": "editorLangId == spell"
       }
     ],
     "configuration": {
@@ -68,6 +75,11 @@
       "editor/title": [
         {
           "command": "spell.showCompiled",
+          "when": "editorLangId == spell",
+          "group": "navigation"
+        },
+        {
+          "command": "spell.runProject",
           "when": "editorLangId == spell",
           "group": "navigation"
         }

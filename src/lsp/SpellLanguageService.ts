@@ -875,7 +875,8 @@ export class SpellLanguageService {
         file: it.file ?? it.path,
         errors: (it.match && SP.Block.getParseErrors(it.match)?.length) ?? 0
       })),
-      problem: project.parseError
+      problem: project.parseError,
+      compiledUri: this.addresses.uriFor(project.outputFile)
     }
   }
 

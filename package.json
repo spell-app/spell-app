@@ -12,6 +12,7 @@
     "start:server:prod": "tsx src/server/index.ts",
     "start:lsp": "tsx src/lsp/server.ts --stdio",
     "build": "tsc && vite build",
+    "build:runner": "vite build -c vite.runner.config.ts",
     "preview": "vite preview",
     "clean": "rm -rf ./.cache; rm -rf ./build",
     "/////// CORRECTNESS": "",

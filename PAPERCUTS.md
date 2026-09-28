@@ -81,3 +81,5 @@ Log of things that slowed down development. Date · symptom · fix · project.
   false:  `project.activeImports`, cached during a render, held PROXIES of the files, and `includes()` missed the
   real one. · `raw()` (now in `~/util`) where identity matters.  See CODE-DEBT "Store proxies". · spell/parser
 
+- 2026-09-28 · `yarn -s build` printed yarn's command list instead of building.  Yarn berry has no `-s`
+  (silent) flag. · Plain `yarn build`. · spell/parser

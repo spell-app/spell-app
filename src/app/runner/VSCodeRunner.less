@@ -1,0 +1,29 @@
+// Fill the webview:  VS Code gives `body` padding of its own.
+html,
+body,
+#runner-root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.VSCodeRunner {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  & > .VSCodeRunnerToolbar {
+    flex: 0 0 auto;
+    border-radius: 0 !important;
+  }
+
+  & > .VSCodeRunnerToolbar .error {
+    color: #9f3a38;
+  }
+
+  // Fixed share of the height, below the app.
+  & > .VSCodeRunnerConsole {
+    flex: 0 0 35%;
+    border-top: 1px solid rgba(34, 36, 38, 0.25);
+  }
+}

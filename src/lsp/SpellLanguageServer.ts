@@ -168,6 +168,7 @@ export class SpellLanguageServer {
     connection.onRequest("spell/project", ({ uri }: { uri: string }) =>
       this.answer(uri, null, (file) => service.projectInfo(file))
     )
+    connection.onRequest("spell/compileProject", ({ uri }: { uri: string }) => this.compileProject(uri))
     documents.onDidSave(({ document }) => this.compileOnSave(document.uri))
 
     documents.listen(connection)
@@ -188,19 +189,57 @@ export class SpellLanguageServer {
 
   /**
    * If the `spell.compileOnSave` setting is on, compile the project of saved document `uri` to its `.output.js`,
-   * so a running app picks it up.
-   * - Queued like a change, so it compiles what's been parsed.
+   * so a running app picks it up -- see `compileProject()`.
    * - Off unless the editor tells us otherwise, or can't be asked.
    */
   private async compileOnSave(uri: string) {
     const settings = (await this.connection.workspace.getConfiguration("spell").catch(() => undefined)) as
       | { compileOnSave?: boolean }
       | undefined
-    const file = this.workspace.fileFor(uri)
-    if (!settings?.compileOnSave || !file) return
-    this.enqueue(async () => {
-      await file.project.compile()
-      return []
+    if (settings?.compileOnSave) void this.compileProject(uri)
+  }
+
+  /**
+   * Compile the project of document `uri` to its `<Project>.compiled.js`, then send `spell/projectCompiled`
+   * with the javascript, e.g. for a running app to re-run.
+   * - Queued like a change, so it compiles what's been parsed.
+   * - Answers `{ ok }`:  whether it compiled cleanly.  If not, nothing is sent, so a running app keeps running.
+   * - NOTE: a line which doesn't parse does NOT stop `compile()` -- it compiles to a `PARSE ERROR` comment.
+   *   So "cleanly" means no parse errors in any of the project's files, too.
+   */
+  private compileProject(uri: string): Promise<{ ok: boolean }> {
+    return new Promise((resolve) => {
+      this.enqueue(async () => {
+        // Look up once queued:  a just-opened file isn't parsed before then.
+        const file = this.workspace.fileFor(uri)
+        if (!file) {
+          resolve({ ok: false })
+          return []
+        }
+        const { project } = file
+        try {
+          await project.compile()
+        } catch (error) {
+          this.logError(error)
+          resolve({ ok: false })
+          return []
+        }
+        const { compiled } = project
+        const errors = this.service.projectInfo(file).files.reduce((sum, { errors }) => sum + errors, 0)
+        const ok = !!compiled && !errors
+        if (ok) {
+          // What it WROTE, not just `compiled`:  so it matches the file, which editors may watch too.
+          const params: LSP.ProjectCompiled = {
+            project: project.projectId,
+            compiled: project.outputFile.contents ?? compiled
+          }
+          this.connection
+            .sendNotification("spell/projectCompiled", params)
+            .catch((error: unknown) => this.logError(error))
+        }
+        resolve({ ok })
+        return []
+      })
     })
   }
 

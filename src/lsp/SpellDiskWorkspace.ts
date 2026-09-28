@@ -50,7 +50,7 @@ export class SpellDiskWorkspace implements LSP.FileAddresses {
   }
 
   /** URI for `file`:  the one the editor sent, else its `file:` URL on disk. */
-  uriFor(file: SP.SpellFile): string {
+  uriFor(file: SP.SpellFile | SP.SpellJSFile): string {
     let uri = this.#uriByPath.get(file.path)
     if (!uri) {
       uri = pathToFileURL(file.location.serverPath).href

@@ -16,6 +16,7 @@ import {
   type ServerOptions
 } from "vscode-languageclient/node"
 
+import { RunnerPanel } from "./RunnerPanel"
 
 /** Scheme of the read-only documents showing a spell file's compiled javascript -- see `CompiledProvider`. */
 const COMPILED_SCHEME = "spell-compiled"
@@ -54,6 +55,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     documentSelector: [{ scheme: "file", language: "spell" }]
   }
   client = new LanguageClient("spell", "Spell", serverOptions, clientOptions)
+  RunnerPanel.register(context, client, parserRoot)
 
   const compiled = new CompiledProvider(client)
   context.subscriptions.push(

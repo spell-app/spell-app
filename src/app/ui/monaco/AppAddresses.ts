@@ -29,7 +29,7 @@ export class AppAddresses implements LSP.FileAddresses {
     return path === undefined ? undefined : SP.SpellFile.registry.get(path)
   }
 
-  uriFor(file: SP.SpellFile): string {
+  uriFor(file: SP.SpellFile | SP.SpellJSFile): string {
     return AppAddresses.uriOf(file.path)
   }
 }

@@ -78,6 +78,11 @@ the Solitaire example with the extension loaded.
 
 - `Spell: Show Compiled JavaScript` (or the button at the top of a `.spell` editor) shows the file's javascript,
   updating as you type.
+- `Spell: Run Project` (the ▶ button) runs the file's project beside it, and re-runs it each time the project
+  compiles without errors -- on save, its Restart button, or anything rewriting its `<Project>.compiled.js`,
+  e.g. the web app.  A project that doesn't parse leaves the last good run going.  "Show Console" shows what it
+  `print`s.  Its code is this repo's `dist-runner/` (from `src/app/runner/`), which building the extension builds:
+  after changing `src/app/runner/` alone, `yarn build:runner` and close / reopen the panel.
 - Spell indents with tabs:  the extension sets `.spell` files to tabs, and formatting always uses them.
 - Settings:  `spell.compileOnSave` writes the project's `.output.js` on save;  `spell.parserRoot` points at another
   checkout of this repo.

@@ -5,8 +5,10 @@
  *   Move the repo and you must rebuild, or set `spell.parserRoot`.
  * - `esbuild` is the repo's own, found up the folder tree.
  * - Fails unless our `version` matches the parser repo's -- the two are pinned together.
+ * - SIDE EFFECT: also builds the parser repo's runner bundle, `dist-runner/`, for "Run Project".
  */
 import { build } from "esbuild"
+import { execSync } from "child_process"
 import { readFileSync } from "fs"
 import { dirname, resolve } from "path"
 import { fileURLToPath } from "url"
@@ -19,6 +21,9 @@ const { version: parserVersion } = readJson(resolve(here, "../package.json"))
 if (version !== parserVersion) {
   throw new Error(`vscode-extension version ${version} !== parser version ${parserVersion}:  change them together.`)
 }
+
+// "Run Project"'s webview code lives in the parser repo -- see `RunnerPanel.ts`.
+execSync("yarn build:runner", { cwd: resolve(here, ".."), stdio: "inherit" })
 
 await build({
   entryPoints: [resolve(here, "src/extension.ts")],
