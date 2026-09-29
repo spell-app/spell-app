@@ -2,7 +2,8 @@ import { describe, test, expect, beforeAll } from "vitest"
 import { copyFileSync, cpSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "fs"
 import { tmpdir } from "os"
 import { resolve } from "path"
-import { pathToFileURL } from "url"
+import { fileURLToPath, pathToFileURL } from "url"
+import { runInNewContext } from "vm"
 
 import { SP } from "~/languages/spell"
 import { LSP } from "~/lsp"
@@ -28,22 +29,25 @@ describe("ScopeExplorer", () => {
   })
 
   /** Details of the node named `name`, or of the node or member `it`. */
-  function details(it: string | { id: string }) {
-    return explorer.details(project, typeof it === "string" ? find(tree, it).id : it.id)!
+  function details(it: string | { path: string }) {
+    return explorer.details(project, typeof it === "string" ? find(tree, it).path : it.path)!
   }
 
   test("root holds the built-in types, then the project:  its files, and what each declares", () => {
     expect(outline(tree, 3)).toMatchSnapshot()
   })
 
-  test("a type's members:  properties, actions, then each enumeration and its constants -- each with hover markdown", () => {
+  test("a type's members:  properties, actions, then each enumeration and its constants -- each with its line", () => {
     const card = find(tree, "Card")
     expect(card.detail).toBe("is a Thing")
-    expect(details(card).hover).toContain("type **Card**")
+    expect(card.super).toBe("type:Thing")
+    expect(details(card).line).toBe(2)
     expect(card.members.map(({ name, kind }) => `${kind} ${name}`)).toMatchSnapshot()
     const suit = card.members.find((member) => member.name === "suit")!
-    expect(details(suit).hover).toContain("property **suit** of Card")
-    expect(details(suit).location?.uri).toBe(cardUri)
+    expect(details(suit).line).toBe(9)
+    // in its node's file, so no `uri` of its own
+    expect(details(suit).uri).toBeUndefined()
+    expect(find(tree, "suit").uri).toBe(cardUri)
   })
 
   test("a sub-type shows what it inherits, and from where", () => {
@@ -53,19 +57,26 @@ describe("ScopeExplorer", () => {
     expect(new Set(inherited.map((member) => member.inheritedFrom))).toEqual(new Set(["Pile"]))
   })
 
-  test("ids are unique", () => {
-    const ids = [...all(tree)].map((node) => node.id)
-    expect(new Set(ids).size).toBe(ids.length)
+  test("paths are unique -- and say what each node is", () => {
+    const nodes = [...all(tree)].filter((node) => node.kind !== "root")
+    expect(new Set(nodes.map((node) => node.path)).size).toBe(nodes.length)
+    for (const node of nodes) expect(LSP.scopeSegment(node.path)).toEqual({ kind: node.kind, name: node.name })
   })
 
   test("a declaration's details:  its docstring, spell source and compiled javascript", () => {
-    expect(find(tree, "suit").id).toBe("spellRoot/Solitaire/Card.spell/Card/property:suit")
+    expect(find(tree, "suit").path).toBe("project:Solitaire/file:Card.spell/type:Card/property:suit")
     const suit = details("suit")
-    expect(suit.summary).toBe("property **suit** of Card")
     expect(suit.description).toBe("card suits")
     expect(suit.spell).toBe("cards have a suit as one of clubs, diamonds, hearts or spades")
     expect(suit.compiled).toContain("property: 'suit'")
-    expect(suit.descriptionAt).toEqual({ uri: cardUri, position: { line: 8, character: 0 } })
+    expect(suit.line).toBe(9)
+  })
+
+  test("`line`:  a statement with a body is on its first and last lines", () => {
+    const method = [...all(tree)].find((node) => node.kind === "method" && typeof details(node).line !== "number")!
+    const [first, last] = details(method).line as [number, number]
+    expect(last).toBeGreaterThan(first)
+    expect(details(method).spell!.split("\n")).toHaveLength(last - first + 1)
   })
 
   test("details are worked out once per parse of their file -- and not in the tree", () => {
@@ -80,7 +91,7 @@ describe("ScopeExplorer", () => {
 
   test("constants show on the type whose statement declared them, NOT the project", () => {
     expect(find(tree, "Solitaire").members.map((member) => member.name)).not.toContain("ace")
-    expect(find(tree, "ace").id).toBe("spellRoot/Solitaire/Card.spell/Card/constant:ace")
+    expect(find(tree, "ace").path).toBe("project:Solitaire/file:Card.spell/type:Card/constant:ace")
   })
 
   test("a node lists the rules its statement made", () => {
@@ -92,8 +103,8 @@ describe("ScopeExplorer", () => {
     const card = () => workspace.fileFor(cardUri)!
 
     test("replaces the comment lines above it, one `//` line per line", () => {
-      const { position } = details("suit").descriptionAt!
-      expect(service().descriptionEdits(card(), position, "the suit\nof a card")).toEqual([
+      const line = LSP.firstLine(details("suit").line!)
+      expect(service().descriptionEdits(card(), line, "the suit\nof a card")).toEqual([
         {
           range: { start: { line: 7, character: 0 }, end: { line: 8, character: 0 } },
           newText: "// the suit\n// of a card\n"
@@ -102,8 +113,8 @@ describe("ScopeExplorer", () => {
     })
 
     test("empty text removes them", () => {
-      const { position } = details("suit").descriptionAt!
-      expect(service().descriptionEdits(card(), position, "  ")).toEqual([
+      const line = LSP.firstLine(details("suit").line!)
+      expect(service().descriptionEdits(card(), line, "  ")).toEqual([
         { range: { start: { line: 7, character: 0 }, end: { line: 8, character: 0 } }, newText: "" }
       ])
     })
@@ -111,25 +122,21 @@ describe("ScopeExplorer", () => {
     test("a `##` heading docstring:  shown as markdown, and replaced keeping its level", () => {
       const cardNode = details("Card")
       expect(cardNode.description).toBe("## definition of a Card with nice english aliases for working with it")
-      const { position } = cardNode.descriptionAt!
-      expect(position).toEqual({ line: 1, character: 0 })
+      const line = LSP.firstLine(cardNode.line!)
+      expect(line).toBe(2)
       const heading = { start: { line: 0, character: 0 }, end: { line: 1, character: 0 } }
-      expect(service().descriptionEdits(card(), position, "## a playing card\nwith a rank")).toEqual([
+      expect(service().descriptionEdits(card(), line, "## a playing card\nwith a rank")).toEqual([
         { range: heading, newText: "## a playing card\n// with a rank\n" }
       ])
       // without its `##`, it's just a comment
-      expect(service().descriptionEdits(card(), position, "a playing card")).toEqual([
+      expect(service().descriptionEdits(card(), line, "a playing card")).toEqual([
         { range: heading, newText: "// a playing card\n" }
       ])
     })
 
     test("a file's docstring:  `#` heading comments at its top -- added as a `#` heading", () => {
       expect(details("Card.spell").description).toBeUndefined()
-      expect(details("Card.spell").descriptionAt).toEqual({
-        uri: cardUri,
-        position: { line: 0, character: 0 },
-        file: true
-      })
+      expect(find(tree, "Card.spell").uri).toBe(cardUri)
       const top = { line: 0, character: 0 }
       expect(service().fileDescriptionEdits(card(), "Cards\nfor solitaire")).toEqual([
         { range: { start: top, end: top }, newText: "# Cards\n// for solitaire\n" }
@@ -137,7 +144,7 @@ describe("ScopeExplorer", () => {
     })
 
     test("`null` where no declaration starts", () => {
-      expect(service().descriptionEdits(card(), { line: 7, character: 0 }, "x")).toBeNull()
+      expect(service().descriptionEdits(card(), 8, "x")).toBeNull()
     })
   })
 })
@@ -172,7 +179,8 @@ describe("ScopeExplorer of a project importing another, compiled", () => {
 
   test("its types are from its sources:  docs and locations", () => {
     const suit = find(tree, "Card").members.find((member) => member.name === "suit")!
-    expect(explorer.details(app, suit.id)?.location?.uri).toMatch(/\/lib\/Card\.spell$/)
+    expect(find(tree, "suit").uri).toMatch(/\/lib\/Card\.spell$/)
+    expect(explorer.details(app, suit.path)?.line).toBe(9)
   })
 
   test("our types inherit from its OWN types, from its sources -- with their docs and locations", () => {
@@ -180,8 +188,9 @@ describe("ScopeExplorer of a project importing another, compiled", () => {
     const fromPile = stock.members.filter((member) => member.inheritedFrom === "Pile")
     expect(fromPile.length).toBeGreaterThan(0)
     // pointing at the members of its OWN Pile, in the imported project -- NOT the declarations-only one
-    for (const member of fromPile) expect(member.id).toMatch(/^spellRoot\/lib\/Pile\.spell\/Pile\//)
-    expect(explorer.details(app, fromPile[0]!.id)?.location?.uri).toMatch(/\/lib\/Pile\.spell$/)
+    for (const member of fromPile) expect(member.path).toMatch(/^project:lib\/file:Pile\.spell\/type:Pile\//)
+    expect(find(tree, "Stock_Pile").super).toBe("project:lib/file:Pile.spell/type:Pile")
+    expect(explorer.details(app, fromPile[0]!.path)?.line).toBeDefined()
   })
 
   test("once tracked, the imported project's files changing on disk show next time -- as the server does", async () => {
@@ -202,14 +211,26 @@ describe("ScopeExplorer of a project importing another, compiled", () => {
     await game.parse()
     // as if we had its compiled file, but not its sources
     cards.scope = undefined
-    const joker = find(explorer.tree(game), "Joker")
+    const gameTree = explorer.tree(game)
+    const joker = find(gameTree, "Joker")
     const fromCard = joker.members.filter((member) => member.inheritedFrom === "Card")
     expect(fromCard.map((member) => member.kind)).toContain("method")
     expect(fromCard.map((member) => member.name)).toContain("turn (a card) over")
-    // ids of their own, NOT the Joker's
-    for (const member of fromCard) expect(member.id).toMatch(/\/game\/import:Card\//)
+    // its imported types show below the project importing them, with paths of their own -- NOT the Joker's
+    expect(joker.super).toBe("project:game/type:Card")
+    expect(find(gameTree, "game").children.map((child) => `${child.kind} ${child.name}`)).toContain("type Card")
+    for (const member of fromCard) expect(member.path).toMatch(/^project:game\/type:Card\//)
     const method = fromCard.find((member) => member.kind === "method")!
-    expect(explorer.details(game, method.id)?.summary).toContain("method")
+    expect(explorer.details(game, method.path)).not.toBeNull()
+  })
+
+  test("its scope pack holds both projects, with the imported one's files made portable too", () => {
+    const pack = explorer.exportPack(app)
+    const projects = pack.entries.filter((entry) => LSP.scopeSegment(entry.path).kind === "project")
+    expect(projects.map((entry) => entry.path)).toEqual(["project:lib", "project:app"])
+    const json = JSON.stringify(pack)
+    expect(json).not.toContain("file://")
+    expect(json).toContain(`spell:/${encodeURI(lib.projectId)}/Card.spell`)
   })
 
   /** Project `name` in the workspace:  `spellFiles` copied from Solitaire, then `written` ones, after `imports`. */
@@ -229,6 +250,86 @@ describe("ScopeExplorer of a project importing another, compiled", () => {
     return new SP.SpellProject(`${root}:${name}`)
   }
 })
+
+/** Scope packs:  what `<spell-app>` shows of a project, with no parser -- see `LSP.ScopePack`. */
+describe("ScopeExplorer scope packs", () => {
+  const dir = mkdtempSync(resolve(tmpdir(), "spell-scope-packs-"))
+  cpSync(fixturePath("Solitaire"), resolve(dir, "Solitaire"), { recursive: true })
+  const cardPath = resolve(dir, "Solitaire/Card.spell")
+  const cardUri = pathToFileURL(cardPath).href
+  const workspace = new SpellDiskWorkspace()
+  const explorer = new LSP.ScopeExplorer(new LSP.SpellLanguageService(workspace))
+  let project: SP.SpellProject
+  let tree: LSP.ScopeNode
+  let pack: LSP.ScopePack
+  let builtIns: LSP.ScopePack
+
+  beforeAll(async () => {
+    await workspace.update(cardUri, readFileSync(cardPath, "utf8"))
+    project = workspace.fileFor(cardUri)!.project as SP.SpellProject
+    tree = explorer.tree(project)
+    pack = explorer.exportPack(project)
+    builtIns = explorer.exportBuiltIns()
+  })
+
+  test('the root\'s path is `""`, so a top-level path is just its segment, e.g. `type:Thing`', () => {
+    expect(tree.path).toBe("")
+    expect(tree.children.map((child) => child.path)).toContain("type:Thing")
+  })
+
+  test("a project's pack:  flat entries in tree order, the project first, each with its details", () => {
+    expect(pack.id).toBe(project.projectId)
+    expect(pack.entries[0]).toEqual({ path: "project:Solitaire" })
+    expect(pack.entries.every((entry) => !("children" in entry) && !("members" in entry))).toBe(true)
+    const suit = pack.entries.find((entry) => entry.path.endsWith("/property:suit"))!
+    expect(suit).toMatchObject({ line: 9, description: "card suits" })
+    // shown from its file and the compiled output, NOT kept in the pack
+    expect(suit).not.toHaveProperty("spell")
+    expect(suit).not.toHaveProperty("compiled")
+  })
+
+  test("no `file://` URIs -- a file's own is `spell:/<file.path>`, and what's in it has none", () => {
+    expect(JSON.stringify(pack)).not.toContain("file://")
+    const card = workspace.fileFor(cardUri)!
+    const file = pack.entries.find((entry) => entry.path === "project:Solitaire/file:Card.spell")!
+    expect(file.uri).toBe(`spell:/${encodeURI(card.path)}`)
+    expect(pack.entries.find((entry) => entry.path.endsWith("/property:suit"))!.uri).toBeUndefined()
+  })
+
+  test("the built-ins' pack plus the project's build the tree the explorer shows -- all but its file URIs", () => {
+    expect(builtIns.entries.map((entry) => entry.path)).toEqual(
+      expect.arrayContaining(["type:Thing", "type:List", "type:App"])
+    )
+    const { tree: built, details } = LSP.scopeTreeFromPacks([builtIns, pack])
+    expect(withoutUris(built)).toEqual(withoutUris(tree))
+    expect(details.get(find(tree, "Card").path)?.description).toMatch(/^## definition of a Card/)
+  })
+
+  test("a pack's script leaves the pack on `SPELL_SCOPES`, by the script's own URL", () => {
+    expect(runPackScript(LSP.scopePackScript(pack), "https://example.com/Solitaire.scopes.js")).toEqual(pack)
+  })
+
+  test("`src/spellCore/spellCore.scopes.js` -- which may be hand-edited -- has every built-in type", () => {
+    const path = fileURLToPath(new URL("../spellCore/spellCore.scopes.js", import.meta.url))
+    const shipped = runPackScript(readFileSync(path, "utf8"), "spellCore.scopes.js")
+    expect(shipped.entries.map((entry) => entry.path)).toEqual(
+      expect.arrayContaining(builtIns.entries.map((entry) => entry.path))
+    )
+  })
+})
+
+/** `node` and everything below it, with no `uri`s -- which a pack makes portable. */
+function withoutUris(node: LSP.ScopeNode): LSP.ScopeNode {
+  const { uri: _uri, children, ...rest } = node
+  return { ...rest, children: children.map(withoutUris) }
+}
+
+/** Run pack `script` as a page would load it from `src`, and answer the pack it leaves. */
+function runPackScript(script: string, src: string): LSP.ScopePack {
+  const page: Record<string, unknown> = { document: { currentScript: { src } } }
+  runInNewContext(script, page)
+  return (page[LSP.SCOPE_PACK_GLOBAL] as Record<string, LSP.ScopePack>)[src]!
+}
 
 /** `node` and its descendants, `depth` levels down, as indented `kind name (detail)` lines. */
 function outline(node: LSP.ScopeNode, depth: number, indent = ""): string {

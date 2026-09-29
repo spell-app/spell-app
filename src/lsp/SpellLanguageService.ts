@@ -566,15 +566,15 @@ export class SpellLanguageService {
   }
 
   /**
-   * Edits making `text` the docstring of what the statement starting at `position` in `file` declares -- see
+   * Edits making `text` the docstring of what the statement starting on `line` of `file`, from 1, declares -- see
    * `SP.Block.getDocComments()`.  `null` if no declaring statement starts there.
    * - `text` is markdown, as `docMarkdown()` gives:  a `#`, `##` ... line becomes that heading comment,
    *   any other line a `// ` comment -- indented like the statement.  Empty `text` removes the docstring.
    * - Replaces the comment lines above it -- a heading directly above included -- or else the comment at the end
    *   of its line.  With neither, adds lines directly above it.
    */
-  descriptionEdits(file: SP.SpellFile, position: Position, text: string): TextEdit[] | null {
-    const found = file.match && this.declarationStartingAt(file, this.offsetAt(file, position))
+  descriptionEdits(file: SP.SpellFile, line: number, text: string): TextEdit[] | null {
+    const found = file.match && this.declarationStartingOn(file, line)
     if (!found) return null
     const { statement, doc } = found
     const lineStart = { line: this.positionAt(file, statement.start!).line, character: 0 }
@@ -652,20 +652,26 @@ export class SpellLanguageService {
   }
 
   /**
-   * Statement starting at `offset` in `file` that declares something, and its docstring if any.
+   * Statement starting on `line` of `file`, from 1, that declares something -- and its docstring if any.
    * - Asks each block for its docstrings, as they're per block -- see `SP.Block.getDocComments()`.
+   * - A line holds one statement, so its line is enough to find it.
    */
-  private declarationStartingAt(
+  private declarationStartingOn(
     file: SP.SpellFile,
-    offset: number
+    line: number
   ): { statement: P.Match; doc?: SP.DocComment } | undefined {
     let found: { statement: P.Match; doc?: SP.DocComment } | undefined
     this.walk(file.match!, (match) => {
       if (found || !(match.rule instanceof SP.Block)) return
       const docs = match.rule.getDocComments(match)
-      for (const line of match.matched) {
-        const statement = line instanceof P.Match ? line.data.statement : undefined
-        if (statement instanceof P.Match && statement.start === offset && statement.rule.getDeclaration(statement)) {
+      for (const blockLine of match.matched) {
+        const statement = blockLine instanceof P.Match ? blockLine.data.statement : undefined
+        if (
+          statement instanceof P.Match &&
+          statement.start !== undefined &&
+          this.positionAt(file, statement.start).line === line - 1 &&
+          statement.rule.getDeclaration(statement)
+        ) {
           found = { statement, doc: docs.get(statement) }
         }
       }

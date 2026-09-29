@@ -61,7 +61,9 @@ export const Actions = {
   showHelp: (props: ActionProps) => (
     <Action title="Help" icon="help circle" onClick={() => editor.showHelp()} {...props} />
   ),
-  logIn: (props: ActionProps) => <Action title="Log In" icon="user outline" onClick={() => editor.logIn()} {...props} />,
+  logIn: (props: ActionProps) => (
+    <Action title="Log In" icon="user outline" onClick={() => editor.logIn()} {...props} />
+  ),
 
   ////////////////
   // ## App actions -- work on `editor.project`, create according to `editor.projectRoot`
@@ -70,7 +72,12 @@ export const Actions = {
     <Action title={`Create ${editor.appType}`} icon="pencil" onClick={() => editor.createApp()} {...props} />
   )),
   duplicateApp: view((props: ActionProps) => (
-    <Action title={`Duplicate ${editor.appType}`} icon="clone outline" onClick={() => editor.duplicateApp()} {...props} />
+    <Action
+      title={`Duplicate ${editor.appType}`}
+      icon="clone outline"
+      onClick={() => editor.duplicateApp()}
+      {...props}
+    />
   )),
   renameApp: view((props: ActionProps) => (
     <Action title={`Rename ${editor.appType}`} icon="edit outline" onClick={() => editor.renameApp()} {...props} />

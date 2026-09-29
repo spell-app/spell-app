@@ -161,8 +161,9 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   (`src/server/project-utils.ts`), from `environment.systemFilesRoot` / `userFilesRoot` / `testFilesRoot` and each
   root's `folder` (default its `domain`).  A root with `devOnly` is listed in the app's UI in dev only.
 - A root may have an `alias`, a short way to write its paths:  `@library/cards` ~== `@system:library:cards`,
-  `@test/FizzBuzz/FizzBuzz.spell` ~== `@test:fixtures:FizzBuzz/FizzBuzz.spell`.  `SpellLocation` expands it first
-  (`SpellSetup.expandAlias()`), so ids are always stored in full.
+  `@test/FizzBuzz/FizzBuzz.spell` ~== `@test:fixtures:FizzBuzz/FizzBuzz.spell`,
+  `@examples/Solitaire` ~== `@system:examples:Solitaire`, `@guides/<Guide>` ~== `@system:guides:<Guide>`.
+  `SpellLocation` expands it first (`SpellSetup.expandAlias()`), so ids are always stored in full.
 - A project's `<Project>.compiled.js` and a fixture's `<Project>.snapshot.js` are never its own files:  the
   server leaves them out of its index (`isManifestFile()`), which would otherwise add them to `project.json`.
 - `SpellProject` (`src/languages/spell/SpellProject.ts`):  files in `project.json` order,

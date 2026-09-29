@@ -13,15 +13,17 @@ import "./TypeExplorer.css"
  * ### `<TypeExplorer>`
  * Live scope tree a project parses in:  "Scopes" as a tree, and "Details" of the selected node beside it.
  * - `tree` is `LSP.ScopeNode`s, from the language server's `spell/scopes` -- or the app's in-process service.
- * - Keeps what's selected and open by node `id` as new trees come in, e.g. after each run.
+ * - Keeps what's selected and open by node `path` as new trees come in, e.g. after each run.
  * - Selecting a node, e.g. from the breadcrumbs, opens the tree down to it.
  * - Details sections are closed to start, and open or closed alike for every node.
  * - Remembers all that as a `UI.TypeExplorerState` through `state` + `onStateChange`, e.g. in the VS Code runner's
  *   `settings.json5` -- else in `localStorage`.
  * - A node's details are asked for with `loadDetails()` when first shown, and kept until a new `tree` comes.
+ * - `readonly`, e.g. embedded in a page by `<spell-app>`:  descriptions can't be edited, whatever `onSaveDescription`.
  ****************/
 export function TypeExplorer(props: TypeExplorerProps) {
-  const { tree, onOpen, onSaveDescription, loadDetails, onRefresh, state: initial, onStateChange } = props
+  const { tree, onOpen, loadDetails, onRefresh, state: initial, onStateChange } = props
+  const onSaveDescription = props.readonly ? undefined : props.onSaveDescription
   const [state, setState] = React.useState<TypeExplorerState>(() => initial ?? loadState())
   // details per tree -- a new tree, a new cache;  late answers for an old one land in its old cache, harmlessly
   const [detailsByTree] = React.useState(() => new WeakMap<ScopeNode, Map<string, LoadedDetails>>())
@@ -32,8 +34,8 @@ export function TypeExplorer(props: TypeExplorerProps) {
   if (!details) detailsByTree.set(tree, (details = new Map()))
   const open = new Set(state.open ?? defaultOpen(tree))
   const openSections = new Set(state.openSections)
-  const path = (state.selected && pathTo(tree, state.selected)) || pathTo(tree, lastChild(tree).id)!
-  const selected = path.at(-1)!
+  const trail = (state.selected !== undefined && trailTo(tree, state.selected)) || trailTo(tree, lastChild(tree).path)!
+  const selected = trail.at(-1)!
   return (
     <div className="TypeExplorer">
       <div className="ScopesPane">
@@ -51,16 +53,16 @@ export function TypeExplorer(props: TypeExplorerProps) {
         <div className="PaneHeader">Details</div>
         <div className="PaneBody">
           <ScopeDetailsPane
-            key={selected.id}
+            key={selected.path}
             node={selected}
-            path={path.slice(1)}
+            trail={trail.slice(1)}
             openSections={openSections}
             onToggleSection={toggleSection}
             onSelect={select}
             onOpen={onOpen}
             onSaveDescription={onSaveDescription}
-            nodeFor={(id) => pathTo(tree, id)?.at(-1)}
-            detailsFor={(id) => details.get(id)}
+            nodeFor={(path) => trailTo(tree, path)?.at(-1)}
+            detailsFor={(path) => details.get(path)}
             load={load}
           />
         </div>
@@ -68,13 +70,13 @@ export function TypeExplorer(props: TypeExplorerProps) {
     </div>
   )
 
-  /** Ask for the details of `id`, once per tree -- they show when they come. */
-  function load(id: string) {
+  /** Ask for the details of `path`, once per tree -- they show when they come. */
+  function load(path: string) {
     const cache = details!
-    if (cache.has(id)) return
-    cache.set(id, "loading")
-    void loadDetails(id).then((loaded) => {
-      cache.set(id, loaded)
+    if (cache.has(path)) return
+    cache.set(path, "loading")
+    void loadDetails(path).then((loaded) => {
+      cache.set(path, loaded)
       setLoaded((count) => count + 1)
     })
   }
@@ -87,21 +89,21 @@ export function TypeExplorer(props: TypeExplorerProps) {
     else saveState(next)
   }
 
-  /** Open or close tree row `id`:  a node, or a group of a type's members -- see `groupId()`. */
-  function toggle(id: string) {
-    update({ open: toggled(open, id) })
+  /** Open or close tree row `path`:  a node, or a group of a type's members -- see `groupPath()`. */
+  function toggle(path: string) {
+    update({ open: toggled(open, path) })
   }
 
   /** Show `node`'s details, with the tree open down to it -- its group in its type included. */
   function select(node: ScopeNode) {
-    const path = pathTo(tree!, node.id) ?? []
-    const needed = path.slice(0, -1).map((it) => it.id)
-    path.forEach((parent, index) => {
-      const child = path[index + 1]
+    const trail = trailTo(tree!, node.path) ?? []
+    const needed = trail.slice(0, -1).map((it) => it.path)
+    trail.forEach((parent, index) => {
+      const child = trail[index + 1]
       const group = child && SCOPE_MEMBER_GROUPS.find(({ kinds }) => kinds.includes(child.kind as ScopeMemberKind))
-      if (group && parent.kind === "type") needed.push(groupId(parent, group.label))
+      if (group && parent.kind === "type") needed.push(groupPath(parent, group.label))
     })
-    update({ selected: node.id, open: [...new Set([...open, ...needed])] })
+    update({ selected: node.path, open: [...new Set([...open, ...needed])] })
   }
 
   /** Open or close details section `title`, for every node. */
@@ -118,11 +120,13 @@ export type TypeExplorerProps = {
   onOpen: (href: string) => void
   /** Save `text` as the docstring at `at` -- descriptions are read-only without it. */
   onSaveDescription?: (at: DescriptionAt, text: string) => void
+  /** Nothing can be edited, e.g. descriptions -- ignores `onSaveDescription`. */
+  readonly?: boolean
   /**
-   * Details of node or member `id` of `tree` -- `null` if there are none.
+   * Details of node or member `path` of `tree` -- `null` if there are none.
    * - e.g. the language server's `spell/scopeDetails`, or the app's in-process `LSP.ScopeExplorer.details()`.
    */
-  loadDetails: (id: string) => Promise<ScopeDetails | null>
+  loadDetails: (path: string) => Promise<ScopeDetails | null>
   /** Ask for a fresh `tree` -- shows a Refresh button when given.  A new tree's details are fetched afresh too. */
   onRefresh?: () => void
   /** What to start with, as last remembered.  Default:  as saved in `localStorage`. */
@@ -141,7 +145,7 @@ export type TypeExplorerProps = {
  ****************/
 function ScopeTreeNode({ node, depth, open, selected, onToggle, onSelect }: ScopeTreeNodeProps) {
   const isRoot = node.kind === "root"
-  const isOpen = isRoot || open.has(node.id)
+  const isOpen = isRoot || open.has(node.path)
   const isSelected = node === selected
   const ref = React.useRef<HTMLDivElement>(null)
   React.useEffect(() => {
@@ -155,7 +159,7 @@ function ScopeTreeNode({ node, depth, open, selected, onToggle, onSelect }: Scop
         className={classnames("ScopeTreeNode", node.kind, { selected: isSelected })}
         depth={depth}
         isOpen={node.children.length && !isRoot ? isOpen : undefined}
-        onToggle={() => !isRoot && onToggle(node.id)}
+        onToggle={() => !isRoot && onToggle(node.path)}
         onClick={() => onSelect(node)}
       >
         <span className="label">
@@ -166,29 +170,31 @@ function ScopeTreeNode({ node, depth, open, selected, onToggle, onSelect }: Scop
       </TreeRow>
       {isOpen &&
         node.kind !== "type" &&
-        node.children.map((child) => <ScopeTreeNode key={child.id} node={child} {...childProps} />)}
+        node.children.map((child) => <ScopeTreeNode key={child.path} node={child} {...childProps} />)}
       {isOpen &&
         node.kind === "type" &&
         SCOPE_MEMBER_GROUPS.map(({ kinds, label }) => {
           const members = node.children.filter((child) => kinds.includes(child.kind as ScopeMemberKind))
           if (!members.length) return null
-          const id = groupId(node, label)
-          const isGroupOpen = open.has(id)
+          const path = groupPath(node, label)
+          const isGroupOpen = open.has(path)
           return (
-            <React.Fragment key={id}>
+            <React.Fragment key={path}>
               <TreeRow
                 className="ScopeTreeGroup"
                 depth={depth + 1}
                 isOpen={isGroupOpen}
-                onToggle={() => onToggle(id)}
-                onClick={() => onToggle(id)}
+                onToggle={() => onToggle(path)}
+                onClick={() => onToggle(path)}
               >
                 <span className="label">
                   {label} <span className="detail">{members.length}</span>
                 </span>
               </TreeRow>
               {isGroupOpen &&
-                members.map((child) => <ScopeTreeNode key={child.id} node={child} {...childProps} depth={depth + 2} />)}
+                members.map((child) => (
+                  <ScopeTreeNode key={child.path} node={child} {...childProps} depth={depth + 2} />
+                ))}
             </React.Fragment>
           )
         })}
@@ -202,12 +208,12 @@ type ScopeTreeNodeProps = {
   node: ScopeNode
   /** Nesting depth, for indenting. */
   depth: number
-  /** Ids of the open rows. */
+  /** Paths of the open rows. */
   open: Set<string>
   /** Selected node. */
   selected: ScopeNode
-  /** Open / close row `id`. */
-  onToggle: (id: string) => void
+  /** Open / close row `path`. */
+  onToggle: (path: string) => void
   /** Select `node`. */
   onSelect: (node: ScopeNode) => void
 }
@@ -258,17 +264,21 @@ const INDENT_WIDTH = 14
 /** Space left of every row's arrow, in px -- part of the arrow's click area. */
 const ROW_PADDING = 8
 
-/** Tree row id of group `label` of `type`'s members, e.g. its "Properties". */
-function groupId(type: ScopeNode, label: string): string {
-  return `${type.id}#${label}`
+/** Tree row path of group `label` of `type`'s members, e.g. its "Properties". */
+function groupPath(type: ScopeNode, label: string): string {
+  return `${type.path}#${label}`
 }
 
-/** Nodes from `tree` down to node `id`, both included -- `undefined` if it isn't there. */
-function pathTo(tree: ScopeNode, id: string): ScopeNode[] | undefined {
-  if (tree.id === id) return [tree]
+/**
+ * Nodes from `tree` down to node `path`, both included -- `undefined` if it isn't there.
+ * - Follows `path`'s segments down:  a node's path starts with its parent's.
+ */
+function trailTo(tree: ScopeNode, path: string): ScopeNode[] | undefined {
+  if (tree.path === path) return [tree]
   for (const child of tree.children) {
-    const path = pathTo(child, id)
-    if (path) return [tree, ...path]
+    if (path !== child.path && !path.startsWith(`${child.path}/`)) continue
+    const trail = trailTo(child, path)
+    if (trail) return [tree, ...trail]
   }
   return undefined
 }
@@ -280,7 +290,7 @@ function lastChild(tree: ScopeNode): ScopeNode {
 
 /** Open to start:  the project -- the root always is. */
 function defaultOpen(tree: ScopeNode): string[] {
-  return [lastChild(tree).id]
+  return [lastChild(tree).path]
 }
 
 /** `localStorage` key for a `<TypeExplorer>`'s state, when nobody else remembers it. */

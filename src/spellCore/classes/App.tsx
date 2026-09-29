@@ -12,13 +12,13 @@ import { Thing } from "./Thing"
  */
 export class App extends Thing {
   /**
-   * Mount this app's `.Component` into the DOM, creating `spellCore.REACT_APP_ROOT_ID` container
-   * `div` if it doesn't already exist.
+   * Mount this app's `.Component` into the DOM:  into `spellCore.appElement()`, creating a
+   * `spellCore.REACT_APP_ROOT_ID` container `div` if there's none.
    * - Compiles from `start the game` -- see `draw.ts` (a method call on the app instance, not a global).
-   * - SIDE EFFECT: appends a `div` to `document.body` the first time it's called.
+   * - SIDE EFFECT: appends a `div` to `document.body` the first time it's called, if the host set no `appRoot`.
    */
   start(): void {
-    let element = document.getElementById(spellCore.REACT_APP_ROOT_ID)
+    let element = spellCore.appElement()
     if (!element) {
       element = document.createElement("div")
       element.id = spellCore.REACT_APP_ROOT_ID

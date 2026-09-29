@@ -1,9 +1,10 @@
+import { writeFileSync } from "fs"
 import { basename } from "path"
 import { fileURLToPath, pathToFileURL } from "url"
 
 import { SP } from "~/languages/spell"
 import { installDiskFetch, locationForDiskPath } from "~/server/disk-fetch"
-import type { LSP } from "~/lsp"
+import { LSP } from "~/lsp"
 
 /**
  * The stdio language server's view of the editor's files, hosted on `SP.SpellProject` / `SP.SpellFile` loading from disk.
@@ -115,6 +116,24 @@ export class SpellDiskWorkspace implements LSP.FileAddresses {
    */
   track(project: SP.SpellProject): Promise<void> {
     return this.parseOnce(project)
+  }
+
+  ////////////////
+  // ## Scope packs
+  ////////////////
+
+  /**
+   * Write `project`'s scope pack, `<Project>.scopes.js`, beside its compiled output -- see `LSP.ScopePack`.
+   * - Parses -- and tracks -- each project it imports compiled first, to show their sources.
+   * - Returns the path written.
+   */
+  async writeScopes(project: SP.SpellProject, explorer: LSP.ScopeExplorer): Promise<string> {
+    await this.track(project)
+    for (const imported of LSP.ScopeExplorer.importedProjects(project)) await this.track(imported)
+    const compiled = project.outputFile.location.serverPath
+    const path = compiled.slice(0, -SP.COMPILED_JS_SUFFIX.length) + SP.SCOPES_JS_SUFFIX
+    writeFileSync(path, LSP.scopePackScript(explorer.exportPack(project)))
+    return path
   }
 
   /** Parse `project` from scratch if we haven't yet.  Resolves once that's done, successfully or not. */

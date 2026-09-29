@@ -115,3 +115,6 @@ Log of things that slowed down development. Date · symptom · fix · project.
   `lightningcss`'s `transform()` + `browserslistToTargets()` directly instead of shelling out; had to run it
   from inside the project root (not the scratchpad dir) so Node's module resolution could find `node_modules`.
   · spell/parser
+- 2026-09-29 · `yarn ts` printed `<< TSC PASSED` right after a real `error TS2552` -- the script chains its
+  steps with `;`, so it prints "passed" whatever `tsc` exits with. · Read `tsc`'s output (or check `$?` of
+  `yarn tsc`), not the banner.  Fixed:  `ts`, `lint`, `lint:fix`, `format`, `test` and `review` now chain with `&&`. · spell/parser

@@ -1,0 +1,4 @@
+/* Program output:  lines scroll within the pane -- see `.ConsoleViewer` in `ConsoleLines.css`. */
+.RunnerConsole {
+  min-height: 0;
+}

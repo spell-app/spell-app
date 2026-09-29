@@ -38,7 +38,8 @@ export const SpellSetup = {
       Type: "Example",
       type: "example",
       description: "Example projects",
-      icon: "app store ios"
+      icon: "app store ios",
+      alias: "@examples"
     } satisfies SP.ProjectRootSpec,
     "@system:guides": {
       path: "@system:guides",
@@ -48,7 +49,8 @@ export const SpellSetup = {
       Type: "Guide",
       type: "guide",
       description: "Usage guides",
-      icon: "newspaper outline"
+      icon: "newspaper outline",
+      alias: "@guides"
     } satisfies SP.ProjectRootSpec,
     "@system:library": {
       path: "@system:library",

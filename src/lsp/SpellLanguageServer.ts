@@ -173,13 +173,14 @@ export class SpellLanguageServer {
     )
     connection.onRequest("spell/compileProject", ({ uri }: { uri: string }) => this.compileProject(uri))
     connection.onRequest("spell/scopes", ({ uri }: { uri: string }) => this.scopeTree(uri))
-    connection.onRequest("spell/scopeDetails", ({ uri, id }: { uri: string; id: string }) =>
-      this.answer(uri, null, (file) => this.scopes.details(file.project, id))
+    connection.onRequest("spell/scopeDetails", ({ uri, path }: { uri: string; path: string }) =>
+      this.answer(uri, null, (file) => this.scopes.details(file.project, path))
     )
     // an edit for the editor to apply, NOT a change to the file:  so it's undoable, and the editor stays in charge
-    connection.onRequest("spell/setDescription", ({ uri, position, file: ofFile, text }: LSP.SetDescriptionParams) =>
+    connection.onRequest("spell/setDescription", ({ uri, line, file: ofFile, text }: LSP.SetDescriptionParams) =>
       this.answer(uri, null, (file) => {
-        const edits = ofFile ? service.fileDescriptionEdits(file, text) : service.descriptionEdits(file, position, text)
+        if (!ofFile && line === undefined) return null
+        const edits = ofFile ? service.fileDescriptionEdits(file, text) : service.descriptionEdits(file, line!, text)
         return edits && { changes: { [uri]: edits } }
       })
     )
@@ -220,6 +221,8 @@ export class SpellLanguageServer {
    * - Answers `{ ok }`:  whether it compiled cleanly.  If not, nothing is sent, so a running app keeps running.
    * - NOTE: a line which doesn't parse does NOT stop `compile()` -- it compiles to a `PARSE ERROR` comment.
    *   So "cleanly" means no parse errors in any of the project's files, too.
+   * - Compiled cleanly, it writes the project's scope pack too, `<Project>.scopes.js` -- so pages running it
+   *   with no parser show the same Type Explorer.  See `SpellDiskWorkspace.writeScopes()`.
    */
   private compileProject(uri: string): Promise<{ ok: boolean }> {
     return this.inQueue(uri, { ok: false }, async (file) => {
@@ -234,6 +237,7 @@ export class SpellLanguageServer {
       const errors = this.service.projectInfo(file).files.reduce((sum, { errors }) => sum + errors, 0)
       const ok = !!compiled && !errors
       if (ok) {
+        await this.workspace.writeScopes(project, this.scopes).catch((error: unknown) => this.logError(error))
         // What it WROTE, not just `compiled`:  so it matches the file, which editors may watch too.
         const params: LSP.ProjectCompiled = {
           project: project.projectId,

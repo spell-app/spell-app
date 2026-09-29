@@ -9,6 +9,7 @@
   "ignorePatterns": [
     "**/.output.js",
     "**/*.md",
+    "**/*.scopes.js",
     "build/**",
     "dist/**",
     ".cache/**",

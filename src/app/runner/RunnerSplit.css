@@ -1,0 +1,32 @@
+/* Top pane, bar, bottom pane -- each pane's share set inline, from the split. */
+.RunnerSplit {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+
+  & > .RunnerSplitTop,
+  & > .RunnerSplitBottom {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Bar you drag:  a few px to grab, drawn as a line. */
+  & > .RunnerSplitter {
+    flex: 0 0 5px;
+    cursor: row-resize;
+    touch-action: none;
+    background: linear-gradient(
+      transparent 2px,
+      rgba(34, 36, 38, 0.25) 2px,
+      rgba(34, 36, 38, 0.25) 3px,
+      transparent 3px
+    );
+
+    &:hover,
+    &:active {
+      background: rgba(33, 133, 208, 0.5);
+    }
+  }
+}

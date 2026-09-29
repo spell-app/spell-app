@@ -92,6 +92,8 @@ export const uiMethods = defineSpellCoreModule({
    * - Compiles from a bare (unquoted) CSS text literal, e.g. a spell `.css` file's contents; newlines
    *   in `css` arrive escaped as `¬` (see `css` rule in `UI.ts`), since they survived being embedded
    *   in a backtick template literal -- unmunged back to `\n` here before use.
+   * - Goes in `spellCore.domRoot()`:  the app's shadow root if it's in one, so its styles stay inside it --
+   *   else `document`'s `<head>`.
    */
   installStyles(name = "anonymous-css", safeCSS = ""): void {
     // UN-munge `¬` back to return character
@@ -102,12 +104,13 @@ export const uiMethods = defineSpellCoreModule({
     newElement.id = id
     newElement.type = "text/css"
     newElement.appendChild(document.createTextNode(css))
-    const oldElement = document.getElementById(id)
+    const root = spellCore.domRoot()
+    const oldElement = root.getElementById(id)
     if (oldElement) {
       oldElement.parentNode!.replaceChild(newElement, oldElement)
     } else {
-      const head = (document.getElementsByTagName("head")[0] || document.getElementsByTagName("body")[0])!
-      head.appendChild(newElement)
+      const parent = root === document ? (document.head ?? document.body) : root
+      parent.appendChild(newElement)
     }
   }
 })

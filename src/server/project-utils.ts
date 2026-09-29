@@ -104,9 +104,11 @@ export const request_getProjectList = respondWithJSON(async (request) => {
  */
 const manifestExtensions = [".spell", ".css", ".js", ".jsx"]
 function isManifestFile(name: string) {
-  // NOT a project's compiled output, e.g. `Solitaire.compiled.js`, nor a test fixture's snapshot of it --
-  // `getIndex()` would make it an import
-  if (name.endsWith(SP.COMPILED_JS_SUFFIX) || name.endsWith(SP.SNAPSHOT_JS_SUFFIX)) return false
+  // NOT a project's compiled output, e.g. `Solitaire.compiled.js`, nor a test fixture's snapshot of it,
+  // nor its scope pack -- `getIndex()` would make it an import
+  if ([SP.COMPILED_JS_SUFFIX, SP.SNAPSHOT_JS_SUFFIX, SP.SCOPES_JS_SUFFIX].some((suffix) => name.endsWith(suffix))) {
+    return false
+  }
   return manifestExtensions.some((extension) => name.endsWith(extension))
 }
 
@@ -276,6 +278,23 @@ export const request_getCompiled = async (request: Request, response: Response) 
     await responseUtils.sendFile(response, file.serverPath)
   } catch (error) {
     // Can't send an error body once the file has started streaming -- the client sees a truncated response.
+    if (response.headersSent) return
+    responseUtils.sendError(response, 500, error as Error)
+  }
+}
+
+/**
+ * Send project `projectId`'s scope pack, `<Project>.scopes.js`, as javascript -- 404 if it hasn't been written.
+ * - A classic script, NOT a module:  `<spell-app>` loads it with a `<script>` tag.  See `LSP.ScopePack`.
+ */
+export const request_getScopes = async (request: Request, response: Response) => {
+  const { projectId } = request.params
+  try {
+    const location = SP.SpellLocation.getProjectLocation(projectId)
+    const file = SP.SpellLocation.getFileLocation(projectId, `${location.projectName}${SP.SCOPES_JS_SUFFIX}`)
+    response.type("text/javascript")
+    await responseUtils.sendFile(response, file.serverPath)
+  } catch (error) {
     if (response.headersSent) return
     responseUtils.sendError(response, 500, error as Error)
   }

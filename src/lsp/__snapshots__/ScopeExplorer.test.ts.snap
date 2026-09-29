@@ -17,7 +17,7 @@ exports[`ScopeExplorer > a node lists the rules its statement made 1`] = `
 }
 `;
 
-exports[`ScopeExplorer > a type's members:  properties, actions, then each enumeration and its constants -- each with hover markdown 1`] = `
+exports[`ScopeExplorer > a type's members:  properties, actions, then each enumeration and its constants -- each with its line 1`] = `
 [
   "property color",
   "property direction",

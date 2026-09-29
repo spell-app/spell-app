@@ -11,6 +11,7 @@ import React from "react"
 import { view } from "@risingstack/react-easy-state"
 
 import { UIError } from "~/util"
+import { spellCore } from "~/spellCore"
 
 import type { Form } from "./Form"
 
@@ -73,9 +74,12 @@ export const FieldWrapper = view(
       }
     }
 
-    /** Pointer to HTML `<input>` etc element. */
+    /**
+     * Pointer to HTML `<input>` etc element.
+     * - Looked up in `spellCore.domRoot()`, NOT `document`:  a spell app may live in a shadow root.
+     */
     getHtmlElement(): (HTMLElement & { validationMessage?: string }) | null {
-      return document.getElementById(this.id) as (HTMLElement & { validationMessage?: string }) | null
+      return spellCore.domRoot().getElementById(this.id) as (HTMLElement & { validationMessage?: string }) | null
     }
 
     /**

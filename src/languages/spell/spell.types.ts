@@ -42,6 +42,13 @@ export const COMPILED_JS_SUFFIX = ".compiled.js"
 export const SNAPSHOT_JS_SUFFIX = ".snapshot.js"
 
 /**
+ * End of a project's scope pack file's name, e.g. `Solitaire.scopes.js` -- what its Type Explorer shows, for pages
+ * which run it without the parser, e.g. `<spell-app>`.  See `LSP.ScopePack`.
+ * - NEVER one of a project's own files:  the server leaves it out of the manifest, as `COMPILED_JS_SUFFIX`.
+ */
+export const SCOPES_JS_SUFFIX = ".scopes.js"
+
+/**
  * Start of the ES module specifier for another project's compiled JS, e.g. `@spell/project/@system:library:cards`.
  * - The import map maps it onto the server's `/api/projects/compiled/<projectId>` -- see `vite.importMap.ts`.
  */

@@ -203,6 +203,8 @@ describe("SpellLocation", () => {
     test("a project alone", () => {
       expect(new SpellLocation("@test/FizzBuzz").path).toBe("@test:fixtures:FizzBuzz")
       expect(new SpellLocation("@library/cards").path).toBe("@system:library:cards")
+      expect(new SpellLocation("@examples/Solitaire").path).toBe("@system:examples:Solitaire")
+      expect(new SpellLocation("@guides/Basics").path).toBe("@system:guides:Basics")
     })
     test("an unknown alias is just an invalid path", () => {
       expect(() => new SpellLocation("@nope/FizzBuzz")).toThrow()

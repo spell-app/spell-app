@@ -69,7 +69,7 @@ export class RunnerPanel {
         })
       } else if (message.type === "restart") void this.compile()
       else if (message.type === "saveSettings") this.saveSettings(message.settings)
-      else if (message.type === "details") void this.sendDetails(message.id)
+      else if (message.type === "details") void this.sendDetails(message.path)
       else if (message.type === "refreshScopes") void this.sendScopes()
       else if (message.type === "open") void RunnerPanel.open(message.href)
       else if (message.type === "setDescription") void this.setDescription(message)
@@ -179,11 +179,11 @@ export class RunnerPanel {
   }
 
   /**
-   * Make `text` the docstring of what's declared at `position` in `uri` -- then send fresh scopes to show it.
+   * Make `text` the docstring of what's declared on `line` of `uri` -- then send fresh scopes to show it.
    * - The server works out the edit (`spell/setDescription`);  WE apply it, so it's in the editor, undoable, unsaved.
    */
-  async setDescription({ uri, position, file, text }: SetDescriptionParams): Promise<void> {
-    const edit = await this.client.sendRequest<object | null>("spell/setDescription", { uri, position, file, text })
+  async setDescription({ uri, line, file, text }: SetDescriptionParams): Promise<void> {
+    const edit = await this.client.sendRequest<object | null>("spell/setDescription", { uri, line, file, text })
     if (!edit) {
       void vscode.window.showWarningMessage("Spell:  couldn't find that declaration to describe -- has it moved?")
       return
@@ -227,10 +227,10 @@ export class RunnerPanel {
     }
   }
 
-  /** Send the webview the details of its Type Explorer's node or member `id`, from the server's `spell/scopeDetails`. */
-  async sendDetails(id: string): Promise<void> {
-    const details = await this.client.sendRequest<unknown>("spell/scopeDetails", { uri: this.uri, id })
-    this.post({ type: "details", id, details })
+  /** Send the webview the details of its Type Explorer's node or member `path`, from the server's `spell/scopeDetails`. */
+  async sendDetails(path: string): Promise<void> {
+    const details = await this.client.sendRequest<unknown>("spell/scopeDetails", { uri: this.uri, path })
+    this.post({ type: "details", path, details })
   }
 
   /** Send `message` to the webview. */
@@ -337,7 +337,7 @@ type ToRunnerMessage =
   | { type: "run"; compiled: string }
   | { type: "scopes"; tree: unknown }
   | { type: "settings"; settings: ProjectSettings }
-  | { type: "details"; id: string; details: unknown }
+  | { type: "details"; path: string; details: unknown }
 
 /** Message from the runner webview, as `FromRunnerMessage` in `src/app/runner/runner.types.ts`. */
 type FromRunnerMessage =
@@ -346,11 +346,11 @@ type FromRunnerMessage =
   | { type: "open"; href: string }
   | ({ type: "setDescription" } & SetDescriptionParams)
   | { type: "saveSettings"; settings: ProjectSettings }
-  | { type: "details"; id: string }
+  | { type: "details"; path: string }
   | { type: "refreshScopes" }
 
 /** Params of `spell/setDescription`, as `LSP.SetDescriptionParams` -- `file` for the file's own docstring. */
-type SetDescriptionParams = { uri: string; position: unknown; file?: boolean; text: string }
+type SetDescriptionParams = { uri: string; line?: number; file?: boolean; text: string }
 
 /**
  * A project's `settings.json5`, as `ProjectSettings` in `src/app/runner/runner.types.ts` -- its top-level sections,

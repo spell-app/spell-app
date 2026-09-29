@@ -1,0 +1,18 @@
+/* A pane's toolbar, then what it's showing, filling the rest. */
+.RunnerPane {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+
+  & > .RunnerPaneToolbar {
+    flex: 0 0 auto;
+    border-radius: 0 !important;
+    margin: 0 !important;
+  }
+
+  & > * {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+}

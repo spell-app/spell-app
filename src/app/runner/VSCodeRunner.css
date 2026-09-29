@@ -22,39 +22,6 @@ body,
   }
 }
 
-/* Top pane, bar, bottom pane -- each pane's share set inline, from the split. */
-.VSCodeRunnerSplit {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-
-  & > .VSCodeRunnerSplitTop,
-  & > .VSCodeRunnerSplitBottom {
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* Bar you drag:  a few px to grab, drawn as a line. */
-  & > .VSCodeRunnerSplitter {
-    flex: 0 0 5px;
-    cursor: row-resize;
-    touch-action: none;
-    background: linear-gradient(
-      transparent 2px,
-      rgba(34, 36, 38, 0.25) 2px,
-      rgba(34, 36, 38, 0.25) 3px,
-      transparent 3px
-    );
-
-    &:hover,
-    &:active {
-      background: rgba(33, 133, 208, 0.5);
-    }
-  }
-}
-
 /* The app, filling its pane -- hidden when the program has none, but kept, so its mount point never changes. */
 .VSCodeRunnerApp {
   flex: 1 1 auto;
@@ -64,25 +31,5 @@ body,
 
   &.hidden {
     display: none;
-  }
-}
-
-/* A pane's toolbar, then what it's showing, filling the rest. */
-.VSCodeRunnerPane {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-
-  & > .VSCodeRunnerPaneToolbar {
-    flex: 0 0 auto;
-    border-radius: 0 !important;
-    margin: 0 !important;
-  }
-
-  & > .VSCodeRunnerConsole,
-  & > .TypeExplorer {
-    flex: 1 1 auto;
-    min-height: 0;
   }
 }

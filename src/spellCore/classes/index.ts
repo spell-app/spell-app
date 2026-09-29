@@ -29,6 +29,27 @@ export const classesMethods = defineSpellCoreModule({
   REACT_APP_ROOT_ID: "spell-app-root",
 
   /**
+   * Element `App.start()` mounts into, if the host says -- e.g. `<spell-app>`'s, inside its shadow root.
+   * - Unset:  `#spell-app-root` in `document`, see `appElement()`.
+   * - Also decides where `installStyles()` puts a project's styles -- see `domRoot()`.
+   */
+  appRoot: undefined as HTMLElement | undefined,
+
+  /** Element the app mounts into:  `appRoot`, else `#spell-app-root` in `document` -- `null` if neither. */
+  appElement(): HTMLElement | null {
+    return spellCore.appRoot ?? document.getElementById(spellCore.REACT_APP_ROOT_ID)
+  },
+
+  /**
+   * Document or shadow root the app lives in:  `appRoot`'s shadow root, if it's in one, else `document`.
+   * - Look elements up and add styles HERE, NOT on `document` -- which can't see into a shadow root.
+   */
+  domRoot(): Document | ShadowRoot {
+    const root = spellCore.appRoot?.getRootNode()
+    return typeof ShadowRoot !== "undefined" && root instanceof ShadowRoot ? root : document
+  },
+
+  /**
    * Safer `drawThing()` routine -- returns `null` instead of throwing when `drawable` doesn't
    * implement `.Component` (e.g. wasn't a `Thing`/`Drawable`), unlike calling `.Component` directly.
    * - Compiles from `draw the card` -- see `draw.ts`.

@@ -94,7 +94,7 @@ export async function sendFile(
   { defaultValue, ...options }: ExtendedSendFileOptions = {}
 ) {
   const fileExists = await fileUtils.pathExists(path)
-  console.warn(path, fileExists, options)
+  // console.warn(path, fileExists, options)
   if (fileExists) return response.sendFile(path, options)
   if (defaultValue !== undefined) return response.send(defaultValue)
   return sendError(response, 404, new Error(`File not found: '${path}'`))

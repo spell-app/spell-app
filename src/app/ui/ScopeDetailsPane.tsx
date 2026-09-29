@@ -8,7 +8,10 @@ import {
   type ScopeDetails,
   type ScopeMember,
   type ScopeNode,
-  type ScopeNodeKind
+  type ScopeNodeKind,
+  type SetDescriptionParams,
+  firstLine,
+  scopeSegment
 } from "~/lsp/lsp.types"
 import { Markdown } from "./Markdown"
 
@@ -16,14 +19,14 @@ import { Markdown } from "./Markdown"
  * ### `<ScopeDetailsPane>`
  * "Details" of scope-tree `node`:  breadcrumbs of where it is in the tree -- click one to select it -- then
  * `<DetailsBody>`.
- * - Keyed by node `id` by `<TypeExplorer>`, so what's expanded, or an edit, resets on selecting another node.
+ * - Keyed by node `path` by `<TypeExplorer>`, so what's expanded, or an edit, resets on selecting another node.
  ****************/
-export function ScopeDetailsPane({ node, path, ...props }: ScopeDetailsPaneProps) {
+export function ScopeDetailsPane({ node, trail, ...props }: ScopeDetailsPaneProps) {
   return (
     <div className="ScopeDetails">
       <div className="Breadcrumbs">
-        {path.map((crumb, index) => (
-          <React.Fragment key={crumb.id}>
+        {trail.map((crumb, index) => (
+          <React.Fragment key={crumb.path}>
             {index > 0 && <span className="divider">›</span>}
             <span className={classnames("crumb", { current: crumb === node })} onClick={() => props.onSelect(crumb)}>
               <SUI.Icon name={SCOPE_ICONS[crumb.kind]} />
@@ -32,22 +35,22 @@ export function ScopeDetailsPane({ node, path, ...props }: ScopeDetailsPaneProps
           </React.Fragment>
         ))}
       </div>
-      <DetailsBody id={node.id} members={node.members} {...props} />
+      <DetailsBody path={node.path} members={node.members} {...props} />
     </div>
   )
 }
 
 /** Props for `<ScopeDetailsPane>`. */
-export type ScopeDetailsPaneProps = Omit<DetailsBodyProps, "id" | "members"> & {
+export type ScopeDetailsPaneProps = Omit<DetailsBodyProps, "path" | "members"> & {
   /** Node to show. */
   node: ScopeNode
   /** Nodes from the top of the tree down to `node`, for its breadcrumbs -- the root left out. */
-  path: ScopeNode[]
+  trail: ScopeNode[]
 }
 
 /****************
  * ### `<DetailsBody>`
- * What there is to say about node or member `id`, top to bottom:
+ * What there is to say about node or member `path`, top to bottom:
  * - its description -- click to edit, if `onSaveDescription`
  * - its `members` by kind, under collapsible headings:  click one to select it in the tree, or its `▶`
  *   to show its own `<DetailsBody>` right here
@@ -57,19 +60,31 @@ export type ScopeDetailsPaneProps = Omit<DetailsBodyProps, "id" | "members"> & {
  * - Its details are fetched when first shown -- see `TypeExplorerProps.loadDetails`.
  ****************/
 function DetailsBody(props: DetailsBodyProps) {
-  const { id, members, openSections, onToggleSection, onSelect, onOpen, onSaveDescription, nodeFor } = props
+  const { path, members, openSections, onToggleSection, onSelect, onOpen, onSaveDescription, nodeFor } = props
   const { detailsFor, load } = props
   const sectionProps = { openSections, onToggle: onToggleSection }
   const [expanded, setExpanded] = React.useState(new Set<string>())
-  const details = detailsFor(id)
+  const details = detailsFor(path)
   React.useEffect(() => {
-    if (details === undefined) load(id)
+    if (details === undefined) load(path)
   })
   if (details === undefined || details === "loading") return <div className="DetailsBody loading">Loading…</div>
-  const location = details?.location && linkTo(details.location)
+  // its file:  where its details say it's declared, else the file its node is in
+  const uri = details?.uri ?? nodeFor(path)?.uri
+  const line = details?.line !== undefined ? firstLine(details.line) : undefined
+  const location = uri && line ? linkTo(uri, line) : undefined
+  // where its docstring's changed:  a file's at its top, else on the line its statement starts
+  const isFile = scopeSegment(path).kind === "file"
+  const at: DescriptionAt | undefined = !uri
+    ? undefined
+    : isFile
+      ? { uri, file: true }
+      : line
+        ? { uri, line }
+        : undefined
   return (
     <div className="DetailsBody">
-      {!!details && <Description details={details} onSave={onSaveDescription} onOpen={onOpen} />}
+      {!!details && <Description details={details} at={at} onSave={onSaveDescription} onOpen={onOpen} />}
       {SCOPE_MEMBER_GROUPS.map(({ kinds, label }) => {
         const inGroup = members.filter((member) => kinds.includes(member.kind))
         if (!inGroup.length) return null
@@ -77,7 +92,7 @@ function DetailsBody(props: DetailsBodyProps) {
           <Section key={label} title={label} className="MemberGroup" {...sectionProps}>
             {inGroup.map((member) => {
               const key = `${member.kind}:${member.name}`
-              const memberNode = nodeFor(member.id)
+              const memberNode = nodeFor(member.path)
               const isOpen = expanded.has(key)
               return (
                 <div key={key} className={classnames("ScopeMember", member.kind, { open: isOpen })}>
@@ -97,7 +112,7 @@ function DetailsBody(props: DetailsBodyProps) {
                   </div>
                   {isOpen && (
                     <div className="MemberDetails">
-                      <DetailsBody {...props} id={member.id} members={memberNode?.members ?? []} />
+                      <DetailsBody {...props} path={member.path} members={memberNode?.members ?? []} />
                     </div>
                   )}
                 </div>
@@ -158,8 +173,8 @@ function DetailsBody(props: DetailsBodyProps) {
 
 /** Props for `<DetailsBody>`. */
 type DetailsBodyProps = {
-  /** Node or member whose details to show. */
-  id: string
+  /** `path` of the node or member whose details to show. */
+  path: string
   /** What it declares, if it's a node. */
   members: ScopeMember[]
   /** Titles of the sections open, e.g. `Spell` -- for every node.  Kept, and remembered, by `<TypeExplorer>`. */
@@ -172,31 +187,31 @@ type DetailsBodyProps = {
   onOpen: (href: string) => void
   /** Save `text` as the docstring at `at` -- descriptions are read-only without it. */
   onSaveDescription?: (at: DescriptionAt, text: string) => void
-  /** Node with `id` in the tree, if it's there -- e.g. a member's. */
-  nodeFor: (id: string) => ScopeNode | undefined
-  /** Details of `id`:  `undefined` if not asked for yet, `"loading"`, or `null` if there are none. */
-  detailsFor: (id: string) => ScopeDetails | null | "loading" | undefined
-  /** Ask for the details of `id` -- see `detailsFor`. */
-  load: (id: string) => void
+  /** Node at `path` in the tree, if it's there -- e.g. a member's. */
+  nodeFor: (path: string) => ScopeNode | undefined
+  /** Details of `path`:  `undefined` if not asked for yet, `"loading"`, or `null` if there are none. */
+  detailsFor: (path: string) => ScopeDetails | null | "loading" | undefined
+  /** Ask for the details of `path` -- see `detailsFor`. */
+  load: (path: string) => void
 }
 
-/** Where a docstring can be changed -- `LSP.ScopeDetails.descriptionAt`. */
-export type DescriptionAt = NonNullable<ScopeDetails["descriptionAt"]>
+/** Where a docstring can be changed:  a file and line, or a file's top -- as `spell/setDescription` takes. */
+export type DescriptionAt = Omit<SetDescriptionParams, "text">
 
 /****************
  * ### `<Description>`
  * `node`'s docstring, as markdown -- a `#` comment is a top heading, `##` the next ... -- click to edit it,
- * if it's declared in a file and `onSave` is given.
+ * if we know where -- `at` -- and `onSave` is given.
  * - Edits the markdown as written, e.g. `## Cards` -- see `LSP.SpellLanguageService.commentLines()`.
  * - Cmd/Ctrl-Enter or "Save" saves, Escape or "Cancel" doesn't.
  * - Shows what was saved until a new tree brings the real one.
  ****************/
-function Description({ details, onSave, onOpen }: DescriptionProps) {
+function Description({ details, at, onSave, onOpen }: DescriptionProps) {
   const [editing, setEditing] = React.useState<string>()
   // what we saved, over which docstring:  shown until a new tree brings a different one
   const [saved, setSaved] = React.useState<{ text: string; over?: string }>()
   const text = (saved && saved.over === details.description ? saved.text : details.description) ?? ""
-  const editable = !!onSave && !!details.descriptionAt
+  const editable = !!onSave && !!at
 
   if (editing !== undefined) {
     return (
@@ -226,7 +241,7 @@ function Description({ details, onSave, onOpen }: DescriptionProps) {
 
   /** Save what's being edited. */
   function save() {
-    onSave!(details.descriptionAt!, editing!)
+    onSave!(at!, editing!)
     setSaved({ text: editing!.trim(), over: details.description })
     setEditing(undefined)
   }
@@ -240,8 +255,10 @@ function Description({ details, onSave, onOpen }: DescriptionProps) {
 
 /** Props for `<Description>`. */
 type DescriptionProps = {
-  /** Details holding the docstring, and where to change it. */
+  /** Details holding the docstring. */
   details: ScopeDetails
+  /** Where its docstring is changed, if we know. */
+  at?: DescriptionAt
   /** Save `text` as the docstring at `at` -- read-only without it. */
   onSave?: (at: DescriptionAt, text: string) => void
   /** Link in it clicked. */
@@ -305,8 +322,7 @@ export const SCOPE_ICONS: Record<ScopeNodeKind, SUI.SemanticICONS> = {
   variable: "tag"
 }
 
-/** `location` as a link:  `href` with its line, e.g. `file:///…/Card.spell#L12`, and a label like `Card.spell:12`. */
-function linkTo({ uri, range }: NonNullable<ScopeDetails["location"]>): { href: string; label: string } {
-  const line = range.start.line + 1
+/** Line `line` of file `uri` as a link:  `href`, e.g. `file:///…/Card.spell#L12`, and a label like `Card.spell:12`. */
+function linkTo(uri: string, line: number): { href: string; label: string } {
   return { href: `${uri}#L${line}`, label: `${decodeURIComponent(uri.split("/").pop()!)}:${line}` }
 }
