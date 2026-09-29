@@ -273,11 +273,19 @@ export class SpellLanguageService {
     "comment"
   ]
 
-  /** Semantic token legend, sent on `initialize`.  Modifier bits:  `declaration` = 1, `defaultLibrary` = 2. */
+  /**
+   * Semantic token legend, sent on `initialize`.  Modifier bits:  `declaration` = 1, `defaultLibrary` = 2,
+   * then `heading1` = 4 ... `heading4` = 32.
+   * - `heading<N>` are ours, for a heading comment with N `#`s -- `##` => `heading2`, and 4 or more => `heading4`.
+   *   A modifier is a flag, not a value, so one per level.  The VS Code extension declares them, and shows them bold.
+   */
   static TOKEN_LEGEND: SemanticTokensLegend = {
     tokenTypes: SpellLanguageService.HIGHLIGHT_KINDS,
-    tokenModifiers: ["declaration", "defaultLibrary"]
+    tokenModifiers: ["declaration", "defaultLibrary", "heading1", "heading2", "heading3", "heading4"]
   }
+
+  /** Deepest heading level with its own `heading<N>` modifier -- deeper ones share it.  See `TOKEN_LEGEND`. */
+  static MAX_HEADING = 4
 
   /**
    * Which highlight kinds of a declared name's tokens get the `declaration` modifier, for each kind of declaration.
@@ -334,7 +342,8 @@ export class SpellLanguageService {
     for (const span of this.highlightSpans(file)) {
       if (span.end <= from || span.start >= to) continue
       const kind = SpellLanguageService.HIGHLIGHT_KINDS.indexOf(span.kind)
-      const modifiers = (span.declaration ? 1 : 0) | (span.defaultLibrary ? 2 : 0)
+      const heading = span.heading ? 1 << (1 + Math.min(span.heading, SpellLanguageService.MAX_HEADING)) : 0
+      const modifiers = (span.declaration ? 1 : 0) | (span.defaultLibrary ? 2 : 0) | heading
       for (const [start, end] of this.splitByLine(file, span.start, span.end)) {
         const { line, character } = this.positionAt(file, start)
         builder.push(line, character, end - start, kind, modifiers)
@@ -379,7 +388,9 @@ export class SpellLanguageService {
           end: item.end,
           kind,
           declaration: !!declaredKind && SpellLanguageService.DECLARED_AS[declaredKind].includes(kind),
-          defaultLibrary: this.isBuiltIn(match)
+          defaultLibrary: this.isBuiltIn(match),
+          heading:
+            item instanceof P.CommentToken && item.commentSymbol.startsWith("#") ? item.commentSymbol.length : undefined
         })
       }
     })

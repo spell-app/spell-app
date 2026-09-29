@@ -4,10 +4,10 @@ import { isFileOrFolderNotFoundError } from "./response-utils"
 
 /**
  * Rationale: several client requests can race to read-modify-write same on-disk file
- * (e.g. two saves to `.imports.json` in flight at once) -- an OS-level lock file (`proper-lockfile`,
+ * (e.g. two saves to `project.json` in flight at once) -- an OS-level lock file (`proper-lockfile`,
  * which uses an atomically-created directory as the lock) prevents one write from clobbering another.
  * - TODO: nothing in `src/server` currently calls `lockFile()` / `checkLock()` / `unlockFile()` --
- *   verify whether locking was meant to wrap `project-utils.saveFile()` / `saveImports()` and got
+ *   verify whether locking was meant to wrap `project-utils.saveFile()` / `saveProjectFile()` and got
  *   dropped, or whether this module is dead code left over from an earlier approach.
  */
 

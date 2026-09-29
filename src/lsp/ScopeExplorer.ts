@@ -8,16 +8,20 @@ import { LSP } from "~/lsp"
  * - Top-down, though scopes only know their PARENT:  spell's root scope holds its built-in types,
  *   then each project imported compiled, then the project itself.
  * - A project holds its files, a file what's declared in it -- types, functions, variables -- and a type
- *   its properties, enumerations and methods, wherever they were declared.
+ *   its properties, methods and constants, wherever they were declared.
  * - A compiled import's own scope holds just its declarations:  no sources, so no docs or locations.
- *   So its node shows that project's OWN parse instead -- the caller MUST parse those first, see `importedProjects()`.
- * - Each node carries what an explorer shows of it:  hover, docstring, spell source and compiled javascript.
- * - NOTE: methods are found by the declaration which made them, so methods on a type from a compiled import
- *   only show on that project's node, not as inherited on ours.
+ *   So its node shows that project's OWN parse instead -- the caller MUST parse those first, see `importedProjects()`
+ *   -- and a type of ours inheriting from one of its types inherits from that project's own, e.g. its methods.
+ * - The tree is just what the tree shows.  A node's details -- hover, docstring, spell, compiled javascript,
+ *   rules -- come from `details()`, when an explorer shows it.
  */
 export class ScopeExplorer {
   /** Describes scope records, as hover would. */
   declare service: LSP.SpellLanguageService
+  /** How to work out each node's details, by its id -- from the last `tree()` of each project. */
+  #details = new WeakMap<SP.SpellProject, Map<string, () => LSP.ScopeDetails>>()
+  /** Details worked out, by the file they're in -- its root match -- then by id.  A new parse, a new cache. */
+  #cache = new WeakMap<P.Match, Map<string, LSP.ScopeDetails>>()
 
   constructor(service: LSP.SpellLanguageService) {
     this.service = service
@@ -28,15 +32,21 @@ export class ScopeExplorer {
     return project.projectImports.filter((it) => !it.source).map((it) => new SP.SpellProject(it.projectId))
   }
 
-  /** Scope tree for `project`:  spell's root scope, holding its built-in types, the projects it imports, then `project`. */
+  /**
+   * Scope tree for `project`:  spell's root scope, holding its built-in types, the projects it imports, then `project`.
+   * - SIDE EFFECT:  remembers how to work out each node's details, for `details()`.
+   */
   tree(project: SP.SpellProject): LSP.ScopeNode {
     const root = SP.SpellParser.rootScope
-    const projects = [...ScopeExplorer.importedProjects(project), project]
+    const imported = ScopeExplorer.importedProjects(project)
+    const projects = [...imported, project]
     const tree: Tree = {
       methods: projects.flatMap((it) => ScopeExplorer.methodRules(it)),
       rules: projects.flatMap((it) => it.scope?.rules.get() ?? []),
       constants: projects.flatMap((it) => it.scope?.constants.get() ?? []),
-      typeIds: new Map()
+      typeIds: new Map(),
+      sourceTypes: new Map(imported.flatMap((it) => it.scope?.types.get() ?? []).map((type) => [type.name, type])),
+      details: new Map()
     }
     // every type's id first, so a member can point at the type it's inherited from
     const id = root.name
@@ -49,9 +59,11 @@ export class ScopeExplorer {
       }
     }
     const builtIns = root.types.get().map((type) => this.typeNode(type, tree))
+    this.#details.set(project, tree.details)
     return {
       id,
-      name: root.name,
+      // for people -- its `id` stays the scope's name, so ids and what's open don't change
+      name: "Spell",
       kind: "root",
       detail: "built in",
       members: ScopeExplorer.sorted(builtIns.map((node) => this.asMember(node))),
@@ -62,6 +74,15 @@ export class ScopeExplorer {
         )
       ]
     }
+  }
+
+  /**
+   * Details of node or member `id` of `project`'s tree -- `null` if it isn't in the last one.
+   * - Worked out now, and cached until the file it's declared in is parsed again.
+   */
+  details(project: SP.SpellProject, id: string): LSP.ScopeDetails | null {
+    const detailsOf = this.#details.get(project)?.get(id)
+    return detailsOf ? detailsOf() : null
   }
 
   ////////////////
@@ -77,11 +98,18 @@ export class ScopeExplorer {
     const constants = scope.constants
       .get()
       .filter((record) => !this.ownerOf(record.declaredBy))
-      .map((record) => ({
-        ...this.describe({ kind: "constant", record }),
-        name: record.name,
-        kind: "constant" as const
-      }))
+      .map((record) =>
+        this.asMember(
+          this.leafNode(
+            `${id}/constant:${record.name}`,
+            record.name,
+            "constant",
+            { kind: "constant", record },
+            record.declaredBy,
+            tree
+          )
+        )
+      )
     const files = project.spellFiles.filter((file) => file.scope instanceof P.FileScope)
     return {
       id,
@@ -124,12 +152,14 @@ export class ScopeExplorer {
       }))
     ].sort((a, b) => (a.at?.start ?? 0) - (b.at?.start ?? 0))
     const children = declared.map((it) => it.node)
+    this.addDetails(tree, id, file.match, () => ({
+      description: this.service.fileDescription(file),
+      descriptionAt: { uri: this.service.addresses.uriFor(file), position: { line: 0, character: 0 }, file: true }
+    }))
     return {
       id,
       name: file.file ?? file.path,
       kind: "file",
-      description: this.service.fileDescription(file),
-      descriptionAt: { uri: this.service.addresses.uriFor(file), position: { line: 0, character: 0 }, file: true },
       members: ScopeExplorer.sorted(children.map((node) => this.asMember(node))),
       children
     }
@@ -139,14 +169,16 @@ export class ScopeExplorer {
    * Node for `type`:  what it declares below it, grouped as `LSP.SCOPE_MEMBER_GROUPS` -- see `ownMemberNodes()`.
    * - Its `members` add what it inherits from its super-types, after its own in each group.
    *   One a sub-type re-declares shows once, as its own.
+   * - A super-type from a compiled import is that project's own -- see `sourceType()`.
    */
   private typeNode(type: P.TypeScope, tree: Tree): LSP.ScopeNode {
     const id = tree.typeIds.get(type)!
     const children = this.ownMemberNodes(type, id, tree)
-    const chain = LSP.SpellLanguageService.typeChain(type).map((ancestor) => ({
-      ancestor,
-      nodes: ancestor === type ? children : this.ownMemberNodes(ancestor, tree.typeIds.get(ancestor) ?? id, tree)
-    }))
+    const chain = LSP.SpellLanguageService.typeChain(type).map((it) => {
+      const ancestor = it === type ? type : this.sourceType(it, tree)
+      const nodes = ancestor === type ? children : this.ownMemberNodes(ancestor, tree.typeIds.get(ancestor) ?? id, tree)
+      return { ancestor, nodes }
+    })
     const members = new Map<string, LSP.ScopeMember>()
     for (const { kinds } of LSP.SCOPE_MEMBER_GROUPS) {
       for (const { ancestor, nodes } of chain) {
@@ -158,16 +190,24 @@ export class ScopeExplorer {
         }
       }
     }
+    this.addSubjectDetails(tree, id, { kind: "type", record: type }, type.declaredBy)
     return {
       id,
       name: type.name,
       kind: "type",
       detail: type.superType ? `is a ${type.superType}` : undefined,
-      ...this.describe({ kind: "type", record: type }),
-      ...this.sourceOf(type.declaredBy, tree),
       members: [...members.values()],
       children
     }
+  }
+
+  /**
+   * `type`, or -- if it's from a compiled import, with just its declarations -- the same type in that project's
+   * own parse, with its sources:  docs, locations, methods.  Else `type`.
+   */
+  private sourceType(type: P.TypeScope, tree: Tree): P.TypeScope {
+    if (type.declaredBy || !(type.parentScope instanceof P.ImportScope)) return type
+    return tree.sourceTypes.get(type.name) ?? type
   }
 
   ////////////////
@@ -242,17 +282,14 @@ export class ScopeExplorer {
     // a test method's declaration names it WITHOUT the `test` its syntax starts with:  put it back
     const isTest = /^test\b/.test(ScopeExplorer.syntaxOf(rule)) && !/^test\b/.test(declared)
     const name = isTest ? `test ${declared}` : declared
-    return this.leafNode(
-      `${parentId}/${kind}:${name}`,
-      name,
-      kind,
-      { kind: "method", record: rule },
-      rule.declaredBy,
-      tree
-    )
+    const id = `${parentId}/${kind}:${name}`
+    return this.leafNode(id, name, kind, { kind: "method", record: rule }, rule.declaredBy, tree)
   }
 
-  /** Node for something declared, with nothing below it:  described as `subject`, from its `declaredBy` statement. */
+  /**
+   * Node for something declared, with nothing below it -- and how to work out its details, as `subject`,
+   * from its `declaredBy` statement.
+   */
   private leafNode(
     id: string,
     name: string,
@@ -262,43 +299,53 @@ export class ScopeExplorer {
     tree: Tree,
     detail?: string
   ): LSP.ScopeNode {
-    return {
-      id,
-      name,
-      kind,
-      detail,
-      ...this.describe(subject),
-      ...this.sourceOf(declaredBy, tree),
-      members: [],
-      children: []
-    }
+    this.addSubjectDetails(tree, id, subject, declaredBy)
+    return { id, name, kind, detail, members: [], children: [] }
   }
 
   /** `node` as a member of its parent, for listing. */
   private asMember(node: LSP.ScopeNode): LSP.ScopeMember {
-    const { id, name, kind, detail, hover = "", location } = node
-    return { id, name, kind: kind as LSP.ScopeMember["kind"], detail, hover, location }
+    const { id, name, kind, detail } = node
+    return { id, name, kind: kind as LSP.ScopeMember["kind"], detail }
   }
 
   ////////////////
   // ## Details
   ////////////////
 
-  /** `subject` described for a node:  hover, summary, docstring and location. */
-  private describe(subject: LSP.ScopeRecord) {
-    return this.service.describeRecord(subject)
+  /** Remember how to work out the details of `id`:  `subject` as hover describes it, and its source. */
+  private addSubjectDetails(tree: Tree, id: string, subject: LSP.ScopeRecord, declaredBy: P.Match | undefined) {
+    const file = declaredBy && this.service.fileOf(declaredBy)
+    this.addDetails(tree, id, file?.match, () => ({
+      ...this.service.describeRecord(subject),
+      ...this.sourceOf(declaredBy, tree)
+    }))
+  }
+
+  /**
+   * Remember how to work out the details of `id`, with `work()` -- cached per parse of the file `fileMatch` roots,
+   * if any.  Built-ins have no file, and aren't worth caching.
+   * - The FILE, not the statement:  a docstring edit re-parses its comment line, but not the statement it documents.
+   */
+  private addDetails(tree: Tree, id: string, fileMatch: P.Match | undefined, work: () => LSP.ScopeDetails) {
+    tree.details.set(id, () => {
+      if (!fileMatch) return work()
+      let cache = this.#cache.get(fileMatch)
+      if (!cache) this.#cache.set(fileMatch, (cache = new Map()))
+      let details = cache.get(id)
+      if (!details) cache.set(id, (details = work()))
+      return details
+    })
   }
 
   /**
    * Spell source of statement `declaredBy` -- whole lines, and its body if any -- what it compiles to,
    * the rules it made, and where its docstring can be changed.  Nothing if it isn't in a spell file.
-   * - TODO: worked out for EVERY node, every time a tree is asked for -- fine for Solitaire, slow for big projects.
-   *   Fetch per node on demand instead, e.g. `spell/scopeDetails { id }`, when an explorer shows it.
    */
   private sourceOf(
     declaredBy: P.Match | undefined,
     tree: Tree
-  ): Pick<LSP.ScopeNode, "spell" | "compiled" | "rules" | "descriptionAt"> {
+  ): Pick<LSP.ScopeDetails, "spell" | "compiled" | "rules" | "descriptionAt"> {
     const file = declaredBy && this.service.fileOf(declaredBy)
     if (!file || declaredBy.start === undefined) return {}
     const text = file.parseText
@@ -392,4 +439,8 @@ type Tree = {
   constants: P.ScopeConstant[]
   /** Id of each type's node. */
   typeIds: Map<P.TypeScope, string>
+  /** Types of the projects imported compiled, by name, from their OWN parse -- see `ScopeExplorer.sourceType()`. */
+  sourceTypes: Map<string, P.TypeScope>
+  /** How to work out each node's details, by id -- see `ScopeExplorer.details()`. */
+  details: Map<string, () => LSP.ScopeDetails>
 }

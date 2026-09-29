@@ -5,6 +5,10 @@ import type { P } from "~/parser"
 /** Constructor for a `Rule` subclass. */
 export type RuleConstructor = Class<P.Rule>
 
+/** A `Rule` subclass with `P.Rule`'s own statics, e.g. to `specialize()` it or ask what it was specialized from. */
+export type RuleClass = RuleConstructor &
+  Pick<typeof P.Rule, "ruleName" | "specialize" | "specializedFrom" | "specializedWith" | "declarationProps">
+
 /**
  * What `parser.addRule(RuleClass, definition)` accepts for any rule:  constructor props, plus
  * - `skip: true` registers nothing, e.g. for a rule which isn't working yet
@@ -25,6 +29,24 @@ export type DefinitionFor<RuleType extends { readonly Props: P.RuleProps }> = Pr
 >
 
 /**
+ * What `P.Rule.specialize()` puts on a rule class:  `ruleName`, plus any of the rule's own `Props`.
+ * - `Props`, not the instance's fields:  what a constructor ACCEPTS, e.g. raw `literals` word arrays.
+ * - MUST be plain data (JSON-able) -- a project's declarations write these out and rebuild the rule from them.
+ */
+export type RuleStatics<RuleType extends { readonly Props: P.RuleProps } = P.Rule> = {
+  ruleName?: string
+} & Partial<RuleType["Props"]>
+
+/**
+ * What rule class `T`'s `specialize()` takes:  its `ruleName` + `Props` -- see `RuleStatics`.
+ * - Unless `T` overrides `specialize()` to take a minimal set, which it names in a TYPE-ONLY static,
+ *   e.g. `DynamicMethodRule`'s `declare static readonly SpecializeWith: { output: string; ... }`.
+ */
+export type SpecializeWith<T extends AbstractClass<P.Rule>> = T extends { readonly SpecializeWith: infer With }
+  ? With
+  : RuleStatics<InstanceType<T>>
+
+/**
  * ALL a rule class is registered with when the class holds everything else as `@proto static`.
  * - Why:  the class is the rule, reusable by another language's parser with its own `syntax`.
  * - Not per-class like `DefinitionFor`:  `syntax` / `tests` mean the same for every rule.
@@ -41,12 +63,17 @@ export type SyntaxAndTests = Pick<RuleDefinitionProps, "syntax" | "tests">
 export type ScopeRule = {
   /** Name the rule registered under -- the `ScopeList` keys on this. */
   name: string
-  /** Rule class, typically a closure over the match which caused it. */
+  /** Rule class, typically `specialize()`d from a named class with plain-data statics -- see `P.Rule.specialize()`. */
   rule: RuleConstructor
   /** Definition it was registered with -- just `{ syntax }`, the rest is on `rule` as `@proto static`. */
   definition: SyntaxAndTests
   /** Match whose `mutateScope()` registered it, e.g. the method definition -- for go-to-definition etc. */
   declaredBy?: P.Match
+  /**
+   * What its statement declared, if it was IMPORTED -- loaded from another project's compiled declarations,
+   * so there's no `declaredBy`.  Editors read this in its place.
+   */
+  declared?: ImportedRuleDeclared
   /** Built rule instance `parser.addRule()` made, so a call-site `match.rule` can be traced back here. */
   instance?: P.Rule
 }
@@ -100,6 +127,37 @@ export type Declaration = {
   of?: string
   /** More about it, e.g. the javascript method name. */
   detail?: string
+}
+
+/**
+ * Where an IMPORTED scope record was declared, in its own project's sources -- its `declaredAt`.
+ * - Editors read it where there's no `declaredBy`:  the record was loaded from another project's compiled
+ *   declarations, not parsed here.  See `SP.SpellDeclarations.load()`.
+ * - NOTE: that project's sources may not be there, e.g. a library shipped compiled.
+ */
+export type DeclaredAt = {
+  /** Full path of its file, e.g. `@system:library:cards/Card.spell`. */
+  path: string
+  /** Character offset in that file where its declaring statement starts. */
+  start: number
+  /** Character offset where that statement ends. */
+  end: number
+}
+
+/**
+ * What an IMPORTED rule's statement declared -- its `P.ScopeRule.declared`, read in place of a `declaredBy`.
+ * - See `SP.SpellDeclarations.load()`.
+ */
+export type ImportedRuleDeclared = {
+  /** Type it's on, e.g. `Card` -- or a top-level function's own name, e.g. `play_fizzbuzz`. */
+  owner: string
+  /**
+   * What its statement declared, as its rule's `getDeclaration()` said -- bar `nameMatch`:  there's no match.
+   * - `of` is Type_Case, e.g. `Card`, where `getDeclaration()` gives source text, e.g. `cards`.
+   */
+  declaration?: Omit<Declaration, "nameMatch">
+  /** Where its statement was, if written down. */
+  declaredAt?: DeclaredAt
 }
 
 // ## Highlighting

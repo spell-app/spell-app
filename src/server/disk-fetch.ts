@@ -70,8 +70,8 @@ export function installDiskFetch() {
 
 /**
  * `SpellLocation` for the file at absolute `diskPath`, e.g. an editor's open document.
- * - Its project is the nearest enclosing folder holding `.imports.json`, else the file's own folder.
- * - A project under a known root's folder maps onto that root, e.g. `src/examples` or `src/projects`.
+ * - Its project is the nearest enclosing folder holding `project.json`, else the file's own folder.
+ * - A project under a known root's folder maps onto that root, e.g. `projects/system/examples` or `projects/user`.
  * - Otherwise the project's PARENT folder becomes a new `@workspace:<folder-name>` root.
  *   SIDE EFFECT: registers that root with `SpellSetup.addProjectRoot()`.
  * - Returns `undefined` if any folder or file name can't be a `SpellLocation` segment,
@@ -90,10 +90,10 @@ export function locationForDiskPath(diskPath: string): SP.SpellLocation | undefi
   return new SP.SpellLocation(`${rootPath}:${projectName}${filePath}`)
 }
 
-/** Nearest folder at or above `folder` holding `.imports.json`, else `folder` itself. */
+/** Nearest folder at or above `folder` holding `project.json`, else `folder` itself. */
 function findProjectDir(folder: string): string {
   for (let dir = folder; ; dir = dirname(dir)) {
-    if (existsSync(resolve(dir, ".imports.json"))) return dir
+    if (existsSync(resolve(dir, SP.PROJECT_FILE))) return dir
     if (dirname(dir) === dir) return folder
   }
 }

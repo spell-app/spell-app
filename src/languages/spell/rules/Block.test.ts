@@ -48,33 +48,51 @@ describe("docstrings:  comments documenting a declaration", () => {
 describe("compiling docstrings and headings", () => {
   test("a docstring is one JSDoc comment above its declaration, instead of its `//` lines", () => {
     expect(compile("// a playing card\na card is a thing")).toEqual([
+      "/*! SPELL: DECLARES {",
+      '  type: "Card", superType: "Thing",',
+      "} */",
       "/** a playing card */",
-      "export class Card extends Thing {}",
-      "spellCore.addExport('Card', Card)"
+      "export class Card extends Thing {}"
     ])
     expect(
       compile("// a playing card\n// from a deck\na card is a thing // not part of it:  there's one above")
     ).toEqual([
+      "/*! SPELL: DECLARES {",
+      '  type: "Card", superType: "Thing",',
+      "} */",
       "/**",
       " * a playing card",
       " * from a deck",
       " */",
       // not part of the docstring, so it stays a plain comment
       "// not part of it:  there's one above",
-      "export class Card extends Thing {}",
-      "spellCore.addExport('Card', Card)"
+      "export class Card extends Thing {}"
     ])
   })
 
-  test("a declaration's `SPELL:` notes stay ABOVE its docstring, which sits right on its code", () => {
+  test("a statement's `/*! SPELL: DECLARES` comment goes ABOVE its docstring, which sits right on its code", () => {
     const property = compile("a card is a thing\n\n// card ranks\ncards have a rank as one of ace or king")
-    expect(property.slice(3, 6)).toEqual([
-      "/* SPELL: added rule: '(Card|card) (Ranks|ranks)' */",
+    const propertyDoc = property.indexOf("/** card ranks */")
+    // the comment closes right above the docstring
+    expect(property.slice(propertyDoc - 4, propertyDoc + 2)).toEqual([
+      "/*! SPELL: DECLARES {",
+      '  property: "rank", classVariable: "Ranks", rule: "enumeration", of: "Card",',
+      "  enumeration: [\"'ace'\", \"'king'\"],",
+      "} */",
       "/** card ranks */",
       "spellCore.defineProperty(Card.prototype, {"
     ])
+
     const method = compile("// say hello\nto greet: print 1")
-    expect(method.slice(0, 3)).toEqual(["/* SPELL: added rule: `greet` */", "/** say hello */", "function greet() {"])
+    const methodDoc = method.indexOf("/** say hello */")
+    expect(method.slice(0, methodDoc + 2)).toEqual([
+      "/*! SPELL: DECLARES {",
+      '  syntax: "greet", output: "greet", rule: "method_call", alias: ["statement", "expression"],',
+      '  kind: "function",',
+      "} */",
+      "/** say hello */",
+      "export function greet() {"
+    ])
   })
 
   test("a `##` heading followed by a regular comment is a banner as wide as its text", () => {
@@ -82,9 +100,11 @@ describe("compiling docstrings and headings", () => {
       "///////////",
       "// ## Cards",
       "///////////",
+      "/*! SPELL: DECLARES {",
+      '  type: "Card", superType: "Thing",',
+      "} */",
       "/** a playing card */",
-      "export class Card extends Thing {}",
-      "spellCore.addExport('Card', Card)"
+      "export class Card extends Thing {}"
     ])
     // ...even when nothing is declared after it
     expect(compile("## Setup\n// print it\nprint 1")).toEqual([

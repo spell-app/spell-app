@@ -83,6 +83,26 @@ Log of things that slowed down development. Date · symptom · fix · project.
 
 - 2026-09-28 · `yarn -s build` printed yarn's command list instead of building.  Yarn berry has no `-s`
   (silent) flag. · Plain `yarn build`. · spell/parser
+- 2026-09-28 · `npx vitest run -u <one test file>` updated snapshots in OTHER suites too -- it rewrote another
+  session's `ScopeExplorer.test.ts.snap`. · After any `-u`, check `git status -- '*.snap'` and restore snapshots
+  you didn't mean to touch (`git checkout -- <file>` puts back the staged copy).  CAUSE (found later):  vitest 5's
+  `-u [type]` takes an optional value, so `-u <file>` swallows the file as its value and runs EVERY suite.  Put
+  the file first:  `vitest run <file> -u`, or `--update=all`. · spell/parser
 - 2026-09-28 · A changed vitest snapshot was rewritten to the NEW output instead of failing -- once even with the old
   test names, while the test file had new ones.  Another process (a concurrent session?) seemingly ran vitest with
   `-u` meanwhile.  · Delete the `.snap` and re-run alone, then read what it wrote.  · spell/parser
+- 2026-09-28 · Recompiling every `src/examples/*` folder also "compiled" `Todo List`, a leftover of a deleted project
+  (just a `.compiled.js`) -- `SpellProject.compile()` quietly created a `project.json` + `Untitled.spell` there.
+  · Recompile only folders that have a `project.json`;  check `git status` for `??` files afterwards. · spell/parser
+- 2026-09-28 · 27 language-server / snapshot tests failed after a folder move that was fine:  they read the LIVE
+  Solitaire example and assert exact line numbers + docstrings, so any edit to its `.spell` files (e.g. from the
+  Type Explorer) breaks them. · To tell a real break from that, re-run with `git show HEAD:<file>` content swapped
+  in (back up and restore the edited files).  Fixed:  tests now read frozen copies in `src/test/fixtures/`. · spell/parser
+- 2026-09-28 · Loading a fixture as a `SpellProject` in a test REWROTE its `project.json`:  the server's index adds
+  any unlisted `.js` in the folder as an import, and the new `Solitaire.compiled.snapshot.js` was one. · Snapshot
+  files end `.snapshot.js`, which `isManifestFile()` now skips like `.compiled.js`.  Anything else dropped into a
+  fixture folder must be in its `project.json`, or skipped there too. · spell/parser
+- 2026-09-28 · A throwaway `tsx` script recompiling projects (`SpellProject.compile()` + `installDiskFetch()`) died at
+  import with `ReferenceError: __SPELL_VERSION__ is not defined`:  vite defines it, `tsx` doesn't. · Then:  import
+  `~/spellVersion.node` first.  Since fixed:  `SP.SPELL_VERSION` is set by hand, and `PACKAGE_VERSION` falls back
+  to `"unknown"` without `~/packageVersion.node`. · spell/parser

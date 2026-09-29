@@ -2,7 +2,7 @@ import { describe, test, expect } from "vitest"
 
 import { P } from "~/parser"
 import { SP } from "~/languages/spell"
-import { loadExampleProject } from "~/test"
+import { loadFixtureProject } from "~/test"
 
 /**
  * `P.ParseJournal` MUST take back everything parsing changes in shared state, and put it all back again.
@@ -19,13 +19,13 @@ describe("ParseJournal", () => {
       parser,
       parentScope: rootScope
     })
-    const fileScopes = loadExampleProject("Solitaire").map(
+    const fileScopes = loadFixtureProject("Solitaire").map(
       ({ path }) => new P.FileScope({ name: path, path, parentScope: projectScope })
     )
 
     const before = describeState(parser, projectScope, fileScopes)
     const mark = parser.journal.mark()
-    loadExampleProject("Solitaire").forEach(({ contents }, index) => fileScopes[index]!.parse(contents, "block"))
+    loadFixtureProject("Solitaire").forEach(({ contents }, index) => fileScopes[index]!.parse(contents, "block"))
     const parsed = describeState(parser, projectScope, fileScopes)
     // Make sure there's something to take back.
     expect(parsed.types.length).toBeGreaterThan(before.types.length)
@@ -45,7 +45,7 @@ describe("ParseJournal", () => {
     const projectScope = new P.ProjectScope({ name: "decl", path: "/decl", parser, parentScope: rootScope })
     const fileScope = new P.FileScope({ name: "/Card.spell", path: "/Card.spell", parentScope: projectScope })
     const mark = parser.journal.mark()
-    fileScope.parse(loadExampleProject("Solitaire")[0]!.contents, "block")
+    fileScope.parse(loadFixtureProject("Solitaire")[0]!.contents, "block")
 
     const card = projectScope.types.get("Card")
     expect(card?.declaredBy?.rule.name).toBe("create_type")

@@ -184,4 +184,3 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
     return [...this.items][Symbol.iterator]()
   }
 }
-spellCore.addExport("List", List)

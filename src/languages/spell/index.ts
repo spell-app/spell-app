@@ -39,5 +39,8 @@ export {
   Block,
   BlockLine,
   parseExpression,
+  Negatable,
   type JSXMatchData
 } from "./rules"
+
+export * from "./SpellDeclarations"

@@ -13,7 +13,7 @@ import { P } from "~/parser"
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 import { getKnownType } from "./types"
-import { InfixOperatorSuffix } from "./expressions"
+import { InfixOperatorSuffix, type SpellExpressionProps } from "./expressions"
 import { SpellConstant } from "./constants"
 
 /**
@@ -47,8 +47,8 @@ export const classes = new SpellParser({ module: "classes" })
  * `a card is a thing` -- declares `type` as a new class extending `superType`.
  * - `precedence: 10` so this wins over other `{type} is {type}` -ish statement rules.
  * - SIDE EFFECT: adds `type` to `scope.types`, unless it's already defined (no redefinition/merge).
- * - Compiles to a class declaration plus a `spellCore.addExport()` call, e.g. `a card is a thing` =>
- *   `export class Card extends Thing {}\nspellCore.addExport('Card', Card)`.
+ * - Compiles to an exported class declaration, e.g. `a card is a thing` => `export class Card extends Thing {}`.
+ *   Another project reaches it by `import`ing it -- no globals.
  */
 class create_type extends SpellStatement<"type|superType"> {
   @proto static precedence = 10
@@ -59,9 +59,13 @@ class create_type extends SpellStatement<"type|superType"> {
     const { type, superType } = match.groups
     // Forget it if type is already defined, unless it was only stubbed by an earlier mention.
     // TODO: complain if existing type is set up differently!
+    // An IMPORTED one is declared again anyway, so `SP.SpellDeclarations.checkImportClashes()` can report it.
     const existing = match.scope.types?.get(type.value)
-    if (existing) {
-      if (existing.stub) existing.claim(match)
+    if (existing && !(existing.parentScope instanceof P.ImportScope)) {
+      // a stub, or left by an earlier parse of this statement -- see `P.TypeScope.sameStatement()`
+      if (existing.stub || P.TypeScope.sameStatement(existing.declaredBy, match)) {
+        existing.claim(match, superType.value)
+      }
       return
     }
     match.scope.types?.add({ name: type.value, superType: superType.value, declaredBy: match })
@@ -73,10 +77,6 @@ class create_type extends SpellStatement<"type|superType"> {
         new P.ASTClassDeclaration(match, {
           type: P.matchAST<P.ASTTypeExpression>(type),
           superType: P.matchAST<P.ASTTypeExpression>(superType)
-        }),
-        new P.ASTExportInvocation(match, {
-          property: type.value,
-          value: P.matchAST(type)
         })
       ]
     })
@@ -88,8 +88,8 @@ classes.addRule(create_type, {
     {
       compileAs: "statement",
       tests: [
-        ["a card is a thing", `export class Card extends Thing {}\nspellCore.addExport('Card', Card)`],
-        ["a deck is a list", `export class Deck extends List {}\nspellCore.addExport('Deck', Deck)`]
+        ["a card is a thing", "export class Card extends Thing {}"],
+        ["a deck is a list", "export class Deck extends List {}"]
       ]
     }
   ]
@@ -118,9 +118,11 @@ class create_list_type extends SpellStatement<"type|instanceType"> {
     const { type } = match.groups
     // Forget it if type is already defined, unless it was only stubbed by an earlier mention.
     // TODO: complain if existing type is set up differently!
+    // An IMPORTED one is declared again anyway, so `SP.SpellDeclarations.checkImportClashes()` can report it.
     const existing = match.scope.types?.get(type.value)
-    if (existing) {
-      if (existing.stub) existing.claim(match)
+    if (existing && !(existing.parentScope instanceof P.ImportScope)) {
+      // a stub, or left by an earlier parse of this statement -- see `P.TypeScope.sameStatement()`
+      if (existing.stub || P.TypeScope.sameStatement(existing.declaredBy, match)) existing.claim(match, "list")
       return
     }
     match.scope.types?.add({ name: type.value, superType: "list", declaredBy: match })
@@ -133,10 +135,6 @@ class create_list_type extends SpellStatement<"type|instanceType"> {
         new P.ASTClassDeclaration(match, {
           type: P.matchAST<P.ASTTypeExpression>(type),
           superType: new P.ASTTypeExpression(match, { raw: "list", name: "List" })
-        }),
-        new P.ASTExportInvocation(match, {
-          property: type.value,
-          value: P.matchAST(type)
         }),
         new P.ASTPropertyDefinition(match, {
           thing: new P.ASTPrototypeExpression(match, { type: P.matchAST<P.ASTTypeExpression>(type) }),
@@ -155,11 +153,7 @@ classes.addRule(create_list_type, {
       tests: [
         [
           "create a type named hand as a list of cards",
-          [
-            "export class Hand extends List {}",
-            "spellCore.addExport('Hand', Hand)",
-            "spellCore.define(Hand.prototype, 'instanceType', { value: Card })"
-          ]
+          ["export class Hand extends List {}", "spellCore.define(Hand.prototype, 'instanceType', { value: Card })"]
         ]
       ]
     }
@@ -174,11 +168,7 @@ classes.addRule(create_list_type, {
       tests: [
         [
           "a deck is a list of cards",
-          [
-            "export class Deck extends List {}",
-            "spellCore.addExport('Deck', Deck)",
-            "spellCore.define(Deck.prototype, 'instanceType', { value: Card })"
-          ]
+          ["export class Deck extends List {}", "spellCore.define(Deck.prototype, 'instanceType', { value: Card })"]
         ]
       ]
     }
@@ -451,6 +441,70 @@ classes.addRule(type_specifier_yes_or_no, {
 })
 
 ////////////////
+// ## `EnumerationRule` base class
+//    e.g. "card suits", once "a card has a suit as one of clubs, diamonds, hearts, spades" made one
+////////////////
+
+/**
+ * `Card Suits` / `card suits` -- an enumerated property's values, e.g. `Card.Suits`.
+ * - Never registered as is:  `define_property_has` makes one per enumerated property, with
+ *   `EnumerationRule.specialize({ of, classVariable })`.
+ * - Reads ONLY its statics, so a project's declarations can rebuild it elsewhere -- see `P.Rule.specialize()`.
+ */
+export class EnumerationRule extends P.Literals {
+  @proto static importableAs = "enumeration"
+  @proto static precedence = 20
+  @proto static alias = "expression"
+
+  /** Type the enumerated property belongs to, e.g. `Card`. */
+  declare typeName: string
+  /** Pluralized property name, e.g. `Suits` for `suit`. */
+  declare groupName: string
+  /** TYPE-ONLY: what `specialize()` accepts for this rule -- see `P.RuleStatics`. */
+  declare readonly Props: EnumerationRuleProps
+
+  /** TYPE-ONLY: what `specialize()` takes -- see `P.SpecializeWith`. */
+  declare static readonly SpecializeWith: { of: string; classVariable: string }
+  /**
+   * Enumeration class variable `classVariable` of type `of`, e.g. `Card` + `Suits` => `Card_Suits`, matching
+   * `Card Suits` / `card suits`.
+   * - What a project's `SPELL: DECLARES` comment holds for us -- see `SP.SpellDeclarations`.
+   */
+  static specialize<T extends AbstractClass<P.Rule>>(this: T, declared: P.SpecializeWith<T>): T {
+    const { of: typeName, classVariable: groupName } = declared as (typeof EnumerationRule)["SpecializeWith"]
+    const literals = [
+      [typeName, typeName.toLowerCase()],
+      [groupName, groupName.toLowerCase()]
+    ]
+    const statics: P.RuleStatics<EnumerationRule> = {
+      ruleName: `${typeName}_${groupName}`,
+      typeName,
+      groupName,
+      literals
+    }
+    return super.specialize(statics, declared) as unknown as T
+  }
+
+  /**
+   * What we write into our statement's `SPELL: DECLARES` comment -- see `P.Rule.declarationProps()`.
+   * - No `syntax`:  we match our `literals`.
+   */
+  static declarationProps({ of, classVariable }: (typeof EnumerationRule)["SpecializeWith"]) {
+    return { of, classVariable }
+  }
+
+  getAST(match: P.MatchFor<this>): P.ASTPropertyExpression {
+    return new P.ASTPropertyExpression(match, {
+      object: new P.ASTTypeExpression(match, { raw: this.typeName, name: this.typeName }),
+      property: new P.ASTPropertyLiteral(match, this.groupName)
+    })
+  }
+}
+
+/** Props bag accepted by `EnumerationRule` -- `Literals`' own, plus the type + group it enumerates. */
+type EnumerationRuleProps = Prettify<P.LiteralsProps & { typeName: string; groupName: string }>
+
+////////////////
 // ## `define_property_has` rule
 //    e.g. "cards have a direction as either up or down"
 ////////////////
@@ -461,13 +515,13 @@ classes.addRule(type_specifier_yes_or_no, {
  * - `precedence: 10` so this wins over other `{type} has|have ...` -ish statement rules.
  * - SIDE EFFECT: stubs `type` into `scope.types` if not yet declared -- see `P.TypeScope.getOrStub()`.
  * - SIDE EFFECT: when `specifier` is an enumeration, also adds a pluralized class variable (e.g. `Suits`)
- *   holding the raw values, adds string values to `scope.constants`, and dynamically registers a new
- *   `expression` rule so `Card Suits` / `card suits` resolve to that property -- `match.data.ruleComment`
- *   records this as a `SPELL:`-prefixed comment emitted alongside the output.
+ *   holding the raw values, adds string values to `scope.constants`, and registers an `EnumerationRule`
+ *   so `Card Suits` / `card suits` resolve to that property -- its `/*! SPELL: DECLARES` comment says so, see
+ *   `SP.SpellDeclarations.commentFor()`.
  * - Compiles to a `spellCore.defineProperty()` call, e.g. `a player has a name as text` =>
  *   `spellCore.defineProperty(Player.prototype, { property: 'name', type: 'text' })`.
  */
-class define_property_has extends SpellStatement<"type|property|specifier?", { ruleComment?: P.ASTParserAnnotation }> {
+class define_property_has extends SpellStatement<"type|property|specifier?"> {
   @proto static precedence = 10
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "property", name: "property", of: "type", detail: "specifier" }
@@ -502,35 +556,10 @@ class define_property_has extends SpellStatement<"type|property|specifier?", { r
         if (typeof value === "string") scope.constants?.add({ name: value, declaredBy: match })
       })
 
-      // Add multi-word identifier rule which returns enumeration, e.g. `card suits` or `Card Suits`
-      const literals: string[][] = [
-        [typeName, typeName.toLowerCase()],
-        [groupName, groupName.toLowerCase()]
-      ]
+      // Add multi-word identifier rule which returns enumeration, e.g. `card suits` or `Card Suits`.
       // `scope.addRule()` registers on the parser AND records the class + definition on the scope,
       // so `print Card suits` finds it via the `expression` alias and the scope can export it later.
-      scope.addRule(
-        class typename_groupname extends P.Literals {
-          static ruleName = `${typeName}_${groupName}`
-          @proto static precedence = 20
-          @proto static alias = "expression"
-          @proto static literals = literals
-
-          getAST(_match: P.MatchFor<this>): P.ASTPropertyExpression {
-            return new P.ASTPropertyExpression(_match, {
-              object: P.matchAST(type),
-              property: new P.ASTPropertyLiteral(property, groupName)
-            })
-          }
-        },
-        {},
-        match
-      )
-
-      // Add comment string which we'll output below
-      match.data.ruleComment = new P.ASTParserAnnotation(match, {
-        value: `added rule: '${literals.map((group) => `(${group.join("|")})`).join(" ")}'`
-      })
+      scope.addRule(EnumerationRule.specialize({ of: typeName, classVariable: groupName }), {}, match)
     }
   }
   getAST(match: P.MatchFor<this>): P.ASTStatementGroup {
@@ -546,8 +575,6 @@ class define_property_has extends SpellStatement<"type|property|specifier?", { r
     if (specifier) {
       // Enumerated values as strings/numbers/etc
       if (specifier instanceof P.ASTEnumeration) {
-        // Add comment that we created a rule previously
-        statements.push(match.data.ruleComment!)
         props.addProp("enumeration", specifier)
         props.addProp("enumerationProp", `'${pluralize(upperFirst(property.value))}'`)
       }
@@ -566,7 +593,8 @@ class define_property_has extends SpellStatement<"type|property|specifier?", { r
         // reaches here, both of which return a `TypeExpression` -- not statically provable, since
         // `type_specifier`'s `getAST()` can only be typed as returning `ASTNode` in general.
         const typeExpression = specifier as P.ASTTypeExpression
-        props.addProp("type", `'${typeExpression.name}'`)
+        // checked at runtime by its class's name -- see `P.ASTTypeExpression.runtimeName`
+        props.addProp("type", `'${typeExpression.runtimeName}'`)
       }
     }
 
@@ -623,7 +651,6 @@ classes.addRule(define_property_has, {
         [
           "cards have a direction as either up or down",
           [
-            "/* SPELL: added rule: '(Card|card) (Directions|directions)' */",
             `spellCore.defineProperty(Card.prototype, {`,
             `\tproperty: 'direction',`,
             `\tenumeration: ['up', 'down'],`,
@@ -881,6 +908,116 @@ classes.addRule(property_value_getter, {
 type MethodBody = P.ASTStatementBlock | P.ASTStatement | P.ASTExpression
 
 ////////////////
+// ## `QuotedPropertyRule` base class
+//    e.g. "the card is the queen of spades", once 'a card "is the (rank) of (suits)" ...' made one
+////////////////
+
+/**
+ * `is not? the queen of spades` -- calls a quoted property formula's generated method, e.g.
+ * `card.is_the_$rank_of_$suits('queen', 'spades')`.
+ * - Never registered as is:  `quoted_property_formula` makes one per formula, with
+ *   `QuotedPropertyRule.specialize({ output, ruleData })`.
+ * - Reads ONLY its statics, so a project's declarations can rebuild it elsewhere -- see `P.Rule.specialize()`.
+ */
+export class QuotedPropertyRule extends InfixOperatorSuffix {
+  @proto static importableAs = "quoted_property"
+  @proto static precedence = 20
+
+  /** Generated method to call, e.g. `is_the_$rank_of_$suits`. */
+  declare methodName: string
+  /** One entry per `(var)` placeholder -- see `QuotedPropertyFormulaBits`. */
+  declare ruleData: QuotedPropertyFormulaBits["ruleData"]
+  /** TYPE-ONLY: what `specialize()` accepts for this rule -- see `P.RuleStatics`. */
+  declare readonly Props: QuotedPropertyRuleProps
+
+  /** TYPE-ONLY: what `specialize()` takes -- see `P.SpecializeWith`. */
+  declare static readonly SpecializeWith: { output: string; values: Record<string, Array<string | number>> }
+  /**
+   * Calls generated method `output`, e.g. `is_a_$suit` -- also our `ruleName`.
+   * - `values`:  each `(var)` placeholder's enumerated values, in order, e.g. `{ suit: ["'clubs'", ...] }` --
+   *   `ruleData` is worked out from them, see `placeholderData()`.
+   * - What a project's `SPELL: DECLARES` comment holds for us -- see `SP.SpellDeclarations`.
+   */
+  static specialize<T extends AbstractClass<P.Rule>>(this: T, declared: P.SpecializeWith<T>): T {
+    const { output, values } = declared as (typeof QuotedPropertyRule)["SpecializeWith"]
+    const ruleData = Object.entries(values).map(([instanceVar, varValues]) => placeholderData(instanceVar, varValues))
+    const statics: P.RuleStatics<QuotedPropertyRule> = { ruleName: output, methodName: output, ruleData }
+    return super.specialize(statics, declared) as unknown as T
+  }
+
+  /** What we write into our statement's `SPELL: DECLARES` comment -- see `P.Rule.declarationProps()`. */
+  static declarationProps(
+    { output, values }: (typeof QuotedPropertyRule)["SpecializeWith"],
+    syntax: string | undefined
+  ) {
+    return { syntax, output, values }
+  }
+
+  /** Map each matched placeholder word/number to its compiled enumeration value or literal. */
+  compileASTExpression(
+    match: P.Match,
+    { lhs, rhs }: { lhs?: P.ASTExpression; rhs?: unknown }
+  ): P.ASTScopedMethodInvocation {
+    // This dynamically-generated rule's syntax repeats the `expression` group name (once per
+    // `$var` in the quoted alias), and each of those groups matches a plain keyword literal with
+    // no `getAST()` -- so the shunting-yard algorithm's `compile()` helper (`compound_expression`
+    // in expressions.ts) leaves `rhs` as the raw `P.Match[]` rather than resolving it to an
+    // `Expression`. Neither shape is representable in `OperatorOperands`, which assumes a single
+    // already-resolved `Expression`.
+    const rhsMatches = (Array.isArray(rhs) ? rhs : [rhs]) as P.Match[]
+    const args = rhsMatches
+      .map((arg, index) => {
+        if (typeof arg.value === "string") {
+          // Handle singular input values mapping to plural internal values
+          // `enumeration` will be: "club", "spade", etc
+          // `values` will be: `"clubs"`, `"spades"`, etc
+          const { enumeration, values } = this.ruleData[index]!
+          const valueIndex = enumeration.indexOf(arg.value)
+          return new P.ASTConstantExpression(arg, {
+            name: arg.value,
+            output: valueIndex !== -1 ? String(values[valueIndex]) : `'arg.value'`
+          })
+        }
+        if (typeof arg.value === "number") {
+          return new P.ASTNumericLiteral(arg, {
+            value: arg.value
+          })
+        }
+        console.warn("quoted_property_formula: don't understand arg", arg)
+        return undefined
+      })
+      .filter((arg): arg is P.ASTConstantExpression | P.ASTNumericLiteral => Boolean(arg))
+    return new P.ASTScopedMethodInvocation(match, {
+      thing: lhs!,
+      methodName: this.methodName,
+      args
+    })
+  }
+}
+
+/** Props bag accepted by `QuotedPropertyRule` -- the generated method, and how to map each placeholder. */
+type QuotedPropertyRuleProps = Prettify<
+  SpellExpressionProps & { methodName: string; ruleData: QuotedPropertyFormulaBits["ruleData"] }
+>
+
+/**
+ * `ruleData` entry for placeholder `(instanceVar)` over enumerated `values`, e.g. `(suit)` over `["'clubs'", ...]`.
+ * - `enumeration` is `values` unquoted, inflected to match the placeholder, e.g. `club` for `(suit)`
+ *   but `clubs` for `(suits)`.
+ */
+function placeholderData(
+  instanceVar: string,
+  values: Array<string | number>
+): QuotedPropertyFormulaBits["ruleData"][number] {
+  const isSingular = singularize(instanceVar) === instanceVar
+  const inflector = isSingular ? singularize : pluralize
+  const enumeration = values.map((value) =>
+    typeof value === "string" ? inflector(value.replace(/^'(.*)'$/, "$1")) : value
+  )
+  return { isSingular, instanceVar, enumeration, values }
+}
+
+////////////////
 // ## `quoted_property_formula` rule
 //    e.g. 'a card "is a (rank)" for its ranks'
 ////////////////
@@ -893,9 +1030,8 @@ type MethodBody = P.ASTStatementBlock | P.ASTStatement | P.ASTExpression
  * - `precedence: 10` so this wins over plainer statement rules that could otherwise partially match.
  * - SIDE EFFECT: `getBits()` derives (and caches in `match.data.bits`) rulex `syntax`, per-placeholder
  *   `ruleData`, `vars` and the generated `property` name, consumed by `mutateScope()`/`getAST()` below.
- * - SIDE EFFECT: `mutateScope()` dynamically registers an `expression_suffix` rule for the quoted phrase,
- *   e.g. `is (not)? a queen`, so it can be used like `card is a club`; also records a `SPELL:`-prefixed
- *   `match.data.ruleComment` for the added-expression comment emitted alongside output.
+ * - SIDE EFFECT: `mutateScope()` registers a `QuotedPropertyRule` for the quoted phrase,
+ *   e.g. `is (not)? a queen`, so it can be used like `card is a club`.
  * - Compiles to an instance method testing each placeholder against its property, e.g. `a card "is the
  *   (rank) of (suits)" for its ranks and its suits` => a `value(rank, suit)` method returning
  *   `this.rank === rank && this.suit === suit`.
@@ -942,9 +1078,7 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources", Quote
           return word
         }
         const instanceVar = word.slice(1, -1)
-        const singularVar = singularize(instanceVar)
-        const isSingular = singularVar === instanceVar
-        vars.push(singularVar)
+        vars.push(singularize(instanceVar))
 
         // Try to find the enumeration
         // NOTE: currently this only works for an enumeration defined on the type!!!
@@ -954,20 +1088,9 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources", Quote
         // console.warn({ type, Type: scope.types.get(type), propertyName, variable, enumeration })
         // set up enumeration matcher
         if (variable && enumeration) {
-          // make sure inflection of variables matches `isSingular`
-          const inflector = isSingular ? singularize : pluralize
-          const inflectedEnumeration = enumeration.map((value) => {
-            if (typeof value !== "string") return value
-            if (value.startsWith("'") && value.endsWith("'")) value = value.slice(1, -1)
-            return inflector(value)
-          })
-          ruleData.push({
-            isSingular,
-            instanceVar,
-            enumeration: inflectedEnumeration,
-            values: variable.enumerationValues || enumeration
-          })
-          syntaxParts.push(`(expression:${inflectedEnumeration.join("|")})`)
+          const placeholder = placeholderData(instanceVar, variable.enumerationValues || enumeration)
+          ruleData.push(placeholder)
+          syntaxParts.push(`(expression:${placeholder.enumeration.join("|")})`)
         } else {
           // FIXME: this routine is (somehow) geting called twice, once when type/variable IS NOT set up (???)
           // and then once later, when it IS set up.  Figure out why!
@@ -978,8 +1101,8 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources", Quote
         return `$${instanceVar}`
       })
       .join("_")
-    // transform `is` to `(operator:is not?)`
-    syntaxParts.splice(0, 1, "(operator:is not?)")
+    // `is` => every form of it, e.g. `isn't`, which negates -- see `Negatable`
+    syntaxParts.splice(0, 1, "{operator:is}")
     const syntax = syntaxParts.join(" ")
     return { type, syntax, ruleData, vars, property }
   }
@@ -991,63 +1114,13 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources", Quote
     // Create an expression suffix to match the quoted statement, e.g. `is not? a queen`.
     // See `scope.addRule()` -- registers on the parser and records the pair for export.
     match.scope.addRule(
-      class _quoted_property_rule extends InfixOperatorSuffix {
-        static ruleName = property
-        @proto static precedence = 20
-
-        /** `true` if the matched `operator` includes `not`, e.g. `is not a queen`. */
-        shouldNegateOutput(operator: P.Match): boolean {
-          return operator.value.includes("not")
-        }
-        /** Map each matched placeholder word/number to its compiled enumeration value or literal. */
-        compileASTExpression(
-          _match: P.Match,
-          { lhs, rhs }: { lhs?: P.ASTExpression; rhs?: unknown }
-        ): P.ASTScopedMethodInvocation {
-          // This dynamically-generated rule's syntax repeats the `expression` group name (once per
-          // `$var` in the quoted alias), and each of those groups matches a plain keyword literal with
-          // no `getAST()` -- so the shunting-yard algorithm's `compile()` helper (`compound_expression`
-          // in expressions.ts) leaves `rhs` as the raw `P.Match[]` rather than resolving it to an
-          // `Expression`. Neither shape is representable in `OperatorOperands`, which assumes a single
-          // already-resolved `Expression`.
-          const rhsMatches = (Array.isArray(rhs) ? rhs : [rhs]) as P.Match[]
-          const args = rhsMatches
-            .map((arg, index) => {
-              if (typeof arg.value === "string") {
-                // Handle singular input values mapping to plural internal values
-                // `enumeration` will be: "club", "spade", etc
-                // `values` will be: `"clubs"`, `"spades"`, etc
-                const { enumeration, values } = ruleData[index]!
-                const valueIndex = enumeration.indexOf(arg.value)
-                return new P.ASTConstantExpression(arg, {
-                  name: arg.value,
-                  output: valueIndex !== -1 ? String(values[valueIndex]) : `'arg.value'`
-                })
-              }
-              if (typeof arg.value === "number") {
-                return new P.ASTNumericLiteral(arg, {
-                  value: arg.value
-                })
-              }
-              console.warn("quoted_property_formula: don't understand arg", arg)
-              return undefined
-            })
-            .filter((arg): arg is P.ASTConstantExpression | P.ASTNumericLiteral => Boolean(arg))
-          return new P.ASTScopedMethodInvocation(_match, {
-            thing: lhs!,
-            methodName: property,
-            args
-          })
-        }
-      },
+      QuotedPropertyRule.specialize({
+        output: property,
+        values: Object.fromEntries(ruleData.map(({ instanceVar, values }) => [instanceVar, values]))
+      }),
       { syntax },
       match
     )
-
-    // Add comment string which we'll output below
-    match.data.ruleComment = new P.ASTParserAnnotation(match, {
-      value: `added expression: '${syntax}'`
-    })
   }
 
   getAST(match: P.MatchFor<this>): P.ASTStatementGroup {
@@ -1068,7 +1141,6 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources", Quote
         })
     )
     const statements: Array<P.ASTStatement | P.ASTExpression | P.ASTComment | P.ASTBlankLine> = [
-      match.data.ruleComment!,
       new P.ASTPropertyDefinition(match, {
         thing: new P.ASTPrototypeExpression(type, { type: P.matchAST<P.ASTTypeExpression>(type) }),
         property,
@@ -1103,7 +1175,6 @@ classes.addRule(quoted_property_formula, {
         [
           'a card "is a (rank)" for its ranks',
           [
-            "/* SPELL: added expression: '(operator:is not?) (a|an) (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)' */",
             "spellCore.define(Card.prototype, 'is_a_$rank', {",
             "\tvalue(rank) {",
             "\t\treturn this.rank === rank",
@@ -1114,7 +1185,6 @@ classes.addRule(quoted_property_formula, {
         [
           'a card "is the (rank) of (suits)" for its ranks and its suits',
           [
-            "/* SPELL: added expression: '(operator:is not?) the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)' */",
             "spellCore.define(Card.prototype, 'is_the_$rank_of_$suits', {",
             "\tvalue(rank, suit) {",
             "\t\treturn this.rank === rank && this.suit === suit",
@@ -1177,7 +1247,4 @@ type QuotedPropertyFormulaBits = {
 type QuotedPropertyFormulaMatchData = {
   /** Cached result of `getBits()` -- see the type above. */
   bits?: QuotedPropertyFormulaBits
-  /** Comment recording a rule that was dynamically added to scope while parsing this match, so it can be
-   *  echoed back out as an annotation in the compiled output. */
-  ruleComment?: P.ASTParserAnnotation
 }

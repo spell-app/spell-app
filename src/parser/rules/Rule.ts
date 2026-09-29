@@ -31,7 +31,7 @@ import { P } from "~/parser"
  * ```ts
  * export class define_property_has extends SpellStatement<
  *   "type|property|specifier?",                  // `Groups`:  see `P.GroupsFor`, copy from module's `__snapshots__`
- *   { ruleComment?: P.ASTParserAnnotation }      // `MatchData`:  what we stash in `match.data`
+ *   { bits?: PropertyBits }                        // `MatchData`:  what we stash in `match.data`
  * > {
  *   @proto static precedence = 10                // the class says what the rule IS...
  *   @proto static declares = {...}
@@ -68,18 +68,17 @@ import { P } from "~/parser"
  * parser.addRule(class word extends P.TokenType {}, { tokenType: P.WordToken })
  * ```
  *
- * ### 3. Rule added WHILE PARSING ~== a closure class, registered on the scope
+ * ### 3. Rule added WHILE PARSING ~== a named class `specialize()`d with plain data, registered on the scope
  * ```ts
+ * export class EnumerationRule extends P.Literals {  // behaviour reads ONLY statics...
+ *   getAST(match: P.MatchFor<this>) { ... this.typeName ... }
+ * }
  * match.scope.addRule(
- *   class card_suits extends P.Keywords {
- *     static ruleName = `${typeName}_${groupName}` // statics may use the enclosing function's locals...
- *     @proto static alias = "expression"
- *     @proto static literals = literals            // ...so computed values go on the class too
- *     getAST(match: P.MatchFor<this>) {...}        // closes over the match which caused it
- *   },
- *   {}
+ *   EnumerationRule.specialize({ ruleName: `${typeName}_${groupName}`, typeName, groupName, literals }),
+ *   {}                                               // ...so another project can rebuild it from data
  * )
  * ```
+ * - See `specialize()`, and `SP.SpellDeclarations` for how a project writes these out.
  * - `scope.addRule()` registers on the scope's `parser` AND records the class + definition on the scope
  *   (`scope.rules`, a `P.ScopeRule` list), so the scope can later hand on what it created -- that pair is
  *   what re-registering somewhere else needs.  A built rule is frozen and already bound to its name.
@@ -167,6 +166,76 @@ export abstract class Rule<
     if (tests) props.tests = tests
     const constructor = this as unknown as new (props: RuleProps) => Rule
     return new constructor(props).freeze()
+  }
+
+  /**
+   * Called by `@proto` as each `@proto static` is defined on us or a subclass -- see `~/util/decorators.ts`.
+   * - SIDE EFFECT: `@proto static importableAs = "<id>"` registers the class being defined under `<id>`.
+   * - Throws if a DIFFERENT class already has that id.  The same class again, e.g. hot reload, replaces it.
+   */
+  static protoDefined(name: string | symbol, value: unknown) {
+    if (name !== "importableAs" || typeof value !== "string") return
+    const existing = Rule.IMPORTABLE_RULES.get(value)
+    if (existing && existing.name !== this.name) {
+      throw new P.ParserError({
+        message: `Rules '${existing.name}' and '${this.name}' are both importable as '${value}'.`,
+        context: this,
+        activity: "protoDefined",
+        params: { importableAs: value }
+      })
+    }
+    Rule.IMPORTABLE_RULES.set(value, this as unknown as P.RuleClass)
+  }
+
+  /** Rule class importable as `name`, e.g. `"enumeration"` => `EnumerationRule` -- see `importableAs`. */
+  static importableRule(name: string): P.RuleClass | undefined {
+    return Rule.IMPORTABLE_RULES.get(name)
+  }
+
+  /**
+   * Subclass of us carrying `statics` -- how a rule built WHILE PARSING says what it IS, as plain data.
+   * - `ruleName` goes on the subclass as a plain static;  everything else on its prototype,
+   *   exactly where `@proto static` would put it.
+   * - Remembers where it came from (`specializedFrom`) and with what (`specializedWith`), so a project's
+   *   declarations can write it out and rebuild it in another project -- see `SP.SpellDeclarations`.
+   * - `statics` MUST be plain data (JSON-able) for that round trip:  behaviour lives in our methods.
+   * - e.g. `Negatable.specialize({ ruleName: "is" })`
+   * - An importable rule class may override this to take a MINIMAL set, working out the rest, e.g.
+   *   `DynamicMethodRule.specialize({ output: "play_fizzbuzz" })`.  It calls `super.specialize(statics, declared)`
+   *   with all of them -- `declared`, what IT was given, is what `specializedWith` remembers.
+   */
+  static specialize<T extends AbstractClass<Rule>>(
+    this: T,
+    statics: P.SpecializeWith<T>,
+    declared: object = statics
+  ): T {
+    const { ruleName, ...protoStatics } = statics as P.RuleStatics
+    const base = this as unknown as typeof Rule
+    // `base` is always a concrete rule class -- typed as a plain constructor, since `Rule` itself is abstract
+    const Base = base as unknown as new (props?: RuleProps) => object
+    const specialized = class extends Base {} as unknown as typeof Rule
+    // Named for what it is, e.g. in stack traces
+    Object.defineProperty(specialized, "name", { value: ruleName ?? base.name })
+    if (ruleName) specialized.ruleName = ruleName
+    for (const [key, value] of Object.entries(protoStatics)) {
+      Object.defineProperty(specialized.prototype, key, { value, writable: true, configurable: true })
+    }
+    specialized.specializedFrom = this as unknown as P.RuleClass
+    specialized.specializedWith = declared as P.RuleStatics
+    return specialized as unknown as T
+  }
+
+  /**
+   * Props a rule `specialize()`d from us writes into the declaration of the statement which made it,
+   * e.g. its `SPELL: DECLARES` comment -- see `SP.SpellDeclarations`.
+   * - `declared`:  what `specialize()` was called with (`specializedWith`)
+   * - `syntax`:  what it was registered with, if anything
+   * - Default:  both, as is.  An importable class overrides this to tune what it writes, e.g. leave out a default.
+   * - MUST round-trip:  loading hands `specialize()` back these props -- beside those of the other things
+   *   the statement declared, e.g. its property's `of`.
+   */
+  static declarationProps(declared: Record<string, unknown>, syntax: string | undefined): Record<string, unknown> {
+    return { ...declared, syntax }
   }
 
   /**
@@ -262,6 +331,23 @@ export abstract class Rule<
   static tests?: P.RuleTests
   /** Set `true` to skip registering this rule, e.g. if it's not working.  Plain `static`, NOT inherited. */
   static skip?: boolean
+  /** Rule classes by their `importableAs` name -- filled by `protoDefined()`, read by `importableRule()`. */
+  static IMPORTABLE_RULES = new Map<string, P.RuleClass>()
+
+  /** Class `specialize()` made us from, e.g. `EnumerationRule`.  Plain `static`, NOT inherited. */
+  static specializedFrom?: P.RuleClass
+  /**
+   * What `specialize()` was CALLED with -- plain data, so a project's declarations can rebuild us.  NOT inherited.
+   * - For a class which overrides `specialize()` to take a minimal set, just that set.
+   */
+  static specializedWith?: P.RuleStatics
+  /**
+   * Name another project can rebuild our `specialize()`d rules by, e.g. `"enumeration"` -- see `importableRule()`.
+   * - Set on a base class rules are specialized FROM, e.g. `EnumerationRule`.  NEVER key on a class name
+   *   instead:  names are for people, and change freely.
+   * - SIDE EFFECT: `@proto static importableAs = "..."` registers the class, via `protoDefined()`.
+   */
+  static importableAs?: string
 
   /** Name aliases -- inherited, so e.g. a `Statement` base class can set `"statement"` once. */
   static alias?: string | string[]
@@ -339,6 +425,8 @@ export abstract class Rule<
   declare declares: P.DeclaresSpec | undefined
   /** How editors colour our matches' own tokens -- see `P.HighlightKind`. */
   declare highlightAs: P.HighlightKind | undefined
+  /** Name another project can rebuild our `specialize()`d rules by -- see `static importableAs`. */
+  declare importableAs: string | undefined
 
   ////////////////
   // ## Type arguments -- type-only, nothing here exists at runtime
@@ -581,4 +669,4 @@ const STRUCTURE_PROPS = ["rules", "rule", "literal", "literals"]
  * - `instantiate()` throws otherwise, because a forgotten decorator means a rule which
  *   silently ignores its own definition.
  */
-const PLAIN_STATICS = ["ruleName", "tests", "skip"]
+const PLAIN_STATICS = ["ruleName", "tests", "skip", "specializedFrom", "specializedWith"]

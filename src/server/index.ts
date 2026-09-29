@@ -1,3 +1,6 @@
+// FIRST:  defines `__PACKAGE_VERSION__`, which vite would, before anything reads it
+import "~/packageVersion.node"
+
 import bodyParser from "body-parser"
 import express, { Request, Response } from "express"
 import express_json5 from "express-json5"

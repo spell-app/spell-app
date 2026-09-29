@@ -12,6 +12,8 @@ export const SpellSetup = {
   /**
    * Registry of valid project roots (`@owner:domain` pairs), keyed by their `path`.
    * - Drives `SpellLocation`'s path validation -- any path's `@owner:domain` must resolve here to be valid.
+   * - On disk, under `<repo>/projects/`:  `@system:*` in `system/<domain>/`, `@user:projects` in `user/`,
+   *   `@test:fixtures` in `test/` -- see `folder`, and `serverPathForRoot()` in `project-utils.ts`.
    * - Add a new domain (e.g. a new top-level project category) by adding an entry here,
    *   or at runtime with `addProjectRoot()`.
    */
@@ -20,6 +22,8 @@ export const SpellSetup = {
       path: "@user:projects",
       owner: "@user",
       domain: "projects",
+      // directly in `projects/user/`
+      folder: "",
       title: "Projects",
       Type: "Project",
       type: "project",
@@ -45,6 +49,31 @@ export const SpellSetup = {
       type: "guide",
       description: "Usage guides",
       icon: "newspaper outline"
+    } satisfies SP.ProjectRootSpec,
+    "@system:library": {
+      path: "@system:library",
+      owner: "@system",
+      domain: "library",
+      title: "Libraries",
+      Type: "Library",
+      type: "library",
+      description: "Libraries other projects import, e.g. `@library/cards` in a `project.json`",
+      icon: "book",
+      alias: "@library"
+    } satisfies SP.ProjectRootSpec,
+    "@test:fixtures": {
+      path: "@test:fixtures",
+      owner: "@test",
+      domain: "fixtures",
+      // directly in `projects/test/`
+      folder: "",
+      title: "Test fixtures",
+      Type: "Fixture",
+      type: "fixture",
+      description: "Frozen projects tests run against -- edit one, then `yarn test:fixtures:bless`",
+      icon: "lab",
+      devOnly: true,
+      alias: "@test"
     } satisfies SP.ProjectRootSpec
   } as Record<SP.ProjectRootPath, SP.ProjectRootSpec>,
 
@@ -57,7 +86,7 @@ export const SpellSetup = {
     return (this.projectRoots[spec.path] ??= spec)
   },
 
-  /** All valid project root `path`s, e.g. `["@user:projects", "@system:examples", "@system:guides"]`. */
+  /** All valid project root `path`s, e.g. `["@user:projects", "@system:examples", "@system:guides", "@system:library"]`. */
   get projectRootPaths() {
     return Object.keys(this.projectRoots)
   },
@@ -69,7 +98,19 @@ export const SpellSetup = {
     return spec
   },
 
-  /** All known project domains, e.g. `["projects", "examples", "guides"]`. */
+  /**
+   * `path` with a root's `alias` expanded, e.g. `@test/FizzBuzz/Card.spell` => `@test:fixtures:FizzBuzz/Card.spell`,
+   * or `@library/cards` => `@system:library:cards`.  Anything else as is.
+   * - See `ProjectRootSpec.alias`.  `SpellLocation` does this first, so any path may be written short.
+   */
+  expandAlias(path: string): string {
+    const match = typeof path === "string" ? path.match(/^(@[^/:]+)\/(.+)$/) : null
+    if (!match) return path
+    const spec = Object.values(this.projectRoots).find((it) => it.alias === match[1])
+    return spec ? `${spec.path}:${match[2]}` : path
+  },
+
+  /** All known project domains, e.g. `["projects", "examples", "guides", "library"]`. */
   get domains() {
     return Object.values(this.projectRoots).map((spec) => spec.domain)
   },

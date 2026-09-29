@@ -18,9 +18,8 @@
     "graphify-out/**",
     "thoughts/**",
     "static/**",
-    "src/examples/**",
-    "src/guides/**",
-    "src/projects/**",
+    "projects/**",
+    "src/test/fixtures/**",
     "src/graphify-out/**",
     "vscode-extension/out/**"
   ]

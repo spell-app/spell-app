@@ -78,10 +78,11 @@ export class InfixOperatorSuffix<
 
   /**
    * Return `true` if we should "negate" the output expression based on `operator`.
-   * - NOTE: language-dependent!
+   * - Default:  `operator` came from a negatable word rule, e.g. `{operator:is}`, and matched a negated form,
+   *   e.g. `isn't` -- see `Negatable`.  So a translation brings its own words.
    */
   shouldNegateOutput(operator: P.Match): boolean {
-    return false
+    return Negatable.isNegated(operator)
   }
 
   /**
@@ -154,6 +155,84 @@ export class PostfixOperatorSuffix<
     throw new TypeError("Must implement compileASTExpression()")
   }
 }
+
+////////////////////////////////////////
+// # Negatable words
+//   Use `{is}` in a syntax for every form of `is`, including `isn't`;  plain `is` for just the word.
+////////////////////////////////////////
+
+////////////////
+// ## `Negatable` base class
+//    e.g. "is", "isn't" -- as `{operator:is}` in a syntax
+////////////////
+
+/**
+ * A word and its negated forms, e.g. `(is|(negated:is not|isn't|isnt))` -- registered under the word, e.g. `is`.
+ * - Negated forms are the ones in a `negated` group -- see `isNegated()`.  So order doesn't matter, and there
+ *   may be several positive forms, e.g. `(has|have|(negated:does not have))`.
+ * - Registered once per word, `Negatable.specialize({ ruleName: "is" })`, so a translation adds its own,
+ *   e.g. `(es|(negated:no es))` as `es`.
+ * - `quoted_type_expression` makes a signature's negatable word `{operator:<word>}` -- see `processSignature()`.
+ */
+export class Negatable extends P.Choice {
+  /**
+   * SIDE EFFECT: marks the winning match `data.negated` if it came from our `negated` group.
+   * - `Choice` hands back the winning alternative's own match.  Its `name` says which group:  a one-form group
+   *   compiles to a rule named `negated`, a several-form one stamps `negated` on its winner's match.
+   * - Read it NOW:  a `{operator:is}` around us renames the match `operator` as we return.
+   */
+  parse(scope: P.Scope, tokens: P.Token[]) {
+    const match = super.parse(scope, tokens)
+    if (match) (match.data as NegatableMatchData).negated = match.name === "negated"
+    return match
+  }
+
+  /**
+   * `true` if `match` came from a `Negatable` and matched a negated form, e.g. `isn't`.
+   * - `match` may be missing, e.g. the `operator` of a syntax which has none:  never negated.
+   */
+  static isNegated(match: P.Match | undefined): boolean {
+    return (match?.data as NegatableMatchData | undefined)?.negated === true
+  }
+}
+
+/** What `Negatable` stashes on the winning alternative's match. */
+type NegatableMatchData = {
+  /** `true` if a negated form matched, e.g. `isn't`;  `false` for the positive one. */
+  negated?: boolean
+}
+
+////////////////
+// ## `is` rule (class `Negatable`)
+//    e.g. "isn't"
+////////////////
+
+expressions.addRule(Negatable.specialize({ ruleName: "is" }), { syntax: "(is|(negated:is not|isn't|isnt))" })
+
+////////////////
+// ## `can` rule (class `Negatable`)
+//    e.g. "can't"
+////////////////
+
+expressions.addRule(Negatable.specialize({ ruleName: "can" }), {
+  syntax: "(can|(negated:can not|cannot|can't|cant))"
+})
+
+////////////////
+// ## `will` rule (class `Negatable`)
+//    e.g. "won't"
+////////////////
+
+expressions.addRule(Negatable.specialize({ ruleName: "will" }), { syntax: "(will|(negated:will not|won't|wont))" })
+
+////////////////
+// ## `has` rule (class `Negatable`)
+//    e.g. "doesn't have"
+////////////////
+
+expressions.addRule(Negatable.specialize({ ruleName: "has" }), {
+  syntax: "(has|(negated:does not have|doesn't have|doesnt have))"
+})
 
 ////////////////////////////////////////
 // # Expression rules
@@ -435,12 +514,12 @@ expressions.addRule(or, {
 })
 
 ////////////////
-// ## `is` rule
+// ## `is_equal` rule
 //    e.g. "thing is other"
 ////////////////
 
 /** `{lhs} is [not] {rhs}`, e.g. `thing is other` -- compiles to `==`/`!=`. */
-class is extends InfixOperatorSuffix<"operator|expression"> {
+class is_equal extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = 10
   @proto static parenthesize = true
 
@@ -448,7 +527,7 @@ class is extends InfixOperatorSuffix<"operator|expression"> {
     return operator.value === "is not" ? "!=" : "=="
   }
 }
-expressions.addRule(is, {
+expressions.addRule(is_equal, {
   syntax: "(operator:is not?) {expression:simple_expression}",
   tests: [
     {
@@ -504,7 +583,8 @@ expressions.addRule(is_exactly, {
 /**
  * `{lhs} is [not] a`/`an {type}`, e.g. `thing is a Bee`.
  * - `shouldNegateOutput()` handles `is not a`.
- * - Compiles to `spellCore.isOfType(lhs, 'TypeName')`, wrapping type name via `QuotedExpression`.
+ * - Compiles to `spellCore.isOfType(lhs, 'TypeName')`, wrapping type name via `QuotedExpression` --
+ *   its RUNTIME name, which differs for a type imported renamed.  See `P.ASTTypeExpression.runtimeName`.
  */
 class is_a extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = 11
@@ -513,11 +593,12 @@ class is_a extends InfixOperatorSuffix<"operator|expression"> {
     return typeof operator.value === "string" && operator.value.includes("not")
   }
   compileASTExpression(match: P.MatchFor<this>, { lhs, rhs }: OperatorOperands): P.ASTCoreMethodInvocation {
-    // TODO: QuotedExpression feels wrong here...
-    return new P.ASTCoreMethodInvocation(match, {
-      methodName: "isOfType",
-      args: [lhs!, new P.ASTQuotedExpression(match, { expression: rhs! })]
-    })
+    // a type's class, by the name it has when the code runs -- see `P.ASTTypeExpression.runtimeName`
+    const type =
+      rhs instanceof P.ASTTypeExpression
+        ? new P.ASTQuotedExpression(match, rhs.runtimeName)
+        : new P.ASTQuotedExpression(match, { expression: rhs! })
+    return new P.ASTCoreMethodInvocation(match, { methodName: "isOfType", args: [lhs!, type] })
   }
 }
 expressions.addRule(is_a, {

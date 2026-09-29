@@ -647,7 +647,8 @@ export class Tokenizer {
 
   /**
    * Regex splitting a comment line into its symbol (`--`, `//`, `#`, `##` ...), leading whitespace and text.
-   * - Any run of `#` is a HEADING, like markdown's:  `#` for the top level, `##` below it, and so on.
+   * - Any run of `#` is a HEADING, like markdown's:  `#` for the top level, `##` below it, and so on --
+   *   and ONLY at the start of a line, after any indent.  See `matchComment()`.
    */
   get COMMENT_START() {
     return /^(#+|--+|\/\/+)(\s*)(.*)/
@@ -659,7 +660,10 @@ export class Tokenizer {
     if (start >= end) return undefined
 
     const commentStart = text.slice(start, start + 2)
-    if (commentStart !== "--" && commentStart !== "//" && text[start] !== "#") return undefined
+    const isHeading = text[start] === "#"
+    if (commentStart !== "--" && commentStart !== "//" && !isHeading) return undefined
+    // a heading only starts a line:  a `#` after anything else isn't a comment
+    if (isHeading && !/^[ \t]*$/.test(text.slice(text.lastIndexOf("\n", start - 1) + 1, start))) return undefined
 
     // comments eat until the end of the line
     const line = this.getLineAtHead(text, start, end)

@@ -117,6 +117,11 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   `declaredBy`, the match which declared it (for go-to-definition etc.), and a `ScopeRule` its built
   `instances`, so a call-site `match.rule` maps back to its definition.  `MethodScope` stamps its
   `declaredBy` on the argument / alias variables it makes.
+  - `ScopeList.add()` also notes each such record on its declaring match, as `match.data.declared`
+    (`ScopeList.noteDeclared()`;  `TypeScope.claim()` too) -- so COMPILING a statement can say what it declared,
+    without looking up scope.  See `SP.SpellDeclarations.commentFor()`.
+  - A re-parsed statement takes back a record an earlier parse of itself left -- same rule, line and file
+    (`TypeScope.sameStatement()`):  journal replay can resurrect one, declared by a match that's gone.
 - What a statement declares, for editors' symbol lists, comes from its rule:  `@proto static declares`, or a
   `getDeclaration()` override (`assignment` only counts NEW variables, `MethodDefinition` reads its signature).
 - How editors colour a match's OWN tokens comes from its rule's `highlightAs`, e.g. `property`:  defaults on
@@ -131,7 +136,16 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - `Parser.addRule()` clears the memoized `rules` map;  next `parser.rules` rebuilds the whole merge.
   - `mergeRule()` is copy-on-write:  existing `Group`s are cloned, never mutated.
   - There is NO `removeRule` -- but `parser.journal` can undo an `addRule()`, see "Incremental parsing".
-  - Generated rule classes close over their DEFINING match (`methods.ts`, `classes.ts`).
+  - Generated rules are NAMED classes `specialize()`d with plain-data statics (`EnumerationRule`,
+    `QuotedPropertyRule` in `classes.ts`;  `DynamicMethodRule`, `MethodPostfixRule`, `MethodInfixRule` in
+    `methods.ts`), never closures -- so `SP.SpellDeclarations` can write a project's rules out as data, and
+    another project can rebuild them:  each base class says `@proto static importableAs = "<id>"`, which registers
+    it for `P.Rule.importableRule(name)` (`Rule.protoDefined()`).
+  - Each overrides `specialize()` to take a MINIMAL set, e.g. `{ output: "play_fizzbuzz", alias }`, working out
+    `ruleName`, `methodName` etc. itself.  That set is what `specializedWith` remembers;  its
+    `static declarationProps(declared, syntax)` says what of it -- plus `syntax` -- gets written out.
+  - A quoted method's negatable word becomes its `Negatable` rule, e.g. `is` => `{operator:is}`, matching
+    `is not` / `isn't` too;  `InfixOperatorSuffix.shouldNegateOutput()` asks `Negatable.isNegated(operator)`.
 - Lookups record misses as `NONE` in `match.data`:  `scopeVar` / `scopeType` / `scopeConstant`.
   `known_variable` / `known_type` / `known_constant` reject `NONE`.
 - `getAST()` NEVER changes scope or looks it up:  ASTs are built lazily, e.g. at compile, when scope may have
@@ -142,18 +156,65 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 
 ## Projects
 
-- `SpellProject` (`src/languages/spell/SpellProject.ts`):  files in `.imports.json` order,
+- On disk:  `<repo>/projects/system/<domain>/<Project>/` for `@system:*` roots, `projects/user/<Project>/` for
+  `@user:projects`, `projects/test/<Project>/` for `@test:fixtures` -- `serverPathForRoot()`
+  (`src/server/project-utils.ts`), from `environment.systemFilesRoot` / `userFilesRoot` / `testFilesRoot` and each
+  root's `folder` (default its `domain`).  A root with `devOnly` is listed in the app's UI in dev only.
+- A root may have an `alias`, a short way to write its paths:  `@library/cards` ~== `@system:library:cards`,
+  `@test/FizzBuzz/FizzBuzz.spell` ~== `@test:fixtures:FizzBuzz/FizzBuzz.spell`.  `SpellLocation` expands it first
+  (`SpellSetup.expandAlias()`), so ids are always stored in full.
+- A project's `<Project>.compiled.js` and a fixture's `<Project>.snapshot.js` are never its own files:  the
+  server leaves them out of its index (`isManifestFile()`), which would otherwise add them to `project.json`.
+- `SpellProject` (`src/languages/spell/SpellProject.ts`):  files in `project.json` order,
   e.g. Card → Deck → Pile → Solitaire.
 - `SpellProject` / `SpellFile` load over HTTP (`$fetch()` on `/api/projects/...`) -- via `LoadableFile.fetch`,
   which a node host swaps for `diskFetch()` (`src/server/disk-fetch.ts`) to answer the same URLs from disk.
 - Each project `parse()` / `compile()` builds a FRESH `ProjectScope` with `parser.clone()` (empty own rules,
   imports the base spell parser).  Every file gets a `FileScope` under it and SHARES that parser.
 - So one file's types, constants and rules are visible to every later file.
+- Another project can come in WITHOUT its sources, as its declarations (`SP.SpellDeclarations`), INLINE in its
+  compiled JS:
+  - `Block.getAST()` puts a `/*! SPELL: DECLARES {...} */` comment above each declaring statement's code
+    (`commentFor()`):  ONE flat JS object literal, 4-7 lines, merging the scope records it added
+    (`declarationFor()`), e.g.
+    `{ property: "suit", classVariable: "Suits", rule: "enumeration", of: "Card", enumeration: [...] }`.
+    - `rule` is the `importableAs` of the class its rule was `specialize()`d from;  what that took sits beside it,
+      e.g. `output` -- loading passes the whole object to `specialize()`, which picks out its own.
+    - Leaves out what loading works out, e.g. an enumeration's constants, or a rule's owner (`of`, else `output`).
+    - `defined:  "/Card.spell:222-283"` -- character offsets of the statement, project-relative.
+    - `kind` + `name` -- what its rule's `getDeclaration()` says, for editors, e.g. `name: "draw (a card)"` --
+      unless a key already says, e.g. `type`.
+  - `SpellProject` puts a one-line `/*! SPELL: PROJECT {...} */` header at the top (`header()`):  versions +
+    `provides`
+  - `read(compiled)` collects them back from the TEXT (`JSON5.parse()`), never running it
+  - `importScope(root, imports)` => a `P.ImportScope` holding them -- the project's scope goes UNDER it, with a
+    clone of its parser, so imports are a base layer the `journal` never records
+    - its records have no `declaredBy`.  Editors read `declaredAt` instead (`P.DeclaredAt`:  full file path +
+      offsets, from `defined`) on its types, variables and constants, and `declared` on its rules:  owner,
+      what `getDeclaration()` said, and `declaredAt`
+  - `project.json` `imports` entries naming a project (`@library/cards` ~== `@system:library:cards`) are
+    `SpellProject.projectImports`.  Its "Loading" task reads each one's declarations out of its
+    `<Project>.compiled.js` (`SpellDeclarations.read()`), and builds the `ImportScope` our scope goes under.
+    `source: true` instead parses that project's `.spell` files ahead of ours (`sourceImportFiles`).
+  - `import: ["Card:Playingcard", "*"]` loads `Card` as `Playingcard` (`SpellDeclarations.picked()` / `renamed()`):
+    every loaded record naming it says `Playingcard` -- `type`, `superType`, `of`, `datatype` -- and rules built
+    from them follow, e.g. `playingcard suits`.  Compiled JS imports `Card as Playingcard`.  Its `TypeScope` keeps
+    `runtimeName: "Card"`, and runtime type checks compile to that (`ASTTypeExpression.runtimeName`):  the class
+    is still `Card` when the code runs.  Types only, and compiled imports only.
+  - After parsing, a type the project declares AND imports is a `parseError` (`checkImportClashes()`) --
+    `create_type` declares an imported type again, just so it's seen.  Rule names may repeat:  they merge.
+- Compiled spell uses NO globals -- it `import`s what it didn't declare (`SpellProject.importHeader()`):
+  - `import { spellCore, Thing, List, App } from "@spell/core"` (`SC.SPELL_CORE_MODULE`)
+  - `import { Card, Deck } from "@spell/project/<projectId>"` for each compiled import (`ImportScope.modules`)
+  - types compile to `export class`, top-level functions to `export function`, top-level vars to `export let`
+  - the app's page resolves both with an import map (`vite.importMap.ts`):  `@spell/core` => the SAME
+    `spellCore` the app runs, `@spell/project/` => the server's `/api/projects/compiled/<projectId>`.  The VS Code
+    runner has no map:  `runCompiled()` points `@spell/core` at its own `spellCore` -- see `CODE-DEBT.md`.
 - ALL files parse first, then ALL compile, so lazy compile-time lookups see the whole project.
 - Editor (`src/app/editor.ts` `onInputChanged`) => `project.updateText(file, text)` on every keystroke, which calls
   `updatedContentsFor(file)`:  `project.incremental.update()` re-parses what changed right away, and hands changed
   files their new match.  If that couldn't cope, `updateText()` parses from scratch straight away.
-  After 2s:  compiles, saves `.output.js` and runs it.
+  After 2s:  compiles, saves `<Project>.compiled.js` and runs it.
 - A crash while parsing (a rule threw, NOT an error in the spell) is left in `project.parseError`.
 - `SpellProject`'s parse task list keeps its scope + `incremental` while they're good (`needsFullParse`), else
   starts over:  new project scope, `parseImports()` builds a new `IncrementalProject`.
@@ -222,7 +283,7 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   `SpellModels` keep one Monaco model per file in step with `file.contents` (edits go through `updateText()`),
   and whose `SpellLanguageFeatures` call the service and convert its answers with `LspToMonaco`.
 - `SpellDiskWorkspace` is the stdio server's:  loads from disk via `LoadableFile.fetch` (above), maps a `.spell`
-  file to its project (nearest `.imports.json`), parses the project on first sight, and reacts to disk changes.
+  file to its project (nearest `project.json`), parses the project on first sight, and reacts to disk changes.
   Node-only, so it's NOT in the `~/lsp` barrel, which MUST stay browser-safe (`src/lsp/barrel.test.ts`).
 - `SpellLanguageService` answers from each file's current `match`, never re-parsing:
   - positions from match / token OFFSETS, never `token.line` / `ch`

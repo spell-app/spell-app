@@ -10,7 +10,7 @@ import { SP } from "~/languages/spell"
 
 import * as fileUtils from "./file-utils"
 import * as responseUtils from "./response-utils"
-import type { ImportsFileJSON, ManifestJSON, ProjectIndexJSON } from "./server.types"
+import type { ManifestJSON, ProjectFileJSON, ProjectIndexJSON } from "./server.types"
 
 const { respondWithJSON } = responseUtils
 
@@ -45,15 +45,22 @@ Object.defineProperty(SP.SpellLocation.prototype, "serverPath", {
 /**
  * Folder on disk holding project root `rootPath`'s projects, one sub-folder each.
  * - A root added at runtime says where with `spec.serverPath`.
- * - A built-in root lives in a folder named for its `domain`,
- *   under `environment.systemFilesRoot` or `userFilesRoot` by its `owner`.
+ * - A built-in root lives in its `folder` -- default its `domain` -- under its `owner`'s files root:
+ *   `environment.systemFilesRoot`, `testFilesRoot`, else `userFilesRoot`.  e.g. `projects/system/examples`,
+ *   or `projects/user` itself.
  * - Throws if `rootPath` isn't a known root.
  */
 export function serverPathForRoot(rootPath: SP.ProjectRootPath): string {
   const spec = SP.SpellSetup.projectSpectForRootPath(rootPath)
   if (spec.serverPath) return spec.serverPath
-  const filesRoot = spec.owner === "@system" ? environment.systemFilesRoot : environment.userFilesRoot
-  return fileUtils.normalizePath(filesRoot, spec.domain)
+  return fileUtils.normalizePath(filesRootFor(spec.owner), spec.folder ?? spec.domain)
+}
+
+/** Folder holding owner `owner`'s built-in roots, e.g. `projects/system` for `@system`. */
+function filesRootFor(owner: string): string {
+  if (owner === "@system") return environment.systemFilesRoot
+  if (owner === "@test") return environment.testFilesRoot
+  return environment.userFilesRoot
 }
 
 /** Default file created for a brand-new project, or when `getIndex()` finds a project with zero files. */
@@ -97,6 +104,9 @@ export const request_getProjectList = respondWithJSON(async (request) => {
  */
 const manifestExtensions = [".spell", ".css", ".js", ".jsx"]
 function isManifestFile(name: string) {
+  // NOT a project's compiled output, e.g. `Solitaire.compiled.js`, nor a test fixture's snapshot of it --
+  // `getIndex()` would make it an import
+  if (name.endsWith(SP.COMPILED_JS_SUFFIX) || name.endsWith(SP.SNAPSHOT_JS_SUFFIX)) return false
   return manifestExtensions.some((extension) => name.endsWith(extension))
 }
 
@@ -105,24 +115,28 @@ function isPreloadFile(name: string) {
   return manifestExtensions.some((extension) => name.endsWith(extension))
 }
 
-/** Return `SP.SpellLocation` for a project's `.imports.json` file. */
-export function getImportsLocation(projectId: string) {
-  return SP.SpellLocation.getFileLocation(projectId, ".imports.json")
+/** Return `SP.SpellLocation` for a project's `project.json` file. */
+export function getProjectFileLocation(projectId: string) {
+  return SP.SpellLocation.getFileLocation(projectId, SP.PROJECT_FILE)
 }
 
 /**
- * Load a project `.imports.json` file, returning `{ imports: [] }` default if not found.
+ * Load a project's `project.json` file, returning `{ imports: [] }` default if not found.
  * - TODO: why is this arrow function?
  */
-export const loadImports = async (projectId: string): Promise<ImportsFileJSON> => {
-  const location = getImportsLocation(projectId)
+export const loadProjectFile = async (projectId: string): Promise<ProjectFileJSON> => {
+  const location = getProjectFileLocation(projectId)
   const existing = await fileUtils.loadJSONFile(location.serverPath, "OPTIONAL")
   return existing || { imports: [] }
 }
 
-/** Save a project `.imports.json` file.  SIDE EFFECT: overwrites file wholesale, no merge with disk. */
-export const saveImports = async (projectId: string, contents: any) => {
-  const location = getImportsLocation(projectId)
+/**
+ * Save a project's `project.json` file.
+ * - SIDE EFFECT: overwrites file wholesale, no merge with disk -- pass what `loadProjectFile()` gave you,
+ *   changed, so its `version` / `exports` survive.
+ */
+export const saveProjectFile = async (projectId: string, contents: ProjectFileJSON) => {
+  const location = getProjectFileLocation(projectId)
   return await fileUtils.saveJSONFile(location.serverPath, contents)
 }
 
@@ -130,7 +144,7 @@ export const saveImports = async (projectId: string, contents: any) => {
  * Return `index` for a project as a JSON blob -- see `ProjectIndexJSON`.
  * - `manifest` portion always reflects current state of file system.
  * - `imports` portion is synced with `manifest` (missing files dropped, new files appended as `active`),
- *   and SIDE EFFECT: saved to disk as `.imports.json` if anything changed.
+ *   and SIDE EFFECT: saved to disk in `project.json` if anything changed.
  * - HACKY: if project has zero manifest-worthy files, creates `DEFAULT_FILE` so there's always at least one.
  */
 export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => {
@@ -158,7 +172,7 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
   )
 
   // get `imports` from existing imports file if present
-  const importsFile = await loadImports(projectId)
+  const importsFile = await loadProjectFile(projectId)
   // Filter imports: which are not in existingPaths
   const existingPaths = { ...manifest }
   let anythingChanged = false
@@ -191,7 +205,7 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
 
   // Save the new imports if anything changed
   // NOTE: we explicitly do not save the `manifest`
-  if (anythingChanged) await saveImports(projectId, importsFile)
+  if (anythingChanged) await saveProjectFile(projectId, importsFile)
 
   // Set `contents` for the active imports
   await Promise.all(
@@ -204,7 +218,8 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
   )
 
   // return manifest and imports
-  return { imports: importsFile.imports, manifest }
+  const { version, exports } = importsFile
+  return { imports: importsFile.imports, manifest, version, exports }
 }
 
 /**
@@ -227,7 +242,7 @@ export const request_getIndex = respondWithJSON(async (request) => {
  * - Client sends: `projectId` and `filePath` route params (`filePath*` is a wildcard, so it can include
  *   `/`-separated nested folders).
  * - Returns: raw file body via express `sendFile()` (mime type set from extension); `{ dotfiles: "allow" }`
- *   so dotfiles like `.imports.json` can be fetched too.
+ *   so dotfiles can be fetched too.
  * - Failure: 404 (via `responseUtils.sendFile()`) if file not found; 500 if `projectId`/`filePath` don't
  *   resolve to a valid file path (thrown by `SpellLocation.getFileLocation()`) or if the send itself fails.
  * - NOTE: deliberately NOT wrapped in `respondWithJSON` -- that would send a JSON body on top of the file
@@ -239,6 +254,26 @@ export const request_getFile = async (request: Request, response: Response) => {
   try {
     const location = SP.SpellLocation.getFileLocation(projectId, filePath)
     await responseUtils.sendFile(response, location.serverPath, { dotfiles: "allow" })
+  } catch (error) {
+    // Can't send an error body once the file has started streaming -- the client sees a truncated response.
+    if (response.headersSent) return
+    responseUtils.sendError(response, 500, error as Error)
+  }
+}
+
+/**
+ * Return project `projectId`'s compiled JS, `<Project>.compiled.js`, as a JS module.
+ * - Where the page's import map sends `@spell/project/<projectId>`, so one project's compiled output can
+ *   `import` another's -- see `SP.SPELL_PROJECT_MODULE`.
+ * - Not found => 404:  that project has never been compiled.
+ */
+export const request_getCompiled = async (request: Request, response: Response) => {
+  const { projectId } = request.params
+  try {
+    const location = SP.SpellLocation.getProjectLocation(projectId)
+    const file = SP.SpellLocation.getFileLocation(projectId, `${location.projectName}${SP.COMPILED_JS_SUFFIX}`)
+    response.type("text/javascript")
+    await responseUtils.sendFile(response, file.serverPath)
   } catch (error) {
     // Can't send an error body once the file has started streaming -- the client sees a truncated response.
     if (response.headersSent) return
@@ -387,12 +422,12 @@ export const renameFile = async (projectId: string, filePath: string, newFilePat
   await fileUtils.movePath(location.serverPath, newLocation.serverPath)
 
   // update `imports` so file order stays the same
-  const importsFile = await loadImports(projectId)
+  const importsFile = await loadProjectFile(projectId)
   importsFile.imports = importsFile.imports.map((item) => {
     if (item.path === filePath) return { ...item, path: newFilePath }
     return item
   })
-  await saveImports(projectId, importsFile)
+  await saveProjectFile(projectId, importsFile)
 
   return true
 }
@@ -409,7 +444,7 @@ export const request_renameFile = respondWithJSON(async (request) => {
   return await getIndex(projectId)
 })
 
-/** Delete a project file.  Does NOT touch `.imports.json` directly -- next `getIndex()` resyncs it away. */
+/** Delete a project file.  Does NOT touch `project.json` directly -- next `getIndex()` resyncs it away. */
 export const deleteFile = async (projectId: string, filePath: string) => {
   const location = SP.SpellLocation.getFileLocation(projectId, filePath)
   return await fileUtils.deletePath(location.serverPath)

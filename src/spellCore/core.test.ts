@@ -115,6 +115,37 @@ describe("spellCore.isOfType()", () => {
     expect(spellCore.isOfType(false, "choice")).toBe(true)
     expect(spellCore.isOfType(0, "choice")).toBe(false)
   })
+
+  test("matches a super-type, e.g. a joker is a card -- but not a sub-type", () => {
+    class Card {}
+    class Joker extends Card {}
+    expect(spellCore.isOfType(new Joker(), "joker")).toBe(true)
+    expect(spellCore.isOfType(new Joker(), "Card")).toBe(true)
+    expect(spellCore.isOfType(new Card(), "joker")).toBe(false)
+    expect(spellCore.isOfType(new Joker(), "object")).toBe(false)
+  })
+})
+
+describe("spellCore.typesOf()", () => {
+  test("its type, then each super-type's, most specific first -- plain objects and primitives just their own", () => {
+    class Card {}
+    class Joker extends Card {}
+    expect(spellCore.typesOf(new Joker())).toEqual(["joker", "card"])
+    expect(spellCore.typesOf({})).toEqual(["object"])
+    expect(spellCore.typesOf("a")).toEqual(["text"])
+    expect(spellCore.typesOf(null)).toEqual(["unknown"])
+  })
+})
+
+describe("spellCore.matchesType()", () => {
+  test("the same type, or a sub-type -- NOT symmetrical", () => {
+    class Card {}
+    class Joker extends Card {}
+    expect(spellCore.matchesType(new Card(), new Card())).toBe(true)
+    expect(spellCore.matchesType(new Joker(), new Card())).toBe(true)
+    expect(spellCore.matchesType(new Card(), new Joker())).toBe(false)
+    expect(spellCore.matchesType(1, "a")).toBe(false)
+  })
 })
 
 describe("spellCore.isANumber()", () => {

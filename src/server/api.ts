@@ -60,6 +60,8 @@ api.delete("/projects/remove/file", projectUtils.request_deleteFile)
 api.get("/projects/index/:projectId", projectUtils.request_getIndex)
 api.get("/projects/file/:projectId/:filePath*", projectUtils.request_getFile)
 api.post("/projects/file/:projectId/:filePath*", projectUtils.request_saveFile)
+// a project's compiled JS, as another project's compiled output `import`s it -- see `SP.SPELL_PROJECT_MODULE`
+api.get("/projects/compiled/:projectId", projectUtils.request_getCompiled)
 
 // Compile random source file, not tied to a project -- see `projectUtils.request_compileFile`.
 api.post("/compile/file", projectUtils.request_compileFile)

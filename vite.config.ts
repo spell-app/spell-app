@@ -3,10 +3,12 @@ import react from "@vitejs/plugin-react"
 
 import environment from "./src/environment.ts"
 import { standardDecorators } from "./vite.decorators.ts"
+import { packageVersion } from "./vite.packageVersion.ts"
+import { importMap } from "./vite.importMap.ts"
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [standardDecorators(), react()],
+  plugins: [standardDecorators(), packageVersion(), importMap(), react()],
   resolve: {
     alias: {
       "~": environment.srcDir

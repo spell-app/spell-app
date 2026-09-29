@@ -145,6 +145,7 @@ export function unitTestModuleRules(parser: P.Parser, moduleName: string, initia
 
   /**
    * Parse and compile `input` as `ruleName`, returning the compiled output.
+   * - As its parser's `normalizeTestOutput()` has it, e.g. without spell's declarations comments.
    * - Returns the error if `compile()` throws (unless it's a `ParserError` and no `output` is expected).
    * - Returns `undefined` if parsing fails or throws.
    */
@@ -155,7 +156,7 @@ export function unitTestModuleRules(parser: P.Parser, moduleName: string, initia
       // Lock it in, as block parsing would -- e.g. a new variable's `let`.
       scope.parser?.commit(match)
       try {
-        return match.compile()
+        return scope.parser ? scope.parser.normalizeTestOutput(match.compile()) : match.compile()
       } catch (e) {
         if (e instanceof P.ParserError && output === undefined) return undefined
         return e

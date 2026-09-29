@@ -27,6 +27,14 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
   static get guides(): SpellProjectRoot {
     return new SpellProjectRoot("@system:guides")
   }
+  /** Singleton `@test:fixtures` root -- frozen projects tests run against;  listed in the UI in dev only. */
+  static get fixtures(): SpellProjectRoot {
+    return new SpellProjectRoot("@test:fixtures")
+  }
+  /** Singleton `@system:library` root -- projects others import, e.g. `@library/cards` in a `project.json`. */
+  static get library(): SpellProjectRoot {
+    return new SpellProjectRoot("@system:library")
+  }
 
   /** Return EXISTING singleton root for projectRoot `path` or `undefined`. */
   static rootForPath(rootPath: SP.ProjectRootPath) {
@@ -39,6 +47,8 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
     if (name.startsWith("project")) return SpellProjectRoot.projects
     if (name.startsWith("examples")) return SpellProjectRoot.examples
     if (name.startsWith("guides")) return SpellProjectRoot.guides
+    if (name.startsWith("library")) return SpellProjectRoot.library
+    if (name.startsWith("fixtures")) return SpellProjectRoot.fixtures
     return undefined
   }
 
@@ -69,6 +79,8 @@ export class SpellProjectRoot extends JSON5File<SP.ProjectPathList> {
   declare description: string
   /** Semantic UI icon of project. */
   declare icon: string
+  /** Listed in the app's UI only in dev, e.g. `@test:fixtures` -- see `SP.ProjectRootSpec.devOnly`. */
+  declare devOnly?: boolean
   /** Immutable `location` object which we use to get various bits of the path. */
   declare location: SP.SpellLocation
 

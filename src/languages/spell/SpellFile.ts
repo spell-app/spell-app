@@ -82,7 +82,7 @@ export class SpellFile extends TextFile {
   }
 
   /**
-   * Does our project parse us, i.e. are we active in its `.imports.json`?
+   * Does our project parse us, i.e. are we active in its `project.json`?
    * - `raw(this)`:  we may be called through a store proxy, and `spellFiles` are the real files.
    */
   get isActive(): boolean {

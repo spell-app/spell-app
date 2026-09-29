@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react"
 
 import environment from "./src/environment.ts"
 import { standardDecorators } from "./vite.decorators.ts"
-import { spellVersion } from "./vite.spellVersion.ts"
+import { packageVersion } from "./vite.packageVersion.ts"
 
 /**
  * Build the runner bundle for the VS Code extension's "Run Project" webview:  `yarn build:runner`.
@@ -14,7 +14,7 @@ import { spellVersion } from "./vite.spellVersion.ts"
  * - Plugins, alias and `define` as `vite.config.ts`.  `keepNames` MUST stay on -- see `parser/build.test.ts`.
  */
 export default defineConfig({
-  plugins: [standardDecorators(), spellVersion(), react()],
+  plugins: [standardDecorators(), packageVersion(), react()],
   resolve: {
     alias: {
       "~": environment.srcDir

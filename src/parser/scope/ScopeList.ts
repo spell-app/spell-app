@@ -58,11 +58,30 @@ export class ScopeList<ListType = any, InputType = ListType> {
     return item
   }
 
-  /** Add one or more `items` to end of our list, running each through `transformer` first. */
+  /**
+   * Add one or more `items` to end of our list, running each through `transformer` first.
+   * - SIDE EFFECT: an item with a `declaredBy` match is noted on it too -- see `noteDeclared()`.
+   */
   add(...items: Array<ListType | InputType>) {
     const transformed = items.map(this.transform)
     this.setItems([...this.#items, ...transformed])
+    for (const item of transformed) ScopeList.noteDeclared(item)
     return transformed
+  }
+
+  /**
+   * Note scope record `item` on the match which declared it, `item.declaredBy`, as `match.data.declared`.
+   * - Why:  so compiling that statement can say what it declared, inline -- see `SP.SpellDeclarations`.
+   *   A lookup after the fact would break `getAST()`'s rule:  NEVER look up scope, it may have moved on.
+   * - Live records:  read them when compiling, e.g. a type claimed later has a new `declaredBy`.
+   * - `TypeScope.claim()` notes its type the same way.
+   */
+  static noteDeclared(item: unknown) {
+    const { declaredBy } = (item ?? {}) as { declaredBy?: unknown }
+    if (!declaredBy || typeof declaredBy !== "object" || !("data" in declaredBy)) return
+    const data = (declaredBy as { data: { declared?: unknown[] } }).data
+    const declared = (data.declared ??= [])
+    if (!declared.includes(item)) declared.push(item)
   }
 
   /**

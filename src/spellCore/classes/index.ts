@@ -49,8 +49,5 @@ export const classesMethods = defineSpellCoreModule({
 })
 Object.assign(spellCore, classesMethods)
 
-spellCore.addExport("Thing", Thing)
-spellCore.addExport("List", List)
-spellCore.addExport("App", App)
-
+// Compiled spell imports these -- `import { spellCore, Thing, List, App } from "@spell/core"`.  No globals.
 export { Thing, List, App }

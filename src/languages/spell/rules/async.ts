@@ -8,7 +8,7 @@ import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
-import { SpellExpression } from "./expressions"
+import { Negatable, SpellExpression } from "./expressions"
 
 /**
  * Rule module for async/process rules (`await`, `pause`, `start_process`, `stop_process`, `check_process`).
@@ -57,16 +57,11 @@ _async.addRule(_await, {
       tests: [
         {
           input: ["to do something", "\twait for 1"],
-          output: ["/* SPELL: added rule: `do something` */", "async function do_something() {", "\tawait 1", "}"]
+          output: ["export async function do_something() {", "\tawait 1", "}"]
         },
         {
           input: ["to do something", "\tif (1) wait for 1"],
-          output: [
-            "/* SPELL: added rule: `do something` */",
-            "async function do_something() {",
-            "\tif (1) { await 1 }",
-            "}"
-          ]
+          output: ["export async function do_something() {", "\tif (1) { await 1 }", "}"]
         }
       ]
     }
@@ -203,16 +198,20 @@ class check_process extends SpellExpression<"name|operator"> {
       methodName: "processIsRunning",
       args: [new P.ASTQuotedExpression(match, name.value)]
     })
-    if (operator.value === "is") return expression
+    if (!Negatable.isNegated(operator)) return expression
     return new P.ASTNotExpression(match, { expression })
   }
 }
 _async.addRule(check_process, {
-  syntax: "(animation|process) {name:constant} (operator:is|is not|isn't|isnt) (running|active)",
+  syntax: "(animation|process) {name:constant} {operator:is} (running|active)",
   tests: [
     {
       compileAs: "expression",
-      tests: [[`animation dealing is running`, `spellCore.processIsRunning('dealing')`]]
+      tests: [
+        [`animation dealing is running`, `spellCore.processIsRunning('dealing')`],
+        [`animation dealing isn't running`, `!spellCore.processIsRunning('dealing')`],
+        [`process dealing is not active`, `!spellCore.processIsRunning('dealing')`]
+      ]
     }
   ]
 })

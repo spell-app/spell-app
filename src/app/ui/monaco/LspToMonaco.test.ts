@@ -1,6 +1,5 @@
 import { describe, test, expect, beforeAll } from "vitest"
 import { readFileSync } from "fs"
-import { resolve } from "path"
 import { pathToFileURL } from "url"
 import {
   CompletionItemKind,
@@ -11,9 +10,9 @@ import {
 } from "vscode-languageserver"
 import { CompletionItemInsertTextRule, MarkerSeverity } from "monaco-editor/editor/common/standalone/standaloneEnums"
 
-import environment from "~/environment"
 import { LSP } from "~/lsp"
 import { SpellDiskWorkspace } from "~/lsp/SpellDiskWorkspace"
+import { fixturePath } from "~/test"
 import { LspToMonaco } from "./LspToMonaco"
 
 /**
@@ -125,7 +124,7 @@ describe("LspToMonaco", () => {
   })
 
   describe("on real answers, for Solitaire", () => {
-    const deckPath = resolve(environment.srcDir, "examples/Solitaire/Deck.spell")
+    const deckPath = fixturePath("Solitaire", "Deck.spell")
     const deckUri = pathToFileURL(deckPath).href
     const deckText = readFileSync(deckPath, "utf8")
     const workspace = new SpellDiskWorkspace()

@@ -72,7 +72,7 @@ describe("spell language server over stdio", () => {
     const projectDir = resolve(mkdtempSync(resolve(tmpdir(), "spell-stdio-")), "Tiny")
     mkdirSync(projectDir)
     writeFileSync(
-      resolve(projectDir, ".imports.json"),
+      resolve(projectDir, "project.json"),
       JSON.stringify({ imports: [{ path: "/main.spell", active: true }] })
     )
     const text = "set foo to 1\nfoo bar baz"

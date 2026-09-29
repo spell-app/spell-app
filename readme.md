@@ -85,7 +85,7 @@ the Solitaire example with the extension loaded.
   declares -- click one for its hover.  Its code is this repo's `dist-runner/` (from `src/app/runner/`), which building the extension builds:
   after changing `src/app/runner/` alone, `yarn build:runner` and close / reopen the panel.
 - Spell indents with tabs:  the extension sets `.spell` files to tabs, and formatting always uses them.
-- Settings:  `spell.compileOnSave` writes the project's `.output.js` on save;  `spell.parserRoot` points at another
+- Settings:  `spell.compileOnSave` writes the project's `<Project>.compiled.js` on save;  `spell.parserRoot` points at another
   checkout of this repo.
 
 ---

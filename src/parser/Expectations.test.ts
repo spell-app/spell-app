@@ -3,7 +3,7 @@ import { describe, test, expect } from "vitest"
 import { proto } from "~/util"
 import { P, Parser, Tokenizer, WhitespacePolicy } from "~/parser"
 import { SP } from "~/languages/spell"
-import { loadExampleProject, parseSpellProject } from "~/test"
+import { loadFixtureProject, parseSpellProject } from "~/test"
 // These tests define rules with rulex `syntax`, so they must opt into the rulex parser.
 import "~/languages/rulex"
 
@@ -146,7 +146,7 @@ describe("expectedAfter()", () => {
   })
 
   test("quick enough for every keystroke, on every line of Solitaire", () => {
-    const project = parseSpellProject(loadExampleProject("Solitaire"))
+    const project = parseSpellProject(loadFixtureProject("Solitaire"))
     let calls = 0
     const start = performance.now()
     for (const file of project.files) {

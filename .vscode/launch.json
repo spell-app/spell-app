@@ -8,7 +8,7 @@
       "request": "launch",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}/vscode-extension",
-        "${workspaceFolder}/src/examples/Solitaire"
+        "${workspaceFolder}/projects/system/examples/Solitaire"
       ],
       "outFiles": ["${workspaceFolder}/vscode-extension/out/**/*.js"],
       "preLaunchTask": "Build Spell Extension"

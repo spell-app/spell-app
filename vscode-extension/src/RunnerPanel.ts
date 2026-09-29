@@ -69,6 +69,8 @@ export class RunnerPanel {
         })
       } else if (message.type === "restart") void this.compile()
       else if (message.type === "saveSettings") this.saveSettings(message.settings)
+      else if (message.type === "details") void this.sendDetails(message.id)
+      else if (message.type === "refreshScopes") void this.sendScopes()
       else if (message.type === "open") void RunnerPanel.open(message.href)
       else if (message.type === "setDescription") void this.setDescription(message)
     })
@@ -117,14 +119,19 @@ export class RunnerPanel {
   }
 
   /**
-   * Spell `document` was saved:  compile its project if it's running and nothing else will.
-   * - `spell.compileOnSave` makes the server compile every save itself, and we hear `spell/projectCompiled` anyway.
+   * Spell `document` was saved:
+   * - its project's panel compiles, unless nothing else will -- `spell.compileOnSave` makes the server compile
+   *   every save itself, and we hear `spell/projectCompiled` anyway
+   * - every OTHER panel fetches fresh scopes:  it may be a file of a project it imports
    */
   static async saved(client: LanguageClient, document: vscode.TextDocument): Promise<void> {
     if (document.languageId !== "spell" || !RunnerPanel.panels.size) return
-    if (vscode.workspace.getConfiguration("spell").get<boolean>("compileOnSave")) return
+    const compileOnSave = vscode.workspace.getConfiguration("spell").get<boolean>("compileOnSave")
     const info = await client.sendRequest<ProjectInfo | null>("spell/project", { uri: document.uri.toString() })
-    if (info) void RunnerPanel.panels.get(info.project)?.compile()
+    for (const panel of RunnerPanel.panels.values()) {
+      if (panel.project !== info?.project) void panel.sendScopes()
+      else if (!compileOnSave) void panel.compile()
+    }
   }
 
   /**
@@ -218,6 +225,12 @@ export class RunnerPanel {
     } catch (error) {
       vscode.window.setStatusBarMessage(`Spell:  couldn't save ${SETTINGS_FILE} -- ${error}`, 5000)
     }
+  }
+
+  /** Send the webview the details of its Type Explorer's node or member `id`, from the server's `spell/scopeDetails`. */
+  async sendDetails(id: string): Promise<void> {
+    const details = await this.client.sendRequest<unknown>("spell/scopeDetails", { uri: this.uri, id })
+    this.post({ type: "details", id, details })
   }
 
   /** Send `message` to the webview. */
@@ -324,6 +337,7 @@ type ToRunnerMessage =
   | { type: "run"; compiled: string }
   | { type: "scopes"; tree: unknown }
   | { type: "settings"; settings: ProjectSettings }
+  | { type: "details"; id: string; details: unknown }
 
 /** Message from the runner webview, as `FromRunnerMessage` in `src/app/runner/runner.types.ts`. */
 type FromRunnerMessage =
@@ -332,6 +346,8 @@ type FromRunnerMessage =
   | { type: "open"; href: string }
   | ({ type: "setDescription" } & SetDescriptionParams)
   | { type: "saveSettings"; settings: ProjectSettings }
+  | { type: "details"; id: string }
+  | { type: "refreshScopes" }
 
 /** Params of `spell/setDescription`, as `LSP.SetDescriptionParams` -- `file` for the file's own docstring. */
 type SetDescriptionParams = { uri: string; position: unknown; file?: boolean; text: string }

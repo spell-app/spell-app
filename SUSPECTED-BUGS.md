@@ -76,21 +76,18 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   on a container that has already been passed to createRoot() before".  Probably wants to reuse (or unmount) the
   `REACT_ROOT` it already stashed on the element.
 
-- `rules/methods.ts` `MethodDefinition.getRule()`, `_dynamicMethodRuleInfix.compileASTExpression()`:  builds
-  `new P.ASTScopedMethodInvocation(match, ...)` with the OUTER `match` -- the method DEFINITION -- not the
-  call-site `_match` it's given.  Its postfix sibling just above uses `_match`.  So every infix call's AST
-  node claims the definition's source position, e.g. for source maps / editor ranges.  Found 2026-09-27
-  while mapping dynamic rules' closures for precompiled packages.
+- `rules/classes.ts` `QuotedPropertyRule.compileASTExpression()` (was `_quoted_property_rule`):  a placeholder
+  word that isn't in its enumeration outputs `` `'arg.value'` `` -- the literal text `'arg.value'`, not the
+  word.  Probably meant `` `'${arg.value}'` ``.  Found 2026-09-28 while extracting the class.
 
-- `Rule.toRulexSyntax()` on an enumeration's rule (`EnumerationRule`, e.g. `Card_Suits`, `specialize()`d with no
-  `syntax`) gives `(Card|card),(Suits|suits)` -- a COMMA between the two words, where its compiled comment says
-  `'(Card|card) (Suits|suits)'`.  Looks like a `Literals` list joined with `Array.toString()`.  Shows in hover's
-  rule line and the Type Explorer's "Rules".  Found 2026-09-28, not checked against the code.
+- [V] `projects/system/library/cards/Deck.spell` `test deck creation`:  after two shuffles it expects the first
+  card NOT to be the ace of clubs -- which it is, by chance, 1 time in 52.  So the test fails at random, ~2% of
+  runs.  Probably wants "the deck isn't in its original order" instead.  Found 2026-09-28.
 
 ## 2. Server robustness / security
 
-- [V] `server/lock-utils.ts`: whole module has zero callers, while `saveFile()` / `saveImports()` / `getIndex()`
-  do unguarded read-modify-write on `.imports.json`.  Wiring dropped, or dead code.
+- [V] `server/lock-utils.ts`: whole module has zero callers, while `saveFile()` / `saveProjectFile()` / `getIndex()`
+  do unguarded read-modify-write on `project.json`.  Wiring dropped, or dead code.
 
 - `server/project-utils.ts` `request_createFile`: silently overwrites existing file; exists-check is client-side only.
 
@@ -157,8 +154,6 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 - `app/pages/ProjectChooser.tsx` `ProjectRootDisplay`: no call sites.
 
 - `app/pages/ProjectSettings.tsx`: unrouted, hardcoded demo data; `editor.showProjectSettings()` is a stub.
-
-- `environment.ts`: `systemFilesRoot` and `userFilesRoot` both `srcDir`; server's owner-based split is a no-op.
 
 ## 5. Structure / AGENTS.md conformance (your call)
 

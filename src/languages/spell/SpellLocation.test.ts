@@ -190,4 +190,22 @@ describe("SpellLocation", () => {
       expect(() => new SpellLocation("@user/projects/weird)path")).toThrow()
     })
   })
+
+  // a root's `alias`, e.g. `@test` for `@test:fixtures` -- see `SpellSetup.expandAlias()`
+  describe("aliased paths", () => {
+    test("expand to the full path, which is what's stored", () => {
+      const location = new SpellLocation("@test/FizzBuzz/FizzBuzz.spell")
+      expect(location.path).toBe("@test:fixtures:FizzBuzz/FizzBuzz.spell")
+      expect(location.projectId).toBe("@test:fixtures:FizzBuzz")
+      expect(location.projectName).toBe("FizzBuzz")
+      expect(location.filePath).toBe("/FizzBuzz.spell")
+    })
+    test("a project alone", () => {
+      expect(new SpellLocation("@test/FizzBuzz").path).toBe("@test:fixtures:FizzBuzz")
+      expect(new SpellLocation("@library/cards").path).toBe("@system:library:cards")
+    })
+    test("an unknown alias is just an invalid path", () => {
+      expect(() => new SpellLocation("@nope/FizzBuzz")).toThrow()
+    })
+  })
 })

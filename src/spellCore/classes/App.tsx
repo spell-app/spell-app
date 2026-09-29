@@ -30,4 +30,3 @@ export class App extends Thing {
     ;(element as HTMLElement & { REACT_ROOT?: ReturnType<typeof createRoot> }).REACT_ROOT = root
   }
 }
-spellCore.addExport("App", App)

@@ -63,9 +63,12 @@ export class SpellLocation {
 
   /**
    * Parse `path` into its pieces, or return existing registry entry for `path` if `useRegistry`.
+   * - A root's alias expands first, e.g. `@test/FizzBuzz` => `@test:fixtures:FizzBuzz` -- `path` is always the
+   *   full one.  See `SpellSetup.expandAlias()`.
    * - Throws `TypeError` if `path` is invalid -- or calls `die(reason)` instead, if provided.
    */
   constructor(path: string, die?: (error: string) => never) {
+    path = SP.SpellSetup.expandAlias(path)
     try {
       // Return from registry if present, add if not.
       if (SpellLocation.useRegistry) {

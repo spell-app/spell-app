@@ -1,11 +1,9 @@
 /**
  * `spell` base runtime library for use with classes created with spell.
- * - Meta-programming (`define`, `defineProperty`, `newThingLike`), exports, type checks, get/set-by-path
+ * - Meta-programming (`define`, `defineProperty`, `newThingLike`), type checks, get/set-by-path
  *   stubs, `equals`, math and primitive iteration all live here -- collection-shaped methods
  *   (`itemCountOf`, `forEach`, etc) live in `collection-core.ts` / `collection-other.ts` instead.
  */
-import global from "global"
-import forEach from "lodash/forEach"
 import _isArrayLike from "lodash/isArrayLike"
 import isEqual from "lodash/isEqual"
 
@@ -150,33 +148,6 @@ export const coreMethods = defineSpellCoreModule({
   },
 
   ////////////////
-  // ## exports
-  ////////////////
-
-  /** List of named exports, keyed by name -- populated by `addExport()`, e.g. by every `spell` class. */
-  EXPORTS: {} as Record<string, unknown>,
-
-  /**
-   * Add a named export (which may replace an existing export).
-   * - SIDE EFFECT: globalizes exports -- calls `globalizeExports()`, so `name` becomes a global immediately.
-   */
-  addExport(name: string, thing: unknown): void {
-    this.EXPORTS[name] = thing
-    this.globalizeExports()
-  },
-
-  /**
-   * Globalize all exports.
-   * - SIDE EFFECT: assigns every entry of `EXPORTS` onto `global`, so compiled `spell` code can
-   *   reference e.g. a class by its bare name without importing it.
-   */
-  globalizeExports(): void {
-    forEach(this.EXPORTS, (thing, name) => {
-      global[name] = thing
-    })
-  },
-
-  ////////////////
   // ## types
   ////////////////
 
@@ -214,24 +185,45 @@ export const coreMethods = defineSpellCoreModule({
   } as IsOfTypeSpecials,
 
   /**
-   * Is `thing` an instance of string `type` (as per `spellCore.typeOf()`)?
-   * - Compiles from `thing is a Bee` => `spellCore.isOfType(thing, 'Bee')` -- see `expressions.ts`.
+   * Types `thing` is, most specific first:  its `typeOf()`, then each super-class's -- e.g. a joker is
+   * `["joker", "card", "thing", ...]`, for `a joker is a card`.
+   * - Up its prototype chain, stopping before plain `Object`, which every object would be.
+   * - By class NAME, lowercased and converted as `typeOf()` does -- skipping any unnamed class, e.g. a mixin's.
    */
-  isOfType(thing: unknown, type: string): boolean {
-    // TODO: check for inherited types
-    if (typeof type === "string") type = type.toLowerCase()
-    if (spellCore.IS_OF_TYPE_SPECIALS[type]) return spellCore.IS_OF_TYPE_SPECIALS[type](thing)
-    const thingType = spellCore.typeOf(thing)
-    return type === thingType
+  typesOf(thing: unknown): string[] {
+    const types = [spellCore.typeOf(thing)]
+    if (thing === null || typeof thing !== "object") return types
+    // `typeOf()` already has its own class:  start with its super-class
+    for (
+      let proto = Object.getPrototypeOf(Object.getPrototypeOf(thing)) as object | null;
+      proto && proto !== Object.prototype;
+      proto = Object.getPrototypeOf(proto) as object | null
+    ) {
+      const name = (proto.constructor as { name?: string } | undefined)?.name?.toLowerCase()
+      const type = name && (spellCore.TYPE_NAME_CONVERSIONS[name] || name)
+      if (type && !types.includes(type)) types.push(type)
+    }
+    return types
   },
 
   /**
-   * Does the type of `thing` match the type of `otherThing`?
+   * Is `thing` an instance of string `type`, or of a sub-type of it -- as per `spellCore.typesOf()`?
+   * - Compiles from `thing is a Bee` => `spellCore.isOfType(thing, 'Bee')` -- see `expressions.ts`.
+   * - e.g. a joker is a card, if `a joker is a card`.
+   */
+  isOfType(thing: unknown, type: string): boolean {
+    if (typeof type === "string") type = type.toLowerCase()
+    if (spellCore.IS_OF_TYPE_SPECIALS[type]) return spellCore.IS_OF_TYPE_SPECIALS[type](thing)
+    return spellCore.typesOf(thing).includes(type)
+  },
+
+  /**
+   * Is `thing` of `otherThing`'s type -- the same type, or a sub-type of it?
    * - Compiles from `thing is the same type as other` -- see `expressions.ts`.
+   * - NOT symmetrical:  a joker is the same type as a card, but a card isn't the same type as a joker.
    */
   matchesType(thing: unknown, otherThing: unknown): boolean {
-    // TODO: check for inherited types
-    return spellCore.typeOf(thing) === spellCore.typeOf(otherThing)
+    return spellCore.isOfType(thing, spellCore.typeOf(otherThing))
   },
 
   /** Is `thing` a valid number (doesn't include NaN). */

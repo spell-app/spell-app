@@ -61,6 +61,11 @@ export class SpellParser extends P.Parser {
     return super.addRule(rule as Class<P.Rule>, namesOrDefinition as P.DefinitionFor<P.Rule>)
   }
 
+  /** Without the `/*! SPELL: DECLARES` comments -- a rule's tests are about its code.  See `SpellDeclarations`. */
+  normalizeTestOutput(compiled: unknown): unknown {
+    return typeof compiled === "string" ? SP.SpellDeclarations.stripComments(compiled) : compiled
+  }
+
   /**
    * Also register expressions / statements as `simple_expression` / `simple_statement`.
    * - Skips this for left-recursive rules (`rule.isLeftRecursive`): those already reference

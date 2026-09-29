@@ -3,16 +3,22 @@ import React from "react"
 import * as SUI from "semantic-ui-react"
 
 // Import directly, NOT through the `~/lsp` barrel, which would pull the language service into the bundle.
-import { SCOPE_MEMBER_GROUPS, type ScopeMember, type ScopeNode, type ScopeNodeKind } from "~/lsp/lsp.types"
+import {
+  SCOPE_MEMBER_GROUPS,
+  type ScopeDetails,
+  type ScopeMember,
+  type ScopeNode,
+  type ScopeNodeKind
+} from "~/lsp/lsp.types"
 import { Markdown } from "./Markdown"
 
 /****************
- * ### `<ScopeDetails>`
+ * ### `<ScopeDetailsPane>`
  * "Details" of scope-tree `node`:  breadcrumbs of where it is in the tree -- click one to select it -- then
  * `<DetailsBody>`.
  * - Keyed by node `id` by `<TypeExplorer>`, so what's expanded, or an edit, resets on selecting another node.
  ****************/
-export function ScopeDetails({ node, path, ...props }: ScopeDetailsProps) {
+export function ScopeDetailsPane({ node, path, ...props }: ScopeDetailsPaneProps) {
   return (
     <div className="ScopeDetails">
       <div className="Breadcrumbs">
@@ -26,50 +32,52 @@ export function ScopeDetails({ node, path, ...props }: ScopeDetailsProps) {
           </React.Fragment>
         ))}
       </div>
-      <DetailsBody node={node} {...props} />
+      <DetailsBody id={node.id} members={node.members} {...props} />
     </div>
   )
 }
 
-/** Props for `<ScopeDetails>`. */
-export type ScopeDetailsProps = DetailsBodyProps & {
+/** Props for `<ScopeDetailsPane>`. */
+export type ScopeDetailsPaneProps = Omit<DetailsBodyProps, "id" | "members"> & {
+  /** Node to show. */
+  node: ScopeNode
   /** Nodes from the top of the tree down to `node`, for its breadcrumbs -- the root left out. */
   path: ScopeNode[]
 }
 
 /****************
  * ### `<DetailsBody>`
- * What there is to say about `node`, top to bottom:
+ * What there is to say about node or member `id`, top to bottom:
  * - its description -- click to edit, if `onSaveDescription`
- * - its members by kind, under collapsible headings:  click one to select it in the tree, or its `▶`
+ * - its `members` by kind, under collapsible headings:  click one to select it in the tree, or its `▶`
  *   to show its own `<DetailsBody>` right here
  * - "Spell" -- with where it's defined at its right -- "Rules" its statement made, and "Compiled Output",
  *   each collapsible
  * - Every heading is closed until opened, and open or closed alike for every node -- see `<Section>`.
+ * - Its details are fetched when first shown -- see `TypeExplorerProps.loadDetails`.
  ****************/
-function DetailsBody({
-  node,
-  openSections,
-  onToggleSection,
-  onSelect,
-  onOpen,
-  onSaveDescription,
-  nodeFor
-}: DetailsBodyProps) {
+function DetailsBody(props: DetailsBodyProps) {
+  const { id, members, openSections, onToggleSection, onSelect, onOpen, onSaveDescription, nodeFor } = props
+  const { detailsFor, load } = props
   const sectionProps = { openSections, onToggle: onToggleSection }
   const [expanded, setExpanded] = React.useState(new Set<string>())
-  const location = node.location && linkTo(node.location)
+  const details = detailsFor(id)
+  React.useEffect(() => {
+    if (details === undefined) load(id)
+  })
+  if (details === undefined || details === "loading") return <div className="DetailsBody loading">Loading…</div>
+  const location = details?.location && linkTo(details.location)
   return (
     <div className="DetailsBody">
-      <Description node={node} onSave={onSaveDescription} onOpen={onOpen} />
+      {!!details && <Description details={details} onSave={onSaveDescription} onOpen={onOpen} />}
       {SCOPE_MEMBER_GROUPS.map(({ kinds, label }) => {
-        const members = node.members.filter((member) => kinds.includes(member.kind))
-        if (!members.length) return null
+        const inGroup = members.filter((member) => kinds.includes(member.kind))
+        if (!inGroup.length) return null
         return (
           <Section key={label} title={label} className="MemberGroup" {...sectionProps}>
-            {members.map((member) => {
+            {inGroup.map((member) => {
               const key = `${member.kind}:${member.name}`
-              const memberNode = member.id ? nodeFor(member.id) : undefined
+              const memberNode = nodeFor(member.id)
               const isOpen = expanded.has(key)
               return (
                 <div key={key} className={classnames("ScopeMember", member.kind, { open: isOpen })}>
@@ -87,22 +95,11 @@ function DetailsBody({
                       {!!member.inheritedFrom && <span className="inherited">from {member.inheritedFrom}</span>}
                     </span>
                   </div>
-                  {isOpen &&
-                    (memberNode ? (
-                      <div className="MemberDetails">
-                        <DetailsBody
-                          node={memberNode}
-                          openSections={openSections}
-                          onToggleSection={onToggleSection}
-                          onSelect={onSelect}
-                          onOpen={onOpen}
-                          onSaveDescription={onSaveDescription}
-                          nodeFor={nodeFor}
-                        />
-                      </div>
-                    ) : (
-                      <Markdown className="hover" text={member.hover} onOpen={onOpen} />
-                    ))}
+                  {isOpen && (
+                    <div className="MemberDetails">
+                      <DetailsBody {...props} id={member.id} members={memberNode?.members ?? []} />
+                    </div>
+                  )}
                 </div>
               )
             })}
@@ -110,7 +107,7 @@ function DetailsBody({
         )
       })}
 
-      {!!node.spell && (
+      {!!details?.spell && (
         <Section
           title="Spell"
           aside={
@@ -129,12 +126,12 @@ function DetailsBody({
           }
           {...sectionProps}
         >
-          <pre className="code spell">{node.spell}</pre>
+          <pre className="code spell">{details.spell}</pre>
         </Section>
       )}
-      {!!node.rules?.length && (
+      {!!details?.rules?.length && (
         <Section title="Rules" {...sectionProps}>
-          {node.rules.map((rule) => (
+          {details.rules.map((rule) => (
             <div key={rule.name} className="Rule">
               <div className="RuleName">{rule.name}</div>
               <pre className="code rulex">{rule.syntax}</pre>
@@ -142,9 +139,9 @@ function DetailsBody({
           ))}
         </Section>
       )}
-      {!!node.compiled && (
+      {!!details?.compiled && (
         <Section title="Compiled Output" {...sectionProps}>
-          <pre className="code javascript">{node.compiled}</pre>
+          <pre className="code javascript">{details.compiled}</pre>
         </Section>
       )}
     </div>
@@ -161,8 +158,10 @@ function DetailsBody({
 
 /** Props for `<DetailsBody>`. */
 type DetailsBodyProps = {
-  /** Node to show. */
-  node: ScopeNode
+  /** Node or member whose details to show. */
+  id: string
+  /** What it declares, if it's a node. */
+  members: ScopeMember[]
   /** Titles of the sections open, e.g. `Spell` -- for every node.  Kept, and remembered, by `<TypeExplorer>`. */
   openSections: Set<string>
   /** Open / close section `title`. */
@@ -171,11 +170,18 @@ type DetailsBodyProps = {
   onSelect: (node: ScopeNode) => void
   /** Link clicked, e.g. `file:///…/Card.spell#L12` -- open it in the editor. */
   onOpen: (href: string) => void
-  /** Save `text` as `node`'s docstring -- descriptions are read-only without it. */
-  onSaveDescription?: (node: ScopeNode, text: string) => void
+  /** Save `text` as the docstring at `at` -- descriptions are read-only without it. */
+  onSaveDescription?: (at: DescriptionAt, text: string) => void
   /** Node with `id` in the tree, if it's there -- e.g. a member's. */
   nodeFor: (id: string) => ScopeNode | undefined
+  /** Details of `id`:  `undefined` if not asked for yet, `"loading"`, or `null` if there are none. */
+  detailsFor: (id: string) => ScopeDetails | null | "loading" | undefined
+  /** Ask for the details of `id` -- see `detailsFor`. */
+  load: (id: string) => void
 }
+
+/** Where a docstring can be changed -- `LSP.ScopeDetails.descriptionAt`. */
+export type DescriptionAt = NonNullable<ScopeDetails["descriptionAt"]>
 
 /****************
  * ### `<Description>`
@@ -185,12 +191,12 @@ type DetailsBodyProps = {
  * - Cmd/Ctrl-Enter or "Save" saves, Escape or "Cancel" doesn't.
  * - Shows what was saved until a new tree brings the real one.
  ****************/
-function Description({ node, onSave, onOpen }: DescriptionProps) {
+function Description({ details, onSave, onOpen }: DescriptionProps) {
   const [editing, setEditing] = React.useState<string>()
   // what we saved, over which docstring:  shown until a new tree brings a different one
   const [saved, setSaved] = React.useState<{ text: string; over?: string }>()
-  const text = (saved && saved.over === node.description ? saved.text : node.description) ?? ""
-  const editable = !!onSave && !!node.descriptionAt
+  const text = (saved && saved.over === details.description ? saved.text : details.description) ?? ""
+  const editable = !!onSave && !!details.descriptionAt
 
   if (editing !== undefined) {
     return (
@@ -220,8 +226,8 @@ function Description({ node, onSave, onOpen }: DescriptionProps) {
 
   /** Save what's being edited. */
   function save() {
-    onSave!(node, editing!)
-    setSaved({ text: editing!.trim(), over: node.description })
+    onSave!(details.descriptionAt!, editing!)
+    setSaved({ text: editing!.trim(), over: details.description })
     setEditing(undefined)
   }
 
@@ -234,10 +240,10 @@ function Description({ node, onSave, onOpen }: DescriptionProps) {
 
 /** Props for `<Description>`. */
 type DescriptionProps = {
-  /** Node whose docstring it is. */
-  node: ScopeNode
-  /** Save `text` as `node`'s docstring -- read-only without it. */
-  onSave?: (node: ScopeNode, text: string) => void
+  /** Details holding the docstring, and where to change it. */
+  details: ScopeDetails
+  /** Save `text` as the docstring at `at` -- read-only without it. */
+  onSave?: (at: DescriptionAt, text: string) => void
   /** Link in it clicked. */
   onOpen: (href: string) => void
 }
@@ -300,7 +306,7 @@ export const SCOPE_ICONS: Record<ScopeNodeKind, SUI.SemanticICONS> = {
 }
 
 /** `location` as a link:  `href` with its line, e.g. `file:///…/Card.spell#L12`, and a label like `Card.spell:12`. */
-function linkTo({ uri, range }: NonNullable<ScopeMember["location"]>): { href: string; label: string } {
+function linkTo({ uri, range }: NonNullable<ScopeDetails["location"]>): { href: string; label: string } {
   const line = range.start.line + 1
   return { href: `${uri}#L${line}`, label: `${decodeURIComponent(uri.split("/").pop()!)}:${line}` }
 }

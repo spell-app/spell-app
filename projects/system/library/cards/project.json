@@ -1,0 +1,17 @@
+{
+  "version": "1.0.0",
+  "imports": [
+    {
+      "path": "/Card.spell",
+      "active": true
+    },
+    {
+      "path": "/Deck.spell",
+      "active": true
+    },
+    {
+      "path": "/Pile.spell",
+      "active": true
+    }
+  ]
+}

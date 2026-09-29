@@ -88,6 +88,8 @@ export type HighlightSpan = {
   declaration?: boolean
   /** Is it built in, rather than declared in a project? */
   defaultLibrary?: boolean
+  /** Heading level, if it's a heading comment:  the number of `#`s, e.g. `2` for `## Cards`. */
+  heading?: number
 }
 
 // ## Custom requests
@@ -108,6 +110,7 @@ export type ProjectInfo = {
  * Answer to `spell/scopes`:  the live scope tree a project parses in, for a scope explorer -- see `ScopeExplorer`.
  * - Plain JSON:  the editor's side can't reach parser objects.
  * - Root, projects and files hold what's declared in them;  a type holds its properties and methods.
+ * - Just what the TREE shows:  a node's details come separately, when shown -- see `ScopeDetails`.
  */
 export type ScopeNode = {
   /** Unique in its tree, and stable between answers while names are, e.g. `spellRoot/Solitaire/Card.spell/Card`. */
@@ -118,9 +121,20 @@ export type ScopeNode = {
   kind: ScopeNodeKind
   /** One-line summary, e.g. `is a Thing`, `imported`. */
   detail?: string
+  /** What it declares, for listing:  grouped as `SCOPE_MEMBER_GROUPS`, inherited ones included. */
+  members: ScopeMember[]
+  /** What's below it in the tree. */
+  children: ScopeNode[]
+}
+
+/**
+ * Answer to `spell/scopeDetails`:  what an explorer shows of ONE node or member, fetched when it's shown.
+ * - Worked out on demand, and cached per parse of its file -- see `ScopeExplorer.details()`.
+ */
+export type ScopeDetails = {
   /** What it is, as markdown, e.g. `type **Card** is a Thing` -- the first line of its hover. */
   summary?: string
-  /** Its docstring, as plain text -- see `SP.Block.getDocComments()`. */
+  /** Its docstring, as markdown -- `#` comments as headings.  See `SP.Block.getDocComments()`. */
   description?: string
   /** Where to change its docstring, with `spell/setDescription` -- only if it's declared in a spell file. */
   descriptionAt?: { uri: string; position: Position; file?: boolean }
@@ -134,10 +148,6 @@ export type ScopeNode = {
   location?: Location
   /** Markdown about it, as hovering its name would show. */
   hover?: string
-  /** What it declares, for listing:  in alphabetical order, inherited ones included. */
-  members: ScopeMember[]
-  /** What's below it in the tree. */
-  children: ScopeNode[]
 }
 
 /** Kind of `ScopeNode`:  a scope, or something declared in one. */
@@ -145,8 +155,8 @@ export type ScopeNodeKind = "root" | "project" | "file" | "type" | ScopeMember["
 
 /** Something a `ScopeNode` declares, for listing. */
 export type ScopeMember = {
-  /** `id` of its own node, if it has one, e.g. to select it. */
-  id?: string
+  /** `id` of its details -- and of its node in the tree, if it has one, e.g. to select it. */
+  id: string
   /** Name as written, e.g. `short-suit`, `move (a card) to (a pile)`. */
   name: string
   /** What it is. */
@@ -155,10 +165,6 @@ export type ScopeMember = {
   detail?: string
   /** Type_Case name of the super-type it came from, if not its node's own. */
   inheritedFrom?: string
-  /** Markdown about it, as hovering its name would show. */
-  hover: string
-  /** Where it was declared, if in a file. */
-  location?: Location
 }
 
 /**
@@ -177,9 +183,9 @@ export const SCOPE_MEMBER_GROUPS: Array<{ label: string; kinds: Array<ScopeMembe
 
 /** Params of `spell/setDescription`:  make `text` the docstring of what's declared at `position` in `uri`. */
 export type SetDescriptionParams = {
-  /** File, as `ScopeNode.descriptionAt`. */
+  /** File, as `ScopeDetails.descriptionAt`. */
   uri: string
-  /** Start of its declaring statement, as `ScopeNode.descriptionAt`. */
+  /** Start of its declaring statement, as `ScopeDetails.descriptionAt`. */
   position: Position
   /** `true` for the FILE's own docstring, at its top -- `position` is ignored. */
   file?: boolean

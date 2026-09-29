@@ -15,11 +15,23 @@ export abstract class Literals<
 > extends Rule<P.LiteralsProps, Groups, MatchData> {
   /** Literals to match in order -- normalized from constructor input into `{ literal, optional? }` matchers. */
   declare literals: P.LiteralMatcher[]
-  /** String to join matched literals with in `toRulexSyntax()` -- set by subclass, e.g. `Keywords` uses `" "`. */
+  /**
+   * String to join matched literals with in `toRulexSyntax()` -- a space, unless a subclass says otherwise,
+   * e.g. `Symbols` uses `""`.
+   * - NEVER left unset:  `[...].join(undefined)` joins with `","`, e.g. `(Card|card),(Suits|suits)`.
+   */
   declare literalSeparator: string
 
   /** Class-level `literals`, for rules defined as classes -- declare as `@proto static`. */
   static literals?: Array<string | string[] | P.LiteralMatcher>
+
+  static {
+    /** Join literals with a single space in-between, by default -- e.g. for `EnumerationRule`. */
+    Object.defineProperty(this.prototype, "literalSeparator", {
+      value: " ",
+      writable: true
+    })
+  }
 
   /** Bare string / array shorthand sets `literals` directly, otherwise pass a full `LiteralsProps` bag. */
   constructor(input: P.LiteralsProps | string | Array<string | string[] | P.LiteralMatcher>) {

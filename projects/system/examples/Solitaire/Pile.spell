@@ -1,0 +1,26 @@
+## Pile of playing cards
+a pile is a list of cards
+
+the color of a pile is:
+	if it is empty return "none"
+	return the color of its last card
+
+the value of a pile is:
+	if it is empty return 0
+	return the value of its last card
+	
+// "move" a card
+// NOTE: use this rather than `add` to make sure card is only in one pile at a time
+// if you `wait for: move the card to the pile` the move will be animated
+to move (a card) to (a pile)
+	if the pile of the card is defined: remove the card from its pile
+	set the pile of the card to the pile
+	add the card to the pile
+	pause for 50 msec
+
+
+the state of a pile is:
+	set state to (the name of the pile or "pile") + ":"
+	for each card in pile
+		set state to state + " " + the state of the card
+	return state

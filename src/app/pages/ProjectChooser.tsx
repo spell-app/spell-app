@@ -38,11 +38,15 @@ export type ProjectRootDisplayProps = {
 /****************
  * ### `<ProjectChooser />`
  * Landing page listing projects/examples/guides side by side, with "create new" actions for each.
+ * - In dev, also the test fixtures (`@test:fixtures`) -- open one to look at it, edit it, then
+ *   `yarn test:fixtures:bless`.  No "create" for those:  copy a project into `projects/test/`.
  * - Note that this does not need to be a `view()`.
  ****************/
 export const ProjectChooser = React.memo(function ProjectChooser() {
   const { Grid, Row, Column } = UI
-  const { projects, examples, guides } = SP.SpellProjectRoot
+  const { projects, examples, guides, fixtures } = SP.SpellProjectRoot
+  // a dev-only root is there in every build -- just not listed outside dev
+  const showFixtures = !!import.meta.env?.DEV || !fixtures.devOnly
 
   return (
     <>
@@ -72,6 +76,12 @@ export const ProjectChooser = React.memo(function ProjectChooser() {
                   <h3>{guides.title}</h3>
                   <p>{guides.description}</p>
                 </Column>
+                {showFixtures && (
+                  <Column>
+                    <h3>{fixtures.title}</h3>
+                    <p>{fixtures.description}</p>
+                  </Column>
+                )}
               </Row>
 
               <Row>
@@ -87,6 +97,12 @@ export const ProjectChooser = React.memo(function ProjectChooser() {
                   <h4>Open Guide</h4>
                   <UI.ProjectMenu vertical useRunner projectRoot={guides} fluid />
                 </Column>
+                {showFixtures && (
+                  <Column>
+                    <h4>Open Fixture</h4>
+                    <UI.ProjectMenu vertical useRunner={false} projectRoot={fixtures} fluid />
+                  </Column>
+                )}
               </Row>
 
               <Row>
@@ -99,6 +115,7 @@ export const ProjectChooser = React.memo(function ProjectChooser() {
                 <Column>
                   <Actions.createGuide button title="Create a New Guide" fluid />
                 </Column>
+                {showFixtures && <Column />}
               </Row>
             </Grid>
           </UI.Segment>

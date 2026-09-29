@@ -14,18 +14,18 @@ import {
   type TextEdit
 } from "vscode-languageserver"
 
-import environment from "~/environment"
 import { SP } from "~/languages/spell"
 import { LSP } from "~/lsp"
 import { SpellDiskWorkspace } from "~/lsp/SpellDiskWorkspace"
+import { fixturePath } from "~/test"
 
 /**
  * The language service over a real project:  a temp copy of the Solitaire example,
- * so edits and `.imports.json` syncing never touch the repo, and its `@workspace` project is ours alone.
+ * so edits and `project.json` syncing never touch the repo, and its `@workspace` project is ours alone.
  */
 describe("SpellLanguageService", () => {
   const dir = mkdtempSync(resolve(tmpdir(), "spell-lsp-"))
-  cpSync(resolve(environment.srcDir, "examples/Solitaire"), resolve(dir, "Solitaire"), { recursive: true })
+  cpSync(fixturePath("Solitaire"), resolve(dir, "Solitaire"), { recursive: true })
   const cardPath = resolve(dir, "Solitaire/Card.spell")
   const cardUri = pathToFileURL(cardPath).href
   const cardText = readFileSync(cardPath, "utf8")
@@ -155,6 +155,19 @@ describe("SpellLanguageService", () => {
       expect(tokens).toContain(`60:3 "turn" function declaration`)
       expect(tokens).toContain(`70:25 "turn" function`)
       expect(tokens).toContain(`70:30 "it" variable`)
+    })
+
+    test("a heading comment's level is its number of `#`s -- a `//` one has none", async () => {
+      await withCardText(`# Cards\n### ranks\n// plain\n${cardText}`, () => {
+        const [top, third, plain] = service.highlightSpans(card)
+        expect(top).toMatchObject({ kind: "comment", heading: 1 })
+        expect(third).toMatchObject({ kind: "comment", heading: 3 })
+        expect(plain).toMatchObject({ kind: "comment" })
+        expect(plain!.heading).toBeUndefined()
+        // ...sent as modifier `heading3`:  bit 1 << (1 + 3)
+        const { data } = service.semanticTokens(card)
+        expect(data[4 + 5]).toBe(1 << 4)
+      })
     })
 
     test("a range request only covers that range", () => {
@@ -506,13 +519,13 @@ describe("SpellLanguageService", () => {
         const uri = pathToFileURL(resolve(dir, "Solitaire", name)).href
         const file = workspace.fileFor(uri)!
         const original = file.contents!
-        const compiled = withoutBlankLines(service.compiled(file))
+        const compiled = withoutPositions(service.compiled(file))
         const formatted = applyEdits(original, service.formatting(file, tabs))
         await withText(uri, original, formatted, () => {
           expect(service.diagnostics(file), name).toEqual([])
           // Blank lines compile as they're written, and one with a tab on it belongs to the block it's indented
           // into -- so without the tab, a blank line can move in the javascript.  The code itself can't change.
-          expect(withoutBlankLines(service.compiled(file)), name).toBe(compiled)
+          expect(withoutPositions(service.compiled(file)), name).toBe(compiled)
           expect(service.formatting(file, tabs), name).toEqual([])
         })
       }
@@ -621,6 +634,14 @@ function withoutBlankLines(text: string): string {
     .map((line) => line.trimEnd())
     .filter(Boolean)
     .join("\n")
+}
+
+/**
+ * `compiled` without blank lines, nor where each declaring statement is -- its `SPELL: DECLARES` comment's
+ * `defined` line, whose offsets formatting moves.
+ */
+function withoutPositions(compiled: string): string {
+  return withoutBlankLines(compiled.replace(/^ {2}defined: .*$/gm, ""))
 }
 
 /** `text` with `edits` applied -- edits must not overlap. */

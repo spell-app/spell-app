@@ -1,7 +1,8 @@
 /**
  * Entry of the runner bundle (`yarn build:runner` => `dist-runner/`), loaded by the VS Code extension's
  * "Run Project" webview -- see `RunnerPanel` there.
- * - Sets up what compiled spell code assumes:  globals `spellCore` and `assert`, and `UI` / `SUI` JSX tags.
+ * - Sets up `UI` / `SUI` JSX tags, and globals `spellCore` / `assert` for poking at in devtools.  Compiled spell
+ *   itself `import`s `spellCore` -- see `runCompiled()`.
  * - NOTE: `UI` is NOT the `~/app/ui` barrel, which would pull in the editor.  It's what spell programs use:
  *   the forms barrel plus the `semantic-ui-react` pass-throughs (`UI.Button` ...).
  *   NEVER rename the `UI` key -- see `src/app/index.tsx`.

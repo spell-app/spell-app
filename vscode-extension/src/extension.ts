@@ -2,7 +2,7 @@
  * VS Code extension for spell:  runs the spell parser's language server, and shows a file's compiled javascript.
  * - The server is the parser repo's own `src/lsp/server.ts`, run by that repo's `tsx` -- see `getParserRoot()`.
  *   So the editor always runs the parser as it is on disk:  restart the server to pick up a parser change.
- * - The server asks to watch `.imports.json` / `.spell` files itself, so there's no `synchronize` here.
+ * - The server asks to watch `project.json` / `.spell` files itself, so there's no `synchronize` here.
  */
 import { existsSync } from "fs"
 import { resolve } from "path"

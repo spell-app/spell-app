@@ -5,7 +5,7 @@ exports[`ScopeExplorer > a node lists the rules its statement made 1`] = `
   "Suits": [
     {
       "name": "Card_Suits",
-      "syntax": "(Card|card),(Suits|suits)",
+      "syntax": "(Card|card) (Suits|suits)",
     },
   ],
   "draw (a card)": [
@@ -61,7 +61,7 @@ exports[`ScopeExplorer > a type's members:  properties, actions, then each enume
 `;
 
 exports[`ScopeExplorer > root holds the built-in types, then the project:  its files, and what each declares 1`] = `
-"root spellRoot (built in)
+"root Spell (built in)
   type Object
   type Thing
   type List
@@ -99,7 +99,7 @@ exports[`ScopeExplorer > root holds the built-in types, then the project:  its f
 `;
 
 exports[`ScopeExplorer of a project importing another, compiled > the imported project shows, with its own files and types, ahead of ours 1`] = `
-"root spellRoot (built in)
+"root Spell (built in)
   type Object
   type Thing
   type List

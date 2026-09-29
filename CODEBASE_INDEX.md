@@ -108,13 +108,13 @@ The Spell Parser is a sophisticated parsing and compilation system for the Spell
 
 - **Semantic UI** (`static/semantic-ui-css/`): UI framework components
 - **Fonts** (`static/lato/`): Typography assets
-- **Examples** (`src/examples/`): Sample Spell projects:
-  - Calculator
-  - Color
-  - FizzBuzz
-  - Solitaire (with Card.spell example)
-  - Todo List
-  - Todos
+- **Projects** (`projects/`): every spell project, by owner -- see `SpellSetup.projectRoots`:
+  - `system/examples/` (`@system:examples`):  Calculator, FizzBuzz, Solitaire (with Card.spell example),
+    Solitaire-import, Todos, Todos - Form Based
+  - `system/library/` (`@system:library`):  cards -- imported as `@library/cards`
+  - `system/guides/` (`@system:guides`):  none yet
+  - `user/` (`@user:projects`):  user projects, e.g. Errors
+  - `test/` (`@test:fixtures`):  frozen projects tests run against, each with its `<Project>.snapshot.js`
 
 ### Key Features
 

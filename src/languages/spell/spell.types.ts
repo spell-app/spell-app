@@ -22,12 +22,41 @@ export type CompilableSpellFile = SpellFile | SpellCSSFile
 
 // ## SpellProject
 
+/**
+ * Name of the file in a project's folder saying what it is and what it imports -- see `ProjectFileJSON`
+ * in `src/server/server.types.ts`.  Its folder IS the project, e.g. for `locationForDiskPath()`.
+ */
+export const PROJECT_FILE = "project.json"
+
+/**
+ * End of a project's compiled output file's name, e.g. `Solitaire.compiled.js` -- see `SpellProject.outputFile`.
+ * - NEVER one of a project's own files:  the server leaves it out of the manifest.
+ */
+export const COMPILED_JS_SUFFIX = ".compiled.js"
+
+/**
+ * End of a test fixture's snapshot file's name, e.g. `Solitaire.snapshot.js` -- its compiled output, which
+ * `~/test`'s `fixtures.test.ts` checks against.
+ * - NEVER one of a project's own files:  the server leaves it out of the manifest, as `COMPILED_JS_SUFFIX`.
+ */
+export const SNAPSHOT_JS_SUFFIX = ".snapshot.js"
+
+/**
+ * Start of the ES module specifier for another project's compiled JS, e.g. `@spell/project/@system:library:cards`.
+ * - The import map maps it onto the server's `/api/projects/compiled/<projectId>` -- see `vite.importMap.ts`.
+ */
+export const SPELL_PROJECT_MODULE = "@spell/project/"
+
 /** JSON5 shape of a project's index file, as read/written by the server. */
 export type ProjectManifestJSON5 = {
   /** All manifest-eligible files in project, keyed by `path`. */
   manifest: Record<string, ProjectManifestEntry>
-  /** Ordered list of files to compile, synced against `manifest`. */
+  /** Ordered list of files to compile, synced against `manifest` -- plus other projects it imports. */
   imports: ProjectManifestImport[]
+  /** This project's semver, from its `project.json` -- stamped on its declarations. */
+  version?: string
+  /** Names it offers importers, from its `project.json` -- default:  everything it declares. */
+  exports?: string[]
 }
 
 /** A single entry in `contents.manifest`, augmented with `path`/`location`/`file` once loaded. */
@@ -46,14 +75,40 @@ export type ProjectManifestEntry = {
   file?: AnySpellFile
 }
 
-/** A single entry in `contents.imports`, as read/written to `.imports.json` on the server. */
+/**
+ * A single entry in `contents.imports`, as read/written to `project.json` on the server.
+ * - A FILE of ours, e.g. `/Card.spell`, or ANOTHER PROJECT, e.g. `@library/cards` -- see `SpellProject.projectImports`.
+ */
 export type ProjectManifestImport = {
-  /** Local `filePath`, or a full `@owner:domain:...` path when importing from another project. */
+  /**
+   * Local `filePath`, e.g. `/Card.spell`.
+   * - Or another project:  `@library/<name>` (~== `@system:library:<name>`) or a full `@owner:domain:name`.
+   */
   path: string
   /** `true` if file should be included when compiling the project. */
   active: boolean
   /** File contents, preloaded server-side -- only set for `active` imports of preloadable extensions. */
   contents?: string
+  /** Another project:  names to import, e.g. `["Card"]` -- default everything.  See `DeclarationsImport.import`. */
+  import?: string[]
+  /** Another project:  semver range its `version` must satisfy, e.g. `"^1.2"`. */
+  version?: string
+  /** Another project:  `true` to parse its `.spell` files ahead of ours, rather than its compiled declarations. */
+  source?: boolean
+}
+
+/** Another project a project imports -- see `SpellProject.projectImports`. */
+export type ProjectImport = {
+  /** Its `imports` entry's `path` as written, e.g. `@library/cards` -- named in errors, and `P.ImportScope.origins`. */
+  from: string
+  /** Its project id, e.g. `@system:library:cards`. */
+  projectId: string
+  /** Names to import -- see `DeclarationsImport.import`. */
+  import?: string[]
+  /** Semver range its `version` must satisfy. */
+  version?: string
+  /** `true` to parse its `.spell` files ahead of ours, rather than load its compiled declarations. */
+  source?: boolean
 }
 
 /** Derived (client-side) import reference, as returned by `project.imports`. */
@@ -103,9 +158,23 @@ export type ProjectRootSpec = {
   description: string
   /**
    * Folder on disk holding this root's projects (one sub-folder each) -- SERVER ONLY.
-   * - Built-in roots leave it out:  `project-utils.ts` derives theirs from `environment`.
+   * - Built-in roots leave it out:  `project-utils.ts` derives theirs from `environment` and `folder`.
    */
   serverPath?: string
+  /**
+   * Built-in root's folder under its owner's files root, e.g. `examples` -- default its `domain`.
+   * - `""` ~== the files root itself, e.g. `@user:projects` in `projects/user`.
+   * - See `serverPathForRoot()` in `project-utils.ts`.
+   */
+  folder?: string
+  /** Shown in the app's UI only in dev, e.g. `@test:fixtures` -- it's there in every build, just not listed. */
+  devOnly?: boolean
+  /**
+   * Short name for paths in this root:  `<alias>/<project>...` ~== `<path>:<project>...`, e.g. `@test/FizzBuzz`
+   * ~== `@test:fixtures:FizzBuzz`.  See `SpellSetup.expandAlias()`.
+   * - Only ever written:  a `SpellLocation` stores the full path.
+   */
+  alias?: `@${string}`
   /** Semantic UI icon of project. */
   icon: string
 }
@@ -146,4 +215,119 @@ export const BODY_KEYWORDS: Record<string, Omit<StatementBodySpec, "syntaxRule">
    * - TODO: review -- only `return` uses it, and only because a line can't see the indented lines under it.
    */
   nested_expression: { nestedAs: "expression" }
+}
+
+// ## Declarations
+
+/**
+ * Semver of the spell LANGUAGE and its compiler -- stamped on every project's declarations as `spellVersion`.
+ * - Set by hand, NOT from `package.json`:  the app's version (`PACKAGE_VERSION` in `~/util`) changes for
+ *   reasons that don't touch what compiled projects can read.
+ * - Bump the MAJOR when declarations' shape, or generated-name mangling (e.g. `frobnicate_$thing`), changes:
+ *   declarations from another major are refused.
+ */
+export const SPELL_VERSION = "0.8.0"
+
+/**
+ * Everything a project added to scope while parsing, as plain data -- see `SpellDeclarations`.
+ * - Lives in the project's compiled JS, so another project can import it WITHOUT re-parsing its `.spell` files:
+ *   a one-line `/*! SPELL: PROJECT {...} *\/` header, then a `/*! SPELL: DECLARES {...} *\/` comment above
+ *   each declaring statement.
+ * - JSON-able:  no `Match`es, classes or functions.
+ */
+export type SpellDeclarationsData = {
+  /** This project's own semver, from its `project.json` -- if it has one. */
+  version?: string
+  /** Semver of the compiler which wrote these -- see `SPELL_VERSION`. */
+  spellVersion: string
+  /**
+   * Names this project offers importers:  its types, then its top-level functions.
+   * - Each an `export` of its compiled JS.
+   */
+  provides: string[]
+  /** What each declaring statement declared, in source order. */
+  statements: SpellDeclaration[]
+}
+
+/**
+ * What ONE statement declared, flat -- a `/*! SPELL: DECLARES {...} *\/` comment, e.g.
+ * `{ property: "suit", of: "Card", classVariable: "Suits", rule: "enumeration", enumeration: [...] }`.
+ * - Only what can't be worked out from the rest, e.g. `constants` are left out when they're just
+ *   `enumeration`'s strings.
+ * - Keys are shared by what it declared:  `of` is both a property's type and its rules' owner.
+ */
+export type SpellDeclaration = {
+  /** Type it declares, e.g. `Card`. */
+  type?: string
+  /** `type`'s supertype, e.g. `Thing`. */
+  superType?: string
+  /** Instance property it declares, e.g. `suit`. */
+  property?: string
+  /**
+   * Class variable holding an enumerated property's values, e.g. `Suits` -- instances see it too.
+   * - Its values are `enumeration`.
+   */
+  classVariable?: string
+  /** Type it declares things ON, e.g. `Card` -- also its rule's owner.  None for a top-level function. */
+  of?: string
+  /** `property`'s datatype, e.g. `text`. */
+  datatype?: string
+  /** `property`'s compiled initial value. */
+  initializer?: string
+  /** `classVariable`'s values as parsed, e.g. `["'clubs'", "'diamonds'"]`. */
+  enumeration?: Array<string | number>
+  /** Constants it declares, e.g. `["red", "black"]` -- default:  `enumeration`'s strings, unquoted. */
+  constants?: string[]
+  /** Compiled output of any `constants` NOT output as just their name, quoted. */
+  constantOutputs?: Record<string, string>
+  /**
+   * `importableAs` name of the class its rule was `specialize()`d from, e.g. `"method_call"` -- see
+   * `P.Rule.importableRule()`.
+   * - Its OTHER keys here are what that class's `specialize()` takes, e.g. `output` + `alias`.
+   */
+  rule?: string
+  /** Its rule's syntax -- none for `"enumeration"`, which matches its `literals`. */
+  syntax?: string
+  /** Name of the generated method its rule calls, in compiled JS, e.g. `play_fizzbuzz`. */
+  output?: string
+  /** What it declares, for editors, e.g. `function` -- left out when a key above says, e.g. `type`. */
+  kind?: string
+  /**
+   * Its name as written, for editors, e.g. `draw (a card)` -- only with `kind`, and left out when it's `syntax`.
+   * - See `P.Declaration.name`.
+   */
+  name?: string
+  /**
+   * Where it is, as `<file>:<start>-<end>` character offsets, e.g. `/FizzBuzz.spell:23-412` -- for editors.
+   * - Project-relative:  a library may move.
+   */
+  defined?: string
+} & Record<string, unknown>
+
+/**
+ * One project another imports, for `SpellDeclarations.importScope()` -- from a `project.json` `imports` entry.
+ */
+export type DeclarationsImport = {
+  /** Where it came from, e.g. `@library/cards` -- recorded in `P.ImportScope.origins`, and named in errors. */
+  from: string
+  /** Its declarations. */
+  declarations: SpellDeclarationsData
+  /**
+   * Names to import, e.g. `["Card"]`;  `"*"` ~== everything else it provides.  Default `["*"]`.
+   * - Each brings its type dependencies, and the constants and rules it owns.
+   * - `Name:Alias` renames a type, e.g. `Card:Playingcard` -- see `SpellDeclarations.picked()`.
+   */
+  import?: string[]
+  /**
+   * Its project id, e.g. `@system:library:cards` -- what loaded records' `declaredAt` paths start with.
+   * - Default `from`.
+   */
+  projectId?: string
+  /** Semver range its `version` must satisfy, e.g. `"^1.2"`. */
+  version?: string
+  /**
+   * ES module specifier its compiled JS is imported by at runtime, e.g. `@spell/project/@system:library:cards`.
+   * - Recorded with the names loaded in `P.ImportScope.modules`, so the importer's compiled output imports them.
+   */
+  module?: string
 }

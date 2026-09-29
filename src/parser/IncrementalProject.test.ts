@@ -4,7 +4,7 @@ import { P } from "~/parser"
 import { SP } from "~/languages/spell"
 import {
   describeParseErrors,
-  loadExampleProject,
+  loadFixtureProject,
   parseSpellProject,
   summarize,
   type SpellProjectSummary,
@@ -28,7 +28,7 @@ const EDITS: Record<string, (lines: string[], index: number) => void> = {
 }
 
 describe("incremental parsing ~== full parse", () => {
-  const files = loadExampleProject("Solitaire")
+  const files = loadFixtureProject("Solitaire")
   const original = summarize(parseSpellProject(files))
 
   test("item-by-item parse ~== full parse", () => {

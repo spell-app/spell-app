@@ -21,9 +21,7 @@
     "graphify-out",
     "thoughts",
     "static",
-    "src/examples",
-    "src/projects",
-    "**/.output.js",
+    "projects",
     "vscode-extension/out"
   ],
 

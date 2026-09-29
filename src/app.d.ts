@@ -3,6 +3,13 @@
  * Included automatically by tsconfig and does not require importing.
  */
 
+/**
+ * Our `package.json` version, e.g. `"0.8.0"` -- read it as `PACKAGE_VERSION` from `~/util`.
+ * - Defined by vite / vitest (`vite.packageVersion.ts`), or under `tsx` by `src/packageVersion.node.ts`.
+ * - `var` so `globalThis.__PACKAGE_VERSION__` is typed too.
+ */
+declare var __PACKAGE_VERSION__: string
+
 /** Constructor type, e.g. `Class<Token>` represents a class that constructs `Token` instances. */
 type Class<T> = new (...args: any[]) => T
 

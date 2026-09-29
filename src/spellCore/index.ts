@@ -1,8 +1,7 @@
 /**
  * `spellCore` barrel -- core runtime library that compiled `spell` JS calls into (`spellCore.foo(...)`).
- * - All compiled spell modules can assume that `spellCore` and `assert` are in scope.
- *   TODO: could only confirm `spellCore` actually ends up global (`global.spellCore = spellCore` in
- *   `src/app/index.tsx`) -- didn't find where `assert` is made available the same way, worth checking.
+ * - Compiled spell modules `import` what they use:  `import { spellCore, Thing } from "@spell/core"` --
+ *   see `SPELL_CORE_MODULE`.  No globals.
  * - `spellCore` is a single singleton (constructed in `core.ts`) assembled by ACCRETION: every
  *   sibling module here (`collection-core`, `collection-other`, `paths`, `string`, `tests`, `console`,
  *   `runtime`, `ui`, plus `core` itself) does `Object.assign(spellCore, <module>Methods)` as a
@@ -30,5 +29,5 @@ import "./runtime"
 import "./ui"
 
 export { spellCore, assert, SpellEvent, Eventful }
-export type { SpellCore } from "./spellCore.types"
+export { SPELL_CORE_MODULE, SPELL_CORE_NAMES, type SpellCore } from "./spellCore.types"
 export * from "./classes"

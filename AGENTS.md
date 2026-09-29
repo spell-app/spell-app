@@ -8,6 +8,13 @@ when working with code in this repository.
 - `src/parser/` (`P`) is a generic rule-based parser;  `src/languages/spell/` (`SP`) is the spell language on it.
 - `src/lsp/` (`LSP`) is spell's language server, and `vscode-extension/` the VS Code extension that runs it --
   its own yarn project (own `package.json` + `yarn.lock`), NOT a workspace of the repo's.  See "Language server" in `PARSING.md`.
+- `projects/` holds every spell project, OUTSIDE `src/`:  `system/examples/`, `system/library/`, `system/guides/`,
+  `user/` and `test/` -- the `@system:examples` etc. roots.  See "Projects" in `PARSING.md`.
+  - Tests read ONLY `projects/test/` (`@test:fixtures` ~== `@test/<Project>`, listed in the app in dev only):  frozen projects, never
+    the live examples, which get edited.  Use `loadFixtureProject()`, `fixturePath()`, `fixtureProjectId()` from
+    `~/test` -- and NEVER update a fixture to follow its example.
+  - Each fixture's compiled output is checked against `<Project>.snapshot.js` beside it (`src/test/fixtures.test.ts`).
+    Add a fixture by copying a project in;  after a deliberate change, `yarn test:fixtures:bless` and read the diff.
 - `src/app/ui/monaco/` is the app's Monaco editor, whose language features call the SAME `LSP.SpellLanguageService`
   in-process.  `~/lsp` MUST stay browser-safe for it.
   - Loaded LAZILY, through `UI.LazyMonaco`:  NEVER import `~/app/ui/monaco` statically outside its folder -- types
@@ -104,9 +111,23 @@ when working with code in this repository.
     `parser/rules/Rule.ts` for all the ways to make a rule.
   - `SpellParser.addRule()` and `scope.addRule()` only TYPE `{ syntax, tests }` (`P.SyntaxAndTests`),
     so a stray `alias` there is a compile error.
-  - Rules built WHILE PARSING (`scope.addRule()`) follow the same shape:  a closure class's statics can use
-    the enclosing function's locals, so even a computed name goes on the class --
-    `static ruleName = methodName` -- and the definition is still just `{ syntax }`.
+  - Rules built WHILE PARSING (`scope.addRule()`) are a named class `specialize()`d with plain-data statics,
+    e.g. `DynamicMethodRule.specialize({ output: "play_fizzbuzz", alias })` -- and the definition is still
+    just `{ syntax }`.
+    - NEVER a closure class:  its behaviour reads ONLY its statics, so a project's declarations can rebuild it
+      in another project.  Give its base class `@proto static importableAs = "<id>"`, e.g. `"enumeration"`.
+    - What it's `specialize()`d with is written out as is -- so an importable class overrides `specialize()`
+      to take a MINIMAL set, named in `declare static readonly SpecializeWith`, and works out the rest
+      for `super.specialize(statics, declared)`.  See `P.SpecializeWith`.
+    - Its `static declarationProps(declared, syntax)` says what goes in the declaration -- tune output there.
+  - NEVER treat a class name or rule name as a stable identifier -- for saved data, lookups, or anything which
+    must survive a rename or a translation.  Names are for people, and change.  Add an explicit property
+    for it instead, e.g. `@proto static importableAs = "enumeration"`.
+  - A word with negated forms is a `Negatable` rule (`expressions.ts`):  `{operator:is}` matches `is` / `is not` /
+    `isn't` / `isnt`, and `Negatable.isNegated(operator)` says which -- plain `is` matches just the word.
+    `is`, `can`, `will`, `has` so far;  a translation registers its own, e.g.
+    `addRule(Negatable.specialize({ ruleName: "es" }), { syntax: "(es|(negated:no es))" })` --
+    forms in its `negated` group are the negated ones.
 - A statement with a BODY -- an inline statement, or an indented block under it -- says so with a body
   keyword at the END of its `syntax`, e.g. `if {condition:expression} (then|:)? {statement_body}?`:
   - `{statement_body}` ~== `({inline_statement}|{nested_statements})`

@@ -89,8 +89,52 @@
       "[spell]": {
         "editor.insertSpaces": false,
         "editor.detectIndentation": false
+      },
+      "editor.semanticTokenColorCustomizations": {
+        "rules": {
+          "comment.heading1:spell": {
+            "bold": true
+          },
+          "comment.heading2:spell": {
+            "bold": true
+          },
+          "comment.heading3:spell": {
+            "bold": true
+          },
+          "comment.heading4:spell": {
+            "bold": true
+          }
+        }
+      },
+      "editor.tokenColorCustomizations": {
+        "textMateRules": [
+          {
+            "scope": "comment.line.number-sign.heading.spell",
+            "settings": {
+              "fontStyle": "bold"
+            }
+          }
+        ]
       }
-    }
+    },
+    "semanticTokenModifiers": [
+      {
+        "id": "heading1",
+        "description": "A top-level heading comment:  `#` at the start of a line, markdown-style."
+      },
+      {
+        "id": "heading2",
+        "description": "A second-level heading comment:  `##` at the start of a line."
+      },
+      {
+        "id": "heading3",
+        "description": "A third-level heading comment:  `###` at the start of a line."
+      },
+      {
+        "id": "heading4",
+        "description": "A fourth-level or deeper heading comment:  `####` ... at the start of a line."
+      }
+    ]
   },
   "activationEvents": [],
   "engines": {

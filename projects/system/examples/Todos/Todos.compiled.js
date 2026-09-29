@@ -1,30 +1,63 @@
-//## Todo app example
+/*! SPELL: PROJECT { spellVersion: "0.8.0", provides: ["Task", "Todos_App", "create_a_task"] } */
+import { spellCore, Thing, List, App } from "@spell/core"
+
+/*! SPELL: DECLARES {
+  type: "Task", superType: "Thing",
+  defined: "/Todo.spell:20-37",
+} */
+/** Todo app example */
 export class Task extends Thing {}
-spellCore.addExport('Task', Task)
+/*! SPELL: DECLARES {
+  property: "title", of: "Task", datatype: "text",
+  defined: "/Todo.spell:38-64",
+} */
 spellCore.defineProperty(Task.prototype, { property: 'title', type: 'text' })
+/*! SPELL: DECLARES {
+  property: "completed", of: "Task", datatype: "choice",
+  defined: "/Todo.spell:65-109",
+} */
 spellCore.defineProperty(Task.prototype, { property: 'completed', type: 'choice' })
-/* SPELL: added expression `{thing:simple_expression} (operator:is not?|isn't|isnt) complete` */
+/*! SPELL: DECLARES {
+  syntax: "{operator:is} complete", output: "is_complete", rule: "method_postfix", of: "Task",
+  kind: "method", name: '"is complete"',
+  defined: "/Todo.spell:110-154",
+} */
 spellCore.define(Task.prototype, 'is_complete', {
 	get() {
 		return (this.completed == true)
 	}
 })
-/* SPELL: added expression `{thing:simple_expression} (operator:is not?|isn't|isnt) active` */
+/*! SPELL: DECLARES {
+  syntax: "{operator:is} active", output: "is_active", rule: "method_postfix", of: "Task",
+  kind: "method", name: '"is active"',
+  defined: "/Todo.spell:155-196",
+} */
 spellCore.define(Task.prototype, 'is_active', {
 	get() {
 		return (this.completed == false)
 	}
 })
 
+/*! SPELL: DECLARES {
+  type: "Todos_App", superType: "App",
+  defined: "/Todo.spell:198-219",
+} */
 export class Todos_App extends App {}
-spellCore.addExport('Todos_App', Todos_App)
+/*! SPELL: DECLARES {
+  property: "tasks", of: "Todos_App",
+  defined: "/Todo.spell:220-266",
+} */
 spellCore.defineProperty(Todos_App.prototype, {
 	property: 'tasks',
 	initializer() {
 		return new List()
 	}
 })
-/* SPELL: added rule: '(Todos_App|todos_app) (Filters|filters)' */
+/*! SPELL: DECLARES {
+  property: "filter", classVariable: "Filters", rule: "enumeration", of: "Todos_App",
+  enumeration: ["'all'", "'active'", "'completed'"],
+  defined: "/Todo.spell:267-326",
+} */
 spellCore.defineProperty(Todos_App.prototype, {
 	property: 'filter',
 	enumeration: ['all', 'active', 'completed'],
@@ -34,8 +67,13 @@ spellCore.defineProperty(Todos_App.prototype, {
 export let app = new Todos_App()
 app.filter = "all"
 
-/* SPELL: added rule: `create a task (with {props:object_literal_properties})?` */
-function create_a_task(props = {}) {
+/*! SPELL: DECLARES {
+  syntax: "create a task (with {props:object_literal_properties})?", output: "create_a_task",
+  rule: "method_call", alias: ["statement", "expression"], kind: "function",
+  name: "create a task (with title as text)",
+  defined: "/Todo.spell:391-518",
+} */
+export function create_a_task(props = {}) {
 	let { title } = props
 	let it = new Task({ title: title, completed: false })
 	spellCore.append(app.tasks, it)
@@ -45,7 +83,11 @@ create_a_task({ title: "Create todos app" })
 create_a_task({ title: "Teach it to draw" })
 create_a_task({ title: "Test app" })
 
-/* SPELL: added rule: `draw {thisArg:expression}` */
+/*! SPELL: DECLARES {
+  syntax: "draw {thisArg:expression}", output: "draw", rule: "method_call", of: "Task",
+  alias: ["statement", "expression"], kind: "method", name: "draw (a task)",
+  defined: "/Todo.spell:651-1104",
+} */
 spellCore.define(Task.prototype, 'draw', {
 	value() {
 		if (this.is_complete && (app.filter == "active")) { return false }
@@ -83,7 +125,11 @@ spellCore.define(Task.prototype, 'draw', {
 	}
 })
 
-/* SPELL: added rule: `draw {thisArg:expression}` */
+/*! SPELL: DECLARES {
+  syntax: "draw {thisArg:expression}", output: "draw", rule: "method_call", of: "Todos_App",
+  alias: ["statement", "expression"], kind: "method", name: "draw (a todos-app)",
+  defined: "/Todo.spell:1106-2064",
+} */
 spellCore.define(Todos_App.prototype, 'draw', {
 	value() {
 		return spellCore.element({ tag: "div", children: [

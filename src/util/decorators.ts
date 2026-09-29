@@ -15,6 +15,8 @@
  * - NOTE: static keeps its value too, harmless.
  * - Field name MUST be something instances already declare, e.g. `declare alias: ...` on `Rule` --
  *   so a typo like `@proto static alais` is a compile error rather than a silently-ignored static.
+ * - SIDE EFFECT: then calls the class's `static protoDefined(name, value)`, if it has one, so a base class can
+ *   react as each subclass is defined, e.g. `P.Rule` registering `@proto static importableAs = "enumeration"`.
  */
 export function proto<This extends AbstractClass<object>, Value>(
   _target: undefined,
@@ -25,6 +27,13 @@ export function proto<This extends AbstractClass<object>, Value>(
   }
   return function (this: This, value: Value): Value {
     Object.defineProperty(this.prototype, context.name, { value, writable: true, configurable: true })
+    ;(this as ProtoAware).protoDefined?.(context.name, value)
     return value
   }
+}
+
+/** A class which wants to hear about each `@proto static` defined on it or a subclass -- see `proto()`. */
+type ProtoAware = {
+  /** Called with `this` ~== the class being defined, once its `name` field is on its prototype. */
+  protoDefined?: (name: string | symbol, value: unknown) => void
 }

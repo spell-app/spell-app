@@ -262,4 +262,56 @@ describe("rules defined as classes", () => {
       expect(target.parser!.rules.expression).toBe(target.parser!.rules.greeting)
     })
   })
+
+  describe("specialize()", () => {
+    class greeting extends P.Keyword {
+      @proto static alias = "expression"
+    }
+
+    test("puts `ruleName` on the subclass, everything else on its prototype, and leaves the base alone", () => {
+      const hello = greeting.specialize({ ruleName: "hello", literal: "hello", precedence: 5 })
+      const parser = makeParser()
+      parser.addRule(hello)
+      const rule = parser.rules.hello!
+
+      expect(hello.ruleName).toBe("hello")
+      expect(rule).toBeInstanceOf(greeting)
+      expect(rule.precedence).toBe(5)
+      // inherited from the base, as usual
+      expect(rule.alias).toBe("expression")
+      expect(greeting.prototype.precedence).toBe(0)
+      expect(parser.getScope().parse("hello", "hello")?.value).toBe("hello")
+    })
+
+    test("remembers what it was specialized from, and with -- plain data, to rebuild it elsewhere", () => {
+      const statics = { ruleName: "hello", literal: "hello" }
+      const hello = greeting.specialize(statics)
+      expect(hello.specializedFrom).toBe(greeting)
+      expect(hello.specializedWith).toEqual(statics)
+      // plain statics, NOT inherited:  the base was never specialized
+      expect(Object.hasOwn(greeting, "specializedFrom")).toBe(false)
+    })
+  })
+
+  describe("`@proto static importableAs`", () => {
+    test("registers the class under its `importableAs` name, for `importableRule()`", () => {
+      class importable_probe extends P.Keyword {
+        @proto static importableAs = "test:importable_probe"
+      }
+      expect(P.Rule.importableRule("test:importable_probe")).toBe(importable_probe)
+    })
+
+    test("a DIFFERENT class claiming the same id throws, rather than silently replacing it", () => {
+      class first_claim extends P.Keyword {
+        @proto static importableAs = "test:claimed_twice"
+      }
+      expect(first_claim).toBeDefined()
+      expect(() => {
+        class second_claim extends P.Keyword {
+          @proto static importableAs = "test:claimed_twice"
+        }
+        return second_claim
+      }).toThrow(/are both importable as 'test:claimed_twice'/)
+    })
+  })
 })

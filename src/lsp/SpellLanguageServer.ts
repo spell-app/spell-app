@@ -173,6 +173,9 @@ export class SpellLanguageServer {
     )
     connection.onRequest("spell/compileProject", ({ uri }: { uri: string }) => this.compileProject(uri))
     connection.onRequest("spell/scopes", ({ uri }: { uri: string }) => this.scopeTree(uri))
+    connection.onRequest("spell/scopeDetails", ({ uri, id }: { uri: string; id: string }) =>
+      this.answer(uri, null, (file) => this.scopes.details(file.project, id))
+    )
     // an edit for the editor to apply, NOT a change to the file:  so it's undoable, and the editor stays in charge
     connection.onRequest("spell/setDescription", ({ uri, position, file: ofFile, text }: LSP.SetDescriptionParams) =>
       this.answer(uri, null, (file) => {
@@ -187,19 +190,19 @@ export class SpellLanguageServer {
   }
 
   /**
-   * Ask the editor to tell us when `.imports.json` or `.spell` files change on disk, if it lets servers ask.
+   * Ask the editor to tell us when `project.json` or `.spell` files change on disk, if it lets servers ask.
    * - Otherwise its extension has to set that up itself (`synchronize.fileEvents` in `vscode-languageclient`).
    */
   private watchFiles() {
     this.connection.client
       .register(DidChangeWatchedFilesNotification.type, {
-        watchers: [{ globPattern: "**/.imports.json" }, { globPattern: "**/*.spell" }]
+        watchers: [{ globPattern: "**/project.json" }, { globPattern: "**/*.spell" }]
       })
       .catch(() => undefined)
   }
 
   /**
-   * If the `spell.compileOnSave` setting is on, compile the project of saved document `uri` to its `.output.js`,
+   * If the `spell.compileOnSave` setting is on, compile the project of saved document `uri` to its `<Project>.compiled.js`,
    * so a running app picks it up -- see `compileProject()`.
    * - Off unless the editor tells us otherwise, or can't be asked.
    */
@@ -246,13 +249,15 @@ export class SpellLanguageServer {
 
   /**
    * Live scope tree of the project of document `uri`, for a scope explorer -- see `LSP.ScopeExplorer`.
-   * - Parses each project it imports compiled, if not yet parsed, to show their sources.
+   * - Parses each project it imports compiled, if not yet parsed, to show their sources -- and tracks it, so
+   *   edits to its files on disk show next time.
    * - Queued like a change, as parsing those changes things.
    */
   private scopeTree(uri: string): Promise<LSP.ScopeNode | null> {
     return this.inQueue(uri, null, async ({ project }) => {
       for (const imported of LSP.ScopeExplorer.importedProjects(project)) {
-        if (!imported.scope) await imported.parse().catch((error: unknown) => this.logError(error))
+        // tracked, so its files changing on disk re-parse it -- see `SpellDiskWorkspace.diskChanged()`
+        await this.workspace.track(imported)
       }
       return this.scopes.tree(project)
     })

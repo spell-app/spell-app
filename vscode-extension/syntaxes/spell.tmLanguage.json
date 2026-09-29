@@ -14,7 +14,7 @@
       "patterns": [
         { "name": "comment.line.double-slash.spell", "match": "//.*$" },
         { "name": "comment.line.double-dash.spell", "match": "--.*$" },
-        { "name": "comment.line.number-sign.spell", "match": "##.*$" }
+        { "name": "comment.line.number-sign.heading.spell", "match": "^\\s*#+.*$" }
       ]
     },
     "string": {

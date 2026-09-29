@@ -4,7 +4,6 @@
 import React from "react"
 
 import { Observable, view } from "~/util"
-import { spellCore } from "~/spellCore/core"
 import { Eventful } from "~/spellCore/SpellEvent"
 
 /**
@@ -64,5 +63,3 @@ export class Thing extends Eventful(Observable) {
     })
   }
 }
-
-spellCore.addExport("Thing", Thing)

@@ -25,7 +25,9 @@ export class Choice<
   constructor(props: ChoiceProps) {
     super(props)
     // NOTE: set after `super()` rather than on `props`, which may be someone else's object (see `clone()`).
-    this.rules = Array.isArray(props.rules) ? [...props.rules] : []
+    // No `props.rules` => keep what `super()` built from `syntax`, e.g. `(is|is not|isn't|isnt)`.
+    const rules = props.rules ?? this.rules
+    this.rules = Array.isArray(rules) ? [...rules] : []
   }
 
   /**

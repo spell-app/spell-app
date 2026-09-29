@@ -452,6 +452,16 @@ export class Parser extends Derivative {
   }
 
   /**
+   * `compiled` output as a rule's tests expect it -- as is, unless a language says otherwise.
+   * - e.g. `SpellParser` drops the declarations comments a project's compiled JS carries:  a rule's tests are
+   *   about its code.
+   * - Used by `testRules()` and the vitest harness, `unitTestModuleRules()`.
+   */
+  normalizeTestOutput(compiled: unknown): unknown {
+    return compiled
+  }
+
+  /**
    * Test `testable` rules for this parser.
    * - Pass `moduleName` to restrict to just those defined by a module.
    * - By default we output debug info about the run.
@@ -498,7 +508,7 @@ export class Parser extends Derivative {
               const match = scope.parse(input, compileAs!)
               if (match) {
                 scope.parser?.commit(match)
-                result = match.compile()
+                result = this.normalizeTestOutput(match.compile())
               }
             } catch (e) {
               result = e

@@ -77,17 +77,6 @@ One `##` heading per item, `---` between items, then:
 
 ---
 
-## `systemFilesRoot` / `userFilesRoot` are the same directory
-
-- **Cost**: the server's owner-based split between system and user files is a no-op.  Code that
-  looks like it enforces a boundary does not, which is a security-shaped illusion.
-- **Cause**: `environment.ts` sets both to `srcDir`, deliberately and for now.
-- **Fix**: give user files their own root and make `project-utils.ts` honor the split, or delete
-  the two constants so no one trusts a boundary that isn't there.
-- **Pinned at**: `NOTE:` above the assignment in `environment.ts`.
-
----
-
 ## Enumerated properties are reachable under inconsistent names
 
 `cards have a suit as one of clubs, diamonds` is meant to make BOTH `the suits of the card` (instance) and
@@ -214,3 +203,57 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
     - needs `yarn vscode` to rebuild + reinstall the extension, for the lens command
   - Docs touched throughout:  `PARSING.md` ("Rules and matching", "Language server"), `AGENTS.md` (Overview),
     `readme.md`, `PAPERCUTS.md`, `SUSPECTED-BUGS.md`
+
+---
+
+## VS Code runner can't run a project which imports another
+
+- **Cost**:  "Run Project" in VS Code refuses a project whose `project.json` imports another project's compiled
+  JS -- it says to run it in the app instead.  `source: true` imports are fine:  they compile into the project.
+- **Cause**:  compiled spell imports another project as `@spell/project/<projectId>`, which the app's page
+  resolves with an import map onto the server's `/api/projects/compiled/`.  The runner's webview has no import
+  map and no server:  it runs compiled code from a `blob:` URL the extension hands it.  `@spell/core` alone is
+  easy -- `runCompiled()` points it at the runner's own `spellCore` -- but other projects' code isn't there.
+- **Fix**:  the extension sends each imported project's compiled JS along with the app's, and `runCompiled()`
+  turns each into a `blob:` URL, rewriting `@spell/project/...` specifiers onto them, deepest import first.
+- **Pinned at**:  `runCompiled()` in `src/app/runner/VSCodeRunner.tsx`.
+
+---
+
+## An imported project's module is cached for the life of the page
+
+- **Cost**:  in the app, recompiling a library doesn't change what a project importing it RUNS until the page
+  reloads.  Its parse sees the change at once -- `SpellProject.loadImportScope()` re-reads the declarations.
+- **Cause**:  the browser caches ES modules by URL for the page's life.  `executeCompiled()` cache-busts the
+  project's own URL (`?<time>`), but its `import ... from "@spell/project/..."` lines map onto fixed URLs.
+- **Fix**:  version the specifier, e.g. `@spell/project/<projectId>?v=<compiled time>` from the declarations,
+  so a recompile gives a new URL.  Or run projects in a fresh iframe per run.
+- **Pinned at**:  `SpellProject.importHeader()`.
+
+---
+
+## Expression rules ending in `{expression}` swallow the operator after them
+
+- **Cost**:  `the bottom card of the deck is the black joker` parses as `the bottom card of (the deck is the black
+  joker)`, compiling to `getItemOf(deck.is_the_$color_joker('black'), -1)` -- the method runs on the DECK, and
+  throws.  It is NOT just position expressions.  Probed 2026-09-28:
+  - `the first card of the deck is red` => `getItemOf(deck.is_red, 1)`
+  - `the first card of the deck is not empty` => `getItemOf(!isEmpty(deck), 1)`
+  - `the number of cards in the deck is 52` => `itemCountOf(deck == 52)`
+  - `the suit of the first card of the deck is hearts` => `getItemOf(deck == 'hearts', 1).suit`
+
+  So any comparison or method alias after a list / position / count expression silently compiles to nonsense,
+  and authors have to parenthesize, e.g. `(the last card of the deck) is ...`, or split the line with
+  `get ...` + `it ...`.
+- **Cause**:  a rule whose syntax ENDS in a full `{expression}` operand -- `the {ordinal} {arg:singular_identifier}
+  (in|of) {expression}` (`lists.ts`), `the? number of ... (in|of) {list:expression}`, and ~20 more in `lists.ts`,
+  `math.ts` and elsewhere -- matches its tail as a whole expression, infix operators included.  The infix
+  rules (`is`, `is not`, `==`, method aliases) never get to wrap the prefix expression, because the trailing
+  operand consumes them first.  Rule `precedence` only breaks ties between whole matches;  it doesn't limit
+  what an operand may contain.
+- **Fix**:  make trailing operands precedence-aware -- e.g. a narrower operand rule (a `{term}` / non-infix
+  expression:  literals, variables, property / position chains, parenthesized) for the last slot of prefix
+  expressions, or real precedence climbing in the parser, where an operand only accepts rules binding tighter
+  than its owner.  Either way it touches every rule ending in `{expression}`, and their tests.
+- **Pinned at**:  `projects/system/library/cards/Deck.spell` `test deck with jokers`, which parenthesizes:
+  `expect (the last card of the deck) is the black joker to be yes`.

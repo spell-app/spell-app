@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vitest"
 
 import { P } from "~/parser"
-import { loadExampleProject, parseSpellProject, summarize } from "~/test"
+import { loadFixtureProject, parseSpellProject, summarize } from "~/test"
 
 /**
  * Whole-project parse of `examples/Solitaire`.
@@ -10,7 +10,7 @@ import { loadExampleProject, parseSpellProject, summarize } from "~/test"
  *   `BENCH=1 npx vitest run src/languages/spell/SpellProject.test.ts --reporter=verbose --silent=false`
  */
 describe("Solitaire project", () => {
-  const files = loadExampleProject("Solitaire")
+  const files = loadFixtureProject("Solitaire")
 
   test("loads files in import order", () => {
     expect(files.map(({ path }) => path)).toEqual(["/Card.spell", "/Deck.spell", "/Pile.spell", "/Solitaire.spell"])

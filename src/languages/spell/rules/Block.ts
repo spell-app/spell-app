@@ -1,4 +1,5 @@
 import { P } from "~/parser"
+import { SP } from "~/languages/spell"
 
 /**
  * `Block`s are generally the root entity that we parse in spell -- a top-level construct, e.g. used to
@@ -83,7 +84,8 @@ export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
    * Build `P.ASTStatementBlock` (wrapped in `{}`) if `match.enclose`, else a plain `P.ASTStatementGroup`.
    * - A declaration's docstring (see `getDocComments()`) compiles as ONE `/** ... *\/` just above it,
    *   instead of its `//` lines.
-   * - A declaration's `/* SPELL: ... *\/` annotations stay ABOVE its docstring -- see `splitAnnotations()`.
+   * - A statement which declares something gets its `/*! SPELL: DECLARES {...} *\/` comment first, ABOVE any
+   *   docstring -- see `SP.SpellDeclarations.commentFor()`.
    * - A `##` heading followed by a regular comment compiles as a banner -- see `P.ASTBannerComment`.
    */
   getAST(match: P.MatchFor<this>): P.ASTStatementBlock | P.ASTStatementGroup {
@@ -99,21 +101,23 @@ export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
         return
       }
       const statement = this.statementOf(item)
+      const declarations = statement && SP.SpellDeclarations.commentFor(statement)
       const doc = statement && docs.get(statement)
       if (!doc) {
         // a comment-only line that's part of a docstring compiles with its statement, below
         const comment = this.commentOnlyLine(item)
-        if (!comment || !docComments.has(comment)) statements.push(item.AST as P.ASTStatement)
+        if (comment && docComments.has(comment)) return
+        if (declarations) statements.push(declarations)
+        statements.push(item.AST as P.ASTStatement)
         return
       }
-      // `/* SPELL: added rule ... */` notes first, then the docstring right on top of the code it documents
-      const [annotations, code] = this.splitAnnotations(statement.AST!)
-      statements.push(...annotations, new P.ASTDocComment(item, { lines: doc.lines }))
+      // what it declares first, then the docstring right on top of the code it documents
+      if (declarations) statements.push(declarations)
+      statements.push(new P.ASTDocComment(item, { lines: doc.lines }))
       // the line, without a docstring comment at its end
       for (const it of item.matched) {
         if (!(it instanceof P.Match) || docComments.has(it)) continue
-        const ast = it === statement ? code : it.AST
-        if (ast) statements.push(ast as P.ASTStatement)
+        if (it.AST) statements.push(it.AST as P.ASTStatement)
       }
     })
     if (match.data.enclose) return new P.ASTStatementBlock(match, { statements })
@@ -164,23 +168,6 @@ export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
     const heading = this.commentOnlyLine(item)
     const following = this.commentOnlyLine(next)
     return !!heading && this.isHeading(heading) && !!following && !this.isHeading(following)
-  }
-
-  /**
-   * Statement AST `ast` split into the `/* SPELL: ... *\/` annotations at its front, and the code after them.
-   * - e.g. `define_property_has` and method definitions put `added rule: ...` first.
-   * - Code is `undefined` if there's none.  Never changes `ast`:  a split one is a new group.
-   */
-  private splitAnnotations(ast: P.ASTNode): [P.ASTParserAnnotation[], P.ASTNode | undefined] {
-    if (!(ast instanceof P.ASTStatementGroup) || !ast.statements) return [[], ast]
-    const annotations: P.ASTParserAnnotation[] = []
-    for (const statement of ast.statements) {
-      if (!(statement instanceof P.ASTParserAnnotation)) break
-      annotations.push(statement)
-    }
-    if (!annotations.length) return [[], ast]
-    const statements = ast.statements.slice(annotations.length)
-    return [annotations, statements.length ? new P.ASTStatementGroup(ast.match, { statements }) : undefined]
   }
 
   /** `item`'s statement, if it's a `line` with one. */

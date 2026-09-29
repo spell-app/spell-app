@@ -3,6 +3,7 @@ import { LSP } from "~/lsp"
 import type * as UIT from "~/app/ui/ui.types"
 import { monaco } from "./monaco"
 import { AppAddresses } from "./AppAddresses"
+import { SpellHeadings } from "./SpellHeadings"
 import { SpellTokensProvider } from "./SpellTokensProvider"
 import { SpellModels } from "./SpellModels"
 import { SpellLanguageFeatures } from "./SpellLanguageFeatures"
@@ -12,7 +13,7 @@ import { SpellLanguageFeatures } from "./SpellLanguageFeatures"
  * - `register()` once, before the first editor -- `<MonacoEditor>` and `models` both do.
  * - Language features come from `LSP.SpellLanguageService`, in-process -- see `SpellLanguageFeatures`.
  * - What to do when a file is edited, or another should be shown, is the app's:  set `hooks`.
- * - Theme is Monaco's default `vs`.
+ * - Theme is Monaco's default `vs`.  Heading comments -- `#`, `##` ... -- are bold by decoration:  see `SpellHeadings`.
  */
 export class SpellMonaco {
   /** Language id for spell source. */
@@ -90,6 +91,7 @@ export class SpellMonaco {
   static register(): SpellMonacoParts {
     if (SpellMonaco.#registered) return SpellMonaco.#registered
     const { LANGUAGE } = SpellMonaco
+    SpellHeadings.watch(LANGUAGE)
     monaco.languages.register({ id: LANGUAGE, extensions: [".spell"], mimetypes: ["text/spell", "text/x-spell"] })
     monaco.languages.setLanguageConfiguration(LANGUAGE, SpellMonaco.CONFIGURATION)
     monaco.languages.setTokensProvider(LANGUAGE, new SpellTokensProvider())

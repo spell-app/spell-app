@@ -10,11 +10,13 @@ import type { UI } from "~/app/ui"
  * - `run`:  run `compiled`, the project's javascript, afresh
  * - `scopes`:  live scope tree to show in the Type Explorer, as the language server's `spell/scopes`
  * - `settings`:  the project's `settings.json5`, as the extension read it -- sent on `ready`, before anything else
+ * - `details`:  answer to our `details` -- as the language server's `spell/scopeDetails`
  */
 export type ToRunnerMessage =
   | { type: "run"; compiled: string }
   | { type: "scopes"; tree: LSP.ScopeNode }
   | { type: "settings"; settings: ProjectSettings }
+  | { type: "details"; id: string; details: LSP.ScopeDetails | null }
 
 /**
  * Message from the runner webview to the extension.
@@ -23,6 +25,8 @@ export type ToRunnerMessage =
  * - `open`:  a link clicked, e.g. `file:///…/Card.spell#L12` -- open it in the editor
  * - `setDescription`:  a docstring edited in the Type Explorer -- edit the source, as `spell/setDescription`
  * - `saveSettings`:  write these sections of `settings.json5` -- see `ProjectSettings`
+ * - `details`:  send the details of Type Explorer node or member `id` -- answered by a `details` message
+ * - `refreshScopes`:  the Type Explorer's Refresh button -- send fresh `scopes`
  */
 export type FromRunnerMessage =
   | { type: "ready" }
@@ -30,6 +34,8 @@ export type FromRunnerMessage =
   | { type: "open"; href: string }
   | ({ type: "setDescription" } & LSP.SetDescriptionParams)
   | { type: "saveSettings"; settings: ProjectSettings }
+  | { type: "details"; id: string }
+  | { type: "refreshScopes" }
 
 /**
  * How a project is shown, remembered in its `settings.json5` -- beside its `project.json`, git-ignored, and NOT one
@@ -41,10 +47,12 @@ export type FromRunnerMessage =
 export type ProjectSettings = {
   /** The runner's own. */
   runner?: {
-    /** Is the pane below the app showing? */
+    /** Is the pane below the app showing?  A program with no app always shows its output. */
     showConsole?: boolean
     /** Which tab of it. */
     pane?: RunnerPane
+    /** Top pane's share of the height, in %, as last dragged -- with or without an app. */
+    split?: number
   }
   /** The Type Explorer's:  what's selected and open. */
   typeExplorer?: UI.TypeExplorerState

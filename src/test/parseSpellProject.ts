@@ -1,4 +1,4 @@
-import { readFileSync } from "fs"
+import { existsSync, readdirSync, readFileSync } from "fs"
 import { resolve } from "path"
 
 import environment from "~/environment"
@@ -12,14 +12,17 @@ import { SP } from "~/languages/spell"
  * - ALL files parsed first, THEN all compiled, so lazy compile-time lookups see the whole project
  * - NOTE: skips `SpellFile` / `SpellProject` themselves, as they load contents from the server.
  * - Used as the "same as a full parse" reference for incremental parsing:  compare `summarize()` results.
+ * - `parentScope` defaults to the root spell scope -- pass a `P.ImportScope` to parse against imports.
  */
-export function parseSpellProject(files: SpellSourceFile[]): ParsedSpellProject {
-  const rootScope = SP.SpellParser.rootScope
+export function parseSpellProject(
+  files: SpellSourceFile[],
+  { parentScope = SP.SpellParser.rootScope }: { parentScope?: P.Scope } = {}
+): ParsedSpellProject {
   const projectScope = new P.ProjectScope({
     name: "test-project",
     path: "/test-project",
-    parser: rootScope.parser!.clone({ module: "/test-project" }),
-    parentScope: rootScope
+    parser: parentScope.parser!.clone({ module: "/test-project" }),
+    parentScope
   })
 
   const parsed = files.map(({ path, contents }) => {
@@ -40,15 +43,83 @@ export function parseSpellProject(files: SpellSourceFile[]): ParsedSpellProject 
   return { scope: projectScope, files: parsedFiles }
 }
 
-/** `{ path, contents }` of each spell file in `examples/<projectName>`, in `.imports.json` order. */
-export function loadExampleProject(projectName: string): SpellSourceFile[] {
-  const projectDir = resolve(environment.srcDir, "examples", projectName)
-  const { imports } = JSON.parse(readFileSync(resolve(projectDir, ".imports.json"), "utf8")) as {
-    imports: Array<{ path: string; active?: boolean }>
-  }
-  return imports
-    .filter(({ path, active }) => active !== false && path.endsWith(".spell"))
+/**
+ * Frozen projects tests run against -- `projects/test/<Project>/`, e.g. `Solitaire`:  the `@test:fixtures` root.
+ * - Why:  tests assert exact lines, docstrings and compiled output, and the live examples get edited.  Tests read
+ *   ONLY here -- editing or deleting anything in `projects/system/` or `projects/user/` can't break one.
+ * - NEVER update a fixture to follow its example:  it's frozen so tests don't move.  Change a test's input in the
+ *   test, or add another fixture -- copy a project in, then `yarn test:fixtures:bless`.  See `compiledFixture()`.
+ */
+export const FIXTURES_DIR = environment.testFilesRoot
+
+/** Path of `parts` under `FIXTURES_DIR`, e.g. `fixturePath("Solitaire", "Card.spell")`. */
+export function fixturePath(...parts: string[]): string {
+  return resolve(FIXTURES_DIR, ...parts)
+}
+
+/**
+ * Project id of fixture `projectName`, e.g. `@test:fixtures:Solitaire` -- to load it as a `SpellProject`.
+ * - Loads from disk in node, after `installDiskFetch()`.
+ */
+export function fixtureProjectId(projectName: string): string {
+  return `${SP.SpellProjectRoot.fixtures.path}:${projectName}`
+}
+
+/** Name of each fixture project:  each folder of `FIXTURES_DIR` with a `project.json`, alphabetically. */
+export function fixtureProjectNames(): string[] {
+  return readdirSync(FIXTURES_DIR, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && existsSync(fixturePath(entry.name, SP.PROJECT_FILE)))
+    .map((entry) => entry.name)
+    .sort()
+}
+
+/**
+ * Fixture `projectName` compiled as `SpellProject` would write its `<Project>.compiled.js` -- parsed headlessly,
+ * with `parseSpellProject()`:  declarations header, `import`s, then each file's code in `project.json` order.
+ * - Its `.css` files compile as `SpellCSSFile` does:  the whole text through the root scope's `css` rule.
+ * - Parse errors lead it, as comments, so a snapshot of it shows them too.
+ * - NOT projects it imports:  a fixture is parsed on its own.
+ * - `version` / `exports` from its `project.json`, as a compile would.
+ */
+export function compiledFixture(projectName: string): string {
+  const projectDir = fixturePath(projectName)
+  const { version, exports, imports } = readProjectFile(projectDir)
+  const { scope, files } = parseSpellProject(loadFixtureProject(projectName))
+  const errors = files.flatMap(({ path, errors }) => errors.map((error) => `// PARSE ERROR ${path}:${error}\n`))
+  const code = imports
+    .filter(({ path, active }) => active !== false && /\.(spell|css)$/.test(path))
+    .map(({ path }) =>
+      path.endsWith(".css")
+        ? compiledCSS(readFileSync(resolve(projectDir, `.${path}`), "utf8"))
+        : files.find((file) => file.path === path)!.compiled
+    )
+    .join(SP.SpellProject.FILE_SEPARATOR)
+  const header = SP.SpellDeclarations.header(scope, { version, exports })
+  return errors.join("") + header + SP.SpellProject.importHeaderFor(scope) + code + "\n"
+}
+
+/** `{ path, contents }` of each spell file in fixture `projectName`, in its `project.json` order -- see `FIXTURES_DIR`. */
+export function loadFixtureProject(projectName: string): SpellSourceFile[] {
+  const projectDir = fixturePath(projectName)
+  return readProjectFile(projectDir)
+    .imports.filter(({ path, active }) => active !== false && path.endsWith(".spell"))
     .map(({ path }) => ({ path, contents: readFileSync(resolve(projectDir, `.${path}`), "utf8") }))
+}
+
+/** CSS `contents` compiled as `SpellCSSFile.compile()` does:  one `P.TextToken`, through the root scope's `css` rule. */
+function compiledCSS(contents: string): string {
+  const scope = SP.SpellParser.rootScope
+  const token = new P.TextToken({ value: contents, raw: contents, start: 0 })
+  return String(scope.parser!.parse([token], "css", scope)?.compile())
+}
+
+/** `project.json` of the project in `projectDir`. */
+function readProjectFile(projectDir: string): {
+  version?: string
+  exports?: string[]
+  imports: Array<{ path: string; active?: boolean }>
+} {
+  return JSON.parse(readFileSync(resolve(projectDir, SP.PROJECT_FILE), "utf8"))
 }
 
 /**

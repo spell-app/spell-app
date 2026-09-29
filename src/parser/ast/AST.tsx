@@ -772,6 +772,33 @@ export class ASTDocComment extends ASTComment {
   }
 }
 
+/** PreservedComment type -- a `/*! ... *\/` comment, which minifiers keep:  data for tools reading compiled output.
+ *  - `lines` are its lines of text, without comment symbols -- `*\/` in them is escaped, so it can't end the
+ *    comment early.
+ *  - Closes on its last line, to stay short.
+ */
+export type ASTPreservedCommentProps = Prettify<{ lines: string[] }>
+
+export class ASTPreservedComment extends ASTComment {
+  declare lines: string[]
+  constructor(match: P.AnyMatch, props: ASTPreservedCommentProps) {
+    super(match, props)
+    this.assertArrayType("lines", "string")
+  }
+  /** `/*! first line`, then the rest, the last ending ` *\/`. */
+  compile(): string {
+    const lines = this.lines.map((line) => line.replace(/\*\//g, "*\\/"))
+    return `/*! ${lines.join("\n")} */`
+  }
+  renderChildren(): ReactNode {
+    return render.Fragment(
+      render.OPEN_COMMENT,
+      <span className="comment">{this.lines.join("\n")}</span>,
+      render.CLOSE_COMMENT
+    )
+  }
+}
+
 /** BannerComment type -- a section heading, boxed in rows of slashes as wide as its text line:
  *    ```
  *    /////////////
@@ -1136,24 +1163,6 @@ export class ASTRuntimeMethodInvocation extends ASTScopedMethodInvocation {
   }
 }
 
-/** ExportInvocation:  `spellCore.addExport(property, value)`.
- *  - `property` is string or QuotedString for export name.
- *  - `value` is Expression being exported.
- */
-export type ASTExportInvocationProps = Prettify<{ property: string | ASTQuotedExpression; value: ASTExpression }>
-
-export class ASTExportInvocation extends ASTCoreMethodInvocation {
-  /** Constructor also accepts a bare `string` `property` as shorthand for `new ASTQuotedExpression(property)`. */
-  constructor(match: P.AnyMatch, props: ASTExportInvocationProps) {
-    let { property } = props
-    if (typeof property === "string") property = new ASTQuotedExpression(match, property)
-    super(match, {
-      methodName: "addExport",
-      args: [property, props.value]
-    })
-  }
-}
-
 /** ExpectMethodInvocation:  `spellCore.expect(...)` -- used to assert a value in generated test output.
  *  - `expression` is expression AST being tested.
  *  - `expressionString` is string for spell code used to generate `expression`, shown in assertion output.
@@ -1246,6 +1255,14 @@ export class ASTTypeExpression extends ASTExpression {
   }
   renderChildren(): ReactNode {
     return <span className="type">{this.name}</span>
+  }
+
+  /**
+   * Name our type's class has when the code runs -- for a runtime type check, e.g. `spellCore.isOfType()`.
+   * - Differs from `name` for a type imported renamed, e.g. `Card` for `Playingcard` -- see `P.TypeScope.runtimeName`.
+   */
+  get runtimeName(): string {
+    return this.scope?.runtimeName ?? this.name
   }
 
   /** Pointer to known Scope for this type, if available. ??? */
@@ -1343,6 +1360,8 @@ export type ASTMethodDefinitionProps = Prettify<{
   error?: ASTParseError
   datatype?: string
   async?: boolean
+  /** `true` to `export` it:  a top-level function another project can import -- see `exported`. */
+  exported?: boolean
 }>
 
 export class ASTMethodDefinition extends ASTExpression {
@@ -1353,6 +1372,11 @@ export class ASTMethodDefinition extends ASTExpression {
   declare methodName: string | undefined
   declare error: ASTParseError | undefined
   declare async: boolean | undefined
+  /**
+   * `true` to compile as `export function ...`:  a top-level function, which another project may import.
+   * - Only for a plain named function -- NEVER a property, an arrow, or one nested in another function.
+   */
+  declare exported: boolean | undefined
   /** Normalizes `body` (Statement / StatementGroup / Expression / missing) into a wrapped `ASTStatementBlock`. */
   constructor(match: P.AnyMatch, props: ASTMethodDefinitionProps) {
     super(match, props)
@@ -1364,6 +1388,7 @@ export class ASTMethodDefinition extends ASTExpression {
     this.assertType("error", ASTParseError, OPTIONAL)
     this.assertType("datatype", "string", OPTIONAL)
     this.assertType("async", "boolean", OPTIONAL)
+    this.assertType("exported", "boolean", OPTIONAL)
 
     // Default `body` to empty StatementBlock
     if (!this.body) {
@@ -1417,7 +1442,8 @@ export class ASTMethodDefinition extends ASTExpression {
 
     // normal method
     if (this.inline) return `${async}${args} => ${body}${error}`
-    return `${async}function ${methodName}${args} ${body}${error}`
+    const export_ = this.exported ? "export " : ""
+    return `${export_}${async}function ${methodName}${args} ${body}${error}`
   }
   /** Render `error` (if any) prefixed with a space -- `null` when there's no error. */
   renderError(): ReactNode {
@@ -1444,7 +1470,8 @@ export class ASTMethodDefinition extends ASTExpression {
     }
     // normal method
     if (this.inline) return render.Fragment(async, args, render.FAT_ARROW, body, error)
-    return render.Fragment(async, render.FUNCTION, methodName, args, render.SPACE, body, error)
+    const export_ = this.exported && render.EXPORT
+    return render.Fragment(export_, async, render.FUNCTION, methodName, args, render.SPACE, body, error)
   }
 }
 

@@ -20,7 +20,7 @@ import { types } from "./types"
 import { variables } from "./variables"
 import { constants } from "./constants"
 import { assignment } from "./assignment"
-import { expressions } from "./expressions"
+import { expressions, Negatable } from "./expressions"
 import { statements } from "./statements"
 import { _if_ } from "./if"
 import { JSX, type JSXMatchData } from "./JSX"
@@ -54,6 +54,8 @@ export const parseExpression = (expression: string | P.Token | P.Token[], scope?
 
 /** Export ParseError so we can create them programmatically. */
 export { ParseError }
+/** Export so a translation can register its own negatable words -- see `Negatable`. */
+export { Negatable }
 /** Export so callers can get at parse errors collected on a `block` / `line` match. */
 export { type DocComment }
 /** Export so anything which parses a statement on its own can lock it in, e.g. `SpellParser.commit()`. */

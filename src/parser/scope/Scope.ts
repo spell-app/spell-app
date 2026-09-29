@@ -52,19 +52,26 @@ export class Scope extends Derivative {
   /**
    * Register `rule` on our `parser` and record the pair in `this.rules`, so the scope knows what it created.
    * - Use this for rules built WHILE PARSING, e.g. the call-site rule for a method the file just defined.
-   * - `definition` is ONLY `syntax` + `tests` -- everything else goes on `rule` as `@proto static`,
-   *   computed values included:  a closure class's statics can use the enclosing function's locals,
-   *   e.g. `static ruleName = methodName`.  See "Ways to make a rule" 3. in `Rule.ts`.
+   * - `definition` is ONLY `syntax` + `tests` -- everything else goes on `rule`, computed values included,
+   *   via `P.Rule.specialize()`, e.g. `DynamicMethodRule.specialize({ ruleName: methodName, ... })`.
+   *   See "Ways to make a rule" 3. in `Rule.ts`.
    * - `declaredBy` is the match declaring it (the method definition, say), kept for go-to-definition etc.
+   * - `declared` instead, for a rule IMPORTED from another project's compiled declarations -- see
+   *   `P.ScopeRule.declared`.
    * - Returns what `parser.addRule()` returned:  the rule instance, or `undefined` if `rule` has `static skip`.
    */
-  addRule(rule: Class<P.Rule>, definition?: P.SyntaxAndTests, declaredBy?: P.Match): P.Rule | undefined {
+  addRule(
+    rule: Class<P.Rule>,
+    definition?: P.SyntaxAndTests,
+    declaredBy?: P.Match,
+    declared?: P.ImportedRuleDeclared
+  ): P.Rule | undefined {
     const { parser } = this
     if (!parser) throw new TypeError(`scope.addRule(): called on scope without a parser.`)
     const instance = parser.addRule(rule, definition)
     if (!instance) return undefined
     // NOTE: `definition` may be undefined -- store an empty object so an export can always spread it.
-    this.rules?.add({ name: instance.name!, rule, definition: definition ?? {}, declaredBy, instance })
+    this.rules?.add({ name: instance.name!, rule, definition: definition ?? {}, declaredBy, declared, instance })
     return instance
   }
 

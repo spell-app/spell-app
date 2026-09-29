@@ -647,9 +647,13 @@ describe("matchComment()", () => {
     expect(token.end).toBe(15)
   })
 
-  test("Matches `#` and `###` heading comments", () => {
+  test("Matches `#` and `###` heading comments -- only at the start of a line, after any indent", () => {
     expect(tokenizer.matchComment("# Solitaire")).toMatchObject({ commentSymbol: "#", value: "Solitaire" })
     expect(tokenizer.matchComment("### rules")).toMatchObject({ commentSymbol: "###", value: "rules" })
+    expect(tokenizer.matchComment("a\n\t## nested", 3)).toMatchObject({ commentSymbol: "##", value: "nested" })
+    // after anything else on its line:  not a comment
+    expect(tokenizer.matchComment("x ## not a heading", 2)).toBeUndefined()
+    expect(tokenizer.matchComment("color #fff", 6)).toBeUndefined()
   })
 
   test("Matches empty `//` comment", () => {

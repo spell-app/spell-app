@@ -4,5 +4,15 @@
 //
 
 export { unitTestModuleRules } from "./unitTestModuleRules"
-export { parseSpellProject, loadExampleProject, summarize, describeParseErrors } from "./parseSpellProject"
+export {
+  parseSpellProject,
+  loadFixtureProject,
+  fixturePath,
+  fixtureProjectId,
+  fixtureProjectNames,
+  compiledFixture,
+  FIXTURES_DIR,
+  summarize,
+  describeParseErrors
+} from "./parseSpellProject"
 export type { SpellSourceFile, ParsedSpellProject, SpellProjectSummary } from "./parseSpellProject"

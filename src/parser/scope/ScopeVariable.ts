@@ -32,6 +32,8 @@ export class ScopeVariable {
    * - `undefined` for built-ins and for variables tests add by hand.
    */
   declare declaredBy: P.Match | undefined
+  /** Where it was declared, if IMPORTED -- so there's no `declaredBy`.  See `P.DeclaredAt`. */
+  declare declaredAt: P.DeclaredAt | undefined
 
   /** Create with a string name or `ScopeVariableProps` object. */
   constructor(input: string | ScopeVariableProps) {
@@ -64,4 +66,6 @@ export type ScopeVariableProps = {
   scope?: P.Scope
   /** See `ScopeVariable.declaredBy`. */
   declaredBy?: P.Match
+  /** See `ScopeVariable.declaredAt`. */
+  declaredAt?: P.DeclaredAt
 }

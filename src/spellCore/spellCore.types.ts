@@ -8,6 +8,18 @@ import type { testMethods } from "./tests"
 import type { consoleMethods } from "./console"
 import type { runtimeMethods } from "./runtime"
 import type { classesMethods } from "./classes"
+
+// ## Importing spellCore
+
+/**
+ * ES module specifier compiled spell imports its runtime from:  `import { spellCore, Thing } from "@spell/core"`.
+ * - The app's page resolves it with an import map -- see `vite.importMap.ts`.  The VS Code runner, which has
+ *   none, points it at its own `spellCore` -- see `runCompiled()` in `src/app/runner/VSCodeRunner.tsx`.
+ */
+export const SPELL_CORE_MODULE = "@spell/core"
+
+/** Names every compiled project imports from `SPELL_CORE_MODULE`:  `spellCore`, and the built-in types. */
+export const SPELL_CORE_NAMES = ["spellCore", "Thing", "List", "App"]
 import type { EventfulMethods } from "./SpellEvent"
 
 /**

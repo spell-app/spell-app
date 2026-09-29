@@ -8,7 +8,7 @@ import type { LSP } from "~/lsp"
 /**
  * The stdio language server's view of the editor's files, hosted on `SP.SpellProject` / `SP.SpellFile` loading from disk.
  * - Maps editor document URIs <=> `SpellFile`s (`LSP.FileAddresses`).
- *   A file's project is its nearest `.imports.json` folder -- see `locationForDiskPath()`.
+ *   A file's project is its nearest `project.json` folder -- see `locationForDiskPath()`.
  * - Open documents' text wins over disk:  it goes through `project.updateText()`, as the app's editor's does.
  * - Every method that changes anything returns the spell files whose parse changed,
  *   so the server can publish their diagnostics.
@@ -36,7 +36,7 @@ export class SpellDiskWorkspace implements LSP.FileAddresses {
 
   /**
    * `SpellFile` for document `uri`, or `undefined` if it isn't a `.spell` file on disk we can place in a project.
-   * - Cached per URI:  finding the project looks for `.imports.json` up the folder tree.
+   * - Cached per URI:  finding the project looks for `project.json` up the folder tree.
    */
   fileFor(uri: string): SP.SpellFile | undefined {
     let file = this.#fileByUri.get(uri)
@@ -90,7 +90,7 @@ export class SpellDiskWorkspace implements LSP.FileAddresses {
 
   /**
    * A file changed on disk, e.g. a `git checkout`, or another editor saved it.
-   * - `.imports.json`, or a `.spell` file appearing / disappearing:  the file list may have changed,
+   * - `project.json`, or a `.spell` file appearing / disappearing:  the file list may have changed,
    *   so the project re-reads its index and parses from scratch.
    * - A `.spell` file that isn't open:  reloads it.  An open one keeps the editor's text.
    */
@@ -101,12 +101,20 @@ export class SpellDiskWorkspace implements LSP.FileAddresses {
     const project = new SP.SpellProject(location.projectId)
     if (!this.#firstParses.has(project)) return []
 
-    if (basename(path) === ".imports.json" || (location.extension === ".spell" && change !== "changed")) {
+    if (basename(path) === SP.PROJECT_FILE || (location.extension === ".spell" && change !== "changed")) {
       this.#fileByUri.clear()
       return this.refresh(project)
     }
     if (location.extension !== ".spell" || this.#openText.has(uri)) return []
     return this.reloadFromDisk(new SP.SpellFile(location.path))
+  }
+
+  /**
+   * Parse `project` if we haven't yet, and keep it up to date from then on, as its files change on disk --
+   * e.g. a project another one imports, which no open file belongs to.  See `diskChanged()`.
+   */
+  track(project: SP.SpellProject): Promise<void> {
+    return this.parseOnce(project)
   }
 
   /** Parse `project` from scratch if we haven't yet.  Resolves once that's done, successfully or not. */

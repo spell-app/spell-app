@@ -7,7 +7,7 @@ import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement, type SpellStatementProps } from "./Statement"
 import { SpellType } from "./types"
 import { SpellIdentifier } from "./variables"
-import { PostfixOperatorSuffix, InfixOperatorSuffix } from "./expressions"
+import { PostfixOperatorSuffix, InfixOperatorSuffix, Negatable, type SpellExpressionProps } from "./expressions"
 
 /**
  * Rule module for dynamic method definitions (`to foo ...`, `animation ...`) and their call sites, plus
@@ -38,20 +38,38 @@ export const methods = new SpellParser({ module: "methods" })
 
 /**
  * Rule `constructor` for a plain (non-instance, non-operator) dynamically-defined method's CALL SITE, e.g.
- * matching `notify 1` after `to notify (message): ...` defined it.  `MethodDefinition.getRule()` registers a
- * closure subclass carrying `ruleName` / `alias` / `methodName`, for every generated method that isn't
- * a postfix/infix expression.
+ * matching `notify 1` after `to notify (message): ...` defined it.  `MethodDefinition.getRule()` registers
+ * `DynamicMethodRule.specialize({ output, alias })` for every generated method that isn't
+ * a postfix/infix expression -- see `specialize()`.
  * - NOTE: not made a generic pass-through like `MethodDefinition` -- every dynamically-generated rule built
  *   on top of it uses the same `thisArg`/`callArgs`/`props` syntax convention, so there's no subclass that
  *   needs a different `Groups`/`MatchData`.
  */
 export class DynamicMethodRule extends SpellStatement<"thisArg?|callArgs[]?|props?"> {
-  /** Generated method name to invoke -- fixed per rule instance via the closure class `getRule()` builds,
-   *  shared by every match of this rule. */
+  @proto static importableAs = "method_call"
+
+  /** Generated method name to invoke -- fixed per rule by `specialize()`, shared by every match of it. */
   declare methodName: string
   @proto static methodName?: string
   /** TYPE-ONLY: props `parser.addRule()` accepts for this rule -- see `P.Rule`'s `Props`. */
   declare readonly Props: DynamicMethodRuleProps
+
+  /** TYPE-ONLY: what `specialize()` takes -- see `P.SpecializeWith`. */
+  declare static readonly SpecializeWith: MethodRuleDeclared & { alias?: string | string[] }
+  /**
+   * Call to generated method `output`, e.g. `play_fizzbuzz` -- also our `ruleName`.
+   * - What a project's `SPELL: DECLARES` comment holds for us -- see `SP.SpellDeclarations`.
+   */
+  static specialize<T extends AbstractClass<P.Rule>>(this: T, declared: P.SpecializeWith<T>): T {
+    const { output, alias } = declared as (typeof DynamicMethodRule)["SpecializeWith"]
+    const statics: P.RuleStatics<DynamicMethodRule> = { ruleName: output, methodName: output, alias }
+    return super.specialize(statics, declared) as unknown as T
+  }
+
+  /** What we write into our statement's `SPELL: DECLARES` comment -- see `P.Rule.declarationProps()`. */
+  static declarationProps({ output, alias }: (typeof DynamicMethodRule)["SpecializeWith"], syntax: string | undefined) {
+    return { syntax, output, alias }
+  }
 
   /** Normalize `callArgs` to an array -- a single arg's `{callArgs:expression}` match isn't already one. */
   getGroupsForMatch(match: P.MatchFor<this>): DynamicMethodRuleGroups {
@@ -90,6 +108,105 @@ export type DynamicMethodRuleProps = Prettify<SpellStatementProps & { methodName
 
 /** `match.groups` for `DynamicMethodRule`, once `getGroupsForMatch()` has normalized `callArgs` to an array. */
 type DynamicMethodRuleGroups = P.GroupsFor<"thisArg?|callArgs[]?|props?">
+
+////////////////
+// ## `MethodPostfixRule` base class
+//    e.g. "the card is face up", once 'a card "is face up" if ...' made one
+////////////////
+
+/**
+ * `card is face up` -- reads a quoted method defined as a postfix expression, e.g. `card.is_face_up`.
+ * - Never registered as is:  `MethodDefinition.getRule()` makes one per such method, with
+ *   `MethodPostfixRule.specialize({ output })`.
+ * - `isn't face up` negates through the base class -- see `Negatable`.
+ * - Reads ONLY its statics, so a project's declarations can rebuild it elsewhere -- see `P.Rule.specialize()`.
+ */
+export class MethodPostfixRule extends PostfixOperatorSuffix {
+  @proto static importableAs = "method_postfix"
+  @proto static precedence = 20
+
+  /** Generated method to read, e.g. `is_face_up`. */
+  declare methodName: string
+  /** TYPE-ONLY: what `specialize()` accepts for this rule -- see `P.RuleStatics`. */
+  declare readonly Props: MethodOperatorRuleProps
+
+  /** TYPE-ONLY: what `specialize()` takes -- see `P.SpecializeWith`. */
+  declare static readonly SpecializeWith: MethodRuleDeclared
+  /** Reads generated method `output`, e.g. `is_face_up` -- also our `ruleName`.  See `DynamicMethodRule.specialize()`. */
+  static specialize<T extends AbstractClass<P.Rule>>(this: T, declared: P.SpecializeWith<T>): T {
+    const { output } = declared as MethodRuleDeclared
+    const statics: P.RuleStatics<MethodPostfixRule> = { ruleName: output, methodName: output }
+    return super.specialize(statics, declared) as unknown as T
+  }
+
+  /** What we write into our statement's `SPELL: DECLARES` comment -- see `P.Rule.declarationProps()`. */
+  static declarationProps({ output }: MethodRuleDeclared, syntax: string | undefined) {
+    return { syntax, output }
+  }
+
+  compileASTExpression(match: P.Match, { lhs }: OperatorOperands): P.ASTExpression {
+    return new P.ASTPropertyExpression(match, {
+      object: lhs!,
+      property: new P.ASTPropertyLiteral(match, this.methodName)
+    })
+  }
+}
+
+/** Props bag accepted by `MethodPostfixRule` / `MethodInfixRule` -- the generated method. */
+type MethodOperatorRuleProps = Prettify<SpellExpressionProps & { methodName: string }>
+
+/**
+ * What a generated method's call-site rule is declared with -- see `DynamicMethodRule.specialize()`.
+ * - `output`:  the method's name in compiled JS, e.g. `play_fizzbuzz`
+ */
+type MethodRuleDeclared = { output: string }
+
+////////////////
+// ## `MethodInfixRule` base class
+//    e.g. "the card nerds out with another", once 'a card "nerds out with (another)" ...' made one
+////////////////
+
+/**
+ * `card nerds out with thing` -- calls a quoted method defined as an infix expression,
+ * e.g. `card.nerds_out_with_$another(thing)`.
+ * - Never registered as is:  `MethodDefinition.getRule()` makes one per such method, with
+ *   `MethodInfixRule.specialize({ output })`.
+ * - Negates through the base class -- see `Negatable`.
+ * - Reads ONLY its statics, so a project's declarations can rebuild it elsewhere -- see `P.Rule.specialize()`.
+ */
+export class MethodInfixRule extends InfixOperatorSuffix {
+  @proto static importableAs = "method_infix"
+  @proto static precedence = 20
+  @proto static parenthesize = true
+
+  /** Generated method to call, e.g. `nerds_out_with_$another`. */
+  declare methodName: string
+  /** TYPE-ONLY: what `specialize()` accepts for this rule -- see `P.RuleStatics`. */
+  declare readonly Props: MethodOperatorRuleProps
+
+  /** TYPE-ONLY: what `specialize()` takes -- see `P.SpecializeWith`. */
+  declare static readonly SpecializeWith: MethodRuleDeclared
+  /** Calls generated method `output` -- also our `ruleName`.  See `DynamicMethodRule.specialize()`. */
+  static specialize<T extends AbstractClass<P.Rule>>(this: T, declared: P.SpecializeWith<T>): T {
+    const { output } = declared as MethodRuleDeclared
+    const statics: P.RuleStatics<MethodInfixRule> = { ruleName: output, methodName: output }
+    return super.specialize(statics, declared) as unknown as T
+  }
+
+  /** What we write into our statement's `SPELL: DECLARES` comment -- see `P.Rule.declarationProps()`. */
+  static declarationProps({ output }: MethodRuleDeclared, syntax: string | undefined) {
+    return { syntax, output }
+  }
+
+  compileASTExpression(match: P.Match, { lhs, rhs }: OperatorOperands): P.ASTExpression {
+    // `lhs`/`rhs` are always populated for an `InfixOperatorSuffix`.
+    return new P.ASTScopedMethodInvocation(match, {
+      thing: lhs!,
+      methodName: this.methodName,
+      args: [rhs!]
+    })
+  }
+}
 
 ////////////////
 // ## `MethodDefinition` base class
@@ -131,7 +248,7 @@ export class MethodDefinition<
    *   from the type name (e.g. `to show (thing as a card)` aliases `thing` to `this`).
    * - Also promotes to a `test` method when `asTest`, prefixing `test` onto the method name and syntax.
    */
-  processSignature(groups: P.MatchGroups, signature: MethodSignatureData): MethodSignatureData {
+  processSignature(groups: P.MatchGroups, signature: MethodSignatureData, _scope: P.Scope): MethodSignatureData {
     const [initialType] = signature.types
     if (this.inlineInitialType && initialType && !initialType.isSimple) {
       signature.instanceType = initialType.name
@@ -172,7 +289,11 @@ export class MethodDefinition<
   private computeSignature(match: P.MatchFor<this>): MethodSignatureData | undefined {
     const signatureMatch = (match.groups as { signature?: P.Match }).signature
     if (!(signatureMatch instanceof P.Match)) return undefined
-    const signature = this.processSignature(match.groups as P.MatchGroups, signatureMatch.data as MethodSignatureData)
+    const signature = this.processSignature(
+      match.groups as P.MatchGroups,
+      signatureMatch.data as MethodSignatureData,
+      match.scope
+    )
     signature.methodName = signature.methodBits.join("_")
     signature.syntax = signature.syntaxBits.join(" ")
     return signature
@@ -229,26 +350,17 @@ export class MethodDefinition<
     this.getRule(match)
   }
 
-  /** Human-readable annotation text (wrapped in a comment by `getAST()`'s `ParserAnnotation`) -- differs for
-   *  postfix/infix expressions (`added expression ...`) vs. plain statements (`added rule: ...`). */
-  getRuleAnnotation(match: P.MatchFor<this>): string {
-    const { syntax, asPostfixExpression, asInfixExpression } = this.getSignature(match)!
-    if (asPostfixExpression || asInfixExpression) return `added expression \`{thing:simple_expression} ${syntax}\``
-    return `added rule: \`${syntax}\``
-  }
-
   /**
    * Register the CALL SITE rule directly onto `match.scope.parser` -- called by `mutateScope()`, this is
    * what makes `notify 1`, `card.play()`, `card is a bug`, etc. parseable after their
    * `to`/`animation`/quoted definitions.
-   * - `asPostfixExpression`/`asInfixExpression` (set by `quoted_type_expression.processSignature()`) each
-   *   register a closure class aliased `"expression_suffix"` extending `PostfixOperatorSuffix`/
-   *   `InfixOperatorSuffix` that compiles to a `PropertyExpression`/`ScopedMethodInvocation` and applies
-   *   `shouldNegateOutput()`.
-   * - Otherwise registers a closure subclass of `DynamicMethodRule`, aliased `"statement"` when
+   * - `asPostfixExpression`/`asInfixExpression` (set by `quoted_type_expression.processSignature()`) register
+   *   a `MethodPostfixRule`/`MethodInfixRule`.
+   * - Otherwise registers a `DynamicMethodRule`, aliased `"statement"` when
    *   `asTest` (so it can't be used as an expression), else `["statement", "expression"]`.
-   * - Each closure class carries EVERYTHING but `syntax` as statics -- `ruleName` included, computed from
-   *   the signature -- so the definition is just `{ syntax }`, as for every other spell rule.
+   * - Each is `specialize()`d with the generated method's name as `output` (plus `alias`), which it
+   *   works out the rest from -- so the definition is just `{ syntax }`, as for every other spell rule,
+   *   and a project's declarations can rebuild it elsewhere.
    * - Registers through `scope.addRule(RuleClass, definition)`, which puts the rule on the scope's parser and
    *   records the class + definition on the scope itself -- these generated rules MUST keep their alias so the
    *   parser finds them by category (`statement`/`expression`/`expression_suffix`) on the very next line,
@@ -256,62 +368,22 @@ export class MethodDefinition<
    */
   getRule(match: P.MatchFor<this>): void {
     const { asTest } = match.groups as { asTest?: P.Match }
-    const {
-      methodName = "",
-      syntax = "",
-      asPostfixExpression,
-      asInfixExpression,
-      shouldNegateOutput = () => false
-    } = this.getSignature(match)!
+    const { methodName = "", syntax = "", asPostfixExpression, asInfixExpression } = this.getSignature(match)!
     const { scope } = match
     // Generic `Groups` keeps `MatchFor<this>` from narrowing to a plain `P.Match` -- cast once.
     const declaredBy = match as P.Match
 
+    const output = methodName
     if (asPostfixExpression) {
-      class _dynamicMethodRulePostfix extends PostfixOperatorSuffix {
-        static ruleName = methodName
-        @proto static precedence = 20
-
-        shouldNegateOutput(operator: P.Match): boolean {
-          return shouldNegateOutput(operator)
-        }
-        compileASTExpression(_match: P.Match, { lhs }: OperatorOperands): P.ASTExpression {
-          return new P.ASTPropertyExpression(_match, {
-            object: lhs!,
-            property: new P.ASTPropertyLiteral(_match, methodName)
-          })
-        }
-      }
-      scope.addRule(_dynamicMethodRulePostfix, { syntax }, declaredBy)
+      scope.addRule(MethodPostfixRule.specialize({ output }), { syntax }, declaredBy)
       return
     }
     if (asInfixExpression) {
-      class _dynamicMethodRuleInfix extends InfixOperatorSuffix {
-        static ruleName = methodName
-        @proto static precedence = 20
-        @proto static parenthesize = true
-
-        shouldNegateOutput(operator: P.Match): boolean {
-          return shouldNegateOutput(operator)
-        }
-        compileASTExpression(_match: P.Match, { lhs, rhs }: OperatorOperands): P.ASTExpression {
-          // `lhs`/`rhs` are always populated for an `InfixOperatorSuffix`.
-          return new P.ASTScopedMethodInvocation(match, {
-            thing: lhs!,
-            methodName,
-            args: [rhs!]
-          })
-        }
-      }
-      scope.addRule(_dynamicMethodRuleInfix, { syntax }, declaredBy)
+      scope.addRule(MethodInfixRule.specialize({ output }), { syntax }, declaredBy)
       return
     }
-    class _dynamicMethodRule extends DynamicMethodRule {
-      static ruleName = methodName
-      @proto static alias = asTest ? "statement" : ["statement", "expression"]
-      @proto static methodName = methodName
-    }
-    scope.addRule(_dynamicMethodRule, { syntax }, declaredBy)
+    const alias = asTest ? "statement" : ["statement", "expression"]
+    scope.addRule(DynamicMethodRule.specialize({ output, alias }), { syntax }, declaredBy)
   }
 
   /** If `signature.props` return `DestructuredAssignment` to pull those props into scope. */
@@ -327,7 +399,7 @@ export class MethodDefinition<
   }
 
   /**
-   * Build the AST for a method DEFINITION: the annotation, the `P.ASTMethodDefinition` itself, and (depending
+   * Build the AST for a method DEFINITION: the `P.ASTMethodDefinition` itself, and (depending
    * on `instanceType`/`asTest`/`asPostfixExpression`) either a `PropertyDefinition` on the type's prototype
    * or a loose function/`test(...)` wrapper.
    * - `asTest`: SIDE EFFECT -- rewrites the body to `echoInTests`-wrap every top-level statement/expression
@@ -349,11 +421,8 @@ export class MethodDefinition<
     }
     const signature = this.getSignature(match)!
     const { methodName = "", args, props, instanceType, asPostfixExpression } = signature
-    const output: Array<P.ASTStatement | P.ASTExpression | P.ASTComment | P.ASTBlankLine> = [
-      new P.ASTParserAnnotation(match, {
-        value: this.getRuleAnnotation(match)
-      })
-    ]
+    // what it declared is said by its `/*! SPELL: DECLARES` comment -- see `SP.SpellDeclarations.commentFor()`
+    const output: Array<P.ASTStatement | P.ASTExpression | P.ASTComment | P.ASTBlankLine> = []
 
     const method = new P.ASTMethodDefinition(match, {
       methodName,
@@ -423,11 +492,13 @@ export class MethodDefinition<
         )
       }
     }
-    // No instance type: create as a loose function
+    // No instance type: create as a loose function -- `export`ed at file level, so another project can import it.
+    // NOTE: not a scope LOOKUP, just where it was written -- as `ASTAssignmentStatement.exportVar` decides.
     else if (asTest) {
       output.push(
         new P.ASTMethodDefinition(match, {
           methodName,
+          exported: isTopLevel(match.scope),
           body: new P.ASTCoreMethodInvocation(match, {
             methodName: "test",
             args: [new P.ASTQuotedExpression(match, signature.methodBits.join(" ")), method]
@@ -435,6 +506,7 @@ export class MethodDefinition<
         })
       )
     } else {
+      method.exported = isTopLevel(match.scope)
       output.push(method)
     }
 
@@ -849,75 +921,48 @@ methods.addRule(to_do_something, {
         {
           title: "keyword-only signature",
           input: "to start the game",
-          output: ["/* SPELL: added rule: `start the game` */", "function start_the_game() {}"]
+          output: ["export function start_the_game() {}"]
         },
         {
           title: "keyword-only signature - `it` is not defined",
           input: "to start the game: print it",
-          output: [
-            "/* SPELL: added rule: `start the game` */",
-            "function start_the_game() {}",
-            '/* PARSE ERROR: Don\'t understand "print it" */'
-          ]
+          output: ["export function start_the_game() {}", '/* PARSE ERROR: Don\'t understand "print it" */']
         },
         {
           title: "non-escaped type arg in signature",
           input: "to create a card",
-          output: ["/* SPELL: added rule: `create a card` */", "function create_a_card() {}"]
+          output: ["export function create_a_card() {}"]
         },
         {
           title: "non-escaped type arg in signature - `it` is not defined",
           input: "to create a card: print it",
-          output: [
-            "/* SPELL: added rule: `create a card` */",
-            "function create_a_card() {}",
-            '/* PARSE ERROR: Don\'t understand "print it" */'
-          ]
+          output: ["export function create_a_card() {}", '/* PARSE ERROR: Don\'t understand "print it" */']
         },
         {
           title: "simple arg in signature - arg is defined",
           input: "to notify (message): print the message",
-          output: [
-            "/* SPELL: added rule: `notify {callArgs:expression}` */",
-            `function notify_$message(message) {`,
-            `\treturn spellCore.console.log(message)`,
-            `}`
-          ]
+          output: [`export function notify_$message(message) {`, `\treturn spellCore.console.log(message)`, `}`]
         },
         {
           title: "simple arg in signature - it is not defined",
           input: "to notify (message): print it",
-          output: [
-            "/* SPELL: added rule: `notify {callArgs:expression}` */",
-            "function notify_$message(message) {}",
-            '/* PARSE ERROR: Don\'t understand "print it" */'
-          ]
+          output: ["export function notify_$message(message) {}", '/* PARSE ERROR: Don\'t understand "print it" */']
         },
         {
           title: "typed simple arg in signature - arg is defined",
           input: "to notify (message as text): print the message",
-          output: [
-            "/* SPELL: added rule: `notify {callArgs:expression}` */",
-            `function notify_$message(message) {`,
-            `\treturn spellCore.console.log(message)`,
-            `}`
-          ]
+          output: [`export function notify_$message(message) {`, `\treturn spellCore.console.log(message)`, `}`]
         },
         {
           title: "typed simple arg in signature - `it` is not defined",
           input: "to notify (message as text): print it",
-          output: [
-            "/* SPELL: added rule: `notify {callArgs:expression}` */",
-            "function notify_$message(message) {}",
-            '/* PARSE ERROR: Don\'t understand "print it" */'
-          ]
+          output: ["export function notify_$message(message) {}", '/* PARSE ERROR: Don\'t understand "print it" */']
         },
         {
           title: "valued simple arg in signature - arg is defined",
           input: 'to notify (message = "Really?"): print the message',
           output: [
-            "/* SPELL: added rule: `notify {callArgs:expression}` */",
-            `function notify_$message(message = "Really?") {`,
+            `export function notify_$message(message = "Really?") {`,
             `\treturn spellCore.console.log(message)`,
             `}`
           ]
@@ -926,8 +971,7 @@ methods.addRule(to_do_something, {
           title: "typed simple arg in signature - `it` is not defined",
           input: 'to notify (message = "Really?"): print it',
           output: [
-            "/* SPELL: added rule: `notify {callArgs:expression}` */",
-            'function notify_$message(message = "Really?") {}',
+            'export function notify_$message(message = "Really?") {}',
             '/* PARSE ERROR: Don\'t understand "print it" */'
           ]
         },
@@ -935,7 +979,6 @@ methods.addRule(to_do_something, {
           title: "type arg in signature - thisVar",
           input: "to create (a card): print the card",
           output: [
-            "/* SPELL: added rule: `create {thisArg:expression}` */",
             `spellCore.define(Card.prototype, 'create', {`,
             `\tvalue() {`,
             `\t\treturn spellCore.console.log(this)`,
@@ -947,7 +990,6 @@ methods.addRule(to_do_something, {
           title: "type arg in signature - it",
           input: "to create (a card): print it",
           output: [
-            "/* SPELL: added rule: `create {thisArg:expression}` */",
             `spellCore.define(Card.prototype, 'create', {`,
             `\tvalue() {`,
             `\t\treturn spellCore.console.log(this)`,
@@ -958,20 +1000,12 @@ methods.addRule(to_do_something, {
         {
           title: "type arg in signature - its",
           input: "to create (a card): set its number to 1",
-          output: [
-            "/* SPELL: added rule: `create {thisArg:expression}` */",
-            `spellCore.define(Card.prototype, 'create', {`,
-            `\tvalue() {`,
-            `\t\tthis.number = 1`,
-            `\t}`,
-            `})`
-          ]
+          output: [`spellCore.define(Card.prototype, 'create', {`, `\tvalue() {`, `\t\tthis.number = 1`, `\t}`, `})`]
         },
         {
           title: "multiple type args in signature - thisVar",
           input: "to add (a card) to (a pile): set the pile of the card to the pile",
           output: [
-            "/* SPELL: added rule: `add {thisArg:expression} to {callArgs:expression}` */",
             `spellCore.define(Card.prototype, 'add_to_$pile', {`,
             `\tvalue(pile) {`,
             `\t\tthis.pile = pile`,
@@ -983,7 +1017,6 @@ methods.addRule(to_do_something, {
           title: "multiple type args in signature - it",
           input: "to add (a card) to (a pile): set the pile of it to the pile",
           output: [
-            "/* SPELL: added rule: `add {thisArg:expression} to {callArgs:expression}` */",
             `spellCore.define(Card.prototype, 'add_to_$pile', {`,
             `\tvalue(pile) {`,
             `\t\tthis.pile = pile`,
@@ -995,7 +1028,6 @@ methods.addRule(to_do_something, {
           title: "multiple type args in signature - its",
           input: "to add (a card) to (a pile): set its pile to the pile",
           output: [
-            "/* SPELL: added rule: `add {thisArg:expression} to {callArgs:expression}` */",
             `spellCore.define(Card.prototype, 'add_to_$pile', {`,
             `\tvalue(pile) {`,
             `\t\tthis.pile = pile`,
@@ -1007,7 +1039,6 @@ methods.addRule(to_do_something, {
           title: "typed arg in signature -- arg name",
           input: "to show (thing as a card): print the thing",
           output: [
-            "/* SPELL: added rule: `show {thisArg:expression}` */",
             `spellCore.define(Card.prototype, 'show', {`,
             `\tvalue() {`,
             `\t\treturn spellCore.console.log(this)`,
@@ -1019,7 +1050,6 @@ methods.addRule(to_do_something, {
           title: "typed arg in signature -- thisVar",
           input: "to show (thing as a card): print the card",
           output: [
-            "/* SPELL: added rule: `show {thisArg:expression}` */",
             `spellCore.define(Card.prototype, 'show', {`,
             `\tvalue() {`,
             `\t\treturn spellCore.console.log(this)`,
@@ -1031,7 +1061,6 @@ methods.addRule(to_do_something, {
           title: "typed arg in signature -- it",
           input: "to show (thing as a card): print it",
           output: [
-            "/* SPELL: added rule: `show {thisArg:expression}` */",
             `spellCore.define(Card.prototype, 'show', {`,
             `\tvalue() {`,
             `\t\treturn spellCore.console.log(this)`,
@@ -1043,7 +1072,6 @@ methods.addRule(to_do_something, {
           title: "typed arg in signature -- its",
           input: "to show (thing as a card): print its name",
           output: [
-            "/* SPELL: added rule: `show {thisArg:expression}` */",
             `spellCore.define(Card.prototype, 'show', {`,
             `\tvalue() {`,
             `\t\treturn spellCore.console.log(this.name)`,
@@ -1055,7 +1083,6 @@ methods.addRule(to_do_something, {
           title: "typed var in signature: implicit `it` gets remapped after `get`",
           input: ["to show (thing as a card)", "\tprint it", "\tget its name", "\tprint it"],
           output: [
-            "/* SPELL: added rule: `show {thisArg:expression}` */",
             "spellCore.define(Card.prototype, 'show', {",
             "\tvalue() {",
             "\t\tspellCore.console.log(this)",
@@ -1068,10 +1095,7 @@ methods.addRule(to_do_something, {
         {
           title: "mixed vars in signature",
           input: "to prompt (message as text) and (reply)",
-          output: [
-            "/* SPELL: added rule: `prompt {callArgs:expression} and {callArgs:expression}` */",
-            "function prompt_$message_and_$reply(message, reply) {}"
-          ]
+          output: ["export function prompt_$message_and_$reply(message, reply) {}"]
         }
       ]
     },
@@ -1086,20 +1110,13 @@ methods.addRule(to_do_something, {
         {
           title: "top level keyword-only method",
           input: ["to start the game", "\tprint 1", "start the game"],
-          output: [
-            "/* SPELL: added rule: `start the game` */",
-            `function start_the_game() {`,
-            `\tspellCore.console.log(1)`,
-            `}`,
-            `start_the_game()`
-          ]
+          output: [`export function start_the_game() {`, `\tspellCore.console.log(1)`, `}`, `start_the_game()`]
         },
         {
           title: "top level simple argument method",
           input: ["to notify (message): print the message", "notify 1"],
           output: [
-            "/* SPELL: added rule: `notify {callArgs:expression}` */",
-            `function notify_$message(message) {`,
+            `export function notify_$message(message) {`,
             `\treturn spellCore.console.log(message)`,
             `}`,
             "notify_$message(1)"
@@ -1109,8 +1126,7 @@ methods.addRule(to_do_something, {
           title: "top level typed simple argument method",
           input: ["to notify (message as text): print the message", "notify 1"],
           output: [
-            "/* SPELL: added rule: `notify {callArgs:expression}` */",
-            `function notify_$message(message) {`,
+            `export function notify_$message(message) {`,
             `\treturn spellCore.console.log(message)`,
             `}`,
             `notify_$message(1)`
@@ -1120,7 +1136,6 @@ methods.addRule(to_do_something, {
           title: "type arg in signature",
           input: ["to show (a card): print the card", "show a new card"],
           output: [
-            "/* SPELL: added rule: `show {thisArg:expression}` */",
             `spellCore.define(Card.prototype, 'show', {`,
             `\tvalue() {`,
             `\t\treturn spellCore.console.log(this)`,
@@ -1133,7 +1148,6 @@ methods.addRule(to_do_something, {
           title: "multiple type args in signature",
           input: ["to play (a card) on (a pile): set its pile to the pile", "play a new card on a new pile"],
           output: [
-            "/* SPELL: added rule: `play {thisArg:expression} on {callArgs:expression}` */",
             `spellCore.define(Card.prototype, 'play_on_$pile', {`,
             `\tvalue(pile) {`,
             `\t\tthis.pile = pile`,
@@ -1161,8 +1175,7 @@ methods.addRule(to_do_something, {
           title: "with arg is optional when calling",
           input: ["to notify (with message):", "\tprint the message", "notify"],
           output: [
-            "/* SPELL: added rule: `notify (with {props:object_literal_properties})?` */",
-            "function notify(props = {}) {",
+            "export function notify(props = {}) {",
             "\tlet { message } = props",
             "\tspellCore.console.log(message)",
             "}",
@@ -1174,8 +1187,7 @@ methods.addRule(to_do_something, {
           title: "simple variable props",
           input: ["to notify (with message):", "\tprint the message", 'notify with message = "It worked!"'],
           output: [
-            "/* SPELL: added rule: `notify (with {props:object_literal_properties})?` */",
-            "function notify(props = {}) {",
+            "export function notify(props = {}) {",
             "\tlet { message } = props",
             "\tspellCore.console.log(message)",
             "}",
@@ -1191,8 +1203,7 @@ methods.addRule(to_do_something, {
             'play with card = a new card with suit of "hearts"'
           ],
           output: [
-            "/* SPELL: added rule: `play (with {props:object_literal_properties})?` */",
-            "function play(props = {}) {",
+            "export function play(props = {}) {",
             "\tlet { card } = props",
             "\tspellCore.console.log(card)",
             "}",
@@ -1204,8 +1215,7 @@ methods.addRule(to_do_something, {
           title: "default value props",
           input: ['to notify (with message = "nope"):', "\tprint the message", 'notify with message = "Ship it!!"'],
           output: [
-            "/* SPELL: added rule: `notify (with {props:object_literal_properties})?` */",
-            "function notify(props = {}) {",
+            "export function notify(props = {}) {",
             '\tlet { message = "nope" } = props',
             "\tspellCore.console.log(message)",
             "}",
@@ -1221,8 +1231,7 @@ methods.addRule(to_do_something, {
             'notify with message = "How many?" and reply = 2'
           ],
           output: [
-            "/* SPELL: added rule: `notify (with {props:object_literal_properties})?` */",
-            "function notify(props = {}) {",
+            "export function notify(props = {}) {",
             '\tlet { message = "nope", reply = "yep" } = props',
             "\tspellCore.console.log(message + reply)",
             "}",
@@ -1238,8 +1247,7 @@ methods.addRule(to_do_something, {
             'notify with name = "Bob", message = "How many?" and reply = 2'
           ],
           output: [
-            "/* SPELL: added rule: `notify (with {props:object_literal_properties})?` */",
-            "function notify(props = {}) {",
+            "export function notify(props = {}) {",
             '\tlet { name, message, reply = "yep" } = props',
             "\tspellCore.console.log((name + message) + reply)",
             "}",
@@ -1259,8 +1267,7 @@ methods.addRule(to_do_something, {
             'notify "Really?" with reply = "yes"'
           ],
           output: [
-            "/* SPELL: added rule: `notify {callArgs:expression} (with {props:object_literal_properties})?` */",
-            "function notify_$message(message, props = {}) {",
+            "export function notify_$message(message, props = {}) {",
             '\tlet { reply = "yep" } = props',
             "\tspellCore.console.log(message)",
             "\tspellCore.console.log(reply)",
@@ -1276,8 +1283,7 @@ methods.addRule(to_do_something, {
             `notify with message = "It worked!" and reply = "No it didn't"`
           ],
           output: [
-            "/* SPELL: added rule: `notify (with {props:object_literal_properties})?` */",
-            "function notify(props = {}) {",
+            "export function notify(props = {}) {",
             "\tlet { message } = props",
             "\tspellCore.console.log(message)",
             "}",
@@ -1326,8 +1332,7 @@ methods.addRule(create_animation, {
         {
           input: "animation deal the cards",
           output: [
-            "/* SPELL: added rule: `deal the cards` */",
-            "async function deal_the_cards() {",
+            "export async function deal_the_cards() {",
             "\tif (spellCore.processIsRunning('deal_the_cards')) { return }",
             "\tspellCore.startProcess('deal_the_cards', 'EXCLUSIVE')",
             "\ttry {}",
@@ -1340,8 +1345,7 @@ methods.addRule(create_animation, {
         {
           input: ["animation deal the cards", "\tpause for 10 seconds"],
           output: [
-            "/* SPELL: added rule: `deal the cards` */",
-            "async function deal_the_cards() {",
+            "export async function deal_the_cards() {",
             "\tif (spellCore.processIsRunning('deal_the_cards')) { return }",
             "\tspellCore.startProcess('deal_the_cards', 'EXCLUSIVE')",
             "\ttry {",
@@ -1427,7 +1431,11 @@ class quoted_type_expression extends MethodDefinition<"type|signature|body?"> {
    *   one compiled rule; `shouldNegateOutput()` then flips `P.ASTExpression` output for a match on
    *   anything other than the bare positive form.
    */
-  processSignature(groups: P.MatchGroups & { type: P.Match }, signature: MethodSignatureData): MethodSignatureData {
+  processSignature(
+    groups: P.MatchGroups & { type: P.Match },
+    signature: MethodSignatureData,
+    scope: P.Scope
+  ): MethodSignatureData {
     signature.instanceType = groups.type.raw
     if (signature.args.length === 0) {
       signature.asPostfixExpression = true
@@ -1440,21 +1448,14 @@ class quoted_type_expression extends MethodDefinition<"type|signature|body?"> {
       // TODO: we don't handle this currently...
       // signature.syntaxBits.unshift("{thisArg:simple_expression}")
     }
-    // convert "is", "has", "can", "will" to negatable expression
+    // FIRST negatable word, e.g. `is`, matches all its forms, e.g. `isn't` -- see `Negatable`
     if (signature.asPostfixExpression || signature.asInfixExpression) {
+      const rules = scope.parser?.rules
       let foundOne = false
-      const NEGATABLES: Record<string, [string, (operator: P.Match) => boolean]> = {
-        is: ["(operator:is not?|isn't|isnt)", (op) => op.value !== "is"],
-        can: ["(operator:can not?|cannot|can't|cant)", (op) => op.value !== "can"],
-        will: ["(operator:will not?|won't|wont)", (op) => op.value !== "will"],
-        has: ["(operator:has|does not have|doesn't have|doesnt have)", (op) => op.value !== "has"]
-      }
       signature.syntaxBits = signature.syntaxBits.map((bit) => {
-        const negatable = NEGATABLES[bit]
-        if (foundOne || !negatable) return bit
+        if (foundOne || !(rules?.[bit] instanceof Negatable)) return bit
         foundOne = true
-        signature.shouldNegateOutput = negatable[1]
-        return negatable[0]
+        return `{operator:${bit}}`
       })
     }
     // console.warn(signature)
@@ -1493,7 +1494,6 @@ methods.addRule(quoted_type_expression, {
           title: "no body",
           input: [`a thing "nerds out" if`, `if a new thing nerds out`],
           output: [
-            `/* SPELL: added expression \`{thing:simple_expression} nerds out\` */`,
             `spellCore.define(Thing.prototype, 'nerds_out', {`,
             `\tget() {}`,
             `})`,
@@ -1504,7 +1504,6 @@ methods.addRule(quoted_type_expression, {
           title: "no if",
           input: [`a thing "nerds out": never`, `if a new thing nerds out`],
           output: [
-            `/* SPELL: added expression \`{thing:simple_expression} nerds out\` */`,
             `spellCore.define(Thing.prototype, 'nerds_out', {`,
             `\tget() {`,
             `\t\treturn false`,
@@ -1517,7 +1516,6 @@ methods.addRule(quoted_type_expression, {
           title: "inline expression",
           input: [`a thing "nerds out" if yes`, `if a new thing nerds out`],
           output: [
-            `/* SPELL: added expression \`{thing:simple_expression} nerds out\` */`,
             `spellCore.define(Thing.prototype, 'nerds_out', {`,
             `\tget() {`,
             `\t\treturn true`,
@@ -1530,7 +1528,6 @@ methods.addRule(quoted_type_expression, {
           title: "indented method body",
           input: [`a thing "nerds out" if`, `\treturn yes`, `if a new thing nerds out`],
           output: [
-            `/* SPELL: added expression \`{thing:simple_expression} nerds out\` */`,
             `spellCore.define(Thing.prototype, 'nerds_out', {`,
             `\tget() {`,
             `\t\treturn true`,
@@ -1549,7 +1546,6 @@ methods.addRule(quoted_type_expression, {
           title: "no body",
           input: [`a thing "nerds out with (another as a thing)" if`, `if a new thing nerds out with a new thing`],
           output: [
-            `/* SPELL: added expression \`{thing:simple_expression} nerds out with {expression:simple_expression}\` */`,
             `spellCore.define(Thing.prototype, 'nerds_out_with_$another', {`,
             `\tvalue(another) {}`,
             `})`,
@@ -1560,7 +1556,6 @@ methods.addRule(quoted_type_expression, {
           title: "inline expression",
           input: [`a thing "nerds out with (another as a thing)" if yes`, `if a new thing nerds out with a new thing`],
           output: [
-            `/* SPELL: added expression \`{thing:simple_expression} nerds out with {expression:simple_expression}\` */`,
             `spellCore.define(Thing.prototype, 'nerds_out_with_$another', {`,
             `\tvalue(another) {`,
             `\t\treturn true`,
@@ -1577,7 +1572,6 @@ methods.addRule(quoted_type_expression, {
             `if a new thing nerds out with a new thing`
           ],
           output: [
-            `/* SPELL: added expression \`{thing:simple_expression} nerds out with {expression:simple_expression}\` */`,
             `spellCore.define(Thing.prototype, 'nerds_out_with_$another', {`,
             `\tvalue(another) {`,
             `\t\treturn true`,
@@ -1602,7 +1596,6 @@ methods.addRule(quoted_type_expression, {
             `if a new thing isn't a bug`
           ],
           output: [
-            `/* SPELL: added expression \`{thing:simple_expression} (operator:is not?|isn't|isnt) a bug\` */`,
             `spellCore.define(Thing.prototype, 'is_a_bug', {`,
             `\tget() {}`,
             `})`,
@@ -1623,7 +1616,6 @@ methods.addRule(quoted_type_expression, {
             `if a new thing can't play`
           ],
           output: [
-            `/* SPELL: added expression \`{thing:simple_expression} (operator:can not?|cannot|can't|cant) play\` */`,
             `spellCore.define(Thing.prototype, 'can_play', {`,
             `\tget() {}`,
             `})`,
@@ -1644,7 +1636,6 @@ methods.addRule(quoted_type_expression, {
             `if a new thing won't blow up`
           ],
           output: [
-            `/* SPELL: added expression \`{thing:simple_expression} (operator:will not?|won't|wont) blow up\` */`,
             `spellCore.define(Thing.prototype, 'will_blow_up', {`,
             `\tget() {}`,
             `})`,
@@ -1664,7 +1655,6 @@ methods.addRule(quoted_type_expression, {
             `if a new thing doesn't have a friend`
           ],
           output: [
-            `/* SPELL: added expression \`{thing:simple_expression} (operator:has|does not have|doesn't have|doesnt have) a friend\` */`,
             `spellCore.define(Thing.prototype, 'has_a_friend', {`,
             `\tget() {}`,
             `})`,
@@ -1717,9 +1707,6 @@ type MethodSignatureData = {
   /** `true` when it compiles to an infix expression (e.g. `card.nerds_out_with_$another(thing)`) -- set by
    *  `MethodDefinition.processSignature()` / `quoted_type_expression.processSignature()`. */
   asInfixExpression?: boolean
-  /** Given the matched `operator` token, `true` if output should be negated (e.g. `isn't`, `can't`) -- set
-   *  by `quoted_type_expression.processSignature()`; defaults to always `false`. */
-  shouldNegateOutput?: (operator: P.Match) => boolean
 }
 
 /**
@@ -1772,3 +1759,12 @@ type MethodTypeInfo = {
 
 /** Extra random variable to add to a method's nested scope, e.g. an alias for `this`. */
 type MethodExtraVar = string | { name: string; output?: string; type?: string }
+
+////////////////
+// ## Shared helpers
+////////////////
+
+/** Is `scope` a file's (or project's) top level, where a definition is `export`ed? */
+function isTopLevel(scope: P.Scope): boolean {
+  return scope instanceof P.FileScope || scope instanceof P.ProjectScope
+}

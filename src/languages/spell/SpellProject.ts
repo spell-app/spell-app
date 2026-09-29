@@ -1,6 +1,6 @@
 import { JSON5File, $fetch, CONFIRM, TaskList, Task, getDier, raw, type KnownFormatMimeType } from "~/util"
 import { P } from "~/parser"
-import { spellCore } from "~/spellCore"
+import { spellCore, SPELL_CORE_MODULE, SPELL_CORE_NAMES } from "~/spellCore"
 import { SP } from "~/languages/spell"
 
 /**
@@ -130,11 +130,11 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
     return this.getState("parseError", () => undefined)
   }
 
-  /** `SpellJSFile` for this project's compiled `.output.js`. */
+  /** `SpellJSFile` for this project's compiled output, e.g. `Solitaire.compiled.js`. */
   /*@memoize*/
   get outputFile(): SP.SpellJSFile {
     return this.derived("outputFile", () => {
-      const location = this.getFileLocation(".output.js")!
+      const location = this.getFileLocation(`${this.projectName}${SP.COMPILED_JS_SUFFIX}`)!
       return new SP.SpellJSFile(location.path)
     })
   }
@@ -231,13 +231,21 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
               if (this.needsFullParse) {
                 this.resetCompiled()
                 this.incremental = undefined
-                this.setState("scope", this.getScope(parentScope as P.Scope | undefined))
+                try {
+                  const importScope = await this.loadImportScope(
+                    (parentScope as P.Scope | undefined) ?? SP.SpellParser.rootScope
+                  )
+                  this.setState("scope", this.getScope(importScope))
+                } catch (error) {
+                  this.setState("parseError", error instanceof Error ? error.message : String(error))
+                  throw error
+                }
               }
             }
           }),
           TaskList.forEach({
             name: `Loading imports`,
-            list: () => this.activeImports,
+            list: () => [...this.sourceImportFiles, ...this.activeImports],
             getTask: (file: SP.CompilableSpellFile) =>
               new Task({
                 name: `Loading import: ${file.file}`,
@@ -252,6 +260,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
                 for (const file of this.activeImports) {
                   if (!(file instanceof SP.SpellFile)) await file.parse(this.scope)
                 }
+                SP.SpellDeclarations.checkImportClashes(this.scope!)
                 this.setState("parseError", undefined)
               } catch (error) {
                 this.setState("parseError", error instanceof Error ? error.message : String(error))
@@ -278,7 +287,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
           this.parser,
           TaskList.forEach({
             name: `Compiling imports`,
-            list: () => this.activeImports,
+            list: () => [...this.sourceImportFiles, ...this.activeImports],
             getTask: (file: SP.CompilableSpellFile) =>
               new Task({
                 name: `Compiling import: ${file.file}`,
@@ -288,7 +297,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
           new Task({
             name: "Combining output",
             run: async (allCompiled) => {
-              const compiled = (allCompiled as string[]).join("\n// -----------\n")
+              const compiled = this.importHeader() + (allCompiled as string[]).join(SpellProject.FILE_SEPARATOR)
               this.setState("compiled", compiled)
               return compiled
             }
@@ -296,7 +305,11 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
           new Task({
             name: "Saving compiled output",
             run: async (compiled) => {
-              this.outputFile.contents = compiled as string
+              // our declarations header leads the file -- each statement's own are inline, above its code --
+              // so another project can import us WITHOUT our sources
+              const { version, exports } = this.contents ?? {}
+              const header = SP.SpellDeclarations.header(this.scope!, { version, exports })
+              this.outputFile.contents = header + (compiled as string)
               return await this.outputFile.save(undefined)
             }
           })
@@ -304,6 +317,9 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
       })
     })
   }
+
+  /** Between each file's code in our compiled output -- see "Combining output" in `compiler`. */
+  static FILE_SEPARATOR = "\n// -----------\n"
 
   /** Set to `false` to run compiled code via `<script>` tag injection instead of dynamic `import()`. */
   static runAsImport = true
@@ -372,7 +388,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
         const changed = incremental.update(file.path, file.parseText)
         changed.forEach((parse) => {
           const path = incremental.files.find((it) => it.parse === parse)!.path
-          const changedFile = this.activeImports.find((it) => it.path === path)
+          const changedFile = this.spellFiles.find((it) => it.path === path)
           if (changedFile instanceof SP.SpellFile) changedFile.setParsed(parse)
         })
         return
@@ -494,16 +510,19 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
       "imports",
       () => {
         if (!this.contents?.imports) return []
-        return this.contents.imports.map(({ path, active }) => {
-          const location = SP.SpellLocation.getFileLocation(this.projectId, path)
-          const file = SpellProject.getFileForPath(location.path)
-          return {
-            path: location.path,
-            active,
-            location,
-            file
-          }
-        })
+        // another project's entry isn't a file of ours -- see `projectImports`
+        return this.contents.imports
+          .filter(({ path }) => !path.startsWith("@"))
+          .map(({ path, active }) => {
+            const location = SP.SpellLocation.getFileLocation(this.projectId, path)
+            const file = SpellProject.getFileForPath(location.path)
+            return {
+              path: location.path,
+              active,
+              location,
+              file
+            }
+          })
       },
       [this.contents]
     )
@@ -531,11 +550,119 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
 
   /**
    * Spell files we parse:  our active `.spell` imports, in order -- see `activeImports`.
+   * - After any `source` project imports' files, which parse first -- see `sourceImportFiles`.
    * - The REAL files, never store proxies, so `===` against a file from anywhere else works, e.g. `isActive`:
    *   `activeImports` is cached, and filled inside a `view()` render it holds proxies -- see `raw()`.
    */
   get spellFiles(): SP.SpellFile[] {
-    return this.activeImports.filter((file) => file instanceof SP.SpellFile).map((file) => raw(file))
+    const own = this.activeImports.filter((file) => file instanceof SP.SpellFile).map((file) => raw(file))
+    return [...this.sourceImportFiles, ...own]
+  }
+
+  /**
+   * Other projects we import, from our `project.json` -- entries naming a project, e.g. `@library/cards`.
+   * - Kept out of `imports`:  they aren't files of ours.  Inactive ones are left out.
+   */
+  get projectImports(): SP.ProjectImport[] {
+    return (this.contents?.imports ?? [])
+      .filter(({ path, active }) => path.startsWith("@") && active !== false)
+      .map(({ path, import: picks, version, source }) => ({
+        from: path,
+        projectId: SpellProject.projectIdForImport(path),
+        import: picks,
+        version,
+        source
+      }))
+  }
+
+  /**
+   * `.spell` files of projects we import with `source: true`, in import order -- they parse ahead of ours.
+   * - Empty until `loadImportScope()` has loaded those projects.
+   */
+  get sourceImportFiles(): SP.SpellFile[] {
+    return this.projectImports.filter((it) => it.source).flatMap((it) => new SP.SpellProject(it.projectId).spellFiles)
+  }
+
+  /**
+   * Import layer for our `projectImports`, under `parentScope` -- or `parentScope` itself if we import none.
+   * - A compiled import:  reads the declarations leading its `<Project>.compiled.js`, fresh each time.
+   * - A `source` import:  loads that project, so its files parse ahead of ours -- see `sourceImportFiles`.
+   *   It can't rename what it imports, e.g. `Card:Playingcard`:  its sources parse as they are.
+   * - Throws `P.ParserError` if one can't be loaded, e.g. it's never been compiled -- see `SP.SpellDeclarations.load()`.
+   */
+  async loadImportScope(parentScope: P.Scope): Promise<P.Scope> {
+    const imports: SP.DeclarationsImport[] = []
+    for (const it of this.projectImports) {
+      const project = new SP.SpellProject(it.projectId)
+      await project.load(undefined)
+      if (it.source) {
+        // its sources parse just as they are -- only a compiled import's declarations can be renamed
+        const renaming = it.import?.find((pick) => pick.includes(":"))
+        if (renaming) {
+          throw new P.ParserError({
+            message: `Can't import '${it.from}':  renaming ('${renaming}') needs a compiled import, not \`source: true\`.`,
+            activity: "SpellProject.loadImportScope",
+            params: { from: it.from }
+          })
+        }
+        continue
+      }
+      const output = project.outputFile
+      // another project's compile may have changed it since we last looked
+      output.cacheDuration = 0
+      const compiled = await output.load(undefined).catch(() => undefined)
+      const declarations = compiled && SP.SpellDeclarations.read(compiled)
+      if (!declarations) {
+        throw new P.ParserError({
+          message: `Can't import '${it.from}':  it has no compiled declarations -- compile it first.`,
+          activity: "SpellProject.loadImportScope",
+          params: { from: it.from }
+        })
+      }
+      const module = `${SP.SPELL_PROJECT_MODULE}${encodeURI(it.projectId)}`
+      imports.push({
+        from: it.from,
+        projectId: it.projectId,
+        declarations,
+        import: it.import,
+        version: it.version,
+        module
+      })
+    }
+    return imports.length ? SP.SpellDeclarations.importScope(parentScope, imports) : parentScope
+  }
+
+  /**
+   * `import`s leading our compiled output:  spell's runtime, then what we import from other projects, e.g.
+   *   `import { spellCore, Thing, List, App } from "@spell/core"`
+   *   `import { Card as Playingcard, Deck, Pile } from "@spell/project/@system:library:cards"`
+   * - Why:  compiled spell reaches everything it didn't declare through `import`s -- NO globals.
+   * - NOTE: an imported project's module is cached for the page's life -- see `CODE-DEBT.md`.
+   * - Specifiers resolve through the page's import map -- see `vite.importMap.ts`.
+   * - A `source` import needs none:  its files compile into our output.
+   */
+  importHeader(): string {
+    return SpellProject.importHeaderFor(this.scope)
+  }
+
+  /** `importHeader()` of a project parsed in `scope` -- also for one parsed headlessly, e.g. a test fixture. */
+  static importHeaderFor(scope: P.Scope | undefined): string {
+    const lines = [`import { ${SPELL_CORE_NAMES.join(", ")} } from "${SPELL_CORE_MODULE}"`]
+    const imports = scope?.parentScope
+    if (imports instanceof P.ImportScope) {
+      for (const [module, names] of imports.modules) {
+        if (names.length) lines.push(`import { ${names.join(", ")} } from "${module}"`)
+      }
+    }
+    return `${lines.join("\n")}\n\n`
+  }
+
+  /**
+   * Project id an `imports` entry's `path` names:  a root's alias expanded, e.g. `@library/cards` ~==
+   * `@system:library:cards` -- else a full `@owner:domain:name` as is.  See `SP.SpellSetup.expandAlias()`.
+   */
+  static projectIdForImport(path: string): string {
+    return SP.SpellSetup.expandAlias(path)
   }
 
   ////////////////
