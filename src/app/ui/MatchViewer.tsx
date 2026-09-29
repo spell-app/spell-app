@@ -11,7 +11,7 @@ import { ErrorHandler, type ErrorHandlerState, type ErrorHandlerWrapperProps } f
 import type { EditorSelection } from "./ui.types"
 import { MatchView } from "./MatchView"
 
-import "./MatchViewer.less"
+import "./MatchViewer.css"
 
 /****************
  * ### `<MatchRoot>`

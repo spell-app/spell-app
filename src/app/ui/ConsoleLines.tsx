@@ -13,7 +13,7 @@ import React from "react"
 import { view, Observable } from "~/util"
 import type { ConsoleLine as ConsoleLineData, SpellConsoleGroup } from "~/spellCore/console"
 
-import "./ConsoleLines.less"
+import "./ConsoleLines.css"
 
 /** Left padding, in px, for a non-group console line (group lines get 0 -- their toggle icon fills the space). */
 const NORMAL_LINE_SPACE = 20

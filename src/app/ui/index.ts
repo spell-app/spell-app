@@ -3,10 +3,13 @@
 //
 
 /** Import genric spell styles */
-import "./spell.less"
+import "./spell.css"
+
+/** Import syntax coloring custom properties, used by ASTViewer / MatchViewer. */
+import "./syntax.css"
 
 /** Import SUI-additions for spell */
-import "./SUI-additions.less"
+import "./SUI-additions.css"
 
 export * from "./ui.types"
 

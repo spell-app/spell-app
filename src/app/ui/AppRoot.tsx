@@ -4,7 +4,7 @@ import { UI } from "~/app/ui"
 import { Actions } from "./Actions"
 import { AppContainer } from "./AppContainer"
 
-import "./AppRoot.less"
+import "./AppRoot.css"
 
 /****************
  * ### `<AppRoot>`

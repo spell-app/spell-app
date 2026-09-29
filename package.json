@@ -94,7 +94,6 @@
     "@vitest/ui": "^5.0.1",
     "concurrently": "^8.2.2",
     "esbuild": "^0.25.5",
-    "less": "^4",
     "oxfmt": "^0.68.0",
     "oxlint": "^1.83.0",
     "oxlint-tsgolint": "^7.0.2002",

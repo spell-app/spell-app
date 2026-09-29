@@ -1,6 +1,6 @@
 import { spellCore } from "~/spellCore"
 
-import "./AppContainer.less"
+import "./AppContainer.css"
 
 /****************
  * ### `<AppContainer>`

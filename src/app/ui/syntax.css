@@ -1,0 +1,42 @@
+/*
+ *
+ *  Common syntax coloring methods
+ *
+ *  VS Code's Semantic Tokens:  https://github.com/microsoft/vscode-extension-samples/tree/master/semantic-tokens-sample
+ *
+ */
+
+:root,
+:host {
+  --highlight-color: #ffef95;
+  --highlight-subtle: #fffbe2; /* was lighten(@highlight-color, 15%) */
+
+  --syntax-error: darkred;
+  --syntax-comment: #a86;
+  --syntax-parser-annotation: #ccc;
+  --syntax-parse-error: darkred;
+  --syntax-string: #a22;
+  --syntax-enum: #a22;
+  --syntax-keyword: blue;
+  --syntax-number: #3a3;
+  --syntax-boolean: #3a3;
+  --syntax-punctuation: #999;
+  --syntax-operator: #333;
+  --syntax-class: darkgreen;
+  --syntax-function: chocolate;
+  --syntax-variable: cornflowerblue;
+  --syntax-variable-declaration: cornflowerblue;
+  --syntax-global-variable: mediumorchid;
+  --syntax-parameter: goldenrod;
+  --syntax-property: sienna;
+  --syntax-tag-name: saddlebrown;
+  --syntax-tag-attribute: peru;
+}
+
+.syntax-function {
+  color: var(--syntax-function);
+}
+
+.syntax-property {
+  color: var(--syntax-property);
+}

@@ -1,13 +1,13 @@
 import React from "react"
 import classnames from "classnames"
 
-import "./SpellPage.less"
+import "./SpellPage.css"
 
 /****************
  * ### `<SpellPage>`
  * Generic full-page layout wrapper -- presentational style variants (bordered / dark / light / rounded /
  * spaced / padded / scrolling) plus optional flexbox row/column layout for `children`.  Styled by
- * `./SpellPage.less`.
+ * `./SpellPage.css`.
  * TODOC!
  ****************/
 export function SpellPage(props: SpellPageProps) {
@@ -51,7 +51,7 @@ export type SpellPageProps = React.ComponentPropsWithoutRef<"div"> & {
   bordered?: boolean
   /** Dark variant. */
   dark?: boolean
-  /** Fill window completely, via `.spell-fill-window()` in `~/app/ui/spell.less`. */
+  /** Fill window completely, via `.fill-window` in `~/app/ui/SpellPage.css`. */
   fillWindow?: boolean
   /** Light variant. */
   light?: boolean

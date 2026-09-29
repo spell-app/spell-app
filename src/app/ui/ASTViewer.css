@@ -1,5 +1,3 @@
-@import "./syntax.less";
-
 .ASTRoot {
   position: relative;
   display: flex;
@@ -21,13 +19,13 @@
   white-space: pre;
 
   &.highlight {
-    background: @highlight-color;
+    background: var(--highlight-color);
     text-decoration: underline;
   }
 
   /* Block with curlies inside an ASTNode. */
   .ASTBlock.indented {
-    // Indent blockContents. This looks right but loses spaces on copy-paste.
+    /* Indent blockContents. This looks right but loses spaces on copy-paste. */
     & > .blockContents {
       display: inline-block;
       vertical-align: top;
@@ -41,83 +39,87 @@
   }
 
   .punctuation {
-    .syntax-punctuation();
+    color: var(--syntax-punctuation);
   }
   .operator {
-    .syntax-operator();
+    color: var(--syntax-operator);
   }
 
   .keyword,
   &.ASTNullLiteral,
   &.ASTUndefinedLiteral,
   &.ASTThisLiteral {
-    .syntax-keyword();
+    color: var(--syntax-keyword);
   }
 
   &.ASTLineComment,
   &.ASTBlockComment {
-    .syntax-comment();
+    color: var(--syntax-comment);
   }
 
   &.ASTLineComment.header {
-    .syntax-comment-header();
+    color: var(--syntax-comment);
+    font-weight: bold;
   }
 
   &.ASTParserAnnotation {
-    .syntax-parser-annotation();
+    color: var(--syntax-parser-annotation);
   }
 
   &.ASTParseError {
-    .syntax-parse-error();
+    color: var(--syntax-parse-error);
+    font-weight: bold;
   }
 
   &.ASTStringLiteral,
   &.ASTQuotedExpression,
   &.ASTQuotedExpression .ASTPropertyLiteral {
-    .syntax-string();
+    color: var(--syntax-string);
   }
 
   &.ASTConstantExpression {
-    .syntax-enum();
+    color: var(--syntax-enum);
   }
 
   &.ASTNumericLiteral {
-    .syntax-number();
+    color: var(--syntax-number);
   }
 
   &.ASTBooleanLiteral {
-    .syntax-boolean();
+    color: var(--syntax-number);
   }
 
   &.ASTTypeExpression {
-    .syntax-class();
+    color: var(--syntax-class);
+    font-weight: bold;
   }
-  // &.ASTPrototypeExpression .keyword.prototype {
-  //   .syntax-class()
-  // }
+  /* &.ASTPrototypeExpression .keyword.prototype {
+    color: var(--syntax-class);
+  } */
 
   &.ASTVariableExpression > .name {
-    .syntax-variable();
+    color: var(--syntax-variable);
   }
   &.ASTAssignmentStatement.declaration .ASTVariableExpression > .name {
-    .syntax-variable-declaration();
+    color: var(--syntax-variable-declaration);
+    font-weight: bold;
   }
 
   &.ASTVariableExpression.argument > .name {
-    .syntax-parameter();
+    color: var(--syntax-parameter);
   }
 
   &.ASTVariableExpression.global > .name {
-    .syntax-global-variable();
+    color: var(--syntax-global-variable);
   }
 
   &.ASTPropertyLiteral {
-    .syntax-property();
+    color: var(--syntax-property);
   }
 
   &.ASTMethodDefinition > .method-name,
   &.ASTMethodInvocation > .method-name {
-    .syntax-function();
+    color: var(--syntax-function);
   }
 
   /* end .ASTNode */

@@ -12,7 +12,7 @@ import { AppContainer } from "~/app/ui/AppContainer"
 import { ConsoleLines } from "~/app/ui/ConsoleLines"
 import { TypeExplorer } from "~/app/ui/TypeExplorer"
 
-import "./VSCodeRunner.less"
+import "./VSCodeRunner.css"
 
 /****************
  * ### `<VSCodeRunner>`

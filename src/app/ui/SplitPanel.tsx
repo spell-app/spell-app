@@ -3,7 +3,7 @@ import classnames from "classnames"
 
 import { getPadding, getPref, setPref, resetPref } from "~/util"
 
-import "./SplitPanel.less"
+import "./SplitPanel.css"
 
 /****************
  * ### `<SplitPanel>`

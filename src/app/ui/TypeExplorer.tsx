@@ -7,7 +7,7 @@ import { SCOPE_MEMBER_GROUPS, type ScopeDetails, type ScopeMember, type ScopeNod
 import type { TypeExplorerState } from "./ui.types"
 import { SCOPE_ICONS, ScopeDetailsPane, type DescriptionAt } from "./ScopeDetailsPane"
 
-import "./TypeExplorer.less"
+import "./TypeExplorer.css"
 
 /****************
  * ### `<TypeExplorer>`

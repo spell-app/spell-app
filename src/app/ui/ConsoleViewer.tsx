@@ -10,7 +10,7 @@ import { Actions } from "./Actions"
 import { ConsoleInspectorContext, ConsoleLines, type ConsoleInspector } from "./ConsoleLines"
 import { ErrorHandler, type ErrorHandlerWrapperProps } from "./ErrorHandler"
 
-import "./ConsoleViewer.less"
+import "./ConsoleViewer.css"
 
 /****************
  * ### `<ConsoleRoot>`

@@ -3,7 +3,7 @@ import React from "react"
 import { monaco } from "./monaco"
 import { SpellMonaco } from "./SpellMonaco"
 
-import "./MonacoEditor.less"
+import "./MonacoEditor.css"
 
 /****************
  * ### `<MonacoEditor>`

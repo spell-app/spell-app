@@ -106,3 +106,12 @@ Log of things that slowed down development. Date · symptom · fix · project.
   import with `ReferenceError: __SPELL_VERSION__ is not defined`:  vite defines it, `tsx` doesn't. · Then:  import
   `~/spellVersion.node` first.  Since fixed:  `SP.SPELL_VERSION` is set by hand, and `PACKAGE_VERSION` falls back
   to `"unknown"` without `~/packageVersion.node`. · spell/parser
+- 2026-09-29 · A bash loop with `declare -A MAP` + `"${!MAP[@]}"` (less→css conversion diffing) failed with
+  `bad substitution`, even though the tool is called "Bash" -- the shell it actually runs is the user's login
+  shell (zsh here), and zsh doesn't support that associative-array syntax. · Wrote the name/path pairs to a
+  plain `name|value` text file and looped over it with `while IFS='|' read -r`, which is portable. · spell/parser
+- 2026-09-29 · `node_modules/.bin/lightningcss` (the CLI) doesn't exist in this repo -- only the `lightningcss`
+  npm package (JS API used by Vite) is installed, no `lightningcss-cli`. · Wrote a 20-line `.mjs` using
+  `lightningcss`'s `transform()` + `browserslistToTargets()` directly instead of shelling out; had to run it
+  from inside the project root (not the scratchpad dir) so Node's module resolution could find `node_modules`.
+  · spell/parser

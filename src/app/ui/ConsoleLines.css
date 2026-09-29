@@ -1,4 +1,4 @@
-// `.ConsoleViewer` is the lines' scrolling container -- see `<ConsoleLines>`.
+/* `.ConsoleViewer` is the lines' scrolling container -- see `<ConsoleLines>`. */
 .ConsoleViewer {
   position: relative;
   font-family: monaco, monospace;
@@ -11,8 +11,8 @@
     overflow: auto;
   }
 
-  // Stretch children to their "natural" width inside `<ConsoleViewer>`,
-  // otherwise the line background would not extend when scrolling.
+  /* Stretch children to their "natural" width inside `<ConsoleViewer>`,
+     otherwise the line background would not extend when scrolling. */
   .stretcher {
     display: inline-block;
     min-width: 100%;

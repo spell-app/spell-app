@@ -1,4 +1,4 @@
-// SUI CUSTOM STYLING
+/* SUI CUSTOM STYLING */
 
 .ui.menu.AppMenu {
 }
@@ -12,7 +12,7 @@
   }
 }
 
-// Light-grey menu
+/* Light-grey menu */
 .ui.menu.light-grey {
   z-index: 10;
   background: #bbb;
@@ -24,7 +24,7 @@
   }
 }
 
-// "medium-short" menu
+/* "medium-short" menu */
 .ui.menu.medium-short {
   min-height: 32px;
   .item {
@@ -33,7 +33,7 @@
   }
 }
 
-// "short" menu
+/* "short" menu */
 .ui.menu.short {
   min-height: 28px;
   .item {
@@ -42,7 +42,7 @@
   }
 }
 
-// "tight" menu
+/* "tight" menu */
 .ui.menu.tight {
   .item {
     padding-left: 8px;
@@ -50,17 +50,17 @@
   }
 }
 
-// remove border from a menu-item with `className="no-border"`
+/* remove border from a menu-item with `className="no-border"` */
 .ui.menu .item.no-border:before {
   width: 0px;
 }
 
-// make a "springy" item with `<Menu.Item className="spring"/>`
+/* make a "springy" item with `<Menu.Item className="spring"/>` */
 .ui.menu .item.spring {
   flex: 1 1 auto;
 }
 
-// `<Menu.Item class="dropdown-label">` for a label next to a <Dropdown>.
+/* `<Menu.Item class="dropdown-label">` for a label next to a <Dropdown>. */
 .ui.menu .item.dropdown-label {
   padding: 0 0 0 1em;
   opacity: 0.8;

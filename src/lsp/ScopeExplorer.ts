@@ -12,6 +12,8 @@ import { LSP } from "~/lsp"
  * - A compiled import's own scope holds just its declarations:  no sources, so no docs or locations.
  *   So its node shows that project's OWN parse instead -- the caller MUST parse those first, see `importedProjects()`
  *   -- and a type of ours inheriting from one of its types inherits from that project's own, e.g. its methods.
+ * - Without its sources -- a compiled-only library -- its types' members come from the declarations alone:
+ *   names, kinds and owners, and where they were declared.  See `P.ImportedRuleDeclared`, `P.DeclaredAt`.
  * - The tree is just what the tree shows.  A node's details -- hover, docstring, spell, compiled javascript,
  *   rules -- come from `details()`, when an explorer shows it.
  */
@@ -42,6 +44,7 @@ export class ScopeExplorer {
     const projects = [...imported, project]
     const tree: Tree = {
       methods: projects.flatMap((it) => ScopeExplorer.methodRules(it)),
+      importedMethods: projects.flatMap((it) => ScopeExplorer.importedMethodRules(it)),
       rules: projects.flatMap((it) => it.scope?.rules.get() ?? []),
       constants: projects.flatMap((it) => it.scope?.constants.get() ?? []),
       typeIds: new Map(),
@@ -52,6 +55,11 @@ export class ScopeExplorer {
     const id = root.name
     for (const type of root.types.get()) tree.typeIds.set(type, `${id}/${type.name}`)
     for (const it of projects) {
+      // a compiled import's types have no node, but their members need ids of their own
+      const imports = it.scope?.parentScope
+      if (imports instanceof P.ImportScope) {
+        for (const type of imports.types.get()) tree.typeIds.set(type, `${this.projectId(it, id)}/import:${type.name}`)
+      }
       for (const type of it.scope?.types.get() ?? []) {
         const file = type.declaredBy && this.service.fileOf(type.declaredBy)
         const parentId = file ? this.fileId(it, file, id) : this.projectId(it, id)
@@ -206,7 +214,7 @@ export class ScopeExplorer {
    * own parse, with its sources:  docs, locations, methods.  Else `type`.
    */
   private sourceType(type: P.TypeScope, tree: Tree): P.TypeScope {
-    if (type.declaredBy || !(type.parentScope instanceof P.ImportScope)) return type
+    if (!ScopeExplorer.isImported(type)) return type
     return tree.sourceTypes.get(type.name) ?? type
   }
 
@@ -231,7 +239,9 @@ export class ScopeExplorer {
         record.datatype
       )
     )
-    const methods = tree.methods.flatMap((rule) => {
+    // a compiled import's type -- not swapped for its source, see `sourceType()` -- has just its imported rules
+    const methodRules = ScopeExplorer.isImported(type) ? tree.importedMethods : tree.methods
+    const methods = methodRules.flatMap((rule) => {
       const declaration = ScopeExplorer.declarationOf(rule)
       if (declaration?.kind !== "method" || !declaration.of || ScopeExplorer.typeNameOf(declaration.of) !== type.name)
         return []
@@ -316,10 +326,25 @@ export class ScopeExplorer {
   /** Remember how to work out the details of `id`:  `subject` as hover describes it, and its source. */
   private addSubjectDetails(tree: Tree, id: string, subject: LSP.ScopeRecord, declaredBy: P.Match | undefined) {
     const file = declaredBy && this.service.fileOf(declaredBy)
-    this.addDetails(tree, id, file?.match, () => ({
-      ...this.service.describeRecord(subject),
-      ...this.sourceOf(declaredBy, tree)
-    }))
+    this.addDetails(tree, id, file?.match, () => {
+      const details = { ...this.service.describeRecord(subject), ...this.sourceOf(declaredBy, tree) }
+      // imported from compiled declarations:  where they say it was declared, if we can place it
+      if (!declaredBy && !details.location) details.location = this.importedLocation(subject.record)
+      return details
+    })
+  }
+
+  /**
+   * Where `record` -- imported from compiled declarations, so with no `declaredBy` -- was declared, as its
+   * `declaredAt` says.  See `P.DeclaredAt`.
+   * - Only if that file's text is loaded, to turn offsets into lines:  a compiled-only library's usually isn't.
+   */
+  private importedLocation(record: LSP.ScopeRecord["record"]): LSP.ScopeDetails["location"] {
+    const at = "declared" in record ? record.declared?.declaredAt : (record as { declaredAt?: P.DeclaredAt }).declaredAt
+    const file = at && SP.SpellFile.registry.get(at.path)
+    if (!at || !file?.parseText) return undefined
+    const range = { start: this.service.positionAt(file, at.start), end: this.service.positionAt(file, at.end) }
+    return { uri: this.service.addresses.uriFor(file), range }
   }
 
   /**
@@ -388,9 +413,27 @@ export class ScopeExplorer {
     })
   }
 
-  /** What `rule`'s declaring statement declares, if we know that statement. */
-  private static declarationOf(rule: P.ScopeRule): P.Declaration | undefined {
-    return rule.declaredBy?.rule.getDeclaration(rule.declaredBy)
+  /**
+   * What `rule`'s declaring statement declares -- from the statement if we have it, else, for a rule imported
+   * from compiled declarations, from what those say.  See `P.ImportedRuleDeclared`.
+   */
+  private static declarationOf(rule: P.ScopeRule): Omit<P.Declaration, "nameMatch"> | undefined {
+    return rule.declaredBy ? rule.declaredBy.rule.getDeclaration(rule.declaredBy) : rule.declared?.declaration
+  }
+
+  /** Rules imported from `project`'s compiled imports for methods and functions -- see `P.ImportedRuleDeclared`. */
+  private static importedMethodRules(project: SP.SpellProject): P.ScopeRule[] {
+    const imports = project.scope?.parentScope
+    if (!(imports instanceof P.ImportScope)) return []
+    return imports.rules.get().filter((rule) => {
+      const kind = rule.declared?.declaration?.kind
+      return kind === "method" || kind === "function"
+    })
+  }
+
+  /** Is `type` from compiled declarations -- no statement of ours declared it? */
+  private static isImported(type: P.TypeScope): boolean {
+    return !type.declaredBy && type.parentScope instanceof P.ImportScope
   }
 
   /** Type_Case name of the type a declaration is `of`, as written, e.g. `cards` => `Card`. */
@@ -433,6 +476,8 @@ export class ScopeExplorer {
 type Tree = {
   /** Every method and function rule of the projects in the tree, to find each type's and file's. */
   methods: P.ScopeRule[]
+  /** Method and function rules imported from compiled declarations, for types with no sources to show. */
+  importedMethods: P.ScopeRule[]
   /** Every rule of the projects in the tree, to find what each statement made. */
   rules: P.ScopeRule[]
   /** Every constant of the projects in the tree, to find each type's. */

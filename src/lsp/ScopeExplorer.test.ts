@@ -193,12 +193,37 @@ describe("ScopeExplorer of a project importing another, compiled", () => {
     expect(card.members.map((member) => member.name)).toContain("weight")
   })
 
-  /** Project `name` in the workspace:  `spellFiles` copied from Solitaire, after `imports`. */
-  function makeProject(name: string, spellFiles: string[], imports: unknown[] = []) {
+  test("a compiled-only import -- no sources:  our types inherit its methods from its declarations", async () => {
+    const cards = makeProject("cards", ["Card.spell", "Deck.spell", "Pile.spell"])
+    await cards.compile()
+    const game = makeProject("game", [], [{ path: cards.projectId, active: true }], {
+      "Joker.spell": "a joker is a card\n"
+    })
+    await game.parse()
+    // as if we had its compiled file, but not its sources
+    cards.scope = undefined
+    const joker = find(explorer.tree(game), "Joker")
+    const fromCard = joker.members.filter((member) => member.inheritedFrom === "Card")
+    expect(fromCard.map((member) => member.kind)).toContain("method")
+    expect(fromCard.map((member) => member.name)).toContain("turn (a card) over")
+    // ids of their own, NOT the Joker's
+    for (const member of fromCard) expect(member.id).toMatch(/\/game\/import:Card\//)
+    const method = fromCard.find((member) => member.kind === "method")!
+    expect(explorer.details(game, method.id)?.summary).toContain("method")
+  })
+
+  /** Project `name` in the workspace:  `spellFiles` copied from Solitaire, then `written` ones, after `imports`. */
+  function makeProject(
+    name: string,
+    spellFiles: string[],
+    imports: unknown[] = [],
+    written: Record<string, string> = {}
+  ) {
     const dir = resolve(workspace, name)
     mkdirSync(dir)
     for (const file of spellFiles) copyFileSync(resolve(solitaire, file), resolve(dir, file))
-    const files = spellFiles.map((file) => ({ path: `/${file}`, active: true }))
+    for (const [file, text] of Object.entries(written)) writeFileSync(resolve(dir, file), text)
+    const files = [...spellFiles, ...Object.keys(written)].map((file) => ({ path: `/${file}`, active: true }))
     writeFileSync(resolve(dir, SP.PROJECT_FILE), JSON.stringify({ imports: [...imports, ...files] }))
     const root = locationForDiskPath(resolve(dir, SP.PROJECT_FILE))!.projectRoot
     return new SP.SpellProject(`${root}:${name}`)

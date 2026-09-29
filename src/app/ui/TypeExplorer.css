@@ -1,4 +1,4 @@
-// "Scopes" tree on the left, "Details" on the right, each scrolling on its own.
+/* "Scopes" tree on the left, "Details" on the right, each scrolling on its own. */
 .TypeExplorer {
   display: flex;
   height: 100%;
@@ -55,7 +55,7 @@
     font-style: italic;
   }
 
-  // Left of the label -- indent and arrow -- opens / closes;  the label and everything right of it selects.
+  /* Left of the label -- indent and arrow -- opens / closes;  the label and everything right of it selects. */
   .TreeRow {
     display: flex;
     padding: 1px 8px 1px 0;
@@ -90,7 +90,7 @@
     }
   }
 
-  // "Properties", "Enumerations", "Actions" under a type:  just open / close.
+  /* "Properties", "Enumerations", "Actions" under a type:  just open / close. */
   .ScopeTreeGroup {
     font-size: 11px;
     text-transform: uppercase;
@@ -138,7 +138,7 @@
   .Description {
     margin: 4px 0 8px;
 
-    // markdown headings from `#` comments:  a size step each, compact
+    /* markdown headings from `#` comments:  a size step each, compact */
     h1,
     h2,
     h3,
@@ -180,7 +180,7 @@
     }
   }
 
-  // A member group's heading reads as a label, not a section title.
+  /* A member group's heading reads as a label, not a section title. */
   .MemberGroup > .DetailsSectionTitle {
     font-size: 11px;
     text-transform: uppercase;
@@ -201,7 +201,7 @@
       font-weight: bold;
       cursor: pointer;
 
-      // e.g. where it's defined, at the right
+      /* e.g. where it's defined, at the right */
       .aside {
         margin-left: auto;
         font-weight: normal;
@@ -267,7 +267,7 @@
     }
   }
 
-  // Looks like an editor hover.
+  /* Looks like an editor hover. */
   .Markdown {
     p {
       margin: 0 0 0.5em;

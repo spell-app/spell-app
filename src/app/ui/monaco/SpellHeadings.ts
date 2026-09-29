@@ -3,7 +3,7 @@ import { monaco } from "./monaco"
 /**
  * Heading comments -- `#`, `##` ... at the start of a line, after any indent -- in bold, in every spell model.
  * - By DECORATION, NOT theme:  each heading gets classes `spell-heading spell-heading-<level>`, styled in
- *   `MonacoEditor.less` -- so any theme works, and each level can be styled on its own.
+ *   `MonacoEditor.css` -- so any theme works, and each level can be styled on its own.
  * - Found by the same rule as the tokenizer's `matchComment()`, straight from the text:  no waiting for a parse.
  * - On the MODEL, so every editor showing it gets them.
  */

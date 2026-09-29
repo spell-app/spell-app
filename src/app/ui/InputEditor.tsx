@@ -9,7 +9,7 @@ import { Actions } from "./Actions"
 import { ErrorHandler, type ErrorHandlerState, type ErrorHandlerWrapperProps } from "./ErrorHandler"
 import { LazyMonaco } from "./LazyMonaco"
 
-import "./InputEditor.less"
+import "./InputEditor.css"
 
 /****************
  * ### `<InputRoot>`
