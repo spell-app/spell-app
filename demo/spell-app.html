@@ -1,0 +1,56 @@
+<!doctype html>
+<!--
+  Trying out `<spell-app>` -- served by the dev server at `/demo/spell-app.html`, after `yarn build:element`.
+  - Several apps at once, each on its own copy of the spell runtime.
+  - This page's own `.ui.menu` rule is garish on purpose:  it must NOT reach inside an app's shadow root.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>spell-app demo</title>
+    <script type="module" src="/element/spell-app.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 16px;
+        font-family: Georgia, serif;
+        background: #f4f1ea;
+      }
+      h2 {
+        margin: 32px 0 8px;
+      }
+      spell-app {
+        border: 1px solid #ccc;
+      }
+      .side-by-side {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+      }
+      /* must NOT show inside an app */
+      .ui.menu {
+        background: hotpink !important;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>spell-app</h1>
+    <div class="ui menu">This page's own <code>.ui.menu</code>: pink here, but never inside an app.</div>
+
+    <h2>A project from the server, with the Type Explorer open</h2>
+    <spell-app project="@examples/Solitaire" toolbar debug="explorer" height="640px"></spell-app>
+
+    <h2>Two at once</h2>
+    <div class="side-by-side">
+      <spell-app project="@examples/Calculator" toolbar width="50%"></spell-app>
+      <spell-app project="@examples/Todos" toolbar width="50%"></spell-app>
+    </div>
+
+    <h2>A program with no app: its console instead</h2>
+    <spell-app project="@examples/FizzBuzz" toolbar></spell-app>
+
+    <h2>A project importing another, with no toolbar</h2>
+    <spell-app project="@examples/Solitaire-import" height="480px"></spell-app>
+  </body>
+</html>

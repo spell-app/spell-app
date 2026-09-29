@@ -4,7 +4,7 @@ import { spellCore, Thing, List, App } from "@spell/core"
 /*! SPELL: DECLARES {
   syntax: "play fizzbuzz", output: "play_fizzbuzz", rule: "method_call",
   alias: ["statement", "expression"], kind: "function",
-  defined: "/FizzBuzz.spell:23-331",
+  line: [2, 7], defined: "/FizzBuzz.spell:23-331",
 } */
 /** File FizzBuzz.spell */
 export function play_fizzbuzz() {

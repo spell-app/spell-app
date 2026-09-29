@@ -84,6 +84,17 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   card NOT to be the ace of clubs -- which it is, by chance, 1 time in 52.  So the test fails at random, ~2% of
   runs.  Probably wants "the deck isn't in its original order" instead.  Found 2026-09-28.
 
+- `projects/system/examples/Solitaire-import` can't run:  `TypeError: Cannot redefine property: play`.  It imports
+  the WHOLE `@system:examples:Solitaire` project compiled, whose `Solitaire.spell` already does
+  `spellCore.define(Card.prototype, 'play', ...)` -- non-configurable -- then its own `Solitaire.spell` defines
+  `play` on the same `Card` again.  Seen 2026-09-29 in `<spell-app>`, whose import linking loads the same modules
+  the app's import map does -- and CONFIRMED in the app too, 2026-09-29:  `/run/examples/Solitaire-import` fails the same way.  Likely fix:  import `@library/cards`,
+  which holds just the cards, rather than the whole game;  or have `spellCore.define()` make methods
+  `configurable`, if redefining is meant to work.  Also, importing a whole APP project runs its top-level code --
+  e.g. starting its game -- which an import probably shouldn't.
+  DECIDED 2026-09-29:  fix the cause -- importing an app project must never run its app.  Planned as the
+  `<spell-app>` plan's last phase.
+
 ## 2. Server robustness / security
 
 - [V] `server/lock-utils.ts`: whole module has zero callers, while `saveFile()` / `saveProjectFile()` / `getIndex()`

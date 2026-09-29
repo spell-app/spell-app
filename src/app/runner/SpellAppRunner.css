@@ -1,0 +1,67 @@
+/* The element itself:  a block, in Semantic's font -- `body`'s styles don't reach into a shadow root. */
+:host {
+  display: block;
+  position: relative;
+  box-sizing: border-box;
+  font-family: Lato, "Helvetica Neue", Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  line-height: 1.4285em;
+  color: rgba(0, 0, 0, 0.87);
+  background: white;
+}
+
+:host([hidden]) {
+  display: none;
+}
+
+/* What React draws into -- see `SpellAppElement`. */
+.SpellAppMount {
+  height: 100%;
+}
+
+/* Toolbar, then the app over the debug pane -- filling a fixed height, or as tall as they need when `fluid`. */
+.SpellApp {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  &.fluid {
+    height: auto;
+  }
+
+  & > .SpellAppToolbar {
+    flex: 0 0 auto;
+    border-radius: 0 !important;
+
+    & .error {
+      color: #9f3a38;
+    }
+  }
+
+  & > .SpellAppError {
+    flex: 0 0 auto;
+    padding: 0.5em 1em;
+    color: #9f3a38;
+    background: #fff6f6;
+  }
+}
+
+/* The app, filling its pane -- hidden when the program has none, but kept, so its mount point never changes. */
+.SpellAppApp {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+
+  &.hidden {
+    display: none;
+  }
+
+  .fluid & {
+    overflow: visible;
+  }
+}
+
+/* A program with no app, `fluid`:  its console on top, scrolling -- NOT as tall as all it's printed. */
+.SpellApp.fluid .RunnerSplitTop > .RunnerPane {
+  max-height: var(--spell-app-console-height, 24em);
+}

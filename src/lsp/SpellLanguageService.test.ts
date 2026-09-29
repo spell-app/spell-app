@@ -638,10 +638,11 @@ function withoutBlankLines(text: string): string {
 
 /**
  * `compiled` without blank lines, nor where each declaring statement is -- its `SPELL: DECLARES` comment's
- * `defined` line, whose offsets formatting moves.
+ * `line` / `defined` line, which formatting moves.
  */
 function withoutPositions(compiled: string): string {
-  return withoutBlankLines(compiled.replace(/^ {2}defined: .*$/gm, ""))
+  // `line: 9, defined: "/Card.spell:222-283",` -- or either alone
+  return withoutBlankLines(compiled.replace(/^ {2}(line|defined): .*$/gm, ""))
 }
 
 /** `text` with `edits` applied -- edits must not overlap. */

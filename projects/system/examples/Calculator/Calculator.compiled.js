@@ -11,44 +11,44 @@ import { spellCore, Thing, List, App } from "@spell/core"
 
 /*! SPELL: DECLARES {
   type: "Calculator", superType: "App",
-  defined: "/Calculator.spell:191-213",
+  line: 9, defined: "/Calculator.spell:191-213",
 } */
 export class Calculator extends App {}
 /*! SPELL: DECLARES {
   property: "input", of: "Calculator",
-  defined: "/Calculator.spell:214-239",
+  line: 10, defined: "/Calculator.spell:214-239",
 } */
 spellCore.defineProperty(Calculator.prototype, { property: 'input' })
 /*! SPELL: DECLARES {
   property: "output", of: "Calculator",
-  defined: "/Calculator.spell:240-266",
+  line: 11, defined: "/Calculator.spell:240-266",
 } */
 spellCore.defineProperty(Calculator.prototype, { property: 'output' })
 /*! SPELL: DECLARES {
   property: "left", of: "Calculator",
-  defined: "/Calculator.spell:267-290",
+  line: 12, defined: "/Calculator.spell:267-290",
 } */
 spellCore.defineProperty(Calculator.prototype, { property: 'left' })
 /*! SPELL: DECLARES {
   property: "right", of: "Calculator",
-  defined: "/Calculator.spell:291-315",
+  line: 13, defined: "/Calculator.spell:291-315",
 } */
 spellCore.defineProperty(Calculator.prototype, { property: 'right' })
 /*! SPELL: DECLARES {
   property: "total", of: "Calculator",
-  defined: "/Calculator.spell:316-340",
+  line: 14, defined: "/Calculator.spell:316-340",
 } */
 spellCore.defineProperty(Calculator.prototype, { property: 'total' })
 /*! SPELL: DECLARES {
   property: "operator", of: "Calculator",
-  defined: "/Calculator.spell:341-369",
+  line: 15, defined: "/Calculator.spell:341-369",
 } */
 spellCore.defineProperty(Calculator.prototype, { property: 'operator' })
 
 /*! SPELL: DECLARES {
   syntax: "clear {thisArg:expression}", output: "clear", rule: "method_call", of: "Calculator",
   alias: ["statement", "expression"], kind: "method", name: "clear (a calculator)",
-  defined: "/Calculator.spell:371-524",
+  line: [17, 23], defined: "/Calculator.spell:371-524",
 } */
 spellCore.define(Calculator.prototype, 'clear', {
 	value() {
@@ -65,7 +65,7 @@ spellCore.define(Calculator.prototype, 'clear', {
   syntax: "update the total of {thisArg:expression}", output: "update_the_total_of",
   rule: "method_call", of: "Calculator", alias: ["statement", "expression"], kind: "method",
   name: "update the total of (a calculator)",
-  defined: "/Calculator.spell:526-955",
+  line: [25, 39], defined: "/Calculator.spell:526-955",
 } */
 spellCore.define(Calculator.prototype, 'update_the_total_of', {
 	value() {
@@ -86,7 +86,7 @@ spellCore.define(Calculator.prototype, 'update_the_total_of', {
   syntax: "append {callArgs:expression} to {thisArg:expression}", output: "append_$digit_to",
   rule: "method_call", of: "Calculator", alias: ["statement", "expression"], kind: "method",
   name: "append (digit) to (a calculator)",
-  defined: "/Calculator.spell:957-1457",
+  line: [41, 55], defined: "/Calculator.spell:957-1457",
 } */
 spellCore.define(Calculator.prototype, 'append_$digit_to', {
 	value(digit) {
@@ -108,7 +108,7 @@ spellCore.define(Calculator.prototype, 'append_$digit_to', {
   output: "set_the_operator_of_to_$op", rule: "method_call", of: "Calculator",
   alias: ["statement", "expression"], kind: "method",
   name: "set the operator of (a calculator) to (op)",
-  defined: "/Calculator.spell:1459-1701",
+  line: [57, 65], defined: "/Calculator.spell:1459-1701",
 } */
 spellCore.define(Calculator.prototype, 'set_the_operator_of_to_$op', {
 	value(op) {
@@ -127,7 +127,7 @@ spellCore.define(Calculator.prototype, 'set_the_operator_of_to_$op', {
 /*! SPELL: DECLARES {
   syntax: "draw {thisArg:expression}", output: "draw", rule: "method_call", of: "Calculator",
   alias: ["statement", "expression"], kind: "method", name: "draw (a calculator)",
-  defined: "/Calculator.spell:1703-3629",
+  line: [67, 106], defined: "/Calculator.spell:1703-3629",
 } */
 spellCore.define(Calculator.prototype, 'draw', {
 	value() {

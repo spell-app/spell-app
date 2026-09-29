@@ -118,3 +118,11 @@ Log of things that slowed down development. Date · symptom · fix · project.
 - 2026-09-29 · `yarn ts` printed `<< TSC PASSED` right after a real `error TS2552` -- the script chains its
   steps with `;`, so it prints "passed" whatever `tsc` exits with. · Read `tsc`'s output (or check `$?` of
   `yarn tsc`), not the banner.  Fixed:  `ts`, `lint`, `lint:fix`, `format`, `test` and `review` now chain with `&&`. · spell/parser
+- 2026-09-29 · `<spell-app>` threw `Invalid URL` everywhere:  vite rewrites `new URL(".", import.meta.url)` as
+  an ASSET reference, and inlined `"."` as a base64 `data:` URL of the folder's `index.ts`. · Take the folder
+  from `import.meta.url` as a string instead:  `url.slice(0, url.lastIndexOf("/") + 1)`. · spell/parser
+- 2026-09-29 · `runner.js` and `spell-runtime.js` wouldn't load:  `SyntaxError: Unexpected reserved word`.
+  `await import(await link(...))` -- vite wraps dynamic `import()` in `preload(() => import(...))` for module
+  preloading, which moved the inner `await` into a NON-async arrow.  Broke the VS Code runner silently:  it
+  built and installed fine. · Work out the URL first, then `import()` it.  `element.build.test.ts` now runs
+  `node --check` on every built bundle. · spell/parser

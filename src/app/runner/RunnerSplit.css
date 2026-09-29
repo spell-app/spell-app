@@ -12,6 +12,11 @@
     flex-direction: column;
   }
 
+  /* As tall as it needs to be:  the top pane as its content, the bottom as dragged -- see `unit`. */
+  &.byPixels {
+    flex: 0 0 auto;
+  }
+
   /* Bar you drag:  a few px to grab, drawn as a line. */
   & > .RunnerSplitter {
     flex: 0 0 5px;

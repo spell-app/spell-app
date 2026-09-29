@@ -33,7 +33,10 @@ export async function runCompiled(compiled: string, options: RunCompiledOptions 
   const linked = new Map<string, Promise<string>>()
   const urls: string[] = []
   try {
-    await import(/* @vite-ignore */ await link(compiled, []))
+    // NOTE: the URL first, THEN `import()` it:  vite wraps `import(...)` in an arrow for its preloading, so an
+    // `await` in its argument would end up in a function that isn't `async` -- a syntax error in the bundle
+    const url = await link(compiled, [])
+    await import(/* @vite-ignore */ url)
     return undefined
   } catch (error) {
     // Log too, so devtools show the stack.

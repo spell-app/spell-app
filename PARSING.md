@@ -182,7 +182,9 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     - `rule` is the `importableAs` of the class its rule was `specialize()`d from;  what that took sits beside it,
       e.g. `output` -- loading passes the whole object to `specialize()`, which picks out its own.
     - Leaves out what loading works out, e.g. an enumeration's constants, or a rule's owner (`of`, else `output`).
-    - `defined:  "/Card.spell:222-283"` -- character offsets of the statement, project-relative.
+    - `line: 9, defined:  "/Card.spell:222-283"` -- where the statement is:  its line(s), from 1 (`9`, or
+      `[48, 50]` with a body), and its character offsets, project-relative.  The `line` lets a page with no
+      sources match the code to a scope pack's entry -- see `ScopesSource` in `src/app/runner/`.
     - `kind` + `name` -- what its rule's `getDeclaration()` says, for editors, e.g. `name: "draw (a card)"` --
       unless a key already says, e.g. `type`.
   - `SpellProject` puts a one-line `/*! SPELL: PROJECT {...} */` header at the top (`header()`):  versions +

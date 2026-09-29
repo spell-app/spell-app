@@ -63,14 +63,15 @@ export class SpellDeclarations {
   /**
    * `/*! SPELL: DECLARES {...} *\/` comment for `statement`, to compile just above its code -- `undefined` if it
    * declared nothing another project could see.  See `declarationFor()`.
-   * - Props packed a few to a line, `defined` last on its own -- 4-7 lines all told.
+   * - Props packed a few to a line, then where it is -- `line`, `defined` -- last on its own:  4-7 lines all told.
    */
   static commentFor(statement: P.Match): P.ASTPreservedComment | undefined {
     const declaration = SpellDeclarations.declarationFor(statement)
     if (!declaration) return undefined
-    const { defined, ...props } = declaration
+    const { line, defined, ...props } = declaration
     const lines = [`${DECLARES_MARKER} {`, ...packProps(props)]
-    if (defined) lines.push(`  defined: ${toLiteral(defined)},`)
+    const where = definedOnly({ line, defined })
+    lines.push(...packProps(where))
     lines.push("}")
     return new P.ASTPreservedComment(statement, { lines })
   }
@@ -120,7 +121,11 @@ export class SpellDeclarations {
       declaration.kind = kind
       if (name !== declaration.syntax) declaration.name = name
     }
-    return orderedProps({ ...declaration, defined: SpellDeclarations.definedAt(statement) })
+    return orderedProps({
+      ...declaration,
+      line: SpellDeclarations.lineAt(statement),
+      defined: SpellDeclarations.definedAt(statement)
+    })
 
     /** Add `props`' defined values to `declaration` -- throws if one it already has says something else. */
     function merge(props: SP.SpellDeclaration) {
@@ -519,6 +524,22 @@ export class SpellDeclarations {
    * from a file.
    * - Project-relative, e.g. `/Card.spell` not `@system:library:cards/Card.spell`:  a library may move.
    */
+  /**
+   * Line(s) `match` is on in its file, from 1 -- `7`, or its first and last, e.g. `[7, 9]`.  See
+   * `SP.SpellDeclaration.line`.
+   * - From its tokens' own lines, which count from 0 -- its last is the last real token's, as `P.Match.end`.
+   */
+  private static lineAt(match: P.Match): SP.SpellDeclaration["line"] {
+    const first = match.line
+    if (first === undefined) return undefined
+    let last = first
+    P.Tokenizer.forEachToken(match.tokens, (token) => {
+      if (token instanceof P.LineToken || token instanceof P.BlockToken || token instanceof P.WhitespaceToken) return
+      if (token.line !== undefined && token.line > last) last = token.line
+    })
+    return last > first ? [first + 1, last + 1] : first + 1
+  }
+
   private static definedAt(match: P.Match): string | undefined {
     const path = match.getScopeOfType(P.FileScope)?.path
     const { start, end } = match
@@ -573,7 +594,10 @@ function isScopeRule(item: unknown): item is P.ScopeRule {
 
 /** `declaration`'s defined props, in `PROP_ORDER`, with `defined` last. */
 function orderedProps(declaration: SP.SpellDeclaration): SP.SpellDeclaration {
-  const rank = (key: string) => (key === "defined" ? Infinity : PROP_ORDER.indexOf(key) + 1 || PROP_ORDER.length + 1)
+  // where it is last:  `line`, then `defined`
+  const last = ["line", "defined"]
+  const rank = (key: string) =>
+    last.includes(key) ? 1000 + last.indexOf(key) : PROP_ORDER.indexOf(key) + 1 || PROP_ORDER.length + 1
   const entries = Object.entries(definedOnly(declaration)).sort(([a], [b]) => rank(a) - rank(b))
   return Object.fromEntries(entries) as SP.SpellDeclaration
 }

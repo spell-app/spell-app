@@ -39,6 +39,9 @@ if (process.env.NODE_ENV === "production") {
 } else {
   // Development: serve static files from `environment.staticDir` instead of a built `dist`.
   app.use("/static", express.static(environment.staticDir))
+  // `<spell-app>`:  its bundle (`yarn build:element`), and a page trying it out, `/demo/spell-app.html`
+  app.use("/element", express.static(path.join(process.cwd(), "dist-element")))
+  app.use("/demo", express.static(path.join(process.cwd(), "demo")))
 }
 
 app.listen(environment.expressPort, () => {

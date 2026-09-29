@@ -10,4 +10,5 @@ _parser.code-workspace
 graphify-out/cost.json
 .venv
 dist-runner
+dist-element
 settings.json5

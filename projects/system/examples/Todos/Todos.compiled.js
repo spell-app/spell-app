@@ -3,24 +3,24 @@ import { spellCore, Thing, List, App } from "@spell/core"
 
 /*! SPELL: DECLARES {
   type: "Task", superType: "Thing",
-  defined: "/Todo.spell:20-37",
+  line: 2, defined: "/Todo.spell:20-37",
 } */
 /** Todo app example */
 export class Task extends Thing {}
 /*! SPELL: DECLARES {
   property: "title", of: "Task", datatype: "text",
-  defined: "/Todo.spell:38-64",
+  line: 3, defined: "/Todo.spell:38-64",
 } */
 spellCore.defineProperty(Task.prototype, { property: 'title', type: 'text' })
 /*! SPELL: DECLARES {
   property: "completed", of: "Task", datatype: "choice",
-  defined: "/Todo.spell:65-109",
+  line: 4, defined: "/Todo.spell:65-109",
 } */
 spellCore.defineProperty(Task.prototype, { property: 'completed', type: 'choice' })
 /*! SPELL: DECLARES {
   syntax: "{operator:is} complete", output: "is_complete", rule: "method_postfix", of: "Task",
   kind: "method", name: '"is complete"',
-  defined: "/Todo.spell:110-154",
+  line: 5, defined: "/Todo.spell:110-154",
 } */
 spellCore.define(Task.prototype, 'is_complete', {
 	get() {
@@ -30,7 +30,7 @@ spellCore.define(Task.prototype, 'is_complete', {
 /*! SPELL: DECLARES {
   syntax: "{operator:is} active", output: "is_active", rule: "method_postfix", of: "Task",
   kind: "method", name: '"is active"',
-  defined: "/Todo.spell:155-196",
+  line: 6, defined: "/Todo.spell:155-196",
 } */
 spellCore.define(Task.prototype, 'is_active', {
 	get() {
@@ -40,12 +40,12 @@ spellCore.define(Task.prototype, 'is_active', {
 
 /*! SPELL: DECLARES {
   type: "Todos_App", superType: "App",
-  defined: "/Todo.spell:198-219",
+  line: 8, defined: "/Todo.spell:198-219",
 } */
 export class Todos_App extends App {}
 /*! SPELL: DECLARES {
   property: "tasks", of: "Todos_App",
-  defined: "/Todo.spell:220-266",
+  line: 9, defined: "/Todo.spell:220-266",
 } */
 spellCore.defineProperty(Todos_App.prototype, {
 	property: 'tasks',
@@ -56,7 +56,7 @@ spellCore.defineProperty(Todos_App.prototype, {
 /*! SPELL: DECLARES {
   property: "filter", classVariable: "Filters", rule: "enumeration", of: "Todos_App",
   enumeration: ["'all'", "'active'", "'completed'"],
-  defined: "/Todo.spell:267-326",
+  line: 10, defined: "/Todo.spell:267-326",
 } */
 spellCore.defineProperty(Todos_App.prototype, {
 	property: 'filter',
@@ -71,7 +71,7 @@ app.filter = "all"
   syntax: "create a task (with {props:object_literal_properties})?", output: "create_a_task",
   rule: "method_call", alias: ["statement", "expression"], kind: "function",
   name: "create a task (with title as text)",
-  defined: "/Todo.spell:391-518",
+  line: [15, 17], defined: "/Todo.spell:391-518",
 } */
 export function create_a_task(props = {}) {
 	let { title } = props
@@ -86,7 +86,7 @@ create_a_task({ title: "Test app" })
 /*! SPELL: DECLARES {
   syntax: "draw {thisArg:expression}", output: "draw", rule: "method_call", of: "Task",
   alias: ["statement", "expression"], kind: "method", name: "draw (a task)",
-  defined: "/Todo.spell:651-1104",
+  line: [23, 35], defined: "/Todo.spell:651-1104",
 } */
 spellCore.define(Task.prototype, 'draw', {
 	value() {
@@ -128,7 +128,7 @@ spellCore.define(Task.prototype, 'draw', {
 /*! SPELL: DECLARES {
   syntax: "draw {thisArg:expression}", output: "draw", rule: "method_call", of: "Todos_App",
   alias: ["statement", "expression"], kind: "method", name: "draw (a todos-app)",
-  defined: "/Todo.spell:1106-2064",
+  line: [37, 62], defined: "/Todo.spell:1106-2064",
 } */
 spellCore.define(Todos_App.prototype, 'draw', {
 	value() {

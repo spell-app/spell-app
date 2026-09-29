@@ -2,6 +2,8 @@
  * `yarn scopes`:  write scope packs -- what `<spell-app>`'s Type Explorer shows with no parser.  See `LSP.ScopePack`.
  * - `yarn scopes @system:examples:Solitaire @examples/Calculator ...`:  each project's `<Project>.scopes.js`,
  *   beside its compiled output -- parsing it, and the projects it imports, first.
+ * - `yarn scopes --compile <projectId...>`:  compile each first, to `<Project>.compiled.js` -- in the order given,
+ *   so a project another imports goes first.
  * - `yarn scopes --builtins`:  the built-in types' pack, `src/spellCore/spellCore.scopes.js`.
  *   NOTE: OVERWRITES any hand edits there -- diff it before keeping.
  * - The language server writes a project's pack itself after each clean compile.
@@ -19,9 +21,10 @@ import { SP } from "~/languages/spell"
 import { LSP } from "~/lsp"
 import { SpellDiskWorkspace } from "~/lsp/SpellDiskWorkspace"
 
-const args = process.argv.slice(2)
+const args = process.argv.slice(2).filter((arg) => arg !== "--compile")
+const compile = args.length < process.argv.length - 2
 if (!args.length) {
-  process.stderr.write("usage:  yarn scopes <projectId...>  |  yarn scopes --builtins\n")
+  process.stderr.write("usage:  yarn scopes [--compile] <projectId...>  |  yarn scopes --builtins\n")
   process.exit(1)
 }
 
@@ -40,10 +43,23 @@ for (const arg of args) {
 // NOTE: exits explicitly -- a parse can leave timers running, which would keep the process alive.
 process.exit(failed ? 1 : 0)
 
-/** Write the scope pack of the project `arg` names -- a full id, or a root's alias, e.g. `@examples/Solitaire`. */
+/**
+ * Write the scope pack of the project `arg` names -- a full id, or a root's alias, e.g. `@examples/Solitaire`.
+ * - With `--compile`, compile it first -- throwing if it has parse errors, as the language server won't write
+ *   its pack then either.
+ */
 async function writeProject(arg: string): Promise<string> {
   const project = new SP.SpellProject(SP.SpellProject.projectIdForImport(arg))
   await project.load()
+  if (compile) {
+    await workspace.track(project)
+    await project.compile()
+    // as the language server's `compileProject()` counts them
+    const [first] = project.spellFiles
+    const files = first ? explorer.service.projectInfo(first).files.filter((file) => file.errors) : []
+    if (files.length) throw new Error(`parse errors in ${files.map((file) => file.file).join(", ")}`)
+    process.stdout.write(`wrote ${relative(process.cwd(), project.outputFile.location.serverPath)}\n`)
+  }
   return workspace.writeScopes(project, explorer)
 }
 

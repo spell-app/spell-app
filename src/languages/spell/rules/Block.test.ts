@@ -50,6 +50,7 @@ describe("compiling docstrings and headings", () => {
     expect(compile("// a playing card\na card is a thing")).toEqual([
       "/*! SPELL: DECLARES {",
       '  type: "Card", superType: "Thing",',
+      "  line: 2,",
       "} */",
       "/** a playing card */",
       "export class Card extends Thing {}"
@@ -59,6 +60,7 @@ describe("compiling docstrings and headings", () => {
     ).toEqual([
       "/*! SPELL: DECLARES {",
       '  type: "Card", superType: "Thing",',
+      "  line: 3,",
       "} */",
       "/**",
       " * a playing card",
@@ -74,10 +76,11 @@ describe("compiling docstrings and headings", () => {
     const property = compile("a card is a thing\n\n// card ranks\ncards have a rank as one of ace or king")
     const propertyDoc = property.indexOf("/** card ranks */")
     // the comment closes right above the docstring
-    expect(property.slice(propertyDoc - 4, propertyDoc + 2)).toEqual([
+    expect(property.slice(propertyDoc - 5, propertyDoc + 2)).toEqual([
       "/*! SPELL: DECLARES {",
       '  property: "rank", classVariable: "Ranks", rule: "enumeration", of: "Card",',
       "  enumeration: [\"'ace'\", \"'king'\"],",
+      "  line: 4,",
       "} */",
       "/** card ranks */",
       "spellCore.defineProperty(Card.prototype, {"
@@ -89,6 +92,7 @@ describe("compiling docstrings and headings", () => {
       "/*! SPELL: DECLARES {",
       '  syntax: "greet", output: "greet", rule: "method_call", alias: ["statement", "expression"],',
       '  kind: "function",',
+      "  line: 2,",
       "} */",
       "/** say hello */",
       "export function greet() {"
@@ -102,6 +106,7 @@ describe("compiling docstrings and headings", () => {
       "///////////",
       "/*! SPELL: DECLARES {",
       '  type: "Card", superType: "Thing",',
+      "  line: 3,",
       "} */",
       "/** a playing card */",
       "export class Card extends Thing {}"
