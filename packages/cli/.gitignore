@@ -1,0 +1,6 @@
+node_modules
+coverage
+.cache
+.DS_Store
+*.log
+.yarn/install-state.gz

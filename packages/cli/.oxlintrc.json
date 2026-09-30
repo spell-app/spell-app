@@ -1,0 +1,49 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["react", "typescript", "oxc", "import"],
+
+  // Same rules as the parser's `.oxlintrc.json`, less what only its app needs -- keep the two in step.
+  // `correctness` ~== what `eslint:recommended` + `tseslint:recommended` used to give us.
+  "categories": { "correctness": "error" },
+
+  // Type-aware rules, driven from the config so the command line and the editor agree without
+  // anyone having to remember a flag.  Requires the `oxlint-tsgolint` package.
+  "options": { "typeAware": true },
+
+  // Mirrors `.oxfmtrc.json`.
+  "ignorePatterns": [".cache", ".yarn"],
+
+  // NOTE: only rules that DIFFER from the `correctness` defaults belong here.
+  "rules": {
+    ////////////////
+    // ## React (Ink screens)
+    ////////////////
+
+    // MUST stay listed: unlike the other correctness rules, this one is NOT enabled by the category alone.
+    "react-hooks/rules-of-hooks": "error",
+    // Deliberately a warning rather than an error: dep-array fixes are judgement calls.
+    "react-hooks/exhaustive-deps": "warn",
+    // Automatic JSX runtime (`"jsx": "react-jsx"`), so `React` need not be in scope.
+    "react/react-in-jsx-scope": "off",
+
+    ////////////////
+    // ## Core / TypeScript
+    ////////////////
+
+    // `tsc` already reports these via `noUnusedLocals` -- avoid duplicate diagnostics.
+    "no-unused-vars": "off",
+    "typescript/no-unused-vars": "off",
+    // spell is a dynamic language runtime; `any` is deliberate at its JS/spell bridges.
+    "typescript/no-explicit-any": "off",
+
+    "prefer-const": ["error", { "destructuring": "all" }],
+
+    ////////////////
+    // ## Type-aware
+    ////////////////
+
+    // As the parser:  passing a method reference is idiomatic there, and spell stringifies values on purpose.
+    "typescript/unbound-method": "off",
+    "typescript/restrict-template-expressions": "off"
+  }
+}

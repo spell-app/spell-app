@@ -1,0 +1,51 @@
+{
+  "name": "@spell/cli",
+  "version": "0.8.0",
+  "description": "`spell` command line:  compile, check, describe, explore, watch, run and test spell projects",
+  "license": "MIT",
+  "bin": {
+    "spell": "bin/spell.mjs"
+  },
+  "type": "module",
+  "scripts": {
+    "spell": "node bin/spell.mjs",
+    "cli:install": "node scripts/install-cli.mjs",
+    "/////// CORRECTNESS": "",
+    "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
+    "ts": "echo '>>>>>>>>>>>\n>> RUNNING TSC'; tsc && echo '<< TSC PASSED\n'",
+    "lint": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT'; oxlint --report-unused-disable-directives --max-warnings 0 && echo '<< OXLINT PASSED\n'",
+    "lint:fix": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT --fix'; oxlint --fix && echo '<< OXLINT PASSED\n'",
+    "format": "echo '>>>>>>>>>>>\n>> FORMATTING WITH OXFMT'; oxfmt . && echo '<< OXFMT PASSED\n'",
+    "format:check": "oxfmt --check .",
+    "/////// TESTING": "",
+    "test": "echo '>>>>>>>>>>>\n>> RUNNING TESTS'; vitest run && echo '<< TESTS PASSED\n'",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@inkjs/ui": "^2",
+    "@spell/ui": "link:../ui",
+    "chalk": "^5.6.0",
+    "commander": "^14",
+    "ink": "^5.2.1",
+    "react": "^18.2.0",
+    "spell-parser": "link:../parser",
+    "tsx": "^4.7.1",
+    "vscode-languageserver": "^10.1.2",
+    "wrap-ansi": "^9"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^18.2.56",
+    "ink-testing-library": "^4",
+    "oxfmt": "^0.68.0",
+    "oxlint": "^1.83.0",
+    "oxlint-tsgolint": "^7.0.2002",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.1"
+  },
+  "engines": {
+    "node": ">=22.17"
+  },
+  "packageManager": "yarn@4.18.0"
+}
