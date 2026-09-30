@@ -25,8 +25,8 @@ export class SpellLanguageFeatures {
   #lspLenses = new WeakMap<monaco.languages.CodeLens, CodeLens>()
   declare addresses: AppAddresses
   declare models: SpellModels
-  /** Show the file at `path`, selecting `selection` -- e.g. `editor.selectPath()`. */
-  declare open: (path: string, selection?: UIT.EditorSelection) => void
+  /** Show the file at `path`, selecting `selection` -- asked by editor `source`, if we know it.  `true` if shown. */
+  declare open: (path: string, selection?: UIT.EditorSelection, source?: monaco.editor.ICodeEditor) => boolean
 
   constructor(props: SpellLanguageFeaturesProps) {
     Object.assign(this, props)
@@ -101,7 +101,7 @@ export class SpellLanguageFeatures {
         provideDocumentRangeFormattingEdits: (model, range, options) => this.formatting(model, options, range)
       }),
       editor.registerEditorOpener({
-        openCodeEditor: (_source, resource, selectionOrPosition) => this.openAt(resource, selectionOrPosition)
+        openCodeEditor: (source, resource, selectionOrPosition) => this.openAt(resource, selectionOrPosition, source)
       }),
       editor.registerLinkOpener({ open: (resource) => this.openLink(resource) })
     ]
@@ -315,23 +315,33 @@ export class SpellLanguageFeatures {
   // ## Opening other files
   ////////////////
 
-  /** Show `resource`, e.g. a declaration in another file, at `selectionOrPosition`.  `false` if it isn't ours. */
-  private openAt(resource: monaco.Uri, selectionOrPosition?: monaco.IRange | monaco.IPosition): boolean {
+  /**
+   * Show `resource`, e.g. a declaration in another file, at `selectionOrPosition` -- asked by editor `source`, or
+   * else the one with focus.  `false` if it isn't ours, or nobody showed it.
+   */
+  private openAt(
+    resource: monaco.Uri,
+    selectionOrPosition?: monaco.IRange | monaco.IPosition,
+    source: monaco.editor.ICodeEditor | undefined = focusedEditor()
+  ): boolean {
     const path = AppAddresses.pathOf(resource)
     if (path === undefined) return false
-    if (!selectionOrPosition) this.open(path)
+    if (!selectionOrPosition) return this.open(path, undefined, source)
     else {
       const start =
         "startLineNumber" in selectionOrPosition
           ? monaco.Range.getStartPosition(selectionOrPosition)
           : selectionOrPosition
       const end = "startLineNumber" in selectionOrPosition ? monaco.Range.getEndPosition(selectionOrPosition) : start
-      this.open(path, {
-        anchor: { line: start.lineNumber - 1, ch: start.column - 1 },
-        head: { line: end.lineNumber - 1, ch: end.column - 1 }
-      })
+      return this.open(
+        path,
+        {
+          anchor: { line: start.lineNumber - 1, ch: start.column - 1 },
+          head: { line: end.lineNumber - 1, ch: end.column - 1 }
+        },
+        source
+      )
     }
-    return true
   }
 
   /** Follow a link in a hover to one of our files, e.g. `spell:/<path>#L12`. */
@@ -349,6 +359,11 @@ export type SpellLanguageFeaturesProps = {
   addresses: AppAddresses
   /** Our models, e.g. to save after a rename. */
   models: SpellModels
-  /** Show the file at `path`, selecting `selection`. */
-  open: (path: string, selection?: UIT.EditorSelection) => void
+  /** Show the file at `path`, selecting `selection` -- asked by editor `source`, if we know it.  `true` if shown. */
+  open: (path: string, selection?: UIT.EditorSelection, source?: monaco.editor.ICodeEditor) => boolean
+}
+
+/** Editor with focus, if any -- where a hover's link was clicked, say. */
+function focusedEditor(): monaco.editor.ICodeEditor | undefined {
+  return monaco.editor.getEditors().find((editor) => editor.hasTextFocus() || editor.hasWidgetFocus())
 }

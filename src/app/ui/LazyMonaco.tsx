@@ -6,7 +6,7 @@ import type { FileEditorProps, MonacoEditorProps } from "~/app/ui/monaco"
 /**
  * The app's Monaco editor components, loaded on first use:  Monaco is most of the app's code, and only
  * the editor page needs it.  Each MUST go inside a `<React.Suspense>`.
- * - SIDE EFFECT, once loaded:  connects the editor's hooks -- edits compile soon, "go to definition" in another
+ * - SIDE EFFECT, once loaded:  listens to the editor -- edits compile soon, "go to definition" in another
  *   file shows it -- and puts `SpellMonaco` / `monaco` on `globalThis` for console debugging, as `debug.ts` does
  *   for everything else.
  * - NOTE: `~/app/ui/monaco` is NOT in the `UI` barrel:  anything importing it statically would pull Monaco into
@@ -33,10 +33,12 @@ let loading: Promise<typeof import("~/app/ui/monaco")> | undefined
 /** Load `~/app/ui/monaco` once, and connect it -- see `LazyMonaco`. */
 function loadMonaco(): Promise<typeof import("~/app/ui/monaco")> {
   loading ??= import("~/app/ui/monaco").then((module) => {
-    module.SpellMonaco.hooks = {
-      onEdit: (file) => editor.onFileEdited(file),
-      open: (path, selection) => void editor.showFileAt(path, selection)
-    }
+    module.SpellMonaco.onEdit((file) => editor.onFileEdited(file))
+    // the app's editor shows any file, so it takes whatever no `<spell-editor>` on the page did
+    module.SpellMonaco.onOpen((path, selection) => {
+      void editor.showFileAt(path, selection)
+      return true
+    })
     Object.assign(globalThis, { SpellMonaco: module.SpellMonaco, monaco: module.monaco })
     return module
   })

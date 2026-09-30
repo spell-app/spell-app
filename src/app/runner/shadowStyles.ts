@@ -1,5 +1,6 @@
 /**
- * Styles for `<spell-app>`'s shadow roots:  Semantic UI, and the bundle's own `spell-app.css`.
+ * Styles for our elements' shadow roots -- `<spell-app>`'s:  Semantic UI, and the bundle's own `spell-app.css`.
+ * - `<spell-editor>` names its own files, e.g. `spell-editor.css`.
  * - A shadow root sees only its own styles, so each adopts these -- one `CSSStyleSheet` each, built ONCE per
  *   page and shared by every element.
  * - `@font-face` rules DON'T work inside a shadow root, so they go in the page's `<head>` instead, with Lato's.
@@ -7,21 +8,26 @@
  * - Relative `url(...)`s are made absolute:  an adopted sheet resolves them against the PAGE, not its file.
  */
 
-/** Stylesheets for every `<spell-app>` shadow root, from `assets` -- where Semantic UI, Lato and `spell-app.css` are. */
-export function shadowStyles(assets: string): Promise<CSSStyleSheet[]> {
-  let sheets = built.get(assets)
-  if (!sheets) built.set(assets, (sheets = buildSheets(assets)))
+/**
+ * Stylesheets for a shadow root:  CSS `files` of `assets` -- where they are, and Lato.
+ * - Default `files`, `<spell-app>`'s:  Semantic UI and `spell-app.css`.
+ */
+export function shadowStyles(assets: string, files = SPELL_APP_CSS): Promise<CSSStyleSheet[]> {
+  const key = JSON.stringify([assets, files])
+  let sheets = built.get(key)
+  if (!sheets) built.set(key, (sheets = buildSheets(assets, files)))
   return sheets
 }
 
-/** Sheets built, by `assets` URL. */
+/** `<spell-app>`'s CSS files -- see `shadowStyles()`. */
+const SPELL_APP_CSS = ["semantic-ui-css/semantic.min.css", "spell-app.css"]
+
+/** Sheets built, by `assets` URL and files. */
 const built = new Map<string, Promise<CSSStyleSheet[]>>()
 
-/** Fetch and build the sheets from `assets` -- see `shadowStyles()`.  SIDE EFFECT:  fonts go in the page's `<head>`. */
-async function buildSheets(assets: string): Promise<CSSStyleSheet[]> {
-  const files = await Promise.all(
-    ["semantic-ui-css/semantic.min.css", "spell-app.css"].map((file) => cssAt(assets, file))
-  )
+/** Fetch and build the sheets of `names` from `assets` -- see `shadowStyles()`.  SIDE EFFECT:  fonts go in the page's `<head>`. */
+async function buildSheets(assets: string, names: string[]): Promise<CSSStyleSheet[]> {
+  const files = await Promise.all(names.map((file) => cssAt(assets, file)))
   addFonts(
     files.flatMap((file) => file.fonts),
     new URL("lato/index.css", assets).href
@@ -57,14 +63,20 @@ export function absoluteUrls(css: string, base: string): string {
   })
 }
 
-/** Add `fonts`, and Lato's stylesheet at `lato`, to the page's `<head>` -- once. */
+/**
+ * Add `fonts`, and Lato's stylesheet at `lato`, to the page's `<head>` -- each once.
+ * - Each element's files bring their own, e.g. `<spell-editor>`'s Monaco icons:  a font already there is skipped.
+ */
 function addFonts(fonts: string[], lato: string) {
-  if (document.querySelector("style[data-spell-app-fonts]")) return
+  const added = new Set(Array.from(document.querySelectorAll("style[data-spell-app-fonts]"), (it) => it.textContent))
   const style = document.createElement("style")
   style.dataset.spellAppFonts = ""
-  style.textContent = fonts.join("\n")
-  const link = document.createElement("link")
-  link.rel = "stylesheet"
-  link.href = lato
-  document.head.append(style, link)
+  style.textContent = fonts.filter((font) => !added.has(font)).join("\n")
+  if (style.textContent) document.head.append(style)
+  if (!document.querySelector(`link[href="${lato}"]`)) {
+    const link = document.createElement("link")
+    link.rel = "stylesheet"
+    link.href = lato
+    document.head.append(link)
+  }
 }

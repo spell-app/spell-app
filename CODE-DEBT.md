@@ -254,7 +254,114 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
   language server.  The app compiles in the browser and POSTs just `<Project>.compiled.js`.
 - **Fix**:  the app's in-process language service (see `SpellMonaco`) exports the pack after each compile and
   POSTs it beside the compiled JS -- `ScopeExplorer.exportPack()` is browser-safe.
-- **Pinned at**:  `SpellDiskWorkspace.writeScopes()`;  `src/lsp/scopes.ts`.
+  `<spell-editor>` does the first half already:  it hands a fresh pack to the apps it feeds (`SpellCompiled.scopes`),
+  but writes none either -- so an app NOT linked to it still shows the stale one.
+- **Pinned at**:  `SpellDiskWorkspace.writeScopes()`;  `src/lsp/scopes.ts`;  `SpellEditorElement.scopesOf()`.
+
+---
+
+## `<spell-editor>` saves to the server with no say-so
+
+- **Cost**:  anyone with a page holding a `<spell-editor>` open can overwrite that project's files -- each compile
+  saves what was edited, and writes `<Project>.compiled.js`.  Fine on the dev server, the only place `/element` is
+  served today;  NOT anywhere else.
+- **Cause**:  it saves through the same `/api/projects/file` POSTs as the web app's editor, which has no users or
+  permissions either.
+- **Fix**:  a read-only mode -- edit and run in the page, save nothing -- which `project.compile()` can't do yet, as
+  it always saves its output;  and some notion of who may save.
+- **Pinned at**:  `SpellEditorElement.save()` / `compileNow()` in `src/app/spellEditor/SpellEditorElement.tsx`.
+
+---
+
+## Mouse moves over a `<spell-editor>` never reach the page's `document`
+
+- **Cost**:  a page's own `mousemove` listener on `document` or `window` hears nothing while the mouse is over the
+  text of a `<spell-editor>` -- or any Monaco editor we draw in a shadow root.
+- **Cause**:  Monaco watches `mousemove` on `document` to see the mouse leave the editor.  Heard there, a move
+  inside a shadow root comes from the HOST, NOT inside the editor, so Monaco thought the mouse left on every move,
+  and hid the hover before it showed.  So we stop those moves at the shadow root.
+- **Fix**:  Monaco's `MouseHandler` checking `event.composedPath()` instead of `event.target` -- upstream.  Then
+  delete the HACK.  NOTE: not reported to Monaco yet.
+- **Pinned at**:  `keepMouseMovesInShadowRoot()` in `src/app/ui/monaco/MonacoEditor.tsx`.
+
+---
+
+## `<spell-editor>` and `<spell-app>` together are only checked by hand
+
+- **Cost**:  nothing in the test suite would notice a broken link between them, a hover that stops showing in the
+  shadow root, or Monaco's worker failing to load -- each broke once while building them, and passed every test.
+- **Cause**:  vitest here has no DOM, and the repo has no browser tests.  `element.build.test.ts` checks only that
+  the bundles build, parse, and keep Monaco lazy.  The checks that caught those were Playwright scripts, run by hand
+  against the dev server -- Playwright and its Chromium ARE installed, see `PAPERCUTS.md`.
+- **Fix**:  a Playwright test against the dev server, after `yarn build:element`, skipped when no server answers:
+  link both ways, an edit reaching a linked app, hover in the shadow root, the worker loading.  On a scratch copy
+  of a project -- the editor SAVES.
+- **Pinned at**:  `element.build.test.ts` (what IS checked);  `PAPERCUTS.md`, 2026-09-30.
+
+---
+
+## `<spell-editor>`'s first compile hands apps no scope pack
+
+- **Cost**:  until the SECOND compile, a linked app's Type Explorer shows the server's `<Project>.scopes.js` --
+  stale if the project was edited in the web app, and missing (a 404) for a project that never had one.
+- **Cause**:  `scopesOf()` needs a `LSP.SpellLanguageService`, and takes `SpellMonaco`'s -- so it has none until
+  Monaco loads, which is AFTER the first compile, on purpose, so apps run straight away.  The service itself needs
+  no Monaco:  just an `LSP.FileAddresses`, and ours, `AppAddresses`, lives in `~/app/ui/monaco`, which NOTHING
+  outside it may import statically.
+- **Fix**:  move `AppAddresses` out of `~/app/ui/monaco` -- it imports no Monaco -- and give the editor its own
+  service from the start.
+- **Pinned at**:  `SpellEditorElement.scopesOf()` in `src/app/spellEditor/SpellEditorElement.tsx`.
+
+---
+
+## An app `<spell-editor app>` names, added to the page later, waits for the next compile
+
+- **Cost**:  a `<spell-app>` matching an editor's `app` selector, but added to the page after its last compile,
+  shows its own project's code -- or "Give <spell-app> a project..." -- until someone edits.
+- **Cause**:  the editor hands on each compile once, to the apps its selector finds THEN -- see `pushToApps()`.
+  Nothing tells it of an app arriving later.  Linked the other way, `<spell-app editor>`, there's no gap:  the app
+  asks for the editor's `compiled` as it joins the page.
+- **Fix**:  the app announces itself as it joins -- e.g. an event the editor listens for on its root node -- and a
+  matching editor hands it `compiled`.  Or prefer `<spell-app editor>` in the docs.
+- **Pinned at**:  the `NOTE` on `SpellEditorElement.pushToApps()`.
+
+---
+
+## Two `<spell-editor>`s of one project share its files
+
+- **Cost**:  typing in one shows in the other, and BOTH compile and hand on each edit -- so an app linked to both
+  runs it twice.  There's no way to show two independent copies of one project on a page, e.g. "before" and "after".
+- **Cause**:  a `SP.SpellProject` is one per project id (its registry), and so are its `SpellFile`s -- and
+  `SpellModels` keeps one Monaco model per file path.  Each editor's `SpellMonaco.onEdit()` listener hears edits to
+  ANY file of its project.
+- **Fix**:  projects in memory, apart from the registry -- which don't exist yet:  every project loads from, and
+  saves to, the server by its id.  Until then, one editor per project.
+- **Pinned at**:  `SpellEditorElement`'s docstring;  `SpellEditorElement.loadMonaco()`.
+
+---
+
+## `<spell-editor>` brings its own React
+
+- **Cost**:  a page with both elements loads React twice -- `spell-editor.js` has its own, and `spell-app.js` shares
+  one with `spell-runtime.js`.  React and React DOM twice, and two copies that can't share context.
+- **Cause**:  it's a separate build, `vite.editor.config.ts`, NOT an entry of `vite.element.config.ts`:  with
+  `cssCodeSplit: false` a build writes ONE CSS file, and Monaco's would have landed in `spell-app.css`, which every
+  `<spell-app>` adopts.
+- **Fix**:  one build with a CSS file per entry -- `cssCodeSplit: true`, naming each entry's CSS -- so React goes in
+  `spell-shared.js` for both.  Check first that the runtime's CSS still ends up where `<spell-app>` looks for it.
+- **Pinned at**:  the header of `vite.editor.config.ts`.
+
+---
+
+## `yarn scopes --builtins` overwrites the built-in types' hand-written docs
+
+- **Cost**:  running it replaces `src/spellCore/spellCore.scopes.js` -- whose `Thing`, `List` and `App` are
+  documented by hand -- with the bare types.  Only a diff before keeping it saves the docs.
+- **Cause**:  `scopes.ts` makes its `LSP.ScopeExplorer` WITHOUT the built-ins' pack, so `exportBuiltIns()` has only
+  the root scope's bare types to write.  The language server's explorer has the pack, and shows the docs.
+- **Fix**:  give `scopes.ts`'s explorer `() => workspace.builtInsPack()`, as the language server does -- then
+  `--builtins` writes the pack back, plus any new built-in type, bare.  One line.
+- **Pinned at**:  `writeBuiltIns()` and the `NOTE` in the header of `src/lsp/scopes.ts`.
 
 ---
 

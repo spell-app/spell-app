@@ -18,8 +18,9 @@ import { SpellMonaco } from "./SpellMonaco"
  *   diagnostics become the model's markers, and `onDidParse` fires, e.g. for fresh semantic colouring.
  * - Follows files with `observe()`, NOT `autoEffect()`:  that turns into a React hook inside a render,
  *   and `modelFor()` is called while rendering.
- * - Covers the current project:  a model for every spell file it parses (peek, references and rename need them),
- *   plus any other file once shown.  Showing a file of another project disposes of the lot.
+ * - Covers a project at a time:  a model for every spell file it parses (peek, references and rename need them),
+ *   plus any other file once shown.  Showing a file of another project disposes of the last one's models --
+ *   UNLESS something `use()`s it, e.g. a `<spell-editor>`, so several editors on a page can show several projects.
  */
 export class SpellModels {
   /** Answers diagnostics for our spell files. */
@@ -27,10 +28,12 @@ export class SpellModels {
   /** Called after each edit of a model has gone into its file. */
   declare onEdit: (file: SP.AnySpellFile) => void
 
-  /** Project our models are for. */
+  /** Project of the file we last made a model for -- see `modelFor()`. */
   #project: SP.SpellProject | undefined
-  /** Each file's model, and what stops it following its file, by `file.path`. */
-  #models = new Map<string, { model: monaco.editor.ITextModel; dispose: () => void }>()
+  /** How many are using each project, so its models stay -- see `use()`. */
+  #users = new Map<SP.SpellProject, number>()
+  /** Each file's model, its project, and what stops it following its file, by `file.path`. */
+  #models = new Map<string, { model: monaco.editor.ITextModel; project: SP.SpellProject; dispose: () => void }>()
   /**
    * Paths of files to save as soon as their model takes an edit -- see `saveAfterEdit()`.
    * - By path, NOT file:  a file read through the store can be a proxy of the same one.
@@ -49,16 +52,37 @@ export class SpellModels {
   /**
    * Model for `file`, made if need be -- along with one for every spell file its project parses.
    * - Unwraps `file` first (see `raw()`):  it's often read through the store while rendering, so a proxy.
-   * - SIDE EFFECT:  a file of another project disposes of every model we have first.
+   * - SIDE EFFECT:  a file of another project disposes of the last project's models first, unless it's `use()`d.
    */
   modelFor(proxyOrFile: SP.AnySpellFile): monaco.editor.ITextModel {
     const file = raw(proxyOrFile)
-    if (file.project !== this.#project) {
-      this.disposeAll()
+    const previous = this.#project
+    if (file.project !== previous) {
       this.#project = file.project
+      if (previous && !this.#users.has(previous)) this.disposeProject(previous)
     }
     for (const spellFile of file.project.spellFiles) this.ensureModel(spellFile)
     return this.ensureModel(file)
+  }
+
+  /**
+   * Keep `project`'s models while it's in use, e.g. by a `<spell-editor>` -- whatever other project's files are shown.
+   * - Returns what stops using it:  once nobody does, its models go, unless it's the project last shown.
+   */
+  use(proxyOrProject: SP.SpellProject): () => void {
+    const project = raw(proxyOrProject)
+    this.#users.set(project, (this.#users.get(project) ?? 0) + 1)
+    let released = false
+    return () => {
+      if (released) return
+      released = true
+      const users = this.#users.get(project)! - 1
+      if (users) this.#users.set(project, users)
+      else {
+        this.#users.delete(project)
+        if (project !== this.#project) this.disposeProject(project)
+      }
+    }
   }
 
   /**
@@ -80,6 +104,15 @@ export class SpellModels {
     this.#project = undefined
   }
 
+  /** Dispose of `project`'s models, and stop following their files. */
+  private disposeProject(project: SP.SpellProject): void {
+    for (const [path, { project: owner, dispose }] of this.#models) {
+      if (owner !== project) continue
+      dispose()
+      this.#models.delete(path)
+    }
+  }
+
   ////////////////
   // ## Following files
   ////////////////
@@ -98,6 +131,7 @@ export class SpellModels {
     const followParse = file instanceof SP.SpellFile ? observe(() => this.whenParsed(file, model)) : undefined
     this.#models.set(file.path, {
       model,
+      project: file.project,
       dispose() {
         listener.dispose()
         unobserve(followContents)

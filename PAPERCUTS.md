@@ -132,3 +132,17 @@ Log of things that slowed down development. Date · symptom · fix · project.
   bisect by what the render reads.  Drive the demo headless with Playwright:  a script in the scratchpad must
   import it by path, `/Users/owen/www/spell/parser/node_modules/playwright/index.mjs` -- bare `"playwright"`
   won't resolve outside the repo.  · spell/parser
+- 2026-09-30 · `<spell-editor>`'s Monaco said "Could not create web worker(s)", with a 404:  vite's `?worker`
+  compiles to `new Worker("/spell-editor-editor.worker.js")` -- from the page's ROOT -- under the default
+  `base: "/"`. · `base: "./"` in `vite.editor.config.ts`, so it's `new URL(..., import.meta.url)`, beside the
+  bundle. · spell/parser
+- 2026-09-30 · A rolldown `codeSplitting` group to name Monaco's chunk (`test: /monaco-editor|app\/ui\/monaco/`)
+  took the PARSER too -- a group takes its modules' dependencies by default -- so the 8 KB entry imported the
+  "lazy" 5 MB chunk statically.  Built fine. · Drop the group:  a dynamic `import()` splits on its own, named for
+  the module.  Look at the ENTRY's imports, not just its size;  `element.build.test.ts` now pins it. · spell/parser
+- 2026-09-30 · Monaco's hover never showed inside a shadow root -- completion, menus and keyboard hover
+  (Cmd+K Cmd+I) all did.  Monaco's `mousemove` listener on `document` sees a shadow root's HOST as the target,
+  so it fired "mouse left" after every move. · Found by wrapping the hover controller's methods live, in
+  Playwright, through the loaded chunk (`import("/element/spell-editor-monaco.js")`) -- each show was followed by
+  `_onEditorMouseLeave`.  Stop the editor's mouse moves at the shadow root:  see `keepMouseMovesInShadowRoot()`. ·
+  spell/parser

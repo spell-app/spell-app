@@ -2,6 +2,7 @@ import React from "react"
 import classnames from "classnames"
 import * as SUI from "semantic-ui-react"
 
+import type { LSP } from "~/lsp"
 import type { ThingExplorerState, TypeExplorerState } from "~/app/ui/ui.types"
 // Import directly, NOT through the `UI` barrel, which would pull in the whole editor.
 import { TypeExplorer } from "~/app/ui/TypeExplorer"
@@ -11,6 +12,7 @@ import { loadScopePack, scopesFromPacks, type ScopesSource } from "./ScopesSourc
 import { RunnerSplit, DEFAULT_SPLIT } from "./RunnerSplit"
 import { RunnerPane, type RunnerTab } from "./RunnerPane"
 import { RunnerConsole } from "./RunnerConsole"
+import type { SpellCompiled } from "./runner.types"
 
 import "./SpellAppRunner.css"
 
@@ -19,8 +21,8 @@ import "./SpellAppRunner.css"
  * Runs one spell app in a page, inside `<spell-app>`'s shadow root:  an optional toolbar, the app, and a
  * "debug" pane below it -- the Type Explorer, the Thing Explorer, and the program's console.
  * - Runs on its OWN copy of the spell runtime -- see `loadRuntime()` -- so many can run on a page at once.
- * - Runs `source` when the runtime's loaded, again when `source` changes, and on Restart.  Restart fetches
- *   the program afresh, so a recompiled one shows.
+ * - Runs `source` when the runtime's loaded, again when `source` changes -- a NEW object -- and on Restart.
+ *   Restart fetches the program afresh, so a recompiled one shows -- or runs `source.compiled` again, if set.
  * - A program with NO app shows its console on top instead, and the explorers below.
  * - The Type Explorer is read-only, and shows only if there's a scope pack -- see `ScopesSource`.
  * - NEVER imports `~/spellCore`:  it'd land in the bundle's shared chunk, so every app would share it.
@@ -151,7 +153,10 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
 
 /** Props for `<SpellAppRunner>`. */
 export type SpellAppRunnerProps = {
-  /** What to run, and where its scope pack is -- from `<spell-app>`'s attributes.  See `SpellAppSource`. */
+  /**
+   * What to run, and where its scope pack is -- from `<spell-app>`'s attributes, or pushed by an editor.
+   * - Re-run when this is a NEW object -- see `SpellAppSource`.
+   */
   source: SpellAppSource
   /** Show the toolbar? */
   toolbar: boolean
@@ -169,14 +174,25 @@ export type SpellAppRunnerProps = {
   onControls?: (controls: SpellAppControls) => void
 }
 
-/** Where a `<spell-app>`'s program, and what's around it, come from -- worked out from its attributes. */
+/**
+ * Where a `<spell-app>`'s program, and what's around it, come from -- worked out from its attributes, or from
+ * code a `<spell-editor>` pushed to it.  See `pushedSource()`.
+ * - NOTE: `compiled` and `scopes` are in memory, the rest are URLs.  An in-memory one wins over its URL.
+ */
 export type SpellAppSource = {
   /** Name for the toolbar, e.g. `Solitaire`. */
   name: string
-  /** URL of its compiled javascript. */
+  /**
+   * URL of its compiled javascript.
+   * - NOT fetched while `compiled` is set.  Still required:  every source has one, as a project's is its server's.
+   */
   compiledUrl: string
+  /** Its compiled javascript, in memory -- run instead of fetching `compiledUrl`, e.g. what an editor compiled. */
+  compiled?: string
   /** URL of its scope pack, if it may have one. */
   scopesUrl?: string
+  /** Its scope pack, in memory -- used instead of loading `scopesUrl`, e.g. fresh from an editor. */
+  scopes?: LSP.ScopePack
   /** URL of the compiled javascript of project `projectId`, which it imports. */
   importUrl: (projectId: string) => string
   /** URL of spell file `uri`, e.g. `spell:/@system:examples:Solitaire/Card.spell` -- if its sources can be had. */
@@ -233,13 +249,14 @@ type SpellAppToolbarProps = {
 /**
  * Run `source`'s program afresh in runtime copy `copy`, drawing into `appRoot`:  fetched again, with each project
  * it imports.
+ * - NOTE: its own javascript is NOT fetched if it's in memory, `source.compiled` -- its imports still are.
  * - Answers how it went, and the compiled javascript it loaded, by project id -- the program's own under
  *   `MAIN_PROJECT` -- for the Type Explorer's "Compiled Output".
  */
 async function runProgram(copy: LoadedRuntime, source: SpellAppSource, appRoot: HTMLElement): Promise<Ran> {
   const compiled = new Map<string, string>()
   try {
-    const text = await fetchText(source.compiledUrl)
+    const text = source.compiled ?? (await fetchText(source.compiledUrl))
     compiled.set(MAIN_PROJECT, text)
     const error = await copy.runtime.runApp(text, {
       appRoot,
@@ -268,6 +285,7 @@ type Ran = {
 
 /**
  * The Type Explorer's data for `source`:  the built-ins' scope pack, then its own -- `undefined` if it has none.
+ * - Its own is `source.scopes` if that's set, else loaded from `source.scopesUrl`.
  * - Its `spell` from the sources, if `source` says where they are;  its `compiled` from what the last run
  *   loaded, in `compiledRef`.
  */
@@ -278,7 +296,7 @@ async function loadScopes(
 ): Promise<ScopesSource | undefined> {
   const [builtIns, pack] = await Promise.all([
     loadScopePack(builtInsUrl),
-    source.scopesUrl ? loadScopePack(source.scopesUrl) : undefined
+    source.scopes ?? (source.scopesUrl ? loadScopePack(source.scopesUrl) : undefined)
   ])
   if (!pack) return undefined
   const { sourceUrl } = source
@@ -286,6 +304,78 @@ async function loadScopes(
     loadSource: sourceUrl && ((uri) => fetchText(sourceUrl(uri))),
     loadCompiled: async (projectId) => compiledRef.current.get(projectId === pack.id ? MAIN_PROJECT : projectId)
   })
+}
+
+////////////////
+// ## Fed by an editor
+//  what a `<spell-app editor="<selector>">` decides -- here, NOT in `SpellAppElement`, so it's testable with no DOM.
+////////////////
+
+/**
+ * What a `<spell-app>` runs for `pushed`, code an editor compiled:  `base` -- its project's source, for its imports
+ * and sources -- with `pushed`'s javascript and scope pack in memory.
+ * - A NEW object, so `<SpellAppRunner>` re-runs it.
+ * - `name`, the app's `name` attribute, wins over `base`'s, if set.
+ */
+export function pushedSource(base: SpellAppSource, pushed: SpellCompiled, name?: string | null): SpellAppSource {
+  return {
+    ...base,
+    name: name || base.name,
+    compiled: pushed.compiled,
+    ...(pushed.scopes ? { scopes: pushed.scopes } : {})
+  }
+}
+
+/**
+ * Does changing `<spell-app>` attribute `attribute` from `old` to `value` drop the code an editor pushed to it?
+ * - Yes for what says what it runs, or which editor it's fed by:  see `DROPS_PUSHED_CODE`.
+ * - NOT `toolbar`, `debug`, `width`, `height`, `assets`:  they change how it looks, and NEVER re-run it.
+ * - NOTE: setting an attribute to the value it has is NOT a change.
+ */
+export function dropsPushedCode(attribute: string, old: string | null, value: string | null): boolean {
+  return old !== value && DROPS_PUSHED_CODE.includes(attribute)
+}
+
+/** `<spell-app>` attributes whose change drops the code an editor pushed to it -- see `dropsPushedCode()`. */
+const DROPS_PUSHED_CODE = ["project", "src", "scopes", "name", "editor"]
+
+/**
+ * Is `target`, what fired an event, an element `selector` matches -- e.g. a `<spell-app>`'s `editor`?
+ * - `false` if it's not an element, or `selector` isn't a CSS selector.
+ * - NOTE: duck-typed, NOT `instanceof Element`, which throws where there's no DOM.
+ */
+export function isEditor(target: unknown, selector: string): boolean {
+  const element = target as { matches?: unknown } | null
+  if (typeof element?.matches !== "function") return false
+  return orIfBadSelector(() => (target as Element).matches(selector), false)
+}
+
+/**
+ * What the editor `selector` finds in `root` compiled last -- its `compiled` property -- if anything.
+ * - `undefined` if there's no such editor, it hasn't compiled, or `selector` isn't a CSS selector.
+ */
+export function editorCompiled(root: EditorRoot, selector: string): SpellCompiled | undefined {
+  const editor = orIfBadSelector(() => root.querySelector(selector), null) as EditorElement | null
+  return editor?.compiled
+}
+
+/** Where a `<spell-app>` looks for its editor:  its root node, a document or a shadow root. */
+export type EditorRoot = { querySelector(selector: string): Element | null }
+
+/** A `<spell-editor>`, as far as a `<spell-app>` cares:  what it compiled last, if anything. */
+type EditorElement = { compiled?: SpellCompiled }
+
+/**
+ * `find()` -- else `fallback` if it threw because a selector isn't CSS, a `SyntaxError` `DOMException`.
+ * - Anything else it throws, it throws.
+ */
+function orIfBadSelector<T>(find: () => T, fallback: T): T {
+  try {
+    return find()
+  } catch (problem) {
+    if ((problem as { name?: unknown } | null)?.name === "SyntaxError") return fallback
+    throw problem
+  }
 }
 
 ////////////////

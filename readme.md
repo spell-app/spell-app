@@ -117,6 +117,34 @@ shadow root, so page and app styles don't mix.
   writes it, e.g. `yarn scopes --compile @examples/Solitaire`;  so does the VS Code extension, on each clean compile.
 - `src=` from another origin needs CORS on the compiled JS -- scope packs don't.
 
+### Edit spell in any page:  `<spell-editor>`
+
+`<spell-editor>` is a web component that edits a project from the spell server in Monaco -- the web app's editor,
+with hover, completion, go to definition and the rest -- and feeds `<spell-app>`s on the page what it compiles.
+
+```html
+<script type="module" src="/element/spell-app.js"></script>
+<script type="module" src="/element/spell-editor.js"></script>
+
+<!-- link from the editor's side:  a CSS selector for the app(s) it feeds -->
+<spell-editor project="@examples/Calculator" app="#calculator"></spell-editor>
+<spell-app id="calculator" project="@examples/Calculator" toolbar></spell-app>
+
+<!-- ...or from the app's side:  a CSS selector for its editor.  With no project, it waits for the editor. -->
+<spell-editor id="todos" project="@examples/Todos"></spell-editor>
+<spell-app editor="#todos" toolbar></spell-app>
+```
+
+- Edits SAVE to the project on the server:  each compile saves the files edited since, and Cmd+S saves.
+- Compiles as it opens, 2 seconds after typing stops, and on Cmd+Enter.  After each compile with no parse errors,
+  it fires `spell-compiled` (`detail`:  `{ projectId, compiled, scopes }`), keeps that as `el.compiled`, and apps
+  linked either way run it -- their Type Explorer following the edits.
+- Attributes:  `project`, `file` (to show first -- tabs show the rest), `app`, `width` / `height`, `assets`.
+  `el.compile()` and `el.save()` do what Cmd+Enter and Cmd+S do.
+- `yarn build:element` builds it beside `<spell-app>`, into `dist-element/`, with a demo at
+  `http://localhost:3001/demo/spell-editor.html` -- whose edits save to the examples.  Monaco (~4 MB) loads only
+  once there's a project to show:  the project compiles, and its apps run, before.
+
 ---
 
 ## To see server logs

@@ -14,7 +14,7 @@
     "scopes": "tsx src/lsp/scopes.ts",
     "build": "tsc && vite build",
     "build:runner": "vite build -c vite.runner.config.ts",
-    "build:element": "vite build -c vite.element.config.ts",
+    "build:element": "vite build -c vite.element.config.ts && vite build -c vite.editor.config.ts",
     "preview": "vite preview",
     "clean": "rm -rf ./.cache; rm -rf ./build",
     "/////// CORRECTNESS": "",

@@ -36,6 +36,13 @@ when working with code in this repository.
   - Its Thing Explorer reads the runtime copy's `spellCore.things` (`ThingRegistry`):  each `Thing`, and each
     instance of a `List` sub-class, registers itself as it's made;  the program's exports are its top-level things.
     `yarn scopes [--compile] <projectId...>` writes them;  so does the language server, after each clean compile.
+- `src/app/spellEditor/` is `<spell-editor>` (`SpellEditorElement`, `yarn build:element` => `spell-editor.js`, demo at
+  `/demo/spell-editor.html`):  the app's Monaco editor as a web component, editing a server project and feeding
+  `<spell-app>`s what it compiles (`SPELL_COMPILED_EVENT`, `SpellCompiled` in `runner.types.ts`).
+  - Its OWN build, `vite.editor.config.ts`, so Monaco's CSS stays out of `spell-app.css`.  Monaco is a lazy chunk:
+    the parser compiles, and apps run, before it loads.  Pinned by `element.build.test.ts`.
+  - Several on a page edit several projects:  each `SpellModels.use()`s its own, and listens with
+    `SpellMonaco.onEdit()` / `onOpen()` -- NOT the app's `editor`.  NEVER import `UI` or `LazyMonaco` there.
 - Styles are plain `.css`:  native nesting, custom properties (`spell.css`, `syntax.css`) -- no Less.
 
 ## How parsing works

@@ -62,3 +62,27 @@ export type ProjectSettings = {
 
 /** Tab of the runner's pane below the app:  the Type Explorer, the Thing Explorer, or the program's console output. */
 export type RunnerPaneId = "types" | "things" | "output"
+
+// ## Editors and apps
+//  how a `<spell-editor>` feeds `<spell-app>`s on the same page -- see `SpellEditorElement`, `SpellAppElement`.
+
+/**
+ * Event a `<spell-editor>` fires after each clean compile, with a `SpellCompiled` as its `detail`.
+ * - Bubbles, and is `composed`, so it's heard from outside a shadow root too.
+ * - A `<spell-app editor="<selector>">` listens for it -- see `SpellAppElement`.
+ */
+export const SPELL_COMPILED_EVENT = "spell-compiled"
+
+/**
+ * What a `<spell-editor>` compiled, for `<spell-app>`s to run -- see `SPELL_COMPILED_EVENT`.
+ * - A NEW object per compile:  an app runs each one once, however it hears of it -- its `editor` attribute AND the
+ *   editor's `app` attribute can both name it.
+ */
+export type SpellCompiled = {
+  /** Project compiled, e.g. `@system:examples:Solitaire` -- where its imports and sources come from. */
+  projectId: string
+  /** Its javascript, as `<Project>.compiled.js` holds it. */
+  compiled: string
+  /** Its scope pack, for the Type Explorer -- fresh, where the one on the server may be stale. */
+  scopes?: LSP.ScopePack
+}

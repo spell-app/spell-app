@@ -305,6 +305,8 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 - Used twice:  by VS Code over stdio, and IN-PROCESS by the app's Monaco editor (`src/app/ui/monaco/`), whose
   `SpellModels` keep one Monaco model per file in step with `file.contents` (edits go through `updateText()`),
   and whose `SpellLanguageFeatures` call the service and convert its answers with `LspToMonaco`.
+  - The app shows one project at a time;  `<spell-editor>`s on a page show one each, all in one Monaco -- each
+    `SpellModels.use()`s its project, so another's models don't replace them.
 - `SpellDiskWorkspace` is the stdio server's:  loads from disk via `LoadableFile.fetch` (above), maps a `.spell`
   file to its project (nearest `project.json`), parses the project on first sight, and reacts to disk changes.
   Node-only, so it's NOT in the `~/lsp` barrel, which MUST stay browser-safe (`src/lsp/barrel.test.ts`).

@@ -1,0 +1,103 @@
+/* The element itself:  a block with a default height, as Monaco fills whatever it's given. */
+:host {
+  display: block;
+  box-sizing: border-box;
+  height: 24em;
+  font-family: Lato, "Helvetica Neue", Arial, Helvetica, sans-serif;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.87);
+  background: white;
+  border: 1px solid rgba(34, 36, 38, 0.15);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+:host([hidden]) {
+  display: none;
+}
+
+/* What React draws into -- see `SpellEditorElement`. */
+.SpellEditorMount {
+  height: 100%;
+}
+
+/* Tabs, then the editor, then the status line -- the editor takes what's left. */
+.SpellEditor {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.SpellEditorTabs {
+  flex: 0 0 auto;
+  display: flex;
+  overflow-x: auto;
+  background: #f3f4f5;
+  border-bottom: 1px solid rgba(34, 36, 38, 0.15);
+
+  & button {
+    font: inherit;
+    font-size: 13px;
+    padding: 6px 12px;
+    border: none;
+    border-right: 1px solid rgba(34, 36, 38, 0.1);
+    background: transparent;
+    color: rgba(0, 0, 0, 0.6);
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+      color: rgba(0, 0, 0, 0.87);
+    }
+
+    &.active {
+      background: white;
+      color: rgba(0, 0, 0, 0.87);
+      margin-bottom: -1px;
+    }
+
+    /* edited since saved */
+    & .dirty::before {
+      content: "•";
+      margin-left: 4px;
+    }
+  }
+}
+
+.SpellEditorBody {
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+}
+
+.SpellEditorLoading {
+  padding: 12px;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.SpellEditorStatus {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 10px;
+  font-size: 12px;
+  background: #f3f4f5;
+  border-top: 1px solid rgba(34, 36, 38, 0.15);
+  color: rgba(0, 0, 0, 0.6);
+  white-space: nowrap;
+
+  & .message {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &.errors,
+  &.failed {
+    color: #9f3a38;
+  }
+
+  & .keys {
+    color: rgba(0, 0, 0, 0.4);
+  }
+}

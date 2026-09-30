@@ -15,6 +15,7 @@ import "./MonacoEditor.css"
  *   file loaded or reloaded, so undo can't go back past it.  It does NOT call `onChange`:  that's only for the
  *   user's own edits.
  * - `onMount` / `onUnmount` hand out the editor itself, e.g. to add commands or follow the cursor.
+ * - Works in a shadow root too, e.g. `<spell-editor>`'s -- see `keepMouseMovesInShadowRoot()`.
  ****************/
 export function MonacoEditor({
   model,
@@ -48,10 +49,12 @@ export function MonacoEditor({
     const listener = editor.onDidChangeModelContent(() => {
       if (!isApplyingValue.current) latestOnChange.current?.(editor.getValue())
     })
+    const stopKeepingMouseMoves = keepMouseMovesInShadowRoot(editor)
     setInstance(editor)
     onMount?.(editor, monaco)
     return () => {
       onUnmount?.(editor)
+      stopKeepingMouseMoves()
       listener.dispose()
       editor.dispose()
       ownModel?.dispose()
@@ -83,6 +86,26 @@ export function MonacoEditor({
   }, [instance, model, language])
 
   return <div ref={element} className="MonacoEditor" />
+}
+
+/**
+ * HACK:  if `editor` is in a shadow root, stop mouse moves over it there, so the page's `document` never hears of them.
+ * - Why:  Monaco listens for `mousemove` on `document` to see the mouse leave the editor -- see its `MouseHandler`.
+ *   Heard from `document`, a move inside a shadow root is the HOST's, NOT inside the editor, so Monaco decides
+ *   the mouse left on every move, and hides the hover before it shows.
+ * - Monaco's own listeners, inside the editor, still hear every move.  Moves elsewhere in the shadow root, or
+ *   out of it, still reach `document`, so leaving is still seen.
+ * - Returns what stops it.  Does nothing outside a shadow root.
+ */
+function keepMouseMovesInShadowRoot(editor: monaco.editor.IStandaloneCodeEditor): () => void {
+  const node = editor.getContainerDomNode()
+  const root = node.getRootNode()
+  if (!(root instanceof ShadowRoot)) return () => {}
+  const keep = (event: Event) => {
+    if (event.composedPath().includes(node)) event.stopPropagation()
+  }
+  root.addEventListener("mousemove", keep)
+  return () => root.removeEventListener("mousemove", keep)
 }
 
 /** Props for `<MonacoEditor>`. */
