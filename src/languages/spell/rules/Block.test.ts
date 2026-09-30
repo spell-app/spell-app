@@ -1,5 +1,6 @@
 import { describe, test, expect } from "vitest"
 
+import { P } from "~/parser"
 import { SP, spellParser } from "~/languages/spell"
 
 /** Docstrings `getDocComments()` finds in `text`, by the text of the statement each documents. */
@@ -48,54 +49,49 @@ describe("docstrings:  comments documenting a declaration", () => {
 describe("compiling docstrings and headings", () => {
   test("a docstring is one JSDoc comment above its declaration, instead of its `//` lines", () => {
     expect(compile("// a playing card\na card is a thing")).toEqual([
+      "/** a playing card */",
       "/*! SPELL: DECLARES {",
       '  type: "Card", superType: "Thing",',
-      "  line: 2,",
       "} */",
-      "/** a playing card */",
       "export class Card extends Thing {}"
     ])
     expect(
       compile("// a playing card\n// from a deck\na card is a thing // not part of it:  there's one above")
     ).toEqual([
-      "/*! SPELL: DECLARES {",
-      '  type: "Card", superType: "Thing",',
-      "  line: 3,",
-      "} */",
       "/**",
       " * a playing card",
       " * from a deck",
       " */",
+      "/*! SPELL: DECLARES {",
+      '  type: "Card", superType: "Thing",',
+      "} */",
       // not part of the docstring, so it stays a plain comment
       "// not part of it:  there's one above",
       "export class Card extends Thing {}"
     ])
   })
 
-  test("a statement's `/*! SPELL: DECLARES` comment goes ABOVE its docstring, which sits right on its code", () => {
-    const property = compile("a card is a thing\n\n// card ranks\ncards have a rank as one of ace or king")
-    const propertyDoc = property.indexOf("/** card ranks */")
-    // the comment closes right above the docstring
-    expect(property.slice(propertyDoc - 5, propertyDoc + 2)).toEqual([
-      "/*! SPELL: DECLARES {",
-      '  property: "rank", classVariable: "Ranks", rule: "enumeration", of: "Card",',
-      "  enumeration: [\"'ace'\", \"'king'\"],",
-      "  line: 4,",
-      "} */",
-      "/** card ranks */",
-      "spellCore.defineProperty(Card.prototype, {"
-    ])
-
+  test("a docstring goes ABOVE the statement's `/*! SPELL: DECLARES` comment, which sits right on its code", () => {
     const method = compile("// say hello\nto greet: print 1")
-    const methodDoc = method.indexOf("/** say hello */")
-    expect(method.slice(0, methodDoc + 2)).toEqual([
+    expect(method.slice(0, method.indexOf("export function greet() {") + 1)).toEqual([
+      "/** say hello */",
       "/*! SPELL: DECLARES {",
       '  syntax: "greet", output: "greet", rule: "method_call", alias: ["statement", "expression"],',
       '  kind: "function",',
-      "  line: 2,",
       "} */",
-      "/** say hello */",
       "export function greet() {"
+    ])
+
+    // in a class body too
+    const property = compile("a card is a thing\n\n// card ranks\ncards have a rank as one of ace or king")
+    const propertyDoc = property.indexOf("  /** card ranks */")
+    expect(property.slice(propertyDoc, propertyDoc + 6)).toEqual([
+      "  /** card ranks */",
+      "  /*! SPELL: DECLARES {",
+      '    property: "rank", classVariable: "Ranks", rule: "enumeration", of: "Card",',
+      "    enumeration: [\"'ace'\", \"'king'\"],",
+      "  } */",
+      "  static Ranks = ['ace', 'king']"
     ])
   })
 
@@ -104,11 +100,10 @@ describe("compiling docstrings and headings", () => {
       "///////////",
       "// ## Cards",
       "///////////",
+      "/** a playing card */",
       "/*! SPELL: DECLARES {",
       '  type: "Card", superType: "Thing",',
-      "  line: 3,",
       "} */",
-      "/** a playing card */",
       "export class Card extends Thing {}"
     ])
     // ...even when nothing is declared after it
@@ -124,5 +119,113 @@ describe("compiling docstrings and headings", () => {
   test("a comment that documents nothing compiles as it was", () => {
     expect(compile("// just printing\nprint 1")).toEqual(["// just printing", "spellCore.console.log(1)"])
     expect(compile("## Cards\n\nprint 1")).toEqual(["//## Cards", "", "spellCore.console.log(1)"])
+  })
+})
+
+describe("class members go in their class's body", () => {
+  /** `text` compiled as a block, without its `SPELL: DECLARES` comments, as lines. */
+  function code(text: string): string[] {
+    return SP.SpellDeclarations.stripComments(compile(text).join("\n")).split("\n")
+  }
+
+  test("each member, a blank line between -- from below other code, which stays where it was", () => {
+    const text = [
+      "a task is a thing",
+      "a task has a title as text",
+      "",
+      "task = a new task",
+      "print task",
+      "",
+      "// draw it",
+      "to draw (a task): print 1",
+      "",
+      "print 2"
+    ]
+    expect(code(text.join("\n"))).toEqual([
+      "export class Task extends Thing {",
+      "  get title() { return this.getProp('title') }",
+      "  set title(value) { this.setProp('title', value, { type: 'text' }) }",
+      "",
+      "  /** draw it */",
+      "  draw() {",
+      "    return spellCore.console.log(1)",
+      "  }",
+      "}",
+      "",
+      "export let task = new Task()",
+      "spellCore.console.log(task)",
+      "",
+      "spellCore.console.log(2)"
+    ])
+  })
+
+  test("a member declared ABOVE its class", () => {
+    expect(code("cards have a rank as text\na card is a thing")).toEqual([
+      "export class Card extends Thing {",
+      "  get rank() { return this.getProp('rank') }",
+      "  set rank(value) { this.setProp('rank', value, { type: 'text' }) }",
+      "}"
+    ])
+  })
+
+  test("comments directly above a member go with it, e.g. a banner", () => {
+    const text = ["a card is a thing", "", "## Properties", "// of cards", "", "cards have a rank as text", "", "print 1"]
+    expect(code(text.join("\n"))).toEqual([
+      "export class Card extends Thing {",
+      "  ////////////////",
+      "  // ## Properties",
+      "  ////////////////",
+      "  // of cards",
+      "",
+      "  get rank() { return this.getProp('rank') }",
+      "  set rank(value) { this.setProp('rank', value, { type: 'text' }) }",
+      "}",
+      "",
+      "spellCore.console.log(1)"
+    ])
+  })
+
+  test("a subclass's property overrides its parent's getter, each in its own class", () => {
+    const text = [
+      "a card is a thing",
+      "the color of a card is its suit",
+      "a joker is a card",
+      "jokers have a color as either red or black"
+    ]
+    expect(code(text.join("\n"))).toEqual([
+      "export class Card extends Thing {",
+      "  get color() {",
+      "    return this.suit",
+      "  }",
+      "}",
+      "export class Joker extends Card {",
+      "  static Colors = ['red', 'black']",
+      "  get color() { return this.getProp('color') }",
+      "  set color(value) { this.setProp('color', value, { oneOf: Joker.Colors }) }",
+      "}"
+    ])
+  })
+
+  test("across a project's files -- without changing either file's own AST", () => {
+    const scope = spellParser.getScope("hoist-across-files")
+    const cardFile = scope.parse("a card is a thing\nprint 1", "block")!
+    const pileFile = scope.parse("a pile is a list of cards\nto flip (a card): print 2\nprint 3", "block")!
+    const [cardAST, pileAST] = [cardFile.AST, pileFile.AST] as P.ASTStatementGroup[]
+    const cardBefore = cardAST.compile()
+    const combined = SP.SpellDeclarations.stripComments(SP.SpellProject.combineCompiled([cardAST, pileAST]))
+    expect(combined.split("\n")).toEqual([
+      "export class Card extends Thing {",
+      "  flip() {",
+      "    return spellCore.console.log(2)",
+      "  }",
+      "}",
+      "spellCore.console.log(1)",
+      "// -----------",
+      "export class Pile extends List {",
+      "  static instanceType = Card",
+      "}",
+      "spellCore.console.log(3)"
+    ])
+    expect(cardAST.compile()).toBe(cardBefore)
   })
 })

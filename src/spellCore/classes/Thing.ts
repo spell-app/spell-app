@@ -4,7 +4,9 @@
 import React from "react"
 
 import { Observable, view } from "~/util"
+import { spellCore } from "~/spellCore/core"
 import { Eventful } from "~/spellCore/SpellEvent"
+import type { PropCheck } from "~/spellCore/spellCore.types"
 
 /**
  * `Thing`: base for all object-like things in spell -- what `a task is a thing` extends.
@@ -29,6 +31,16 @@ export class Thing extends Eventful(Observable) {
 
   /** Called automatically at end of `thing` constructor -- override in a subclass to set up initial state. */
   create(): void {}
+
+  /**
+   * Set reactive `property` to `value`, warning first if it fails `check` -- it's stored either way.
+   * - Compiled property setters call this, e.g. `set title(value) { this.setProp('title', value, { type: 'text' }) }`
+   * - Same as `List.setProp()`.
+   */
+  protected setProp<T>(property: string, value: T, check?: PropCheck) {
+    if (check) spellCore.checkProp(property, value, check)
+    return super.setProp(property, value)
+  }
 
   /** Default `type` to the name of our constructor.  Instances can override via the setter. */
   get type(): string {

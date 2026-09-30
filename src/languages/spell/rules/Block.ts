@@ -84,14 +84,16 @@ export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
    * Build `P.ASTStatementBlock` (wrapped in `{}`) if `match.enclose`, else a plain `P.ASTStatementGroup`.
    * - A declaration's docstring (see `getDocComments()`) compiles as ONE `/** ... *\/` just above it,
    *   instead of its `//` lines.
-   * - A statement which declares something gets its `/*! SPELL: DECLARES {...} *\/` comment first, ABOVE any
-   *   docstring -- see `SP.SpellDeclarations.commentFor()`.
+   * - A statement which declares something gets its `/*! SPELL: DECLARES {...} *\/` comment BELOW any
+   *   docstring, right on its code -- see `SP.SpellDeclarations.commentFor()`.
+   * - A declaring line's docstring, comment and code are ONE `P.ASTStatementGroup`, so they move together:
+   *   each class member moves into its class's body, if that's in this block -- see `SP.hoistClassMembers()`.
    * - A `##` heading followed by a regular comment compiles as a banner -- see `P.ASTBannerComment`.
    */
   getAST(match: P.MatchFor<this>): P.ASTStatementBlock | P.ASTStatementGroup {
     const docs = this.getDocComments(match)
     const docComments = new Set([...docs.values()].flatMap((doc) => doc.comments))
-    const statements: Array<P.ASTStatement | P.ASTExpression | P.ASTComment | P.ASTBlankLine> = []
+    const statements: SP.HoistableStatement[] = []
     match.matched.forEach((item, index) => {
       // `Block.parse()` only ever pushes `Match`es onto `matched`, each a `line` / nested `block` whose rule
       // returns a statement-shaped node -- not statically representable.
@@ -107,21 +109,24 @@ export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
         // a comment-only line that's part of a docstring compiles with its statement, below
         const comment = this.commentOnlyLine(item)
         if (comment && docComments.has(comment)) return
-        if (declarations) statements.push(declarations)
-        statements.push(item.AST as P.ASTStatement)
+        if (!declarations) statements.push(item.AST as P.ASTStatement)
+        else if (item.AST) statements.push(new P.ASTStatementGroup(item, { statements: [declarations, item.AST] }))
+        else statements.push(declarations)
         return
       }
-      // what it declares first, then the docstring right on top of the code it documents
-      if (declarations) statements.push(declarations)
-      statements.push(new P.ASTDocComment(item, { lines: doc.lines }))
+      // docstring first, then what it declares right on top of its code
+      const declaring: SP.HoistableStatement[] = [new P.ASTDocComment(item, { lines: doc.lines })]
+      if (declarations) declaring.push(declarations)
       // the line, without a docstring comment at its end
       for (const it of item.matched) {
         if (!(it instanceof P.Match) || docComments.has(it)) continue
-        if (it.AST) statements.push(it.AST as P.ASTStatement)
+        if (it.AST) declaring.push(it.AST as P.ASTStatement)
       }
+      statements.push(new P.ASTStatementGroup(item, { statements: declaring }))
     })
-    if (match.data.enclose) return new P.ASTStatementBlock(match, { statements })
-    return new P.ASTStatementGroup(match, { statements })
+    const [hoisted] = SP.hoistClassMembers([statements])
+    if (match.data.enclose) return new P.ASTStatementBlock(match, { statements: hoisted })
+    return new P.ASTStatementGroup(match, { statements: hoisted })
   }
 
   ////////////////

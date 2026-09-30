@@ -13,8 +13,11 @@ import type { ASTNode } from "./AST"
 // TODO: move to `parser.types.ts` ?
 /** Draw a single space. */
 export const SPACE = " "
-/** Draw a single indent (tab) -- combined with `NEWLINE` below to build `INDENTED_NEWLINE`. */
-export const INDENT = "\t"
+/**
+ * Draw a single indent -- 2 spaces, NEVER a tab:  compiled spell should read as hand-written javascript.
+ * - Combined with `NEWLINE` below to build `INDENTED_NEWLINE`.
+ */
+export const INDENT = "  "
 /** Draw a newline as a list delimiter. */
 export const NEWLINE = "\n"
 /** Draw a newline followed by an indent -- delimiter for wrapped/indented lists. */
@@ -69,7 +72,7 @@ export const RIGHT_PAREN = ")"
 export const EMPTY_PARENS = `${LEFT_PAREN}${RIGHT_PAREN}`
 /**
  * Surround `children` in parens.
- * - `wrap`: newline-delimited, and indents every line of `children` by one tab.
+ * - `wrap`: newline-delimited, and indents every line of `children` by one `INDENT`.
  * - `space`: single-space delimiter instead -- ignored if `wrap`.
  * - Returns `EMPTY_PARENS` if `children` is `null`/empty string, so callers of e.g. `Args`
  *   don't need to special-case a zero-arg call.
@@ -85,7 +88,7 @@ export const InParens = ({
 }): string => {
   if (children == null || children === "") return EMPTY_PARENS
   const delimiter = (wrap && NEWLINE) || (space && SPACE) || ""
-  if (wrap) children = `${children.split("\n").join("\n\t")}`
+  if (wrap) children = children.split(NEWLINE).join(INDENTED_NEWLINE)
   return `${LEFT_PAREN}${delimiter}${children}${delimiter}${RIGHT_PAREN}`
 }
 
@@ -93,7 +96,7 @@ export const InParens = ({
  * Draw list of function `args`, comma-delimited and wrapped in parens.
  * - Defaults to `wrap: true` once there are more than 3 args.
  * - When wrapped and the joined args themselves span multiple lines, indents the whole
- *   list by one more tab (nested wrapped content, e.g. a wrapped object literal arg).
+ *   list by one more `INDENT` (nested wrapped content, e.g. a wrapped object literal arg).
  */
 export const Args = ({
   args,
@@ -105,7 +108,7 @@ export const Args = ({
   if (!args || args.length === 0) return EMPTY_PARENS
   const delimiter = wrap ? INDENTED_COMMA : SPACED_COMMA
   let children = List({ items: args, delimiter })
-  if (wrap && children.includes("\n")) children = `\t${children}`
+  if (wrap && children.includes(NEWLINE)) children = `${INDENT}${children}`
   return InParens({ wrap, children })
 }
 
@@ -154,7 +157,7 @@ export const RIGHT_CURLY = "}"
 export const EMPTY_BLOCK = `${LEFT_CURLY}${RIGHT_CURLY}`
 /**
  * Surround `children` in curly brackets.
- * - `wrap`: newline-delimited, and indents every line of `children` by one tab.
+ * - `wrap`: newline-delimited, and indents every line of `children` by one `INDENT`.
  * - `space`: single-space delimiter instead -- ignored if `wrap`.
  * - Returns `EMPTY_BLOCK` if `children` is `null`/empty string.
  */
@@ -169,7 +172,7 @@ export const InCurlies = ({
 }): string => {
   if (children == null || children === "") return EMPTY_BLOCK
   const delimiter = (wrap && NEWLINE) || (space && SPACE) || ""
-  if (wrap) children = `\t${children.split("\n").join("\n\t")}`
+  if (wrap) children = `${INDENT}${children.split(NEWLINE).join(INDENTED_NEWLINE)}`
   return `${LEFT_CURLY}${delimiter}${children}${delimiter}${RIGHT_CURLY}`
 }
 
@@ -202,7 +205,7 @@ export const RIGHT_SQUARE_BRACKET = "]"
 export const EMPTY_ARRAY = `${LEFT_SQUARE_BRACKET}${RIGHT_SQUARE_BRACKET}`
 /**
  * Surround `children` in square brackets.
- * - `wrap`: newline-delimited, and indents every line of `children` by one tab.
+ * - `wrap`: newline-delimited, and indents every line of `children` by one `INDENT`.
  * - `space`: single-space delimiter instead -- ignored if `wrap`.
  * - Returns `EMPTY_ARRAY` if `children` is `null`/empty string.
  */
@@ -217,7 +220,7 @@ export const InSquareBrackets = ({
 }): string => {
   if (children == null || children === "") return EMPTY_ARRAY
   const delimiter = (wrap && NEWLINE) || (space && SPACE) || ""
-  if (wrap) children = `\t${children.split("\n").join("\n\t")}`
+  if (wrap) children = `${INDENT}${children.split(NEWLINE).join(INDENTED_NEWLINE)}`
   return `${LEFT_SQUARE_BRACKET}${delimiter}${children}${delimiter}${RIGHT_SQUARE_BRACKET}`
 }
 

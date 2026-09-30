@@ -84,16 +84,20 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   card NOT to be the ace of clubs -- which it is, by chance, 1 time in 52.  So the test fails at random, ~2% of
   runs.  Probably wants "the deck isn't in its original order" instead.  Found 2026-09-28.
 
-- `projects/system/examples/Solitaire-import` can't run:  `TypeError: Cannot redefine property: play`.  It imports
-  the WHOLE `@system:examples:Solitaire` project compiled, whose `Solitaire.spell` already does
-  `spellCore.define(Card.prototype, 'play', ...)` -- non-configurable -- then its own `Solitaire.spell` defines
-  `play` on the same `Card` again.  Seen 2026-09-29 in `<spell-app>`, whose import linking loads the same modules
-  the app's import map does -- and CONFIRMED in the app too, 2026-09-29:  `/run/examples/Solitaire-import` fails the same way.  Likely fix:  import `@library/cards`,
-  which holds just the cards, rather than the whole game;  or have `spellCore.define()` make methods
-  `configurable`, if redefining is meant to work.  Also, importing a whole APP project runs its top-level code --
-  e.g. starting its game -- which an import probably shouldn't.
+- `projects/system/examples/Solitaire-import` imports the WHOLE `@system:examples:Solitaire` project compiled,
+  so importing it runs Solitaire's top-level code -- its tests, `reset_the_game()`, `game.start()` -- which an
+  import probably shouldn't.  Likely fix:  import `@library/cards`, which holds just the cards.
   DECIDED 2026-09-29:  fix the cause -- importing an app project must never run its app.  Planned as the
   `<spell-app>` plan's last phase.
+  - FIXED 2026-09-29:  it used to fail outright, `TypeError: Cannot redefine property: play`, as Solitaire's
+    `spellCore.define(Card.prototype, 'play', ...)` was non-configurable.  Methods are class methods now --
+    writable -- and Solitaire-import's `Card.prototype.play = function ...` replaces Solitaire's.
+
+- A full `vitest run` writes into the FROZEN fixture `projects/test/Solitaire/`:  it rewrites
+  `Solitaire.compiled.js` and leaves an untracked `Solitaire.scopes.js`, both stamped mid-run.  Some test compiles
+  `@test:fixtures:Solitaire` as a real `SpellProject`, which saves its output -- and the language server writes a
+  scope pack after a clean compile.  Harmless while the output matches, but a test shouldn't touch fixtures.
+  Found 2026-09-29.
 
 ## 2. Server robustness / security
 

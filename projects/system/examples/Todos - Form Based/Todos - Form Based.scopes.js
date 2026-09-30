@@ -1,0 +1,85 @@
+/*! SPELL: SCOPES @system:examples:Todos - Form Based */
+;(globalThis.SPELL_SCOPES ??= {})[document.currentScript.src] = {
+  id: "@system:examples:Todos - Form Based",
+  entries: [
+    { path: "project:Todos - Form Based" },
+    {
+      path: "project:Todos - Form Based/file:todo.spell",
+      uri: "spell:/@system:examples:Todos%20-%20Form%20Based/todo.spell"
+    },
+    {
+      path: "project:Todos - Form Based/file:todo.spell/type:Task", line: 2,
+      super: "type:Thing",
+      description: "## Todo app example"
+    },
+    {
+      path: "project:Todos - Form Based/file:todo.spell/type:Task/property:completed", line: 4,
+      detail: "choice"
+    },
+    {
+      path: "project:Todos - Form Based/file:todo.spell/type:Task/property:title", line: 3,
+      detail: "text"
+    },
+    {
+      path: "project:Todos - Form Based/file:todo.spell/type:Task/method:is active", line: 6,
+      rules: [
+        { name: "is_active", syntax: "{operator:is} active" }
+      ]
+    },
+    {
+      path: "project:Todos - Form Based/file:todo.spell/type:Task/method:is complete", line: 5,
+      rules: [
+        { name: "is_complete", syntax: "{operator:is} complete" }
+      ]
+    },
+    {
+      path: "project:Todos - Form Based/file:todo.spell/type:Todos_App", line: 8,
+      super: "type:App"
+    },
+    {
+      path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/property:filter", line: 11,
+      rules: [
+        { name: "Todos_App_Filters", syntax: "(Todos_App|todos_app) (Filters|filters)" }
+      ]
+    },
+    { path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/property:newTaskName", line: 10 },
+    { path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/property:tasks", line: 9 },
+    {
+      path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/method:draw (a todos-app)", line: [29, 60],
+      rules: [
+        { name: "draw", syntax: "draw {thisArg:expression}" }
+      ]
+    },
+    {
+      path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/enumeration:Filters", line: 11,
+      rules: [
+        { name: "Todos_App_Filters", syntax: "(Todos_App|todos_app) (Filters|filters)" }
+      ]
+    },
+    {
+      path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/constant:all", line: 11,
+      rules: [
+        { name: "Todos_App_Filters", syntax: "(Todos_App|todos_app) (Filters|filters)" }
+      ]
+    },
+    {
+      path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/constant:active", line: 11,
+      rules: [
+        { name: "Todos_App_Filters", syntax: "(Todos_App|todos_app) (Filters|filters)" }
+      ]
+    },
+    {
+      path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/constant:completed", line: 11,
+      rules: [
+        { name: "Todos_App_Filters", syntax: "(Todos_App|todos_app) (Filters|filters)" }
+      ]
+    },
+    { path: "project:Todos - Form Based/file:todo.spell/variable:app", line: 13 },
+    {
+      path: "project:Todos - Form Based/file:todo.spell/function:create a task (with title as text, completed as a choice)", line: [17, 23],
+      rules: [
+        { name: "create_a_task", syntax: "create a task (with {props:object_literal_properties})?" }
+      ]
+    }
+  ]
+}

@@ -388,17 +388,68 @@ export const SCOPE_PACK_GLOBAL = "SPELL_SCOPES"
 /**
  * `pack` as a classic script, as `<Project>.scopes.js` holds it -- NOT JSON, so a `<script src>` can load it from
  * anywhere, with no CORS.
- * - Indented 2 spaces a level, so diffs of a committed pack are readable.
+ * - A javascript literal, laid out so a committed pack's diffs are readable -- see `packEntryLiteral()`:
+ *   ```
+ *   {
+ *     path: "project:Solitaire/file:Solitaire.spell/function:debug the game", line: [72, 74],
+ *     rules: [
+ *       { name: "debug_the_game", syntax: "debug the game" }
+ *     ]
+ *   },
+ *   ```
  * - SIDE EFFECT when it runs:  sets `globalThis[SCOPE_PACK_GLOBAL][<its own URL>]` to the pack, for whoever
  *   loaded it to pick up -- and delete.
  */
 export function scopePackScript(pack: ScopePack): string {
-  // `line` pairs on one line, e.g. `[7, 9]`, NOT four
-  const json = JSON.stringify(pack, null, 2).replace(/\[\s+(\d+),\s+(\d+)\s+\]/g, "[$1, $2]")
+  const { entries, ...rest } = pack
+  const lines = [
+    "{",
+    ...Object.entries(rest).map(([key, value]) => `  ${key}: ${packValue(value)},`),
+    "  entries: [",
+    entries.map((entry) => indentPackLines(packEntryLiteral(entry), "    ")).join(",\n"),
+    "  ]",
+    "}"
+  ]
   return (
     `/*! SPELL: SCOPES ${pack.id} */\n` +
-    `;(globalThis.${SCOPE_PACK_GLOBAL} ??= {})[document.currentScript.src] = ${json}\n`
+    `;(globalThis.${SCOPE_PACK_GLOBAL} ??= {})[document.currentScript.src] = ${lines.join("\n")}\n`
   )
+}
+
+/**
+ * One pack entry as a javascript literal, keys unquoted:
+ * - `path` and `line` first, on ONE line -- where it is
+ * - then each other key on a line of its own, and each of its `rules` too
+ * - just `{ path, line }` on one line, when that's all it has
+ */
+function packEntryLiteral(entry: ScopeEntry): string {
+  const { path, line, rules, ...rest } = entry
+  const where = [`path: ${packValue(path)}`, ...(line === undefined ? [] : [`line: ${packValue(line)}`])].join(", ")
+  const others = Object.entries(rest).filter(([, value]) => value !== undefined)
+  if (!others.length && !rules?.length) return `{ ${where} }`
+  const lines = [`  ${where},`, ...others.map(([key, value]) => `  ${key}: ${packValue(value)},`)]
+  if (rules?.length) {
+    const each = rules.map(({ name, syntax }) => `    { name: ${packValue(name)}, syntax: ${packValue(syntax)} }`)
+    lines.push("  rules: [", each.join(",\n"), "  ]")
+  } else {
+    // no trailing comma after the last key
+    lines[lines.length - 1] = lines.at(-1)!.replace(/,$/, "")
+  }
+  return ["{", ...lines, "}"].join("\n")
+}
+
+/** A pack's scalar or `ScopeLine` value as javascript, e.g. `"Card"`, `7` or `[7, 9]`. */
+function packValue(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(packValue).join(", ")}]`
+  return JSON.stringify(value)
+}
+
+/** Each line of `text` indented by `indent`. */
+function indentPackLines(text: string, indent: string): string {
+  return text
+    .split("\n")
+    .map((line) => indent + line)
+    .join("\n")
 }
 
 /**

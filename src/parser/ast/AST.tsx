@@ -1445,6 +1445,32 @@ export class ASTMethodDefinition extends ASTExpression {
     const export_ = this.exported ? "export " : ""
     return `${export_}${async}function ${methodName}${args} ${body}${error}`
   }
+  /**
+   * Compile as method shorthand under `name`, whatever our own `methodName`, e.g. in a class body.
+   * - `name` is ready to print:  quoted if need be, and may lead with `get `, e.g. `get title` => `get title() {...}`.
+   */
+  compileNamed(name: string): string {
+    const async = this.isAsync ? "async " : ""
+    const error = this.error ? ` ${this.error.compile()}` : ""
+    return `${async}${name}${stringify.Args({ args: this.args })} ${this.body.compile()}${error}`
+  }
+  /** Compile as an anonymous `function (args) {...}` -- NOT an arrow, so `this` is whatever it's called on. */
+  compileAnonymous(): string {
+    const async = this.isAsync ? "async " : ""
+    const error = this.error ? ` ${this.error.compile()}` : ""
+    return `${async}function ${stringify.Args({ args: this.args })} ${this.body.compile()}${error}`
+  }
+  /** Draw as method shorthand under `name` -- see `compileNamed()`. */
+  renderNamed(name: ReactNode): ReactNode {
+    const async = this.isAsync && render.ASYNC
+    const methodName = <span className="method-name">{name}</span>
+    return render.Fragment(async, methodName, <render.Args args={this.args} />, render.SPACE, this.body.component, this.renderError())
+  }
+  /** Draw as an anonymous `function (args) {...}` -- see `compileAnonymous()`. */
+  renderAnonymous(): ReactNode {
+    const async = this.isAsync && render.ASYNC
+    return render.Fragment(async, render.FUNCTION, <render.Args args={this.args} />, render.SPACE, this.body.component, this.renderError())
+  }
   /** Render `error` (if any) prefixed with a space -- `null` when there's no error. */
   renderError(): ReactNode {
     if (!this.error) return null
@@ -1925,29 +1951,57 @@ export class ASTReturnStatement extends ASTStatement {
 // ## Classes & instances
 ////////////////
 
-/** ClassDeclaration -- empty `export class Type extends SuperType {}` stub.
+/** ClassDeclaration -- `export class Type extends SuperType { ...members }`.
  *  - `type` is a TypeExpression.
  *  - `superType` (optional) is a TypeExpression.
- *
- *    NOTE: doc previously also listed an `instanceType` prop "for lists of a certain type" -- no such
- *    prop exists on `ASTClassDeclarationProps`; removed here since it didn't match the code.
+ *  - `members` (optional) are what goes in its body:  `ASTClassMember`s, each with the comments above it,
+ *    and blank lines between.  None => `{}`.
+ *  - A rule declaring a class makes it with just the members IT declares, e.g. `static instanceType = Card`
+ *    -- `SP.hoistClassMembers()` gathers the rest into a NEW declaration, never this one.
  */
-export type ASTClassDeclarationProps = Prettify<{ type: ASTTypeExpression; superType?: ASTTypeExpression }>
+export type ASTClassDeclarationProps = Prettify<{
+  type: ASTTypeExpression
+  superType?: ASTTypeExpression
+  members?: Array<ASTClassMember | ASTComment | ASTBlankLine>
+}>
 
 export class ASTClassDeclaration extends ASTStatement {
   declare type: ASTTypeExpression
   declare superType: ASTTypeExpression | undefined
+  declare members: Array<ASTClassMember | ASTComment | ASTBlankLine> | undefined
   constructor(match: P.AnyMatch, props: ASTClassDeclarationProps) {
     super(match, props)
     this.assertType("type", ASTTypeExpression)
     this.assertType("superType", ASTTypeExpression, OPTIONAL)
+    this.assertArrayType("members", [ASTClassMember, ASTComment, ASTBlankLine], OPTIONAL)
   }
+  /** Same class, with `members` added after its own -- see `SP.hoistClassMembers()`. */
+  withMembers(members: Array<ASTClassMember | ASTComment | ASTBlankLine>): ASTClassDeclaration {
+    const { match, type, superType } = this
+    return new ASTClassDeclaration(match, { type, superType, members: [...(this.members ?? []), ...members] })
+  }
+  /** NOTE: indents its members' non-blank lines only -- `stringify.Block()` would leave a tab on blank ones. */
   compile(): string {
-    const { type, superType } = this
+    const { type, superType, members } = this
     const superDeclarator = superType ? `extends ${superType.name} ` : ""
-    return `export class ${type.name} ${superDeclarator}{}`
+    const declaration = `export class ${type.name} ${superDeclarator}`
+    if (!members?.length) return `${declaration}${stringify.EMPTY_BLOCK}`
+    const body = members
+      .map((member) => (member instanceof ASTClassMember ? member.compileAsMember() : member.compile()))
+      .join(stringify.NEWLINE)
+      .split(stringify.NEWLINE)
+      .map((line) => (line ? `${stringify.INDENT}${line}` : line))
+      .join(stringify.NEWLINE)
+    return `${declaration}${stringify.LEFT_CURLY}${stringify.NEWLINE}${body}${stringify.NEWLINE}${stringify.RIGHT_CURLY}`
   }
   renderChildren(): ReactNode {
+    const members = this.members?.length ? (
+      <render.Block wrap>
+        <render.List items={this.members} delimiter={render.INDENTED_NEWLINE} DrawItem={ClassMemberItem} />
+      </render.Block>
+    ) : (
+      render.EMPTY_BLOCK
+    )
     return render.Fragment(
       render.EXPORT,
       render.CLASS,
@@ -1955,9 +2009,15 @@ export class ASTClassDeclaration extends ASTStatement {
       !!this.superType && render.EXTENDS,
       !!this.superType && <span className="superType">{this.superType.component}</span>,
       render.SPACE,
-      render.EMPTY_BLOCK
+      members
     )
   }
+}
+
+/** Draws one of `ASTClassDeclaration.members`:  a member as it looks in a class body, else as is. */
+function ClassMemberItem({ item }: { item?: ASTNode | null; index: number }): ReactNode {
+  if (item instanceof ASTClassMember) return item.memberComponent
+  return item?.component ?? null
 }
 
 /** NewInstanceExpression -- `new Type(props)`.
@@ -2011,76 +2071,223 @@ export class ASTListExpression extends ASTExpression {
 }
 
 ////////////////
-// ## Property definition
+// ## Class members
 ////////////////
 
 /**
- * PropertyDefinition: `spellCore.define(thing, property, {...})`.
- * - `thing` (required) is an Expression.
- * - `property` (required) is PropertyLiteral or string.
- * - `value` (optional) is an Expression.
- * - `initializer` (optional) is an initializer MethodDefinition.
- * - `get` (optional) is a MethodDefinition for property `getter`.
- * - `set` (optional) is a MethodDefinition for `setter` (which should specify `arg`).
+ * ClassMember -- something a class declares:  a method, a getter, a property or a static.
+ * - Compiles two ways:
+ *   - `compileAsMember()`:  in its class's body, e.g. `get title() {...}` -- see `ASTClassDeclaration.members`
+ *   - `compile()`:  patched onto its class from outside, e.g. `Card.prototype.play = function () {...}` --
+ *     when its class isn't compiled with it, e.g. it's from another project, or a rule test compiles it alone
+ * - `typeName` is its class, so `SP.hoistClassMembers()` can move it into that class's body.
+ */
+export abstract class ASTClassMember extends ASTStatement {
+  declare type: ASTTypeExpression
+  /** Normalizes a bare `string` `type` to a `TypeExpression`, e.g. `"Card"`. */
+  constructor(match: P.AnyMatch, props: { type: string | ASTTypeExpression }) {
+    super(match, props)
+    if (typeof this.type === "string") this.type = new ASTTypeExpression(match, { name: this.type })
+    this.assertType("type", ASTTypeExpression)
+  }
+  /** Name of the class it's a member of, e.g. `Card`. */
+  get typeName(): string {
+    return this.type.name
+  }
+  /** `Card.prototype`, for patching onto its class from outside. */
+  get prototypeExpression(): ASTPrototypeExpression {
+    return new ASTPrototypeExpression(this.match, { type: this.type })
+  }
+  /** JS for it in its class's body, e.g. `get title() {...}`. */
+  abstract compileAsMember(): string
+  /** Draws it in its class's body -- see `compileAsMember()`. */
+  abstract renderAsMember(): ReactNode
+  /** Component for `renderAsMember()`, as `component` is for `renderChildren()`. */
+  /*@memoize*/
+  get memberComponent(): ReactElement {
+    return this.derived("memberComponent", () => (
+      <span className={`${this.className} as-member`}>{this.renderAsMember()}</span>
+    ))
+  }
+}
+
+/**
+ * PropertyDefinition -- a method or computed getter on instances of `type`.
+ * - `type` (required) is its class, as a TypeExpression or bare name.
+ * - `property` (required) is PropertyLiteral or string -- quoted in output if it isn't a legal identifier.
+ * - EXACTLY one of:
+ *   - `method` is a MethodDefinition:  `name(args) {...}` / `Type.prototype.name = function (args) {...}`
+ *   - `get` is a MethodDefinition for a getter:  `get name() {...}` / `Object.defineProperty(...)`
+ * - NOTE: never touches `method`'s own `methodName` -- it's compiled under `property` here.
  */
 export type ASTPropertyDefinitionProps = Prettify<{
-  thing: ASTExpression
+  type: string | ASTTypeExpression
   property: string | ASTPropertyLiteral
-  value?: ASTExpression
-  initializer?: ASTMethodDefinition
+  method?: ASTMethodDefinition
   get?: ASTMethodDefinition
-  set?: ASTMethodDefinition
 }>
 
-export class ASTPropertyDefinition extends ASTStatement {
-  declare thing: ASTExpression
+export class ASTPropertyDefinition extends ASTClassMember {
   declare property: ASTPropertyLiteral
-  declare value: ASTExpression | undefined
-  declare initializer: ASTMethodDefinition | undefined
+  declare method: ASTMethodDefinition | undefined
   declare get: ASTMethodDefinition | undefined
-  declare set: ASTMethodDefinition | undefined
   constructor(match: P.AnyMatch, props: ASTPropertyDefinitionProps) {
     super(match, props)
-    this.assertType("thing", ASTExpression)
     if (typeof this.property === "string") this.property = new ASTPropertyLiteral(this.match, this.property)
     this.assertType("property", ASTPropertyLiteral)
-    this.assertType("value", ASTExpression, OPTIONAL)
-    this.assertType("initializer", ASTMethodDefinition, OPTIONAL)
+    this.assertType("method", ASTMethodDefinition, OPTIONAL)
     this.assertType("get", ASTMethodDefinition, OPTIONAL)
-    this.assertType("set", ASTMethodDefinition, OPTIONAL)
+    this.assert(!this.method !== !this.get, "ASTPropertyDefinition: pass exactly one of `method` or `get`", props)
+  }
+  /** `name(args) {...}` or `get name() {...}`. */
+  compileAsMember(): string {
+    const name = this.property.compile()
+    if (this.get) return this.get.compileNamed(`get ${name}`)
+    return this.method!.compileNamed(name)
   }
   /**
-   * Builds -- and memoizes -- the `ASTCoreMethodInvocation` (`spellCore.define(thing, 'property', {...})`)
-   * that `compile()`/`renderChildren()` delegate to.
-   * - Descriptor object literal only gets `value`/`initializer`/`get`/`set` keys that were actually passed.
+   * `Type.prototype.name = function (args) {...}`, or for a getter
+   * `Object.defineProperty(Type.prototype, 'name', { get() {...}, configurable: true })`.
    */
-  /*@memoize*/
-  get definition(): ASTCoreMethodInvocation {
-    return this.derived("definition", () => {
-      const { match, thing, property, value, get, set, initializer } = this
-      const propName = new ASTQuotedExpression(property.match, { expression: property })
-
-      const descriptor = new ASTObjectLiteral(match)
-      if (value) {
-        if (value instanceof ASTMethodDefinition) descriptor.addMethod("value", value)
-        else descriptor.addProp("value", value)
-      }
-      if (initializer) descriptor.addMethod("initializer", initializer)
-      if (get) descriptor.addMethod("get", get)
-      if (set) descriptor.addMethod("set", set)
-
-      return new ASTCoreMethodInvocation(match, {
-        methodName: "define",
-        args: [thing, propName, descriptor]
-      })
-    })
-  }
   compile(): string {
-    return this.definition.compile()
+    const prototype = this.prototypeExpression.compile()
+    if (this.get) {
+      const descriptor = [`${this.get.compileNamed("get")},`, "configurable: true"].join(stringify.NEWLINE)
+      return `Object.defineProperty(${prototype}, ${quoted(this.property)}, ${stringify.Block({ wrap: true, children: descriptor })})`
+    }
+    return `${prototype}${propertyAccess(this.property)} = ${this.method!.compileAnonymous()}`
+  }
+  renderAsMember(): ReactNode {
+    const name = this.property.component
+    if (this.get) return this.get.renderNamed(render.Fragment(render.GET, name))
+    return this.method!.renderNamed(name)
   }
   renderChildren(): ReactNode {
-    return this.definition.component
+    const prototype = this.prototypeExpression.component
+    if (this.get) {
+      return render.Fragment(
+        "Object.defineProperty",
+        <render.InParens>
+          {render.Fragment(prototype, render.SPACED_COMMA, quoted(this.property), render.SPACED_COMMA)}
+          <render.Block wrap>
+            {render.Fragment(this.get.renderNamed("get"), render.INDENTED_COMMA, "configurable: true")}
+          </render.Block>
+        </render.InParens>
+      )
+    }
+    return render.Fragment(prototype, propertyAccess(this.property), render.EQUALS, this.method!.renderAnonymous())
   }
+}
+
+/**
+ * ReactiveProperty -- a property stored in its instance's reactive props, so drawing it redraws when it changes.
+ * - `type` (required) is its class, as a TypeExpression or bare name.
+ * - `property` (required) is PropertyLiteral or string.
+ * - `check` (optional) is what its setter warns about, e.g. `{ type: 'text' }` -- see `SC.PropCheck`.
+ * - `initializer` (optional) is its default, made once per instance, e.g. `new List()`.
+ * - A getter / setter pair over `getProp()` / `setProp()`, as a plain class field would shadow it:
+ *   `get title() { return this.getProp('title') }` + `set title(value) { this.setProp('title', value) }`.
+ */
+export type ASTReactivePropertyProps = Prettify<{
+  type: string | ASTTypeExpression
+  property: string | ASTPropertyLiteral
+  check?: ASTObjectLiteral
+  initializer?: ASTExpression
+}>
+
+export class ASTReactiveProperty extends ASTClassMember {
+  declare property: ASTPropertyLiteral
+  declare check: ASTObjectLiteral | undefined
+  declare initializer: ASTExpression | undefined
+  constructor(match: P.AnyMatch, props: ASTReactivePropertyProps) {
+    super(match, props)
+    if (typeof this.property === "string") this.property = new ASTPropertyLiteral(this.match, this.property)
+    this.assertType("property", ASTPropertyLiteral)
+    this.assertType("check", ASTObjectLiteral, OPTIONAL)
+    this.assertType("initializer", ASTExpression, OPTIONAL)
+  }
+  /** `{ return this.getProp('name') }`, with its `initializer` as a default if it has one. */
+  get getterBody(): string {
+    const initializer = this.initializer ? `, () => ${this.initializer.compile()}` : ""
+    return `{ return this.getProp(${quoted(this.property)}${initializer}) }`
+  }
+  /** `{ this.setProp('name', value) }`, with its `check` if it has one. */
+  get setterBody(): string {
+    const check = this.check ? `, ${this.check.compile()}` : ""
+    return `{ this.setProp(${quoted(this.property)}, value${check}) }`
+  }
+  /** `get name() {...}` + `set name(value) {...}`, one line each. */
+  compileAsMember(): string {
+    const name = this.property.compile()
+    return [`get ${name}() ${this.getterBody}`, `set ${name}(value) ${this.setterBody}`].join(stringify.NEWLINE)
+  }
+  /** `Object.defineProperty(Type.prototype, 'name', { get() {...}, set(value) {...}, configurable: true })`. */
+  compile(): string {
+    const descriptor = [`get() ${this.getterBody},`, `set(value) ${this.setterBody},`, "configurable: true"]
+    const block = stringify.Block({ wrap: true, children: descriptor.join(stringify.NEWLINE) })
+    return `Object.defineProperty(${this.prototypeExpression.compile()}, ${quoted(this.property)}, ${block})`
+  }
+  renderAsMember(): ReactNode {
+    const name = this.property.component
+    return render.Fragment(
+      render.GET,
+      name,
+      `() ${this.getterBody}`,
+      render.NEWLINE,
+      render.SET,
+      name,
+      `(value) ${this.setterBody}`
+    )
+  }
+  renderChildren(): ReactNode {
+    return this.compile()
+  }
+}
+
+/**
+ * StaticDefinition -- a value on the class itself, e.g. an enumeration's values `Card.Suits`.
+ * - `type` (required) is its class, as a TypeExpression or bare name.
+ * - `name` (required) is its name -- MUST be a legal identifier.
+ * - `value` (required) is an Expression.
+ * - `static Suits = [...]` in its class, else `Card.Suits = [...]`.
+ */
+export type ASTStaticDefinitionProps = Prettify<{
+  type: string | ASTTypeExpression
+  name: string
+  value: ASTExpression
+}>
+
+export class ASTStaticDefinition extends ASTClassMember {
+  declare name: string
+  declare value: ASTExpression
+  constructor(match: P.AnyMatch, props: ASTStaticDefinitionProps) {
+    super(match, props)
+    this.assertType("name", "string")
+    this.assert(isLegalIdentifier(this.name), `ASTStaticDefinition: illegal name '${this.name}'`)
+    this.assertType("value", ASTExpression)
+  }
+  compileAsMember(): string {
+    return `static ${this.name} = ${this.value.compile()}`
+  }
+  compile(): string {
+    return `${this.type.compile()}.${this.name} = ${this.value.compile()}`
+  }
+  renderAsMember(): ReactNode {
+    return render.Fragment(render.STATIC, this.name, render.EQUALS, this.value.component)
+  }
+  renderChildren(): ReactNode {
+    return render.Fragment(this.type.component, render.PERIOD, this.name, render.EQUALS, this.value.component)
+  }
+}
+
+/** `'name'`:  `property`'s name as a JS string, e.g. for `getProp()` or `Object.defineProperty()`. */
+function quoted(property: ASTPropertyLiteral): string {
+  return `'${property.value.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}'`
+}
+
+/** `.name`, or `['name']` if `property` isn't a legal identifier. */
+function propertyAccess(property: ASTPropertyLiteral): string {
+  return property.isLegalIdentifier ? `.${property.value}` : `[${quoted(property)}]`
 }
 
 ////////////////

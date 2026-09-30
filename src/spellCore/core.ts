@@ -1,34 +1,14 @@
 /**
  * `spell` base runtime library for use with classes created with spell.
- * - Meta-programming (`define`, `defineProperty`, `newThingLike`), type checks, get/set-by-path
+ * - Meta-programming (`checkProp`, `newThingLike`), type checks, get/set-by-path
  *   stubs, `equals`, math and primitive iteration all live here -- collection-shaped methods
  *   (`itemCountOf`, `forEach`, etc) live in `collection-core.ts` / `collection-other.ts` instead.
  */
 import _isArrayLike from "lodash/isArrayLike"
 import isEqual from "lodash/isEqual"
 
-import { extend } from "~/util"
 import { assert } from "~/spellCore"
-import { defineSpellCoreModule, type SpellCore } from "./spellCore.types"
-
-/** Options accepted by `spellCore.defineProperty()`. */
-export type DefinePropertyOptions<T = unknown> = {
-  /** Property name to define on `thing`. */
-  property: string
-  /** Default value -- unused directly here, callers read it via their own `initializer`. */
-  value?: T
-  /** Type name or Class -- if provided, warn (but still set) when a new value doesn't match. */
-  type?: string
-  /** Called once per instance to produce a default value when property hasn't been set yet. */
-  initializer?: () => T
-  /** Array of legal values -- if provided, warn (but still set) when a new value isn't included. */
-  enumeration?: unknown[]
-  /**
-   * Property name -- if given, mirror `enumeration` onto `thing[enumerationProp]` and
-   * `thing.constructor[enumerationProp]`.
-   */
-  enumerationProp?: string
-}
+import { defineSpellCoreModule, type PropCheck, type SpellCore } from "./spellCore.types"
 
 /** Special methods for `isOfType()`, keyed by type name. */
 type IsOfTypeSpecials = Record<string, (thing: unknown) => boolean>
@@ -73,63 +53,21 @@ export const coreMethods = defineSpellCoreModule({
   ////////////////
 
   /**
-   * Object.defineProperty alias.
-   * NOTE: `get`ters and `set`ters are defined configurably.
+   * Warn if `value` fails `check` for `property`.
+   * - Returns whether it passed:  callers store `value` either way.
+   * - Called by `Thing.setProp()` / `List.setProp()`, i.e. compiled property setters like
+   *   `set title(value) { this.setProp('title', value, { type: 'text' }) }`.
    */
-  define(thing: object, propertyName: PropertyKey, descriptor: PropertyDescriptor): object {
-    if (descriptor.configurable === undefined && (descriptor.get || descriptor.set)) descriptor.configurable = true
-    return Object.defineProperty(thing, propertyName, descriptor)
-  },
-
-  /**
-   * Define a `property` on `thing` (likely a prototype), via `options`.
-   * - Most useful for `Observable`s where `$props` is an observable proxy object -- for everything
-   *   else, we'll define `$props` as a plain object as necessary.
-   * - `options.type`: type name or Class -- if provided, warns (but still sets) when value doesn't match.
-   * - `options.enumeration`: array of legal values -- if provided, warns (but still sets) when value
-   *   isn't included.
-   * - `options.enumerationProp`: property name -- if given, mirrors `enumeration` onto
-   *   `thing[enumerationProp]` and `thing.constructor[enumerationProp]`.
-   */
-  defineProperty(thing: object, options: DefinePropertyOptions): void {
-    const { property, type, initializer, enumeration, enumerationProp } = options
-    const descriptor: PropertyDescriptor = { configurable: true }
-
-    // If we get an `initializer()`, call it to get a value for each instance,
-    // store that in `$props`
-    if (type) {
-      descriptor.set = function (this: object, newValue: unknown) {
-        if (!spellCore.isOfType(newValue, type)) {
-          spellCore.console.warn(`Expected ${property} to be type '${type}', got:`, newValue)
-        }
-        extend.setProp(this, property, newValue)
-      }
-    } else if (enumeration) {
-      // If the specified an `enumerationProp`, define the enumeration on the object and its constructor
-      if (enumerationProp) {
-        spellCore.define(thing, enumerationProp, { value: enumeration })
-        if (thing.constructor !== Function) {
-          spellCore.define(thing.constructor, enumerationProp, { value: enumeration })
-        }
-      }
-      descriptor.set = function (this: object, newValue: unknown) {
-        if (!enumeration.includes(newValue)) {
-          spellCore.console.warn(`Expected ${property} to be one of '${enumeration}', got:`, newValue)
-        }
-        extend.setProp(this, property, newValue)
-      }
+  checkProp(property: string, value: unknown, check?: PropCheck): boolean {
+    if (check?.type && !spellCore.isOfType(value, check.type)) {
+      spellCore.console.warn(`Expected ${property} to be type '${check.type}', got:`, value)
+      return false
     }
-    if (!descriptor.get) {
-      descriptor.get = function (this: object) {
-        return extend.getProp(this, property, initializer)
-      }
+    if (check?.oneOf && !check.oneOf.includes(value)) {
+      spellCore.console.warn(`Expected ${property} to be one of '${check.oneOf}', got:`, value)
+      return false
     }
-    if (!descriptor.set) {
-      descriptor.set = function (this: object, newValue: unknown) {
-        extend.setProp(this, property, newValue)
-      }
-    }
-    spellCore.define(thing, property, descriptor)
+    return true
   },
 
   /**

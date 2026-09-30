@@ -1,23 +1,9 @@
-import { describe, test, expect, beforeEach, afterEach, vi } from "vitest"
+import { describe, test, expect, beforeEach, vi } from "vitest"
 import { spellCore, assert } from "~/spellCore"
 
 // Wrap `assert.failed` for each test
 beforeEach(() => {
   assert.failed = vi.fn()
-})
-
-describe("spellCore.define()", () => {
-  beforeEach(() => {
-    vi.spyOn(Object, "defineProperty")
-  })
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
-  test("calls Object.defineProperty", () => {
-    const object = {}
-    spellCore.define(object, "foo", { value: "bar" })
-    expect(Object.defineProperty).toHaveBeenCalledWith(object, "foo", { value: "bar" })
-  })
 })
 
 describe("spellCore.newThingLike()", () => {

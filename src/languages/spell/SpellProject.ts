@@ -297,7 +297,12 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
           new Task({
             name: "Combining output",
             run: async (allCompiled) => {
-              const compiled = this.importHeader() + (allCompiled as string[]).join(SpellProject.FILE_SEPARATOR)
+              // each `.spell` file as its AST, so a class gets its members from every file
+              const files = [...this.sourceImportFiles, ...this.activeImports]
+              const parts = files.map((file, index) =>
+                file.AST instanceof P.ASTStatementGroup ? file.AST : (allCompiled as string[])[index]
+              )
+              const compiled = this.importHeader() + SpellProject.combineCompiled(parts)
               this.setState("compiled", compiled)
               return compiled
             }
@@ -320,6 +325,23 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
 
   /** Between each file's code in our compiled output -- see "Combining output" in `compiler`. */
   static FILE_SEPARATOR = "\n// -----------\n"
+
+  /**
+   * A project's files' code as ONE module, in order, `FILE_SEPARATOR` between each.
+   * - Each `part` is a `.spell` file's AST, or code as is, e.g. a `.css` file's.
+   * - Each class gets its members from EVERY file, e.g. `Card.move_to_$pile` from `Pile.spell` goes in
+   *   `Card.spell`'s `class Card` -- see `SP.hoistClassMembers()`.  Each file's own were moved in by `SP.Block`.
+   * - Also how a fixture compiles -- see `compiledFixture()` in `~/test`.
+   */
+  static combineCompiled(parts: Array<P.ASTStatementGroup | string | undefined>): string {
+    const hoisted = SP.hoistClassMembers(parts.map((part) => (typeof part === "object" ? (part.statements ?? []) : [])))
+    return parts
+      .map((part, index) => {
+        if (typeof part !== "object") return part ?? ""
+        return new P.ASTStatementGroup(part.match, { statements: hoisted[index] }).compile()
+      })
+      .join(SpellProject.FILE_SEPARATOR)
+  }
 
   /** Set to `false` to run compiled code via `<script>` tag injection instead of dynamic `import()`. */
   static runAsImport = true

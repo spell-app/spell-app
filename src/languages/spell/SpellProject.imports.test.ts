@@ -105,7 +105,7 @@ describe("SpellProject imports", () => {
     expect(declarations.version).toBe("1.2.0")
     expect(declarations.provides).toEqual(expect.arrayContaining(["Card", "Deck", "Pile"]))
     // ...and the code follows, as before
-    expect(compiled).toContain("export class Card extends Thing {}")
+    expect(compiled).toContain("export class Card extends Thing {\n")
   })
 
   test("a project parses against another's compiled declarations -- not its sources", async () => {

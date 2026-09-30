@@ -105,9 +105,8 @@ classes.addRule(create_type, {
  * new class extending `List`, with its `instanceType` set to `instanceType`.
  * - `precedence: 10` so this wins over the plainer `create_type` rule above for the `is a list of` form.
  * - SIDE EFFECT: adds `type` to `scope.types` (superType `"list"`), unless already defined.
- * - Compiles to a class declaration extending `List` plus a static `instanceType` property, e.g.
- *   `a deck is a list of cards` => `export class Deck extends List {}` +
- *   `spellCore.define(Deck.prototype, 'instanceType', { value: Card })`.
+ * - Compiles to a class declaration extending `List` with a static `instanceType`, e.g.
+ *   `a deck is a list of cards` => `export class Deck extends List {` + `static instanceType = Card` + `}`.
  */
 class create_list_type extends SpellStatement<"type|instanceType"> {
   @proto static precedence = 10
@@ -131,15 +130,16 @@ class create_list_type extends SpellStatement<"type|instanceType"> {
     const { type, instanceType } = match.groups
     return new P.ASTStatementGroup(match, {
       statements: [
-        // Declare the class
         new P.ASTClassDeclaration(match, {
           type: P.matchAST<P.ASTTypeExpression>(type),
-          superType: new P.ASTTypeExpression(match, { raw: "list", name: "List" })
-        }),
-        new P.ASTPropertyDefinition(match, {
-          thing: new P.ASTPrototypeExpression(match, { type: P.matchAST<P.ASTTypeExpression>(type) }),
-          property: "instanceType",
-          value: P.matchAST(instanceType)
+          superType: new P.ASTTypeExpression(match, { raw: "list", name: "List" }),
+          members: [
+            new P.ASTStaticDefinition(match, {
+              type: P.matchAST<P.ASTTypeExpression>(type),
+              name: "instanceType",
+              value: P.matchAST<P.ASTTypeExpression>(instanceType)
+            })
+          ]
         })
       ]
     })
@@ -153,7 +153,7 @@ classes.addRule(create_list_type, {
       tests: [
         [
           "create a type named hand as a list of cards",
-          ["export class Hand extends List {}", "spellCore.define(Hand.prototype, 'instanceType', { value: Card })"]
+          ["export class Hand extends List {", "  static instanceType = Card", "}"]
         ]
       ]
     }
@@ -168,7 +168,7 @@ classes.addRule(create_list_type, {
       tests: [
         [
           "a deck is a list of cards",
-          ["export class Deck extends List {}", "spellCore.define(Deck.prototype, 'instanceType', { value: Card })"]
+          ["export class Deck extends List {", "  static instanceType = Card", "}"]
         ]
       ]
     }
@@ -518,8 +518,10 @@ type EnumerationRuleProps = Prettify<P.LiteralsProps & { typeName: string; group
  *   holding the raw values, adds string values to `scope.constants`, and registers an `EnumerationRule`
  *   so `Card Suits` / `card suits` resolve to that property -- its `/*! SPELL: DECLARES` comment says so, see
  *   `SP.SpellDeclarations.commentFor()`.
- * - Compiles to a `spellCore.defineProperty()` call, e.g. `a player has a name as text` =>
- *   `spellCore.defineProperty(Player.prototype, { property: 'name', type: 'text' })`.
+ * - Compiles to a reactive getter / setter pair in its class -- see `P.ASTReactiveProperty` -- e.g.
+ *   `a player has a name as text` =>
+ *   `get name() { return this.getProp('name') }` + `set name(value) { this.setProp('name', value, { type: 'text' }) }`
+ * - An enumeration's values also go on the class, e.g. `static Suits = ['clubs', ...]` -- see `EnumerationRule`.
  */
 class define_property_has extends SpellStatement<"type|property|specifier?"> {
   @proto static precedence = 10
@@ -564,45 +566,39 @@ class define_property_has extends SpellStatement<"type|property|specifier?"> {
   }
   getAST(match: P.MatchFor<this>): P.ASTStatementGroup {
     const { type, property } = match.groups
+    const typeAST = P.matchAST<P.ASTTypeExpression>(type)
+    const statements: P.ASTClassMember[] = []
+    // what its setter warns about -- see `SC.PropCheck`
+    const check = new P.ASTObjectLiteral(match)
+    let initializer: P.ASTExpression | undefined
 
-    // output statements
-    const statements: Array<P.ASTStatement | P.ASTExpression | P.ASTComment | P.ASTBlankLine> = []
-    const props = new P.ASTObjectLiteral(match)
-    props.addProp("property", `'${property.value}'`)
-
-    // If there is a specifier, add as a condition to the assignment
     const specifier = match.groups.specifier?.AST
-    if (specifier) {
-      // Enumerated values as strings/numbers/etc
-      if (specifier instanceof P.ASTEnumeration) {
-        props.addProp("enumeration", specifier)
-        props.addProp("enumerationProp", `'${pluralize(upperFirst(property.value))}'`)
-      }
-      // instance specifier
-      else if (specifier instanceof P.ASTNewInstanceExpression) {
-        props.addMethod(
-          "initializer",
-          new P.ASTMethodDefinition(specifier.match, {
-            body: specifier
-          })
-        )
-      }
-      // type
-      else {
-        // Only `type_specifier_datatype`/`type_specifier_yes_or_no` can produce a `specifier` that
-        // reaches here, both of which return a `TypeExpression` -- not statically provable, since
-        // `type_specifier`'s `getAST()` can only be typed as returning `ASTNode` in general.
-        const typeExpression = specifier as P.ASTTypeExpression
-        // checked at runtime by its class's name -- see `P.ASTTypeExpression.runtimeName`
-        props.addProp("type", `'${typeExpression.runtimeName}'`)
-      }
+    // Enumerated values as strings/numbers/etc, as a static on the class, e.g. `Card.Suits`
+    if (specifier instanceof P.ASTEnumeration) {
+      const name = pluralize(upperFirst(property.value))
+      statements.push(new P.ASTStaticDefinition(match, { type: typeAST, name, value: specifier }))
+      check.addProp("oneOf", new P.ASTPropertyExpression(match, { object: typeAST, property: name }))
+    }
+    // instance specifier:  a default, made once per instance
+    else if (specifier instanceof P.ASTNewInstanceExpression) {
+      initializer = specifier
+    }
+    // type
+    else if (specifier) {
+      // Only `type_specifier_datatype`/`type_specifier_yes_or_no` can produce a `specifier` that
+      // reaches here, both of which return a `TypeExpression` -- not statically provable, since
+      // `type_specifier`'s `getAST()` can only be typed as returning `ASTNode` in general.
+      const typeExpression = specifier as P.ASTTypeExpression
+      // checked at runtime by its class's name -- see `P.ASTTypeExpression.runtimeName`
+      check.addProp("type", `'${typeExpression.runtimeName}'`)
     }
 
-    // getter and setter
     statements.push(
-      new P.ASTCoreMethodInvocation(match, {
-        methodName: "defineProperty",
-        args: [new P.ASTPrototypeExpression(type, { type: P.matchAST<P.ASTTypeExpression>(type) }), props]
+      new P.ASTReactiveProperty(match, {
+        type: typeAST,
+        property: `${property.value}`,
+        check: check.properties.length ? check : undefined,
+        initializer
       })
     )
     return new P.ASTStatementGroup(match, { statements })
@@ -616,7 +612,13 @@ classes.addRule(define_property_has, {
       tests: [
         [
           "a player has a name as text",
-          "spellCore.defineProperty(Player.prototype, { property: 'name', type: 'text' })"
+          [
+            "Object.defineProperty(Player.prototype, 'name', {",
+            "  get() { return this.getProp('name') },",
+            "  set(value) { this.setProp('name', value, { type: 'text' }) },",
+            "  configurable: true",
+            "})"
+          ]
         ]
       ]
     },
@@ -651,27 +653,42 @@ classes.addRule(define_property_has, {
         [
           "cards have a direction as either up or down",
           [
-            `spellCore.defineProperty(Card.prototype, {`,
-            `\tproperty: 'direction',`,
-            `\tenumeration: ['up', 'down'],`,
-            `\tenumerationProp: 'Directions'`,
-            `})`
+            "Card.Directions = ['up', 'down']",
+            "Object.defineProperty(Card.prototype, 'direction', {",
+            "  get() { return this.getProp('direction') },",
+            "  set(value) { this.setProp('direction', value, { oneOf: Card.Directions }) },",
+            "  configurable: true",
+            "})"
           ]
         ],
-        ["todos have a title as text", "spellCore.defineProperty(Todo.prototype, { property: 'title', type: 'text' })"],
+        [
+          "todos have a title as text",
+          [
+            "Object.defineProperty(Todo.prototype, 'title', {",
+            "  get() { return this.getProp('title') },",
+            "  set(value) { this.setProp('title', value, { type: 'text' }) },",
+            "  configurable: true",
+            "})"
+          ]
+        ],
         [
           "todos have a property completed as yes or no",
-          "spellCore.defineProperty(Todo.prototype, { property: 'completed', type: 'choice' })"
+          [
+            "Object.defineProperty(Todo.prototype, 'completed', {",
+            "  get() { return this.getProp('completed') },",
+            "  set(value) { this.setProp('completed', value, { type: 'choice' }) },",
+            "  configurable: true",
+            "})"
+          ]
         ],
         [
           "todos have a property tags as a new list",
           [
-            `spellCore.defineProperty(Todo.prototype, {`,
-            `\tproperty: 'tags',`,
-            `\tinitializer() {`,
-            `\t\treturn new List()`,
-            `\t}`,
-            `})`
+            "Object.defineProperty(Todo.prototype, 'tags', {",
+            "  get() { return this.getProp('tags', () => new List()) },",
+            "  set(value) { this.setProp('tags', value) },",
+            "  configurable: true",
+            "})"
           ]
         ]
       ]
@@ -718,7 +735,7 @@ classes.addRule(a_things_property, {
  * property getter whose value is conditional on `condition`.
  * - SIDE EFFECT: stubs `type` into scope (`P.TypeScope.getOrStub()`), and adds any bare constant `value`/`otherValue`
  *   to `scope.constants` if not already known.
- * - Compiles to `spellCore.define()` with a `get()` that `if`s on `condition`, returning `otherValue`
+ * - Compiles to a getter in its class that `if`s on `condition`, returning `otherValue`
  *   (or falling through) when absent.
  */
 class property_value_either extends SpellStatement<PropertyValueEitherGroups> {
@@ -749,7 +766,6 @@ class property_value_either extends SpellStatement<PropertyValueEitherGroups> {
   getAST(match: P.MatchFor<this>): P.ASTPropertyDefinition {
     const { value, otherValue, type_property, condition } = match.groups
     const { type, property } = type_property.groups
-    const prototype = new P.ASTPrototypeExpression(type, { type: P.matchAST<P.ASTTypeExpression>(type) })
     const ifAST = new P.ASTIfStatement(match, {
       condition: P.matchAST(condition),
       statements: new P.ASTReturnStatement(match, { value: P.matchAST(value) })
@@ -763,7 +779,7 @@ class property_value_either extends SpellStatement<PropertyValueEitherGroups> {
       })
     }
     return new P.ASTPropertyDefinition(match, {
-      thing: prototype,
+      type: P.matchAST<P.ASTTypeExpression>(type),
       property: P.matchAST<P.ASTPropertyLiteral>(property),
       get: new P.ASTMethodDefinition(match, { body: getterBody })
     })
@@ -784,21 +800,23 @@ classes.addRule(property_value_either, {
         [
           "the color of a card is red if its suit is either diamonds or hearts",
           [
-            "spellCore.define(Card.prototype, 'color', {",
-            `\tget() {`,
-            `\t\tif (spellCore.includes(['diamonds', 'hearts'], this.suit)) { return 'red' }`,
-            `\t}`,
+            "Object.defineProperty(Card.prototype, 'color', {",
+            "  get() {",
+            "    if (spellCore.includes(['diamonds', 'hearts'], this.suit)) { return 'red' }",
+            "  },",
+            "  configurable: true",
             "})"
           ]
         ],
         [
           "a cards color is black if its suit is either clubs or spades otherwise it is red",
           [
-            "spellCore.define(Card.prototype, 'color', {",
-            "\tget() {",
-            "\t\tif (spellCore.includes(['clubs', 'spades'], this.suit)) { return 'black' }",
-            "\t\treturn 'red'",
-            "\t}",
+            "Object.defineProperty(Card.prototype, 'color', {",
+            "  get() {",
+            "    if (spellCore.includes(['clubs', 'spades'], this.suit)) { return 'black' }",
+            "    return 'red'",
+            "  },",
+            "  configurable: true",
             "})"
           ]
         ]
@@ -824,8 +842,8 @@ type PropertyValueEitherGroups = P.GroupsFor<"type_property", P.Match<P.GroupsFo
  * block (`{expression_body}?`), with `its`/`it` mapped to `this` inside.
  * - `getNestedScopeForMatch()` maps `it`/`its` to `this` via `mapItTo`, so the body can say
  *   `return the first word of the name` instead of repeating `of the card`.
- * - Compiles to `spellCore.define()` with a `get()` running the parsed body, e.g. `the value of a card
- *   is its name` => `spellCore.define(Card.prototype, 'value', { get() { return this.name } })`.
+ * - Compiles to a getter in its class running the parsed body, e.g.
+ *   `the value of a card is its name` => `get value() { return this.name }`.
  */
 class property_value_getter extends SpellStatement<"property|type|body?"> {
   @proto static alias = "statement"
@@ -852,7 +870,7 @@ class property_value_getter extends SpellStatement<"property|type|body?"> {
   getAST(match: P.MatchFor<this>): P.ASTPropertyDefinition {
     const { type, property } = match.groups
     return new P.ASTPropertyDefinition(match, {
-      thing: new P.ASTPrototypeExpression(match, { type: P.matchAST<P.ASTTypeExpression>(type) }),
+      type: P.matchAST<P.ASTTypeExpression>(type),
       property: P.matchAST<P.ASTPropertyLiteral>(property),
       get: new P.ASTMethodDefinition(match, {
         body: P.matchAST<MethodBody>(this.getBody(match))
@@ -871,19 +889,27 @@ classes.addRule(property_value_getter, {
       tests: [
         {
           input: "the value of a card is:",
-          output: ["spellCore.define(Card.prototype, 'value', {", "\tget() {}", "})"]
+          output: ["Object.defineProperty(Card.prototype, 'value', {", "  get() {},", "  configurable: true", "})"]
         },
         {
           input: "the value of a card is its name",
-          output: ["spellCore.define(Card.prototype, 'value', {", "\tget() {", "\t\treturn this.name", "\t}", "})"]
+          output: [
+            "Object.defineProperty(Card.prototype, 'value', {",
+            "  get() {",
+            "    return this.name",
+            "  },",
+            "  configurable: true",
+            "})"
+          ]
         },
         {
           input: ["the short-name of a card is:", "\treturn the first word of the name of the card"],
           output: [
-            "spellCore.define(Card.prototype, 'short_name', {",
-            "\tget() {",
-            "\t\treturn spellCore.getItemOf(this.name, 1)",
-            "\t}",
+            "Object.defineProperty(Card.prototype, 'short_name', {",
+            "  get() {",
+            "    return spellCore.getItemOf(this.name, 1)",
+            "  },",
+            "  configurable: true",
             "})"
           ]
         },
@@ -891,10 +917,11 @@ classes.addRule(property_value_getter, {
           title: "Show error if both nestedBlock and inlineStatement",
           input: ["the short-name of a card is its name", "\treturn the first word of the name of the card"],
           output: [
-            "spellCore.define(Card.prototype, 'short_name', {",
-            "\tget() {",
-            "\t\treturn spellCore.getItemOf(this.name, 1)",
-            "\t}",
+            "Object.defineProperty(Card.prototype, 'short_name', {",
+            "  get() {",
+            "    return spellCore.getItemOf(this.name, 1)",
+            "  },",
+            "  configurable: true",
             "})",
             "/* PARSE ERROR: Got both inline statement and nested block */"
           ]
@@ -1142,9 +1169,9 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources", Quote
     )
     const statements: Array<P.ASTStatement | P.ASTExpression | P.ASTComment | P.ASTBlankLine> = [
       new P.ASTPropertyDefinition(match, {
-        thing: new P.ASTPrototypeExpression(type, { type: P.matchAST<P.ASTTypeExpression>(type) }),
+        type: P.matchAST<P.ASTTypeExpression>(type),
         property,
-        value: new P.ASTMethodDefinition(match, {
+        method: new P.ASTMethodDefinition(match, {
           args,
           body: new P.ASTReturnStatement(match, {
             value: P.ASTMultiInfixExpression(match, { expressions, operator: "&&" })
@@ -1175,21 +1202,17 @@ classes.addRule(quoted_property_formula, {
         [
           'a card "is a (rank)" for its ranks',
           [
-            "spellCore.define(Card.prototype, 'is_a_$rank', {",
-            "\tvalue(rank) {",
-            "\t\treturn this.rank === rank",
-            "\t}",
-            "})"
+            "Card.prototype.is_a_$rank = function (rank) {",
+            "  return this.rank === rank",
+            "}"
           ]
         ],
         [
           'a card "is the (rank) of (suits)" for its ranks and its suits',
           [
-            "spellCore.define(Card.prototype, 'is_the_$rank_of_$suits', {",
-            "\tvalue(rank, suit) {",
-            "\t\treturn this.rank === rank && this.suit === suit",
-            "\t}",
-            "})"
+            "Card.prototype.is_the_$rank_of_$suits = function (rank, suit) {",
+            "  return this.rank === rank && this.suit === suit",
+            "}"
           ]
         ]
       ]

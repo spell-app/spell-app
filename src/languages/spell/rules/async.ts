@@ -57,11 +57,11 @@ _async.addRule(_await, {
       tests: [
         {
           input: ["to do something", "\twait for 1"],
-          output: ["export async function do_something() {", "\tawait 1", "}"]
+          output: ["export async function do_something() {", "  await 1", "}"]
         },
         {
           input: ["to do something", "\tif (1) wait for 1"],
-          output: ["export async function do_something() {", "\tif (1) { await 1 }", "}"]
+          output: ["export async function do_something() {", "  if (1) { await 1 }", "}"]
         }
       ]
     }

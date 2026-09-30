@@ -83,17 +83,17 @@ _if_.addRule(_if, {
         {
           title: "Indent with tab, output has tabs spaces",
           input: ["if a:", "\tb = 1", "\tc=1"],
-          output: ["if (a) {", "\tlet b = 1", "\tlet c = 1", "}"]
+          output: ["if (a) {", "  let b = 1", "  let c = 1", "}"]
         },
         {
           title: "Multiple lines in the nested block",
           input: ["if a:", "\tb = 1", "\tc = 2"],
-          output: ["if (a) {", "\tlet b = 1", "\tlet c = 2", "}"]
+          output: ["if (a) {", "  let b = 1", "  let c = 2", "}"]
         },
         {
           title: "Nested ifs work fine",
           input: ["if a", "\tb = 1", "\tif b", "\t\tc = 2", "\t\td = 3"],
-          output: ["if (a) {", "\tlet b = 1", "\tif (b) {", "\t\tlet c = 2", "\t\tlet d = 3", "\t}", "}"]
+          output: ["if (a) {", "  let b = 1", "  if (b) {", "    let c = 2", "    let d = 3", "  }", "}"]
         },
         {
           title: "Show error if nested block AND inline statement. Prefer block.",
@@ -177,7 +177,7 @@ _if_.addRule(else_if, {
         {
           title: "Multiple lines in the nested block",
           input: ["else if a:", "\tb = 1", "\tc = 2"],
-          output: ["else if (a) {", "\tlet b = 1", "\tlet c = 2", "}"]
+          output: ["else if (a) {", "  let b = 1", "  let c = 2", "}"]
         },
         {
           title: "Nested else ifs work fine",
@@ -255,7 +255,7 @@ _if_.addRule(_else, {
         {
           title: "Multiple lines in the nested block",
           input: ["else", "\tb = 1", "\tlet c = 2"],
-          output: ["else {", "\tlet b = 1", "\tlet c = 2", "}"]
+          output: ["else {", "  let b = 1", "  let c = 2", "}"]
         },
         {
           title: "Show error if nested block AND inline statement. Prefer block.",

@@ -98,18 +98,18 @@ JSX.addRule(SpellJSX, {
         [`<a b=1 c="ccc"/>`, `spellCore.element({ tag: "a", props: { b: 1, c: "ccc" } })`],
         [
           `<a b=1 c="ccc" d></a>`,
-          [`spellCore.element({`, `\ttag: "a",`, `\tprops: {`, `\t\tb: 1,`, `\t\tc: "ccc",`, `\t\td: true`, `\t}`, `})`]
+          [`spellCore.element({`, `  tag: "a",`, `  props: {`, `    b: 1,`, `    c: "ccc",`, `    d: true`, `  }`, `})`]
         ],
 
-        [`<a><b/></a>`, [`spellCore.element({ tag: "a", children: [`, `\tspellCore.element({ tag: "b" })`, `] })`]],
-        [`<a><b></b></a>`, [`spellCore.element({ tag: "a", children: [`, `\tspellCore.element({ tag: "b" })`, `] })`]],
+        [`<a><b/></a>`, [`spellCore.element({ tag: "a", children: [`, `  spellCore.element({ tag: "b" })`, `] })`]],
+        [`<a><b></b></a>`, [`spellCore.element({ tag: "a", children: [`, `  spellCore.element({ tag: "b" })`, `] })`]],
         [
           `<a A=1><b c=1>foo</b></a>`,
           [
             `spellCore.element({ tag: "a", props: { A: 1 }, children: [`,
-            `\tspellCore.element({ tag: "b", props: { c: 1 }, children: [`,
-            `\t\t"foo"`,
-            `\t] })`,
+            `  spellCore.element({ tag: "b", props: { c: 1 }, children: [`,
+            `    "foo"`,
+            `  ] })`,
             `] })`
           ]
         ],
@@ -117,11 +117,11 @@ JSX.addRule(SpellJSX, {
           `<a><b><c>d</c></b></a>`,
           [
             `spellCore.element({ tag: "a", children: [`,
-            `\tspellCore.element({ tag: "b", children: [`,
-            `\t\tspellCore.element({ tag: "c", children: [`,
-            `\t\t\t"d"`,
-            `\t\t] })`,
-            `\t] })`,
+            `  spellCore.element({ tag: "b", children: [`,
+            `    spellCore.element({ tag: "c", children: [`,
+            `      "d"`,
+            `    ] })`,
+            `  ] })`,
             `] })`
           ]
         ],
@@ -129,9 +129,9 @@ JSX.addRule(SpellJSX, {
           `<a>\n\tBBB\n\t<c/>\n\tDDD</a>`,
           [
             'spellCore.element({ tag: "a", children: [',
-            '\t"BBB",',
-            '\tspellCore.element({ tag: "c" }),',
-            '\t"DDD"',
+            '  "BBB",',
+            '  spellCore.element({ tag: "c" }),',
+            '  "DDD"',
             "] })"
           ]
         ],
@@ -139,13 +139,13 @@ JSX.addRule(SpellJSX, {
           ["<ui-button ", "\thidden={1} ", "\tonPress={print 2}", "\t/>"],
           [
             "spellCore.element({",
-            '\ttag: "ui-button",',
-            "\tprops: {",
-            "\t\thidden: 1,",
-            "\t\tonPress: (event) => {",
-            "\t\t\treturn spellCore.console.log(2)",
-            "\t\t}",
-            "\t}",
+            '  tag: "ui-button",',
+            "  props: {",
+            "    hidden: 1,",
+            "    onPress: (event) => {",
+            "      return spellCore.console.log(2)",
+            "    }",
+            "  }",
             "})"
           ]
         ],
@@ -153,17 +153,17 @@ JSX.addRule(SpellJSX, {
           '<input attrOnly text="text" number=1 boolean={yes} expression={1 + 1} onClick={print the value of the target of the event} />',
           [
             `spellCore.element({`,
-            `\ttag: "input",`,
-            `\tprops: {`,
-            `\t\tattrOnly: true,`,
-            `\t\ttext: "text",`,
-            `\t\tnumber: 1,`,
-            `\t\tboolean: true,`,
-            `\t\texpression: (1 + 1),`,
-            `\t\tonClick: (event) => {`,
-            `\t\t\treturn spellCore.console.log(event.target.value)`,
-            `\t\t}`,
-            `\t}`,
+            `  tag: "input",`,
+            `  props: {`,
+            `    attrOnly: true,`,
+            `    text: "text",`,
+            `    number: 1,`,
+            `    boolean: true,`,
+            `    expression: (1 + 1),`,
+            `    onClick: (event) => {`,
+            `      return spellCore.console.log(event.target.value)`,
+            `    }`,
+            `  }`,
             `})`
           ]
         ]
@@ -190,12 +190,12 @@ JSX.addRule(SpellJSX, {
           `<div on-click={print 1024}/>`,
           [
             `spellCore.element({`,
-            `\ttag: "div",`,
-            `\tprops: {`,
-            `\t\t'on-click': (event) => {`,
-            `\t\t\treturn spellCore.console.log(1024)`,
-            `\t\t}`,
-            `\t}`,
+            `  tag: "div",`,
+            `  props: {`,
+            `    'on-click': (event) => {`,
+            `      return spellCore.console.log(1024)`,
+            `    }`,
+            `  }`,
             `})`
           ]
         ],
@@ -222,29 +222,29 @@ JSX.addRule(SpellJSX, {
           `<div foo={<a><b><c>{1}</c></b></a>}/>`,
           [
             'spellCore.element({ tag: "div", props: { foo: spellCore.element({ tag: "a", children: [',
-            '\tspellCore.element({ tag: "b", children: [',
-            '\t\tspellCore.element({ tag: "c", children: [',
-            "\t\t\t1",
-            "\t\t] })",
-            "\t] })",
+            '  spellCore.element({ tag: "b", children: [',
+            '    spellCore.element({ tag: "c", children: [',
+            "      1",
+            "    ] })",
+            "  ] })",
             "] }) } })"
           ]
         ],
         // compound expression
-        [`<div>{1 + 2 + 3}</div>`, ['spellCore.element({ tag: "div", children: [', "\t((1 + 2) + 3)", "] })"]],
+        [`<div>{1 + 2 + 3}</div>`, ['spellCore.element({ tag: "div", children: [', "  ((1 + 2) + 3)", "] })"]],
         // multi-line expression is fine
         [
           "<div>{\n\t1 + \n2 + 3\t\n}</div>",
-          ['spellCore.element({ tag: "div", children: [', "\t((1 + 2) + 3)", "] })"]
+          ['spellCore.element({ tag: "div", children: [', "  ((1 + 2) + 3)", "] })"]
         ],
         //
-        [`<div>{the rank of the card}</div>`, ['spellCore.element({ tag: "div", children: [', "\tcard.rank", "] })"]],
+        [`<div>{the rank of the card}</div>`, ['spellCore.element({ tag: "div", children: [', "  card.rank", "] })"]],
         // fail if we don't eat entire expression
         [
           `<div>{true true}</div>`,
           [
             'spellCore.element({ tag: "div", children: [',
-            '\tnull /* PARSE ERROR: Don\'t understand "true true" */',
+            '  null /* PARSE ERROR: Don\'t understand "true true" */',
             "] })"
           ]
         ],
@@ -253,7 +253,7 @@ JSX.addRule(SpellJSX, {
           `<div>{unknown expression}</div>`,
           [
             'spellCore.element({ tag: "div", children: [',
-            '\tnull /* PARSE ERROR: Don\'t understand "unknown expression" */',
+            '  null /* PARSE ERROR: Don\'t understand "unknown expression" */',
             "] })"
           ]
         ],
@@ -262,7 +262,7 @@ JSX.addRule(SpellJSX, {
           `<div>{print 1024}</div>`,
           [
             'spellCore.element({ tag: "div", children: [',
-            '\tnull /* PARSE ERROR: Don\'t understand "print 1024" */',
+            '  null /* PARSE ERROR: Don\'t understand "print 1024" */',
             "] })"
           ]
         ]

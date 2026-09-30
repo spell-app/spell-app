@@ -61,8 +61,8 @@ export function Node(astNode: ASTNode): ReactElement {
 
 /** Draw a single space. */
 export const SPACE = <span className="whitespace space"> </span>
-/** Draw a single indent (tab) -- combined with `NEWLINE` below to build `INDENTED_NEWLINE`. */
-export const INDENT = <span className="whitespace indent">{"\t"}</span>
+/** Draw a single indent -- 2 spaces, as `stringify.INDENT` -- combined with `NEWLINE` below to build `INDENTED_NEWLINE`. */
+export const INDENT = <span className="whitespace indent">{"  "}</span>
 /** Draw a newline as a list delimiter. */
 export const NEWLINE = <span className="whitespace newline">{"\n"}</span>
 /** Draw a newline followed by an indent -- delimiter for wrapped/indented lists. */
@@ -101,6 +101,9 @@ export const NEW = <span className="keyword new">{"new "}</span>
 export const CLASS = <span className="keyword class">{"class "}</span>
 export const EXTENDS = <span className="keyword extends">{" extends "}</span>
 export const PROTOTYPE = <span className="keyword prototype">{"prototype"}</span>
+export const GET = <span className="keyword get">{"get "}</span>
+export const SET = <span className="keyword set">{"set "}</span>
+export const STATIC = <span className="keyword static">{"static "}</span>
 export const IF = <span className="keyword if">{"if "}</span>
 export const ELSE = <span className="keyword else">{"else "}</span>
 export const TERNARY_QUESTION = <span className="operator question-mark">{" ? "}</span>

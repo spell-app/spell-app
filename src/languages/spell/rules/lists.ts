@@ -737,19 +737,19 @@ lists.addRule(list_filter, {
         [`words in "a word list" where`, `spellCore.filter("a word list", (word) => {})`],
         [
           `words in "a word list" where word starts with "a"`,
-          [`spellCore.filter("a word list", (word) => {`, `\treturn spellCore.startsWith(word, "a")`, `})`]
+          [`spellCore.filter("a word list", (word) => {`, `  return spellCore.startsWith(word, "a")`, `})`]
         ],
         [
           "the items in my-list where the id of the item > 1",
-          [`spellCore.filter(my_list, (item) => {`, `\treturn (item.id > 1)`, `})`]
+          [`spellCore.filter(my_list, (item) => {`, `  return (item.id > 1)`, `})`]
         ],
         [
           "the items in my-list where the id of it > 1",
-          ["spellCore.filter(my_list, (item) => {", "\treturn (item.id > 1)", "})"]
+          ["spellCore.filter(my_list, (item) => {", "  return (item.id > 1)", "})"]
         ],
         [
           "the items in my-list where its id > 1",
-          [`spellCore.filter(my_list, (item) => {`, `\treturn (item.id > 1)`, `})`]
+          [`spellCore.filter(my_list, (item) => {`, `  return (item.id > 1)`, `})`]
         ]
       ]
     }
@@ -804,21 +804,21 @@ lists.addRule(list_membership_test, {
       },
       tests: [
         ["my-list has items where", "spellCore.any(my_list, (item) => {})"],
-        ["my-list has items where the item is 1", ["spellCore.any(my_list, (item) => {", "\treturn (item == 1)", "})"]],
-        ["my-list has items where it is 1", ["spellCore.any(my_list, (item) => {", "\treturn (item == 1)", "})"]],
+        ["my-list has items where the item is 1", ["spellCore.any(my_list, (item) => {", "  return (item == 1)", "})"]],
+        ["my-list has items where it is 1", ["spellCore.any(my_list, (item) => {", "  return (item == 1)", "})"]],
         [
           "my-list has items where its foo is 1",
-          ["spellCore.any(my_list, (item) => {", "\treturn (item.foo == 1)", "})"]
+          ["spellCore.any(my_list, (item) => {", "  return (item.foo == 1)", "})"]
         ],
-        ["my-list has no items where item is 1", ["!spellCore.any(my_list, (item) => {", "\treturn (item == 1)", "})"]],
-        ["my-list has no items where it is 1", ["!spellCore.any(my_list, (item) => {", "\treturn (item == 1)", "})"]],
+        ["my-list has no items where item is 1", ["!spellCore.any(my_list, (item) => {", "  return (item == 1)", "})"]],
+        ["my-list has no items where it is 1", ["!spellCore.any(my_list, (item) => {", "  return (item == 1)", "})"]],
         [
           "my-list doesnt have items where item is 1",
-          ["!spellCore.any(my_list, (item) => {", "\treturn (item == 1)", "})"]
+          ["!spellCore.any(my_list, (item) => {", "  return (item == 1)", "})"]
         ],
         [
           "the foo of the bar does not have items where item is 1",
-          ["!spellCore.any(bar.foo, (item) => {", "\treturn (item == 1)", "})"]
+          ["!spellCore.any(bar.foo, (item) => {", "  return (item == 1)", "})"]
         ]
       ]
     }
@@ -1261,19 +1261,19 @@ lists.addRule(list_remove_where, {
         ["remove items from my-list where", "spellCore.removeWhere(my_list, (item) => {})"],
         [
           `remove items from my-list where item is not "ace"`,
-          [`spellCore.removeWhere(my_list, (item) => {`, `\treturn (item != "ace")`, `})`]
+          [`spellCore.removeWhere(my_list, (item) => {`, `  return (item != "ace")`, `})`]
         ],
         [
           "remove cards in deck where the suit of the card is clubs",
-          ["spellCore.removeWhere(deck, (card) => {", "\treturn (card.suit == 'clubs')", "})"]
+          ["spellCore.removeWhere(deck, (card) => {", "  return (card.suit == 'clubs')", "})"]
         ],
         [
           "remove cards in deck where the suit of it is clubs",
-          ["spellCore.removeWhere(deck, (card) => {", "\treturn (card.suit == 'clubs')", "})"]
+          ["spellCore.removeWhere(deck, (card) => {", "  return (card.suit == 'clubs')", "})"]
         ],
         [
           "remove cards in deck where its suit is clubs",
-          ["spellCore.removeWhere(deck, (card) => {", "\treturn (card.suit == 'clubs')", "})"]
+          ["spellCore.removeWhere(deck, (card) => {", "  return (card.suit == 'clubs')", "})"]
         ]
       ]
     }
@@ -1419,21 +1419,21 @@ lists.addRule(repeat_n_times, {
           input: "repeat 3 times: print the number",
           output: [
             "spellCore.map(spellCore.getRange(0, 3), (number) => {",
-            "\treturn spellCore.console.log(number)",
+            "  return spellCore.console.log(number)",
             "})"
           ]
         },
         {
           title: "Nested block statement",
           input: ["repeat 3 times:", "\tprint it"],
-          output: ["spellCore.map(spellCore.getRange(0, 3), (number) => {", "\tspellCore.console.log(number)", "})"]
+          output: ["spellCore.map(spellCore.getRange(0, 3), (number) => {", "  spellCore.console.log(number)", "})"]
         },
         {
           title: "Error if nested block and inline statement",
           input: ["repeat 3 times: print 1", "\tprint it"],
           output: [
             "spellCore.map(spellCore.getRange(0, 3), (number) => {",
-            "\tspellCore.console.log(number)",
+            "  spellCore.console.log(number)",
             "})",
             "/* PARSE ERROR: Got both inline statement and nested block */"
           ]
@@ -1520,17 +1520,17 @@ lists.addRule(list_iteration, {
         ["for item, index in my-list:", "spellCore.map(my_list, (item, index) => {})"],
         [
           `for each card in deck: set the direction of the card to "down"`,
-          [`spellCore.map(deck, (card) => {`, `\tcard.direction = "down"`, `})`]
+          [`spellCore.map(deck, (card) => {`, `  card.direction = "down"`, `})`]
         ],
         [
           `for each card in deck: set the direction of it to "down"`,
-          [`spellCore.map(deck, (card) => {`, `\tcard.direction = "down"`, `})`]
+          [`spellCore.map(deck, (card) => {`, `  card.direction = "down"`, `})`]
         ],
         [
           "for message, index in messages: add message + index to messages",
           [
             `spellCore.map(messages, (message, index) => {`,
-            `\treturn spellCore.append(messages, message + index)`,
+            `  return spellCore.append(messages, message + index)`,
             `})`
           ]
         ],
@@ -1538,32 +1538,32 @@ lists.addRule(list_iteration, {
           "for message, index in messages: add it + index to messages",
           [
             `spellCore.map(messages, (message, index) => {`,
-            `\treturn spellCore.append(messages, message + index)`,
+            `  return spellCore.append(messages, message + index)`,
             `})`
           ]
         ],
         [
           "for message, index in messages: set its list to messages",
-          [`spellCore.map(messages, (message, index) => {`, `\tmessage.list = messages`, `})`]
+          [`spellCore.map(messages, (message, index) => {`, `  message.list = messages`, `})`]
         ],
 
         [
           `for each card in deck:\n\tset the direction of the card to "down"`,
-          [`spellCore.map(deck, (card) => {`, `\tcard.direction = "down"`, `})`]
+          [`spellCore.map(deck, (card) => {`, `  card.direction = "down"`, `})`]
         ],
         [
           [`for each card in deck:`, `\tset the direction of it to "down"`],
-          [`spellCore.map(deck, (card) => {`, `\tcard.direction = "down"`, `})`]
+          [`spellCore.map(deck, (card) => {`, `  card.direction = "down"`, `})`]
         ],
         [
           [`for each card in deck:`, `\tset the direction of the card to "down"`, `\tset the value of the card to 10`],
-          [`spellCore.map(deck, (card) => {`, `\tcard.direction = "down"`, `\tcard.value = 10`, `})`]
+          [`spellCore.map(deck, (card) => {`, `  card.direction = "down"`, `  card.value = 10`, `})`]
         ],
         [
           ["for message and index in messages:", "\tif index is greater than 2 add message to messages"],
           [
             `spellCore.map(messages, (message, index) => {`,
-            `\tif (index > 2) { spellCore.append(messages, message) }`,
+            `  if (index > 2) { spellCore.append(messages, message) }`,
             `})`
           ]
         ]
@@ -1628,11 +1628,11 @@ lists.addRule(list_range_iteration, {
         ["for each number from 1 to 10:", "spellCore.map(spellCore.getRange(1, 10), (number) => {})"],
         [
           "for each number from 1 to 10: print the number",
-          ["spellCore.map(spellCore.getRange(1, 10), (number) => {", "\treturn spellCore.console.log(number)", "})"]
+          ["spellCore.map(spellCore.getRange(1, 10), (number) => {", "  return spellCore.console.log(number)", "})"]
         ],
         [
           "for each number from 1 to 10:\n\tprint the number",
-          ["spellCore.map(spellCore.getRange(1, 10), (number) => {", "\tspellCore.console.log(number)", "})"]
+          ["spellCore.map(spellCore.getRange(1, 10), (number) => {", "  spellCore.console.log(number)", "})"]
         ]
       ]
     }

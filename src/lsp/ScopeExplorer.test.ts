@@ -9,7 +9,8 @@ import { SP } from "~/languages/spell"
 import { LSP } from "~/lsp"
 import { SpellDiskWorkspace } from "~/lsp/SpellDiskWorkspace"
 import { installDiskFetch, locationForDiskPath } from "~/server/disk-fetch"
-import { fixturePath } from "~/test"
+import { scopesFromPacks } from "~/app/runner"
+import { compiledFixture, fixturePath } from "~/test"
 
 /** The scope tree of a temp copy of the Solitaire example, as a scope explorer sees it. */
 describe("ScopeExplorer", () => {
@@ -68,7 +69,7 @@ describe("ScopeExplorer", () => {
     const suit = details("suit")
     expect(suit.description).toBe("card suits")
     expect(suit.spell).toBe("cards have a suit as one of clubs, diamonds, hearts or spades")
-    expect(suit.compiled).toContain("property: 'suit'")
+    expect(suit.compiled).toContain("Object.defineProperty(Card.prototype, 'suit'")
     expect(suit.line).toBe(9)
   })
 
@@ -305,8 +306,52 @@ describe("ScopeExplorer scope packs", () => {
     expect(details.get(find(tree, "Card").path)?.description).toMatch(/^## definition of a Card/)
   })
 
+  test("a page with NO sources finds each entry's compiled code by what its marker declares -- all but variables", async () => {
+    const scopes = scopesFromPacks([builtIns, pack], { loadCompiled: async () => compiledFixture("Solitaire") })
+    const declarations = pack.entries.filter(({ path }) => !/(^|\/)(project|file|variable):[^/]*$/.test(path))
+    expect(declarations.length).toBeGreaterThan(50)
+    const missing = []
+    for (const { path } of declarations) if (!(await scopes.details(path))?.compiled) missing.push(path)
+    expect(missing).toEqual([])
+  })
+
   test("a pack's script leaves the pack on `SPELL_SCOPES`, by the script's own URL", () => {
     expect(runPackScript(LSP.scopePackScript(pack), "https://example.com/Solitaire.scopes.js")).toEqual(pack)
+  })
+
+  test("a pack's script reads as javascript:  unquoted keys, `path` and `line` on one line, a rule a line", () => {
+    const script = LSP.scopePackScript({
+      id: "@test:Pack",
+      entries: [
+        { path: "project:Pack" },
+        { path: "project:Pack/file:Game.spell/type:Game", line: 2, super: "type:App", description: "the game" },
+        {
+          path: "project:Pack/file:Game.spell/function:debug the game",
+          line: [72, 74],
+          rules: [{ name: "debug_the_game", syntax: "debug the game" }]
+        }
+      ]
+    })
+    expect(script.split("\n").slice(1)).toEqual([
+      ";(globalThis.SPELL_SCOPES ??= {})[document.currentScript.src] = {",
+      '  id: "@test:Pack",',
+      "  entries: [",
+      '    { path: "project:Pack" },',
+      "    {",
+      '      path: "project:Pack/file:Game.spell/type:Game", line: 2,',
+      '      super: "type:App",',
+      '      description: "the game"',
+      "    },",
+      "    {",
+      '      path: "project:Pack/file:Game.spell/function:debug the game", line: [72, 74],',
+      "      rules: [",
+      '        { name: "debug_the_game", syntax: "debug the game" }',
+      "      ]",
+      "    }",
+      "  ]",
+      "}",
+      ""
+    ])
   })
 
   test("`src/spellCore/spellCore.scopes.js` -- which may be hand-edited -- has every built-in type", () => {

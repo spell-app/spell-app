@@ -44,3 +44,4 @@ export {
 } from "./rules"
 
 export * from "./SpellDeclarations"
+export * from "./hoistClassMembers"

@@ -7,10 +7,10 @@ import { spellCore, Thing, List, App } from "@spell/core"
   defined: "/1.spell:0-38",
 } */
 export function do_something() {
-	if (1) {
-		let it = 100
-		/* PARSE ERROR: Don't understand "+ card" */
-	}
+  if (1) {
+    let it = 100
+    /* PARSE ERROR: Don't understand "+ card" */
+  }
 }
 /* PARSE ERROR: Don't understand "print it as lowercase and then do this and do that and do the other thing" */
 let it = 2

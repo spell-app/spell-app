@@ -305,12 +305,6 @@ export type SpellDeclaration = {
    */
   name?: string
   /**
-   * Line(s) its statement is on in its file, from 1, as people count:  `7`, or its first and last, e.g. `[7, 9]`.
-   * - So a page with no sources can find it, e.g. `<spell-app>` matching its code to a scope pack's entry,
-   *   whose `line` says the same -- see `LSP.ScopeLine`.
-   */
-  line?: number | [number, number]
-  /**
    * Where it is, as `<file>:<start>-<end>` character offsets, e.g. `/FizzBuzz.spell:23-412` -- for editors.
    * - Project-relative:  a library may move.
    */

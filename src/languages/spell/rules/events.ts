@@ -141,15 +141,15 @@ events.addRule(on, {
         {
           title: "Inline statement",
           input: `on event card-click: print 1`,
-          output: ["spellCore.RUNTIME.on('card-click', (event) => {", "\treturn spellCore.console.log(1)", "})"]
+          output: ["spellCore.RUNTIME.on('card-click', (event) => {", "  return spellCore.console.log(1)", "})"]
         },
         {
           title: "Nested block",
           input: [`on event card-click with a card:`, `\tprint the name of the card`],
           output: [
             "spellCore.RUNTIME.on('card-click', (event) => {",
-            "\tlet { card } = event",
-            "\tspellCore.console.log(card.name)",
+            "  let { card } = event",
+            "  spellCore.console.log(card.name)",
             "})"
           ]
         },
@@ -158,8 +158,8 @@ events.addRule(on, {
           input: [`on event card-click with a card: print 1`, `\tprint the name of the card`],
           output: [
             "spellCore.RUNTIME.on('card-click', (event) => {",
-            "\tlet { card } = event",
-            "\tspellCore.console.log(card.name)",
+            "  let { card } = event",
+            "  spellCore.console.log(card.name)",
             "})",
             "/* PARSE ERROR: Got both inline statement and nested block */"
           ]

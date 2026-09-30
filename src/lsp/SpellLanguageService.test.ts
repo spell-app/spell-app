@@ -563,7 +563,7 @@ describe("SpellLanguageService", () => {
   })
 
   test("custom requests:  compiled javascript, and the project's files", () => {
-    expect(service.compiled(card)).toContain("export class Card extends Thing {}")
+    expect(service.compiled(card)).toContain("export class Card extends Thing {\n")
     expect(service.projectInfo(card).files.map(({ file, errors }) => `${file} ${errors}`)).toEqual([
       "Card.spell 0",
       "Deck.spell 0",
@@ -642,7 +642,7 @@ function withoutBlankLines(text: string): string {
  */
 function withoutPositions(compiled: string): string {
   // `line: 9, defined: "/Card.spell:222-283",` -- or either alone
-  return withoutBlankLines(compiled.replace(/^ {2}(line|defined): .*$/gm, ""))
+  return withoutBlankLines(compiled.replace(/^ *(line|defined): .*$/gm, ""))
 }
 
 /** `text` with `edits` applied -- edits must not overlap. */

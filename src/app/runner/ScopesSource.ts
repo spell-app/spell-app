@@ -4,9 +4,12 @@
  * - A pack leaves out each declaration's `spell` and `compiled`:  they're worked out when shown, from the
  *   project's sources and compiled output -- if we can have them.  See `ScopesSourceHooks`.
  */
+import JSON5 from "json5"
+
 // Import directly, NOT through the `~/lsp` barrel, which would pull in the language service.
 import {
   SCOPE_PACK_GLOBAL,
+  scopePath,
   scopeTreeFromPacks,
   type ScopeDetails,
   type ScopeLine,
@@ -34,8 +37,8 @@ export type ScopesSourceHooks = {
  * A `ScopesSource` of `packs` -- the built-ins' first.  See `LSP.scopeTreeFromPacks()`.
  * - A declaration's `spell` is its `line`s of its file, from `hooks.loadSource()`.
  * - Its `compiled` is what follows its `/*! SPELL: DECLARES ... *\/` marker in its project's compiled output,
- *   from `hooks.loadCompiled()` -- the marker on the same `line` of the same file.  So NO source needed:  only
- *   output compiled before markers had a `line` needs the source, to turn their offsets into lines.
+ *   from `hooks.loadCompiled()` -- the marker in the same file which declares it, e.g. `of: "Card"` +
+ *   `property: "suit"` for `.../type:Card/property:suit`.  So NO source needed.  See `declaredPaths()`.
  * - Each file's text, and each project's markers, are asked for once.
  */
 export function scopesFromPacks(packs: ScopePack[], hooks: ScopesSourceHooks = {}): ScopesSource {
@@ -49,17 +52,11 @@ export function scopesFromPacks(packs: ScopePack[], hooks: ScopesSourceHooks = {
   /** Details of `path`, with its `spell` and `compiled` worked out, if we can. */
   async function detailsOf(path: string): Promise<ScopeDetails | null> {
     const entry = details.get(path)
-    if (!entry || entry.line === undefined) return entry ?? null
+    if (!entry) return null
     const uri = entry.uri ?? nodes.get(path)?.uri
     if (!uri) return entry
-    const [first, last] = lineRange(entry.line)
-    const source = await sourceOf(uri)
-    const spell = source
-      ?.split("\n")
-      .slice(first - 1, last)
-      .join("\n")
-      .trimEnd()
-    const compiled = await compiledAt(uri, first, source)
+    const spell = entry.line === undefined ? undefined : linesOf(await sourceOf(uri), entry.line)
+    const compiled = await compiledFor(uri, path)
     return { ...entry, ...(spell ? { spell } : {}), ...(compiled ? { compiled } : {}) }
   }
 
@@ -71,21 +68,17 @@ export function scopesFromPacks(packs: ScopePack[], hooks: ScopesSourceHooks = {
     return source
   }
 
-  /**
-   * Compiled javascript of the declaration starting on line `first` of spell file `uri` -- its text `source`, if we
-   * have it, for markers with no `line`.
-   */
-  async function compiledAt(uri: string, first: number, source?: string): Promise<string | undefined> {
+  /** Compiled javascript of the statement in spell file `uri` which declares `path`, if we can have it. */
+  async function compiledFor(uri: string, path: string): Promise<string | undefined> {
+    const declared = declaredPath(path)
+    if (!declared) return undefined
     const { projectId, filePath } = splitSpellUri(uri)
     let found = markers.get(projectId)
     if (!found) {
       const compiled = hooks.loadCompiled?.(projectId).catch(() => undefined) ?? Promise.resolve(undefined)
       markers.set(projectId, (found = compiled.then((text) => (text ? compiledMarkers(text) : []))))
     }
-    const marker = (await found).find(
-      (it) => it.file === filePath && (it.line ?? (source ? lineAt(source, it.start) : undefined)) === first
-    )
-    return marker?.code
+    return (await found).find((it) => it.file === filePath && it.declares.includes(declared))?.code
   }
 
   /** Index `node`, and everything below it, by `path`. */
@@ -137,32 +130,142 @@ function injectPack(src: string, done: (pack: ScopePack | undefined) => void) {
 type CompiledMarker = {
   /** Spell file it's defined in, in its project, e.g. `/Card.spell`. */
   file: string
-  /** Line its statement starts on, from 1 -- if it says:  output compiled before markers had one doesn't. */
-  line?: number
-  /** Offset in that file its statement starts at. */
-  start: number
+  /** What it declares, as the end of each one's path in a scope pack -- see `declaredPaths()`. */
+  declares: string[]
   /** Its compiled javascript. */
   code: string
 }
 
 /**
- * Every declaration marker in `compiled`, with the code after it -- up to the next marker, or the end of its file.
- * - A marker says where its statement is as `line: 2, defined: "/Card.spell:70-87"` -- its first line, and
- *   character offsets.  See `SP.SpellDeclaration.line`.
+ * Every declaration marker in `compiled`, with its code after it -- see `declarationCode()`.
+ * - Up to the next marker at its indent or less, or the end of its file.  A marker for a class member is
+ *   indented in its class's body, so a class's code runs on past its members' markers.
+ * - A marker says which file its statement's in as `defined: "/Card.spell:70-87"`, and what it declares as
+ *   `SP.SpellDeclaration` props, e.g. `property: "suit", of: "Card"` -- see `declaredPaths()`.
  */
 function compiledMarkers(compiled: string): CompiledMarker[] {
-  const found = [...compiled.matchAll(DECLARES)]
-  return found.flatMap((match, index) => {
-    const defined = /defined: "([^"]+):(\d+)-(\d+)"/.exec(match[0])
-    if (!defined) return []
+  const found = [...compiled.matchAll(DECLARES)].map((match) => ({ match, indent: indentAt(compiled, match.index) }))
+  return found.flatMap(({ match, indent }, index) => {
+    const declaration = parseMarker(match[0])
+    const defined = typeof declaration?.defined === "string" && /^(.+):\d+-\d+$/.exec(declaration.defined)
+    if (!declaration || !defined) return []
     const from = match.index + match[0].length
-    const next = found[index + 1]?.index ?? compiled.length
+    const next = found.slice(index + 1).find((it) => it.indent.length <= indent.length)?.match.index ?? compiled.length
     const fileEnd = compiled.indexOf(FILE_SEPARATOR, from)
     const to = fileEnd >= 0 && fileEnd < next ? fileEnd : next
-    const line = /\bline: \[?(\d+)/.exec(match[0])
-    const code = compiled.slice(from, to).trim()
-    return [{ file: defined[1]!, line: line ? Number(line[1]) : undefined, start: Number(defined[2]), code }]
+    const code = declarationCode(compiled.slice(from, to), indent)
+    return [{ file: defined[1]!, declares: declaredPaths(declaration), code }]
   })
+}
+
+/** What marker `comment` says its statement declared -- `undefined` if it can't be read. */
+function parseMarker(comment: string): MarkerDeclaration | undefined {
+  try {
+    return JSON5.parse<MarkerDeclaration>(comment.slice(comment.indexOf("{"), comment.lastIndexOf("}") + 1))
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * What a marker's statement declares, as the end of each one's path in a scope pack -- from its `type:`, or its
+ * `file:` if it's not in a type -- e.g. `type:Card/property:suit` or `function:debug the game`.
+ * - As `LSP.ScopeExplorer` names them, e.g. a method by its `name` without its quotes.
+ */
+function declaredPaths(declaration: MarkerDeclaration): string[] {
+  const { type, of, property, classVariable, kind, constants = [], enumeration = [] } = declaration
+  const owner = of && scopePath("", "type", of)
+  const paths: string[] = []
+  if (type) paths.push(scopePath("", "type", type))
+  if (!owner) {
+    if (kind === "function") paths.push(scopePath("", "function", methodName(declaration)))
+    return paths
+  }
+  if (property) paths.push(scopePath(owner, "property", property))
+  if (classVariable) paths.push(scopePath(owner, "enumeration", classVariable))
+  if (kind === "method") paths.push(scopePath(owner, "method", methodName(declaration)))
+  // an enumeration's values are constants too, e.g. `'clubs'`
+  const values = enumeration.filter((value): value is string => typeof value === "string")
+  for (const name of [...constants, ...values.map((value) => value.replace(/^'(.*)'$/, "$1"))])
+    paths.push(scopePath(owner, "constant", name))
+  return paths
+}
+
+/**
+ * Method or function name, as `LSP.ScopeExplorer.methodName()` has it:  its `name` -- else its `syntax` -- without
+ * quotes, e.g. `is face up` for `"is face up"`, and `test ` in front of a test's.
+ */
+function methodName({ name, syntax = "" }: MarkerDeclaration): string {
+  const declared = (name ?? syntax).replace(/^"(.*)"$/, "$1")
+  return /^test\b/.test(syntax) && !/^test\b/.test(declared) ? `test ${declared}` : declared
+}
+
+/**
+ * End of `path` which a marker's `declaredPaths()` may hold -- below its `file:`, or its `project:` -- e.g.
+ * `type:Card/property:suit`.  `undefined` for a project or file itself.
+ */
+function declaredPath(path: string): string | undefined {
+  const segments = path.split("/")
+  let below = segments.length - 1
+  while (below >= 0 && !/^(file|project):/.test(segments[below]!)) below--
+  return segments.slice(below + 1).join("/") || undefined
+}
+
+/**
+ * What a `SPELL: DECLARES` marker says, as far as finding its entries goes -- see `SP.SpellDeclaration`.
+ * - NOT imported from there:  `~/languages/spell` would pull the whole parser into the bundle.
+ */
+type MarkerDeclaration = {
+  type?: string
+  of?: string
+  property?: string
+  classVariable?: string
+  kind?: string
+  name?: string
+  syntax?: string
+  constants?: string[]
+  enumeration?: Array<string | number>
+  defined?: string
+}
+
+/** Whitespace from the start of `offset`'s line up to it, e.g. a tab for a marker in a class body. */
+function indentAt(text: string, offset: number): string {
+  const lineStart = text.lastIndexOf("\n", offset - 1) + 1
+  return /^[ \t]*/.exec(text.slice(lineStart, offset))![0]
+}
+
+/**
+ * A declaration's code, from `text` after its marker:
+ * - up to a line indented less than its marker, `indent`, e.g. the `}` closing the class it's a member of
+ * - dedented by `indent`
+ * - without the markers of what's declared in it, e.g. a class's members
+ * - without the comments at its end:  they're the next declaration's, e.g. its docstring or a banner
+ */
+function declarationCode(text: string, indent: string): string {
+  const lines: string[] = []
+  for (const line of text.split("\n")) {
+    if (line.trim() && !line.startsWith(indent)) break
+    lines.push(line.slice(indent.length))
+  }
+  // a class's members' markers are noise in its code
+  const code = lines.join("\n").replace(new RegExp(`^[ \\t]*${DECLARES.source}\\n?`, "gm"), "").split("\n")
+  lines.splice(0, lines.length, ...code)
+  while (lines.length) {
+    const last = lines.at(-1)!.trim()
+    if (!last || last.startsWith("//")) lines.pop()
+    else if (last.endsWith("*/") && startOfDocComment(lines) >= 0) lines.splice(startOfDocComment(lines))
+    else break
+  }
+  return lines.join("\n").trim()
+}
+
+/** Index of the line starting the `/** ... *\/` docstring which ends `lines`, else `-1`. */
+function startOfDocComment(lines: string[]): number {
+  for (let index = lines.length - 1; index >= 0; index--) {
+    const line = lines[index]!.trim()
+    if (line.startsWith("/*")) return line.startsWith("/**") ? index : -1
+  }
+  return -1
 }
 
 /** A declaration marker in compiled output -- see `SP.SpellDeclarations`. */
@@ -178,16 +281,14 @@ const FILE_SEPARATOR = "\n// -----------\n"
 // ## Helpers
 ////////////////
 
-/** First and last of `line`, from 1. */
-function lineRange(line: ScopeLine): [number, number] {
-  return typeof line === "number" ? [line, line] : line
-}
-
-/** Line of `source` offset `offset` is on, from 1. */
-function lineAt(source: string, offset: number): number {
-  let line = 1
-  for (let at = source.indexOf("\n"); at >= 0 && at < offset; at = source.indexOf("\n", at + 1)) line++
-  return line
+/** `line` of `source` -- or its first to last -- as text;  `undefined` without `source`. */
+function linesOf(source: string | undefined, line: ScopeLine): string | undefined {
+  const [first, last] = typeof line === "number" ? [line, line] : line
+  return source
+    ?.split("\n")
+    .slice(first - 1, last)
+    .join("\n")
+    .trimEnd()
 }
 
 /** Project id and file path of spell file `uri`, e.g. `spell:/@system:examples:Solitaire/Card.spell`. */

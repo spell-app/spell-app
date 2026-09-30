@@ -410,8 +410,8 @@ export class MethodDefinition<
    *   START of the body so prop variables are in scope before the rest of the method runs.
    * - `asAnimation`: SIDE EFFECT -- makes the method `async` and wraps its body in `StartProcessInvocation`
    *   (`exclusive: true`) / `try { ... } finally { StopProcessInvocation }`.
-   * - `instanceType` set: emits a `PropertyDefinition` on `Type.prototype` -- a `get` accessor when
-   *   `asPostfixExpression`, else a plain `value`.  No `instanceType`: emits a loose function, or (when
+   * - `instanceType` set: emits a `PropertyDefinition` for `Type` -- a getter when `asPostfixExpression`,
+   *   else a method.  No `instanceType`: emits a loose function, or (when
    *   `asTest`) a loose function whose body is itself a `test(...)` call.
    */
   getAST(match: P.MatchFor<this>): P.ASTStatementGroup {
@@ -473,9 +473,7 @@ export class MethodDefinition<
         // console.warn("APE:", method)
         output.push(
           new P.ASTPropertyDefinition(match, {
-            thing: new P.ASTPrototypeExpression(match, {
-              type: typeCase(instanceType)
-            }),
+            type: typeCase(instanceType),
             property: methodName,
             get: method
           })
@@ -483,11 +481,9 @@ export class MethodDefinition<
       } else {
         output.push(
           new P.ASTPropertyDefinition(match, {
-            thing: new P.ASTPrototypeExpression(match, {
-              type: typeCase(instanceType)
-            }),
+            type: typeCase(instanceType),
             property: methodName,
-            value: method
+            method
           })
         )
       }
@@ -941,7 +937,7 @@ methods.addRule(to_do_something, {
         {
           title: "simple arg in signature - arg is defined",
           input: "to notify (message): print the message",
-          output: [`export function notify_$message(message) {`, `\treturn spellCore.console.log(message)`, `}`]
+          output: [`export function notify_$message(message) {`, `  return spellCore.console.log(message)`, `}`]
         },
         {
           title: "simple arg in signature - it is not defined",
@@ -951,7 +947,7 @@ methods.addRule(to_do_something, {
         {
           title: "typed simple arg in signature - arg is defined",
           input: "to notify (message as text): print the message",
-          output: [`export function notify_$message(message) {`, `\treturn spellCore.console.log(message)`, `}`]
+          output: [`export function notify_$message(message) {`, `  return spellCore.console.log(message)`, `}`]
         },
         {
           title: "typed simple arg in signature - `it` is not defined",
@@ -963,7 +959,7 @@ methods.addRule(to_do_something, {
           input: 'to notify (message = "Really?"): print the message',
           output: [
             `export function notify_$message(message = "Really?") {`,
-            `\treturn spellCore.console.log(message)`,
+            `  return spellCore.console.log(message)`,
             `}`
           ]
         },
@@ -979,117 +975,97 @@ methods.addRule(to_do_something, {
           title: "type arg in signature - thisVar",
           input: "to create (a card): print the card",
           output: [
-            `spellCore.define(Card.prototype, 'create', {`,
-            `\tvalue() {`,
-            `\t\treturn spellCore.console.log(this)`,
-            `\t}`,
-            `})`
+            `Card.prototype.create = function () {`,
+            `  return spellCore.console.log(this)`,
+            `}`
           ]
         },
         {
           title: "type arg in signature - it",
           input: "to create (a card): print it",
           output: [
-            `spellCore.define(Card.prototype, 'create', {`,
-            `\tvalue() {`,
-            `\t\treturn spellCore.console.log(this)`,
-            `\t}`,
-            `})`
+            `Card.prototype.create = function () {`,
+            `  return spellCore.console.log(this)`,
+            `}`
           ]
         },
         {
           title: "type arg in signature - its",
           input: "to create (a card): set its number to 1",
-          output: [`spellCore.define(Card.prototype, 'create', {`, `\tvalue() {`, `\t\tthis.number = 1`, `\t}`, `})`]
+          output: [`Card.prototype.create = function () {`, `  this.number = 1`, `}`]
         },
         {
           title: "multiple type args in signature - thisVar",
           input: "to add (a card) to (a pile): set the pile of the card to the pile",
           output: [
-            `spellCore.define(Card.prototype, 'add_to_$pile', {`,
-            `\tvalue(pile) {`,
-            `\t\tthis.pile = pile`,
-            `\t}`,
-            `})`
+            `Card.prototype.add_to_$pile = function (pile) {`,
+            `  this.pile = pile`,
+            `}`
           ]
         },
         {
           title: "multiple type args in signature - it",
           input: "to add (a card) to (a pile): set the pile of it to the pile",
           output: [
-            `spellCore.define(Card.prototype, 'add_to_$pile', {`,
-            `\tvalue(pile) {`,
-            `\t\tthis.pile = pile`,
-            `\t}`,
-            `})`
+            `Card.prototype.add_to_$pile = function (pile) {`,
+            `  this.pile = pile`,
+            `}`
           ]
         },
         {
           title: "multiple type args in signature - its",
           input: "to add (a card) to (a pile): set its pile to the pile",
           output: [
-            `spellCore.define(Card.prototype, 'add_to_$pile', {`,
-            `\tvalue(pile) {`,
-            `\t\tthis.pile = pile`,
-            `\t}`,
-            `})`
+            `Card.prototype.add_to_$pile = function (pile) {`,
+            `  this.pile = pile`,
+            `}`
           ]
         },
         {
           title: "typed arg in signature -- arg name",
           input: "to show (thing as a card): print the thing",
           output: [
-            `spellCore.define(Card.prototype, 'show', {`,
-            `\tvalue() {`,
-            `\t\treturn spellCore.console.log(this)`,
-            `\t}`,
-            `})`
+            `Card.prototype.show = function () {`,
+            `  return spellCore.console.log(this)`,
+            `}`
           ]
         },
         {
           title: "typed arg in signature -- thisVar",
           input: "to show (thing as a card): print the card",
           output: [
-            `spellCore.define(Card.prototype, 'show', {`,
-            `\tvalue() {`,
-            `\t\treturn spellCore.console.log(this)`,
-            `\t}`,
-            `})`
+            `Card.prototype.show = function () {`,
+            `  return spellCore.console.log(this)`,
+            `}`
           ]
         },
         {
           title: "typed arg in signature -- it",
           input: "to show (thing as a card): print it",
           output: [
-            `spellCore.define(Card.prototype, 'show', {`,
-            `\tvalue() {`,
-            `\t\treturn spellCore.console.log(this)`,
-            `\t}`,
-            `})`
+            `Card.prototype.show = function () {`,
+            `  return spellCore.console.log(this)`,
+            `}`
           ]
         },
         {
           title: "typed arg in signature -- its",
           input: "to show (thing as a card): print its name",
           output: [
-            `spellCore.define(Card.prototype, 'show', {`,
-            `\tvalue() {`,
-            `\t\treturn spellCore.console.log(this.name)`,
-            `\t}`,
-            `})`
+            `Card.prototype.show = function () {`,
+            `  return spellCore.console.log(this.name)`,
+            `}`
           ]
         },
         {
           title: "typed var in signature: implicit `it` gets remapped after `get`",
           input: ["to show (thing as a card)", "\tprint it", "\tget its name", "\tprint it"],
           output: [
-            "spellCore.define(Card.prototype, 'show', {",
-            "\tvalue() {",
-            "\t\tspellCore.console.log(this)",
-            "\t\tlet it = this.name",
-            "\t\tspellCore.console.log(it)",
-            "\t}",
-            "})"
+            "Card.prototype.show = function () {",
+            "  spellCore.console.log(this)",
+            "  let it = this.name",
+            "  spellCore.console.log(it)",
+            "}"
           ]
         },
         {
@@ -1110,14 +1086,14 @@ methods.addRule(to_do_something, {
         {
           title: "top level keyword-only method",
           input: ["to start the game", "\tprint 1", "start the game"],
-          output: [`export function start_the_game() {`, `\tspellCore.console.log(1)`, `}`, `start_the_game()`]
+          output: [`export function start_the_game() {`, `  spellCore.console.log(1)`, `}`, `start_the_game()`]
         },
         {
           title: "top level simple argument method",
           input: ["to notify (message): print the message", "notify 1"],
           output: [
             `export function notify_$message(message) {`,
-            `\treturn spellCore.console.log(message)`,
+            `  return spellCore.console.log(message)`,
             `}`,
             "notify_$message(1)"
           ]
@@ -1127,7 +1103,7 @@ methods.addRule(to_do_something, {
           input: ["to notify (message as text): print the message", "notify 1"],
           output: [
             `export function notify_$message(message) {`,
-            `\treturn spellCore.console.log(message)`,
+            `  return spellCore.console.log(message)`,
             `}`,
             `notify_$message(1)`
           ]
@@ -1136,11 +1112,9 @@ methods.addRule(to_do_something, {
           title: "type arg in signature",
           input: ["to show (a card): print the card", "show a new card"],
           output: [
-            `spellCore.define(Card.prototype, 'show', {`,
-            `\tvalue() {`,
-            `\t\treturn spellCore.console.log(this)`,
-            `\t}`,
-            `})`,
+            `Card.prototype.show = function () {`,
+            `  return spellCore.console.log(this)`,
+            `}`,
             "new Card().show()"
           ]
         },
@@ -1148,11 +1122,9 @@ methods.addRule(to_do_something, {
           title: "multiple type args in signature",
           input: ["to play (a card) on (a pile): set its pile to the pile", "play a new card on a new pile"],
           output: [
-            `spellCore.define(Card.prototype, 'play_on_$pile', {`,
-            `\tvalue(pile) {`,
-            `\t\tthis.pile = pile`,
-            `\t}`,
-            `})`,
+            `Card.prototype.play_on_$pile = function (pile) {`,
+            `  this.pile = pile`,
+            `}`,
             "new Card().play_on_$pile(new Pile())"
           ]
         }
@@ -1176,8 +1148,8 @@ methods.addRule(to_do_something, {
           input: ["to notify (with message):", "\tprint the message", "notify"],
           output: [
             "export function notify(props = {}) {",
-            "\tlet { message } = props",
-            "\tspellCore.console.log(message)",
+            "  let { message } = props",
+            "  spellCore.console.log(message)",
             "}",
             "notify()"
           ]
@@ -1188,8 +1160,8 @@ methods.addRule(to_do_something, {
           input: ["to notify (with message):", "\tprint the message", 'notify with message = "It worked!"'],
           output: [
             "export function notify(props = {}) {",
-            "\tlet { message } = props",
-            "\tspellCore.console.log(message)",
+            "  let { message } = props",
+            "  spellCore.console.log(message)",
             "}",
             'notify({ message: "It worked!" })'
           ]
@@ -1204,8 +1176,8 @@ methods.addRule(to_do_something, {
           ],
           output: [
             "export function play(props = {}) {",
-            "\tlet { card } = props",
-            "\tspellCore.console.log(card)",
+            "  let { card } = props",
+            "  spellCore.console.log(card)",
             "}",
             "play({ card: new Card() })",
             'play({ card: new Card({ suit: "hearts" }) })'
@@ -1216,8 +1188,8 @@ methods.addRule(to_do_something, {
           input: ['to notify (with message = "nope"):', "\tprint the message", 'notify with message = "Ship it!!"'],
           output: [
             "export function notify(props = {}) {",
-            '\tlet { message = "nope" } = props',
-            "\tspellCore.console.log(message)",
+            '  let { message = "nope" } = props',
+            "  spellCore.console.log(message)",
             "}",
             'notify({ message: "Ship it!!" })'
           ]
@@ -1232,8 +1204,8 @@ methods.addRule(to_do_something, {
           ],
           output: [
             "export function notify(props = {}) {",
-            '\tlet { message = "nope", reply = "yep" } = props',
-            "\tspellCore.console.log(message + reply)",
+            '  let { message = "nope", reply = "yep" } = props',
+            "  spellCore.console.log(message + reply)",
             "}",
             'notify({ message: "How many?" })',
             'notify({ message: "How many?", reply: 2 })'
@@ -1248,13 +1220,13 @@ methods.addRule(to_do_something, {
           ],
           output: [
             "export function notify(props = {}) {",
-            '\tlet { name, message, reply = "yep" } = props',
-            "\tspellCore.console.log((name + message) + reply)",
+            '  let { name, message, reply = "yep" } = props',
+            "  spellCore.console.log((name + message) + reply)",
             "}",
             "notify({",
-            '\tname: "Bob",',
-            '\tmessage: "How many?",',
-            "\treply: 2",
+            '  name: "Bob",',
+            '  message: "How many?",',
+            "  reply: 2",
             "})"
           ]
         },
@@ -1268,9 +1240,9 @@ methods.addRule(to_do_something, {
           ],
           output: [
             "export function notify_$message(message, props = {}) {",
-            '\tlet { reply = "yep" } = props',
-            "\tspellCore.console.log(message)",
-            "\tspellCore.console.log(reply)",
+            '  let { reply = "yep" } = props',
+            "  spellCore.console.log(message)",
+            "  spellCore.console.log(reply)",
             "}",
             'notify_$message("Really?", { reply: "yes" })'
           ]
@@ -1284,8 +1256,8 @@ methods.addRule(to_do_something, {
           ],
           output: [
             "export function notify(props = {}) {",
-            "\tlet { message } = props",
-            "\tspellCore.console.log(message)",
+            "  let { message } = props",
+            "  spellCore.console.log(message)",
             "}",
             `notify({ message: "It worked!", reply: "No it didn't" })`
           ]
@@ -1333,12 +1305,12 @@ methods.addRule(create_animation, {
           input: "animation deal the cards",
           output: [
             "export async function deal_the_cards() {",
-            "\tif (spellCore.processIsRunning('deal_the_cards')) { return }",
-            "\tspellCore.startProcess('deal_the_cards', 'EXCLUSIVE')",
-            "\ttry {}",
-            "\tfinally {",
-            "\t\tspellCore.stopProcess('deal_the_cards')",
-            "\t}",
+            "  if (spellCore.processIsRunning('deal_the_cards')) { return }",
+            "  spellCore.startProcess('deal_the_cards', 'EXCLUSIVE')",
+            "  try {}",
+            "  finally {",
+            "    spellCore.stopProcess('deal_the_cards')",
+            "  }",
             "}"
           ]
         },
@@ -1346,14 +1318,14 @@ methods.addRule(create_animation, {
           input: ["animation deal the cards", "\tpause for 10 seconds"],
           output: [
             "export async function deal_the_cards() {",
-            "\tif (spellCore.processIsRunning('deal_the_cards')) { return }",
-            "\tspellCore.startProcess('deal_the_cards', 'EXCLUSIVE')",
-            "\ttry {",
-            "\t\tawait spellCore.pauseFor(10, 'seconds')",
-            "\t}",
-            "\tfinally {",
-            "\t\tspellCore.stopProcess('deal_the_cards')",
-            "\t}",
+            "  if (spellCore.processIsRunning('deal_the_cards')) { return }",
+            "  spellCore.startProcess('deal_the_cards', 'EXCLUSIVE')",
+            "  try {",
+            "    await spellCore.pauseFor(10, 'seconds')",
+            "  }",
+            "  finally {",
+            "    spellCore.stopProcess('deal_the_cards')",
+            "  }",
             "}"
           ]
         }
@@ -1494,8 +1466,9 @@ methods.addRule(quoted_type_expression, {
           title: "no body",
           input: [`a thing "nerds out" if`, `if a new thing nerds out`],
           output: [
-            `spellCore.define(Thing.prototype, 'nerds_out', {`,
-            `\tget() {}`,
+            `Object.defineProperty(Thing.prototype, 'nerds_out', {`,
+            `  get() {},`,
+            `  configurable: true`,
             `})`,
             `if (new Thing().nerds_out) {}`
           ]
@@ -1504,10 +1477,11 @@ methods.addRule(quoted_type_expression, {
           title: "no if",
           input: [`a thing "nerds out": never`, `if a new thing nerds out`],
           output: [
-            `spellCore.define(Thing.prototype, 'nerds_out', {`,
-            `\tget() {`,
-            `\t\treturn false`,
-            `\t}`,
+            `Object.defineProperty(Thing.prototype, 'nerds_out', {`,
+            `  get() {`,
+            `    return false`,
+            `  },`,
+            `  configurable: true`,
             `})`,
             `if (new Thing().nerds_out) {}`
           ]
@@ -1516,10 +1490,11 @@ methods.addRule(quoted_type_expression, {
           title: "inline expression",
           input: [`a thing "nerds out" if yes`, `if a new thing nerds out`],
           output: [
-            `spellCore.define(Thing.prototype, 'nerds_out', {`,
-            `\tget() {`,
-            `\t\treturn true`,
-            `\t}`,
+            `Object.defineProperty(Thing.prototype, 'nerds_out', {`,
+            `  get() {`,
+            `    return true`,
+            `  },`,
+            `  configurable: true`,
             `})`,
             `if (new Thing().nerds_out) {}`
           ]
@@ -1528,10 +1503,11 @@ methods.addRule(quoted_type_expression, {
           title: "indented method body",
           input: [`a thing "nerds out" if`, `\treturn yes`, `if a new thing nerds out`],
           output: [
-            `spellCore.define(Thing.prototype, 'nerds_out', {`,
-            `\tget() {`,
-            `\t\treturn true`,
-            `\t}`,
+            `Object.defineProperty(Thing.prototype, 'nerds_out', {`,
+            `  get() {`,
+            `    return true`,
+            `  },`,
+            `  configurable: true`,
             `})`,
             `if (new Thing().nerds_out) {}`
           ]
@@ -1546,9 +1522,7 @@ methods.addRule(quoted_type_expression, {
           title: "no body",
           input: [`a thing "nerds out with (another as a thing)" if`, `if a new thing nerds out with a new thing`],
           output: [
-            `spellCore.define(Thing.prototype, 'nerds_out_with_$another', {`,
-            `\tvalue(another) {}`,
-            `})`,
+            `Thing.prototype.nerds_out_with_$another = function (another) {}`,
             `if (new Thing().nerds_out_with_$another(new Thing())) {}`
           ]
         },
@@ -1556,11 +1530,9 @@ methods.addRule(quoted_type_expression, {
           title: "inline expression",
           input: [`a thing "nerds out with (another as a thing)" if yes`, `if a new thing nerds out with a new thing`],
           output: [
-            `spellCore.define(Thing.prototype, 'nerds_out_with_$another', {`,
-            `\tvalue(another) {`,
-            `\t\treturn true`,
-            `\t}`,
-            `})`,
+            `Thing.prototype.nerds_out_with_$another = function (another) {`,
+            `  return true`,
+            `}`,
             `if (new Thing().nerds_out_with_$another(new Thing())) {}`
           ]
         },
@@ -1572,11 +1544,9 @@ methods.addRule(quoted_type_expression, {
             `if a new thing nerds out with a new thing`
           ],
           output: [
-            `spellCore.define(Thing.prototype, 'nerds_out_with_$another', {`,
-            `\tvalue(another) {`,
-            `\t\treturn true`,
-            `\t}`,
-            `})`,
+            `Thing.prototype.nerds_out_with_$another = function (another) {`,
+            `  return true`,
+            `}`,
             `if (new Thing().nerds_out_with_$another(new Thing())) {}`
           ]
         }
@@ -1596,8 +1566,9 @@ methods.addRule(quoted_type_expression, {
             `if a new thing isn't a bug`
           ],
           output: [
-            `spellCore.define(Thing.prototype, 'is_a_bug', {`,
-            `\tget() {}`,
+            `Object.defineProperty(Thing.prototype, 'is_a_bug', {`,
+            `  get() {},`,
+            `  configurable: true`,
             `})`,
             `if (new Thing().is_a_bug) {}`,
             `if (!new Thing().is_a_bug) {}`,
@@ -1616,8 +1587,9 @@ methods.addRule(quoted_type_expression, {
             `if a new thing can't play`
           ],
           output: [
-            `spellCore.define(Thing.prototype, 'can_play', {`,
-            `\tget() {}`,
+            `Object.defineProperty(Thing.prototype, 'can_play', {`,
+            `  get() {},`,
+            `  configurable: true`,
             `})`,
             `if (new Thing().can_play) {}`,
             `if (!new Thing().can_play) {}`,
@@ -1636,8 +1608,9 @@ methods.addRule(quoted_type_expression, {
             `if a new thing won't blow up`
           ],
           output: [
-            `spellCore.define(Thing.prototype, 'will_blow_up', {`,
-            `\tget() {}`,
+            `Object.defineProperty(Thing.prototype, 'will_blow_up', {`,
+            `  get() {},`,
+            `  configurable: true`,
             `})`,
             `if (new Thing().will_blow_up) {}`,
             `if (!new Thing().will_blow_up) {}`,
@@ -1655,8 +1628,9 @@ methods.addRule(quoted_type_expression, {
             `if a new thing doesn't have a friend`
           ],
           output: [
-            `spellCore.define(Thing.prototype, 'has_a_friend', {`,
-            `\tget() {}`,
+            `Object.defineProperty(Thing.prototype, 'has_a_friend', {`,
+            `  get() {},`,
+            `  configurable: true`,
             `})`,
             `if (new Thing().has_a_friend) {}`,
             `if (!new Thing().has_a_friend) {}`,

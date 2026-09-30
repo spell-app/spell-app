@@ -6,6 +6,7 @@ import _ from "lodash"
 
 import { Observable, view } from "~/util"
 import { spellCore } from "~/spellCore/core"
+import type { PropCheck } from "~/spellCore/spellCore.types"
 
 /**
  * `List`: our array concept (1-based) -- what `a deck is a list` extends.
@@ -26,6 +27,16 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
   }
   set items(items: unknown[]) {
     this.setState<unknown[]>("items", items)
+  }
+
+  /**
+   * Set reactive `property` to `value`, warning first if it fails `check` -- it's stored either way.
+   * - Compiled property setters call this, e.g. `set name(value) { this.setProp('name', value, { type: 'text' }) }`
+   * - Same as `Thing.setProp()`.
+   */
+  protected setProp<T>(property: string, value: T, check?: PropCheck) {
+    if (check) spellCore.checkProp(property, value, check)
+    return super.setProp(property, value)
   }
 
   /** Called automatically at end of `List` constructor -- override in a subclass to set up initial state. */

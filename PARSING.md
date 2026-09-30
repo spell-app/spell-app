@@ -175,16 +175,16 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 - So one file's types, constants and rules are visible to every later file.
 - Another project can come in WITHOUT its sources, as its declarations (`SP.SpellDeclarations`), INLINE in its
   compiled JS:
-  - `Block.getAST()` puts a `/*! SPELL: DECLARES {...} */` comment above each declaring statement's code
-    (`commentFor()`):  ONE flat JS object literal, 4-7 lines, merging the scope records it added
-    (`declarationFor()`), e.g.
+  - `Block.getAST()` puts a `/*! SPELL: DECLARES {...} */` comment right on each declaring statement's code,
+    below any docstring -- indented in its class's body for a class member (`commentFor()`):  ONE flat JS object
+    literal, 3-7 lines, merging the scope records it added (`declarationFor()`), e.g.
     `{ property: "suit", classVariable: "Suits", rule: "enumeration", of: "Card", enumeration: [...] }`.
     - `rule` is the `importableAs` of the class its rule was `specialize()`d from;  what that took sits beside it,
       e.g. `output` -- loading passes the whole object to `specialize()`, which picks out its own.
     - Leaves out what loading works out, e.g. an enumeration's constants, or a rule's owner (`of`, else `output`).
-    - `line: 9, defined:  "/Card.spell:222-283"` -- where the statement is:  its line(s), from 1 (`9`, or
-      `[48, 50]` with a body), and its character offsets, project-relative.  The `line` lets a page with no
-      sources match the code to a scope pack's entry -- see `ScopesSource` in `src/app/runner/`.
+    - `defined: "/Card.spell:222-283"` -- where the statement is:  its character offsets, project-relative.
+    - NO line numbers:  a page with no sources matches the code to a scope pack's entry by what it declares,
+      e.g. `property: "suit", of: "Card"` for `.../type:Card/property:suit` -- see `ScopesSource` in `src/app/runner/`.
     - `kind` + `name` -- what its rule's `getDeclaration()` says, for editors, e.g. `name: "draw (a card)"` --
       unless a key already says, e.g. `type`.
   - `SpellProject` puts a one-line `/*! SPELL: PROJECT {...} */` header at the top (`header()`):  versions +
@@ -210,6 +210,7 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - `import { spellCore, Thing, List, App } from "@spell/core"` (`SC.SPELL_CORE_MODULE`)
   - `import { Card, Deck } from "@spell/project/<projectId>"` for each compiled import (`ImportScope.modules`)
   - types compile to `export class`, top-level functions to `export function`, top-level vars to `export let`
+  - see "Classes" under Compile for what goes in a class's body
   - the app's page resolves both with an import map (`vite.importMap.ts`):  `@spell/core` => the SAME
     `spellCore` the app runs, `@spell/project/` => the server's `/api/projects/compiled/<projectId>`.  The VS Code
     runner has no map:  `runCompiled()` points `@spell/core` at its own `spellCore` -- see `CODE-DEBT.md`.
@@ -266,14 +267,28 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 ## Compile
 
 - `Match.compile()` => `match.AST?.compile()`.  `Match.AST` is memoized;  `ASTNode.compile()` is not.
-- A block compiles as its statements joined with `\n`;  nesting indents by re-joining with `\n\t`,
-  so a statement's output doesn't depend on its depth.
+- A block compiles as its statements joined with `\n`;  nesting indents by re-joining with `\n` + 2 spaces
+  (`stringify.INDENT` -- NEVER a tab), so a statement's output doesn't depend on its depth.
 - A DECLARATION's docstring -- comment-only lines directly above it, else the comment on its own line --
-  compiles as one `/** ... */` in place of those `//` lines (`getDocComments()`, `Block.ts`), right on its code:
-  after any `/* SPELL: added rule ... */` notes the statement makes.  A `##` heading
+  compiles as one `/** ... */` in place of those `//` lines (`getDocComments()`, `Block.ts`), above its
+  `SPELL: DECLARES` comment:  after any `/* SPELL: added rule ... */` notes the statement makes.  A `##` heading
   is part of it only if DIRECTLY above;  one followed by a regular comment compiles as a `// ## heading` banner.  Worked out from
   the block's lines when asked, never stored while parsing:  an edited comment line re-parses on its own.
   The language server shows the same docstring on hover and in completion.
+- Classes compile as a hand-written class would:  each MEMBER in its class's body, wherever it was declared.
+  - A member is a `P.ASTClassMember`, which knows its class (`typeName`) and compiles two ways:
+    - in its class's body (`compileAsMember()`), e.g. `get title() {...}`, `draw() {...}`, `static Suits = [...]`
+    - patched on from outside (`compile()`), e.g. `Card.prototype.play = function () {...}` -- when its class
+      isn't compiled with it:  it's from another project, or a rule test compiles the statement alone
+  - A property is a getter / setter pair over the instance's reactive props (`P.ASTReactiveProperty`):
+    `this.getProp('title')` / `this.setProp('title', value, { type: 'text' })`.  NEVER a class field:  that would
+    shadow the accessor, and nothing would redraw.
+  - `Block.getAST()` makes each declaring line ONE `P.ASTStatementGroup` -- docstring, `SPELL: DECLARES`
+    comment, code -- then `SP.hoistClassMembers()` moves each member into its class's body, if that's in the block.
+    Comments directly above a member go with it, e.g. a `## properties` banner.  Everything else stays put.
+  - A project then does the same across ALL its files (`SpellProject.combineCompiled()`), so `Card.move_to_$pile`
+    from `Pile.spell` ends up in `Card.spell`'s class.  So does `compiledFixture()`.  NEVER mutates an AST:  a class
+    which gets members is a NEW `P.ASTClassDeclaration` (`withMembers()`).
 
 ## Language server
 

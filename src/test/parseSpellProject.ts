@@ -76,6 +76,7 @@ export function fixtureProjectNames(): string[] {
 /**
  * Fixture `projectName` compiled as `SpellProject` would write its `<Project>.compiled.js` -- parsed headlessly,
  * with `parseSpellProject()`:  declarations header, `import`s, then each file's code in `project.json` order.
+ * - Files combine through the SAME `SP.SpellProject.combineCompiled()`, so a class gets members from every file.
  * - Its `.css` files compile as `SpellCSSFile` does:  the whole text through the root scope's `css` rule.
  * - Parse errors lead it, as comments, so a snapshot of it shows them too.
  * - NOT projects it imports:  a fixture is parsed on its own.
@@ -86,14 +87,14 @@ export function compiledFixture(projectName: string): string {
   const { version, exports, imports } = readProjectFile(projectDir)
   const { scope, files } = parseSpellProject(loadFixtureProject(projectName))
   const errors = files.flatMap(({ path, errors }) => errors.map((error) => `// PARSE ERROR ${path}:${error}\n`))
-  const code = imports
+  const parts = imports
     .filter(({ path, active }) => active !== false && /\.(spell|css)$/.test(path))
-    .map(({ path }) =>
-      path.endsWith(".css")
-        ? compiledCSS(readFileSync(resolve(projectDir, `.${path}`), "utf8"))
-        : files.find((file) => file.path === path)!.compiled
-    )
-    .join(SP.SpellProject.FILE_SEPARATOR)
+    .map(({ path }) => {
+      if (path.endsWith(".css")) return compiledCSS(readFileSync(resolve(projectDir, `.${path}`), "utf8"))
+      const file = files.find((it) => it.path === path)!
+      return file.match?.AST instanceof P.ASTStatementGroup ? file.match.AST : file.compiled
+    })
+  const code = SP.SpellProject.combineCompiled(parts)
   const header = SP.SpellDeclarations.header(scope, { version, exports })
   return errors.join("") + header + SP.SpellProject.importHeaderFor(scope) + code + "\n"
 }

@@ -29,5 +29,5 @@ import "./runtime"
 import "./ui"
 
 export { spellCore, assert, SpellEvent, Eventful }
-export { SPELL_CORE_MODULE, SPELL_CORE_NAMES, type SpellCore } from "./spellCore.types"
+export { SPELL_CORE_MODULE, SPELL_CORE_NAMES, type SpellCore, type PropCheck } from "./spellCore.types"
 export * from "./classes"

@@ -39,6 +39,22 @@ export type SpellCore = typeof coreMethods &
   typeof classesMethods &
   EventfulMethods
 
+// ## Properties
+
+/**
+ * What a compiled property setter checks a new value against -- warns, NEVER rejects.
+ * - e.g. `set title(value) { this.setProp('title', value, { type: 'text' }) }`
+ * - see `spellCore.checkProp()`
+ */
+export type PropCheck = {
+  /** type name, e.g. `text`, `choice`, `Card` -- see `spellCore.isOfType()` */
+  type?: string
+  /** legal values, e.g. `Card.Suits` */
+  oneOf?: readonly unknown[]
+}
+
+// ## Modules
+
 /**
  * Identity helper used to wrap each module's methods object.
  * NOTE: this intentionally does NOT try to type `this` as `SpellCore` (e.g. via `ThisType<SpellCore>`):

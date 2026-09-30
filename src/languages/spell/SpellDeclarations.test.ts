@@ -7,11 +7,12 @@ import { loadFixtureProject, parseSpellProject, summarize, type SpellSourceFile 
 
 /**
  * `files` compiled as a project's `<Project>.compiled.js` would be:  the `/*! SPELL: PROJECT` header, then each
- * file's code, with its statements' `/*! SPELL: DECLARES` comments inline.
+ * file's code, with its statements' `/*! SPELL: DECLARES` comments inline -- a class member's in its class's body.
  */
 function compiledProject(files: SpellSourceFile[], options: { version?: string; exports?: string[] } = {}) {
   const { scope, files: parsed } = parseSpellProject(files)
-  return SP.SpellDeclarations.header(scope, options) + parsed.map(({ compiled }) => compiled).join("\n")
+  const parts = parsed.map(({ match, compiled }) => (match?.AST instanceof P.ASTStatementGroup ? match.AST : compiled))
+  return SP.SpellDeclarations.header(scope, options) + SP.SpellProject.combineCompiled(parts)
 }
 
 /**
@@ -26,10 +27,18 @@ describe("SpellDeclarations, inline", () => {
     expect(declarations).toMatchSnapshot()
   })
 
-  test("each statement's comment is short:  4-7 lines", () => {
+  test("each statement's comment is short:  3-7 lines", () => {
     const comments = compiled.match(/\/\*! SPELL: DECLARES \{[\s\S]*? \*\//g)!
     expect(comments.length).toBe(declarations.statements.length)
     for (const comment of comments) expect(comment.split("\n").length).toBeLessThanOrEqual(7)
+  })
+
+  test("reads a class member's comment, indented in its class's body", () => {
+    expect(compiled).toMatch(/\n {2}\/\*! SPELL: DECLARES \{\n {4}property: "rank", classVariable: "Ranks"/)
+    expect(declarations.statements).toContainEqual(expect.objectContaining({ property: "rank", of: "Card" }))
+    // ...and one from another file, `Pile.spell`, which went in `Card.spell`'s class
+    const moveTo = declarations.statements.find(({ output }) => output === "move_to_$pile")
+    expect(moveTo).toMatchObject({ of: "Card", defined: expect.stringMatching(/^\/Pile\.spell:/) })
   })
 
   test("reads the way it's written, e.g. a function", () => {
@@ -43,7 +52,7 @@ describe("SpellDeclarations, inline", () => {
         "/*! SPELL: DECLARES {",
         '  syntax: "play fizzbuzz", output: "play_fizzbuzz", rule: "method_call",',
         '  alias: ["statement", "expression"], kind: "function",',
-        `  line: [2, 7], defined: "/FizzBuzz.spell:${start}-${end}",`,
+        `  defined: "/FizzBuzz.spell:${start}-${end}",`,
         "} */"
       ].join("\n")
     )
