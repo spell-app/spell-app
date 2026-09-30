@@ -3,11 +3,13 @@
  * and `<spell-app>`.
  * - Compiled spell `import`s `@spell/core`, and any projects it imports as `@spell/project/<projectId>`.
  *   With no import map to resolve those, we rewrite them onto `blob:` URLs -- see `linkModule()`.
+ * - Part of `spell-runtime.js`, NOT the runners themselves:  it runs on the `spellCore` of the runtime copy it's
+ *   in -- see `spellRuntime.ts`'s `runApp()`.
  * - Mirrors `SpellProject.executeCompiled()` + `editor.selectPath()`'s unmount, which fetch from the server instead.
  */
 import type { Root } from "react-dom/client"
 
-import { spellCore, Thing, List, App, SPELL_CORE_MODULE, SPELL_CORE_NAMES } from "~/spellCore"
+import { spellCore, SPELL_CORE_MODULE } from "~/spellCore"
 
 /**
  * Run `compiled` spell javascript afresh:  previous app unmounted, new `spellCore.RUNTIME`, empty console.
@@ -17,7 +19,7 @@ import { spellCore, Thing, List, App, SPELL_CORE_MODULE, SPELL_CORE_NAMES } from
  *   however many import it, deepest first.  Without `loadImport`, a project which imports another won't run.
  * - Answers the error message if it threw, else `undefined`.
  */
-export async function runCompiled(compiled: string, options: RunCompiledOptions = {}): Promise<string | undefined> {
+export async function runCompiled(compiled: string, options: RunCompiledOptions): Promise<string | undefined> {
   const element = spellCore.appElement() as AppElement | null
   element?.REACT_ROOT?.unmount()
   if (element) delete element.REACT_ROOT
@@ -28,7 +30,7 @@ export async function runCompiled(compiled: string, options: RunCompiledOptions 
   if (!loadImport && projectImportsOf(compiled).length) {
     return "This project imports another, which the VS Code runner can't load yet -- run it in the app."
   }
-  const coreUrl = options.coreUrl ?? spellCoreModuleUrl()
+  const { coreUrl } = options
   // blob URL of each project linked this run, by id
   const linked = new Map<string, Promise<string>>()
   const urls: string[] = []
@@ -68,11 +70,10 @@ export async function runCompiled(compiled: string, options: RunCompiledOptions 
 /** Options for `runCompiled()`. */
 export type RunCompiledOptions = {
   /**
-   * URL of the module compiled spell's `@spell/core` import is pointed at.
-   * - Default:  a module re-exporting THIS bundle's `spellCore` -- see `spellCoreModuleUrl()`.
-   * - `<spell-app>` gives its own copy's, so each app on a page has its own `spellCore`.
+   * URL of the module compiled spell's `@spell/core` import is pointed at:  the runtime copy it runs on --
+   * see `loadRuntime()`.  MUST be the copy this `runCompiled()` is from, so the program's `spellCore` is ours.
    */
-  coreUrl?: string
+  coreUrl: string
   /** Compiled javascript of project `projectId`, which the program imports. */
   loadImport?: (projectId: string) => Promise<string>
 }
@@ -114,27 +115,6 @@ const SPELL_IMPORT = /(\bfrom\s*)"(@spell\/[^"]+)"/g
  * - NOTE: a copy, NOT imported:  `~/languages/spell` would pull the whole parser into the runner bundle.
  */
 const PROJECT_MODULE = "@spell/project/"
-
-/** Key on `globalThis` for what `spellCoreModuleUrl()`'s module re-exports. */
-const RUNNER_SPELL_CORE = "__RUNNER_SPELL_CORE__"
-
-/** `blob:` URL of a module re-exporting this bundle's `spellCore` and built-ins -- made once, on first use. */
-let spellCoreUrl: string | undefined
-
-/**
- * URL compiled spell's `@spell/core` import is pointed at by default:  a module re-exporting OUR `spellCore`,
- * `Thing` ... -- see `SPELL_CORE_NAMES`.
- * - Why:  the app resolves `@spell/core` with an import map, which a webview doesn't have.  And it MUST be this
- *   same `spellCore`:  a second copy would be a second `RUNTIME` and console, which the runner never shows.
- * - SIDE EFFECT:  puts those on `globalThis[RUNNER_SPELL_CORE]`, where the module reads them.
- */
-function spellCoreModuleUrl(): string {
-  if (spellCoreUrl) return spellCoreUrl
-  Object.assign(globalThis, { [RUNNER_SPELL_CORE]: { spellCore, Thing, List, App } })
-  const source = SPELL_CORE_NAMES.map((name) => `export const ${name} = globalThis.${RUNNER_SPELL_CORE}.${name}`)
-  spellCoreUrl = URL.createObjectURL(new Blob([source.join("\n")], { type: "text/javascript" }))
-  return spellCoreUrl
-}
 
 /** The app's mount point, with the React root `App.start()` leaves on it. */
 type AppElement = HTMLElement & { REACT_ROOT?: Root }

@@ -22,9 +22,10 @@ when working with code in this repository.
 - `src/app/runner/` runs compiled spell with no editor:  VS Code's "Run Project" webview (`VSCodeRunner`,
   `yarn build:runner`) and the `<spell-app>` web component (`SpellAppElement`, `yarn build:element` =>
   `dist-element/`, demo at `/demo/spell-app.html` on the dev server).
-  - Each `<spell-app>` loads its OWN copy of `spell-runtime.js` (`loadRuntime()`), so apps on a page don't share a
-    `spellCore`.  Only `spellRuntime.ts` may value-import `~/spellCore` on that side -- anything else puts it in the
-    shared chunk, for every app to share.  Pinned by `element.build.test.ts`.
+  - Each runner -- each `<spell-app>`, and VS Code's -- loads its OWN copy of `spell-runtime.js` (`loadRuntime()`),
+    so apps on a page don't share a `spellCore`.  Only `spellRuntime.ts` may value-import `~/spellCore` in either
+    bundle -- anything else puts it in the shared chunk.  Mind barrels:  `~/app/runner` holds `runCompiled()`, so a
+    bundle's entry imports its runner's file directly.  Pinned by `element.build.test.ts`.
   - It runs in a shadow root:  `spellCore.appRoot` is where an app mounts, and `spellCore.domRoot()` where to look
     elements up and add styles -- NEVER `document`.
   - Its Type Explorer reads scope packs, `<Project>.scopes.js` (`LSP.ScopePack`) -- no parser in the page.

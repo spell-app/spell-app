@@ -1,28 +1,27 @@
 /**
  * Entry of the runner bundle (`yarn build:runner` => `dist-runner/`), loaded by the VS Code extension's
  * "Run Project" webview -- see `RunnerPanel` there.
- * - Sets up `UI` / `SUI` JSX tags, and globals `spellCore` / `assert` for poking at in devtools.  Compiled spell
- *   itself `import`s `spellCore` -- see `runCompiled()`.
- * - NOTE: `UI` is NOT the `~/app/ui` barrel, which would pull in the editor.  It's what spell programs use:
- *   the forms barrel plus the `semantic-ui-react` pass-throughs (`UI.Button` ...).
- *   NEVER rename the `UI` key -- see `src/app/index.tsx`.
+ * - Draws `<VSCodeRunner>`, which runs programs on its own copy of the spell runtime, `spell-runtime.js` beside
+ *   this -- see `spellRuntime.ts`.  That's where `UI` / `SUI` are registered, and `spellCore` lives.
+ * - NEVER imports `~/spellCore`:  it'd be bundled here, a second copy, NOT the one programs run on.
+ *   Devtools get the runtime's as global `spellCore` -- see `<VSCodeRunner>`.
  */
 import { createRoot } from "react-dom/client"
-import * as SUI from "semantic-ui-react"
 
-import { spellCore, assert } from "~/spellCore"
-import { F } from "~/app/ui/forms"
-// Import directly, NOT through the `UI` barrel, which would pull in the whole editor.
-import * as SUIPassThroughs from "~/app/ui/SUIPassThroughs"
-import { VSCodeRunner, type FromRunnerMessage } from "~/app/runner"
+import type { FromRunnerMessage } from "~/app/runner"
+// NOT through the `~/app/runner` barrel:  it holds `runCompiled()`, whose `spellCore` would come along -- see above
+import { VSCodeRunner } from "./VSCodeRunner"
 
 /** VS Code's handle to post to the extension -- callable ONCE per webview. */
 declare function acquireVsCodeApi(): { postMessage(message: FromRunnerMessage): void }
 
-Object.assign(globalThis, { spellCore, assert })
-spellCore.registerElements({ UI: { ...F, ...SUIPassThroughs }, SUI })
+/**
+ * URL of `spell-runtime.js`, beside this bundle.
+ * - NOTE: NOT `new URL(..., import.meta.url)`:  vite takes that for an asset to bundle, and inlines it.
+ */
+const RUNTIME_URL = `${import.meta.url.slice(0, import.meta.url.lastIndexOf("/") + 1)}spell-runtime.js`
 
 const vscode = acquireVsCodeApi()
 createRoot(document.getElementById("runner-root")!).render(
-  <VSCodeRunner post={(message) => vscode.postMessage(message)} />
+  <VSCodeRunner post={(message) => vscode.postMessage(message)} runtimeUrl={RUNTIME_URL} />
 )

@@ -2,17 +2,16 @@ import React from "react"
 import classnames from "classnames"
 import * as SUI from "semantic-ui-react"
 
-import { spellCore } from "~/spellCore"
 import type { LSP } from "~/lsp"
 import type { FromRunnerMessage, ProjectSettings, RunnerPaneId, ToRunnerMessage } from "~/app/runner"
 // Import directly, NOT through the `UI` barrel, which would pull in the whole editor.
-import { AppContainer } from "~/app/ui/AppContainer"
 import { TypeExplorer } from "~/app/ui/TypeExplorer"
-import { runCompiled, appIsMounted } from "./runCompiled"
+import { loadRuntime, type LoadedRuntime } from "./loadRuntime"
 import { RunnerSplit, DEFAULT_SPLIT } from "./RunnerSplit"
 import { RunnerPane, type RunnerTab } from "./RunnerPane"
 import { RunnerConsole } from "./RunnerConsole"
 
+import "~/app/ui/AppContainer.css"
 import "./VSCodeRunner.css"
 
 /****************
@@ -23,12 +22,18 @@ import "./VSCodeRunner.css"
  *   "Type Explorer" and "Program Output".
  * - One with NO `app` has nothing else to show:  "Program Output" on top, the Type Explorer below, and no
  *   "Show Console" button.  See `hasApp`.
- * - Runs whatever the extension sends in a `run` message, afresh each time -- see `runCompiled()`.
+ * - Runs whatever the extension sends in a `run` message, afresh each time, on its OWN copy of the spell runtime
+ *   -- see `loadRuntime()`.  One sent before that's loaded runs once it is.
+ * - NEVER imports `~/spellCore`:  it'd be bundled beside this, a second copy -- see `spellRuntime.ts`.
  * - Says `ready` once listening, so the extension knows to compile.  Messages sent before then are lost.
  * - How it's shown -- console, tab, split, the Type Explorer's state -- comes from the extension, which remembers
  *   it in the project's `settings.json5`.  See `ProjectSettings`.
  ****************/
-export function VSCodeRunner({ post }: VSCodeRunnerProps) {
+export function VSCodeRunner({ post, runtimeUrl }: VSCodeRunnerProps) {
+  const appRef = React.useRef<HTMLDivElement>(null)
+  const [loaded, setLoaded] = React.useState<LoadedRuntime>()
+  // what the last `run` message sent -- a new object each time, so the same javascript runs again
+  const [toRun, setToRun] = React.useState<{ compiled: string }>()
   const [error, setError] = React.useState<string>()
   const [settings, setSettings] = React.useState<ProjectSettings>({})
   const { showConsole = false, pane = "types", split = DEFAULT_SPLIT } = settings.runner ?? {}
@@ -43,14 +48,10 @@ export function VSCodeRunner({ post }: VSCodeRunnerProps) {
     post({ type: "ready" })
     return () => window.removeEventListener("message", onMessage)
 
-    /** Run what a `run` message carries, showing any error it throws, or keep a `scopes` message's tree. */
+    /** Keep what a `run` message carries, to run -- or a `scopes` message's tree, or our settings ... */
     function onMessage({ data }: MessageEvent<ToRunnerMessage>) {
-      if (data?.type === "run") {
-        void runCompiled(data.compiled).then((error) => {
-          setError(error)
-          setHasApp(appIsMounted())
-        })
-      } else if (data?.type === "scopes") setTree(data.tree)
+      if (data?.type === "run") setToRun({ compiled: data.compiled })
+      else if (data?.type === "scopes") setTree(data.tree)
       else if (data?.type === "settings") setSettings(data.settings)
       else if (data?.type === "details") {
         const waiting = detailsWaiting.current.get(data.path)
@@ -60,9 +61,29 @@ export function VSCodeRunner({ post }: VSCodeRunnerProps) {
     }
   }, [post])
 
+  // our own copy of the spell runtime -- SIDE EFFECT:  its `spellCore` is global `spellCore`, for devtools
+  React.useEffect(() => {
+    loadRuntime(runtimeUrl).then(
+      (copy) => {
+        Object.assign(globalThis, { spellCore: copy.runtime.spellCore })
+        setLoaded(copy)
+      },
+      (problem: unknown) => setError(problem instanceof Error ? problem.message : String(problem))
+    )
+  }, [runtimeUrl])
+
+  // run what we were sent, once the runtime's here
+  React.useEffect(() => {
+    if (!loaded || !toRun) return
+    void loaded.runtime.runApp(toRun.compiled, { appRoot: appRef.current!, coreUrl: loaded.coreUrl }).then((error) => {
+      setError(error)
+      setHasApp(loaded.runtime.appIsMounted())
+    })
+  }, [loaded, toRun])
+
   // An app started AFTER the run finished, e.g. from a timer, shows once it draws.
   React.useEffect(() => {
-    const element = spellCore.appElement()
+    const element = appRef.current
     if (!element) return
     const observer = new MutationObserver(() => {
       if (element.childElementCount) setHasApp(true)
@@ -82,12 +103,14 @@ export function VSCodeRunner({ post }: VSCodeRunnerProps) {
       onStateChange={(typeExplorer) => save({ typeExplorer })}
     />
   )
-  const output = <RunnerConsole console={spellCore.console} />
+  const output = loaded && <RunnerConsole console={loaded.runtime.spellCore.console} />
 
   // NOTE: the app's pane is ALWAYS first, just hidden without an app -- so its mount point is never redrawn.
   const appPane = (
     <div className={classnames("VSCodeRunnerApp", { hidden: !hasApp })}>
-      <AppContainer scrolling padded />
+      <div className="AppContainer scrolling padded">
+        <div ref={appRef} className="App" />
+      </div>
     </div>
   )
   let bottom: ReactNode = undefined
@@ -143,6 +166,8 @@ export function VSCodeRunner({ post }: VSCodeRunnerProps) {
 export type VSCodeRunnerProps = {
   /** Send a message to the extension -- `acquireVsCodeApi().postMessage`. */
   post: (message: FromRunnerMessage) => void
+  /** URL of `spell-runtime.js`, beside the runner's bundle -- see `loadRuntime()`. */
+  runtimeUrl: string
 }
 
 /****************

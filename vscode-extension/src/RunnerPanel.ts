@@ -264,8 +264,9 @@ export class RunnerPanel {
 
   /**
    * Webview HTML:  Semantic UI + Lato from `statics`, then the runner bundle from `runner`.
-   * - CSP allows `blob:` scripts, which is how the runner imports the project's javascript,
-   *   and inline styles, which `spellCore.installStyles()` adds.
+   * - CSP allows `blob:` scripts, which is how the runner imports its copy of the spell runtime and the project's
+   *   javascript;  fetching from `runner`, for that copy's source;  and inline styles, which
+   *   `spellCore.installStyles()` adds.
    * - NOTE: `semantic.min.css` `@import`s Lato from Google, which the CSP blocks -- harmless, we load our own.
    */
   static html(webview: vscode.Webview, runner: vscode.Uri, statics: vscode.Uri): string {
@@ -273,6 +274,8 @@ export class RunnerPanel {
     const csp = [
       "default-src 'none'",
       `script-src ${source} blob:`,
+      // the runner fetches its own copy of the spell runtime -- see `loadRuntime()` in the parser repo
+      `connect-src ${source}`,
       `style-src ${source} 'unsafe-inline'`,
       `font-src ${source} data:`,
       `img-src ${source} data: https:`
