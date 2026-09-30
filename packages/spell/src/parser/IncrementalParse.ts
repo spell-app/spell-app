@@ -138,7 +138,8 @@ export class IncrementalParse {
     let triedToKeep = false
     let index = firstToken
     while (index < newItems.length) {
-      const keepFrom = index >= tailStart && !triedToKeep ? this.items.findIndex((item) => item.index === index - shift) : -1
+      const keepFrom =
+        index >= tailStart && !triedToKeep ? this.items.findIndex((item) => item.index === index - shift) : -1
       if (keepFrom !== -1) {
         triedToKeep = true
         if (this.canKeepFrom(keepFrom, from, region, kept)) {
@@ -189,8 +190,12 @@ export class IncrementalParse {
     // One broken item standing in for the same last good version as before => exactly the same changes.
     const [oldItem, newItem] = [oldRegion[0], region[0]]
     const sameChanges =
-      oldRegion.length === 1 && region.length === 1 && !!newItem!.keptLastGood && newItem!.lastGood === oldItem!.lastGood
-    const changesGlobalScope = (item: IncrementalItem) => !!item.match && IncrementalParse.changesGlobalScope(item.match)
+      oldRegion.length === 1 &&
+      region.length === 1 &&
+      !!newItem!.keptLastGood &&
+      newItem!.lastGood === oldItem!.lastGood
+    const changesGlobalScope = (item: IncrementalItem) =>
+      !!item.match && IncrementalParse.changesGlobalScope(item.match)
     if (!sameChanges && (oldRegion.some(changesGlobalScope) || region.some(changesGlobalScope))) return false
     const oldVariables = this.items[keepFrom - 1]?.variables
     const newVariables = (region.at(-1) ?? kept.at(-1))?.variables

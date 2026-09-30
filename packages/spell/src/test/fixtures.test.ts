@@ -18,9 +18,7 @@ describe("fixture projects compile to their snapshots", () => {
 
   for (const name of fixtureProjectNames()) {
     test(name, async () => {
-      await expect(compiledFixture(name)).toMatchFileSnapshot(
-        fixturePath(name, `${name}${SP.SNAPSHOT_JS_SUFFIX}`)
-      )
+      await expect(compiledFixture(name)).toMatchFileSnapshot(fixturePath(name, `${name}${SP.SNAPSHOT_JS_SUFFIX}`))
     })
   }
 })

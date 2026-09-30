@@ -10,6 +10,8 @@
  *   `Deck` and a `Pile` with the same members are the same type, and `card.add_to_$pile(deck)` passes.
  */
 
+// oxlint-disable no-unused-expressions -- each line is a sample of compiled spell, there for `tsc` to check
+
 declare class Thing {}
 declare class List<Item> extends Thing {
   items: Item[]

@@ -17,7 +17,7 @@ import html
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UI = os.path.normpath(os.path.join(REPO, "../ui"))
 DOC_DIR = f"{REPO}/docs"
-SEARCH_ROOTS = [f"{REPO}/src", f"{REPO}/docs", f"{UI}/packages/solid-element/src", f"{UI}/src", f"{UI}/docs", REPO, UI]
+SEARCH_ROOTS = [f"{REPO}/src", f"{REPO}/docs", f"{UI}/../solid-element/src", f"{UI}/src", f"{UI}/docs", REPO, UI]
 SKIP_DIRS = {"icons", "glyphs", "node_modules", ".git", "dist", "dist-element", "dist-runner", "build", ".cache", "graphify-out", "worktrees"}
 
 
@@ -53,7 +53,7 @@ SPECIAL = {
     "solidjs/solid-docs": "https://github.com/solidjs/solid-docs/tree/v2-rebuild",
     "documentation/solid-2.0/": "https://github.com/solidjs/solid/tree/next/documentation/solid-2.0",
     "@spell/ui": f"{UI}/README.md",
-    "@spell/solid-element": f"{UI}/packages/solid-element/README.md",
+    "@spell/solid-element": f"{UI}/../solid-element/README.md",
 }
 
 

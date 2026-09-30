@@ -12,7 +12,7 @@ Solid 2 is neither React nor Solid 1, and guessing from either produces wrong co
 - `src/parser/` (`P`) is a generic rule-based parser;  `src/languages/spell/` (`SP`) is the spell language on it.
 - `src/lsp/` (`LSP`) is spell's language server, and `vscode-extension/` the VS Code extension that runs it --
   its own yarn project (own `package.json` + `yarn.lock`), NOT a workspace of the repo's.  See "Language server" in `PARSING.md`.
-- The `spell` command-line tool is NOT here:  it's its own repo beside this one, `../cli`, which runs this repo's
+- The `spell` command-line tool is NOT here:  it's its own package beside this one, `../cli`, which runs this package's
   SOURCE (`~/lsp`, `~/languages/spell` ...) through `tsx`.  See its `README.md`.
 - `projects/` holds every spell project, OUTSIDE `src/`:  `system/examples/`, `system/library/`, `system/guides/`,
   `user/` and `test/` -- the `@system:examples` etc. roots.  See "Projects" in `PARSING.md`.

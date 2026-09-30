@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * `spell` command-line tool:  runs `src/main.ts` from THIS checkout, through `tsx` -- no build step.
- * - The parser's source runs the same way, from its own checkout beside this one:  `../parser`.
+ * - The parser's source runs the same way, from the `spell` package beside this one:  `../spell`.
  * - `tsx` gets our `tsconfig.json` explicitly, so `~/...` imports resolve from ANY current folder,
  *   while relative paths on the command line still resolve against the caller's.
  * - Install on your `PATH` with `yarn cli:install` -- see `scripts/install-cli.mjs`.

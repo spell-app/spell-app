@@ -242,9 +242,9 @@ against both.
 
 ## Consuming it from `@spell/ui` (link)
 
-- `"@spell/solid-element": "link:./packages/solid-element"` in the repo root;  `exports` points `types` and the
+- `"@spell/solid-element": "workspace:*"` in `@spell/ui`;  `exports` points `types` and the
   `development` condition at `src/index.ts`, so Vite dev / Vitest use the TypeScript source and no build is
-  needed.  This package stays its own yarn project (`yarn fork <script>` from the root).
+  needed.  A workspace of the monorepo (`yarn fork <script>` from `packages/ui`).
 - The consumer MUST `resolve.dedupe: ["solid-js", "@solidjs/web"]`:  the linked package resolves its own
   `node_modules` otherwise, and two Solid copies can't share owners.
 - For a library build, mark `@spell/solid-element` external alongside `solid-js` / `@solidjs/*`, or bundle it

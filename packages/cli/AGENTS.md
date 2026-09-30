@@ -3,16 +3,16 @@
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
 when working with code in this repository.
 
-**Code conventions are the parser's:  READ `../parser/AGENTS.md` FIRST** -- its Documentation, Functions,
+**Code conventions are the parser's:  READ `../spell/AGENTS.md` FIRST** -- its Documentation, Functions,
 Types / Exports and Imports sections all apply here.  Only what DIFFERS is below.
 
 ## Overview
 
 - This repo is the `spell` command-line tool, and nothing else:  `bin/spell.mjs` runs `src/main.ts` through `tsx`.
   `README.md` has instructions, caveats and TODO.
-- Spell itself is NOT here.  It's the `parser` repo, checked out BESIDE this one (`../parser`), as is `ui`
-  (`../ui`, `@spell/ui`) -- `package.json` links both in.
-  - The parser's SOURCE runs, with no build:  `~/lsp`, `~/languages/spell` ... are `../parser/src/...`.
+- Spell itself is NOT here.  It's the `spell` package beside this one (`../spell`), as is `ui`
+  (`../ui`, `@spell/ui`) -- `package.json` depends on both as workspaces (`workspace:*`).
+  - The parser's SOURCE runs, with no build:  `~/lsp`, `~/languages/spell` ... are `../spell/src/...`.
   - `~/cli` (`CLI`) is OUR `src/`;  any other `~/...` is the parser's.  So `src/foo.ts` is `~/cli/foo`, NEVER `~/foo`.
   - That's set in `tsconfig.json` (for `tsc`, and `tsx` at run time) AND `vitest.config.ts`:  MUST keep the two in step.
   - `tsconfig.json` extends the parser's, since the parser's files compile through it.  So `yarn ts` here reports
@@ -39,7 +39,7 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
 ## Tests
 
 - `yarn test`.  Every module's tests sit beside it, `<module>.test.ts(x)`.
-- They read the parser's frozen projects, `../parser/projects/test/` (`@test/<Project>`) -- see "Overview" in
+- They read the parser's frozen projects, `../spell/projects/test/` (`@test/<Project>`) -- see "Overview" in
   the parser's `AGENTS.md`.  NEVER write into one:  compile with `--stdout`, or make a temp project, as
   `cli.test.ts` does.
 - `cli.test.ts` runs the real `bin/spell.mjs`, as a separate process, with no terminal.

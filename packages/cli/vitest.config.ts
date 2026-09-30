@@ -2,8 +2,8 @@ import { defineConfig } from "vitest/config"
 import { resolve } from "path"
 
 // The parser's SOURCE runs in our tests, so it needs the parser's own vite plugins
-import { standardDecorators } from "../parser/vite.decorators.ts"
-import { packageVersion } from "../parser/vite.packageVersion.ts"
+import { standardDecorators } from "../spell/vite.decorators.ts"
+import { packageVersion } from "../spell/vite.packageVersion.ts"
 
 export default defineConfig({
   plugins: [standardDecorators(), packageVersion()],
@@ -12,7 +12,7 @@ export default defineConfig({
     // MUST match `paths` in `tsconfig.json`.
     alias: [
       { find: /^~\/cli(?=\/|$)/, replacement: resolve(import.meta.dirname, "src") },
-      { find: /^~(?=\/)/, replacement: resolve(import.meta.dirname, "..", "parser", "src") }
+      { find: /^~(?=\/)/, replacement: resolve(import.meta.dirname, "..", "spell", "src") }
     ]
   }
 })

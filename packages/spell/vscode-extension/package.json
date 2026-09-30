@@ -5,8 +5,8 @@
   "private": true,
   "description": "Spell language support:  errors, hover, completion, go to definition, rename -- from the spell parser's language server.",
   "license": "MIT",
-  "repository": "https://github.com/oakjs/parser",
-  "publisher": "oakjs",
+  "repository": "https://github.com/spell-app/spell",
+  "publisher": "spell-app",
   "main": "./out/extension.js",
   "scripts": {
     "build": "node build.mjs",

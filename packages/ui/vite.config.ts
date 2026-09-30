@@ -9,7 +9,7 @@ import { standardDecorators } from "./vite.decorators.ts"
 // the fork's HMR plugin from SOURCE, not `@spell/solid-element/vite`:  Vite bundles this config with every BARE
 // import external, so Node would load the package's `dist/vite.js`, which a fresh checkout doesn't have yet
 // (Node 22.17 can't load the `.ts`).  A relative import is bundled into the config instead.  See `AGENTS.md`.
-import { solidElementHot } from "./packages/solid-element/src/vite.ts"
+import { solidElementHot } from "../solid-element/src/vite.ts"
 
 /** Absolute path of `src/`, target of the `$` import alias. */
 const SRC = fileURLToPath(new URL("./src", import.meta.url))

@@ -26,9 +26,9 @@
     "test": "vitest run",
     "tsc": "tsc",
     "measure": "node --experimental-strip-types --no-warnings scripts/measure.ts",
-    "lint": "../../node_modules/.bin/oxlint -c .oxlintrc.json --report-unused-disable-directives --max-warnings 0 src scripts *.ts",
-    "format": "../../node_modules/.bin/oxfmt -c ../../.oxfmtrc.json .",
-    "format:check": "../../node_modules/.bin/oxfmt -c ../../.oxfmtrc.json --check ."
+    "lint": "oxlint -c .oxlintrc.json --report-unused-disable-directives --max-warnings 0 src scripts *.ts",
+    "format": "oxfmt -c .oxfmtrc.json .",
+    "format:check": "oxfmt -c .oxfmtrc.json --check ."
   },
   "devDependencies": {
     "@solidjs/element": "2.0.0-rc.11",
@@ -38,6 +38,8 @@
     "@vitest/browser-playwright": "5.0.2",
     "component-register": "0.8.8",
     "esbuild": "0.28.2",
+    "oxfmt": "^0.71.0",
+    "oxlint": "^1.86.0",
     "playwright": "1.63.0",
     "solid-js": "2.0.0-rc.11",
     "typescript": "7.0.2",

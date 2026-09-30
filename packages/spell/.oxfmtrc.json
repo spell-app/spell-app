@@ -21,6 +21,7 @@
     "static/**",
     "projects/**",
     "src/test/fixtures/**",
+    "docs/_assets/spell-ui.js",
     "src/graphify-out/**",
     "vscode-extension/out/**"
   ]

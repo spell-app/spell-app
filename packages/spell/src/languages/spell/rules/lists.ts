@@ -1414,11 +1414,7 @@ lists.addRule(repeat_n_times, {
         {
           title: "Inline statement",
           input: "repeat 3 times: print the number",
-          output: [
-            "spellCore.map(spellCore.countTo(3), (number) => {",
-            "  return spellCore.console.log(number)",
-            "})"
-          ]
+          output: ["spellCore.map(spellCore.countTo(3), (number) => {", "  return spellCore.console.log(number)", "})"]
         },
         {
           title: "Nested block statement",

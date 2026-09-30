@@ -8,7 +8,7 @@ At the root of this is a "Rule Syntax" which resembles regular expressions on st
 
 ---
 
-Experimental [Deepwiki Documentation](https://deepwiki.com/oakjs/parser)
+Experimental [Deepwiki Documentation](https://deepwiki.com/spell-app/spell)
 
 ## Getting Started
 

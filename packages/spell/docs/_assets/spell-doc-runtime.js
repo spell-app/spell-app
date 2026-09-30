@@ -22,7 +22,7 @@ const TOC_MARGIN = 60
 const FILTER_KEY = "solid2-cheatsheet-filter"
 
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true })
-else start()
+else void start()
 
 ////////////////
 // ## Start

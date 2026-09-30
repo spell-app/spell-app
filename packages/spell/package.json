@@ -2,7 +2,7 @@
   "name": "spell-parser",
   "version": "0.8.0",
   "license": "MIT",
-  "repository": "https://github.com/oakjs/parser",
+  "repository": "https://github.com/spell-app/spell",
   "type": "module",
   "scripts": {
     "start": "yarn && yarn stop && concurrently \"yarn start:dev\" \"yarn start:server\"",

@@ -2,6 +2,7 @@
 // Imports @solidjs/signals by path from ../ui/node_modules, or from $SOLID_NODE_MODULES (another Solid version);  re-run on every Solid RC bump.
 // Prototype:  (N) record + per-prop Solid notifier signals, derived = plain getter
 //             (X) record + tiny SYNC reactive core, derived = auto-memo, bridged into Solid via enableExternalSource
+// oxlint-disable no-unused-expressions -- bare reads ARE the experiment:  each runs a getter, to count recomputes
 const mode = process.argv[2] ?? "prod"
 const S = await import(
   `${process.env.SOLID_NODE_MODULES ?? "/Users/owen/www/spell/ui/node_modules"}/@solidjs/signals/dist/${mode === "dev" ? "dev.js" : "prod/index.js"}`
@@ -207,7 +208,7 @@ for (const [name, Card] of [
   ["X", XCard]
 ]) {
   const c = new Card({ rank: 7 })
-  let drawn = []
+  const drawn = []
   createRoot(() =>
     createRenderEffect(
       () => c.label,

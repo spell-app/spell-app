@@ -20,4 +20,4 @@ Solid 2 is neither React nor Solid 1.  Distrust patterns from both.
 - A dev diagnostic code:  `node_modules/solid-js/skills/reactivity-diagnostics/SKILL.md`.
 - Unsure how Solid behaves?  Test it, don't guess:  copy a script in `docs/solid/experiments/` and run
   `node docs/solid/experiments/<file> dev`.
-- `@spell/ui` elements:  `../ui/AGENTS.md` and `../ui/packages/solid-element/README.md`.
+- `@spell/ui` elements:  `../ui/AGENTS.md` and `../solid-element/README.md`.

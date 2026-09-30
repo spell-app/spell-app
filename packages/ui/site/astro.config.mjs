@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url"
 import { standardDecorators } from "../vite.decorators.ts"
 import { CSS_TARGETS, SOLID_DEDUPE, emitIconPacks } from "../vite.config.ts"
 // from SOURCE, as in the root `vite.config.ts`:  a fresh checkout has no `packages/solid-element/dist/`
-import { solidElementHot } from "../packages/solid-element/src/vite.ts"
+import { solidElementHot } from "../../solid-element/src/vite.ts"
 import { unwrapHtmlParagraphs } from "./src/lib/unwrapHtmlParagraphs.ts"
 import { SHIKI_THEMES } from "./src/lib/shiki.ts"
 
@@ -19,7 +19,7 @@ const SRC = fileURLToPath(new URL("../src", import.meta.url))
 /** `../test`, target of `$test` (shared test helpers;  here only so shared source type-checks alike). */
 const TEST = fileURLToPath(new URL("../test", import.meta.url))
 /** The fork's source entry:  `@spell/solid-element` resolves here in dev AND build (no `dist/` needed). */
-const SOLID_ELEMENT = fileURLToPath(new URL("../packages/solid-element/src/index.ts", import.meta.url))
+const SOLID_ELEMENT = fileURLToPath(new URL("../../solid-element/src/index.ts", import.meta.url))
 
 /**
  * Docs site for `@spell/ui`, modelled on fomantic-ui.com.

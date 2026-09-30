@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url"
  */
 export class ForkBuild {
   /** `packages/solid-element/`, absolute, with a trailing slash */
-  static readonly ROOT = fileURLToPath(new URL("../packages/solid-element/", import.meta.url))
+  static readonly ROOT = fileURLToPath(new URL("../../solid-element/", import.meta.url))
 
   /** Install and build as needed;  synchronous (the tools run it before anything else). */
   static ensure(): void {

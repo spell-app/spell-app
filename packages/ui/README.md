@@ -5,11 +5,11 @@ OKLCH tokens, anchor positioning, `<dialog>` / popover, and accessibility built 
 or plain HTML.
 
 **Status:**  eight component families (button, dropdown, icon, label, content parts, divider, segment,
-container) on Solid 2, through our fork of its custom-element layer (`packages/solid-element/`).  Measurements,
+container) on Solid 2, through our fork of its custom-element layer (`../solid-element/`).  Measurements,
 framework hosts, HMR and fallbacks:  [`docs/report.md`](docs/report.md).
 
 ```sh
-yarn            # install (the fork, packages/solid-element, is its own yarn project:  yarn fork:install)
+yarn            # install, anywhere in the monorepo (the fork, ../solid-element, is a workspace)
 yarn dev        # tools/demo/:  every example, class grammar beside elements, hot-reloading
 yarn review     # tsc + oxlint + oxfmt + tests (Vitest browser mode + node SSR, and the fork's)
 yarn build      # library build into dist/

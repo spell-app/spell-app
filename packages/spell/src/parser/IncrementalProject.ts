@@ -45,7 +45,8 @@ export class IncrementalProject {
   update(path: string, text: string): P.IncrementalParse[] {
     const index = this.files.findIndex((file) => file.path === path)
     const file = this.files[index]?.parse
-    if (!file) throw new P.ParserError({ message: `IncrementalProject.update(): unknown file '${path}'`, context: this })
+    if (!file)
+      throw new P.ParserError({ message: `IncrementalProject.update(): unknown file '${path}'`, context: this })
 
     try {
       if (this.isBroken) return this.parseAll(path, text)

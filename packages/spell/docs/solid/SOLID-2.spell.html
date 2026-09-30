@@ -1953,7 +1953,7 @@ class ThingD extends ThingA {
               </li>
               <li>each app root sits in <code>&lt;Errored&gt;</code></li>
               <li>
-                <a href="../../../ui/packages/solid-element/README.md" target="src-ui-packages-solid-element-readme-md"
+                <a href="../../../solid-element/README.md" target="src-ui-packages-solid-element-readme-md"
                   ><code>@spell/solid-element</code></a
                 >
                 gives each element its own boundary already
@@ -2144,9 +2144,7 @@ class ThingD extends ThingA {
                   <li>
                     Build Solid,
                     <a href="../../../ui/README.md" target="src-ui-readme-md"><code>@spell/ui</code></a> and
-                    <a
-                      href="../../../ui/packages/solid-element/README.md"
-                      target="src-ui-packages-solid-element-readme-md"
+                    <a href="../../../solid-element/README.md" target="src-ui-packages-solid-element-readme-md"
                       ><code>@spell/solid-element</code></a
                     >
                     ONCE into a stable <code>spell-solid.js</code> that every build imports by relative URL, or make
@@ -2176,9 +2174,7 @@ class ThingD extends ThingA {
                         <code>solid-js</code>, <code>@solidjs/web</code>,
                         <a href="../../../ui/README.md" target="src-ui-readme-md"><code>@spell/ui</code></a
                         >,
-                        <a
-                          href="../../../ui/packages/solid-element/README.md"
-                          target="src-ui-packages-solid-element-readme-md"
+                        <a href="../../../solid-element/README.md" target="src-ui-packages-solid-element-readme-md"
                           ><code>@spell/solid-element</code></a
                         >
                         mapped to one URL each
@@ -2198,7 +2194,7 @@ class ThingD extends ThingA {
               <li>
                 <b>Why it matters:</b> on a page with two copies, the fork's <code>register()</code> finds each tag
                 already defined and, in a build, just swaps <code>existing.Component = component</code> (<a
-                  href="../../../ui/packages/solid-element/src/customElement.ts"
+                  href="../../../solid-element/src/customElement.ts"
                   target="src-ui-packages-solid-element-src-customelement-ts"
                   ><code>customElement.ts:75</code></a
                 >). The second copy's components then render inside the first copy's Solid roots, silently.
@@ -2308,7 +2304,7 @@ class ThingD extends ThingA {
               <li>
                 The fork keeps each prop as a Solid signal (<code>createProps</code> in
                 <a
-                  href="../../../ui/packages/solid-element/src/withSolid.ts"
+                  href="../../../solid-element/src/withSolid.ts"
                   target="src-ui-packages-solid-element-src-withsolid-ts"
                   ><code>withSolid.ts</code></a
                 >), so <code>el.value = 3; el.value</code> may read back the old value until the microtask
@@ -2432,7 +2428,7 @@ class ThingD extends ThingA {
               <li>
                 <code>register()</code> in
                 <a
-                  href="../../../ui/packages/solid-element/src/customElement.ts"
+                  href="../../../solid-element/src/customElement.ts"
                   target="src-ui-packages-solid-element-src-customelement-ts"
                   ><code>customElement.ts</code></a
                 >
@@ -2613,8 +2609,8 @@ class ThingD extends ThingA {
               <li>
                 <a href="../../../ui/README.md" target="src-ui-readme-md"><code>@spell/ui</code></a
                 >: AGENTS.md "Solid authoring",
-                <a href="../../../ui/packages/solid-element/README.md" target="src-ui-packages-solid-element-readme-md"
-                  ><code>packages/solid-element/README.md</code></a
+                <a href="../../../solid-element/README.md" target="src-ui-packages-solid-element-readme-md"
+                  ><code>solid-element/README.md</code></a
                 >, <a href="../../PAPERCUTS.md" target="src-parser-papercuts-md"><code>PAPERCUTS.md</code></a
                 >.
               </li>

@@ -8,7 +8,7 @@ const log = (...a) => console.log(...a)
 const tick = () => new Promise((r) => setTimeout(r, 0))
 function setup() {
   const [a, setA] = createSignal(1)
-  let resolvers = []
+  const resolvers = []
   const m = createRoot(() => {
     const m = createMemo(() => {
       const v = a()

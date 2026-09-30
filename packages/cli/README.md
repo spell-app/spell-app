@@ -5,17 +5,17 @@ checkout, through `tsx`, so there's no build step, and it sees projects exactly 
 
 Code:  `src/` (namespace `CLI`, imported as `~/cli`), started by `bin/spell.mjs`.  See the header of `src/main.ts`.
 
-This repo holds ONLY the command line.  Spell itself -- the parser, the language server, the runtime, and the
-projects in `projects/` -- is the `parser` repo, which MUST be checked out beside this one, along with `ui`:
+This package holds ONLY the command line.  Spell itself -- the parser, the language server, the runtime, and the
+projects in `projects/` -- is the `spell` package beside this one in the monorepo, along with `ui`:
 
 ```
-spell/
-  cli/      this repo
-  parser/   spell itself:  its SOURCE runs, straight from `../parser/src`
+packages/
+  cli/      this package
+  spell/    spell itself:  its SOURCE runs, straight from `../spell/src`
   ui/       `@spell/ui`
 ```
 
-- `package.json` links both in (`link:../parser`, `link:../ui`).  The parser needs its own `yarn`, for its packages.
+- `package.json` depends on both as workspaces (`workspace:*`);  one `yarn` at the monorepo root installs everything.
 - `~/cli` is this repo's `src/`;  any other `~/...` is the parser's `src/`.  See `tsconfig.json`.
 - Moved here from the parser's `CLI` branch (`26830ef1`) on 2026-09-30.
 
@@ -25,8 +25,7 @@ spell/
 ### Install
 
 ```sh
-(cd ../parser && yarn)   # once:  the parser's own packages
-yarn               # once:  installs Ink, commander, etc.
+yarn               # once, anywhere in the monorepo:  installs every package
 yarn cli:install   # links `spell` into the first writable folder on your PATH:  ~/.local/bin, npm's global bin,
                    # /usr/local/bin, /opt/homebrew/bin.  Or:  SPELL_BIN_DIR=/some/dir yarn cli:install
 spell --help
@@ -113,7 +112,7 @@ Every command takes one or more targets:
 
 ### General
 
-- **It runs the parser's working copy:**  whatever is checked out in `../parser` right now.  A half-finished
+- **It runs the parser's working copy:**  whatever is in `../spell` right now.  A half-finished
   change there breaks `spell`, and `yarn ts` here reports the parser's type errors too.
 - **Startup takes about half a second:**  `tsx` compiles the parser on each run, and caches it.
 - **Ink is pinned at 5,** from when this lived in the parser, whose app is on React 18:  6+ needs React 19.
