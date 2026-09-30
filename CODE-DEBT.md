@@ -294,3 +294,53 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
   than its owner.  Either way it touches every rule ending in `{expression}`, and their tests.
 - **Pinned at**:  `projects/system/library/cards/Deck.spell` `test deck with jokers`, which parenthesizes:
   `expect (the last card of the deck) is the black joker to be yes`.
+
+---
+
+## Thing Explorer's top-level things only update when something else redraws it
+
+- **Cost**:  a top-level variable set to a different thing mid-run, e.g. `the deck is a new deck` in an event
+  handler, keeps showing the OLD thing under "Top level" until the explorer redraws for another reason --
+  a thing made or dropped, or a click.
+- **Cause**:  `ThingRegistry.setTopLevel()` holds the program's module namespace, whose `export let` bindings
+  are live -- but a module namespace isn't observable, so nothing tells a `view()` that one changed.
+  `version` is bumped only as things register, are garbage-collected, or the registry's cleared.
+- **Fix**:  have compiled top-level assignments say so, e.g. a `spellCore.things.changed()` after each write
+  to a top-level variable -- or compile top-level state into an observable store instead of bare `let`s.
+  Either is a compiler change touching every top-level assignment, and every fixture snapshot.
+- **Pinned at**:  `ThingRegistry.setTopLevel()` docstring, `src/spellCore/things.ts`.
+
+---
+
+## Collection helpers' results are full instances of the list's type -- so the Thing Explorer ignores them
+
+- **Cost**:  a copy the program keeps -- `the spare is a copy of the deck` -- never shows in the Thing Explorer:
+  it's made the same way as scratch results, which are deliberately hidden.  And every scratch result is a real
+  `new Deck()` / `new Pile()`, running that type's constructor and `create()` -- see `SUSPECTED-BUGS.md`.
+- **Cause**:  `spellCore.map()`, `filter()`, `rangeBetween()`, `duplicateCollection()` ... build their result
+  with `spellCore.newThingLike(collection)`, i.e. `new collection.constructor()`.  So mapping over a pile makes a
+  new `Pile`, e.g. in Solitaire's `pile.state` or `reset the game`.  Each one registered as one of the program's
+  things, cluttering "All things" with nameless `Pile`s.  `newThingLike()` now makes them
+  `ThingRegistry.quietly()` -- which can't tell a throwaway result from a copy the program means to keep.
+- **Fix**:  helpers that make a throwaway -- `map()`, `filter()`, loops -- build a plain `List` or array, NOT the
+  collection's own type.  Only "a copy of" (`duplicateCollection()`) makes the same type, and registers.  Then
+  `newThingLike()` needn't be quiet.  Touches what every collection helper returns, and their tests.
+- **Pinned at**:  `spellCore.newThingLike()` (`core.ts`);  test "NOT a collection helper's result" in
+  `src/spellCore/things.test.ts`.
+
+---
+
+## Thing Explorer's "Top level" shows only the main program's top-level things
+
+- **Cost**:  a project the program imports -- e.g. `Solitaire-import` importing `Solitaire` -- keeps its own
+  top-level lists, e.g. `all_piles`, and they show nowhere.  Its typed things, e.g. each `Pile`, still show
+  under "All things" and their types;  only its PLAIN lists and its variable names are missing.
+- **Cause**:  top-level things come from the program module's exports, handed over by `runCompiled()` after
+  `import()`ing it:  `spellCore.things.setTopLevel(program)`.  Each imported project is linked and imported by
+  the program itself, inside `runCompiled()`'s `link()` -- its module namespace never reaches us.  And a plain
+  `List` doesn't register when made, so there's no other way to find it.
+- **Fix**:  in `link()`, import each project's module ourselves (same `blob:` URL, so the program shares it) and
+  hand its exports over too, under its project id -- `setTopLevel()` taking several, and the explorer showing a
+  "Top level" per project.  Mind the order:  a project's module MUST have run before the program's.
+- **Pinned at**:  `ThingRegistry.setTopLevel()` (`src/spellCore/things.ts`) and `runCompiled()`
+  (`src/app/runner/runCompiled.ts`).

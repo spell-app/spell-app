@@ -16,8 +16,10 @@ import type { PropCheck } from "~/spellCore/spellCore.types"
  *   generic collection methods -- see `CollectionLike` in `collection-core.ts`.
  */
 export class List extends Observable<Record<string, unknown>, { items: unknown[] }> {
+  /** SIDE EFFECT:  a sub-class's instance, e.g. a `Deck`, registers itself in `spellCore.things`. */
   constructor(props: Record<string, unknown>) {
     super(props)
+    spellCore.things.add(this)
     this.create()
   }
 

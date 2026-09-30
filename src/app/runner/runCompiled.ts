@@ -17,6 +17,8 @@ import { spellCore, SPELL_CORE_MODULE } from "~/spellCore"
  *   so re-importing one would hand back the old module without running anything.
  * - Each project it imports comes from `options.loadImport()`, linked onto its own `blob:` URL -- once per run,
  *   however many import it, deepest first.  Without `loadImport`, a project which imports another won't run.
+ * - SIDE EFFECT:  hands its top-level things to `spellCore.things`, for the Thing Explorer -- NOT those of
+ *   the projects it imports.
  * - Answers the error message if it threw, else `undefined`.
  */
 export async function runCompiled(compiled: string, options: RunCompiledOptions): Promise<string | undefined> {
@@ -36,7 +38,8 @@ export async function runCompiled(compiled: string, options: RunCompiledOptions)
     // NOTE: the URL first, THEN `import()` it:  vite wraps `import(...)` in an arrow for its preloading, so an
     // `await` in its argument would end up in a function that isn't `async` -- a syntax error in the bundle
     const url = await link(compiled, [])
-    await import(/* @vite-ignore */ url)
+    const program = (await import(/* @vite-ignore */ url)) as Record<string, unknown>
+    spellCore.things.setTopLevel(program)
     return undefined
   } catch (error) {
     // Log too, so devtools show the stack.

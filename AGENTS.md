@@ -33,6 +33,8 @@ when working with code in this repository.
   - It runs in a shadow root:  `spellCore.appRoot` is where an app mounts, and `spellCore.domRoot()` where to look
     elements up and add styles -- NEVER `document`.
   - Its Type Explorer reads scope packs, `<Project>.scopes.js` (`LSP.ScopePack`) -- no parser in the page.
+  - Its Thing Explorer reads the runtime copy's `spellCore.things` (`ThingRegistry`):  each `Thing`, and each
+    instance of a `List` sub-class, registers itself as it's made;  the program's exports are its top-level things.
     `yarn scopes [--compile] <projectId...>` writes them;  so does the language server, after each clean compile.
 - Styles are plain `.css`:  native nesting, custom properties (`spell.css`, `syntax.css`) -- no Less.
 

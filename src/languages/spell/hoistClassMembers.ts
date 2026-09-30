@@ -15,7 +15,8 @@ import { P } from "~/parser"
  * - A MEMBER is a statement whose code is all `P.ASTClassMember`s of ONE class, e.g. `Block.getAST()`'s group
  *   for a declaring line:  its docstring, its `SPELL: DECLARES` comment, then its code.
  *   - They go in in the order given:  file order, then source order, a blank line between each.
- *   - Comments directly above it go with it, e.g. a `## properties of cards` banner.
+ *   - Comments directly above it go with it, e.g. a `## properties of cards` banner -- past a heading's
+ *     `P.ASTHeadingInvocation`, which stays where it is.
  * - A class declared twice gets them in its first declaration.
  * - NEVER mutates what it's given:  ASTs are memoized per match, and shared with the editor.
  *   A class which gets members is a NEW `P.ASTClassDeclaration`, and so is each group holding it.
@@ -31,11 +32,15 @@ export function hoistClassMembers(files: HoistableStatement[][]): HoistableState
   const members = new Map<string, ClassBodyItem[]>()
   const remaining = files.map((statements) => {
     const kept: HoistableStatement[] = []
-    // comments and blank lines since the last statement -- the comments go with a member below them
+    // comments, blank lines and headings since the last statement -- the comments go with a member below them
     let pending: HoistableStatement[] = []
     let removed = false
     for (const statement of statements) {
-      if (statement instanceof P.ASTComment || statement instanceof P.ASTBlankLine) {
+      if (
+        statement instanceof P.ASTComment ||
+        statement instanceof P.ASTBlankLine ||
+        statement instanceof P.ASTHeadingInvocation
+      ) {
         pending.push(statement)
         continue
       }
@@ -44,7 +49,10 @@ export function hoistClassMembers(files: HoistableStatement[][]): HoistableState
         const firstComment = pending.findIndex((item) => item instanceof P.ASTComment)
         const carried = firstComment < 0 ? [] : pending.slice(firstComment)
         kept.push(...(firstComment < 0 ? pending : pending.slice(0, firstComment)))
-        addMember(members, typeName, [...carried, statement])
+        // a heading's call stays put, however it's placed among the comments
+        kept.push(...carried.filter((item) => item instanceof P.ASTHeadingInvocation))
+        const moved = carried.filter((item) => !(item instanceof P.ASTHeadingInvocation))
+        addMember(members, typeName, [...moved, statement])
         removed = true
       } else {
         kept.push(...pending, statement)
@@ -124,11 +132,23 @@ function withMembers(statement: HoistableStatement, members: Map<string, ClassBo
   return new P.ASTStatementGroup(statement.match, { statements })
 }
 
-/** `statements` without blank lines at either end, or two in a row -- what's left where members were taken out. */
+/**
+ * `statements` tidied where members were taken out:
+ * - no blank lines at either end, two in a row, or right after a heading's `P.ASTHeadingInvocation`
+ * - no heading's call with nothing but another's after it -- the heading's lines went with the member below it,
+ *   and the next heading's call would override it anyway
+ */
 function tidyBlankLines(statements: HoistableStatement[]): HoistableStatement[] {
-  const tidy = statements.filter(
-    (statement, index) => !(statement instanceof P.ASTBlankLine && statements[index - 1] instanceof P.ASTBlankLine)
-  )
+  const headed = statements.filter((statement, index) => {
+    if (!(statement instanceof P.ASTHeadingInvocation)) return true
+    const next = statements.slice(index + 1).find((it) => !(it instanceof P.ASTBlankLine))
+    return !(next instanceof P.ASTHeadingInvocation)
+  })
+  const tidy = headed.filter((statement, index) => {
+    if (!(statement instanceof P.ASTBlankLine)) return true
+    const before = headed[index - 1]
+    return !(before instanceof P.ASTBlankLine || before instanceof P.ASTHeadingInvocation)
+  })
   while (tidy[0] instanceof P.ASTBlankLine) tidy.shift()
   while (tidy.at(-1) instanceof P.ASTBlankLine) tidy.pop()
   return tidy

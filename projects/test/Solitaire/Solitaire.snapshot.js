@@ -1,6 +1,7 @@
 /*! SPELL: PROJECT { spellVersion: "0.8.0", provides: ["Card", "Deck", "Pile", "Game", "Stock_Pile", "Discard_Pile", "Foundation", "Tableau", "test_card_setup", "test_deck_creation", "debug_the_game", "reset_the_stock_pile", "play_from_the_stock_pile", "deal_the_cards", "auto_play", "reset_the_game", "cheat"] } */
 import { spellCore, Thing, List, App } from "@spell/core"
 
+spellCore.heading("definition of a Card with nice english aliases for working with it")
 /** definition of a Card with nice english aliases for working with it */
 /*! SPELL: DECLARES {
   type: "Card", superType: "Thing",
@@ -280,7 +281,7 @@ export class Card extends Thing {
   /*! SPELL: DECLARES {
     syntax: "play {thisArg:expression}", output: "play", rule: "method_call", of: "Card",
     alias: ["statement", "expression"], kind: "method", name: "play (a card)",
-    defined: "/Solitaire.spell:3331-4367",
+    defined: "/Solitaire.spell:3337-4373",
   } */
   async play() {
     let start_pile = this.pile
@@ -318,6 +319,7 @@ export class Card extends Thing {
   }
 }
 
+spellCore.heading("create a card instance with default properties")
 /** create a card instance with default properties */
 /*! SPELL: DECLARES {
   syntax: "test card setup", output: "test_card_setup", rule: "method_call", alias: "statement",
@@ -370,6 +372,7 @@ export function test_card_setup() {
 }
 test_card_setup()
 // -----------
+spellCore.heading("Deck:   US standard card deck (without jokers currently)")
 //## Deck:   US standard card deck (without jokers currently)
 
 /*! SPELL: DECLARES {
@@ -454,6 +457,7 @@ export function test_deck_creation() {
 }
 test_deck_creation()
 // -----------
+spellCore.heading("Pile of playing cards")
 /** Pile of playing cards */
 /*! SPELL: DECLARES {
   type: "Pile", superType: "List",
@@ -494,11 +498,13 @@ export class Pile extends List {
   }
 }
 // -----------
+spellCore.heading("Klondike Solitaire Card Game")
 //////////////////////////////////
 // ## Klondike Solitaire Card Game
 //////////////////////////////////
 //-- See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for rules & naming conventions.
 
+spellCore.heading("Game bits")
 /** Game bits */
 /*! SPELL: DECLARES {
   type: "Game", superType: "App",
@@ -516,7 +522,7 @@ export class Game extends App {
 
   /*! SPELL: DECLARES {
     property: "state", of: "Game",
-    defined: "/Solitaire.spell:2204-2323",
+    defined: "/Solitaire.spell:2210-2329",
   } */
   get state() {
     let state = []
@@ -529,7 +535,7 @@ export class Game extends App {
   /*! SPELL: DECLARES {
     syntax: "draw {thisArg:expression}", output: "draw", rule: "method_call", of: "Game",
     alias: ["statement", "expression"], kind: "method", name: "draw (a game)",
-    defined: "/Solitaire.spell:6799-8197",
+    defined: "/Solitaire.spell:6805-8203",
   } */
   draw() {
     return spellCore.element({ tag: "div", props: { className: "ui container" }, children: [
@@ -656,6 +662,7 @@ export class Game extends App {
 export let game = new Game()
 spellCore.console.log(game)
 
+spellCore.heading("set up all piles")
 /** set up all piles */
 export let all_piles = new List({ instanceType: "Pile" })
 export let foundations = new List({ instanceType: "Pile" })
@@ -679,7 +686,7 @@ export class Stock_Pile extends Pile {
   /*! SPELL: DECLARES {
     syntax: "draw {thisArg:expression}", output: "draw", rule: "method_call", of: "Stock_Pile",
     alias: ["statement", "expression"], kind: "method", name: "draw (a stock-pile)",
-    defined: "/Solitaire.spell:6490-6689",
+    defined: "/Solitaire.spell:6496-6695",
   } */
   draw() {
     return spellCore.element({ tag: "div", props: { className: "Pile Stock stacked" }, children: [
@@ -717,7 +724,7 @@ export class Discard_Pile extends Pile {
   /*! SPELL: DECLARES {
     syntax: "draw {thisArg:expression}", output: "draw", rule: "method_call", of: "Discard_Pile",
     alias: ["statement", "expression"], kind: "method", name: "draw (a discard-pile)",
-    defined: "/Solitaire.spell:6691-6797",
+    defined: "/Solitaire.spell:6697-6803",
   } */
   draw() {
     return spellCore.element({ tag: "div", props: { className: "Pile Discards stacked" }, children: [
@@ -760,7 +767,7 @@ export class Foundation extends Pile {
   /*! SPELL: DECLARES {
     syntax: "draw {thisArg:expression}", output: "draw", rule: "method_call", of: "Foundation",
     alias: ["statement", "expression"], kind: "method", name: "draw (a foundation)",
-    defined: "/Solitaire.spell:6039-6388",
+    defined: "/Solitaire.spell:6045-6394",
   } */
   draw() {
     let color = (((this.name == 'diamonds') || (this.name == 'hearts')) ? "red" : "black")
@@ -830,7 +837,7 @@ export class Tableau extends Pile {
   /*! SPELL: DECLARES {
     syntax: "draw {thisArg:expression}", output: "draw", rule: "method_call", of: "Tableau",
     alias: ["statement", "expression"], kind: "method", name: "draw (a tableau)",
-    defined: "/Solitaire.spell:6390-6488",
+    defined: "/Solitaire.spell:6396-6494",
   } */
   draw() {
     return spellCore.element({ tag: "div", props: { className: "Pile Tableau staggered" }, children: [
@@ -839,7 +846,7 @@ export class Tableau extends Pile {
   }
 }
 spellCore.map(spellCore.getRange(1, 7), (number) => {
-  let it_5 = new Tableau({ name: ("T" + number), droppable: true })
+  let it_5 = new Tableau({ name: ("Tableau" + number), droppable: true })
   spellCore.append(tableaus, it_5)
   spellCore.append(all_piles, it_5)
 })
@@ -852,10 +859,11 @@ spellCore.map(deck, (card) => {
   card.move_to_$pile(stock)
 })
 
+spellCore.heading("actions")
 /*! SPELL: DECLARES {
   syntax: "debug the game", output: "debug_the_game", rule: "method_call",
   alias: ["statement", "expression"], kind: "function",
-  defined: "/Solitaire.spell:2325-2399",
+  defined: "/Solitaire.spell:2331-2405",
 } */
 export function debug_the_game() {
   spellCore.map(game.state, (line) => {
@@ -866,7 +874,7 @@ export function debug_the_game() {
 /*! SPELL: DECLARES {
   syntax: "reset the stock pile", output: "reset_the_stock_pile", rule: "method_call",
   alias: ["statement", "expression"], kind: "function",
-  defined: "/Solitaire.spell:2401-2568",
+  defined: "/Solitaire.spell:2407-2574",
 } */
 export function reset_the_stock_pile() {
   let cards = spellCore.duplicateCollection(discards, Pile)
@@ -880,7 +888,7 @@ export function reset_the_stock_pile() {
 /*! SPELL: DECLARES {
   syntax: "play from the stock pile", output: "play_from_the_stock_pile", rule: "method_call",
   alias: ["statement", "expression"], kind: "function",
-  defined: "/Solitaire.spell:2570-2757",
+  defined: "/Solitaire.spell:2576-2763",
 } */
 export async function play_from_the_stock_pile() {
   if (spellCore.processIsRunning('play_from_the_stock_pile')) { return }
@@ -901,7 +909,7 @@ export async function play_from_the_stock_pile() {
 /*! SPELL: DECLARES {
   syntax: "deal the cards", output: "deal_the_cards", rule: "method_call",
   alias: ["statement", "expression"], kind: "function",
-  defined: "/Solitaire.spell:2759-3329",
+  defined: "/Solitaire.spell:2765-3335",
 } */
 export async function deal_the_cards() {
   if (spellCore.processIsRunning('deal_the_cards')) { return }
@@ -940,7 +948,7 @@ spellCore.RUNTIME.on('card-click', (event) => {
 /*! SPELL: DECLARES {
   syntax: "auto-play", output: "auto_play", rule: "method_call", alias: ["statement", "expression"],
   kind: "function",
-  defined: "/Solitaire.spell:4411-5495",
+  defined: "/Solitaire.spell:4417-5501",
 } */
 export async function auto_play() {
   let anything_changed = false
@@ -987,7 +995,7 @@ export async function auto_play() {
 /*! SPELL: DECLARES {
   syntax: "reset the game", output: "reset_the_game", rule: "method_call",
   alias: ["statement", "expression"], kind: "function",
-  defined: "/Solitaire.spell:5497-5562",
+  defined: "/Solitaire.spell:5503-5568",
 } */
 export function reset_the_game() {
   game.score = 0
@@ -997,7 +1005,7 @@ export function reset_the_game() {
 /*! SPELL: DECLARES {
   syntax: "cheat", output: "cheat", rule: "method_call", alias: ["statement", "expression"],
   kind: "function",
-  defined: "/Solitaire.spell:5564-5940",
+  defined: "/Solitaire.spell:5570-5946",
 } */
 export async function cheat() {
   let remaining_piles = spellCore.filter(tableaus, (pile) => {
@@ -1014,6 +1022,7 @@ export async function cheat() {
   card.move_to_$pile(discards)
 }
 
+spellCore.heading("rendering the bits")
 reset_the_game()
 game.start()
 // -----------

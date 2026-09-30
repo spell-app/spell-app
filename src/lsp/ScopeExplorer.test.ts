@@ -38,7 +38,7 @@ describe("ScopeExplorer", () => {
     expect(outline(tree, 3)).toMatchSnapshot()
   })
 
-  test("a type's members:  properties, actions, then each enumeration and its constants -- each with its line", () => {
+  test("a type's members:  in document order, by file then line -- each with its line", () => {
     const card = find(tree, "Card")
     expect(card.detail).toBe("is a Thing")
     expect(card.super).toBe("type:Thing")
@@ -49,6 +49,15 @@ describe("ScopeExplorer", () => {
     // in its node's file, so no `uri` of its own
     expect(details(suit).uri).toBeUndefined()
     expect(find(tree, "suit").uri).toBe(cardUri)
+  })
+
+  test("each member's section:  the heading it's under, in the file it's declared in", () => {
+    const card = find(tree, "Card")
+    const sectionOf = (name: string) => card.members.find((member) => member.name === name)!.section
+    expect(sectionOf("suit")).toBe("properties of cards")
+    expect(sectionOf("name")).toBe("aliases")
+    expect(sectionOf("turn (a card) over")).toBe("actions")
+    expect(find(tree, "suit").section).toBe("properties of cards")
   })
 
   test("a sub-type shows what it inherits, and from where", () => {
@@ -360,6 +369,58 @@ describe("ScopeExplorer scope packs", () => {
     expect(shipped.entries.map((entry) => entry.path)).toEqual(
       expect.arrayContaining(builtIns.entries.map((entry) => entry.path))
     )
+  })
+})
+
+/** Built-in types' docs, from the hand-written `spellCore.scopes.js` -- what VS Code's Type Explorer shows. */
+describe("ScopeExplorer built-in types' pack", () => {
+  const dir = mkdtempSync(resolve(tmpdir(), "spell-scope-built-ins-"))
+  cpSync(fixturePath("Solitaire"), resolve(dir, "Solitaire"), { recursive: true })
+  const cardPath = resolve(dir, "Solitaire/Card.spell")
+  const cardUri = pathToFileURL(cardPath).href
+  const workspace = new SpellDiskWorkspace()
+  const service = new LSP.SpellLanguageService(workspace)
+  let project: SP.SpellProject
+
+  beforeAll(async () => {
+    await workspace.update(cardUri, readFileSync(cardPath, "utf8"))
+    project = workspace.fileFor(cardUri)!.project as SP.SpellProject
+  })
+
+  test("each built-in type's entries and details come from the pack", () => {
+    const explorer = new LSP.ScopeExplorer(service, () => workspace.builtInsPack())
+    const tree = explorer.tree(project)
+    const thing = find(tree, "Thing")
+    expect(thing.members.map(({ kind, name }) => `${kind} ${name}`)).toContain("method draw (a thing)")
+    expect(explorer.details(project, thing.path)!.description).toMatch(/^What your own types are made from/)
+    const app = find(tree, "App")
+    expect(app.super).toBe("type:Thing")
+    expect(
+      app.members.map(({ name, inheritedFrom }) => `${name}${inheritedFrom ? ` < ${inheritedFrom}` : ""}`)
+    ).toEqual(expect.arrayContaining(["start (an app)", "draw (a thing) < Thing"]))
+    expect(explorer.details(project, "type:App/method:start (an app)")!.rules).toEqual([
+      { name: "start_app", syntax: "start {app:expression}" }
+    ])
+    // a project's type inherits them too
+    expect(find(tree, "Game").members).toContainEqual(expect.objectContaining({ name: "start (an app)" }))
+  })
+
+  test("javascript's `Object` isn't listed:  spell knows it by name, but it isn't a spell class", () => {
+    const explorer = new LSP.ScopeExplorer(service, () => workspace.builtInsPack())
+    expect(SP.SpellParser.rootScope.types.get().map((type) => type.name)).toContain("Object")
+    expect(explorer.tree(project).children.map((child) => child.path)).not.toContain("type:Object")
+    expect(explorer.exportBuiltIns().entries.map((entry) => entry.path)).not.toContain("type:Object")
+  })
+
+  test("a built-in type the pack doesn't know shows bare, as its scope has it", () => {
+    const pack = workspace.builtInsPack()!
+    const thingOnly = { ...pack, entries: pack.entries.filter((entry) => entry.path.startsWith("type:Thing")) }
+    const explorer = new LSP.ScopeExplorer(service, () => thingOnly)
+    const tree = explorer.tree(project)
+    const list = find(tree, "List")
+    expect(list.path).toBe("type:List")
+    expect(list.members).toEqual([])
+    expect(explorer.details(project, list.path)!.description).toBeUndefined()
   })
 })
 

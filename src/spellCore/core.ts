@@ -72,6 +72,9 @@ export const coreMethods = defineSpellCoreModule({
 
   /**
    * Create an new, "empty" instance of `thing.constructor`.
+   * - What collection helpers build their results in, e.g. `map()`, `filter()`, `duplicateCollection()`.
+   * - NOT registered for the Thing Explorer -- see `ThingRegistry.quietly()` -- so a copy the program keeps
+   *   doesn't show either.  See `CODE-DEBT.md`.
    * - TODO: number? string?  non-constructable thing???
    */
   newThingLike(thing: unknown): unknown {
@@ -79,7 +82,8 @@ export const coreMethods = defineSpellCoreModule({
     // if (spellCore.isArrayLike(thing)) return []
     try {
       const target = thing as { constructor: new () => unknown }
-      return new target.constructor()
+      // scratch, e.g. `map()`'s result:  NOT one of the program's things -- see `ThingRegistry.quietly()`
+      return spellCore.things.quietly(() => new target.constructor())
     } catch (e) {
       return {}
     }

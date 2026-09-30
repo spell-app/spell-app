@@ -2,9 +2,10 @@ import React from "react"
 import classnames from "classnames"
 import * as SUI from "semantic-ui-react"
 
-import type { TypeExplorerState } from "~/app/ui/ui.types"
+import type { ThingExplorerState, TypeExplorerState } from "~/app/ui/ui.types"
 // Import directly, NOT through the `UI` barrel, which would pull in the whole editor.
 import { TypeExplorer } from "~/app/ui/TypeExplorer"
+import { ThingExplorer } from "~/app/ui/ThingExplorer"
 import { loadRuntime, type LoadedRuntime } from "./loadRuntime"
 import { loadScopePack, scopesFromPacks, type ScopesSource } from "./ScopesSource"
 import { RunnerSplit, DEFAULT_SPLIT } from "./RunnerSplit"
@@ -16,11 +17,11 @@ import "./SpellAppRunner.css"
 /****************
  * ### `<SpellAppRunner>`
  * Runs one spell app in a page, inside `<spell-app>`'s shadow root:  an optional toolbar, the app, and a
- * "debug" pane below it -- the Type Explorer, and the program's console.
+ * "debug" pane below it -- the Type Explorer, the Thing Explorer, and the program's console.
  * - Runs on its OWN copy of the spell runtime -- see `loadRuntime()` -- so many can run on a page at once.
  * - Runs `source` when the runtime's loaded, again when `source` changes, and on Restart.  Restart fetches
  *   the program afresh, so a recompiled one shows.
- * - A program with NO app shows its console on top instead.
+ * - A program with NO app shows its console on top instead, and the explorers below.
  * - The Type Explorer is read-only, and shows only if there's a scope pack -- see `ScopesSource`.
  * - NEVER imports `~/spellCore`:  it'd land in the bundle's shared chunk, so every app would share it.
  *   Everything of spell's comes from this app's copy of the runtime.
@@ -37,6 +38,7 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
   const [split, setSplit] = React.useState(fluid ? DEFAULT_DEBUG_HEIGHT : DEFAULT_SPLIT)
   const [scopes, setScopes] = React.useState<ScopesSource>()
   const [explorerState, setExplorerState] = React.useState<TypeExplorerState>({})
+  const [thingsState, setThingsState] = React.useState<ThingExplorerState>({})
   // compiled javascript of each project the last run loaded, by id -- for the Type Explorer's "Compiled Output"
   const compiledRef = React.useRef(new Map<string, string>())
 
@@ -105,14 +107,17 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
       onStateChange={setExplorerState}
     />
   )
-  const showing: DebugPane = pane === "explorer" && !explorer ? "console" : pane
+  const things = loaded && (
+    <ThingExplorer things={loaded.runtime.spellCore.things} state={thingsState} onStateChange={setThingsState} />
+  )
+  const content: Record<DebugPane, ReactNode> = { explorer, things, console: output }
   let bottom: ReactNode = undefined
-  if (!hasApp) {
-    if (debugOpen && explorer) bottom = <RunnerPane tabs={[DEBUG_TABS.explorer]} pane="explorer" content={explorer} />
-  } else if (debugOpen) {
-    const tabs = explorer ? [DEBUG_TABS.explorer, DEBUG_TABS.console] : [DEBUG_TABS.console]
+  if (debugOpen) {
+    // no app:  its console's on top already
+    const ids = [...(explorer ? ["explorer" as const] : []), "things" as const, ...(hasApp ? ["console" as const] : [])]
+    const showing = ids.includes(pane) ? pane : ids[0]
     bottom = (
-      <RunnerPane tabs={tabs} pane={showing} onPane={setPane} content={showing === "explorer" ? explorer : output} />
+      <RunnerPane tabs={ids.map((id) => DEBUG_TABS[id])} pane={showing} onPane={setPane} content={content[showing]} />
     )
   }
 
@@ -184,8 +189,11 @@ export type SpellAppControls = {
   restart: () => void
 }
 
-/** Tab of the debug pane:  the Type Explorer, or the program's console. */
-export type DebugPane = "explorer" | "console"
+/** Tab of the debug pane:  the Type Explorer, the Thing Explorer, or the program's console. */
+export type DebugPane = "explorer" | "things" | "console"
+
+/** Each tab of the debug pane, in order -- e.g. what `<spell-app debug>` may say. */
+export const DEBUG_PANES: DebugPane[] = ["explorer", "things", "console"]
 
 /****************
  * ### `<SpellAppToolbar>`
@@ -287,6 +295,7 @@ async function loadScopes(
 /** Each debug pane tab. */
 const DEBUG_TABS: Record<DebugPane, RunnerTab<DebugPane>> = {
   explorer: { id: "explorer", icon: "sitemap", title: "Type Explorer" },
+  things: { id: "things", icon: "cubes", title: "Thing Explorer" },
   console: { id: "console", icon: "terminal", title: "Console" }
 }
 

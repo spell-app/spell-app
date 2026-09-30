@@ -622,6 +622,26 @@ export class SpellLanguageService {
     return [{ range: { start: top, end: { line: last.end.line + 1, character: 0 } }, newText: block }]
   }
 
+  /**
+   * Heading comments in `file`, in order, e.g. `## actions` -- NOT those of its docstring, see `fileDescription()`.
+   * - Each's `text` without its `#`s.  One with no text, e.g. a `##########` rule, is left out.
+   * - Found as `highlightSpans()` colours them, so what reads as a heading in the editor is one here.
+   */
+  headingsOf(file: SP.SpellFile): Array<{ start: number; level: number; text: string }> {
+    const docEnd = this.fileDocComment(file)?.comments.at(-1)?.end ?? -1
+    return this.highlightSpans(file)
+      .filter((span) => span.heading && span.start >= docEnd)
+      .map((span) => ({
+        start: span.start,
+        level: span.heading!,
+        text: file.parseText
+          .slice(span.start, span.end)
+          .replace(/^\s*#+/, "")
+          .trim()
+      }))
+      .filter((heading) => heading.text)
+  }
+
   /** Comment-only lines at the very top of `file`, if the first is a `#` heading -- see `fileDescription()`. */
   private fileDocComment(file: SP.SpellFile): SP.DocComment | undefined {
     const comments: P.Match[] = []

@@ -36,6 +36,7 @@ export * from "./ProjectDropdown"
 export * from "./ScopeDetailsPane"
 export * from "./SpellPage"
 export * from "./SplitPanel"
+export * from "./ThingExplorer"
 export * from "./TypeExplorer"
 export * from "./modals"
 

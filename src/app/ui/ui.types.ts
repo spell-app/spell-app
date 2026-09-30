@@ -60,4 +60,36 @@ export type TypeExplorerState = {
   open?: string[]
   /** Titles of the details sections open, e.g. `Spell` -- the same for every node. */
   openSections?: string[]
+  /** Order its lists are in.  Default:  `"document"`. */
+  order?: ScopeOrder
 }
+
+/**
+ * Order a `<TypeExplorer>` lists things in:
+ * - `document`:  as they're declared, under markers for the headings they're under -- see `LSP.ScopeEntry.section`
+ * - `alphabetical`:  by name, ignoring case -- a type's members under "Properties", "Actions" ...
+ */
+export type ScopeOrder = "document" | "alphabetical"
+
+// ## Thing Explorer
+
+/**
+ * What a `<ThingExplorer>` remembers between runs -- plain JSON, like `TypeExplorerState`.
+ * - Things are known by creation number, which a program making the same things in the same order keeps from
+ *   run to run -- so what's selected survives a Restart.
+ */
+export type ThingExplorerState = {
+  /** Key of the selected thing, e.g. `#12`, or `@all_piles` for a plain top-level list -- see `thingKey()`. */
+  selected?: string
+  /** Keys of the open tree rows:  `top` for "Top level", `all` for "All things", `type:Card` for each type. */
+  open?: string[]
+  /** Order its tree is in.  Default:  `"document"`. */
+  order?: ThingOrder
+}
+
+/**
+ * Order a `<ThingExplorer>` lists things in:
+ * - `document`:  all of them, in the order they were made
+ * - `type`:  under each type they are, their own and each it extends -- e.g. a foundation under `Pile` too
+ */
+export type ThingOrder = "document" | "type"

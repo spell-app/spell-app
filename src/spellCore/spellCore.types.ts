@@ -7,6 +7,7 @@ import type { pathMethods } from "./paths"
 import type { testMethods } from "./tests"
 import type { consoleMethods } from "./console"
 import type { runtimeMethods } from "./runtime"
+import type { thingsMethods } from "./things"
 import type { classesMethods } from "./classes"
 
 // ## Importing spellCore
@@ -18,15 +19,23 @@ import type { classesMethods } from "./classes"
  */
 export const SPELL_CORE_MODULE = "@spell/core"
 
-/** Names every compiled project imports from `SPELL_CORE_MODULE`:  `spellCore`, and the built-in types. */
-export const SPELL_CORE_NAMES = ["spellCore", "Thing", "List", "App"]
+/**
+ * Spell's own classes, from `spellCore/classes`:  what a project's types are made from, e.g. `a card is a thing`.
+ * - What a Type Explorer lists as built in -- see `LSP.ScopeExplorer`.
+ */
+export const SPELL_CLASSES = ["Thing", "List", "App"]
+
+/** Names every compiled project imports from `SPELL_CORE_MODULE`:  `spellCore`, and spell's classes. */
+export const SPELL_CORE_NAMES = ["spellCore", ...SPELL_CLASSES]
 
 /**
  * Types built into spell, which every project starts with -- `spellCore.BASE_TYPES`.
+ * - Spell's classes, plus javascript's own `Object`, so spell can say `create an object` and `a list of objects`.
+ *   NOT a spell class, so a Type Explorer leaves it out.
  * - Here, so the parser can read them WITHOUT importing `spellCore`, whose code must stay in the runtime's own
  *   bundle entry -- see `spellRuntime.ts`.
  */
-export const SPELL_BASE_TYPES = ["Object", "Thing", "List", "App"]
+export const SPELL_BASE_TYPES = ["Object", ...SPELL_CLASSES]
 import type { EventfulMethods } from "./SpellEvent"
 
 /**
@@ -43,6 +52,7 @@ export type SpellCore = typeof coreMethods &
   typeof testMethods &
   typeof consoleMethods &
   typeof runtimeMethods &
+  typeof thingsMethods &
   typeof classesMethods &
   EventfulMethods
 

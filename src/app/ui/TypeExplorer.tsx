@@ -4,8 +4,15 @@ import * as SUI from "semantic-ui-react"
 
 // Import directly, NOT through the `~/lsp` barrel, which would pull the language service into the bundle.
 import { SCOPE_MEMBER_GROUPS, type ScopeDetails, type ScopeMember, type ScopeNode } from "~/lsp/lsp.types"
-import type { TypeExplorerState } from "./ui.types"
-import { SCOPE_ICONS, ScopeDetailsPane, type DescriptionAt } from "./ScopeDetailsPane"
+import type { ScopeOrder, TypeExplorerState } from "./ui.types"
+import {
+  SCOPE_ICONS,
+  ScopeDetailsPane,
+  SectionMarker,
+  alphabetical,
+  sectionStartsAt,
+  type DescriptionAt
+} from "./ScopeDetailsPane"
 
 import "./TypeExplorer.css"
 
@@ -16,6 +23,8 @@ import "./TypeExplorer.css"
  * - Keeps what's selected and open by node `path` as new trees come in, e.g. after each run.
  * - Selecting a node, e.g. from the breadcrumbs, opens the tree down to it.
  * - Details sections are closed to start, and open or closed alike for every node.
+ * - Lists things in document order, with a marker for each heading they're under, or alphabetically -- the
+ *   buttons left of Refresh switch.  See `UI.ScopeOrder`.
  * - Remembers all that as a `UI.TypeExplorerState` through `state` + `onStateChange`, e.g. in the VS Code runner's
  *   `settings.json5` -- else in `localStorage`.
  * - A node's details are asked for with `loadDetails()` when first shown, and kept until a new `tree` comes.
@@ -34,6 +43,7 @@ export function TypeExplorer(props: TypeExplorerProps) {
   if (!details) detailsByTree.set(tree, (details = new Map()))
   const open = new Set(state.open ?? defaultOpen(tree))
   const openSections = new Set(state.openSections)
+  const order = state.order ?? "document"
   const trail = (state.selected !== undefined && trailTo(tree, state.selected)) || trailTo(tree, lastChild(tree).path)!
   const selected = trail.at(-1)!
   return (
@@ -41,12 +51,32 @@ export function TypeExplorer(props: TypeExplorerProps) {
       <div className="ScopesPane">
         <div className="PaneHeader">
           Scopes
-          {!!onRefresh && (
-            <SUI.Icon name="refresh" link className="refresh" title="Refresh the scopes" onClick={onRefresh} />
-          )}
+          <span className="tools">
+            {ORDERS.map(({ id, icon, title }) => (
+              <SUI.Icon
+                key={id}
+                name={icon}
+                link
+                className={classnames("order", { active: order === id })}
+                title={title}
+                onClick={() => update({ order: id })}
+              />
+            ))}
+            {!!onRefresh && (
+              <SUI.Icon name="refresh" link className="refresh" title="Refresh the scopes" onClick={onRefresh} />
+            )}
+          </span>
         </div>
         <div className="PaneBody">
-          <ScopeTreeNode node={tree} depth={0} open={open} selected={selected} onToggle={toggle} onSelect={select} />
+          <ScopeTreeNode
+            node={tree}
+            depth={0}
+            order={order}
+            open={open}
+            selected={selected}
+            onToggle={toggle}
+            onSelect={select}
+          />
         </div>
       </div>
       <div className="DetailsPane">
@@ -56,6 +86,7 @@ export function TypeExplorer(props: TypeExplorerProps) {
             key={selected.path}
             node={selected}
             trail={trail.slice(1)}
+            order={order}
             openSections={openSections}
             onToggleSection={toggleSection}
             onSelect={select}
@@ -139,11 +170,14 @@ export type TypeExplorerProps = {
  * ### `<ScopeTreeNode>`
  * One node in the "Scopes" tree, and its children if it's open.
  * - Click its arrow, or left of it, to open / close it -- anywhere right of that selects it.
- * - The root, "Spell", is always open:  no arrow.
- * - A type's members come under collapsible "Properties", "Enumerations" and "Actions" rows.
+ * - The root, "Spell", is always open:  no arrow.  Its children stay in tree order, whatever `order`:  the built-ins,
+ *   then the projects, ours last.
+ * - Anything else's children come in `order`:
+ *   - `document`:  as declared, with a `<SectionMarker>` for each heading they're under -- a type's members too
+ *   - `alphabetical`:  a type's members under collapsible "Properties", "Actions" ... rows
  * - Scrolls itself into view when selected, e.g. from the breadcrumbs.
  ****************/
-function ScopeTreeNode({ node, depth, open, selected, onToggle, onSelect }: ScopeTreeNodeProps) {
+function ScopeTreeNode({ node, depth, order, open, selected, onToggle, onSelect }: ScopeTreeNodeProps) {
   const isRoot = node.kind === "root"
   const isOpen = isRoot || open.has(node.path)
   const isSelected = node === selected
@@ -151,7 +185,9 @@ function ScopeTreeNode({ node, depth, open, selected, onToggle, onSelect }: Scop
   React.useEffect(() => {
     if (isSelected) ref.current?.scrollIntoView({ block: "nearest" })
   }, [isSelected])
-  const childProps = { depth: depth + 1, open, selected, onToggle, onSelect }
+  const childProps = { depth: depth + 1, order, open, selected, onToggle, onSelect }
+  const children = isRoot || order === "document" ? node.children : alphabetical(node.children)
+  const grouped = node.kind === "type" && order === "alphabetical"
   return (
     <>
       <TreeRow
@@ -169,12 +205,22 @@ function ScopeTreeNode({ node, depth, open, selected, onToggle, onSelect }: Scop
         </span>
       </TreeRow>
       {isOpen &&
-        node.kind !== "type" &&
-        node.children.map((child) => <ScopeTreeNode key={child.path} node={child} {...childProps} />)}
+        !grouped &&
+        children.map((child, index) => (
+          <React.Fragment key={child.path}>
+            {order === "document" && !isRoot && sectionStartsAt(children, index) && (
+              <SectionMarker
+                section={child.section}
+                style={{ paddingLeft: ROW_PADDING + (depth + 1) * INDENT_WIDTH + MARKER_INSET }}
+              />
+            )}
+            <ScopeTreeNode node={child} {...childProps} />
+          </React.Fragment>
+        ))}
       {isOpen &&
-        node.kind === "type" &&
+        grouped &&
         SCOPE_MEMBER_GROUPS.map(({ kinds, label }) => {
-          const members = node.children.filter((child) => kinds.includes(child.kind as ScopeMemberKind))
+          const members = children.filter((child) => kinds.includes(child.kind as ScopeMemberKind))
           if (!members.length) return null
           const path = groupPath(node, label)
           const isGroupOpen = open.has(path)
@@ -208,6 +254,8 @@ type ScopeTreeNodeProps = {
   node: ScopeNode
   /** Nesting depth, for indenting. */
   depth: number
+  /** Order to list its children in. */
+  order: ScopeOrder
   /** Paths of the open rows. */
   open: Set<string>
   /** Selected node. */
@@ -222,8 +270,9 @@ type ScopeTreeNodeProps = {
  * ### `<TreeRow>`
  * One row of the "Scopes" tree, all of it clickable:  its indent and open / closed arrow `onToggle`,
  * the rest -- `children`, and the space after them -- `onClick`.
+ * - Shared with `<ThingExplorer>`'s tree.
  ****************/
-function TreeRow({ className, depth, isOpen, onToggle, onClick, rowRef, children }: TreeRowProps) {
+export function TreeRow({ className, depth, isOpen, onToggle, onClick, rowRef, children }: TreeRowProps) {
   return (
     <div ref={rowRef} className={classnames("TreeRow", className)}>
       <span className="opener" style={{ paddingLeft: ROW_PADDING + depth * INDENT_WIDTH }} onClick={onToggle}>
@@ -237,7 +286,7 @@ function TreeRow({ className, depth, isOpen, onToggle, onClick, rowRef, children
 }
 
 /** Props for `<TreeRow>`. */
-type TreeRowProps = {
+export type TreeRowProps = {
   /** Class names. */
   className: string
   /** Nesting depth, for indenting. */
@@ -263,6 +312,15 @@ const INDENT_WIDTH = 14
 
 /** Space left of every row's arrow, in px -- part of the arrow's click area. */
 const ROW_PADDING = 8
+
+/** How far a `<SectionMarker>` sits right of the rows it heads, in px -- past their arrows. */
+const MARKER_INSET = 14
+
+/** Each order the lists can be in, as a button left of Refresh -- see `UI.ScopeOrder`. */
+const ORDERS: Array<{ id: ScopeOrder; icon: SUI.SemanticICONS; title: string }> = [
+  { id: "document", icon: "list ol", title: "Document order, under their headings" },
+  { id: "alphabetical", icon: "sort alphabet down", title: "Alphabetical" }
+]
 
 /** Tree row path of group `label` of `type`'s members, e.g. its "Properties". */
 function groupPath(type: ScopeNode, label: string): string {

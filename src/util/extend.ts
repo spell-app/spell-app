@@ -1,5 +1,5 @@
 import { isObservable, observable, raw } from "@nx-js/observer-util"
-import { store as createStore, batch } from "@risingstack/react-easy-state"
+import { batch } from "@risingstack/react-easy-state"
 import _set from "lodash/set"
 import _unset from "lodash/unset"
 
@@ -20,9 +20,9 @@ export const EXTEND_MAP = new WeakMap<any, Record<string, any>>()
 
 /** Lazily-created `props`/`state` storage for one object, as tracked in `EXTEND_MAP`. */
 export type ExtendedData = {
-  /** Reactive public `props` -- raw `map` plus the `react-easy-state` `$store` proxy over it. */
+  /** Reactive public `props` -- raw `map` plus the `observer-util` `$store` proxy over it -- see `newStore()`. */
   props?: { map: Record<string, any>; $store: Record<string, any> }
-  /** Reactive private `state` -- raw `map` plus the `react-easy-state` `$store` proxy over it. */
+  /** Reactive private `state` -- raw `map` plus the `observer-util` `$store` proxy over it -- see `newStore()`. */
   state?: { map: Record<string, any>; $store: Record<string, any> }
 }
 
@@ -32,8 +32,7 @@ export type ExtendedData = {
  *   hands you an `observer-util` proxy of it, not the instance -- so `target` here is a different
  *   key than the one `Observable`'s constructor used.  Key on the proxy and we build a SECOND,
  *   disconnected `props`/`state` pair: reads in a component and reads in plain code then see
- *   different values for the same object, and the fresh `createStore()` lands mid-render as a
- *   surprise React hook.  See `assertCanCreateStore()`.
+ *   different values for the same object.  See `assertCanCreateStore()`.
  */
 export function extendedFor(target: any): ExtendedData {
   target = raw(target)
@@ -50,8 +49,8 @@ export function extendedFor(target: any): ExtendedData {
 export function initializeExtended(target: any, ...what: Array<"derived" | "props" | "state">) {
   extendedFor(target)
   if (what.includes("derived")) derivedFor(target)
-  if (what.includes("props")) propsFor(target)
-  if (what.includes("state")) stateFor(target)
+  if (what.includes("props")) propsFor(target, true)
+  if (what.includes("state")) stateFor(target, true)
 }
 
 ////////////////
@@ -71,13 +70,23 @@ function isInsideRender(): boolean {
 }
 
 /**
- * Throw if we're about to build a `$store` mid-render.
- * - `react-easy-state`'s `store()` quietly turns into a `useMemo()` when it's called while a
- *   component is rendering.  A store created lazily on that path is therefore an extra React hook
- *   that appears on some renders and not others, and React kills the tree with "Rendered more
- *   hooks than during the previous render" -- pointing at the component, not at us.
- * - Creating a store here means someone reached an `Observable` whose `props`/`state` weren't set
- *   up by its constructor.  Build it before the render instead.
+ * A new `$store` over `map`:  `observer-util`'s `observable()`, NEVER `react-easy-state`'s `store()`.
+ * - `store()` quietly turns into a `useMemo()` when called while a `view()` function component renders --
+ *   and throws in a `view()` class component's.  An object's own store is NOT that component's:  as a hook
+ *   it'd appear on some renders and not others, and React kills the tree with "Rendered more hooks than
+ *   during the previous render", or error #301 -- pointing at the component, not at us.
+ * - Objects ARE made mid-render, e.g. a list `spellCore.map()` makes in a `to draw`, or a computed property
+ *   the Thing Explorer reads.  So their stores must be plain.
+ * - `map` is plain data, with no methods for `store()` to batch.
+ */
+function newStore(map: Record<string, any>): Record<string, any> {
+  return observable(map)
+}
+
+/**
+ * Throw if we're about to build a `$store` LAZILY mid-render -- NOT from its object's constructor.
+ * - Building one lazily means someone reached an `Observable` whose `props`/`state` weren't set up by its
+ *   constructor -- typically keyed on a proxy of it, see `extendedFor()`:  a second, disconnected store.
  * - Dev only:  the probe costs an allocation, and in production limping beats a white screen.
  * - NEVER test this with `process.env.NODE_ENV` -- `vite.config.ts` replaces `process.env` with
  *   `{}` for the browser, so it reads `undefined` there and the guard would stay armed in prod.
@@ -177,15 +186,16 @@ export function clearDerived(target: any, ...properties: string[]) {
 
 /**
  * Return raw `props` map for `target` object.
+ * - `constructing`:  from its constructor, via `initializeExtended()` -- so NOT checked by `assertCanCreateStore()`.
  * - SIDE EFFECT: on first call, also defines a non-enumerable `$props` property on `target`
  *   pointing at the raw (non-reactive) map, for debugging/inspection.
  */
-function propsFor(target: any) {
+function propsFor(target: any, constructing = false) {
   const extended = extendedFor(target)
   if (!extended.props) {
-    assertCanCreateStore(target, "props")
+    if (!constructing) assertCanCreateStore(target, "props")
     const map = {}
-    extended.props = { map, $store: createStore(map) }
+    extended.props = { map, $store: newStore(map) }
     // DEBUG: expose raw map as `$props` for inspection
     Object.defineProperty(target, "$props", { value: map })
   }
@@ -242,13 +252,13 @@ export function setProps(target: any, props: Record<string, any>) {
 //   return () => getState(target, context.name, context.access.get as () => T)
 // }
 
-/** Return raw `state` map for `target` object. */
-function stateFor(target: any) {
+/** Return raw `state` map for `target` object -- `constructing` as for `propsFor()`. */
+function stateFor(target: any, constructing = false) {
   const extended = extendedFor(target)
   if (!extended.state) {
-    assertCanCreateStore(target, "state")
+    if (!constructing) assertCanCreateStore(target, "state")
     const map = {}
-    extended.state = { map, $store: createStore(map) }
+    extended.state = { map, $store: newStore(map) }
     Object.defineProperty(target, "$state", { value: map })
   }
   return extended.state

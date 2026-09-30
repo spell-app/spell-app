@@ -6,6 +6,7 @@ import type { LSP } from "~/lsp"
 import type { FromRunnerMessage, ProjectSettings, RunnerPaneId, ToRunnerMessage } from "~/app/runner"
 // Import directly, NOT through the `UI` barrel, which would pull in the whole editor.
 import { TypeExplorer } from "~/app/ui/TypeExplorer"
+import { ThingExplorer } from "~/app/ui/ThingExplorer"
 import { loadRuntime, type LoadedRuntime } from "./loadRuntime"
 import { RunnerSplit, DEFAULT_SPLIT } from "./RunnerSplit"
 import { RunnerPane, type RunnerTab } from "./RunnerPane"
@@ -19,14 +20,14 @@ import "./VSCodeRunner.css"
  * Runs a spell project inside the VS Code extension's "Run Project" webview:  a toolbar, then two panes, one above
  * the other, split by a bar you drag.
  * - A program with an `app`:  the app on top, then, if the console's shown, a pane switching between
- *   "Type Explorer" and "Program Output".
- * - One with NO `app` has nothing else to show:  "Program Output" on top, the Type Explorer below, and no
+ *   "Type Explorer", "Thing Explorer" and "Program Output".
+ * - One with NO `app` has nothing else to show:  "Program Output" on top, the explorers below, and no
  *   "Show Console" button.  See `hasApp`.
  * - Runs whatever the extension sends in a `run` message, afresh each time, on its OWN copy of the spell runtime
  *   -- see `loadRuntime()`.  One sent before that's loaded runs once it is.
  * - NEVER imports `~/spellCore`:  it'd be bundled beside this, a second copy -- see `spellRuntime.ts`.
  * - Says `ready` once listening, so the extension knows to compile.  Messages sent before then are lost.
- * - How it's shown -- console, tab, split, the Type Explorer's state -- comes from the extension, which remembers
+ * - How it's shown -- console, tab, split, the explorers' state -- comes from the extension, which remembers
  *   it in the project's `settings.json5`.  See `ProjectSettings`.
  ****************/
 export function VSCodeRunner({ post, runtimeUrl }: VSCodeRunnerProps) {
@@ -103,7 +104,15 @@ export function VSCodeRunner({ post, runtimeUrl }: VSCodeRunnerProps) {
       onStateChange={(typeExplorer) => save({ typeExplorer })}
     />
   )
+  const things = loaded && (
+    <ThingExplorer
+      things={loaded.runtime.spellCore.things}
+      state={settings.thingExplorer}
+      onStateChange={(thingExplorer) => save({ thingExplorer })}
+    />
+  )
   const output = loaded && <RunnerConsole console={loaded.runtime.spellCore.console} />
+  const content: Record<RunnerPaneId, ReactNode> = { types: explorer, things, output }
 
   // NOTE: the app's pane is ALWAYS first, just hidden without an app -- so its mount point is never redrawn.
   const appPane = (
@@ -114,14 +123,16 @@ export function VSCodeRunner({ post, runtimeUrl }: VSCodeRunnerProps) {
     </div>
   )
   let bottom: ReactNode = undefined
-  if (!hasApp) bottom = <RunnerPane tabs={tabsFor("types")} pane="types" content={explorer} />
-  else if (showConsole) {
+  if (!hasApp || showConsole) {
+    // no app:  its output's on top already
+    const ids: RunnerPaneId[] = hasApp ? ["types", "things", "output"] : ["types", "things"]
+    const showing = ids.includes(pane) ? pane : ids[0]
     bottom = (
       <RunnerPane
-        tabs={tabsFor("types", "output")}
-        pane={pane}
-        onPane={(showing) => save({ runner: { ...settings.runner, pane: showing } })}
-        content={pane === "types" ? explorer : output}
+        tabs={tabsFor(...ids)}
+        pane={showing}
+        onPane={(changed) => save({ runner: { ...settings.runner, pane: changed } })}
+        content={content[showing]}
       />
     )
   }
@@ -208,6 +219,7 @@ type VSCodeRunnerToolbarProps = {
 /** Icon and title of each tab of the runner's panes. */
 const PANE_TABS: Record<RunnerPaneId, Omit<RunnerTab<RunnerPaneId>, "id">> = {
   types: { icon: "sitemap", title: "Type Explorer" },
+  things: { icon: "cubes", title: "Thing Explorer" },
   output: { icon: "terminal", title: "Program Output" }
 }
 

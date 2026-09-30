@@ -1,6 +1,7 @@
 /*! SPELL: PROJECT { spellVersion: "0.8.0", provides: ["Card", "Deck", "Pile", "Game", "Stock_Pile", "Discard_Pile", "Foundation", "Tableau", "test_card_setup", "test_deck_creation", "debug_the_game", "reset_the_stock_pile", "play_from_the_stock_pile", "deal_the_cards", "auto_play", "reset_the_game", "cheat"] } */
 import { spellCore, Thing, List, App } from "@spell/core"
 
+spellCore.heading("definition of a Card with nice english aliases for working with it")
 /** definition of a Card with nice english aliases for working with it */
 /*! SPELL: DECLARES {
   type: "Card", superType: "Thing",
@@ -318,6 +319,7 @@ export class Card extends Thing {
   }
 }
 
+spellCore.heading("create a card instance with default properties")
 /** create a card instance with default properties */
 /*! SPELL: DECLARES {
   syntax: "test card setup", output: "test_card_setup", rule: "method_call", alias: "statement",
@@ -370,6 +372,7 @@ export function test_card_setup() {
 }
 test_card_setup()
 // -----------
+spellCore.heading("Deck:   US standard card deck (without jokers currently)")
 //## Deck:   US standard card deck (without jokers currently)
 
 /*! SPELL: DECLARES {
@@ -454,6 +457,7 @@ export function test_deck_creation() {
 }
 test_deck_creation()
 // -----------
+spellCore.heading("Pile of playing cards")
 /** Pile of playing cards */
 /*! SPELL: DECLARES {
   type: "Pile", superType: "List",
@@ -494,11 +498,13 @@ export class Pile extends List {
   }
 }
 // -----------
+spellCore.heading("Klondike Solitaire Card Game")
 //////////////////////////////////
 // ## Klondike Solitaire Card Game
 //////////////////////////////////
 //-- See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for rules & naming conventions.
 
+spellCore.heading("Game bits")
 /** Game bits */
 /*! SPELL: DECLARES {
   type: "Game", superType: "App",
@@ -656,6 +662,7 @@ export class Game extends App {
 export let game = new Game()
 spellCore.console.log(game)
 
+spellCore.heading("set up all piles")
 /** set up all piles */
 export let all_piles = new List({ instanceType: "Pile" })
 export let foundations = new List({ instanceType: "Pile" })
@@ -852,6 +859,7 @@ spellCore.map(deck, (card) => {
   card.move_to_$pile(stock)
 })
 
+spellCore.heading("actions")
 /*! SPELL: DECLARES {
   syntax: "debug the game", output: "debug_the_game", rule: "method_call",
   alias: ["statement", "expression"], kind: "function",
@@ -1014,6 +1022,7 @@ export async function cheat() {
   card.move_to_$pile(discards)
 }
 
+spellCore.heading("rendering the bits")
 reset_the_game()
 game.start()
 // -----------

@@ -276,6 +276,9 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   is part of it only if DIRECTLY above;  one followed by a regular comment compiles as a `// ## heading` banner.  Worked out from
   the block's lines when asked, never stored while parsing:  an edited comment line re-parses on its own.
   The language server shows the same docstring on hover and in completion.
+- A heading at a FILE's top level also compiles to `spellCore.heading("set up all piles")`, just above its own
+  lines (`P.ASTHeadingInvocation`) -- so as the program runs, the Thing Explorer knows which heading's code made
+  each thing.  NOT in a plain block, e.g. a rule test's, nor for a heading with no text, e.g. `##########`.
 - Classes compile as a hand-written class would:  each MEMBER in its class's body, wherever it was declared.
   - A member is a `P.ASTClassMember`, which knows its class (`typeName`) and compiles two ways:
     - in its class's body (`compileAsMember()`), e.g. `get title() {...}`, `draw() {...}`, `static Suits = [...]`
@@ -286,7 +289,8 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     shadow the accessor, and nothing would redraw.
   - `Block.getAST()` makes each declaring line ONE `P.ASTStatementGroup` -- docstring, `SPELL: DECLARES`
     comment, code -- then `SP.hoistClassMembers()` moves each member into its class's body, if that's in the block.
-    Comments directly above a member go with it, e.g. a `## properties` banner.  Everything else stays put.
+    Comments directly above a member go with it, e.g. a `## properties` banner -- past a heading's
+    `spellCore.heading()` call, which stays put.  Everything else stays put too.
   - A project then does the same across ALL its files (`SpellProject.combineCompiled()`), so `Card.move_to_$pile`
     from `Pile.spell` ends up in `Card.spell`'s class.  So does `compiledFixture()`.  NEVER mutates an AST:  a class
     which gets members is a NEW `P.ASTClassDeclaration` (`withMembers()`).

@@ -89,15 +89,21 @@ export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
    * - A declaring line's docstring, comment and code are ONE `P.ASTStatementGroup`, so they move together:
    *   each class member moves into its class's body, if that's in this block -- see `SP.hoistClassMembers()`.
    * - A `##` heading followed by a regular comment compiles as a banner -- see `P.ASTBannerComment`.
+   * - A heading at a FILE's top level also says so as the program runs, just above its own lines:
+   *   `spellCore.heading("set up all piles")` -- so the Thing Explorer knows which heading's code made each
+   *   thing.  See `P.ASTHeadingInvocation`.
    */
   getAST(match: P.MatchFor<this>): P.ASTStatementBlock | P.ASTStatementGroup {
     const docs = this.getDocComments(match)
     const docComments = new Set([...docs.values()].flatMap((doc) => doc.comments))
     const statements: SP.HoistableStatement[] = []
+    const isFileTop = !match.data.enclose && match.scope instanceof P.FileScope
     match.matched.forEach((item, index) => {
       // `Block.parse()` only ever pushes `Match`es onto `matched`, each a `line` / nested `block` whose rule
       // returns a statement-shaped node -- not statically representable.
       if (!(item instanceof P.Match)) return
+      const heading = isFileTop ? this.headingText(item) : undefined
+      if (heading) statements.push(new P.ASTHeadingInvocation(item, { heading }))
       if (this.isBannerHeading(item, match.matched[index + 1])) {
         statements.push(new P.ASTBannerComment(item, { value: this.commentText(this.commentOnlyLine(item)!) }))
         return
@@ -196,6 +202,12 @@ export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
   /** Is `comment` a section heading -- `#`, `##`, `###` ...? */
   private isHeading(comment: P.Match): boolean {
     return (comment.tokens[0] as P.CommentToken).commentSymbol.startsWith("#")
+  }
+
+  /** Text of `item`, if it's a heading's line -- `undefined` for any other, or one with no text, e.g. `#####`. */
+  private headingText(item: P.Match): string | undefined {
+    const comment = this.commentOnlyLine(item)
+    return (comment && this.isHeading(comment) && this.commentText(comment).trim()) || undefined
   }
 
   /** Text of `comment`, without its comment symbol. */

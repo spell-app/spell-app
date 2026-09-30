@@ -2,11 +2,13 @@
 import { spellCore, Thing, List, App } from "@spell/core"
 import { Card, Deck, Pile } from "@spell/project/@system:examples:Solitaire"
 
+spellCore.heading("Klondike Solitaire Card Game")
 //////////////////////////////////
 // ## Klondike Solitaire Card Game
 //////////////////////////////////
 //-- See [wikipedia](https://en.wikipedia.org/wiki/Klondike_(solitaire)) for rules & naming conventions.
 
+spellCore.heading("Game bits")
 /** Game bits */
 /*! SPELL: DECLARES {
   type: "Game", superType: "App",
@@ -164,6 +166,7 @@ export class Game extends App {
 export let game = new Game()
 spellCore.console.log(game)
 
+spellCore.heading("set up all piles")
 /** set up all piles */
 export let all_piles = new List({ instanceType: "Pile" })
 export let foundations = new List({ instanceType: "Pile" })
@@ -360,6 +363,7 @@ spellCore.map(deck, (card) => {
   card.move_to_$pile(stock)
 })
 
+spellCore.heading("actions")
 /*! SPELL: DECLARES {
   syntax: "debug the game", output: "debug_the_game", rule: "method_call",
   alias: ["statement", "expression"], kind: "function",
@@ -562,6 +566,7 @@ export async function cheat() {
   card.move_to_$pile(discards)
 }
 
+spellCore.heading("rendering the bits")
 reset_the_game()
 game.start()
 // -----------

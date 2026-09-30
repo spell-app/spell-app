@@ -4,7 +4,7 @@
  *   see `SPELL_CORE_MODULE`.  No globals.
  * - `spellCore` is a single singleton (constructed in `core.ts`) assembled by ACCRETION: every
  *   sibling module here (`collection-core`, `collection-other`, `paths`, `string`, `tests`, `console`,
- *   `runtime`, `ui`, plus `core` itself) does `Object.assign(spellCore, <module>Methods)` as a
+ *   `runtime`, `things`, `ui`, plus `core` itself) does `Object.assign(spellCore, <module>Methods)` as a
  *   top-level side effect when its file first loads -- see `defineSpellCoreModule()` in `spellCore.types.ts`.
  * - NOTE: most of those modules are imported here ONLY for that side effect (bare `import "./x"`, no
  *   named import) -- importing this barrel (or anything that transitively imports `~/spellCore`) is
@@ -26,6 +26,7 @@ import { SpellEvent, Eventful } from "./SpellEvent"
 import "./tests"
 import "./console"
 import "./runtime"
+import "./things"
 import "./ui"
 
 export { spellCore, assert, SpellEvent, Eventful }

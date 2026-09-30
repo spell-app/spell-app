@@ -35,9 +35,39 @@
     border-bottom: 1px solid rgba(34, 36, 38, 0.15);
   }
 
-  .PaneHeader .refresh {
+  /* Order buttons, then Refresh, at the right. */
+  .PaneHeader .tools {
+    display: flex;
+    gap: 2px;
     margin-left: auto;
     font-weight: normal;
+
+    .order {
+      opacity: 0.4;
+
+      &.active {
+        opacity: 1;
+      }
+    }
+  }
+
+  /* Heading a list in document order is under, e.g. "actions" -- a plain rule if none. */
+  .SectionMarker {
+    margin-top: 4px;
+    padding: 1px 8px 1px 0;
+    font-size: 11px;
+    font-style: italic;
+    color: grey;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &.empty {
+      height: 0;
+      margin: 4px 8px 3px 0;
+      padding: 0;
+      border-top: 1px solid rgba(34, 36, 38, 0.1);
+    }
   }
 
   .PaneBody {

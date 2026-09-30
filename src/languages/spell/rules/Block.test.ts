@@ -238,3 +238,58 @@ describe("class members go in their class's body", () => {
     expect(cardAST.compile()).toBe(cardBefore)
   })
 })
+
+describe("headings, as the program runs:  `spellCore.heading()`", () => {
+  /** `text` compiled as a FILE's top level -- no `SPELL: DECLARES` comments -- as lines. */
+  function fileCode(text: string): string[] {
+    const scope = new P.FileScope({ name: "Cards.spell", parentScope: spellParser.getScope("headings") })
+    const compiled = scope.parse(text, "block")!.compile() as string
+    return SP.SpellDeclarations.stripComments(compiled).split("\n")
+  }
+
+  test("each heading at a file's top level, above its own lines -- NOT a `#####` rule", () => {
+    expect(fileCode(["## Set up", "deck = 1", "", "##########", "## Play", "print deck"].join("\n"))).toEqual([
+      'spellCore.heading("Set up")',
+      "/** Set up */",
+      "export let deck = 1",
+      "",
+      "//##########",
+      'spellCore.heading("Play")',
+      "//## Play",
+      "spellCore.console.log(deck)"
+    ])
+  })
+
+  test("NOT in a plain block, e.g. a rule test's", () => {
+    expect(compile("## Set up\ndeck = 1").join("\n")).not.toContain("spellCore.heading")
+  })
+
+  test("its comments still go with the member below -- the call stays, and one with nothing after it goes", () => {
+    const text = [
+      "a card is a thing",
+      "",
+      "##########",
+      "## Properties",
+      "// of cards",
+      "cards have a rank as text",
+      "",
+      "## Dealing",
+      "print 1"
+    ]
+    expect(fileCode(text.join("\n"))).toEqual([
+      "export class Card extends Thing {",
+      "  //##########",
+      "  ////////////////",
+      "  // ## Properties",
+      "  ////////////////",
+      "  /** of cards */",
+      "  get rank() { return this.getProp('rank') }",
+      "  set rank(value) { this.setProp('rank', value, { type: 'text' }) }",
+      "}",
+      "",
+      'spellCore.heading("Dealing")',
+      "//## Dealing",
+      "spellCore.console.log(1)"
+    ])
+  })
+})

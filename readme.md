@@ -81,8 +81,10 @@ the Solitaire example with the extension loaded.
 - `Spell: Run Project` (the ▶ button) runs the file's project beside it, and re-runs it each time the project
   compiles without errors -- on save, its Restart button, or anything rewriting its `<Project>.compiled.js`,
   e.g. the web app.  A project that doesn't parse leaves the last good run going.  "Show Console" opens a pane
-  with "Program Output" (what it `print`s) and "Type Explorer":  the live scopes it parsed in, and what each
-  declares -- click one for its docs, spell and compiled code.  Its code is this repo's `dist-runner/`
+  with "Program Output" (what it `print`s), "Type Explorer":  the live scopes it parsed in, and what each
+  declares, in document order under its `##` headings or alphabetical -- click one for its docs, spell and
+  compiled code -- and "Thing Explorer":  every thing the program
+  has made, in the order made or by type, with its properties as they change and its actions -- ▶ does one.  Its code is this repo's `dist-runner/`
   (from `src/app/runner/`), which building the extension builds:
   after changing `src/app/runner/` alone, `yarn build:runner` and close / reopen the panel.
 - Spell indents with tabs:  the extension sets `.spell` files to tabs, and formatting always uses them.
@@ -92,7 +94,7 @@ the Solitaire example with the extension loaded.
 ### Run spell in any page:  `<spell-app>`
 
 `<spell-app>` is a web component that runs a compiled project -- no editor -- with an optional toolbar and a
-"Debug" pane:  a read-only Type Explorer, and the program's console.  Several can run on one page, each in its own
+"Debug" pane:  a read-only Type Explorer, the Thing Explorer, and the program's console.  Several can run on one page, each in its own
 shadow root, so page and app styles don't mix.
 
 ```html
@@ -108,7 +110,7 @@ shadow root, so page and app styles don't mix.
 - `yarn build:element` builds it into `dist-element/`:  copy that folder anywhere.  The dev server serves it at
   `/element/`, with a demo at `http://localhost:3001/demo/spell-app.html`.
 - Attributes:  `project` or `src` (what to run), `scopes` (its scope pack, if not beside it), `name`, `toolbar`,
-  `debug="explorer"` / `"console"` (open the Debug pane), `width` / `height` (`fluid`, the default, or any CSS
+  `debug="explorer"` / `"things"` / `"console"` (open the Debug pane), `width` / `height` (`fluid`, the default, or any CSS
   length), `assets` (where Semantic UI and Lato are, if not beside the script).
 - `el.restart()` runs it again;  a `spell-open` event says a Type Explorer link was clicked.
 - Its Type Explorer reads the project's scope pack, `<Project>.scopes.js`.  `yarn scopes [--compile] <projectId...>`

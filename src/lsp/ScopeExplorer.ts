@@ -1,4 +1,5 @@
 import { singularize, typeCase } from "~/util"
+import { SPELL_CLASSES } from "~/spellCore/spellCore.types"
 import { P } from "~/parser"
 import { SP } from "~/languages/spell"
 import { LSP } from "~/lsp"
@@ -24,13 +25,21 @@ import { LSP } from "~/lsp"
 export class ScopeExplorer {
   /** Describes scope records, as hover would. */
   declare service: LSP.SpellLanguageService
+  /**
+   * Built-in types' pack, documented by hand -- `src/spellCore/spellCore.scopes.js` -- if we can read it.
+   * - A function, asked each tree, so an edit to it shows in the next.  See `addBuiltIns()`.
+   */
+  declare builtIns?: () => LSP.ScopePack | undefined
   /** How to work out each node's details, by path -- from the last `tree()` of each project. */
   #details = new WeakMap<SP.SpellProject, Map<string, () => LSP.ScopeDetails>>()
   /** Details worked out, by the file they're in -- its root match -- then by path.  A new parse, a new cache. */
   #cache = new WeakMap<P.Match, Map<string, LSP.ScopeDetails>>()
+  /** Heading comments of each file, by its root match -- see `sectionOf()`.  A new parse, a new cache. */
+  #headings = new WeakMap<P.Match, Array<{ start: number; text: string }>>()
 
-  constructor(service: LSP.SpellLanguageService) {
+  constructor(service: LSP.SpellLanguageService, builtIns?: () => LSP.ScopePack | undefined) {
     this.service = service
+    this.builtIns = builtIns
   }
 
   /** Projects `project` imports compiled -- each MUST be parsed before `tree()`, to show their sources. */
@@ -81,6 +90,7 @@ export class ScopeExplorer {
   /**
    * Pack of spell's built-in types, e.g. `Thing` and `List`, from its root scope -- see `LSP.ScopePack`.
    * - What `src/spellCore/spellCore.scopes.js` starts as, before anyone documents them by hand.
+   * - With `builtIns`, that pack's entries -- plus any built-in type it doesn't know yet, bare.
    */
   exportBuiltIns(): LSP.ScopePack {
     const tree = this.newTree([])
@@ -152,14 +162,14 @@ export class ScopeExplorer {
 
   /** A new `Tree` for `projects`:  what's declared in them, to find each type's and file's. */
   private newTree(projects: SP.SpellProject[]): Tree {
-    const root = SP.SpellParser.rootScope
     const imported = projects.slice(0, -1)
     return {
       methods: projects.flatMap((it) => ScopeExplorer.methodRules(it)),
       importedMethods: projects.flatMap((it) => ScopeExplorer.importedMethodRules(it)),
       rules: projects.flatMap((it) => it.scope?.rules.get() ?? []),
       constants: projects.flatMap((it) => it.scope?.constants.get() ?? []),
-      typePaths: new Map(root.types.get().map((type) => [type, LSP.scopePath("", "type", type.name)])),
+      typePaths: new Map(ScopeExplorer.builtInTypes().map((type) => [type, LSP.scopePath("", "type", type.name)])),
+      fileOrder: new Map(projects.flatMap((it) => it.spellFiles).map((file, index) => [file, index])),
       sourceTypes: new Map(imported.flatMap((it) => it.scope?.types.get() ?? []).map((type) => [type.name, type])),
       fileUris: new Map(),
       entries: [],
@@ -167,9 +177,32 @@ export class ScopeExplorer {
     }
   }
 
-  /** Entries for spell's built-in types, from its root scope. */
+  /**
+   * Built-in types a Type Explorer lists:  spell's classes, from its root scope -- see `SPELL_CLASSES`.
+   * - NOT the rest of its root types, e.g. javascript's `Object`, which spell knows by name but isn't a spell class.
+   *   A project's type made from one says so in its `detail` instead, e.g. `is a Object`.
+   */
+  private static builtInTypes(): P.TypeScope[] {
+    return SP.SpellParser.rootScope.types.get().filter((type) => SPELL_CLASSES.includes(type.name))
+  }
+
+  /**
+   * Entries for spell's built-in types -- see `builtInTypes()`.
+   * - Each type's entries -- it, and its members -- from the `builtIns` pack, with their details, if it has any.
+   *   Why:  the types are javascript, so there's no spell to find their docs in.
+   * - Else just the type, bare, as its scope has it -- e.g. one the pack doesn't know yet.
+   */
   private addBuiltIns(tree: Tree) {
-    for (const type of SP.SpellParser.rootScope.types.get()) this.addType(type, tree)
+    const documented = this.builtIns?.()?.entries ?? []
+    for (const type of ScopeExplorer.builtInTypes()) {
+      const path = tree.typePaths.get(type)!
+      const entries = documented.filter((entry) => entry.path === path || entry.path.startsWith(`${path}/`))
+      if (!entries.length) this.addType(type, tree)
+      for (const { path, super: superPath, detail, uri: _uri, ...details } of entries) {
+        tree.entries.push({ path, ...(superPath ? { super: superPath } : {}), ...(detail ? { detail } : {}) })
+        tree.details.set(path, () => details)
+      }
+    }
   }
 
   /**
@@ -216,7 +249,7 @@ export class ScopeExplorer {
       (rule) => ScopeExplorer.declarationOf(rule)?.kind === "function" && this.service.fileOf(rule.declaredBy!) === file
     )
     const variables = (file.scope as P.FileScope).variables.get()
-    const declared: Array<{ at?: P.Match; add: () => void }> = [
+    const declared: DeclaredEntries[] = [
       ...types.map((type) => ({ at: type.declaredBy, add: () => this.addType(type, tree) })),
       ...functions.map((rule) => ({ at: rule.declaredBy, add: () => this.addMethod(rule, "function", path, tree) })),
       ...variables.map((record) => ({
@@ -231,12 +264,13 @@ export class ScopeExplorer {
           )
       }))
     ]
-    for (const { add } of declared.sort((a, b) => (a.at?.start ?? 0) - (b.at?.start ?? 0))) add()
+    for (const { add } of this.inDocumentOrder(declared, tree)) add()
   }
 
   /**
-   * Entries for `type`, then what it declares below it:  its properties, then its methods, each alphabetical, then
-   * its constants -- see `addConstants()`.
+   * Entries for `type`, then what it declares below it -- properties, methods and constants -- in document order.
+   * - What has no source, e.g. a compiled import's, after the rest:  its properties, then its methods, each
+   *   alphabetical, then its constants -- see `addConstants()`.
    * - Its `super` is its super-type's entry -- a compiled import's type swapped for that project's own, see
    *   `sourceType()` -- so it inherits that one's members.  See `LSP.buildScopeTree()`.
    */
@@ -247,12 +281,20 @@ export class ScopeExplorer {
     const entry: LSP.ScopeEntry = { path }
     if (superPath) entry.super = superPath
     else if (type.superType) entry.detail = `is a ${type.superType}`
+    const section = this.sectionOf(type.declaredBy)
+    if (section) entry.section = section
     tree.entries.push(entry)
     this.addSubjectDetails(tree, path, { kind: "type", record: type }, type.declaredBy)
 
+    // each member's entries, as `add()`ed, then sorted into document order -- see `inDocumentOrder()`
+    const members: DeclaredEntries[] = []
     for (const record of ScopeExplorer.alphabetical(LSP.SpellLanguageService.propertiesOf(type))) {
       const subject = { kind: "property", name: record.name, owner: type, record } as const
-      this.addLeaf(LSP.scopePath(path, "property", record.name), subject, record.declaredBy, tree, record.datatype)
+      members.push({
+        at: record.declaredBy,
+        add: () =>
+          this.addLeaf(LSP.scopePath(path, "property", record.name), subject, record.declaredBy, tree, record.datatype)
+      })
     }
     // a compiled import's type -- not swapped for its source, see `sourceType()` -- has just its imported rules
     const methodRules = ScopeExplorer.isImported(type) ? tree.importedMethods : tree.methods
@@ -263,8 +305,11 @@ export class ScopeExplorer {
       )
     })
     const named = methods.map((rule) => ({ rule, name: ScopeExplorer.methodName(rule) }))
-    for (const { rule } of ScopeExplorer.alphabetical(named)) this.addMethod(rule, "method", path, tree)
-    this.addConstants(type, path, tree)
+    for (const { rule } of ScopeExplorer.alphabetical(named)) {
+      members.push({ at: rule.declaredBy, add: () => this.addMethod(rule, "method", path, tree) })
+    }
+    members.push(...this.constantsOf(type, path, tree))
+    for (const { add } of this.inDocumentOrder(members, tree)) add()
   }
 
   /**
@@ -281,30 +326,68 @@ export class ScopeExplorer {
   ////////////////
 
   /**
-   * Entries for the constants `type` owns -- those a statement about it declared, e.g. `ace` and `clubs` by
-   * `cards have a rank as one of ace, 2, 3 ...`:
-   * - each enumeration, then the constants the same statement made, in the order it declared them
+   * How to add entries for the constants `type` owns -- those a statement about it declared, e.g. `ace` and
+   * `clubs` by `cards have a rank as one of ace, 2, 3 ...` -- for `addType()` to sort into document order:
+   * - each enumeration, then the constants the same statement made, in the order it declared them -- one `add()`
    * - then any other constants, alphabetical, e.g. `red` from `the color of a card is red if ...`
    */
-  private addConstants(type: P.TypeScope, typePath: string, tree: Tree) {
+  private constantsOf(type: P.TypeScope, typePath: string, tree: Tree): DeclaredEntries[] {
     const owned = tree.constants.filter((record) => this.ownerOf(record.declaredBy) === type.name)
     const listed = new Set<P.ScopeConstant>()
+    const constants: DeclaredEntries[] = []
     for (const record of ScopeExplorer.alphabetical([...type.classVariables.get()])) {
-      const path = LSP.scopePath(typePath, "enumeration", record.name)
-      this.addLeaf(path, { kind: "variable", record }, record.declaredBy, tree)
       const made = owned.filter((constant) => record.declaredBy && constant.declaredBy === record.declaredBy)
-      made.forEach((constant) => {
-        listed.add(constant)
-        addConstant.call(this, constant)
+      made.forEach((constant) => listed.add(constant))
+      constants.push({
+        at: record.declaredBy,
+        add: () => {
+          const path = LSP.scopePath(typePath, "enumeration", record.name)
+          this.addLeaf(path, { kind: "variable", record }, record.declaredBy, tree)
+          made.forEach((constant) => addConstant.call(this, constant))
+        }
       })
     }
-    ScopeExplorer.alphabetical(owned.filter((constant) => !listed.has(constant))).forEach(addConstant, this)
+    for (const record of ScopeExplorer.alphabetical(owned.filter((constant) => !listed.has(constant)))) {
+      constants.push({ at: record.declaredBy, add: () => addConstant.call(this, record) })
+    }
+    return constants
 
     /** Entry for constant `record`. */
     function addConstant(this: ScopeExplorer, record: P.ScopeConstant) {
       const path = LSP.scopePath(typePath, "constant", record.name)
       this.addLeaf(path, { kind: "constant", record }, record.declaredBy, tree)
     }
+  }
+
+  /**
+   * `declared` in document order:  by the file each is declared in, in parse order, then where in it.
+   * - Stable:  what's declared together, or has no source, keeps the order it came in -- the latter after the rest.
+   */
+  private inDocumentOrder(declared: DeclaredEntries[], tree: Tree): DeclaredEntries[] {
+    const keyed = declared.map((it) => {
+      const file = it.at && this.service.fileOf(it.at)
+      const order = file && tree.fileOrder.get(file)
+      return { it, order: order ?? Infinity, start: order === undefined ? 0 : (it.at?.start ?? 0) }
+    })
+    return keyed.sort((a, b) => a.order - b.order || a.start - b.start).map(({ it }) => it)
+  }
+
+  /**
+   * Nearest heading comment above statement `declaredBy`, in its file -- see `LSP.ScopeEntry.section`.
+   * - `undefined` if there's none above it, or it isn't in a spell file.
+   */
+  private sectionOf(declaredBy: P.Match | undefined): string | undefined {
+    const start = declaredBy?.start
+    const file = declaredBy && this.service.fileOf(declaredBy)
+    if (!file?.match || start === undefined) return undefined
+    let headings = this.#headings.get(file.match)
+    if (!headings) this.#headings.set(file.match, (headings = this.service.headingsOf(file)))
+    let section: string | undefined
+    for (const heading of headings) {
+      if (heading.start >= start) break
+      section = heading.text
+    }
+    return section
   }
 
   /** Entry for method or function `rule`, below `parentPath`. */
@@ -324,7 +407,10 @@ export class ScopeExplorer {
     tree: Tree,
     detail?: string
   ) {
-    tree.entries.push(detail ? { path, detail } : { path })
+    const entry: LSP.ScopeEntry = detail ? { path, detail } : { path }
+    const section = this.sectionOf(declaredBy)
+    if (section) entry.section = section
+    tree.entries.push(entry)
     this.addSubjectDetails(tree, path, subject, declaredBy)
   }
 
@@ -500,7 +586,16 @@ export class ScopeExplorer {
 }
 
 /** Keys of a pack's entries, in the order they're written -- see `ScopeExplorer.packEntry()`. */
-const PACK_KEYS: Array<keyof LSP.ScopeEntry> = ["path", "super", "detail", "uri", "line", "description", "rules"]
+const PACK_KEYS: Array<keyof LSP.ScopeEntry> = [
+  "path",
+  "super",
+  "detail",
+  "section",
+  "uri",
+  "line",
+  "description",
+  "rules"
+]
 
 /** What working out one tree's entries needs to know throughout -- see `ScopeExplorer.entries()`. */
 type Tree = {
@@ -514,6 +609,8 @@ type Tree = {
   constants: P.ScopeConstant[]
   /** Path of each type's entry. */
   typePaths: Map<P.TypeScope, string>
+  /** Place of each spell file of the projects in the tree, in parse order -- see `ScopeExplorer.inDocumentOrder()`. */
+  fileOrder: Map<SP.SpellFile, number>
   /** Types of the projects imported compiled, by name, from their OWN parse -- see `ScopeExplorer.sourceType()`. */
   sourceTypes: Map<string, P.TypeScope>
   /** URI of each file entry, by path -- see `ScopeExplorer.fileUriOf()`. */
@@ -522,4 +619,12 @@ type Tree = {
   entries: LSP.ScopeEntry[]
   /** How to work out each entry's details, by path -- see `ScopeExplorer.details()`. */
   details: Map<string, () => LSP.ScopeDetails>
+}
+
+/** Entries for something declared, to add in document order -- see `ScopeExplorer.inDocumentOrder()`. */
+type DeclaredEntries = {
+  /** Statement declaring it, if it has a source. */
+  at?: P.Match
+  /** Add its entries to the tree. */
+  add: () => void
 }

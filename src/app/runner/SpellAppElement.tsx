@@ -3,7 +3,13 @@ import { createRoot, type Root } from "react-dom/client"
 // Import directly, NOT through the `~/languages/spell` barrel, which would pull in the whole parser.
 import { SpellSetup } from "~/languages/spell/SpellSetup"
 import { shadowStyles } from "./shadowStyles"
-import { SpellAppRunner, type DebugPane, type SpellAppControls, type SpellAppSource } from "./SpellAppRunner"
+import {
+  SpellAppRunner,
+  DEBUG_PANES,
+  type DebugPane,
+  type SpellAppControls,
+  type SpellAppSource
+} from "./SpellAppRunner"
 
 /**
  * `<spell-app>`:  runs a compiled spell project in any page, in its own shadow root -- no editor.
@@ -16,7 +22,7 @@ import { SpellAppRunner, type DebugPane, type SpellAppControls, type SpellAppSou
  *   - `scopes`:  where its scope pack is, if not where `project` / `src` says
  *   - `name`:  for the toolbar -- default, its project's
  *   - `toolbar`:  show the toolbar:  name, Restart, "Debug"
- *   - `debug="explorer"` / `debug="console"`:  open the debug pane to start, on that tab
+ *   - `debug="explorer"` / `debug="things"` / `debug="console"`:  open the debug pane to start, on that tab
  *   - `width` / `height`:  `fluid` (default) or a CSS length, e.g. `50%`, `30em`.  A fluid height is as tall as
  *     the app, plus the debug pane if open.  Each sets our inline style, so page CSS works too.
  *   - `assets`:  where Semantic UI, Lato and `spell-app.css` are -- default, beside this script
@@ -79,7 +85,7 @@ export class SpellAppElement extends HTMLElement {
         <SpellAppRunner
           source={source}
           toolbar={this.hasAttribute("toolbar")}
-          debug={debug === "explorer" || debug === "console" ? (debug as DebugPane) : undefined}
+          debug={DEBUG_PANES.includes(debug as DebugPane) ? (debug as DebugPane) : undefined}
           fluid={!cssSize(this.getAttribute("height"))}
           runtimeUrl={new URL("spell-runtime.js", BUNDLE).href}
           builtInsUrl={new URL("spellCore.scopes.js", BUNDLE).href}

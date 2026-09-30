@@ -36,9 +36,11 @@ export const runtimeMethods = defineSpellCoreModule({
   /**
    * Reset `spellCore.RUNTIME`, e.g. when a project starts or a test is run.
    * Returns the new runtime.
+   * - SIDE EFFECT:  forgets the last run's things too -- see `spellCore.things`.
    */
   resetRuntime(): SpellRuntimeState {
     if (spellCore.DEBUG_RUNTIME) console.info("Resetting spellCore.RUNTIME")
+    spellCore.things.clear()
     spellCore.RUNTIME = new SpellRuntime() as SpellRuntimeState
     return spellCore.RUNTIME
   },

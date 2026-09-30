@@ -12,17 +12,11 @@
       super: "type:App"
     },
     { path: "project:Calculator/file:Calculator.spell/type:Calculator/property:input", line: 10 },
-    { path: "project:Calculator/file:Calculator.spell/type:Calculator/property:left", line: 12 },
-    { path: "project:Calculator/file:Calculator.spell/type:Calculator/property:operator", line: 15 },
     { path: "project:Calculator/file:Calculator.spell/type:Calculator/property:output", line: 11 },
+    { path: "project:Calculator/file:Calculator.spell/type:Calculator/property:left", line: 12 },
     { path: "project:Calculator/file:Calculator.spell/type:Calculator/property:right", line: 13 },
     { path: "project:Calculator/file:Calculator.spell/type:Calculator/property:total", line: 14 },
-    {
-      path: "project:Calculator/file:Calculator.spell/type:Calculator/method:append (digit) to (a calculator)", line: [41, 55],
-      rules: [
-        { name: "append_$digit_to", syntax: "append {callArgs:expression} to {thisArg:expression}" }
-      ]
-    },
+    { path: "project:Calculator/file:Calculator.spell/type:Calculator/property:operator", line: 15 },
     {
       path: "project:Calculator/file:Calculator.spell/type:Calculator/method:clear (a calculator)", line: [17, 23],
       rules: [
@@ -30,9 +24,15 @@
       ]
     },
     {
-      path: "project:Calculator/file:Calculator.spell/type:Calculator/method:draw (a calculator)", line: [67, 106],
+      path: "project:Calculator/file:Calculator.spell/type:Calculator/method:update the total of (a calculator)", line: [25, 39],
       rules: [
-        { name: "draw", syntax: "draw {thisArg:expression}" }
+        { name: "update_the_total_of", syntax: "update the total of {thisArg:expression}" }
+      ]
+    },
+    {
+      path: "project:Calculator/file:Calculator.spell/type:Calculator/method:append (digit) to (a calculator)", line: [41, 55],
+      rules: [
+        { name: "append_$digit_to", syntax: "append {callArgs:expression} to {thisArg:expression}" }
       ]
     },
     {
@@ -42,9 +42,9 @@
       ]
     },
     {
-      path: "project:Calculator/file:Calculator.spell/type:Calculator/method:update the total of (a calculator)", line: [25, 39],
+      path: "project:Calculator/file:Calculator.spell/type:Calculator/method:draw (a calculator)", line: [67, 106],
       rules: [
-        { name: "update_the_total_of", syntax: "update the total of {thisArg:expression}" }
+        { name: "draw", syntax: "draw {thisArg:expression}" }
       ]
     },
     { path: "project:Calculator/file:Calculator.spell/variable:calculator", line: 108 }

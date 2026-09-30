@@ -48,7 +48,7 @@ a tableau "can play (a card)" if:
 		return the card is a king
 	return its color is not the color of the card and its value is the value of the card + 1
 for each number from 1 to 7
-	get a new tableau with name = ("T" + the number), droppable = yes
+	get a new tableau with name = ("Tableau" + the number), droppable = yes
 	add it to the tableaus
 	add it to all-piles
 

@@ -17,52 +17,51 @@ exports[`ScopeExplorer > a node lists the rules its statement made 1`] = `
 }
 `;
 
-exports[`ScopeExplorer > a type's members:  properties, actions, then each enumeration and its constants -- each with its line 1`] = `
+exports[`ScopeExplorer > a type's members:  in document order, by file then line -- each with its line 1`] = `
 [
-  "property color",
-  "property direction",
-  "property name",
   "property rank",
-  "property short_direction",
-  "property short_name",
-  "property short_rank",
-  "property short_suit",
-  "property state",
-  "property suit",
-  "property value",
-  "method draw (a card)",
-  "method is a (rank)",
-  "method is a (suit)",
-  "method is a face card",
-  "method is face down",
-  "method is face up",
-  "method is the (rank) of (suits)",
-  "method move (a card) to (a pile)",
-  "method play (a card)",
-  "method turn (a card) face down",
-  "method turn (a card) face up",
-  "method turn (a card) over",
-  "enumeration Directions",
-  "constant up",
-  "constant down",
   "enumeration Ranks",
   "constant ace",
   "constant jack",
   "constant queen",
   "constant king",
+  "property suit",
   "enumeration Suits",
   "constant clubs",
   "constant diamonds",
   "constant hearts",
   "constant spades",
+  "property color",
   "constant black",
   "constant red",
+  "property value",
+  "property direction",
+  "enumeration Directions",
+  "constant up",
+  "constant down",
+  "method is face up",
+  "method is face down",
+  "method is a face card",
+  "method is a (suit)",
+  "method is a (rank)",
+  "method is the (rank) of (suits)",
+  "property name",
+  "property short_suit",
+  "property short_rank",
+  "property short_direction",
+  "property short_name",
+  "property state",
+  "method turn (a card) face up",
+  "method turn (a card) face down",
+  "method turn (a card) over",
+  "method draw (a card)",
+  "method move (a card) to (a pile)",
+  "method play (a card)",
 ]
 `;
 
 exports[`ScopeExplorer > root holds the built-in types, then the project:  its files, and what each declares 1`] = `
 "root Spell (built in)
-  type Object
   type Thing
   type List
   type App
@@ -100,7 +99,6 @@ exports[`ScopeExplorer > root holds the built-in types, then the project:  its f
 
 exports[`ScopeExplorer of a project importing another, compiled > the imported project shows, with its own files and types, ahead of ours 1`] = `
 "root Spell (built in)
-  type Object
   type Thing
   type List
   type App

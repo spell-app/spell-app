@@ -1223,6 +1223,21 @@ export class ASTEchoInvocation extends ASTCoreMethodInvocation {
   }
 }
 
+/**
+ * HeadingInvocation:  `spellCore.heading("set up all piles")` -- a heading at a file's top level, said as the
+ * program runs, so the Thing Explorer knows which heading's code made each thing.  See `SP.Block.getAST()`.
+ * - `heading` is the heading's text, without its `#`s.
+ * - `SP.hoistClassMembers()` leaves it where it is -- but comments on either side of it still go with the member
+ *   below, e.g. a `## actions` banner.
+ */
+export type ASTHeadingInvocationProps = { heading: string }
+
+export class ASTHeadingInvocation extends ASTCoreMethodInvocation {
+  constructor(match: P.AnyMatch, { heading }: ASTHeadingInvocationProps) {
+    super(match, { methodName: "heading", args: [new ASTStringLiteral(match, JSON.stringify(heading))] })
+  }
+}
+
 ////////////////
 // ## Types & constants
 ////////////////
@@ -1464,12 +1479,26 @@ export class ASTMethodDefinition extends ASTExpression {
   renderNamed(name: ReactNode): ReactNode {
     const async = this.isAsync && render.ASYNC
     const methodName = <span className="method-name">{name}</span>
-    return render.Fragment(async, methodName, <render.Args args={this.args} />, render.SPACE, this.body.component, this.renderError())
+    return render.Fragment(
+      async,
+      methodName,
+      <render.Args args={this.args} />,
+      render.SPACE,
+      this.body.component,
+      this.renderError()
+    )
   }
   /** Draw as an anonymous `function (args) {...}` -- see `compileAnonymous()`. */
   renderAnonymous(): ReactNode {
     const async = this.isAsync && render.ASYNC
-    return render.Fragment(async, render.FUNCTION, <render.Args args={this.args} />, render.SPACE, this.body.component, this.renderError())
+    return render.Fragment(
+      async,
+      render.FUNCTION,
+      <render.Args args={this.args} />,
+      render.SPACE,
+      this.body.component,
+      this.renderError()
+    )
   }
   /** Render `error` (if any) prefixed with a space -- `null` when there's no error. */
   renderError(): ReactNode {

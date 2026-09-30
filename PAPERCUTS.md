@@ -126,3 +126,9 @@ Log of things that slowed down development. Date · symptom · fix · project.
   preloading, which moved the inner `await` into a NON-async arrow.  Broke the VS Code runner silently:  it
   built and installed fine. · Work out the URL first, then `import()` it.  `element.build.test.ts` now runs
   `node --check` on every built bundle. · spell/parser
+- 2026-09-30 · A runner crash showed only "Minified React error #301", with a stack of React internals -- even from
+  `vite build -c vite.element.config.ts --mode development --minify false`, which un-minifies OUR code but still
+  bundles React's production build.  · Decode the number (#301 = a component updated itself mid-render), then
+  bisect by what the render reads.  Drive the demo headless with Playwright:  a script in the scratchpad must
+  import it by path, `/Users/owen/www/spell/parser/node_modules/playwright/index.mjs` -- bare `"playwright"`
+  won't resolve outside the repo.  · spell/parser

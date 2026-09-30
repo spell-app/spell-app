@@ -13,6 +13,7 @@ import {
   firstLine,
   scopeSegment
 } from "~/lsp/lsp.types"
+import type { ScopeOrder } from "./ui.types"
 import { Markdown } from "./Markdown"
 
 /****************
@@ -52,15 +53,16 @@ export type ScopeDetailsPaneProps = Omit<DetailsBodyProps, "path" | "members"> &
  * ### `<DetailsBody>`
  * What there is to say about node or member `path`, top to bottom:
  * - its description -- click to edit, if `onSaveDescription`
- * - its `members` by kind, under collapsible headings:  click one to select it in the tree, or its `▶`
- *   to show its own `<DetailsBody>` right here
+ * - its `members`:  click one to select it in the tree, or its `▶` to show its own `<DetailsBody>` right here
+ *   - in `document` order, under one collapsible "Members" heading, with a marker for each section
+ *   - `alphabetical`, by kind, under collapsible "Properties", "Actions" ... headings
  * - "Spell" -- with where it's defined at its right -- "Rules" its statement made, and "Compiled Output",
  *   each collapsible
  * - Every heading is closed until opened, and open or closed alike for every node -- see `<Section>`.
  * - Its details are fetched when first shown -- see `TypeExplorerProps.loadDetails`.
  ****************/
 function DetailsBody(props: DetailsBodyProps) {
-  const { path, members, openSections, onToggleSection, onSelect, onOpen, onSaveDescription, nodeFor } = props
+  const { path, members, order, openSections, onToggleSection, onOpen, onSaveDescription, nodeFor } = props
   const { detailsFor, load } = props
   const sectionProps = { openSections, onToggle: onToggleSection }
   const [expanded, setExpanded] = React.useState(new Set<string>())
@@ -85,42 +87,26 @@ function DetailsBody(props: DetailsBodyProps) {
   return (
     <div className="DetailsBody">
       {!!details && <Description details={details} at={at} onSave={onSaveDescription} onOpen={onOpen} />}
-      {SCOPE_MEMBER_GROUPS.map(({ kinds, label }) => {
-        const inGroup = members.filter((member) => kinds.includes(member.kind))
-        if (!inGroup.length) return null
-        return (
-          <Section key={label} title={label} className="MemberGroup" {...sectionProps}>
-            {inGroup.map((member) => {
-              const key = `${member.kind}:${member.name}`
-              const memberNode = nodeFor(member.path)
-              const isOpen = expanded.has(key)
-              return (
-                <div key={key} className={classnames("ScopeMember", member.kind, { open: isOpen })}>
-                  <div className="name">
-                    <span className="toggle" onClick={() => toggle(key)}>
-                      {isOpen ? "▼" : "▶"}
-                    </span>
-                    <span
-                      className={classnames("label", { selectable: !!memberNode })}
-                      onClick={() => (memberNode ? onSelect(memberNode) : toggle(key))}
-                    >
-                      <SUI.Icon name={SCOPE_ICONS[member.kind]} />
-                      {member.name}
-                      {!!member.detail && <span className="detail">{member.detail}</span>}
-                      {!!member.inheritedFrom && <span className="inherited">from {member.inheritedFrom}</span>}
-                    </span>
-                  </div>
-                  {isOpen && (
-                    <div className="MemberDetails">
-                      <DetailsBody {...props} path={member.path} members={memberNode?.members ?? []} />
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </Section>
-        )
-      })}
+      {order === "document" && members.length > 0 && (
+        <Section title="Members" className="MemberGroup" {...sectionProps}>
+          {members.map((member, index) => (
+            <React.Fragment key={`${member.kind}:${member.name}`}>
+              {sectionStartsAt(members, index) && <SectionMarker section={member.section} />}
+              {memberRow(member)}
+            </React.Fragment>
+          ))}
+        </Section>
+      )}
+      {order === "alphabetical" &&
+        SCOPE_MEMBER_GROUPS.map(({ kinds, label }) => {
+          const inGroup = alphabetical(members.filter((member) => kinds.includes(member.kind)))
+          if (!inGroup.length) return null
+          return (
+            <Section key={label} title={label} className="MemberGroup" {...sectionProps}>
+              {inGroup.map(memberRow)}
+            </Section>
+          )
+        })}
 
       {!!details?.spell && (
         <Section
@@ -162,6 +148,36 @@ function DetailsBody(props: DetailsBodyProps) {
     </div>
   )
 
+  /** Row for `member`:  its name -- click to select it -- and its `▶`, to show its own details here. */
+  function memberRow(member: ScopeMember) {
+    const key = `${member.kind}:${member.name}`
+    const memberNode = nodeFor(member.path)
+    const isOpen = expanded.has(key)
+    return (
+      <div key={key} className={classnames("ScopeMember", member.kind, { open: isOpen })}>
+        <div className="name">
+          <span className="toggle" onClick={() => toggle(key)}>
+            {isOpen ? "▼" : "▶"}
+          </span>
+          <span
+            className={classnames("label", { selectable: !!memberNode })}
+            onClick={() => (memberNode ? props.onSelect(memberNode) : toggle(key))}
+          >
+            <SUI.Icon name={SCOPE_ICONS[member.kind]} />
+            {member.name}
+            {!!member.detail && <span className="detail">{member.detail}</span>}
+            {!!member.inheritedFrom && <span className="inherited">from {member.inheritedFrom}</span>}
+          </span>
+        </div>
+        {isOpen && (
+          <div className="MemberDetails">
+            <DetailsBody {...props} path={member.path} members={memberNode?.members ?? []} />
+          </div>
+        )}
+      </div>
+    )
+  }
+
   /** Show / hide member `key`'s details. */
   function toggle(key: string) {
     const next = new Set(expanded)
@@ -175,8 +191,10 @@ function DetailsBody(props: DetailsBodyProps) {
 type DetailsBodyProps = {
   /** `path` of the node or member whose details to show. */
   path: string
-  /** What it declares, if it's a node. */
+  /** What it declares, if it's a node -- in document order. */
   members: ScopeMember[]
+  /** Order to list `members` in. */
+  order: ScopeOrder
   /** Titles of the sections open, e.g. `Spell` -- for every node.  Kept, and remembered, by `<TypeExplorer>`. */
   openSections: Set<string>
   /** Open / close section `title`. */
@@ -193,6 +211,41 @@ type DetailsBodyProps = {
   detailsFor: (path: string) => ScopeDetails | null | "loading" | undefined
   /** Ask for the details of `path` -- see `detailsFor`. */
   load: (path: string) => void
+}
+
+/****************
+ * ### `<SectionMarker>`
+ * Marker in a list in document order, for the heading what follows is under, e.g. `actions` -- see
+ * `sectionStartsAt()`.  A plain rule if there's none, e.g. after a type's own members.
+ * - Shared with `<TypeExplorer>`'s tree, which indents it with `style`.
+ ****************/
+export function SectionMarker({ section, style }: SectionMarkerProps) {
+  return (
+    <div className={classnames("SectionMarker", { empty: !section })} style={style}>
+      {section}
+    </div>
+  )
+}
+
+/** Props for `<SectionMarker>`. */
+export type SectionMarkerProps = {
+  /** Heading's text, e.g. `actions` -- none for a plain rule. */
+  section?: string
+  /** Inline style, e.g. to indent it. */
+  style?: React.CSSProperties
+}
+
+/**
+ * Does a new section start at `items[index]`, in a list in document order -- so a `<SectionMarker>` goes before it?
+ * - Where its `section` differs from the item before's -- or, for the first, if it has one.
+ */
+export function sectionStartsAt(items: Array<{ section?: string }>, index: number): boolean {
+  return index === 0 ? !!items[0]?.section : items[index]!.section !== items[index - 1]!.section
+}
+
+/** `items` in alphabetical order of `name`, ignoring case -- a copy. */
+export function alphabetical<T extends { name: string }>(items: T[]): T[] {
+  return [...items].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }))
 }
 
 /** Where a docstring can be changed:  a file and line, or a file's top -- as `spell/setDescription` takes. */

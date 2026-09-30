@@ -56,7 +56,9 @@ export type ProjectSettings = {
   }
   /** The Type Explorer's:  what's selected and open. */
   typeExplorer?: UI.TypeExplorerState
+  /** The Thing Explorer's:  what's selected and open. */
+  thingExplorer?: UI.ThingExplorerState
 }
 
-/** Tab of the runner's pane below the app:  the Type Explorer, or the program's console output. */
-export type RunnerPaneId = "types" | "output"
+/** Tab of the runner's pane below the app:  the Type Explorer, the Thing Explorer, or the program's console output. */
+export type RunnerPaneId = "types" | "things" | "output"

@@ -1,6 +1,7 @@
 /*! SPELL: PROJECT { version: "1.0.0", spellVersion: "0.8.0", provides: ["Card", "Joker", "Deck", "Pile", "test_card_setup", "test_deck_creation", "test_deck_with_jokers"] } */
 import { spellCore, Thing, List, App } from "@spell/core"
 
+spellCore.heading("Definition of a Card with nice english aliases for working with it")
 /** Definition of a Card with nice english aliases for working with it */
 /*! SPELL: DECLARES {
   type: "Card", superType: "Thing",
@@ -288,6 +289,7 @@ export class Card extends Thing {
   }
 }
 
+spellCore.heading("A joker: a wild card with no rank or suit -- there's a red one and a black one")
 /** A joker: a wild card with no rank or suit -- there's a red one and a black one */
 /*! SPELL: DECLARES {
   type: "Joker", superType: "Card",
@@ -322,6 +324,7 @@ export class Joker extends Card {
   }
 }
 
+spellCore.heading("create a card instance with default properties")
 /** create a card instance with default properties */
 /*! SPELL: DECLARES {
   syntax: "test card setup", output: "test_card_setup", rule: "method_call", alias: "statement",
@@ -395,6 +398,7 @@ export function test_card_setup() {
 }
 test_card_setup()
 // -----------
+spellCore.heading("Deck:   US standard card deck -- with its two jokers too, if its with-jokers is yes")
 //## Deck:   US standard card deck -- with its two jokers too, if its with-jokers is yes
 
 /*! SPELL: DECLARES {
@@ -515,6 +519,7 @@ export function test_deck_with_jokers() {
 }
 test_deck_with_jokers()
 // -----------
+spellCore.heading("Pile of playing cards")
 /** Pile of playing cards */
 /*! SPELL: DECLARES {
   type: "Pile", superType: "List",

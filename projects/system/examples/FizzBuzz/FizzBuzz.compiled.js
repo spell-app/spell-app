@@ -1,6 +1,7 @@
 /*! SPELL: PROJECT { spellVersion: "0.8.0", provides: ["play_fizzbuzz"] } */
 import { spellCore, Thing, List, App } from "@spell/core"
 
+spellCore.heading("File FizzBuzz.spell")
 /** File FizzBuzz.spell */
 /*! SPELL: DECLARES {
   syntax: "play fizzbuzz", output: "play_fizzbuzz", rule: "method_call",

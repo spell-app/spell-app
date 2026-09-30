@@ -126,13 +126,15 @@ export type ScopeNode = {
   kind: ScopeNodeKind
   /** One-line summary, e.g. `is a Thing`, `imported`, a property's datatype. */
   detail?: string
+  /** Heading it's under in its file, e.g. `actions` for `## actions` -- see `ScopeEntry.section`. */
+  section?: string
   /** Type:  `path` of its super-type, if it's in the tree -- its members are inherited, see `buildScopeTree()`. */
   super?: string
   /** URI of the file it's in -- its own, or its nearest ancestor's.  See `ScopeEntry.uri`. */
   uri?: string
-  /** What it declares, for listing:  grouped as `SCOPE_MEMBER_GROUPS`, inherited ones included. */
+  /** What it declares, for listing, in document order -- a type's inherited ones after its own. */
   members: ScopeMember[]
-  /** What's below it in the tree. */
+  /** What's below it in the tree, in document order -- see `ScopeEntry`. */
   children: ScopeNode[]
 }
 
@@ -199,6 +201,8 @@ export type ScopeMember = {
   detail?: string
   /** Type_Case name of the super-type it came from, if not its node's own. */
   inheritedFrom?: string
+  /** Heading it's under in its file -- see `ScopeEntry.section`. */
+  section?: string
 }
 
 /**
@@ -241,6 +245,9 @@ export type ProjectCompiled = {
  * One thing in a scope tree, flat:  its `path` says where it is, and what it is -- see `scopePath()`.
  * - A list of them, in tree order, is a whole tree -- see `buildScopeTree()`, which works out the nesting,
  *   names, kinds and members.  So a scope pack diffs one declaration per entry.
+ * - Siblings come in DOCUMENT order:  the order they're declared in, by file then line -- except a project's
+ *   files, in parse order, and what has no source, e.g. a compiled import's, after the rest, alphabetical.
+ *   An explorer sorts them alphabetically itself, if asked.
  * - In a scope pack, each holds its details too -- `ScopeDetails`, but for `spell` and `compiled`.
  *   Live, they're fetched when shown.
  */
@@ -254,6 +261,12 @@ export type ScopeEntry = ScopeDetails & {
    * - Default for a type with a `super`:  `is a <Super>`.
    */
   detail?: string
+  /**
+   * Nearest heading comment above where it's declared, in that file, without its `#`s -- e.g. `actions` for
+   * `## actions`.  Explorers show it as a marker, in document order.
+   * - NOT the file's docstring's headings -- that's the file's description.
+   */
+  section?: string
   /**
    * URI of the file it's in:  a file's own -- anything below it is in it too -- or, for anything else, of the
    * file it's declared in if that's NOT its file's.  See `ScopeDetails.uri`.
@@ -297,9 +310,9 @@ export function parentScopePath(path: string): string {
  * - `name` and `kind`, from each `path`
  * - `uri`, from the nearest ancestor that has one
  * - a type's `detail`, from its `super`:  `is a <Super>`
- * - `members`:  a type's own children, then what it inherits from each `super` in turn, in
- *   `SCOPE_MEMBER_GROUPS` order -- one it re-declares shows once, as its own.  Anything else's are its
- *   children -- a project's, except its files -- alphabetical.  The root's are its types, the built-ins.
+ * - `members`:  a type's own children, then what it inherits from each `super` in turn -- one it re-declares
+ *   shows once, as its own.  Anything else's are its children -- a project's, except its files.  The root's are
+ *   its types, the built-ins.  All in document order, as the entries come -- see `ScopeEntry`.
  * - An entry whose parent isn't there goes at the top.
  */
 export function buildScopeTree(entries: ScopeEntry[]): ScopeNode {
@@ -309,6 +322,7 @@ export function buildScopeTree(entries: ScopeEntry[]): ScopeNode {
     const parent = nodes.get(parentScopePath(entry.path)) ?? root
     const node: ScopeNode = { path: entry.path, ...scopeSegment(entry.path), members: [], children: [] }
     if (entry.detail !== undefined) node.detail = entry.detail
+    if (entry.section !== undefined) node.section = entry.section
     if (entry.super !== undefined) node.super = entry.super
     // a file's own, else its file's -- another entry's `uri` is where its details were declared, see `ScopeDetails`
     const uri = (node.kind === "file" ? entry.uri : undefined) ?? parent.uri
@@ -322,7 +336,7 @@ export function buildScopeTree(entries: ScopeEntry[]): ScopeNode {
       node.members = typeMembers(node)
     } else {
       const listed = node.children.filter((child) => child.kind !== "file" && child.kind !== "project")
-      node.members = alphabetical(listed.map((child) => asMember(child)))
+      node.members = listed.map((child) => asMember(child))
     }
   }
   return root
@@ -338,12 +352,10 @@ export function buildScopeTree(entries: ScopeEntry[]): ScopeNode {
       chain.push(at)
     }
     const members = new Map<string, ScopeMember>()
-    for (const { kinds } of SCOPE_MEMBER_GROUPS) {
-      for (const ancestor of chain) {
-        for (const child of ancestor.children.filter((it) => kinds.includes(it.kind as ScopeMember["kind"]))) {
-          const key = `${child.kind}:${child.name}`
-          if (!members.has(key)) members.set(key, asMember(child, ancestor === type ? undefined : ancestor.name))
-        }
+    for (const ancestor of chain) {
+      for (const child of ancestor.children.filter((it) => MEMBER_KINDS.includes(it.kind as ScopeMember["kind"]))) {
+        const key = `${child.kind}:${child.name}`
+        if (!members.has(key)) members.set(key, asMember(child, ancestor === type ? undefined : ancestor.name))
       }
     }
     return [...members.values()]
@@ -354,14 +366,13 @@ export function buildScopeTree(entries: ScopeEntry[]): ScopeNode {
     const member: ScopeMember = { path: node.path, name: node.name, kind: node.kind as ScopeMember["kind"] }
     if (node.detail !== undefined) member.detail = node.detail
     if (inheritedFrom !== undefined) member.inheritedFrom = inheritedFrom
+    if (node.section !== undefined) member.section = node.section
     return member
   }
-
-  /** `members` in alphabetical order, ignoring case. */
-  function alphabetical(members: ScopeMember[]): ScopeMember[] {
-    return members.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }))
-  }
 }
+
+/** Every kind a type's member can be -- those in `SCOPE_MEMBER_GROUPS`. */
+const MEMBER_KINDS = SCOPE_MEMBER_GROUPS.flatMap(({ kinds }) => kinds)
 
 // ## Scope packs
 

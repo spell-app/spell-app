@@ -104,6 +104,15 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   user's `create()` again, e.g. dealing cards, on every loop.  The result is thrown away.  Likely fix:  loops
   compile to `forEach` (or `forEachSequential` when async).  From reading the code, not run.  Found 2026-09-29.
 
+- A `to draw` which calls `spellCore.map()` / `filter()` on a List -- or anything else reading then changing
+  an observable it just made -- does it INSIDE `Thing.Component`'s `view()` render.  `map()` makes a new list,
+  reads its `items`, then writes them:  the render's own reaction is set off mid-render.  That's what took the
+  Thing Explorer down with React error #301 [V] (reading Solitaire's `pile.state`), so a program drawing that way
+  probably re-renders every time, or warns.  NOT tried with a real `to draw`.  Related, fixed 2026-09-30:  making
+  a List or Thing mid-render built its store with `react-easy-state`'s `store()`, which is a `useMemo()` hook
+  in a `view()` function component and THROWS in a `view()` class component -- now `newStore()` in `extend.ts`.
+  Found 2026-09-30.
+
 - Negative positions only work on a `List`:  on a plain array `getItemOf(arr, -1)` reads `arr[-2]`, so
   `undefined`, and `removeItemOf(arr, -1)` does `splice(-2, 1)`, removing the SECOND-to-last
   (`collection-core.ts`).  So `the last word in words`, `remove last item of my-list` are wrong for arrays.

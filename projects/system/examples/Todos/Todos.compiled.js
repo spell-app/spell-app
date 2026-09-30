@@ -1,6 +1,7 @@
 /*! SPELL: PROJECT { spellVersion: "0.8.0", provides: ["Task", "Todos_App", "create_a_task"] } */
 import { spellCore, Thing, List, App } from "@spell/core"
 
+spellCore.heading("Todo app example")
 /** Todo app example */
 /*! SPELL: DECLARES {
   type: "Task", superType: "Thing",
