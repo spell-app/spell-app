@@ -1,0 +1,181 @@
+"""Link source references in HTML docs:  one named target per destination, new tab.  See "Creating docs" in AGENTS.md.
+
+Usage:  python3 scripts/doc-links.py docs/<folder>/<doc>.html ...         -- add links (idempotent)
+        python3 scripts/doc-links.py --check docs/<folder>/<doc>.html ... -- verify, exit 1 on problems
+
+
+- `<code>path</code>` outside `<pre>` / `<a>` / `<head>` becomes a link when the path resolves to a real file or folder
+- existing `<a href>` without a target gets one (external:  per URL;  sibling docs:  per file)
+- `--check` verifies:  every local href resolves, every non-anchor link has a target, one target per destination
+"""
+
+import os
+import re
+import sys
+import html
+
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+UI = os.path.normpath(os.path.join(REPO, "../ui"))
+DOC_DIR = f"{REPO}/docs"
+SEARCH_ROOTS = [f"{REPO}/src", f"{REPO}/docs", f"{UI}/packages/solid-element/src", f"{UI}/src", f"{UI}/docs", REPO, UI]
+SKIP_DIRS = {"icons", "glyphs", "node_modules", ".git", "dist", "dist-element", "dist-runner", "build", ".cache", "graphify-out", "worktrees"}
+
+
+def slug(text):
+    return re.sub(r"[^a-zA-Z0-9]+", "-", text).strip("-").lower()
+
+
+def target_for(abs_or_url):
+    if re.match(r"https?://", abs_or_url):
+        return "ext-" + slug(re.sub(r"^https?://(www\.)?", "", abs_or_url))[:80]
+    rel = os.path.relpath(abs_or_url, os.path.dirname(REPO))
+    return "src-" + slug(rel)[:80]
+
+
+_file_index = None
+
+
+def file_index():
+    """Basename -> [paths], for bare file names like `withSolid.ts`."""
+    global _file_index
+    if _file_index is None:
+        _file_index = {}
+        for root in SEARCH_ROOTS[:5]:
+            for dirpath, dirnames, filenames in os.walk(root):
+                dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS and not d.startswith(".")]
+                for name in filenames:
+                    _file_index.setdefault(name, []).append(os.path.join(dirpath, name))
+    return _file_index
+
+
+SPECIAL = {
+    "solidjs/solid": "https://github.com/solidjs/solid/tree/next",
+    "solidjs/solid-docs": "https://github.com/solidjs/solid-docs/tree/v2-rebuild",
+    "documentation/solid-2.0/": "https://github.com/solidjs/solid/tree/next/documentation/solid-2.0",
+    "@spell/ui": f"{UI}/README.md",
+    "@spell/solid-element": f"{UI}/packages/solid-element/README.md",
+}
+
+
+DOC_FOLDER = DOC_DIR
+
+
+def resolve(text):
+    """A code span's text -> an existing absolute path or https URL, else None."""
+    text = html.unescape(text).strip()
+    if text in SPECIAL:
+        return SPECIAL[text]
+    if re.match(r"^(solid-js|@solidjs/[\w-]+)/.+\.\w+$", text) and os.path.exists(f"{UI}/node_modules/{text}"):
+        return f"{UI}/node_modules/{text}"
+    if re.match(r"^(v2\.)?solidjs\.com/|^v2\.solidjs\.com", text):
+        return "https://" + text
+    path = re.sub(r":\d+$", "", text)  # file.ts:75
+    if not re.fullmatch(r"[~.@\w/-]+(\.\w+)?/?", path) or "/" not in path and "." not in path:
+        return None
+    if path.startswith("~/"):
+        path = "src/" + path[2:]
+    candidates = []
+    candidates += [os.path.join(DOC_FOLDER, path), os.path.join(DOC_FOLDER, "experiments", path)]
+    if path.startswith("../ui/"):
+        candidates.append(os.path.join(REPO, path))
+    elif path.startswith("node_modules/"):
+        candidates += [os.path.join(REPO, path), os.path.join(UI, path)]
+    else:
+        candidates += [os.path.join(b, path) for b in (REPO, DOC_DIR, UI)]
+    for candidate in candidates:
+        if os.path.exists(os.path.normpath(candidate)):
+            return os.path.normpath(candidate)
+    if "/" not in path.rstrip("/"):
+        hits = [p for p in file_index().get(path, []) if "/test/" not in p]
+        if len(hits) == 1:
+            return hits[0]
+    return None
+
+
+def protected_spans(s):
+    """Ranges we must not touch:  head, pre, script, style, existing links."""
+    spans = []
+    for pattern in (r"<head>.*?</head>", r"<pre\b.*?</pre\s*>", r"<script\b.*?</script\s*>", r"<style\b.*?</style\s*>", r"<a\b.*?</a\s*>"):
+        spans += [m.span() for m in re.finditer(pattern, s, re.S)]
+    return spans
+
+
+def inside(pos, spans):
+    return any(a <= pos < b for a, b in spans)
+
+
+def linkify(path):
+    global DOC_FOLDER
+    s = open(path).read()
+    doc_dir = os.path.dirname(os.path.abspath(path))
+    DOC_FOLDER = doc_dir
+    spans = protected_spans(s)
+    out, last, linked, unresolved = [], 0, 0, set()
+    for m in re.finditer(r"<code>([^<]+)</code\s*>", s):
+        if inside(m.start(), spans):
+            continue
+        dest = resolve(m.group(1))
+        if not dest:
+            if "/" in m.group(1) or re.search(r"\.(ts|tsx|md|mjs|js|html|json)(:\d+)?$", m.group(1)):
+                unresolved.add(m.group(1))
+            continue
+        href = dest if dest.startswith("https://") else os.path.relpath(dest, doc_dir)
+        if os.path.isdir(dest) and not href.endswith("/"):
+            href += "/"
+        out.append(s[last : m.start()])
+        out.append(f'<a href="{html.escape(href)}" target="{target_for(dest)}">{m.group(0)}</a>')
+        last = m.end()
+        linked += 1
+    out.append(s[last:])
+    s = "".join(out)
+
+    def add_target(m):
+        tag, href = m.group(0), m.group(1)
+        if "target=" in tag or href.startswith("#"):
+            return tag
+        dest = href if re.match(r"https?://", href) else os.path.normpath(os.path.join(doc_dir, href))
+        return tag[:-1] + f' target="{target_for(dest)}">'
+
+    s = re.sub(r'<a href="([^"]+)"[^>]*>', add_target, s)
+    open(path, "w").write(s)
+    print(f"{os.path.basename(path)}:  linked {linked} code spans;  unresolved path-like:  {sorted(unresolved)}")
+
+
+def check(path):
+    s = open(path).read()
+    doc_dir = os.path.dirname(os.path.abspath(path))
+    by_dest, by_target = {}, {}
+    body = re.sub(r"<pre\b.*?</pre\s*>", "", s, flags=re.S)
+    nested = len(re.findall(r"<a\b[^>]*>\s*<a\b", body))
+    problems = [f"{nested} nested links"] if nested else []
+    for m in re.finditer(r"<a\b([^>]*)>", body):
+        attrs = m.group(1)
+        href = re.search(r'href="([^"]+)"', attrs)
+        target = re.search(r'target="([^"]+)"', attrs)
+        if not href or href.group(1).startswith("#"):
+            continue
+        href = html.unescape(href.group(1))
+        dest = href if re.match(r"https?://", href) else os.path.normpath(os.path.join(doc_dir, href.split("#")[0]))
+        if not dest.startswith("http") and not os.path.exists(dest):
+            problems.append(f"missing:  {href}")
+        if not target:
+            problems.append(f"no target:  {href}")
+            continue
+        by_dest.setdefault(dest, set()).add(target.group(1))
+        by_target.setdefault(target.group(1), set()).add(dest)
+    problems += [f"several targets for {d}:  {t}" for d, t in by_dest.items() if len(t) > 1]
+    problems += [f"target {t} shared by {d}" for t, d in by_target.items() if len(d) > 1]
+    print(f"{os.path.basename(path)}:  {sum(1 for _ in by_dest)} destinations, {len(problems)} problems")
+    for problem in problems:
+        print("   ", problem)
+    return not problems
+
+
+if __name__ == "__main__":
+    files = [a for a in sys.argv[1:] if not a.startswith("--")]
+    if not files:
+        sys.exit(__doc__)
+    if "--check" in sys.argv:
+        sys.exit(0 if all([check(f) for f in files]) else 1)
+    for f in files:
+        linkify(f)

@@ -31,6 +31,8 @@
     "test:coverage": "vitest run --coverage",
     "test:fixtures": "vitest run src/test/fixtures.test.ts",
     "test:fixtures:bless": "vitest run src/test/fixtures.test.ts --update=all",
+    "/////// DOCS": "",
+    "docs:update": "node scripts/docs/update.mjs",
     "/////// VSCODE EXTENSION": "",
     "vscode": "yarn vscode:build && yarn vscode:install",
     "vscode:build": "cd vscode-extension && yarn install && yarn build && yarn package",

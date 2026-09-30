@@ -3,6 +3,10 @@
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
 when working with code in this repository.
 
+**If working with Solid (2.0) -- components, JSX, effects / signals / stores, `spellCore` rendering, `~/util`
+reactivity, `@spell/ui` elements, or any React-to-Solid step:  READ `docs/solid/SOLID-2.md` IN FULL FIRST.**
+Solid 2 is neither React nor Solid 1, and guessing from either produces wrong code.
+
 ## Overview
 
 - `src/parser/` (`P`) is a generic rule-based parser;  `src/languages/spell/` (`SP`) is the spell language on it.
@@ -54,6 +58,14 @@ when working with code in this repository.
 - MUST keep it up to date in the same change whenever the parsing mechanism changes -- generic `Parser`, `SpellParser`,
   scopes, or the `Block` / `BlockLine` / `SpellStatement` machinery.
 
+## Solid 2
+
+- We're moving from React to Solid 2 (`2.0.0-rc.13`;  `@spell/ui` still pins rc.11) on `@spell/ui`.  Solid 2 is NEITHER React NOR Solid 1.
+- The rules:  `docs/solid/SOLID-2.md` (see the top of this file).  NOT `@`-imported on purpose:  it loads only
+  when the task needs it.  Claude also has the `solid-2` skill, which triggers on Solid work.
+- The why and the measurements:  `docs/solid/SOLID-2.html`.  The API:  `docs/solid/CHEATSHEET.html`.
+- MUST keep `SOLID-2.md` up to date when a Solid decision changes or an RC bump changes behaviour.
+
 ## Long-term debt
 
 - `CODE-DEBT.md` tracks structural debt we have knowingly chosen NOT to fix yet.
@@ -104,6 +116,65 @@ when working with code in this repository.
  * Description of the component.
  ****************/
 ```
+
+## Creating docs
+
+HTML docs for people -- design notes, research, references -- live in `docs/<topic>/`.  Model:
+`docs/solid/SOLID-2.html`.
+
+- Start from `docs/_template.html`.  Link the shared `../_assets/doc.css` and `../_assets/doc.js` (+ highlight.js from
+  cdnjs, as the template does).  NEVER inline copies:  improve the shared files instead, and every doc gets it.
+- `doc.js` builds the page from plain headings:
+  - contents sidebar:  sticky right column that scrolls on its own, expandable per section, follows the scroll;
+    a drawer on narrow screens
+  - sticky h2 / h3 section headers (it wraps `section.s2` / `section.s3`)
+  - heading ids, folded code, syntax colors
+  - NEVER hand-write a TOC, sections or ids -- except an explicit `id` on a heading other docs link to
+- Headings:
+  - one `h1`;  numbered `h2` per major section (`2. Read-after-write`)
+  - `h3` for EVERY distinct sub-item, `h4` for sub-sub-items:  a list item with a bold title and several lines of
+    body becomes a heading, and long lists of such items are grouped under themed `h3`s
+  - headings are short labels (they're the contents entries);  the claim goes in the body
+- Text:  bullets, not dense prose.
+  - 3+ sentences => a short lead plus bullets, one idea each, nested for sub-points
+  - keep every fact, number and caveat when you condense
+  - `.callout` (`good` / `bad` / `warn`) for recommendations and warnings, `.table-wrap > table` for comparisons
+    (`td.num`, `.yes` / `.no` / `.meh`), `.tag` for small badges
+- Code:
+  - `<pre><code class="language-ts">`, TypeScript by default, formatted by oxfmt:  write the snippet to a `.ts` / `.tsx`
+    file and run `node_modules/.bin/oxfmt -c .oxfmtrc.json <file>` (docs' `.md` files are NOT formatted by
+    `yarn format`)
+  - valid code only:  no bare JSX statements after other statements -- assign them to a `const`
+  - prefer excerpts pasted from a real, runnable file over hand-typed examples
+  - `doc.js` folds every block:  30 lines or fewer start open.  Name a long listing:
+    `<details class="code"><summary>What it is (path)</summary><pre>...</pre></details>`
+- Claims backed by measurement:  runnable scripts in `docs/<topic>/experiments/`, each with a header comment on how to
+  run it.  Tables quote medians of several runs, never a single run.  Keep the scripts:  they re-measure on upgrades.
+- Source links:  every reference to a file, folder or external page is a link that opens a NEW TAB with its own
+  named target per destination (re-clicks reuse that tab).
+  - `python3 scripts/doc-links.py <doc>` links `<code>path</code>` references and targets existing links (idempotent)
+  - `python3 scripts/doc-links.py --check <doc>` must pass:  every local link resolves, one target per destination,
+    no nested links
+- Finish, in this order:
+  1. `python3 scripts/doc-links.py <doc>`
+  2. `node_modules/.bin/oxfmt <doc>` (`yarn format` would reformat it anyway)
+  3. `python3 scripts/doc-links.py --check <doc>`
+  4. `node scripts/doc-shots.mjs <doc>` must pass (errors, phone overflow, contents vs headings, sticky headers) --
+     and LOOK at its four screenshots:  the checks can't see overlap, clipping or bad wrapping
+- Colors only from the `doc.css` tokens, so dark mode keeps working.
+- `.spell.html`:  `yarn docs:update` re-creates `<name>.spell.html` beside every source doc, rendered with the LATEST
+  @spell/ui widgets (`../ui`, rebuilt each run) instead of `doc.css` / `doc.js`.  How it works:
+  `docs/_assets/SPELL-DOCS.md`.
+  - The plain `<name>.html` is the SOURCE:  edit it, then run `yarn docs:update`.  NEVER hand-edit a `.spell.html`
+    (it says GENERATED at the top), and commit both.
+  - It must pass:  bundle, `doc-links.py --check`, convert (a self-check:  identical code, ids, links, one contents
+    link per heading), then `scripts/docs/check-spell.mjs` per page -- and LOOK at its screenshots.
+  - A @spell/ui problem:  work around it here if reasonable, never edit `../ui` from this repo, and add it to
+    `docs/SPELL-UI-FINDINGS.md`.
+  - New markup in a source (a new kind of block) needs a mapping in `scripts/docs/to-spell.mjs` and a line in
+    `SPELL-DOCS.md`'s mapping table.
+- When agents need a doc's rules, also write a distilled `.md` beside it (bullets, `ts` code blocks), and point to it
+  from the top of this file with an "if working with X, READ file" line -- see `docs/solid/SOLID-2.md`.
 
 ## Functions
 

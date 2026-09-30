@@ -146,3 +146,37 @@ Log of things that slowed down development. Date · symptom · fix · project.
   Playwright, through the loaded chunk (`import("/element/spell-editor-monaco.js")`) -- each show was followed by
   `_onEditorMouseLeave`.  Stop the editor's mouse moves at the shadow root:  see `keepMouseMovesInShadowRoot()`. ·
   spell/parser
+- 2026-09-30 · `WebFetch` / `curl` of https://www.solidjs.com/blog returns an empty shell:  the site is a
+  client-rendered SPA, so the post list and bodies aren't in the HTML. · Download the entry bundle
+  (`/assets/index-*.js`), find each post's `slug:{title,date,body:()=>import("./<slug>-<hash>.js")}` entry, then
+  fetch that chunk and pull the text out of its compiled-MDX string literals.  For v2.solidjs.com, the docs are
+  markdown at `v2.solidjs.com/llms-full.txt`. · spell/parser
+- 2026-09-30 · A Solid 2 prototype died with `[REACTIVITY_HALTED] TypeError: r is not a function`, and every
+  later update was ignored. · An effect's apply function RETURNS its cleanup:  `v => list.push(v)` returned a
+  number, which Solid then called.  Write `v => { ... }`.  See `docs/solid/SOLID-2.html#effect-apply-returns-its-cleanup`. · spell/parser
+- 2026-09-30 · A skill using `` !`cat file` `` context injection failed to load AT ALL (zero turns, only
+  `Shell command permission check failed ... Permission to use Bash has been denied`) in a session with Bash
+  denied.  `allowed-tools: Bash(cat ...)` in the skill's frontmatter does not override the denial. · Don't inject docs
+  with `!`.  Either `@`-import them from `AGENTS.md` (always loaded, recursive through `CLAUDE.md`'s `@AGENTS.md`;
+  NOT loaded for Explore subagents), or -- what we do for Solid -- a conditional "if working with X, READ file" line at
+  the top of `AGENTS.md` plus a skill whose body says to Read it. ·
+  spell/parser
+- 2026-09-30 · A regex-based HTML pass (`<a\b.*?</a>`) wrapped already-linked `<code>` in a SECOND link -- 7 nested
+  links shipped, and the link check passed.  oxfmt wraps long tags, so closing tags come out as `</a\n  >`. · Allow
+  whitespace before `>` in every closing-tag pattern (`</a\s*>`), and make the checker count nested links:  both done
+  in `scripts/doc-links.py`.  Re-run a transform after `oxfmt` and diff to prove it's idempotent. · spell/parser
+- 2026-09-30 · Bundling `../ui/dist/index.js` with esbuild for the `.spell.html` docs:  every `ui-*` element failed
+  with `NoOwnerError`.  The fork (`../ui/packages/solid-element`) has its OWN `node_modules/solid-js` and
+  `@solidjs/*`, so a naive bundle carries two Solids. · Resolve every `solid-js` / `@solidjs/*` /
+  `@spell/solid-element` import from UI's root (`scripts/docs/bundle-spell-ui.mjs` does, and fails the build if a
+  Solid package appears twice).  Also:  UI's `yarn build` doesn't rebuild the fork -- run `yarn fork:build` first. ·
+  spell/parser
+- 2026-09-30 · A throwaway `tsx` script outside the repo (or a `.ts` one outside `src/`) died at import with
+  `TypeError: Class extends value undefined` in `rulex.ts`:  with no `"type": "module"` above it, tsx compiles it as
+  CommonJS, and that load order trips the `~/parser` circular-import trap (`CODE-DEBT.md`). · Name the script `.mts`
+  and run `npx tsx --tsconfig tsconfig.json <script>` from the repo root -- see
+  `docs/precedence/experiments/grammar-today.mts`. · spell/parser
+- 2026-09-30 · `node_modules/.bin/tsc --noEmit some-file.ts` refused to run:  `TS5112: tsconfig.json is present but
+  will not be loaded if files are specified on commandline`.  TypeScript 7 treats that as an error. · Add
+  `--ignoreConfig` when checking one loose file -- see `docs/precedence/experiments/typescript-check.ts`. ·
+  spell/parser

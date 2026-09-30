@@ -133,6 +133,20 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   language server if an editor ever reports a replaced file (e.g. delete + create, as some `git` operations do) as
   `created`.  Likely fix:  `refresh()` also reloads each file's contents from disk.
 
+- `languages/spell/rules/expressions.ts` `is_a`:  its operand is `{expression:type}`, and `type` accepts ANY word --
+  so `print the card is a new card` compiles to `spellCore.isOfType(card, 'New')` and leaves `card` as a parse
+  error, where `is_equal` + `a new card` was meant.  Probably wants `known_type`.  Run:
+  `docs/precedence/experiments/grammar-today.mts`, probe P7.  Found 2026-09-30.
+
+- `languages/spell/rules/lists.ts` `list_length` (precedence 3) vs `list_filter` (2):  `the number of cards in the
+  deck where ...` likely matches `list_length` with `the deck` and leaves `where ...` unparsed, as precedence is
+  compared before length.  From reading `Choice.getBestMatch()`, NOT run.  Found 2026-09-30.
+
+- An ad-hoc property is not reactive:  `set the pile of the card to the pile` compiles to a plain `this.pile = pile`
+  (`Card.move_to_$pile` in the Solitaire snapshot), never through `setProp()` -- so nothing drawn from
+  `the pile of the card` redraws when it changes.  Maybe intended;  `docs/precedence.html` section 9 proposes
+  declaring such properties from their first assignment.  Found 2026-09-30.
+
 ## 2. Server robustness / security
 
 - [V] `server/lock-utils.ts`: whole module has zero callers, while `saveFile()` / `saveProjectFile()` / `getIndex()`
