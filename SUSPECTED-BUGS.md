@@ -126,6 +126,13 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   instance -- so two Lists of the same class probably compare EQUAL whatever they hold.  Inferred from the code,
   NOT confirmed with real Lists.  Found 2026-09-29.
 
+- `lsp/SpellDiskWorkspace.ts` `diskChanged(uri, "created")` for a `.spell` file the project ALREADY has:  it goes
+  through `refresh()` -- `project.reload()` + a fresh parse -- which re-reads the file LIST but apparently keeps the
+  text each already-loaded `SpellFile` holds.  Seen 2026-09-29 from `spell watch`, which (wrongly, now fixed) reported
+  a macOS save -- an `fs.watch` `rename` -- as `created`:  the rebuild compiled the OLD text.  Matters to the
+  language server if an editor ever reports a replaced file (e.g. delete + create, as some `git` operations do) as
+  `created`.  Likely fix:  `refresh()` also reloads each file's contents from disk.
+
 ## 2. Server robustness / security
 
 - [V] `server/lock-utils.ts`: whole module has zero callers, while `saveFile()` / `saveProjectFile()` / `getIndex()`
@@ -158,6 +165,12 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 - `spellCore/collection-other.test.ts` `includes` test "returns false if one thing present, one not" expects
   `true` -- both values are in `{ a: 1, b: 3 }`.  Probably meant to check `1, 2`.
+
+- `lsp/ScopeExplorer.ts` property names:  a type's property members come out as their JS names -- `short_suit`,
+  `short_direction` -- while `ScopeMember.name`'s docstring (`lsp.types.ts`) says "name as written, e.g.
+  `short-suit`".  Seen 2026-09-29 through `spell describe` on the Solitaire fixture (`Card.spell`), and still so
+  2026-09-30.  Either `propertiesOf()` records hold the output name and the node should use the written one, or
+  the docstring is stale.  Unverified which.
 
 ## 4. Dead / redundant code
 

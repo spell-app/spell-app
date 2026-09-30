@@ -191,12 +191,20 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   /**
    * Compile project: cancel any in-flight parse/compile, then run `this.compiler` `TaskList`.
    * - `parser` is passed through as `parentScope`, same as `parse()`.
+   * - `save: false` leaves our output in `outputFile.contents` WITHOUT writing it, e.g. `spell compile --stdout`.
    */
-  compile(parser?: P.Scope): Promise<unknown> {
+  compile(parser?: P.Scope, { save = true }: { save?: boolean } = {}): Promise<unknown> {
     this.parser.cancel()
     this.compiler.cancel()
+    this.saveCompiled = save
     return this.compiler.start(parser)
   }
+
+  /**
+   * Does the running `compile()` write `outputFile`?  Set by each `compile()`, read by `compiler`'s last task.
+   * - NOTE: plain field, not state:  it only steers one run.
+   */
+  saveCompiled = true
 
   /**
    * Return base `ProjectScope` for this project, given `parentScope`.
@@ -317,6 +325,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
               const { version, exports } = this.contents ?? {}
               const header = SP.SpellDeclarations.header(this.scope!, { version, exports })
               this.outputFile.contents = header + (compiled as string)
+              if (!this.saveCompiled) return this.outputFile.contents
               return await this.outputFile.save(undefined)
             }
           })
