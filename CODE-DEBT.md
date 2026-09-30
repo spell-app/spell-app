@@ -19,7 +19,7 @@ Add an entry when ALL of these are true:
 Typical triggers:
 
 - a refactor exposes a fragility we decide not to chase, e.g. the `BROKEN_ENTRIES` circular
-  imports below
+  imports under `spell`
 - a test or lint rule gets **pinned, skipped or widened** to accommodate a known problem --
   pinning records the damage, this file records the intent to undo it
 - a convention in `AGENTS.md` is knowingly violated, and the violation is too wide to fix now
@@ -33,7 +33,7 @@ Typical triggers:
 
 ## Entry format
 
-One `##` heading per item, `---` between items, then:
+One `###` heading per item, under its package's `##` section, `---` between items, then:
 
 - **Cost** -- what we pay for leaving it
 - **Cause** -- the actual mechanism, not a guess
@@ -42,7 +42,9 @@ One `##` heading per item, `---` between items, then:
 
 ---
 
-## Circular imports through the `~/parser` barrel
+## spell
+
+### Circular imports through the `~/parser` barrel
 
 - **Cost**: six sub-paths of `~/parser` cannot be imported before `~/parser` itself without
   silently corrupting the barrel.  Latent rather than live: every consumer outside the barrel
@@ -62,7 +64,7 @@ One `##` heading per item, `---` between items, then:
   `~/parser/rules/Rule`, `~/parser/rules/Literal`, `~/parser/tokenizer`, `~/parser/scope`,
   `~/parser/ast`.
 
-### Sub-item: `export *` makes the truncation permanent
+#### Sub-item: `export *` makes the truncation permanent
 
 - **Cost**: flattening a namespaced sub-barrel to `export *` costs a safe entry point.
   `~/parser/ast` moved into `BROKEN_ENTRIES` exactly this way, when its AST classes were
@@ -77,7 +79,7 @@ One `##` heading per item, `---` between items, then:
 
 ---
 
-## Enumerated properties are reachable under inconsistent names
+### Enumerated properties are reachable under inconsistent names
 
 `cards have a suit as one of clubs, diamonds` is meant to make BOTH `the suits of the card` (instance) and
 `card suits` / `is in card suits` (class) work.  Checked by compiling each form, 2026-09-27:
@@ -111,7 +113,7 @@ One `##` heading per item, `---` between items, then:
 
 ---
 
-## Store proxies stand in for the real objects
+### Store proxies stand in for the real objects
 
 `SP` objects (`SpellProject`, `SpellFile`...) keep their state in `react-easy-state` stores.  Read INSIDE a
 reaction -- a `view()` render, an `autoEffect()`, an `observe()` -- a store hands back a tracking PROXY of any
@@ -137,7 +139,7 @@ nested object, and a cache filled there keeps the proxy.
 
 ---
 
-## Review:  editor features added by Claude, 2026-09-27 / 28
+### Review:  editor features added by Claude, 2026-09-27 / 28
 
 Everything below went in over two long sessions, tested (vitest, tsc, lint, a headless-Chromium run of the app,
 parser speed test) but NOT yet reviewed line by line.  Check each area, then delete its bullet.
@@ -206,7 +208,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 
 ---
 
-## VS Code runner can't run a project which imports another
+### VS Code runner can't run a project which imports another
 
 - **Cost**:  "Run Project" in VS Code refuses a project whose `project.json` imports another project's compiled
   JS -- it says to run it in the app instead.  `source: true` imports are fine:  they compile into the project.
@@ -220,7 +222,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 
 ---
 
-## Semantic UI popups escape `<spell-app>`'s shadow root
+### Semantic UI popups escape `<spell-app>`'s shadow root
 
 - **Cost**:  in a `<spell-app>`, anything a spell program draws with a Semantic UI PORTAL -- `SUI.Modal`,
   `SUI.Popup`, a `SUI.Dropdown` in some modes -- appears unstyled, outside the app, and page styles apply to it.
@@ -233,7 +235,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 
 ---
 
-## `<spell-app src>` needs CORS for another origin's compiled JS
+### `<spell-app src>` needs CORS for another origin's compiled JS
 
 - **Cost**:  a page can run `src="https://elsewhere/App.compiled.js"` only if that host sends CORS headers.  Scope
   packs don't need them.
@@ -246,7 +248,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 
 ---
 
-## The web app's editor doesn't write scope packs
+### The web app's editor doesn't write scope packs
 
 - **Cost**:  a project edited and compiled in the web app keeps a stale `<Project>.scopes.js`, so a `<spell-app>`
   running it shows an out-of-date Type Explorer -- until `yarn scopes`, or a compile in VS Code, rewrites it.
@@ -260,7 +262,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 
 ---
 
-## `<spell-editor>` saves to the server with no say-so
+### `<spell-editor>` saves to the server with no say-so
 
 - **Cost**:  anyone with a page holding a `<spell-editor>` open can overwrite that project's files -- each compile
   saves what was edited, and writes `<Project>.compiled.js`.  Fine on the dev server, the only place `/element` is
@@ -273,7 +275,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 
 ---
 
-## Mouse moves over a `<spell-editor>` never reach the page's `document`
+### Mouse moves over a `<spell-editor>` never reach the page's `document`
 
 - **Cost**:  a page's own `mousemove` listener on `document` or `window` hears nothing while the mouse is over the
   text of a `<spell-editor>` -- or any Monaco editor we draw in a shadow root.
@@ -286,7 +288,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 
 ---
 
-## `<spell-editor>` and `<spell-app>` together are only checked by hand
+### `<spell-editor>` and `<spell-app>` together are only checked by hand
 
 - **Cost**:  nothing in the test suite would notice a broken link between them, a hover that stops showing in the
   shadow root, or Monaco's worker failing to load -- each broke once while building them, and passed every test.
@@ -300,7 +302,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 
 ---
 
-## `<spell-editor>`'s first compile hands apps no scope pack
+### `<spell-editor>`'s first compile hands apps no scope pack
 
 - **Cost**:  until the SECOND compile, a linked app's Type Explorer shows the server's `<Project>.scopes.js` --
   stale if the project was edited in the web app, and missing (a 404) for a project that never had one.
@@ -314,7 +316,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 
 ---
 
-## An app `<spell-editor app>` names, added to the page later, waits for the next compile
+### An app `<spell-editor app>` names, added to the page later, waits for the next compile
 
 - **Cost**:  a `<spell-app>` matching an editor's `app` selector, but added to the page after its last compile,
   shows its own project's code -- or "Give <spell-app> a project..." -- until someone edits.
@@ -327,7 +329,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 
 ---
 
-## Two `<spell-editor>`s of one project share its files
+### Two `<spell-editor>`s of one project share its files
 
 - **Cost**:  typing in one shows in the other, and BOTH compile and hand on each edit -- so an app linked to both
   runs it twice.  There's no way to show two independent copies of one project on a page, e.g. "before" and "after".
@@ -340,7 +342,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 
 ---
 
-## `<spell-editor>` brings its own React
+### `<spell-editor>` brings its own React
 
 - **Cost**:  a page with both elements loads React twice -- `spell-editor.js` has its own, and `spell-app.js` shares
   one with `spell-runtime.js`.  React and React DOM twice, and two copies that can't share context.
@@ -353,7 +355,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 
 ---
 
-## `yarn scopes --builtins` overwrites the built-in types' hand-written docs
+### `yarn scopes --builtins` overwrites the built-in types' hand-written docs
 
 - **Cost**:  running it replaces `src/spellCore/spellCore.scopes.js` -- whose `Thing`, `List` and `App` are
   documented by hand -- with the bare types.  Only a diff before keeping it saves the docs.
@@ -365,7 +367,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 
 ---
 
-## Each `<spell-app>`'s runtime stays in memory for the life of the page
+### Each `<spell-app>`'s runtime stays in memory for the life of the page
 
 - **Cost**:  adding and removing `<spell-app>`s -- e.g. an app that swaps demos in and out -- keeps every copy of
   `spell-runtime.js` it ever loaded, and whatever that copy still holds.
@@ -376,7 +378,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 
 ---
 
-## Expression rules ending in `{expression}` swallow the operator after them
+### Expression rules ending in `{expression}` swallow the operator after them
 
 - **Cost**:  `the bottom card of the deck is the black joker` parses as `the bottom card of (the deck is the black
   joker)`, compiling to `getItemOf(deck.is_the_$color_joker('black'), -1)` -- the method runs on the DECK, and
@@ -404,7 +406,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 
 ---
 
-## Thing Explorer's top-level things only update when something else redraws it
+### Thing Explorer's top-level things only update when something else redraws it
 
 - **Cost**:  a top-level variable set to a different thing mid-run, e.g. `the deck is a new deck` in an event
   handler, keeps showing the OLD thing under "Top level" until the explorer redraws for another reason --
@@ -419,7 +421,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 
 ---
 
-## Collection helpers' results are full instances of the list's type -- so the Thing Explorer ignores them
+### Collection helpers' results are full instances of the list's type -- so the Thing Explorer ignores them
 
 - **Cost**:  a copy the program keeps -- `the spare is a copy of the deck` -- never shows in the Thing Explorer:
   it's made the same way as scratch results, which are deliberately hidden.  And every scratch result is a real
@@ -437,7 +439,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 
 ---
 
-## Thing Explorer's "Top level" shows only the main program's top-level things
+### Thing Explorer's "Top level" shows only the main program's top-level things
 
 - **Cost**:  a project the program imports -- e.g. `Solitaire-import` importing `Solitaire` -- keeps its own
   top-level lists, e.g. `all_piles`, and they show nowhere.  Its typed things, e.g. each `Pile`, still show
@@ -451,3 +453,33 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
   "Top level" per project.  Mind the order:  a project's module MUST have run before the program's.
 - **Pinned at**:  `ThingRegistry.setTopLevel()` (`src/spellCore/things.ts`) and `runCompiled()`
   (`src/app/runner/runCompiled.ts`).
+
+## ui
+
+### `popup.anchored.css` skips the CSS pipeline
+
+- **Cost** -- one popup sheet ships unminified and unchecked by Lightning CSS (no `@custom-media`, no `@import`, no
+  lowering);  the popup has TWO registered sheets (`popup`, `popup-anchored`), and anything that lists a family's
+  sheets (`tools/demo/index.ts`) must name both.
+- **Cause** -- Lightning CSS 1.30 fails the whole file on `@container anchored(fallback: flip-block)` (anchored
+  container queries, which move the arrow when `position-try-fallbacks` flips a popup), so those rules live in a
+  separate file imported `?raw`.
+- **Fix** -- fold the rules back into `popup.css` once Lightning CSS parses anchored queries (or passes unknown
+  `@container` preludes through).
+- **Pinned at** -- `src/components/popup/popup.anchored.css` (header), `UIPopup.styles`, `popup.css.test.ts` ("the
+  anchored sheet parses in the browser"), `PAPERCUTS.md` 2026-09-29.
+
+### `<ui-flyout>` builds on the modal family, not on the element core
+
+- **Cost** -- the flyout family imports `$/components/modal` (a cross-family barrel import:  loading a flyout defines
+  `<ui-modal>`, the content parts and `<ui-button>`, and the `flyout` lib entry depends on the `modal` one);
+  `DialogElement` is generic over its vocabulary but reads its attributes, events, parts and texts through casts
+  (`dialogAttrs`, `fire()`), so a subclass vocabulary missing one of them fails at run time, not in `tsc`.
+- **Cause** -- the brief (2026-09-30) put the shared modal logic IN the modal family ("a shared base or helper in the
+  modal family, NOT a copy");  the plan's home for it is `src/elements/OverlayElement.ts` (via `$/core`).  Typing
+  "this vocabulary has at least these names" isn't expressible with the vocabulary types as they are.
+- **Fix** -- move `DialogElement` (and `ModalFallback`'s dialog logic) to `src/elements/` as the plan's
+  `OverlayElement`, exported through `$/core`, once a third dialog element (a page `<ui-dimmer>` could be one) wants
+  it;  give it a `DialogVocabulary` constraint type checked with a conditional type.
+- **Pinned at** -- `src/components/modal/DialogElement.tsx` (class docs), `src/components/flyout/UIFlyout.tsx`,
+  `flyout.fallback.ts` (the `vocabulary` cast), `docs/grammar.md` "Flyouts".

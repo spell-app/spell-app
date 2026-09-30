@@ -4,7 +4,10 @@
       "Bash(npx tsc *)",
       "Bash(perl -pi -e ' *)",
       "Bash(grep -v \"^src/app/store.ts$\")",
-      "Bash(git restore *)"
+      "Bash(git restore *)",
+      "Bash(yarn *)",
+      "Bash(npx *)",
+      "Bash(git *)"
     ]
   }
 }

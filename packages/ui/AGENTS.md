@@ -1,7 +1,10 @@
 # AGENTS.md
 
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
-when working with code in this repository.
+when working with code in this package, `@spell/ui`.
+
+Conventions every package shares -- Solid 2, Long-term debt, Documentation, Functions, Decorators,
+Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST.  Only what's local is below.
 
 ## Overview
 
@@ -14,9 +17,9 @@ when working with code in this repository.
 - `docs/status.md` is the per-component checklist (status, tests, size, keyboard, docs page, deferred items).
   MUST be updated in the same change that builds, finishes or defers anything in it.
 - Layout:
-  - `packages/solid-element/` -- `@spell/solid-element`, the fork of `@solidjs/element` + `component-register`
-    (upgrade, forms, lifecycle, error boundary, HMR fixes;  `UPSTREAM.md` maps each to a PR).  Its OWN yarn
-    project (own `yarn.lock`, `node_modules`, tests), linked into the root with `link:`;  run its scripts with
+  - `../solid-element/` -- `@spell/solid-element`, the fork of `@solidjs/element` + `component-register`
+    (upgrade, forms, lifecycle, error boundary, HMR fixes;  `UPSTREAM.md` maps each to a PR).  A workspace of
+    the monorepo (`workspace:*`), with its own `node_modules` and tests;  run its scripts with
     `yarn fork <script>`.  NEVER import its files from `src/`:  use the package name.
   - `src/util/` -- general utilities with no dependency on the rest of the package:  `@proto` (`decorators.ts`),
     `class.ts`, `string.ts` (case, `numberToWord`, `suggest`), `dom.ts` (`closestAcrossShadow` ...), `util.types.ts`
@@ -100,7 +103,8 @@ when working with code in this repository.
     needed by `yarn vendor` / `yarn measure`, which build it when stale (`tools/ForkBuild.ts`);  dev, tests,
     the site and the library build use its source
   - `yarn site:dev`, `yarn site:build`
-  - NEVER `npx tsc`:  `node_modules/.bin/tsc` is TypeScript 6 (see `PAPERCUTS.md`).  Use `yarn tsc`.
+  - NEVER `npx tsc`:  `node_modules/.bin/tsc` is TypeScript 6 (see the root's `PAPERCUTS.md`, `## ui`).
+    Use `yarn tsc`.
 
 ## UI rules
 
@@ -194,139 +198,33 @@ when working with code in this repository.
   `import * as` a Solid package in shipped code (it pins every export into bundles and vendored copies).
 - SSR:  anything that reads the DOM in a constructor needs an `isServer` guard (`test/ssr.ssr.test.tsx`).
 
-## Long-term debt
-
-- `CODE-DEBT.md` tracks structural debt we have knowingly chosen NOT to fix yet.
-- Add an entry when a problem is structural, too big to fix in passing, and being tolerated
-  deliberately -- especially when a test or lint rule is pinned, skipped or widened to
-  accommodate it.  Record the mechanism, not a guess, so nobody rediscovers it.
-- NOT for local cleanups (inline `REFACTOR:` marker), suspected bugs (`SUSPECTED-BUGS.md`)
-  or tooling papercuts (`PAPERCUTS.md`).
-- See that file's header for the entry format.
-
-## Documentation
-
-- Create and maintain a markdown docstring comments before:
-  - types and each property in a type
-  - classes and class methods/fields
-  - loose methods
-- Explain _why_, don't just restate the code.
-- Make sure to note side effects and unexpected conventions.
-- Format:
-  - informal style, one line and then `-` bullets
-  - DO NOT use jsdoc `@param` etc
-  - terse text, e.g. `last server version`, not `the last known server version`
-  - two spaces after a period
-  - backticked identifiers/types
-  - format lists as bullets rather than inline commas
-  - `~==` for "equivalent to" and `===` for exactly equals
-- Marker vocabulary / invariants: NOTE, TODO, SIDE EFFECT, HACK, NEVER, MUST, DOCME, RENAME, DEPRECATED
-- Wrap comments at english phrase boundaries, not mid-clause. Avoid single or double widow words,
-  wrap `e.g.` clauses if they don't fit on the original line, etc.
-  and drop filler articles (`the`, `a`) that don't earn their place
-- Write or clarify docstrings and comments where you see marker `DOCME`.
-- Always place a blank line before a group header like the below.
-- Separate function code groups like so:
-
-```
-
-////////////////
-// ## Group Name
-////////////////
-```
-
-- Separate custom element classes with a header like so:
-
-```
-
-/****************
- * ### `<ui-component-name>`
- * Description of the component.
- ****************/
-```
-
-## Functions
-
-- An inner helper that doesn't use `this` is NOT an inline arrow (`const visit = (...) => ...`).  Either:
-  - make it a private helper function, or
-  - declare it `function visit(...) {...}` at the BOTTOM of the enclosing function, after any `return`,
-    with a docstring saying what it does -- hoisting makes it callable from above.
-- Arrow functions stay fine for short callbacks passed inline, e.g. `tokens.map((token) => token.value)`.
-
 ## Decorators
 
-- Use STANDARD (TC39 2023-11) decorators, NEVER `experimentalDecorators`.  General-purpose ones live in `$/util/decorators.ts`.
-- Lowered by esbuild via `vite.decorators.ts`, used by `vite.config.ts` (`baseConfig()`, shared with
-  `vitest.config.ts`) and the Astro config -- vite 8's own transformer (oxc) doesn't do it yet.
-- A decorator MUST be the first thing on its line (`@proto static parts = [...]` is fine,
-  and preferred) or that plugin won't notice the file.
+As the root's, plus:
+
+- `vite.decorators.ts` is used by `vite.config.ts` (`baseConfig()`, shared with `vitest.config.ts`) and the
+  Astro config.
 - The decorator pre-pass MUST run BEFORE the Solid plugin (both are `enforce: "pre"`;  `baseConfig()` orders them):
   the Solid compiler must see decorator-free code.
 
 ## Types / Exports
 
-- ALWAYS use `type` rather than `interface`. Wrap with `Prettify` (from `$/util`) when combining types.
-- One exported class per file, file named for the class.  e.g. `Keyboard.ts`, `Overlays.ts`
-  rather than both living in `services.ts`.
-- Types and helper functions appear AFTER the durable JS structure that uses them,
-  e.g. `UIElementProps` goes directly below `class UIElement`.
-- Centralize shared types in a single `<folder>.types.ts` per folder, e.g. `runtime.types.ts`, `elements.types.ts`.
-  - NEVER bare `types.ts` or `constants.ts` -- constants, small error classes
-    and pure helpers for those types live in `<folder>.types.ts` too.
-  - Group with `// ## Group Name` headers.
-  - MUST be runtime-light:  `import type` only, apart from `$/util`.
-  - Exception: class constructor props (`XProps`) live in the defining file.
-    Move to `<folder>.types.ts` once a second file needs them.
-- Create barrel `index.ts` for each folder:
-  - header comment block explaining the barrel, with `NOTE:` for anything deliberately left out or namespaced
-  - `export * from "./<folder>.types"` first, then leaf files base-classes-first
-  - sub-folder barrels are flattened in:  `export * from "./services"`
-- Each sub-system has ONE self-namespace, exported from its top barrel:  `export * as E from "."`
-  - `UI` ~== the runtime singleton from `$/runtime`
-  - `E` ~== `$/elements`
-  - the components barrel exports classes by name (`UIButton`, `UIDropdown`), no namespace
-  - NEVER create a second namespace for a sub-folder -- flatten into parent.
-  - Exception: namespace a file whose names would collide when flattened.
-  - Prefer a disambiguating affix over a namespace when the names allow it.
-  - NOTE: `export *` through a circular barrel is riskier than a named re-export -- it must read the
-    leaf's key list EAGERLY, so a mid-body leaf contributes nothing.
-- Barrels MUST NOT pull in optional sub-systems.  Make them opt-in via side-effect import.
-- When refactoring imports and exports, if you encounter circular import problems
-  create smoke tests (`barrel.test.ts`)  ensuring no circular import problems in
-  TS/rollup/browser for various entry points.
+As the root's, plus our self-namespaces:
+
+- `UI` ~== the runtime singleton from `$/runtime`
+- `E` ~== `$/elements`
+- the components barrel exports classes by name (`UIButton`, `UIDropdown`), no namespace
 
 ## Imports
 
-- ALWAYS import starting from `$`, NEVER start import from `../`.
-  - Test helpers come from `$test/...` (`$test/fixture`, `$test/a11y`, `$test/ElementFixture`), the only other
-    alias.
-  - Exceptions:  component files import shared code from `$/core` / `$/forms` ("Solid authoring");  `tools/` are
-    node scripts:  relative imports with `.ts` extensions, no aliases.
-- OK to import from direct peers: `import { UIElement } from "./UIElement"`, but not subdirectories -- use `$/...` instead.
-- Prefer ONE namespace import per sub-system and qualify at use site:
-  `import { E } from "$/elements"` => `E.UIElement`, `new E.ClassBuilder(...)`.
-  - Applies INSIDE the sub-system as well.
-  - Self-import uses full path too, even from same folder as the barrel:
-    `import { E } from "$/elements"`, NEVER `import { E } from "."`.
-    Only the barrel itself says `"."`:  `export * as E from "."`.
-  - NEVER reach into another sub-system's leaf file for something its barrel exports.
-  - OK to refer to file's own class unqualified.
-  - Tests may mix: `import { E, UIElement } from "$/elements"`.
-- Circularity rules for files inside a barrel:
-  - `E.X` as a VALUE is fine inside function / method bodies -- resolved at call time.
-  - NEVER use `E.X` at module-evaluation time:  `extends` clauses, static initializers,
-    top-level `new`.  Circular reentry silently yields `undefined` / broken `instanceof`.
-  - Import base classes directly from the defining file, with comment:
-    `// Import directly to avoid circular import`
-  - Use `import type { E }` when file only needs types, e.g. `*.types.ts`.
-- Import order:
-  - node_modules
-  - (blank line)
-  - `$/util` and other general utilities, general-to-specific
-  - other sub-system barrels
-  - own barrel
-  - direct peer files, base classes first
-  - (blank line)
-  - side-effect imports (`import "$/components/button"`)
-  - css files (`./button.css` if in same folder, else `$/styles/tokens.css`)
-- One import statement per module.  Inline type imports:  `import { E, type ClassKind } from "$/elements"`.
+As the root's, with `$` as our alias, plus:
+
+- Test helpers come from `$test/...` (`$test/fixture`, `$test/a11y`, `$test/ElementFixture`), the only other
+  alias.
+- Exceptions:  component files import shared code from `$/core` / `$/forms` ("Solid authoring");  `tools/` are
+  node scripts:  relative imports with `.ts` extensions, no aliases.
+- The root's examples, in `ui`:
+  - `import { E } from "$/elements"` => `E.UIElement`, `new E.ClassBuilder(...)`
+  - tests may mix:  `import { E, UIElement } from "$/elements"`
+  - side-effect imports:  `import "$/components/button"`
+  - css files:  `./button.css` if in same folder, else `$/styles/tokens.css`

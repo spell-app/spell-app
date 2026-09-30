@@ -1,11 +1,10 @@
 # AGENTS.md
 
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
-when working with code in this repository.
+when working with code in this package, `spell`.
 
-**If working with Solid (2.0) -- components, JSX, effects / signals / stores, `spellCore` rendering, `~/util`
-reactivity, `@spell/ui` elements, or any React-to-Solid step:  READ `docs/solid/SOLID-2.md` IN FULL FIRST.**
-Solid 2 is neither React nor Solid 1, and guessing from either produces wrong code.
+Conventions every package shares -- Solid 2, Long-term debt, Documentation, Functions, Decorators,
+Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST.  Only what's local is below.
 
 ## Overview
 
@@ -57,65 +56,6 @@ Solid 2 is neither React nor Solid 1, and guessing from either produces wrong co
   how projects share a parser.  Read it BEFORE digging into parser internals.
 - MUST keep it up to date in the same change whenever the parsing mechanism changes -- generic `Parser`, `SpellParser`,
   scopes, or the `Block` / `BlockLine` / `SpellStatement` machinery.
-
-## Solid 2
-
-- We're moving from React to Solid 2 (`2.0.0-rc.13`;  `@spell/ui` still pins rc.11) on `@spell/ui`.  Solid 2 is NEITHER React NOR Solid 1.
-- The rules:  `docs/solid/SOLID-2.md` (see the top of this file).  NOT `@`-imported on purpose:  it loads only
-  when the task needs it.  Claude also has the `solid-2` skill, which triggers on Solid work.
-- The why and the measurements:  `docs/solid/SOLID-2.html`.  The API:  `docs/solid/CHEATSHEET.html`.
-- MUST keep `SOLID-2.md` up to date when a Solid decision changes or an RC bump changes behaviour.
-
-## Long-term debt
-
-- `CODE-DEBT.md` tracks structural debt we have knowingly chosen NOT to fix yet.
-- Add an entry when a problem is structural, too big to fix in passing, and being tolerated
-  deliberately -- especially when a test or lint rule is pinned, skipped or widened to
-  accommodate it.  Record the mechanism, not a guess, so nobody rediscovers it.
-- NOT for local cleanups (inline `REFACTOR:` marker), suspected bugs (`SUSPECTED-BUGS.md`)
-  or tooling papercuts (`PAPERCUTS.md`).
-- See that file's header for the entry format.
-
-## Documentation
-
-- Create and maintain a markdown docstring comments before:
-  - types and each property in a type
-  - classes and class methods/fields
-  - loose methods
-- Explain _why_, don't just restate the code.
-- Make sure to note side effects and unexpected conventions.
-- Format:
-  - informal style, one line and then `-` bullets
-  - DO NOT use jsdoc `@param` etc
-  - terse text, e.g. `last server version`, not `the last known server version`
-  - two spaces after a period
-  - backticked identifiers/types
-  - format lists as bullets rather than inline commas
-  - `~==` for "equivalent to" and `===` for exactly equals
-- Marker vocabulary / invariants: NOTE, TODO, SIDE EFFECT, HACK, NEVER, MUST, DOCME, RENAME, DEPRECATED
-- Wrap comments at english phrase boundaries, not mid-clause. Avoid single or double widow words,
-  wrap `e.g.` clauses if they don't fit on the original line, etc.
-  and drop filler articles (`the`, `a`) that don't earn their place
-- Write or clarify docstrings and comments where you see marker `DOCME`.
-- Always place a blank line before a group header like the below.
-- Separate function code groups like so:
-
-```
-
-////////////////
-// ## Group Name
-////////////////
-```
-
-- Separate React components with a header like so:
-
-```
-
-/****************
- * ### `<ComponentName>`
- * Description of the component.
- ****************/
-```
 
 ## Creating docs
 
@@ -169,20 +109,13 @@ HTML docs for people -- design notes, research, references -- live in `docs/<top
     (it says GENERATED at the top), and commit both.
   - It must pass:  bundle, `doc-links.py --check`, convert (a self-check:  identical code, ids, links, one contents
     link per heading), then `scripts/docs/check-spell.mjs` per page -- and LOOK at its screenshots.
-  - A @spell/ui problem:  work around it here if reasonable, never edit `../ui` from this repo, and add it to
-    `docs/SPELL-UI-FINDINGS.md`.
+  - A @spell/ui problem:  fix it in `../ui` when it's a real `ui` bug (the same change may touch both), else work
+    around it here;  either way, add it to `docs/SPELL-UI-FINDINGS.md`.
   - New markup in a source (a new kind of block) needs a mapping in `scripts/docs/to-spell.mjs` and a line in
     `SPELL-DOCS.md`'s mapping table.
 - When agents need a doc's rules, also write a distilled `.md` beside it (bullets, `ts` code blocks), and point to it
-  from the top of this file with an "if working with X, READ file" line -- see `docs/solid/SOLID-2.md`.
-
-## Functions
-
-- An inner helper that doesn't use `this` is NOT an inline arrow (`const visit = (...) => ...`).  Either:
-  - make it a private helper function, or
-  - declare it `function visit(...) {...}` at the BOTTOM of the enclosing function, after any `return`,
-    with a docstring saying what it does -- hoisting makes it callable from above.
-- Arrow functions stay fine for short callbacks passed inline, e.g. `tokens.map((token) => token.value)`.
+  from the top of an `AGENTS.md` with an "if working with X, READ file" line -- this file's, or the root's when
+  other packages need it too.  See `docs/solid/SOLID-2.md`, pointed to from the root's.
 
 ## Parser rules
 
@@ -300,78 +233,17 @@ HTML docs for people -- design notes, research, references -- live in `docs/<top
 
 ## Decorators
 
-- Use STANDARD (TC39 2023-11) decorators, NEVER `experimentalDecorators`.  General-purpose ones live in `~/util/decorators.ts`.
-- Lowered by esbuild via `vite.decorators.ts`, used by BOTH `vite.config.ts` and `vitest.config.ts` -- vite 8's own
-  transformer (oxc) doesn't do it yet.  Server is fine as `tsx` is esbuild already.
-- A decorator MUST be the first thing on its line (`@proto static inlineInitialType = false` is fine,
-  and preferred) or that plugin won't notice the file.
+As the root's, plus:
+
+- `vite.decorators.ts` is used by BOTH `vite.config.ts` and `vitest.config.ts`.
+  Server is fine as `tsx` is esbuild already.
 
 ## Types / Exports
 
-- ALWAYS use `type` rather than `interface`. Wrap with `Prettify` when combining types.
-- One exported class per file, file named for the class.  e.g. `Keyword.ts`, `Symbol.ts`
-  rather than both living in `Literal.ts`.
-- Types and helper functions appear AFTER the durable JS structure that uses them,
-  e.g. `ScopeProps` goes directly below `class Scope`.
-- Centralize shared types in a single `<folder>.types.ts` per folder, e.g. `parser.types.ts`, `rules.types.ts`.
-  - NEVER bare `types.ts` or `constants.ts` -- constants, small error classes
-    and pure helpers for those types live in `<folder>.types.ts` too.
-  - Group with `// ## Group Name` headers.
-  - MUST be runtime-light:  `import type` only, apart from `~/util`.
-  - Exception: class constructor props (`XProps`) and React component props live in the defining file.
-    Move to `<folder>.types.ts` once a second file needs them.
-- Create barrel `index.ts` for each folder:
-  - header comment block explaining the barrel, with `NOTE:` for anything deliberately left out or namespaced
-  - `export * from "./<folder>.types"` first, then leaf files base-classes-first
-  - sub-folder barrels are flattened in:  `export * from "./rules"`
-- Each sub-system has ONE self-namespace, exported from its top barrel:  `export * as P from "."`
-  - `P` ~== `~/parser`
-  - `SP` ~== `~/languages/spell`
-  - `UI` ~== `~/app/ui`
-  - `F` ~== `~/app/ui/forms`
-  - `SC` ~== `~/spellCore`
-  - NEVER create a second namespace for a sub-folder (no `R` for rules) -- flatten into parent.
-  - Exception: namespace a file whose names would collide when flattened:
-    `export * as render from "./renderAST"` + `export * as stringify from "./stringifyAST"`,
-    which deliberately export the same names with different return types.
-  - Prefer a disambiguating affix over a namespace when the names allow it -- token and AST classes
-    are `WordToken` / `ASTLiteral` etc. and flatten straight into `~/parser`.
-  - NOTE: `export *` through a circular barrel is riskier than a named re-export -- it must read the
-    leaf's key list EAGERLY, so a mid-body leaf contributes nothing.  See `parser/barrel.test.ts`.
-- Barrels MUST NOT pull in optional sub-systems.  Make them opt-in via side-effect import,
-  e.g. `import "~/languages/rulex"` registers itself on `Parser.rulexParser`.
-- When refactoring imports and exports, if you encounter circular import problems 
-  create smoke tests (`barrel.test.ts`)  ensuring no circular import problems in 
-  TS/rollup/browser for various entry points.
+As the root's, plus our self-namespaces:
 
-## Imports
-
-- ALWAYS import starting from `~`, NEVER start import from `../`.
-- OK to import from direct peers: `import { Rule } from "./Rule"`, but not subdirectories -- use `~/...` instead.
-- Prefer ONE namespace import per sub-system and qualify at use site:
-  `import { P } from "~/parser"` => `P.Match`, `new P.Symbol(...)`, `P.ASTExpression`.
-  - Applies INSIDE the sub-system as well.
-  - Self-import uses full path too, even from same folder as the barrel:
-    `import { P } from "~/parser"`, NEVER `import { P } from "."`.
-    Only the barrel itself says `"."`:  `export * as P from "."`.
-  - NEVER reach into another sub-system's leaf file for something its barrel exports.
-  - OK to refer to file's own class unqualified.
-  - Tests may mix: `import { P, Match, Parser } from "~/parser"`.
-- Circularity rules for files inside a barrel:
-  - `P.X` as a VALUE is fine inside function / method bodies -- resolved at call time.
-  - NEVER use `P.X` at module-evaluation time:  `extends` clauses, static initializers,
-    top-level `new`.  Circular reentry silently yields `undefined` / broken `instanceof`.
-  - Import base classes directly from the defining file, with comment:
-    `// Import directly to avoid circular import`
-  - Use `import type { P }` when file only needs types, e.g. `*.types.ts`, `Tokens.ts`.
-- Import order:
-  - node_modules
-  - (blank line)
-  - `~/util` and other general utilities, general-to-specific
-  - other sub-system barrels
-  - own barrel
-  - direct peer files, base classes first
-  - (blank line)
-  - side-effect imports (`import "~/languages/rulex"`)
-  - css files (`./foo.css` if in same folder, else `~/path/to/foo.css`)
-- One import statement per module.  Inline type imports:  `import { P, type AnyMatch } from "~/parser"`.
+- `P` ~== `~/parser`
+- `SP` ~== `~/languages/spell`
+- `UI` ~== `~/app/ui`
+- `F` ~== `~/app/ui/forms`
+- `SC` ~== `~/spellCore`
