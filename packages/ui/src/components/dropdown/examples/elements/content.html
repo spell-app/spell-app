@@ -1,0 +1,51 @@
+<!-- `src/components/dropdown/examples/content.html` as element markup.  Menus shown open. -->
+<div class="ui-stack">
+  <section style="min-height: 22em">
+    <h4>Header, divider, icon, description</h4>
+    <ui-dropdown open text="Filter">
+      <ui-item type="header">Filter by tag</ui-item>
+      <ui-item type="divider"></ui-item>
+      <ui-item icon="circle" description="2 new">Important</ui-item>
+      <ui-item icon="bullhorn">Announcement</ui-item>
+      <ui-item icon="comments" disabled>Discussion</ui-item>
+    </ui-dropdown>
+  </section>
+
+  <section style="min-height: 14em">
+    <h4>Image and flag</h4>
+    <ui-dropdown open selection value="jenny" placeholder="Friend">
+      <ui-item
+        value="jenny"
+        image="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%2396a%22/%3E%3C/svg%3E"
+        >Jenny Hess</ui-item
+      >
+      <ui-item value="fr" flag="fr">France</ui-item>
+      <ui-item value="de" flag="de">Germany</ui-item>
+    </ui-dropdown>
+  </section>
+
+  <section style="min-height: 10em">
+    <h4>Message (no results)</h4>
+    <ui-dropdown open search selection placeholder="Select Country"></ui-dropdown>
+  </section>
+
+  <section style="min-height: 12em">
+    <h4>Rich item content (projected)</h4>
+    <ui-dropdown open selection placeholder="Tags">
+      <ui-item value="svelte"><b>Svelte</b> Kit</ui-item>
+      <ui-item value="solid">Solid</ui-item>
+    </ui-dropdown>
+  </section>
+
+  <section style="min-height: 22em">
+    <h4>Header slot, scrolling menu</h4>
+    <ui-dropdown open floating labeled button icon="filter" text="Filter Posts">
+      <strong slot="header">Tag label</strong>
+      <ui-item>Important</ui-item>
+      <ui-item>Announcement</ui-item>
+      <ui-item>Cannot fix</ui-item>
+      <ui-item>News</ui-item>
+      <ui-item>Enhancement</ui-item>
+    </ui-dropdown>
+  </section>
+</div>

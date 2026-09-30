@@ -1,0 +1,146 @@
+<!--
+  Table content, after Fomantic's docs (collections/table.html, "Content").
+  Class grammar on native tables;  `examples/elements/content.html` is the same as `<ui-table>` markup.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Caption, row headers, full-width header and footer</h4>
+    <table class="ui definition compact celled table">
+      <caption>
+        Team members
+      </caption>
+      <thead class="full-width">
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Registration Date</th>
+          <th scope="col">E-mail address</th>
+          <th scope="col" class="collapsing">Premium</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">John Lilki</th>
+          <td class="single line">September 14, 2013</td>
+          <td>jhlilk22@yahoo.com</td>
+          <td class="collapsing">No</td>
+        </tr>
+        <tr>
+          <th scope="row">Jamie Harington</th>
+          <td class="single line">January 11, 2014</td>
+          <td>jamieharingonton@yahoo.com</td>
+          <td class="collapsing">Yes</td>
+        </tr>
+      </tbody>
+      <tfoot class="full-width">
+        <tr>
+          <th colspan="4">2 members</th>
+        </tr>
+      </tfoot>
+    </table>
+  </section>
+
+  <section>
+    <h4>Selectable cell</h4>
+    <table class="ui celled table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>No Action</td>
+          <td class="selectable"><a href="#edit-john">Edit</a></td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td class="selectable"><a href="#edit-jamie">Edit</a></td>
+        </tr>
+        <tr class="warning">
+          <td>Jill</td>
+          <td>Approved</td>
+          <td class="selectable warning"><a href="#edit-jill">Edit</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h4>Column width</h4>
+    <table class="ui table">
+      <thead>
+        <tr>
+          <th class="three wide">Name</th>
+          <th class="ten wide">Status</th>
+          <th class="three wide">Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h4>Cell alignment</h4>
+    <table class="ui celled table">
+      <thead>
+        <tr>
+          <th class="left aligned">Name</th>
+          <th class="center aligned">Status</th>
+          <th class="right aligned">Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="top aligned">
+          <td>John<br />Smith</td>
+          <td class="center aligned">Approved</td>
+          <td class="right aligned">None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td class="bottom aligned center aligned">Approved</td>
+          <td class="right aligned">Requires<br />call</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h4>Row spanned (stack helper)</h4>
+    <table class="ui celled table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td rowspan="2">John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td class="rowspanned">John</td>
+          <td>Approved</td>
+          <td>Second visit</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</div>

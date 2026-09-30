@@ -1,0 +1,102 @@
+<!--
+  Toast variations, after Fomantic's docs (modules/toast.html, "Variations"):  colours, inverted, progress bars,
+  actions (inline, basic, vertical, attached) and the non-compact width.
+  Actions are plain `.ui.button`s here;  the element slots `<ui-button>`s.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Colored</h4>
+    <div class="floating toast-box compact">
+      <div class="ui teal toast compact" role="status">
+        <div class="content"><div class="message">A teal toast.</div></div>
+      </div>
+    </div>
+    <div class="floating toast-box compact">
+      <div class="ui purple inverted toast compact" role="status">
+        <div class="content"><div class="message">An inverted purple toast.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Inverted</h4>
+    <div class="floating toast-box compact">
+      <div class="ui inverted toast compact" role="status">
+        <div class="content"><div class="message">A dark toast.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Progress bar</h4>
+    <div class="floating toast-box compact">
+      <div class="ui attached active progress top info"><div class="bar down"></div></div>
+      <div class="ui info toast compact" role="status">
+        <div class="content"><div class="message">Progress on top.</div></div>
+      </div>
+    </div>
+    <div class="floating toast-box compact">
+      <div class="ui success toast compact" role="status">
+        <div class="content"><div class="message">Progress below.</div></div>
+      </div>
+      <div class="ui attached active progress bottom success"><div class="bar up"></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Actions</h4>
+    <div class="floating toast-box compact unclickable">
+      <div class="ui toast actions compact" role="status">
+        <div class="content">
+          <div class="header">Delete?</div>
+          <div class="message">Do you really want to delete this?</div>
+        </div>
+        <div class="actions">
+          <button type="button" class="ui positive button">Yes</button>
+          <button type="button" class="ui negative button">No</button>
+        </div>
+      </div>
+    </div>
+    <div class="floating toast-box compact unclickable">
+      <div class="ui toast compact" role="status">
+        <div class="content"><div class="message">Basic actions have no bar.</div></div>
+        <div class="basic actions"><button type="button" class="ui button">Okay</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Vertical actions</h4>
+    <div class="floating toast-box compact unclickable">
+      <div class="ui toast vertical actions compact" role="status">
+        <div class="content"><div class="message">Beside me, a column of buttons.</div></div>
+        <div class="vertical actions">
+          <button type="button" class="ui positive button">Yes</button>
+          <button type="button" class="ui negative button">No</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Attached actions</h4>
+    <div class="floating toast-box compact unclickable">
+      <div class="ui toast attached top compact" role="status">
+        <div class="content"><div class="message">Attached below me.</div></div>
+      </div>
+      <div class="ui buttons attached actions">
+        <button type="button" class="ui button">Yes</button>
+        <button type="button" class="ui button">No</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Not compact</h4>
+    <div class="floating toast-box">
+      <div class="ui toast" role="status">
+        <div class="content"><div class="message">As wide as my text.</div></div>
+      </div>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,55 @@
+<!--
+  `src/components/sidebar/examples/sidebar.html` as element markup.  Native buttons toggle the sidebars through invoker
+  commands (`commandfor` + `command="--toggle"`);  Escape or a click on the dimmed content closes a modal one.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Sidebar</h4>
+    <ui-pushable style="height: 14em">
+      <ui-sidebar id="sidebar-demo-left" inverted aria-label="Site">
+        <ui-menu vertical inverted fluid aria-label="Site">
+          <ui-item href="#home">Home</ui-item>
+          <ui-item href="#games">Games</ui-item>
+          <ui-item href="#channels">Channels</ui-item>
+        </ui-menu>
+      </ui-sidebar>
+      <ui-pusher>
+        <ui-segment basic>
+          <button type="button" class="ui button" commandfor="sidebar-demo-left" command="--toggle">Menu</button>
+          <p>The default left sidebar uncovers itself from under this content, which dims.</p>
+        </ui-segment>
+      </ui-pusher>
+    </ui-pushable>
+  </section>
+
+  <section>
+    <h4>Overlay, right, thin</h4>
+    <button type="button" class="ui button" commandfor="sidebar-demo-right" command="--toggle">Toggle right</button>
+    <ui-pushable style="height: 12em">
+      <ui-sidebar id="sidebar-demo-right" position="right" width="thin" transition="overlay" inverted>
+        <ui-menu vertical inverted fluid aria-label="Numbers">
+          <ui-item href="#one">One</ui-item>
+          <ui-item href="#two">Two</ui-item>
+        </ui-menu>
+      </ui-sidebar>
+      <ui-pusher>
+        <ui-segment basic><p>An overlay sidebar covers the content without moving it.</p></ui-segment>
+      </ui-pusher>
+    </ui-pushable>
+  </section>
+
+  <section>
+    <h4>Persistent</h4>
+    <ui-pushable style="height: 10em">
+      <ui-sidebar position="left" width="thin" transition="push" persistent visible aria-label="Sections">
+        <ui-menu vertical fluid aria-label="Sections">
+          <ui-item href="#a">Alpha</ui-item>
+          <ui-item href="#b">Beta</ui-item>
+        </ui-menu>
+      </ui-sidebar>
+      <ui-pusher>
+        <ui-segment basic><p>A persistent sidebar is part of the page: nothing is dimmed or blocked.</p></ui-segment>
+      </ui-pusher>
+    </ui-pushable>
+  </section>
+</div>

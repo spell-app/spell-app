@@ -1,0 +1,210 @@
+<!-- `src/components/list/examples/types.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>List</h4>
+    <ui-list>
+      <ui-item>Apples</ui-item>
+      <ui-item>Pears</ui-item>
+      <ui-item>Oranges</ui-item>
+    </ui-list>
+  </section>
+
+  <section>
+    <h4>Icons</h4>
+    <ui-list>
+      <ui-item icon="users">
+        <ui-content> Fomantic UI </ui-content>
+      </ui-item>
+      <ui-item icon="location dot">
+        <ui-content> Worldwide </ui-content>
+      </ui-item>
+      <ui-item icon="mail">
+        <ui-content>
+          <a href="mailto:contact@example.com">contact@example.com</a>
+        </ui-content>
+      </ui-item>
+      <ui-item icon="linkify">
+        <ui-content>
+          <a href="#site">example.com</a>
+        </ui-content>
+      </ui-item>
+    </ui-list>
+  </section>
+
+  <section>
+    <h4>Relaxed, divided, with headers</h4>
+    <ui-list relaxed divided>
+      <ui-item icon="github">
+        <ui-content>
+          <ui-header href="#ui">fomantic/Fomantic-UI</ui-header>
+          <ui-description>Updated 10 mins ago</ui-description>
+        </ui-content>
+      </ui-item>
+      <ui-item icon="github">
+        <ui-content>
+          <ui-header href="#docs">fomantic/Fomantic-UI-Docs</ui-header>
+          <ui-description>Updated 22 mins ago</ui-description>
+        </ui-content>
+      </ui-item>
+      <ui-item icon="github">
+        <ui-content>
+          <ui-header href="#less">fomantic/Fomantic-UI-LESS</ui-header>
+          <ui-description>Updated 34 mins ago</ui-description>
+        </ui-content>
+      </ui-item>
+    </ui-list>
+  </section>
+
+  <section>
+    <h4>Nested</h4>
+    <ui-list>
+      <ui-item icon="folder">
+        <ui-content>
+          <ui-header>src</ui-header>
+          <ui-description>Source files for project</ui-description>
+          <ui-list>
+            <ui-item icon="folder">
+              <ui-content>
+                <ui-header>site</ui-header>
+                <ui-description>Your site's theme</ui-description>
+              </ui-content>
+            </ui-item>
+            <ui-item icon="folder">
+              <ui-content>
+                <ui-header>themes</ui-header>
+                <ui-description>Packaged theme files</ui-description>
+                <ui-list>
+                  <ui-item icon="folder">
+                    <ui-content>
+                      <ui-header>default</ui-header>
+                      <ui-description>Default packaged theme</ui-description>
+                    </ui-content>
+                  </ui-item>
+                  <ui-item icon="folder">
+                    <ui-content>
+                      <ui-header>my_theme</ui-header>
+                      <ui-description>Packaged themes are also available in this folder</ui-description>
+                    </ui-content>
+                  </ui-item>
+                </ui-list>
+              </ui-content>
+            </ui-item>
+            <ui-item icon="file">
+              <ui-content>
+                <ui-header>theme.config</ui-header>
+                <ui-description>Config file for setting packaged themes</ui-description>
+              </ui-content>
+            </ui-item>
+          </ui-list>
+        </ui-content>
+      </ui-item>
+      <ui-item icon="folder">
+        <ui-content>
+          <ui-header>dist</ui-header>
+          <ui-description>Compiled CSS and JS files</ui-description>
+          <ui-list>
+            <ui-item icon="folder">
+              <ui-content>
+                <ui-header>components</ui-header>
+                <ui-description>Individual component CSS and JS</ui-description>
+              </ui-content>
+            </ui-item>
+          </ui-list>
+        </ui-content>
+      </ui-item>
+      <ui-item icon="file">
+        <ui-content>
+          <ui-header>semantic.json</ui-header>
+          <ui-description>Contains build settings for gulp</ui-description>
+        </ui-content>
+      </ui-item>
+    </ui-list>
+  </section>
+
+  <section>
+    <h4>Bulleted</h4>
+    <ui-list bulleted>
+      <ui-item>Gaining Access</ui-item>
+      <ui-item>Inviting Friends</ui-item>
+      <ui-item>
+        Benefits
+        <ui-list>
+          <ui-item>Use Anywhere</ui-item>
+          <ui-item>Rebates</ui-item>
+          <ui-item>Discounts</ui-item>
+        </ui-list>
+      </ui-item>
+      <ui-item>Warranty</ui-item>
+    </ui-list>
+  </section>
+
+  <section>
+    <h4>Horizontal bulleted</h4>
+    <ui-list horizontal bulleted>
+      <ui-item href="#about">About Us</ui-item>
+      <ui-item href="#sitemap">Sitemap</ui-item>
+      <ui-item href="#contact">Contact</ui-item>
+    </ui-list>
+  </section>
+
+  <section>
+    <h4>Ordered</h4>
+    <ui-list ordered>
+      <ui-item href="#start">Getting Started</ui-item>
+      <ui-item href="#intro">Introduction</ui-item>
+      <ui-item>
+        <a href="#languages">Languages</a>
+        <ui-list>
+          <ui-item href="#html">HTML</ui-item>
+          <ui-item href="#js">JavaScript</ui-item>
+          <ui-item href="#css">CSS</ui-item>
+        </ui-list>
+      </ui-item>
+      <ui-item href="#review">Review</ui-item>
+    </ui-list>
+  </section>
+
+  <section>
+    <h4>Ordered, suffixed</h4>
+    <ui-list ordered suffixed>
+      <ui-item>Signing Up</ui-item>
+      <ui-item>User Benefits</ui-item>
+      <ui-item>
+        User Types
+        <ui-list>
+          <ui-item>Admin</ui-item>
+          <ui-item>Power User</ui-item>
+          <ui-item>Regular User</ui-item>
+        </ui-list>
+      </ui-item>
+      <ui-item>Deleting Your Account</ui-item>
+    </ui-list>
+  </section>
+
+  <section>
+    <h4>Ordered, with values</h4>
+    <ui-list ordered>
+      <ui-item value="*">Signing Up</ui-item>
+      <ui-item value="*">User Benefits</ui-item>
+      <ui-item value="*">
+        User Types
+        <ui-list>
+          <ui-item value="-">Admin</ui-item>
+          <ui-item value="-">Power User</ui-item>
+          <ui-item value="-">Regular User</ui-item>
+        </ui-list>
+      </ui-item>
+      <ui-item value="*">Deleting Your Account</ui-item>
+    </ui-list>
+  </section>
+
+  <section>
+    <h4>Link</h4>
+    <ui-list link>
+      <ui-item selected href="#home">Home</ui-item>
+      <ui-item href="#about">About</ui-item>
+      <ui-item href="#jobs">Jobs</ui-item>
+      <ui-item href="#team">Team</ui-item>
+    </ui-list>
+  </section>
+</div>

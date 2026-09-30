@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(perl -pi -e ' *)",
+      "Bash(git restore *)",
+      "Bash(yarn *)",
+      "Bash(npx *)",
+      "Bash(git *)"
+    ]
+  }
+}

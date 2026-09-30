@@ -1,0 +1,27 @@
+<!--
+  Menu states, after Fomantic's docs (collections/menu.html, "States").
+  Static class grammar:  hover and pressed are the pointer's;  `active` and `disabled` are classes.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Hover</h4>
+    <nav class="ui compact menu" aria-label="Hover">
+      <a class="item" href="#link">A link</a>
+      <div class="link item">div Link</div>
+    </nav>
+  </section>
+
+  <section>
+    <h4>Active</h4>
+    <nav class="ui compact menu" aria-label="Active">
+      <a class="active item" href="#link" aria-current="page">Link</a>
+    </nav>
+  </section>
+
+  <section>
+    <h4>Disabled</h4>
+    <nav class="ui compact menu" aria-label="Disabled">
+      <div class="disabled item">Link</div>
+    </nav>
+  </section>
+</div>

@@ -1,0 +1,43 @@
+<!--
+  Shapes, after Fomantic's docs (modules/shape.html, "Types").  Static class grammar:  only the `active` side shows;
+  Fomantic's script turns the `sides` box to the next.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Shape</h4>
+    <div class="ui shape">
+      <div class="sides">
+        <div class="active side"><p>This side starts visible.</p></div>
+        <div class="side"><p>This is yet another side.</p></div>
+        <div class="side"><p>This is the last side.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Cube</h4>
+    <div class="ui cube shape">
+      <div class="sides">
+        <div class="active side">
+          <div class="content"><div class="center">1</div></div>
+        </div>
+        <div class="side">
+          <div class="content"><div class="center">2</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Text</h4>
+    <p>
+      Flip to
+      <span class="ui text shape">
+        <span class="sides">
+          <span class="active side">Scale</span>
+          <span class="side">Fade</span>
+        </span>
+      </span>
+    </p>
+  </section>
+</div>

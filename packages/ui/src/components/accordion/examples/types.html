@@ -1,0 +1,61 @@
+<!--
+  Accordion types, after Fomantic's docs (modules/accordion.html, "Types").
+  Static class grammar on NATIVE `<details>` panels:  open / close and the exclusive `name` group work without JS.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Accordion</h4>
+    <div class="ui accordion">
+      <details name="dogs" open>
+        <summary class="title"><i class="dropdown icon" aria-hidden="true"></i>What is a dog?</summary>
+        <div class="content">
+          <p>
+            A dog is a type of domesticated animal. Known for its loyalty and faithfulness, it can be found as a welcome
+            guest in many households across the world.
+          </p>
+        </div>
+      </details>
+      <details name="dogs">
+        <summary class="title"><i class="dropdown icon" aria-hidden="true"></i>What kinds of dogs are there?</summary>
+        <div class="content">
+          <p>
+            There are many breeds of dogs. Each breed varies in size and temperament. Owners often select a breed of dog
+            that they find to be compatible with their own lifestyle and desires from a companion.
+          </p>
+        </div>
+      </details>
+      <details name="dogs">
+        <summary class="title"><i class="dropdown icon" aria-hidden="true"></i>How do you acquire a dog?</summary>
+        <div class="content">
+          <p>
+            Three common ways for a prospective owner to acquire a dog is from pet shops, private owners, or shelters.
+          </p>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <section>
+    <h4>Styled</h4>
+    <div class="ui styled accordion">
+      <details name="styled" open>
+        <summary class="title"><i class="dropdown icon" aria-hidden="true"></i>What is a dog?</summary>
+        <div class="content">
+          <p>A dog is a type of domesticated animal.</p>
+        </div>
+      </details>
+      <details name="styled">
+        <summary class="title"><i class="dropdown icon" aria-hidden="true"></i>What kinds of dogs are there?</summary>
+        <div class="content">
+          <p>There are many breeds of dogs.</p>
+        </div>
+      </details>
+      <details name="styled">
+        <summary class="title"><i class="dropdown icon" aria-hidden="true"></i>How do you acquire a dog?</summary>
+        <div class="content">
+          <p>From pet shops, private owners, or shelters.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,71 @@
+/**
+ * Entry point for `@spell/ui` -- everything:  every component family, registered, plus the foundation.
+ * - SIDE EFFECT:  each family's barrel (`$/components/<name>`) calls `define()` for its tags.
+ * - Each family also has its own lib entry (`@spell/ui/button` ...), and the shared code two more
+ *   (`@spell/ui/core`, `@spell/ui/forms`), so a page can load one family alone.  See `vite.config.ts`.
+ * - FLAT:  `UI` is the runtime instance (see `$/runtime`);  `$/styles`, `$/icons` and the component classes carry
+ *   their own suffixes or prefixes (`tokensCSS`, `Icons`, `UIButton`).
+ * - NOTE: NO namespaces here.  `E` (element core) and `V` (vocabulary) live in the `api` entry (`src/api.ts`,
+ *   `@spell/ui/api`):  `export * as` here moved Rolldown's runtime helpers into a chunk every page loaded.
+ *   The element core is also flat in `@spell/ui/core`.
+ */
+
+export * from "$/util"
+export * from "$/runtime"
+export * from "$/styles"
+export * from "$/icons"
+export * from "$/components/components.types"
+
+export * from "$/components/button"
+export * from "$/components/dropdown"
+export * from "$/components/icon"
+export * from "$/components/label"
+export * from "$/components/parts"
+export * from "$/components/divider"
+export * from "$/components/segment"
+export * from "$/components/container"
+export * from "$/components/grid"
+export * from "$/components/image"
+export * from "$/components/text"
+export * from "$/components/flag"
+export * from "$/components/loader"
+export * from "$/components/placeholder"
+export * from "$/components/message"
+export * from "$/components/breadcrumb"
+export * from "$/components/input"
+export * from "$/components/checkbox"
+export * from "$/components/form"
+export * from "$/components/item"
+export * from "$/components/list"
+export * from "$/components/menu"
+export * from "$/components/table"
+export * from "$/components/popup"
+export * from "$/components/modal"
+export * from "$/components/transition"
+export * from "$/components/dimmer"
+export * from "$/components/flyout"
+export * from "$/components/sidebar"
+export * from "$/components/shape"
+export * from "$/components/card"
+export * from "$/components/items"
+export * from "$/components/feed"
+export * from "$/components/comment"
+export * from "$/components/statistic"
+export * from "$/components/step"
+export * from "$/components/rail"
+export * from "$/components/reveal"
+export * from "$/components/ad"
+export * from "$/components/emoji"
+export * from "$/components/select"
+export * from "$/components/search"
+export * from "$/components/progress"
+export * from "$/components/rating"
+export * from "$/components/slider"
+export * from "$/components/accordion"
+export * from "$/components/tab"
+export * from "$/components/toast"
+export * from "$/components/nag"
+export * from "$/components/sticky"
+export * from "$/components/visibility"
+export * from "$/components/embed"
+export * from "$/components/calendar"

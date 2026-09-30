@@ -1,0 +1,80 @@
+<!--
+  Form states, after Fomantic's docs (collections/form.html, "States").  A form only shows the messages of its
+  own state.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Loading</h4>
+    <form class="ui loading form" onsubmit="return false">
+      <div class="field">
+        <label for="fm-states-email-1">E-mail</label>
+        <div class="ui input"><input type="email" id="fm-states-email-1" placeholder="joe@schmoe.com" /></div>
+      </div>
+    </form>
+  </section>
+
+  <section>
+    <h4>Success</h4>
+    <form class="ui success form" onsubmit="return false">
+      <div class="field">
+        <label for="fm-states-email-2">E-mail</label>
+        <div class="ui input"><input type="email" id="fm-states-email-2" placeholder="joe@schmoe.com" /></div>
+      </div>
+      <div class="ui success message">
+        <div class="content">
+          <div class="header">Form Completed</div>
+          <p>You're all signed up.</p>
+        </div>
+      </div>
+      <div class="ui error message">
+        <div class="content"><p>Hidden: the form isn't in the error state.</p></div>
+      </div>
+    </form>
+  </section>
+
+  <section>
+    <h4>Error</h4>
+    <form class="ui error form" onsubmit="return false">
+      <div class="field">
+        <label for="fm-states-email-3">E-mail</label>
+        <div class="ui input"><input type="email" id="fm-states-email-3" placeholder="joe@schmoe.com" /></div>
+      </div>
+      <div class="ui error message">
+        <div class="content">
+          <div class="header">Action Forbidden</div>
+          <p>You can only sign up for an account once.</p>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <section>
+    <h4>Field error, warning, info</h4>
+    <form class="ui form" onsubmit="return false">
+      <div class="two fields">
+        <div class="error field">
+          <label for="fm-states-first">First Name</label>
+          <div class="ui input"><input type="text" id="fm-states-first" placeholder="First Name" /></div>
+        </div>
+        <div class="warning field">
+          <label for="fm-states-last">Last Name</label>
+          <div class="ui input"><input type="text" id="fm-states-last" placeholder="Last Name" /></div>
+        </div>
+      </div>
+      <div class="info field">
+        <label for="fm-states-nick">Nickname</label>
+        <div class="ui input"><input type="text" id="fm-states-nick" placeholder="Nickname" /></div>
+      </div>
+    </form>
+  </section>
+
+  <section>
+    <h4>Disabled field</h4>
+    <form class="ui form" onsubmit="return false">
+      <div class="disabled field">
+        <label for="fm-states-disabled">Disabled</label>
+        <div class="ui input"><input type="text" id="fm-states-disabled" placeholder="Disabled" disabled /></div>
+      </div>
+    </form>
+  </section>
+</div>

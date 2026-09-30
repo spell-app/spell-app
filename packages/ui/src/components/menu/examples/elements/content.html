@@ -1,0 +1,98 @@
+<!-- `src/components/menu/examples/content.html` as element markup, plus a dropdown item. -->
+<div class="ui-stack">
+  <section>
+    <h4>Header</h4>
+    <ui-menu aria-label="Header demo">
+      <ui-item type="header">Our Company</ui-item>
+      <ui-item href="#about">About Us</ui-item>
+      <ui-item href="#jobs">Jobs</ui-item>
+      <ui-item href="#locations">Locations</ui-item>
+    </ui-menu>
+    <ui-menu vertical aria-label="Vertical headers demo">
+      <ui-item>
+        <ui-header>Products</ui-header>
+        <ui-menu>
+          <ui-item href="#enterprise">Enterprise</ui-item>
+          <ui-item href="#consumer">Consumer</ui-item>
+        </ui-menu>
+      </ui-item>
+      <ui-item>
+        <ui-header>CMS Solutions</ui-header>
+        <ui-menu>
+          <ui-item href="#rails">Rails</ui-item>
+          <ui-item href="#python">Python</ui-item>
+          <ui-item href="#php">PHP</ui-item>
+        </ui-menu>
+      </ui-item>
+    </ui-menu>
+  </section>
+
+  <section>
+    <h4>Text</h4>
+    <ui-menu vertical aria-label="Text items demo">
+      <ui-item>
+        <p>To learn more, read the documentation.</p>
+      </ui-item>
+    </ui-menu>
+  </section>
+
+  <section>
+    <h4>Link item</h4>
+    <ui-menu vertical aria-label="Link items demo">
+      <ui-item href="#visit">Visit Google</ui-item>
+      <ui-item link>Javascript Link</ui-item>
+    </ui-menu>
+  </section>
+
+  <section>
+    <h4>Sub menu</h4>
+    <ui-menu vertical aria-label="Sub menu demo">
+      <ui-item>
+        Home
+        <ui-menu>
+          <ui-item href="#search" selected>Search</ui-item>
+          <ui-item href="#add">Add</ui-item>
+          <ui-item href="#remove">Remove</ui-item>
+        </ui-menu>
+      </ui-item>
+      <ui-item href="#browse">Browse</ui-item>
+      <ui-item href="#messages">Messages</ui-item>
+    </ui-menu>
+  </section>
+
+  <section>
+    <h4>Right menu</h4>
+    <ui-menu aria-label="Right menu demo">
+      <ui-item href="#browse">Browse</ui-item>
+      <ui-item href="#submit">Submit</ui-item>
+      <ui-menu position="right">
+        <ui-item href="#signup">Sign Up</ui-item>
+        <ui-item href="#help">Help</ui-item>
+      </ui-menu>
+    </ui-menu>
+  </section>
+
+  <section>
+    <h4>Icons and a dropdown item</h4>
+    <ui-menu aria-label="Icons demo">
+      <ui-item href="#inbox" icon="inbox">Inbox</ui-item>
+      <ui-item href="#mail"><ui-icon name="envelope"></ui-icon>Mail</ui-item>
+      <ui-item>
+        <ui-dropdown text="Language" aria-label="Language">
+          <ui-item value="en">English</ui-item>
+          <ui-item value="fr">French</ui-item>
+        </ui-dropdown>
+      </ui-item>
+    </ui-menu>
+  </section>
+
+  <section>
+    <h4>Menubar (interactive)</h4>
+    <ui-menu interactive aria-label="Editor">
+      <ui-item link value="file">File</ui-item>
+      <ui-item link value="edit" selected>Edit</ui-item>
+      <ui-item link value="view">View</ui-item>
+      <ui-item link value="help" disabled>Help</ui-item>
+    </ui-menu>
+  </section>
+</div>

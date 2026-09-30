@@ -1,0 +1,73 @@
+<!-- `src/components/accordion/examples/variations.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Fluid</h4>
+    <ui-accordion styled fluid open="0">
+      <ui-title>What is a dog?</ui-title>
+      <ui-content><p>A dog is a type of domesticated animal.</p></ui-content>
+      <ui-title>What kinds of dogs are there?</ui-title>
+      <ui-content><p>There are many breeds of dogs.</p></ui-content>
+    </ui-accordion>
+  </section>
+
+  <section>
+    <h4>Inverted</h4>
+    <ui-segment inverted>
+      <ui-accordion inverted open="0">
+        <ui-title>What is a dog?</ui-title>
+        <ui-content><p>A dog is a type of domesticated animal.</p></ui-content>
+        <ui-title>What kinds of dogs are there?</ui-title>
+        <ui-content><p>There are many breeds of dogs.</p></ui-content>
+      </ui-accordion>
+    </ui-segment>
+    <ui-accordion inverted styled open="0">
+      <ui-title>What is a dog?</ui-title>
+      <ui-content><p>A dog is a type of domesticated animal.</p></ui-content>
+      <ui-title>What kinds of dogs are there?</ui-title>
+      <ui-content><p>There are many breeds of dogs.</p></ui-content>
+    </ui-accordion>
+  </section>
+
+  <section>
+    <h4>Compact</h4>
+    <ui-accordion compact open="0">
+      <ui-title>What is a dog?</ui-title>
+      <ui-content><p>A dog is a type of domesticated animal.</p></ui-content>
+      <ui-title>What kinds of dogs are there?</ui-title>
+      <ui-content><p>There are many breeds of dogs.</p></ui-content>
+    </ui-accordion>
+    <ui-accordion compact="very" styled open="0">
+      <ui-title>What is a dog?</ui-title>
+      <ui-content><p>A dog is a type of domesticated animal.</p></ui-content>
+      <ui-title>What kinds of dogs are there?</ui-title>
+      <ui-content><p>There are many breeds of dogs.</p></ui-content>
+    </ui-accordion>
+  </section>
+
+  <section>
+    <h4>Basic styled</h4>
+    <ui-accordion basic styled open="0">
+      <ui-title>What is a dog?</ui-title>
+      <ui-content><p>A dog is a type of domesticated animal.</p></ui-content>
+      <ui-title>What kinds of dogs are there?</ui-title>
+      <ui-content><p>There are many breeds of dogs.</p></ui-content>
+    </ui-accordion>
+  </section>
+
+  <section>
+    <h4>Tree</h4>
+    <ui-accordion tree exclusive="no" open="0">
+      <ui-title>src</ui-title>
+      <ui-content>
+        <ui-accordion exclusive="no" open="0">
+          <ui-title>components</ui-title>
+          <ui-content>accordion.css</ui-content>
+          <ui-title>styles</ui-title>
+          <ui-content>tokens.css</ui-content>
+        </ui-accordion>
+      </ui-content>
+      <ui-title>docs</ui-title>
+      <ui-content>plan.md</ui-content>
+    </ui-accordion>
+  </section>
+</div>

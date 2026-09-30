@@ -1,0 +1,92 @@
+/*
+ * Minimal modern reset for SHADOW ROOTS, in `@layer ui.reset`.
+ * - Every selector starts with `:host`, which only matches inside a shadow tree:  adopted into the document
+ *   (as part of the foundation) this sheet changes NOTHING on the host page.
+ * - Resets only the semantic elements components render (`<button>`, `<dialog>`, `<ul>`, `<table>` ...);
+ *   component CSS then styles them from a clean slate.
+ * - From Fomantic's `reset.less`:
+ *   - kept:  border-box sizing (set directly, not via `inherit` from `html` -- a shadow root has no `html`)
+ *   - dropped:  `appearance: none` on text inputs for iPad inset shadows -- components set their own border
+ *     and background, which already switches native input appearance off
+ */
+
+@layer ui.reset {
+  :host,
+  :host *,
+  :host *::before,
+  :host *::after {
+    box-sizing: border-box;
+  }
+
+  :host
+    :where(h1, h2, h3, h4, h5, h6, p, figure, blockquote, dl, dd, ul, ol, menu, table, fieldset, legend, dialog, hr) {
+    margin: 0;
+  }
+
+  :host :where(ul, ol, menu, fieldset, legend, dialog, td, th) {
+    padding: 0;
+  }
+
+  :host :where(fieldset, dialog, iframe) {
+    border: 0;
+  }
+
+  :host :where(fieldset) {
+    min-inline-size: 0;
+  }
+
+  :host :where(dialog) {
+    color: inherit;
+  }
+
+  :host :where(table) {
+    border-collapse: collapse;
+    border-spacing: 0;
+  }
+
+  /* Form controls don't inherit type by default. */
+  :host :where(button, input, select, textarea, optgroup) {
+    font: inherit;
+    color: inherit;
+    letter-spacing: inherit;
+    word-spacing: inherit;
+  }
+
+  :host :where(button, [role="button"], summary, label[for]) {
+    cursor: pointer;
+  }
+
+  :host :where(button:disabled, [aria-disabled="true"]) {
+    cursor: default;
+  }
+
+  :host :where(img, svg, video, canvas, picture) {
+    max-inline-size: 100%;
+  }
+
+  /* NOTE: the host's own ring is left to each component -- it depends on `delegatesFocus`. */
+  :host :where(:focus-visible) {
+    outline: var(--ui-focus-width, 2px) solid var(--ui-focus-color, Highlight);
+    outline-offset: var(--ui-focus-offset, 2px);
+  }
+
+  /*
+   * Reduced motion:  collapse every animation and transition to (almost) nothing.
+   * - `!important` on purpose:  important declarations in the FIRST layer beat every later layer,
+   *   so no component or utility can re-enable motion the user asked to reduce.
+   * - `0.01ms` rather than `0s`, so `animationend` / `transitionend` still fire for code waiting on them.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    /* Essential motion is exempt (WCAG 2.3.3):  loaders and `.loading` states convey progress, so their spin
+       stays;  anything else can opt in with `data-ui-motion="essential"`. */
+    :host,
+    :host :not(.loader, .loading, [data-ui-motion="essential"]),
+    :host :not(.loader, .loading, [data-ui-motion="essential"])::before,
+    :host :not(.loader, .loading, [data-ui-motion="essential"])::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

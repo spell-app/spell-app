@@ -1,0 +1,34 @@
+<!-- `src/components/parts/examples/title.html` as element markup. -->
+<!-- Owners are the real elements, except `stub-*` stand-ins (`StubOwner`) for accordion and search (they own no parts yet). -->
+<div class="ui-stack">
+  <section>
+    <h4>Standalone</h4>
+    <ui-title>A title with no owner is an unstyled block.</ui-title>
+  </section>
+
+  <section>
+    <h4>In owners</h4>
+    <ui-steps>
+      <ui-step>
+        <ui-content><ui-title>Shipping</ui-title></ui-content>
+      </ui-step>
+    </ui-steps>
+    <ui-steps>
+      <ui-step selected>
+        <ui-content><ui-title>Active step</ui-title></ui-content>
+      </ui-step>
+    </ui-steps>
+    <stub-accordion><ui-title>What is a dog?</ui-title></stub-accordion>
+    <stub-accordion style="--_ui-accordion-style: styled">
+      <ui-title>Styled title</ui-title>
+      <ui-title>Second title</ui-title>
+    </stub-accordion>
+    <stub-search>
+      <div class="results">
+        <div class="result">
+          <ui-content><ui-title>Search result</ui-title></ui-content>
+        </div>
+      </div>
+    </stub-search>
+  </section>
+</div>

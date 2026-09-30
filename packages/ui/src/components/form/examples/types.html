@@ -1,0 +1,22 @@
+<!--
+  Form types, after Fomantic's docs (collections/form.html, "Types").
+  Controls are `.ui.input` / `.ui.checkbox` markup:  `form.less`'s bare-`input` rules are `native.css`'s job.
+-->
+<form class="ui form" onsubmit="return false">
+  <div class="field">
+    <label for="fm-types-first">First Name</label>
+    <div class="ui input"><input type="text" id="fm-types-first" name="first-name" placeholder="First Name" /></div>
+  </div>
+  <div class="field">
+    <label for="fm-types-last">Last Name</label>
+    <div class="ui input"><input type="text" id="fm-types-last" name="last-name" placeholder="Last Name" /></div>
+  </div>
+  <div class="field">
+    <div class="ui checkbox">
+      <input type="checkbox" id="fm-types-terms" /><label for="fm-types-terms"
+        >I agree to the Terms and Conditions</label
+      >
+    </div>
+  </div>
+  <button class="ui button" type="submit">Submit</button>
+</form>

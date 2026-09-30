@@ -1,0 +1,198 @@
+<!--
+  Dropdown variations, after Fomantic's docs (modules/dropdown.html, "Variations"):  scrolling, compact, fluid,
+  upward, direction, pointing (every position), floating, columnar, sizes, inverted, short / long.
+  Menus are popovers (`popover="manual"`);  the CSS tests open them with `showPopover()`.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Scrolling</h4>
+    <div class="ui scrolling dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Number"></button>
+      <span class="text">Choose a number</span>
+      <span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual">
+        <div class="item" role="option">1</div>
+        <div class="item" role="option">2</div>
+        <div class="item" role="option">3</div>
+        <div class="item" role="option">4</div>
+        <div class="item" role="option">5</div>
+        <div class="item" role="option">6</div>
+        <div class="item" role="option">7</div>
+        <div class="item" role="option">8</div>
+        <div class="item" role="option">9</div>
+        <div class="item" role="option">10</div>
+        <div class="item" role="option">11</div>
+        <div class="item" role="option">12</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Compact</h4>
+    <div class="ui compact selection dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Compact"></button>
+      <span class="text">Compact</span>
+      <span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"><div class="item" role="option">A</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Fluid</h4>
+    <div class="ui fluid selection dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Fluid"></button>
+      <span class="default text">Select Friend</span>
+      <span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"><div class="item" role="option">Jenny Hess</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Upward, left direction, floating</h4>
+    <div class="ui upward selection dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Upward"></button>
+      <span class="text">Upward</span>
+      <span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"><div class="item" role="option">One</div></div>
+    </div>
+    <div class="ui dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Left"></button>
+      <span class="text">Left menu</span>
+      <span class="dropdown icon"></span>
+      <div class="left menu" role="listbox" popover="manual">
+        <div class="item" role="option">Opens toward the start</div>
+      </div>
+    </div>
+    <div class="ui floating dropdown button">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Floating"></button>
+      <span class="text">Floating</span>
+      <span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"><div class="item" role="option">One</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Pointing</h4>
+    <div class="ui pointing dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Pointing"></button
+      ><span class="text">Pointing</span><span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"><div class="item" role="option">One</div></div>
+    </div>
+    <div class="ui top left pointing dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Top left"></button
+      ><span class="text">Top left</span><span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"><div class="item" role="option">One</div></div>
+    </div>
+    <div class="ui top right pointing dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Top right"></button
+      ><span class="text">Top right</span><span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"><div class="item" role="option">One</div></div>
+    </div>
+    <div class="ui left pointing dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Left"></button
+      ><span class="text">Left</span><span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"><div class="item" role="option">One</div></div>
+    </div>
+    <div class="ui right pointing dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Right"></button
+      ><span class="text">Right</span><span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"><div class="item" role="option">One</div></div>
+    </div>
+    <div class="ui bottom pointing dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Bottom"></button
+      ><span class="text">Bottom</span><span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"><div class="item" role="option">One</div></div>
+    </div>
+    <div class="ui bottom left pointing dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Bottom left"></button
+      ><span class="text">Bottom left</span><span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"><div class="item" role="option">One</div></div>
+    </div>
+    <div class="ui bottom right pointing dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Bottom right"></button
+      ><span class="text">Bottom right</span><span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"><div class="item" role="option">One</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Columnar</h4>
+    <div class="ui three column selection dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Columns"></button>
+      <span class="default text">Three columns</span>
+      <span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual">
+        <div class="item" role="option">A</div>
+        <div class="item" role="option">B</div>
+        <div class="item" role="option">C</div>
+        <div class="item" role="option">D</div>
+        <div class="item" role="option">E</div>
+        <div class="item" role="option">F</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Size</h4>
+    <div class="ui mini selection dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Mini"></button
+      ><span class="text">Mini</span><span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"></div>
+    </div>
+    <div class="ui small selection dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Small"></button
+      ><span class="text">Small</span><span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"></div>
+    </div>
+    <div class="ui medium selection dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Medium"></button
+      ><span class="text">Medium</span><span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"></div>
+    </div>
+    <div class="ui large selection dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Large"></button
+      ><span class="text">Large</span><span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"></div>
+    </div>
+    <div class="ui massive selection dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Massive"></button
+      ><span class="text">Massive</span><span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Colored</h4>
+    <div class="ui red multiple selection dropdown">
+      <span class="ui label">Red<button class="delete icon" aria-label="Remove Red"></button></span>
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Colors"></button>
+      <span class="default text">Colors</span>
+      <span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"><div class="item" role="option">Blue</div></div>
+    </div>
+  </section>
+
+  <section class="ui-dark ui-p-m">
+    <h4>Inverted</h4>
+    <div class="ui inverted selection dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Inverted"></button>
+      <span class="default text">Inverted</span>
+      <span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"><div class="item" role="option">One</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Short and long</h4>
+    <div class="ui short selection dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Short"></button
+      ><span class="text">Short</span><span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"></div>
+    </div>
+    <div class="ui very long selection dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Very long"></button
+      ><span class="text">Very long</span><span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"></div>
+    </div>
+  </section>
+</div>

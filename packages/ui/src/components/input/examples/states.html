@@ -1,0 +1,52 @@
+<!--
+  Input states, after Fomantic's docs (elements/input.html, "States").
+  `.focus` / `.down` (screenshot classes) are left out:  `:focus` / `:active` draw them.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Loading</h4>
+    <div class="ui-cluster">
+      <div class="ui left icon loading input">
+        <input type="text" placeholder="Search..." aria-label="Search" />
+        <span class="icon"
+          ><svg viewBox="0 0 512 512" aria-hidden="true">
+            <path
+              d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376C296.3 401.1 253.9 416 208 416 93.1 416 0 322.9 0 208S93.1 0 208 0 416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"
+            ></path></svg
+        ></span>
+      </div>
+      <div class="ui icon loading input">
+        <input type="text" placeholder="Search..." aria-label="Search" />
+        <span class="icon"
+          ><svg viewBox="0 0 512 512" aria-hidden="true">
+            <path
+              d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376C296.3 401.1 253.9 416 208 416 93.1 416 0 322.9 0 208S93.1 0 208 0 416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"
+            ></path></svg
+        ></span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Disabled</h4>
+    <div class="ui disabled input"><input type="text" placeholder="Search..." aria-label="Search" disabled /></div>
+  </section>
+
+  <section>
+    <h4>Error, info, success, warning</h4>
+    <div class="ui-cluster">
+      <div class="ui error input"><input type="text" placeholder="Error" aria-label="Error" /></div>
+      <div class="ui info input"><input type="text" placeholder="Info" aria-label="Info" /></div>
+      <div class="ui success input"><input type="text" placeholder="Success" aria-label="Success" /></div>
+      <div class="ui warning input"><input type="text" placeholder="Warning" aria-label="Warning" /></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Labeled error</h4>
+    <div class="ui labeled error input">
+      <span class="ui label">https://</span>
+      <input type="text" placeholder="mysite.com" aria-label="Site" />
+    </div>
+  </section>
+</div>

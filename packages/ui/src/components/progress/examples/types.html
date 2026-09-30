@@ -1,0 +1,30 @@
+<!--
+  Progress types, after Fomantic's docs (modules/progress.html, "Types"):  standard and indicating.
+  Fomantic's JS writes the widths and `data-percent`;  here they're static.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Standard</h4>
+    <div class="ui progress" data-percent="74">
+      <div class="bar" style="width: 74%"><div class="progress">74%</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Indicating</h4>
+    <div class="ui-stack">
+      <div class="ui indicating progress" data-percent="12">
+        <div class="bar" style="width: 12%"></div>
+        <div class="label">12% funded</div>
+      </div>
+      <div class="ui indicating progress" data-percent="47">
+        <div class="bar" style="width: 47%"></div>
+        <div class="label">47% funded</div>
+      </div>
+      <div class="ui indicating progress" data-percent="91">
+        <div class="bar" style="width: 91%"></div>
+        <div class="label">91% funded</div>
+      </div>
+    </div>
+  </section>
+</div>

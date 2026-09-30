@@ -1,0 +1,758 @@
+<!--
+  List variations, after Fomantic's docs (elements/list.html, "Variations").
+  Static class grammar:  every variation on the list root;  the items read them as inherited tokens.  The
+  dark box stands in for an inverted segment.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Horizontal</h4>
+    <div class="ui horizontal list">
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%2396a%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Tom</div>
+          Top Contributor
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%234a8%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Christian Rocha</div>
+          Admin
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23c84%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Matt</div>
+          Top Rated User
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Horizontal ordered</h4>
+    <div class="ui horizontal ordered list">
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%2348c%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Steve Jobes</div>
+          50 Points
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23a64%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Stevie Feliciano</div>
+          44 Points
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%236a6%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Jenny Hess</div>
+          11 Points
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Horizontal bulleted link</h4>
+    <div class="ui horizontal bulleted link list">
+      <a class="item" href="#terms"> Terms and Conditions </a>
+      <a class="item" href="#privacy"> Privacy Policy </a>
+      <a class="item" href="#contact"> Contact Us </a>
+    </div>
+  </section>
+
+  <section>
+    <h4>Inverted</h4>
+    <div class="ui-dark" style="padding: 1em">
+      <div class="ui inverted relaxed divided list">
+        <div class="item">
+          <div class="content in-list">
+            <div class="header in-list">Snickerdoodle</div>
+            An excellent companion
+          </div>
+        </div>
+        <div class="item">
+          <div class="content in-list">
+            <div class="header in-list">Poodle</div>
+            A poodle, its pretty basic
+          </div>
+        </div>
+        <div class="item">
+          <div class="content in-list">
+            <div class="header in-list">Paulo</div>
+            He's also a dog
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Selection</h4>
+    <div class="ui middle aligned selection list">
+      <div class="item" data-value="helen">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%2396a%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Helen</div>
+        </div>
+      </div>
+      <div class="active item" data-value="christian">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%234a8%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Christian</div>
+        </div>
+      </div>
+      <div class="item" data-value="daniel">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23c84%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Daniel</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Fitted selection</h4>
+    <div class="ui fitted selection list">
+      <div class="item">Inbox</div>
+      <div class="item">Starred</div>
+      <div class="item">Sent</div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Animated</h4>
+    <div class="ui middle aligned animated list">
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%2396a%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Helen</div>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%234a8%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Christian</div>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23c84%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Daniel</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Relaxed</h4>
+    <div class="ui relaxed list">
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23c84%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <a class="header in-list" href="#daniel">Daniel Louise</a>
+          <div class="description in-list">Last seen just now.</div>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23a64%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <a class="header in-list" href="#stevie">Stevie Feliciano</a>
+          <div class="description in-list">Last seen 10 hours ago.</div>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%234a8%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <a class="header in-list" href="#elliot">Elliot Fu</a>
+          <div class="description in-list">Last seen yesterday.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Relaxed horizontal</h4>
+    <div class="ui relaxed horizontal list">
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23c84%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <a class="header in-list" href="#daniel">Daniel Louise</a>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23a64%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <a class="header in-list" href="#stevie">Stevie Feliciano</a>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%234a8%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <a class="header in-list" href="#elliot">Elliot Fu</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Very relaxed</h4>
+    <div class="ui very relaxed list">
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23c84%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <a class="header in-list" href="#daniel">Daniel Louise</a>
+          <div class="description in-list">Last seen just now.</div>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23a64%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <a class="header in-list" href="#stevie">Stevie Feliciano</a>
+          <div class="description in-list">Last seen 10 hours ago.</div>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%234a8%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <a class="header in-list" href="#elliot">Elliot Fu</a>
+          <div class="description in-list">Last seen yesterday.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Very relaxed horizontal</h4>
+    <div class="ui very relaxed horizontal list">
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23c84%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <a class="header in-list" href="#daniel">Daniel Louise</a>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23a64%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <a class="header in-list" href="#stevie">Stevie Feliciano</a>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%234a8%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <a class="header in-list" href="#elliot">Elliot Fu</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Divided</h4>
+    <div class="ui middle aligned divided list">
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23c84%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <a class="header in-list" href="#daniel">Daniel Louise</a>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23a64%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <a class="header in-list" href="#stevie">Stevie Feliciano</a>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%234a8%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <a class="header in-list" href="#elliot">Elliot Fu</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Celled</h4>
+    <div class="ui celled list">
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%2396a%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Snickerdoodle</div>
+          An excellent companion
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23c84%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Poodle</div>
+          A poodle, its pretty basic
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%2348c%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Paulo</div>
+          He's also a dog
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Celled ordered</h4>
+    <div class="ui celled ordered list">
+      <div class="item">Cats</div>
+      <div class="item">Horses</div>
+      <div class="item">
+        Dogs
+        <div class="list">
+          <div class="item">Labradoodles</div>
+          <div class="item">Shiba Inu</div>
+          <div class="item">Mastiff</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Celled horizontal</h4>
+    <div class="ui celled horizontal list">
+      <div class="item">About Us</div>
+      <div class="item">Contact</div>
+      <div class="item">Support</div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Size</h4>
+    <div class="ui mini horizontal divided list">
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%2396a%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Helen</div>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%234a8%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Christian</div>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23c84%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Daniel</div>
+        </div>
+      </div>
+    </div>
+    <div class="ui tiny horizontal divided list">
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%2396a%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Helen</div>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%234a8%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Christian</div>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23c84%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Daniel</div>
+        </div>
+      </div>
+    </div>
+    <div class="ui small horizontal divided list">
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%2396a%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Helen</div>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%234a8%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Christian</div>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23c84%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Daniel</div>
+        </div>
+      </div>
+    </div>
+    <div class="ui medium horizontal divided list">
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%2396a%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Helen</div>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%234a8%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Christian</div>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23c84%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Daniel</div>
+        </div>
+      </div>
+    </div>
+    <div class="ui large horizontal divided list">
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%2396a%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Helen</div>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%234a8%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Christian</div>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23c84%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Daniel</div>
+        </div>
+      </div>
+    </div>
+    <div class="ui big horizontal divided list">
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%2396a%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Helen</div>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%234a8%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Christian</div>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23c84%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Daniel</div>
+        </div>
+      </div>
+    </div>
+    <div class="ui huge horizontal divided list">
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%2396a%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Helen</div>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%234a8%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Christian</div>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23c84%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Daniel</div>
+        </div>
+      </div>
+    </div>
+    <div class="ui massive horizontal divided list">
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%2396a%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Helen</div>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%234a8%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Christian</div>
+        </div>
+      </div>
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23c84%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">
+          <div class="header in-list">Daniel</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Vertically aligned</h4>
+    <div class="ui top aligned horizontal list">
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%2396a%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">Top aligned</div>
+      </div>
+    </div>
+    <div class="ui middle aligned horizontal list">
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%234a8%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">Middle aligned</div>
+      </div>
+    </div>
+    <div class="ui bottom aligned horizontal list">
+      <div class="item">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23c84%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        <div class="content in-list">Bottom aligned</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Floated</h4>
+    <div class="ui right floated horizontal list">
+      <div class="item">&copy; GitHub, Inc.</div>
+      <a class="item" href="#terms"> Terms </a>
+      <a class="item" href="#privacy"> Privacy </a>
+      <a class="item" href="#contact"> Contact </a>
+    </div>
+    <div class="ui horizontal list">
+      <a class="item" href="#about"> About Us </a>
+      <a class="item" href="#jobs"> Jobs </a>
+    </div>
+  </section>
+</div>

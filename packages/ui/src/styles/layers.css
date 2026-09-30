@@ -1,0 +1,21 @@
+/*
+ * Cascade layer order for `@spell/ui` -- MUST be the first sheet in the document AND in every shadow root.
+ * - Why:  layer order is fixed by the first `@layer` statement a tree scope sees, and each shadow root is
+ *   its own scope.  Adopting this sheet first means every later sheet slots into the same order,
+ *   whichever loads first.
+ * - Later layers win, whatever the specificity:
+ *   - `ui.reset`       box-sizing / margin resets for shadow markup (`reset.css`)
+ *   - `ui.tokens`      custom properties and the colour / size REMAPS (`tokens.css`, `colors.css`, `sizes.css`)
+ *   - `ui.base`        page-level opt-in typography (`typography.css`)
+ *   - `ui.components`  component CSS, plus `native.css` for light-DOM markup slotted into components
+ *   - `ui.utilities`   `ui-*` utility classes and the animation catalogue (`utilities.css`, `animations.css`)
+ *   - `ui.theme`       theme token overrides (`themes/*.css`)
+ *   - `ui.app`         the app's own overrides;  `#ui-app-stylesheet` is adopted last into every shadow root
+ * - Unlayered CSS beats ALL of these, so a page's plain stylesheet always wins over the library.
+ * - Inside `ui.components` each component declares its own sublayers, in this order:
+ *     `@layer ui.components.<name>.types, ui.components.<name>.content,
+ *            ui.components.<name>.variations, ui.components.<name>.states;`
+ *   so a state (`:hover`, `.active`, `:state(open)`) beats a variation (`.basic`, `.red`) without `!important`.
+ */
+
+@layer ui.reset, ui.tokens, ui.base, ui.components, ui.utilities, ui.theme, ui.app;

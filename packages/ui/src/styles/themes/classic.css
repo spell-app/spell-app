@@ -1,0 +1,133 @@
+/*
+ * Classic theme:  token overrides restoring Fomantic's original look, `@layer ui.theme`.
+ * - Load it on the page after the foundation;  tokens inherit into every shadow root, so components follow.
+ * - Restores:  Lato + Fomantic's fallback stack, 14px base, Fomantic's size ratios (11 .. 24 of 14),
+ *   the original hex palette (as OKLCH), hand-picked text colours for yellow / olive / green / teal,
+ *   hue background tints, emotive message colours, 4px radii, and the original flat shadows.
+ * - NOTE: loads no font:  add Lato yourself (e.g. Google Fonts), or the stack falls back to the system UI font.
+ * - Dark scheme:  Fomantic had none.  `onDark` bases use Fomantic's `light<Hue>` colours, and the role
+ *   overrides keep the default dark recipe, so the classic look still works under `ui-dark`.
+ */
+
+@layer ui.theme {
+  :root {
+    /* Type */
+    --ui-font-size: 14px;
+    --ui-font-family:
+      Lato, system-ui, -apple-system, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial,
+      "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+      "Noto Color Emoji";
+    --ui-font-family-heading: var(--ui-font-family);
+    --ui-line-height: 1.4285;
+    --ui-line-height-heading: 1.2857;
+
+    /* Sizes:  Fomantic's px ladder at a 14px em */
+    --ui-size-mini: 0.7857;
+    --ui-size-tiny: 0.8571;
+    --ui-size-small: 0.9286;
+    --ui-size-large: 1.1429;
+    --ui-size-big: 1.2857;
+    --ui-size-huge: 1.4286;
+    --ui-size-massive: 1.7143;
+
+    /* Shape */
+    --ui-radius-s: 4px;
+    --ui-radius-m: 4px;
+    --ui-radius-l: 4px;
+
+    /* Ink:  Fomantic's text is black at an alpha, borders `rgb(34 36 38)` at an alpha */
+    --ui-ink-on-light: oklch(0 0 0);
+    --ui-border-color: light-dark(oklch(0.259 0.005 248 / 0.15), oklch(from var(--ui-ink-on-dark) l c h / 0.15));
+    --ui-border-color-strong: light-dark(oklch(0.259 0.005 248 / 0.22), oklch(from var(--ui-ink-on-dark) l c h / 0.25));
+    --ui-border-color-internal: light-dark(oklch(0.259 0.005 248 / 0.1), oklch(from var(--ui-ink-on-dark) l c h / 0.1));
+
+    /* Shadows */
+    --ui-shadow-ink: light-dark(oklch(0.259 0.005 248), oklch(0 0 0));
+    --ui-shadow-raised: var(--ui-shadow-subtle);
+
+    /* Palette:  `onLight` ~== `@red`, `onDark` ~== `@lightRed` */
+    --ui-red-on-light: oklch(0.577 0.213 27.2);
+    --ui-red-on-dark: oklch(0.707 0.185 27);
+    --ui-orange-on-light: oklch(0.692 0.181 47.4);
+    --ui-orange-on-dark: oklch(0.74 0.179 53.5);
+    --ui-yellow-on-light: oklch(0.832 0.17 84.4);
+    --ui-yellow-on-dark: oklch(0.909 0.184 99.5);
+    --ui-olive-on-light: oklch(0.8 0.181 117.7);
+    --ui-olive-on-dark: oklch(0.894 0.137 115.1);
+    --ui-green-on-light: oklch(0.69 0.199 146.2);
+    --ui-green-on-dark: oklch(0.74 0.22 144.3);
+    --ui-teal-on-light: oklch(0.697 0.121 189.2);
+    --ui-teal-on-dark: oklch(0.921 0.125 195.2);
+    --ui-blue-on-light: oklch(0.599 0.144 246.9);
+    --ui-blue-on-dark: oklch(0.789 0.13 232.4);
+    --ui-violet-on-light: oklch(0.48 0.212 290.6);
+    --ui-violet-on-dark: oklch(0.716 0.151 289.4);
+    --ui-purple-on-light: oklch(0.553 0.226 316.1);
+    --ui-purple-on-dark: oklch(0.729 0.216 317);
+    --ui-pink-on-light: oklch(0.623 0.218 351);
+    --ui-pink-on-dark: oklch(0.793 0.166 338.7);
+    --ui-brown-on-light: oklch(0.573 0.097 52.5);
+    --ui-brown-on-dark: oklch(0.671 0.149 60.2);
+    --ui-grey-on-light: oklch(0.566 0 89.9);
+    --ui-grey-on-dark: oklch(0.897 0.002 247.8);
+    --ui-black-on-light: oklch(0.226 0.002 247.9);
+    --ui-black-on-dark: oklch(0.446 0 89.9);
+    --ui-info-on-light: oklch(0.782 0.129 215.7);
+    --ui-info-on-dark: oklch(0.782 0.129 215.7);
+    --ui-warning-on-light: oklch(0.83 0.154 87.3);
+    --ui-warning-on-dark: oklch(0.83 0.154 87.3);
+
+    /* "Difficult to read" hues get Fomantic's hand-picked text colours */
+    --ui-yellow-text: light-dark(oklch(0.639 0.131 79.9), oklch(from var(--ui-yellow) max(l, 0.78) c h));
+    --ui-olive-text: light-dark(oklch(0.733 0.18 126.9), oklch(from var(--ui-olive) max(l, 0.78) c h));
+    --ui-green-text: light-dark(oklch(0.693 0.216 143.9), oklch(from var(--ui-green) max(l, 0.78) c h));
+    --ui-teal-text: light-dark(oklch(0.649 0.109 194.8), oklch(from var(--ui-teal) max(l, 0.78) c h));
+
+    /* Hue background tints */
+    --ui-red-background: light-dark(oklch(0.949 0.025 23.6), oklch(from var(--ui-red) 0.28 calc(c * 0.35) h));
+    --ui-orange-background: light-dark(oklch(0.956 0.028 62.3), oklch(from var(--ui-orange) 0.28 calc(c * 0.35) h));
+    --ui-yellow-background: light-dark(oklch(0.977 0.039 95.8), oklch(from var(--ui-yellow) 0.28 calc(c * 0.35) h));
+    --ui-olive-background: light-dark(oklch(0.989 0.018 113.3), oklch(from var(--ui-olive) 0.28 calc(c * 0.35) h));
+    --ui-green-background: light-dark(oklch(0.963 0.032 148.2), oklch(from var(--ui-green) 0.28 calc(c * 0.35) h));
+    --ui-teal-background: light-dark(oklch(0.96 0.023 196.8), oklch(from var(--ui-teal) 0.28 calc(c * 0.35) h));
+    --ui-blue-background: light-dark(oklch(0.947 0.027 244.7), oklch(from var(--ui-blue) 0.28 calc(c * 0.35) h));
+    --ui-violet-background: light-dark(oklch(0.937 0.032 291.5), oklch(from var(--ui-violet) 0.28 calc(c * 0.35) h));
+    --ui-purple-background: light-dark(oklch(0.947 0.036 313.1), oklch(from var(--ui-purple) 0.28 calc(c * 0.35) h));
+    --ui-pink-background: light-dark(oklch(0.946 0.044 330.6), oklch(from var(--ui-pink) 0.28 calc(c * 0.35) h));
+    --ui-brown-background: light-dark(oklch(0.921 0.026 67.5), oklch(from var(--ui-brown) 0.28 calc(c * 0.35) h));
+    --ui-grey-background: light-dark(oklch(0.967 0 89.9), oklch(from var(--ui-grey) 0.28 calc(c * 0.35) h));
+    --ui-black-background: light-dark(oklch(0.967 0 89.9), oklch(from var(--ui-black) 0.28 calc(c * 0.35) h));
+
+    /* Emotive message colours */
+    --ui-positive-text: light-dark(oklch(0.457 0.107 143.9), oklch(from var(--ui-positive) 0.85 calc(c * 0.6) h));
+    --ui-positive-header: light-dark(oklch(0.391 0.105 143.5), oklch(from var(--ui-positive) 0.9 calc(c * 0.5) h));
+    --ui-positive-border: light-dark(oklch(0.779 0.073 135.1), oklch(from var(--ui-positive) 0.45 calc(c * 0.4) h));
+    --ui-positive-background: light-dark(
+      oklch(0.995 0.013 120.3),
+      oklch(from var(--ui-positive) 0.25 calc(c * 0.25) h)
+    );
+    --ui-negative-text: light-dark(oklch(0.491 0.135 24.6), oklch(from var(--ui-negative) 0.85 calc(c * 0.6) h));
+    --ui-negative-header: light-dark(oklch(0.448 0.135 25.4), oklch(from var(--ui-negative) 0.9 calc(c * 0.5) h));
+    --ui-negative-border: light-dark(oklch(0.809 0.051 18.3), oklch(from var(--ui-negative) 0.45 calc(c * 0.4) h));
+    --ui-negative-background: light-dark(oklch(0.98 0.01 17.3), oklch(from var(--ui-negative) 0.25 calc(c * 0.25) h));
+    --ui-info-text: light-dark(oklch(0.507 0.079 222.9), oklch(from var(--ui-info) 0.85 calc(c * 0.6) h));
+    --ui-info-header: light-dark(oklch(0.423 0.075 224.4), oklch(from var(--ui-info) 0.9 calc(c * 0.5) h));
+    --ui-info-border: light-dark(oklch(0.845 0.048 211.5), oklch(from var(--ui-info) 0.45 calc(c * 0.4) h));
+    --ui-info-background: light-dark(oklch(0.995 0.007 197), oklch(from var(--ui-info) 0.25 calc(c * 0.25) h));
+    --ui-warning-text: light-dark(oklch(0.373 0.074 75), oklch(from var(--ui-warning) 0.85 calc(c * 0.6) h));
+    --ui-warning-header: light-dark(oklch(0.455 0.098 69.5), oklch(from var(--ui-warning) 0.9 calc(c * 0.5) h));
+    --ui-warning-border: light-dark(oklch(0.793 0.045 85.2), oklch(from var(--ui-warning) 0.45 calc(c * 0.4) h));
+    --ui-warning-background: light-dark(oklch(0.987 0.011 76.6), oklch(from var(--ui-warning) 0.25 calc(c * 0.25) h));
+
+    /* Page accents */
+    --ui-link: light-dark(oklch(0.597 0.12 250.2), var(--ui-primary-text));
+    --ui-link-hover: light-dark(oklch(0.539 0.145 252), oklch(from var(--ui-link) calc(l + 0.08) c h));
+    --ui-focus-border: light-dark(
+      oklch(0.756 0.072 238.7),
+      oklch(from var(--ui-primary) calc(l - 0.1) calc(c * 0.7) h)
+    );
+    --ui-highlight: light-dark(oklch(0.906 0.046 255.4), oklch(0.42 0.09 255));
+    --ui-surface-muted: light-dark(oklch(0.985 0.002 247.8), oklch(0.26 0.006 260));
+    --ui-surface-strong: light-dark(oklch(0.967 0.002 247.8), oklch(0.3 0.006 260));
+  }
+}

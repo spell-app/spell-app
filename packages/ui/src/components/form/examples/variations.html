@@ -1,0 +1,111 @@
+<!--
+  Form variations, after Fomantic's docs (collections/form.html, "Variations" and "Field Variations").
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Required, width</h4>
+    <form class="ui form" onsubmit="return false">
+      <div class="fields">
+        <div class="required six wide field">
+          <label for="fm-var-first">First name</label>
+          <div class="ui input"><input type="text" id="fm-var-first" placeholder="First Name" /></div>
+        </div>
+        <div class="four wide field">
+          <label for="fm-var-middle">Middle</label>
+          <div class="ui input"><input type="text" id="fm-var-middle" placeholder="Middle Name" /></div>
+        </div>
+        <div class="six wide field">
+          <label for="fm-var-last">Last name</label>
+          <div class="ui input"><input type="text" id="fm-var-last" placeholder="Last Name" /></div>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <section>
+    <h4>Equal width</h4>
+    <form class="ui equal width form" onsubmit="return false">
+      <div class="fields">
+        <div class="field">
+          <label for="fm-var-user">Username</label>
+          <div class="ui input"><input type="text" id="fm-var-user" placeholder="Username" /></div>
+        </div>
+        <div class="field">
+          <label for="fm-var-password">Password</label>
+          <div class="ui input"><input type="password" id="fm-var-password" /></div>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <section>
+    <h4>Inline fields</h4>
+    <form class="ui form" onsubmit="return false">
+      <div class="inline fields">
+        <label for="fm-var-phone">Phone Number</label>
+        <div class="field">
+          <div class="ui input"><input type="text" id="fm-var-phone" placeholder="(xxx)" aria-label="Area code" /></div>
+        </div>
+        <div class="field">
+          <div class="ui input"><input type="text" placeholder="xxx" aria-label="Exchange" /></div>
+        </div>
+        <div class="field">
+          <div class="ui input"><input type="text" placeholder="xxxx" aria-label="Number" /></div>
+        </div>
+      </div>
+      <div class="inline field">
+        <label for="fm-var-inline">Last name</label>
+        <div class="ui input"><input type="text" id="fm-var-inline" placeholder="Full Name" /></div>
+      </div>
+    </form>
+  </section>
+
+  <section>
+    <h4>Grouped</h4>
+    <form class="ui form" onsubmit="return false">
+      <div class="grouped fields">
+        <label>Outbound Throughput</label>
+        <div class="field">
+          <div class="ui radio checkbox">
+            <input type="radio" id="fm-var-mbps1" name="fm-var-tp" checked /><label for="fm-var-mbps1"
+              >20 mbps max</label
+            >
+          </div>
+        </div>
+        <div class="field">
+          <div class="ui radio checkbox">
+            <input type="radio" id="fm-var-mbps2" name="fm-var-tp" /><label for="fm-var-mbps2">50 mbps max</label>
+          </div>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <section>
+    <h4>Size</h4>
+    <form class="ui small form" onsubmit="return false">
+      <div class="field">
+        <label for="fm-var-small">Small</label>
+        <div class="ui input"><input type="text" id="fm-var-small" placeholder="Small form" /></div>
+      </div>
+    </form>
+    <form class="ui large form" onsubmit="return false">
+      <div class="field">
+        <label for="fm-var-large">Large</label>
+        <div class="ui input"><input type="text" id="fm-var-large" placeholder="Large form" /></div>
+      </div>
+    </form>
+  </section>
+
+  <section>
+    <h4>Inverted</h4>
+    <div class="ui-dark ui-p-m" style="background: var(--ui-background)">
+      <form class="ui inverted form" onsubmit="return false">
+        <div class="field">
+          <label for="fm-var-inv">First name</label>
+          <div class="ui input"><input type="text" id="fm-var-inv" placeholder="First Name" /></div>
+        </div>
+      </form>
+    </div>
+  </section>
+</div>

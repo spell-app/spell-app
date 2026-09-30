@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Vue 3 host -- smoke page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="./frameworks.css" />
+  </head>
+  <body>
+    <h1>Vue 3</h1>
+    <p><code>isCustomElement</code> for <code>ui-*</code>; <code>:options</code> binds the property.</p>
+    <div id="root"></div>
+    <pre id="result">checking...</pre>
+    <script type="module">
+      import "@spell/ui"
+      import { createApp, ref, version } from "https://unpkg.com/vue@3/dist/vue.esm-browser.prod.js"
+      import { OPTIONS, roundTrip } from "./check.js"
+
+      const app = createApp({
+        setup() {
+          const value = ref("b")
+          const open = ref(true)
+          return { options: OPTIONS, value, open }
+        },
+        template: `<ui-dropdown selection placeholder="Fruit" :options="options" :value="value" :open="open"
+            @ui-change="value = $event.detail.value" @ui-open="open = true" @ui-close="open = false"></ui-dropdown>
+          <p>Vue state: <output id="value">{{ value }}</output></p>
+          <button id="set" type="button" @click="value = 'c'">set cherry</button>
+          <button id="open" type="button" @click="open = true">open</button>`
+      })
+      app.config.compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-")
+      app.mount("#root")
+      roundTrip(`vue ${version}`)
+    </script>
+  </body>
+</html>

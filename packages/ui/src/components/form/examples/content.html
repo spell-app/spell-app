@@ -1,0 +1,48 @@
+<!--
+  Form content, after Fomantic's docs (collections/form.html, "Content"):  fields, a row of fields, a text area,
+  checkboxes, radios and a message.
+-->
+<form class="ui form" onsubmit="return false">
+  <div class="two fields">
+    <div class="field">
+      <label for="fm-content-first">First name</label>
+      <div class="ui input"><input type="text" id="fm-content-first" placeholder="First Name" /></div>
+    </div>
+    <div class="field">
+      <label for="fm-content-last">Last name</label>
+      <div class="ui input"><input type="text" id="fm-content-last" placeholder="Last Name" /></div>
+    </div>
+  </div>
+  <div class="field">
+    <label for="fm-content-text">Text</label>
+    <div class="ui input"><textarea id="fm-content-text" rows="2"></textarea></div>
+  </div>
+  <div class="inline fields">
+    <label>How often do you use checkboxes?</label>
+    <div class="field">
+      <div class="ui radio checkbox">
+        <input type="radio" id="fm-content-once" name="fm-content-often" checked /><label for="fm-content-once"
+          >Once a week</label
+        >
+      </div>
+    </div>
+    <div class="field">
+      <div class="ui radio checkbox">
+        <input type="radio" id="fm-content-day" name="fm-content-often" /><label for="fm-content-day">Once a day</label>
+      </div>
+    </div>
+  </div>
+  <div class="field">
+    <div class="ui toggle checkbox">
+      <input type="checkbox" id="fm-content-news" role="switch" /><label for="fm-content-news"
+        >Subscribe to the newsletter</label
+      >
+    </div>
+  </div>
+  <div class="ui message">
+    <div class="content">
+      <div class="header">We had some issues</div>
+      <p>A message in a form.</p>
+    </div>
+  </div>
+</form>

@@ -1,0 +1,520 @@
+/*
+ * Utility classes, `@layer ui.utilities`, modelled on Web Awesome's layout / text utilities.
+ * - Injected into the page AND adopted into every shadow root, so they work on light-DOM markup and on
+ *   component internals alike.  The utilities layer beats component layers, and page rules targeting a host
+ *   beat its `:host` rules, so `class="ui-hidden"` on a component works without `!important`.
+ * - Token driven:  lengths are `em` of the LOCAL font size (spacing tokens), never rem or bare px.
+ * - Generated siblings (from the vocabulary, `yarn gen:styles`):
+ *   - `colors.css`:  `ui-<hue>` remaps, `ui-text-<hue>`, `ui-bg-<hue>`, `ui-border-<hue>`
+ *   - `sizes.css`:  `ui-<size>` remaps, `ui-font-size-<size>`, `ui-{body,heading,caption}-<size>`,
+ *     `ui-gap-<space>`, `ui-m[-side]-<space>`, `ui-p[-side]-<space>`
+ * - Modifiers use an escaped colon like Web Awesome (`class="ui-split:column"` => `.ui-split\:column`),
+ *   fractions an escaped slash (`class="ui-w-1/2"` => `.ui-w-1\/2`).
+ * - Needs a Lightning CSS build for `@custom-media` (see `media.css`).
+ */
+
+@import "./media.css";
+
+@layer ui.utilities {
+  /*******************************
+             Layout
+  *******************************/
+
+  /* Stack:  children in a column with even gaps;  their own block margins are dropped. */
+  .ui-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-m);
+  }
+  .ui-stack > :where(h1, h2, h3, h4, h5, h6, p, ul, ol, dl, blockquote, figure, pre) {
+    margin-block: 0;
+  }
+
+  /* Cluster:  inline items that wrap, e.g. tags or buttons. */
+  .ui-cluster {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ui-space-m);
+  }
+
+  /* Split:  push items to opposite ends;  `:column` / `:row` fix the direction. */
+  .ui-split {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-space-m);
+  }
+  .ui-split\:row {
+    flex-direction: row;
+    align-items: center;
+  }
+  .ui-split\:column {
+    flex-direction: column;
+    align-items: normal;
+  }
+
+  /*
+   * Flank:  a fixed-size item beside flexible content, wrapping when content would get narrower than
+   * `--content-percentage`.  `:start` (default) flanks the first child, `:end` the last.
+   */
+  .ui-flank {
+    --flank-size: auto;
+    --content-percentage: 70%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ui-space-m);
+  }
+  .ui-flank:not(.ui-flank\:end) > :first-child,
+  .ui-flank.ui-flank\:end > :last-child {
+    flex: 1 1 var(--flank-size);
+  }
+  .ui-flank:not(.ui-flank\:end) > :last-child,
+  .ui-flank.ui-flank\:end > :first-child {
+    flex: 999 1 0%;
+    min-inline-size: var(--content-percentage);
+  }
+
+  /* Frame:  fixed aspect ratio, media inside covers it. */
+  .ui-frame {
+    --aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: var(--aspect-ratio);
+    overflow: hidden;
+    border-radius: var(--ui-radius);
+  }
+  .ui-frame > :where(img, video, picture, svg, canvas, iframe) {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+  .ui-frame\:square {
+    --aspect-ratio: 1 / 1;
+  }
+  .ui-frame\:landscape {
+    --aspect-ratio: 16 / 9;
+  }
+  .ui-frame\:portrait {
+    --aspect-ratio: 9 / 16;
+  }
+
+  /* Grid:  as many columns as fit, each at least `--min-column-size`. */
+  .ui-grid {
+    --min-column-size: 20ch;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(var(--min-column-size), 100%), 1fr));
+    gap: var(--ui-space-m);
+  }
+  .ui-span-grid {
+    grid-column: 1 / -1;
+  }
+
+  .ui-gap-0 {
+    gap: 0;
+  }
+
+  .ui-align-items-start {
+    align-items: start;
+  }
+  .ui-align-items-end {
+    align-items: end;
+  }
+  .ui-align-items-center {
+    align-items: center;
+  }
+  .ui-align-items-stretch {
+    align-items: stretch;
+  }
+  .ui-align-items-baseline {
+    align-items: baseline;
+  }
+
+  .ui-align-self-start {
+    align-self: start;
+  }
+  .ui-align-self-end {
+    align-self: end;
+  }
+  .ui-align-self-center {
+    align-self: center;
+  }
+  .ui-align-self-stretch {
+    align-self: stretch;
+  }
+  .ui-align-self-baseline {
+    align-self: baseline;
+  }
+
+  .ui-justify-content-start {
+    justify-content: start;
+  }
+  .ui-justify-content-end {
+    justify-content: end;
+  }
+  .ui-justify-content-center {
+    justify-content: center;
+  }
+  .ui-justify-content-space-between {
+    justify-content: space-between;
+  }
+  .ui-justify-content-space-around {
+    justify-content: space-around;
+  }
+  .ui-justify-content-space-evenly {
+    justify-content: space-evenly;
+  }
+
+  .ui-flex-wrap {
+    flex-wrap: wrap;
+  }
+  .ui-flex-nowrap {
+    flex-wrap: nowrap;
+  }
+
+  /*******************************
+             Sizing
+  *******************************/
+
+  .ui-w-1\/2 {
+    inline-size: 50%;
+  }
+  .ui-w-1\/3 {
+    inline-size: calc(100% / 3);
+  }
+  .ui-w-2\/3 {
+    inline-size: calc(200% / 3);
+  }
+  .ui-w-1\/4 {
+    inline-size: 25%;
+  }
+  .ui-w-3\/4 {
+    inline-size: 75%;
+  }
+  .ui-w-full {
+    inline-size: 100%;
+  }
+  .ui-w-auto {
+    inline-size: auto;
+  }
+  .ui-w-fit {
+    inline-size: fit-content;
+  }
+  .ui-h-full {
+    block-size: 100%;
+  }
+  .ui-h-auto {
+    block-size: auto;
+  }
+  .ui-h-fit {
+    block-size: fit-content;
+  }
+
+  /* Spacing resets;  the `<space>` steps are generated in `sizes.css`. */
+  .ui-m-0 {
+    margin: 0;
+  }
+  .ui-p-0 {
+    padding: 0;
+  }
+  .ui-m-auto {
+    margin: auto;
+  }
+  .ui-m-i-auto {
+    margin-inline: auto;
+  }
+
+  /*******************************
+              Text
+  *******************************/
+
+  /* Roles;  sizes (`ui-body-large` ...) remap `--ui-scale` in `sizes.css`. */
+  :is(.ui-body, [class*="ui-body-"]) {
+    font-family: var(--ui-font-family);
+    font-size: calc(var(--ui-font-size) * var(--ui-scale, 1));
+    font-weight: var(--ui-font-weight-normal);
+    line-height: var(--ui-line-height);
+  }
+  :is(.ui-heading, [class*="ui-heading-"]) {
+    font-family: var(--ui-font-family-heading);
+    font-size: calc(var(--ui-font-size) * var(--ui-scale, 1) * var(--ui-heading-ratio));
+    font-weight: var(--ui-font-weight-bold);
+    line-height: var(--ui-line-height-heading);
+    text-wrap: balance;
+  }
+  :is(.ui-caption, [class*="ui-caption-"]) {
+    font-family: var(--ui-font-family);
+    font-size: calc(var(--ui-font-size) * var(--ui-scale, 1) * var(--ui-caption-ratio));
+    font-weight: var(--ui-font-weight-normal);
+    line-height: var(--ui-line-height-tight);
+    color: var(--ui-text-muted);
+  }
+
+  .ui-font-weight-light {
+    font-weight: var(--ui-font-weight-light);
+  }
+  .ui-font-weight-normal {
+    font-weight: var(--ui-font-weight-normal);
+  }
+  .ui-font-weight-semibold {
+    font-weight: var(--ui-font-weight-semibold);
+  }
+  .ui-font-weight-bold,
+  .ui-bold {
+    font-weight: var(--ui-font-weight-bold);
+  }
+  .ui-italic {
+    font-style: italic;
+  }
+  .ui-muted {
+    color: var(--ui-text-muted);
+  }
+
+  .ui-text-start {
+    text-align: start;
+  }
+  .ui-text-center {
+    text-align: center;
+  }
+  .ui-text-end {
+    text-align: end;
+  }
+  .ui-text-justify {
+    text-align: justify;
+  }
+  .ui-text-nowrap {
+    white-space: nowrap;
+  }
+  .ui-text-balance {
+    text-wrap: balance;
+  }
+  .ui-text-pretty {
+    text-wrap: pretty;
+  }
+  .ui-text-truncate {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .ui-text-uppercase {
+    text-transform: uppercase;
+  }
+  .ui-text-lowercase {
+    text-transform: lowercase;
+  }
+  .ui-text-capitalize {
+    text-transform: capitalize;
+  }
+
+  .ui-link,
+  .ui-link-plain {
+    color: var(--ui-link);
+    text-decoration: underline;
+    text-decoration-thickness: 0.06em;
+    text-underline-offset: 0.15em;
+    cursor: pointer;
+  }
+  .ui-link-plain {
+    text-decoration-line: none;
+  }
+  .ui-link:hover,
+  .ui-link-plain:hover {
+    color: var(--ui-link-hover);
+    text-decoration-line: underline;
+  }
+
+  /* NOTE: WebKit drops list semantics with `list-style: none` -- add `role="list"` where they matter. */
+  .ui-list-plain {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  /*******************************
+         Theme (colour scheme)
+  *******************************/
+
+  /*
+   * Force a scheme on a subtree.  Colour tokens are `light-dark()` token streams resolved where USED,
+   * so switching `color-scheme` here flips every token below;  `color` / `background-color` are
+   * re-resolved too, since inherited `color` would keep the parent's scheme.
+   * - `--ui-scheme` mirrors the scheme for `ui-invert`, which style-queries its parent.
+   */
+  .ui-light {
+    color-scheme: light;
+    --ui-scheme: light;
+    color: var(--ui-text-color);
+    background-color: var(--ui-background);
+  }
+  .ui-dark {
+    color-scheme: dark;
+    --ui-scheme: dark;
+    color: var(--ui-text-color);
+    background-color: var(--ui-background);
+  }
+  @container style(--ui-scheme: dark) {
+    .ui-invert {
+      color-scheme: light;
+      --ui-scheme: light;
+      color: var(--ui-text-color);
+      background-color: var(--ui-background);
+    }
+  }
+  @container not style(--ui-scheme: dark) {
+    .ui-invert {
+      color-scheme: dark;
+      --ui-scheme: dark;
+      color: var(--ui-text-color);
+      background-color: var(--ui-background);
+    }
+  }
+
+  /*******************************
+             Shape
+  *******************************/
+
+  .ui-rounded-s {
+    border-radius: var(--ui-radius-s);
+  }
+  .ui-rounded-m {
+    border-radius: var(--ui-radius-m);
+  }
+  .ui-rounded-l {
+    border-radius: var(--ui-radius-l);
+  }
+  .ui-rounded-pill {
+    border-radius: var(--ui-radius-pill);
+  }
+  .ui-rounded-circle {
+    border-radius: var(--ui-radius-circle);
+  }
+  .ui-rounded-square {
+    border-radius: var(--ui-radius-square);
+  }
+
+  /*******************************
+              Prose
+  *******************************/
+
+  /*
+   * Readable rich text (CMS / markdown output):  a line measure plus vertical rhythm for plain elements.
+   * - `ui-not-prose` opts a subtree back out, e.g. an embedded widget.
+   * - Page-wide defaults are `typography.css` (`.ui-typography`);  this is the local, self-contained version.
+   */
+  .ui-prose {
+    max-inline-size: 70ch;
+    line-height: var(--ui-line-height);
+  }
+  .ui-prose
+    :where(p, ul, ol, dl, blockquote, pre, figure, table, hr, h1, h2, h3, h4, h5, h6):not(
+      :where(.ui-not-prose, .ui-not-prose *)
+    ) {
+    margin-block: 0 1em;
+  }
+  .ui-prose :where(h1, h2, h3, h4, h5, h6):not(:where(.ui-not-prose, .ui-not-prose *)) {
+    margin-block-start: 1.5em;
+    font-family: var(--ui-font-family-heading);
+    font-weight: var(--ui-font-weight-bold);
+    line-height: var(--ui-line-height-heading);
+    text-wrap: balance;
+  }
+  .ui-prose :where(:first-child):not(:where(.ui-not-prose, .ui-not-prose *)) {
+    margin-block-start: 0;
+  }
+  .ui-prose :where(h1):not(:where(.ui-not-prose *)) {
+    font-size: 2em;
+  }
+  .ui-prose :where(h2):not(:where(.ui-not-prose *)) {
+    font-size: 1.5em;
+  }
+  .ui-prose :where(h3):not(:where(.ui-not-prose *)) {
+    font-size: 1.25em;
+  }
+  .ui-prose :where(h4):not(:where(.ui-not-prose *)) {
+    font-size: 1.125em;
+  }
+  .ui-prose :where(ul, ol):not(:where(.ui-not-prose, .ui-not-prose *)) {
+    padding-inline-start: 1.5em;
+  }
+  .ui-prose :where(a):not(:where(.ui-not-prose *)) {
+    color: var(--ui-link);
+    text-underline-offset: 0.15em;
+  }
+  .ui-prose :where(blockquote):not(:where(.ui-not-prose, .ui-not-prose *)) {
+    padding-inline-start: 1em;
+    border-inline-start: 0.25em solid var(--ui-border-color-strong);
+    color: var(--ui-text-muted);
+  }
+  .ui-prose :where(code, kbd, samp, pre):not(:where(.ui-not-prose *)) {
+    font-family: var(--ui-font-family-mono);
+    font-size: 0.875em;
+  }
+  .ui-prose :where(hr):not(:where(.ui-not-prose *)) {
+    border: 0;
+    border-block-start: var(--ui-border);
+  }
+
+  /*******************************
+           Visibility
+  *******************************/
+
+  /* Hidden visually, still read by screen readers;  shows again when focus moves inside (skip links). */
+  .ui-visually-hidden:not(:focus-within),
+  .ui-visually-hidden-force {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  /*
+   * Cloak:  hide undefined custom elements (FOUCE) until they upgrade -- on the element itself, or on a
+   * wrapper while anything inside is undefined.
+   * - Capped at 2s by a `step-end` animation, so a component that never loads can't hide content forever.
+   */
+  .ui-cloak:is(:not(:defined), :has(:not(:defined))) {
+    animation: 2s step-end ui-cloak;
+  }
+  @keyframes ui-cloak {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+
+  .ui-hidden {
+    display: none;
+  }
+  .ui-block {
+    display: block;
+  }
+  .ui-flex {
+    display: flex;
+  }
+
+  @media (--ui-mobile) {
+    .ui-hidden-mobile {
+      display: none;
+    }
+  }
+  @media (--ui-tablet) {
+    .ui-hidden-tablet {
+      display: none;
+    }
+  }
+  @media (--ui-computer) {
+    .ui-hidden-computer {
+      display: none;
+    }
+  }
+}

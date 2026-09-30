@@ -1,0 +1,107 @@
+<!-- `src/components/form/examples/variations.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Required, width</h4>
+    <ui-form>
+      <form>
+        <ui-fields>
+          <ui-field required width="6">
+            <label for="fm-var-first">First name</label>
+            <ui-input id="fm-var-first" placeholder="First Name"></ui-input>
+          </ui-field>
+          <ui-field width="4">
+            <label for="fm-var-middle">Middle</label>
+            <ui-input id="fm-var-middle" placeholder="Middle Name"></ui-input>
+          </ui-field>
+          <ui-field width="6">
+            <label for="fm-var-last">Last name</label>
+            <ui-input id="fm-var-last" placeholder="Last Name"></ui-input>
+          </ui-field>
+        </ui-fields>
+      </form>
+    </ui-form>
+  </section>
+
+  <section>
+    <h4>Equal width</h4>
+    <ui-form equal-width>
+      <form>
+        <ui-fields>
+          <ui-field>
+            <label for="fm-var-user">Username</label>
+            <ui-input id="fm-var-user" placeholder="Username"></ui-input>
+          </ui-field>
+          <ui-field>
+            <label for="fm-var-password">Password</label>
+            <ui-input id="fm-var-password" type="password"></ui-input>
+          </ui-field>
+        </ui-fields>
+      </form>
+    </ui-form>
+  </section>
+
+  <section>
+    <h4>Inline fields</h4>
+    <ui-form>
+      <form>
+        <ui-fields inline>
+          <label for="fm-var-phone">Phone Number</label>
+          <ui-field><ui-input id="fm-var-phone" placeholder="(xxx)" aria-label="Area code"></ui-input></ui-field>
+          <ui-field><ui-input placeholder="xxx" aria-label="Exchange"></ui-input></ui-field>
+          <ui-field><ui-input placeholder="xxxx" aria-label="Number"></ui-input></ui-field>
+        </ui-fields>
+        <ui-field inline>
+          <label for="fm-var-inline">Last name</label>
+          <ui-input id="fm-var-inline" placeholder="Full Name"></ui-input>
+        </ui-field>
+      </form>
+    </ui-form>
+  </section>
+
+  <section>
+    <h4>Grouped</h4>
+    <ui-form>
+      <form>
+        <ui-fields grouped role="radiogroup" aria-labelledby="fm-var-tp">
+          <label id="fm-var-tp">Outbound Throughput</label>
+          <ui-field><ui-radio name="throughput" value="20" selected>20 mbps max</ui-radio></ui-field>
+          <ui-field><ui-radio name="throughput" value="50">50 mbps max</ui-radio></ui-field>
+        </ui-fields>
+      </form>
+    </ui-form>
+  </section>
+
+  <section>
+    <h4>Size</h4>
+    <ui-form size="small">
+      <form>
+        <ui-field>
+          <label for="fm-var-small">Small</label>
+          <ui-input id="fm-var-small" placeholder="Small form"></ui-input>
+        </ui-field>
+      </form>
+    </ui-form>
+    <ui-form size="large">
+      <form>
+        <ui-field>
+          <label for="fm-var-large">Large</label>
+          <ui-input id="fm-var-large" placeholder="Large form"></ui-input>
+        </ui-field>
+      </form>
+    </ui-form>
+  </section>
+
+  <section>
+    <h4>Inverted</h4>
+    <div class="ui-dark ui-p-m" style="background: var(--ui-background)">
+      <ui-form inverted>
+        <form>
+          <ui-field>
+            <label for="fm-var-inv">First name</label>
+            <ui-input id="fm-var-inv" placeholder="First Name"></ui-input>
+          </ui-field>
+        </form>
+      </ui-form>
+    </div>
+  </section>
+</div>

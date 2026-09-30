@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@spell/ui: hot module replacement</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 16px;
+        font-family: system-ui, sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Hot module replacement</h1>
+    <p>
+      Run <code>yarn dev</code>, open this page, then edit <code>src/components/button/UIButton.tsx</code>,
+      <code>src/components/button/button.css</code> or a vocabulary: the elements below update in place.
+      <code>yarn test:hmr</code> drives the same page.
+    </p>
+    <p>
+      <ui-button id="button" primary color="red">Save</ui-button>
+      <ie-boton id="boton" primario color="azul">Guardar</ie-boton>
+      <ui-buttons id="buttons"><ui-button>One</ui-button><ui-or id="or"></ui-or><ui-button>Two</ui-button></ui-buttons>
+    </p>
+    <p><ui-dropdown id="dropdown" selection placeholder="Country" name="country"></ui-dropdown></p>
+    <ui-segment id="segment" raised>A segment</ui-segment>
+    <pre id="log"></pre>
+    <script type="module" src="./hmr.ts"></script>
+  </body>
+</html>

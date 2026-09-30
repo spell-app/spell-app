@@ -1,0 +1,41 @@
+<!--
+  Transitions, after Fomantic's docs (modules/transition.html).  Static class grammar:  the states a script leaves
+  behind (`visible`, `hidden`) and the looping / pulsating variations;  `animations.css` runs the keyframes for
+  `.ui.transition.<name>.<in | out>`.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Visible</h4>
+    <div class="ui visible transition">
+      <div class="ui segment">Shown: a finished animation in leaves it visible.</div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Hidden</h4>
+    <p>Below this line, a hidden transition takes no room.</p>
+    <div class="ui hidden transition">
+      <div class="ui segment">Hidden</div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Looping</h4>
+    <div class="ui looping pulse transition" style="display: inline-block">
+      <div class="ui segment">Pulses forever</div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Pulsating</h4>
+    <button type="button" class="ui red looping pulsating transition button">Pulsating red</button>
+    <button type="button" class="ui looping pulsating transition button">Pulsating grey</button>
+  </section>
+
+  <section>
+    <h4>Disabled</h4>
+    <div class="ui disabled looping bounce transition" style="display: inline-block">
+      <div class="ui segment">A paused bounce</div>
+    </div>
+  </section>
+</div>

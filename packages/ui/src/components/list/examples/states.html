@@ -1,0 +1,28 @@
+<!--
+  List states, after Fomantic's docs (elements/list.html, "States").
+  Static class grammar:  a disabled item, and the selected (`active`) item of a link and a selection list.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Disabled</h4>
+    <div class="ui horizontal list">
+      <a class="disabled item" href="#disabled"> Disabled </a>
+      <a class="item" href="#terms"> Terms </a>
+      <a class="item" href="#privacy"> Privacy </a>
+    </div>
+  </section>
+
+  <section>
+    <h4>Active</h4>
+    <div class="ui link list">
+      <a class="item" href="#home"> Home </a>
+      <a class="active item" href="#about"> About </a>
+      <a class="item" href="#jobs"> Jobs </a>
+    </div>
+    <div class="ui selection list">
+      <div class="item" data-value="inbox">Inbox</div>
+      <div class="active item" data-value="starred">Starred</div>
+      <div class="item" data-value="sent">Sent</div>
+    </div>
+  </section>
+</div>

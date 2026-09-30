@@ -1,0 +1,129 @@
+<!--
+  Dropdown content, after Fomantic's docs (modules/dropdown.html, "Content"):  header, divider, icon,
+  description, label, image, flag, message, addition, search in menu, scrolling menu.
+  All menus shown open (static `.visible.menu`, no popover) so the content can be eyeballed.
+-->
+<div class="ui-stack">
+  <section style="min-height: 22em">
+    <h4>Header, divider, icon, description</h4>
+    <div class="ui active dropdown">
+      <button class="trigger" role="combobox" aria-expanded="true" aria-label="Filter"></button>
+      <span class="text">Filter</span>
+      <span class="dropdown icon"></span>
+      <div class="visible menu" role="listbox">
+        <div class="header" role="presentation">
+          <svg class="icon" viewBox="0 0 512 512" aria-hidden="true">
+            <path
+              d="M32 64C19.1 64 7.4 71.8 2.4 83.8S.2 109.5 9.4 118.6L192 301.3 192 416c0 8.5 3.4 16.6 9.4 22.6l64 64c9.2 9.2 22.9 11.9 34.9 6.9S320 492.9 320 480l0-178.7 182.6-182.6c9.2-9.2 11.9-22.9 6.9-34.9S492.9 64 480 64L32 64z"
+            />
+          </svg>
+          Filter by tag
+        </div>
+        <hr class="divider" />
+        <div class="item" role="option">
+          <svg class="icon" viewBox="0 0 576 512" aria-hidden="true">
+            <path
+              d="M309.5-18.9c-4.1-8-12.4-13.1-21.4-13.1s-17.3 5.1-21.4 13.1L193.1 125.3 33.2 150.7c-8.9 1.4-16.3 7.7-19.1 16.3s-.5 18 5.8 24.4l114.4 114.5-25.2 159.9c-1.4 8.9 2.3 17.9 9.6 23.2s16.9 6.1 25 2L288.1 417.6 432.4 491c8 4.1 17.7 3.3 25-2s11-14.2 9.6-23.2L441.7 305.9 556.1 191.4c6.4-6.4 8.6-15.8 5.8-24.4s-10.1-14.9-19.1-16.3L383 125.3 309.5-18.9z"
+            /></svg
+          ><span class="text">Important</span><span class="description">2 new</span>
+        </div>
+        <div class="item" role="option">
+          <svg class="icon" viewBox="0 0 448 512" aria-hidden="true">
+            <path
+              d="M64 32C64 14.3 49.7 0 32 0S0 14.3 0 32L0 480c0 17.7 14.3 32 32 32s32-14.3 32-32l0-121.6 62.7-18.8c41.9-12.6 87.1-8.7 126.2 10.9 42.7 21.4 92.5 24 137.2 7.2l37.1-13.9c12.5-4.7 20.8-16.6 20.8-30l0-247.7c0-23-24.2-38-44.8-27.7l-11.8 5.9c-44.9 22.5-97.8 22.5-142.8 0-36.4-18.2-78.3-21.8-117.2-10.1L64 54.4 64 32z"
+            /></svg
+          ><span class="text">Announcement</span>
+        </div>
+        <div class="disabled item" role="option" aria-disabled="true">
+          <svg class="icon" viewBox="0 0 448 512" aria-hidden="true">
+            <path
+              d="M136.7 5.9L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-8.7-26.1C306.9-7.2 294.7-16 280.9-16L167.1-16c-13.8 0-26 8.8-30.4 21.9zM416 144L32 144 53.1 467.1C54.7 492.4 75.7 512 101 512L347 512c25.3 0 46.3-19.6 47.9-44.9L416 144z"
+            /></svg
+          ><span class="text">Discussion</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section style="min-height: 14em">
+    <h4>Image and flag</h4>
+    <div class="ui active selection dropdown">
+      <button class="trigger" role="combobox" aria-expanded="true" aria-label="Friend"></button>
+      <span class="text"
+        ><img
+          class="ui avatar image"
+          width="32"
+          height="32"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%2396a%22/%3E%3C/svg%3E"
+          alt=""
+        />Jenny Hess</span
+      >
+      <span class="dropdown icon"></span>
+      <div class="visible menu" role="listbox">
+        <div class="active item" role="option" aria-selected="true">
+          <img
+            class="ui avatar image"
+            width="32"
+            height="32"
+            src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%2396a%22/%3E%3C/svg%3E"
+            alt=""
+          />Jenny Hess
+        </div>
+        <div class="item" role="option"><span class="flag">🇫🇷</span>France</div>
+        <div class="item" role="option"><span class="flag">🇩🇪</span>Germany</div>
+      </div>
+    </div>
+  </section>
+
+  <section style="min-height: 10em">
+    <h4>Message (no results)</h4>
+    <div class="ui active search selection dropdown">
+      <input class="search" role="combobox" aria-expanded="true" aria-label="Country" value="xyz" autocomplete="off" />
+      <span class="filtered default text">Select Country</span>
+      <span class="dropdown icon"></span>
+      <div class="visible menu" role="listbox">
+        <div class="message">No results found.</div>
+      </div>
+    </div>
+  </section>
+
+  <section style="min-height: 12em">
+    <h4>Addition</h4>
+    <div class="ui active search selection dropdown">
+      <input class="search" role="combobox" aria-expanded="true" aria-label="Tag" value="Svelte" autocomplete="off" />
+      <span class="filtered default text">Tags</span>
+      <span class="dropdown icon"></span>
+      <div class="visible menu" role="listbox">
+        <div class="stuck addition item" role="option">Add <b>Svelte</b></div>
+        <div class="selected item" role="option"><mark>Svelte</mark>Kit</div>
+      </div>
+    </div>
+  </section>
+
+  <section style="min-height: 22em">
+    <h4>Search in menu, scrolling menu, labels in items</h4>
+    <div class="ui active floating labeled icon dropdown button">
+      <button class="trigger" role="combobox" aria-expanded="true" aria-label="Filter posts"></button>
+      <svg class="icon" viewBox="0 0 512 512" aria-hidden="true">
+        <path
+          d="M32 64C19.1 64 7.4 71.8 2.4 83.8S.2 109.5 9.4 118.6L192 301.3 192 416c0 8.5 3.4 16.6 9.4 22.6l64 64c9.2 9.2 22.9 11.9 34.9 6.9S320 492.9 320 480l0-178.7 182.6-182.6c9.2-9.2 11.9-22.9 6.9-34.9S492.9 64 480 64L32 64z"
+        />
+      </svg>
+      <span class="text">Filter Posts</span>
+      <div class="visible menu" role="listbox">
+        <div class="ui icon search input">
+          <input type="text" placeholder="Search tags..." aria-label="Search tags" />
+        </div>
+        <hr class="divider" />
+        <div class="header" role="presentation">Tag label</div>
+        <div class="scrolling menu">
+          <div class="item" role="option">Important</div>
+          <div class="item" role="option">Announcement</div>
+          <div class="item" role="option">Cannot fix</div>
+          <div class="item" role="option">News</div>
+          <div class="item" role="option">Enhancement</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

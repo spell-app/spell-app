@@ -1,0 +1,22 @@
+<!-- `src/components/parts/examples/date.html` as element markup. -->
+<!-- Owners are the real elements. -->
+<div class="ui-stack">
+  <section>
+    <h4>Standalone</h4>
+    <ui-date datetime="2026-09-29">Today</ui-date>
+  </section>
+
+  <section>
+    <h4>In a feed</h4>
+    <ui-feed>
+      <ui-event>
+        <ui-content>
+          <ui-date datetime="P3D">3 days ago</ui-date>
+          <ui-summary>
+            You added Jenny Hess to your coworker group. <ui-date datetime="PT4H">4 hours ago</ui-date>
+          </ui-summary>
+        </ui-content>
+      </ui-event>
+    </ui-feed>
+  </section>
+</div>

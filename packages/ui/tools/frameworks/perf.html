@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Perf -- smoke page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="./frameworks.css" />
+  </head>
+  <body>
+    <h1>1000-option search dropdown</h1>
+    <p>
+      <code>PerfRun</code> against the BUILT <code>dist/</code> and vendored peers (production builds);
+      <code>@spell/ui-tools/perf-adapter</code> says when the DOM is up to date.
+    </p>
+    <ui-dropdown search selection fluid placeholder="Search 1000 options" id="perf"></ui-dropdown>
+    <pre id="result">running...</pre>
+    <script type="module">
+      import "@spell/ui"
+      import { adapter } from "@spell/ui-tools/perf-adapter"
+      import { PerfRun } from "/test/PerfRun.ts"
+
+      await customElements.whenDefined("ui-dropdown")
+      const host = document.querySelector("#perf")
+      const perf = await PerfRun.run(host, adapter)
+      const checks = { openRows: perf.open.rows, lastRows: perf.keystrokes.at(-1).rows }
+      window.smokeResult = { ok: perf.open.rows === PerfRun.count, label: "perf (production)", checks, perf }
+      document.querySelector("#result").textContent = JSON.stringify(perf, null, 2)
+    </script>
+  </body>
+</html>

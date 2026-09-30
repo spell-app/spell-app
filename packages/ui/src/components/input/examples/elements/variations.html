@@ -1,0 +1,66 @@
+<!-- `src/components/input/examples/variations.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Icon</h4>
+    <div class="ui-cluster">
+      <ui-input icon="magnifying-glass" placeholder="Search..." aria-label="Search"></ui-input>
+      <ui-input icon="users" icon-position="left" placeholder="Search users..." aria-label="Search users"></ui-input>
+    </div>
+  </section>
+
+  <section>
+    <h4>Labeled</h4>
+    <div class="ui-stack">
+      <ui-input label="http://" placeholder="mysite.com" aria-label="Site"></ui-input>
+      <ui-input labeled="right" label="kg" placeholder="Enter weight..." aria-label="Weight"></ui-input>
+      <ui-input labeled="corner" label="asterisk" placeholder="Search..." aria-label="Required field"></ui-input>
+      <ui-input labeled="left corner" label="asterisk" placeholder="Search..." aria-label="Required field"></ui-input>
+    </div>
+  </section>
+
+  <section>
+    <h4>Action</h4>
+    <div class="ui-stack">
+      <ui-input placeholder="Search..." aria-label="Search"><ui-button slot="action">Search</ui-button></ui-input>
+      <ui-input action="left" value="52.03" aria-label="Amount">
+        <ui-button slot="action" color="teal">Checkout</ui-button>
+      </ui-input>
+    </div>
+  </section>
+
+  <section>
+    <h4>Transparent</h4>
+    <ui-input transparent placeholder="Search..." aria-label="Search"></ui-input>
+  </section>
+
+  <section>
+    <h4>Inverted</h4>
+    <div class="ui-dark ui-p-m" style="background: var(--ui-background)">
+      <ui-input inverted placeholder="Search..." aria-label="Search"></ui-input>
+      <ui-input transparent inverted placeholder="Search..." aria-label="Search"></ui-input>
+    </div>
+  </section>
+
+  <section>
+    <h4>Fluid</h4>
+    <ui-input fluid icon="magnifying-glass" placeholder="Search a very wide input..." aria-label="Search"></ui-input>
+  </section>
+
+  <section>
+    <h4>Size</h4>
+    <div class="ui-stack">
+      <ui-input size="mini" placeholder="Mini" aria-label="Mini"></ui-input>
+      <ui-input size="small" placeholder="Small" aria-label="Small"></ui-input>
+      <ui-input size="large" placeholder="Large" aria-label="Large"></ui-input>
+      <ui-input size="huge" placeholder="Huge" aria-label="Huge"></ui-input>
+    </div>
+  </section>
+
+  <section>
+    <h4>File</h4>
+    <div class="ui-stack">
+      <ui-input type="file" aria-label="Upload"></ui-input>
+      <ui-input type="file" color="green" aria-label="Upload"></ui-input>
+    </div>
+  </section>
+</div>

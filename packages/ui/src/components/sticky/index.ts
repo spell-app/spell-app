@@ -1,0 +1,10 @@
+/**
+ * Barrel for the sticky -- also the `sticky` lib entry (`@spell/ui/sticky`), measured in `docs/report.md`.
+ * - SIDE EFFECT:  defines `<ui-sticky>`.
+ */
+
+import { UISticky } from "./UISticky"
+
+UISticky.define()
+
+export { UISticky }

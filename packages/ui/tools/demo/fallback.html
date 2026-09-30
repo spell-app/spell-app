@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>@spell/ui: native fallbacks</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body {
+        margin: 0;
+        padding: 16px;
+        font-family: system-ui, sans-serif;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+      }
+      th,
+      td {
+        border-bottom: 1px solid #ccc;
+        padding: 12px 8px;
+        text-align: start;
+        vertical-align: top;
+      }
+      pre {
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Native fallbacks, from <code>dist/</code></h1>
+    <p>
+      Each row shows one family twice: working, and the same markup after its render was made to throw. The failed
+      element logs one console error, dispatches <code>ui-error</code>, gets <code>:state(errored)</code> and renders
+      its family's native fallback (<code>src/components/&lt;name&gt;/&lt;name&gt;.fallback.ts</code>) -- plain DOM with
+      the same class grammar, so the component's own sheet still styles it. Served by <code>yarn serve</code> /
+      <code>yarn smoke</code> (import map: <code>dist/</code> + the vendored Solid).
+    </p>
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Family</th>
+          <th scope="col">Working</th>
+          <th scope="col">Failed: native fallback</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <p>Submitted: <output id="submitted">(nothing yet)</output></p>
+    <pre id="result">checking...</pre>
+    <script type="module">
+      import { flush } from "solid-js"
+      import "@spell/ui"
+
+      /** Family => markup (also used for the failed copy) and the fallback root's selector. */
+      const FAMILIES = {
+        button: [`<form><ui-button type="submit" name="action" value="save" primary>Save</ui-button></form>`, "button"],
+        dropdown: [
+          `<form><ui-dropdown name="fruit" selection placeholder="Fruit"><ui-item value="a">Apple</ui-item>` +
+            `<ui-item value="b" selected>Banana</ui-item><ui-item value="c">Cherry</ui-item></ui-dropdown></form>`,
+          "select"
+        ],
+        icon: [`<ui-icon name="house" size="large" color="blue" label="Home"></ui-icon>`, "[part~=icon]"],
+        label: [`<ui-label color="red" icon="tag" detail="3">Tag</ui-label>`, "[part~=label]"],
+        segment: [`<ui-segment raised>A raised segment</ui-segment>`, "[part~=segment]"],
+        container: [`<ui-container text>Text container</ui-container>`, "[part~=container]"],
+        divider: [`<ui-divider horizontal>Or</ui-divider>`, "[part~=divider]"],
+        parts: [`<ui-header size="large">A header</ui-header>`, "[part~=header]"]
+      }
+
+      const rows = document.querySelector("#rows")
+      for (const [family, [html]] of Object.entries(FAMILIES)) {
+        rows.insertAdjacentHTML(
+          "beforeend",
+          `<tr data-family="${family}"><th scope="row">${family}</th><td class="working">${html}</td><td class="failed">${html}</td></tr>`
+        )
+      }
+      const output = document.querySelector("#submitted")
+      document.addEventListener("submit", (event) => {
+        event.preventDefault()
+        output.textContent = JSON.stringify([...new FormData(event.target).entries()])
+      })
+      const hosts = (cell) =>
+        [...cell.querySelectorAll("*")].filter((element) => "controller" in element && element.localName !== "ui-item")
+      await Promise.all(
+        [...document.querySelectorAll("tbody *")]
+          .filter((element) => "ready" in element)
+          .map((element) => element.ready)
+      )
+      flush()
+
+      const errors = []
+      const log = console.error
+      console.error = (...args) => (errors.push(args.map(String).join(" ")), log(...args))
+      for (const cell of document.querySelectorAll("td.failed")) for (const host of hosts(cell)) breakRender(host)
+      flush()
+      await new Promise((resolve) => setTimeout(resolve, 50))
+      console.error = log
+
+      const checks = {}
+      for (const [family, [, root]] of Object.entries(FAMILIES)) {
+        const row = document.querySelector(`tr[data-family="${family}"]`)
+        const [working] = hosts(row.querySelector(".working"))
+        const [failed] = hosts(row.querySelector(".failed"))
+        checks[family] =
+          !!failed.shadowRoot.querySelector(root) &&
+          failed.matches(":state(errored)") &&
+          !working.matches(":state(errored)") &&
+          !!working.shadowRoot.firstElementChild
+      }
+      checks.oneErrorEach = errors.length === Object.keys(FAMILIES).length
+      const failedButton = document.querySelector(`tr[data-family="button"] .failed ui-button`)
+      failedButton.shadowRoot.querySelector("button").click()
+      checks.fallbackSubmits = output.textContent === '[["action","save"]]'
+      // the working icon draws its SVG:  the default pack from `dist/icon-packs/fa7-free/`, beside `core.js` (`BuiltInPacks`)
+      const icon = document.querySelector(`tr[data-family="icon"] .working ui-icon`)
+      checks.iconGlyph = await eventually(() => !!icon.shadowRoot.querySelector("svg path[d]"))
+      const ok = Object.values(checks).every(Boolean)
+      window.smokeResult = { ok, label: "every family, working + failed", checks }
+      document.querySelector("#result").textContent = `${ok ? "PASS" : "FAIL"} ${JSON.stringify(checks)}`
+
+      /** `true` once `test()` holds, `false` after 3 s. */
+      async function eventually(test) {
+        const start = performance.now()
+        while (!test()) {
+          if (performance.now() - start > 3000) return false
+          await new Promise((resolve) => setTimeout(resolve, 20))
+        }
+        return true
+      }
+
+      /**
+       * Make `host`'s render throw (see `ElementFixture.breakRender()`):  its classes memo starts throwing, and one
+       * flag flipped and back makes it recompute inside the render effect.
+       */
+      function breakRender(host) {
+        const { controller } = host
+        Object.defineProperty(controller, "extraClasses", {
+          value: () => {
+            throw new Error(`demo:  forced render failure in <${host.localName}>`)
+          }
+        })
+        const { attributes } = controller.definition
+        const flag = attributes.find(({ spec }) => spec.kind === "keyOnly") ?? attributes[0]
+        const before = host[flag.property]
+        host[flag.property] = !before
+        host[flag.property] = before
+      }
+    </script>
+  </body>
+</html>

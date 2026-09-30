@@ -1,0 +1,14 @@
+{
+  "extends": "astro/tsconfigs/strict",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "types": ["vite/client"],
+    "paths": {
+      "$/*": ["../src/*"],
+      "$test/*": ["../test/*"],
+      "@spell/ui": ["../src/index.ts"]
+    }
+  },
+  "include": [".astro/types.d.ts", "src/**/*", "astro.config.mjs"],
+  "exclude": ["dist", "node_modules"]
+}

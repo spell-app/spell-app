@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Vanilla host -- smoke page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="./frameworks.css" />
+  </head>
+  <body>
+    <h1>Vanilla</h1>
+    <p>Properties and listener set BEFORE the element is defined: exercises the upgrade backstop.</p>
+    <div id="root">
+      <ui-dropdown selection placeholder="Fruit" value="b" open></ui-dropdown>
+      <p>Page state: <output id="value">b</output></p>
+      <button id="set" type="button">set cherry</button>
+      <button id="open" type="button">open</button>
+    </div>
+    <pre id="result">checking...</pre>
+    <script type="module">
+      import { OPTIONS, roundTrip } from "./check.js"
+
+      const dropdown = document.querySelector("ui-dropdown")
+      const output = document.querySelector("#value")
+      dropdown.options = OPTIONS
+      dropdown.addEventListener("ui-change", (event) => (output.textContent = event.detail.value))
+      document.querySelector("#set").addEventListener("click", () => (dropdown.value = output.textContent = "c"))
+      document.querySelector("#open").addEventListener("click", () => (dropdown.open = true))
+      await import("@spell/ui")
+      roundTrip("vanilla")
+    </script>
+  </body>
+</html>

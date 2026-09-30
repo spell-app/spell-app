@@ -1,0 +1,35 @@
+<!--
+  Accordion states, after Fomantic's docs (modules/accordion.html, "States" and the `exclusive` setting).
+  Static class grammar:  an open panel is `<details open>`;  a shared `name` keeps one open at a time.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Active</h4>
+    <div class="ui styled accordion">
+      <details name="active">
+        <summary class="title"><i class="dropdown icon" aria-hidden="true"></i>Closed panel</summary>
+        <div class="content"><p>Hidden until opened.</p></div>
+      </details>
+      <details name="active" open>
+        <summary class="title"><i class="dropdown icon" aria-hidden="true"></i>Open panel</summary>
+        <div class="content"><p>Shown: its title is the active one.</p></div>
+      </details>
+    </div>
+  </section>
+
+  <section>
+    <h4>Not exclusive</h4>
+    <div class="ui styled accordion">
+      <details open>
+        <summary class="title"><i class="dropdown icon" aria-hidden="true"></i>First</summary>
+        <div class="content">
+          <p>Both panels can be open: no shared <code>name</code>.</p>
+        </div>
+      </details>
+      <details open>
+        <summary class="title"><i class="dropdown icon" aria-hidden="true"></i>Second</summary>
+        <div class="content"><p>Still open.</p></div>
+      </details>
+    </div>
+  </section>
+</div>

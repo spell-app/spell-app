@@ -1,0 +1,58 @@
+<!--
+  `src/components/transition/examples/transition.html` as element markup, plus Fomantic's animation demo:  native
+  buttons drive each `<ui-transition>` through invoker commands (`commandfor` + `command="--toggle"` /
+  `"--transition"`), no script.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Animations</h4>
+    <button type="button" class="ui button" commandfor="transition-demo-fade" command="--toggle">Fade up</button>
+    <button type="button" class="ui button" commandfor="transition-demo-scale" command="--toggle">Scale</button>
+    <button type="button" class="ui button" commandfor="transition-demo-flip" command="--toggle">
+      Horizontal flip
+    </button>
+    <div class="ui-cluster">
+      <ui-transition id="transition-demo-fade" animation="fade up" inline visible>
+        <ui-segment>Fade up</ui-segment>
+      </ui-transition>
+      <ui-transition id="transition-demo-scale" animation="scale" inline visible>
+        <ui-segment>Scale</ui-segment>
+      </ui-transition>
+      <ui-transition id="transition-demo-flip" animation="horizontal flip" duration="500" inline visible>
+        <ui-segment>Horizontal flip</ui-segment>
+      </ui-transition>
+    </div>
+  </section>
+
+  <section>
+    <h4>Attention</h4>
+    <button type="button" class="ui button" commandfor="transition-demo-shake" command="--transition">Shake</button>
+    <button type="button" class="ui button" commandfor="transition-demo-tada" command="--transition">Tada</button>
+    <div class="ui-cluster">
+      <ui-transition id="transition-demo-shake" animation="shake" inline visible>
+        <ui-segment>Shake</ui-segment>
+      </ui-transition>
+      <ui-transition id="transition-demo-tada" animation="tada" inline visible>
+        <ui-segment>Tada</ui-segment>
+      </ui-transition>
+    </div>
+  </section>
+
+  <section>
+    <h4>Hidden</h4>
+    <button type="button" class="ui button" commandfor="transition-demo-hidden" command="--show">Show</button>
+    <ui-transition id="transition-demo-hidden" animation="drop">
+      <ui-segment>Hidden until shown</ui-segment>
+    </ui-transition>
+  </section>
+
+  <section>
+    <h4>Pulsating</h4>
+    <ui-transition color="red" pulsating looping inline visible>
+      <ui-button>Pulsating red</ui-button>
+    </ui-transition>
+    <ui-transition pulsating looping inline visible>
+      <ui-button>Pulsating grey</ui-button>
+    </ui-transition>
+  </section>
+</div>

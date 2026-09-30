@@ -1,0 +1,87 @@
+<!-- Search states, after Fomantic's docs (modules/search.html, "States"):  loading, disabled, messages. -->
+<div class="ui-stack" style="padding-bottom: 10em">
+  <section>
+    <h4>Loading</h4>
+    <div class="ui loading search">
+      <div class="ui icon loading input">
+        <input
+          class="prompt"
+          type="text"
+          role="combobox"
+          aria-expanded="false"
+          aria-label="Loading"
+          aria-busy="true"
+          autocomplete="off"
+        />
+        <span class="search icon"></span>
+      </div>
+      <div class="results" popover="manual"></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Disabled</h4>
+    <div class="ui disabled search">
+      <div class="ui icon disabled input">
+        <input
+          class="prompt"
+          type="text"
+          role="combobox"
+          aria-expanded="false"
+          aria-label="Disabled"
+          disabled
+          autocomplete="off"
+        />
+        <span class="search icon"></span>
+      </div>
+      <div class="results" popover="manual"></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>No results</h4>
+    <div class="ui search">
+      <div class="ui icon input">
+        <input
+          class="prompt"
+          type="text"
+          role="combobox"
+          aria-expanded="false"
+          aria-label="Nothing"
+          value="zzz"
+          autocomplete="off"
+        />
+        <span class="search icon"></span>
+      </div>
+      <div class="visible results">
+        <div class="empty message">
+          <div class="header">No Results</div>
+          <div class="description">Your search returned no results</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="ui-stack" style="padding-bottom: 8em">
+  <section>
+    <h4>Error</h4>
+    <div class="ui search">
+      <div class="ui icon input">
+        <input
+          class="prompt"
+          type="text"
+          role="combobox"
+          aria-expanded="false"
+          aria-label="Server"
+          value="fail"
+          autocomplete="off"
+        />
+        <span class="search icon"></span>
+      </div>
+      <div class="visible results">
+        <div class="error message"><div class="description">There was an issue querying the server.</div></div>
+      </div>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,171 @@
+/// <reference types="node" />
+
+/**
+ * The package tooling's command line:  `tsx tools/cli.ts <command>` (the root `yarn vendor`, `yarn measure` ...).
+ * - `vendor` -- `PeerVendor`:  one ES module per peer specifier (`solid-js`, `@solidjs/web`, `@spell/solid-element`)
+ *   in `vendor/` + `vendor/importmap.json`, tree-shaken to what `dist/` and the smoke pages import
+ * - `measure` -- `BundleMeasure`:  `tools/results/measure-results.json` (library / core / forms / own per family /
+ *   scenarios / checks)
+ * - `smoke` -- `SmokeRunner`:  `dist/` + `vendor/` through an import map, the framework host pages (the Solid 2 app
+ *   on the SAME vendored Solid as the components) + the extra pages, headless chromium;
+ *   `tools/results/smoke-results.json`
+ * - `serve` -- the same pages and import map for a person:  prints the URLs, runs until killed
+ * - `loc` / `report` -- `LocCount` (`loc-results.json`), then `ReportTables` rewrites `docs/report.md`'s generated
+ *   tables
+ * - `icons:pack <folder> --id <id> [--label <text>] [--license <text>] [--sanitize]
+ *   [--skip-unsafe | --allow-unsafe] [--force]` -- `IconPackBuilder`:  verify a folder of SVGs and write its
+ *   `pack.js` (keeps hand edits of an existing one)
+ *   - `--sanitize`:  first strip unsafe attributes from the SVGs, rewriting those files
+ *   - `--skip-unsafe`:  leave files that still fail out of the index, instead of refusing the pack
+ *   - `--allow-unsafe`:  index unsafe files anyway (a broken one still refuses the pack)
+ * - `smoke` expects a fresh `vite build` and `yarn vendor`;  `measure` builds in memory.  Both `vendor` and
+ *   `measure` bundle the fork's BUILT output:  `ForkBuild.ensure()` builds it first when stale.
+ */
+
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
+import { join, resolve } from "node:path"
+import { parseArgs } from "node:util"
+
+import {
+  BundleMeasure,
+  ForkBuild,
+  HostApp,
+  IconPackBuilder,
+  IconPackError,
+  LocCount,
+  PeerVendor,
+  ReportTables,
+  SmokeRunner,
+  type ImportMap
+} from "./index.ts"
+import { DIST_IMPORTS, PACKAGE } from "./package.config.ts"
+
+const command = process.argv[2]
+switch (command) {
+  case "vendor":
+    ForkBuild.ensure()
+    await HostApp.ensure()
+    await new PeerVendor({
+      root: PACKAGE.root,
+      peerEntry: PACKAGE.peerEntry,
+      // `dist/`, and every page module that imports a peer itself:  the host app, the identity probe,
+      // `perf-adapter.js`, the inline scripts of the extra pages (`flush`)
+      usedBy: ["dist", "tools/frameworks", "tools/smoke", "tools/demo/fallback.html"]
+    }).build()
+    break
+  case "measure":
+    ForkBuild.ensure()
+    await new BundleMeasure(PACKAGE).write()
+    break
+  case "smoke":
+    if (!(await runner().run()).pages.every((page) => page.ok)) process.exitCode = 1
+    break
+  case "serve":
+    await runner().serve()
+    break
+  case "loc":
+    loc()
+    break
+  case "report":
+    loc()
+    new ReportTables(PACKAGE.root).write()
+    break
+  case "icons:pack":
+    await iconPack()
+    break
+  default:
+    console.error("usage:  tsx tools/cli.ts vendor | measure | smoke | serve | loc | report | icons:pack")
+    process.exit(1)
+}
+
+/** Host pages + the extra pages, against `dist/` and the vendored Solid. */
+function runner() {
+  const vendorMap = join(PACKAGE.root, "vendor", "importmap.json")
+  if (!existsSync(vendorMap)) throw new Error("no vendor/importmap.json:  run `yarn vendor` first")
+  const vendored = JSON.parse(readFileSync(vendorMap, "utf8")) as ImportMap
+  return new SmokeRunner({
+    name: PACKAGE.name,
+    root: PACKAGE.root,
+    results: PACKAGE.results,
+    importMap: { imports: { ...vendored.imports, ...DIST_IMPORTS } },
+    perfAdapter: "tools/smoke/perf-adapter.js",
+    pages: [
+      { path: "tools/smoke/compat-solid-1.9.html", kind: "compat" },
+      { path: "tools/smoke/translate.html", kind: "check" },
+      { path: "tools/demo/fallback.html", kind: "check" }
+    ]
+  })
+}
+
+/** Lines / code lines of the element core, components, foundation, tests and tooling. */
+function loc() {
+  const results = new LocCount(PACKAGE.name, PACKAGE.root, {
+    "element core": ["src/elements/*.{ts,tsx}", "src/core.ts", "src/forms.ts", "!src/elements/*.test.{ts,tsx}"],
+    components: [
+      "src/components/*/UI*.{ts,tsx}",
+      "src/components/*/index.ts",
+      "src/components/dropdown/SlottedItems.ts",
+      "src/components/parts/PartElement.ts",
+      "!src/components/**/*.test.{ts,tsx}"
+    ],
+    "vocabularies & fallbacks": ["src/components/*/*.vocabulary.*.ts", "src/components/*/*.fallback.ts"],
+    foundation: [
+      "src/{util,vocabulary,runtime,styles,icons}/*.ts",
+      "src/components/*.ts",
+      "src/index.ts",
+      "!src/**/*.test.ts"
+    ],
+    tests: ["src/**/*.test.{ts,tsx}", "test/**/*.{ts,tsx}"],
+    tooling: ["tools/**/*.{ts,tsx,js,html}", "vite.config.ts", "vitest.config.ts", "vite.decorators.ts"]
+  }).count()
+  const folder = join(PACKAGE.root, PACKAGE.results)
+  mkdirSync(folder, { recursive: true })
+  writeFileSync(join(folder, "loc-results.json"), `${JSON.stringify(results, null, 2)}\n`)
+}
+
+/** `icons:pack`:  verify a folder of SVGs and write its `pack.js`;  prints what changed, or every problem. */
+async function iconPack() {
+  const { positionals, values } = parseArgs({
+    args: process.argv.slice(3),
+    allowPositionals: true,
+    options: {
+      id: { type: "string" },
+      label: { type: "string" },
+      license: { type: "string" },
+      sanitize: { type: "boolean" },
+      "skip-unsafe": { type: "boolean" },
+      "allow-unsafe": { type: "boolean" },
+      force: { type: "boolean" }
+    }
+  })
+  const [folder] = positionals
+  if (!folder || !values.id || (values["skip-unsafe"] && values["allow-unsafe"])) {
+    console.error(
+      "usage:  tsx tools/cli.ts icons:pack <folder> --id <id> [--label <text>] [--license <text>] [--sanitize] " +
+        "[--skip-unsafe | --allow-unsafe] [--force]"
+    )
+    process.exit(1)
+  }
+  try {
+    const report = await new IconPackBuilder({
+      folder: resolve(folder),
+      id: values.id,
+      label: values.label,
+      license: values.license,
+      sanitize: values.sanitize,
+      unsafe: values["skip-unsafe"] ? "skip" : values["allow-unsafe"] ? "allow" : "refuse",
+      force: values.force
+    }).build()
+    console.log(`${report.index}:  ${report.count} icons`)
+    if (report.added.length) console.log(`  added:  ${report.added.join(", ")}`)
+    if (report.dropped.length) console.log(`  dropped:  ${report.dropped.join(", ")}`)
+    if (report.unreachable.length) console.log(`  no name of their own:  ${report.unreachable.join(", ")}`)
+    for (const { file, reason } of report.sanitized) console.log(`  sanitized ${file}:  ${reason}`)
+    for (const { file, reason } of report.skipped) console.log(`  skipped ${file}:  ${reason}`)
+    for (const { file, reason } of report.allowed) console.log(`  UNSAFE, indexed anyway:  ${file}:  ${reason}`)
+  } catch (error) {
+    if (!(error instanceof IconPackError)) throw error
+    console.error(error.message)
+    process.exitCode = 1
+  }
+}

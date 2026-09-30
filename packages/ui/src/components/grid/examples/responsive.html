@@ -1,0 +1,99 @@
+<!--
+  Responsive grids, after Fomantic's docs (collections/grid.html, "Responsive Variations").
+  `stackable`, `doubling`, `reversed` and the per-device widths follow the GRID's width (container queries);
+  `only` follows the viewport.  The fixed-width wrappers show each range side by side.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Stackable</h4>
+    <div style="width: 600px">
+      <div class="ui divided stackable four column grid">
+        <div class="ui column"><p>One</p></div>
+        <div class="ui column"><p>Two</p></div>
+        <div class="ui column"><p>Three</p></div>
+        <div class="ui column"><p>Four</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Doubling</h4>
+    <div style="width: 850px">
+      <div class="ui doubling four column grid">
+        <div class="ui column"><p>Tablet: two per line</p></div>
+        <div class="ui column"><p>Two</p></div>
+        <div class="ui column"><p>Three</p></div>
+        <div class="ui column"><p>Four</p></div>
+      </div>
+    </div>
+    <div style="width: 600px">
+      <div class="ui doubling six column grid">
+        <div class="ui column"><p>Mobile: two per line</p></div>
+        <div class="ui column"><p>Two</p></div>
+        <div class="ui column"><p>Three</p></div>
+        <div class="ui column"><p>Four</p></div>
+        <div class="ui column"><p>Five</p></div>
+        <div class="ui column"><p>Six</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Reversed</h4>
+    <div style="width: 600px">
+      <div class="ui equal width mobile reversed grid">
+        <div class="ui column"><p>First</p></div>
+        <div class="ui column"><p>Second</p></div>
+        <div class="ui column"><p>Third</p></div>
+      </div>
+    </div>
+    <div style="width: 600px">
+      <div class="ui grid">
+        <div class="ui divided mobile reversed three column row">
+          <div class="ui column"><p>First</p></div>
+          <div class="ui column"><p>Second</p></div>
+          <div class="ui column"><p>Third</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Width per device</h4>
+    <div style="width: 600px">
+      <div class="ui grid">
+        <div class="ui four wide sixteen wide mobile column"><p>Mobile: full width</p></div>
+        <div class="ui twelve wide sixteen wide mobile column"><p>Mobile: full width</p></div>
+      </div>
+    </div>
+    <div style="width: 1000px">
+      <div class="ui grid">
+        <div class="ui eight wide mobile four wide computer column"><p>Computer: four wide</p></div>
+        <div class="ui eight wide mobile twelve wide computer column"><p>Computer: twelve wide</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Device visibility</h4>
+    <div class="ui grid">
+      <div class="ui mobile only two column row">
+        <div class="ui column"><p>Mobile only</p></div>
+        <div class="ui column"><p>Mobile only</p></div>
+      </div>
+      <div class="ui mobile only tablet only three column row">
+        <div class="ui column"><p>Mobile and tablet</p></div>
+        <div class="ui column"><p>Mobile and tablet</p></div>
+        <div class="ui column"><p>Mobile and tablet</p></div>
+      </div>
+      <div class="ui computer only four column row">
+        <div class="ui column"><p>Computer only</p></div>
+        <div class="ui column"><p>Computer only</p></div>
+        <div class="ui column"><p>Computer only</p></div>
+        <div class="ui column"><p>Computer only</p></div>
+      </div>
+      <div class="ui large screen only sixteen wide column"><p>Large screen only</p></div>
+      <div class="ui widescreen only sixteen wide column"><p>Widescreen only</p></div>
+    </div>
+  </section>
+</div>

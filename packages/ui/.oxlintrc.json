@@ -1,0 +1,57 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "oxc", "import"],
+
+  // `correctness` ~== what `eslint:recommended` + `tseslint:recommended` used to give us.
+  // NOTE: it also switches on the type-aware rules, but only when `options.typeAware` is set
+  // AND the `oxlint-tsgolint` package is installed.
+  "categories": { "correctness": "error" },
+
+  // Type-aware rules, driven from the config so the CLI and the editor agree without
+  // anyone having to remember a flag.  Requires the `oxlint-tsgolint` package.
+  "options": { "typeAware": true },
+
+  // Mirrors `.oxfmtrc.json` -- vendored, generated and scratch trees.
+  "ignorePatterns": [
+    "build",
+    "dist",
+    "vendor",
+    ".cache",
+    ".yarn",
+    ".vitest",
+    "reference",
+    "src/icons/icon-packs",
+    "site/dist",
+    "packages/*/dist",
+    "tools/frameworks/solid/dist",
+    "tools/results",
+    "coverage"
+  ],
+
+  // NOTE: only rules that DIFFER from the `correctness` defaults belong here.  Anything listed
+  // as plain `"error"` is redundant -- `categories` already enables it.
+  "rules": {
+    ////////////////
+    // ## Core / TypeScript
+    ////////////////
+
+    // `tsc` already reports these via `noUnusedLocals` -- avoid duplicate diagnostics.
+    "no-unused-vars": "off",
+    "typescript/no-unused-vars": "off",
+    // Decorators, `@proto` and DOM bridges take `any` deliberately;  keep it greppable, not banned.
+    "typescript/no-explicit-any": "off",
+
+    "prefer-const": ["error", { "destructuring": "all" }],
+
+    ////////////////
+    // ## Type-aware
+    ////////////////
+
+    // Event handlers are passed as method references on purpose (`addEventListener("x", this.onX)`
+    // with `onX` bound once), so this rule would fire on intended code.
+    "typescript/unbound-method": "off",
+
+    // Attribute and class-name builders stringify values on purpose.
+    "typescript/restrict-template-expressions": "off"
+  }
+}

@@ -1,0 +1,94 @@
+<!--
+  Loader variations, after Fomantic's docs (elements/loader.html, "Variations").
+  Fomantic puts centred loaders in a dimmed segment;  here they sit in plain positioned boxes.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Inline</h4>
+    <p>Saving your changes <span class="ui active inline loader" role="status" aria-label="Loading…"></span></p>
+  </section>
+
+  <section>
+    <h4>Inline center</h4>
+    <div class="ui active centered inline loader" role="status" aria-label="Loading…"></div>
+  </section>
+
+  <section>
+    <h4>Speed</h4>
+    <div class="ui-cluster">
+      <div class="ui slow active inline loader"></div>
+      <div class="ui active inline loader"></div>
+      <div class="ui fast active inline loader"></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Colors</h4>
+    <div class="ui-cluster">
+      <div class="ui primary active inline loader"></div>
+      <div class="ui secondary active inline loader"></div>
+      <div class="ui red active inline loader"></div>
+      <div class="ui orange active inline loader"></div>
+      <div class="ui yellow active inline loader"></div>
+      <div class="ui olive active inline loader"></div>
+      <div class="ui green active inline loader"></div>
+      <div class="ui teal active inline loader"></div>
+      <div class="ui blue active inline loader"></div>
+      <div class="ui violet active inline loader"></div>
+      <div class="ui purple active inline loader"></div>
+      <div class="ui pink active inline loader"></div>
+      <div class="ui brown active inline loader"></div>
+      <div class="ui grey active inline loader"></div>
+      <div class="ui black active inline loader"></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Size</h4>
+    <div class="ui-cluster">
+      <div class="ui mini active inline loader"></div>
+      <div class="ui tiny active inline loader"></div>
+      <div class="ui small active inline loader"></div>
+      <div class="ui medium active inline loader"></div>
+      <div class="ui active inline loader"></div>
+      <div class="ui large active inline loader"></div>
+      <div class="ui big active inline loader"></div>
+      <div class="ui huge active inline loader"></div>
+      <div class="ui massive active inline loader"></div>
+    </div>
+    <div class="ui-cluster">
+      <div class="ui small active inline text loader">Loading</div>
+      <div class="ui active inline text loader">Loading</div>
+      <div class="ui large active inline text loader">Loading</div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Inverted</h4>
+    <div
+      class="ui-dark"
+      style="position: relative; height: 8em; border-radius: var(--ui-radius); background: var(--ui-background)"
+    >
+      <div class="ui active inverted text loader" role="status">Loading</div>
+    </div>
+    <div
+      class="ui-dark ui-cluster"
+      style="padding: 1em; border-radius: var(--ui-radius); background: var(--ui-background)"
+    >
+      <div class="ui red active inverted inline loader"></div>
+      <div class="ui teal active inverted inline loader"></div>
+      <div class="ui active inverted inline double loader"></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Styles</h4>
+    <div class="ui-cluster">
+      <div class="ui active inline double loader"></div>
+      <div class="ui active inline elastic loader"></div>
+      <div class="ui slow blue active inline double loader"></div>
+      <div class="ui fast green active inline elastic loader"></div>
+      <div class="ui active inline indeterminate double loader"></div>
+    </div>
+  </section>
+</div>

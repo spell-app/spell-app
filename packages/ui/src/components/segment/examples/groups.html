@@ -1,0 +1,75 @@
+<!--
+  Segment groups, after Fomantic's docs (elements/segment.html, "Groups").
+  In shadow DOM `<ui-segments>` renders `<div class="ui ... segments">` around a `<slot>`;  the same
+  `--_ui-segments-*` tokens reach slotted `<ui-segment>`s through `::slotted(*)`.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Segments</h4>
+    <div class="ui segments">
+      <div class="ui segment"><p>Top</p></div>
+      <div class="ui segment"><p>Middle</p></div>
+      <div class="ui segment"><p>Middle</p></div>
+      <div class="ui segment"><p>Middle</p></div>
+      <div class="ui segment"><p>Bottom</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Nested segments</h4>
+    <div class="ui segments">
+      <div class="ui segment"><p>Top</p></div>
+      <!-- Static markup:  a coloured (or `secondary`) segment would recolour static segments nested in it;
+           in shadow DOM its slot resets the colour tokens. -->
+      <div class="ui tertiary segment">
+        <p>Nested top</p>
+        <div class="ui segments">
+          <div class="ui segment"><p>Nested top</p></div>
+          <div class="ui segment"><p>Nested middle</p></div>
+          <div class="ui segment"><p>Nested bottom</p></div>
+        </div>
+      </div>
+      <div class="ui horizontal segments">
+        <div class="ui segment"><p>Top</p></div>
+        <div class="ui segment"><p>Middle</p></div>
+      </div>
+      <div class="ui segment"><p>Bottom</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Horizontal segments</h4>
+    <div class="ui horizontal segments">
+      <div class="ui segment"><p>Left</p></div>
+      <div class="ui segment"><p>Middle</p></div>
+      <div class="ui segment"><p>Right</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Horizontal equal width segments</h4>
+    <div class="ui equal width horizontal segments">
+      <div class="ui segment"><p>Left with a longer text</p></div>
+      <div class="ui segment"><p>Middle</p></div>
+      <div class="ui segment"><p>Right</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Raised, stacked and piled segments</h4>
+    <div class="ui raised segments">
+      <div class="ui segment"><p>First</p></div>
+      <div class="ui segment"><p>Second</p></div>
+    </div>
+    <div class="ui stacked segments">
+      <div class="ui segment"><p>First</p></div>
+      <div class="ui segment"><p>Second</p></div>
+    </div>
+    <div>
+      <div class="ui piled segments">
+        <div class="ui segment"><p>First</p></div>
+        <div class="ui segment"><p>Second</p></div>
+      </div>
+    </div>
+  </section>
+</div>

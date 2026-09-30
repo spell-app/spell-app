@@ -1,0 +1,28 @@
+<!--
+  Dimmer types and content, after Fomantic's docs (modules/dimmer.html, "Types", "Content").
+  Static class grammar:  a shown dimmer is `active` (or its parent is `dimmed dimmable`);  the parent is positioned
+  (`dimmable`).  The page dimmer is left out:  it would cover this page.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Dimmer</h4>
+    <div class="ui dimmable dimmed segment">
+      <p>A segment holding some text that the dimmer covers.</p>
+      <p>Another paragraph, so the segment has some height.</p>
+      <div class="ui active dimmer"></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Content dimmer</h4>
+    <div class="ui dimmable segment" style="min-height: 12em">
+      <p>A dimmer can show content, centred over what it dims.</p>
+      <div class="ui active dimmer">
+        <div class="content">
+          <h4 class="ui inverted header">Dimmed message!</h4>
+          <button type="button" class="ui inverted button">Add</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

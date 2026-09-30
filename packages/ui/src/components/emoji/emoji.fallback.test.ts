@@ -1,0 +1,37 @@
+import { describe, expect, it } from "vitest"
+
+import { Fixture } from "$test/fixture"
+import { expectAccessible } from "$test/a11y"
+import { FallbackStub, type StubHost } from "$/components/fallback.stub"
+
+import { EmojiFallback } from "./emoji.fallback"
+import { EmojiData } from "./EmojiData"
+
+FallbackStub.define("x-fb-emoji", (host, root, internals) =>
+  EmojiFallback.render(host, root, new Error("boom"), internals)
+)
+
+describe("EmojiFallback", () => {
+  it("renders the class grammar and part, then the glyph once loaded", async () => {
+    const host = Fixture.render<StubHost>(`<x-fb-emoji name="tada" size="large" link></x-fb-emoji>`)
+    const emoji = FallbackStub.shadow(host).firstElementChild!
+    expect(emoji.localName).toBe("span")
+    expect(emoji.className).toBe("ui large link emoji")
+    expect(emoji.getAttribute("part")).toBe("emoji")
+    await EmojiData.get("tada")
+    await expect.poll(() => emoji.textContent).toBe("\u{1F389}")
+    expect(emoji.hasAttribute("role")).toBe(false)
+    await expectAccessible(host)
+  })
+
+  it("names a labelled emoji and hides a decorative one", async () => {
+    await EmojiData.get("thumbsup")
+    const labelled = Fixture.render<StubHost>(`<x-fb-emoji name="thumbsup" label="Approved"></x-fb-emoji>`)
+    const root = FallbackStub.shadow(labelled).firstElementChild!
+    expect(root.textContent).toBe("\u{1F44D}")
+    expect(root.getAttribute("role")).toBe("img")
+    expect(root.getAttribute("aria-label")).toBe("Approved")
+    const decorative = Fixture.render<StubHost>(`<x-fb-emoji name="thumbsup" label></x-fb-emoji>`)
+    expect(FallbackStub.shadow(decorative).firstElementChild!.getAttribute("aria-hidden")).toBe("true")
+  })
+})

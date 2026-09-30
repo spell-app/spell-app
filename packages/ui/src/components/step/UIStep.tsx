@@ -1,0 +1,178 @@
+import { Show, createMemo } from "solid-js"
+import { Dynamic, isServer, type JSX } from "@solidjs/web"
+
+import { Converters, HostAttribute, IconGlyph, PART_STATIC_CLASS_PREFIX, proto, SlotContent, UIElement } from "$/core"
+
+import { stepVocabulary } from "./step.vocabulary.en"
+import { StepFallback } from "./step.fallback"
+
+import stepCSS from "./step.css?inline"
+import partsCSS from "$/components/parts/parts.css?inline"
+
+/****************
+ * ### `<ui-step>`
+ * One step:  `<div class="[color] [keyOnly ...] step" part="step">` -- `<a>` with `href`, a `<button>` with `link`
+ * -- holding the icon box, the shorthand content (`header` / `description`), the slot and, once `completed`, a
+ * visually hidden "Completed".
+ * - Semantics:  the host is a `listitem` (internals) of the group's `<ol>`;  the selected step is the current one,
+ *   `aria-current="step"` on the root.  A disabled step is `aria-disabled` (a link keeps its `<a>` without `href`),
+ *   a disabled `<button>` is `disabled`:  its dimmed text is an INACTIVE component's (WCAG 1.4.3's exemption),
+ *   and assistive tech says so.
+ * - `selected` is canonical;  an `active` attribute is Fomantic's word for it, read through `HostAttribute`.
+ * - Completed:  a check replaces the icon (the `icon` glyph or the slotted `slot=icon`, which stays in the DOM,
+ *   hidden);  an ordered step's number turns into a check in CSS.
+ * - OWNER of the `content`, `title` and `description` parts (`ownsParts`):  slotted parts style themselves from
+ *   `parts.css` (`:state(in-step)`), reading `--_ui-step-state` / `--_ui-step-layout` from this root.  The shorthands
+ *   are the same parts drawn here with their static `in-step` classes, which is why the step adopts `parts.css`.
+ * - Group variations (vertical, ordered, stacked, circular ...) arrive as inherited `--_ui-steps-*` tokens from the
+ *   `<ui-steps>` root;  `step.css` reads them (see its header).
+ ****************/
+export class UIStep extends UIElement<typeof stepVocabulary> {
+  @proto static vocabulary = stepVocabulary
+  @proto static styles = { step: stepCSS, parts: partsCSS }
+  @proto static Fallback = StepFallback
+
+  /** Light-DOM slot occupancy. */
+  readonly slots = new SlotContent(this.host)
+
+  /** Fomantic's `active` attribute, an alias of `selected`. */
+  readonly activeAttribute = new HostAttribute(this.host, ACTIVE)
+
+  /** Glyph of the `icon` shorthand. */
+  readonly glyph = new IconGlyph(() => this.attrs.icon)
+
+  ////////////////
+  // ## Derived state
+  ////////////////
+
+  /** The current step:  `selected`, or the `active` alias. */
+  readonly isSelected = createMemo(
+    () => this.attrs.selected || Converters.boolean(this.activeAttribute.get() ?? undefined, ACTIVE)
+  )
+
+  /** Has an icon (shorthand or `icon` slot)? */
+  readonly hasIcon = createMemo(() => !!this.attrs.icon || this.slots.has(this.slot("icon")))
+
+  /** Has shorthand content? */
+  readonly hasShorthand = createMemo(() => !!this.attrs.header || !!this.attrs.description)
+
+  /** The check a completed step shows in place of its icon;  after `hasIcon`, which it reads at once. */
+  readonly checkGlyph = new IconGlyph(() => (this.attrs.completed && this.hasIcon() ? CHECK : undefined))
+
+  /** Root element:  a link, a button (`link`), or a box. */
+  readonly tag = createMemo(() => (this.attrs.href ? LINK : this.attrs.link ? BUTTON : BOX))
+
+  constructor(...args: ConstructorParameters<typeof UIElement>) {
+    super(...args)
+    // SIDE EFFECT:  one item of the group's ordered list
+    if (!isServer) this.host.internals.role = LISTITEM
+  }
+
+  isDisabled(): boolean {
+    return this.attrs.disabled
+  }
+
+  /** The `active` alias adds Fomantic's class word when `selected` doesn't. */
+  protected extraClasses(): string | undefined {
+    return this.isSelected() && !this.attrs.selected ? ACTIVE : undefined
+  }
+
+  protected hostStates() {
+    return {
+      selected: this.isSelected(),
+      completed: this.attrs.completed,
+      disabled: this.attrs.disabled,
+      content: this.hasShorthand() || this.slots.has("")
+    }
+  }
+
+  ////////////////
+  // ## Rendering
+  ////////////////
+
+  render(): JSX.Element {
+    const { attrs } = this
+    return (
+      <Dynamic
+        component={this.tag()}
+        class={this.classes()}
+        part={this.part("step")}
+        href={this.tag() === LINK && !attrs.disabled ? attrs.href : undefined}
+        target={this.tag() === LINK ? attrs.target : undefined}
+        type={this.tag() === BUTTON ? BUTTON : undefined}
+        disabled={this.tag() === BUTTON && attrs.disabled ? true : undefined}
+        aria-disabled={this.tag() !== BUTTON && attrs.disabled ? TRUE : undefined}
+        aria-current={this.isSelected() ? STEP : undefined}
+      >
+        <Show when={this.hasIcon()}>
+          <span class={ICON} part={this.part("icon")}>
+            <slot name={this.slot("icon")} hidden={attrs.completed || undefined}>
+              {this.glyph.svg()}
+            </slot>
+            {this.checkGlyph.svg()}
+          </span>
+        </Show>
+        <Show when={this.hasShorthand()}>
+          <div class={CONTENT} part={this.part("content")}>
+            <Show when={attrs.header}>
+              <div class={TITLE} part={this.part("title")}>
+                {attrs.header}
+              </div>
+            </Show>
+            <Show when={attrs.description}>
+              <div class={DESCRIPTION} part={this.part("description")}>
+                {attrs.description}
+              </div>
+            </Show>
+          </div>
+        </Show>
+        <slot />
+        <Show when={attrs.completed}>
+          <span class={VISUALLY_HIDDEN}>{this.text("stepCompleted")}</span>
+        </Show>
+      </Dynamic>
+    )
+  }
+}
+
+/** Fomantic's word for the current step:  class word and alias attribute. */
+const ACTIVE = "active"
+
+/** Glyph of a completed step's icon. */
+const CHECK = "check"
+
+/** Root of a link step. */
+const LINK = "a"
+
+/** Root of a `link` step without `href`;  also its `type`. */
+const BUTTON = "button"
+
+/** Root of a plain step. */
+const BOX = "div"
+
+/** `aria-current` of the selected step. */
+const STEP = "step"
+
+/** ARIA boolean. */
+const TRUE = "true"
+
+/** Host role:  an item of the group's `<ol>`. */
+const LISTITEM = "listitem"
+
+/** The static owner class of a part in a step (`parts.css`). */
+const IN_STEP = `${PART_STATIC_CLASS_PREFIX}${stepVocabulary.noun}`
+
+/** Class of the icon box. */
+const ICON = "icon"
+
+/** Classes of the shorthand content block. */
+const CONTENT = `content ${IN_STEP}`
+
+/** Classes of the `header` shorthand (Fomantic's `.title`). */
+const TITLE = `title ${IN_STEP}`
+
+/** Classes of the `description` shorthand. */
+const DESCRIPTION = `description ${IN_STEP}`
+
+/** Utility class (`utilities.css`, adopted in every root) for the "Completed" announcement. */
+const VISUALLY_HIDDEN = "ui-visually-hidden-force"

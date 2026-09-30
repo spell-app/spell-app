@@ -1,0 +1,100 @@
+<!-- Search variations, after Fomantic's docs (modules/search.html, "Variations"):  fluid, aligned, sizes, scrolling. -->
+<div class="ui-stack" style="padding-bottom: 12em">
+  <section>
+    <h4>Fluid</h4>
+    <div class="ui fluid search">
+      <div class="ui icon fluid input">
+        <input class="prompt" type="text" role="combobox" aria-expanded="false" aria-label="Fluid" autocomplete="off" />
+        <span class="search icon"></span>
+      </div>
+      <div class="results" popover="manual"></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Right aligned results</h4>
+    <div style="display: flex; justify-content: flex-end">
+      <div class="ui right aligned search">
+        <div class="ui icon input">
+          <input
+            class="prompt"
+            type="text"
+            role="combobox"
+            aria-expanded="true"
+            aria-label="Aligned"
+            value="a"
+            autocomplete="off"
+          />
+          <span class="search icon"></span>
+        </div>
+        <div class="visible results" role="listbox" aria-label="Aligned">
+          <div class="result" role="option" aria-selected="false">
+            <div class="content"><div class="title">Aligned to the right edge</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Sizes</h4>
+    <div class="ui-stack">
+      <div class="ui mini search">
+        <div class="ui icon input">
+          <input
+            class="prompt"
+            type="text"
+            role="combobox"
+            aria-expanded="false"
+            aria-label="Mini"
+            autocomplete="off"
+          /><span class="search icon"></span>
+        </div>
+        <div class="results" popover="manual"></div>
+      </div>
+      <div class="ui medium search">
+        <div class="ui icon input">
+          <input
+            class="prompt"
+            type="text"
+            role="combobox"
+            aria-expanded="false"
+            aria-label="Medium"
+            autocomplete="off"
+          /><span class="search icon"></span>
+        </div>
+        <div class="results" popover="manual"></div>
+      </div>
+      <div class="ui massive search">
+        <div class="ui icon input">
+          <input
+            class="prompt"
+            type="text"
+            role="combobox"
+            aria-expanded="false"
+            aria-label="Massive"
+            autocomplete="off"
+          /><span class="search icon"></span>
+        </div>
+        <div class="results" popover="manual"></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Scrolling</h4>
+    <div class="ui scrolling search">
+      <div class="ui icon input">
+        <input
+          class="prompt"
+          type="text"
+          role="combobox"
+          aria-expanded="false"
+          aria-label="Scrolling"
+          autocomplete="off"
+        /><span class="search icon"></span>
+      </div>
+      <div class="results" popover="manual"></div>
+    </div>
+  </section>
+</div>

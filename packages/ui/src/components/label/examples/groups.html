@@ -1,0 +1,51 @@
+<!--
+  Label groups, after Fomantic's docs (elements/label.html, "Groups").
+  In shadow DOM `<ui-labels>` renders `<div class="ui ... labels">` around a `<slot>`;  the same tokens reach
+  slotted `<ui-label>`s through `::slotted(*)` and inheritance.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Group size</h4>
+    <div class="ui huge labels">
+      <span class="ui label">Fun</span>
+      <span class="ui label">Happy</span>
+      <span class="ui label">Smart</span>
+    </div>
+  </section>
+
+  <section>
+    <h4>Colored group</h4>
+    <div class="ui blue labels">
+      <a class="ui label" href="#fun">Fun</a>
+      <a class="ui label" href="#happy">Happy<span class="detail">22</span></a>
+      <a class="ui label" href="#smart">Smart</a>
+    </div>
+  </section>
+
+  <section>
+    <h4>Basic group</h4>
+    <div class="ui basic labels">
+      <span class="ui label">Fun</span>
+      <span class="ui label">Happy</span>
+      <span class="ui label">Smart</span>
+    </div>
+  </section>
+
+  <section>
+    <h4>Tag group</h4>
+    <div class="ui tag labels">
+      <a class="ui label" href="#one">$10.00</a>
+      <a class="ui label" href="#two">$19.99</a>
+      <a class="ui label" href="#three">$24.99</a>
+    </div>
+  </section>
+
+  <section>
+    <h4>Circular group</h4>
+    <div class="ui circular labels">
+      <a class="ui label" href="#a">11</a>
+      <a class="ui label" href="#b">22</a>
+      <a class="ui label" href="#c">33</a>
+    </div>
+  </section>
+</div>

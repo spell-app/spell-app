@@ -1,0 +1,113 @@
+<!-- `src/components/list/examples/content.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Item</h4>
+    <ui-list>
+      <ui-item>1</ui-item>
+      <ui-item>2</ui-item>
+      <ui-item>3</ui-item>
+    </ui-list>
+  </section>
+
+  <section>
+    <h4>Icon</h4>
+    <ui-list>
+      <ui-item href="#floated" icon="help">
+        <ui-content>
+          <ui-header>Floated Icon</ui-header>
+          <ui-description
+            >This text will always have a left margin to make sure it sits alongside your icon</ui-description
+          >
+        </ui-content>
+      </ui-item>
+      <ui-item href="#alignment" icon="caret right">
+        <ui-content>
+          <ui-header>Icon Alignment</ui-header>
+          <ui-description>Floated icons are by default top aligned.</ui-description>
+        </ui-content>
+      </ui-item>
+      <ui-item icon="help">Inline Text</ui-item>
+    </ui-list>
+  </section>
+
+  <section>
+    <h4>Image</h4>
+    <ui-list>
+      <ui-item
+        image="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%2396a%22/%3E%3C/svg%3E"
+      >
+        <ui-content>
+          <ui-header href="#rachel">Rachel</ui-header>
+          <ui-description>Last seen watching <b>Arrested Development</b> just now.</ui-description>
+        </ui-content>
+      </ui-item>
+      <ui-item
+        image="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%234a8%22/%3E%3C/svg%3E"
+      >
+        <ui-content>
+          <ui-header href="#lindsay">Lindsay</ui-header>
+          <ui-description>Last seen watching <b>Bob's Burgers</b> 10 hours ago.</ui-description>
+        </ui-content>
+      </ui-item>
+      <ui-item
+        image="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%23c84%22/%3E%3C/svg%3E"
+      >
+        <ui-content>
+          <ui-header href="#matthew">Matthew</ui-header>
+          <ui-description>Last seen watching <b>The Godfather Part 2</b> yesterday.</ui-description>
+        </ui-content>
+      </ui-item>
+    </ui-list>
+  </section>
+
+  <section>
+    <h4>Link</h4>
+    <ui-list>
+      <ui-item href="#faq">What is a FAQ?</ui-item>
+      <ui-item href="#user">Who is our user?</ui-item>
+      <ui-item href="#office">Where is our office located?</ui-item>
+    </ui-list>
+  </section>
+
+  <section>
+    <h4>Header</h4>
+    <ui-list>
+      <ui-item>
+        <ui-header>New York City</ui-header>
+        A lovely city
+      </ui-item>
+      <ui-item>
+        <ui-header>Chicago</ui-header>
+        Also quite a lovely city
+      </ui-item>
+      <ui-item>
+        <ui-header>Los Angeles</ui-header>
+        Sometimes can be a lovely city
+      </ui-item>
+    </ui-list>
+  </section>
+
+  <section>
+    <h4>Description</h4>
+    <ui-list>
+      <ui-item icon="map marker">
+        <ui-content>
+          <ui-header href="#krolewskie">Krolewskie Jadlo</ui-header>
+          <ui-description>An excellent polish restaurant, quick delivery and hearty, filling meals.</ui-description>
+        </ui-content>
+      </ui-item>
+      <ui-item icon="map marker">
+        <ui-content>
+          <ui-header href="#xian">Xian Famous Foods</ui-header>
+          <ui-description>A taste of Shaanxi's delicious culinary traditions.</ui-description>
+        </ui-content>
+      </ui-item>
+      <ui-item icon="map marker">
+        <ui-content>
+          <ui-header href="#sapporo">Sapporo Haru</ui-header>
+          <ui-description>Greenpoint's best choice for quick and delicious sushi.</ui-description>
+        </ui-content>
+      </ui-item>
+    </ui-list>
+  </section>
+</div>

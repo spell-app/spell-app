@@ -1,0 +1,18 @@
+/*
+ * Dark theme:  force the dark scheme page-wide, whatever the OS preference, `@layer ui.theme`.
+ * - Every colour token is a `light-dark()` pair (or derived from one) resolved where it is USED, so forcing
+ *   `color-scheme: dark` on `:root` IS the explicit dark token set:  each token takes its `onDark` branch,
+ *   in the page and in every shadow root below it.  No per-token copies to keep in sync.
+ * - `--ui-scheme` mirrors the scheme for `ui-invert`, which style-queries it.
+ * - Paints the page canvas and text too, since a forced-dark page usually has no background of its own.
+ * - Tuning a dark value:  override the base, e.g. `:root { --ui-red-on-dark: oklch(0.72 0.18 25) }`.
+ */
+
+@layer ui.theme {
+  :root {
+    color-scheme: dark;
+    --ui-scheme: dark;
+    color: var(--ui-text-color);
+    background-color: var(--ui-background);
+  }
+}

@@ -1,0 +1,31 @@
+<!-- `src/components/embed/examples/types.html` as element markup:  nothing third-party loads until a click. -->
+<div class="ui-stack">
+  <section>
+    <h4>Embed</h4>
+    <ui-embed
+      source="youtube"
+      video-id="O6Xo21L0ybE"
+      placeholder="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3Crect width='16' height='9' fill='%23456'/%3E%3Ccircle cx='12' cy='3' r='1.5' fill='%23fc6'/%3E%3Cpath d='M0 9 5 4l3 3 2-2 6 4z' fill='%23234'/%3E%3C/svg%3E"
+      label="Fomantic UI intro"
+    ></ui-embed>
+  </section>
+
+  <section>
+    <h4>Aspect ratios</h4>
+    <ui-embed source="vimeo" video-id="125292332" aspect-ratio="4:3" style="max-width: 16em"></ui-embed>
+    <ui-embed url="https://example.com/" aspect-ratio="21:9" label="Example page" style="max-width: 24em"></ui-embed>
+    <ui-embed source="youtube" video-id="O6Xo21L0ybE" aspect-ratio="square" style="max-width: 10em">
+      <span
+        style="
+          position: absolute;
+          bottom: 0.5em;
+          left: 0.5em;
+          padding: 0 0.25em;
+          background: oklch(0 0 0 / 0.75);
+          color: white;
+        "
+        >Watch</span
+      >
+    </ui-embed>
+  </section>
+</div>

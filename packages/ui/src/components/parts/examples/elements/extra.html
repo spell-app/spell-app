@@ -1,0 +1,28 @@
+<!-- `src/components/parts/examples/extra.html` as element markup. -->
+<!-- Owners are the real elements. -->
+<div class="ui-stack">
+  <section>
+    <h4>Standalone</h4>
+    <ui-extra>Extra content with no owner is an unstyled block.</ui-extra>
+  </section>
+
+  <section>
+    <h4>In owners</h4>
+    <ui-card>
+      <ui-content><ui-header>Elliot</ui-header></ui-content>
+      <ui-extra><a href="#friends">22 Friends</a></ui-extra>
+    </ui-card>
+    <ui-items>
+      <ui-item>
+        <ui-content>
+          <ui-extra><span>Additional details</span></ui-extra>
+        </ui-content>
+      </ui-item>
+    </ui-items>
+    <ui-feed>
+      <ui-event>
+        <ui-content><ui-extra text>Ours is a life of constant reruns.</ui-extra></ui-content>
+      </ui-event>
+    </ui-feed>
+  </section>
+</div>

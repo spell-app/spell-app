@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+    "jsx": "preserve",
+    "jsxImportSource": "@solidjs/web",
+    "types": ["vite/client"],
+    "paths": {
+      "$/*": ["./src/*"],
+      "$test/*": ["./test/*"]
+    }
+  },
+  "include": ["src", "test", "tools"],
+  // `packages/` are their own projects (own `tsconfig.json`, `yarn fork tsc`);  files the root imports from them
+  // are still checked here
+  "exclude": ["site", "packages", "node_modules", "dist", "vendor", "tools/frameworks/solid/dist"]
+}

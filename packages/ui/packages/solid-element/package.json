@@ -1,0 +1,52 @@
+{
+  "name": "@spell/solid-element",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Custom elements for Solid 2:  a fork of @solidjs/element + component-register with upgrade, form, lifecycle and error-boundary fixes",
+  "license": "MIT",
+  "files": [
+    "dist",
+    "src"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "development": "./src/index.ts",
+      "default": "./dist/index.js"
+    },
+    "./vite": {
+      "types": "./src/vite.ts",
+      "default": "./dist/vite.js"
+    }
+  },
+  "scripts": {
+    "build": "vite build && vite build -c vite.node.config.ts",
+    "test": "vitest run",
+    "tsc": "tsc",
+    "measure": "node --experimental-strip-types --no-warnings scripts/measure.ts",
+    "lint": "../../node_modules/.bin/oxlint -c .oxlintrc.json --report-unused-disable-directives --max-warnings 0 src scripts *.ts",
+    "format": "../../node_modules/.bin/oxfmt -c ../../.oxfmtrc.json .",
+    "format:check": "../../node_modules/.bin/oxfmt -c ../../.oxfmtrc.json --check ."
+  },
+  "devDependencies": {
+    "@solidjs/element": "2.0.0-rc.11",
+    "@solidjs/vite-plugin": "3.0.0-next.46",
+    "@solidjs/web": "2.0.0-rc.11",
+    "@types/node": "22.20.4",
+    "@vitest/browser-playwright": "5.0.2",
+    "component-register": "0.8.8",
+    "esbuild": "0.28.2",
+    "playwright": "1.63.0",
+    "solid-js": "2.0.0-rc.11",
+    "typescript": "7.0.2",
+    "vite": "8.3.1",
+    "vitest": "5.0.2"
+  },
+  "peerDependencies": {
+    "@solidjs/web": "2.0.0-rc.11",
+    "solid-js": "2.0.0-rc.11"
+  },
+  "packageManager": "yarn@4.18.0"
+}

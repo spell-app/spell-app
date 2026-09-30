@@ -1,0 +1,16 @@
+node_modules
+dist
+build
+.cache
+coverage
+test-results
+reference/
+site/dist
+.DS_Store
+*.log
+.yarn/install-state.gz
+.vitest/
+# package tooling output (`yarn vendor`, `yarn measure` ..., `tools/`)
+vendor
+tools/results
+tools/frameworks/solid/dist

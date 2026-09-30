@@ -1,0 +1,24 @@
+<!--
+  Loader types, after Fomantic's docs (elements/loader.html, "Types").
+  Light-DOM markup in the class grammar `loader.css` styles inside `<ui-loader>`'s shadow root.
+  Fomantic puts these loaders in a dimmed segment;  here they sit in plain positioned boxes.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Loader</h4>
+    <div
+      style="position: relative; height: 8em; border: 1px solid var(--ui-border-color); border-radius: var(--ui-radius)"
+    >
+      <div class="ui active loader" role="status" aria-label="Loading…"></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Text loader</h4>
+    <div
+      style="position: relative; height: 8em; border: 1px solid var(--ui-border-color); border-radius: var(--ui-radius)"
+    >
+      <div class="ui active text loader" role="status">Loading</div>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,1356 @@
+<!--
+  Table variations, after Fomantic's docs (collections/table.html, "Variations").
+  Class grammar on native tables;  `examples/elements/variations.html` is the same as `<ui-table>` markup.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Single line</h4>
+    <table class="ui single line table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h4>Fixed</h4>
+    <table class="ui fixed table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h4>Stackable</h4>
+    <table class="ui stackable table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+    <table class="ui tablet stackable table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+    <table class="ui unstackable table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h4>Selectable</h4>
+    <table class="ui selectable celled table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>No Name Specified</td>
+          <td>Unknown</td>
+          <td class="negative">None</td>
+        </tr>
+        <tr class="positive">
+          <td>Jimmy</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Unknown</td>
+          <td class="positive">Requires call</td>
+        </tr>
+        <tr class="negative">
+          <td>Jill</td>
+          <td>Unknown</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h4>Striped</h4>
+    <table class="ui striped table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>Row 1</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Row 2</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>Row 3</td>
+        </tr>
+        <tr>
+          <td>Jack</td>
+          <td>Pending</td>
+          <td>Row 4</td>
+        </tr>
+        <tr>
+          <td>Jane</td>
+          <td>Approved</td>
+          <td>Row 5</td>
+        </tr>
+        <tr>
+          <td>Joe</td>
+          <td>Approved</td>
+          <td>Row 6</td>
+        </tr>
+        <tr>
+          <td>Julia</td>
+          <td>Denied</td>
+          <td>Row 7</td>
+        </tr>
+        <tr>
+          <td>Jim</td>
+          <td>Pending</td>
+          <td>Row 8</td>
+        </tr>
+        <tr>
+          <td>Jenny</td>
+          <td>Approved</td>
+          <td>Row 9</td>
+        </tr>
+        <tr>
+          <td>Jeff</td>
+          <td>Approved</td>
+          <td>Row 10</td>
+        </tr>
+        <tr>
+          <td>Joan</td>
+          <td>Denied</td>
+          <td>Row 11</td>
+        </tr>
+        <tr>
+          <td>Josh</td>
+          <td>Pending</td>
+          <td>Row 12</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <th>3 People</th>
+          <th>2 Approved</th>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </section>
+
+  <section>
+    <h4>Celled</h4>
+    <table class="ui celled table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h4>Basic</h4>
+    <table class="ui basic table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+    <table class="ui very basic table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h4>Collapsing</h4>
+    <table class="ui collapsing table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h4>Column count</h4>
+    <table class="ui three column table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h4>Colored</h4>
+    <table class="ui red table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+    <table class="ui blue table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+    <table class="ui green table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h4>Inverted</h4>
+    <table class="ui inverted table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+    <table class="ui inverted blue table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h4>Sortable</h4>
+    <table class="ui sortable celled table">
+      <thead>
+        <tr>
+          <th data-key="name"><button type="button">Name</button></th>
+          <th data-key="status" aria-sort="ascending" class="sorted ascending">
+            <button type="button">Status</button>
+          </th>
+          <th data-key="calories" class="right aligned"><button type="button">Calories</button></th>
+          <th data-sortable="false">Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td class="right aligned">120</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td class="right aligned">15</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td class="right aligned">1200</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h4>Padded</h4>
+    <table class="ui padded table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+    <table class="ui very padded table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h4>Compact</h4>
+    <table class="ui compact table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+    <table class="ui very compact table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h4>Attached</h4>
+    <table class="ui top attached table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+    <table class="ui attached table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+    <table class="ui bottom attached table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h4>Size</h4>
+    <table class="ui small table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+    <table class="ui large table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h4>Text alignment</h4>
+    <table class="ui center aligned table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>None</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Requires call</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>None</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h4>Scrolling</h4>
+    <table class="ui scrolling celled table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>Row 1</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Row 2</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>Row 3</td>
+        </tr>
+        <tr>
+          <td>Jack</td>
+          <td>Pending</td>
+          <td>Row 4</td>
+        </tr>
+        <tr>
+          <td>Jane</td>
+          <td>Approved</td>
+          <td>Row 5</td>
+        </tr>
+        <tr>
+          <td>Joe</td>
+          <td>Approved</td>
+          <td>Row 6</td>
+        </tr>
+        <tr>
+          <td>Julia</td>
+          <td>Denied</td>
+          <td>Row 7</td>
+        </tr>
+        <tr>
+          <td>Jim</td>
+          <td>Pending</td>
+          <td>Row 8</td>
+        </tr>
+        <tr>
+          <td>Jenny</td>
+          <td>Approved</td>
+          <td>Row 9</td>
+        </tr>
+        <tr>
+          <td>Jeff</td>
+          <td>Approved</td>
+          <td>Row 10</td>
+        </tr>
+        <tr>
+          <td>Joan</td>
+          <td>Denied</td>
+          <td>Row 11</td>
+        </tr>
+        <tr>
+          <td>Josh</td>
+          <td>Pending</td>
+          <td>Row 12</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <th>3 People</th>
+          <th>2 Approved</th>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+    <table class="ui long scrolling celled table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>John</td>
+          <td>Approved</td>
+          <td>Row 1</td>
+        </tr>
+        <tr>
+          <td>Jamie</td>
+          <td>Approved</td>
+          <td>Row 2</td>
+        </tr>
+        <tr>
+          <td>Jill</td>
+          <td>Denied</td>
+          <td>Row 3</td>
+        </tr>
+        <tr>
+          <td>Jack</td>
+          <td>Pending</td>
+          <td>Row 4</td>
+        </tr>
+        <tr>
+          <td>Jane</td>
+          <td>Approved</td>
+          <td>Row 5</td>
+        </tr>
+        <tr>
+          <td>Joe</td>
+          <td>Approved</td>
+          <td>Row 6</td>
+        </tr>
+        <tr>
+          <td>Julia</td>
+          <td>Denied</td>
+          <td>Row 7</td>
+        </tr>
+        <tr>
+          <td>Jim</td>
+          <td>Pending</td>
+          <td>Row 8</td>
+        </tr>
+        <tr>
+          <td>Jenny</td>
+          <td>Approved</td>
+          <td>Row 9</td>
+        </tr>
+        <tr>
+          <td>Jeff</td>
+          <td>Approved</td>
+          <td>Row 10</td>
+        </tr>
+        <tr>
+          <td>Joan</td>
+          <td>Denied</td>
+          <td>Row 11</td>
+        </tr>
+        <tr>
+          <td>Josh</td>
+          <td>Pending</td>
+          <td>Row 12</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <th>3 People</th>
+          <th>2 Approved</th>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+  </section>
+
+  <section>
+    <h4>Overflowing</h4>
+    <table class="ui overflowing celled table">
+      <thead>
+        <tr>
+          <th>Column 1</th>
+          <th>Column 2</th>
+          <th>Column 3</th>
+          <th>Column 4</th>
+          <th>Column 5</th>
+          <th>Column 6</th>
+          <th>Column 7</th>
+          <th>Column 8</th>
+          <th>Column 9</th>
+          <th>Column 10</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Cell 1.1</td>
+          <td>Cell 1.2</td>
+          <td>Cell 1.3</td>
+          <td>Cell 1.4</td>
+          <td>Cell 1.5</td>
+          <td>Cell 1.6</td>
+          <td>Cell 1.7</td>
+          <td>Cell 1.8</td>
+          <td>Cell 1.9</td>
+          <td>Cell 1.10</td>
+        </tr>
+        <tr>
+          <td>Cell 2.1</td>
+          <td>Cell 2.2</td>
+          <td>Cell 2.3</td>
+          <td>Cell 2.4</td>
+          <td>Cell 2.5</td>
+          <td>Cell 2.6</td>
+          <td>Cell 2.7</td>
+          <td>Cell 2.8</td>
+          <td>Cell 2.9</td>
+          <td>Cell 2.10</td>
+        </tr>
+        <tr>
+          <td>Cell 3.1</td>
+          <td>Cell 3.2</td>
+          <td>Cell 3.3</td>
+          <td>Cell 3.4</td>
+          <td>Cell 3.5</td>
+          <td>Cell 3.6</td>
+          <td>Cell 3.7</td>
+          <td>Cell 3.8</td>
+          <td>Cell 3.9</td>
+          <td>Cell 3.10</td>
+        </tr>
+        <tr>
+          <td>Cell 4.1</td>
+          <td>Cell 4.2</td>
+          <td>Cell 4.3</td>
+          <td>Cell 4.4</td>
+          <td>Cell 4.5</td>
+          <td>Cell 4.6</td>
+          <td>Cell 4.7</td>
+          <td>Cell 4.8</td>
+          <td>Cell 4.9</td>
+          <td>Cell 4.10</td>
+        </tr>
+        <tr>
+          <td>Cell 5.1</td>
+          <td>Cell 5.2</td>
+          <td>Cell 5.3</td>
+          <td>Cell 5.4</td>
+          <td>Cell 5.5</td>
+          <td>Cell 5.6</td>
+          <td>Cell 5.7</td>
+          <td>Cell 5.8</td>
+          <td>Cell 5.9</td>
+          <td>Cell 5.10</td>
+        </tr>
+        <tr>
+          <td>Cell 6.1</td>
+          <td>Cell 6.2</td>
+          <td>Cell 6.3</td>
+          <td>Cell 6.4</td>
+          <td>Cell 6.5</td>
+          <td>Cell 6.6</td>
+          <td>Cell 6.7</td>
+          <td>Cell 6.8</td>
+          <td>Cell 6.9</td>
+          <td>Cell 6.10</td>
+        </tr>
+        <tr>
+          <td>Cell 7.1</td>
+          <td>Cell 7.2</td>
+          <td>Cell 7.3</td>
+          <td>Cell 7.4</td>
+          <td>Cell 7.5</td>
+          <td>Cell 7.6</td>
+          <td>Cell 7.7</td>
+          <td>Cell 7.8</td>
+          <td>Cell 7.9</td>
+          <td>Cell 7.10</td>
+        </tr>
+        <tr>
+          <td>Cell 8.1</td>
+          <td>Cell 8.2</td>
+          <td>Cell 8.3</td>
+          <td>Cell 8.4</td>
+          <td>Cell 8.5</td>
+          <td>Cell 8.6</td>
+          <td>Cell 8.7</td>
+          <td>Cell 8.8</td>
+          <td>Cell 8.9</td>
+          <td>Cell 8.10</td>
+        </tr>
+        <tr>
+          <td>Cell 9.1</td>
+          <td>Cell 9.2</td>
+          <td>Cell 9.3</td>
+          <td>Cell 9.4</td>
+          <td>Cell 9.5</td>
+          <td>Cell 9.6</td>
+          <td>Cell 9.7</td>
+          <td>Cell 9.8</td>
+          <td>Cell 9.9</td>
+          <td>Cell 9.10</td>
+        </tr>
+        <tr>
+          <td>Cell 10.1</td>
+          <td>Cell 10.2</td>
+          <td>Cell 10.3</td>
+          <td>Cell 10.4</td>
+          <td>Cell 10.5</td>
+          <td>Cell 10.6</td>
+          <td>Cell 10.7</td>
+          <td>Cell 10.8</td>
+          <td>Cell 10.9</td>
+          <td>Cell 10.10</td>
+        </tr>
+        <tr>
+          <td>Cell 11.1</td>
+          <td>Cell 11.2</td>
+          <td>Cell 11.3</td>
+          <td>Cell 11.4</td>
+          <td>Cell 11.5</td>
+          <td>Cell 11.6</td>
+          <td>Cell 11.7</td>
+          <td>Cell 11.8</td>
+          <td>Cell 11.9</td>
+          <td>Cell 11.10</td>
+        </tr>
+        <tr>
+          <td>Cell 12.1</td>
+          <td>Cell 12.2</td>
+          <td>Cell 12.3</td>
+          <td>Cell 12.4</td>
+          <td>Cell 12.5</td>
+          <td>Cell 12.6</td>
+          <td>Cell 12.7</td>
+          <td>Cell 12.8</td>
+          <td>Cell 12.9</td>
+          <td>Cell 12.10</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h4>Stuck</h4>
+    <table class="ui head first stuck celled overflowing table">
+      <thead>
+        <tr>
+          <th>Column 1</th>
+          <th>Column 2</th>
+          <th>Column 3</th>
+          <th>Column 4</th>
+          <th>Column 5</th>
+          <th>Column 6</th>
+          <th>Column 7</th>
+          <th>Column 8</th>
+          <th>Column 9</th>
+          <th>Column 10</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Cell 1.1</td>
+          <td>Cell 1.2</td>
+          <td>Cell 1.3</td>
+          <td>Cell 1.4</td>
+          <td>Cell 1.5</td>
+          <td>Cell 1.6</td>
+          <td>Cell 1.7</td>
+          <td>Cell 1.8</td>
+          <td>Cell 1.9</td>
+          <td>Cell 1.10</td>
+        </tr>
+        <tr>
+          <td>Cell 2.1</td>
+          <td>Cell 2.2</td>
+          <td>Cell 2.3</td>
+          <td>Cell 2.4</td>
+          <td>Cell 2.5</td>
+          <td>Cell 2.6</td>
+          <td>Cell 2.7</td>
+          <td>Cell 2.8</td>
+          <td>Cell 2.9</td>
+          <td>Cell 2.10</td>
+        </tr>
+        <tr>
+          <td>Cell 3.1</td>
+          <td>Cell 3.2</td>
+          <td>Cell 3.3</td>
+          <td>Cell 3.4</td>
+          <td>Cell 3.5</td>
+          <td>Cell 3.6</td>
+          <td>Cell 3.7</td>
+          <td>Cell 3.8</td>
+          <td>Cell 3.9</td>
+          <td>Cell 3.10</td>
+        </tr>
+        <tr>
+          <td>Cell 4.1</td>
+          <td>Cell 4.2</td>
+          <td>Cell 4.3</td>
+          <td>Cell 4.4</td>
+          <td>Cell 4.5</td>
+          <td>Cell 4.6</td>
+          <td>Cell 4.7</td>
+          <td>Cell 4.8</td>
+          <td>Cell 4.9</td>
+          <td>Cell 4.10</td>
+        </tr>
+        <tr>
+          <td>Cell 5.1</td>
+          <td>Cell 5.2</td>
+          <td>Cell 5.3</td>
+          <td>Cell 5.4</td>
+          <td>Cell 5.5</td>
+          <td>Cell 5.6</td>
+          <td>Cell 5.7</td>
+          <td>Cell 5.8</td>
+          <td>Cell 5.9</td>
+          <td>Cell 5.10</td>
+        </tr>
+        <tr>
+          <td>Cell 6.1</td>
+          <td>Cell 6.2</td>
+          <td>Cell 6.3</td>
+          <td>Cell 6.4</td>
+          <td>Cell 6.5</td>
+          <td>Cell 6.6</td>
+          <td>Cell 6.7</td>
+          <td>Cell 6.8</td>
+          <td>Cell 6.9</td>
+          <td>Cell 6.10</td>
+        </tr>
+        <tr>
+          <td>Cell 7.1</td>
+          <td>Cell 7.2</td>
+          <td>Cell 7.3</td>
+          <td>Cell 7.4</td>
+          <td>Cell 7.5</td>
+          <td>Cell 7.6</td>
+          <td>Cell 7.7</td>
+          <td>Cell 7.8</td>
+          <td>Cell 7.9</td>
+          <td>Cell 7.10</td>
+        </tr>
+        <tr>
+          <td>Cell 8.1</td>
+          <td>Cell 8.2</td>
+          <td>Cell 8.3</td>
+          <td>Cell 8.4</td>
+          <td>Cell 8.5</td>
+          <td>Cell 8.6</td>
+          <td>Cell 8.7</td>
+          <td>Cell 8.8</td>
+          <td>Cell 8.9</td>
+          <td>Cell 8.10</td>
+        </tr>
+        <tr>
+          <td>Cell 9.1</td>
+          <td>Cell 9.2</td>
+          <td>Cell 9.3</td>
+          <td>Cell 9.4</td>
+          <td>Cell 9.5</td>
+          <td>Cell 9.6</td>
+          <td>Cell 9.7</td>
+          <td>Cell 9.8</td>
+          <td>Cell 9.9</td>
+          <td>Cell 9.10</td>
+        </tr>
+        <tr>
+          <td>Cell 10.1</td>
+          <td>Cell 10.2</td>
+          <td>Cell 10.3</td>
+          <td>Cell 10.4</td>
+          <td>Cell 10.5</td>
+          <td>Cell 10.6</td>
+          <td>Cell 10.7</td>
+          <td>Cell 10.8</td>
+          <td>Cell 10.9</td>
+          <td>Cell 10.10</td>
+        </tr>
+        <tr>
+          <td>Cell 11.1</td>
+          <td>Cell 11.2</td>
+          <td>Cell 11.3</td>
+          <td>Cell 11.4</td>
+          <td>Cell 11.5</td>
+          <td>Cell 11.6</td>
+          <td>Cell 11.7</td>
+          <td>Cell 11.8</td>
+          <td>Cell 11.9</td>
+          <td>Cell 11.10</td>
+        </tr>
+        <tr>
+          <td>Cell 12.1</td>
+          <td>Cell 12.2</td>
+          <td>Cell 12.3</td>
+          <td>Cell 12.4</td>
+          <td>Cell 12.5</td>
+          <td>Cell 12.6</td>
+          <td>Cell 12.7</td>
+          <td>Cell 12.8</td>
+          <td>Cell 12.9</td>
+          <td>Cell 12.10</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</div>

@@ -1,0 +1,32 @@
+<!--
+  Tab states, after Fomantic's docs (modules/tab.html, "States"):  loading, active;  plus a disabled tab (the
+  menu's `disabled item`).
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Loading</h4>
+    <div class="ui top attached tabular menu" role="tablist" aria-label="Loading">
+      <button class="active item" role="tab" aria-selected="true" id="loading-first">First</button>
+      <button class="item" role="tab" aria-selected="false" tabindex="-1">Second</button>
+    </div>
+    <div
+      class="ui bottom attached active loading tab segment"
+      role="tabpanel"
+      aria-labelledby="loading-first"
+      aria-busy="true"
+    >
+      <p>Loading content</p>
+    </div>
+  </section>
+
+  <section>
+    <h4>Active and disabled</h4>
+    <div class="ui top attached tabular menu" role="tablist" aria-label="Disabled">
+      <button class="item" role="tab" aria-selected="false" tabindex="-1">First</button>
+      <button class="active item" role="tab" aria-selected="true" id="disabled-second">Second</button>
+      <button class="disabled item" role="tab" aria-selected="false" aria-disabled="true" tabindex="-1">Third</button>
+    </div>
+    <div class="ui bottom attached tab segment" role="tabpanel">First</div>
+    <div class="ui bottom attached active tab segment" role="tabpanel" aria-labelledby="disabled-second">Second</div>
+  </section>
+</div>

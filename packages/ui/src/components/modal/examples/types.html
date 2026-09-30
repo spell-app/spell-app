@@ -1,0 +1,39 @@
+<!--
+  Modal types, after Fomantic's docs (modules/modal.html, "Types").
+  Static class grammar:  a shown modal is `active`;  `position: relative` puts it in flow here (the element's
+  `<dialog>` sits in the top layer, over a `::backdrop` dimmer).
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Standard</h4>
+    <div class="ui active modal" style="position: relative">
+      <div class="header">Profile Picture</div>
+      <div class="content">
+        <div class="description">
+          <p>We've found the following gravatar image associated with your e-mail address.</p>
+          <p>Is it okay to use this photo?</p>
+        </div>
+      </div>
+      <div class="actions">
+        <button type="button" class="ui black deny button">Nope</button>
+        <button type="button" class="ui positive approve button">Yep, that's me</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Basic</h4>
+    <div style="padding: 1em; background: oklch(0 0 0 / 0.85)">
+      <div class="ui active basic small modal" style="position: relative">
+        <div class="header">Archive Old Messages</div>
+        <div class="content">
+          <p>Your inbox is getting full. Would you like us to enable automatic archiving of old messages?</p>
+        </div>
+        <div class="actions">
+          <button type="button" class="ui basic inverted cancel button">No</button>
+          <button type="button" class="ui green ok inverted button">Yes</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

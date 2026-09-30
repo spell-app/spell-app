@@ -1,0 +1,53 @@
+<!--
+  Popup types, after Fomantic's docs (modules/popup.html, "Types").
+  Static class grammar:  a shown popup is `visible`;  `position: relative` puts it in flow here (Fomantic's
+  `.ui.popup` is absolute, placed by its script).  The element positions its host with anchor positioning.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Popup</h4>
+    <div class="ui visible popup top left" style="position: relative">Add users to your feed</div>
+  </section>
+
+  <section>
+    <h4>Titled</h4>
+    <div class="ui visible popup top left" style="position: relative">
+      <div class="header">User Rating</div>
+      <div class="content">A popup can have a header and content.</div>
+    </div>
+  </section>
+
+  <section>
+    <h4>HTML content</h4>
+    <div class="ui visible flowing popup bottom left" style="position: relative">
+      <div class="header">Basic plan</div>
+      <p>Does not include upload or chat.</p>
+      <button type="button" class="ui small primary button">Choose</button>
+    </div>
+  </section>
+
+  <section>
+    <h4>Tooltip</h4>
+    <p class="ui-cluster">
+      <button type="button" class="ui button" data-tooltip="Add users to your feed">Top center</button>
+      <button type="button" class="ui button" data-tooltip="Add users to your feed" data-position="bottom left">
+        Bottom left
+      </button>
+      <button type="button" class="ui button" data-tooltip="Add users to your feed" data-position="right center">
+        Right center
+      </button>
+      <button type="button" class="ui button" data-tooltip="Add users to your feed" data-position="left bottom">
+        Left bottom
+      </button>
+    </p>
+  </section>
+
+  <section>
+    <h4>Tooltip: inverted, visible</h4>
+    <p class="ui-cluster">
+      <button type="button" class="ui button" data-tooltip="An inverted tooltip" data-inverted data-variation="visible">
+        Inverted
+      </button>
+    </p>
+  </section>
+</div>

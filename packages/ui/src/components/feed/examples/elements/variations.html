@@ -1,0 +1,283 @@
+<!-- `src/components/feed/examples/variations.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Small</h4>
+    <ui-feed size="small">
+      <ui-event
+        image="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+      >
+        <ui-content>
+          <ui-summary
+            ><ui-author href="#elliot-fu">Elliot Fu</ui-author> added you as a friend
+            <ui-date>1 Hour Ago</ui-date></ui-summary
+          >
+          <ui-meta
+            ><a href="#elliot-fu-likes"><ui-icon name="heart"></ui-icon> 4 Likes</a></ui-meta
+          >
+        </ui-content>
+      </ui-event>
+      <ui-event
+        image="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+      >
+        <ui-content>
+          <ui-summary
+            ><ui-author href="#helen-troy">Helen Troy</ui-author> added 2 new illustrations
+            <ui-date>4 days ago</ui-date></ui-summary
+          >
+          <ui-meta
+            ><a href="#helen-troy-likes"><ui-icon name="heart"></ui-icon> 1 Like</a></ui-meta
+          >
+        </ui-content>
+      </ui-event>
+    </ui-feed>
+  </section>
+
+  <section>
+    <h4>Large</h4>
+    <ui-feed size="large">
+      <ui-event
+        image="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+      >
+        <ui-content>
+          <ui-summary
+            ><ui-author href="#jenny-hess">Jenny Hess</ui-author> added you as a friend
+            <ui-date>2 Days Ago</ui-date></ui-summary
+          >
+          <ui-meta
+            ><a href="#jenny-hess-likes"><ui-icon name="heart"></ui-icon> 8 Likes</a></ui-meta
+          >
+        </ui-content>
+      </ui-event>
+    </ui-feed>
+  </section>
+
+  <section>
+    <h4>Connected</h4>
+    <ui-feed connected>
+      <ui-event icon="pencil">
+        <ui-content>
+          <ui-summary
+            ><ui-author href="#elliot-fu">Elliot Fu</ui-author> added you as a friend
+            <ui-date>1 Hour Ago</ui-date></ui-summary
+          >
+          <ui-meta
+            ><a href="#elliot-fu-likes"><ui-icon name="heart"></ui-icon> 4 Likes</a></ui-meta
+          >
+        </ui-content>
+      </ui-event>
+      <ui-event icon="pencil">
+        <ui-content>
+          <ui-summary
+            ><ui-author href="#helen-troy">Helen Troy</ui-author> added 2 new illustrations
+            <ui-date>4 days ago</ui-date></ui-summary
+          >
+          <ui-meta
+            ><a href="#helen-troy-likes"><ui-icon name="heart"></ui-icon> 1 Like</a></ui-meta
+          >
+        </ui-content>
+      </ui-event>
+      <ui-event icon="pencil">
+        <ui-content>
+          <ui-summary
+            ><ui-author href="#jenny-hess">Jenny Hess</ui-author> added you as a friend
+            <ui-date>2 Days Ago</ui-date></ui-summary
+          >
+          <ui-meta
+            ><a href="#jenny-hess-likes"><ui-icon name="heart"></ui-icon> 8 Likes</a></ui-meta
+          >
+        </ui-content>
+      </ui-event>
+    </ui-feed>
+  </section>
+
+  <section>
+    <h4>Ordered</h4>
+    <ui-feed ordered>
+      <ui-event>
+        <ui-content>
+          <ui-summary
+            ><ui-author href="#elliot-fu">Elliot Fu</ui-author> added you as a friend
+            <ui-date>1 Hour Ago</ui-date></ui-summary
+          >
+        </ui-content>
+      </ui-event>
+      <ui-event>
+        <ui-content>
+          <ui-summary
+            ><ui-author href="#helen-troy">Helen Troy</ui-author> added 2 new illustrations
+            <ui-date>4 days ago</ui-date></ui-summary
+          >
+        </ui-content>
+      </ui-event>
+      <ui-event>
+        <ui-content>
+          <ui-summary
+            ><ui-author href="#jenny-hess">Jenny Hess</ui-author> added you as a friend
+            <ui-date>2 Days Ago</ui-date></ui-summary
+          >
+        </ui-content>
+      </ui-event>
+    </ui-feed>
+  </section>
+
+  <section>
+    <h4>Ordered, connected, coloured</h4>
+    <ui-feed connected ordered color="blue">
+      <ui-event>
+        <ui-content>
+          <ui-summary
+            ><ui-author href="#elliot-fu">Elliot Fu</ui-author> added you as a friend
+            <ui-date>1 Hour Ago</ui-date></ui-summary
+          >
+        </ui-content>
+      </ui-event>
+      <ui-event>
+        <ui-content>
+          <ui-summary
+            ><ui-author href="#helen-troy">Helen Troy</ui-author> added 2 new illustrations
+            <ui-date>4 days ago</ui-date></ui-summary
+          >
+        </ui-content>
+      </ui-event>
+      <ui-event>
+        <ui-content>
+          <ui-summary
+            ><ui-author href="#jenny-hess">Jenny Hess</ui-author> added you as a friend
+            <ui-date>2 Days Ago</ui-date></ui-summary
+          >
+        </ui-content>
+      </ui-event>
+    </ui-feed>
+  </section>
+
+  <section>
+    <h4>Basic ordered</h4>
+    <ui-feed basic ordered>
+      <ui-event>
+        <ui-content>
+          <ui-summary
+            ><ui-author href="#elliot-fu">Elliot Fu</ui-author> added you as a friend
+            <ui-date>1 Hour Ago</ui-date></ui-summary
+          >
+        </ui-content>
+      </ui-event>
+      <ui-event>
+        <ui-content>
+          <ui-summary
+            ><ui-author href="#helen-troy">Helen Troy</ui-author> added 2 new illustrations
+            <ui-date>4 days ago</ui-date></ui-summary
+          >
+        </ui-content>
+      </ui-event>
+    </ui-feed>
+  </section>
+
+  <section>
+    <h4>Coloured events</h4>
+    <ui-feed connected>
+      <ui-event color="red" label="A">
+        <ui-content>
+          <ui-summary
+            ><ui-author href="#elliot-fu">Elliot Fu</ui-author> added you as a friend
+            <ui-date>1 Hour Ago</ui-date></ui-summary
+          >
+        </ui-content>
+      </ui-event>
+      <ui-event color="green" label="B">
+        <ui-content>
+          <ui-summary
+            ><ui-author href="#helen-troy">Helen Troy</ui-author> added 2 new illustrations
+            <ui-date>4 days ago</ui-date></ui-summary
+          >
+        </ui-content>
+      </ui-event>
+      <ui-event label="C">
+        <ui-content>
+          <ui-summary
+            ><ui-author href="#jenny-hess">Jenny Hess</ui-author> added you as a friend
+            <ui-date>2 Days Ago</ui-date></ui-summary
+          >
+        </ui-content>
+      </ui-event>
+    </ui-feed>
+  </section>
+
+  <section>
+    <h4>Divided</h4>
+    <ui-feed divided>
+      <ui-event
+        image="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+      >
+        <ui-content>
+          <ui-summary
+            ><ui-author href="#elliot-fu">Elliot Fu</ui-author> added you as a friend
+            <ui-date>1 Hour Ago</ui-date></ui-summary
+          >
+          <ui-meta
+            ><a href="#elliot-fu-likes"><ui-icon name="heart"></ui-icon> 4 Likes</a></ui-meta
+          >
+        </ui-content>
+      </ui-event>
+      <ui-event
+        image="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+      >
+        <ui-content>
+          <ui-summary
+            ><ui-author href="#helen-troy">Helen Troy</ui-author> added 2 new illustrations
+            <ui-date>4 days ago</ui-date></ui-summary
+          >
+          <ui-meta
+            ><a href="#helen-troy-likes"><ui-icon name="heart"></ui-icon> 1 Like</a></ui-meta
+          >
+        </ui-content>
+      </ui-event>
+      <ui-event
+        image="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+      >
+        <ui-content>
+          <ui-summary
+            ><ui-author href="#jenny-hess">Jenny Hess</ui-author> added you as a friend
+            <ui-date>2 Days Ago</ui-date></ui-summary
+          >
+          <ui-meta
+            ><a href="#jenny-hess-likes"><ui-icon name="heart"></ui-icon> 8 Likes</a></ui-meta
+          >
+        </ui-content>
+      </ui-event>
+    </ui-feed>
+  </section>
+
+  <section>
+    <h4>Inverted</h4>
+    <ui-segment inverted
+      ><ui-feed inverted>
+        <ui-event
+          image="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+        >
+          <ui-content>
+            <ui-summary
+              ><ui-author href="#elliot-fu">Elliot Fu</ui-author> added you as a friend
+              <ui-date>1 Hour Ago</ui-date></ui-summary
+            >
+            <ui-meta
+              ><a href="#elliot-fu-likes"><ui-icon name="heart"></ui-icon> 4 Likes</a></ui-meta
+            >
+          </ui-content>
+        </ui-event>
+        <ui-event
+          image="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+        >
+          <ui-content>
+            <ui-summary
+              ><ui-author href="#helen-troy">Helen Troy</ui-author> added 2 new illustrations
+              <ui-date>4 days ago</ui-date></ui-summary
+            >
+            <ui-meta
+              ><a href="#helen-troy-likes"><ui-icon name="heart"></ui-icon> 1 Like</a></ui-meta
+            >
+          </ui-content>
+        </ui-event>
+      </ui-feed></ui-segment
+    >
+  </section>
+</div>

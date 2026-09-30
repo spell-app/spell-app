@@ -1,0 +1,97 @@
+/**
+ * `EmojiData`:  Fomantic's emoji names => native Unicode emoji, loaded lazily in chunks.
+ * - Data:  `./data/<chunk>.json`, one per first letter of the name (`0` for a digit), generated from Fomantic's
+ *   `@emoji-map` by `scripts/gen-emoji.ts`.  3,808 names, ~130 KB raw in all;  a chunk is at most ~4 KB gzip.
+ * - Loaded with `import()` on first use of a name in that chunk:  nothing is in `core` or in the emoji family's
+ *   own chunk, and a page drawing `smile` fetches `s.json` only.  The module system is the cache;  a failed load
+ *   is a miss until the next `get()` (no retry storm:  one import per chunk at a time).
+ * - Library-neutral:  no Solid, so the native fallback uses it too.
+ */
+export class EmojiData {
+  /** Loaded name => emoji, plus `register()`ed ones. */
+  private static readonly cache = new Map<string, string>()
+
+  /** Chunk key => its load, so each chunk is requested once at a time. */
+  private static readonly loads = new Map<string, Promise<void>>()
+
+  /** Chunks loaded. */
+  private static readonly loaded = new Set<string>()
+
+  /**
+   * Canonical form of a name as authors write it:  trimmed, lower case, Fomantic's `:colons:` stripped, runs of
+   * spaces => `_` (`thumbs up` ~== `thumbs_up`).  Dashes stay:  some names have them (`blond-haired_woman`).
+   */
+  static normalize(name: string): string {
+    return name.trim().replace(COLONS, "").trim().toLowerCase().replace(SPACES, "_")
+  }
+
+  /** Chunk key of a NORMALIZED name:  its first letter, else `0`.  MUST match `scripts/gen-emoji.ts`. */
+  static chunkOf(name: string): string {
+    const first = name[0] ?? ""
+    return LETTER.test(first) ? first : DIGIT_CHUNK
+  }
+
+  /** The emoji for `name` if it's already known (loaded or registered), else `undefined`.  Synchronous. */
+  static peek(name: string | undefined): string | undefined {
+    return name ? EmojiData.cache.get(EmojiData.normalize(name)) : undefined
+  }
+
+  /**
+   * The emoji for `name`, loading its chunk if needed;  `undefined` for an unknown name.  Never rejects.
+   * - SIDE EFFECT:  caches the whole chunk.
+   */
+  static async get(name: string | undefined): Promise<string | undefined> {
+    if (!name) return undefined
+    const key = EmojiData.normalize(name)
+    const known = EmojiData.cache.get(key)
+    if (known !== undefined || !key) return known
+    const chunk = EmojiData.chunkOf(key)
+    if (!EmojiData.loaded.has(chunk)) await EmojiData.load(chunk)
+    return EmojiData.cache.get(key)
+  }
+
+  /** Add (or override) one emoji without a request, e.g. an app's own name for a sequence. */
+  static register(name: string, emoji: string) {
+    EmojiData.cache.set(EmojiData.normalize(name), emoji)
+  }
+
+  /** Load chunk `chunk` once;  a failure is forgotten, so a later `get()` tries again. */
+  private static load(chunk: string): Promise<void> {
+    let load = EmojiData.loads.get(chunk)
+    if (!load) {
+      const loader = LOADERS[`./data/${chunk}.json`]
+      if (!loader) return Promise.resolve()
+      load = loader()
+        .then((module) => {
+          for (const [name, emoji] of Object.entries(module.default)) {
+            if (!EmojiData.cache.has(name)) EmojiData.cache.set(name, emoji)
+          }
+          EmojiData.loaded.add(chunk)
+        })
+        .catch(() => undefined)
+        .finally(() => EmojiData.loads.delete(chunk))
+      EmojiData.loads.set(chunk, load)
+    }
+    return load
+  }
+}
+
+/**
+ * One loader per data chunk (`./data/a.json` ...), from `import.meta.glob`.
+ * - Why not ``import(`./data/${chunk}.json`)``:  a variable path makes Rolldown add its dynamic-import helper to
+ *   this family's chunk (`yarn measure`'s `coreOutsideCore` check);  the glob compiles to one static `import()`
+ *   per file, with no helper.
+ */
+const LOADERS = import.meta.glob<{ default: Record<string, string> }>("./data/*.json")
+
+/** Fomantic's `:name:` colons. */
+const COLONS = /^:+|:+$/g
+
+/** Runs of whitespace inside a name. */
+const SPACES = /\s+/g
+
+/** A chunk letter. */
+const LETTER = /^[a-z]$/
+
+/** Chunk of names starting with anything but a letter. */
+const DIGIT_CHUNK = "0"

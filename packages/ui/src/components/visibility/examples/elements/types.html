@@ -1,0 +1,38 @@
+<!-- `src/components/visibility/examples/types.html` as element markup, plus a wrapper that reports. -->
+<div class="ui-stack">
+  <section>
+    <h4>Callbacks</h4>
+    <ui-visibility once="false" offset="0">
+      <p>I fire <code>ui-visible</code> and <code>ui-hidden</code> each time I come and go.</p>
+    </ui-visibility>
+  </section>
+
+  <section>
+    <h4>Lazy loading images</h4>
+    <ui-visibility type="image" transition="fade" duration="500">
+      <div style="display: flex; gap: 1em; flex-wrap: wrap">
+        <img
+          alt="First"
+          width="96"
+          height="96"
+          data-src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+          style="background: var(--ui-surface-strong)"
+        />
+        <img
+          alt="Second"
+          width="96"
+          height="96"
+          data-src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+          style="background: var(--ui-surface-strong)"
+        />
+        <img
+          alt="Third"
+          width="96"
+          height="96"
+          data-src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+          style="background: var(--ui-surface-strong)"
+        />
+      </div>
+    </ui-visibility>
+  </section>
+</div>

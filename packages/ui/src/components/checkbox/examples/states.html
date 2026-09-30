@@ -1,0 +1,40 @@
+<!--
+  Checkbox states, after Fomantic's docs (modules/checkbox.html, "States").
+  Indeterminate is a property of the input;  in class grammar the static example only carries the class.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Read-only</h4>
+    <div class="ui read-only checkbox">
+      <input type="checkbox" id="cb-states-1" checked /><label for="cb-states-1">This checkbox is read-only</label>
+    </div>
+  </section>
+
+  <section>
+    <h4>Checked</h4>
+    <div class="ui checkbox">
+      <input type="checkbox" id="cb-states-2" checked /><label for="cb-states-2">This checkbox comes pre-checked</label>
+    </div>
+  </section>
+
+  <section>
+    <h4>Indeterminate</h4>
+    <div class="ui indeterminate checkbox">
+      <input type="checkbox" id="cb-states-3" /><label for="cb-states-3">Some of these</label>
+    </div>
+  </section>
+
+  <section>
+    <h4>Disabled</h4>
+    <div class="ui-stack">
+      <div class="ui disabled checkbox">
+        <input type="checkbox" id="cb-states-4" disabled /><label for="cb-states-4">Disabled</label>
+      </div>
+      <div class="ui toggle disabled checkbox">
+        <input type="checkbox" id="cb-states-5" role="switch" disabled checked /><label for="cb-states-5"
+          >Disabled toggle</label
+        >
+      </div>
+    </div>
+  </section>
+</div>

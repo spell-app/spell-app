@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>COMPATIBILITY check: a Solid 1.9 host app -- @spell/ui</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <h1>COMPATIBILITY check: an older Solid (1.9) host app</h1>
+    <p>
+      The host app runs Solid 1.9 from esm.sh; the components run on the page's Solid 2 from the import map (vendored
+      <code>solid-js</code> 2.0 RC, production build). Two runtimes on one page -- not the recommended setup (an app on
+      Solid 2 shares ONE copy with the components, see the Solid 2 host page); it checks that the custom-element
+      boundary still works when an app hasn't upgraded.
+    </p>
+    <div id="app"></div>
+    <pre id="result">checking...</pre>
+    <script type="module">
+      // `solid-js/h` + `solid-js/web` 1.9:  `prop:options`, `on:ui-change`, reactive props as functions
+      import { createSignal, createContext, useContext } from "https://esm.sh/solid-js@1.9.9"
+      import { render } from "https://esm.sh/solid-js@1.9.9/web"
+      import h from "https://esm.sh/solid-js@1.9.9/h"
+      import { OPTIONS, roundTrip } from "/tools/frameworks/check.js"
+      import "@spell/ui/dropdown"
+      import "/tools/frameworks/solid/identity.js"
+
+      const Theme = createContext("light")
+      const [value, setValue] = createSignal("b")
+      const [open, setOpen] = createSignal(true)
+      const [mounted, setMounted] = createSignal(true)
+
+      /** The whole app:  a dropdown driven by 1.9 signals, its own context, and the round-trip buttons. */
+      function App() {
+        return h(Theme.Provider, { value: "dark" }, () =>
+          h(
+            "div",
+            null,
+            () =>
+              mounted()
+                ? h("ui-dropdown", {
+                    selection: true,
+                    placeholder: "Fruit",
+                    "prop:options": OPTIONS,
+                    "prop:value": value,
+                    "prop:open": open,
+                    "on:ui-change": (event) => setValue(String(event.detail.value)),
+                    "on:ui-open": () => setOpen(true),
+                    "on:ui-close": () => setOpen(false)
+                  })
+                : null,
+            h("p", null, "Solid 1.9 state: ", h("output", { id: "value" }, value)),
+            h("button", { id: "set", type: "button", onClick: () => setValue("c") }, "set cherry"),
+            h("button", { id: "open", type: "button", onClick: () => setOpen(true) }, "open"),
+            h("button", { id: "unmount", type: "button", onClick: () => setMounted(false) }, "unmount"),
+            h("span", { id: "theme" }, () => useContext(Theme))
+          )
+        )
+      }
+      render(App, document.getElementById("app"))
+
+      await roundTrip("solid 1.9.9 (esm.sh) + vendored Solid 2", async () => {
+        const hook = globalThis.__uiSolidIdentity
+        const checks = {
+          appContext: document.querySelector("#theme").textContent === "dark",
+          // informational:  a 1.9 context object can't be provided to Solid 2 components (different runtimes)
+          contextReachesComponent: hook?.read(document.querySelector("ui-dropdown")) ?? "null (as expected)"
+        }
+        document.querySelector("#unmount").click()
+        checks.unmount = await new Promise((resolve) =>
+          setTimeout(() => resolve(!document.querySelector("ui-dropdown")), 100)
+        )
+        return checks
+      })
+    </script>
+  </body>
+</html>

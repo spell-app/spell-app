@@ -1,0 +1,49 @@
+<!--
+  Tab types, after Fomantic's docs (modules/tab.html, "Types" and "Menu"):  a menu of tabs over `.ui.tab.segment`
+  panes.  Static class grammar:  the `.active` pane shows;  nothing switches without the elements.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Tabular</h4>
+    <div class="ui top attached tabular menu" role="tablist" aria-label="Tabular">
+      <button class="active item" role="tab" aria-selected="true" id="tabular-first">First</button>
+      <button class="item" role="tab" aria-selected="false" tabindex="-1">Second</button>
+      <button class="item" role="tab" aria-selected="false" tabindex="-1">Third</button>
+    </div>
+    <div class="ui bottom attached active tab segment" role="tabpanel" aria-labelledby="tabular-first">First</div>
+    <div class="ui bottom attached tab segment" role="tabpanel">Second</div>
+    <div class="ui bottom attached tab segment" role="tabpanel">Third</div>
+  </section>
+
+  <section>
+    <h4>Pointing</h4>
+    <div class="ui pointing secondary menu" role="tablist" aria-label="Pointing">
+      <button class="active item" role="tab" aria-selected="true" id="pointing-first">First</button>
+      <button class="item" role="tab" aria-selected="false" tabindex="-1">Second</button>
+      <button class="item" role="tab" aria-selected="false" tabindex="-1">Third</button>
+    </div>
+    <div class="ui active tab segment" role="tabpanel" aria-labelledby="pointing-first">First</div>
+    <div class="ui tab segment" role="tabpanel">Second</div>
+    <div class="ui tab segment" role="tabpanel">Third</div>
+  </section>
+
+  <section>
+    <h4>Basic menu</h4>
+    <div class="ui menu" role="tablist" aria-label="Basic">
+      <button class="active item" role="tab" aria-selected="true" id="basic-first">First</button>
+      <button class="item" role="tab" aria-selected="false" tabindex="-1">Second</button>
+    </div>
+    <div class="ui active tab segment" role="tabpanel" aria-labelledby="basic-first">First</div>
+    <div class="ui tab segment" role="tabpanel">Second</div>
+  </section>
+
+  <section>
+    <h4>Text</h4>
+    <div class="ui text menu" role="tablist" aria-label="Text">
+      <button class="active item" role="tab" aria-selected="true" id="text-first">First</button>
+      <button class="item" role="tab" aria-selected="false" tabindex="-1">Second</button>
+    </div>
+    <div class="ui basic active tab segment" role="tabpanel" aria-labelledby="text-first">First</div>
+    <div class="ui basic tab segment" role="tabpanel">Second</div>
+  </section>
+</div>

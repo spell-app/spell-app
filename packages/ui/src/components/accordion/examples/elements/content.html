@@ -1,0 +1,20 @@
+<!-- `src/components/accordion/examples/content.html` as element markup:  the other two grammars have no element form. -->
+<div class="ui-stack">
+  <section>
+    <h4>Nested accordion</h4>
+    <ui-accordion styled open="0">
+      <ui-title>Level 1</ui-title>
+      <ui-content>
+        <p>Welcome to level 1</p>
+        <ui-accordion open="1">
+          <ui-title>Level 1A</ui-title>
+          <ui-content><p>Level 1A contents</p></ui-content>
+          <ui-title>Level 1B</ui-title>
+          <ui-content><p>Level 1B contents</p></ui-content>
+        </ui-accordion>
+      </ui-content>
+      <ui-title>Level 2</ui-title>
+      <ui-content><p>Welcome to level 2</p></ui-content>
+    </ui-accordion>
+  </section>
+</div>

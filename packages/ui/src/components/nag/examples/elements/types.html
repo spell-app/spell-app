@@ -1,0 +1,40 @@
+<!-- `src/components/nag/examples/types.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Nag</h4>
+    <ui-nag><span class="title">We have updated our privacy policy.</span></ui-nag>
+  </section>
+
+  <section>
+    <h4>Overlay, bottom</h4>
+    <div style="position: relative; height: 6em; border: 1px dashed var(--ui-border-color)">
+      <ui-nag overlay closable="false"><span class="title">Over the top of the frame</span></ui-nag>
+      <ui-nag bottom overlay closable="false"><span class="title">Over its bottom</span></ui-nag>
+    </div>
+  </section>
+
+  <section>
+    <h4>Inverted</h4>
+    <ui-nag inverted closable="false"><span class="title">A light nag</span></ui-nag>
+  </section>
+
+  <section>
+    <h4>Colored</h4>
+    <ui-nag color="teal" closable="false"><span class="title">A teal nag</span></ui-nag>
+    <ui-nag color="red" inverted closable="false"><span class="title">A tinted red nag</span></ui-nag>
+  </section>
+
+  <section>
+    <h4>Sizes</h4>
+    <ui-nag size="mini" closable="false"><span class="title">Mini</span></ui-nag>
+    <ui-nag size="small" closable="false"><span class="title">Small</span></ui-nag>
+    <ui-nag size="medium" closable="false"><span class="title">Medium</span></ui-nag>
+    <ui-nag size="large" closable="false"><span class="title">Large</span></ui-nag>
+    <ui-nag size="huge" closable="false"><span class="title">Huge</span></ui-nag>
+  </section>
+
+  <section>
+    <h4>Remembered</h4>
+    <ui-nag key="example-cookie-nag" storage="local" expires="7"> Dismiss me and I stay dismissed for a week. </ui-nag>
+  </section>
+</div>

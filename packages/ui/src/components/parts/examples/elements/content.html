@@ -1,0 +1,80 @@
+<!-- `src/components/parts/examples/content.html` as element markup. -->
+<!-- Owners are the real elements, except `stub-*` stand-ins (`StubOwner`) for modal and popup (overlays, hidden until opened), accordion and toast (they own no parts yet). -->
+<div class="ui-stack">
+  <section>
+    <h4>Standalone</h4>
+    <ui-content>A content block with no owner is an unstyled block.</ui-content>
+  </section>
+
+  <section>
+    <h4>Card</h4>
+    <ui-card>
+      <ui-content><ui-header>Elliot Fu</ui-header></ui-content>
+      <ui-content><ui-description>Elliot is a film-maker from New York.</ui-description></ui-content>
+    </ui-card>
+  </section>
+
+  <section>
+    <h4>Horizontal card</h4>
+    <ui-card horizontal>
+      <ui-content><ui-header>Left</ui-header></ui-content>
+      <ui-content><ui-header>Right</ui-header></ui-content>
+    </ui-card>
+  </section>
+
+  <section>
+    <h4>Item</h4>
+    <ui-items>
+      <ui-item
+        image="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+      >
+        <ui-content><ui-header href="#item">Header</ui-header></ui-content>
+      </ui-item>
+    </ui-items>
+  </section>
+
+  <section>
+    <h4>Feed, comment, modal, message, list, step, accordion, popup, toast</h4>
+    <ui-feed>
+      <ui-event>
+        <ui-content><ui-summary>You added Elliot Fu to the group</ui-summary></ui-content>
+      </ui-event>
+    </ui-feed>
+    <ui-comments>
+      <ui-comment>
+        <ui-content><ui-author href="#matt">Matt</ui-author></ui-content>
+      </ui-comment>
+    </ui-comments>
+    <stub-modal>
+      <ui-content><p>A modal's content.</p></ui-content>
+    </stub-modal>
+    <stub-modal>
+      <ui-content style="--ui-modal-scrolling-height: 4em" scrolling>
+        <p>Scrolling.</p>
+        <p>Content.</p>
+        <p>Here.</p>
+      </ui-content>
+    </stub-modal>
+    <ui-message icon="circle-exclamation">
+      <ui-content><ui-header>Just one second</ui-header></ui-content>
+    </ui-message>
+    <ui-list>
+      <ui-item icon="user">
+        <ui-content><ui-header>Rachel</ui-header></ui-content>
+      </ui-item>
+    </ui-list>
+    <ui-steps>
+      <ui-step>
+        <ui-content><ui-title>Shipping</ui-title></ui-content>
+      </ui-step>
+    </ui-steps>
+    <stub-accordion>
+      <ui-title>What is a dog?</ui-title>
+      <ui-content>A domesticated carnivore.</ui-content>
+    </stub-accordion>
+    <stub-popup>
+      <ui-header>User rating</ui-header>
+      <ui-content>Four stars.</ui-content>
+    </stub-popup>
+  </section>
+</div>

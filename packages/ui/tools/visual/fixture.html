@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@spell/ui: visual fixture</title>
+    <!--
+      `yarn test:visual`'s page:  ONE example, `?example=<family>/<name>&kind=elements|classes`, in a box the test
+      screenshots (`#example`).  See `fixture.ts` and `docs/visual-testing.md`.
+    -->
+    <style>
+      body {
+        margin: 0;
+      }
+      #example {
+        /* flow-root:  the example's own margins stay inside the captured box */
+        display: flow-root;
+        padding: 16px;
+      }
+    </style>
+  </head>
+  <body class="ui-typography">
+    <main id="example"></main>
+    <script type="module" src="./fixture.ts"></script>
+  </body>
+</html>

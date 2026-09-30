@@ -1,0 +1,133 @@
+<!--
+  Card content, after Fomantic's docs (views/card.html, "Content").
+  Static class grammar `card.css` styles:  the card box (`.ui.card`, and `.ui.cards > .card` without `ui`), its
+  images, and the content parts (`in-card`, as `parts.css` expects static parts);  element markup renders the same.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Content block</h4>
+    <div class="ui card">
+      <div class="content in-card">
+        <a class="header in-card" href="#kristy">Kristy</a>
+        <div class="meta in-card"><span>Joined in 2013</span></div>
+        <div class="description in-card">Kristy is an art director living in New York.</div>
+      </div>
+      <div class="extra in-card">
+        <a href="#kristy-friends"
+          ><span class="ui icon"
+            ><svg viewBox="0 0 448 512" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M224 248a120 120 0 1 0 0-240 120 120 0 1 0 0 240zm-29.7 56C95.8 304 16 383.8 16 482.3 16 498.7 29.3 512 45.7 512l356.6 0c16.4 0 29.7-13.3 29.7-29.7 0-98.5-79.8-178.3-178.3-178.3l-59.4 0z"
+              /></svg
+          ></span>
+          22 Friends</a
+        >
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Image, then content</h4>
+    <div class="ui card">
+      <div class="image">
+        <img
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22480%22 height=%22320%22 viewBox=%220 0 30 20%22%3E%3Crect width=%2230%22 height=%2220%22 fill=%22%23cbd5e1%22/%3E%3Cpath d=%22M3 17l7-8 5 6 4-4 8 6z%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%2222%22 cy=%226%22 r=%222%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E"
+          alt="Matthew"
+        />
+      </div>
+      <div class="content in-card">
+        <a class="header in-card" href="#matthew">Matthew</a>
+        <div class="meta in-card"><span>Joined in 2015</span></div>
+        <div class="description in-card">Matthew is a musician living in Nashville.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Header only</h4>
+    <div class="ui card">
+      <div class="content in-card">
+        <a class="header in-card" href="#molly">Molly</a>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Avatar in content</h4>
+    <div class="ui card">
+      <div class="content in-card">
+        <img
+          class="ui avatar image"
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+          alt=""
+        />
+        Elyse
+        <div class="meta in-card"><span>Friend</span></div>
+      </div>
+      <div class="extra in-card">
+        <a href="#elyse-friends"
+          ><span class="ui icon"
+            ><svg viewBox="0 0 448 512" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M224 248a120 120 0 1 0 0-240 120 120 0 1 0 0 240zm-29.7 56C95.8 304 16 383.8 16 482.3 16 498.7 29.3 512 45.7 512l356.6 0c16.4 0 29.7-13.3 29.7-29.7 0-98.5-79.8-178.3-178.3-178.3l-59.4 0z"
+              /></svg
+          ></span>
+          151 Friends</a
+        >
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Extra content</h4>
+    <div class="ui card">
+      <div class="content in-card">
+        <a class="header in-card" href="#jenny">Jenny</a>
+        <div class="description in-card">Jenny is a student studying Media Management.</div>
+      </div>
+      <div class="extra in-card">
+        <a href="#jenny-friends"
+          ><span class="ui icon"
+            ><svg viewBox="0 0 448 512" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M224 248a120 120 0 1 0 0-240 120 120 0 1 0 0 240zm-29.7 56C95.8 304 16 383.8 16 482.3 16 498.7 29.3 512 45.7 512l356.6 0c16.4 0 29.7-13.3 29.7-29.7 0-98.5-79.8-178.3-178.3-178.3l-59.4 0z"
+              /></svg
+          ></span>
+          8 Friends</a
+        >
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Aligned content</h4>
+    <div class="ui card">
+      <div class="content center aligned in-card">
+        <a class="header in-card" href="#steve">Steve</a>
+        <div class="meta in-card"><span>Friend</span></div>
+        <div class="description in-card">Steve likes to hike in the woods.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Shorthand</h4>
+    <div class="ui card">
+      <div class="image">
+        <img
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22480%22 height=%22320%22 viewBox=%220 0 30 20%22%3E%3Crect width=%2230%22 height=%2220%22 fill=%22%23cbd5e1%22/%3E%3Cpath d=%22M3 17l7-8 5 6 4-4 8 6z%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%2222%22 cy=%226%22 r=%222%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E"
+          alt="Kristy"
+        />
+      </div>
+      <div class="content in-card">
+        <a class="header in-card" href="#kristy">Kristy</a>
+        <div class="meta in-card"><span>Joined in 2013</span></div>
+        <div class="description in-card">Kristy is an art director living in New York.</div>
+      </div>
+      <div class="extra in-card">22 Friends</div>
+    </div>
+  </section>
+</div>

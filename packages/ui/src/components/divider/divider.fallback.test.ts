@@ -1,0 +1,33 @@
+import { describe, expect, it } from "vitest"
+
+import { Fixture } from "$test/fixture"
+import { expectAccessible } from "$test/a11y"
+import { FallbackStub, type StubHost } from "$/components/fallback.stub"
+
+import { DividerFallback } from "./divider.fallback"
+
+FallbackStub.define("x-fb-divider", (host, root, internals) =>
+  DividerFallback.render(host, root, new Error("boom"), internals)
+)
+
+describe("DividerFallback", () => {
+  it("renders a separator with the class grammar, part and slot", async () => {
+    const host = Fixture.render<StubHost>(`<x-fb-divider horizontal>Or</x-fb-divider>`)
+    const divider = FallbackStub.shadow(host).firstElementChild!
+    expect(divider.className).toBe("ui horizontal divider")
+    expect(divider.getAttribute("role")).toBe("separator")
+    expect(divider.getAttribute("part")).toBe("divider")
+    expect(divider.hasAttribute("aria-orientation")).toBe(false)
+    expect(divider.querySelector("slot")).not.toBeNull()
+    await expectAccessible(host)
+  })
+
+  it("is vertical, or spacing only", () => {
+    const vertical = Fixture.render<StubHost>(`<x-fb-divider vertical></x-fb-divider>`)
+    expect(FallbackStub.shadow(vertical).firstElementChild!.getAttribute("aria-orientation")).toBe("vertical")
+    const hidden = Fixture.render<StubHost>(`<x-fb-divider hidden vertical></x-fb-divider>`)
+    const divider = FallbackStub.shadow(hidden).firstElementChild!
+    expect(divider.getAttribute("role")).toBe("none")
+    expect(divider.hasAttribute("aria-orientation")).toBe(false)
+  })
+})

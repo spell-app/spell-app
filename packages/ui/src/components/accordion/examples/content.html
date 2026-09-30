@@ -1,0 +1,49 @@
+<!--
+  Accordion content, after Fomantic's docs (modules/accordion.html, "Content"):  nested accordions, and Fomantic's
+  two other grammars -- the flat `.title` + `.content` (shown by `.active`), and 2.9's single `details.ui.accordion`.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Nested accordion</h4>
+    <div class="ui styled accordion">
+      <details name="levels" open>
+        <summary class="title"><i class="dropdown icon" aria-hidden="true"></i>Level 1</summary>
+        <div class="content">
+          <p>Welcome to level 1</p>
+          <div class="accordion">
+            <details name="levels-1a">
+              <summary class="title"><i class="dropdown icon" aria-hidden="true"></i>Level 1A</summary>
+              <div class="content"><p>Level 1A contents</p></div>
+            </details>
+            <details name="levels-1a" open>
+              <summary class="title"><i class="dropdown icon" aria-hidden="true"></i>Level 1B</summary>
+              <div class="content"><p>Level 1B contents</p></div>
+            </details>
+          </div>
+        </div>
+      </details>
+      <details name="levels">
+        <summary class="title"><i class="dropdown icon" aria-hidden="true"></i>Level 2</summary>
+        <div class="content"><p>Welcome to level 2</p></div>
+      </details>
+    </div>
+  </section>
+
+  <section>
+    <h4>Flat grammar (Fomantic's markup)</h4>
+    <div class="ui accordion">
+      <div class="active title"><i class="dropdown icon" aria-hidden="true"></i>What is a dog?</div>
+      <div class="active content"><p>A dog is a type of domesticated animal.</p></div>
+      <div class="title"><i class="dropdown icon" aria-hidden="true"></i>What kinds of dogs are there?</div>
+      <div class="content"><p>There are many breeds of dogs.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Single details</h4>
+    <details class="ui styled accordion" open>
+      <summary class="title"><i class="dropdown icon" aria-hidden="true"></i>What is a dog?</summary>
+      <div class="content"><p>A dog is a type of domesticated animal.</p></div>
+    </details>
+  </section>
+</div>

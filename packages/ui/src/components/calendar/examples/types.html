@@ -1,0 +1,1057 @@
+<!--
+  Calendar types, after Fomantic's docs (modules/calendar.html, "Types"):  a date-time field with its popup open,
+  and each view of the picker inline.  The class grammar the element renders in its shadow root.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Date and time (Fomantic's default): a field; its popup, open</h4>
+    <div class="ui calendar">
+      <div class="ui left icon input">
+        <input type="text" value="September 30, 2026 at 2:30 PM" aria-label="Date and time" /><button
+          type="button"
+          class="icon"
+          aria-label="Choose date"
+          aria-haspopup="dialog"
+          aria-expanded="true"
+        >
+          📅
+        </button>
+      </div>
+      <div class="ui calendar popup bottom left visible" role="dialog" aria-label="Choose date">
+        <div class="header">
+          <button type="button" class="prev link" aria-label="Previous month">‹</button>
+          <button type="button" class="title link" id="t-dt">September 2026</button>
+          <button type="button" class="next link" aria-label="Next month">›</button>
+        </div>
+        <table class="ui celled center aligned unstackable seven column table day" role="grid" aria-labelledby="t-dt">
+          <thead>
+            <tr>
+              <th scope="col" abbr="Sunday">S</th>
+              <th scope="col" abbr="Monday">M</th>
+              <th scope="col" abbr="Tuesday">T</th>
+              <th scope="col" abbr="Wednesday">W</th>
+              <th scope="col" abbr="Thursday">T</th>
+              <th scope="col" abbr="Friday">F</th>
+              <th scope="col" abbr="Saturday">S</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td
+                role="gridcell"
+                class="link adjacent disabled"
+                tabindex="-1"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="Sunday, August 30, 2026"
+              >
+                30
+              </td>
+              <td
+                role="gridcell"
+                class="link adjacent disabled"
+                tabindex="-1"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="Monday, August 31, 2026"
+              >
+                31
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Tuesday, September 1, 2026"
+              >
+                1
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Wednesday, September 2, 2026"
+              >
+                2
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Thursday, September 3, 2026"
+              >
+                3
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Friday, September 4, 2026"
+              >
+                4
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Saturday, September 5, 2026"
+              >
+                5
+              </td>
+            </tr>
+            <tr>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Sunday, September 6, 2026"
+              >
+                6
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Monday, September 7, 2026"
+              >
+                7
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Tuesday, September 8, 2026"
+              >
+                8
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Wednesday, September 9, 2026"
+              >
+                9
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Thursday, September 10, 2026"
+              >
+                10
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Friday, September 11, 2026"
+              >
+                11
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Saturday, September 12, 2026"
+              >
+                12
+              </td>
+            </tr>
+            <tr>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Sunday, September 13, 2026"
+              >
+                13
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Monday, September 14, 2026"
+              >
+                14
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Tuesday, September 15, 2026"
+              >
+                15
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Wednesday, September 16, 2026"
+              >
+                16
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Thursday, September 17, 2026"
+              >
+                17
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Friday, September 18, 2026"
+              >
+                18
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Saturday, September 19, 2026"
+              >
+                19
+              </td>
+            </tr>
+            <tr>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Sunday, September 20, 2026"
+              >
+                20
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Monday, September 21, 2026"
+              >
+                21
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Tuesday, September 22, 2026"
+              >
+                22
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Wednesday, September 23, 2026"
+              >
+                23
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Thursday, September 24, 2026"
+              >
+                24
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Friday, September 25, 2026"
+              >
+                25
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Saturday, September 26, 2026"
+              >
+                26
+              </td>
+            </tr>
+            <tr>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Sunday, September 27, 2026"
+              >
+                27
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Monday, September 28, 2026"
+              >
+                28
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Tuesday, September 29, 2026"
+              >
+                29
+              </td>
+              <td
+                role="gridcell"
+                class="link active focus"
+                tabindex="0"
+                aria-selected="true"
+                aria-label="Wednesday, September 30, 2026"
+              >
+                30
+              </td>
+              <td
+                role="gridcell"
+                class="link adjacent disabled"
+                tabindex="-1"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="Thursday, October 1, 2026"
+              >
+                1
+              </td>
+              <td
+                role="gridcell"
+                class="link adjacent disabled"
+                tabindex="-1"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="Friday, October 2, 2026"
+              >
+                2
+              </td>
+              <td
+                role="gridcell"
+                class="link adjacent disabled"
+                tabindex="-1"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="Saturday, October 3, 2026"
+              >
+                3
+              </td>
+            </tr>
+            <tr>
+              <td
+                role="gridcell"
+                class="link adjacent disabled"
+                tabindex="-1"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="Sunday, October 4, 2026"
+              >
+                4
+              </td>
+              <td
+                role="gridcell"
+                class="link adjacent disabled"
+                tabindex="-1"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="Monday, October 5, 2026"
+              >
+                5
+              </td>
+              <td
+                role="gridcell"
+                class="link adjacent disabled"
+                tabindex="-1"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="Tuesday, October 6, 2026"
+              >
+                6
+              </td>
+              <td
+                role="gridcell"
+                class="link adjacent disabled"
+                tabindex="-1"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="Wednesday, October 7, 2026"
+              >
+                7
+              </td>
+              <td
+                role="gridcell"
+                class="link adjacent disabled"
+                tabindex="-1"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="Thursday, October 8, 2026"
+              >
+                8
+              </td>
+              <td
+                role="gridcell"
+                class="link adjacent disabled"
+                tabindex="-1"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="Friday, October 9, 2026"
+              >
+                9
+              </td>
+              <td
+                role="gridcell"
+                class="link adjacent disabled"
+                tabindex="-1"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="Saturday, October 10, 2026"
+              >
+                10
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Date: inline, a day grid</h4>
+    <div class="ui calendar">
+      <div class="calendar">
+        <div class="header">
+          <button type="button" class="prev link" aria-label="Previous month">‹</button>
+          <button type="button" class="title link" id="t-day">September 2026</button>
+          <button type="button" class="next link" aria-label="Next month">›</button>
+        </div>
+        <table class="ui celled center aligned unstackable seven column table day" role="grid" aria-labelledby="t-day">
+          <thead>
+            <tr>
+              <th scope="col" abbr="Sunday">S</th>
+              <th scope="col" abbr="Monday">M</th>
+              <th scope="col" abbr="Tuesday">T</th>
+              <th scope="col" abbr="Wednesday">W</th>
+              <th scope="col" abbr="Thursday">T</th>
+              <th scope="col" abbr="Friday">F</th>
+              <th scope="col" abbr="Saturday">S</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td
+                role="gridcell"
+                class="link adjacent disabled"
+                tabindex="-1"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="Sunday, August 30, 2026"
+              >
+                30
+              </td>
+              <td
+                role="gridcell"
+                class="link adjacent disabled"
+                tabindex="-1"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="Monday, August 31, 2026"
+              >
+                31
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Tuesday, September 1, 2026"
+              >
+                1
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Wednesday, September 2, 2026"
+              >
+                2
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Thursday, September 3, 2026"
+              >
+                3
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Friday, September 4, 2026"
+              >
+                4
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Saturday, September 5, 2026"
+              >
+                5
+              </td>
+            </tr>
+            <tr>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Sunday, September 6, 2026"
+              >
+                6
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Monday, September 7, 2026"
+              >
+                7
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Tuesday, September 8, 2026"
+              >
+                8
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Wednesday, September 9, 2026"
+              >
+                9
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Thursday, September 10, 2026"
+              >
+                10
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Friday, September 11, 2026"
+              >
+                11
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Saturday, September 12, 2026"
+              >
+                12
+              </td>
+            </tr>
+            <tr>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Sunday, September 13, 2026"
+              >
+                13
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Monday, September 14, 2026"
+              >
+                14
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Tuesday, September 15, 2026"
+              >
+                15
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Wednesday, September 16, 2026"
+              >
+                16
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Thursday, September 17, 2026"
+              >
+                17
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Friday, September 18, 2026"
+              >
+                18
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Saturday, September 19, 2026"
+              >
+                19
+              </td>
+            </tr>
+            <tr>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Sunday, September 20, 2026"
+              >
+                20
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Monday, September 21, 2026"
+              >
+                21
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Tuesday, September 22, 2026"
+              >
+                22
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Wednesday, September 23, 2026"
+              >
+                23
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Thursday, September 24, 2026"
+              >
+                24
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Friday, September 25, 2026"
+              >
+                25
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Saturday, September 26, 2026"
+              >
+                26
+              </td>
+            </tr>
+            <tr>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Sunday, September 27, 2026"
+              >
+                27
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Monday, September 28, 2026"
+              >
+                28
+              </td>
+              <td
+                role="gridcell"
+                class="link"
+                tabindex="-1"
+                aria-selected="false"
+                aria-label="Tuesday, September 29, 2026"
+              >
+                29
+              </td>
+              <td
+                role="gridcell"
+                class="link active focus"
+                tabindex="0"
+                aria-selected="true"
+                aria-label="Wednesday, September 30, 2026"
+              >
+                30
+              </td>
+              <td
+                role="gridcell"
+                class="link adjacent disabled"
+                tabindex="-1"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="Thursday, October 1, 2026"
+              >
+                1
+              </td>
+              <td
+                role="gridcell"
+                class="link adjacent disabled"
+                tabindex="-1"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="Friday, October 2, 2026"
+              >
+                2
+              </td>
+              <td
+                role="gridcell"
+                class="link adjacent disabled"
+                tabindex="-1"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="Saturday, October 3, 2026"
+              >
+                3
+              </td>
+            </tr>
+            <tr>
+              <td
+                role="gridcell"
+                class="link adjacent disabled"
+                tabindex="-1"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="Sunday, October 4, 2026"
+              >
+                4
+              </td>
+              <td
+                role="gridcell"
+                class="link adjacent disabled"
+                tabindex="-1"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="Monday, October 5, 2026"
+              >
+                5
+              </td>
+              <td
+                role="gridcell"
+                class="link adjacent disabled"
+                tabindex="-1"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="Tuesday, October 6, 2026"
+              >
+                6
+              </td>
+              <td
+                role="gridcell"
+                class="link adjacent disabled"
+                tabindex="-1"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="Wednesday, October 7, 2026"
+              >
+                7
+              </td>
+              <td
+                role="gridcell"
+                class="link adjacent disabled"
+                tabindex="-1"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="Thursday, October 8, 2026"
+              >
+                8
+              </td>
+              <td
+                role="gridcell"
+                class="link adjacent disabled"
+                tabindex="-1"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="Friday, October 9, 2026"
+              >
+                9
+              </td>
+              <td
+                role="gridcell"
+                class="link adjacent disabled"
+                tabindex="-1"
+                aria-selected="false"
+                aria-disabled="true"
+                aria-label="Saturday, October 10, 2026"
+              >
+                10
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Month: a month grid</h4>
+    <div class="ui calendar">
+      <div class="calendar">
+        <div class="header">
+          <button type="button" class="prev link" aria-label="Previous year">‹</button>
+          <button type="button" class="title link" id="t-month">2026</button>
+          <button type="button" class="next link" aria-label="Next year">›</button>
+        </div>
+        <table
+          class="ui celled center aligned unstackable three column table month"
+          role="grid"
+          aria-labelledby="t-month"
+        >
+          <tbody>
+            <tr>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="January 2026">Jan</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="February 2026">Feb</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="March 2026">Mar</td>
+            </tr>
+            <tr>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="April 2026">Apr</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="May 2026">May</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="June 2026">Jun</td>
+            </tr>
+            <tr>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="July 2026">Jul</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="August 2026">Aug</td>
+              <td
+                role="gridcell"
+                class="link active focus"
+                tabindex="0"
+                aria-selected="true"
+                aria-label="September 2026"
+              >
+                Sep
+              </td>
+            </tr>
+            <tr>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="October 2026">Oct</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="November 2026">Nov</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="December 2026">Dec</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Year: a year grid</h4>
+    <div class="ui calendar">
+      <div class="calendar">
+        <div class="header">
+          <button type="button" class="prev link" aria-label="Previous years">‹</button>
+          <button type="button" class="title link" id="t-year">2021 – 2032</button>
+          <button type="button" class="next link" aria-label="Next years">›</button>
+        </div>
+        <table
+          class="ui celled center aligned unstackable three column table year"
+          role="grid"
+          aria-labelledby="t-year"
+        >
+          <tbody>
+            <tr>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="2021">2021</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="2022">2022</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="2023">2023</td>
+            </tr>
+            <tr>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="2024">2024</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="2025">2025</td>
+              <td role="gridcell" class="link active focus" tabindex="0" aria-selected="true" aria-label="2026">
+                2026
+              </td>
+            </tr>
+            <tr>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="2027">2027</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="2028">2028</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="2029">2029</td>
+            </tr>
+            <tr>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="2030">2030</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="2031">2031</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="2032">2032</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Hours</h4>
+    <div class="ui calendar">
+      <div class="calendar">
+        <div class="header">
+          <button type="button" class="prev link" aria-label="Previous day">‹</button>
+          <button type="button" class="title link" id="t-hour">September 30, 2026</button>
+          <button type="button" class="next link" aria-label="Next day">›</button>
+        </div>
+        <table class="ui celled center aligned unstackable four column table hour" role="grid" aria-labelledby="t-hour">
+          <tbody>
+            <tr>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="12:00 AM">12:00 AM</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="1:00 AM">1:00 AM</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="2:00 AM">2:00 AM</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="3:00 AM">3:00 AM</td>
+            </tr>
+            <tr>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="4:00 AM">4:00 AM</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="5:00 AM">5:00 AM</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="6:00 AM">6:00 AM</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="7:00 AM">7:00 AM</td>
+            </tr>
+            <tr>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="8:00 AM">8:00 AM</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="9:00 AM">9:00 AM</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="10:00 AM">10:00 AM</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="11:00 AM">11:00 AM</td>
+            </tr>
+            <tr>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="12:00 PM">12:00 PM</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="1:00 PM">1:00 PM</td>
+              <td role="gridcell" class="link active focus" tabindex="0" aria-selected="true" aria-label="2:00 PM">
+                2:00 PM
+              </td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="3:00 PM">3:00 PM</td>
+            </tr>
+            <tr>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="4:00 PM">4:00 PM</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="5:00 PM">5:00 PM</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="6:00 PM">6:00 PM</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="7:00 PM">7:00 PM</td>
+            </tr>
+            <tr>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="8:00 PM">8:00 PM</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="9:00 PM">9:00 PM</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="10:00 PM">10:00 PM</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="11:00 PM">11:00 PM</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Time: minutes, no header</h4>
+    <div class="ui calendar">
+      <div class="calendar">
+        <table class="ui celled center aligned unstackable three column table minute" role="grid" aria-label="Minutes">
+          <tbody>
+            <tr>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="2:00 PM">2:00 PM</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="2:05 PM">2:05 PM</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="2:10 PM">2:10 PM</td>
+            </tr>
+            <tr>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="2:15 PM">2:15 PM</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="2:20 PM">2:20 PM</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="2:25 PM">2:25 PM</td>
+            </tr>
+            <tr>
+              <td role="gridcell" class="link active focus" tabindex="0" aria-selected="true" aria-label="2:30 PM">
+                2:30 PM
+              </td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="2:35 PM">2:35 PM</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="2:40 PM">2:40 PM</td>
+            </tr>
+            <tr>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="2:45 PM">2:45 PM</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="2:50 PM">2:50 PM</td>
+              <td role="gridcell" class="link" tabindex="-1" aria-selected="false" aria-label="2:55 PM">2:55 PM</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>

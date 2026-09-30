@@ -1,0 +1,86 @@
+<!--
+  Sticky, after Fomantic's docs (modules/sticky.html):  a rail beside long content, sticking as the frame scrolls.
+  Light-DOM markup in the class grammar:  `.ui.sticky` is `position: sticky` with or without the element, with
+  `--ui-sticky-offset` as its top.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Sticky</h4>
+    <div
+      style="height: 14em; overflow: auto; border: 1px solid var(--ui-border-color)"
+      tabindex="0"
+      role="region"
+      aria-label="Sticky rail example"
+    >
+      <div style="display: flex; gap: 1em; padding: 0 1em">
+        <div style="flex: 1">
+          <p>
+            Fomantic's sticky kept content in view with scroll listeners and fixed positioning. Here the browser does
+            it: the box is <code>position: sticky</code>, and the element only reports when it is stuck.
+          </p>
+          <p>
+            Fomantic's sticky kept content in view with scroll listeners and fixed positioning. Here the browser does
+            it: the box is <code>position: sticky</code>, and the element only reports when it is stuck.
+          </p>
+          <p>
+            Fomantic's sticky kept content in view with scroll listeners and fixed positioning. Here the browser does
+            it: the box is <code>position: sticky</code>, and the element only reports when it is stuck.
+          </p>
+          <p>
+            Fomantic's sticky kept content in view with scroll listeners and fixed positioning. Here the browser does
+            it: the box is <code>position: sticky</code>, and the element only reports when it is stuck.
+          </p>
+          <p>
+            Fomantic's sticky kept content in view with scroll listeners and fixed positioning. Here the browser does
+            it: the box is <code>position: sticky</code>, and the element only reports when it is stuck.
+          </p>
+        </div>
+        <div style="width: 8em">
+          <div class="ui sticky" style="--ui-sticky-offset: 8px">
+            <p style="margin: 0; padding: 0.5em; background: var(--ui-surface-strong)">I stick 8px from the top</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Pushing</h4>
+    <div
+      style="height: 14em; overflow: auto; border: 1px solid var(--ui-border-color)"
+      tabindex="0"
+      role="region"
+      aria-label="Pushing sticky example"
+    >
+      <div style="padding: 0 1em">
+        <p>
+          Fomantic's sticky kept content in view with scroll listeners and fixed positioning. Here the browser does it:
+          the box is <code>position: sticky</code>, and the element only reports when it is stuck.
+        </p>
+        <p>
+          Fomantic's sticky kept content in view with scroll listeners and fixed positioning. Here the browser does it:
+          the box is <code>position: sticky</code>, and the element only reports when it is stuck.
+        </p>
+        <div class="ui pushing sticky" style="--ui-sticky-offset: 0px; --ui-sticky-bottom-offset: 0px">
+          <p style="margin: 0; padding: 0.5em; background: var(--ui-surface-strong)">I stick to either edge</p>
+        </div>
+        <p>
+          Fomantic's sticky kept content in view with scroll listeners and fixed positioning. Here the browser does it:
+          the box is <code>position: sticky</code>, and the element only reports when it is stuck.
+        </p>
+        <p>
+          Fomantic's sticky kept content in view with scroll listeners and fixed positioning. Here the browser does it:
+          the box is <code>position: sticky</code>, and the element only reports when it is stuck.
+        </p>
+        <p>
+          Fomantic's sticky kept content in view with scroll listeners and fixed positioning. Here the browser does it:
+          the box is <code>position: sticky</code>, and the element only reports when it is stuck.
+        </p>
+        <p>
+          Fomantic's sticky kept content in view with scroll listeners and fixed positioning. Here the browser does it:
+          the box is <code>position: sticky</code>, and the element only reports when it is stuck.
+        </p>
+      </div>
+    </div>
+  </section>
+</div>

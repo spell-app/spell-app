@@ -1,0 +1,29 @@
+<!--
+  Flyout types and content, after Fomantic's docs (modules/flyout.html, "Types", "Content").
+  Static class grammar:  a shown flyout is `visible`;  `position: relative` puts it in flow here (the element's
+  `<dialog>` slides into the top layer, over a `::backdrop` dimmer).
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Flyout</h4>
+    <div class="ui left visible flyout" style="position: relative; height: 20em">
+      <div class="header">Archive old messages</div>
+      <div class="content">
+        <p>Your inbox is getting full. Would you like us to enable automatic archiving of old messages?</p>
+      </div>
+      <div class="actions">
+        <button type="button" class="ui red cancel button">No</button>
+        <button type="button" class="ui green ok button">Yes</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Close icon</h4>
+    <div class="ui right visible flyout" style="position: relative; height: 12em">
+      <button type="button" class="close icon" aria-label="Close">×</button>
+      <div class="header">Profile</div>
+      <div class="content"><p>A flyout can have a close icon.</p></div>
+    </div>
+  </section>
+</div>

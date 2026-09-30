@@ -1,0 +1,84 @@
+<!--
+  Progress variations, after Fomantic's docs (modules/progress.html, "Variations").
+  A bar's own hue is the colour-remap utility (`ui-red bar`), where Fomantic wrote `red bar`.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Inverted</h4>
+    <div class="ui inverted segment">
+      <div class="ui inverted progress" data-percent="64">
+        <div class="bar" style="width: 64%"><div class="progress">64%</div></div>
+        <div class="label">Uploading Files</div>
+      </div>
+      <div class="ui inverted red progress" data-percent="38">
+        <div class="bar" style="width: 38%"></div>
+        <div class="label">Red</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Attached</h4>
+    <div class="ui segment">
+      <div class="ui top attached progress" data-percent="30"><div class="bar" style="width: 30%"></div></div>
+      <p>A segment with a progress bar along its top and bottom edges.</p>
+      <div class="ui bottom attached progress" data-percent="70"><div class="bar" style="width: 70%"></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Sizes</h4>
+    <div class="ui-stack">
+      <div class="ui tiny progress" data-percent="20">
+        <div class="bar" style="width: 20%"></div>
+        <div class="label">Tiny</div>
+      </div>
+      <div class="ui small progress" data-percent="40">
+        <div class="bar" style="width: 40%"></div>
+        <div class="label">Small</div>
+      </div>
+      <div class="ui large progress" data-percent="60">
+        <div class="bar" style="width: 60%"></div>
+        <div class="label">Large</div>
+      </div>
+      <div class="ui big progress" data-percent="80">
+        <div class="bar" style="width: 80%"></div>
+        <div class="label">Big</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Colors</h4>
+    <div class="ui-stack">
+      <div class="ui red progress" data-percent="30"><div class="bar" style="width: 30%"></div></div>
+      <div class="ui teal progress" data-percent="50"><div class="bar" style="width: 50%"></div></div>
+      <div class="ui violet progress" data-percent="70"><div class="bar" style="width: 70%"></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Multiple</h4>
+    <div class="ui progress" data-percent="75">
+      <div class="ui-red bar" style="width: 15%; border-top-right-radius: 0; border-bottom-right-radius: 0">
+        <div class="progress">15%</div>
+      </div>
+      <div class="ui-green bar" style="width: 25%; border-radius: 0"><div class="progress">25%</div></div>
+      <div class="ui-blue bar" style="width: 35%; border-top-left-radius: 0; border-bottom-left-radius: 0">
+        <div class="progress">35%</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Indeterminate</h4>
+    <div class="ui-stack">
+      <div class="ui indeterminate progress">
+        <div class="bar"><div class="progress">Waiting</div></div>
+      </div>
+      <div class="ui teal filling indeterminate progress"><div class="bar"></div></div>
+      <div class="ui blue sliding indeterminate progress"><div class="bar"></div></div>
+      <div class="ui slow green swinging indeterminate progress"><div class="bar"></div></div>
+    </div>
+  </section>
+</div>

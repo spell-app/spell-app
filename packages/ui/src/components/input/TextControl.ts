@@ -1,0 +1,304 @@
+import { createEffect, createMemo, untrack, type Accessor } from "solid-js"
+
+import {
+  Cell,
+  HostAttribute,
+  type AttributeName,
+  type ComponentVocabulary,
+  type FieldValue,
+  type StateName,
+  type ValidationError,
+  type ValidationResult,
+  type ValidationRule,
+  type ValidityFlag
+} from "$/core"
+import { ControlLabels, FormElement } from "$/forms"
+
+/** Converted attributes every text control has (`input` and `textarea`), see `TextControl.common`. */
+type CommonAttributes = {
+  readonly value: string | undefined
+  readonly name: string | undefined
+  readonly placeholder: string | undefined
+  readonly disabled: boolean
+  readonly readonly: boolean
+  readonly fluid: boolean
+  readonly loading?: boolean
+  readonly rules: unknown
+}
+
+/****************
+ * ### `TextControl`
+ * Controller base of `<ui-input>` and `<ui-textarea>`:  a native `<input>` / `<textarea>` in the shadow root whose
+ * value, validity and name belong to the HOST.
+ * - Value:  `value` is auto-controlled (`Controlled`).  Typing dispatches `ui-input` first;  a handler that re-sets
+ *   `el.value` wins (the control shows the host's value again).  The ATTRIBUTE is the starting value, restored
+ *   by form reset (native `defaultValue` semantics);  the property doesn't reflect.
+ * - Validity:  the NATIVE control's constraint validation (`required`, `pattern`, `type="email"` ...) merged with
+ *   Fomantic `rules` through `Validator`, into the host's `setValidity()` -- native flags and message first.
+ *   The native side is re-read after the DOM updates (an effect's apply) and after each input event.
+ * - `:state(invalid)` only once the user has interacted:  a committed change, leaving an edited field, or a
+ *   submit / `reportValidity()` that found it invalid (`invalid` event) -- `:user-invalid` semantics.  Reset
+ *   clears it.
+ * - Name:  `ControlLabels` hands the host's `<label for>` / `aria-label` to the control as its `aria-label`.
+ * - Host `aria-invalid` (a `<ui-form>` marks failing fields) is forwarded to the control.
+ ****************/
+export abstract class TextControl<V extends ComponentVocabulary = ComponentVocabulary> extends FormElement<V> {
+  /** `value`:  host-controlled, or internal (`""`). */
+  readonly valueState = this.controlled("value" as AttributeName<V>, "" as never)
+
+  /** User has interacted (see the class doc). */
+  readonly touched = new Cell(false)
+
+  /** The native control's own constraint validation, re-read after updates. */
+  readonly nativeValidity = new Cell<ValidationResult>(VALID)
+
+  /** Host `<label>`s and `aria-label`, as the control's name. */
+  readonly labels = new ControlLabels(this.formHost)
+
+  /** Host `aria-invalid`, forwarded. */
+  readonly ariaInvalid = new HostAttribute(this.host, ARIA_INVALID)
+
+  /** The native control. */
+  protected control?: HTMLInputElement | HTMLTextAreaElement
+
+  /** Value when the control took focus, to tell whether leaving it is an edit. */
+  private focusValue?: string
+
+  /**
+   * Native validity merged with the `rules` property's, see the class doc.
+   * - `lazy`:  reads subclass hooks.
+   */
+  override readonly validation: Accessor<ValidationResult> = createMemo(
+    () => {
+      const own = FormElement.validator.validate(this.formValue(), this.rules(), {
+        label: this.validationLabel(),
+        name: this.common.name
+      })
+      const native = this.nativeValidity.get()
+      if (native.valid) return own
+      return {
+        valid: false,
+        errors: [...native.errors, ...own.errors],
+        flags: { ...own.flags, ...native.flags },
+        message: native.message || own.message
+      }
+    },
+    { lazy: true }
+  )
+
+  constructor(...args: ConstructorParameters<typeof FormElement>) {
+    super(...args)
+    this.host.addEventListener("invalid", this.onInvalid)
+    this.host.addEventListener("click", this.onHostClick)
+  }
+
+  ////////////////
+  // ## State
+  ////////////////
+
+  /** The attributes both vocabularies declare, typed once for this base. */
+  protected get common(): CommonAttributes {
+    return this.attrs as unknown as CommonAttributes
+  }
+
+  /** Current value. */
+  value(): string {
+    return String(this.valueState.get() ?? "")
+  }
+
+  isDisabled(): boolean {
+    return this.common.disabled || this.formDisabled.get()
+  }
+
+  protected hostStates(): Partial<Record<StateName<V>, boolean>> {
+    const states = { disabled: this.isDisabled(), fluid: this.common.fluid, loading: !!this.common.loading }
+    return states as Partial<Record<StateName<V>, boolean>>
+  }
+
+  protected classValue(name: AttributeName<V>): unknown {
+    if (name === "disabled") return this.isDisabled()
+    return super.classValue(name)
+  }
+
+  ////////////////
+  // ## Form
+  ////////////////
+
+  formValue(): FieldValue {
+    return this.value()
+  }
+
+  protected formName(): string | undefined {
+    return this.common.name
+  }
+
+  /** Back to the `value` ATTRIBUTE (native `defaultValue`);  forgets the interaction. */
+  formReset() {
+    const attribute = this.definition.attribute("value").attribute
+    this.valueState.set((this.host.getAttribute(attribute) ?? "") as never)
+    this.touched.set(false)
+  }
+
+  /** The `rules` property:  one rule, a list, or nothing. */
+  protected rules(): ValidationRule[] {
+    const rules = this.common.rules
+    if (rules == null || rules === "") return []
+    return (Array.isArray(rules) ? rules : [rules]) as ValidationRule[]
+  }
+
+  protected validationLabel(): string | undefined {
+    return this.labels.name() ?? this.common.placeholder
+  }
+
+  protected validationAnchor(): HTMLElement | undefined {
+    return this.control
+  }
+
+  protected showsInvalid(result: ValidationResult): boolean {
+    return !result.valid && this.touched.get()
+  }
+
+  ////////////////
+  // ## Wiring
+  ////////////////
+
+  /**
+   * Adds the value sync (host value => control) and the native-validity reader, both after DOM updates;  `loaded()`
+   * is tracked because the control only exists once the content renders.
+   */
+  mount() {
+    createEffect(
+      () => [this.value(), this.loaded()],
+      () => this.syncControl()
+    )
+    createEffect(
+      () => [this.value(), this.constraints(), this.isDisabled(), this.common.readonly, this.loaded()],
+      () => this.readNativeValidity()
+    )
+    createEffect(
+      () => this.connected.get(),
+      (connected) => {
+        if (connected) this.labels.refresh()
+      }
+    )
+    return super.mount()
+  }
+
+  /**
+   * Constraint attributes the native control carries, e.g. `{ required, pattern }`;  tracked.
+   * - Spread onto the control, and read by the validity effect.
+   */
+  protected abstract constraints(): Record<string, unknown>
+
+  /** ARIA for the control:  name, invalid, busy. */
+  protected controlAria() {
+    return {
+      "aria-label": this.labels.name(),
+      "aria-invalid":
+        this.ariaInvalid.get() === "true" || (this.touched.get() && !this.validation().valid) ? "true" : undefined
+    } as const
+  }
+
+  /** Copy the control's validity into `nativeValidity`. */
+  protected readNativeValidity() {
+    const control = this.control
+    if (!control) return
+    const { validity } = control
+    const flags: ValidityStateFlags = {}
+    for (const flag of NATIVE_FLAGS) if (validity[flag]) flags[flag] = true
+    if (validity.valid) {
+      if (!untrack(() => this.nativeValidity.get()).valid) this.nativeValidity.set(VALID)
+      return
+    }
+    const message = control.validationMessage
+    const errors: ValidationError[] = Object.keys(flags).map((flag) => ({
+      type: flag,
+      ruleValue: undefined,
+      message,
+      flag: flag as ValidityFlag
+    }))
+    this.nativeValidity.set({ valid: false, errors, flags, message })
+  }
+
+  ////////////////
+  // ## Handlers
+  ////////////////
+
+  /** Typing:  `ui-input` first, then the value (unless a handler took over). */
+  protected readonly onInput = (event: Event) => {
+    const control = event.currentTarget as HTMLInputElement | HTMLTextAreaElement
+    const next = control.value
+    const applied = this.valueState.request(next as never, () =>
+      this.emit("ui-input" as never, { value: next, originalEvent: event })
+    )
+    if (!applied) queueMicrotask(() => this.syncControl())
+    this.readNativeValidity()
+  }
+
+  /** Commit:  `ui-change`;  the user has now interacted. */
+  protected readonly onChange = (event: Event) => {
+    this.touched.set(true)
+    this.emit("ui-change" as never, { value: untrack(() => this.value()), originalEvent: event })
+  }
+
+  /** Focus:  remember the value, to tell an edit on the way out. */
+  protected readonly onFocus = () => {
+    this.focusValue = untrack(() => this.value())
+  }
+
+  /** Leaving an edited field counts as interaction. */
+  protected readonly onBlur = () => {
+    if (this.focusValue !== undefined && this.focusValue !== untrack(() => this.value())) this.touched.set(true)
+    this.focusValue = undefined
+  }
+
+  /** The control shows the host's value again, e.g. after a vetoed `ui-input`. */
+  protected syncControl() {
+    const { control } = this
+    const value = untrack(() => this.value())
+    // a file input's value can only be cleared from script
+    if (!control || control.value === value || (control.type === FILE_TYPE && value !== "")) return
+    control.value = value
+  }
+
+  /** A submit or `reportValidity()` found it invalid:  show it. */
+  private readonly onInvalid = () => {
+    this.touched.set(true)
+  }
+
+  /**
+   * A click aimed at the HOST itself (its `<label for>`, `host.click()`) focuses the control;  clicks from
+   * inside the shadow root arrive retargeted and are left alone.
+   */
+  private readonly onHostClick = (event: MouseEvent) => {
+    if (event.composedPath()[0] !== this.host || this.isDisabled()) return
+    this.control?.focus()
+  }
+
+  /** Focus the native control. */
+  focus(options?: FocusOptions) {
+    this.control?.focus(options)
+  }
+}
+
+/** Every Constraint Validation flag the native control may raise (not `customError`:  the host never sets one). */
+const NATIVE_FLAGS: readonly (keyof ValidityStateFlags)[] = [
+  "valueMissing",
+  "typeMismatch",
+  "patternMismatch",
+  "tooLong",
+  "tooShort",
+  "rangeUnderflow",
+  "rangeOverflow",
+  "stepMismatch",
+  "badInput"
+]
+
+/** A passing result. */
+const VALID: ValidationResult = { valid: true, errors: [], flags: {}, message: "" }
+
+/** Native type whose value script can't set. */
+const FILE_TYPE = "file"
+
+/** Host attribute forwarded to the control. */
+const ARIA_INVALID = "aria-invalid"

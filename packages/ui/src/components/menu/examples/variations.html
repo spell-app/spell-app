@@ -1,0 +1,128 @@
+<!--
+  Menu variations, after Fomantic's docs (collections/menu.html, "Variations").
+  Static class grammar.  `fixed` is left out:  a fixed menu would cover the page it's shown on.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Stackable</h4>
+    <nav class="ui stackable menu" aria-label="Stackable">
+      <a class="item" href="#features">Features</a>
+      <a class="item" href="#testimonials">Testimonials</a>
+      <a class="item" href="#signin">Sign-in</a>
+    </nav>
+  </section>
+
+  <section>
+    <h4>Inverted</h4>
+    <nav class="ui inverted menu" aria-label="Inverted">
+      <a class="active item" href="#home" aria-current="page">Home</a>
+      <a class="item" href="#messages">Messages</a>
+      <a class="item" href="#friends">Friends</a>
+    </nav>
+    <div class="ui inverted segment">
+      <nav class="ui inverted secondary pointing menu" aria-label="Inverted secondary pointing">
+        <a class="active item" href="#home" aria-current="page">Home</a>
+        <a class="item" href="#messages">Messages</a>
+      </nav>
+    </div>
+  </section>
+
+  <section>
+    <h4>Colored</h4>
+    <nav class="ui menu" aria-label="Colored items">
+      <a class="ui red active item" href="#red" aria-current="page">Red</a>
+      <a class="item" href="#orange">Orange</a>
+    </nav>
+    <nav class="ui blue three item menu" aria-label="Colored menu">
+      <a class="active item" href="#a" aria-current="page">Blue</a>
+      <a class="item" href="#b">Two</a>
+      <a class="item" href="#c">Three</a>
+    </nav>
+    <nav class="ui inverted green menu" aria-label="Inverted colored">
+      <a class="active item" href="#a" aria-current="page">Home</a>
+      <a class="item" href="#b">Messages</a>
+    </nav>
+  </section>
+
+  <section>
+    <h4>Icons</h4>
+    <nav class="ui compact icon menu" aria-label="Icons">
+      <a class="item" href="#gamepad" aria-label="Games"><span class="icon">&#9632;</span></a>
+      <a class="item" href="#video" aria-label="Video"><span class="icon">&#9654;</span></a>
+    </nav>
+    <nav class="ui compact labeled icon menu" aria-label="Labeled icons">
+      <a class="item" href="#games"><span class="icon">&#9632;</span>Games</a>
+      <a class="item" href="#channels"><span class="icon">&#9654;</span>Channels</a>
+    </nav>
+  </section>
+
+  <section>
+    <h4>Fluid, compact, evenly divided</h4>
+    <nav class="ui vertical fluid menu" aria-label="Fluid">
+      <a class="item" href="#run">Run</a>
+      <a class="item" href="#walk">Walk</a>
+    </nav>
+    <nav class="ui compact menu" aria-label="Compact">
+      <a class="item" href="#messages">Messages</a>
+      <a class="item" href="#friends">Friends</a>
+    </nav>
+    <nav class="ui equal width menu" aria-label="Equal width">
+      <a class="item" href="#buy">Buy</a>
+      <a class="item" href="#sell">Sell</a>
+      <a class="item" href="#rent">Rent</a>
+    </nav>
+  </section>
+
+  <section>
+    <h4>Attached</h4>
+    <nav class="ui top attached menu" aria-label="Attached top">
+      <a class="item" href="#a">Top</a>
+    </nav>
+    <div class="ui attached segment"><p>Content</p></div>
+    <nav class="ui bottom attached menu" aria-label="Attached bottom">
+      <a class="item" href="#b">Bottom</a>
+    </nav>
+  </section>
+
+  <section>
+    <h4>Size, fitted, borderless</h4>
+    <nav class="ui mini menu" aria-label="Mini">
+      <a class="active item" href="#home" aria-current="page">Home</a>
+      <a class="item" href="#messages">Messages</a>
+    </nav>
+    <nav class="ui huge menu" aria-label="Huge">
+      <a class="active item" href="#home" aria-current="page">Home</a>
+      <a class="item" href="#messages">Messages</a>
+    </nav>
+    <nav class="ui menu" aria-label="Fitted items">
+      <a class="fitted item" href="#nopad">No padding</a>
+      <a class="horizontally fitted item" href="#nohpad">No horizontal padding</a>
+    </nav>
+    <nav class="ui borderless menu" aria-label="Borderless">
+      <a class="item" href="#1">1</a>
+      <a class="item" href="#2">2</a>
+    </nav>
+  </section>
+
+  <section>
+    <h4>Floated, centered, wrapping</h4>
+    <div class="ui clearing basic segment">
+      <nav class="ui right floated compact menu" aria-label="Floated">
+        <a class="item" href="#1">1</a>
+        <a class="item" href="#2">2</a>
+      </nav>
+    </div>
+    <nav class="ui centered compact menu" aria-label="Centered">
+      <a class="item" href="#a">A</a>
+      <a class="item" href="#b">B</a>
+    </nav>
+    <div style="max-width: 16em">
+      <nav class="ui wrapping menu" aria-label="Wrapping">
+        <a class="item" href="#one">One</a>
+        <a class="item" href="#two">Two</a>
+        <a class="item" href="#three">Three</a>
+        <a class="item" href="#four">Four</a>
+      </nav>
+    </div>
+  </section>
+</div>

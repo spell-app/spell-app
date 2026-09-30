@@ -1,0 +1,38 @@
+<!--
+  `src/components/shape/examples/shape.html` as element markup.  `active-index` picks the side shown;  native buttons
+  turn each shape through invoker commands (`commandfor` + `command="--next"`), as the host's `next()` would.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Shape</h4>
+    <button type="button" class="ui button" commandfor="shape-demo-plain" command="--next">Flip left</button>
+    <ui-shape id="shape-demo-plain">
+      <ui-side><p>This side starts visible.</p></ui-side>
+      <ui-side><p>This is yet another side.</p></ui-side>
+      <ui-side><p>This is the last side.</p></ui-side>
+    </ui-shape>
+  </section>
+
+  <section>
+    <h4>Cube</h4>
+    <button type="button" class="ui button" commandfor="shape-demo-cube" command="--next">Flip up</button>
+    <button type="button" class="ui button" commandfor="shape-demo-cube" command="--previous">Back</button>
+    <ui-shape id="shape-demo-cube" cube direction="up">
+      <ui-side><span>1</span></ui-side>
+      <ui-side><span>2</span></ui-side>
+      <ui-side><span>3</span></ui-side>
+    </ui-shape>
+  </section>
+
+  <section>
+    <h4>Text</h4>
+    <button type="button" class="ui button" commandfor="shape-demo-text" command="--next">Flip down</button>
+    <p>
+      Flip to
+      <ui-shape id="shape-demo-text" text direction="down" active-index="1">
+        <ui-side>Scale</ui-side>
+        <ui-side>Fade</ui-side>
+      </ui-shape>
+    </p>
+  </section>
+</div>

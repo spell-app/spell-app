@@ -1,0 +1,33 @@
+<!--
+  Emoji variations, after Fomantic's docs (elements/emoji.html, "Variations").
+  Light-DOM markup in the class grammar `emoji.css` styles inside `<ui-emoji>`'s shadow root:  the glyph is the
+  native Unicode emoji the element resolves from `name` (Fomantic drew Twemoji SVGs from a CDN instead).
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Size</h4>
+    <p>
+      <span class="ui small emoji">😄</span> <span class="ui emoji">😄</span> <span class="ui large emoji">😄</span>
+      <span class="ui big emoji">😄</span>
+    </p>
+  </section>
+
+  <section>
+    <h4>Link</h4>
+    <p>
+      <button type="button" aria-label="React with a heart" style="border: 0; background: none; padding: 0">
+        <span class="ui link emoji">❤️</span>
+      </button>
+    </p>
+  </section>
+
+  <section>
+    <h4>Disabled</h4>
+    <p><span class="ui disabled emoji">😄</span></p>
+  </section>
+
+  <section>
+    <h4>Loading</h4>
+    <p><span class="ui loading emoji">⌛️</span></p>
+  </section>
+</div>

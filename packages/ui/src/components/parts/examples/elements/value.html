@@ -1,0 +1,42 @@
+<!-- `src/components/parts/examples/value.html` as element markup. -->
+<!-- Owners are the real elements, except `stub-*` stand-ins (`StubOwner`) for search (owns no parts yet). -->
+<div class="ui-stack">
+  <section>
+    <h4>Standalone</h4>
+    <ui-value>5,550</ui-value>
+  </section>
+
+  <section>
+    <h4>In a statistic</h4>
+    <ui-statistic>
+      <ui-value>5,550</ui-value>
+      <ui-label>Downloads</ui-label>
+    </ui-statistic>
+    <ui-statistic>
+      <ui-value text>Three<br />Thousand</ui-value>
+      <ui-label>Signups</ui-label>
+    </ui-statistic>
+    <ui-statistic horizontal>
+      <ui-value>2,204</ui-value>
+      <ui-label>Views</ui-label>
+    </ui-statistic>
+    <ui-statistic color="red">
+      <ui-value>27</ui-value>
+      <ui-label>Red</ui-label>
+    </ui-statistic>
+  </section>
+
+  <section>
+    <h4>In a search result</h4>
+    <stub-search>
+      <div class="results">
+        <div class="result">
+          <ui-content>
+            <ui-value>$10.99</ui-value>
+            <ui-title>Result</ui-title>
+          </ui-content>
+        </div>
+      </div>
+    </stub-search>
+  </section>
+</div>

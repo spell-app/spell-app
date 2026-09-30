@@ -1,0 +1,529 @@
+/*
+ * Light-DOM rules for NATIVE markup, injected into the page by the runtime, `@layer ui.components`.
+ * - Why a page sheet:  content slotted into a component (the native `<form>` / controls in `<ui-form>`) stays in
+ *   the light DOM, where the component's shadow CSS can only reach the top level (`::slotted(form)`), never the
+ *   controls inside.  These rules give that markup its base look.
+ * - NOT here:
+ *   - slotted tables:  `table.css` styles `<ui-table>`'s light-DOM `<table>` itself (the element registers it as
+ *     a page sheet too), base look included
+ *   - lists:  a `<ui-list>`'s items are `<ui-item>`s, styled from `list.css` in their own shadow roots
+ * - Also:  Fomantic's CSS-only tooltip (`[data-tooltip]`, from `popup.less`), and `.ui-native` -- opt-in
+ *   token styling for plain HTML elements (Web Awesome's "native styles").
+ * - Selectors are wrapped in `:where()` where they could otherwise out-rank an app's own element rules.
+ * - Needs a Lightning CSS build for `@custom-media` (see `media.css`).
+ */
+
+@import "./media.css";
+
+@layer ui.components {
+  /*******************************
+       Native form controls
+  *******************************/
+
+  :where(ui-form, ui-field) :where(input:not([type="checkbox"], [type="radio"], [type="range"]), select, textarea) {
+    inline-size: 100%;
+    margin: 0;
+    padding: 0.679em 1em;
+    font: inherit;
+    line-height: 1.215em;
+    color: var(--_ui-field-state-color, var(--ui-text-color));
+    background-color: var(--_ui-field-state-background, var(--ui-surface));
+    border: var(--ui-border);
+    border-color: var(--_ui-field-state-border, var(--ui-border-color));
+    border-radius: var(--ui-radius);
+    outline: none;
+    transition:
+      border-color var(--ui-duration-fast) var(--ui-ease),
+      box-shadow var(--ui-duration-fast) var(--ui-ease);
+  }
+  :where(ui-form, ui-field) :where(textarea) {
+    min-block-size: 4em;
+    resize: vertical;
+  }
+  :where(ui-form, ui-field) :where(input, select, textarea)::placeholder {
+    color: var(--ui-text-light);
+  }
+  :where(ui-form, ui-field) :where(input, select, textarea):focus-visible {
+    border-color: var(--ui-focus-border);
+    box-shadow: 0 0 0 var(--ui-focus-width) oklch(from var(--ui-focus-color) l c h / 0.25);
+  }
+  :where(ui-form, ui-field) :where(input, select, textarea):user-invalid {
+    color: var(--ui-negative-text);
+    background-color: var(--ui-negative-background);
+    border-color: var(--ui-negative-border);
+  }
+  :where(ui-form, ui-field) :where(input, select, textarea, button):disabled {
+    opacity: var(--ui-disabled-opacity);
+    cursor: default;
+  }
+  :where(ui-form, ui-field) :where(input:is([type="checkbox"], [type="radio"], [type="range"])) {
+    accent-color: var(--ui-primary);
+  }
+  :where(ui-form, ui-field) :where(button) {
+    padding: 0.785em 1.5em;
+    font: inherit;
+    font-weight: var(--ui-font-weight-bold);
+    line-height: 1em;
+    color: var(--ui-text-dark);
+    background-color: var(--ui-surface-strong);
+    border: 0;
+    border-radius: var(--ui-radius);
+    cursor: pointer;
+  }
+  :where(ui-form, ui-field) :where(button):hover {
+    color: var(--ui-text-selected);
+    background-color: oklch(from var(--ui-surface-strong) calc(l - 0.04) c h);
+  }
+
+  /*******************************
+      Form and field messages
+  *******************************/
+
+  /*
+   * A `<ui-message state="…">` inside a `<ui-form>` shows only while its form, fields or field has that state
+   * (Fomantic's `.ui.form .error.message`).  Here, not in `message.css`:  the message's box is in its own shadow
+   * root, and the states are on the ancestors' hosts (`:state(error)` ...).
+   * - NOTE: canonical names only (`ui-message`, `state`);  a translated message tag isn't hidden.
+   */
+  :where(ui-form) :where(ui-message[state="error"]):not(:where(:state(error)) *),
+  :where(ui-form) :where(ui-message[state="info"]):not(:where(:state(info)) *),
+  :where(ui-form) :where(ui-message[state="success"]):not(:where(:state(success)) *),
+  :where(ui-form) :where(ui-message[state="warning"]):not(:where(:state(warning)) *) {
+    display: none;
+  }
+
+  /*******************************
+       CSS-only tooltip
+  *******************************/
+
+  /*
+   * `<button data-tooltip="Add users" data-position="bottom left" data-inverted data-variation="small red">`.
+   * - Port of Fomantic's `[data-tooltip]` rules:  `::after` is the bubble, `::before` the arrow.
+   * - Hue / size variations come from the generated `[data-variation~="red"]` remaps (`colors.css`,
+   *   `sizes.css`) as `--ui-variation-color` / `--ui-variation-scale`, so they never recolour or resize the
+   *   element the tooltip hangs off.
+   * - Text on a coloured bubble is the colour's `-on` foreground (`--ui-variation-color-on`, picked by contrast);
+   *   on a plain one, black or white by the bubble's lightness.
+   * - For anything interactive or long, use `<ui-popup>`:  pseudo-element text is not reliably announced.
+   */
+  [data-tooltip] {
+    --ui-tooltip-background: var(--ui-variation-color, var(--ui-surface));
+    --ui-tooltip-edge: var(--ui-variation-color, var(--ui-border-color-strong));
+    --ui-tooltip-color: var(
+      --ui-variation-color-on,
+      oklch(from var(--ui-tooltip-background) clamp(0, (0.6 - l) * 1000, 1) 0 0)
+    );
+    --ui-tooltip-arrow-size: 0.714em;
+    --ui-tooltip-distance: 0.5em;
+    position: relative;
+  }
+
+  /* Arrow */
+  [data-tooltip]::before {
+    content: "";
+    position: absolute;
+    z-index: calc(var(--ui-z-popup) + 1);
+    inline-size: var(--ui-tooltip-arrow-size);
+    block-size: var(--ui-tooltip-arrow-size);
+    font-size: calc(var(--ui-font-size) * var(--ui-variation-scale, 1));
+    background: var(--ui-tooltip-background);
+    box-shadow: 1px 1px 0 0 var(--ui-tooltip-edge);
+    pointer-events: none;
+  }
+
+  /* Bubble */
+  [data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    z-index: var(--ui-z-popup);
+    max-inline-size: none;
+    padding: 0.833em 1em;
+    font-family: var(--ui-font-family);
+    font-size: calc(var(--ui-font-size) * var(--ui-variation-scale, 1));
+    font-weight: var(--ui-font-weight-normal);
+    font-style: normal;
+    line-height: var(--ui-line-height);
+    /* black or white, whichever reads on the bubble -- plain, inverted and coloured alike */
+    color: var(--ui-tooltip-color);
+    text-align: start;
+    text-transform: none;
+    text-shadow: none;
+    white-space: nowrap;
+    background: var(--ui-tooltip-background);
+    border: var(--ui-border-width) solid var(--ui-tooltip-edge);
+    border-radius: var(--ui-radius);
+    box-shadow: var(--ui-shadow-floating);
+    pointer-events: none;
+  }
+
+  /* Animation */
+  [data-tooltip]::before,
+  [data-tooltip]::after {
+    opacity: 0;
+    transition:
+      transform var(--ui-duration-normal) var(--ui-ease),
+      opacity var(--ui-duration-normal) var(--ui-ease);
+  }
+  [data-tooltip]::after,
+  [data-tooltip]:hover::before {
+    transition-delay: 40ms;
+  }
+  [data-tooltip]::before,
+  [data-tooltip]:hover::after {
+    transition-delay: 0s;
+  }
+  [data-tooltip]::before {
+    transform: rotate(45deg) scale(0.8);
+    transform-origin: center top;
+  }
+  [data-tooltip]::after {
+    transform-origin: center bottom;
+  }
+  [data-tooltip][data-variation~="visible"]::before,
+  [data-tooltip][data-variation~="visible"]::after,
+  [data-tooltip]:is(:hover, :focus-visible)::before,
+  [data-tooltip]:is(:hover, :focus-visible)::after {
+    opacity: 1;
+  }
+  [data-tooltip]:is(:hover, :focus-visible)::before {
+    transform: rotate(45deg) scale(1);
+  }
+
+  /* Animation by position */
+  [data-tooltip]:not([data-position])::after,
+  [data-tooltip]:is([data-position="top center"], [data-position="bottom center"])::after {
+    transform: translateX(-50%) scale(0.8);
+  }
+  [data-tooltip]:not([data-position]):is(:hover, :focus-visible)::after,
+  [data-tooltip]:is([data-position="top center"], [data-position="bottom center"]):is(:hover, :focus-visible)::after {
+    transform: translateX(-50%) scale(1);
+  }
+  [data-tooltip]:is([data-position="left center"], [data-position="right center"])::after {
+    transform: translateY(-50%) scale(0.8);
+  }
+  [data-tooltip]:is([data-position="left center"], [data-position="right center"]):is(:hover, :focus-visible)::after {
+    transform: translateY(-50%) scale(1);
+  }
+  [data-tooltip]:is([data-position="top left"], [data-position="top right"])::after,
+  [data-tooltip]:is([data-position="bottom left"], [data-position="bottom right"])::after {
+    transform: scale(0.8);
+  }
+  [data-tooltip]:is([data-position="top left"], [data-position="top right"]):is(:hover, :focus-visible)::after,
+  [data-tooltip]:is([data-position="bottom left"], [data-position="bottom right"]):is(:hover, :focus-visible)::after {
+    transform: scale(1);
+  }
+  [data-tooltip]:is([data-position="left top"], [data-position="left bottom"])::after,
+  [data-tooltip]:is([data-position="right top"], [data-position="right bottom"])::after {
+    transform: scale(0.8);
+  }
+  [data-tooltip]:is([data-position="left top"], [data-position="left bottom"]):is(:hover, :focus-visible)::after,
+  [data-tooltip]:is([data-position="right top"], [data-position="right bottom"]):is(:hover, :focus-visible)::after {
+    transform: scale(1);
+  }
+
+  /* Fixed width, wrapping */
+  [data-tooltip][data-variation~="fixed"]::after {
+    inline-size: 250px;
+    white-space: normal;
+  }
+  [data-tooltip][data-variation*="wide fixed"]::after {
+    inline-size: 350px;
+  }
+  [data-tooltip][data-variation*="very wide fixed"]::after {
+    inline-size: 550px;
+  }
+  @media (--ui-mobile) {
+    [data-tooltip][data-variation~="fixed"]::after {
+      inline-size: 250px;
+    }
+  }
+  [data-tooltip][data-variation~="multiline"]::after {
+    white-space: pre-line;
+  }
+  [data-tooltip][data-variation~="basic"]::before {
+    display: none;
+  }
+
+  /*
+   * Inverted:  ink bubble, no visible edge or shadow.  Colour variations (`data-variation="red"`) come from the
+   * variable fallbacks above;  inverted + colour uses the hue's light (`-inverted`) variant, as in Fomantic.
+   */
+  [data-tooltip][data-inverted] {
+    --ui-tooltip-background: var(--ui-variation-color-inverted, var(--ui-ink));
+    --ui-tooltip-color: var(
+      --ui-variation-color-inverted-on,
+      oklch(from var(--ui-tooltip-background) clamp(0, (0.6 - l) * 1000, 1) 0 0)
+    );
+    --ui-tooltip-edge: transparent;
+  }
+  [data-tooltip][data-inverted]::after {
+    box-shadow: none;
+  }
+
+  /*******************************
+           Positions
+  *******************************/
+
+  /* Top center (default) */
+  [data-tooltip]:not([data-position])::after,
+  [data-tooltip][data-position="top center"]::after {
+    inset: auto auto 100% 50%;
+    margin-block-end: var(--ui-tooltip-distance);
+  }
+  [data-tooltip]:not([data-position])::before,
+  [data-tooltip][data-position="top center"]::before {
+    inset: auto auto 100% 50%;
+    margin-inline-start: -1px;
+    margin-block-end: 2px;
+  }
+
+  /* Top left */
+  [data-tooltip][data-position="top left"]::after {
+    inset: auto auto 100% 0;
+    margin-block-end: var(--ui-tooltip-distance);
+    transform-origin: bottom left;
+  }
+  [data-tooltip][data-position="top left"]::before {
+    inset: auto auto 100% 1em;
+    margin-inline-start: -1px;
+    margin-block-end: 2px;
+  }
+
+  /* Top right */
+  [data-tooltip][data-position="top right"]::after {
+    inset: auto 0 100% auto;
+    margin-block-end: var(--ui-tooltip-distance);
+    transform-origin: bottom right;
+  }
+  [data-tooltip][data-position="top right"]::before {
+    inset: auto 1em 100% auto;
+    margin-inline-start: -1px;
+    margin-block-end: 2px;
+  }
+
+  /* Bottom:  arrow points up, so its border shadow flips */
+  [data-tooltip][data-position~="bottom"]::before {
+    box-shadow: -1px -1px 0 0 var(--ui-tooltip-edge);
+    transform-origin: center bottom;
+  }
+  [data-tooltip][data-position~="bottom"]::after {
+    transform-origin: center top;
+  }
+
+  /* Bottom center */
+  [data-tooltip][data-position="bottom center"]::after {
+    inset: 100% auto auto 50%;
+    margin-block-start: var(--ui-tooltip-distance);
+  }
+  [data-tooltip][data-position="bottom center"]::before {
+    inset: 100% auto auto 50%;
+    margin-inline-start: -1px;
+    margin-block-start: calc(var(--ui-tooltip-arrow-size) / 2 - 0.05em);
+    transform-origin: center top;
+  }
+
+  /* Bottom left */
+  [data-tooltip][data-position="bottom left"]::after {
+    inset: 100% auto auto 0;
+    margin-block-start: var(--ui-tooltip-distance);
+    transform-origin: top left;
+  }
+  [data-tooltip][data-position="bottom left"]::before {
+    inset: 100% auto auto 1em;
+    margin-inline-start: -1px;
+    margin-block-start: 2px;
+  }
+
+  /* Bottom right */
+  [data-tooltip][data-position="bottom right"]::after {
+    inset: 100% 0 auto auto;
+    margin-block-start: var(--ui-tooltip-distance);
+    transform-origin: top right;
+  }
+  [data-tooltip][data-position="bottom right"]::before {
+    inset: 100% 1em auto auto;
+    margin-inline-start: -2px;
+    margin-block-start: 1px;
+  }
+
+  /* Left center */
+  [data-tooltip][data-position="left center"]::after {
+    inset: 50% 100% auto auto;
+    margin-inline-end: var(--ui-tooltip-distance);
+    transform-origin: right center;
+  }
+  [data-tooltip][data-position="left center"]::before {
+    inset: 50% 100% auto auto;
+    margin-block-start: -2px;
+    margin-inline-end: -1px;
+    box-shadow: 1px -1px 0 0 var(--ui-tooltip-edge);
+    transform-origin: top center;
+  }
+
+  /* Right center */
+  [data-tooltip][data-position="right center"]::after {
+    inset: 50% auto auto 100%;
+    margin-inline-start: var(--ui-tooltip-distance);
+    transform-origin: left center;
+  }
+  [data-tooltip][data-position="right center"]::before {
+    inset: 50% auto auto 100%;
+    margin-block-start: -1px;
+    margin-inline-start: 2px;
+    box-shadow: -1px 1px 0 0 var(--ui-tooltip-edge);
+    transform-origin: right center;
+  }
+
+  /*
+   * Beside, lined up with the target's top / bottom edge (ours, not Fomantic's).  `left bottom` also matches the
+   * `~="bottom"` rules above, so these set the arrow's shadow and origins themselves.
+   */
+  [data-tooltip][data-position="left top"]::after {
+    inset: 0 100% auto auto;
+    margin-inline-end: var(--ui-tooltip-distance);
+    transform-origin: right top;
+  }
+  [data-tooltip][data-position="left bottom"]::after {
+    inset: auto 100% 0 auto;
+    margin-inline-end: var(--ui-tooltip-distance);
+    transform-origin: right bottom;
+  }
+  [data-tooltip]:is([data-position="left top"], [data-position="left bottom"])::before {
+    margin-inline-end: -1px;
+    box-shadow: 1px -1px 0 0 var(--ui-tooltip-edge);
+    transform-origin: top center;
+  }
+  [data-tooltip][data-position="left top"]::before {
+    inset: 1em 100% auto auto;
+  }
+  [data-tooltip][data-position="left bottom"]::before {
+    inset: auto 100% 1em auto;
+  }
+  [data-tooltip][data-position="right top"]::after {
+    inset: 0 auto auto 100%;
+    margin-inline-start: var(--ui-tooltip-distance);
+    transform-origin: left top;
+  }
+  [data-tooltip][data-position="right bottom"]::after {
+    inset: auto auto 0 100%;
+    margin-inline-start: var(--ui-tooltip-distance);
+    transform-origin: left bottom;
+  }
+  [data-tooltip]:is([data-position="right top"], [data-position="right bottom"])::before {
+    margin-inline-start: 2px;
+    box-shadow: -1px 1px 0 0 var(--ui-tooltip-edge);
+    transform-origin: right center;
+  }
+  [data-tooltip][data-position="right top"]::before {
+    inset: 1em auto auto 100%;
+  }
+  [data-tooltip][data-position="right bottom"]::before {
+    inset: auto auto 1em 100%;
+  }
+
+  /*******************************
+        Overlays before upgrade
+  *******************************/
+
+  /*
+   * A `<ui-popup>` / `<ui-modal>` whose script hasn't run yet (or never will:  no JS, a static SSR page) is
+   * hidden, rather than dumped inline next to its target.  Defined, the element shows itself as a popover /
+   * dialog.
+   */
+  :where(ui-popup, ui-modal):not(:defined) {
+    display: none;
+  }
+
+  /*******************************
+         Opt-in native look
+  *******************************/
+
+  /*
+   * `class="ui-native"` on `<html>` or a region:  plain HTML controls and content pick up the tokens,
+   * so a page mixing `ui-*` components and native elements looks of a piece.
+   */
+  :where(.ui-native) :where(a) {
+    color: var(--ui-link);
+    text-underline-offset: 0.15em;
+  }
+  :where(.ui-native) :where(a:hover) {
+    color: var(--ui-link-hover);
+  }
+  :where(.ui-native)
+    :where(
+      input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"]),
+      select,
+      textarea
+    ) {
+    padding: 0.679em 1em;
+    font: inherit;
+    line-height: 1.215em;
+    color: var(--ui-text-color);
+    background-color: var(--ui-surface);
+    border: var(--ui-border);
+    border-radius: var(--ui-radius);
+  }
+  :where(.ui-native) :where(input, select, textarea):focus-visible {
+    border-color: var(--ui-focus-border);
+    outline: var(--ui-focus-width) solid var(--ui-focus-color);
+    outline-offset: 0;
+  }
+  :where(.ui-native) :where(input:is([type="checkbox"], [type="radio"], [type="range"]), progress, meter) {
+    accent-color: var(--ui-primary);
+  }
+  :where(.ui-native) :where(button, input:is([type="button"], [type="submit"], [type="reset"])) {
+    padding: 0.785em 1.5em;
+    font: inherit;
+    font-weight: var(--ui-font-weight-bold);
+    line-height: 1em;
+    color: var(--ui-text-dark);
+    background-color: var(--ui-surface-strong);
+    border: 0;
+    border-radius: var(--ui-radius);
+    cursor: pointer;
+  }
+  :where(.ui-native) :where(button, input:is([type="button"], [type="submit"], [type="reset"])):hover {
+    background-color: oklch(from var(--ui-surface-strong) calc(l - 0.04) c h);
+  }
+  :where(.ui-native) :where(button, input, select, textarea):disabled {
+    opacity: var(--ui-disabled-opacity);
+    cursor: default;
+  }
+  :where(.ui-native) :where(table) {
+    border-collapse: collapse;
+  }
+  :where(.ui-native) :where(th, td) {
+    padding: 0.5em 0.785em;
+    text-align: start;
+    border-block-end: var(--ui-border-width) solid var(--ui-border-color-internal);
+  }
+  :where(.ui-native) :where(th) {
+    font-weight: var(--ui-font-weight-bold);
+  }
+  :where(.ui-native) :where(code, kbd, samp, pre) {
+    font-family: var(--ui-font-family-mono);
+    font-size: 0.875em;
+  }
+  :where(.ui-native) :where(code, kbd, samp) {
+    padding: 0.125em 0.375em;
+    background-color: var(--ui-surface-strong);
+    border-radius: var(--ui-radius-s);
+  }
+  :where(.ui-native) :where(hr) {
+    border: 0;
+    border-block-start: var(--ui-border);
+  }
+  :where(.ui-native) :where(mark) {
+    color: inherit;
+    background-color: var(--ui-yellow-background);
+  }
+  :where(.ui-native) :where(details) {
+    padding: var(--ui-space-xs) var(--ui-space-s);
+    border: var(--ui-border);
+    border-radius: var(--ui-radius);
+  }
+  :where(.ui-native) :where(summary) {
+    font-weight: var(--ui-font-weight-semibold);
+    cursor: pointer;
+  }
+}

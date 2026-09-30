@@ -1,0 +1,46 @@
+<!--
+  Select states, after Fomantic's docs (modules/dropdown.html, "States"):  disabled, form states, a required
+  select whose placeholder can't be chosen back, a disabled option.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Disabled</h4>
+    <select class="ui disabled select" disabled aria-label="Gender">
+      <option class="placeholder" value="">Gender</option>
+      <option class="item" value="male"><span class="text">Male</span></option>
+    </select>
+  </section>
+
+  <section>
+    <h4>Error</h4>
+    <select class="ui error select" aria-label="Gender">
+      <option class="placeholder" value="">Gender</option>
+      <option class="item" value="male"><span class="text">Male</span></option>
+    </select>
+  </section>
+
+  <section>
+    <h4>Info, success, warning</h4>
+    <div class="ui-cluster">
+      <select class="ui info select" aria-label="Info">
+        <option class="item" value="a"><span class="text">Info</span></option>
+      </select>
+      <select class="ui success select" aria-label="Success">
+        <option class="item" value="a"><span class="text">Success</span></option>
+      </select>
+      <select class="ui warning select" aria-label="Warning">
+        <option class="item" value="a"><span class="text">Warning</span></option>
+      </select>
+    </div>
+  </section>
+
+  <section>
+    <h4>Required, with a disabled option</h4>
+    <select class="ui select" required aria-label="Size">
+      <option class="placeholder" value="" disabled selected>Size</option>
+      <option class="item" value="s"><span class="text">Small</span></option>
+      <option class="item" value="m" disabled><span class="text">Medium (sold out)</span></option>
+      <option class="item" value="l"><span class="text">Large</span></option>
+    </select>
+  </section>
+</div>

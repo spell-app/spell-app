@@ -1,0 +1,48 @@
+<!--
+  Sidebars, after Fomantic's docs (modules/sidebar.html, "Types", "Variations", "States").
+  Static class grammar:  each shown sidebar is `visible` in a sized `pushable` segment;  Fomantic's sibling rules
+  move the `pusher` beside it.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Sidebar</h4>
+    <div class="ui segment pushable" style="height: 14em">
+      <div class="ui left visible inverted vertical sidebar menu">
+        <a class="item" href="#home">Home</a>
+        <a class="item" href="#games">Games</a>
+        <a class="item" href="#channels">Channels</a>
+      </div>
+      <div class="pusher">
+        <div class="ui basic segment">
+          <h3 class="ui header">Application content</h3>
+          <p>The pusher moves aside for a visible left sidebar.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Overlay, right, thin</h4>
+    <div class="ui segment pushable" style="height: 12em">
+      <div class="ui right thin overlay visible inverted vertical sidebar menu">
+        <a class="item" href="#one">One</a>
+        <a class="item" href="#two">Two</a>
+      </div>
+      <div class="pusher">
+        <div class="ui basic segment"><p>An overlay sidebar covers the content without moving it.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Top, dimmed</h4>
+    <div class="ui segment pushable" style="height: 12em">
+      <div class="ui top visible inverted labeled icon sidebar menu">
+        <a class="item" href="#top">Top</a>
+      </div>
+      <div class="dimmed pusher">
+        <div class="ui basic segment"><p>A dimmed pusher beside a top sidebar.</p></div>
+      </div>
+    </div>
+  </section>
+</div>

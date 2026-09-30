@@ -1,0 +1,40 @@
+<!-- `src/components/message/examples/types.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Message</h4>
+    <ui-message>
+      <ui-header>Changes in Service</ui-header>
+      <p>
+        We just updated our privacy policy here to better service our customers. We recommend reviewing the changes.
+      </p>
+    </ui-message>
+  </section>
+
+  <section>
+    <h4>List message</h4>
+    <ui-message header="New site features">
+      <ul>
+        <li>You can now have cover images on blog pages</li>
+        <li>Drafts will now auto-save while writing</li>
+      </ul>
+    </ui-message>
+  </section>
+
+  <section>
+    <h4>Icon message</h4>
+    <ui-message header="Have you heard about our mailing list?">
+      <ui-icon slot="icon" name="envelope"></ui-icon>
+      <p>Get the best news in your e-mail every day.</p>
+    </ui-message>
+  </section>
+
+  <section>
+    <h4>Dismissible block</h4>
+    <ui-message header="Welcome back!" dismissible>
+      <p>This is a special notification which you can dismiss if you're bored with it.</p>
+    </ui-message>
+    <ui-message state="info" icon="envelope" header="Dismissible icon message" dismissible>
+      <p>With an icon beside the content.</p>
+    </ui-message>
+  </section>
+</div>

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Solid 2 host -- smoke page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="./frameworks.css" />
+  </head>
+  <body>
+    <h1>Solid 2</h1>
+    <p>
+      A compiled Solid 2 app (<code>solid/app.tsx</code>) with <code>solid-js</code> / <code>@solidjs/web</code> from
+      the import map: the SAME files as the components', which this page's identity probe
+      (<code>solid/identity.js</code>, <code>__uiSolidIdentity</code>) proves.
+    </p>
+    <div id="root"></div>
+    <pre id="result">checking...</pre>
+    <script type="module">
+      import "@spell/ui"
+      import "./solid/identity.js"
+      import { mount } from "./solid/dist/app.js"
+      import { OPTIONS, roundTrip } from "./check.js"
+
+      const app = mount(document.querySelector("#root"), OPTIONS)
+      roundTrip(app.label, app.extra)
+    </script>
+  </body>
+</html>

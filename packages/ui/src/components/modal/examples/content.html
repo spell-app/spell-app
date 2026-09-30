@@ -1,0 +1,42 @@
+<!--
+  Modal content, after Fomantic's docs (modules/modal.html, "Content").
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Header, content, actions</h4>
+    <div class="ui active modal" style="position: relative">
+      <div class="header">Header</div>
+      <div class="content"><p>Content</p></div>
+      <div class="actions"><button type="button" class="ui button">Action</button></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Close icon, inside</h4>
+    <div class="ui active modal" style="position: relative">
+      <button type="button" class="close inside icon" aria-label="Close">
+        <svg viewBox="0 0 384 512" aria-hidden="true">
+          <path
+            fill="currentColor"
+            d="M55.1 73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L147.2 256 9.9 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192.5 301.3 329.9 438.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.8 256 375.1 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192.5 210.7 55.1 73.4z"
+          />
+        </svg>
+      </button>
+      <div class="header">Closable</div>
+      <div class="content"><p>A close icon in the top right corner.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Scrolling content</h4>
+    <div class="ui active modal" style="position: relative">
+      <div class="header">Terms</div>
+      <div class="scrolling content" style="max-height: 6em">
+        <p>A scrolling content block caps its height and scrolls.</p>
+        <p>Very long terms go here, paragraph after paragraph.</p>
+        <p>And more of them, so that the block has to scroll.</p>
+        <p>Until the very end.</p>
+      </div>
+    </div>
+  </section>
+</div>

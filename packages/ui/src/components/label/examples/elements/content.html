@@ -1,0 +1,44 @@
+<!-- `src/components/label/examples/content.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Detail</h4>
+    <ui-label detail="214">Dogs</ui-label>
+  </section>
+
+  <section>
+    <h4>Icon</h4>
+    <ui-label href="#mail" icon="envelope">Mail</ui-label>
+    <ui-label href="#tag" removable>Tag</ui-label>
+    <ui-label aria-label="Checked" icon="check"></ui-label>
+  </section>
+
+  <section>
+    <h4>Image</h4>
+    <ui-label
+      href="#elliot"
+      image="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+      >Elliot</ui-label
+    >
+    <ui-label
+      href="#stevie"
+      image="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+      >Stevie</ui-label
+    >
+  </section>
+
+  <section>
+    <h4>Link</h4>
+    <ui-label icon="envelope"
+      >23<ui-detail><a href="#view">View Mail</a></ui-detail></ui-label
+    >
+  </section>
+
+  <section>
+    <h4>Prompt</h4>
+    <div>
+      <input type="email" aria-label="E-mail" aria-invalid="true" aria-describedby="prompt-email" />
+      <br />
+      <ui-label id="prompt-email" role="alert" basic pointing prompt>Please enter a valid e-mail</ui-label>
+    </div>
+  </section>
+</div>

@@ -1,0 +1,28 @@
+/*
+ * `@spell/ui` page styles as ONE plain CSS entry, for pages that load no runtime (static HTML, docs, SSR shells).
+ * - Same sheets and order as `pageCSS` in `index.ts`:  the foundation, then page typography and native markup.
+ * - Build entry, not a raw file:  bundle it with Lightning CSS (Vite) so the `@import`s are inlined and
+ *   `@custom-media` (`media.css`) is resolved -- no browser supports `@custom-media` natively.
+ * - Themes are separate:  add `themes/classic.css` or `themes/dark.css` after this.
+ */
+
+@import "./layers.css";
+@import "./reset.css";
+@import "./tokens.css";
+@import "./colors.css";
+@import "./sizes.css";
+@import "./animations.css";
+@import "./utilities.css";
+@import "./typography.css";
+@import "./native.css";
+
+/*
+ * Marks the page as already carrying the foundation, so a runtime that loads later does NOT push the same
+ * sheets onto `document.adoptedStyleSheets` a second time -- see `Styles.refreshPage()`.
+ * Lives HERE (the linked entry), not in the sub-sheets, so a runtime-only page never sees it.
+ */
+@layer ui.tokens {
+  :root {
+    --ui-page-sheet: linked;
+  }
+}

@@ -1,0 +1,393 @@
+{
+  "name": "@spell/ui",
+  "version": "0.0.1",
+  "description": "Fomantic UI's vocabulary as modern-CSS web components, on Solid 2",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "sideEffects": [
+    "**/*.css",
+    "./src/index.ts",
+    "./src/components/*/index.ts",
+    "./src/elements/HotDefinitions.ts",
+    "./dist/index.js",
+    "./dist/button.js",
+    "./dist/dropdown.js",
+    "./dist/icon.js",
+    "./dist/label.js",
+    "./dist/parts.js",
+    "./dist/divider.js",
+    "./dist/segment.js",
+    "./dist/container.js",
+    "./dist/grid.js",
+    "./dist/image.js",
+    "./dist/text.js",
+    "./dist/flag.js",
+    "./dist/loader.js",
+    "./dist/placeholder.js",
+    "./dist/message.js",
+    "./dist/breadcrumb.js",
+    "./dist/input.js",
+    "./dist/checkbox.js",
+    "./dist/form.js",
+    "./dist/item.js",
+    "./dist/list.js",
+    "./dist/menu.js",
+    "./dist/table.js",
+    "./dist/popup.js",
+    "./dist/modal.js",
+    "./dist/transition.js",
+    "./dist/dimmer.js",
+    "./dist/flyout.js",
+    "./dist/sidebar.js",
+    "./dist/shape.js",
+    "./dist/card.js",
+    "./dist/items.js",
+    "./dist/feed.js",
+    "./dist/comment.js",
+    "./dist/statistic.js",
+    "./dist/step.js",
+    "./dist/rail.js",
+    "./dist/reveal.js",
+    "./dist/ad.js",
+    "./dist/emoji.js",
+    "./dist/select.js",
+    "./dist/search.js",
+    "./dist/progress.js",
+    "./dist/rating.js",
+    "./dist/slider.js",
+    "./dist/accordion.js",
+    "./dist/tab.js",
+    "./dist/toast.js",
+    "./dist/nag.js",
+    "./dist/sticky.js",
+    "./dist/visibility.js",
+    "./dist/embed.js",
+    "./dist/calendar.js",
+    "./tools/demo/**"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.js"
+    },
+    "./forms": {
+      "types": "./dist/forms.d.ts",
+      "import": "./dist/forms.js"
+    },
+    "./api": {
+      "types": "./dist/api.d.ts",
+      "import": "./dist/api.js"
+    },
+    "./button": {
+      "types": "./dist/components/button/index.d.ts",
+      "import": "./dist/button.js"
+    },
+    "./dropdown": {
+      "types": "./dist/components/dropdown/index.d.ts",
+      "import": "./dist/dropdown.js"
+    },
+    "./icon": {
+      "types": "./dist/components/icon/index.d.ts",
+      "import": "./dist/icon.js"
+    },
+    "./label": {
+      "types": "./dist/components/label/index.d.ts",
+      "import": "./dist/label.js"
+    },
+    "./parts": {
+      "types": "./dist/components/parts/index.d.ts",
+      "import": "./dist/parts.js"
+    },
+    "./divider": {
+      "types": "./dist/components/divider/index.d.ts",
+      "import": "./dist/divider.js"
+    },
+    "./segment": {
+      "types": "./dist/components/segment/index.d.ts",
+      "import": "./dist/segment.js"
+    },
+    "./container": {
+      "types": "./dist/components/container/index.d.ts",
+      "import": "./dist/container.js"
+    },
+    "./grid": {
+      "types": "./dist/components/grid/index.d.ts",
+      "import": "./dist/grid.js"
+    },
+    "./image": {
+      "types": "./dist/components/image/index.d.ts",
+      "import": "./dist/image.js"
+    },
+    "./text": {
+      "types": "./dist/components/text/index.d.ts",
+      "import": "./dist/text.js"
+    },
+    "./flag": {
+      "types": "./dist/components/flag/index.d.ts",
+      "import": "./dist/flag.js"
+    },
+    "./loader": {
+      "types": "./dist/components/loader/index.d.ts",
+      "import": "./dist/loader.js"
+    },
+    "./placeholder": {
+      "types": "./dist/components/placeholder/index.d.ts",
+      "import": "./dist/placeholder.js"
+    },
+    "./message": {
+      "types": "./dist/components/message/index.d.ts",
+      "import": "./dist/message.js"
+    },
+    "./breadcrumb": {
+      "types": "./dist/components/breadcrumb/index.d.ts",
+      "import": "./dist/breadcrumb.js"
+    },
+    "./input": {
+      "types": "./dist/components/input/index.d.ts",
+      "import": "./dist/input.js"
+    },
+    "./checkbox": {
+      "types": "./dist/components/checkbox/index.d.ts",
+      "import": "./dist/checkbox.js"
+    },
+    "./form": {
+      "types": "./dist/components/form/index.d.ts",
+      "import": "./dist/form.js"
+    },
+    "./item": {
+      "types": "./dist/components/item/index.d.ts",
+      "import": "./dist/item.js"
+    },
+    "./list": {
+      "types": "./dist/components/list/index.d.ts",
+      "import": "./dist/list.js"
+    },
+    "./menu": {
+      "types": "./dist/components/menu/index.d.ts",
+      "import": "./dist/menu.js"
+    },
+    "./table": {
+      "types": "./dist/components/table/index.d.ts",
+      "import": "./dist/table.js"
+    },
+    "./popup": {
+      "types": "./dist/components/popup/index.d.ts",
+      "import": "./dist/popup.js"
+    },
+    "./modal": {
+      "types": "./dist/components/modal/index.d.ts",
+      "import": "./dist/modal.js"
+    },
+    "./transition": {
+      "types": "./dist/components/transition/index.d.ts",
+      "import": "./dist/transition.js"
+    },
+    "./dimmer": {
+      "types": "./dist/components/dimmer/index.d.ts",
+      "import": "./dist/dimmer.js"
+    },
+    "./flyout": {
+      "types": "./dist/components/flyout/index.d.ts",
+      "import": "./dist/flyout.js"
+    },
+    "./sidebar": {
+      "types": "./dist/components/sidebar/index.d.ts",
+      "import": "./dist/sidebar.js"
+    },
+    "./shape": {
+      "types": "./dist/components/shape/index.d.ts",
+      "import": "./dist/shape.js"
+    },
+    "./card": {
+      "types": "./dist/components/card/index.d.ts",
+      "import": "./dist/card.js"
+    },
+    "./items": {
+      "types": "./dist/components/items/index.d.ts",
+      "import": "./dist/items.js"
+    },
+    "./feed": {
+      "types": "./dist/components/feed/index.d.ts",
+      "import": "./dist/feed.js"
+    },
+    "./comment": {
+      "types": "./dist/components/comment/index.d.ts",
+      "import": "./dist/comment.js"
+    },
+    "./statistic": {
+      "types": "./dist/components/statistic/index.d.ts",
+      "import": "./dist/statistic.js"
+    },
+    "./step": {
+      "types": "./dist/components/step/index.d.ts",
+      "import": "./dist/step.js"
+    },
+    "./rail": {
+      "types": "./dist/components/rail/index.d.ts",
+      "import": "./dist/rail.js"
+    },
+    "./reveal": {
+      "types": "./dist/components/reveal/index.d.ts",
+      "import": "./dist/reveal.js"
+    },
+    "./ad": {
+      "types": "./dist/components/ad/index.d.ts",
+      "import": "./dist/ad.js"
+    },
+    "./emoji": {
+      "types": "./dist/components/emoji/index.d.ts",
+      "import": "./dist/emoji.js"
+    },
+    "./select": {
+      "types": "./dist/components/select/index.d.ts",
+      "import": "./dist/select.js"
+    },
+    "./search": {
+      "types": "./dist/components/search/index.d.ts",
+      "import": "./dist/search.js"
+    },
+    "./progress": {
+      "types": "./dist/components/progress/index.d.ts",
+      "import": "./dist/progress.js"
+    },
+    "./rating": {
+      "types": "./dist/components/rating/index.d.ts",
+      "import": "./dist/rating.js"
+    },
+    "./slider": {
+      "types": "./dist/components/slider/index.d.ts",
+      "import": "./dist/slider.js"
+    },
+    "./accordion": {
+      "types": "./dist/components/accordion/index.d.ts",
+      "import": "./dist/accordion.js"
+    },
+    "./tab": {
+      "types": "./dist/components/tab/index.d.ts",
+      "import": "./dist/tab.js"
+    },
+    "./toast": {
+      "types": "./dist/components/toast/index.d.ts",
+      "import": "./dist/toast.js"
+    },
+    "./nag": {
+      "types": "./dist/components/nag/index.d.ts",
+      "import": "./dist/nag.js"
+    },
+    "./sticky": {
+      "types": "./dist/components/sticky/index.d.ts",
+      "import": "./dist/sticky.js"
+    },
+    "./visibility": {
+      "types": "./dist/components/visibility/index.d.ts",
+      "import": "./dist/visibility.js"
+    },
+    "./embed": {
+      "types": "./dist/components/embed/index.d.ts",
+      "import": "./dist/embed.js"
+    },
+    "./calendar": {
+      "types": "./dist/components/calendar/index.d.ts",
+      "import": "./dist/calendar.js"
+    },
+    "./styles": {
+      "types": "./dist/styles/index.d.ts",
+      "import": "./dist/styles.js"
+    },
+    "./icons/*": "./dist/icon-packs/*"
+  },
+  "scripts": {
+    "dev": "vite --open /tools/demo/index.html",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "clean": "rm -rf ./.cache ./build ./dist ./coverage ./test-results ./vendor ./tools/frameworks/solid/dist",
+    "/////// CORRECTNESS": "",
+    "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
+    "ts": "echo '>>>>>>>>>>>\n>> RUNNING TSC' && tsc && tsc -p tsconfig.node.json && yarn fork tsc && echo '<< TSC PASSED\n'",
+    "lint": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT' && oxlint --report-unused-disable-directives --max-warnings 0 src test scripts tools packages/solid-element && echo '<< OXLINT PASSED\n'",
+    "lint:fix": "echo '>>>>>>>>>>>\n>> LINTING WITH OXLINT --fix' && oxlint --fix src test scripts tools packages/solid-element && echo '<< OXLINT PASSED\n'",
+    "format": "echo '>>>>>>>>>>>\n>> FORMATTING WITH OXFMT' && oxfmt . && echo '<< OXFMT PASSED\n'",
+    "format:check": "oxfmt --check .",
+    "/////// TESTING": "",
+    "test": "echo '>>>>>>>>>>>\n>> RUNNING TESTS' && vitest run --project ssr && vitest run --project browser && yarn test:fork && echo '<< TESTS PASSED\n'",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:all": "vitest run --project ssr && UI_TEST_ALL=1 vitest run --project browser",
+    "test:visual": "tsx tools/visual/cli.ts",
+    "test:visual:update": "tsx tools/visual/cli.ts --update",
+    "test:fork": "yarn fork test",
+    "test:hmr": "tsx tools/hmr.e2e.ts",
+    "test:browsers": "playwright install chromium firefox webkit",
+    "/////// FORK (packages/solid-element, its own yarn project)": "",
+    "fork": "yarn --cwd packages/solid-element",
+    "fork:install": "yarn --cwd packages/solid-element install",
+    "fork:build": "yarn --cwd packages/solid-element build",
+    "/////// PACKAGE TOOLING (tools/)": "",
+    "vendor": "tsx tools/cli.ts vendor",
+    "measure": "tsx tools/cli.ts measure",
+    "smoke": "vite build --logLevel warn && tsx tools/cli.ts smoke",
+    "serve": "tsx tools/cli.ts serve",
+    "report": "tsx tools/cli.ts report",
+    "icons:pack": "tsx tools/cli.ts icons:pack",
+    "screenshots": "tsx tools/screenshots.ts",
+    "/////// DOCS SITE": "",
+    "site:dev": "yarn --cwd site dev",
+    "site:build": "yarn --cwd site build",
+    "site:preview": "yarn --cwd site preview",
+    "site:check": "yarn --cwd site check",
+    "/////// GENERATED": "",
+    "gen:styles": "tsc -p scripts && tsx scripts/gen-styles.ts",
+    "gen:icons": "tsc -p scripts && tsx scripts/gen-icons.ts",
+    "gen:emoji": "tsc -p scripts && tsx scripts/gen-emoji.ts",
+    "tokens:alias": "tsx scripts/alias-tokens.ts",
+    "/////// MANIFEST": "",
+    "manifest": "custom-elements-manifest analyze --globs 'src/**/*.ts' 'src/**/*.tsx' --exclude 'src/**/*.test.ts' --exclude 'src/**/*.test.tsx'"
+  },
+  "dependencies": {
+    "@spell/solid-element": "link:./packages/solid-element",
+    "lodash-es": "^4.18.1",
+    "temporal-polyfill": "^1.0.5"
+  },
+  "devDependencies": {
+    "@custom-elements-manifest/analyzer": "^0.11.0",
+    "@playwright/test": "1.63.0",
+    "@solidjs/vite-plugin": "3.0.0-next.46",
+    "@solidjs/web": "2.0.0-rc.11",
+    "@types/lodash-es": "^4.17.12",
+    "@types/node": "^22.20.4",
+    "@typescript/typescript6": "^6.0.2",
+    "@vitest/browser-playwright": "^5.0.2",
+    "@vitest/ui": "^5.0.2",
+    "axe-core": "^4.13.0",
+    "esbuild": "^0.28.2",
+    "lightningcss": "^1.33.0",
+    "oxfmt": "^0.71.0",
+    "oxlint": "^1.86.0",
+    "oxlint-tsgolint": "^7.0.2003",
+    "playwright": "1.63.0",
+    "solid-js": "2.0.0-rc.11",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1",
+    "vite-plugin-dts": "^5.1.1",
+    "vitest": "^5.0.2"
+  },
+  "peerDependencies": {
+    "@solidjs/web": "2.0.0-rc.11",
+    "solid-js": "2.0.0-rc.11"
+  },
+  "engines": {
+    "node": ">=22.17"
+  },
+  "packageManager": "yarn@4.18.0"
+}

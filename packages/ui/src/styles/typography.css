@@ -1,0 +1,144 @@
+/*
+ * Page typography, opt-in with `class="ui-typography"` on `<html>` / `<body>` (or any page region), `@layer ui.base`.
+ * - Why opt-in:  the library lives inside other people's pages;  it never restyles plain `h1` / `p` / `a`
+ *   unless asked.  Components don't need this sheet -- they style their own shadow markup.
+ * - Port of Fomantic's `site.less` page rules (body font / colour, heading scale and margins, paragraph
+ *   rhythm, links, selection), token driven and without rem:  heading margins are multiples of
+ *   `--ui-font-size` (Fomantic's `2rem` / `1rem`), so they don't grow with the heading.
+ * - Every selector is wrapped in `:where()`:  zero specificity, so any page rule overrides it.
+ * - Heading sizes use the component size ratios:  `h1` ~== massive ... `h6` ~== small.
+ */
+
+@layer ui.base {
+  :where(.ui-typography) {
+    font-family: var(--ui-font-family);
+    font-size: var(--ui-font-size);
+    line-height: var(--ui-line-height);
+    color: var(--ui-text-color);
+    background-color: var(--ui-background);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /*******************************
+            Headings
+  *******************************/
+
+  :where(.ui-typography) :where(h1, h2, h3, h4, h5, h6) {
+    margin-block: calc(var(--ui-font-size) * 2) var(--ui-font-size);
+    padding: 0;
+    font-family: var(--ui-font-family-heading);
+    font-weight: var(--ui-font-weight-bold);
+    line-height: var(--ui-line-height-heading);
+    text-wrap: balance;
+  }
+  :where(.ui-typography) :where(h1) {
+    font-size: calc(var(--ui-font-size) * var(--ui-size-massive));
+  }
+  :where(.ui-typography) :where(h2) {
+    font-size: calc(var(--ui-font-size) * var(--ui-size-huge));
+  }
+  :where(.ui-typography) :where(h3) {
+    font-size: calc(var(--ui-font-size) * var(--ui-size-big));
+  }
+  :where(.ui-typography) :where(h4) {
+    font-size: calc(var(--ui-font-size) * var(--ui-size-large));
+  }
+  :where(.ui-typography) :where(h5) {
+    font-size: var(--ui-font-size);
+  }
+  :where(.ui-typography) :where(h6) {
+    font-size: calc(var(--ui-font-size) * var(--ui-size-small));
+  }
+
+  /*******************************
+              Text
+  *******************************/
+
+  :where(.ui-typography) :where(p, ul, ol, dl, blockquote, pre, figure, table) {
+    margin-block: 0 1em;
+  }
+  :where(.ui-typography) :where(h1, h2, h3, h4, h5, h6, p, ul, ol, dl, blockquote, pre, figure, table):first-child {
+    margin-block-start: 0;
+  }
+  :where(.ui-typography) :where(h1, h2, h3, h4, h5, h6, p, ul, ol, dl, blockquote, pre, figure, table):last-child {
+    margin-block-end: 0;
+  }
+  :where(.ui-typography) :where(p) {
+    text-wrap: pretty;
+  }
+  :where(.ui-typography) :where(ul, ol) {
+    padding-inline-start: 1.5em;
+  }
+  :where(.ui-typography) :where(li + li) {
+    margin-block-start: var(--ui-space-2xs);
+  }
+  :where(.ui-typography) :where(b, strong) {
+    font-weight: var(--ui-font-weight-bold);
+  }
+  :where(.ui-typography) :where(small) {
+    font-size: calc(var(--ui-font-size) * var(--ui-size-small));
+  }
+  :where(.ui-typography) :where(blockquote) {
+    padding-inline-start: 1em;
+    border-inline-start: 0.25em solid var(--ui-border-color-strong);
+    color: var(--ui-text-muted);
+  }
+  :where(.ui-typography) :where(hr) {
+    margin-block: calc(var(--ui-font-size) * 2);
+    border: 0;
+    border-block-start: var(--ui-border);
+  }
+
+  /*******************************
+              Code
+  *******************************/
+
+  :where(.ui-typography) :where(code, kbd, samp, pre) {
+    font-family: var(--ui-font-family-mono);
+    font-size: 0.875em;
+  }
+  :where(.ui-typography) :where(code, kbd, samp) {
+    padding: 0.125em 0.375em;
+    border-radius: var(--ui-radius-s);
+    background-color: var(--ui-surface-strong);
+  }
+  :where(.ui-typography) :where(kbd) {
+    border: var(--ui-border);
+    border-block-end-width: 2px;
+  }
+  :where(.ui-typography) :where(pre) {
+    padding: var(--ui-space-s) var(--ui-space-m);
+    overflow-x: auto;
+    border-radius: var(--ui-radius);
+    background-color: var(--ui-surface-muted);
+  }
+  :where(.ui-typography) :where(pre code) {
+    padding: 0;
+    background: none;
+    font-size: inherit;
+  }
+
+  /*******************************
+              Links
+  *******************************/
+
+  /* Underlined, unlike Fomantic's `@linkUnderline: none`:  colour alone isn't an accessible link cue. */
+  :where(.ui-typography) :where(a) {
+    color: var(--ui-link);
+    text-decoration-thickness: 0.06em;
+    text-underline-offset: 0.15em;
+  }
+  :where(.ui-typography) :where(a:hover) {
+    color: var(--ui-link-hover);
+  }
+
+  /*******************************
+          Highlighting
+  *******************************/
+
+  :where(.ui-typography) ::selection {
+    background-color: var(--ui-highlight);
+    color: var(--ui-text-color);
+  }
+}

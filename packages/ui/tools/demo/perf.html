@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@spell/ui: perf</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 16px;
+        font-family: system-ui, sans-serif;
+      }
+      pre {
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>1000-option search dropdown: 10 keystrokes</h1>
+    <ui-dropdown id="perf" search selection placeholder="Country"></ui-dropdown>
+    <pre id="result">running…</pre>
+    <script type="module" src="./perf.ts"></script>
+  </body>
+</html>

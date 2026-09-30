@@ -1,0 +1,310 @@
+/* GENERATED -- do not edit, run `yarn gen:styles` (source: styles.vocabulary.en.ts) */
+
+@layer ui.tokens {
+  :root {
+    --ui-sheet-tokens: loaded;
+    --ui-font-size: 16px;
+    --ui-font-family:
+      system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial, sans-serif,
+      "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --ui-font-family-heading:
+      system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif;
+    --ui-font-family-mono:
+      ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --ui-font-weight-light: 300;
+    --ui-font-weight-normal: 400;
+    --ui-font-weight-semibold: 600;
+    --ui-font-weight-bold: 700;
+    --ui-line-height: 1.5;
+    --ui-line-height-heading: 1.25;
+    --ui-line-height-tight: 1.2;
+    --ui-heading-ratio: 1.5;
+    --ui-caption-ratio: 0.875;
+    --ui-space-3xs: 0.125em;
+    --ui-space-2xs: 0.25em;
+    --ui-space-xs: 0.5em;
+    --ui-space-s: 0.75em;
+    --ui-space-m: 1em;
+    --ui-space-l: 1.5em;
+    --ui-space-xl: 2em;
+    --ui-space-2xl: 3em;
+    --ui-space-3xl: 4em;
+    --ui-radius-s: 0.25em;
+    --ui-radius-m: 0.375em;
+    --ui-radius-l: 0.75em;
+    --ui-radius-pill: 9999px;
+    --ui-radius-circle: 50%;
+    --ui-radius-square: 0;
+    --ui-radius: var(--ui-radius-m);
+    --ui-ink-on-light: oklch(0.15 0.01 260);
+    --ui-ink-on-dark: oklch(0.99 0.005 260);
+    --ui-ink: light-dark(var(--ui-ink-on-light), var(--ui-ink-on-dark));
+    --ui-text-color: light-dark(
+      oklch(from var(--ui-ink-on-light) l c h / 0.87),
+      oklch(from var(--ui-ink-on-dark) l c h / 0.9)
+    );
+    --ui-text-dark: light-dark(
+      oklch(from var(--ui-ink-on-light) l c h / 0.85),
+      oklch(from var(--ui-ink-on-dark) l c h / 0.95)
+    );
+    --ui-text-muted: light-dark(
+      oklch(from var(--ui-ink-on-light) l c h / 0.6),
+      oklch(from var(--ui-ink-on-dark) l c h / 0.8)
+    );
+    --ui-text-light: light-dark(
+      oklch(from var(--ui-ink-on-light) l c h / 0.58),
+      oklch(from var(--ui-ink-on-dark) l c h / 0.7)
+    );
+    --ui-text-unselected: light-dark(
+      oklch(from var(--ui-ink-on-light) l c h / 0.58),
+      oklch(from var(--ui-ink-on-dark) l c h / 0.5)
+    );
+    --ui-text-hovered: light-dark(
+      oklch(from var(--ui-ink-on-light) l c h / 0.8),
+      oklch(from var(--ui-ink-on-dark) l c h / 1)
+    );
+    --ui-text-pressed: light-dark(
+      oklch(from var(--ui-ink-on-light) l c h / 0.9),
+      oklch(from var(--ui-ink-on-dark) l c h / 1)
+    );
+    --ui-text-selected: light-dark(
+      oklch(from var(--ui-ink-on-light) l c h / 0.95),
+      oklch(from var(--ui-ink-on-dark) l c h / 1)
+    );
+    --ui-text-disabled: light-dark(
+      oklch(from var(--ui-ink-on-light) l c h / 0.3),
+      oklch(from var(--ui-ink-on-dark) l c h / 0.3)
+    );
+    --ui-text-inverted-color: oklch(from var(--ui-ink-on-dark) l c h / 0.9);
+    --ui-text-inverted-dark: oklch(from var(--ui-ink-on-dark) l c h / 0.95);
+    --ui-text-inverted-muted: oklch(from var(--ui-ink-on-dark) l c h / 0.8);
+    --ui-text-inverted-light: oklch(from var(--ui-ink-on-dark) l c h / 0.7);
+    --ui-text-inverted-unselected: oklch(from var(--ui-ink-on-dark) l c h / 0.5);
+    --ui-text-inverted-hovered: oklch(from var(--ui-ink-on-dark) l c h / 1);
+    --ui-text-inverted-pressed: oklch(from var(--ui-ink-on-dark) l c h / 1);
+    --ui-text-inverted-selected: oklch(from var(--ui-ink-on-dark) l c h / 1);
+    --ui-text-inverted-disabled: oklch(from var(--ui-ink-on-dark) l c h / 0.3);
+    --ui-border-width: 1px;
+    --ui-border-color: light-dark(
+      oklch(from var(--ui-ink-on-light) l c h / 0.15),
+      oklch(from var(--ui-ink-on-dark) l c h / 0.15)
+    );
+    --ui-border-color-strong: light-dark(
+      oklch(from var(--ui-ink-on-light) l c h / 0.22),
+      oklch(from var(--ui-ink-on-dark) l c h / 0.25)
+    );
+    --ui-border-color-internal: light-dark(
+      oklch(from var(--ui-ink-on-light) l c h / 0.1),
+      oklch(from var(--ui-ink-on-dark) l c h / 0.1)
+    );
+    --ui-border-color-selected: light-dark(
+      oklch(from var(--ui-ink-on-light) l c h / 0.35),
+      oklch(from var(--ui-ink-on-dark) l c h / 0.45)
+    );
+    --ui-border-color-selected-strong: light-dark(
+      oklch(from var(--ui-ink-on-light) l c h / 0.5),
+      oklch(from var(--ui-ink-on-dark) l c h / 0.6)
+    );
+    --ui-border-color-disabled: light-dark(
+      oklch(from var(--ui-ink-on-light) l c h / 0.5),
+      oklch(from var(--ui-ink-on-dark) l c h / 0.5)
+    );
+    --ui-border: var(--ui-border-width) solid var(--ui-border-color);
+    --ui-shadow-ink: light-dark(var(--ui-ink-on-light), oklch(0 0 0));
+    --ui-shadow-subtle: 0 1px 2px 0 oklch(from var(--ui-shadow-ink) l c h / 0.15);
+    --ui-shadow-bottom: 0 2px 1px -1px oklch(from var(--ui-shadow-ink) l c h / 0.15);
+    --ui-shadow-raised:
+      0 1px 2px 0 oklch(from var(--ui-shadow-ink) l c h / 0.08),
+      0 1px 3px 0 oklch(from var(--ui-shadow-ink) l c h / 0.1);
+    --ui-shadow-floating:
+      0 2px 4px 0 oklch(from var(--ui-shadow-ink) l c h / 0.12),
+      0 2px 10px 0 oklch(from var(--ui-shadow-ink) l c h / 0.15);
+    --ui-shadow-floating-hover:
+      0 2px 4px 0 oklch(from var(--ui-shadow-ink) l c h / 0.15),
+      0 2px 10px 0 oklch(from var(--ui-shadow-ink) l c h / 0.25);
+    --ui-shadow-overlay:
+      0 4px 8px -2px oklch(from var(--ui-shadow-ink) l c h / 0.12),
+      0 12px 28px -4px oklch(from var(--ui-shadow-ink) l c h / 0.22);
+    --ui-focus-width: 2px;
+    --ui-focus-offset: 2px;
+    --ui-disabled-opacity: 0.45;
+    --ui-duration-fast: 100ms;
+    --ui-duration-normal: 200ms;
+    --ui-duration-slow: 300ms;
+    --ui-duration-slower: 500ms;
+    --ui-duration-slowest: 750ms;
+    --ui-ease: ease;
+    --ui-ease-in: cubic-bezier(0.4, 0, 1, 1);
+    --ui-ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --ui-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --ui-ease-spring: cubic-bezier(0.34, 1.61, 0.7, 1);
+    --ui-ease-decelerate: cubic-bezier(0.215, 0.61, 0.355, 1);
+    --ui-ease-expo: cubic-bezier(0.19, 1, 0.22, 1);
+    --ui-z-dropdown: 100;
+    --ui-z-sticky: 800;
+    --ui-z-dimmer: 1000;
+    --ui-z-modal: 1010;
+    --ui-z-popup: 1900;
+    --ui-z-toast: 2000;
+    --ui-breakpoint-mobile: 320px;
+    --ui-breakpoint-tablet: 768px;
+    --ui-breakpoint-computer: 992px;
+    --ui-breakpoint-large-monitor: 1200px;
+    --ui-breakpoint-widescreen: 1920px;
+  }
+
+  /* Fallback for shadow roots on pages that never loaded this sheet. */
+  @container not style(--ui-sheet-tokens: loaded) {
+    :host {
+      --ui-sheet-tokens: loaded;
+      --ui-font-size: 16px;
+      --ui-font-family:
+        system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial,
+        sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+      --ui-font-family-heading:
+        system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", Arial, sans-serif;
+      --ui-font-family-mono:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --ui-font-weight-light: 300;
+      --ui-font-weight-normal: 400;
+      --ui-font-weight-semibold: 600;
+      --ui-font-weight-bold: 700;
+      --ui-line-height: 1.5;
+      --ui-line-height-heading: 1.25;
+      --ui-line-height-tight: 1.2;
+      --ui-heading-ratio: 1.5;
+      --ui-caption-ratio: 0.875;
+      --ui-space-3xs: 0.125em;
+      --ui-space-2xs: 0.25em;
+      --ui-space-xs: 0.5em;
+      --ui-space-s: 0.75em;
+      --ui-space-m: 1em;
+      --ui-space-l: 1.5em;
+      --ui-space-xl: 2em;
+      --ui-space-2xl: 3em;
+      --ui-space-3xl: 4em;
+      --ui-radius-s: 0.25em;
+      --ui-radius-m: 0.375em;
+      --ui-radius-l: 0.75em;
+      --ui-radius-pill: 9999px;
+      --ui-radius-circle: 50%;
+      --ui-radius-square: 0;
+      --ui-radius: var(--ui-radius-m);
+      --ui-ink-on-light: oklch(0.15 0.01 260);
+      --ui-ink-on-dark: oklch(0.99 0.005 260);
+      --ui-ink: light-dark(var(--ui-ink-on-light), var(--ui-ink-on-dark));
+      --ui-text-color: light-dark(
+        oklch(from var(--ui-ink-on-light) l c h / 0.87),
+        oklch(from var(--ui-ink-on-dark) l c h / 0.9)
+      );
+      --ui-text-dark: light-dark(
+        oklch(from var(--ui-ink-on-light) l c h / 0.85),
+        oklch(from var(--ui-ink-on-dark) l c h / 0.95)
+      );
+      --ui-text-muted: light-dark(
+        oklch(from var(--ui-ink-on-light) l c h / 0.6),
+        oklch(from var(--ui-ink-on-dark) l c h / 0.8)
+      );
+      --ui-text-light: light-dark(
+        oklch(from var(--ui-ink-on-light) l c h / 0.58),
+        oklch(from var(--ui-ink-on-dark) l c h / 0.7)
+      );
+      --ui-text-unselected: light-dark(
+        oklch(from var(--ui-ink-on-light) l c h / 0.58),
+        oklch(from var(--ui-ink-on-dark) l c h / 0.5)
+      );
+      --ui-text-hovered: light-dark(
+        oklch(from var(--ui-ink-on-light) l c h / 0.8),
+        oklch(from var(--ui-ink-on-dark) l c h / 1)
+      );
+      --ui-text-pressed: light-dark(
+        oklch(from var(--ui-ink-on-light) l c h / 0.9),
+        oklch(from var(--ui-ink-on-dark) l c h / 1)
+      );
+      --ui-text-selected: light-dark(
+        oklch(from var(--ui-ink-on-light) l c h / 0.95),
+        oklch(from var(--ui-ink-on-dark) l c h / 1)
+      );
+      --ui-text-disabled: light-dark(
+        oklch(from var(--ui-ink-on-light) l c h / 0.3),
+        oklch(from var(--ui-ink-on-dark) l c h / 0.3)
+      );
+      --ui-text-inverted-color: oklch(from var(--ui-ink-on-dark) l c h / 0.9);
+      --ui-text-inverted-dark: oklch(from var(--ui-ink-on-dark) l c h / 0.95);
+      --ui-text-inverted-muted: oklch(from var(--ui-ink-on-dark) l c h / 0.8);
+      --ui-text-inverted-light: oklch(from var(--ui-ink-on-dark) l c h / 0.7);
+      --ui-text-inverted-unselected: oklch(from var(--ui-ink-on-dark) l c h / 0.5);
+      --ui-text-inverted-hovered: oklch(from var(--ui-ink-on-dark) l c h / 1);
+      --ui-text-inverted-pressed: oklch(from var(--ui-ink-on-dark) l c h / 1);
+      --ui-text-inverted-selected: oklch(from var(--ui-ink-on-dark) l c h / 1);
+      --ui-text-inverted-disabled: oklch(from var(--ui-ink-on-dark) l c h / 0.3);
+      --ui-border-width: 1px;
+      --ui-border-color: light-dark(
+        oklch(from var(--ui-ink-on-light) l c h / 0.15),
+        oklch(from var(--ui-ink-on-dark) l c h / 0.15)
+      );
+      --ui-border-color-strong: light-dark(
+        oklch(from var(--ui-ink-on-light) l c h / 0.22),
+        oklch(from var(--ui-ink-on-dark) l c h / 0.25)
+      );
+      --ui-border-color-internal: light-dark(
+        oklch(from var(--ui-ink-on-light) l c h / 0.1),
+        oklch(from var(--ui-ink-on-dark) l c h / 0.1)
+      );
+      --ui-border-color-selected: light-dark(
+        oklch(from var(--ui-ink-on-light) l c h / 0.35),
+        oklch(from var(--ui-ink-on-dark) l c h / 0.45)
+      );
+      --ui-border-color-selected-strong: light-dark(
+        oklch(from var(--ui-ink-on-light) l c h / 0.5),
+        oklch(from var(--ui-ink-on-dark) l c h / 0.6)
+      );
+      --ui-border-color-disabled: light-dark(
+        oklch(from var(--ui-ink-on-light) l c h / 0.5),
+        oklch(from var(--ui-ink-on-dark) l c h / 0.5)
+      );
+      --ui-border: var(--ui-border-width) solid var(--ui-border-color);
+      --ui-shadow-ink: light-dark(var(--ui-ink-on-light), oklch(0 0 0));
+      --ui-shadow-subtle: 0 1px 2px 0 oklch(from var(--ui-shadow-ink) l c h / 0.15);
+      --ui-shadow-bottom: 0 2px 1px -1px oklch(from var(--ui-shadow-ink) l c h / 0.15);
+      --ui-shadow-raised:
+        0 1px 2px 0 oklch(from var(--ui-shadow-ink) l c h / 0.08),
+        0 1px 3px 0 oklch(from var(--ui-shadow-ink) l c h / 0.1);
+      --ui-shadow-floating:
+        0 2px 4px 0 oklch(from var(--ui-shadow-ink) l c h / 0.12),
+        0 2px 10px 0 oklch(from var(--ui-shadow-ink) l c h / 0.15);
+      --ui-shadow-floating-hover:
+        0 2px 4px 0 oklch(from var(--ui-shadow-ink) l c h / 0.15),
+        0 2px 10px 0 oklch(from var(--ui-shadow-ink) l c h / 0.25);
+      --ui-shadow-overlay:
+        0 4px 8px -2px oklch(from var(--ui-shadow-ink) l c h / 0.12),
+        0 12px 28px -4px oklch(from var(--ui-shadow-ink) l c h / 0.22);
+      --ui-focus-width: 2px;
+      --ui-focus-offset: 2px;
+      --ui-disabled-opacity: 0.45;
+      --ui-duration-fast: 100ms;
+      --ui-duration-normal: 200ms;
+      --ui-duration-slow: 300ms;
+      --ui-duration-slower: 500ms;
+      --ui-duration-slowest: 750ms;
+      --ui-ease: ease;
+      --ui-ease-in: cubic-bezier(0.4, 0, 1, 1);
+      --ui-ease-out: cubic-bezier(0, 0, 0.2, 1);
+      --ui-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+      --ui-ease-spring: cubic-bezier(0.34, 1.61, 0.7, 1);
+      --ui-ease-decelerate: cubic-bezier(0.215, 0.61, 0.355, 1);
+      --ui-ease-expo: cubic-bezier(0.19, 1, 0.22, 1);
+      --ui-z-dropdown: 100;
+      --ui-z-sticky: 800;
+      --ui-z-dimmer: 1000;
+      --ui-z-modal: 1010;
+      --ui-z-popup: 1900;
+      --ui-z-toast: 2000;
+      --ui-breakpoint-mobile: 320px;
+      --ui-breakpoint-tablet: 768px;
+      --ui-breakpoint-computer: 992px;
+      --ui-breakpoint-large-monitor: 1200px;
+      --ui-breakpoint-widescreen: 1920px;
+    }
+  }
+}

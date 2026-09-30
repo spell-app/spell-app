@@ -1,0 +1,39 @@
+<!-- `src/components/dropdown/examples/states.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Loading</h4>
+    <ui-dropdown loading selection placeholder="Gender"></ui-dropdown>
+  </section>
+
+  <section>
+    <h4>Form states</h4>
+    <ui-dropdown state="error" selection placeholder="Error"><ui-item>One</ui-item></ui-dropdown>
+    <ui-dropdown state="info" selection text="Info"><ui-item>One</ui-item></ui-dropdown>
+    <ui-dropdown state="success" selection text="Success"><ui-item>One</ui-item></ui-dropdown>
+    <ui-dropdown state="warning" multiple selection placeholder="Warning" value="warning">
+      <ui-item value="warning">Warning</ui-item>
+      <ui-item>One</ui-item>
+    </ui-dropdown>
+  </section>
+
+  <section>
+    <h4>Disabled</h4>
+    <ui-dropdown disabled selection text="Disabled"></ui-dropdown>
+  </section>
+
+  <section>
+    <h4>Read-only</h4>
+    <ui-dropdown readonly clearable multiple selection placeholder="Read-only" value="locked">
+      <ui-item value="locked">Locked</ui-item>
+    </ui-dropdown>
+  </section>
+
+  <section style="min-height: 16em">
+    <h4>Open, with a disabled item</h4>
+    <ui-dropdown selection open value="medium" placeholder="Size">
+      <ui-item value="small" disabled>Small</ui-item>
+      <ui-item value="medium">Medium</ui-item>
+      <ui-item value="large">Large</ui-item>
+    </ui-dropdown>
+  </section>
+</div>

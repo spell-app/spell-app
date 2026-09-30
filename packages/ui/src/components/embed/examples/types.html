@@ -1,0 +1,70 @@
+<!--
+  Embed types and variations, after Fomantic's docs (modules/embed.html).
+  Light-DOM markup in the class grammar `embed.css` styles inside `<ui-embed>`'s shadow root:  the play button
+  around the placeholder image and icon, and an active embed's frame (`about:blank`:  examples load nothing).
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Embed</h4>
+    <div class="ui embed">
+      <button type="button" class="play" aria-label="Play video">
+        <img
+          class="placeholder"
+          src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 9'%3E%3Crect width='16' height='9' fill='%23456'/%3E%3Ccircle cx='12' cy='3' r='1.5' fill='%23fc6'/%3E%3Cpath d='M0 9 5 4l3 3 2-2 6 4z' fill='%23234'/%3E%3C/svg%3E"
+          alt=""
+        />
+        <span class="icon"
+          ><svg viewBox="0 0 512 512" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M0 256a256 256 0 1 1 512 0 256 256 0 1 1 -512 0zM188.3 147.1c-7.6 4.2-12.3 12.3-12.3 20.9l0 176c0 8.7 4.7 16.7 12.3 20.9s16.8 4.1 24.3-.5l144-88c7.1-4.4 11.5-12.1 11.5-20.5s-4.4-16.1-11.5-20.5l-144-88c-7.4-4.5-16.7-4.7-24.3-.5z"
+            /></svg
+        ></span>
+      </button>
+    </div>
+  </section>
+
+  <section>
+    <h4>Aspect ratios</h4>
+    <div class="ui embed 4:3" style="max-width: 16em">
+      <button type="button" class="play" aria-label="Play 4:3 video">
+        <span class="icon"
+          ><svg viewBox="0 0 512 512" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M0 256a256 256 0 1 1 512 0 256 256 0 1 1 -512 0zM188.3 147.1c-7.6 4.2-12.3 12.3-12.3 20.9l0 176c0 8.7 4.7 16.7 12.3 20.9s16.8 4.1 24.3-.5l144-88c7.1-4.4 11.5-12.1 11.5-20.5s-4.4-16.1-11.5-20.5l-144-88c-7.4-4.5-16.7-4.7-24.3-.5z"
+            /></svg
+        ></span>
+      </button>
+    </div>
+    <div class="ui embed 21:9" style="max-width: 24em">
+      <button type="button" class="play" aria-label="Play 21:9 video">
+        <span class="icon"
+          ><svg viewBox="0 0 512 512" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M0 256a256 256 0 1 1 512 0 256 256 0 1 1 -512 0zM188.3 147.1c-7.6 4.2-12.3 12.3-12.3 20.9l0 176c0 8.7 4.7 16.7 12.3 20.9s16.8 4.1 24.3-.5l144-88c7.1-4.4 11.5-12.1 11.5-20.5s-4.4-16.1-11.5-20.5l-144-88c-7.4-4.5-16.7-4.7-24.3-.5z"
+            /></svg
+        ></span>
+      </button>
+    </div>
+    <div class="ui square embed" style="max-width: 10em">
+      <button type="button" class="play" aria-label="Play square video">
+        <span class="icon"
+          ><svg viewBox="0 0 512 512" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M0 256a256 256 0 1 1 512 0 256 256 0 1 1 -512 0zM188.3 147.1c-7.6 4.2-12.3 12.3-12.3 20.9l0 176c0 8.7 4.7 16.7 12.3 20.9s16.8 4.1 24.3-.5l144-88c7.1-4.4 11.5-12.1 11.5-20.5s-4.4-16.1-11.5-20.5l-144-88c-7.4-4.5-16.7-4.7-24.3-.5z"
+            /></svg
+        ></span>
+      </button>
+    </div>
+  </section>
+
+  <section>
+    <h4>Active</h4>
+    <div class="ui active embed">
+      <div class="embed"><iframe src="about:blank" title="Embedded content"></iframe></div>
+    </div>
+  </section>
+</div>

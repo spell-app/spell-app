@@ -1,0 +1,76 @@
+<!-- `src/components/grid/examples/types.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Grid</h4>
+    <ui-grid>
+      <ui-column width="4"><p>Four wide</p></ui-column>
+      <ui-column width="4"><p>Four wide</p></ui-column>
+      <ui-column width="4"><p>Four wide</p></ui-column>
+      <ui-column width="4"><p>Four wide</p></ui-column>
+      <ui-column width="8"><p>Eight wide</p></ui-column>
+      <ui-column width="8"><p>Eight wide</p></ui-column>
+    </ui-grid>
+  </section>
+
+  <section>
+    <h4>Divided</h4>
+    <ui-grid divided columns="3">
+      <ui-row>
+        <ui-column><p>One</p></ui-column>
+        <ui-column><p>Two</p></ui-column>
+        <ui-column><p>Three</p></ui-column>
+      </ui-row>
+      <ui-row>
+        <ui-column><p>Four</p></ui-column>
+        <ui-column><p>Five</p></ui-column>
+        <ui-column><p>Six</p></ui-column>
+      </ui-row>
+    </ui-grid>
+  </section>
+
+  <section>
+    <h4>Vertically divided</h4>
+    <ui-grid divided="vertically">
+      <ui-row columns="2">
+        <ui-column><p>One</p></ui-column>
+        <ui-column><p>Two</p></ui-column>
+      </ui-row>
+      <ui-row columns="3">
+        <ui-column><p>Three</p></ui-column>
+        <ui-column><p>Four</p></ui-column>
+        <ui-column><p>Five</p></ui-column>
+      </ui-row>
+    </ui-grid>
+  </section>
+
+  <section>
+    <h4>Celled</h4>
+    <ui-grid celled>
+      <ui-row>
+        <ui-column width="3"><p>Three wide</p></ui-column>
+        <ui-column width="13"><p>Thirteen wide</p></ui-column>
+      </ui-row>
+      <ui-row>
+        <ui-column width="3"><p>Three wide</p></ui-column>
+        <ui-column width="10"><p>Ten wide</p></ui-column>
+        <ui-column width="3"><p>Three wide</p></ui-column>
+      </ui-row>
+    </ui-grid>
+  </section>
+
+  <section>
+    <h4>Internally celled</h4>
+    <ui-grid celled="internally">
+      <ui-row>
+        <ui-column width="3"><p>Three wide</p></ui-column>
+        <ui-column width="10"><p>Ten wide</p></ui-column>
+        <ui-column width="3"><p>Three wide</p></ui-column>
+      </ui-row>
+      <ui-row>
+        <ui-column width="3"><p>Three wide</p></ui-column>
+        <ui-column width="10"><p>Ten wide</p></ui-column>
+        <ui-column width="3"><p>Three wide</p></ui-column>
+      </ui-row>
+    </ui-grid>
+  </section>
+</div>

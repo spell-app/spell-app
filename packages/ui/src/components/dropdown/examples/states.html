@@ -1,0 +1,87 @@
+<!--
+  Dropdown states, after Fomantic's docs (modules/dropdown.html, "States"):  loading, error / info / success /
+  warning, active (open), disabled, read-only, disabled item, default text, filtered text.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Loading</h4>
+    <div class="ui loading selection dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Gender" aria-busy="true"></button>
+      <span class="default text">Gender</span>
+      <span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Form states</h4>
+    <div class="ui error selection dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Error" aria-invalid="true"></button>
+      <span class="default text">Error</span>
+      <span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"><div class="item" role="option">One</div></div>
+    </div>
+    <div class="ui info selection dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Info"></button>
+      <span class="text">Info</span>
+      <span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"><div class="item" role="option">One</div></div>
+    </div>
+    <div class="ui success selection dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Success"></button>
+      <span class="text">Success</span>
+      <span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"><div class="item" role="option">One</div></div>
+    </div>
+    <div class="ui warning multiple selection dropdown">
+      <span class="ui label">Warning<button class="delete icon" aria-label="Remove Warning"></button></span>
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Warning"></button>
+      <span class="default text">Warning</span>
+      <span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"><div class="item" role="option">One</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Disabled</h4>
+    <div class="ui disabled selection dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Disabled" disabled></button>
+      <span class="text">Disabled</span>
+      <span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Read-only</h4>
+    <div class="ui read-only clearable multiple selection dropdown">
+      <span class="ui label">Locked<button class="delete icon" aria-label="Remove Locked"></button></span>
+      <button
+        class="trigger"
+        role="combobox"
+        aria-expanded="false"
+        aria-label="Read-only"
+        aria-readonly="true"
+      ></button>
+      <span class="default text">Read-only</span>
+      <button class="remove icon" aria-label="Clear"></button>
+      <span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual"></div>
+    </div>
+  </section>
+
+  <section style="min-height: 16em">
+    <h4>Active (open), with a disabled and a highlighted item</h4>
+    <div class="ui active selection dropdown">
+      <button class="trigger" role="combobox" aria-expanded="true" aria-label="Size"></button>
+      <span class="text">Medium</span>
+      <span class="dropdown icon"></span>
+      <div class="visible menu" role="listbox">
+        <div class="disabled item" role="option" aria-disabled="true">Small</div>
+        <div class="active item" role="option" aria-selected="true">Medium</div>
+        <div class="selected item" role="option">Large</div>
+        <div class="filtered item" role="option">Hidden by the filter</div>
+      </div>
+    </div>
+  </section>
+</div>

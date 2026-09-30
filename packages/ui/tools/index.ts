@@ -1,0 +1,20 @@
+/**
+ * Barrel for `tools/` -- the node-side package tooling:  measure, vendor, LOC, report tables, smoke runner,
+ * icon pack builder.
+ * - NOTE: `PerfRun` is left out:  it runs in the BROWSER (the dropdown perf test, the smoke perf page) and lives
+ *   in `test/PerfRun.ts`.  So are `frameworks/`, `smoke/` and `demo/` (pages) and the scripts (`cli.ts`,
+ *   `hmr.e2e.ts`, `screenshots.ts`).
+ * - `.ts` extensions throughout, so plain `node --experimental-strip-types` can load it as well as `tsx`.
+ */
+
+export * from "./tools.types.ts"
+
+export * from "./BundleMeasure.ts"
+export * from "./PeerVendor.ts"
+export * from "./LocCount.ts"
+export * from "./ReportTables.ts"
+export * from "./StaticServer.ts"
+export * from "./HostApp.ts"
+export * from "./ForkBuild.ts"
+export * from "./SmokeRunner.ts"
+export * from "./IconPackBuilder.ts"

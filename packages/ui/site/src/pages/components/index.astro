@@ -1,0 +1,46 @@
+---
+/**
+ * Component index:  every entry of the `components` collection as a card, alphabetical within its category
+ * (Elements, Modules).  Each card carries the status badge (`in progress`, `planned`;  `done` needs none) and a
+ * `live` marker on finished pages.
+ * - The header's "Components" link lands here;  the sidebar lists the same entries.
+ */
+import { getCollection } from "astro:content"
+
+import Docs from "../../layouts/Docs.astro"
+import { CATEGORIES, STATUS_BADGES, url } from "../../lib/nav"
+
+const entries = (await getCollection("components")).sort((a, b) => a.data.title.localeCompare(b.data.title))
+---
+
+<Docs title="Components" summary="Fomantic's vocabulary as ui-* custom elements." wide>
+  {
+    CATEGORIES.map((category) => {
+      const group = entries.filter((entry) => entry.data.category === category)
+      return (
+        group.length > 0 && (
+          <section class="ui-stack ui-gap-m" aria-labelledby={`cat-${category}`}>
+            <h2 id={`cat-${category}`}>{category}</h2>
+            <ul class="ui-grid ui-list-plain site-cards" role="list" style="--min-column-size: 16em">
+              {group.map((entry) => (
+                <li>
+                  <a
+                    class="site-card ui-stack ui-gap-2xs ui-p-m ui-link-plain"
+                    href={url(`/components/${entry.id}/`)}
+                  >
+                    <span class="ui-split ui-gap-xs">
+                      <span class="ui-bold">{entry.data.title}</span>
+                      <span class="site-badge">{STATUS_BADGES[entry.data.status] ?? "done"}</span>
+                    </span>
+                    <code>{`<${entry.data.tag}>`}</code>
+                    <span class="ui-muted">{entry.data.summary}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )
+      )
+    })
+  }
+</Docs>

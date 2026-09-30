@@ -1,0 +1,52 @@
+<!--
+  Tab variations, after Fomantic's docs (modules/tab.html and collections/menu.html's tabular variations):  a
+  vertical tab list beside its pane, tabs attached below, inverted.  Static class grammar;  the vertical layout is
+  a plain flex row here (Fomantic used a grid).
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Vertical</h4>
+    <div class="ui vertical tabs">
+      <div class="ui vertical tabular menu" role="tablist" aria-label="Vertical" aria-orientation="vertical">
+        <button class="active item" role="tab" aria-selected="true" id="vertical-bio">Bio</button>
+        <button class="item" role="tab" aria-selected="false" tabindex="-1">Pics</button>
+        <button class="item" role="tab" aria-selected="false" tabindex="-1">Companies</button>
+      </div>
+      <div class="ui active tab segment" role="tabpanel" aria-labelledby="vertical-bio">
+        This is a stretched grid column. This segment will always match the tab height.
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Bottom attached</h4>
+    <div class="ui top attached active tab segment" role="tabpanel" aria-labelledby="bottom-first">First</div>
+    <div class="ui top attached tab segment" role="tabpanel">Second</div>
+    <div class="ui bottom attached tabular menu" role="tablist" aria-label="Bottom">
+      <button class="active item" role="tab" aria-selected="true" id="bottom-first">First</button>
+      <button class="item" role="tab" aria-selected="false" tabindex="-1">Second</button>
+    </div>
+  </section>
+
+  <section>
+    <h4>Inverted</h4>
+    <div class="ui inverted segment">
+      <div class="ui inverted pointing secondary menu" role="tablist" aria-label="Inverted">
+        <button class="active item" role="tab" aria-selected="true" id="inverted-first">First</button>
+        <button class="item" role="tab" aria-selected="false" tabindex="-1">Second</button>
+      </div>
+      <div class="ui inverted active tab segment" role="tabpanel" aria-labelledby="inverted-first">First</div>
+      <div class="ui inverted tab segment" role="tabpanel">Second</div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Colored and sized</h4>
+    <div class="ui small red pointing secondary menu" role="tablist" aria-label="Colored">
+      <button class="active item" role="tab" aria-selected="true" id="colored-first">First</button>
+      <button class="item" role="tab" aria-selected="false" tabindex="-1">Second</button>
+    </div>
+    <div class="ui active tab segment" role="tabpanel" aria-labelledby="colored-first">First</div>
+    <div class="ui tab segment" role="tabpanel">Second</div>
+  </section>
+</div>

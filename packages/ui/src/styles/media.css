@@ -1,0 +1,23 @@
+/*
+ * Page breakpoints as `@custom-media`, Fomantic's names and ranges (`--ui-breakpoint-*` in `tokens.css`).
+ * - Build-time only:  no browser ships `@custom-media`, so sheets `@import` this file and Lightning CSS
+ *   (Vite `css.lightningcss.drafts.customMedia`) inlines the ranges.  A sheet loaded raw, without that
+ *   build step, silently drops every rule inside `@media (--ui-*)`.
+ * - Page-level only:  components respond to their CONTAINER (container queries), not the viewport.
+ * - Values MUST match `breakpoints` in `styles.vocabulary.en.ts`;  `styles.test.ts` checks they do.
+ */
+
+/* Below tablet:  Fomantic's `@largestMobileScreen`. */
+@custom-media --ui-mobile (width < 768px);
+
+/* Tablet only. */
+@custom-media --ui-tablet (768px <= width < 992px);
+
+/* Computer and up. */
+@custom-media --ui-computer (width >= 992px);
+
+/* Large monitor and up. */
+@custom-media --ui-large-monitor (width >= 1200px);
+
+/* Widescreen monitor and up. */
+@custom-media --ui-widescreen (width >= 1920px);
