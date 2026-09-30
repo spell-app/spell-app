@@ -99,6 +99,24 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   scope pack after a clean compile.  Harmless while the output matches, but a test shouldn't touch fixtures.
   Found 2026-09-29.
 
+- `for each card in the deck` compiles to `spellCore.map(deck, (card) => {...})`, and `map()` builds a NEW
+  collection of the same class for its results (`newThingLike()`, `core.ts`) -- `new Deck()`, which runs the
+  user's `create()` again, e.g. dealing cards, on every loop.  The result is thrown away.  Likely fix:  loops
+  compile to `forEach` (or `forEachSequential` when async).  From reading the code, not run.  Found 2026-09-29.
+
+- Negative positions only work on a `List`:  on a plain array `getItemOf(arr, -1)` reads `arr[-2]`, so
+  `undefined`, and `removeItemOf(arr, -1)` does `splice(-2, 1)`, removing the SECOND-to-last
+  (`collection-core.ts`).  So `the last word in words`, `remove last item of my-list` are wrong for arrays.
+  Found 2026-09-29.
+
+- `map()` / `filter()` on a string, e.g. `words in "a word list" where ...` (a `list_filter` test), start from
+  `newThingLike("...")` -- `new String("")` -- and appending to it throws `TypeError: Cannot assign to read only
+  property 'length'`.  The test only checks the compiled code.  Found 2026-09-29.
+
+- `spellCore.equals()` is lodash `isEqual`, and a `List`'s items live in a `WeakMap` (`extend.ts`), not on the
+  instance -- so two Lists of the same class probably compare EQUAL whatever they hold.  Inferred from the code,
+  NOT confirmed with real Lists.  Found 2026-09-29.
+
 ## 2. Server robustness / security
 
 - [V] `server/lock-utils.ts`: whole module has zero callers, while `saveFile()` / `saveProjectFile()` / `getIndex()`
@@ -128,6 +146,9 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 - `languages/spell/rules/async.ts` `pause` tests: 3 of 4 input strings have a stray trailing `"` (`` `pause for 2 seconds"` ``, `` `pause for 500 msec"` ``, `` `pause for 10 ticks"` ``) that the 4th (`pause for (10 + 10) sec`) doesn't -- looks like a copy-paste typo, not intentional. Left byte-for-byte while converting to `addRule()` per the rollout guide.
 
 - `languages/spell/rules/UI.ts` `end_print_group` test: input `` `end print group"` `` has the same stray trailing `"`. Same as above.
+
+- `spellCore/collection-other.test.ts` `includes` test "returns false if one thing present, one not" expects
+  `true` -- both values are in `{ a: 1, b: 3 }`.  Probably meant to check `1, 2`.
 
 ## 4. Dead / redundant code
 

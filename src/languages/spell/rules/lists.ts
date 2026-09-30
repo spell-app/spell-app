@@ -1362,8 +1362,8 @@ lists.addRule(list_shuffle, {
  * Repeat an action `N` times, e.g. `repeat 3 times: print the number`.
  * - Both a `statement` and an `expression` -- usable inline or as a block.
  * - Body runs as a nested block or inline statement (`{statement_body}?`);
- *   current iteration number is available as `number` (also aliased from `it`).
- * - Compiles to `spellCore.map(spellCore.getRange(0, number), (number) => { ... })`, or
+ *   current iteration number, from 1, is available as `number` (also aliased from `it`).
+ * - Compiles to `spellCore.map(spellCore.countTo(number), (number) => { ... })`, or
  *   `await spellCore.forEachSequential(...)` if body contains an `await` (`method.isAsync`).
  */
 class repeat_n_times extends SpellStatement<"number|body?"> {
@@ -1380,7 +1380,7 @@ class repeat_n_times extends SpellStatement<"number|body?"> {
   }
 
   /**
-   * Build `map`/`forEachSequential` call over `getRange(0, number)`.
+   * Build `map`/`forEachSequential` call over `countTo(number)` -- runs `number` times, NOT one more.
    * - SIDE EFFECT: switches to `forEachSequential` + wraps result in `AwaitExpression` when body's
    *   `method.isAsync` -- set by an `await` expression somewhere in body.
    */
@@ -1391,13 +1391,10 @@ class repeat_n_times extends SpellStatement<"number|body?"> {
       args: [new P.ASTVariableExpression(match, { name: "number" })],
       body: P.matchAST<MethodBody>(this.getBody(match))
     })
-    const getRange = new P.ASTCoreMethodInvocation(match, {
-      methodName: "getRange",
-      args: [new P.ASTNumericLiteral(match, 0), P.matchAST(number)]
-    })
+    const countTo = new P.ASTCoreMethodInvocation(match, { methodName: "countTo", args: [P.matchAST(number)] })
     const expression = new P.ASTCoreMethodInvocation(match, {
       methodName: method.isAsync ? "forEachSequential" : "map",
-      args: [getRange, method]
+      args: [countTo, method]
     })
     if (method.isAsync) return new P.ASTAwaitExpression(match, { expression })
     return expression
@@ -1412,13 +1409,13 @@ lists.addRule(repeat_n_times, {
         {
           title: "No statements",
           input: "repeat 1 time:",
-          output: "spellCore.map(spellCore.getRange(0, 1), (number) => {})"
+          output: "spellCore.map(spellCore.countTo(1), (number) => {})"
         },
         {
           title: "Inline statement",
           input: "repeat 3 times: print the number",
           output: [
-            "spellCore.map(spellCore.getRange(0, 3), (number) => {",
+            "spellCore.map(spellCore.countTo(3), (number) => {",
             "  return spellCore.console.log(number)",
             "})"
           ]
@@ -1426,13 +1423,13 @@ lists.addRule(repeat_n_times, {
         {
           title: "Nested block statement",
           input: ["repeat 3 times:", "\tprint it"],
-          output: ["spellCore.map(spellCore.getRange(0, 3), (number) => {", "  spellCore.console.log(number)", "})"]
+          output: ["spellCore.map(spellCore.countTo(3), (number) => {", "  spellCore.console.log(number)", "})"]
         },
         {
           title: "Error if nested block and inline statement",
           input: ["repeat 3 times: print 1", "\tprint it"],
           output: [
-            "spellCore.map(spellCore.getRange(0, 3), (number) => {",
+            "spellCore.map(spellCore.countTo(3), (number) => {",
             "  spellCore.console.log(number)",
             "})",
             "/* PARSE ERROR: Got both inline statement and nested block */"

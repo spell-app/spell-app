@@ -133,7 +133,7 @@ describe("incremental parsing ~== full parse", () => {
       const project = newProject(files, true)
       const line = "a card is a thing"
       // delete the line's text one character at a time, then type it back in
-      const steps = [...line].map((_char, index) => line.slice(0, line.length - index - 1))
+      const steps = Array.from({ length: line.length }, (_, index) => line.slice(0, line.length - index - 1))
       for (const text of [...steps, ...steps.reverse().slice(1), line]) {
         project.update("/Card.spell", cardText.replace(line, text))
       }

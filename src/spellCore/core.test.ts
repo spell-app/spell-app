@@ -230,6 +230,17 @@ describe("spellCore.getRange()", () => {
   })
 })
 
+describe("spellCore.countTo()", () => {
+  test("counts from 1 to `count`, once per time round a `repeat` loop", () => {
+    expect(spellCore.countTo(3)).toEqual([1, 2, 3])
+    expect(spellCore.countTo(1)).toEqual([1])
+  })
+  test("is empty for a `count` under 1 -- NOT counting down, as `getRange()` would", () => {
+    expect(spellCore.countTo(0)).toEqual([])
+    expect(spellCore.countTo(-2)).toEqual([])
+  })
+})
+
 describe("spellCore.createElement()", () => {
   test("is not yet implemented", () => {
     const noCreateElement = spellCore as unknown as { createElement: () => void }

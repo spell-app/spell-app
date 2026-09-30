@@ -234,6 +234,16 @@ export const coreMethods = defineSpellCoreModule({
 
   randomNumber,
 
+  /**
+   * `[1, 2, ... count]`:  one number per time round a `repeat {count} times` loop -- `[]` if `count` is under 1.
+   * - NOT `getRange(1, count)`, which counts DOWN for a `count` under 1, e.g. `[1, 0]`.
+   */
+  countTo(count: number): number[] {
+    const range: number[] = []
+    for (let next = 1; next <= count; next++) range.push(next)
+    return range
+  },
+
   /** Return a range of numbers from `start` to `end`, inclusive -- counts down if `start > end`. */
   getRange(start: number, end: number): number[] {
     const range: number[] = []
