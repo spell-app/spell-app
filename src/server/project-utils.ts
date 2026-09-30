@@ -265,8 +265,8 @@ export const request_getFile = async (request: Request, response: Response) => {
 
 /**
  * Return project `projectId`'s compiled JS, `<Project>.compiled.js`, as a JS module.
- * - Where the page's import map sends `@spell/project/<projectId>`, so one project's compiled output can
- *   `import` another's -- see `SP.SPELL_PROJECT_MODULE`.
+ * - What a runner fetches for `@spell/project/<projectId>`, so one project's compiled output can `import`
+ *   another's -- see `SP.SPELL_PROJECT_MODULE`, and `runCompiled()` in `src/app/runner/`.
  * - Not found => 404:  that project has never been compiled.
  */
 export const request_getCompiled = async (request: Request, response: Response) => {

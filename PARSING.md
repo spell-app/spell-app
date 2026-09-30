@@ -211,9 +211,10 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - `import { Card, Deck } from "@spell/project/<projectId>"` for each compiled import (`ImportScope.modules`)
   - types compile to `export class`, top-level functions to `export function`, top-level vars to `export let`
   - see "Classes" under Compile for what goes in a class's body
-  - the app's page resolves both with an import map (`vite.importMap.ts`):  `@spell/core` => the SAME
-    `spellCore` the app runs, `@spell/project/` => the server's `/api/projects/compiled/<projectId>`.  The VS Code
-    runner has no map:  `runCompiled()` points `@spell/core` at its own `spellCore` -- see `CODE-DEBT.md`.
+  - NO import map:  every runner -- the app, VS Code's, `<spell-app>` -- runs compiled code from a `blob:` URL,
+    with its specifiers rewritten (`runCompiled()` / `linkModule()` in `src/app/runner/`):  `@spell/core` => the
+    runtime it runs on (`spellRuntime.ts`), `@spell/project/<projectId>` => that project's compiled JS, fetched
+    and linked the same way, afresh each run.  The app, parser and forms NEVER load `spellCore` themselves.
 - ALL files parse first, then ALL compile, so lazy compile-time lookups see the whole project.
 - Editor (`src/app/editor.ts` `onInputChanged`) => `project.updateText(file, text)` on every keystroke, which calls
   `updatedContentsFor(file)`:  `project.incremental.update()` re-parses what changed right away, and hands changed

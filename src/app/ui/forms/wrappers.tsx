@@ -8,10 +8,10 @@
 //
 
 import React from "react"
+import { findDOMNode } from "react-dom"
 import { view } from "@risingstack/react-easy-state"
 
 import { UIError } from "~/util"
-import { spellCore } from "~/spellCore"
 
 import type { Form } from "./Form"
 
@@ -76,10 +76,18 @@ export const FieldWrapper = view(
 
     /**
      * Pointer to HTML `<input>` etc element.
-     * - Looked up in `spellCore.domRoot()`, NOT `document`:  a spell app may live in a shadow root.
+     * - Looked up by `id` in the document or shadow root WE'RE drawn in, NOT `document`:  a spell app may live in a
+     *   shadow root, e.g. `<spell-app>`'s.
+     * - NOT via `spellCore.domRoot()`:  the forms are the app's too, and MUST NOT import `spellCore` -- each runner
+     *   runs its own copy.  See `spellRuntime.ts`.
+     * - NOTE: `findDOMNode()` is deprecated, and gone in React 19 -- as Semantic UI's own `Ref` uses it, we'll
+     *   meet that together.
      */
     getHtmlElement(): (HTMLElement & { validationMessage?: string }) | null {
-      return spellCore.domRoot().getElementById(this.id) as (HTMLElement & { validationMessage?: string }) | null
+      // oxlint-disable-next-line react/no-find-dom-node
+      const root = (findDOMNode(this)?.getRootNode() ?? document) as Document | ShadowRoot
+      const found = root.getElementById?.(this.id) ?? document.getElementById(this.id)
+      return found as (HTMLElement & { validationMessage?: string }) | null
     }
 
     /**

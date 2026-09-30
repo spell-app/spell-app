@@ -5,16 +5,14 @@ import JSON5 from "json5"
 import * as SUI from "semantic-ui-react"
 
 import { P } from "~/parser"
-import { spellCore } from "~/spellCore"
 import { SP } from "~/languages/spell"
-import { editor } from "~/app/editor"
+import { editor, runtimeSpellCore } from "~/app/editor"
 
 // Stick interesting bits on `global` to make console debugging easier.
 Object.assign(global, {
   global,
   _, // lodash
   JSON5,
-  spellCore,
   SpellParser: SP.SpellParser,
   spellParser: SP.spellParser,
   parse: SP.spellParser.parse.bind(SP.spellParser),
@@ -26,3 +24,6 @@ Object.assign(global, {
   editor,
   SUI
 })
+
+// the `spellCore` programs run on -- the runtime's, NOT one of our own:  see `runtimeSpellCore()`
+Object.defineProperty(global, "spellCore", { get: runtimeSpellCore, configurable: true })

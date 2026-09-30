@@ -77,13 +77,23 @@ describe("scopesFromPacks()", () => {
   })
 
   test("each kind of thing a marker declares, named as the pack names it", async () => {
-    const marker = (props: string, defined: string) => `/*! SPELL: DECLARES {\n  ${props},\n  defined: "${defined}",\n} */`
+    const marker = (props: string, defined: string) =>
+      `/*! SPELL: DECLARES {\n  ${props},\n  defined: "${defined}",\n} */`
     const compiled = [
-      marker(`property: "rank", classVariable: "Ranks", rule: "enumeration", of: "Card", enumeration: ["'ace'", 2]`, "/Card.spell:0-9"),
+      marker(
+        `property: "rank", classVariable: "Ranks", rule: "enumeration", of: "Card", enumeration: ["'ace'", 2]`,
+        "/Card.spell:0-9"
+      ),
       "static Ranks = ['ace', 2]",
-      marker(`syntax: "{operator:is} face up", output: "is_face_up", of: "Card", kind: "method", name: '"is face up"'`, "/Card.spell:10-19"),
+      marker(
+        `syntax: "{operator:is} face up", output: "is_face_up", of: "Card", kind: "method", name: '"is face up"'`,
+        "/Card.spell:10-19"
+      ),
       "get is_face_up() {}",
-      marker(`syntax: "draw {thisArg:expression}", of: "Card", kind: "method", name: "draw (a card)"`, "/Card.spell:20-29"),
+      marker(
+        `syntax: "draw {thisArg:expression}", of: "Card", kind: "method", name: "draw (a card)"`,
+        "/Card.spell:20-29"
+      ),
       "draw() {}",
       marker(`property: "color", of: "Card", constants: ["red"]`, "/Card.spell:30-39"),
       "get color() {}",

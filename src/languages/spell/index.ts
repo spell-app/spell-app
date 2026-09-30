@@ -5,8 +5,9 @@
  * - NOTE: this barrel is also pulled into the server -- `src/server/project-utils.ts` does
  *   `import { SP } from "~/languages/spell"` and calls `SP.SpellLocation...` / `SP.spellParser.compile()`
  *   directly.  Nothing reachable from here can rely on browser-only globals at module-evaluation time
- *   (methods that only run client-side, e.g. `SpellFile.executeCompiled()`'s `document` use, are fine --
- *   the server just never calls them).
+ *   (methods that only run client-side are fine -- the server just never calls them).
+ * - NOTE: nothing here imports `spellCore`'s code -- only its types file.  Programs run on a runner's own copy of
+ *   it, see `spellRuntime.ts`, so a second copy here would be one no program runs on.
  */
 
 /**

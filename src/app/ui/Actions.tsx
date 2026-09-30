@@ -2,8 +2,7 @@ import * as SUI from "semantic-ui-react"
 
 import { view } from "~/util"
 
-import { spellCore } from "~/spellCore"
-import { editor } from "~/app/editor"
+import { editor, runtimeConsole } from "~/app/editor"
 import type { UI } from "~/app/ui"
 
 /****************
@@ -28,7 +27,7 @@ function Action({ title, button = false, ...props }: ActionProps) {
 /**
  * Constructors for `<Menu.Item>`s for public actions.
  *
- * NOTE: an entry MUST wrap itself in `view()` when it reads `editor`/`spellCore` while computing
+ * NOTE: an entry MUST wrap itself in `view()` when it reads `editor` -- e.g. via `runtimeConsole()` -- while computing
  * the props it hands to `<Action>` -- `view()` only tracks observables read during that
  * component's own render, and `<Action>` itself reads nothing but props.
  * - e.g. `saveFile` reads `editor.file?.isDirty` to colour itself -- drop its `view()` and the
@@ -185,13 +184,13 @@ export const Actions = {
   ////////////////
 
   clearConsole: view((props: ActionProps) => {
-    const consoleisEmpty = spellCore.console.lines.length === 0
+    const consoleisEmpty = !runtimeConsole()?.lines.length
     return (
       <Action
         title="Clear Console"
         disabled={consoleisEmpty}
         icon="ban"
-        onClick={() => spellCore.console.clear()}
+        onClick={() => runtimeConsole()?.clear()}
         {...props}
       />
     )

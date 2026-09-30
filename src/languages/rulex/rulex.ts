@@ -334,7 +334,6 @@ rulex.addRule(list, {
 //    e.g. "(>|a)"
 ////////////////
 
-
 /**
  * `(a|b|c)`: match one of a list of `sequence` rules, separated by `|`, with an optional repeat flag.
  * - Plain `Sequence`:  `(`, optional `name:`, `[{sequence}|]`, `)`.  Each `sequence` stops at `|` or `)`

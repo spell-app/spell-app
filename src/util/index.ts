@@ -21,6 +21,7 @@ export * from "./Derivative"
 export * from "./Assertable"
 export * from "./string"
 export * from "./json"
+export * from "./paths"
 export * from "./die"
 export * from "./CustomError"
 

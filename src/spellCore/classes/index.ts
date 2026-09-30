@@ -8,7 +8,7 @@
  * re-enter it circularly.
  */
 import { spellCore } from "~/spellCore/core"
-import { defineSpellCoreModule } from "~/spellCore/spellCore.types"
+import { defineSpellCoreModule, SPELL_BASE_TYPES } from "~/spellCore/spellCore.types"
 
 import { Thing } from "./Thing"
 import { App } from "./App"
@@ -22,8 +22,8 @@ export type Drawable = {
 
 /** Base-type registry plus safer `draw*` wrappers for `Thing`/`List`/`App`. */
 export const classesMethods = defineSpellCoreModule({
-  /** Base types known to the `spell` language/parser. */
-  BASE_TYPES: ["Object", "Thing", "List", "App"] as string[],
+  /** Base types known to the `spell` language/parser -- see `SPELL_BASE_TYPES`. */
+  BASE_TYPES: [...SPELL_BASE_TYPES] as string[],
 
   /** DOM `id` for the react root element for `App` components. */
   REACT_APP_ROOT_ID: "spell-app-root",

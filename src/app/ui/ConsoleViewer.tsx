@@ -1,9 +1,8 @@
 import { view } from "~/util"
 import { P } from "~/parser"
-import { spellCore } from "~/spellCore"
 import { SP } from "~/languages/spell"
 
-import { editor } from "~/app/editor"
+import { editor, runtimeConsole } from "~/app/editor"
 
 import { UI } from "~/app/ui"
 import { Actions } from "./Actions"
@@ -72,7 +71,8 @@ export function ConsoleToolbar() {
 
 /****************
  * ### `<ConsoleViewer>`
- * Top-level error-handling wrapper around `spellCore.console`'s rendered lines.
+ * Top-level error-handling wrapper around `runtimeConsole()`'s rendered lines -- the console of the runtime programs
+ * run on, which shows once it's loaded.
  ****************/
 export class ConsoleViewer extends ErrorHandler<ConsoleViewerProps> {
   /**
@@ -106,13 +106,13 @@ export class ConsoleViewer extends ErrorHandler<ConsoleViewerProps> {
   }
 
   /**
-   * Top-level viewer for the console: reads `spellCore.console.lines` (reactively, via `view()`)
+   * Top-level viewer for the console: reads `runtimeConsole().lines` (reactively, via `view()`)
    * and hands them to `<ConsoleLines>`.
    * NOTE: was previously worded as if for a `spellFile.match` producing `<ConsoleView>`/`<TokenView>`
    * elements -- stale, copy-pasted from `MatchViewer`'s equivalent field.  Corrected here.
    */
   Component = view(() => {
-    const lines = spellCore.console.lines
+    const lines = runtimeConsole()?.lines ?? []
     return (
       <ConsoleInspectorContext.Provider value={EDITOR_INSPECTOR}>
         <ConsoleLines lines={lines} indent={0} />

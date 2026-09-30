@@ -1,12 +1,12 @@
 import type { ComponentType } from "react"
-import type { createRoot } from "react-dom/client"
 import { navigate } from "@reach/router"
 
 import { UIError, createStore, setPrefKey, getPref, setPref, CONFIRM } from "~/util"
 
 import { P } from "~/parser"
-import { spellCore } from "~/spellCore"
 import { SP } from "~/languages/spell"
+import type { SpellConsole } from "~/spellCore/console"
+import type { SpellRuntime } from "~/app/runner"
 import type * as UIT from "~/app/ui/ui.types"
 import type { monaco } from "~/app/ui/monaco"
 // NOTE: import `Modals` directly rather than through `UI` barrel to avoid circular import.
@@ -161,12 +161,7 @@ const EDITOR_DEFAULTS = {
       editor.lastProjectForRoot(location.projectRoot, projectPath)
       await project.load(undefined)
       // Clear application display when switching projects
-      const oldProjectRoot = document.getElementById(spellCore.REACT_APP_ROOT_ID) as
-        | (HTMLElement & { REACT_ROOT?: ReturnType<typeof createRoot> })
-        | null
-      if (typeof oldProjectRoot?.REACT_ROOT?.unmount === "function") {
-        oldProjectRoot.REACT_ROOT.unmount()
-      }
+      appRuntime?.unmountApp()
     }
 
     // Figure out which file to show, using pref if not specified in `path`
@@ -285,55 +280,61 @@ const EDITOR_DEFAULTS = {
 
   /**
    * Compile current `project` and, if compilation produced output, execute it.
-   * - SIDE EFFECT: clears `spellCore.console` and cancels any pending `compileAppSoon()` timer first.
+   * - SIDE EFFECT: clears `runtimeConsole()` and cancels any pending `compileAppSoon()` timer first.
    */
   async compileApp(): Promise<void> {
     const { project, file } = editor
     if (!project || !file) return
 
-    spellCore.console.clear()
+    const output = (await editor.loadRuntime()).spellCore.console
+    output.clear()
     try {
-      spellCore.console.group("Compiling", project)
+      output.group("Compiling", project)
 
       editor.clearCompileAppSoon()
       await project.compile()
       const { compiled } = project
 
       if (compiled) {
-        spellCore.console.groupCollapsed("Compiled to javascript:")
+        output.groupCollapsed("Compiled to javascript:")
         const lines = compiled
           .replace(/\t/g, "   ")
           .split("\n")
           .map((line, lineNum) => `${lineNum}`.padStart(4, " ") + `  ${line}`)
           .join("\n")
-        spellCore.console.log(lines)
-        spellCore.console.groupEnd()
+        output.log(lines)
+        output.groupEnd()
 
         await editor.executeCompiledApp()
       }
     } finally {
-      spellCore.console.groupEnd()
+      output.groupEnd()
     }
   },
 
   /**
-   * Execute already-`compiled` current `project`, logging result/errors to `spellCore.console`.
-   * - Throws if execution errored, so browser devtools print the right stack/line number too.
+   * Run already-`compiled` current `project` afresh, on the runtime programs run on -- logging how it went to
+   * `runtimeConsole()`.  See `runCompiled()`.
+   * - Runs what it wrote to `<Project>.compiled.js`, declarations header and all.
+   * - Each project it imports is fetched afresh, so a recompiled library shows at once.
+   * - An error's stack goes to devtools too -- `runCompiled()` logs it.
    */
   async executeCompiledApp(): Promise<void> {
     const { project } = editor
-    if (!project?.compiled) return
-    spellCore.console.group(`Executing ${project.type}`)
-    const result = await project.executeCompiled()
-    spellCore.console.groupEnd()
-    if (result instanceof Error) {
-      spellCore.console.error(`${project.Type} failed with error:`, result)
-      // Throw so the error is printed to the browser console.
-      // This will have the print the correct line number to the right
-      // but we apparently don't have another way to get it???
-      throw result
-    }
-    spellCore.console.info(`${project.Type} executed without errors.  exports =`, result)
+    const compiled = project?.outputFile.contents ?? project?.compiled
+    if (!project || !compiled) return
+    const runtime = await editor.loadRuntime()
+    const output = runtime.spellCore.console
+    output.group(`Executing ${project.type}`)
+    const error = await runtime.runApp(compiled, {
+      appRoot,
+      coreUrl: runtimeUrl(),
+      keepConsole: true,
+      loadImport: fetchCompiled
+    })
+    output.groupEnd()
+    if (error) output.error(`${project.Type} failed with error:`, error)
+    else output.info(`${project.Type} executed without errors.`)
   },
 
   /** Timer id for a pending `compileAppSoon()`, if any. */
@@ -349,6 +350,38 @@ const EDITOR_DEFAULTS = {
       clearTimeout(editor.compileAppSoonTimer)
       editor.compileAppSoonTimer = undefined
     }
+  },
+
+  ////////////////
+  // ## Running
+  ////////////////
+
+  /**
+   * Has the runtime programs run on loaded?  See `loadRuntime()`.
+   * - The runtime itself is NOT in the store:  read it with `runtimeSpellCore()` / `runtimeConsole()`.
+   */
+  runtimeLoaded: false,
+
+  /**
+   * The runtime programs run on, loaded the first time it's asked for -- ONE for the page:  the editor runs one
+   * program at a time.
+   * - dev:  `src/app/runner/spellRuntime.ts`, as vite serves it;  a build:  its own `spell-runtime.js`, see
+   *   `vite.config.ts`.  See `runtimeUrl()`.
+   * - SIDE EFFECT:  parse errors show on its console, as program output does -- see `SP.SpellFile.errorConsole`.
+   */
+  loadRuntime(): Promise<SpellRuntime> {
+    loadingRuntime ??= (import(/* @vite-ignore */ runtimeUrl()) as Promise<SpellRuntime>).then((runtime) => {
+      appRuntime = runtime
+      SP.SpellFile.errorConsole = runtime.spellCore.console
+      editor.runtimeLoaded = true
+      return runtime
+    })
+    return loadingRuntime
+  },
+
+  /** Where the running app draws -- `<AppContainer>` hands it over, as a ref.  Kept OUTSIDE the store. */
+  setAppRoot(element: HTMLElement | null): void {
+    appRoot = element ?? undefined
   },
 
   ////////////////
@@ -683,6 +716,30 @@ const EDITOR_DEFAULTS = {
 /** Type of the `editor` singleton, derived from `EDITOR_DEFAULTS` above. */
 export type EditorStore = typeof EDITOR_DEFAULTS
 
+/** The runtime programs run on, once loaded -- OUTSIDE the store, whose proxies would wrap it.  See `loadRuntime()`. */
+let appRuntime: SpellRuntime | undefined
+/** Loading `appRuntime`, once asked for. */
+let loadingRuntime: Promise<SpellRuntime> | undefined
+/** Where the running app draws -- OUTSIDE the store too.  See `editor.setAppRoot()`. */
+let appRoot: HTMLElement | undefined
+
+/**
+ * `spellCore` of the runtime programs run on -- `undefined` until it's loaded, see `editor.loadRuntime()`.
+ * - NOT an import of `~/spellCore`:  the app MUST NOT load one of its own, see `spellRuntime.ts`.
+ * - A function, NOT a getter on `editor`:  the store would hand it out wrapped in a proxy -- see "Store proxies
+ *   stand in for the real objects" in `CODE-DEBT.md`.  Worse, its class is named `spellCore`, which the proxy
+ *   library looks up on `window` -- where `debug.ts` puts THIS, so a store getter recursed forever.
+ * - Reads `editor.runtimeLoaded`, so a `view()` calling it redraws once it's loaded.
+ */
+export function runtimeSpellCore(): SpellRuntime["spellCore"] | undefined {
+  return editor.runtimeLoaded ? appRuntime?.spellCore : undefined
+}
+
+/** Console programs print to -- where the editor says what it's compiling, too.  See `runtimeSpellCore()`. */
+export function runtimeConsole(): SpellConsole | undefined {
+  return runtimeSpellCore()?.console
+}
+
 /** Monaco editor of our `<InputEditor>`, if one's mounted -- OUTSIDE the store, see `editor.getInputEditor()`. */
 let inputEditorInstance: monaco.editor.IStandaloneCodeEditor | undefined
 /** Path of the file `inputEditorInstance` shows. */
@@ -830,4 +887,24 @@ function showModal<P extends ModalProps, R = unknown>(
   }
 
   return promise
+}
+
+////////////////
+// ## Running helpers
+////////////////
+
+/**
+ * URL of the runtime programs run on -- also their `@spell/core`, so it MUST be the one `loadRuntime()` imports.
+ * - dev:  vite serves its source;  a build has it as its own entry, at a FIXED name -- see `vite.config.ts`.
+ */
+function runtimeUrl(): string {
+  const path = import.meta.env.DEV ? "/src/app/runner/spellRuntime.ts" : `${import.meta.env.BASE_URL}spell-runtime.js`
+  return new URL(path, location.href).href
+}
+
+/** Compiled javascript of project `projectId`, which the program imports -- fetched afresh, from the server. */
+async function fetchCompiled(projectId: string): Promise<string> {
+  const response = await fetch(`/api/projects/compiled/${projectId}`, { cache: "no-cache" })
+  if (!response.ok) throw new Error(`Couldn't load project '${projectId}':  ${response.status} ${response.statusText}`)
+  return response.text()
 }

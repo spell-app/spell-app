@@ -1,7 +1,6 @@
 import { TextFile, batch, raw } from "~/util"
 import { P } from "~/parser"
 import { SP } from "~/languages/spell"
-import { spellCore } from "~/spellCore"
 
 /**
  * Loadable file of spell code located at `path`.
@@ -213,8 +212,18 @@ export class SpellFile extends TextFile {
     })
   }
 
-  /** Show our `match`'s parse errors on the `spellCore` console. */
+  /**
+   * Where parse errors are logged as files parse -- none by default:  the parser has no console of its own.
+   * - The app points it at the console of the runtime its programs run on, so they show in "Program Output".
+   * - NOT `spellCore.console`:  the parser MUST NOT load `spellCore` -- each runner runs its own copy.  See
+   *   `spellRuntime.ts`.
+   */
+  static errorConsole?: { error(...args: unknown[]): void }
+
+  /** Show our `match`'s parse errors on `SpellFile.errorConsole`, if there is one. */
   logParseErrors(): void {
+    const log = SpellFile.errorConsole
+    if (!log) return
     const errors = this.match && SP.Block.getParseErrors(this.match)
     errors?.forEach((error) => {
       // TODO(ast): remove cast when AST/ASTNode typing lands -- `.value` is subclass-specific.
@@ -222,7 +231,7 @@ export class SpellFile extends TextFile {
       let message = `${value} on line ${error.line! + 1}`
       const fileScope = error.getScopeOfType(P.FileScope)
       if (fileScope) message += ` of ${fileScope.name}`
-      spellCore.console.error(error, message)
+      log.error(error, message)
     })
   }
 
@@ -234,46 +243,6 @@ export class SpellFile extends TextFile {
       this.setState("compiled", match?.compile() as string | undefined)
     })
     return this.compiled
-  }
-
-  /**
-   * Execute our `compiled` code.  No-op if not compiled.
-   * - SIDE EFFECT: creates (or replaces) a `<script type="module">` element in `document.body` and lets
-   *   it eval `compiled` as an ES module.
-   * - NOTE: browser-only -- touches `document` directly.  That's fine even though this whole module is
-   *   reachable from the server via `~/languages/spell`'s barrel (see `src/server/project-utils.ts`),
-   *   since the server never calls this method.
-   */
-  executeCompiled(): void {
-    const { contents, compiled } = this
-    if (!compiled) return
-    console.group("attempting to execute compiled output:")
-    console.groupCollapsed("spell")
-    console.info(contents)
-    console.groupEnd()
-    console.groupCollapsed("javascript")
-    console.info(compiled)
-    console.groupEnd()
-
-    // add all types to `global` for local hacking
-    try {
-      const scriptEl = document.createElement("script")
-      scriptEl.setAttribute("id", "compileOutput")
-      scriptEl.setAttribute("type", "module")
-      scriptEl.innerHTML = compiled
-
-      const existingEl = document.getElementById("compileOutput")
-
-      if (existingEl) {
-        existingEl.replaceWith(scriptEl)
-      } else {
-        document.body.append(scriptEl)
-      }
-    } catch (e) {
-      console.error("error evaling output:", e)
-    }
-    // groupEnd() in a tick after contents execute
-    setTimeout(() => console.groupEnd(), 100)
   }
 
   ////////////////

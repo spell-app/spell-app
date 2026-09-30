@@ -11,19 +11,26 @@ import { describe, test, expect } from "vitest"
  * - `vite.config.ts` sets `output.keepNames` to prevent that;  this fails if someone removes it.
  * - Standard decorators MUST be lowered by `vite.decorators.ts` -- vite's own transformer passes them
  *   through raw, which no browser can run.
+ * - `spellCore` MUST be in `spell-runtime.js` alone -- the runtime programs run on -- NOT in the app's chunks.
  */
 describe("production build", () => {
-  test("keeps rule class names and lowers decorators", () => {
+  test("keeps rule class names, lowers decorators, and keeps `spellCore` in `spell-runtime.js`", () => {
     const outDir = mkdtempSync(join(tmpdir(), "spell-build-"))
     try {
       execFileSync("npx", ["vite", "build", "--outDir", outDir, "--emptyOutDir", "--logLevel", "silent"], {
         stdio: "pipe"
       })
       const assets = join(outDir, "assets")
-      const js = readdirSync(assets)
+      const chunks = readdirSync(assets)
         .filter((file) => file.endsWith(".js"))
         .map((file) => readFileSync(join(assets, file), "utf8"))
-        .join("\n")
+      // the runtime programs run on -- its own entry, holding ALL of `spellCore` (`resetRuntime` is its own);
+      // none of the app's chunks may load a second one.  See `spellRuntime.ts`.
+      const runtime = readFileSync(join(outDir, "spell-runtime.js"), "utf8")
+      expect(runtime).toContain("resetRuntime")
+      expect(chunks.filter((chunk) => chunk.includes("resetRuntime"))).toEqual([])
+      expect(() => execFileSync("node", ["--check", join(outDir, "spell-runtime.js")], { stdio: "pipe" })).not.toThrow()
+      const js = [runtime, ...chunks].join("\n")
       // No raw decorator syntax survived -- e.g. `@proto static alias = ...`
       // NOTE: bare `@proto` DOES legitimately appear, in error message strings.
       expect(js).not.toMatch(/@proto\s+static\s+\w+\s*=/)

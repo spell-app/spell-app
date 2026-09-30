@@ -210,27 +210,13 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 
 - **Cost**:  "Run Project" in VS Code refuses a project whose `project.json` imports another project's compiled
   JS -- it says to run it in the app instead.  `source: true` imports are fine:  they compile into the project.
-- **Cause**:  compiled spell imports another project as `@spell/project/<projectId>`, which the app's page
-  resolves with an import map onto the server's `/api/projects/compiled/`.  The runner's webview has no import
-  map and no server:  it runs compiled code from a `blob:` URL the extension hands it.  `@spell/core` alone is
-  easy -- `runCompiled()` points it at the runner's own `spellCore` -- but other projects' code isn't there.
+- **Cause**:  compiled spell imports another project as `@spell/project/<projectId>`, which the app and
+  `<spell-app>` fetch from the server's `/api/projects/compiled/` -- see `runCompiled({ loadImport })`.  The
+  runner's webview has no server:  it runs compiled code the extension hands it, and asks for nothing else.
 - **Fix**:  `runCompiled()` already links imports, given `loadImport(projectId)` -- `<spell-app>` does it:  each
   imported project's JS onto its own `blob:` URL, deepest first.  The VS Code runner just needs to pass a
   `loadImport` that asks the extension for that project's `<Project>.compiled.js`.
 - **Pinned at**:  `runCompiled()` in `src/app/runner/runCompiled.ts` -- its "imports another" message.
-
----
-
-## An imported project's module is cached for the life of the page
-
-- **Cost**:  in the app, recompiling a library doesn't change what a project importing it RUNS until the page
-  reloads.  Its parse sees the change at once -- `SpellProject.loadImportScope()` re-reads the declarations.
-- **Cause**:  the browser caches ES modules by URL for the page's life.  `executeCompiled()` cache-busts the
-  project's own URL (`?<time>`), but its `import ... from "@spell/project/..."` lines map onto fixed URLs.
-- **Fix**:  version the specifier, e.g. `@spell/project/<projectId>?v=<compiled time>` from the declarations,
-  so a recompile gives a new URL.  Or run projects in a fresh iframe per run.  Or link imports afresh each run,
-  as `<spell-app>` does -- `runCompiled({ loadImport })` -- which doesn't have this problem.
-- **Pinned at**:  `SpellProject.importHeader()`.
 
 ---
 

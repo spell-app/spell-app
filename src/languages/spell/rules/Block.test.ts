@@ -169,7 +169,16 @@ describe("class members go in their class's body", () => {
   })
 
   test("comments directly above a member go with it, e.g. a banner", () => {
-    const text = ["a card is a thing", "", "## Properties", "// of cards", "", "cards have a rank as text", "", "print 1"]
+    const text = [
+      "a card is a thing",
+      "",
+      "## Properties",
+      "// of cards",
+      "",
+      "cards have a rank as text",
+      "",
+      "print 1"
+    ]
     expect(code(text.join("\n"))).toEqual([
       "export class Card extends Thing {",
       "  ////////////////",

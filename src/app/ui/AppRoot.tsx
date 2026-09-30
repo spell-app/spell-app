@@ -1,5 +1,6 @@
 import React from "react"
 
+import { editor } from "~/app/editor"
 import { UI } from "~/app/ui"
 import { Actions } from "./Actions"
 import { AppContainer } from "./AppContainer"
@@ -9,6 +10,7 @@ import "./AppRoot.css"
 /****************
  * ### `<AppRoot>`
  * Top-level wrapper for the compiled spell app: an optional `<AppToolbar>` plus `<AppContainer>`.
+ * - Its mount point is where `editor` runs programs -- see `editor.setAppRoot()`.
  ****************/
 export const AppRoot = React.memo(function AppRoot({
   showToolbar = true,
@@ -18,7 +20,7 @@ export const AppRoot = React.memo(function AppRoot({
   return (
     <div className="AppRoot">
       {!!showToolbar && <AppToolbar />}
-      <AppContainer scrolling={scrolling} padded={padded} />
+      <AppContainer scrolling={scrolling} padded={padded} appRef={editor.setAppRoot} />
     </div>
   )
 })

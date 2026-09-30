@@ -165,12 +165,7 @@ classes.addRule(create_list_type, {
   tests: [
     {
       compileAs: "statement",
-      tests: [
-        [
-          "a deck is a list of cards",
-          ["export class Deck extends List {", "  static instanceType = Card", "}"]
-        ]
-      ]
+      tests: [["a deck is a list of cards", ["export class Deck extends List {", "  static instanceType = Card", "}"]]]
     }
   ]
 })
@@ -1201,11 +1196,7 @@ classes.addRule(quoted_property_formula, {
       tests: [
         [
           'a card "is a (rank)" for its ranks',
-          [
-            "Card.prototype.is_a_$rank = function (rank) {",
-            "  return this.rank === rank",
-            "}"
-          ]
+          ["Card.prototype.is_a_$rank = function (rank) {", "  return this.rank === rank", "}"]
         ],
         [
           'a card "is the (rank) of (suits)" for its ranks and its suits',

@@ -1,10 +1,9 @@
 // Common imports
 import { createRoot } from "react-dom/client"
-import * as SUI from "semantic-ui-react"
 
 // Import parser bits
 import "~/parser"
-import { spellCore } from "~/spellCore"
+import { editor } from "~/app/editor"
 import { UI, ErrorNotice, Notice } from "~/app/ui"
 
 import { Routes } from "./pages/routes"
@@ -12,11 +11,9 @@ import { Routes } from "./pages/routes"
 // Use the below to set up methods/etc in the browser for hacking
 import "./debug"
 
-// Register `UI` and `SUI` elements so we can use them in spell JSX.
-// NEVER rename the `UI` key -- `.spell` sources write `<UI.Form>`, `<UI.Button>` etc, so it is the
-// spell language's public namespace.  Renaming the barrel would silently break every spell program,
-// so if it ever changes, alias it back to `UI` here rather than following the rename.
-spellCore.registerElements({ UI, SUI })
+// Programs run on the runtime `editor` loads -- start loading it now.  It registers the `UI` / `SUI` tags spell JSX
+// draws with, NOT the editor's `UI` barrel.  NEVER import `~/spellCore` here:  see `spellRuntime.ts`.
+void editor.loadRuntime()
 
 /**
  * Mount app into `#react-root`.

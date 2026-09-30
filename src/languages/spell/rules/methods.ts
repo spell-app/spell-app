@@ -974,20 +974,12 @@ methods.addRule(to_do_something, {
         {
           title: "type arg in signature - thisVar",
           input: "to create (a card): print the card",
-          output: [
-            `Card.prototype.create = function () {`,
-            `  return spellCore.console.log(this)`,
-            `}`
-          ]
+          output: [`Card.prototype.create = function () {`, `  return spellCore.console.log(this)`, `}`]
         },
         {
           title: "type arg in signature - it",
           input: "to create (a card): print it",
-          output: [
-            `Card.prototype.create = function () {`,
-            `  return spellCore.console.log(this)`,
-            `}`
-          ]
+          output: [`Card.prototype.create = function () {`, `  return spellCore.console.log(this)`, `}`]
         },
         {
           title: "type arg in signature - its",
@@ -997,65 +989,37 @@ methods.addRule(to_do_something, {
         {
           title: "multiple type args in signature - thisVar",
           input: "to add (a card) to (a pile): set the pile of the card to the pile",
-          output: [
-            `Card.prototype.add_to_$pile = function (pile) {`,
-            `  this.pile = pile`,
-            `}`
-          ]
+          output: [`Card.prototype.add_to_$pile = function (pile) {`, `  this.pile = pile`, `}`]
         },
         {
           title: "multiple type args in signature - it",
           input: "to add (a card) to (a pile): set the pile of it to the pile",
-          output: [
-            `Card.prototype.add_to_$pile = function (pile) {`,
-            `  this.pile = pile`,
-            `}`
-          ]
+          output: [`Card.prototype.add_to_$pile = function (pile) {`, `  this.pile = pile`, `}`]
         },
         {
           title: "multiple type args in signature - its",
           input: "to add (a card) to (a pile): set its pile to the pile",
-          output: [
-            `Card.prototype.add_to_$pile = function (pile) {`,
-            `  this.pile = pile`,
-            `}`
-          ]
+          output: [`Card.prototype.add_to_$pile = function (pile) {`, `  this.pile = pile`, `}`]
         },
         {
           title: "typed arg in signature -- arg name",
           input: "to show (thing as a card): print the thing",
-          output: [
-            `Card.prototype.show = function () {`,
-            `  return spellCore.console.log(this)`,
-            `}`
-          ]
+          output: [`Card.prototype.show = function () {`, `  return spellCore.console.log(this)`, `}`]
         },
         {
           title: "typed arg in signature -- thisVar",
           input: "to show (thing as a card): print the card",
-          output: [
-            `Card.prototype.show = function () {`,
-            `  return spellCore.console.log(this)`,
-            `}`
-          ]
+          output: [`Card.prototype.show = function () {`, `  return spellCore.console.log(this)`, `}`]
         },
         {
           title: "typed arg in signature -- it",
           input: "to show (thing as a card): print it",
-          output: [
-            `Card.prototype.show = function () {`,
-            `  return spellCore.console.log(this)`,
-            `}`
-          ]
+          output: [`Card.prototype.show = function () {`, `  return spellCore.console.log(this)`, `}`]
         },
         {
           title: "typed arg in signature -- its",
           input: "to show (thing as a card): print its name",
-          output: [
-            `Card.prototype.show = function () {`,
-            `  return spellCore.console.log(this.name)`,
-            `}`
-          ]
+          output: [`Card.prototype.show = function () {`, `  return spellCore.console.log(this.name)`, `}`]
         },
         {
           title: "typed var in signature: implicit `it` gets remapped after `get`",

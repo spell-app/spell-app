@@ -1,21 +1,20 @@
-import { spellCore } from "~/spellCore"
-
 import "./AppContainer.css"
 
 /****************
  * ### `<AppContainer>`
- * Holds the DOM mount point (`id={spellCore.REACT_APP_ROOT_ID}`) the compiled spell app's own React
- * root attaches to -- see `editor.selectPath()`, which unmounts whatever's there when switching projects.
- * - NOTE: imports nothing from the `UI` barrel, so the VS Code runner (`~/app/runner`) can use it
- *   without pulling in the editor.
+ * Holds the DOM mount point the compiled spell app's own React root attaches to -- handed over as `appRef`,
+ * e.g. to `editor.setAppRoot()`, for `runApp()`.
+ * - Its `id` is `spellCore.REACT_APP_ROOT_ID`, where an app looks if no one says where -- WRITTEN OUT, NOT imported:
+ *   the app MUST NOT load `spellCore` itself, see `spellRuntime.ts`.
+ * - NOTE: imports nothing from the `UI` barrel, so a runner could use it without pulling in the editor.
  ****************/
-export function AppContainer({ scrolling, padded }: AppContainerProps) {
+export function AppContainer({ scrolling, padded, appRef }: AppContainerProps) {
   const classNames = ["AppContainer"]
   if (scrolling) classNames.push("scrolling")
   if (padded) classNames.push("padded")
   return (
     <div className={classNames.join(" ")}>
-      <div id={spellCore.REACT_APP_ROOT_ID} className="App" />
+      <div ref={appRef} id="spell-app-root" className="App" />
     </div>
   )
 }
@@ -26,4 +25,6 @@ export type AppContainerProps = {
   scrolling?: boolean
   /** Add `"padded"` class. */
   padded?: boolean
+  /** Hand over the mount point, e.g. `editor.setAppRoot` -- `null` when it goes. */
+  appRef?: (element: HTMLDivElement | null) => void
 }

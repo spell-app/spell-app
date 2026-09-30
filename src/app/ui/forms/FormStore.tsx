@@ -1,7 +1,6 @@
 import cloneDeep from "lodash/cloneDeep"
-import { createStore } from "~/util"
 
-import { spellCore } from "~/spellCore"
+import { createStore, getPath, setPath } from "~/util"
 
 /**
  * Create a react-easy-state `store` for use in a form with form `value`.
@@ -22,10 +21,10 @@ export function makeFormStore<V extends object>(value: V): FormStore<V> {
     // so e.g. a bound `<UI.Button disabled={...}>` never sees the change. Using `value` directly keeps
     // every read/write going through the exact same getter/setter with `this` always the real instance.
     getValue(path) {
-      return spellCore.getPath(value, path)
+      return getPath(value, path)
     },
     setValue(path, newValue) {
-      spellCore.setPath(value, path, newValue)
+      setPath(value, path, newValue)
     },
     errors: {},
     getError(path) {
@@ -53,9 +52,9 @@ export type FormStore<V extends object> = {
   value: V
   /** `cloneDeep(value)` -- un-proxied, so reading it does not subscribe to reactive updates. */
   readonly raw: V
-  /** Reactively get a value by nested `path` (e.g. `"a.b[0].c"`), via `spellCore.getPath()`. */
+  /** Reactively get a value by nested `path` (e.g. `"a.b[0].c"`), via `getPath()` in `~/util`. */
   getValue(path: string): unknown
-  /** Reactively set a value by nested `path`, via `spellCore.setPath()`. */
+  /** Reactively set a value by nested `path`, via `setPath()` in `~/util`. */
   setValue(path: string, value: unknown): void
   /** Per-path validation errors, keyed by the same flat `path` strings as `getValue()`/`setValue()`. */
   errors: Record<string, string | undefined>

@@ -1,132 +1,28 @@
+import { getPath, setPath, splitPath, type PathStep } from "~/util"
+
 import { spellCore } from "./core"
 import { defineSpellCoreModule } from "./spellCore.types"
 
-const PATH_PATTERN = /(\.|\[[^\]]+\])/
+export type { PathStep }
 
-/** A single step of a split path: a string key or (for array access) a number. */
-export type PathStep = string | number
-
+/**
+ * Getting and setting values by path, e.g. `"a.b[0].c"` -- spell's own names for `~/util`'s, which the app's forms
+ * use too, WITHOUT importing `spellCore`.  See `~/util/paths.ts`.
+ */
 export const pathMethods = defineSpellCoreModule({
-  /**
-   * Given an `object` and a string `path`, walk it to get the leaf value.
-   * - Returns `undefined` on invalid `path`.
-   * - NOTE: if a numeric step targets an object with a `getItem(key)` method (e.g. spell's `List`),
-   *   calls that instead of plain index access, so `path` can reach into custom collections too.
-   * - Used e.g. by `FormStore` to bind form fields to dotted `value` paths.
-   */
+  /** Given an `object` and a string `path`, walk it to get the leaf value -- see `getPath()` in `~/util`. */
   getPath(object: unknown, path: string): unknown {
-    if (object == null) return object
-    const steps = spellCore.splitPath(path)
-    if (!steps) return undefined
-    let target: unknown = object
-    for (let i = 0; i < steps.length; i++) {
-      const key = steps[i]
-      if (target == null) return undefined
-      if (typeof key === "number" && typeof (target as { getItem?: (key: number) => unknown }).getItem === "function") {
-        target = (target as { getItem: (key: number) => unknown }).getItem(key)
-      } else {
-        target = (target as Record<PathStep, unknown>)[key]
-      }
-    }
-    return target
+    return getPath(object, path)
   },
 
-  /**
-   * Given an `object`, walk `path` and set leaf step to `value`.
-   * - Builds objects or arrays along the way if path steps aren't defined yet.
-   * - NOTE: if a numeric step targets an object with a `setItem(key, value)` method (e.g. spell's
-   *   `List`), calls that instead of plain index assignment.
-   * - SIDE EFFECT: `value === undefined` deletes property instead of setting it to `undefined`.
-   * - Returns `value`, or `undefined` if passed an invalid `path`.
-   */
+  /** Given an `object`, walk `path` and set leaf step to `value` -- see `setPath()` in `~/util`. */
   setPath(object: unknown, path: string, value: unknown): unknown {
-    if (object == null) return object
-    const steps = spellCore.splitPath(path)
-    if (!steps) return undefined
-    let target = object as Record<PathStep, unknown>
-    // go right up to the penultimate item
-    if (steps.length > 1) {
-      for (let i = 0; i < steps.length - 1; i++) {
-        const key = steps[i]
-        if (target[key] == null) {
-          if (typeof steps[i + 1] === "number") target[key] = []
-          else target[key] = {}
-        }
-        if (
-          typeof key === "number" &&
-          typeof (target as { getItem?: (key: number) => unknown }).getItem === "function"
-        ) {
-          target = (target as { getItem: (key: number) => Record<PathStep, unknown> }).getItem(key)
-        } else {
-          target = target[key] as Record<PathStep, unknown>
-        }
-      }
-    }
-    const key = steps[steps.length - 1]
-    if (
-      typeof key === "number" &&
-      typeof (target as { setItem?: (key: number, value: unknown) => unknown }).setItem === "function"
-    ) {
-      ;(target as { setItem: (key: number, value: unknown) => unknown }).setItem(key, value)
-    } else if (value === undefined) {
-      target[key] = undefined
-      delete target[key]
-    } else {
-      target[key] = value
-    }
-    return value
+    return setPath(object, path, value)
   },
 
-  /** Memoization cache for `splitPath()`, keyed by raw `path` string. */
-  PATH_REGISTRY: {} as Record<string, PathStep[] | undefined>,
-
-  /**
-   * Split `path` into an array of `steps`.
-   * - We memoize `steps` for a given `path` string in `PATH_REGISTRY`.
-   * - Supports dotted (`a.b.c`) and bracketed (`a[0]`, `a["b c"]`) steps; a step that's exactly an
-   *   integer becomes a `number`, everything else stays a `string`.
-   * - NOTE: on a malformed `path` (unbalanced `[`/`]` or quote), logs an error and caches (and
-   *   returns) `undefined` -- but since `undefined` is falsy, the memo check above never
-   *   short-circuits on it, so a repeated invalid `path` re-parses (and re-logs) every time.
-   */
+  /** Split `path` into an array of steps, e.g. `["a", "b", 0, "c"]` -- see `splitPath()` in `~/util`. */
   splitPath(path: unknown): PathStep[] | undefined {
-    if (!path || typeof path !== "string") return undefined
-    if (spellCore.PATH_REGISTRY[path]) return spellCore.PATH_REGISTRY[path]
-    const steps: Array<string | number> = path.trim().split(PATH_PATTERN)
-    let step = ""
-    try {
-      for (let i = steps.length - 1; i >= 0; i--) {
-        step = steps[i] as string
-        step = step.trim()
-        // eliminate `..`
-        if (!step || step === ".") {
-          steps.splice(i, 1)
-          continue
-        }
-        // convert bracket
-        if (step[0] === "[") {
-          if (step.substr(-1) !== "]") throw "missing end ]"
-          step = step.slice(1, -1).trim()
-          if (step[0] === `"` || step[0] === `'`) {
-            if (step.substr(-1) !== step[0]) throw `missing end ${step[0]}`
-            step = step.slice(1, -1).trim()
-          }
-        }
-        // if we got exactly a number, return a number instead
-        const stepAsInt = parseInt(step, 10)
-        if (`${stepAsInt}` === step) {
-          steps[i] = stepAsInt
-        } else {
-          steps[i] = step
-        }
-      }
-    } catch (msg) {
-      console.error("splitPath('" + path + "'): invalid step '" + step + "': " + msg)
-      spellCore.PATH_REGISTRY[path] = undefined
-      return undefined
-    }
-    spellCore.PATH_REGISTRY[path] = steps
-    return steps
+    return splitPath(path)
   }
 })
 Object.assign(spellCore, pathMethods)

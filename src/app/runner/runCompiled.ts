@@ -1,18 +1,18 @@
 /**
- * Running compiled spell javascript in a page with no import map:  the VS Code runner's webview,
- * and `<spell-app>`.
+ * Running compiled spell javascript -- in every runner:  the app, the VS Code runner's webview, and `<spell-app>`.
  * - Compiled spell `import`s `@spell/core`, and any projects it imports as `@spell/project/<projectId>`.
- *   With no import map to resolve those, we rewrite them onto `blob:` URLs -- see `linkModule()`.
+ *   We rewrite them onto URLs -- the runtime's own, and a `blob:` URL per project -- see `linkModule()`.  NO
+ *   import map:  a page has one, but each runner needs its own `@spell/core`.
  * - Part of `spell-runtime.js`, NOT the runners themselves:  it runs on the `spellCore` of the runtime copy it's
  *   in -- see `spellRuntime.ts`'s `runApp()`.
- * - Mirrors `SpellProject.executeCompiled()` + `editor.selectPath()`'s unmount, which fetch from the server instead.
  */
 import type { Root } from "react-dom/client"
 
 import { spellCore, SPELL_CORE_MODULE } from "~/spellCore"
 
 /**
- * Run `compiled` spell javascript afresh:  previous app unmounted, new `spellCore.RUNTIME`, empty console.
+ * Run `compiled` spell javascript afresh:  previous app unmounted, new `spellCore.RUNTIME`, empty console --
+ * unless `keepConsole`.
  * - Imports it as a module from a NEW `blob:` URL each time -- the browser caches modules by URL,
  *   so re-importing one would hand back the old module without running anything.
  * - Each project it imports comes from `options.loadImport()`, linked onto its own `blob:` URL -- once per run,
@@ -20,11 +20,9 @@ import { spellCore, SPELL_CORE_MODULE } from "~/spellCore"
  * - Answers the error message if it threw, else `undefined`.
  */
 export async function runCompiled(compiled: string, options: RunCompiledOptions): Promise<string | undefined> {
-  const element = spellCore.appElement() as AppElement | null
-  element?.REACT_ROOT?.unmount()
-  if (element) delete element.REACT_ROOT
+  unmountApp()
   spellCore.resetRuntime()
-  spellCore.console.clear()
+  if (!options.keepConsole) spellCore.console.clear()
 
   const { loadImport } = options
   if (!loadImport && projectImportsOf(compiled).length) {
@@ -76,6 +74,15 @@ export type RunCompiledOptions = {
   coreUrl: string
   /** Compiled javascript of project `projectId`, which the program imports. */
   loadImport?: (projectId: string) => Promise<string>
+  /** Keep what's on the console, e.g. the app's own "Compiling ..." lines, above the program's. */
+  keepConsole?: boolean
+}
+
+/** Take down the app the last run started, if any -- e.g. before showing another project. */
+export function unmountApp() {
+  const element = spellCore.appElement() as AppElement | null
+  element?.REACT_ROOT?.unmount()
+  if (element) delete element.REACT_ROOT
 }
 
 /**

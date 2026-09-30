@@ -248,7 +248,10 @@ function declarationCode(text: string, indent: string): string {
     lines.push(line.slice(indent.length))
   }
   // a class's members' markers are noise in its code
-  const code = lines.join("\n").replace(new RegExp(`^[ \\t]*${DECLARES.source}\\n?`, "gm"), "").split("\n")
+  const code = lines
+    .join("\n")
+    .replace(new RegExp(`^[ \\t]*${DECLARES.source}\\n?`, "gm"), "")
+    .split("\n")
   lines.splice(0, lines.length, ...code)
   while (lines.length) {
     const last = lines.at(-1)!.trim()

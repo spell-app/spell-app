@@ -50,7 +50,8 @@ export const SCOPES_JS_SUFFIX = ".scopes.js"
 
 /**
  * Start of the ES module specifier for another project's compiled JS, e.g. `@spell/project/@system:library:cards`.
- * - The import map maps it onto the server's `/api/projects/compiled/<projectId>` -- see `vite.importMap.ts`.
+ * - A runner fetches that project's compiled JS from the server's `/api/projects/compiled/<projectId>`, and points
+ *   the specifier at it -- see `runCompiled()` in `src/app/runner/`.
  */
 export const SPELL_PROJECT_MODULE = "@spell/project/"
 

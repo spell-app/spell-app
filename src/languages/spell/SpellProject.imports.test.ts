@@ -51,8 +51,8 @@ describe("SpellProject imports", () => {
   }
 
   /**
-   * Run compiled `app` in node, as a browser would with the import map -- `libIds` are the projects it imports.
-   * - A resolve hook does the import map's job:  `@spell/core` => `spellCore`'s source (via `tsx`),
+   * Run compiled `app` in node, linked as a runner links it -- `libIds` are the projects it imports.
+   * - A resolve hook does `runCompiled()`'s linking:  `@spell/core` => `spellCore`'s source (via `tsx`),
    *   `@spell/project/<id>` => that project's compiled file.
    */
   function runLinked(app: SP.SpellProject, libIds: string[]) {

@@ -1,6 +1,8 @@
 import { JSON5File, $fetch, CONFIRM, TaskList, Task, getDier, raw, type KnownFormatMimeType } from "~/util"
 import { P } from "~/parser"
-import { spellCore, SPELL_CORE_MODULE, SPELL_CORE_NAMES } from "~/spellCore"
+// Import directly, NOT through the `~/spellCore` barrel:  a project MUST NOT load `spellCore` itself -- each
+// runner runs its own copy.  See `spellRuntime.ts`.
+import { SPELL_CORE_MODULE, SPELL_CORE_NAMES } from "~/spellCore/spellCore.types"
 import { SP } from "~/languages/spell"
 
 /**
@@ -343,60 +345,6 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
       .join(SpellProject.FILE_SEPARATOR)
   }
 
-  /** Set to `false` to run compiled code via `<script>` tag injection instead of dynamic `import()`. */
-  static runAsImport = true
-
-  /** Module `exports` from our last successful `executeCompiled()`. */
-  exports?: unknown
-  /** Error thrown by our last failed `executeCompiled()`. */
-  executionError?: unknown
-
-  /**
-   * Execute our `compiled` code. No-op if not compiled.
-   * Returns compiled module `exports` or `error` on JS error.
-   */
-  async executeCompiled(): Promise<unknown> {
-    if (!this.compiled) return undefined
-
-    // reset runtime environment
-    spellCore.resetRuntime()
-    delete this.exports
-    delete this.executionError
-
-    // METHOD 2 (working except we can't get line number of failure)
-    // Run by importing our `outputFile` as a module.
-    // This lets us catch errors and get access to module `exports`.
-    // Unfortunately, we don't get the line number of the error
-    // (although Chrome does get the line number if we re-throw the error.)
-    try {
-      // Unique URL each time:  the browser caches modules by URL, so re-importing the same one would
-      // re-run NOTHING and hand back the OLD module, never our new `compiled`.
-      const url = `${this.outputFile.url}?${Date.now()}`
-      this.exports = await import(/* @vite-ignore */ url)
-      return this.exports
-    } catch (e) {
-      if (Error.captureStackTrace) Error.captureStackTrace(e as object, this.executeCompiled)
-      this.executionError = e
-      return e
-    }
-
-    // METHOD 1
-    // Alternate method of running: create a <script> tag
-    // Problem with this is that we don't get access to errors
-    // or `exports` in the compiled code.
-    //
-    // const scriptEl = document.createElement("script")
-    // scriptEl.setAttribute("id", "compileOutput")
-    // scriptEl.setAttribute("type", "module")
-    // scriptEl.innerHTML = this.compiled
-    // const existingEl = document.getElementById("compileOutput")
-    // if (existingEl) {
-    //   existingEl.replaceWith(scriptEl)
-    // } else {
-    //   document.body.append(scriptEl)
-    // }
-  }
-
   /**
    * One of our `file`s has updated its contents, e.g. on each keystroke:  re-parse as little as possible.
    * - A spell file we've parsed => `incremental` re-parses what changed:  maybe just one indented body, else from
@@ -659,8 +607,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
    *   `import { spellCore, Thing, List, App } from "@spell/core"`
    *   `import { Card as Playingcard, Deck, Pile } from "@spell/project/@system:library:cards"`
    * - Why:  compiled spell reaches everything it didn't declare through `import`s -- NO globals.
-   * - NOTE: an imported project's module is cached for the page's life -- see `CODE-DEBT.md`.
-   * - Specifiers resolve through the page's import map -- see `vite.importMap.ts`.
+   * - A runner rewrites each specifier onto the module it means -- see `runCompiled()` in `src/app/runner/`.
    * - A `source` import needs none:  its files compile into our output.
    */
   importHeader(): string {

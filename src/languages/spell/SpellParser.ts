@@ -1,6 +1,8 @@
 import { getDerived } from "~/util"
 import { P } from "~/parser"
-import { spellCore } from "~/spellCore"
+// Import directly, NOT through the `~/spellCore` barrel:  the parser MUST NOT load `spellCore` itself -- each
+// runner runs its own copy.  See `spellRuntime.ts`.
+import { SPELL_BASE_TYPES } from "~/spellCore/spellCore.types"
 import { SP } from "~/languages/spell"
 
 // Registers `RulexParser` on `P.Parser.rulexParser` -- MUST load before any rule with a `syntax:` string.
@@ -88,9 +90,8 @@ export class SpellParser extends P.Parser {
   static get rootScope(): P.RootScope {
     return getDerived(this, "rootScope", (): P.RootScope => {
       const scope = new P.RootScope({ name: "spellRoot", parser: SP.spellParser })
-      // Add all BASE_TYPES defined in `spellCore`.
-      // See: `src/spellCore/classes/index.ts`
-      spellCore.BASE_TYPES.forEach((type) => scope.types.add(type))
+      // spell's built-in types -- `spellCore.BASE_TYPES`
+      SPELL_BASE_TYPES.forEach((type) => scope.types.add(type))
       return scope
     })
   }
