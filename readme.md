@@ -82,11 +82,38 @@ the Solitaire example with the extension loaded.
   compiles without errors -- on save, its Restart button, or anything rewriting its `<Project>.compiled.js`,
   e.g. the web app.  A project that doesn't parse leaves the last good run going.  "Show Console" opens a pane
   with "Program Output" (what it `print`s) and "Type Explorer":  the live scopes it parsed in, and what each
-  declares -- click one for its hover.  Its code is this repo's `dist-runner/` (from `src/app/runner/`), which building the extension builds:
+  declares -- click one for its docs, spell and compiled code.  Its code is this repo's `dist-runner/`
+  (from `src/app/runner/`), which building the extension builds:
   after changing `src/app/runner/` alone, `yarn build:runner` and close / reopen the panel.
 - Spell indents with tabs:  the extension sets `.spell` files to tabs, and formatting always uses them.
 - Settings:  `spell.compileOnSave` writes the project's `<Project>.compiled.js` on save;  `spell.parserRoot` points at another
   checkout of this repo.
+
+### Run spell in any page:  `<spell-app>`
+
+`<spell-app>` is a web component that runs a compiled project -- no editor -- with an optional toolbar and a
+"Debug" pane:  a read-only Type Explorer, and the program's console.  Several can run on one page, each in its own
+shadow root, so page and app styles don't mix.
+
+```html
+<script type="module" src="/element/spell-app.js"></script>
+
+<!-- from the spell server, sources and all -->
+<spell-app project="@examples/Solitaire" toolbar debug="explorer" height="600px"></spell-app>
+
+<!-- from any static host:  its `Calculator.scopes.js`, and any project it imports, beside it -->
+<spell-app src="apps/Calculator.compiled.js" toolbar width="50%"></spell-app>
+```
+
+- `yarn build:element` builds it into `dist-element/`:  copy that folder anywhere.  The dev server serves it at
+  `/element/`, with a demo at `http://localhost:3001/demo/spell-app.html`.
+- Attributes:  `project` or `src` (what to run), `scopes` (its scope pack, if not beside it), `name`, `toolbar`,
+  `debug="explorer"` / `"console"` (open the Debug pane), `width` / `height` (`fluid`, the default, or any CSS
+  length), `assets` (where Semantic UI and Lato are, if not beside the script).
+- `el.restart()` runs it again;  a `spell-open` event says a Type Explorer link was clicked.
+- Its Type Explorer reads the project's scope pack, `<Project>.scopes.js`.  `yarn scopes [--compile] <projectId...>`
+  writes it, e.g. `yarn scopes --compile @examples/Solitaire`;  so does the VS Code extension, on each clean compile.
+- `src=` from another origin needs CORS on the compiled JS -- scope packs don't.
 
 ---
 

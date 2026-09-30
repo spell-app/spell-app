@@ -19,6 +19,17 @@ when working with code in this repository.
   in-process.  `~/lsp` MUST stay browser-safe for it.
   - Loaded LAZILY, through `UI.LazyMonaco`:  NEVER import `~/app/ui/monaco` statically outside its folder -- types
     aside -- or Monaco (~4.4 MB) lands in the main bundle again.
+- `src/app/runner/` runs compiled spell with no editor:  VS Code's "Run Project" webview (`VSCodeRunner`,
+  `yarn build:runner`) and the `<spell-app>` web component (`SpellAppElement`, `yarn build:element` =>
+  `dist-element/`, demo at `/demo/spell-app.html` on the dev server).
+  - Each `<spell-app>` loads its OWN copy of `spell-runtime.js` (`loadRuntime()`), so apps on a page don't share a
+    `spellCore`.  Only `spellRuntime.ts` may value-import `~/spellCore` on that side -- anything else puts it in the
+    shared chunk, for every app to share.  Pinned by `element.build.test.ts`.
+  - It runs in a shadow root:  `spellCore.appRoot` is where an app mounts, and `spellCore.domRoot()` where to look
+    elements up and add styles -- NEVER `document`.
+  - Its Type Explorer reads scope packs, `<Project>.scopes.js` (`LSP.ScopePack`) -- no parser in the page.
+    `yarn scopes [--compile] <projectId...>` writes them;  so does the language server, after each clean compile.
+- Styles are plain `.css`:  native nesting, custom properties (`spell.css`, `syntax.css`) -- no Less.
 
 ## How parsing works
 
@@ -275,5 +286,5 @@ when working with code in this repository.
   - direct peer files, base classes first
   - (blank line)
   - side-effect imports (`import "~/languages/rulex"`)
-  - css or less files (`./foo.css` if in same folder, else `~/path/to/foo.less`)
+  - css files (`./foo.css` if in same folder, else `~/path/to/foo.css`)
 - One import statement per module.  Inline type imports:  `import { P, type AnyMatch } from "~/parser"`.

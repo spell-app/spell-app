@@ -214,9 +214,10 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
   resolves with an import map onto the server's `/api/projects/compiled/`.  The runner's webview has no import
   map and no server:  it runs compiled code from a `blob:` URL the extension hands it.  `@spell/core` alone is
   easy -- `runCompiled()` points it at the runner's own `spellCore` -- but other projects' code isn't there.
-- **Fix**:  the extension sends each imported project's compiled JS along with the app's, and `runCompiled()`
-  turns each into a `blob:` URL, rewriting `@spell/project/...` specifiers onto them, deepest import first.
-- **Pinned at**:  `runCompiled()` in `src/app/runner/VSCodeRunner.tsx`.
+- **Fix**:  `runCompiled()` already links imports, given `loadImport(projectId)` -- `<spell-app>` does it:  each
+  imported project's JS onto its own `blob:` URL, deepest first.  The VS Code runner just needs to pass a
+  `loadImport` that asks the extension for that project's `<Project>.compiled.js`.
+- **Pinned at**:  `runCompiled()` in `src/app/runner/runCompiled.ts` -- its "imports another" message.
 
 ---
 
@@ -227,8 +228,58 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 - **Cause**:  the browser caches ES modules by URL for the page's life.  `executeCompiled()` cache-busts the
   project's own URL (`?<time>`), but its `import ... from "@spell/project/..."` lines map onto fixed URLs.
 - **Fix**:  version the specifier, e.g. `@spell/project/<projectId>?v=<compiled time>` from the declarations,
-  so a recompile gives a new URL.  Or run projects in a fresh iframe per run.
+  so a recompile gives a new URL.  Or run projects in a fresh iframe per run.  Or link imports afresh each run,
+  as `<spell-app>` does -- `runCompiled({ loadImport })` -- which doesn't have this problem.
 - **Pinned at**:  `SpellProject.importHeader()`.
+
+---
+
+## Semantic UI popups escape `<spell-app>`'s shadow root
+
+- **Cost**:  in a `<spell-app>`, anything a spell program draws with a Semantic UI PORTAL -- `SUI.Modal`,
+  `SUI.Popup`, a `SUI.Dropdown` in some modes -- appears unstyled, outside the app, and page styles apply to it.
+  Spell's own `UI` set (`SUIPassThroughs`, the forms) uses none today, so only programs reaching for `SUI.*` see it.
+- **Cause**:  portals mount into `document.body`, but the app's styles live only in its shadow root -- see
+  `shadowStyles.ts`.
+- **Fix**:  the coming web-component widgets, which render inside their host.  Meanwhile, a portal could be given
+  `mountNode={spellCore.appRoot}` wherever spell makes one.
+- **Pinned at**:  `SpellAppElement` (`src/app/runner/SpellAppElement.tsx`).
+
+---
+
+## `<spell-app src>` needs CORS for another origin's compiled JS
+
+- **Cost**:  a page can run `src="https://elsewhere/App.compiled.js"` only if that host sends CORS headers.  Scope
+  packs don't need them.
+- **Cause**:  the element fetches compiled JS as TEXT, to point its `@spell/core` and `@spell/project/...` imports
+  at the app's own runtime copy -- see `linkModule()`.  A page can't read another origin's text without CORS;
+  a module `import()` would need it too.  Scope packs are classic scripts, loaded with a `<script>` tag.
+- **Fix**:  compiled output that needs no rewriting -- e.g. its imports as bare names an import map per app could
+  resolve, if browsers get scoped import maps -- or a same-origin proxy.
+- **Pinned at**:  `runProgram()` in `src/app/runner/SpellAppRunner.tsx`.
+
+---
+
+## The web app's editor doesn't write scope packs
+
+- **Cost**:  a project edited and compiled in the web app keeps a stale `<Project>.scopes.js`, so a `<spell-app>`
+  running it shows an out-of-date Type Explorer -- until `yarn scopes`, or a compile in VS Code, rewrites it.
+- **Cause**:  packs are written by node code:  `SpellDiskWorkspace.writeScopes()`, from `yarn scopes` and the
+  language server.  The app compiles in the browser and POSTs just `<Project>.compiled.js`.
+- **Fix**:  the app's in-process language service (see `SpellMonaco`) exports the pack after each compile and
+  POSTs it beside the compiled JS -- `ScopeExplorer.exportPack()` is browser-safe.
+- **Pinned at**:  `SpellDiskWorkspace.writeScopes()`;  `src/lsp/scopes.ts`.
+
+---
+
+## Each `<spell-app>`'s runtime stays in memory for the life of the page
+
+- **Cost**:  adding and removing `<spell-app>`s -- e.g. an app that swaps demos in and out -- keeps every copy of
+  `spell-runtime.js` it ever loaded, and whatever that copy still holds.
+- **Cause**:  each element imports its own copy from a new `blob:` URL (see `loadRuntime()`), and a page never
+  drops a module it's imported.  Restart re-uses the SAME copy, so restarting doesn't add to it.
+- **Fix**:  reuse copies -- a pool of released ones -- or run each app in an iframe, which a page CAN drop.
+- **Pinned at**:  `loadRuntime()` in `src/app/runner/loadRuntime.ts`.
 
 ---
 
