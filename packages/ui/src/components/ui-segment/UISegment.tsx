@@ -1,7 +1,7 @@
 import { Show, createEffect } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { PART_OWNER_TOKENS, proto, UIElement } from "$/ui/core"
+import { proto, UIElement, UIT } from "$/ui/core"
 
 import { segmentVocabulary } from "./ui-segment.vocabulary.en"
 import { SegmentFallback } from "./ui-segment.fallback"
@@ -49,7 +49,7 @@ export class UISegment extends UIElement<typeof segmentVocabulary> {
         class={this.classes()}
         part={this.part("segment")}
         tabindex={this.attrs.scrolling ? 0 : undefined}
-        style={this.attrs.inverted ? { [PART_OWNER_TOKENS.inverted]: "1" } : undefined}
+        style={this.attrs.inverted ? { [UIT.PART_OWNER_TOKENS.inverted]: "1" } : undefined}
       >
         <slot />
         <Show when={this.attrs.loading}>

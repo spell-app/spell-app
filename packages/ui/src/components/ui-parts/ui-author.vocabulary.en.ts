@@ -18,6 +18,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const authorVocabulary = {
   tag: "ui-author",
+  topics: ["content parts", "social"],
+  aka: ["user name", "byline", "poster"],
   noun: "author",
   ui: false,
   description: "Who wrote a comment or did a feed event (Fomantic's feed `user`).",

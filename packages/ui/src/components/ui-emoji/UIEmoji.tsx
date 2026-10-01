@@ -1,7 +1,7 @@
 import { createEffect, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, IMG, proto, TRUE, UIElement } from "$/ui/core"
+import { Cell, proto, UIElement, UIT } from "$/ui/core"
 
 import { emojiVocabulary } from "./ui-emoji.vocabulary.en"
 import { EmojiData } from "./EmojiData"
@@ -48,9 +48,9 @@ export class UIEmoji extends UIElement<typeof emojiVocabulary> {
       <span
         class={this.classes()}
         part={this.part("emoji")}
-        role={this.isLabelled() ? IMG : undefined}
+        role={this.isLabelled() ? UIT.IMG : undefined}
         aria-label={this.isLabelled() ? this.attrs.label : undefined}
-        aria-hidden={this.attrs.label === "" ? TRUE : undefined}
+        aria-hidden={this.attrs.label === "" ? UIT.TRUE : undefined}
       >
         {this.emoji.get()}
       </span>

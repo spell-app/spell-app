@@ -2,7 +2,7 @@
  * Loose constants, types and helpers of `<ui-step>`:  its element classes and native fallback import them from here.
  */
 
-import { PART_STATIC_CLASS_PREFIX } from "$/ui/core"
+import { UIT } from "$/ui/core"
 import { stepVocabulary } from "./ui-step.vocabulary.en"
 
 ////////////////
@@ -19,7 +19,7 @@ export const BOX = "div"
 export const STEP = "step"
 
 /** The static owner class of a part in a step (`ui-parts.css`). */
-export const IN_STEP = `${PART_STATIC_CLASS_PREFIX}${stepVocabulary.noun}`
+export const IN_STEP = `${UIT.PART_STATIC_CLASS_PREFIX}${stepVocabulary.noun}`
 
 /** Classes of the shorthand content block. */
 export const CONTENT = `content ${IN_STEP}`

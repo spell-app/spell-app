@@ -1,7 +1,7 @@
 import { createEffect, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, PUSHER_TOKENS, SIDEBAR_HOST_STATE, UIElement, type SidebarLayout, type UIHost } from "$/ui/core"
+import { Cell, proto, UIElement, type UIHost, UIT } from "$/ui/core"
 
 import { pushableVocabulary } from "./ui-pushable.vocabulary.en"
 import { SidebarFallback } from "./ui-sidebar.fallback"
@@ -29,7 +29,7 @@ export class UIPushable extends UIElement<PushableVocabulary> {
   @proto static delegatesFocus = false
 
   /** What each visible sidebar asks for. */
-  readonly layouts = new Cell<ReadonlyMap<Element, SidebarLayout>>(new Map())
+  readonly layouts = new Cell<ReadonlyMap<Element, UIT.SidebarLayout>>(new Map())
 
   /** The root, which carries the tokens. */
   private root?: HTMLDivElement
@@ -64,7 +64,7 @@ export class UIPushable extends UIElement<PushableVocabulary> {
    * A sidebar's layout while it's visible, `undefined` once hidden (or gone).
    * - Called from the sidebar's effects and handlers, never from an owned scope.
    */
-  report(sidebar: Element, layout: SidebarLayout | undefined) {
+  report(sidebar: Element, layout: UIT.SidebarLayout | undefined) {
     const next = new Map(untrack(() => this.layouts.get()))
     if (layout) next.set(sidebar, layout)
     else if (!next.delete(sidebar)) return
@@ -74,17 +74,17 @@ export class UIPushable extends UIElement<PushableVocabulary> {
   }
 
   /** Tokens on the root;  `inert` on every child beside a modal sidebar. */
-  private apply(layouts: ReadonlyMap<Element, SidebarLayout>) {
+  private apply(layouts: ReadonlyMap<Element, UIT.SidebarLayout>) {
     const root = this.root
     if (!root) return
     const visible = [...layouts.values()]
     const pushing = visible.filter((layout) => layout.transform !== NONE)
     const push = pushing.length === 1 ? pushing[0] : undefined
     const modal = visible.find((layout) => layout.modal)
-    root.style.setProperty(PUSHER_TOKENS.transform, push?.transform ?? NONE)
-    root.style.setProperty(PUSHER_TOKENS.origin, push?.origin ?? CENTER)
-    root.style.setProperty(PUSHER_TOKENS.dimmed, modal ? ON : OFF)
-    root.style.setProperty(PUSHER_TOKENS.blurring, modal?.blurring ? ON : OFF)
+    root.style.setProperty(UIT.PUSHER_TOKENS.transform, push?.transform ?? NONE)
+    root.style.setProperty(UIT.PUSHER_TOKENS.origin, push?.origin ?? CENTER)
+    root.style.setProperty(UIT.PUSHER_TOKENS.dimmed, modal ? ON : OFF)
+    root.style.setProperty(UIT.PUSHER_TOKENS.blurring, modal?.blurring ? ON : OFF)
     const keep = new Set([...layouts].filter(([, layout]) => layout.modal).map(([sidebar]) => sidebar))
     for (const child of this.host.children) {
       const inert = !!modal && !keep.has(child) && !this.isHiddenSidebar(child)
@@ -102,6 +102,6 @@ export class UIPushable extends UIElement<PushableVocabulary> {
 
   /** A sidebar that isn't showing:  already out of reach, no `inert` needed. */
   private isHiddenSidebar(child: Element): boolean {
-    return child.matches(`:state(${SIDEBAR_HOST_STATE}):not(:state(${VISIBLE}))`)
+    return child.matches(`:state(${UIT.SIDEBAR_HOST_STATE}):not(:state(${VISIBLE}))`)
   }
 }

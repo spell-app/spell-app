@@ -1,7 +1,7 @@
 import { Show, createEffect, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { ICON, IconGlyph, LISTITEM, PartContext, proto, SlotContent, TRUE, type UIHost, UIElement } from "$/ui/core"
+import { IconGlyph, PartContext, proto, SlotContent, type UIHost, UIElement, UIT } from "$/ui/core"
 
 import { eventVocabulary } from "./ui-event.vocabulary.en"
 import { FeedFallback } from "./ui-feed.fallback"
@@ -62,7 +62,7 @@ export class UIFeedEvent extends UIElement<typeof eventVocabulary> {
     const { internals } = this.host
     // SIDE EFFECT:  a list item in a feed
     createEffect(
-      () => (this.context.owner.get() ? LISTITEM : null),
+      () => (this.context.owner.get() ? UIT.LISTITEM : null),
       (role) => {
         internals.role = role
       }
@@ -88,14 +88,14 @@ export class UIFeedEvent extends UIElement<typeof eventVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("event")} aria-disabled={this.attrs.disabled ? TRUE : undefined}>
+      <div class={this.classes()} part={this.part("event")} aria-disabled={this.attrs.disabled ? UIT.TRUE : undefined}>
         <Show when={this.hasLabel()}>
           <div class={LABEL} part={this.part("label")} data-text={this.attrs.label || undefined}>
             <Show when={this.attrs.image}>
               <img src={this.attrs.image} alt="" part={this.part("image")} />
             </Show>
             <Show when={this.attrs.icon}>
-              <span class={ICON} part={this.part("icon")}>
+              <span class={UIT.ICON} part={this.part("icon")}>
                 {this.glyph.svg()}
               </span>
             </Show>

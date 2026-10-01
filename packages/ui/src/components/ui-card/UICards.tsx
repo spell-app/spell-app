@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { LIST, proto, type CardSharedVariation, UIElement } from "$/ui/core"
+import { proto, UIElement, UIT } from "$/ui/core"
 
 import { cardsVocabulary } from "./ui-cards.vocabulary.en"
 import { CardFallback } from "./ui-card.fallback"
@@ -25,7 +25,7 @@ export class UICards extends UIElement<typeof cardsVocabulary> {
   @proto static delegatesFocus = false
 
   /** The group's value of variation `name`, which its cards take when they don't set it.  Tracked. */
-  shared(name: CardSharedVariation): unknown {
+  shared(name: UIT.CardSharedVariation): unknown {
     return this.attrs[name]
   }
 
@@ -35,7 +35,7 @@ export class UICards extends UIElement<typeof cardsVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("group")} role={LIST}>
+      <div class={this.classes()} part={this.part("group")} role={UIT.LIST}>
         <slot />
       </div>
     )

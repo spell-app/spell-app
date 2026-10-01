@@ -17,6 +17,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const searchVocabulary = {
   tag: "ui-search",
+  topics: ["inputs", "forms", "navigation", "selection", "modules"],
+  aka: ["autocomplete", "typeahead", "search box", "combobox", "lookup"],
   noun: "search",
   description: "A search module allows a user to query for results from a selection of data.",
   attributes: [

@@ -1,4 +1,4 @@
-import { Converters, proto, type EmbedSource } from "$/ui/core"
+import { Converters, proto, UIT } from "$/ui/core"
 import { EmbedSourceSpec, EmbedUrlOptions, ID, SAFE_PROTOCOLS } from "./ui-embed.types"
 
 /****************
@@ -15,8 +15,8 @@ import { EmbedSourceSpec, EmbedUrlOptions, ID, SAFE_PROTOCOLS } from "./ui-embed
  ****************/
 export class EmbedSources {
   /** Known sources:  where their player lives, how a domain is recognised, their parameters. */
-  declare sources: Readonly<Record<EmbedSource, EmbedSourceSpec>>
-  @proto static sources: Readonly<Record<EmbedSource, EmbedSourceSpec>> = {
+  declare sources: Readonly<Record<UIT.EmbedSource, EmbedSourceSpec>>
+  @proto static sources: Readonly<Record<UIT.EmbedSource, EmbedSourceSpec>> = {
     youtube: {
       domains: ["youtube.com", "youtu.be", "youtube-nocookie.com"],
       url: "https://www.youtube-nocookie.com/embed/{id}",
@@ -68,7 +68,7 @@ export class EmbedSources {
   }
 
   /** The known source whose domain `url` is on, if any. */
-  static sourceOf(url: string | undefined): EmbedSource | undefined {
+  static sourceOf(url: string | undefined): UIT.EmbedSource | undefined {
     if (!url) return undefined
     let host: string
     try {
@@ -76,7 +76,7 @@ export class EmbedSources {
     } catch {
       return undefined
     }
-    for (const [name, spec] of Object.entries(EmbedSources.sources) as [EmbedSource, EmbedSourceSpec][]) {
+    for (const [name, spec] of Object.entries(EmbedSources.sources) as [UIT.EmbedSource, EmbedSourceSpec][]) {
       if (spec.domains.some((domain) => host === domain || host.endsWith(`.${domain}`))) return name
     }
     return undefined

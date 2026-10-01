@@ -1,6 +1,6 @@
 import { Dynamic, type JSX } from "@solidjs/web"
 
-import { LIST, proto, UIElement } from "$/ui/core"
+import { proto, UIElement, UIT } from "$/ui/core"
 
 import { feedVocabulary } from "./ui-feed.vocabulary.en"
 import { FeedFallback } from "./ui-feed.fallback"
@@ -31,7 +31,7 @@ export class UIFeed extends UIElement<typeof feedVocabulary> {
 
   render(): JSX.Element {
     return (
-      <Dynamic component={this.attrs.ordered ? OL : UL} class={this.classes()} part={this.part("feed")} role={LIST}>
+      <Dynamic component={this.attrs.ordered ? OL : UL} class={this.classes()} part={this.part("feed")} role={UIT.LIST}>
         <slot />
       </Dynamic>
     )

@@ -1,6 +1,6 @@
 import type { Temporal } from "temporal-polyfill"
 
-import type { CalendarMode, CalendarType, TemporalAPI } from "$/ui/core"
+import type { TemporalAPI, UIT } from "$/ui/core"
 import { MODES, ModeOptions, Moment, MomentFields, YEAR } from "./ui-calendar.types"
 
 /****************
@@ -21,12 +21,12 @@ export class CalendarDates {
   readonly T: TemporalAPI
 
   /** What the calendar picks. */
-  readonly type: CalendarType
+  readonly type: UIT.CalendarType
 
   /** Day a `time` value is held on:  today, read once. */
   readonly anchor: Temporal.PlainDate
 
-  constructor(T: TemporalAPI, type: CalendarType) {
+  constructor(T: TemporalAPI, type: UIT.CalendarType) {
     this.T = T
     this.type = type
     this.anchor = T.Now.plainDateISO()
@@ -116,7 +116,7 @@ export class CalendarDates {
    * Start of the `mode` unit holding `moment`:  its year's January 1st, its month's 1st, its day's midnight, its
    * hour, its minute slot (`step` minutes, default `MINUTE_STEP`).
    */
-  floor(moment: Moment, mode: CalendarMode, step = CalendarDates.MINUTE_STEP): Moment {
+  floor(moment: Moment, mode: UIT.CalendarMode, step = CalendarDates.MINUTE_STEP): Moment {
     const time = { second: 0, millisecond: 0, microsecond: 0, nanosecond: 0 }
     switch (mode) {
       case "year":
@@ -133,17 +133,17 @@ export class CalendarDates {
   }
 
   /** `a` before (`-1`), in (`0`) or after (`1`) `b`'s `mode` unit. */
-  compare(a: Moment, b: Moment, mode: CalendarMode): number {
+  compare(a: Moment, b: Moment, mode: UIT.CalendarMode): number {
     return this.T.PlainDateTime.compare(this.floor(a, mode), this.floor(b, mode))
   }
 
   /** Same `mode` unit? */
-  same(a: Moment | null | undefined, b: Moment | null | undefined, mode: CalendarMode): boolean {
+  same(a: Moment | null | undefined, b: Moment | null | undefined, mode: UIT.CalendarMode): boolean {
     return !!a && !!b && this.compare(a, b, mode) === 0
   }
 
   /** `moment` moved by `count` `mode` units (a minute unit is `MINUTE_STEP` minutes);  day overflow clamps. */
-  step(moment: Moment, mode: CalendarMode, count: number): Moment {
+  step(moment: Moment, mode: UIT.CalendarMode, count: number): Moment {
     switch (mode) {
       case "year":
         return moment.add({ years: count })
@@ -176,7 +176,7 @@ export class CalendarDates {
    * - `disable-minute` drops the minute view;  `disable-month` / `disable-year` drop those views unless the type
    *   picks them.
    */
-  modes({ disableMinute = false, disableMonth = false, disableYear = false }: ModeOptions = {}): CalendarMode[] {
+  modes({ disableMinute = false, disableMonth = false, disableYear = false }: ModeOptions = {}): UIT.CalendarMode[] {
     const all = MODES[this.type]
     const final = all.at(-1)
     return all.filter((mode) => {
@@ -189,7 +189,7 @@ export class CalendarDates {
   }
 
   /** The view the picker opens on:  days, else hours, else the final view. */
-  static startMode(modes: readonly CalendarMode[]): CalendarMode {
+  static startMode(modes: readonly UIT.CalendarMode[]): UIT.CalendarMode {
     return modes.find((mode) => mode === "day" || mode === "hour") ?? modes.at(-1)!
   }
 

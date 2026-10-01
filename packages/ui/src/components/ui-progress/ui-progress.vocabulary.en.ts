@@ -17,6 +17,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const progressVocabulary = {
   tag: "ui-progress",
+  topics: ["progress", "loading", "feedback", "status", "modules"],
+  aka: ["progress bar", "meter", "percent bar", "upload progress"],
   noun: "progress",
   description: "A progress bar shows the progression of a task.",
   attributes: [

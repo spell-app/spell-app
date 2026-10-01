@@ -15,6 +15,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const ratingVocabulary = {
   tag: "ui-rating",
+  topics: ["inputs", "controls", "forms", "feedback", "modules"],
+  aka: ["stars", "star rating", "score", "review stars", "hearts"],
   noun: "rating",
   description: "A rating indicates user interest in content.",
   attributes: [

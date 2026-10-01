@@ -22,6 +22,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const tabVocabulary = {
   tag: "ui-tab",
+  topics: ["navigation", "containers", "content parts", "modules"],
+  aka: ["tab panel", "pane"],
   noun: "tab",
   description: "A tab pane:  the content shown while its tab is selected.",
   attributes: [

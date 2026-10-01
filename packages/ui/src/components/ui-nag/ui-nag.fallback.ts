@@ -1,4 +1,4 @@
-import { NativeFallback, proto, type NagCloseDetail } from "$/ui/core"
+import { NativeFallback, proto, UIT } from "$/ui/core"
 
 import { nagVocabulary } from "./ui-nag.vocabulary.en"
 import { HIDE } from "./ui-nag.types"
@@ -33,7 +33,7 @@ export class NagFallback extends NativeFallback<typeof nagVocabulary> {
     )
     this.listen(button, "click", () => {
       this.host.hidden = true
-      const detail: NagCloseDetail = { reason: "close" }
+      const detail: UIT.NagCloseDetail = { reason: "close" }
       this.host.dispatchEvent(new CustomEvent(HIDE, { bubbles: true, composed: true, detail }))
     })
     return button

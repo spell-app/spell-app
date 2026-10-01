@@ -4,7 +4,7 @@
  * - Data only:  nothing here runs;  the classes import what they need from `./ui-card.types`.
  */
 
-import { HEADER, type CardSharedVariation } from "$/ui/core"
+import { UIT } from "$/ui/core"
 import type { cardVocabulary } from "./ui-card.vocabulary.en"
 import type { cardsVocabulary } from "./ui-cards.vocabulary.en"
 
@@ -22,11 +22,11 @@ export const DESCRIPTION = "description"
 export const EXTRA = "extra"
 
 /** Every shorthand, and those rendered in the content block. */
-export const SHORTHANDS = [IMAGE, HEADER, META, DESCRIPTION, EXTRA] as const
-export const CONTENT_SHORTHANDS = [HEADER, META, DESCRIPTION] as const
+export const SHORTHANDS = [IMAGE, UIT.HEADER, META, DESCRIPTION, EXTRA] as const
+export const CONTENT_SHORTHANDS = [UIT.HEADER, META, DESCRIPTION] as const
 
 /** Variations a card takes from its group (`CardSharedVariation`). */
-export const SHARED: ReadonlySet<string> = new Set<CardSharedVariation>([
+export const SHARED: ReadonlySet<string> = new Set<UIT.CardSharedVariation>([
   "size",
   "color",
   "horizontal",

@@ -1,7 +1,7 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { ICON, IconGlyph, NONE, proto, UIElement } from "$/ui/core"
+import { IconGlyph, proto, UIElement, UIT } from "$/ui/core"
 
 import { dividerVocabulary } from "./ui-divider.vocabulary.en"
 import { DividerFallback } from "./ui-divider.fallback"
@@ -31,12 +31,12 @@ export class UIDivider extends UIElement<typeof dividerVocabulary> {
     return (
       <div
         class={this.classes()}
-        role={this.attrs.hidden ? NONE : SEPARATOR}
+        role={this.attrs.hidden ? UIT.NONE : SEPARATOR}
         aria-orientation={this.attrs.vertical && !this.attrs.hidden ? VERTICAL : undefined}
         part={this.part("divider")}
       >
         <Show when={this.attrs.icon}>
-          <span class={ICON} part={this.part("icon")}>
+          <span class={UIT.ICON} part={this.part("icon")}>
             {this.glyph.svg()}
           </span>
         </Show>

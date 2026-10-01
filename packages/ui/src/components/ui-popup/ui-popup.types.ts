@@ -3,7 +3,7 @@
  */
 
 import type { popupVocabulary } from "./ui-popup.vocabulary.en"
-import type { PopupTrigger } from "$/ui/core"
+import type { UIT } from "$/ui/core"
 
 ////////////////
 // ## UIPopup
@@ -47,7 +47,7 @@ export const POSITION_AREAS: Readonly<Record<string, string>> = {
 export const DEFAULT_POSITION = "top left"
 
 /** Fomantic's default trigger. */
-export const DEFAULT_TRIGGER: PopupTrigger = "hover"
+export const DEFAULT_TRIGGER: UIT.PopupTrigger = "hover"
 
 /** `UI.ids` prefix. */
 export const ID_PREFIX = "ui-popup"

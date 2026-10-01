@@ -1,4 +1,4 @@
-import { NativeFallback, PLACEHOLDER_HOST_STATE, proto, type NativeFallbackRoot } from "$/ui/core"
+import { NativeFallback, proto, type NativeFallbackRoot, UIT } from "$/ui/core"
 
 import { placeholderVocabulary } from "./ui-placeholder.vocabulary.en"
 import { VOCABULARIES, SOLID } from "./ui-placeholder.types"
@@ -24,7 +24,7 @@ export class PlaceholderFallback extends NativeFallback {
     if (this.vocabulary === placeholderVocabulary && this.internals) {
       this.internals.ariaHidden = "true"
       try {
-        this.internals.states.add(PLACEHOLDER_HOST_STATE)
+        this.internals.states.add(UIT.PLACEHOLDER_HOST_STATE)
       } catch {
         // Safari before 17.4 wants `--placeholder`;  only the gap between placeholders is lost.
       }

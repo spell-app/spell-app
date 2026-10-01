@@ -1,21 +1,7 @@
 import { Show, createEffect, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import {
-  Cell,
-  IconGlyph,
-  MODAL_ACTION_SELECTORS,
-  proto,
-  SlotContent,
-  TOGGLE_COMMANDS,
-  UI,
-  UIElement,
-  type OverlayEntry,
-  type ToastActionDetail,
-  type ToastCloseDetail,
-  type ToastCloseReason,
-  type ToastShowDetail
-} from "$/ui/core"
+import { Cell, IconGlyph, proto, SlotContent, UI, UIElement, type OverlayEntry, UIT } from "$/ui/core"
 
 import { toastVocabulary } from "./ui-toast.vocabulary.en"
 import { ToastFallback } from "./ui-toast.fallback"
@@ -389,7 +375,7 @@ export class UIToast extends UIElement<ToastVocabulary> {
     this.startTimer()
     const box = this.box
     void (box ? UI.transitions.animate(box, SCALE, IN) : Promise.resolve(true)).then(() => {
-      const detail: ToastShowDetail = { displayTime: untrack(this.displayTime) }
+      const detail: UIT.ToastShowDetail = { displayTime: untrack(this.displayTime) }
       if (!this.closing) this.emit("ui-show", detail)
     })
   }
@@ -408,9 +394,9 @@ export class UIToast extends UIElement<ToastVocabulary> {
    * Close for `reason`:  the cancelable `ui-close`, then the exit animation, `hidden` on the host and `ui-hide`.
    * - True when it closes;  false when vetoed or already closing.
    */
-  close(reason: ToastCloseReason = DISMISS, originalEvent?: Event): boolean {
+  close(reason: UIT.ToastCloseReason = DISMISS, originalEvent?: Event): boolean {
     if (this.closing) return false
-    const detail: ToastCloseDetail = { reason, originalEvent }
+    const detail: UIT.ToastCloseDetail = { reason, originalEvent }
     if (!this.emit("ui-close", detail)) return false
     this.closing = true
     this.closingState.set(true)
@@ -419,7 +405,7 @@ export class UIToast extends UIElement<ToastVocabulary> {
     const box = this.box
     void (box ? UI.transitions.animate(box, SCALE, OUT) : Promise.resolve(true)).then(() => {
       this.host.hidden = true
-      const hidden: ToastCloseDetail = { reason }
+      const hidden: UIT.ToastCloseDetail = { reason }
       this.emit("ui-hide", hidden)
     })
     return true
@@ -529,7 +515,7 @@ export class UIToast extends UIElement<ToastVocabulary> {
 
   /** An invoker command aimed at the host:  only `TOGGLE_COMMANDS.close`. */
   private readonly onCommand = (event: Event) => {
-    if ((event as Event & { command?: string }).command === TOGGLE_COMMANDS.close) this.close(CLOSE, event)
+    if ((event as Event & { command?: string }).command === UIT.TOGGLE_COMMANDS.close) this.close(CLOSE, event)
   }
 
   /** Close icon. */
@@ -555,7 +541,7 @@ export class UIToast extends UIElement<ToastVocabulary> {
       if (event.defaultPrevented) return
       const [kind, action] = found
       if (kind !== ACTION) {
-        const detail: ToastActionDetail = { action, originalEvent: event }
+        const detail: UIT.ToastActionDetail = { action, originalEvent: event }
         if (!this.emit(kind === APPROVE ? "ui-approve" : "ui-deny", detail)) return
       }
       this.close(kind, event)
@@ -581,8 +567,8 @@ export class UIToast extends UIElement<ToastVocabulary> {
       if (target === this.host) return undefined
       if (!(target instanceof Element) || target.getRootNode() !== scope) continue
       if (!found) {
-        if (target.matches(MODAL_ACTION_SELECTORS.approve)) found = [APPROVE, target]
-        else if (target.matches(MODAL_ACTION_SELECTORS.deny)) found = [DENY, target]
+        if (target.matches(UIT.MODAL_ACTION_SELECTORS.approve)) found = [APPROVE, target]
+        else if (target.matches(UIT.MODAL_ACTION_SELECTORS.deny)) found = [DENY, target]
         else if (UIToast.isButton(target)) found = [ACTION, target]
       }
       if (target.parentElement === this.host) return target.slot === slotName ? found : undefined

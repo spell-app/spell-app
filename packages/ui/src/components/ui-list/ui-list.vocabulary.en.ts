@@ -18,6 +18,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const listVocabulary = {
   tag: "ui-list",
+  topics: ["lists", "data display", "typography", "basic", "elements"],
+  aka: ["ul", "ol", "bullet list", "list view"],
   noun: "list",
   description: "A list groups related content.",
   attributes: [

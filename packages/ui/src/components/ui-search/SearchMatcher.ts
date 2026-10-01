@@ -1,4 +1,4 @@
-import type { SearchCategory, SearchMatch, SearchResponse, SearchResult } from "$/ui/core"
+import type { UIT } from "$/ui/core"
 import { DEFAULT_FIELDS, REGEXP_SPECIALS, COMBINING_MARKS } from "./ui-search.types"
 import type { SearchMatcherOptions } from "./ui-search.types"
 import { WHITESPACE } from "$/ui/components/components.types"
@@ -18,7 +18,7 @@ export class SearchMatcher {
   readonly fields: readonly string[]
 
   /** What counts as a match besides a word start. */
-  readonly match: SearchMatch
+  readonly match: UIT.SearchMatch
 
   /** Case-insensitive. */
   readonly ignoreCase: boolean
@@ -34,14 +34,14 @@ export class SearchMatcher {
   }
 
   /** Results of `source` matching `query`, best first;  `[]` for a blank query. */
-  search(source: readonly SearchResult[], query: string): SearchResult[] {
+  search(source: readonly UIT.SearchResult[], query: string): UIT.SearchResult[] {
     const term = this.fold(query.trim())
     if (!term) return []
     const wordStart = new RegExp(`(?:\\s|^)${term.replace(REGEXP_SPECIALS, "\\$&")}`, "u")
     const words = term.split(WHITESPACE)
-    const first: SearchResult[] = []
-    const exact: SearchResult[] = []
-    const fuzzy: SearchResult[] = []
+    const first: UIT.SearchResult[] = []
+    const exact: UIT.SearchResult[] = []
+    const fuzzy: UIT.SearchResult[] = []
     for (const result of source) {
       const texts = this.texts(result)
       if (this.match === "all") {
@@ -65,8 +65,8 @@ export class SearchMatcher {
    * `results` grouped by their `category`, in order of first appearance.
    * - NOTE: as Fomantic's `categoryResults()`, a result WITHOUT a category is left out.
    */
-  static categorize(results: readonly SearchResult[]): SearchCategory[] {
-    const groups = new Map<string, SearchResult[]>()
+  static categorize(results: readonly UIT.SearchResult[]): UIT.SearchCategory[] {
+    const groups = new Map<string, UIT.SearchResult[]>()
     for (const result of results) {
       if (!result.category) continue
       const group = groups.get(result.category)
@@ -81,14 +81,14 @@ export class SearchMatcher {
    * bare list.  A plain list is ONE unnamed group, capped at `maxResults` (`0`:  no cap).
    * - Anything else (no `results`, not an object) is no results.
    */
-  static groups(response: SearchResponse | null | undefined, maxResults = 0): SearchCategory[] {
+  static groups(response: UIT.SearchResponse | null | undefined, maxResults = 0): UIT.SearchCategory[] {
     const results = Array.isArray(response) ? response : (response as { results?: unknown } | null)?.results
     if (!results || typeof results !== "object") return []
     const list = (Array.isArray(results) ? results : Object.values(results)) as unknown[]
     if (list.length && list.every(SearchMatcher.isCategory)) {
-      return (list as SearchCategory[]).filter((category) => category.results.length)
+      return (list as UIT.SearchCategory[]).filter((category) => category.results.length)
     }
-    const plain = (list as SearchResult[]).filter((result) => result && typeof result === "object")
+    const plain = (list as UIT.SearchResult[]).filter((result) => result && typeof result === "object")
     return [{ name: "", results: maxResults > 0 ? plain.slice(0, maxResults) : plain }]
   }
 
@@ -97,7 +97,7 @@ export class SearchMatcher {
   ////////////////
 
   /** Folded texts of `result`'s searchable fields, in field order. */
-  private texts(result: SearchResult): string[] {
+  private texts(result: UIT.SearchResult): string[] {
     const texts: string[] = []
     for (const field of this.fields) {
       const value = result[field]
@@ -113,8 +113,8 @@ export class SearchMatcher {
   }
 
   /** Is `value` a `{ name, results: [] }` category? */
-  private static isCategory(value: unknown): value is SearchCategory {
-    return !!value && typeof value === "object" && Array.isArray((value as SearchCategory).results)
+  private static isCategory(value: unknown): value is UIT.SearchCategory {
+    return !!value && typeof value === "object" && Array.isArray((value as UIT.SearchCategory).results)
   }
 
   /**

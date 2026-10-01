@@ -21,6 +21,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const stepVocabulary = {
   tag: "ui-step",
+  topics: ["navigation", "progress", "content parts", "elements"],
+  aka: ["wizard step", "stage"],
   noun: "step",
   ui: false,
   description: "One step of a set of steps.",

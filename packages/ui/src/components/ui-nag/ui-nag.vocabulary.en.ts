@@ -14,6 +14,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const nagVocabulary = {
   tag: "ui-nag",
+  topics: ["notifications", "messages", "overlays", "modules"],
+  aka: ["banner", "cookie notice", "announcement bar", "sticky banner"],
   noun: "nag",
   description: "A nag is a persistent message that stays until dismissed, and can remember the dismissal.",
   attributes: [

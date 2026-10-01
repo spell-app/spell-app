@@ -1,20 +1,7 @@
 import { createEffect, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import {
-  Cell,
-  proto,
-  UIElement,
-  type AttributeName,
-  type FormFailureDetail,
-  type FormInvalidDetail,
-  type FormRules,
-  type FormSuccessDetail,
-  type FormValidDetail,
-  type FormValues,
-  SUBMIT,
-  ARIA_INVALID
-} from "$/ui/core"
+import { Cell, proto, UIElement, type AttributeName, UIT } from "$/ui/core"
 
 import { formVocabulary } from "./ui-form.vocabulary.en"
 import { FormFallback } from "./ui-form.fallback"
@@ -154,11 +141,11 @@ export class UIForm extends UIElement<Vocabulary> {
         if (!form) return
         const noValidate = form.noValidate
         form.noValidate = true
-        form.addEventListener(SUBMIT, this.onSubmit, { capture: true })
+        form.addEventListener(UIT.SUBMIT, this.onSubmit, { capture: true })
         form.addEventListener(RESET, this.onReset)
         return () => {
           form.noValidate = noValidate
-          form.removeEventListener(SUBMIT, this.onSubmit, { capture: true })
+          form.removeEventListener(UIT.SUBMIT, this.onSubmit, { capture: true })
           form.removeEventListener(RESET, this.onReset)
         }
       }
@@ -208,7 +195,7 @@ export class UIForm extends UIElement<Vocabulary> {
   }
 
   /** Every field's value, by name. */
-  values(): FormValues {
+  values(): UIT.FormValues {
     return this.fields.values()
   }
 
@@ -251,21 +238,21 @@ export class UIForm extends UIElement<Vocabulary> {
   }
 
   /** Show `messages` for a field (or clear it), and dispatch `ui-valid` / `ui-invalid`. */
-  private show(identifier: string, controls: readonly Element[], messages: string[], values: FormValues) {
+  private show(identifier: string, controls: readonly Element[], messages: string[], values: UIT.FormValues) {
     const field = controls[0]?.closest(FIELD_SELECTOR) as FieldElement | null
     field?.showErrors?.(messages)
     for (const control of controls) {
-      if (messages.length) control.setAttribute(ARIA_INVALID, "true")
-      else if (control.getAttribute(ARIA_INVALID) === "true") control.removeAttribute(ARIA_INVALID)
+      if (messages.length) control.setAttribute(UIT.ARIA_INVALID, "true")
+      else if (control.getAttribute(UIT.ARIA_INVALID) === "true") control.removeAttribute(UIT.ARIA_INVALID)
     }
     if (messages.length) this.shown.add(identifier)
     else this.shown.delete(identifier)
     const value = values[identifier]
     if (messages.length) {
-      const detail: FormInvalidDetail = { field: identifier, value, errors: messages, values }
+      const detail: UIT.FormInvalidDetail = { field: identifier, value, errors: messages, values }
       this.emit("ui-invalid", detail)
     } else {
-      const detail: FormValidDetail = { field: identifier, value, values }
+      const detail: UIT.FormValidDetail = { field: identifier, value, values }
       this.emit("ui-valid", detail)
     }
   }
@@ -276,7 +263,7 @@ export class UIForm extends UIElement<Vocabulary> {
       const field = this.fields.field(identifier)
       if (!field) continue
       ;(field.controls[0]?.closest(FIELD_SELECTOR) as FieldElement | null)?.showErrors?.([])
-      for (const control of field.controls) control.removeAttribute(ARIA_INVALID)
+      for (const control of field.controls) control.removeAttribute(UIT.ARIA_INVALID)
     }
     this.shown.clear()
     this.failed.set(false)
@@ -288,9 +275,9 @@ export class UIForm extends UIElement<Vocabulary> {
    * - Read from the HOST property, whose value is stored at once, not from `attrs` (a signal:  a `validate()`
    *   right after `el.rules = …` would see the old rules).
    */
-  private rules(): FormRules | undefined {
+  private rules(): UIT.FormRules | undefined {
     const rules = (this.host as unknown as Record<string, unknown>)[this.definition.attribute("rules").property]
-    return rules && typeof rules === "object" && !Array.isArray(rules) ? (rules as FormRules) : undefined
+    return rules && typeof rules === "object" && !Array.isArray(rules) ? (rules as UIT.FormRules) : undefined
   }
 
   /** Validate `identifier` once the controls have settled (their value and validity land on a microtask). */
@@ -318,12 +305,12 @@ export class UIForm extends UIElement<Vocabulary> {
     if (Object.keys(errors).length) {
       event.preventDefault()
       event.stopImmediatePropagation()
-      const detail: FormFailureDetail = { values: this.values(), errors, originalEvent: event }
+      const detail: UIT.FormFailureDetail = { values: this.values(), errors, originalEvent: event }
       this.emit("ui-failure", detail)
       if (untrack(() => this.attrs.errorFocus)) this.focusFirst(Object.keys(errors))
       return
     }
-    const detail: FormSuccessDetail = { values: this.values(), originalEvent: event }
+    const detail: UIT.FormSuccessDetail = { values: this.values(), originalEvent: event }
     if (!this.emit("ui-success", detail)) event.preventDefault()
     else this.takeSnapshot()
   }

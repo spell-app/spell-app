@@ -1,4 +1,4 @@
-import { NativeFallback, proto, type CalendarType } from "$/ui/core"
+import { NativeFallback, proto, UIT } from "$/ui/core"
 
 import { calendarVocabulary } from "./ui-calendar.vocabulary.en"
 import { CalendarHost, NATIVE_TYPES } from "./ui-calendar.types"
@@ -29,7 +29,7 @@ export class CalendarFallback extends NativeFallback<typeof calendarVocabulary> 
 
   protected override build() {
     const host = this.host as CalendarHost
-    const type = (this.attr("type") ?? "datetime") as CalendarType
+    const type = (this.attr("type") ?? "datetime") as UIT.CalendarType
     const year = type === "year"
     const control = this.create("input", {
       type: NATIVE_TYPES[type] ?? NATIVE_TYPES.datetime,

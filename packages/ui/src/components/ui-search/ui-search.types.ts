@@ -2,7 +2,7 @@
  * Loose constants, types and helpers of `<ui-search>`:  its element classes and native fallback import them from here.
  */
 
-import type { SearchMatch, SearchCategory, SearchResult, PartName } from "$/ui/core"
+import type { PartName, UIT } from "$/ui/core"
 import { searchVocabulary } from "./ui-search.vocabulary.en"
 
 ////////////////
@@ -14,7 +14,7 @@ export type SearchMatcherOptions = {
   /** Fields tried, in order (Fomantic's `searchFields`);  default `title`, `description`. */
   fields?: readonly string[]
   /** Fomantic's `fullTextSearch`;  default `exact`. */
-  match?: SearchMatch
+  match?: UIT.SearchMatch
   /** Fomantic's `ignoreSearchCase`;  default true. */
   ignoreCase?: boolean
   /** Fomantic's `ignoreDiacritics`;  default false. */
@@ -40,7 +40,7 @@ export type SearchVocabulary = typeof searchVocabulary
 /** The last remote answer:  for which query, and how it went. */
 export type RemoteAnswer = {
   query: string
-  groups: readonly SearchCategory[]
+  groups: readonly UIT.SearchCategory[]
   status: "idle" | "done" | "error"
 }
 
@@ -82,7 +82,7 @@ export const PRICE = "price"
 /** The parts of a `<ui-search>` the fallback touches;  all optional, the element may not have upgraded. */
 export type SearchHost = HTMLElement & {
   value?: string | null
-  source?: readonly SearchResult[]
+  source?: readonly UIT.SearchResult[]
 }
 
 /** Part names the fallback writes. */

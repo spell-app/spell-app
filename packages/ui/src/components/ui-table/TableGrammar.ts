@@ -1,4 +1,4 @@
-import { ClassBuilder, numberToWord, ValueSets, type ComponentVocabulary, type TableColumn } from "$/ui/core"
+import { ClassBuilder, numberToWord, ValueSets, type ComponentVocabulary, UIT } from "$/ui/core"
 
 import { tableVocabulary } from "./ui-table.vocabulary.en"
 import { SCROLLING, OVERFLOWING } from "./ui-table.types"
@@ -45,7 +45,7 @@ export class TableGrammar {
    * Fomantic cell classes for a data-mode `column`, e.g. `right aligned four wide`;  `""` for none.
    * - SIDE EFFECT (dev only):  an unusable width is dropped silently (no class), like `ClassBuilder`'s.
    */
-  static cell(column: TableColumn): string {
+  static cell(column: UIT.TableColumn): string {
     const { grammar } = ClassBuilder
     const words: string[] = []
     if (column.textAlign) words.push(`${column.textAlign} ${grammar.aligned}`)

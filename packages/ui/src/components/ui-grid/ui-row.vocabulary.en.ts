@@ -22,6 +22,8 @@ const ROW_REVERSALS = ["mobile", "tablet", "computer"] as const
  ****************/
 export const rowVocabulary = {
   tag: "ui-row",
+  topics: ["layout", "collections"],
+  aka: ["grid row"],
   noun: "row",
   description: "A row is a horizontal grouping of columns.",
   attributes: [

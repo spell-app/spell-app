@@ -9,7 +9,7 @@
  * - Validation lives on `<ui-form>`:  `rules` is a PROPERTY (`json`) in Fomantic's `fields` shape.
  */
 
-import { FORM_STATES } from "$/ui/core"
+import { UIT } from "$/ui/core"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 import { STATE_STATES } from "./ui-form.types"
 
@@ -19,6 +19,8 @@ import { STATE_STATES } from "./ui-form.types"
  ****************/
 export const fieldsVocabulary = {
   tag: "ui-fields",
+  topics: ["forms", "layout", "collections"],
+  aka: ["field group", "form row", "inline fields"],
   noun: "fields",
   ui: false,
   description: "A set of fields can appear grouped together, side by side or stacked.",
@@ -26,7 +28,7 @@ export const fieldsVocabulary = {
     {
       name: "state",
       kind: "valueOnly",
-      values: FORM_STATES,
+      values: UIT.FORM_STATES,
       description: "State of every field inside."
     },
     { name: "inline", kind: "keyOnly", description: "Fields and their labels on one line." },

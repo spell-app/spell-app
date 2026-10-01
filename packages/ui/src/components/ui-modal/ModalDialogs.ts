@@ -1,4 +1,4 @@
-import { UI, type ModalOptions, type ModalProvider, ARIA_LABEL, HEADER, CONTENT, BUTTON, ENTER } from "$/ui/core"
+import { UI, type ModalOptions, type ModalProvider, UIT } from "$/ui/core"
 
 import { modalVocabulary } from "./ui-modal.vocabulary.en"
 import {
@@ -58,9 +58,9 @@ export class ModalDialogs implements ModalProvider {
     const modal = document.createElement(modalVocabulary.tag) as HTMLElement & { open: boolean }
     modal.setAttribute(SIZE, TINY)
     modal.setAttribute(CLOSEDBY, CLOSEREQUEST)
-    if (options.title) modal.setAttribute(HEADER, options.title)
-    else modal.setAttribute(ARIA_LABEL, options.message)
-    const content = document.createElement(ModalDialogs.tag(CONTENT))
+    if (options.title) modal.setAttribute(UIT.HEADER, options.title)
+    else modal.setAttribute(UIT.ARIA_LABEL, options.message)
+    const content = document.createElement(ModalDialogs.tag(UIT.CONTENT))
     const field = input === undefined ? undefined : ModalDialogs.input(input)
     content.append(field ? ModalDialogs.label(options.message, field) : ModalDialogs.paragraph(options.message))
     const actions = document.createElement(ModalDialogs.tag(ACTIONS))
@@ -70,7 +70,7 @@ export class ModalDialogs implements ModalProvider {
     actions.append(approve)
     modal.append(content, actions)
     field?.addEventListener("keydown", (event) => {
-      if (event.key === ENTER) approve.click()
+      if (event.key === UIT.ENTER) approve.click()
     })
     document.body.append(modal)
     modal.open = true
@@ -124,7 +124,7 @@ export class ModalDialogs implements ModalProvider {
 
   /** A `<ui-button>` with Fomantic's action class (`approve` / `cancel`). */
   private static button(text: string, action: string): HTMLElement {
-    const button = document.createElement(ModalDialogs.tag(BUTTON))
+    const button = document.createElement(ModalDialogs.tag(UIT.BUTTON))
     button.className = action
     button.textContent = text
     return button

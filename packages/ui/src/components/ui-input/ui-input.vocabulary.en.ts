@@ -12,7 +12,7 @@
  *   merges with the Fomantic `rules` property's.
  */
 
-import { FORM_STATES } from "$/ui/core"
+import { UIT } from "$/ui/core"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /** Input types passed through to the inner `<input>`. */
@@ -40,6 +40,8 @@ const INPUT_TYPES = [
  ****************/
 export const inputVocabulary = {
   tag: "ui-input",
+  topics: ["forms", "inputs", "controls", "text", "basic", "elements"],
+  aka: ["text field", "text box", "textbox", "input field", "search box"],
   noun: "input",
   description: "An input is a field used to elicit a response from a user.",
   attributes: [
@@ -52,7 +54,7 @@ export const inputVocabulary = {
     {
       name: "state",
       kind: "valueOnly",
-      values: FORM_STATES,
+      values: UIT.FORM_STATES,
       description: "Form state, tinting the box, text and placeholder."
     },
     { name: "transparent", kind: "keyOnly", description: "No box:  text only, e.g. inside a menu or header." },

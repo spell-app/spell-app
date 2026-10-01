@@ -18,6 +18,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const dateVocabulary = {
   tag: "ui-date",
+  topics: ["content parts", "date & time", "social"],
+  aka: ["timestamp", "time ago", "posted at"],
   noun: "date",
   ui: false,
   description: "When something happened;  inline and small inside a summary.",

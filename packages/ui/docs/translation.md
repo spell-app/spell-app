@@ -65,6 +65,13 @@ How the runtime will use it (not built yet):
 4. Rendering uses the inverse maps: the localized slot name on `<slot name>`, the localized event name in
    `emit()`, the localized part ADDED next to the canonical one (`part="header encabezado"`).
 
+## Topics and other names
+
+- A vocabulary's `topics` are ids from `ValueSets.topics`, translated ONCE like any shared value:
+  `Dictionary.values.topics` (`{ forms: "formularios", "date & time": "fecha y hora" }`).
+- `aka` (other names people search by) is per tag and per language:  `ComponentDictionary.aka` replaces the English
+  list (`components: { "ui-modal": { aka: ["diálogo", "ventana emergente"] } }`).
+
 ## Emoji names (name sets built, translations planned, 2026-10-01)
 
 `<ui-emoji name>` takes an OPEN set of ~5,000 values, too many for a `Dictionary`.

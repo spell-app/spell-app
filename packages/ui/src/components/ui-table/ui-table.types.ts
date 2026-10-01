@@ -2,7 +2,7 @@
  * Loose constants, types and helpers of `<ui-table>`:  its element classes and native fallback import them from here.
  */
 
-import type { TableSortDirection } from "$/ui/core"
+import type { UIT } from "$/ui/core"
 
 ////////////////
 // ## TableClassMirror
@@ -30,7 +30,7 @@ export const HEADER = "th"
 export const TABLE = "table"
 
 /** The flipped direction. */
-export const DESCENDING: TableSortDirection = "descending"
+export const DESCENDING: UIT.TableSortDirection = "descending"
 
 ////////////////
 // ## UITable
@@ -45,7 +45,7 @@ export const ARIA_SORT = "aria-sort"
 export const SPACE = " "
 
 /** Sort directions. */
-export const ASCENDING: TableSortDirection = "ascending"
+export const ASCENDING: UIT.TableSortDirection = "ascending"
 
 ////////////////
 // ## ui-table.fallback

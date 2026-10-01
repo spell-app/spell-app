@@ -53,10 +53,14 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
     - `<tag>.vocabulary.en.ts` -- ONE per tag (`ui-button.vocabulary.en.ts`, `ui-buttons.vocabulary.en.ts`,
       `ui-or.vocabulary.en.ts`):  EVERY name the tag uses:  tag, attributes (kind + allowed values), values, events,
       slots, parts, states, text strings.  Translations become `<tag>.vocabulary.<lang>.ts`
+      - and `topics` (2+ ids from `ValueSets.topics`:  how a newcomer looks for it AND how widget libraries file it)
+        + `aka` (other libraries' / everyday names:  `ui-modal`:  `dialog`, `lightbox`).  A NEW TAG MUST fill both;
+        `src/components/component-definitions.ts` rolls them up (the docs' component browser, later `<ui-root>`)
+        and `test/component-definitions.test.ts` fails on a tag without them.  Live:  `UIButton.describe()`
     - `ui-<name>.types.ts` -- the folder's loose constants, types and shared vocabulary pieces (nothing top-level
       stays loose in an element / fallback / helper file);  a helper function becomes a private static on the one class
       that uses it, else a static on a small class here.  Constants used by SEVERAL folders live in
-      `src/components/components.types.ts` and are imported from `$/ui/core`.  NOTE:  a types file imports its
+      `src/components/components.types.ts` and are used as `UIT.<NAME>` from `$/ui/core`.  NOTE:  a types file imports its
       vocabularies with `import type` only (vocabularies import values from it:  a value import is a cycle);
       `ui-parts.types.ts` is the exception
     - `ui-<name>.fallback.ts` -- the native fallback (plain DOM, no Solid) shown when the element's render throws
@@ -177,6 +181,7 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   lib build puts everything `$/ui/core` re-exports into `dist/core.js`;  a leaf imported by a family AND by `core`
   splits into a hashed third chunk.  For the same reason `core.ts` / `forms.ts` re-export `$/ui/elements` LEAVES, and
   `FormHost` / `FormElement` import the core through `$/ui/core` (`yarn measure`'s checks catch a violation).
+  Shared constants and types come as `UIT.<NAME>` from `$/ui/core` (`import { UIT } from "$/ui/core"`), never bare.
 - **Memos compute EAGERLY** on creation.  Base-class memos that call overridable methods take `{ lazy: true }`;
   effects that call overridables are created in `mount()`, after every subclass field exists.
 - **`Cell` field order:**  class fields initialize in declaration order, before the subclass constructor body.
@@ -230,6 +235,9 @@ As the root's, plus our self-namespaces:
 
 - `UI` ~== the runtime singleton from `$/ui/runtime`
 - `E` ~== `$/ui/elements`
+- `UIT` ~== `$/ui/components/components.types` -- the constants, types and `ToggleCommands` several families share:
+  `UIT.TRUE`, `UIT.ARIA_LABEL`, `UIT.ToggleCommands.action(...)`, `UIT.SelectValue`.  Exported from `$/ui/core` and `$/ui`,
+  never flat;  inside the folder itself, plain named imports
 - the components barrel exports classes by name (`UIButton`, `UIDropdown`), no namespace
 
 ## Imports

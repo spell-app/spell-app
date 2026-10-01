@@ -1,0 +1,49 @@
+import { describe, expect, it } from "vitest"
+
+import * as library from "$/ui"
+import { ComponentDefinitions } from "$/ui/components/component-definitions"
+import { ValueSets } from "$/ui/vocabulary"
+
+/** Tag of every element class `@spell-app/ui` exports (each carries its vocabulary). */
+const EXPORTED_TAGS = Object.values(library)
+  // classes only:  `UI` is a proxy that throws on any key before the runtime loads
+  .filter((value) => typeof value === "function")
+  .map((value) => (value as { prototype?: { vocabulary?: { tag?: unknown } } }).prototype?.vocabulary?.tag)
+  .filter((tag): tag is string => typeof tag === "string")
+
+describe("component definitions (the vocabularies' topics, rolled up)", () => {
+  it("has exactly one definition per tag, each a defined element", () => {
+    const tags = ComponentDefinitions.all.map((definition) => definition.tag)
+    expect(new Set(tags).size).toBe(tags.length)
+    for (const tag of tags) expect(customElements.get(tag), tag).toBeDefined()
+  })
+
+  it("has a definition for every element class the library exports", () => {
+    expect(EXPORTED_TAGS.length).toBeGreaterThan(80)
+    for (const tag of EXPORTED_TAGS) expect(ComponentDefinitions.byTag(tag), tag).toBeDefined()
+  })
+
+  it("files every tag under at least two known topics", () => {
+    const known = new Set<string>(ValueSets.topics)
+    for (const { tag, topics } of ComponentDefinitions.all) {
+      expect(topics.length, `${tag}:  add topics to its vocabulary`).toBeGreaterThanOrEqual(2)
+      for (const topic of topics) expect(known.has(topic), `${tag}:  unknown topic ${topic}`).toBe(true)
+    }
+  })
+
+  it("uses every topic somewhere", () => {
+    const used = new Set(ComponentDefinitions.all.flatMap((definition) => definition.topics))
+    expect(ValueSets.topics.filter((topic) => !used.has(topic))).toEqual([])
+  })
+
+  it("puts a folder's main tag first, and names tags readably", () => {
+    expect(ComponentDefinitions.byFolder().get("ui-button")?.[0]?.tag).toBe("ui-button")
+    expect(ComponentDefinitions.nameOf("ui-breadcrumb-section")).toBe("Breadcrumb section")
+    expect(ComponentDefinitions.byTag("ui-or")?.folder).toBe("ui-button")
+  })
+
+  it("exposes the whole vocabulary live on the class:  describe()", () => {
+    expect(library.UIButton.describe().tag).toBe("ui-button")
+    expect(library.UIButton.describe().topics).toContain("buttons")
+  })
+})

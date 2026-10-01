@@ -1,7 +1,7 @@
 import { Show, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { DISABLED, PartContext, proto, SlotContent, TRUE, UIElement } from "$/ui/core"
+import { PartContext, proto, SlotContent, UIElement, UIT } from "$/ui/core"
 
 import { commentsVocabulary } from "./ui-comments.vocabulary.en"
 import { CommentFallback } from "./ui-comment.fallback"
@@ -44,7 +44,7 @@ export class UIComments extends UIElement<typeof commentsVocabulary> {
       <div
         class={this.nested() ? this.threadClasses() : this.classes()}
         part={this.part("comments")}
-        aria-disabled={this.attrs.disabled ? TRUE : undefined}
+        aria-disabled={this.attrs.disabled ? UIT.TRUE : undefined}
       >
         <slot />
         <Show when={this.slots.has(this.slot("reply"))}>
@@ -59,6 +59,6 @@ export class UIComments extends UIElement<typeof commentsVocabulary> {
   /** A thread's classes:  the noun, and `collapsed` / `disabled`, which a thread keeps. */
   private threadClasses(): string {
     const { collapsed, disabled } = this.attrs
-    return [collapsed ? COLLAPSED : "", disabled ? DISABLED : "", this.vocabulary.noun].filter(Boolean).join(" ")
+    return [collapsed ? COLLAPSED : "", disabled ? UIT.DISABLED : "", this.vocabulary.noun].filter(Boolean).join(" ")
   }
 }

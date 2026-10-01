@@ -1,21 +1,7 @@
 import { Show, createEffect, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import {
-  Cell,
-  IconGlyph,
-  proto,
-  UI,
-  UIElement,
-  type NagCloseDetail,
-  type NagCloseReason,
-  type NagStorage,
-  CLOSE,
-  IN,
-  OUT,
-  CLOSE_CLASS,
-  CLOSE_ICON
-} from "$/ui/core"
+import { Cell, IconGlyph, proto, UI, UIElement, UIT } from "$/ui/core"
 
 import { nagVocabulary } from "./ui-nag.vocabulary.en"
 import { NagFallback } from "./ui-nag.fallback"
@@ -49,7 +35,7 @@ export class UINag extends UIElement<Vocabulary> {
   ////////////////
 
   /** Glyph of the close icon. */
-  readonly closeGlyph = new IconGlyph(() => (this.attrs.closable ? CLOSE_ICON : undefined))
+  readonly closeGlyph = new IconGlyph(() => (this.attrs.closable ? UIT.CLOSE_ICON : undefined))
 
   /** Hidden because it was dismissed, now or before (stored). */
   readonly dismissedState = new Cell(untrack(() => this.hiddenByStorage()))
@@ -98,7 +84,7 @@ export class UINag extends UIElement<Vocabulary> {
         <Show when={this.attrs.closable}>
           <button
             type="button"
-            class={CLOSE_CLASS}
+            class={UIT.CLOSE_CLASS}
             part={this.part("close")}
             aria-label={this.text("close")}
             onClick={this.onCloseIcon}
@@ -128,7 +114,7 @@ export class UINag extends UIElement<Vocabulary> {
     const time = untrack(() => this.attrs.displayTime) ?? 0
     if (time > 0) this.timer = setTimeout(() => this.close(TIMEOUT), time)
     const root = this.root
-    void (root ? UI.transitions.animate(root, SLIDE, IN) : Promise.resolve(true)).then(() => {
+    void (root ? UI.transitions.animate(root, SLIDE, UIT.IN) : Promise.resolve(true)).then(() => {
       if (!this.closing) this.emit("ui-show", {})
     })
   }
@@ -141,9 +127,9 @@ export class UINag extends UIElement<Vocabulary> {
    * Close for `reason`:  the cancelable `ui-close`, the dismissal stored (not for `timeout`), then the exit
    * animation, `hidden` on the host and `ui-hide`.  True when it closes.
    */
-  close(reason: NagCloseReason = DISMISS, originalEvent?: Event): boolean {
+  close(reason: UIT.NagCloseReason = DISMISS, originalEvent?: Event): boolean {
     if (this.closing || this.host.hidden) return false
-    const detail: NagCloseDetail = { reason, originalEvent }
+    const detail: UIT.NagCloseDetail = { reason, originalEvent }
     if (!this.emit("ui-close", detail)) return false
     this.closing = true
     clearTimeout(this.timer)
@@ -152,11 +138,11 @@ export class UINag extends UIElement<Vocabulary> {
       this.dismissedState.set(true)
     }
     const root = this.root
-    void (root ? UI.transitions.animate(root, SLIDE, OUT) : Promise.resolve(true)).then(() => {
+    void (root ? UI.transitions.animate(root, SLIDE, UIT.OUT) : Promise.resolve(true)).then(() => {
       this.closing = false
       this.shown = false
       this.host.hidden = true
-      const hidden: NagCloseDetail = { reason }
+      const hidden: UIT.NagCloseDetail = { reason }
       this.emit("ui-hide", hidden)
     })
     return true
@@ -183,7 +169,7 @@ export class UINag extends UIElement<Vocabulary> {
   /** Close icon:  dismiss (and remember). */
   private readonly onCloseIcon = (event: MouseEvent) => {
     event.stopPropagation()
-    this.close(CLOSE, event)
+    this.close(UIT.CLOSE, event)
   }
 
   ////////////////
@@ -201,7 +187,7 @@ export class UINag extends UIElement<Vocabulary> {
       const { key, value, storage, expires, path, domain, secure, samesite } = this.attrs
       if (!key) return undefined
       return new DismissalStore({
-        storage: (storage ?? COOKIE) as NagStorage,
+        storage: (storage ?? COOKIE) as UIT.NagStorage,
         key,
         value: value ?? DEFAULT_VALUE,
         expires: expires ?? DEFAULT_EXPIRES,

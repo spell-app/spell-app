@@ -18,6 +18,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const summaryVocabulary = {
   tag: "ui-summary",
+  topics: ["content parts", "social"],
+  aka: ["event summary", "headline"],
   noun: "summary",
   ui: false,
   description: "A feed event's summary line, e.g. who did what, with an inline date.",

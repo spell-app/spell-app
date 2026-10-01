@@ -15,6 +15,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const sideVocabulary = {
   tag: "ui-side",
+  topics: ["animation", "content parts", "modules"],
+  aka: ["shape side", "face"],
   noun: "side",
   ui: false,
   description: "One side of a shape.",

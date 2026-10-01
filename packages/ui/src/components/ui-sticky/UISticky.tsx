@@ -1,7 +1,7 @@
 import { createEffect } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, UIElement, type StickyDetail, type StickyEdge } from "$/ui/core"
+import { Cell, proto, UIElement, UIT } from "$/ui/core"
 
 import { stickyVocabulary } from "./ui-sticky.vocabulary.en"
 import { StickyFallback } from "./ui-sticky.fallback"
@@ -39,7 +39,7 @@ export class UISticky extends UIElement<StickyVocabulary> {
   ////////////////
 
   /** Edge it's stuck to, or `null`. */
-  readonly edge = new Cell<StickyEdge | null>(null)
+  readonly edge = new Cell<UIT.StickyEdge | null>(null)
 
   /** Pushed out by the end of its container. */
   readonly bound = new Cell(false)
@@ -54,7 +54,7 @@ export class UISticky extends UIElement<StickyVocabulary> {
   private box?: HTMLDivElement
 
   /** Last reported edge (the cell reads late). */
-  private stuckTo: StickyEdge | null = null
+  private stuckTo: UIT.StickyEdge | null = null
 
   ////////////////
   // ## Element hooks
@@ -132,7 +132,7 @@ export class UISticky extends UIElement<StickyVocabulary> {
     const topLine = area.top + offset
     const bottomLine = area.bottom - bottomOffset
     const boxRect = box.getBoundingClientRect()
-    let edge: StickyEdge | null = null
+    let edge: UIT.StickyEdge | null = null
     let bound = false
     if (topSentinel.getBoundingClientRect().top < topLine - SLACK) {
       if (boxRect.top < topLine - SLACK) bound = true
@@ -145,18 +145,18 @@ export class UISticky extends UIElement<StickyVocabulary> {
   }
 
   /** Publish `edge` / `bound`, firing `ui-unstick` then `ui-stick` on a change. */
-  private report(edge: StickyEdge | null, bound: boolean) {
+  private report(edge: UIT.StickyEdge | null, bound: boolean) {
     this.bound.set(bound)
     const previous = this.stuckTo
     if (edge === previous) return
     this.stuckTo = edge
     this.edge.set(edge)
     if (previous) {
-      const detail: StickyDetail = { edge: previous }
+      const detail: UIT.StickyDetail = { edge: previous }
       this.emit("ui-unstick", detail)
     }
     if (edge) {
-      const detail: StickyDetail = { edge }
+      const detail: UIT.StickyDetail = { edge }
       this.emit("ui-stick", detail)
     }
   }

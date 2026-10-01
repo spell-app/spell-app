@@ -1,17 +1,7 @@
 import { Show, createEffect, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import {
-  Cell,
-  proto,
-  ToggleCommands,
-  UI,
-  UIElement,
-  type AttributeName,
-  type OverlayEntry,
-  type PopupOpenDetail,
-  type PopupTrigger
-} from "$/ui/core"
+import { Cell, proto, UI, UIElement, type AttributeName, type OverlayEntry, UIT } from "$/ui/core"
 
 import { popupVocabulary } from "./ui-popup.vocabulary.en"
 import { PopupFallback } from "./ui-popup.fallback"
@@ -95,7 +85,7 @@ export class UIPopup extends UIElement<PopupVocabulary> {
   })
 
   /** What opens it. */
-  readonly trigger = createMemo((): PopupTrigger => this.attrs.on ?? DEFAULT_TRIGGER)
+  readonly trigger = createMemo((): UIT.PopupTrigger => this.attrs.on ?? DEFAULT_TRIGGER)
 
   /** A click popup:  a non-modal dialog with interactive content, not a tooltip. */
   readonly interactive = createMemo(() => this.trigger() === "click")
@@ -273,7 +263,7 @@ export class UIPopup extends UIElement<PopupVocabulary> {
    * Listen to `target` for `trigger`, add the anchor name and the ARIA;  returns the undo.
    * - SIDE EFFECTS:  see class docs.
    */
-  private bind(target: Element, trigger: PopupTrigger): () => void {
+  private bind(target: Element, trigger: UIT.PopupTrigger): () => void {
     const { host } = this
     this.anchorName ||= `--${UI.ids.next(ID_PREFIX)}`
     const listeners = new AbortController()
@@ -317,7 +307,7 @@ export class UIPopup extends UIElement<PopupVocabulary> {
   setOpen(open: boolean, originalEvent?: Event): boolean {
     clearTimeout(this.timer)
     if (open === untrack(() => this.isOpen())) return false
-    const detail: PopupOpenDetail = { open, originalEvent }
+    const detail: UIT.PopupOpenDetail = { open, originalEvent }
     return this.openState.request(open, () => this.emit(open ? "ui-open" : "ui-close", detail))
   }
 
@@ -379,7 +369,7 @@ export class UIPopup extends UIElement<PopupVocabulary> {
 
   /** An invoker command aimed at the host (`TOGGLE_COMMANDS`). */
   private readonly onCommand = (event: Event) => {
-    const action = ToggleCommands.action(
+    const action = UIT.ToggleCommands.action(
       event,
       untrack(() => this.isOpen())
     )
@@ -392,7 +382,7 @@ export class UIPopup extends UIElement<PopupVocabulary> {
    */
   private readonly onToggle = (event: Event) => {
     if ((event as ToggleEvent).newState !== CLOSED || !this.host.isConnected || !untrack(() => this.isOpen())) return
-    const detail: PopupOpenDetail = { open: false, originalEvent: event }
+    const detail: UIT.PopupOpenDetail = { open: false, originalEvent: event }
     this.emit("ui-close", detail)
     this.openState.set(false)
   }

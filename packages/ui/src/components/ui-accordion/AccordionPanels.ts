@@ -1,4 +1,4 @@
-import type { AccordionPanel } from "$/ui/core"
+import type { UIT } from "$/ui/core"
 import { INDEX, LIST_SEPARATOR } from "./ui-accordion.types"
 
 /****************
@@ -17,9 +17,9 @@ export class AccordionPanels {
   static read(
     host: Element,
     isTitle: (element: Element) => boolean,
-    previous: readonly AccordionPanel[] = []
-  ): AccordionPanel[] {
-    const panels: AccordionPanel[] = []
+    previous: readonly UIT.AccordionPanel[] = []
+  ): UIT.AccordionPanel[] {
+    const panels: UIT.AccordionPanel[] = []
     const children = [...host.children]
     for (let index = 0; index < children.length; index++) {
       const title = children[index]!
@@ -33,7 +33,7 @@ export class AccordionPanels {
   }
 
   /** Same panels, object for object:  nothing to re-render. */
-  static same(a: readonly AccordionPanel[], b: readonly AccordionPanel[]): boolean {
+  static same(a: readonly UIT.AccordionPanel[], b: readonly UIT.AccordionPanel[]): boolean {
     return a.length === b.length && a.every((panel, index) => panel === b[index])
   }
 

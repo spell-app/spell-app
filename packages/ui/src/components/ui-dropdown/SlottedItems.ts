@@ -1,7 +1,6 @@
 import { onSettled, type Accessor } from "solid-js"
 
 import {
-  ACTIVE,
   Cell,
   Converters,
   type AttributeName,
@@ -11,7 +10,8 @@ import {
   type MenuOption,
   type MenuSeparator,
   type UIHost,
-  UIElement
+  UIElement,
+  UIT
 } from "$/ui/core"
 
 import { itemVocabulary } from "$/ui/components/ui-item"
@@ -90,7 +90,7 @@ export class SlottedItems {
         image: read("image"),
         flag: read("flag"),
         disabled: read("disabled") as boolean,
-        selected: (read("selected") as boolean) || Converters.boolean(element.getAttribute(ACTIVE), ACTIVE)
+        selected: (read("selected") as boolean) || Converters.boolean(element.getAttribute(UIT.ACTIVE), UIT.ACTIVE)
       }
     }
     const cached = this.cache.get(element)

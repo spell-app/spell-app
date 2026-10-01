@@ -4,7 +4,7 @@
  * - Data only:  nothing here runs;  the classes import what they need from `./ui-embed.types`.
  */
 
-import type { EmbedSource } from "$/ui/core"
+import type { UIT } from "$/ui/core"
 import type { embedVocabulary } from "./ui-embed.vocabulary.en"
 
 /** One known source. */
@@ -22,7 +22,7 @@ export type EmbedParameters = Record<string, string | number | boolean | null | 
 
 /** What `EmbedSources.resolve()` builds from. */
 export type EmbedUrlOptions = {
-  source?: EmbedSource
+  source?: UIT.EmbedSource
   id?: string
   url?: string
   autoplay: boolean

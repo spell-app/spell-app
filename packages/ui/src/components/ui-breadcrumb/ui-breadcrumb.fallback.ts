@@ -1,4 +1,4 @@
-import { BREADCRUMB_DIVIDER_TOKENS, NativeFallback, proto, type NativeFallbackRoot } from "$/ui/core"
+import { NativeFallback, proto, type NativeFallbackRoot, UIT } from "$/ui/core"
 
 import { breadcrumbSectionVocabulary } from "./ui-breadcrumb-section.vocabulary.en"
 import { breadcrumbVocabulary } from "./ui-breadcrumb.vocabulary.en"
@@ -38,7 +38,7 @@ export class BreadcrumbFallback extends NativeFallback {
     const divider = this.host.getAttribute("divider")
     const standard = this.vocabulary.attributes.find(({ name }) => name === "divider")?.default
     if (divider !== null && divider !== standard)
-      nav.style.setProperty(BREADCRUMB_DIVIDER_TOKENS.text, BreadcrumbDivider.cssString(divider))
+      nav.style.setProperty(UIT.BREADCRUMB_DIVIDER_TOKENS.text, BreadcrumbDivider.cssString(divider))
     return this.decorate(nav, "breadcrumb")
   }
 

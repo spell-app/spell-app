@@ -12,6 +12,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const orVocabulary = {
   tag: "ui-or",
+  topics: ["buttons", "controls", "elements"],
+  aka: ["button separator", "or divider"],
   noun: "or",
   ui: false,
   description: "A conditional between two buttons of a group.",

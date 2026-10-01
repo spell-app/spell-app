@@ -5,7 +5,7 @@
  */
 
 import type { dropdownVocabulary } from "./ui-dropdown.vocabulary.en"
-import type { DropdownValue, MenuOption } from "$/ui/core"
+import type { MenuOption, UIT } from "$/ui/core"
 
 /** Prefix of generated slot names for rich items. */
 export const SLOT_PREFIX = "ui-item-"
@@ -48,6 +48,6 @@ export type Choice = {
 
 /** The parts of a `<ui-dropdown>` the fallback touches;  all optional, the element may not have upgraded. */
 export type DropdownHost = HTMLElement & {
-  value?: DropdownValue | null
+  value?: UIT.DropdownValue | null
   options?: readonly MenuOption[]
 }

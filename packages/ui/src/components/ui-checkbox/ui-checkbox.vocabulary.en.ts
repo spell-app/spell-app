@@ -20,6 +20,8 @@ import { LEADING_ATTRIBUTES, SHARED_ATTRIBUTES, SHARED_EVENTS, SHARED_PARTS } fr
  ****************/
 export const checkboxVocabulary = {
   tag: "ui-checkbox",
+  topics: ["forms", "inputs", "controls", "selection", "basic", "modules"],
+  aka: ["check box", "toggle", "switch", "tick box"],
   noun: "checkbox",
   description: "A checkbox allows a user to select a value from a small set of options, often binary.",
   attributes: [

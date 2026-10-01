@@ -1,3 +1,5 @@
+import type { ValueSets } from "./ValueSets"
+
 /**
  * Shared types for `$/ui/vocabulary` -- the schema every `ui-<name>.vocabulary.en.ts` follows, the shared value sets,
  * and the translation `Dictionary` contract.
@@ -178,7 +180,22 @@ export type ComponentVocabulary = {
   ownsParts?: readonly string[]
   /** One-line summary for docs. */
   description?: string
+  /**
+   * What the tag is filed under, so people find it however they look:  `ValueSets.topics` ids, several per tag
+   * (`ui-button`:  `buttons`, `basic`, `controls`, `forms`, `elements`).  Rolled up in
+   * `src/components/component-definitions.ts`;  a translation maps them (`Dictionary.values.topics`).
+   */
+  topics?: readonly ComponentTopic[]
+  /**
+   * Other names people search for:  other libraries' and everyday words (`ui-modal`:  `dialog`, `lightbox`;
+   * `ui-label`:  `badge`, `chip`, `tag`).  Searched like the tag's own name;  a translation replaces them
+   * (`ComponentDictionary.aka`).
+   */
+  aka?: readonly string[]
 }
+
+/** A topic id (`ValueSets.topics`):  `"forms"`, `"notifications"`, `"date & time"` ... */
+export type ComponentTopic = (typeof ValueSets.topics)[number]
 
 ////////////////
 // ## Value sets
@@ -196,6 +213,7 @@ export type ComponentVocabulary = {
  * - `widths` -- columns `1`..`16`;  `ValueSets.has()` also accepts words, fractions and percentages
  * - `devices` -- responsive targets for `only` / `reversed` (`mobile`, `large screen` ...)
  * - `booleans` -- spellings the boolean converter understands, so a translation can map `sí` => `yes`
+ * - `topics` -- what a component is filed under (a vocabulary's `topics`), so a translation maps them once
  */
 export type ValueSetName =
   | "hues"
@@ -208,6 +226,7 @@ export type ValueSetName =
   | "widths"
   | "devices"
   | "booleans"
+  | "topics"
 
 /** Every shared value set, by name. */
 export type ValueSetMap = Record<ValueSetName, readonly string[]>
@@ -256,6 +275,8 @@ export type ComponentDictionary = {
   events?: NameMap
   slots?: NameMap
   parts?: NameMap
+  /** The tag's other names in this language (replacing the English `aka`), e.g. `["diálogo", "ventana"]`. */
+  aka?: readonly string[]
 }
 
 /**

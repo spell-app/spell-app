@@ -19,6 +19,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const toastVocabulary = {
   tag: "ui-toast",
+  topics: ["notifications", "messages", "feedback", "overlays", "modules"],
+  aka: ["snackbar", "notification", "growl", "flash message", "toaster"],
   noun: "toast",
   description: "A toast allows users to receive a short, non-blocking notification.",
   attributes: [

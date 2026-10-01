@@ -3,10 +3,10 @@
  * - Runtime-light:  no element code, so every file of the family may import it.
  */
 
-import type { ItemContext } from "$/ui/core"
+import type { UIT } from "$/ui/core"
 
 /** What every item gets:  a list item owning its parts, its `image` shorthand a bare `.image`. */
-export const ITEM_CONTEXT: ItemContext = Object.freeze({
+export const ITEM_CONTEXT: UIT.ItemContext = Object.freeze({
   hostRole: "listitem",
   interactive: false,
   current: "page",

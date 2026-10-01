@@ -3,7 +3,7 @@
  * - Runtime-light:  no element code, so every file of the family may import it.
  */
 
-import { type ValidationRule, FIELD_HOST_STATE, type FormValues } from "$/ui/core"
+import { type ValidationRule, UIT } from "$/ui/core"
 import type { formVocabulary } from "./ui-form.vocabulary.en"
 
 /** Host states for the form states, so page CSS (`native.css`) can show messages by them. */
@@ -47,7 +47,7 @@ export const VALIDITY_FLAGS: readonly (keyof ValidityStateFlags)[] = [
 export const CONTROL_SELECTOR = "input, select, textarea"
 
 /** A control's `<ui-field>`. */
-export const FIELD_SELECTOR = `:state(${FIELD_HOST_STATE})`
+export const FIELD_SELECTOR = `:state(${UIT.FIELD_HOST_STATE})`
 
 /** Fomantic's old name for `notEmpty`. */
 export const EMPTY = "empty"
@@ -97,6 +97,6 @@ export type FormController = {
   isValid(): boolean
   reset(): void
   clear(): void
-  values(): FormValues
+  values(): UIT.FormValues
   nativeForm(): HTMLFormElement | null
 }

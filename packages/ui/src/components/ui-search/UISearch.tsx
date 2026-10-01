@@ -6,16 +6,12 @@ import {
   Converters,
   IconGlyph,
   proto,
-  SEARCH_ANCHOR_PROPERTY,
   UI,
   type AttributeName,
   type FieldValue,
   type OverlayEntry,
-  type SearchCategory,
-  type SearchMatch,
-  type SearchResponse,
-  type SearchResult,
-  type ValidationRule
+  type ValidationRule,
+  UIT
 } from "$/ui/core"
 import { ControlLabels, FormElement, MenuOptions } from "$/ui/forms"
 
@@ -111,7 +107,7 @@ export class UISearch extends FormElement<SearchVocabulary> {
   private focusValue?: string
 
   /** Remote answers by query. */
-  private readonly cache = new Map<string, readonly SearchCategory[]>()
+  private readonly cache = new Map<string, readonly UIT.SearchCategory[]>()
 
   /** Aborts the running remote query. */
   private controller?: AbortController
@@ -120,7 +116,7 @@ export class UISearch extends FormElement<SearchVocabulary> {
   private readonly highlighter = new MenuOptions()
 
   /** Stable DOM id per result. */
-  private readonly resultIds = new WeakMap<SearchResult, string>()
+  private readonly resultIds = new WeakMap<UIT.SearchResult, string>()
 
   /** Ids / anchor name, from `UI.ids` once rendering. */
   private ids = { results: "", anchor: "" }
@@ -152,31 +148,31 @@ export class UISearch extends FormElement<SearchVocabulary> {
     () =>
       new SearchMatcher({
         fields: Converters.list(this.attrs.searchFields ?? DEFAULT_FIELDS_TEXT),
-        match: (this.attrs.fullTextSearch ?? "exact") as SearchMatch,
+        match: (this.attrs.fullTextSearch ?? "exact") as UIT.SearchMatch,
         ignoreDiacritics: this.attrs.ignoreDiacritics
       })
   )
 
   /** Local results of the query, grouped. */
-  readonly localGroups = createMemo((): readonly SearchCategory[] => {
+  readonly localGroups = createMemo((): readonly UIT.SearchCategory[] => {
     const source = this.attrs.source
     if (!Array.isArray(source) || !this.enough()) return []
     const max = this.attrs.maxResults ?? 0
-    let results = this.matcher().search(source as SearchResult[], this.query())
+    let results = this.matcher().search(source as UIT.SearchResult[], this.query())
     if (max > 0) results = results.slice(0, max)
     return this.attrs.category ? SearchMatcher.categorize(results) : [{ name: "", results }]
   })
 
   /** Results shown now, grouped:  the last remote answer, or the local ones. */
-  readonly groups = createMemo((): readonly SearchCategory[] =>
+  readonly groups = createMemo((): readonly UIT.SearchCategory[] =>
     this.attrs.url ? (this.enough() ? this.remote.get().groups : []) : this.localGroups()
   )
 
   /** Every shown result, in order:  what the arrows move through. */
-  readonly flat = createMemo((): readonly SearchResult[] => this.groups().flatMap((group) => group.results))
+  readonly flat = createMemo((): readonly UIT.SearchResult[] => this.groups().flatMap((group) => group.results))
 
   /** Highlighted result. */
-  readonly highlighted = createMemo(() => this.flat()[this.active.get()] as SearchResult | undefined)
+  readonly highlighted = createMemo(() => this.flat()[this.active.get()] as UIT.SearchResult | undefined)
 
   /** What to say instead of results, if anything. */
   readonly message = createMemo((): SearchMessage | undefined => {
@@ -301,7 +297,7 @@ export class UISearch extends FormElement<SearchVocabulary> {
   render(): JSX.Element {
     this.ids = { results: UI.ids.next(ID_PREFIX), anchor: `--${UI.ids.next(ID_PREFIX)}` }
     return (
-      <div class={this.classes()} part={this.part("search")} style={{ [SEARCH_ANCHOR_PROPERTY]: this.ids.anchor }}>
+      <div class={this.classes()} part={this.part("search")} style={{ [UIT.SEARCH_ANCHOR_PROPERTY]: this.ids.anchor }}>
         <div
           class={[INPUT, { [LOADING]: this.isLoading(), [FLUID]: this.attrs.fluid, [DISABLED]: this.isDisabled() }]}
           part={this.part("input")}
@@ -370,7 +366,7 @@ export class UISearch extends FormElement<SearchVocabulary> {
   }
 
   /** One category:  its name, then its results, as a named `group`. */
-  private categoryElement(group: SearchCategory, index: () => number): JSX.Element {
+  private categoryElement(group: UIT.SearchCategory, index: () => number): JSX.Element {
     // a function:  `index` is `<For>`'s accessor, so it's read in JSX (tracked), never in the callback body
     const nameId = () => `${this.ids.results}-category-${index()}`
     return (
@@ -394,7 +390,7 @@ export class UISearch extends FormElement<SearchVocabulary> {
    * One result:  a link when it has a `url` (Fomantic's `<a class="result">`, `tabindex=-1`:  focus stays in the
    * input), else a `<div>`.
    */
-  private row(result: SearchResult): JSX.Element {
+  private row(result: UIT.SearchResult): JSX.Element {
     const url = typeof result.url === "string" && result.url ? result.url : undefined
     const classes = () => [RESULT, { [ACTIVE]: this.highlighted() === result }]
     const selected = () => (this.highlighted() === result ? "true" : "false")
@@ -433,7 +429,7 @@ export class UISearch extends FormElement<SearchVocabulary> {
   }
 
   /** Image, price, title, description:  Fomantic's result template. */
-  private resultContent(result: SearchResult): JSX.Element {
+  private resultContent(result: UIT.SearchResult): JSX.Element {
     return (
       <>
         <Show when={typeof result.image === "string"}>
@@ -498,7 +494,7 @@ export class UISearch extends FormElement<SearchVocabulary> {
   }
 
   /** Stable id for `result`'s row. */
-  private resultId(result: SearchResult): string {
+  private resultId(result: UIT.SearchResult): string {
     let id = this.resultIds.get(result)
     if (!id) this.resultIds.set(result, (id = `${this.ids.results}-${++UISearch.resultCounter}`))
     return id
@@ -522,7 +518,7 @@ export class UISearch extends FormElement<SearchVocabulary> {
    * input (`ui-change`), the results hidden, and its `url` followed.
    * - A click on a result LINK follows it natively (new tabs work);  other ways follow it with `location.assign()`.
    */
-  select(result: SearchResult, originalEvent?: Event) {
+  select(result: UIT.SearchResult, originalEvent?: Event) {
     if (!this.emit("ui-select", { result, originalEvent })) {
       originalEvent?.preventDefault()
       return
@@ -569,7 +565,7 @@ export class UISearch extends FormElement<SearchVocabulary> {
     this.busy.set(true)
     const max = this.attrs.maxResults ?? 0
     UI.api
-      .request<SearchResponse>({
+      .request<UIT.SearchResponse>({
         url,
         urlData: { query },
         throttle: this.attrs.searchDelay ?? 0,
@@ -597,7 +593,7 @@ export class UISearch extends FormElement<SearchVocabulary> {
   }
 
   /** Highlight `result` if it's shown. */
-  private highlight(result: SearchResult) {
+  private highlight(result: UIT.SearchResult) {
     const index = untrack(() => this.flat()).indexOf(result)
     if (index >= 0 && index !== untrack(() => this.active.get())) this.active.set(index)
   }

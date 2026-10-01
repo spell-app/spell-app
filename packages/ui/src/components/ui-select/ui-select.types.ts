@@ -2,7 +2,7 @@
  * Loose constants, types and helpers of `<ui-select>`:  its element classes and native fallback import them from here.
  */
 
-import type { MenuOption, MenuSeparator, PartName, SelectValue } from "$/ui/core"
+import type { MenuOption, MenuSeparator, PartName, UIT } from "$/ui/core"
 import type { selectVocabulary } from "./ui-select.vocabulary.en"
 
 ////////////////
@@ -36,7 +36,7 @@ export type Choice = {
 
 /** The parts of a `<ui-select>` the fallback touches;  all optional, the element may not have upgraded. */
 export type SelectHost = HTMLElement & {
-  value?: SelectValue | null
+  value?: UIT.SelectValue | null
   options?: readonly MenuOption[]
 }
 

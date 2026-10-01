@@ -1,4 +1,4 @@
-import { UIHost, type FormValues } from "$/ui/core"
+import { UIHost, UIT } from "$/ui/core"
 import type { FormController } from "./ui-form.types"
 
 /****************
@@ -34,7 +34,7 @@ export class UIFormHost extends UIHost {
     this.form?.clear()
   }
 
-  get values(): FormValues {
+  get values(): UIT.FormValues {
     return this.form?.values() ?? {}
   }
 

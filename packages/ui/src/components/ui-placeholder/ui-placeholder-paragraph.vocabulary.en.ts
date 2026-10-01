@@ -19,6 +19,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const placeholderParagraphVocabulary = {
   tag: "ui-placeholder-paragraph",
+  topics: ["loading", "content parts", "elements"],
+  aka: ["skeleton text", "skeleton paragraph"],
   noun: "paragraph",
   ui: false,
   description: "The skeleton of a paragraph:  a block of lines, of varied lengths unless set.",

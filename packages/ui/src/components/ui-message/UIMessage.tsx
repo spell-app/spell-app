@@ -1,18 +1,7 @@
 import { Show, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import {
-  IconGlyph,
-  proto,
-  SlotContent,
-  UIElement,
-  type MessageDismissDetail,
-  ICON,
-  CONTENT,
-  HEADER,
-  CLOSE_CLASS,
-  CLOSE_ICON
-} from "$/ui/core"
+import { IconGlyph, proto, SlotContent, UIElement, UIT } from "$/ui/core"
 
 import { messageVocabulary } from "./ui-message.vocabulary.en"
 import { MessageFallback } from "./ui-message.fallback"
@@ -45,13 +34,13 @@ export class UIMessage extends UIElement<typeof messageVocabulary> {
   readonly glyph = new IconGlyph(() => this.attrs.icon)
 
   /** Glyph of the close button. */
-  readonly closeGlyph = new IconGlyph(() => (this.attrs.dismissible ? CLOSE_ICON : undefined))
+  readonly closeGlyph = new IconGlyph(() => (this.attrs.dismissible ? UIT.CLOSE_ICON : undefined))
 
   /** Has an icon (shorthand or `icon` slot)? */
   readonly hasIcon = createMemo(() => !!this.attrs.icon || this.slots.has(this.slot("icon")))
 
   protected extraClasses(): string | undefined {
-    return this.hasIcon() ? ICON : undefined
+    return this.hasIcon() ? UIT.ICON : undefined
   }
 
   protected hostStates() {
@@ -66,13 +55,13 @@ export class UIMessage extends UIElement<typeof messageVocabulary> {
     return (
       <div class={this.classes()} part={this.part("message")}>
         <Show when={this.hasIcon()}>
-          <span class={ICON} part={this.part("icon")}>
+          <span class={UIT.ICON} part={this.part("icon")}>
             <slot name={this.slot("icon")}>{this.glyph.svg()}</slot>
           </span>
         </Show>
-        <div class={CONTENT} part={this.part("content")}>
+        <div class={UIT.CONTENT} part={this.part("content")}>
           <Show when={this.attrs.header}>
-            <div class={HEADER} part={this.part("header")}>
+            <div class={UIT.HEADER} part={this.part("header")}>
               {this.attrs.header}
             </div>
           </Show>
@@ -81,7 +70,7 @@ export class UIMessage extends UIElement<typeof messageVocabulary> {
         <Show when={this.attrs.dismissible}>
           <button
             type="button"
-            class={CLOSE_CLASS}
+            class={UIT.CLOSE_CLASS}
             part={this.part("close")}
             aria-label={this.text("dismiss")}
             onClick={this.onDismiss}
@@ -99,7 +88,7 @@ export class UIMessage extends UIElement<typeof messageVocabulary> {
 
   /** Close button:  announce, then hide unless a handler cancelled. */
   private readonly onDismiss = (event: MouseEvent) => {
-    const detail: MessageDismissDetail = { originalEvent: event }
+    const detail: UIT.MessageDismissDetail = { originalEvent: event }
     if (this.emit("ui-dismiss", detail)) this.host.hidden = true
   }
 }

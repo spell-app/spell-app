@@ -18,6 +18,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const tableVocabulary = {
   tag: "ui-table",
+  topics: ["tables", "data display", "basic", "collections"],
+  aka: ["data table", "data grid", "grid", "spreadsheet"],
   noun: "table",
   description: "A table displays a collection of data grouped into rows.",
   attributes: [

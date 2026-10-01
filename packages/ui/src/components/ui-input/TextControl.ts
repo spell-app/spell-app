@@ -11,7 +11,7 @@ import {
   type ValidationResult,
   type ValidationRule,
   type ValidityFlag,
-  ARIA_INVALID
+  UIT
 } from "$/ui/core"
 import { ControlLabels, FormElement } from "$/ui/forms"
 import { NATIVE_FLAGS, VALID, FILE_TYPE, type CommonAttributes } from "./ui-input.types"
@@ -46,7 +46,7 @@ export abstract class TextControl<V extends ComponentVocabulary = ComponentVocab
   readonly labels = new ControlLabels(this.formHost)
 
   /** Host `aria-invalid`, forwarded. */
-  readonly ariaInvalid = new HostAttribute(this.host, ARIA_INVALID)
+  readonly ariaInvalid = new HostAttribute(this.host, UIT.ARIA_INVALID)
 
   /** The native control. */
   protected control?: HTMLInputElement | HTMLTextAreaElement

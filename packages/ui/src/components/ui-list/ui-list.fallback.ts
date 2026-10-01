@@ -1,4 +1,4 @@
-import { Converters, NativeFallback, proto, type NativeFallbackRoot, LIST } from "$/ui/core"
+import { Converters, NativeFallback, proto, type NativeFallbackRoot, UIT } from "$/ui/core"
 
 import { listVocabulary } from "./ui-list.vocabulary.en"
 import { PARENTS, LIST_TAG, ORDERED } from "./ui-list.types"
@@ -31,7 +31,7 @@ export class ListFallback extends NativeFallback<typeof listVocabulary> {
     const ordered = this.flag("ordered") || Converters.boolean(outer?.getAttribute(ORDERED) ?? null, ORDERED)
     const list = this.create(ordered ? "ol" : "ul", {
       class: this.nested ? listVocabulary.noun : this.classes(),
-      role: LIST
+      role: UIT.LIST
     })
     list.append(this.slot())
     return [this.decorate(list, "list")]

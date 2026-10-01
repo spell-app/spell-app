@@ -13,6 +13,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const dividerVocabulary = {
   tag: "ui-divider",
+  topics: ["layout", "basic", "typography", "elements"],
+  aka: ["separator", "hr", "horizontal rule", "rule", "line"],
   noun: "divider",
   description: "A divider visually segments content into groups.",
   attributes: [

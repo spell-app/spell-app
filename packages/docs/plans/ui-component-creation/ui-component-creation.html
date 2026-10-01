@@ -51,7 +51,7 @@
             <a href="../../ui-component-creation.html" target="docs-ui-component-creation">ui-component-creation.html</a
             >.
           </p>
-          <ui-progress class="plan-progress" value="13" total="16" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="15" total="16" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
           <ui-steps class="plan-phases" vertical ordered>
@@ -79,9 +79,21 @@
               data-phase="11"
             ></ui-step
             ><ui-step completed header="P12 · Emoji Name Sets" href="#p12" data-status="done" data-phase="12"></ui-step
-            ><ui-step selected header="P13 · Folder Rename" href="#p13" data-status="active" data-phase="13"></ui-step
-            ><ui-step header="P14 · Definitions And Topics" href="#p14" data-status="todo" data-phase="14"></ui-step
-            ><ui-step header="P15 · Sidebar Component Browser" href="#p15" data-status="todo" data-phase="15"></ui-step
+            ><ui-step completed header="P13 · Folder Rename" href="#p13" data-status="done" data-phase="13"></ui-step
+            ><ui-step
+              completed
+              header="P14 · Definitions And Topics"
+              href="#p14"
+              data-status="done"
+              data-phase="14"
+            ></ui-step
+            ><ui-step
+              selected
+              header="P15 · Sidebar Component Browser"
+              href="#p15"
+              data-status="active"
+              data-phase="15"
+            ></ui-step
             ><ui-step completed header="P16 · Root Design" href="#p16" data-status="done" data-phase="16"></ui-step
           ></ui-steps>
         </section>
@@ -263,7 +275,6 @@
                   </p></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
             </li>
             <li data-status="open" id="q14">
               <a class="plan-id" href="#q14">Q14</a>
@@ -321,7 +332,6 @@
                   </p></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
             </li>
             <li data-status="open" id="q15">
               <a class="plan-id" href="#q15">Q15</a>
@@ -388,7 +398,6 @@
                   </p></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
             </li>
             <li data-status="open" id="q16">
               <a class="plan-id" href="#q16">Q16</a>
@@ -452,7 +461,6 @@
                   <p>Recommend A: one media query, and DSD pages don't regress.</p></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
             </li>
             <li data-status="open" id="q17">
               <a class="plan-id" href="#q17">Q17</a>
@@ -514,7 +522,6 @@
                   <p>Recommend A for v1; B can reuse the child tags' own descriptions later.</p></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
             </li>
             <li data-status="open" id="q18">
               <a class="plan-id" href="#q18">Q18</a>
@@ -533,9 +540,13 @@
 import "@spell-app/ui/core"
 // root included</code></pre>
                   <p>
-                    The root needs the roll-up (<code>component-definitions.ts</code>, tag =&gt; folder, a few kB for
-                    ~60 families), an <code>import()</code> per family, a <code>MutationObserver</code> and the skeleton
-                    sheet. It does NOT need the runtime (<code>UI.load()</code>) until the first family loads.
+                    The root needs the roll-up (<a
+                      href="../../../ui/src/components/component-definitions.ts"
+                      target="src-packages-ui-src-components-component-definitions-ts"
+                      ><code>component-definitions.ts</code></a
+                    >, tag =&gt; folder, a few kB for ~60 families), an <code>import()</code> per family, a
+                    <code>MutationObserver</code> and the skeleton sheet. It does NOT need the runtime
+                    (<code>UI.load()</code>) until the first family loads.
                   </p>
                   <ui-grid class="spell-pros-cons" columns="3" stackable
                     ><ui-column
@@ -577,7 +588,6 @@ import "@spell-app/ui/core"
                   </p></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
             </li>
             <li data-status="open" id="q19">
               <a class="plan-id" href="#q19">Q19</a>
@@ -628,7 +638,6 @@ import "@spell-app/ui/core"
                   </p></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
             </li>
             <li data-status="open" id="q20">
               <a class="plan-id" href="#q20">Q20</a>
@@ -695,7 +704,6 @@ import "@spell-app/ui/core"
                   </p></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
             </li>
             <li data-status="open" id="q21">
               <a class="plan-id" href="#q21">Q21</a>
@@ -730,8 +738,12 @@ export const cardSkeleton = {
                         <p>
                           <code>ui-card/ui-card.skeleton.ts</code>, plain data, imported by BOTH the class (<code
                             >static skeleton</code
-                          >) and the roll-up <code>component-definitions.ts</code>, so the root has it at first paint.
-                          The roll-up grows a few lines per tag.
+                          >) and the roll-up
+                          <a
+                            href="../../../ui/src/components/component-definitions.ts"
+                            target="src-packages-ui-src-components-component-definitions-ts"
+                            ><code>component-definitions.ts</code></a
+                          >, so the root has it at first paint. The roll-up grows a few lines per tag.
                         </p></ui-segment
                       ></ui-column
                     ><ui-column
@@ -747,7 +759,6 @@ export const cardSkeleton = {
                   <p>Recommend B, with a test that the roll-up entry and the class agree.</p></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
             </li>
           </ol>
         </section>
@@ -919,8 +930,13 @@ export const cardSkeleton = {
               <li>
                 Tag =&gt; family today is GUESSED in <code>familyOf()</code> (plural, content parts =&gt;
                 <code>parts</code>, <code>EXTRA_TAGS</code>) over an <code>import.meta.glob</code>. The coming roll-up
-                <code>src/components/component-definitions.ts</code> (every tag =&gt; its folder, noun, topics,
-                <a href="#p14">P14</a>) replaces the guessing, and also gives the root skeletons (below).
+                <a
+                  href="../../../ui/src/components/component-definitions.ts"
+                  target="src-packages-ui-src-components-component-definitions-ts"
+                  ><code>src/components/component-definitions.ts</code></a
+                >
+                (every tag =&gt; its folder, noun, topics, <a href="#p14">P14</a>) replaces the guessing, and also gives
+                the root skeletons (below).
               </li>
               <li>
                 Each family is its own package entry (<code>@spell-app/ui/ui-card</code> after the
@@ -1161,7 +1177,15 @@ export class UICard extends UIElement&lt;...&gt; {
                   </tr>
                   <tr>
                     <td>tag =&gt; family, skeleton data</td>
-                    <td>roll-up <code>component-definitions.ts</code> (<a href="#p14">P14</a>)</td>
+                    <td>
+                      roll-up
+                      <a
+                        href="../../../ui/src/components/component-definitions.ts"
+                        target="src-packages-ui-src-components-component-definitions-ts"
+                        ><code>component-definitions.ts</code></a
+                      >
+                      (<a href="#p14">P14</a>)
+                    </td>
                   </tr>
                   <tr>
                     <td>icons / emoji / lang</td>
@@ -2165,7 +2189,6 @@ export class UICard extends UIElement&lt;...&gt; {
                   </p></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
             </li>
             <li data-status="open" id="d42">
               <a class="plan-id" href="#d42">D42</a>
@@ -2188,7 +2211,6 @@ export class UICard extends UIElement&lt;...&gt; {
                   </p></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
             </li>
             <li data-status="open" id="d43">
               <a class="plan-id" href="#d43">D43</a>
@@ -2206,7 +2228,6 @@ export class UICard extends UIElement&lt;...&gt; {
                   </p></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
             </li>
             <li data-status="open" id="d44">
               <a class="plan-id" href="#d44">D44</a> <span class="plan-title">Split: group C types files</span
@@ -2230,7 +2251,6 @@ export class UICard extends UIElement&lt;...&gt; {
                   </p></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
             </li>
             <li data-status="open" id="d45">
               <a class="plan-id" href="#d45">D45</a>
@@ -2251,7 +2271,6 @@ export class UICard extends UIElement&lt;...&gt; {
                   </p></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
             </li>
           </ol>
         </section>
@@ -2448,11 +2467,9 @@ export class UICard extends UIElement&lt;...&gt; {
               </li>
             </ul>
           </section>
-          <section data-status="active" data-phase="13" class="s3">
+          <section data-status="done" data-phase="13" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p13">
-                <ui-icon name="circle half stroke" color="orange"></ui-icon> P13 · Folder Rename
-              </h3></ui-sticky
+              ><h3 id="p13"><ui-icon name="circle check" color="green"></ui-icon> P13 · Folder Rename</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li>
@@ -2467,10 +2484,10 @@ export class UICard extends UIElement&lt;...&gt; {
               <li><b>Verify:</b> yarn review; build chain; test:visual ZERO diffs; pack --dry-run exports resolve</li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="14" class="s3">
+          <section data-status="done" data-phase="14" class="s3">
             <ui-sticky class="spell-h3"
               ><h3 id="p14">
-                <ui-icon name="circle outline" color="grey"></ui-icon> P14 · Definitions And Topics
+                <ui-icon name="circle check" color="green"></ui-icon> P14 · Definitions And Topics
               </h3></ui-sticky
             >
             <ul class="plan-phase-body">
@@ -2486,10 +2503,10 @@ export class UICard extends UIElement&lt;...&gt; {
               <li><b>Verify:</b> definitions test; yarn review; site:build</li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="15" class="s3">
+          <section data-status="active" data-phase="15" class="s3">
             <ui-sticky class="spell-h3"
               ><h3 id="p15">
-                <ui-icon name="circle outline" color="grey"></ui-icon> P15 · Sidebar Component Browser
+                <ui-icon name="circle half stroke" color="orange"></ui-icon> P15 · Sidebar Component Browser
               </h3></ui-sticky
             >
             <ul class="plan-phase-body">
@@ -3055,6 +3072,42 @@ export class UICard extends UIElement&lt;...&gt; {
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-01T12:30-04:00">2026-10-01 12:30</time></ui-date> P13 step 1
                   (rename) done and verified; P16 design written (3.5, Q13-Q21).</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T16:38-04:00">2026-10-01 16:38</time></ui-date> P15
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T16:38-04:00">2026-10-01 16:38</time></ui-date> P15
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T16:41-04:00">2026-10-01 16:41</time></ui-date> P13 done (UIT
+                  namespace: core 14.96 -&gt; 16.02 kB gzip); P14 framework + data: topics / aka in 93 vocabularies,
+                  ComponentDefinitions roll-up, describe(), test; hmr test re-anchored after the reformat.</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T16:41-04:00">2026-10-01 16:41</time></ui-date> P13
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T16:41-04:00">2026-10-01 16:41</time></ui-date> P14
+                  done</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

@@ -19,6 +19,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const placeholderHeaderVocabulary = {
   tag: "ui-placeholder-header",
+  topics: ["loading", "content parts", "elements"],
+  aka: ["skeleton heading"],
   noun: "header",
   ui: false,
   description: "The skeleton of a header:  a block of taller, shorter lines, optionally beside an image.",

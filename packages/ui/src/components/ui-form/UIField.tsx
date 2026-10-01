@@ -1,7 +1,7 @@
 import { For, Show, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, UIElement, type AttributeName, MESSAGE } from "$/ui/core"
+import { Cell, proto, UIElement, type AttributeName, UIT } from "$/ui/core"
 
 import { fieldVocabulary } from "./ui-field.vocabulary.en"
 import { FormFallback } from "./ui-form.fallback"
@@ -72,7 +72,7 @@ export class UIField extends UIElement<typeof fieldVocabulary> {
         <slot />
         <Show when={this.errors.get().length}>
           <span class={this.attrs.inline ? INLINE_PROMPT : PROMPT} part={this.part("prompt")} role="alert">
-            <For each={this.errors.get()}>{(message) => <span class={MESSAGE}>{message}</span>}</For>
+            <For each={this.errors.get()}>{(message) => <span class={UIT.MESSAGE}>{message}</span>}</For>
           </span>
         </Show>
       </div>

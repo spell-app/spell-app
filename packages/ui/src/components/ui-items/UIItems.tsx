@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement, type ItemContext, type ItemOwner, LIST } from "$/ui/core"
+import { proto, UIElement, UIT } from "$/ui/core"
 
 import { itemsVocabulary } from "./ui-items.vocabulary.en"
 import { ItemsFallback } from "./ui-items.fallback"
@@ -21,14 +21,14 @@ import { ITEM_CONTEXT } from "./ui-items.types"
  *   `ui-items` (`:state(items)`, always on).
  * - Not interactive:  `link` is Fomantic's hover look;  an item that goes somewhere takes `href` (one link).
  ****************/
-export class UIItems extends UIElement<typeof itemsVocabulary> implements ItemOwner {
+export class UIItems extends UIElement<typeof itemsVocabulary> implements UIT.ItemOwner {
   @proto static vocabulary = itemsVocabulary
   @proto static styles = { items: itemsCSS }
   @proto static Fallback = ItemsFallback
   @proto static delegatesFocus = false
 
   /** `ItemOwner`:  how items render -- the same object always, so items never re-render for it. */
-  itemContext(): ItemContext {
+  itemContext(): UIT.ItemContext {
     return ITEM_CONTEXT
   }
 
@@ -38,7 +38,7 @@ export class UIItems extends UIElement<typeof itemsVocabulary> implements ItemOw
 
   render(): JSX.Element {
     return (
-      <div class={this.classes()} part={this.part("items")} role={LIST}>
+      <div class={this.classes()} part={this.part("items")} role={UIT.LIST}>
         <slot />
       </div>
     )

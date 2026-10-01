@@ -16,6 +16,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const iconsVocabulary = {
   tag: "ui-icons",
+  topics: ["icons", "elements"],
+  aka: ["icon group", "stacked icons", "icon stack"],
   noun: "icons",
   description: "Several icons can be used together as a group.",
   attributes: [

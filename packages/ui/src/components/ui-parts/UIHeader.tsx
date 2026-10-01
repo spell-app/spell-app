@@ -1,6 +1,6 @@
 import { Dynamic, type JSX } from "@solidjs/web"
 
-import { proto, type HeaderLevel } from "$/ui/core"
+import { proto, UIT } from "$/ui/core"
 
 import { headerVocabulary } from "./ui-header.vocabulary.en"
 import { PartElement } from "./PartElement"
@@ -38,7 +38,7 @@ export class UIHeader extends PartElement<typeof headerVocabulary> {
   /** `<a>` for `href`, `<hN>` for `level`, else `<div>`. */
   protected tag(): string {
     if (this.attrs.href) return "a"
-    const level = this.attrs.level ? (Number(this.attrs.level) as HeaderLevel) : undefined
+    const level = this.attrs.level ? (Number(this.attrs.level) as UIT.HeaderLevel) : undefined
     return level ? `h${level}` : "div"
   }
 

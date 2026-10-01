@@ -1,4 +1,4 @@
-import { NativeFallback, proto, type ToastCloseDetail } from "$/ui/core"
+import { NativeFallback, proto, UIT } from "$/ui/core"
 
 import { toastVocabulary } from "./ui-toast.vocabulary.en"
 import { HIDE } from "./ui-toast.types"
@@ -52,7 +52,7 @@ export class ToastFallback extends NativeFallback<typeof toastVocabulary> {
     clearTimeout(this.timer)
     if (this.host.hidden) return
     this.host.hidden = true
-    const detail: ToastCloseDetail = { reason: "close" }
+    const detail: UIT.ToastCloseDetail = { reason: "close" }
     this.host.dispatchEvent(new CustomEvent(HIDE, { bubbles: true, composed: true, detail }))
   }
 

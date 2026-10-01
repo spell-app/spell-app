@@ -16,6 +16,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const shapeVocabulary = {
   tag: "ui-shape",
+  topics: ["animation", "media", "modules"],
+  aka: ["3d flip", "cube", "flip card", "carousel"],
   noun: "shape",
   description: "A shape is a three dimensional object displayed on a two dimensional plane.",
   attributes: [

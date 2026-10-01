@@ -1,4 +1,4 @@
-import { TABLE_SORT_KEY, TABLE_SORT_OPT_OUT, type TableSortDirection } from "$/ui/core"
+import { UIT } from "$/ui/core"
 import { HEADER, TABLE, DESCENDING } from "./ui-table.types"
 import { DISABLED } from "$/ui/components/components.types"
 
@@ -38,7 +38,7 @@ export class TableSort {
   /** Can `header` sort?  Not with `data-sortable="false"` or Fomantic's `class="disabled"`. */
   static isSortable(header: HTMLTableCellElement): boolean {
     return (
-      header.getAttribute(TABLE_SORT_OPT_OUT.attribute) !== TABLE_SORT_OPT_OUT.value &&
+      header.getAttribute(UIT.TABLE_SORT_OPT_OUT.attribute) !== UIT.TABLE_SORT_OPT_OUT.value &&
       !header.classList.contains(DISABLED)
     )
   }
@@ -74,7 +74,7 @@ export class TableSort {
 
   /** `header`'s `data-key`, for `ui-sort`'s detail. */
   static key(header: HTMLTableCellElement): string | undefined {
-    return header.getAttribute(TABLE_SORT_KEY) ?? undefined
+    return header.getAttribute(UIT.TABLE_SORT_KEY) ?? undefined
   }
 
   /**
@@ -82,7 +82,7 @@ export class TableSort {
    * - SIDE EFFECT:  moves `tr` nodes, only when the order changes (so a sorted table sees no mutation).
    * - Rows without that cell sort last, in their order.
    */
-  static sortRows(table: HTMLTableElement, column: number, direction: TableSortDirection) {
+  static sortRows(table: HTMLTableElement, column: number, direction: UIT.TableSortDirection) {
     const sign = direction === DESCENDING ? -1 : 1
     for (const body of table.tBodies) {
       const rows = [...body.rows]

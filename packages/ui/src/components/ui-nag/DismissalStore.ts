@@ -1,4 +1,4 @@
-import type { NagStorage } from "$/ui/core"
+import type { UIT } from "$/ui/core"
 import {
   LOCAL,
   SESSION,
@@ -24,7 +24,7 @@ import {
  ****************/
 export class DismissalStore {
   /** Where. */
-  readonly storage: NagStorage
+  readonly storage: UIT.NagStorage
 
   /** Item / cookie name. */
   readonly key: string

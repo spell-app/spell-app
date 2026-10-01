@@ -18,6 +18,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const valueVocabulary = {
   tag: "ui-value",
+  topics: ["content parts", "data display"],
+  aka: ["statistic value", "number", "metric value"],
   noun: "value",
   ui: false,
   description: "A statistic's value;  a search result's price.",

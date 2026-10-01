@@ -4,13 +4,12 @@ import type { JSX } from "@solidjs/web"
 import {
   Cell,
   proto,
-  TRANSITION_COMMANDS,
   UI,
   UIElement,
   type AnimateOptions,
   type AnimationDirection,
   type AnimationName,
-  type TransitionDetail
+  UIT
 } from "$/ui/core"
 
 import { TRANSITION_ANIMATIONS, TRANSITION_ATTENTION_ANIMATIONS } from "./ui-transition.types"
@@ -148,10 +147,10 @@ export class UITransition extends UIElement<TransitionVocabulary> {
   /** An invoker command aimed at the host (`TRANSITION_COMMANDS`). */
   private readonly onCommand = (event: Event) => {
     const { command } = event as Event & { command: string }
-    if (command === TRANSITION_COMMANDS.show) void this.setVisible(true)
-    else if (command === TRANSITION_COMMANDS.close) void this.setVisible(false)
-    else if (command === TRANSITION_COMMANDS.toggle) void this.toggle()
-    else if (command === TRANSITION_COMMANDS.transition) void this.transition()
+    if (command === UIT.TRANSITION_COMMANDS.show) void this.setVisible(true)
+    else if (command === UIT.TRANSITION_COMMANDS.close) void this.setVisible(false)
+    else if (command === UIT.TRANSITION_COMMANDS.toggle) void this.toggle()
+    else if (command === UIT.TRANSITION_COMMANDS.transition) void this.transition()
   }
 
   ////////////////
@@ -223,7 +222,7 @@ export class UITransition extends UIElement<TransitionVocabulary> {
 
   /** `ui-show` / `ui-hide` after an `in` / `out`, then `ui-complete`. */
   private announce(step: TransitionStep) {
-    const detail: TransitionDetail = {
+    const detail: UIT.TransitionDetail = {
       visible: step.direction === STATIC ? this.target : step.direction === IN,
       animation: step.animation
     }

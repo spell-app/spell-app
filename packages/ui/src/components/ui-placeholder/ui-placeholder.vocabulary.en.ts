@@ -19,6 +19,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const placeholderVocabulary = {
   tag: "ui-placeholder",
+  topics: ["loading", "feedback", "elements"],
+  aka: ["skeleton", "shimmer", "ghost", "loading placeholder", "content loader"],
   noun: "placeholder",
   description: "A placeholder is used to reserve space for content that soon will appear in a layout.",
   attributes: [

@@ -1,4 +1,4 @@
-import { Converters, NativeFallback, proto, type DropdownValue } from "$/ui/core"
+import { Converters, NativeFallback, proto, UIT } from "$/ui/core"
 import { itemVocabulary } from "$/ui/components/ui-item"
 
 import { dropdownVocabulary } from "./ui-dropdown.vocabulary.en"
@@ -116,7 +116,7 @@ export class DropdownFallback extends NativeFallback<typeof dropdownVocabulary> 
   }
 
   /** Push the select's value into the form (and validity);  return it. */
-  private sync(select: HTMLSelectElement, multiple: boolean): DropdownValue {
+  private sync(select: HTMLSelectElement, multiple: boolean): UIT.DropdownValue {
     const values = multiple
       ? [...select.selectedOptions].map((option) => option.value)
       : select.value

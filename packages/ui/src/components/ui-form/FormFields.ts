@@ -1,11 +1,4 @@
-import {
-  Converters,
-  type FieldValue,
-  type FormFieldRules,
-  type FormRules,
-  type FormValues,
-  type ValidationRule
-} from "$/ui/core"
+import { Converters, type FieldValue, type ValidationRule, UIT } from "$/ui/core"
 import { Validator } from "$/ui/forms"
 import {
   VALIDITY_FLAGS,
@@ -82,8 +75,8 @@ export class FormFields {
   }
 
   /** Every field's value, see the class doc. */
-  values(fields: readonly Field[] = this.fields()): FormValues {
-    const values: FormValues = {}
+  values(fields: readonly Field[] = this.fields()): UIT.FormValues {
+    const values: UIT.FormValues = {}
     for (const { identifier, controls } of fields) values[identifier] = FormFields.valueOf(controls)
     return values
   }
@@ -113,7 +106,12 @@ export class FormFields {
    * - Controls that don't validate (`willValidate` false:  disabled, readonly, fieldset-disabled) and fields in a
    *   disabled `<ui-field>` are skipped.
    */
-  errors(field: Field, rules: FormRules | undefined, values: FormValues, labels: Record<string, string>): string[] {
+  errors(
+    field: Field,
+    rules: UIT.FormRules | undefined,
+    values: UIT.FormValues,
+    labels: Record<string, string>
+  ): string[] {
     const live = field.controls.filter((control) => FormFields.willValidate(control))
     if (!live.length) return []
     const errors: string[] = []
@@ -180,9 +178,9 @@ export class FormFields {
   }
 
   /** `rules` for `identifier`, normalized;  `empty` => `notEmpty`. */
-  static spec(rules: FormRules | undefined, identifier: string): FieldSpec | undefined {
+  static spec(rules: UIT.FormRules | undefined, identifier: string): FieldSpec | undefined {
     if (!rules) return undefined
-    let entry: FormFieldRules | undefined = rules[identifier]
+    let entry: UIT.FormFieldRules | undefined = rules[identifier]
     if (entry === undefined) {
       entry = Object.values(rules).find(
         (value) =>

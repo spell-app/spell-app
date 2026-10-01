@@ -1,15 +1,7 @@
 import { Show, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import {
-  ICON_CLASS,
-  IconGlyph,
-  proto,
-  type AttributeName,
-  type EmbedActivateDetail,
-  type EmbedSource,
-  UIElement
-} from "$/ui/core"
+import { IconGlyph, proto, type AttributeName, UIElement, UIT } from "$/ui/core"
 
 import { embedVocabulary } from "./ui-embed.vocabulary.en"
 import { EmbedFallback } from "./ui-embed.fallback"
@@ -61,7 +53,7 @@ export class UIEmbed extends UIElement<Vocabulary> {
   /** The frame URL, `undefined` when there's nothing (safe) to load. */
   readonly url = createMemo(() =>
     EmbedSources.resolve({
-      source: (this.attrs.source ?? undefined) as EmbedSource | undefined,
+      source: (this.attrs.source ?? undefined) as UIT.EmbedSource | undefined,
       id: this.attrs.videoId ?? undefined,
       url: this.attrs.url ?? undefined,
       autoplay: this.attrs.autoplay !== false,
@@ -141,7 +133,7 @@ export class UIEmbed extends UIElement<Vocabulary> {
           <img class={PLACEHOLDER_CLASS} part={this.part("placeholder")} src={this.attrs.placeholder!} alt="" />
         </Show>
         <Show when={this.attrs.icon}>
-          <span class={ICON_CLASS} part={this.part("icon")}>
+          <span class={UIT.ICON_CLASS} part={this.part("icon")}>
             {this.glyph.svg()}
           </span>
         </Show>
@@ -159,7 +151,7 @@ export class UIEmbed extends UIElement<Vocabulary> {
     if (untrack(() => this.isActive())) return false
     const url = untrack(this.url)
     if (!url) return false
-    const detail: EmbedActivateDetail = { url, originalEvent }
+    const detail: UIT.EmbedActivateDetail = { url, originalEvent }
     const applied = this.activeState.request(true, () => this.emit("ui-activate", detail))
     if (applied) this.focusFrame = true
     return applied

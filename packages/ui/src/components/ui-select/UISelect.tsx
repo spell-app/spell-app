@@ -12,8 +12,8 @@ import {
   type MenuEntry,
   type MenuOption,
   type MenuSeparator,
-  type SelectOptions,
-  type ValidationRule
+  type ValidationRule,
+  UIT
 } from "$/ui/core"
 import { ControlLabels, FormElement } from "$/ui/forms"
 // REFACTOR: `SlottedItems` reads `<ui-item>`s as data for the dropdown AND the select;  it belongs to the `item`
@@ -76,9 +76,9 @@ export class UISelect extends FormElement<SelectVocabulary> {
   ////////////////
 
   /** `options` property, validated to an array. */
-  readonly propOptions = createMemo((): SelectOptions => {
+  readonly propOptions = createMemo((): UIT.SelectOptions => {
     const options = this.attrs.options
-    return Array.isArray(options) ? (options as SelectOptions) : []
+    return Array.isArray(options) ? (options as UIT.SelectOptions) : []
   })
 
   /** What the select holds:  slotted entries grouped under their headers, then the `options` property. */

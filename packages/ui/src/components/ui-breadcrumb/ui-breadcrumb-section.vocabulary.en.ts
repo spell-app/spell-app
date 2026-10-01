@@ -12,6 +12,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const breadcrumbSectionVocabulary = {
   tag: "ui-breadcrumb-section",
+  topics: ["navigation", "collections"],
+  aka: ["crumb", "breadcrumb item"],
   noun: "section",
   ui: false,
   description: "A section of a breadcrumb:  a link to a level of the hierarchy, or the current page.",

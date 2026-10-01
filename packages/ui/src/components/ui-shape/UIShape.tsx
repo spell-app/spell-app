@@ -1,16 +1,7 @@
 import { createEffect, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import {
-  Cell,
-  proto,
-  SHAPE_COMMANDS,
-  UI,
-  UIElement,
-  type ShapeChangeDetail,
-  type ShapeFlip,
-  type UIHost
-} from "$/ui/core"
+import { Cell, proto, UI, UIElement, type UIHost, UIT } from "$/ui/core"
 
 import { shapeVocabulary } from "./ui-shape.vocabulary.en"
 import { ShapeHost } from "./ShapeHost"
@@ -129,7 +120,7 @@ export class UIShape extends UIElement<ShapeVocabulary> {
   ////////////////
 
   /** Turn `direction` to side `index` (default the next one after where the queue is heading, wrapping). */
-  flipTo(direction?: ShapeFlip, index?: number): Promise<boolean> {
+  flipTo(direction?: UIT.ShapeFlip, index?: number): Promise<boolean> {
     const count = untrack(() => this.sides.get()).length
     if (!count) return Promise.resolve(false)
     const to = this.normalize(index ?? this.target + 1, count)
@@ -146,8 +137,8 @@ export class UIShape extends UIElement<ShapeVocabulary> {
   /** An invoker command aimed at the host (`SHAPE_COMMANDS`). */
   private readonly onCommand = (event: Event) => {
     const { command } = event as Event & { command: string }
-    if (command === SHAPE_COMMANDS.next) void this.flipBy(1)
-    else if (command === SHAPE_COMMANDS.previous) void this.flipBy(-1)
+    if (command === UIT.SHAPE_COMMANDS.next) void this.flipBy(1)
+    else if (command === UIT.SHAPE_COMMANDS.previous) void this.flipBy(-1)
   }
 
   ////////////////
@@ -155,7 +146,7 @@ export class UIShape extends UIElement<ShapeVocabulary> {
   ////////////////
 
   /** Queue a flip to `index`. */
-  private enqueue(direction: ShapeFlip, index: number): Promise<boolean> {
+  private enqueue(direction: UIT.ShapeFlip, index: number): Promise<boolean> {
     this.target = index
     const run = this.queue.then(() => this.flip(direction, index))
     this.queue = run.catch(() => false)
@@ -166,7 +157,7 @@ export class UIShape extends UIElement<ShapeVocabulary> {
    * One flip, Fomantic's `animate()`:  stage the next side, turn the box, wait for its transition, reset.
    * - Reduced motion, a hidden or disconnected shape:  swap at once.
    */
-  private async flip(direction: ShapeFlip, index: number): Promise<boolean> {
+  private async flip(direction: UIT.ShapeFlip, index: number): Promise<boolean> {
     const sides = untrack(() => this.sides.get())
     const active = sides[this.current]
     const next = sides[index]
@@ -176,13 +167,13 @@ export class UIShape extends UIElement<ShapeVocabulary> {
     if (!instant && stage.offsetParent !== null) await this.animate(direction, stage, box, active, next)
     this.current = index
     this.mark(sides)
-    const detail: ShapeChangeDetail = { activeIndex: index, side: next, flip: direction }
+    const detail: UIT.ShapeChangeDetail = { activeIndex: index, side: next, flip: direction }
     this.emit("ui-change", detail)
     return true
   }
 
   /** Stage, turn, wait, reset. */
-  private async animate(direction: ShapeFlip, stage: HTMLElement, box: HTMLElement, active: UIHost, next: UIHost) {
+  private async animate(direction: UIT.ShapeFlip, stage: HTMLElement, box: HTMLElement, active: UIHost, next: UIHost) {
     // the stage keeps its size (Fomantic's `width` / `height: 'initial'`)
     stage.style.width = `${stage.offsetWidth}px`
     stage.style.height = `${stage.offsetHeight}px`
@@ -260,7 +251,7 @@ export class UIShape extends UIElement<ShapeVocabulary> {
   }
 
   /** Where the active side stays and the next one waits, 90° (or 180°) round (Fomantic's `stage.*`). */
-  static staging(direction: ShapeFlip, sizes: ShapeSizes): { active: string; next: Partial<CSSStyleDeclaration> } {
+  static staging(direction: UIT.ShapeFlip, sizes: ShapeSizes): { active: string; next: Partial<CSSStyleDeclaration> } {
     const { active, next } = sizes
     if (direction === "up" || direction === "down") {
       const origin = (active.height - next.height) / 2
@@ -288,7 +279,7 @@ export class UIShape extends UIElement<ShapeVocabulary> {
   }
 
   /** How the sides box turns (Fomantic's `get.transform.*`). */
-  static turn(direction: ShapeFlip, { active, next }: ShapeSizes): string {
+  static turn(direction: UIT.ShapeFlip, { active, next }: ShapeSizes): string {
     switch (direction) {
       case "up":
         return `translateY(${next.height - active.height / 2}px) translateZ(${-active.height / 2}px) rotateX(-90deg)`
@@ -323,7 +314,7 @@ export class UIShape extends UIElement<ShapeVocabulary> {
   }
 
   /** The `direction` attribute. */
-  private defaultFlip(): ShapeFlip {
+  private defaultFlip(): UIT.ShapeFlip {
     return untrack(() => this.attrs.direction) ?? DEFAULT_FLIP
   }
 

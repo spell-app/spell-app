@@ -3,7 +3,7 @@
  * - Runtime-light:  no element code, so every file of the family may import it.
  */
 
-import type { NagStorage, EventName } from "$/ui/core"
+import type { EventName, UIT } from "$/ui/core"
 import type { nagVocabulary } from "./ui-nag.vocabulary.en"
 
 /** Cookie options of a `DismissalStore`. */
@@ -17,7 +17,7 @@ export type DismissalCookieOptions = {
 
 /** Constructor props for `DismissalStore`. */
 export type DismissalStoreProps = {
-  storage: NagStorage
+  storage: UIT.NagStorage
   key: string
   value: string
   /** days;  `0` for no expiry */

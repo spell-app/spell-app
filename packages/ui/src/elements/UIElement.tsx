@@ -354,6 +354,16 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
   ////////////////
 
   /**
+   * Everything this component's markup can say, for introspection at runtime:  its whole vocabulary -- tag,
+   * attributes (kinds, allowed values, defaults), events, slots, parts, states, text strings, descriptions, `topics`
+   * and `aka`.  Live data:  the same object the element reads (`UIButton.describe().topics`).
+   * - Every tag's summary at once:  `ComponentDefinitions` (`src/components/component-definitions.ts`).
+   */
+  static describe<T extends { prototype: { vocabulary: ComponentVocabulary } }>(this: T): T["prototype"]["vocabulary"] {
+    return this.prototype.vocabulary
+  }
+
+  /**
    * Define this component under its vocabulary's tag, or under a translated alias:
    * `UIButton.define("ie-boton", es)` registers `<ie-boton primario color="rojo">` with localized
    * attribute / property / event names mapping onto the same controller.

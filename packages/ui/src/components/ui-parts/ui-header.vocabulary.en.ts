@@ -18,6 +18,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const headerVocabulary = {
   tag: "ui-header",
+  topics: ["content parts", "typography", "text", "basic", "elements"],
+  aka: ["heading", "title", "h1", "headline"],
   noun: "header",
   plural: "headers",
   description: "A header provides a short summary of content.",

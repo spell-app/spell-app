@@ -19,6 +19,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const imageVocabulary = {
   tag: "ui-image",
+  topics: ["images", "media", "basic", "elements"],
+  aka: ["picture", "img", "photo", "avatar", "thumbnail"],
   noun: "image",
   plural: "images",
   description: "An image is a graphic representation of something.",

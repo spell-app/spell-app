@@ -1,4 +1,4 @@
-import { UIHost, type ShapeFlip } from "$/ui/core"
+import { UIHost, UIT } from "$/ui/core"
 
 import type { UIShape } from "./UIShape"
 
@@ -11,7 +11,7 @@ import type { UIShape } from "./UIShape"
  */
 export class ShapeHost extends UIHost {
   /** Turn `direction` (default the `direction` attribute) to side `index` (default the next one, wrapping). */
-  flip(direction?: ShapeFlip, index?: number): Promise<boolean> {
+  flip(direction?: UIT.ShapeFlip, index?: number): Promise<boolean> {
     return this.shapeController()?.flipTo(direction, index) ?? Promise.resolve(false)
   }
 

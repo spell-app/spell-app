@@ -1,17 +1,7 @@
 import { Show, createEffect, createMemo } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import {
-  ARIA_LABEL,
-  Cell,
-  ICON_CLASS,
-  IconGlyph,
-  proto,
-  SlotContent,
-  type AttributeName,
-  UI,
-  UIElement
-} from "$/ui/core"
+import { Cell, IconGlyph, proto, SlotContent, type AttributeName, UI, UIElement, UIT } from "$/ui/core"
 
 import { buttonVocabulary } from "./ui-button.vocabulary.en"
 import { ButtonFallback } from "./ui-button.fallback"
@@ -50,7 +40,7 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
   readonly glyph = new IconGlyph(() => this.attrs.icon)
 
   /** Host `aria-label`, forwarded to the inner control (an icon-only button's name). */
-  private readonly ariaLabel = new Cell(this.host.getAttribute(ARIA_LABEL))
+  private readonly ariaLabel = new Cell(this.host.getAttribute(UIT.ARIA_LABEL))
 
   /** The inner `<button>` / `<a>`. */
   private control?: HTMLElement
@@ -58,8 +48,8 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
   constructor(...args: ConstructorParameters<typeof UIElement>) {
     super(...args)
     if (isServer) return
-    const observer = new MutationObserver(() => this.ariaLabel.set(this.host.getAttribute(ARIA_LABEL)))
-    observer.observe(this.host, { attributeFilter: [ARIA_LABEL] })
+    const observer = new MutationObserver(() => this.ariaLabel.set(this.host.getAttribute(UIT.ARIA_LABEL)))
+    observer.observe(this.host, { attributeFilter: [UIT.ARIA_LABEL] })
     this.host.addReleaseCallback(() => observer.disconnect())
   }
 
@@ -98,7 +88,7 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
   protected extraClasses(): string | undefined {
     if (!this.hasIcon() || this.attrs.animated) return undefined
     const labeledIcon = !!this.attrs.labeled && !this.hasLabel()
-    return !this.hasText() || labeledIcon ? ICON_CLASS : undefined
+    return !this.hasText() || labeledIcon ? UIT.ICON_CLASS : undefined
   }
 
   protected hostStates() {
@@ -201,7 +191,7 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
   /** The icon box:  the `icon` slot, falling back to the `icon` attribute's SVG. */
   private icon(): JSX.Element {
     return (
-      <span class={ICON_CLASS} part={this.part("icon")}>
+      <span class={UIT.ICON_CLASS} part={this.part("icon")}>
         <slot name={this.slot("icon")}>{this.glyph.svg()}</slot>
       </span>
     )

@@ -18,6 +18,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const labelVocabulary = {
   tag: "ui-label",
+  topics: ["status", "text", "basic", "elements"],
+  aka: ["badge", "chip", "tag", "pill", "lozenge", "count"],
   noun: "label",
   plural: "labels",
   description: "A label displays content classification.",

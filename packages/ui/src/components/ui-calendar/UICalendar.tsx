@@ -3,30 +3,20 @@ import { isServer, type JSX } from "@solidjs/web"
 import { onFormStateRestore } from "@spell-app/solid-element"
 
 import {
-  ACTIVE,
-  ARROW_DOWN,
   Cell,
-  DISABLED,
-  HEADER,
-  ICON,
   IconGlyph,
   numberToWord,
-  POPOVER_OPEN,
   proto,
-  REQUIRED_RULE,
   RUNTIME_KEY,
   type AttributeName,
-  type CalendarChangeDetail,
-  type CalendarMode,
-  type CalendarOpenDetail,
-  type CalendarType,
   type FieldValue,
   type OverlayEntry,
   type RuntimeGlobal,
   type TemporalAPI,
   type UIHost,
   type ValidationRule,
-  UI
+  UI,
+  UIT
 } from "$/ui/core"
 import { ControlLabels, FormElement } from "$/ui/forms"
 
@@ -118,7 +108,7 @@ export class UICalendar extends FormElement<Vocabulary> {
   readonly openState = this.controlled("open", false)
 
   /** The view shown;  `undefined`:  the type's starting view. */
-  readonly modeState = new Cell<CalendarMode | undefined>(undefined)
+  readonly modeState = new Cell<UIT.CalendarMode | undefined>(undefined)
 
   /** The focused moment;  `null`:  the value's, else `initial-date`, else now. */
   readonly focusState = new Cell<Moment | null>(null)
@@ -178,7 +168,7 @@ export class UICalendar extends FormElement<Vocabulary> {
   ////////////////
 
   /** The calendar's type. */
-  readonly type = createMemo((): CalendarType => this.attrs.type ?? DEFAULT_TYPE)
+  readonly type = createMemo((): UIT.CalendarType => this.attrs.type ?? DEFAULT_TYPE)
 
   /** Date arithmetic, once `Temporal` is here. */
   readonly dates = createMemo(() => {
@@ -197,7 +187,7 @@ export class UICalendar extends FormElement<Vocabulary> {
 
   /** The views to walk through, coarse to fine. */
   readonly modes = createMemo(
-    (): readonly CalendarMode[] =>
+    (): readonly UIT.CalendarMode[] =>
       this.dates()?.modes({
         disableMinute: this.attrs.disableMinute,
         disableMonth: this.attrs.disableMonth,
@@ -206,7 +196,7 @@ export class UICalendar extends FormElement<Vocabulary> {
   )
 
   /** The view shown. */
-  readonly mode = createMemo((): CalendarMode => this.modeState.get() ?? CalendarDates.startMode(this.modes()))
+  readonly mode = createMemo((): UIT.CalendarMode => this.modeState.get() ?? CalendarDates.startMode(this.modes()))
 
   /** Earliest choosable moment:  `min`, or a later range start. */
   readonly min = createMemo(() =>
@@ -323,7 +313,7 @@ export class UICalendar extends FormElement<Vocabulary> {
   }
 
   protected rules(): ValidationRule[] {
-    return this.attrs.required ? [REQUIRED_RULE] : []
+    return this.attrs.required ? [UIT.REQUIRED_RULE] : []
   }
 
   protected validationLabel(): string | undefined {
@@ -365,7 +355,10 @@ export class UICalendar extends FormElement<Vocabulary> {
   private popupMode(): JSX.Element {
     return (
       <>
-        <div class={[INPUT, { [FLUID]: this.attrs.fluid, [DISABLED]: this.isDisabled() }]} part={this.part("input")}>
+        <div
+          class={[INPUT, { [FLUID]: this.attrs.fluid, [UIT.DISABLED]: this.isDisabled() }]}
+          part={this.part("input")}
+        >
           <input
             ref={(element) => (this.control = element)}
             part={this.part("control")}
@@ -385,7 +378,7 @@ export class UICalendar extends FormElement<Vocabulary> {
           />
           <button
             type="button"
-            class={ICON}
+            class={UIT.ICON}
             part={this.part("trigger")}
             disabled={this.isDisabled() || this.attrs.readonly}
             aria-label={this.chooseText()}
@@ -434,7 +427,7 @@ export class UICalendar extends FormElement<Vocabulary> {
   /** Previous / title / next. */
   private header(page: () => CalendarPage): JSX.Element {
     return (
-      <div class={HEADER} part={this.part("header")}>
+      <div class={UIT.HEADER} part={this.part("header")}>
         <button
           type="button"
           class={PREVIOUS}
@@ -522,8 +515,8 @@ export class UICalendar extends FormElement<Vocabulary> {
           LINK,
           {
             [ADJACENT]: cell().adjacent,
-            [DISABLED]: cell().disabled,
-            [ACTIVE]: cell().active,
+            [UIT.DISABLED]: cell().disabled,
+            [UIT.ACTIVE]: cell().active,
             [TODAY_CELL]: cell().today,
             [FOCUS]: cell().focus,
             [RANGE]: cell().range
@@ -557,10 +550,10 @@ export class UICalendar extends FormElement<Vocabulary> {
       (open) => {
         const { popup } = this
         if (!open || !popup) return
-        if (!popup.matches(POPOVER_OPEN)) popup.showPopover()
+        if (!popup.matches(UIT.POPOVER_OPEN)) popup.showPopover()
         UI.overlays.open(this.overlay)
         return () => {
-          if (popup.matches(POPOVER_OPEN)) popup.hidePopover()
+          if (popup.matches(UIT.POPOVER_OPEN)) popup.hidePopover()
           UI.overlays.close(this.overlay)
         }
       }
@@ -605,7 +598,7 @@ export class UICalendar extends FormElement<Vocabulary> {
   setOpen(open: boolean, originalEvent?: Event): boolean {
     if (this.attrs.inline || open === untrack(() => this.isOpen())) return false
     if (open && (this.isDisabled() || this.attrs.readonly)) return false
-    const detail: CalendarOpenDetail = { open, originalEvent }
+    const detail: UIT.CalendarOpenDetail = { open, originalEvent }
     const done = this.openState.request(open, () => this.emit(open ? "ui-open" : "ui-close", detail))
     if (done && open) {
       this.modeState.set(undefined)
@@ -622,7 +615,7 @@ export class UICalendar extends FormElement<Vocabulary> {
     const dates = untrack(() => this.dates())
     if (!dates) return false
     const value = moment ? dates.format(moment) : ""
-    const detail: CalendarChangeDetail = { value, originalEvent }
+    const detail: UIT.CalendarChangeDetail = { value, originalEvent }
     this.typed.set(null)
     return this.valueState.request(value as never, () => this.emit("ui-change", detail))
   }
@@ -698,7 +691,7 @@ export class UICalendar extends FormElement<Vocabulary> {
       event.preventDefault()
       this.readTyped(event)
       this.setOpen(false, event)
-    } else if (event.key === ARROW_DOWN) {
+    } else if (event.key === UIT.ARROW_DOWN) {
       event.preventDefault()
       this.moveFocus = true
       if (!this.setOpen(true, event)) this.focusGrid()
@@ -776,7 +769,7 @@ export class UICalendar extends FormElement<Vocabulary> {
   }
 
   /** `moment`'s fields down to `mode`, the finer ones from `focus` (day clamped to the month). */
-  private static merge(moment: Moment, focus: Moment, mode: CalendarMode): Moment {
+  private static merge(moment: Moment, focus: Moment, mode: UIT.CalendarMode): Moment {
     switch (mode) {
       case "year":
         return focus.with({ year: moment.year })

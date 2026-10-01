@@ -1,4 +1,4 @@
-import { NativeFallback, proto, type MessageDismissDetail } from "$/ui/core"
+import { NativeFallback, proto, UIT } from "$/ui/core"
 
 import { messageVocabulary } from "./ui-message.vocabulary.en"
 
@@ -39,7 +39,7 @@ export class MessageFallback extends NativeFallback<typeof messageVocabulary> {
       "×"
     )
     this.listen<MouseEvent>(button, "click", (event) => {
-      const detail: MessageDismissDetail = { originalEvent: event }
+      const detail: UIT.MessageDismissDetail = { originalEvent: event }
       const init = { bubbles: true, composed: true, cancelable: true, detail }
       if (this.host.dispatchEvent(new CustomEvent(this.vocabulary.events[0].name, init))) this.host.hidden = true
     })

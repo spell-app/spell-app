@@ -1,4 +1,4 @@
-import { Converters, LIST, LISTITEM, NativeFallback, proto, TRUE, type NativeFallbackRoot } from "$/ui/core"
+import { Converters, NativeFallback, proto, type NativeFallbackRoot, UIT } from "$/ui/core"
 
 import { eventVocabulary } from "./ui-event.vocabulary.en"
 import { feedVocabulary } from "./ui-feed.vocabulary.en"
@@ -29,14 +29,14 @@ export class FeedFallback extends NativeFallback<Vocabulary> {
   protected override build() {
     if (this.vocabulary === feedVocabulary) {
       const tag = this.flag("ordered") ? "ol" : "ul"
-      return [this.decorate(this.create(tag, { class: this.classes(), role: LIST }, this.slot()), "feed")]
+      return [this.decorate(this.create(tag, { class: this.classes(), role: UIT.LIST }, this.slot()), "feed")]
     }
     const feed = this.host.parentElement?.localName === feedVocabulary.tag ? this.host.parentElement : null
-    if (feed && this.internals) this.internals.role = LISTITEM
+    if (feed && this.internals) this.internals.role = UIT.LISTITEM
     const color = this.attr("color")
     const event = this.create("div", {
       class: this.classes(color ? `ui-${color}` : undefined),
-      "aria-disabled": this.flag("disabled") ? TRUE : null
+      "aria-disabled": this.flag("disabled") ? UIT.TRUE : null
     })
     const image = this.attr("image")
     const text = this.attr("label")

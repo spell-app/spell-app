@@ -18,6 +18,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const cardVocabulary = {
   tag: "ui-card",
+  topics: ["cards", "containers", "data display", "views"],
+  aka: ["tile", "panel", "profile card"],
   noun: "card",
   plural: "cards",
   description: "A card displays site content in a manner similar to a playing card.",

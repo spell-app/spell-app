@@ -1,4 +1,4 @@
-import { proto, LINK } from "$/ui/core"
+import { proto, UIT } from "$/ui/core"
 
 import { titleVocabulary } from "./ui-title.vocabulary.en"
 import { PartElement } from "./PartElement"
@@ -12,7 +12,7 @@ export class UITitle extends PartElement<typeof titleVocabulary> {
   @proto static vocabulary = titleVocabulary
 
   protected tag(): string {
-    return this.attrs.href ? LINK : "div"
+    return this.attrs.href ? UIT.LINK : "div"
   }
 
   protected href(): string | undefined {

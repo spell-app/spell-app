@@ -12,6 +12,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const buttonsVocabulary = {
   tag: "ui-buttons",
+  topics: ["buttons", "controls", "layout", "elements"],
+  aka: ["button group", "segmented control", "toolbar"],
   noun: "buttons",
   description: "Buttons can exist together as a group.",
   attributes: [

@@ -16,6 +16,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const embedVocabulary = {
   tag: "ui-embed",
+  topics: ["media", "modules"],
+  aka: ["iframe", "video", "youtube", "vimeo", "player"],
   noun: "embed",
   description: "An embed displays content from other websites, like YouTube videos, loaded only when asked for.",
   attributes: [

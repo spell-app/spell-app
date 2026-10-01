@@ -1,7 +1,7 @@
 import { createEffect, createMemo, onCleanup, untrack, type Accessor } from "solid-js"
 import { onConnect, onDisconnect, onFormAssociated } from "@spell-app/solid-element"
 
-import { Cell, proto, REQUIRED_RULE, type AttributeName, type ValidationResult } from "$/ui/core"
+import { Cell, proto, type AttributeName, type ValidationResult, UIT } from "$/ui/core"
 import { FormElement } from "$/ui/forms"
 
 import { radioVocabulary } from "./ui-radio.vocabulary.en"
@@ -44,7 +44,7 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
       const group = this.group.get()
       const required = group ? group.isRequired() : this.attrs.required
       const chosen = group ? group.selected()?.choiceValue() : this.isSelected() ? this.choiceValue() : undefined
-      return FormElement.validator.validate(chosen ?? "", required ? [REQUIRED_RULE] : [], {
+      return FormElement.validator.validate(chosen ?? "", required ? [UIT.REQUIRED_RULE] : [], {
         label: this.validationLabel()
       })
     },

@@ -18,6 +18,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const commentVocabulary = {
   tag: "ui-comment",
+  topics: ["social", "content parts", "views"],
+  aka: ["reply", "post", "message"],
   noun: "comment",
   ui: false,
   description: "One comment:  who wrote it, when, what, and the replies to it.",

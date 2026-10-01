@@ -15,6 +15,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const textVocabulary = {
   tag: "ui-text",
+  topics: ["text", "typography", "basic", "elements"],
+  aka: ["span", "inline text", "colored text", "label text"],
   noun: "text",
   description: "A text is used to style some inline text with a simple color.",
   attributes: [

@@ -1,4 +1,4 @@
-import { Converters, NativeFallback, proto, type NativeFallbackRoot, ACTIVE, HEADER, PAGE, LISTITEM } from "$/ui/core"
+import { Converters, NativeFallback, proto, type NativeFallbackRoot, UIT } from "$/ui/core"
 
 import { itemVocabulary } from "./ui-item.vocabulary.en"
 import { OWNERS, LIST_OWNERS } from "./ui-item.types"
@@ -30,12 +30,16 @@ export class ItemFallback extends NativeFallback<typeof itemVocabulary> {
 
   protected override build() {
     if (!this.owner) return [this.slot()]
-    if (this.internals && LIST_OWNERS.has(this.owner)) this.internals.role = LISTITEM
+    if (this.internals && LIST_OWNERS.has(this.owner)) this.internals.role = UIT.LISTITEM
     // `active` is the alias of `selected`, which `classes()` can't see:  it isn't a vocabulary attribute
-    const alias = !this.flag("selected") && Converters.boolean(this.host.getAttribute(ACTIVE), ACTIVE)
+    const alias = !this.flag("selected") && Converters.boolean(this.host.getAttribute(UIT.ACTIVE), UIT.ACTIVE)
     const selected = this.flag("selected") || alias
     const color = this.attr("color")
-    const extra = [this.attr("type") === HEADER ? HEADER : "", alias ? ACTIVE : "", color ? `ui-${color}` : ""]
+    const extra = [
+      this.attr("type") === UIT.HEADER ? UIT.HEADER : "",
+      alias ? UIT.ACTIVE : "",
+      color ? `ui-${color}` : ""
+    ]
       .filter(Boolean)
       .join(" ")
     const href = this.flag("disabled") ? null : this.attr("href")
@@ -46,7 +50,7 @@ export class ItemFallback extends NativeFallback<typeof itemVocabulary> {
             class: this.classes(extra || undefined),
             href,
             target: this.attr("target"),
-            "aria-current": selected ? PAGE : null
+            "aria-current": selected ? UIT.PAGE : null
           })
     box.append(this.slot())
     return [this.decorate(box, "item")]

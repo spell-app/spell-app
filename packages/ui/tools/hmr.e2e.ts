@@ -108,7 +108,7 @@ void describe("hot module replacement (Vite dev, tools/demo/hmr.html)", () => {
 
   void it("2. component code:  the dropdown keeps its `options` and `value` properties", async () => {
     await update(() =>
-      edit(FILES.dropdown, "onClick={this.onRootClick}>", `onClick={this.onRootClick} data-hmr="probe">`)
+      edit(FILES.dropdown, "onClick={this.onRootClick}", `onClick={this.onRootClick} data-hmr="probe"`)
     )
     const after = await snapshot()
     assert.equal(after.marker, true, "no reload")

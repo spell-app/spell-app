@@ -2,20 +2,12 @@ import { For, Show, createEffect, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import {
-  ACTIVE,
   Cell,
   Converters,
-  DISABLED,
-  DROPDOWN_ANCHOR_PROPERTY,
-  ICON,
   IconGlyph,
-  POPOVER_OPEN,
   proto,
-  REQUIRED_RULE,
   SlotContent,
-  ToggleCommands,
   type AttributeName,
-  type DropdownOptions,
   type FieldValue,
   type MenuAddition,
   type MenuEntry,
@@ -23,7 +15,8 @@ import {
   type MenuSeparator,
   type OverlayEntry,
   type ValidationRule,
-  UI
+  UI,
+  UIT
 } from "$/ui/core"
 import { FormElement, MenuOptions } from "$/ui/forms"
 
@@ -137,9 +130,9 @@ export class UIDropdown extends FormElement<Vocabulary> {
   ////////////////
 
   /** `options` property, validated to an array. */
-  readonly propOptions = createMemo((): DropdownOptions => {
+  readonly propOptions = createMemo((): UIT.DropdownOptions => {
     const options = this.attrs.options
-    return Array.isArray(options) ? (options as DropdownOptions) : []
+    return Array.isArray(options) ? (options as UIT.DropdownOptions) : []
   })
 
   /** Every option:  slotted, then `options`, then additions. */
@@ -258,7 +251,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
   }
 
   protected rules(): ValidationRule[] {
-    return this.attrs.required ? [REQUIRED_RULE] : []
+    return this.attrs.required ? [UIT.REQUIRED_RULE] : []
   }
 
   protected validationLabel(): string | undefined {
@@ -277,7 +270,11 @@ export class UIDropdown extends FormElement<Vocabulary> {
     this.ids = { menu: UI.ids.next(ID_PREFIX), text: UI.ids.next(ID_PREFIX), anchor: `--${UI.ids.next(ID_PREFIX)}` }
     this.effects()
     return (
-      <div class={this.classes()} style={{ [DROPDOWN_ANCHOR_PROPERTY]: this.ids.anchor }} onClick={this.onRootClick}>
+      <div
+        class={this.classes()}
+        style={{ [UIT.DROPDOWN_ANCHOR_PROPERTY]: this.ids.anchor }}
+        onClick={this.onRootClick}
+      >
         <Show when={this.attrs.multiple}>
           <For each={this.values()}>{(value) => this.chip(value)}</For>
         </Show>
@@ -404,7 +401,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
 
   /** The icon block of a `labeled` (icon) dropdown button. */
   private labeledIcon(): JSX.Element {
-    return <span class={ICON} ref={(element) => void SVGIcon.fill(element, this.attrs.icon)} />
+    return <span class={UIT.ICON} ref={(element) => void SVGIcon.fill(element, this.attrs.icon)} />
   }
 
   /** The listbox popover. */
@@ -447,9 +444,9 @@ export class UIDropdown extends FormElement<Vocabulary> {
         class={[
           ITEM,
           {
-            [ACTIVE]: this.chosen().has(option.value),
+            [UIT.ACTIVE]: this.chosen().has(option.value),
             [SELECTED]: this.highlighted() === option,
-            [DISABLED]: !!option.disabled
+            [UIT.DISABLED]: !!option.disabled
           }
         ]}
         role="option"
@@ -471,7 +468,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
     return (
       <>
         <Show when={typeof option.icon === "string"}>
-          <span class={ICON} ref={(element) => void SVGIcon.fill(element, option.icon as string)} />
+          <span class={UIT.ICON} ref={(element) => void SVGIcon.fill(element, option.icon as string)} />
         </Show>
         <Show when={typeof option.image === "string"}>
           <img class="ui avatar image" src={option.image as string} alt="" />
@@ -557,10 +554,10 @@ export class UIDropdown extends FormElement<Vocabulary> {
       (open) => {
         const { menu } = this
         if (!open || !menu || !menu.popover) return
-        if (!menu.matches(POPOVER_OPEN)) menu.showPopover()
+        if (!menu.matches(UIT.POPOVER_OPEN)) menu.showPopover()
         UI.overlays.open(this.overlay)
         return () => {
-          if (menu.matches(POPOVER_OPEN)) menu.hidePopover()
+          if (menu.matches(UIT.POPOVER_OPEN)) menu.hidePopover()
           UI.overlays.close(this.overlay)
         }
       }
@@ -661,7 +658,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
    */
   private readonly onCommand = (event: Event) => {
     if (untrack(() => this.isDisabled() || this.attrs.readonly)) return
-    const action = ToggleCommands.action(
+    const action = UIT.ToggleCommands.action(
       event,
       untrack(() => this.isOpen())
     )

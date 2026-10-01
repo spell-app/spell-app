@@ -1,7 +1,7 @@
 import { createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { ARIA_LABEL, BREADCRUMB_DIVIDER_TOKENS, HostAttribute, IconGlyph, proto, UIElement } from "$/ui/core"
+import { HostAttribute, IconGlyph, proto, UIElement, UIT } from "$/ui/core"
 
 import { breadcrumbVocabulary } from "./ui-breadcrumb.vocabulary.en"
 import { BreadcrumbDivider } from "./BreadcrumbDivider"
@@ -31,7 +31,7 @@ export class UIBreadcrumb extends UIElement<typeof breadcrumbVocabulary> {
   @proto static delegatesFocus = false
 
   /** Host `aria-label`, forwarded to the `<nav>`:  two breadcrumbs on one page need distinct names. */
-  readonly ariaLabel = new HostAttribute(this.host, ARIA_LABEL)
+  readonly ariaLabel = new HostAttribute(this.host, UIT.ARIA_LABEL)
 
   /** Glyph of `divider-icon`. */
   readonly glyph = new IconGlyph(() => this.attrs.dividerIcon || undefined)
@@ -41,9 +41,9 @@ export class UIBreadcrumb extends UIElement<typeof breadcrumbVocabulary> {
     const divider = this.attrs.divider
     const data = this.attrs.dividerIcon ? this.glyph.data.get() : undefined
     return {
-      [BREADCRUMB_DIVIDER_TOKENS.text]: divider != null ? BreadcrumbDivider.cssString(divider) : undefined,
-      [BREADCRUMB_DIVIDER_TOKENS.icon]: data ? BreadcrumbDivider.svgUrl(data) : undefined,
-      [BREADCRUMB_DIVIDER_TOKENS.layout]: data ? ICON_LAYOUT : undefined
+      [UIT.BREADCRUMB_DIVIDER_TOKENS.text]: divider != null ? BreadcrumbDivider.cssString(divider) : undefined,
+      [UIT.BREADCRUMB_DIVIDER_TOKENS.icon]: data ? BreadcrumbDivider.svgUrl(data) : undefined,
+      [UIT.BREADCRUMB_DIVIDER_TOKENS.layout]: data ? ICON_LAYOUT : undefined
     }
   })
 

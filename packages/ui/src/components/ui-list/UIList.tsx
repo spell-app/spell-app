@@ -1,21 +1,7 @@
 import { createMemo } from "solid-js"
 import { Dynamic, type JSX } from "@solidjs/web"
 
-import {
-  PartContext,
-  proto,
-  UIElement,
-  type ItemContext,
-  type ItemOwner,
-  type ListSelectDetail,
-  type UIHost,
-  LIST,
-  LISTITEM,
-  PAGE,
-  ITEM,
-  DISABLED_STATE,
-  CLICK
-} from "$/ui/core"
+import { PartContext, proto, UIElement, type UIHost, UIT } from "$/ui/core"
 
 import { listVocabulary } from "./ui-list.vocabulary.en"
 import { ListFallback } from "./ui-list.fallback"
@@ -40,7 +26,7 @@ import { UL, OL, INTERACTIVE } from "./ui-list.types"
  * - Events:  `ui-select` when an interactive item of THIS list (not of a sub-list) is activated -- one click
  *   listener on the host;  Enter / Space on a link / button click natively, so keyboard needs nothing more.
  ****************/
-export class UIList extends UIElement<typeof listVocabulary> implements ItemOwner {
+export class UIList extends UIElement<typeof listVocabulary> implements UIT.ItemOwner {
   @proto static vocabulary = listVocabulary
   @proto static styles = { list: listCSS }
   @proto static Fallback = ListFallback
@@ -69,21 +55,21 @@ export class UIList extends UIElement<typeof listVocabulary> implements ItemOwne
   readonly isInteractive = createMemo((): boolean => this.attrs.selection || !!this.outer()?.isInteractive())
 
   /** What every item gets;  one object while nothing changes, so items don't re-render. */
-  readonly items = createMemo((): ItemContext => ({
-    hostRole: LISTITEM,
+  readonly items = createMemo((): UIT.ItemContext => ({
+    hostRole: UIT.LISTITEM,
     interactive: this.isInteractive(),
-    current: PAGE
+    current: UIT.PAGE
   }))
 
   constructor(...args: ConstructorParameters<typeof UIElement>) {
     super(...args)
     // SIDE EFFECT:  one listener for every item's activation
-    this.host.addEventListener(CLICK, this.onClick)
-    this.host.addReleaseCallback(() => this.host.removeEventListener(CLICK, this.onClick))
+    this.host.addEventListener(UIT.CLICK, this.onClick)
+    this.host.addReleaseCallback(() => this.host.removeEventListener(UIT.CLICK, this.onClick))
   }
 
   /** `ItemOwner`:  how items render.  Tracked. */
-  itemContext(): ItemContext {
+  itemContext(): UIT.ItemContext {
     return this.items()
   }
 
@@ -97,7 +83,7 @@ export class UIList extends UIElement<typeof listVocabulary> implements ItemOwne
         component={this.isOrdered() ? OL : UL}
         class={this.nested() ? this.vocabulary.noun : this.classes()}
         part={this.part("list")}
-        role={LIST}
+        role={UIT.LIST}
       >
         <slot />
       </Dynamic>
@@ -112,7 +98,7 @@ export class UIList extends UIElement<typeof listVocabulary> implements ItemOwne
   private readonly onClick = (event: MouseEvent) => {
     const item = this.activatedItem(event)
     if (!item) return
-    const detail: ListSelectDetail = { value: UIList.valueOf(item), item, originalEvent: event }
+    const detail: UIT.ListSelectDetail = { value: UIList.valueOf(item), item, originalEvent: event }
     this.emit("ui-select", detail)
   }
 
@@ -129,13 +115,13 @@ export class UIList extends UIElement<typeof listVocabulary> implements ItemOwne
       if (target === this.host) return undefined
       if (!(target instanceof Element)) continue
       const context = ((target as UIHost).controller as { context?: PartContext } | undefined)?.context
-      if (context?.noun !== ITEM) {
+      if (context?.noun !== UIT.ITEM) {
         root = target
         continue
       }
       const ours = context.owner.get()?.owner === this.host
       const interactive = !!root && root.parentNode === target.shadowRoot && INTERACTIVE.has(root.localName)
-      return ours && interactive && !target.matches(DISABLED_STATE) ? (target as UIHost) : undefined
+      return ours && interactive && !target.matches(UIT.DISABLED_STATE) ? (target as UIHost) : undefined
     }
     return undefined
   }

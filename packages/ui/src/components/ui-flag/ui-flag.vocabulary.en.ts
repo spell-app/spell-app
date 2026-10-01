@@ -22,6 +22,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const flagVocabulary = {
   tag: "ui-flag",
+  topics: ["icons", "images", "elements"],
+  aka: ["country flag", "country", "locale flag"],
   noun: "flag",
   description: "A flag is used to represent a political state.",
   attributes: [

@@ -17,6 +17,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const buttonVocabulary = {
   tag: "ui-button",
+  topics: ["buttons", "basic", "controls", "forms", "elements"],
+  aka: ["btn", "action", "submit", "link button"],
   noun: "button",
   plural: "buttons",
   description: "A button indicates a possible user action.",

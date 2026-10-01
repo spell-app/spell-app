@@ -3,7 +3,7 @@
  */
 
 import type { shapeVocabulary } from "./ui-shape.vocabulary.en"
-import type { ShapeFlip } from "$/ui/core"
+import type { UIT } from "$/ui/core"
 import type { sideVocabulary } from "./ui-side.vocabulary.en"
 
 ////////////////
@@ -20,7 +20,7 @@ export type ShapeSizes = {
 }
 
 /** Default of `direction` (the vocabulary's). */
-export const DEFAULT_FLIP: ShapeFlip = "left"
+export const DEFAULT_FLIP: UIT.ShapeFlip = "left"
 
 /** The side noun. */
 export const SIDE = "side"

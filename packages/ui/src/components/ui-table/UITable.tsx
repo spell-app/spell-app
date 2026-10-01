@@ -1,20 +1,7 @@
 import { For, Show, createEffect, createMemo, createRenderEffect, untrack } from "solid-js"
 import { Portal, isServer, type JSX } from "@solidjs/web"
 
-import {
-  Cell,
-  HostAttribute,
-  TABLE_SORT_KEY,
-  TABLE_SORT_OPT_OUT,
-  UI,
-  UIElement,
-  proto,
-  type AttributeName,
-  type TableColumn,
-  type TableRow,
-  type TableSortDetail,
-  type TableSortDirection
-} from "$/ui/core"
+import { Cell, HostAttribute, UI, UIElement, proto, type AttributeName, UIT } from "$/ui/core"
 
 import { tableVocabulary } from "./ui-table.vocabulary.en"
 import { TableClassMirror } from "./TableClassMirror"
@@ -87,16 +74,16 @@ export class UITable extends UIElement<typeof tableVocabulary> {
   /** `rows`, when it's an array. */
   readonly dataRows = createMemo(() => {
     const rows = this.attrs.rows
-    return Array.isArray(rows) ? (rows as readonly TableRow[]) : undefined
+    return Array.isArray(rows) ? (rows as readonly UIT.TableRow[]) : undefined
   })
 
   /** Data mode:  `rows` set and no author table. */
   readonly dataMode = createMemo(() => !isServer && this.dataRows() !== undefined && !this.authorTable.get())
 
   /** Data-mode columns:  `columnDefs`, else the first row's keys. */
-  readonly columns = createMemo((): readonly TableColumn[] => {
+  readonly columns = createMemo((): readonly UIT.TableColumn[] => {
     const defs = this.attrs.columnDefs
-    if (Array.isArray(defs)) return (defs as TableColumn[]).filter((column) => typeof column?.key === "string")
+    if (Array.isArray(defs)) return (defs as UIT.TableColumn[]).filter((column) => typeof column?.key === "string")
     const first = this.dataRows()?.[0]
     return first ? Object.keys(first).map((key) => ({ key })) : []
   })
@@ -105,12 +92,12 @@ export class UITable extends UIElement<typeof tableVocabulary> {
   readonly table = createMemo(() => this.authorTable.get() ?? (this.dataMode() ? this.dataTable.get() : undefined))
 
   /** Direction in effect:  `sort-direction`, `ascending` when only a column is set. */
-  readonly direction = createMemo((): TableSortDirection | undefined =>
+  readonly direction = createMemo((): UIT.TableSortDirection | undefined =>
     this.sortColumnState.get() === undefined ? undefined : (this.sortDirectionState.get() ?? ASCENDING)
   )
 
   /** Data-mode rows in the current sort order;  unsorted when the column can't sort. */
-  readonly sortedRows = createMemo((): readonly TableRow[] => {
+  readonly sortedRows = createMemo((): readonly UIT.TableRow[] => {
     const rows = this.dataRows() ?? []
     const index = this.sortColumnState.get()
     const column = index === undefined ? undefined : this.columns()[index]
@@ -233,7 +220,7 @@ export class UITable extends UIElement<typeof tableVocabulary> {
   }
 
   /** One data-mode header:  `th scope="col"`, a `<button>` inside while it can sort. */
-  private renderHeader(column: TableColumn): JSX.Element {
+  private renderHeader(column: UIT.TableColumn): JSX.Element {
     const text = column.header ?? column.key
     const optOut = column.sortable === false
     return (
@@ -241,8 +228,8 @@ export class UITable extends UIElement<typeof tableVocabulary> {
         scope="col"
         class={TableGrammar.cell(column) || undefined}
         {...{
-          [TABLE_SORT_KEY]: column.key,
-          [TABLE_SORT_OPT_OUT.attribute]: optOut ? TABLE_SORT_OPT_OUT.value : undefined
+          [UIT.TABLE_SORT_KEY]: column.key,
+          [UIT.TABLE_SORT_OPT_OUT.attribute]: optOut ? UIT.TABLE_SORT_OPT_OUT.value : undefined
         }}
       >
         <Show when={this.attrs.sortable && !optOut} fallback={text}>
@@ -322,7 +309,7 @@ export class UITable extends UIElement<typeof tableVocabulary> {
     table: HTMLTableElement | undefined,
     sortable: boolean,
     column: number | undefined,
-    direction: TableSortDirection | undefined
+    direction: UIT.TableSortDirection | undefined
   ) {
     const headers = table && sortable ? TableSort.headers(table) : []
     const focusable = new Set(headers.filter((header) => TableSort.isSortable(header) && !header.querySelector(BUTTON)))
@@ -379,9 +366,9 @@ export class UITable extends UIElement<typeof tableVocabulary> {
   private requestSort(header: HTMLTableCellElement, originalEvent: Event) {
     const column = TableSort.column(header)
     const current = untrack(this.sortColumnState.get)
-    const direction: TableSortDirection =
+    const direction: UIT.TableSortDirection =
       column === current && untrack(this.direction) === ASCENDING ? DESCENDING : ASCENDING
-    const detail: TableSortDetail = { column, key: TableSort.key(header), direction, originalEvent }
+    const detail: UIT.TableSortDetail = { column, key: TableSort.key(header), direction, originalEvent }
     this.sortDirectionState.request(direction, () =>
       this.sortColumnState.request(column, () => this.emit("ui-sort", detail))
     )

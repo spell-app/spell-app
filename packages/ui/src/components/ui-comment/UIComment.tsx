@@ -1,7 +1,7 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { PartContext, proto, SlotContent, TRUE, UIElement } from "$/ui/core"
+import { PartContext, proto, SlotContent, UIElement, UIT } from "$/ui/core"
 
 import { commentVocabulary } from "./ui-comment.vocabulary.en"
 import { CommentFallback } from "./ui-comment.fallback"
@@ -45,7 +45,7 @@ export class UIComment extends UIElement<typeof commentVocabulary> {
       <article
         class={this.classes()}
         part={this.part("comment")}
-        aria-disabled={this.attrs.disabled ? TRUE : undefined}
+        aria-disabled={this.attrs.disabled ? UIT.TRUE : undefined}
       >
         <slot />
         <Show when={this.slots.has(this.slot("reply"))}>

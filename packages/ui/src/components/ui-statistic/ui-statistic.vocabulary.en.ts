@@ -22,6 +22,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const statisticVocabulary = {
   tag: "ui-statistic",
+  topics: ["data display", "text", "views"],
+  aka: ["stat", "kpi", "metric", "counter", "number display"],
   noun: "statistic",
   plural: "statistics",
   description: "A statistic emphasizes the current value of an attribute.",

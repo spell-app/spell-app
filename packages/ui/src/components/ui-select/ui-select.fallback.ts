@@ -1,4 +1,4 @@
-import { Converters, NativeFallback, proto, type SelectValue } from "$/ui/core"
+import { Converters, NativeFallback, proto, UIT } from "$/ui/core"
 import { itemVocabulary } from "$/ui/components/ui-item"
 
 import { selectVocabulary } from "./ui-select.vocabulary.en"
@@ -132,7 +132,7 @@ export class SelectFallback extends NativeFallback<typeof selectVocabulary> {
   }
 
   /** Push the select's value into the form (and validity);  return it. */
-  private sync(select: HTMLSelectElement, multiple: boolean): SelectValue {
+  private sync(select: HTMLSelectElement, multiple: boolean): UIT.SelectValue {
     const values = [...select.selectedOptions].map((option) => option.value).filter((value) => value !== "")
     const name = this.attr("name")
     const internals = this.formInternals

@@ -1,4 +1,4 @@
-import type { CalendarMode, CalendarType, I18n } from "$/ui/core"
+import type { I18n, UIT } from "$/ui/core"
 
 import { CalendarDates } from "./CalendarDates"
 import {
@@ -52,22 +52,22 @@ export class CalendarText {
   }
 
   /** The field's text for a value of `type`, e.g. `September 30, 2026 at 2:30 PM`. */
-  value(moment: Moment, type: CalendarType): string {
+  value(moment: Moment, type: UIT.CalendarType): string {
     return this.format(moment, VALUE_FORMATS[type])
   }
 
   /** A cell's visible text in `mode`:  a year, a short month, a day number, a time. */
-  cell(moment: Moment, mode: CalendarMode): string {
+  cell(moment: Moment, mode: UIT.CalendarMode): string {
     return this.format(moment, CELL_FORMATS[mode])
   }
 
   /** A cell's accessible name in `mode`:  the whole date (`Wednesday, September 30, 2026`), month, year or time. */
-  label(moment: Moment, mode: CalendarMode): string {
+  label(moment: Moment, mode: UIT.CalendarMode): string {
     return this.format(moment, LABEL_FORMATS[mode])
   }
 
   /** A page title:  `September 2026` (days), `2026` (months), `September 30, 2026` (hours, minutes). */
-  title(moment: Moment, mode: CalendarMode): string {
+  title(moment: Moment, mode: UIT.CalendarMode): string {
     return this.format(moment, TITLE_FORMATS[mode])
   }
 
@@ -130,7 +130,7 @@ export class CalendarText {
    * - A 4+ digit first number means year-first (ISO-ish order);  a month NAME takes the month;  otherwise the
    *   locale's numeric order.  Two-digit years:  under 60 => 20xx, else 19xx (Fomantic's `centuryBreak`).
    */
-  private dateFields(text: string, type: CalendarType): MomentFields | null {
+  private dateFields(text: string, type: UIT.CalendarType): MomentFields | null {
     const numbers = text.match(DIGITS) ?? []
     const named = this.monthByName(text)
     const order = numbers[0] && numbers[0].length >= 4 ? YEAR_FIRST : this.numericOrder()

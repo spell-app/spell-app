@@ -1,7 +1,7 @@
 import { createEffect, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { proto, SlotContent, UIElement, STATUS } from "$/ui/core"
+import { proto, SlotContent, UIElement, UIT } from "$/ui/core"
 
 import { loaderVocabulary } from "./ui-loader.vocabulary.en"
 import { LoaderFallback } from "./ui-loader.fallback"
@@ -36,7 +36,7 @@ export class UILoader extends UIElement<typeof loaderVocabulary> {
   constructor(...args: ConstructorParameters<typeof UIElement>) {
     super(...args)
     const { internals } = this.host
-    internals.role = STATUS
+    internals.role = UIT.STATUS
     internals.ariaLive = POLITE
   }
 

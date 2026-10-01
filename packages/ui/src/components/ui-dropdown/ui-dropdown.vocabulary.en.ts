@@ -16,6 +16,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const dropdownVocabulary = {
   tag: "ui-dropdown",
+  topics: ["forms", "inputs", "selection", "menus", "controls", "basic", "modules"],
+  aka: ["select", "combobox", "picker", "autocomplete", "menu button", "multi select"],
   noun: "dropdown",
   description: "A dropdown allows a user to select a value from a series of options.",
   attributes: [

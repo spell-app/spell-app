@@ -13,20 +13,9 @@ import {
   UIElement,
   type AttributeName,
   type ConditionalOwner,
-  type ItemContext,
-  type ItemOwner,
   type RuntimeGlobal,
   type UIHost,
-  ACTIVE,
-  ARIA_LABEL,
-  SELECTED,
-  ITEM,
-  HEADER,
-  LINK,
-  BUTTON,
-  ICON,
-  PAGE,
-  TRUE
+  UIT
 } from "$/ui/core"
 
 import { itemVocabulary } from "./ui-item.vocabulary.en"
@@ -74,10 +63,10 @@ export class UIItem extends UIElement<typeof itemVocabulary> implements Conditio
   readonly slots = new SlotContent(this.host)
 
   /** Host `active` attribute:  the alias of `selected`. */
-  readonly activeAttribute = new HostAttribute(this.host, ACTIVE)
+  readonly activeAttribute = new HostAttribute(this.host, UIT.ACTIVE)
 
   /** Host `aria-label`, forwarded to the item box:  an icon-only item needs a name. */
-  readonly ariaLabel = new HostAttribute(this.host, ARIA_LABEL)
+  readonly ariaLabel = new HostAttribute(this.host, UIT.ARIA_LABEL)
 
   ////////////////
   // ## Derived state
@@ -86,23 +75,23 @@ export class UIItem extends UIElement<typeof itemVocabulary> implements Conditio
   /** Owner's controller, when it renders items (`ItemOwner`). */
   readonly owner = createMemo(() => {
     const controller = (this.context.owner.get()?.owner as UIHost | undefined)?.controller
-    return controller && "itemContext" in controller ? (controller as UIElement & ItemOwner) : undefined
+    return controller && "itemContext" in controller ? (controller as UIElement & UIT.ItemOwner) : undefined
   })
 
   /** What the owner wants, or `undefined` when unowned (data only).  Tracked. */
-  readonly itemContext = createMemo<ItemContext | undefined>(() => this.owner()?.itemContext(this.host))
+  readonly itemContext = createMemo<UIT.ItemContext | undefined>(() => this.owner()?.itemContext(this.host))
 
   /** `selected`, or its alias `active`. */
   readonly isSelected = createMemo(
-    () => this.attrs.selected || Converters.boolean(this.activeAttribute.get() ?? undefined, ACTIVE)
+    () => this.attrs.selected || Converters.boolean(this.activeAttribute.get() ?? undefined, UIT.ACTIVE)
   )
 
   /** Root element:  link, button, or plain box. */
   readonly tag = createMemo((): RootTag => {
     const context = this.itemContext()
-    if (this.attrs.type !== ITEM) return DIV
-    if (this.attrs.href) return LINK
-    return this.attrs.link || context?.interactive ? BUTTON : DIV
+    if (this.attrs.type !== UIT.ITEM) return DIV
+    if (this.attrs.href) return UIT.LINK
+    return this.attrs.link || context?.interactive ? UIT.BUTTON : DIV
   })
 
   /** Glyph of the `icon` shorthand;  only loaded once rendered by an owner. */
@@ -150,11 +139,11 @@ export class UIItem extends UIElement<typeof itemVocabulary> implements Conditio
   ownsPart(): boolean {
     const controller = (this.context.resolve()?.owner as UIHost | undefined)?.controller
     if (!controller || !("itemContext" in controller)) return false
-    return !!untrack(() => (controller as UIElement & ItemOwner).itemContext(this.host)).ownsParts
+    return !!untrack(() => (controller as UIElement & UIT.ItemOwner).itemContext(this.host)).ownsParts
   }
 
   protected classValue(name: AttributeName<typeof itemVocabulary>): unknown {
-    return name === SELECTED ? this.isSelected() : super.classValue(name)
+    return name === UIT.SELECTED ? this.isSelected() : super.classValue(name)
   }
 
   /**
@@ -163,7 +152,7 @@ export class UIItem extends UIElement<typeof itemVocabulary> implements Conditio
    */
   protected extraClasses(): string | undefined {
     const color = this.attrs.color
-    const extra = [this.attrs.type === HEADER ? HEADER : "", color ? `${COLOR_CLASS_PREFIX}${color}` : ""]
+    const extra = [this.attrs.type === UIT.HEADER ? UIT.HEADER : "", color ? `${COLOR_CLASS_PREFIX}${color}` : ""]
     return extra.filter(Boolean).join(" ") || undefined
   }
 
@@ -203,17 +192,17 @@ export class UIItem extends UIElement<typeof itemVocabulary> implements Conditio
 
   /** The owned item box, around the default slot. */
   private box(): JSX.Element {
-    const disabledButton = () => this.tag() === BUTTON && this.attrs.disabled
+    const disabledButton = () => this.tag() === UIT.BUTTON && this.attrs.disabled
     return (
       <Dynamic
         ref={(element: HTMLElement) => (this.boxElement = element)}
         component={this.tag()}
         class={this.classes()}
         part={this.part("item")}
-        href={this.tag() === LINK && !this.attrs.disabled ? this.attrs.href : undefined}
-        target={this.tag() === LINK ? this.attrs.target : undefined}
-        type={this.tag() === BUTTON ? BUTTON : undefined}
-        role={this.attrs.type === ITEM ? this.itemContext()?.role : undefined}
+        href={this.tag() === UIT.LINK && !this.attrs.disabled ? this.attrs.href : undefined}
+        target={this.tag() === UIT.LINK ? this.attrs.target : undefined}
+        type={this.tag() === UIT.BUTTON ? UIT.BUTTON : undefined}
+        role={this.attrs.type === UIT.ITEM ? this.itemContext()?.role : undefined}
         disabled={disabledButton() && !this.itemContext()?.role ? true : undefined}
         aria-disabled={this.attrs.disabled && !(disabledButton() && !this.itemContext()?.role) ? "true" : undefined}
         aria-current={this.current()}
@@ -229,7 +218,7 @@ export class UIItem extends UIElement<typeof itemVocabulary> implements Conditio
           />
         </Show>
         <Show when={this.hasIcon()}>
-          <span class={ICON} part={this.part("icon")}>
+          <span class={UIT.ICON} part={this.part("icon")}>
             <slot name={this.slot("icon")}>{this.glyph.svg()}</slot>
           </span>
         </Show>
@@ -239,8 +228,8 @@ export class UIItem extends UIElement<typeof itemVocabulary> implements Conditio
   }
 
   /** `aria-current` while selected:  the owner's value on a link (`page`), else `true`. */
-  private current(): ItemContext["current"] | undefined {
-    if (!this.isSelected() || this.attrs.type !== ITEM) return undefined
-    return this.tag() === LINK ? (this.itemContext()?.current ?? PAGE) : TRUE
+  private current(): UIT.ItemContext["current"] | undefined {
+    if (!this.isSelected() || this.attrs.type !== UIT.ITEM) return undefined
+    return this.tag() === UIT.LINK ? (this.itemContext()?.current ?? UIT.PAGE) : UIT.TRUE
   }
 }

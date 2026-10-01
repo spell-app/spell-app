@@ -1,4 +1,4 @@
-import { CONTENT, NativeFallback, proto } from "$/ui/core"
+import { NativeFallback, proto, UIT } from "$/ui/core"
 
 import { accordionVocabulary } from "./ui-accordion.vocabulary.en"
 import { AccordionPanels } from "./AccordionPanels"
@@ -51,7 +51,7 @@ export class AccordionFallback extends NativeFallback<typeof accordionVocabulary
           this.create("span", { class: DROPDOWN_ICON, part: ICON_PART, "aria-hidden": "true" }),
           summarySlot
         )
-        const box = this.create("div", { class: active ? ACTIVE_CONTENT : CONTENT, part: CONTENT_PART })
+        const box = this.create("div", { class: active ? ACTIVE_CONTENT : UIT.CONTENT, part: CONTENT_PART })
         if (content) {
           const contentSlot = this.slot()
           contentSlot.assign(content)

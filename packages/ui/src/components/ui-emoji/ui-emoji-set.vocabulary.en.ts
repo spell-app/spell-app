@@ -14,6 +14,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const emojiSetVocabulary = {
   tag: "ui-emoji-set",
+  topics: ["icons", "elements"],
+  aka: ["emoji names", "emoji settings"],
   noun: "emoji set",
   description: "An emoji set picks which names `<ui-emoji name>` understands:  CLDR's, or Fomantic's.",
   attributes: [

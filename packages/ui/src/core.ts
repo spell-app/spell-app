@@ -5,7 +5,7 @@
  * - Pulls in:
  *   - the element core -- `UIHost`, `UIElement`, `ElementDefinition`, `ContentPart` + `PartContext` (owner
  *     context), `Controlled`, `Cell`, `SlotContent`, `HostAttribute`, `IconGlyph`
- *   - `$/ui/util`, `$/ui/vocabulary`, `$/ui/components/components.types` -- foundation JS
+ *   - `$/ui/util`, `$/ui/vocabulary` -- foundation JS;  `$/ui/components/components.types` as the namespace `UIT` (`UIT.TRUE`, `UIT.ARIA_LABEL`, `UIT.SelectValue` ...)
  *   - from `$/ui/elements`:  `ClassBuilder`, `Shorthand`, `OwnerContext`, `NativeFallback` (the fallbacks' base)
  *   - `$/ui/runtime` -- ONLY the eager loader (`UI`, `loadUI`);  `UIRuntime` stays a lazy chunk
  *   - `$/ui/icons` -- the icon pack format (`IconName`, `BuiltInPacks`);  the packs are separate files
@@ -30,7 +30,7 @@ export * from "$/ui/elements/OwnerContext"
 export * from "$/ui/elements/NativeFallback"
 export * from "$/ui/runtime"
 export * from "$/ui/icons"
-export * from "$/ui/components/components.types"
+export * as UIT from "$/ui/components/components.types"
 
 export * from "$/ui/elements/Cell"
 export * from "$/ui/elements/ElementDefinition"

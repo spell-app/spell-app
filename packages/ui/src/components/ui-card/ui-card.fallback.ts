@@ -1,13 +1,4 @@
-import {
-  CONTENT,
-  LIST,
-  LISTITEM,
-  NativeFallback,
-  PART_STATIC_CLASS_PREFIX,
-  proto,
-  TRUE,
-  type NativeFallbackRoot
-} from "$/ui/core"
+import { NativeFallback, proto, type NativeFallbackRoot, UIT } from "$/ui/core"
 
 import { cardVocabulary } from "./ui-card.vocabulary.en"
 import { cardsVocabulary } from "./ui-cards.vocabulary.en"
@@ -37,9 +28,9 @@ export class CardFallback extends NativeFallback<FallbackVocabulary> {
 
   protected override build() {
     if (this.vocabulary === cardsVocabulary) {
-      return [this.decorate(this.create("div", { class: this.classes(), role: LIST }, this.slot()), "group")]
+      return [this.decorate(this.create("div", { class: this.classes(), role: UIT.LIST }, this.slot()), "group")]
     }
-    if (this.internals && this.host.parentElement?.localName === cardsVocabulary.tag) this.internals.role = LISTITEM
+    if (this.internals && this.host.parentElement?.localName === cardsVocabulary.tag) this.internals.role = UIT.LISTITEM
     const href = this.attr("href")
     const disabled = this.flag("disabled")
     const card =
@@ -49,13 +40,13 @@ export class CardFallback extends NativeFallback<FallbackVocabulary> {
             class: this.classes(),
             href: disabled ? null : href,
             target: this.attr("target"),
-            "aria-disabled": disabled ? TRUE : null
+            "aria-disabled": disabled ? UIT.TRUE : null
           })
     const image = this.attr("image")
     if (image)
       card.append(this.create("div", { class: IMAGE }, this.create("img", { src: image, alt: this.attr("alt") ?? "" })))
     const blocks = CONTENT_NOUNS.filter((noun) => this.attr(noun)).map((noun) => this.part(noun, this.attr(noun)!))
-    if (blocks.length) card.append(this.create("div", { class: this.staticClass(CONTENT) }, ...blocks))
+    if (blocks.length) card.append(this.create("div", { class: this.staticClass(UIT.CONTENT) }, ...blocks))
     card.append(this.slot())
     const extra = this.attr("extra")
     if (extra) card.append(this.part("extra", extra))
@@ -69,6 +60,6 @@ export class CardFallback extends NativeFallback<FallbackVocabulary> {
 
   /** `<noun> in-card`. */
   private staticClass(noun: string): string {
-    return `${noun} ${PART_STATIC_CLASS_PREFIX}${cardVocabulary.noun}`
+    return `${noun} ${UIT.PART_STATIC_CLASS_PREFIX}${cardVocabulary.noun}`
   }
 }

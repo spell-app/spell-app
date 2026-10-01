@@ -1,11 +1,4 @@
-import {
-  Converters,
-  MODAL_ACTION_SELECTORS,
-  NativeFallback,
-  proto,
-  type ModalActionDetail,
-  type ModalOpenDetail
-} from "$/ui/core"
+import { Converters, NativeFallback, proto, UIT } from "$/ui/core"
 
 import { modalVocabulary } from "./ui-modal.vocabulary.en"
 import { OPEN, CLOSEDBY, APPROVE_EVENT_NAME, DENY_EVENT_NAME, HIDE_EVENT_NAME } from "./ui-modal.types"
@@ -86,7 +79,7 @@ export class ModalFallback extends NativeFallback<typeof modalVocabulary> {
   private onClosed() {
     this.dialog?.classList.remove(this.openClass())
     if (this.host.hasAttribute(OPEN)) this.host.removeAttribute(OPEN)
-    const detail: ModalOpenDetail = { open: false }
+    const detail: UIT.ModalOpenDetail = { open: false }
     this.host.dispatchEvent(new CustomEvent(HIDE_EVENT_NAME, { bubbles: true, composed: true, detail }))
   }
 
@@ -96,13 +89,13 @@ export class ModalFallback extends NativeFallback<typeof modalVocabulary> {
     for (const target of event.composedPath()) {
       if (target === this.host) return
       if (!(target instanceof Element) || target.getRootNode() !== scope) continue
-      const kind = target.matches(MODAL_ACTION_SELECTORS.approve)
+      const kind = target.matches(UIT.MODAL_ACTION_SELECTORS.approve)
         ? APPROVE_EVENT_NAME
-        : target.matches(MODAL_ACTION_SELECTORS.deny)
+        : target.matches(UIT.MODAL_ACTION_SELECTORS.deny)
           ? DENY_EVENT_NAME
           : undefined
       if (!kind) continue
-      const detail: ModalActionDetail = { action: target, originalEvent: event }
+      const detail: UIT.ModalActionDetail = { action: target, originalEvent: event }
       const init = { bubbles: true, composed: true, cancelable: true, detail }
       if (this.host.dispatchEvent(new CustomEvent(kind, init))) this.dialog?.close()
       return

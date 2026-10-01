@@ -1,4 +1,4 @@
-import { ACTIVE, CONTENT, Converters, NativeFallback, proto, type DimmerOpenDetail } from "$/ui/core"
+import { Converters, NativeFallback, proto, UIT } from "$/ui/core"
 
 import { dimmerVocabulary } from "./ui-dimmer.vocabulary.en"
 import { HIDE } from "./ui-dimmer.types"
@@ -27,7 +27,7 @@ export class DimmerFallback extends NativeFallback<typeof dimmerVocabulary> {
 
   protected override build() {
     const page = this.flag("page")
-    const content = this.create("div", { class: CONTENT, part: "content" }, this.slot())
+    const content = this.create("div", { class: UIT.CONTENT, part: "content" }, this.slot())
     const box = page
       ? this.create("dialog", {
           class: this.classes(),
@@ -43,7 +43,7 @@ export class DimmerFallback extends NativeFallback<typeof dimmerVocabulary> {
   protected override attached() {
     this.sync()
     this.observer = new MutationObserver(() => this.sync())
-    this.observer.observe(this.host, { attributeFilter: [ACTIVE] })
+    this.observer.observe(this.host, { attributeFilter: [UIT.ACTIVE] })
   }
 
   override dispose() {
@@ -56,8 +56,8 @@ export class DimmerFallback extends NativeFallback<typeof dimmerVocabulary> {
   private sync() {
     const box = this.box
     if (!box?.isConnected) return
-    const active = Converters.boolean(this.host.getAttribute(ACTIVE), ACTIVE) && !this.flag("disabled")
-    box.classList.toggle(ACTIVE, active)
+    const active = Converters.boolean(this.host.getAttribute(UIT.ACTIVE), UIT.ACTIVE) && !this.flag("disabled")
+    box.classList.toggle(UIT.ACTIVE, active)
     if (!(box instanceof HTMLDialogElement)) return
     if (active && !box.open) box.showModal()
     else if (!active && box.open) box.close()
@@ -65,9 +65,9 @@ export class DimmerFallback extends NativeFallback<typeof dimmerVocabulary> {
 
   /** A page dimmer closed (Escape):  drop `active`, tell the page. */
   private onClosed() {
-    this.box?.classList.remove(ACTIVE)
-    if (this.host.hasAttribute(ACTIVE)) this.host.removeAttribute(ACTIVE)
-    const detail: DimmerOpenDetail = { active: false }
+    this.box?.classList.remove(UIT.ACTIVE)
+    if (this.host.hasAttribute(UIT.ACTIVE)) this.host.removeAttribute(UIT.ACTIVE)
+    const detail: UIT.DimmerOpenDetail = { active: false }
     this.host.dispatchEvent(new CustomEvent(HIDE, { bubbles: true, composed: true, detail }))
   }
 

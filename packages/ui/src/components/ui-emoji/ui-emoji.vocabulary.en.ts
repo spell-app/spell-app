@@ -23,6 +23,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const emojiVocabulary = {
   tag: "ui-emoji",
+  topics: ["icons", "text", "media", "elements"],
+  aka: ["emoticon", "smiley", "unicode emoji"],
   noun: "emoji",
   description: "An emoji is a glyph used to represent something else.",
   attributes: [

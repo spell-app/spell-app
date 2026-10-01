@@ -21,6 +21,7 @@ export class ValueSets {
   declare widths: readonly string[]
   declare devices: readonly string[]
   declare booleans: readonly string[]
+  declare topics: readonly string[]
 
   ////////////////
   // ## Data
@@ -126,6 +127,51 @@ export class ValueSets {
 
   /** Boolean spellings `Converters.boolean()` understands;  here so a translation can map them (`si` => `yes`). */
   @proto static booleans = ["true", "false", "yes", "no"] as const
+
+  /**
+   * Topics a component is filed under (a vocabulary's `topics`), for finding it:  the docs' component browser, and
+   * later `<ui-root>`.  Many per tag, so it's found however someone looks:  how a newcomer thinks of it ("forms",
+   * "notifications", "loading") AND how widget libraries file it;  the last four are Fomantic's own groups.
+   * - A translation maps them once (`Dictionary.values.topics`), like any shared value.
+   */
+  @proto static topics = [
+    "basic",
+    "layout",
+    "containers",
+    "navigation",
+    "menus",
+    "forms",
+    "inputs",
+    "controls",
+    "buttons",
+    "selection",
+    "date & time",
+    "text",
+    "typography",
+    "media",
+    "images",
+    "icons",
+    "data display",
+    "lists",
+    "tables",
+    "cards",
+    "feedback",
+    "messages",
+    "notifications",
+    "overlays",
+    "dialogs",
+    "popups",
+    "loading",
+    "progress",
+    "status",
+    "animation",
+    "social",
+    "content parts",
+    "elements",
+    "collections",
+    "views",
+    "modules"
+  ] as const
 
   ////////////////
   // ## Lookup

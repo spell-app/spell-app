@@ -1,7 +1,7 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { LISTITEM, proto, UIElement } from "$/ui/core"
+import { proto, UIElement, UIT } from "$/ui/core"
 
 import { breadcrumbSectionVocabulary } from "./ui-breadcrumb-section.vocabulary.en"
 import { BreadcrumbFallback } from "./ui-breadcrumb.fallback"
@@ -27,7 +27,7 @@ export class UIBreadcrumbSection extends UIElement<typeof breadcrumbSectionVocab
 
   constructor(...args: ConstructorParameters<typeof UIElement>) {
     super(...args)
-    this.host.internals.role = LISTITEM
+    this.host.internals.role = UIT.LISTITEM
   }
 
   protected hostStates() {

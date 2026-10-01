@@ -1,7 +1,7 @@
 import { createEffect } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { IconGlyph, PartContext, proto, UIElement, IMG, TRUE } from "$/ui/core"
+import { IconGlyph, PartContext, proto, UIElement, UIT } from "$/ui/core"
 
 import { iconVocabulary } from "./ui-icon.vocabulary.en"
 import { IconFallback } from "./ui-icon.fallback"
@@ -38,9 +38,9 @@ export class UIIcon extends UIElement<typeof iconVocabulary> {
     createEffect(
       () => this.attrs.label,
       (label) => {
-        internals.role = label ? IMG : null
+        internals.role = label ? UIT.IMG : null
         internals.ariaLabel = label ?? null
-        internals.ariaHidden = label ? null : TRUE
+        internals.ariaHidden = label ? null : UIT.TRUE
       }
     )
   }

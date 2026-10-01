@@ -1,4 +1,4 @@
-import { Converters, NativeFallback, proto, type EventName, type TransitionDetail } from "$/ui/core"
+import { Converters, NativeFallback, proto, type EventName, UIT } from "$/ui/core"
 
 import { transitionVocabulary } from "./ui-transition.vocabulary.en"
 import { DEFAULT_ANIMATION, SHOW, HIDE, COMPLETE } from "./ui-transition.types"
@@ -49,7 +49,7 @@ export class TransitionFallback extends NativeFallback<typeof transitionVocabula
     box.className = this.boxClasses()
     if (box.hidden === !visible) return
     box.hidden = !visible
-    const detail: TransitionDetail = { visible, animation: this.attr("animation") ?? DEFAULT_ANIMATION }
+    const detail: UIT.TransitionDetail = { visible, animation: this.attr("animation") ?? DEFAULT_ANIMATION }
     this.fire(visible ? SHOW : HIDE, detail)
     this.fire(COMPLETE, detail)
   }
@@ -65,7 +65,7 @@ export class TransitionFallback extends NativeFallback<typeof transitionVocabula
   }
 
   /** Dispatch `name` from the host, as the element would. */
-  private fire(name: EventName<typeof transitionVocabulary>, detail: TransitionDetail) {
+  private fire(name: EventName<typeof transitionVocabulary>, detail: UIT.TransitionDetail) {
     this.host.dispatchEvent(new CustomEvent(name, { bubbles: true, composed: true, detail }))
   }
 }

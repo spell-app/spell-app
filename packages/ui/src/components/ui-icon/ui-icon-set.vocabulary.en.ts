@@ -17,6 +17,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const iconSetVocabulary = {
   tag: "ui-icon-set",
+  topics: ["icons", "elements"],
+  aka: ["icon pack", "icon library", "icon settings"],
   noun: "icon set",
   description: "An icon set adds a pack of icons to the page:  a folder of SVGs and its `pack.js` index.",
   attributes: [

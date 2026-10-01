@@ -19,6 +19,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const menuVocabulary = {
   tag: "ui-menu",
+  topics: ["menus", "navigation", "basic", "collections"],
+  aka: ["navbar", "nav", "tabs bar", "toolbar", "sidebar menu", "pagination"],
   noun: "menu",
   description: "A menu displays grouped navigation actions.",
   attributes: [

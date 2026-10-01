@@ -23,6 +23,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const accordionVocabulary = {
   tag: "ui-accordion",
+  topics: ["containers", "navigation", "data display", "modules"],
+  aka: ["collapse", "collapsible", "disclosure", "expander", "details", "faq"],
   noun: "accordion",
   description: "An accordion allows users to toggle the display of sections of content.",
   attributes: [

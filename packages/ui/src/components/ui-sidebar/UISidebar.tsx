@@ -4,19 +4,14 @@ import type { JSX } from "@solidjs/web"
 import {
   HostAttribute,
   proto,
-  PUSHABLE_HOST_STATE,
   UI,
   UIElement,
-  ToggleCommands,
   type AttributeName,
   type Disposer,
   type DismissReason,
   type OverlayEntry,
-  type SidebarCloseDetail,
-  type SidebarCloseReason,
-  type SidebarLayout,
-  type SidebarOpenDetail,
-  type UIHost
+  type UIHost,
+  UIT
 } from "$/ui/core"
 
 import { SIDEBAR_WORD_WIDTHS } from "./ui-sidebar.types"
@@ -233,7 +228,7 @@ export class UISidebar extends UIElement<SidebarVocabulary> {
       this.untrap = UI.focus.trap(this.host)
     }
     this.after(() => {
-      const detail: SidebarOpenDetail = { visible: true }
+      const detail: UIT.SidebarOpenDetail = { visible: true }
       if (untrack(() => this.isVisible())) this.emit("ui-show", detail)
     })
   }
@@ -252,7 +247,7 @@ export class UISidebar extends UIElement<SidebarVocabulary> {
       UI.overlays.close(this.overlay)
     }
     this.after(() => {
-      const detail: SidebarOpenDetail = { visible: false }
+      const detail: UIT.SidebarOpenDetail = { visible: false }
       if (!untrack(() => this.isVisible()) && this.host.isConnected) this.emit("ui-hide", detail)
     })
   }
@@ -273,7 +268,7 @@ export class UISidebar extends UIElement<SidebarVocabulary> {
   /** The parent `<ui-pushable>`'s controller, if that's where it is. */
   private pushable(): UIPushable | undefined {
     const parent = this.host.parentElement
-    if (!parent?.matches(`:state(${PUSHABLE_HOST_STATE})`)) return undefined
+    if (!parent?.matches(`:state(${UIT.PUSHABLE_HOST_STATE})`)) return undefined
     return (parent as UIHost).controller as UIPushable | undefined
   }
 
@@ -283,7 +278,7 @@ export class UISidebar extends UIElement<SidebarVocabulary> {
    * - `push`, `uncover`, `slide along`, `slide out`:  moves by the panel's measured width (height at the top /
    *   bottom), as Fomantic's script measured it
    */
-  private layout(): SidebarLayout {
+  private layout(): UIT.SidebarLayout {
     const position = untrack(() => this.attrs.position) ?? LEFT
     const transition = untrack(() => this.transitionName())
     const modal = untrack(() => this.isModal())
@@ -305,14 +300,14 @@ export class UISidebar extends UIElement<SidebarVocabulary> {
   /** Show for a user action, dispatching the cancelable `ui-open` first;  true when applied. */
   setVisible(originalEvent?: Event): boolean {
     if (untrack(() => this.isVisible())) return false
-    const detail: SidebarOpenDetail = { visible: true, originalEvent }
+    const detail: UIT.SidebarOpenDetail = { visible: true, originalEvent }
     return this.visibleState.request(true, () => this.emit("ui-open", detail))
   }
 
   /** Hide for `reason`, dispatching the cancelable `ui-close` first;  true when applied. */
-  requestClose(reason: SidebarCloseReason, originalEvent?: Event): boolean {
+  requestClose(reason: UIT.SidebarCloseReason, originalEvent?: Event): boolean {
     if (!untrack(() => this.isVisible())) return false
-    const detail: SidebarCloseDetail = { visible: false, reason, originalEvent }
+    const detail: UIT.SidebarCloseDetail = { visible: false, reason, originalEvent }
     return this.visibleState.request(false, () => this.emit("ui-close", detail))
   }
 
@@ -322,7 +317,7 @@ export class UISidebar extends UIElement<SidebarVocabulary> {
 
   /** An invoker command aimed at the host (`TOGGLE_COMMANDS`). */
   private readonly onCommand = (event: Event) => {
-    const action = ToggleCommands.action(
+    const action = UIT.ToggleCommands.action(
       event,
       untrack(() => this.isVisible())
     )

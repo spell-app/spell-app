@@ -5,29 +5,17 @@ import {
   Cell,
   HostAttribute,
   IconGlyph,
-  MODAL_ACTION_SELECTORS,
   UI,
   UIElement,
-  ToggleCommands,
   type AttributeName,
   type ComponentVocabulary,
   type DismissReason,
   type EventName,
-  type ModalActionDetail,
-  type ModalCloseDetail,
-  type ModalCloseReason,
-  type ModalOpenDetail,
   type OverlayEntry,
   type OverlayKind,
   type PartName,
   type TextKey,
-  NONE,
-  CLOSE,
-  ARIA_LABEL,
-  HEADER,
-  CONTENT,
-  CLOSE_CLASS,
-  CLOSE_ICON
+  UIT
 } from "$/ui/core"
 import {
   OPEN,
@@ -91,10 +79,10 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
   readonly openState = this.controlled(OPEN as AttributeName<V>, false as OpenValue<V>)
 
   /** Glyph of the close icon. */
-  readonly closeGlyph = new IconGlyph(() => (this.dialogAttrs.closable ? CLOSE_ICON : undefined))
+  readonly closeGlyph = new IconGlyph(() => (this.dialogAttrs.closable ? UIT.CLOSE_ICON : undefined))
 
   /** Host `aria-label`, forwarded to the dialog. */
-  readonly ariaLabel = new HostAttribute(this.host, ARIA_LABEL)
+  readonly ariaLabel = new HostAttribute(this.host, UIT.ARIA_LABEL)
 
   /** First slotted `<ui-header>` (any tag whose noun is `header`), which names the dialog. */
   readonly heading = new Cell<Element | null>(this.findHeading())
@@ -176,12 +164,12 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
         onClick={this.onDialogClick}
       >
         <Show when={this.dialogAttrs.header}>
-          <div id={this.headerId} class={HEADER} part={this.part(HEADER as PartName<V>)}>
+          <div id={this.headerId} class={UIT.HEADER} part={this.part(UIT.HEADER as PartName<V>)}>
             {this.dialogAttrs.header}
           </div>
         </Show>
         <Show when={this.dialogAttrs.content}>
-          <div class={CONTENT} part={this.part(CONTENT as PartName<V>)}>
+          <div class={UIT.CONTENT} part={this.part(UIT.CONTENT as PartName<V>)}>
             {this.dialogAttrs.content}
           </div>
         </Show>
@@ -189,9 +177,9 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
         <Show when={this.dialogAttrs.closable}>
           <button
             type="button"
-            class={CLOSE_CLASS}
-            part={this.part(CLOSE as PartName<V>)}
-            aria-label={this.text(CLOSE as TextKey<V>)}
+            class={UIT.CLOSE_CLASS}
+            part={this.part(UIT.CLOSE as PartName<V>)}
+            aria-label={this.text(UIT.CLOSE as TextKey<V>)}
             onClick={this.onCloseIcon}
           >
             {this.closeGlyph.svg()}
@@ -213,8 +201,8 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
         const dialog = this.dialog
         if (!dialog) return
         const reflected = dialog as unknown as { ariaLabelledByElements: Element[] | null }
-        if (label) dialog.setAttribute(ARIA_LABEL, label)
-        else dialog.removeAttribute(ARIA_LABEL)
+        if (label) dialog.setAttribute(UIT.ARIA_LABEL, label)
+        else dialog.removeAttribute(UIT.ARIA_LABEL)
         // NOTE: setting the reflected list (even to `null`) rewrites the attribute, so it goes first
         reflected.ariaLabelledByElements = !label && !header && heading ? [heading] : null
         if (!label && header) dialog.setAttribute(ARIA_LABELLEDBY, this.headerId)
@@ -242,7 +230,7 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
     const native = UI.browser.supports.dialogClosedBy
     if (native) dialog.setAttribute(CLOSEDBY, closedBy)
     else dialog.removeAttribute(CLOSEDBY)
-    this.overlay.closeOnEscape = closedBy !== NONE
+    this.overlay.closeOnEscape = closedBy !== UIT.NONE
     this.overlay.closeOnOutsideClick = !native && closedBy === ANY
     if (!dialog.open) {
       dialog.showModal()
@@ -250,7 +238,7 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
     }
     UI.overlays.open(this.overlay)
     this.after(() => {
-      const detail: ModalOpenDetail = { open: true }
+      const detail: UIT.ModalOpenDetail = { open: true }
       if (untrack(() => this.isOpen())) this.fire("ui-show", detail)
     })
   }
@@ -264,7 +252,7 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
     if (dialog?.open) dialog.close()
     UI.overlays.close(this.overlay)
     this.after(() => {
-      const detail: ModalOpenDetail = { open: false }
+      const detail: UIT.ModalOpenDetail = { open: false }
       if (!untrack(() => this.isOpen()) && this.host.isConnected) this.fire("ui-hide", detail)
     })
   }
@@ -285,16 +273,16 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
   /** Show, dispatching the cancelable `ui-open` first;  true when applied. */
   setOpen(originalEvent?: Event): boolean {
     if (untrack(() => this.isOpen())) return false
-    const detail: ModalOpenDetail = { open: true, originalEvent }
+    const detail: UIT.ModalOpenDetail = { open: true, originalEvent }
     return this.openState.request(true as OpenValue<V>, () => this.fire("ui-open", detail))
   }
 
   /** Hide for `reason`, dispatching the cancelable `ui-close` first;  true when applied. */
-  requestClose(reason: ModalCloseReason, originalEvent?: Event): boolean {
+  requestClose(reason: UIT.ModalCloseReason, originalEvent?: Event): boolean {
     if (!untrack(() => this.isOpen())) return false
     this.dismissing = true
     setTimeout(() => (this.dismissing = false))
-    const detail: ModalCloseDetail = { open: false, reason, originalEvent }
+    const detail: UIT.ModalCloseDetail = { open: false, reason, originalEvent }
     return this.openState.request(false as OpenValue<V>, () => this.fire("ui-close", detail))
   }
 
@@ -309,12 +297,12 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
 
   /** An invoker command aimed at the host (`TOGGLE_COMMANDS`). */
   private readonly onCommand = (event: Event) => {
-    const action = ToggleCommands.action(
+    const action = UIT.ToggleCommands.action(
       event,
       untrack(() => this.isOpen())
     )
     if (action === "show") this.setOpen(event)
-    else if (action === "close") this.requestClose(CLOSE, event)
+    else if (action === "close") this.requestClose(UIT.CLOSE, event)
   }
 
   /**
@@ -326,13 +314,13 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
     if (this.host.hasAttribute(CLOSEDBY)) return untrack(() => this.dialogAttrs.closedby) ?? ANY
     // NOTE: an absent boolean also converts to `false`, so `closable` must be present to mean "closable: false"
     const off = this.host.hasAttribute(CLOSABLE) && !untrack(() => this.dialogAttrs.closable)
-    return off ? NONE : ANY
+    return off ? UIT.NONE : ANY
   }
 
   /** Close icon. */
   private readonly onCloseIcon = (event: MouseEvent) => {
     event.stopPropagation()
-    this.requestClose(CLOSE, event)
+    this.requestClose(UIT.CLOSE, event)
   }
 
   /** Remember whether a press started on the `::backdrop` (the dialog itself, outside its box). */
@@ -354,7 +342,7 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
     this.backdropPress = false
     if (this.dismissing) return
     const closedBy = this.closedBy()
-    if (closedBy === NONE || (reason === OUTSIDE && closedBy !== ANY)) return
+    if (closedBy === UIT.NONE || (reason === OUTSIDE && closedBy !== ANY)) return
     this.requestClose(reason, event)
   }
 
@@ -365,7 +353,7 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
    */
   private readonly onClose = (event: Event) => {
     if (this.dialog?.open || !this.host.isConnected || !untrack(() => this.isOpen())) return
-    const detail: ModalCloseDetail = { open: false, reason: ESCAPE, originalEvent: event }
+    const detail: UIT.ModalCloseDetail = { open: false, reason: ESCAPE, originalEvent: event }
     this.fire("ui-close", detail)
     this.openState.set(false as OpenValue<V>)
   }
@@ -375,7 +363,7 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
     const found = this.actionOf(event)
     if (!found) return
     const [kind, action] = found
-    const detail: ModalActionDetail = { action, originalEvent: event }
+    const detail: UIT.ModalActionDetail = { action, originalEvent: event }
     if (!this.fire(kind === APPROVE ? "ui-approve" : "ui-deny", detail)) return
     this.requestClose(kind, event)
   }
@@ -393,8 +381,8 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
     for (const target of event.composedPath()) {
       if (target === this.host) return undefined
       if (!(target instanceof Element) || target.getRootNode() !== scope) continue
-      if (target.matches(MODAL_ACTION_SELECTORS.approve)) return [APPROVE, target]
-      if (target.matches(MODAL_ACTION_SELECTORS.deny)) return [DENY, target]
+      if (target.matches(UIT.MODAL_ACTION_SELECTORS.approve)) return [APPROVE, target]
+      if (target.matches(UIT.MODAL_ACTION_SELECTORS.deny)) return [DENY, target]
     }
     return undefined
   }
@@ -402,7 +390,7 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
   /** First child element whose definition's noun is `header` (a `<ui-header>`, or a translated one). */
   private findHeading(): Element | null {
     for (const child of this.host.children) {
-      if (UIElement.definitions.get(child.localName)?.vocabulary.noun === HEADER) return child
+      if (UIElement.definitions.get(child.localName)?.vocabulary.noun === UIT.HEADER) return child
     }
     return null
   }

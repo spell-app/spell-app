@@ -1,7 +1,7 @@
 import { createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { IMG, proto, type TextKey, UI, UIElement } from "$/ui/core"
+import { proto, type TextKey, UI, UIElement, UIT } from "$/ui/core"
 
 import { flagVocabulary } from "./ui-flag.vocabulary.en"
 import { FlagCountry } from "./FlagCountry"
@@ -46,7 +46,7 @@ export class UIFlag extends UIElement<typeof flagVocabulary> {
       <span
         class={this.classes()}
         part={this.part("flag")}
-        role={this.label() ? IMG : undefined}
+        role={this.label() ? UIT.IMG : undefined}
         aria-label={this.label()}
       >
         {this.country().emoji}

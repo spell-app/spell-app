@@ -5,7 +5,8 @@
  *   (`@spell-app/ui/core`, `@spell-app/ui/forms`), so a page can load one family alone.  See `vite.config.ts`.
  * - FLAT:  `UI` is the runtime instance (see `$/ui/runtime`);  `$/ui/styles`, `$/ui/icons` and the component classes carry
  *   their own suffixes or prefixes (`tokensCSS`, `Icons`, `UIButton`).
- * - NOTE: NO namespaces here.  `E` (element core) and `V` (vocabulary) live in the `api` entry (`src/api.ts`,
+ * - NOTE: ONE namespace here, `UIT` (the shared constants and types of `$/ui/components/components.types`).
+ *   `E` (element core) and `V` (vocabulary) live in the `api` entry (`src/api.ts`,
  *   `@spell-app/ui/api`):  `export * as` here moved Rolldown's runtime helpers into a chunk every page loaded.
  *   The element core is also flat in `@spell-app/ui/core`.
  */
@@ -14,7 +15,7 @@ export * from "$/ui/util"
 export * from "$/ui/runtime"
 export * from "$/ui/styles"
 export * from "$/ui/icons"
-export * from "$/ui/components/components.types"
+export * as UIT from "$/ui/components/components.types"
 
 export * from "$/ui/components/ui-button"
 export * from "$/ui/components/ui-dropdown"

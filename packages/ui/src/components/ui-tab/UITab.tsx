@@ -8,8 +8,8 @@ import {
   proto,
   UIElement,
   type AttributeName,
-  type TabShowDetail,
-  type UIHost
+  type UIHost,
+  UIT
 } from "$/ui/core"
 
 import { tabVocabulary } from "./ui-tab.vocabulary.en"
@@ -164,7 +164,7 @@ export class UITab extends UIElement<TabVocabulary> {
     }
     const owner = untrack(this.owner)
     const value = owner ? owner.valueOf(this.host) : (untrack(() => this.attrs.value) ?? "")
-    const detail: TabShowDetail = { value, first }
+    const detail: UIT.TabShowDetail = { value, first }
     this.emit("ui-show", detail)
   }
 }

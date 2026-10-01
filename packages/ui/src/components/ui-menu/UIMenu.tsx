@@ -1,24 +1,7 @@
 import { Match, Switch, createEffect, createMemo, onSettled, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import {
-  HostAttribute,
-  PartContext,
-  proto,
-  UI,
-  UIElement,
-  type ItemContext,
-  type ItemOwner,
-  type RovingTabindex,
-  type UIHost,
-  ARIA_LABEL,
-  NONE,
-  PAGE,
-  LINK,
-  BUTTON,
-  DISABLED_STATE,
-  TABINDEX
-} from "$/ui/core"
+import { HostAttribute, PartContext, proto, UI, UIElement, type RovingTabindex, type UIHost, UIT } from "$/ui/core"
 
 import { menuVocabulary } from "./ui-menu.vocabulary.en"
 import { MenuFallback } from "./ui-menu.fallback"
@@ -54,7 +37,7 @@ import {
  * - Events:  `ui-select` (`{ value, item, originalEvent }`) when a link / button item is activated -- click, or
  *   Enter / Space on it;  only the TOP menu dispatches it.  The menu never moves `selected` itself.
  ****************/
-export class UIMenu extends UIElement<typeof menuVocabulary> implements ItemOwner {
+export class UIMenu extends UIElement<typeof menuVocabulary> implements UIT.ItemOwner {
   @proto static vocabulary = menuVocabulary
   @proto static styles = { menu: menuCSS }
   @proto static Fallback = MenuFallback
@@ -67,7 +50,7 @@ export class UIMenu extends UIElement<typeof menuVocabulary> implements ItemOwne
   readonly context = new PartContext(this.host, this.vocabulary.noun)
 
   /** Host `aria-label`, forwarded to the landmark / menubar. */
-  readonly ariaLabel = new HostAttribute(this.host, ARIA_LABEL)
+  readonly ariaLabel = new HostAttribute(this.host, UIT.ARIA_LABEL)
 
   /** Item hosts that asked THIS (top) menu for their context:  the roving candidates. */
   private readonly asked = new WeakSet<Element>()
@@ -124,7 +107,7 @@ export class UIMenu extends UIElement<typeof menuVocabulary> implements ItemOwne
    * - SIDE EFFECT:  records the item for the roving set, and re-applies the roving tabindexes once the item has
    *   (re-)rendered its box.
    */
-  itemContext(item: Element): ItemContext {
+  itemContext(item: Element): UIT.ItemContext {
     const top = untrack(() => this.top())
     top.asked.add(item)
     top.queueRefresh()
@@ -132,13 +115,13 @@ export class UIMenu extends UIElement<typeof menuVocabulary> implements ItemOwne
   }
 
   /** What this (top) menu's items render as, from its attributes.  Tracked. */
-  private computeContext(): ItemContext {
+  private computeContext(): UIT.ItemContext {
     const interactive = this.attrs.interactive
     return {
-      hostRole: interactive ? NONE : null,
+      hostRole: interactive ? UIT.NONE : null,
       role: interactive ? MENUITEM : undefined,
       interactive: interactive || this.attrs.link || this.attrs.pagination,
-      current: PAGE
+      current: UIT.PAGE
     }
   }
 
@@ -196,7 +179,7 @@ export class UIMenu extends UIElement<typeof menuVocabulary> implements ItemOwne
   private onClick(event: MouseEvent) {
     if (this.parent()) return
     const item = UIMenu.activatedItem(event)
-    if (!item || item.matches(DISABLED_STATE)) return
+    if (!item || item.matches(UIT.DISABLED_STATE)) return
     const controller = (item as UIHost).controller as { attrs?: { value?: string } } | undefined
     const value = controller?.attrs?.value ?? item.textContent?.trim() ?? ""
     this.emit("ui-select", { value, item, originalEvent: event })
@@ -206,7 +189,7 @@ export class UIMenu extends UIElement<typeof menuVocabulary> implements ItemOwne
   private static activatedItem(event: Event): Element | undefined {
     for (const target of event.composedPath()) {
       if (!(target instanceof HTMLElement)) continue
-      if ((target.localName === LINK || target.localName === BUTTON) && target.part.contains(ITEM_PART)) {
+      if ((target.localName === UIT.LINK || target.localName === UIT.BUTTON) && target.part.contains(ITEM_PART)) {
         const root = target.getRootNode()
         return root instanceof ShadowRoot ? root.host : undefined
       }
@@ -232,7 +215,7 @@ export class UIMenu extends UIElement<typeof menuVocabulary> implements ItemOwne
     if (!this.roving) return
     this.roving.detach()
     this.roving = undefined
-    for (const box of this.menuItems()) box.removeAttribute(TABINDEX)
+    for (const box of this.menuItems()) box.removeAttribute(UIT.TABINDEX)
   }
 
   /** Re-apply the roving `tabindex`es once, after the item set may have changed (restarting before any focus). */
@@ -266,7 +249,7 @@ export class UIMenu extends UIElement<typeof menuVocabulary> implements ItemOwne
   }
 
   /** Same item context, field by field:  items don't re-render for an equal one. */
-  private static sameContext(a: ItemContext, b: ItemContext): boolean {
+  private static sameContext(a: UIT.ItemContext, b: UIT.ItemContext): boolean {
     return a.hostRole === b.hostRole && a.role === b.role && a.interactive === b.interactive && a.current === b.current
   }
 }

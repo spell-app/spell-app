@@ -1,22 +1,7 @@
 import { Show, createEffect, createMemo, onSettled } from "solid-js"
 import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
-import {
-  Cell,
-  CONTENT,
-  ContentPart,
-  HEADER,
-  IMG,
-  LISTITEM,
-  PART_STATIC_CLASS_PREFIX,
-  PartContext,
-  proto,
-  TRUE,
-  type AttributeName,
-  type CardSharedVariation,
-  type UIHost,
-  UIElement
-} from "$/ui/core"
+import { Cell, ContentPart, PartContext, proto, type AttributeName, type UIHost, UIElement, UIT } from "$/ui/core"
 
 import { cardVocabulary } from "./ui-card.vocabulary.en"
 import { CardFallback } from "./ui-card.fallback"
@@ -91,11 +76,11 @@ export class UICard extends UIElement<Vocabulary> {
     const { internals } = host
     // SIDE EFFECT:  a list item in a group;  busy / disabled for assistive tech
     createEffect(
-      () => [this.group() ? LISTITEM : null, this.attrs.loading, this.attrs.disabled] as const,
+      () => [this.group() ? UIT.LISTITEM : null, this.attrs.loading, this.attrs.disabled] as const,
       ([role, loading, disabled]) => {
         internals.role = role
-        internals.ariaBusy = loading ? TRUE : null
-        internals.ariaDisabled = disabled ? TRUE : null
+        internals.ariaBusy = loading ? UIT.TRUE : null
+        internals.ariaDisabled = disabled ? UIT.TRUE : null
       }
     )
     if (isServer) return
@@ -121,7 +106,7 @@ export class UICard extends UIElement<Vocabulary> {
   protected classValue(name: AttributeName<Vocabulary>): unknown {
     const own = super.classValue(name)
     if (own || !SHARED.has(name)) return own
-    return this.group()?.shared(name as CardSharedVariation)
+    return this.group()?.shared(name as UIT.CardSharedVariation)
   }
 
   protected hostStates() {
@@ -141,7 +126,7 @@ export class UICard extends UIElement<Vocabulary> {
         part={this.part("card")}
         href={link() && !this.attrs.disabled ? this.attrs.href : undefined}
         target={link() ? this.attrs.target : undefined}
-        aria-disabled={link() && this.attrs.disabled ? TRUE : undefined}
+        aria-disabled={link() && this.attrs.disabled ? UIT.TRUE : undefined}
       >
         <Show when={this.shows(IMAGE)}>
           <div class={IMAGE} part={this.part("image")}>
@@ -149,9 +134,9 @@ export class UICard extends UIElement<Vocabulary> {
           </div>
         </Show>
         <Show when={this.hasContent()}>
-          <div class={this.staticPart(CONTENT)} part={this.part("content")}>
-            <Show when={this.shows(HEADER)}>
-              <div class={this.staticPart(HEADER)} part={this.part("header")}>
+          <div class={this.staticPart(UIT.CONTENT)} part={this.part("content")}>
+            <Show when={this.shows(UIT.HEADER)}>
+              <div class={this.staticPart(UIT.HEADER)} part={this.part("header")}>
                 {this.attrs.header}
               </div>
             </Show>
@@ -184,13 +169,13 @@ export class UICard extends UIElement<Vocabulary> {
 
   /** Classes of a shorthand block:  the part noun and the static owner class, e.g. `header in-card`. */
   private staticPart(noun: string): string {
-    return `${noun} ${PART_STATIC_CLASS_PREFIX}${this.vocabulary.noun}`
+    return `${noun} ${UIT.PART_STATIC_CLASS_PREFIX}${this.vocabulary.noun}`
   }
 
   /** Shorthand nouns the light DOM already has, read from the DOM now. */
   private scan(): ReadonlySet<string> {
     const nouns = new Set<string>()
-    for (const child of this.host.children) if (child.localName === IMG && !child.slot) nouns.add(IMAGE)
+    for (const child of this.host.children) if (child.localName === UIT.IMG && !child.slot) nouns.add(IMAGE)
     for (const element of this.host.querySelectorAll("*")) {
       const noun = UIElement.definitions.get(element.localName)?.vocabulary.noun
       if (noun && (SHORTHANDS as readonly string[]).includes(noun)) nouns.add(noun)

@@ -2,20 +2,14 @@ import { Show, createEffect, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import {
-  ARIA_LABEL,
-  CONTENT,
   HostAttribute,
-  NONE,
   proto,
-  ToggleCommands,
   type AttributeName,
-  type DimmerCloseDetail,
-  type DimmerCloseReason,
-  type DimmerOpenDetail,
   type DismissReason,
   type OverlayEntry,
   UI,
-  UIElement
+  UIElement,
+  UIT
 } from "$/ui/core"
 
 import { dimmerVocabulary } from "./ui-dimmer.vocabulary.en"
@@ -60,7 +54,7 @@ export class UIDimmer extends UIElement<Vocabulary> {
   readonly activeState = this.controlled("active", false)
 
   /** Host `aria-label`, forwarded to a page dimmer's dialog. */
-  readonly ariaLabel = new HostAttribute(this.host, ARIA_LABEL)
+  readonly ariaLabel = new HostAttribute(this.host, UIT.ARIA_LABEL)
 
   /** The dimmer box:  a `<div>`, or a page dimmer's `<dialog>`. */
   private box?: HTMLElement
@@ -115,7 +109,7 @@ export class UIDimmer extends UIElement<Vocabulary> {
     if (!UI.styles.has(PAGE_SHEET)) UI.styles.register(PAGE_SHEET, dimmablePageCSS, { page: true })
     this.effects()
     const content = (
-      <div class={CONTENT} part={this.part("content")}>
+      <div class={UIT.CONTENT} part={this.part("content")}>
         <slot />
       </div>
     )
@@ -172,7 +166,7 @@ export class UIDimmer extends UIElement<Vocabulary> {
   private show(page: boolean) {
     const box = this.box
     if (page && box instanceof HTMLDialogElement) {
-      this.overlay.closeOnEscape = (untrack(() => this.attrs.closedby) ?? ANY) !== NONE
+      this.overlay.closeOnEscape = (untrack(() => this.attrs.closedby) ?? ANY) !== UIT.NONE
       if (!box.open) {
         box.showModal()
         UI.focus.enter(box)
@@ -180,7 +174,7 @@ export class UIDimmer extends UIElement<Vocabulary> {
       UI.overlays.open(this.overlay)
     }
     this.after(() => {
-      const detail: DimmerOpenDetail = { active: true }
+      const detail: UIT.DimmerOpenDetail = { active: true }
       if (untrack(() => this.isActive())) this.emit("ui-show", detail)
     })
   }
@@ -193,7 +187,7 @@ export class UIDimmer extends UIElement<Vocabulary> {
       UI.overlays.close(this.overlay)
     }
     this.after(() => {
-      const detail: DimmerOpenDetail = { active: false }
+      const detail: UIT.DimmerOpenDetail = { active: false }
       if (!untrack(() => this.isActive()) && this.host.isConnected) this.emit("ui-hide", detail)
     })
   }
@@ -253,16 +247,16 @@ export class UIDimmer extends UIElement<Vocabulary> {
   /** Show for a user action, dispatching the cancelable `ui-open` first;  true when applied. */
   setActive(originalEvent?: Event): boolean {
     if (untrack(() => this.activeState.get() || !!this.attrs.disabled)) return false
-    const detail: DimmerOpenDetail = { active: true, originalEvent }
+    const detail: UIT.DimmerOpenDetail = { active: true, originalEvent }
     return this.activeState.request(true, () => this.emit("ui-open", detail))
   }
 
   /** Hide for `reason`, dispatching the cancelable `ui-close` first;  true when applied. */
-  requestClose(reason: DimmerCloseReason, originalEvent?: Event): boolean {
+  requestClose(reason: UIT.DimmerCloseReason, originalEvent?: Event): boolean {
     if (!untrack(() => this.activeState.get())) return false
     this.dismissing = true
     setTimeout(() => (this.dismissing = false))
-    const detail: DimmerCloseDetail = { active: false, reason, originalEvent }
+    const detail: UIT.DimmerCloseDetail = { active: false, reason, originalEvent }
     return this.activeState.request(false, () => this.emit("ui-close", detail))
   }
 
@@ -272,7 +266,7 @@ export class UIDimmer extends UIElement<Vocabulary> {
 
   /** An invoker command aimed at the host (`TOGGLE_COMMANDS`). */
   private readonly onCommand = (event: Event) => {
-    const action = ToggleCommands.action(
+    const action = UIT.ToggleCommands.action(
       event,
       untrack(() => this.activeState.get())
     )
@@ -300,7 +294,7 @@ export class UIDimmer extends UIElement<Vocabulary> {
    */
   private readonly onCancel = (event: Event) => {
     event.preventDefault()
-    if (this.dismissing || (untrack(() => this.attrs.closedby) ?? ANY) === NONE) return
+    if (this.dismissing || (untrack(() => this.attrs.closedby) ?? ANY) === UIT.NONE) return
     this.requestClose(ESCAPE, event)
   }
 
@@ -309,7 +303,7 @@ export class UIDimmer extends UIElement<Vocabulary> {
     const box = this.box
     if ((box instanceof HTMLDialogElement && box.open) || !this.host.isConnected) return
     if (!untrack(() => this.activeState.get())) return
-    const detail: DimmerCloseDetail = { active: false, reason: ESCAPE, originalEvent: event }
+    const detail: UIT.DimmerCloseDetail = { active: false, reason: ESCAPE, originalEvent: event }
     this.emit("ui-close", detail)
     this.activeState.set(false)
   }

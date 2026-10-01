@@ -1,17 +1,7 @@
 import { For, createMemo, untrack, type Accessor } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import {
-  ARROW_DOWN,
-  Cell,
-  CONTENT,
-  PartContext,
-  proto,
-  type AccordionPanel,
-  type AccordionToggleDetail,
-  UI,
-  UIElement
-} from "$/ui/core"
+import { Cell, PartContext, proto, UI, UIElement, UIT } from "$/ui/core"
 
 import { accordionVocabulary } from "./ui-accordion.vocabulary.en"
 import { AccordionFallback } from "./ui-accordion.fallback"
@@ -68,7 +58,7 @@ export class UIAccordion extends UIElement<typeof accordionVocabulary> {
   readonly openState = this.controlled("open", undefined)
 
   /** Title + content pairs from the light children. */
-  readonly panels = new Cell<readonly AccordionPanel[]>(
+  readonly panels = new Cell<readonly UIT.AccordionPanel[]>(
     isServer ? [] : AccordionPanels.read(this.host, UIAccordion.isTitle),
     { equals: AccordionPanels.same }
   )
@@ -127,7 +117,7 @@ export class UIAccordion extends UIElement<typeof accordionVocabulary> {
   }
 
   /** One panel:  `<details>` > `<summary class="title">` + `<div class="content">`, each around its child. */
-  private renderPanel(panel: AccordionPanel, index: Accessor<number>): JSX.Element {
+  private renderPanel(panel: UIT.AccordionPanel, index: Accessor<number>): JSX.Element {
     const open = () => this.isOpen(index())
     return (
       <details
@@ -144,7 +134,7 @@ export class UIAccordion extends UIElement<typeof accordionVocabulary> {
           <span class={DROPDOWN_ICON} part={this.part("icon")} aria-hidden="true" />
           <slot ref={(slot: HTMLSlotElement) => slot.assign(panel.title)} />
         </summary>
-        <div class={open() ? ACTIVE_CONTENT : CONTENT} part={this.part("content")}>
+        <div class={open() ? ACTIVE_CONTENT : UIT.CONTENT} part={this.part("content")}>
           {panel.content ? <slot ref={(slot: HTMLSlotElement) => slot.assign(panel.content!)} /> : undefined}
         </div>
       </details>
@@ -174,7 +164,7 @@ export class UIAccordion extends UIElement<typeof accordionVocabulary> {
   }
 
   /** `detail` of `ui-open` / `ui-close` for panel `index`. */
-  private detail(index: number, open: boolean, originalEvent?: Event): AccordionToggleDetail {
+  private detail(index: number, open: boolean, originalEvent?: Event): UIT.AccordionToggleDetail {
     const panel = untrack(this.panels.get)[index]
     return { index, open, title: panel?.title as Element, content: panel?.content, originalEvent }
   }
@@ -222,7 +212,7 @@ export class UIAccordion extends UIElement<typeof accordionVocabulary> {
     if (from < 0) return
     const last = titles.length - 1
     const to =
-      event.key === ARROW_DOWN
+      event.key === UIT.ARROW_DOWN
         ? (from + 1) % titles.length
         : event.key === ARROW_UP
           ? (from + last) % titles.length

@@ -1,4 +1,4 @@
-import type { CalendarMode } from "$/ui/core"
+import type { UIT } from "$/ui/core"
 
 import { CalendarDates } from "./CalendarDates"
 import {
@@ -175,7 +175,7 @@ export class CalendarView {
    * The view the title leads to:  the coarser one before `mode` (days => months => years);  hours and minutes go
    * back to days (Fomantic);  none at the top, or for a `time` calendar.
    */
-  private static up(input: ViewInput): CalendarMode | undefined {
+  private static up(input: ViewInput): UIT.CalendarMode | undefined {
     const { mode, modes } = input
     if (mode === "hour" || mode === "minute") return modes.includes("day") ? "day" : undefined
     const index = modes.indexOf(mode)

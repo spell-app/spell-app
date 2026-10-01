@@ -15,6 +15,8 @@ import { LEADING_ATTRIBUTES, SHARED_ATTRIBUTES, SHARED_EVENTS, SHARED_PARTS } fr
  ****************/
 export const radioVocabulary = {
   tag: "ui-radio",
+  topics: ["forms", "inputs", "controls", "selection", "modules"],
+  aka: ["radio button", "option button", "radio group"],
   noun: "checkbox",
   description: "A radio button chooses exactly one value of a group.",
   attributes: [

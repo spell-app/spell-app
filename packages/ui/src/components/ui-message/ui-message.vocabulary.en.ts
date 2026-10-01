@@ -19,6 +19,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const messageVocabulary = {
   tag: "ui-message",
+  topics: ["messages", "feedback", "notifications", "status", "collections"],
+  aka: ["alert", "callout", "notice", "banner", "info box", "error message"],
   noun: "message",
   description: "A message displays information that explains nearby content.",
   attributes: [

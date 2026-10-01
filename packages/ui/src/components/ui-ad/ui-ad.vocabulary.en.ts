@@ -17,6 +17,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const adVocabulary = {
   tag: "ui-ad",
+  topics: ["media", "layout", "views"],
+  aka: ["advertisement", "banner ad", "ad slot"],
   noun: "ad",
   description: "An ad displays third-party promotional content.",
   attributes: [

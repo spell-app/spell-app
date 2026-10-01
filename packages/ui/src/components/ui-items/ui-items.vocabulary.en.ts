@@ -16,6 +16,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const itemsVocabulary = {
   tag: "ui-items",
+  topics: ["lists", "data display", "views"],
+  aka: ["item list", "media list", "product list", "results"],
   noun: "items",
   description: "A group of items:  site content, each an image beside its header, meta, description and extra.",
   attributes: [

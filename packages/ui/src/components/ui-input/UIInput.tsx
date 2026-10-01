@@ -1,18 +1,7 @@
 import { Show, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import {
-  Cell,
-  IconGlyph,
-  proto,
-  SlotContent,
-  type AttributeName,
-  type FieldValue,
-  ENTER,
-  SUBMIT,
-  ICON,
-  LEFT
-} from "$/ui/core"
+import { Cell, IconGlyph, proto, SlotContent, type AttributeName, type FieldValue, UIT } from "$/ui/core"
 
 import { inputVocabulary } from "./ui-input.vocabulary.en"
 import { InputFallback } from "./ui-input.fallback"
@@ -95,7 +84,7 @@ export class UIInput extends TextControl<Vocabulary> {
   }
 
   protected extraClasses(): string | undefined {
-    const extra = [this.hasIconBox() && this.attrs.iconPosition !== LEFT ? ICON : "", this.isFile() ? FILE : ""]
+    const extra = [this.hasIconBox() && this.attrs.iconPosition !== UIT.LEFT ? UIT.ICON : "", this.isFile() ? FILE : ""]
     return extra.filter(Boolean).join(" ") || undefined
   }
 
@@ -149,7 +138,7 @@ export class UIInput extends TextControl<Vocabulary> {
           onKeyDown={this.onKeyDown}
         />
         <Show when={this.hasIconBox()}>
-          <span class={ICON} part={this.part("icon")}>
+          <span class={UIT.ICON} part={this.part("icon")}>
             <slot name={this.slot("icon")}>{this.glyph.svg()}</slot>
           </span>
         </Show>
@@ -160,7 +149,7 @@ export class UIInput extends TextControl<Vocabulary> {
             part={this.part("label")}
             aria-hidden="true"
           >
-            <span class={ICON}>
+            <span class={UIT.ICON}>
               <slot name={this.slot("label")}>{this.cornerGlyph.svg()}</slot>
             </span>
           </span>
@@ -197,7 +186,7 @@ export class UIInput extends TextControl<Vocabulary> {
 
   /** Enter submits the form, as a native field would. */
   private readonly onKeyDown = (event: KeyboardEvent) => {
-    if (event.key !== ENTER || event.isComposing || event.defaultPrevented) return
+    if (event.key !== UIT.ENTER || event.isComposing || event.defaultPrevented) return
     const form = this.formHost.form
     if (!form) return
     event.preventDefault()
@@ -213,8 +202,8 @@ export class UIInput extends TextControl<Vocabulary> {
    */
   private static isSubmitter(element: Element): boolean {
     if (element instanceof HTMLButtonElement || element instanceof HTMLInputElement) {
-      return element.type === SUBMIT && !element.disabled
+      return element.type === UIT.SUBMIT && !element.disabled
     }
-    return element.getAttribute(TYPE) === SUBMIT && !element.matches(DISABLED_PSEUDO)
+    return element.getAttribute(TYPE) === UIT.SUBMIT && !element.matches(DISABLED_PSEUDO)
   }
 }

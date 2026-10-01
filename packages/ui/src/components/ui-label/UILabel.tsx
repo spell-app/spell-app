@@ -1,18 +1,7 @@
 import { Show, createMemo } from "solid-js"
 import { Dynamic, type JSX } from "@solidjs/web"
 
-import {
-  HostAttribute,
-  IconGlyph,
-  PartContext,
-  proto,
-  SlotContent,
-  UIElement,
-  ICON,
-  IMAGE,
-  ARIA_LABEL,
-  IMG
-} from "$/ui/core"
+import { HostAttribute, IconGlyph, PartContext, proto, SlotContent, UIElement, UIT } from "$/ui/core"
 
 import { labelVocabulary } from "./ui-label.vocabulary.en"
 import { LabelFallback } from "./ui-label.fallback"
@@ -53,7 +42,7 @@ export class UILabel extends UIElement<typeof labelVocabulary> {
   readonly deleteGlyph = new IconGlyph(() => (this.attrs.removable ? DELETE_ICON : undefined))
 
   /** Host `aria-label`, forwarded to the root. */
-  readonly ariaLabel = new HostAttribute(this.host, ARIA_LABEL)
+  readonly ariaLabel = new HostAttribute(this.host, UIT.ARIA_LABEL)
 
   ////////////////
   // ## Derived state
@@ -73,7 +62,7 @@ export class UILabel extends UIElement<typeof labelVocabulary> {
   }
 
   protected extraClasses(): string | undefined {
-    const extra = [this.attrs.image === undefined ? "" : IMAGE, this.hasIcon() && !this.hasText() ? ICON : ""]
+    const extra = [this.attrs.image === undefined ? "" : UIT.IMAGE, this.hasIcon() && !this.hasText() ? UIT.ICON : ""]
     return extra.filter(Boolean).join(" ") || undefined
   }
 
@@ -111,13 +100,13 @@ export class UILabel extends UIElement<typeof labelVocabulary> {
         target={this.attrs.href ? this.attrs.target : undefined}
         aria-label={this.ariaLabel.get() ?? undefined}
         aria-disabled={this.attrs.disabled && this.attrs.href ? "true" : undefined}
-        role={this.ariaLabel.get() && !this.attrs.href ? IMG : undefined}
+        role={this.ariaLabel.get() && !this.attrs.href ? UIT.IMG : undefined}
       >
         <Show when={this.imageSrc()}>
-          <img class={IMAGE} part={this.part("image")} src={this.imageSrc()} alt="" />
+          <img class={UIT.IMAGE} part={this.part("image")} src={this.imageSrc()} alt="" />
         </Show>
         <Show when={this.hasIcon()}>
-          <span class={ICON} part={this.part("icon")}>
+          <span class={UIT.ICON} part={this.part("icon")}>
             <slot name={this.slot("icon")}>{this.glyph.svg()}</slot>
           </span>
         </Show>

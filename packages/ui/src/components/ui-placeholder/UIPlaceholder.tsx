@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { PLACEHOLDER_HOST_STATE, proto, UIElement } from "$/ui/core"
+import { proto, UIElement, UIT } from "$/ui/core"
 
 import { placeholderVocabulary } from "./ui-placeholder.vocabulary.en"
 import { PlaceholderFallback } from "./ui-placeholder.fallback"
@@ -28,7 +28,7 @@ export class UIPlaceholder extends UIElement<typeof placeholderVocabulary> {
   }
 
   protected hostStates() {
-    return { [PLACEHOLDER_HOST_STATE]: true }
+    return { [UIT.PLACEHOLDER_HOST_STATE]: true }
   }
 
   render(): JSX.Element {

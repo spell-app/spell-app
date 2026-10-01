@@ -1,4 +1,4 @@
-import { Converters, NativeFallback, PART_STATIC_CLASS_PREFIX, proto, type NativeFallbackRoot } from "$/ui/core"
+import { Converters, NativeFallback, proto, type NativeFallbackRoot, UIT } from "$/ui/core"
 
 import { stepsVocabulary } from "./ui-steps.vocabulary.en"
 import { stepVocabulary } from "./ui-step.vocabulary.en"
@@ -45,7 +45,7 @@ export class StepFallback extends NativeFallback {
     const header = this.attr("header")
     const description = this.attr("description")
     if (header || description) {
-      const owner = `${PART_STATIC_CLASS_PREFIX}${stepVocabulary.noun}`
+      const owner = `${UIT.PART_STATIC_CLASS_PREFIX}${stepVocabulary.noun}`
       const content = this.create("div", { class: `content ${owner}`, part: "content" })
       if (header) content.append(this.create("div", { class: `title ${owner}`, part: "title" }, header))
       if (description) {

@@ -12,7 +12,7 @@
  *   merges with the Fomantic `rules` property's.
  */
 
-import { FORM_STATES } from "$/ui/core"
+import { UIT } from "$/ui/core"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
@@ -22,6 +22,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const textareaVocabulary = {
   tag: "ui-textarea",
+  topics: ["forms", "inputs", "text", "elements"],
+  aka: ["multiline", "text area", "memo", "comment box"],
   noun: "input",
   description: "A textarea is a multi-line field used to elicit a longer response.",
   attributes: [
@@ -29,7 +31,7 @@ export const textareaVocabulary = {
     {
       name: "state",
       kind: "valueOnly",
-      values: FORM_STATES,
+      values: UIT.FORM_STATES,
       description: "Form state, tinting the box, text and placeholder."
     },
     { name: "transparent", kind: "keyOnly", description: "No box:  text only." },

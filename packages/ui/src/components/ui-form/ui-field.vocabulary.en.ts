@@ -9,7 +9,7 @@
  * - Validation lives on `<ui-form>`:  `rules` is a PROPERTY (`json`) in Fomantic's `fields` shape.
  */
 
-import { FORM_STATES } from "$/ui/core"
+import { UIT } from "$/ui/core"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 import { STATE_STATES } from "./ui-form.types"
 
@@ -20,6 +20,8 @@ import { STATE_STATES } from "./ui-form.types"
  ****************/
 export const fieldVocabulary = {
   tag: "ui-field",
+  topics: ["forms", "inputs", "collections"],
+  aka: ["form field", "form group", "form control", "label and input"],
   noun: "field",
   ui: false,
   description: "A field is a form element containing a label and an input.",
@@ -27,7 +29,7 @@ export const fieldVocabulary = {
     {
       name: "state",
       kind: "valueOnly",
-      values: FORM_STATES,
+      values: UIT.FORM_STATES,
       description: "Field state:  tints its label and controls.  Failed validation shows `error` on top."
     },
     { name: "inline", kind: "keyOnly", description: "Label beside the control, not above it." },

@@ -18,6 +18,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const metaVocabulary = {
   tag: "ui-meta",
+  topics: ["content parts", "text"],
+  aka: ["metadata", "subtitle", "byline", "caption"],
   noun: "meta",
   ui: false,
   description: "Metadata about the content, e.g. a date or a category;  a comment's `metadata`.",

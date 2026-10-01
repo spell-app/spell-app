@@ -5,7 +5,7 @@
  */
 
 import type { Temporal } from "temporal-polyfill"
-import type { CalendarMode, CalendarType } from "$/ui/core"
+import type { UIT } from "$/ui/core"
 import type { CalendarDates } from "./CalendarDates"
 import type { CalendarText } from "./CalendarText"
 import type { calendarVocabulary } from "./ui-calendar.vocabulary.en"
@@ -30,7 +30,7 @@ export type ModeOptions = {
 }
 
 /** Views per type, before the `disable-*` attributes. */
-export const MODES: Readonly<Record<CalendarType, readonly CalendarMode[]>> = {
+export const MODES: Readonly<Record<UIT.CalendarType, readonly UIT.CalendarMode[]>> = {
   date: ["year", "month", "day"],
   datetime: ["year", "month", "day", "hour", "minute"],
   time: ["hour", "minute"],
@@ -45,7 +45,7 @@ export const YEAR = /^\d{1,6}$/
 export type DatePart = "year" | "month" | "day"
 
 /** The field's text per type (Fomantic's `MMMM D, YYYY h:mm A` family, in the locale's words). */
-export const VALUE_FORMATS: Readonly<Record<CalendarType, Intl.DateTimeFormatOptions>> = {
+export const VALUE_FORMATS: Readonly<Record<UIT.CalendarType, Intl.DateTimeFormatOptions>> = {
   date: { dateStyle: "long" },
   datetime: { dateStyle: "long", timeStyle: "short" },
   time: { timeStyle: "short" },
@@ -54,7 +54,7 @@ export const VALUE_FORMATS: Readonly<Record<CalendarType, Intl.DateTimeFormatOpt
 }
 
 /** Cell texts per view. */
-export const CELL_FORMATS: Readonly<Record<CalendarMode, Intl.DateTimeFormatOptions>> = {
+export const CELL_FORMATS: Readonly<Record<UIT.CalendarMode, Intl.DateTimeFormatOptions>> = {
   year: { year: "numeric" },
   month: { month: "short" },
   day: { day: "numeric" },
@@ -63,7 +63,7 @@ export const CELL_FORMATS: Readonly<Record<CalendarMode, Intl.DateTimeFormatOpti
 }
 
 /** Cell names per view. */
-export const LABEL_FORMATS: Readonly<Record<CalendarMode, Intl.DateTimeFormatOptions>> = {
+export const LABEL_FORMATS: Readonly<Record<UIT.CalendarMode, Intl.DateTimeFormatOptions>> = {
   year: { year: "numeric" },
   month: { year: "numeric", month: "long" },
   day: { dateStyle: "full" },
@@ -72,7 +72,7 @@ export const LABEL_FORMATS: Readonly<Record<CalendarMode, Intl.DateTimeFormatOpt
 }
 
 /** Page titles per view (the year view's is a range, built by the view). */
-export const TITLE_FORMATS: Readonly<Record<CalendarMode, Intl.DateTimeFormatOptions>> = {
+export const TITLE_FORMATS: Readonly<Record<UIT.CalendarMode, Intl.DateTimeFormatOptions>> = {
   year: { year: "numeric" },
   month: { year: "numeric" },
   day: { year: "numeric", month: "long" },
@@ -100,9 +100,9 @@ export type ViewInput = {
   /** words */
   text: CalendarText
   /** the view to build */
-  mode: CalendarMode
+  mode: UIT.CalendarMode
   /** every view the type walks through, coarse to fine */
-  modes: readonly CalendarMode[]
+  modes: readonly UIT.CalendarMode[]
   /** the focused moment:  picks the page */
   focus: Moment
   /** the chosen moment */
@@ -127,7 +127,7 @@ export type ViewInput = {
 
 /** One page, see `CalendarView`. */
 export type CalendarPage = {
-  mode: CalendarMode
+  mode: UIT.CalendarMode
   /** cells per row */
   columns: number
   rows: CalendarCell[][]
@@ -140,7 +140,7 @@ export type CalendarPage = {
   /** where the next-page button goes, and whether it can */
   next: { target: Moment; disabled: boolean }
   /** the view the title button leads to, if any */
-  up: CalendarMode | undefined
+  up: UIT.CalendarMode | undefined
 }
 
 /** One cell of a page. */
@@ -173,10 +173,10 @@ export type CalendarWeekday = {
 }
 
 /** Cells per row, per view. */
-export const COLUMNS: Readonly<Record<CalendarMode, number>> = { year: 3, month: 3, day: 7, hour: 4, minute: 3 }
+export const COLUMNS: Readonly<Record<UIT.CalendarMode, number>> = { year: 3, month: 3, day: 7, hour: 4, minute: 3 }
 
 /** A page's unit and size, per view:  what previous / next and PageUp / PageDown move by. */
-export const PAGES: Readonly<Record<CalendarMode, readonly [CalendarMode, number]>> = {
+export const PAGES: Readonly<Record<UIT.CalendarMode, readonly [UIT.CalendarMode, number]>> = {
   year: ["year", 10],
   month: ["year", 1],
   day: ["month", 1],
@@ -185,7 +185,7 @@ export const PAGES: Readonly<Record<CalendarMode, readonly [CalendarMode, number
 }
 
 /** Shift + PageUp / PageDown, per view. */
-export const BIG_PAGES: Readonly<Record<CalendarMode, readonly [CalendarMode, number]>> = {
+export const BIG_PAGES: Readonly<Record<UIT.CalendarMode, readonly [UIT.CalendarMode, number]>> = {
   year: ["year", 100],
   month: ["year", 10],
   day: ["year", 1],
@@ -197,7 +197,7 @@ export const BIG_PAGES: Readonly<Record<CalendarMode, readonly [CalendarMode, nu
 export type Vocabulary = typeof calendarVocabulary
 
 /** Fomantic's default type. */
-export const DEFAULT_TYPE: CalendarType = "datetime"
+export const DEFAULT_TYPE: UIT.CalendarType = "datetime"
 
 /** Fomantic's default popup position. */
 export const DEFAULT_POSITION = "bottom left"
@@ -257,7 +257,7 @@ export const FLUID = "fluid"
 export type CalendarHost = HTMLElement & { value?: string | null }
 
 /** Native input type holding each calendar type's ISO value. */
-export const NATIVE_TYPES: Readonly<Record<CalendarType, string>> = {
+export const NATIVE_TYPES: Readonly<Record<UIT.CalendarType, string>> = {
   date: "date",
   time: "time",
   datetime: "datetime-local",

@@ -11,8 +11,8 @@ import {
   UIElement,
   type AttributeName,
   type RovingTabindex,
-  type TabChangeDetail,
-  type UIHost
+  type UIHost,
+  UIT
 } from "$/ui/core"
 
 import { tabsVocabulary } from "./ui-tabs.vocabulary.en"
@@ -273,7 +273,7 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
     if (!(tab instanceof UITab) || untrack(() => tab.attrs.disabled)) return false
     const value = this.valueOf(pane)
     if (value === untrack(this.selectedValue)) return false
-    const detail: TabChangeDetail = { value, tab: pane, originalEvent }
+    const detail: UIT.TabChangeDetail = { value, tab: pane, originalEvent }
     const applied = this.valueState.request(value, () => this.emit("ui-change", detail))
     if (applied && untrack(() => this.attrs.history)) UITabs.pushHash(value)
     return applied

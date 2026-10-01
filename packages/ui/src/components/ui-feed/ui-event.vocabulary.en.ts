@@ -13,6 +13,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const eventVocabulary = {
   tag: "ui-event",
+  topics: ["social", "content parts", "views"],
+  aka: ["activity", "feed item", "timeline entry"],
   noun: "event",
   ui: false,
   description: "One event of a feed:  a label (a picture, an icon, a number) beside what happened.",

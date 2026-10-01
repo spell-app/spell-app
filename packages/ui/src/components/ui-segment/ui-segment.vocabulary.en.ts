@@ -15,6 +15,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
  ****************/
 export const segmentVocabulary = {
   tag: "ui-segment",
+  topics: ["containers", "layout", "basic", "elements"],
+  aka: ["panel", "box", "section", "well", "paper", "card"],
   noun: "segment",
   plural: "segments",
   description: "A segment is used to create a grouping of related content.",

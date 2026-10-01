@@ -1,7 +1,7 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement, TRUE } from "$/ui/core"
+import { proto, UIElement, UIT } from "$/ui/core"
 
 import { imageVocabulary } from "./ui-image.vocabulary.en"
 import { ImageFallback } from "./ui-image.fallback"
@@ -40,7 +40,7 @@ export class UIImage extends UIElement<typeof imageVocabulary> {
           class={this.classes()}
           part={this.part("image")}
           href={this.attrs.disabled ? undefined : this.attrs.href}
-          aria-disabled={this.attrs.disabled ? TRUE : undefined}
+          aria-disabled={this.attrs.disabled ? UIT.TRUE : undefined}
         >
           {this.image(undefined, "img")}
         </a>

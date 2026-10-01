@@ -1,4 +1,4 @@
-import { DISABLED, NativeFallback, proto, TRUE, type NativeFallbackRoot } from "$/ui/core"
+import { NativeFallback, proto, type NativeFallbackRoot, UIT } from "$/ui/core"
 
 import { commentVocabulary } from "./ui-comment.vocabulary.en"
 import { commentsVocabulary } from "./ui-comments.vocabulary.en"
@@ -26,11 +26,11 @@ export class CommentFallback extends NativeFallback<Vocabulary> {
   }
 
   protected override build() {
-    const disabled = this.flag("disabled") ? TRUE : null
+    const disabled = this.flag("disabled") ? UIT.TRUE : null
     const thread =
       this.vocabulary === commentsVocabulary && this.host.parentElement?.localName === commentVocabulary.tag
     const classes = thread
-      ? [this.flag("collapsed") ? COLLAPSED : "", disabled ? DISABLED : "", commentsVocabulary.noun]
+      ? [this.flag("collapsed") ? COLLAPSED : "", disabled ? UIT.DISABLED : "", commentsVocabulary.noun]
           .filter(Boolean)
           .join(" ")
       : this.classes()

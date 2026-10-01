@@ -23,6 +23,15 @@ class UIThing extends HTMLElement {
 - The barrel exports service classes as **types only**. Exporting them as values would undo the code split. Reach services through the instance, e.g. `UI.keyboard.chord("Mod+K")` or `UI.focus.roving(...)`. Tests import leaf files directly.
 - `UI.ready` currently resolves as soon as the runtime is constructed. The foundation sheets (`$/ui/styles`) and `Vocabulary` (`$/ui/vocabulary`) register into the runtime once it has loaded; the orchestrator wires them in.
 
+## Introspection
+
+- Every element class carries its whole vocabulary, live:  `UIButton.describe()` (~== `UIButton.prototype.vocabulary`)
+  -- tag, attributes (kinds, allowed values, defaults), events, slots, parts, states, texts, descriptions, `topics`,
+  `aka`.  The same object the element reads, so it can't drift.
+- Every tag at once:  `ComponentDefinitions` (`src/components/component-definitions.ts`):  `{ tag, folder, name,
+  topics, aka, description }` per tag, from the vocabulary modules (no element is defined by reading it);  `byTag()`,
+  `byTopic()`, `byFolder()`.  Not in `core`.
+
 ## Services
 
 | Field | Class | What it does |

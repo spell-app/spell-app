@@ -1,4 +1,4 @@
-import { NativeFallback, PART_STATIC_CLASS_PREFIX, proto } from "$/ui/core"
+import { NativeFallback, proto, UIT } from "$/ui/core"
 
 import { statisticVocabulary } from "./ui-statistic.vocabulary.en"
 
@@ -13,7 +13,7 @@ export class StatisticFallback extends NativeFallback<typeof statisticVocabulary
   @proto static degraded = ["spacing after another statistic (`:state(statistic)`)"]
 
   protected override build() {
-    const owner = `${PART_STATIC_CLASS_PREFIX}${this.vocabulary.noun}`
+    const owner = `${UIT.PART_STATIC_CLASS_PREFIX}${this.vocabulary.noun}`
     const value = this.attr("value")
     const label = this.attr("label")
     const statistic = this.create("div", { class: this.classes() })
