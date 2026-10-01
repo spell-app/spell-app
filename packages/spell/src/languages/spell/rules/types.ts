@@ -2,7 +2,7 @@
  * Rules for type names -- e.g. `thing`, `bank-account`, singular or plural, possibly unknown, resolved
  * against `scope.types` when known.
  */
-import { NONE, proto, typeCase, instanceCase, singularize, pluralize } from "~/util"
+import { NONE, proto, typeCase, instanceCase, singularize, pluralize } from "#spell-util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"

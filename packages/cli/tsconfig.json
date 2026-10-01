@@ -2,5 +2,5 @@
   // We compile the parser's SOURCE, from `../spell` -- so we take its compiler options, whatever they become.
   "extends": "../spell/tsconfig.json",
   // the parser's `.d.ts` files declare globals its source needs, e.g. `Prettify`, `__PACKAGE_VERSION__`
-  "include": ["src", "../spell/src/**/*.d.ts"]
+  "include": ["src", "../../types"]
 }

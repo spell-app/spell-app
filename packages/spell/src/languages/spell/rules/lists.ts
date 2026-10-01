@@ -5,7 +5,7 @@
  * TODO: sort
  */
 
-import { proto, singularize } from "~/util"
+import { proto, singularize } from "#spell-util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"

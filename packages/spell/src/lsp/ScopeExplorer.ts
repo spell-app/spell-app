@@ -1,4 +1,4 @@
-import { singularize, typeCase } from "~/util"
+import { singularize, typeCase } from "#spell-util"
 import { SPELL_CLASSES } from "~/spellCore/spellCore.types"
 import { P } from "~/parser"
 import { SP } from "~/languages/spell"

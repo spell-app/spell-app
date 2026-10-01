@@ -1,6 +1,6 @@
 import cloneDeep from "lodash/cloneDeep"
 
-import { createStore, getPath, setPath } from "~/util"
+import { createStore, getPath, setPath } from "#spell-util"
 
 /**
  * Create a react-easy-state `store` for use in a form with form `value`.
@@ -52,9 +52,9 @@ export type FormStore<V extends object> = {
   value: V
   /** `cloneDeep(value)` -- un-proxied, so reading it does not subscribe to reactive updates. */
   readonly raw: V
-  /** Reactively get a value by nested `path` (e.g. `"a.b[0].c"`), via `getPath()` in `~/util`. */
+  /** Reactively get a value by nested `path` (e.g. `"a.b[0].c"`), via `getPath()` in `#spell-util`. */
   getValue(path: string): unknown
-  /** Reactively set a value by nested `path`, via `setPath()` in `~/util`. */
+  /** Reactively set a value by nested `path`, via `setPath()` in `#spell-util`. */
   setValue(path: string, value: unknown): void
   /** Per-path validation errors, keyed by the same flat `path` strings as `getValue()`/`setValue()`. */
   errors: Record<string, string | undefined>

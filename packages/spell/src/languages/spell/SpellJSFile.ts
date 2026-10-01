@@ -1,4 +1,4 @@
-import { TextFile } from "~/util"
+import { TextFile } from "#spell-util"
 import { SP } from "~/languages/spell"
 
 /**

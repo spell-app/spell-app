@@ -1,4 +1,4 @@
-import { typeCase, snakeCase } from "~/util"
+import { typeCase, snakeCase } from "#spell-util"
 import { P } from "~/parser"
 
 import { BlockScope } from "./BlockScope"

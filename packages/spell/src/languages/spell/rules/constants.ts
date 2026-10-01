@@ -2,7 +2,7 @@
  * Rules for constants -- e.g. `red`, `green`, either free-standing (possibly-unknown, quoted as a string
  * literal) or resolved against `scope.constants` (`known_constant`).
  */
-import { NONE, proto } from "~/util"
+import { NONE, proto } from "#spell-util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"

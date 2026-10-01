@@ -9,7 +9,7 @@ import { SP } from "~/languages/spell"
 import { LSP } from "~/lsp"
 import { SpellDiskWorkspace } from "~/lsp/SpellDiskWorkspace"
 import { installDiskFetch, locationForDiskPath } from "~/server/disk-fetch"
-import { scopesFromPacks } from "~/app/runner"
+import { scopesFromPacks } from "~/app/runner/ScopesSource"
 import { compiledFixture, fixturePath } from "~/test"
 
 /** The scope tree of a temp copy of the Solitaire example, as a scope explorer sees it. */

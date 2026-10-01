@@ -1,6 +1,6 @@
 import * as SUI from "semantic-ui-react"
 
-import { view } from "~/util"
+import { view } from "#spell-util"
 
 import { editor, runtimeConsole } from "~/app/editor"
 import type { UI } from "~/app/ui"

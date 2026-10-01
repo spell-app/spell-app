@@ -1,7 +1,7 @@
 import JSON5 from "json5"
 import semver from "semver"
 
-import { singularize, typeCase } from "~/util"
+import { singularize, typeCase } from "#spell-util"
 import { P } from "~/parser"
 import { SP } from "~/languages/spell"
 

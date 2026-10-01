@@ -229,7 +229,7 @@ export const BODY_KEYWORDS: Record<string, Omit<StatementBodySpec, "syntaxRule">
 
 /**
  * Semver of the spell LANGUAGE and its compiler -- stamped on every project's declarations as `spellVersion`.
- * - Set by hand, NOT from `package.json`:  the app's version (`PACKAGE_VERSION` in `~/util`) changes for
+ * - Set by hand, NOT from `package.json`:  the app's version (`PACKAGE_VERSION` in `#spell-util`) changes for
  *   reasons that don't touch what compiled projects can read.
  * - Bump the MAJOR when declarations' shape, or generated-name mangling (e.g. `frobnicate_$thing`), changes:
  *   declarations from another major are refused.

@@ -1,4 +1,4 @@
-import { JSON5File, $fetch, CONFIRM, TaskList, Task, getDier, raw, type KnownFormatMimeType } from "~/util"
+import { JSON5File, $fetch, CONFIRM, TaskList, Task, getDier, raw, type KnownFormatMimeType } from "#spell-util"
 import { P } from "~/parser"
 // Import directly, NOT through the `~/spellCore` barrel:  a project MUST NOT load `spellCore` itself -- each
 // runner runs its own copy.  See `spellRuntime.ts`.

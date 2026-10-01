@@ -2,7 +2,7 @@
  * Rules for firing and watching global events on the `spellCore.RUNTIME` singleton -- `trigger`/`fire`/`send`
  * and `on`.
  */
-import { proto } from "~/util"
+import { proto } from "#spell-util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"

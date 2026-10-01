@@ -9,7 +9,7 @@
 
 import * as SUI from "semantic-ui-react"
 
-import { view } from "~/util"
+import { view } from "#spell-util"
 
 import { Actions } from "./Actions"
 

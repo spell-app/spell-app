@@ -2,7 +2,7 @@ import { defineConfig } from "vitest/config"
 
 // The parser's SOURCE runs in our tests, so it needs the parser's own vite plugins
 import { standardDecorators } from "../../vite.decorators.ts"
-import { packageVersion } from "../spell/vite.packageVersion.ts"
+import { packageVersion } from "../../vite.packageVersion.ts"
 
 export default defineConfig({
   plugins: [standardDecorators(), packageVersion()],

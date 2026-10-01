@@ -1,4 +1,4 @@
-import { snakeCase } from "~/util"
+import { snakeCase } from "#spell-util"
 import { P } from "~/parser"
 import { Scope } from "./Scope"
 

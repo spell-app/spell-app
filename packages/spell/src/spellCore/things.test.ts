@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeEach } from "vitest"
 import { autoEffect, clearEffect } from "@risingstack/react-easy-state"
 
-import { raw } from "~/util"
+import { raw } from "#spell-util"
 import { spellCore, Thing, List, App } from "~/spellCore"
 
 /**

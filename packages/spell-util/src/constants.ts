@@ -14,7 +14,7 @@ export const NONE = "NONE"
  * Our `package.json` version, e.g. `"0.8.0"` -- the app's, for showing in the editor.
  * - NOT the spell language's:  that's `SP.SPELL_VERSION`, which changes on its own schedule.
  * - Handed over by vite -- see `vite.packageVersion.ts`.  `"unknown"` where nothing defines it, e.g. a script
- *   `tsx` runs without importing `src/packageVersion.node.ts`:  EVERYTHING loads `~/util`, so it mustn't throw.
+ *   `tsx` runs without importing `src/packageVersion.node.ts`:  EVERYTHING loads `#spell-util`, so it mustn't throw.
  */
 export const PACKAGE_VERSION: string = typeof __PACKAGE_VERSION__ === "string" ? __PACKAGE_VERSION__ : "unknown"
 

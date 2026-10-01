@@ -1,6 +1,6 @@
 import { isNode } from "browser-or-node"
 
-import { instanceCase, typeCase, proto } from "~/util"
+import { instanceCase, typeCase, proto } from "#spell-util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"

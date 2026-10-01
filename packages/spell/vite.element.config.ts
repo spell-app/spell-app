@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react"
 
 import environment from "./src/environment.ts"
 import { standardDecorators } from "../../vite.decorators.ts"
-import { packageVersion } from "./vite.packageVersion.ts"
+import { packageVersion } from "../../vite.packageVersion.ts"
 
 /**
  * Build the `<spell-app>` web component:  `yarn build:element` => `dist-element/`.

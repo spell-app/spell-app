@@ -2,7 +2,7 @@ import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
 
 import { standardDecorators } from "../../vite.decorators.ts"
-import { packageVersion } from "./vite.packageVersion.ts"
+import { packageVersion } from "../../vite.packageVersion.ts"
 
 /**
  * Build the `<spell-editor>` web component into `dist-element/`, beside `<spell-app>` -- `yarn build:element` builds

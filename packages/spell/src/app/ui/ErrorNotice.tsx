@@ -1,7 +1,7 @@
 import React from "react"
 import * as SUI from "semantic-ui-react"
 
-import { view, CustomError } from "~/util"
+import { view, CustomError } from "#spell-util"
 import { editor } from "~/app/editor"
 
 /****************
@@ -26,7 +26,7 @@ export function ErrorDisplay(allProps: ErrorDisplayProps) {
 
   if (!error) return null
 
-  // `CustomError` keeps its extra info in `props` (see `~/util/CustomError`); plain `Error`s won't have any.
+  // `CustomError` keeps its extra info in `props` (see `#spell-util/CustomError`); plain `Error`s won't have any.
   const customProps = error instanceof CustomError ? error.props : undefined
   const header = (error instanceof CustomError && error.header) || error.constructor.name || "Error"
   const params = customProps?.params && Object.keys(customProps.params).length > 0 ? customProps.params : undefined

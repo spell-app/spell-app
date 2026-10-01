@@ -4,7 +4,7 @@
 import React from "react"
 import _ from "lodash"
 
-import { Observable, view } from "~/util"
+import { Observable, view } from "#spell-util"
 import { spellCore } from "~/spellCore/core"
 import type { PropCheck } from "~/spellCore/spellCore.types"
 

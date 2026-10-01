@@ -1,4 +1,4 @@
-import { Observable } from "~/util/Observable"
+import { Observable } from "#spell-util/Observable"
 import { spellCore } from "./core"
 import { defineSpellCoreModule } from "./spellCore.types"
 

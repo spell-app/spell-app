@@ -1,4 +1,4 @@
-import { view } from "~/util"
+import { view } from "#spell-util"
 import { P } from "~/parser"
 import { SP } from "~/languages/spell"
 

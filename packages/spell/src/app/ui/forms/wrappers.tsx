@@ -11,7 +11,7 @@ import React from "react"
 import { findDOMNode } from "react-dom"
 import { view } from "@risingstack/react-easy-state"
 
-import { UIError } from "~/util"
+import { UIError } from "#spell-util"
 
 import type { Form } from "./Form"
 

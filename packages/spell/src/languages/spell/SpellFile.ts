@@ -1,4 +1,4 @@
-import { TextFile, batch, raw } from "~/util"
+import { TextFile, batch, raw } from "#spell-util"
 import { P } from "~/parser"
 import { SP } from "~/languages/spell"
 

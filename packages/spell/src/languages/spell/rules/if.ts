@@ -1,6 +1,6 @@
 /** Rules for `if`/`else if`/`else` statements, plus the backwards `if...else` ternary suffix. */
 
-import { proto } from "~/util"
+import { proto } from "#spell-util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"

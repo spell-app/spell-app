@@ -1,7 +1,7 @@
 import React from "react"
 import classnames from "classnames"
 
-import { getPadding, getPref, setPref, resetPref } from "~/util"
+import { getPadding, getPref, setPref, resetPref } from "#spell-util"
 
 import "./SplitPanel.css"
 

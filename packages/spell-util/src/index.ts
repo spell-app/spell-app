@@ -1,9 +1,9 @@
 /**
- * Barrel for `~/util` -- general-purpose utilities with no dependency on rest of app.
+ * Barrel for `#spell-util` -- general-purpose utilities with no dependency on rest of app.
  * - Grouped below by rough concern: constants, app plumbing, language helpers, fetch/observable, DOM, tasks.
  *   (`#util` first.)
  * - Re-exports `#util` (`packages/util`, shared with `ui`:  `@proto`, class helpers, name-case strings,
- *   shadow-aware DOM), so the many `from "~/util"` imports still find them.
+ *   shadow-aware DOM), so the many `from "#spell-util"` imports still find them.
  * - `string.ts` (lodash / `pluralize` / whitespace) and `DOM.ts` (scroll / computed style) stay here:  only
  *   `spell` uses them, and anything in `#util` lands in `ui`'s `core` bundle.
  * - NOTE: `ResponseErrors.ts` is deliberately NOT re-exported here -- its error classes (`ResponseError`,

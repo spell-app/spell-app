@@ -1,4 +1,4 @@
-import { view } from "~/util"
+import { view } from "#spell-util"
 
 import { UI } from "~/app/ui"
 

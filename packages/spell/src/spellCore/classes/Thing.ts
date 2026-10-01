@@ -3,7 +3,7 @@
  */
 import React from "react"
 
-import { Observable, view } from "~/util"
+import { Observable, view } from "#spell-util"
 import { spellCore } from "~/spellCore/core"
 import { Eventful } from "~/spellCore/SpellEvent"
 import type { PropCheck } from "~/spellCore/spellCore.types"

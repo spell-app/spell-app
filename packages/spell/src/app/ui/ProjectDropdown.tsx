@@ -2,7 +2,7 @@ import React from "react"
 import classnames from "classnames"
 import * as SUI from "semantic-ui-react"
 
-import { view } from "~/util"
+import { view } from "#spell-util"
 
 import { SP } from "~/languages/spell"
 import { editor } from "~/app/editor"

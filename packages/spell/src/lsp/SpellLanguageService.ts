@@ -32,7 +32,7 @@ import {
   type WorkspaceSymbol
 } from "vscode-languageserver"
 
-import { typeCase } from "~/util"
+import { typeCase } from "#spell-util"
 import { P } from "~/parser"
 import { SP } from "~/languages/spell"
 import type { LSP } from "~/lsp"

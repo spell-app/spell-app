@@ -11,7 +11,7 @@ import { describe, test, expect } from "vitest"
 import groupBy from "lodash/groupBy"
 import isEqual from "lodash/isEqual"
 
-import { showWhitespace } from "~/util"
+import { showWhitespace } from "#spell-util"
 
 import { P } from "~/parser"
 

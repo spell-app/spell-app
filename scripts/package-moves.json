@@ -16,16 +16,42 @@
       "dir": "packages/spell-util",
       "alias": "#spell-util",
       "moves": [
-        ["packages/spell/src/util", "packages/spell-util/src"],
-        ["packages/spell/src/app.d.ts", "types/app.d.ts"],
-        ["packages/spell/src/types/global.d.ts", "types/global.d.ts"],
-        ["packages/spell/vite.packageVersion.ts", "vite.packageVersion.ts"]
+        [
+          "packages/spell/src/util",
+          "packages/spell-util/src"
+        ],
+        [
+          "packages/spell/src/app.d.ts",
+          "types/app.d.ts"
+        ],
+        [
+          "packages/spell/src/types/global.d.ts",
+          "types/global.d.ts"
+        ],
+        [
+          "packages/spell/vite.packageVersion.ts",
+          "vite.packageVersion.ts"
+        ],
+        [
+          "packages/spell/src/vite-env.d.ts",
+          "types/vite-env.d.ts"
+        ]
       ],
-      "aliases": [{ "from": "~/util", "to": "#spell-util" }],
+      "aliases": [
+        {
+          "from": "~/util",
+          "to": "#spell-util"
+        }
+      ],
       "tsconfigInclude": {
         "add": "../../types",
-        "packages": ["spell", "cli"],
-        "remove": ["../spell/src/**/*.d.ts"]
+        "packages": [
+          "spell",
+          "cli"
+        ],
+        "remove": [
+          "../spell/src/**/*.d.ts"
+        ]
       }
     },
     {
@@ -34,51 +60,159 @@
       "dir": "packages/parser",
       "alias": "#parser",
       "moves": [
-        ["packages/spell/src/parser/Expectations.test.ts", "packages/spell/src/parserTests/Expectations.test.ts"],
-        ["packages/spell/src/parser/ParseJournal.test.ts", "packages/spell/src/parserTests/ParseJournal.test.ts"],
-        ["packages/spell/src/parser/IncrementalProject.test.ts", "packages/spell/src/parserTests/IncrementalProject.test.ts"],
-        ["packages/spell/src/parser", "packages/parser/src"],
-        ["packages/spell/src/languages/rulex", "packages/parser/src/rulex"],
-        ["packages/spell/src/test/unitTestModuleRules.ts", "packages/parser/src/test/unitTestModuleRules.ts"]
+        [
+          "packages/spell/src/parser/Expectations.test.ts",
+          "packages/spell/src/parserTests/Expectations.test.ts"
+        ],
+        [
+          "packages/spell/src/parser/ParseJournal.test.ts",
+          "packages/spell/src/parserTests/ParseJournal.test.ts"
+        ],
+        [
+          "packages/spell/src/parser/IncrementalProject.test.ts",
+          "packages/spell/src/parserTests/IncrementalProject.test.ts"
+        ],
+        [
+          "packages/spell/src/parser",
+          "packages/parser/src"
+        ],
+        [
+          "packages/spell/src/languages/rulex",
+          "packages/parser/src/rulex"
+        ],
+        [
+          "packages/spell/src/test/unitTestModuleRules.ts",
+          "packages/parser/src/test/unitTestModuleRules.ts"
+        ]
       ],
       "newFiles": {
         "packages/parser/src/test/index.ts": "//\n//  ## Barrel for shared test helpers that only need the generic parser.\n//  Imported by `*.test.ts` files only -- nothing in `src/` proper should depend on this.\n//  NOTE: `@spell/spell`'s `src/test/index.ts` re-exports this, so `import { unitTestModuleRules } from \"#spell/test\"` works too.\n//\n\nexport { unitTestModuleRules } from \"./unitTestModuleRules\"\n"
       },
       "aliases": [
-        { "from": "~/languages/rulex", "to": "#parser/rulex" },
-        { "from": "~/test/unitTestModuleRules", "to": "#parser/test" },
-        { "from": "~/test", "to": "#parser/test", "onlyInFilesUnder": "packages/parser/" },
-        { "from": "~/parser", "to": "#parser" }
+        {
+          "from": "~/languages/rulex",
+          "to": "#parser/rulex"
+        },
+        {
+          "from": "~/test/unitTestModuleRules",
+          "to": "#parser/test"
+        },
+        {
+          "from": "~/test",
+          "to": "#parser/test",
+          "onlyInFilesUnder": "packages/parser/"
+        },
+        {
+          "from": "~/parser",
+          "to": "#parser"
+        }
       ],
-      "barrelAliases": { "packages/parser/src/test/unitTestModuleRules.ts": "#parser/test" }
+      "barrelAliases": {
+        "packages/parser/src/test/unitTestModuleRules.ts": "#parser/test"
+      }
     },
     {
       "name": "spell-core",
       "package": "@spell/spell-core",
       "dir": "packages/spell-core",
       "alias": "#spell-core",
-      "moves": [["packages/spell/src/spellCore", "packages/spell-core/src"]],
-      "aliases": [{ "from": "~/spellCore", "to": "#spell-core" }]
+      "moves": [
+        [
+          "packages/spell/src/spellCore",
+          "packages/spell-core/src"
+        ]
+      ],
+      "aliases": [
+        {
+          "from": "~/spellCore",
+          "to": "#spell-core"
+        }
+      ]
     },
     {
       "name": "spell",
       "package": "@spell/spell",
       "dir": "packages/spell",
       "alias": "#spell",
-      "renamePackage": { "from": "spell-parser", "to": "@spell/spell" },
+      "renamePackage": {
+        "from": "spell-parser",
+        "to": "@spell/spell"
+      },
       "moves": [
-        ["packages/spell/src/languages/spell", "packages/spell/src"],
-        ["packages/spell/src/environment.ts", "packages/spell/src/node/environment.ts"],
-        ["packages/spell/src/packageVersion.node.ts", "packages/spell/src/node/packageVersion.node.ts"],
-        ["packages/spell/src/server/disk-fetch.ts", "packages/spell/src/node/disk-fetch.ts"],
-        ["packages/spell/src/server/disk-fetch.test.ts", "packages/spell/src/node/disk-fetch.test.ts"]
+        [
+          "packages/spell/src/languages/spell",
+          "packages/spell/src"
+        ],
+        [
+          "packages/spell/src/environment.ts",
+          "packages/spell/src/node/environment.ts"
+        ],
+        [
+          "packages/spell/src/packageVersion.node.ts",
+          "packages/spell/src/node/packageVersion.node.ts"
+        ],
+        [
+          "packages/spell/src/server/disk-fetch.ts",
+          "packages/spell/src/node/disk-fetch.ts"
+        ],
+        [
+          "packages/spell/src/server/disk-fetch.test.ts",
+          "packages/spell/src/node/disk-fetch.test.ts"
+        ],
+        [
+          "packages/spell/src/server/file-utils.ts",
+          "packages/spell/src/node/file-utils.ts"
+        ],
+        [
+          "packages/spell/src/server/project-utils.ts",
+          "packages/spell/src/node/project-utils.ts"
+        ],
+        [
+          "packages/spell/src/server/response-utils.ts",
+          "packages/spell/src/node/response-utils.ts"
+        ],
+        [
+          "packages/spell/src/server/server.types.ts",
+          "packages/spell/src/node/server.types.ts"
+        ]
       ],
       "aliases": [
-        { "from": "~/languages/spell", "to": "#spell" },
-        { "from": "~/test", "to": "#spell/test" },
-        { "from": "~/environment", "to": "#spell/node/environment" },
-        { "from": "~/packageVersion.node", "to": "#spell/node/packageVersion.node" },
-        { "from": "~/server/disk-fetch", "to": "#spell/node/disk-fetch" }
+        {
+          "from": "~/languages/spell",
+          "to": "#spell"
+        },
+        {
+          "from": "~/test",
+          "to": "#spell/test"
+        },
+        {
+          "from": "~/environment",
+          "to": "#spell/node/environment"
+        },
+        {
+          "from": "~/packageVersion.node",
+          "to": "#spell/node/packageVersion.node"
+        },
+        {
+          "from": "~/server/disk-fetch",
+          "to": "#spell/node/disk-fetch"
+        },
+        {
+          "from": "~/server/file-utils",
+          "to": "#spell/node/file-utils"
+        },
+        {
+          "from": "~/server/project-utils",
+          "to": "#spell/node/project-utils"
+        },
+        {
+          "from": "~/server/response-utils",
+          "to": "#spell/node/response-utils"
+        },
+        {
+          "from": "~/server/server.types",
+          "to": "#spell/node/server.types"
+        }
       ]
     },
     {
@@ -86,8 +220,26 @@
       "package": "@spell/lsp",
       "dir": "packages/lsp",
       "alias": "#lsp",
-      "moves": [["packages/spell/src/lsp", "packages/lsp/src"]],
-      "aliases": [{ "from": "~/lsp", "to": "#lsp" }]
+      "moves": [
+        [
+          "packages/spell/src/lsp",
+          "packages/lsp/src"
+        ],
+        [
+          "packages/spell/src/app/runner/ScopesSource.ts",
+          "packages/lsp/src/ScopesSource.ts"
+        ]
+      ],
+      "aliases": [
+        {
+          "from": "~/app/runner/ScopesSource",
+          "to": "#lsp/ScopesSource"
+        },
+        {
+          "from": "~/lsp",
+          "to": "#lsp"
+        }
+      ]
     },
     {
       "name": "spell-app",
@@ -95,37 +247,102 @@
       "dir": "packages/spell-app",
       "alias": "#spell-app",
       "entry": "index.tsx",
-      "nodeInclude": ["vite.config.ts", "vite.editor.config.ts", "vite.element.config.ts", "vite.runner.config.ts", "vitest.config.ts"],
+      "nodeInclude": [
+        "vite.config.ts",
+        "vite.editor.config.ts",
+        "vite.element.config.ts",
+        "vite.runner.config.ts",
+        "vitest.config.ts"
+      ],
       "moves": [
-        ["packages/spell/src/app", "packages/spell-app/src"],
-        ["packages/spell/src/server", "packages/spell-app/src/server"],
-        ["packages/spell/index.html", "packages/spell-app/index.html"],
-        ["packages/spell/demo", "packages/spell-app/demo"],
-        ["packages/spell/static", "packages/spell-app/static"],
-        ["packages/spell/vite.config.ts", "packages/spell-app/vite.config.ts"],
-        ["packages/spell/vite.editor.config.ts", "packages/spell-app/vite.editor.config.ts"],
-        ["packages/spell/vite.element.config.ts", "packages/spell-app/vite.element.config.ts"],
-        ["packages/spell/vite.runner.config.ts", "packages/spell-app/vite.runner.config.ts"],
-        ["packages/spell/scripts/stop.mjs", "packages/spell-app/scripts/stop.mjs"],
-        ["packages/spell/src/types/monaco-internals.d.ts", "packages/spell-app/src/types/monaco-internals.d.ts"],
-        ["packages/spell/src/types/express-json5.d.ts", "packages/spell-app/src/types/express-json5.d.ts"],
-        ["packages/spell/src/vite-env.d.ts", "packages/spell-app/src/vite-env.d.ts"]
+        [
+          "packages/spell/src/app",
+          "packages/spell-app/src"
+        ],
+        [
+          "packages/spell/src/server",
+          "packages/spell-app/src/server"
+        ],
+        [
+          "packages/spell/index.html",
+          "packages/spell-app/index.html"
+        ],
+        [
+          "packages/spell/demo",
+          "packages/spell-app/demo"
+        ],
+        [
+          "packages/spell/static",
+          "packages/spell-app/static"
+        ],
+        [
+          "packages/spell/vite.config.ts",
+          "packages/spell-app/vite.config.ts"
+        ],
+        [
+          "packages/spell/vite.editor.config.ts",
+          "packages/spell-app/vite.editor.config.ts"
+        ],
+        [
+          "packages/spell/vite.element.config.ts",
+          "packages/spell-app/vite.element.config.ts"
+        ],
+        [
+          "packages/spell/vite.runner.config.ts",
+          "packages/spell-app/vite.runner.config.ts"
+        ],
+        [
+          "packages/spell/scripts/stop.mjs",
+          "packages/spell-app/scripts/stop.mjs"
+        ],
+        [
+          "packages/spell/src/types/monaco-internals.d.ts",
+          "packages/spell-app/src/types/monaco-internals.d.ts"
+        ],
+        [
+          "packages/spell/src/types/express-json5.d.ts",
+          "packages/spell-app/src/types/express-json5.d.ts"
+        ],
+        [
+          "packages/parser/src/build.test.ts",
+          "packages/spell-app/src/build.test.ts"
+        ]
       ],
       "aliases": [
-        { "from": "~/app", "to": "#spell-app" },
-        { "from": "~/server", "to": "#spell-app/server" }
+        {
+          "from": "~/app",
+          "to": "#spell-app"
+        },
+        {
+          "from": "~/server",
+          "to": "#spell-app/server"
+        }
       ]
     },
     {
       "name": "vscode",
-      "moves": [["packages/spell/vscode-extension", "packages/vscode"]]
+      "moves": [
+        [
+          "packages/spell/vscode-extension",
+          "packages/vscode"
+        ]
+      ]
     },
     {
       "name": "cli",
       "alias": "#cli",
       "moves": [],
-      "aliases": [{ "from": "~/cli", "to": "#cli" }],
-      "removeAliasPaths": ["~/cli", "~/cli/*", "~/*"]
+      "aliases": [
+        {
+          "from": "~/cli",
+          "to": "#cli"
+        }
+      ],
+      "removeAliasPaths": [
+        "~/cli",
+        "~/cli/*",
+        "~/*"
+      ]
     }
   ]
 }

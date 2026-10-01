@@ -2,7 +2,7 @@
 //
 
 import { proto } from "#util"
-import { Derivative } from "~/util/Derivative"
+import { Derivative } from "#spell-util/Derivative"
 import { P } from "~/parser"
 
 /**

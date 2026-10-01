@@ -7,7 +7,7 @@
  *   e.g. `all_piles`, shows too.
  * - And the heading each was made under, as the program ran -- see `heading()`.
  */
-import { createStore, raw } from "~/util"
+import { createStore, raw } from "#spell-util"
 
 import { spellCore } from "./core"
 import { defineSpellCoreModule } from "./spellCore.types"

@@ -1,4 +1,4 @@
-import { CustomError } from "~/util"
+import { CustomError } from "#spell-util"
 import type { P } from "~/parser"
 
 export type { RulexParser } from "~/languages/rulex/RulexParser"

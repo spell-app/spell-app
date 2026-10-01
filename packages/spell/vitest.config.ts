@@ -1,7 +1,7 @@
 import { defineConfig } from "vitest/config"
 
 import { standardDecorators } from "../../vite.decorators.ts"
-import { packageVersion } from "./vite.packageVersion.ts"
+import { packageVersion } from "../../vite.packageVersion.ts"
 
 export default defineConfig({
   plugins: [standardDecorators(), packageVersion()],

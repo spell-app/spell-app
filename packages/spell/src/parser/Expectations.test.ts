@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest"
 
-import { proto } from "~/util"
+import { proto } from "#spell-util"
 import { P, Parser, Tokenizer, WhitespacePolicy } from "~/parser"
 import { SP } from "~/languages/spell"
 import { loadFixtureProject, parseSpellProject } from "~/test"

@@ -1,4 +1,4 @@
-import { JSON5File, CONFIRM, $fetch, getDier, type KnownFormatMimeType } from "~/util"
+import { JSON5File, CONFIRM, $fetch, getDier, type KnownFormatMimeType } from "#spell-util"
 import { SP } from "~/languages/spell"
 
 /**

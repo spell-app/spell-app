@@ -3,7 +3,7 @@
  * plus inline `css` string installation.
  */
 
-import { proto } from "~/util"
+import { proto } from "#spell-util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"

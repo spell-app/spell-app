@@ -3,7 +3,7 @@ import { resolve } from "path"
 import { describe, test, expect } from "vitest"
 
 import environment from "~/environment"
-import { PACKAGE_VERSION } from "~/util"
+import { PACKAGE_VERSION } from "#spell-util"
 
 describe("`PACKAGE_VERSION`", () => {
   test("is our package.json's version -- handed over by vite", () => {

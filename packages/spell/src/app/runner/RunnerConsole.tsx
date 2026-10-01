@@ -1,4 +1,4 @@
-import { view } from "~/util"
+import { view } from "#spell-util"
 import type { SpellConsole } from "~/spellCore/console"
 // Import directly, NOT through the `UI` barrel, which would pull in the whole editor.
 import { ConsoleLines } from "~/app/ui/ConsoleLines"

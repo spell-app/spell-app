@@ -1,5 +1,5 @@
 import { describe, test, expect, expectTypeOf } from "vitest"
-import { proto } from "~/util"
+import { proto } from "#spell-util"
 import { P, Match, Parser } from "~/parser"
 // These tests define rules with rulex `syntax`, so they must opt into the rulex parser.
 import "~/languages/rulex"

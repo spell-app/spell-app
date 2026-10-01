@@ -1,6 +1,6 @@
 import React from "react"
 
-import { view } from "~/util"
+import { view } from "#spell-util"
 import { editor } from "~/app/editor"
 import { LazyMonaco } from "./LazyMonaco"
 

@@ -2,7 +2,7 @@ import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
 
 import { standardDecorators } from "../../vite.decorators.ts"
-import { packageVersion } from "./vite.packageVersion.ts"
+import { packageVersion } from "../../vite.packageVersion.ts"
 
 /**
  * Build the runner bundle for the VS Code extension's "Run Project" webview:  `yarn build:runner`.

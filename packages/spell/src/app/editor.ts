@@ -1,7 +1,7 @@
 import type { ComponentType } from "react"
 import { navigate } from "@reach/router"
 
-import { UIError, createStore, setPrefKey, getPref, setPref, CONFIRM } from "~/util"
+import { UIError, createStore, setPrefKey, getPref, setPref, CONFIRM } from "#spell-util"
 
 import { P } from "~/parser"
 import { SP } from "~/languages/spell"

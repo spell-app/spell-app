@@ -1,4 +1,4 @@
-import { Derivative } from "~/util"
+import { Derivative } from "#spell-util"
 import { P } from "~/parser"
 
 /**

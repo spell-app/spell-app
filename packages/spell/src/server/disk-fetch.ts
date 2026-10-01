@@ -11,9 +11,9 @@
 import { existsSync } from "fs"
 import { basename, dirname, resolve, sep } from "path"
 
-import { LoadableFile, type $FetchParams } from "~/util"
-// Deliberately not in the `~/util` barrel -- see its header.
-import { MissingResourceError } from "~/util/ResponseErrors"
+import { LoadableFile, type $FetchParams } from "#spell-util"
+// Deliberately not in the `#spell-util` barrel -- see its header.
+import { MissingResourceError } from "#spell-util/ResponseErrors"
 import { SP } from "~/languages/spell"
 
 import * as fileUtils from "./file-utils"

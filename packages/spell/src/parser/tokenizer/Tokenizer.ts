@@ -1,4 +1,4 @@
-import { Logger } from "~/util/Logger"
+import { Logger } from "#spell-util/Logger"
 import { P } from "~/parser"
 
 /**

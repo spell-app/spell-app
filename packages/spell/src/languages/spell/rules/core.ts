@@ -2,7 +2,7 @@
  * Core rules -- simple datatypes (`number`, `boolean`, `text`, `undefined`), whitespace/newline/comment
  * tokens, and the `keyword` identifier pattern used by method/type definitions elsewhere.
  */
-import { assert, proto } from "~/util"
+import { assert, proto } from "#spell-util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"

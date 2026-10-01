@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react"
 
 import environment from "./src/environment.ts"
 import { standardDecorators } from "../../vite.decorators.ts"
-import { packageVersion } from "./vite.packageVersion.ts"
+import { packageVersion } from "../../vite.packageVersion.ts"
 
 /** Name of the runtime's entry in a build:  `dist/spell-runtime.js` -- see `editor.loadRuntime()`. */
 const RUNTIME_ENTRY = "spell-runtime"

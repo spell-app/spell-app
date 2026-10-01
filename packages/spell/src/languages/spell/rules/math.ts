@@ -4,7 +4,7 @@
  * - NOTE: this must come after "operators".
  */
 
-import { proto } from "~/util"
+import { proto } from "#spell-util"
 import { P } from "~/parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"

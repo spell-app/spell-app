@@ -1,9 +1,9 @@
 import type { Plugin } from "vite"
 
-import { readPackageVersion } from "./src/packageVersion.node.ts"
+import { readPackageVersion } from "./packages/spell/src/packageVersion.node.ts"
 
 /**
- * Hand code our `package.json` version as `__PACKAGE_VERSION__` -- see `PACKAGE_VERSION` in `~/util`.
+ * Hand code our `package.json` version as `__PACKAGE_VERSION__` -- see `PACKAGE_VERSION` in `#spell-util`.
  * - MUST be used by every vite config:  `vite.config.ts`, `vitest.config.ts`, `vite.runner.config.ts`.
  * - Code `tsx` runs instead, e.g. the server, gets it from `src/packageVersion.node.ts`.
  */

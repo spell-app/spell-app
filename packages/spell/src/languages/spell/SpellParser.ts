@@ -1,4 +1,4 @@
-import { getDerived } from "~/util"
+import { getDerived } from "#spell-util"
 import { P } from "~/parser"
 // Import directly, NOT through the `~/spellCore` barrel:  the parser MUST NOT load `spellCore` itself -- each
 // runner runs its own copy.  See `spellRuntime.ts`.
