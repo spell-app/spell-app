@@ -8,13 +8,13 @@ disable-model-invocation: true
 # /plan-doc
 
 Plan, then build, in worktree `<name>`, keeping `packages/docs/plans/<name>/<name>.html` (the PLAN DOC) current
-the whole time.  The plan doc is the user's view of the work:  they read it in Chrome while you work.
+the whole time.  The plan doc is the user's view of the work:  they read it in a VS Code tab beside the editor while you work.
 
 - Rules for the doc (sections, ids, markers, prose):  `packages/docs/templates/plans/plan-doc.md`.  Read it first.
 - Structured edits go through `yarn plan-doc <command> <name> ...` (cheat sheet below), never by hand.  Hand-edit only
   prose:  the summary, Overview, phase bodies, item details.
 - Reload the plan doc whenever the session moves to a new stage (name -> worktree -> plan -> fill -> each phase ->
-  doc review):  `yarn plan-doc open <name>` reloads its Chrome tab.  `yarn plan-doc phase` does it for you.
+  doc review):  `yarn plan-doc open <name>` reloads its VS Code tab.  `yarn plan-doc phase` does it for you.
 - Style, in replies, the plan and the doc:  caveman lite.  Drop filler and articles where they don't help, fragments
   OK, a full sentence where a fragment would be ambiguous, identifiers exact.  Lists bulleted, or numbered when
   order or reference matters.
@@ -36,8 +36,8 @@ the whole time.  The plan doc is the user's view of the work:  they read it in C
   - no `node_modules/` at the root:  `yarn install`
   - no `packages/docs/scripts/plan-doc.js`:  the worktree's base predates `packages/docs` (it branches from
     `origin/main`).  STOP and tell the user:  merge or push `packages/docs` first, or set `worktree.baseRef: head`.
-- New doc:  `yarn plan-doc new <name> --title "<Title>"`.  Then `yarn plan-doc open <name>`:  Chrome, one tab per
-  doc, reloaded on every later `open`.
+- New doc:  `yarn plan-doc new <name> --title "<Title>"`.  Then `yarn plan-doc open <name>`:  rendered in VS Code's Simple
+  Browser, beside the editor (one tab, reloaded on every later `open`).  Needs the spell extension (`yarn vscode`).
 
 ## 3. Plan
 
@@ -95,11 +95,11 @@ the whole time.  The plan doc is the user's view of the work:  they read it in C
 ```
 new <name> [--title "Title"]                        create from the template, update the docs index
 add-phase <name> "Short Name" [--goal ..] [--files ..] [--verify ..]
-phase <name> <N> todo|active|done [--no-open]       done drops UPDATE markers;  reloads the Chrome tab
+phase <name> <N> todo|active|done [--no-open]       done drops UPDATE markers;  reloads the VS Code tab
 add <name> question|caveat|issue|todo|decision "title" [--details "<p>html</p>"]   prints the id (C3)
 close <name> <id>  /  reopen <name> <id>            strike / unstrike, never delete
 log <name> "text"                                   timestamped line in the doc's log
 summary <name> [--json]                             phases, next phase, open questions/issues/caveats/todos
 check <name> [--no-browser]                         ids, links, phases, then the browser check
-open <name>                                         show in Chrome, reusing its tab
+open <name>                                         show in VS Code, beside the editor, reusing its tab
 ```

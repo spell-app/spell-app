@@ -67,7 +67,20 @@ const ICONS = {
   "solid/bug": ["bug"],
   "solid/list-check": ["list check"],
   "solid/gavel": ["gavel"],
-  "solid/lightbulb": ["lightbulb"]
+  "solid/lightbulb": ["lightbulb"],
+  "solid/map": ["map"],
+  "solid/layer-group": ["layer group"],
+  "solid/clock-rotate-left": ["clock rotate left", "history"],
+  // page meta lists (durable / plan templates)
+  "solid/user": ["user"],
+  "solid/flag": ["flag"],
+  "solid/flask": ["flask"],
+  "solid/code-branch": ["code branch"],
+  "solid/folder": ["folder"],
+  "solid/calendar": ["calendar"],
+  // trade-offs (durable template)
+  "solid/thumbs-up": ["thumbs up"],
+  "solid/thumbs-down": ["thumbs down"]
 }
 
 /** Bare specifiers that MUST resolve from UI's root:  Solid (all subpaths) and the element-layer fork. */

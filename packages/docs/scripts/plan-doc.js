@@ -14,7 +14,7 @@ import { pathToFileURL } from "node:url"
 
 import { parseHTML } from "linkedom"
 
-import { DOCS, openInChrome, serialize, tidy } from "./pages.js"
+import { DOCS, openInVSCode, serialize, tidy } from "./pages.js"
 
 /** The template `new` copies, relative to `DOCS`. */
 const TEMPLATE = "templates/plans/plan.html"
@@ -78,12 +78,16 @@ export class PlanDoc {
   // ## Phases
   ////////////////
 
-  /** Every phase, in order:  `{ n, name, status }`. */
+  /**
+   * Every phase, in order:  `{ n, name, status }`.
+   * - the list is `<ui-steps class="plan-phases">` of `<ui-step header>`s;  docs made before 2026-10-01 have
+   *   `<ul class="plan-phases">` of `<li>`s with a link
+   */
   get phases() {
-    return Array.from(this.document.querySelectorAll(".plan-phases > li[data-phase]"), (li) => ({
-      n: Number(li.getAttribute("data-phase")),
-      name: phaseName(li.querySelector("a")?.textContent ?? ""),
-      status: li.getAttribute("data-status") ?? "todo"
+    return Array.from(this.document.querySelectorAll(".plan-phases > [data-phase]"), (entry) => ({
+      n: Number(entry.getAttribute("data-phase")),
+      name: phaseName(entry.getAttribute("header") ?? entry.querySelector("a")?.textContent ?? ""),
+      status: entry.getAttribute("data-status") ?? "todo"
     }))
   }
 
@@ -101,9 +105,13 @@ export class PlanDoc {
     const section = this.require("#phases-section")
     const n = this.phases.length + 1
     const label = `P${n} · ${name}`
-    const li = this.element("li", { "data-phase": n, "data-status": "todo" })
-    li.innerHTML = `${icon("todo")} <a href="#p${n}">${text(label)}</a>`
-    list.append(li)
+    if (list.localName === "ui-steps") {
+      list.append(this.element("ui-step", { "data-phase": n, "data-status": "todo", href: `#p${n}`, header: label }))
+    } else {
+      const li = this.element("li", { "data-phase": n, "data-status": "todo" })
+      li.innerHTML = `${icon("todo")} <a href="#p${n}">${text(label)}</a>`
+      list.append(li)
+    }
     const body = [
       ["Goal", goal],
       ["Files", files],
@@ -113,6 +121,7 @@ export class PlanDoc {
     phase.innerHTML = `<ui-sticky class="spell-h3"><h3 id="p${n}">${icon("todo")} ${text(label)}</h3></ui-sticky>
 <ul class="plan-phase-body">${body.join("")}</ul>`
     section.append(phase)
+    this.updateProgress()
     return n
   }
 
@@ -123,15 +132,30 @@ export class PlanDoc {
    */
   setPhase(n, status) {
     if (!STATUS[status]) throw new PlanDocError(`status must be ${Object.keys(STATUS).join(" / ")}, not "${status}"`)
-    const li = this.require(`.plan-phases > li[data-phase="${n}"]`)
+    const entry = this.require(`.plan-phases > [data-phase="${n}"]`)
     const section = this.document.querySelector(`#phases-section section[data-phase="${n}"]`)
-    for (const node of [li, section]) {
+    for (const node of [entry, section]) {
       if (!node) continue
       node.setAttribute("data-status", status)
       node.querySelector("ui-icon")?.replaceWith(this.fragment(icon(status)))
     }
+    if (entry.localName === "ui-step") {
+      toggle(entry, "selected", status === "active")
+      toggle(entry, "completed", status === "done")
+    }
     if (status === "done") for (const marker of this.updateMarkers(n)) marker.remove()
+    this.updateProgress()
     this.log(`P${n} ${status}`)
+  }
+
+  /** The phases' progress bar (`ui-progress.plan-progress`, if the doc has one):  done of all, hidden while none. */
+  updateProgress() {
+    const bar = this.document.querySelector("ui-progress.plan-progress")
+    if (!bar) return
+    const phases = this.phases
+    bar.setAttribute("value", String(phases.filter((phase) => phase.status === "done").length))
+    bar.setAttribute("total", String(phases.length))
+    toggle(bar, "hidden", phases.length === 0)
   }
 
   /** UPDATE markers of phase `n`. */
@@ -197,9 +221,18 @@ export class PlanDoc {
   // ## Log, stamps, summary
   ////////////////
 
-  /** Add a line to the log, stamped with the local date and time. */
+  /**
+   * Add a line to the log, stamped with the local date and time.
+   * - the log is a `<ui-feed class="plan-log">` of events;  docs made before 2026-10-01 have a `<ul>`
+   */
   log(line) {
-    const list = this.require("ul.plan-log")
+    const list = this.require(".plan-log")
+    if (list.localName === "ui-feed") {
+      const event = this.element("ui-event", { icon: "pen to square" })
+      event.innerHTML = `<ui-content><ui-summary><ui-date>${timeTag(this.now)}</ui-date> ${text(line)}</ui-summary></ui-content>`
+      list.append(event)
+      return
+    }
     const li = this.element("li")
     li.innerHTML = `${timeTag(this.now)} ${text(line)}`
     list.append(li)
@@ -287,6 +320,12 @@ function icon(status) {
   return `<ui-icon name="${name}" color="${color}"></ui-icon>`
 }
 
+/** Set or remove boolean attribute `name` on `element`. */
+function toggle(element, name, on) {
+  if (on) element.setAttribute(name, "")
+  else element.removeAttribute(name)
+}
+
 /** `P2 · Short Name` -> `Short Name`. */
 function phaseName(label) {
   return label.replace(/^\s*P\d+\s*·\s*/, "").trim()
@@ -325,13 +364,13 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
   new <name> [--title "Title"]                     copy the template, fill it in, update the docs index
   add-phase <name> "Short Name" [--goal html] [--files html] [--verify html]
   phase <name> <N> todo|active|done [--no-open]    set a phase's status;  done drops its UPDATE markers;
-                                                   reloads the doc's Chrome tab
+                                                   reloads the doc's VS Code tab
   add <name> question|caveat|issue|todo|decision "title" [--details html]    prints the new id
   close <name> <id>  /  reopen <name> <id>         strike / unstrike an item
   log <name> "text"                                timestamped line in the log
   summary <name> [--json]                          open questions, issues, caveats, todos;  the next phase
   check <name> [--no-browser]                      ids, links, phases;  then check-spell.js
-  open <name>                                      open in Chrome, reusing (and reloading) its tab`
+  open <name>                                      show in VS Code, beside the editor (reloads its tab)`
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   try {
@@ -364,7 +403,7 @@ function main(argv) {
       edit(file, (plan) => plan.setPhase(Number(need(rest[0], "a phase number")), need(rest[1], "a status")))
       reindex()
       // a new stage:  show it to the user (their tab reloads), unless told not to
-      return flags.noOpen ? undefined : openInChrome(file)
+      return flags.noOpen ? undefined : openInVSCode(file)
     case "add": {
       const id = edit(file, (plan) => plan.addItem(need(rest[0], "a kind"), need(rest[1], "a title"), flags))
       return console.log(id.toUpperCase())
@@ -556,8 +595,8 @@ function check(file, { noBrowser }) {
   if (problems.length || !browserOk) process.exit(1)
 }
 
-/** `open`:  show the doc in Chrome, reusing its tab (`pages.js` `openInChrome()`). */
+/** `open`:  show the doc rendered in VS Code, reusing its tab (`pages.js` `openInVSCode()`). */
 function open(file) {
   read(file)
-  openInChrome(file)
+  openInVSCode(file)
 }
