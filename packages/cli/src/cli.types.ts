@@ -40,9 +40,11 @@ export type GlobalOptions = {
 /**
  * `spell compile` flags.
  * - `stdout`:  print a project's compiled output rather than writing `<Project>.compiled.js`.
+ * - `force`:  recompile the projects it imports, too, even those already compiled
  */
 export type CompileOptions = GlobalOptions & {
   stdout?: boolean
+  force?: boolean
 }
 
 /**
@@ -79,9 +81,23 @@ export function normalizedName(name: string): string {
 /**
  * `spell watch` flags.
  * - `checkOnly`:  re-check on each change, rather than recompile -- writes nothing
+ * - `test`:  run each project's tests after each rebuild with no errors -- `spell test --watch`
+ * - `name`:  with `test`, only tests whose names contain it
  */
 export type WatchOptions = GlobalOptions & {
   checkOnly?: boolean
+  test?: boolean
+  name?: string
+}
+
+/**
+ * `spell test` flags.
+ * - `name`:  only tests whose names contain it, e.g. `deck` -- ignoring case, and spaces ~== `-` ~== `_`
+ * - `watch`:  run them again whenever the project changes -- `spell watch --test`
+ */
+export type TestOptions = GlobalOptions & {
+  name?: string
+  watch?: boolean
 }
 
 /**
@@ -155,6 +171,7 @@ export type NewOptions = GlobalOptions & {
  * - `projects`:  URL of each project it imports' `<Project>.compiled.js`, by id -- for `@spell/project/<id>`
  * - `spellCore`:  URL of `core`'s `src/index.ts`, for `@spell/core`
  * - `verbose`:  `test` shows every check, and anything printed, not just failures
+ * - `filter`:  `test` runs only tests whose names contain it -- see `runProject.ts`
  */
 export type RunSpec = {
   mode: "run" | "test"
@@ -163,6 +180,7 @@ export type RunSpec = {
   projects: Record<string, string>
   spellCore: string
   verbose?: boolean
+  filter?: string
 }
 
 ////////////////

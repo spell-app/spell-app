@@ -38,6 +38,7 @@ program
   .description("compile projects to <Project>.compiled.js, or print a file's compiled javascript")
   .argument("<targets...>", "spell files, project folders, or @roots/projects")
   .option("--stdout", "print a project's compiled output instead of writing it")
+  .option("--force", "recompile the projects it imports too, even those already compiled")
   .action((args: string[], _options, command) => run(CLI.compileCommand, args, command.optsWithGlobals()))
 
 program
@@ -84,6 +85,8 @@ program
   .command("test")
   .description("run each `to test ...` in projects, reporting ✓ or ✗ -- exits 1 if any fail")
   .argument("[targets...]", "spell files, project folders, or @roots/projects -- default @workspace")
+  .option("--name <text>", 'only tests whose names contain this, e.g. "deck creation"')
+  .option("--watch", "run them again whenever a project changes -- spell watch --test")
   .action((targets: string[], _options, command) =>
     run(CLI.testCommand, targets.length ? targets : [CLI.WORKSPACE_ARG], command.optsWithGlobals())
   )
@@ -93,6 +96,8 @@ program
   .description("recompile projects whenever their files change, showing their errors -- until q or Ctrl-C")
   .argument("[targets...]", "spell files, project folders, or @roots/projects -- default @workspace")
   .option("--check-only", "re-check instead of recompiling:  writes nothing")
+  .option("--test", "run each project's tests after each rebuild with no errors")
+  .option("--name <text>", "with --test:  only tests whose names contain this")
   .action((targets: string[], _options, command) => run(CLI.watchCommand, targets, command.optsWithGlobals()))
 
 program

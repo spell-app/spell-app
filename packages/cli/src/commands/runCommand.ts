@@ -25,13 +25,12 @@ export async function runCommand(session: CLI.CliSession, args: string[], option
 
 /**
  * `spell test <target...>`:  compile each project, then run each `test ...` function it declares, and report.
+ * - `--name <text>`:  only tests whose names contain it, e.g. `deck`.
+ * - `--watch`:  again whenever a project changes -- that's `spell watch --test`, see `watchCommand()`.
  * - Returns `EXIT.ERRORS` if any test failed, or any project didn't compile or load.
  */
-export async function testCommand(
-  session: CLI.CliSession,
-  args: string[],
-  options: CLI.GlobalOptions
-): Promise<number> {
+export async function testCommand(session: CLI.CliSession, args: string[], options: CLI.TestOptions): Promise<number> {
+  if (options.watch) return CLI.watchCommand(session, args, { ...options, test: true })
   let exitCode: number = CLI.EXIT.OK
   for (const target of await session.targets(args)) {
     if ((await runProjectAs("test", session, target, options)) !== CLI.EXIT.OK) exitCode = CLI.EXIT.ERRORS
@@ -51,7 +50,7 @@ async function runProjectAs(
   mode: CLI.RunSpec["mode"],
   session: CLI.CliSession,
   target: CLI.ResolvedTarget,
-  options: CLI.GlobalOptions
+  options: CLI.TestOptions
 ): Promise<number> {
   const project = target.kind === "file" ? target.file.project : target.project
   const status = new CLI.StatusReporter(session.isInteractive)
@@ -69,6 +68,23 @@ async function runProjectAs(
     status.finish({ clear: status.rows.every((it) => it.state === "ok") })
   }
 
+  const { exitCode } = await runCompiled(mode, project, options)
+  return problems.length && exitCode === CLI.EXIT.OK ? CLI.EXIT.ERRORS : exitCode
+}
+
+/**
+ * Run `project` as last compiled -- its `outputFile.contents` -- or its tests, in `runProject.ts`, a fresh node
+ * process.  See `runProjectAs()`.
+ * - Its javascript goes to a temp file, removed after.
+ * - `capture`:  collect the child's output, rather than streaming it to our terminal -- e.g. for `spell watch --test`.
+ * - Resolves to its exit code, and with `capture`, what it wrote to stdout and stderr, together.
+ */
+export async function runCompiled(
+  mode: CLI.RunSpec["mode"],
+  project: SP.SpellProject,
+  options: CLI.TestOptions,
+  { capture = false }: { capture?: boolean } = {}
+): Promise<{ exitCode: number; output: string }> {
   const folder = mkdtempSync(resolve(tmpdir(), "spell-run-"))
   try {
     const entry = resolve(folder, `${project.projectName}.compiled.mjs`)
@@ -79,10 +95,10 @@ async function runProjectAs(
       entry: pathToFileURL(entry).href,
       projects: importedOutputs(project),
       spellCore: pathToFileURL(resolve(environment.spellCoreDir, "index.ts")).href,
-      verbose: options.verbose
+      verbose: options.verbose,
+      filter: options.name
     }
-    const exitCode = await runChild(spec)
-    return problems.length && exitCode === CLI.EXIT.OK ? CLI.EXIT.ERRORS : exitCode
+    return await runChild(spec, capture)
   } finally {
     rmSync(folder, { recursive: true, force: true })
   }
@@ -102,12 +118,13 @@ function importedOutputs(project: SP.SpellProject, outputs: Record<string, strin
 }
 
 /**
- * Run `runProject.ts` for `spec` in a child node process, sharing our terminal.  Resolves to its exit code.
+ * Run `runProject.ts` for `spec` in a child node process, sharing our terminal -- or, with `capture`, collecting
+ * its output.  Resolves to its exit code, and what it captured.
  * - `tsx` compiles the runner and spell's runtime, with OUR `tsconfig.json` for `~/` paths --
  *   whatever the current folder.
  * - NOTE: `--verbose` reaches the child as `spec.verbose`:  ITS console isn't guarded, see `consoleGuard.ts`.
  */
-function runChild(spec: CLI.RunSpec): Promise<number> {
+function runChild(spec: CLI.RunSpec, capture: boolean): Promise<{ exitCode: number; output: string }> {
   const runner = resolve(CLI_SRC_DIR, "runner")
   const args = [
     "--import",
@@ -122,8 +139,11 @@ function runChild(spec: CLI.RunSpec): Promise<number> {
     TSX_TSCONFIG_PATH: resolve(CLI_SRC_DIR, "..", "tsconfig.json")
   }
   return new Promise((done) => {
-    const child = spawn(process.execPath, args, { stdio: "inherit", env })
-    child.on("exit", (code, signal) => done(code ?? (signal ? 130 : CLI.EXIT.ERRORS)))
-    child.on("error", () => done(CLI.EXIT.ERRORS))
+    const child = spawn(process.execPath, args, { stdio: capture ? ["ignore", "pipe", "pipe"] : "inherit", env })
+    let output = ""
+    child.stdout?.on("data", (data) => (output += data))
+    child.stderr?.on("data", (data) => (output += data))
+    child.on("exit", (code, signal) => done({ exitCode: code ?? (signal ? 130 : CLI.EXIT.ERRORS), output }))
+    child.on("error", (error) => done({ exitCode: CLI.EXIT.ERRORS, output: output + error.message }))
   })
 }

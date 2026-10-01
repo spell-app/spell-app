@@ -137,4 +137,43 @@ describe("<ExplorerScreen>", () => {
     expect(onOpen).toHaveBeenCalledWith(expect.objectContaining({ name: "Card", kind: "type" }))
     expect(frame.split("\n").at(-1)).toBe(" Opened Card.spell:2")
   })
+
+  test("e edits the selected node's description in the footer:  Enter saves it", async () => {
+    const onEdit = vi.fn(() => "Saved Card's description")
+    const descriptionOf = () => "a playing card"
+    const editing = await explore([KEY.down, "e"], { onEdit, descriptionOf })
+    expect(editing.split("\n").at(-1)).toMatch(/^ Card description: {2}a playing card/)
+
+    const frame = await explore([KEY.down, "e", ", face up", "\r"], { onEdit, descriptionOf })
+    expect(onEdit).toHaveBeenCalledWith(expect.objectContaining({ name: "Card" }), "a playing card, face up")
+    expect(frame.split("\n").at(-1)).toBe(" Saved Card's description")
+  })
+
+  test("e then Esc changes nothing", async () => {
+    const onEdit = vi.fn(() => "saved")
+    const frame = await explore([KEY.down, "e", "x", KEY.escape], { onEdit, descriptionOf: () => "" })
+    expect(onEdit).not.toHaveBeenCalled()
+    expect(frame.split("\n").at(-1)).toMatch(/^ ↑↓ move/)
+  })
+
+  test("e says why not:  nothing editable, or several lines", async () => {
+    const none = await explore([KEY.down, "e"], { onEdit: vi.fn(), descriptionOf: () => undefined })
+    expect(none.split("\n").at(-1)).toBe(" Card has no description to edit here")
+    const lines = await explore([KEY.down, "e"], { onEdit: vi.fn(), descriptionOf: () => "one\ntwo" })
+    expect(lines.split("\n").at(-1)).toMatch(/^ Card's description is several lines/)
+  })
+
+  test("a new tree keeps the cursor where it was", async () => {
+    const { stdin, lastFrame, rerender, unmount } = render(
+      <CLI.ExplorerScreen tree={tree} title="Solitaire" describe={describeNode} initialPath={cardFilePath} />
+    )
+    await settle()
+    stdin.write(KEY.down)
+    await settle()
+    const before = details(lastFrame() ?? "")
+    rerender(<CLI.ExplorerScreen tree={{ ...tree }} title="Solitaire" describe={describeNode} />)
+    await settle()
+    expect(details(lastFrame() ?? "")).toBe(before)
+    unmount()
+  })
 })

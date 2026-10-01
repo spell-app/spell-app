@@ -42,8 +42,8 @@
             <li data-status="done" data-phase="3">
               <ui-icon name="circle check" color="green"></ui-icon> <a href="#p3">P3 · Language Tools</a>
             </li>
-            <li data-status="todo" data-phase="4">
-              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p4">P4 · Watch &amp; Explore</a>
+            <li data-status="done" data-phase="4">
+              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p4">P4 · Watch &amp; Explore</a>
             </li>
             <li data-status="todo" data-phase="5">
               <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p5">P5 · Doc Review</a>
@@ -163,6 +163,18 @@
                     <a href="../../../cli/src/cli.test.ts" target="src-packages-cli-src-cli-test-ts"
                       ><code>cli.test.ts</code></a
                     >; the live screen wasn't driven in a real terminal tonight.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="c5">
+              <a class="plan-id" href="#c5">C5</a> <span class="plan-title">explore e: one-line descriptions only</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    A description of several lines would be flattened by a one-line field, so <code>e</code> refuses and
+                    points at <code>o</code> (open in editor). Never edits test projects.
                   </p></ui-content
                 ></ui-accordion
               >
@@ -386,6 +398,35 @@
                 ></ui-accordion
               >
             </li>
+            <li data-status="open" id="d15">
+              <a class="plan-id" href="#d15">D15</a>
+              <span class="plan-title"
+                >Test name filter is --name &lt;text&gt;, not a second positional (CHANGED from the old plan)</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    The old plan said <code>spell test . "deck creation"</code>. But <code>test</code> takes several
+                    targets, so a name there can't be told from a target. Now:
+                    <code>spell test . --name "deck creation"</code>, which <code>watch --test</code> takes too.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d16">
+              <a class="plan-id" href="#d16">D16</a>
+              <span class="plan-title">watch rebuilds an importer from scratch, as if its project.json changed</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    A compiled import's declarations are only read on a full parse
+                    (<code>SpellProject.loadImportScope()</code>), so an incremental re-parse wouldn't see them. Only
+                    among WATCHED projects. Not after the first build: everything is building then anyway.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
           </ol>
         </section>
 
@@ -499,10 +540,10 @@
               </li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="4" class="s3">
+          <section data-status="done" data-phase="4" class="s3">
             <ui-sticky class="spell-h3"
               ><h3 id="p4">
-                <ui-icon name="circle outline" color="grey"></ui-icon> P4 · Watch &amp; Explore
+                <ui-icon name="circle check" color="green"></ui-icon> P4 · Watch &amp; Explore
               </h3></ui-sticky
             >
             <ul class="plan-phase-body">
@@ -588,6 +629,13 @@
               explain, new
             </li>
             <li><time datetime="2026-10-01T01:08-04:00">2026-10-01 01:08</time> P3 done</li>
+            <li><time datetime="2026-10-01T01:08-04:00">2026-10-01 01:08</time> P4 active</li>
+            <li>
+              <time datetime="2026-10-01T01:17-04:00">2026-10-01 01:17</time> P4 done: watch rebuilds importers +
+              --test; explore reloads + e edits (checked in a real pty with expect); compile --force; test --name /
+              --watch
+            </li>
+            <li><time datetime="2026-10-01T01:17-04:00">2026-10-01 01:17</time> P4 done</li>
           </ul>
         </section>
       </main>

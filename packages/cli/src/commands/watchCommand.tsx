@@ -20,15 +20,19 @@ const MAX_LISTED = 12
  * - Watches each project's folder:  `.spell` and `.css` files, and `project.json`.  NOT `<Project>.compiled.js`
  *   or `<Project>.scopes.js`, which compiling writes -- the scope pack after each recompile with no errors.
  * - Changes go through the language server's workspace, so only what changed re-parses.
+ * - Watching both a project and one that imports it:  the importer rebuilds after it, from scratch, so it sees
+ *   what changed.  Only what's watched:  a project imported but not watched isn't.
+ * - `--test`:  after each rebuild with no errors, run the project's tests -- `--name` picks which -- and show how
+ *   they went, with what failed.  `spell test --watch` is the same.
  * - In a terminal:  a live `<WatchScreen>`.  Otherwise, e.g. piped:  a timestamped line per rebuild, on stderr.
  * - Runs until `q` or `Ctrl-C`.  Returns the exit code.
- * - NOTE: a project another one imports, changing, doesn't rebuild the importer -- watch both.
  */
 export async function watchCommand(
   session: CLI.CliSession,
   args: string[],
   options: CLI.WatchOptions
 ): Promise<number> {
+  if (options.test && options.checkOnly) throw new CLI.CliError("--test runs what's compiled:  drop --check-only")
   const targets = await session.targets(args.length ? args : [CLI.WORKSPACE_ARG])
   const projects = [...new Set(targets.map((it) => (it.kind === "file" ? it.file.project : it.project)))]
   const verb = options.checkOnly ? "re-checking" : "recompiling"
@@ -71,9 +75,11 @@ export async function watchCommand(
   }
 
   /**
-   * Take in `project`'s changes, then re-check or recompile it, and show how that went.
+   * Take in `project`'s changes, then re-check or recompile it -- and with `--test`, test it -- and show how that
+   * went.  Then rebuild what imports it.
    * - One at a time per project:  changes arriving meanwhile wait, then rebuild again.
-   * - `isFirst`:  parse it from scratch instead -- compiling any never-compiled project it imports.
+   * - `isFirst`:  parse it from scratch instead -- compiling any never-compiled project it imports.  Its importers
+   *   are building for the first time too, so they're left be.
    */
   async function rebuild(project: SP.SpellProject, isFirst = false): Promise<void> {
     const build = builds.get(project)!
@@ -95,20 +101,46 @@ export async function watchCommand(
       if (!options.checkOnly && !problems.length) await session.workspace.writeScopes(project, session.explorer)
       const what = options.checkOnly ? "checked" : "compiled"
       const count = problems.length ? ` · ${problems.length} error${problems.length === 1 ? "" : "s"}` : ""
+      const tests = options.test && !problems.length ? await test(project) : undefined
       update(row, {
-        state: problems.length ? "errors" : "ok",
-        note: `${what} ${clock()}${count}`,
-        details: listed(problems)
+        state: problems.length || tests?.failed ? "errors" : "ok",
+        note: `${what} ${clock()}${count}${tests ? ` · ${tests.summary}` : ""}`,
+        details: listed([...problems, ...(tests?.details ?? [])])
       })
     } catch (error) {
       update(row, { state: "failed", note: `${clock()} · ${error instanceof Error ? error.message : String(error)}` })
     } finally {
       build.running = false
     }
+    if (!isFirst) for (const importer of importersOf(project)) rebuildFromScratch(importer)
     if (build.again) {
       build.again = false
       await rebuild(project)
     }
+  }
+
+  /** Run `project`'s tests, as last compiled -- how many passed, and what failed.  See `testOutcome()`. */
+  async function test(project: SP.SpellProject) {
+    const { exitCode, output } = await CLI.runCompiled("test", project, options, { capture: true })
+    return testOutcome(output, exitCode)
+  }
+
+  /** Watched projects which import `project` -- see `ScopeExplorer.importedProjects()`. */
+  function importersOf(project: SP.SpellProject): SP.SpellProject[] {
+    return projects.filter(
+      (it) =>
+        it !== project &&
+        LSP.ScopeExplorer.importedProjects(it).some((imported) => imported.projectId === project.projectId)
+    )
+  }
+
+  /**
+   * Rebuild `project` from scratch, e.g. after a project it imports recompiled:  a compiled import's declarations
+   * are read as the project parses from scratch -- see `SpellProject.loadImportScope()`.
+   * - Done as its `project.json` changing, which the workspace takes as "re-read and re-parse everything".
+   */
+  function rebuildFromScratch(project: SP.SpellProject) {
+    changed(project, resolve(project.location.serverPath, SP.PROJECT_FILE))
   }
 
   /** Change `row`, then show it:  redraw the screen, or -- with no screen -- log it once it's done. */
@@ -146,16 +178,39 @@ type Build = {
  * - Why it matters:  a `created` file makes the workspace re-read the project's file list, keeping the text it
  *   already has for files it knows -- so a save reported that way compiles the OLD text.
  */
-function kindOf(project: SP.SpellProject, path: string): LSP.DiskChange {
+export function kindOf(project: SP.SpellProject, path: string): LSP.DiskChange {
   if (!existsSync(path)) return "deleted"
   return project.files.some((file) => file.location.serverPath === path) ? "changed" : "created"
 }
 
 /** Does a change to `filename`, in a project folder, need a rebuild?  Its spell, css or `project.json` -- not output. */
-function isWatched(filename: string): boolean {
+export function isWatched(filename: string): boolean {
   const name = basename(filename)
   if (name.startsWith(".") || name.endsWith(SP.COMPILED_JS_SUFFIX) || name.endsWith(SP.SNAPSHOT_JS_SUFFIX)) return false
   return name === SP.PROJECT_FILE || name.endsWith(".spell") || name.endsWith(".css")
+}
+
+/**
+ * How a test run went, from what `runProject.ts` printed and its `exitCode`:
+ * - `summary`:  its last line, e.g. `2 passed`, `0 passed, 1 failed` -- or `no tests`
+ * - `details`:  each failing test and its failed checks;  or, if it crashed, its last lines
+ * - `failed`:  did any fail, or did it crash?
+ */
+export function testOutcome(output: string, exitCode: number): { summary: string; details: string[]; failed: boolean } {
+  const lines = output.trimEnd().split("\n")
+  const last = lines.at(-1) ?? ""
+  const failed = exitCode !== CLI.EXIT.OK
+  if (/^\d+ passed/.test(last)) {
+    const details: string[] = []
+    let inFailure = false
+    for (const line of lines) {
+      if (!line.startsWith(" ")) inFailure = line.startsWith("✗")
+      if (inFailure) details.push(line)
+    }
+    return { summary: last, details, failed }
+  }
+  if (!failed) return { summary: "no tests", details: [], failed }
+  return { summary: chalk.red("tests crashed"), details: lines.slice(-5), failed }
 }
 
 /** `problems`, at most `MAX_LISTED` of them, then how many more. */

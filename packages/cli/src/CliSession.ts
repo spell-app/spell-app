@@ -102,18 +102,24 @@ export class CliSession {
   /**
    * Compile each project `project` imports -- and what THEY import -- which has no `<Project>.compiled.js` yet.
    * - Why:  a compiled import is read from that file, so parsing `project` fails without it.
-   * - NOTE: an existing one is used as is, even if its sources have changed since.
+   * - NOTE: an existing one is used as is, even if its sources have changed since -- unless `force`
+   *   (`spell compile --force`), which recompiles them all, what they import first.
    * - Shows each on `status`, if given.
    */
-  async compileImports(project: SP.SpellProject, status?: CLI.StatusReporter, seen = new Set<SP.SpellProject>()) {
+  async compileImports(
+    project: SP.SpellProject,
+    status?: CLI.StatusReporter,
+    force = false,
+    seen = new Set<SP.SpellProject>()
+  ) {
     await project.load(undefined)
     for (const imported of LSP.ScopeExplorer.importedProjects(project)) {
       if (seen.has(imported)) continue
       seen.add(imported)
-      if (existsSync(imported.outputFile.location.serverPath)) continue
+      if (!force && existsSync(imported.outputFile.location.serverPath)) continue
 
       const row = status?.start(`${imported.projectId}  (imported by ${project.projectName})`)
-      await this.compileImports(imported, status, seen)
+      await this.compileImports(imported, status, force, seen)
       await imported.compile()
       if (row)
         this.report(status!, row, imported, { note: `wrote ${this.relative(imported.outputFile.location.serverPath)}` })

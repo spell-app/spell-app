@@ -1,7 +1,7 @@
 import { spawn, spawnSync } from "child_process"
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "fs"
 import { tmpdir } from "os"
-import { resolve } from "path"
+import { basename, resolve } from "path"
 import { afterAll, beforeAll, describe, test, expect } from "vitest"
 
 import { SP } from "$/spell"
@@ -196,6 +196,77 @@ describe("spell watch", () => {
     child.kill("SIGINT")
     expect(await new Promise((done) => child.on("exit", done))).toBe(0)
   }, 30_000)
+
+  test("rebuilds a project when one it imports changes", async () => {
+    // `@workspace:<folder>` is the root `resolveTarget()` makes for TEMP
+    const lib = tempProject("Lib", "a widget is a thing\n")
+    const app = resolve(TEMP, "App")
+    mkdirSync(app)
+    const imports = [
+      { path: `@workspace:${basename(TEMP)}:Lib`, active: true },
+      { path: "/App.spell", active: true }
+    ]
+    writeFileSync(resolve(app, SP.PROJECT_FILE), JSON.stringify({ imports }))
+    writeFileSync(resolve(app, "App.spell"), "print a new widget\n")
+    const { child, log } = watching(["watch", lib, app], TEMP)
+
+    await until(() => log().split("✓").length > 2)
+    writeFileSync(resolve(lib, "Lib.spell"), "a gadget is a thing\n")
+    await until(() => /✗ @workspace:\S+:App .*1 error/.test(log()))
+    writeFileSync(resolve(lib, "Lib.spell"), "a widget is a thing\n")
+    await until(() => log().split("✓ @workspace").length > 4)
+
+    child.kill("SIGINT")
+    expect(await new Promise((done) => child.on("exit", done))).toBe(0)
+  }, 30_000)
+
+  test("--test runs the tests after each clean rebuild, showing what failed", async () => {
+    const tested = tempProject("Tested", "to test math\n\texpect 1 + 1 to be 2\n")
+    const { child, log } = watching(["watch", ".", "--test"], tested)
+
+    await until(() => log().includes("1 passed"))
+    writeFileSync(resolve(tested, "Tested.spell"), "to test math\n\texpect 1 + 1 to be 3\n")
+    await until(() => log().includes("0 passed, 1 failed"))
+    expect(log()).toContain("    ✗ test math")
+
+    child.kill("SIGINT")
+    expect(await new Promise((done) => child.on("exit", done))).toBe(0)
+  }, 30_000)
+})
+
+/** Start `spell ...args` in `cwd`, collecting its stderr -- where `watch` logs -- as it comes. */
+function watching(args: string[], cwd: string) {
+  const child = spawn(process.execPath, [SPELL, ...args], { cwd, stdio: ["ignore", "pipe", "pipe"] })
+  let log = ""
+  child.stderr.on("data", (data) => (log += data))
+  return { child, log: () => log }
+}
+
+describe("spell compile --force", () => {
+  test("recompiles what a project imports, even when already compiled", () => {
+    const lib = tempProject("ForcedLib", "a widget is a thing\n")
+    const app = resolve(TEMP, "ForcedApp")
+    mkdirSync(app)
+    const imports = [
+      { path: `@workspace:${basename(TEMP)}:ForcedLib`, active: true },
+      { path: "/ForcedApp.spell", active: true }
+    ]
+    writeFileSync(resolve(app, SP.PROJECT_FILE), JSON.stringify({ imports }))
+    writeFileSync(resolve(app, "ForcedApp.spell"), "print a new widget\n")
+
+    expect(spell(["compile", "."], app).stderr).toContain("ForcedLib  (imported by ForcedApp)")
+    expect(spell(["compile", "."], app).stderr).not.toContain("imported by")
+    expect(spell(["compile", ".", "--force"], app).stderr).toContain("ForcedLib  (imported by ForcedApp)")
+    expect(existsSync(resolve(lib, `ForcedLib${SP.COMPILED_JS_SUFFIX}`))).toBe(true)
+  })
+})
+
+describe("spell test --name", () => {
+  test("only tests whose names contain it", () => {
+    const { status, stdout } = spell(["test", "@test/Solitaire", "--name", "deck"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/^✓ test deck creation {2}\(\d+ checks\)\n\n1 passed\n$/)
+  })
 })
 
 describe("spell projects", () => {

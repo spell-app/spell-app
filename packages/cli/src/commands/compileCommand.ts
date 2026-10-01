@@ -8,6 +8,7 @@ import { CLI } from "$/cli"
  *   `SpellDiskWorkspace.writeScopes()`.
  * - A `.spell` file:  prints its compiled javascript.  Writes nothing.
  * - Projects it imports that have never been compiled are compiled first -- see `CliSession.compileImports()`.
+ *   `--force`:  ALL of them, even those already compiled.
  * - Returns the exit code:  `EXIT.ERRORS` if anything had errors.
  * - NOTE: a line which doesn't parse doesn't stop the compile -- it compiles to a `PARSE ERROR` comment.
  */
@@ -45,11 +46,11 @@ async function compileProject(
   project: SP.SpellProject,
   status: CLI.StatusReporter,
   output: string[],
-  { stdout }: CLI.CompileOptions
+  { stdout, force }: CLI.CompileOptions
 ): Promise<boolean> {
   const row = status.start(project.projectId)
   try {
-    await session.compileImports(project, status)
+    await session.compileImports(project, status, force)
     await project.compile(undefined, { save: !stdout })
   } catch (error) {
     status.done(row, "failed", error instanceof Error ? error.message : String(error))

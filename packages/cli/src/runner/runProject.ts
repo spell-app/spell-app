@@ -47,24 +47,31 @@ async function runProject() {
  * Load the project quietly, then run each `test ...` function it exports, and report.
  * - Tests the project runs ITSELF as it loads count, and don't run again:  a second run would start
  *   from what the first left behind, e.g. a dealt deck.
+ * - `spec.filter`:  only tests whose names contain it, e.g. `deck` -- ignoring case, and spaces ~== `-` ~== `_`.
  */
 async function testProject() {
   const restore = quiet()
-  const results: TestResult[] = []
-  spellCore.test = (message: unknown, testMethod: () => void) => runTest(message, testMethod, results)
+  const all: TestResult[] = []
+  spellCore.test = (message: unknown, testMethod: () => void) => runTest(message, testMethod, all)
   const module = await load()
   if (!module) process.exit(1)
 
+  const wanted = (name: string) => !spec.filter || comparable(name).includes(comparable(spec.filter))
   const tests = Object.entries(module).filter(
-    ([name, value]) => name.startsWith("test_") && typeof value === "function"
+    ([name, value]) => name.startsWith("test_") && typeof value === "function" && wanted(name.slice(5))
   )
   for (const [name, test] of tests) {
-    if (!results.some((result) => comparable(result.name) === comparable(name))) (test as () => void)()
+    if (!all.some((result) => comparable(result.name) === comparable(name))) (test as () => void)()
   }
   restore()
 
+  const results = all.filter((result) => wanted(result.name.replace(/^test[\s_]/, "")))
   if (!results.length) {
-    note(`${spec.name} has no tests -- write one as \`to test <something>:\``)
+    note(
+      spec.filter
+        ? `${spec.name} has no tests matching '${spec.filter}'`
+        : `${spec.name} has no tests -- write one as \`to test <something>:\``
+    )
     process.exit(0)
   }
   for (const result of results) report(result)

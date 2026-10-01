@@ -61,7 +61,7 @@ export async function formatCommand(
 }
 
 /** Is `path` inside a test project, `projects/test/...`? */
-function isTestProject(path: string): boolean {
+export function isTestProject(path: string): boolean {
   return path.startsWith(environment.testFilesRoot + sep)
 }
 

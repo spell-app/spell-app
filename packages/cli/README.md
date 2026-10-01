@@ -58,13 +58,13 @@ Every command takes one or more targets:
 
 | Command | What it does |
 |---|---|
-| `spell compile <targets...>` | Writes each project's `<Project>.compiled.js`, and with no errors its scope pack `<Project>.scopes.js`.  `--stdout` prints it and writes nothing.  A `.spell` file prints its javascript. |
+| `spell compile <targets...>` | Writes each project's `<Project>.compiled.js`, and with no errors its scope pack `<Project>.scopes.js`.  `--stdout` prints it and writes nothing.  `--force` recompiles the projects it imports, too.  A `.spell` file prints its javascript. |
 | `spell check <targets...>` | Lists errors on stdout as `path:line:col  message`.  `--json` for a JSON list. |
 | `spell describe <target> [name] [member]` | What the Type Explorer shows, as text.  E.g. `spell describe Card.spell Card color`.  `--compiled`, `--inherited`, `--json`. |
-| `spell explore [target]` | Full-screen Type Explorer.  `↑↓` move, `←→` fold, `Tab` switch pane, `/` filter, `c` compiled, `i` inherited, `o` open in editor, `q` quit. |
-| `spell watch [targets...]` | Recompiles on every save, with a live list of errors.  `--check-only` re-checks and writes nothing.  `q` / `Ctrl-C` stops it. |
+| `spell explore [target]` | Full-screen Type Explorer.  `↑↓` move, `←→` fold, `Tab` switch pane, `/` filter, `c` compiled, `i` inherited, `o` open in editor, `e` edit its description, `q` quit.  Reloads as files change. |
+| `spell watch [targets...]` | Recompiles on every save, with a live list of errors.  `--check-only` re-checks and writes nothing.  `--test` runs tests after each clean rebuild (`--name` picks which).  Rebuilds a watched project when one it imports changes.  `q` / `Ctrl-C` stops it. |
 | `spell run [target]` | Compiles and runs the project under node.  Its `print`s show as they happen. |
-| `spell test [targets...]` | Runs each `to test ...` and reports ✓, or ✗ with the checks that failed.  `--verbose` shows every check. |
+| `spell test [targets...]` | Runs each `to test ...` and reports ✓, or ✗ with the checks that failed.  `--verbose` shows every check.  `--name <text>` runs only tests whose names contain it.  `--watch` is `spell watch --test`. |
 | `spell format <targets...>` | Tidies `.spell` files' whitespace, as VS Code's Format Document does.  `--check` writes nothing, lists what would change, exits 1 if anything would.  Never writes into `projects/test/`. |
 | `spell projects [root]` | Lists the project roots, or one root's projects, with the names to type.  `--json`. |
 | `spell speed [module]` | Times the parser's rule tests (`SP.spellParser.speedTest()`), 3 fresh runs, as a markdown table.  `--against HEAD` times that commit too, in a temp worktree, and adds a Change row.  `--runs`, `--json`. |
@@ -123,7 +123,8 @@ Every command takes one or more targets:
 ### `watch`
 
 - It watches each project's folder:  `.spell`, `.css`, `project.json`.  It ignores `*.compiled.js` and `*.scopes.js`.
-- A project another imports doesn't rebuild the importer when it changes.  Watch both.
+- Watching both a project and one it imports:  the importer rebuilds, from scratch, after the imported one does.
+  A project imported but not watched isn't seen changing.
 - On macOS a save arrives as a `rename` event, so `watch` ignores event types and looks at what's on disk.
   See `PAPERCUTS.md`.
 
@@ -167,13 +168,8 @@ Every command takes one or more targets:
   - the `~` alias
   - `__PACKAGE_VERSION__`
   - `environment.ts` to stop finding `projects/` next to `src/`
-- `watch`:  rebuild importers when a project they import changes.  Also, optionally, run tests after each rebuild.
-- `explore`:  reload on file changes (share `watch`'s workspace updates);  show the Type Explorer's editable
-  descriptions.
 - `run`:  optionally run UI projects in a real browser (e.g. playwright, already a dev dependency), or under a fake
   DOM.
-- `compile`:  a `--force` to recompile imported projects even when their `.compiled.js` exists.
-- `test`:  a `--watch`, and filtering tests by name.
 
 ### Review items
 
