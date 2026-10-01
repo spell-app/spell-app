@@ -1,0 +1,28 @@
+{
+  // ONE import-alias table for the whole monorepo.  Every package's `tsconfig.json` extends this, so an alias means
+  // the same thing wherever a file is compiled from -- e.g. `cli` compiling `spell`'s source.
+  // - `tsc` and `tsx` read it through each package's `tsconfig.json`;  vite / vitest through `resolve.tsconfigPaths`,
+  //   which finds the tsconfig nearest the IMPORTING file.
+  // - MUST stay the only `paths` in the repo:  a package that sets its own `paths` REPLACES this table, never adds to it.
+  // - Paths are fixed, never `${configDir}`:  `tsx` can't resolve it (4.20 throws, 4.23 ignores it).
+  // - Longest match wins, e.g. `~/cli/foo` is `cli`'s, any other `~/...` is `spell`'s.
+  // - NOTE: every alias works from every package.  The one-way dependency rule (`cli` -> `spell` -> `ui`) is by
+  //   convention, e.g. `ui` MUST NOT import `~/...`.
+  "compilerOptions": {
+    "paths": {
+      // ## Shared packages:  from another package, import the barrel only
+      "#util": ["./packages/util/src/index.ts"],
+      "#util/*": ["./packages/util/src/*"],
+
+      // ## Per-package aliases, until each becomes a `#` one (Phase 4)
+      // `cli`
+      "~/cli": ["./packages/cli/src/index.ts"],
+      "~/cli/*": ["./packages/cli/src/*"],
+      // `spell`
+      "~/*": ["./packages/spell/src/*"],
+      // `ui`
+      "$/*": ["./packages/ui/src/*"],
+      "$test/*": ["./packages/ui/test/*"]
+    }
+  }
+}

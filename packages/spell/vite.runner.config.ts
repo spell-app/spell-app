@@ -1,7 +1,6 @@
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
 
-import environment from "./src/environment.ts"
 import { standardDecorators } from "./vite.decorators.ts"
 import { packageVersion } from "./vite.packageVersion.ts"
 
@@ -18,9 +17,7 @@ import { packageVersion } from "./vite.packageVersion.ts"
 export default defineConfig({
   plugins: [standardDecorators(), packageVersion(), react()],
   resolve: {
-    alias: {
-      "~": environment.srcDir
-    }
+    tsconfigPaths: true
   },
   build: {
     chunkSizeWarningLimit: 1000,

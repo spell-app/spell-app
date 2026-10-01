@@ -1,16 +1,6 @@
 {
   // We compile the parser's SOURCE, from `../spell` -- so we take its compiler options, whatever they become.
   "extends": "../spell/tsconfig.json",
-  "compilerOptions": {
-    // `~/cli` is us;  any other `~/...` is the parser's `src/`, as its own files say it -- they're compiled
-    // through this config too.  The longest match wins, for `tsc` and `tsx` alike.
-    // MUST match `resolve.alias` in `vitest.config.ts`.
-    "paths": {
-      "~/cli": ["./src/index.ts"],
-      "~/cli/*": ["./src/*"],
-      "~/*": ["../spell/src/*"]
-    }
-  },
   // the parser's `.d.ts` files declare globals its source needs, e.g. `Prettify`, `__PACKAGE_VERSION__`
   "include": ["src", "../spell/src/**/*.d.ts"]
 }

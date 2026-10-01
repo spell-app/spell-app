@@ -14,7 +14,8 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
   (`../ui`, `@spell/ui`) -- `package.json` depends on both as workspaces (`workspace:*`).
   - The parser's SOURCE runs, with no build:  `~/lsp`, `~/languages/spell` ... are `../spell/src/...`.
   - `~/cli` (`CLI`) is OUR `src/`;  any other `~/...` is the parser's.  So `src/foo.ts` is `~/cli/foo`, NEVER `~/foo`.
-  - That's set in `tsconfig.json` (for `tsc`, and `tsx` at run time) AND `vitest.config.ts`:  MUST keep the two in step.
+  - That's set ONCE, in the repo root's `tsconfig.base.json`:  `tsc` and `tsx` read it through `tsconfig.json`, and
+    `vitest` through `resolve.tsconfigPaths`.
   - `tsconfig.json` extends the parser's, since the parser's files compile through it.  So `yarn ts` here reports
     the parser's type errors too.
   - Something the command line needs OF the parser is a change in THAT package, e.g.

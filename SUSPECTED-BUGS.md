@@ -357,6 +357,12 @@ with icon packs `zoom` is in `fa7-brands`, and the `fomantic` pack gives the mag
 
 ### 4. Types / API surface
 
+- `vite.config.ts` `dts()` / `package.json` `exports`:  `vite build` writes declarations to `dist/src/index.d.ts`,
+  `dist/src/components/button/index.d.ts` ..., but every `exports` entry says `./dist/index.d.ts`,
+  `./dist/components/button/index.d.ts` ...:  a consumer gets no types.  Prove:  `vite build`,
+  `ls dist/index.d.ts`.  Once `src/` imports `#util` it gets worse:  TS6059 (`util` isn't under `rootDir`) and
+  the output moves to `dist/ui/src/`.
+  (2026-09-30)
 - `src/components/emoji/emoji.vocabulary.en.ts:38`:  says "`Thumbs Up` works too", but that becomes `thumbs_up`,
   which isn't in the data (`thumbsup` is), so it draws nothing.  `emoji.test.tsx:30` only tests the spelling
   conversion.  Fix the doc or add an alias.

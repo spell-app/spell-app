@@ -12,9 +12,7 @@ const RUNTIME_ENTRY = "spell-runtime"
 export default defineConfig({
   plugins: [standardDecorators(), packageVersion(), react()],
   resolve: {
-    alias: {
-      "~": environment.srcDir
-    }
+    tsconfigPaths: true
   },
   server: {
     port: environment.vitePort,

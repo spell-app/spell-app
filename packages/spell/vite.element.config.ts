@@ -22,9 +22,7 @@ import { packageVersion } from "./vite.packageVersion.ts"
 export default defineConfig({
   plugins: [standardDecorators(), packageVersion(), react(), builtInsPack()],
   resolve: {
-    alias: {
-      "~": environment.srcDir
-    }
+    tsconfigPaths: true
   },
   publicDir: "static",
   build: {

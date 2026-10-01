@@ -16,7 +16,7 @@ packages/
 ```
 
 - `package.json` depends on both as workspaces (`workspace:*`);  one `yarn` at the monorepo root installs everything.
-- `~/cli` is this repo's `src/`;  any other `~/...` is the parser's `src/`.  See `tsconfig.json`.
+- `~/cli` is this repo's `src/`;  any other `~/...` is the parser's `src/`.  See the monorepo's `tsconfig.base.json`.
 - Moved here from the parser's `CLI` branch (`26830ef1`) on 2026-09-30.
 
 

@@ -11,10 +11,8 @@ import { standardDecorators } from "./vite.decorators.ts"
 // (Node 22.17 can't load the `.ts`).  A relative import is bundled into the config instead.  See `AGENTS.md`.
 import { solidElementHot } from "../solid-element/src/vite.ts"
 
-/** Absolute path of `src/`, target of the `$` import alias. */
+/** Absolute path of `src/`. */
 const SRC = fileURLToPath(new URL("./src", import.meta.url))
-/** Absolute path of `test/`, target of the `$test` import alias (test helpers only). */
-const TEST = fileURLToPath(new URL("./test", import.meta.url))
 
 /**
  * Browsers the CSS is compiled FOR:  the platform floor the plan commits to (anchor positioning everywhere).
@@ -118,7 +116,9 @@ export const SOLID_DEDUPE = ["solid-js", "@solidjs/web"]
 
 /**
  * Config shared by the library build / dev server (below), `vitest.config.ts` and the docs site:  plugins, aliases,
- * dedupe, Lightning CSS.  A FUNCTION, so every caller gets its own plugin instances.
+ * dedupe, Lightning CSS.
+ * - Aliases (`$/`, `$test/`, `#util` ...) come from the repo root's `tsconfig.base.json`, through
+ *   `resolve.tsconfigPaths`.  A FUNCTION, so every caller gets its own plugin instances.
  * - `standardDecorators()` MUST come first:  both it and the Solid plugin are `enforce: "pre"`, and the Solid
  *   compiler must see decorator-free code.
  * - `UI_SOLID_PROD=1`:  Solid's PRODUCTION runtime under `vite dev` (no dev diagnostics, no performance tracks),
@@ -133,10 +133,7 @@ export function baseConfig() {
   return {
     plugins: [standardDecorators(), solid(production)],
     resolve: {
-      alias: {
-        $test: TEST,
-        $: SRC
-      },
+      tsconfigPaths: true,
       dedupe: SOLID_DEDUPE
     },
     optimizeDeps: {

@@ -191,6 +191,13 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   It wrote its files to the scratchpad instead, and they were copied in by hand. · Start Claude sessions in
   `~/www/spell-app/spell`;  from a session started elsewhere, run agents without worktree isolation, one at a
   time. · monorepo
+- 2026-09-30 · `tsconfig` `paths` using `${configDir}` (so one base table could hold each package's own `~/*`)
+  pass `tsc`, but `tsx` can't use them:  4.20.3 throws `Non-relative paths are not allowed when 'baseUrl' is not
+  set`, 4.23.15 silently resolves nothing. · Fixed paths only, in the root `tsconfig.base.json`. · monorepo
+- 2026-09-30 · Under `tsx` 4.23 (ui's), `import "~/packageVersion.node"` fails with `Cannot find package '~'`, while
+  `~/util` and `~/y.foo` resolve:  it won't add `.ts` to a specifier ending in `.node` (Node's native-addon
+  extension).  4.20.3 (spell's) is fine. · Use spell's `tsx`, or write `~/packageVersion.node.ts`.  MUST fix
+  before unifying `tsx` versions. · spell
 
 ## ui
 
