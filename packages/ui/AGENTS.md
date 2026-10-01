@@ -21,8 +21,11 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
     (upgrade, forms, lifecycle, error boundary, HMR fixes;  `UPSTREAM.md` maps each to a PR).  A workspace of
     the monorepo (`workspace:*`), with its own tests (its dependencies are hoisted to the root `node_modules`, like every package's);  run its scripts with
     `yarn fork <script>`.  NEVER import its files from `src/`:  use the package name.
-  - `src/util/` -- general utilities with no dependency on the rest of the package:  `@proto` (`decorators.ts`),
-    `class.ts`, `string.ts` (case, `numberToWord`, `suggest`), `dom.ts` (`closestAcrossShadow` ...), `util.types.ts`
+  - `../util/` -- `@spell/util` (`#util`), shared with `spell`:  `@proto` (`decorators.ts`), `class.ts`, `string.ts`
+    (case, `numberToWord`, `suggest`), `dom.ts` (`closestAcrossShadow` ...), `util.types.ts`.  `src/util/index.ts`
+    (`$/util`) re-exports it, so source keeps saying `from "$/util"`;  its declarations ship in `dist/_util/`.
+    A helper only `ui` uses goes in `src/util/`, one `spell` also needs moves to `#util`.  Everything in `$/util`
+    lands in the `core` bundle (`core.ts` re-exports it), so keep it small
   - `src/vocabulary/` (`V`) -- the naming layer:  vocabulary schema, value sets, `Vocabulary` (registry, translated
     names, `replace()` for hot reload), `Converters`
   - `src/runtime/` (`UI`) -- the shared `UI` runtime, ONE instance per page (`globalThis.UI ??= new UIRuntime()`).
@@ -81,7 +84,7 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   - `yarn review` -- tsc (root, node configs, the fork) + oxlint `--fix` + oxfmt + every test (`ssr`, `browser`,
     the fork's);  MUST pass before you hand work back
   - `yarn build` -- tsc + vite library build into `dist/` (entries `core`, `forms`, one per family, `styles`,
-    `index`;  `dist/icon-packs/`;  `.d.ts`)
+    `index`;  `dist/icon-packs/`;  `.d.ts` beside the `exports` paths, from `declarations()` in `vite.config.ts`)
   - `yarn test` -- `ssr` project first (it writes `.cache/ssr-button.html`, which `test/dsd.test.ts` reads), then
     `browser`, then `yarn test:fork`
   - `yarn test:all` -- chromium + firefox + webkit (`yarn test:browsers` once first)

@@ -198,6 +198,10 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   `~/util` and `~/y.foo` resolve:  it won't add `.ts` to a specifier ending in `.node` (Node's native-addon
   extension).  4.20.3 (spell's) is fine. · Use spell's `tsx`, or write `~/packageVersion.node.ts`.  MUST fix
   before unifying `tsx` versions. · spell
+- 2026-09-30 · In a fresh checkout / worktree, `yarn lint` (so `yarn review`) in `packages/spell` fails with
+  `vscode-extension/tsconfig.json: Cannot find type definition file for 'vscode'`:  the extension is its own yarn
+  project and nothing has installed its `node_modules`. · `yarn vscode:build` once (installs it, builds the
+  extension and the runner;  does NOT install into VS Code). · spell
 
 - 2026-09-30 · Moving the tests under one root `vitest` run: four tests failed that pass in the package folder.
   They shell out to `npx vite build` and write `.cache/` with paths relative to the process's working directory,
@@ -782,6 +786,13 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   ... parameter property is not supported in strip-only mode`.  `tsx` and Vite accept it, so nothing else catches
   it. · In `tools/`, declare fields and assign them in the constructor, never `constructor(private readonly x)`.
   · spell/ui icon packs
+- 2026-09-30 · `yarn smoke` in `packages/ui` dies with `no vendor/importmap.json:  run yarn vendor first` on a fresh
+  checkout, and a stale `vendor/` after a rebuild tests old code. · `yarn vendor` after every `yarn build`, THEN
+  `yarn smoke` (its own `vite build` rebuilds `dist/` but not `vendor/`). · ui
+- 2026-09-30 · A `vite-plugin-dts` 5.x program rooted in `packages/ui` that reaches `#util` (`packages/util`) fails
+  with TS6059 and writes `dist/ui/src/**`;  its `pathsToAliases` then rewrites `$/x` to `../packages/ui/src/x`
+  (measured from the layout BEFORE a `beforeWriteFile` move). · `declarations()` in `packages/ui/vite.config.ts`:
+  `pathsToAliases: false` and rewrite specifiers there. · ui
 
 - 2026-09-30 · Deleted `nmHoistingLimits: workspaces` from `.yarnrc.yml` and `yarn install` STILL gave every package its
   own `node_modules` (three copies of Solid):  yarn merges `.yarnrc.yml` from every PARENT folder, and this worktree

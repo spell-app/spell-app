@@ -3,7 +3,7 @@ import { batch } from "@risingstack/react-easy-state"
 import _set from "lodash/set"
 import _unset from "lodash/unset"
 
-import { hasOwnProp } from "./class"
+import { hasOwnProp } from "#util"
 
 /** Export all `extend` functionality as a barrel. */
 export * as extend from "./extend"

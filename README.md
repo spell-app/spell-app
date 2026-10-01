@@ -29,6 +29,7 @@ components, a command line, and `@spell/ui`, a web component library that stands
 | [`packages/ui`](packages/ui/README.md)                       | `@spell/ui`            | Fomantic UI's vocabulary as modern-CSS web components on Solid 2, for any framework or plain HTML                |
 | [`packages/solid-element`](packages/solid-element/README.md) | `@spell/solid-element` | Custom elements for Solid 2:  our fork of `@solidjs/element` + `component-register`                              |
 | [`packages/cli`](packages/cli/README.md)                     | `@spell/cli`           | The `spell` command line:  compile, check, explore, watch, run and test spell projects                           |
+| [`packages/util`](packages/util/README.md)                   | `@spell/util`          | Small generic helpers shared by the others (`@proto`, class, string and DOM utilities);  imported as `#util`    |
 
 Each package has its own README (how to use it) and `AGENTS.md` (how it's built).  They're split further as the
 monorepo settles -- the generic parser, the runtime and the language server each become their own package.

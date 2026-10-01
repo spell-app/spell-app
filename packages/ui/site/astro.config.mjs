@@ -18,6 +18,8 @@ const ROOT = fileURLToPath(new URL("..", import.meta.url))
 const SRC = fileURLToPath(new URL("../src", import.meta.url))
 /** `../test`, target of `$test` (shared test helpers;  here only so shared source type-checks alike). */
 const TEST = fileURLToPath(new URL("../test", import.meta.url))
+/** `../../util/src`, target of the `#util` alias (`packages/util`, shared with `spell`);  its barrel is `index.ts`. */
+const UTIL = fileURLToPath(new URL("../../util/src", import.meta.url))
 /** The fork's source entry:  `@spell/solid-element` resolves here in dev AND build (no `dist/` needed). */
 const SOLID_ELEMENT = fileURLToPath(new URL("../../solid-element/src/index.ts", import.meta.url))
 
@@ -61,6 +63,8 @@ export default defineConfig({
     resolve: {
       // Array form so `$test` is matched before `$`;  string keys match `$` exactly or `$/...` only.
       alias: [
+        { find: /^#util$/, replacement: `${UTIL}/index.ts` },
+        { find: /^#util\//, replacement: `${UTIL}/` },
         { find: /^\$test(?=\/|$)/, replacement: TEST },
         { find: /^\$(?=\/|$)/, replacement: SRC },
         { find: /^@spell\/ui$/, replacement: `${SRC}/index.ts` },
