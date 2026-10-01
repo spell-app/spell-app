@@ -192,6 +192,12 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   `~/www/spell-app/spell`;  from a session started elsewhere, run agents without worktree isolation, one at a
   time. · monorepo
 
+- 2026-09-30 · Moving the tests under one root `vitest` run: four tests failed that pass in the package folder.
+  They shell out to `npx vite build` and write `.cache/` with paths relative to the process's working directory,
+  which is the repo root in a root run. · Give every child process an explicit `cwd` (the package folder, from
+  `environment.srcDir`) and resolve files from `import.meta.dirname`, never the bare working directory. ·
+  spell, ui
+
 ## ui
 
 - 2026-09-28 · `yarn install` with the global yarn (volta, 4.9.2) dies in the fetch step:

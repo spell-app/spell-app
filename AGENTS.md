@@ -10,7 +10,11 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 ## Overview
 
 - Spell:  the parser, the spell language and its tools, and `@spell/ui` -- one yarn workspace per folder in
-  `packages/`.  Root `yarn ts` / `yarn test` / `yarn review` run each package's own script of that name.
+  `packages/`.  Root `yarn ts` / `yarn review` run each package's own script of that name.
+  Root `yarn test` is different:  ONE vitest run over every package, via `projects` in the root `vitest.config.ts`
+  (`yarn test --project <package>` for one;  `yarn test:packages` for each package's own `test` script).
+  - A test MUST NOT depend on the process's working directory:  a root run has a different one.  Pass `cwd` to child
+    processes and resolve files from `import.meta.dirname`.
 - This file holds the conventions EVERY package shares.  Each package's `AGENTS.md` holds only what's local to it;
   a section there with the same name as one here EXTENDS it ("As the root's, plus:").
   - Codex reads every `AGENTS.md` from the root down to its working folder;  Claude Code loads the root `CLAUDE.md`
