@@ -120,7 +120,11 @@ export const FAMILY_FALLBACKS: readonly { family: string; html: string; root: st
     root: "[part~=reveal]"
   },
   { family: "ad", html: `<ui-ad unit="small rectangle" test></ui-ad>`, root: "[part~=ad]" },
-  { family: "emoji", html: `<ui-emoji name="smile" label="Happy"></ui-emoji>`, root: "[part~=emoji]" },
+  {
+    family: "emoji",
+    html: `<ui-emoji name="grinning_face_with_smiling_eyes" label="Happy"></ui-emoji>`,
+    root: "[part~=emoji]"
+  },
   {
     family: "select",
     html: `<ui-select placeholder="Fruit"><ui-item value="a">Apple</ui-item></ui-select>`,

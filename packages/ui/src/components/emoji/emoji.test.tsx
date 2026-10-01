@@ -1,4 +1,4 @@
-import { describe, expect, it, onTestFinished } from "vitest"
+import { afterEach, describe, expect, it, onTestFinished } from "vitest"
 
 import { expectAccessible } from "$/ui/test/a11y"
 
@@ -6,6 +6,7 @@ import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
 
 import { EmojiData } from "$/ui/components/emoji"
+import { emojiSetVocabulary } from "./emoji.vocabulary.en"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/emoji/examples/elements/*.html", {
@@ -25,6 +26,11 @@ async function render(html: string) {
 }
 
 describe("EmojiData", () => {
+  afterEach(() => {
+    for (const set of document.querySelectorAll("ui-emoji-set")) set.remove()
+    EmojiData.use("cldr")
+  })
+
   it("normalizes names:  colons, case, spaces", () => {
     expect(EmojiData.normalize(" :Smile: ")).toBe("smile")
     expect(EmojiData.normalize("Thumbs  Up")).toBe("thumbs_up")
@@ -38,53 +44,52 @@ describe("EmojiData", () => {
   })
 
   it("loads a name's chunk lazily, then answers synchronously", async () => {
-    expect(EmojiData.peek("zap")).toBeUndefined()
-    expect(await EmojiData.get("zap")).toBe("\u26A1")
-    expect(EmojiData.peek(":ZAP:")).toBe("\u26A1")
-    expect(EmojiData.peek("zebra")).toBe("\u{1F993}")
+    expect(EmojiData.peek("high_voltage")).toBeUndefined()
+    expect(await EmojiData.get("high_voltage")).toBe("\u26A1")
+    expect(EmojiData.peek(":HIGH_VOLTAGE:")).toBe("\u26A1")
+    expect(EmojiData.peek("zebra")).toBeUndefined()
+    expect(await EmojiData.get("zebra")).toBe("\u{1F993}")
   })
 
   it("restores U+FE0F where the glyph would otherwise be text", async () => {
-    expect(await EmojiData.get("sunny")).toBe("\u2600\uFE0F")
-    expect(await EmojiData.get("one")).toBe("1\uFE0F\u20E3")
-    expect(await EmojiData.get("flag_us")).toBe("\u{1F1FA}\u{1F1F8}")
-    expect(await EmojiData.get("100")).toBe("\u{1F4AF}")
+    expect(await EmojiData.get("sun")).toBe("\u2600\uFE0F")
+    expect(await EmojiData.get("keycap_1")).toBe("1\uFE0F\u20E3")
+    expect(await EmojiData.get("flag_united_states")).toBe("\u{1F1FA}\u{1F1F8}")
+    expect(await EmojiData.get("hundred_points")).toBe("\u{1F4AF}")
   })
 
-  it("names are CLDR shortcodes;  Fomantic's names are aliases of the same character", async () => {
+  it("names are CLDR shortcodes by default, and Fomantic's names are NOT resolved", async () => {
+    expect(EmojiData.names).toBe("cldr")
     const thumbs = "\u{1F44D}"
     expect(await EmojiData.get("thumbs_up")).toBe(thumbs)
-    expect(await EmojiData.get("thumbsup")).toBe(thumbs)
-    expect(await EmojiData.get(":thumbsup:")).toBe(thumbs)
+    expect(await EmojiData.get(":thumbs_up:")).toBe(thumbs)
     expect(await EmojiData.get("Thumbs Up")).toBe(thumbs)
-    expect(await EmojiData.get("thumbsup_tone1")).toBe("\u{1F44D}\u{1F3FB}")
     expect(await EmojiData.get("thumbs_up_tone1")).toBe("\u{1F44D}\u{1F3FB}")
-    expect(await EmojiData.get("grinning_face_with_smiling_eyes")).toBe(await EmojiData.get("smile"))
-    expect(await EmojiData.get("flag_united_states")).toBe(await EmojiData.get("flag_us"))
     expect(await EmojiData.get("1st_place_medal")).toBe("\u{1F947}")
+    // Fomantic-only names (`thumbsup_tone1` is not:  its words, joined, are `thumbs_up_tone1`'s)
+    for (const name of ["smile", "flag_us", "sunny"]) {
+      expect(await EmojiData.get(name), name).toBeUndefined()
+    }
   })
 
-  it("CLDR's meaning wins where a Fomantic name is another emoji's CLDR name", async () => {
-    // Fomantic's `dog` is the face (U+1F436), CLDR's `dog` the whole dog (U+1F415), which is `dog2` in Fomantic
+  it("`cldr` means CLDR's pictures:  `dog` is the whole dog, `pencil` the pencil", async () => {
     expect(await EmojiData.get("dog")).toBe("\u{1F415}")
-    expect(await EmojiData.get("dog_face")).toBe("\u{1F436}")
-    expect(await EmojiData.get("dog2")).toBe("\u{1F415}")
     expect(await EmojiData.get("pencil")).toBe("\u{270F}\u{FE0F}")
     expect(await EmojiData.get("memo")).toBe("\u{1F4DD}")
   })
 
   it("finds a CLDR name however its words are joined:  spaces, dashes, camelCase, or none", async () => {
-    const bubble = "\u{1F441}️‍\u{1F5E8}️"
+    const bubble = "\u{1F441}\uFE0F\u200D\u{1F5E8}\uFE0F"
     for (const name of ["eye in speech bubble", "eye-in-speech-bubble", "eyeInSpeechBubble", "eyeinspeechbubble"]) {
       expect(await EmojiData.get(name), name).toBe(bubble)
     }
-    // the one clash in the data:  an exact name first (Fomantic's `icecream`), else the CLDR spelling
-    expect(await EmojiData.get("icecream")).toBe("\u{1F366}")
-    for (const name of ["ice cream", "ice-cream", "iceCream"]) expect(await EmojiData.get(name), name).toBe("\u{1F368}")
+    for (const name of ["thumbs up", "thumbs-up", "thumbsUp", "thumbsup"]) {
+      expect(await EmojiData.get(name), name).toBe("\u{1F44D}")
+    }
   })
 
   it("adds U+FE0F only to emoji that default to text (the data says which)", async () => {
-    expect(await EmojiData.get("hourglass")).toBe("⌛")
+    expect(await EmojiData.get("hourglass_done")).toBe("⌛")
     expect(await EmojiData.get("eye_in_speech_bubble")).toBe("\u{1F441}️‍\u{1F5E8}️")
     expect(await EmojiData.get("copyright")).toBe("©️")
   })
@@ -97,6 +102,105 @@ describe("EmojiData", () => {
   })
 })
 
+describe("EmojiData name sets", () => {
+  afterEach(() => {
+    for (const set of document.querySelectorAll("ui-emoji-set")) set.remove()
+    EmojiData.use("cldr")
+  })
+
+  it("`fomantic` is Fomantic's names with Fomantic's meanings, and no CLDR-only name", async () => {
+    EmojiData.use("fomantic")
+    expect(EmojiData.names).toBe("fomantic")
+    expect(await EmojiData.get("thumbsup")).toBe("\u{1F44D}")
+    expect(await EmojiData.get(":smile:")).toBe("\u{1F604}")
+    expect(await EmojiData.get("flag_us")).toBe("\u{1F1FA}\u{1F1F8}")
+    expect(await EmojiData.get("dog")).toBe("\u{1F436}")
+    expect(await EmojiData.get("pencil")).toBe("\u{1F4DD}")
+    // CLDR-only names (`thumbs_up` is not:  its words, joined, are Fomantic's `thumbsup`)
+    for (const name of ["grinning_face_with_smiling_eyes", "red_heart", "high_voltage"]) {
+      expect(await EmojiData.get(name), name).toBeUndefined()
+    }
+  })
+
+  it("`fomantic` keeps the loose lookup, and an exact `icecream` beats `ice_cream`", async () => {
+    EmojiData.use("fomantic")
+    for (const name of ["thumbs up", "thumbs-up", "thumbsUp"]) expect(await EmojiData.get(name), name).toBe("\u{1F44D}")
+    expect(await EmojiData.get("icecream")).toBe("\u{1F366}")
+    expect(await EmojiData.get("ice_cream")).toBe("\u{1F368}")
+    for (const name of ["ice cream", "ice-cream", "iceCream"]) expect(await EmojiData.get(name), name).toBe("\u{1F368}")
+  })
+
+  it("switching clears the old set's names", async () => {
+    expect(await EmojiData.get("thumbs_up")).toBe("\u{1F44D}")
+    EmojiData.use("fomantic")
+    expect(EmojiData.peek("thumbs_up")).toBeUndefined()
+    expect(await EmojiData.get("thumbsup")).toBe("\u{1F44D}")
+    EmojiData.use("cldr")
+    expect(EmojiData.peek("thumbsup")).toBeUndefined()
+    expect(await EmojiData.get("thumbs_up")).toBe("\u{1F44D}")
+  })
+
+  it("a switch while a chunk loads keeps the old set's names out of the new set", async () => {
+    const pending = EmojiData.get("thumbs_up")
+    EmojiData.use("fomantic")
+    await pending
+    expect(EmojiData.peek("thumbs_up")).toBeUndefined()
+  })
+
+  it("an unknown set means the default", () => {
+    EmojiData.use("fomantic")
+    EmojiData.use("klingon")
+    expect(EmojiData.names).toBe("cldr")
+  })
+
+  it("registered names survive a switch and apply to any set", async () => {
+    EmojiData.register("Approve", "\u{1F44D}")
+    expect(EmojiData.peek("approve")).toBe("\u{1F44D}")
+    EmojiData.use("fomantic")
+    expect(EmojiData.peek("approve")).toBe("\u{1F44D}")
+    EmojiData.use("cldr")
+    expect(EmojiData.peek("approve")).toBe("\u{1F44D}")
+  })
+
+  it("<ui-emoji-set> in the document before the first lookup picks the set", async () => {
+    EmojiData.reset()
+    const holder = await ElementFixture.render(
+      `<div><ui-emoji-set names="cldr"></ui-emoji-set><ui-emoji-set names="fomantic"></ui-emoji-set></div>`
+    )
+    expect(holder).toBeTruthy()
+    expect(await EmojiData.get("thumbsup")).toBe("\u{1F44D}")
+    expect(EmojiData.names).toBe("fomantic")
+  })
+
+  it("<ui-emoji-set> with no `names` is the default set", async () => {
+    EmojiData.reset()
+    await ElementFixture.render(`<ui-emoji-set></ui-emoji-set>`)
+    expect(EmojiData.names).toBe("cldr")
+    expect(await EmojiData.get("thumbs_up")).toBe("\u{1F44D}")
+  })
+
+  it("one connected later switches LATER lookups only", async () => {
+    const drawn = await render(`<ui-emoji name="thumbs_up"></ui-emoji>`)
+    expect(drawn.root.textContent).toBe("\u{1F44D}")
+    expect(EmojiData.names).toBe("cldr")
+    await ElementFixture.render(`<ui-emoji-set names="fomantic"></ui-emoji-set>`)
+    await ElementFixture.tick()
+    expect(EmojiData.names).toBe("fomantic")
+    expect(drawn.root.textContent).toBe("\u{1F44D}")
+    const later = await render(`<ui-emoji name="smile"></ui-emoji>`)
+    expect(later.root.textContent).toBe("\u{1F604}")
+  })
+
+  it("has a vocabulary with the `names` enum", () => {
+    expect(emojiSetVocabulary.tag).toBe("ui-emoji-set")
+    expect(emojiSetVocabulary.attributes[0]).toMatchObject({
+      name: "names",
+      values: ["cldr", "fomantic"],
+      default: "cldr"
+    })
+  })
+})
+
 describe("<ui-emoji>", () => {
   it.each([
     ["", "ui emoji"],
@@ -105,21 +209,21 @@ describe("<ui-emoji>", () => {
     ['size="big" link', "ui big link emoji"],
     ["disabled loading", "ui disabled loading emoji"]
   ])("<ui-emoji name=smile %s>", async (attributes, classes) => {
-    const { root } = await render(`<ui-emoji name="smile" ${attributes}></ui-emoji>`)
+    const { root } = await render(`<ui-emoji name="grinning_face_with_smiling_eyes" ${attributes}></ui-emoji>`)
     expect(root.className).toBe(classes)
     expect(root.getAttribute("part")).toBe("emoji")
     expect(root.localName).toBe("span")
   })
 
   it("draws the native emoji as plain text by default:  assistive tech reads its Unicode name", async () => {
-    const { root } = await render(`<ui-emoji name=":smile:"></ui-emoji>`)
+    const { root } = await render(`<ui-emoji name=":grinning_face_with_smiling_eyes:"></ui-emoji>`)
     expect(root.textContent).toBe("\u{1F604}")
     expect(root.hasAttribute("role")).toBe(false)
     expect(root.hasAttribute("aria-hidden")).toBe(false)
   })
 
   it("is a named image with label, decorative with a bare label", async () => {
-    const { root } = await render(`<ui-emoji name="thumbsup" label="Approved"></ui-emoji>`)
+    const { root } = await render(`<ui-emoji name="thumbs_up" label="Approved"></ui-emoji>`)
     expect(root.getAttribute("role")).toBe("img")
     expect(root.getAttribute("aria-label")).toBe("Approved")
     const decorative = await render(`<ui-emoji name="sparkles" label></ui-emoji>`)
@@ -143,19 +247,19 @@ describe("<ui-emoji>", () => {
   })
 
   it("follows name changes, the latest request winning", async () => {
-    const { host, root } = await render(`<ui-emoji name="smile"></ui-emoji>`)
-    host.setAttribute("name", "yum")
+    const { host, root } = await render(`<ui-emoji name="grinning_face_with_smiling_eyes"></ui-emoji>`)
+    host.setAttribute("name", "face_savoring_food")
     host.setAttribute("name", "rocket")
     await EmojiData.get("rocket")
-    await EmojiData.get("yum")
+    await EmojiData.get("face_savoring_food")
     await ElementFixture.tick()
     expect(root.textContent).toBe("\u{1F680}")
   })
 
   it("sizes on Fomantic's ladder against the text, and dims / spins", async () => {
     const holder = await ElementFixture.render(
-      `<p style="font-size: 20px"><ui-emoji name="smile"></ui-emoji><ui-emoji name="smile" size="small"></ui-emoji>` +
-        `<ui-emoji name="smile" size="large"></ui-emoji><ui-emoji name="smile" size="big" disabled loading></ui-emoji></p>`
+      `<p style="font-size: 20px"><ui-emoji name="grinning_face_with_smiling_eyes"></ui-emoji><ui-emoji name="grinning_face_with_smiling_eyes" size="small"></ui-emoji>` +
+        `<ui-emoji name="grinning_face_with_smiling_eyes" size="large"></ui-emoji><ui-emoji name="grinning_face_with_smiling_eyes" size="big" disabled loading></ui-emoji></p>`
     )
     const roots = [...holder.querySelectorAll<UIHost>("ui-emoji")].map(
       (host) => host.shadowRoot!.firstElementChild as HTMLElement
@@ -168,7 +272,7 @@ describe("<ui-emoji>", () => {
 
   it("isn't scaled twice inside a sized component", async () => {
     const holder = await ElementFixture.render(
-      `<div class="ui-large" style="--ui-scale: 2; font-size: 16px"><ui-emoji name="smile"></ui-emoji></div>`
+      `<div class="ui-large" style="--ui-scale: 2; font-size: 16px"><ui-emoji name="grinning_face_with_smiling_eyes"></ui-emoji></div>`
     )
     const root = holder.querySelector<UIHost>("ui-emoji")!.shadowRoot!.firstElementChild!
     expect(parseFloat(getComputedStyle(root).fontSize)).toBe(16)
@@ -182,7 +286,7 @@ describe("<ui-emoji> tokens from outside", () => {
   }
 
   /** The element under test. */
-  const MARKUP = `<ui-emoji name="smile"></ui-emoji>`
+  const MARKUP = `<ui-emoji name="grinning_face_with_smiling_eyes"></ui-emoji>`
 
   it("takes a token set on the HOST", async () => {
     const host = await ElementFixture.render(MARKUP.replace("<ui-emoji", `<ui-emoji style="--ui-emoji-opacity: 0.5"`))
@@ -219,7 +323,7 @@ describe("<ui-emoji> tokens from outside", () => {
 
   it("variations:  a size reads its ratio token", async () => {
     const host = await ElementFixture.render(
-      `<div style="font-size: 16px"><ui-emoji name="smile" size="large" style="--ui-emoji-size-large: 4"></ui-emoji></div>`
+      `<div style="font-size: 16px"><ui-emoji name="grinning_face_with_smiling_eyes" size="large" style="--ui-emoji-size-large: 4"></ui-emoji></div>`
     )
     const root = host.querySelector("ui-emoji")!.shadowRoot!.querySelector("[part~=emoji]")!
     expect(getComputedStyle(root).fontSize).toBe("64px")

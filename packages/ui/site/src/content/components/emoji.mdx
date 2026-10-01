@@ -16,11 +16,11 @@ import VocabularyTable from "../../components/VocabularyTable.astro"
 // How each emoji looks depends on the reader's platform emoji font, so screenshots differ between systems.
 
 <Section title="Types">
-  <Example title="Emoji" description="An emoji is a glyph used to represent something else.  `name` takes one of Fomantic's emoji names.">
-    <p><ui-emoji name="smile"></ui-emoji> <ui-emoji name="joy"></ui-emoji> <ui-emoji name="thumbsup"></ui-emoji> <ui-emoji name="heart"></ui-emoji> <ui-emoji name="sunny"></ui-emoji> <ui-emoji name="flag_us"></ui-emoji> <ui-emoji name="one"></ui-emoji> <ui-emoji name="woman_technologist"></ui-emoji></p>
+  <Example title="Emoji" description="An emoji is a glyph used to represent something else.  `name` takes an emoji's CLDR name, Unicode's own.">
+    <p><ui-emoji name="grinning_face_with_smiling_eyes"></ui-emoji> <ui-emoji name="face_with_tears_of_joy"></ui-emoji> <ui-emoji name="thumbs_up"></ui-emoji> <ui-emoji name="red_heart"></ui-emoji> <ui-emoji name="sun"></ui-emoji> <ui-emoji name="flag_united_states"></ui-emoji> <ui-emoji name="keycap_1"></ui-emoji> <ui-emoji name="woman_technologist"></ui-emoji></p>
   </Example>
   <Example title="In text" description="An emoji sits in running text at the size of the text.  `label` names one that means something else in context.">
-    <p>That was <ui-emoji name=":joy:"></ui-emoji> hilarious, thanks <ui-emoji name="thumbsup" label="Approved"></ui-emoji></p>
+    <p>That was <ui-emoji name=":face_with_tears_of_joy:"></ui-emoji> hilarious, thanks <ui-emoji name="thumbs_up" label="Approved"></ui-emoji></p>
   </Example>
   <Example title="Decorative" description="An empty `label` marks an emoji as decoration, hidden from assistive technology.">
     <p><ui-emoji name="sparkles" label=""></ui-emoji> New features</p>
@@ -28,27 +28,47 @@ import VocabularyTable from "../../components/VocabularyTable.astro"
 </Section>
 
 <Section title="Content">
-  <Example title="Names" description="A name can be written with or without Fomantic's `:colons:`, in any case, with spaces for underscores.  These are two emoji, written three ways each.">
-    <p><ui-emoji name="smile"></ui-emoji> <ui-emoji name=":smile:"></ui-emoji> <ui-emoji name="Smile"></ui-emoji> <ui-emoji name="woman_technologist"></ui-emoji> <ui-emoji name=":woman_technologist:"></ui-emoji> <ui-emoji name="Woman Technologist"></ui-emoji></p>
+  <Example title="Names" description="A name can be written with or without `:colons:`, in any case, with spaces, dashes or camelCase for underscores.  These are two emoji, written three ways each.">
+    <p><ui-emoji name="grinning_face_with_smiling_eyes"></ui-emoji> <ui-emoji name=":grinning_face_with_smiling_eyes:"></ui-emoji> <ui-emoji name="Grinning Face With Smiling Eyes"></ui-emoji> <ui-emoji name="woman_technologist"></ui-emoji> <ui-emoji name=":woman_technologist:"></ui-emoji> <ui-emoji name="Woman Technologist"></ui-emoji></p>
   </Example>
 </Section>
 
 <Section title="States">
   <Example title="Disabled" description="An emoji can show that it is disabled.">
-    <p><ui-emoji name="smile" disabled></ui-emoji></p>
+    <p><ui-emoji name="grinning_face_with_smiling_eyes" disabled></ui-emoji></p>
   </Example>
   <Example title="Loading" description="An emoji can be used as a simple loader.  It stands still when the reader asks for reduced motion.">
-    <p><ui-emoji name="hourglass" loading></ui-emoji></p>
+    <p><ui-emoji name="hourglass_done" loading></ui-emoji></p>
   </Example>
 </Section>
 
 <Section title="Variations">
   <Variation title="Size" description="An emoji can vary in size against the surrounding text:  `small` is 1.5 times the text, `large` 6 times and `big` 7.5 times.  Without `size` (or with `medium`) it is the size of the text.">
-    <p><ui-emoji name="smile" size="small"></ui-emoji> <ui-emoji name="smile"></ui-emoji> <ui-emoji name="smile" size="large"></ui-emoji> <ui-emoji name="smile" size="big"></ui-emoji></p>
+    <p><ui-emoji name="grinning_face_with_smiling_eyes" size="small"></ui-emoji> <ui-emoji name="grinning_face_with_smiling_eyes"></ui-emoji> <ui-emoji name="grinning_face_with_smiling_eyes" size="large"></ui-emoji> <ui-emoji name="grinning_face_with_smiling_eyes" size="big"></ui-emoji></p>
   </Variation>
   <Variation title="Link" description="An emoji can be formatted as a link.  `link` is only the look, a pointer cursor:  wrap the emoji in a `<button>` or `<a>` that does the work, and name that.">
-    <p><button type="button" aria-label="React with a heart" style="border: 0; background: none; padding: 0"><ui-emoji name="heart" link></ui-emoji></button></p>
+    <p><button type="button" aria-label="React with a heart" style="border: 0; background: none; padding: 0"><ui-emoji name="red_heart" link></ui-emoji></button></p>
   </Variation>
+</Section>
+
+<Section title="Fomantic's names">
+  A page that was written for [Fomantic's emoji list](https://fomantic-ui.com/elements/emoji.html) can keep its names:
+  a `<ui-emoji-set names="fomantic">` anywhere in the page switches every emoji to them (`thumbsup`, `smile`, `flag_us`,
+  `one` for the keycap, the shortcodes Discord and JoyPixels use), with FOMANTIC's meanings:  `dog` is the dog's face
+  there, the whole dog in CLDR.  The two sets are never mixed, so the CLDR names stop working.
+
+```html
+<ui-emoji-set names="fomantic"></ui-emoji-set>
+<p><ui-emoji name="smile"></ui-emoji> <ui-emoji name="thumbsup"></ui-emoji> <ui-emoji name="flag_us"></ui-emoji> <ui-emoji name="dog"></ui-emoji></p>
+<!-- 😄 👍 🇺🇸 🐶 -->
+```
+
+  There is no live example here:  the name set is the whole page's, so one on this page would switch every other
+  example on it.
+
+  A switch affects LATER lookups only:  an emoji already drawn keeps its glyph, so put the element at the top of the
+  page (the page reads the last one it finds at its first lookup).  From JavaScript, `EmojiData.use("fomantic")`
+  does the same.
 </Section>
 
 <Section title="Behaviour">
@@ -56,21 +76,20 @@ import VocabularyTable from "../../components/VocabularyTable.astro"
   download and no per-emoji CSS, and it looks like the other emoji on their system.
 
   `name` takes an emoji's CLDR shortcode, Unicode's own name for it (`thumbs_up`, `grinning_face_with_smiling_eyes`,
-  `flag_united_states`, `rocket`), or the name [Fomantic's emoji list](https://fomantic-ui.com/elements/emoji.html)
-  gives it (`thumbsup`, `smile`, `flag_us`, `one` for the keycap, the shortcodes Discord and JoyPixels use):  both
-  draw the same emoji, 5,334 names in all.  Where a Fomantic name is also the CLDR name of a different emoji (`dog`
-  is the dog's face in Fomantic, the whole dog in CLDR), CLDR's meaning wins:  19 names, each of Fomantic's
-  pictures still reachable by another name (`dog_face`).  A name is case-blind, may keep its `:colons:`, and its words may be joined any way:  `thumbs_up`, `thumbs up`, `thumbs-up`, `thumbsUp` (handy from JS), `thumbsup`.  An
-  unknown name draws nothing.
+  `flag_united_states`, `rocket`).  A name is case-blind, may keep its `:colons:`, and its words may be joined any
+  way:  `thumbs_up`, `thumbs up`, `thumbs-up`, `thumbsUp` (handy from JS), `thumbsup`.  An unknown name draws nothing.
+  These are the page's default NAME SET, `cldr`;  [Fomantic's names](#fomantics-names) are another, and a page uses
+  one set at a time.
 
   The names load in small pieces, one per first letter, the first time a name starting with that letter is used;
-  later emoji from the same piece draw at once.  `EmojiData`, exported with the element, preloads a name or adds
-  your own:
+  later emoji from the same piece draw at once.  `EmojiData`, exported with the element, picks the name set, preloads
+  a name or adds your own:
 
 ```js
 import { EmojiData } from "@spell-app/ui/emoji"
 
-EmojiData.register("approve", "👍") // <ui-emoji name="approve"> now draws 👍
+EmojiData.use("fomantic") // later lookups use Fomantic's names;  "cldr" is the default
+EmojiData.register("approve", "👍") // <ui-emoji name="approve"> now draws 👍, in either set
 await EmojiData.get("tada") // loads the "t" names;  resolves to "🎉"
 ```
 

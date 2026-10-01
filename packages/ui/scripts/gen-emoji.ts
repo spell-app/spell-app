@@ -1,17 +1,14 @@
 /**
- * Generates `src/components/emoji/data/<chunk>.json`:  emoji NAMES => native Unicode emoji, one JSON file per first
- * letter of the name, which `EmojiData` loads lazily.
+ * Generates `src/components/emoji/data/<set>/<chunk>.json`:  emoji NAMES => native Unicode emoji, one JSON file per
+ * first letter of the name, per NAME SET, which `EmojiData` loads lazily.
  * - Run with `yarn gen:emoji` (`tsc -p scripts && tsx scripts/gen-emoji.ts`).
- * - Sources, both read at generation time only (NOTHING new ships at runtime;  `emojibase-data` is a devDependency):
- *   - `emojibase-data` (`en/data.json` + `en/shortcodes/cldr.json`):  every RGI emoji (Unicode / CLDR), its code
- *     points, its presentation (`type`:  0 = text by default, 1 = emoji by default) and its CLDR shortcode
- *     (`thumbs_up`, `grinning_face_with_smiling_eyes`, `flag_united_states`).  These are the NAMES.
- *   - Fomantic's `@emoji-map` in `reference/Fomantic-UI/src/themes/default/elements/emoji.variables` (read, never
- *     written), `<twemoji code points>: <name>;`.  Its names that differ from the CLDR one are kept as ALIASES of the
- *     same character (`thumbsup`, `smile`, `flag_us`, `thumbsup_tone1`), so existing pages keep drawing.
- *     - If an alias is also the CLDR name of ANOTHER emoji (`dog`:  Fomantic's is the dog face, CLDR's the whole dog),
- *       CLDR's meaning wins (Owen, 2026-10-01:  its pictures fit the names better);  Fomantic's emoji keeps its
- *       other names (`dog_face`).  19 names;  the clashes are logged.
+ * - Two sets, never merged (`EmojiData.use()` picks one, `<ui-emoji-set names>` does it from HTML).  Sources are read
+ *   at generation time only (NOTHING new ships at runtime;  `emojibase-data` is a devDependency):
+ *   - `cldr` (the default):  every emoji `emojibase-data` (`en/data.json` + `en/shortcodes/cldr.json`) gives a CLDR
+ *     shortcode (`thumbs_up`, `grinning_face_with_smiling_eyes`, `flag_united_states`)
+ *   - `fomantic`:  Fomantic's `@emoji-map` in `reference/Fomantic-UI/src/themes/default/elements/emoji.variables`
+ *     (read, never written), `<twemoji code points>: <name>;`, with FOMANTIC's meanings (`dog` is the dog face,
+ *     `pencil` the memo).  Each entry's emoji is looked up in emojibase by its code points.
  * - The character comes from emojibase's HEX CODE, with U+FE0F where the emoji would otherwise show as TEXT:
  *   emojibase's hex codes already have it in sequences (keycaps, ZWJ);  for a text-default emoji (`type` 0, `2600`
  *   sunny, `00a9` copyright) the generator adds it after the first code point.  No hand-written presentation
@@ -23,7 +20,7 @@
  *   `EmojiData.chunkOf()` MUST agree.
  */
 
-import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs"
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
@@ -48,8 +45,8 @@ interface EmojiEntry {
 ////////////////
 
 /**
- * Builds every file under `src/components/emoji/data/` from emojibase's CLDR names plus Fomantic's names.
- * - `run()` reads both, turns each emoji into its character, adds the aliases, groups by chunk and writes the files.
+ * Builds every file under `src/components/emoji/data/`:  one folder per name set.
+ * - `run()` reads both sources, turns each emoji into its character, builds each set, groups by chunk and writes.
  */
 class EmojiGenerator {
   /** Repo root. */
@@ -61,7 +58,7 @@ class EmojiGenerator {
     "reference/Fomantic-UI/src/themes/default/elements/emoji.variables"
   )
 
-  /** Output directory;  emptied first, so a dropped emoji doesn't linger. */
+  /** Output directory;  emptied first, so a dropped emoji or set doesn't linger. */
   static readonly OUT = path.join(EmojiGenerator.ROOT, "src/components/emoji/data")
 
   /** Variation selector 16:  "show as an emoji". */
@@ -73,15 +70,17 @@ class EmojiGenerator {
   /** Generate everything;  logs a summary. */
   run() {
     const emojis = this.emojibase()
-    const names = this.cldrNames(emojis)
-    const aliases = this.addFomantic(names, emojis, this.read(readFileSync(EmojiGenerator.SOURCE, "utf8")))
-    const chunks = this.chunk([...names])
-    this.write(chunks)
-    const sizes = [...chunks].map(([key, map]) => `${key} ${Object.keys(map).length}`)
-    console.log(
-      `gen-emoji:  ${names.size} names (${emojis.size} emoji, ${aliases} Fomantic aliases) in ${chunks.size} chunks ` +
-        `(${sizes.join(", ")})`
-    )
+    const sets = {
+      cldr: this.cldrNames(emojis),
+      fomantic: this.fomanticNames(emojis, this.read(readFileSync(EmojiGenerator.SOURCE, "utf8")))
+    }
+    rmSync(EmojiGenerator.OUT, { recursive: true, force: true })
+    for (const [set, names] of Object.entries(sets)) {
+      const chunks = this.chunk([...names])
+      this.write(set, chunks)
+      const sizes = [...chunks].map(([key, map]) => `${key} ${Object.keys(map).length}`)
+      console.log(`gen-emoji:  ${set}:  ${names.size} names in ${chunks.size} chunks (${sizes.join(", ")})`)
+    }
   }
 
   /** Every emojibase emoji and skin variant, by comparison key (`EmojiGenerator.key()`). */
@@ -112,28 +111,17 @@ class EmojiGenerator {
   }
 
   /**
-   * Add Fomantic's names that differ from the CLDR one as aliases (CLDR's meaning wins a name clash);
-   * returns how many were added.  Throws if a Fomantic emoji is unknown to emojibase.
+   * Fomantic's name => emoji, for every `@emoji-map` entry (the first entry of a repeated name wins).
+   * Throws if a Fomantic emoji is unknown to emojibase.
    */
-  addFomantic(
-    names: Map<string, string>,
-    emojis: Map<string, EmojiEntry>,
-    fomantic: [codes: string, name: string][]
-  ): number {
-    let added = 0
+  fomanticNames(emojis: Map<string, EmojiEntry>, fomantic: [codes: string, name: string][]): Map<string, string> {
+    const names = new Map<string, string>()
     for (const [codes, name] of fomantic) {
       const found = emojis.get(EmojiGenerator.key(codes))
       if (!found) throw new Error(`gen-emoji:  Fomantic's ${name} (${codes}) is not in emojibase-data`)
-      if ([this.shortcodes[found.hexcode] ?? []].flat()[0] === name) continue
-      const clash = names.get(name)
-      if (clash !== undefined && clash !== found.emoji) {
-        console.log(`gen-emoji:  clash:  ${name} is Fomantic's ${found.emoji}, CLDR's ${clash} (CLDR wins)`)
-        continue
-      }
-      names.set(name, found.emoji)
-      added++
+      if (!names.has(name)) names.set(name, found.emoji)
     }
-    return added
+    return names
   }
 
   /** `[twemoji code points, name]` for every `@emoji-map` entry, in source order. */
@@ -165,14 +153,12 @@ class EmojiGenerator {
     return chunks
   }
 
-  /** Empty the output directory, then write one compact JSON file per chunk. */
-  write(chunks: Map<string, Record<string, string>>) {
-    mkdirSync(EmojiGenerator.OUT, { recursive: true })
-    for (const file of readdirSync(EmojiGenerator.OUT)) {
-      if (file.endsWith(".json")) rmSync(path.join(EmojiGenerator.OUT, file))
-    }
+  /** Write one JSON file (2-space indent) per chunk of `set`. */
+  write(set: string, chunks: Map<string, Record<string, string>>) {
+    const folder = path.join(EmojiGenerator.OUT, set)
+    mkdirSync(folder, { recursive: true })
     for (const [key, map] of chunks) {
-      writeFileSync(path.join(EmojiGenerator.OUT, `${key}.json`), `${JSON.stringify(map, null, 2)}\n`)
+      writeFileSync(path.join(folder, `${key}.json`), `${JSON.stringify(map, null, 2)}\n`)
     }
   }
 

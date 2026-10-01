@@ -29,11 +29,12 @@ First public version:  Fomantic UI 2.9.4's vocabulary as `ui-*` custom elements 
 - **Fallbacks**:  an element whose render throws shows a native fallback, gets `:state(errored)` and dispatches a
   cancelable `ui-error`;  siblings keep working.
 - **Invoker commands**:  `<ui-button commandfor command>` forwards to its inner `<button>`, with a JS fallback for
-  browsers without invokers (`UI.browser.supports.invokers`);  modal, flyout, sidebar and dimmer answer `--show`,
-  `--close` and `--toggle`.
+  browsers without invokers (`UI.browser.supports.invokers`);  modal, flyout, sidebar, dimmer, popup and dropdown
+  answer `--show`, `--close` and `--toggle`;  toast answers `--close`.
 - Modal `closedby="any | closerequest | none"`;  `closable="false"` keeps Fomantic's meaning (no icon, no dismissal).
 - Popup `hoverable` (on by default, WCAG 1.4.13);  `hoverable="false"` is Fomantic's default behaviour.
-- Emoji names are CLDR shortcodes, with Fomantic's names as aliases.
+- Emoji names are CLDR shortcodes (words joined any way:  `thumbs up`, `thumbsUp`);  a page opts in to Fomantic's names
+  with `<ui-emoji-set names="fomantic">`.
 - Sidebar and flyout `width` take Fomantic's words (`very thin` ... `very wide`) and columns / fractions / %.
 - Container scrolling height per breakpoint:  `--ui-container-scrolling-height-{tablet,computer,widescreen}`.
 - Works from any framework or plain HTML;  checked with vanilla, React 19, Vue 3, Solid 2 and Solid 1.9 hosts

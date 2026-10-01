@@ -170,7 +170,9 @@
             <li>Emoji names data grew ~35% (a page still loads one ~5 kB chunk).</li>
             <li>
               Emoji names are English only: translated names (emojibase ships CLDR names in 30 languages) are planned in
-              <a href="../ui/docs/translation.md" target="src-packages-ui-docs-translation-md"><code>packages/ui/docs/translation.md</code></a>, "Emoji names".
+              <a href="../ui/docs/translation.md" target="src-packages-ui-docs-translation-md"
+                ><code>packages/ui/docs/translation.md</code></a
+              >, "Emoji names".
             </li>
             <li>
               The rest:
@@ -194,13 +196,15 @@
             >
             <ul>
               <li>
-                <code>&lt;ui-emoji name&gt;</code> now takes CLDR's names (Unicode's official short names), plus every
-                Fomantic name as an alias.
+                <code>&lt;ui-emoji name&gt;</code> takes CLDR's names (Unicode's official short names), with the words
+                joined any way (<code>thumbs_up</code>, <code>thumbs up</code>, <code>thumbsUp</code>,
+                <code>thumbsup</code>).
               </li>
-              <li>19 names exist in BOTH lists but mean different pictures.</li>
+              <li>19 names exist in both CLDR's and Fomantic's lists but mean different pictures (below).</li>
               <li>
-                <b>Decided (Owen, 2026-10-01): CLDR wins</b>; a page using one of these names now shows the right-hand
-                picture, and gets the left-hand one by its other name.
+                <b>Decided (Owen, 2026-10-01):</b> CLDR's names by default; a page opts in to Fomantic's names, with
+                Fomantic's pictures, by <code>&lt;ui-emoji-set names="fomantic"&gt;</code> (or
+                <code>EmojiData.use("fomantic")</code>), like an icon pack. One set at a time, never both.
               </li>
             </ul>
             <ui-table celled compact striped unstackable>

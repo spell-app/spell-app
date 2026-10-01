@@ -33,6 +33,8 @@ Each finding:  component, symptom, repro, the workaround used here, a suggested 
    - symptom:  importing `@spell-app/ui` pulls both in, even for pages with no emoji / calendar widgets
    - repro:  bundle `import "@spell-app/ui"`;  inspect the output
    - workaround:  none, the bundle carries them (2 MB, 481 KB gzip)
+   - 2026-10-01:  emoji names are now two sets (`cldr`, default;  `fomantic`, opt-in), and a single-file build
+     inlines both:  2.36 MB, 533 KB gzip.  A bundler option to keep one set (`cldr`) would take ~30 KB gzip back.
    - suggest:  keep them behind the families that need them, or a documented per-family entry that a bundler can
      tree-shake
 

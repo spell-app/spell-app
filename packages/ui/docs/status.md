@@ -67,7 +67,7 @@ links open in an editor tab;  `.md` links do too because `.vscode/settings.json`
 | rail | B | `ui-rail` | ✅ | 28 | 2.87 | — | [✅](../site/src/content/components/rail.mdx) | 🚧 local | `position="left\|right"` for the side |
 | reveal | B | `ui-reveal` | ✅ | 33 | 4.07 | ✅ | [✅](../site/src/content/components/reveal.mdx) | 🚧 local | `visible` / `hidden` slots;  reveals on hover, `active` AND focus (a tab stop unless the content is focusable);  instant under reduced motion |
 | ad | B | `ui-ad` | ✅ | 45 | 3.42 | — | [✅](../site/src/content/components/ad.mdx) | 🚧 local | IAB units as `unit="medium rectangle"` |
-| emoji | B | `ui-emoji` | ✅ | 32 | 4.05 | — | [✅](../site/src/content/components/emoji.mdx) | 🚧 local | NATIVE Unicode emoji from Fomantic's 3,808 names, lazy data chunks (`scripts/gen-emoji.ts`), no sprites / CDN |
+| emoji | B | `ui-emoji` | ✅ | 32 | 4.05 | — | [✅](../site/src/content/components/emoji.mdx) | 🚧 local | NATIVE Unicode emoji, two name sets switched like icon packs (`cldr` default, 3,979;  `fomantic`, 3,808;  `<ui-emoji-set names>` / `EmojiData.use()`), lazy data chunks per set (`scripts/gen-emoji.ts`), no sprites / CDN |
 | dropdown | C | `ui-dropdown` (+ `ui-item`) | ✅ | 67 | 16.48 | ✅ | [✅](../site/src/content/components/dropdown.mdx) | 🚧 local | built early, as the benchmark component |
 | popup | C | `ui-popup`, `[data-tooltip]` | ✅ | 78 | 8.41 | ✅ | [✅](../site/src/content/components/popup.mdx) | 🚧 local | popover host, CSS anchor positioning only (Fomantic's 8 positions + 4 of ours, flips);  `on` hover / focus / click / manual;  tooltip or non-modal dialog ARIA;  CSS-only tooltip in `native.css` |
 | modal | C | `ui-modal`, `UI.modals.*` | ✅ | 68 | 8.74 | ✅ | [✅](../site/src/content/components/modal.mdx) | 🚧 local | native `<dialog>` + `showModal()`, `::backdrop` dimmer;  `closedby`, approve / deny, `--show` invoker command;  `UI.modals.confirm/alert/prompt` |
@@ -248,8 +248,9 @@ Built, but flagged for Owen's review before it's treated as settled.  Owen settl
 - Invoker commands:  `<ui-button>` forwards `commandfor` / `command`;  `UI.browser.supports.invokers`;  without
   support, `Invoker.run()` runs the built-in commands and fires `command`.  Modal and flyout answer `--toggle` too;  popup and dropdown answer all three, toast `--close` (2026-10-01).
 - Popup:  `hoverable` (default on, WCAG 1.4.13);  `hoverable="false"` is Fomantic's default behaviour.
-- Emoji:  names from CLDR (`emojibase-data`, dev-only), Fomantic's as aliases;  CLDR wins the 19 clashing names
-  (`dog` = 🐕;  Fomantic's 🐶 is `dog_face`);  presentation from Unicode data.
+- Emoji:  two name sets, never merged, switched like icon packs (`<ui-emoji-set names>`, `EmojiData.use()`):  `cldr`
+  (default, from `emojibase-data`, dev-only) and `fomantic` (its own names and meanings:  `dog` = 🐶);  presentation
+  from Unicode data.
 - Label colour:  matches Fomantic -- only its own or its `<ui-labels>` group's colour paints a `<ui-label>`.
 - Sidebar / flyout `width`:  Fomantic's words AND columns / fractions / % on both (`AGENTS.md` exception).
 - Container:  public per-breakpoint `--ui-container-scrolling-height-{tablet,computer,widescreen}`.

@@ -51,7 +51,7 @@
             <a href="../../ui-component-creation.html" target="docs-ui-component-creation">ui-component-creation.html</a
             >.
           </p>
-          <ui-progress class="plan-progress" value="11" total="11" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="12" total="12" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
           <ui-steps class="plan-phases" vertical ordered>
@@ -78,6 +78,7 @@
               data-status="done"
               data-phase="11"
             ></ui-step
+            ><ui-step completed header="P12 · Emoji Name Sets" href="#p12" data-status="done" data-phase="12"></ui-step
           ></ui-steps>
         </section>
 
@@ -1212,6 +1213,22 @@
                 ></ui-accordion
               >
             </li>
+            <li data-status="open" id="d38">
+              <a class="plan-id" href="#d38">D38</a>
+              <span class="plan-title">Emoji: two name sets, cldr default, fomantic opt-in</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Never merged. <code>EmojiData.use()</code> / <code>&lt;ui-emoji-set names&gt;</code>, like icon
+                    packs; a switch affects later lookups only. Data per set: cldr 3,979 names (155 KB raw, 32.2 KB
+                    gzip, max chunk 4.5 KB); fomantic 3,808 (141 KB raw, 29.1 KB gzip). The loose lookup crosses names
+                    inside one set only (so <code>thumbs_up</code> still resolves in fomantic via
+                    <code>thumbsup</code>).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
           </ol>
         </section>
 
@@ -1385,6 +1402,25 @@
               <li>
                 <b>Verify:</b> open reuses the tab and the frontmost app stays; every page passes doc-links --check;
                 docs tests
+              </li>
+            </ul>
+          </section>
+          <section data-status="done" data-phase="12" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p12"><ui-icon name="circle check" color="green"></ui-icon> P12 · Emoji Name Sets</h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> CLDR names (any separators) by default; opt in to Fomantic's names with
+                <ui-emoji-set names="fomantic"> / EmojiData.use(), one set at a time, like icon packs</ui-emoji-set>
+              </li>
+              <li>
+                <b>Files:</b> scripts/gen-emoji.ts, emoji data (data/cldr, data/fomantic), EmojiData.ts, UIEmojiSet.tsx,
+                emoji vocabulary / tests / examples / mdx, grammar.md, translation.md
+              </li>
+              <li>
+                <b>Verify:</b> both sets resolve; switching affects later lookups; examples render the same glyphs
+                (visual); yarn review; measure
               </li>
             </ul>
           </section>
@@ -1840,6 +1876,36 @@
                   ><ui-date><time datetime="2026-10-01T09:30-04:00">2026-10-01 09:30</time></ui-date> I9 closed:
                   doc-links.py linked &lt;code&gt;/&lt;/code&gt; (an operator in a table) to the filesystem root, and
                   linked paths outside the repo</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T09:46-04:00">2026-10-01 09:46</time></ui-date> P12 added: Emoji
+                  Name Sets</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T09:46-04:00">2026-10-01 09:46</time></ui-date> P12
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T09:55-04:00">2026-10-01 09:55</time></ui-date> P12 done: emoji
+                  name sets (cldr default, fomantic opt-in via &lt;ui-emoji-set names&gt; / EmojiData.use()); review
+                  3,648; emoji visual unchanged (3 browsers); build chain + site green; docs bundle 2.36 MB (both sets
+                  inlined, finding #3).</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T09:55-04:00">2026-10-01 09:55</time></ui-date> P12
+                  done</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
