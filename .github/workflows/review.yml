@@ -1,0 +1,62 @@
+# Review each changed package on a PR:  type check, lint, format check, tests.
+# - Which packages:  `.github/scripts/changed-packages.mjs` (a package's own changes, plus packages it depends on).
+# - Non-mutating:  `yarn review` runs `lint:fix` / `format`, so CI runs the check scripts instead.
+# - NOTE: OFF until Owen says so -- runs only by hand (Actions tab => "review" => "Run workflow").
+#   To switch on, uncomment `pull_request` below.
+name: review
+
+on:
+  workflow_dispatch:
+  # pull_request:
+
+concurrency:
+  group: review-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.pick.outputs.packages }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: pick
+        run: node .github/scripts/changed-packages.mjs "${{ github.event.pull_request.base.sha || 'HEAD~1' }}" >> "$GITHUB_OUTPUT"
+
+  review:
+    needs: changes
+    if: needs.changes.outputs.packages != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.changes.outputs.packages) }}
+    defaults:
+      run:
+        working-directory: packages/${{ matrix.package }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: corepack enable
+        working-directory: .
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.17
+          cache: yarn
+      - run: yarn install --immutable
+        working-directory: .
+
+      # ui's browser tests (and the fork's) run in a real chromium
+      - if: matrix.package == 'ui' || matrix.package == 'solid-element'
+        run: yarn playwright install --with-deps chromium
+      # spell's type-aware lint needs the extension's `@types/vscode`:  it's its own yarn project
+      - if: matrix.package == 'spell'
+        run: yarn install --immutable
+        working-directory: packages/spell/vscode-extension
+
+      - name: type check
+        run: if node -p 'require("./package.json").scripts.ts' | grep -qv undefined; then yarn ts; else yarn tsc; fi
+      - run: yarn lint
+      - run: yarn format:check
+      - run: yarn test
