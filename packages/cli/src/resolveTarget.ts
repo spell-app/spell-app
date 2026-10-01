@@ -50,6 +50,20 @@ export function rootsNamed(name: string): SP.ProjectRootSpec[] {
   return roots.filter((spec) => spec.owner === name)
 }
 
+/** Project roots a person names, in setup order -- not the `@workspace:*` ones made as folders turn up. */
+export function knownRoots(): SP.ProjectRootSpec[] {
+  return Object.values(SP.SpellSetup.projectRoots).filter((spec) => spec.owner !== WORKSPACE_ARG)
+}
+
+/**
+ * What to type for root `spec`, as `resolveTarget()` reads it:  its `alias`, e.g. `@library`;  else its owner if
+ * it's the owner's only root, e.g. `@user`;  else `@<domain>`.
+ */
+export function rootName(spec: SP.ProjectRootSpec): string {
+  if (spec.alias) return spec.alias
+  return knownRoots().filter((it) => it.owner === spec.owner).length === 1 ? spec.owner : `@${spec.domain}`
+}
+
 /**
  * Ids of the projects in `roots`, e.g. `["@system:library:cards"]`.
  * - Only folders holding a `project.json` -- see the header.
@@ -140,7 +154,7 @@ async function resolveDiskPath(arg: string, path: string): Promise<CLI.CliTarget
 }
 
 /** Nearest folder at or above `folder` holding a `project.json`, if any. */
-function projectDirAbove(folder: string): string | undefined {
+export function projectDirAbove(folder: string): string | undefined {
   for (let dir = folder; ; dir = dirname(dir)) {
     if (hasManifest(dir)) return dir
     if (dirname(dir) === dir) return undefined

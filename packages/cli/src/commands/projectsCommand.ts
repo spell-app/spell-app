@@ -18,8 +18,8 @@ export async function projectsCommand(
   const [name] = args
   if (name === undefined) {
     const roots = await Promise.all(
-      knownRoots().map(async (spec) => ({
-        name: rootName(spec),
+      CLI.knownRoots().map(async (spec) => ({
+        name: CLI.rootName(spec),
         path: spec.path,
         title: spec.title,
         projects: (await CLI.projectIdsIn([spec])).length
@@ -50,22 +50,8 @@ export async function projectsCommand(
   return CLI.EXIT.OK
 }
 
-/** Project roots a person names, in setup order -- not the `@workspace:*` ones made as folders turn up. */
-function knownRoots(): SP.ProjectRootSpec[] {
-  return Object.values(SP.SpellSetup.projectRoots).filter((spec) => spec.owner !== CLI.WORKSPACE_ARG)
-}
-
-/**
- * What to type for root `spec`, as `resolveTarget()` reads it:  its `alias`, e.g. `@library`;  else its owner if
- * it's the owner's only root, e.g. `@user`;  else `@<domain>`.
- */
-function rootName(spec: SP.ProjectRootSpec): string {
-  if (spec.alias) return spec.alias
-  return knownRoots().filter((it) => it.owner === spec.owner).length === 1 ? spec.owner : `@${spec.domain}`
-}
-
 /** What to type for project `id` in one of `roots`, e.g. `@library/cards` -- or the full id. */
 function shortName(id: string, roots: SP.ProjectRootSpec[]): string {
   const spec = roots.find((it) => id.startsWith(`${it.path}:`))
-  return spec ? `${rootName(spec)}/${id.slice(spec.path.length + 1)}` : id
+  return spec ? `${CLI.rootName(spec)}/${id.slice(spec.path.length + 1)}` : id
 }

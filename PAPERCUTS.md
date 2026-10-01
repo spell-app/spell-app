@@ -848,3 +848,7 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
 - 2026-10-01 · In a worktree-isolated session, Bash commands with shell functions, `cd ..` chains or a Python
   heredoc are refused ("too complex to verify that it stays inside the worktree"). · Plain `&&` chains of simple
   commands;  write throwaway scripts with the Write tool, then run them. · tooling
+- 2026-10-01 · Tab in an Ink prompt was typed into the text (`@te<TAB>Sol`) in a real terminal, but worked under
+  `ink-testing-library`:  keys typed while the app is busy arrive as ONE chunk, and Ink only names a key (`key.tab`)
+  when it arrives alone. · Split `input` into keys yourself, and queue them -- see `keysIn()` in
+  `cli/src/ui/TargetPrompt.tsx`.  Test it with a chunk (`stdin.write("@te\tSol\t\r")`) and in a pty (`expect`). · cli

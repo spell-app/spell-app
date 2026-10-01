@@ -50,11 +50,12 @@ export class CliSession {
 
   /**
    * What `args` name, in order, with each bare root turned into its projects -- see `projectsFor()`.
+   * - No `args`:  see `defaultTarget()`.
    * - Throws `CLI.CliError` for anything it can't place.
    */
   async targets(args: string[]): Promise<CLI.ResolvedTarget[]> {
     const targets: CLI.ResolvedTarget[] = []
-    for (const arg of args) {
+    for (const arg of args.length ? args : [await this.defaultTarget()]) {
       const target = await CLI.resolveTarget(arg)
       if (target.kind !== "root") {
         targets.push(target)
@@ -65,6 +66,22 @@ export class CliSession {
       }
     }
     return targets
+  }
+
+  /**
+   * The target when none was given:
+   * - In a project's folder, or below it:  that project, `@workspace`.
+   * - Otherwise, in a terminal:  ask, at a `<TargetPrompt>`.  Throws `CLI.CliError` if cancelled.
+   * - Otherwise:  throws `CLI.CliError`, saying to name one.
+   */
+  async defaultTarget(): Promise<string> {
+    if (CLI.projectDirAbove(process.cwd())) return CLI.WORKSPACE_ARG
+    if (!this.isInteractive) {
+      throw new CLI.CliError("No spell project here -- name one, e.g. @examples/Solitaire, or `spell projects`")
+    }
+    const target = await CLI.promptForTarget()
+    if (!target) throw new CLI.CliError("Cancelled")
+    return target
   }
 
   /**

@@ -49,13 +49,36 @@
             <li data-status="done" data-phase="5">
               <ui-icon name="circle check" color="green"></ui-icon> <a href="#p5">P5 · Doc Review</a>
             </li>
+            <li data-status="done" data-phase="6">
+              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p6">P6 · Target Prompt</a>
+            </li>
+            <li data-status="todo" data-phase="7">
+              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p7">P7 · Server &amp; Icons</a>
+            </li>
+            <li data-status="todo" data-phase="8">
+              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p8">P8 · Run In Browser</a>
+            </li>
+            <li data-status="todo" data-phase="9">
+              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p9">P9 · Doc Review 2</a>
+            </li>
+            <li data-status="todo" data-phase="10">
+              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p10">P10 · Spell Server</a>
+            </li>
           </ul>
         </section>
 
         <section class="s2">
           <ui-sticky class="spell-h2"><h2 id="questions">2. Questions</h2></ui-sticky>
           <p class="meta">Waiting on the user. Each is also asked in Claude Code.</p>
-          <ol class="plan-items" data-kind="question"></ol>
+          <ol class="plan-items" data-kind="question">
+            <li data-status="open" id="q1">
+              <a class="plan-id" href="#q1">Q1</a>
+              <span class="plan-title"
+                >spell serve: the app's dev server (vite + express, hot reload) or a built app (vite build, express
+                only)?</span
+              >
+            </li>
+          </ol>
         </section>
 
         <section class="s2">
@@ -179,6 +202,10 @@
                   </p></ui-content
                 ></ui-accordion
               >
+            </li>
+            <li data-status="open" id="c6">
+              <a class="plan-id" href="#c6">C6</a>
+              <span class="plan-title">A browser run serves what was compiled at start: no live reload</span>
             </li>
           </ol>
         </section>
@@ -428,6 +455,50 @@
                 ></ui-accordion
               >
             </li>
+            <li data-status="open" id="d17">
+              <a class="plan-id" href="#d17">D17</a>
+              <span class="plan-title"
+                >Target prompt: only when no target was typed, no project is here, and there's a terminal</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Owen, 2026-10-01: in a project folder, use that project; otherwise shell-autocomplete style --
+                    domain, then project folders, then files with 'entire project' first.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d18">
+              <a class="plan-id" href="#d18">D18</a>
+              <span class="plan-title">Recent picks: packages/cli/.recent-targets.json, gitignored, last 3</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>Per checkout (Owen's choice). Only what the prompt picks is remembered.</p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d19">
+              <a class="plan-id" href="#d19">D19</a>
+              <span class="plan-title"
+                >One local server for icons --open and run; SPELL_NO_BROWSER=1 prints the URL instead</span
+              >
+            </li>
+            <li data-status="open" id="d20">
+              <a class="plan-id" href="#d20">D20</a>
+              <span class="plan-title"
+                >Browser runs use the spell-app element's src= mode, dist-element built on demand</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Compiled JS + scope pack served beside each other: no app server, no <code>/api</code>. A fresh
+                    checkout has no <code>dist-element/</code>: <code>yarn build:element</code> runs once.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
           </ol>
         </section>
 
@@ -602,6 +673,86 @@
               </li>
             </ul>
           </section>
+          <section data-status="done" data-phase="6" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p6"><ui-icon name="circle check" color="green"></ui-icon> P6 · Target Prompt</h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> no target = the project here; outside one, in a terminal, a shell-style autocompleting
+                prompt: domain, project, entire project or a file; last 3 picks first
+              </li>
+              <li>
+                <b>Files:</b> cli/src/ui/TargetPrompt.tsx, cli/src/targetChoices.ts, cli/src/recentTargets.ts,
+                cli/src/CliSession.ts, cli/src/main.ts
+              </li>
+              <li>
+                <b>Verify:</b> prompt tests at each level; choices + recents unit tests; no-target end-to-end tests
+              </li>
+            </ul>
+          </section>
+          <section data-status="todo" data-phase="7" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p7">
+                <ui-icon name="circle outline" color="grey"></ui-icon> P7 · Server &amp; Icons
+              </h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> spell icons [query] searches the ui icon packs; --open serves a gallery in the browser
+              </li>
+              <li><b>Files:</b> cli/src/serve.ts, cli/src/commands/iconsCommand.ts</li>
+              <li>
+                <b>Verify:</b> search tests; --open with SPELL_NO_BROWSER=1, fetch page + an SVG; by hand in Chrome
+              </li>
+            </ul>
+          </section>
+          <section data-status="todo" data-phase="8" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p8"><ui-icon name="circle outline" color="grey"></ui-icon> P8 · Run In Browser</h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> spell run opens a UI project in the browser, in the spell-app element, when it needs one
+              </li>
+              <li>
+                <b>Files:</b> cli/src/runner/runProject.ts, cli/src/commands/runCommand.ts, cli/src/runInBrowser.ts
+              </li>
+              <li>
+                <b>Verify:</b> run Solitaire with SPELL_NO_BROWSER=1: URL, fetch page + compiled JS + element; FizzBuzz
+                opens nothing; by hand in Chrome
+              </li>
+            </ul>
+          </section>
+          <section data-status="todo" data-phase="9" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p9"><ui-icon name="circle outline" color="grey"></ui-icon> P9 · Doc Review 2</h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li><b>Goal:</b> cli.html + README: prompt, icons, run in browser; prune this doc</li>
+              <li><b>Files:</b> packages/docs/cli.html, packages/cli/README.md, this plan doc</li>
+              <li><b>Verify:</b> plan-doc check; check-spell on cli.html</li>
+            </ul>
+          </section>
+          <section data-status="todo" data-phase="10" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p10"><ui-icon name="circle outline" color="grey"></ui-icon> P10 · Spell Server</h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> spell serve [target] [--port n] [--headless]: run the spell server, so the app can save to
+                the local file system; opens it in the browser unless --headless
+              </li>
+              <li>
+                <b>Files:</b> cli/src/commands/serveCommand.ts; app's server (src/server/index.ts, express /api) + its
+                UI (vite)
+              </li>
+              <li>
+                <b>Verify:</b> serve in the background, fetch /api and the page; --headless opens nothing; by hand: edit
+                + save a file from the browser
+              </li>
+            </ul>
+          </section>
         </section>
 
         <section class="s2">
@@ -649,6 +800,21 @@
               packages/docs/cli.html; summary says built
             </li>
             <li><time datetime="2026-10-01T01:19-04:00">2026-10-01 01:19</time> P5 done</li>
+            <li><time datetime="2026-10-01T08:57-04:00">2026-10-01 08:57</time> P6 added: Target Prompt</li>
+            <li><time datetime="2026-10-01T08:57-04:00">2026-10-01 08:57</time> P7 added: Server &amp; Icons</li>
+            <li><time datetime="2026-10-01T08:57-04:00">2026-10-01 08:57</time> P8 added: Run In Browser</li>
+            <li><time datetime="2026-10-01T08:57-04:00">2026-10-01 08:57</time> P9 added: Doc Review 2</li>
+            <li><time datetime="2026-10-01T08:57-04:00">2026-10-01 08:57</time> P6 active</li>
+            <li><time datetime="2026-10-01T09:05-04:00">2026-10-01 09:05</time> P10 added: Spell Server</li>
+            <li>
+              <time datetime="2026-10-01T09:05-04:00">2026-10-01 09:05</time> Owen asked for spell serve (2026-10-01):
+              added as P10 · Spell Server; P9 · Doc Review 2 now runs after it
+            </li>
+            <li>
+              <time datetime="2026-10-01T09:05-04:00">2026-10-01 09:05</time> P6 done: no target = the project here;
+              else the autocompleting target prompt, last 3 picks first
+            </li>
+            <li><time datetime="2026-10-01T09:05-04:00">2026-10-01 09:05</time> P6 done</li>
           </ul>
         </section>
       </main>

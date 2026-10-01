@@ -40,19 +40,35 @@ describe("spell help", () => {
     const { status, stdout } = spell(["help"])
     expect(status).toBe(0)
     expect(stdout).toMatch(/^Usage: spell \[options\] \[command\]\n/)
-    expect(stdout).toMatch(/^ {2}compile \[options\] <targets\.\.\.>/m)
+    expect(stdout).toMatch(/^ {2}compile \[options\] \[targets\.\.\.\]/m)
   })
 
   test("one command", () => {
     const { status, stdout } = spell(["help", "compile"])
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^Usage: spell compile \[options\] <targets\.\.\.>\n/)
+    expect(stdout).toMatch(/^Usage: spell compile \[options\] \[targets\.\.\.\]\n/)
   })
 
   test("an unknown command", () => {
     const { status, stderr } = spell(["help", "nope"])
     expect(status).toBe(2)
     expect(stderr).toContain("No command 'nope'")
+  })
+})
+
+describe("no target", () => {
+  test("in a project's folder:  that project -- for every command", () => {
+    const here = tempProject("Here", 'print "here"\n')
+    expect(spell(["check"], here).stderr).toContain("✓ @workspace:")
+    expect(spell(["compile"], here).stderr).toContain("wrote Here.compiled.js")
+    expect(spell(["run"], here).stdout).toBe("here\n")
+    expect(spell(["describe"], here).stdout).toMatch(/^Here\n/)
+  })
+
+  test("outside a project, with no terminal to ask on:  says to name one", () => {
+    const { status, stderr } = spell(["check"], TEMP)
+    expect(status).toBe(2)
+    expect(stderr).toContain("No spell project here -- name one")
   })
 })
 

@@ -16,7 +16,7 @@ const SETTLE_MS = 150
 
 /**
  * `spell explore [target]`:  full-screen Type Explorer for one project -- see `<ExplorerScreen>`.
- * - No target:  `@workspace`, the project in the current folder.
+ * - No target:  the project here -- or, outside one, asks.  See `CliSession.defaultTarget()`.
  * - A `.spell` file starts on that file, open;  a project, on the project.
  * - `o` opens the selected thing's declaration in `$SPELL_EDITOR` (default `code`), as `-g path:line`.
  * - `e` edits its description, writing the file -- never in a test project.
@@ -32,7 +32,7 @@ export async function exploreCommand(
   if (!session.isInteractive || !process.stdout.isTTY) {
     throw new CLI.CliError("`spell explore` needs a terminal -- `spell describe` prints the same as text")
   }
-  const targets = await session.targets([args[0] ?? CLI.WORKSPACE_ARG])
+  const targets = await session.targets(args.slice(0, 1))
   if (targets.length > 1) throw new CLI.CliError("Explore one project at a time")
   const target = targets[0]!
   const project = target.kind === "file" ? target.file.project : target.project

@@ -74,7 +74,9 @@ Every command takes one or more targets:
 | `spell explain <word>` | Rules `word` names or starts (`print`, `repeat`):  syntax and an example.  `--in <target>`:  also what that project declares by that name, as the editor's hover.  `--json`. |
 | `spell new <name>` | Makes `<name>/project.json` and a starter `<name>.spell` that prints a hello.  In `@user`'s folder, or `--in <folder>`.  Refuses a folder with anything in it. |
 
-- No target, for `explore` / `watch` / `run` / `test`, means `@workspace`.
+- No target:  the project here, for every command.  Outside a project, in a terminal, `spell` asks -- completing as
+  you type, like a shell:  `Tab` completes a root (`@examples/`), then a project, then "entire project" or one of
+  its files;  your last 3 picks come first (kept in `.recent-targets.json`, gitignored).  Piped, it says to name one.
 - Names in `describe` ignore case, and spaces ~== `-` ~== `_`:  `stock pile` finds `Stock_Pile`.
 - Everywhere:  `--verbose` lets spell's own logging through, on stderr.  `NO_COLOR=1` turns colour off.
 - `o` in `explore` runs `$SPELL_EDITOR -g path:line`, `code` by default.  Cursor works too.

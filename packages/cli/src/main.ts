@@ -24,7 +24,12 @@ Targets:
   @workspace                           the project in the current folder
   @library/cards, @test/Solitaire      one project, by its root's short name
   @system:library:cards                one project, by full id
-  @library, @examples, @user, @system  a whole root:  pick from its projects, or pass --all`
+  @library, @examples, @user, @system  a whole root:  pick from its projects, or pass --all
+  (none)                               the project here -- or, outside one, asks, completing as you type`
+
+/** Help for a command's target argument(s). */
+const TARGET_ARG = "a spell file, project folder, or @root/project -- default the project here, else asks"
+const TARGETS_ARG = "spell files, project folders, or @roots/projects -- default the project here, else asks"
 
 const program = new Command("spell")
   .description("Compile, check and explore spell projects.")
@@ -36,7 +41,7 @@ const program = new Command("spell")
 program
   .command("compile")
   .description("compile projects to <Project>.compiled.js, or print a file's compiled javascript")
-  .argument("<targets...>", "spell files, project folders, or @roots/projects")
+  .argument("[targets...]", TARGETS_ARG)
   .option("--stdout", "print a project's compiled output instead of writing it")
   .option("--force", "recompile the projects it imports too, even those already compiled")
   .action((args: string[], _options, command) => run(CLI.compileCommand, args, command.optsWithGlobals()))
@@ -44,14 +49,14 @@ program
 program
   .command("check")
   .description("list errors, one per line as path:line:col, exiting 1 if there are any")
-  .argument("<targets...>", "spell files, project folders, or @roots/projects")
+  .argument("[targets...]", TARGETS_ARG)
   .option("--json", "print errors as JSON")
   .action((args: string[], _options, command) => run(CLI.checkCommand, args, command.optsWithGlobals()))
 
 program
   .command("describe")
   .description("what a file or project declares, as the Type Explorer shows it -- or all about ONE thing in it")
-  .argument("<target>", "a spell file, project folder, or @root/project")
+  .argument("[target]", TARGET_ARG)
   .argument("[name]", 'one thing to describe, e.g. Card, or "test card setup"')
   .argument("[member]", "one of its members, e.g. color")
   .option("--inherited", "list members types inherit, too")
@@ -68,7 +73,7 @@ program
 program
   .command("explore")
   .description("full-screen Type Explorer:  browse what a project declares -- o opens it in $SPELL_EDITOR (code)")
-  .argument("[target]", "a spell file, project folder, or @root/project -- default @workspace")
+  .argument("[target]", TARGET_ARG)
   .action((target: string | undefined, _options, command) =>
     run(CLI.exploreCommand, target ? [target] : [], command.optsWithGlobals())
   )
@@ -76,25 +81,23 @@ program
 program
   .command("run")
   .description("compile a project and run it -- what needs a browser, e.g. starting its UI, is skipped")
-  .argument("[target]", "a spell file, project folder, or @root/project -- default @workspace")
+  .argument("[target]", TARGET_ARG)
   .action((target: string | undefined, _options, command) =>
-    run(CLI.runCommand, [target ?? CLI.WORKSPACE_ARG], command.optsWithGlobals())
+    run(CLI.runCommand, target ? [target] : [], command.optsWithGlobals())
   )
 
 program
   .command("test")
   .description("run each `to test ...` in projects, reporting ✓ or ✗ -- exits 1 if any fail")
-  .argument("[targets...]", "spell files, project folders, or @roots/projects -- default @workspace")
+  .argument("[targets...]", TARGETS_ARG)
   .option("--name <text>", 'only tests whose names contain this, e.g. "deck creation"')
   .option("--watch", "run them again whenever a project changes -- spell watch --test")
-  .action((targets: string[], _options, command) =>
-    run(CLI.testCommand, targets.length ? targets : [CLI.WORKSPACE_ARG], command.optsWithGlobals())
-  )
+  .action((targets: string[], _options, command) => run(CLI.testCommand, targets, command.optsWithGlobals()))
 
 program
   .command("watch")
   .description("recompile projects whenever their files change, showing their errors -- until q or Ctrl-C")
-  .argument("[targets...]", "spell files, project folders, or @roots/projects -- default @workspace")
+  .argument("[targets...]", TARGETS_ARG)
   .option("--check-only", "re-check instead of recompiling:  writes nothing")
   .option("--test", "run each project's tests after each rebuild with no errors")
   .option("--name <text>", "with --test:  only tests whose names contain this")
@@ -103,7 +106,7 @@ program
 program
   .command("format")
   .description("tidy the whitespace of .spell files, as VS Code's Format Document does -- never in projects/test/")
-  .argument("<targets...>", "spell files, project folders, or @roots/projects")
+  .argument("[targets...]", TARGETS_ARG)
   .option("--check", "write nothing:  list files that would change, exiting 1 if any would")
   .action((args: string[], _options, command) => run(CLI.formatCommand, args, command.optsWithGlobals()))
 
