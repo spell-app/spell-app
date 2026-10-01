@@ -1,7 +1,7 @@
 ---
 /**
  * CSS custom properties of one component family, generated at BUILD time from its stylesheets
- * (every `src/components/<family>/*.css`), so the table can't drift.
+ * (every `src/components/ui-<family>/*.css`), so the table can't drift.
  * - A sheet never declares its public tokens (`docs/theming.md` "Component tokens").  Two kinds of rows:
  *   - ALIASED tokens, the ones a variation swaps:  `--_ui-button-radius: var(--ui-button-radius, var(--ui-radius))`.
  *     The public name, its default, the `/* comment *\/` right above as the description, unless it's a group
@@ -11,7 +11,7 @@
  * - Defaults show the PUBLIC names of the tokens they derive from (`calc(1em + 2 * var(--ui-button-padding-block))`).
  *   A default built from sheet plumbing (`var(--_modal-width)`, a per-screen value, a private switch) reads badly:
  *   the page passes readable text through `defaults`.
- * - `prefixes` defaults to `--ui-<family>-`;  the trailing dash matters (`--ui-button-` never matches
+ * - `prefixes` defaults to the family folder as a token prefix, `--ui-button-` for `ui-button`;  the trailing dash matters (`--ui-button-` never matches
  *   `--ui-buttons-*`).  Foundation names that share a prefix (`--ui-text-muted` for `text`) are left out.
  * - Renders through `TokenTable` (no swatches:  the defaults resolve inside the shadow root, so the page can't
  *   `var()` them).
@@ -24,9 +24,9 @@ import { ComponentTokens } from "$/ui/styles/ComponentTokens"
 import TokenTable from "./TokenTable.astro"
 
 type Props = {
-  /** family folder name, e.g. `button` */
+  /** family folder name, e.g. `ui-button` */
   family: string
-  /** token name prefixes to keep, default `["--ui-<family>-"]` */
+  /** token name prefixes to keep, default `["--<family folder>-"]`, e.g. `["--ui-button-"]` */
   prefixes?: string[]
   /** readable default text by token name, in place of the sheet's, e.g. `{ "--ui-modal-width": "by size" }` */
   defaults?: Record<string, string>
@@ -37,7 +37,7 @@ type Props = {
 type Row = { name: string; default: string; description?: string }
 
 const { family, caption } = Astro.props
-const prefixes = Astro.props.prefixes ?? [`--ui-${family}-`]
+const prefixes = Astro.props.prefixes ?? [`--${family}-`]
 const defaults = Astro.props.defaults ?? {}
 
 // NOTE: `cwd`, not `import.meta.url`:  the latter points into Astro's build chunks, not `src/`
@@ -120,7 +120,7 @@ function commentAbove(css: string, index: number): string | undefined {
     <TokenTable tokens={tokens} caption={caption} />
   ) : (
     <p class="site-note">
-      <code>{`<ui-${family}>`}</code> exposes no <code>--ui-{family}-*</code> tokens.
+      <code>{`<${family}>`}</code> exposes no <code>--{family}-*</code> tokens.
     </p>
   )
 }

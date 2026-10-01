@@ -8,7 +8,7 @@ import type { VisualBrowser, VisualExample } from "./visual.types.ts"
 import { VisualSettings } from "./VisualSettings.ts"
 
 /**
- * Finds what `yarn test:visual` captures:  every `src/components/<family>/examples/elements/<name>.html`, with its
+ * Finds what `yarn test:visual` captures:  every `src/components/ui-<family>/examples/elements/<name>.html`, with its
  * optional `<name>.visual.ts` hooks, and names the baseline files they make.
  * - Discovery, not a list:  a new example (or hook file) is a new test with no edit anywhere.
  * - Hooks are IMPORTED here for their state names, `capture` and `mask`;  their `open()` runs in the page.
@@ -42,8 +42,8 @@ export class VisualExamples {
 
   /**
    * Baseline name of one capture, as the spec passes it to `toHaveScreenshot()`:  `[family, file]`.
-   * - closed:  `button/types-light.png`
-   * - a state:  `modal/types.open-standard-dark.png`
+   * - closed:  `ui-button/types-light.png`
+   * - a state:  `ui-modal/types.open-standard-dark.png`
    */
   static baselineName(example: VisualExample, scheme: string, state?: string): [string, string] {
     return [example.family, `${example.name}${state ? `.${state}` : ""}-${scheme}.png`]

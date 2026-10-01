@@ -257,17 +257,17 @@ Disproven:  `Icons.get("zoom")` isn't missing -- it is Font Awesome's `zoom` BRA
 `fa7-brands`, and the `fomantic` pack gives the magnifier.
 Disproven (2026-10-01):  the "empty strip" under an open multiple-selection dropdown is the NEXT example's field, which
 the open menu floats over.  The "mini images at full width" were the static `ui avatar images` group, hit by a bare
-`.avatar img { width: 100% }` in `parts.css` (fixed).  `--ui-form-equal-width` / `-unstackable` were already private.
+`.avatar img { width: 100% }` in `ui-parts.css` (fixed).  `--ui-form-equal-width` / `-unstackable` were already private.
 Parts inside a lone `<ui-event>` / `<ui-comment>` read the owner switches only in style queries, so unset is fine.
 Swept 2026-10-01 (branch `worktree-ui-component-creation`, plan doc `packages/docs/plans/ui-component-creation/`):
 every entry below that date was fixed or disproven;  what's left:
 
 ### 1. Behavior bugs
 
-- `src/components/toast/toast.test.tsx` "life" tests:  still set `pause-on-hover="false"` for Linux CI.  The toast now
+- `src/components/ui-toast/ui-toast.test.tsx` "life" tests:  still set `pause-on-hover="false"` for Linux CI.  The toast now
   pauses only after a real pointer MOVE (a toast appearing under a resting pointer closes), which should be the CI
   cause, but nobody ran the Linux image.  Prove:  drop the attribute and push;  CI green => remove it.  (2026-10-01)
-- `src/components/accordion/UIAccordion.tsx` ~line 82:  `this.loaded() && UI.browser.supports.interpolateSize` in a
+- `src/components/ui-accordion/UIAccordion.tsx` ~line 82:  `this.loaded() && UI.browser.supports.interpolateSize` in a
   memo.  `loaded()` is TRUE on the server, and `UI.browser` throws before the runtime loads, so an SSR render of an
   accordion probably throws (`<ui-button>` hit exactly this, fixed with an `isServer` guard).  Prove:  add an
   accordion case to `test/ssr.ssr.test.tsx`.  (2026-10-01)
@@ -278,23 +278,23 @@ every entry below that date was fixed or disproven;  what's left:
 - `src/elements/MenuOptions.test.ts` "filters 5000 cold options in under 50 ms":  failed once in a full
   `yarn test:all` in webkit, passes 3 / 3 alone.  A wall-clock budget under 3-browser load;  maybe skip budgets under
   `UI_TEST_ALL`, as CI skips the dropdown's 16 ms one.  (2026-10-01)
-- `src/components/popup/popup.test.tsx` "flips to the other side":  failed once in a full firefox run (arrow
+- `src/components/ui-popup/ui-popup.test.tsx` "flips to the other side":  failed once in a full firefox run (arrow
   `::before` top 44px, expected < 0), then passed every time.  Maybe the arrow's `getAnimations` wait.  (2026-10-01)
 
 ### 3. Styling / CSS
 
-- `src/components/grid/grid.css`, `card.css`:  as `items` was (fixed 2026-10-01), a size-container group host keeps
+- `src/components/ui-grid/ui-grid.css`, `ui-card.css`:  as `items` was (fixed 2026-10-01), a size-container group host keeps
   its root's top margin from collapsing with the heading above:  element markup shows a bigger gap than class grammar
   (grid/types +16px under the celled grid, grid/variations several sections, card/content and card/types one each).
-  Fix per owner, as `items.css` did (`:host(:state(items))` carries the outer margin).  (2026-10-01)
-- `src/components/items/items.css`:  the outer margin now sits on the host, in the host's UNSCALED font size, so a
+  Fix per owner, as `ui-items.css` did (`:host(:state(items))` carries the outer margin).  (2026-10-01)
+- `src/components/ui-items/ui-items.css`:  the outer margin now sits on the host, in the host's UNSCALED font size, so a
   sized group's `1.5em` margin uses 16px.  Unmeasured.  (2026-10-01)
-- `src/components/list/list.css`:  a raw slotted `<img>` followed by `<ui-content>` still puts the content below:  a
+- `src/components/ui-list/ui-list.css`:  a raw slotted `<img>` followed by `<ui-content>` still puts the content below:  a
   replaced element can't be a table cell.  `<ui-image>` and the `image` shorthand work;  document, or wrap.  (2026-10-01)
-- `src/components/label/label.css`:  a plain CLASS-GRAMMAR `.ui.label` inside a coloured ancestor still takes the
+- `src/components/ui-label/ui-label.css`:  a plain CLASS-GRAMMAR `.ui.label` inside a coloured ancestor still takes the
   ancestor's colour (Fomantic doesn't);  `<ui-label>` elements are fixed (host reset).  (2026-10-01)
 
 ### 4. Types / API surface
 
-- `src/components/dropdown/dropdown.vocabulary.en.ts` `parts`:  the root `div.ui.dropdown` has no part name, so tokens
+- `src/components/ui-dropdown/ui-dropdown.vocabulary.en.ts` `parts`:  the root `div.ui.dropdown` has no part name, so tokens
   read at its root can't be themed via `::part()` (search got `::part(search)` on 2026-10-01).  (2026-10-01)

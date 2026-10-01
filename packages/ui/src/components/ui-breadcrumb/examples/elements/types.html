@@ -1,0 +1,35 @@
+<!-- `src/components/ui-breadcrumb/examples/types.html` as element markup. -->
+<!-- Icon divider:  the explicit `.icon.divider` and token forms are both `divider-icon` as elements, so the pair is one breadcrumb. -->
+<div class="ui-stack">
+  <section>
+    <h4>Breadcrumb</h4>
+    <ui-breadcrumb aria-label="Breadcrumb demo">
+      <ui-breadcrumb-section href="#home">Home</ui-breadcrumb-section>
+      <ui-breadcrumb-section href="#store">Store</ui-breadcrumb-section>
+      <ui-breadcrumb-section active>T-Shirt</ui-breadcrumb-section>
+    </ui-breadcrumb>
+  </section>
+
+  <section>
+    <h4>Semantic list, token divider</h4>
+    <ui-breadcrumb aria-label="Token divider demo">
+      <ui-breadcrumb-section href="#home">Home</ui-breadcrumb-section>
+      <ui-breadcrumb-section href="#store">Store</ui-breadcrumb-section>
+      <ui-breadcrumb-section active>T-Shirt</ui-breadcrumb-section>
+    </ui-breadcrumb>
+    <ui-breadcrumb aria-label="Custom divider demo" divider="›">
+      <ui-breadcrumb-section href="#home">Home</ui-breadcrumb-section>
+      <ui-breadcrumb-section href="#store">Store</ui-breadcrumb-section>
+      <ui-breadcrumb-section active>T-Shirt</ui-breadcrumb-section>
+    </ui-breadcrumb>
+  </section>
+
+  <section>
+    <h4>Icon divider</h4>
+    <ui-breadcrumb aria-label="Icon divider demo" divider-icon="chevron right">
+      <ui-breadcrumb-section href="#home">Home</ui-breadcrumb-section>
+      <ui-breadcrumb-section href="#registration">Registration</ui-breadcrumb-section>
+      <ui-breadcrumb-section active>Personal Information</ui-breadcrumb-section>
+    </ui-breadcrumb>
+  </section>
+</div>

@@ -1,0 +1,31 @@
+<!-- `src/components/ui-step/examples/states.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Active</h4>
+    <ui-steps>
+      <ui-step selected icon="credit-card" header="Billing" description="Enter billing information"></ui-step>
+    </ui-steps>
+  </section>
+
+  <section>
+    <h4>Active (Fomantic's word)</h4>
+    <ui-steps>
+      <ui-step active icon="truck" header="Shipping" description="Choose your shipping options"></ui-step>
+    </ui-steps>
+  </section>
+
+  <section>
+    <h4>Completed</h4>
+    <ui-steps>
+      <ui-step completed icon="truck" header="Shipping" description="Choose your shipping options"></ui-step>
+      <ui-step selected icon="credit-card" header="Billing" description="Enter billing information"></ui-step>
+    </ui-steps>
+  </section>
+
+  <section>
+    <h4>Disabled</h4>
+    <ui-steps>
+      <ui-step disabled header="Billing"></ui-step>
+    </ui-steps>
+  </section>
+</div>

@@ -27,7 +27,7 @@
 | Platform | Assume anchor positioning (no JS fallback), style container queries (widely supported features only), Temporal via polyfill, customizable `<select>` with clean fallback (it only reached Safari in 27.0). |
 | Libraries | `lodash-es` is fine (tree-shakes). |
 | Icons | **SVG files in packs** (2026-09-30):  a pack is a folder of SVGs + a `pack.js` index;  the page's packs live in the runtime (`UI.icons`), added with `<ui-icon-set src>` / `UI.icons.use()`;  the last pack added wins a name, `prefix:name` picks one.  Default pack:  **Font Awesome 7 Free** solid + regular (`bell outline`) + a few extras, shipped in `dist`;  `fa7-brands` and `fomantic` (Fomantic's names, which give Fomantic's meaning to the 27 clashes like `x`, `warning`) are opt-in packs.  One name per icon, spaces ~== dashes;  no word-order guessing.  Any folder of SVGs becomes a pack with `yarn icons:pack`.  See `docs/icons.md`. |
-| Vocabulary | Per component, own file: `<name>.vocabulary.en.ts` (translations become `<name>.vocabulary.<lang>.ts`). Attribute **values** (colours, sizes, positions) are translatable too. |
+| Vocabulary | Per component, own file: `ui-<name>.vocabulary.en.ts` (translations become `ui-<name>.vocabulary.<lang>.ts`). Attribute **values** (colours, sizes, positions) are translatable too. |
 | Docs | Base every component page on Fomantic's docs for presentation, style and content. |
 | Conventions | Carry over `spell/parser`'s agentic files and coding conventions, with `$` as the import alias (see "Conventions"). |
 
@@ -125,7 +125,7 @@
   - `OverlayElement.ts`: base for dialog- and popover-backed components
   - `elements.types.ts`, `index.ts` (`export * as E`)
 - `src/styles/`: `layers.css`, `tokens.css`, `colors.css`, `sizes.css`, `reset.css`, `typography.css`, `animations.css`, `utilities.css`, `native.css`, `themes/classic.css`, `themes/dark.css`.
-- `src/components/<name>/`: `<name>.ts`, `<name>.css`, `<name>.vocabulary.en.ts`, `<name>.test.ts`, `<name>.visual.test.ts`, `<name>.a11y.test.ts`, `examples/*.html`.
+- `src/components/ui-<name>/`: `<name>.ts`, `ui-<name>.css`, `ui-<name>.vocabulary.en.ts`, `<name>.test.ts`, `<name>.visual.test.ts`, `ui-<name>.a11y.test.ts`, `examples/*.html`.
 - `src/icons/`: FA7 Free path data as JSON chunks (+ a short Fomantic alias list).
 - `site/`: Astro docs. `docs/`: `spike-lit-vs-solid.md`, `grammar.md`, `theming.md`, `translation.md`. `test/`: shared test utils.
 
@@ -198,12 +198,12 @@
 - Transitions: `animations.css` ports the catalogue (fade, scale, fly, slide, swing, flip, browse, drop, zoom; flash, shake, bounce, tada, pulse, jiggle, glow); `UI.transitions` runs in/out with `@starting-style` / `allow-discrete`; `ui-transition` element for user content; View Transitions for tab/accordion swaps.
 - Data-heavy components: `ui-dropdown` / `ui-select` / `ui-search` / `ui-table` accept `options` / `rows` properties; keyed rendering; virtualize above ~200 rows.
 - Translation readiness (design now, build later):
-  - `<name>.vocabulary.en.ts` declares tag, attributes (kind + allowed values), attribute values (hues, sizes, positions, alignments), events, slots, parts, states, text strings; templates and `ClassBuilder` read names through it, never literals
+  - `ui-<name>.vocabulary.en.ts` declares tag, attributes (kind + allowed values), attribute values (hues, sizes, positions, alignments), events, slots, parts, states, text strings; templates and `ClassBuilder` read names through it, never literals
   - `UI.vocabulary.defineComponents({ prefix: "ui" })` registers canonical names; a future `defineComponents({ prefix: "ie", dictionary: es })` creates subclasses with translated `attribute:` names, value maps (`rojo` → `red`), slot/event names, all mapping to the same canonical internal classes; `docs/translation.md` records the contract
 
 ## Milestone 0: base-library code spike (decides Lit vs Solid)
 
-- Build the same two components twice on the shared foundation (tokens, `button.css`, `dropdown.css`, `ClassBuilder`, vocabulary files, `UI.overlays`, anchor CSS):
+- Build the same two components twice on the shared foundation (tokens, `ui-button.css`, `ui-dropdown.css`, `ClassBuilder`, vocabulary files, `UI.overlays`, anchor CSS):
   - `ui-button`: types primary/secondary/basic/tertiary/icon/labeled icon/animated; states active/disabled/loading; toggle with `aria-pressed`; `type=submit`; `ui-buttons` group; semantic inner `<button>`
   - `ui-dropdown`: selection, search, multiple with labels, `options` property + slotted `ui-item`s, combobox keyboard pattern, anchor-positioned popover menu with flip, `formAssociated`, `clearable`, `allowAdditions`, 1000-option filtering
 - Implementations: `spike/lit/` (lit 3.3.3, standard decorators + `accessor`) and `spike/solid/` (`@solidjs/element@next`, `solid-js@next`, `@solidjs/web@next`, pinned exact RCs).
@@ -259,8 +259,8 @@ All under `src/components/`, no Elements/Collections/Views/Modules split. Each r
 
 ## Definition of done for a component
 
-1. `<name>.css`: complete port of the `.less` definition and `.variables` (every type/content/state/variation in `variation.variables`, Fomantic-only ones included); per-component tokens; no `!important` unless documented; colours/sizes via remap; no `rem`.
-2. `<name>.vocabulary.en.ts` + `<name>.ts`: element(s) with typed attributes/properties, events, slots, parts, `:state()`s, shorthand, semantic shadow markup, docstrings for the manifest.
+1. `ui-<name>.css`: complete port of the `.less` definition and `.variables` (every type/content/state/variation in `variation.variables`, Fomantic-only ones included); per-component tokens; no `!important` unless documented; colours/sizes via remap; no `rem`.
+2. `ui-<name>.vocabulary.en.ts` + `<name>.ts`: element(s) with typed attributes/properties, events, slots, parts, `:state()`s, shorthand, semantic shadow markup, docstrings for the manifest.
 3. Accessibility: role/ARIA via internals, keyboard per APG, focus management, reduced motion.
 4. Tests: unit (class output from attributes, pure logic), integration (interaction, keyboard, events, form participation), a11y (axe on each example + keyboard walkthrough).  Visual (`toMatchScreenshot` per example, light and dark) is DEFERRED to Phase D for all families.
 5. Docs page modelled on Fomantic's: Types / Content / States / Variations / Behaviour (API, events, slots, parts, tokens) / Accessibility; live examples with code panes; API tables generated from the custom-elements manifest.

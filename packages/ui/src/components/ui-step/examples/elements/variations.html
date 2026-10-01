@@ -1,0 +1,93 @@
+<!-- `src/components/ui-step/examples/variations.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Stackable (tablet)</h4>
+    <ui-steps stackable="tablet">
+      <ui-step icon="truck" header="Shipping" description="Choose your shipping options"></ui-step>
+      <ui-step selected icon="credit-card" header="Billing" description="Enter billing information"></ui-step>
+      <ui-step disabled icon="circle-info" header="Confirm Order"></ui-step>
+    </ui-steps>
+  </section>
+
+  <section>
+    <h4>Unstackable</h4>
+    <ui-steps unstackable>
+      <ui-step icon="truck" header="Shipping" description="Choose your shipping options"></ui-step>
+      <ui-step selected icon="credit-card" header="Billing" description="Enter billing information"></ui-step>
+      <ui-step disabled icon="circle-info" header="Confirm Order"></ui-step>
+    </ui-steps>
+  </section>
+
+  <section>
+    <h4>Fluid</h4>
+    <ui-steps fluid vertical>
+      <ui-step completed icon="truck" header="Shipping" description="Choose your shipping options"></ui-step>
+      <ui-step selected icon="credit-card" header="Billing" description="Enter billing information"></ui-step>
+    </ui-steps>
+  </section>
+
+  <section>
+    <h4>Right vertical</h4>
+    <ui-steps vertical="right">
+      <ui-step icon="truck" header="Shipping" description="Choose your shipping options"></ui-step>
+      <ui-step selected icon="credit-card" header="Billing" description="Enter billing information"></ui-step>
+    </ui-steps>
+  </section>
+
+  <section>
+    <h4>Attached and evenly divided</h4>
+    <ui-steps widths="3" attached="top">
+      <ui-step icon="truck" header="Shipping" description="Choose your shipping options"></ui-step>
+      <ui-step selected icon="credit-card" header="Billing" description="Enter billing information"></ui-step>
+      <ui-step disabled icon="circle-info" header="Confirm Order"></ui-step>
+    </ui-steps>
+    <ui-segment attached><p>Te eum doming eirmod, nominati pertinacia argumentum ad his.</p></ui-segment>
+    <ui-steps widths="3" attached="bottom">
+      <ui-step icon="truck" header="Shipping" description="Choose your shipping options"></ui-step>
+      <ui-step selected icon="credit-card" header="Billing" description="Enter billing information"></ui-step>
+      <ui-step disabled icon="circle-info" header="Confirm Order"></ui-step>
+    </ui-steps>
+  </section>
+
+  <section>
+    <h4>Size</h4>
+    <ui-steps size="mini">
+      <ui-step icon="truck" header="Shipping" description="Choose your shipping options"></ui-step>
+      <ui-step selected icon="credit-card" header="Billing" description="Enter billing information"></ui-step>
+      <ui-step disabled icon="circle-info" header="Confirm Order"></ui-step>
+    </ui-steps>
+    <ui-steps size="large">
+      <ui-step icon="truck" header="Shipping" description="Choose your shipping options"></ui-step>
+      <ui-step selected icon="credit-card" header="Billing" description="Enter billing information"></ui-step>
+      <ui-step disabled icon="circle-info" header="Confirm Order"></ui-step>
+    </ui-steps>
+  </section>
+
+  <section>
+    <h4>Inverted</h4>
+    <ui-steps inverted>
+      <ui-step icon="truck" header="Shipping" description="Choose your shipping options"></ui-step>
+      <ui-step selected icon="credit-card" header="Billing" description="Enter billing information"></ui-step>
+      <ui-step disabled icon="circle-info" header="Confirm Order"></ui-step>
+    </ui-steps>
+  </section>
+
+  <section>
+    <h4>Circular</h4>
+    <ui-steps circular>
+      <ui-step completed header="Shipping" description="Choose your shipping options"></ui-step>
+      <ui-step selected header="Billing" description="Enter billing information"></ui-step>
+      <ui-step header="Confirm Order"></ui-step>
+    </ui-steps>
+    <ui-steps color="red" circular ordered>
+      <ui-step completed header="Shipping"></ui-step>
+      <ui-step selected header="Billing"></ui-step>
+      <ui-step header="Confirm Order"></ui-step>
+    </ui-steps>
+    <ui-steps circular vertical>
+      <ui-step completed header="Shipping" description="Choose your shipping options"></ui-step>
+      <ui-step selected header="Billing" description="Enter billing information"></ui-step>
+      <ui-step header="Confirm Order"></ui-step>
+    </ui-steps>
+  </section>
+</div>

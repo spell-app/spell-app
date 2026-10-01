@@ -1,0 +1,125 @@
+<!-- `src/components/ui-message/examples/variations.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Floating</h4>
+    <ui-message floating><p>Way to go!</p></ui-message>
+  </section>
+
+  <section>
+    <h4>Compact</h4>
+    <ui-message compact><p>Get all the best inventions in your e-mail every day. Sign up now!</p></ui-message>
+    <ui-message compact icon="envelope" header="Compact icon">
+      <p>Only as wide as it needs.</p>
+    </ui-message>
+  </section>
+
+  <section>
+    <h4>Attached</h4>
+    <ui-message attached header="Welcome to our site!">
+      <p>Fill out the form below to sign-up for a new account</p>
+    </ui-message>
+    <form style="padding: 1em; border: 1px solid var(--ui-border-color)">A form, attached between the messages</form>
+    <ui-message state="warning" attached="bottom"
+      >Already signed up? <a href="#login">Login here</a> instead.</ui-message
+    >
+  </section>
+
+  <section>
+    <h4>Warning</h4>
+    <ui-message state="warning" header="You must register before you can do that!" dismissible>
+      <p>Visit our registration page, then try again</p>
+    </ui-message>
+  </section>
+
+  <section>
+    <h4>Info</h4>
+    <ui-message state="info">
+      <ui-header>Was this what you wanted?</ui-header>
+      <ul>
+        <li>It's good to see you again.</li>
+        <li>Did you know it's been a while?</li>
+      </ul>
+    </ui-message>
+  </section>
+
+  <section>
+    <h4>Positive / success</h4>
+    <ui-message state="positive" header="You are eligible for a reward">
+      <p>Go to your <b>special offers</b> page to see now.</p>
+    </ui-message>
+    <ui-message state="success" header="Your user registration was successful.">
+      <p>You may now log-in with the username you have chosen</p>
+    </ui-message>
+  </section>
+
+  <section>
+    <h4>Negative / error</h4>
+    <ui-message state="negative" header="We're sorry we can't apply that discount">
+      <p>That offer has expired</p>
+    </ui-message>
+    <ui-message state="error" header="There were some errors with your submission">
+      <ul>
+        <li>You must include both a upper and lower case letters in your password.</li>
+        <li>You need to select your home country.</li>
+      </ul>
+    </ui-message>
+  </section>
+
+  <section>
+    <h4>Colored</h4>
+    <ui-message color="red"><p>Red</p></ui-message>
+    <ui-message color="orange"><p>Orange</p></ui-message>
+    <ui-message color="yellow"><p>Yellow</p></ui-message>
+    <ui-message color="olive"><p>Olive</p></ui-message>
+    <ui-message color="green"><p>Green</p></ui-message>
+    <ui-message color="teal"><p>Teal</p></ui-message>
+    <ui-message color="blue"><p>Blue</p></ui-message>
+    <ui-message color="violet"><p>Violet</p></ui-message>
+    <ui-message color="purple"><p>Purple</p></ui-message>
+    <ui-message color="pink"><p>Pink</p></ui-message>
+    <ui-message color="brown"><p>Brown</p></ui-message>
+    <ui-message color="black"><p>Black</p></ui-message>
+  </section>
+
+  <section>
+    <h4>Size</h4>
+    <ui-message size="mini"><p>This is a mini message.</p></ui-message>
+    <ui-message size="tiny"><p>This is a tiny message.</p></ui-message>
+    <ui-message size="small"><p>This is a small message.</p></ui-message>
+    <ui-message size="medium"><p>This is a medium message.</p></ui-message>
+    <ui-message size="large"><p>This is a large message.</p></ui-message>
+    <ui-message size="big"><p>This is a big message.</p></ui-message>
+    <ui-message size="huge"><p>This is a huge message.</p></ui-message>
+    <ui-message size="massive"><p>This is a massive message.</p></ui-message>
+  </section>
+
+  <section>
+    <h4>Centered</h4>
+    <ui-message centered header="Centered">
+      <p>Its text sits in the middle.</p>
+    </ui-message>
+    <ui-message centered icon="envelope" header="Centered icon">
+      <p>Icon and content centred together.</p>
+    </ui-message>
+  </section>
+
+  <section>
+    <h4>Right aligned</h4>
+    <ui-message text-align="right" header="Right aligned">
+      <p>Its text sits on the right.</p>
+    </ui-message>
+  </section>
+
+  <section>
+    <h4>Inverted</h4>
+    <ui-message inverted header="Inverted">
+      <p>The dark scheme.</p>
+    </ui-message>
+    <ui-message color="red" inverted header="Inverted red">
+      <p>Keeps its hue in the text.</p>
+    </ui-message>
+    <ui-message state="positive" inverted icon="envelope" header="Inverted positive">
+      <p>With an icon.</p>
+    </ui-message>
+  </section>
+</div>

@@ -28,9 +28,9 @@ export type VisualScheme = (typeof VisualSettings.SCHEMES)[number]
 
 /** One element example, found by `VisualExamples`. */
 export type VisualExample = {
-  /** `<family>/<name>`, e.g. `button/types`:  the test title and the fixture's `?example=` */
+  /** `<family>/<name>`, e.g. `ui-button/types`:  the test title and the fixture's `?example=` */
   id: string
-  /** family folder, e.g. `button` */
+  /** family folder, e.g. `ui-button` */
   family: string
   /** file name without `.html`, e.g. `types` */
   name: string

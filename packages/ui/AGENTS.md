@@ -43,20 +43,21 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
       per element, `render()` returns JSX), `ElementDefinition` (vocabulary => the fork's props), `FormElement`,
       `Controlled`, `Cell`, `SlotContent`, `HostAttribute`, `PartContext` + `ContentPart` (owner context),
       `IconGlyph`, and the dev-only `HotDefinitions` (NOT in the barrel)
-  - `src/components/<name>/` -- one folder per component FAMILY:
+  - `src/components/ui-<name>/` -- one folder per component FAMILY, named after its main tag (`ui-button/`);  the
+    family's own files carry the same name (`ui-button.css`):
     - `UI<Name>.tsx` (or `.ts` without JSX) -- one element class per file:  `UIButton.tsx`, `UIButtons.tsx`,
       `UIOr.tsx`;  family helpers beside them (`SlottedItems.ts`, `PartElement.ts`)
     - `index.ts` -- the family barrel:  calls `define()` for every tag (SIDE EFFECT), re-exports the classes.
-      Also the family's lib entry (`@spell-app/ui/button`) and its hot-reload boundary
-    - `<name>.css` -- port of Fomantic's `.less` + `.variables`
-    - `<name>.vocabulary.en.ts` -- EVERY name the component uses:  tag, attributes (kind + allowed values),
-      values, events, slots, parts, states, text strings.  Translations become `<name>.vocabulary.<lang>.ts`
-    - `<name>.fallback.ts` -- the native fallback (plain DOM, no Solid) shown when the element's render throws
-    - `<name>.test.tsx` (elements), `<name>.css.test.ts` (the sheet on class-grammar markup),
-      `<name>.fallback.test.ts`, `<name>.a11y.test.ts`, `<name>.perf.test.tsx`
+      Also the family's lib entry (`@spell-app/ui/ui-button`) and its hot-reload boundary
+    - `ui-<name>.css` -- port of Fomantic's `.less` + `.variables`
+    - `ui-<name>.vocabulary.en.ts` -- EVERY name the component uses:  tag, attributes (kind + allowed values),
+      values, events, slots, parts, states, text strings.  Translations become `ui-<name>.vocabulary.<lang>.ts`
+    - `ui-<name>.fallback.ts` -- the native fallback (plain DOM, no Solid) shown when the element's render throws
+    - `ui-<name>.test.tsx` (elements), `ui-<name>.css.test.ts` (the sheet on class-grammar markup),
+      `ui-<name>.fallback.test.ts`, `ui-<name>.a11y.test.ts`, `ui-<name>.perf.test.tsx`
     - `examples/*.html` -- Fomantic's examples in CLASS GRAMMAR (static markup, the CSS tests and the site);
-      `examples/elements/*.html` -- the same examples as `ui-*` ELEMENT markup (axe in `<name>.test.tsx`,
-      `yarn dev`, `yarn test:visual`);  `examples/elements/<name>.visual.ts` -- optional OPEN states for the
+      `examples/elements/*.html` -- the same examples as `ui-*` ELEMENT markup (axe in `ui-<name>.test.tsx`,
+      `yarn dev`, `yarn test:visual`);  `examples/elements/<example>.visual.ts` -- optional OPEN states for the
       visual tests (`docs/visual-testing.md`)
   - `src/core.ts`, `src/forms.ts` -- the two SHARED lib entries (`@spell-app/ui/core`, `@spell-app/ui/forms`):  `core` is
     the element core + the foundation JS every family needs;  `forms` what only form controls with a VALUE need
@@ -163,9 +164,9 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   `ContentPart`):  `@proto static vocabulary` / `styles` / `Fallback` (/ `formAssociated`, `delegatesFocus`),
   signals and memos as FIELDS, `render()` returning JSX.  The fork creates one per element on first connect and
   keeps it (`keepAlive`) until `host.dispose()`.  `UI<Name>.define()` in the family's `index.ts` registers it.
-- Imports in component files (element classes AND `<name>.fallback.ts`):  shared code ONLY from `$/ui/core` (and
+- Imports in component files (element classes AND `ui-<name>.fallback.ts`):  shared code ONLY from `$/ui/core` (and
   `$/ui/forms` for form controls), never `$/ui/util`, `$/ui/vocabulary`, `$/ui/elements` ... directly;  the family's own
-  vocabulary, fallback, helpers and sheet as peers (`./button.vocabulary.en`, `./button.css?inline`).  Why:  the
+  vocabulary, fallback, helpers and sheet as peers (`./ui-button.vocabulary.en`, `./ui-button.css?inline`).  Why:  the
   lib build puts everything `$/ui/core` re-exports into `dist/core.js`;  a leaf imported by a family AND by `core`
   splits into a hashed third chunk.  For the same reason `core.ts` / `forms.ts` re-export `$/ui/elements` LEAVES, and
   `FormHost` / `FormElement` import the core through `$/ui/core` (`yarn measure`'s checks catch a violation).
@@ -235,5 +236,5 @@ As the root's, with `$/ui` / `$/ui/*` as our alias, plus:
 - The root's examples, in `ui`:
   - `import { E } from "$/ui/elements"` => `E.UIElement`, `new E.ClassBuilder(...)`
   - tests may mix:  `import { E, UIElement } from "$/ui/elements"`
-  - side-effect imports:  `import "$/ui/components/button"`
-  - css files:  `./button.css` if in same folder, else `$/ui/styles/tokens.css`
+  - side-effect imports:  `import "$/ui/components/ui-button"`
+  - css files:  `./ui-button.css` if in same folder, else `$/ui/styles/tokens.css`

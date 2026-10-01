@@ -39,7 +39,7 @@
   - a new `core` lib entry exporting the spike element core AND the foundation it uses (`$/ui/elements`, `$/ui/vocabulary`, `$/ui/util`, the `$/ui/runtime` loader, `Icons`), so component entries import it instead of inlining it
   - keep the `UIRuntime` chunk and icon data as lazy dynamic chunks (unchanged)
 - One shared measurer, `spike/shared/SpikeMeasure.ts` (class), used by both spikes' `measure` scripts so numbers are comparable:
-  - in-memory `vite build` (Lit's approach), bucket modules by id:  `library` (external -- measured separately by bundling the peer set once), `core`, `runtime (lazy)`, `icons (lazy)`, and per family `own` = classes + `<name>.css` + vocabulary
+  - in-memory `vite build` (Lit's approach), bucket modules by id:  `library` (external -- measured separately by bundling the peer set once), `core`, `runtime (lazy)`, `icons (lazy)`, and per family `own` = classes + `ui-<name>.css` + vocabulary
   - min + gzip level 9 with esbuild, same for both
   - reports:  library, core, own per family, "page with one button" (library + core + button), "all eight" (library + core + Σ own), and "app already ships the library" (core + Σ own)
   - writes `measure-results.json` per spike
@@ -78,7 +78,7 @@
 
 ### 3a. Native fallback when a component fails (both spikes, exploratory)
 
-- The fallback markup is LIBRARY-NEUTRAL, so both spikes render the identical thing:  `src/components/<name>/<name>.fallback.ts`, a small class per component that builds plain DOM from the host's attributes and light-DOM children
+- The fallback markup is LIBRARY-NEUTRAL, so both spikes render the identical thing:  `src/components/ui-<name>/ui-<name>.fallback.ts`, a small class per component that builds plain DOM from the host's attributes and light-DOM children
   - `button`:  a native `<button>` (or `<a href>`) carrying `type`, `disabled`, `name`/`value`, `aria-*`, the class grammar and `part="button"`, around a `<slot>`;  still submits / resets the form
   - `dropdown`:  a native `<select>` (multiple when `multiple`) built from `options` / `<ui-item>`s, value kept in sync with the host's form value
   - `label`, `segment`, `container`, `divider`, parts:  the root element with its class grammar around a `<slot>` (no behaviour to lose)
@@ -123,12 +123,12 @@
     - Agent A (Opus):  everything in `spike/shared/` (`SpikeMeasure`, `PerfRun`, `ReportTables`, report template, shared framework pages incl. the compiled Solid 2 host app, smoke runner) + Lit shared-runtime packaging, externals, `core` entry, vendored peers, Lit report rewritten to the template
     - Agent B (Opus):  `spike/solid-element/` fork package (incl. the `fallback` option) + its tests + `UPSTREAM.md`
   - Wave 2
-    - Agent C (Sonnet):  the library-neutral `src/components/*/<name>.fallback.ts` classes + their DOM-level tests, then hook them into the Lit spike
+    - Agent C (Sonnet):  the library-neutral `src/components/*/ui-<name>.fallback.ts` classes + their DOM-level tests, then hook them into the Lit spike
     - Agent E (Sonnet):  the icon loading experiment in `spike/icons/` + the `docs/icons.md` section
   - Wave 3
     - Agent D (Opus):  Solid shared-runtime packaging (reusing everything in `spike/shared/`), port onto the fork, Solid native fallback, Solid report rewritten to the template;  then regenerate BOTH reports' tables
   - Orchestrator:  comparison doc, checks, staging
-- Nothing outside `spike/` changes except the new `src/components/*/<name>.fallback.ts` files, the `docs/icons.md` section, and `PAPERCUTS.md` / `SUSPECTED-BUGS.md` entries
+- Nothing outside `spike/` changes except the new `src/components/*/ui-<name>.fallback.ts` files, the `docs/icons.md` section, and `PAPERCUTS.md` / `SUSPECTED-BUGS.md` entries
 - Git:  stage after each agent's checks pass, then ask Owen before committing
 
 ## Verification

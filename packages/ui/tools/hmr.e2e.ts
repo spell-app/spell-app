@@ -7,7 +7,7 @@
  * - Scenarios, in order (the full reloads last):
  *   1. component code (`UIButton.tsx`):  every `<ui-button>` AND `<ie-boton>` re-renders in place
  *   2. component code (`UIDropdown.tsx`):  the dropdown keeps its `options` / `value` PROPERTIES
- *   3. component CSS (`button.css`):  new rules apply, shadow DOM nodes keep their identity (no re-render)
+ *   3. component CSS (`ui-button.css`):  new rules apply, shadow DOM nodes keep their identity (no re-render)
  *   4. vocabulary, same attributes (the `or` text):  hot, new text shown
  *   5. a render that throws:  fallback + `:state(errored)`, other elements unaffected;  the fix recovers
  *   6. a syntax error:  the page keeps the old code;  the fix recovers
@@ -30,10 +30,10 @@ const REPO = fileURLToPath(new URL("../", import.meta.url))
 
 /** Source files the scenarios edit. */
 const FILES = {
-  button: `${REPO}src/components/button/UIButton.tsx`,
-  dropdown: `${REPO}src/components/dropdown/UIDropdown.tsx`,
-  css: `${REPO}src/components/button/button.css`,
-  vocabulary: `${REPO}src/components/button/button.vocabulary.en.ts`,
+  button: `${REPO}src/components/ui-button/UIButton.tsx`,
+  dropdown: `${REPO}src/components/ui-dropdown/UIDropdown.tsx`,
+  css: `${REPO}src/components/ui-button/ui-button.css`,
+  vocabulary: `${REPO}src/components/ui-button/ui-button.vocabulary.en.ts`,
   shared: `${REPO}src/elements/UIElement.tsx`
 } as const
 

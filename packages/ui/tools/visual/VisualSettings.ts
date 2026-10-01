@@ -14,7 +14,7 @@ import type { VisualBrowser, VisualOs } from "./visual.types.ts"
 export class VisualSettings {
   /** repo root, with a trailing slash */
   static readonly ROOT = fileURLToPath(new URL("../../", import.meta.url))
-  /** baselines, in git:  `<os>/<browser>/<family>/<file>.png` */
+  /** baselines, in git:  `<os>/<browser>/ui-<family>/<file>.png` */
   static readonly BASELINES = `${VisualSettings.ROOT}test/visual/baselines`
   /** diffs, HTML reports, the parity report (git-ignored) */
   static readonly RESULTS = `${VisualSettings.ROOT}tools/results/visual`

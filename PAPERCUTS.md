@@ -351,8 +351,8 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
 - 2026-09-29 · Chromium's `CloseWatcher` GROUPS watchers created without an intervening user activation, so
   a test that opens a second overlay programmatically and presses Escape closes BOTH. · Press a real key
   (`userEvent.keyboard("{ArrowDown}")`) before opening the second overlay. · spell/ui spike/lit
-- 2026-09-29 · Contract says "icon svg as FALLBACK content of `<slot name=icon>`", but `button.css` /
-  `dropdown.css` size `.icon > svg` and `.icon > ::slotted(svg)`:  fallback content matches neither, so a
+- 2026-09-29 · Contract says "icon svg as FALLBACK content of `<slot name=icon>`", but `ui-button.css` /
+  `ui-dropdown.css` size `.icon > svg` and `.icon > ::slotted(svg)`:  fallback content matches neither, so a
   labeled-icon glyph fills its whole block (same for `.text > img` inside the dropdown's `trigger` slot). ·
   Render the svg as a SIBLING of the slot.  Caught only by comparing screenshots with the class-grammar
   fragments. · spell/ui spike/lit
@@ -532,7 +532,7 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   bindings `dist/` never does. · `PeerVendor`'s `usedBy` reads `.html` pages and `.js` modules too;  `cli.ts` lists
   `tools/frameworks`, `tools/smoke`, `tools/demo/fallback.html`. · spell/ui
 - 2026-09-29 · Axe `heading-order` exemptions silently stopped matching when the element examples moved from
-  `demo/examples/<name>/x.html` to `src/components/<name>/examples/elements/x.html` (`path.endsWith("parts/header.html")`).
+  `demo/examples/<name>/x.html` to `src/components/ui-<name>/examples/elements/x.html` (`path.endsWith("parts/header.html")`).
   · Match the full tail (`parts/examples/elements/header.html`). · spell/ui
 - 2026-09-29 · The docs site's production build drew no icons:  `Icons` fetches `glyphs/<style>/<name>.js` relative
   to its own chunk (`import.meta.url`), and Astro's client chunks live in `_astro/`, where nothing copied the
@@ -553,7 +553,7 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   the element classes aren't `HTMLElement`s to the site's tsconfig. · Type the query as
   `HTMLElement & { options: unknown[] }` (see `site/src/components/DropdownDemo.astro`). · spell/ui
 - 2026-09-29 · MDX attribute `<ui-label image>` (bare boolean) reaches the element as `image="true"` and the browser
-  requests `/components/parts/true` (404):  MDX makes bare attributes `="true"`, which is wrong for STRING
+  requests `/components/ui-parts/true` (404):  MDX makes bare attributes `="true"`, which is wrong for STRING
   attributes. · Give string attributes a real value in site examples. · spell/ui
 - 2026-09-29 · A form layout test failed with every field full width:  Vitest's browser iframe is 414px wide
   by default, so `<ui-form>`'s container query (`@container ui-form (width < 768px)`) stacked the rows, even
@@ -567,7 +567,7 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   Solid 2's relay / tear detectors live in the ATTRIBUTION engine (`@solidjs/signals/attribution`), which only
   runs after `attribution.enable()`, and "info"-severity findings never reach the console. · In the test:
   `attribution.enable()` (from `solid-js/attribution`), `OBSERVE!.diagnostics.capture()` (from `solid-js`), assert
-  on `events.stop()` codes, `attribution.disable()` after (`checkbox.test.tsx`). · spell/ui
+  on `events.stop()` codes, `attribution.disable()` after (`ui-checkbox.test.tsx`). · spell/ui
 - 2026-09-29 · A `<ui-menu>`'s items silently stopped updating after `interactive` was toggled -- only when an
   EARLIER test had loaded the runtime.  Chased as a stale memo for an hour. · The fork parents a slotted child's
   reactive root under the owner stamped on its `<slot>`;  a slot re-created by `<Switch>` disposes them.  Create the
@@ -577,11 +577,11 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   `customElements.get("x-item-owner")` was `undefined` and every test just saw un-owned items. · Pass the tag:
   `.define(vocabulary.tag)`. · spell/ui
 - 2026-09-29 · Rules placed DIRECTLY in `@layer ui.components` (the old `native.css` table block) beat every rule
-  in its sublayers (`ui.components.table.*`), silently overriding `table.css`. · Never put rules directly in a
+  in its sublayers (`ui.components.table.*`), silently overriding `ui-table.css`. · Never put rules directly in a
   parent layer that has sublayers;  a rule dump (`Sheets.rules`) found it. · spell/ui
 - 2026-09-29 · The Vitest browser viewport is narrower than 768px by default, so static tables / menus render in
   their MOBILE (stacked) layout in CSS tests. · `page.viewport(1000, 800)` in the test (restore on finish), see
-  `menu.css.test.ts` `resize()`. · spell/ui
+  `ui-menu.css.test.ts` `resize()`. · spell/ui
 - 2026-09-29 · `getComputedStyle(el, "::before").content` returns the `counters(...)` expression, not the rendered
   number, so list numbering can only be checked by screenshot. · spell/ui
 - 2026-09-29 · axe's `aria-required-children` fails a `role=menubar` whose children are focusable custom-element
@@ -592,9 +592,9 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   `props.children` isn't a `Node` you can `append()` (the element came out `null`). · A test component that
   `createElement`s the tag, stamps `getOwner()` itself and appends `children(() => props.children).toArray()`
   (`Stamped` in `packages/solid-element/src/owner.test.tsx`). · spell/ui fork
-- 2026-09-29 · Vite failed the whole `popup.css` (`[lightningcss] Unexpected token Function("anchored")`):  Lightning
+- 2026-09-29 · Vite failed the whole `ui-popup.css` (`[lightningcss] Unexpected token Function("anchored")`):  Lightning
   CSS 1.30 can't parse anchored container queries (`@container anchored(fallback: flip-block)`), though Chrome
-  ships them. · Moved those rules to `popup.anchored.css`, imported `?raw` (skips the CSS pipeline, so it MUST be
+  ships them. · Moved those rules to `ui-popup.anchored.css`, imported `?raw` (skips the CSS pipeline, so it MUST be
   self-contained) and adopted as a second sheet (`CODE-DEBT.md`). · spell/ui popup
 - 2026-09-29 · A popup anchored to `<ui-icon>` / `<ui-label>` sat at the top of the page:  an `anchor-name` on a
   `display: contents` host names no box, and a tree-scoped name can't reach the host's shadow box. · Anchor such
@@ -617,7 +617,7 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   the host is `display: contents` (no box). · Put layout styles on a wrapper `<div>` around the element. · spell/ui rail
 - 2026-09-30 · `timeout 600 yarn vitest ...` failed with `command not found: timeout`:  macOS has no GNU `timeout`. ·
   Rely on the tool's own timeout. · spell/ui
-- 2026-09-30 · A lazily `import()`ed data file in a family SUB-folder (`src/components/emoji/data/s.json`) matched no
+- 2026-09-30 · A lazily `import()`ed data file in a family SUB-folder (`src/components/ui-emoji/data/s.json`) matched no
   bucket in `tools/package.config.ts` (the family rule only matches files directly in the family folder), so
   `yarn measure` would have counted it as `core` and failed `coreOutsideCore`. · A `data` bucket (lazy, checked by
   `lazyInEager`, its own row in the report's tier table). · spell/ui emoji
@@ -670,13 +670,13 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   every listener returns (only a script's `dispatchEvent()` keeps the stack non-empty). · Never clear it;  check
   `event.eventPhase !== Event.NONE` (still being dispatched) where it's read (`UITabs.onRovingChange()`). · spell/ui tab
 - 2026-09-30 · A `tabindex="0"` host with `display: contents` is skipped by Tab:  an element without a box can't take
-  focus, so the tabpanel host was unreachable. · The owned pane's host is `display: block` (`tab.css`). · spell/ui tab
+  focus, so the tabpanel host was unreachable. · The owned pane's host is `display: block` (`ui-tab.css`). · spell/ui tab
 - 2026-09-30 · `userEvent.click()` on a `<button aria-disabled="true">` times out ("waiting for element to be ...
   enabled"):  Playwright's actionability check treats `aria-disabled` as disabled. · `element.click()` for that one
   click. · spell/ui tab
-- 2026-09-30 · `yarn vitest run src/components/tab` also ran `src/components/table/` (a path filter is a PREFIX match). ·
-  End the filter with a slash:  `src/components/tab/`. · spell/ui
-- 2026-09-30 · A CSS test of `toast.css`'s 350px compact width failed with 414px:  the Vitest browser viewport is 414px
+- 2026-09-30 · `yarn vitest run src/components/ui-tab` also ran `src/components/ui-table/` (a path filter is a PREFIX match). ·
+  End the filter with a slash:  `src/components/ui-tab/`. · spell/ui
+- 2026-09-30 · A CSS test of `ui-toast.css`'s 350px compact width failed with 414px:  the Vitest browser viewport is 414px
   wide, so every `@media (max-width: 420px)` phone rule applies in browser tests. · Make width assertions viewport
   aware (`matchMedia(...)`), or test in a fixed-width container. · spell/ui
 - 2026-09-30 · `test/fallback.test.tsx` "every family renders its fallback root" failed for `<ui-visibility>` with
@@ -715,7 +715,7 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   evaluation), so stubbing `UI.browser.supports.temporal` alone still tested native code;  the "forced" entry
   (`temporal-polyfill/implementation`) also imports the full-calendars chunk. · Delete `globalThis.Temporal` inside
   `vi.hoisted()` at the top of a dedicated test file (runs before every import;  each browser test file gets its own
-  page), so the flag, `I18n` and the polyfill all see a Temporal-less browser (`calendar.polyfill.test.tsx`). ·
+  page), so the flag, `I18n` and the polyfill all see a Temporal-less browser (`ui-calendar.polyfill.test.tsx`). ·
   spell/ui calendar
 - 2026-09-30 · TypeScript 7's lib has no `Temporal` types. · Type it from the polyfill's `temporal-spec`
   (`import type { Temporal } from "temporal-polyfill"`, `TemporalAPI` in `runtime.types.ts`). · spell/ui calendar
@@ -723,9 +723,9 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   denied to "/Users/owen/www/spell/.cache/x.txt"` -- the path resolves from the PROJECT ROOT, not the test file. ·
   `commands.writeFile("./.cache/x.txt", ...)`. · spell/ui
 - 2026-09-30 · `import.meta.glob("/src/components/*/*.css", { query: "?inline" })` fails the whole test file
-  ("Failed to fetch dynamically imported module"):  Lightning CSS rejects `popup.anchored.css`
+  ("Failed to fetch dynamically imported module"):  Lightning CSS rejects `ui-popup.anchored.css`
   (`@container anchored(...)`, see `CODE-DEBT.md`). · Exclude it:  `["/src/components/*/*.css",
-  "!**/popup.anchored.css"]`, or glob `?raw`. · spell/ui
+  "!**/ui-popup.anchored.css"]`, or glob `?raw`. · spell/ui
 - 2026-09-30 · `FILES=$(grep -l ...); perl -pi -e ... $FILES` edits nothing and says `File name too long`:  zsh
   doesn't word-split an unquoted `$FILES`. · Pipe to `xargs`, or `${=FILES}`. · spell/ui
 - 2026-09-30 · A docs page's `<ui-toast type="info" icon>` requested `glyphs/solid/true.js` (404):  MDX / Astro render
@@ -741,7 +741,7 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   vitest run with `WS_ERR_UNSUPPORTED_MESSAGE_LENGTH`:  the browser -> node websocket caps one message. · Write one
   file per example (a few MB each), skip pseudo-elements whose `content` is `none`. · spell/ui token conversion
 - 2026-09-30 · A browser test that globbed EVERY component sheet (`import.meta.glob("/src/components/*/*.css",
-  { query: "?inline" })`) failed to import:  lightningcss can't parse `popup.anchored.css`'s
+  { query: "?inline" })`) failed to import:  lightningcss can't parse `ui-popup.anchored.css`'s
   `@container anchored(fallback: flip-block)`. · Glob only the families you need (brace list), or `?raw`. · spell/ui
   token conversion
 - 2026-09-30 · `yarn oxfmt $PATHS` / `yarn oxlint $PATHS` said "Expected at least one target file" / "No files found
@@ -755,7 +755,7 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   (non-modal) `<dialog>` its own close watcher, DISABLED (`closedby` computes to `none`);  created during user
   activation it starts a new close-watcher group, and Escape only reaches the NEWEST group, so an earlier
   `CloseWatcher` never hears it. · Open the dialog / popover BEFORE `UI.overlays.open()`;  test Escape with the
-  watcher ON and the overlay opened by `userEvent.click()` (`sidebar.test.tsx`, `flyout` / `dimmer` too). · spell/ui
+  watcher ON and the overlay opened by `userEvent.click()` (`ui-sidebar.test.tsx`, `flyout` / `dimmer` too). · spell/ui
 - 2026-09-30 · Vitest browser `page.screenshot({ path })` to a scratch dir outside the repo fails:  `Access denied
   ... server.fs strict`. · Write it under the repo (a throwaway folder next to the probe test) and delete it after. ·
   spell/ui
@@ -812,7 +812,7 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   one). · docs/ui
 - 2026-09-30 · `yarn smoke` in `ui` dies with `no vendor/importmap.json` on a fresh checkout. · `yarn vendor` first. · ui
 - 2026-10-01 · `yarn test:hmr` fails (8 cancelled):  `Failed to resolve import "$/ui/elements/HotDefinitions" from
-  "src/components/button/button.css?inline"`.  Vite 8's `resolve.tsconfigPaths` only resolves aliases for TS / JS
+  "src/components/ui-button/ui-button.css?inline"`.  Vite 8's `resolve.tsconfigPaths` only resolves aliases for TS / JS
   importers, and `solidElementHot()` injects that import into the `?inline` sheets too. · `vite.config.ts` injects
   `HotDefinitions` by file path (`${SRC}/elements/HotDefinitions.ts`).  The site's config has an explicit alias table,
   so it was fine. · ui

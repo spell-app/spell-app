@@ -1,5 +1,5 @@
 /**
- * Generates `src/components/emoji/data/<set>/<chunk>.json`:  emoji NAMES => native Unicode emoji, one JSON file per
+ * Generates `src/components/ui-emoji/data/<set>/<chunk>.json`:  emoji NAMES => native Unicode emoji, one JSON file per
  * first letter of the name, per NAME SET, which `EmojiData` loads lazily.
  * - Run with `yarn gen:emoji` (`tsc -p scripts && tsx scripts/gen-emoji.ts`).
  * - Two sets, never merged (`EmojiData.use()` picks one, `<ui-emoji-set names>` does it from HTML).  Sources are read
@@ -12,7 +12,7 @@
  * - The character comes from emojibase's HEX CODE, with U+FE0F where the emoji would otherwise show as TEXT:
  *   emojibase's hex codes already have it in sequences (keycaps, ZWJ);  for a text-default emoji (`type` 0, `2600`
  *   sunny, `00a9` copyright) the generator adds it after the first code point.  No hand-written presentation
- *   ranges:  the data says.  `emoji.css`'s `font-variant-emoji: emoji` covers any the data misses, where the
+ *   ranges:  the data says.  `ui-emoji.css`'s `font-variant-emoji: emoji` covers any the data misses, where the
  *   browser supports it.
  * - Output is COMMITTED (like the icon data):  installs and CI need neither the reference clone nor this
  *   dependency.  `.oxfmtrc.json` ignores it, so formatting never inflates it.
@@ -45,7 +45,7 @@ interface EmojiEntry {
 ////////////////
 
 /**
- * Builds every file under `src/components/emoji/data/`:  one folder per name set.
+ * Builds every file under `src/components/ui-emoji/data/`:  one folder per name set.
  * - `run()` reads both sources, turns each emoji into its character, builds each set, groups by chunk and writes.
  */
 class EmojiGenerator {
@@ -59,7 +59,7 @@ class EmojiGenerator {
   )
 
   /** Output directory;  emptied first, so a dropped emoji or set doesn't linger. */
-  static readonly OUT = path.join(EmojiGenerator.ROOT, "src/components/emoji/data")
+  static readonly OUT = path.join(EmojiGenerator.ROOT, "src/components/ui-emoji/data")
 
   /** Variation selector 16:  "show as an emoji". */
   static readonly VS16 = 0xfe0f

@@ -1,0 +1,24 @@
+<!-- `src/components/ui-search/examples/states.html` as element markup. -->
+<div class="ui-stack" style="padding-bottom: 10em">
+  <section>
+    <h4>Loading</h4>
+    <ui-search loading aria-label="Loading"></ui-search>
+  </section>
+
+  <section>
+    <h4>Disabled</h4>
+    <ui-search disabled aria-label="Disabled"></ui-search>
+  </section>
+
+  <section>
+    <h4>No results</h4>
+    <ui-search aria-label="Nothing" value="zzz" source='[{"title":"Apple"}]'></ui-search>
+  </section>
+</div>
+
+<div class="ui-stack" style="padding-bottom: 8em">
+  <section>
+    <h4>Error</h4>
+    <ui-search aria-label="Server" url="/no-such-search-endpoint?q={query}"></ui-search>
+  </section>
+</div>

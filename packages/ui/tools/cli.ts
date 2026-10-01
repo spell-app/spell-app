@@ -115,8 +115,8 @@ function loc() {
     components: [
       "src/components/*/UI*.{ts,tsx}",
       "src/components/*/index.ts",
-      "src/components/dropdown/SlottedItems.ts",
-      "src/components/parts/PartElement.ts",
+      "src/components/ui-dropdown/SlottedItems.ts",
+      "src/components/ui-parts/PartElement.ts",
       "!src/components/**/*.test.{ts,tsx}"
     ],
     "vocabularies & fallbacks": ["src/components/*/*.vocabulary.*.ts", "src/components/*/*.fallback.ts"],

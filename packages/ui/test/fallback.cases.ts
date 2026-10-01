@@ -1,6 +1,6 @@
 /**
  * Native-fallback test cases (`docs/fallback.md`):  when a `ui-*` element's render throws, it shows its family's
- * native fallback (`src/components/<name>/<name>.fallback.ts`) and the page keeps working.
+ * native fallback (`src/components/ui-<name>/ui-<name>.fallback.ts`) and the page keeps working.
  * - Runtime-agnostic:  DOM, ARIA and forms only.  The Solid-specific parts come in through `FallbackAdapter`
  *   (how to mount and wait, how to make one element's render throw, axe), from `fallback.test.tsx`.
  * - Test-runner-agnostic:  no `vitest` import;  a failed check throws.  Run as
@@ -44,125 +44,133 @@ export const ERROR_EVENT = "ui-error"
  * - The root carries the family's `part`, like the real element's.
  */
 export const FAMILY_FALLBACKS: readonly { family: string; html: string; root: string }[] = [
-  { family: "button", html: `<ui-button primary>Save</ui-button>`, root: "button[part~=button]" },
+  { family: "ui-button", html: `<ui-button primary>Save</ui-button>`, root: "button[part~=button]" },
   {
-    family: "dropdown",
+    family: "ui-dropdown",
     html: `<ui-dropdown selection placeholder="Fruit"><ui-item value="a">Apple</ui-item></ui-dropdown>`,
     root: "select[part~=trigger]"
   },
-  { family: "icon", html: `<ui-icon name="house" label="Home"></ui-icon>`, root: "[part~=icon]" },
-  { family: "label", html: `<ui-label color="red">Tag</ui-label>`, root: "[part~=label]" },
-  { family: "segment", html: `<ui-segment raised>Box</ui-segment>`, root: "[part~=segment]" },
-  { family: "container", html: `<ui-container text>Text</ui-container>`, root: "[part~=container]" },
-  { family: "divider", html: `<ui-divider horizontal>Or</ui-divider>`, root: "[role=separator][part~=divider]" },
-  { family: "parts", html: `<ui-header size="large">Title</ui-header>`, root: "[part~=header]" },
-  { family: "grid", html: `<ui-grid columns="2"><ui-column>A</ui-column></ui-grid>`, root: "[part~=grid]" },
-  { family: "image", html: `<ui-image size="small" src="data:," alt="Photo"></ui-image>`, root: "img[part~=image]" },
-  { family: "text", html: `<ui-text color="red">Red</ui-text>`, root: "span[part~=text]" },
-  { family: "flag", html: `<ui-flag country="fr"></ui-flag>`, root: "[role=img][part~=flag]" },
-  { family: "loader", html: `<ui-loader active inline></ui-loader>`, root: "[role=status][part~=loader]" },
+  { family: "ui-icon", html: `<ui-icon name="house" label="Home"></ui-icon>`, root: "[part~=icon]" },
+  { family: "ui-label", html: `<ui-label color="red">Tag</ui-label>`, root: "[part~=label]" },
+  { family: "ui-segment", html: `<ui-segment raised>Box</ui-segment>`, root: "[part~=segment]" },
+  { family: "ui-container", html: `<ui-container text>Text</ui-container>`, root: "[part~=container]" },
+  { family: "ui-divider", html: `<ui-divider horizontal>Or</ui-divider>`, root: "[role=separator][part~=divider]" },
+  { family: "ui-parts", html: `<ui-header size="large">Title</ui-header>`, root: "[part~=header]" },
+  { family: "ui-grid", html: `<ui-grid columns="2"><ui-column>A</ui-column></ui-grid>`, root: "[part~=grid]" },
+  { family: "ui-image", html: `<ui-image size="small" src="data:," alt="Photo"></ui-image>`, root: "img[part~=image]" },
+  { family: "ui-text", html: `<ui-text color="red">Red</ui-text>`, root: "span[part~=text]" },
+  { family: "ui-flag", html: `<ui-flag country="fr"></ui-flag>`, root: "[role=img][part~=flag]" },
+  { family: "ui-loader", html: `<ui-loader active inline></ui-loader>`, root: "[role=status][part~=loader]" },
   {
-    family: "placeholder",
+    family: "ui-placeholder",
     html: `<ui-placeholder><ui-placeholder-line></ui-placeholder-line></ui-placeholder>`,
     root: "[part~=placeholder]"
   },
-  { family: "message", html: `<ui-message header="Saved" dismissible>Done</ui-message>`, root: "[part~=message]" },
+  { family: "ui-message", html: `<ui-message header="Saved" dismissible>Done</ui-message>`, root: "[part~=message]" },
   {
-    family: "breadcrumb",
+    family: "ui-breadcrumb",
     html: `<ui-breadcrumb><ui-breadcrumb-section active>Home</ui-breadcrumb-section></ui-breadcrumb>`,
     root: "nav[part~=breadcrumb]"
   },
-  { family: "input", html: `<ui-input placeholder="Search" aria-label="Search"></ui-input>`, root: "[part~=input]" },
-  { family: "checkbox", html: `<ui-checkbox>Agree</ui-checkbox>`, root: "[part~=checkbox]" },
-  { family: "form", html: `<ui-form><form></form></ui-form>`, root: "[part~=form]" },
+  { family: "ui-input", html: `<ui-input placeholder="Search" aria-label="Search"></ui-input>`, root: "[part~=input]" },
+  { family: "ui-checkbox", html: `<ui-checkbox>Agree</ui-checkbox>`, root: "[part~=checkbox]" },
+  { family: "ui-form", html: `<ui-form><form></form></ui-form>`, root: "[part~=form]" },
   {
-    family: "list",
+    family: "ui-list",
     html: `<ui-list divided ordered><ui-item>One</ui-item><ui-item>Two</ui-item></ui-list>`,
     root: "ol.ui.divided.ordered.list[part=list][role=list]"
   },
   {
-    family: "menu",
+    family: "ui-menu",
     html: `<ui-menu secondary aria-label="Fallback menu"><ui-item href="#a" selected>A</ui-item></ui-menu>`,
     root: "nav[part~=menu]"
   },
   {
-    family: "table",
+    family: "ui-table",
     html:
       `<ui-table celled scrolling><table><caption>People</caption><thead><tr><th>Name</th></tr></thead>` +
       `<tbody><tr><td>Jill</td></tr></tbody></table></ui-table>`,
     root: "[role=region][part~=scroller]"
   },
-  { family: "popup", html: `<ui-popup content="Tip" on="manual"></ui-popup>`, root: "[part~=popup]" },
-  { family: "modal", html: `<ui-modal header="Saved" closable>Done</ui-modal>`, root: "dialog[part~=modal]" },
-  { family: "transition", html: `<ui-transition visible>Shown</ui-transition>`, root: "[part~=transition]" },
-  { family: "dimmer", html: `<ui-dimmer active>Dimmed</ui-dimmer>`, root: "div[part~=dimmer]" },
-  { family: "flyout", html: `<ui-flyout header="Saved" closable>Done</ui-flyout>`, root: "dialog[part~=flyout]" },
-  { family: "sidebar", html: `<ui-sidebar aria-label="Site">Links</ui-sidebar>`, root: "aside[part~=sidebar]" },
-  { family: "shape", html: `<ui-shape><ui-side>One</ui-side></ui-shape>`, root: "[part~=shape]" },
-  { family: "card", html: `<ui-card header="Kristy" raised>Card</ui-card>`, root: "article[part~=card]" },
-  { family: "items", html: `<ui-items divided><ui-item>One</ui-item></ui-items>`, root: "[role=list][part~=items]" },
-  { family: "feed", html: `<ui-feed ordered><ui-event label="A">Joined</ui-event></ui-feed>`, root: "ol[part~=feed]" },
+  { family: "ui-popup", html: `<ui-popup content="Tip" on="manual"></ui-popup>`, root: "[part~=popup]" },
+  { family: "ui-modal", html: `<ui-modal header="Saved" closable>Done</ui-modal>`, root: "dialog[part~=modal]" },
+  { family: "ui-transition", html: `<ui-transition visible>Shown</ui-transition>`, root: "[part~=transition]" },
+  { family: "ui-dimmer", html: `<ui-dimmer active>Dimmed</ui-dimmer>`, root: "div[part~=dimmer]" },
+  { family: "ui-flyout", html: `<ui-flyout header="Saved" closable>Done</ui-flyout>`, root: "dialog[part~=flyout]" },
+  { family: "ui-sidebar", html: `<ui-sidebar aria-label="Site">Links</ui-sidebar>`, root: "aside[part~=sidebar]" },
+  { family: "ui-shape", html: `<ui-shape><ui-side>One</ui-side></ui-shape>`, root: "[part~=shape]" },
+  { family: "ui-card", html: `<ui-card header="Kristy" raised>Card</ui-card>`, root: "article[part~=card]" },
+  { family: "ui-items", html: `<ui-items divided><ui-item>One</ui-item></ui-items>`, root: "[role=list][part~=items]" },
   {
-    family: "comment",
+    family: "ui-feed",
+    html: `<ui-feed ordered><ui-event label="A">Joined</ui-event></ui-feed>`,
+    root: "ol[part~=feed]"
+  },
+  {
+    family: "ui-comment",
     html: `<ui-comments threaded><ui-comment>Hi</ui-comment></ui-comments>`,
     root: "[part~=comments]"
   },
-  { family: "statistic", html: `<ui-statistic value="5" label="Flights"></ui-statistic>`, root: "[part~=statistic]" },
   {
-    family: "step",
+    family: "ui-statistic",
+    html: `<ui-statistic value="5" label="Flights"></ui-statistic>`,
+    root: "[part~=statistic]"
+  },
+  {
+    family: "ui-step",
     html: `<ui-steps><ui-step selected header="Billing"></ui-step></ui-steps>`,
     root: "ol[part~=steps]"
   },
-  { family: "rail", html: `<ui-rail position="left">Rail</ui-rail>`, root: "[part~=rail]" },
+  { family: "ui-rail", html: `<ui-rail position="left">Rail</ui-rail>`, root: "[part~=rail]" },
   {
-    family: "reveal",
+    family: "ui-reveal",
     html: `<ui-reveal fade><span slot="visible">Front</span><span slot="hidden">Back</span></ui-reveal>`,
     root: "[part~=reveal]"
   },
-  { family: "ad", html: `<ui-ad unit="small rectangle" test></ui-ad>`, root: "[part~=ad]" },
+  { family: "ui-ad", html: `<ui-ad unit="small rectangle" test></ui-ad>`, root: "[part~=ad]" },
   {
-    family: "emoji",
+    family: "ui-emoji",
     html: `<ui-emoji name="grinning_face_with_smiling_eyes" label="Happy"></ui-emoji>`,
     root: "[part~=emoji]"
   },
   {
-    family: "select",
+    family: "ui-select",
     html: `<ui-select placeholder="Fruit"><ui-item value="a">Apple</ui-item></ui-select>`,
     root: "select[part~=select]"
   },
-  { family: "search", html: `<ui-search placeholder="Fruit"></ui-search>`, root: "input[part~=prompt]" },
-  { family: "progress", html: `<ui-progress value="40" label="Upload"></ui-progress>`, root: "progress[part~=bar]" },
+  { family: "ui-search", html: `<ui-search placeholder="Fruit"></ui-search>`, root: "input[part~=prompt]" },
+  { family: "ui-progress", html: `<ui-progress value="40" label="Upload"></ui-progress>`, root: "progress[part~=bar]" },
   {
-    family: "rating",
+    family: "ui-rating",
     html: `<ui-rating value="2" aria-label="Fallback rating"></ui-rating>`,
     root: "fieldset[role=radiogroup][part~=rating] label[part~=icon]:not(.icon)"
   },
   {
-    family: "slider",
+    family: "ui-slider",
     html: `<ui-slider value="4" aria-label="Fallback slider"></ui-slider>`,
     root: "input[type=range][part~=thumb]"
   },
   {
-    family: "accordion",
+    family: "ui-accordion",
     html: `<ui-accordion styled open="0"><ui-title>Dogs</ui-title><ui-content>Loyal</ui-content></ui-accordion>`,
     root: "[part~=accordion] > details[open]"
   },
   {
-    family: "tab",
+    family: "ui-tab",
     html: `<ui-tabs tabular aria-label="Fallback tabs"><ui-tab label="One">A</ui-tab></ui-tabs>`,
     root: "[part~=tabs] > [role=tablist]"
   },
-  { family: "toast", html: `<ui-toast header="Saved" message="Done" closable></ui-toast>`, root: "[part~=box]" },
-  { family: "nag", html: `<ui-nag color="teal">Updated</ui-nag>`, root: "[part~=nag]" },
-  { family: "sticky", html: `<ui-sticky offset="8">Stuck</ui-sticky>`, root: "[part~=sticky]" },
-  { family: "visibility", html: `<ui-visibility><p>Seen</p></ui-visibility>`, root: "[part~=visibility]" },
+  { family: "ui-toast", html: `<ui-toast header="Saved" message="Done" closable></ui-toast>`, root: "[part~=box]" },
+  { family: "ui-nag", html: `<ui-nag color="teal">Updated</ui-nag>`, root: "[part~=nag]" },
+  { family: "ui-sticky", html: `<ui-sticky offset="8">Stuck</ui-sticky>`, root: "[part~=sticky]" },
+  { family: "ui-visibility", html: `<ui-visibility><p>Seen</p></ui-visibility>`, root: "[part~=visibility]" },
   {
-    family: "embed",
+    family: "ui-embed",
     html: `<ui-embed source="youtube" video-id="x" label="Intro"></ui-embed>`,
     root: "button[part~=play]"
   },
   {
-    family: "calendar",
+    family: "ui-calendar",
     html: `<ui-calendar type="date" value="2026-09-30" placeholder="Fallback date"></ui-calendar>`,
     root: "[part~=calendar] input[type=date][part~=control]"
   }

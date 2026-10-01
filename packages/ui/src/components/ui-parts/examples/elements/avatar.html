@@ -1,0 +1,56 @@
+<!-- `src/components/ui-parts/examples/avatar.html` as element markup. -->
+<!-- Owners are the real elements. -->
+<div class="ui-stack">
+  <section>
+    <h4>Standalone</h4>
+    <!-- The host is `display: contents`:  box styles go on the root, through `::part()`. -->
+    <style>
+      #standalone-avatar::part(avatar) {
+        display: inline-block;
+        width: 3em;
+      }
+      #item-avatar::part(avatar) {
+        width: 2em;
+        height: 2em;
+      }
+    </style>
+    <ui-avatar
+      id="standalone-avatar"
+      src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+    ></ui-avatar>
+  </section>
+
+  <section>
+    <h4>In owners</h4>
+    <ui-comments>
+      <ui-comment>
+        <ui-avatar
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+        ></ui-avatar>
+        <ui-content>
+          <ui-author href="#matt">Matt</ui-author>
+          <ui-description>How artistic!</ui-description>
+        </ui-content>
+      </ui-comment>
+    </ui-comments>
+    <ui-card>
+      <ui-content>
+        <ui-avatar
+          src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+        ></ui-avatar>
+        Elliot
+      </ui-content>
+    </ui-card>
+    <ui-items>
+      <ui-item>
+        <ui-content>
+          <ui-avatar
+            id="item-avatar"
+            src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+          ></ui-avatar>
+          Stevie
+        </ui-content>
+      </ui-item>
+    </ui-items>
+  </section>
+</div>

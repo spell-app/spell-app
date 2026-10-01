@@ -80,13 +80,15 @@ export class HotDefinitions {
   }
 
   /**
-   * A component sheet's `?inline` CSS changed:  re-register it by name (`button.css` => `button`).
+   * A component sheet's `?inline` CSS changed:  re-register it by name (`ui-button.css` => `button`).
+   * - The name drops the family folder's `ui-` prefix:  elements register their sheets by bare name
+   *   (`@proto static styles = { button: buttonCSS }`).
    * - `Styles.register()` replaces the rules of the sheet every shadow root already adopted:  no re-render.
    * - Registered even if no element used it yet, so a later `adoptStyles()` finds the new text (it only
    *   registers names that are missing).
    */
   static updateStyle(this: void, id: string, css: string) {
-    const name = /([\w-]+)\.css(?:\?|$)/.exec(id)?.[1]
+    const name = /(?:^|\/)(?:ui-)?([\w-]+)\.css(?:\?|$)/.exec(id)?.[1]
     if (name) HotDefinitions.whenRuntime(() => UI.styles.register(name, css))
   }
 

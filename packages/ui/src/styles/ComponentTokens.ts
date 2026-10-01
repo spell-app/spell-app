@@ -11,7 +11,7 @@
  *   `placeholder-line`.
  */
 export class ComponentTokens {
-  /** tag without `ui-` => family folder, e.g. `buttons` => `button`;  longest tags first */
+  /** tag without `ui-` => family folder, e.g. `buttons` => `ui-button`;  longest tags first */
   readonly tags: Array<[tag: string, family: string]>
 
   /** every `--ui-*` name the foundation sheets (`src/styles/*.css`) declare */
@@ -19,7 +19,7 @@ export class ComponentTokens {
 
   /**
    * Build from source TEXT.
-   * - `vocabularies`:  path => text of every `<family>.vocabulary.en.ts`;  the family is the path's folder
+   * - `vocabularies`:  path => text of every `ui-<family>.vocabulary.en.ts`;  the family is the path's folder
    * - `foundation`:  texts of the foundation sheets
    */
   constructor(vocabularies: Record<string, string>, foundation: string[]) {
@@ -33,7 +33,7 @@ export class ComponentTokens {
   }
 
   /**
-   * Family folder of a sheet or vocabulary path:  the folder after `components/`, e.g. `button`.
+   * Family folder of a sheet or vocabulary path:  the folder after `components/`, e.g. `ui-button`.
    * - Throws on a path outside `src/components/`:  every caller passes component files.
    */
   static familyOf(path: string): string {
@@ -44,7 +44,7 @@ export class ComponentTokens {
 
   /**
    * The tag and family a PUBLIC custom property belongs to, or `undefined` for a foundation / remap / private name.
-   * - `--ui-button-radius` => `{ tag: "button", family: "button" }`;  `--ui-color`, `--ui-inverted`,
+   * - `--ui-button-radius` => `{ tag: "button", family: "ui-button" }`;  `--ui-color`, `--ui-inverted`,
    *   `--ui-text-color` (foundation) and `--_ui-button-radius` => `undefined`.
    */
   owner(name: string): { tag: string; family: string } | undefined {
@@ -65,7 +65,7 @@ export class ComponentTokens {
   /**
    * Convert one sheet of `family` to private aliases (the codemod behind `yarn tokens:alias`).
    * - `declared`:  the family's public tokens declared in ANY of its sheets (a sheet may read tokens a sibling
-   *   sheet declares, e.g. `popup.anchored.css`);  default:  the ones this sheet declares.
+   *   sheet declares, e.g. `ui-popup.anchored.css`);  default:  the ones this sheet declares.
    * - For each of the family's tokens this sheet declares:  the FIRST declaration becomes the alias
    *   (`--_ui-x: var(--ui-x, <value>)`), every later one (a variation) writes the alias (`--_ui-x: <value>`).
    * - Every read (`var(--ui-x`, `style(--ui-x`) of a `declared` token becomes `--_ui-x`.

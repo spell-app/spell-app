@@ -1,0 +1,205 @@
+<!--
+  Comment variations, after Fomantic's docs (views/comment.html, "Variations").
+  Static class grammar `ui-comment.css` styles:  the list, each comment (`.ui.comments .comment`) and its threads
+  (`.comment > .comments`), and the content parts (`in-comment`, as `ui-parts.css` expects static parts:  Fomantic's
+  `.metadata` is `meta`, its `.text` is `description`);  element markup renders the same.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Threaded</h4>
+    <div class="ui threaded comments">
+      <div class="comment">
+        <span class="avatar in-comment"
+          ><img
+            src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+            alt=""
+        /></span>
+        <div class="content in-comment">
+          <a class="author in-comment" href="#elliot-fu">Elliot Fu</a>
+          <div class="meta in-comment"><span>Yesterday at 12:30AM</span></div>
+          <div class="description in-comment">This has been very useful for my research. Thanks as well!</div>
+          <div class="actions in-comment"><button type="button">Reply</button></div>
+        </div>
+        <div class="comments">
+          <div class="comment">
+            <span class="avatar in-comment"
+              ><img
+                src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+                alt=""
+            /></span>
+            <div class="content in-comment">
+              <a class="author in-comment" href="#jenny-hess">Jenny Hess</a>
+              <div class="meta in-comment"><span>Just now</span></div>
+              <div class="description in-comment">Elliot you are always so right :)</div>
+              <div class="actions in-comment"><button type="button">Reply</button></div>
+            </div>
+          </div>
+          <div class="comment">
+            <span class="avatar in-comment"
+              ><img
+                src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+                alt=""
+            /></span>
+            <div class="content in-comment">
+              <a class="author in-comment" href="#matt">Matt</a>
+              <div class="meta in-comment"><span>Today at 5:42PM</span></div>
+              <div class="description in-comment">How artistic!</div>
+              <div class="actions in-comment"><button type="button">Reply</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="comment">
+        <span class="avatar in-comment"
+          ><img
+            src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+            alt=""
+        /></span>
+        <div class="content in-comment">
+          <a class="author in-comment" href="#joe-henderson">Joe Henderson</a>
+          <div class="meta in-comment"><span>5 days ago</span></div>
+          <div class="description in-comment">Dude, this is awesome. Thanks so much</div>
+          <div class="actions in-comment"><button type="button">Reply</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Minimal</h4>
+    <div class="ui minimal comments">
+      <div class="comment">
+        <span class="avatar in-comment"
+          ><img
+            src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+            alt=""
+        /></span>
+        <div class="content in-comment">
+          <a class="author in-comment" href="#matt">Matt</a>
+          <div class="meta in-comment"><span>Today at 5:42PM</span></div>
+          <div class="description in-comment">How artistic!</div>
+          <div class="actions in-comment"><button type="button">Reply</button></div>
+        </div>
+      </div>
+      <div class="comment">
+        <span class="avatar in-comment"
+          ><img
+            src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+            alt=""
+        /></span>
+        <div class="content in-comment">
+          <a class="author in-comment" href="#elliot-fu">Elliot Fu</a>
+          <div class="meta in-comment"><span>Yesterday at 12:30AM</span></div>
+          <div class="description in-comment">This has been very useful for my research. Thanks as well!</div>
+          <div class="actions in-comment"><button type="button">Reply</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Collapsed thread</h4>
+    <div class="ui comments">
+      <div class="comment">
+        <span class="avatar in-comment"
+          ><img
+            src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+            alt=""
+        /></span>
+        <div class="content in-comment">
+          <a class="author in-comment" href="#elliot-fu">Elliot Fu</a>
+          <div class="meta in-comment"><span>Yesterday at 12:30AM</span></div>
+          <div class="description in-comment">This has been very useful for my research. Thanks as well!</div>
+          <div class="actions in-comment"><button type="button">Reply</button></div>
+        </div>
+        <div class="collapsed comments">
+          <div class="comment">
+            <span class="avatar in-comment"
+              ><img
+                src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+                alt=""
+            /></span>
+            <div class="content in-comment">
+              <a class="author in-comment" href="#jenny-hess">Jenny Hess</a>
+              <div class="meta in-comment"><span>Just now</span></div>
+              <div class="description in-comment">Elliot you are always so right :)</div>
+              <div class="actions in-comment"><button type="button">Reply</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Small</h4>
+    <div class="ui small comments">
+      <div class="comment">
+        <span class="avatar in-comment"
+          ><img
+            src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+            alt=""
+        /></span>
+        <div class="content in-comment">
+          <a class="author in-comment" href="#matt">Matt</a>
+          <div class="meta in-comment"><span>Today at 5:42PM</span></div>
+          <div class="description in-comment">How artistic!</div>
+          <div class="actions in-comment"><button type="button">Reply</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Large</h4>
+    <div class="ui large comments">
+      <div class="comment">
+        <span class="avatar in-comment"
+          ><img
+            src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+            alt=""
+        /></span>
+        <div class="content in-comment">
+          <a class="author in-comment" href="#elliot-fu">Elliot Fu</a>
+          <div class="meta in-comment"><span>Yesterday at 12:30AM</span></div>
+          <div class="description in-comment">This has been very useful for my research. Thanks as well!</div>
+          <div class="actions in-comment"><button type="button">Reply</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Inverted</h4>
+    <div class="ui inverted segment">
+      <div class="ui inverted comments">
+        <div class="comment">
+          <span class="avatar in-comment"
+            ><img
+              src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+              alt=""
+          /></span>
+          <div class="content in-comment">
+            <a class="author in-comment" href="#jenny-hess">Jenny Hess</a>
+            <div class="meta in-comment"><span>Just now</span></div>
+            <div class="description in-comment">Elliot you are always so right :)</div>
+            <div class="actions in-comment"><button type="button">Reply</button></div>
+          </div>
+        </div>
+        <div class="comment">
+          <span class="avatar in-comment"
+            ><img
+              src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22200%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+              alt=""
+          /></span>
+          <div class="content in-comment">
+            <a class="author in-comment" href="#joe-henderson">Joe Henderson</a>
+            <div class="meta in-comment"><span>5 days ago</span></div>
+            <div class="description in-comment">Dude, this is awesome. Thanks so much</div>
+            <div class="actions in-comment"><button type="button">Reply</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

@@ -20,7 +20,7 @@ const EXTRA_ENTRIES = { api: ENTRIES.api! }
  *   - a family folder => its own classes / sheet / vocabulary / fallback
  *   - `api.ts` and the two barrels it namespaces (`E`, `V`) => `extra:api`:  only `api.js` holds them
  *   - lazy tiers:  runtime services + foundation sheets => `runtime`;  icon name / alias maps => `icons`;  a
- *     family's lazily imported data (`components/<family>/data/`, the emoji chunks) and the Temporal polyfill
+ *     family's lazily imported data (`components/ui-<family>/data/`, the emoji chunks) and the Temporal polyfill
  *     (`temporal-polyfill`, loaded only where the browser lacks `Temporal`) => `data`
  *   - any other `src/` module (incl. `\0` virtual helpers) => `core`
  */
@@ -41,7 +41,7 @@ export const PACKAGE: PackageConfig = {
 
 /**
  * Import map entries for `dist/` (the vendored Solid ones come from `vendor/importmap.json`).
- * - `@spell-app/ui` ~== every family (`dist/index.js`);  `@spell-app/ui/<family>` one family;  `@spell-app/ui/core`,
+ * - `@spell-app/ui` ~== every family (`dist/index.js`);  `@spell-app/ui/ui-<family>` one family;  `@spell-app/ui/core`,
  *   `@spell-app/ui/forms`;  `@spell-app/ui/api` the `E` / `V` namespaces.
  */
 export const DIST_IMPORTS: ImportMap["imports"] = {

@@ -1,0 +1,47 @@
+<!-- `src/components/ui-toast/examples/variations.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Colored</h4>
+    <ui-toast color="teal" message="A teal toast."></ui-toast>
+    <ui-toast color="purple" inverted message="An inverted purple toast."></ui-toast>
+  </section>
+
+  <section>
+    <h4>Inverted</h4>
+    <ui-toast inverted message="A dark toast."></ui-toast>
+  </section>
+
+  <section>
+    <h4>Actions</h4>
+    <ui-toast header="Delete?" message="Do you really want to delete this?">
+      <ui-button slot="actions" positive>Yes</ui-button>
+      <ui-button slot="actions" negative>No</ui-button>
+    </ui-toast>
+    <ui-toast actions="basic" message="Basic actions have no bar.">
+      <ui-button slot="actions">Okay</ui-button>
+    </ui-toast>
+  </section>
+
+  <section>
+    <h4>Vertical actions</h4>
+    <ui-toast actions="vertical" message="Beside me, a column of buttons.">
+      <ui-button slot="actions" positive>Yes</ui-button>
+      <ui-button slot="actions" negative>No</ui-button>
+    </ui-toast>
+  </section>
+
+  <section>
+    <h4>Attached actions</h4>
+    <ui-toast actions="attached" message="Attached below me.">
+      <ui-buttons slot="actions" fluid>
+        <ui-button>Yes</ui-button>
+        <ui-button>No</ui-button>
+      </ui-buttons>
+    </ui-toast>
+  </section>
+
+  <section>
+    <h4>Not compact</h4>
+    <ui-toast compact="false" message="As wide as my text."></ui-toast>
+  </section>
+</div>

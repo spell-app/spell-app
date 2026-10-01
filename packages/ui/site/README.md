@@ -44,7 +44,7 @@ site/
 
 ## Writing a component page
 
-Create `src/content/components/<name>.mdx`.  It appears in the sidebar and at `/components/<name>/`
+Create `src/content/components/ui-<name>.mdx`.  It appears in the sidebar and at `/components/ui-<name>/`
 automatically;  the API table is appended for you.
 
 ```mdx
@@ -87,8 +87,8 @@ import Variation from "../../components/Variation.astro"
 ### Making examples live
 
 - Nothing to import:  `scripts/components.ts` (run by the layout on every page) imports the module for every
-  undefined `ui-*` tag on the page:  its family's barrel, `src/components/<family>/index.ts`.  Write
-  `<ui-button>` and `$/ui/components/button/index.ts` loads, on the pages that use it only.
+  undefined `ui-*` tag on the page:  its family's barrel, `src/components/ui-<family>/index.ts`.  Write
+  `<ui-button>` and `$/ui/components/ui-button/index.ts` loads, on the pages that use it only.
 - A family defines several tags (`ui-dropdown` + `ui-item`);  `familyOf()` maps each to its family.
 - Anything else client-side (setting a rich `options` property, listening for `ui-change`) goes in a small
   `.astro` component with a `<script>`, used from the MDX page, e.g. `src/components/DropdownDemo.astro`:
@@ -96,8 +96,8 @@ import Variation from "../../components/Variation.astro"
   ```astro
   <ui-dropdown data-demo="options"></ui-dropdown>
   <script>
-    import "$/ui/components/dropdown/dropdown"
-    import type { UIDropdown } from "$/ui/components/dropdown/dropdown"
+    import "$/ui/components/ui-dropdown"
+    import type { UIDropdown } from "$/ui/components/ui-dropdown"
     const dropdown = document.querySelector<UIDropdown>("[data-demo=options]")!
     dropdown.options = [{ value: "1", text: "One" }]
   </script>

@@ -1,0 +1,36 @@
+<!-- `src/components/ui-input/examples/states.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Loading</h4>
+    <div class="ui-cluster">
+      <ui-input
+        loading
+        icon="magnifying-glass"
+        icon-position="left"
+        placeholder="Search..."
+        aria-label="Search"
+      ></ui-input>
+      <ui-input loading icon="magnifying-glass" placeholder="Search..." aria-label="Search"></ui-input>
+    </div>
+  </section>
+
+  <section>
+    <h4>Disabled</h4>
+    <ui-input disabled placeholder="Search..." aria-label="Search"></ui-input>
+  </section>
+
+  <section>
+    <h4>Error, info, success, warning</h4>
+    <div class="ui-cluster">
+      <ui-input state="error" placeholder="Error" aria-label="Error"></ui-input>
+      <ui-input state="info" placeholder="Info" aria-label="Info"></ui-input>
+      <ui-input state="success" placeholder="Success" aria-label="Success"></ui-input>
+      <ui-input state="warning" placeholder="Warning" aria-label="Warning"></ui-input>
+    </div>
+  </section>
+
+  <section>
+    <h4>Labeled error</h4>
+    <ui-input state="error" label="https://" placeholder="mysite.com" aria-label="Site"></ui-input>
+  </section>
+</div>

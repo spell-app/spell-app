@@ -1,0 +1,24 @@
+<!-- `src/components/ui-parts/examples/author.html` as element markup. -->
+<!-- Owners are the real elements. -->
+<div class="ui-stack">
+  <section>
+    <h4>Standalone</h4>
+    <ui-author>Matt</ui-author>
+  </section>
+
+  <section>
+    <h4>In owners</h4>
+    <ui-comments>
+      <ui-comment>
+        <ui-content><ui-author href="#matt">Matt</ui-author></ui-content>
+      </ui-comment>
+    </ui-comments>
+    <ui-feed>
+      <ui-event>
+        <ui-content>
+          <ui-summary><ui-author href="#elliot">Elliot Fu</ui-author> posted on his page</ui-summary>
+        </ui-content>
+      </ui-event>
+    </ui-feed>
+  </section>
+</div>

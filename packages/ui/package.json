@@ -14,59 +14,59 @@
     "./src/components/*/index.ts",
     "./src/elements/HotDefinitions.ts",
     "./dist/index.js",
-    "./dist/button.js",
-    "./dist/dropdown.js",
-    "./dist/icon.js",
-    "./dist/label.js",
-    "./dist/parts.js",
-    "./dist/divider.js",
-    "./dist/segment.js",
-    "./dist/container.js",
-    "./dist/grid.js",
-    "./dist/image.js",
-    "./dist/text.js",
-    "./dist/flag.js",
-    "./dist/loader.js",
-    "./dist/placeholder.js",
-    "./dist/message.js",
-    "./dist/breadcrumb.js",
-    "./dist/input.js",
-    "./dist/checkbox.js",
-    "./dist/form.js",
-    "./dist/item.js",
-    "./dist/list.js",
-    "./dist/menu.js",
-    "./dist/table.js",
-    "./dist/popup.js",
-    "./dist/modal.js",
-    "./dist/transition.js",
-    "./dist/dimmer.js",
-    "./dist/flyout.js",
-    "./dist/sidebar.js",
-    "./dist/shape.js",
-    "./dist/card.js",
-    "./dist/items.js",
-    "./dist/feed.js",
-    "./dist/comment.js",
-    "./dist/statistic.js",
-    "./dist/step.js",
-    "./dist/rail.js",
-    "./dist/reveal.js",
-    "./dist/ad.js",
-    "./dist/emoji.js",
-    "./dist/select.js",
-    "./dist/search.js",
-    "./dist/progress.js",
-    "./dist/rating.js",
-    "./dist/slider.js",
-    "./dist/accordion.js",
-    "./dist/tab.js",
-    "./dist/toast.js",
-    "./dist/nag.js",
-    "./dist/sticky.js",
-    "./dist/visibility.js",
-    "./dist/embed.js",
-    "./dist/calendar.js",
+    "./dist/ui-button.js",
+    "./dist/ui-dropdown.js",
+    "./dist/ui-icon.js",
+    "./dist/ui-label.js",
+    "./dist/ui-parts.js",
+    "./dist/ui-divider.js",
+    "./dist/ui-segment.js",
+    "./dist/ui-container.js",
+    "./dist/ui-grid.js",
+    "./dist/ui-image.js",
+    "./dist/ui-text.js",
+    "./dist/ui-flag.js",
+    "./dist/ui-loader.js",
+    "./dist/ui-placeholder.js",
+    "./dist/ui-message.js",
+    "./dist/ui-breadcrumb.js",
+    "./dist/ui-input.js",
+    "./dist/ui-checkbox.js",
+    "./dist/ui-form.js",
+    "./dist/ui-item.js",
+    "./dist/ui-list.js",
+    "./dist/ui-menu.js",
+    "./dist/ui-table.js",
+    "./dist/ui-popup.js",
+    "./dist/ui-modal.js",
+    "./dist/ui-transition.js",
+    "./dist/ui-dimmer.js",
+    "./dist/ui-flyout.js",
+    "./dist/ui-sidebar.js",
+    "./dist/ui-shape.js",
+    "./dist/ui-card.js",
+    "./dist/ui-items.js",
+    "./dist/ui-feed.js",
+    "./dist/ui-comment.js",
+    "./dist/ui-statistic.js",
+    "./dist/ui-step.js",
+    "./dist/ui-rail.js",
+    "./dist/ui-reveal.js",
+    "./dist/ui-ad.js",
+    "./dist/ui-emoji.js",
+    "./dist/ui-select.js",
+    "./dist/ui-search.js",
+    "./dist/ui-progress.js",
+    "./dist/ui-rating.js",
+    "./dist/ui-slider.js",
+    "./dist/ui-accordion.js",
+    "./dist/ui-tab.js",
+    "./dist/ui-toast.js",
+    "./dist/ui-nag.js",
+    "./dist/ui-sticky.js",
+    "./dist/ui-visibility.js",
+    "./dist/ui-embed.js",
+    "./dist/ui-calendar.js",
     "./tools/demo/**"
   ],
   "main": "./dist/index.js",
@@ -89,217 +89,217 @@
       "types": "./dist/api.d.ts",
       "import": "./dist/api.js"
     },
-    "./button": {
-      "types": "./dist/components/button/index.d.ts",
-      "import": "./dist/button.js"
+    "./ui-button": {
+      "types": "./dist/components/ui-button/index.d.ts",
+      "import": "./dist/ui-button.js"
     },
-    "./dropdown": {
-      "types": "./dist/components/dropdown/index.d.ts",
-      "import": "./dist/dropdown.js"
+    "./ui-dropdown": {
+      "types": "./dist/components/ui-dropdown/index.d.ts",
+      "import": "./dist/ui-dropdown.js"
     },
-    "./icon": {
-      "types": "./dist/components/icon/index.d.ts",
-      "import": "./dist/icon.js"
+    "./ui-icon": {
+      "types": "./dist/components/ui-icon/index.d.ts",
+      "import": "./dist/ui-icon.js"
     },
-    "./label": {
-      "types": "./dist/components/label/index.d.ts",
-      "import": "./dist/label.js"
+    "./ui-label": {
+      "types": "./dist/components/ui-label/index.d.ts",
+      "import": "./dist/ui-label.js"
     },
-    "./parts": {
-      "types": "./dist/components/parts/index.d.ts",
-      "import": "./dist/parts.js"
+    "./ui-parts": {
+      "types": "./dist/components/ui-parts/index.d.ts",
+      "import": "./dist/ui-parts.js"
     },
-    "./divider": {
-      "types": "./dist/components/divider/index.d.ts",
-      "import": "./dist/divider.js"
+    "./ui-divider": {
+      "types": "./dist/components/ui-divider/index.d.ts",
+      "import": "./dist/ui-divider.js"
     },
-    "./segment": {
-      "types": "./dist/components/segment/index.d.ts",
-      "import": "./dist/segment.js"
+    "./ui-segment": {
+      "types": "./dist/components/ui-segment/index.d.ts",
+      "import": "./dist/ui-segment.js"
     },
-    "./container": {
-      "types": "./dist/components/container/index.d.ts",
-      "import": "./dist/container.js"
+    "./ui-container": {
+      "types": "./dist/components/ui-container/index.d.ts",
+      "import": "./dist/ui-container.js"
     },
-    "./grid": {
-      "types": "./dist/components/grid/index.d.ts",
-      "import": "./dist/grid.js"
+    "./ui-grid": {
+      "types": "./dist/components/ui-grid/index.d.ts",
+      "import": "./dist/ui-grid.js"
     },
-    "./image": {
-      "types": "./dist/components/image/index.d.ts",
-      "import": "./dist/image.js"
+    "./ui-image": {
+      "types": "./dist/components/ui-image/index.d.ts",
+      "import": "./dist/ui-image.js"
     },
-    "./text": {
-      "types": "./dist/components/text/index.d.ts",
-      "import": "./dist/text.js"
+    "./ui-text": {
+      "types": "./dist/components/ui-text/index.d.ts",
+      "import": "./dist/ui-text.js"
     },
-    "./flag": {
-      "types": "./dist/components/flag/index.d.ts",
-      "import": "./dist/flag.js"
+    "./ui-flag": {
+      "types": "./dist/components/ui-flag/index.d.ts",
+      "import": "./dist/ui-flag.js"
     },
-    "./loader": {
-      "types": "./dist/components/loader/index.d.ts",
-      "import": "./dist/loader.js"
+    "./ui-loader": {
+      "types": "./dist/components/ui-loader/index.d.ts",
+      "import": "./dist/ui-loader.js"
     },
-    "./placeholder": {
-      "types": "./dist/components/placeholder/index.d.ts",
-      "import": "./dist/placeholder.js"
+    "./ui-placeholder": {
+      "types": "./dist/components/ui-placeholder/index.d.ts",
+      "import": "./dist/ui-placeholder.js"
     },
-    "./message": {
-      "types": "./dist/components/message/index.d.ts",
-      "import": "./dist/message.js"
+    "./ui-message": {
+      "types": "./dist/components/ui-message/index.d.ts",
+      "import": "./dist/ui-message.js"
     },
-    "./breadcrumb": {
-      "types": "./dist/components/breadcrumb/index.d.ts",
-      "import": "./dist/breadcrumb.js"
+    "./ui-breadcrumb": {
+      "types": "./dist/components/ui-breadcrumb/index.d.ts",
+      "import": "./dist/ui-breadcrumb.js"
     },
-    "./input": {
-      "types": "./dist/components/input/index.d.ts",
-      "import": "./dist/input.js"
+    "./ui-input": {
+      "types": "./dist/components/ui-input/index.d.ts",
+      "import": "./dist/ui-input.js"
     },
-    "./checkbox": {
-      "types": "./dist/components/checkbox/index.d.ts",
-      "import": "./dist/checkbox.js"
+    "./ui-checkbox": {
+      "types": "./dist/components/ui-checkbox/index.d.ts",
+      "import": "./dist/ui-checkbox.js"
     },
-    "./form": {
-      "types": "./dist/components/form/index.d.ts",
-      "import": "./dist/form.js"
+    "./ui-form": {
+      "types": "./dist/components/ui-form/index.d.ts",
+      "import": "./dist/ui-form.js"
     },
-    "./item": {
-      "types": "./dist/components/item/index.d.ts",
-      "import": "./dist/item.js"
+    "./ui-item": {
+      "types": "./dist/components/ui-item/index.d.ts",
+      "import": "./dist/ui-item.js"
     },
-    "./list": {
-      "types": "./dist/components/list/index.d.ts",
-      "import": "./dist/list.js"
+    "./ui-list": {
+      "types": "./dist/components/ui-list/index.d.ts",
+      "import": "./dist/ui-list.js"
     },
-    "./menu": {
-      "types": "./dist/components/menu/index.d.ts",
-      "import": "./dist/menu.js"
+    "./ui-menu": {
+      "types": "./dist/components/ui-menu/index.d.ts",
+      "import": "./dist/ui-menu.js"
     },
-    "./table": {
-      "types": "./dist/components/table/index.d.ts",
-      "import": "./dist/table.js"
+    "./ui-table": {
+      "types": "./dist/components/ui-table/index.d.ts",
+      "import": "./dist/ui-table.js"
     },
-    "./popup": {
-      "types": "./dist/components/popup/index.d.ts",
-      "import": "./dist/popup.js"
+    "./ui-popup": {
+      "types": "./dist/components/ui-popup/index.d.ts",
+      "import": "./dist/ui-popup.js"
     },
-    "./modal": {
-      "types": "./dist/components/modal/index.d.ts",
-      "import": "./dist/modal.js"
+    "./ui-modal": {
+      "types": "./dist/components/ui-modal/index.d.ts",
+      "import": "./dist/ui-modal.js"
     },
-    "./transition": {
-      "types": "./dist/components/transition/index.d.ts",
-      "import": "./dist/transition.js"
+    "./ui-transition": {
+      "types": "./dist/components/ui-transition/index.d.ts",
+      "import": "./dist/ui-transition.js"
     },
-    "./dimmer": {
-      "types": "./dist/components/dimmer/index.d.ts",
-      "import": "./dist/dimmer.js"
+    "./ui-dimmer": {
+      "types": "./dist/components/ui-dimmer/index.d.ts",
+      "import": "./dist/ui-dimmer.js"
     },
-    "./flyout": {
-      "types": "./dist/components/flyout/index.d.ts",
-      "import": "./dist/flyout.js"
+    "./ui-flyout": {
+      "types": "./dist/components/ui-flyout/index.d.ts",
+      "import": "./dist/ui-flyout.js"
     },
-    "./sidebar": {
-      "types": "./dist/components/sidebar/index.d.ts",
-      "import": "./dist/sidebar.js"
+    "./ui-sidebar": {
+      "types": "./dist/components/ui-sidebar/index.d.ts",
+      "import": "./dist/ui-sidebar.js"
     },
-    "./shape": {
-      "types": "./dist/components/shape/index.d.ts",
-      "import": "./dist/shape.js"
+    "./ui-shape": {
+      "types": "./dist/components/ui-shape/index.d.ts",
+      "import": "./dist/ui-shape.js"
     },
-    "./card": {
-      "types": "./dist/components/card/index.d.ts",
-      "import": "./dist/card.js"
+    "./ui-card": {
+      "types": "./dist/components/ui-card/index.d.ts",
+      "import": "./dist/ui-card.js"
     },
-    "./items": {
-      "types": "./dist/components/items/index.d.ts",
-      "import": "./dist/items.js"
+    "./ui-items": {
+      "types": "./dist/components/ui-items/index.d.ts",
+      "import": "./dist/ui-items.js"
     },
-    "./feed": {
-      "types": "./dist/components/feed/index.d.ts",
-      "import": "./dist/feed.js"
+    "./ui-feed": {
+      "types": "./dist/components/ui-feed/index.d.ts",
+      "import": "./dist/ui-feed.js"
     },
-    "./comment": {
-      "types": "./dist/components/comment/index.d.ts",
-      "import": "./dist/comment.js"
+    "./ui-comment": {
+      "types": "./dist/components/ui-comment/index.d.ts",
+      "import": "./dist/ui-comment.js"
     },
-    "./statistic": {
-      "types": "./dist/components/statistic/index.d.ts",
-      "import": "./dist/statistic.js"
+    "./ui-statistic": {
+      "types": "./dist/components/ui-statistic/index.d.ts",
+      "import": "./dist/ui-statistic.js"
     },
-    "./step": {
-      "types": "./dist/components/step/index.d.ts",
-      "import": "./dist/step.js"
+    "./ui-step": {
+      "types": "./dist/components/ui-step/index.d.ts",
+      "import": "./dist/ui-step.js"
     },
-    "./rail": {
-      "types": "./dist/components/rail/index.d.ts",
-      "import": "./dist/rail.js"
+    "./ui-rail": {
+      "types": "./dist/components/ui-rail/index.d.ts",
+      "import": "./dist/ui-rail.js"
     },
-    "./reveal": {
-      "types": "./dist/components/reveal/index.d.ts",
-      "import": "./dist/reveal.js"
+    "./ui-reveal": {
+      "types": "./dist/components/ui-reveal/index.d.ts",
+      "import": "./dist/ui-reveal.js"
     },
-    "./ad": {
-      "types": "./dist/components/ad/index.d.ts",
-      "import": "./dist/ad.js"
+    "./ui-ad": {
+      "types": "./dist/components/ui-ad/index.d.ts",
+      "import": "./dist/ui-ad.js"
     },
-    "./emoji": {
-      "types": "./dist/components/emoji/index.d.ts",
-      "import": "./dist/emoji.js"
+    "./ui-emoji": {
+      "types": "./dist/components/ui-emoji/index.d.ts",
+      "import": "./dist/ui-emoji.js"
     },
-    "./select": {
-      "types": "./dist/components/select/index.d.ts",
-      "import": "./dist/select.js"
+    "./ui-select": {
+      "types": "./dist/components/ui-select/index.d.ts",
+      "import": "./dist/ui-select.js"
     },
-    "./search": {
-      "types": "./dist/components/search/index.d.ts",
-      "import": "./dist/search.js"
+    "./ui-search": {
+      "types": "./dist/components/ui-search/index.d.ts",
+      "import": "./dist/ui-search.js"
     },
-    "./progress": {
-      "types": "./dist/components/progress/index.d.ts",
-      "import": "./dist/progress.js"
+    "./ui-progress": {
+      "types": "./dist/components/ui-progress/index.d.ts",
+      "import": "./dist/ui-progress.js"
     },
-    "./rating": {
-      "types": "./dist/components/rating/index.d.ts",
-      "import": "./dist/rating.js"
+    "./ui-rating": {
+      "types": "./dist/components/ui-rating/index.d.ts",
+      "import": "./dist/ui-rating.js"
     },
-    "./slider": {
-      "types": "./dist/components/slider/index.d.ts",
-      "import": "./dist/slider.js"
+    "./ui-slider": {
+      "types": "./dist/components/ui-slider/index.d.ts",
+      "import": "./dist/ui-slider.js"
     },
-    "./accordion": {
-      "types": "./dist/components/accordion/index.d.ts",
-      "import": "./dist/accordion.js"
+    "./ui-accordion": {
+      "types": "./dist/components/ui-accordion/index.d.ts",
+      "import": "./dist/ui-accordion.js"
     },
-    "./tab": {
-      "types": "./dist/components/tab/index.d.ts",
-      "import": "./dist/tab.js"
+    "./ui-tab": {
+      "types": "./dist/components/ui-tab/index.d.ts",
+      "import": "./dist/ui-tab.js"
     },
-    "./toast": {
-      "types": "./dist/components/toast/index.d.ts",
-      "import": "./dist/toast.js"
+    "./ui-toast": {
+      "types": "./dist/components/ui-toast/index.d.ts",
+      "import": "./dist/ui-toast.js"
     },
-    "./nag": {
-      "types": "./dist/components/nag/index.d.ts",
-      "import": "./dist/nag.js"
+    "./ui-nag": {
+      "types": "./dist/components/ui-nag/index.d.ts",
+      "import": "./dist/ui-nag.js"
     },
-    "./sticky": {
-      "types": "./dist/components/sticky/index.d.ts",
-      "import": "./dist/sticky.js"
+    "./ui-sticky": {
+      "types": "./dist/components/ui-sticky/index.d.ts",
+      "import": "./dist/ui-sticky.js"
     },
-    "./visibility": {
-      "types": "./dist/components/visibility/index.d.ts",
-      "import": "./dist/visibility.js"
+    "./ui-visibility": {
+      "types": "./dist/components/ui-visibility/index.d.ts",
+      "import": "./dist/ui-visibility.js"
     },
-    "./embed": {
-      "types": "./dist/components/embed/index.d.ts",
-      "import": "./dist/embed.js"
+    "./ui-embed": {
+      "types": "./dist/components/ui-embed/index.d.ts",
+      "import": "./dist/ui-embed.js"
     },
-    "./calendar": {
-      "types": "./dist/components/calendar/index.d.ts",
-      "import": "./dist/calendar.js"
+    "./ui-calendar": {
+      "types": "./dist/components/ui-calendar/index.d.ts",
+      "import": "./dist/ui-calendar.js"
     },
     "./styles": {
       "types": "./dist/styles/index.d.ts",

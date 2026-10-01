@@ -88,7 +88,7 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
   /** Form-associated (the fork's `formAssociated` option):  `FormElement`, and `UIButton` for submit / reset. */
   @proto static formAssociated = false
 
-  /** Native fallback shown when this element fails (`$/ui/components/<name>/<name>.fallback.ts`);  none => a `<slot>`. */
+  /** Native fallback shown when this element fails (`$/ui/components/ui-<name>/ui-<name>.fallback.ts`);  none => a `<slot>`. */
   @proto static Fallback: FallbackClass | undefined = undefined
 
   /**
@@ -220,7 +220,7 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
 
   /**
    * Registry names of the sheets to adopt now, in order;  default every `styles` entry.
-   * - Tracked:  an element whose sheets depend on context (a label owned by a statistic adds `parts.css`)
+   * - Tracked:  an element whose sheets depend on context (a label owned by a statistic adds `ui-parts.css`)
    *   overrides it, and the root re-adopts when it changes.
    */
   protected sheetNames(): string[] {

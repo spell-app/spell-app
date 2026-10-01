@@ -1,7 +1,7 @@
 ---
 /**
  * Behaviour reference for one component family, generated at BUILD time from its vocabulary module
- * (`src/components/<family>/<family>.vocabulary.en.ts`) -- the same file the element reads, so the docs can't drift.
+ * (`src/components/ui-<family>/ui-<family>.vocabulary.en.ts`) -- the same file the element reads, so the docs can't drift.
  * - One block per tag the module exports (`ui-button`, `ui-buttons`, `ui-or` ...), each with the tables that apply:
  *   attributes, JS properties (rich `json` attributes), events, slots, `::part`s, custom states and text keys.
  *   Empty tables are left out.
@@ -15,7 +15,7 @@ import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"
 import { slug } from "../lib/text"
 
 type Props = {
-  /** family folder name, e.g. `button` (the module is `$/ui/components/button/button.vocabulary.en.ts`) */
+  /** family folder name, e.g. `ui-button` (the module is `$/ui/components/ui-button/ui-button.vocabulary.en.ts`) */
   family: string
   /** only these tags, in this order, e.g. `["ui-button"]` */
   tags?: string[]

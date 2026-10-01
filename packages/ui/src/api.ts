@@ -2,7 +2,7 @@
  * `api` lib entry (`@spell-app/ui/api`):  the NAMESPACED API, for apps that extend or introspect the components.
  * - `E` ~== `$/ui/elements`:  element core, base classes, `ClassBuilder`, the `forms` bases (`FormElement` ...)
  * - `V` ~== `$/ui/vocabulary`:  vocabulary schema, value sets, registry, converters
- * - NOT a side-effect module:  registers no element.  Import a family (`@spell-app/ui/button`) or `@spell-app/ui` for that.
+ * - NOT a side-effect module:  registers no element.  Import a family (`@spell-app/ui/ui-button`) or `@spell-app/ui` for that.
  * - NOTE: its own entry, NOT part of `index` (`@spell-app/ui`):  `export * as` needs Rolldown's `__exportAll` helper,
  *   and namespacing a module that `core` also reaches moves Rolldown's runtime helpers into a shared
  *   `rolldown-runtime-<hash>.js` that `core.js` and every family import.  Here the namespace objects stay in

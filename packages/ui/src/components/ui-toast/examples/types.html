@@ -1,0 +1,76 @@
+<!--
+  Toast types, after Fomantic's docs (modules/toast.html, "Types").
+  Light-DOM markup in the class grammar `ui-toast.css` styles inside `<ui-toast>`'s shadow root:  the toast box around
+  the toast, its icon, content block and close icon.  `UI.toast()` puts toasts in a fixed container;  these sit
+  in the page.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Toast</h4>
+    <div class="floating toast-box compact">
+      <div class="ui toast" role="status">
+        <div class="content"><div class="message">I am a toast, nice to meet you!</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Titled</h4>
+    <div class="floating toast-box compact">
+      <div class="ui toast" role="status">
+        <div class="content">
+          <div class="header">Better?</div>
+          <div class="message">Hey, I am a nice message!</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Consequences</h4>
+    <div class="floating toast-box compact">
+      <div class="ui info toast compact" role="status">
+        <span class="centered icon"
+          ><svg viewBox="0 0 512 512" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M256 512a256 256 0 1 0 0-512 256 256 0 1 0 0 512zM224 160a32 32 0 1 1 64 0 32 32 0 1 1 -64 0zm-8 64l48 0c13.3 0 24 10.7 24 24l0 88 8 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-80 0c-13.3 0-24-10.7-24-24s10.7-24 24-24l24 0 0-64-24 0c-13.3 0-24-10.7-24-24s10.7-24 24-24z"
+            /></svg
+        ></span>
+        <div class="content"><div class="message">An info toast, with its icon.</div></div>
+      </div>
+    </div>
+    <div class="floating toast-box compact">
+      <div class="ui success toast compact" role="status">
+        <div class="content"><div class="message">You're using the good framework!</div></div>
+      </div>
+    </div>
+    <div class="floating toast-box compact">
+      <div class="ui warning toast compact" role="status">
+        <div class="content"><div class="message">Your battery is running low.</div></div>
+      </div>
+    </div>
+    <div class="floating toast-box compact">
+      <div class="ui error toast compact" role="alert">
+        <div class="content"><div class="message">We couldn't save your changes.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Close icon</h4>
+    <div class="floating toast-box compact unclickable">
+      <div class="ui toast compact" role="status">
+        <div class="content"><div class="message">Close me with the icon.</div></div>
+        <button type="button" class="close icon" aria-label="Close">
+          <svg viewBox="0 0 384 512" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M55.1 73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L147.2 256 9.9 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192.5 301.3 329.9 438.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.8 256 375.1 118.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192.5 210.7 55.1 73.4z"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </section>
+</div>

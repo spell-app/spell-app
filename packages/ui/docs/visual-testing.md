@@ -13,7 +13,7 @@ yarn test:visual:update              # accept the new renders (review first!)
 
 ## What's captured
 
-- **Every `src/components/<family>/examples/elements/<example>.html`**, found on disk
+- **Every `src/components/ui-<family>/examples/elements/<example>.html`**, found on disk
   (`tools/visual/VisualExamples.ts`):  a new example is a new test with no edits anywhere.
 - **Closed state** (`<family>/<example> › closed`):  the example as written, captured as its content box
   (`#example` in the fixture page, 16px padding), not the whole page.
@@ -49,7 +49,7 @@ yarn test:visual:update              # accept the new renders (review first!)
 | `--os` | `local`, `linux`, `both` | `linux` | where the browsers run;  `both` = `local` then `linux` |
 | `--browsers` | `all`, `chrome`, `firefox`, `webkit`, or a comma list | `all` | `chrome` ~== chromium |
 | `--update` | | off | accept the new renders as baselines (`--update-snapshots=changed`) |
-| `--grep` | families or examples, comma separated:  `button,modal/types` | all | `item` does not select `items` |
+| `--grep` | families or examples, comma separated:  `ui-button,ui-modal/types` (the `ui-` may be left out) | all | `item` does not select `items` |
 | `--parity` | | off | also compare class grammar vs elements ("Parity") |
 | `--workers` | `4`, `50%` | `50%` | Playwright workers |
 
@@ -86,9 +86,9 @@ In plain git (`.gitattributes` marks them `binary`):
 test/visual/baselines/
   <os>/                    linux | local-<platform>, e.g. local-darwin
     <browser>/             chromium | firefox | webkit
-      <family>/
-        <example>-<scheme>.png            closed:  button/types-light.png
-        <example>.<state>-<scheme>.png    open:    modal/types.open-standard-dark.png
+      ui-<family>/
+        <example>-<scheme>.png            closed:  ui-button/types-light.png
+        <example>.<state>-<scheme>.png    open:    ui-modal/types.open-standard-dark.png
 ```
 
 - `linux` is the reference:  the same pixels on every machine with Docker.  `local-<platform>` carries the
@@ -127,7 +127,7 @@ Overlays hidden until opened (modal, flyout, popup, dropdown menu, calendar popu
 show their closed state from the example.  To capture them open, add `<example>.visual.ts` next to the example:
 
 ```ts
-// src/components/modal/examples/elements/types.visual.ts
+// src/components/ui-modal/examples/elements/types.visual.ts
 import { VisualOpen } from "$/ui/test/VisualOpen"
 import type { VisualHooks } from "$/ui/test/test.types"
 

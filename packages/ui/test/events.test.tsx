@@ -5,10 +5,10 @@ import { render } from "@solidjs/web"
 import { UI } from "$/ui/runtime"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 
-import "$/ui/components/button"
-import "$/ui/components/dropdown"
-import "$/ui/components/input"
-import "$/ui/components/label"
+import "$/ui/components/ui-button"
+import "$/ui/components/ui-dropdown"
+import "$/ui/components/ui-input"
+import "$/ui/components/ui-label"
 
 /**
  * Page listeners on `ui-*` elements see the platform's retargeted event:  `target` === the host,

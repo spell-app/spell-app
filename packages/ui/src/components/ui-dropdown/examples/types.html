@@ -1,0 +1,197 @@
+<!--
+  Dropdown types, after Fomantic's docs (modules/dropdown.html, "Types").
+  Light-DOM markup in the class grammar `ui-dropdown.css` styles inside `<ui-dropdown>`'s shadow root:
+  a `<button class="trigger">` (or `<input class="search">`) combobox, `.text`, `.dropdown.icon` and a
+  `.menu[role=listbox][popover]`.  Closed menus are popovers;  the "open" examples use a plain `.visible.menu`
+  on an `active` root so they show without script.
+-->
+<div class="ui-stack" style="padding-bottom: 12em">
+  <section>
+    <h4>Dropdown</h4>
+    <div class="ui dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="File"></button>
+      <span class="text">File</span>
+      <span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual">
+        <div class="item" role="option">New</div>
+        <div class="item" role="option"><span class="description">ctrl + o</span> Open...</div>
+        <div class="item" role="option"><span class="description">ctrl + s</span> Save as...</div>
+        <hr class="divider" />
+        <div class="item" role="option">Edit</div>
+        <div class="item" role="option">Share</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Selection</h4>
+    <div class="ui selection dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Gender"></button>
+      <span class="default text">Gender</span>
+      <span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual">
+        <div class="item" role="option">Male</div>
+        <div class="item" role="option">Female</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Search selection</h4>
+    <div class="ui search selection dropdown">
+      <input class="search" role="combobox" aria-expanded="false" aria-label="Country" autocomplete="off" />
+      <span class="default text">Select Country</span>
+      <span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual">
+        <div class="item" role="option"><span class="flag">🇦🇫</span>Afghanistan</div>
+        <div class="item" role="option"><span class="flag">🇦🇽</span>Aland Islands</div>
+        <div class="item" role="option"><span class="flag">🇦🇱</span>Albania</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Clearable selection</h4>
+    <div class="ui clearable selection dropdown">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Gender"></button>
+      <span class="text">Female</span>
+      <button class="remove icon" aria-label="Clear"></button>
+      <span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual">
+        <div class="item" role="option">Male</div>
+        <div class="active item" role="option" aria-selected="true">Female</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Multiple selection</h4>
+    <div class="ui fluid multiple selection dropdown">
+      <span class="ui label">Angular<button class="delete icon" aria-label="Remove Angular"></button></span>
+      <span class="ui label">CSS<button class="delete icon" aria-label="Remove CSS"></button></span>
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Skills"></button>
+      <span class="default text">Skills</span>
+      <span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual">
+        <div class="item" role="option">Graphic Design</div>
+        <div class="item" role="option">HTML</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Multiple search selection</h4>
+    <div class="ui fluid multiple search selection dropdown">
+      <span class="ui label">Ember<button class="delete icon" aria-label="Remove Ember"></button></span>
+      <input class="search" role="combobox" aria-expanded="false" aria-label="Skills" autocomplete="off" />
+      <span class="sizer" aria-hidden="true"></span>
+      <span class="default text">Skills</span>
+      <span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual">
+        <div class="item" role="option">Angular</div>
+        <div class="item" role="option">Meteor</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Search dropdown</h4>
+    <div class="ui search dropdown">
+      <input class="search" role="combobox" aria-expanded="false" aria-label="Language" autocomplete="off" />
+      <span class="default text">Select Language</span>
+      <span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual">
+        <div class="item" role="option">Arabic</div>
+        <div class="item" role="option">Chinese</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Inline</h4>
+    <p>
+      Show me posts by
+      <span class="ui inline dropdown">
+        <button class="trigger" role="combobox" aria-expanded="false" aria-label="Author"></button>
+        <span class="text"
+          ><img
+            class="ui avatar image"
+            width="32"
+            height="32"
+            src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 2 2%22%3E%3Ccircle cx=%221%22 cy=%221%22 r=%221%22 fill=%22%2396a%22/%3E%3C/svg%3E"
+            alt=""
+          />Jenny Hess</span
+        >
+        <span class="dropdown icon"></span>
+        <span class="menu" role="listbox" popover="manual">
+          <span class="active item" role="option" aria-selected="true">Jenny Hess</span>
+          <span class="item" role="option">Elliot Fu</span>
+        </span>
+      </span>
+    </p>
+  </section>
+
+  <section>
+    <h4>Floating labeled icon button</h4>
+    <div class="ui floating labeled icon dropdown button">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Filter posts"></button>
+      <svg class="icon" viewBox="0 0 512 512" aria-hidden="true">
+        <path
+          d="M32 64C19.1 64 7.4 71.8 2.4 83.8S.2 109.5 9.4 118.6L192 301.3 192 416c0 8.5 3.4 16.6 9.4 22.6l64 64c9.2 9.2 22.9 11.9 34.9 6.9S320 492.9 320 480l0-178.7 182.6-182.6c9.2-9.2 11.9-22.9 6.9-34.9S492.9 64 480 64L32 64z"
+        />
+      </svg>
+      <span class="text">Filter Posts</span>
+      <div class="menu" role="listbox" popover="manual">
+        <div class="header" role="presentation">
+          <svg class="icon" viewBox="0 0 512 512" aria-hidden="true">
+            <path
+              d="M32 64C19.1 64 7.4 71.8 2.4 83.8S.2 109.5 9.4 118.6L192 301.3 192 416c0 8.5 3.4 16.6 9.4 22.6l64 64c9.2 9.2 22.9 11.9 34.9 6.9S320 492.9 320 480l0-178.7 182.6-182.6c9.2-9.2 11.9-22.9 6.9-34.9S492.9 64 480 64L32 64z"
+            />
+          </svg>
+          Filter by tag
+        </div>
+        <div class="item" role="option">Important</div>
+        <div class="item" role="option">Announcement</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Button</h4>
+    <div class="ui primary dropdown button">
+      <button class="trigger" role="combobox" aria-expanded="false" aria-label="Actions"></button>
+      <span class="text">Actions</span>
+      <span class="dropdown icon"></span>
+      <div class="menu" role="listbox" popover="manual">
+        <div class="item" role="option">Edit</div>
+        <div class="item" role="option">Delete</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Simple (no script)</h4>
+    <div class="ui simple dropdown">
+      <span class="text">Hover me</span>
+      <span class="dropdown icon"></span>
+      <div class="menu" role="listbox">
+        <div class="item" role="option">One</div>
+        <div class="item" role="option">Two</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Open selection (static)</h4>
+    <div class="ui active selection dropdown">
+      <button class="trigger" role="combobox" aria-expanded="true" aria-label="Gender"></button>
+      <span class="text">Female</span>
+      <span class="dropdown icon"></span>
+      <div class="visible menu" role="listbox">
+        <div class="item" role="option">Male</div>
+        <div class="selected item" role="option">Other</div>
+        <div class="active item" role="option" aria-selected="true">Female</div>
+      </div>
+    </div>
+  </section>
+</div>

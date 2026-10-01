@@ -2,7 +2,7 @@
 
 How a component's attributes become Fomantic's class string inside its shadow root.
 Implemented by `ClassBuilder` (`src/elements/ClassBuilder.ts`), driven by the component's vocabulary
-(`<name>.vocabulary.en.ts`, schema in `src/vocabulary/vocabulary.types.ts`).
+(`ui-<name>.vocabulary.en.ts`, schema in `src/vocabulary/vocabulary.types.ts`).
 
 ## Why keep the grammar
 
@@ -167,7 +167,7 @@ but the FORM itself has to be a real `<form>` in the light DOM:
 ## Items:  ONE generic `<ui-item>`
 
 Fomantic's `.item` is shared by dropdown, list and menu (and the Items view).  Here it's one element too,
-`<ui-item>` (`src/components/item/`, its own lib entry `@spell-app/ui/item`), rendered by OWNER CONTEXT like the content
+`<ui-item>` (`src/components/ui-item/`, its own lib entry `@spell-app/ui/ui-item`), rendered by OWNER CONTEXT like the content
 parts -- never `ui-list-item` / `ui-menu-item`:
 
 ```html
@@ -189,8 +189,8 @@ parts -- never `ui-list-item` / `ui-menu-item`:
 - The box:  `<a href>` with `href`;  a `<button>` for `link` or when the owner says items are interactive
   (selection list, `link` / `pagination` menu, menubar);  else a `<div>` (an item can hold inputs, buttons,
   dropdowns).  `type="header"` => `<div class="item header">`.
-- Owner VARIATIONS reach the item's shadow root as inherited tokens the owner root declares (`menu.css`,
-  `list.css` headers list them):  the owner root resolves every class combination (`secondary pointing`,
+- Owner VARIATIONS reach the item's shadow root as inherited tokens the owner root declares (`ui-menu.css`,
+  `ui-list.css` headers list them):  the owner root resolves every class combination (`secondary pointing`,
   `vertical tabular`), the item rules only read tokens.  Public ones go through private aliases
   (`--_ui-menu-item-padding: var(--ui-menu-item-padding, ...)`, `docs/theming.md` "Owner tokens").
 - Chosen state:  `selected` (canonical, class word `active`);  `active` is accepted as an alias on `<ui-item>`,
@@ -200,7 +200,7 @@ parts -- never `ui-list-item` / `ui-menu-item`:
   is the LIST's header (`.ui.list > .item > .content > .header`).
 - The Items VIEW (Phase B) reuses this tag:  `<ui-items><ui-item>`, never a second item element.  `<ui-items>`
   owns `item` like list and menu;  there the item is NOT transparent -- it owns its content parts, so the
-  `in-item` keys in `parts.css` (`.ui.items > .item > .content > .header`) apply only under `<ui-items>`.
+  `in-item` keys in `ui-parts.css` (`.ui.items > .item > .content > .header`) apply only under `<ui-items>`.
   Decided 2026-09-29.
 
 ## Menus:  navigation by default, menubar opt-in
@@ -225,7 +225,7 @@ A table's semantics stay NATIVE and in the LIGHT DOM;  the element only adds the
   `aria-label`, else the `<caption>`, else the translated `label`).
 - Styling:  the element MIRRORS its class string (`ui celled striped red table`) onto the slotted `<table>`,
   adding and removing only its own words (author classes stay;  its phrase follows them in grammar order), and
-  registers `table.css` as a PAGE sheet.  One mechanical port of `table.less` then serves element markup and
+  registers `ui-table.css` as a PAGE sheet.  One mechanical port of `table.less` then serves element markup and
   static class grammar alike -- SSR writes `<table class="ui celled table">` and paints before any JS -- and
   translated names, `yes` / `no` and `medium` resolve through the vocabulary like everywhere else.  (Host
   attribute selectors, `ui-table[celled] > table`, can do none of those.)
@@ -267,7 +267,7 @@ first paint never needs the property.  No virtualization yet:  every row renders
   click and manual popups are always `manual` so `ui-close` can veto) and the positioned box:  anchor positioning
   only, `position-area` from `position` (Fomantic's eight positions -- `top left` ... `right center` -- plus four
   of ours, `left top` ... `right bottom`;  the plan's "11" was a miscount), `position-try-fallbacks: flip-block,
-  flip-inline`.  Anchored container queries move the arrow on a flip (`popup.anchored.css`, a raw sheet Lightning
+  flip-inline`.  Anchored container queries move the arrow on a flip (`ui-popup.anchored.css`, a raw sheet Lightning
   CSS can't parse).
 - Our four positions share their class WORDS with Fomantic's (`left top` ~== `top left` as classes), so their
   rules match the phrase, `[class*="left top"]` (Fomantic's own `very wide` idiom);  the tooltip's `data-position`
@@ -347,7 +347,7 @@ first paint never needs the property.  No virtualization yet:  every row renders
   LAST in the DOM, so the initial focus lands in the content (a confirm's Cancel), not on it.
 - `UI.modals.confirm()` / `alert()` / `prompt()` build a `<ui-modal>` in `<body>` (`ModalDialogs`, registered by
   the family's barrel through `UI.modals.register()`), with the translated `ok` / `cancel` texts.
-- The behaviour above is `DialogElement` (`src/components/modal/DialogElement.tsx`), which `<ui-flyout>` shares;
+- The behaviour above is `DialogElement` (`src/components/ui-modal/DialogElement.tsx`), which `<ui-flyout>` shares;
   `UIModal` only names and styles it.  The `::backdrop` reads the shared `--ui-dimmer-background` token, so a
   theme styles it and `<ui-dimmer>` at once (`--ui-modal-dimmer-filter` blurs it).
 
@@ -430,12 +430,12 @@ first paint never needs the property.  No virtualization yet:  every row renders
   `right`, `top`, `bottom`) over a lighter `::backdrop` (0.4).
 - The split:  `DialogElement` (modal family) is the controller;  `UIModal` / `UIFlyout` add vocabulary, sheet,
   `Fallback`, `rootPart` and `overlayKind`;  `FlyoutFallback` extends `ModalFallback`.  The flyout family imports
-  `$/ui/components/modal`, so loading it defines `<ui-modal>` too.
+  `$/ui/components/ui-modal`, so loading it defines `<ui-modal>` too.
 - The dialog is a column:  header, a content that grows, actions at the bottom (Fomantic's `min-height` calcs);  the
   dialog itself scrolls.
 - `width`:  Fomantic's words (`very thin` 120px, `thin`, 400px default, `wide`, `very wide` 800px) or columns of the
   viewport (`4`, `1/4`, `25%` => `four wide`);  `fullscreen`, `inverted`, `blurring`.
-- Parts:  a flyout owns `header`, `content`, `description`, `actions` (`:state(in-flyout)`, `parts.css`).
+- Parts:  a flyout owns `header`, `content`, `description`, `actions` (`:state(in-flyout)`, `ui-parts.css`).
 
 ## Sidebars:  `<ui-sidebar>` in a `<ui-pushable>` beside a `<ui-pusher>`
 
@@ -519,15 +519,15 @@ first paint never needs the property.  No virtualization yet:  every row renders
   readers can jump between;  APG has no card pattern.  With `href` the whole card is ONE link
   (`<a class="ui ... card" href>`), named by its content.  `link` is Fomantic's hover look only:  a card that goes
   somewhere needs `href` (a `<button>` card would nest the buttons inside it).
-- Content:  the generic parts (`in-card`, `parts.css`);  a slotted `<img>` is a full-width image.
+- Content:  the generic parts (`in-card`, `ui-parts.css`);  a slotted `<img>` is a full-width image.
 - Shorthands `image` (+ `alt`, default `""`), `header`, `meta`, `description`, `extra` render the SAME parts as
-  static markup in the card's shadow root (`<div class="header in-card">`), styled by the `parts.css` the card
+  static markup in the card's shadow root (`<div class="header in-card">`), styled by the `ui-parts.css` the card
   adopts.  Order:  image, one content block, the slot, extra.  A slotted part of a shorthand's noun anywhere inside
   (or a slotted `<img>`) wins, and that shorthand isn't rendered.
   A slotted `<ui-content>` after the shorthand block keeps its rule above (`--_ui-card-leading`).
 - A group owns its cards (`ownsParts:  card`):  a card in `<ui-cards>` is a `role=listitem` host (the group is a
   `role=list`) with `:state(in-cards)`, and takes the group's `size`, `color`, `horizontal`, `raised`, `link`,
-  `basic`, `inverted` as its OWN classes when it doesn't set them (`CardSharedVariation`) -- so `card.css` needs one
+  `basic`, `inverted` as its OWN classes when it doesn't set them (`CardSharedVariation`) -- so `ui-card.css` needs one
   `.ui.raised.card` rule where Fomantic had `.ui.raised.cards > .card` too (static markup keeps both).
 - Cards per row:  `columns="3"` => `three cards` (1 ... 10, Fomantic's widths and spacings);  `doubling` /
   `stackable` answer to the GROUP's width (the host is the size container `ui-cards`), not the viewport.
@@ -590,7 +590,7 @@ first paint never needs the property.  No virtualization yet:  every row renders
 - The label (Fomantic's `.event > .label`, not a `ui label`):  the `image` shorthand (round, `alt=""`), the `icon`
   shorthand, a `label` text in a circle (Fomantic's `data-text`), or anything in the `label` slot.  The box renders
   only when there is one (or the feed is `ordered`:  the number goes there);  the event root then declares
-  `--_ui-event-label: 1` and `parts.css` puts the content beside it, as it does after a slotted label.
+  `--_ui-event-label: 1` and `ui-parts.css` puts the content beside it, as it does after a slotted label.
 - Variations reach the events as inherited private tokens, which the event rules style-query (`--_feed-connected`,
   `--_feed-ordered` ...);  numbering is CSS counters across the shadow boundaries.  `color` colours the number
   circles and the connecting line, on the feed or per event (an event adds `ui-<color>`, having no `ui`).
@@ -638,12 +638,12 @@ first paint never needs the property.  No virtualization yet:  every row renders
 ```
 
 - ONE label concept:  a statistic's `.label` is `<ui-label>` itself -- inside a statistic (which `ownsParts` `value`
-  and `label`) it renders `<div class="label">` and adopts `parts.css` (`UILabel`).  No `<ui-statistic-label>` or
+  and `label`) it renders `<div class="label">` and adopts `ui-parts.css` (`UILabel`).  No `<ui-statistic-label>` or
   second label part:  it would be another spelling of the same element.
 - Shorthands draw the same parts in the statistic's shadow root, with their STATIC part classes (`value
   in-statistic`):  the `value` BEFORE the slot, the `label` AFTER it, so either pairs with a slotted part and still
   reads value over label.  `text` makes the value shorthand a word value.
-- The value / label look (sizes, horizontal, inverted, colour) is `parts.css`'s, driven by the owner tokens every
+- The value / label look (sizes, horizontal, inverted, colour) is `ui-parts.css`'s, driven by the owner tokens every
   statistic root declares (`--_ui-statistic-layout`, the aliases `--_ui-statistic-value-size` and
   `-text-value-size` of the public size tokens, `--ui-inverted`);  colour is the generic `--ui-color` remap on the statistic or its group -- never an
   ancestor's (the host drops inherited colour tokens, a member takes back its group's).
@@ -673,7 +673,7 @@ first paint never needs the property.  No virtualization yet:  every row renders
 - A step can't see its group's classes:  the `<ol>` root resolves every variation into inherited PRIVATE
   `--_ui-steps-*` tokens (the aliases of the public `--ui-steps-radius` / `-border` / `-accent-on`, plus one switch
   per layout:  `--_ui-steps-layout: horizontal | vertical | stacked`, `--_ui-steps-circular`, `--_ui-steps-ordered`
-  ...), which the step rules read and style-query (`step.css` header).  The same rules serve static markup, whose
+  ...), which the step rules read and style-query (`ui-step.css` header).  The same rules serve static markup, whose
   `.ui.steps` root declares the same tokens.
 - Stacking:  Fomantic stacks steps on phones unless `unstackable`;  here below 768px of the GROUP's width (`ui-steps`
   container on the host), 992px with `stackable="tablet"`.
@@ -722,7 +722,7 @@ first paint never needs the property.  No virtualization yet:  every row renders
 ## Emoji:  `<ui-emoji name>`, native Unicode
 
 - The glyph is the platform's colour emoji, never an image:  names map to Unicode sequences in
-  `src/components/emoji/data/<set>/<letter>.json`, generated by `yarn gen:emoji` (`scripts/gen-emoji.ts`) from
+  `src/components/ui-emoji/data/<set>/<letter>.json`, generated by `yarn gen:emoji` (`scripts/gen-emoji.ts`) from
   `emojibase-data` (a DEV-only dependency:  CLDR shortcodes -- `thumbs_up` -- and each emoji's code points and
   presentation, so U+FE0F is added exactly where the data says an emoji defaults to text) and Fomantic's
   `emoji.variables`.  A name's words may be joined any way (`thumbs up`, `thumbs-up`, `thumbsUp`, `thumbsup`):  the
@@ -752,7 +752,7 @@ first paint never needs the property.  No virtualization yet:  every row renders
 
 - Shadow root:  ONE native `<select class="ui [size state] [compact fluid inverted multiple] select">`.  Where the
   browser has the customizable select (`UI.browser.supports.baseSelect`, and `@supports (appearance: base-select)`
-  in `select.css`), it also gets `<button><selectedcontent>` and its picker is styled as the dropdown's menu, with
+  in `ui-select.css`), it also gets `<button><selectedcontent>` and its picker is styled as the dropdown's menu, with
   option icons, images and flags.  Elsewhere (Safari before 27, Firefox) the SAME markup is a plain select:  the
   closed box looks the same (our caret is two gradients, not `::picker-icon`), the browser's own picker lists each
   option's TEXT (flag emoji, text, description), and icons / images simply drop out -- never a blank option.
@@ -855,7 +855,7 @@ first paint never needs the property.  No virtualization yet:  every row renders
 - Shadow root:  Fomantic's markup (`inner`, `track`, `track-fill`, `thumb`s, `ul.auto.labels`);  thumbs are
   `role=slider` with `aria-value*` (and `aria-orientation` when `vertical`).  A `range` has two, "Minimum" and
   "Maximum", in a `group` named for the host;  each bounds the other.  Labels are `aria-hidden`.
-- Positions are CSS:  the element writes ratios (`--_slider-at`, `--_slider-from` / `-to`), `slider.css` turns them
+- Positions are CSS:  the element writes ratios (`--_slider-at`, `--_slider-from` / `-to`), `ui-slider.css` turns them
   into offsets, so `reversed` / `vertical` need no JS and static markup needs no pixel offsets.
 - `value` / `end` are Fomantic's `start` / `end`;  defaults are Fomantic's (`min` 0, `max` 20, `step` 1;  `step="0"`
   allows any value).  Snapping follows `<input type=range>`:  an off-grid `max` isn't reached.
@@ -891,7 +891,7 @@ first paint never needs the property.  No virtualization yet:  every row renders
   click is intercepted and the cancelable `ui-open` / `ui-close` go first (an exclusive switch announces the close
   too).  `collapsible="no"` keeps the open panel open.
 - The summary and content box ARE the boxes:  the accordion doesn't own the `title` / `content` parts, so the
-  slotted `<ui-title>` / `<ui-content>` stay plain.  (`parts.css`'s `in-accordion` rules are unused by the element.)
+  slotted `<ui-title>` / `<ui-content>` stay plain.  (`ui-parts.css`'s `in-accordion` rules are unused by the element.)
 - A nested `<ui-accordion>` (`:state(in-accordion)`) renders `accordion` without `ui` and takes its parent's look
   through the inherited `--_ui-accordion-*` aliases (its root declares none), as Fomantic's
   `.ui.styled.accordion .accordion` did.
@@ -914,10 +914,10 @@ first paint never needs the property.  No virtualization yet:  every row renders
   One element per tab keeps label and pane together (nothing to pair up), and the whole APG tablist lives in ONE
   shadow root.  A separate tab-button element would have duplicated the generic `<ui-item>`.
 - The tab list is `<div class="ui ... menu" role="tablist">` of `<button role="tab" class="[active] item">`, styled by
-  `menu.css` itself (adopted as is, its static `.ui.menu .item` rules):  the look words are the menu's --
+  `ui-menu.css` itself (adopted as is, its static `.ui.menu .item` rules):  the look words are the menu's --
   `tabular`, `pointing`, `secondary`, `text`, `vertical`, `inverted`, `fluid`, sizes, colours.  The root is
   `ui ... tabs`;  the tab list the same words with the noun `menu`.
-- Panes:  `ui [bottom attached] tab segment` (+ `active`), adopting `segment.css`.  `attached` (bare ~== `top`) joins
+- Panes:  `ui [bottom attached] tab segment` (+ `active`), adopting `ui-segment.css`.  `attached` (bare ~== `top`) joins
   the menu and the panes;  `attached="bottom"` puts the menu below.  `basic` / `inverted` reach the panes too.
 - Selection:  `value` (a pane's `value`, else its index) is auto-controlled, with a cancelable `ui-change`
   (`{ value, tab }`);  without it, the first `selected` (or `active`) pane, else the first enabled one.
@@ -940,7 +940,7 @@ first paint never needs the property.  No virtualization yet:  every row renders
 
 - A `<ui-toast>` shows WHERE IT IS;  `UI.toast()` (`ToastStack`, the family's provider for `UI.toasts`) builds one per
   call in a container per `position` -- `<div popover="manual" class="ui top right toast-container" role="region">`,
-  the page sheet `toast.container.css`, in the top layer and re-shown for each new toast.  `displayTime` defaults
+  the page sheet `ui-toast.container.css`, in the top layer and re-shown for each new toast.  `displayTime` defaults
   to Fomantic's 3000ms there;  on the element `display-time` is off unless set (`auto` ~== reading time).
 - Shadow:  `floating toast-box [compact]` around `ui [type] [color] [inverted] toast [vertical] [actions] [attached
   top|bottom]`, Fomantic's words.  `type` (`info success warning error neutral`) and `color` remap `--ui-color`;

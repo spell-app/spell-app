@@ -1,0 +1,39 @@
+<!-- `src/components/ui-parts/examples/meta.html` as element markup. -->
+<!-- Owners are the real elements. -->
+<div class="ui-stack">
+  <section>
+    <h4>Standalone</h4>
+    <ui-meta><span>2 days ago</span></ui-meta>
+  </section>
+
+  <section>
+    <h4>In owners</h4>
+    <ui-card>
+      <ui-content>
+        <ui-meta><span>Joined in 2013</span><a href="#friends">Friends</a></ui-meta>
+      </ui-content>
+    </ui-card>
+    <ui-items>
+      <ui-item>
+        <ui-content>
+          <ui-meta><span>Description</span><span>Stevie</span></ui-meta>
+        </ui-content>
+      </ui-item>
+    </ui-items>
+    <ui-feed>
+      <ui-event>
+        <ui-content>
+          <ui-meta><a href="#like">4 Likes</a><a href="#reply">Reply</a></ui-meta>
+        </ui-content>
+      </ui-event>
+    </ui-feed>
+    <ui-comments>
+      <ui-comment>
+        <ui-content>
+          <ui-author href="#matt">Matt</ui-author>
+          <ui-meta><span>Today at 5:42PM</span></ui-meta>
+        </ui-content>
+      </ui-comment>
+    </ui-comments>
+  </section>
+</div>

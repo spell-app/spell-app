@@ -159,7 +159,7 @@ export type SmokeRunnerOptions = {
   /** where `smoke-results.json` goes, relative to `root` */
   results: string
   /**
-   * Import map entries:  the vendored peers (`vendor/importmap.json`) and `@spell-app/ui`, `@spell-app/ui/<family>` =>
+   * Import map entries:  the vendored peers (`vendor/importmap.json`) and `@spell-app/ui`, `@spell-app/ui/ui-<family>` =>
    * `/dist/...`.
    */
   importMap: ImportMap

@@ -1,0 +1,139 @@
+<!--
+  Card groups, after Fomantic's docs (views/card.html, "Card count, Doubling, Stackable").
+  Static class grammar `ui-card.css` styles:  the card box (`.ui.card`, and `.ui.cards > .card` without `ui`), its
+  images, and the content parts (`in-card`, as `ui-parts.css` expects static parts);  element markup renders the same.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Column count</h4>
+    <div class="ui three cards">
+      <div class="card">
+        <div class="image">
+          <img
+            src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22480%22 height=%22320%22 viewBox=%220 0 30 20%22%3E%3Crect width=%2230%22 height=%2220%22 fill=%22%23cbd5e1%22/%3E%3Cpath d=%22M3 17l7-8 5 6 4-4 8 6z%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%2222%22 cy=%226%22 r=%222%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E"
+            alt="Kristy"
+          />
+        </div>
+        <div class="content in-card">
+          <a class="header in-card" href="#kristy">Kristy</a>
+          <div class="meta in-card"><span>Joined in 2013</span></div>
+          <div class="description in-card">Kristy is an art director living in New York.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="image">
+          <img
+            src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22480%22 height=%22320%22 viewBox=%220 0 30 20%22%3E%3Crect width=%2230%22 height=%2220%22 fill=%22%23cbd5e1%22/%3E%3Cpath d=%22M3 17l7-8 5 6 4-4 8 6z%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%2222%22 cy=%226%22 r=%222%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E"
+            alt="Matthew"
+          />
+        </div>
+        <div class="content in-card">
+          <a class="header in-card" href="#matthew">Matthew</a>
+          <div class="meta in-card"><span>Joined in 2015</span></div>
+          <div class="description in-card">Matthew is a musician living in Nashville.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="image">
+          <img
+            src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22480%22 height=%22320%22 viewBox=%220 0 30 20%22%3E%3Crect width=%2230%22 height=%2220%22 fill=%22%23cbd5e1%22/%3E%3Cpath d=%22M3 17l7-8 5 6 4-4 8 6z%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%2222%22 cy=%226%22 r=%222%22 fill=%22%2394a3b8%22/%3E%3C/svg%3E"
+            alt="Molly"
+          />
+        </div>
+        <div class="content in-card">
+          <a class="header in-card" href="#molly">Molly</a>
+          <div class="meta in-card"><span>Coworker</span></div>
+          <div class="description in-card">Molly is a personal assistant living in Paris.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Doubling, stackable</h4>
+    <div class="ui doubling stackable four cards">
+      <div class="card">
+        <div class="content in-card">
+          <a class="header in-card" href="#elyse">Elyse</a>
+          <div class="meta in-card"><span>Friend</span></div>
+          <div class="description in-card">Elyse is a copywriter working in New York.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="content in-card">
+          <a class="header in-card" href="#jenny">Jenny</a>
+          <div class="meta in-card"><span>Friend</span></div>
+          <div class="description in-card">Jenny is a student studying Media Management.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="content in-card">
+          <a class="header in-card" href="#steve">Steve</a>
+          <div class="meta in-card"><span>Friend</span></div>
+          <div class="description in-card">Steve likes to hike in the woods.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="content in-card">
+          <a class="header in-card" href="#kristy">Kristy</a>
+          <div class="meta in-card"><span>Joined in 2013</span></div>
+          <div class="description in-card">Kristy is an art director living in New York.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Centered</h4>
+    <div class="ui centered cards">
+      <div class="card">
+        <div class="content in-card">
+          <a class="header in-card" href="#matthew">Matthew</a>
+          <div class="description in-card">Matthew is a musician living in Nashville.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="content in-card">
+          <a class="header in-card" href="#molly">Molly</a>
+          <div class="description in-card">Molly is a personal assistant living in Paris.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Raised link group</h4>
+    <div class="ui raised link cards">
+      <div class="card">
+        <div class="content in-card">
+          <div class="header in-card">Elyse</div>
+          <div class="description in-card">Elyse is a copywriter working in New York.</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="content in-card">
+          <div class="header in-card">Jenny</div>
+          <div class="description in-card">Jenny is a student studying Media Management.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Colored group</h4>
+    <div class="ui red cards">
+      <div class="card">
+        <div class="content in-card">
+          <a class="header in-card" href="#steve">Steve</a>
+          <div class="meta in-card"><span>Friend</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="content in-card">
+          <a class="header in-card" href="#kristy">Kristy</a>
+          <div class="meta in-card"><span>Joined in 2013</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

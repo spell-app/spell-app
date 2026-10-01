@@ -15,7 +15,7 @@
 </div>
 
 <script>
-  import "$/ui/components/nag"
+  import "$/ui/components/ui-nag"
 
   for (const demo of document.querySelectorAll<HTMLElement>("[data-nag-demo]")) {
     const nag = demo.querySelector<HTMLElement & { dismissed: boolean; clear(): void; show(): boolean }>("[data-target]")!

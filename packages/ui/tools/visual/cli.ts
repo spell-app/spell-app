@@ -26,7 +26,8 @@ const USAGE = `Usage:  yarn test:visual [options]
   --browsers all|chrome|firefox|webkit
                              which browsers, or a comma list (default all)
   --update                   accept the new renders as baselines (review the HTML report first)
-  --grep <targets>           only these families / examples, comma separated:  button,modal/types
+  --grep <targets>           only these families / examples, comma separated:  ui-button,ui-modal/types
+                             (the ui- may be left out)
   --parity                   also compare class grammar vs elements;  report in tools/results/visual/parity.md
   --workers <n|n%>           Playwright workers (default 50%)
   --help                     this text

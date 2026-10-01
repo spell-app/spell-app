@@ -104,7 +104,7 @@ export type ItemOwner = {
 ////////////////
 
 /**
- * Custom property `dropdown.css` reads for the anchor name, e.g. `--_ui-dropdown-anchor: --ui-dropdown-7`.
+ * Custom property `ui-dropdown.css` reads for the anchor name, e.g. `--_ui-dropdown-anchor: --ui-dropdown-7`.
  * - The element sets it INLINE on its root, to a per-instance dashed ident (`UI.ids`);  the root's
  *   `anchor-name` and the menu's `position-anchor` both read it.
  * - PRIVATE (`--_ui-`):  a switch the element decides, never a theming surface.
@@ -118,7 +118,7 @@ export const DROPDOWN_ANCHOR_PROPERTY = "--_ui-dropdown-anchor"
 
 /**
  * Custom property an owner sets on itself to steer a slotted `<ui-icon>` (a `display: contents` host takes no box
- * styles from `::slotted()`), e.g. `--_ui-icon-owner-margin: 0 0.75em 0 0` on a label root.  See `icon.css`.
+ * styles from `::slotted()`), e.g. `--_ui-icon-owner-margin: 0 0.75em 0 0` on a label root.  See `ui-icon.css`.
  * - PRIVATE (`--_ui-`):  an internal switch between components, never a theming surface
  *   (`docs/theming.md` "Owner tokens").
  */
@@ -148,7 +148,7 @@ export type HeaderLevel = 1 | 2 | 3 | 4 | 5 | 6
 
 /**
  * Inherited tokens OWNERS set on their root for the generic content parts, which style-query them
- * (`@container style(...)`).  See the "Owner tokens" table in `parts.css`.
+ * (`@container style(...)`).  See the "Owner tokens" table in `ui-parts.css`.
  * - Switches are PRIVATE (`--_ui-`):  what the owner's attributes decide, never a theming surface.
  * - `--ui-inverted` is the shared remap.
  * - The look tokens (`modalHeaderSize`, `statisticValueSize`) name the owner's private ALIAS of a public token
@@ -185,7 +185,7 @@ export const PART_OWNER_TOKENS = {
 
 /**
  * Class a STATIC part carries in place of the `:state(in-<owner>)` its element sets, e.g. `in-card`.
- * - Elements NEVER set it:  it exists for static markup (examples, SSR without scripts);  see `parts.css`.
+ * - Elements NEVER set it:  it exists for static markup (examples, SSR without scripts);  see `ui-parts.css`.
  * - Same text as `OwnerContext.stateName(ownerNoun)`.
  */
 export const PART_STATIC_CLASS_PREFIX = "in-"
@@ -195,7 +195,7 @@ export const PART_STATIC_CLASS_PREFIX = "in-"
 ////////////////
 
 /**
- * Size container a top-level `<ui-grid>` HOST establishes (`container: ui-grid / inline-size`), see `grid.css`.
+ * Size container a top-level `<ui-grid>` HOST establishes (`container: ui-grid / inline-size`), see `ui-grid.css`.
  * - `stackable`, `doubling`, `reversed` and per-device widths answer to it, not to the viewport.
  * - Page CSS may query it too, e.g. `@container ui-grid (width < 768px) { ... }` inside a column.
  */
@@ -217,7 +217,7 @@ export type MessageDismissDetail = {
 
 /**
  * Inherited tokens a `<ui-breadcrumb>` sets INLINE on its root, which every `<ui-breadcrumb-section>` draws as
- * its leading divider.  See "Dividers" in `breadcrumb.css`.
+ * its leading divider.  See "Dividers" in `ui-breadcrumb.css`.
  * - `text` -- a CSS STRING (`"›"`), from `divider`;  quote and escape it as CSS (`\"`, `\\`, `\A `), not JSON
  * - `icon` -- an `<image>`, `url("data:image/svg+xml,...")` of the `divider-icon` SVG;  painted as a mask in
  *   `currentColor`
@@ -235,7 +235,7 @@ export const BREADCRUMB_DIVIDER_TOKENS = {
 ////////////////
 
 /**
- * Custom state every `<ui-placeholder>` host MUST carry, always:  `placeholder.css` spaces consecutive
+ * Custom state every `<ui-placeholder>` host MUST carry, always:  `ui-placeholder.css` spaces consecutive
  * placeholders with `:host(:nth-child(n + 2 of :state(placeholder)))`, since a shadow root can't see its host's
  * previous sibling.
  */
@@ -253,7 +253,7 @@ export type InputChangeDetail = {
 }
 
 /**
- * Inherited tokens an OWNER sets for the text controls inside it (`input.css`), e.g. `<ui-field>` on its root.
+ * Inherited tokens an OWNER sets for the text controls inside it (`ui-input.css`), e.g. `<ui-field>` on its root.
  * - `width` -- the host's inline size (`100%` in a field, `auto` in an inline one)
  * - `color` / `background` / `border` -- a field's state, RESOLVED colours (declared where the state's remap
  *   runs), so a control's own `state` still wins
@@ -564,7 +564,7 @@ export type SearchChangeDetail = {
 }
 
 /**
- * Custom property `search.css` reads for the anchor name, e.g. `--_ui-search-anchor: --ui-search-3`.
+ * Custom property `ui-search.css` reads for the anchor name, e.g. `--_ui-search-anchor: --ui-search-3`.
  * - The element sets it inline on its root, as the dropdown does (`DROPDOWN_ANCHOR_PROPERTY`).
  * - PRIVATE (`--_ui-`):  a switch the element decides, never a theming surface.
  */
@@ -773,13 +773,13 @@ export const SIDEBAR_HOST_STATE = "sidebar"
 export const PUSHABLE_HOST_STATE = "pushable"
 
 /**
- * Inherited tokens a `<ui-pushable>` sets INLINE on its root for its `<ui-pusher>`s (`sidebar.css`), from the
+ * Inherited tokens a `<ui-pushable>` sets INLINE on its root for its `<ui-pusher>`s (`ui-sidebar.css`), from the
  * visible sidebar:
  * - `transform` -- where the pusher moves (`translate3d(260px, 0, 0)`, `scale(0.75)`), `none` when nothing is open
  * - `origin` -- its `transform-origin` (scale down)
  * - `dimmed` -- `1` while a modal sidebar is open:  the pusher's dimmer shows
  * - `blurring` -- `1` while that sidebar is `blurring`:  the dimmer blurs the pusher
- * - PRIVATE (`--_ui-`):  switches the pushable decides, never a theming surface;  `sidebar.css` declares their
+ * - PRIVATE (`--_ui-`):  switches the pushable decides, never a theming surface;  `ui-sidebar.css` declares their
  *   defaults on the pushable box, which the inline values beat
  */
 export const PUSHER_TOKENS = {

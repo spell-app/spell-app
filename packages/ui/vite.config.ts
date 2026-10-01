@@ -23,61 +23,61 @@ const SRC = fileURLToPath(new URL("./src", import.meta.url))
  */
 export const CSS_TARGETS = { chrome: 125 << 16, safari: 26 << 16, firefox: 147 << 16 }
 
-/** Component families, one lib entry each (`src/components/<name>/index.ts`), so each can be loaded and sized alone. */
+/** Component families, one lib entry each (`src/components/ui-<name>/index.ts`), so each can be loaded and sized alone. */
 export const COMPONENTS = [
-  "button",
-  "dropdown",
-  "icon",
-  "label",
-  "parts",
-  "divider",
-  "segment",
-  "container",
-  "grid",
-  "image",
-  "text",
-  "flag",
-  "loader",
-  "placeholder",
-  "message",
-  "breadcrumb",
-  "input",
-  "checkbox",
-  "form",
-  "item",
-  "list",
-  "menu",
-  "table",
-  "popup",
-  "modal",
-  "transition",
-  "dimmer",
-  "flyout",
-  "sidebar",
-  "shape",
-  "card",
-  "items",
-  "feed",
-  "comment",
-  "statistic",
-  "step",
-  "rail",
-  "reveal",
-  "ad",
-  "emoji",
-  "select",
-  "search",
-  "progress",
-  "rating",
-  "slider",
-  "accordion",
-  "tab",
-  "toast",
-  "nag",
-  "sticky",
-  "visibility",
-  "embed",
-  "calendar"
+  "ui-button",
+  "ui-dropdown",
+  "ui-icon",
+  "ui-label",
+  "ui-parts",
+  "ui-divider",
+  "ui-segment",
+  "ui-container",
+  "ui-grid",
+  "ui-image",
+  "ui-text",
+  "ui-flag",
+  "ui-loader",
+  "ui-placeholder",
+  "ui-message",
+  "ui-breadcrumb",
+  "ui-input",
+  "ui-checkbox",
+  "ui-form",
+  "ui-item",
+  "ui-list",
+  "ui-menu",
+  "ui-table",
+  "ui-popup",
+  "ui-modal",
+  "ui-transition",
+  "ui-dimmer",
+  "ui-flyout",
+  "ui-sidebar",
+  "ui-shape",
+  "ui-card",
+  "ui-items",
+  "ui-feed",
+  "ui-comment",
+  "ui-statistic",
+  "ui-step",
+  "ui-rail",
+  "ui-reveal",
+  "ui-ad",
+  "ui-emoji",
+  "ui-select",
+  "ui-search",
+  "ui-progress",
+  "ui-rating",
+  "ui-slider",
+  "ui-accordion",
+  "ui-tab",
+  "ui-toast",
+  "ui-nag",
+  "ui-sticky",
+  "ui-visibility",
+  "ui-embed",
+  "ui-calendar"
 ] as const
 
 /**
@@ -187,7 +187,7 @@ export default defineConfig(() => {
 })
 
 /**
- * Chunk file names:  an emoji data chunk (`src/components/emoji/data/<set>/<letter>.json`) goes to
+ * Chunk file names:  an emoji data chunk (`src/components/ui-emoji/data/<set>/<letter>.json`) goes to
  * `emoji/<set>/<letter>-[hash].js`, so the two name sets' chunks are told apart -- by a reader of `dist/`, and by the
  * docs' single-file bundler, which loads them lazily instead of inlining them (`packages/docs/scripts/bundle-spell-ui.js`).
  */
@@ -197,11 +197,11 @@ function emojiChunkNames(chunk: { facadeModuleId: string | null; moduleIds: read
 }
 
 /** An emoji data module's id:  its set and chunk letter. */
-const EMOJI_DATA = /\/components\/emoji\/data\/([\w-]+)\/(\w+)\.json$/
+const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/
 
 /**
  * `vite-plugin-dts` options for the published declarations:  `dist/index.d.ts`, `dist/core.d.ts`,
- * `dist/components/<name>/index.d.ts` ... -- the paths `package.json` `exports` names.
+ * `dist/components/ui-<name>/index.d.ts` ... -- the paths `package.json` `exports` names.
  * - `src/` imports `$/util` (`../util/src`, OUTSIDE this package), so the program's root is `packages/`
  *   (`compilerOptions.rootDir`, else TS6059) and both `src/` trees are included.
  * - Then `beforeWriteFile` moves what the plugin wrote to `dist/ui/src/**` up to `dist/**`, and
@@ -211,7 +211,7 @@ const EMOJI_DATA = /\/components\/emoji\/data\/([\w-]+)\/(\w+)\.json$/
  * - `?inline` CSS imports (`styles/index.ts`) become `declare const x: string`:  only `vite/client` types them.
  * - Why not `bundleTypes`:  it rolls each entry up on its own, so a class like `UIElement` is copied into every
  *   entry that reaches it, and a class with private members is a DIFFERENT type in each copy.  Per-file
- *   declarations keep one `UIElement` for `@spell-app/ui/core` and `@spell-app/ui/button` alike.
+ *   declarations keep one `UIElement` for `@spell-app/ui/core` and `@spell-app/ui/ui-button` alike.
  * - `util` is not published on its own, so its GENERIC declarations ship inside `@spell-app/ui`.  NOT `util/src/spell/` or
  *   `util`'s barrel (which flattens it in):  `exclude` lists them, and `src/util/index.ts` imports file by file.
  * - MUST end with NO `$/` alias in `dist/**.d.ts` and no path outside `dist/`;  `yarn smoke` checks.
@@ -283,10 +283,10 @@ function rewriteDeclaration(filePath: string, content: string) {
 /**
  * Hot module replacement for the components in `yarn dev` (the fork's `solidElementHot()`;  `apply: "serve"`, so
  * builds are untouched, and NOT in `vitest.config.ts`).
- * - Boundaries:  the component barrels (`src/components/<name>/index.ts`), the modules that call `define()`.
+ * - Boundaries:  the component barrels (`src/components/ui-<name>/index.ts`), the modules that call `define()`.
  *   An edit to a component class, vocabulary or fallback re-runs its barrel;  `HotDefinitions` turns the barrel's
  *   `define()` of a new version of a class into a re-definition of every tag it had.
- * - `?inline` component CSS (`src/components/<name>/<name>.css`) re-registers its sheet:  no re-render.
+ * - `?inline` component CSS (`src/components/ui-<name>/ui-<name>.css`) re-registers its sheet:  no re-render.
  * - Shared code (`core`, `forms`, the runtime) reaches several barrels:  full reload.
  * - `HotDefinitions` is injected by FILE PATH, not `$/ui/elements/HotDefinitions`:  `resolve.tsconfigPaths` only
  *   resolves aliases for TS / JS importers, and the sheets' handler import lives in a `.css?inline` module.

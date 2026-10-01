@@ -1,0 +1,243 @@
+<!-- `src/components/ui-label/examples/types.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Label</h4>
+    <ui-label icon="envelope">23</ui-label>
+    <p>
+      <kbd><ui-label>Ctrl</ui-label></kbd> + <kbd><ui-label>Alt</ui-label></kbd> + <kbd><ui-label>Del</ui-label></kbd>
+      <kbd><ui-label basic>W</ui-label></kbd
+      ><kbd><ui-label basic>A</ui-label></kbd
+      ><kbd><ui-label basic>S</ui-label></kbd>
+    </p>
+  </section>
+
+  <section>
+    <h4>Image</h4>
+    <ui-label
+      href="#joe"
+      image="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+      >Joe</ui-label
+    >
+    <ui-label
+      href="#elliot"
+      image="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+      >Elliot</ui-label
+    >
+    <ui-label
+      href="#veronika"
+      color="blue"
+      image="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+      detail="Friend"
+      >Veronika</ui-label
+    >
+    <ui-label
+      image="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+      removable
+      >Zoe</ui-label
+    >
+  </section>
+
+  <section>
+    <h4>Pointing</h4>
+    <div class="ui-stack">
+      <div>
+        <input type="text" placeholder="First name" aria-label="First name" /><br /><ui-label pointing
+          >Please enter a value</ui-label
+        >
+      </div>
+      <div>
+        <ui-label pointing="below">Please enter a value</ui-label><br /><input type="text" aria-label="Value" />
+      </div>
+      <div>
+        <input type="text" placeholder="Username" aria-label="Username" /><ui-label pointing="left"
+          >That name is taken!</ui-label
+        >
+      </div>
+      <div>
+        <ui-label pointing="right">Your password must be 6 characters or more</ui-label
+        ><input type="password" aria-label="Password" />
+      </div>
+      <div>
+        <input type="text" aria-label="Name" /><ui-label color="red" basic pointing="left"
+          >That name is taken!</ui-label
+        >
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Corner</h4>
+    <div class="ui-cluster">
+      <div
+        style="
+          position: relative;
+          padding: 1em;
+          border: 1px solid var(--ui-border-color);
+          border-radius: var(--ui-radius);
+          --ui-label-owner-edge: 1px;
+        "
+      >
+        <ui-label href="#like" aria-label="Like" corner="left" icon="heart"></ui-label>
+        <p style="margin: 2em 3em">Left corner</p>
+      </div>
+      <div
+        style="
+          position: relative;
+          padding: 1em;
+          border: 1px solid var(--ui-border-color);
+          border-radius: var(--ui-radius);
+          --ui-label-owner-edge: 1px;
+        "
+      >
+        <ui-label href="#save" aria-label="Save" color="red" corner icon="floppy-disk"></ui-label>
+        <p style="margin: 2em 3em">Right corner</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Tag</h4>
+    <ui-label href="#new" tag>New</ui-label>
+    <ui-label href="#upcoming" color="red" tag>Upcoming</ui-label>
+    <ui-label href="#featured" color="teal" tag>Featured</ui-label>
+  </section>
+
+  <section>
+    <h4>Ribbon</h4>
+    <div class="ui-cluster">
+      <div
+        style="
+          position: relative;
+          padding: 1em;
+          border: 1px solid var(--ui-border-color);
+          border-radius: var(--ui-radius);
+          --ui-label-owner-edge: 1px;
+        "
+      >
+        <ui-label href="#overview" color="red" ribbon>Overview</ui-label>
+        <span>Account Details</span>
+        <p>Doggie treats are good for all times of the year.</p>
+        <ui-label href="#community" color="blue" ribbon>Community</ui-label> User Reviews
+      </div>
+      <div
+        style="
+          position: relative;
+          padding: 1em;
+          border: 1px solid var(--ui-border-color);
+          border-radius: var(--ui-radius);
+          --ui-label-owner-edge: 1px;
+        "
+      >
+        <ui-label href="#specs" color="orange" ribbon="right">Specs</ui-label>
+        <p>Doggie treats are good for all times of the year.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Attached</h4>
+    <div class="ui-cluster">
+      <div
+        style="
+          position: relative;
+          padding: 1em;
+          border: 1px solid var(--ui-border-color);
+          border-radius: var(--ui-radius);
+          --ui-label-owner-edge: 1px;
+        "
+      >
+        <ui-label attached="top">HTML</ui-label>
+        <p style="margin-top: 2em">Top</p>
+      </div>
+      <div
+        style="
+          position: relative;
+          padding: 1em;
+          border: 1px solid var(--ui-border-color);
+          border-radius: var(--ui-radius);
+          --ui-label-owner-edge: 1px;
+        "
+      >
+        <ui-label attached="bottom">CSS</ui-label>
+        <p style="margin-bottom: 2em">Bottom</p>
+      </div>
+      <div
+        style="
+          position: relative;
+          padding: 1em;
+          border: 1px solid var(--ui-border-color);
+          border-radius: var(--ui-radius);
+          --ui-label-owner-edge: 1px;
+        "
+      >
+        <ui-label attached="top right">Code</ui-label>
+        <p style="margin-top: 2em">Top right</p>
+      </div>
+      <div
+        style="
+          position: relative;
+          padding: 1em;
+          border: 1px solid var(--ui-border-color);
+          border-radius: var(--ui-radius);
+          --ui-label-owner-edge: 1px;
+        "
+      >
+        <ui-label attached="top left">View</ui-label>
+        <p style="margin-top: 2em">Top left</p>
+      </div>
+      <div
+        style="
+          position: relative;
+          padding: 1em;
+          border: 1px solid var(--ui-border-color);
+          border-radius: var(--ui-radius);
+          --ui-label-owner-edge: 1px;
+        "
+      >
+        <ui-label attached="bottom left">Axis</ui-label>
+        <p style="margin-bottom: 2em">Bottom left</p>
+      </div>
+      <div
+        style="
+          position: relative;
+          padding: 1em;
+          border: 1px solid var(--ui-border-color);
+          border-radius: var(--ui-radius);
+          --ui-label-owner-edge: 1px;
+        "
+      >
+        <ui-label attached="bottom right">Footer</ui-label>
+        <p style="margin-bottom: 2em">Bottom right</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Horizontal</h4>
+    <p><ui-label horizontal>Fruit</ui-label>Kumquats</p>
+    <p><ui-label color="purple" horizontal>Candy</ui-label>Ice Cream</p>
+    <p><ui-label color="red" horizontal>Fruit</ui-label>Orange</p>
+  </section>
+
+  <section>
+    <h4>Floating</h4>
+    <div class="ui-cluster">
+      <a href="#messages" style="position: relative; padding: 0.75em 1.25em; border: 1px solid var(--ui-border-color)"
+        >Messages<ui-label color="red" floating>22</ui-label></a
+      >
+      <a href="#friends" style="position: relative; padding: 0.75em 1.25em; border: 1px solid var(--ui-border-color)"
+        >Friends<ui-label color="teal" floating="left">3</ui-label></a
+      >
+      <a href="#bottom" style="position: relative; padding: 0.75em 1.25em; border: 1px solid var(--ui-border-color)"
+        >Bottom<ui-label color="blue" floating="bottom">9</ui-label></a
+      >
+    </div>
+  </section>
+
+  <section>
+    <h4>Inverted</h4>
+    <ui-label inverted>Inverted</ui-label>
+    <ui-label color="red" inverted>Red</ui-label>
+    <ui-label basic inverted>Basic</ui-label>
+  </section>
+</div>

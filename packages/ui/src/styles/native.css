@@ -4,9 +4,9 @@
  *   the light DOM, where the component's shadow CSS can only reach the top level (`::slotted(form)`), never the
  *   controls inside.  These rules give that markup its base look.
  * - NOT here:
- *   - slotted tables:  `table.css` styles `<ui-table>`'s light-DOM `<table>` itself (the element registers it as
+ *   - slotted tables:  `ui-table.css` styles `<ui-table>`'s light-DOM `<table>` itself (the element registers it as
  *     a page sheet too), base look included
- *   - lists:  a `<ui-list>`'s items are `<ui-item>`s, styled from `list.css` in their own shadow roots
+ *   - lists:  a `<ui-list>`'s items are `<ui-item>`s, styled from `ui-list.css` in their own shadow roots
  * - Also:  Fomantic's CSS-only tooltip (`[data-tooltip]`, from `popup.less`), and `.ui-native` -- opt-in
  *   token styling for plain HTML elements (Web Awesome's "native styles").
  * - Selectors are wrapped in `:where()` where they could otherwise out-rank an app's own element rules.
@@ -81,7 +81,7 @@
 
   /*
    * A `<ui-message state="…">` inside a `<ui-form>` shows only while its form, fields or field has that state
-   * (Fomantic's `.ui.form .error.message`).  Here, not in `message.css`:  the message's box is in its own shadow
+   * (Fomantic's `.ui.form .error.message`).  Here, not in `ui-message.css`:  the message's box is in its own shadow
    * root, and the states are on the ancestors' hosts (`:state(error)` ...).
    * - NOTE: canonical names only (`ui-message`, `state`);  a translated message tag isn't hidden.
    */

@@ -31,8 +31,8 @@
     <p>
       Each row shows one family twice: working, and the same markup after its render was made to throw. The failed
       element logs one console error, dispatches <code>ui-error</code>, gets <code>:state(errored)</code> and renders
-      its family's native fallback (<code>src/components/&lt;name&gt;/&lt;name&gt;.fallback.ts</code>) -- plain DOM with
-      the same class grammar, so the component's own sheet still styles it. Served by <code>yarn serve</code> /
+      its family's native fallback (<code>src/components/ui-&lt;name&gt;/ui-&lt;name&gt;.fallback.ts</code>) -- plain
+      DOM with the same class grammar, so the component's own sheet still styles it. Served by <code>yarn serve</code> /
       <code>yarn smoke</code> (import map: <code>dist/</code> + the vendored Solid).
     </p>
     <table>

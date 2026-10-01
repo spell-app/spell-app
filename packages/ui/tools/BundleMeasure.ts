@@ -36,7 +36,7 @@ import { NodePackage } from "./NodePackage.ts"
  *     ONCE and tree-shaken (it's external in the build);  what the scenarios add
  *   - `libraryFull` -- every export of the peer set (`peerEntry` bundled as is), for comparison
  *   - `shared[name]` -- each shared entry:  `core` (element core + foundation JS), e.g. `forms`
- *   - `own[family]` -- that family's classes + `<name>.css` + vocabulary + native fallback
+ *   - `own[family]` -- that family's classes + `ui-<name>.css` + vocabulary + native fallback
  *   - lazy chunks (`UIRuntime`, icon data) listed apart
  *   - `standalone` -- each family built ALONE with the library bundled, for comparison
  * - Scenarios add, per family, only the shared entries its chunk actually imports (`families`):  a page with a
@@ -378,7 +378,7 @@ export class BundleMeasure {
     own: Record<string, OwnSize>,
     needs: Record<string, FamilyNeeds>
   ): Record<ScenarioName, Scenario> {
-    const page = this.config.pageFamily ?? "button"
+    const page = this.config.pageFamily ?? "ui-button"
     const families = Object.keys(own)
     const sum = (parts: string[]) =>
       parts.reduce((total, part) => {

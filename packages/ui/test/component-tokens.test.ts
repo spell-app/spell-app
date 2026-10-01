@@ -32,14 +32,14 @@ const FOUNDATION = import.meta.glob<string>("/src/styles/*.css", { query: "?raw"
  * which is the point.  A stale entry fails.
  */
 const EXCEPTIONS: Record<string, Record<string, string>> = {
-  "search/search.css": {
+  "ui-search/ui-search.css": {
     "--ui-input-radius": "the search prompt is Fomantic's round input:  it sets the nested input's radius"
   }
 }
 
 const tokens = new ComponentTokens(VOCABULARIES, Object.values(FOUNDATION))
 
-/** `src/components/button/button.css` => `button/button.css` */
+/** `src/components/ui-button/ui-button.css` => `ui-button/ui-button.css` */
 function short(path: string): string {
   return path.replace("/src/components/", "")
 }
@@ -88,9 +88,9 @@ describe("component tokens", () => {
 
 describe("ComponentTokens", () => {
   it("classifies names by the longest tag, never the foundation's", () => {
-    expect(tokens.owner("--ui-button-radius")).toEqual({ tag: "button", family: "button" })
-    expect(tokens.owner("--ui-buttons-gap")).toEqual({ tag: "buttons", family: "button" })
-    expect(tokens.owner("--ui-header-color")?.family).toBe("parts")
+    expect(tokens.owner("--ui-button-radius")).toEqual({ tag: "button", family: "ui-button" })
+    expect(tokens.owner("--ui-buttons-gap")).toEqual({ tag: "buttons", family: "ui-button" })
+    expect(tokens.owner("--ui-header-color")?.family).toBe("ui-parts")
     expect(tokens.owner("--ui-text-color")).toBeUndefined()
     expect(tokens.owner("--ui-color")).toBeUndefined()
     expect(tokens.owner("--_ui-button-radius")).toBeUndefined()
@@ -111,7 +111,7 @@ describe("ComponentTokens", () => {
       "}",
       ".ui.circular.button { --ui-button-radius: 999px; }"
     ].join("\n")
-    const { css: converted, notes } = tokens.convert("button", css)
+    const { css: converted, notes } = tokens.convert("ui-button", css)
     expect(converted).toContain("--_ui-button-radius: var(--ui-button-radius, var(--ui-radius));")
     expect(converted).toContain("--_ui-button-pad: var(--ui-button-pad, calc(var(--_ui-button-radius) * 2));")
     expect(converted).toContain("border-radius: var(--_ui-button-radius);")

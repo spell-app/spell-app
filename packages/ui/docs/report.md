@@ -95,8 +95,8 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
   - `styles` is its own entry (`dist/styles.js`):  the `index` entry re-exports the foundation sheets, and without
     an entry of their own they landed in `index.js`, which the lazy `UIRuntime` chunk then imported -- loading the
     runtime on a button-only page would have pulled every family.
-  - `rolldownOptions.preserveEntrySignatures: "allow-extension"`;  `button.css` + the button vocabulary land in a
-    shared `button-<hash>.js` (the dropdown adopts `button.css`).
+  - `rolldownOptions.preserveEntrySignatures: "allow-extension"`;  `ui-button.css` + the button vocabulary land in a
+    shared `button-<hash>.js` (the dropdown adopts `ui-button.css`).
   - The `E` / `V` namespaces are their own entry, `api` (`src/api.ts`, `@spell-app/ui/api`);  `index.js` is flat.
     Namespacing a module that `core` also reaches (as `index.ts` once did with `export * as V from "$/ui/vocabulary"`)
     made Rolldown move its runtime module (`__name`, `__exportAll`) out of `core.js` into a shared
@@ -126,8 +126,8 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | library (as used:  the bindings `dist/` imports) | 78.36 | 28.08 | eager |
 | library (full:  every export of the peer set) | 173.54 | 60.50 | comparison |
 | core (element core + foundation JS) | 46.35 | 14.54 | eager |
-| forms (form base, validation, menu options;  imported by `dropdown`, `input`, `checkbox`, `form`, `select`, `search`, `rating`, `slider`, `calendar`) | 20.56 | 7.45 | eager |
-| own, all 53 families | 1391.48 | 389.60 | eager |
+| forms (form base, validation, menu options;  imported by `ui-dropdown`, `ui-input`, `ui-checkbox`, `ui-form`, `ui-select`, `ui-search`, `ui-rating`, `ui-slider`, `ui-calendar`) | 20.56 | 7.45 | eager |
+| own, all 53 families | 1391.53 | 389.64 | eager |
 | api (`E` / `V` namespaces, `@spell-app/ui/api`) | 0.70 | 0.31 | app only |
 | runtime (`UIRuntime` + foundation CSS) | 181.37 | 31.27 | lazy |
 | icons (none bundled:  pack indexes and SVGs are separate files, `docs/icons.md`) | 0.00 | 0.00 | lazy |
@@ -139,59 +139,59 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 <!-- generated:bundle-families -->
 | Family | own min+gz kB | classes | css | vocabulary | fallback | imports | page with only it | standalone (library bundled) |
 | --- | --: | --: | --: | --: | --: | --- | --: | --: |
-| `button` | **13.06** | 4.47 | 4.13 | 2.50 | 2.11 | core | 55.68 | 42.41 |
-| `dropdown` | **16.75** | 7.24 | 4.91 | 2.39 | 2.50 | core + forms | 66.83 | 65.31 |
-| `icon` | **6.33** | 2.53 | 1.92 | 1.44 | 1.58 | core | 48.95 | 36.45 |
-| `label` | **8.61** | 2.87 | 3.53 | 1.58 | 1.56 | core | 51.24 | 50.05 |
-| `parts` | **15.07** | 5.46 | 5.61 | 2.27 | 1.62 | core | 57.70 | 51.30 |
-| `divider` | **3.82** | 1.67 | 0.96 | 0.72 | 1.48 | core | 46.45 | 33.95 |
-| `segment` | **7.40** | 2.27 | 3.35 | 1.41 | 1.45 | core | 50.02 | 37.71 |
-| `container` | **3.34** | 1.45 | 0.85 | 0.63 | 1.40 | core | 45.96 | 33.38 |
-| `grid` | **7.84** | 2.44 | 3.31 | 1.51 | 1.44 | core | 50.47 | 38.92 |
-| `image` | **5.61** | 2.32 | 1.62 | 1.15 | 1.60 | core | 48.23 | 35.49 |
-| `text` | **2.70** | 1.47 | 0.40 | 0.40 | 1.40 | core | 45.33 | 32.73 |
-| `flag` | **6.08** | 1.87 | 0.56 | 2.92 | 1.64 | core | 48.71 | 37.30 |
-| `loader` | **4.26** | 1.65 | 1.30 | 0.72 | 1.54 | core | 46.88 | 34.42 |
-| `placeholder` | **5.90** | 3.31 | 1.38 | 0.80 | 1.57 | core | 48.52 | 35.94 |
-| `message` | **5.68** | 2.02 | 1.86 | 0.99 | 1.81 | core | 48.30 | 36.03 |
-| `breadcrumb` | **5.04** | 2.77 | 0.99 | 0.70 | 1.80 | core | 47.66 | 35.34 |
-| `input` | **10.41** | 4.61 | 2.76 | 1.88 | 2.22 | core + forms | 60.49 | 51.70 |
-| `checkbox` | **9.31** | 4.60 | 2.69 | 1.09 | 2.11 | core + forms | 59.39 | 45.47 |
-| `form` | **10.59** | 6.22 | 2.16 | 1.81 | 1.59 | core + forms | 60.67 | 49.48 |
-| `item` | **4.88** | 2.71 | 0.37 | 0.97 | 1.91 | core | 47.51 | 39.76 |
-| `list` | **7.16** | 2.03 | 3.44 | 0.92 | 1.65 | core | 49.78 | 45.51 |
-| `menu` | **10.07** | 2.82 | 4.36 | 1.36 | 1.62 | core | 52.70 | 47.87 |
-| `table` | **13.64** | 4.58 | 5.41 | 1.88 | 1.92 | core | 56.26 | 47.65 |
-| `popup` | **8.68** | 3.92 | 2.56 | 1.49 | 1.83 | core | 51.31 | 38.56 |
-| `modal` | **8.98** | 4.10 | 2.14 | 1.47 | 2.47 | core | 51.61 | 70.54 |
-| `transition` | **4.91** | 2.82 | 0.28 | 1.01 | 1.90 | core | 47.53 | 34.76 |
-| `dimmer` | **6.21** | 2.98 | 1.09 | 1.21 | 2.10 | core | 48.83 | 36.26 |
-| `flyout` | **5.20** | 1.48 | 1.84 | 1.29 | 1.59 | core | 47.83 | 74.31 |
-| `sidebar` | **8.42** | 4.60 | 1.84 | 1.34 | 1.92 | core | 51.05 | 38.50 |
-| `shape` | **6.07** | 4.10 | 0.80 | 0.81 | 1.57 | core | 48.69 | 35.95 |
-| `card` | **8.19** | 3.30 | 2.71 | 1.44 | 1.92 | core | 50.81 | 56.65 |
-| `items` | **4.10** | 1.55 | 1.47 | 0.56 | 1.51 | core | 46.72 | 56.43 |
-| `feed` | **5.75** | 2.70 | 1.49 | 0.87 | 1.88 | core | 48.38 | 54.60 |
-| `comment` | **4.45** | 2.40 | 0.87 | 0.67 | 1.70 | core | 47.07 | 53.29 |
-| `statistic` | **4.80** | 2.25 | 1.24 | 0.93 | 1.54 | core | 47.43 | 41.32 |
-| `step` | **8.78** | 2.97 | 3.62 | 1.48 | 1.89 | core | 51.40 | 50.30 |
-| `rail` | **2.87** | 1.45 | 0.53 | 0.48 | 1.40 | core | 45.49 | 32.90 |
-| `reveal` | **4.07** | 2.02 | 0.91 | 0.58 | 1.58 | core | 46.69 | 34.08 |
-| `ad` | **3.42** | 1.52 | 0.84 | 0.56 | 1.50 | core | 46.05 | 33.43 |
-| `emoji` | **5.38** | 3.52 | 0.62 | 0.87 | 1.55 | core | 48.01 | 35.63 |
-| `select` | **8.10** | 3.41 | 2.23 | 1.01 | 2.63 | core + forms | 58.18 | 53.02 |
-| `search` | **12.91** | 6.67 | 2.44 | 2.05 | 2.15 | core + forms | 62.99 | 53.20 |
-| `progress` | **7.41** | 3.33 | 2.09 | 1.26 | 1.75 | core | 50.03 | 37.80 |
-| `rating` | **6.44** | 3.64 | 0.94 | 0.89 | 2.11 | core + forms | 56.52 | 41.80 |
-| `slider` | **9.10** | 4.87 | 1.85 | 1.23 | 2.24 | core + forms | 59.18 | 44.28 |
-| `accordion` | **7.05** | 3.36 | 1.68 | 1.20 | 1.89 | core | 49.68 | 57.22 |
-| `tab` | **8.56** | 5.08 | 0.94 | 1.70 | 2.15 | core | 51.19 | 47.44 |
-| `toast` | **11.15** | 6.32 | 2.23 | 1.75 | 2.11 | core | 53.78 | 53.38 |
-| `nag` | **6.01** | 3.17 | 0.95 | 1.17 | 1.77 | core | 48.63 | 36.15 |
-| `sticky` | **3.67** | 2.36 | 0.31 | 0.51 | 1.50 | core | 46.29 | 33.80 |
-| `visibility` | **3.58** | 2.12 | 0.14 | 0.78 | 1.60 | core | 46.20 | 33.63 |
-| `embed` | **6.31** | 3.57 | 0.87 | 1.16 | 2.06 | core | 48.94 | 36.46 |
-| `calendar` | **15.46** | 9.50 | 2.06 | 2.13 | 2.18 | core + forms | 65.54 | 54.66 |
+| `ui-button` | **13.06** | 4.47 | 4.13 | 2.50 | 2.11 | core | 55.69 | 42.41 |
+| `ui-dropdown` | **16.76** | 7.25 | 4.91 | 2.40 | 2.50 | core + forms | 66.84 | 65.32 |
+| `ui-icon` | **6.33** | 2.53 | 1.92 | 1.44 | 1.58 | core | 48.96 | 36.45 |
+| `ui-label` | **8.61** | 2.87 | 3.53 | 1.58 | 1.56 | core | 51.24 | 50.05 |
+| `ui-parts` | **15.07** | 5.46 | 5.61 | 2.27 | 1.62 | core | 57.70 | 51.30 |
+| `ui-divider` | **3.83** | 1.67 | 0.96 | 0.72 | 1.48 | core | 46.45 | 33.96 |
+| `ui-segment` | **7.40** | 2.27 | 3.35 | 1.41 | 1.45 | core | 50.03 | 37.71 |
+| `ui-container` | **3.34** | 1.45 | 0.85 | 0.63 | 1.40 | core | 45.97 | 33.38 |
+| `ui-grid` | **7.84** | 2.44 | 3.31 | 1.51 | 1.44 | core | 50.47 | 38.92 |
+| `ui-image` | **5.61** | 2.32 | 1.62 | 1.15 | 1.60 | core | 48.23 | 35.49 |
+| `ui-text` | **2.70** | 1.47 | 0.40 | 0.40 | 1.40 | core | 45.33 | 32.73 |
+| `ui-flag` | **6.08** | 1.87 | 0.56 | 2.92 | 1.64 | core | 48.71 | 37.30 |
+| `ui-loader` | **4.26** | 1.65 | 1.30 | 0.72 | 1.54 | core | 46.88 | 34.42 |
+| `ui-placeholder` | **5.90** | 3.31 | 1.38 | 0.80 | 1.57 | core | 48.52 | 35.94 |
+| `ui-message` | **5.68** | 2.03 | 1.86 | 0.99 | 1.81 | core | 48.31 | 36.03 |
+| `ui-breadcrumb` | **5.04** | 2.78 | 0.99 | 0.70 | 1.80 | core | 47.67 | 35.34 |
+| `ui-input` | **10.41** | 4.61 | 2.76 | 1.88 | 2.22 | core + forms | 60.49 | 51.70 |
+| `ui-checkbox` | **9.31** | 4.60 | 2.69 | 1.09 | 2.11 | core + forms | 59.39 | 45.47 |
+| `ui-form` | **10.59** | 6.22 | 2.16 | 1.81 | 1.59 | core + forms | 60.67 | 49.48 |
+| `ui-item` | **4.88** | 2.71 | 0.37 | 0.97 | 1.91 | core | 47.51 | 39.76 |
+| `ui-list` | **7.16** | 2.03 | 3.44 | 0.92 | 1.65 | core | 49.79 | 45.51 |
+| `ui-menu` | **10.07** | 2.82 | 4.36 | 1.36 | 1.62 | core | 52.70 | 47.87 |
+| `ui-table` | **13.64** | 4.58 | 5.41 | 1.88 | 1.92 | core | 56.27 | 47.65 |
+| `ui-popup` | **8.68** | 3.92 | 2.56 | 1.49 | 1.83 | core | 51.31 | 38.56 |
+| `ui-modal` | **8.98** | 4.11 | 2.14 | 1.47 | 2.47 | core | 51.61 | 70.54 |
+| `ui-transition` | **4.91** | 2.82 | 0.28 | 1.01 | 1.90 | core | 47.53 | 34.76 |
+| `ui-dimmer` | **6.21** | 2.98 | 1.09 | 1.21 | 2.10 | core | 48.83 | 36.26 |
+| `ui-flyout` | **5.20** | 1.49 | 1.84 | 1.29 | 1.59 | core | 47.83 | 74.31 |
+| `ui-sidebar` | **8.42** | 4.61 | 1.84 | 1.34 | 1.92 | core | 51.05 | 38.50 |
+| `ui-shape` | **6.07** | 4.10 | 0.80 | 0.81 | 1.57 | core | 48.69 | 35.95 |
+| `ui-card` | **8.19** | 3.30 | 2.71 | 1.44 | 1.92 | core | 50.81 | 56.65 |
+| `ui-items` | **4.10** | 1.55 | 1.47 | 0.56 | 1.51 | core | 46.73 | 56.43 |
+| `ui-feed` | **5.75** | 2.70 | 1.49 | 0.87 | 1.88 | core | 48.38 | 54.60 |
+| `ui-comment` | **4.45** | 2.40 | 0.87 | 0.67 | 1.70 | core | 47.08 | 53.29 |
+| `ui-statistic` | **4.81** | 2.25 | 1.24 | 0.93 | 1.54 | core | 47.44 | 41.32 |
+| `ui-step` | **8.78** | 2.97 | 3.62 | 1.48 | 1.89 | core | 51.41 | 50.30 |
+| `ui-rail` | **2.87** | 1.45 | 0.53 | 0.48 | 1.40 | core | 45.50 | 32.90 |
+| `ui-reveal` | **4.07** | 2.02 | 0.91 | 0.58 | 1.58 | core | 46.70 | 34.09 |
+| `ui-ad` | **3.42** | 1.52 | 0.84 | 0.56 | 1.50 | core | 46.05 | 33.43 |
+| `ui-emoji` | **5.38** | 3.52 | 0.62 | 0.87 | 1.55 | core | 48.01 | 35.63 |
+| `ui-select` | **8.10** | 3.41 | 2.23 | 1.01 | 2.63 | core + forms | 58.18 | 53.02 |
+| `ui-search` | **12.92** | 6.67 | 2.44 | 2.05 | 2.15 | core + forms | 63.00 | 53.19 |
+| `ui-progress` | **7.41** | 3.33 | 2.09 | 1.26 | 1.75 | core | 50.04 | 37.80 |
+| `ui-rating` | **6.44** | 3.64 | 0.94 | 0.89 | 2.11 | core + forms | 56.52 | 41.80 |
+| `ui-slider` | **9.10** | 4.87 | 1.85 | 1.23 | 2.24 | core + forms | 59.18 | 44.28 |
+| `ui-accordion` | **7.05** | 3.37 | 1.68 | 1.20 | 1.89 | core | 49.68 | 57.22 |
+| `ui-tab` | **8.57** | 5.08 | 0.94 | 1.70 | 2.15 | core | 51.20 | 47.44 |
+| `ui-toast` | **11.15** | 6.33 | 2.23 | 1.75 | 2.11 | core | 53.78 | 53.38 |
+| `ui-nag` | **6.01** | 3.17 | 0.95 | 1.17 | 1.77 | core | 48.64 | 36.15 |
+| `ui-sticky` | **3.67** | 2.37 | 0.31 | 0.51 | 1.50 | core | 46.30 | 33.80 |
+| `ui-visibility` | **3.58** | 2.12 | 0.14 | 0.78 | 1.60 | core | 46.20 | 33.62 |
+| `ui-embed` | **6.31** | 3.57 | 0.87 | 1.16 | 2.06 | core | 48.94 | 36.46 |
+| `ui-calendar` | **15.46** | 9.50 | 2.06 | 2.13 | 2.18 | core + forms | 65.55 | 54.66 |
 <!-- /generated:bundle-families -->
 
 ### Scenarios
@@ -199,9 +199,9 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 <!-- generated:bundle-scenarios -->
 | Scenario | Adds up | shared runtime min+gz kB | standalone build |
 | --- | --- | --: | --: |
-| page with one button | library + core + own:button | **55.68** | 42.41 |
-| all families | library + core + forms + own (53 families) | **439.68** | 438.70 |
-| app already ships the library | core + forms + own (53 families) | **411.59** | -- |
+| page with one button | library + core + own:ui-button | **55.69** | 42.41 |
+| all families | library + core + forms + own (53 families) | **439.72** | 438.75 |
+| app already ships the library | core + forms + own (53 families) | **411.63** | -- |
 <!-- /generated:bundle-scenarios -->
 
 ### Checks
@@ -232,23 +232,23 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
   reflection, form hooks, lifecycle hooks and the error boundary.
 - **`forms` keeps a button page lean:**  a page with only buttons loads `core` but not `forms`;  the dropdown loads
   both.
-- **Fallback bytes are mostly decorator helpers:**  each `<name>.fallback.ts` is minified and gzipped on its own
+- **Fallback bytes are mostly decorator helpers:**  each `ui-<name>.fallback.ts` is minified and gzipped on its own
   here, and about 1.2 kB of that is esbuild's lowered-decorator helpers, repeated in every file with a decorator.
   Net of them the fallbacks are 0.15-1.25 kB each (`docs/fallback.md`).
 - **Lazy:**  `UIRuntime` (31.0 kB, with `UI.icons` since 2026-09-30);  icons load from the page's packs:  the
-  default pack's index (14.2 kB gzip) on the first icon, then one SVG file per icon drawn.  `label` imports `parts.css` itself (a statistic's label adopts it), counted once, under `parts`.
+  default pack's index (14.2 kB gzip) on the first icon, then one SVG file per icon drawn.  `label` imports `ui-parts.css` itself (a statistic's label adopts it), counted once, under `parts`.
 
 ## LOC
 
 <!-- generated:loc -->
 | Group | Files | Lines | Code lines |
 | --- | --: | --: | --: |
-| element core | 24 | 3839 | 2189 |
-| components | 152 | 14801 | 9269 |
-| vocabularies & fallbacks | 106 | 10043 | 7924 |
+| element core | 24 | 3841 | 2189 |
+| components | 258 | 24849 | 17198 |
+| vocabularies & fallbacks | 0 | 0 | 0 |
 | foundation | 42 | 7978 | 4329 |
-| tests | 210 | 36238 | 30454 |
-| tooling | 53 | 6291 | 4413 |
+| tests | 210 | 36246 | 30462 |
+| tooling | 53 | 6292 | 4413 |
 <!-- /generated:loc -->
 
 ### Per file
@@ -266,7 +266,7 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | `elements/FormElement.ts` | 137 | 68 |
 | `elements/FormHost.ts` | 46 | 24 |
 | `elements/HostAttribute.ts` | 25 | 15 |
-| `elements/HotDefinitions.ts` | 124 | 71 |
+| `elements/HotDefinitions.ts` | 126 | 71 |
 | `elements/IconGlyph.ts` | 71 | 38 |
 | `elements/MenuOptions.ts` | 303 | 191 |
 | `elements/NativeFallback.ts` | 212 | 118 |
@@ -280,158 +280,264 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | `elements/elements.types.ts` | 518 | 215 |
 | `elements/index.ts` | 37 | 21 |
 | `forms.ts` | 18 | 5 |
-| `components/accordion/UIAccordion.tsx` | 266 | 156 |
-| `components/accordion/index.ts` | 13 | 4 |
-| `components/ad/UIAd.tsx` | 46 | 29 |
-| `components/ad/index.ts` | 10 | 3 |
-| `components/breadcrumb/UIBreadcrumb.tsx` | 69 | 40 |
-| `components/breadcrumb/UIBreadcrumbSection.tsx` | 66 | 40 |
-| `components/breadcrumb/index.ts` | 13 | 5 |
-| `components/button/UIButton.tsx` | 284 | 190 |
-| `components/button/UIButtons.tsx` | 35 | 23 |
-| `components/button/UIOr.tsx` | 24 | 14 |
-| `components/button/index.ts` | 14 | 7 |
-| `components/calendar/UICalendar.tsx` | 840 | 601 |
-| `components/calendar/index.ts` | 13 | 3 |
-| `components/card/UICard.tsx` | 235 | 154 |
-| `components/card/UICards.tsx` | 46 | 25 |
-| `components/card/index.ts` | 15 | 6 |
-| `components/checkbox/UICheckbox.tsx` | 53 | 28 |
-| `components/checkbox/UIRadio.tsx` | 150 | 94 |
-| `components/checkbox/index.ts` | 13 | 5 |
-| `components/comment/UIComment.tsx` | 64 | 38 |
-| `components/comment/UIComments.tsx` | 73 | 42 |
-| `components/comment/index.ts` | 16 | 6 |
-| `components/container/UIContainer.tsx` | 27 | 17 |
-| `components/container/index.ts` | 10 | 3 |
-| `components/dimmer/UIDimmer.tsx` | 333 | 216 |
-| `components/dimmer/index.ts` | 13 | 3 |
-| `components/divider/UIDivider.tsx` | 58 | 33 |
-| `components/divider/index.ts` | 10 | 3 |
-| `components/dropdown/SlottedItems.ts` | 135 | 92 |
-| `components/dropdown/UIDropdown.tsx` | 862 | 629 |
-| `components/dropdown/index.ts` | 14 | 4 |
-| `components/embed/UIEmbed.tsx` | 190 | 116 |
-| `components/embed/UIEmbedHost.ts` | 30 | 16 |
-| `components/embed/index.ts` | 12 | 5 |
-| `components/emoji/UIEmoji.tsx` | 77 | 48 |
-| `components/emoji/UIEmojiSet.tsx` | 34 | 20 |
-| `components/emoji/index.ts` | 16 | 6 |
-| `components/feed/UIFeed.tsx` | 45 | 24 |
-| `components/feed/UIFeedEvent.tsx` | 121 | 70 |
-| `components/feed/index.ts` | 15 | 6 |
-| `components/flag/UIFlag.tsx` | 61 | 36 |
-| `components/flag/index.ts` | 12 | 4 |
-| `components/flyout/UIFlyout.tsx` | 48 | 25 |
-| `components/flyout/index.ts` | 14 | 3 |
-| `components/form/UIField.tsx` | 88 | 57 |
-| `components/form/UIFields.tsx` | 41 | 28 |
-| `components/form/UIForm.tsx` | 417 | 277 |
-| `components/form/UIFormHost.ts` | 53 | 32 |
-| `components/form/index.ts` | 16 | 7 |
-| `components/grid/UIColumn.ts` | 15 | 6 |
-| `components/grid/UIGrid.ts` | 15 | 6 |
-| `components/grid/UIRow.ts` | 13 | 6 |
-| `components/grid/index.ts` | 15 | 7 |
-| `components/icon/UIIcon.tsx` | 73 | 42 |
-| `components/icon/UIIconSet.tsx` | 25 | 11 |
-| `components/icon/UIIcons.tsx` | 40 | 28 |
-| `components/icon/index.ts` | 15 | 7 |
-| `components/image/UIImage.tsx` | 68 | 45 |
-| `components/image/UIImages.tsx` | 29 | 18 |
-| `components/image/index.ts` | 13 | 5 |
-| `components/input/UIInput.tsx` | 225 | 147 |
-| `components/input/UITextarea.tsx` | 48 | 36 |
-| `components/input/index.ts` | 12 | 5 |
-| `components/item/UIItem.tsx` | 273 | 158 |
-| `components/item/index.ts` | 13 | 4 |
-| `components/items/UIItems.tsx` | 57 | 32 |
-| `components/items/index.ts` | 14 | 5 |
-| `components/label/UILabel.tsx` | 165 | 95 |
-| `components/label/UILabels.tsx` | 25 | 15 |
-| `components/label/index.ts` | 12 | 5 |
-| `components/list/UIList.tsx` | 166 | 88 |
-| `components/list/index.ts` | 13 | 4 |
-| `components/loader/UILoader.tsx` | 70 | 41 |
-| `components/loader/index.ts` | 10 | 3 |
-| `components/menu/UIMenu.tsx` | 288 | 178 |
-| `components/menu/index.ts` | 13 | 4 |
-| `components/message/UIMessage.tsx` | 109 | 60 |
-| `components/message/index.ts` | 10 | 3 |
-| `components/modal/UIModal.tsx` | 24 | 12 |
-| `components/modal/index.ts` | 27 | 11 |
-| `components/nag/UINag.tsx` | 235 | 145 |
-| `components/nag/UINagHost.ts` | 42 | 24 |
-| `components/nag/index.ts` | 12 | 5 |
-| `components/parts/PartElement.ts` | 13 | 5 |
-| `components/parts/UIActions.ts` | 14 | 6 |
-| `components/parts/UIAuthor.ts` | 25 | 15 |
-| `components/parts/UIAvatar.tsx` | 29 | 18 |
-| `components/parts/UIContent.ts` | 20 | 9 |
-| `components/parts/UIDate.ts` | 24 | 13 |
-| `components/parts/UIDescription.ts` | 14 | 6 |
-| `components/parts/UIDetail.ts` | 22 | 12 |
-| `components/parts/UIExtra.ts` | 14 | 6 |
-| `components/parts/UIHeader.tsx` | 51 | 30 |
-| `components/parts/UIMeta.ts` | 14 | 6 |
-| `components/parts/UISummary.ts` | 14 | 6 |
-| `components/parts/UITitle.ts` | 24 | 13 |
-| `components/parts/UIValue.ts` | 14 | 6 |
-| `components/parts/index.ts` | 48 | 41 |
-| `components/placeholder/UIPlaceholder.tsx` | 43 | 26 |
-| `components/placeholder/UIPlaceholderHeader.ts` | 13 | 6 |
-| `components/placeholder/UIPlaceholderImage.ts` | 17 | 9 |
-| `components/placeholder/UIPlaceholderLine.ts` | 18 | 9 |
-| `components/placeholder/UIPlaceholderParagraph.ts` | 12 | 6 |
-| `components/placeholder/index.ts` | 21 | 11 |
-| `components/popup/UIPopup.tsx` | 539 | 333 |
-| `components/popup/index.ts` | 11 | 3 |
-| `components/progress/UIProgress.tsx` | 246 | 162 |
-| `components/progress/index.ts` | 13 | 4 |
-| `components/rail/UIRail.tsx` | 30 | 18 |
-| `components/rail/index.ts` | 10 | 3 |
-| `components/rating/UIRating.tsx` | 412 | 269 |
-| `components/rating/index.ts` | 11 | 3 |
-| `components/reveal/UIReveal.tsx` | 104 | 62 |
-| `components/reveal/index.ts` | 11 | 3 |
-| `components/search/UISearch.tsx` | 737 | 539 |
-| `components/search/index.ts` | 12 | 4 |
-| `components/segment/UISegment.tsx` | 71 | 46 |
-| `components/segment/UISegments.tsx` | 29 | 18 |
-| `components/segment/index.ts` | 13 | 5 |
-| `components/select/UISelect.tsx` | 358 | 236 |
-| `components/select/index.ts` | 13 | 4 |
-| `components/shape/UIShape.tsx` | 377 | 249 |
-| `components/shape/UISide.tsx` | 37 | 22 |
-| `components/shape/index.ts` | 13 | 6 |
-| `components/sidebar/UIPushable.tsx` | 122 | 78 |
-| `components/sidebar/UIPusher.tsx` | 36 | 22 |
-| `components/sidebar/UISidebar.tsx` | 364 | 229 |
-| `components/sidebar/index.ts` | 15 | 7 |
-| `components/slider/UISlider.tsx` | 496 | 337 |
-| `components/slider/index.ts` | 13 | 4 |
-| `components/statistic/UIStatistic.tsx` | 69 | 40 |
-| `components/statistic/UIStatistics.tsx` | 32 | 19 |
-| `components/statistic/index.ts` | 15 | 5 |
-| `components/step/UIStep.tsx` | 186 | 105 |
-| `components/step/UISteps.tsx` | 40 | 22 |
-| `components/step/index.ts` | 14 | 5 |
-| `components/sticky/UISticky.tsx` | 211 | 131 |
-| `components/sticky/index.ts` | 10 | 3 |
-| `components/tab/UITab.tsx` | 208 | 127 |
-| `components/tab/UITabs.tsx` | 510 | 296 |
-| `components/tab/index.ts` | 14 | 5 |
-| `components/table/UITable.tsx` | 417 | 256 |
-| `components/table/index.ts` | 11 | 3 |
-| `components/text/UIText.tsx` | 33 | 21 |
-| `components/text/index.ts` | 10 | 3 |
-| `components/toast/UIToast.tsx` | 644 | 427 |
-| `components/toast/UIToastHost.ts` | 23 | 12 |
-| `components/toast/index.ts` | 20 | 8 |
-| `components/transition/UITransition.tsx` | 304 | 184 |
-| `components/transition/index.ts` | 14 | 4 |
-| `components/visibility/UIVisibility.tsx` | 152 | 111 |
-| `components/visibility/index.ts` | 13 | 3 |
+| `components/ui-accordion/UIAccordion.tsx` | 266 | 156 |
+| `components/ui-accordion/index.ts` | 13 | 4 |
+| `components/ui-accordion/ui-accordion.fallback.ts` | 72 | 50 |
+| `components/ui-accordion/ui-accordion.vocabulary.en.ts` | 111 | 89 |
+| `components/ui-ad/UIAd.tsx` | 46 | 29 |
+| `components/ui-ad/index.ts` | 10 | 3 |
+| `components/ui-ad/ui-ad.fallback.ts` | 32 | 20 |
+| `components/ui-ad/ui-ad.vocabulary.en.ts` | 67 | 51 |
+| `components/ui-breadcrumb/UIBreadcrumb.tsx` | 69 | 40 |
+| `components/ui-breadcrumb/UIBreadcrumbSection.tsx` | 66 | 40 |
+| `components/ui-breadcrumb/index.ts` | 13 | 5 |
+| `components/ui-breadcrumb/ui-breadcrumb.fallback.ts` | 56 | 38 |
+| `components/ui-breadcrumb/ui-breadcrumb.vocabulary.en.ts` | 73 | 53 |
+| `components/ui-button/UIButton.tsx` | 284 | 190 |
+| `components/ui-button/UIButtons.tsx` | 35 | 23 |
+| `components/ui-button/UIOr.tsx` | 24 | 14 |
+| `components/ui-button/index.ts` | 14 | 7 |
+| `components/ui-button/ui-button.fallback.ts` | 91 | 68 |
+| `components/ui-button/ui-button.vocabulary.en.ts` | 232 | 206 |
+| `components/ui-calendar/UICalendar.tsx` | 840 | 601 |
+| `components/ui-calendar/index.ts` | 13 | 3 |
+| `components/ui-calendar/ui-calendar.fallback.ts` | 88 | 63 |
+| `components/ui-calendar/ui-calendar.vocabulary.en.ts` | 186 | 170 |
+| `components/ui-card/UICard.tsx` | 235 | 154 |
+| `components/ui-card/UICards.tsx` | 46 | 25 |
+| `components/ui-card/index.ts` | 15 | 6 |
+| `components/ui-card/ui-card.fallback.ts` | 80 | 52 |
+| `components/ui-card/ui-card.vocabulary.en.ts` | 134 | 112 |
+| `components/ui-checkbox/UICheckbox.tsx` | 53 | 28 |
+| `components/ui-checkbox/UIRadio.tsx` | 150 | 94 |
+| `components/ui-checkbox/index.ts` | 13 | 5 |
+| `components/ui-checkbox/ui-checkbox.fallback.ts` | 79 | 56 |
+| `components/ui-checkbox/ui-checkbox.vocabulary.en.ts` | 141 | 110 |
+| `components/ui-comment/UIComment.tsx` | 64 | 38 |
+| `components/ui-comment/UIComments.tsx` | 73 | 42 |
+| `components/ui-comment/index.ts` | 16 | 6 |
+| `components/ui-comment/ui-comment.fallback.ts` | 55 | 33 |
+| `components/ui-comment/ui-comment.vocabulary.en.ts` | 86 | 63 |
+| `components/ui-container/UIContainer.tsx` | 27 | 17 |
+| `components/ui-container/index.ts` | 10 | 3 |
+| `components/ui-container/ui-container.fallback.ts` | 16 | 9 |
+| `components/ui-container/ui-container.vocabulary.en.ts` | 55 | 43 |
+| `components/ui-dimmer/UIDimmer.tsx` | 333 | 216 |
+| `components/ui-dimmer/index.ts` | 13 | 3 |
+| `components/ui-dimmer/ui-dimmer.fallback.ts` | 86 | 58 |
+| `components/ui-dimmer/ui-dimmer.vocabulary.en.ts` | 101 | 85 |
+| `components/ui-divider/UIDivider.tsx` | 58 | 33 |
+| `components/ui-divider/index.ts` | 10 | 3 |
+| `components/ui-divider/ui-divider.fallback.ts` | 27 | 19 |
+| `components/ui-divider/ui-divider.vocabulary.en.ts` | 56 | 44 |
+| `components/ui-dropdown/SlottedItems.ts` | 135 | 92 |
+| `components/ui-dropdown/UIDropdown.tsx` | 862 | 629 |
+| `components/ui-dropdown/index.ts` | 14 | 4 |
+| `components/ui-dropdown/ui-dropdown.fallback.ts` | 152 | 121 |
+| `components/ui-dropdown/ui-dropdown.vocabulary.en.ts` | 204 | 189 |
+| `components/ui-embed/UIEmbed.tsx` | 190 | 116 |
+| `components/ui-embed/UIEmbedHost.ts` | 30 | 16 |
+| `components/ui-embed/index.ts` | 12 | 5 |
+| `components/ui-embed/ui-embed.fallback.ts` | 84 | 66 |
+| `components/ui-embed/ui-embed.vocabulary.en.ts` | 107 | 92 |
+| `components/ui-emoji/UIEmoji.tsx` | 77 | 48 |
+| `components/ui-emoji/UIEmojiSet.tsx` | 34 | 20 |
+| `components/ui-emoji/index.ts` | 16 | 6 |
+| `components/ui-emoji/ui-emoji.fallback.ts` | 34 | 24 |
+| `components/ui-emoji/ui-emoji.vocabulary.en.ts` | 94 | 65 |
+| `components/ui-feed/UIFeed.tsx` | 45 | 24 |
+| `components/ui-feed/UIFeedEvent.tsx` | 121 | 70 |
+| `components/ui-feed/index.ts` | 15 | 6 |
+| `components/ui-feed/ui-feed.fallback.ts` | 67 | 43 |
+| `components/ui-feed/ui-feed.vocabulary.en.ts` | 90 | 68 |
+| `components/ui-flag/UIFlag.tsx` | 61 | 36 |
+| `components/ui-flag/index.ts` | 12 | 4 |
+| `components/ui-flag/ui-flag.fallback.ts` | 38 | 27 |
+| `components/ui-flag/ui-flag.vocabulary.en.ts` | 374 | 337 |
+| `components/ui-flyout/UIFlyout.tsx` | 48 | 25 |
+| `components/ui-flyout/index.ts` | 14 | 3 |
+| `components/ui-flyout/ui-flyout.fallback.ts` | 33 | 20 |
+| `components/ui-flyout/ui-flyout.vocabulary.en.ts` | 131 | 110 |
+| `components/ui-form/UIField.tsx` | 88 | 57 |
+| `components/ui-form/UIFields.tsx` | 41 | 28 |
+| `components/ui-form/UIForm.tsx` | 417 | 277 |
+| `components/ui-form/UIFormHost.ts` | 53 | 32 |
+| `components/ui-form/index.ts` | 16 | 7 |
+| `components/ui-form/ui-form.fallback.ts` | 33 | 19 |
+| `components/ui-form/ui-form.vocabulary.en.ts` | 201 | 169 |
+| `components/ui-grid/UIColumn.ts` | 15 | 6 |
+| `components/ui-grid/UIGrid.ts` | 15 | 6 |
+| `components/ui-grid/UIRow.ts` | 13 | 6 |
+| `components/ui-grid/index.ts` | 15 | 7 |
+| `components/ui-grid/ui-grid.fallback.ts` | 25 | 13 |
+| `components/ui-grid/ui-grid.vocabulary.en.ts` | 280 | 247 |
+| `components/ui-icon/UIIcon.tsx` | 73 | 42 |
+| `components/ui-icon/UIIconSet.tsx` | 25 | 11 |
+| `components/ui-icon/UIIcons.tsx` | 40 | 28 |
+| `components/ui-icon/index.ts` | 15 | 7 |
+| `components/ui-icon/ui-icon.fallback.ts` | 39 | 29 |
+| `components/ui-icon/ui-icon.vocabulary.en.ts` | 158 | 130 |
+| `components/ui-image/UIImage.tsx` | 68 | 45 |
+| `components/ui-image/UIImages.tsx` | 29 | 18 |
+| `components/ui-image/index.ts` | 13 | 5 |
+| `components/ui-image/ui-image.fallback.ts` | 48 | 32 |
+| `components/ui-image/ui-image.vocabulary.en.ts` | 118 | 95 |
+| `components/ui-input/UIInput.tsx` | 225 | 147 |
+| `components/ui-input/UITextarea.tsx` | 48 | 36 |
+| `components/ui-input/index.ts` | 12 | 5 |
+| `components/ui-input/ui-input.fallback.ts` | 104 | 79 |
+| `components/ui-input/ui-input.vocabulary.en.ts` | 243 | 213 |
+| `components/ui-item/UIItem.tsx` | 273 | 158 |
+| `components/ui-item/index.ts` | 13 | 4 |
+| `components/ui-item/ui-item.fallback.ts` | 75 | 48 |
+| `components/ui-item/ui-item.vocabulary.en.ts` | 95 | 78 |
+| `components/ui-items/UIItems.tsx` | 57 | 32 |
+| `components/ui-items/index.ts` | 14 | 5 |
+| `components/ui-items/ui-items.fallback.ts` | 23 | 13 |
+| `components/ui-items/ui-items.vocabulary.en.ts` | 58 | 43 |
+| `components/ui-label/UILabel.tsx` | 165 | 95 |
+| `components/ui-label/UILabels.tsx` | 25 | 15 |
+| `components/ui-label/index.ts` | 12 | 5 |
+| `components/ui-label/ui-label.fallback.ts` | 32 | 25 |
+| `components/ui-label/ui-label.vocabulary.en.ts` | 151 | 129 |
+| `components/ui-list/UIList.tsx` | 166 | 88 |
+| `components/ui-list/index.ts` | 13 | 4 |
+| `components/ui-list/ui-list.fallback.ts` | 50 | 28 |
+| `components/ui-list/ui-list.vocabulary.en.ts` | 83 | 66 |
+| `components/ui-loader/UILoader.tsx` | 70 | 41 |
+| `components/ui-loader/index.ts` | 10 | 3 |
+| `components/ui-loader/ui-loader.fallback.ts` | 25 | 16 |
+| `components/ui-loader/ui-loader.vocabulary.en.ts` | 62 | 47 |
+| `components/ui-menu/UIMenu.tsx` | 288 | 178 |
+| `components/ui-menu/index.ts` | 13 | 4 |
+| `components/ui-menu/ui-menu.fallback.ts` | 31 | 19 |
+| `components/ui-menu/ui-menu.vocabulary.en.ts` | 123 | 105 |
+| `components/ui-message/UIMessage.tsx` | 109 | 60 |
+| `components/ui-message/index.ts` | 10 | 3 |
+| `components/ui-message/ui-message.fallback.ts` | 48 | 37 |
+| `components/ui-message/ui-message.vocabulary.en.ts` | 89 | 71 |
+| `components/ui-modal/UIModal.tsx` | 24 | 12 |
+| `components/ui-modal/index.ts` | 27 | 11 |
+| `components/ui-modal/ui-modal.fallback.ts` | 138 | 102 |
+| `components/ui-modal/ui-modal.vocabulary.en.ts` | 142 | 123 |
+| `components/ui-nag/UINag.tsx` | 235 | 145 |
+| `components/ui-nag/UINagHost.ts` | 42 | 24 |
+| `components/ui-nag/index.ts` | 12 | 5 |
+| `components/ui-nag/ui-nag.fallback.ts` | 43 | 31 |
+| `components/ui-nag/ui-nag.vocabulary.en.ts` | 100 | 87 |
+| `components/ui-parts/PartElement.ts` | 13 | 5 |
+| `components/ui-parts/UIActions.ts` | 14 | 6 |
+| `components/ui-parts/UIAuthor.ts` | 25 | 15 |
+| `components/ui-parts/UIAvatar.tsx` | 29 | 18 |
+| `components/ui-parts/UIContent.ts` | 20 | 9 |
+| `components/ui-parts/UIDate.ts` | 24 | 13 |
+| `components/ui-parts/UIDescription.ts` | 14 | 6 |
+| `components/ui-parts/UIDetail.ts` | 22 | 12 |
+| `components/ui-parts/UIExtra.ts` | 14 | 6 |
+| `components/ui-parts/UIHeader.tsx` | 51 | 30 |
+| `components/ui-parts/UIMeta.ts` | 14 | 6 |
+| `components/ui-parts/UISummary.ts` | 14 | 6 |
+| `components/ui-parts/UITitle.ts` | 24 | 13 |
+| `components/ui-parts/UIValue.ts` | 14 | 6 |
+| `components/ui-parts/index.ts` | 48 | 41 |
+| `components/ui-parts/ui-parts.fallback.ts` | 42 | 27 |
+| `components/ui-parts/ui-parts.vocabulary.en.ts` | 402 | 321 |
+| `components/ui-placeholder/UIPlaceholder.tsx` | 43 | 26 |
+| `components/ui-placeholder/UIPlaceholderHeader.ts` | 13 | 6 |
+| `components/ui-placeholder/UIPlaceholderImage.ts` | 17 | 9 |
+| `components/ui-placeholder/UIPlaceholderLine.ts` | 18 | 9 |
+| `components/ui-placeholder/UIPlaceholderParagraph.ts` | 12 | 6 |
+| `components/ui-placeholder/index.ts` | 21 | 11 |
+| `components/ui-placeholder/ui-placeholder.fallback.ts` | 51 | 35 |
+| `components/ui-placeholder/ui-placeholder.vocabulary.en.ts` | 127 | 89 |
+| `components/ui-popup/UIPopup.tsx` | 539 | 333 |
+| `components/ui-popup/index.ts` | 11 | 3 |
+| `components/ui-popup/ui-popup.fallback.ts` | 65 | 41 |
+| `components/ui-popup/ui-popup.vocabulary.en.ts` | 132 | 114 |
+| `components/ui-progress/UIProgress.tsx` | 246 | 162 |
+| `components/ui-progress/index.ts` | 13 | 4 |
+| `components/ui-progress/ui-progress.fallback.ts` | 43 | 29 |
+| `components/ui-progress/ui-progress.vocabulary.en.ts` | 123 | 107 |
+| `components/ui-rail/UIRail.tsx` | 30 | 18 |
+| `components/ui-rail/index.ts` | 10 | 3 |
+| `components/ui-rail/ui-rail.fallback.ts` | 17 | 9 |
+| `components/ui-rail/ui-rail.vocabulary.en.ts` | 44 | 29 |
+| `components/ui-rating/UIRating.tsx` | 412 | 269 |
+| `components/ui-rating/index.ts` | 11 | 3 |
+| `components/ui-rating/ui-rating.fallback.ts` | 90 | 64 |
+| `components/ui-rating/ui-rating.vocabulary.en.ts` | 73 | 59 |
+| `components/ui-reveal/UIReveal.tsx` | 104 | 62 |
+| `components/ui-reveal/index.ts` | 11 | 3 |
+| `components/ui-reveal/ui-reveal.fallback.ts` | 35 | 26 |
+| `components/ui-reveal/ui-reveal.vocabulary.en.ts` | 63 | 48 |
+| `components/ui-search/UISearch.tsx` | 737 | 539 |
+| `components/ui-search/index.ts` | 12 | 4 |
+| `components/ui-search/ui-search.fallback.ts` | 101 | 72 |
+| `components/ui-search/ui-search.vocabulary.en.ts` | 181 | 164 |
+| `components/ui-segment/UISegment.tsx` | 71 | 46 |
+| `components/ui-segment/UISegments.tsx` | 29 | 18 |
+| `components/ui-segment/index.ts` | 13 | 5 |
+| `components/ui-segment/ui-segment.fallback.ts` | 16 | 9 |
+| `components/ui-segment/ui-segment.vocabulary.en.ts` | 130 | 111 |
+| `components/ui-select/UISelect.tsx` | 358 | 236 |
+| `components/ui-select/index.ts` | 13 | 4 |
+| `components/ui-select/ui-select.fallback.ts` | 180 | 141 |
+| `components/ui-select/ui-select.vocabulary.en.ts` | 88 | 70 |
+| `components/ui-shape/UIShape.tsx` | 377 | 249 |
+| `components/ui-shape/UISide.tsx` | 37 | 22 |
+| `components/ui-shape/index.ts` | 13 | 6 |
+| `components/ui-shape/ui-shape.fallback.ts` | 42 | 24 |
+| `components/ui-shape/ui-shape.vocabulary.en.ts` | 83 | 63 |
+| `components/ui-sidebar/UIPushable.tsx` | 122 | 78 |
+| `components/ui-sidebar/UIPusher.tsx` | 36 | 22 |
+| `components/ui-sidebar/UISidebar.tsx` | 364 | 229 |
+| `components/ui-sidebar/index.ts` | 15 | 7 |
+| `components/ui-sidebar/ui-sidebar.fallback.ts` | 84 | 52 |
+| `components/ui-sidebar/ui-sidebar.vocabulary.en.ts` | 145 | 111 |
+| `components/ui-slider/UISlider.tsx` | 496 | 337 |
+| `components/ui-slider/index.ts` | 13 | 4 |
+| `components/ui-slider/ui-slider.fallback.ts` | 103 | 76 |
+| `components/ui-slider/ui-slider.vocabulary.en.ts` | 101 | 87 |
+| `components/ui-statistic/UIStatistic.tsx` | 69 | 40 |
+| `components/ui-statistic/UIStatistics.tsx` | 32 | 19 |
+| `components/ui-statistic/index.ts` | 15 | 5 |
+| `components/ui-statistic/ui-statistic.fallback.ts` | 28 | 19 |
+| `components/ui-statistic/ui-statistic.vocabulary.en.ts` | 100 | 74 |
+| `components/ui-step/UIStep.tsx` | 186 | 105 |
+| `components/ui-step/UISteps.tsx` | 40 | 22 |
+| `components/ui-step/index.ts` | 14 | 5 |
+| `components/ui-step/ui-step.fallback.ts` | 71 | 50 |
+| `components/ui-step/ui-step.vocabulary.en.ts` | 145 | 120 |
+| `components/ui-sticky/UISticky.tsx` | 211 | 131 |
+| `components/ui-sticky/index.ts` | 10 | 3 |
+| `components/ui-sticky/ui-sticky.fallback.ts` | 20 | 12 |
+| `components/ui-sticky/ui-sticky.vocabulary.en.ts` | 59 | 46 |
+| `components/ui-tab/UITab.tsx` | 208 | 127 |
+| `components/ui-tab/UITabs.tsx` | 510 | 296 |
+| `components/ui-tab/index.ts` | 14 | 5 |
+| `components/ui-tab/ui-tab.fallback.ts` | 115 | 79 |
+| `components/ui-tab/ui-tab.vocabulary.en.ts` | 166 | 139 |
+| `components/ui-table/UITable.tsx` | 417 | 256 |
+| `components/ui-table/index.ts` | 11 | 3 |
+| `components/ui-table/ui-table.fallback.ts` | 67 | 46 |
+| `components/ui-table/ui-table.vocabulary.en.ts` | 178 | 161 |
+| `components/ui-text/UIText.tsx` | 33 | 21 |
+| `components/ui-text/index.ts` | 10 | 3 |
+| `components/ui-text/ui-text.fallback.ts` | 16 | 9 |
+| `components/ui-text/ui-text.vocabulary.en.ts` | 41 | 27 |
+| `components/ui-toast/UIToast.tsx` | 644 | 427 |
+| `components/ui-toast/UIToastHost.ts` | 23 | 12 |
+| `components/ui-toast/index.ts` | 20 | 8 |
+| `components/ui-toast/ui-toast.fallback.ts` | 72 | 52 |
+| `components/ui-toast/ui-toast.vocabulary.en.ts` | 157 | 139 |
+| `components/ui-transition/UITransition.tsx` | 304 | 184 |
+| `components/ui-transition/index.ts` | 14 | 4 |
+| `components/ui-transition/ui-transition.fallback.ts` | 80 | 50 |
+| `components/ui-transition/ui-transition.vocabulary.en.ts` | 122 | 100 |
+| `components/ui-visibility/UIVisibility.tsx` | 152 | 111 |
+| `components/ui-visibility/index.ts` | 13 | 3 |
+| `components/ui-visibility/ui-visibility.fallback.ts` | 32 | 24 |
+| `components/ui-visibility/ui-visibility.vocabulary.en.ts` | 69 | 56 |
 <!-- /generated:loc-files -->
 
 Counted by `LocCount` (non-blank, non-comment lines as "code").  The fork is not counted here:  693 code lines in
@@ -495,12 +601,12 @@ The rules are in `AGENTS.md`, "Solid authoring".
 
 Edit a component in `yarn dev` (or `yarn site:dev`) and every live instance updates in place:  same host objects,
 host attributes and properties kept (the dropdown's `options` and controlled `value` included), no page reload.
-Open `tools/demo/hmr.html` and edit `UIButton.tsx`, `button.css` or `button.vocabulary.en.ts`.
+Open `tools/demo/hmr.html` and edit `UIButton.tsx`, `ui-button.css` or `ui-button.vocabulary.en.ts`.
 
 - **How:**
   - The fork's `solidElementHot()` (`vite.config.ts`, `apply: "serve"`) appends
     `import.meta.hot.accept(() => hotUpdate(import.meta.hot))` to each component barrel
-    (`src/components/<name>/index.ts`, the modules that call `define()`).  An edit to a component class, its
+    (`src/components/ui-<name>/index.ts`, the modules that call `define()`).  An edit to a component class, its
     vocabulary or fallback climbs to its barrel, which Vite re-runs with the fresh modules.
   - `define()` is idempotent per tag, so the barrel's `UIButton.define()` would return the OLD class.
     `HotDefinitions` (`src/elements/`, dev only, the plugin's `setup` import) wraps it:  a DIFFERENT class of the
@@ -544,8 +650,8 @@ Solid, Vite dev server) and the smoke perf page (`dist/` + vendored production S
 <!-- generated:perf -->
 | Where | Build | Open: update / + layout / + frame ms | Keystroke update min / avg / max ms | + layout | + frame |
 | --- | --- | --: | --: | --: | --: |
-| vitest browser mode | dev (Vite dev server) | 19.0 / 19.0 / 20.7 | 0.5 / **1.8** / 4.9 | 1.2 / **3.9** / 10.0 | 13.2 / **15.7** / 16.4 |
-| smoke perf page | production (`dist/` + vendored peers) | 17.2 / 17.2 / 18.9 | 0.2 / **1.4** / 3.5 | 0.8 / **3.1** / 9.1 | 13.0 / **15.4** / 16.5 |
+| vitest browser mode | dev (Vite dev server) | 15.6 / 15.6 / 17.0 | 0.3 / **1.5** / 4.2 | 0.9 / **3.2** / 8.2 | 14.5 / **16.1** / 17.7 |
+| smoke perf page | production (`dist/` + vendored peers) | 18.1 / 18.1 / 19.9 | 0.2 / **1.4** / 4.1 | 0.8 / **3.2** / 10.7 | 12.6 / **15.5** / 16.8 |
 <!-- /generated:perf -->
 
 - The test asserts an average update under 16 ms;  it passes with large headroom.  No windowing needed.
@@ -562,7 +668,7 @@ Solid, Vite dev server) and the smoke perf page (`dist/` + vendored production S
 `SmokeRunner`:  `yarn build`, then ONE static server (no Vite dev server) serves `dist/`, `vendor/`, `tools/` and
 `test/`, and injects one `<script type="importmap">` into every page:  `solid-js`, `@solidjs/web`,
 `@spell-app/solid-element` => `/vendor/...`, `@spell-app/ui` => `/dist/index.js`, `@spell-app/ui/core`, `@spell-app/ui/forms`,
-`@spell-app/ui/<family>` => `/dist/<name>.js`.  `PeerVendor` builds the three specifiers in one build with the peer
+`@spell-app/ui/ui-<family>` => `/dist/ui-<name>.js`.  `PeerVendor` builds the three specifiers in one build with the peer
 packages deduped (ONE Solid), tree-shaken to the bindings `dist/` and the pages import.  Requests to any host
 other than esm.sh / unpkg are blocked.  Each host mounts ONE `<ui-dropdown>` with `options` as a property,
 `value="b"` and `open`, and runs the round trip in `tools/frameworks/check.js` (DOM and ARIA only).
@@ -631,7 +737,7 @@ other than esm.sh / unpkg are blocked.  Each host mounts ONE `<ui-dropdown>` wit
 - **ARIA:**  `aria-activedescendant` needs the listbox in the combobox's own shadow root, so rich `<ui-item>`
   content is PROJECTED into its row;  the combobox is named from `placeholder` (else `text`, else `name`);  a host
   `aria-label` is forwarded to the inner control.
-- **axe** passes on every element-markup example (`src/components/<name>/examples/elements/`, 39 files),
+- **axe** passes on every element-markup example (`src/components/ui-<name>/examples/elements/`, 39 files),
   `color-contrast` included (text inside a `.ui.disabled` element exempt, as WCAG exempts inactive components --
   `test/a11y.ts`), with `heading-order` off for two pages of heading demos;  and on every family's native fallback.
 
@@ -639,7 +745,7 @@ other than esm.sh / unpkg are blocked.  Each host mounts ONE `<ui-dropdown>` wit
 
 **DIY, no hydration.**  The fork has no server render yet.  `test/ssr.ssr.test.tsx` (node project) renders the
 REAL `UIButton` controller under `@solidjs/web`'s server `renderToString` against a stub host, and wraps it in
-`<template shadowrootmode="open" shadowrootdelegatesfocus>` with the foundation CSS + `button.css` inlined.  The
+`<template shadowrootmode="open" shadowrootdelegatesfocus>` with the foundation CSS + `ui-button.css` inlined.  The
 browser half (`test/dsd.test.ts`) parses it with `setHTMLUnsafe`, paints a styled button before any script, then
 defines the element:  the fork ADOPTS the declarative root and empties it before its first render.
 
@@ -676,8 +782,8 @@ defines the element:  the fork ADOPTS the declarative root and empties it before
 ## Testing
 
 - **Suite:**  Vitest, two projects:  `browser` (chromium;  `UI_TEST_ALL=1` adds firefox and webkit) and `ssr`
-  (node).  Component tests live beside their component (`<name>.test.tsx`);  cross-family ones in `test/`
-  (fallback, isolation, translate, SSR, DSD).  The class-grammar CSS tests (`<name>.css.test.ts`) stay:  they test
+  (node).  Component tests live beside their component (`ui-<name>.test.tsx`);  cross-family ones in `test/`
+  (fallback, isolation, translate, SSR, DSD).  The class-grammar CSS tests (`ui-<name>.css.test.ts`) stay:  they test
   the sheets on static markup, which the element tests don't cover.
 - **Synchronization:**  `UIHost.ready` + `flush()` (`ElementFixture.render()` / `settle()` / `tick()`);  no sleeps
   except the type-ahead buffer.
@@ -706,19 +812,19 @@ Open (from the spikes;  none changed by the promotion):
 1. ~~**Palette contrast.**~~  Fixed:  per-colour `--ui-<colour>-on` foregrounds picked by WCAG contrast at
    generation time, darker red / green / blue / pink, `-text` capped at L 0.5 (`docs/theming.md`, "Contrast";
    `src/styles/colors.contrast.test.ts`).
-2. `src/components/parts/parts.css`:  an in-feed `.date` outside a summary is a `<time>` with no `display`, so it
+2. `src/components/ui-parts/ui-parts.css`:  an in-feed `.date` outside a summary is a `<time>` with no `display`, so it
    stays inline (Fomantic's is a block).
-3. `src/components/segment/examples/variations.html`:  `ui top seamless attached segment` breaks the grammar
+3. `src/components/ui-segment/examples/variations.html`:  `ui top seamless attached segment` breaks the grammar
    order, so `[class*="top attached"]` never matches the static fragment;  the element emits
    `seamless top attached`.
-4. `src/components/label/examples/content.html` (`aria-label` on a role-less span) and inputs with no accessible
+4. `src/components/ui-label/examples/content.html` (`aria-label` on a role-less span) and inputs with no accessible
    name in `label/examples/{content,types}.html`.
 5. `heading-order`:  `parts/examples/header.html` and `segment/examples/variations.html` fail it (originals too).
 6. **Tag clash:**  the parts' `in-item` owner (Fomantic's `.items > .item`) vs the dropdown's `<ui-item>`;  the
    test stub is `stub-item`.
 7. **Text keys are one flat namespace:**  `loading` in both `button` and `segment` vocabularies.
 8. **Segment owns no parts:**  an owner of TOKENS only, and a barrier for part lookup.
-9. `src/components/button/examples/types.html`:  the `left labeled` example's inner icon button has no accessible
+9. `src/components/ui-button/examples/types.html`:  the `left labeled` example's inner icon button has no accessible
    name (axe `button-name`).
 
 ## Appendix: history

@@ -17,7 +17,7 @@ it("paints the server-rendered DSD button, then upgrades", async () => {
   const button = host.shadowRoot!.querySelector("button")!
   expect(button.className).toBe("ui primary button")
   expect(getComputedStyle(button).backgroundColor).not.toBe("rgba(0, 0, 0, 0)")
-  const { UIButton } = await import("$/ui/components/button")
+  const { UIButton } = await import("$/ui/components/ui-button")
   UIButton.define("ssr-button")
   await ElementFixture.settle(container)
   expect(host.shadowRoot!.querySelector("button")!.className).toBe("ui primary button")

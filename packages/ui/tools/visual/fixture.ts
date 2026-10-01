@@ -2,7 +2,7 @@
  * `yarn test:visual`'s page script:  renders ONE example into `#example` and publishes `window.visual`, which the
  * Playwright spec (`visual.spec.ts`) drives.
  * - URL:  `fixture.html?example=<family>/<name>&kind=elements|classes`
- *   - `elements` (default):  `src/components/<family>/examples/elements/<name>.html`, the baselined render
+ *   - `elements` (default):  `src/components/ui-<family>/examples/elements/<name>.html`, the baselined render
  *   - `classes`:  the class-grammar original `examples/<name>.html`, for the `--parity` comparison only
  * - Same setup as the `yarn dev` demo (`tools/demo/index.ts`):  every family defined, every family sheet on the
  *   PAGE (class-grammar markup and the light-DOM `<button class="ui button">` triggers of element examples need
@@ -18,7 +18,7 @@ import type { VisualHooks } from "$/ui/test/test.types"
 
 import "$/ui/index"
 
-import popupAnchoredCSS from "$/ui/components/popup/popup.anchored.css?raw"
+import popupAnchoredCSS from "$/ui/components/ui-popup/ui-popup.anchored.css?raw"
 
 /** Element examples, by path;  lazy, the page renders one. */
 const ELEMENTS = import.meta.glob<string>("/src/components/*/examples/elements/*.html", {
@@ -34,10 +34,10 @@ const HOOKS = import.meta.glob<VisualHooks>("/src/components/*/examples/elements
 
 /**
  * Every component sheet, by path.
- * - NOTE: `popup.anchored.css` is excluded:  Lightning CSS can't parse its `@container anchored(...)`
+ * - NOTE: `ui-popup.anchored.css` is excluded:  Lightning CSS can't parse its `@container anchored(...)`
  *   (`CODE-DEBT.md`), so it's imported `?raw` above, as the demo does.
  */
-const SHEETS = import.meta.glob<string>(["/src/components/*/*.css", "!**/popup.anchored.css"], {
+const SHEETS = import.meta.glob<string>(["/src/components/*/*.css", "!**/ui-popup.anchored.css"], {
   query: "?inline",
   import: "default",
   eager: true
@@ -72,10 +72,11 @@ class VisualPage {
     StubOwner.defineFomanticOwners()
     await UI.load()
     for (const [path, css] of Object.entries(SHEETS)) {
-      // only `<family>/<family>.css`:  the other sheets (`dimmer.page.css`, `toast.container.css`) are the
+      // only `ui-<family>/ui-<family>.css`:  the other sheets (`ui-dimmer.page.css`, `ui-toast.container.css`) are the
       // components' own, registered when used
       const [, family, file] = /\/components\/([\w-]+)\/([\w.-]+)\.css$/.exec(path) ?? []
-      if (family && family === file) UI.styles.register(family, css, { page: true })
+      // registered by bare name (`button`), the name the elements adopt it by
+      if (family && family === file) UI.styles.register(family.replace(/^ui-/, ""), css, { page: true })
     }
     UI.styles.register("popup-anchored", popupAnchoredCSS, { page: true })
     const [family, name] = this.example.split("/")

@@ -91,7 +91,7 @@ const ICONS = {
 const SOLID = /^(solid-js|@solidjs\/[\w-]+|@spell-app\/solid-element)(\/.*)?$/
 
 /** UI's emoji name data:  `<set>/<letter>.json`, written out as lazy classic scripts (`writeEmojiChunks()`). */
-const EMOJI_DATA = join(UI_DIR, "src/components/emoji/data")
+const EMOJI_DATA = join(UI_DIR, "src/components/ui-emoji/data")
 
 /** Where the emoji chunk scripts go, and their URL relative to the bundle. */
 const EMOJI_OUT = join(ASSETS, "emoji")
@@ -247,7 +247,7 @@ function iconsModule() {
  */
 function emojiModule() {
   return [
-    `import { EmojiData } from "@spell-app/ui/emoji"`,
+    `import { EmojiData } from "@spell-app/ui/ui-emoji"`,
     `const base = new URL("emoji/", document.currentScript?.src ?? location.href)`,
     `const waiting = new Map()`,
     `globalThis.__spellEmojiChunk = (set, chunk, names) => waiting.get(set + "/" + chunk)?.(names)`,

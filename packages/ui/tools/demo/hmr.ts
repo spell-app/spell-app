@@ -6,11 +6,11 @@
  * - NOTE: this module is not an HMR boundary:  editing it reloads the page.
  */
 
-import { UIButton } from "$/ui/components/button"
+import { UIButton } from "$/ui/components/ui-button"
 import { es } from "$/ui/test/dictionary.es"
 
-import "$/ui/components/dropdown"
-import "$/ui/components/segment"
+import "$/ui/components/ui-dropdown"
+import "$/ui/components/ui-segment"
 
 UIButton.define("ie-boton", es)
 

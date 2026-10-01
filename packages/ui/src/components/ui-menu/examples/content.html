@@ -1,0 +1,78 @@
+<!--
+  Menu content, after Fomantic's docs (collections/menu.html, "Content").
+  Static class grammar.  Couplings with other components' boxes inside items (`.ui.input`, `.ui.button`,
+  `.ui.dropdown`, `.ui.label`) are theirs;  see `ui-menu.css`'s NOTE.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Header</h4>
+    <nav class="ui menu" aria-label="Header">
+      <div class="header item">Our Company</div>
+      <a class="item" href="#about">About Us</a>
+      <a class="item" href="#jobs">Jobs</a>
+      <a class="item" href="#locations">Locations</a>
+    </nav>
+    <nav class="ui vertical menu" aria-label="Vertical headers">
+      <div class="item">
+        <div class="header in-menu">Products</div>
+        <div class="menu">
+          <a class="item" href="#enterprise">Enterprise</a>
+          <a class="item" href="#consumer">Consumer</a>
+        </div>
+      </div>
+      <div class="item">
+        <div class="header in-menu">CMS Solutions</div>
+        <div class="menu">
+          <a class="item" href="#rails">Rails</a>
+          <a class="item" href="#python">Python</a>
+          <a class="item" href="#php">PHP</a>
+        </div>
+      </div>
+    </nav>
+  </section>
+
+  <section>
+    <h4>Text</h4>
+    <nav class="ui vertical menu" aria-label="Text items">
+      <div class="item">
+        <p>To learn more, read the documentation.</p>
+      </div>
+    </nav>
+  </section>
+
+  <section>
+    <h4>Link item</h4>
+    <nav class="ui vertical menu" aria-label="Link items">
+      <a class="item" href="#visit">Visit Google</a>
+      <div class="link item">Javascript Link</div>
+    </nav>
+  </section>
+
+  <section>
+    <h4>Sub menu</h4>
+    <nav class="ui vertical menu" aria-label="Sub menu">
+      <div class="item">
+        Home
+        <div class="menu">
+          <a class="active item" href="#search" aria-current="page">Search</a>
+          <a class="item" href="#add">Add</a>
+          <a class="item" href="#remove">Remove</a>
+        </div>
+      </div>
+      <a class="item" href="#browse">Browse</a>
+      <a class="item" href="#messages">Messages</a>
+    </nav>
+  </section>
+
+  <section>
+    <h4>Right menu</h4>
+    <nav class="ui menu" aria-label="Right menu">
+      <a class="item" href="#browse">Browse</a>
+      <a class="item" href="#submit">Submit</a>
+      <div class="right menu">
+        <a class="item" href="#signup">Sign Up</a>
+        <a class="item" href="#help">Help</a>
+      </div>
+    </nav>
+  </section>
+</div>

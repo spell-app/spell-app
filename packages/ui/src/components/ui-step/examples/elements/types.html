@@ -1,0 +1,36 @@
+<!-- `src/components/ui-step/examples/types.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Step</h4>
+    <ui-steps>
+      <ui-step icon="truck" header="Shipping" description="Choose your shipping options"></ui-step>
+    </ui-steps>
+  </section>
+
+  <section>
+    <h4>Steps</h4>
+    <ui-steps>
+      <ui-step icon="truck" header="Shipping" description="Choose your shipping options"></ui-step>
+      <ui-step selected icon="credit-card" header="Billing" description="Enter billing information"></ui-step>
+      <ui-step disabled icon="circle-info" header="Confirm Order"></ui-step>
+    </ui-steps>
+  </section>
+
+  <section>
+    <h4>Ordered</h4>
+    <ui-steps ordered>
+      <ui-step completed header="Shipping" description="Choose your shipping options"></ui-step>
+      <ui-step completed header="Billing" description="Enter billing information"></ui-step>
+      <ui-step selected header="Confirm Order" description="Verify order details"></ui-step>
+    </ui-steps>
+  </section>
+
+  <section>
+    <h4>Vertical</h4>
+    <ui-steps vertical>
+      <ui-step completed icon="truck" header="Shipping" description="Choose your shipping options"></ui-step>
+      <ui-step completed icon="credit-card" header="Billing" description="Enter billing information"></ui-step>
+      <ui-step selected icon="circle-info" header="Confirm Order"></ui-step>
+    </ui-steps>
+  </section>
+</div>

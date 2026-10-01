@@ -7,7 +7,7 @@ import type { PartName } from "./elements.types"
 import { PartContext } from "./PartContext"
 import { UIElement } from "./UIElement"
 
-import partsCSS from "$/ui/components/parts/parts.css?inline"
+import partsCSS from "$/ui/components/ui-parts/ui-parts.css?inline"
 
 /**
  * Base of the generic content parts (`<ui-content>`, `<ui-header>`, `<ui-meta>` ...):  ONE element per part word,
@@ -16,10 +16,10 @@ import partsCSS from "$/ui/components/parts/parts.css?inline"
  *   tree with a barrier at every non-part component, and keeps `:state(in-<owner>)` on the host.
  * - Markup:  `<div class="<noun> [keyOnly ...]" part="<noun>"><slot></slot></div>`;  subclasses change the tag
  *   (`tag()`:  `<a>` for `href`, `<time>`, `<span>`), the link / time attributes and the content.
- * - `--_ui-part`:  `parts.css` declares it on the ROOT from the noun class, never on the host -- a host
+ * - `--_ui-part`:  `ui-parts.css` declares it on the ROOT from the noun class, never on the host -- a host
  *   declaring it would be what its own root's `@container style(--_ui-part: summary)` queries, so a date could
  *   never see the summary it sits in.
- * - Every part adopts `parts.css`;  `@proto static isPart` makes parts transparent to other parts' climbs.
+ * - Every part adopts `ui-parts.css`;  `@proto static isPart` makes parts transparent to other parts' climbs.
  */
 export abstract class ContentPart<V extends ComponentVocabulary = ComponentVocabulary> extends UIElement<V> {
   @proto static styles = { parts: partsCSS }

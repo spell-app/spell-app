@@ -194,12 +194,13 @@ export class VisualRunner {
   /**
    * Playwright `--grep` for families or single examples:  matches at the start of a title segment, so `item`
    * doesn't select `items`.
-   * - `button` => every `button/...` test;  `modal/types` => that example's tests only
-   * - `button,modal/types` => `(^| )(button/|modal/types( |$))`
+   * - A family is its folder, `ui-button`;  the `ui-` may be left out (`button` ~== `ui-button`)
+   * - `button` => every `ui-button/...` test;  `modal/types` => that example's tests only
+   * - `button,ui-modal/types` => `(^| )ui-(button/|modal/types( |$))`
    */
   static grep(targets: readonly string[]): string {
-    const parts = targets.map((target) => target.replace(/[^\w/-]/g, "")).filter(Boolean)
-    return `(^| )(${parts.map((part) => (part.includes("/") ? `${part}( |$)` : `${part}/`)).join("|")})`
+    const parts = targets.map((target) => target.replace(/[^\w/-]/g, "").replace(/^ui-/, "")).filter(Boolean)
+    return `(^| )ui-(${parts.map((part) => (part.includes("/") ? `${part}( |$)` : `${part}/`)).join("|")})`
   }
 }
 
@@ -211,7 +212,7 @@ export type VisualRunnerOptions = {
   browsers: readonly VisualBrowser[]
   /** accept the new renders as baselines (`--update-snapshots=changed`) */
   update: boolean
-  /** families (`button`) or examples (`modal/types`) to run;  all when empty */
+  /** families (`ui-button`, or `button`) or examples (`ui-modal/types`) to run;  all when empty */
   grep?: readonly string[]
   /** add the class-grammar vs elements comparison */
   parity: boolean

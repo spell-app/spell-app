@@ -5,8 +5,8 @@ import { UI } from "$/ui/runtime"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 
 // NOTE: order matters:  table registers its `label` text BEFORE breadcrumb does
-import "$/ui/components/table"
-import "$/ui/components/breadcrumb"
+import "$/ui/components/ui-table"
+import "$/ui/components/ui-breadcrumb"
 
 /** Text `key` as the element `host` resolves it. */
 function textOf(host: Element, key: string): string {

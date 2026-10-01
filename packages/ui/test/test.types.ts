@@ -1,5 +1,5 @@
 /**
- * Types shared by the test helpers and the example hooks under `src/components/<family>/examples/`.
+ * Types shared by the test helpers and the example hooks under `src/components/ui-<family>/examples/`.
  * - MUST stay runtime-light:  `import type` only.  The visual spec (node) and the fixture page (browser) both
  *   import the `.visual.ts` hooks that use these.
  */

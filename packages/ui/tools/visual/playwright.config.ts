@@ -9,7 +9,7 @@ import { VisualSettings } from "./VisualSettings.ts"
  * Playwright config of `yarn test:visual`, separate from Vitest:  run it through the CLI (`tools/visual/cli.ts`),
  * which starts the dev server (and, for `--os linux`, the Docker browser server) and sets `VisualSettings.ENV`.
  * - One project per browser;  the CLI picks them with `--project`.
- * - Baselines:  `test/visual/baselines/<os>/<browser>/<family>/<file>.png` (`snapshotPathTemplate`), where
+ * - Baselines:  `test/visual/baselines/<os>/<browser>/ui-<family>/<file>.png` (`snapshotPathTemplate`), where
  *   `<os>` is `linux` or `local-<platform>` (`VisualSettings.osFolder()`).
  * - Results (diffs, the HTML report):  `tools/results/visual/<os>/`, git-ignored.
  * - `linux`:  `connectOptions` points every project at the browser server in Docker;  `exposeNetwork:

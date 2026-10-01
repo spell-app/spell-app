@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest"
 
 import type { UIHost } from "$/ui/elements"
-import { UIButton } from "$/ui/components/button"
-import { UIDropdown } from "$/ui/components/dropdown"
+import { UIButton } from "$/ui/components/ui-button"
+import { UIDropdown } from "$/ui/components/ui-dropdown"
 import { es } from "$/ui/test/dictionary.es"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 

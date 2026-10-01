@@ -51,7 +51,7 @@
             <a href="../../ui-component-creation.html" target="docs-ui-component-creation">ui-component-creation.html</a
             >.
           </p>
-          <ui-progress class="plan-progress" value="12" total="16" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="13" total="16" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
           <ui-steps class="plan-phases" vertical ordered>
@@ -82,7 +82,7 @@
             ><ui-step selected header="P13 · Folder Rename" href="#p13" data-status="active" data-phase="13"></ui-step
             ><ui-step header="P14 · Definitions And Topics" href="#p14" data-status="todo" data-phase="14"></ui-step
             ><ui-step header="P15 · Sidebar Component Browser" href="#p15" data-status="todo" data-phase="15"></ui-step
-            ><ui-step header="P16 · Root Design" href="#p16" data-status="todo" data-phase="16"></ui-step
+            ><ui-step completed header="P16 · Root Design" href="#p16" data-status="done" data-phase="16"></ui-step
           ></ui-steps>
         </section>
 
@@ -197,6 +197,557 @@
                   </p></ui-content
                 ></ui-accordion
               >
+            </li>
+            <li data-status="open" id="q13">
+              <a class="plan-id" href="#q13">Q13</a>
+              <span class="plan-title"
+                >Root: are page settings page-wide or per subtree? (icon packs, emoji names, lang)</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <b>Plain words.</b> An icon pack or emoji name set is a <i>page-wide</i> thing today:
+                    <code>UI.icons</code> and <code>EmojiData</code> are ONE per page, so two
+                    <code>&lt;ui-icon-set&gt;</code>s add up. A <code>&lt;ui-root&gt;</code> in the middle of a page
+                    could set them for just its own subtree (a docs demo that wants Lucide icons beside a page that uses
+                    Font Awesome), but every icon would then have to find its nearest root.
+                  </p>
+                  <p>The problem case: two roots on one page disagree.</p>
+                  <pre><code class="language-html">&lt;ui-root icons="fa7-free"&gt;...&lt;/ui-root&gt;
+&lt;ui-root icons="fomantic"&gt;
+  &lt;ui-icon name="home"&gt;&lt;/ui-icon&gt;
+  &lt;!-- which pack? --&gt;
+&lt;/ui-root&gt;</code></pre>
+                  <p>
+                    <code>theme</code>, <code>size</code> and tokens are CSS and inherit, so they are per-subtree for
+                    free. Only icons, emoji and <code>lang</code> are in question. (<code>lang</code> chooses a
+                    dictionary, which renames TAGS, and <code>customElements</code> is one registry per document: tags
+                    cannot be per-subtree.)
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="3" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top" color="green">A. Page-wide (recommended)</ui-label>
+                        <p>
+                          Settings apply to the whole page, merged in order, like
+                          <code>&lt;ui-icon-set&gt;</code> today. A second root with a conflicting <code>emoji</code> or
+                          <code>lang</code> logs a warning (last wins). Cheapest: no change to <code>UI.icons</code>.
+                        </p>
+                        <pre><code class="language-html">icons="fa7-free fomantic"
+&lt;!-- adds to UI.icons --&gt;</code></pre>
+                      </ui-segment></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B. Per subtree</ui-label>
+                        <p>
+                          Each icon asks its nearest root for packs. Needs a lookup through shadow roots on every icon,
+                          and a cache per root. Isolated demos, but dictionaries still can't be per-subtree.
+                        </p>
+                        <pre><code class="language-html">&lt;ui-root icons="lucide"&gt;
+  &lt;ui-icon name="home"&gt;
+&lt;!-- nearest root's packs --&gt;</code></pre>
+                      </ui-segment></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">C. Split</ui-label>
+                        <p>
+                          Icons / emoji / lang page-wide, theme / size / tokens per subtree (they inherit anyway). In
+                          code the same as A: this is A, said out loud in the docs.
+                        </p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  >
+                  <p>
+                    Recommend A: one runtime per page, so one set of page settings. Revisit B only if a docs page needs
+                    two icon sets side by side.
+                  </p></ui-content
+                ></ui-accordion
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
+            </li>
+            <li data-status="open" id="q14">
+              <a class="plan-id" href="#q14">Q14</a>
+              <span class="plan-title">Root: nested roots, does an inner root override or merge?</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <b>Plain words.</b> A <code>&lt;ui-root&gt;</code> inside another
+                    <code>&lt;ui-root&gt;</code> happens (a widget that ships its own root, dropped into a page that has
+                    one). What does the inner one do?
+                  </p>
+                  <pre><code class="language-html">&lt;ui-root theme="dark" icons="fa7-free"&gt;
+  &lt;ui-root size="small"
+           display="immediately"&gt;
+    &lt;ui-card&gt;...&lt;/ui-card&gt;
+  &lt;/ui-root&gt;
+&lt;/ui-root&gt;</code></pre>
+                  <p>
+                    Questions in that example: does the inner root stay dark? Does it wait for its own families or the
+                    outer one's? Does the outer <code>display</code> hide it?
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="3" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top" color="green">A. Inner inherits, adds (recommended)</ui-label>
+                        <p>
+                          Theme / size / tokens inherit by CSS (inner overrides only what it sets). Page settings merge
+                          (see the scope question). Loading: the inner root reports to the OUTER one, which is ready
+                          only when every inner root is. The outer <code>display</code> hides everything under it; an
+                          inner <code>display</code> matters only once the outer is ready.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B. Inner is inert</ui-label>
+                        <p>
+                          A root inside a root does nothing but warn. Simple, but a self-contained widget breaks the
+                          moment a page also has a root.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">C. Independent</ui-label>
+                        <p>
+                          Each hides and loads its own subtree. The outer is ready when ITS descendants (not the inner
+                          root's) are. Can flash: the outer shows while the inner is still hidden.
+                        </p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  >
+                  <p>
+                    Recommend A: matches how CSS inheritance already works, and gives one "everything is ready" answer
+                    for the page.
+                  </p></ui-content
+                ></ui-accordion
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
+            </li>
+            <li data-status="open" id="q15">
+              <a class="plan-id" href="#q15">Q15</a>
+              <span class="plan-title">Root: when-ready timeout and error policy (a family that never loads)</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <b>Plain words.</b> <code>display="when-ready"</code> hides everything until every family is loaded.
+                    If one import fails (offline, 404) or a tag has no family at all, the page would stay blank forever.
+                    We need a rule for how long to wait and what to do.
+                  </p>
+                  <pre><code class="language-html">&lt;ui-root display="when-ready"
+         timeout="3s"&gt;
+  &lt;ui-card&gt;...&lt;/ui-card&gt;
+  &lt;ui-cardd&gt;typo&lt;/ui-cardd&gt;
+&lt;/ui-root&gt;</code></pre>
+                  <p>
+                    Two kinds of failure: a tag with NO family (<code>ui-cardd</code>: the roll-up has no entry, known
+                    at once) and a family whose import REJECTS or hangs. The docs site's loader today logs a rejection
+                    and carries on (<code>Promise.allSettled</code> in
+                    <a
+                      href="../../../ui/site/src/scripts/components.ts"
+                      target="src-packages-ui-site-src-scripts-components-ts"
+                      ><code>site/src/scripts/components.ts</code></a
+                    >).
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="3" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top" color="green">A. Reveal after a timeout (recommended)</ui-label>
+                        <p>
+                          Unknown tags are ignored (one <code>console.warn</code>). A rejected import is logged and
+                          counts as settled. After <code>timeout</code> (default 5s) the root reveals anyway and fires a
+                          cancelable <code>ui-error</code> per failure. A broken family never blanks the page; its
+                          elements show their native fallback.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B. Stay hidden</ui-label>
+                        <p>
+                          No timeout. Strict: never shows half-built UI. But one offline chunk blanks the page, which
+                          the native fallback (<a
+                            href="../../../ui/docs/fallback.md"
+                            target="src-packages-ui-docs-fallback-md"
+                            ><code>docs/fallback.md</code></a
+                          >) exists to avoid.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">C. Reveal on first error</ui-label>
+                        <p>
+                          Wait with no timeout, but reveal the moment any import rejects. A hang (never settles) still
+                          blanks the page.
+                        </p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  >
+                  <p>
+                    Recommend A, plus a <code>ui-ready</code> event (<code>detail: { failed: [...] }</code>) so an app
+                    can react.
+                  </p></ui-content
+                ></ui-accordion
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
+            </li>
+            <li data-status="open" id="q16">
+              <a class="plan-id" href="#q16">Q16</a>
+              <span class="plan-title">Root: server-side rendering and Declarative Shadow DOM</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <b>Plain words.</b> Server-side rendering (SSR) means the server sends finished HTML.
+                    <code>ui-*</code> elements can arrive with their shadow root already in the HTML (Declarative Shadow
+                    DOM, DSD: <code>&lt;template shadowrootmode="open"&gt;</code>), so they paint before any JavaScript
+                    runs.
+                    <a href="../../../ui/test/dsd.test.ts" target="src-packages-ui-test-dsd-test-ts"
+                      ><code>test/dsd.test.ts</code></a
+                    >
+                    already covers a button. A root that hides everything until JS is ready would throw that away.
+                  </p>
+                  <pre><code class="language-html">&lt;ui-root display="when-ready"&gt;
+  &lt;ui-button&gt;
+    &lt;template
+      shadowrootmode="open"&gt;...&lt;/template&gt;
+    Save
+  &lt;/ui-button&gt;
+&lt;/ui-root&gt;</code></pre>
+                  <p>
+                    An element's ready state is set only after the runtime runs, so in server HTML every element looks
+                    "not ready" and the root cannot know the families are present.
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="3" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top" color="green">A. Hide only with JS (recommended)</ui-label>
+                        <p>
+                          Hiding is a CSS rule inside <code>@media (scripting: enabled)</code>: server HTML shows as
+                          sent, and with JS on, <code>when-ready</code> hides what is not yet upgraded. The media query
+                          works in all current engines.
+                        </p>
+                        <pre><code class="language-html">@media (scripting: enabled) {
+  ui-root[display=when-ready]
+    :not(:state(ready)) { ... }
+}</code></pre>
+                      </ui-segment></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B. Always hide</ui-label>
+                        <p>
+                          Simple, but with JS off or slow the page is blank: server rendering gains nothing under a
+                          root.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">C. SSR out of scope</ui-label>
+                        <p>
+                          Matches <a href="#t4">T4</a> (SSR hydration is later work): <code>when-ready</code> is JS
+                          only, documented. Cheapest, but locks a behaviour in.
+                        </p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  >
+                  <p>Recommend A: one media query, and DSD pages don't regress.</p></ui-content
+                ></ui-accordion
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
+            </li>
+            <li data-status="open" id="q17">
+              <a class="plan-id" href="#q17">Q17</a>
+              <span class="plan-title">Root: how does a skeleton size to content it has not seen?</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <b>Plain words.</b> A skeleton is a grey stand-in sized like what will replace it, so the page
+                    doesn't jump when real content arrives ("layout shift"). But before a family loads, nobody knows how
+                    big a <code>&lt;ui-card&gt;</code> will be: its real size depends on its own content (a title, an
+                    image, three lines).
+                  </p>
+                  <pre><code class="language-html">&lt;ui-root display="skeleton"&gt;
+  &lt;ui-card&gt;
+    &lt;ui-header&gt;Report&lt;/ui-header&gt;
+    &lt;ui-description&gt;
+      3 lines of text
+    &lt;/ui-description&gt;
+  &lt;/ui-card&gt;
+&lt;/ui-root&gt;</code></pre>
+                  <p>
+                    What the skeleton can see: the TAG (<code>ui-card</code>), its ATTRIBUTES
+                    (<code>size="small"</code>, <code>fluid</code>), its child TAGS. It cannot see the real text height
+                    until fonts and styles are in. A skeleton description (<a href="#o5">3.5</a>) gives a default size
+                    per tag, in <code>em</code>, so <code>size</code> still scales it.
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="3" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top" color="green">A. Default size per tag (recommended)</ui-label>
+                        <p>
+                          Fixed width / height in em from the description, plus the attributes it understands (<code
+                            >fluid</code
+                          >
+                          =&gt; width fill). Slotted children ignored. Some shift is accepted; authors pin with
+                          <code>style="min-height: 12em"</code>.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B. Mirror the children</ui-label>
+                        <p>
+                          Walk the real children and draw a shape for each part (<code>ui-header</code> =&gt; a bar,
+                          <code>ui-description</code> =&gt; lines). Closer, but needs every part's description, and text
+                          length is still a guess.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">C. Authors give a hint</ui-label>
+                        <p>
+                          A <code>skeleton</code> attribute: <code>&lt;ui-card skeleton="3 lines, image"&gt;</code>.
+                          Exact when written, but nobody will write it.
+                        </p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  >
+                  <p>Recommend A for v1; B can reuse the child tags' own descriptions later.</p></ui-content
+                ></ui-accordion
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
+            </li>
+            <li data-status="open" id="q18">
+              <a class="plan-id" href="#q18">Q18</a>
+              <span class="plan-title">Root: does &lt;ui-root&gt; live in core or in its own entry?</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <b>Plain words.</b> "Entries" are the files you import: <code>@spell-app/ui/core</code> (used by
+                    EVERY family), <code>@spell-app/ui/ui-card</code> (one family) ... The root is the first thing a
+                    page loads, so it must be small. In <code>core</code> it ships in every family bundle, even on pages
+                    that never use a root; <code>core</code> is meant to stay small.
+                  </p>
+                  <pre><code class="language-html">import "@spell-app/ui/ui-root"
+// the tiny loader, or
+import "@spell-app/ui/core"
+// root included</code></pre>
+                  <p>
+                    The root needs the roll-up (<code>component-definitions.ts</code>, tag =&gt; folder, a few kB for
+                    ~60 families), an <code>import()</code> per family, a <code>MutationObserver</code> and the skeleton
+                    sheet. It does NOT need the runtime (<code>UI.load()</code>) until the first family loads.
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="3" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top" color="green">A. Its own entry (recommended)</ui-label>
+                        <p>
+                          <code>@spell-app/ui/ui-root</code>, <code>src/components/ui-root/</code> like any family.
+                          Imports <code>core</code> only for <code>UIElement</code>. Pages that don't use it pay
+                          nothing. It must NOT import the families statically.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B. In core</ui-label>
+                        <p>
+                          Every family carries it, nothing extra to import. But core grows by the whole tag table for
+                          every page, even ones that import their families by hand.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">C. Not an element</ui-label>
+                        <p>
+                          A function, <code>UI.root({ ... })</code>, plus a thin tag. Smallest, but loses the plain-HTML
+                          story.
+                        </p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  >
+                  <p>
+                    Recommend A: matches "one folder per family". The loader piece (the roll-up reader) can also be a
+                    runtime service so
+                    <a
+                      href="../../../ui/site/src/scripts/components.ts"
+                      target="src-packages-ui-site-src-scripts-components-ts"
+                      ><code>site/src/scripts/components.ts</code></a
+                    >
+                    reuses it.
+                  </p></ui-content
+                ></ui-accordion
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
+            </li>
+            <li data-status="open" id="q19">
+              <a class="plan-id" href="#q19">Q19</a>
+              <span class="plan-title">Root: default display, when-ready or skeleton?</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <b>Plain words.</b> <code>display</code> says what the page shows while components still load.
+                    <code>immediately</code>: draw as you go (unstyled boxes, then they pop in).
+                    <code>when-ready</code>: nothing until everything is in. <code>skeleton</code>: grey stand-ins until
+                    everything is in. What should a plain <code>&lt;ui-root&gt;</code> do?
+                  </p>
+                  <pre><code class="language-html">&lt;ui-root&gt;...&lt;/ui-root&gt;
+&lt;!-- default? --&gt;
+&lt;ui-root display="skeleton"&gt;...&lt;/ui-root&gt;</code></pre>
+                  <ui-grid class="spell-pros-cons" columns="3" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top" color="green">A. when-ready (recommended)</ui-label>
+                        <p>
+                          Nothing draws until ready. No flash, no shift after reveal; blank for a moment on a slow
+                          connection. Needs no per-tag descriptions, so it works for every tag from day one. Skeleton is
+                          opt-in as families gain descriptions.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B. skeleton</ui-label>
+                        <p>
+                          Best feel, but only as good as the descriptions: a tag with none must fall back to when-ready
+                          anyway, so the default behaves differently per tag.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">C. immediately</ui-label>
+                        <p>
+                          Zero blocking, but undefined tags show as plain text, then jump: the flash a root exists to
+                          prevent.
+                        </p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  >
+                  <p>
+                    Recommend A: predictable, and Owen's own example ("nothing draws until the components are set up").
+                    Skeleton is the upgrade.
+                  </p></ui-content
+                ></ui-accordion
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
+            </li>
+            <li data-status="open" id="q20">
+              <a class="plan-id" href="#q20">Q20</a>
+              <span class="plan-title">Root: page settings as attributes, as child elements, or both?</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <b>Plain words.</b> Today a page adds an icon pack with a child element
+                    <code>&lt;ui-icon-set src&gt;</code> and picks emoji names with
+                    <code>&lt;ui-emoji-set names&gt;</code>. A root could take the same as attributes. Attributes are
+                    short; elements carry more options (<code>prefix</code>, <code>only</code>, <code>base</code> for
+                    icon packs).
+                  </p>
+                  <pre><code class="language-html">&lt;ui-root icons="fa7-free fomantic"
+         emoji="fomantic"
+         lang="es"
+         assets="/assets/ui/"&gt;
+
+&lt;!-- today --&gt;
+&lt;ui-icon-set src="fa7-free"&gt;
+&lt;ui-emoji-set names="fomantic"&gt;</code></pre>
+                  <p>
+                    Mapping: <code>icons</code> =&gt; <code>UI.icons.use(id)</code> per word (built-in ids),
+                    <code>emoji</code> =&gt; <code>EmojiData.use()</code>, <code>lang</code> =&gt; the dictionary (<a
+                      href="../../../ui/docs/translation.md"
+                      target="src-packages-ui-docs-translation-md"
+                      ><code>docs/translation.md</code></a
+                    >, not built yet), <code>assets</code> =&gt; base for <code>pack.js</code> and emoji chunks
+                    (<code>BuiltInPacks.base</code>).
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="3" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top" color="green">A. Attributes AND elements (recommended)</ui-label>
+                        <p>
+                          Attributes cover the common case (built-in ids, one set). Anything with options (custom
+                          <code>src</code>, <code>prefix</code>, <code>only</code>, <code>base</code>) stays a child
+                          <code>&lt;ui-icon-set&gt;</code> inside the root. Both reach the same <code>UI.icons</code>:
+                          the attributes are shorthand, no new behaviour.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B. Attributes only</ui-label>
+                        <p>
+                          One way to write it. <code>icons</code> would need a mini-syntax for prefix / only / base, and
+                          <code>&lt;ui-icon-set&gt;</code> would be retired: a breaking change.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">C. Elements only</ui-label>
+                        <p>
+                          The root takes no settings, only loads and themes. No change, but loses the one-tag page
+                          setup.
+                        </p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  >
+                  <p>
+                    Recommend A. <code>assets</code> should be ONE url for packs and emoji chunks
+                    (<code>assets/icon-packs/</code>, <code>assets/emoji/</code>), so a host copies one folder.
+                  </p></ui-content
+                ></ui-accordion
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
+            </li>
+            <li data-status="open" id="q21">
+              <a class="plan-id" href="#q21">Q21</a>
+              <span class="plan-title">Root: where do skeleton descriptions live?</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <b>Plain words.</b> Owen: "component files can export a skeleton description". The catch: the
+                    skeleton shows BEFORE the family's file is loaded, so it can't be read from the class. Reading it
+                    from the class would mean loading the family first, which is the wait the skeleton hides.
+                  </p>
+                  <pre><code class="language-html">// ui-card.skeleton.ts
+export const cardSkeleton = {
+  width: "18em", lines: 3
+}
+// UICard.tsx reuses it
+@proto static skeleton =
+  cardSkeleton</code></pre>
+                  <ui-grid class="spell-pros-cons" columns="3" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A. Static on the class</ui-label>
+                        <p>
+                          Simplest to write. Only available after the family loads, so the root could use it only
+                          mid-load. Defeats the main use.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top" color="green">B. Separate small file (recommended)</ui-label>
+                        <p>
+                          <code>ui-card/ui-card.skeleton.ts</code>, plain data, imported by BOTH the class (<code
+                            >static skeleton</code
+                          >) and the roll-up <code>component-definitions.ts</code>, so the root has it at first paint.
+                          The roll-up grows a few lines per tag.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">C. Generated from the class</ui-label>
+                        <p>
+                          A script reads each class's <code>static skeleton</code> and writes it into the roll-up. No
+                          second file to keep in step, but another generator and a stale-output risk.
+                        </p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  >
+                  <p>Recommend B, with a test that the roll-up entry and the class agree.</p></ui-content
+                ></ui-accordion
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
             </li>
           </ol>
         </section>
@@ -322,6 +873,329 @@
                 <code>on:</code> snippets on the docs site.
               </li>
             </ul>
+          </section>
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="o5">3.5 &lt;ui-root&gt;</h3></ui-sticky>
+            <p>
+              Design only, nothing built (<a href="#p16">P16</a>). One element you put at the top of a page. It
+              <b>loads</b> the components the page uses, takes the page's <b>settings</b>, sets
+              <b>theme and size</b> for what is inside, and can <b>hide the page until it is ready</b>. Open decisions
+              are questions <a href="#q13">Q13</a> to <a href="#q21">Q21</a>, each with the options side by side.
+            </p>
+            <p>
+              A page using it (today the same page needs a script per family, an icon-set element, a stylesheet class):
+            </p>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>a page using &lt;ui-root&gt; · 14 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-html">&lt;script type="module"
+  src="@spell-app/ui/ui-root"&gt;&lt;/script&gt;
+
+&lt;ui-root icons="fa7-free fomantic"
+         emoji="fomantic"
+         lang="es"
+         theme="dark" size="small"
+         display="when-ready"
+         style="--ui-radius: 0"&gt;
+  &lt;ui-card&gt;       &lt;!-- first one loads ui-card --&gt;
+    &lt;ui-button primary&gt;Save&lt;/ui-button&gt;
+  &lt;/ui-card&gt;
+&lt;/ui-root&gt;</code></pre>
+              </ui-content>
+            </ui-accordion>
+
+            <h4 id="o5a">Loading on demand</h4>
+            <ul>
+              <li>
+                The root watches its subtree (a <code>MutationObserver</code> plus a first scan for
+                <code>:not(:defined)</code>, the way
+                <a
+                  href="../../../ui/site/src/scripts/components.ts"
+                  target="src-packages-ui-site-src-scripts-components-ts"
+                  ><code>site/src/scripts/components.ts</code></a
+                >
+                does now). For each undefined <code>ui-*</code> tag it imports that tag's FAMILY once.
+              </li>
+              <li>
+                Tag =&gt; family today is GUESSED in <code>familyOf()</code> (plural, content parts =&gt;
+                <code>parts</code>, <code>EXTRA_TAGS</code>) over an <code>import.meta.glob</code>. The coming roll-up
+                <code>src/components/component-definitions.ts</code> (every tag =&gt; its folder, noun, topics,
+                <a href="#p14">P14</a>) replaces the guessing, and also gives the root skeletons (below).
+              </li>
+              <li>
+                Each family is its own package entry (<code>@spell-app/ui/ui-card</code> after the
+                <a href="#p13">P13</a> rename). The root imports them with a dynamic <code>import()</code> per family,
+                so a bundler (or an import map) makes one chunk each. Loading a family calls <code>define()</code>,
+                which upgrades the waiting elements.
+              </li>
+              <li>
+                Open: where the root lives (<a href="#q18">Q18</a>), what a family that never loads does (<a href="#q15"
+                  >Q15</a
+                >).
+              </li>
+            </ul>
+
+            <h4 id="o5b">Page settings</h4>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Attribute</th>
+                    <th>Does</th>
+                    <th>Today</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>icons="fa7-free fomantic"</code></td>
+                    <td>adds those packs, in order</td>
+                    <td><code>&lt;ui-icon-set src&gt;</code> / <code>UI.icons.use()</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>emoji="fomantic"</code></td>
+                    <td>emoji name set (default CLDR)</td>
+                    <td><code>&lt;ui-emoji-set names&gt;</code> / <code>EmojiData.use()</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>lang="es"</code></td>
+                    <td>translation dictionary</td>
+                    <td>
+                      <a href="../../../ui/docs/translation.md" target="src-packages-ui-docs-translation-md"
+                        ><code>docs/translation.md</code></a
+                      >, runtime part not built
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>assets="/ui/"</code></td>
+                    <td>base URL for pack and emoji files</td>
+                    <td><code>BuiltInPacks.base</code>, <code>base</code> on <code>&lt;ui-icon-set&gt;</code></td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <ul>
+              <li>
+                Icon packs and emoji names are page-wide today (one <code>UI.icons</code>, one <code>EmojiData</code>),
+                so a root can only set them for the page unless that changes (<a href="#q13">Q13</a>).
+              </li>
+              <li>
+                Attributes as shorthand, with the <code>&lt;ui-*-set&gt;</code> children kept for options like
+                <code>prefix</code> / <code>only</code>: <a href="#q20">Q20</a>.
+              </li>
+              <li>Nested roots: <a href="#q14">Q14</a>.</li>
+            </ul>
+
+            <h4 id="o5c">Theme and size</h4>
+            <ul>
+              <li>
+                Both are CSS that inherits, so the root sets them for its subtree with no JavaScript logic:
+                <code>theme="dark"</code> adds the <code>ui-dark</code> class (<code>color-scheme: dark</code>; every
+                colour token is a <code>light-dark()</code> pair, so it flips) and <code>theme="light"</code>
+                <code>ui-light</code>; <code>size="small"</code> sets <code>--ui-scale</code> from the size ratios
+                (<code>medium</code> sets <code>--ui-scale: 1</code>, which also resets a size from outside). Design:
+                <a href="../../../ui/docs/theming.md" target="src-packages-ui-docs-theming-md"
+                  ><code>packages/ui/docs/theming.md</code></a
+                >.
+              </li>
+              <li>
+                Tokens: any <code>--ui-*</code> custom property in the root's <code>style</code> (or the page's
+                <code>#ui-app-stylesheet</code>) reaches every component inside, through shadow roots, like the
+                example's <code>--ui-radius: 0</code>. No new mechanism.
+              </li>
+              <li>
+                <code>theme</code> and <code>size</code> are subtree-only by nature, so settings differ in scope: CSS
+                ones per subtree, icons / emoji / <code>lang</code> per page (<a href="#q13">Q13</a>).
+              </li>
+            </ul>
+
+            <h4 id="o5d">Display: hide until ready</h4>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th><code>display</code></th>
+                    <th>While components load</th>
+                    <th>Needs</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>immediately</code></td>
+                    <td>draws as it goes: unstyled, then upgrades</td>
+                    <td>nothing</td>
+                  </tr>
+                  <tr>
+                    <td><code>when-ready</code></td>
+                    <td>
+                      subtree hidden (<code>visibility: hidden</code>, space kept) until every needed family is defined
+                      and its elements are <code>ready</code>
+                    </td>
+                    <td>the roll-up</td>
+                  </tr>
+                  <tr>
+                    <td><code>skeleton</code></td>
+                    <td>subtree hidden, grey shapes drawn in each element's place until ready</td>
+                    <td>the roll-up + skeleton descriptions</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <ul>
+              <li>
+                "Ready": every element has a <code>ready</code> promise (<code>host.markReady()</code> in
+                <code>UIElement</code>, once content has rendered with its styles; <code>loaded()</code> is the
+                runtime-and-sheets part), and a <code>:state(ready)</code>. The root waits for the families (the
+                imports), then for the <code>ready</code> of each element it saw, and then sets its own state
+                <code>ready</code> and dispatches <code>ui-ready</code>.
+              </li>
+              <li>
+                The hiding is a CSS rule on the root's own shadow (<code>::slotted(*)</code>) or the page sheet, and
+                lifts by removing one state: no per-element work.
+              </li>
+              <li>
+                Defaults and traps: default value (<a href="#q19">Q19</a>), a family that never loads (<a href="#q15"
+                  >Q15</a
+                >), server-rendered HTML (<a href="#q16">Q16</a>).
+              </li>
+            </ul>
+
+            <h4 id="o5e">Skeleton description</h4>
+            <ul>
+              <li>
+                A skeleton is made of the shapes <code>ui-placeholder</code> already draws (header, paragraph, line,
+                image). A component declares what its skeleton looks like as plain data; the root draws it as a
+                stylesheet (CSS gradients, in <code>em</code> so <code>size</code> still scales it), not as extra
+                elements. An undefined tag can be styled from a page stylesheet, so this works before the family loads.
+              </li>
+              <li>
+                Open: where the description lives so the root can read it before the family loads (<a href="#q21">Q21</a
+                >), and how it sizes to content it hasn't seen (<a href="#q17">Q17</a>).
+              </li>
+            </ul>
+            <ui-accordion class="spell-code" styled>
+              <ui-title>skeleton descriptions · 24 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-ts">// ui-card.skeleton.ts
+export const cardSkeleton: Skeleton = {
+  display: "block",   // or "inline"
+  width: "18em",      // fluid =&gt; "100%"
+  parts: [
+    { shape: "image", ratio: "16/9" },
+    { shape: "header" },
+    { shape: "paragraph", lines: 3 }
+  ]
+}
+
+// ui-button.skeleton.ts: one box
+export const buttonSkeleton: Skeleton = {
+  display: "inline",
+  width: "6em",
+  height: "2.5em",
+  radius: "var(--ui-radius)"
+}
+
+// UICard.tsx
+export class UICard extends UIElement&lt;...&gt; {
+  @proto static skeleton = cardSkeleton</code></pre>
+              </ui-content>
+            </ui-accordion>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Field</th>
+                    <th>Means</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>display</code></td>
+                    <td><code>block</code> or <code>inline</code> (a button sits in text)</td>
+                  </tr>
+                  <tr>
+                    <td><code>width</code>, <code>height</code></td>
+                    <td>
+                      CSS lengths in <code>em</code>; <code>fill</code> = 100%; leave <code>height</code> out to follow
+                      the parts
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>radius</code></td>
+                    <td>corner radius, a token</td>
+                  </tr>
+                  <tr>
+                    <td><code>parts</code></td>
+                    <td>
+                      stacked shapes: <code>image</code> (<code>ratio</code>), <code>header</code>,
+                      <code>paragraph</code> / <code>line</code> (<code>lines</code>)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>gap</code></td>
+                    <td>space between parts (a spacing token)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+
+            <h4 id="o5f">How the pieces map to what exists</h4>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Root piece</th>
+                    <th>Reuses</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>watch + import a family</td>
+                    <td>
+                      <a
+                        href="../../../ui/site/src/scripts/components.ts"
+                        target="src-packages-ui-site-src-scripts-components-ts"
+                        ><code>site/src/scripts/components.ts</code></a
+                      >
+                      (<code>loadComponents</code>, <code>familyOf</code>)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>tag =&gt; family, skeleton data</td>
+                    <td>roll-up <code>component-definitions.ts</code> (<a href="#p14">P14</a>)</td>
+                  </tr>
+                  <tr>
+                    <td>icons / emoji / lang</td>
+                    <td><code>UI.icons</code>, <code>EmojiData</code>, <code>UI.vocabulary.defineComponents</code></td>
+                  </tr>
+                  <tr>
+                    <td>theme / size / tokens</td>
+                    <td><code>ui-dark</code> / <code>ui-light</code>, <code>--ui-scale</code>, <code>--ui-*</code></td>
+                  </tr>
+                  <tr>
+                    <td>"ready"</td>
+                    <td>
+                      <code>UIElement</code> <code>ready</code> / <code>loaded()</code>, <code>:state(ready)</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>skeleton shapes</td>
+                    <td><code>ui-placeholder</code> family (<code>ui-placeholder/</code>)</td>
+                  </tr>
+                  <tr>
+                    <td>page stylesheet injection</td>
+                    <td><code>UI.styles</code> (document adopted sheets)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <p>
+              Questions:
+              <a href="#q13">Q13</a> page-wide vs subtree settings, <a href="#q14">Q14</a> nested roots,
+              <a href="#q15">Q15</a> timeout and error policy, <a href="#q16">Q16</a> SSR / Declarative Shadow DOM,
+              <a href="#q17">Q17</a> skeleton sizing, <a href="#q18">Q18</a> core vs own entry,
+              <a href="#q19">Q19</a> default display, <a href="#q20">Q20</a> attributes vs elements,
+              <a href="#q21">Q21</a> where descriptions live.
+            </p>
           </section>
         </section>
 
@@ -1265,6 +2139,34 @@
                 ></ui-accordion
               >
             </li>
+            <li data-status="open" id="d41">
+              <a class="plan-id" href="#d41">D41</a>
+              <span class="plan-title"
+                >Rename: folders + family files + entries + URLs + baselines are ui-&amp;lt;family&amp;gt;; example
+                files, CSS layer names and sheet registry names stay bare</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Codemod
+                    <a href="../../../ui/scripts/rename-families.ts" target="src-packages-ui-scripts-rename-families-ts"
+                      ><code>packages/ui/scripts/rename-families.ts</code></a
+                    >
+                    (repeatable; dry run reports 0 after). 585 moves, 2,922 references. <code>examples/</code> files
+                    keep their names (paired by example name, e.g.
+                    <a
+                      href="../../../ui/src/components/ui-sidebar/examples/elements/sidebar.visual.ts"
+                      target="src-packages-ui-src-components-ui-sidebar-examples-elements-sidebar-visual-ts"
+                      ><code>sidebar.visual.ts</code></a
+                    >); layers stay <code>ui.components.button</code>; sheets register by the bare name (<code
+                      >HotDefinitions.updateStyle</code
+                    >
+                    and the visual fixture strip <code>ui-</code>). Zero visual diffs, every check green.
+                  </p></ui-content
+                ></ui-accordion
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
+            </li>
           </ol>
         </section>
 
@@ -1516,9 +2418,9 @@
               <li><b>Verify:</b> Playwright click-through, axe, light + dark screenshots</li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="16" class="s3">
+          <section data-status="done" data-phase="16" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p16"><ui-icon name="circle outline" color="grey"></ui-icon> P16 · Root Design</h3></ui-sticky
+              ><h3 id="p16"><ui-icon name="circle check" color="green"></ui-icon> P16 · Root Design</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li>
@@ -2046,6 +2948,27 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-01T12:02-04:00">2026-10-01 12:02</time></ui-date> P13
                   active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T12:04-04:00">2026-10-01 12:04</time></ui-date> P16
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T12:07-04:00">2026-10-01 12:07</time></ui-date> P16
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T12:30-04:00">2026-10-01 12:30</time></ui-date> P13 step 1
+                  (rename) done and verified; P16 design written (3.5, Q13-Q21).</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

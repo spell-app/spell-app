@@ -1,0 +1,52 @@
+<!--
+  Card states, after Fomantic's docs (views/card.html, "States").
+  Static class grammar `ui-card.css` styles:  the card box (`.ui.card`, and `.ui.cards > .card` without `ui`), its
+  images, and the content parts (`in-card`, as `ui-parts.css` expects static parts);  element markup renders the same.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Disabled</h4>
+    <div class="ui disabled card">
+      <div class="content in-card">
+        <a class="header in-card" href="#kristy">Kristy</a>
+        <div class="meta in-card"><span>Joined in 2013</span></div>
+        <div class="description in-card">Kristy is an art director living in New York.</div>
+      </div>
+      <div class="extra in-card">
+        <a href="#kristy-friends"
+          ><span class="ui icon"
+            ><svg viewBox="0 0 448 512" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M224 248a120 120 0 1 0 0-240 120 120 0 1 0 0 240zm-29.7 56C95.8 304 16 383.8 16 482.3 16 498.7 29.3 512 45.7 512l356.6 0c16.4 0 29.7-13.3 29.7-29.7 0-98.5-79.8-178.3-178.3-178.3l-59.4 0z"
+              /></svg
+          ></span>
+          22 Friends</a
+        >
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Loading</h4>
+    <div class="ui loading card">
+      <div class="content in-card">
+        <a class="header in-card" href="#matthew">Matthew</a>
+        <div class="meta in-card"><span>Joined in 2015</span></div>
+        <div class="description in-card">Matthew is a musician living in Nashville.</div>
+      </div>
+      <div class="extra in-card">
+        <a href="#matthew-friends"
+          ><span class="ui icon"
+            ><svg viewBox="0 0 448 512" aria-hidden="true">
+              <path
+                fill="currentColor"
+                d="M224 248a120 120 0 1 0 0-240 120 120 0 1 0 0 240zm-29.7 56C95.8 304 16 383.8 16 482.3 16 498.7 29.3 512 45.7 512l356.6 0c16.4 0 29.7-13.3 29.7-29.7 0-98.5-79.8-178.3-178.3-178.3l-59.4 0z"
+              /></svg
+          ></span>
+          75 Friends</a
+        >
+      </div>
+    </div>
+  </section>
+</div>

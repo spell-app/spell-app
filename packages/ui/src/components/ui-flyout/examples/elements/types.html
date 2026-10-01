@@ -1,0 +1,44 @@
+<!--
+  `src/components/ui-flyout/examples/types.html` (and `variations.html`) as element markup.  Each flyout opens from a
+  native button through an invoker command (`commandfor` + `command="--show"`);  approve / deny buttons close it.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Flyout</h4>
+    <button type="button" class="ui button" commandfor="flyout-types-standard" command="--show">Show</button>
+    <ui-flyout id="flyout-types-standard" closable>
+      <ui-header>Archive old messages</ui-header>
+      <ui-content>
+        <p>Your inbox is getting full. Would you like us to enable automatic archiving of old messages?</p>
+      </ui-content>
+      <ui-actions>
+        <ui-button class="cancel" color="red">No</ui-button>
+        <ui-button class="ok" color="green">Yes</ui-button>
+      </ui-actions>
+    </ui-flyout>
+  </section>
+
+  <section>
+    <h4>Right, shorthands</h4>
+    <button type="button" class="ui button" commandfor="flyout-types-right" command="--show">Show right</button>
+    <ui-flyout id="flyout-types-right" position="right" width="thin" header="Profile" content="A thin flyout." closable>
+    </ui-flyout>
+  </section>
+
+  <section>
+    <h4>Top, inverted</h4>
+    <button type="button" class="ui button" commandfor="flyout-types-top" command="--show">Show top</button>
+    <ui-flyout id="flyout-types-top" position="top" inverted header="Notice" closable>
+      <ui-content><p>A top flyout is full width, as tall as its content.</p></ui-content>
+    </ui-flyout>
+  </section>
+
+  <section>
+    <h4>Bottom, blurring</h4>
+    <button type="button" class="ui button" commandfor="flyout-types-bottom" command="--show">Show bottom</button>
+    <ui-flyout id="flyout-types-bottom" position="bottom" blurring aria-label="Cookies">
+      <ui-content><p>This page uses no cookies.</p></ui-content>
+      <ui-actions><ui-button class="approve" primary>Got it</ui-button></ui-actions>
+    </ui-flyout>
+  </section>
+</div>

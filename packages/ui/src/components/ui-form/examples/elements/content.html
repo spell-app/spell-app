@@ -1,0 +1,28 @@
+<!-- `src/components/ui-form/examples/content.html` as element markup. -->
+<ui-form>
+  <form>
+    <ui-fields widths="2">
+      <ui-field>
+        <label for="fm-content-first">First name</label>
+        <ui-input id="fm-content-first" placeholder="First Name"></ui-input>
+      </ui-field>
+      <ui-field>
+        <label for="fm-content-last">Last name</label>
+        <ui-input id="fm-content-last" placeholder="Last Name"></ui-input>
+      </ui-field>
+    </ui-fields>
+    <ui-field>
+      <label for="fm-content-text">Text</label>
+      <ui-textarea id="fm-content-text" rows="2"></ui-textarea>
+    </ui-field>
+    <ui-fields inline role="radiogroup" aria-labelledby="fm-content-often">
+      <label id="fm-content-often">How often do you use checkboxes?</label>
+      <ui-field><ui-radio name="often" value="week" selected>Once a week</ui-radio></ui-field>
+      <ui-field><ui-radio name="often" value="day">Once a day</ui-radio></ui-field>
+    </ui-fields>
+    <ui-field>
+      <ui-checkbox type="toggle" name="news">Subscribe to the newsletter</ui-checkbox>
+    </ui-field>
+    <ui-message header="We had some issues"><p>A message in a form.</p></ui-message>
+  </form>
+</ui-form>

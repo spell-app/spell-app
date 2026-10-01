@@ -7,7 +7,7 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { UIElement, type UIElementClass, type UIHost } from "$/ui/elements"
 
-import "$/ui/components/label"
+import "$/ui/components/ui-label"
 
 /** Test-only element that throws on demand:  `boom` in render, `crash` in the constructor, `burst` in an effect. */
 class Bomb extends UIElement<typeof BOMB> {
@@ -128,7 +128,7 @@ describe("per-element error boundary", () => {
 
 describe("error boundary cost", () => {
   it("measures render time of 300 labels with and without boundaries", { timeout: 60_000 }, async () => {
-    const { UILabel } = await import("$/ui/components/label")
+    const { UILabel } = await import("$/ui/components/ui-label")
     defineBare(UILabel as unknown as UIElementClass & typeof UIElement, "bare-label")
     const html = (tag: string) => `<div>${`<${tag} color='red' icon='check'>x</${tag}>`.repeat(300)}</div>`
     const times: Record<string, number[]> = { isolated: [], bare: [] }

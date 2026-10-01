@@ -3,7 +3,7 @@ import { glob } from "astro/loaders"
 import { z } from "astro/zod"
 
 /**
- * One MDX page per component, `src/content/components/<name>.mdx`, rendered by `pages/components/[slug].astro`.
+ * One MDX page per component, `src/content/components/ui-<name>.mdx`, rendered by `pages/components/[slug].astro`.
  * - Component agents own their page;  the recipe is in `site/README.md`.
  * - The sidebar lists every entry alphabetically, badged by `status`.
  */

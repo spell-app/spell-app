@@ -29,7 +29,7 @@
     "**/reference/**",
     "**/src/icons/data/**",
     "**/src/icons/icon-packs/**",
-    "**/src/components/emoji/data/**",
+    "**/src/components/ui-emoji/data/**",
     "**/site/dist/**",
     "**/site/**/*.mdx",
     "**/site/.astro/**",

@@ -1,0 +1,84 @@
+<!--
+  Breadcrumb types, after Fomantic's docs (collections/breadcrumb.html, "Types").
+  Two static forms `ui-breadcrumb.css` styles:  Fomantic's markup, with explicit `.divider` elements between sections,
+  and the element's semantic form (`<nav><ol><li>`), where each section's EMPTY `.divider` draws the
+  breadcrumb's `--ui-breadcrumb-divider*` tokens and the first one is hidden.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Breadcrumb</h4>
+    <nav class="ui breadcrumb" aria-label="Breadcrumb">
+      <a class="section" href="#home">Home</a>
+      <span class="divider">/</span>
+      <a class="section" href="#store">Store</a>
+      <span class="divider">/</span>
+      <span class="active section" aria-current="page">T-Shirt</span>
+    </nav>
+  </section>
+
+  <section>
+    <h4>Semantic list, token divider</h4>
+    <nav class="ui breadcrumb" aria-label="Breadcrumb">
+      <ol>
+        <li><span class="divider" aria-hidden="true"></span><a class="section" href="#home">Home</a></li>
+        <li><span class="divider" aria-hidden="true"></span><a class="section" href="#store">Store</a></li>
+        <li>
+          <span class="divider" aria-hidden="true"></span
+          ><span class="active section" aria-current="page">T-Shirt</span>
+        </li>
+      </ol>
+    </nav>
+    <nav class="ui breadcrumb" aria-label="Breadcrumb" style="--ui-breadcrumb-divider: &quot;›&quot;">
+      <ol>
+        <li><span class="divider" aria-hidden="true"></span><a class="section" href="#home">Home</a></li>
+        <li><span class="divider" aria-hidden="true"></span><a class="section" href="#store">Store</a></li>
+        <li>
+          <span class="divider" aria-hidden="true"></span
+          ><span class="active section" aria-current="page">T-Shirt</span>
+        </li>
+      </ol>
+    </nav>
+  </section>
+
+  <section>
+    <h4>Icon divider</h4>
+    <nav class="ui breadcrumb" aria-label="Breadcrumb">
+      <a class="section" href="#home">Home</a>
+      <span class="icon divider"
+        ><svg viewBox="0 0 320 512" aria-hidden="true">
+          <path
+            fill="currentColor"
+            d="M311.1 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L243.2 256 73.9 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"
+          /></svg
+      ></span>
+      <a class="section" href="#registration">Registration</a>
+      <span class="icon divider"
+        ><svg viewBox="0 0 320 512" aria-hidden="true">
+          <path
+            fill="currentColor"
+            d="M311.1 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L243.2 256 73.9 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"
+          /></svg
+      ></span>
+      <span class="active section" aria-current="page">Personal Information</span>
+    </nav>
+    <nav
+      class="ui breadcrumb"
+      aria-label="Breadcrumb"
+      style="
+        --_ui-breadcrumb-divider-layout: icon;
+        --ui-breadcrumb-divider-icon: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 320 512'%3E%3Cpath d='M311.1 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c-12.5 12.5-32.8 12.5-45.3 0s-12.5-32.8 0-45.3L243.2 256 73.9 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z'/%3E%3C/svg%3E&quot;);
+      "
+    >
+      <ol>
+        <li><span class="divider" aria-hidden="true"></span><a class="section" href="#home">Home</a></li>
+        <li>
+          <span class="divider" aria-hidden="true"></span><a class="section" href="#registration">Registration</a>
+        </li>
+        <li>
+          <span class="divider" aria-hidden="true"></span
+          ><span class="active section" aria-current="page">Personal Information</span>
+        </li>
+      </ol>
+    </nav>
+  </section>
+</div>

@@ -1,0 +1,279 @@
+<!-- `src/components/ui-table/examples/states.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Positive / negative</h4>
+    <ui-table celled>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>No Name Specified</td>
+            <td>Unknown</td>
+            <td class="negative">None</td>
+          </tr>
+          <tr class="positive">
+            <td>Jimmy</td>
+            <td>Approved</td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td>Jamie</td>
+            <td>Unknown</td>
+            <td class="positive">Requires call</td>
+          </tr>
+          <tr class="negative">
+            <td>Jill</td>
+            <td>Unknown</td>
+            <td>None</td>
+          </tr>
+        </tbody>
+      </table>
+    </ui-table>
+  </section>
+
+  <section>
+    <h4>Error / warning</h4>
+    <ui-table celled>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>No Name Specified</td>
+            <td>Unknown</td>
+            <td>None</td>
+          </tr>
+          <tr class="error">
+            <td>Jimmy</td>
+            <td>Cannot pull data</td>
+            <td>None</td>
+          </tr>
+          <tr class="warning">
+            <td>Jamie</td>
+            <td>Unknown</td>
+            <td>Requires call</td>
+          </tr>
+          <tr>
+            <td>Jill</td>
+            <td>Approved</td>
+            <td class="error">Timed out</td>
+          </tr>
+          <tr>
+            <td>Jack</td>
+            <td class="warning">Pending</td>
+            <td>None</td>
+          </tr>
+        </tbody>
+      </table>
+    </ui-table>
+  </section>
+
+  <section>
+    <h4>Active / disabled</h4>
+    <ui-table celled>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>John</td>
+            <td>Selected</td>
+            <td>None</td>
+          </tr>
+          <tr class="active">
+            <td>Jamie</td>
+            <td>Selected</td>
+            <td>Requires call</td>
+          </tr>
+          <tr>
+            <td>Jill</td>
+            <td class="active">Selected</td>
+            <td>None</td>
+          </tr>
+          <tr class="disabled">
+            <td>Jack</td>
+            <td>Disabled</td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td>Jane</td>
+            <td class="disabled">Disabled</td>
+            <td>None</td>
+          </tr>
+        </tbody>
+      </table>
+    </ui-table>
+  </section>
+
+  <section>
+    <h4>Coloured rows and cells</h4>
+    <ui-table celled>
+      <table>
+        <thead>
+          <tr>
+            <th>Colour</th>
+            <th>Row</th>
+            <th>Cell</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="red">
+            <td>Red</td>
+            <td>Row</td>
+            <td>Cell</td>
+          </tr>
+          <tr class="orange">
+            <td>Orange</td>
+            <td>Row</td>
+            <td>Cell</td>
+          </tr>
+          <tr class="yellow">
+            <td>Yellow</td>
+            <td>Row</td>
+            <td>Cell</td>
+          </tr>
+          <tr class="olive">
+            <td>Olive</td>
+            <td>Row</td>
+            <td>Cell</td>
+          </tr>
+          <tr class="green">
+            <td>Green</td>
+            <td>Row</td>
+            <td>Cell</td>
+          </tr>
+          <tr class="teal">
+            <td>Teal</td>
+            <td>Row</td>
+            <td>Cell</td>
+          </tr>
+          <tr>
+            <td>Blue</td>
+            <td>Plain</td>
+            <td class="blue">Cell</td>
+          </tr>
+          <tr>
+            <td>Violet</td>
+            <td>Plain</td>
+            <td class="violet">Cell</td>
+          </tr>
+          <tr>
+            <td>Purple</td>
+            <td>Plain</td>
+            <td class="purple">Cell</td>
+          </tr>
+          <tr>
+            <td>Pink</td>
+            <td>Plain</td>
+            <td class="pink">Cell</td>
+          </tr>
+          <tr>
+            <td>Brown</td>
+            <td>Plain</td>
+            <td class="brown">Cell</td>
+          </tr>
+          <tr>
+            <td>Grey</td>
+            <td>Plain</td>
+            <td class="grey">Cell</td>
+          </tr>
+          <tr>
+            <td>Black</td>
+            <td>Plain</td>
+            <td class="black">Cell</td>
+          </tr>
+        </tbody>
+      </table>
+    </ui-table>
+  </section>
+
+  <section>
+    <h4>Marked</h4>
+    <ui-table celled>
+      <table>
+        <thead>
+          <tr>
+            <th>Food</th>
+            <th>Calories</th>
+            <th>Protein</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="left red marked">Apples</td>
+            <td>200</td>
+            <td>0g</td>
+          </tr>
+          <tr class="left green marked">
+            <td>Orange</td>
+            <td>310</td>
+            <td>0g</td>
+          </tr>
+          <tr>
+            <td>Bread</td>
+            <td>150</td>
+            <td class="right blue marked">5g</td>
+          </tr>
+          <tr>
+            <td class="red colored right blue marked">Cheese</td>
+            <td>400</td>
+            <td>20g</td>
+          </tr>
+        </tbody>
+      </table>
+    </ui-table>
+  </section>
+
+  <section>
+    <h4>Inverted states</h4>
+    <ui-table inverted celled>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>No Name Specified</td>
+            <td>Unknown</td>
+            <td class="negative">None</td>
+          </tr>
+          <tr class="positive">
+            <td>Jimmy</td>
+            <td>Approved</td>
+            <td>None</td>
+          </tr>
+          <tr>
+            <td>Jamie</td>
+            <td>Unknown</td>
+            <td class="positive">Requires call</td>
+          </tr>
+          <tr class="negative">
+            <td>Jill</td>
+            <td>Unknown</td>
+            <td>None</td>
+          </tr>
+        </tbody>
+      </table>
+    </ui-table>
+  </section>
+</div>

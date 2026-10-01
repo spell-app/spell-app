@@ -1,0 +1,64 @@
+<!--
+  Select types, after Fomantic's docs (modules/dropdown.html, "Selection" and the native `select.ui.dropdown`).
+  Light-DOM markup in the class grammar `ui-select.css` styles inside `<ui-select>`'s shadow root:  a native
+  `<select class="ui select">`;  a browser with the customizable select also gets the `<button><selectedcontent>`.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Select</h4>
+    <select class="ui select" aria-label="Gender">
+      <option class="placeholder" value="">Gender</option>
+      <option class="item" value="male"><span class="text">Male</span></option>
+      <option class="item" value="female"><span class="text">Female</span></option>
+    </select>
+  </section>
+
+  <section>
+    <h4>Chosen value</h4>
+    <select class="ui select" aria-label="Fruit">
+      <option class="item" value="apple"><span class="text">Apple</span></option>
+      <option class="item" value="banana" selected><span class="text">Banana</span></option>
+      <option class="item" value="cherry"><span class="text">Cherry</span></option>
+    </select>
+  </section>
+
+  <section>
+    <h4>Groups and dividers</h4>
+    <select class="ui select" aria-label="Food">
+      <option class="placeholder" value="">Choose food</option>
+      <optgroup label="Fruit">
+        <option class="item" value="apple"><span class="text">Apple</span></option>
+        <option class="item" value="pear"><span class="text">Pear</span></option>
+      </optgroup>
+      <optgroup label="Vegetables">
+        <option class="item" value="leek"><span class="text">Leek</span></option>
+      </optgroup>
+      <hr class="divider" />
+      <option class="item" value="none"><span class="text">Nothing</span></option>
+    </select>
+  </section>
+
+  <section>
+    <h4>Flags and descriptions</h4>
+    <select class="ui select" aria-label="Country">
+      <option class="placeholder" value="">Select Country</option>
+      <option class="item" value="fr">
+        <span class="flag">🇫🇷</span><span class="text">France</span> <span class="description">EU</span>
+      </option>
+      <option class="item" value="gh">
+        <span class="flag">🇬🇭</span><span class="text">Ghana</span> <span class="description">AU</span>
+      </option>
+      <option class="item" value="jp"><span class="flag">🇯🇵</span><span class="text">Japan</span></option>
+    </select>
+  </section>
+
+  <section>
+    <h4>Multiple</h4>
+    <select class="ui multiple select" multiple aria-label="Skills">
+      <option class="item" value="angular" selected><span class="text">Angular</span></option>
+      <option class="item" value="css" selected><span class="text">CSS</span></option>
+      <option class="item" value="html"><span class="text">HTML</span></option>
+      <option class="item" value="js"><span class="text">JavaScript</span></option>
+    </select>
+  </section>
+</div>

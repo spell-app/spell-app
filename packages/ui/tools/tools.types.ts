@@ -23,7 +23,7 @@ export type PackageConfig = {
   root: string
   /** Vite config file, relative to `root`;  default `vite.config.ts` */
   configFile?: string
-  /** family name => entry file, e.g. `{ button: "src/components/button/index.ts" }` */
+  /** family name => entry file, e.g. `{ "ui-button": "src/components/ui-button/index.ts" }` */
   entries: Record<string, string>
   /**
    * Shared entries, in load order, e.g. `[{ name: "core", entry: "src/core.ts" }, { name: "forms", entry: ... }]`.
@@ -48,7 +48,7 @@ export type PackageConfig = {
   peerEntry: string
   /** bucket of a module id */
   groups: (moduleId: string) => Bucket
-  /** family that "a page with one button" loads;  default `button` */
+  /** family that "a page with one button" loads;  default `ui-button` */
   pageFamily?: string
   /** where the `*-results.json` files go, relative to `root` */
   results: string
@@ -64,7 +64,7 @@ export type SharedEntry = {
   description?: string
 }
 
-/** Which kind of an own family module it is;  `fallback` ~== its native fallback (`<name>.fallback.ts`). */
+/** Which kind of an own family module it is;  `fallback` ~== its native fallback (`ui-<name>.fallback.ts`). */
 export type OwnKind = "classes" | "css" | "vocabulary" | "fallback"
 
 /**
@@ -73,7 +73,7 @@ export type OwnKind = "classes" | "css" | "vocabulary" | "fallback"
  * - `core` -- element core + foundation JS, the `core.js` chunk;  ~== `shared:core`
  * - `shared:<name>` -- a module of shared entry `<name>` (`shared:forms` => `forms.js`)
  * - `runtime` / `icons` -- the lazy `UIRuntime` chunk and the icon name / alias maps
- * - `data` -- a family's lazily imported data files (`components/<family>/data/`, e.g. the emoji chunks)
+ * - `data` -- a family's lazily imported data files (`components/ui-<family>/data/`, e.g. the emoji chunks)
  * - `own:<family>:<kind>` -- one family's classes, sheet, vocabulary or fallback
  * - `extra:<name>` -- a module only `PackageConfig.extra` entry `<name>` holds (`extra:api` => `api.js`)
  * - `other` -- unattributed;  reported by a check so nothing is silently dropped

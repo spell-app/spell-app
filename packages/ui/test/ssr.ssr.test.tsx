@@ -6,11 +6,11 @@ import { writeFile, mkdir } from "node:fs/promises"
 import { resolve } from "node:path"
 
 import { foundationCSS } from "$/ui/styles"
-import { buttonVocabulary } from "$/ui/components/button/button.vocabulary.en"
+import { buttonVocabulary } from "$/ui/components/ui-button/ui-button.vocabulary.en"
 import { ElementDefinition, type UIHost } from "$/ui/elements"
-import { UIButton } from "$/ui/components/button/UIButton"
+import { UIButton } from "$/ui/components/ui-button/UIButton"
 
-import buttonCSS from "$/ui/components/button/button.css?inline"
+import buttonCSS from "$/ui/components/ui-button/ui-button.css?inline"
 
 /**
  * SSR probe:  can `<ui-button primary>Save</ui-button>` be rendered to a Declarative Shadow DOM string?

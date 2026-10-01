@@ -1,0 +1,69 @@
+<!--
+  Reveal variations, after Fomantic's docs (elements/reveal.html, "Variations").
+  Light-DOM markup in the class grammar `ui-reveal.css` styles inside `<ui-reveal>`'s shadow root:  the two contents
+  are Fomantic's `img.visible.content` / `img.hidden.content`;  the element wraps its `visible` / `hidden` slots in
+  those boxes.  Hover (or focus, in element markup) to reveal.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Instant</h4>
+    <div class="ui instant move reveal">
+      <img
+        class="visible content"
+        src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+        alt="Avatar"
+        width="150"
+        height="150"
+      />
+      <img
+        class="hidden content"
+        src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%230f766e%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23ccfbf1%22/%3E%3C/svg%3E"
+        alt="Profile"
+        width="150"
+        height="150"
+      />
+    </div>
+  </section>
+
+  <section>
+    <h4>Visible</h4>
+    <div class="ui visible rotate reveal">
+      <img
+        class="visible content"
+        src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+        alt="Avatar"
+        width="150"
+        height="150"
+        style="border-radius: 50%"
+      />
+      <img
+        class="hidden content"
+        src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%230f766e%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23ccfbf1%22/%3E%3C/svg%3E"
+        alt="Profile"
+        width="150"
+        height="150"
+        style="border-radius: 50%"
+      />
+    </div>
+  </section>
+
+  <section>
+    <h4>Size</h4>
+    <div class="ui small fade reveal">
+      <img
+        class="visible content"
+        src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%2394a3b8%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23e2e8f0%22/%3E%3C/svg%3E"
+        alt="Avatar"
+        width="150"
+        height="150"
+      />
+      <img
+        class="hidden content"
+        src="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22150%22 height=%22150%22 viewBox=%220 0 10 10%22%3E%3Crect width=%2210%22 height=%2210%22 fill=%22%230f766e%22/%3E%3Ccircle cx=%225%22 cy=%224%22 r=%222%22 fill=%22%23ccfbf1%22/%3E%3C/svg%3E"
+        alt="Profile"
+        width="150"
+        height="150"
+      />
+    </div>
+  </section>
+</div>

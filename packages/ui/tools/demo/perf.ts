@@ -11,7 +11,7 @@ import { flush } from "solid-js"
 import type { UIHost } from "$/ui/elements"
 import { PerfRun } from "$/ui/test/PerfRun"
 
-import "$/ui/components/dropdown"
+import "$/ui/components/ui-dropdown"
 
 const host = document.getElementById("perf") as UIHost
 await host.ready

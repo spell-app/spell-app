@@ -1,0 +1,57 @@
+<!--
+  `src/components/ui-popup/examples/variations.html` as element markup.
+  `on="manual" open`:  shown from the start, and none closes another (`manual` popovers).
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Position</h4>
+    <p class="ui-cluster" style="padding-block: 4em">
+      <ui-button id="popup-variations-top">Top right</ui-button>
+      <ui-popup for="popup-variations-top" on="manual" open position="top right" content="Top right"></ui-popup>
+      <ui-button id="popup-variations-bottom">Bottom center</ui-button>
+      <ui-popup
+        for="popup-variations-bottom"
+        on="manual"
+        open
+        position="bottom center"
+        content="Bottom center"
+      ></ui-popup>
+      <ui-button id="popup-variations-right">Right center</ui-button>
+      <ui-popup for="popup-variations-right" on="manual" open position="right center" content="Right"></ui-popup>
+      <ui-button id="popup-variations-right-top">Right top</ui-button>
+      <ui-popup
+        for="popup-variations-right-top"
+        on="manual"
+        open
+        position="right top"
+        content="Beside, top edges lined up"
+      ></ui-popup>
+    </p>
+  </section>
+
+  <section>
+    <h4>Basic, wide, inverted, coloured, sized</h4>
+    <p class="ui-cluster">
+      <ui-button id="popup-variations-basic">Basic</ui-button>
+      <ui-popup for="popup-variations-basic" basic content="No pointing arrow"></ui-popup>
+      <ui-button id="popup-variations-wide">Very wide</ui-button>
+      <ui-popup
+        for="popup-variations-wide"
+        wide="very"
+        content="A very wide popup allows a much wider column, for long explanations that need the room."
+      ></ui-popup>
+      <ui-button id="popup-variations-inverted">Inverted</ui-button>
+      <ui-popup for="popup-variations-inverted" inverted content="An inverted popup"></ui-popup>
+      <ui-button id="popup-variations-red">Red</ui-button>
+      <ui-popup for="popup-variations-red" color="red" content="A red popup"></ui-popup>
+      <ui-button id="popup-variations-large">Large</ui-button>
+      <ui-popup for="popup-variations-large" size="large" content="A large popup"></ui-popup>
+    </p>
+  </section>
+
+  <section>
+    <h4>Fluid</h4>
+    <ui-button id="popup-variations-fluid" fluid>Fluid</ui-button>
+    <ui-popup for="popup-variations-fluid" fluid position="bottom left" content="As wide as its target"></ui-popup>
+  </section>
+</div>

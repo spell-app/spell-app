@@ -1,0 +1,103 @@
+<!--
+  Search types, after Fomantic's docs (modules/search.html, "Types").
+  Light-DOM markup in the class grammar `ui-search.css` styles inside `<ui-search>`'s shadow root:  a `ui icon input`
+  around the `input.prompt` combobox, and a `.results[popover]`.  The "open" examples use a plain `.visible.results`
+  so they show without script;  a closed one is a popover.
+-->
+<div class="ui-stack" style="padding-bottom: 16em">
+  <section>
+    <h4>Standard</h4>
+    <div class="ui search">
+      <div class="ui icon input">
+        <input
+          class="prompt"
+          type="text"
+          role="combobox"
+          aria-expanded="false"
+          aria-label="Countries"
+          placeholder="Common passwords..."
+          autocomplete="off"
+        />
+        <span class="search icon"></span>
+      </div>
+      <div class="results" popover="manual"></div>
+    </div>
+  </section>
+
+  <section>
+    <h4>Standard, showing results</h4>
+    <div class="ui search">
+      <div class="ui icon input">
+        <input
+          class="prompt"
+          type="text"
+          role="combobox"
+          aria-expanded="true"
+          aria-label="Fruit"
+          value="ap"
+          autocomplete="off"
+        />
+        <span class="search icon"></span>
+      </div>
+      <div class="visible results" role="listbox" aria-label="Fruit">
+        <div class="active result" role="option" aria-selected="true">
+          <div class="content">
+            <div class="title">Apple</div>
+            <div class="description">Crisp and sweet</div>
+          </div>
+        </div>
+        <div class="result" role="option" aria-selected="false">
+          <div class="content">
+            <div class="price">$2.00</div>
+            <div class="title">Apricot</div>
+            <div class="description">Soft, from Valencia</div>
+          </div>
+        </div>
+        <a class="result" href="#grape" role="option" aria-selected="false" tabindex="-1">
+          <div class="content"><div class="title">Grape</div></div>
+        </a>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="ui-stack" style="padding-bottom: 16em">
+  <section>
+    <h4>Category, showing results</h4>
+    <div class="ui category search">
+      <div class="ui icon input">
+        <input
+          class="prompt"
+          type="text"
+          role="combobox"
+          aria-expanded="true"
+          aria-label="Food"
+          value="a"
+          autocomplete="off"
+        />
+        <span class="search icon"></span>
+      </div>
+      <div class="visible results" role="listbox" aria-label="Food">
+        <div class="active category" role="group" aria-labelledby="search-example-fruit">
+          <div class="name" id="search-example-fruit">Fruit</div>
+          <div class="results" role="none">
+            <div class="active result" role="option" aria-selected="true">
+              <div class="content"><div class="title">Apple</div></div>
+            </div>
+            <div class="result" role="option" aria-selected="false">
+              <div class="content"><div class="title">Banana</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="category" role="group" aria-labelledby="search-example-veg">
+          <div class="name" id="search-example-veg">Vegetables</div>
+          <div class="results" role="none">
+            <div class="result" role="option" aria-selected="false">
+              <div class="content"><div class="title">Asparagus</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

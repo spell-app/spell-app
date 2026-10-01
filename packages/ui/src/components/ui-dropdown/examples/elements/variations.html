@@ -1,0 +1,76 @@
+<!-- `src/components/ui-dropdown/examples/variations.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Scrolling</h4>
+    <ui-dropdown scrolling text="Choose a number">
+      <ui-item>1</ui-item><ui-item>2</ui-item><ui-item>3</ui-item><ui-item>4</ui-item><ui-item>5</ui-item>
+      <ui-item>6</ui-item><ui-item>7</ui-item><ui-item>8</ui-item><ui-item>9</ui-item><ui-item>10</ui-item>
+      <ui-item>11</ui-item><ui-item>12</ui-item>
+    </ui-dropdown>
+  </section>
+
+  <section>
+    <h4>Compact</h4>
+    <ui-dropdown compact selection text="Compact"><ui-item>A</ui-item></ui-dropdown>
+  </section>
+
+  <section>
+    <h4>Fluid</h4>
+    <ui-dropdown fluid selection placeholder="Select Friend"><ui-item>Jenny Hess</ui-item></ui-dropdown>
+  </section>
+
+  <section>
+    <h4>Upward, left direction, floating</h4>
+    <ui-dropdown upward selection text="Upward"><ui-item>One</ui-item></ui-dropdown>
+    <ui-dropdown direction="left" text="Left menu"><ui-item>Opens toward the start</ui-item></ui-dropdown>
+    <ui-dropdown floating button text="Floating"><ui-item>One</ui-item></ui-dropdown>
+  </section>
+
+  <section>
+    <h4>Pointing</h4>
+    <ui-dropdown pointing text="Pointing"><ui-item>One</ui-item></ui-dropdown>
+    <ui-dropdown pointing="top left" text="Top left"><ui-item>One</ui-item></ui-dropdown>
+    <ui-dropdown pointing="top right" text="Top right"><ui-item>One</ui-item></ui-dropdown>
+    <ui-dropdown pointing="left" text="Left"><ui-item>One</ui-item></ui-dropdown>
+    <ui-dropdown pointing="right" text="Right"><ui-item>One</ui-item></ui-dropdown>
+    <ui-dropdown pointing="bottom" text="Bottom"><ui-item>One</ui-item></ui-dropdown>
+    <ui-dropdown pointing="bottom left" text="Bottom left"><ui-item>One</ui-item></ui-dropdown>
+    <ui-dropdown pointing="bottom right" text="Bottom right"><ui-item>One</ui-item></ui-dropdown>
+  </section>
+
+  <section>
+    <h4>Columnar</h4>
+    <ui-dropdown columnar="3" selection placeholder="Three columns">
+      <ui-item>A</ui-item><ui-item>B</ui-item><ui-item>C</ui-item> <ui-item>D</ui-item><ui-item>E</ui-item
+      ><ui-item>F</ui-item>
+    </ui-dropdown>
+  </section>
+
+  <section>
+    <h4>Size</h4>
+    <ui-dropdown size="mini" selection text="Mini"></ui-dropdown>
+    <ui-dropdown size="small" selection text="Small"></ui-dropdown>
+    <ui-dropdown size="medium" selection text="Medium"></ui-dropdown>
+    <ui-dropdown size="large" selection text="Large"></ui-dropdown>
+    <ui-dropdown size="massive" selection text="Massive"></ui-dropdown>
+  </section>
+
+  <section>
+    <h4>Colored</h4>
+    <ui-dropdown color="red" multiple selection placeholder="Colors" value="red">
+      <ui-item value="red">Red</ui-item>
+      <ui-item value="blue">Blue</ui-item>
+    </ui-dropdown>
+  </section>
+
+  <section class="ui-dark ui-p-m">
+    <h4>Inverted</h4>
+    <ui-dropdown inverted selection placeholder="Inverted"><ui-item>One</ui-item></ui-dropdown>
+  </section>
+
+  <section>
+    <h4>Short and long</h4>
+    <ui-dropdown short selection text="Short"></ui-dropdown>
+    <ui-dropdown very-long selection text="Very long"></ui-dropdown>
+  </section>
+</div>

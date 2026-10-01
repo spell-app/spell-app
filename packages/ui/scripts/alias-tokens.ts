@@ -6,7 +6,7 @@ import { NodePackage } from "../tools/NodePackage.ts"
 
 /**
  * `yarn tokens:alias <family> [--write]`:  the codemod of `docs/theming.md` "Converting a family".
- * - Rewrites every sheet of `src/components/<family>/` so it never DECLARES a public `--ui-<family>-*` token:
+ * - Rewrites every sheet of `src/components/ui-<family>/` so it never DECLARES a public `--ui-<family>-*` token:
  *   the first declaration becomes the private alias `--_ui-x: var(--ui-x, <default>)`, later ones (variations)
  *   write the alias, and every read in the family's sheets reads the alias.  See `ComponentTokens.convert()`.
  * - Without `--write` it only prints:  the notes to review, and every OTHER file still naming a converted token
