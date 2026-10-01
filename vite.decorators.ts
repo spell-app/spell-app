@@ -7,10 +7,13 @@ import type { Plugin } from "vite"
  *   node nor browsers run decorators natively -- without this, decorated files die with a bare `SyntaxError`.
  * - Only touches files which actually contain a decorator;  everything else stays on vite's normal path.
  * - esbuild rather than SWC / babel:  `tsx` already runs the server through esbuild, so client, server
- *   and tests all lower decorators identically.
- * - `keepNames` MUST stay on:  rule classes register under their class name -- see `parser/build.test.ts`.
- * - JSX is preserved for vite / react plugin to deal with.
- * - MUST be used by BOTH `vite.config.ts` and `vitest.config.ts`.
+ *   and tests all lower decorators identically.  One small, fast dependency, so `@proto` behaves
+ *   identically across `spell/parser`, `@spell/ui`, and runners built with this plugin.
+ * - `keepNames` MUST stay on:  rule classes register under their class name (see `packages/spell/src/parser/build.test.ts`),
+ *   and custom element classes keep their class names (`UIButton`), which the custom-elements manifest and
+ *   dev-time warnings read -- the build keeps them too.
+ * - JSX is preserved (loader `tsx`) for vite's react / Solid plugin to deal with;  the Solid plugin runs next.
+ * - MUST be used by BOTH `vite.config.ts` and `vitest.config.ts` in every package, and by the Astro config in `@spell/ui/site/`.
  * - TODO: delete this file when oxc lowers standard decorators.
  */
 export function standardDecorators(): Plugin {

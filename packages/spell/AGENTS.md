@@ -235,7 +235,7 @@ HTML docs for people -- design notes, research, references -- live in `docs/<top
 
 As the root's, plus:
 
-- `vite.decorators.ts` is used by BOTH `vite.config.ts` and `vitest.config.ts`.
+- `vite.decorators.ts` is now at the repo root:  `vite.config.ts` and `vitest.config.ts` import it with `../../vite.decorators.ts`.
   Server is fine as `tsx` is esbuild already.
 
 ## Types / Exports

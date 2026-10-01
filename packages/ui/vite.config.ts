@@ -5,7 +5,7 @@ import { readdirSync, readFileSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
-import { standardDecorators } from "./vite.decorators.ts"
+import { standardDecorators } from "../../vite.decorators.ts"
 // the fork's HMR plugin from SOURCE, not `@spell/solid-element/vite`:  Vite bundles this config with every BARE
 // import external, so Node would load the package's `dist/vite.js`, which a fresh checkout doesn't have yet
 // (Node 22.17 can't load the `.ts`).  A relative import is bundled into the config instead.  See `AGENTS.md`.

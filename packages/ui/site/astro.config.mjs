@@ -5,7 +5,7 @@ import { satteri } from "@astrojs/markdown-satteri"
 import solid from "@solidjs/vite-plugin"
 import { fileURLToPath } from "node:url"
 
-import { standardDecorators } from "../vite.decorators.ts"
+import { standardDecorators } from "../../vite.decorators.ts"
 import { CSS_TARGETS, SOLID_DEDUPE, emitIconPacks } from "../vite.config.ts"
 // from SOURCE, as in the root `vite.config.ts`:  a fresh checkout has no `packages/solid-element/dist/`
 import { solidElementHot } from "../../solid-element/src/vite.ts"
