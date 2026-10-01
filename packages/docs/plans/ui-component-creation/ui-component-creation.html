@@ -39,8 +39,8 @@
             <li data-status="done" data-phase="1">
               <ui-icon name="circle check" color="green"></ui-icon> <a href="#p1">P1 · Re-establish Baseline</a>
             </li>
-            <li data-status="todo" data-phase="2">
-              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p2">P2 · Icon Follow-ups</a>
+            <li data-status="done" data-phase="2">
+              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p2">P2 · Icon Follow-ups</a>
             </li>
             <li data-status="todo" data-phase="3">
               <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p3">P3 · Bug Sweep</a>
@@ -266,7 +266,7 @@
         <section class="s2">
           <ui-sticky class="spell-h2"><h2 id="issues">5. Issues</h2></ui-sticky>
           <ol class="plan-items" data-kind="issue">
-            <li data-status="open" id="i1">
+            <li data-status="done" id="i1">
               <a class="plan-id" href="#i1">I1</a>
               <span class="plan-title">UI.icons.get() can reject, though documented never to</span
               ><ui-accordion class="spell-aside" styled
@@ -535,6 +535,28 @@
                 ></ui-accordion
               >
             </li>
+            <li data-status="open" id="d16">
+              <a class="plan-id" href="#d16">D16</a>
+              <span class="plan-title"
+                >Pack builder stays in packages/ui/tools; other packages import it as $/ui/tools/IconPackBuilder</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    New alias <code>$/ui/tools/*</code> in
+                    <a href="../../../../tsconfig.base.json" target="src-tsconfig-base-json"
+                      ><code>tsconfig.base.json</code></a
+                    >
+                    (longer than <code>$/ui/*</code>, so it wins), listed with the other cross-package entry points.
+                    Checked: <code>yarn tsx</code> from
+                    <a href="../../../cli/" target="src-packages-cli"><code>packages/cli</code></a> loads it. Its
+                    relative imports of
+                    <a href="../../../ui/src/icons/" target="src-packages-ui-src-icons"><code>src/icons/</code></a>
+                    resolve from its own file, so nothing moves. Wiring the CLI command stays <a href="#t2">T2</a>.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
           </ol>
         </section>
 
@@ -559,9 +581,9 @@
               </li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="2" class="s3">
+          <section data-status="done" data-phase="2" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p2"><ui-icon name="circle outline" color="grey"></ui-icon> P2 · Icon Follow-ups</h3></ui-sticky
+              ><h3 id="p2"><ui-icon name="circle check" color="green"></ui-icon> P2 · Icon Follow-ups</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li>
@@ -698,6 +720,18 @@
               date mask.
             </li>
             <li><time datetime="2026-10-01T00:57-04:00">2026-10-01 00:57</time> P1 done</li>
+            <li><time datetime="2026-10-01T00:57-04:00">2026-10-01 00:57</time> P2 active</li>
+            <li>
+              <time datetime="2026-10-01T01:00-04:00">2026-10-01 01:00</time> I1 closed: UI.icons.get() can reject,
+              though documented never to
+            </li>
+            <li>
+              <time datetime="2026-10-01T01:00-04:00">2026-10-01 01:00</time> P2 done: get()/use()/ready never reject
+              (IconPacks.url() catches), IconGlyph.load() catches; 2 failing-first tests; docs bundle rebuilt (2,017
+              KB); spell-ui-findings #2 corrected (the bug survived the icon packs); old icon-packs worktree: the old
+              tree is gone, nothing to remove.
+            </li>
+            <li><time datetime="2026-10-01T01:00-04:00">2026-10-01 01:00</time> P2 done</li>
           </ul>
         </section>
       </main>

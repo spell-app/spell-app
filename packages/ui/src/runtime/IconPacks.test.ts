@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
+import { BuiltInPacks } from "$/ui/icons"
 import { Fixture } from "$/ui/test/fixture"
 import { IconPacks } from "./IconPacks"
 
@@ -210,5 +211,36 @@ describe("UI.icons:  SVGs", () => {
     expect(svg.getAttribute("viewBox")).toBe("0 0 1 1")
     expect(packs.peek("bell")).toBe(svg)
     expect(() => packs.register("x", "<p>no</p>")).toThrow("not an <svg>")
+  })
+})
+
+describe("UI.icons:  never rejects", () => {
+  it("answers nothing, with a warning, when the built-in packs have no base (an IIFE bundle)", async () => {
+    const base = BuiltInPacks.base
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+    BuiltInPacks.base = ""
+    try {
+      const packs = new IconPacks()
+      await expect(packs.get("bell")).resolves.toBeUndefined()
+      expect(packs.peek("bell")).toBeUndefined()
+      expect(packs.packs).toEqual([])
+      expect(warn).toHaveBeenCalledOnce()
+    } finally {
+      BuiltInPacks.base = base
+      warn.mockRestore()
+    }
+  })
+
+  it("resolves use() of a malformed URL with nothing, and keeps the other packs", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+    try {
+      const packs = new IconPacks()
+      await expect(packs.use("http://[not a host")).resolves.toBeUndefined()
+      expect(warn).toHaveBeenCalledOnce()
+      await packs.ready
+      expect(packs.resolve("bell")?.key).toBe("solid/bell")
+    } finally {
+      warn.mockRestore()
+    }
   })
 })

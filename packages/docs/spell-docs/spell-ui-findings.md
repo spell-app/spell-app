@@ -18,8 +18,11 @@ Each finding:  component, symptom, repro, the workaround used here, a suggested 
    - suggest:  a public loader hook (`Icons.setLoader(name => ...)`) or `Icons.register(map)` documented as the
      way for non-ESM hosts
 
-2. **RESOLVED 2026-09-30.  `Icons.get()` rejects, `IconGlyph.load()` is fire-and-forget**
-   - resolved by UI's icon packs:  `UI.icons.get()` never rejects.  Kept for the record:
+2. **RESOLVED 2026-10-01.  `Icons.get()` rejects, `IconGlyph.load()` is fire-and-forget**
+   - the icon packs (2026-09-30) carried the same bug over:  with `BuiltInPacks.base` empty (an IIFE bundle),
+     `UI.icons.get()` still rejected with `Invalid URL` unless the page `reset()` the packs first, as our bundle does
+   - fixed 2026-10-01:  a pack with no usable URL counts as a failed pack (warned once);  `get()` / `use()` / `ready`
+     never reject, and `IconGlyph.load()` catches (tests in `ui`'s `IconPacks.test.ts`).  Kept for the record:
    - symptom:  `Icons.get()` rejects with `Invalid URL` although its docs say it never rejects;  `IconGlyph.load()`
      doesn't catch, so every missing glyph is an unhandled page error
    - repro:  as 1, without pre-registered glyphs:  console shows `Uncaught (in promise) TypeError: Invalid URL`

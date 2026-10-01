@@ -148,19 +148,23 @@ export class IconPacks {
     })
   }
 
-  /** Append `source` (dropping everything before it for `only`) and start loading its index. */
+  /**
+   * Append `source` (dropping everything before it for `only`) and start loading its index.
+   * - A source with no usable URL settles as a failed pack (warned), never a throw:  `ready` / `get()` never reject.
+   */
   private add(source: Omit<IconPackSource, "promise" | "pack">): IconPackSource {
     const entry = source as IconPackSource
-    const url = BuiltInPacks.has(entry.source)
-      ? BuiltInPacks.url(entry.source)
-      : new URL(entry.source, typeof document === "undefined" ? undefined : document.baseURI).href
-    entry.promise = IconPack.load(url, entry.options).then(
-      (pack) => (entry.pack = pack),
-      (error: unknown) => {
-        console.warn(`UI.icons:  icon pack ${url} didn't load`, error)
-        return undefined
-      }
-    )
+    const url = IconPacks.url(entry.source)
+    entry.promise =
+      url === undefined
+        ? Promise.resolve(undefined)
+        : IconPack.load(url, entry.options).then(
+            (pack) => (entry.pack = pack),
+            (error: unknown) => {
+              console.warn(`UI.icons:  icon pack ${url} didn't load`, error)
+              return undefined
+            }
+          )
     if (entry.options.only) this.sources = []
     this.sources.push(entry)
     return entry
@@ -188,6 +192,21 @@ export class IconPacks {
   /** Remove the source `element` added. */
   private drop(element: Element) {
     this.sources = this.sources.filter((entry) => entry.element !== element)
+  }
+
+  /**
+   * Where `source` (a built-in id or a URL) loads from, or `undefined` (warned) when that can't be worked out:  a
+   * malformed URL, or a built-in pack with no `BuiltInPacks.base` (an IIFE bundle has no `import.meta.url`).
+   */
+  private static url(source: string): string | undefined {
+    try {
+      return BuiltInPacks.has(source)
+        ? BuiltInPacks.url(source)
+        : new URL(source, typeof document === "undefined" ? undefined : document.baseURI).href
+    } catch (error) {
+      console.warn(`UI.icons:  icon pack ${source} has no usable URL`, error)
+      return undefined
+    }
   }
 
   /** A source from a `<ui-icon-set>`'s attributes. */

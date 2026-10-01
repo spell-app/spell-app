@@ -37,10 +37,17 @@ export class IconGlyph {
     )
   }
 
-  /** Load `name`'s SVG;  writes only if it is still the latest request. */
+  /**
+   * Load `name`'s SVG;  writes only if it is still the latest request.
+   * - Never rejects (it's fire-and-forget):  a runtime chunk that won't load draws no icon, not a page error.
+   */
   private async load(name: string | undefined) {
     this.request = name
-    const template = name ? await (await UI.load()).icons.get(name) : undefined
+    const template = name
+      ? await UI.load()
+          .then((ui) => ui.icons.get(name))
+          .catch(() => undefined)
+      : undefined
     if (this.request === name) this.data.set(template)
   }
 

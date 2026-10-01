@@ -168,6 +168,9 @@ Other API (`UI.icons`):
 - `resolve(name)`:  where a name leads, synchronously (`{ pack, name, key, url, width, height }`).
 - `get(name)`:  the `<svg>` template, fetched once per URL per page;  `peek(name)` if already loaded.  A shared
   template:  clone it (`IconGlyph.draw()`), never insert it.
+- `get()`, `use()` and `ready` NEVER reject:  a pack whose URL can't be worked out (a malformed `src`, or a built-in
+  pack in a bundle with no `import.meta.url`, e.g. an IIFE) or whose index won't load is warned once and counts as
+  a failed pack;  its icons draw nothing.  `<ui-icon>` likewise draws nothing if the runtime chunk won't load.
 - `register(name, svg)`:  one icon from SVG text, ahead of every pack -- how an app bundles a few known icons
   instead of deploying a pack.
 
@@ -190,8 +193,8 @@ yarn icons:pack path/to/folder --id my-icons [--label "My icons"] [--license "â€
   [--skip-unsafe | --allow-unsafe] [--force]
 ```
 
-`IconPackBuilder` (`tools/`;  a class, so the upcoming CLI can drive it) does TWO things only, and by default NEVER
-modifies an SVG:
+`IconPackBuilder` (`tools/`;  a class, so the `spell` CLI can drive it:  `import { IconPackBuilder } from
+"$/ui/tools/IconPackBuilder"` from any package, node only) does TWO things only, and by default NEVER modifies an SVG:
 
 1. **Index:**  every `**/*.svg` (files at the top first, then each sub-folder, alphabetically), sized from its
    `viewBox`;  the most common width / height become `defaults`.  Reports names nobody can reach (a file name
