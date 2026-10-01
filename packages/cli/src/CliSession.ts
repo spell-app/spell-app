@@ -6,7 +6,7 @@ import { DiagnosticSeverity } from "vscode-languageserver"
 import { SP } from "#spell"
 import { LSP } from "#lsp"
 import { SpellDiskWorkspace } from "#lsp/SpellDiskWorkspace"
-import { CLI } from "~/cli"
+import { CLI } from "#cli"
 
 /**
  * One run of a `spell` command:  its flags, and spell loaded from disk -- what every command needs.

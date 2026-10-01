@@ -1,5 +1,5 @@
 /**
- * Barrel for the `spell` command-line tool's commands, one per file -- flattened into `~/cli`.
+ * Barrel for the `spell` command-line tool's commands, one per file -- flattened into `#cli`.
  * - Each is `(session, args, options) => Promise<exitCode>`, wired up in `main.ts`.
  */
 export * from "./compileCommand"

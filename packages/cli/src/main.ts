@@ -8,11 +8,11 @@ import "./consoleGuard"
 // Defines `__PACKAGE_VERSION__` -- the PARSER's, which `spell --version` prints -- before anything reads it
 import "#spell/node/packageVersion.node"
 // types only:  erased, so it loads nothing ahead of `consoleGuard`
-import type { CliSession, GlobalOptions } from "~/cli"
+import type { CliSession, GlobalOptions } from "#cli"
 
 const { Command } = await import("commander")
 const { default: chalk } = await import("chalk")
-const { CLI } = await import("~/cli")
+const { CLI } = await import("#cli")
 
 // output piped into e.g. `head`, which closed it:  nothing more to say
 process.stdout.on("error", (error: NodeJS.ErrnoException) => error.code === "EPIPE" && process.exit(0))

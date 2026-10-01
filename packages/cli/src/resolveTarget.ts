@@ -19,7 +19,7 @@ import { basename, dirname, extname, resolve } from "path"
 import { SP } from "#spell"
 import { locationForDiskPath } from "#spell/node/disk-fetch"
 import * as projectUtils from "#spell/node/project-utils"
-import { CLI } from "~/cli"
+import { CLI } from "#cli"
 
 /** Stands for the current folder:  `@workspace` ~== `.` */
 export const WORKSPACE_ARG = "@workspace"

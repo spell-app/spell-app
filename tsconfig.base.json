@@ -5,9 +5,12 @@
   //   which finds the tsconfig nearest the IMPORTING file.
   // - MUST stay the only `paths` in the repo:  a package that sets its own `paths` REPLACES this table, never adds to it.
   // - Paths are fixed, never `${configDir}`:  `tsx` can't resolve it (4.20 throws, 4.23 ignores it).
-  // - Longest match wins, e.g. `~/cli/foo` is `cli`'s, any other `~/...` is `spell`'s.
-  // - NOTE: every alias works from every package.  The one-way dependency rule (`cli` -> `spell` -> `ui`) is by
-  //   convention, e.g. `ui` MUST NOT import `~/...`.
+  // - `#name` is a package's barrel, `#name/...` a file in its `src/`.  From ANOTHER package, import the barrel only,
+  //   except these entry points:  `#parser/rulex` (opt-in), `#parser/test` / `#spell/test` (test helpers),
+  //   `#spell/node/...` (node-only:  environment, files on disk).
+  // - NOTE: every alias works from every package.  The one-way dependency rule is by convention:
+  //   `cli` -> `spell-app` -> `lsp` -> `spell` -> `parser` / `spell-core` -> `spell-util` -> `util`, and
+  //   `ui` -> `solid-element` / `util`.  e.g. `ui` MUST NOT import `#spell`.
   "compilerOptions": {
     "paths": {
       // ## Shared packages:  from another package, import the barrel only
@@ -25,14 +28,10 @@
       "#lsp/*": ["./packages/lsp/src/*"],
       "#spell-app": ["./packages/spell-app/src/index.tsx"],
       "#spell-app/*": ["./packages/spell-app/src/*"],
+      "#cli": ["./packages/cli/src/index.ts"],
+      "#cli/*": ["./packages/cli/src/*"],
 
-      // ## Per-package aliases, until each becomes a `#` one (Phase 4)
-      // `cli`
-      "~/cli": ["./packages/cli/src/index.ts"],
-      "~/cli/*": ["./packages/cli/src/*"],
-      // `spell`
-      "~/*": ["./packages/spell/src/*"],
-      // `ui`
+      // ## `ui`:  its own aliases, until it becomes `#ui`
       "$/*": ["./packages/ui/src/*"],
       "$test/*": ["./packages/ui/test/*"]
     }

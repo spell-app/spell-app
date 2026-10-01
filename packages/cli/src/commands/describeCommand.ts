@@ -1,6 +1,6 @@
 import { SP } from "#spell"
 import { LSP } from "#lsp"
-import { CLI } from "~/cli"
+import { CLI } from "#cli"
 
 /**
  * `spell describe <target> [name] [member]`:  what the Type Explorer shows, as text -- see `describeText.ts`.

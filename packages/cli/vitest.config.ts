@@ -7,7 +7,7 @@ import { packageVersion } from "../../vite.packageVersion.ts"
 export default defineConfig({
   plugins: [standardDecorators(), packageVersion()],
   resolve: {
-    // `~/cli` is us;  any other `~/...` is the parser's `src/`:  the repo root's `tsconfig.base.json`
+    // `#cli` is us;  any other `~/...` is the parser's `src/`:  the repo root's `tsconfig.base.json`
     tsconfigPaths: true
   }
 })

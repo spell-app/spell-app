@@ -1,7 +1,7 @@
 import { render } from "ink-testing-library"
 import { describe, test, expect, vi } from "vitest"
 
-import { CLI } from "~/cli"
+import { CLI } from "#cli"
 
 const ROOT = {
   kind: "root",

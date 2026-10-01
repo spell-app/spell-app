@@ -1,5 +1,5 @@
 import { SP } from "#spell"
-import { CLI } from "~/cli"
+import { CLI } from "#cli"
 
 /**
  * `spell check <target...>`:  parse each target and list its errors -- writes nothing of its own.

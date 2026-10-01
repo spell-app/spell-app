@@ -6,7 +6,7 @@ import { pathToFileURL } from "url"
 
 import { SP } from "#spell"
 import { LSP } from "#lsp"
-import { CLI } from "~/cli"
+import { CLI } from "#cli"
 
 /** Wait this long after a change for more, e.g. an editor saving several files, before rebuilding. */
 const SETTLE_MS = 150

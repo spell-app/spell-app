@@ -1,6 +1,6 @@
 import { Box, Text, useApp, useInput } from "ink"
 
-import { CLI } from "~/cli"
+import { CLI } from "#cli"
 
 /****************
  * ### `<WatchScreen>`

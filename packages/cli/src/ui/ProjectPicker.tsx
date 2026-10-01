@@ -2,7 +2,7 @@ import { Box, Text, render, useInput } from "ink"
 import { Select } from "@inkjs/ui"
 
 import { SP } from "#spell"
-import type { CLI } from "~/cli"
+import type { CLI } from "#cli"
 
 /** `<ProjectPicker>` value for its "All projects" choice. */
 const ALL = "*"
