@@ -17,9 +17,9 @@ import { visibilityVocabulary } from "./ui-visibility.vocabulary.en"
 import { VisibilityFallback } from "./ui-visibility.fallback"
 
 import visibilityCSS from "./ui-visibility.css?inline"
-
-/** Vocabulary type, for brevity. */
-type Vocabulary = typeof visibilityVocabulary
+import { DEFAULT_DURATION, LAZY_IMAGES, DATA_SRC, FADE } from "./ui-visibility.types"
+import type { VisibilityVocabulary, VisibilityConfig } from "./ui-visibility.types"
+import { IMAGE } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-visibility>`
@@ -33,7 +33,7 @@ type Vocabulary = typeof visibilityVocabulary
  *   `UI.visibility.lazyImage()`:  its source is set once it's on screen, then it fades in and `ui-load` fires.
  * - Measured against the viewport (Fomantic's default `context`).
  ****************/
-export class UIVisibility extends UIElement<Vocabulary> {
+export class UIVisibility extends UIElement<VisibilityVocabulary> {
   @proto static vocabulary = visibilityVocabulary
   @proto static styles = { visibility: visibilityCSS }
   @proto static Fallback = VisibilityFallback
@@ -128,25 +128,3 @@ export class UIVisibility extends UIElement<Vocabulary> {
     return (ANIMATION_NAMES as readonly string[]).includes(name) ? (name as AnimationName) : false
   }
 }
-
-/** What a watch depends on. */
-type VisibilityConfig = {
-  connected: boolean
-  once: boolean
-  continuous: boolean
-  offset: number
-  images: boolean
-  transition: string | null | undefined
-  duration: number
-}
-
-/** `type` value that lazy-loads images. */
-const IMAGE = "image"
-
-/** Default transition (Fomantic's `fade in`, 1000ms). */
-const FADE = "fade"
-const DEFAULT_DURATION = 1000
-
-/** Lazy images (Fomantic's `metadata.src`). */
-const DATA_SRC = "data-src"
-const LAZY_IMAGES = "img[data-src]"

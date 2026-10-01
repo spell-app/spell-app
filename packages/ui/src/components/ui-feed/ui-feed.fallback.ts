@@ -1,9 +1,8 @@
-import { Converters, NativeFallback, proto, type NativeFallbackRoot } from "$/ui/core"
+import { Converters, LIST, LISTITEM, NativeFallback, proto, TRUE, type NativeFallbackRoot } from "$/ui/core"
 
-import { eventVocabulary, feedVocabulary } from "./ui-feed.vocabulary.en"
-
-/** Either vocabulary, for brevity. */
-type Vocabulary = typeof feedVocabulary | typeof eventVocabulary
+import { eventVocabulary } from "./ui-event.vocabulary.en"
+import { feedVocabulary } from "./ui-feed.vocabulary.en"
+import { LABEL, ORDERED, Vocabulary } from "./ui-feed.types"
 
 /****************
  * ### `FeedFallback`
@@ -52,16 +51,3 @@ export class FeedFallback extends NativeFallback<Vocabulary> {
     return [this.decorate(event, "event")]
   }
 }
-
-/** Class of the label box, and name of its slot. */
-const LABEL = "label"
-
-/** The feed attribute that numbers events. */
-const ORDERED = "ordered"
-
-/** ARIA boolean. */
-const TRUE = "true"
-
-/** Root role;  host role of an event in a feed. */
-const LIST = "list"
-const LISTITEM = "listitem"

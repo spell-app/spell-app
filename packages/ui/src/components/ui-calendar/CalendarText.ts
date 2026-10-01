@@ -1,6 +1,20 @@
 import type { CalendarMode, CalendarType, I18n } from "$/ui/core"
 
-import { CalendarDates, type Moment, type MomentFields } from "./CalendarDates"
+import { CalendarDates } from "./CalendarDates"
+import {
+  CELL_FORMATS,
+  CLOCK,
+  DIGITS,
+  DatePart,
+  LABEL_FORMATS,
+  Moment,
+  MomentFields,
+  TITLE_FORMATS,
+  UTC,
+  VALUE_FORMATS,
+  WORDS,
+  YEAR_FIRST
+} from "./ui-calendar.types"
 
 /****************
  * ### `CalendarText`
@@ -84,17 +98,17 @@ export class CalendarText {
     if (dates.hasTime) {
       const clock = CLOCK.exec(rest)
       const periods = this.dayPeriods()
-      const period = periods.find(([name]) => word(name).test(rest))
+      const period = periods.find(([name]) => CalendarText.word(name).test(rest))
       if (clock) {
         hour = Number(clock[1])
         minute = Number(clock[2])
         rest = rest.replace(clock[0], " ")
       } else if (period) {
-        const bare = new RegExp(`(\\d{1,2})\\s*${escape(period[0])}`).exec(rest)
+        const bare = new RegExp(`(\\d{1,2})\\s*${CalendarText.escape(period[0])}`).exec(rest)
         if (bare) hour = Number(bare[1])
       }
       if (period && hour !== undefined) {
-        rest = rest.replace(word(period[0]), " ")
+        rest = rest.replace(CalendarText.word(period[0]), " ")
         if (period[1] === "pm" && hour < 12) hour += 12
         if (period[1] === "am" && hour === 12) hour = 0
       }
@@ -102,7 +116,7 @@ export class CalendarText {
         const numbers = rest.match(DIGITS)?.map(Number) ?? []
         hour ??= numbers[0]
         if (!clock && numbers.length > 1 && !period) minute = numbers[1]!
-        return hour === undefined ? null : dates.parse(`${pad(hour)}:${pad(minute)}`)
+        return hour === undefined ? null : dates.parse(`${CalendarText.pad(hour)}:${CalendarText.pad(minute)}`)
       }
     }
     const fields = this.dateFields(rest, dates.type)
@@ -132,7 +146,7 @@ export class CalendarText {
       if (type === "month" && part === "day") continue
       const next = numbers.shift()
       if (next === undefined) break
-      values[part] = part === "year" && next.length <= 2 ? century(Number(next)) : Number(next)
+      values[part] = part === "year" && next.length <= 2 ? CalendarText.century(Number(next)) : Number(next)
     }
     const fields = {
       year: values.year ?? new Date().getFullYear(),
@@ -187,76 +201,24 @@ export class CalendarText {
       ?.value.toLocaleLowerCase(this.locale)
       .replace(/\./g, "")
   }
-}
 
-/** One field of a date. */
-type DatePart = "year" | "month" | "day"
+  /** Two-digit year => full year (see `dateFields()`). */
+  private static century(year: number): number {
+    return year < 60 ? 2000 + year : 1900 + year
+  }
 
-/** The field's text per type (Fomantic's `MMMM D, YYYY h:mm A` family, in the locale's words). */
-const VALUE_FORMATS: Readonly<Record<CalendarType, Intl.DateTimeFormatOptions>> = {
-  date: { dateStyle: "long" },
-  datetime: { dateStyle: "long", timeStyle: "short" },
-  time: { timeStyle: "short" },
-  month: { year: "numeric", month: "long" },
-  year: { year: "numeric" }
-}
+  /** Two digits. */
+  private static pad(value: number): string {
+    return String(value).padStart(2, "0")
+  }
 
-/** Cell texts per view. */
-const CELL_FORMATS: Readonly<Record<CalendarMode, Intl.DateTimeFormatOptions>> = {
-  year: { year: "numeric" },
-  month: { month: "short" },
-  day: { day: "numeric" },
-  hour: { hour: "numeric", minute: "2-digit" },
-  minute: { hour: "numeric", minute: "2-digit" }
-}
+  /** `name` as a whole word (not inside a longer word), any script. */
+  private static word(name: string): RegExp {
+    return new RegExp(`(?<!\\p{L})${CalendarText.escape(name)}(?!\\p{L})`, "u")
+  }
 
-/** Cell names per view. */
-const LABEL_FORMATS: Readonly<Record<CalendarMode, Intl.DateTimeFormatOptions>> = {
-  year: { year: "numeric" },
-  month: { year: "numeric", month: "long" },
-  day: { dateStyle: "full" },
-  hour: { hour: "numeric", minute: "2-digit" },
-  minute: { hour: "numeric", minute: "2-digit" }
-}
-
-/** Page titles per view (the year view's is a range, built by the view). */
-const TITLE_FORMATS: Readonly<Record<CalendarMode, Intl.DateTimeFormatOptions>> = {
-  year: { year: "numeric" },
-  month: { year: "numeric" },
-  day: { year: "numeric", month: "long" },
-  hour: { dateStyle: "long" },
-  minute: { dateStyle: "long" }
-}
-
-/** ISO-ish numeric order, for text that starts with a 4-digit year. */
-const YEAR_FIRST: DatePart[] = ["year", "month", "day"]
-
-/** A clock time in typed text:  `14:30`, `2:30`. */
-const CLOCK = /(\d{1,2}):(\d{2})/
-
-/** Runs of digits, and of letters (any script). */
-const DIGITS = /\d+/g
-const WORDS = /\p{L}+/gu
-
-/** Time zone every format runs in (see class docs). */
-const UTC = "UTC"
-
-/** Two-digit year => full year (see `dateFields()`). */
-function century(year: number): number {
-  return year < 60 ? 2000 + year : 1900 + year
-}
-
-/** Two digits. */
-function pad(value: number): string {
-  return String(value).padStart(2, "0")
-}
-
-/** `name` as a whole word (not inside a longer word), any script. */
-function word(name: string): RegExp {
-  return new RegExp(`(?<!\\p{L})${escape(name)}(?!\\p{L})`, "u")
-}
-
-/** `text` safe inside a `RegExp`. */
-function escape(text: string): string {
-  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  /** `text` safe inside a `RegExp`. */
+  private static escape(text: string): string {
+    return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  }
 }

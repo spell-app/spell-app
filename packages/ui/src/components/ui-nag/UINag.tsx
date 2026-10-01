@@ -9,7 +9,12 @@ import {
   UIElement,
   type NagCloseDetail,
   type NagCloseReason,
-  type NagStorage
+  type NagStorage,
+  CLOSE,
+  IN,
+  OUT,
+  CLOSE_CLASS,
+  CLOSE_ICON
 } from "$/ui/core"
 
 import { nagVocabulary } from "./ui-nag.vocabulary.en"
@@ -18,9 +23,7 @@ import { UINagHost } from "./UINagHost"
 import { DismissalStore } from "./DismissalStore"
 
 import nagCSS from "./ui-nag.css?inline"
-
-/** Vocabulary type, for brevity. */
-type Vocabulary = typeof nagVocabulary
+import { COOKIE, DEFAULT_VALUE, DEFAULT_EXPIRES, TIMEOUT, DISMISS, SLIDE, type Vocabulary } from "./ui-nag.types"
 
 /****************
  * ### `<ui-nag>`
@@ -212,24 +215,3 @@ export class UINag extends UIElement<Vocabulary> {
     })
   }
 }
-
-/** Defaults of the storage attributes, as the vocabulary's. */
-const COOKIE = "cookie"
-const DEFAULT_VALUE = "dismiss"
-const DEFAULT_EXPIRES = 30
-
-/** Close reasons it names itself. */
-const CLOSE = "close"
-const TIMEOUT = "timeout"
-const DISMISS = "dismiss"
-
-/** `UI.transitions` animation (Fomantic's `slide`). */
-const SLIDE = "slide-down"
-const IN = "in"
-const OUT = "out"
-
-/** Class words of the close icon (`ui-nag.css`). */
-const CLOSE_CLASS = "close icon"
-
-/** Glyph of the close icon (Fomantic's `close icon`). */
-const CLOSE_ICON = "xmark"

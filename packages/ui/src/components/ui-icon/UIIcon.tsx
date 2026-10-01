@@ -1,12 +1,13 @@
 import { createEffect } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { IconGlyph, PartContext, proto, UIElement } from "$/ui/core"
+import { IconGlyph, PartContext, proto, UIElement, IMG, TRUE } from "$/ui/core"
 
 import { iconVocabulary } from "./ui-icon.vocabulary.en"
 import { IconFallback } from "./ui-icon.fallback"
 
 import iconCSS from "./ui-icon.css?inline"
+import { OUTLINE } from "./ui-icon.types"
 
 /****************
  * ### `<ui-icon>`
@@ -62,12 +63,3 @@ export class UIIcon extends UIElement<typeof iconVocabulary> {
     )
   }
 }
-
-/** Role of a labelled icon. */
-const IMG = "img"
-
-/** ARIA boolean. */
-const TRUE = "true"
-
-/** Word `outline` appends to the name. */
-const OUTLINE = " outline"

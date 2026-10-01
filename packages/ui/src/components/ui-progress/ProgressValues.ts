@@ -1,3 +1,5 @@
+import type { ProgressValuesProps } from "./ui-progress.types"
+
 /****************
  * ### `ProgressValues`
  * The numbers of a progress bar, from its attributes:  Fomantic's `progress.js` arithmetic, without jQuery or Solid,
@@ -104,16 +106,4 @@ export class ProgressValues {
     const factor = 10 ** precision
     return Math.round(value * factor) / factor
   }
-}
-
-/** Constructor props for `ProgressValues`:  the host's converted attributes. */
-export type ProgressValuesProps = {
-  /** `value`:  one number or a comma list. */
-  value?: string | number | null
-  /** `total`. */
-  total?: number | null
-  /** `percent`:  one number or a comma list. */
-  percent?: string | number | null
-  /** Decimal places for display. */
-  precision?: number | null
 }

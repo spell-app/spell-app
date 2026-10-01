@@ -1,7 +1,8 @@
-import { Converters, NativeFallback, proto, type DropdownValue, type MenuOption } from "$/ui/core"
+import { Converters, NativeFallback, proto, type DropdownValue } from "$/ui/core"
 import { itemVocabulary } from "$/ui/components/ui-item"
 
 import { dropdownVocabulary } from "./ui-dropdown.vocabulary.en"
+import type { Choice, DropdownHost } from "./ui-dropdown.types"
 
 /****************
  * ### `DropdownFallback`
@@ -134,19 +135,4 @@ export class DropdownFallback extends NativeFallback<typeof dropdownVocabulary> 
     }
     return multiple ? values : (values[0] ?? "")
   }
-}
-
-/** One option, header or divider, from either source. */
-type Choice = {
-  type: "item" | "header" | "divider"
-  text: string
-  value: string
-  disabled: boolean
-  selected: boolean
-}
-
-/** The parts of a `<ui-dropdown>` the fallback touches;  all optional, the element may not have upgraded. */
-type DropdownHost = HTMLElement & {
-  value?: DropdownValue | null
-  options?: readonly MenuOption[]
 }

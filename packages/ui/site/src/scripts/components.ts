@@ -1,4 +1,4 @@
-import { PART_NOUNS } from "$/ui/components/ui-parts/ui-parts.vocabulary.en"
+import { PART_NOUNS } from "$/ui/components/ui-parts/ui-parts.types"
 
 /**
  * Auto-loader for live examples:  imports the component FAMILY for every undefined `ui-*` tag on the page.

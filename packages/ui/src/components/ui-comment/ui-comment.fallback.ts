@@ -1,9 +1,8 @@
-import { NativeFallback, proto, type NativeFallbackRoot } from "$/ui/core"
+import { DISABLED, NativeFallback, proto, TRUE, type NativeFallbackRoot } from "$/ui/core"
 
-import { commentVocabulary, commentsVocabulary } from "./ui-comment.vocabulary.en"
-
-/** Either vocabulary, for brevity. */
-type Vocabulary = typeof commentsVocabulary | typeof commentVocabulary
+import { commentVocabulary } from "./ui-comment.vocabulary.en"
+import { commentsVocabulary } from "./ui-comments.vocabulary.en"
+import { COLLAPSED, REPLY, Vocabulary } from "./ui-comment.types"
 
 /****************
  * ### `CommentFallback`
@@ -43,13 +42,3 @@ export class CommentFallback extends NativeFallback<Vocabulary> {
     return [this.decorate(box, this.vocabulary.noun)]
   }
 }
-
-/** Class of the reply box, and name of its slot. */
-const REPLY = "reply"
-
-/** Class words a thread keeps. */
-const COLLAPSED = "collapsed"
-const DISABLED = "disabled"
-
-/** ARIA boolean. */
-const TRUE = "true"

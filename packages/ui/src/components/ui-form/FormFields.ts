@@ -1,6 +1,5 @@
 import {
   Converters,
-  FIELD_HOST_STATE,
   type FieldValue,
   type FormFieldRules,
   type FormRules,
@@ -8,21 +7,19 @@ import {
   type ValidationRule
 } from "$/ui/core"
 import { Validator } from "$/ui/forms"
-
-/** One named field:  its controls, in document order. */
-type Field = {
-  /** name (or id) */
-  identifier: string
-  controls: Element[]
-}
-
-/** `FormFieldRules`, normalized. */
-type FieldSpec = {
-  rules: ValidationRule[]
-  optional: boolean
-  depends?: string
-  identifier?: string
-}
+import {
+  VALIDITY_FLAGS,
+  CONTROL_SELECTOR,
+  FIELD_SELECTOR,
+  EMPTY,
+  NOT_EMPTY,
+  MULTIPLE,
+  VALUE,
+  DEFAULT_VALUE,
+  BUTTON_TYPES,
+  type Field,
+  type FieldSpec
+} from "./ui-form.types"
 
 /****************
  * ### `FormFields`
@@ -63,14 +60,14 @@ export class FormFields {
     const form = this.form()
     const candidates = form ? [...form.elements] : [...this.host.querySelectorAll(CONTROL_SELECTOR), ...this.faces()]
     const inside = !form || !form.contains(this.host) ? candidates : candidates.filter((el) => this.host.contains(el))
-    return [...new Set(inside)].filter(isControl).sort(byDocumentOrder)
+    return [...new Set(inside)].filter(FormFields.isControl).sort(FormFields.byDocumentOrder)
   }
 
   /** Fields by identifier, in document order. */
   fields(): Field[] {
     const byIdentifier = new Map<string, Element[]>()
     for (const control of this.controls()) {
-      const identifier = identifierOf(control)
+      const identifier = FormFields.identifierOf(control)
       if (!identifier) continue
       const list = byIdentifier.get(identifier)
       if (list) list.push(control)
@@ -101,7 +98,8 @@ export class FormFields {
     const field = controls[0]?.closest(FIELD_SELECTOR)
     const fieldLabel = field?.querySelector(":scope > label")?.textContent?.trim()
     if (fieldLabel) return fieldLabel
-    const own = controls.length === 1 && isCheckable(controls[0]!) ? controls[0]!.textContent?.trim() : undefined
+    const own =
+      controls.length === 1 && FormFields.isCheckable(controls[0]!) ? controls[0]!.textContent?.trim() : undefined
     return own || identifier
   }
 
@@ -116,7 +114,7 @@ export class FormFields {
    *   disabled `<ui-field>` are skipped.
    */
   errors(field: Field, rules: FormRules | undefined, values: FormValues, labels: Record<string, string>): string[] {
-    const live = field.controls.filter((control) => willValidate(control))
+    const live = field.controls.filter((control) => FormFields.willValidate(control))
     if (!live.length) return []
     const errors: string[] = []
     const flags = new Set<string>()
@@ -167,15 +165,17 @@ export class FormFields {
   static valueOf(controls: readonly Element[]): FieldValue {
     const [first] = controls
     if (!first) return null
-    if (isRadio(first)) {
-      const chosen = controls.find((control) => isChosen(control))
-      return chosen ? chosenValue(chosen) : null
+    if (FormFields.isRadio(first)) {
+      const chosen = controls.find((control) => FormFields.isChosen(control))
+      return chosen ? FormFields.chosenValue(chosen) : null
     }
-    if (isCheckable(first)) {
-      if (controls.length === 1) return isChosen(first) ? (first.getAttribute(VALUE) ?? true) : false
-      return controls.filter((control) => isChosen(control)).map((control) => chosenValue(control))
+    if (FormFields.isCheckable(first)) {
+      if (controls.length === 1) return FormFields.isChosen(first) ? (first.getAttribute(VALUE) ?? true) : false
+      return controls
+        .filter((control) => FormFields.isChosen(control))
+        .map((control) => FormFields.chosenValue(control))
     }
-    const values = controls.map((control) => ownValue(control))
+    const values = controls.map((control) => FormFields.ownValue(control))
     return values.length === 1 ? values[0]! : values.flat()
   }
 
@@ -208,101 +208,67 @@ export class FormFields {
   static isBlank(value: FieldValue): boolean {
     return value == null || value === false || value === "" || (Array.isArray(value) && !value.length)
   }
-}
 
-/** Constraint Validation flags a control may raise. */
-const VALIDITY_FLAGS: readonly (keyof ValidityStateFlags)[] = [
-  "valueMissing",
-  "typeMismatch",
-  "patternMismatch",
-  "tooLong",
-  "tooShort",
-  "rangeUnderflow",
-  "rangeOverflow",
-  "stepMismatch",
-  "badInput",
-  "customError"
-]
-
-/** Native controls. */
-const CONTROL_SELECTOR = "input, select, textarea"
-
-/** A control's `<ui-field>`. */
-const FIELD_SELECTOR = `:state(${FIELD_HOST_STATE})`
-
-/** Fomantic's old name for `notEmpty`. */
-const EMPTY = "empty"
-const NOT_EMPTY = "notEmpty"
-
-/** Attribute of multi-value elements. */
-const MULTIPLE = "multiple"
-
-/** Attribute a checkable submits, and its native default. */
-const VALUE = "value"
-const DEFAULT_VALUE = "on"
-
-/** Native input types that are buttons, not values. */
-const BUTTON_TYPES = new Set(["submit", "reset", "button", "image"])
-
-/** A control `<ui-form>` reads:  native value controls, and `ui-*` hosts with the form-control API. */
-function isControl(element: Element): boolean {
-  if (element instanceof HTMLInputElement) return !BUTTON_TYPES.has(element.type)
-  if (element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement) return true
-  if (element instanceof HTMLButtonElement || element instanceof HTMLFieldSetElement) return false
-  return "validity" in element && (element.constructor as { formAssociated?: boolean }).formAssociated === true
-}
-
-/** `name`, else `id`. */
-function identifierOf(control: Element): string | undefined {
-  const name = (control as { name?: unknown }).name
-  return (typeof name === "string" && name) || control.getAttribute("name") || control.id || undefined
-}
-
-/** A checkbox (native, or a `ui-*` host saying so). */
-function isCheckable(control: Element): boolean {
-  if (control instanceof HTMLInputElement) return control.type === "checkbox" || control.type === "radio"
-  return !!(control as { checkable?: string }).checkable
-}
-
-/** A radio (native, or a `ui-*` host saying so). */
-function isRadio(control: Element): boolean {
-  if (control instanceof HTMLInputElement) return control.type === "radio"
-  return (control as { checkable?: string }).checkable === "radio"
-}
-
-/** Chosen now. */
-function isChosen(control: Element): boolean {
-  if (control instanceof HTMLInputElement) return control.checked
-  return !!(control as { selected?: boolean }).selected
-}
-
-/** What a chosen checkable submits:  its `value` attribute, else `on` (native default). */
-function chosenValue(control: Element): string {
-  return control.getAttribute(VALUE) ?? DEFAULT_VALUE
-}
-
-/** The value of a non-checkable control. */
-function ownValue(control: Element): string | string[] {
-  if (control instanceof HTMLSelectElement && control.multiple) {
-    return [...control.selectedOptions].map((option) => option.value)
+  /** A control `<ui-form>` reads:  native value controls, and `ui-*` hosts with the form-control API. */
+  private static isControl(element: Element): boolean {
+    if (element instanceof HTMLInputElement) return !BUTTON_TYPES.has(element.type)
+    if (element instanceof HTMLSelectElement || element instanceof HTMLTextAreaElement) return true
+    if (element instanceof HTMLButtonElement || element instanceof HTMLFieldSetElement) return false
+    return "validity" in element && (element.constructor as { formAssociated?: boolean }).formAssociated === true
   }
-  const value = (control as { value?: unknown }).value
-  if (Array.isArray(value)) return value.map(String)
-  // a `multiple` element's attribute value is a list in one string (`value="a,b"`)
-  if (typeof value === "string" && control.hasAttribute(MULTIPLE) && !(control instanceof HTMLInputElement)) {
-    return Converters.list(value)
+
+  /** `name`, else `id`. */
+  private static identifierOf(control: Element): string | undefined {
+    const name = (control as { name?: unknown }).name
+    return (typeof name === "string" && name) || control.getAttribute("name") || control.id || undefined
   }
-  if (typeof value === "string") return value
-  return typeof value === "number" || typeof value === "boolean" ? String(value) : ""
-}
 
-/** Takes part in validation? */
-function willValidate(control: Element): boolean {
-  if ((control as { willValidate?: boolean }).willValidate === false) return false
-  return !control.closest(FIELD_SELECTOR)?.matches(":state(disabled)")
-}
+  /** A checkbox (native, or a `ui-*` host saying so). */
+  private static isCheckable(control: Element): boolean {
+    if (control instanceof HTMLInputElement) return control.type === "checkbox" || control.type === "radio"
+    return !!(control as { checkable?: string }).checkable
+  }
 
-/** Sort comparator:  document order. */
-function byDocumentOrder(a: Element, b: Element): number {
-  return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1
+  /** A radio (native, or a `ui-*` host saying so). */
+  private static isRadio(control: Element): boolean {
+    if (control instanceof HTMLInputElement) return control.type === "radio"
+    return (control as { checkable?: string }).checkable === "radio"
+  }
+
+  /** Chosen now. */
+  private static isChosen(control: Element): boolean {
+    if (control instanceof HTMLInputElement) return control.checked
+    return !!(control as { selected?: boolean }).selected
+  }
+
+  /** What a chosen checkable submits:  its `value` attribute, else `on` (native default). */
+  private static chosenValue(control: Element): string {
+    return control.getAttribute(VALUE) ?? DEFAULT_VALUE
+  }
+
+  /** The value of a non-checkable control. */
+  private static ownValue(control: Element): string | string[] {
+    if (control instanceof HTMLSelectElement && control.multiple) {
+      return [...control.selectedOptions].map((option) => option.value)
+    }
+    const value = (control as { value?: unknown }).value
+    if (Array.isArray(value)) return value.map(String)
+    // a `multiple` element's attribute value is a list in one string (`value="a,b"`)
+    if (typeof value === "string" && control.hasAttribute(MULTIPLE) && !(control instanceof HTMLInputElement)) {
+      return Converters.list(value)
+    }
+    if (typeof value === "string") return value
+    return typeof value === "number" || typeof value === "boolean" ? String(value) : ""
+  }
+
+  /** Takes part in validation? */
+  private static willValidate(control: Element): boolean {
+    if ((control as { willValidate?: boolean }).willValidate === false) return false
+    return !control.closest(FIELD_SELECTOR)?.matches(":state(disabled)")
+  }
+
+  /** Sort comparator:  document order. */
+  private static byDocumentOrder(a: Element, b: Element): number {
+    return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1
+  }
 }

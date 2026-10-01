@@ -1,6 +1,6 @@
 import { proto } from "$/ui/core"
 
-import { summaryVocabulary } from "./ui-parts.vocabulary.en"
+import { summaryVocabulary } from "./ui-summary.vocabulary.en"
 import { PartElement } from "./PartElement"
 
 /****************

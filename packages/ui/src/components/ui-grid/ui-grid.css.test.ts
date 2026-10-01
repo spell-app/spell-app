@@ -5,7 +5,9 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/fixture"
 import { Sheets } from "$/ui/test/sheets"
 
-import { columnVocabulary, gridVocabulary, rowVocabulary } from "./ui-grid.vocabulary.en"
+import { gridVocabulary } from "./ui-grid.vocabulary.en"
+import { columnVocabulary } from "./ui-column.vocabulary.en"
+import { rowVocabulary } from "./ui-row.vocabulary.en"
 
 import gridCSS from "./ui-grid.css?inline"
 import gridRaw from "./ui-grid.css?raw"

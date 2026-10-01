@@ -18,9 +18,26 @@ import { PopupFallback } from "./ui-popup.fallback"
 
 import popupCSS from "./ui-popup.css?inline"
 import anchoredCSS from "./ui-popup.anchored.css?raw"
-
-/** Vocabulary type, for brevity. */
-type Vocabulary = typeof popupVocabulary
+import {
+  DEFAULT_TRIGGER,
+  DEFAULT_POSITION,
+  DIALOG,
+  TOOLTIP,
+  POSITION_AREAS,
+  POSITION_AREA,
+  ARIA_EXPANDED,
+  HINT,
+  POSITION_ANCHOR,
+  ID_PREFIX,
+  CONTROLS,
+  DESCRIBED_BY,
+  ARIA_HASPOPUP,
+  CLOSED,
+  CONTENTS,
+  ANCHOR_NAME
+} from "./ui-popup.types"
+import type { PopupVocabulary, ShowPopoverOptions, AriaRelation } from "./ui-popup.types"
+import { HEADER, CONTENT, MANUAL, AUTO, NONE, POPOVER_OPEN } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-popup>`
@@ -50,7 +67,7 @@ type Vocabulary = typeof popupVocabulary
  *   `anchor-name` (a per-instance name ADDED to its list) and ARIA attributes;  the host's `popover`, `id` and
  *   inline `position-anchor` / `position-area`.
  ****************/
-export class UIPopup extends UIElement<Vocabulary> {
+export class UIPopup extends UIElement<PopupVocabulary> {
   @proto static vocabulary = popupVocabulary
   @proto static styles = { popup: popupCSS, "popup-anchored": anchoredCSS }
   @proto static Fallback = PopupFallback
@@ -118,7 +135,7 @@ export class UIPopup extends UIElement<Vocabulary> {
   // ## Element hooks
   ////////////////
 
-  protected classValue(name: AttributeName<Vocabulary>): unknown {
+  protected classValue(name: AttributeName<PopupVocabulary>): unknown {
     if (name === "open") return this.isOpen()
     return super.classValue(name)
   }
@@ -469,71 +486,3 @@ class AriaRefs {
     return (element.getAttribute(attribute) ?? "").split(/\s+/).filter(Boolean)
   }
 }
-
-/** An idref ARIA relation:  its attribute and its element-reflection property. */
-type AriaRelation = { attribute: string; property: string }
-
-/** `showPopover()` options with `source` (not in every DOM lib yet). */
-type ShowPopoverOptions = { source?: HTMLElement }
-
-/** Tooltips describe their target. */
-const DESCRIBED_BY: AriaRelation = { attribute: "aria-describedby", property: "ariaDescribedByElements" }
-
-/** Click popups are controlled by their target. */
-const CONTROLS: AriaRelation = { attribute: "aria-controls", property: "ariaControlsElements" }
-
-/**
- * `position` => `position-area`:  the popup on that side, its edge lined up with the target's (`span-*` grows
- * away from the named corner), or centred on it.
- */
-const POSITION_AREAS: Readonly<Record<string, string>> = {
-  "top left": "top span-right",
-  "top center": "top center",
-  "top right": "top span-left",
-  "bottom left": "bottom span-right",
-  "bottom center": "bottom center",
-  "bottom right": "bottom span-left",
-  "left center": "left center",
-  "right center": "right center",
-  "left top": "left span-bottom",
-  "left bottom": "left span-top",
-  "right top": "right span-bottom",
-  "right bottom": "right span-top"
-}
-
-/** Fomantic's default position. */
-const DEFAULT_POSITION = "top left"
-
-/** Fomantic's default trigger. */
-const DEFAULT_TRIGGER: PopupTrigger = "hover"
-
-/** `UI.ids` prefix. */
-const ID_PREFIX = "ui-popup"
-
-/** Host roles. */
-const TOOLTIP = "tooltip"
-const DIALOG = "dialog"
-
-/** Popover modes. */
-const HINT = "hint"
-const MANUAL = "manual"
-
-/** CSS properties and keywords set inline. */
-const ANCHOR_NAME = "anchor-name"
-const POSITION_ANCHOR = "position-anchor"
-const POSITION_AREA = "position-area"
-const AUTO = "auto"
-const NONE = "none"
-const CONTENTS = "contents"
-
-/** ARIA attributes set on the target. */
-const ARIA_EXPANDED = "aria-expanded"
-const ARIA_HASPOPUP = "aria-haspopup"
-
-/** Open popover pseudo-class, and a `toggle` event's closed state. */
-const POPOVER_OPEN = ":popover-open"
-const CLOSED = "closed"
-
-/** Class words of the shorthand parts (`ui-popup.css`) -- grammar, not attributes, so not in the vocabulary. */
-const HEADER = "header"
-const CONTENT = "content"

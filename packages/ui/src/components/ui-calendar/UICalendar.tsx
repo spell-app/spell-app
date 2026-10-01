@@ -3,12 +3,18 @@ import { isServer, type JSX } from "@solidjs/web"
 import { onFormStateRestore } from "@spell-app/solid-element"
 
 import {
+  ACTIVE,
+  ARROW_DOWN,
   Cell,
+  DISABLED,
+  HEADER,
+  ICON,
   IconGlyph,
   numberToWord,
+  POPOVER_OPEN,
   proto,
+  REQUIRED_RULE,
   RUNTIME_KEY,
-  UI,
   type AttributeName,
   type CalendarChangeDetail,
   type CalendarMode,
@@ -19,21 +25,53 @@ import {
   type RuntimeGlobal,
   type TemporalAPI,
   type UIHost,
-  type ValidationRule
+  type ValidationRule,
+  UI
 } from "$/ui/core"
 import { ControlLabels, FormElement } from "$/ui/forms"
 
 import { calendarVocabulary } from "./ui-calendar.vocabulary.en"
 import { CalendarFallback } from "./ui-calendar.fallback"
-import { CalendarDates, type Moment } from "./CalendarDates"
+import { CalendarDates } from "./CalendarDates"
 import { CalendarText } from "./CalendarText"
-import { CalendarView, type CalendarCell, type CalendarPage, type ViewInput } from "./CalendarView"
+import { CalendarView } from "./CalendarView"
+import {
+  ADJACENT,
+  ANCHOR_PROPERTY,
+  CALENDAR_ICON,
+  CLOCK_ICON,
+  COLUMN,
+  CalendarCell,
+  CalendarPage,
+  DEFAULT_POSITION,
+  DEFAULT_TYPE,
+  ENTER,
+  FLUID,
+  FOCUS,
+  FOCUSED_CELL,
+  ID_PREFIX,
+  INPUT,
+  LINK,
+  Moment,
+  NEXT,
+  NEXT_ICON,
+  PAGE_TEXTS,
+  PICKER,
+  POPUP,
+  PREVIOUS,
+  PREVIOUS_ICON,
+  RANGE,
+  SPACE,
+  TABLE,
+  TITLE,
+  TODAY,
+  TODAY_CELL,
+  ViewInput,
+  Vocabulary
+} from "./ui-calendar.types"
 
 import inputCSS from "$/ui/components/ui-input/ui-input.css?inline"
 import calendarCSS from "./ui-calendar.css?inline"
-
-/** Vocabulary type, for brevity. */
-type Vocabulary = typeof calendarVocabulary
 
 /****************
  * ### `<ui-calendar>`
@@ -172,12 +210,12 @@ export class UICalendar extends FormElement<Vocabulary> {
 
   /** Earliest choosable moment:  `min`, or a later range start. */
   readonly min = createMemo(() =>
-    later(this.dates(), this.dates()?.parse(this.attrs.min) ?? null, this.partner("start"))
+    UICalendar.later(this.dates(), this.dates()?.parse(this.attrs.min) ?? null, this.partner("start"))
   )
 
   /** Latest choosable moment:  `max`, or an earlier range end. */
   readonly max = createMemo(() =>
-    earlier(this.dates(), this.dates()?.parse(this.attrs.max) ?? null, this.partner("end"))
+    UICalendar.earlier(this.dates(), this.dates()?.parse(this.attrs.max) ?? null, this.partner("end"))
   )
 
   /** The focused moment (see `focusState`). */
@@ -228,8 +266,8 @@ export class UICalendar extends FormElement<Vocabulary> {
       min: this.min(),
       max: this.max(),
       firstDayOfWeek: this.attrs.firstDayOfWeek ?? words.firstDayOfWeek(),
-      disabledDates: new Set(asArray(this.attrs.disabledDates).map((date) => String(date))),
-      disabledDays: new Set(asArray(this.attrs.disabledDaysOfWeek).map(Number)),
+      disabledDates: new Set(UICalendar.asArray(this.attrs.disabledDates).map((date) => String(date))),
+      disabledDays: new Set(UICalendar.asArray(this.attrs.disabledDaysOfWeek).map(Number)),
       selectAdjacentDays: this.attrs.selectAdjacentDays,
       range: this.range(dates, focus)
     }
@@ -606,7 +644,7 @@ export class UICalendar extends FormElement<Vocabulary> {
       else this.moveFocus = true
       return
     }
-    this.focusState.set(merge(cell.moment, focus, mode))
+    this.focusState.set(UICalendar.merge(cell.moment, focus, mode))
     this.modeState.set(next)
     this.moveFocus = true
   }
@@ -736,105 +774,41 @@ export class UICalendar extends FormElement<Vocabulary> {
   private static temporalNow(): TemporalAPI | undefined {
     return (globalThis as RuntimeGlobal)[RUNTIME_KEY] ? UI.i18n.temporal : undefined
   }
+
+  /** `moment`'s fields down to `mode`, the finer ones from `focus` (day clamped to the month). */
+  private static merge(moment: Moment, focus: Moment, mode: CalendarMode): Moment {
+    switch (mode) {
+      case "year":
+        return focus.with({ year: moment.year })
+      case "month":
+        return focus.with({ year: moment.year, month: moment.month })
+      case "day":
+        return focus.with({ year: moment.year, month: moment.month, day: moment.day })
+      case "hour":
+        return focus.with({ year: moment.year, month: moment.month, day: moment.day, hour: moment.hour })
+      default:
+        return moment
+    }
+  }
+
+  /** The later of two bounds (either may be missing). */
+  private static later(dates: CalendarDates | undefined, a: Moment | null, b: Moment | null): Moment | null {
+    if (!dates || !a || !b) return a ?? b
+    return dates.compare(a, b, "minute") >= 0 ? a : b
+  }
+
+  /** The earlier of two bounds (either may be missing). */
+  private static earlier(dates: CalendarDates | undefined, a: Moment | null, b: Moment | null): Moment | null {
+    if (!dates || !a || !b) return a ?? b
+    return dates.compare(a, b, "minute") <= 0 ? a : b
+  }
+
+  /** A `json` property as an array (anything else:  empty). */
+  private static asArray(value: unknown): unknown[] {
+    return Array.isArray(value) ? value : []
+  }
 }
 
 ////////////////
 // ## Helpers
 ////////////////
-
-/** `moment`'s fields down to `mode`, the finer ones from `focus` (day clamped to the month). */
-function merge(moment: Moment, focus: Moment, mode: CalendarMode): Moment {
-  switch (mode) {
-    case "year":
-      return focus.with({ year: moment.year })
-    case "month":
-      return focus.with({ year: moment.year, month: moment.month })
-    case "day":
-      return focus.with({ year: moment.year, month: moment.month, day: moment.day })
-    case "hour":
-      return focus.with({ year: moment.year, month: moment.month, day: moment.day, hour: moment.hour })
-    default:
-      return moment
-  }
-}
-
-/** The later of two bounds (either may be missing). */
-function later(dates: CalendarDates | undefined, a: Moment | null, b: Moment | null): Moment | null {
-  if (!dates || !a || !b) return a ?? b
-  return dates.compare(a, b, "minute") >= 0 ? a : b
-}
-
-/** The earlier of two bounds (either may be missing). */
-function earlier(dates: CalendarDates | undefined, a: Moment | null, b: Moment | null): Moment | null {
-  if (!dates || !a || !b) return a ?? b
-  return dates.compare(a, b, "minute") <= 0 ? a : b
-}
-
-/** A `json` property as an array (anything else:  empty). */
-function asArray(value: unknown): unknown[] {
-  return Array.isArray(value) ? value : []
-}
-
-/** Fomantic's default type. */
-const DEFAULT_TYPE: CalendarType = "datetime"
-
-/** Fomantic's default popup position. */
-const DEFAULT_POSITION = "bottom left"
-
-/** `UI.ids` prefix. */
-const ID_PREFIX = "ui-calendar"
-
-/** Inline custom property naming the field's anchor (`ui-calendar.css`). */
-const ANCHOR_PROPERTY = "--_ui-calendar-anchor"
-
-/** `required` => Fomantic's `notEmpty`. */
-const REQUIRED_RULE: ValidationRule = "notEmpty"
-
-/** Glyph names. */
-const CALENDAR_ICON = "calendar"
-const CLOCK_ICON = "clock"
-const PREVIOUS_ICON = "chevron-left"
-const NEXT_ICON = "chevron-right"
-
-/** Keys. */
-const ENTER = "Enter"
-const SPACE = " "
-const ARROW_DOWN = "ArrowDown"
-
-/** Open popover pseudo-class;  the focused cell. */
-const POPOVER_OPEN = ":popover-open"
-const FOCUSED_CELL = "td[tabindex='0']"
-
-/** Previous / next text keys, per view. */
-const PAGE_TEXTS = {
-  year: ["calendarPreviousYears", "calendarNextYears"],
-  month: ["calendarPreviousYear", "calendarNextYear"],
-  day: ["calendarPreviousMonth", "calendarNextMonth"],
-  hour: ["calendarPreviousDay", "calendarNextDay"],
-  minute: ["calendarPreviousDay", "calendarNextDay"]
-} as const
-
-/**
- * Class words of the markup contract (`ui-calendar.css`) -- grammar, not attributes, so not in the vocabulary.
- * - NOTE: Fomantic's cell classes:  `active` === chosen, `focus` === the keyboard's cell, `adjacent` === another
- *   month's day, `range` === inside a range.
- */
-const INPUT = "ui left icon input"
-const POPUP = "ui calendar popup"
-const PICKER = "calendar"
-const HEADER = "header"
-const PREVIOUS = "prev link"
-const TITLE = "title link"
-const NEXT = "next link"
-const TABLE = "ui celled center aligned unstackable"
-const COLUMN = "column table"
-const TODAY = "today link"
-const ICON = "icon"
-const LINK = "link"
-const ADJACENT = "adjacent"
-const DISABLED = "disabled"
-const ACTIVE = "active"
-const TODAY_CELL = "today"
-const FOCUS = "focus"
-const RANGE = "range"
-const FLUID = "fluid"

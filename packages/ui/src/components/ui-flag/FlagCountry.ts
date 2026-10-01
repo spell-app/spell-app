@@ -1,12 +1,12 @@
 import { camelCase } from "$/ui/core"
 
-import { flagAliases, flagEmoji } from "./ui-flag.vocabulary.en"
+import { INDICATOR_A, LETTER_A, TWO_LETTERS, WHITESPACE, flagAliases, flagEmoji } from "./ui-flag.types"
 
 /****************
  * ### `FlagCountry`
  * A `country` attribute resolved to a flag:  its code, its Unicode emoji and how to name it -- shared by
  * `<ui-flag>` and its native fallback, so both draw the same glyph.
- * - Rules:  `ui-flag.vocabulary.en.ts` (normalize, alias, `flagEmoji`, else a regional-indicator pair).
+ * - Rules:  `ui-flag.vocabulary.en.ts` and `ui-flag.types.ts` (normalize, alias, `flagEmoji`, else a regional-indicator pair).
  * - Plain data, no DOM and no runtime:  naming a code (`Intl.DisplayNames`) is the caller's, since the element
  *   goes through `UI.i18n` and the fallback can't count on the runtime.
  ****************/
@@ -46,15 +46,3 @@ export class FlagCountry {
     return String.fromCodePoint(...Array.from(code, (letter) => INDICATOR_A + letter.charCodeAt(0) - LETTER_A))
   }
 }
-
-/** Runs of whitespace. */
-const WHITESPACE = /\s+/g
-
-/** An ISO 3166-1 alpha-2 code, lowercase. */
-const TWO_LETTERS = /^[a-z]{2}$/
-
-/** `U+1F1E6`, REGIONAL INDICATOR SYMBOL LETTER A. */
-const INDICATOR_A = 0x1f1e6
-
-/** Char code of `a`. */
-const LETTER_A = 0x61

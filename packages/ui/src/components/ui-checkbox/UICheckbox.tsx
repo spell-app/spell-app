@@ -2,6 +2,7 @@ import { proto, type ValidationRule } from "$/ui/core"
 
 import { checkboxVocabulary } from "./ui-checkbox.vocabulary.en"
 import { CheckControl } from "./CheckControl"
+import { CHECKBOX, CHECKED_RULE, SWITCH } from "./ui-checkbox.types"
 
 /****************
  * ### `<ui-checkbox>`
@@ -30,7 +31,7 @@ export class UICheckbox extends CheckControl<typeof checkboxVocabulary> {
   }
 
   protected rules(): ValidationRule[] {
-    return this.attrs.required ? [REQUIRED_RULE] : []
+    return this.attrs.required ? [CHECKED_RULE] : []
   }
 
   protected hostStates() {
@@ -42,12 +43,3 @@ export class UICheckbox extends CheckControl<typeof checkboxVocabulary> {
     if (this.attrs.indeterminate) (this.host as unknown as { indeterminate: boolean }).indeterminate = false
   }
 }
-
-/** Input type, and what a form reads it as. */
-const CHECKBOX = "checkbox" as const
-
-/** Role of toggles and sliders. */
-const SWITCH = "switch"
-
-/** `required` => Fomantic's `checked`. */
-const REQUIRED_RULE: ValidationRule = "checked"

@@ -63,38 +63,3 @@ export const statisticVocabulary = {
   texts: [],
   ownsParts: ["value", "label"]
 } as const satisfies ComponentVocabulary
-
-/****************
- * ### `<ui-statistics>`
- * A group of statistics sharing one look:  `<div class="ui ... statistics" part="group">`.
- ****************/
-export const statisticsVocabulary = {
-  tag: "ui-statistics",
-  noun: "statistics",
-  description: "A group of statistics.",
-  attributes: [
-    { name: "size", kind: "size", description: "Size of every statistic in the group." },
-    { name: "color", kind: "color", description: "Hue of every value in the group." },
-    { name: "horizontal", kind: "keyOnly", description: "Statistics stacked, each with its label beside its value." },
-    { name: "inverted", kind: "keyOnly", description: "Every statistic for dark backgrounds." },
-    {
-      name: "stackable",
-      kind: "keyOnly",
-      description: "Below 768px of the GROUP's width (a container query), one statistic per row, full width."
-    },
-    {
-      name: "widths",
-      kind: "width",
-      widthClass: "",
-      values: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
-      description: 'Divides each row evenly between N statistics:  `widths="3"` => `three statistics`.'
-    }
-  ],
-  events: [],
-  slots: [{ name: "", description: "`<ui-statistic>`s." }],
-  parts: [{ name: "group", description: "The group box." }],
-  states: [
-    { name: "statistics", description: "ALWAYS set:  the group's host is a block and the `ui-statistics` container." }
-  ],
-  texts: []
-} as const satisfies ComponentVocabulary

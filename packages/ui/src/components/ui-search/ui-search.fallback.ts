@@ -1,6 +1,8 @@
-import { NativeFallback, proto, type PartName, type SearchResult } from "$/ui/core"
+import { NativeFallback, proto } from "$/ui/core"
 
 import { searchVocabulary } from "./ui-search.vocabulary.en"
+import { CHANGE_EVENT, PROMPT, PARTS, INPUT } from "./ui-search.types"
+import type { SearchHost } from "./ui-search.types"
 
 /****************
  * ### `SearchFallback`
@@ -83,19 +85,3 @@ export class SearchFallback extends NativeFallback<typeof searchVocabulary> {
     internals.setValidity(missing ? { valueMissing: true } : {}, input.validationMessage, input)
   }
 }
-
-/** The parts of a `<ui-search>` the fallback touches;  all optional, the element may not have upgraded. */
-type SearchHost = HTMLElement & {
-  value?: string | null
-  source?: readonly SearchResult[]
-}
-
-/** Part names the fallback writes. */
-const PARTS = { prompt: "prompt", input: "input" } as const satisfies Record<string, PartName<typeof searchVocabulary>>
-
-/** `ui-change`;  typed, so a reordered vocabulary fails to compile. */
-const CHANGE_EVENT: "ui-change" = searchVocabulary.events[2].name
-
-/** Class words of the markup contract (`ui-search.css`). */
-const INPUT = "ui icon input"
-const PROMPT = "prompt"

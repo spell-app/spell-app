@@ -1,6 +1,6 @@
-import { proto } from "$/ui/core"
+import { proto, LINK } from "$/ui/core"
 
-import { titleVocabulary } from "./ui-parts.vocabulary.en"
+import { titleVocabulary } from "./ui-title.vocabulary.en"
 import { PartElement } from "./PartElement"
 
 /****************
@@ -19,6 +19,3 @@ export class UITitle extends PartElement<typeof titleVocabulary> {
     return this.attrs.href
   }
 }
-
-/** Root of a linked title. */
-const LINK = "a"

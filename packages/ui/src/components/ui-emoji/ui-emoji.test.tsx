@@ -6,7 +6,7 @@ import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
 
 import { EmojiData } from "$/ui/components/ui-emoji"
-import { emojiSetVocabulary } from "./ui-emoji.vocabulary.en"
+import { emojiSetVocabulary } from "./ui-emoji-set.vocabulary.en"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/ui-emoji/examples/elements/*.html", {

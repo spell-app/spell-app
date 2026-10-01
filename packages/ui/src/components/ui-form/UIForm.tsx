@@ -3,7 +3,6 @@ import { isServer, type JSX } from "@solidjs/web"
 
 import {
   Cell,
-  FIELD_HOST_STATE,
   proto,
   UIElement,
   type AttributeName,
@@ -12,7 +11,9 @@ import {
   type FormRules,
   type FormSuccessDetail,
   type FormValidDetail,
-  type FormValues
+  type FormValues,
+  SUBMIT,
+  ARIA_INVALID
 } from "$/ui/core"
 
 import { formVocabulary } from "./ui-form.vocabulary.en"
@@ -21,12 +22,19 @@ import { FormFields } from "./FormFields"
 import { UIFormHost } from "./UIFormHost"
 
 import formCSS from "./ui-form.css?inline"
-
-/** Vocabulary type, for brevity. */
-type Vocabulary = typeof formVocabulary
-
-/** A `<ui-field>` host, as the form uses it. */
-type FieldElement = HTMLElement & { showErrors(messages: readonly string[]): void }
+import {
+  FIELD_SELECTOR,
+  ERROR,
+  CHANGE,
+  BLUR,
+  CHANGE_EVENTS,
+  RESET,
+  FOCUS_OUT,
+  BEFORE_UNLOAD,
+  FORM,
+  type Vocabulary,
+  type FieldElement
+} from "./ui-form.types"
 
 /****************
  * ### `<ui-form>`
@@ -189,13 +197,13 @@ export class UIForm extends UIElement<Vocabulary> {
   reset() {
     const form = untrack(() => this.form.get())
     if (form) form.reset()
-    else for (const control of this.fields.controls()) resetControl(control)
+    else for (const control of this.fields.controls()) UIForm.resetControl(control)
     this.clearShown()
   }
 
   /** Every control emptied, prompts and states cleared. */
   clear() {
-    for (const control of this.fields.controls()) clearControl(control)
+    for (const control of this.fields.controls()) UIForm.clearControl(control)
     this.clearShown()
   }
 
@@ -364,54 +372,30 @@ export class UIForm extends UIElement<Vocabulary> {
     const field = this.fields.fields().find((candidate) => identifiers.includes(candidate.identifier))
     ;(field?.controls[0] as HTMLElement | undefined)?.focus()
   }
-}
 
-/** Put a control back to its starting value (no native form to reset it). */
-function resetControl(control: Element) {
-  if (control instanceof HTMLInputElement) {
-    if (control.type === "checkbox" || control.type === "radio") control.checked = control.defaultChecked
-    else control.value = control.defaultValue
-  } else if (control instanceof HTMLTextAreaElement) control.value = control.defaultValue
-  else if (control instanceof HTMLSelectElement) {
-    for (const option of control.options) option.selected = option.defaultSelected
-  } else (control as { controller?: { formReset?(): void } }).controller?.formReset?.()
-}
+  /** Put a control back to its starting value (no native form to reset it). */
+  private static resetControl(control: Element) {
+    if (control instanceof HTMLInputElement) {
+      if (control.type === "checkbox" || control.type === "radio") control.checked = control.defaultChecked
+      else control.value = control.defaultValue
+    } else if (control instanceof HTMLTextAreaElement) control.value = control.defaultValue
+    else if (control instanceof HTMLSelectElement) {
+      for (const option of control.options) option.selected = option.defaultSelected
+    } else (control as { controller?: { formReset?(): void } }).controller?.formReset?.()
+  }
 
-/** Empty a control. */
-function clearControl(control: Element) {
-  if (control instanceof HTMLInputElement) {
-    if (control.type === "checkbox" || control.type === "radio") control.checked = false
-    else control.value = ""
-  } else if (control instanceof HTMLTextAreaElement) control.value = ""
-  else if (control instanceof HTMLSelectElement) control.selectedIndex = -1
-  else if ((control as { checkable?: string }).checkable) (control as unknown as { selected: boolean }).selected = false
-  else {
-    const host = control as unknown as { value: unknown }
-    host.value = Array.isArray(host.value) ? [] : ""
+  /** Empty a control. */
+  private static clearControl(control: Element) {
+    if (control instanceof HTMLInputElement) {
+      if (control.type === "checkbox" || control.type === "radio") control.checked = false
+      else control.value = ""
+    } else if (control instanceof HTMLTextAreaElement) control.value = ""
+    else if (control instanceof HTMLSelectElement) control.selectedIndex = -1
+    else if ((control as { checkable?: string }).checkable)
+      (control as unknown as { selected: boolean }).selected = false
+    else {
+      const host = control as unknown as { value: unknown }
+      host.value = Array.isArray(host.value) ? [] : ""
+    }
   }
 }
-
-/** The state failed validation shows. */
-const ERROR = "error"
-
-/** `on` values. */
-const CHANGE = "change"
-const BLUR = "blur"
-
-/** Events that mean "a control changed":  native ones from light-DOM controls, `ui-*` ones from elements. */
-const CHANGE_EVENTS = ["change", "input", "ui-change"] as const
-
-/** Other events it listens to. */
-const SUBMIT = "submit"
-const RESET = "reset"
-const FOCUS_OUT = "focusout"
-const BEFORE_UNLOAD = "beforeunload"
-
-/** A native form. */
-const FORM = "form"
-
-/** A control's `<ui-field>`. */
-const FIELD_SELECTOR = `:state(${FIELD_HOST_STATE})`
-
-/** Attribute marking a failing control. */
-const ARIA_INVALID = "aria-invalid"

@@ -1,7 +1,18 @@
 import { Show, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, IconGlyph, proto, SlotContent, type AttributeName, type FieldValue } from "$/ui/core"
+import {
+  Cell,
+  IconGlyph,
+  proto,
+  SlotContent,
+  type AttributeName,
+  type FieldValue,
+  ENTER,
+  SUBMIT,
+  ICON,
+  LEFT
+} from "$/ui/core"
 
 import { inputVocabulary } from "./ui-input.vocabulary.en"
 import { InputFallback } from "./ui-input.fallback"
@@ -9,12 +20,16 @@ import { TextControl } from "./TextControl"
 
 import labelCSS from "$/ui/components/ui-label/ui-label.css?inline"
 import inputCSS from "./ui-input.css?inline"
-
-/** Vocabulary type, for brevity. */
-type Vocabulary = typeof inputVocabulary
-
-/** Where a joined label sits. */
-type LabelPlace = "start" | "end" | "corner"
+import {
+  TYPE,
+  DISABLED_PSEUDO,
+  FILE,
+  LABEL_CLASSES,
+  CORNER_LABEL,
+  LEFT_CORNER_LABEL,
+  type Vocabulary,
+  type LabelPlace
+} from "./ui-input.types"
 
 /****************
  * ### `<ui-input>`
@@ -160,7 +175,7 @@ export class UIInput extends TextControl<Vocabulary> {
   /** The joined label box, around the `label` slot / shorthand. */
   private label(): JSX.Element {
     return (
-      <span class={LABEL} part={this.part("label")}>
+      <span class={LABEL_CLASSES} part={this.part("label")}>
         <slot name={this.slot("label")}>{this.attrs.label}</slot>
       </span>
     )
@@ -187,39 +202,19 @@ export class UIInput extends TextControl<Vocabulary> {
     if (!form) return
     event.preventDefault()
     this.touched.set(true)
-    const submitter = [...form.elements].find(isSubmitter) as HTMLElement | undefined
+    const submitter = [...form.elements].find(UIInput.isSubmitter) as HTMLElement | undefined
     if (submitter) submitter.click()
     else form.requestSubmit()
   }
-}
 
-/**
- * A form's default button:  a native submit button, or a `<ui-button type="submit">` (form-associated, so in
- * `form.elements`).
- */
-function isSubmitter(element: Element): boolean {
-  if (element instanceof HTMLButtonElement || element instanceof HTMLInputElement) {
-    return element.type === SUBMIT && !element.disabled
+  /**
+   * A form's default button:  a native submit button, or a `<ui-button type="submit">` (form-associated, so in
+   * `form.elements`).
+   */
+  private static isSubmitter(element: Element): boolean {
+    if (element instanceof HTMLButtonElement || element instanceof HTMLInputElement) {
+      return element.type === SUBMIT && !element.disabled
+    }
+    return element.getAttribute(TYPE) === SUBMIT && !element.matches(DISABLED_PSEUDO)
   }
-  return element.getAttribute(TYPE) === SUBMIT && !element.matches(DISABLED)
 }
-
-/** Key that submits. */
-const ENTER = "Enter"
-
-/** Submit type, and the attribute that says it. */
-const SUBMIT = "submit"
-const TYPE = "type"
-
-/** A disabled custom element (`:disabled` matches form-associated hosts). */
-const DISABLED = ":disabled"
-
-/**
- * Class words of the markup contract (`ui-input.css`) -- grammar, not attributes, so not in the vocabulary.
- */
-const ICON = "icon"
-const FILE = "file"
-const LEFT = "left"
-const LABEL = "ui label"
-const CORNER_LABEL = "ui corner label"
-const LEFT_CORNER_LABEL = "ui left corner label"

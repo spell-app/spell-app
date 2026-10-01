@@ -2,10 +2,11 @@ import type { JSX } from "@solidjs/web"
 
 import { proto, UIElement } from "$/ui/core"
 
-import { stepsVocabulary } from "./ui-step.vocabulary.en"
+import { stepsVocabulary } from "./ui-steps.vocabulary.en"
 import { StepFallback } from "./ui-step.fallback"
 
 import stepCSS from "./ui-step.css?inline"
+import { LIST } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-steps>`
@@ -35,6 +36,3 @@ export class UISteps extends UIElement<typeof stepsVocabulary> {
     )
   }
 }
-
-/** Explicit list role (see the class docs). */
-const LIST = "list"

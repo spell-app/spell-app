@@ -1,6 +1,8 @@
 import { NativeFallback, proto } from "$/ui/core"
 
 import { ratingVocabulary } from "./ui-rating.vocabulary.en"
+import { DEFAULT_MAX } from "./ui-rating.types"
+import type { RatingHost } from "./ui-rating.types"
 
 /****************
  * ### `RatingFallback`
@@ -19,6 +21,9 @@ export class RatingFallback extends NativeFallback<typeof ratingVocabulary> {
     "`:state(invalid)`, form reset of the value, labels from `<label for>`"
   ]
 
+  /** Names of fallback radio groups. */
+  private static counter = 0
+
   /** Built radios, for `attached()`. */
   private radios: HTMLInputElement[] = []
 
@@ -26,7 +31,7 @@ export class RatingFallback extends NativeFallback<typeof ratingVocabulary> {
     const host = this.host as RatingHost
     const max = Math.max(1, Math.floor(Number(this.attr("max-rating")) || DEFAULT_MAX))
     const value = host.value ?? Number(this.attr("value"))
-    const name = `${host.localName}-fallback-${++counter}`
+    const name = `${host.localName}-fallback-${++RatingFallback.counter}`
     const disabled = this.flag("disabled")
     const readonly = this.flag("readonly")
     const labels = Array.from({ length: max }, (_, index) => {
@@ -79,12 +84,3 @@ export class RatingFallback extends NativeFallback<typeof ratingVocabulary> {
     else formInternals.setValidity(first!.validity, first!.validationMessage, first)
   }
 }
-
-/** Fomantic's default `maxRating`. */
-const DEFAULT_MAX = 4
-
-/** Names of fallback radio groups. */
-let counter = 0
-
-/** The part of a rating host the fallback touches;  optional, the element may not have upgraded. */
-type RatingHost = HTMLElement & { value?: number }

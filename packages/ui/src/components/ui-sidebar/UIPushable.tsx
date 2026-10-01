@@ -3,13 +3,13 @@ import type { JSX } from "@solidjs/web"
 
 import { Cell, proto, PUSHER_TOKENS, SIDEBAR_HOST_STATE, UIElement, type SidebarLayout, type UIHost } from "$/ui/core"
 
-import { pushableVocabulary } from "./ui-sidebar.vocabulary.en"
+import { pushableVocabulary } from "./ui-pushable.vocabulary.en"
 import { SidebarFallback } from "./ui-sidebar.fallback"
 
 import sidebarCSS from "./ui-sidebar.css?inline"
-
-/** Vocabulary type, for brevity. */
-type Vocabulary = typeof pushableVocabulary
+import { PUSHABLE, CENTER, ON, OFF, INERT } from "./ui-sidebar.types"
+import type { PushableVocabulary } from "./ui-sidebar.types"
+import { NONE, VISIBLE } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-pushable>`
@@ -22,7 +22,7 @@ type Vocabulary = typeof pushableVocabulary
  * - SIDE EFFECT on the light DOM:  while a MODAL sidebar is visible, every other child (the pusher, other sidebars)
  *   gets `inert`, removed again when it hides -- only the `inert`s it added.
  ****************/
-export class UIPushable extends UIElement<Vocabulary> {
+export class UIPushable extends UIElement<PushableVocabulary> {
   @proto static vocabulary = pushableVocabulary
   @proto static styles = { sidebar: sidebarCSS }
   @proto static Fallback = SidebarFallback
@@ -105,18 +105,3 @@ export class UIPushable extends UIElement<Vocabulary> {
     return child.matches(`:state(${SIDEBAR_HOST_STATE}):not(:state(${VISIBLE}))`)
   }
 }
-
-/** Class of the root (`ui-sidebar.css`). */
-const PUSHABLE = "pushable"
-
-/** Token values. */
-const NONE = "none"
-const CENTER = "50% 50%"
-const ON = "1"
-const OFF = "0"
-
-/** The attribute it adds to the children beside a modal sidebar. */
-const INERT = "inert"
-
-/** State of a shown sidebar. */
-const VISIBLE = "visible"

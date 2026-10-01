@@ -1,10 +1,11 @@
 import { Show, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { PartContext, proto, SlotContent, UIElement } from "$/ui/core"
+import { DISABLED, PartContext, proto, SlotContent, TRUE, UIElement } from "$/ui/core"
 
-import { commentsVocabulary } from "./ui-comment.vocabulary.en"
+import { commentsVocabulary } from "./ui-comments.vocabulary.en"
 import { CommentFallback } from "./ui-comment.fallback"
+import { COLLAPSED, REPLY } from "./ui-comment.types"
 
 import commentCSS from "./ui-comment.css?inline"
 
@@ -61,13 +62,3 @@ export class UIComments extends UIElement<typeof commentsVocabulary> {
     return [collapsed ? COLLAPSED : "", disabled ? DISABLED : "", this.vocabulary.noun].filter(Boolean).join(" ")
   }
 }
-
-/** Class of the reply box. */
-const REPLY = "reply"
-
-/** ARIA boolean. */
-const TRUE = "true"
-
-/** Class words a thread keeps. */
-const COLLAPSED = "collapsed"
-const DISABLED = "disabled"

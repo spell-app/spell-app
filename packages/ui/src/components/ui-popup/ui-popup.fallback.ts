@@ -1,6 +1,8 @@
 import { NativeFallback, proto } from "$/ui/core"
 
 import { popupVocabulary } from "./ui-popup.vocabulary.en"
+import { DEFAULT_POSITION } from "./ui-popup.types"
+import { CLICK, TITLE } from "$/ui/components/components.types"
 
 /****************
  * ### `PopupFallback`
@@ -54,12 +56,3 @@ export class PopupFallback extends NativeFallback<typeof popupVocabulary> {
     return this.host.previousElementSibling
   }
 }
-
-/** Fomantic's default position. */
-const DEFAULT_POSITION = "top left"
-
-/** The one trigger with interactive content. */
-const CLICK = "click"
-
-/** The native tooltip attribute. */
-const TITLE = "title"

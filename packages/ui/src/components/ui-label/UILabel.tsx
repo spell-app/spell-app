@@ -1,13 +1,25 @@
 import { Show, createMemo } from "solid-js"
 import { Dynamic, type JSX } from "@solidjs/web"
 
-import { HostAttribute, IconGlyph, PartContext, proto, SlotContent, UIElement } from "$/ui/core"
+import {
+  HostAttribute,
+  IconGlyph,
+  PartContext,
+  proto,
+  SlotContent,
+  UIElement,
+  ICON,
+  IMAGE,
+  ARIA_LABEL,
+  IMG
+} from "$/ui/core"
 
 import { labelVocabulary } from "./ui-label.vocabulary.en"
 import { LabelFallback } from "./ui-label.fallback"
 
 import labelCSS from "./ui-label.css?inline"
 import partsCSS from "$/ui/components/ui-parts/ui-parts.css?inline"
+import { DETAIL, DELETE_CLASS, DELETE_ICON } from "./ui-label.types"
 
 /****************
  * ### `<ui-label>`
@@ -142,24 +154,3 @@ export class UILabel extends UIElement<typeof labelVocabulary> {
     this.emit("ui-remove", { originalEvent: event })
   }
 }
-
-/** Grammar words the element adds itself:  the icon box / icon-only class. */
-const ICON = "icon"
-
-/** Class of the `image` `<img>`, and the label's extra class for an image label. */
-const IMAGE = "image"
-
-/** Class of the `detail` shorthand box. */
-const DETAIL = "detail"
-
-/** Classes of the delete button. */
-const DELETE_CLASS = "delete icon"
-
-/** Glyph of the delete button (Fomantic's `delete icon`). */
-const DELETE_ICON = "xmark"
-
-/** Host attribute forwarded to the root. */
-const ARIA_LABEL = "aria-label"
-
-/** Role of a named, non-link label (an icon-only label is a picture of its name). */
-const IMG = "img"

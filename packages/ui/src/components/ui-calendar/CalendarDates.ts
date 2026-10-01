@@ -1,9 +1,7 @@
 import type { Temporal } from "temporal-polyfill"
 
 import type { CalendarMode, CalendarType, TemporalAPI } from "$/ui/core"
-
-/** A picked moment:  every type is held as a `PlainDateTime`, the unused parts zero (see `CalendarDates`). */
-export type Moment = Temporal.PlainDateTime
+import { MODES, ModeOptions, Moment, MomentFields, YEAR } from "./ui-calendar.types"
 
 /****************
  * ### `CalendarDates`
@@ -218,31 +216,3 @@ export class CalendarDates {
     return this.parse(this.format(moment))!
   }
 }
-
-/** Fields `CalendarDates.build()` takes. */
-export type MomentFields = {
-  year: number
-  month: number
-  day: number
-  hour?: number
-  minute?: number
-}
-
-/** Options of `CalendarDates.modes()`:  the `disable-*` attributes. */
-export type ModeOptions = {
-  disableMinute?: boolean
-  disableMonth?: boolean
-  disableYear?: boolean
-}
-
-/** Views per type, before the `disable-*` attributes. */
-const MODES: Readonly<Record<CalendarType, readonly CalendarMode[]>> = {
-  date: ["year", "month", "day"],
-  datetime: ["year", "month", "day", "hour", "minute"],
-  time: ["hour", "minute"],
-  month: ["year", "month"],
-  year: ["year"]
-}
-
-/** A `year` value:  up to six digits, as ISO's expanded years. */
-const YEAR = /^\d{1,6}$/

@@ -10,13 +10,30 @@ import {
   type ItemContext,
   type ItemOwner,
   type RovingTabindex,
-  type UIHost
+  type UIHost,
+  ARIA_LABEL,
+  NONE,
+  PAGE,
+  LINK,
+  BUTTON,
+  DISABLED_STATE,
+  TABINDEX
 } from "$/ui/core"
 
 import { menuVocabulary } from "./ui-menu.vocabulary.en"
 import { MenuFallback } from "./ui-menu.fallback"
 
 import menuCSS from "./ui-menu.css?inline"
+import {
+  MENUBAR,
+  MENUITEM,
+  HORIZONTAL,
+  VERTICAL,
+  ITEM_PART,
+  ITEM_TYPE,
+  SELECTED_STATE,
+  type ItemController
+} from "./ui-menu.types"
 
 /****************
  * ### `<ui-menu>`
@@ -75,7 +92,7 @@ export class UIMenu extends UIElement<typeof menuVocabulary> implements ItemOwne
   })
 
   /** What this menu's items render as (only the top menu's is read). */
-  readonly ownContext = createMemo(() => this.computeContext(), { equals: sameContext })
+  readonly ownContext = createMemo(() => this.computeContext(), { equals: UIMenu.sameContext })
 
   /** The menubar is live:  top-level, `interactive`, rendered. */
   readonly menubar = createMemo(() => !this.parent() && this.attrs.interactive && this.loaded())
@@ -247,42 +264,9 @@ export class UIMenu extends UIElement<typeof menuVocabulary> implements ItemOwne
       return boxes
     })
   }
+
+  /** Same item context, field by field:  items don't re-render for an equal one. */
+  private static sameContext(a: ItemContext, b: ItemContext): boolean {
+    return a.hostRole === b.hostRole && a.role === b.role && a.interactive === b.interactive && a.current === b.current
+  }
 }
-
-/** What the menu reads from an item's controller (`UIItem`, not imported:  another family). */
-type ItemController = { attrs: { type?: string }; focusTarget?: HTMLElement }
-
-/** Same item context, field by field:  items don't re-render for an equal one. */
-function sameContext(a: ItemContext, b: ItemContext): boolean {
-  return a.hostRole === b.hostRole && a.role === b.role && a.interactive === b.interactive && a.current === b.current
-}
-
-/** Host attribute forwarded to the root. */
-const ARIA_LABEL = "aria-label"
-
-/** Roles. */
-const MENUBAR = "menubar"
-const MENUITEM = "menuitem"
-const NONE = "none"
-
-/** `aria-current` of a selected link item. */
-const PAGE = "page"
-
-/** Orientations (`aria-orientation`, roving). */
-const HORIZONTAL = "horizontal"
-const VERTICAL = "vertical"
-
-/** Tags of an interactive item root, and its part. */
-const LINK = "a"
-const BUTTON = "button"
-const ITEM_PART = "item"
-
-/** Item `type` in the roving set. */
-const ITEM_TYPE = "item"
-
-/** Item host states. */
-const SELECTED_STATE = ":state(selected)"
-const DISABLED_STATE = ":state(disabled)"
-
-/** Attribute the roving tabindex writes on item hosts. */
-const TABINDEX = "tabindex"

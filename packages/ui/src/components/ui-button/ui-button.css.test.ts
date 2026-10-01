@@ -6,7 +6,9 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 import { Fixture } from "$/ui/test/fixture"
 
-import { buttonsVocabulary, buttonVocabulary, orVocabulary } from "./ui-button.vocabulary.en"
+import { buttonsVocabulary } from "./ui-buttons.vocabulary.en"
+import { buttonVocabulary } from "./ui-button.vocabulary.en"
+import { orVocabulary } from "./ui-or.vocabulary.en"
 
 import buttonCSS from "./ui-button.css?inline"
 import buttonRaw from "./ui-button.css?raw"

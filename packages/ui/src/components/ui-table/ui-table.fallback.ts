@@ -3,6 +3,7 @@ import { Converters, NativeFallback, proto } from "$/ui/core"
 import { tableVocabulary } from "./ui-table.vocabulary.en"
 import { TableClassMirror } from "./TableClassMirror"
 import { TableGrammar } from "./TableGrammar"
+import { SCROLLER } from "./ui-table.types"
 
 /****************
  * ### `TableFallback`
@@ -62,6 +63,3 @@ export class TableFallback extends NativeFallback<typeof tableVocabulary> {
     return text
   }
 }
-
-/** The fallback's one part. */
-const SCROLLER = "scroller"

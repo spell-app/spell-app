@@ -6,7 +6,7 @@ import { expectAccessible } from "$/ui/test/a11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
 
-import { iconSetVocabulary } from "./ui-icon.vocabulary.en"
+import { iconSetVocabulary } from "./ui-icon-set.vocabulary.en"
 
 import "$/ui/components/ui-icon"
 

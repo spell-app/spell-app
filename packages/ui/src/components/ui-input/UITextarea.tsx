@@ -2,7 +2,7 @@ import type { JSX } from "@solidjs/web"
 
 import { proto } from "$/ui/core"
 
-import { textareaVocabulary } from "./ui-input.vocabulary.en"
+import { textareaVocabulary } from "./ui-textarea.vocabulary.en"
 import { InputFallback } from "./ui-input.fallback"
 import { TextControl } from "./TextControl"
 

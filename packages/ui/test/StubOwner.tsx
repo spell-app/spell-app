@@ -1,7 +1,7 @@
 import type { JSX } from "@solidjs/web"
 
 import { proto } from "$/ui/util"
-import { PART_VOCABULARIES } from "$/ui/components/ui-parts/ui-parts.vocabulary.en"
+import { PART_VOCABULARIES } from "$/ui/components/ui-parts/ui-parts.types"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 import { UIElement, type UIElementClass } from "$/ui/elements"
 

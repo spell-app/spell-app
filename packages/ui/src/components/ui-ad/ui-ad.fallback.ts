@@ -1,6 +1,7 @@
 import { NativeFallback, proto } from "$/ui/core"
 
 import { adVocabulary } from "./ui-ad.vocabulary.en"
+import { DEFAULT_TEXT, TEST } from "./ui-ad.types"
 
 /****************
  * ### `AdFallback`
@@ -24,9 +25,3 @@ export class AdFallback extends NativeFallback<typeof adVocabulary> {
     return [this.decorate(ad, "ad")]
   }
 }
-
-/** Fomantic's placeholder class word. */
-const TEST = "test"
-
-/** The English default `test` text, from the vocabulary:  a failed render can't count on the runtime's texts. */
-const DEFAULT_TEXT = adVocabulary.texts.find(({ key }) => key === "adTest")!.text

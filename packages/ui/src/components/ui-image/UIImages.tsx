@@ -2,7 +2,7 @@ import type { JSX } from "@solidjs/web"
 
 import { proto, UIElement } from "$/ui/core"
 
-import { imagesVocabulary } from "./ui-image.vocabulary.en"
+import { imagesVocabulary } from "./ui-images.vocabulary.en"
 import { ImageFallback } from "./ui-image.fallback"
 
 import imageCSS from "./ui-image.css?inline"

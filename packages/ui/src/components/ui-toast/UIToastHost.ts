@@ -1,9 +1,5 @@
 import { UIHost } from "$/ui/core"
-
-/** What the host asks of its controller (`UIToast`). */
-type ToastController = {
-  close(): boolean
-}
+import type { ToastController } from "./ui-toast.types"
 
 /****************
  * ### `UIToastHost`

@@ -5,7 +5,8 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/fixture"
 import { Sheets } from "$/ui/test/sheets"
 
-import { imagesVocabulary, imageVocabulary } from "./ui-image.vocabulary.en"
+import { imageVocabulary } from "./ui-image.vocabulary.en"
+import { imagesVocabulary } from "./ui-images.vocabulary.en"
 
 import partsCSS from "$/ui/components/ui-parts/ui-parts.css?inline"
 import imageCSS from "./ui-image.css?inline"

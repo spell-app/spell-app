@@ -13,9 +13,6 @@
 
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 
-/** Fomantic's word widths (`thin flyout`), which `width` takes beside column counts. */
-export const FLYOUT_WORD_WIDTHS = ["very thin", "thin", "wide", "very wide"] as const
-
 /****************
  * ### `<ui-flyout>`
  * A side modal:  `<dialog class="ui [position] ... flyout" part="flyout">`, shown with `showModal()`, sliding in from

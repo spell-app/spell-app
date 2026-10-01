@@ -2,7 +2,7 @@ import type { JSX } from "@solidjs/web"
 
 import { proto, UIElement } from "$/ui/core"
 
-import { iconSetVocabulary } from "./ui-icon.vocabulary.en"
+import { iconSetVocabulary } from "./ui-icon-set.vocabulary.en"
 
 import iconSetCSS from "./icon-set.css?inline"
 

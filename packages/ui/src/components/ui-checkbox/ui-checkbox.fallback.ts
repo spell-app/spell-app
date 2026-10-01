@@ -1,6 +1,8 @@
 import { NativeFallback, proto } from "$/ui/core"
 
-import { checkboxVocabulary, radioVocabulary } from "./ui-checkbox.vocabulary.en"
+import { checkboxVocabulary } from "./ui-checkbox.vocabulary.en"
+import { radioVocabulary } from "./ui-radio.vocabulary.en"
+import type { NativeCheckHost } from "./ui-checkbox.types"
 
 /****************
  * ### `CheckboxFallback`
@@ -21,13 +23,16 @@ export class CheckboxFallback extends NativeFallback<typeof checkboxVocabulary> 
     "labels from `<label for>` (only `aria-label` names a fitted box)"
   ]
 
+  /** Counter behind the ids of fallback inputs. */
+  private static counter = 0
+
   /** Built input, for `attached()`. */
   private input: HTMLInputElement | undefined
 
   protected override build() {
-    const host = this.host as CheckHost
+    const host = this.host as NativeCheckHost
     const radio = host.localName === radioVocabulary.tag
-    const id = `${host.localName}-fallback-${++counter}`
+    const id = `${host.localName}-fallback-${++CheckboxFallback.counter}`
     const input = this.create("input", {
       id,
       type: radio ? "radio" : "checkbox",
@@ -71,9 +76,3 @@ export class CheckboxFallback extends NativeFallback<typeof checkboxVocabulary> 
     else formInternals.setValidity(input.validity, input.validationMessage, input)
   }
 }
-
-/** Ids of fallback inputs. */
-let counter = 0
-
-/** The part of a checkbox / radio host the fallback touches;  optional, the element may not have upgraded. */
-type CheckHost = HTMLElement & { selected?: boolean }

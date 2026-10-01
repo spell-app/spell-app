@@ -5,7 +5,8 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/fixture"
 import { Sheets } from "$/ui/test/sheets"
 
-import { breadcrumbSectionVocabulary, breadcrumbVocabulary } from "./ui-breadcrumb.vocabulary.en"
+import { breadcrumbSectionVocabulary } from "./ui-breadcrumb-section.vocabulary.en"
+import { breadcrumbVocabulary } from "./ui-breadcrumb.vocabulary.en"
 
 import breadcrumbCSS from "./ui-breadcrumb.css?inline"
 import breadcrumbRaw from "./ui-breadcrumb.css?raw"

@@ -12,6 +12,7 @@
  *   merges with the Fomantic `rules` property's.
  */
 
+import { FORM_STATES } from "$/ui/core"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /** Input types passed through to the inner `<input>`. */
@@ -31,9 +32,6 @@ const INPUT_TYPES = [
   "color",
   "file"
 ] as const
-
-/** Form states, tinting box, text and placeholder. */
-const FORM_STATES = ["error", "info", "success", "warning"] as const
 
 /****************
  * ### `<ui-input>`
@@ -162,81 +160,6 @@ export const inputVocabulary = {
     { name: "invalid", description: "Fails validation, once the user has interacted (`:user-invalid` semantics)." },
     { name: "disabled", description: "Can't be used." },
     { name: "loading", description: "Busy." },
-    { name: "fluid", description: "The host is block-level (`fluid`, or inside a `<ui-field>`)." }
-  ],
-  texts: []
-} as const satisfies ComponentVocabulary
-
-/****************
- * ### `<ui-textarea>`
- * A multi-line field:  `<div class="ui … input" part="input">` around a native `<textarea part="control">`.
- * - Shares `ui-input.css` (Fomantic styles `textarea` inside `.ui.input` and `.ui.form`), hence the `input` noun.
- ****************/
-export const textareaVocabulary = {
-  tag: "ui-textarea",
-  noun: "input",
-  description: "A textarea is a multi-line field used to elicit a longer response.",
-  attributes: [
-    { name: "size", kind: "size", description: "Size, `mini` ... `massive`;  `medium` is the default." },
-    {
-      name: "state",
-      kind: "valueOnly",
-      values: FORM_STATES,
-      description: "Form state, tinting the box, text and placeholder."
-    },
-    { name: "transparent", kind: "keyOnly", description: "No box:  text only." },
-    { name: "fluid", kind: "keyOnly", description: "Takes the full width of its container." },
-    { name: "disabled", kind: "keyOnly", description: "Can't be used;  dimmed, left out of the form." },
-    { name: "inverted", kind: "keyOnly", description: "For dark backgrounds." },
-    { name: "readonly", kind: "boolean", description: "Shows its value but can't be edited;  still submitted." },
-    {
-      name: "value",
-      kind: "string",
-      reflect: false,
-      description: "Value.  Attribute:  the starting (and reset) value;  property:  the live value."
-    },
-    { name: "name", kind: "string", description: "Form field name." },
-    { name: "placeholder", kind: "string", description: "Hint shown while empty." },
-    { name: "required", kind: "boolean", description: "Constraint:  must not be empty (`valueMissing`)." },
-    {
-      name: "minlength",
-      kind: "number",
-      description: "Constraint:  fewest characters (checked after the user edits)."
-    },
-    { name: "maxlength", kind: "number", description: "Constraint:  most characters." },
-    {
-      name: "rows",
-      kind: "number",
-      description: "Visible lines;  without it the field is Fomantic's form height (12em, 8em ... 24em)."
-    },
-    { name: "autocomplete", kind: "string", description: "Autofill hint, forwarded to the native textarea." },
-    {
-      name: "rules",
-      kind: "json",
-      reflect: false,
-      description: "Fomantic validation rules checked with the native constraints (`ValidationRule`s)."
-    }
-  ],
-  events: [
-    {
-      name: "ui-input",
-      detail: "{ value: string, originalEvent?: Event }",
-      description: "The user changed the value (every keystroke)."
-    },
-    {
-      name: "ui-change",
-      detail: "{ value: string, originalEvent?: Event }",
-      description: "The user committed a change (blur)."
-    }
-  ],
-  slots: [],
-  parts: [
-    { name: "input", description: "The root box." },
-    { name: "control", description: "The native `<textarea>`." }
-  ],
-  states: [
-    { name: "invalid", description: "Fails validation, once the user has interacted (`:user-invalid` semantics)." },
-    { name: "disabled", description: "Can't be used." },
     { name: "fluid", description: "The host is block-level (`fluid`, or inside a `<ui-field>`)." }
   ],
   texts: []

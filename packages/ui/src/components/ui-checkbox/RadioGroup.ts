@@ -1,20 +1,5 @@
 import { Cell } from "$/ui/core"
-
-/** What a group needs from each member (`UIRadio`);  structural, so this file never imports the element. */
-export type RadioMember = {
-  /** The member's host element, for document order and focus. */
-  readonly host: HTMLElement
-  /** Chosen now?  Tracked. */
-  isSelected(): boolean
-  /** Can't be used now?  Tracked. */
-  isDisabled(): boolean
-  /** Makes the group required?  Tracked. */
-  isRequired(): boolean
-  /** Its value;  tracked. */
-  choiceValue(): string
-  /** Choose / unchoose it without an event. */
-  setSelected(selected: boolean): void
-}
+import type { RadioMember } from "./ui-checkbox.types"
 
 /****************
  * ### `RadioGroup`

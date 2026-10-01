@@ -10,6 +10,34 @@ import { SliderFallback } from "./ui-slider.fallback"
 import { SliderScale } from "./SliderScale"
 
 import sliderCSS from "./ui-slider.css?inline"
+import {
+  DEFAULT_MIN,
+  DEFAULT_MAX,
+  DEFAULT_STEP,
+  SECOND,
+  INNER,
+  FROM,
+  FIRST,
+  TO,
+  TRACK,
+  TRACK_FILL,
+  LABELS,
+  SECOND_THUMB,
+  THUMB,
+  SLIDER,
+  AT,
+  LABEL_DISTANCE,
+  HALF_TICK_LABEL,
+  ARROW_UP,
+  ARROW_LEFT,
+  ARROW_RIGHT,
+  PAGE_UP,
+  PAGE_MULTIPLIER,
+  PAGE_DOWN,
+  SECOND_CLASS
+} from "./ui-slider.types"
+import type { Thumb } from "./ui-slider.types"
+import { VERTICAL, TRUE, GROUP, LABEL, HOME, END, ARROW_DOWN } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-slider>`
@@ -444,53 +472,3 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
     this.inner?.querySelector<HTMLElement>(`.${THUMB}`)?.focus()
   }
 }
-
-/** A thumb:  the first (`value`) or, in a range, the second (`end`). */
-type Thumb = 0 | 1
-
-/** The thumbs. */
-const FIRST: Thumb = 0
-const SECOND: Thumb = 1
-
-/** Fomantic's defaults. */
-const DEFAULT_MIN = 0
-const DEFAULT_MAX = 20
-const DEFAULT_STEP = 1
-
-/** Fomantic's `labelDistance`:  least px between full labels. */
-const LABEL_DISTANCE = 100
-
-/** Fomantic's `pageMultiplier`:  steps per PageUp / PageDown. */
-const PAGE_MULTIPLIER = 2
-
-/** Class words of Fomantic's markup. */
-const INNER = "inner"
-const TRACK = "track"
-const TRACK_FILL = "track-fill"
-const THUMB = "thumb"
-const SECOND_CLASS = "second"
-const SECOND_THUMB = `${SECOND_CLASS} ${THUMB}`
-const LABELS = "auto labels"
-const LABEL = "label"
-const HALF_TICK_LABEL = "halftick label"
-
-/** Custom properties `ui-slider.css` positions by. */
-const AT = "--_slider-at"
-const FROM = "--_slider-from"
-const TO = "--_slider-to"
-
-/** Roles and ARIA values. */
-const SLIDER = "slider"
-const GROUP = "group"
-const VERTICAL = "vertical"
-const TRUE = "true"
-
-/** Keys. */
-const ARROW_UP = "ArrowUp"
-const ARROW_DOWN = "ArrowDown"
-const ARROW_LEFT = "ArrowLeft"
-const ARROW_RIGHT = "ArrowRight"
-const PAGE_UP = "PageUp"
-const PAGE_DOWN = "PageDown"
-const HOME = "Home"
-const END = "End"

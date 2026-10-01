@@ -24,18 +24,9 @@ import { selectVocabulary } from "./ui-select.vocabulary.en"
 import { SelectFallback } from "./ui-select.fallback"
 
 import selectCSS from "./ui-select.css?inline"
-
-/** Vocabulary type, for brevity. */
-type Vocabulary = typeof selectVocabulary
-
-/** A header item and the options after it, as one `<optgroup>`. */
-type OptionGroup = {
-  header: MenuSeparator
-  options: readonly MenuOption[]
-}
-
-/** What the `<select>` holds, in order:  options, groups and dividers. */
-type SelectBlock = MenuOption | OptionGroup | MenuSeparator
+import type { SelectVocabulary, SelectBlock } from "./ui-select.types"
+import { PLACEHOLDER, DIVIDER, IMAGE, FLAG, SelectFlags } from "./ui-select.types"
+import { HEADER, REQUIRED_RULE, ITEM, ICON, TEXT, DESCRIPTION } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-select>`
@@ -53,7 +44,7 @@ type SelectBlock = MenuOption | OptionGroup | MenuSeparator
  * - Keyboard, picker, type-ahead and screen-reader semantics are the browser's.
  * - Form-associated:  `multiple` submits one `FormData` entry per value;  `required` => `valueMissing`.
  ****************/
-export class UISelect extends FormElement<Vocabulary> {
+export class UISelect extends FormElement<SelectVocabulary> {
   @proto static vocabulary = selectVocabulary
   @proto static styles = { select: selectCSS }
   @proto static Fallback = SelectFallback
@@ -109,8 +100,8 @@ export class UISelect extends FormElement<Vocabulary> {
 
   /** Every option, in order. */
   readonly all = createMemo(
-    (): readonly MenuOption[] => [...this.items.entries().filter(isOption), ...this.propOptions()],
-    { equals: sameItems }
+    (): readonly MenuOption[] => [...this.items.entries().filter(UISelect.isOption), ...this.propOptions()],
+    { equals: UISelect.sameItems }
   )
 
   /** Chosen values, always as an array. */
@@ -121,7 +112,7 @@ export class UISelect extends FormElement<Vocabulary> {
       if (typeof value !== "string" || value === "") return []
       return this.attrs.multiple ? Converters.list(value) : [value]
     },
-    { equals: sameItems }
+    { equals: UISelect.sameItems }
   )
 
   /** Render the empty first option:  single, and a `placeholder` or nothing chosen yet. */
@@ -142,7 +133,7 @@ export class UISelect extends FormElement<Vocabulary> {
   // ## Element hooks
   ////////////////
 
-  protected classValue(name: AttributeName<Vocabulary>): unknown {
+  protected classValue(name: AttributeName<SelectVocabulary>): unknown {
     if (name === "disabled") return this.isDisabled()
     return super.classValue(name)
   }
@@ -265,7 +256,7 @@ export class UISelect extends FormElement<Vocabulary> {
           <img class={IMAGE} src={option.image as string} alt="" />
         </Show>
         <Show when={typeof option.flag === "string"}>
-          <span class={FLAG}>{flagEmoji(option.flag as string)}</span>
+          <span class={FLAG}>{SelectFlags.emoji(option.flag as string)}</span>
         </Show>
         <span class={TEXT}>{option.text}</span>
         <Show when={option.description}>
@@ -309,50 +300,20 @@ export class UISelect extends FormElement<Vocabulary> {
   /** Values of slotted items marked `selected`, the uncontrolled starting value. */
   private selectedItemValues(): string | string[] | undefined {
     const values = untrack(() => this.items.entries())
-      .filter(isOption)
+      .filter(UISelect.isOption)
       .filter((option) => option.selected)
       .map((option) => option.value)
     if (!values.length) return undefined
     return untrack(() => this.attrs.multiple) ? values : values[0]
   }
+
+  /** Is `entry` an option (not a header or divider)? */
+  private static isOption(entry: MenuEntry): entry is MenuOption {
+    return !("type" in entry)
+  }
+
+  /** Same items in the same order?  Memo `equals` for arrays. */
+  private static sameItems<T>(a: readonly T[], b: readonly T[]): boolean {
+    return a.length === b.length && a.every((item, index) => item === b[index])
+  }
 }
-
-////////////////
-// ## Helpers
-////////////////
-
-/** Is `entry` an option (not a header or divider)? */
-function isOption(entry: MenuEntry): entry is MenuOption {
-  return !("type" in entry)
-}
-
-/** Same items in the same order?  Memo `equals` for arrays. */
-function sameItems<T>(a: readonly T[], b: readonly T[]): boolean {
-  return a.length === b.length && a.every((item, index) => item === b[index])
-}
-
-/** Country code => flag emoji (regional indicators), e.g. `fr` => 🇫🇷;  other text unchanged. */
-function flagEmoji(code: string): string {
-  if (!/^[a-z]{2}$/i.test(code)) return code
-  const upper = code.toUpperCase()
-  return String.fromCodePoint(REGIONAL_A + upper.charCodeAt(0) - 65, REGIONAL_A + upper.charCodeAt(1) - 65)
-}
-
-/** Code point of the regional indicator for `A`. */
-const REGIONAL_A = 0x1f1e6
-
-/** `required` => Fomantic's `notEmpty`. */
-const REQUIRED_RULE: ValidationRule = "notEmpty"
-
-/** `<ui-item type="header">`. */
-const HEADER = "header"
-
-/** Class words of the markup contract (`ui-select.css`) -- grammar, not attributes, so not in the vocabulary. */
-const PLACEHOLDER = "placeholder"
-const DIVIDER = "divider"
-const ITEM = "item"
-const ICON = "icon"
-const IMAGE = "ui avatar image"
-const FLAG = "flag"
-const TEXT = "text"
-const DESCRIPTION = "description"

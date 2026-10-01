@@ -1,11 +1,12 @@
 import { createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { BREADCRUMB_DIVIDER_TOKENS, HostAttribute, IconGlyph, proto, UIElement } from "$/ui/core"
+import { ARIA_LABEL, BREADCRUMB_DIVIDER_TOKENS, HostAttribute, IconGlyph, proto, UIElement } from "$/ui/core"
 
 import { breadcrumbVocabulary } from "./ui-breadcrumb.vocabulary.en"
 import { BreadcrumbDivider } from "./BreadcrumbDivider"
 import { BreadcrumbFallback } from "./ui-breadcrumb.fallback"
+import { ICON_LAYOUT } from "./ui-breadcrumb.types"
 
 import breadcrumbCSS from "./ui-breadcrumb.css?inline"
 
@@ -61,9 +62,3 @@ export class UIBreadcrumb extends UIElement<typeof breadcrumbVocabulary> {
     )
   }
 }
-
-/** Host attribute forwarded to the `<nav>`. */
-const ARIA_LABEL = "aria-label"
-
-/** `--_ui-breadcrumb-divider-layout` while an icon divider is set. */
-const ICON_LAYOUT = "icon"

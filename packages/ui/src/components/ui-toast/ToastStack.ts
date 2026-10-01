@@ -4,7 +4,6 @@ import {
   UIElement,
   ValueSets,
   type AttributeNameOf,
-  type AttributeSpec,
   type ToastAction,
   type ToastHandle,
   type ToastOptions,
@@ -14,6 +13,40 @@ import {
 import { toastVocabulary } from "./ui-toast.vocabulary.en"
 
 import containerCSS from "./ui-toast.container.css?inline"
+import {
+  ID_PREFIX,
+  HIDE_EVENT,
+  DEFAULT_DISPLAY_TIME,
+  TYPES,
+  HUES,
+  INVERTED,
+  GROUP_NOUN,
+  ATTACHED,
+  SLOT_ACTIONS,
+  BUTTON_NOUN,
+  KEY_ONLY,
+  COLOR,
+  DEFAULT_POSITION,
+  POSITIONS,
+  CONTAINER_SHEET,
+  UI_WORD,
+  CONTAINER_CLASS,
+  ROLE,
+  REGION,
+  NOTIFICATIONS,
+  FOCUS_WITHIN
+} from "./ui-toast.types"
+import type { ToastRecord } from "./ui-toast.types"
+import {
+  FALSE,
+  FLUID,
+  ICON,
+  ARIA_LABEL,
+  MANUAL,
+  POPOVER_OPEN,
+  VERTICAL,
+  HORIZONTAL
+} from "$/ui/components/components.types"
 
 /****************
  * ### `ToastStack`
@@ -199,64 +232,3 @@ export class ToastStack implements ToastProvider {
     }
   }
 }
-
-/** A showing toast. */
-type ToastRecord = {
-  element: HTMLElement
-  /** resolves the handle's `closed` */
-  settle: () => void
-}
-
-/** `UI.ids` prefix of toast ids. */
-const ID_PREFIX = "ui-toast"
-
-/** Fomantic's default `displayTime`. */
-const DEFAULT_DISPLAY_TIME = 3000
-
-/** Positions (Fomantic's), and the default. */
-const DEFAULT_POSITION = "top right"
-const POSITIONS = ["top right", "top left", "top center", "bottom right", "bottom left", "bottom center", "centered"]
-
-/** `type` words, from the vocabulary. */
-const TYPES: readonly string[] = (toastVocabulary.attributes.find(({ name }) => name === "type") as AttributeSpec)
-  .values as readonly string[]
-
-/** Value set of the hues. */
-const HUES = "hues"
-
-/** Attribute values it writes. */
-const FALSE = "false"
-const INVERTED = "inverted"
-const ATTACHED = "attached"
-const VERTICAL = "vertical"
-const FLUID = "fluid"
-const KEY_ONLY = "keyOnly"
-
-/** Attributes it sets on buttons (canonical `<ui-button>` names) and containers. */
-const COLOR = "color"
-const ICON = "icon"
-const ARIA_LABEL = "aria-label"
-const ROLE = "role"
-const REGION = "region"
-
-/** Slot of the actions (canonical). */
-const SLOT_ACTIONS = "actions"
-
-/** Nouns of the button family's elements. */
-const BUTTON_NOUN = "button"
-const GROUP_NOUN = "buttons"
-
-/** Event that ends a toast. */
-const HIDE_EVENT = "ui-hide"
-
-/** Text key of the containers' name. */
-const NOTIFICATIONS = "notifications"
-
-/** Container markup (`ui-toast.container.css`). */
-const CONTAINER_SHEET = "toast-container"
-const UI_WORD = "ui"
-const CONTAINER_CLASS = "toast-container"
-const HORIZONTAL = "horizontal"
-const MANUAL = "manual"
-const POPOVER_OPEN = ":popover-open"
-const FOCUS_WITHIN = ":focus-within"

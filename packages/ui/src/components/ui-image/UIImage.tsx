@@ -1,7 +1,7 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement } from "$/ui/core"
+import { proto, UIElement, TRUE } from "$/ui/core"
 
 import { imageVocabulary } from "./ui-image.vocabulary.en"
 import { ImageFallback } from "./ui-image.fallback"
@@ -63,6 +63,3 @@ export class UIImage extends UIElement<typeof imageVocabulary> {
     )
   }
 }
-
-/** ARIA boolean. */
-const TRUE = "true"

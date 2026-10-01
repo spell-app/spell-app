@@ -19,14 +19,25 @@ import {
   type UIHost
 } from "$/ui/core"
 
-import { SIDEBAR_WORD_WIDTHS, sidebarVocabulary } from "./ui-sidebar.vocabulary.en"
+import { SIDEBAR_WORD_WIDTHS } from "./ui-sidebar.types"
+import { sidebarVocabulary } from "./ui-sidebar.vocabulary.en"
 import type { UIPushable } from "./UIPushable"
 import { SidebarFallback } from "./ui-sidebar.fallback"
 
 import sidebarCSS from "./ui-sidebar.css?inline"
-
-/** Vocabulary type, for brevity. */
-type Vocabulary = typeof sidebarVocabulary
+import {
+  VERTICAL,
+  OVERLAY,
+  UNCOVER,
+  ANY,
+  NONE_TRANSFORM,
+  CENTER,
+  SCALE_DOWN,
+  SCALE,
+  SCALE_ORIGINS
+} from "./ui-sidebar.types"
+import type { SidebarVocabulary } from "./ui-sidebar.types"
+import { ARIA_LABEL, LEFT, TRUE, NONE, TOP, CLOSE } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-sidebar>`
@@ -47,7 +58,7 @@ type Vocabulary = typeof sidebarVocabulary
  *   commands `TOGGLE_COMMANDS`, Escape, a click beside it);  `ui-show` / `ui-hide` follow once the transition has
  *   ended.  Writing `visible` fires no `ui-open` / `ui-close`.
  ****************/
-export class UISidebar extends UIElement<Vocabulary> {
+export class UISidebar extends UIElement<SidebarVocabulary> {
   @proto static vocabulary = sidebarVocabulary
   @proto static styles = { sidebar: sidebarCSS }
   @proto static Fallback = SidebarFallback
@@ -118,7 +129,7 @@ export class UISidebar extends UIElement<Vocabulary> {
     return SIDEBAR_WORD_WIDTHS.find((word) => word === text)
   }
 
-  protected classValue(name: AttributeName<Vocabulary>): unknown {
+  protected classValue(name: AttributeName<SidebarVocabulary>): unknown {
     if (name === "width" && UISidebar.wordWidth(this.attrs.width)) return undefined
     if (name === "visible") return this.isVisible()
     if (name === "transition") return this.transitionName()
@@ -324,41 +335,3 @@ export class UISidebar extends UIElement<Vocabulary> {
     event.preventDefault()
   }
 }
-
-/** Positions. */
-const LEFT = "left"
-const TOP = "top"
-
-/** Top / bottom sidebars:  full width, move the pusher vertically. */
-const VERTICAL = new Set(["top", "bottom"])
-
-/** Transitions it treats specially. */
-const OVERLAY = "overlay"
-const UNCOVER = "uncover"
-const SCALE_DOWN = "scale down"
-
-/** Pusher transforms. */
-const NONE_TRANSFORM = "none"
-const SCALE = "scale(0.75)"
-const CENTER = "50% 50%"
-
-/** Where a scaled-down pusher shrinks towards, by the sidebar's side (Fomantic's `transform-origin`s). */
-const SCALE_ORIGINS: Readonly<Record<string, string>> = {
-  left: "75% 50%",
-  right: "25% 50%",
-  top: "50% 75%",
-  bottom: "50% 25%"
-}
-
-/** `closedby` values it reads. */
-const ANY = "any"
-const NONE = "none"
-
-/** Close reason of a command. */
-const CLOSE = "close"
-
-/** Attribute forwarded to the panel. */
-const ARIA_LABEL = "aria-label"
-
-/** ARIA boolean. */
-const TRUE = "true"

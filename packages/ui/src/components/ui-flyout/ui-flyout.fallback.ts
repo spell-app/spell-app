@@ -1,7 +1,8 @@
 import { proto } from "$/ui/core"
 import { ModalFallback } from "$/ui/components/ui-modal"
 
-import { FLYOUT_WORD_WIDTHS, flyoutVocabulary } from "./ui-flyout.vocabulary.en"
+import { flyoutVocabulary } from "./ui-flyout.vocabulary.en"
+import { FLYOUT_WORD_WIDTHS, WIDTH } from "./ui-flyout.types"
 
 /****************
  * ### `FlyoutFallback`
@@ -28,6 +29,3 @@ export class FlyoutFallback extends ModalFallback {
     return super.classes([word, extra].filter(Boolean).join(" ") || undefined)
   }
 }
-
-/** The attribute with word values. */
-const WIDTH = "width"

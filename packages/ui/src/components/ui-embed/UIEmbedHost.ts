@@ -1,10 +1,5 @@
 import { UIHost } from "$/ui/core"
-
-/** What the host asks of its controller (`UIEmbed`). */
-type EmbedController = {
-  activate(): boolean
-  reset(): void
-}
+import type { EmbedController } from "./ui-embed.types"
 
 /****************
  * ### `UIEmbedHost`

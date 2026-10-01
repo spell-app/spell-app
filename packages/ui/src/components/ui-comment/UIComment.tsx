@@ -1,10 +1,11 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { PartContext, proto, SlotContent, UIElement } from "$/ui/core"
+import { PartContext, proto, SlotContent, TRUE, UIElement } from "$/ui/core"
 
 import { commentVocabulary } from "./ui-comment.vocabulary.en"
 import { CommentFallback } from "./ui-comment.fallback"
+import { REPLY } from "./ui-comment.types"
 
 import commentCSS from "./ui-comment.css?inline"
 
@@ -56,9 +57,3 @@ export class UIComment extends UIElement<typeof commentVocabulary> {
     )
   }
 }
-
-/** Class of the reply box. */
-const REPLY = "reply"
-
-/** ARIA boolean. */
-const TRUE = "true"

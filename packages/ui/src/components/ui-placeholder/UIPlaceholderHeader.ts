@@ -1,6 +1,6 @@
 import { proto } from "$/ui/core"
 
-import { placeholderHeaderVocabulary } from "./ui-placeholder.vocabulary.en"
+import { placeholderHeaderVocabulary } from "./ui-placeholder-header.vocabulary.en"
 import { PlaceholderShape } from "./PlaceholderShape"
 
 /****************

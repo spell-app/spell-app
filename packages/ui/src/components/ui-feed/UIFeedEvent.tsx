@@ -1,11 +1,12 @@
 import { Show, createEffect, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { IconGlyph, PartContext, proto, SlotContent, UIElement, type UIHost } from "$/ui/core"
+import { ICON, IconGlyph, LISTITEM, PartContext, proto, SlotContent, TRUE, type UIHost, UIElement } from "$/ui/core"
 
-import { eventVocabulary } from "./ui-feed.vocabulary.en"
+import { eventVocabulary } from "./ui-event.vocabulary.en"
 import { FeedFallback } from "./ui-feed.fallback"
 import type { UIFeed } from "./UIFeed"
+import { COLOR_CLASS_PREFIX, LABEL } from "./ui-feed.types"
 
 import feedCSS from "./ui-feed.css?inline"
 
@@ -106,16 +107,3 @@ export class UIFeedEvent extends UIElement<typeof eventVocabulary> {
     )
   }
 }
-
-/** Classes of the label box and the icon box. */
-const LABEL = "label"
-const ICON = "icon"
-
-/** ARIA boolean. */
-const TRUE = "true"
-
-/** Host role in a feed. */
-const LISTITEM = "listitem"
-
-/** Prefix of the colour remap class a coloured event adds (`ui-red`). */
-const COLOR_CLASS_PREFIX = "ui-"

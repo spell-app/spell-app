@@ -1,6 +1,7 @@
 import { NativeFallback, proto } from "$/ui/core"
 
 import { menuVocabulary } from "./ui-menu.vocabulary.en"
+import { ITEM_TAG } from "./ui-menu.types"
 
 /****************
  * ### `MenuFallback`
@@ -26,6 +27,3 @@ export class MenuFallback extends NativeFallback<typeof menuVocabulary> {
     return [this.decorate(this.create("nav", { class: this.classes() }, this.slot()), "menu")]
   }
 }
-
-/** Canonical tag of the generic item (a sub-menu's usual parent in a vertical menu). */
-const ITEM_TAG = "ui-item"

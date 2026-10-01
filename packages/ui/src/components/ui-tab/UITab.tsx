@@ -17,9 +17,9 @@ import { TabFallback } from "./ui-tab.fallback"
 
 import segmentCSS from "$/ui/components/ui-segment/ui-segment.css?inline"
 import tabCSS from "./ui-tab.css?inline"
-
-/** Vocabulary type, for brevity. */
-type Vocabulary = typeof tabVocabulary
+import { SEGMENT, TABPANEL, TEMPLATES } from "./ui-tab.types"
+import type { TabVocabulary, TabOwner, TabPaneState } from "./ui-tab.types"
+import { ACTIVE, TRUE, TABINDEX } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-tab>`
@@ -34,7 +34,7 @@ type Vocabulary = typeof tabVocabulary
  *   `ui-show` (`{ value, first }`) fires every time it becomes the shown pane.
  * - Looks come from `ui-segment.css` (the pane IS a segment) and `ui-tab.css`, adopted in that order.
  ****************/
-export class UITab extends UIElement<Vocabulary> {
+export class UITab extends UIElement<TabVocabulary> {
   @proto static vocabulary = tabVocabulary
   @proto static styles = { segment: segmentCSS, tab: tabCSS }
   @proto static Fallback = TabFallback
@@ -85,7 +85,7 @@ export class UITab extends UIElement<Vocabulary> {
   // ## Element hooks
   ////////////////
 
-  protected classValue(name: AttributeName<Vocabulary>): unknown {
+  protected classValue(name: AttributeName<TabVocabulary>): unknown {
     const state = this.state()
     if (name === "selected") return state.selected
     if (name === "attached") return state.attached
@@ -168,41 +168,3 @@ export class UITab extends UIElement<Vocabulary> {
     this.emit("ui-show", detail)
   }
 }
-
-/** What a pane asks its owner (`UITabs`, not imported:  it imports this file). */
-export type TabOwner = {
-  /** How `pane` shows now.  Tracked. */
-  paneState(pane: Element): TabPaneState
-  /** `pane`'s value:  its `value`, else its index.  Untracked. */
-  valueOf(pane: Element): string
-}
-
-/** How a pane shows, from `TabOwner.paneState()`. */
-export type TabPaneState = {
-  /** the shown pane */
-  selected: boolean
-  /** edge it joins the menu on */
-  attached?: string | boolean
-  /** no segment box */
-  basic: boolean
-  /** a dark pane */
-  inverted: boolean
-}
-
-/** Alias attribute of `selected`. */
-const ACTIVE = "active"
-
-/** Class after the noun:  the pane is a segment. */
-const SEGMENT = "segment"
-
-/** Host role while owned. */
-const TABPANEL = "tabpanel"
-
-/** Host attribute for the pane's Tab stop. */
-const TABINDEX = "tabindex"
-
-/** A lazy pane's templates:  direct children only. */
-const TEMPLATES = ":scope > template"
-
-/** `aria-busy` value. */
-const TRUE = "true"

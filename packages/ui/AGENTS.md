@@ -50,8 +50,15 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
     - `index.ts` -- the family barrel:  calls `define()` for every tag (SIDE EFFECT), re-exports the classes.
       Also the family's lib entry (`@spell-app/ui/ui-button`) and its hot-reload boundary
     - `ui-<name>.css` -- port of Fomantic's `.less` + `.variables`
-    - `ui-<name>.vocabulary.en.ts` -- EVERY name the component uses:  tag, attributes (kind + allowed values),
-      values, events, slots, parts, states, text strings.  Translations become `ui-<name>.vocabulary.<lang>.ts`
+    - `<tag>.vocabulary.en.ts` -- ONE per tag (`ui-button.vocabulary.en.ts`, `ui-buttons.vocabulary.en.ts`,
+      `ui-or.vocabulary.en.ts`):  EVERY name the tag uses:  tag, attributes (kind + allowed values), values, events,
+      slots, parts, states, text strings.  Translations become `<tag>.vocabulary.<lang>.ts`
+    - `ui-<name>.types.ts` -- the folder's loose constants, types and shared vocabulary pieces (nothing top-level
+      stays loose in an element / fallback / helper file);  a helper function becomes a private static on the one class
+      that uses it, else a static on a small class here.  Constants used by SEVERAL folders live in
+      `src/components/components.types.ts` and are imported from `$/ui/core`.  NOTE:  a types file imports its
+      vocabularies with `import type` only (vocabularies import values from it:  a value import is a cycle);
+      `ui-parts.types.ts` is the exception
     - `ui-<name>.fallback.ts` -- the native fallback (plain DOM, no Solid) shown when the element's render throws
     - `ui-<name>.test.tsx` (elements), `ui-<name>.css.test.ts` (the sheet on class-grammar markup),
       `ui-<name>.fallback.test.ts`, `ui-<name>.a11y.test.ts`, `ui-<name>.perf.test.tsx`

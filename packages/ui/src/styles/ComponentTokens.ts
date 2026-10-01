@@ -19,7 +19,7 @@ export class ComponentTokens {
 
   /**
    * Build from source TEXT.
-   * - `vocabularies`:  path => text of every `ui-<family>.vocabulary.en.ts`;  the family is the path's folder
+   * - `vocabularies`:  path => text of every `ui-<tag>.vocabulary.en.ts` (one per tag);  the family is the path's folder
    * - `foundation`:  texts of the foundation sheets
    */
   constructor(vocabularies: Record<string, string>, foundation: string[]) {

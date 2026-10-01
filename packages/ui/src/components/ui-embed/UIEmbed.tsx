@@ -1,17 +1,31 @@
 import { Show, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { IconGlyph, proto, UIElement, type AttributeName, type EmbedActivateDetail, type EmbedSource } from "$/ui/core"
+import {
+  ICON_CLASS,
+  IconGlyph,
+  proto,
+  type AttributeName,
+  type EmbedActivateDetail,
+  type EmbedSource,
+  UIElement
+} from "$/ui/core"
 
 import { embedVocabulary } from "./ui-embed.vocabulary.en"
 import { EmbedFallback } from "./ui-embed.fallback"
-import { EmbedSources, type EmbedParameters } from "./EmbedSources"
+import { EmbedSources } from "./EmbedSources"
 import { UIEmbedHost } from "./UIEmbedHost"
+import {
+  ALLOW,
+  EmbedParameters,
+  FRAME_CLASS,
+  PLACEHOLDER_CLASS,
+  PLAY_CLASS,
+  REFERRER_POLICY,
+  Vocabulary
+} from "./ui-embed.types"
 
 import embedCSS from "./ui-embed.css?inline"
-
-/** Vocabulary type, for brevity. */
-type Vocabulary = typeof embedVocabulary
 
 /****************
  * ### `<ui-embed>`
@@ -176,15 +190,3 @@ export class UIEmbed extends UIElement<Vocabulary> {
     })
   }
 }
-
-/** Class words of the markup contract (`ui-embed.css`) -- grammar, not attributes, so not in the vocabulary. */
-const PLAY_CLASS = "play"
-const PLACEHOLDER_CLASS = "placeholder"
-const ICON_CLASS = "icon"
-const FRAME_CLASS = "embed"
-
-/** What the frame may use (players ask for these). */
-const ALLOW = "accelerometer; autoplay; clipboard-write; encrypted-media; fullscreen; gyroscope; picture-in-picture"
-
-/** Referrer the frame gets:  YouTube's player needs the origin. */
-const REFERRER_POLICY = "strict-origin-when-cross-origin"

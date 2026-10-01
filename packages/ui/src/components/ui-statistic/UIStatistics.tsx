@@ -2,7 +2,7 @@ import type { JSX } from "@solidjs/web"
 
 import { proto, UIElement } from "$/ui/core"
 
-import { statisticsVocabulary } from "./ui-statistic.vocabulary.en"
+import { statisticsVocabulary } from "./ui-statistics.vocabulary.en"
 
 import statisticCSS from "./ui-statistic.css?inline"
 

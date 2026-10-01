@@ -12,68 +12,7 @@
 
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 
-/** Attributes both elements start with:  `type` comes after them, so its word follows the colour. */
-const LEADING_ATTRIBUTES = [
-  { name: "size", kind: "size", description: "Size, `mini` ... `massive`;  `medium` is the default." },
-  {
-    name: "color",
-    kind: "color",
-    description: "Hue of the chosen state:  the filled box, the radio bullet, the toggle lane, the slider line."
-  }
-] as const
-
-/** Attributes both elements share, after their own `type`. */
-const SHARED_ATTRIBUTES = [
-  { name: "fitted", kind: "keyOnly", description: "No room for a label:  just the box." },
-  {
-    name: "invisible",
-    kind: "keyOnly",
-    description: "No box:  the LABEL is the control, bordered while unchosen and tinted when chosen."
-  },
-  {
-    name: "right-aligned",
-    kind: "keyOnly",
-    key: "right aligned",
-    description: "Box after the label, at the end of the line."
-  },
-  { name: "disabled", kind: "keyOnly", description: "Can't be used;  dimmed, left out of the form." },
-  {
-    name: "readonly",
-    kind: "keyOnly",
-    key: "read-only",
-    description: "Shows its state but can't be changed;  still submitted."
-  },
-  { name: "inverted", kind: "keyOnly", description: "For dark backgrounds." },
-  {
-    name: "selected",
-    kind: "boolean",
-    description: "Chosen.  Controlled:  set it to choose;  a click dispatches `ui-change` first.  Alias:  `checked`."
-  },
-  {
-    name: "value",
-    kind: "string",
-    description: "Value submitted while chosen;  default `on`, as a native checkbox."
-  },
-  { name: "name", kind: "string", description: "Form field name." },
-  { name: "required", kind: "boolean", description: "Form validation:  must be chosen (a radio:  one of its group)." },
-  { name: "label", kind: "string", description: "Label text;  slotted content is the rich version." }
-] as const
-
-/** Events both elements share. */
-const SHARED_EVENTS = [
-  {
-    name: "ui-change",
-    detail: "{ selected: boolean, value: string, originalEvent?: Event }",
-    description: "The user chose or unchose it (a radio:  only the newly chosen one fires)."
-  }
-] as const
-
-/** Parts both elements share. */
-const SHARED_PARTS = [
-  { name: "checkbox", description: "The root box." },
-  { name: "control", description: "The native `<input>` (invisible, over the box)." },
-  { name: "label", description: "The `<label>` drawing the box, the mark and the text." }
-] as const
+import { LEADING_ATTRIBUTES, SHARED_ATTRIBUTES, SHARED_EVENTS, SHARED_PARTS } from "./ui-checkbox.types"
 
 /****************
  * ### `<ui-checkbox>`
@@ -104,36 +43,6 @@ export const checkboxVocabulary = {
   states: [
     { name: "selected", description: "Chosen." },
     { name: "indeterminate", description: "Neither on nor off." },
-    { name: "disabled", description: "Can't be used." },
-    { name: "invalid", description: "Fails validation, once the user has interacted (`:user-invalid` semantics)." }
-  ],
-  texts: []
-} as const satisfies ComponentVocabulary
-
-/****************
- * ### `<ui-radio>`
- * One radio button:  a native `<input type="radio">` and its `<label>`, grouped with every `<ui-radio>` of the same
- * `name` in its form (or document) -- one chosen, one tabbable, arrow keys move between them.
- ****************/
-export const radioVocabulary = {
-  tag: "ui-radio",
-  noun: "checkbox",
-  description: "A radio button chooses exactly one value of a group.",
-  attributes: [
-    ...LEADING_ATTRIBUTES,
-    {
-      name: "type",
-      kind: "valueOnly",
-      values: ["slider", "toggle"],
-      description: "Look:  a `toggle` or `slider` radio;  default the round radio box."
-    },
-    ...SHARED_ATTRIBUTES
-  ],
-  events: SHARED_EVENTS,
-  slots: [{ name: "", description: "Label content." }],
-  parts: SHARED_PARTS,
-  states: [
-    { name: "selected", description: "Chosen." },
     { name: "disabled", description: "Can't be used." },
     { name: "invalid", description: "Fails validation, once the user has interacted (`:user-invalid` semantics)." }
   ],

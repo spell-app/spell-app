@@ -1,12 +1,13 @@
 import { createEffect, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { proto, SlotContent, UIElement } from "$/ui/core"
+import { proto, SlotContent, UIElement, STATUS } from "$/ui/core"
 
 import { loaderVocabulary } from "./ui-loader.vocabulary.en"
 import { LoaderFallback } from "./ui-loader.fallback"
 
 import loaderCSS from "./ui-loader.css?inline"
+import { POLITE } from "./ui-loader.types"
 
 /****************
  * ### `<ui-loader>`
@@ -62,9 +63,3 @@ export class UILoader extends UIElement<typeof loaderVocabulary> {
     )
   }
 }
-
-/** Host role:  a live region that isn't urgent. */
-const STATUS = "status"
-
-/** `aria-live` of the status. */
-const POLITE = "polite"

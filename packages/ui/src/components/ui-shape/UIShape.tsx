@@ -17,9 +17,9 @@ import { ShapeHost } from "./ShapeHost"
 import { ShapeFallback } from "./ui-shape.fallback"
 
 import shapeCSS from "./ui-shape.css?inline"
-
-/** Vocabulary type, for brevity. */
-type Vocabulary = typeof shapeVocabulary
+import { DEFAULT_FLIP, SIDES, POLITE, INACTIVE, LEAVING, STYLE, STAGED, FAIL_SAFE, SIDE } from "./ui-shape.types"
+import type { ShapeVocabulary, ShapeSizes } from "./ui-shape.types"
+import { ANIMATING, ACTIVE, DIGITS } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-shape>`
@@ -36,7 +36,7 @@ type Vocabulary = typeof shapeVocabulary
  * - Accessibility:  hidden sides are `display: none`;  the sides box is a polite live region, so the new side is
  *   read out after a flip (Fomantic's had no ARIA).
  ****************/
-export class UIShape extends UIElement<Vocabulary> {
+export class UIShape extends UIElement<ShapeVocabulary> {
   @proto static vocabulary = shapeVocabulary
   @proto static styles = { shape: shapeCSS }
   @proto static Fallback = ShapeFallback
@@ -341,37 +341,3 @@ export class UIShape extends UIElement<Vocabulary> {
     return time.trim().endsWith("ms") ? value : value * 1000
   }
 }
-
-/** Margin-box sizes of the active and next sides. */
-type ShapeSizes = {
-  active: { width: number; height: number }
-  next: { width: number; height: number }
-}
-
-/** Default of `direction` (the vocabulary's). */
-const DEFAULT_FLIP: ShapeFlip = "left"
-
-/** The side noun. */
-const SIDE = "side"
-
-/** Side states it sets. */
-const ACTIVE = "active"
-const INACTIVE = "inactive"
-const ANIMATING = "animating"
-const LEAVING = "leaving"
-
-/** Class of the turning box (`ui-shape.css`). */
-const SIDES = "sides"
-
-/** Live region politeness of the sides box. */
-const POLITE = "polite"
-
-/** Its own boxes' inline styles are cleared after a flip;  on the sides, only what it staged. */
-const STYLE = "style"
-const STAGED = ["transform", "top", "left"] as const
-
-/** ms added to the transition before giving up on `transitionend`. */
-const FAIL_SAFE = 100
-
-/** A duration of bare digits, in ms. */
-const DIGITS = /^\d+(\.\d+)?$/

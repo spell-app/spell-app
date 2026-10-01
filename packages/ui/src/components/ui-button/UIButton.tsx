@@ -1,7 +1,17 @@
 import { Show, createEffect, createMemo } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, IconGlyph, proto, SlotContent, UI, UIElement, type AttributeName } from "$/ui/core"
+import {
+  ARIA_LABEL,
+  Cell,
+  ICON_CLASS,
+  IconGlyph,
+  proto,
+  SlotContent,
+  type AttributeName,
+  UI,
+  UIElement
+} from "$/ui/core"
 
 import { buttonVocabulary } from "./ui-button.vocabulary.en"
 import { ButtonFallback } from "./ui-button.fallback"
@@ -276,9 +286,3 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
     this.control?.focus()
   }
 }
-
-/** Grammar words the element adds itself (not attributes):  the `icon` class / box. */
-const ICON_CLASS = "icon"
-
-/** Host attribute forwarded to the inner control. */
-const ARIA_LABEL = "aria-label"

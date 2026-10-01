@@ -1,12 +1,7 @@
 import { NativeFallback, PLACEHOLDER_HOST_STATE, proto, type NativeFallbackRoot } from "$/ui/core"
 
-import {
-  placeholderHeaderVocabulary,
-  placeholderImageVocabulary,
-  placeholderLineVocabulary,
-  placeholderParagraphVocabulary,
-  placeholderVocabulary
-} from "./ui-placeholder.vocabulary.en"
+import { placeholderVocabulary } from "./ui-placeholder.vocabulary.en"
+import { VOCABULARIES, SOLID } from "./ui-placeholder.types"
 
 /****************
  * ### `PlaceholderFallback`
@@ -37,15 +32,3 @@ export class PlaceholderFallback extends NativeFallback {
     return [this.decorate(this.create("div", { class: this.classes() }, ...(solid ? [] : [this.slot()])), noun)]
   }
 }
-
-/** Every vocabulary of the family. */
-const VOCABULARIES = [
-  placeholderVocabulary,
-  placeholderHeaderVocabulary,
-  placeholderParagraphVocabulary,
-  placeholderLineVocabulary,
-  placeholderImageVocabulary
-] as const
-
-/** Solid shapes:  no slot. */
-const SOLID = new Set<object>([placeholderLineVocabulary, placeholderImageVocabulary])

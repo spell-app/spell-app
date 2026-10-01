@@ -1,12 +1,5 @@
 import { UIHost } from "$/ui/core"
-
-/** What the host asks of its controller (`UINag`). */
-type NagController = {
-  close(): boolean
-  show(): boolean
-  clear(): void
-  isDismissed(): boolean
-}
+import type { NagController } from "./ui-nag.types"
 
 /****************
  * ### `UINagHost`

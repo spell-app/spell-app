@@ -2,10 +2,11 @@ import type { JSX } from "@solidjs/web"
 
 import { proto, UIElement } from "$/ui/core"
 
-import { pusherVocabulary } from "./ui-sidebar.vocabulary.en"
+import { pusherVocabulary } from "./ui-pusher.vocabulary.en"
 import { SidebarFallback } from "./ui-sidebar.fallback"
 
 import sidebarCSS from "./ui-sidebar.css?inline"
+import { PUSHER } from "./ui-sidebar.types"
 
 /****************
  * ### `<ui-pusher>`
@@ -31,6 +32,3 @@ export class UIPusher extends UIElement<typeof pusherVocabulary> {
     )
   }
 }
-
-/** Class of the root (`ui-sidebar.css`). */
-const PUSHER = "pusher"

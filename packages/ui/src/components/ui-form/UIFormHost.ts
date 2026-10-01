@@ -1,14 +1,5 @@
 import { UIHost, type FormValues } from "$/ui/core"
-
-/** What the host asks of its controller (`UIForm`). */
-type FormController = {
-  validate(): boolean
-  isValid(): boolean
-  reset(): void
-  clear(): void
-  values(): FormValues
-  nativeForm(): HTMLFormElement | null
-}
+import type { FormController } from "./ui-form.types"
 
 /****************
  * ### `UIFormHost`

@@ -909,3 +909,179 @@ export type CalendarOpenDetail = {
  * side, the `direction` attribute's way.
  */
 export const SHAPE_COMMANDS = { next: "--next", previous: "--previous" } as const
+
+////////////////
+// ## Shared words
+// Constants two or more families read, lifted out of their files.
+////////////////
+
+/** The `active` state / class word. */
+export const ACTIVE = "active"
+
+/** The `aria-label` attribute:  a host's label, forwarded to its inner element. */
+export const ARIA_LABEL = "aria-label"
+
+/** `KeyboardEvent.key` of the down arrow. */
+export const ARROW_DOWN = "ArrowDown"
+
+/** The `content` word:  a part, a class, a slot. */
+export const CONTENT = "content"
+
+/** The `disabled` state / class word. */
+export const DISABLED = "disabled"
+
+/** The `header` word:  a part, a class, a slot. */
+export const HEADER = "header"
+
+/** The `icon` word:  a part, a class, a slot. */
+export const ICON = "icon"
+
+/** Grammar word the element adds itself (not an attribute):  the `icon` class. */
+export const ICON_CLASS = "icon"
+
+/** ARIA role of a decorative or labelled picture. */
+export const IMG = "img"
+
+/** ARIA role of a list root. */
+export const LIST = "list"
+
+/** ARIA role of an item of a list. */
+export const LISTITEM = "listitem"
+
+/** The `none` value:  an ARIA role to remove, an attribute value that switches a thing off. */
+export const NONE = "none"
+
+/** Pseudo-class of an open popover. */
+export const POPOVER_OPEN = ":popover-open"
+
+/** ARIA boolean, `aria-*="true"`. */
+export const TRUE = "true"
+
+/** The `notEmpty` validation rule a `required` field applies. */
+export const REQUIRED_RULE: ValidationRule = "notEmpty"
+
+////////////////
+// ## Constants shared by ui-popup, ui-toast, ui-search, ui-progress, ui-tab, ui-rating, ui-table, ui-visibility, ui-segment, ui-step, ui-shape, ui-transition, ui-sidebar, ui-sticky
+////////////////
+
+export const MANUAL = "manual"
+
+export const AUTO = "auto"
+
+/** The one trigger with interactive content. */
+export const CLICK = "click"
+
+/** The native tooltip attribute. */
+export const TITLE = "title"
+
+/** Class words of Fomantic's markup. */
+export const BAR = "bar"
+
+export const LABEL = "label"
+
+export const SELECTED = "selected"
+
+/** Runs of whitespace, between query words. */
+export const WHITESPACE = /\s+/
+
+export const FLUID = "fluid"
+
+export const IMAGE = "image"
+
+export const MESSAGE = "message"
+
+export const STATUS = "status"
+
+/** Utility class (`utilities.css`, adopted in every root) for the loading announcement. */
+export const VISUALLY_HIDDEN = "ui-visually-hidden-force"
+
+export const ANIMATING = "animating"
+
+/** A duration of bare digits, in ms. */
+export const DIGITS = /^\d+(\.\d+)?$/
+
+/** State of a shown sidebar. */
+export const VISIBLE = "visible"
+
+/** Positions. */
+export const LEFT = "left"
+
+export const TOP = "top"
+
+/** Close reason of a command. */
+export const CLOSE = "close"
+
+/** Root of a `link` step without `href`;  also its `type`. */
+export const BUTTON = "button"
+
+export const BOTTOM = "bottom"
+
+/** Host attribute for the pane's Tab stop. */
+export const TABINDEX = "tabindex"
+
+export const BASIC = "basic"
+
+export const FALSE = "false"
+
+export const IN = "in"
+
+export const OUT = "out"
+
+///////////////////////////////////////////
+// ## Shared by the form, input, item, list, menu, message, modal, nag and parts families
+///////////////////////////////////////////
+
+/** The form states:  tint a form, field or input and show the matching `<ui-message>`s. */
+export const FORM_STATES = ["error", "info", "success", "warning"] as const
+
+/** The `submit` word:  a button `type`, a form event. */
+export const SUBMIT = "submit"
+
+/** The `aria-invalid` attribute, set on a failing control. */
+export const ARIA_INVALID = "aria-invalid"
+
+/** The key that submits a prompt or a form. */
+export const ENTER = "Enter"
+
+/** The `item` word:  an item's part noun, class and `type`. */
+export const ITEM = "item"
+
+/** The `a` tag:  the root of a linked item, title or section. */
+export const LINK = "a"
+
+/** `aria-current="page"`:  the selected link of a list or menu. */
+export const PAGE = "page"
+
+/** Selector of a disabled custom element (`:state(disabled)`). */
+export const DISABLED_STATE = ":state(disabled)"
+
+/** Class words of a close button's icon (`close icon`). */
+export const CLOSE_CLASS = "close icon"
+
+/** Glyph of a close button's icon (Fomantic's `close icon`). */
+export const CLOSE_ICON = "xmark"
+
+////////////////
+// ## Constants shared by ui-slider, ui-tab
+////////////////
+
+export const VERTICAL = "vertical"
+
+////////////////
+// ## More constants shared by ui-rating, ui-slider, ui-reveal, ui-search, ui-select, ui-statistic, ui-tab, ui-toast
+////////////////
+
+/** Keys. */
+export const HOME = "Home"
+
+export const END = "End"
+
+/** Role of the root while it is the tab stop:  a group of the two contents. */
+export const GROUP = "group"
+
+export const DESCRIPTION = "description"
+
+export const TEXT = "text"
+
+/** Orientations (`aria-orientation`, roving). */
+export const HORIZONTAL = "horizontal"

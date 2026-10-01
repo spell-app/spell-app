@@ -24,4 +24,4 @@ UIModal.define()
 if (isBrowser()) void UI.load().then(() => UI.modals.register(new ModalDialogs()))
 
 export { DialogElement, UIModal, ModalDialogs, ModalFallback }
-export type { DialogAttributes } from "./DialogElement"
+export type { DialogAttributes } from "./ui-modal.types"

@@ -1,6 +1,6 @@
 import { proto } from "$/ui/core"
 
-import { columnVocabulary } from "./ui-grid.vocabulary.en"
+import { columnVocabulary } from "./ui-column.vocabulary.en"
 import { GridPart } from "./GridPart"
 
 /****************

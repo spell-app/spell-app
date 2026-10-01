@@ -1,11 +1,36 @@
 import { For, createMemo, untrack, type Accessor } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, PartContext, proto, UI, UIElement, type AccordionPanel, type AccordionToggleDetail } from "$/ui/core"
+import {
+  ARROW_DOWN,
+  Cell,
+  CONTENT,
+  PartContext,
+  proto,
+  type AccordionPanel,
+  type AccordionToggleDetail,
+  UI,
+  UIElement
+} from "$/ui/core"
 
 import { accordionVocabulary } from "./ui-accordion.vocabulary.en"
 import { AccordionFallback } from "./ui-accordion.fallback"
 import { AccordionPanels } from "./AccordionPanels"
+import {
+  ACTIVE_CONTENT,
+  ACTIVE_TITLE,
+  ARROW_UP,
+  CONTROLS,
+  DROPDOWN_ICON,
+  END,
+  GROUP,
+  HOME,
+  SUMMARY,
+  TITLE,
+  TITLE_NOUN,
+  TITLE_SELECTOR,
+  UI_WORD
+} from "./ui-accordion.types"
 
 import accordionCSS from "./ui-accordion.css?inline"
 
@@ -116,7 +141,7 @@ export class UIAccordion extends UIElement<typeof accordionVocabulary> {
           part={this.part("title")}
           onClick={(event: MouseEvent) => this.onTitleClick(index(), event)}
         >
-          <span class={ICON} part={this.part("icon")} aria-hidden="true" />
+          <span class={DROPDOWN_ICON} part={this.part("icon")} aria-hidden="true" />
           <slot ref={(slot: HTMLSlotElement) => slot.assign(panel.title)} />
         </summary>
         <div class={open() ? ACTIVE_CONTENT : CONTENT} part={this.part("content")}>
@@ -235,32 +260,3 @@ export class UIAccordion extends UIElement<typeof accordionVocabulary> {
     return false
   }
 }
-
-/** Noun a title child is defined with (`ui-parts.vocabulary.en.ts`:  another family, not imported). */
-const TITLE_NOUN = "title"
-
-/** The shared `name` of an exclusive accordion's `<details>`:  scoped to this shadow root, so a constant. */
-const GROUP = "panels"
-
-/** Class words (Fomantic's grammar). */
-const TITLE = "title"
-const ACTIVE_TITLE = "active title"
-const CONTENT = "content"
-const ACTIVE_CONTENT = "active content"
-const ICON = "dropdown icon"
-
-/** Leading `ui` of the class string, dropped when nested. */
-const UI_WORD = /^ui /
-
-/** The title elements, for arrow-key moves. */
-const SUMMARY = "summary"
-const TITLE_SELECTOR = ":scope > details > summary"
-
-/** What counts as a control inside a title. */
-const CONTROLS = "a[href], button, input, select, textarea, label, [contenteditable], [tabindex]"
-
-/** Keys. */
-const ARROW_DOWN = "ArrowDown"
-const ARROW_UP = "ArrowUp"
-const HOME = "Home"
-const END = "End"

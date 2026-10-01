@@ -4,6 +4,7 @@ import { proto, UIElement } from "$/ui/core"
 
 import { adVocabulary } from "./ui-ad.vocabulary.en"
 import { AdFallback } from "./ui-ad.fallback"
+import { TEST } from "./ui-ad.types"
 
 import adCSS from "./ui-ad.css?inline"
 
@@ -41,6 +42,3 @@ export class UIAd extends UIElement<typeof adVocabulary> {
     )
   }
 }
-
-/** Fomantic's placeholder class word. */
-const TEST = "test"

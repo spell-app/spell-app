@@ -2,27 +2,28 @@ import { Show, createEffect, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import {
+  ARIA_LABEL,
+  CONTENT,
   HostAttribute,
+  NONE,
   proto,
-  UI,
-  UIElement,
   ToggleCommands,
   type AttributeName,
   type DimmerCloseDetail,
   type DimmerCloseReason,
   type DimmerOpenDetail,
   type DismissReason,
-  type OverlayEntry
+  type OverlayEntry,
+  UI,
+  UIElement
 } from "$/ui/core"
 
 import { dimmerVocabulary } from "./ui-dimmer.vocabulary.en"
 import { DimmerFallback } from "./ui-dimmer.fallback"
+import { ANY, CLICK, ESCAPE, HOVER, PAGE_SHEET, Vocabulary } from "./ui-dimmer.types"
 
 import dimmerCSS from "./ui-dimmer.css?inline"
 import dimmablePageCSS from "./ui-dimmer.page.css?inline"
-
-/** Vocabulary type, for brevity. */
-type Vocabulary = typeof dimmerVocabulary
 
 /****************
  * ### `<ui-dimmer>`
@@ -313,21 +314,3 @@ export class UIDimmer extends UIElement<Vocabulary> {
     this.activeState.set(false)
   }
 }
-
-/** Page sheet for the dimmed parents (`ui-dimmer.page.css`). */
-const PAGE_SHEET = "dimmer-page"
-
-/** `on` / `closedby` values the element reads. */
-const HOVER = "hover"
-const ANY = "any"
-const NONE = "none"
-
-/** Close reasons it names itself. */
-const CLICK = "click"
-const ESCAPE = "escape"
-
-/** Attribute forwarded to a page dimmer's dialog. */
-const ARIA_LABEL = "aria-label"
-
-/** Class word of the content box (`ui-dimmer.css`). */
-const CONTENT = "content"

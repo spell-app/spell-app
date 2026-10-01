@@ -7,6 +7,7 @@ import { segmentVocabulary } from "./ui-segment.vocabulary.en"
 import { SegmentFallback } from "./ui-segment.fallback"
 
 import segmentCSS from "./ui-segment.css?inline"
+import { TRUE, VISUALLY_HIDDEN, STATUS } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-segment>`
@@ -60,12 +61,3 @@ export class UISegment extends UIElement<typeof segmentVocabulary> {
     )
   }
 }
-
-/** ARIA boolean. */
-const TRUE = "true"
-
-/** Utility class (`utilities.css`, adopted in every root) for the loading announcement. */
-const VISUALLY_HIDDEN = "ui-visually-hidden-force"
-
-/** Role of the loading announcement. */
-const STATUS = "status"

@@ -1,8 +1,8 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement, type CardSharedVariation } from "$/ui/core"
+import { LIST, proto, type CardSharedVariation, UIElement } from "$/ui/core"
 
-import { cardsVocabulary } from "./ui-card.vocabulary.en"
+import { cardsVocabulary } from "./ui-cards.vocabulary.en"
 import { CardFallback } from "./ui-card.fallback"
 
 import cardCSS from "./ui-card.css?inline"
@@ -41,6 +41,3 @@ export class UICards extends UIElement<typeof cardsVocabulary> {
     )
   }
 }
-
-/** Role of the group root. */
-const LIST = "list"

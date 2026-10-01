@@ -5,13 +5,11 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/fixture"
 import { Sheets } from "$/ui/test/sheets"
 
-import {
-  placeholderHeaderVocabulary,
-  placeholderImageVocabulary,
-  placeholderLineVocabulary,
-  placeholderParagraphVocabulary,
-  placeholderVocabulary
-} from "./ui-placeholder.vocabulary.en"
+import { placeholderHeaderVocabulary } from "./ui-placeholder-header.vocabulary.en"
+import { placeholderImageVocabulary } from "./ui-placeholder-image.vocabulary.en"
+import { placeholderLineVocabulary } from "./ui-placeholder-line.vocabulary.en"
+import { placeholderParagraphVocabulary } from "./ui-placeholder-paragraph.vocabulary.en"
+import { placeholderVocabulary } from "./ui-placeholder.vocabulary.en"
 
 import placeholderCSS from "./ui-placeholder.css?inline"
 import placeholderRaw from "./ui-placeholder.css?raw"

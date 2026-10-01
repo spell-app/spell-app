@@ -1,7 +1,16 @@
 import type { CalendarMode } from "$/ui/core"
 
-import { CalendarDates, type Moment } from "./CalendarDates"
-import type { CalendarText } from "./CalendarText"
+import { CalendarDates } from "./CalendarDates"
+import {
+  BIG_PAGES,
+  COLUMNS,
+  CalendarCell,
+  CalendarPage,
+  CalendarWeekday,
+  Moment,
+  PAGES,
+  ViewInput
+} from "./ui-calendar.types"
 
 /****************
  * ### `CalendarView`
@@ -89,25 +98,25 @@ export class CalendarView {
     switch (mode) {
       case "year": {
         const start = dates.floor(focus, "year").with({ year: Math.ceil(focus.year / 10) * 10 - 9 })
-        return range(12, (index) => start.add({ years: index }))
+        return CalendarView.range(12, (index) => start.add({ years: index }))
       }
       case "month": {
         const start = dates.floor(focus, "year")
-        return range(12, (index) => start.add({ months: index }))
+        return CalendarView.range(12, (index) => start.add({ months: index }))
       }
       case "day": {
         const first = dates.floor(focus, "month")
         const offset = (first.dayOfWeek - input.firstDayOfWeek + 7) % 7
         const start = first.subtract({ days: offset })
-        return range(42, (index) => start.add({ days: index }))
+        return CalendarView.range(42, (index) => start.add({ days: index }))
       }
       case "hour": {
         const start = dates.floor(focus, "day")
-        return range(24, (index) => start.add({ hours: index }))
+        return CalendarView.range(24, (index) => start.add({ hours: index }))
       }
       default: {
         const start = dates.floor(focus, "hour")
-        return range(60 / CalendarDates.MINUTE_STEP, (index) =>
+        return CalendarView.range(60 / CalendarDates.MINUTE_STEP, (index) =>
           start.add({ minutes: index * CalendarDates.MINUTE_STEP })
         )
       }
@@ -156,7 +165,7 @@ export class CalendarView {
   private static weekdays(input: ViewInput): CalendarWeekday[] {
     const narrow = input.text.weekdays("narrow")
     const long = input.text.weekdays("long")
-    return range(7, (index) => {
+    return CalendarView.range(7, (index) => {
       const day = (index + input.firstDayOfWeek) % 7
       return { text: narrow[day]!, label: long[day]! }
     })
@@ -172,109 +181,9 @@ export class CalendarView {
     const index = modes.indexOf(mode)
     return index > 0 ? modes[index - 1] : undefined
   }
-}
 
-/** What `CalendarView.build()` needs. */
-export type ViewInput = {
-  /** date arithmetic */
-  dates: CalendarDates
-  /** words */
-  text: CalendarText
-  /** the view to build */
-  mode: CalendarMode
-  /** every view the type walks through, coarse to fine */
-  modes: readonly CalendarMode[]
-  /** the focused moment:  picks the page */
-  focus: Moment
-  /** the chosen moment */
-  value: Moment | null
-  /** now */
-  today: Moment
-  /** earliest choosable moment (own `min`, or a range's start) */
-  min: Moment | null
-  /** latest choosable moment (own `max`, or a range's end) */
-  max: Moment | null
-  /** first weekday column, `0` = Sunday */
-  firstDayOfWeek: number
-  /** ISO dates that can't be chosen */
-  disabledDates: ReadonlySet<string>
-  /** weekdays that can't be chosen, `0` = Sunday */
-  disabledDays: ReadonlySet<number>
-  /** adjacent-month days can be chosen */
-  selectAdjacentDays: boolean
-  /** a range to highlight, start to end */
-  range: readonly [Moment, Moment] | null
-}
-
-/** One page, see `CalendarView`. */
-export type CalendarPage = {
-  mode: CalendarMode
-  /** cells per row */
-  columns: number
-  rows: CalendarCell[][]
-  /** e.g. `September 2026` */
-  title: string
-  /** column heads, days only */
-  weekdays: CalendarWeekday[]
-  /** where the previous-page button goes, and whether it can */
-  previous: { target: Moment; disabled: boolean }
-  /** where the next-page button goes, and whether it can */
-  next: { target: Moment; disabled: boolean }
-  /** the view the title button leads to, if any */
-  up: CalendarMode | undefined
-}
-
-/** One cell of a page. */
-export type CalendarCell = {
-  /** start of the cell's unit */
-  moment: Moment
-  /** visible text, e.g. `30` */
-  text: string
-  /** accessible name, e.g. `Wednesday, September 30, 2026` */
-  label: string
-  /** a day of the previous / next month */
-  adjacent: boolean
-  disabled: boolean
-  /** holds the value */
-  active: boolean
-  /** holds today */
-  today: boolean
-  /** the focus moment:  the grid's tab stop */
-  focus: boolean
-  /** inside the highlighted range */
-  range: boolean
-}
-
-/** A weekday column head. */
-export type CalendarWeekday = {
-  /** narrow text, e.g. `S` */
-  text: string
-  /** full name, e.g. `Sunday` */
-  label: string
-}
-
-/** Cells per row, per view. */
-const COLUMNS: Readonly<Record<CalendarMode, number>> = { year: 3, month: 3, day: 7, hour: 4, minute: 3 }
-
-/** A page's unit and size, per view:  what previous / next and PageUp / PageDown move by. */
-const PAGES: Readonly<Record<CalendarMode, readonly [CalendarMode, number]>> = {
-  year: ["year", 10],
-  month: ["year", 1],
-  day: ["month", 1],
-  hour: ["day", 1],
-  minute: ["day", 1]
-}
-
-/** Shift + PageUp / PageDown, per view. */
-const BIG_PAGES: Readonly<Record<CalendarMode, readonly [CalendarMode, number]>> = {
-  year: ["year", 100],
-  month: ["year", 10],
-  day: ["year", 1],
-  hour: ["month", 1],
-  minute: ["month", 1]
-}
-
-/** `[make(0), ... make(count - 1)]`. */
-function range<T>(count: number, make: (index: number) => T): T[] {
-  return Array.from({ length: count }, (_, index) => make(index))
+  /** `[make(0), ... make(count - 1)]`. */
+  private static range<T>(count: number, make: (index: number) => T): T[] {
+    return Array.from({ length: count }, (_, index) => make(index))
+  }
 }

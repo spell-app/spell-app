@@ -10,7 +10,6 @@ import {
   TOGGLE_COMMANDS,
   UI,
   UIElement,
-  type AttributeSpec,
   type OverlayEntry,
   type ToastActionDetail,
   type ToastCloseDetail,
@@ -23,9 +22,65 @@ import { ToastFallback } from "./ui-toast.fallback"
 import { UIToastHost } from "./UIToastHost"
 
 import toastCSS from "./ui-toast.css?inline"
-
-/** Vocabulary type, for brevity. */
-type Vocabulary = typeof toastVocabulary
+import {
+  ACTION_WORDS,
+  ATTACHED,
+  CLOSE_ALL,
+  DISMISS,
+  ACTIONS,
+  COMPACT,
+  ERROR,
+  ALERT,
+  ICON_CLASS,
+  ESSENTIAL,
+  FLOATING,
+  TOAST_BOX,
+  UNCLICKABLE,
+  UI_BUTTONS,
+  UI_WORD,
+  PROGRESS,
+  INVERTED,
+  UP,
+  DOWN,
+  PROGRESSING,
+  SCALE,
+  TIMEOUT,
+  MIN_DISPLAY_TIME,
+  WORDS_PER_MINUTE,
+  TYPE_ICONS,
+  NEUTRAL,
+  FOCUS_WITHIN,
+  ESCAPE_KEY,
+  ESCAPE,
+  ACTION,
+  APPROVE,
+  FORM_CONTROLS,
+  DENY,
+  CLICKABLE,
+  BUTTONS
+} from "./ui-toast.types"
+import type { ToastVocabulary } from "./ui-toast.types"
+import {
+  AUTO,
+  BASIC,
+  LEFT,
+  TOP,
+  BOTTOM,
+  STATUS,
+  CONTENT,
+  HEADER,
+  MESSAGE,
+  ACTIVE,
+  BAR,
+  IN,
+  OUT,
+  CLOSE,
+  CLICK,
+  BUTTON,
+  CLOSE_ICON,
+  VERTICAL,
+  CLOSE_CLASS
+} from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-toast>`
@@ -50,7 +105,7 @@ type Vocabulary = typeof toastVocabulary
  * - Actions:  a slotted button closes the toast unless its click was `preventDefault()`ed;  approve / deny ones
  *   (`MODAL_ACTION_SELECTORS`) fire the cancelable `ui-approve` / `ui-deny` first.
  ****************/
-export class UIToast extends UIElement<Vocabulary> {
+export class UIToast extends UIElement<ToastVocabulary> {
   @proto static vocabulary = toastVocabulary
   @proto static styles = { toast: toastCSS }
   @proto static Fallback = ToastFallback
@@ -549,96 +604,3 @@ export class UIToast extends UIElement<Vocabulary> {
     return element.matches(BUTTONS) || UIElement.definitions.get(element.localName)?.vocabulary.noun === BUTTON
   }
 }
-
-/** Allowed words of the `actions` attribute, from its spec. */
-const ACTION_WORDS: readonly string[] = (
-  toastVocabulary.attributes.find(({ name }) => name === "actions") as AttributeSpec
-).values as readonly string[]
-
-/** Icons of a bare `icon`, by type (Fomantic's `icons` setting, in Font Awesome names). */
-const TYPE_ICONS: Readonly<Record<string, string>> = {
-  info: "circle-info",
-  success: "circle-check",
-  warning: "triangle-exclamation",
-  error: "circle-xmark"
-}
-
-/** Glyph of the close icon (Fomantic's `close icon`). */
-const CLOSE_ICON = "xmark"
-
-/** `display-time="auto"`:  reading speed and floor (Fomantic's `wordsPerMinute`, `minDisplayTime`). */
-const AUTO = "auto"
-const WORDS_PER_MINUTE = 120
-const MIN_DISPLAY_TIME = 1000
-
-/** Values it reads. */
-const ERROR = "error"
-const NEUTRAL = "neutral"
-const TOP = "top"
-const BOTTOM = "bottom"
-
-/** Close reasons it names itself. */
-const TIMEOUT = "timeout"
-const CLOSE = "close"
-const CLICK = "click"
-const ESCAPE = "escape"
-const APPROVE = "approve"
-const DENY = "deny"
-const ACTION = "action"
-const DISMISS = "dismiss"
-const CLOSE_ALL = "close-all"
-
-/** Roles of the toast. */
-const STATUS = "status"
-const ALERT = "alert"
-
-/** Class words of the markup contract (`ui-toast.css`) -- grammar, not attributes, so not in the vocabulary. */
-const UI_WORD = "ui"
-const FLOATING = "floating"
-const TOAST_BOX = "toast-box"
-const COMPACT = "compact"
-const UNCLICKABLE = "unclickable"
-const VERTICAL = "vertical"
-const ATTACHED = "attached"
-const ACTIONS = "actions"
-const BASIC = "basic"
-const LEFT = "left"
-const UI_BUTTONS = "ui buttons"
-const ICON_CLASS = "centered icon"
-const CONTENT = "content"
-const HEADER = "header"
-const MESSAGE = "message"
-const CLOSE_CLASS = "close icon"
-const ACTIVE = "active"
-const PROGRESS = "progress"
-const INVERTED = "inverted"
-const BAR = "bar"
-const UP = "up"
-const DOWN = "down"
-const PROGRESSING = "progressing"
-
-/** `data-ui-motion` value that keeps the bar running under reduced motion (`reset.css`). */
-const ESSENTIAL = "essential"
-
-/** `UI.transitions` animation (Fomantic's `showMethod` / `hideMethod`). */
-const SCALE = "scale"
-const IN = "in"
-const OUT = "out"
-
-/** Key that closes it from inside. */
-const ESCAPE_KEY = "Escape"
-
-/** Pseudo-class of "focus is inside". */
-const FOCUS_WITHIN = ":focus-within"
-
-/** Buttons an action click can come from, besides `<ui-button>`s. */
-const BUTTONS = "button, a[href], [role=button], input[type=button], input[type=submit]"
-
-/** Noun of the button family. */
-const BUTTON = "button"
-
-/** A click on one of these doesn't close a `close-on-click` toast (Fomantic's `selector.clickable`). */
-const CLICKABLE = "a, button, details, summary, label, input, select, textarea, [role=button], [tabindex]"
-
-/** Form controls that turn `close-on-click` off (Fomantic's `selector.input`). */
-const FORM_CONTROLS = "input:not([type=hidden]), textarea, select, button"

@@ -1,9 +1,22 @@
 import { Converters, NativeFallback, proto, type NativeFallbackRoot } from "$/ui/core"
 
-import { tabsVocabulary, tabVocabulary } from "./ui-tab.vocabulary.en"
-
-/** Either vocabulary, for brevity. */
-type Vocabulary = typeof tabsVocabulary | typeof tabVocabulary
+import { tabsVocabulary } from "./ui-tabs.vocabulary.en"
+import { tabVocabulary } from "./ui-tab.vocabulary.en"
+import {
+  VALUE,
+  TAB,
+  ACTIVE_ITEM,
+  TAB_PART,
+  MENU,
+  MENU_PART,
+  TABLIST,
+  TABPANEL,
+  PANE,
+  SEGMENT_ACTIVE,
+  SEGMENT
+} from "./ui-tab.types"
+import type { TabFallbackVocabulary } from "./ui-tab.types"
+import { TRUE, FALSE, LABEL, BASIC, SELECTED, ACTIVE, ITEM } from "$/ui/components/components.types"
 
 /****************
  * ### `TabFallback`
@@ -15,7 +28,7 @@ type Vocabulary = typeof tabsVocabulary | typeof tabVocabulary
  * - `<ui-tab>`:  `<div class="ui [active] tab segment" part="tab">` around the slot;  shown (`:state(selected)`)
  *   while its own `selected` / `active` is set;  a `role=tabpanel` host inside a `<ui-tabs>` parent.
  ****************/
-export class TabFallback extends NativeFallback<Vocabulary> {
+export class TabFallback extends NativeFallback<TabFallbackVocabulary> {
   @proto static degraded = [
     "switching panes:  the tab list is drawn, but a click selects nothing (the panes keep what they showed)",
     "the arrow keys, `ui-change`, `history`, View Transitions, tab icons",
@@ -85,31 +98,3 @@ export class TabFallback extends NativeFallback<Vocabulary> {
     )
   }
 }
-
-/** Attributes read here. */
-const VALUE = "value"
-const LABEL = "label"
-const SELECTED = "selected"
-const ACTIVE = "active"
-
-/** Host state every pane carries (`ui-tab.css`). */
-const PANE = "pane"
-
-/** Class words. */
-const ITEM = "item"
-const ACTIVE_ITEM = "active item"
-const MENU = "menu"
-const BASIC = "basic"
-const SEGMENT = "segment"
-const SEGMENT_ACTIVE = "segment active"
-
-/** Roles and parts. */
-const TABLIST = "tablist"
-const TAB = "tab"
-const TABPANEL = "tabpanel"
-const TAB_PART = "tab"
-const MENU_PART = "menu"
-
-/** ARIA booleans. */
-const TRUE = "true"
-const FALSE = "false"

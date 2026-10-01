@@ -1,10 +1,11 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { IconGlyph, proto, UIElement } from "$/ui/core"
+import { ICON, IconGlyph, NONE, proto, UIElement } from "$/ui/core"
 
 import { dividerVocabulary } from "./ui-divider.vocabulary.en"
 import { DividerFallback } from "./ui-divider.fallback"
+import { SEPARATOR, VERTICAL } from "./ui-divider.types"
 
 import dividerCSS from "./ui-divider.css?inline"
 
@@ -44,15 +45,3 @@ export class UIDivider extends UIElement<typeof dividerVocabulary> {
     )
   }
 }
-
-/** Role of a divider with a line. */
-const SEPARATOR = "separator"
-
-/** Role of a spacing-only divider. */
-const NONE = "none"
-
-/** `aria-orientation` of a vertical divider. */
-const VERTICAL = "vertical"
-
-/** Class of the icon box. */
-const ICON = "icon"

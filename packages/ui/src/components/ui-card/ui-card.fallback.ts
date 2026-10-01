@@ -1,9 +1,17 @@
-import { NativeFallback, PART_STATIC_CLASS_PREFIX, proto, type NativeFallbackRoot } from "$/ui/core"
+import {
+  CONTENT,
+  LIST,
+  LISTITEM,
+  NativeFallback,
+  PART_STATIC_CLASS_PREFIX,
+  proto,
+  TRUE,
+  type NativeFallbackRoot
+} from "$/ui/core"
 
-import { cardVocabulary, cardsVocabulary } from "./ui-card.vocabulary.en"
-
-/** Either vocabulary, for brevity. */
-type Vocabulary = typeof cardVocabulary | typeof cardsVocabulary
+import { cardVocabulary } from "./ui-card.vocabulary.en"
+import { cardsVocabulary } from "./ui-cards.vocabulary.en"
+import { CONTENT_NOUNS, FallbackVocabulary, IMAGE } from "./ui-card.types"
 
 /****************
  * ### `CardFallback`
@@ -14,7 +22,7 @@ type Vocabulary = typeof cardVocabulary | typeof cardsVocabulary
  *   holding the `image`, content (`header`, `meta`, `description`) and `extra` shorthands as static parts around
  *   the slot, as the element renders them;  `role=listitem` on the host inside a `<ui-cards>` parent.
  ****************/
-export class CardFallback extends NativeFallback<Vocabulary> {
+export class CardFallback extends NativeFallback<FallbackVocabulary> {
   @proto static degraded = [
     "the group's variations on its cards (`raised cards` doesn't raise a card) and `:state(in-cards)` spacing",
     "a group through translated or slotted parents (only a direct `<ui-cards>` parent counts)",
@@ -64,17 +72,3 @@ export class CardFallback extends NativeFallback<Vocabulary> {
     return `${noun} ${PART_STATIC_CLASS_PREFIX}${cardVocabulary.noun}`
   }
 }
-
-/** Shorthands of the content block, in order. */
-const CONTENT_NOUNS = ["header", "meta", "description"] as const
-
-/** Classes of the shorthand boxes. */
-const IMAGE = "image"
-const CONTENT = "content"
-
-/** Group root role;  host role of a card in a group. */
-const LIST = "list"
-const LISTITEM = "listitem"
-
-/** ARIA boolean. */
-const TRUE = "true"

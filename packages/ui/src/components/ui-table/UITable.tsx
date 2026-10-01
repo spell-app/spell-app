@@ -23,6 +23,8 @@ import { TableSort } from "./TableSort"
 import { TableFallback } from "./ui-table.fallback"
 
 import tableCSS from "./ui-table.css?inline"
+import { ASCENDING, DESCENDING, GENERATED, ARIA_SORT, SPACE } from "./ui-table.types"
+import { ARIA_LABEL, BUTTON, TABINDEX, ENTER } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-table>`
@@ -394,24 +396,3 @@ export class UITable extends UIElement<typeof tableVocabulary> {
     return this.classValue(name as AttributeName<typeof tableVocabulary>)
   }
 }
-
-/** Tables the element rendered itself:  never mistaken for an author's. */
-const GENERATED = new WeakSet<HTMLTableElement>()
-
-/** Host attribute naming the scroller region. */
-const ARIA_LABEL = "aria-label"
-
-/** Header attributes the element manages. */
-const ARIA_SORT = "aria-sort"
-const TABINDEX = "tabindex"
-
-/** A header's own control. */
-const BUTTON = "button"
-
-/** Keys that activate a focusable header. */
-const ENTER = "Enter"
-const SPACE = " "
-
-/** Sort directions. */
-const ASCENDING: TableSortDirection = "ascending"
-const DESCENDING: TableSortDirection = "descending"

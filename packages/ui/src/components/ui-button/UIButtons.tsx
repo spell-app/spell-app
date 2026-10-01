@@ -2,7 +2,7 @@ import type { JSX } from "@solidjs/web"
 
 import { proto, UIElement } from "$/ui/core"
 
-import { buttonsVocabulary } from "./ui-button.vocabulary.en"
+import { buttonsVocabulary } from "./ui-buttons.vocabulary.en"
 
 import buttonCSS from "./ui-button.css?inline"
 

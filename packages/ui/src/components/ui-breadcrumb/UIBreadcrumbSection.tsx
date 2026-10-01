@@ -1,10 +1,11 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement } from "$/ui/core"
+import { LISTITEM, proto, UIElement } from "$/ui/core"
 
-import { breadcrumbSectionVocabulary } from "./ui-breadcrumb.vocabulary.en"
+import { breadcrumbSectionVocabulary } from "./ui-breadcrumb-section.vocabulary.en"
 import { BreadcrumbFallback } from "./ui-breadcrumb.fallback"
+import { DIVIDER, PAGE } from "./ui-breadcrumb.types"
 
 import breadcrumbCSS from "./ui-breadcrumb.css?inline"
 
@@ -55,12 +56,3 @@ export class UIBreadcrumbSection extends UIElement<typeof breadcrumbSectionVocab
     )
   }
 }
-
-/** Class of the section's own divider. */
-const DIVIDER = "divider"
-
-/** Host role:  an item of the breadcrumb's `<ol>`. */
-const LISTITEM = "listitem"
-
-/** `aria-current` of the active section. */
-const PAGE = "page"

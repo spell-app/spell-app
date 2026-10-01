@@ -9,43 +9,7 @@
  */
 
 import type { ComponentVocabulary } from "$/ui/vocabulary"
-
-/** Fomantic's appear / disappear animations, as the `animation` attribute takes them:  run `in` or `out`. */
-export const TRANSITION_VISIBILITY_ANIMATIONS = [
-  "fade",
-  "fade up",
-  "fade down",
-  "fade left",
-  "fade right",
-  "scale",
-  "zoom",
-  "drop",
-  "browse",
-  "browse right",
-  "fly",
-  "fly up",
-  "fly down",
-  "fly left",
-  "fly right",
-  "slide",
-  "slide up",
-  "slide down",
-  "slide left",
-  "slide right",
-  "swing",
-  "swing up",
-  "swing down",
-  "swing left",
-  "swing right",
-  "horizontal flip",
-  "vertical flip"
-] as const
-
-/** Fomantic's attention animations:  run `static`, in place, visibility unchanged. */
-export const TRANSITION_ATTENTION_ANIMATIONS = ["flash", "shake", "bounce", "tada", "pulse", "jiggle", "glow"] as const
-
-/** Every animation name `animation` takes. */
-export const TRANSITION_ANIMATIONS = [...TRANSITION_VISIBILITY_ANIMATIONS, ...TRANSITION_ATTENTION_ANIMATIONS] as const
+import { TRANSITION_ANIMATIONS } from "./ui-transition.types"
 
 /****************
  * ### `<ui-transition>`

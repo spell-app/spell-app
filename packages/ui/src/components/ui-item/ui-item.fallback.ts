@@ -1,6 +1,7 @@
-import { Converters, NativeFallback, proto, type NativeFallbackRoot } from "$/ui/core"
+import { Converters, NativeFallback, proto, type NativeFallbackRoot, ACTIVE, HEADER, PAGE, LISTITEM } from "$/ui/core"
 
 import { itemVocabulary } from "./ui-item.vocabulary.en"
+import { OWNERS, LIST_OWNERS } from "./ui-item.types"
 
 /****************
  * ### `ItemFallback`
@@ -51,25 +52,3 @@ export class ItemFallback extends NativeFallback<typeof itemVocabulary> {
     return [this.decorate(box, "item")]
   }
 }
-
-/** Owner tags the fallback recognizes (canonical only), => owner noun. */
-const OWNERS: ReadonlyMap<string, string> = new Map([
-  ["ui-list", "list"],
-  ["ui-menu", "menu"],
-  ["ui-items", "items"]
-])
-
-/** Owner nouns whose items are list items. */
-const LIST_OWNERS: ReadonlySet<string> = new Set(["list", "items"])
-
-/** Host role in a list. */
-const LISTITEM = "listitem"
-
-/** `type` of a header item, also its extra class. */
-const HEADER = "header"
-
-/** Alias attribute of `selected`, and its class word. */
-const ACTIVE = "active"
-
-/** `aria-current` of a selected link. */
-const PAGE = "page"

@@ -1,6 +1,7 @@
 import { NativeFallback, proto, type CalendarType } from "$/ui/core"
 
 import { calendarVocabulary } from "./ui-calendar.vocabulary.en"
+import { CalendarHost, NATIVE_TYPES } from "./ui-calendar.types"
 
 /****************
  * ### `CalendarFallback`
@@ -73,16 +74,4 @@ export class CalendarFallback extends NativeFallback<typeof calendarVocabulary> 
     if (control.validity.valid) formInternals.setValidity({})
     else formInternals.setValidity(control.validity, control.validationMessage, control)
   }
-}
-
-/** The part of a `<ui-calendar>` the fallback touches;  optional, the element may not have upgraded. */
-type CalendarHost = HTMLElement & { value?: string | null }
-
-/** Native input type holding each calendar type's ISO value. */
-const NATIVE_TYPES: Readonly<Record<CalendarType, string>> = {
-  date: "date",
-  time: "time",
-  datetime: "datetime-local",
-  month: "month",
-  year: "number"
 }

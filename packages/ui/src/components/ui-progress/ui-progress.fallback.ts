@@ -13,6 +13,9 @@ import { ProgressValues } from "./ProgressValues"
  * - Reads the attributes ONCE:  later changes don't update it.
  ****************/
 export class ProgressFallback extends NativeFallback<typeof progressVocabulary> {
+  /** Ids of fallback labels. */
+  private static counter = 0
+
   @proto static vocabulary = progressVocabulary
   @proto static degraded = [
     "several bars (one native bar shows their sum), `bar-text`, `bar-colors`",
@@ -27,7 +30,7 @@ export class ProgressFallback extends NativeFallback<typeof progressVocabulary> 
       percent: this.attr("percent")
     })
     const max = numbers.total ?? 100
-    const id = `${this.host.localName}-fallback-${++counter}`
+    const id = `${this.host.localName}-fallback-${++ProgressFallback.counter}`
     const bar = this.create("progress", {
       max: String(max),
       value: this.attr("indeterminate") === null ? String(numbers.value ?? numbers.percent) : null,
@@ -38,6 +41,3 @@ export class ProgressFallback extends NativeFallback<typeof progressVocabulary> 
     return [this.create("div", { class: this.classes(), part: "progress" }, bar, label)]
   }
 }
-
-/** Ids of fallback labels. */
-let counter = 0

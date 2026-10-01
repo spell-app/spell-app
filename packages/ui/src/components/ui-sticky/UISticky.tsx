@@ -7,9 +7,9 @@ import { stickyVocabulary } from "./ui-sticky.vocabulary.en"
 import { StickyFallback } from "./ui-sticky.fallback"
 
 import stickyCSS from "./ui-sticky.css?inline"
-
-/** Vocabulary type, for brevity. */
-type Vocabulary = typeof stickyVocabulary
+import { SENTINEL, OFFSET_PROPERTY, BOTTOM_OFFSET_PROPERTY, BOTTOM_SENTINEL, SLACK, SCROLLING } from "./ui-sticky.types"
+import type { StickyVocabulary, StickyConfig } from "./ui-sticky.types"
+import { TOP, BOTTOM } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-sticky>`
@@ -27,7 +27,7 @@ type Vocabulary = typeof stickyVocabulary
  *   above it;  with `pushing`, also:  the bottom sentinel is below the bottom line.  Measured on every observer
  *   callback, against the nearest scroll container (else the document's viewport).
  ****************/
-export class UISticky extends UIElement<Vocabulary> {
+export class UISticky extends UIElement<StickyVocabulary> {
   @proto static vocabulary = stickyVocabulary
   @proto static styles = { sticky: stickyCSS }
   @proto static Fallback = StickyFallback
@@ -183,29 +183,3 @@ export class UISticky extends UIElement<Vocabulary> {
     return null
   }
 }
-
-/** What an observation depends on. */
-type StickyConfig = {
-  connected: boolean
-  offset: number
-  bottomOffset: number
-  pushing: boolean
-}
-
-/** `overflow-y` values that make a scroll container. */
-const SCROLLING = new Set(["auto", "scroll", "overlay", "hidden"])
-
-/** Sub-pixel slack when comparing edges. */
-const SLACK = 0.5
-
-/** Edges. */
-const TOP = "top"
-const BOTTOM = "bottom"
-
-/** Class words of the sentinels (`ui-sticky.css`). */
-const SENTINEL = "sentinel"
-const BOTTOM_SENTINEL = "bottom sentinel"
-
-/** Private custom properties the box reads (`ui-sticky.css`), which win over the public tokens' aliases. */
-const OFFSET_PROPERTY = "--_ui-sticky-offset"
-const BOTTOM_OFFSET_PROPERTY = "--_ui-sticky-bottom-offset"

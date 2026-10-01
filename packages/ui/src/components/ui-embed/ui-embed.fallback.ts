@@ -1,7 +1,8 @@
 import { NativeFallback, proto } from "$/ui/core"
 
 import { embedVocabulary } from "./ui-embed.vocabulary.en"
-import { EmbedSources, type EmbedParameters } from "./EmbedSources"
+import { EmbedSources } from "./EmbedSources"
+import type { EmbedParameters } from "./ui-embed.types"
 
 /****************
  * ### `EmbedFallback`

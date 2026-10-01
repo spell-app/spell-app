@@ -1,6 +1,7 @@
-import { NativeFallback, proto, type EventName, type ToastCloseDetail } from "$/ui/core"
+import { NativeFallback, proto, type ToastCloseDetail } from "$/ui/core"
 
 import { toastVocabulary } from "./ui-toast.vocabulary.en"
+import { HIDE } from "./ui-toast.types"
 
 /****************
  * ### `ToastFallback`
@@ -67,6 +68,3 @@ export class ToastFallback extends NativeFallback<typeof toastVocabulary> {
     return button
   }
 }
-
-/** Event it still fires, checked against the vocabulary. */
-const HIDE: EventName<typeof toastVocabulary> = "ui-hide"

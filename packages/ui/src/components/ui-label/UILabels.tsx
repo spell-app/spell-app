@@ -2,7 +2,7 @@ import type { JSX } from "@solidjs/web"
 
 import { proto, UIElement } from "$/ui/core"
 
-import { labelsVocabulary } from "./ui-label.vocabulary.en"
+import { labelsVocabulary } from "./ui-labels.vocabulary.en"
 
 import labelCSS from "./ui-label.css?inline"
 

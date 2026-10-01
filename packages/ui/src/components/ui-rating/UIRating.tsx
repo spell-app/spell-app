@@ -20,6 +20,18 @@ import { RatingFallback } from "./ui-rating.fallback"
 import { RatingHost } from "./RatingHost"
 
 import ratingCSS from "./ui-rating.css?inline"
+import {
+  DEFAULT_MAX,
+  ID_PREFIX,
+  RADIOGROUP,
+  FULL,
+  RADIO,
+  FILL,
+  PARTIAL,
+  CHOICE_KEYS,
+  CLEAR_KEYS
+} from "./ui-rating.types"
+import { SELECTED, REQUIRED_RULE, TRUE, ACTIVE, ICON, HOME, END } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-rating>`
@@ -374,39 +386,3 @@ export class UIRating extends FormElement<typeof ratingVocabulary> {
     return true
   }
 }
-
-/** Fomantic's default `maxRating`. */
-const DEFAULT_MAX = 4
-
-/** `required` => a rating. */
-const REQUIRED_RULE: ValidationRule = "notEmpty"
-
-/** Class words of Fomantic's markup. */
-const ICON = "icon"
-const ACTIVE = "active"
-const PARTIAL = "partial"
-const SELECTED = "selected"
-
-/** Class of the clipped glyph over a partly filled icon. */
-const FILL = "fill"
-
-/** Fomantic's custom property for the filled share of a partial icon. */
-const FULL = "--full"
-
-/** Group role and radio type. */
-const RADIOGROUP = "radiogroup"
-const RADIO = "radio"
-
-/** ARIA true. */
-const TRUE = "true"
-
-/** Keys. */
-const HOME = "Home"
-const END = "End"
-const CLEAR_KEYS = new Set(["Backspace", "Delete"])
-
-/** Keys that choose natively (or through us), blocked while `readonly`. */
-const CHOICE_KEYS = new Set([" ", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", HOME, END, ...CLEAR_KEYS])
-
-/** `UI.ids` prefix. */
-const ID_PREFIX = "ui-rating"

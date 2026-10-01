@@ -1,7 +1,9 @@
-import { Converters, NativeFallback, proto, type MenuOption, type PartName, type SelectValue } from "$/ui/core"
+import { Converters, NativeFallback, proto, type SelectValue } from "$/ui/core"
 import { itemVocabulary } from "$/ui/components/ui-item"
 
 import { selectVocabulary } from "./ui-select.vocabulary.en"
+import { PARTS, SelectFlags } from "./ui-select.types"
+import type { SelectHost, Choice } from "./ui-select.types"
 
 /****************
  * ### `SelectFallback`
@@ -111,7 +113,7 @@ export class SelectFallback extends NativeFallback<typeof selectVocabulary> {
       const flag = item.getAttribute("flag")
       choices.push({
         type: type === "header" || type === "divider" ? type : "item",
-        text: [flag ? SelectFallback.flagEmoji(flag) : "", text, description ? ` ${description}` : ""].join(""),
+        text: [flag ? SelectFlags.emoji(flag) : "", text, description ? ` ${description}` : ""].join(""),
         value: item.getAttribute("value") ?? text,
         disabled: Converters.boolean(item.getAttribute("disabled"), "disabled"),
         selected: Converters.boolean(item.getAttribute("selected"), "selected")
@@ -145,36 +147,4 @@ export class SelectFallback extends NativeFallback<typeof selectVocabulary> {
     }
     return multiple ? values : (values[0] ?? "")
   }
-
-  /** Country code => flag emoji, e.g. `fr` => 🇫🇷;  other text unchanged. */
-  private static flagEmoji(code: string): string {
-    if (!/^[a-z]{2}$/i.test(code)) return code
-    const upper = code.toUpperCase()
-    return String.fromCodePoint(REGIONAL_A + upper.charCodeAt(0) - 65, REGIONAL_A + upper.charCodeAt(1) - 65)
-  }
 }
-
-/** One option, header or divider, from either source. */
-type Choice = {
-  type: "item" | "header" | "divider"
-  text: string
-  value: string
-  disabled: boolean
-  selected: boolean
-}
-
-/** The parts of a `<ui-select>` the fallback touches;  all optional, the element may not have upgraded. */
-type SelectHost = HTMLElement & {
-  value?: SelectValue | null
-  options?: readonly MenuOption[]
-}
-
-/** Part names the fallback writes itself (`decorate()` checks only the root's). */
-const PARTS = {
-  placeholder: "placeholder",
-  group: "group",
-  option: "option"
-} as const satisfies Record<string, PartName<typeof selectVocabulary>>
-
-/** Code point of the regional indicator for `A`. */
-const REGIONAL_A = 0x1f1e6

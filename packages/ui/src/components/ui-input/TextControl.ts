@@ -10,21 +10,11 @@ import {
   type ValidationError,
   type ValidationResult,
   type ValidationRule,
-  type ValidityFlag
+  type ValidityFlag,
+  ARIA_INVALID
 } from "$/ui/core"
 import { ControlLabels, FormElement } from "$/ui/forms"
-
-/** Converted attributes every text control has (`input` and `textarea`), see `TextControl.common`. */
-type CommonAttributes = {
-  readonly value: string | undefined
-  readonly name: string | undefined
-  readonly placeholder: string | undefined
-  readonly disabled: boolean
-  readonly readonly: boolean
-  readonly fluid: boolean
-  readonly loading?: boolean
-  readonly rules: unknown
-}
+import { NATIVE_FLAGS, VALID, FILE_TYPE, type CommonAttributes } from "./ui-input.types"
 
 /****************
  * ### `TextControl`
@@ -280,25 +270,3 @@ export abstract class TextControl<V extends ComponentVocabulary = ComponentVocab
     this.control?.focus(options)
   }
 }
-
-/** Every Constraint Validation flag the native control may raise (not `customError`:  the host never sets one). */
-const NATIVE_FLAGS: readonly (keyof ValidityStateFlags)[] = [
-  "valueMissing",
-  "typeMismatch",
-  "patternMismatch",
-  "tooLong",
-  "tooShort",
-  "rangeUnderflow",
-  "rangeOverflow",
-  "stepMismatch",
-  "badInput"
-]
-
-/** A passing result. */
-const VALID: ValidationResult = { valid: true, errors: [], flags: {}, message: "" }
-
-/** Native type whose value script can't set. */
-const FILE_TYPE = "file"
-
-/** Host attribute forwarded to the control. */
-const ARIA_INVALID = "aria-invalid"

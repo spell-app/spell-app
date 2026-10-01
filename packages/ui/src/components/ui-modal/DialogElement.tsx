@@ -10,8 +10,6 @@ import {
   UIElement,
   ToggleCommands,
   type AttributeName,
-  type AttributeValues,
-  type CamelCase,
   type ComponentVocabulary,
   type DismissReason,
   type EventName,
@@ -22,8 +20,29 @@ import {
   type OverlayEntry,
   type OverlayKind,
   type PartName,
-  type TextKey
+  type TextKey,
+  NONE,
+  CLOSE,
+  ARIA_LABEL,
+  HEADER,
+  CONTENT,
+  CLOSE_CLASS,
+  CLOSE_ICON
 } from "$/ui/core"
+import {
+  OPEN,
+  ANY,
+  ESCAPE,
+  OUTSIDE,
+  APPROVE,
+  DENY,
+  ARIA_LABELLEDBY,
+  CLOSEDBY,
+  CLOSABLE,
+  type DialogAttributes,
+  type DialogEventName,
+  type OpenValue
+} from "./ui-modal.types"
 
 /****************
  * ### `DialogElement`
@@ -388,46 +407,3 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
     return null
   }
 }
-
-/** The dialog attributes `DialogElement` reads, as converted values. */
-export type DialogAttributes = {
-  closable?: boolean
-  closedby?: "any" | "closerequest" | "none"
-  header?: string
-  content?: string
-}
-
-/** Events every dialog vocabulary names. */
-type DialogEventName = "ui-open" | "ui-show" | "ui-close" | "ui-hide" | "ui-approve" | "ui-deny"
-
-/** The converted type of `V`'s `open`. */
-type OpenValue<V extends ComponentVocabulary> = AttributeValues<V>[CamelCase<AttributeName<V>> &
-  keyof AttributeValues<V>]
-
-/** The controlled attribute. */
-const OPEN = "open"
-
-/** `closedby` values the element reads. */
-const ANY = "any"
-const NONE = "none"
-
-/** Close reasons it names itself. */
-const ESCAPE = "escape"
-const OUTSIDE = "outside"
-const CLOSE = "close"
-const APPROVE = "approve"
-const DENY = "deny"
-
-/** Attributes set on the dialog. */
-const ARIA_LABEL = "aria-label"
-const ARIA_LABELLEDBY = "aria-labelledby"
-const CLOSEDBY = "closedby"
-const CLOSABLE = "closable"
-
-/** Class words of the markup contract (`ui-modal.css`, `ui-flyout.css`) -- grammar, not attributes. */
-const HEADER = "header"
-const CONTENT = "content"
-const CLOSE_CLASS = "close icon"
-
-/** Glyph of the close icon (Fomantic's `close icon`). */
-const CLOSE_ICON = "xmark"

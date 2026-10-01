@@ -1,19 +1,21 @@
 import { onSettled, type Accessor } from "solid-js"
 
 import {
+  ACTIVE,
   Cell,
   Converters,
-  UIElement,
   type AttributeName,
   type AttributeSpec,
   type ElementDefinition,
   type MenuEntry,
   type MenuOption,
   type MenuSeparator,
-  type UIHost
+  type UIHost,
+  UIElement
 } from "$/ui/core"
 
 import { itemVocabulary } from "$/ui/components/ui-item"
+import { SLOT_PREFIX } from "./ui-dropdown.types"
 
 /**
  * The options a dropdown's light-DOM `<ui-item>` children describe, as a signal of `MenuEntry`s.
@@ -127,9 +129,3 @@ export class SlottedItems {
     return keys.length === Object.keys(a).length && keys.every((key) => a[key] === b[key])
   }
 }
-
-/** The item's alias of `selected` (not a vocabulary attribute:  `UIItem` reads it itself). */
-const ACTIVE = "active"
-
-/** Prefix of generated slot names for rich items. */
-const SLOT_PREFIX = "ui-item-"

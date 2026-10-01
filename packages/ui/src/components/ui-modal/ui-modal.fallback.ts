@@ -3,12 +3,12 @@ import {
   MODAL_ACTION_SELECTORS,
   NativeFallback,
   proto,
-  type EventName,
   type ModalActionDetail,
   type ModalOpenDetail
 } from "$/ui/core"
 
 import { modalVocabulary } from "./ui-modal.vocabulary.en"
+import { OPEN, CLOSEDBY, APPROVE_EVENT_NAME, DENY_EVENT_NAME, HIDE_EVENT_NAME } from "./ui-modal.types"
 
 /****************
  * ### `ModalFallback`
@@ -87,7 +87,7 @@ export class ModalFallback extends NativeFallback<typeof modalVocabulary> {
     this.dialog?.classList.remove(this.openClass())
     if (this.host.hasAttribute(OPEN)) this.host.removeAttribute(OPEN)
     const detail: ModalOpenDetail = { open: false }
-    this.host.dispatchEvent(new CustomEvent(HIDE, { bubbles: true, composed: true, detail }))
+    this.host.dispatchEvent(new CustomEvent(HIDE_EVENT_NAME, { bubbles: true, composed: true, detail }))
   }
 
   /** Approve / deny:  the cancelable event, then close. */
@@ -97,9 +97,9 @@ export class ModalFallback extends NativeFallback<typeof modalVocabulary> {
       if (target === this.host) return
       if (!(target instanceof Element) || target.getRootNode() !== scope) continue
       const kind = target.matches(MODAL_ACTION_SELECTORS.approve)
-        ? APPROVE
+        ? APPROVE_EVENT_NAME
         : target.matches(MODAL_ACTION_SELECTORS.deny)
-          ? DENY
+          ? DENY_EVENT_NAME
           : undefined
       if (!kind) continue
       const detail: ModalActionDetail = { action: target, originalEvent: event }
@@ -127,12 +127,3 @@ export class ModalFallback extends NativeFallback<typeof modalVocabulary> {
     return button
   }
 }
-
-/** The host attribute it follows. */
-const OPEN = "open"
-const CLOSEDBY = "closedby"
-
-/** Events it still fires, checked against the vocabulary. */
-const APPROVE: EventName<typeof modalVocabulary> = "ui-approve"
-const DENY: EventName<typeof modalVocabulary> = "ui-deny"
-const HIDE: EventName<typeof modalVocabulary> = "ui-hide"

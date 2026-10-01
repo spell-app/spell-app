@@ -1,6 +1,8 @@
 import { NativeFallback, proto, type NativeFallbackRoot } from "$/ui/core"
 
-import { imageVocabulary, imagesVocabulary } from "./ui-image.vocabulary.en"
+import { imageVocabulary } from "./ui-image.vocabulary.en"
+import { imagesVocabulary } from "./ui-images.vocabulary.en"
+import { NATIVE } from "./ui-image.types"
 
 /****************
  * ### `ImageFallback`
@@ -43,6 +45,3 @@ export class ImageFallback extends NativeFallback {
     return image
   }
 }
-
-/** Host attributes passed to the `<img>` as they are. */
-const NATIVE = ["src", "alt", "width", "height", "loading"] as const

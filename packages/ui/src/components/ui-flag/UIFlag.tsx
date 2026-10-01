@@ -1,11 +1,12 @@
 import { createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { proto, UI, UIElement, type TextKey } from "$/ui/core"
+import { IMG, proto, type TextKey, UI, UIElement } from "$/ui/core"
 
 import { flagVocabulary } from "./ui-flag.vocabulary.en"
 import { FlagCountry } from "./FlagCountry"
 import { FlagFallback } from "./ui-flag.fallback"
+import { REGION } from "./ui-flag.types"
 
 import flagCSS from "./ui-flag.css?inline"
 
@@ -53,9 +54,3 @@ export class UIFlag extends UIElement<typeof flagVocabulary> {
     )
   }
 }
-
-/** `Intl.DisplayNames` type of a country code. */
-const REGION = "region"
-
-/** Role of a named flag:  a picture of its country. */
-const IMG = "img"

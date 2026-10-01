@@ -13,18 +13,15 @@ import {
   type TransitionDetail
 } from "$/ui/core"
 
-import {
-  TRANSITION_ANIMATIONS,
-  TRANSITION_ATTENTION_ANIMATIONS,
-  transitionVocabulary
-} from "./ui-transition.vocabulary.en"
+import { TRANSITION_ANIMATIONS, TRANSITION_ATTENTION_ANIMATIONS } from "./ui-transition.types"
+import { transitionVocabulary } from "./ui-transition.vocabulary.en"
 import { TransitionHost } from "./TransitionHost"
 import { TransitionFallback } from "./ui-transition.fallback"
 
 import transitionCSS from "./ui-transition.css?inline"
-
-/** Vocabulary type, for brevity. */
-type Vocabulary = typeof transitionVocabulary
+import { STATIC, DEFAULT_ANIMATION, RUNTIME_NAMES } from "./ui-transition.types"
+import type { TransitionVocabulary, TransitionStep } from "./ui-transition.types"
+import { VISIBLE, ANIMATING, IN, OUT, DIGITS } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-transition>`
@@ -40,7 +37,7 @@ type Vocabulary = typeof transitionVocabulary
  * - `ui-show` / `ui-hide` once an `in` / `out` has run, `ui-complete` after every animation.
  * - Reduced motion:  `UI.transitions` skips the motion (the end state at once), so events still follow.
  ****************/
-export class UITransition extends UIElement<Vocabulary> {
+export class UITransition extends UIElement<TransitionVocabulary> {
   @proto static vocabulary = transitionVocabulary
   @proto static styles = { transition: transitionCSS }
   @proto static Fallback = TransitionFallback
@@ -269,36 +266,3 @@ export class UITransition extends UIElement<Vocabulary> {
     return (TRANSITION_ATTENTION_ANIMATIONS as readonly string[]).includes(animation)
   }
 }
-
-/** One queued animation. */
-type TransitionStep = {
-  direction: AnimationDirection
-  /** Fomantic's name */
-  animation: string
-  /** resolves when it has run:  `true` finished, `false` superseded */
-  done: Promise<boolean>
-  resolve: (completed: boolean) => void
-}
-
-/** Directions `UI.transitions` takes. */
-const IN = "in"
-const OUT = "out"
-const STATIC = "static"
-
-/** Default of `animation` (the vocabulary's). */
-const DEFAULT_ANIMATION = "fade"
-
-/** Fomantic names whose runtime name isn't the kebab-cased one. */
-const RUNTIME_NAMES: Readonly<Record<string, string>> = {
-  "horizontal flip": "flip-horizontal",
-  "vertical flip": "flip-vertical",
-  slide: "slide-down",
-  swing: "swing-down"
-}
-
-/** State words added after the noun. */
-const VISIBLE = "visible"
-const ANIMATING = "animating"
-
-/** A duration of bare digits, in ms. */
-const DIGITS = /^\d+(\.\d+)?$/

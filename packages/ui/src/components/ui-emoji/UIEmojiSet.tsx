@@ -3,7 +3,7 @@ import type { JSX } from "@solidjs/web"
 
 import { proto, UIElement } from "$/ui/core"
 
-import { emojiSetVocabulary } from "./ui-emoji.vocabulary.en"
+import { emojiSetVocabulary } from "./ui-emoji-set.vocabulary.en"
 import { EmojiData } from "./EmojiData"
 
 import emojiSetCSS from "./emoji-set.css?inline"

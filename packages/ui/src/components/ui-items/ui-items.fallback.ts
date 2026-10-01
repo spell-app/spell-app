@@ -1,4 +1,4 @@
-import { NativeFallback, proto } from "$/ui/core"
+import { NativeFallback, proto, LIST } from "$/ui/core"
 
 import { itemsVocabulary } from "./ui-items.vocabulary.en"
 
@@ -18,6 +18,3 @@ export class ItemsFallback extends NativeFallback<typeof itemsVocabulary> {
     return [this.decorate(this.create("div", { class: this.classes(), role: LIST }, this.slot()), "items")]
   }
 }
-
-/** Role of the root. */
-const LIST = "list"

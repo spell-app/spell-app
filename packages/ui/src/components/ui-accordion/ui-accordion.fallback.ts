@@ -1,7 +1,20 @@
-import { NativeFallback, proto } from "$/ui/core"
+import { CONTENT, NativeFallback, proto } from "$/ui/core"
 
 import { accordionVocabulary } from "./ui-accordion.vocabulary.en"
 import { AccordionPanels } from "./AccordionPanels"
+import {
+  ACTIVE_CONTENT,
+  ACTIVE_TITLE,
+  CONTENT_PART,
+  DROPDOWN_ICON,
+  EXCLUSIVE,
+  GROUP,
+  ICON_PART,
+  PANEL_PART,
+  TITLE,
+  TITLE_PART,
+  TITLE_TAG
+} from "./ui-accordion.types"
 
 /****************
  * ### `AccordionFallback`
@@ -35,7 +48,7 @@ export class AccordionFallback extends NativeFallback<typeof accordionVocabulary
         const summary = this.create(
           "summary",
           { class: active ? ACTIVE_TITLE : TITLE, part: TITLE_PART },
-          this.create("span", { class: ICON, part: ICON_PART, "aria-hidden": "true" }),
+          this.create("span", { class: DROPDOWN_ICON, part: ICON_PART, "aria-hidden": "true" }),
           summarySlot
         )
         const box = this.create("div", { class: active ? ACTIVE_CONTENT : CONTENT, part: CONTENT_PART })
@@ -50,23 +63,3 @@ export class AccordionFallback extends NativeFallback<typeof accordionVocabulary
     return [this.decorate(this.create("div", { class: this.classes() }, ...panels), "accordion")]
   }
 }
-
-/** Canonical tag of a title child (`parts`:  another family, not imported). */
-const TITLE_TAG = "ui-title"
-
-/** Behaviour attribute read here, not in `classes()`. */
-const EXCLUSIVE = "exclusive"
-
-/** Shared `name` of an exclusive group, as the element's. */
-const GROUP = "panels"
-
-/** Class words and parts, as the element renders them. */
-const TITLE = "title"
-const ACTIVE_TITLE = "active title"
-const CONTENT = "content"
-const ACTIVE_CONTENT = "active content"
-const ICON = "dropdown icon"
-const PANEL_PART = "panel"
-const TITLE_PART = "title"
-const ICON_PART = "icon"
-const CONTENT_PART = "content"

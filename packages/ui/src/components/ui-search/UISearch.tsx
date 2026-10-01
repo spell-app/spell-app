@@ -25,23 +25,37 @@ import { SearchMatcher } from "./SearchMatcher"
 
 import inputCSS from "$/ui/components/ui-input/ui-input.css?inline"
 import searchCSS from "./ui-search.css?inline"
-
-/** Vocabulary type, for brevity. */
-type Vocabulary = typeof searchVocabulary
-
-/** The last remote answer:  for which query, and how it went. */
-type RemoteAnswer = {
-  query: string
-  groups: readonly SearchCategory[]
-  status: "idle" | "done" | "error"
-}
-
-/** A message the results show instead of results. */
-type SearchMessage = {
-  kind: "empty" | "error"
-  header?: string
-  text: string
-}
+import {
+  SEARCH_ICON,
+  DEFAULT_FIELDS_TEXT,
+  ID_PREFIX,
+  INPUT,
+  LOADING,
+  PROMPT,
+  SEARCH_ICON_CLASS,
+  RESULTS,
+  CATEGORY,
+  NAME,
+  RESULT,
+  PRICE,
+  ABORT_ERROR
+} from "./ui-search.types"
+import type { SearchVocabulary, RemoteAnswer, SearchMessage } from "./ui-search.types"
+import {
+  REQUIRED_RULE,
+  POPOVER_OPEN,
+  FLUID,
+  DISABLED,
+  STATUS,
+  ACTIVE,
+  IMAGE,
+  CONTENT,
+  TITLE,
+  MESSAGE,
+  HEADER,
+  CLICK,
+  DESCRIPTION
+} from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-search>`
@@ -57,7 +71,7 @@ type SearchMessage = {
  * - Form-associated (decided 2026-09-30):  Fomantic's search is a wrapper around a REAL `<input class="prompt">`,
  *   which submits its text under its `name`;  so does this element, with `required` => `valueMissing`.
  ****************/
-export class UISearch extends FormElement<Vocabulary> {
+export class UISearch extends FormElement<SearchVocabulary> {
   @proto static vocabulary = searchVocabulary
   @proto static styles = { input: inputCSS, search: searchCSS }
   @proto static Fallback = SearchFallback
@@ -137,7 +151,7 @@ export class UISearch extends FormElement<Vocabulary> {
   readonly matcher = createMemo(
     () =>
       new SearchMatcher({
-        fields: Converters.list(this.attrs.searchFields ?? DEFAULT_FIELDS),
+        fields: Converters.list(this.attrs.searchFields ?? DEFAULT_FIELDS_TEXT),
         match: (this.attrs.fullTextSearch ?? "exact") as SearchMatch,
         ignoreDiacritics: this.attrs.ignoreDiacritics
       })
@@ -202,7 +216,7 @@ export class UISearch extends FormElement<Vocabulary> {
   // ## Element hooks
   ////////////////
 
-  protected classValue(name: AttributeName<Vocabulary>): unknown {
+  protected classValue(name: AttributeName<SearchVocabulary>): unknown {
     if (name === "disabled") return this.isDisabled()
     if (name === "loading") return this.isLoading()
     return super.classValue(name)
@@ -342,7 +356,7 @@ export class UISearch extends FormElement<Vocabulary> {
         part={this.part("results")}
         role={this.flat().length ? "listbox" : undefined}
         aria-label={this.flat().length ? this.label() : undefined}
-        onMouseDown={preventDefault}
+        onMouseDown={UISearch.preventDefault}
       >
         <Show when={this.shown()}>
           <Show when={this.flat().length} fallback={this.messageElement()}>
@@ -486,7 +500,7 @@ export class UISearch extends FormElement<Vocabulary> {
   /** Stable id for `result`'s row. */
   private resultId(result: SearchResult): string {
     let id = this.resultIds.get(result)
-    if (!id) this.resultIds.set(result, (id = `${this.ids.results}-${++resultCounter}`))
+    if (!id) this.resultIds.set(result, (id = `${this.ids.results}-${++UISearch.resultCounter}`))
     return id
   }
 
@@ -678,60 +692,12 @@ export class UISearch extends FormElement<Vocabulary> {
         return
     }
   }
+
+  /** `preventDefault()`:  presses in the results must not take focus from the input. */
+  private static preventDefault(event: Event) {
+    event.preventDefault()
+  }
+
+  /** Counter behind result ids. */
+  private static resultCounter = 0
 }
-
-////////////////
-// ## Helpers
-////////////////
-
-/** `preventDefault()`:  presses in the results must not take focus from the input. */
-function preventDefault(event: Event) {
-  event.preventDefault()
-}
-
-/** Counter behind result ids. */
-let resultCounter = 0
-
-/** `UI.ids` prefix. */
-const ID_PREFIX = "ui-search"
-
-/** The input's icon:  FA's magnifying glass. */
-const SEARCH_ICON = "magnifying-glass"
-
-/** Fields searched when `search-fields` is absent. */
-const DEFAULT_FIELDS = "title description"
-
-/** `required` => Fomantic's `notEmpty`. */
-const REQUIRED_RULE: ValidationRule = "notEmpty"
-
-/** Open popover pseudo-class. */
-const POPOVER_OPEN = ":popover-open"
-
-/** `event.type` of a click;  `DOMException` name of an abort. */
-const CLICK = "click"
-const ABORT_ERROR = "AbortError"
-
-/**
- * Class words of the markup contract (`ui-search.css`, `ui-input.css`) -- grammar, not attributes, so not in the
- * vocabulary.
- * - NOTE: `active` === the HIGHLIGHTED result (and its category):  Fomantic's meaning.
- */
-const INPUT = "ui icon input"
-const LOADING = "loading"
-const FLUID = "fluid"
-const DISABLED = "disabled"
-const PROMPT = "prompt"
-const SEARCH_ICON_CLASS = "search icon"
-const RESULTS = "results"
-const RESULT = "result"
-const CATEGORY = "category"
-const NAME = "name"
-const ACTIVE = "active"
-const IMAGE = "image"
-const CONTENT = "content"
-const PRICE = "price"
-const TITLE = "title"
-const DESCRIPTION = "description"
-const MESSAGE = "message"
-const HEADER = "header"
-const STATUS = "status"

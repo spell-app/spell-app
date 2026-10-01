@@ -1,4 +1,7 @@
 import type { SearchCategory, SearchMatch, SearchResponse, SearchResult } from "$/ui/core"
+import { DEFAULT_FIELDS, REGEXP_SPECIALS, COMBINING_MARKS } from "./ui-search.types"
+import type { SearchMatcherOptions } from "./ui-search.types"
+import { WHITESPACE } from "$/ui/components/components.types"
 
 /**
  * Local search over a `<ui-search>` `source`, and the shapes results arrive in.  Pure data, NO DOM.
@@ -129,27 +132,3 @@ export class SearchMatcher {
     return true
   }
 }
-
-/** Constructor props for `SearchMatcher`, named as Fomantic's search settings. */
-export type SearchMatcherOptions = {
-  /** Fields tried, in order (Fomantic's `searchFields`);  default `title`, `description`. */
-  fields?: readonly string[]
-  /** Fomantic's `fullTextSearch`;  default `exact`. */
-  match?: SearchMatch
-  /** Fomantic's `ignoreSearchCase`;  default true. */
-  ignoreCase?: boolean
-  /** Fomantic's `ignoreDiacritics`;  default false. */
-  ignoreDiacritics?: boolean
-}
-
-/** Fields searched by default. */
-const DEFAULT_FIELDS = ["title", "description"]
-
-/** Characters to escape in a `RegExp` source. */
-const REGEXP_SPECIALS = /[$()*+./?[\\\]^{|}-]/g
-
-/** Runs of whitespace, between query words. */
-const WHITESPACE = /\s+/
-
-/** Unicode combining diacritical marks. */
-const COMBINING_MARKS = /[̀-ͯ]/g

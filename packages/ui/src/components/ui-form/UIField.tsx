@@ -1,14 +1,15 @@
 import { For, Show, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, UIElement, type AttributeName } from "$/ui/core"
+import { Cell, proto, UIElement, type AttributeName, MESSAGE } from "$/ui/core"
 
-import { fieldVocabulary } from "./ui-form.vocabulary.en"
+import { fieldVocabulary } from "./ui-field.vocabulary.en"
 import { FormFallback } from "./ui-form.fallback"
 import { FieldHost } from "./FieldHost"
 
 import labelCSS from "$/ui/components/ui-label/ui-label.css?inline"
 import formCSS from "./ui-form.css?inline"
+import { ERROR, PROMPT, INLINE_PROMPT } from "./ui-form.types"
 
 /****************
  * ### `<ui-field>`
@@ -78,11 +79,3 @@ export class UIField extends UIElement<typeof fieldVocabulary> {
     )
   }
 }
-
-/** The validation state. */
-const ERROR = "error"
-
-/** Class words of the prompt (`ui-label.css` + `ui-form.css`). */
-const PROMPT = "ui basic pointing prompt label"
-const INLINE_PROMPT = "ui basic left pointing prompt label"
-const MESSAGE = "message"

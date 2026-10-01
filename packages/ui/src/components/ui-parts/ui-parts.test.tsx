@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from "vitest"
 import { Dynamic, type JSX } from "@solidjs/web"
 
 import { expectAccessible } from "$/ui/test/a11y"
-import { PART_NOUNS } from "./ui-parts.vocabulary.en"
+import { PART_NOUNS } from "./ui-parts.types"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 import { UIElement, type PartContext, type UIElementClass, type UIHost } from "$/ui/elements"

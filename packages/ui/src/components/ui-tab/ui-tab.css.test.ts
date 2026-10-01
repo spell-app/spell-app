@@ -6,7 +6,8 @@ import { foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/fixture"
 import { Sheets } from "$/ui/test/sheets"
 
-import { tabsVocabulary, tabVocabulary } from "./ui-tab.vocabulary.en"
+import { tabsVocabulary } from "./ui-tabs.vocabulary.en"
+import { tabVocabulary } from "./ui-tab.vocabulary.en"
 
 import menuCSS from "$/ui/components/ui-menu/ui-menu.css?inline"
 import segmentCSS from "$/ui/components/ui-segment/ui-segment.css?inline"

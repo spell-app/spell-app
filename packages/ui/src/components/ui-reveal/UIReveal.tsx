@@ -7,6 +7,8 @@ import { revealVocabulary } from "./ui-reveal.vocabulary.en"
 import { RevealFallback } from "./ui-reveal.fallback"
 
 import revealCSS from "./ui-reveal.css?inline"
+import { WATCHED, FOCUSABLE, VISIBLE, HIDDEN } from "./ui-reveal.types"
+import { ARIA_LABEL, GROUP } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-reveal>`
@@ -82,23 +84,3 @@ export class UIReveal extends UIElement<typeof revealVocabulary> {
     )
   }
 }
-
-/** Natively focusable content:  it reveals the reveal itself (`:focus-within`). */
-const FOCUSABLE =
-  "a[href], area[href], button:not([disabled]), input:not([disabled], [type=hidden]), select:not([disabled]), " +
-  "textarea:not([disabled]), summary, [contenteditable]:not([contenteditable=false]), [tabindex]:not([tabindex='-1'])"
-
-/** Attributes that change what's focusable. */
-const WATCHED = ["href", "disabled", "tabindex", "contenteditable", "type"]
-
-/** Classes of the visible content box. */
-const VISIBLE = "visible content"
-
-/** Classes of the hidden content box. */
-const HIDDEN = "hidden content"
-
-/** Role of the root while it is the tab stop:  a group of the two contents. */
-const GROUP = "group"
-
-/** Host attribute forwarded to the root. */
-const ARIA_LABEL = "aria-label"

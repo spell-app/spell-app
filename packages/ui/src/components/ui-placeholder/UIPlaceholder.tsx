@@ -6,6 +6,7 @@ import { placeholderVocabulary } from "./ui-placeholder.vocabulary.en"
 import { PlaceholderFallback } from "./ui-placeholder.fallback"
 
 import placeholderCSS from "./ui-placeholder.css?inline"
+import { TRUE } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-placeholder>`
@@ -38,6 +39,3 @@ export class UIPlaceholder extends UIElement<typeof placeholderVocabulary> {
     )
   }
 }
-
-/** ARIA boolean. */
-const TRUE = "true"

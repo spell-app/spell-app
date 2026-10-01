@@ -1,7 +1,18 @@
 import { Show, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { IconGlyph, proto, SlotContent, UIElement, type MessageDismissDetail } from "$/ui/core"
+import {
+  IconGlyph,
+  proto,
+  SlotContent,
+  UIElement,
+  type MessageDismissDetail,
+  ICON,
+  CONTENT,
+  HEADER,
+  CLOSE_CLASS,
+  CLOSE_ICON
+} from "$/ui/core"
 
 import { messageVocabulary } from "./ui-message.vocabulary.en"
 import { MessageFallback } from "./ui-message.fallback"
@@ -92,18 +103,3 @@ export class UIMessage extends UIElement<typeof messageVocabulary> {
     if (this.emit("ui-dismiss", detail)) this.host.hidden = true
   }
 }
-
-/** Class of the icon box, and the message's extra class while it shows one. */
-const ICON = "icon"
-
-/** Class of the content block. */
-const CONTENT = "content"
-
-/** Class of the `header` shorthand. */
-const HEADER = "header"
-
-/** Classes of the close button. */
-const CLOSE_CLASS = "close icon"
-
-/** Glyph of the close button (Fomantic's `close icon`). */
-const CLOSE_ICON = "xmark"

@@ -1,9 +1,9 @@
 import { NativeFallback, proto, type NativeFallbackRoot } from "$/ui/core"
 
-import { shapeVocabulary, sideVocabulary } from "./ui-shape.vocabulary.en"
-
-/** Either vocabulary, for brevity. */
-type Vocabulary = typeof shapeVocabulary | typeof sideVocabulary
+import { shapeVocabulary } from "./ui-shape.vocabulary.en"
+import { sideVocabulary } from "./ui-side.vocabulary.en"
+import { SIDE, SIDES, POLITE, SHAPE } from "./ui-shape.types"
+import type { ShapeFallbackVocabulary } from "./ui-shape.types"
 
 /****************
  * ### `ShapeFallback`
@@ -12,7 +12,7 @@ type Vocabulary = typeof shapeVocabulary | typeof sideVocabulary
  * - `<ui-side>`:  `<div class="side" part="side"><slot>`;  a working shape still shows / hides it (its states are
  *   on the host)
  ****************/
-export class ShapeFallback extends NativeFallback<Vocabulary> {
+export class ShapeFallback extends NativeFallback<ShapeFallbackVocabulary> {
   @proto static degraded = [
     "a failed shape:  every side shows, stacked;  no flips, `ui-change` or `flip()` / `next()` / `previous()` " +
       "(they resolve `false`)"
@@ -32,11 +32,3 @@ export class ShapeFallback extends NativeFallback<Vocabulary> {
     return [this.decorate(this.create("div", { class: this.classes() }, sides), SHAPE)]
   }
 }
-
-/** Classes and parts of the markup contract (`ui-shape.css`). */
-const SHAPE = "shape"
-const SIDES = "sides"
-const SIDE = "side"
-
-/** Live region politeness of the sides box, as the element's. */
-const POLITE = "polite"

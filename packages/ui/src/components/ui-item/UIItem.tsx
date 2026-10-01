@@ -16,13 +16,24 @@ import {
   type ItemContext,
   type ItemOwner,
   type RuntimeGlobal,
-  type UIHost
+  type UIHost,
+  ACTIVE,
+  ARIA_LABEL,
+  SELECTED,
+  ITEM,
+  HEADER,
+  LINK,
+  BUTTON,
+  ICON,
+  PAGE,
+  TRUE
 } from "$/ui/core"
 
 import { itemVocabulary } from "./ui-item.vocabulary.en"
 import { ItemFallback } from "./ui-item.fallback"
 
 import itemCSS from "./ui-item.css?inline"
+import { DIVIDER, COLOR_CLASS_PREFIX, DIV, SEPARATOR, IMAGE_CLASS, type RootTag } from "./ui-item.types"
 
 /****************
  * ### `<ui-item>`
@@ -233,41 +244,3 @@ export class UIItem extends UIElement<typeof itemVocabulary> implements Conditio
     return this.tag() === LINK ? (this.itemContext()?.current ?? PAGE) : TRUE
   }
 }
-
-/** Root element names. */
-type RootTag = "a" | "button" | "div"
-
-/** Alias attribute of `selected`. */
-const ACTIVE = "active"
-
-/** Host attribute forwarded to the item box. */
-const ARIA_LABEL = "aria-label"
-
-/** Canonical attribute name the alias feeds. */
-const SELECTED = "selected"
-
-/** `type` values. */
-const ITEM = "item"
-const HEADER = "header"
-const DIVIDER = "divider"
-
-/** Prefix of the colour remap class a coloured item adds (`ui-red`). */
-const COLOR_CLASS_PREFIX = "ui-"
-
-/** Root tags. */
-const LINK = "a"
-const BUTTON = "button"
-const DIV = "div"
-
-/** Role of a divider. */
-const SEPARATOR = "separator"
-
-/** Class and part of the icon box. */
-const ICON = "icon"
-
-/** Classes of the `image` shorthand, unless the owner says otherwise:  an avatar, as in Fomantic's list examples. */
-const IMAGE_CLASS = "ui avatar image"
-
-/** `aria-current` values. */
-const PAGE = "page"
-const TRUE = "true" as const

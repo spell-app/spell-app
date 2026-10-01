@@ -1,6 +1,8 @@
 import { Converters, NativeFallback, proto, type EventName, type TransitionDetail } from "$/ui/core"
 
 import { transitionVocabulary } from "./ui-transition.vocabulary.en"
+import { DEFAULT_ANIMATION, SHOW, HIDE, COMPLETE } from "./ui-transition.types"
+import { VISIBLE } from "$/ui/components/components.types"
 
 /****************
  * ### `TransitionFallback`
@@ -67,14 +69,3 @@ export class TransitionFallback extends NativeFallback<typeof transitionVocabula
     this.host.dispatchEvent(new CustomEvent(name, { bubbles: true, composed: true, detail }))
   }
 }
-
-/** The host attribute it follows, and the class word it adds while shown. */
-const VISIBLE = "visible"
-
-/** Default of `animation` (the vocabulary's). */
-const DEFAULT_ANIMATION = "fade"
-
-/** Events it still fires, checked against the vocabulary. */
-const SHOW: EventName<typeof transitionVocabulary> = "ui-show"
-const HIDE: EventName<typeof transitionVocabulary> = "ui-hide"
-const COMPLETE: EventName<typeof transitionVocabulary> = "ui-complete"

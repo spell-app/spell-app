@@ -1,6 +1,8 @@
 import { NativeFallback, proto } from "$/ui/core"
 
-import { inputVocabulary, textareaVocabulary } from "./ui-input.vocabulary.en"
+import { inputVocabulary } from "./ui-input.vocabulary.en"
+import { textareaVocabulary } from "./ui-textarea.vocabulary.en"
+import type { InputHost } from "./ui-input.types"
 
 /****************
  * ### `InputFallback`
@@ -99,6 +101,3 @@ export class InputFallback extends NativeFallback<typeof inputVocabulary> {
     this.host.dispatchEvent(new CustomEvent(this.vocabulary.events[index]!.name, init))
   }
 }
-
-/** The part of a `<ui-input>` the fallback touches;  optional, the element may not have upgraded. */
-type InputHost = HTMLElement & { value?: string | null }

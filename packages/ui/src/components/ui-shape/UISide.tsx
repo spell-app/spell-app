@@ -2,10 +2,11 @@ import type { JSX } from "@solidjs/web"
 
 import { proto, UIElement } from "$/ui/core"
 
-import { sideVocabulary } from "./ui-shape.vocabulary.en"
+import { sideVocabulary } from "./ui-side.vocabulary.en"
 import { ShapeFallback } from "./ui-shape.fallback"
 
 import shapeCSS from "./ui-shape.css?inline"
+import { SIDE } from "./ui-shape.types"
 
 /****************
  * ### `<ui-side>`
@@ -32,6 +33,3 @@ export class UISide extends UIElement<typeof sideVocabulary> {
     )
   }
 }
-
-/** Class of the face (`ui-shape.css`). */
-const SIDE = "side"

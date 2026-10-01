@@ -15,6 +15,20 @@
  *   is a miss until the next `get()` (no retry storm:  one import per chunk at a time).
  * - Library-neutral:  no Solid, so the native fallback uses it too.
  */
+
+import {
+  CAMEL,
+  COLONS,
+  DEFAULT_SET,
+  DIGIT_CHUNK,
+  LETTER,
+  LOADERS,
+  NAMES_ATTRIBUTE,
+  SEPARATORS,
+  SETS,
+  SET_TAG,
+  SPACES
+} from "./ui-emoji.types"
 export class EmojiData {
   /** The name set in use;  `undefined` until the first lookup (or `use()`) decides it. */
   private static set: string | undefined
@@ -184,41 +198,3 @@ export class EmojiData {
     return load
   }
 }
-
-/**
- * One loader per data chunk (`./data/cldr/a.json` ...), from `import.meta.glob`.
- * - Why not ``import(`./data/${set}/${chunk}.json`)``:  a variable path makes Rolldown add its dynamic-import helper
- *   to this family's chunk (`yarn measure`'s `coreOutsideCore` check);  the glob compiles to one static `import()`
- *   per file, with no helper.
- */
-const LOADERS = import.meta.glob<{ default: Record<string, string> }>("./data/*/*.json")
-
-/** The name sets that ship, from the data folders. */
-const SETS = new Set(Object.keys(LOADERS).map((path) => path.split("/")[2]!))
-
-/** The name set used until told otherwise. */
-const DEFAULT_SET = "cldr"
-
-/** `<ui-emoji-set>`, as `emojiSetVocabulary` names it (this file stays free of the vocabulary:  no Solid, no core). */
-const SET_TAG = "ui-emoji-set"
-
-/** Its attribute. */
-const NAMES_ATTRIBUTE = "names"
-
-/** Fomantic's `:name:` colons. */
-const COLONS = /^:+|:+$/g
-
-/** Runs of whitespace inside a name. */
-const SPACES = /\s+/g
-
-/** A camelCase word boundary:  a lower-case letter or digit, then a capital. */
-const CAMEL = /([a-z0-9])([A-Z])/g
-
-/** Every way a name's words may be joined. */
-const SEPARATORS = /[_-]/g
-
-/** A chunk letter. */
-const LETTER = /^[a-z]$/
-
-/** Chunk of names starting with anything but a letter. */
-const DIGIT_CHUNK = "0"

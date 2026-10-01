@@ -1,9 +1,10 @@
 import { Dynamic, type JSX } from "@solidjs/web"
 
-import { proto, UIElement } from "$/ui/core"
+import { LIST, proto, UIElement } from "$/ui/core"
 
 import { feedVocabulary } from "./ui-feed.vocabulary.en"
 import { FeedFallback } from "./ui-feed.fallback"
+import { OL, UL } from "./ui-feed.types"
 
 import feedCSS from "./ui-feed.css?inline"
 
@@ -36,10 +37,3 @@ export class UIFeed extends UIElement<typeof feedVocabulary> {
     )
   }
 }
-
-/** Root tags. */
-const UL = "ul"
-const OL = "ol"
-
-/** Explicit role of the root. */
-const LIST = "list"

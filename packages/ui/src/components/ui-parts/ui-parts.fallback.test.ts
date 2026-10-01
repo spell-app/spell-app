@@ -8,7 +8,7 @@ import { segmentVocabulary } from "$/ui/components/ui-segment/ui-segment.vocabul
 import { PartContext } from "$/ui/elements"
 
 import { ContentPartFallback } from "./ui-parts.fallback"
-import { PART_VOCABULARIES } from "./ui-parts.vocabulary.en"
+import { PART_VOCABULARIES } from "./ui-parts.types"
 
 for (const tag of ["ui-meta", "ui-header", "ui-content", "ui-description"]) {
   FallbackStub.define(tag, (host, root, internals) =>

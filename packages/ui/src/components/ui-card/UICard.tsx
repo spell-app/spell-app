@@ -3,24 +3,42 @@ import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
 import {
   Cell,
+  CONTENT,
   ContentPart,
+  HEADER,
+  IMG,
+  LISTITEM,
   PART_STATIC_CLASS_PREFIX,
   PartContext,
   proto,
-  UIElement,
+  TRUE,
   type AttributeName,
   type CardSharedVariation,
-  type UIHost
+  type UIHost,
+  UIElement
 } from "$/ui/core"
 
 import { cardVocabulary } from "./ui-card.vocabulary.en"
 import { CardFallback } from "./ui-card.fallback"
 import type { UICards } from "./UICards"
+import {
+  ANCHOR,
+  ARTICLE,
+  CONTENT_SHORTHANDS,
+  DESCRIPTION,
+  EMPTY,
+  EXTRA,
+  IMAGE,
+  META,
+  SHARED,
+  SHORTHANDS,
+  STATUS,
+  Shorthand,
+  VISUALLY_HIDDEN,
+  Vocabulary
+} from "./ui-card.types"
 
 import cardCSS from "./ui-card.css?inline"
-
-/** Vocabulary type, for brevity. */
-type Vocabulary = typeof cardVocabulary
 
 /****************
  * ### `<ui-card>`
@@ -62,7 +80,7 @@ export class UICard extends UIElement<Vocabulary> {
   )
 
   /** Root element:  a link with `href`, else an article. */
-  readonly tag = createMemo(() => (this.attrs.href ? LINK : ARTICLE))
+  readonly tag = createMemo(() => (this.attrs.href ? ANCHOR : ARTICLE))
 
   /** Some shorthand of the content block renders. */
   readonly hasContent = createMemo(() => CONTENT_SHORTHANDS.some((noun) => this.shows(noun)))
@@ -115,7 +133,7 @@ export class UICard extends UIElement<Vocabulary> {
   ////////////////
 
   render(): JSX.Element {
-    const link = () => this.tag() === LINK
+    const link = () => this.tag() === ANCHOR
     return (
       <Dynamic
         component={this.tag()}
@@ -185,51 +203,3 @@ export class UICard extends UIElement<Vocabulary> {
     return a.size === b.size && [...a].every((noun) => b.has(noun))
   }
 }
-
-/** Shorthand attributes, by the part noun each renders. */
-type Shorthand = (typeof SHORTHANDS)[number]
-
-/** Shorthand nouns. */
-const IMAGE = "image"
-const CONTENT = "content"
-const HEADER = "header"
-const META = "meta"
-const DESCRIPTION = "description"
-const EXTRA = "extra"
-
-/** Every shorthand, and those rendered in the content block. */
-const SHORTHANDS = [IMAGE, HEADER, META, DESCRIPTION, EXTRA] as const
-const CONTENT_SHORTHANDS = [HEADER, META, DESCRIPTION] as const
-
-/** Variations a card takes from its group (`CardSharedVariation`). */
-const SHARED: ReadonlySet<string> = new Set<CardSharedVariation>([
-  "size",
-  "color",
-  "horizontal",
-  "raised",
-  "link",
-  "basic",
-  "inverted"
-])
-
-/** Nothing slotted. */
-const EMPTY: ReadonlySet<string> = new Set()
-
-/** Root tags. */
-const LINK = "a"
-const ARTICLE = "article"
-
-/** A light-DOM image. */
-const IMG = "img"
-
-/** Host role in a group. */
-const LISTITEM = "listitem"
-
-/** ARIA boolean. */
-const TRUE = "true"
-
-/** Utility class (`utilities.css`, adopted in every root) for the loading announcement. */
-const VISUALLY_HIDDEN = "ui-visually-hidden-force"
-
-/** Role of the loading announcement. */
-const STATUS = "status"

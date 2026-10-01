@@ -2167,6 +2167,92 @@ export class UICard extends UIElement&lt;...&gt; {
               >
               <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
             </li>
+            <li data-status="open" id="d42">
+              <a class="plan-id" href="#d42">D42</a>
+              <span class="plan-title"
+                >Split: PART_NOUNS / PART_VOCABULARIES live in ui-parts.types.ts; fallback VOCABULARIES are
+                statics</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    ui-parts has no roll-up vocabulary file (it would match the <code>*.vocabulary.en.ts</code> globs):
+                    <code>PART_NOUNS</code> and <code>PART_VOCABULARIES</code> are exported from
+                    <a
+                      href="../../../ui/src/components/ui-parts/ui-parts.types.ts"
+                      target="src-packages-ui-src-components-ui-parts-ui-parts-types-ts"
+                      ><code>ui-parts.types.ts</code></a
+                    >. In ui-form and ui-grid the fallback's <code>VOCABULARIES</code> list is a private static of the
+                    fallback class, because the types file holds values the vocabularies import (a types-to-vocabulary
+                    import would be a runtime cycle).
+                  </p></ui-content
+                ></ui-accordion
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
+            </li>
+            <li data-status="open" id="d43">
+              <a class="plan-id" href="#d43">D43</a>
+              <span class="plan-title">Split: shared constants live in components.types.ts, imported via $/ui/core</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Group A (accordion ... flyout): constants with the same name and value in two or more of the group's
+                    folders (ACTIVE, ARIA_LABEL, ARROW_DOWN, CONTENT, DISABLED, HEADER, ICON, ICON_CLASS, IMG, LIST,
+                    LISTITEM, NONE, POPOVER_OPEN, TRUE, REQUIRED_RULE) moved into a <em>Shared words</em> section of
+                    components.types.ts. Because core.ts re-exports it with export *, they also become public names of
+                    @spell-app/ui (TRUE, ICON ...). Owen may want them namespaced (a class of statics) before the other
+                    groups pile on.
+                  </p></ui-content
+                ></ui-accordion
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
+            </li>
+            <li data-status="open" id="d44">
+              <a class="plan-id" href="#d44">D44</a> <span class="plan-title">Split: group C types files</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Group C (placeholder ... visibility): one vocabulary file per tag; loose constants and types in
+                    <code>ui-&lt;family&gt;.types.ts</code>; constants used by two or more families in
+                    <a
+                      href="../../../ui/src/components/components.types.ts"
+                      target="src-packages-ui-src-components-components-types-ts"
+                      ><code>components.types.ts</code></a
+                    >. Helpers became private statics (UISearch, UISelect, UITabs), counters private statics on the
+                    fallback classes, and <code>SelectFlags</code> in
+                    <a
+                      href="../../../ui/src/components/ui-select/ui-select.types.ts"
+                      target="src-packages-ui-src-components-ui-select-ui-select-types-ts"
+                      ><code>ui-select.types.ts</code></a
+                    >.
+                  </p></ui-content
+                ></ui-accordion
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
+            </li>
+            <li data-status="open" id="d45">
+              <a class="plan-id" href="#d45">D45</a>
+              <span class="plan-title"
+                >Shared constants: components.types.ts is exported as the namespace barrel UIT (UIT.ARIA_LABEL), not
+                wholesale</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Owen, 2026-10-01: 'use barrel-style export UIT'. The P13 split had put ~78 shared constants in
+                    <a
+                      href="../../../ui/src/components/components.types.ts"
+                      target="src-packages-ui-src-components-components-types-ts"
+                      ><code>components.types.ts</code></a
+                    >, which <code>core.ts</code> / <code>index.ts</code> re-exported with <code>export *</code>, making
+                    <code>TRUE</code>, <code>ICON</code> ... public top-level names.
+                  </p></ui-content
+                ></ui-accordion
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="13">UPDATE</ui-label>
+            </li>
           </ol>
         </section>
 

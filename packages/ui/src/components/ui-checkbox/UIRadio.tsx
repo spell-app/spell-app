@@ -1,12 +1,13 @@
 import { createEffect, createMemo, onCleanup, untrack, type Accessor } from "solid-js"
 import { onConnect, onDisconnect, onFormAssociated } from "@spell-app/solid-element"
 
-import { Cell, proto, type AttributeName, type ValidationResult } from "$/ui/core"
+import { Cell, proto, REQUIRED_RULE, type AttributeName, type ValidationResult } from "$/ui/core"
 import { FormElement } from "$/ui/forms"
 
-import { radioVocabulary } from "./ui-checkbox.vocabulary.en"
+import { radioVocabulary } from "./ui-radio.vocabulary.en"
 import { CheckControl } from "./CheckControl"
-import { RadioGroup, type RadioMember } from "./RadioGroup"
+import { RadioGroup } from "./RadioGroup"
+import { NAME, NEXT, PREVIOUS, RADIO, RadioMember } from "./ui-checkbox.types"
 
 /****************
  * ### `<ui-radio>`
@@ -135,16 +136,3 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
     target.choose(true, event)
   }
 }
-
-/** The `name` prop's key, as the fork's change callback reports it. */
-const NAME: AttributeName<typeof radioVocabulary> = "name"
-
-/** Input type, and what a form reads it as. */
-const RADIO = "radio" as const
-
-/** `required` => a group value. */
-const REQUIRED_RULE = "notEmpty"
-
-/** Keys that move to the next / previous radio. */
-const NEXT = new Set(["ArrowDown", "ArrowRight"])
-const PREVIOUS = new Set(["ArrowUp", "ArrowLeft"])

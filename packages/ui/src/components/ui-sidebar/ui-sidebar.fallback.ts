@@ -1,14 +1,10 @@
 import { NativeFallback, proto, type NativeFallbackRoot } from "$/ui/core"
 
-import {
-  SIDEBAR_WORD_WIDTHS,
-  pushableVocabulary,
-  pusherVocabulary,
-  sidebarVocabulary
-} from "./ui-sidebar.vocabulary.en"
-
-/** Any of the family's vocabularies, for brevity. */
-type Vocabulary = typeof sidebarVocabulary | typeof pushableVocabulary | typeof pusherVocabulary
+import { SIDEBAR_WORD_WIDTHS } from "./ui-sidebar.types"
+import { sidebarVocabulary } from "./ui-sidebar.vocabulary.en"
+import { VOCABULARIES, WIDTH } from "./ui-sidebar.types"
+import type { SidebarFallbackVocabulary } from "./ui-sidebar.types"
+import { ARIA_LABEL, VISIBLE } from "$/ui/components/components.types"
 
 /****************
  * ### `SidebarFallback`
@@ -19,7 +15,7 @@ type Vocabulary = typeof sidebarVocabulary | typeof pushableVocabulary | typeof 
  *   the host's `visible` (a `MutationObserver`:  the class grammar reads it) -- it slides over the page like an
  *   `overlay` sidebar
  ****************/
-export class SidebarFallback extends NativeFallback<Vocabulary> {
+export class SidebarFallback extends NativeFallback<SidebarFallbackVocabulary> {
   @proto static degraded = [
     "the pusher never moves, dims or goes `inert`;  every sidebar overlays it (no `transition` default by side)",
     "modality:  no focus move, trap, Escape, outside click or focus restore;  `ui-open` / `ui-close` / `ui-show` / " +
@@ -70,15 +66,3 @@ export class SidebarFallback extends NativeFallback<Vocabulary> {
     super.dispose()
   }
 }
-
-/** The family's vocabularies, by tag. */
-const VOCABULARIES: readonly Vocabulary[] = [sidebarVocabulary, pushableVocabulary, pusherVocabulary]
-
-/** The attribute with word values. */
-const WIDTH = "width"
-
-/** The attribute a sidebar follows. */
-const VISIBLE = "visible"
-
-/** Host attribute forwarded to the panel. */
-const ARIA_LABEL = "aria-label"

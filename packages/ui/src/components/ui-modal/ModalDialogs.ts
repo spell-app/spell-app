@@ -1,6 +1,21 @@
-import { UI, type ModalOptions, type ModalProvider } from "$/ui/core"
+import { UI, type ModalOptions, type ModalProvider, ARIA_LABEL, HEADER, CONTENT, BUTTON, ENTER } from "$/ui/core"
 
 import { modalVocabulary } from "./ui-modal.vocabulary.en"
+import {
+  APPROVE,
+  CLOSEDBY,
+  SIZE,
+  TINY,
+  CLOSEREQUEST,
+  ACTIONS,
+  PRIMARY,
+  CANCEL,
+  OK,
+  APPROVE_EVENT,
+  HIDE_EVENT,
+  NATIVE_LOOK,
+  LABEL_LAYOUT
+} from "./ui-modal.types"
 
 /****************
  * ### `ModalDialogs`
@@ -115,37 +130,3 @@ export class ModalDialogs implements ModalProvider {
     return button
   }
 }
-
-/** `<ui-modal>` attributes it sets (canonical names). */
-const SIZE = "size"
-const TINY = "tiny"
-const CLOSEDBY = "closedby"
-const CLOSEREQUEST = "closerequest"
-const HEADER = "header"
-const ARIA_LABEL = "aria-label"
-
-/** Class nouns of the elements a dialog is built from (`UI.vocabulary` lookups, see `tag()`). */
-const CONTENT = "content"
-const ACTIONS = "actions"
-const BUTTON = "button"
-
-/** `<ui-button>` attribute of the approve button. */
-const PRIMARY = "primary"
-
-/** Fomantic's action classes (`MODAL_ACTION_SELECTORS`), and the text keys of the same names. */
-const APPROVE = "approve"
-const CANCEL = "cancel"
-const OK = "ok"
-
-/** Events it waits for. */
-const APPROVE_EVENT = "ui-approve"
-const HIDE_EVENT = "ui-hide"
-
-/** Key that submits a prompt. */
-const ENTER = "Enter"
-
-/** `native.css`'s opt-in class, for the prompt's input. */
-const NATIVE_LOOK = "ui-native"
-
-/** The prompt's label:  message above a full-width input. */
-const LABEL_LAYOUT = "display: grid; gap: 0.5em"

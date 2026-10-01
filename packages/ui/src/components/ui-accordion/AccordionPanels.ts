@@ -1,4 +1,5 @@
 import type { AccordionPanel } from "$/ui/core"
+import { INDEX, LIST_SEPARATOR } from "./ui-accordion.types"
 
 /****************
  * ### `AccordionPanels`
@@ -39,7 +40,7 @@ export class AccordionPanels {
   /** Open indexes from `open` text, ascending, without duplicates;  only the first when `exclusive`. */
   static parse(text: string | null | undefined, exclusive: boolean): number[] {
     const indexes: number[] = []
-    for (const word of (text ?? "").split(SEPARATOR)) {
+    for (const word of (text ?? "").split(LIST_SEPARATOR)) {
       if (!INDEX.test(word)) continue
       const index = Number(word)
       if (!indexes.includes(index)) indexes.push(index)
@@ -54,9 +55,3 @@ export class AccordionPanels {
     return indexes.join(" ")
   }
 }
-
-/** Between the indexes of `open`. */
-const SEPARATOR = /[\s,]+/
-
-/** One index. */
-const INDEX = /^\d+$/

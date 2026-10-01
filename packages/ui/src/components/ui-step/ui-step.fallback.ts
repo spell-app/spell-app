@@ -1,6 +1,9 @@
 import { Converters, NativeFallback, PART_STATIC_CLASS_PREFIX, proto, type NativeFallbackRoot } from "$/ui/core"
 
-import { stepsVocabulary, stepVocabulary } from "./ui-step.vocabulary.en"
+import { stepsVocabulary } from "./ui-steps.vocabulary.en"
+import { stepVocabulary } from "./ui-step.vocabulary.en"
+import { COMPLETED } from "./ui-step.types"
+import { ACTIVE, VISUALLY_HIDDEN, LIST } from "$/ui/components/components.types"
 
 /****************
  * ### `StepFallback`
@@ -57,15 +60,3 @@ export class StepFallback extends NativeFallback {
     return [this.decorate(step, "step")]
   }
 }
-
-/** Explicit list role of the group. */
-const LIST = "list"
-
-/** Fomantic's word for the current step. */
-const ACTIVE = "active"
-
-/** Visually hidden utility class. */
-const VISUALLY_HIDDEN = "ui-visually-hidden-force"
-
-/** The English "Completed", from the vocabulary:  a failed render can't count on the runtime's translations. */
-const COMPLETED = stepVocabulary.texts.find(({ key }) => key === "stepCompleted")!.text

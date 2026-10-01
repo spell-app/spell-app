@@ -5,7 +5,8 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/fixture"
 import { Sheets } from "$/ui/test/sheets"
 
-import { flagAliases, flagEmoji, flagVocabulary } from "./ui-flag.vocabulary.en"
+import { flagAliases, flagEmoji } from "./ui-flag.types"
+import { flagVocabulary } from "./ui-flag.vocabulary.en"
 
 import flagCSS from "./ui-flag.css?inline"
 import flagRaw from "./ui-flag.css?raw"

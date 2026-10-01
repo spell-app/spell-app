@@ -14,9 +14,6 @@
 
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 
-/** Fomantic's word widths (`thin sidebar`), which `width` takes beside column counts. */
-export const SIDEBAR_WORD_WIDTHS = ["very thin", "thin", "wide", "very wide"] as const
-
 /****************
  * ### `<ui-sidebar>`
  * A panel along one edge of a `<ui-pushable>`:  a `<dialog class="ui ... sidebar" part="sidebar">` (modal, the
@@ -106,40 +103,4 @@ export const sidebarVocabulary = {
     { name: "visible", description: "Shown." }
   ],
   texts: [{ key: "sidebar", text: "Sidebar", description: "Accessible name of an unnamed sidebar." }]
-} as const satisfies ComponentVocabulary
-
-/****************
- * ### `<ui-pushable>`
- * The box a sidebar slides in:  `<div class="pushable" part="pushable"><slot>`, holding `<ui-sidebar>`s and a
- * `<ui-pusher>`.
- ****************/
-export const pushableVocabulary = {
-  tag: "ui-pushable",
-  noun: "pushable",
-  ui: false,
-  description: "The context a sidebar appears in:  it clips them and moves its pusher.",
-  attributes: [],
-  events: [],
-  slots: [{ name: "", description: "`<ui-sidebar>`s and one `<ui-pusher>`." }],
-  parts: [{ name: "pushable", description: "The clipping box." }],
-  states: [{ name: "pushable", description: "Always:  its sidebars find it by this." }],
-  texts: []
-} as const satisfies ComponentVocabulary
-
-/****************
- * ### `<ui-pusher>`
- * The page content beside a sidebar:  `<div class="pusher" part="pusher"><slot>`, moved, dimmed and made `inert`
- * by its `<ui-pushable>`.
- ****************/
-export const pusherVocabulary = {
-  tag: "ui-pusher",
-  noun: "pusher",
-  ui: false,
-  description: "The content a sidebar pushes (and dims) when it appears.",
-  attributes: [],
-  events: [],
-  slots: [{ name: "", description: "The page content." }],
-  parts: [{ name: "pusher", description: "The content box;  its `::after` is the dimmer." }],
-  states: [{ name: "pusher", description: "Always:  its `<ui-pushable>` finds it by this." }],
-  texts: []
 } as const satisfies ComponentVocabulary

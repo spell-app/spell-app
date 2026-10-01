@@ -1,4 +1,5 @@
 import { Converters, proto, type EmbedSource } from "$/ui/core"
+import { EmbedSourceSpec, EmbedUrlOptions, ID, SAFE_PROTOCOLS } from "./ui-embed.types"
 
 /****************
  * ### `EmbedSources`
@@ -81,32 +82,3 @@ export class EmbedSources {
     return undefined
   }
 }
-
-/** One known source. */
-export type EmbedSourceSpec = {
-  /** hosts it's recognised by (subdomains included) */
-  domains: readonly string[]
-  /** player URL, `{id}` for the video id */
-  url: string
-  /** its player parameters */
-  parameters: (settings: { autoplay: boolean; brandedUI: boolean }) => EmbedParameters
-}
-
-/** URL parameters;  booleans become `1` / `0`, `undefined` / `null` are left out. */
-export type EmbedParameters = Record<string, string | number | boolean | null | undefined>
-
-/** What `EmbedSources.resolve()` builds from. */
-export type EmbedUrlOptions = {
-  source?: EmbedSource
-  id?: string
-  url?: string
-  autoplay: boolean
-  brandedUI: boolean
-  parameters?: EmbedParameters
-}
-
-/** Placeholder of the id in a source's URL. */
-const ID = "{id}"
-
-/** Protocols an embed may load. */
-const SAFE_PROTOCOLS = ["http:", "https:"]

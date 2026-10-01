@@ -1,13 +1,15 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { PART_STATIC_CLASS_PREFIX, proto, UIElement } from "$/ui/core"
+import { proto, UIElement } from "$/ui/core"
 
 import { statisticVocabulary } from "./ui-statistic.vocabulary.en"
 import { StatisticFallback } from "./ui-statistic.fallback"
 
 import statisticCSS from "./ui-statistic.css?inline"
 import partsCSS from "$/ui/components/ui-parts/ui-parts.css?inline"
+import { LABEL_CLASS, VALUE_CLASS } from "./ui-statistic.types"
+import { TEXT } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-statistic>`
@@ -55,15 +57,3 @@ export class UIStatistic extends UIElement<typeof statisticVocabulary> {
     return this.attrs.text ? `${TEXT} ${VALUE_CLASS}` : VALUE_CLASS
   }
 }
-
-/** The static owner class of a part in a statistic (`ui-parts.css`). */
-const IN_STATISTIC = `${PART_STATIC_CLASS_PREFIX}${statisticVocabulary.noun}`
-
-/** Classes of the `value` shorthand. */
-const VALUE_CLASS = `value ${IN_STATISTIC}`
-
-/** Classes of the `label` shorthand. */
-const LABEL_CLASS = `label ${IN_STATISTIC}`
-
-/** Word-value class word. */
-const TEXT = "text"

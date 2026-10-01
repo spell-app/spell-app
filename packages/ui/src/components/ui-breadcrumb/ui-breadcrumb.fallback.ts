@@ -1,6 +1,7 @@
 import { BREADCRUMB_DIVIDER_TOKENS, NativeFallback, proto, type NativeFallbackRoot } from "$/ui/core"
 
-import { breadcrumbSectionVocabulary, breadcrumbVocabulary } from "./ui-breadcrumb.vocabulary.en"
+import { breadcrumbSectionVocabulary } from "./ui-breadcrumb-section.vocabulary.en"
+import { breadcrumbVocabulary } from "./ui-breadcrumb.vocabulary.en"
 import { BreadcrumbDivider } from "./BreadcrumbDivider"
 
 /****************

@@ -34,6 +34,7 @@ const FILES = {
   dropdown: `${REPO}src/components/ui-dropdown/UIDropdown.tsx`,
   css: `${REPO}src/components/ui-button/ui-button.css`,
   vocabulary: `${REPO}src/components/ui-button/ui-button.vocabulary.en.ts`,
+  orVocabulary: `${REPO}src/components/ui-button/ui-or.vocabulary.en.ts`,
   shared: `${REPO}src/elements/UIElement.tsx`
 } as const
 
@@ -136,13 +137,13 @@ void describe("hot module replacement (Vite dev, tools/demo/hmr.html)", () => {
   })
 
   void it("4. vocabulary, same attributes:  hot-swapped, the new `or` text shows", async () => {
-    await update(() => edit(FILES.vocabulary, `{ key: "or", text: "or",`, `{ key: "or", text: "ou",`))
+    await update(() => edit(FILES.orVocabulary, `{ key: "or", text: "or",`, `{ key: "or", text: "ou",`))
     const after = await snapshot()
     assert.equal(after.marker, true, "no reload")
     assert.equal(after.same.or, true)
     assert.equal(after.orText, "ou")
 
-    await update(() => restore(FILES.vocabulary))
+    await update(() => restore(FILES.orVocabulary))
     assert.equal((await snapshot()).orText, "or")
   })
 

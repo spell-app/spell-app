@@ -15,21 +15,30 @@ import {
   type UIHost
 } from "$/ui/core"
 
-import { tabsVocabulary, tabVocabulary } from "./ui-tab.vocabulary.en"
+import { tabsVocabulary } from "./ui-tabs.vocabulary.en"
 import { TabFallback } from "./ui-tab.fallback"
-import { UITab, type TabOwner, type TabPaneState } from "./UITab"
+import { UITab } from "./UITab"
 
 import menuCSS from "$/ui/components/ui-menu/ui-menu.css?inline"
 import tabCSS from "./ui-tab.css?inline"
-
-/** Vocabulary type, for brevity. */
-type Vocabulary = typeof tabsVocabulary
-
-/**
- * Fomantic's noun for the tab list:  it IS a menu (`ui top attached tabular menu`).
- * - NOTE: above the class, not with the other constants:  a static initializer reads it.
- */
-const MENU_NOUN = "menu"
+import { MENU_NOUN } from "./ui-tab.types"
+import type { TabsVocabulary, TabOwner, TabPaneState } from "./ui-tab.types"
+import { NONE, TABLIST, TAB, HASHCHANGE, POPSTATE, TAB_SELECTOR, PANE_NOUN } from "./ui-tab.types"
+import {
+  VERTICAL,
+  TRUE,
+  ARIA_LABEL,
+  BOTTOM,
+  TOP,
+  ACTIVE,
+  DISABLED,
+  ITEM,
+  FALSE,
+  ICON,
+  VISIBLE,
+  HORIZONTAL,
+  MANUAL
+} from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-tabs>`
@@ -62,7 +71,7 @@ const MENU_NOUN = "menu"
  * - SIDE EFFECTS:  `history` pushes history entries and listens to `window`'s `hashchange` / `popstate` while
  *   connected.
  ****************/
-export class UITabs extends UIElement<Vocabulary> implements TabOwner {
+export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
   declare menuBuilder: ClassBuilder
 
   @proto static vocabulary = tabsVocabulary
@@ -108,7 +117,7 @@ export class UITabs extends UIElement<Vocabulary> implements TabOwner {
 
   /** Upgraded panes, in order:  the tabs. */
   readonly tabs = createMemo(() => this.panes.get().filter((pane) => pane.controller instanceof UITab), {
-    equals: sameList
+    equals: UITabs.sameList
   })
 
   /** Each tab's value:  its `value`, else its index. */
@@ -183,7 +192,7 @@ export class UITabs extends UIElement<Vocabulary> implements TabOwner {
   // ## Element hooks
   ////////////////
 
-  protected classValue(name: AttributeName<Vocabulary>): unknown {
+  protected classValue(name: AttributeName<TabsVocabulary>): unknown {
     if (name === "attached") return this.menuEdge()
     return super.classValue(name)
   }
@@ -458,53 +467,9 @@ export class UITabs extends UIElement<Vocabulary> implements TabOwner {
     const hash = `#${encodeURIComponent(value)}`
     if (location.hash !== hash) history.pushState(history.state, "", hash)
   }
+
+  /** Same hosts, in the same order. */
+  private static sameList(a: readonly Element[], b: readonly Element[]): boolean {
+    return a.length === b.length && a.every((element, index) => element === b[index])
+  }
 }
-
-/** Same hosts, in the same order. */
-function sameList(a: readonly Element[], b: readonly Element[]): boolean {
-  return a.length === b.length && a.every((element, index) => element === b[index])
-}
-
-/** Noun of a pane child (`<ui-tab>`). */
-const PANE_NOUN = tabVocabulary.noun
-
-/** Host attribute forwarded to the tab list. */
-const ARIA_LABEL = "aria-label"
-
-/** Roles. */
-const TABLIST = "tablist"
-const TAB = "tab"
-
-/** Class words (Fomantic's menu item grammar). */
-const ITEM = "item"
-const ACTIVE = "active"
-const DISABLED = "disabled"
-const ICON = "icon"
-
-/** The tab buttons in the tab list. */
-const TAB_SELECTOR = ":scope > [role=tab]"
-
-/** `aria-*` values. */
-const TRUE = "true"
-const FALSE = "false"
-
-/** Orientations (`aria-orientation`, roving). */
-const HORIZONTAL = "horizontal"
-const VERTICAL = "vertical"
-
-/** Menu edges. */
-const TOP = "top"
-const BOTTOM = "bottom"
-
-/** `activation` value that doesn't select on arrow keys. */
-const MANUAL = "manual"
-
-/** Window events `history` follows. */
-const HASHCHANGE = "hashchange"
-const POPSTATE = "popstate"
-
-/** `document.visibilityState` when a transition can be seen. */
-const VISIBLE = "visible"
-
-/** A value no pane has. */
-const NONE = "\u0000"

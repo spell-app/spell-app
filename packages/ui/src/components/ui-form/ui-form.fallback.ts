@@ -1,6 +1,8 @@
 import { NativeFallback, proto, type NativeFallbackRoot } from "$/ui/core"
 
-import { fieldVocabulary, fieldsVocabulary, formVocabulary } from "./ui-form.vocabulary.en"
+import { formVocabulary } from "./ui-form.vocabulary.en"
+import { fieldVocabulary } from "./ui-field.vocabulary.en"
+import { fieldsVocabulary } from "./ui-fields.vocabulary.en"
 
 /****************
  * ### `FormFallback`
@@ -10,6 +12,9 @@ import { fieldVocabulary, fieldsVocabulary, formVocabulary } from "./ui-form.voc
  * - `disabled` still makes the root `inert`.
  ****************/
 export class FormFallback extends NativeFallback {
+  /** Every vocabulary of the family. */
+  private static readonly VOCABULARIES = [formVocabulary, fieldVocabulary, fieldsVocabulary] as const
+
   @proto static degraded = [
     "validation:  `rules`, prompts, `ui-valid` / `ui-invalid` / `ui-success` / `ui-failure` (the browser's own " +
       "constraint validation takes over)",
@@ -20,7 +25,8 @@ export class FormFallback extends NativeFallback {
   constructor(host: HTMLElement, root: NativeFallbackRoot, error?: unknown, internals?: ElementInternals) {
     super(host, root, error, internals)
     // Shadows the prototype's placeholder vocabulary, see `@proto`.
-    this.vocabulary = VOCABULARIES.find((vocabulary) => vocabulary.tag === host.localName) ?? formVocabulary
+    this.vocabulary =
+      FormFallback.VOCABULARIES.find((vocabulary) => vocabulary.tag === host.localName) ?? formVocabulary
   }
 
   protected override build() {
@@ -28,6 +34,3 @@ export class FormFallback extends NativeFallback {
     return [this.decorate(root, this.vocabulary.noun)]
   }
 }
-
-/** Every vocabulary of the family. */
-const VOCABULARIES = [formVocabulary, fieldVocabulary, fieldsVocabulary] as const

@@ -58,26 +58,3 @@ export const shapeVocabulary = {
   states: [{ name: "animating", description: "Flipping." }],
   texts: []
 } as const satisfies ComponentVocabulary
-
-/****************
- * ### `<ui-side>`
- * One side of a `<ui-shape>`:  `<div class="side" part="side"><slot>`;  the shape shows, hides and turns it.
- ****************/
-export const sideVocabulary = {
-  tag: "ui-side",
-  noun: "side",
-  ui: false,
-  description: "One side of a shape.",
-  attributes: [],
-  events: [],
-  slots: [{ name: "", description: "The side's content." }],
-  parts: [{ name: "side", description: "The face." }],
-  states: [
-    { name: "side", description: "Always:  its shape finds it by this." },
-    { name: "active", description: "The side shown (set by the shape)." },
-    { name: "inactive", description: "Another side is shown:  hidden (set by the shape)." },
-    { name: "animating", description: "Turning into view (set by the shape)." },
-    { name: "leaving", description: "Turning out of view (set by the shape)." }
-  ],
-  texts: []
-} as const satisfies ComponentVocabulary

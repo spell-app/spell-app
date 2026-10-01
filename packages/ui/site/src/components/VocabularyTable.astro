@@ -1,11 +1,13 @@
 ---
 /**
  * Behaviour reference for one component family, generated at BUILD time from its vocabulary module
- * (`src/components/ui-<family>/ui-<family>.vocabulary.en.ts`) -- the same file the element reads, so the docs can't drift.
- * - One block per tag the module exports (`ui-button`, `ui-buttons`, `ui-or` ...), each with the tables that apply:
+ * (`src/components/ui-<family>/ui-<tag>.vocabulary.en.ts`, one file per tag) -- the same files the elements read, so the
+ *   docs can't drift.
+ * - One block per tag the folder's modules export (`ui-button`, `ui-buttons`, `ui-or` ...), each with the tables that apply:
  *   attributes, JS properties (rich `json` attributes), events, slots, `::part`s, custom states and text keys.
  *   Empty tables are left out.
- * - `tags` narrows/reorders the blocks;  default is every vocabulary in the module, in export order.
+ * - `tags` narrows/reorders the blocks;  default is every vocabulary in the folder:  the folder's main tag (its file named
+ *   as the folder) first, the other files alphabetically, each in export order.
  * - Value sets (`hues`, `sizes` ...) are resolved through `ValueSets`, so a theme's extra hues show up.
  * - Sibling of `CssTokens.astro` (custom properties) and `ApiTable.astro` (manifest, when it exists).
  */
@@ -15,7 +17,7 @@ import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"
 import { slug } from "../lib/text"
 
 type Props = {
-  /** family folder name, e.g. `ui-button` (the module is `$/ui/components/ui-button/ui-button.vocabulary.en.ts`) */
+  /** family folder name, e.g. `ui-button` (its modules are `$/ui/components/ui-button/*.vocabulary.en.ts`) */
   family: string
   /** only these tags, in this order, e.g. `["ui-button"]` */
   tags?: string[]
@@ -24,10 +26,16 @@ type Props = {
 const { family, tags } = Astro.props
 
 const MODULES = import.meta.glob<Record<string, unknown>>("$/ui/components/*/*.vocabulary.en.ts", { eager: true })
-const module = Object.entries(MODULES).find(([path]) => path.endsWith(`/${family}/${family}.vocabulary.en.ts`))?.[1]
-if (!module) throw new Error(`VocabularyTable: no vocabulary module for family "${family}"`)
 
-let vocabularies = Object.values(module).filter(isVocabulary)
+/** The folder's vocabulary modules:  the main one (named as the folder) first, then alphabetically. */
+const main = `/${family}.vocabulary.en.ts`
+const modules = Object.entries(MODULES)
+  .filter(([path]) => path.split("/").at(-2) === family)
+  .sort(([a], [b]) => Number(b.endsWith(main)) - Number(a.endsWith(main)) || a.localeCompare(b))
+  .map(([, module]) => module)
+if (!modules.length) throw new Error(`VocabularyTable: no vocabulary module for family "${family}"`)
+
+let vocabularies = modules.flatMap((module) => Object.values(module).filter(isVocabulary))
 if (tags) vocabularies = tags.map((tag) => vocabularies.find((v) => v.tag === tag)!).filter(Boolean)
 
 /** How each `AttributeKind` reads to an author. */

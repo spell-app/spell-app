@@ -1,7 +1,8 @@
 import { proto } from "$/ui/core"
 
-import { dateVocabulary } from "./ui-parts.vocabulary.en"
+import { dateVocabulary } from "./ui-date.vocabulary.en"
 import { PartElement } from "./PartElement"
+import { TIME } from "./ui-parts.types"
 
 /****************
  * ### `<ui-date>`
@@ -19,6 +20,3 @@ export class UIDate extends PartElement<typeof dateVocabulary> {
     return this.attrs.datetime
   }
 }
-
-/** Root element. */
-const TIME = "time"

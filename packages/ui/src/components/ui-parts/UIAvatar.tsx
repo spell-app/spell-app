@@ -3,7 +3,7 @@ import type { JSX } from "@solidjs/web"
 
 import { proto } from "$/ui/core"
 
-import { avatarVocabulary } from "./ui-parts.vocabulary.en"
+import { avatarVocabulary } from "./ui-avatar.vocabulary.en"
 import { PartElement } from "./PartElement"
 
 /****************

@@ -1,6 +1,8 @@
 import { NativeFallback, proto } from "$/ui/core"
 
 import { sliderVocabulary } from "./ui-slider.vocabulary.en"
+import { DEFAULT_MIN, DEFAULT_MAX, DEFAULT_STEP } from "./ui-slider.types"
+import type { SliderHost } from "./ui-slider.types"
 
 /****************
  * ### `SliderFallback`
@@ -93,11 +95,3 @@ export class SliderFallback extends NativeFallback<typeof sliderVocabulary> {
     return Number.isFinite(value) ? value : fallback
   }
 }
-
-/** Fomantic's defaults. */
-const DEFAULT_MIN = 0
-const DEFAULT_MAX = 20
-const DEFAULT_STEP = 1
-
-/** The part of a slider host the fallback touches;  optional, the element may not have upgraded. */
-type SliderHost = HTMLElement & { value?: number; end?: number }

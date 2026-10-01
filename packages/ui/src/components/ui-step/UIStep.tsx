@@ -1,21 +1,15 @@
 import { Show, createMemo } from "solid-js"
 import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
-import {
-  Converters,
-  HostAttribute,
-  IconGlyph,
-  PART_STATIC_CLASS_PREFIX,
-  proto,
-  SlotContent,
-  UIElement
-} from "$/ui/core"
+import { Converters, HostAttribute, IconGlyph, proto, SlotContent, UIElement } from "$/ui/core"
 
 import { stepVocabulary } from "./ui-step.vocabulary.en"
 import { StepFallback } from "./ui-step.fallback"
 
 import stepCSS from "./ui-step.css?inline"
 import partsCSS from "$/ui/components/ui-parts/ui-parts.css?inline"
+import { CHECK, BOX, STEP, CONTENT, TITLE, DESCRIPTION } from "./ui-step.types"
+import { ACTIVE, BUTTON, TRUE, ICON, VISUALLY_HIDDEN, LINK, LISTITEM } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-step>`
@@ -142,45 +136,3 @@ export class UIStep extends UIElement<typeof stepVocabulary> {
     )
   }
 }
-
-/** Fomantic's word for the current step:  class word and alias attribute. */
-const ACTIVE = "active"
-
-/** Glyph of a completed step's icon. */
-const CHECK = "check"
-
-/** Root of a link step. */
-const LINK = "a"
-
-/** Root of a `link` step without `href`;  also its `type`. */
-const BUTTON = "button"
-
-/** Root of a plain step. */
-const BOX = "div"
-
-/** `aria-current` of the selected step. */
-const STEP = "step"
-
-/** ARIA boolean. */
-const TRUE = "true"
-
-/** Host role:  an item of the group's `<ol>`. */
-const LISTITEM = "listitem"
-
-/** The static owner class of a part in a step (`ui-parts.css`). */
-const IN_STEP = `${PART_STATIC_CLASS_PREFIX}${stepVocabulary.noun}`
-
-/** Class of the icon box. */
-const ICON = "icon"
-
-/** Classes of the shorthand content block. */
-const CONTENT = `content ${IN_STEP}`
-
-/** Classes of the `header` shorthand (Fomantic's `.title`). */
-const TITLE = `title ${IN_STEP}`
-
-/** Classes of the `description` shorthand. */
-const DESCRIPTION = `description ${IN_STEP}`
-
-/** Utility class (`utilities.css`, adopted in every root) for the "Completed" announcement. */
-const VISUALLY_HIDDEN = "ui-visually-hidden-force"

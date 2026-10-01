@@ -2,7 +2,7 @@ import type { JSX } from "@solidjs/web"
 
 import { proto, UIElement } from "$/ui/core"
 
-import { segmentsVocabulary } from "./ui-segment.vocabulary.en"
+import { segmentsVocabulary } from "./ui-segments.vocabulary.en"
 
 import segmentCSS from "./ui-segment.css?inline"
 

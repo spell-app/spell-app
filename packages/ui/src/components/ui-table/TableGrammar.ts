@@ -1,6 +1,7 @@
 import { ClassBuilder, numberToWord, ValueSets, type ComponentVocabulary, type TableColumn } from "$/ui/core"
 
 import { tableVocabulary } from "./ui-table.vocabulary.en"
+import { SCROLLING, OVERFLOWING } from "./ui-table.types"
 
 /****************
  * ### `TableGrammar`
@@ -56,7 +57,3 @@ export class TableGrammar {
     return words.join(" ")
   }
 }
-
-/** Scroller attributes that make it scroll. */
-const SCROLLING = "scrolling"
-const OVERFLOWING = "overflowing"

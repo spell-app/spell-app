@@ -1,3 +1,6 @@
+import { CLASS } from "./ui-table.types"
+import { WHITESPACE } from "$/ui/components/components.types"
+
 /****************
  * ### `TableClassMirror`
  * Writes an element's Fomantic class string (`ui celled striped table`) onto a LIGHT-DOM `<table>`, so
@@ -70,9 +73,3 @@ export class TableClassMirror {
     return text ? text.split(WHITESPACE).filter(Boolean) : []
   }
 }
-
-/** The attribute mirrored. */
-const CLASS = "class"
-
-/** Runs of whitespace. */
-const WHITESPACE = /\s+/

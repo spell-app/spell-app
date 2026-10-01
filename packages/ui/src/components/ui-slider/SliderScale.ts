@@ -1,3 +1,5 @@
+import type { SliderScaleProps } from "./ui-slider.types"
+
 /****************
  * ### `SliderScale`
  * The number line of a slider:  `min` ... `max` in `step`s -- snapping, ratios along the track, and which steps get
@@ -91,11 +93,4 @@ export class SliderScale {
     const [, decimals = ""] = String(value).split(".")
     return decimals.length
   }
-}
-
-/** Constructor props for `SliderScale`. */
-export type SliderScaleProps = {
-  min: number
-  max: number
-  step: number
 }

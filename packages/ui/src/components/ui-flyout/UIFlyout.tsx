@@ -1,13 +1,11 @@
 import { proto, type AttributeName } from "$/ui/core"
 import { DialogElement } from "$/ui/components/ui-modal"
 
-import { FLYOUT_WORD_WIDTHS, flyoutVocabulary } from "./ui-flyout.vocabulary.en"
+import { flyoutVocabulary } from "./ui-flyout.vocabulary.en"
 import { FlyoutFallback } from "./ui-flyout.fallback"
+import { FLYOUT_WORD_WIDTHS, Vocabulary, WIDTH } from "./ui-flyout.types"
 
 import flyoutCSS from "./ui-flyout.css?inline"
-
-/** Vocabulary type, for brevity. */
-type Vocabulary = typeof flyoutVocabulary
 
 /****************
  * ### `<ui-flyout>`
@@ -43,6 +41,3 @@ export class UIFlyout extends DialogElement<Vocabulary> {
     return FLYOUT_WORD_WIDTHS.find((word) => word === text)
   }
 }
-
-/** The attribute with word values. */
-const WIDTH = "width"

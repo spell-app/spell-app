@@ -1,6 +1,7 @@
-import { NativeFallback, proto, type EventName, type NagCloseDetail } from "$/ui/core"
+import { NativeFallback, proto, type NagCloseDetail } from "$/ui/core"
 
 import { nagVocabulary } from "./ui-nag.vocabulary.en"
+import { HIDE } from "./ui-nag.types"
 
 /****************
  * ### `NagFallback`
@@ -38,6 +39,3 @@ export class NagFallback extends NativeFallback<typeof nagVocabulary> {
     return button
   }
 }
-
-/** Event it still fires, checked against the vocabulary. */
-const HIDE: EventName<typeof nagVocabulary> = "ui-hide"

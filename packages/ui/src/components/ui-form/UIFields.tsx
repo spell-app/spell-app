@@ -2,7 +2,7 @@ import type { JSX } from "@solidjs/web"
 
 import { proto, UIElement } from "$/ui/core"
 
-import { fieldsVocabulary } from "./ui-form.vocabulary.en"
+import { fieldsVocabulary } from "./ui-fields.vocabulary.en"
 import { FormFallback } from "./ui-form.fallback"
 
 import formCSS from "./ui-form.css?inline"

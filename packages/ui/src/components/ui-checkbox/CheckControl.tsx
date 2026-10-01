@@ -14,26 +14,11 @@ import {
 } from "$/ui/core"
 import { ControlLabels, FormElement } from "$/ui/forms"
 
-import { checkboxVocabulary, radioVocabulary } from "./ui-checkbox.vocabulary.en"
 import { CheckboxFallback } from "./ui-checkbox.fallback"
 import { CheckHost } from "./CheckHost"
+import { CHECKBOX, CHECKED, CheckVocabulary, CommonAttributes, DEFAULT_VALUE, ID_PREFIX } from "./ui-checkbox.types"
 
 import checkboxCSS from "./ui-checkbox.css?inline"
-
-/** Converted attributes both elements have (`checkbox` and `radio`), see `CheckControl.common`. */
-type CommonAttributes = {
-  readonly type: string | undefined
-  readonly selected: boolean
-  readonly value: string | undefined
-  readonly name: string | undefined
-  readonly label: string | undefined
-  readonly required: boolean
-  readonly disabled: boolean
-  readonly readonly: boolean
-}
-
-/** Either element's vocabulary. */
-type CheckVocabulary = typeof checkboxVocabulary | typeof radioVocabulary
 
 /****************
  * ### `CheckControl`
@@ -291,15 +276,3 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
     this.control?.focus(options)
   }
 }
-
-/** Host attribute aliasing `selected`. */
-const CHECKED = "checked"
-
-/** Native default value of a checkbox. */
-const DEFAULT_VALUE = "on"
-
-/** Input type that may be read-only. */
-const CHECKBOX = "checkbox"
-
-/** `UI.ids` prefix. */
-const ID_PREFIX = "ui-checkbox"

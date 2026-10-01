@@ -1,4 +1,6 @@
 import { TABLE_SORT_KEY, TABLE_SORT_OPT_OUT, type TableSortDirection } from "$/ui/core"
+import { HEADER, TABLE, DESCENDING } from "./ui-table.types"
+import { DISABLED } from "$/ui/components/components.types"
 
 /****************
  * ### `TableSort`
@@ -111,15 +113,3 @@ export class TableSort {
     return String(value as string | number | boolean | bigint | symbol)
   }
 }
-
-/** Tag of a header cell. */
-const HEADER = "th"
-
-/** Tag of a table. */
-const TABLE = "table"
-
-/** Fomantic's opted-out header class. */
-const DISABLED = "disabled"
-
-/** The flipped direction. */
-const DESCENDING: TableSortDirection = "descending"

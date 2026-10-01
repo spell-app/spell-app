@@ -1,0 +1,55 @@
+/**
+ * Loose constants, types and helpers of `<ui-table>`:  its element classes and native fallback import them from here.
+ */
+
+import type { TableSortDirection } from "$/ui/core"
+
+////////////////
+// ## TableClassMirror
+////////////////
+
+/** The attribute mirrored. */
+export const CLASS = "class"
+
+////////////////
+// ## TableGrammar
+////////////////
+
+/** Scroller attributes that make it scroll. */
+export const SCROLLING = "scrolling"
+export const OVERFLOWING = "overflowing"
+
+////////////////
+// ## TableSort
+////////////////
+
+/** Tag of a header cell. */
+export const HEADER = "th"
+
+/** Tag of a table. */
+export const TABLE = "table"
+
+/** The flipped direction. */
+export const DESCENDING: TableSortDirection = "descending"
+
+////////////////
+// ## UITable
+////////////////
+
+/** Tables the element rendered itself:  never mistaken for an author's. */
+export const GENERATED = new WeakSet<HTMLTableElement>()
+
+/** Header attributes the element manages. */
+export const ARIA_SORT = "aria-sort"
+
+export const SPACE = " "
+
+/** Sort directions. */
+export const ASCENDING: TableSortDirection = "ascending"
+
+////////////////
+// ## ui-table.fallback
+////////////////
+
+/** The fallback's one part. */
+export const SCROLLER = "scroller"

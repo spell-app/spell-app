@@ -5,7 +5,8 @@ import { colorsCSS, foundationCSS } from "$/ui/styles"
 import { Fixture } from "$/ui/test/fixture"
 import { Sheets } from "$/ui/test/sheets"
 
-import { stepsVocabulary, stepVocabulary } from "./ui-step.vocabulary.en"
+import { stepsVocabulary } from "./ui-steps.vocabulary.en"
+import { stepVocabulary } from "./ui-step.vocabulary.en"
 
 import stepCSS from "./ui-step.css?inline"
 import stepRaw from "./ui-step.css?raw"

@@ -8,13 +8,20 @@ import {
   type ItemContext,
   type ItemOwner,
   type ListSelectDetail,
-  type UIHost
+  type UIHost,
+  LIST,
+  LISTITEM,
+  PAGE,
+  ITEM,
+  DISABLED_STATE,
+  CLICK
 } from "$/ui/core"
 
 import { listVocabulary } from "./ui-list.vocabulary.en"
 import { ListFallback } from "./ui-list.fallback"
 
 import listCSS from "./ui-list.css?inline"
+import { UL, OL, INTERACTIVE } from "./ui-list.types"
 
 /****************
  * ### `<ui-list>`
@@ -90,7 +97,7 @@ export class UIList extends UIElement<typeof listVocabulary> implements ItemOwne
         component={this.isOrdered() ? OL : UL}
         class={this.nested() ? this.vocabulary.noun : this.classes()}
         part={this.part("list")}
-        role={ROLE}
+        role={LIST}
       >
         <slot />
       </Dynamic>
@@ -128,7 +135,7 @@ export class UIList extends UIElement<typeof listVocabulary> implements ItemOwne
       }
       const ours = context.owner.get()?.owner === this.host
       const interactive = !!root && root.parentNode === target.shadowRoot && INTERACTIVE.has(root.localName)
-      return ours && interactive && !target.matches(DISABLED) ? (target as UIHost) : undefined
+      return ours && interactive && !target.matches(DISABLED_STATE) ? (target as UIHost) : undefined
     }
     return undefined
   }
@@ -139,28 +146,3 @@ export class UIList extends UIElement<typeof listVocabulary> implements ItemOwne
     return value || text || (item.textContent ?? "").trim()
   }
 }
-
-/** Root tags. */
-const UL = "ul"
-const OL = "ol"
-
-/** Explicit role of the root. */
-const ROLE = "list"
-
-/** Host role of every item. */
-const LISTITEM = "listitem"
-
-/** `aria-current` of a selected link item. */
-const PAGE = "page"
-
-/** Part noun of an item (`<ui-item>`'s `PartContext`). */
-const ITEM = "item"
-
-/** Item roots that can be activated. */
-const INTERACTIVE: ReadonlySet<string> = new Set(["a", "button"])
-
-/** A disabled item host. */
-const DISABLED = ":state(disabled)"
-
-/** Native event every activation arrives as. */
-const CLICK = "click"

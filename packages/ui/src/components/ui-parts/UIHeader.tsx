@@ -2,8 +2,9 @@ import { Dynamic, type JSX } from "@solidjs/web"
 
 import { proto, type HeaderLevel } from "$/ui/core"
 
-import { headerVocabulary } from "./ui-parts.vocabulary.en"
+import { headerVocabulary } from "./ui-header.vocabulary.en"
 import { PartElement } from "./PartElement"
+import { HEADING } from "./ui-parts.types"
 
 /****************
  * ### `<ui-header>`
@@ -46,6 +47,3 @@ export class UIHeader extends PartElement<typeof headerVocabulary> {
     return this.context.ownerNoun() ? this.vocabulary.noun : this.classes()
   }
 }
-
-/** Role of a linked page header. */
-const HEADING = "heading"

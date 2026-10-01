@@ -2,14 +2,18 @@ import { For, Show, createEffect, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import {
+  ACTIVE,
   Cell,
   Converters,
+  DISABLED,
   DROPDOWN_ANCHOR_PROPERTY,
+  ICON,
   IconGlyph,
+  POPOVER_OPEN,
   proto,
+  REQUIRED_RULE,
   SlotContent,
   ToggleCommands,
-  UI,
   type AttributeName,
   type DropdownOptions,
   type FieldValue,
@@ -18,19 +22,31 @@ import {
   type MenuOption,
   type MenuSeparator,
   type OverlayEntry,
-  type ValidationRule
+  type ValidationRule,
+  UI
 } from "$/ui/core"
 import { FormElement, MenuOptions } from "$/ui/forms"
 
 import { dropdownVocabulary } from "./ui-dropdown.vocabulary.en"
 import { DropdownFallback } from "./ui-dropdown.fallback"
 import { SlottedItems } from "./SlottedItems"
+import {
+  ADDITION,
+  DEFAULT,
+  FILTERED,
+  ID_PREFIX,
+  ITEM,
+  LEFT,
+  MENU,
+  REGIONAL_A,
+  SELECTED,
+  TEXT,
+  VALUE_PLACEHOLDER,
+  Vocabulary
+} from "./ui-dropdown.types"
 
 import buttonCSS from "$/ui/components/ui-button/ui-button.css?inline"
 import dropdownCSS from "./ui-dropdown.css?inline"
-
-/** Vocabulary type, for brevity. */
-type Vocabulary = typeof dropdownVocabulary
 
 /****************
  * ### `<ui-dropdown>`
@@ -128,8 +144,12 @@ export class UIDropdown extends FormElement<Vocabulary> {
 
   /** Every option:  slotted, then `options`, then additions. */
   readonly all = createMemo(
-    (): readonly MenuOption[] => [...this.items.entries().filter(isOption), ...this.propOptions(), ...this.added.get()],
-    { equals: sameItems }
+    (): readonly MenuOption[] => [
+      ...this.items.entries().filter(UIDropdown.isOption),
+      ...this.propOptions(),
+      ...this.added.get()
+    ],
+    { equals: UIDropdown.sameItems }
   )
 
   /** Option by value, for texts of chosen values. */
@@ -143,7 +163,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
       if (typeof value !== "string" || value === "") return []
       return this.attrs.multiple ? Converters.list(value) : [value]
     },
-    { equals: sameItems }
+    { equals: UIDropdown.sameItems }
   )
 
   /** Chosen values as a set, for row state. */
@@ -173,7 +193,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
       for (const option of visible.options) if (!slotted.has(option)) rows.push(option)
       return rows
     },
-    { equals: sameItems }
+    { equals: UIDropdown.sameItems }
   )
 
   /** Highlighted option. */
@@ -399,7 +419,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
         part={this.part("menu")}
         aria-label={this.label() || undefined}
         aria-multiselectable={this.attrs.multiple ? "true" : undefined}
-        onMouseDown={preventDefault}
+        onMouseDown={UIDropdown.preventDefault}
       >
         <slot name={this.slot("header")} />
         <Show when={this.isOpen() || this.attrs.simple}>
@@ -457,7 +477,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
           <img class="ui avatar image" src={option.image as string} alt="" />
         </Show>
         <Show when={typeof option.flag === "string"}>
-          <span class="flag">{flagEmoji(option.flag as string)}</span>
+          <span class="flag">{UIDropdown.flagEmoji(option.flag as string)}</span>
         </Show>
         <Show when={option.description}>
           <span class="description">{option.description}</span>
@@ -518,7 +538,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
   /** Stable id for `option`'s row. */
   private optionId(option: MenuOption): string {
     let id = this.optionIds.get(option)
-    if (!id) this.optionIds.set(option, (id = `${this.ids.menu}-${++optionCounter}`))
+    if (!id) this.optionIds.set(option, (id = `${this.ids.menu}-${++UIDropdown.optionCounter}`))
     return id
   }
 
@@ -776,11 +796,39 @@ export class UIDropdown extends FormElement<Vocabulary> {
   /** Values of slotted items marked `selected`, the uncontrolled starting value. */
   private selectedItemValues(): string | string[] | undefined {
     const values = untrack(() => this.items.entries())
-      .filter(isOption)
+      .filter(UIDropdown.isOption)
       .filter((option) => option.selected)
       .map((option) => option.value)
     if (!values.length) return undefined
     return untrack(() => this.attrs.multiple) ? values : values[0]
+  }
+
+  /**
+   * Same items in the same order?  Memo `equals` for arrays, so a recomputation that yields an equivalent list
+   * doesn't wake every row (Solid's dev diagnostics flag it as `UNSTABLE_MEMO_OUTPUT`).
+   */
+  private static sameItems<T>(a: readonly T[], b: readonly T[]): boolean {
+    return a.length === b.length && a.every((item, index) => item === b[index])
+  }
+
+  /** Is `entry` an option (not a separator)? */
+  private static isOption(entry: MenuEntry): entry is MenuOption {
+    return !("type" in entry)
+  }
+
+  /** Counter behind option ids. */
+  private static optionCounter = 0
+
+  /** `preventDefault()`:  menu presses must not take focus from the combobox. */
+  private static preventDefault(event: Event) {
+    event.preventDefault()
+  }
+
+  /** Country code => flag emoji (regional indicators), e.g. `fr` => 🇫🇷;  other text unchanged. */
+  private static flagEmoji(code: string): string {
+    if (!/^[a-z]{2}$/i.test(code)) return code
+    const upper = code.toUpperCase()
+    return String.fromCodePoint(REGIONAL_A + upper.charCodeAt(0) - 65, REGIONAL_A + upper.charCodeAt(1) - 65)
   }
 }
 
@@ -801,62 +849,3 @@ class SVGIcon {
     if (template) element.replaceChildren(IconGlyph.draw(template))
   }
 }
-
-/**
- * Same items in the same order?  Memo `equals` for arrays, so a recomputation that yields an equivalent list
- * doesn't wake every row (Solid's dev diagnostics flag it as `UNSTABLE_MEMO_OUTPUT`).
- */
-function sameItems<T>(a: readonly T[], b: readonly T[]): boolean {
-  return a.length === b.length && a.every((item, index) => item === b[index])
-}
-
-/** Is `entry` an option (not a separator)? */
-function isOption(entry: MenuEntry): entry is MenuOption {
-  return !("type" in entry)
-}
-
-/** `preventDefault()`:  menu presses must not take focus from the combobox. */
-function preventDefault(event: Event) {
-  event.preventDefault()
-}
-
-/** Country code => flag emoji (regional indicators), e.g. `fr` => 🇫🇷;  other text unchanged. */
-function flagEmoji(code: string): string {
-  if (!/^[a-z]{2}$/i.test(code)) return code
-  const upper = code.toUpperCase()
-  return String.fromCodePoint(REGIONAL_A + upper.charCodeAt(0) - 65, REGIONAL_A + upper.charCodeAt(1) - 65)
-}
-
-/** Counter behind option ids. */
-let optionCounter = 0
-
-/** Code point of the regional indicator for `A`. */
-const REGIONAL_A = 0x1f1e6
-
-/** `UI.ids` prefix. */
-const ID_PREFIX = "ui-dropdown"
-
-/** `required` => Fomantic's `notEmpty`. */
-const REQUIRED_RULE: ValidationRule = "notEmpty"
-
-/** Placeholder in the `addItem` text. */
-const VALUE_PLACEHOLDER = "{value}"
-
-/** Open popover pseudo-class. */
-const POPOVER_OPEN = ":popover-open"
-
-/**
- * Class words of the markup contract (`ui-dropdown.css`) -- grammar, not attributes, so not in the vocabulary.
- * - NOTE: `active` === chosen, `selected` === highlighted:  Fomantic's meanings.
- */
-const TEXT = "text"
-const DEFAULT = "default"
-const FILTERED = "filtered"
-const MENU = "menu"
-const LEFT = "left"
-const ITEM = "item"
-const ACTIVE = "active"
-const SELECTED = "selected"
-const DISABLED = "disabled"
-const ADDITION = "addition"
-const ICON = "icon"

@@ -8,6 +8,8 @@ import { ProgressFallback } from "./ui-progress.fallback"
 import { ProgressValues } from "./ProgressValues"
 
 import progressCSS from "./ui-progress.css?inline"
+import { PROGRESSBAR, SUCCESS, RATIO, LIST_SEPARATOR, BAR_TEXT, UTILITY_PREFIX } from "./ui-progress.types"
+import { LABEL, BAR } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-progress>`
@@ -224,23 +226,3 @@ export class UIProgress extends UIElement<typeof progressVocabulary> {
     return style
   }
 }
-
-/** Host role. */
-const PROGRESSBAR = "progressbar"
-
-/** The automatic outcome at 100%. */
-const SUCCESS = "success"
-
-/** `bar-text` value for the ratio format. */
-const RATIO = "ratio"
-
-/** Joins several bars' texts into one `aria-valuetext`. */
-const LIST_SEPARATOR = ", "
-
-/** Class words of Fomantic's markup. */
-const BAR = "bar"
-const BAR_TEXT = "progress"
-const LABEL = "label"
-
-/** Prefix of the colour-remap utility class (`colors.css`), e.g. `ui-red`. */
-const UTILITY_PREFIX = "ui-"

@@ -1,6 +1,7 @@
 import { NativeFallback, PartContext, proto, type NativeFallbackRoot } from "$/ui/core"
 
-import { PART_VOCABULARIES, headerVocabulary } from "./ui-parts.vocabulary.en"
+import { PART_VOCABULARIES } from "./ui-parts.types"
+import { headerVocabulary } from "./ui-header.vocabulary.en"
 
 /****************
  * ### `ContentPartFallback`

@@ -1,6 +1,7 @@
-import { Converters, NativeFallback, proto, type NativeFallbackRoot } from "$/ui/core"
+import { Converters, NativeFallback, proto, type NativeFallbackRoot, LIST } from "$/ui/core"
 
 import { listVocabulary } from "./ui-list.vocabulary.en"
+import { PARENTS, LIST_TAG, ORDERED } from "./ui-list.types"
 
 /****************
  * ### `ListFallback`
@@ -26,25 +27,13 @@ export class ListFallback extends NativeFallback<typeof listVocabulary> {
   private readonly nested: boolean
 
   protected override build() {
-    const outer = this.nested ? this.host.parentElement?.closest(LIST) : null
+    const outer = this.nested ? this.host.parentElement?.closest(LIST_TAG) : null
     const ordered = this.flag("ordered") || Converters.boolean(outer?.getAttribute(ORDERED) ?? null, ORDERED)
     const list = this.create(ordered ? "ol" : "ul", {
       class: this.nested ? listVocabulary.noun : this.classes(),
-      role: ROLE
+      role: LIST
     })
     list.append(this.slot())
     return [this.decorate(list, "list")]
   }
 }
-
-/** Parent tags (canonical only) that make a list a sub-list. */
-const PARENTS: ReadonlySet<string> = new Set(["ui-item", "ui-list"])
-
-/** Canonical tag of a list, for the outer list's `ordered`. */
-const LIST = "ui-list"
-
-/** Attribute that numbers the items. */
-const ORDERED = "ordered"
-
-/** Explicit list role:  `list-style: none` drops the list semantics in Safari. */
-const ROLE = "list"

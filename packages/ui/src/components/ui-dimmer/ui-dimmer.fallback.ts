@@ -1,6 +1,7 @@
-import { Converters, NativeFallback, proto, type DimmerOpenDetail, type EventName } from "$/ui/core"
+import { ACTIVE, CONTENT, Converters, NativeFallback, proto, type DimmerOpenDetail } from "$/ui/core"
 
 import { dimmerVocabulary } from "./ui-dimmer.vocabulary.en"
+import { HIDE } from "./ui-dimmer.types"
 
 /****************
  * ### `DimmerFallback`
@@ -75,12 +76,3 @@ export class DimmerFallback extends NativeFallback<typeof dimmerVocabulary> {
     return this.vocabulary.texts.find(({ key }) => key === "dimmedPage")!.text
   }
 }
-
-/** The host attribute it follows, which is also the class word it emits. */
-const ACTIVE = "active"
-
-/** Class word of the content box. */
-const CONTENT = "content"
-
-/** Event it still fires, checked against the vocabulary. */
-const HIDE: EventName<typeof dimmerVocabulary> = "ui-hide"

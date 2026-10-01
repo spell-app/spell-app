@@ -1,4 +1,14 @@
 import type { NagStorage } from "$/ui/core"
+import {
+  LOCAL,
+  SESSION,
+  COOKIE,
+  EXPIRATION_SUFFIX,
+  DEFAULT_PATH,
+  DAY,
+  type DismissalCookieOptions,
+  type DismissalStoreProps
+} from "./ui-nag.types"
 
 /****************
  * ### `DismissalStore`
@@ -142,36 +152,3 @@ export class DismissalStore {
     return new Date(Date.now() + days * DAY).toUTCString()
   }
 }
-
-/** Cookie options of a `DismissalStore`. */
-export type DismissalCookieOptions = {
-  /** default `/` */
-  path?: string
-  domain?: string
-  secure?: boolean
-  sameSite?: string
-}
-
-/** Constructor props for `DismissalStore`. */
-export type DismissalStoreProps = {
-  storage: NagStorage
-  key: string
-  value: string
-  /** days;  `0` for no expiry */
-  expires: number
-  cookie?: DismissalCookieOptions
-}
-
-/** Storage kinds it branches on. */
-const LOCAL = "local"
-const SESSION = "session"
-const COOKIE = "cookie"
-
-/** Suffix of the expiry item in `localStorage` (Fomantic's `expirationKey`). */
-const EXPIRATION_SUFFIX = "ExpirationDate"
-
-/** Default cookie path. */
-const DEFAULT_PATH = "/"
-
-/** ms in a day. */
-const DAY = 864e5

@@ -1,11 +1,12 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement, type ItemContext, type ItemOwner } from "$/ui/core"
+import { proto, UIElement, type ItemContext, type ItemOwner, LIST } from "$/ui/core"
 
 import { itemsVocabulary } from "./ui-items.vocabulary.en"
 import { ItemsFallback } from "./ui-items.fallback"
 
 import itemsCSS from "./ui-items.css?inline"
+import { ITEM_CONTEXT } from "./ui-items.types"
 
 /****************
  * ### `<ui-items>`
@@ -43,15 +44,3 @@ export class UIItems extends UIElement<typeof itemsVocabulary> implements ItemOw
     )
   }
 }
-
-/** Role of the root. */
-const LIST = "list"
-
-/** What every item gets:  a list item owning its parts, its `image` shorthand a bare `.image`. */
-const ITEM_CONTEXT: ItemContext = Object.freeze({
-  hostRole: "listitem",
-  interactive: false,
-  current: "page",
-  ownsParts: true,
-  imageClass: "image"
-})
