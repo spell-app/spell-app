@@ -5,10 +5,11 @@ as work lands ([AGENTS.md](../AGENTS.md)).  Last updated 2026-09-30.
 
 ## Working on now
 
-- **Paused 2026-09-30** for the monorepo switch;  resume from `/Users/owen/www/spell-app/outstanding/ui-component-build.md`.
-- Visual testing built and staged (Mac baselines for chromium / firefox / webkit);  Linux baselines wait on a
-  working Docker Desktop.
-- Last committed:  themeable tokens, Phase C docs and fixes, commit `9f0a83c`.
+- **Resumed 2026-10-01** in the monorepo (`packages/ui`), branch `worktree-ui-component-creation`;  plan doc
+  [`packages/docs/plans/ui-component-creation/`](../../docs/plans/ui-component-creation/ui-component-creation.html):
+  icon follow-ups, `SUSPECTED-BUGS.md` sweep, Owen's decisions ("To review (Owen)" below), Phase D chores.
+- Every check passes after the move;  `yarn test:hmr` and `yarn site:build` needed a fix each (`PAPERCUTS.md`).
+- Visual:  Mac baselines for chromium / firefox / webkit;  Linux baselines wait on a working Docker Desktop.
 
 ## Legend
 

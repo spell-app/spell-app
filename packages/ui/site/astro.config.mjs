@@ -92,8 +92,14 @@ export default defineConfig({
       chunkSizeWarningLimit: 600
     },
     ssr: {
-      // Library source is TS + `?inline` CSS + JSON:  let Vite transform it, never hand it to Node as-is.
+      // - Library source is TS + `?inline` CSS + JSON:  let Vite transform it, never hand it to Node as-is.
       noExternal: ["@spell-app/ui"]
+    },
+    environments: {
+      // Astro 7 builds static pages in its own `prerender` environment, which inlines Astro's runtime into
+      // `dist/.prerender/`;  an external `cookie` would then resolve from `dist/` to the root's hoisted copy --
+      // express's 0.7.1, without Astro's `parseCookie` (2.x).  Bundle it.
+      prerender: { resolve: { noExternal: ["@spell-app/ui", "cookie"] } }
     }
   }
 })

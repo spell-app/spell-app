@@ -272,18 +272,21 @@ function rewriteDeclaration(filePath: string, content: string) {
  *   `define()` of a new version of a class into a re-definition of every tag it had.
  * - `?inline` component CSS (`src/components/<name>/<name>.css`) re-registers its sheet:  no re-render.
  * - Shared code (`core`, `forms`, the runtime) reaches several barrels:  full reload.
+ * - `HotDefinitions` is injected by FILE PATH, not `$/ui/elements/HotDefinitions`:  `resolve.tsconfigPaths` only
+ *   resolves aliases for TS / JS importers, and the sheets' handler import lives in a `.css?inline` module.
  */
 function hotElements(): Plugin {
+  const hotDefinitions = `${SRC}/elements/HotDefinitions.ts`
   // HACK: the fork is its own yarn project, so its `Plugin` type comes from ITS `vite` install:  the same version,
   // but a second declaration TypeScript won't unify (a `tsconfig` `paths` pin would also redirect `tsx`'s runtime
   // resolution of `vite` to a `.d.ts`)
   const plugin: unknown = solidElementHot({
     include: /\/src\/components\/[\w-]+\/index\.ts$/,
     detect: /\.define\(/,
-    setup: "$/ui/elements/HotDefinitions",
+    setup: hotDefinitions,
     styles: {
       include: /\/src\/components\/[\w-]+\/[\w-]+\.css\?inline$/,
-      handler: "$/ui/elements/HotDefinitions",
+      handler: hotDefinitions,
       call: "HotDefinitions.updateStyle"
     }
   })

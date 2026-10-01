@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>UI Component Creation</title>
+    <meta name="description" content="Plan doc:  UI Component Creation." />
+    <link rel="stylesheet" href="../../_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../_assets/plan-doc.css" />
+  </head>
+  <body class="spell-doc-page plan-doc" data-plan="ui-component-creation">
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <h1>UI Component Creation</h1>
+        <ul class="plan-meta">
+          <li>
+            Plan doc for <code>/plan-doc ui-component-creation</code>, branch
+            <code>worktree-ui-component-creation</code>
+          </li>
+          <li>
+            Worktree:
+            <a href="../../../../" target="src-"
+              ><code>/Users/owen/www/spell-app/spell-app/.claude/worktrees/ui-component-creation</code></a
+            >
+          </li>
+          <li>Started <time id="plan-started">2026-10-01</time>, updated <time id="plan-updated">2026-10-01</time></li>
+        </ul>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="plan">1. Plan</h2></ui-sticky>
+          <p class="plan-summary">
+            Resume ui-1f's component build in the monorepo: get
+            <a href="../../../ui/" target="src-packages-ui"><code>packages/ui</code></a> green, then close what the
+            handoff left open -- the icon loader bug, the ~33 suspected ui bugs, Owen's eight open design calls and
+            Phase D's release chores. Each phase ends verified, staged and asked before commit; Linux baselines wait on
+            Docker (<a href="#c1">C1</a>).
+          </p>
+          <ul class="plan-phases">
+            <li data-status="done" data-phase="1">
+              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p1">P1 · Re-establish Baseline</a>
+            </li>
+            <li data-status="todo" data-phase="2">
+              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p2">P2 · Icon Follow-ups</a>
+            </li>
+            <li data-status="todo" data-phase="3">
+              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p3">P3 · Bug Sweep</a>
+            </li>
+            <li data-status="todo" data-phase="4">
+              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p4">P4 · Owen's Decisions</a>
+            </li>
+            <li data-status="todo" data-phase="5">
+              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p5">P5 · Release Chores</a>
+            </li>
+            <li data-status="todo" data-phase="6">
+              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p6">P6 · Doc Review</a>
+            </li>
+          </ul>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="questions">2. Questions</h2></ui-sticky>
+          <p class="meta">Waiting on the user. Each is also asked in Claude Code.</p>
+          <ol class="plan-items" data-kind="question">
+            <li data-status="done" id="q1">
+              <a class="plan-id" href="#q1">Q1</a>
+              <span class="plan-title">Modal: closedby = any | closerequest | none (closable = icon only): keep?</span>
+            </li>
+            <li data-status="done" id="q2">
+              <a class="plan-id" href="#q2">Q2</a>
+              <span class="plan-title"
+                >Invoker commands: should ui-button forward commandfor / command (dead button before Chrome 135)?</span
+              >
+            </li>
+            <li data-status="done" id="q3">
+              <a class="plan-id" href="#q3">Q3</a>
+              <span class="plan-title">Popup: always hoverable (WCAG 1.4.13), or add an opt-out?</span>
+            </li>
+            <li data-status="done" id="q4">
+              <a class="plan-id" href="#q4">Q4</a>
+              <span class="plan-title">Emoji names: Fomantic's 3,808 shortcodes, or CLDR / emojibase (dev-only)?</span>
+            </li>
+            <li data-status="done" id="q5">
+              <a class="plan-id" href="#q5">Q5</a>
+              <span class="plan-title"
+                >Label: a plain ui-label inside ui-red paints red: reset like statistic / menu?</span
+              >
+            </li>
+            <li data-status="done" id="q6">
+              <a class="plan-id" href="#q6">Q6</a>
+              <span class="plan-title"
+                >Sidebar / flyout width takes words (very thin ... very wide): keep, or columns only?</span
+              >
+            </li>
+            <li data-status="done" id="q7">
+              <a class="plan-id" href="#q7">Q7</a>
+              <span class="plan-title">Container: add per-breakpoint public scrolling-height tokens?</span>
+            </li>
+            <li data-status="done" id="q8">
+              <a class="plan-id" href="#q8">Q8</a>
+              <span class="plan-title">List: make first / last item padding tokens private, like step / menu?</span>
+            </li>
+          </ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="overview">3. Overview</h2></ui-sticky>
+          <p>
+            Source: the handoff,
+            <a
+              href="../../../../../../../../outstanding/ui-component-build.md"
+              target="src-outstanding-ui-component-build-md"
+              ><code>/Users/owen/www/spell-app/outstanding/ui-component-build.md</code></a
+            >, written by ui-1f when it paused (2026-09-30).
+          </p>
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="o1">3.1 Where it stands</h3></ui-sticky>
+            <ul>
+              <li>
+                All 53 planned families built: vocabulary, CSS port, native fallback, element / CSS / fallback tests
+                (axe on every example), class-grammar + element examples, docs page (60 site pages).
+              </li>
+              <li>
+                Phases A, B, C done; Phase D (site, hardening, release) partly: kitchen sink, cross-browser unit runs,
+                CHANGELOG, publish dry run left (<a href="#p5">P5</a>).
+              </li>
+              <li>
+                Sizes (min + gzip): <code>core</code> 14.5 kB, <code>forms</code> 7.3 kB, lazy runtime 31.0 kB (budget
+                &lt; 50), family own code 7.3 kB average (budget now 8, <a href="#d3">D3</a>).
+              </li>
+              <li>Visual tests built: Mac baselines for 3 browsers; Linux none (<a href="#c1">C1</a>).</li>
+              <li>
+                Per-family truth:
+                <a href="../../../ui/docs/status.md" target="src-packages-ui-docs-status-md"
+                  ><code>packages/ui/docs/status.md</code></a
+                >. Design:
+                <a href="../../../ui/docs/plan.md" target="src-packages-ui-docs-plan-md"
+                  ><code>packages/ui/docs/plan.md</code></a
+                >.
+              </li>
+              <li>
+                Monorepo move since: <code>$/ui/...</code> aliases, <code>@spell-app/*</code> names, hoisted
+                <code>node_modules</code>, fork is a workspace. The handoff's path breakages (§1.3) are already fixed;
+                <a href="#p1">P1</a> proves the rest.
+              </li>
+            </ul>
+          </section>
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="o2">3.2 How work runs</h3></ui-sticky>
+            <ul>
+              <li>
+                Orchestrator (this session) plans, briefs agents, verifies, integrates, stages, asks. Agents build.
+              </li>
+              <li>Cap 5 agents counting sub-agents (<a href="#d4">D4</a>).</li>
+              <li>
+                Brief template: read <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> +
+                docs; a template family to copy; Fomantic source in
+                <a href="../../../ui/reference/Fomantic-UI/" target="src-packages-ui-reference-fomantic-ui"
+                  ><code>packages/ui/reference/Fomantic-UI/</code></a
+                >; exact file set; do NOT spawn sub-agents, stage or commit; report what, tests, every deviation, shared
+                files touched, suspected bugs.
+              </li>
+              <li>
+                Shared-tree protocol: each agent touches its folders only, verifies only its paths, never runs
+                <code>yarn review</code> / <code>build</code> / <code>measure</code> / <code>format</code> (shared
+                outputs).
+              </li>
+              <li>
+                Integration: <code>yarn review</code> -&gt; build / vendor / measure / smoke / report x2 / test:hmr /
+                site:build -&gt; <code>yarn test:visual</code> -&gt; status.md -&gt; stage -&gt; ask (<a href="#d2"
+                  >D2</a
+                >).
+              </li>
+            </ul>
+          </section>
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="o3">3.3 Icon packs</h3></ui-sticky>
+            <ul>
+              <li>
+                Icons are SVG files in packs: a folder of SVGs + a generated <code>pack.js</code> index (file, size,
+                aliases). Built-in: <code>fa7-free</code> (default), <code>fa7-brands</code>, <code>fomantic</code>.
+              </li>
+              <li>
+                <code>UI.icons</code> (runtime, page-wide): <code>use()</code>, <code>reset()</code>,
+                <code>resolve()</code>, <code>get()</code>, <code>peek()</code>, <code>register()</code>;
+                <code>&lt;ui-icon-set src&gt;</code> from HTML. Design:
+                <a href="../../../ui/docs/icons.md" target="src-packages-ui-docs-icons-md"
+                  ><code>packages/ui/docs/icons.md</code></a
+                >.
+              </li>
+              <li>
+                Contract: <code>get()</code> never rejects -- a missing icon draws nothing. Broken today (<a href="#i1"
+                  >I1</a
+                >), fixed in <a href="#p2">P2</a>.
+              </li>
+              <li>
+                Single-file (IIFE) pages:
+                <a href="../../scripts/bundle-spell-ui.js" target="src-packages-docs-scripts-bundle-spell-ui-js"
+                  ><code>packages/docs/scripts/bundle-spell-ui.js</code></a
+                >
+                calls <code>reset()</code> + <code>register()</code> for the icons it bundles, so nothing is fetched.
+              </li>
+            </ul>
+          </section>
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="o4">3.4 Open bugs by area</h3></ui-sticky>
+            <p>
+              <a href="../../../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"><code>SUSPECTED-BUGS.md</code></a
+              >, <code>## ui</code>: what <a href="#p3">P3</a> works through, one agent per area.
+            </p>
+            <ul>
+              <li>
+                Behaviour (5): toast countdown on CI, effect errors in <code>mount()</code>, read-only radios move with
+                arrows, search's untracked reads, search parts.
+              </li>
+              <li>Accessibility (1): breadcrumb example without <code>aria-label</code>.</li>
+              <li>
+                Styling (~20): calendar width, dropdown strip + open direction, class-grammar images, card links, items
+                / card / grid containers, list media, table stacking, grid examples, tooltips,
+                <code>&lt;ui-segments inverted&gt;</code>, label colour, dimmer, menu / popup / feed / comment tokens.
+              </li>
+              <li>
+                Types / docs (6): emoji text + token, form tokens, input label text, a message example, Solid
+                <code>on:</code> snippets on the docs site.
+              </li>
+            </ul>
+          </section>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="caveats">4. Caveats</h2></ui-sticky>
+          <ol class="plan-items" data-kind="caveat">
+            <li data-status="open" id="c1">
+              <a class="plan-id" href="#c1">C1</a>
+              <span class="plan-title"
+                >Docker Desktop 4.42.1 crashes on macOS 26.6: no linux baselines, Visual stays 🚧 local</span
+              >
+            </li>
+            <li data-status="open" id="c2">
+              <a class="plan-id" href="#c2">C2</a>
+              <span class="plan-title"
+                >Main checkout has an unstaged packages/ui/.vscode/settings.json change: not ours, untouched</span
+              >
+            </li>
+            <li data-status="open" id="c3">
+              <a class="plan-id" href="#c3">C3</a>
+              <span class="plan-title"
+                >input/types visual: the empty date field is masked (WebKit draws its placeholder from the system
+                clock)</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Playwright's clock only freezes JS <code>Date</code>. Mask hook:
+                    <a
+                      href="../../../ui/src/components/input/examples/elements/types.visual.ts"
+                      target="src-packages-ui-src-components-input-examples-elements-types-visual-ts"
+                      ><code>packages/ui/src/components/input/examples/elements/types.visual.ts</code></a
+                    >; 6 baselines refreshed (3 browsers x light / dark), only the mask changed.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+          </ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="issues">5. Issues</h2></ui-sticky>
+          <ol class="plan-items" data-kind="issue">
+            <li data-status="open" id="i1">
+              <a class="plan-id" href="#i1">I1</a>
+              <span class="plan-title">UI.icons.get() can reject, though documented never to</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <code>BuiltInPacks.url()</code> throws <code>Invalid URL</code> when
+                    <code>BuiltInPacks.base</code> is empty (IIFE bundle), inside <code>IconPacks.add()</code>, reached
+                    from <code>ready</code>, so <code>get()</code> rejects. <code>IconGlyph.load()</code> is
+                    fire-and-forget: every icon becomes an unhandled page error. Fix in <a href="#p2">P2</a>.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="done" id="i2">
+              <a class="plan-id" href="#i2">I2</a>
+              <span class="plan-title"
+                >yarn test:hmr broken since the move: $/ui alias not resolved from ?inline sheets</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Vite 8's <code>resolve.tsconfigPaths</code> only resolves aliases for TS / JS importers;
+                    <code>solidElementHot()</code> injects <code>$/ui/elements/HotDefinitions</code> into the
+                    <code>.css?inline</code> modules. Fixed:
+                    <a href="../../../ui/vite.config.ts" target="src-packages-ui-vite-config-ts"
+                      ><code>vite.config.ts</code></a
+                    >
+                    injects it by file path. 8/8 pass.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="done" id="i3">
+              <a class="plan-id" href="#i3">I3</a>
+              <span class="plan-title"
+                >yarn site:build broken since the move: Astro's prerender gets express's cookie 0.7.1</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Astro 7 inlines its runtime into <code>site/dist/.prerender/</code> and leaves
+                    <code>cookie</code> external, which then resolves to the root's hoisted 0.7.1. Fixed:
+                    <code>environments.prerender.resolve.noExternal</code> bundles it. 60 pages. Not caught by CI: CI
+                    doesn't run the site build (<a href="#t6">T6</a>).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+          </ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="todos">6. Todos</h2></ui-sticky>
+          <p class="meta">For later: not caveats, not issues.</p>
+          <ol class="plan-items" data-kind="todo">
+            <li data-status="open" id="t1">
+              <a class="plan-id" href="#t1">T1</a>
+              <span class="plan-title">Linux visual baselines, once Docker Desktop works</span>
+            </li>
+            <li data-status="open" id="t2">
+              <a class="plan-id" href="#t2">T2</a>
+              <span class="plan-title">CLI icons:pack command (a cli session owns packages/cli)</span>
+            </li>
+            <li data-status="open" id="t3">
+              <a class="plan-id" href="#t3">T3</a>
+              <span class="plan-title"
+                >File the fork's upstream PRs (packages/solid-element/UPSTREAM.md): Owen's call</span
+              >
+            </li>
+            <li data-status="open" id="t4">
+              <a class="plan-id" href="#t4">T4</a>
+              <span class="plan-title"
+                >Later on purpose: translated tag sets, SSR hydration, per-family Deferred items</span
+              >
+            </li>
+            <li data-status="open" id="t5">
+              <a class="plan-id" href="#t5">T5</a>
+              <span class="plan-title"
+                >Label colour inside coloured ancestors: re-check after matching Fomantic (Owen asked for an open
+                item)</span
+              >
+            </li>
+            <li data-status="open" id="t6">
+              <a class="plan-id" href="#t6">T6</a>
+              <span class="plan-title"
+                >Root CI runs neither ui's test:hmr nor site:build, so both broke silently in the move</span
+              >
+            </li>
+          </ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="decisions">7. Decisions</h2></ui-sticky>
+          <p class="meta">What was decided, and why. Settled: don't re-argue without new facts.</p>
+          <ol class="plan-items" data-kind="decision">
+            <li data-status="open" id="d1">
+              <a class="plan-id" href="#d1">D1</a> <span class="plan-title">Work in worktree ui-component-creation</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>Parallel sessions (cli-*, docs) share the main checkout. Owen, 2026-10-01.</p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d2">
+              <a class="plan-id" href="#d2">D2</a>
+              <span class="plan-title">Stage, then ask before every commit; stop after each phase</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content><p>Standing agreement from the handoff, §1.4.</p></ui-content></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d3">
+              <a class="plan-id" href="#d3">D3</a>
+              <span class="plan-title">Size budget raised to 8 kB per family (own code, gzip)</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Average is 7.3 kB vs the plan's 4 kB. Split: classes ~3.1, CSS ~2.4, fallback ~1.7, vocabulary ~1.4
+                    kB. Owen chose raise over trim, 2026-10-01.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d4">
+              <a class="plan-id" href="#d4">D4</a> <span class="plan-title">Agent cap 5, counting sub-agents</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Owen, 2026-10-01. Every brief says <code>do NOT spawn sub-agents</code>; after a
+                    <code>TaskStop</code>, check <code>ListAgents</code>.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d5">
+              <a class="plan-id" href="#d5">D5</a>
+              <span class="plan-title">This session owns the icon follow-ups (handoff §7), not ui-78</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Owen, 2026-10-01. ui-78's plan read:
+                    <code>~/.claude/plans/why-would-switching-to-dapper-sonnet.md</code>. ui-78 was no longer reachable
+                    when messaged.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d6">
+              <a class="plan-id" href="#d6">D6</a> <span class="plan-title">Out of scope: Linux visual baselines</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>Owen left Linux Baselines out of this plan. See <a href="#c1">C1</a>.</p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d7">
+              <a class="plan-id" href="#d7">D7</a> <span class="plan-title">Modal: closedby AND closable (Q1)</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <code>closedby="any | closerequest | none"</code> stays. <code>closable="false"</code> keeps
+                    Fomantic's meaning: no icon AND <code>closedby="none"</code>; an explicit
+                    <code>closedby</code> overrides the dismissal part.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d8">
+              <a class="plan-id" href="#d8">D8</a>
+              <span class="plan-title">ui-button forwards commandfor / command, with a support flag (Q2)</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Forward both to the inner <code>&lt;button&gt;</code>; add
+                    <code>UI.browser.supports.invokers</code>; where unsupported, a small JS fallback runs the built-in
+                    commands (<code>--show</code>, <code>--close</code>, <code>--toggle</code> ...) on the target.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d9">
+              <a class="plan-id" href="#d9">D9</a> <span class="plan-title">Popup: add a hover opt-out (Q3)</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Default stays hoverable (WCAG 1.4.13); <code>hoverable="false"</code> closes as the pointer leaves
+                    the trigger, as Fomantic. Docs say why the default is on.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d10">
+              <a class="plan-id" href="#d10">D10</a>
+              <span class="plan-title">Emoji names from CLDR / emojibase, dev-only dependency (Q4)</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Owen approved the dev-only dependency. Regenerate the names data at build time; nothing new ships at
+                    runtime. Verify the ~44 emoji-presentation ranges against Unicode data.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d11">
+              <a class="plan-id" href="#d11">D11</a> <span class="plan-title">Label colour: match Fomantic (Q5)</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    A plain label inside a coloured ancestor does what Fomantic does. Owen: log it as an open item (T5).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d12">
+              <a class="plan-id" href="#d12">D12</a>
+              <span class="plan-title">Sidebar and flyout width: words AND columns on both (Q6)</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <code>very thin</code> ... <code>very wide</code> plus columns / fractions / % on both; AGENTS.md's
+                    width rule gets the exception.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d13">
+              <a class="plan-id" href="#d13">D13</a>
+              <span class="plan-title">Container: per-breakpoint public scrolling-height tokens (Q7)</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>Add public tokens per breakpoint, read through private aliases.</p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d14">
+              <a class="plan-id" href="#d14">D14</a>
+              <span class="plan-title">List: padding tokens stay public (Q8)</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title><ui-content><p>Owen didn't pick the change.</p></ui-content></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d15">
+              <a class="plan-id" href="#d15">D15</a>
+              <span class="plan-title"
+                >Overnight: run every phase, commit on branch worktree-ui-component-creation, never touch main</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Owen, 2026-10-01, going to bed. Replaces 'ask before every commit' (D2) for this branch tonight.
+                    Anything that needs Owen becomes a question in the doc and is skipped, not guessed.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+          </ol>
+        </section>
+
+        <section class="s2" id="phases-section">
+          <ui-sticky class="spell-h2"><h2 id="phases">8. Phases</h2></ui-sticky>
+          <p class="meta">One section per phase: goal, decisions, files, how to verify.</p>
+          <section data-status="done" data-phase="1" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p1">
+                <ui-icon name="circle check" color="green"></ui-icon> P1 · Re-establish Baseline
+              </h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> every handoff §1.5 check passes in the monorepo; reference/Fomantic-UI re-cloned; status.md
+                says resumed
+              </li>
+              <li><b>Files:</b> only what the checks force; packages/ui/docs/status.md; PAPERCUTS.md</li>
+              <li>
+                <b>Verify:</b> yarn review; build, vendor, measure (no CHECK), smoke 8/8, report x2 no diff, test:hmr,
+                site:build (60 pages); test:visual --os local (chrome, then all)
+              </li>
+            </ul>
+          </section>
+          <section data-status="todo" data-phase="2" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p2"><ui-icon name="circle outline" color="grey"></ui-icon> P2 · Icon Follow-ups</h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> UI.icons.get() never rejects; IconGlyph.load() catches; pack builder importable by
+                packages/cli; confirm docs single-file bundle still builds
+              </li>
+              <li>
+                <b>Files:</b> src/runtime/IconPacks.ts, src/icons/BuiltInPacks.ts, src/elements/IconGlyph.ts,
+                src/runtime/IconPacks.test.ts, docs/icons.md, maybe tools/IconPackBuilder.ts + package.json exports
+              </li>
+              <li>
+                <b>Verify:</b> new test (BuiltInPacks.base = empty) fails before, passes after; yarn review;
+                bundle-spell-ui.js builds
+              </li>
+            </ul>
+          </section>
+          <section data-status="todo" data-phase="3" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p3"><ui-icon name="circle outline" color="grey"></ui-icon> P3 · Bug Sweep</h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li><b>Goal:</b> every SUSPECTED-BUGS.md ## ui entry (~33) fixed, disproven or deferred with reason</li>
+              <li><b>Files:</b> families each entry names; visual baselines for every CSS change (same change)</li>
+              <li>
+                <b>Verify:</b> failing-first test per real bug; yarn review; test:visual --os local all browsers, every
+                diff reviewed, then --update
+              </li>
+            </ul>
+          </section>
+          <section data-status="todo" data-phase="4" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p4"><ui-icon name="circle outline" color="grey"></ui-icon> P4 · Owen's Decisions</h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li><b>Goal:</b> ask handoff §6's 8 calls at phase start, record each as a decision, apply</li>
+              <li>
+                <b>Files:</b> modal, button, popup, emoji generator, label, sidebar / flyout, container, list;
+                docs/grammar.md; status.md To review
+              </li>
+              <li><b>Verify:</b> yarn review; test:visual for rendering changes, baselines updated</li>
+            </ul>
+          </section>
+          <section data-status="todo" data-phase="5" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p5"><ui-icon name="circle outline" color="grey"></ui-icon> P5 · Release Chores</h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> kitchen sink, yarn test:all green, CHANGELOG.md, npm publish --dry-run, 8 kB budget in
+                plan.md / status.md
+              </li>
+              <li><b>Files:</b> kitchen-sink page; packages/ui/CHANGELOG.md; docs/plan.md, docs/status.md</li>
+              <li>
+                <b>Verify:</b> each runs clean; tarball matches exports; status.md Phase D rows done (visual: local
+                only)
+              </li>
+            </ul>
+          </section>
+          <section data-status="todo" data-phase="6" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p6"><ui-icon name="circle outline" color="grey"></ui-icon> P6 · Doc Review</h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> prune plan doc; durable page packages/docs/ui-component-creation.html; status.md final;
+                update or retire the handoff
+              </li>
+              <li><b>Files:</b> packages/docs/; packages/ui/docs/status.md; outstanding/ui-component-build.md</li>
+              <li><b>Verify:</b> yarn plan-doc check; yarn docs:index</li>
+            </ul>
+          </section>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="log">9. Log</h2></ui-sticky>
+          <p class="meta">Plan changes, oldest first, local time.</p>
+          <ul class="plan-log">
+            <li><time datetime="2026-10-01T00:42-04:00">2026-10-01 00:42</time> plan doc created</li>
+            <li><time datetime="2026-10-01T00:42-04:00">2026-10-01 00:42</time> P1 added: Re-establish Baseline</li>
+            <li><time datetime="2026-10-01T00:42-04:00">2026-10-01 00:42</time> P2 added: Icon Follow-ups</li>
+            <li><time datetime="2026-10-01T00:42-04:00">2026-10-01 00:42</time> P3 added: Bug Sweep</li>
+            <li><time datetime="2026-10-01T00:42-04:00">2026-10-01 00:42</time> P4 added: Owen's Decisions</li>
+            <li><time datetime="2026-10-01T00:42-04:00">2026-10-01 00:42</time> P5 added: Release Chores</li>
+            <li><time datetime="2026-10-01T00:42-04:00">2026-10-01 00:42</time> P6 added: Doc Review</li>
+            <li><time datetime="2026-10-01T00:44-04:00">2026-10-01 00:44</time> P1 active</li>
+            <li>
+              <time datetime="2026-10-01T00:45-04:00">2026-10-01 00:45</time> P1: yarn review green (ssr 32, browser
+              3,553 + 1 todo, fork 145). Handoff's ~3,634 browser count predates the icon-packs merge (e98c7114 deleted
+              Icons.test.ts 46 + Icons.exact.test.ts 11, dropped variant): not a regression. Fomantic 2.9.4 re-cloned.
+            </li>
+            <li>
+              <time datetime="2026-10-01T00:51-04:00">2026-10-01 00:51</time> Q1 closed: Modal: closedby = any |
+              closerequest | none (closable = icon only): keep?
+            </li>
+            <li>
+              <time datetime="2026-10-01T00:51-04:00">2026-10-01 00:51</time> Q2 closed: Invoker commands: should
+              ui-button forward commandfor / command (dead button before Chrome 135)?
+            </li>
+            <li>
+              <time datetime="2026-10-01T00:51-04:00">2026-10-01 00:51</time> Q3 closed: Popup: always hoverable (WCAG
+              1.4.13), or add an opt-out?
+            </li>
+            <li>
+              <time datetime="2026-10-01T00:51-04:00">2026-10-01 00:51</time> Q4 closed: Emoji names: Fomantic's 3,808
+              shortcodes, or CLDR / emojibase (dev-only)?
+            </li>
+            <li>
+              <time datetime="2026-10-01T00:51-04:00">2026-10-01 00:51</time> Q5 closed: Label: a plain ui-label inside
+              ui-red paints red: reset like statistic / menu?
+            </li>
+            <li>
+              <time datetime="2026-10-01T00:52-04:00">2026-10-01 00:52</time> Q6 closed: Sidebar / flyout width takes
+              words (very thin ... very wide): keep, or columns only?
+            </li>
+            <li>
+              <time datetime="2026-10-01T00:52-04:00">2026-10-01 00:52</time> Q7 closed: Container: add per-breakpoint
+              public scrolling-height tokens?
+            </li>
+            <li>
+              <time datetime="2026-10-01T00:52-04:00">2026-10-01 00:52</time> Q8 closed: List: make first / last item
+              padding tokens private, like step / menu?
+            </li>
+            <li>
+              <time datetime="2026-10-01T00:53-04:00">2026-10-01 00:53</time> I2 closed: yarn test:hmr broken since the
+              move: $/ui alias not resolved from ?inline sheets
+            </li>
+            <li>
+              <time datetime="2026-10-01T00:53-04:00">2026-10-01 00:53</time> I3 closed: yarn site:build broken since
+              the move: Astro's prerender gets express's cookie 0.7.1
+            </li>
+            <li>
+              <time datetime="2026-10-01T00:57-04:00">2026-10-01 00:57</time> P1 done: review, build, vendor, measure (0
+              CHECK), smoke 8/8, report x2 stable, test:hmr 8/8, site:build 60 pages, visual local 561/561 after the
+              date mask.
+            </li>
+            <li><time datetime="2026-10-01T00:57-04:00">2026-10-01 00:57</time> P1 done</li>
+          </ul>
+        </section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../_assets/spell-ui.js"></script>
+  </body>
+</html>

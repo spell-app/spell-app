@@ -811,6 +811,16 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   `fa7-free` at build time and `UI.icons.register()`s them, then `reset()`s the packs (a page on `file://` can't load
   one). · docs/ui
 - 2026-09-30 · `yarn smoke` in `ui` dies with `no vendor/importmap.json` on a fresh checkout. · `yarn vendor` first. · ui
+- 2026-10-01 · `yarn test:hmr` fails (8 cancelled):  `Failed to resolve import "$/ui/elements/HotDefinitions" from
+  "src/components/button/button.css?inline"`.  Vite 8's `resolve.tsconfigPaths` only resolves aliases for TS / JS
+  importers, and `solidElementHot()` injects that import into the `?inline` sheets too. · `vite.config.ts` injects
+  `HotDefinitions` by file path (`${SRC}/elements/HotDefinitions.ts`).  The site's config has an explicit alias table,
+  so it was fine. · ui
+- 2026-10-01 · `yarn site:build` dies at "Rearranging server assets":  `Named export 'parseCookie' not found. The
+  requested module 'cookie' is a CommonJS module`.  Astro 7 inlines its runtime into `site/dist/.prerender/` but leaves
+  `cookie` external, and from `dist/` that resolves to the root's hoisted `cookie@0.7.1` (express's), not Astro's
+  nested 2.0.1.  `ssr.noExternal` doesn't reach it:  Astro 7 prerenders in its own Vite environment. ·
+  `environments.prerender.resolve.noExternal: [..., "cookie"]` in `site/astro.config.mjs`. · ui
 
 ## cli
 
