@@ -1,6 +1,8 @@
 {
-  // Only for the experiments' `.ts` files (`yarn tsx <topic>/experiments/<file>`):  the base gives them the `#`
-  // aliases, e.g. `#spell/test`.
+  // - `yarn ts`:  checks the vitest config and parses the scripts (`allowJs`, no `checkJs`).
+  // - The experiments are NOT type-checked (they never were):  they're measurement scripts, run through `tsx`, and
+  //   `precedence/experiments/typescript-check.ts` is MEANT to report errors.  `tsx` still reads `paths` from here,
+  //   so they get the root's `#` aliases (e.g. `#spell/test`).
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "allowJs": true,
@@ -16,6 +18,5 @@
     "strict": true,
     "types": ["node"]
   },
-  "include": ["*/experiments", "../../types"],
-  "exclude": ["precedence/experiments/typescript-check.ts"]
+  "include": ["scripts", "vitest.config.ts"]
 }

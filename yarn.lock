@@ -2551,6 +2551,8 @@ __metadata:
     esbuild: "npm:^0.28.2"
     linkedom: "npm:^0.18.13"
     oxfmt: "npm:^0.71.0"
+    oxlint: "npm:^1.86.0"
+    oxlint-tsgolint: "npm:^7.0.2003"
     playwright: "npm:^1.63.0"
     tsx: "npm:4.20.3"
     typescript: "npm:^7.0.2"
