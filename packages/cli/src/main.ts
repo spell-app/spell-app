@@ -162,6 +162,15 @@ program
   .option("--in <folder>", "make it in this folder -- default @user's, projects/user/")
   .action((name: string, _options, command) => run(CLI.newCommand, [name], command.optsWithGlobals()))
 
+program
+  .command("icons")
+  .description("find @spell-app/ui icons by name, alias or keyword -- --open shows them in a browser")
+  .argument("[query...]", "words to look for, e.g. bell -- none:  every icon")
+  .option("--pack <id>", "only this pack:  fa7-free, fa7-brands or fomantic")
+  .option("--json", "print the icons found as JSON")
+  .option("--open", "show them as pictures in a browser, until Ctrl-C")
+  .action((query: string[], _options, command) => run(CLI.iconsCommand, query, command.optsWithGlobals()))
+
 // our own `help`, not commander's:  an unknown command is a mistake, not a reason to print the general help
 program.helpCommand(false)
 program

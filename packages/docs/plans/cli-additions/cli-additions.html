@@ -52,8 +52,8 @@
             <li data-status="done" data-phase="6">
               <ui-icon name="circle check" color="green"></ui-icon> <a href="#p6">P6 · Target Prompt</a>
             </li>
-            <li data-status="todo" data-phase="7">
-              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p7">P7 · Server &amp; Icons</a>
+            <li data-status="done" data-phase="7">
+              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p7">P7 · Server &amp; Icons</a>
             </li>
             <li data-status="todo" data-phase="8">
               <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p8">P8 · Run In Browser</a>
@@ -71,7 +71,7 @@
           <ui-sticky class="spell-h2"><h2 id="questions">2. Questions</h2></ui-sticky>
           <p class="meta">Waiting on the user. Each is also asked in Claude Code.</p>
           <ol class="plan-items" data-kind="question">
-            <li data-status="open" id="q1">
+            <li data-status="done" id="q1">
               <a class="plan-id" href="#q1">Q1</a>
               <span class="plan-title"
                 >spell serve: the app's dev server (vite + express, hot reload) or a built app (vite build, express
@@ -499,6 +499,36 @@
                 ></ui-accordion
               >
             </li>
+            <li data-status="open" id="d21">
+              <a class="plan-id" href="#d21">D21</a>
+              <span class="plan-title">spell serve runs the dev server: vite + express, as the app's yarn start</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Owen, 2026-10-01: editor UI with hot reload, plus <code>/api</code> for saving files.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d22">
+              <a class="plan-id" href="#d22">D22</a>
+              <span class="plan-title">P7, P8, P10 in one go, commit per phase; then report (P9 docs after)</span>
+            </li>
+            <li data-status="open" id="d23">
+              <a class="plan-id" href="#d23">D23</a>
+              <span class="plan-title"
+                >icons: keywords match only at the start of a word; names and aliases anywhere</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Otherwise <code>bell</code> found <code>brain</code> by its keyword <code>cerebellum</code>.
+                    <code>dumbbell</code> still matches, by name.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
           </ol>
         </section>
 
@@ -691,11 +721,9 @@
               </li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="7" class="s3">
+          <section data-status="done" data-phase="7" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p7">
-                <ui-icon name="circle outline" color="grey"></ui-icon> P7 · Server &amp; Icons
-              </h3></ui-sticky
+              ><h3 id="p7"><ui-icon name="circle check" color="green"></ui-icon> P7 · Server &amp; Icons</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li>
@@ -815,6 +843,16 @@
               else the autocompleting target prompt, last 3 picks first
             </li>
             <li><time datetime="2026-10-01T09:05-04:00">2026-10-01 09:05</time> P6 done</li>
+            <li>
+              <time datetime="2026-10-01T09:24-04:00">2026-10-01 09:24</time> Q1 closed: spell serve: the app's dev
+              server (vite + express, hot reload) or a built app (vite build, express only)?
+            </li>
+            <li><time datetime="2026-10-01T09:24-04:00">2026-10-01 09:24</time> P7 active</li>
+            <li>
+              <time datetime="2026-10-01T09:27-04:00">2026-10-01 09:27</time> P7 done: serve.ts (localhost, 404 outside
+              routes); spell icons search + --open gallery (3760 icons, checked by screenshot)
+            </li>
+            <li><time datetime="2026-10-01T09:27-04:00">2026-10-01 09:27</time> P7 done</li>
           </ul>
         </section>
       </main>

@@ -151,6 +151,18 @@ export type ExplainOptions = GlobalOptions & {
 }
 
 /**
+ * `spell icons` flags.
+ * - `pack`:  only this pack, e.g. `fa7-brands`
+ * - `json`:  print the icons found as JSON
+ * - `open`:  show them in a browser, as pictures
+ */
+export type IconsOptions = GlobalOptions & {
+  pack?: string
+  json?: boolean
+  open?: boolean
+}
+
+/**
  * `spell new` flags.
  * - `in`:  make the project in this folder -- default `@user`'s, `projects/user/`
  */
