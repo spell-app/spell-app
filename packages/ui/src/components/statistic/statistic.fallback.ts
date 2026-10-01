@@ -1,4 +1,4 @@
-import { NativeFallback, PART_STATIC_CLASS_PREFIX, proto } from "$/core"
+import { NativeFallback, PART_STATIC_CLASS_PREFIX, proto } from "$/ui/core"
 
 import { statisticVocabulary } from "./statistic.vocabulary.en"
 

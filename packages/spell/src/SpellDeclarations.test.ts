@@ -1,9 +1,9 @@
 import semver from "semver"
 import { describe, test, expect } from "vitest"
 
-import { P } from "#parser"
-import { SP } from "#spell"
-import { loadFixtureProject, parseSpellProject, summarize, type SpellSourceFile } from "#spell/test"
+import { P } from "$/parser"
+import { SP } from "$/spell"
+import { loadFixtureProject, parseSpellProject, summarize, type SpellSourceFile } from "$/spell/test"
 
 /**
  * `files` compiled as a project's `<Project>.compiled.js` would be:  the `/*! SPELL: PROJECT` header, then each

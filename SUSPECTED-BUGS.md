@@ -60,12 +60,12 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 - [V] `src/rules/lists.ts` `list_range_iteration`: only iteration rule that doesn't pass `mapItTo` --
   `it` not aliased inside `for each number from 1 to 10:` bodies.
 
-- [V] `spell-core/src/ui.ts`: `notify` / `alert` / `confirm` / `prompt` statements (`rules/UI.ts`) compile to `spellCore.notify()` etc,
+- [V] `core/src/ui.ts`: `notify` / `alert` / `confirm` / `prompt` statements (`rules/UI.ts`) compile to `spellCore.notify()` etc,
   but no such methods exist anywhere in `spellCore`.
 
-- [V] `spell-core/src/SpellEvent.ts` instance `trigger`: calls `SpellEvent.trigger(this, event, props)` without `return`; typed `unknown[]`, results dropped.
+- [V] `core/src/SpellEvent.ts` instance `trigger`: calls `SpellEvent.trigger(this, event, props)` without `return`; typed `unknown[]`, results dropped.
 
-- [V] `spell-core/src/classes/List.tsx` `_getZeroIndex`: `if (oneIndex === 0) return 1 // ???` -- returns second item.
+- [V] `core/src/classes/List.tsx` `_getZeroIndex`: `if (oneIndex === 0) return 1 // ???` -- returns second item.
 
 - `app/ui/ConsoleViewer.tsx` `getDerivedStateFromProps`: says "Clear `state.error` if ...???" but `return oldState || {}` never clears it,
   unlike `MatchViewer` / `ASTViewer`.
@@ -81,7 +81,7 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   `Cannot read properties of undefined (reading 'value')`, as `rhs` is `undefined`.  Crashes a full parse too.
   Probably wants a parse error instead of registering the rule -- see the `FIXME` in `computeBits()`.
 
-- `spell-core/src/classes/App.tsx` `App.show()`:  calls `createRoot(element)` on the SAME `#REACT_APP_ROOT_ID` element every
+- `core/src/classes/App.tsx` `App.show()`:  calls `createRoot(element)` on the SAME `#REACT_APP_ROOT_ID` element every
   time a compiled app runs, e.g. each compile in the editor -- React warns "You are calling ReactDOMClient.createRoot()
   on a container that has already been passed to createRoot() before".  Probably wants to reuse (or unmount) the
   `REACT_ROOT` it already stashed on the element.
@@ -187,7 +187,7 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 - `src/rules/UI.ts` `end_print_group` test: input `` `end print group"` `` has the same stray trailing `"`. Same as above.
 
-- `spell-core/src/collection-other.test.ts` `includes` test "returns false if one thing present, one not" expects
+- `core/src/collection-other.test.ts` `includes` test "returns false if one thing present, one not" expects
   `true` -- both values are in `{ a: 1, b: 3 }`.  Probably meant to check `1, 2`.
 
 - `lsp/ScopeExplorer.ts` property names:  a type's property members come out as their JS names -- `short_suit`,
@@ -225,9 +225,9 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   to match its likely original intent.  No behavior change since nothing calls the rule either way
   (found 2026-09-20 converting `core.ts` to rule classes).
 
-- `spell-core/src/core.ts`: `repeat()` has no compiling rule; `get()` / `set()` are stubs with no callers.
+- `core/src/core.ts`: `repeat()` has no compiling rule; `get()` / `set()` are stubs with no callers.
 
-- `spell-core/src/string.ts` `doubleQuote()`: no callers.
+- `core/src/string.ts` `doubleQuote()`: no callers.
 
 - `server/response-utils.ts`: `sendText`, `sendJavascript`, `sendTextFile`, `sendJSFile`, `sendJSONFile`, `convertNumericId`, `getIdParams` -- no callers.
 
@@ -239,7 +239,7 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 ### 5. Structure / AGENTS.md conformance (your call)
 
-- `spell-core/src/index.ts` header claims `assert` is global for compiled spell; only `global.spellCore` assignment found.
+- `core/src/index.ts` header claims `assert` is global for compiled spell; only `global.spellCore` assignment found.
 
 - `util/DOM.ts` uses ambient `global`; `abortableFetch.ts` imports `global` polyfill.
 

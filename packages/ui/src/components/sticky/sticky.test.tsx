@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, onTestFinished } from "vitest"
 
-import { UI } from "$/runtime"
-import type { StickyDetail } from "$/components/components.types"
-import { expectAccessible } from "$test/a11y"
+import { UI } from "$/ui/runtime"
+import type { StickyDetail } from "$/ui/components/components.types"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
 
-import "$/components/sticky"
+import "$/ui/components/sticky"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/sticky/examples/elements/*.html", {

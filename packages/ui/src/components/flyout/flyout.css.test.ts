@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest"
 
-import { colorsCSS, foundationCSS } from "$/styles"
+import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$test/fixture"
-import { Sheets } from "$test/sheets"
+import { Fixture } from "$/ui/test/fixture"
+import { Sheets } from "$/ui/test/sheets"
 
 import { flyoutVocabulary } from "./flyout.vocabulary.en"
 
-import buttonCSS from "$/components/button/button.css?inline"
+import buttonCSS from "$/ui/components/button/button.css?inline"
 import flyoutCSS from "./flyout.css?inline"
 import flyoutRaw from "./flyout.css?raw"
 

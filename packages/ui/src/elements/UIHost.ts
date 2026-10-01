@@ -1,4 +1,4 @@
-import type { SolidElement } from "@spell/solid-element"
+import type { SolidElement } from "@spell-app/solid-element"
 
 import type { UIElement } from "./UIElement"
 
@@ -9,7 +9,7 @@ import type { UIElement } from "./UIElement"
 const BaseElement = (globalThis.HTMLElement ?? class {}) as typeof HTMLElement
 
 /**
- * Base class of every element's HOST -- the `BaseElement` option `@spell/solid-element` extends.
+ * Base class of every element's HOST -- the `BaseElement` option `@spell-app/solid-element` extends.
  * - The fork owns the platform plumbing:  shadow root (`shadowRootInit`, `delegatesFocus`), `ElementInternals`
  *   (`internals: true`), prop accessors, the upgrade step, lifecycle.  This class keeps what is OURS:  the
  *   `ready` promise, custom states, the controller link and the disabled-click guard.

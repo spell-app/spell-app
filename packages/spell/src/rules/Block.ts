@@ -1,5 +1,5 @@
-import { P } from "#parser"
-import { SP } from "#spell"
+import { P } from "$/parser"
+import { SP } from "$/spell"
 
 /**
  * `Block`s are generally the root entity that we parse in spell -- a top-level construct, e.g. used to

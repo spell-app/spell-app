@@ -1,7 +1,7 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { IconGlyph, proto, UIElement } from "$/core"
+import { IconGlyph, proto, UIElement } from "$/ui/core"
 
 import { dividerVocabulary } from "./divider.vocabulary.en"
 import { DividerFallback } from "./divider.fallback"

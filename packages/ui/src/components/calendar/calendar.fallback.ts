@@ -1,4 +1,4 @@
-import { NativeFallback, proto, type CalendarType } from "$/core"
+import { NativeFallback, proto, type CalendarType } from "$/ui/core"
 
 import { calendarVocabulary } from "./calendar.vocabulary.en"
 

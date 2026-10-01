@@ -2,12 +2,12 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 import { cdp, userEvent } from "vitest/browser"
 
-import { expectAccessible } from "$test/a11y"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
 
-import "$/components/reveal"
+import "$/ui/components/reveal"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/reveal/examples/elements/*.html", {

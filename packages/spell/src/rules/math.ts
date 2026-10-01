@@ -4,10 +4,10 @@
  * - NOTE: this must come after "operators".
  */
 
-import { proto } from "#spell-util"
-import { P } from "#parser"
+import { proto } from "$/util"
+import { P } from "$/parser"
 // Import directly to avoid circular import
-import { SpellParser } from "#spell/SpellParser"
+import { SpellParser } from "$/spell/SpellParser"
 import { SpellExpression, InfixOperatorSuffix } from "./expressions"
 
 /**

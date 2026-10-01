@@ -1,5 +1,5 @@
-import { TextFile } from "#spell-util"
-import { SP } from "#spell"
+import { TextFile } from "$/util"
+import { SP } from "$/spell"
 
 /**
  * JS / JSX file as part of `SpellProject`.

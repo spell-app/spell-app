@@ -4,7 +4,7 @@
  * that converts a family.  See `docs/theming.md` "Component tokens".
  * - Pure text in, text out:  no DOM, no Vite, so the browser test (`test/component-tokens.test.ts`), the codemod
  *   (`yarn tokens:alias`, `scripts/alias-tokens.ts`) and the docs site (`CssTokens.astro`) share it.
- * - Build / test time only:  left out of the `$/styles` barrel, import the leaf file.
+ * - Build / test time only:  left out of the `$/ui/styles` barrel, import the leaf file.
  * - A COMPONENT token is `--ui-<tag>` or `--ui-<tag>-*` for a tag some vocabulary declares (`ui-button` =>
  *   `--ui-button-radius`), minus the foundation's own names (`--ui-text-color` is a token of `tokens.css`, not of
  *   `<ui-text>`).  The longest tag wins:  `--ui-buttons-x` is `buttons`, `--ui-placeholder-line-x` is

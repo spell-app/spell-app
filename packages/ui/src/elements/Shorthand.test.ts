@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { Shorthand } from "$/elements"
+import { Shorthand } from "$/ui/elements"
 
 afterEach(() => {
   vi.restoreAllMocks()

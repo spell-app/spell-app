@@ -1,6 +1,6 @@
 import { Repeat, Show, createEffect, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
-import { onFormStateRestore } from "@spell/solid-element"
+import { onFormStateRestore } from "@spell-app/solid-element"
 
 import {
   Cell,
@@ -12,8 +12,8 @@ import {
   type FieldValue,
   type ValidationResult,
   type ValidationRule
-} from "$/core"
-import { ControlLabels, FormElement } from "$/forms"
+} from "$/ui/core"
+import { ControlLabels, FormElement } from "$/ui/forms"
 
 import { ratingVocabulary } from "./rating.vocabulary.en"
 import { RatingFallback } from "./rating.fallback"

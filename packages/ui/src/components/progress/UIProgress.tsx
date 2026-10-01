@@ -1,7 +1,7 @@
 import { Repeat, Show, createEffect, createMemo, onSettled, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, proto, UI, UIElement, ValueSets, type AttributeName } from "$/core"
+import { Cell, proto, UI, UIElement, ValueSets, type AttributeName } from "$/ui/core"
 
 import { progressVocabulary } from "./progress.vocabulary.en"
 import { ProgressFallback } from "./progress.fallback"

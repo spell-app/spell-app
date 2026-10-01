@@ -1,7 +1,7 @@
 import { createEffect, onSettled, untrack } from "solid-js"
-import { onConnect } from "@spell/solid-element"
+import { onConnect } from "@spell-app/solid-element"
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 import type { ConditionalOwner, OwnerMatch } from "./elements.types"
 import { OwnerContext } from "./OwnerContext"

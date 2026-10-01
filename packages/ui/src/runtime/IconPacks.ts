@@ -1,5 +1,5 @@
-import { Converters } from "$/vocabulary"
-import { BuiltInPacks, DEFAULT_ICON_PACK, ICON_SET_ATTRIBUTES, ICON_SET_TAG, IconName } from "$/icons"
+import { Converters } from "$/ui/vocabulary"
+import { BuiltInPacks, DEFAULT_ICON_PACK, ICON_SET_ATTRIBUTES, ICON_SET_TAG, IconName } from "$/ui/icons"
 
 import type { IconPackOptions, ResolvedIcon } from "./runtime.types"
 import { IconPack } from "./IconPack"

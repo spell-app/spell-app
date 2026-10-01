@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest"
 
-import { Fixture } from "$test/fixture"
-import { expectAccessible } from "$test/a11y"
-import { FallbackStub, type StubHost } from "$/components/fallback.stub"
-import { cardVocabulary } from "$/components/card/card.vocabulary.en"
-import { segmentVocabulary } from "$/components/segment/segment.vocabulary.en"
-import { PartContext } from "$/elements"
+import { Fixture } from "$/ui/test/fixture"
+import { expectAccessible } from "$/ui/test/a11y"
+import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
+import { cardVocabulary } from "$/ui/components/card/card.vocabulary.en"
+import { segmentVocabulary } from "$/ui/components/segment/segment.vocabulary.en"
+import { PartContext } from "$/ui/elements"
 
 import { ContentPartFallback } from "./parts.fallback"
 import { PART_VOCABULARIES } from "./parts.vocabulary.en"

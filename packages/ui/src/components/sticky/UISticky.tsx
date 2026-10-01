@@ -1,7 +1,7 @@
 import { createEffect } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, UIElement, type StickyDetail, type StickyEdge } from "$/core"
+import { Cell, proto, UIElement, type StickyDetail, type StickyEdge } from "$/ui/core"
 
 import { stickyVocabulary } from "./sticky.vocabulary.en"
 import { StickyFallback } from "./sticky.fallback"

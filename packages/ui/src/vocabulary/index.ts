@@ -1,8 +1,8 @@
 /**
- * Barrel for `$/vocabulary` -- the library-neutral naming layer:  vocabulary schema, shared value sets,
+ * Barrel for `$/ui/vocabulary` -- the library-neutral naming layer:  vocabulary schema, shared value sets,
  * the registry / translation resolver, and attribute converters.
  * - No DOM and no base library:  `UIElement` (Solid) and the native fallbacks read the same names.
- * - NOTE: no namespace yet;  import by name, e.g. `import { ValueSets } from "$/vocabulary"`.
+ * - NOTE: no namespace yet;  import by name, e.g. `import { ValueSets } from "$/ui/vocabulary"`.
  *   The runtime's `UI.vocabulary` service wraps `Vocabulary`.
  */
 

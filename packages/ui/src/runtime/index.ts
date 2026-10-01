@@ -1,7 +1,7 @@
 /**
- * Barrel for `$/runtime` -- the shared `UI` runtime.
+ * Barrel for `$/ui/runtime` -- the shared `UI` runtime.
  * - `UI` is the page's ONE runtime instance (a lazy accessor, see `load.ts`);  `loadUI()` ~== `UI.load()`.
- *   Components:  `import { UI } from "$/runtime"`, then `await UI.load()` in `connectedCallback`.
+ *   Components:  `import { UI } from "$/ui/runtime"`, then `await UI.load()` in `connectedCallback`.
  * - NOTE: service CLASSES are exported as TYPES only.  A value export would statically import the whole
  *   runtime into every component's chunk and defeat the dynamic `import()` in `load()`.  Reach services
  *   through the instance (`UI.keyboard`, `UI.focus.roving(...)`, `UI.keyboard.chord("Mod+K")`);  tests import

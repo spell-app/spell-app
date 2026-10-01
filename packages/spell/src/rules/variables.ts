@@ -6,10 +6,10 @@
  * - Only classes something OUTSIDE this file needs are exported (`SpellIdentifier` to subclass,
  *   `variable` to narrow with `match.is()`);  the rest are reached through `parser.rules` by name.
  */
-import { NONE, getPlurality, proto, type Plurality } from "#spell-util"
-import { P } from "#parser"
+import { NONE, getPlurality, proto, type Plurality } from "$/util"
+import { P } from "$/parser"
 // Import directly to avoid circular import
-import { SpellParser } from "#spell/SpellParser"
+import { SpellParser } from "$/spell/SpellParser"
 import { identifierBlacklist } from "./identifier-blacklist"
 
 /**

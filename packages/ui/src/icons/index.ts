@@ -1,5 +1,5 @@
 /**
- * Barrel for `$/icons` -- the icon PACK format and the names around it.
+ * Barrel for `$/ui/icons` -- the icon PACK format and the names around it.
  * - Loading and caching live in the runtime (`UI.icons`, `src/runtime/IconPacks.ts`);  this is the part that is
  *   shared with node tooling (`tools/IconPackBuilder.ts`) and the built-in pack locations.
  * - NOTE: no self-namespace:  `IconName` / `BuiltInPacks` already read as namespaces.

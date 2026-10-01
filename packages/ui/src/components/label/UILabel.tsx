@@ -1,13 +1,13 @@
 import { Show, createMemo } from "solid-js"
 import { Dynamic, type JSX } from "@solidjs/web"
 
-import { HostAttribute, IconGlyph, PartContext, proto, SlotContent, UIElement } from "$/core"
+import { HostAttribute, IconGlyph, PartContext, proto, SlotContent, UIElement } from "$/ui/core"
 
 import { labelVocabulary } from "./label.vocabulary.en"
 import { LabelFallback } from "./label.fallback"
 
 import labelCSS from "./label.css?inline"
-import partsCSS from "$/components/parts/parts.css?inline"
+import partsCSS from "$/ui/components/parts/parts.css?inline"
 
 /****************
  * ### `<ui-label>`

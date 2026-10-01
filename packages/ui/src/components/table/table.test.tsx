@@ -1,13 +1,13 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 import { userEvent } from "vitest/browser"
 
-import { UI } from "$/runtime"
-import type { TableColumn, TableRow, TableSortDetail } from "$/components/components.types"
-import type { UIHost } from "$/elements"
-import { expectAccessible } from "$test/a11y"
-import { ElementFixture } from "$test/ElementFixture"
+import { UI } from "$/ui/runtime"
+import type { TableColumn, TableRow, TableSortDetail } from "$/ui/components/components.types"
+import type { UIHost } from "$/ui/elements"
+import { expectAccessible } from "$/ui/test/a11y"
+import { ElementFixture } from "$/ui/test/ElementFixture"
 
-import "$/components/table"
+import "$/ui/components/table"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/table/examples/elements/*.html", {

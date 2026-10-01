@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest"
 
-import { P } from "#parser"
+import { P } from "$/parser"
 
 /** Spell's punctuation spacing, as `SpellLanguageService.FORMAT_SPACING` sets it. */
 const SPACING = { spaceAfter: [",", ":"], noSpaceBefore: [",", ":", ")", "]"], noSpaceAfter: ["(", "["] }

@@ -1,13 +1,13 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { PART_STATIC_CLASS_PREFIX, proto, UIElement } from "$/core"
+import { PART_STATIC_CLASS_PREFIX, proto, UIElement } from "$/ui/core"
 
 import { statisticVocabulary } from "./statistic.vocabulary.en"
 import { StatisticFallback } from "./statistic.fallback"
 
 import statisticCSS from "./statistic.css?inline"
-import partsCSS from "$/components/parts/parts.css?inline"
+import partsCSS from "$/ui/components/parts/parts.css?inline"
 
 /****************
  * ### `<ui-statistic>`

@@ -1,7 +1,7 @@
 import { Show, createEffect } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { PART_OWNER_TOKENS, proto, UIElement } from "$/core"
+import { PART_OWNER_TOKENS, proto, UIElement } from "$/ui/core"
 
 import { segmentVocabulary } from "./segment.vocabulary.en"
 import { SegmentFallback } from "./segment.fallback"

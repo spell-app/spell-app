@@ -1,11 +1,11 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 import { userEvent } from "vitest/browser"
 
-import { ClassBuilder } from "$/elements"
-import { colorsCSS, foundationCSS } from "$/styles"
-import type { AttributeSpec, ComponentVocabulary } from "$/vocabulary"
+import { ClassBuilder } from "$/ui/elements"
+import { colorsCSS, foundationCSS } from "$/ui/styles"
+import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"
 
-import { Fixture } from "$test/fixture"
+import { Fixture } from "$/ui/test/fixture"
 
 import { selectVocabulary } from "./select.vocabulary.en"
 

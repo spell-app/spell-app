@@ -9,7 +9,7 @@ import {
   type ToastHandle,
   type ToastOptions,
   type ToastProvider
-} from "$/core"
+} from "$/ui/core"
 
 import { toastVocabulary } from "./toast.vocabulary.en"
 

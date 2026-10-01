@@ -1,7 +1,7 @@
 import { createEffect, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { proto, SlotContent, UIElement } from "$/core"
+import { proto, SlotContent, UIElement } from "$/ui/core"
 
 import { loaderVocabulary } from "./loader.vocabulary.en"
 import { LoaderFallback } from "./loader.fallback"

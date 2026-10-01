@@ -1,5 +1,5 @@
 /**
- * Builds @spell/ui from its CURRENT working tree (`../ui`), then bundles `_assets/spell-ui.entry.js` into
+ * Builds @spell-app/ui from its CURRENT working tree (`../ui`), then bundles `_assets/spell-ui.entry.js` into
  * `_assets/spell-ui.js`:  ONE minified classic script (IIFE), because docs open from `file://`, where
  * browsers refuse ES modules.
  *
@@ -8,7 +8,7 @@
  * - `--skip-ui-build`:  reuse `../ui/dist` as is.  `SPELL_UI_DIR` overrides where UI lives.
  * - UI build:  the fork (`yarn fork:build`, its `dist/` is what UI's build links to), then `yarn build`
  *   (`tsc && vite build`).  If `tsc` fails on in-progress work, falls back to `vite build` alone, and says so.
- * - Exactly ONE Solid:  every `solid-js` / `@solidjs/*` / `@spell/solid-element` import resolves from UI's root,
+ * - Exactly ONE Solid:  every `solid-js` / `@solidjs/*` / `@spell-app/solid-element` import resolves from UI's root,
  *   so the linked fork can't pick up its own `node_modules` copy.  Checked against the metafile.
  * - No `import()` / `import.meta` may survive:  string-literal `import()`s (the runtime chunk, emoji data,
  *   Temporal polyfill) are inlined, and `supported: { "dynamic-import": false }` turns any computed `import()`
@@ -71,7 +71,7 @@ const ICONS = {
 }
 
 /** Bare specifiers that MUST resolve from UI's root:  Solid (all subpaths) and the element-layer fork. */
-const SOLID = /^(solid-js|@solidjs\/[\w-]+|@spell\/solid-element)(\/.*)?$/
+const SOLID = /^(solid-js|@solidjs\/[\w-]+|@spell-app\/solid-element)(\/.*)?$/
 
 const args = process.argv.slice(2)
 if (!args.includes("--skip-ui-build")) buildUI()
@@ -88,10 +88,10 @@ report(warnings)
  */
 function buildUI() {
   if (!existsSync(join(UI_DIR, "package.json"))) fail(`no UI checkout at ${UI_DIR} (set SPELL_UI_DIR)`)
-  run("yarn", ["fork:build"], "build @spell/solid-element (UI's fork)")
-  if (run("yarn", ["build"], "build @spell/ui (tsc + vite)", { allowFailure: true })) return
+  run("yarn", ["fork:build"], "build @spell-app/solid-element (UI's fork)")
+  if (run("yarn", ["build"], "build @spell-app/ui (tsc + vite)", { allowFailure: true })) return
   console.warn("!! UI's tsc failed:  building with `vite build` alone (the bundle may carry type errors)")
-  run("yarn", ["vite", "build"], "build @spell/ui (vite only)")
+  run("yarn", ["vite", "build"], "build @spell-app/ui (vite only)")
 }
 
 /**
@@ -144,7 +144,7 @@ async function bundle() {
 
 /**
  * esbuild plugin wiring the entry to UI:
- * - `@spell/ui` ~== `dist/index.js`, `@spell/ui/<entry>` ~== `dist/<entry>.js` (mirrors UI's `package.json`
+ * - `@spell-app/ui` ~== `dist/index.js`, `@spell-app/ui/<entry>` ~== `dist/<entry>.js` (mirrors UI's `package.json`
  *   `exports`)
  * - Solid / fork imports resolve from UI's root (`SOLID`), whoever imports them
  * - `spell-ui:icons`:  the generated icon registrations (`iconsModule()`)
@@ -160,7 +160,7 @@ function spellUiResolver() {
           ? { contents: iconsModule(), resolveDir: ASSETS, loader: "js" }
           : { contents: "", loader: "js" }
       )
-      pluginBuild.onResolve({ filter: /^@spell\/ui(\/.*)?$/ }, ({ path }) => ({ path: uiDistPath(path) }))
+      pluginBuild.onResolve({ filter: /^@spell-app\/ui(\/.*)?$/ }, ({ path }) => ({ path: uiDistPath(path) }))
       pluginBuild.onResolve({ filter: SOLID }, async ({ path, kind, pluginData }) => {
         if (pluginData?.fromUiRoot) return undefined
         const resolved = await pluginBuild.resolve(path, { kind, resolveDir: UI_DIR, pluginData: { fromUiRoot: true } })
@@ -178,16 +178,16 @@ function spellUiResolver() {
   }
 }
 
-/** File in UI's `dist/` for an `@spell/ui[/...]` specifier. */
+/** File in UI's `dist/` for an `@spell-app/ui[/...]` specifier. */
 function uiDistPath(specifier) {
-  const sub = specifier.slice("@spell/ui".length).replace(/^\//, "")
+  const sub = specifier.slice("@spell-app/ui".length).replace(/^\//, "")
   if (!sub) return join(UI_DIR, "dist/index.js")
   return join(UI_DIR, "dist", `${sub}.js`)
 }
 
 /**
  * Source of `spell-ui:icons`:  each of `ICONS`' SVG text, `UI.icons.register()`ed under each of its names.
- * - Imports `UI` from `@spell/ui/core` -- the same module `index.js` uses -- so this runs BEFORE any family
+ * - Imports `UI` from `@spell-app/ui/core` -- the same module `index.js` uses -- so this runs BEFORE any family
  *   defines (and so upgrades) its elements.
  * - Registers in the FIRST `UI.load()` callback:  every element `await`s that same promise before drawing an icon,
  *   so the names are in place first.
@@ -200,7 +200,7 @@ function iconsModule() {
     return [names, readFileSync(path, "utf8")]
   })
   return [
-    `import { UI } from "@spell/ui/core"`,
+    `import { UI } from "@spell-app/ui/core"`,
     `const ICONS = ${JSON.stringify(icons)}`,
     `UI.load().then((ui) => {`,
     `  ui.icons.reset()`,

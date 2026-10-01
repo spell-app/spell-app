@@ -1,16 +1,16 @@
 /**
  * Every name `<ui-menu>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-menu secondary pointing size="large" items="3">` => `ui large pointing secondary three item menu`.
  *   `menu.css` keys on those words.
- * - Items are the generic `<ui-item>` (`$/components/item`), styled by owner context:  `ownsParts` has `item`.
+ * - Items are the generic `<ui-item>` (`$/ui/components/item`), styled by owner context:  `ownsParts` has `item`.
  *   A `<ui-menu>` inside a menu is a SUB-MENU (Fomantic's `<div class="right menu">`), so `menu` is owned too;
  *   a `<ui-header>` inside an item is a vertical menu's sub header.
  * - `tabular` is Fomantic's classic word;  2.9 renamed it `tabbed` (`@variationMenuTabbedLegacyTabular`).
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-menu>`

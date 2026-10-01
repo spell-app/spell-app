@@ -1,11 +1,11 @@
 /*!
- * @spell/solid-element -- MIT licence.
+ * @spell-app/solid-element -- MIT licence.
  * A fork of `@solidjs/element` (https://github.com/solidjs/solid/tree/next/packages/element) and
  * `component-register` (https://github.com/ryansolid/component-register), both MIT, (c) Ryan Carniato.
  */
 
 /**
- * Shared types of `@spell/solid-element`, plus the one constant every module reads (`STATE`).
+ * Shared types of `@spell-app/solid-element`, plus the one constant every module reads (`STATE`).
  * - Runtime-light:  types, one symbol, no imports with side effects.
  */
 

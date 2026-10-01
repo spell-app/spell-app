@@ -58,8 +58,8 @@ SPECIAL = {
     "solidjs/solid": "https://github.com/solidjs/solid/tree/next",
     "solidjs/solid-docs": "https://github.com/solidjs/solid-docs/tree/v2-rebuild",
     "documentation/solid-2.0/": "https://github.com/solidjs/solid/tree/next/documentation/solid-2.0",
-    "@spell/ui": f"{UI}/README.md",
-    "@spell/solid-element": f"{UI}/../solid-element/README.md",
+    "@spell-app/ui": f"{UI}/README.md",
+    "@spell-app/solid-element": f"{UI}/../solid-element/README.md",
 }
 
 
@@ -80,7 +80,7 @@ def resolve(text):
     path = re.sub(r":\d+$", "", text)  # file.ts:75
     if not re.fullmatch(r"[#~.@\w/-]+(\.\w+)?/?", path) or "/" not in path and "." not in path:
         return None
-    alias = re.match(r"^#([\w-]+)/(.+)$", path)  # `#spell-util/foo.ts` -> packages/spell-util/src/foo.ts
+    alias = re.match(r"^#([\w-]+)/(.+)$", path)  # `$/util/spell/foo.ts` -> packages/util/src/spell/foo.ts
     if alias:
         path = f"{PACKAGES}/{alias.group(1)}/src/{alias.group(2)}"
     candidates = []

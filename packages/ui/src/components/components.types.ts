@@ -1,10 +1,10 @@
 /**
- * Shared types for `$/components` -- event details and the CSS contracts every implementation of a component
+ * Shared types for `$/ui/components` -- event details and the CSS contracts every implementation of a component
  * (the element and its native fallback) must honour.
  * - Runtime-light:  `import type` only, plus a few constants.
  */
 
-import type { FieldValue, MenuOption, ValidationRule } from "$/elements"
+import type { FieldValue, MenuOption, ValidationRule } from "$/ui/elements"
 
 ////////////////
 // ## Button

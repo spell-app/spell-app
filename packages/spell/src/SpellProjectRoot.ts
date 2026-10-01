@@ -1,5 +1,5 @@
-import { JSON5File, CONFIRM, $fetch, getDier, type KnownFormatMimeType } from "#spell-util"
-import { SP } from "#spell"
+import { JSON5File, CONFIRM, $fetch, getDier, type KnownFormatMimeType } from "$/util"
+import { SP } from "$/spell"
 
 /**
  * Loadable list of all `SpellProject`s available to this user.

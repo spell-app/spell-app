@@ -10,12 +10,12 @@ import {
   type AttributeName,
   type TabShowDetail,
   type UIHost
-} from "$/core"
+} from "$/ui/core"
 
 import { tabVocabulary } from "./tab.vocabulary.en"
 import { TabFallback } from "./tab.fallback"
 
-import segmentCSS from "$/components/segment/segment.css?inline"
+import segmentCSS from "$/ui/components/segment/segment.css?inline"
 import tabCSS from "./tab.css?inline"
 
 /** Vocabulary type, for brevity. */

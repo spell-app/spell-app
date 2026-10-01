@@ -3,10 +3,10 @@
  * plus inline `css` string installation.
  */
 
-import { proto } from "#spell-util"
-import { P } from "#parser"
+import { proto } from "$/util"
+import { P } from "$/parser"
 // Import directly to avoid circular import
-import { SpellParser } from "#spell/SpellParser"
+import { SpellParser } from "$/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 
 /**

@@ -1,9 +1,9 @@
-import { JSON5File, $fetch, CONFIRM, TaskList, Task, getDier, raw, type KnownFormatMimeType } from "#spell-util"
-import { P } from "#parser"
-// Import directly, NOT through the `#spell-core` barrel:  a project MUST NOT load `spellCore` itself -- each
+import { JSON5File, $fetch, CONFIRM, TaskList, Task, getDier, raw, type KnownFormatMimeType } from "$/util"
+import { P } from "$/parser"
+// Import directly, NOT through the `$/core` barrel:  a project MUST NOT load `spellCore` itself -- each
 // runner runs its own copy.  See `spellRuntime.ts`.
-import { SPELL_CORE_MODULE, SPELL_CORE_NAMES } from "#spell-core/spellCore.types"
-import { SP } from "#spell"
+import { SPELL_CORE_MODULE, SPELL_CORE_NAMES } from "$/core/spellCore.types"
+import { SP } from "$/spell"
 
 /**
  * Controller for a `SpellProject`.
@@ -342,7 +342,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
    * - Each `part` is a `.spell` file's AST, or code as is, e.g. a `.css` file's.
    * - Each class gets its members from EVERY file, e.g. `Card.move_to_$pile` from `Pile.spell` goes in
    *   `Card.spell`'s `class Card` -- see `SP.hoistClassMembers()`.  Each file's own were moved in by `SP.Block`.
-   * - Also how a fixture compiles -- see `compiledFixture()` in `#spell/test`.
+   * - Also how a fixture compiles -- see `compiledFixture()` in `$/spell/test`.
    */
   static combineCompiled(parts: Array<P.ASTStatementGroup | string | undefined>): string {
     const hoisted = SP.hoistClassMembers(parts.map((part) => (typeof part === "object" ? (part.statements ?? []) : [])))

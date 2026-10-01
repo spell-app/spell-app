@@ -1,5 +1,5 @@
 import { createEffect, createMemo, type Accessor } from "solid-js"
-import { onFormReset } from "@spell/solid-element"
+import { onFormReset } from "@spell-app/solid-element"
 
 // through the `core` ENTRY, never its leaves:  otherwise the bundler splits what `core` and `forms` share into a
 // third chunk instead of leaving it in `core.js`
@@ -10,7 +10,7 @@ import {
   type FieldValue,
   type ValidationResult,
   type ValidationRule
-} from "$/core"
+} from "$/ui/core"
 
 import { Validator } from "./Validator"
 import { FormHost } from "./FormHost"

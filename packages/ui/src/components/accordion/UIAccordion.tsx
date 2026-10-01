@@ -1,7 +1,7 @@
 import { For, createMemo, untrack, type Accessor } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, PartContext, proto, UI, UIElement, type AccordionPanel, type AccordionToggleDetail } from "$/core"
+import { Cell, PartContext, proto, UI, UIElement, type AccordionPanel, type AccordionToggleDetail } from "$/ui/core"
 
 import { accordionVocabulary } from "./accordion.vocabulary.en"
 import { AccordionFallback } from "./accordion.fallback"

@@ -1,11 +1,11 @@
 import { describe, it } from "vitest"
 
-import { expectAccessible } from "$test/a11y"
-import { ElementFixture } from "$test/ElementFixture"
-import { FALLBACK_CASES, type FallbackAdapter } from "$test/fallback.cases"
-import type { UIHost } from "$/elements"
+import { expectAccessible } from "$/ui/test/a11y"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import { FALLBACK_CASES, type FallbackAdapter } from "$/ui/test/fallback.cases"
+import type { UIHost } from "$/ui/elements"
 
-import "$/index"
+import "$/ui/index"
 
 /**
  * The native-fallback cases (`fallback.cases.ts`) on the Solid elements:  the fork's `onError` + `fallback` options

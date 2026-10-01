@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
-import type { OverlayEntry } from "$/runtime"
+import type { OverlayEntry } from "$/ui/runtime"
 
-import { Fixture } from "$test/fixture"
+import { Fixture } from "$/ui/test/fixture"
 import { Browser } from "./Browser"
 import { Focus } from "./Focus"
 import { Keyboard } from "./Keyboard"

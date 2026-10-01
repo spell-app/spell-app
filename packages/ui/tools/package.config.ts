@@ -12,7 +12,7 @@ const ROOT = fileURLToPath(new URL("../", import.meta.url))
 const EXTRA_ENTRIES = { api: ENTRIES.api! }
 
 /**
- * How the tooling reads `@spell/ui`:  entries, externals, peer set, buckets.
+ * How the tooling reads `@spell-app/ui`:  entries, externals, peer set, buckets.
  * - Two shared entries:  `core` (every family) and `forms` (families with a form VALUE:  dropdown, input, checkbox, form).
  * - `groups` (`bucket()`):
  *   - `solid-js`, `@solidjs/*`, the fork => `library`
@@ -25,7 +25,7 @@ const EXTRA_ENTRIES = { api: ENTRIES.api! }
  *   - any other `src/` module (incl. `\0` virtual helpers) => `core`
  */
 export const PACKAGE: PackageConfig = {
-  name: "@spell/ui",
+  name: "@spell-app/ui",
   root: ROOT,
   entries: Object.fromEntries(COMPONENTS.map((name) => [name, `src/components/${name}/index.ts`])),
   shared: [
@@ -41,21 +41,21 @@ export const PACKAGE: PackageConfig = {
 
 /**
  * Import map entries for `dist/` (the vendored Solid ones come from `vendor/importmap.json`).
- * - `@spell/ui` ~== every family (`dist/index.js`);  `@spell/ui/<family>` one family;  `@spell/ui/core`,
- *   `@spell/ui/forms`;  `@spell/ui/api` the `E` / `V` namespaces.
+ * - `@spell-app/ui` ~== every family (`dist/index.js`);  `@spell-app/ui/<family>` one family;  `@spell-app/ui/core`,
+ *   `@spell-app/ui/forms`;  `@spell-app/ui/api` the `E` / `V` namespaces.
  */
 export const DIST_IMPORTS: ImportMap["imports"] = {
-  "@spell/ui": "/dist/index.js",
-  "@spell/ui/core": "/dist/core.js",
-  "@spell/ui/forms": "/dist/forms.js",
-  "@spell/ui/api": "/dist/api.js",
-  ...Object.fromEntries(COMPONENTS.map((name) => [`@spell/ui/${name}`, `/dist/${name}.js`]))
+  "@spell-app/ui": "/dist/index.js",
+  "@spell-app/ui/core": "/dist/core.js",
+  "@spell-app/ui/forms": "/dist/forms.js",
+  "@spell-app/ui/api": "/dist/api.js",
+  ...Object.fromEntries(COMPONENTS.map((name) => [`@spell-app/ui/${name}`, `/dist/${name}.js`]))
 }
 
 /** Bucket of one module id (`PACKAGE.groups`). */
 function bucket(id: string): Bucket {
   if (id.startsWith("\0")) return "core"
-  if (/\/node_modules\/(solid-js|@solidjs|@spell\/solid-element)\/|\/packages\/solid-element\//.test(id)) {
+  if (/\/node_modules\/(solid-js|@solidjs|@spell-app\/solid-element)\/|\/packages\/solid-element\//.test(id)) {
     return "library"
   }
   if (/\/node_modules\/temporal-(polyfill|utils)\//.test(id)) return "data"

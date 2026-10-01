@@ -1,4 +1,4 @@
-import type { AccordionPanel } from "$/core"
+import type { AccordionPanel } from "$/ui/core"
 
 /****************
  * ### `AccordionPanels`

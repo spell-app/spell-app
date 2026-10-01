@@ -11,9 +11,9 @@ import {
   type MenuOption,
   type MenuSeparator,
   type UIHost
-} from "$/core"
+} from "$/ui/core"
 
-import { itemVocabulary } from "$/components/item"
+import { itemVocabulary } from "$/ui/components/item"
 
 /**
  * The options a dropdown's light-DOM `<ui-item>` children describe, as a signal of `MenuEntry`s.

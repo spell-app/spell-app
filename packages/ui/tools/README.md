@@ -1,6 +1,6 @@
 # `tools/` -- package tooling
 
-Node-side measurement, vendoring, smoke, report and HMR tooling for `@spell/ui`, plus the pages it drives.  Run
+Node-side measurement, vendoring, smoke, report and HMR tooling for `@spell-app/ui`, plus the pages it drives.  Run
 from the repo root through the root scripts;  results land in `tools/results/` (git-ignored), and `yarn report`
 turns them into the tables of `docs/report.md`.
 
@@ -11,7 +11,7 @@ turns them into the tables of `docs/report.md`.
 | `tools.types.ts` | `PackageConfig`, result shapes (`MeasureResults`, `SmokeResults`, `LocResults`), `SolidIdentityHook` |
 | `BundleMeasure.ts` | in-memory `vite build` with the repo's config, modules bucketed into library / shared entries / own per family / lazy;  the library AS USED (bindings `dist/` imports) and in full;  standalone per-family builds;  structural checks |
 | `PeerVendor.ts` | one ES module per peer specifier + `importmap.json` in `vendor/`, deduped (ONE Solid), tree-shaken to the bindings `dist/` and the pages import |
-| `DeclarationCheck.ts` | `yarn smoke` runs it after `vite build`:  every `exports` `types` path exists, and no `dist/**.d.ts` import is an alias (`#util`, `$/`) or leaves `dist/` |
+| `DeclarationCheck.ts` | `yarn smoke` runs it after `vite build`:  every `exports` `types` path exists, and no `dist/**.d.ts` import is an alias (`$/util`, `$/ui`) or leaves `dist/` |
 | `ForkBuild.ts` | builds `packages/solid-element` when its `dist/` is missing or stale (`vendor`, `measure`) |
 | `HostApp.ts` | compiles the Solid 2 host app (`frameworks/solid/app.tsx`) with Solid external |
 | `SmokeRunner.ts` + `StaticServer.ts` | serves `dist/`, `vendor/`, `tools/`, `test/` from ONE static server, injects the import map, drives each page in headless chromium |
@@ -35,7 +35,7 @@ Order:  `yarn build`, `yarn vendor`, `yarn measure`, `yarn test` (writes `perf-r
   for `COMPONENTS` / `SHARED_ENTRIES` / `SOLID_EXTERNAL`), never the `$` aliases.  Browser-side helpers they
   serve (`test/PerfRun.ts`, `test/dictionary.es.ts`) are transpiled on the fly by `StaticServer` and may import
   types only.
-- **Pages:**  a smoke page imports `@spell/ui...` and the peers by specifier, and publishes
+- **Pages:**  a smoke page imports `@spell-app/ui...` and the peers by specifier, and publishes
   `window.smokeResult = { ok, label, checks }`.  `kind: "compat"` is reported as COMPATIBILITY.  A page module
   that imports a peer binding itself must be listed in `PeerVendor`'s `usedBy` (`cli.ts`), or the vendored
   file lacks it ("does not provide an export named ...").

@@ -1,5 +1,5 @@
 {
-  "name": "@spell/lsp",
+  "name": "@spell-app/lsp",
   "version": "0.8.0",
   "private": true,
   "type": "module",
@@ -18,10 +18,10 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@spell/parser": "workspace:*",
-    "@spell/spell": "workspace:*",
-    "@spell/spell-core": "workspace:*",
-    "@spell/spell-util": "workspace:*",
+    "@spell-app/core": "workspace:*",
+    "@spell-app/parser": "workspace:*",
+    "@spell-app/spell": "workspace:*",
+    "@spell-app/util": "workspace:*",
     "json5": "^2.1.1",
     "vscode-languageserver": "^10.1.2",
     "vscode-languageserver-textdocument": "^1.0.15"

@@ -1,5 +1,5 @@
 /**
- * Barrel for the button components -- also the `button` lib entry (`@spell/ui/button`), measured in `docs/report.md`.
+ * Barrel for the button components -- also the `button` lib entry (`@spell-app/ui/button`), measured in `docs/report.md`.
  * - SIDE EFFECT:  defines `<ui-button>`, `<ui-buttons>`, `<ui-or>`.
  */
 

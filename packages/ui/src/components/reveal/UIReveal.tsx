@@ -1,7 +1,7 @@
 import { onSettled } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, HostAttribute, proto, UIElement } from "$/core"
+import { Cell, HostAttribute, proto, UIElement } from "$/ui/core"
 
 import { revealVocabulary } from "./reveal.vocabulary.en"
 import { RevealFallback } from "./reveal.fallback"

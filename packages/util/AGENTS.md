@@ -1,31 +1,49 @@
 # AGENTS.md
 
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
-when working with code in this package, `@spell/util`.
+when working with code in this package, `@spell-app/util`.
 
 Conventions every package shares -- Solid 2, Long-term debt, Documentation, Functions, Decorators,
 Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST.  Only what's local is below.
 
 ## Overview
 
-- `@spell/util` (`#util`) holds the small GENERIC helpers more than one package uses:
+- `@spell-app/util` (`$/util`) holds the small GENERIC helpers more than one package uses:
   - `decorators.ts` -- `@proto`, the standard-decorator for class defaults
   - `class.ts` -- `hasOwnProp` ...
   - `string.ts` -- case conversion, `numberToWord`, `suggest`
   - `dom.ts` -- shadow-aware traversal, `isBrowser`, `nextFrame`
   - `util.types.ts` -- `Constructor`, `AbstractClass`, `Prettify`
-- It sits UNDER every other package and imports NONE of them.  `@spell/ui` is published and bundles what it
+- It sits UNDER every other package and imports NONE of them.  `@spell-app/ui` is published and bundles what it
   imports from here (its `.d.ts` files inline it), so nothing spell-specific may land here.
 - What does NOT belong:
   - anything spell-specific
-  - anything needing a dependency `ui` doesn't already have (`pluralize`, CommonJS `lodash` ...):  it stays in its
-    package, e.g. `spell-util`'s `src/string.ts`
-  - anything only ONE package uses:  `ui`'s `core.ts` re-exports `$/util` wholesale, so every helper here lands in
-    `ui`'s `core` bundle (`yarn measure`), used or not
+  - anything needing a dependency `ui` doesn't already have (`pluralize`, CommonJS `lodash` ...):  it goes in
+    `src/spell/`, never beside the generic files
+  - anything only ONE package uses:  `ui`'s `core.ts` re-exports its `$/ui/util` wholesale, which imports every GENERIC
+    file here, so each lands in `ui`'s `core` bundle (`yarn measure`), used or not
   - when in doubt, leave it in the package
-- Commands:  `yarn review`, `yarn ts`, `yarn lint`, `yarn format`, `yarn test` (a real browser, chromium).
-- Packages import `#util` (the barrel) ONLY, never `#util/<file>`.  Each keeps its own `util` barrel
-  (`#spell-util`, `$/util`) for package-specific helpers, and that barrel re-exports `#util`.
+- Commands:  `yarn review`, `yarn ts`, `yarn lint`, `yarn format`, `yarn test` (a real browser, chromium, for the
+  generic files;  node for `src/spell/`).
+- Packages import `$/util` (the barrel) ONLY, never `$/util/<file>` -- with ONE exception:  `ui`'s `src/util/index.ts`
+  imports the generic files one by one (`$/util/class` ...), so spell's utilities never reach `ui`'s bundles or published
+  declarations.  `ui` keeps its own `util` barrel (`$/ui/util`) for package-specific helpers.
+
+## Spell's utilities (`src/spell/`)
+
+- Spell's own utilities, flattened into the `$/util` barrel LAST:  lodash and string helpers, `Observable` /
+  `Derivative` / `Loadable`, `Task` / `TaskList`, `$fetch`, `Logger`, prefs, `assert` / `die`, DOM helpers.  The bottom
+  of the spell chain:  every spell-family package may import it, and it imports nothing above it.
+  - Formerly the package `spell-util`.  A sub-folder, not loose files:  `string.ts` / `DOM.ts` would clash with the generic
+    `string.ts` / `dom.ts` (macOS is case-insensitive), and nothing in `ui` may import it.
+  - Its dependencies (lodash, `chalk`, `pluralize`, `react` ...) are `util`'s `dependencies`.  `ui` bundles none of
+    them:  `yarn measure` and `yarn smoke` (declarations) prove it.
+- Files in `src/spell/` import the generic helpers by deep path (`$/util/class`), NEVER the `$/util` barrel (it re-exports
+  this folder:  a cycle).
+- NOTE: `ResponseErrors.ts` is deliberately NOT in `src/spell/index.ts` -- see its header.
+- Reactivity here (`Observable`, `getProp` / `setProp`, stores) is Solid work:  READ the root's Solid 2 pointer first.
+- Tests: the generic ones run in a real browser (`util:browser`), `src/spell/**` in node (`util:spell`);
+  `vitest.config.ts` exports `utilProjects()` for the root run.
 
 ## Decorators
 
@@ -40,5 +58,5 @@ As the root's.  The barrel has no self-namespace:  helpers are imported by name.
 
 ## Imports
 
-As the root's, with `#util` as our alias (from `tsconfig.base.json`).  Files in THIS package import each other as
+As the root's, with `$/util` as our alias (from `tsconfig.base.json`).  Files in THIS package import each other as
 direct peers (`./class`).

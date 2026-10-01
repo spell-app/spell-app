@@ -11,9 +11,9 @@ import { describe, test, expect } from "vitest"
 import groupBy from "lodash/groupBy"
 import isEqual from "lodash/isEqual"
 
-import { showWhitespace } from "#spell-util"
+import { showWhitespace } from "$/util"
 
-import { P } from "#parser"
+import { P } from "$/parser"
 
 /** Shape of one test entry after `P.normalizeRuleTest()` fills in defaults (`title`, `skip`, etc). */
 type NormalizedRuleTest = ReturnType<typeof P.normalizeRuleTest>

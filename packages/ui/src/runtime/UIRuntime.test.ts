@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { RUNTIME_KEY, UI, loadUI, type RuntimeGlobal } from "$/runtime"
+import { RUNTIME_KEY, UI, loadUI, type RuntimeGlobal } from "$/ui/runtime"
 
 import { Modals } from "./Modals"
 import { Toasts } from "./Toasts"

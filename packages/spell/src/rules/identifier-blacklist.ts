@@ -1,4 +1,4 @@
-import { P } from "#parser"
+import { P } from "$/parser"
 
 /**
  * Blacklist of common english words which may not be used as single-word identifiers.

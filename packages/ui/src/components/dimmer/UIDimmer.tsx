@@ -13,7 +13,7 @@ import {
   type DimmerOpenDetail,
   type DismissReason,
   type OverlayEntry
-} from "$/core"
+} from "$/ui/core"
 
 import { dimmerVocabulary } from "./dimmer.vocabulary.en"
 import { DimmerFallback } from "./dimmer.fallback"

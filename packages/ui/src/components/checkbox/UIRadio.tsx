@@ -1,8 +1,8 @@
 import { createEffect, createMemo, onCleanup, untrack, type Accessor } from "solid-js"
-import { onConnect, onDisconnect, onFormAssociated } from "@spell/solid-element"
+import { onConnect, onDisconnect, onFormAssociated } from "@spell-app/solid-element"
 
-import { Cell, proto, type AttributeName, type ValidationResult } from "$/core"
-import { FormElement } from "$/forms"
+import { Cell, proto, type AttributeName, type ValidationResult } from "$/ui/core"
+import { FormElement } from "$/ui/forms"
 
 import { radioVocabulary } from "./checkbox.vocabulary.en"
 import { CheckControl } from "./CheckControl"

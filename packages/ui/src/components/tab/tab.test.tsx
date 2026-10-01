@@ -1,15 +1,15 @@
 import { userEvent } from "vitest/browser"
 import { afterEach, describe, expect, it, onTestFinished, vi } from "vitest"
 
-import { expectAccessible } from "$test/a11y"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
-import { UI } from "$/runtime"
-import type { UIHost } from "$/elements"
-import type { TabChangeDetail, TabShowDetail } from "$/components/components.types"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import { UI } from "$/ui/runtime"
+import type { UIHost } from "$/ui/elements"
+import type { TabChangeDetail, TabShowDetail } from "$/ui/components/components.types"
 
-import "$/components/tab"
-import "$/components/segment"
+import "$/ui/components/tab"
+import "$/ui/components/segment"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/tab/examples/elements/*.html", {

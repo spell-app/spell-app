@@ -1,4 +1,4 @@
-import { UI, type ModalOptions, type ModalProvider } from "$/core"
+import { UI, type ModalOptions, type ModalProvider } from "$/ui/core"
 
 import { modalVocabulary } from "./modal.vocabulary.en"
 
@@ -15,7 +15,7 @@ import { modalVocabulary } from "./modal.vocabulary.en"
  * - Everything is light DOM built with `createElement` / `textContent`:  never `innerHTML` with caller text.
  * - Other families' tags (`<ui-content>`, `<ui-actions>`, `<ui-button>`) are looked up at CALL time in the
  *   vocabulary registry (`UI.vocabulary`), by class noun:  importing their vocabulary files would reach into
- *   other families' leaves, which `AGENTS.md` keeps behind `$/core`.  The family barrel imports `parts` and
+ *   other families' leaves, which `AGENTS.md` keeps behind `$/ui/core`.  The family barrel imports `parts` and
  *   `button` for their side effect, so both are registered before any dialog opens.
  ****************/
 export class ModalDialogs implements ModalProvider {

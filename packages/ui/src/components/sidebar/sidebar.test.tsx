@@ -1,18 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vitest"
 import { userEvent } from "vitest/browser"
 
-import { UI } from "$/runtime"
-import type { SidebarCloseDetail } from "$/components/components.types"
-import { expectAccessible } from "$test/a11y"
-import { Fixture } from "$test/fixture"
+import { UI } from "$/ui/runtime"
+import type { SidebarCloseDetail } from "$/ui/components/components.types"
+import { expectAccessible } from "$/ui/test/a11y"
+import { Fixture } from "$/ui/test/fixture"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
 
-import "$/components/sidebar"
-import "$/components/menu"
-import "$/components/item"
-import "$/components/segment"
+import "$/ui/components/sidebar"
+import "$/ui/components/menu"
+import "$/ui/components/item"
+import "$/ui/components/segment"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/sidebar/examples/elements/*.html", {

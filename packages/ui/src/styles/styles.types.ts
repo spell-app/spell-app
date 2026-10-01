@@ -1,12 +1,12 @@
 /**
- * Shared types for `$/styles`:  the shapes of the global scales in `styles.vocabulary.en.ts`.
+ * Shared types for `$/ui/styles`:  the shapes of the global scales in `styles.vocabulary.en.ts`.
  * - The vocabulary is DATA, read by `StyleGenerator` (`yarn gen:styles`) to write `tokens.css`,
  *   `colors.css` and `sizes.css`, and by the runtime / `ClassBuilder` for allowed attribute values.
  * - Name unions (`HueName`, `SizeName` ...) derive from the vocabulary objects, so adding a hue or size
  *   is one vocabulary entry plus `yarn gen:styles` -- no type to update by hand.
  */
 
-import type { Prettify } from "$/util"
+import type { Prettify } from "$/ui/util"
 import type {
   borderAlphas,
   breakpoints,

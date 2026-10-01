@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-button>`, `<ui-buttons>` and `<ui-or>` use:  tags, attributes (kind + allowed values),
- * events, slots, parts, states, texts.  Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * events, slots, parts, states, texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:  `<ui-button size="small" primary basic>`
  *   => `ui small basic primary button`.  `button.css` keys on those words.
  * - Group context needs NO element help:  `<ui-buttons basic>` renders `ui basic buttons`, and `button.css`
@@ -9,7 +9,7 @@
  *   all remap `--ui-color` (`colors.css`), so the last one in the class string wins.
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-button>`

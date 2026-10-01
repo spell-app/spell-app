@@ -1,8 +1,8 @@
 import { describe, test, expect, beforeAll, afterEach, vi } from "vitest"
 
-import { SP } from "#spell"
-import { installDiskFetch } from "#spell/node/disk-fetch"
-import { fixtureProjectId } from "#spell/test"
+import { SP } from "$/spell"
+import { installDiskFetch } from "$/spell/node/disk-fetch"
+import { fixtureProjectId } from "$/spell/test"
 
 /**
  * `SpellProject` as an editor drives it:  which files it parses, and `updateText()` on each edit.

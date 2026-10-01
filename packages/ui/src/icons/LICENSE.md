@@ -6,7 +6,7 @@ The SVG files under `src/icons/icon-packs/fa7-free/` and `src/icons/icon-packs/f
 search terms in the pack indexes and `src/icons/data/search.json` come from the same package's metadata.
 
 - Icons: [CC BY 4.0 License](https://creativecommons.org/licenses/by/4.0/)
-- Fonts: [SIL OFL 1.1 License](https://scripts.sil.org/OFL) -- not applicable here:  `@spell/ui` ships SVG files,
+- Fonts: [SIL OFL 1.1 License](https://scripts.sil.org/OFL) -- not applicable here:  `@spell-app/ui` ships SVG files,
   not font files, so no font is redistributed.
 - Code: [MIT License](https://opensource.org/license/mit/) -- covers Font Awesome's own metadata format and
   tooling, which `scripts/gen-icons.ts` reads but doesn't redistribute (the package is downloaded at generation

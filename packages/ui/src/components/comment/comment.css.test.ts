@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest"
 
-import { colorsCSS, foundationCSS } from "$/styles"
+import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$test/fixture"
-import { Sheets } from "$test/sheets"
+import { Fixture } from "$/ui/test/fixture"
+import { Sheets } from "$/ui/test/sheets"
 
 import { commentVocabulary, commentsVocabulary } from "./comment.vocabulary.en"
 
-import buttonCSS from "$/components/button/button.css?inline"
-import partsCSS from "$/components/parts/parts.css?inline"
-import segmentCSS from "$/components/segment/segment.css?inline"
+import buttonCSS from "$/ui/components/button/button.css?inline"
+import partsCSS from "$/ui/components/parts/parts.css?inline"
+import segmentCSS from "$/ui/components/segment/segment.css?inline"
 import commentCSS from "./comment.css?inline"
 import commentRaw from "./comment.css?raw"
 

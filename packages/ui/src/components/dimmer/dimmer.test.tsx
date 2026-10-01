@@ -1,18 +1,18 @@
 import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vitest"
 import { userEvent } from "vitest/browser"
 
-import { UI } from "$/runtime"
-import type { DimmerCloseDetail } from "$/components/components.types"
-import { expectAccessible } from "$test/a11y"
-import { Fixture } from "$test/fixture"
+import { UI } from "$/ui/runtime"
+import type { DimmerCloseDetail } from "$/ui/components/components.types"
+import { expectAccessible } from "$/ui/test/a11y"
+import { Fixture } from "$/ui/test/fixture"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
 
-import "$/components/dimmer"
-import "$/components/segment"
-import "$/components/button"
-import "$/components/parts"
+import "$/ui/components/dimmer"
+import "$/ui/components/segment"
+import "$/ui/components/button"
+import "$/ui/components/parts"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/dimmer/examples/elements/*.html", {

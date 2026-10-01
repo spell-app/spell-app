@@ -1,13 +1,13 @@
 /**
  * Every name `<ui-text>` uses:  tag, attributes (kind + allowed values), slots, parts, states.
- * Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-text size="large" color="red" inverted>` => `ui large red inverted text`;
  *   `<ui-text state="error">` => `ui error text`.
  * - Sizes are relative to the surrounding text, on Fomantic's text ladder (`mini` 0.4em ... `massive` 8em).
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-text>`

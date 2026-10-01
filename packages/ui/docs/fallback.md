@@ -88,7 +88,7 @@ properties other than dropdown `value` / `options` are not read (only reflected 
 ## Bytes
 
 esbuild, minify, `target es2022`, gzip level 9.  "Net" excludes the lowered-decorator helpers (about 2046 min /
-1188 gzip, shared once per bundle) and shared code (`$/util`, `$/vocabulary`, `ClassBuilder`, the family's
+1188 gzip, shared once per bundle) and shared code (`$/ui/util`, `$/ui/vocabulary`, `ClassBuilder`, the family's
 vocabulary), which the real element already ships.
 
 | Piece                       | min (B) | gzip (B) | net gzip (B) |
@@ -104,4 +104,4 @@ vocabulary), which the real element already ships.
 | container                   |    2365 |     1342 |          154 |
 
 All eight families together:  about 3.5 kB net gzip plus the base (0.8 kB).  Bundled standalone with everything
-it needs (base, `ClassBuilder`, `$/util`, vocabulary), button is 6.7 kB gzip and dropdown 8.3 kB.
+it needs (base, `ClassBuilder`, `$/ui/util`, vocabulary), button is 6.7 kB gzip and dropdown 8.3 kB.

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest"
 
-import { Fixture } from "$test/fixture"
+import { Fixture } from "$/ui/test/fixture"
 import { Visibility } from "./Visibility"
 import type { VisibilityCalculations, VisibilityCallbacks } from "./runtime.types"
 

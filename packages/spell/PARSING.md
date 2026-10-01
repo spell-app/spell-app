@@ -184,7 +184,7 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     - Leaves out what loading works out, e.g. an enumeration's constants, or a rule's owner (`of`, else `output`).
     - `defined: "/Card.spell:222-283"` -- where the statement is:  its character offsets, project-relative.
     - NO line numbers:  a page with no sources matches the code to a scope pack's entry by what it declares,
-      e.g. `property: "suit", of: "Card"` for `.../type:Card/property:suit` -- see `ScopesSource` in `packages/spell-app/src/runner/`.
+      e.g. `property: "suit", of: "Card"` for `.../type:Card/property:suit` -- see `ScopesSource` in `packages/app/src/runner/`.
     - `kind` + `name` -- what its rule's `getDeclaration()` says, for editors, e.g. `name: "draw (a card)"` --
       unless a key already says, e.g. `type`.
   - `SpellProject` puts a one-line `/*! SPELL: PROJECT {...} */` header at the top (`header()`):  versions +
@@ -212,11 +212,11 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - types compile to `export class`, top-level functions to `export function`, top-level vars to `export let`
   - see "Classes" under Compile for what goes in a class's body
   - NO import map:  every runner -- the app, VS Code's, `<spell-app>` -- runs compiled code from a `blob:` URL,
-    with its specifiers rewritten (`runCompiled()` / `linkModule()` in `packages/spell-app/src/runner/`):  `@spell/core` => the
+    with its specifiers rewritten (`runCompiled()` / `linkModule()` in `packages/app/src/runner/`):  `@spell/core` => the
     runtime it runs on (`spellRuntime.ts`), `@spell/project/<projectId>` => that project's compiled JS, fetched
     and linked the same way, afresh each run.  The app, parser and forms NEVER load `spellCore` themselves.
 - ALL files parse first, then ALL compile, so lazy compile-time lookups see the whole project.
-- Editor (`packages/spell-app/src/editor.ts` `onInputChanged`) => `project.updateText(file, text)` on every keystroke, which calls
+- Editor (`packages/app/src/editor.ts` `onInputChanged`) => `project.updateText(file, text)` on every keystroke, which calls
   `updatedContentsFor(file)`:  `project.incremental.update()` re-parses what changed right away, and hands changed
   files their new match.  If that couldn't cope, `updateText()` parses from scratch straight away.
   After 2s:  compiles, saves `<Project>.compiled.js` and runs it.
@@ -302,14 +302,14 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 - Hosts the SAME `SpellProject` / `SpellFile` the app uses, and takes everything from them:  `project.spellFiles`,
   `file.isActive`, `project.parseError`, and edits through `project.updateText()`, exactly as the app's editor does.
   All `SpellLanguageService` adds is `LSP.FileAddresses`:  the editor's URI for each file.
-- Used twice:  by VS Code over stdio, and IN-PROCESS by the app's Monaco editor (`packages/spell-app/src/ui/monaco/`), whose
+- Used twice:  by VS Code over stdio, and IN-PROCESS by the app's Monaco editor (`packages/app/src/ui/monaco/`), whose
   `SpellModels` keep one Monaco model per file in step with `file.contents` (edits go through `updateText()`),
   and whose `SpellLanguageFeatures` call the service and convert its answers with `LspToMonaco`.
   - The app shows one project at a time;  `<spell-editor>`s on a page show one each, all in one Monaco -- each
     `SpellModels.use()`s its project, so another's models don't replace them.
 - `SpellDiskWorkspace` is the stdio server's:  loads from disk via `LoadableFile.fetch` (above), maps a `.spell`
   file to its project (nearest `project.json`), parses the project on first sight, and reacts to disk changes.
-  Node-only, so it's NOT in the `#lsp` barrel, which MUST stay browser-safe (`packages/lsp/src/barrel.test.ts`).
+  Node-only, so it's NOT in the `$/lsp` barrel, which MUST stay browser-safe (`packages/lsp/src/barrel.test.ts`).
 - `SpellLanguageService` answers from each file's current `match`, never re-parsing:
   - positions from match / token OFFSETS, never `token.line` / `ch`
   - symbols from `rule.getDeclaration()`, colours from `rule.highlightAs`

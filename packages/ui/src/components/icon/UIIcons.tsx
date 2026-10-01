@@ -1,7 +1,7 @@
 import { createEffect } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement } from "$/core"
+import { proto, UIElement } from "$/ui/core"
 
 import { iconsVocabulary } from "./icon.vocabulary.en"
 

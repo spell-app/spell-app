@@ -1,4 +1,4 @@
-# @spell/ui
+# @spell-app/ui
 
 Fomantic UI's vocabulary reborn as `ui-*` web components on a modern CSS foundation:  shadow DOM, `@layer`s,
 OKLCH tokens, anchor positioning, `<dialog>` / popover, and accessibility built in.  Usable from any framework

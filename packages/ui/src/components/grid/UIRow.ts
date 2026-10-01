@@ -1,4 +1,4 @@
-import { proto } from "$/core"
+import { proto } from "$/ui/core"
 
 import { rowVocabulary } from "./grid.vocabulary.en"
 import { GridPart } from "./GridPart"

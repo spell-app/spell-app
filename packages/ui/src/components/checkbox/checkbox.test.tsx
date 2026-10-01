@@ -3,12 +3,12 @@ import { userEvent } from "vitest/browser"
 import { OBSERVE } from "solid-js"
 import { attribution } from "solid-js/attribution"
 
-import type { FormHost } from "$/elements"
-import { expectAccessible } from "$test/a11y"
+import type { FormHost } from "$/ui/elements"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
+import { ElementFixture } from "$/ui/test/ElementFixture"
 
-import "$/components/checkbox"
+import "$/ui/components/checkbox"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/checkbox/examples/elements/*.html", {

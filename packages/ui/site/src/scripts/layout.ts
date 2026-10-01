@@ -1,4 +1,4 @@
-import { UI } from "$/runtime"
+import { UI } from "$/ui/runtime"
 
 import { loadComponents } from "./components"
 
@@ -57,7 +57,7 @@ class SiteLayout {
    * Classic toggle:  adopt `themes/classic.css` onto the document through the runtime's style registry.
    * - `UI.styles` has no un-register, but re-registering a name with new text REPLACES that sheet's rules in
    *   place, so "off" registers `""` -- the (now empty) sheet stays adopted, harmlessly.
-   * - `$/styles` is imported lazily:  it holds every foundation sheet as text, and only this toggle needs it
+   * - `$/ui/styles` is imported lazily:  it holds every foundation sheet as text, and only this toggle needs it
    *   here (the runtime chunk imports it anyway, so it's a shared chunk, not a second copy).
    */
   private initClassic() {
@@ -71,7 +71,7 @@ class SiteLayout {
   /** Turn the Classic theme on or off, and persist it. */
   private async setClassic(on: boolean) {
     SiteLayout.write(SiteLayout.CLASSIC_KEY, on ? "1" : undefined)
-    const [{ classicThemeCSS }] = await Promise.all([import("$/styles"), UI.load()])
+    const [{ classicThemeCSS }] = await Promise.all([import("$/ui/styles"), UI.load()])
     UI.styles.register("classic", on ? classicThemeCSS : "", { page: true })
   }
 

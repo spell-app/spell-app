@@ -6,7 +6,7 @@
     <title>How Spell Docs Work</title>
     <meta
       name="description"
-      content="How spell's docs are built and written -- pages on @spell/ui, templates, the docs index -- and how /plan-doc keeps a live plan doc for each planning session."
+      content="How spell's docs are built and written -- pages on @spell-app/ui, templates, the docs index -- and how /plan-doc keeps a live plan doc for each planning session."
     />
     <link rel="stylesheet" href="../_assets/spell-doc.css" />
   </head>
@@ -15,7 +15,7 @@
       <main class="spell-doc-main">
         <h1>How Spell Docs Work</h1>
         <p class="lede">
-          Spell's docs are plain HTML pages that render with @spell/ui, open straight from disk, and come in a few
+          Spell's docs are plain HTML pages that render with @spell-app/ui, open straight from disk, and come in a few
           kinds, each with a template. Planning sessions get their own kind: a live plan doc that <code>/plan-doc</code>
           keeps current while the work happens.
         </p>
@@ -111,7 +111,7 @@
                 Browsers refuse ES modules on <code>file://</code>, so a page loads ONE classic script,
                 <a href="../_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
                   ><code>_assets/spell-ui.js</code></a
-                >: Solid, all of @spell/ui and the page runtime, bundled.
+                >: Solid, all of @spell-app/ui and the page runtime, bundled.
               </li>
               <li>
                 Icons are bundled too: UI's icon packs load over the network, which a file on disk can't do, so the ones
@@ -381,7 +381,9 @@
                 </tr>
                 <tr>
                   <td><code>yarn docs:update</code></td>
-                  <td>rebuild the bundle from the latest @spell/ui, update the index, check every page in a browser</td>
+                  <td>
+                    rebuild the bundle from the latest @spell-app/ui, update the index, check every page in a browser
+                  </td>
                 </tr>
                 <tr>
                   <td><code>yarn docs:index</code></td>

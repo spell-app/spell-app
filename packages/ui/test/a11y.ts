@@ -1,7 +1,7 @@
 import axe from "axe-core"
 import { expect } from "vitest"
 
-import { closestAcrossShadow } from "$/util"
+import { closestAcrossShadow } from "$/ui/util"
 
 /**
  * Accessibility assertions via `axe-core`, run against live, rendered elements.

@@ -3,7 +3,7 @@
 //  Imported by `*.test.ts` files only -- nothing in `src/` proper should depend on this.
 //
 
-export { unitTestModuleRules } from "#parser/test"
+export { unitTestModuleRules } from "$/parser/test"
 export { tsxBinary } from "./tsxBinary"
 export {
   parseSpellProject,

@@ -1,7 +1,16 @@
 import { createEffect, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, SHAPE_COMMANDS, UI, UIElement, type ShapeChangeDetail, type ShapeFlip, type UIHost } from "$/core"
+import {
+  Cell,
+  proto,
+  SHAPE_COMMANDS,
+  UI,
+  UIElement,
+  type ShapeChangeDetail,
+  type ShapeFlip,
+  type UIHost
+} from "$/ui/core"
 
 import { shapeVocabulary } from "./shape.vocabulary.en"
 import { ShapeHost } from "./ShapeHost"

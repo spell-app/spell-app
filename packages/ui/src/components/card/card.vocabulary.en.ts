@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-card>` and `<ui-cards>` use:  tag, attributes (kind + allowed values), slots, parts, states,
- * texts.  Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-card raised color="red" size="small">` => `ui small red raised card`;
  *   `<ui-cards columns="3" doubling stackable>` => `ui doubling stackable three cards`.  `card.css` keys on those.
@@ -10,7 +10,7 @@
  *   variations (`size`, `color`, `raised` ...) as its own classes, as Fomantic's `.ui.raised.cards > .card` has it.
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-card>`

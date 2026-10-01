@@ -1,4 +1,4 @@
-import { NativeFallback, PartContext, proto, type NativeFallbackRoot } from "$/core"
+import { NativeFallback, PartContext, proto, type NativeFallbackRoot } from "$/ui/core"
 
 import { PART_VOCABULARIES, headerVocabulary } from "./parts.vocabulary.en"
 

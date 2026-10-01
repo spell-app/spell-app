@@ -1,4 +1,4 @@
-import { P } from "#parser"
+import { P } from "$/parser"
 
 /**
  * `ScopeConstant` a constant defined within a `Scope`.

@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-table>` uses:  tag, attributes (kind + allowed values), events, slots, parts, texts.
- * Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar, and are MIRRORED onto the slotted
  *   `<table>` (see `UITable`):  `<ui-table size="small" celled basic="very" stuck="head first">` =>
  *   `ui small celled very basic head stuck first stuck table`.
@@ -10,7 +10,7 @@
  *   list is `column-defs` (`columnDefs`), so the two never collide.
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-table>`

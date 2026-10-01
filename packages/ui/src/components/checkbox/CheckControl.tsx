@@ -11,8 +11,8 @@ import {
   type FieldValue,
   type StateName,
   type ValidationResult
-} from "$/core"
-import { ControlLabels, FormElement } from "$/forms"
+} from "$/ui/core"
+import { ControlLabels, FormElement } from "$/ui/forms"
 
 import { checkboxVocabulary, radioVocabulary } from "./checkbox.vocabulary.en"
 import { CheckboxFallback } from "./checkbox.fallback"

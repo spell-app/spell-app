@@ -1,6 +1,6 @@
 /**
  * "Run Project":  runs a spell project in a webview beside its code, re-running each time the project compiles.
- * - The webview's code is `spell-app`'s runner bundle (`yarn build:runner` => `dist-runner/`,
+ * - The webview's code is `app`'s runner bundle (`yarn build:runner` => `dist-runner/`,
  *   from `src/app/runner/`), with Semantic UI + Lato straight from its `static/`.
  * - Server compiles, NOT us:  `spell/compileProject`, answered by `spell/projectCompiled` with the javascript.
  * - Also re-runs when the project's `<Project>.compiled.js` changes on disk, e.g. compiled by the web app.
@@ -52,8 +52,8 @@ export class RunnerPanel {
     this.uri = uri
     // the compiled file is in the project's folder too
     this.settingsUri = vscode.Uri.joinPath(vscode.Uri.parse(info.compiledUri), "..", SETTINGS_FILE)
-    const runner = vscode.Uri.file(resolve(repoRoot, "packages/spell-app/dist-runner"))
-    const statics = vscode.Uri.file(resolve(repoRoot, "packages/spell-app/static"))
+    const runner = vscode.Uri.file(resolve(repoRoot, "packages/app/dist-runner"))
+    const statics = vscode.Uri.file(resolve(repoRoot, "packages/app/static"))
     this.panel = vscode.window.createWebviewPanel(
       "spell.runner",
       `Run ${info.project.split(":").pop()}`,
@@ -103,7 +103,7 @@ export class RunnerPanel {
   static async show(client: LanguageClient, repoRoot: string): Promise<void> {
     const document = vscode.window.activeTextEditor?.document
     if (document?.languageId !== "spell") return
-    const spellApp = resolve(repoRoot, "packages/spell-app")
+    const spellApp = resolve(repoRoot, "packages/app")
     if (!existsSync(resolve(spellApp, "dist-runner/runner.js"))) {
       void vscode.window.showErrorMessage(`Spell:  no runner bundle.  Run \`yarn build:runner\` in '${spellApp}'.`)
       return
@@ -275,7 +275,7 @@ export class RunnerPanel {
     const csp = [
       "default-src 'none'",
       `script-src ${source} blob:`,
-      // the runner fetches its own copy of the spell runtime -- see `loadRuntime()` in `spell-app`
+      // the runner fetches its own copy of the spell runtime -- see `loadRuntime()` in `app`
       `connect-src ${source}`,
       `style-src ${source} 'unsafe-inline'`,
       `font-src ${source} data:`,
@@ -314,7 +314,7 @@ const PARSE_ERROR_MARKER = "/* PARSE ERROR:"
 
 ////////////////
 // ## Protocol types
-//  NOTE: restated from `spell-app` (`runner.types.ts`), which this project can't import -- change both together.
+//  NOTE: restated from `app` (`runner.types.ts`), which this project can't import -- change both together.
 ////////////////
 
 /** Answer to `spell/project`, as `LSP.ProjectInfo` -- just what we read. */

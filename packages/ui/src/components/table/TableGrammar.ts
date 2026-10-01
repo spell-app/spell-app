@@ -1,4 +1,4 @@
-import { ClassBuilder, numberToWord, ValueSets, type ComponentVocabulary, type TableColumn } from "$/core"
+import { ClassBuilder, numberToWord, ValueSets, type ComponentVocabulary, type TableColumn } from "$/ui/core"
 
 import { tableVocabulary } from "./table.vocabulary.en"
 

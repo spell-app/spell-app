@@ -11,7 +11,7 @@ import {
   type AttributeName,
   type CardSharedVariation,
   type UIHost
-} from "$/core"
+} from "$/ui/core"
 
 import { cardVocabulary } from "./card.vocabulary.en"
 import { CardFallback } from "./card.fallback"

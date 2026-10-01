@@ -9,7 +9,7 @@ import {
   type ItemOwner,
   type ListSelectDetail,
   type UIHost
-} from "$/core"
+} from "$/ui/core"
 
 import { listVocabulary } from "./list.vocabulary.en"
 import { ListFallback } from "./list.fallback"

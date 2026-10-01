@@ -1,7 +1,7 @@
 import { Show, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { IconGlyph, proto, SlotContent, UIElement, type MessageDismissDetail } from "$/core"
+import { IconGlyph, proto, SlotContent, UIElement, type MessageDismissDetail } from "$/ui/core"
 
 import { messageVocabulary } from "./message.vocabulary.en"
 import { MessageFallback } from "./message.fallback"

@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest"
 
-import { colorsCSS, foundationCSS } from "$/styles"
+import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$test/fixture"
-import { Sheets } from "$test/sheets"
+import { Fixture } from "$/ui/test/fixture"
+import { Sheets } from "$/ui/test/sheets"
 
 import { dividerVocabulary } from "./divider.vocabulary.en"
 

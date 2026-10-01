@@ -2,14 +2,14 @@
 
 /**
  * The package tooling's command line:  `tsx tools/cli.ts <command>` (the root `yarn vendor`, `yarn measure` ...).
- * - `vendor` -- `PeerVendor`:  one ES module per peer specifier (`solid-js`, `@solidjs/web`, `@spell/solid-element`)
+ * - `vendor` -- `PeerVendor`:  one ES module per peer specifier (`solid-js`, `@solidjs/web`, `@spell-app/solid-element`)
  *   in `vendor/` + `vendor/importmap.json`, tree-shaken to what `dist/` and the smoke pages import
  * - `measure` -- `BundleMeasure`:  `tools/results/measure-results.json` (library / core / forms / own per family /
  *   scenarios / checks)
  * - `smoke` -- `SmokeRunner`:  `dist/` + `vendor/` through an import map, the framework host pages (the Solid 2 app
  *   on the SAME vendored Solid as the components) + the extra pages, headless chromium;
  *   `tools/results/smoke-results.json`
- * - `declarations` -- `DeclarationCheck`:  `dist/**.d.ts` resolve for a consumer (no `#util` / `$/`, nothing outside `dist/`)
+ * - `declarations` -- `DeclarationCheck`:  `dist/**.d.ts` resolve for a consumer (no `$/` alias, nothing outside `dist/`)
  * - `serve` -- the same pages and import map for a person:  prints the URLs, runs until killed
  * - `loc` / `report` -- `LocCount` (`loc-results.json`), then `ReportTables` rewrites `docs/report.md`'s generated
  *   tables

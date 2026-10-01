@@ -1,12 +1,12 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 
-import { PLACEHOLDER_HOST_STATE } from "$/components/components.types"
-import { expectAccessible } from "$test/a11y"
+import { PLACEHOLDER_HOST_STATE } from "$/ui/components/components.types"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
 
-import "$/components/placeholder"
+import "$/ui/components/placeholder"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/placeholder/examples/elements/*.html", {

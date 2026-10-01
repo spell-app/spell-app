@@ -1,7 +1,7 @@
 # AGENTS.md
 
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
-when working with code in this package, `@spell/cli`.
+when working with code in this package, `@spell-app/cli`.
 
 **Root conventions apply:  READ the repo root's `AGENTS.md` FIRST** -- its Documentation, Functions,
 Types / Exports and Imports sections all apply here.  Only what DIFFERS is below.
@@ -11,11 +11,11 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
 - This package is the `spell` command-line tool, and nothing else:  `bin/spell.mjs` runs `src/main.ts` through `tsx`.
   `README.md` has instructions, caveats and TODO.
 - Spell itself is NOT here.  It's the spell-family packages beside this one -- `../lsp`, `../spell`, `../parser`,
-  `../spell-core`, `../spell-util` -- as is `ui` (`../ui`, `@spell/ui`);  `package.json` depends on
+  `../core`, `../util` -- as is `ui` (`../ui`, `@spell-app/ui`);  `package.json` depends on
   `spell` and `ui` as workspaces (`workspace:*`), and the aliases reach the rest.
-  - Their SOURCE runs, with no build:  `#lsp`, `#spell`, `#parser` ... are `../lsp/src/...`, `../spell/src/...`,
+  - Their SOURCE runs, with no build:  `$/lsp`, `$/spell`, `$/parser` ... are `../lsp/src/...`, `../spell/src/...`,
     `../parser/src/...`.
-  - `#cli` (`CLI`) is OUR `src/`;  so `src/foo.ts` is `#cli/foo`.
+  - `$/cli` (`CLI`) is OUR `src/`;  so `src/foo.ts` is `$/cli/foo`.
   - That's set ONCE, in the repo root's `tsconfig.base.json` (one alias table for every package):  `tsc` and `tsx` read it through `tsconfig.json`, and
     `vitest` through `resolve.tsconfigPaths`.
   - `tsconfig.json` extends that table, since the other packages' files compile through it.  So `yarn ts` here
@@ -28,15 +28,15 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
   - `console.*` is SILENCED -- output goes to `process.stdout` / `stderr`.  See `src/consoleGuard.ts`.
   - An Ink screen MUST render with `patchConsole: false`, or Ink puts `console.*` back on screen.
   - Ink is pinned at 5:  6+ needs React 19.
-- `src/runner/` is the CHILD process of `spell run` / `spell test`.  It NEVER imports `#cli`'s values:
+- `src/runner/` is the CHILD process of `spell run` / `spell test`.  It NEVER imports `$/cli`'s values:
   it needs only spell's runtime.
 - Each command is `src/commands/<name>Command.ts`:  `(session, args, options) => Promise<exitCode>`, wired up
   in `main.ts`.
 
 ## Imports
 
-- As the root's rules, with `CLI` ~== `#cli` as our one namespace:  `import { CLI } from "#cli"`.
-- Import order puts the other packages' barrels (`#spell`, `#lsp`) before our own.
+- As the root's rules, with `CLI` ~== `$/cli` as our one namespace:  `import { CLI } from "$/cli"`.
+- Import order puts the other packages' barrels (`$/spell`, `$/lsp`) before our own.
 - `main.ts` and `consoleGuard.ts` are NOT in the barrel:  importing either has side effects.
 
 ## Tests

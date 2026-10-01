@@ -6,8 +6,8 @@ import {
   type FormRules,
   type FormValues,
   type ValidationRule
-} from "$/core"
-import { Validator } from "$/forms"
+} from "$/ui/core"
+import { Validator } from "$/ui/forms"
 
 /** One named field:  its controls, in document order. */
 type Field = {

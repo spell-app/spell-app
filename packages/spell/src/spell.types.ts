@@ -1,12 +1,12 @@
 /**
  * Shared types for spell language layer.
- * - `import type` only, per `AGENTS.md` -- the `#parser/rulex` registration this file used to carry
+ * - `import type` only, per `AGENTS.md` -- the `$/parser/rulex` registration this file used to carry
  *   now lives in `SpellParser.ts`, which every rule module imports anyway.
  * - NOTE: `rules/Statement.ts` imports `BODY_KEYWORDS` from here directly, so this MUST stay free of
  *   runtime imports.
  */
 
-import type { P } from "#parser"
+import type { P } from "$/parser"
 import type { SpellLocation } from "./SpellLocation"
 import type { SpellFile } from "./SpellFile"
 import type { SpellJSFile } from "./SpellJSFile"
@@ -36,7 +36,7 @@ export const COMPILED_JS_SUFFIX = ".compiled.js"
 
 /**
  * End of a test fixture's snapshot file's name, e.g. `Solitaire.snapshot.js` -- its compiled output, which
- * `#spell/test`'s `fixtures.test.ts` checks against.
+ * `$/spell/test`'s `fixtures.test.ts` checks against.
  * - NEVER one of a project's own files:  the server leaves it out of the manifest, as `COMPILED_JS_SUFFIX`.
  */
 export const SNAPSHOT_JS_SUFFIX = ".snapshot.js"
@@ -229,7 +229,7 @@ export const BODY_KEYWORDS: Record<string, Omit<StatementBodySpec, "syntaxRule">
 
 /**
  * Semver of the spell LANGUAGE and its compiler -- stamped on every project's declarations as `spellVersion`.
- * - Set by hand, NOT from `package.json`:  the app's version (`PACKAGE_VERSION` in `#spell-util`) changes for
+ * - Set by hand, NOT from `package.json`:  the app's version (`PACKAGE_VERSION` in `$/util`) changes for
  *   reasons that don't touch what compiled projects can read.
  * - Bump the MAJOR when declarations' shape, or generated-name mangling (e.g. `frobnicate_$thing`), changes:
  *   declarations from another major are refused.

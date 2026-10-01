@@ -1,4 +1,4 @@
-import { NativeFallback, proto, type EventName, type NagCloseDetail } from "$/core"
+import { NativeFallback, proto, type EventName, type NagCloseDetail } from "$/ui/core"
 
 import { nagVocabulary } from "./nag.vocabulary.en"
 

@@ -1,5 +1,5 @@
 /*
- * Cascade layer order for `@spell/ui` -- MUST be the first sheet in the document AND in every shadow root.
+ * Cascade layer order for `@spell-app/ui` -- MUST be the first sheet in the document AND in every shadow root.
  * - Why:  layer order is fixed by the first `@layer` statement a tree scope sees, and each shadow root is
  *   its own scope.  Adopting this sheet first means every later sheet slots into the same order,
  *   whichever loads first.

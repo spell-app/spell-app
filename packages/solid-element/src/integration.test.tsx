@@ -1,10 +1,10 @@
 /*!
- * @spell/solid-element -- MIT licence.
+ * @spell-app/solid-element -- MIT licence.
  * A fork of `@solidjs/element` and `component-register` (MIT, (c) Ryan Carniato).
  */
 
 /**
- * Integration:  one realistic form control using every fix together -- the shape `@spell/ui`'s `ui-dropdown`
+ * Integration:  one realistic form control using every fix together -- the shape `@spell-app/ui`'s `ui-dropdown`
  * needs.
  */
 

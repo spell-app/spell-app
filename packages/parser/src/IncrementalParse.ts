@@ -1,4 +1,4 @@
-import { P } from "#parser"
+import { P } from "$/parser"
 
 /**
  * Parse one file so that after an edit, `update(newText)` can re-use as much of the last parse as possible --

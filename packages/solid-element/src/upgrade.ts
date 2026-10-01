@@ -1,5 +1,5 @@
 /*!
- * @spell/solid-element -- MIT licence.
+ * @spell-app/solid-element -- MIT licence.
  * A fork of `@solidjs/element` and `component-register` (MIT, (c) Ryan Carniato).
  */
 

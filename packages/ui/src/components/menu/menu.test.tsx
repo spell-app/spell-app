@@ -1,16 +1,16 @@
 import { userEvent } from "vitest/browser"
 import { describe, expect, it, onTestFinished } from "vitest"
 
-import { expectAccessible } from "$test/a11y"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
 
-import "$/components/menu"
-import "$/components/parts"
-import "$/components/icon"
-import "$/components/segment"
-import "$/components/dropdown"
+import "$/ui/components/menu"
+import "$/ui/components/parts"
+import "$/ui/components/icon"
+import "$/ui/components/segment"
+import "$/ui/components/dropdown"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/menu/examples/elements/*.html", {

@@ -17,7 +17,7 @@ import {
   type SidebarLayout,
   type SidebarOpenDetail,
   type UIHost
-} from "$/core"
+} from "$/ui/core"
 
 import { sidebarVocabulary } from "./sidebar.vocabulary.en"
 import type { UIPushable } from "./UIPushable"

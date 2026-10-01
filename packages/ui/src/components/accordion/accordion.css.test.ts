@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest"
 
-import { foundationCSS } from "$/styles"
+import { foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$test/fixture"
-import { Sheets } from "$test/sheets"
+import { Fixture } from "$/ui/test/fixture"
+import { Sheets } from "$/ui/test/sheets"
 
 import { accordionVocabulary } from "./accordion.vocabulary.en"
 
 import accordionCSS from "./accordion.css?inline"
 import accordionRaw from "./accordion.css?raw"
-import segmentCSS from "$/components/segment/segment.css?inline"
+import segmentCSS from "$/ui/components/segment/segment.css?inline"
 
 /**
  * `accordion.css` on its own, before any element exists:  the sheet's source rules and the computed styles of the

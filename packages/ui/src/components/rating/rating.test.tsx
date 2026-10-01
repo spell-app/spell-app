@@ -1,12 +1,12 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 import { userEvent } from "vitest/browser"
 
-import type { FormHost } from "$/elements"
-import { expectAccessible } from "$test/a11y"
+import type { FormHost } from "$/ui/elements"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
+import { ElementFixture } from "$/ui/test/ElementFixture"
 
-import "$/components/rating"
+import "$/ui/components/rating"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/rating/examples/elements/*.html", {

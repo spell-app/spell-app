@@ -1,5 +1,5 @@
-import { proto, suggest } from "$/util"
-import { Converters } from "$/vocabulary"
+import { proto, suggest } from "$/ui/util"
+import { Converters } from "$/ui/vocabulary"
 
 import type {
   CreditCardSpec,

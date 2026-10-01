@@ -1,10 +1,10 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 
-import { ClassBuilder } from "$/elements"
-import { colorsCSS, foundationCSS } from "$/styles"
-import type { ComponentVocabulary } from "$/vocabulary"
+import { ClassBuilder } from "$/ui/elements"
+import { colorsCSS, foundationCSS } from "$/ui/styles"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
-import { Fixture } from "$test/fixture"
+import { Fixture } from "$/ui/test/fixture"
 
 import { buttonsVocabulary, buttonVocabulary, orVocabulary } from "./button.vocabulary.en"
 

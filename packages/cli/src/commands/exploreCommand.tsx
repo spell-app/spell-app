@@ -2,9 +2,9 @@ import { spawnSync } from "child_process"
 import { render } from "ink"
 import { fileURLToPath } from "url"
 
-import { SP } from "#spell"
-import { LSP } from "#lsp"
-import { CLI } from "#cli"
+import { SP } from "$/spell"
+import { LSP } from "$/lsp"
+import { CLI } from "$/cli"
 
 /** Switch the terminal to its alternate screen, and back -- so exploring leaves your scrollback as it was. */
 const ALTERNATE_SCREEN = { enter: "\u001B[?1049h\u001B[H", leave: "\u001B[?1049l" }

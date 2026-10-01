@@ -1,5 +1,5 @@
 /**
- * Barrel for the reveal component -- also the `reveal` lib entry (`@spell/ui/reveal`), measured in
+ * Barrel for the reveal component -- also the `reveal` lib entry (`@spell-app/ui/reveal`), measured in
  * `docs/report.md`.
  * - SIDE EFFECT:  defines `<ui-reveal>`.
  */

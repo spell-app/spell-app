@@ -4,7 +4,7 @@
 
 ## Context
 
-- Owen will build the spell app on Solid 2.  If `@spell/ui` components share the app's copy of Solid, the Solid runtime costs nothing extra per page, and app signals / context can flow straight into components.
+- Owen will build the spell app on Solid 2.  If `@spell-app/ui` components share the app's copy of Solid, the Solid runtime costs nothing extra per page, and app signals / context can flow straight into components.
 - Today neither spike shares anything:
   - every build bundles its base library (Lit 7.5 KB, Solid 28 KB gzip) and our element core into each measured widget
   - smoke pages import `src/` through the dev server, never `dist/`
@@ -36,7 +36,7 @@
   - `sideEffects`:  component entries + CSS
 - Vite library config (`spike/lit/vite.config.ts`, `spike/solid/vite.config.ts` + `vite.shared.ts`):
   - `rolldownOptions.external` as a function:  `/^lit(\/|$)|^lit-(html|element)(\/|$)|^@lit\//` for Lit;  `/^solid-js(\/|$)|^@solidjs\//` + the fork for Solid (subpath imports included)
-  - a new `core` lib entry exporting the spike element core AND the foundation it uses (`$/elements`, `$/vocabulary`, `$/util`, the `$/runtime` loader, `Icons`), so component entries import it instead of inlining it
+  - a new `core` lib entry exporting the spike element core AND the foundation it uses (`$/ui/elements`, `$/ui/vocabulary`, `$/ui/util`, the `$/ui/runtime` loader, `Icons`), so component entries import it instead of inlining it
   - keep the `UIRuntime` chunk and icon data as lazy dynamic chunks (unchanged)
 - One shared measurer, `spike/shared/SpikeMeasure.ts` (class), used by both spikes' `measure` scripts so numbers are comparable:
   - in-memory `vite build` (Lit's approach), bucket modules by id:  `library` (external -- measured separately by bundling the peer set once), `core`, `runtime (lazy)`, `icons (lazy)`, and per family `own` = classes + `<name>.css` + vocabulary
@@ -45,15 +45,15 @@
   - writes `measure-results.json` per spike
 - Import-map smoke pages, SHARED by both spikes (`spike/shared/frameworks/`), so both run the identical checks:
   - `yarn build` then serve the spike's `dist/` + a vendored copy of its peer set (a tiny `vendor` build of the `lit` / `solid-js` subpaths used) so pages run offline and deterministically
-  - one page per host (`vanilla`, `react`, `vue`, `solid`) + the existing `check.js` round trip;  the smoke runner writes the spike-specific `<script type="importmap">` (mapping `lit` / `solid-js` / `@solidjs/web` / `@spell/ui/…` to that spike's files) into each page;  React and Vue still come from esm.sh
+  - one page per host (`vanilla`, `react`, `vue`, `solid`) + the existing `check.js` round trip;  the smoke runner writes the spike-specific `<script type="importmap">` (mapping `lit` / `solid-js` / `@solidjs/web` / `@spell-app/ui/…` to that spike's files) into each page;  React and Vue still come from esm.sh
   - Solid 2.0 everywhere:  the `solid` host page is a small Solid 2 app (`spike/shared/frameworks/solid/app.tsx`) compiled once with the Solid 2 plugin, with `solid-js` / `@solidjs/web` external, used for BOTH spikes
     - on the Solid spike it additionally proves:  one `solid-js` module instance shared by app and components (assert a module-level identity), app context reaches a component (owner adoption), an app signal drives a component prop with no glue, `ui-change` updates the app signal
     - on the Lit spike it is the plain "Solid 2 app consuming custom elements" check
   - Compatibility checks, clearly labelled as such in page title and report:  `compat-solid-1.9.html` (older Solid host alongside our Solid 2 copy) and `compat-duplicate-lit.html` (a second Lit copy loaded by full URL);  nothing else uses Solid 1.x
 
-### 2. Forked Solid element layer:  `spike/solid-element/` (`@spell/solid-element`)
+### 2. Forked Solid element layer:  `spike/solid-element/` (`@spell-app/solid-element`)
 
-- New self-contained TypeScript package (MIT, header crediting `@solidjs/element` / `component-register`), linked into `spike/solid` with `"@spell/solid-element": "link:../solid-element"`
+- New self-contained TypeScript package (MIT, header crediting `@solidjs/element` / `component-register`), linked into `spike/solid` with `"@spell-app/solid-element": "link:../solid-element"`
 - API is a SUPERSET of `@solidjs/element` (same `customElement(tag, props, Component)`, `withSolid`, `noShadowDOM`, `getCurrentElement`) so it could replace it upstream;  additions go in an optional 4th `options` argument
 - Fixes, each isolated in its own module + test so it maps to one upstream PR:
   1. Options:  `{ BaseElement, registry, shadowRootInit: { mode, delegatesFocus } | false, formAssociated, internals }`;  the package defines the class itself (no capturing-registry trick)

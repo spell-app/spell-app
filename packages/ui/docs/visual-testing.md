@@ -128,8 +128,8 @@ show their closed state from the example.  To capture them open, add `<example>.
 
 ```ts
 // src/components/modal/examples/elements/types.visual.ts
-import { VisualOpen } from "$test/VisualOpen"
-import type { VisualHooks } from "$test/test.types"
+import { VisualOpen } from "$/ui/test/VisualOpen"
+import type { VisualHooks } from "$/ui/test/test.types"
 
 /**
  * Open states of `types.html` for `yarn test:visual`:  each modal shown.
@@ -151,8 +151,8 @@ export default {
   inside the box, or give the example room (the dropdown example's bottom padding).
 - `mask`:  selectors (Playwright CSS, piercing shadow roots) painted over in every capture of the example.  Prefer
   fixing the source (frozen time, disabled animation) over a mask.
-- The node side IMPORTS the hook file for its state names, so:  no value imports besides `$test/VisualOpen`, and
-  runtime code imported INSIDE `open()` (`const { UI } = await import("$/runtime")`, see the toast hooks).
+- The node side IMPORTS the hook file for its state names, so:  no value imports besides `$/ui/test/VisualOpen`, and
+  runtime code imported INSIDE `open()` (`const { UI } = await import("$/ui/runtime")`, see the toast hooks).
 - State names are kebab case:  they become part of the file name.
 
 ## Tolerances

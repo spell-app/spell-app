@@ -1,4 +1,4 @@
-import { UIHost, type ShapeFlip } from "$/core"
+import { UIHost, type ShapeFlip } from "$/ui/core"
 
 import type { UIShape } from "./UIShape"
 

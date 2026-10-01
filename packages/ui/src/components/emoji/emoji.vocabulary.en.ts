@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-emoji>` uses:  tag, attributes (kind + allowed values), parts, states.
- * Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`:  `<ui-emoji name="smile" size="large" link>` => `ui large link
  *   emoji`.  Fomantic's own markup is `<em data-emoji=":smile:" class="large link">` (no `ui`, no noun) drawing a
  *   Twemoji SVG from a CDN;  here the glyph is the NATIVE Unicode character, so the grammar gets its noun back.
@@ -13,7 +13,7 @@
  *   - `label=""` (bare):  decorative, `aria-hidden`
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-emoji>`

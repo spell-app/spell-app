@@ -32,10 +32,10 @@ import {
   type WorkspaceSymbol
 } from "vscode-languageserver"
 
-import { typeCase } from "#spell-util"
-import { P } from "#parser"
-import { SP } from "#spell"
-import type { LSP } from "#lsp"
+import { typeCase } from "$/util"
+import { P } from "$/parser"
+import { SP } from "$/spell"
+import type { LSP } from "$/lsp"
 
 /**
  * Answers editor questions about parsed spell files, in Language Server Protocol shapes -- one method per request.

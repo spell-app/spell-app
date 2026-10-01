@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-search>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-search category fluid aligned="right">` => `ui category fluid right aligned search`.  `search.css` keys on
  *   those words.
@@ -8,7 +8,7 @@
  *   are all SSR must show.
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-search>`

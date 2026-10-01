@@ -1,5 +1,5 @@
 // through the `core` ENTRY, see `FormElement.ts`
-import { UIHost } from "$/core"
+import { UIHost } from "$/ui/core"
 
 /**
  * Host base of form-associated components (`ui-dropdown`, and `ui-button` for `type=submit|reset`):  the usual

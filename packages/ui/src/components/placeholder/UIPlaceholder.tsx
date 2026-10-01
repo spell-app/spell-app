@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { PLACEHOLDER_HOST_STATE, proto, UIElement } from "$/core"
+import { PLACEHOLDER_HOST_STATE, proto, UIElement } from "$/ui/core"
 
 import { placeholderVocabulary } from "./placeholder.vocabulary.en"
 import { PlaceholderFallback } from "./placeholder.fallback"

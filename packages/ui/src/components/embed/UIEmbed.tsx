@@ -1,7 +1,7 @@
 import { Show, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { IconGlyph, proto, UIElement, type AttributeName, type EmbedActivateDetail, type EmbedSource } from "$/core"
+import { IconGlyph, proto, UIElement, type AttributeName, type EmbedActivateDetail, type EmbedSource } from "$/ui/core"
 
 import { embedVocabulary } from "./embed.vocabulary.en"
 import { EmbedFallback } from "./embed.fallback"

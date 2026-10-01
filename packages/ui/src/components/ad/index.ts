@@ -1,5 +1,5 @@
 /**
- * Barrel for the ad component -- also the `ad` lib entry (`@spell/ui/ad`), measured in `docs/report.md`.
+ * Barrel for the ad component -- also the `ad` lib entry (`@spell-app/ui/ad`), measured in `docs/report.md`.
  * - SIDE EFFECT:  defines `<ui-ad>`.
  */
 

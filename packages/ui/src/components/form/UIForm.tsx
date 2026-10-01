@@ -13,7 +13,7 @@ import {
   type FormSuccessDetail,
   type FormValidDetail,
   type FormValues
-} from "$/core"
+} from "$/ui/core"
 
 import { formVocabulary } from "./form.vocabulary.en"
 import { FormFallback } from "./form.fallback"

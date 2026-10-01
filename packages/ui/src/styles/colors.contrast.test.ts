@@ -1,9 +1,9 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 
-import { hueAliases, hueStates, hues, semanticAliases, semanticColors, type Oklch } from "$/styles"
-import { ColorContrast } from "$/styles/ColorContrast"
+import { hueAliases, hueStates, hues, semanticAliases, semanticColors, type Oklch } from "$/ui/styles"
+import { ColorContrast } from "$/ui/styles/ColorContrast"
 
-import { Fixture } from "$test/fixture"
+import { Fixture } from "$/ui/test/fixture"
 
 import layersRaw from "./layers.css?raw"
 import tokensRaw from "./tokens.css?raw"

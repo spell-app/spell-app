@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { type ComponentVocabulary, type Dictionary, Vocabulary } from "$/vocabulary"
+import { type ComponentVocabulary, type Dictionary, Vocabulary } from "$/ui/vocabulary"
 
 /** Cut-down card vocabulary, shaped like a real `card.vocabulary.en.ts`. */
 const card = {

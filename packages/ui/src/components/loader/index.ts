@@ -1,5 +1,5 @@
 /**
- * Barrel for the loader -- also the `loader` lib entry (`@spell/ui/loader`), measured in `docs/report.md`.
+ * Barrel for the loader -- also the `loader` lib entry (`@spell-app/ui/loader`), measured in `docs/report.md`.
  * - SIDE EFFECT:  defines `<ui-loader>`.
  */
 

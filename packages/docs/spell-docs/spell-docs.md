@@ -4,7 +4,7 @@ The mechanics behind every page in `packages/docs`:  what loads, what the runtim
 For people:  `spell-docs.html` beside this explains the concept and `/plan-doc`;  this is the distilled version.
 How to WRITE a page (headings, widgets, code, links):  `../AGENTS.md`.  The scripts are the truth where this drifts.
 
-@spell/ui is unfinished, and these pages are also a test of it.  Work around a UI problem here when that's
+@spell-app/ui is unfinished, and these pages are also a test of it.  Work around a UI problem here when that's
 reasonable, fix it in `packages/ui` when it's a real `ui` bug, and record it either way in `spell-ui-findings.md`.
 
 ## History
@@ -18,7 +18,7 @@ reasonable, fix it in `packages/ui` when it's a real `ui` bug, and record it eit
 ## Hard constraints
 
 - Pages are opened straight from disk (`file://`).  Browsers block ES modules there, so a page loads ONE classic
-  script, `_assets/spell-ui.js`:  an IIFE bundle of Solid + @spell/ui + the page runtime.  No `type="module"`, no
+  script, `_assets/spell-ui.js`:  an IIFE bundle of Solid + @spell-app/ui + the page runtime.  No `type="module"`, no
   `import()` at runtime, no fetches of sibling files.
 - Icons:  UI's icon packs load with `import()` + `fetch`, so they can't work here.  The bundle carries the icons the
   widgets and pages use (`ICONS` in `scripts/bundle-spell-ui.js`), `UI.icons.register()`ed at start-up, and drops the

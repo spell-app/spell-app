@@ -1,14 +1,14 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 
-import { BREADCRUMB_DIVIDER_TOKENS } from "$/components/components.types"
-import { UI } from "$/runtime"
-import { expectAccessible } from "$test/a11y"
+import { BREADCRUMB_DIVIDER_TOKENS } from "$/ui/components/components.types"
+import { UI } from "$/ui/runtime"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
 import { BreadcrumbDivider } from "./BreadcrumbDivider"
 
-import "$/components/breadcrumb"
+import "$/ui/components/breadcrumb"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/breadcrumb/examples/elements/*.html", {

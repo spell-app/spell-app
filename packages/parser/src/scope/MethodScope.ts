@@ -1,4 +1,4 @@
-import { P } from "#parser"
+import { P } from "$/parser"
 import { BlockScope } from "./BlockScope"
 
 /**

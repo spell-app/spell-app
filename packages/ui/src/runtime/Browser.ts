@@ -1,4 +1,4 @@
-import { isBrowser } from "$/util"
+import { isBrowser } from "$/ui/util"
 
 import { APPLE_PLATFORM, type BrowserSupports } from "./runtime.types"
 

@@ -1,16 +1,16 @@
-import { PART_NOUNS } from "$/components/parts/parts.vocabulary.en"
+import { PART_NOUNS } from "$/ui/components/parts/parts.vocabulary.en"
 
 /**
  * Auto-loader for live examples:  imports the component FAMILY for every undefined `ui-*` tag on the page.
  * - Why:  MDX treats `<script>` as JSX (it is NOT bundled like an `.astro` script), so an MDX page can't import a
  *   component client-side on its own.  This makes every page "just work":  write `<ui-button>` in an example and
- *   `$/components/button/index.ts` loads (it defines `ui-button`, `ui-buttons`, `ui-or`), on the pages that use it
+ *   `$/ui/components/button/index.ts` loads (it defines `ui-button`, `ui-buttons`, `ui-or`), on the pages that use it
  *   only.
  * - Tag => family:  `ui-<family>` or its plural (`ui-buttons`), a content part (`ui-header` => `parts`, from
  *   `PART_NOUNS`), a family-prefixed sub-tag (`ui-breadcrumb-section`, `ui-placeholder-line`), or `EXTRA_TAGS`.
  * - Imports source through the `$` alias, so the site always shows the working tree, not a build.
  */
-const MODULES = import.meta.glob("$/components/*/index.ts")
+const MODULES = import.meta.glob("$/ui/components/*/index.ts")
 
 /** Family name => loader for `src/components/<family>/index.ts`. */
 const FAMILIES = new Map<string, () => Promise<unknown>>()

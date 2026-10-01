@@ -1,12 +1,12 @@
 /*!
- * @spell/solid-element -- MIT licence.
+ * @spell-app/solid-element -- MIT licence.
  * A fork of `@solidjs/element` and `component-register` (MIT, (c) Ryan Carniato).
  */
 
 /**
  * `yarn measure`:  size and LOC of this package vs `@solidjs/element` + `component-register`.
  * - Size:  each entry bundled with esbuild, minified, `solid-js` / `@solidjs/*` external, then gzip level 9
- *   (kB = 1000 bytes), as `@spell/ui`'s `yarn measure` does.  `import.meta.hot` => `undefined`, as in a production
+ *   (kB = 1000 bytes), as `@spell-app/ui`'s `yarn measure` does.  `import.meta.hot` => `undefined`, as in a production
  *   build.
  * - LOC:  `wc -l` of the sources (tests and `testing.ts` excluded), plus "code" lines (not blank, not comment).
  * - Writes `measure-results.json`.
@@ -41,7 +41,7 @@ console.log(
     "| | min | min + gzip 9 | LOC (all) | LOC (code) |",
     "|---|---:|---:|---:|---:|",
     row("`@solidjs/element` rc.11 + `component-register` 0.8.8", original, results.loc.original),
-    row("`@spell/solid-element`", fork, results.loc.fork)
+    row("`@spell-app/solid-element`", fork, results.loc.fork)
   ].join("\n")
 )
 

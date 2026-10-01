@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-input>` and `<ui-textarea>` use:  tags, attributes (kind + allowed values), events, slots, parts,
- * states, texts.  Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * states, texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-input icon="search" icon-position="left" labeled="right" size="small">` =>
  *   `ui small left icon right labeled input`.  The element adds `icon` (no position), `labeled` / `action` (a
@@ -12,7 +12,7 @@
  *   merges with the Fomantic `rules` property's.
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /** Input types passed through to the inner `<input>`. */
 const INPUT_TYPES = [

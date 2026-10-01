@@ -1,4 +1,4 @@
-import { camelCase } from "$/core"
+import { camelCase } from "$/ui/core"
 
 import { flagAliases, flagEmoji } from "./flag.vocabulary.en"
 

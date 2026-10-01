@@ -4,9 +4,9 @@
  */
 import type { Request, Response } from "express"
 
-import environment from "#spell/node/environment"
+import environment from "$/spell/node/environment"
 
-import { SP } from "#spell"
+import { SP } from "$/spell"
 
 import * as fileUtils from "./file-utils"
 import * as responseUtils from "./response-utils"

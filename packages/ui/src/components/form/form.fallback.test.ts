@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 
-import { Fixture } from "$test/fixture"
-import { FallbackStub, type StubHost } from "$/components/fallback.stub"
+import { Fixture } from "$/ui/test/fixture"
+import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
 
 import { FormFallback } from "./form.fallback"
 

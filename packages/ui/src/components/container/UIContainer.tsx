@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement } from "$/core"
+import { proto, UIElement } from "$/ui/core"
 
 import { containerVocabulary } from "./container.vocabulary.en"
 import { ContainerFallback } from "./container.fallback"

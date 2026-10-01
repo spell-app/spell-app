@@ -9,16 +9,15 @@ import { readdirSync, readFileSync } from "node:fs"
 
 /** Package folder => folders that import it, directly or not.  MUST follow the one-way flow in `tsconfig.base.json`. */
 const DEPENDENTS = {
-  util: ["solid-element", "ui", "spell-util", "parser", "spell-core", "spell", "lsp", "spell-app", "cli"],
+  util: ["solid-element", "ui", "parser", "core", "spell", "lsp", "app", "cli"],
   "solid-element": ["ui", "cli"],
   ui: ["cli"],
-  "spell-util": ["parser", "spell-core", "spell", "lsp", "spell-app", "cli"],
-  parser: ["spell", "lsp", "spell-app", "cli"],
-  "spell-core": ["spell", "lsp", "spell-app", "cli"],
-  spell: ["lsp", "spell-app", "cli"],
-  lsp: ["spell-app", "cli"],
-  "spell-app": ["cli"],
-  // the extension runs `lsp` and `spell-app`'s runner, but has no checks of its own yet
+  parser: ["spell", "lsp", "app", "cli"],
+  core: ["spell", "lsp", "app", "cli"],
+  spell: ["lsp", "app", "cli"],
+  lsp: ["app", "cli"],
+  app: ["cli"],
+  // the extension runs `lsp` and `app`'s runner, but has no checks of its own yet
   vscode: [],
   cli: []
 }

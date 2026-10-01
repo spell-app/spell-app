@@ -14,7 +14,7 @@ import {
   type TableRow,
   type TableSortDetail,
   type TableSortDirection
-} from "$/core"
+} from "$/ui/core"
 
 import { tableVocabulary } from "./table.vocabulary.en"
 import { TableClassMirror } from "./TableClassMirror"

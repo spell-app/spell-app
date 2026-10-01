@@ -1,13 +1,13 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 
-import { expectAccessible } from "$test/a11y"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
 
-import "$/components/segment"
-import "$/components/parts"
-import "$/components/label"
+import "$/ui/components/segment"
+import "$/ui/components/parts"
+import "$/ui/components/label"
 
 /** Examples whose original fragment fails axe `heading-order` too (see `docs/report.md`). */
 const HEADING_DEMOS = ["parts/examples/elements/header.html", "segment/examples/elements/variations.html"]

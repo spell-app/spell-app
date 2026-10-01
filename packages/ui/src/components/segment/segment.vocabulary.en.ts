@@ -1,13 +1,13 @@
 /**
  * Every name `<ui-segment>` and `<ui-segments>` use:  tags, attributes (kind + allowed values), slots, parts,
- * states.  Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * states.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-segment raised padded="very" attached="top">` => `ui raised very padded top attached segment`.
  * - No `ownsParts`:  Fomantic's segment styles no content parts of its own.  What it hands its content is
  *   inherited (`--ui-inverted`, `color-scheme`, label owner tokens), see `segment.css`.
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-segment>`

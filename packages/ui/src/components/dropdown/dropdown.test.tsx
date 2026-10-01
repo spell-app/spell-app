@@ -1,14 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vitest"
 import { userEvent } from "vitest/browser"
 
-import { UI } from "$/runtime"
-import type { DropdownOptions } from "$/components/components.types"
-import { expectAccessible } from "$test/a11y"
+import { UI } from "$/ui/runtime"
+import type { DropdownOptions } from "$/ui/components/components.types"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
 
-import "$/components/dropdown"
+import "$/ui/components/dropdown"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/dropdown/examples/elements/*.html", {
@@ -430,7 +430,7 @@ describe("<ui-dropdown> value", () => {
     const late = container.firstElementChild as Dropdown
     late.options = [{ value: "a", text: "Alpha" }]
     late.value = "a"
-    const { UIDropdown } = await import("$/components/dropdown")
+    const { UIDropdown } = await import("$/ui/components/dropdown")
     UIDropdown.define("ui-late-dropdown")
     document.body.append(container)
     await ElementFixture.settle(container)

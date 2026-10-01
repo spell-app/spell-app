@@ -1,7 +1,7 @@
-import { CustomError } from "#spell-util"
-import type { P } from "#parser"
+import { CustomError } from "$/util"
+import type { P } from "$/parser"
 
-export type { RulexParser } from "#parser/rulex/RulexParser"
+export type { RulexParser } from "$/parser/rulex/RulexParser"
 
 // ## Patterns
 

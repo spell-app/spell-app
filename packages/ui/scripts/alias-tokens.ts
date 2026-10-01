@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, writeFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 
-import { ComponentTokens } from "$/styles/ComponentTokens"
+import { ComponentTokens } from "$/ui/styles/ComponentTokens"
 import { NodePackage } from "../tools/NodePackage.ts"
 
 /**
@@ -11,7 +11,7 @@ import { NodePackage } from "../tools/NodePackage.ts"
  *   write the alias, and every read in the family's sheets reads the alias.  See `ComponentTokens.convert()`.
  * - Without `--write` it only prints:  the notes to review, and every OTHER file still naming a converted token
  *   (other sheets' reads, tests, examples, docs) -- those need a human, see the recipe.
- * - NOTE: imports the leaf file, not the `$/styles` barrel (whose `?inline` imports only Vite understands).
+ * - NOTE: imports the leaf file, not the `$/ui/styles` barrel (whose `?inline` imports only Vite understands).
  */
 class AliasTokensCommand {
   /** repo root */

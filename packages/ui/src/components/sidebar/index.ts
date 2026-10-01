@@ -1,5 +1,5 @@
 /**
- * Barrel for the sidebar -- also the `sidebar` lib entry (`@spell/ui/sidebar`), measured in `docs/report.md`.
+ * Barrel for the sidebar -- also the `sidebar` lib entry (`@spell-app/ui/sidebar`), measured in `docs/report.md`.
  * - SIDE EFFECT:  defines `<ui-pushable>`, `<ui-pusher>` and `<ui-sidebar>`.
  * - NOTE: a sidebar's content (usually a `<ui-menu vertical>`) is the page's to import.
  */

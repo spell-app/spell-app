@@ -1,4 +1,4 @@
-import { Converters, proto, type EmbedSource } from "$/core"
+import { Converters, proto, type EmbedSource } from "$/ui/core"
 
 /****************
  * ### `EmbedSources`

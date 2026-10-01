@@ -1,11 +1,11 @@
 # Solid 2 -- rules for agents
 
 Distilled from `solid-2.html` (the why) and `cheatsheet.html` (the API) in this folder.  Read this BEFORE writing
-or reviewing Solid code, JSX, `spellCore` rendering, `~/util` reactivity, or anything touching `@spell/ui`.
+or reviewing Solid code, JSX, `spellCore` rendering, `~/util` reactivity, or anything touching `@spell-app/ui`.
 
 ## Status
 
-- We are moving from React 18 + semantic-ui-react + easy-state to Solid 2 on `@spell/ui` web components.
+- We are moving from React 18 + semantic-ui-react + easy-state to Solid 2 on `@spell-app/ui` web components.
   - Plan phases 0-6;  until Phase 6 React and Solid JSX COEXIST, split by path (`SOLID_FILES` in the vite configs).
   - Items marked (planned) below are decided but may not exist in code yet -- check before relying on them.
 - Target `solid-js` / `@solidjs/web` / `@solidjs/h` `2.0.0-rc.13` (current, 2026-09-30), pinned EXACTLY.
@@ -89,11 +89,11 @@ count() // 1
   - routes non-primitive values on `ui-*` tags to `prop:`
   - maps spell's custom-event spelling to the exact `ui-*` event name
   - wraps each thunk in `try/catch`, so a buggy program can't halt the page
-- One Solid per page, shared with `@spell/ui` (whose `UI` runtime is already one per page, on `globalThis`):
-  - within a bundle:  Solid + `@spell/ui` live in the shared chunk, NEVER `spell-runtime.js`.  Each `<spell-app>`
+- One Solid per page, shared with `@spell-app/ui` (whose `UI` runtime is already one per page, on `globalThis`):
+  - within a bundle:  Solid + `@spell-app/ui` live in the shared chunk, NEVER `spell-runtime.js`.  Each `<spell-app>`
     keeps its OWN `spellCore`, all share ONE Solid.  Register `enableExternalSource` once, shared.
   - across our bundles (planned):  element / runner / editor builds import ONE `spell-solid.js`, not a Solid each
-  - on host pages with their own Solid / `@spell/ui`:  an import-map variant of `<spell-app>` (bare specifiers)
+  - on host pages with their own Solid / `@spell-app/ui`:  an import-map variant of `<spell-app>` (bare specifiers)
   - two copies on one page FAIL SILENTLY:  the fork's `register()` swaps `existing.Component` across copies
 - NEVER put Things (class instances) in a Solid store:  stores wrap them in proxies, `===` breaks.
 
@@ -192,7 +192,7 @@ const app = (
 const Active = dynamic(() => (editing() ? Editor : Viewer))
 ```
 
-## DOM and `@spell/ui` elements
+## DOM and `@spell-app/ui` elements
 
 - `class`, not `className`;  array / object form, NEVER built class strings.  No `classList`.
 - Attributes are HTML:  lowercase built-in names, boolean = presence.  `attr:` / `bool:` / `on:` / `use:` are gone.
@@ -208,7 +208,7 @@ const Active = dynamic(() => (editing() ? Editor : Viewer))
 - `render(() => <App />, el)` returns `dispose`.  A ShadowRoot works as the container.
 - `<Portal>` defaults to `document.body`:  inside a shadow root ALWAYS pass `mount`.
 - JSX types for `<ui-*>`:  augment `"@solidjs/web/types/jsx.js"`, NOT `"@solidjs/web"`.
-- `@spell/ui` specifics (see `../ui/AGENTS.md`):
+- `@spell-app/ui` specifics (see `../ui/AGENTS.md`):
   - events are `ui-*` `CustomEvent`s with `detail`
   - never write a bare string attribute in JSX (`<ui-toast icon>` requests `true.js`):  write `icon=""`
   - glyphs must be emitted by the build

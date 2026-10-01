@@ -2,7 +2,7 @@ import { onSettled, type Accessor } from "solid-js"
 import { isServer } from "@solidjs/web"
 
 // through the `core` ENTRY, see `FormElement.ts`
-import { Cell } from "$/core"
+import { Cell } from "$/ui/core"
 
 import type { FormHost } from "./FormHost"
 

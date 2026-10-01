@@ -1,5 +1,5 @@
 /**
- * Barrel for the segment components -- also the `segment` lib entry (`@spell/ui/segment`),
+ * Barrel for the segment components -- also the `segment` lib entry (`@spell-app/ui/segment`),
  * measured in `docs/report.md`.
  * - SIDE EFFECT:  defines `<ui-segment>` and `<ui-segments>`.
  */

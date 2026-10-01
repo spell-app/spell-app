@@ -1,5 +1,5 @@
-import { proto } from "$/core"
-import { ModalFallback } from "$/components/modal"
+import { proto } from "$/ui/core"
+import { ModalFallback } from "$/ui/components/modal"
 
 import { FLYOUT_WORD_WIDTHS, flyoutVocabulary } from "./flyout.vocabulary.en"
 

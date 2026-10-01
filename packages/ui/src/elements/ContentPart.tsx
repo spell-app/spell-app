@@ -1,13 +1,13 @@
 import { Dynamic, type JSX } from "@solidjs/web"
 
-import { proto } from "$/util"
-import type { ComponentVocabulary } from "$/vocabulary"
+import { proto } from "$/ui/util"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 import type { PartName } from "./elements.types"
 import { PartContext } from "./PartContext"
 import { UIElement } from "./UIElement"
 
-import partsCSS from "$/components/parts/parts.css?inline"
+import partsCSS from "$/ui/components/parts/parts.css?inline"
 
 /**
  * Base of the generic content parts (`<ui-content>`, `<ui-header>`, `<ui-meta>` ...):  ONE element per part word,

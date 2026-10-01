@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest"
 
-import type { ComponentVocabulary } from "$/vocabulary"
-import { ElementDefinition } from "$/elements"
-import { es } from "$test/dictionary.es"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
+import { ElementDefinition } from "$/ui/elements"
+import { es } from "$/ui/test/dictionary.es"
 
 /** A vocabulary whose tag has another prefix than `ui`. */
 const OWNER: ComponentVocabulary = {

@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest"
 
-import { colorsCSS, foundationCSS } from "$/styles"
+import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$test/fixture"
-import { Sheets } from "$test/sheets"
+import { Fixture } from "$/ui/test/fixture"
+import { Sheets } from "$/ui/test/sheets"
 
 import { statisticsVocabulary, statisticVocabulary } from "./statistic.vocabulary.en"
 
 import statisticCSS from "./statistic.css?inline"
 import statisticRaw from "./statistic.css?raw"
-import partsCSS from "$/components/parts/parts.css?inline"
+import partsCSS from "$/ui/components/parts/parts.css?inline"
 
 /**
  * `statistic.css` (with `parts.css`, which draws the values and labels) on the class-grammar examples:  the sheet's

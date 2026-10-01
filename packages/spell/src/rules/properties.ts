@@ -3,10 +3,10 @@
 // TODO: constructor
 // TODO: mixins / traits / composed classes / annotations
 
-import { NONE, proto } from "#spell-util"
-import { P } from "#parser"
+import { NONE, proto } from "$/util"
+import { P } from "$/parser"
 // Import directly to avoid circular import
-import { SpellParser } from "#spell/SpellParser"
+import { SpellParser } from "$/spell/SpellParser"
 import { identifierBlacklist } from "./identifier-blacklist"
 import { SpellExpression } from "./expressions"
 

@@ -1,5 +1,5 @@
 /**
- * Barrel for the placeholder components -- also the `placeholder` lib entry (`@spell/ui/placeholder`), measured
+ * Barrel for the placeholder components -- also the `placeholder` lib entry (`@spell-app/ui/placeholder`), measured
  * in `docs/report.md`.
  * - SIDE EFFECT:  defines `<ui-placeholder>` and its shapes `<ui-placeholder-header>`, `-paragraph`, `-line`,
  *   `-image`.

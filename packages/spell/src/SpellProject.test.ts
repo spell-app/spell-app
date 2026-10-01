@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vitest"
 
-import { P } from "#parser"
-import { loadFixtureProject, parseSpellProject, summarize } from "#spell/test"
+import { P } from "$/parser"
+import { loadFixtureProject, parseSpellProject, summarize } from "$/spell/test"
 
 /**
  * Whole-project parse of `examples/Solitaire`.

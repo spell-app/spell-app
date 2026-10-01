@@ -1,17 +1,17 @@
 import { beforeEach, describe, expect, it, onTestFinished } from "vitest"
 import { userEvent } from "vitest/browser"
 
-import { UI } from "$/runtime"
-import type { EmbedActivateDetail } from "$/components/components.types"
-import { expectAccessible } from "$test/a11y"
-import { Fixture } from "$test/fixture"
+import { UI } from "$/ui/runtime"
+import type { EmbedActivateDetail } from "$/ui/components/components.types"
+import { expectAccessible } from "$/ui/test/a11y"
+import { Fixture } from "$/ui/test/fixture"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
 
 import { EmbedSources } from "./EmbedSources"
 
-import "$/components/embed"
+import "$/ui/components/embed"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/embed/examples/elements/*.html", {

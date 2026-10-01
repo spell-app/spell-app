@@ -1,14 +1,14 @@
 import { userEvent } from "vitest/browser"
 import { describe, expect, it, onTestFinished } from "vitest"
 
-import { expectAccessible } from "$test/a11y"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
-import type { AccordionToggleDetail } from "$/components/components.types"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
+import type { AccordionToggleDetail } from "$/ui/components/components.types"
 
-import "$/components/accordion"
-import "$/components/segment"
+import "$/ui/components/accordion"
+import "$/ui/components/segment"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/accordion/examples/elements/*.html", {

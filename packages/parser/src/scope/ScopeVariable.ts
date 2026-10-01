@@ -1,4 +1,4 @@
-import { P } from "#parser"
+import { P } from "$/parser"
 
 /**
  * `ScopeVariable` a variable defined within a `Scope`.
@@ -24,7 +24,7 @@ export class ScopeVariable {
    * `true` if this is an implicit "alias" for another variable rather than a genuinely-declared one,
    * e.g. `it`/`its` mapped to `this` -- see `MethodScope` constructor.
    * - Assigning to an alias' name declares a real variable in its place: the `assignment` rule (in
-   *   `#spell`) treats it as `isNewVariable` and `variables.replace()`s it.
+   *   `$/spell`) treats it as `isNewVariable` and `variables.replace()`s it.
    */
   declare isAlias: boolean
   /**

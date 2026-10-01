@@ -1,11 +1,11 @@
 /**
  * Every name `<ui-divider>` uses:  tag, attributes (kind + allowed values), slots, parts.
- * Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-divider horizontal text-align="left">` => `ui horizontal left aligned divider`.
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-divider>`

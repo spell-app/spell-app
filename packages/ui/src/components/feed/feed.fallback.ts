@@ -1,4 +1,4 @@
-import { Converters, NativeFallback, proto, type NativeFallbackRoot } from "$/core"
+import { Converters, NativeFallback, proto, type NativeFallbackRoot } from "$/ui/core"
 
 import { eventVocabulary, feedVocabulary } from "./feed.vocabulary.en"
 

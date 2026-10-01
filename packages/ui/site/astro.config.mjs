@@ -14,17 +14,17 @@ import { SHIKI_THEMES } from "./src/lib/shiki.ts"
 
 /** Repo root:  the library is consumed from SOURCE (`../src`), never from `dist/`. */
 const ROOT = fileURLToPath(new URL("..", import.meta.url))
-/** `../src`, target of the `$` alias -- same alias the library itself uses. */
+/** `../src`, target of the `$/ui` alias -- same alias the library itself uses. */
 const SRC = fileURLToPath(new URL("../src", import.meta.url))
-/** `../test`, target of `$test` (shared test helpers;  here only so shared source type-checks alike). */
+/** `../test`, target of `$/ui/test` (shared test helpers;  here only so shared source type-checks alike). */
 const TEST = fileURLToPath(new URL("../test", import.meta.url))
-/** `../../util/src`, target of the `#util` alias (`packages/util`, shared with `spell`);  its barrel is `index.ts`. */
+/** `../../util/src`, target of the `$/util` alias (`packages/util`, shared with `spell`);  its barrel is `index.ts`. */
 const UTIL = fileURLToPath(new URL("../../util/src", import.meta.url))
-/** The fork's source entry:  `@spell/solid-element` resolves here in dev AND build (no `dist/` needed). */
+/** The fork's source entry:  `@spell-app/solid-element` resolves here in dev AND build (no `dist/` needed). */
 const SOLID_ELEMENT = fileURLToPath(new URL("../../solid-element/src/index.ts", import.meta.url))
 
 /**
- * Docs site for `@spell/ui`, modelled on fomantic-ui.com.
+ * Docs site for `@spell-app/ui`, modelled on fomantic-ui.com.
  * - Static output;  pages are `.astro` + `.mdx`, NO framework integration -- live examples are plain HTML
  *   and `ui-*` custom elements, which is the whole point.
  * - Vite mirrors the library's own config (`../vite.config.ts`):  same aliases, same decorator lowering, the
@@ -50,10 +50,10 @@ export default defineConfig({
       solidElementHot({
         include: /\/src\/components\/[\w-]+\/index\.ts$/,
         detect: /\.define\(/,
-        setup: "$/elements/HotDefinitions",
+        setup: "$/ui/elements/HotDefinitions",
         styles: {
           include: /\/src\/components\/[\w-]+\/[\w-]+\.css\?inline$/,
-          handler: "$/elements/HotDefinitions",
+          handler: "$/ui/elements/HotDefinitions",
           call: "HotDefinitions.updateStyle"
         }
       }),
@@ -61,19 +61,20 @@ export default defineConfig({
       emitIconPacks("_astro/icon-packs")
     ],
     resolve: {
-      // Array form so `$test` is matched before `$`;  string keys match `$` exactly or `$/...` only.
+      // Array form, first match wins:  `$/ui/test` before `$/ui`;  `$/util` is the shared `packages/util`.
       alias: [
-        { find: /^#util$/, replacement: `${UTIL}/index.ts` },
-        { find: /^#util\//, replacement: `${UTIL}/` },
-        { find: /^\$test(?=\/|$)/, replacement: TEST },
-        { find: /^\$(?=\/|$)/, replacement: SRC },
-        { find: /^@spell\/ui$/, replacement: `${SRC}/index.ts` },
-        { find: /^@spell\/solid-element$/, replacement: SOLID_ELEMENT }
+        { find: /^\$\/util$/, replacement: `${UTIL}/index.ts` },
+        { find: /^\$\/util\//, replacement: `${UTIL}/` },
+        { find: /^\$\/ui\/test(?=\/|$)/, replacement: TEST },
+        { find: /^\$\/ui$/, replacement: `${SRC}/index.ts` },
+        { find: /^\$\/ui\//, replacement: `${SRC}/` },
+        { find: /^@spell-app\/ui$/, replacement: `${SRC}/index.ts` },
+        { find: /^@spell-app\/solid-element$/, replacement: SOLID_ELEMENT }
       ],
       dedupe: SOLID_DEDUPE
     },
     optimizeDeps: {
-      exclude: ["@spell/solid-element"]
+      exclude: ["@spell-app/solid-element"]
     },
     css: {
       transformer: "lightningcss",
@@ -92,7 +93,7 @@ export default defineConfig({
     },
     ssr: {
       // Library source is TS + `?inline` CSS + JSON:  let Vite transform it, never hand it to Node as-is.
-      noExternal: ["@spell/ui"]
+      noExternal: ["@spell-app/ui"]
     }
   }
 })

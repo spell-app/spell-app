@@ -1,4 +1,4 @@
-import { NativeFallback, PLACEHOLDER_HOST_STATE, proto, type NativeFallbackRoot } from "$/core"
+import { NativeFallback, PLACEHOLDER_HOST_STATE, proto, type NativeFallbackRoot } from "$/ui/core"
 
 import {
   placeholderHeaderVocabulary,

@@ -1,12 +1,12 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 
-import type { UIHost } from "$/elements"
-import { expectAccessible } from "$test/a11y"
+import type { UIHost } from "$/ui/elements"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
+import { ElementFixture } from "$/ui/test/ElementFixture"
 
-import "$/components/progress"
-import "$/components/segment"
+import "$/ui/components/progress"
+import "$/ui/components/segment"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/progress/examples/elements/*.html", {

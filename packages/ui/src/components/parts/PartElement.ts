@@ -1,4 +1,4 @@
-import { ContentPart, proto, type ComponentVocabulary } from "$/core"
+import { ContentPart, proto, type ComponentVocabulary } from "$/ui/core"
 
 import { ContentPartFallback } from "./parts.fallback"
 

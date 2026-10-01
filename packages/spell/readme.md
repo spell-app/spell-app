@@ -14,7 +14,7 @@ Experimental [Deepwiki Documentation](https://deepwiki.com/spell-app/spell)
 
 - Install Node 22.17+ and enable Corepack (`corepack enable`), which supplies the repo's yarn
 - Clone the `spell` monorepo, and run `yarn` at its root
-- Start the app (port 3000) and the api server (port 3001):  `yarn start`, in `packages/spell-app`
+- Start the app (port 3000) and the api server (port 3001):  `yarn start`, in `packages/app`
   - `yarn stop` (there too) stops them
 - Open http://localhost:3000 in your web browser.
 - Check out the [Solitaire Example](http://localhost:3000/run/examples/Solitaire/Card.spell)
@@ -73,9 +73,9 @@ the Solitaire example with the extension loaded.
   with "Program Output" (what it `print`s), "Type Explorer":  the live scopes it parsed in, and what each
   declares, in document order under its `##` headings or alphabetical -- click one for its docs, spell and
   compiled code -- and "Thing Explorer":  every thing the program
-  has made, in the order made or by type, with its properties as they change and its actions -- ▶ does one.  Its code is `packages/spell-app/dist-runner/`
-  (from `packages/spell-app/src/runner/`), which building the extension builds:
-  after changing `src/runner/` alone, `yarn build:runner` (in `packages/spell-app`) and close / reopen the panel.
+  has made, in the order made or by type, with its properties as they change and its actions -- ▶ does one.  Its code is `packages/app/dist-runner/`
+  (from `packages/app/src/runner/`), which building the extension builds:
+  after changing `src/runner/` alone, `yarn build:runner` (in `packages/app`) and close / reopen the panel.
 - Spell indents with tabs:  the extension sets `.spell` files to tabs, and formatting always uses them.
 - Settings:  `spell.compileOnSave` writes the project's `<Project>.compiled.js` on save;  `spell.parserRoot` points at another
   checkout of this repo.
@@ -96,7 +96,7 @@ shadow root, so page and app styles don't mix.
 <spell-app src="apps/Calculator.compiled.js" toolbar width="50%"></spell-app>
 ```
 
-- `yarn build:element` (in `packages/spell-app`) builds it into `dist-element/`:  copy that folder anywhere.  The dev server serves it at
+- `yarn build:element` (in `packages/app`) builds it into `dist-element/`:  copy that folder anywhere.  The dev server serves it at
   `/element/`, with a demo at `http://localhost:3001/demo/spell-app.html`.
 - Attributes:  `project` or `src` (what to run), `scopes` (its scope pack, if not beside it), `name`, `toolbar`,
   `debug="explorer"` / `"things"` / `"console"` (open the Debug pane), `width` / `height` (`fluid`, the default, or any CSS
@@ -130,7 +130,7 @@ with hover, completion, go to definition and the rest -- and feeds `<spell-app>`
   linked either way run it -- their Type Explorer following the edits.
 - Attributes:  `project`, `file` (to show first -- tabs show the rest), `app`, `width` / `height`, `assets`.
   `el.compile()` and `el.save()` do what Cmd+Enter and Cmd+S do.
-- `yarn build:element` (in `packages/spell-app`) builds it beside `<spell-app>`, into `dist-element/`, with a demo at
+- `yarn build:element` (in `packages/app`) builds it beside `<spell-app>`, into `dist-element/`, with a demo at
   `http://localhost:3001/demo/spell-editor.html` -- whose edits save to the examples.  Monaco (~4 MB) loads only
   once there's a project to show:  the project compiles, and its apps run, before.
 
@@ -138,7 +138,7 @@ with hover, completion, go to definition and the rest -- and feeds `<spell-app>`
 
 ## To see server logs
 
-- `yarn start` (in `packages/spell-app`) prints both servers' logs in its terminal.
+- `yarn start` (in `packages/app`) prints both servers' logs in its terminal.
 
 ## To test
 

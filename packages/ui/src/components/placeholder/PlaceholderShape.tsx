@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement, type ComponentVocabulary, type PartName } from "$/core"
+import { proto, UIElement, type ComponentVocabulary, type PartName } from "$/ui/core"
 
 import { PlaceholderFallback } from "./placeholder.fallback"
 

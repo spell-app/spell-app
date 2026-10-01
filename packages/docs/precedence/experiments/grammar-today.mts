@@ -4,10 +4,10 @@
  * - Parses scratch files in memory with `parseSpellProject()`, exactly as a project compile does;  writes nothing.
  * - The "cards" probes parse against the FROZEN Solitaire fixture's Card / Deck / Pile (`projects/test/Solitaire/`),
  *   which predates jokers -- so no joker phrasing here.
- * - NOTE: MUST be `.mts`:  a `.ts` script outside `src/` is compiled as CommonJS and trips the `#parser`
+ * - NOTE: MUST be `.mts`:  a `.ts` script outside `src/` is compiled as CommonJS and trips the `$/parser`
  *   circular-import trap (`Class extends value undefined`) -- see PAPERCUTS.md.
  */
-import { parseSpellProject, loadFixtureProject } from "#spell/test"
+import { parseSpellProject, loadFixtureProject } from "$/spell/test"
 
 /**
  * Parse `lines` as one spell file, after `setup`, and print what they compiled to.

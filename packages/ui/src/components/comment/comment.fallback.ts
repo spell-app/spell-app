@@ -1,4 +1,4 @@
-import { NativeFallback, proto, type NativeFallbackRoot } from "$/core"
+import { NativeFallback, proto, type NativeFallbackRoot } from "$/ui/core"
 
 import { commentVocabulary, commentsVocabulary } from "./comment.vocabulary.en"
 

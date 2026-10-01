@@ -33,7 +33,7 @@ import VocabularyTable from "../../components/VocabularyTable.astro"
     title="UI.observeVisibility()"
     description="The same checks on any element, with Fomantic's callback names:  `UI.observeVisibility(element, options)` returns a function that stops watching.  `context` measures against a scroll container instead of the viewport."
     code={`<script type="module">
-  import { UI } from "@spell/ui/core"
+  import { UI } from "@spell-app/ui/core"
 
   await UI.load()
   const stop = UI.observeVisibility(box, {

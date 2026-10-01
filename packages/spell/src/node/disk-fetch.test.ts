@@ -3,9 +3,9 @@ import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from "fs"
 import { tmpdir } from "os"
 import { basename, resolve } from "path"
 
-import environment from "#spell/node/environment"
-import { SP } from "#spell"
-import { loadFixtureProject, parseSpellProject, describeParseErrors, fixturePath, fixtureProjectId } from "#spell/test"
+import environment from "$/spell/node/environment"
+import { SP } from "$/spell"
+import { loadFixtureProject, parseSpellProject, describeParseErrors, fixturePath, fixtureProjectId } from "$/spell/test"
 import { installDiskFetch, locationForDiskPath } from "./disk-fetch"
 import { serverPathForRoot } from "./project-utils"
 

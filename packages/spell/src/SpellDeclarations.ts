@@ -1,9 +1,9 @@
 import JSON5 from "json5"
 import semver from "semver"
 
-import { singularize, typeCase } from "#spell-util"
-import { P } from "#parser"
-import { SP } from "#spell"
+import { singularize, typeCase } from "$/util"
+import { P } from "$/parser"
+import { SP } from "$/spell"
 
 /**
  * A project's declarations:  everything it added to scope while parsing, as plain data -- see `SP.SpellDeclarationsData`.

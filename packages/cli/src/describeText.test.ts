@@ -2,8 +2,8 @@ import { basename } from "path"
 import { fileURLToPath } from "url"
 import { beforeAll, describe, test, expect } from "vitest"
 
-import { LSP } from "#lsp"
-import { CLI } from "#cli"
+import { LSP } from "$/lsp"
+import { CLI } from "$/cli"
 
 /**
  * `spell describe`'s text, for the Solitaire fixture -- colour is off, as vitest's output isn't a terminal.

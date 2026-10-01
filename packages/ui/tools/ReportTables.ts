@@ -34,10 +34,10 @@ export class ReportTables {
   } as const
 
   /** Packages the versions table lists:  Solid, the fork and the Solid plugin (the pins that matter). */
-  static readonly VERSIONED = /^solid-js$|^@solidjs\/|^@spell\/solid-element$/
+  static readonly VERSIONED = /^solid-js$|^@solidjs\/|^@spell-app\/solid-element$/
 
   /** What each extra entry (`MeasureResults.extra`) holds, for the tier table. */
-  static readonly EXTRA: Record<string, string> = { api: "`E` / `V` namespaces, `@spell/ui/api`" }
+  static readonly EXTRA: Record<string, string> = { api: "`E` / `V` namespaces, `@spell-app/ui/api`" }
 
   /** LOC groups listed file by file (`loc-files`). */
   static readonly LOC_FILE_GROUPS = ["element core", "components"]

@@ -1,4 +1,4 @@
-import { Converters, NativeFallback, proto, type EventName, type TransitionDetail } from "$/core"
+import { Converters, NativeFallback, proto, type EventName, type TransitionDetail } from "$/ui/core"
 
 import { transitionVocabulary } from "./transition.vocabulary.en"
 

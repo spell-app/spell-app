@@ -3,6 +3,7 @@ import { resolve } from "node:path"
 import { defineConfig, type TestProjectConfiguration } from "vitest/config"
 
 import { uiProjects } from "./packages/ui/vitest.config.ts"
+import { utilProjects } from "./packages/util/vitest.config.ts"
 
 /**
  * ONE vitest run for every package:  `yarn test`, `yarn vitest` and the VS Code vitest extension all read this.
@@ -19,11 +20,13 @@ const PACKAGES_DIR = resolve(import.meta.dirname, "packages")
 /**
  * Packages whose config holds several projects:  folder -> projects, built from the package's own exported
  * factory so the two stay in step.
+ * - `util`:  `browser` (generic helpers) and `spell` (node, `src/spell/`).
  * - `ui`:  `ssr` MUST run before `browser` (it writes `.cache/ssr-button.html`, which `test/dsd.test.ts` imports),
  *   so `uiProjects` sets `sequence.groupOrder`.  See there.
  */
 const SPECIAL: Record<string, TestProjectConfiguration[]> = {
-  ui: uiProjects({ prefix: "ui:", root: resolve(PACKAGES_DIR, "ui") })
+  ui: uiProjects({ prefix: "ui:", root: resolve(PACKAGES_DIR, "ui") }),
+  util: utilProjects({ prefix: "util:", root: resolve(PACKAGES_DIR, "util") })
 }
 
 /** Projects of every package folder, in folder order. */

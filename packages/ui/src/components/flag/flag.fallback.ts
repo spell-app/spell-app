@@ -1,4 +1,4 @@
-import { NativeFallback, proto } from "$/core"
+import { NativeFallback, proto } from "$/ui/core"
 
 import { flagVocabulary } from "./flag.vocabulary.en"
 import { FlagCountry } from "./FlagCountry"

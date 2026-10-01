@@ -1,7 +1,7 @@
 import { createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { proto, UI, UIElement, type TextKey } from "$/core"
+import { proto, UI, UIElement, type TextKey } from "$/ui/core"
 
 import { flagVocabulary } from "./flag.vocabulary.en"
 import { FlagCountry } from "./FlagCountry"

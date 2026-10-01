@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-modal>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-modal size="tiny" basic vertical-align="top" open>` => `ui tiny active basic top aligned modal`.
  * - Sizes are WIDTHS here (Fomantic's modal ratios), not text sizes:  `modal.css` reads the size class, never
@@ -11,7 +11,7 @@
  *   `none`.  `closable` is the close ICON (Fomantic's `closeIcon`).
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-modal>`

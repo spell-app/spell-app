@@ -1,5 +1,5 @@
-import { proto } from "$/util"
-import { Converters, type ComponentVocabulary } from "$/vocabulary"
+import { proto } from "$/ui/util"
+import { Converters, type ComponentVocabulary } from "$/ui/vocabulary"
 
 import type {
   AttributeNameOf,

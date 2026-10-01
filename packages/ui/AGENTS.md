@@ -1,30 +1,32 @@
 # AGENTS.md
 
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
-when working with code in this package, `@spell/ui`.
+when working with code in this package, `@spell-app/ui`.
 
 Conventions every package shares -- Solid 2, Long-term debt, Documentation, Functions, Decorators,
 Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST.  Only what's local is below.
 
 ## Overview
 
-- `@spell/ui` is Fomantic UI reborn as `ui-*` custom elements on a modern CSS foundation:  Fomantic's
+- `@spell-app/ui` is Fomantic UI reborn as `ui-*` custom elements on a modern CSS foundation:  Fomantic's
   vocabulary (`ui small primary basic icon button`), shadow DOM, `@layer`s, OKLCH tokens, accessibility built in.
   Usable from any framework or plain HTML.  Built on **Solid 2** (`solid-js` / `@solidjs/web` `2.0.0-rc.11`,
-  pinned exactly) through our fork of its custom-element layer, `@spell/solid-element`.
+  pinned exactly) through our fork of its custom-element layer, `@spell-app/solid-element`.
 - The approved design is `docs/plan.md`.  Read "Decisions" and "Architecture" there BEFORE adding a component
   or runtime service.  `docs/report.md` is the generated status report (bundle, perf, hosts, HMR, fallbacks).
 - `docs/status.md` is the per-component checklist (status, tests, size, keyboard, docs page, deferred items).
   MUST be updated in the same change that builds, finishes or defers anything in it.
 - Layout:
-  - `../solid-element/` -- `@spell/solid-element`, the fork of `@solidjs/element` + `component-register`
+  - `../solid-element/` -- `@spell-app/solid-element`, the fork of `@solidjs/element` + `component-register`
     (upgrade, forms, lifecycle, error boundary, HMR fixes;  `UPSTREAM.md` maps each to a PR).  A workspace of
     the monorepo (`workspace:*`), with its own tests (its dependencies are hoisted to the root `node_modules`, like every package's);  run its scripts with
     `yarn fork <script>`.  NEVER import its files from `src/`:  use the package name.
-  - `../util/` -- `@spell/util` (`#util`), shared with `spell`:  `@proto` (`decorators.ts`), `class.ts`, `string.ts`
+  - `../util/` -- `@spell-app/util` (`$/util`), shared with `spell`:  `@proto` (`decorators.ts`), `class.ts`, `string.ts`
     (case, `numberToWord`, `suggest`), `dom.ts` (`closestAcrossShadow` ...), `util.types.ts`.  `src/util/index.ts`
-    (`$/util`) re-exports it, so source keeps saying `from "$/util"`;  its declarations ship in `dist/_util/`.
-    A helper only `ui` uses goes in `src/util/`, one `spell` also needs moves to `#util`.  Everything in `$/util`
+    (`$/ui/util`) re-exports it, so source keeps saying `from "$/ui/util"`;  its declarations ship in `dist/_util/`.
+    `src/util/index.ts` imports util's GENERIC files one by one (`$/util/class` ...), never `$/util`'s barrel, which also
+    holds spell's utilities (lodash, `chalk` ...):  an allowed exception to the barrel-only rule.
+    A helper only `ui` uses goes in `src/util/`, one `spell` also needs moves to `$/util`.  Everything in `$/ui/util`
     lands in the `core` bundle (`core.ts` re-exports it), so keep it small
   - `src/vocabulary/` (`V`) -- the naming layer:  vocabulary schema, value sets, `Vocabulary` (registry, translated
     names, `replace()` for hot reload), `Converters`
@@ -45,7 +47,7 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
     - `UI<Name>.tsx` (or `.ts` without JSX) -- one element class per file:  `UIButton.tsx`, `UIButtons.tsx`,
       `UIOr.tsx`;  family helpers beside them (`SlottedItems.ts`, `PartElement.ts`)
     - `index.ts` -- the family barrel:  calls `define()` for every tag (SIDE EFFECT), re-exports the classes.
-      Also the family's lib entry (`@spell/ui/button`) and its hot-reload boundary
+      Also the family's lib entry (`@spell-app/ui/button`) and its hot-reload boundary
     - `<name>.css` -- port of Fomantic's `.less` + `.variables`
     - `<name>.vocabulary.en.ts` -- EVERY name the component uses:  tag, attributes (kind + allowed values),
       values, events, slots, parts, states, text strings.  Translations become `<name>.vocabulary.<lang>.ts`
@@ -56,13 +58,13 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
       `examples/elements/*.html` -- the same examples as `ui-*` ELEMENT markup (axe in `<name>.test.tsx`,
       `yarn dev`, `yarn test:visual`);  `examples/elements/<name>.visual.ts` -- optional OPEN states for the
       visual tests (`docs/visual-testing.md`)
-  - `src/core.ts`, `src/forms.ts` -- the two SHARED lib entries (`@spell/ui/core`, `@spell/ui/forms`):  `core` is
+  - `src/core.ts`, `src/forms.ts` -- the two SHARED lib entries (`@spell-app/ui/core`, `@spell-app/ui/forms`):  `core` is
     the element core + the foundation JS every family needs;  `forms` what only form controls with a VALUE need
     (`FormElement`, `FormHost`, `Validator`, `MenuOptions`).  Component files import shared code ONLY through
     these (see "Solid authoring")
   - `src/styles/` -- `layers.css`, tokens, colours, sizes, reset, typography, animations, utilities, `native.css`,
-    `themes/`;  its own lib entry (`@spell/ui/styles`)
-  - `src/index.ts` -- `@spell/ui`:  registers every family (side effect) and re-exports them, plus `E`, `V`, the
+    `themes/`;  its own lib entry (`@spell-app/ui/styles`)
+  - `src/index.ts` -- `@spell-app/ui`:  registers every family (side effect) and re-exports them, plus `E`, `V`, the
     runtime, styles and icons
   - `test/` -- shared test utils and cross-family tests:  `Fixture.render(html)` (`fixture.ts`),
     `A11y.check(el)` / `expectAccessible(el)` (`a11y.ts`), `ElementFixture` (render + wait for `ready` +
@@ -134,7 +136,7 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   Primitives as REFLECTED attributes.  First paint MUST NOT need a rich property (SSR drops them).
 - Vocabulary files own every name:  NEVER a string literal for an attribute / event / slot / part name in a
   template or `ClassBuilder` -- read it through the component's vocabulary.
-- Class defaults (vocabulary, default settings, part names) are `@proto static` (from `$/util`), so instances
+- Class defaults (vocabulary, default settings, part names) are `@proto static` (from `$/ui/util`), so instances
   carry no per-instance copies.
 - Prefer classes over loose functions for anything that coordinates:  runtime services are classes
   (`Keyboard`, `Overlays`, `Styles`), builders are classes (`ClassBuilder`).  A helper that earns a name
@@ -159,12 +161,12 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   `ContentPart`):  `@proto static vocabulary` / `styles` / `Fallback` (/ `formAssociated`, `delegatesFocus`),
   signals and memos as FIELDS, `render()` returning JSX.  The fork creates one per element on first connect and
   keeps it (`keepAlive`) until `host.dispose()`.  `UI<Name>.define()` in the family's `index.ts` registers it.
-- Imports in component files (element classes AND `<name>.fallback.ts`):  shared code ONLY from `$/core` (and
-  `$/forms` for form controls), never `$/util`, `$/vocabulary`, `$/elements` ... directly;  the family's own
+- Imports in component files (element classes AND `<name>.fallback.ts`):  shared code ONLY from `$/ui/core` (and
+  `$/ui/forms` for form controls), never `$/ui/util`, `$/ui/vocabulary`, `$/ui/elements` ... directly;  the family's own
   vocabulary, fallback, helpers and sheet as peers (`./button.vocabulary.en`, `./button.css?inline`).  Why:  the
-  lib build puts everything `$/core` re-exports into `dist/core.js`;  a leaf imported by a family AND by `core`
-  splits into a hashed third chunk.  For the same reason `core.ts` / `forms.ts` re-export `$/elements` LEAVES, and
-  `FormHost` / `FormElement` import the core through `$/core` (`yarn measure`'s checks catch a violation).
+  lib build puts everything `$/ui/core` re-exports into `dist/core.js`;  a leaf imported by a family AND by `core`
+  splits into a hashed third chunk.  For the same reason `core.ts` / `forms.ts` re-export `$/ui/elements` LEAVES, and
+  `FormHost` / `FormElement` import the core through `$/ui/core` (`yarn measure`'s checks catch a violation).
 - **Memos compute EAGERLY** on creation.  Base-class memos that call overridable methods take `{ lazy: true }`;
   effects that call overridables are created in `mount()`, after every subclass field exists.
 - **`Cell` field order:**  class fields initialize in declaration order, before the subclass constructor body.
@@ -216,20 +218,20 @@ As the root's, plus:
 
 As the root's, plus our self-namespaces:
 
-- `UI` ~== the runtime singleton from `$/runtime`
-- `E` ~== `$/elements`
+- `UI` ~== the runtime singleton from `$/ui/runtime`
+- `E` ~== `$/ui/elements`
 - the components barrel exports classes by name (`UIButton`, `UIDropdown`), no namespace
 
 ## Imports
 
-As the root's, with `$` as our alias, plus:
+As the root's, with `$/ui` / `$/ui/*` as our alias, plus:
 
-- Test helpers come from `$test/...` (`$test/fixture`, `$test/a11y`, `$test/ElementFixture`), the only other
-  alias.
-- Exceptions:  component files import shared code from `$/core` / `$/forms` ("Solid authoring");  `tools/` are
+- Test helpers come from `$/ui/test/...` (`$/ui/test/fixture`, `$/ui/test/a11y`, `$/ui/test/ElementFixture`), the only other
+  entry point (`$/ui/test/*` is longer than `$/ui/*`, so it wins).
+- Exceptions:  component files import shared code from `$/ui/core` / `$/ui/forms` ("Solid authoring");  `tools/` are
   node scripts:  relative imports with `.ts` extensions, no aliases.
 - The root's examples, in `ui`:
-  - `import { E } from "$/elements"` => `E.UIElement`, `new E.ClassBuilder(...)`
-  - tests may mix:  `import { E, UIElement } from "$/elements"`
-  - side-effect imports:  `import "$/components/button"`
-  - css files:  `./button.css` if in same folder, else `$/styles/tokens.css`
+  - `import { E } from "$/ui/elements"` => `E.UIElement`, `new E.ClassBuilder(...)`
+  - tests may mix:  `import { E, UIElement } from "$/ui/elements"`
+  - side-effect imports:  `import "$/ui/components/button"`
+  - css files:  `./button.css` if in same folder, else `$/ui/styles/tokens.css`

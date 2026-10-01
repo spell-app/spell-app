@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-transition>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-transition color="red" pulsating looping>` => `ui red looping pulsating transition`;  the element adds
  *   its state after the noun (`visible`, `animating`), as Fomantic's script did.
@@ -8,7 +8,7 @@
  *   them onto the runtime's kebab-cased catalogue (`TRANSITION_ANIMATIONS`).
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /** Fomantic's appear / disappear animations, as the `animation` attribute takes them:  run `in` or `out`. */
 export const TRANSITION_VISIBILITY_ANIMATIONS = [

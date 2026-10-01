@@ -11,8 +11,8 @@ import {
   type ValidationResult,
   type ValidationRule,
   type ValidityFlag
-} from "$/core"
-import { ControlLabels, FormElement } from "$/forms"
+} from "$/ui/core"
+import { ControlLabels, FormElement } from "$/ui/forms"
 
 /** Converted attributes every text control has (`input` and `textarea`), see `TextControl.common`. */
 type CommonAttributes = {

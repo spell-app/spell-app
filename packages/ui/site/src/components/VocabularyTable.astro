@@ -9,13 +9,13 @@
  * - Value sets (`hues`, `sizes` ...) are resolved through `ValueSets`, so a theme's extra hues show up.
  * - Sibling of `CssTokens.astro` (custom properties) and `ApiTable.astro` (manifest, when it exists).
  */
-import { ValueSets } from "$/vocabulary"
-import type { AttributeSpec, ComponentVocabulary } from "$/vocabulary"
+import { ValueSets } from "$/ui/vocabulary"
+import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"
 
 import { slug } from "../lib/text"
 
 type Props = {
-  /** family folder name, e.g. `button` (the module is `$/components/button/button.vocabulary.en.ts`) */
+  /** family folder name, e.g. `button` (the module is `$/ui/components/button/button.vocabulary.en.ts`) */
   family: string
   /** only these tags, in this order, e.g. `["ui-button"]` */
   tags?: string[]
@@ -23,7 +23,7 @@ type Props = {
 
 const { family, tags } = Astro.props
 
-const MODULES = import.meta.glob<Record<string, unknown>>("$/components/*/*.vocabulary.en.ts", { eager: true })
+const MODULES = import.meta.glob<Record<string, unknown>>("$/ui/components/*/*.vocabulary.en.ts", { eager: true })
 const module = Object.entries(MODULES).find(([path]) => path.endsWith(`/${family}/${family}.vocabulary.en.ts`))?.[1]
 if (!module) throw new Error(`VocabularyTable: no vocabulary module for family "${family}"`)
 

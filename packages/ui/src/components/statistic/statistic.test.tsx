@@ -1,16 +1,16 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 
-import { expectAccessible } from "$test/a11y"
-import { Fixture } from "$test/fixture"
+import { expectAccessible } from "$/ui/test/a11y"
+import { Fixture } from "$/ui/test/fixture"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
 
-import "$/components/statistic"
-import "$/components/parts"
-import "$/components/label"
-import "$/components/icon"
-import "$/components/segment"
+import "$/ui/components/statistic"
+import "$/ui/components/parts"
+import "$/ui/components/label"
+import "$/ui/components/icon"
+import "$/ui/components/segment"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/statistic/examples/elements/*.html", {

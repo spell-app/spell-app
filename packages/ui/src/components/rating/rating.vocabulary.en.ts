@@ -1,13 +1,13 @@
 /**
  * Every name `<ui-rating>` uses:  tag, attributes (kind + allowed values), events, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-rating size="large" color="yellow" readonly>` => `ui large yellow read-only rating`.
  * - `icon` is an icon NAME (`star`, `heart`, any `<ui-icon>` name), not a class:  Fomantic 2.9 reads it from
  *   `data-icon` too.
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-rating>`

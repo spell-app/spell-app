@@ -1,5 +1,5 @@
 /**
- * Barrel for the label components -- also the `label` lib entry (`@spell/ui/label`), measured in `docs/report.md`.
+ * Barrel for the label components -- also the `label` lib entry (`@spell-app/ui/label`), measured in `docs/report.md`.
  * - SIDE EFFECT:  defines `<ui-label>` and `<ui-labels>`.
  */
 

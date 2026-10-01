@@ -7,17 +7,17 @@ import type {
   FormRules,
   FormSuccessDetail,
   FormValues
-} from "$/components/components.types"
-import { expectAccessible } from "$test/a11y"
+} from "$/ui/components/components.types"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
+import { ElementFixture } from "$/ui/test/ElementFixture"
 
-import "$/components/form"
-import "$/components/input"
-import "$/components/checkbox"
-import "$/components/dropdown"
-import "$/components/button"
-import "$/components/message"
+import "$/ui/components/form"
+import "$/ui/components/input"
+import "$/ui/components/checkbox"
+import "$/ui/components/dropdown"
+import "$/ui/components/button"
+import "$/ui/components/message"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/form/examples/elements/*.html", {

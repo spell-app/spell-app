@@ -2,13 +2,13 @@ import { execFileSync } from "node:child_process"
 import { writeFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 
-import { StyleGenerator } from "$/styles/StyleGenerator"
+import { StyleGenerator } from "$/ui/styles/StyleGenerator"
 import { NodePackage } from "../tools/NodePackage.ts"
 
 /**
  * `yarn gen:styles`:  regenerate `src/styles/{tokens,colors,sizes}.css` from `styles.vocabulary.en.ts`.
  * - The generated sheets are COMMITTED, so consumers need no build step;  rerun after any vocabulary change.
- * - NOTE: imports the generator's leaf file, not the `$/styles` barrel -- the barrel pulls in `?raw` / `?inline`
+ * - NOTE: imports the generator's leaf file, not the `$/ui/styles` barrel -- the barrel pulls in `?raw` / `?inline`
  *   CSS imports that only Vite understands.
  */
 class GenStylesCommand {

@@ -1,5 +1,5 @@
 /**
- * Shared types, constants and small error classes for `$/runtime`.
+ * Shared types, constants and small error classes for `$/ui/runtime`.
  * - Runtime-light:  `import type` only, so the eager barrel (`UI` accessor + `loadUI`) stays tiny
  *   and the service classes stay in the lazily-loaded chunk.
  */
@@ -14,10 +14,10 @@ import type { UIRuntime } from "./UIRuntime"
 
 /**
  * Key the ONE runtime instance lives under on `globalThis`.
- * - `Symbol.for()` so two copies of `@spell/ui` on one page (duplicate bundles, micro-frontends)
+ * - `Symbol.for()` so two copies of `@spell-app/ui` on one page (duplicate bundles, micro-frontends)
  *   find each other's runtime rather than fighting over shortcuts, overlays and scroll lock.
  */
-export const RUNTIME_KEY = Symbol.for("@spell/ui:runtime")
+export const RUNTIME_KEY = Symbol.for("@spell-app/ui:runtime")
 
 /**
  * Version of this runtime build.

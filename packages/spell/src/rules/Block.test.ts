@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vitest"
 
-import { P } from "#parser"
-import { SP, spellParser } from "#spell"
+import { P } from "$/parser"
+import { SP, spellParser } from "$/spell"
 
 /** Docstrings `getDocComments()` finds in `text`, by the text of the statement each documents. */
 function docsOf(text: string): Record<string, string[]> {

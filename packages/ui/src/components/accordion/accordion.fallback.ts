@@ -1,4 +1,4 @@
-import { NativeFallback, proto } from "$/core"
+import { NativeFallback, proto } from "$/ui/core"
 
 import { accordionVocabulary } from "./accordion.vocabulary.en"
 import { AccordionPanels } from "./AccordionPanels"

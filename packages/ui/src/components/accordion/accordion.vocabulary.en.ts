@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-accordion>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-accordion styled compact="very" inverted>` => `ui inverted styled very compact accordion`.
  *   `accordion.css` keys on those words.
@@ -15,7 +15,7 @@
  *   look, as Fomantic's `.ui.accordion .accordion` does.
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-accordion>`

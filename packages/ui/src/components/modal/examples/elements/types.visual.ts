@@ -1,5 +1,5 @@
-import { VisualOpen } from "$test/VisualOpen"
-import type { VisualHooks } from "$test/test.types"
+import { VisualOpen } from "$/ui/test/VisualOpen"
+import type { VisualHooks } from "$/ui/test/test.types"
 
 /**
  * Open states of `types.html` for `yarn test:visual`:  each modal shown.

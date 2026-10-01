@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url"
 /**
  * Makes sure the fork's BUILT output (`packages/solid-element/dist/index.js`) is current before a tool reads it.
  * - Who needs it:  only production-condition consumers -- `yarn vendor` / `yarn measure` bundle
- *   `@spell/solid-element` through its `default` export, i.e. `dist/index.js`.  Dev, tests, the site and the
+ *   `@spell-app/solid-element` through its `default` export, i.e. `dist/index.js`.  Dev, tests, the site and the
  *   library build never do:  Vite resolves the fork's `development` export (`src/index.ts`), the build leaves it
  *   external, and `vite.config.ts` imports the HMR plugin from source.
  * - `ensure()` runs the fork's `yarn build` when `dist/` is missing or older than any `src/` file.  The fork is a

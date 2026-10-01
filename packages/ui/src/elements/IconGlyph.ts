@@ -1,6 +1,6 @@
 import { createEffect, createMemo, untrack, type Accessor } from "solid-js"
 
-import { RUNTIME_KEY, UI, type RuntimeGlobal } from "$/runtime"
+import { RUNTIME_KEY, UI, type RuntimeGlobal } from "$/ui/runtime"
 
 import { Cell } from "./Cell"
 

@@ -2,7 +2,7 @@
  * Shared types for the `spell` command-line tool -- see `main.ts`.
  * - Runtime-light:  `import type` only, plus the small `CliError` class and `EXIT` codes.
  */
-import type { SP } from "#spell"
+import type { SP } from "$/spell"
 
 ////////////////
 // ## Targets
@@ -95,7 +95,7 @@ export type WatchOptions = GlobalOptions & {
  * - `name`:  the project's, for messages
  * - `entry`:  URL of its compiled javascript -- a temp file, never in the project
  * - `projects`:  URL of each project it imports' `<Project>.compiled.js`, by id -- for `@spell/project/<id>`
- * - `spellCore`:  URL of `spell-core`'s `src/index.ts`, for `@spell/core`
+ * - `spellCore`:  URL of `core`'s `src/index.ts`, for `@spell/core`
  * - `verbose`:  `test` shows every check, and anything printed, not just failures
  */
 export type RunSpec = {

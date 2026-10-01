@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { Fixture } from "$test/fixture"
+import { Fixture } from "$/ui/test/fixture"
 import { Keyboard } from "./Keyboard"
 
 /** Dispatch a bubbling, composed `keydown` from `target`;  returns the event. */

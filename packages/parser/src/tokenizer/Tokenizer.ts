@@ -1,5 +1,5 @@
-import { Logger } from "#spell-util/Logger"
-import { P } from "#parser"
+import { Logger } from "$/util/spell/Logger"
+import { P } from "$/parser"
 
 /**
  * Tokenizer class for parsing text into a stream of tokens.

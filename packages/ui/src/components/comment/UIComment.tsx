@@ -1,7 +1,7 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { PartContext, proto, SlotContent, UIElement } from "$/core"
+import { PartContext, proto, SlotContent, UIElement } from "$/ui/core"
 
 import { commentVocabulary } from "./comment.vocabulary.en"
 import { CommentFallback } from "./comment.fallback"

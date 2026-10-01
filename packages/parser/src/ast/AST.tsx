@@ -1,7 +1,7 @@
 /** AST classes.  These do not necessarily correspond do anyone else's AST. */
 
-import { getSuperHierarchy, Assertable, OPTIONAL } from "#spell-util"
-import { P } from "#parser"
+import { getSuperHierarchy, Assertable, OPTIONAL } from "$/util"
+import { P } from "$/parser"
 
 import * as stringify from "./stringifyAST"
 import * as render from "./renderAST"

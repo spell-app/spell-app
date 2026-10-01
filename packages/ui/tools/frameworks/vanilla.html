@@ -25,7 +25,7 @@
       dropdown.addEventListener("ui-change", (event) => (output.textContent = event.detail.value))
       document.querySelector("#set").addEventListener("click", () => (dropdown.value = output.textContent = "c"))
       document.querySelector("#open").addEventListener("click", () => (dropdown.open = true))
-      await import("@spell/ui")
+      await import("@spell-app/ui")
       roundTrip("vanilla")
     </script>
   </body>

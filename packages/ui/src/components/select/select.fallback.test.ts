@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest"
 
-import { Fixture } from "$test/fixture"
-import { expectAccessible } from "$test/a11y"
-import { FallbackStub, type StubHost } from "$/components/fallback.stub"
-import type { SelectChangeDetail } from "$/components/components.types"
+import { Fixture } from "$/ui/test/fixture"
+import { expectAccessible } from "$/ui/test/a11y"
+import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
+import type { SelectChangeDetail } from "$/ui/components/components.types"
 
 import { SelectFallback } from "./select.fallback"
 

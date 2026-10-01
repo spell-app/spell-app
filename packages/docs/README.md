@@ -1,6 +1,6 @@
-# @spell/docs
+# @spell-app/docs
 
-Docs for every package in the repo, written as plain HTML pages that render with [`@spell/ui`](../ui/README.md).
+Docs for every package in the repo, written as plain HTML pages that render with [`@spell-app/ui`](../ui/README.md).
 
 Open [`index.html`](index.html) in a browser.  Pages load straight from disk:  no server, no build step
 to read them.
@@ -10,8 +10,8 @@ to read them.
 | `<topic>/`                   | One doc per topic, e.g. `solid/solid-2.html`, plus its `experiments/`   |
 | `templates/`                 | Starting points for each kind of doc                                          |
 | `plans/`                     | Plan docs, one per `/plan-doc` session                                        |
-| `spell-docs/`                | How the pages work, and the `@spell/ui` problems they turned up               |
-| `_assets/`                   | The shared stylesheet, page script and `@spell/ui` bundle every page loads    |
+| `spell-docs/`                | How the pages work, and the `@spell-app/ui` problems they turned up               |
+| `_assets/`                   | The shared stylesheet, page script and `@spell-app/ui` bundle every page loads    |
 | `scripts/`                   | The tooling                                                                   |
 
 ## Commands
@@ -19,7 +19,7 @@ to read them.
 From the repo root, or from this folder:
 
 ```sh
-yarn docs:update      # rebuild the @spell/ui bundle from the latest UI, then check every page in a real browser
+yarn docs:update      # rebuild the @spell-app/ui bundle from the latest UI, then check every page in a real browser
 yarn docs:index       # rewrite the lists in index.html after adding or renaming a page
 yarn docs:new durable <topic>/<topic>.html --title "Title"   # start a page from a template
 yarn docs:open        # show the index (or a given page) in Chrome

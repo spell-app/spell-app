@@ -1,5 +1,5 @@
 /**
- * Barrel for the grid components -- also the `grid` lib entry (`@spell/ui/grid`), measured in `docs/report.md`.
+ * Barrel for the grid components -- also the `grid` lib entry (`@spell-app/ui/grid`), measured in `docs/report.md`.
  * - SIDE EFFECT:  defines `<ui-grid>`, `<ui-row>` and `<ui-column>`.
  * - NOTE: `GridPart` (the three's base) is internal.
  */

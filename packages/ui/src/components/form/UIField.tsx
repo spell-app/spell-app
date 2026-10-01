@@ -1,13 +1,13 @@
 import { For, Show, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, UIElement, type AttributeName } from "$/core"
+import { Cell, proto, UIElement, type AttributeName } from "$/ui/core"
 
 import { fieldVocabulary } from "./form.vocabulary.en"
 import { FormFallback } from "./form.fallback"
 import { FieldHost } from "./FieldHost"
 
-import labelCSS from "$/components/label/label.css?inline"
+import labelCSS from "$/ui/components/label/label.css?inline"
 import formCSS from "./form.css?inline"
 
 /****************

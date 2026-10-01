@@ -1,13 +1,13 @@
 /**
- * Shared types for `$/elements` -- the element core:  class building, validation, menu options, owner context,
+ * Shared types for `$/ui/elements` -- the element core:  class building, validation, menu options, owner context,
  * shorthand, native fallbacks (library-neutral), and the Solid layer:  how a `ComponentVocabulary` becomes typed,
  * converted property values, and what the pieces of `UIElement` hand each other.
  * - Runtime-light:  types, plus two name constants (`ERROR_EVENT`, `ERRORED_STATE`).
  */
 
-import type { PropDefinition } from "@spell/solid-element"
+import type { PropDefinition } from "@spell-app/solid-element"
 
-import type { AttributeSpec, ComponentVocabulary } from "$/vocabulary"
+import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"
 
 ////////////////
 // ## Class builder

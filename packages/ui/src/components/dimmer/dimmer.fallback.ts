@@ -1,4 +1,4 @@
-import { Converters, NativeFallback, proto, type DimmerOpenDetail, type EventName } from "$/core"
+import { Converters, NativeFallback, proto, type DimmerOpenDetail, type EventName } from "$/ui/core"
 
 import { dimmerVocabulary } from "./dimmer.vocabulary.en"
 

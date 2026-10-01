@@ -1,5 +1,5 @@
-import { proto, type AttributeName } from "$/core"
-import { DialogElement } from "$/components/modal"
+import { proto, type AttributeName } from "$/ui/core"
+import { DialogElement } from "$/ui/components/modal"
 
 import { FLYOUT_WORD_WIDTHS, flyoutVocabulary } from "./flyout.vocabulary.en"
 import { FlyoutFallback } from "./flyout.fallback"

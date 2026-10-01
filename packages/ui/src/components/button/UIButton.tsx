@@ -1,7 +1,7 @@
 import { Show, createMemo } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, IconGlyph, proto, SlotContent, UIElement, type AttributeName } from "$/core"
+import { Cell, IconGlyph, proto, SlotContent, UIElement, type AttributeName } from "$/ui/core"
 
 import { buttonVocabulary } from "./button.vocabulary.en"
 import { ButtonFallback } from "./button.fallback"

@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-checkbox>` and `<ui-radio>` use:  tags, attributes (kind + allowed values), events, slots, parts,
- * states, texts.  Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * states, texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-checkbox type="toggle" size="large" fitted>` => `ui large toggle fitted checkbox`;  a `<ui-radio>` is
  *   `ui radio checkbox` (the element adds `radio` unless its `type` is `slider` / `toggle`).
@@ -10,7 +10,7 @@
  *   `CheckHost`, owns that alias:  it is not a vocabulary attribute).
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /** Attributes both elements start with:  `type` comes after them, so its word follows the colour. */
 const LEADING_ATTRIBUTES = [

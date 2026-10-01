@@ -1,7 +1,7 @@
 import { onTestFinished } from "vitest"
 
-import { ClassBuilder } from "$/elements"
-import type { AttributeSpec, ComponentVocabulary } from "$/vocabulary"
+import { ClassBuilder } from "$/ui/elements"
+import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"
 
 import { Fixture } from "./fixture"
 

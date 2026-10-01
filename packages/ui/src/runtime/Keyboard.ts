@@ -1,4 +1,4 @@
-import { proto } from "$/util"
+import { proto } from "$/ui/util"
 
 import { PAGE_SCOPE, type Disposer, type KeyHandler, type KeyRegistrationOptions } from "./runtime.types"
 import { Chord } from "./Chord"

@@ -1,5 +1,5 @@
 {
-  "name": "@spell/spell",
+  "name": "@spell-app/spell",
   "version": "0.8.0",
   "license": "MIT",
   "repository": "https://github.com/spell-app/spell",
@@ -21,9 +21,9 @@
     "test:fixtures:bless": "vitest run src/test/fixtures.test.ts --update=all"
   },
   "dependencies": {
-    "@spell/parser": "workspace:*",
-    "@spell/spell-core": "workspace:*",
-    "@spell/spell-util": "workspace:*",
+    "@spell-app/core": "workspace:*",
+    "@spell-app/parser": "workspace:*",
+    "@spell-app/util": "workspace:*",
     "browser-or-node": "^3.0.0",
     "chalk": "^5.6.0",
     "express": "^4.18.2",

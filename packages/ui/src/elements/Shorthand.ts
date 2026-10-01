@@ -1,4 +1,4 @@
-import { Converters } from "$/vocabulary"
+import { Converters } from "$/ui/vocabulary"
 
 import type { ShorthandMapper, ShorthandOptions, ShorthandProps, ShorthandValue } from "./elements.types"
 

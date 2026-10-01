@@ -10,5 +10,5 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["vitest.config.ts"]
+  "include": ["vitest.config.ts", "../../vite.decorators.ts", "../../vite.packageVersion.ts", "../../types"]
 }

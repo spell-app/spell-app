@@ -1,5 +1,5 @@
 {
-  "name": "@spell/parser",
+  "name": "@spell-app/parser",
   "version": "0.8.0",
   "private": true,
   "type": "module",
@@ -16,8 +16,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@spell/spell-util": "workspace:*",
-    "@spell/util": "workspace:*",
+    "@spell-app/util": "workspace:*",
     "browser-or-node": "^3.0.0",
     "lodash": "^4.17.21",
     "react": "^18.2.0"

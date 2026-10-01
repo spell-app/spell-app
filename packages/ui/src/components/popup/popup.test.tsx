@@ -1,17 +1,17 @@
 import { beforeEach, describe, expect, it, onTestFinished } from "vitest"
 import { page, userEvent } from "vitest/browser"
 
-import { UI } from "$/runtime"
-import type { PopupOpenDetail } from "$/components/components.types"
-import { expectAccessible } from "$test/a11y"
+import { UI } from "$/ui/runtime"
+import type { PopupOpenDetail } from "$/ui/components/components.types"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
 
-import "$/components/popup"
-import "$/components/button"
-import "$/components/icon"
-import "$/components/parts"
+import "$/ui/components/popup"
+import "$/ui/components/button"
+import "$/ui/components/icon"
+import "$/ui/components/parts"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/popup/examples/elements/*.html", {

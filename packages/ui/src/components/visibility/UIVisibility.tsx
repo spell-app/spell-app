@@ -11,7 +11,7 @@ import {
   type Disposer,
   type VisibilityCalculations,
   type VisibilityOptions
-} from "$/core"
+} from "$/ui/core"
 
 import { visibilityVocabulary } from "./visibility.vocabulary.en"
 import { VisibilityFallback } from "./visibility.fallback"

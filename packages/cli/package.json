@@ -1,5 +1,5 @@
 {
-  "name": "@spell/cli",
+  "name": "@spell-app/cli",
   "version": "0.8.0",
   "description": "`spell` command line:  compile, check, describe, explore, watch, run and test spell projects",
   "license": "MIT",
@@ -23,8 +23,8 @@
   },
   "dependencies": {
     "@inkjs/ui": "^2",
-    "@spell/spell": "workspace:*",
-    "@spell/ui": "workspace:*",
+    "@spell-app/spell": "workspace:*",
+    "@spell-app/ui": "workspace:*",
     "chalk": "^5.6.0",
     "commander": "^14",
     "ink": "^5.2.1",

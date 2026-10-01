@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest"
 
-import { foundationCSS } from "$/styles"
+import { foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$test/fixture"
-import { Sheets } from "$test/sheets"
+import { Fixture } from "$/ui/test/fixture"
+import { Sheets } from "$/ui/test/sheets"
 
 import { railVocabulary } from "./rail.vocabulary.en"
 
 import railCSS from "./rail.css?inline"
 import railRaw from "./rail.css?raw"
-import segmentCSS from "$/components/segment/segment.css?inline"
+import segmentCSS from "$/ui/components/segment/segment.css?inline"
 
 /**
  * `rail.css` on the class-grammar examples (with `segment.css`:  a segment is the rails' container).

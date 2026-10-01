@@ -5,10 +5,10 @@
  *   rule here extends, and `compound_expression`, which runs the shunting-yard algorithm combining them.
  */
 
-import { proto } from "#spell-util"
-import { P } from "#parser"
+import { proto } from "$/util"
+import { P } from "$/parser"
 // Import directly to avoid circular import
-import { SpellParser } from "#spell/SpellParser"
+import { SpellParser } from "$/spell/SpellParser"
 import { SpellStatement, type SpellStatementProps } from "./Statement"
 
 /**

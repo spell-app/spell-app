@@ -1,4 +1,4 @@
-import type { CalendarMode, CalendarType, I18n } from "$/core"
+import type { CalendarMode, CalendarType, I18n } from "$/ui/core"
 
 import { CalendarDates, type Moment, type MomentFields } from "./CalendarDates"
 

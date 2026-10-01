@@ -1,5 +1,5 @@
-import { SP } from "#spell"
-import { CLI } from "#cli"
+import { SP } from "$/spell"
+import { CLI } from "$/cli"
 
 /**
  * `spell compile <target...>`:  compile each target, showing progress and errors on stderr.

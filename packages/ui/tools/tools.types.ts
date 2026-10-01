@@ -17,7 +17,7 @@ import type { PerfResult } from "../test/PerfRun.ts"
  * - Paths are absolute, or relative to `root`.
  */
 export type PackageConfig = {
-  /** display name in reports, e.g. `@spell/ui` */
+  /** display name in reports, e.g. `@spell-app/ui` */
   name: string
   /** repo root, absolute */
   root: string

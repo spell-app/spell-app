@@ -1,5 +1,5 @@
 /**
- * Barrel for `$/styles` -- the CSS foundation as TEXT, plus the style vocabulary it's generated from.
+ * Barrel for `$/ui/styles` -- the CSS foundation as TEXT, plus the style vocabulary it's generated from.
  * - Each sheet is a string (Vite `?inline`:  Lightning CSS-processed, `@import` / `@custom-media` resolved,
  *   minified in builds), for `new CSSStyleSheet().replaceSync()` -- the runtime's `Styles` registry adopts
  *   them into the document and into shadow roots.

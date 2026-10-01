@@ -1,7 +1,7 @@
 import { createEffect, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, UIElement } from "$/core"
+import { Cell, proto, UIElement } from "$/ui/core"
 
 import { emojiVocabulary } from "./emoji.vocabulary.en"
 import { EmojiData } from "./EmojiData"

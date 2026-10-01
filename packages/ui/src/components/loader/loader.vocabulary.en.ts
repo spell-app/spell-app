@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-loader>` uses:  tag, attributes (kind + allowed values), slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-loader size="large" color="red" speed="slow" active inline>` => `ui large red slow active inline loader`.
  * - `speed` is `kind: "valueOnly"` because it emits its value alone (`slow` / `fast`), like dropdown's `state`.
@@ -8,7 +8,7 @@
  *   accessible name is the `loading` text.  The spinner is decorative.  See `loader.css`.
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-loader>`

@@ -103,8 +103,8 @@ const APP_CONTEXT_VALUE = "from-the-app"
 /** Reported for identity checks when the page sets no hook. */
 const NO_HOOK = "n/a (no __uiSolidIdentity hook)"
 
-/** Page-wide `UI` runtime key (`$/runtime`'s `RUNTIME_KEY`), read without importing the foundation. */
-const RUNTIME_KEY = Symbol.for("@spell/ui:runtime")
+/** Page-wide `UI` runtime key (`$/ui/runtime`'s `RUNTIME_KEY`), read without importing the foundation. */
+const RUNTIME_KEY = Symbol.for("@spell-app/ui:runtime")
 
 /** Version of `solid-js` the app was COMPILED against (the page may load another). */
 declare const __SOLID_VERSION__: string

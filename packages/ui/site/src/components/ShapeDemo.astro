@@ -23,7 +23,7 @@ const DIRECTIONS = ["up", "down", "left", "right", "over", "back"] as const
 </div>
 
 <script>
-  import "$/components/shape"
+  import "$/ui/components/shape"
 
   for (const demo of document.querySelectorAll<HTMLElement>("[data-shape-demo]")) {
     const shape = demo.querySelector<HTMLElement & { flip(direction?: string): Promise<boolean> }>("[data-target]")!

@@ -1,5 +1,5 @@
 /**
- * Barrel for the breadcrumb components -- also the `breadcrumb` lib entry (`@spell/ui/breadcrumb`), measured in
+ * Barrel for the breadcrumb components -- also the `breadcrumb` lib entry (`@spell-app/ui/breadcrumb`), measured in
  * `docs/report.md`.
  * - SIDE EFFECT:  defines `<ui-breadcrumb>` and `<ui-breadcrumb-section>`.
  */

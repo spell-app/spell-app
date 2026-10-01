@@ -1,5 +1,5 @@
 /*!
- * @spell/solid-element -- MIT licence.
+ * @spell-app/solid-element -- MIT licence.
  * A fork of `@solidjs/element` and `component-register` (MIT, (c) Ryan Carniato).
  */
 
@@ -11,7 +11,7 @@
  *   (observed attributes, `formAssociated`, base class, internals, shadow root options).
  * - Vite (`import.meta.hot`):  re-running a module that calls `customElement()` swaps (`redefine()`);
  *   `hotUpdate()` from its `import.meta.hot.accept()` re-renders the swapped classes' instances, or invalidates
- *   the module when a swap was refused.  `@spell/solid-element/vite` injects both.
+ *   the module when a swap was refused.  `@spell-app/solid-element/vite` injects both.
  * - Webpack / Parcel (`module.hot`):  `hot(module, tag)`, kept from `component-register`;  without
  *   `import.meta.hot` a re-registration swaps only `Component`, as `component-register` did.
  * - Live instances are tracked per class (`WeakRef`s) only while `import.meta.hot` exists:  a production build

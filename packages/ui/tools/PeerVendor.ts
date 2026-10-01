@@ -10,11 +10,11 @@ import { BundleMeasure } from "./BundleMeasure.ts"
 
 /**
  * Vendors the peer set for import-map pages:  ONE ES module per peer specifier (`solid-js`, `@solidjs/web`,
- * `@spell/solid-element`), so a page maps each specifier to a local file and runs offline and deterministically.
+ * `@spell-app/solid-element`), so a page maps each specifier to a local file and runs offline and deterministically.
  * - One Vite build with every specifier as its own entry:  modules they share (`@solidjs/signals`) land in shared
  *   chunks, so each module exists ONCE and identities hold across specifiers.
  * - Production conditions and `process.env.NODE_ENV`, minified:  what an app would ship.
- * - `resolve.dedupe` on every peer package:  a LINKED peer (`@spell/solid-element` -> `packages/solid-element`)
+ * - `resolve.dedupe` on every peer package:  a LINKED peer (`@spell-app/solid-element` -> `packages/solid-element`)
  *   otherwise resolves its own imports (`solid-js`) from its own `node_modules`, bundling a second runtime.
  * - Tree-shaken to what is USED:  each specifier's file re-exports only the bindings the `usedBy` builds import
  *   from it (`BundleMeasure.importedBindings()`) -- `dist/` and the compiled Solid host app -- so an import-map page

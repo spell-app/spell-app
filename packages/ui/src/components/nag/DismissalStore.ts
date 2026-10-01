@@ -1,4 +1,4 @@
-import type { NagStorage } from "$/core"
+import type { NagStorage } from "$/ui/core"
 
 /****************
  * ### `DismissalStore`

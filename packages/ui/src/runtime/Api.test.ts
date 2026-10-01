@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
-import { ApiError } from "$/runtime"
+import { ApiError } from "$/ui/runtime"
 
 import { Api } from "./Api"
 

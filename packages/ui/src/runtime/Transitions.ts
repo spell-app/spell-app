@@ -1,4 +1,4 @@
-import { proto } from "$/util"
+import { proto } from "$/ui/util"
 
 import type { AnimateOptions, AnimationDirection, AnimationName } from "./runtime.types"
 import type { Browser } from "./Browser"

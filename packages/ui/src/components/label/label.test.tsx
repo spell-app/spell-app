@@ -1,15 +1,15 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 
-import { UI } from "$/runtime"
-import { expectAccessible } from "$test/a11y"
+import { UI } from "$/ui/runtime"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
 
-import "$/components/label"
-import "$/components/icon"
-import "$/components/parts"
-import "$/components/statistic"
+import "$/ui/components/label"
+import "$/ui/components/icon"
+import "$/ui/components/parts"
+import "$/ui/components/statistic"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/label/examples/elements/*.html", {
@@ -245,7 +245,7 @@ describe("<ui-label> tokens from outside", () => {
 describe("<ui-label> statistic / standalone swap", () => {
   it("keeps elements slotted into it live when its root switches branch", async () => {
     // loaded first:  the label renders its slot synchronously, BEFORE the detail connects (the old owner bug's
-    // trigger, `@spell/solid-element` fix 11)
+    // trigger, `@spell-app/solid-element` fix 11)
     await UI.load()
     const holder = await ElementFixture.render(
       `<div><ui-statistic><ui-label>Dogs<ui-detail>214</ui-detail></ui-label></ui-statistic><p></p></div>`

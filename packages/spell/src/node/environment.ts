@@ -5,10 +5,10 @@ import { resolve } from "path"
 const srcDir = resolve(fileURLToPath(import.meta.url), "..", "..")
 /** The monorepo's `packages/`. */
 const packagesDir = resolve(srcDir, "..", "..")
-/** `spell-core`'s `src/`:  the runtime, and its built-in types' scope pack (`spellCore.scopes.js`). */
-const spellCoreDir = resolve(packagesDir, "spell-core", "src")
-/** `spell-app`'s `static/`:  fonts and css the app serves. */
-const staticDir = resolve(packagesDir, "spell-app", "static")
+/** `core`'s `src/`:  the runtime, and its built-in types' scope pack (`spellCore.scopes.js`). */
+const spellCoreDir = resolve(packagesDir, "core", "src")
+/** `app`'s `static/`:  fonts and css the app serves. */
+const staticDir = resolve(packagesDir, "app", "static")
 /** Every spell project on disk:  `system/` (examples, guides, library), `user/`, and `test/` (fixtures). */
 const projectsDir = resolve(srcDir, "..", "projects")
 
@@ -28,7 +28,7 @@ const environment = {
   systemFilesRoot: resolve(projectsDir, "system"),
   /** Projects users make, e.g. `projects/user/Errors` -- `@user:projects`. */
   userFilesRoot: resolve(projectsDir, "user"),
-  /** Frozen projects tests run against, e.g. `projects/test/Solitaire` -- `@test:fixtures`.  See `#spell/test`. */
+  /** Frozen projects tests run against, e.g. `projects/test/Solitaire` -- `@test:fixtures`.  See `$/spell/test`. */
   testFilesRoot: resolve(projectsDir, "test")
 }
 console.warn({ environment })

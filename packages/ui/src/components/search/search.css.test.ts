@@ -1,15 +1,15 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 import { page } from "vitest/browser"
 
-import { ClassBuilder } from "$/elements"
-import { colorsCSS, foundationCSS } from "$/styles"
-import type { AttributeSpec, ComponentVocabulary } from "$/vocabulary"
+import { ClassBuilder } from "$/ui/elements"
+import { colorsCSS, foundationCSS } from "$/ui/styles"
+import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"
 
-import { Fixture } from "$test/fixture"
+import { Fixture } from "$/ui/test/fixture"
 
 import { searchVocabulary } from "./search.vocabulary.en"
 
-import inputCSS from "$/components/input/input.css?inline"
+import inputCSS from "$/ui/components/input/input.css?inline"
 import searchCSS from "./search.css?inline"
 import searchRaw from "./search.css?raw"
 

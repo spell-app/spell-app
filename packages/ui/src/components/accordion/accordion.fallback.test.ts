@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest"
 import { userEvent } from "vitest/browser"
 
-import { Fixture } from "$test/fixture"
-import { expectAccessible } from "$test/a11y"
-import type { NativeFallbackHandle } from "$/elements"
+import { Fixture } from "$/ui/test/fixture"
+import { expectAccessible } from "$/ui/test/a11y"
+import type { NativeFallbackHandle } from "$/ui/elements"
 
 import { AccordionFallback } from "./accordion.fallback"
 

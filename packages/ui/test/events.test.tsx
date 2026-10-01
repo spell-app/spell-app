@@ -2,18 +2,18 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest"
 import { userEvent } from "vitest/browser"
 import { render } from "@solidjs/web"
 
-import { UI } from "$/runtime"
-import { ElementFixture } from "$test/ElementFixture"
+import { UI } from "$/ui/runtime"
+import { ElementFixture } from "$/ui/test/ElementFixture"
 
-import "$/components/button"
-import "$/components/dropdown"
-import "$/components/input"
-import "$/components/label"
+import "$/ui/components/button"
+import "$/ui/components/dropdown"
+import "$/ui/components/input"
+import "$/ui/components/label"
 
 /**
  * Page listeners on `ui-*` elements see the platform's retargeted event:  `target` === the host,
  * `composedPath()[0]` the inner node.  Solid's delegation used to leave the inner node on the event
- * (`@spell/solid-element` `events.ts`).
+ * (`@spell-app/solid-element` `events.ts`).
  */
 
 /** What a page listener saw. */

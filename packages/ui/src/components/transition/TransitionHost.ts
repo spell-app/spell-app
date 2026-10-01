@@ -1,4 +1,4 @@
-import { UIHost } from "$/core"
+import { UIHost } from "$/ui/core"
 
 import type { UITransition } from "./UITransition"
 

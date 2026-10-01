@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest"
 
-import { foundationCSS } from "$/styles"
+import { foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$test/fixture"
-import { Sheets } from "$test/sheets"
+import { Fixture } from "$/ui/test/fixture"
+import { Sheets } from "$/ui/test/sheets"
 
 import { stickyVocabulary } from "./sticky.vocabulary.en"
 

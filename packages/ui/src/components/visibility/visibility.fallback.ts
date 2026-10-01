@@ -1,4 +1,4 @@
-import { NativeFallback, proto } from "$/core"
+import { NativeFallback, proto } from "$/ui/core"
 
 import { visibilityVocabulary } from "./visibility.vocabulary.en"
 

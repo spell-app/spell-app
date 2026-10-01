@@ -23,7 +23,7 @@ import {
   type OverlayKind,
   type PartName,
   type TextKey
-} from "$/core"
+} from "$/ui/core"
 
 /****************
  * ### `DialogElement`

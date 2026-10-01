@@ -1,4 +1,4 @@
-import { UIHost, type FormValues } from "$/core"
+import { UIHost, type FormValues } from "$/ui/core"
 
 /** What the host asks of its controller (`UIForm`). */
 type FormController = {

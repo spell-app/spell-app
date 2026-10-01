@@ -1,5 +1,5 @@
-import { Converters, NativeFallback, proto, type MenuOption, type PartName, type SelectValue } from "$/core"
-import { itemVocabulary } from "$/components/item"
+import { Converters, NativeFallback, proto, type MenuOption, type PartName, type SelectValue } from "$/ui/core"
+import { itemVocabulary } from "$/ui/components/item"
 
 import { selectVocabulary } from "./select.vocabulary.en"
 

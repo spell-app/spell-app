@@ -1,16 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vitest"
 import { userEvent } from "vitest/browser"
 
-import { UI } from "$/runtime"
-import type { ShapeChangeDetail } from "$/components/components.types"
-import { expectAccessible } from "$test/a11y"
-import { Fixture } from "$test/fixture"
+import { UI } from "$/ui/runtime"
+import type { ShapeChangeDetail } from "$/ui/components/components.types"
+import { expectAccessible } from "$/ui/test/a11y"
+import { Fixture } from "$/ui/test/fixture"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
-import type { ShapeHost } from "$/components/shape"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
+import type { ShapeHost } from "$/ui/components/shape"
 
-import "$/components/shape"
+import "$/ui/components/shape"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/shape/examples/elements/*.html", {
@@ -86,7 +86,7 @@ describe("<ui-shape> classes and markup", () => {
       `<div><ui-late-shape active-index="1"><ui-late-side>One</ui-late-side><ui-late-side>Two</ui-late-side>` +
         `<ui-late-side>Three</ui-late-side></ui-late-shape></div>`
     )
-    const { UIShape, UISide } = await import("$/components/shape")
+    const { UIShape, UISide } = await import("$/ui/components/shape")
     UIShape.define("ui-late-shape")
     UISide.define("ui-late-side")
     await ElementFixture.settle(wrapper)

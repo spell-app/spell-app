@@ -1,15 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { userEvent } from "vitest/browser"
 
-import { UI } from "$/runtime"
+import { UI } from "$/ui/runtime"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
 
-import { Browser } from "$/runtime/Browser"
-import { I18n } from "$/runtime/I18n"
+import { Browser } from "$/ui/runtime/Browser"
+import { I18n } from "$/ui/runtime/I18n"
 
-import "$/components/calendar"
+import "$/ui/components/calendar"
 
 /**
  * `<ui-calendar>` in a browser WITHOUT `Temporal`:  the global is removed before any module runs (`vi.hoisted`, and

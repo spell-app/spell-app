@@ -43,7 +43,7 @@ import VocabularyTable from "../../components/VocabularyTable.astro"
     description="Fomantic's whole catalogue, through the element's `transition(name)` method."
     code={`<ui-transition id="box" inline visible><ui-segment>Animate me</ui-segment></ui-transition>
 <script type="module">
-  import "@spell/ui/transition"
+  import "@spell-app/ui/transition"
 
   const box = document.querySelector("#box")
   await box.transition("jiggle")        // attention:  in place

@@ -1,5 +1,5 @@
 /**
- * `yarn docs:update`:  rebuild the @spell/ui bundle from the LATEST UI, then check every `**\/<name>.html`
+ * `yarn docs:update`:  rebuild the @spell-app/ui bundle from the LATEST UI, then check every `**\/<name>.html`
  * page in a real browser.  Pages are hand-authored:  nothing here writes them.
  * Usage (from `packages/docs`):  node scripts/update.js [--skip-ui-build] [--no-check]
  * - `--skip-ui-build`:  reuse `../ui/dist` instead of rebuilding UI (the bundle is still rebuilt)
@@ -27,7 +27,7 @@ if (unknown.length) {
   process.exit(2)
 }
 
-step("bundle @spell/ui", "node", ["scripts/bundle-spell-ui.js", ...(skipUiBuild ? ["--skip-ui-build"] : [])])
+step("bundle @spell-app/ui", "node", ["scripts/bundle-spell-ui.js", ...(skipUiBuild ? ["--skip-ui-build"] : [])])
 
 step("index", "node", ["scripts/index.js"])
 

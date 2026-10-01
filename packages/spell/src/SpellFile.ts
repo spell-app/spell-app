@@ -1,6 +1,6 @@
-import { TextFile, batch, raw } from "#spell-util"
-import { P } from "#parser"
-import { SP } from "#spell"
+import { TextFile, batch, raw } from "$/util"
+import { P } from "$/parser"
+import { SP } from "$/spell"
 
 /**
  * Loadable file of spell code located at `path`.

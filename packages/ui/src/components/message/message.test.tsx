@@ -1,16 +1,16 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 
-import { PART_OWNER_TOKENS, type MessageDismissDetail } from "$/components/components.types"
-import { UI } from "$/runtime"
-import { expectAccessible } from "$test/a11y"
+import { PART_OWNER_TOKENS, type MessageDismissDetail } from "$/ui/components/components.types"
+import { UI } from "$/ui/runtime"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
 
-import "$/components/message"
-import "$/components/parts"
-import "$/components/icon"
-import "$/components/segment"
+import "$/ui/components/message"
+import "$/ui/components/parts"
+import "$/ui/components/icon"
+import "$/ui/components/segment"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/message/examples/elements/*.html", {

@@ -1,7 +1,7 @@
 import { createEffect } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { IconGlyph, PartContext, proto, UIElement } from "$/core"
+import { IconGlyph, PartContext, proto, UIElement } from "$/ui/core"
 
 import { iconVocabulary } from "./icon.vocabulary.en"
 import { IconFallback } from "./icon.fallback"

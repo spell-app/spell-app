@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-dropdown>` uses:  tag, attributes (kind + allowed values), events, slots,
- * parts, states, texts.  Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * parts, states, texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-dropdown search selection pointing="top left">` => `ui search selection top left pointing dropdown`.
  *   `dropdown.css` keys on those words.
@@ -8,7 +8,7 @@
  *   or the `value` / `text` attributes carry what SSR must show.
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-dropdown>`
@@ -130,7 +130,7 @@ export const dropdownVocabulary = {
       name: "options",
       kind: "json",
       reflect: false,
-      description: "Options as a PROPERTY:  `MenuOption[]` (`$/elements`);  added after slotted `<ui-item>`s."
+      description: "Options as a PROPERTY:  `MenuOption[]` (`$/ui/elements`);  added after slotted `<ui-item>`s."
     }
   ],
   events: [

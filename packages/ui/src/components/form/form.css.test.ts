@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest"
 
-import { colorsCSS, foundationCSS } from "$/styles"
+import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$test/fixture"
-import { Sheets } from "$test/sheets"
+import { Fixture } from "$/ui/test/fixture"
+import { Sheets } from "$/ui/test/sheets"
 
 import { fieldsVocabulary, fieldVocabulary, formVocabulary } from "./form.vocabulary.en"
 
-import checkboxCSS from "$/components/checkbox/checkbox.css?inline"
-import inputCSS from "$/components/input/input.css?inline"
-import labelCSS from "$/components/label/label.css?inline"
-import messageCSS from "$/components/message/message.css?inline"
+import checkboxCSS from "$/ui/components/checkbox/checkbox.css?inline"
+import inputCSS from "$/ui/components/input/input.css?inline"
+import labelCSS from "$/ui/components/label/label.css?inline"
+import messageCSS from "$/ui/components/message/message.css?inline"
 import formCSS from "./form.css?inline"
 import formRaw from "./form.css?raw"
 

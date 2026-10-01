@@ -8,10 +8,10 @@
 
 import { flush } from "solid-js"
 
-import type { UIHost } from "$/elements"
-import { PerfRun } from "$test/PerfRun"
+import type { UIHost } from "$/ui/elements"
+import { PerfRun } from "$/ui/test/PerfRun"
 
-import "$/components/dropdown"
+import "$/ui/components/dropdown"
 
 const host = document.getElementById("perf") as UIHost
 await host.ready

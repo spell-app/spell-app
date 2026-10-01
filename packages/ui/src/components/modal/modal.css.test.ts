@@ -1,14 +1,14 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 import { page } from "vitest/browser"
 
-import { colorsCSS, foundationCSS } from "$/styles"
+import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$test/fixture"
-import { Sheets } from "$test/sheets"
+import { Fixture } from "$/ui/test/fixture"
+import { Sheets } from "$/ui/test/sheets"
 
 import { modalVocabulary } from "./modal.vocabulary.en"
 
-import buttonCSS from "$/components/button/button.css?inline"
+import buttonCSS from "$/ui/components/button/button.css?inline"
 import modalCSS from "./modal.css?inline"
 import modalRaw from "./modal.css?raw"
 

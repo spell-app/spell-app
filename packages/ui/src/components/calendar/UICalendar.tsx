@@ -1,6 +1,6 @@
 import { For, Show, createEffect, createMemo, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
-import { onFormStateRestore } from "@spell/solid-element"
+import { onFormStateRestore } from "@spell-app/solid-element"
 
 import {
   Cell,
@@ -20,8 +20,8 @@ import {
   type TemporalAPI,
   type UIHost,
   type ValidationRule
-} from "$/core"
-import { ControlLabels, FormElement } from "$/forms"
+} from "$/ui/core"
+import { ControlLabels, FormElement } from "$/ui/forms"
 
 import { calendarVocabulary } from "./calendar.vocabulary.en"
 import { CalendarFallback } from "./calendar.fallback"
@@ -29,7 +29,7 @@ import { CalendarDates, type Moment } from "./CalendarDates"
 import { CalendarText } from "./CalendarText"
 import { CalendarView, type CalendarCell, type CalendarPage, type ViewInput } from "./CalendarView"
 
-import inputCSS from "$/components/input/input.css?inline"
+import inputCSS from "$/ui/components/input/input.css?inline"
 import calendarCSS from "./calendar.css?inline"
 
 /** Vocabulary type, for brevity. */

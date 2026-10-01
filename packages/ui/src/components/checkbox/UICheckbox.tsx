@@ -1,4 +1,4 @@
-import { proto, type ValidationRule } from "$/core"
+import { proto, type ValidationRule } from "$/ui/core"
 
 import { checkboxVocabulary } from "./checkbox.vocabulary.en"
 import { CheckControl } from "./CheckControl"

@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-flag>` uses:  tag, attributes (kind + allowed values), parts, texts -- plus the country data
- * the element resolves `country` with.  Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * the element resolves `country` with.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:  `<ui-flag country="fr" size="large">`
  *   => `ui large flag`.  The country is CONTENT, not a class:  the Unicode flag emoji (`🇫🇷`), which is what
  *   Fomantic 2.9's default theme draws too (Twemoji SVGs named by the same code points).
@@ -15,7 +15,7 @@
  *   not vocabulary names).
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-flag>`

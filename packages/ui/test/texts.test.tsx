@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest"
 
-import type { UIElement, UIHost } from "$/elements"
-import { UI } from "$/runtime"
-import { ElementFixture } from "$test/ElementFixture"
+import type { UIElement, UIHost } from "$/ui/elements"
+import { UI } from "$/ui/runtime"
+import { ElementFixture } from "$/ui/test/ElementFixture"
 
 // NOTE: order matters:  table registers its `label` text BEFORE breadcrumb does
-import "$/components/table"
-import "$/components/breadcrumb"
+import "$/ui/components/table"
+import "$/ui/components/breadcrumb"
 
 /** Text `key` as the element `host` resolves it. */
 function textOf(host: Element, key: string): string {

@@ -1,8 +1,8 @@
 import { describe, test, expect } from "vitest"
-import { unitTestModuleRules } from "#spell/test"
-import { P } from "#parser"
-import { spellParser } from "#spell"
-import { spellCore } from "#spell-core"
+import { unitTestModuleRules } from "$/spell/test"
+import { P } from "$/parser"
+import { spellParser } from "$/spell"
+import { spellCore } from "$/core"
 import type { JSXMatchData } from "./JSX"
 
 describe("testing spell module JSX", () => {

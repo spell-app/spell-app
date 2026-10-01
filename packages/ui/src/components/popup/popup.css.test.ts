@@ -1,14 +1,14 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 import { page } from "vitest/browser"
 
-import { colorsCSS, foundationCSS, nativeCSS } from "$/styles"
+import { colorsCSS, foundationCSS, nativeCSS } from "$/ui/styles"
 
-import { Fixture } from "$test/fixture"
-import { Sheets } from "$test/sheets"
+import { Fixture } from "$/ui/test/fixture"
+import { Sheets } from "$/ui/test/sheets"
 
 import { popupVocabulary } from "./popup.vocabulary.en"
 
-import buttonCSS from "$/components/button/button.css?inline"
+import buttonCSS from "$/ui/components/button/button.css?inline"
 import popupCSS from "./popup.css?inline"
 import popupRaw from "./popup.css?raw"
 import anchoredRaw from "./popup.anchored.css?raw"

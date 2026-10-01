@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { ComponentTokens } from "$/styles/ComponentTokens"
+import { ComponentTokens } from "$/ui/styles/ComponentTokens"
 
 /**
  * The component-token rule (`docs/theming.md` "Component tokens"):  a component sheet NEVER declares a public

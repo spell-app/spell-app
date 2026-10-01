@@ -1,5 +1,5 @@
 /**
- * Barrel for the checkbox components -- also the `checkbox` lib entry (`@spell/ui/checkbox`), measured in
+ * Barrel for the checkbox components -- also the `checkbox` lib entry (`@spell-app/ui/checkbox`), measured in
  * `docs/report.md`.
  * - SIDE EFFECT:  defines `<ui-checkbox>` and `<ui-radio>`.
  */

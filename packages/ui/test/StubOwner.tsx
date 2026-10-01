@@ -1,9 +1,9 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto } from "$/util"
-import { PART_VOCABULARIES } from "$/components/parts/parts.vocabulary.en"
-import type { ComponentVocabulary } from "$/vocabulary"
-import { UIElement, type UIElementClass } from "$/elements"
+import { proto } from "$/ui/util"
+import { PART_VOCABULARIES } from "$/ui/components/parts/parts.vocabulary.en"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
+import { UIElement, type UIElementClass } from "$/ui/elements"
 
 /** Host layout of a stub:  a block, like the static `<div class="ui card">` it replaces. */
 const STUB_CSS = ":host { display: block }"

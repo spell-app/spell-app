@@ -1,6 +1,6 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 
-import { ANIMATION_NAMES } from "$/runtime"
+import { ANIMATION_NAMES } from "$/ui/runtime"
 import {
   breakpoints,
   classicThemeCSS,
@@ -10,10 +10,10 @@ import {
   pageCSS,
   sizes,
   utilitiesCSS
-} from "$/styles"
-import { StyleGenerator } from "$/styles/StyleGenerator"
+} from "$/ui/styles"
+import { StyleGenerator } from "$/ui/styles/StyleGenerator"
 
-import { Fixture } from "$test/fixture"
+import { Fixture } from "$/ui/test/fixture"
 
 import layersRaw from "./layers.css?raw"
 import tokensRaw from "./tokens.css?raw"

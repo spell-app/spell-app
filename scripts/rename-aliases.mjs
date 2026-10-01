@@ -911,7 +911,7 @@ const PROSE_PATCHES = [
     "the only other\n  alias.",
     "the only other\n  entry point (`$/ui/test/*` is longer than `$/ui/*`, so it wins)."
   ],
-  [".claude/skills/solid-2/SKILL.md", ", #spell-util reactivity", ", `$/spell-util` reactivity"],
+  [".claude/skills/solid-2/SKILL.md", ", #spell-util reactivity", ", `$/util` reactivity"],
   ["packages/lsp/src/barrel.test.ts", 'describe("#lsp barrel"', 'describe("$/lsp barrel"'],
   ["packages/parser/src/barrel.test.ts", 'describe("#parser barrel contents"', 'describe("$/parser barrel contents"'],
   ["packages/parser/src/barrel.test.ts", 'describe("#parser barrel entry order"', 'describe("$/parser barrel entry order"']

@@ -1,6 +1,6 @@
 ---
 /**
- * Icon browser:  every icon in the packs `@spell/ui` ships, searchable, click to copy the name.
+ * Icon browser:  every icon in the packs `@spell-app/ui` ships, searchable, click to copy the name.
  * - One switch per built-in pack:  FA7 Free (the default), FA7 Brands, Fomantic.  Each pack is loaded into its OWN
  *   `IconPacks` (`use(id, { only })`), never the page's `UI.icons`, so browsing Fomantic names doesn't change
  *   what the page's other icons mean.
@@ -19,7 +19,7 @@ import Docs from "../layouts/Docs.astro"
 
 <Docs
   title="Icons"
-  summary="Every icon in the packs @spell/ui ships:  Font Awesome 7 Free by default, brands and Fomantic's names when a page adds them."
+  summary="Every icon in the packs @spell-app/ui ships:  Font Awesome 7 Free by default, brands and Fomantic's names when a page adds them."
   wide
 >
   <div class="ui-stack ui-gap-m site-icons" data-icons>
@@ -49,10 +49,10 @@ import Docs from "../layouts/Docs.astro"
 </Docs>
 
 <script>
-  import { IconGlyph } from "$/elements/IconGlyph"
-  import { IconName, type BuiltInIconPack } from "$/icons"
-  import type { IconPack } from "$/runtime"
-  import { IconPacks } from "$/runtime/IconPacks"
+  import { IconGlyph } from "$/ui/elements/IconGlyph"
+  import { IconName, type BuiltInIconPack } from "$/ui/icons"
+  import type { IconPack } from "$/ui/runtime"
+  import { IconPacks } from "$/ui/runtime/IconPacks"
 
   /** How many icons each page of results adds. */
   const PAGE_SIZE = 300
@@ -128,7 +128,7 @@ import Docs from "../layouts/Docs.astro"
     private async filter() {
       const query = this.query
       if (query && !this.terms) {
-        this.terms = (await import("$/icons/data/search.json")).default as Record<string, string[]>
+        this.terms = (await import("$/ui/icons/data/search.json")).default as Record<string, string[]>
       }
       const terms = this.terms
       this.matches = query

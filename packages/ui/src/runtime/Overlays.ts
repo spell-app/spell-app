@@ -1,4 +1,4 @@
-import { proto } from "$/util"
+import { proto } from "$/ui/util"
 
 import {
   LAYER_ORDER,

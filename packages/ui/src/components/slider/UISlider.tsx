@@ -1,9 +1,9 @@
 import { Repeat, Show, createEffect, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
-import { onFormStateRestore } from "@spell/solid-element"
+import { onFormStateRestore } from "@spell-app/solid-element"
 
-import { Cell, Converters, proto, UI, type AttributeName, type FieldValue } from "$/core"
-import { ControlLabels, FormElement } from "$/forms"
+import { Cell, Converters, proto, UI, type AttributeName, type FieldValue } from "$/ui/core"
+import { ControlLabels, FormElement } from "$/ui/forms"
 
 import { sliderVocabulary } from "./slider.vocabulary.en"
 import { SliderFallback } from "./slider.fallback"

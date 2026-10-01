@@ -1,4 +1,4 @@
-import { NativeFallback, proto, type MessageDismissDetail } from "$/core"
+import { NativeFallback, proto, type MessageDismissDetail } from "$/ui/core"
 
 import { messageVocabulary } from "./message.vocabulary.en"
 

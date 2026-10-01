@@ -4,7 +4,7 @@ Owen chose Solid 2 (2026-09-30).  Everything built so far lives in two places:  
 
 ## Target layout
 
-- `packages/solid-element/` -- `@spell/solid-element` (the fork), moved from `spike/solid-element/` unchanged apart from paths;  linked into the root with `link:` (its own yarn project, as in the spike)
+- `packages/solid-element/` -- `@spell-app/solid-element` (the fork), moved from `spike/solid-element/` unchanged apart from paths;  linked into the root with `link:` (its own yarn project, as in the spike)
 - `src/elements/` -- the existing library-neutral classes (`ClassBuilder`, `Validator`, `MenuOptions`, `OwnerContext`, `Shorthand`, `NativeFallback`) PLUS the Solid element core from `spike/solid/src/` (`UIElement`, `ElementDefinition`, `UIHost`, `FormHost`, `FormElement`, `Controlled`, `Cell`, `SlotContent`, `HostAttribute`, `PartContext`, `ContentPart`, `IconGlyph`, `HotDefinitions`)
 - `src/components/<name>/` -- each family's element classes (`UI*.tsx`) and `index.ts` join its CSS, vocabulary, fallback and examples;  tests become `<name>.test.tsx`
 - `src/core.ts`, `src/forms.ts` -- the shared entries;  `src/index.ts` registers everything

@@ -3,10 +3,10 @@ import { basename, resolve } from "path"
 import { fileURLToPath, pathToFileURL } from "url"
 import { runInNewContext } from "vm"
 
-import environment from "#spell/node/environment"
-import { SP } from "#spell"
-import { installDiskFetch, locationForDiskPath } from "#spell/node/disk-fetch"
-import { LSP } from "#lsp"
+import environment from "$/spell/node/environment"
+import { SP } from "$/spell"
+import { installDiskFetch, locationForDiskPath } from "$/spell/node/disk-fetch"
+import { LSP } from "$/lsp"
 
 /**
  * The stdio language server's view of the editor's files, hosted on `SP.SpellProject` / `SP.SpellFile` loading from disk.
@@ -16,7 +16,7 @@ import { LSP } from "#lsp"
  * - Every method that changes anything returns the spell files whose parse changed,
  *   so the server can publish their diagnostics.
  * - SIDE EFFECT (constructor):  makes EVERY `LoadableFile` load from disk -- see `installDiskFetch()`.
- * - NOTE: node-only, so deliberately NOT in the `#lsp` barrel:  import it from this file.
+ * - NOTE: node-only, so deliberately NOT in the `$/lsp` barrel:  import it from this file.
  */
 export class SpellDiskWorkspace implements LSP.FileAddresses {
   /** Latest text of each open document, by URI. */
@@ -141,7 +141,7 @@ export class SpellDiskWorkspace implements LSP.FileAddresses {
   }
 
   /**
-   * Built-in types' pack, `spell-core`'s `src/spellCore.scopes.js`, documented by hand -- for `LSP.ScopeExplorer`.
+   * Built-in types' pack, `core`'s `src/spellCore.scopes.js`, documented by hand -- for `LSP.ScopeExplorer`.
    * - Read again only once the file changes, so an edit shows in the Type Explorer's next tree.
    * - `undefined` if it's missing or won't run, which is logged -- the explorer then shows the types bare.
    */

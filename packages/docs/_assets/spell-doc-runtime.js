@@ -1,6 +1,6 @@
 /*
  * Page behaviour for the `.html` docs.
- * Bundled into `spell-ui.js` (a classic IIFE, beside @spell/ui) by `scripts/bundle-spell-ui.js`;  side
+ * Bundled into `spell-ui.js` (a classic IIFE, beside @spell-app/ui) by `scripts/bundle-spell-ui.js`;  side
  * effects only.  The page's markup is hand-authored;  this only DRIVES it:
  * - contents sidebar:  built from `main`'s h2 / h3 / h4 when the page has no `#spell-toc` (`buildContents()`)
  * - sticky headers:  each h3 `<ui-sticky>` sticks just below its section's h2 (`offset`, re-measured on resize);

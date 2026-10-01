@@ -1,4 +1,4 @@
-import { NativeFallback, PART_STATIC_CLASS_PREFIX, proto, type NativeFallbackRoot } from "$/core"
+import { NativeFallback, PART_STATIC_CLASS_PREFIX, proto, type NativeFallbackRoot } from "$/ui/core"
 
 import { cardVocabulary, cardsVocabulary } from "./card.vocabulary.en"
 

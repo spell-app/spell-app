@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-popup>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-popup size="small" inverted wide="very">` => `ui small inverted very wide popup`;  the element adds the
  *   `position` words after the noun (`ui inverted popup bottom left`), as Fomantic's script added them.
@@ -11,7 +11,7 @@
  *   what markup must say.
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-popup>`

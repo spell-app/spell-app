@@ -1,5 +1,5 @@
-import { proto } from "$/util"
-import { Vocabulary } from "$/vocabulary"
+import { proto } from "$/ui/util"
+import { Vocabulary } from "$/ui/vocabulary"
 import {
   animationsCSS,
   colorsCSS,
@@ -10,7 +10,7 @@ import {
   tokensCSS,
   typographyCSS,
   utilitiesCSS
-} from "$/styles"
+} from "$/ui/styles"
 
 import {
   RUNTIME_KEY,
@@ -47,7 +47,7 @@ import { load } from "./load"
  *   component actually connects.
  * - Constructs outside a browser too (SSR):  services touch the DOM only when used.
  * - NOTE: `Vocabulary` and the foundation stylesheets are wired in by their own sub-systems
- *   (`$/vocabulary`, `$/styles`), which register into `UI.styles` / the runtime after load.
+ *   (`$/ui/vocabulary`, `$/ui/styles`), which register into `UI.styles` / the runtime after load.
  */
 export class UIRuntime {
   /** this build's version;  a runtime from another bundle may differ */
@@ -100,8 +100,8 @@ export class UIRuntime {
    * Register the CSS foundation with `styles`, so every shadow root adopts it and the page gets the light-side sheets.
    * - Foundation sheets (every tree scope, in cascade order):  layers, reset, tokens, colors, sizes, animations, utilities.
    * - Page-only sheets:  typography and native (they style light-DOM markup;  shadow roots don't need them).
-   * - Here rather than in `$/styles`:  the runtime chunk is loaded exactly once per page, which is also how often
-   *   the foundation must be registered;  `$/styles` stays plain data.
+   * - Here rather than in `$/ui/styles`:  the runtime chunk is loaded exactly once per page, which is also how often
+   *   the foundation must be registered;  `$/ui/styles` stays plain data.
    */
   private registerFoundation() {
     const foundation: Array<[string, string]> = [
@@ -130,7 +130,7 @@ export class UIRuntime {
     const existing = global[RUNTIME_KEY]
     if (existing) {
       if (import.meta.env.DEV && existing.version !== RUNTIME_VERSION) {
-        console.warn(`@spell/ui: runtime ${existing.version} already loaded;  this bundle is ${RUNTIME_VERSION}.`)
+        console.warn(`@spell-app/ui: runtime ${existing.version} already loaded;  this bundle is ${RUNTIME_VERSION}.`)
       }
       return existing
     }

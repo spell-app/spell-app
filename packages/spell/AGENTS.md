@@ -1,7 +1,7 @@
 # AGENTS.md
 
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
-when working with code in this package, `@spell/spell` (`#spell`, `SP`).
+when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
 
 Conventions every package shares -- Solid 2, Long-term debt, Documentation, Functions, Decorators,
 Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST.  Only what's local is below.
@@ -10,33 +10,33 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
 
 - This package is the spell LANGUAGE:  `src/` (`SP`) is spell's rules, `SpellParser`, `SpellProject` and friends,
   on the generic parser.  The pieces around it are packages of their own, beside this one:
-  - `../parser` (`#parser`, `P`) -- the generic rule-based parser.  `PARSING.md` (here) maps its pipeline.
-  - `../spell-core` (`#spell-core`, `SC`) -- the runtime compiled spell runs on.
-  - `../spell-util` (`#spell-util`) -- utilities.
-  - `../lsp` (`#lsp`, `LSP`) -- spell's language server.  See "Language server" in `PARSING.md`.
+  - `../parser` (`$/parser`, `P`) -- the generic rule-based parser.  `PARSING.md` (here) maps its pipeline.
+  - `../core` (`$/core`, `SC`) -- the runtime compiled spell runs on.
+  - `../util` (`$/util`) -- utilities.
+  - `../lsp` (`$/lsp`, `LSP`) -- spell's language server.  See "Language server" in `PARSING.md`.
   - `../vscode` -- the VS Code extension that runs it:  its own yarn project, NOT a workspace.
-  - `../spell-app` (`#spell-app`) -- the web app, its server, the runner and `<spell-app>` / `<spell-editor>`.
+  - `../app` (`$/app`) -- the web app, its server, the runner and `<spell-app>` / `<spell-editor>`.
     `yarn start` is run THERE.
   - `../cli` -- the `spell` command line, which runs this package's SOURCE (and the others') through `tsx`.
 - `src/rules/` is spell's rule modules (see "Parser rules" below);  `src/parserTests/` holds parser tests that
   need the spell grammar (the generic ones are in `../parser`).
-- `src/node/` (`#spell/node/...`) is NODE-ONLY:  `environment`, `packageVersion.node`, `disk-fetch`, `file-utils`,
+- `src/node/` (`$/spell/node/...`) is NODE-ONLY:  `environment`, `packageVersion.node`, `disk-fetch`, `file-utils`,
   `project-utils`, `response-utils`, `server.types`.
   - The barrel NEVER exports it.  Other packages may import these files by name, the one deep-import exception
     (see `tsconfig.base.json`'s header);  the app's server does.
-  - Nothing reachable from `#spell`'s barrel may import it:  the barrel runs in browsers.
-- `src/test/` (`#spell/test`) holds the test helpers, e.g. `loadFixtureProject()`, `fixturePath()`,
+  - Nothing reachable from `$/spell`'s barrel may import it:  the barrel runs in browsers.
+- `src/test/` (`$/spell/test`) holds the test helpers, e.g. `loadFixtureProject()`, `fixturePath()`,
   `fixtureProjectId()`.
 - `projects/` holds every spell project, OUTSIDE `src/`:  `system/examples/`, `system/library/`, `system/guides/`,
   `user/` and `test/` -- the `@system:examples` etc. roots.  See "Projects" in `PARSING.md`.
   - Tests read ONLY `projects/test/` (`@test:fixtures` ~== `@test/<Project>`, listed in the app in dev only):  frozen projects, never
     the live examples, which get edited.  Use `loadFixtureProject()`, `fixturePath()`, `fixtureProjectId()` from
-    `#spell/test` -- and NEVER update a fixture to follow its example.
+    `$/spell/test` -- and NEVER update a fixture to follow its example.
   - Each fixture's compiled output is checked against `<Project>.snapshot.js` beside it (`src/test/fixtures.test.ts`).
     Add a fixture by copying a project in;  after a deliberate change, `yarn test:fixtures:bless` and read the diff.
 - `readme.md` is the project's front page.  Docs live in `packages/docs/` (see "Creating docs").
 - `src/index.ts` is the barrel:  it is also pulled into the app's server, so nothing reachable from it may rely on
-  browser-only globals at module-evaluation time.  It imports `#spell-core`'s TYPES only, never its code.
+  browser-only globals at module-evaluation time.  It imports `$/core`'s TYPES only, never its code.
 
 ## How parsing works
 
@@ -47,7 +47,7 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
 
 ## Creating docs
 
-- Docs for people -- design notes, research, references -- live in `packages/docs/` (`@spell/docs`), for every
+- Docs for people -- design notes, research, references -- live in `packages/docs/` (`@spell-app/docs`), for every
   package.  How to write one:  `packages/docs/AGENTS.md`.
 
 ## Parser rules
@@ -55,12 +55,12 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
 - A rule is a CLASS (behaviour AND what the rule is) plus its `syntax` + `tests`, passed when registering it:
   `parser.addRule(RuleClass, { syntax, tests })`.
   - Everything else -- `alias`, `precedence`, `declares`, `highlightAs`, `datatype`, `tokenType`, `pattern` ... --
-    goes ON THE CLASS as `@proto static` (from `#spell-util`), e.g. `@proto static alias = "expression"`.
+    goes ON THE CLASS as `@proto static` (from `$/util`), e.g. `@proto static alias = "expression"`.
     Why:  the class is the rule, reusable by other languages' parsers with their own `syntax`.
   - `@proto` only accepts a prop the rule declares -- `@proto static alais` is a compile error.
   - Class name IS the rule name.  Use plain `static ruleName = "if"` only for reserved words (`class _if`)
     or when class name isn't rule case (`class Block` => `"block"`).
-    Prod build MUST keep `output.keepNames` (`../spell-app/vite.config.ts`), pinned by `../spell-app/src/build.test.ts`.
+    Prod build MUST keep `output.keepNames` (`../app/vite.config.ts`), pinned by `../app/src/build.test.ts`.
   - ONE `syntax` per registration.  A rule with several calls `addRule()` once per syntax, each with the
     `tests` for that syntax, e.g. `assignment_statement`.  Instances merge into a `P.Group` under the rule's name.
   - `@proto static` values are INHERITED:  a subclass of a registered rule gets its parent's `alias` etc.
@@ -133,7 +133,7 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   - Test setup shared by a rule's registrations:  `setup_<rule_class>()` returning `{ compileAs, beforeEach }`,
     spread into each block -- `{ ...setup_assignment_statement(), tests: [...] }`.
   - Tests need no type annotations there.  Each module needs a sibling `<module>.test.ts` calling
-    `unitTestModuleRules()` (from `#parser/test`), or its tests never run.
+    `unitTestModuleRules()` (from `$/parser/test`), or its tests never run.
 - Type arguments:  `Rule<Props, Groups, MatchData>`, all defaulted so bare `P.Rule` / `P.Sequence` / `P.Match` work.
   Rule base classes fix `Props` so authors write `SpellStatement<"type|property|specifier?", { ruleComment?: ... }>`.
   - `rule.matchGroup` (was `argument`) is the name a rule's match goes under in `match.groups`, e.g. `{thing:expression}`.
@@ -145,7 +145,7 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
 - `match.groups` holds ONLY what the syntax matched (`Match | Match[]`).  Anything a rule works out for itself
   goes in `match.data`, typically via a caching method:  `getBits(match) { return (match.data.bits ??= ...) }`.
   NEVER override `getGroupsForMatch()` to add derived values.
-- In `match.data`, use `NONE` (from `#spell-util`) for "looked, not found" rather than `null`;  name scope lookups
+- In `match.data`, use `NONE` (from `$/util`) for "looked, not found" rather than `null`;  name scope lookups
   `scopeVar` / `scopeConstant` / `scopeType`.
 - ONLY `mutateScope()` changes scope.  `getAST()` MUST be pure:  NEVER change scope, NEVER look it up -- ASTs are
   built lazily, when scope may have moved on.  Look up what the AST needs WHILE PARSING, into `match.data`.
@@ -172,15 +172,15 @@ As the root's, plus:
 
 ## Imports
 
-- As the root's, with our own `src/` as `#spell` / `#spell/*`, and `SP` ~== `#spell` as our one namespace.
-- Imports `#parser` (`P`), `#spell-core` (types only) and `#spell-util`.  NEVER import `#lsp`, `#spell-app` or `#cli`.
-- A rule module imports the generic parser's rule classes from `#parser`, and registers on `SpellParser` here.
+- As the root's, with our own `src/` as `$/spell` / `$/spell/*`, and `SP` ~== `$/spell` as our one namespace.
+- Imports `$/parser` (`P`), `$/core` (types only) and `$/util`.  NEVER import `$/lsp`, `$/app` or `$/cli`.
+- A rule module imports the generic parser's rule classes from `$/parser`, and registers on `SpellParser` here.
 
 ## Types / Exports
 
 As the root's, plus our self-namespace:
 
-- `SP` ~== `#spell`
+- `SP` ~== `$/spell`
 
-The other namespaces live in their own packages:  `P` (`../parser`), `SC` (`../spell-core`), `LSP` (`../lsp`),
-`UI` / `F` (`../spell-app`).
+The other namespaces live in their own packages:  `P` (`../parser`), `SC` (`../core`), `LSP` (`../lsp`),
+`UI` / `F` (`../app`).

@@ -1,5 +1,5 @@
 /*
- * Page look of the `.html` docs -- what @spell/ui doesn't cover:  the layout, headings, prose,
+ * Page look of the `.html` docs -- what @spell-app/ui doesn't cover:  the layout, headings, prose,
  * `pre` / `code`, highlight.js colors, and a few adjustments to the widgets.  Driven by `spell-doc-runtime.js`.
  * - Colors are UI's tokens (`--ui-background`, `--ui-text-color` ...):  `light-dark()` streams, so the page follows
  *   UI's scheme (the OS unless something sets `color-scheme`).  Fallbacks cover the moment before UI loads.

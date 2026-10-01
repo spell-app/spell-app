@@ -5,10 +5,10 @@
  * TODO: sort
  */
 
-import { proto, singularize } from "#spell-util"
-import { P } from "#parser"
+import { proto, singularize } from "$/util"
+import { P } from "$/parser"
 // Import directly to avoid circular import
-import { SpellParser } from "#spell/SpellParser"
+import { SpellParser } from "$/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 import { SpellExpression, InfixOperatorSuffix } from "./expressions"
 

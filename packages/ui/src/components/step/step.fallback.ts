@@ -1,4 +1,4 @@
-import { Converters, NativeFallback, PART_STATIC_CLASS_PREFIX, proto, type NativeFallbackRoot } from "$/core"
+import { Converters, NativeFallback, PART_STATIC_CLASS_PREFIX, proto, type NativeFallbackRoot } from "$/ui/core"
 
 import { stepsVocabulary, stepVocabulary } from "./step.vocabulary.en"
 

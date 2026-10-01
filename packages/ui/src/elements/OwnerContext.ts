@@ -1,4 +1,4 @@
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 import type { OwnerFindOptions, OwnerLookup, OwnerMatch } from "./elements.types"
 
@@ -11,7 +11,7 @@ import type { OwnerFindOptions, OwnerLookup, OwnerMatch } from "./elements.types
  *     `.ui.card > .content > .header`, with `depth` saying how many custom elements sit between
  *   - an optional `barrier` stops the climb, e.g. at a component that doesn't own this part
  * - Climbs the FLAT tree, so slotting and shadow roots don't hide the owner:  `assignedSlot`, then
- *   `parentElement`, then the shadow root's `host` -- the same order as `$/util`'s `closestAcrossShadow()`,
+ *   `parentElement`, then the shadow root's `host` -- the same order as `$/ui/util`'s `closestAcrossShadow()`,
  *   which can't be reused because it matches a selector and doesn't count or stop.
  * - Call on `connectedCallback` and `slotchange`:  moving or re-slotting a part changes its owner.
  */

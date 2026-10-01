@@ -1,4 +1,4 @@
-import { NativeFallback, proto, type EventName, type ToastCloseDetail } from "$/core"
+import { NativeFallback, proto, type EventName, type ToastCloseDetail } from "$/ui/core"
 
 import { toastVocabulary } from "./toast.vocabulary.en"
 

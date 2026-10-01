@@ -1,5 +1,5 @@
 /*!
- * @spell/solid-element -- MIT licence.
+ * @spell-app/solid-element -- MIT licence.
  * A fork of `@solidjs/element` and `component-register` (MIT, (c) Ryan Carniato).
  */
 
@@ -207,7 +207,7 @@ type ChildElement = HTMLElement & { label: string }
 /**
  * Define a `SwapHost` element and a label element slotted into it (both `keepAlive`;  the original ignores it).
  * - `host-first`:  both defined before the markup connects, so the host renders its slot BEFORE the child's
- *   connect looks for an owner.  `@spell/ui` once its runtime is loaded:  a synchronous first render.
+ *   connect looks for an owner.  `@spell-app/ui` once its runtime is loaded:  a synchronous first render.
  * - `child-first`:  the host is defined after the child connected.
  */
 function swapFixture(api: Implementation, order: "host-first" | "child-first") {

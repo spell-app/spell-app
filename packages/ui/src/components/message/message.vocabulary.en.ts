@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-message>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-message state="negative" attached="bottom" size="small">` => `ui small negative bottom attached message`.
  *   The element adds `icon` (`extra`) when it shows an icon.
@@ -10,7 +10,7 @@
  *   `:state(in-message)` and style themselves from `parts.css`, reading `--_ui-message-layout` (`message.css`).
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-message>`

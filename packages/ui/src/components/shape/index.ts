@@ -1,5 +1,5 @@
 /**
- * Barrel for the shape -- also the `shape` lib entry (`@spell/ui/shape`), measured in `docs/report.md`.
+ * Barrel for the shape -- also the `shape` lib entry (`@spell-app/ui/shape`), measured in `docs/report.md`.
  * - SIDE EFFECT:  defines `<ui-shape>` and `<ui-side>`.
  */
 

@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest"
 
-import { Fixture } from "$test/fixture"
+import { Fixture } from "$/ui/test/fixture"
 import { Transitions } from "./Transitions"
 
 /** Stand-in for `animations.css`:  a short `fade` in / out, driven by `data-ui-animation`. */

@@ -1,7 +1,7 @@
 import { flush } from "solid-js"
 
-import { Fixture } from "$test/fixture"
-import type { UIHost } from "$/elements"
+import { Fixture } from "$/ui/test/fixture"
+import type { UIHost } from "$/ui/elements"
 
 /**
  * `Fixture.render()` plus "wait until every element in it has rendered":  awaits each `UIHost.ready`, then

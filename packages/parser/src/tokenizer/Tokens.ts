@@ -1,4 +1,4 @@
-import type { P } from "#parser"
+import type { P } from "$/parser"
 
 /**
  * `Token` -- root class for various specific `Token` classes.

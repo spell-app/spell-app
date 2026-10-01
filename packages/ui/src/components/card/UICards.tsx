@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement, type CardSharedVariation } from "$/core"
+import { proto, UIElement, type CardSharedVariation } from "$/ui/core"
 
 import { cardsVocabulary } from "./card.vocabulary.en"
 import { CardFallback } from "./card.fallback"

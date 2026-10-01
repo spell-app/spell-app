@@ -1,4 +1,4 @@
-import type { P } from "#parser"
+import type { P } from "$/parser"
 // Import directly to avoid circular import
 import { Symbol } from "./Symbol"
 

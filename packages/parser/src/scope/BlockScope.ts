@@ -1,5 +1,5 @@
-import { snakeCase } from "#spell-util"
-import { P } from "#parser"
+import { snakeCase } from "$/util"
+import { P } from "$/parser"
 import { Scope } from "./Scope"
 
 /**

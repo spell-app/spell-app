@@ -1,7 +1,7 @@
 import { Show, createEffect, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { IconGlyph, PartContext, proto, SlotContent, UIElement, type UIHost } from "$/core"
+import { IconGlyph, PartContext, proto, SlotContent, UIElement, type UIHost } from "$/ui/core"
 
 import { eventVocabulary } from "./feed.vocabulary.en"
 import { FeedFallback } from "./feed.fallback"

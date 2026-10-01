@@ -1,4 +1,4 @@
-import type { NativeFallbackHandle } from "$/elements"
+import type { NativeFallbackHandle } from "$/ui/elements"
 
 /**
  * Throwaway host element for `*.fallback.test.ts`:  an open shadow root that "failed" and renders its fallback.

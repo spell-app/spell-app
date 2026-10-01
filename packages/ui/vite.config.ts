@@ -6,7 +6,7 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 
 import { standardDecorators } from "../../vite.decorators.ts"
-// the fork's HMR plugin from SOURCE, not `@spell/solid-element/vite`:  Vite bundles this config with every BARE
+// the fork's HMR plugin from SOURCE, not `@spell-app/solid-element/vite`:  Vite bundles this config with every BARE
 // import external, so Node would load the package's `dist/vite.js`, which a fresh checkout doesn't have yet
 // (Node 22.17 can't load the `.ts`).  A relative import is bundled into the config instead.  See `AGENTS.md`.
 import { solidElementHot } from "../solid-element/src/vite.ts"
@@ -106,7 +106,7 @@ export const ENTRIES: Record<string, string> = {
  * layer fork:  PEER dependencies, never bundled.  The app (or an import map, see `yarn vendor`) supplies ONE copy,
  * so the app's owners, context and signals reach the components.
  */
-export const SOLID_EXTERNAL = /^solid-js(\/|$)|^@solidjs\/|^@spell\/solid-element(\/|$)/
+export const SOLID_EXTERNAL = /^solid-js(\/|$)|^@solidjs\/|^@spell-app\/solid-element(\/|$)/
 
 /**
  * Packages that MUST resolve to one copy:  the linked fork (`packages/solid-element`) resolves its imports from its
@@ -117,7 +117,7 @@ export const SOLID_DEDUPE = ["solid-js", "@solidjs/web"]
 /**
  * Config shared by the library build / dev server (below), `vitest.config.ts` and the docs site:  plugins, aliases,
  * dedupe, Lightning CSS.
- * - Aliases (`$/`, `$test/`, `#util` ...) come from the repo root's `tsconfig.base.json`, through
+ * - Aliases (`$/ui`, `$/ui/test`, `$/util` ...) come from the repo root's `tsconfig.base.json`, through
  *   `resolve.tsconfigPaths`.  A FUNCTION, so every caller gets its own plugin instances.
  * - `standardDecorators()` MUST come first:  both it and the Solid plugin are `enforce: "pre"`, and the Solid
  *   compiler must see decorator-free code.
@@ -125,7 +125,7 @@ export const SOLID_DEDUPE = ["solid-js", "@solidjs/web"]
  *   for timing `tools/demo/perf.html`.
  * - `optimizeDeps`:  `axe-core` and `temporal-polyfill` (only a Temporal-less page imports it) pre-bundled up
  *   front, so the first test run doesn't reload mid-run;  NOT
- *   `@spell/solid-element`:  it's linked TypeScript source (its `development` export), compiled by the Solid
+ *   `@spell-app/solid-element`:  it's linked TypeScript source (its `development` export), compiled by the Solid
  *   plugin like our own files.
  */
 export function baseConfig() {
@@ -138,7 +138,7 @@ export function baseConfig() {
     },
     optimizeDeps: {
       include: ["axe-core", "temporal-polyfill"],
-      exclude: ["@spell/solid-element"]
+      exclude: ["@spell-app/solid-element"]
     },
     css: {
       transformer: "lightningcss",
@@ -151,9 +151,9 @@ export function baseConfig() {
 }
 
 /**
- * Library build of `@spell/ui`, and the dev server (`yarn dev`:  `tools/demo/`).
+ * Library build of `@spell-app/ui`, and the dev server (`yarn dev`:  `tools/demo/`).
  * - ESM only:  every consumer we target (bundlers, `<script type="module">`, frameworks) speaks it.
- * - `solid-js`, `@solidjs/web` and `@spell/solid-element` are external (`SOLID_EXTERNAL`);  the `UIRuntime` and
+ * - `solid-js`, `@solidjs/web` and `@spell-app/solid-element` are external (`SOLID_EXTERNAL`);  the `UIRuntime` and
  *   icon packs are separate files (`emitIconPacks()`).
  * - `preserveEntrySignatures: "allow-extension"`:  lets `core.js` / `button.js` ... hold their own code and export
  *   what siblings need, instead of Vite's lib-mode default (`strict`), which turns every entry into a facade over
@@ -188,23 +188,30 @@ export default defineConfig(() => {
 /**
  * `vite-plugin-dts` options for the published declarations:  `dist/index.d.ts`, `dist/core.d.ts`,
  * `dist/components/<name>/index.d.ts` ... -- the paths `package.json` `exports` names.
- * - `src/` imports `#util` (`../util/src`, OUTSIDE this package), so the program's root is `packages/`
+ * - `src/` imports `$/util` (`../util/src`, OUTSIDE this package), so the program's root is `packages/`
  *   (`compilerOptions.rootDir`, else TS6059) and both `src/` trees are included.
  * - Then `beforeWriteFile` moves what the plugin wrote to `dist/ui/src/**` up to `dist/**`, and
- *   `dist/util/src/**` to `dist/_util/**` (not `dist/util/`:  that's `src/util/`'s), and rewrites `#util` and `$/`
+ *   `dist/util/src/**` to `dist/_util/**` (not `dist/util/`:  that's `src/util/`'s), and rewrites `$/util` and `$/ui`
  *   specifiers to relative ones.  `pathsToAliases: false`:  the plugin's own rewrite measures from the layout
  *   BEFORE the move, and gets `../packages/ui/src/...`.
  * - `?inline` CSS imports (`styles/index.ts`) become `declare const x: string`:  only `vite/client` types them.
  * - Why not `bundleTypes`:  it rolls each entry up on its own, so a class like `UIElement` is copied into every
  *   entry that reaches it, and a class with private members is a DIFFERENT type in each copy.  Per-file
- *   declarations keep one `UIElement` for `@spell/ui/core` and `@spell/ui/button` alike.
- * - `util` is not published on its own, so its declarations ship inside `@spell/ui`.
- * - MUST end with NO `#util`, `$/` or `$test` in `dist/**.d.ts` and no path outside `dist/`;  `yarn smoke` checks.
+ *   declarations keep one `UIElement` for `@spell-app/ui/core` and `@spell-app/ui/button` alike.
+ * - `util` is not published on its own, so its GENERIC declarations ship inside `@spell-app/ui`.  NOT `util/src/spell/` or
+ *   `util`'s barrel (which flattens it in):  `exclude` lists them, and `src/util/index.ts` imports file by file.
+ * - MUST end with NO `$/` alias in `dist/**.d.ts` and no path outside `dist/`;  `yarn smoke` checks.
  */
 export function declarations(): PluginOptions {
   return {
     include: ["src", "../util/src"],
-    exclude: ["src/**/*.test.ts", "src/**/*.test.tsx", "../util/src/**/*.test.ts"],
+    exclude: [
+      "src/**/*.test.ts",
+      "src/**/*.test.tsx",
+      "../util/src/**/*.test.ts",
+      "../util/src/spell/**",
+      "../util/src/index.ts"
+    ],
     entryRoot: "..",
     compilerOptions: { rootDir: ".." },
     pathsToAliases: false,
@@ -238,12 +245,14 @@ function rewriteDeclaration(filePath: string, content: string) {
     : path.join(uiSrc, path.dirname(moved))
 
   const code = content
-    .replace(/(from |import\()(["'])(#util|\$\/[^"']+|\.\.?\/[^"']*)\2/g, (_, start, quote, specifier: string) => {
+    .replace(/(from |import\()(["'])(\$\/[^"']+|\.\.?\/[^"']*)\2/g, (_, start, quote, specifier: string) => {
       const source = specifier.startsWith(".")
         ? path.resolve(sourceDir, specifier)
-        : specifier === "#util"
-          ? path.join(utilSrc, "index")
-          : path.join(uiSrc, specifier.slice("$/".length))
+        : specifier === "$/util" || specifier.startsWith("$/util/")
+          ? path.join(utilSrc, specifier.slice("$/util".length) || "index")
+          : specifier === "$/ui"
+            ? path.join(uiSrc, "index")
+            : path.join(uiSrc, specifier.slice("$/ui/".length))
       const file = existsSync(source) && statSync(source).isDirectory() ? path.join(source, "index") : source
       const target = file.startsWith(`${utilSrc}${path.sep}`)
         ? `_util/${path.relative(utilSrc, file)}`
@@ -271,10 +280,10 @@ function hotElements(): Plugin {
   const plugin: unknown = solidElementHot({
     include: /\/src\/components\/[\w-]+\/index\.ts$/,
     detect: /\.define\(/,
-    setup: "$/elements/HotDefinitions",
+    setup: "$/ui/elements/HotDefinitions",
     styles: {
       include: /\/src\/components\/[\w-]+\/[\w-]+\.css\?inline$/,
-      handler: "$/elements/HotDefinitions",
+      handler: "$/ui/elements/HotDefinitions",
       call: "HotDefinitions.updateStyle"
     }
   })
@@ -284,7 +293,7 @@ function hotElements(): Plugin {
 /**
  * Copies the built-in icon packs, `src/icons/icon-packs/**` (SVGs + each `pack.js`), to `<dir>/**` in the build output,
  * next to the chunks, where `BuiltInPacks` looks via `import.meta.url` (`docs/icons.md`, "Shipping icons").
- * - Library build:  `BuiltInPacks` lives in `dist/core.js` (the `core` entry re-exports `$/icons`), so `dist/icon-packs/`.
+ * - Library build:  `BuiltInPacks` lives in `dist/core.js` (the `core` entry re-exports `$/ui/icons`), so `dist/icon-packs/`.
  * - Docs site:  Astro puts client chunks in `_astro/`, so `emitIconPacks("_astro/icon-packs")` (`site/astro.config.mjs`).
  * - Copied as ASSETS, never bundled:  the runtime imports each `pack.js` by URL, on demand.
  * - Client builds only:  a server / prerender build (Astro's) needs no icon files.

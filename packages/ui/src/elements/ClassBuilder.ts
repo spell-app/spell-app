@@ -1,5 +1,5 @@
-import { numberToWord, proto } from "$/util"
-import { type AttributeSpec, type ComponentVocabulary, Converters, ValueSets } from "$/vocabulary"
+import { numberToWord, proto } from "$/ui/util"
+import { type AttributeSpec, type ComponentVocabulary, Converters, ValueSets } from "$/ui/vocabulary"
 
 import type { ClassBuildOptions, ClassGrammar, ClassInput } from "./elements.types"
 

@@ -5,11 +5,11 @@ import { resolve } from "path"
 import { pathToFileURL } from "url"
 import { describe, test, expect, beforeAll } from "vitest"
 
-import environment from "#spell/node/environment"
-import { P } from "#parser"
-import { SP } from "#spell"
-import { installDiskFetch, locationForDiskPath } from "#spell/node/disk-fetch"
-import { describeParseErrors, fixturePath, tsxBinary } from "#spell/test"
+import environment from "$/spell/node/environment"
+import { P } from "$/parser"
+import { SP } from "$/spell"
+import { installDiskFetch, locationForDiskPath } from "$/spell/node/disk-fetch"
+import { describeParseErrors, fixturePath, tsxBinary } from "$/spell/test"
 
 /**
  * A project importing another, through `project.json` -- as `SpellProject` does it in the app.

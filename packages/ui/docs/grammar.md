@@ -124,7 +124,7 @@ Enumerated values are validated against shared sets in `ValueSets` (or an inline
 - `booleans` -- `true false yes no`
 
 Unknown values are dropped with a dev-time "did you mean" warning (`Converters.enumValue()`, Levenshtein via
-`$/util`'s `suggest()`).
+`$/ui/util`'s `suggest()`).
 
 ## Forms:  `<ui-form>` and the native `<form>`
 
@@ -167,7 +167,7 @@ but the FORM itself has to be a real `<form>` in the light DOM:
 ## Items:  ONE generic `<ui-item>`
 
 Fomantic's `.item` is shared by dropdown, list and menu (and the Items view).  Here it's one element too,
-`<ui-item>` (`src/components/item/`, its own lib entry `@spell/ui/item`), rendered by OWNER CONTEXT like the content
+`<ui-item>` (`src/components/item/`, its own lib entry `@spell-app/ui/item`), rendered by OWNER CONTEXT like the content
 parts -- never `ui-list-item` / `ui-menu-item`:
 
 ```html
@@ -406,7 +406,7 @@ first paint never needs the property.  No virtualization yet:  every row renders
   `right`, `top`, `bottom`) over a lighter `::backdrop` (0.4).
 - The split:  `DialogElement` (modal family) is the controller;  `UIModal` / `UIFlyout` add vocabulary, sheet,
   `Fallback`, `rootPart` and `overlayKind`;  `FlyoutFallback` extends `ModalFallback`.  The flyout family imports
-  `$/components/modal`, so loading it defines `<ui-modal>` too.
+  `$/ui/components/modal`, so loading it defines `<ui-modal>` too.
 - The dialog is a column:  header, a content that grows, actions at the bottom (Fomantic's `min-height` calcs);  the
   dialog itself scrolls.
 - `width`:  Fomantic's words (`very thin` 120px, `thin`, 400px default, `wide`, `very wide` 800px) or columns of the

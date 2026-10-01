@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-progress>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-progress size="small" color="teal" active indicating attached="top">` =>
  *   `ui small teal active indicating top attached progress`.
@@ -8,7 +8,7 @@
  * - `value` / `percent` are STRINGS:  one number, or a comma list for several bars (`value="10,20,30"`).
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-progress>`

@@ -1,4 +1,4 @@
-# @spell/solid-element
+# @spell-app/solid-element
 
 Custom elements for Solid 2.  A fork of [`@solidjs/element`](https://github.com/solidjs/solid/tree/next/packages/element)
 (2.0.0-rc.11) and [`component-register`](https://github.com/ryansolid/component-register) (0.8.8), both MIT,
@@ -13,7 +13,7 @@ see [`UPSTREAM.md`](./UPSTREAM.md).
   `import.meta.hot` is 0 bytes in a build.
 
 ```tsx
-import { customElement, onFormReset } from "@spell/solid-element"
+import { customElement, onFormReset } from "@spell-app/solid-element"
 
 customElement(
   "my-select",
@@ -42,7 +42,7 @@ customElement(
 | `getCurrentElement()` | The element being set up;  also works later, anywhere under its component (it's provided as context). |
 | `onConnect(fn)` / `onDisconnect(fn)` | Every connect (the first included, right after setup) / every disconnect, synchronously. |
 | `onFormAssociated(fn)` / `onFormDisabled(fn)` / `onFormReset(fn)` / `onFormStateRestore(fn)` | The platform's form callbacks.  `formAssociated` / `formDisabled` replay the last reported state to late registrations. |
-| `hotUpdate(import.meta.hot)` | Vite HMR:  re-render the live instances of every class re-defined since the last call, or invalidate (full reload) when a re-definition was refused.  `@spell/solid-element/vite` calls it for you. |
+| `hotUpdate(import.meta.hot)` | Vite HMR:  re-render the live instances of every class re-defined since the last call, or invalidate (full reload) when a re-definition was refused.  `@spell-app/solid-element/vite` calls it for you. |
 | `reloadElement(el)` / `reloadElements(ClassOrTag)` / `liveElements(ClassOrTag)` | Re-render one / every live instance with the class's current component, keeping host attributes and properties;  list them. |
 | `hot(module, tag)` | `component-register`'s HMR (webpack / Parcel style). |
 | `toAttribute(name)` | `someProp` => `some-prop`, `a_b_c` => `a-b-c`. |
@@ -205,7 +205,7 @@ objects, same attributes and property values (rich data included), no page reloa
 ```ts
 // vite.config.ts
 import solid from "@solidjs/vite-plugin"
-import { solidElementHot } from "@spell/solid-element/vite"
+import { solidElementHot } from "@spell-app/solid-element/vite"
 
 export default { plugins: [solid(), solidElementHot()] }
 ```
@@ -224,7 +224,7 @@ export default { plugins: [solid(), solidElementHot()] }
   element module against a fresh copy of a base class their live instances don't extend can't work.
 - `styles: { include, handler, call }`:  style modules (e.g. `?inline` CSS) self-accept and hand their new text to
   your handler instead of re-rendering anything.  `setup`:  a module every element module imports first, for a
-  framework whose own `define()` needs an HMR hook (`@spell/ui`'s `HotDefinitions`).
+  framework whose own `define()` needs an HMR hook (`@spell-app/ui`'s `HotDefinitions`).
 - Live instances are tracked (`WeakRef`s per class) only while `import.meta.hot` exists;  without it (a build,
   a prebundled copy) `liveElements()` walks `document` and open shadow roots.
 - `@solidjs/vite-plugin`'s refresh transform only wraps exported function components;  both can coexist.
@@ -240,19 +240,19 @@ Each fix's test file reproduces the original bug against `@solidjs/element` rc.1
 value, the fork the fixed one.  `compat.test.tsx` runs `@solidjs/element`'s own test suite and README examples
 against both.
 
-## Consuming it from `@spell/ui` (link)
+## Consuming it from `@spell-app/ui` (link)
 
-- `"@spell/solid-element": "workspace:*"` in `@spell/ui`;  `exports` points `types` and the
+- `"@spell-app/solid-element": "workspace:*"` in `@spell-app/ui`;  `exports` points `types` and the
   `development` condition at `src/index.ts`, so Vite dev / Vitest use the TypeScript source and no build is
   needed.  A workspace of the monorepo (`yarn fork <script>` from `packages/ui`).
 - The consumer SHOULD keep `resolve.dedupe: ["solid-js", "@solidjs/web"]` (belt and braces):  inside the monorepo
   yarn hoists ONE Solid to the root (root `resolutions` pin the family), so the linked package can't pick up its own;
   outside it, the linked package would resolve its own `node_modules`, and two Solid copies can't share owners.
-- For a library build, mark `@spell/solid-element` external alongside `solid-js` / `@solidjs/*`, or bundle it
+- For a library build, mark `@spell-app/solid-element` external alongside `solid-js` / `@solidjs/*`, or bundle it
   (it's 4 kB).
-- `@spell/solid-element/vite` resolves to `dist/vite.js`:  Vite loads a `vite.config.ts` with every bare import
-  external, so Node imports the plugin itself (and Node 22.17 can't load `.ts`).  `@spell/ui` sidesteps that by
+- `@spell-app/solid-element/vite` resolves to `dist/vite.js`:  Vite loads a `vite.config.ts` with every bare import
+  external, so Node imports the plugin itself (and Node 22.17 can't load `.ts`).  `@spell-app/ui` sidesteps that by
   importing `./packages/solid-element/src/vite.ts` RELATIVELY (bundled into its config);  a consumer using the
   bare specifier runs `yarn build` here first.
-- `@spell/ui`'s `yarn vendor` / `yarn measure` bundle `dist/index.js` (production condition):  its
+- `@spell-app/ui`'s `yarn vendor` / `yarn measure` bundle `dist/index.js` (production condition):  its
   `tools/ForkBuild.ts` runs `yarn build` here when `dist/` is missing or stale.

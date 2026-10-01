@@ -1,6 +1,6 @@
 import { Dynamic, type JSX } from "@solidjs/web"
 
-import { proto, type HeaderLevel } from "$/core"
+import { proto, type HeaderLevel } from "$/ui/core"
 
 import { headerVocabulary } from "./parts.vocabulary.en"
 import { PartElement } from "./PartElement"

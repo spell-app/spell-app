@@ -1,5 +1,5 @@
 /**
- * Barrel for the sticky -- also the `sticky` lib entry (`@spell/ui/sticky`), measured in `docs/report.md`.
+ * Barrel for the sticky -- also the `sticky` lib entry (`@spell-app/ui/sticky`), measured in `docs/report.md`.
  * - SIDE EFFECT:  defines `<ui-sticky>`.
  */
 

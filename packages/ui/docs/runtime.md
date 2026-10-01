@@ -5,7 +5,7 @@ One shared runtime per page coordinates everything components can't do alone: ke
 ## Loading
 
 ```ts
-import { UI } from "$/runtime"
+import { UI } from "$/ui/runtime"
 
 class UIThing extends HTMLElement {
   async connectedCallback() {
@@ -19,9 +19,9 @@ class UIThing extends HTMLElement {
 - `UI` is a `Proxy` onto the page's instance:
   - `UI.load()` works at any time
   - any other property throws until the runtime has loaded, so a missing `await` fails loudly
-- The instance lives at `globalThis[Symbol.for("@spell/ui:runtime")]`. `UIRuntime.instance` reuses it, so two copies of the package on one page share one runtime. In dev, a version mismatch prints a warning.
+- The instance lives at `globalThis[Symbol.for("@spell-app/ui:runtime")]`. `UIRuntime.instance` reuses it, so two copies of the package on one page share one runtime. In dev, a version mismatch prints a warning.
 - The barrel exports service classes as **types only**. Exporting them as values would undo the code split. Reach services through the instance, e.g. `UI.keyboard.chord("Mod+K")` or `UI.focus.roving(...)`. Tests import leaf files directly.
-- `UI.ready` currently resolves as soon as the runtime is constructed. The foundation sheets (`$/styles`) and `Vocabulary` (`$/vocabulary`) register into the runtime once it has loaded; the orchestrator wires them in.
+- `UI.ready` currently resolves as soon as the runtime is constructed. The foundation sheets (`$/ui/styles`) and `Vocabulary` (`$/ui/vocabulary`) register into the runtime once it has loaded; the orchestrator wires them in.
 
 ## Services
 

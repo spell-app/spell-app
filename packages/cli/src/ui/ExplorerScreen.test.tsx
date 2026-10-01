@@ -1,8 +1,8 @@
 import { render } from "ink-testing-library"
 import { beforeAll, describe, test, expect, vi } from "vitest"
 
-import { LSP } from "#lsp"
-import { CLI } from "#cli"
+import { LSP } from "$/lsp"
+import { CLI } from "$/cli"
 
 /**
  * `<ExplorerScreen>` on the Solitaire fixture's real tree, driven by keys as a user would.

@@ -1,17 +1,17 @@
 import { describe, expect, it } from "vitest"
 
-import { colorsCSS, foundationCSS } from "$/styles"
+import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$test/fixture"
-import { Sheets } from "$test/sheets"
+import { Fixture } from "$/ui/test/fixture"
+import { Sheets } from "$/ui/test/sheets"
 
 import { transitionVocabulary } from "./transition.vocabulary.en"
 
-import buttonCSS from "$/components/button/button.css?inline"
-import segmentCSS from "$/components/segment/segment.css?inline"
+import buttonCSS from "$/ui/components/button/button.css?inline"
+import segmentCSS from "$/ui/components/segment/segment.css?inline"
 import transitionCSS from "./transition.css?inline"
 import transitionRaw from "./transition.css?raw"
-import animationsRaw from "$/styles/animations.css?raw"
+import animationsRaw from "$/ui/styles/animations.css?raw"
 
 /**
  * `transition.css` (plus `animations.css`, which owns Fomantic's transition states) on its own:  the sheet's source

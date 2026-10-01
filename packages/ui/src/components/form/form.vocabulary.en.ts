@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-form>`, `<ui-field>` and `<ui-fields>` use:  tags, attributes (kind + allowed values), events,
- * slots, parts, states, texts.  Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * slots, parts, states, texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-form size="large" state="error">` => `ui large error form`;  `<ui-field width="4" required>` =>
  *   `required four wide field`;  `<ui-fields widths="2" inline>` => `inline two fields`,
@@ -9,7 +9,7 @@
  * - Validation lives on `<ui-form>`:  `rules` is a PROPERTY (`json`) in Fomantic's `fields` shape.
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /** Form states:  tint fields, show the matching `<ui-message>`s. */
 const FORM_STATES = ["error", "info", "success", "warning"] as const

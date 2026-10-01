@@ -1,15 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vitest"
 import { page, userEvent } from "vitest/browser"
 
-import { UI } from "$/runtime"
-import { PART_OWNER_TOKENS, type ModalCloseDetail } from "$/components/components.types"
-import { A11y, expectAccessible } from "$test/a11y"
-import { Fixture } from "$test/fixture"
+import { UI } from "$/ui/runtime"
+import { PART_OWNER_TOKENS, type ModalCloseDetail } from "$/ui/components/components.types"
+import { A11y, expectAccessible } from "$/ui/test/a11y"
+import { Fixture } from "$/ui/test/fixture"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
 
-import "$/components/modal"
+import "$/ui/components/modal"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/modal/examples/elements/*.html", {

@@ -1,13 +1,21 @@
 import { Show, createMemo } from "solid-js"
 import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
-import { Converters, HostAttribute, IconGlyph, PART_STATIC_CLASS_PREFIX, proto, SlotContent, UIElement } from "$/core"
+import {
+  Converters,
+  HostAttribute,
+  IconGlyph,
+  PART_STATIC_CLASS_PREFIX,
+  proto,
+  SlotContent,
+  UIElement
+} from "$/ui/core"
 
 import { stepVocabulary } from "./step.vocabulary.en"
 import { StepFallback } from "./step.fallback"
 
 import stepCSS from "./step.css?inline"
-import partsCSS from "$/components/parts/parts.css?inline"
+import partsCSS from "$/ui/components/parts/parts.css?inline"
 
 /****************
  * ### `<ui-step>`

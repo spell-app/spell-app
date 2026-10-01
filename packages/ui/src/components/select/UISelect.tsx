@@ -14,11 +14,11 @@ import {
   type MenuSeparator,
   type SelectOptions,
   type ValidationRule
-} from "$/core"
-import { ControlLabels, FormElement } from "$/forms"
+} from "$/ui/core"
+import { ControlLabels, FormElement } from "$/ui/forms"
 // REFACTOR: `SlottedItems` reads `<ui-item>`s as data for the dropdown AND the select;  it belongs to the `item`
 // family (next to `itemVocabulary`), which would also spare the bundle a shared dropdown / select chunk
-import { SlottedItems } from "$/components/dropdown/SlottedItems"
+import { SlottedItems } from "$/ui/components/dropdown/SlottedItems"
 
 import { selectVocabulary } from "./select.vocabulary.en"
 import { SelectFallback } from "./select.fallback"

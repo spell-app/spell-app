@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest"
 
-import { spellParser } from "#spell"
+import { spellParser } from "$/spell"
 import { SpellStatement } from "./Statement"
 
 /**

@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest"
 
-import { colorsCSS, foundationCSS } from "$/styles"
+import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$test/fixture"
-import { Sheets } from "$test/sheets"
+import { Fixture } from "$/ui/test/fixture"
+import { Sheets } from "$/ui/test/sheets"
 
 import { dimmerVocabulary } from "./dimmer.vocabulary.en"
 
-import buttonCSS from "$/components/button/button.css?inline"
-import segmentCSS from "$/components/segment/segment.css?inline"
-import modalCSS from "$/components/modal/modal.css?inline"
+import buttonCSS from "$/ui/components/button/button.css?inline"
+import segmentCSS from "$/ui/components/segment/segment.css?inline"
+import modalCSS from "$/ui/components/modal/modal.css?inline"
 import dimmerCSS from "./dimmer.css?inline"
 import dimmerRaw from "./dimmer.css?raw"
 import dimmablePageRaw from "./dimmer.page.css?raw"

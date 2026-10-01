@@ -1,6 +1,6 @@
 # Upstream plan
 
-How each fix in `@spell/solid-element` could land in `solidjs/solid`, branch `next`, `packages/element`.
+How each fix in `@spell-app/solid-element` could land in `solidjs/solid`, branch `next`, `packages/element`.
 **Nothing here has been filed.**  Owen decides what goes upstream and when.
 
 ## Baseline
@@ -30,7 +30,7 @@ How each fix in `@spell/solid-element` could land in `solidjs/solid`, branch `ne
   `static formAssociated`, no constructor of your own, no `attachInternals()`;  no registry means no scoped
   registries;  `renderRoot` hard-codes `attachShadow({ mode: "open" })` (`component-register.js:169-172`), so no
   `delegatesFocus`.  The workaround is calling `register(tag, props, { BaseElement, customElements })` with a
-  fake registry that captures the class, subclassing it, and defining it yourself (the `@spell/ui` spike's
+  fake registry that captures the class, subclassing it, and defining it yourself (the `@spell-app/ui` spike's
   `ElementDefinition.register()`, ~40 lines).
 - **Answers:**  issue #15 (formAssociated), PR #34 (scoped registries, via `registry`).
 - **Patch outline:**
@@ -88,7 +88,7 @@ How each fix in `@spell/solid-element` could land in `solidjs/solid`, branch `ne
   - `converter.fromProperty(value)`:  optional normalization of PROPERTY writes (and of properties captured at
     upgrade), e.g. `"yes"` => `true`, a translated enum value => its canonical one.  Lit has no equivalent (it
     stores property writes as is);  it lets a component read ONE canonical value whichever way it was set,
-    instead of a memo per prop re-converting (the `@spell/ui` spike's old `ElementDefinition.convert()` layer)
+    instead of a memo per prop re-converting (the `@spell-app/ui` spike's old `ElementDefinition.convert()` layer)
   - `toAttribute`:  `/_/g`
 - **Breaking:**  yes:  untyped props stop JSON-parsing;  `flag="false"` becomes `true` (HTML's rule);  `Number`
   uses `Number()`.  Could ship as the default of a new major, with `parse: true` as the escape hatch.
@@ -166,7 +166,7 @@ How each fix in `@spell/solid-element` could land in `solidjs/solid`, branch `ne
 
 - **Problem:**  an error thrown while rendering or updating ANY element escapes to Solid's scheduler, which
   halts for the whole page (`[REACTIVITY_HALTED]`):  every other element, and the host app on the same runtime
-  copy, stops updating.  In the `@spell/ui` spike one bug made 25 unrelated tests hang.
+  copy, stops updating.  In the `@spell-app/ui` spike one bug made 25 unrelated tests hang.
 - **Answers:**  no upstream issue yet.
 - **Patch outline:**
   - `withSolid`:  `createErrorBoundary(() => untrack(render), fallback)` around the component (untracked:  the
@@ -219,7 +219,7 @@ How each fix in `@spell/solid-element` could land in `solidjs/solid`, branch `ne
     `!container.contains(prev)` (not shadow-including), so a Solid app's `<my-el onClick>` and any `onClick` above
     a nested element never run for events from inside that element's shadow root.
 - **Is it Solid 2 generally?**  Yes:  every `@solidjs/element` element, and any `render()` into a shadow root
-  (`@spell/solid-element` inherits it unchanged).  Candidate issue for `solidjs/solid` (`next`;  the code is
+  (`@spell-app/solid-element` inherits it unchanged).  Candidate issue for `solidjs/solid` (`next`;  the code is
   dom-expressions' `client.js` `eventHandler`), not filed.  Minimal repro (no library):
 
   ```tsx
@@ -255,7 +255,7 @@ How each fix in `@spell/solid-element` could land in `solidjs/solid`, branch `ne
 - **Test:**  `events.test.tsx` -- page listener `target` / `currentTarget` (original leaks the inner node);  app
   handlers on and above the element;  nested elements;  slotted light content and a nested element slotted into
   another, each handler once;  `stopPropagation()`;  a component's own root listener untouched;  `noShadowDOM()`.
-  `@spell/ui`'s `test/events.test.tsx`:  `input` / `click` / `keydown` / `focusin` on `<ui-input>`, `<ui-button>`,
+  `@spell-app/ui`'s `test/events.test.tsx`:  `input` / `click` / `keydown` / `focusin` on `<ui-input>`, `<ui-button>`,
   `<ui-dropdown>` with and without a Solid app, and a rich dropdown item's nested element.
 
 ## PR 11 -- a slotted element's root dies with its slot's branch (`owner.ts`)
@@ -306,7 +306,7 @@ How each fix in `@spell/solid-element` could land in `solidjs/solid`, branch `ne
 - **Cost:**  -0.1 kB min, -16 B min + gzip (the walk loses its two slot checks, gains `isDisposed`).
 - **Test:**  `owner.test.tsx` -- the swap above (the original freezes, both elements `keepAlive`);  the same with the
   child connected before its host renders;  an app-written element keeps app context and updates across the
-  swap;  context around a `<slot>` no longer reaches slotted elements;  a disposed stamp is skipped.  `@spell/ui`:
+  swap;  context around a `<slot>` no longer reaches slotted elements;  a disposed stamp is skipped.  `@spell-app/ui`:
   `item`, `menu`, `list` (their one-moved-slot workaround removed), `label` (statistic / standalone swap),
   `parts` (`<ui-header>` link / plain swap).
 
@@ -341,7 +341,7 @@ How each fix in `@spell/solid-element` could land in `solidjs/solid`, branch `ne
 - **Breaking:**  no.  In dev a refused redefinition warns and reloads instead of half-applying.
 - **Test:**  `hot.test.tsx` (registry, in-place swap with values kept, converter / default migration, each refusal
   reason, shadowing prop throws, error recovery, detached `keepAlive`, `hot()` still works);
-  `@spell/ui`'s `yarn test:hmr` is the end-to-end proof (a real Vite server, real file edits).
+  `@spell-app/ui`'s `yarn test:hmr` is the end-to-end proof (a real Vite server, real file edits).
 
 ## Smaller changes riding along
 

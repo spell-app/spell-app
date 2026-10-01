@@ -1,4 +1,4 @@
-import { kebabCase } from "$/util"
+import { kebabCase } from "$/ui/util"
 
 import { ColorContrast } from "./ColorContrast"
 

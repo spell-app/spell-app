@@ -15,7 +15,7 @@ import {
   type ToastCloseDetail,
   type ToastCloseReason,
   type ToastShowDetail
-} from "$/core"
+} from "$/ui/core"
 
 import { toastVocabulary } from "./toast.vocabulary.en"
 import { ToastFallback } from "./toast.fallback"

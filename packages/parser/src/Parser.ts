@@ -4,8 +4,8 @@ import isEqual from "lodash/isEqual"
 import groupBy from "lodash/groupBy"
 import sum from "lodash/sum"
 
-import { Derivative, showWhitespace } from "#spell-util"
-import { P } from "#parser"
+import { Derivative, showWhitespace } from "$/util"
+import { P } from "$/parser"
 
 /**
  * Parser for a language ~== named `rules` plus a `tokenizer`, used to `parse()` input into a `Match` tree
@@ -406,7 +406,7 @@ export class Parser extends Derivative {
    * `RulexParser`, used to create rules from regex-like syntax.
    * - To avoid circular import problems, we don't link to this by default.
    * - If you have a language which needs rulex functionality, inject it with
-   *   `import #parser/rulex`.
+   *   `import $/parser/rulex`.
    */
   static rulexParser: P.RulexParser | undefined
 

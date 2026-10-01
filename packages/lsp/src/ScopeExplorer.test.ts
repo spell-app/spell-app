@@ -5,13 +5,13 @@ import { resolve } from "path"
 import { pathToFileURL } from "url"
 import { runInNewContext } from "vm"
 
-import environment from "#spell/node/environment"
-import { SP } from "#spell"
-import { LSP } from "#lsp"
-import { SpellDiskWorkspace } from "#lsp/SpellDiskWorkspace"
-import { installDiskFetch, locationForDiskPath } from "#spell/node/disk-fetch"
-import { scopesFromPacks } from "#lsp/ScopesSource"
-import { compiledFixture, fixturePath } from "#spell/test"
+import environment from "$/spell/node/environment"
+import { SP } from "$/spell"
+import { LSP } from "$/lsp"
+import { SpellDiskWorkspace } from "$/lsp/SpellDiskWorkspace"
+import { installDiskFetch, locationForDiskPath } from "$/spell/node/disk-fetch"
+import { scopesFromPacks } from "$/lsp/ScopesSource"
+import { compiledFixture, fixturePath } from "$/spell/test"
 
 /** The scope tree of a temp copy of the Solitaire example, as a scope explorer sees it. */
 describe("ScopeExplorer", () => {
@@ -364,7 +364,7 @@ describe("ScopeExplorer scope packs", () => {
     ])
   })
 
-  test("`spell-core`'s `src/spellCore.scopes.js` -- which may be hand-edited -- has every built-in type", () => {
+  test("`core`'s `src/spellCore.scopes.js` -- which may be hand-edited -- has every built-in type", () => {
     const path = resolve(environment.spellCoreDir, "spellCore.scopes.js")
     const shipped = runPackScript(readFileSync(path, "utf8"), "spellCore.scopes.js")
     expect(shipped.entries.map((entry) => entry.path)).toEqual(

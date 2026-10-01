@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-items>` uses:  tag, attributes (kind + allowed values), slots, parts, states.
- * Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-items divided relaxed="very" link>` => `ui divided link very relaxed items`.  `items.css` keys on those.
  * - Fomantic's Items VIEW, with the SAME generic `<ui-item>` as dropdown, list and menu (`ownsParts:  item`) --
@@ -8,7 +8,7 @@
  *   (`ItemContext.ownsParts`), so they style themselves `:state(in-item)`.
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-items>`

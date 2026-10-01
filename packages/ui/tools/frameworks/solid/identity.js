@@ -2,7 +2,7 @@
  * The Solid 2 host page's identity probe (`SolidIdentityHook` in `tools.types.ts`):  sets
  * `globalThis.__uiSolidIdentity`, so the host app (`app.tsx`) can PROVE it shares one `solid-js` / `@solidjs/web`
  * with the components, and that its context reaches them.
- * - A PAGE module, never shipped code:  `solid-js`, `@solidjs/web` and `@spell/ui/core` resolve through the page's
+ * - A PAGE module, never shipped code:  `solid-js`, `@solidjs/web` and `@spell-app/ui/core` resolve through the page's
  *   import map, i.e. the same vendored files the components load.
  * - Bindings, not `import * as` namespaces:  a namespace import keeps every export of a package alive (in a bundle,
  *   and in what `yarn vendor` must ship), so the vendored Solid couldn't shrink to the bindings in use.  The same
@@ -14,7 +14,7 @@
 
 import { createSignal } from "solid-js"
 import { render } from "@solidjs/web"
-import { UIElement } from "@spell/ui/core"
+import { UIElement } from "@spell-app/ui/core"
 
 globalThis.__uiSolidIdentity = {
   solidJs: { createSignal },

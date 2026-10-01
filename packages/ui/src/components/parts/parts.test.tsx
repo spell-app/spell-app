@@ -1,27 +1,27 @@
 import { beforeAll, describe, expect, it } from "vitest"
 import { Dynamic, type JSX } from "@solidjs/web"
 
-import { expectAccessible } from "$test/a11y"
+import { expectAccessible } from "$/ui/test/a11y"
 import { PART_NOUNS } from "./parts.vocabulary.en"
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
-import { UIElement, type PartContext, type UIElementClass, type UIHost } from "$/elements"
-import { UI } from "$/runtime"
-import { ElementFixture } from "$test/ElementFixture"
-import { StubOwner } from "$test/StubOwner"
+import { UIElement, type PartContext, type UIElementClass, type UIHost } from "$/ui/elements"
+import { UI } from "$/ui/runtime"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import { StubOwner } from "$/ui/test/StubOwner"
 
-import "$/components/parts"
-import "$/components/label"
-import "$/components/segment"
-import "$/components/card"
-import "$/components/items"
-import "$/components/feed"
-import "$/components/comment"
-import "$/components/statistic"
-import "$/components/step"
-import "$/components/message"
-import "$/components/list"
-import "$/components/icon"
+import "$/ui/components/parts"
+import "$/ui/components/label"
+import "$/ui/components/segment"
+import "$/ui/components/card"
+import "$/ui/components/items"
+import "$/ui/components/feed"
+import "$/ui/components/comment"
+import "$/ui/components/statistic"
+import "$/ui/components/step"
+import "$/ui/components/message"
+import "$/ui/components/list"
+import "$/ui/components/icon"
 
 /** Examples whose original fragment fails axe `heading-order` too (see `docs/report.md`). */
 const HEADING_DEMOS = ["parts/examples/elements/header.html", "segment/examples/elements/variations.html"]
@@ -192,7 +192,7 @@ describe("<ui-header> standalone", () => {
 
   it("keeps elements slotted into it live when `href` swaps its root tag", async () => {
     // loaded first:  the header renders its slot synchronously, BEFORE the label connects (the old owner bug's
-    // trigger, `@spell/solid-element` fix 11)
+    // trigger, `@spell-app/solid-element` fix 11)
     await UI.load()
     const host = await ElementFixture.render(`<ui-header>Dogs <ui-label>214</ui-label></ui-header>`)
     const label = host.querySelector<UIHost>("ui-label")!

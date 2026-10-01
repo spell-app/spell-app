@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { Fixture } from "$test/fixture"
+import { Fixture } from "$/ui/test/fixture"
 import { Ids } from "./Ids"
 
 describe("Ids", () => {

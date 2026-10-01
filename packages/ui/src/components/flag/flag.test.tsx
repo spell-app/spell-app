@@ -1,13 +1,13 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 
-import { UI } from "$/runtime"
-import { expectAccessible } from "$test/a11y"
+import { UI } from "$/ui/runtime"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
-import { FlagCountry } from "$/components/flag"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
+import { FlagCountry } from "$/ui/components/flag"
 
-import "$/components/flag"
+import "$/ui/components/flag"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/flag/examples/elements/*.html", {

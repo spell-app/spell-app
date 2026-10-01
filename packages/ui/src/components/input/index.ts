@@ -1,5 +1,5 @@
 /**
- * Barrel for the input components -- also the `input` lib entry (`@spell/ui/input`), measured in `docs/report.md`.
+ * Barrel for the input components -- also the `input` lib entry (`@spell-app/ui/input`), measured in `docs/report.md`.
  * - SIDE EFFECT:  defines `<ui-input>` and `<ui-textarea>`.
  */
 

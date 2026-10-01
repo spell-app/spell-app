@@ -1,4 +1,4 @@
-import { UIHost } from "$/core"
+import { UIHost } from "$/ui/core"
 
 /** What the host asks of its controller (`UINag`). */
 type NagController = {

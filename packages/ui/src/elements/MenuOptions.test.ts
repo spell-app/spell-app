@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { type MenuOption, MenuOptions } from "$/elements"
+import { type MenuOption, MenuOptions } from "$/ui/elements"
 
 /** Small option list with accents, a disabled option and value / text differences. */
 const OPTIONS: MenuOption[] = [

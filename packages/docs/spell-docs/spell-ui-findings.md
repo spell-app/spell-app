@@ -1,6 +1,6 @@
-# @spell/ui findings from the `.html` docs
+# @spell-app/ui findings from the `.html` docs
 
-Problems in @spell/ui (`packages/ui`) met while building the `.html` docs with `ui-*` widgets:
+Problems in @spell-app/ui (`packages/ui`) met while building the `.html` docs with `ui-*` widgets:
 `yarn docs:update` bundles UI into one classic script (`_assets/spell-ui.js`), and the pages open from file://.
 Each finding:  component, symptom, repro, the workaround used here, a suggested fix.  Workarounds live in
 `_assets/spell-doc.css`, `_assets/spell-doc-runtime.js` and `scripts/bundle-spell-ui.js`.
@@ -12,7 +12,7 @@ Each finding:  component, symptom, repro, the workaround used here, a suggested 
      non-ESM hosts, and `bundle-spell-ui.js` uses them (`spell-ui:icons`).  Kept for the record:
    - symptom:  glyph files load only by dynamic `import()` relative to the module;  from a classic script (IIFE
      bundle) or file:// they never load, and there's no hook to supply them another way
-   - repro:  bundle `@spell/ui` as an IIFE, open a page with `<ui-input icon="search">` from file://
+   - repro:  bundle `@spell-app/ui` as an IIFE, open a page with `<ui-input icon="search">` from file://
    - workaround:  the bundler writes a virtual module `spell-ui:glyphs` that registers the glyphs the page uses
      into `Icons` before UI loads (`bundle-spell-ui.js`)
    - suggest:  a public loader hook (`Icons.setLoader(name => ...)`) or `Icons.register(map)` documented as the
@@ -27,8 +27,8 @@ Each finding:  component, symptom, repro, the workaround used here, a suggested 
    - suggest:  resolve to `undefined` (or a fallback glyph) on any failure, as documented;  catch in `load()`
 
 3. **Emoji data (~310 KB) and the Temporal polyfill (~58 KB) can't be left out of a single-file build**
-   - symptom:  importing `@spell/ui` pulls both in, even for pages with no emoji / calendar widgets
-   - repro:  bundle `import "@spell/ui"`;  inspect the output
+   - symptom:  importing `@spell-app/ui` pulls both in, even for pages with no emoji / calendar widgets
+   - repro:  bundle `import "@spell-app/ui"`;  inspect the output
    - workaround:  none, the bundle carries them (2 MB, 481 KB gzip)
    - suggest:  keep them behind the families that need them, or a documented per-family entry that a bundler can
      tree-shake
@@ -40,7 +40,7 @@ Each finding:  component, symptom, repro, the workaround used here, a suggested 
      exactly one copy
    - suggest:  dedupe the fork's install (peer deps only), or ship `solid-element` with Solid external
 
-5. **UI's `yarn build` doesn't rebuild the fork, and resolves `@spell/solid-element` to the fork's `dist`**
+5. **UI's `yarn build` doesn't rebuild the fork, and resolves `@spell-app/solid-element` to the fork's `dist`**
    - symptom:  a change in the fork's source never reaches UI's `dist` until the fork is built by hand;  stale dist
    - repro:  edit `packages/solid-element/src`, run UI's `yarn build`, diff
    - workaround:  `bundle-spell-ui.js` builds the fork before UI

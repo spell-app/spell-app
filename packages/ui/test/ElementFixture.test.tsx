@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
 
-import "$/index"
+import "$/ui/index"
 
 /** `ElementFixture.breakRender()` must break ANY element, including one with no `keyOnly` attribute. */
 describe("ElementFixture.breakRender()", () => {

@@ -6,7 +6,7 @@
     <title>Spell on Solid 2</title>
     <meta
       name="description"
-      content="What spell needs to know about Solid 2 that the Solid docs don't say:  the rendering model, read-after-write with memoized derived properties, gotchas, and ideas for @spell/ui."
+      content="What spell needs to know about Solid 2 that the Solid docs don't say:  the rendering model, read-after-write with memoized derived properties, gotchas, and ideas for @spell-app/ui."
     />
     <link rel="stylesheet" href="../_assets/spell-doc.css" />
   </head>
@@ -21,7 +21,7 @@
         </ul>
         <p class="meta">
           Solid <code>2.0.0-rc.13</code> (current, 2026-09-30), researched on <code>rc.11</code> -- which
-          <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell/ui</code></a> still pins.
+          <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> still pins.
         </p>
         <ul>
           <li>
@@ -518,7 +518,7 @@
                     <li>It's X without memoization</li>
                     <li>
                       The two share the <code>record</code>, so switching is local to
-                      <a href="../../spell-util/src/" target="src-packages-spell-util-src"><code>~/util</code></a>
+                      <a href="../../util/src/spell/" target="src-packages-spell-util-src"><code>~/util</code></a>
                     </li>
                   </ul>
                 </li>
@@ -1675,7 +1675,7 @@ class Card extends ThingD {
                 <ul>
                   <li>
                     decorators and emitted code call the same
-                    <a href="../../spell-util/src/" target="src-packages-spell-util-src"><code>~/util</code></a>
+                    <a href="../../util/src/spell/" target="src-packages-spell-util-src"><code>~/util</code></a>
                     helpers, so the Thing Explorer, <code>keys()</code> and types can't tell them apart
                   </li>
                   <li>
@@ -1708,7 +1708,7 @@ class Card extends ThingD {
                 <ul>
                   <li>
                     the <code>Symbol.metadata</code> polyfill lives in
-                    <a href="../../spell-util/src/" target="src-packages-spell-util-src"><code>~/util</code></a
+                    <a href="../../util/src/spell/" target="src-packages-spell-util-src"><code>~/util</code></a
                     >, loaded before any decorated class, in every bundle and in <code>spell-runtime.js</code>
                   </li>
                   <li>esbuild's decorator helpers cost about 1.2 kB per bundle</li>
@@ -1829,13 +1829,13 @@ class ThingD extends ThingA {
             <ul>
               <li>
                 Registering ours wraps every Solid computation on the page,
-                <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell/ui</code></a
+                <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a
                 >'s included
               </li>
               <li>That's one small object and two <code>Set</code> calls per computation run</li>
               <li>
                 Measure it on the
-                <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell/ui</code></a> demo page
+                <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> demo page
               </li>
               <li>Register it once, in the shared chunk, before anything renders</li>
             </ul>
@@ -1953,7 +1953,7 @@ class ThingD extends ThingA {
               <li>each app root sits in <code>&lt;Errored&gt;</code></li>
               <li>
                 <a href="../../solid-element/README.md" target="src-packages-solid-element-readme-md"
-                  ><code>@spell/solid-element</code></a
+                  ><code>@spell-app/solid-element</code></a
                 >
                 gives each element its own boundary already
               </li>
@@ -2110,8 +2110,8 @@ class ThingD extends ThingA {
             <p>Delegated events, context, the scheduler and element definitions are all module state.</p>
             <ul>
               <li>
-                <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell/ui</code></a> is built for
-                this:
+                <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> is built
+                for this:
                 <ul>
                   <li>Solid is a peer it never bundles</li>
                   <li>
@@ -2128,8 +2128,8 @@ class ThingD extends ThingA {
                 <ul>
                   <li>
                     Solid and
-                    <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell/ui</code></a> go in the
-                    shared chunk
+                    <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> go in
+                    the shared chunk
                   </li>
                   <li>
                     Each <code>&lt;spell-app&gt;</code> keeps its own <code>spellCore</code> copy but imports Solid from
@@ -2144,9 +2144,9 @@ class ThingD extends ThingA {
                 <ul>
                   <li>
                     Build Solid,
-                    <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell/ui</code></a> and
+                    <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> and
                     <a href="../../solid-element/README.md" target="src-packages-solid-element-readme-md"
-                      ><code>@spell/solid-element</code></a
+                      ><code>@spell-app/solid-element</code></a
                     >
                     ONCE into a stable <code>spell-solid.js</code> that every build imports by relative URL, or make
                     them one multi-entry build
@@ -2154,7 +2154,7 @@ class ThingD extends ThingA {
                   <li>
                     Pin it in
                     <a
-                      href="../../spell-app/src/runner/element.build.test.ts"
+                      href="../../app/src/runner/element.build.test.ts"
                       target="src-packages-spell-app-src-runner-element-build-test-ts"
                       ><code>element.build.test.ts</code></a
                     >
@@ -2164,7 +2164,7 @@ class ThingD extends ThingA {
               <li>
                 <b
                   >Host pages that already have Solid or
-                  <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell/ui</code></a
+                  <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a
                   >:</b
                 >
                 <ul>
@@ -2173,10 +2173,10 @@ class ThingD extends ThingA {
                     <ul>
                       <li>
                         <code>solid-js</code>, <code>@solidjs/web</code>,
-                        <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell/ui</code></a
+                        <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a
                         >,
                         <a href="../../solid-element/README.md" target="src-packages-solid-element-readme-md"
-                          ><code>@spell/solid-element</code></a
+                          ><code>@spell-app/solid-element</code></a
                         >
                         mapped to one URL each
                       </li>
@@ -2220,7 +2220,7 @@ class ThingD extends ThingA {
                 SSR tests need their own <code>solid()</code> plugin instance (<a
                   href="../../ui/README.md"
                   target="src-packages-ui-readme-md"
-                  ><code>@spell/ui</code></a
+                  ><code>@spell-app/ui</code></a
                 >
                 PAPERCUTS)
               </li>
@@ -2234,8 +2234,8 @@ class ThingD extends ThingA {
             <ul>
               <li>
                 rc.13 is current (2026-09-30; there was no npm rc.12).
-                <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell/ui</code></a> still pins
-                rc.11: upgrade it and parser together
+                <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> still
+                pins rc.11: upgrade it and parser together
               </li>
               <li>
                 <b>Behaviour: no difference found.</b> Every experiment gives the same results on both, in dev and prod
@@ -2279,7 +2279,8 @@ class ThingD extends ThingA {
               <li>
                 <code>@solidjs/vite-plugin</code> replaces <code>vite-plugin-solid</code>, with the OXC compiler by
                 default. Newest: 3.0.0-next.47 (npm's <code>next</code> tag still says next.35;
-                <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell/ui</code></a> pins next.46)
+                <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> pins
+                next.46)
               </li>
               <li><code>@solidjs/testing-library@next</code>: 1.0.0-beta.3</li>
             </ul>
@@ -2288,7 +2289,8 @@ class ThingD extends ThingA {
         <section class="s2">
           <ui-sticky class="spell-h2">
             <h2 id="ui">
-              4. Ideas for <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell/ui</code></a>
+              4. Ideas for
+              <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a>
             </h2>
           </ui-sticky>
           <p>
@@ -2314,7 +2316,7 @@ class ThingD extends ThingA {
               </li>
               <li>
                 Backing host properties with a plain record plus notifier, or with spell cells if the two projects share
-                <a href="../../spell-util/src/" target="src-packages-spell-util-src"><code>~/util</code></a
+                <a href="../../util/src/spell/" target="src-packages-spell-util-src"><code>~/util</code></a
                 >, makes the DOM contract synchronous again, as native elements are
               </li>
               <li>Test first: <code>el.value = x; expect(el.value).toBe(x)</code> with no flush</li>
@@ -2406,7 +2408,7 @@ class ThingD extends ThingA {
               <li>events as <code>onUiX</code>, with a documented directive for the hyphenated name</li>
             </ul>
             Parser needs these types too, and
-            <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell/ui</code></a> can ship them
+            <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> can ship them
             once for every consumer.
           </section>
           <section class="s3">
@@ -2516,7 +2518,7 @@ class ThingD extends ThingA {
             </ui-sticky>
             <p>
               add <code>@solidjs/testing-library@next</code> and jsdom, or vitest browser mode as in
-              <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell/ui</code></a
+              <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a
               >, for component tests. Keep a Node project for parser and spell-cells tests.
             </p>
           </section>
@@ -2604,7 +2606,7 @@ class ThingD extends ThingA {
                 rc.13.
               </li>
               <li>
-                <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell/ui</code></a
+                <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a
                 >: AGENTS.md "Solid authoring",
                 <a href="../../solid-element/README.md" target="src-packages-solid-element-readme-md"
                   ><code>solid-element/README.md</code></a
@@ -2636,7 +2638,7 @@ class ThingD extends ThingA {
                 <ul>
                   <li>
                     Phase 1 ALSO pins the semantics this doc depends on as vitest cases in
-                    <a href="../../spell-util/src/" target="src-packages-spell-util-src"><code>src/util/</code></a>
+                    <a href="../../util/src/spell/" target="src-packages-spell-util-src"><code>src/util/</code></a>
                   </li>
                   <li>the scripts remain the quick way to re-measure, and to compare designs on a new RC</li>
                 </ul>

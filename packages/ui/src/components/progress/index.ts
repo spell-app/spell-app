@@ -1,5 +1,5 @@
 /**
- * Barrel for the progress component -- also the `progress` lib entry (`@spell/ui/progress`), measured in
+ * Barrel for the progress component -- also the `progress` lib entry (`@spell-app/ui/progress`), measured in
  * `docs/report.md`.
  * - SIDE EFFECT:  defines `<ui-progress>`.
  * - NOTE: `ProgressValues` (the arithmetic) is exported too:  an app can compute the same numbers.

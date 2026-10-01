@@ -3,60 +3,60 @@
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
 when working with code in this repository.
 
-**If working with Solid (2.0) -- components, JSX, effects / signals / stores, `spell-core` rendering, `#spell-util`
-reactivity, `@spell/ui` elements, or any React-to-Solid step:  READ `packages/docs/solid/solid-2.md` IN FULL
+**If working with Solid (2.0) -- components, JSX, effects / signals / stores, `core` rendering, `$/util`
+reactivity, `@spell-app/ui` elements, or any React-to-Solid step:  READ `packages/docs/solid/solid-2.md` IN FULL
 FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produces wrong code.
 
 ## Overview
 
-- Spell:  the parser, the spell language and its tools, and `@spell/ui` -- one yarn workspace per folder in
+- Spell:  the parser, the spell language and its tools, and `@spell-app/ui` -- one yarn workspace per folder in
   `packages/`.  Root `yarn ts` / `yarn test` / `yarn review` run each package's own script of that name.
 - This file holds the conventions EVERY package shares.  Each package's `AGENTS.md` holds only what's local to it;
   a section there with the same name as one here EXTENDS it ("As the root's, plus:").
   - Codex reads every `AGENTS.md` from the root down to its working folder;  Claude Code loads the root `CLAUDE.md`
     plus the package's.  So a rule lives in exactly ONE place.
-- Packages (`#name` is the import alias, `X` the self-namespace -- see "Imports"):
-  - `packages/util/` (`@spell/util`, `#util`) -- small generic helpers `ui` and spell's utilities share.
-  - `packages/spell-util/` (`@spell/spell-util`, `#spell-util`) -- spell's own utilities:  lodash, `@proto`,
-    `Observable`, `Task` ...  NOT `util`.  See its `AGENTS.md`.
-  - `packages/parser/` (`@spell/parser`, `#parser`, `P`) -- the generic rule-based parser.  Rulex is an opt-in
-    side-effect import, `#parser/rulex`.  See its `AGENTS.md`.
-  - `packages/spell-core/` (`@spell/spell-core`, `#spell-core`, `SC`) -- the runtime compiled spell runs on.
+- Packages (`$/name` is the import alias, `$` meaning `packages/`;  `X` the self-namespace -- see "Imports"):
+  - `packages/util/` (`@spell-app/util`, `$/util`) -- helpers `ui` and spell share:  small generic ones (`@proto` ...) and
+    spell's own in `src/spell/` (lodash, `Observable`, `Task` ...).  See its `AGENTS.md`.
+  - `packages/parser/` (`@spell-app/parser`, `$/parser`, `P`) -- the generic rule-based parser.  Rulex is an opt-in
+    side-effect import, `$/parser/rulex`.  See its `AGENTS.md`.
+  - `packages/core/` (`@spell-app/core`, `$/core`, `SC`) -- the runtime compiled spell runs on.
     See its `AGENTS.md`.
-  - `packages/spell/` (`@spell/spell`, `#spell`, `SP`) -- the spell LANGUAGE on the parser, every spell project
+  - `packages/spell/` (`@spell-app/spell`, `$/spell`, `SP`) -- the spell LANGUAGE on the parser, every spell project
     (`projects/`), `PARSING.md` and `readme.md`.  See `packages/spell/AGENTS.md`.
-  - `packages/lsp/` (`@spell/lsp`, `#lsp`, `LSP`) -- spell's language server (browser-safe).  See its `AGENTS.md`.
-  - `packages/spell-app/` (`@spell/spell-app`, `#spell-app`, `UI` / `F`) -- the web app, its server, the runner,
+  - `packages/lsp/` (`@spell-app/lsp`, `$/lsp`, `LSP`) -- spell's language server (browser-safe).  See its `AGENTS.md`.
+  - `packages/app/` (`@spell-app/app`, `$/app`, `UI` / `F`) -- the web app, its server, the runner,
     and the `<spell-app>` / `<spell-editor>` web components.  `yarn start` / `build*` live here.
     See its `AGENTS.md`.
   - `packages/vscode/` -- the VS Code extension.  Its own yarn project (own `package.json` + `yarn.lock`), NOT a
     workspace:  `yarn vscode` / `vscode:build` / `vscode:install` run from the REPO ROOT.
-  - `packages/ui/` (`@spell/ui`, `$/`) -- Fomantic UI reborn as `ui-*` custom elements, on Solid 2.
+  - `packages/ui/` (`@spell-app/ui`, `$/ui`) -- Fomantic UI reborn as `ui-*` custom elements, on Solid 2.
     See `packages/ui/AGENTS.md`.
-  - `packages/solid-element/` (`@spell/solid-element`) -- our fork of Solid's custom-element layer
-    (`@solidjs/element` + `component-register`), which `@spell/ui` is built on.  No `AGENTS.md`:  see its
+  - `packages/solid-element/` (`@spell-app/solid-element`) -- our fork of Solid's custom-element layer
+    (`@solidjs/element` + `component-register`), which `@spell-app/ui` is built on.  No `AGENTS.md`:  see its
     `README.md`, and `UPSTREAM.md` for the upstream PR each fix maps to.
-  - `packages/cli/` (`@spell/cli`, `#cli`, `CLI`) -- the `spell` command-line tool, running the spell-family
+  - `packages/cli/` (`@spell-app/cli`, `$/cli`, `CLI`) -- the `spell` command-line tool, running the spell-family
     packages' SOURCE through `tsx`.  See `packages/cli/AGENTS.md` and its `README.md`.
-  - `packages/docs/` (`@spell/docs`) -- every package's docs:  hand-authored `.html` pages on `@spell/ui`,
+  - `packages/docs/` (`@spell-app/docs`) -- every package's docs:  hand-authored `.html` pages on `@spell-app/ui`,
     their templates, the plan docs `/plan-doc` keeps, the experiments behind them and the tooling.
     Index:  `packages/docs/index.html`.  See `packages/docs/AGENTS.md`.
 - One change may touch several packages, but dependencies flow ONE way:
   `docs` -> anything (its experiments import any package;  nothing imports `docs`),
-  `cli` -> `spell-app` -> `lsp` -> `spell` -> `parser` / `spell-core` -> `spell-util` -> `util`, and
+  `cli` -> `app` -> `lsp` -> `spell` -> `parser` / `core` -> `util`, and
   `ui` -> `solid-element` / `util`.  NEVER make `ui` or `solid-element` import `spell` or any package above it:
-  `@spell/ui` lives on its own.
+  `@spell-app/ui` lives on its own.
   - The direction is by convention, not enforced:  every alias works from every package.
 - ONE alias table, `tsconfig.base.json` at the repo root, read its header comment.  Every package's `tsconfig.json`
-  extends it, so `#parser` means the same file wherever it's compiled from.
+  extends it, so `$/parser` means the same file wherever it's compiled from.
 - Global ambient types (`Prettify`, `Class`, `__PACKAGE_VERSION__` ...) are in the root `types/` folder, which every
   spell-family `tsconfig.json` includes.  `vite.decorators.ts` and `vite.packageVersion.ts` are at the repo root.
-- No `~/` alias exists any more.  `ui` keeps `$/` and `$test/` until it becomes `#ui`.
-  Examples below use `parser`'s, e.g. `#parser`.
+- No `~/` or `#name` alias exists any more.  `$` means `packages/`, so `ui` is `$/ui` like the rest;  that can't
+  collide with an npm package name (`@spell-app/...`, `solid-js`) the way a bare `name/...` could.
+  Examples below use `parser`'s, e.g. `$/parser`.
 
 ## Solid 2
 
-- `spell` is moving from React to Solid 2 (`2.0.0-rc.13`;  `@spell/ui` still pins rc.11) on `@spell/ui`.
+- `spell` is moving from React to Solid 2 (`2.0.0-rc.13`;  `@spell-app/ui` still pins rc.11) on `@spell-app/ui`.
   Solid 2 is NEITHER React NOR Solid 1.
 - The rules:  `packages/docs/solid/solid-2.md` (see the top of this file).  NOT `@`-imported on purpose:
   it loads only when the task needs it.  Claude also has the `solid-2` skill (`.claude/skills/solid-2/`), which
@@ -131,7 +131,7 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 ## Decorators
 
 - Use STANDARD (TC39 2023-11) decorators, NEVER `experimentalDecorators`.  General-purpose ones live in
-  `packages/util/src/decorators.ts` (`@proto`:  import from `#util`, or `#spell-util` / `$/util`, which re-export it).
+  `packages/util/src/decorators.ts` (`@proto`:  import from `$/util`;  `ui` has `$/ui/util`, which re-exports the generic ones).
 - Lowered by esbuild via the repo root's `vite.decorators.ts` -- vite 8's own transformer (oxc) doesn't do it yet.
   Which configs use it:  the package's own "Decorators".
 - A decorator MUST be the first thing on its line (`@proto static inlineInitialType = false` is fine,
@@ -148,7 +148,7 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
   - NEVER bare `types.ts` or `constants.ts` -- constants, small error classes
     and pure helpers for those types live in `<folder>.types.ts` too.
   - Group with `// ## Group Name` headers.
-  - MUST be runtime-light:  `import type` only, apart from the package's utilities (`#spell-util`, `#util`, `$/util`).
+  - MUST be runtime-light:  `import type` only, apart from the package's utilities (`$/util`, `$/ui/util`).
   - Exception: class constructor props (`XProps`) and React component props live in the defining file.
     Move to `<folder>.types.ts` once a second file needs them.
 - Create barrel `index.ts` for each folder:
@@ -156,43 +156,46 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
   - `export * from "./<folder>.types"` first, then leaf files base-classes-first
   - sub-folder barrels are flattened in:  `export * from "./rules"`
 - Each sub-system has ONE self-namespace, exported from its top barrel:  `export * as P from "."`
-  - each package's `AGENTS.md` lists its own, e.g. `P` ~== `#parser`
+  - each package's `AGENTS.md` lists its own, e.g. `P` ~== `$/parser`
   - NEVER create a second namespace for a sub-folder (no `R` for rules) -- flatten into parent.
   - Exception: namespace a file whose names would collide when flattened:
     `export * as render from "./renderAST"` + `export * as stringify from "./stringifyAST"`,
     which deliberately export the same names with different return types.
   - Prefer a disambiguating affix over a namespace when the names allow it -- token and AST classes
-    are `WordToken` / `ASTLiteral` etc. and flatten straight into `#parser`.
+    are `WordToken` / `ASTLiteral` etc. and flatten straight into `$/parser`.
   - NOTE: `export *` through a circular barrel is riskier than a named re-export -- it must read the
     leaf's key list EAGERLY, so a mid-body leaf contributes nothing.  See `parser`'s `src/barrel.test.ts`.
 - Barrels MUST NOT pull in optional sub-systems.  Make them opt-in via side-effect import,
-  e.g. `import "#parser/rulex"` registers itself on `Parser.rulexParser`.
+  e.g. `import "$/parser/rulex"` registers itself on `Parser.rulexParser`.
 - When refactoring imports and exports, if you encounter circular import problems
   create smoke tests (`barrel.test.ts`) ensuring no circular import problems in
   TS/rollup/browser for various entry points.
 
 ## Imports
 
-- ALWAYS import starting from a package alias, NEVER start import from `../`.  Every package's alias is `#name`
-  (`#parser`, `#spell-core`, `#cli` ...);  `ui` is the exception, `$/` (and `$test/`), until it becomes `#ui`.
-  The one table is `tsconfig.base.json`.
-  - INSIDE a package, `#name` is its barrel and `#name/deep/path` any file in its `src/`, e.g. `#spell-app/ui`.
-  - From ANOTHER package, import the BARREL only (`#parser`, never `#parser/rules/Rule`), except the entry points
+- ALWAYS import starting from a package alias, NEVER start import from `../`.  Every package's alias is `$/name`
+  (`$/parser`, `$/core`, `$/ui` ...), `$` meaning `packages/`.  `ui` is no exception:  its test helpers are
+  `$/ui/test/...`.  The one table is `tsconfig.base.json`.
+  - INSIDE a package, `$/name` is its barrel and `$/name/deep/path` any file in its `src/`, e.g. `$/app/ui`.
+  - From ANOTHER package, import the BARREL only (`$/parser`, never `$/parser/rules/Rule`), except the entry points
     named in `tsconfig.base.json`'s header:
-    - `#parser/rulex` (opt-in side-effect import)
-    - `#parser/test` and `#spell/test` (test helpers)
-    - `#spell/node/...` (node-only:  environment, files on disk)
+    - `$/parser/rulex` (opt-in side-effect import)
+    - `$/parser/test` and `$/spell/test` (test helpers)
+    - `$/ui/test/...` (`ui`'s test helpers)
+    - `$/spell/node/...` (node-only:  environment, files on disk)
+    - `$/util/class`, `$/util/decorators` ... (`util`'s GENERIC files, from `ui`'s `src/util/index.ts` only:  the barrel
+      also holds spell's heavy utilities)
   - Other aliases and exceptions are in the package's own "Imports".
-- OK to import from direct peers: `import { Rule } from "./Rule"`, but not subdirectories -- use `#parser/...` instead.
+- OK to import from direct peers: `import { Rule } from "./Rule"`, but not subdirectories -- use `$/parser/...` instead.
 - Prefer ONE namespace import per sub-system and qualify at use site:
-  `import { P } from "#parser"` => `P.Match`, `new P.Symbol(...)`, `P.ASTExpression`.
+  `import { P } from "$/parser"` => `P.Match`, `new P.Symbol(...)`, `P.ASTExpression`.
   - Applies INSIDE the sub-system as well.
   - Self-import uses full path too, even from same folder as the barrel:
-    `import { P } from "#parser"`, NEVER `import { P } from "."`.
+    `import { P } from "$/parser"`, NEVER `import { P } from "."`.
     Only the barrel itself says `"."`:  `export * as P from "."`.
   - NEVER reach into another sub-system's leaf file for something its barrel exports.
   - OK to refer to file's own class unqualified.
-  - Tests may mix: `import { P, Match, Parser } from "#parser"`.
+  - Tests may mix: `import { P, Match, Parser } from "$/parser"`.
 - Circularity rules for files inside a barrel:
   - `P.X` as a VALUE is fine inside function / method bodies -- resolved at call time.
   - NEVER use `P.X` at module-evaluation time:  `extends` clauses, static initializers,
@@ -203,11 +206,11 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 - Import order:
   - node_modules
   - (blank line)
-  - `#util` / `#spell-util` and other general utilities, general-to-specific
+  - `$/util` and other general utilities, general-to-specific
   - other sub-system barrels
   - own barrel
   - direct peer files, base classes first
   - (blank line)
-  - side-effect imports (`import "#parser/rulex"`)
-  - css files (`./foo.css` if in same folder, else `#name/path/to/foo.css`)
-- One import statement per module.  Inline type imports:  `import { P, type AnyMatch } from "#parser"`.
+  - side-effect imports (`import "$/parser/rulex"`)
+  - css files (`./foo.css` if in same folder, else `$/name/path/to/foo.css`)
+- One import statement per module.  Inline type imports:  `import { P, type AnyMatch } from "$/parser"`.

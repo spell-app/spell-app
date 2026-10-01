@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest"
-import { spellParser } from "#spell"
+import { spellParser } from "$/spell"
 import { variable, SpellIdentifier } from "./variables"
 
 /** Plurality of `input` parsed as `ruleName`, asked the way other rules would ask. */

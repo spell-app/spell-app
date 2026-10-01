@@ -4,11 +4,12 @@
     "allowImportingTsExtensions": true,
     "types": ["vite/client"],
     "paths": {
-      "#util": ["../../util/src/index.ts"],
-      "#util/*": ["../../util/src/*"],
-      "$/*": ["../src/*"],
-      "$test/*": ["../test/*"],
-      "@spell/ui": ["../src/index.ts"]
+      "$/util": ["../../util/src/index.ts"],
+      "$/util/*": ["../../util/src/*"],
+      "$/ui": ["../src/index.ts"],
+      "$/ui/*": ["../src/*"],
+      "$/ui/test/*": ["../test/*"],
+      "@spell-app/ui": ["../src/index.ts"]
     }
   },
   "include": [".astro/types.d.ts", "src/**/*", "astro.config.mjs"],

@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-flyout>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-flyout position="right" inverted width="4" open>` => `ui right inverted visible four wide flyout`;  a
  *   word width (`thin`, `very wide`) is added after the noun by the element (`ui left flyout very wide`).
@@ -11,7 +11,7 @@
  *   `:state(in-flyout)` and style themselves from `parts.css`.
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /** Fomantic's word widths (`thin flyout`), which `width` takes beside column counts. */
 export const FLYOUT_WORD_WIDTHS = ["very thin", "thin", "wide", "very wide"] as const

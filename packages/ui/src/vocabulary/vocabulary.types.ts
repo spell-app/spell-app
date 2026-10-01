@@ -1,5 +1,5 @@
 /**
- * Shared types for `$/vocabulary` -- the schema every `<name>.vocabulary.en.ts` follows, the shared value sets,
+ * Shared types for `$/ui/vocabulary` -- the schema every `<name>.vocabulary.en.ts` follows, the shared value sets,
  * and the translation `Dictionary` contract.
  * - Why a schema:  vocabulary files own EVERY name a component uses (tag, attributes, values, events, slots,
  *   parts, states, texts), so templates and `ClassBuilder` never hold string literals, and a translation can

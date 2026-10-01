@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest"
 
-import { colorsCSS, foundationCSS } from "$/styles"
+import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$test/fixture"
-import { Sheets } from "$test/sheets"
+import { Fixture } from "$/ui/test/fixture"
+import { Sheets } from "$/ui/test/sheets"
 
 import { sidebarVocabulary } from "./sidebar.vocabulary.en"
 
-import menuCSS from "$/components/menu/menu.css?inline"
-import segmentCSS from "$/components/segment/segment.css?inline"
+import menuCSS from "$/ui/components/menu/menu.css?inline"
+import segmentCSS from "$/ui/components/segment/segment.css?inline"
 import sidebarCSS from "./sidebar.css?inline"
 import sidebarRaw from "./sidebar.css?raw"
 

@@ -1,4 +1,4 @@
-import { TABLE_SORT_KEY, TABLE_SORT_OPT_OUT, type TableSortDirection } from "$/core"
+import { TABLE_SORT_KEY, TABLE_SORT_OPT_OUT, type TableSortDirection } from "$/ui/core"
 
 /****************
  * ### `TableSort`

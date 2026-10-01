@@ -3,11 +3,11 @@ import { commands } from "vitest/browser"
 import { createEffect, flush, resetErrorHalt } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import type { ComponentVocabulary } from "$/vocabulary"
-import { ElementFixture } from "$test/ElementFixture"
-import { UIElement, type UIElementClass, type UIHost } from "$/elements"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import { UIElement, type UIElementClass, type UIHost } from "$/ui/elements"
 
-import "$/components/label"
+import "$/ui/components/label"
 
 /** Test-only element that throws on demand:  `boom` in render, `crash` in the constructor, `burst` in an effect. */
 class Bomb extends UIElement<typeof BOMB> {
@@ -128,7 +128,7 @@ describe("per-element error boundary", () => {
 
 describe("error boundary cost", () => {
   it("measures render time of 300 labels with and without boundaries", { timeout: 60_000 }, async () => {
-    const { UILabel } = await import("$/components/label")
+    const { UILabel } = await import("$/ui/components/label")
     defineBare(UILabel as unknown as UIElementClass & typeof UIElement, "bare-label")
     const html = (tag: string) => `<div>${`<${tag} color='red' icon='check'>x</${tag}>`.repeat(300)}</div>`
     const times: Record<string, number[]> = { isolated: [], bare: [] }

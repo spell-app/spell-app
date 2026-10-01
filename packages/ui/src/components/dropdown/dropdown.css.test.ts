@@ -1,14 +1,14 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 
-import { ClassBuilder } from "$/elements"
-import { colorsCSS, foundationCSS } from "$/styles"
-import type { AttributeSpec, ComponentVocabulary } from "$/vocabulary"
+import { ClassBuilder } from "$/ui/elements"
+import { colorsCSS, foundationCSS } from "$/ui/styles"
+import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"
 
-import { Fixture } from "$test/fixture"
+import { Fixture } from "$/ui/test/fixture"
 
 import { dropdownVocabulary } from "./dropdown.vocabulary.en"
 
-import buttonCSS from "$/components/button/button.css?inline"
+import buttonCSS from "$/ui/components/button/button.css?inline"
 import dropdownCSS from "./dropdown.css?inline"
 import dropdownRaw from "./dropdown.css?raw"
 

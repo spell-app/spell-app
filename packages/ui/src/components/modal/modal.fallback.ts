@@ -6,7 +6,7 @@ import {
   type EventName,
   type ModalActionDetail,
   type ModalOpenDetail
-} from "$/core"
+} from "$/ui/core"
 
 import { modalVocabulary } from "./modal.vocabulary.en"
 

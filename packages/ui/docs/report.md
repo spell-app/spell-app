@@ -1,8 +1,8 @@
-# `@spell/ui` status report
+# `@spell-app/ui` status report
 
 Eight component families -- `ui-button` (+ `ui-buttons`, `ui-or`), `ui-dropdown` (+ `ui-item`), `ui-icon` /
 `ui-icons`, `ui-label` / `ui-labels`, the 13 generic content parts, `ui-divider`, `ui-segment` / `ui-segments`,
-`ui-container` -- on **Solid 2.0.0-rc.11** through **`@spell/solid-element`** (`packages/solid-element/`, our fork of
+`ui-container` -- on **Solid 2.0.0-rc.11** through **`@spell-app/solid-element`** (`packages/solid-element/`, our fork of
 `@solidjs/element` + `component-register`), over the foundation in `src/` (vocabularies, CSS, runtime, icons,
 native fallbacks).  Packaged as a SHARED RUNTIME:  `solid-js`, `@solidjs/web` and the fork are peer dependencies
 (external);  the element core is split into two shared entries (`core.js` for every family, `forms.js` only for
@@ -19,11 +19,11 @@ This report holds facts and measurements.  Every table between `generated` marke
 | --- | --- | --- |
 | `solid-js` | 2.0.0-rc.11 | installed |
 | `@solidjs/web` | 2.0.0-rc.11 | installed |
-| `@spell/solid-element` | 0.0.0 | installed |
+| `@spell-app/solid-element` | 0.0.0 | installed |
 | `vite` | 8.3.1 | installed |
 | `@solidjs/web` | 2.0.0-rc.11 | peer |
 | `solid-js` | 2.0.0-rc.11 | peer |
-| `@spell/solid-element` | link:./packages/solid-element | dependency |
+| `@spell-app/solid-element` | link:./packages/solid-element | dependency |
 | `@solidjs/vite-plugin` | 3.0.0-next.46 | dev |
 | `@solidjs/web` | 2.0.0-rc.11 | dev |
 | `solid-js` | 2.0.0-rc.11 | dev |
@@ -32,7 +32,7 @@ This report holds facts and measurements.  Every table between `generated` marke
 - **Solid 2.0 RC:**  `solid-js` / `@solidjs/web` `2.0.0-rc.11`, pinned exactly (12 RCs in 7 weeks);
   `@solidjs/vite-plugin` `3.0.0-next.46` (native OXC compiler).  `@solidjs/web` owns the JSX types:
   `jsxImportSource: "@solidjs/web"`, `jsx: "preserve"`.
-- **The fork:**  `@spell/solid-element`, `"link:./packages/solid-element"` in `dependencies`;  its own yarn project
+- **The fork:**  `@spell-app/solid-element`, `"link:./packages/solid-element"` in `dependencies`;  its own yarn project
   (own `yarn.lock`, `yarn fork <script>`), with its own tests (`yarn test:fork`).  Its `exports` point the
   `development` condition at `src/index.ts`, so the dev server, Vitest and the docs site compile the fork's
   TypeScript with our Solid plugin;  the library build leaves it external.  Only `yarn vendor` / `yarn measure`
@@ -77,28 +77,28 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 ### Method
 
 - **Packaging:**
-  - `solid-js`, `@solidjs/*` and `@spell/solid-element` are external, as a FUNCTION so subpaths match
+  - `solid-js`, `@solidjs/*` and `@spell-app/solid-element` are external, as a FUNCTION so subpaths match
     (`SOLID_EXTERNAL` in `vite.config.ts`).  `dist/` contains no Solid or fork code and imports the three by
     specifier.
   - **Two shared entries** (`SHARED_ENTRIES`):
     - `src/core.ts` -- the element core (`UIHost`, `UIElement`, `ElementDefinition`, `ContentPart` + `PartContext`,
-      `Controlled`, `Cell`, `SlotContent`, `HostAttribute`, `IconGlyph`) AND the foundation it uses:  `$/util`,
-      `$/vocabulary`, from `$/elements` `ClassBuilder` / `Shorthand` / `OwnerContext` / `NativeFallback`,
-      `$/runtime` (the eager loader only), `$/icons` (`IconName`, `BuiltInPacks`), `$/components/components.types`
+      `Controlled`, `Cell`, `SlotContent`, `HostAttribute`, `IconGlyph`) AND the foundation it uses:  `$/ui/util`,
+      `$/ui/vocabulary`, from `$/ui/elements` `ClassBuilder` / `Shorthand` / `OwnerContext` / `NativeFallback`,
+      `$/ui/runtime` (the eager loader only), `$/ui/icons` (`IconName`, `BuiltInPacks`), `$/ui/components/components.types`
     - `src/forms.ts` -- `FormElement`, `FormHost`, `Validator`, `MenuOptions`;  imported by `dropdown` only.
       `ui-button` is form-associated through the fork's `formAssociated` option alone, so it stays on `core`.
-  - Every component file (classes AND native fallback) imports shared code through ONE path, `$/core` (and
-    `$/forms` where needed);  the vocabulary and the sheet are the family's own.  Two chunking rules:
-    - `core.ts` / `forms.ts` re-export `$/elements` LEAVES, never the barrel:  the barrel holds the `forms` files
-    - `FormHost` / `FormElement` import the element core through the `$/core` ENTRY:  importing its leaves made
+  - Every component file (classes AND native fallback) imports shared code through ONE path, `$/ui/core` (and
+    `$/ui/forms` where needed);  the vocabulary and the sheet are the family's own.  Two chunking rules:
+    - `core.ts` / `forms.ts` re-export `$/ui/elements` LEAVES, never the barrel:  the barrel holds the `forms` files
+    - `FormHost` / `FormElement` import the element core through the `$/ui/core` ENTRY:  importing its leaves made
       Rolldown hoist everything `core` and `forms` share into a third chunk, and `core.js` became a facade
   - `styles` is its own entry (`dist/styles.js`):  the `index` entry re-exports the foundation sheets, and without
     an entry of their own they landed in `index.js`, which the lazy `UIRuntime` chunk then imported -- loading the
     runtime on a button-only page would have pulled every family.
   - `rolldownOptions.preserveEntrySignatures: "allow-extension"`;  `button.css` + the button vocabulary land in a
     shared `button-<hash>.js` (the dropdown adopts `button.css`).
-  - The `E` / `V` namespaces are their own entry, `api` (`src/api.ts`, `@spell/ui/api`);  `index.js` is flat.
-    Namespacing a module that `core` also reaches (as `index.ts` once did with `export * as V from "$/vocabulary"`)
+  - The `E` / `V` namespaces are their own entry, `api` (`src/api.ts`, `@spell-app/ui/api`);  `index.js` is flat.
+    Namespacing a module that `core` also reaches (as `index.ts` once did with `export * as V from "$/ui/vocabulary"`)
     made Rolldown move its runtime module (`__name`, `__exportAll`) out of `core.js` into a shared
     `rolldown-runtime-<hash>.js` that `core.js` and every family imported:  one more request per page (0.19 kB
     min+gz).  So `V` namespaces an api-only re-export of the barrel (`vocabulary.api.ts`), and `api.ts` imports the
@@ -128,7 +128,7 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | core (element core + foundation JS) | 46.21 | 14.48 | eager |
 | forms (form base, validation, menu options;  imported by `dropdown`, `input`, `checkbox`, `form`, `select`, `search`, `rating`, `slider`, `calendar`) | 20.27 | 7.32 | eager |
 | own, all 53 families | 1369.63 | 384.78 | eager |
-| api (`E` / `V` namespaces, `@spell/ui/api`) | 0.70 | 0.31 | app only |
+| api (`E` / `V` namespaces, `@spell-app/ui/api`) | 0.70 | 0.31 | app only |
 | runtime (`UIRuntime` + foundation CSS) | 179.99 | 31.03 | lazy |
 | icons (none bundled:  pack indexes and SVGs are separate files, `docs/icons.md`) | 0.00 | 0.00 | lazy |
 | family data (emoji name chunks, each loaded on its own) | 250.05 | 60.72 | lazy |
@@ -560,8 +560,8 @@ Solid, Vite dev server) and the smoke perf page (`dist/` + vendored production S
 
 `SmokeRunner`:  `yarn build`, then ONE static server (no Vite dev server) serves `dist/`, `vendor/`, `tools/` and
 `test/`, and injects one `<script type="importmap">` into every page:  `solid-js`, `@solidjs/web`,
-`@spell/solid-element` => `/vendor/...`, `@spell/ui` => `/dist/index.js`, `@spell/ui/core`, `@spell/ui/forms`,
-`@spell/ui/<family>` => `/dist/<name>.js`.  `PeerVendor` builds the three specifiers in one build with the peer
+`@spell-app/solid-element` => `/vendor/...`, `@spell-app/ui` => `/dist/index.js`, `@spell-app/ui/core`, `@spell-app/ui/forms`,
+`@spell-app/ui/<family>` => `/dist/<name>.js`.  `PeerVendor` builds the three specifiers in one build with the peer
 packages deduped (ONE Solid), tree-shaken to the bindings `dist/` and the pages import.  Requests to any host
 other than esm.sh / unpkg are blocked.  Each host mounts ONE `<ui-dropdown>` with `options` as a property,
 `value="b"` and `open`, and runs the round trip in `tools/frameworks/check.js` (DOM and ARIA only).
@@ -689,7 +689,7 @@ defines the element:  the fork ADOPTS the declarative root and empties it before
 
 - **RC churn:**  `solid-js` 2.0 went from rc.0 (2026-08-12) to rc.11 (2026-09-28);  `@solidjs/vite-plugin`
   published 20 `3.0.0-next` builds in the same window.  Exact pins are mandatory;  the fork pins its peers.
-- **Owning a fork:**  `@spell/solid-element` (15 modules, 121 tests) is ours until upstream takes it.
+- **Owning a fork:**  `@spell-app/solid-element` (15 modules, 121 tests) is ours until upstream takes it.
   `UPSTREAM.md` maps each fix to a PR against `solidjs/solid` `next` `packages/element`;  nothing is filed without
   Owen's go-ahead.
 - **One Solid per page, or context stops:**  sharing works only when app and components resolve to ONE copy.

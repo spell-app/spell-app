@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest"
 
-import { colorsCSS, foundationCSS, tokensCSS } from "$/styles"
+import { colorsCSS, foundationCSS, tokensCSS } from "$/ui/styles"
 
-import { Fixture } from "$test/fixture"
-import { Sheets } from "$test/sheets"
+import { Fixture } from "$/ui/test/fixture"
+import { Sheets } from "$/ui/test/sheets"
 
 import { textVocabulary } from "./text.vocabulary.en"
 

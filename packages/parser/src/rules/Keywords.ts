@@ -1,5 +1,5 @@
-import { proto } from "#spell-util"
-import type { P } from "#parser"
+import { proto } from "$/util"
+import type { P } from "$/parser"
 // Import directly to avoid circular import
 import { Literals } from "./Literals"
 

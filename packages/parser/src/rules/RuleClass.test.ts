@@ -1,8 +1,8 @@
 import { describe, test, expect } from "vitest"
-import { proto } from "#spell-util"
-import { P, Parser } from "#parser"
+import { proto } from "$/util"
+import { P, Parser } from "$/parser"
 // These tests define rules with rulex `syntax`, so they must opt into the rulex parser.
-import "#parser/rulex"
+import "$/parser/rulex"
 
 /** Base class which sets an inherited `alias`, like a language's `Statement` would. */
 class TestStatement<

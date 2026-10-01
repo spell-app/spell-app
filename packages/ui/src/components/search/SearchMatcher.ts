@@ -1,4 +1,4 @@
-import type { SearchCategory, SearchMatch, SearchResponse, SearchResult } from "$/core"
+import type { SearchCategory, SearchMatch, SearchResponse, SearchResult } from "$/ui/core"
 
 /**
  * Local search over a `<ui-search>` `source`, and the shapes results arrive in.  Pure data, NO DOM.

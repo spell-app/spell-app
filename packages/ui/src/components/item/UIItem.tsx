@@ -17,7 +17,7 @@ import {
   type ItemOwner,
   type RuntimeGlobal,
   type UIHost
-} from "$/core"
+} from "$/ui/core"
 
 import { itemVocabulary } from "./item.vocabulary.en"
 import { ItemFallback } from "./item.fallback"

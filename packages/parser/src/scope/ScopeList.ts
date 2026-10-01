@@ -1,6 +1,6 @@
 import _get from "lodash/get"
 
-import type { P } from "#parser"
+import type { P } from "$/parser"
 
 /**
  * Ordered list of `ListType` items in a scope, e.g. its `variables`, keyed by a `keyProp` on each item for

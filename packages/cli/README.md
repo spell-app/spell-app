@@ -3,7 +3,7 @@
 Compile, check, describe, explore, watch, run and test spell projects from a terminal.  It runs straight from this
 checkout, through `tsx`, so there's no build step, and it sees projects exactly as the language server does.
 
-Code:  `src/` (namespace `CLI`, imported as `#cli`), started by `bin/spell.mjs`.  See the header of `src/main.ts`.
+Code:  `src/` (namespace `CLI`, imported as `$/cli`), started by `bin/spell.mjs`.  See the header of `src/main.ts`.
 
 This package holds ONLY the command line.  Spell itself -- the parser, the language, the language server, the
 runtime, and the projects in `spell/projects/` -- is the spell-family packages beside this one in the monorepo,
@@ -14,14 +14,13 @@ packages/
   cli/         this package
   spell/       the spell language, and `projects/`:  its SOURCE runs, straight from `../spell/src`
   parser/      the generic parser
-  spell-core/  the runtime compiled spell runs on
-  spell-util/  utilities
+  core/  the runtime compiled spell runs on
   lsp/         the language server
-  ui/          `@spell/ui`
+  ui/          `@spell-app/ui`
 ```
 
 - `package.json` depends on `spell` and `ui` as workspaces (`workspace:*`), and the aliases reach the rest;  one `yarn` at the monorepo root installs everything.
-- `#cli` is this package's `src/`;  `#spell`, `#parser`, `#lsp` ... are the others'.  One alias table for the whole
+- `$/cli` is this package's `src/`;  `$/spell`, `$/parser`, `$/lsp` ... are the others'.  One alias table for the whole
   monorepo:  `tsconfig.base.json`.
 - Moved here from the parser's `CLI` branch (`26830ef1`) on 2026-09-30.
 

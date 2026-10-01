@@ -44,12 +44,12 @@ One `###` heading per item, under its package's `##` section, `---` between item
 
 ## spell
 
-### Circular imports through the `#parser` barrel
+### Circular imports through the `$/parser` barrel
 
-- **Cost**: six sub-paths of `#parser` cannot be imported before `#parser` itself without
+- **Cost**: six sub-paths of `$/parser` cannot be imported before `$/parser` itself without
   silently corrupting the barrel.  Latent rather than live: every consumer outside the barrel
-  enters via `#parser`, which is always safe.  It is a trap for new code and for test authors.
-- **Cause**: nearly every leaf under `#parser` does `import { P } from "#parser"` -- a VALUE
+  enters via `$/parser`, which is always safe.  It is a trap for new code and for test authors.
+- **Cause**: nearly every leaf under `$/parser` does `import { P } from "$/parser"` -- a VALUE
   import of its own barrel.  Entering at a sub-path starts the
   `index` -> sub-barrel -> leaf -> `index` cycle before the leaf's bindings exist.  Damage takes
   two shapes: a leaf throws outright (`Literal extends Rule` extends `undefined`), or a sub-barrel
@@ -60,15 +60,15 @@ One `###` heading per item, under its package's `##` section, `---` between item
   NOTE: the obvious partial fixes do not work.  `AST.tsx` needs `P.Match` and three `Scope`
   subclasses at runtime, but `Match.ts` and the scope files import the barrel as a value
   themselves, so importing them directly only relocates the cycle.  This is all-or-nothing.
-- **Pinned at**: `BROKEN_ENTRIES` in `packages/parser/src/barrel.test.ts` -- `#parser/rules`,
-  `#parser/rules/Rule`, `#parser/rules/Literal`, `#parser/tokenizer`, `#parser/scope`,
-  `#parser/ast`.
+- **Pinned at**: `BROKEN_ENTRIES` in `packages/parser/src/barrel.test.ts` -- `$/parser/rules`,
+  `$/parser/rules/Rule`, `$/parser/rules/Literal`, `$/parser/tokenizer`, `$/parser/scope`,
+  `$/parser/ast`.
 
 #### Sub-item: `export *` makes the truncation permanent
 
 - **Cost**: flattening a namespaced sub-barrel to `export *` costs a safe entry point.
-  `#parser/ast` moved into `BROKEN_ENTRIES` exactly this way, when its AST classes were
-  flattened out of `export * as AST`.  (`#parser/tokenizer` was already listed, for the
+  `$/parser/ast` moved into `BROKEN_ENTRIES` exactly this way, when its AST classes were
+  flattened out of `export * as AST`.  (`$/parser/tokenizer` was already listed, for the
   parent reason above.)
 - **Cause**: a named re-export (`export { X } from "./X"`) compiles to a LAZY getter, so the key
   exists on the sub-barrel even while the leaf is mid-body.  `export *` must read the leaf's key
@@ -133,7 +133,7 @@ nested object, and a cache filled there keeps the proxy.
   - `SpellProject.spellFiles` and `SpellFile.isActive` unwrap with `raw()`
   - `SpellModels.modelFor()` unwraps the file it's given;  it and `SpellModels` follow files with `observe()`,
     touching Monaco only in microtasks OUTSIDE the reaction
-  - `editor.getInputEditor()`:  the Monaco editor lives outside the store (`packages/spell-app/src/editor.ts`)
+  - `editor.getInputEditor()`:  the Monaco editor lives outside the store (`packages/app/src/editor.ts`)
   - `SpellModels.#toSave` and `editor.onFileEdited()` compare by `path`
 
 
@@ -161,18 +161,18 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
       `Block.ts` + `Block.test.ts`
   - **Scripts** (`eab5832`):  `start:*` renames, `yarn stop` (`package.json`, `Dockerfile.*`, `DOCKER.md`,
     `CODEBASE_INDEX.md`).  NOTE: `yarn stop` also kills the language server VS Code started.
-  - **Browser-safe `#lsp` + editing on `SpellProject`** (in `bdc9610`)
+  - **Browser-safe `$/lsp` + editing on `SpellProject`** (in `bdc9610`)
     - `packages/lsp/src/SpellWorkspace.ts` removed => `LSP.FileAddresses` (`lsp.types.ts`) + node-only
       `packages/lsp/src/SpellDiskWorkspace.ts`;  `packages/lsp/src/barrel.test.ts`
     - `SpellProject.spellFiles` / `parseError` / `updateText()`, `SpellFile.isActive`
       (`packages/spell/src/SpellProject.ts`, `SpellFile.ts`, `SpellProject.editing.test.ts`)
   - **CodeMirror => Monaco** (in `bdc9610`)
-    - new `packages/spell-app/src/ui/monaco/`:  `monaco.ts`, `SpellMonaco.ts`, `SpellTokensProvider.ts`, `MonacoEditor.tsx` (+ `.less`),
+    - new `packages/app/src/ui/monaco/`:  `monaco.ts`, `SpellMonaco.ts`, `SpellTokensProvider.ts`, `MonacoEditor.tsx` (+ `.less`),
       `SpellModels.ts`, `SpellLanguageFeatures.ts`, `LspToMonaco.ts` (+ test), `AppAddresses.ts`, `index.ts`
-    - `packages/spell-app/src/editor.ts` (Monaco outside the store, `onInputCursor`, `onInputEffect`, `onFileEdited`, `showFileAt`),
+    - `packages/app/src/editor.ts` (Monaco outside the store, `onInputCursor`, `onInputEffect`, `onFileEdited`, `showFileAt`),
       `InputEditor.tsx`, `OutputEditor.tsx`, `ui/index.ts`, `ui.types.ts`, `pages/SpellEditor.tsx`, `debug.ts`
     - `src/types/monaco-internals.d.ts`, `src/util/Observable.ts` (`raw()`), `package.json` / `yarn.lock` (deps)
-    - removed:  `packages/spell-app/src/ui/CodeMirror*`, `codemirror-classes.txt`, `SpellFile.offsetForPosition` / `positionForOffset`
+    - removed:  `packages/app/src/ui/CodeMirror*`, `codemirror-classes.txt`, `SpellFile.offsetForPosition` / `positionForOffset`
     - see "Store proxies stand in for the real objects" above for the workarounds this needed
   - **Expecting mode:  what can come next** (in `95cbc54`, plus what's staged after it)
     - new `packages/parser/src/Expectations.ts` (+ test), `P.Expectation` (`parser.types.ts`), `Parser.expectedAfter()`
@@ -194,7 +194,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
     completion (`set y `, `a thingy is a `, `move the card `), signature help (`move `), the quick fix (an unknown
     line), code lens.  Reload the window after `yarn vscode`.
   - **Lazy Monaco + `yarn stop`** (staged)
-    - `packages/spell-app/src/ui/LazyMonaco.tsx`, `packages/spell-app/src/ui/monaco/FileEditor.tsx`;  `#spell-app/ui/monaco` out of the `UI` barrel;
+    - `packages/app/src/ui/LazyMonaco.tsx`, `packages/app/src/ui/monaco/FileEditor.tsx`;  `$/app/ui/monaco` out of the `UI` barrel;
       `editor.ts` (`onInputDidMount(editor, api)`, `inputEditorPath`), `InputEditor.tsx`, `OutputEditor.tsx`,
       `debug.ts` (globals now set by `LazyMonaco`), `MonacoEditor.tsx` (`onMount` gets `monaco`)
     - `scripts/stop.mjs`:  `yarn stop` spares the language server an editor started
@@ -218,7 +218,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 - **Fix**:  `runCompiled()` already links imports, given `loadImport(projectId)` -- `<spell-app>` does it:  each
   imported project's JS onto its own `blob:` URL, deepest first.  The VS Code runner just needs to pass a
   `loadImport` that asks the extension for that project's `<Project>.compiled.js`.
-- **Pinned at**:  `runCompiled()` in `packages/spell-app/src/runner/runCompiled.ts` -- its "imports another" message.
+- **Pinned at**:  `runCompiled()` in `packages/app/src/runner/runCompiled.ts` -- its "imports another" message.
 
 ---
 
@@ -231,7 +231,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
   `shadowStyles.ts`.
 - **Fix**:  the coming web-component widgets, which render inside their host.  Meanwhile, a portal could be given
   `mountNode={spellCore.appRoot}` wherever spell makes one.
-- **Pinned at**:  `SpellAppElement` (`packages/spell-app/src/runner/SpellAppElement.tsx`).
+- **Pinned at**:  `SpellAppElement` (`packages/app/src/runner/SpellAppElement.tsx`).
 
 ---
 
@@ -244,7 +244,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
   a module `import()` would need it too.  Scope packs are classic scripts, loaded with a `<script>` tag.
 - **Fix**:  compiled output that needs no rewriting -- e.g. its imports as bare names an import map per app could
   resolve, if browsers get scoped import maps -- or a same-origin proxy.
-- **Pinned at**:  `runProgram()` in `packages/spell-app/src/runner/SpellAppRunner.tsx`.
+- **Pinned at**:  `runProgram()` in `packages/app/src/runner/SpellAppRunner.tsx`.
 
 ---
 
@@ -271,7 +271,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
   permissions either.
 - **Fix**:  a read-only mode -- edit and run in the page, save nothing -- which `project.compile()` can't do yet, as
   it always saves its output;  and some notion of who may save.
-- **Pinned at**:  `SpellEditorElement.save()` / `compileNow()` in `packages/spell-app/src/spellEditor/SpellEditorElement.tsx`.
+- **Pinned at**:  `SpellEditorElement.save()` / `compileNow()` in `packages/app/src/spellEditor/SpellEditorElement.tsx`.
 
 ---
 
@@ -284,7 +284,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
   and hid the hover before it showed.  So we stop those moves at the shadow root.
 - **Fix**:  Monaco's `MouseHandler` checking `event.composedPath()` instead of `event.target` -- upstream.  Then
   delete the HACK.  NOTE: not reported to Monaco yet.
-- **Pinned at**:  `keepMouseMovesInShadowRoot()` in `packages/spell-app/src/ui/monaco/MonacoEditor.tsx`.
+- **Pinned at**:  `keepMouseMovesInShadowRoot()` in `packages/app/src/ui/monaco/MonacoEditor.tsx`.
 
 ---
 
@@ -308,11 +308,11 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
   stale if the project was edited in the web app, and missing (a 404) for a project that never had one.
 - **Cause**:  `scopesOf()` needs a `LSP.SpellLanguageService`, and takes `SpellMonaco`'s -- so it has none until
   Monaco loads, which is AFTER the first compile, on purpose, so apps run straight away.  The service itself needs
-  no Monaco:  just an `LSP.FileAddresses`, and ours, `AppAddresses`, lives in `#spell-app/ui/monaco`, which NOTHING
+  no Monaco:  just an `LSP.FileAddresses`, and ours, `AppAddresses`, lives in `$/app/ui/monaco`, which NOTHING
   outside it may import statically.
-- **Fix**:  move `AppAddresses` out of `#spell-app/ui/monaco` -- it imports no Monaco -- and give the editor its own
+- **Fix**:  move `AppAddresses` out of `$/app/ui/monaco` -- it imports no Monaco -- and give the editor its own
   service from the start.
-- **Pinned at**:  `SpellEditorElement.scopesOf()` in `packages/spell-app/src/spellEditor/SpellEditorElement.tsx`.
+- **Pinned at**:  `SpellEditorElement.scopesOf()` in `packages/app/src/spellEditor/SpellEditorElement.tsx`.
 
 ---
 
@@ -357,7 +357,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 
 ### `yarn scopes --builtins` overwrites the built-in types' hand-written docs
 
-- **Cost**:  running it replaces `packages/spell-core/src/spellCore.scopes.js` -- whose `Thing`, `List` and `App` are
+- **Cost**:  running it replaces `packages/core/src/spellCore.scopes.js` -- whose `Thing`, `List` and `App` are
   documented by hand -- with the bare types.  Only a diff before keeping it saves the docs.
 - **Cause**:  `scopes.ts` makes its `LSP.ScopeExplorer` WITHOUT the built-ins' pack, so `exportBuiltIns()` has only
   the root scope's bare types to write.  The language server's explorer has the pack, and shows the docs.
@@ -374,7 +374,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 - **Cause**:  each element imports its own copy from a new `blob:` URL (see `loadRuntime()`), and a page never
   drops a module it's imported.  Restart re-uses the SAME copy, so restarting doesn't add to it.
 - **Fix**:  reuse copies -- a pool of released ones -- or run each app in an iframe, which a page CAN drop.
-- **Pinned at**:  `loadRuntime()` in `packages/spell-app/src/runner/loadRuntime.ts`.
+- **Pinned at**:  `loadRuntime()` in `packages/app/src/runner/loadRuntime.ts`.
 
 ---
 
@@ -417,7 +417,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 - **Fix**:  have compiled top-level assignments say so, e.g. a `spellCore.things.changed()` after each write
   to a top-level variable -- or compile top-level state into an observable store instead of bare `let`s.
   Either is a compiler change touching every top-level assignment, and every fixture snapshot.
-- **Pinned at**:  `ThingRegistry.setTopLevel()` docstring, `packages/spell-core/src/things.ts`.
+- **Pinned at**:  `ThingRegistry.setTopLevel()` docstring, `packages/core/src/things.ts`.
 
 ---
 
@@ -435,7 +435,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
   collection's own type.  Only "a copy of" (`duplicateCollection()`) makes the same type, and registers.  Then
   `newThingLike()` needn't be quiet.  Touches what every collection helper returns, and their tests.
 - **Pinned at**:  `spellCore.newThingLike()` (`core.ts`);  test "NOT a collection helper's result" in
-  `packages/spell-core/src/things.test.ts`.
+  `packages/core/src/things.test.ts`.
 
 ---
 
@@ -451,8 +451,8 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 - **Fix**:  in `link()`, import each project's module ourselves (same `blob:` URL, so the program shares it) and
   hand its exports over too, under its project id -- `setTopLevel()` taking several, and the explorer showing a
   "Top level" per project.  Mind the order:  a project's module MUST have run before the program's.
-- **Pinned at**:  `ThingRegistry.setTopLevel()` (`packages/spell-core/src/things.ts`) and `runCompiled()`
-  (`packages/spell-app/src/runner/runCompiled.ts`).
+- **Pinned at**:  `ThingRegistry.setTopLevel()` (`packages/core/src/things.ts`) and `runCompiled()`
+  (`packages/app/src/runner/runCompiled.ts`).
 
 ---
 
@@ -461,35 +461,38 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
 The split of the old `packages/spell` (`scripts/move-packages.mjs`) moved files as they were.  Four shapes it
 knowingly kept:
 
-- **`spell-util` is the old `~/util`, whole.**
-  - **Cost**:  `parser` and `spell-core` depend on lodash, `chalk`, `pluralize`, `query-string` and the React-era
+- **`util/src/spell/` is the old `~/util`, whole.**
+  - **Cost**:  `parser` and `core` depend on lodash, `chalk`, `pluralize`, `query-string` and the React-era
     state libraries (`@nx-js/observer-util`, `@risingstack/react-easy-state`) for a handful of helpers each;  a
-    published `@spell/parser` would drag them in.
+    published `@spell-app/parser` would drag them in.  They sit in `util`'s `package.json`, beside the generic helpers
+    `ui` bundles, and `ui`'s util barrel must import the generic files one by one to keep them out.
   - **Cause**:  `~/util` mixed generic helpers (`string`, `assert`, `paths`) with reactive state (`Observable`,
-    `extend`), browser fetch (`$fetch`, `Loadable`) and app prefs (`AppPrefStore`, `prefs`).
-  - **Fix**:  generic, dependency-free helpers => `packages/util` (`#util`);  reactive state => `spell-core`;
-    fetch / loadable / prefs => `spell-app` or `spell/node`.  Watch `ui`'s bundle size when `#util` grows
-    (`ui`'s `$/util` re-exports `#util` wholesale).
-  - **Pinned at**:  `packages/spell-util/package.json` `dependencies`.
+    `extend`), browser fetch (`$fetch`, `Loadable`) and app prefs (`AppPrefStore`, `prefs`).  The split moved it
+    whole into `util`, which was then merged into `util` as the sub-folder `src/spell/`.
+  - **Fix**:  generic, dependency-free helpers => beside `util`'s generic files;  reactive state => `core`;
+    fetch / loadable / prefs => `app` or `spell/node`;  then `src/spell/` and its dependencies go.  Watch `ui`'s
+    bundle size (`yarn measure`).
+  - **Pinned at**:  `packages/util/package.json` `dependencies`, and `packages/ui/src/util/index.ts`' file-by-file
+    imports.
 - **The server's request handlers live in `spell`.**
   - **Cost**:  `packages/spell/src/node/project-utils.ts` holds express `request_*` handlers next to the
     disk functions `disk-fetch`, `lsp` and `cli` need;  `response-utils.ts` is all express helpers.  `spell` needs
     `@types/express`.
   - **Cause**:  `disk-fetch` (needed by `lsp`) imports `project-utils` / `file-utils`, which were the server's
-    files;  leaving them in `spell-app` made `spell` <-> `spell-app` a cycle.  express is imported as types only.
+    files;  leaving them in `app` made `spell` <-> `app` a cycle.  express is imported as types only.
   - **Fix**:  split `project-utils.ts` into disk functions (stay in `spell/node`) and `request_*` handlers (back to
-    `spell-app/src/server`, with `response-utils.ts`).
+    `app/src/server`, with `response-utils.ts`).
   - **Pinned at**:  `packages/spell/src/node/{project-utils,response-utils}.ts`.
 - **`spell`'s `environment` holds the app's settings.**
-  - **Cost**:  `vitePort`, `expressPort`, `api_server`, `staticDir` (`spell-app`'s) live in
-    `packages/spell/src/node/environment.ts`, which `spell-app`'s vite configs import by relative path.
+  - **Cost**:  `vitePort`, `expressPort`, `api_server`, `staticDir` (`app`'s) live in
+    `packages/spell/src/node/environment.ts`, which `app`'s vite configs import by relative path.
   - **Cause**:  one `environment.ts` served the single package;  splitting it was out of scope for a move.
-  - **Fix**:  a `spell-app/src/server/environment.ts` for the app's;  `spell`'s keeps `projectsDir` and the roots.
+  - **Fix**:  a `app/src/server/environment.ts` for the app's;  `spell`'s keeps `projectsDir` and the roots.
   - **Pinned at**:  `packages/spell/src/node/environment.ts`.
-- **`#spell-app` points at the app's entry, not a barrel.**
-  - **Cost**:  `import "#spell-app"` would boot the app (`src/index.tsx`).  Nothing does today.
+- **`$/app` points at the app's entry, not a barrel.**
+  - **Cost**:  `import "$/app"` would boot the app (`src/index.tsx`).  Nothing does today.
   - **Cause**:  the app never had a barrel;  the codemod mapped `#name` to `src/index.*` for every package.
-  - **Fix**:  drop the bare `#spell-app` entry from `tsconfig.base.json`, or add a real barrel.
+  - **Fix**:  drop the bare `$/app` entry from `tsconfig.base.json`, or add a real barrel.
   - **Pinned at**:  `tsconfig.base.json`.
 
 ## ui
@@ -509,15 +512,15 @@ knowingly kept:
 
 ### `<ui-flyout>` builds on the modal family, not on the element core
 
-- **Cost** -- the flyout family imports `$/components/modal` (a cross-family barrel import:  loading a flyout defines
+- **Cost** -- the flyout family imports `$/ui/components/modal` (a cross-family barrel import:  loading a flyout defines
   `<ui-modal>`, the content parts and `<ui-button>`, and the `flyout` lib entry depends on the `modal` one);
   `DialogElement` is generic over its vocabulary but reads its attributes, events, parts and texts through casts
   (`dialogAttrs`, `fire()`), so a subclass vocabulary missing one of them fails at run time, not in `tsc`.
 - **Cause** -- the brief (2026-09-30) put the shared modal logic IN the modal family ("a shared base or helper in the
-  modal family, NOT a copy");  the plan's home for it is `src/elements/OverlayElement.ts` (via `$/core`).  Typing
+  modal family, NOT a copy");  the plan's home for it is `src/elements/OverlayElement.ts` (via `$/ui/core`).  Typing
   "this vocabulary has at least these names" isn't expressible with the vocabulary types as they are.
 - **Fix** -- move `DialogElement` (and `ModalFallback`'s dialog logic) to `src/elements/` as the plan's
-  `OverlayElement`, exported through `$/core`, once a third dialog element (a page `<ui-dimmer>` could be one) wants
+  `OverlayElement`, exported through `$/ui/core`, once a third dialog element (a page `<ui-dimmer>` could be one) wants
   it;  give it a `DialogVocabulary` constraint type checked with a conditional type.
 - **Pinned at** -- `src/components/modal/DialogElement.tsx` (class docs), `src/components/flyout/UIFlyout.tsx`,
   `flyout.fallback.ts` (the `vocabulary` cast), `docs/grammar.md` "Flyouts".

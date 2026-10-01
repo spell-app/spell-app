@@ -1,5 +1,5 @@
-import { Derivative } from "#spell-util"
-import { P } from "#parser"
+import { Derivative } from "$/util"
+import { P } from "$/parser"
 
 /**
  * We create a `Scope` when starting a parse run, so parser can keep state as it descends up and down.

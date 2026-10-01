@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-select>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`:  `<ui-select size="small" fluid state="error">` =>
  *   `ui small error fluid select`, on the shadow `<select>`.  `select.css` keys on those words.
  * - NOTE: the noun is `select`, not Fomantic's `selection dropdown`:  the element IS a native `<select>` with its
@@ -10,7 +10,7 @@
  *   the `value` / `placeholder` attributes carry what SSR must show.
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-select>`
@@ -55,7 +55,7 @@ export const selectVocabulary = {
       name: "options",
       kind: "json",
       reflect: false,
-      description: "Options as a PROPERTY:  `MenuOption[]` (`$/elements`);  added after slotted `<ui-item>`s."
+      description: "Options as a PROPERTY:  `MenuOption[]` (`$/ui/elements`);  added after slotted `<ui-item>`s."
     }
   ],
   events: [

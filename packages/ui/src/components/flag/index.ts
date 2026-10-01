@@ -1,5 +1,5 @@
 /**
- * Barrel for the flag -- also the `flag` lib entry (`@spell/ui/flag`), measured in `docs/report.md`.
+ * Barrel for the flag -- also the `flag` lib entry (`@spell-app/ui/flag`), measured in `docs/report.md`.
  * - SIDE EFFECT:  defines `<ui-flag>`.
  * - NOTE: `FlagCountry` (the `country` resolver) is exported too, for pages that want the emoji or code alone.
  */

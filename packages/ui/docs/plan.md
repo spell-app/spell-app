@@ -1,4 +1,4 @@
-# Plan: Fomantic UI reborn as modern CSS + web components (`@spell/ui`)
+# Plan: Fomantic UI reborn as modern CSS + web components (`@spell-app/ui`)
 
 ## Context
 
@@ -12,7 +12,7 @@
 
 | Decision | Choice |
 |---|---|
-| Base library | **Solid 2** (decided 2026-09-30 after the Milestone 0 spike, `docs/spike-lit-vs-solid.md`):  `solid-js` / `@solidjs/web` 2.0 RC pinned exactly, through our fork `@spell/solid-element` (`packages/solid-element/`);  Solid, `@solidjs/web` and the fork are peer dependencies.  Promoted into `src/` 2026-09-29 (`docs/plan-promote-solid.md`, `docs/report.md`). |
+| Base library | **Solid 2** (decided 2026-09-30 after the Milestone 0 spike, `docs/spike-lit-vs-solid.md`):  `solid-js` / `@solidjs/web` 2.0 RC pinned exactly, through our fork `@spell-app/solid-element` (`packages/solid-element/`);  Solid, `@solidjs/web` and the fork are peer dependencies.  Promoted into `src/` 2026-09-29 (`docs/plan-promote-solid.md`, `docs/report.md`). |
 | DOM strategy | **Shadow DOM everywhere** (Web Awesome style) with **semantic shadow markup** (`<button>`, `<dialog>`, `<input>`, `<nav>`, `<table>`…, never a `<div>` where an element exists). |
 | Global runtime | A **shared `UI` runtime**, loaded dynamically by the first component that connects, coordinates keyboard shortcuts, overlays/modals, browser sniffing and feature flags, styles, i18n, vocabulary, and utilities. |
 | Overrides | A **utility class layer** (`ui-bold`, `ui-stack`, …, modelled on Web Awesome) plus components **adopt the page's app stylesheet**: one sheet, `id="ui-app-stylesheet"`, convention over configuration, it `@import`s anything else. |
@@ -93,7 +93,7 @@
   - `@proto static` installs class defaults on the prototype (non-enumerable, inherited, `protoDefined` hook) → used for vocabulary, default settings, part names, so instances carry no per-instance copies.
   - Prefer classes for coordination over loose functions: runtime services are classes (`Keyboard`, `Overlays`, `Styles`…), builders are classes (`ClassBuilder`), not bags of functions. No loose helper methods at the bottom of files; a helper that earns a name becomes a private method or a small class.
   - `type` not `interface`; one exported class per file; `<folder>.types.ts` per folder where it makes sense (`runtime.types.ts`, `elements.types.ts`, `components.types.ts`), runtime-light.
-  - Barrels per folder; namespaces: `UI` = the runtime singleton (from `$/runtime`), `E` = element bases (`$/elements`), components barrel exports classes (`UIButton`, `UIDropdown`).
+  - Barrels per folder; namespaces: `UI` = the runtime singleton (from `$/ui/runtime`), `E` = element bases (`$/ui/elements`), components barrel exports classes (`UIButton`, `UIDropdown`).
   - `$/` imports only; import order node_modules → utils → barrels → peers → side-effects → css.
   - Docstrings on types/classes/methods explaining why; `// ## Group` headers; markers NOTE / TODO / SIDE EFFECT / HACK / NEVER / MUST / DOCME.
   - oxfmt: no semicolons, double quotes, 120 cols, no trailing commas. `yarn review` = tsc + lint:fix + format + test.
@@ -101,7 +101,7 @@
 ## Architecture
 
 ### Repository layout
-- Root: `package.json` (`@spell/ui`, yarn, `"type": "module"`), `vite.config.ts` (library mode, per-component entries, `css.transformer: "lightningcss"`), `vitest.config.ts` (browser mode), `tsconfig.json`, `vite.decorators.ts`, lint/format configs, agentic files.
+- Root: `package.json` (`@spell-app/ui`, yarn, `"type": "module"`), `vite.config.ts` (library mode, per-component entries, `css.transformer: "lightningcss"`), `vitest.config.ts` (browser mode), `tsconfig.json`, `vite.decorators.ts`, lint/format configs, agentic files.
 - `src/index.ts`: registers every component (side-effect entry) + re-exports.
 - `src/util/`: `decorators.ts` (`@proto`), `class.ts`, `dom.ts`, `string.ts`, `util.types.ts`.
 - `src/runtime/` — the shared `UI` runtime (one instance per page: `globalThis.UI ??= new UIRuntime()`; components call `UI.load()` which dynamic-imports this chunk once):
@@ -174,7 +174,7 @@
   - converters: booleans (`yes`/`no` accepted), enums validated against the vocabulary with a dev-time "did you mean" (Levenshtein, as in SUI React)
   - `:state()` custom states: `open`, `active`, `loading`, `disabled`, `invalid`, `selected`, `in-<owner>`
 - Generic content parts (`ContentPart`): `ui-content`, `ui-header`, `ui-description`, `ui-meta`, `ui-extra`, `ui-actions`, `ui-title`, `ui-summary`, `ui-date`, `ui-author`, `ui-avatar`, `ui-detail`, `ui-value`, `ui-image`; Fomantic's `<div class="content"><div class="header">` maps 1:1 to `<ui-content><ui-header>`. Shorthand attributes on owners (`<ui-card header="…" meta="…">`, `<ui-modal header="…">`) render the same parts; slotted parts win over shorthand.
-- Events: `CustomEvent`s, `bubbles: true, composed: true`, lowercase kebab names (`ui-change`, `ui-input`, `ui-open`, `ui-close` (cancelable), `ui-select`, `ui-add`, `ui-remove`, `ui-search`, `ui-approve`, `ui-deny`, `ui-show`, `ui-hide`, `ui-visible`, `ui-hidden`); `detail` carries computed state (`{ value }`, `{ selected }`, `{ open }`, `{ activeIndex }`) plus `originalEvent`. `@spell/ui/react` ships a typed `@lit/react` wrapper if Lit wins.
+- Events: `CustomEvent`s, `bubbles: true, composed: true`, lowercase kebab names (`ui-change`, `ui-input`, `ui-open`, `ui-close` (cancelable), `ui-select`, `ui-add`, `ui-remove`, `ui-search`, `ui-approve`, `ui-deny`, `ui-show`, `ui-hide`, `ui-visible`, `ui-hidden`); `detail` carries computed state (`{ value }`, `{ selected }`, `{ open }`, `{ activeIndex }`) plus `originalEvent`. `@spell-app/ui/react` ships a typed `@lit/react` wrapper if Lit wins.
 - State: `value`, `open`, `selected`, `activeIndex`, `rating`, `activePage` are auto-controlled (host-set property/attribute is authoritative, else internal); every transition dispatches its event first; cancelable ones can veto.
 - Forms (`FormControl`):
   - `formAssociated`: `ui-input`, `ui-textarea`, `ui-checkbox` / `ui-radio` (standard, radio, slider, toggle), `ui-dropdown` / `ui-select`, `ui-slider`, `ui-calendar`, `ui-rating`, `ui-search`

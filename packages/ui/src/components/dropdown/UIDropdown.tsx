@@ -18,14 +18,14 @@ import {
   type MenuSeparator,
   type OverlayEntry,
   type ValidationRule
-} from "$/core"
-import { FormElement, MenuOptions } from "$/forms"
+} from "$/ui/core"
+import { FormElement, MenuOptions } from "$/ui/forms"
 
 import { dropdownVocabulary } from "./dropdown.vocabulary.en"
 import { DropdownFallback } from "./dropdown.fallback"
 import { SlottedItems } from "./SlottedItems"
 
-import buttonCSS from "$/components/button/button.css?inline"
+import buttonCSS from "$/ui/components/button/button.css?inline"
 import dropdownCSS from "./dropdown.css?inline"
 
 /** Vocabulary type, for brevity. */

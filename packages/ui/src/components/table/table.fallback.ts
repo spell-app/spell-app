@@ -1,4 +1,4 @@
-import { Converters, NativeFallback, proto } from "$/core"
+import { Converters, NativeFallback, proto } from "$/ui/core"
 
 import { tableVocabulary } from "./table.vocabulary.en"
 import { TableClassMirror } from "./TableClassMirror"

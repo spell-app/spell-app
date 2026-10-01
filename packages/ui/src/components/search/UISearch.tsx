@@ -16,14 +16,14 @@ import {
   type SearchResponse,
   type SearchResult,
   type ValidationRule
-} from "$/core"
-import { ControlLabels, FormElement, MenuOptions } from "$/forms"
+} from "$/ui/core"
+import { ControlLabels, FormElement, MenuOptions } from "$/ui/forms"
 
 import { searchVocabulary } from "./search.vocabulary.en"
 import { SearchFallback } from "./search.fallback"
 import { SearchMatcher } from "./SearchMatcher"
 
-import inputCSS from "$/components/input/input.css?inline"
+import inputCSS from "$/ui/components/input/input.css?inline"
 import searchCSS from "./search.css?inline"
 
 /** Vocabulary type, for brevity. */

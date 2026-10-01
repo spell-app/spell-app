@@ -3,8 +3,8 @@ import { useEffect, useMemo, useState } from "react"
 import chalk from "chalk"
 import wrapAnsi from "wrap-ansi"
 
-import type { LSP } from "#lsp"
-import { CLI } from "#cli"
+import type { LSP } from "$/lsp"
+import { CLI } from "$/cli"
 
 /** Keys, for the footer. */
 const HELP = "↑↓ move · ←→ fold · Tab switch pane · / filter · c compiled · i inherited · o open · q quit"

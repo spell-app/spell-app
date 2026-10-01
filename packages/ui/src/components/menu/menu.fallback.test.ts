@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest"
 
-import { Fixture } from "$test/fixture"
-import { expectAccessible } from "$test/a11y"
-import { FallbackStub, type StubHost } from "$/components/fallback.stub"
-import { ItemFallback } from "$/components/item/item.fallback"
+import { Fixture } from "$/ui/test/fixture"
+import { expectAccessible } from "$/ui/test/a11y"
+import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
+import { ItemFallback } from "$/ui/components/item/item.fallback"
 
 import { MenuFallback } from "./menu.fallback"
 

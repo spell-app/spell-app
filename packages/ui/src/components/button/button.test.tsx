@@ -1,11 +1,11 @@
 import { describe, expect, it, onTestFinished, vi } from "vitest"
 
-import { expectAccessible } from "$test/a11y"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
 
-import "$/components/button"
+import "$/ui/components/button"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/button/examples/elements/*.html", {
@@ -205,7 +205,7 @@ describe("<ui-button> behaviour", () => {
     element.innerHTML = "<ui-later>x</ui-later>"
     const later = element.firstElementChild as HTMLElement & { color?: string }
     later.color = "red"
-    const { UIButton } = await import("$/components/button")
+    const { UIButton } = await import("$/ui/components/button")
     UIButton.define("ui-later")
     document.body.append(element)
     await ElementFixture.settle(element)

@@ -3,10 +3,10 @@
  * debug output directly in spell source rather than in a separate test language.
  */
 
-import { proto } from "#spell-util"
-import { P } from "#parser"
+import { proto } from "$/util"
+import { P } from "$/parser"
 // Import directly to avoid circular import
-import { SpellParser } from "#spell/SpellParser"
+import { SpellParser } from "$/spell/SpellParser"
 import { SpellStatement } from "./Statement"
 
 /**

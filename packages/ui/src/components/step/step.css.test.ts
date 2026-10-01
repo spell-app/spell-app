@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest"
 
-import { colorsCSS, foundationCSS } from "$/styles"
+import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$test/fixture"
-import { Sheets } from "$test/sheets"
+import { Fixture } from "$/ui/test/fixture"
+import { Sheets } from "$/ui/test/sheets"
 
 import { stepsVocabulary, stepVocabulary } from "./step.vocabulary.en"
 
 import stepCSS from "./step.css?inline"
 import stepRaw from "./step.css?raw"
-import partsCSS from "$/components/parts/parts.css?inline"
+import partsCSS from "$/ui/components/parts/parts.css?inline"
 
 /**
  * `step.css` (with `parts.css`, which draws the titles and descriptions) on the class-grammar examples:  the

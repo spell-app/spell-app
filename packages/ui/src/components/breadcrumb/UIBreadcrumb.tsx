@@ -1,7 +1,7 @@
 import { createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { BREADCRUMB_DIVIDER_TOKENS, HostAttribute, IconGlyph, proto, UIElement } from "$/core"
+import { BREADCRUMB_DIVIDER_TOKENS, HostAttribute, IconGlyph, proto, UIElement } from "$/ui/core"
 
 import { breadcrumbVocabulary } from "./breadcrumb.vocabulary.en"
 import { BreadcrumbDivider } from "./BreadcrumbDivider"

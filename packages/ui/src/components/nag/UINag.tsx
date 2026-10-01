@@ -10,7 +10,7 @@ import {
   type NagCloseDetail,
   type NagCloseReason,
   type NagStorage
-} from "$/core"
+} from "$/ui/core"
 
 import { nagVocabulary } from "./nag.vocabulary.en"
 import { NagFallback } from "./nag.fallback"

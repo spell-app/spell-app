@@ -1,4 +1,4 @@
-import { Cell } from "$/core"
+import { Cell } from "$/ui/core"
 
 /** What a group needs from each member (`UIRadio`);  structural, so this file never imports the element. */
 export type RadioMember = {

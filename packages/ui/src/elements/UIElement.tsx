@@ -10,11 +10,11 @@ import {
   type Accessor
 } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
-import { customElement, onConnect, onDisconnect, onFormDisabled } from "@spell/solid-element"
+import { customElement, onConnect, onDisconnect, onFormDisabled } from "@spell-app/solid-element"
 
-import { proto } from "$/util"
-import { RUNTIME_KEY, UI, type RuntimeGlobal } from "$/runtime"
-import type { ComponentVocabulary, Dictionary } from "$/vocabulary"
+import { proto } from "$/ui/util"
+import { RUNTIME_KEY, UI, type RuntimeGlobal } from "$/ui/runtime"
+import type { ComponentVocabulary, Dictionary } from "$/ui/vocabulary"
 
 import {
   ERROR_EVENT,
@@ -38,7 +38,7 @@ import { UIHost } from "./UIHost"
 
 /**
  * Base CONTROLLER of every component:  one instance per element, created by the render function the fork
- * (`@spell/solid-element`) calls, holding the component's signals, memos and handlers as fields and methods.
+ * (`@spell-app/solid-element`) calls, holding the component's signals, memos and handlers as fields and methods.
  * - Why a class around a render function:  the library's unit is a function `(props, { element }) => JSX`;
  *   a class keeps the repo's conventions (`@proto static` defaults, methods over loose helpers, one exported
  *   class per file) and gives `this.attrs` / `this.emit()` / `this.classes()` to every component.
@@ -87,7 +87,7 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
   /** Form-associated (the fork's `formAssociated` option):  `FormElement`, and `UIButton` for submit / reset. */
   @proto static formAssociated = false
 
-  /** Native fallback shown when this element fails (`$/components/<name>/<name>.fallback.ts`);  none => a `<slot>`. */
+  /** Native fallback shown when this element fails (`$/ui/components/<name>/<name>.fallback.ts`);  none => a `<slot>`. */
   @proto static Fallback: FallbackClass | undefined = undefined
 
   /**

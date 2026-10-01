@@ -1,5 +1,5 @@
 {
-  "name": "@spell/ui",
+  "name": "@spell-app/ui",
   "version": "0.0.1",
   "description": "Fomantic UI's vocabulary as modern-CSS web components, on Solid 2",
   "license": "MIT",
@@ -329,9 +329,9 @@
     "test:hmr": "tsx tools/hmr.e2e.ts",
     "test:browsers": "playwright install chromium firefox webkit",
     "/////// FORK (../solid-element, a workspace)": "",
-    "fork": "yarn workspace @spell/solid-element",
+    "fork": "yarn workspace @spell-app/solid-element",
     "fork:install": "yarn install",
-    "fork:build": "yarn workspace @spell/solid-element build",
+    "fork:build": "yarn workspace @spell-app/solid-element build",
     "/////// PACKAGE TOOLING (tools/)": "",
     "vendor": "tsx tools/cli.ts vendor",
     "measure": "tsx tools/cli.ts measure",
@@ -354,7 +354,7 @@
     "manifest": "custom-elements-manifest analyze --globs 'src/**/*.ts' 'src/**/*.tsx' --exclude 'src/**/*.test.ts' --exclude 'src/**/*.test.tsx'"
   },
   "dependencies": {
-    "@spell/solid-element": "workspace:*",
+    "@spell-app/solid-element": "workspace:*",
     "lodash-es": "^4.18.1",
     "temporal-polyfill": "^1.0.5"
   },

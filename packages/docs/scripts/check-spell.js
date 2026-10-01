@@ -135,7 +135,7 @@ async function open(viewport) {
 
 /**
  * Static checks, run in the page:  element definitions and rendering, contents vs headings, code blocks, icons.
- * - "rendered" means has a shadow root:  every @spell/ui element renders into one.
+ * - "rendered" means has a shadow root:  every @spell-app/ui element renders into one.
  * - icons:  `<ui-icon>` plus any `ui-*` with an `icon` attribute, looked for an `<svg>` anywhere in its shadow tree.
  */
 function inspectPage() {

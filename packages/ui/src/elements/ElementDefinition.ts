@@ -1,4 +1,4 @@
-import { camelCase } from "$/util"
+import { camelCase } from "$/ui/util"
 import {
   Converters,
   ValueSets,
@@ -6,7 +6,7 @@ import {
   type ComponentVocabulary,
   type Dictionary,
   type LocalizedVocabulary
-} from "$/vocabulary"
+} from "$/ui/vocabulary"
 
 import type { PropDefinitions, ResolvedAttribute } from "./elements.types"
 import { ClassBuilder } from "./ClassBuilder"
@@ -14,7 +14,7 @@ import { ClassBuilder } from "./ClassBuilder"
 /**
  * Everything ONE registered tag needs from its `ComponentVocabulary` (+ an optional translation `Dictionary`),
  * so a component never spells an attribute, event, slot or part name.
- * - `props`:  the `@spell/solid-element` prop definitions, one per vocabulary attribute, keyed by camelCase
+ * - `props`:  the `@spell-app/solid-element` prop definitions, one per vocabulary attribute, keyed by camelCase
  *   CANONICAL name (what the component reads, `attrs.allowAdditions`), with the (localized) attribute and
  *   property names and a `Converters`-based converter.  The fork does the rest:  prototype accessors, the upgrade
  *   step, removals, synchronous reflection.

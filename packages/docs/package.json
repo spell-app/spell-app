@@ -1,8 +1,8 @@
 {
-  "name": "@spell/docs",
+  "name": "@spell-app/docs",
   "version": "0.8.0",
   "private": true,
-  "description": "Spell's docs:  hand-authored `.html` pages on @spell/ui, their templates and tooling, and plan docs",
+  "description": "Spell's docs:  hand-authored `.html` pages on @spell-app/ui, their templates and tooling, and plan docs",
   "type": "module",
   "scripts": {
     "/////// DOCS": "",
@@ -23,8 +23,8 @@
     "test:watch": "vitest"
   },
   "devDependencies": {
-    "@spell/spell": "workspace:*",
-    "@spell/ui": "workspace:*",
+    "@spell-app/spell": "workspace:*",
+    "@spell-app/ui": "workspace:*",
     "esbuild": "^0.28.2",
     "linkedom": "^0.18.13",
     "oxfmt": "^0.71.0",

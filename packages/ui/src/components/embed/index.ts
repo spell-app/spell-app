@@ -1,5 +1,5 @@
 /**
- * Barrel for the embed -- also the `embed` lib entry (`@spell/ui/embed`), measured in `docs/report.md`.
+ * Barrel for the embed -- also the `embed` lib entry (`@spell-app/ui/embed`), measured in `docs/report.md`.
  * - SIDE EFFECT:  defines `<ui-embed>`.
  */
 

@@ -12,13 +12,13 @@
  *   doesn't read `Date`, so `freezeTemporal()` points it at `Date.now()` too (the calendar's "today").
  */
 
-import { UI } from "$/runtime"
-import { StubOwner } from "$test/StubOwner"
-import type { VisualHooks } from "$test/test.types"
+import { UI } from "$/ui/runtime"
+import { StubOwner } from "$/ui/test/StubOwner"
+import type { VisualHooks } from "$/ui/test/test.types"
 
-import "$/index"
+import "$/ui/index"
 
-import popupAnchoredCSS from "$/components/popup/popup.anchored.css?raw"
+import popupAnchoredCSS from "$/ui/components/popup/popup.anchored.css?raw"
 
 /** Element examples, by path;  lazy, the page renders one. */
 const ELEMENTS = import.meta.glob<string>("/src/components/*/examples/elements/*.html", {

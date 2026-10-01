@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest"
 
-import { OwnerContext } from "$/elements"
-import type { ComponentVocabulary } from "$/vocabulary"
+import { OwnerContext } from "$/ui/elements"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /**
  * Real custom elements with shadow roots and slots, as components will have:

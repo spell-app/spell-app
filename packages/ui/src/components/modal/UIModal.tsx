@@ -1,4 +1,4 @@
-import { proto } from "$/core"
+import { proto } from "$/ui/core"
 
 import { modalVocabulary } from "./modal.vocabulary.en"
 import { DialogElement } from "./DialogElement"

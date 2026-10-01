@@ -1,10 +1,10 @@
 /*!
- * @spell/solid-element -- MIT licence.
+ * @spell-app/solid-element -- MIT licence.
  * A fork of `@solidjs/element` and `component-register` (MIT, (c) Ryan Carniato).
  */
 
 /**
- * `@spell/solid-element/vite`:  hot module replacement for custom elements in Vite dev, without reloading the page.
+ * `@spell-app/solid-element/vite`:  hot module replacement for custom elements in Vite dev, without reloading the page.
  * - Element modules (those that define elements:  `detect` matches their code) become HMR boundaries:  the plugin
  *   appends `import.meta.hot.accept(() => hotUpdate(import.meta.hot))`.  Vite re-runs the module, which
  *   re-registers its tags (the fork swaps each class's component in place), then `hotUpdate()` re-renders
@@ -27,14 +27,14 @@ import type { EnvironmentModuleNode, Plugin } from "vite"
 const DEFINES = /\b(?:customElement|register)\s*\(/
 
 /**
- * Hot-replace custom elements defined with `@spell/solid-element`;  add it after the Solid plugin.
+ * Hot-replace custom elements defined with `@spell-app/solid-element`;  add it after the Solid plugin.
  * - Defaults suit plain fork users:  every non-dependency module calling `customElement()` is a boundary.
  */
 export function solidElementHot(options: SolidElementHotOptions = {}): Plugin {
   const include = options.include ?? /\.[cm]?[jt]sx?$/
   const exclude = options.exclude ?? /\/node_modules\//
   const detect = options.detect ?? DEFINES
-  const runtime = JSON.stringify(options.runtime ?? "@spell/solid-element")
+  const runtime = JSON.stringify(options.runtime ?? "@spell-app/solid-element")
   const { styles, setup } = options
   // ids this plugin made boundaries:  element modules, then style modules
   const elementIds = new Set<string>()
@@ -120,7 +120,7 @@ export type SolidElementHotOptions = {
   exclude?: RegExp
   /** Code test for "this module defines elements";  default a `customElement(` / `register(` call. */
   detect?: RegExp
-  /** Module exporting `hotUpdate`;  default `@spell/solid-element`.  MUST be the instance the elements use. */
+  /** Module exporting `hotUpdate`;  default `@spell-app/solid-element`.  MUST be the instance the elements use. */
   runtime?: string
   /**
    * Module every element module imports first (side effect), e.g. a framework hook that turns its own

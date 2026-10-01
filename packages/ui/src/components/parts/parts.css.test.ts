@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest"
 
-import { colorsCSS, foundationCSS } from "$/styles"
+import { colorsCSS, foundationCSS } from "$/ui/styles"
 
-import { Fixture } from "$test/fixture"
-import { Sheets } from "$test/sheets"
+import { Fixture } from "$/ui/test/fixture"
+import { Sheets } from "$/ui/test/sheets"
 
 import { PART_NOUNS, PART_VOCABULARIES } from "./parts.vocabulary.en"
 
-import iconCSS from "$/components/icon/icon.css?inline"
+import iconCSS from "$/ui/components/icon/icon.css?inline"
 import partsCSS from "./parts.css?inline"
 import partsRaw from "./parts.css?raw"
 

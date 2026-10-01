@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it } from "vitest"
 
-import { UI, type VisibilityCalculations } from "$/runtime"
-import { expectAccessible } from "$test/a11y"
+import { UI, type VisibilityCalculations } from "$/ui/runtime"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
-import { Fixture } from "$test/fixture"
-import type { UIHost } from "$/elements"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import { Fixture } from "$/ui/test/fixture"
+import type { UIHost } from "$/ui/elements"
 
-import "$/components/visibility"
-import "$/components/segment"
+import "$/ui/components/visibility"
+import "$/ui/components/segment"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/visibility/examples/elements/*.html", {

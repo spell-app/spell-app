@@ -1,4 +1,4 @@
-import { SP } from "#spell"
+import { SP } from "$/spell"
 
 /**
  * IMPORTANT: this file MUST NOT import from anything other than `SpellSetup`

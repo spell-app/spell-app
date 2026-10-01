@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest"
 
-import { foundationCSS } from "$/styles"
+import { foundationCSS } from "$/ui/styles"
 
-import { Sheets } from "$test/sheets"
+import { Sheets } from "$/ui/test/sheets"
 
 import itemCSS from "./item.css?inline"
 import itemRaw from "./item.css?raw"

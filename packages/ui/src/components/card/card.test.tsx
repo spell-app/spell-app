@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest"
 import { userEvent } from "vitest/browser"
 
-import { expectAccessible } from "$test/a11y"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
 
-import "$/components/card"
-import "$/components/icon"
-import "$/components/button"
+import "$/ui/components/card"
+import "$/ui/components/icon"
+import "$/ui/components/button"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/card/examples/elements/*.html", {
@@ -195,7 +195,7 @@ describe("<ui-card> content parts", () => {
   })
 
   it("keeps a header inside a nested segment standalone (a barrier)", async () => {
-    await import("$/components/segment")
+    await import("$/ui/components/segment")
     const host = await render(`<ui-card><ui-segment><ui-header>Alone</ui-header></ui-segment></ui-card>`)
     await ElementFixture.settle(host)
     expect(host.querySelector("ui-header")!.matches(":state(in-card)")).toBe(false)

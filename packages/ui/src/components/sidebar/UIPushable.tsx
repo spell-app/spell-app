@@ -1,7 +1,7 @@
 import { createEffect, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, PUSHER_TOKENS, SIDEBAR_HOST_STATE, UIElement, type SidebarLayout, type UIHost } from "$/core"
+import { Cell, proto, PUSHER_TOKENS, SIDEBAR_HOST_STATE, UIElement, type SidebarLayout, type UIHost } from "$/ui/core"
 
 import { pushableVocabulary } from "./sidebar.vocabulary.en"
 import { SidebarFallback } from "./sidebar.fallback"

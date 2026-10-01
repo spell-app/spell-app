@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { Fixture } from "$test/fixture"
+import { Fixture } from "$/ui/test/fixture"
 import { IconPacks } from "./IconPacks"
 
 /** The stroke-style (Lucide-like) fixture pack:  `bell`, `sun` (aliases `light`, `day`), 24 x 24. */

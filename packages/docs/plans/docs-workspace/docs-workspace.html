@@ -24,7 +24,7 @@
           <ui-sticky class="spell-h2"><h2 id="plan">1. Plan</h2></ui-sticky>
           <p class="plan-summary">
             Move every doc into a <a href="../../" target="src-packages-docs"><code>packages/docs</code></a> workspace
-            of hand-authored <code>.html</code> pages on @spell/ui, with templates and a docs index. Then add
+            of hand-authored <code>.html</code> pages on @spell-app/ui, with templates and a docs index. Then add
             <code>/plan-doc &lt;name&gt;</code>: each planning session keeps a live plan doc like this one, built and
             kept current by <code>yarn plan-doc</code>.
           </p>
@@ -63,8 +63,8 @@
             <ui-sticky class="spell-h3"><h3 id="o1">3.1 Structure</h3></ui-sticky>
             <ul>
               <li>
-                <a href="../../" target="src-packages-docs"><code>packages/docs/</code></a> (<code>@spell/docs</code>):
-                docs for every package (<a href="#d1">D1</a>)
+                <a href="../../" target="src-packages-docs"><code>packages/docs/</code></a>
+                (<code>@spell-app/docs</code>): docs for every package (<a href="#d1">D1</a>)
               </li>
               <li>
                 <code>&lt;topic&gt;/&lt;topic&gt;.html</code> + <code>&lt;topic&gt;/experiments/</code>: one folder per
@@ -81,7 +81,7 @@
               </li>
               <li>
                 <a href="../../_assets/" target="src-packages-docs-assets"><code>_assets/</code></a
-                >: one classic bundle (Solid + @spell/ui + runtime), page and plan CSS
+                >: one classic bundle (Solid + @spell-app/ui + runtime), page and plan CSS
               </li>
             </ul>
           </section>
@@ -276,7 +276,7 @@
                 ><ui-title>details</ui-title
                 ><ui-content
                   ><p>
-                    No <code>&lt;ui-alert&gt;</code> in @spell/ui. <code>phase N done</code> strips them.
+                    No <code>&lt;ui-alert&gt;</code> in @spell-app/ui. <code>phase N done</code> strips them.
                   </p></ui-content
                 ></ui-accordion
               >

@@ -15,8 +15,8 @@
  * its `<link>` before the foundation's), and the first mention fixes the order -- without this, `ui.app`
  * would become the LOWEST layer.  Harmless where the order is already set.
  */
-@import "$/styles/layers.css";
-@import "$/styles/media.css";
+@import "$/ui/styles/layers.css";
+@import "$/ui/styles/media.css";
 
 @layer ui.app {
   /*******************************

@@ -1,6 +1,6 @@
-import { P } from "#parser"
+import { P } from "$/parser"
 // Import directly to avoid circular import -- rules are constructed while the `SP` barrel is still loading.
-import { BODY_KEYWORDS, type StatementBodySpec } from "#spell/spell.types"
+import { BODY_KEYWORDS, type StatementBodySpec } from "$/spell/spell.types"
 import { Block } from "./Block"
 
 /**

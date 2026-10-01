@@ -1,4 +1,4 @@
-import { NativeFallback, proto, type PartName, type SearchResult } from "$/core"
+import { NativeFallback, proto, type PartName, type SearchResult } from "$/ui/core"
 
 import { searchVocabulary } from "./search.vocabulary.en"
 

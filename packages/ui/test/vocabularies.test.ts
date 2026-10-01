@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import type { AttributeSpec, ComponentVocabulary } from "$/vocabulary"
+import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"
 
 /** Every family's English vocabulary module, by path. */
 const MODULES = import.meta.glob<Record<string, unknown>>("/src/components/*/*.vocabulary.en.ts", { eager: true })

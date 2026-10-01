@@ -3,8 +3,8 @@
  * `ie-cambio` / `ie-alternar` events are logged.
  */
 
-import { UIButton, UIDropdown } from "$/index"
-import { es } from "$test/dictionary.es"
+import { UIButton, UIDropdown } from "$/ui/index"
+import { es } from "$/ui/test/dictionary.es"
 
 UIButton.define("ie-boton", es)
 UIDropdown.define("ie-desplegable", es)

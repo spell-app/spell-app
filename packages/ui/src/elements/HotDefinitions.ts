@@ -7,11 +7,11 @@ import {
   type Dictionary,
   type RuntimeGlobal,
   type UIElementClass
-} from "$/core"
+} from "$/ui/core"
 
 /**
  * Dev-only glue between Vite's hot module replacement and `UIElement.define()`;  NEVER in a build.
- * - Loaded by `@spell/solid-element/vite` (the `setup` option, `vite.config.ts`) into every component barrel,
+ * - Loaded by `@spell-app/solid-element/vite` (the `setup` option, `vite.config.ts`) into every component barrel,
  *   before its `define()` calls run.  SIDE EFFECT:  `install()` wraps `UIElement.define`.
  * - Why:  `define()` is idempotent per tag, so a barrel re-run by HMR would return the OLD element class.  The
  *   wrapper records every tag's class and dictionary;  when a DIFFERENT class of the SAME name defines a known

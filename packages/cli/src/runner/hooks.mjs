@@ -1,7 +1,7 @@
 /**
  * Node module hooks for `runProject.ts`, the child process of `spell run` / `spell test`:  they do the job of
  * the browser's import map, so compiled spell runs under node.
- * - `@spell/core` => spell's runtime, `spell-core`'s `src/index.ts` -- run through `tsx`, which loads first.
+ * - `@spell/core` => spell's runtime, `core`'s `src/index.ts` -- run through `tsx`, which loads first.
  * - `@spell/project/<id>` => that project's compiled javascript, for a project which imports another.
  * - Where each is comes from env var `SPELL_RUN` -- see `CLI.RunSpec`.
  * - SIDE EFFECT:  registers itself, so `node --import <this file>` is all it takes.

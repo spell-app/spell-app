@@ -5,16 +5,16 @@ import { renderToString } from "@solidjs/web"
 import { writeFile, mkdir } from "node:fs/promises"
 import { resolve } from "node:path"
 
-import { foundationCSS } from "$/styles"
-import { buttonVocabulary } from "$/components/button/button.vocabulary.en"
-import { ElementDefinition, type UIHost } from "$/elements"
-import { UIButton } from "$/components/button/UIButton"
+import { foundationCSS } from "$/ui/styles"
+import { buttonVocabulary } from "$/ui/components/button/button.vocabulary.en"
+import { ElementDefinition, type UIHost } from "$/ui/elements"
+import { UIButton } from "$/ui/components/button/UIButton"
 
-import buttonCSS from "$/components/button/button.css?inline"
+import buttonCSS from "$/ui/components/button/button.css?inline"
 
 /**
  * SSR probe:  can `<ui-button primary>Save</ui-button>` be rendered to a Declarative Shadow DOM string?
- * - `@spell/solid-element` (like `@solidjs/element`) has no server render yet (it needs a live `HTMLElement`), so
+ * - `@spell-app/solid-element` (like `@solidjs/element`) has no server render yet (it needs a live `HTMLElement`), so
  *   this drives the CONTROLLER directly under `@solidjs/web`'s server `renderToString`, with a stub host standing
  *   in for the element (no internals, no observers) and converted attributes as the fork would hand them over,
  *   then wraps the result in `<template shadowrootmode>`.

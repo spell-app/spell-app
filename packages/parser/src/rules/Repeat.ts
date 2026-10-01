@@ -1,6 +1,6 @@
 import flattenDeep from "lodash/flattenDeep"
 
-import { P } from "#parser"
+import { P } from "$/parser"
 // Import directly to avoid circular import
 import { Rule } from "./Rule"
 

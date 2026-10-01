@@ -1,5 +1,5 @@
 /**
- * Barrel for the divider -- also the `divider` lib entry (`@spell/ui/divider`), measured in `docs/report.md`.
+ * Barrel for the divider -- also the `divider` lib entry (`@spell-app/ui/divider`), measured in `docs/report.md`.
  * - SIDE EFFECT:  defines `<ui-divider>`.
  */
 

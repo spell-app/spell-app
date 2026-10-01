@@ -6,7 +6,7 @@
  */
 import JSON5 from "json5"
 
-// Import directly, NOT through the `#lsp` barrel, which would pull in the language service.
+// Import directly, NOT through the `$/lsp` barrel, which would pull in the language service.
 import {
   SCOPE_PACK_GLOBAL,
   scopePath,
@@ -15,7 +15,7 @@ import {
   type ScopeLine,
   type ScopeNode,
   type ScopePack
-} from "#lsp/lsp.types"
+} from "$/lsp/lsp.types"
 
 /** What a Type Explorer shows:  a tree, and the details of what's in it, by `path`. */
 export type ScopesSource = {
@@ -213,7 +213,7 @@ function declaredPath(path: string): string | undefined {
 
 /**
  * What a `SPELL: DECLARES` marker says, as far as finding its entries goes -- see `SP.SpellDeclaration`.
- * - NOT imported from there:  `#spell` would pull the whole parser into the bundle.
+ * - NOT imported from there:  `$/spell` would pull the whole parser into the bundle.
  */
 type MarkerDeclaration = {
   type?: string
@@ -276,7 +276,7 @@ const DECLARES = /\/\*! SPELL: DECLARES \{[\s\S]*?\} \*\//g
 
 /**
  * Between each file's code in a project's compiled output -- `SP.SpellProject.FILE_SEPARATOR`.
- * - NOTE: a copy, NOT imported:  `#spell` would pull the whole parser into the bundle.
+ * - NOTE: a copy, NOT imported:  `$/spell` would pull the whole parser into the bundle.
  */
 const FILE_SEPARATOR = "\n// -----------\n"
 

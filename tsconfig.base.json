@@ -5,35 +5,37 @@
   //   which finds the tsconfig nearest the IMPORTING file.
   // - MUST stay the only `paths` in the repo:  a package that sets its own `paths` REPLACES this table, never adds to it.
   // - Paths are fixed, never `${configDir}`:  `tsx` can't resolve it (4.20 throws, 4.23 ignores it).
-  // - `#name` is a package's barrel, `#name/...` a file in its `src/`.  From ANOTHER package, import the barrel only,
-  //   except these entry points:  `#parser/rulex` (opt-in), `#parser/test` / `#spell/test` (test helpers),
-  //   `#spell/node/...` (node-only:  environment, files on disk).
+  // - `$` means `packages/`:  `$/name` is a package's barrel, `$/name/...` a file in its `src/`, and `$/ui/test/...`
+  //   `ui`'s test helpers.  It can't collide with an npm name (`@spell-app/...`) the way a bare `name/...` could.
+  // - From ANOTHER package, import the barrel only, except these entry points:  `$/parser/rulex` (opt-in),
+  //   `$/parser/test` / `$/spell/test` (test helpers), `$/spell/node/...` (node-only:  environment, files on disk),
+  //   and `$/util/class` etc. (`util`'s GENERIC files, imported one by one by `ui`'s `src/util/index.ts` only:  the
+  //   `$/util` barrel also holds spell's heavy utilities, which `ui` must not bundle).
   // - NOTE: every alias works from every package.  The one-way dependency rule is by convention:
-  //   `cli` -> `spell-app` -> `lsp` -> `spell` -> `parser` / `spell-core` -> `spell-util` -> `util`, and
-  //   `ui` -> `solid-element` / `util`.  e.g. `ui` MUST NOT import `#spell`.
+  //   `cli` -> `app` -> `lsp` -> `spell` -> `parser` / `core` -> `util`, and
+  //   `ui` -> `solid-element` / `util`.  e.g. `ui` MUST NOT import `$/spell`.
   "compilerOptions": {
     "paths": {
       // ## Shared packages:  from another package, import the barrel only
-      "#util": ["./packages/util/src/index.ts"],
-      "#util/*": ["./packages/util/src/*"],
-      "#spell-util": ["./packages/spell-util/src/index.ts"],
-      "#spell-util/*": ["./packages/spell-util/src/*"],
-      "#parser": ["./packages/parser/src/index.ts"],
-      "#parser/*": ["./packages/parser/src/*"],
-      "#spell-core": ["./packages/spell-core/src/index.ts"],
-      "#spell-core/*": ["./packages/spell-core/src/*"],
-      "#spell": ["./packages/spell/src/index.ts"],
-      "#spell/*": ["./packages/spell/src/*"],
-      "#lsp": ["./packages/lsp/src/index.ts"],
-      "#lsp/*": ["./packages/lsp/src/*"],
-      "#spell-app": ["./packages/spell-app/src/index.tsx"],
-      "#spell-app/*": ["./packages/spell-app/src/*"],
-      "#cli": ["./packages/cli/src/index.ts"],
-      "#cli/*": ["./packages/cli/src/*"],
+      "$/util": ["./packages/util/src/index.ts"],
+      "$/util/*": ["./packages/util/src/*"],
+      "$/parser": ["./packages/parser/src/index.ts"],
+      "$/parser/*": ["./packages/parser/src/*"],
+      "$/core": ["./packages/core/src/index.ts"],
+      "$/core/*": ["./packages/core/src/*"],
+      "$/spell": ["./packages/spell/src/index.ts"],
+      "$/spell/*": ["./packages/spell/src/*"],
+      "$/lsp": ["./packages/lsp/src/index.ts"],
+      "$/lsp/*": ["./packages/lsp/src/*"],
+      "$/app": ["./packages/app/src/index.tsx"],
+      "$/app/*": ["./packages/app/src/*"],
+      "$/cli": ["./packages/cli/src/index.ts"],
+      "$/cli/*": ["./packages/cli/src/*"],
 
-      // ## `ui`:  its own aliases, until it becomes `#ui`
-      "$/*": ["./packages/ui/src/*"],
-      "$test/*": ["./packages/ui/test/*"]
+      // ## `ui`:  barrel, files and test helpers;  `$/ui/test/*` is longer than `$/ui/*`, so it wins
+      "$/ui": ["./packages/ui/src/index.ts"],
+      "$/ui/*": ["./packages/ui/src/*"],
+      "$/ui/test/*": ["./packages/ui/test/*"]
     }
   }
 }

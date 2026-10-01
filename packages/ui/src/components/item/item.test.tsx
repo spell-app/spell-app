@@ -1,16 +1,16 @@
 import type { JSX } from "@solidjs/web"
 import { describe, expect, it } from "vitest"
 
-import type { ItemContext, ItemOwner } from "$/components/components.types"
-import { UIElement, type UIElementClass, type UIHost } from "$/elements"
-import type { ComponentVocabulary } from "$/vocabulary"
-import { UI } from "$/runtime"
-import { expectAccessible } from "$test/a11y"
+import type { ItemContext, ItemOwner } from "$/ui/components/components.types"
+import { UIElement, type UIElementClass, type UIHost } from "$/ui/elements"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
+import { UI } from "$/ui/runtime"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
+import { ElementFixture } from "$/ui/test/ElementFixture"
 
-import "$/components/item"
-import "$/components/parts"
+import "$/ui/components/item"
+import "$/ui/components/parts"
 
 /**
  * `<ui-item>` on its own:  unowned (the dropdown's data item), and owned by a stand-in OWNER implementing

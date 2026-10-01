@@ -4,10 +4,10 @@ import { tmpdir } from "os"
 import { resolve } from "path"
 import { fileURLToPath, pathToFileURL } from "url"
 
-import environment from "#spell/node/environment"
-import { SP } from "#spell"
-import { LSP } from "#lsp"
-import { CLI } from "#cli"
+import environment from "$/spell/node/environment"
+import { SP } from "$/spell"
+import { LSP } from "$/lsp"
+import { CLI } from "$/cli"
 
 /** Our own `src/` folder -- NOT `environment.srcDir`, which is the parser's. */
 const CLI_SRC_DIR = resolve(fileURLToPath(import.meta.url), "..", "..")

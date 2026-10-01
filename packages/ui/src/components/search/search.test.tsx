@@ -1,14 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from "vitest"
 import { userEvent } from "vitest/browser"
 
-import { UI } from "$/runtime"
-import type { SearchResult } from "$/components/components.types"
-import { expectAccessible } from "$test/a11y"
+import { UI } from "$/ui/runtime"
+import type { SearchResult } from "$/ui/components/components.types"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
 
-import { SearchMatcher } from "$/components/search"
+import { SearchMatcher } from "$/ui/components/search"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/search/examples/elements/*.html", {

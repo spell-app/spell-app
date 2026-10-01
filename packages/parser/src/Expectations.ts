@@ -1,4 +1,4 @@
-import type { P } from "#parser"
+import type { P } from "$/parser"
 
 /**
  * Collects what a half-typed statement could go on with, while `collect()` parses it in "expecting" mode.

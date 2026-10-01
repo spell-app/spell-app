@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-ad>` uses:  tag, attributes (kind + allowed values), slots, parts, texts.
- * Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:  `<ui-ad unit="medium rectangle" centered>`
  *   => `ui medium rectangle centered ad`.  `ad.css` keys on those phrases (`[class*="medium rectangle"]`).
  * - `unit` is the IAB unit, emitted as its bare words, hence `kind: "valueOnly"` (as the menu's
@@ -9,7 +9,7 @@
  *   to show instead (Fomantic's `data-text`).
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-ad>`

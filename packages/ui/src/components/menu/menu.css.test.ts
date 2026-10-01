@@ -1,15 +1,15 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 import { page } from "vitest/browser"
 
-import { colorsCSS, foundationCSS } from "$/styles"
-import { itemVocabulary } from "$/components/item"
+import { colorsCSS, foundationCSS } from "$/ui/styles"
+import { itemVocabulary } from "$/ui/components/item"
 
-import { Fixture } from "$test/fixture"
-import { Sheets } from "$test/sheets"
+import { Fixture } from "$/ui/test/fixture"
+import { Sheets } from "$/ui/test/sheets"
 
 import { menuVocabulary } from "./menu.vocabulary.en"
 
-import itemCSS from "$/components/item/item.css?inline"
+import itemCSS from "$/ui/components/item/item.css?inline"
 import menuCSS from "./menu.css?inline"
 import menuRaw from "./menu.css?raw"
 

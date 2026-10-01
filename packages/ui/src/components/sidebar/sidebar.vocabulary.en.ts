@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-sidebar>`, `<ui-pushable>` and `<ui-pusher>` use:  tags, attributes (kind + allowed values),
- * events, slots, parts, states, texts.  Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * events, slots, parts, states, texts.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-sidebar position="right" width="thin" transition="scale down" visible>` =>
  *   `ui right thin scale down visible sidebar`.  Without `transition`, the element adds Fomantic's default for
@@ -10,7 +10,7 @@
  * - `pushable` / `pusher` have no `ui` (Fomantic's `.pushable`, `.pusher`).
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-sidebar>`

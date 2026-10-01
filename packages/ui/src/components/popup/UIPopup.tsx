@@ -10,7 +10,7 @@ import {
   type OverlayEntry,
   type PopupOpenDetail,
   type PopupTrigger
-} from "$/core"
+} from "$/ui/core"
 
 import { popupVocabulary } from "./popup.vocabulary.en"
 import { PopupFallback } from "./popup.fallback"

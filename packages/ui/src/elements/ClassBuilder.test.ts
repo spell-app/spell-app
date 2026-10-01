@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { ClassBuilder, type ClassInput } from "$/elements"
-import type { ComponentVocabulary } from "$/vocabulary"
+import { ClassBuilder, type ClassInput } from "$/ui/elements"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 afterEach(() => {
   vi.restoreAllMocks()

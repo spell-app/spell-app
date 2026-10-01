@@ -1,13 +1,13 @@
 import { Show, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, IconGlyph, proto, SlotContent, type AttributeName, type FieldValue } from "$/core"
+import { Cell, IconGlyph, proto, SlotContent, type AttributeName, type FieldValue } from "$/ui/core"
 
 import { inputVocabulary } from "./input.vocabulary.en"
 import { InputFallback } from "./input.fallback"
 import { TextControl } from "./TextControl"
 
-import labelCSS from "$/components/label/label.css?inline"
+import labelCSS from "$/ui/components/label/label.css?inline"
 import inputCSS from "./input.css?inline"
 
 /** Vocabulary type, for brevity. */

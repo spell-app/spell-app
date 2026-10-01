@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 
-import { type FieldValue, Validator } from "$/elements"
+import { type FieldValue, Validator } from "$/ui/elements"
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -228,7 +228,7 @@ describe("Validator.validate()", () => {
   it("warns about unknown rules and skips them", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
     expect(validator.validate("", ["notEmty"]).valid).toBe(true)
-    expect(warn).toHaveBeenCalledWith('[@spell/ui] Validator: unknown rule "notEmty", did you mean "notEmpty"?')
+    expect(warn).toHaveBeenCalledWith('[@spell-app/ui] Validator: unknown rule "notEmty", did you mean "notEmpty"?')
   })
 })
 

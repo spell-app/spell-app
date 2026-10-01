@@ -1,5 +1,5 @@
-import { typeCase, instanceCase, snakeCase } from "#spell-util"
-import { P } from "#parser"
+import { typeCase, instanceCase, snakeCase } from "$/util"
+import { P } from "$/parser"
 // Import directly to avoid circular import
 import { BlockScope } from "./BlockScope"
 

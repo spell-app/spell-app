@@ -11,7 +11,7 @@ import {
   type ItemOwner,
   type RovingTabindex,
   type UIHost
-} from "$/core"
+} from "$/ui/core"
 
 import { menuVocabulary } from "./menu.vocabulary.en"
 import { MenuFallback } from "./menu.fallback"

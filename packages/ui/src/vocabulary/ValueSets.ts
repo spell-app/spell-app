@@ -1,4 +1,4 @@
-import { numberToWord, proto, suggest } from "$/util"
+import { numberToWord, proto, suggest } from "$/ui/util"
 
 import type { AttributeKind, AttributeSpec, ValueSetName } from "./vocabulary.types"
 
@@ -155,7 +155,7 @@ export class ValueSets {
 
   /**
    * Closest canonical value to a misspelt `value`, for dev-time "did you mean" warnings.
-   * - Delegates to `$/util`'s Levenshtein `suggest()`;  `undefined` when nothing is close.
+   * - Delegates to `$/ui/util`'s Levenshtein `suggest()`;  `undefined` when nothing is close.
    */
   static suggest(set: ValueSetName | readonly string[], value: string): string | undefined {
     return suggest(value, ValueSets.get(set))
@@ -189,7 +189,7 @@ export class ValueSets {
 
   /**
    * Fomantic's word for column count 1..16, e.g. `4` => `"four"`;  `undefined` otherwise.
-   * - Same as `$/util`'s `numberToWord()`, here so value-set users needn't import both.
+   * - Same as `$/ui/util`'s `numberToWord()`, here so value-set users needn't import both.
    */
   static numberToWord(value: number | string): string | undefined {
     return numberToWord(value)

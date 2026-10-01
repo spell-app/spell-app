@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-feed>` and `<ui-event>` use:  tag, attributes (kind + allowed values), slots, parts, states.
- * Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-feed connected ordered size="small">` => `ui small connected ordered feed`;  an event has no `ui`
  *   (`<ui-event basic>` => `basic event`).  `feed.css` keys on those.
@@ -9,7 +9,7 @@
  *   `:state(in-feed)` -- Fomantic's `.ui.feed > .event > .content .summary`.
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-feed>`

@@ -1,4 +1,4 @@
-import { NativeFallback, proto } from "$/core"
+import { NativeFallback, proto } from "$/ui/core"
 
 import { embedVocabulary } from "./embed.vocabulary.en"
 import { EmbedSources, type EmbedParameters } from "./EmbedSources"

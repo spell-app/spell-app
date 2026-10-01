@@ -1,5 +1,5 @@
 /**
- * Barrel for the text -- also the `text` lib entry (`@spell/ui/text`), measured in `docs/report.md`.
+ * Barrel for the text -- also the `text` lib entry (`@spell-app/ui/text`), measured in `docs/report.md`.
  * - SIDE EFFECT:  defines `<ui-text>`.
  */
 

@@ -4,14 +4,14 @@
  * sticky "On this page" index on the right.
  * - Works as a plain `.astro` layout (`<Docs title=...>`) and as an MDX `layout:` (reads `frontmatter`).
  * - Styles, in cascade order:
- *   1. `$/styles/ui.css`:  the library's page foundation (layers, tokens, utilities, typography ...),
+ *   1. `$/ui/styles/ui.css`:  the library's page foundation (layers, tokens, utilities, typography ...),
  *      Lightning CSS-bundled by Vite into a global `<link>`
  *   2. `site.css` as `#ui-app-stylesheet`:  the site chrome, which the runtime ALSO adopts into every
  *      component's shadow root -- see the comment on the `<link>` below
  *   3. the Classic theme, adopted at runtime when the header toggle is on
  * - Behaviour is `scripts/layout.ts`:  theme switcher, Classic toggle, mobile menu, the section index.
  */
-import "$/styles/ui.css"
+import "$/ui/styles/ui.css"
 import siteCSSUrl from "../styles/site.css?url"
 import pkg from "../../../package.json"
 
@@ -33,7 +33,7 @@ type Props = {
 }
 
 const fm = Astro.props.frontmatter ?? {}
-const title = Astro.props.title ?? fm.title ?? "@spell/ui"
+const title = Astro.props.title ?? fm.title ?? "@spell-app/ui"
 const summary = Astro.props.summary ?? fm.summary
 const status = Astro.props.status ?? fm.status
 const tag = Astro.props.tag ?? fm.tag
@@ -57,7 +57,7 @@ function isCurrent(path: string, prefix = false): boolean {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="color-scheme" content="light dark" />
-    <title>{title === "@spell/ui" ? title : `${title} | @spell/ui`}</title>
+    <title>{title === "@spell-app/ui" ? title : `${title} | @spell-app/ui`}</title>
     {summary && <meta name="description" content={summary} />}
     <script is:inline>
       // Before first paint:  re-apply the saved scheme so a dark page never flashes light.  See `layout.ts`.
@@ -90,7 +90,7 @@ function isCurrent(path: string, prefix = false): boolean {
         >
           <span aria-hidden="true">&#9776;</span>
         </button>
-        <a class="site-logo ui-link-plain ui-bold" href={url("/")}>@spell/ui</a>
+        <a class="site-logo ui-link-plain ui-bold" href={url("/")}>@spell-app/ui</a>
         <nav class="site-header-nav" aria-label="Main">
           <ul class="ui-cluster ui-gap-2xs ui-list-plain" role="list">
             {

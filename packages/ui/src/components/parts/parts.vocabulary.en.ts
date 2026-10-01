@@ -1,7 +1,7 @@
 /**
  * Every name the generic content parts use -- `<ui-content>`, `<ui-header>`, `<ui-description>`, `<ui-meta>`,
  * `<ui-extra>`, `<ui-actions>`, `<ui-title>`, `<ui-summary>`, `<ui-date>`, `<ui-author>`, `<ui-avatar>`,
- * `<ui-detail>`, `<ui-value>`.  Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * `<ui-detail>`, `<ui-value>`.  Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - The noun IS the part word, and the class it renders:  `<ui-meta>` => `<div class="meta">`.  Parts have no
  *   `ui` class (`ui: false`), except a STANDALONE `<ui-header>`, which is Fomantic's `ui header`.
  * - Owners declare what they own (`ownsParts` in THEIR vocabularies);  `OwnerContext` finds a part's nearest
@@ -10,7 +10,7 @@
  * - `parts.css` styles every part;  see its header for the owner tokens owners must set.
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /** Part nouns, in the order the plan lists them;  each is also the class its root renders. */
 export const PART_NOUNS = [

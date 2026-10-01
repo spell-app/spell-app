@@ -1,15 +1,15 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 import { userEvent } from "vitest/browser"
 
-import type { ListSelectDetail } from "$/components/components.types"
-import { expectAccessible } from "$test/a11y"
+import type { ListSelectDetail } from "$/ui/components/components.types"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
 
-import "$/components/list"
-import "$/components/parts"
-import "$/components/segment"
+import "$/ui/components/list"
+import "$/ui/components/parts"
+import "$/ui/components/segment"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/list/examples/elements/*.html", {
@@ -212,7 +212,7 @@ describe("<ui-list> items adopt list.css and style by owner", () => {
   })
 
   it("keeps a slotted <ui-icon> a table cell beside the content", async () => {
-    await import("$/components/icon")
+    await import("$/ui/components/icon")
     const { items } = await list(
       "",
       `<ui-item><ui-icon name="users"></ui-icon><ui-content>Fomantic UI</ui-content></ui-item>`

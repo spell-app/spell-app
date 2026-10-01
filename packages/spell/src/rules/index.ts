@@ -6,8 +6,8 @@
  * - NOTE: import order matters in a few places -- see the comment above the `ParseError` import.
  *   Structural rules (`blank_line` / `block` / `line` / `parse_error`) are added directly, below.
  */
-import { P } from "#parser"
-import { SpellParser } from "#spell/SpellParser"
+import { P } from "$/parser"
+import { SpellParser } from "$/spell/SpellParser"
 
 // Structural rule classes, registered directly below.
 import { Block, type DocComment } from "./Block"

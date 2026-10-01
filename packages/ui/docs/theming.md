@@ -1,4 +1,4 @@
-# Theming `@spell/ui`
+# Theming `@spell-app/ui`
 
 How the CSS foundation fits together:  tokens, remaps, layers, the app stylesheet, utilities and themes.
 Everything lives in `src/styles/`;  the design rationale is in `plan.md` ("CSS system").
@@ -24,7 +24,7 @@ Everything lives in `src/styles/`;  the design rationale is in `plan.md` ("CSS s
 \* GENERATED from `styles.vocabulary.en.ts` by `yarn gen:styles` -- never edit them by hand.  The generated
 files are committed, so consumers need no build step;  `styles.test.ts` fails when they're stale.
 
-`$/styles` exports each sheet as text (`tokensCSS` ...), plus `foundationCSS` (adoption order for the document
+`$/ui/styles` exports each sheet as text (`tokensCSS` ...), plus `foundationCSS` (adoption order for the document
 AND every shadow root) and `pageCSS` (foundation + typography + native, for the document only).
 
 ## Units

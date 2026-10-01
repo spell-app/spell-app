@@ -1,9 +1,9 @@
 import { isNode } from "browser-or-node"
 
-import { instanceCase, typeCase, proto } from "#spell-util"
-import { P } from "#parser"
+import { instanceCase, typeCase, proto } from "$/util"
+import { P } from "$/parser"
 // Import directly to avoid circular import
-import { SpellParser } from "#spell/SpellParser"
+import { SpellParser } from "$/spell/SpellParser"
 import { SpellStatement, type SpellStatementProps } from "./Statement"
 import { SpellType } from "./types"
 import { SpellIdentifier } from "./variables"

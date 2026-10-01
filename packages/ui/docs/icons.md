@@ -245,9 +245,9 @@ yarn gen:icons
 The built-in packs must be served NEXT TO THE MODULE that contains `BuiltInPacks` (`import.meta.url`):
 
 - **Library build:**  `BuiltInPacks` is in `dist/core.js`, so `dist/icon-packs/<id>/`.  Package export:
-  `@spell/ui/icons/*` -> `dist/icon-packs/*`.
+  `@spell-app/ui/icons/*` -> `dist/icon-packs/*`.
 - **Docs site:**  `emitIconPacks("_astro/icon-packs")` beside Astro's chunks.
-- **An app that bundles `@spell/ui`:**  the bundler moves `BuiltInPacks` away from `node_modules`.  Copy
+- **An app that bundles `@spell-app/ui`:**  the bundler moves `BuiltInPacks` away from `node_modules`.  Copy
   `dist/icon-packs/` next to the app's chunks, OR add the packs by URL from wherever they're served
   (`<ui-icon-set src="/assets/packs/fa7-free/pack.js" only>`), OR set `BuiltInPacks.base`.
 - **A few known icons:**  `UI.icons.register(name, svgText)` for each (e.g. imported with `?raw`).  Registered
@@ -281,7 +281,7 @@ Experiment behind this section:  `spike/icons/`, removed from the tree;  restore
 
 ### Candidates
 
-1. **Today**:  `Icons.get()` from `$/icons`, 23 chunked JS files Vite emits from the JSON.
+1. **Today**:  `Icons.get()` from `$/ui/icons`, 23 chunked JS files Vite emits from the JSON.
 2. **One ES module per icon**:  `icons/<style>/<name>.js` = `export default [w, h, "path"]`, generated from the same
    metadata `scripts/gen-icons.ts` uses;  the loader computes the URL from the canonical name.
 3. **One SVG file per icon**, the npm package's files untouched:

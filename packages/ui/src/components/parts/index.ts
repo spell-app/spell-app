@@ -1,5 +1,5 @@
 /**
- * Barrel for the generic content parts -- also the `parts` lib entry (`@spell/ui/parts`), measured in `docs/report.md`.
+ * Barrel for the generic content parts -- also the `parts` lib entry (`@spell-app/ui/parts`), measured in `docs/report.md`.
  * - SIDE EFFECT:  defines all 13 part elements.
  */
 

@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vitest"
-import { spellParser } from "#spell"
+import { spellParser } from "$/spell"
 
 /**
  * `scope.rules` exists so a scope can hand on the rules it created while parsing -- e.g. a file which

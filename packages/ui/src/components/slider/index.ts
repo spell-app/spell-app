@@ -1,5 +1,5 @@
 /**
- * Barrel for the slider component -- also the `slider` lib entry (`@spell/ui/slider`), measured in
+ * Barrel for the slider component -- also the `slider` lib entry (`@spell-app/ui/slider`), measured in
  * `docs/report.md`.
  * - SIDE EFFECT:  defines `<ui-slider>`.
  * - NOTE: `SliderScale` (the number line) is exported too:  an app can snap values the same way.

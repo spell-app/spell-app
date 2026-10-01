@@ -4,7 +4,7 @@
  * - Keys are canonical English;  values are what a Spanish author writes (see `Dictionary`).
  */
 
-import type { Dictionary } from "$/vocabulary"
+import type { Dictionary } from "$/ui/vocabulary"
 
 /** Spanish names for the button and dropdown. */
 export const es = {

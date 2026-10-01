@@ -167,10 +167,10 @@ export class Converters {
   /**
    * `console.warn` in development only, prefixed so it's greppable.
    * - `import.meta.env?.DEV` is statically replaced by Vite, so production builds drop the call.
-   * - REFACTOR: move to `$/util` as `devWarn()` once more than `$/vocabulary` and `$/elements` need it.
+   * - REFACTOR: move to `$/ui/util` as `devWarn()` once more than `$/ui/vocabulary` and `$/ui/elements` need it.
    */
   static warn(message: string) {
-    if (import.meta.env?.DEV) console.warn(`[@spell/ui] ${message}`)
+    if (import.meta.env?.DEV) console.warn(`[@spell-app/ui] ${message}`)
   }
 }
 

@@ -1,7 +1,7 @@
 import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { proto } from "$/core"
+import { proto } from "$/ui/core"
 
 import { avatarVocabulary } from "./parts.vocabulary.en"
 import { PartElement } from "./PartElement"

@@ -8,7 +8,7 @@
 import {
   TRANSITION_ATTENTION_ANIMATIONS,
   TRANSITION_VISIBILITY_ANIMATIONS
-} from "$/components/transition/transition.vocabulary.en"
+} from "$/ui/components/transition/transition.vocabulary.en"
 ---
 
 <div class="ui-stack ui-gap-s" data-transition-demo>
@@ -28,7 +28,7 @@ import {
 </div>
 
 <script>
-  import "$/components/transition"
+  import "$/ui/components/transition"
 
   for (const demo of document.querySelectorAll<HTMLElement>("[data-transition-demo]")) {
     const select = demo.querySelector<HTMLElement & { value: string }>("[data-animation]")!

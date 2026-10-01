@@ -1,4 +1,4 @@
-import { IconName, type IconPackIndex } from "$/icons"
+import { IconName, type IconPackIndex } from "$/ui/icons"
 
 import type { IconPackIcon, IconPackOptions, ResolvedIcon } from "./runtime.types"
 

@@ -1,5 +1,5 @@
-import { P } from "#parser"
-import { SP } from "#spell"
+import { P } from "$/parser"
+import { SP } from "$/spell"
 import { SpellStatement, commitStatement } from "./Statement"
 import { Block, type BlockMatchData } from "./Block"
 import { SpellJSX } from "./JSX"

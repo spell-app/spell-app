@@ -1,14 +1,14 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 
-import { ICON_SET_ATTRIBUTES, ICON_SET_TAG } from "$/icons"
-import { expectAccessible } from "$test/a11y"
+import { ICON_SET_ATTRIBUTES, ICON_SET_TAG } from "$/ui/icons"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
 
 import { iconSetVocabulary } from "./icon.vocabulary.en"
 
-import "$/components/icon"
+import "$/ui/components/icon"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/icon/examples/elements/*.html", {

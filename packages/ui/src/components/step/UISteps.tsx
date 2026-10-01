@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIElement } from "$/core"
+import { proto, UIElement } from "$/ui/core"
 
 import { stepsVocabulary } from "./step.vocabulary.en"
 import { StepFallback } from "./step.fallback"

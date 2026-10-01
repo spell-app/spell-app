@@ -6,13 +6,13 @@
  * - `run`:  loads the project, which runs its top-level statements.  Its `print`s go straight to the terminal.
  * - `test`:  loads it quietly, then calls each `test ...` function it exports which hasn't already run, and
  *   reports each one:  ✓, or ✗ with the checks that failed.  Exits 1 if any failed.
- * - NEVER imports `#cli`'s values:  this process needs only spell's runtime.
+ * - NEVER imports `$/cli`'s values:  this process needs only spell's runtime.
  */
 import chalk from "chalk"
 import { format } from "util"
 
-import { App, spellCore } from "#spell-core"
-import type { CLI } from "#cli"
+import { App, spellCore } from "$/core"
+import type { CLI } from "$/cli"
 
 const spec = JSON.parse(process.env.SPELL_RUN!) as CLI.RunSpec
 /** What the project tried to do which needs a browser, e.g. `start the game`. */

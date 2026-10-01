@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-reveal>` uses:  tag, attributes (kind + allowed values), slots, parts, states.
- * Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:  `<ui-reveal move="right" instant>` =>
  *   `ui instant right move reveal`.  `reveal.css` keys on single words (`.move.right`), so the phrase order is free.
  * - The two contents are SLOTS (`visible`, `hidden`), which the element wraps in Fomantic's `.visible.content` /
@@ -8,7 +8,7 @@
  * - `active` keeps Fomantic's word:  it means REVEALED, not chosen, so it isn't a `selected`.
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-reveal>`

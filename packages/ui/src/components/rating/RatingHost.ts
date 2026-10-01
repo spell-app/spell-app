@@ -1,4 +1,4 @@
-import { FormHost } from "$/forms"
+import { FormHost } from "$/ui/forms"
 
 /****************
  * ### `RatingHost`

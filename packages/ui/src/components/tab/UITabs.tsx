@@ -13,13 +13,13 @@ import {
   type RovingTabindex,
   type TabChangeDetail,
   type UIHost
-} from "$/core"
+} from "$/ui/core"
 
 import { tabsVocabulary, tabVocabulary } from "./tab.vocabulary.en"
 import { TabFallback } from "./tab.fallback"
 import { UITab, type TabOwner, type TabPaneState } from "./UITab"
 
-import menuCSS from "$/components/menu/menu.css?inline"
+import menuCSS from "$/ui/components/menu/menu.css?inline"
 import tabCSS from "./tab.css?inline"
 
 /** Vocabulary type, for brevity. */

@@ -1,12 +1,12 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 
-import { GRID_CONTAINER_NAME } from "$/components/components.types"
-import { expectAccessible } from "$test/a11y"
+import { GRID_CONTAINER_NAME } from "$/ui/components/components.types"
+import { expectAccessible } from "$/ui/test/a11y"
 
-import { ElementFixture } from "$test/ElementFixture"
-import type { UIHost } from "$/elements"
+import { ElementFixture } from "$/ui/test/ElementFixture"
+import type { UIHost } from "$/ui/elements"
 
-import "$/components/grid"
+import "$/ui/components/grid"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/grid/examples/elements/*.html", {

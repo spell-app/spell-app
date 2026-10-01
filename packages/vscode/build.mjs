@@ -5,7 +5,7 @@
  *   Move the monorepo and you must rebuild, or set `spell.parserRoot`.
  * - `esbuild` is the repo's own, found up the folder tree.
  * - Fails unless our `version` matches `spell`'s -- the two are pinned together.
- * - SIDE EFFECT: also builds `spell-app`'s runner bundle, `dist-runner/`, for "Run Project".
+ * - SIDE EFFECT: also builds `app`'s runner bundle, `dist-runner/`, for "Run Project".
  */
 import { build } from "esbuild"
 import { execSync } from "child_process"
@@ -22,8 +22,8 @@ if (version !== parserVersion) {
   throw new Error(`vscode extension version ${version} !== spell version ${parserVersion}:  change them together.`)
 }
 
-// "Run Project"'s webview code lives in `spell-app` -- see `RunnerPanel.ts`.
-execSync("yarn build:runner", { cwd: resolve(here, "../spell-app"), stdio: "inherit" })
+// "Run Project"'s webview code lives in `app` -- see `RunnerPanel.ts`.
+execSync("yarn build:runner", { cwd: resolve(here, "../app"), stdio: "inherit" })
 
 await build({
   entryPoints: [resolve(here, "src/extension.ts")],

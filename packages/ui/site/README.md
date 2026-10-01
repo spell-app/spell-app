@@ -1,4 +1,4 @@
-# `@spell/ui` docs site
+# `@spell-app/ui` docs site
 
 Astro 7 + MDX, static output, modelled on [fomantic-ui.com](https://fomantic-ui.com):  left sidebar, a page per
 component with Types / Content / States / Variations sections, every example LIVE with a "Show code" pane, a
@@ -17,7 +17,7 @@ yarn check     # astro check (TypeScript 6:  astro check doesn't support TS 7 ye
 ```
 
 The library is consumed from SOURCE, never from `dist/`:  `astro.config.mjs` aliases `$` -> `../src`,
-`$test` -> `../test`, `@spell/ui` -> `../src/index.ts`, and reuses the repo's decorator plugin
+`$/ui/test` -> `../test`, `@spell-app/ui` -> `../src/index.ts`, and reuses the repo's decorator plugin
 (`../vite.decorators.ts`) and Lightning CSS targets (`CSS_TARGETS` from `../vite.config.ts`).  
 
 ## Layout
@@ -88,7 +88,7 @@ import Variation from "../../components/Variation.astro"
 
 - Nothing to import:  `scripts/components.ts` (run by the layout on every page) imports the module for every
   undefined `ui-*` tag on the page:  its family's barrel, `src/components/<family>/index.ts`.  Write
-  `<ui-button>` and `$/components/button/index.ts` loads, on the pages that use it only.
+  `<ui-button>` and `$/ui/components/button/index.ts` loads, on the pages that use it only.
 - A family defines several tags (`ui-dropdown` + `ui-item`);  `familyOf()` maps each to its family.
 - Anything else client-side (setting a rich `options` property, listening for `ui-change`) goes in a small
   `.astro` component with a `<script>`, used from the MDX page, e.g. `src/components/DropdownDemo.astro`:
@@ -96,8 +96,8 @@ import Variation from "../../components/Variation.astro"
   ```astro
   <ui-dropdown data-demo="options"></ui-dropdown>
   <script>
-    import "$/components/dropdown/dropdown"
-    import type { UIDropdown } from "$/components/dropdown/dropdown"
+    import "$/ui/components/dropdown/dropdown"
+    import type { UIDropdown } from "$/ui/components/dropdown/dropdown"
     const dropdown = document.querySelector<UIDropdown>("[data-demo=options]")!
     dropdown.options = [{ value: "1", text: "One" }]
   </script>
@@ -116,7 +116,7 @@ import Variation from "../../components/Variation.astro"
 
 ## Styling the site
 
-- `$/styles/ui.css` is the page foundation (imported by the layout, bundled into a `<link>`).
+- `$/ui/styles/ui.css` is the page foundation (imported by the layout, bundled into a `<link>`).
 - `src/styles/site.css` is linked as `<link id="ui-app-stylesheet">`:  the library's app-stylesheet convention,
   so the runtime also adopts it into every component's shadow root.  Keep EVERY site rule on a `.site-*` class,
   in `@layer ui.app`.  Rules meant for component internals would use Fomantic's class grammar there.

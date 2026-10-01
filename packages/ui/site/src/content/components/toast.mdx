@@ -20,8 +20,8 @@ import VocabularyTable from "../../components/VocabularyTable.astro"
     title="UI.toast()"
     description="`UI.toast()` shows a toast in a corner of the screen, stacked with the others, and closes it after `displayTime` (3 seconds by default).  Its options are Fomantic's `$.toast()` settings."
     code={`<script type="module">
-  import { UI } from "@spell/ui/core"
-  import "@spell/ui/toast" // registers UI.toast()
+  import { UI } from "@spell-app/ui/core"
+  import "@spell-app/ui/toast" // registers UI.toast()
 
   await UI.load()
   UI.toast({ message: "I am a toast, nice to meet you!" })

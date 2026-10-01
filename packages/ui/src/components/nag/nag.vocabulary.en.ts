@@ -1,12 +1,12 @@
 /**
  * Every name `<ui-nag>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary` (`$/vocabulary`).
+ * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-nag size="small" bottom fixed inverted>` => `ui small bottom fixed inverted nag`.
  * - Persistence is opt-in:  only a nag with a `key` reads or writes `storage`.
  */
 
-import type { ComponentVocabulary } from "$/vocabulary"
+import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-nag>`

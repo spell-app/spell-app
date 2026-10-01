@@ -1,4 +1,4 @@
-import { proto } from "$/core"
+import { proto } from "$/ui/core"
 
 import { summaryVocabulary } from "./parts.vocabulary.en"
 import { PartElement } from "./PartElement"

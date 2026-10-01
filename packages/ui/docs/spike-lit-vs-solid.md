@@ -8,7 +8,7 @@
 Both spikes build the same eight families (`button`, `dropdown`, `icon`, `label`, 13 content `parts`, `divider`, `segment`, `container`) on the same foundation (`src/`), CSS, vocabularies and native fallbacks, and are measured, smoke-tested and reported by the same tools (`spike/shared/`).  Full reports, with identical sections and generated tables:  `spike/lit/REPORT.md`, `spike/solid/REPORT.md`.  Numbers as of 2026-09-30.
 
 - Lit spike:  Lit 3.3.3, standard decorators.
-- Solid spike:  Solid 2.0.0-rc.11 on `@spell/solid-element` (`spike/solid-element/`), our fork of `@solidjs/element` + `component-register` that fixes 22 reproduced bugs and could go upstream (`spike/solid-element/UPSTREAM.md`).
+- Solid spike:  Solid 2.0.0-rc.11 on `@spell-app/solid-element` (`spike/solid-element/`), our fork of `@solidjs/element` + `component-register` that fixes 22 reproduced bugs and could go upstream (`spike/solid-element/UPSTREAM.md`).
 - Both are packaged as a SHARED RUNTIME:  the base library is a peer dependency (external), our code splits into a `core` entry (every family), a `forms` entry (form controls only) and one small entry per family.
 
 ## Size (min + gzip level 9, kB)
@@ -56,7 +56,7 @@ Both spikes build the same eight families (`button`, `dropdown`, `icon`, `label`
 
 ## Recommendation
 
-If spell's own app is Solid 2 (it is), **Solid** is now the better system for spell:  same size inside the app, one runtime and one mental model, context and signals flowing into components.  **Lit** remains the better choice only if `@spell/ui` must serve non-Solid pages first, or if we don't want to own the element layer.
+If spell's own app is Solid 2 (it is), **Solid** is now the better system for spell:  same size inside the app, one runtime and one mental model, context and signals flowing into components.  **Lit** remains the better choice only if `@spell-app/ui` must serve non-Solid pages first, or if we don't want to own the element layer.
 
 Either way, before building more families:
 - decide whether to send the fork's patches upstream (`spike/solid-element/UPSTREAM.md`), which lowers the ownership risk

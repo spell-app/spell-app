@@ -1,4 +1,4 @@
-import { P } from "#parser"
+import { P } from "$/parser"
 
 /**
  * Re-lays out source text from its tokens, changing ONLY whitespace:  indentation, gaps between tokens, blank lines.

@@ -1,6 +1,6 @@
 import type { Temporal } from "temporal-polyfill"
 
-import type { CalendarMode, CalendarType, TemporalAPI } from "$/core"
+import type { CalendarMode, CalendarType, TemporalAPI } from "$/ui/core"
 
 /** A picked moment:  every type is held as a `PlainDateTime`, the unused parts zero (see `CalendarDates`). */
 export type Moment = Temporal.PlainDateTime
