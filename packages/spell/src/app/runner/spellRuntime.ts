@@ -14,7 +14,7 @@
  */
 import * as SUI from "semantic-ui-react"
 
-import { spellCore, Thing, List, App } from "~/spellCore"
+import { spellCore, Thing, List, App } from "#spell-core"
 import { F } from "~/app/ui/forms"
 // Import directly, NOT through the `UI` barrel, which would pull in the whole editor.
 import * as SUIPassThroughs from "~/app/ui/SUIPassThroughs"

@@ -2,7 +2,7 @@ import { describe, test, expect } from "vitest"
 import { unitTestModuleRules } from "~/test"
 import { P } from "#parser"
 import { spellParser } from "~/languages/spell"
-import { spellCore } from "~/spellCore"
+import { spellCore } from "#spell-core"
 import type { JSXMatchData } from "./JSX"
 
 describe("testing spell module JSX", () => {

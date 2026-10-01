@@ -11,7 +11,7 @@ import global from "global"
 import React from "react"
 
 import { view, Observable } from "#spell-util"
-import type { ConsoleLine as ConsoleLineData, SpellConsoleGroup } from "~/spellCore/console"
+import type { ConsoleLine as ConsoleLineData, SpellConsoleGroup } from "#spell-core/console"
 
 import "./ConsoleLines.css"
 

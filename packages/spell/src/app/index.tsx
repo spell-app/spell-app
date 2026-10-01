@@ -12,7 +12,7 @@ import { Routes } from "./pages/routes"
 import "./debug"
 
 // Programs run on the runtime `editor` loads -- start loading it now.  It registers the `UI` / `SUI` tags spell JSX
-// draws with, NOT the editor's `UI` barrel.  NEVER import `~/spellCore` here:  see `spellRuntime.ts`.
+// draws with, NOT the editor's `UI` barrel.  NEVER import `#spell-core` here:  see `spellRuntime.ts`.
 void editor.loadRuntime()
 
 /**

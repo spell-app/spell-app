@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeEach } from "vitest"
 import { renderToStaticMarkup } from "react-dom/server"
 
-import { spellCore, Thing, List } from "~/spellCore"
+import { spellCore, Thing, List } from "#spell-core"
 import type { ThingOrder } from "./ui.types"
 import { ThingExplorerView, describeThings, watchLive } from "./ThingExplorer"
 

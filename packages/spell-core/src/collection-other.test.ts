@@ -1,6 +1,6 @@
 import _ from "lodash"
 import { describe, test, expect, beforeEach, afterEach, vi } from "vitest"
-import { spellCore, assert } from "~/spellCore"
+import { spellCore, assert } from "#spell-core"
 
 // Wrap `assert.failed` for each test
 beforeEach(() => {

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest"
 import { unitTestModuleRules } from "~/test"
 import { SP, spellParser } from "~/languages/spell"
-import { spellCore } from "~/spellCore"
+import { spellCore } from "#spell-core"
 
 describe("testing spell module expressions", () => {
   unitTestModuleRules(spellParser, "expressions", spellCore.resetRuntime)

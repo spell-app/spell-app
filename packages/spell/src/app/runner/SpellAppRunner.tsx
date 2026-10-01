@@ -25,7 +25,7 @@ import "./SpellAppRunner.css"
  *   Restart fetches the program afresh, so a recompiled one shows -- or runs `source.compiled` again, if set.
  * - A program with NO app shows its console on top instead, and the explorers below.
  * - The Type Explorer is read-only, and shows only if there's a scope pack -- see `ScopesSource`.
- * - NEVER imports `~/spellCore`:  it'd land in the bundle's shared chunk, so every app would share it.
+ * - NEVER imports `#spell-core`:  it'd land in the bundle's shared chunk, so every app would share it.
  *   Everything of spell's comes from this app's copy of the runtime.
  ****************/
 export function SpellAppRunner(props: SpellAppRunnerProps) {

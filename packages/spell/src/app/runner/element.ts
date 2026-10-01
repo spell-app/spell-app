@@ -5,7 +5,7 @@
  *     <spell-app project="@examples/Solitaire" toolbar></spell-app>
  *
  * - Defines `<spell-app>` -- see `SpellAppElement` -- unless something already has.
- * - NEVER imports `~/spellCore`, even indirectly:  each app loads its own copy, `spell-runtime.js` -- see
+ * - NEVER imports `#spell-core`, even indirectly:  each app loads its own copy, `spell-runtime.js` -- see
  *   `spellRuntime.ts`, `element.build.test.ts`.
  */
 import { SpellAppElement } from "./SpellAppElement"

@@ -78,7 +78,7 @@ async function runProjectAs(
       name: project.projectName ?? project.projectId,
       entry: pathToFileURL(entry).href,
       projects: importedOutputs(project),
-      spellCore: pathToFileURL(resolve(environment.srcDir, "spellCore", "index.ts")).href,
+      spellCore: pathToFileURL(resolve(environment.spellCoreDir, "index.ts")).href,
       verbose: options.verbose
     }
     const exitCode = await runChild(spec)

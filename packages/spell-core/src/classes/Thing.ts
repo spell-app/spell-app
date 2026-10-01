@@ -4,9 +4,9 @@
 import React from "react"
 
 import { Observable, view } from "#spell-util"
-import { spellCore } from "~/spellCore/core"
-import { Eventful } from "~/spellCore/SpellEvent"
-import type { PropCheck } from "~/spellCore/spellCore.types"
+import { spellCore } from "#spell-core/core"
+import { Eventful } from "#spell-core/SpellEvent"
+import type { PropCheck } from "#spell-core/spellCore.types"
 
 /**
  * `Thing`: base for all object-like things in spell -- what `a task is a thing` extends.

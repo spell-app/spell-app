@@ -1,5 +1,5 @@
 import { singularize, typeCase } from "#spell-util"
-import { SPELL_CLASSES } from "~/spellCore/spellCore.types"
+import { SPELL_CLASSES } from "#spell-core/spellCore.types"
 import { P } from "#parser"
 import { SP } from "~/languages/spell"
 import { LSP } from "~/lsp"
@@ -26,7 +26,7 @@ export class ScopeExplorer {
   /** Describes scope records, as hover would. */
   declare service: LSP.SpellLanguageService
   /**
-   * Built-in types' pack, documented by hand -- `src/spellCore/spellCore.scopes.js` -- if we can read it.
+   * Built-in types' pack, documented by hand -- `spell-core`'s `src/spellCore.scopes.js` -- if we can read it.
    * - A function, asked each tree, so an edit to it shows in the next.  See `addBuiltIns()`.
    */
   declare builtIns?: () => LSP.ScopePack | undefined
@@ -89,7 +89,7 @@ export class ScopeExplorer {
 
   /**
    * Pack of spell's built-in types, e.g. `Thing` and `List`, from its root scope -- see `LSP.ScopePack`.
-   * - What `src/spellCore/spellCore.scopes.js` starts as, before anyone documents them by hand.
+   * - What `spell-core`'s `src/spellCore.scopes.js` starts as, before anyone documents them by hand.
    * - With `builtIns`, that pack's entries -- plus any built-in type it doesn't know yet, bare.
    */
   exportBuiltIns(): LSP.ScopePack {

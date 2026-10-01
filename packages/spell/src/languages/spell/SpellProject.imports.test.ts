@@ -86,7 +86,7 @@ describe("SpellProject imports", () => {
       encoding: "utf8",
       env: {
         ...process.env,
-        SPELL_CORE: pathToFileURL(resolve(environment.srcDir, "spellCore/index.ts")).href,
+        SPELL_CORE: pathToFileURL(resolve(environment.spellCoreDir, "index.ts")).href,
         SPELL_PROJECTS: JSON.stringify(projects)
       }
     })

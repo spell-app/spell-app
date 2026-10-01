@@ -3,7 +3,7 @@
  * "Run Project" webview -- see `RunnerPanel` there.
  * - Draws `<VSCodeRunner>`, which runs programs on its own copy of the spell runtime, `spell-runtime.js` beside
  *   this -- see `spellRuntime.ts`.  That's where `UI` / `SUI` are registered, and `spellCore` lives.
- * - NEVER imports `~/spellCore`:  it'd be bundled here, a second copy, NOT the one programs run on.
+ * - NEVER imports `#spell-core`:  it'd be bundled here, a second copy, NOT the one programs run on.
  *   Devtools get the runtime's as global `spellCore` -- see `<VSCodeRunner>`.
  */
 import { createRoot } from "react-dom/client"

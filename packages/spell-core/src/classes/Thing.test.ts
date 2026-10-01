@@ -1,7 +1,7 @@
 import { describe, test, expect, vi, afterEach } from "vitest"
 import { autoEffect, clearEffect } from "@risingstack/react-easy-state"
 
-import { spellCore, Thing, List } from "~/spellCore"
+import { spellCore, Thing, List } from "#spell-core"
 
 /**
  * A thing written the way spell compiles one:  each property a getter / setter pair over `getProp` / `setProp`.

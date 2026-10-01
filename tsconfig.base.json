@@ -17,6 +17,8 @@
       "#spell-util/*": ["./packages/spell-util/src/*"],
       "#parser": ["./packages/parser/src/index.ts"],
       "#parser/*": ["./packages/parser/src/*"],
+      "#spell-core": ["./packages/spell-core/src/index.ts"],
+      "#spell-core/*": ["./packages/spell-core/src/*"],
 
       // ## Per-package aliases, until each becomes a `#` one (Phase 4)
       // `cli`

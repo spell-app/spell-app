@@ -1,7 +1,7 @@
 /**
  * Getting and setting values by path, e.g. `"a.b[0].c"` -- pure, for spell's runtime (`spellCore.getPath()` ...)
  * and the app's forms (`FormStore`) alike.
- * - Here, NOT in `~/spellCore`, so the app's own forms don't import `spellCore` -- each runner runs its OWN copy of
+ * - Here, NOT in `#spell-core`, so the app's own forms don't import `spellCore` -- each runner runs its OWN copy of
  *   that.  See `spellRuntime.ts`.
  */
 

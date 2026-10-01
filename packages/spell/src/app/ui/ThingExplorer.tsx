@@ -3,7 +3,7 @@ import classnames from "classnames"
 import React from "react"
 import * as SUI from "semantic-ui-react"
 
-import type { ThingAction, ThingLike, ThingRegistry } from "~/spellCore/things"
+import type { ThingAction, ThingLike, ThingRegistry } from "#spell-core/things"
 import type { ThingExplorerState, ThingOrder } from "./ui.types"
 import { TreeRow } from "./TypeExplorer"
 import { SCOPE_ICONS, SectionMarker, sectionStartsAt } from "./ScopeDetailsPane"

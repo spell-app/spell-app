@@ -141,12 +141,12 @@ export class SpellDiskWorkspace implements LSP.FileAddresses {
   }
 
   /**
-   * Built-in types' pack, `src/spellCore/spellCore.scopes.js`, documented by hand -- for `LSP.ScopeExplorer`.
+   * Built-in types' pack, `spell-core`'s `src/spellCore.scopes.js`, documented by hand -- for `LSP.ScopeExplorer`.
    * - Read again only once the file changes, so an edit shows in the Type Explorer's next tree.
    * - `undefined` if it's missing or won't run, which is logged -- the explorer then shows the types bare.
    */
   builtInsPack(): LSP.ScopePack | undefined {
-    const path = resolve(environment.srcDir, "spellCore", `spellCore${SP.SCOPES_JS_SUFFIX}`)
+    const path = resolve(environment.spellCoreDir, `spellCore${SP.SCOPES_JS_SUFFIX}`)
     let changed: number
     try {
       changed = statSync(path).mtimeMs

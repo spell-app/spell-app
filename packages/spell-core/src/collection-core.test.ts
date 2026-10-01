@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi } from "vitest"
-import { spellCore, assert } from "~/spellCore"
+import { spellCore, assert } from "#spell-core"
 
 // Wrap `assert.failed` for each test
 beforeEach(() => {

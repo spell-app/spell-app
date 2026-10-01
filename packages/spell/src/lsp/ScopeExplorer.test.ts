@@ -2,9 +2,10 @@ import { describe, test, expect, beforeAll } from "vitest"
 import { copyFileSync, cpSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "fs"
 import { tmpdir } from "os"
 import { resolve } from "path"
-import { fileURLToPath, pathToFileURL } from "url"
+import { pathToFileURL } from "url"
 import { runInNewContext } from "vm"
 
+import environment from "~/environment"
 import { SP } from "~/languages/spell"
 import { LSP } from "~/lsp"
 import { SpellDiskWorkspace } from "~/lsp/SpellDiskWorkspace"
@@ -363,8 +364,8 @@ describe("ScopeExplorer scope packs", () => {
     ])
   })
 
-  test("`src/spellCore/spellCore.scopes.js` -- which may be hand-edited -- has every built-in type", () => {
-    const path = fileURLToPath(new URL("../spellCore/spellCore.scopes.js", import.meta.url))
+  test("`spell-core`'s `src/spellCore.scopes.js` -- which may be hand-edited -- has every built-in type", () => {
+    const path = resolve(environment.spellCoreDir, "spellCore.scopes.js")
     const shipped = runPackScript(readFileSync(path, "utf8"), "spellCore.scopes.js")
     expect(shipped.entries.map((entry) => entry.path)).toEqual(
       expect.arrayContaining(builtIns.entries.map((entry) => entry.path))

@@ -5,7 +5,7 @@ import { UIError, createStore, setPrefKey, getPref, setPref, CONFIRM } from "#sp
 
 import { P } from "#parser"
 import { SP } from "~/languages/spell"
-import type { SpellConsole } from "~/spellCore/console"
+import type { SpellConsole } from "#spell-core/console"
 import type { SpellRuntime } from "~/app/runner"
 import type * as UIT from "~/app/ui/ui.types"
 import type { monaco } from "~/app/ui/monaco"
@@ -725,7 +725,7 @@ let appRoot: HTMLElement | undefined
 
 /**
  * `spellCore` of the runtime programs run on -- `undefined` until it's loaded, see `editor.loadRuntime()`.
- * - NOT an import of `~/spellCore`:  the app MUST NOT load one of its own, see `spellRuntime.ts`.
+ * - NOT an import of `#spell-core`:  the app MUST NOT load one of its own, see `spellRuntime.ts`.
  * - A function, NOT a getter on `editor`:  the store would hand it out wrapped in a proxy -- see "Store proxies
  *   stand in for the real objects" in `CODE-DEBT.md`.  Worse, its class is named `spellCore`, which the proxy
  *   library looks up on `window` -- where `debug.ts` puts THIS, so a store getter recursed forever.

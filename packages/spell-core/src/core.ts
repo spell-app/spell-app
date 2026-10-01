@@ -7,7 +7,7 @@
 import _isArrayLike from "lodash/isArrayLike"
 import isEqual from "lodash/isEqual"
 
-import { assert } from "~/spellCore"
+import { assert } from "#spell-core"
 import { defineSpellCoreModule, type PropCheck, type SpellCore } from "./spellCore.types"
 
 /** Special methods for `isOfType()`, keyed by type name. */

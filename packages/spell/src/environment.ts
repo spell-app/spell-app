@@ -3,6 +3,8 @@ import { resolve } from "path"
 
 const serverBaseFile = fileURLToPath(import.meta.url)
 const srcDir = resolve(serverBaseFile, "..")
+/** `spell-core`'s `src/`:  the runtime, and its built-in types' scope pack (`spellCore.scopes.js`). */
+const spellCoreDir = resolve(srcDir, "..", "..", "spell-core", "src")
 const staticDir = resolve(srcDir, "..", "static")
 /** Every spell project on disk:  `system/` (examples, guides, library), `user/`, and `test/` (fixtures). */
 const projectsDir = resolve(srcDir, "..", "projects")
@@ -15,6 +17,7 @@ const environment = {
   expressPort: Number(process.env.PORT) || 3001,
   api_server: process.env.API_SERVER || "localhost",
   srcDir,
+  spellCoreDir,
   staticDir,
   projectsDir,
   /** Projects we ship, e.g. `projects/system/examples/Solitaire` -- `@system:...` roots.  See `project-utils.ts`. */

@@ -1,14 +1,14 @@
 /**
  * Master import file for the classes `spellCore` exposes to compiled spell code.
- * - Re-exported from `~/spellCore`'s own barrel (`export * from "./classes"`) so `Thing`/`List`/`App`
+ * - Re-exported from `#spell-core`'s own barrel (`export * from "./classes"`) so `Thing`/`List`/`App`
  *   are available alongside the rest of `spellCore`.
  *
- * NOTE: imports reach into `~/spellCore/core` and `~/spellCore/SpellCore` directly rather than
- * the `~/spellCore` barrel -- this file helps BUILD that barrel, so going through it would
+ * NOTE: imports reach into `#spell-core/core` and `#spell-core/SpellCore` directly rather than
+ * the `#spell-core` barrel -- this file helps BUILD that barrel, so going through it would
  * re-enter it circularly.
  */
-import { spellCore } from "~/spellCore/core"
-import { defineSpellCoreModule, SPELL_BASE_TYPES } from "~/spellCore/spellCore.types"
+import { spellCore } from "#spell-core/core"
+import { defineSpellCoreModule, SPELL_BASE_TYPES } from "#spell-core/spellCore.types"
 
 import { Thing } from "./Thing"
 import { App } from "./App"

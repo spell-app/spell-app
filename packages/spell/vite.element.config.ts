@@ -56,7 +56,7 @@ export default defineConfig({
 })
 
 /**
- * Copy the built-in types' scope pack, `src/spellCore/spellCore.scopes.js`, beside the bundle -- where
+ * Copy the built-in types' scope pack, `spell-core`'s `src/spellCore.scopes.js`, beside the bundle -- where
  * `<spell-app>` looks for it.  See `LSP.ScopePack`.
  */
 function builtInsPack(): Plugin {
@@ -64,7 +64,7 @@ function builtInsPack(): Plugin {
     name: "spell-built-ins-pack",
     apply: "build",
     generateBundle() {
-      const source = readFileSync(`${environment.srcDir}/spellCore/spellCore.scopes.js`, "utf8")
+      const source = readFileSync(`${environment.spellCoreDir}/spellCore.scopes.js`, "utf8")
       this.emitFile({ type: "asset", fileName: "spellCore.scopes.js", source })
     }
   }

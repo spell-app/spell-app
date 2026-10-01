@@ -11,7 +11,7 @@
 import chalk from "chalk"
 import { format } from "util"
 
-import { App, spellCore } from "~/spellCore"
+import { App, spellCore } from "#spell-core"
 import type { CLI } from "~/cli"
 
 const spec = JSON.parse(process.env.SPELL_RUN!) as CLI.RunSpec

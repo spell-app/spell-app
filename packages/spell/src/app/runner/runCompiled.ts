@@ -8,7 +8,7 @@
  */
 import type { Root } from "react-dom/client"
 
-import { spellCore, SPELL_CORE_MODULE } from "~/spellCore"
+import { spellCore, SPELL_CORE_MODULE } from "#spell-core"
 
 /**
  * Run `compiled` spell javascript afresh:  previous app unmounted, new `spellCore.RUNTIME`, empty console --

@@ -25,7 +25,7 @@ import "./VSCodeRunner.css"
  *   "Show Console" button.  See `hasApp`.
  * - Runs whatever the extension sends in a `run` message, afresh each time, on its OWN copy of the spell runtime
  *   -- see `loadRuntime()`.  One sent before that's loaded runs once it is.
- * - NEVER imports `~/spellCore`:  it'd be bundled beside this, a second copy -- see `spellRuntime.ts`.
+ * - NEVER imports `#spell-core`:  it'd be bundled beside this, a second copy -- see `spellRuntime.ts`.
  * - Says `ready` once listening, so the extension knows to compile.  Messages sent before then are lost.
  * - How it's shown -- console, tab, split, the explorers' state -- comes from the extension, which remembers
  *   it in the project's `settings.json5`.  See `ProjectSettings`.
