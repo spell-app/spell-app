@@ -82,7 +82,7 @@ HTML docs for people -- design notes, research, references -- live in `docs/<top
     (`td.num`, `.yes` / `.no` / `.meh`), `.tag` for small badges
 - Code:
   - `<pre><code class="language-ts">`, TypeScript by default, formatted by oxfmt:  write the snippet to a `.ts` / `.tsx`
-    file and run `node_modules/.bin/oxfmt -c .oxfmtrc.json <file>` (docs' `.md` files are NOT formatted by
+    file and run `yarn oxfmt -c .oxfmtrc.json <file>` (docs' `.md` files are NOT formatted by
     `yarn format`)
   - valid code only:  no bare JSX statements after other statements -- assign them to a `const`
   - prefer excerpts pasted from a real, runnable file over hand-typed examples
@@ -97,7 +97,7 @@ HTML docs for people -- design notes, research, references -- live in `docs/<top
     no nested links
 - Finish, in this order:
   1. `python3 scripts/doc-links.py <doc>`
-  2. `node_modules/.bin/oxfmt <doc>` (`yarn format` would reformat it anyway)
+  2. `yarn oxfmt <doc>` (`yarn format` would reformat it anyway)
   3. `python3 scripts/doc-links.py --check <doc>`
   4. `node scripts/doc-shots.mjs <doc>` must pass (errors, phone overflow, contents vs headings, sticky headers) --
      and LOOK at its four screenshots:  the checks can't see overlap, clipping or bad wrapping

@@ -5,6 +5,7 @@ import { existsSync, readdirSync, rmSync } from "node:fs"
 import { createServer, type ViteDevServer } from "vite"
 
 import type { VisualBrowser, VisualOs } from "./visual.types.ts"
+import { NodePackage } from "../NodePackage.ts"
 import { DockerBrowserServer } from "./DockerBrowserServer.ts"
 import { ParityReport } from "./ParityReport.ts"
 import { VisualExamples } from "./VisualExamples.ts"
@@ -88,7 +89,7 @@ export class VisualRunner {
   /** Run `playwright test` with `env`;  resolves with its exit code. */
   private playwright(env: NodeJS.ProcessEnv): Promise<number> {
     const args = [
-      `${VisualSettings.ROOT}node_modules/@playwright/test/cli.js`,
+      `${NodePackage.need("@playwright/test")}/cli.js`,
       "test",
       "--config",
       `${VisualSettings.ROOT}tools/visual/playwright.config.ts`,

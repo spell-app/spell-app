@@ -6,11 +6,10 @@ sticky "On this page" index, and a header with the colour scheme, Classic theme 
 
 ## Running
 
-A self-contained package with its own `node_modules` (same pinned yarn as the repo, via `.yarnrc.yml`):
+A workspace of the monorepo (`packages/ui/site`, so it shares ONE Solid with `ui`):  run `yarn install` at the repo root, then:
 
 ```sh
 cd site
-yarn install
 yarn dev       # http://localhost:4321;  Astro 7 runs it detached -- `yarn astro dev stop` to stop
 yarn build     # -> site/dist/
 yarn preview   # serve site/dist/
@@ -19,8 +18,7 @@ yarn check     # astro check (TypeScript 6:  astro check doesn't support TS 7 ye
 
 The library is consumed from SOURCE, never from `dist/`:  `astro.config.mjs` aliases `$` -> `../src`,
 `$test` -> `../test`, `@spell/ui` -> `../src/index.ts`, and reuses the repo's decorator plugin
-(`../vite.decorators.ts`) and Lightning CSS targets (`CSS_TARGETS` from `../vite.config.ts`).  So the repo root
-needs its own `yarn install` too.
+(`../vite.decorators.ts`) and Lightning CSS targets (`CSS_TARGETS` from `../vite.config.ts`).  
 
 ## Layout
 

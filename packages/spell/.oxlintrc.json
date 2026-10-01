@@ -1,5 +1,5 @@
 {
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "$schema": "../../node_modules/oxlint/configuration_schema.json",
   // The repo root's rules, plus React's.
   "extends": ["../../.oxlintrc.json", "../../.oxlintrc.react.json"],
   // MUST be listed:  without it, oxlint adds its DEFAULT plugins (e.g. `unicorn`) to the extended ones

@@ -2480,12 +2480,14 @@ class ThingD extends ThingA {
               </li>
               <li>
                 <a
-                  href="../../../ui/node_modules/solid-js/CHEATSHEET.md"
+                  href="../../../../node_modules/solid-js/CHEATSHEET.md"
                   target="src-ui-node-modules-solid-js-cheatsheet-md"
                   ><code>solid-js/CHEATSHEET.md</code></a
                 >
                 and <code>@solidjs/signals</code> type docs in
-                <a href="../../../ui/node_modules/" target="src-ui-node-modules"><code>../ui/node_modules</code></a>
+                <a href="../../../../node_modules/" target="src-ui-node-modules"
+                  ><code>node_modules</code> (repo root)</a
+                >
                 (rc.11, and rc.13 from npm); <code>@solidjs/web</code> and <code>@solidjs/h</code> source, rc.11 and
                 rc.13.
               </li>
@@ -2509,8 +2511,10 @@ class ThingD extends ThingA {
             <ul>
               <li>
                 Each imports <code>@solidjs/signals</code> by path from
-                <a href="../../../ui/node_modules/" target="src-ui-node-modules"><code>../ui/node_modules</code></a> (or
-                from <code>$SOLID_NODE_MODULES</code>, to try another Solid version) and runs as
+                <a href="../../../../node_modules/" target="src-ui-node-modules"
+                  ><code>node_modules</code> (repo root)</a
+                >
+                (or from <code>$SOLID_NODE_MODULES</code>, to try another Solid version) and runs as
                 <code>node docs/solid/experiments/&lt;file&gt; [dev|prod]</code>
               </li>
               <li>Re-run them on every RC bump</li>

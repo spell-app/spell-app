@@ -29,7 +29,7 @@
     "ink": "^5.2.1",
     "react": "^18.2.0",
     "spell-parser": "workspace:*",
-    "tsx": "^4.7.1",
+    "tsx": "4.20.3",
     "vscode-languageserver": "^10.1.2",
     "wrap-ansi": "^9"
   },
@@ -37,12 +37,12 @@
     "@types/node": "^22",
     "@types/react": "^18.2.56",
     "ink-testing-library": "^4",
-    "oxfmt": "^0.68.0",
-    "oxlint": "^1.83.0",
-    "oxlint-tsgolint": "^7.0.2002",
+    "oxfmt": "^0.71.0",
+    "oxlint": "^1.86.0",
+    "oxlint-tsgolint": "^7.0.2003",
     "typescript": "^7.0.2",
-    "vite": "^8.3.0",
-    "vitest": "^5.0.1"
+    "vite": "^8.3.1",
+    "vitest": "^5.0.2"
   },
   "engines": {
     "node": ">=22.17"

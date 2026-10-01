@@ -4,6 +4,7 @@ import { spawnSync, type SpawnSyncReturns } from "node:child_process"
 import { existsSync } from "node:fs"
 import { createServer } from "node:net"
 
+import { NodePackage } from "../NodePackage.ts"
 import { VisualError } from "./visual.types.ts"
 import { VisualSettings } from "./VisualSettings.ts"
 
@@ -61,7 +62,7 @@ export class DockerBrowserServer {
     await this.ensureDaemon()
     this.ensureImage()
     const port = await DockerBrowserServer.freePort()
-    const core = `${VisualSettings.ROOT}node_modules/playwright-core`
+    const core = NodePackage.need("playwright-core")
     const run = this.exec([
       "run",
       "--detach",

@@ -245,8 +245,9 @@ against both.
 - `"@spell/solid-element": "workspace:*"` in `@spell/ui`;  `exports` points `types` and the
   `development` condition at `src/index.ts`, so Vite dev / Vitest use the TypeScript source and no build is
   needed.  A workspace of the monorepo (`yarn fork <script>` from `packages/ui`).
-- The consumer MUST `resolve.dedupe: ["solid-js", "@solidjs/web"]`:  the linked package resolves its own
-  `node_modules` otherwise, and two Solid copies can't share owners.
+- The consumer SHOULD keep `resolve.dedupe: ["solid-js", "@solidjs/web"]` (belt and braces):  inside the monorepo
+  yarn hoists ONE Solid to the root (root `resolutions` pin the family), so the linked package can't pick up its own;
+  outside it, the linked package would resolve its own `node_modules`, and two Solid copies can't share owners.
 - For a library build, mark `@spell/solid-element` external alongside `solid-js` / `@solidjs/*`, or bundle it
   (it's 4 kB).
 - `@spell/solid-element/vite` resolves to `dist/vite.js`:  Vite loads a `vite.config.ts` with every bare import
@@ -254,4 +255,4 @@ against both.
   importing `./packages/solid-element/src/vite.ts` RELATIVELY (bundled into its config);  a consumer using the
   bare specifier runs `yarn build` here first.
 - `@spell/ui`'s `yarn vendor` / `yarn measure` bundle `dist/index.js` (production condition):  its
-  `tools/ForkBuild.ts` runs `yarn install` / `yarn build` here when `node_modules` / `dist/` are missing or stale.
+  `tools/ForkBuild.ts` runs `yarn build` here when `dist/` is missing or stale.

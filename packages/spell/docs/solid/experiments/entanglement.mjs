@@ -1,7 +1,7 @@
 // Solid 2 experiment for SOLID-2.html -- run:  node docs/solid/experiments/entanglement.mjs [dev|prod]
-// Imports @solidjs/signals by path from ../ui/node_modules, or from $SOLID_NODE_MODULES (another Solid version);  re-run on every Solid RC bump.
+// Imports @solidjs/signals by path from the repo root's node_modules, or from $SOLID_NODE_MODULES (another Solid version);  re-run on every Solid RC bump.
 const S = await import(
-  `${process.env.SOLID_NODE_MODULES ?? "/Users/owen/www/spell/ui/node_modules"}/@solidjs/signals/dist/prod/index.js`
+  `${process.env.SOLID_NODE_MODULES ?? new URL("../../../../../node_modules", import.meta.url).pathname}/@solidjs/signals/dist/prod/index.js`
 )
 const { createSignal, createMemo, createRoot, createRenderEffect, flush, isPending, latest } = S
 const log = (...a) => console.log(...a)

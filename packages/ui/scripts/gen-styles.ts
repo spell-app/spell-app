@@ -3,6 +3,7 @@ import { writeFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 
 import { StyleGenerator } from "$/styles/StyleGenerator"
+import { NodePackage } from "../tools/NodePackage.ts"
 
 /**
  * `yarn gen:styles`:  regenerate `src/styles/{tokens,colors,sizes}.css` from `styles.vocabulary.en.ts`.
@@ -15,7 +16,7 @@ class GenStylesCommand {
   readonly directory = fileURLToPath(new URL("../src/styles/", import.meta.url))
 
   /** oxfmt binary, run over the output so `yarn format` is a no-op on generated files. */
-  readonly formatter = fileURLToPath(new URL("../node_modules/.bin/oxfmt", import.meta.url))
+  readonly formatter = `${NodePackage.need("oxfmt")}/bin/oxfmt`
 
   /**
    * Write every sheet, format them, report.

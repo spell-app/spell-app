@@ -9,7 +9,7 @@ import environment from "~/environment"
 import { P } from "~/parser"
 import { SP } from "~/languages/spell"
 import { installDiskFetch, locationForDiskPath } from "~/server/disk-fetch"
-import { describeParseErrors, fixturePath } from "~/test"
+import { describeParseErrors, fixturePath, tsxBinary } from "~/test"
 
 /**
  * A project importing another, through `project.json` -- as `SpellProject` does it in the app.
@@ -80,7 +80,7 @@ describe("SpellProject imports", () => {
         return [id, pathToFileURL(resolve(workspace, name, `${name}${SP.COMPILED_JS_SUFFIX}`)).href]
       })
     )
-    const tsx = resolve(environment.srcDir, "../node_modules/.bin/tsx")
+    const tsx = tsxBinary()
     return spawnSync(tsx, ["--import", hooks, runner], {
       cwd: resolve(environment.srcDir, ".."),
       encoding: "utf8",

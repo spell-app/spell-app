@@ -10,7 +10,7 @@
   "main": "./out/extension.js",
   "scripts": {
     "build": "node build.mjs",
-    "check": "../node_modules/.bin/tsc --noEmit -p .",
+    "check": "cd .. && yarn tsc --noEmit -p vscode-extension",
     "package": "vsce package --no-dependencies --skip-license --out spell-language.vsix",
     "install-extension": "code --install-extension spell-language.vsix --force"
   },
