@@ -5,19 +5,27 @@
 // - So does a base CI can't diff against:  a new branch (`0000...`), or a commit a force push replaced.
 // - Usage:  `node .github/scripts/changed-packages.mjs <base-ref>`
 import { execFileSync } from "node:child_process"
-import { readdirSync } from "node:fs"
+import { readdirSync, readFileSync } from "node:fs"
 
-/** Package folder => folders that import it, directly or not.  MUST follow the one-way flow in `AGENTS.md`. */
+/** Package folder => folders that import it, directly or not.  MUST follow the one-way flow in `tsconfig.base.json`. */
 const DEPENDENTS = {
-  util: ["solid-element", "ui", "spell", "cli"],
-  "solid-element": ["ui", "spell", "cli"],
-  ui: ["spell", "cli"],
-  spell: ["cli"],
+  util: ["solid-element", "ui", "spell-util", "parser", "spell-core", "spell", "lsp", "spell-app", "cli"],
+  "solid-element": ["ui", "cli"],
+  ui: ["cli"],
+  "spell-util": ["parser", "spell-core", "spell", "lsp", "spell-app", "cli"],
+  parser: ["spell", "lsp", "spell-app", "cli"],
+  "spell-core": ["spell", "lsp", "spell-app", "cli"],
+  spell: ["lsp", "spell-app", "cli"],
+  lsp: ["spell-app", "cli"],
+  "spell-app": ["cli"],
+  // the extension runs `lsp` and `spell-app`'s runner, but has no checks of its own yet
+  vscode: [],
   cli: []
 }
 
+/** Package folders with a `test` script:  `vscode` (its own yarn project) has none. */
 const ALL = readdirSync("packages", { withFileTypes: true })
-  .filter((entry) => entry.isDirectory())
+  .filter((entry) => entry.isDirectory() && hasTests(entry.name))
   .map((entry) => entry.name)
 
 const base = process.argv[2] ?? "HEAD~1"
@@ -30,7 +38,7 @@ for (const file of files) {
     ALL.forEach((name) => picked.add(name))
     break
   }
-  picked.add(match[1])
+  if (ALL.includes(match[1])) picked.add(match[1])
   for (const dependent of DEPENDENTS[match[1]] ?? ALL) picked.add(dependent)
 }
 
@@ -44,5 +52,14 @@ function changedFiles(base) {
       .filter(Boolean)
   } catch {
     return ["<all>"]
+  }
+}
+
+/** `packages/<name>` has a `test` script. */
+function hasTests(name) {
+  try {
+    return Boolean(JSON.parse(readFileSync(`packages/${name}/package.json`, "utf8")).scripts?.test)
+  } catch {
+    return false
   }
 }

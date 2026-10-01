@@ -51,10 +51,6 @@ jobs:
       # browser tests (ui's, the fork's, util's) run in a real chromium
       - if: contains(fromJSON('["ui", "solid-element", "util"]'), matrix.package)
         run: yarn playwright install --with-deps chromium
-      # spell's type-aware lint needs the extension's `@types/vscode`:  it's its own yarn project
-      - if: matrix.package == 'spell'
-        run: yarn install --immutable
-        working-directory: packages/spell/vscode-extension
 
       - name: type check
         run: if node -p 'require("./package.json").scripts.ts' | grep -qv undefined; then yarn ts; else yarn tsc; fi
