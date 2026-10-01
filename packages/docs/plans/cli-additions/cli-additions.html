@@ -29,8 +29,9 @@
             <code>spell</code> gains scope packs on compile, seven new commands (<code>projects</code>,
             <code>speed</code>, <code>format</code>, <code>parse</code>, <code>repl</code>, <code>explain</code>,
             <code>new</code>) and upgrades to <code>watch</code> / <code>explore</code> / <code>test</code> /
-            <code>compile</code>. Parked for the monorepo move (2026-09-30), now run in one go overnight, one commit per
-            phase (<a href="#d1">D1</a>).
+            <code>compile</code>. BUILT 2026-10-01 in one go overnight, one commit per phase (<a href="#d1">D1</a>); the
+            durable docs are <a href="../../cli.html" target="src-packages-docs-cli-html"><code>cli.html</code></a
+            >.
           </p>
           <ul class="plan-phases">
             <li data-status="done" data-phase="1">
@@ -45,8 +46,8 @@
             <li data-status="done" data-phase="4">
               <ui-icon name="circle check" color="green"></ui-icon> <a href="#p4">P4 · Watch &amp; Explore</a>
             </li>
-            <li data-status="todo" data-phase="5">
-              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p5">P5 · Doc Review</a>
+            <li data-status="done" data-phase="5">
+              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p5">P5 · Doc Review</a>
             </li>
           </ul>
         </section>
@@ -576,16 +577,22 @@
               <li><b>Verify:</b> tests per item; <code>yarn review</code></li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="5" class="s3">
+          <section data-status="done" data-phase="5" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p5"><ui-icon name="circle outline" color="grey"></ui-icon> P5 · Doc Review</h3></ui-sticky
+              ><h3 id="p5"><ui-icon name="circle check" color="green"></ui-icon> P5 · Doc Review</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li>
-                <b>Goal:</b> prune this doc; durable page <code>packages/docs/cli.html</code>;
+                <b>Goal:</b> prune this doc; durable page
+                <a href="../../cli.html" target="src-packages-docs-cli-html"><code>packages/docs/cli.html</code></a
+                >;
                 <code>yarn docs:index</code>
               </li>
-              <li><b>Files:</b> <code>packages/docs/cli.html</code>, this plan doc</li>
+              <li>
+                <b>Files:</b>
+                <a href="../../cli.html" target="src-packages-docs-cli-html"><code>packages/docs/cli.html</code></a
+                >, this plan doc
+              </li>
               <li>
                 <b>Verify:</b> <code>yarn plan-doc check</code>;
                 <a href="../../scripts/check-spell.js" target="src-packages-docs-scripts-check-spell-js"
@@ -636,6 +643,12 @@
               --watch
             </li>
             <li><time datetime="2026-10-01T01:17-04:00">2026-10-01 01:17</time> P4 done</li>
+            <li><time datetime="2026-10-01T01:18-04:00">2026-10-01 01:18</time> P5 active</li>
+            <li>
+              <time datetime="2026-10-01T01:19-04:00">2026-10-01 01:19</time> P5 done: durable page
+              packages/docs/cli.html; summary says built
+            </li>
+            <li><time datetime="2026-10-01T01:19-04:00">2026-10-01 01:19</time> P5 done</li>
           </ul>
         </section>
       </main>
