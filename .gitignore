@@ -2,3 +2,4 @@ node_modules
 .yarn/install-state.gz
 .DS_Store
 .claude/worktrees/
+packages/solid-element/dist/
