@@ -34,7 +34,7 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
     `#spell/test` -- and NEVER update a fixture to follow its example.
   - Each fixture's compiled output is checked against `<Project>.snapshot.js` beside it (`src/test/fixtures.test.ts`).
     Add a fixture by copying a project in;  after a deliberate change, `yarn test:fixtures:bless` and read the diff.
-- `docs/` holds the HTML docs (see "Creating docs"), `readme.md` is the project's front page.
+- `readme.md` is the project's front page.  Docs live in `packages/docs/` (see "Creating docs").
 - `src/index.ts` is the barrel:  it is also pulled into the app's server, so nothing reachable from it may rely on
   browser-only globals at module-evaluation time.  It imports `#spell-core`'s TYPES only, never its code.
 
@@ -47,63 +47,8 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
 
 ## Creating docs
 
-HTML docs for people -- design notes, research, references -- live in `docs/<topic>/`.  Model:
-`docs/solid/SOLID-2.html`.
-
-- Start from `docs/_template.html`.  Link the shared `../_assets/doc.css` and `../_assets/doc.js` (+ highlight.js from
-  cdnjs, as the template does).  NEVER inline copies:  improve the shared files instead, and every doc gets it.
-- `doc.js` builds the page from plain headings:
-  - contents sidebar:  sticky right column that scrolls on its own, expandable per section, follows the scroll;
-    a drawer on narrow screens
-  - sticky h2 / h3 section headers (it wraps `section.s2` / `section.s3`)
-  - heading ids, folded code, syntax colors
-  - NEVER hand-write a TOC, sections or ids -- except an explicit `id` on a heading other docs link to
-- Headings:
-  - one `h1`;  numbered `h2` per major section (`2. Read-after-write`)
-  - `h3` for EVERY distinct sub-item, `h4` for sub-sub-items:  a list item with a bold title and several lines of
-    body becomes a heading, and long lists of such items are grouped under themed `h3`s
-  - headings are short labels (they're the contents entries);  the claim goes in the body
-- Text:  bullets, not dense prose.
-  - 3+ sentences => a short lead plus bullets, one idea each, nested for sub-points
-  - keep every fact, number and caveat when you condense
-  - `.callout` (`good` / `bad` / `warn`) for recommendations and warnings, `.table-wrap > table` for comparisons
-    (`td.num`, `.yes` / `.no` / `.meh`), `.tag` for small badges
-- Code:
-  - `<pre><code class="language-ts">`, TypeScript by default, formatted by oxfmt:  write the snippet to a `.ts` / `.tsx`
-    file and run `yarn oxfmt -c .oxfmtrc.json <file>` (docs' `.md` files are NOT formatted by
-    `yarn format`)
-  - valid code only:  no bare JSX statements after other statements -- assign them to a `const`
-  - prefer excerpts pasted from a real, runnable file over hand-typed examples
-  - `doc.js` folds every block:  30 lines or fewer start open.  Name a long listing:
-    `<details class="code"><summary>What it is (path)</summary><pre>...</pre></details>`
-- Claims backed by measurement:  runnable scripts in `docs/<topic>/experiments/`, each with a header comment on how to
-  run it.  Tables quote medians of several runs, never a single run.  Keep the scripts:  they re-measure on upgrades.
-- Source links:  every reference to a file, folder or external page is a link that opens a NEW TAB with its own
-  named target per destination (re-clicks reuse that tab).
-  - `python3 scripts/doc-links.py <doc>` links `<code>path</code>` references and targets existing links (idempotent)
-  - `python3 scripts/doc-links.py --check <doc>` must pass:  every local link resolves, one target per destination,
-    no nested links
-- Finish, in this order:
-  1. `python3 scripts/doc-links.py <doc>`
-  2. `yarn oxfmt <doc>` (`yarn format` would reformat it anyway)
-  3. `python3 scripts/doc-links.py --check <doc>`
-  4. `node scripts/doc-shots.mjs <doc>` must pass (errors, phone overflow, contents vs headings, sticky headers) --
-     and LOOK at its four screenshots:  the checks can't see overlap, clipping or bad wrapping
-- Colors only from the `doc.css` tokens, so dark mode keeps working.
-- `.spell.html`:  `yarn docs:update` re-creates `<name>.spell.html` beside every source doc, rendered with the LATEST
-  @spell/ui widgets (`../ui`, rebuilt each run) instead of `doc.css` / `doc.js`.  How it works:
-  `docs/_assets/SPELL-DOCS.md`.
-  - The plain `<name>.html` is the SOURCE:  edit it, then run `yarn docs:update`.  NEVER hand-edit a `.spell.html`
-    (it says GENERATED at the top), and commit both.
-  - It must pass:  bundle, `doc-links.py --check`, convert (a self-check:  identical code, ids, links, one contents
-    link per heading), then `scripts/docs/check-spell.mjs` per page -- and LOOK at its screenshots.
-  - A @spell/ui problem:  fix it in `../ui` when it's a real `ui` bug (the same change may touch both), else work
-    around it here;  either way, add it to `docs/SPELL-UI-FINDINGS.md`.
-  - New markup in a source (a new kind of block) needs a mapping in `scripts/docs/to-spell.mjs` and a line in
-    `SPELL-DOCS.md`'s mapping table.
-- When agents need a doc's rules, also write a distilled `.md` beside it (bullets, `ts` code blocks), and point to it
-  from the top of an `AGENTS.md` with an "if working with X, READ file" line -- this file's, or the root's when
-  other packages need it too.  See `docs/solid/SOLID-2.md`, pointed to from the root's.
+- Docs for people -- design notes, research, references -- live in `packages/docs/` (`@spell/docs`), for every
+  package.  How to write one:  `packages/docs/AGENTS.md`.
 
 ## Parser rules
 

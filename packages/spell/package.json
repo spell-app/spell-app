@@ -18,9 +18,7 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "test:fixtures": "vitest run src/test/fixtures.test.ts",
-    "test:fixtures:bless": "vitest run src/test/fixtures.test.ts --update=all",
-    "/////// DOCS": "",
-    "docs:update": "node scripts/docs/update.mjs"
+    "test:fixtures:bless": "vitest run src/test/fixtures.test.ts --update=all"
   },
   "dependencies": {
     "@spell/parser": "workspace:*",

@@ -7,6 +7,7 @@
   "type": "module",
   "workspaces": [
     "packages/cli",
+    "packages/docs",
     "packages/lsp",
     "packages/parser",
     "packages/solid-element",
@@ -26,7 +27,11 @@
     "review": "yarn workspaces foreach -A --exclude spell-root run review",
     "vscode": "yarn vscode:build && yarn vscode:install",
     "vscode:build": "cd packages/vscode && yarn install && yarn build && yarn package",
-    "vscode:install": "cd packages/vscode && yarn install-extension"
+    "vscode:install": "cd packages/vscode && yarn install-extension",
+    "docs:update": "yarn workspace @spell/docs docs:update",
+    "docs:index": "yarn workspace @spell/docs docs:index",
+    "docs:open": "yarn workspace @spell/docs docs:open",
+    "plan-doc": "yarn workspace @spell/docs plan-doc"
   },
   "devDependencies": {
     "@vitest/browser-playwright": "5.0.2",

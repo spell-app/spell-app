@@ -1,0 +1,102 @@
+/*
+ * Plan docs only (`plans/<name>/<name>.spell.html`), on top of `spell-doc.css`.  Markup and ids:
+ * `templates/plans/plan-doc.md`.  `scripts/plan-doc.js` writes most of what's styled here.
+ * - Status colors come from `<ui-icon color>` (UI's own tokens), not from here:  grey not done, orange in progress,
+ *   green done.
+ */
+
+@layer ui.reset, ui.tokens, ui.base, ui.components, ui.utilities, ui.theme, ui.app;
+
+/*******************************
+         Phase list
+*******************************/
+
+/* PLAN's phase list:  `<li data-phase data-status><ui-icon> <a href="#p1">P1 · Short Name</a></li>` */
+.plan-phases {
+  list-style: none;
+  padding-left: 0;
+}
+.plan-phases > li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.plan-phases > li[data-status="done"] > a {
+  color: var(--spell-muted);
+}
+.plan-phases > li[data-status="active"] > a {
+  font-weight: 600;
+}
+/* a phase heading's status icon sits a little apart from its label */
+.spell-doc-main :is(h3, .plan-phases li) > ui-icon {
+  margin-right: 4px;
+}
+
+/*******************************
+     Caveats, issues, todos ...
+*******************************/
+
+/*
+ * `<ol class="plan-items">` of `<li id="c3" data-status="open|done">`:  an id chip, a title, optional details.
+ * Done items stay, struck through:  the list is a history, not a queue.
+ */
+ol.plan-items {
+  list-style: none;
+  padding-left: 0;
+}
+ol.plan-items > li {
+  margin: 6px 0;
+}
+.plan-id {
+  display: inline-block;
+  min-width: 2.6em;
+  margin-right: 6px;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: var(--spell-accent-soft);
+  font: 600 0.8rem/1.6 var(--spell-mono);
+  text-align: center;
+  text-decoration: none;
+}
+.spell-doc-main a.plan-id {
+  color: var(--spell-accent);
+}
+ol.plan-items > li[data-status="done"] > .plan-title {
+  text-decoration: line-through;
+  color: var(--spell-muted);
+}
+ol.plan-items > li[data-status="done"] > .plan-id {
+  opacity: 0.6;
+}
+ol.plan-items > li > ui-accordion {
+  margin: 4px 0 0 calc(2.6em + 18px);
+}
+/* empty sections say so, until the script adds the first item */
+:is(ol.plan-items, ul.plan-phases):empty::before {
+  content: "none yet";
+  color: var(--spell-muted);
+  font-style: italic;
+}
+
+/*******************************
+           Markers
+*******************************/
+
+/* `<ui-message class="plan-update" state="warning" size="tiny" header="UPDATE" data-phase="2">` */
+.spell-doc-main ui-message.plan-update {
+  margin: 8px 0;
+}
+
+/*******************************
+             Log
+*******************************/
+
+/* `#log`:  one-liners stamped with local date and time, oldest first */
+.plan-log {
+  font-size: 0.9rem;
+}
+.plan-log time {
+  margin-right: 8px;
+  font-family: var(--spell-mono);
+  color: var(--spell-muted);
+}

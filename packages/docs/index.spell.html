@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Spell docs</title>
+    <meta name="description" content="Every doc, plan and template in the spell monorepo." />
+    <link rel="stylesheet" href="_assets/spell-doc.css" />
+  </head>
+  <body class="spell-doc-page">
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <h1>Spell docs</h1>
+        <p class="lede">Every doc, plan and template in the spell monorepo, rendered with @spell/ui.</p>
+        <ul>
+          <li>Pages open straight from disk: no server, no build step to read them.</li>
+          <li>The lists below are written by <code>yarn docs:index</code>. Edit only outside its markers.</li>
+        </ul>
+
+        <!-- index:start -->
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="guides">Guides</h2></ui-sticky>
+          <ui-cards class="spell-grid" stackable>
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a
+                    href="precedence/precedence.spell.html"
+                    target="src-packages-docs-precedence-precedence-spell-html"
+                    >Precedence And Types</a
+                  ></ui-header
+                >
+                <ui-description
+                  >Why spell's grammar needs binding power and datatypes, what breaks today, and what to build -- for
+                  anyone about to change the parser's rules.</ui-description
+                >
+                <ui-meta>precedence/precedence.spell.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="solid/cheatsheet.spell.html" target="src-packages-docs-solid-cheatsheet-spell-html"
+                    >Solid 2 Cheat Sheet</a
+                  ></ui-header
+                >
+                <ui-description
+                  >What's new in Solid 2 (rc.13, researched on rc.11), one card per feature, with spell-specific notes
+                  where our experiments found more than the docs say.</ui-description
+                >
+                <ui-meta>solid/cheatsheet.spell.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="solid/solid-2.spell.html" target="src-packages-docs-solid-solid-2-spell-html"
+                    >Spell on Solid 2</a
+                  ></ui-header
+                >
+                <ui-description
+                  >What spell needs to know about Solid 2 that the Solid docs don't say: the rendering model,
+                  read-after-write with memoized derived properties, gotchas, and ideas for @spell/ui.</ui-description
+                >
+                <ui-meta>solid/solid-2.spell.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a
+                    href="spell-docs/spell-docs.spell.html"
+                    target="src-packages-docs-spell-docs-spell-docs-spell-html"
+                    >How Spell Docs Work</a
+                  ></ui-header
+                >
+                <ui-description
+                  >How spell's docs are built and written -- pages on @spell/ui, templates, the docs index -- and how
+                  /plan-doc keeps a live plan doc for each planning session.</ui-description
+                >
+                <ui-meta>spell-docs/spell-docs.spell.html</ui-meta>
+              </ui-content></ui-card
+            >
+          </ui-cards>
+        </section>
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="plans">Plans</h2></ui-sticky>
+          <ui-cards class="spell-grid" stackable>
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a
+                    href="plans/docs-workspace/docs-workspace.spell.html"
+                    target="src-packages-docs-plans-docs-workspace-docs-workspace-spell-html"
+                    >Docs workspace + /plan-doc</a
+                  >
+                  <ui-label size="mini" color="grey">5/6 phases done</ui-label></ui-header
+                >
+                <ui-description>Plan doc: Docs workspace + /plan-doc.</ui-description>
+                <ui-meta>plans/docs-workspace/docs-workspace.spell.html</ui-meta>
+              </ui-content></ui-card
+            >
+          </ui-cards>
+        </section>
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="templates">Templates</h2></ui-sticky>
+          <ui-cards class="spell-grid" stackable>
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="templates/cheatsheet.spell.html" target="src-packages-docs-templates-cheatsheet-spell-html"
+                    >Cheat Sheet Template</a
+                  ></ui-header
+                >
+                <ui-description
+                  >Template for an API reference: one card per feature, grouped into sections, filterable by
+                  text.</ui-description
+                >
+                <ui-meta>templates/cheatsheet.spell.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="templates/durable.spell.html" target="src-packages-docs-templates-durable-spell-html"
+                    >Durable Doc Template</a
+                  ></ui-header
+                >
+                <ui-description
+                  >Template for design notes, research and references: prose sections, tables, code, callouts,
+                  asides.</ui-description
+                >
+                <ui-meta>templates/durable.spell.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="templates/plans/plan.spell.html" target="src-packages-docs-templates-plans-plan-spell-html"
+                    >Plan Doc Template</a
+                  ></ui-header
+                >
+                <ui-description
+                  >Plan doc template: copied by `yarn plan-doc new &lt;name&gt;`, kept live by
+                  /plan-doc.</ui-description
+                >
+                <ui-meta>templates/plans/plan.spell.html</ui-meta>
+              </ui-content></ui-card
+            >
+          </ui-cards>
+        </section>
+        <!-- index:end -->
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="writing-docs">Writing docs</h2></ui-sticky>
+          <ul>
+            <li>Copy a template from the Templates list into <code>&lt;topic&gt;/&lt;topic&gt;.spell.html</code>.</li>
+            <li>
+              A plan doc: run <code>/plan-doc &lt;name&gt;</code> in Claude Code. Never copy the plan template by hand.
+            </li>
+            <li>
+              The rules: <a href="AGENTS.md" target="src-packages-docs-agents-md">AGENTS.md</a>. How the pages work:
+              <a href="spell-docs/spell-docs.md" target="src-packages-docs-spell-docs-spell-docs-md">spell-docs.md</a>.
+            </li>
+            <li>Then run <code>yarn docs:index</code> so the page shows up here.</li>
+          </ul>
+        </section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="_assets/spell-ui.js"></script>
+  </body>
+</html>

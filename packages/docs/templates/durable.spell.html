@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Durable Doc Template</title>
+    <meta
+      name="description"
+      content="Template for design notes, research and references:  prose sections, tables, code, callouts, asides."
+    />
+    <link rel="stylesheet" href="../_assets/spell-doc.css" />
+  </head>
+  <body class="spell-doc-page">
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <!--
+          TEMPLATE:  copy to `<topic>/<topic>.spell.html` (same depth, so `../_assets/` still works).
+          - Replace every placeholder;  delete the widgets you don't need.
+          - Keep each h2's `id` stable once other pages link to it.
+          - Finish with the steps in `packages/docs/AGENTS.md`, "Finishing a page".
+        -->
+        <h1>Short Title</h1>
+        <p class="lede">One sentence: what this doc settles, and for whom.</p>
+        <ul>
+          <li>Written for: who reads this, and what they're about to do</li>
+          <li>Status: draft / decided / built</li>
+          <li>Researched on: branch, date, and how the claims were checked (see <a href="#3-sources">Sources</a>)</li>
+        </ul>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="1-summary">1. Summary</h2></ui-sticky>
+          <ul>
+            <li>The conclusion first, one idea per bullet.</li>
+            <li>Every fact, number and caveat survives condensing.</li>
+          </ul>
+          <ui-message state="positive" header="Recommendation">
+            <ul>
+              <li>What to do, in one line.</li>
+            </ul>
+          </ui-message>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="2-the-design">2. The design</h2></ui-sticky>
+          <p>A short lead, then an <code>h3</code> per distinct part.</p>
+
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="how-it-flows">How it flows</h3></ui-sticky>
+            <ui-cards class="spell-flow" stackable>
+              <ui-card>
+                <ui-content>
+                  <ui-header>step one</ui-header>
+                  <ui-description>What happens first, and when.</ui-description>
+                </ui-content>
+              </ui-card>
+              <ui-card>
+                <ui-content>
+                  <ui-header>step two</ui-header>
+                  <ui-description>What it hands on.</ui-description>
+                </ui-content>
+              </ui-card>
+            </ui-cards>
+          </section>
+
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="today-vs-proposed">Today vs proposed</h3></ui-sticky>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <th>case</th>
+                    <th>today</th>
+                    <th>proposed</th>
+                    <th class="num right aligned">ms</th>
+                  </tr>
+                  <tr>
+                    <td>an input</td>
+                    <td class="no negative">what goes wrong</td>
+                    <td class="yes positive">what should happen</td>
+                    <td class="num right aligned">1.2</td>
+                  </tr>
+                  <tr>
+                    <td>another</td>
+                    <td class="meh warning">works, but slowly</td>
+                    <td class="yes positive">fast</td>
+                    <td class="num right aligned">0.4</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </section>
+
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="the-code">The code</h3></ui-sticky>
+            <p>Prefer an excerpt from a real, runnable file; say which.</p>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>example.ts · 6 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-ts">// 30 lines or fewer start open (`open="0"`);  longer ones start folded
+export function greet(name: string): string {
+  return `hello, ${name}`
+}
+
+const message = greet("spell")</code></pre>
+              </ui-content>
+            </ui-accordion>
+            <ui-message state="warning" header="Heads up">
+              <ul>
+                <li>A trap the reader will fall into, and how to avoid it.</li>
+              </ul>
+            </ui-message>
+            <ui-accordion class="spell-aside" styled>
+              <ui-title>Aside: why not the obvious approach?</ui-title>
+              <ui-content>
+                <p>A digression the main text can skip. Starts collapsed.</p>
+              </ui-content>
+            </ui-accordion>
+          </section>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="3-sources">3. Sources and experiments</h2></ui-sticky>
+          <ul>
+            <li>Runnable scripts in <code>&lt;topic&gt;/experiments/</code>, each saying how to run it.</li>
+            <li>Tables quote medians of several runs, never a single run.</li>
+          </ul>
+        </section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../_assets/spell-ui.js"></script>
+  </body>
+</html>

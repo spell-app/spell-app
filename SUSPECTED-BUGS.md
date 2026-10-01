@@ -154,7 +154,7 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 - An ad-hoc property is not reactive:  `set the pile of the card to the pile` compiles to a plain `this.pile = pile`
   (`Card.move_to_$pile` in the Solitaire snapshot), never through `setProp()` -- so nothing drawn from
-  `the pile of the card` redraws when it changes.  Maybe intended;  `docs/precedence.html` section 9 proposes
+  `the pile of the card` redraws when it changes.  Maybe intended;  `packages/docs/precedence/precedence.spell.html` section 9 proposes
   declaring such properties from their first assignment.  Found 2026-09-30.
 
 ### 2. Server robustness / security

@@ -158,7 +158,7 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   markdown at `v2.solidjs.com/llms-full.txt`. · spell/parser
 - 2026-09-30 · A Solid 2 prototype died with `[REACTIVITY_HALTED] TypeError: r is not a function`, and every
   later update was ignored. · An effect's apply function RETURNS its cleanup:  `v => list.push(v)` returned a
-  number, which Solid then called.  Write `v => { ... }`.  See `docs/solid/SOLID-2.html#effect-apply-returns-its-cleanup`. · spell/parser
+  number, which Solid then called.  Write `v => { ... }`.  See `packages/docs/solid/solid-2.spell.html#effect-apply-returns-its-cleanup`. · spell/parser
 - 2026-09-30 · A skill using `` !`cat file` `` context injection failed to load AT ALL (zero turns, only
   `Shell command permission check failed ... Permission to use Bash has been denied`) in a session with Bash
   denied.  `allowed-tools: Bash(cat ...)` in the skill's frontmatter does not override the denial. · Don't inject docs
@@ -173,7 +173,7 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
 - 2026-09-30 · Bundling `../ui/dist/index.js` with esbuild for the `.spell.html` docs:  every `ui-*` element failed
   with `NoOwnerError`.  The fork (`../ui/packages/solid-element`) has its OWN `node_modules/solid-js` and
   `@solidjs/*`, so a naive bundle carries two Solids. · Resolve every `solid-js` / `@solidjs/*` /
-  `@spell/solid-element` import from UI's root (`scripts/docs/bundle-spell-ui.mjs` does, and fails the build if a
+  `@spell/solid-element` import from UI's root (`packages/docs/scripts/bundle-spell-ui.js` does, and fails the build if a
   Solid package appears twice).  Also:  UI's `yarn build` doesn't rebuild the fork -- run `yarn fork:build` first. ·
   spell/parser
 - 2026-09-30 · A throwaway `tsx` script outside the repo (or a `.ts` one outside `src/`) died at import with
@@ -807,7 +807,9 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   and the root one may flip. · Keep `spell` / `cli` exact;  check `node_modules/.bin/tsx --version` is 4.20.3. · monorepo
 - 2026-09-30 · `yarn docs:update` fails at "bundle @spell/ui" with `Cannot read file: packages/ui/dist/glyphs/solid/*.js`:
   `bundle-spell-ui.mjs` still expects `dist/glyphs/`, which `ui`'s build no longer emits (icons moved to
-  `dist/icon-packs/`).  Not caused by hoisting. · NOT fixed -- `bundle-spell-ui.mjs` needs porting to icon packs. · spell/ui
+  `dist/icon-packs/`).  Not caused by hoisting. · Fixed:  `packages/docs/scripts/bundle-spell-ui.js` reads its `ICONS` from
+  `fa7-free` at build time and `UI.icons.register()`s them, then `reset()`s the packs (a page on `file://` can't load
+  one). · docs/ui
 - 2026-09-30 · `yarn smoke` in `ui` dies with `no vendor/importmap.json` on a fresh checkout. · `yarn vendor` first. · ui
 
 ## cli

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cheat Sheet Template</title>
+    <meta
+      name="description"
+      content="Template for an API reference:  one card per feature, grouped into sections, filterable by text."
+    />
+    <link rel="stylesheet" href="../_assets/spell-doc.css" />
+  </head>
+  <body class="spell-doc-page">
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <!--
+          TEMPLATE:  copy to `<topic>/<topic>.spell.html` (same depth, so `../_assets/` still works).
+          - One `h2` section per area, one `ui-card` per feature;  the card's `h3` is its contents entry.
+          - The filter matches every typed word against a card's text, and remembers it per page.
+          - Wide cards (long code):  `data-spell-wide` on the `ui-card`.
+          - Snippets stay bare `<pre><code>` inside cards:  no fold bar on a few lines.
+        -->
+        <header>
+          <h1>Short Title Cheat Sheet</h1>
+          <p>What it covers, one card per feature.</p>
+          <ul>
+            <li>which version, and where the authoritative docs are</li>
+            <li><ui-label size="mini" color="orange">spell</ui-label> notes are where our own findings differ</li>
+          </ul>
+        </header>
+
+        <div class="spell-filter">
+          <ui-input
+            icon="search"
+            type="search"
+            id="filter"
+            placeholder="Filter cards, e.g. a feature name"
+            aria-label="Filter cards"
+            data-spell-filter
+          ></ui-input>
+        </div>
+        <p class="spell-filter-empty" id="empty" hidden>No card matches.</p>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="first-area">First area</h2></ui-sticky>
+          <ui-cards class="spell-grid" stackable>
+            <ui-card>
+              <ui-content>
+                <h3 id="a-feature">A feature <ui-label size="mini" color="green">new</ui-label></h3>
+                <pre><code class="language-ts">const value = feature("example")</code></pre>
+                <ul>
+                  <li>what it does, in one line</li>
+                  <li>the gotcha, in one more</li>
+                </ul>
+              </ui-content>
+            </ui-card>
+            <ui-card>
+              <ui-content>
+                <h3 id="another-feature">Another feature <ui-label size="mini" color="orange">changed</ui-label></h3>
+                <ul>
+                  <li>what changed, and what to write instead</li>
+                </ul>
+                <ui-message state="warning" size="small">
+                  <p><b>spell:</b> what our experiments found that the docs don't say.</p>
+                </ui-message>
+              </ui-content>
+            </ui-card>
+          </ui-cards>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="second-area">Second area</h2></ui-sticky>
+          <ui-cards class="spell-grid" stackable>
+            <ui-card data-spell-wide>
+              <ui-content>
+                <h3 id="a-wide-card">A wide card <ui-label size="mini" color="red">removed</ui-label></h3>
+                <pre><code class="language-ts">// a wide card spans the whole row:  for longer snippets
+export function longerExample(input: string[]): Map&lt;string, number&gt; {
+  return new Map(input.map((word, index) =&gt; [word, index]))
+}</code></pre>
+              </ui-content>
+            </ui-card>
+          </ui-cards>
+        </section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../_assets/spell-ui.js"></script>
+  </body>
+</html>

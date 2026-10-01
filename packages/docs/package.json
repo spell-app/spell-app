@@ -1,0 +1,36 @@
+{
+  "name": "@spell/docs",
+  "version": "0.8.0",
+  "private": true,
+  "description": "Spell's docs:  hand-authored `.spell.html` pages on @spell/ui, their templates and tooling, and plan docs",
+  "type": "module",
+  "scripts": {
+    "/////// DOCS": "",
+    "docs:update": "node scripts/update.js",
+    "docs:index": "node scripts/index.js",
+    "docs:open": "node scripts/open.js",
+    "plan-doc": "node scripts/plan-doc.js",
+    "/////// CORRECTNESS": "",
+    "review": "yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
+    "format": "echo '>>>>>>>>>>>\n>> FORMATTING WITH OXFMT' && oxfmt . && echo '<< OXFMT PASSED\n'",
+    "format:check": "oxfmt --check .",
+    "/////// TESTING": "",
+    "test": "echo '>>>>>>>>>>>\n>> RUNNING TESTS' && vitest run --passWithNoTests && echo '<< TESTS PASSED\n'",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@spell/spell": "workspace:*",
+    "@spell/ui": "workspace:*",
+    "esbuild": "^0.28.2",
+    "linkedom": "^0.18.13",
+    "oxfmt": "^0.71.0",
+    "playwright": "^1.63.0",
+    "tsx": "4.20.3",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.2"
+  },
+  "engines": {
+    "node": ">=22.17"
+  },
+  "packageManager": "yarn@4.18.0"
+}

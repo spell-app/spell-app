@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Plan Doc Template</title>
+    <meta
+      name="description"
+      content="Plan doc template:  copied by `yarn plan-doc new <name>`, kept live by /plan-doc."
+    />
+    <link rel="stylesheet" href="../../_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../_assets/plan-doc.css" />
+  </head>
+  <body class="spell-doc-page plan-doc" data-plan="{{name}}">
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <!--
+          PLAN DOC TEMPLATE.  NEVER copy by hand:  `yarn plan-doc new <name>` fills the {{placeholders}}.
+          - Ids and classes here are what `scripts/plan-doc.js` edits:  keep them.  Rules:  `plan-doc.md` beside this.
+        -->
+        <h1>{{title}}</h1>
+        <ul class="plan-meta">
+          <li>Plan doc for <code>/plan-doc {{name}}</code>, branch <code>{{branch}}</code></li>
+          <li>Worktree: <code>{{worktree}}</code></li>
+          <li>Started <time id="plan-started">{{date}}</time>, updated <time id="plan-updated">{{date}}</time></li>
+        </ul>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="plan">1. Plan</h2></ui-sticky>
+          <p class="plan-summary">Two sentences: what this plan does, and why.</p>
+          <ul class="plan-phases"></ul>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="questions">2. Questions</h2></ui-sticky>
+          <p class="meta">Waiting on the user. Each is also asked in Claude Code.</p>
+          <ol class="plan-items" data-kind="question"></ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="overview">3. Overview</h2></ui-sticky>
+          <p>Details of the plan: the part that becomes durable docs in the last phase.</p>
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="o1">3.1 Structure</h3></ui-sticky>
+            <p>What goes where.</p>
+          </section>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="caveats">4. Caveats</h2></ui-sticky>
+          <ol class="plan-items" data-kind="caveat"></ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="issues">5. Issues</h2></ui-sticky>
+          <ol class="plan-items" data-kind="issue"></ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="todos">6. Todos</h2></ui-sticky>
+          <p class="meta">For later: not caveats, not issues.</p>
+          <ol class="plan-items" data-kind="todo"></ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="decisions">7. Decisions</h2></ui-sticky>
+          <p class="meta">What was decided, and why. Settled: don't re-argue without new facts.</p>
+          <ol class="plan-items" data-kind="decision"></ol>
+        </section>
+
+        <section class="s2" id="phases-section">
+          <ui-sticky class="spell-h2"><h2 id="phases">8. Phases</h2></ui-sticky>
+          <p class="meta">One section per phase: goal, decisions, files, how to verify.</p>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="log">9. Log</h2></ui-sticky>
+          <p class="meta">Plan changes, oldest first, local time.</p>
+          <ul class="plan-log">
+            <li>{{timestamp}} plan doc created</li>
+          </ul>
+        </section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../_assets/spell-ui.js"></script>
+  </body>
+</html>

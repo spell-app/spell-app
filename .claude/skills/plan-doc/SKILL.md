@@ -1,0 +1,105 @@
+---
+name: plan-doc
+description: Run a planning session against a live plan doc, `packages/docs/plans/<name>/<name>.spell.html`, in its own worktree. User-invoked as `/plan-doc <name>`.
+argument-hint: <name>
+disable-model-invocation: true
+---
+
+# /plan-doc
+
+Plan, then build, in worktree `<name>`, keeping `packages/docs/plans/<name>/<name>.spell.html` (the PLAN DOC) current
+the whole time.  The plan doc is the user's view of the work:  they read it in Chrome while you work.
+
+- Rules for the doc (sections, ids, markers, prose):  `packages/docs/templates/plans/plan-doc.md`.  Read it first.
+- Structured edits go through `yarn plan-doc <command> <name> ...` (cheat sheet below), never by hand.  Hand-edit only
+  prose:  the summary, Overview, phase bodies, item details.
+- Reload the plan doc whenever the session moves to a new stage (name -> worktree -> plan -> fill -> each phase ->
+  doc review):  `yarn plan-doc open <name>` reloads its Chrome tab.  `yarn plan-doc phase` does it for you.
+- Style, in replies, the plan and the doc:  caveman lite.  Drop filler and articles where they don't help, fragments
+  OK, a full sentence where a fragment would be ambiguous, identifiers exact.  Lists bulleted, or numbered when
+  order or reference matters.
+
+## 1. Name
+
+- `<name>` is `$ARGUMENTS`, lower-kebab-cased (`Docs Index` -> `docs-index`).  No argument:  ask for one.
+- Look for collisions (from the repo root):
+  - `packages/docs/plans/<name>/`, `packages/docs/<name>/`, `packages/docs/<name>.spell.html`
+  - a worktree at `.claude/worktrees/<name>` (`git worktree list`), a branch `<name>` or `worktree-<name>`
+- Any hit:  AskUserQuestion, options "Reuse `<name>`" (continue that doc / worktree) and "Different name" (the user
+  types it in "Other").  Never overwrite an existing plan doc.
+
+## 2. Session
+
+- Tell the user, in one line:  run `/rename <name>` so the VS Code tab shows it.  A skill can't rename the session.
+- `EnterWorktree` with `name: "<name>"`, or `path: ".claude/worktrees/<name>"` when reusing one.
+- In the worktree:
+  - no `node_modules/` at the root:  `yarn install`
+  - no `packages/docs/scripts/plan-doc.js`:  the worktree's base predates `packages/docs` (it branches from
+    `origin/main`).  STOP and tell the user:  merge or push `packages/docs` first, or set `worktree.baseRef: head`.
+- New doc:  `yarn plan-doc new <name> --title "<Title>"`.  Then `yarn plan-doc open <name>`:  Chrome, one tab per
+  doc, reloaded on every later `open`.
+
+## 3. Plan
+
+- `EnterPlanMode`.  Explore, then draft the plan in the harness plan file, in the plan doc's shape:
+  1. Summary:  2 sentences
+  2. Phases:  `P1 · Short Name`, 2-4 words each, so "start P2" is unambiguous;  each with goal, files, verify.
+     The LAST phase is always `Doc Review`.
+  3. Overview:  numbered sections (structure, code, flows):  what will become durable docs
+  4. Caveats, issues, todos, decisions (what + why), open questions
+- Ask open questions with AskUserQuestion before ExitPlanMode.
+- Plan mode allows editing ONLY the harness plan file:  the plan doc waits until approval.
+
+## 4. Fill the doc (right after ExitPlanMode is approved)
+
+- `yarn plan-doc add-phase <name> "Short Name" --goal "..." --files "..." --verify "..."` per phase, in order
+- `yarn plan-doc add <name> decision|caveat|issue|todo|question "title" [--details "<p>...</p>"]` per item
+- Hand-write `p.plan-summary` and the Overview's `h3`s (`#o1` "3.1 ...", `#o2` ...):  code in folded
+  `ui-accordion.spell-code`, digressions in collapsed `ui-accordion.spell-aside`, links to items and phases
+  (`<a href="#d2">D2</a>`)
+- `yarn plan-doc check <name>`, then `yarn plan-doc open <name>` (new stage:  reload)
+
+## 5. Each phase
+
+1. `yarn plan-doc phase <name> <N> active`
+2. Do the work.  Record as you go, not at the end:
+   - found a problem:  `add ... issue`;  a limit we accept:  `add ... caveat`;  a choice:  `add ... decision`
+   - fixed or obsolete:  `close <name> <id>` (it stays, struck through)
+   - changed a prose block:  put
+     `<ui-message class="plan-update" state="warning" size="tiny" header="UPDATE" data-phase="N"><p>what changed</p></ui-message>`
+     just before it (the script marks items itself)
+3. Subagents:  paste the cheat sheet below into their prompts, with "record caveats, issues and decisions in the
+   plan doc as you find them".
+4. `yarn plan-doc phase <name> <N> done` (drops that phase's UPDATE markers, reloads the tab), then
+   `yarn plan-doc summary <name>`.
+5. Reply:  a short bulleted list (done, issues, caveats, next), THEN AskUserQuestion so the user picks without
+   copying anything.  Options, most useful first:
+   - "Start P<N+1> · <Name> (Recommended)"
+   - the top open issue(s):  "Fix I<n>:  <title>"
+   - a caveat or todo worth acting on now
+   - "Stop here"
+   Questions the user must answer also go in the doc (`add ... question`);  close them once answered.
+
+## 6. Doc Review (last phase)
+
+- Prune:  close stale items;  make the summary and Overview true to what was BUILT.
+- Turn it into durable docs, from `packages/docs/templates/durable.spell.html`:
+  - one page:  `packages/docs/<name>.spell.html`;  several files (pages, experiments):
+    `packages/docs/<name>/<name>.spell.html`
+  - from the plan doc:  Overview -> the body;  decisions -> a "Why" section;  open caveats -> "Limits"
+  - finish as in `packages/docs/AGENTS.md`, "Finishing a page";  `yarn docs:index`
+- The plan doc stays in `plans/` as the record:  every phase done.  `yarn plan-doc open <name>` one last time.
+
+## Cheat sheet (`yarn plan-doc ...`, from anywhere in the repo)
+
+```
+new <name> [--title "Title"]                        create from the template, update the docs index
+add-phase <name> "Short Name" [--goal ..] [--files ..] [--verify ..]
+phase <name> <N> todo|active|done [--no-open]       done drops UPDATE markers;  reloads the Chrome tab
+add <name> question|caveat|issue|todo|decision "title" [--details "<p>html</p>"]   prints the id (C3)
+close <name> <id>  /  reopen <name> <id>            strike / unstrike, never delete
+log <name> "text"                                   timestamped line in the doc's log
+summary <name> [--json]                             phases, next phase, open questions/issues/caveats/todos
+check <name> [--no-browser]                         ids, links, phases, then the browser check
+open <name>                                         show in Chrome, reusing its tab
+```

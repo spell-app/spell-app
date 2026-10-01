@@ -4,7 +4,7 @@ This file provides guidance to AI coding agents (Claude Code, Codex, and others)
 when working with code in this repository.
 
 **If working with Solid (2.0) -- components, JSX, effects / signals / stores, `spell-core` rendering, `#spell-util`
-reactivity, `@spell/ui` elements, or any React-to-Solid step:  READ `packages/spell/docs/solid/SOLID-2.md` IN FULL
+reactivity, `@spell/ui` elements, or any React-to-Solid step:  READ `packages/docs/solid/solid-2.md` IN FULL
 FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produces wrong code.
 
 ## Overview
@@ -24,7 +24,7 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
   - `packages/spell-core/` (`@spell/spell-core`, `#spell-core`, `SC`) -- the runtime compiled spell runs on.
     See its `AGENTS.md`.
   - `packages/spell/` (`@spell/spell`, `#spell`, `SP`) -- the spell LANGUAGE on the parser, every spell project
-    (`projects/`), and the docs, `PARSING.md` and `readme.md`.  See `packages/spell/AGENTS.md`.
+    (`projects/`), `PARSING.md` and `readme.md`.  See `packages/spell/AGENTS.md`.
   - `packages/lsp/` (`@spell/lsp`, `#lsp`, `LSP`) -- spell's language server (browser-safe).  See its `AGENTS.md`.
   - `packages/spell-app/` (`@spell/spell-app`, `#spell-app`, `UI` / `F`) -- the web app, its server, the runner,
     and the `<spell-app>` / `<spell-editor>` web components.  `yarn start` / `build*` live here.
@@ -38,7 +38,11 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
     `README.md`, and `UPSTREAM.md` for the upstream PR each fix maps to.
   - `packages/cli/` (`@spell/cli`, `#cli`, `CLI`) -- the `spell` command-line tool, running the spell-family
     packages' SOURCE through `tsx`.  See `packages/cli/AGENTS.md` and its `README.md`.
+  - `packages/docs/` (`@spell/docs`) -- every package's docs:  hand-authored `.spell.html` pages on `@spell/ui`,
+    their templates, the plan docs `/plan-doc` keeps, the experiments behind them and the tooling.
+    Index:  `packages/docs/index.spell.html`.  See `packages/docs/AGENTS.md`.
 - One change may touch several packages, but dependencies flow ONE way:
+  `docs` -> anything (its experiments import any package;  nothing imports `docs`),
   `cli` -> `spell-app` -> `lsp` -> `spell` -> `parser` / `spell-core` -> `spell-util` -> `util`, and
   `ui` -> `solid-element` / `util`.  NEVER make `ui` or `solid-element` import `spell` or any package above it:
   `@spell/ui` lives on its own.
@@ -54,12 +58,12 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 
 - `spell` is moving from React to Solid 2 (`2.0.0-rc.13`;  `@spell/ui` still pins rc.11) on `@spell/ui`.
   Solid 2 is NEITHER React NOR Solid 1.
-- The rules:  `packages/spell/docs/solid/SOLID-2.md` (see the top of this file).  NOT `@`-imported on purpose:
+- The rules:  `packages/docs/solid/solid-2.md` (see the top of this file).  NOT `@`-imported on purpose:
   it loads only when the task needs it.  Claude also has the `solid-2` skill (`.claude/skills/solid-2/`), which
   triggers on Solid work.
-- The why and the measurements:  `packages/spell/docs/solid/SOLID-2.html`.
-  The API:  `packages/spell/docs/solid/CHEATSHEET.html`.
-- MUST keep `SOLID-2.md` up to date when a Solid decision changes or an RC bump changes behaviour.
+- The why and the measurements:  `packages/docs/solid/solid-2.spell.html`.
+  The API:  `packages/docs/solid/cheatsheet.spell.html`.
+- MUST keep `solid-2.md` up to date when a Solid decision changes or an RC bump changes behaviour.
 - How `ui` writes its elements on Solid:  "Solid authoring" in `packages/ui/AGENTS.md`.
 
 ## Long-term debt

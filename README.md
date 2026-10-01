@@ -36,6 +36,7 @@ components, a command line, and `@spell/ui`, a web component library that stands
 | [`packages/solid-element`](packages/solid-element/README.md) | `@spell/solid-element` | Custom elements for Solid 2:  our fork of `@solidjs/element` + `component-register`                              |
 | [`packages/cli`](packages/cli/README.md)                     | `@spell/cli`           | The `spell` command line:  compile, check, explore, watch, run and test spell projects                           |
 | [`packages/util`](packages/util/README.md)                   | `@spell/util`          | Small generic helpers shared by the others (`@proto`, class, string and DOM utilities);  imported as `#util`    |
+| [`packages/docs`](packages/docs/README.md)                   | `@spell/docs`          | Every package's docs as @spell/ui pages, their templates and plan docs;  start at `index.spell.html`            |
 
 Each package has its own README or `AGENTS.md` (how it's built).  Imports use one alias per package, `#parser`,
 `#spell-core` ... -- the table is [`tsconfig.base.json`](tsconfig.base.json).  Dependencies flow one way:
