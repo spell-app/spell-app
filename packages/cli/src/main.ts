@@ -165,6 +165,21 @@ program
   .action((name: string, _options, command) => run(CLI.newCommand, [name], command.optsWithGlobals()))
 
 program
+  .command("serve")
+  .description("run the spell app -- editor and server, which saves to disk -- and open it, until Ctrl-C")
+  .argument(
+    "[target]",
+    "open the editor on this, e.g. @examples/Solitaire -- default the project here, else the chooser"
+  )
+  .option("--port <port>", "the editor's port -- default 3000;  the server's is the next one up", (value) =>
+    Number(value)
+  )
+  .option("--headless", "don't open a browser:  just print the URL")
+  .action((target: string | undefined, _options, command) =>
+    run(CLI.serveCommand, target ? [target] : [], command.optsWithGlobals())
+  )
+
+program
   .command("icons")
   .description("find @spell-app/ui icons by name, alias or keyword -- --open shows them in a browser")
   .argument("[query...]", "words to look for, e.g. bell -- none:  every icon")

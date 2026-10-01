@@ -160,6 +160,16 @@ export type ExplainOptions = GlobalOptions & {
 }
 
 /**
+ * `spell serve` flags.
+ * - `port`:  the editor's port -- default 3000;  its server's is the next one up
+ * - `headless`:  don't open a browser
+ */
+export type ServeOptions = GlobalOptions & {
+  port?: number
+  headless?: boolean
+}
+
+/**
  * `spell icons` flags.
  * - `pack`:  only this pack, e.g. `fa7-brands`
  * - `json`:  print the icons found as JSON

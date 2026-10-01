@@ -1,5 +1,6 @@
 import { spawn, spawnSync } from "child_process"
 import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "fs"
+import { createServer } from "net"
 import { tmpdir } from "os"
 import { basename, resolve } from "path"
 import { afterAll, beforeAll, describe, test, expect } from "vitest"
@@ -81,6 +82,51 @@ describe("spell icons", () => {
     child.kill("SIGINT")
     expect(await new Promise((done) => child.on("exit", done))).toBe(0)
   }, 30_000)
+})
+
+describe("spell serve", () => {
+  test("--headless:  runs the app -- editor and /api -- on --port, opens the target, stops both on Ctrl-C", async () => {
+    // well away from the app's own 3000 / 3001, so a running `yarn start` doesn't clash
+    const port = 3700 + Math.floor(Math.random() * 200) * 2
+    const child = spawn(process.execPath, [SPELL, "serve", "@test/Solitaire", "--headless", "--port", String(port)], {
+      cwd: TEMP,
+      stdio: ["ignore", "pipe", "pipe"]
+    })
+    let out = ""
+    let err = ""
+    child.stdout.on("data", (data) => (out += data))
+    child.stderr.on("data", (data) => (err += data))
+    await until(() => out.includes("http://") || child.exitCode !== null, 120_000)
+    // on failure, `serve` prints both servers' last lines:  show them
+    expect(out, err).toContain("http://")
+    expect(out).toBe(`http://localhost:${port}/edit/fixtures/Solitaire\n`)
+    expect(await (await fetch(`http://localhost:${port}/`)).text()).toContain("<html")
+    const projects = await (await fetch(`http://localhost:${port}/api/projects/list/@test:fixtures`)).text()
+    expect(projects).toContain("Solitaire")
+
+    child.kill("SIGINT")
+    expect(await new Promise((done) => child.on("exit", done))).toBe(0)
+    // both servers stopped with it
+    let apiUp = true
+    for (let tries = 0; apiUp && tries < 40; tries++) {
+      await new Promise((done) => setTimeout(done, 250))
+      apiUp = await fetch(`http://localhost:${port + 1}/hello`).then(
+        () => true,
+        () => false
+      )
+    }
+    expect(apiUp).toBe(false)
+  }, 180_000)
+
+  test("a port in use", async () => {
+    const busy = createServer()
+    await new Promise<void>((done) => busy.listen(0, done))
+    const port = (busy.address() as { port: number }).port
+    const { status, stderr } = spell(["serve", "--headless", "--port", String(port)], TEMP)
+    busy.close()
+    expect(status).toBe(2)
+    expect(stderr).toContain(`Port ${port} is in use`)
+  })
 })
 
 describe("no target", () => {

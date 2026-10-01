@@ -61,8 +61,8 @@
             <li data-status="todo" data-phase="9">
               <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p9">P9 · Doc Review 2</a>
             </li>
-            <li data-status="todo" data-phase="10">
-              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p10">P10 · Spell Server</a>
+            <li data-status="done" data-phase="10">
+              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p10">P10 · Spell Server</a>
             </li>
           </ul>
         </section>
@@ -240,6 +240,20 @@
                       ><code>SUSPECTED-BUGS.md</code></a
                     >
                     under spell; not this CLI's.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="i3">
+              <a class="plan-id" href="#i3">I3</a>
+              <span class="plan-title"
+                >spell serve's end-to-end test timed out once (90s start) in a full review run; passed 3 reruns</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Likely vite's first start in a busy run. The test now prints <code>serve</code>'s stderr -- both
+                    servers' last lines -- if it happens again.
                   </p></ui-content
                 ></ui-accordion
               >
@@ -547,6 +561,21 @@
                 ></ui-accordion
               >
             </li>
+            <li data-status="open" id="d24">
+              <a class="plan-id" href="#d24">D24</a>
+              <span class="plan-title">spell serve runs app's start:dev + start:server itself, not yarn start</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <code>yarn start</code> runs <code>yarn install</code> and <code>yarn stop</code>, which would stop
+                    other checkouts' servers. Each runs in its own process group so Ctrl-C stops what yarn started. A
+                    busy port is refused (vite <code>--strictPort</code>), not drifted from. No target outside a
+                    project: the app's chooser, not the prompt -- the app is a chooser itself.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
           </ol>
         </section>
 
@@ -780,9 +809,9 @@
               <li><b>Verify:</b> plan-doc check; check-spell on cli.html</li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="10" class="s3">
+          <section data-status="done" data-phase="10" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p10"><ui-icon name="circle outline" color="grey"></ui-icon> P10 · Spell Server</h3></ui-sticky
+              ><h3 id="p10"><ui-icon name="circle check" color="green"></ui-icon> P10 · Spell Server</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li>
@@ -877,6 +906,12 @@
               the browser via spell-app (Solitaire checked by screenshot); dist-element builds on demand in ~5s
             </li>
             <li><time datetime="2026-10-01T09:32-04:00">2026-10-01 09:32</time> P8 done</li>
+            <li><time datetime="2026-10-01T09:33-04:00">2026-10-01 09:33</time> P10 active</li>
+            <li>
+              <time datetime="2026-10-01T09:40-04:00">2026-10-01 09:40</time> P10 done: spell serve -- editor opened on
+              the target, save through /api checked, both servers stop on Ctrl-C
+            </li>
+            <li><time datetime="2026-10-01T09:40-04:00">2026-10-01 09:40</time> P10 done</li>
           </ul>
         </section>
       </main>
