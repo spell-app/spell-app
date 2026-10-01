@@ -9748,9 +9748,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"spell-root@workspace:.":
+"spell-app@workspace:.":
   version: 0.0.0-use.local
-  resolution: "spell-root@workspace:."
+  resolution: "spell-app@workspace:."
   dependencies:
     "@vitest/browser-playwright": "npm:5.0.2"
     playwright: "npm:1.63.0"

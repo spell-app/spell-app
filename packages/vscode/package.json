@@ -5,7 +5,7 @@
   "private": true,
   "description": "Spell language support:  errors, hover, completion, go to definition, rename -- from spell's language server.",
   "license": "MIT",
-  "repository": "https://github.com/spell-app/spell",
+  "repository": "https://github.com/spell-app/spell-app",
   "publisher": "spell-app",
   "main": "./out/extension.js",
   "scripts": {

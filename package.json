@@ -1,9 +1,9 @@
 {
-  "name": "spell-root",
+  "name": "spell-app",
   "private": true,
   "description": "Spell:  the parser, the spell language and its tools, and @spell-app/ui",
   "license": "MIT",
-  "repository": "https://github.com/spell-app/spell",
+  "repository": "https://github.com/spell-app/spell-app",
   "type": "module",
   "workspaces": [
     "packages/cli",
@@ -19,11 +19,11 @@
     "packages/util"
   ],
   "scripts": {
-    "ts": "yarn workspaces foreach -A --exclude spell-root run ts",
+    "ts": "yarn workspaces foreach -A --exclude spell-app run ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:packages": "yarn workspaces foreach -A --exclude spell-root run test",
-    "review": "yarn workspaces foreach -A --exclude spell-root run review",
+    "test:packages": "yarn workspaces foreach -A --exclude spell-app run test",
+    "review": "yarn workspaces foreach -A --exclude spell-app run review",
     "vscode": "yarn vscode:build && yarn vscode:install",
     "vscode:build": "cd packages/vscode && yarn install && yarn build && yarn package",
     "vscode:install": "cd packages/vscode && yarn install-extension",

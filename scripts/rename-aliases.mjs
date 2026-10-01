@@ -167,7 +167,7 @@ function main() {
   }
   if (!args.includes("--no-format")) {
     console.log("step 5:  yarn format (every workspace)")
-    yarn(["workspaces", "foreach", "-A", "--exclude", "spell-root", "run", "format"], true)
+    yarn(["workspaces", "foreach", "-A", "--exclude", "spell-app", "run", "format"], true)
   }
 }
 

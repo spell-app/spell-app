@@ -2,7 +2,7 @@
   "name": "@spell-app/spell",
   "version": "0.8.0",
   "license": "MIT",
-  "repository": "https://github.com/spell-app/spell",
+  "repository": "https://github.com/spell-app/spell-app",
   "type": "module",
   "scripts": {
     "/////// CORRECTNESS": "",
