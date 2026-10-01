@@ -148,6 +148,29 @@ Each finding:  component, symptom, repro, the workaround used here, a suggested 
     - workaround:  none yet (cosmetic);  the old static sidebars had the same arrow
     - suggest:  hide the icon and skip toggling when the content is empty, or a `leaf` attribute on `ui-title`
 
+18. **`ui-segment`:  a top-`attached` `ui-label` takes no room, so it covers the segment's first line**
+    - symptom:  Fomantic pads the element after a `.ui.attached.label:first-child`;  as elements the label and the
+      next child are both slotted light DOM, and `::slotted()` takes only a compound selector, so nothing makes room
+    - repro:  `<ui-segment><ui-label attached="top">For</ui-label><ul><li>covered</li></ul></ui-segment>`
+    - workaround:  `ui-grid.spell-pros-cons ul { margin-top: 2.2em }` (durable template, "Trade-offs")
+    - suggest:  the segment pads its top while it has a top-attached label (`:has()` on the host, or a state the
+      label sets), as Fomantic does
+
+19. **`ui-tabs`:  a dark rule above the pane, even `basic`**
+    - symptom:  `pointing secondary` tabs draw a dark line across the top of the active pane, under the tab bar's own
+      rule, so the bar looks underlined twice;  `basic` drops the pane's box but not that line
+    - repro:  `<ui-tabs pointing secondary basic><ui-tab label="A">a</ui-tab><ui-tab label="B">b</ui-tab></ui-tabs>`
+    - workaround:  none (cosmetic);  the templates use it as is
+    - suggest:  a `secondary` / `basic` tab set's panes have no top border (Fomantic's `.ui.tab.segment` under a
+      `secondary pointing menu` is usually `basic`)
+
+20. **`ui-select`:  its own empty placeholder option, plus an item with `value=""`, shows two blank-ish options**
+    - symptom:  the select always adds an empty first option while nothing is chosen;  an "any" item with
+      `value=""` is then a second empty choice, and the closed select shows the blank one
+    - repro:  `<ui-select value=""><ui-item value="">any</ui-item><ui-item value="a">a</ui-item></ui-select>`
+    - workaround:  `placeholder="any badge"`, and no `value=""` item (cheatsheet badge filter)
+    - suggest:  document `placeholder` as the "no choice" option, or treat a `value=""` item as the placeholder
+
 ## Verified working (no action)
 
 - find-in-page / text fragments open a folded `ui-accordion` panel (native `<details>`), and the accordion

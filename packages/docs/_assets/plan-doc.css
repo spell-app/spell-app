@@ -11,7 +11,20 @@
          Phase list
 *******************************/
 
-/* PLAN's phase list:  `<li data-phase data-status><ui-icon> <a href="#p1">P1 · Short Name</a></li>` */
+/*
+ * PLAN's phase list:  `<ui-steps class="plan-phases" vertical ordered>` of
+ * `<ui-step data-phase data-status href="#p1" header="P1 · Short Name">`, `selected` while active, `completed` when done;
+ * above it, `ui-progress.plan-progress` (done of all phases).  Both written by the script.
+ * - docs made before 2026-10-01:  `<ul class="plan-phases">` of `<li data-phase data-status><ui-icon> <a>...</a></li>`
+ */
+ui-progress.plan-progress {
+  max-width: 480px;
+  margin: 12px 0;
+}
+ui-steps.plan-phases {
+  display: block;
+  margin: 12px 0;
+}
 .plan-phases {
   list-style: none;
   padding-left: 0;
@@ -72,7 +85,7 @@ ol.plan-items > li > ui-accordion {
   margin: 4px 0 0 calc(2.6em + 18px);
 }
 /* empty sections say so, until the script adds the first item */
-:is(ol.plan-items, ul.plan-phases):empty::before {
+:is(ol.plan-items, .plan-phases):empty::before {
   content: "none yet";
   color: var(--spell-muted);
   font-style: italic;
@@ -91,7 +104,10 @@ ol.plan-items > li > ui-accordion {
              Log
 *******************************/
 
-/* `#log`:  one-liners stamped with local date and time, oldest first */
+/*
+ * `#log`:  one-liners stamped with local date and time, oldest first:  `<ui-feed class="plan-log">` of
+ * `<ui-event>`s, each `<ui-summary><ui-date><time></ui-date> text</ui-summary>` (a `<ul>` before 2026-10-01)
+ */
 .plan-log {
   font-size: 0.9rem;
 }

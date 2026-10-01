@@ -20,7 +20,7 @@ How to write and update `plans/<name>/<name>.html`, the live doc behind a `/plan
 
 | Section | id | What |
 |---|---|---|
-| 1. Plan | `#plan` | 2-sentence summary (`p.plan-summary`), then the phase list (`ul.plan-phases`) |
+| 1. Plan | `#plan` | 2-sentence summary (`p.plan-summary`), progress bar, then the phase list (`.plan-phases`) |
 | 2. Questions | `#questions` | waiting on the user;  each also asked with AskUserQuestion |
 | 3. Overview | `#overview` | the plan's substance in numbered h3s (`#o1` "3.1 Structure" ...):  becomes durable docs |
 | 4. Caveats | `#caveats` | limits and risks we accept |
@@ -38,16 +38,19 @@ How to write and update `plans/<name>/<name>.html`, the live doc behind a `/plan
 
 ## Markup the script writes
 
-Phase list entry (in `#plan`):
+Phase list entry (in `#plan`'s `<ui-steps class="plan-phases" vertical ordered>`):
 
 ```html
-<li data-phase="2" data-status="active">
-  <ui-icon name="circle half stroke" color="orange"></ui-icon> <a href="#p2">P2 · Short Name</a>
-</li>
+<ui-step data-phase="2" data-status="active" href="#p2" header="P2 · Short Name" selected></ui-step>
 ```
 
-- status:  `todo` -> `circle outline` grey, `active` -> `circle half stroke` orange, `done` -> `circle check` green
-- the phase's h3 carries the same icon, so it shows in the contents sidebar too
+- status:  `active` -> `selected`, `done` -> `completed` (its number becomes a check)
+- above the list, `<ui-progress class="plan-progress">`:  `value` = phases done, `total` = all phases, `hidden`
+  while there are none
+- the phase's h3 carries a status icon:  `todo` -> `circle outline` grey, `active` -> `circle half stroke` orange,
+  `done` -> `circle check` green;  it shows in the contents sidebar too
+- docs made before 2026-10-01 have `<ul class="plan-phases">` of `<li data-phase data-status>` with the same icon
+  and a link;  the script still edits those
 
 Phase section (in `#phases`):
 
@@ -78,6 +81,16 @@ Item (in any `ol.plan-items`):
 
 - `data-status="done"`:  struck through, never removed
 - details are optional;  they start collapsed
+
+Log line (in `#log`'s `<ui-feed class="plan-log">`;  a `<ul>` of `<time>` + text before 2026-10-01):
+
+```html
+<ui-event icon="pen to square">
+  <ui-content><ui-summary><ui-date><time datetime="...">2026-10-01 09:05</time></ui-date> P2 active</ui-summary></ui-content>
+</ui-event>
+```
+
+Each section's h2 carries an icon (`map`, `circle question`, `lightbulb` ...):  keep it when editing a heading.
 
 ## UPDATE markers
 

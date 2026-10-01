@@ -78,12 +78,16 @@ export class PlanDoc {
   // ## Phases
   ////////////////
 
-  /** Every phase, in order:  `{ n, name, status }`. */
+  /**
+   * Every phase, in order:  `{ n, name, status }`.
+   * - the list is `<ui-steps class="plan-phases">` of `<ui-step header>`s;  docs made before 2026-10-01 have
+   *   `<ul class="plan-phases">` of `<li>`s with a link
+   */
   get phases() {
-    return Array.from(this.document.querySelectorAll(".plan-phases > li[data-phase]"), (li) => ({
-      n: Number(li.getAttribute("data-phase")),
-      name: phaseName(li.querySelector("a")?.textContent ?? ""),
-      status: li.getAttribute("data-status") ?? "todo"
+    return Array.from(this.document.querySelectorAll(".plan-phases > [data-phase]"), (entry) => ({
+      n: Number(entry.getAttribute("data-phase")),
+      name: phaseName(entry.getAttribute("header") ?? entry.querySelector("a")?.textContent ?? ""),
+      status: entry.getAttribute("data-status") ?? "todo"
     }))
   }
 
@@ -101,9 +105,13 @@ export class PlanDoc {
     const section = this.require("#phases-section")
     const n = this.phases.length + 1
     const label = `P${n} · ${name}`
-    const li = this.element("li", { "data-phase": n, "data-status": "todo" })
-    li.innerHTML = `${icon("todo")} <a href="#p${n}">${text(label)}</a>`
-    list.append(li)
+    if (list.localName === "ui-steps") {
+      list.append(this.element("ui-step", { "data-phase": n, "data-status": "todo", href: `#p${n}`, header: label }))
+    } else {
+      const li = this.element("li", { "data-phase": n, "data-status": "todo" })
+      li.innerHTML = `${icon("todo")} <a href="#p${n}">${text(label)}</a>`
+      list.append(li)
+    }
     const body = [
       ["Goal", goal],
       ["Files", files],
@@ -113,6 +121,7 @@ export class PlanDoc {
     phase.innerHTML = `<ui-sticky class="spell-h3"><h3 id="p${n}">${icon("todo")} ${text(label)}</h3></ui-sticky>
 <ul class="plan-phase-body">${body.join("")}</ul>`
     section.append(phase)
+    this.updateProgress()
     return n
   }
 
@@ -123,15 +132,30 @@ export class PlanDoc {
    */
   setPhase(n, status) {
     if (!STATUS[status]) throw new PlanDocError(`status must be ${Object.keys(STATUS).join(" / ")}, not "${status}"`)
-    const li = this.require(`.plan-phases > li[data-phase="${n}"]`)
+    const entry = this.require(`.plan-phases > [data-phase="${n}"]`)
     const section = this.document.querySelector(`#phases-section section[data-phase="${n}"]`)
-    for (const node of [li, section]) {
+    for (const node of [entry, section]) {
       if (!node) continue
       node.setAttribute("data-status", status)
       node.querySelector("ui-icon")?.replaceWith(this.fragment(icon(status)))
     }
+    if (entry.localName === "ui-step") {
+      toggle(entry, "selected", status === "active")
+      toggle(entry, "completed", status === "done")
+    }
     if (status === "done") for (const marker of this.updateMarkers(n)) marker.remove()
+    this.updateProgress()
     this.log(`P${n} ${status}`)
+  }
+
+  /** The phases' progress bar (`ui-progress.plan-progress`, if the doc has one):  done of all, hidden while none. */
+  updateProgress() {
+    const bar = this.document.querySelector("ui-progress.plan-progress")
+    if (!bar) return
+    const phases = this.phases
+    bar.setAttribute("value", String(phases.filter((phase) => phase.status === "done").length))
+    bar.setAttribute("total", String(phases.length))
+    toggle(bar, "hidden", phases.length === 0)
   }
 
   /** UPDATE markers of phase `n`. */
@@ -197,9 +221,18 @@ export class PlanDoc {
   // ## Log, stamps, summary
   ////////////////
 
-  /** Add a line to the log, stamped with the local date and time. */
+  /**
+   * Add a line to the log, stamped with the local date and time.
+   * - the log is a `<ui-feed class="plan-log">` of events;  docs made before 2026-10-01 have a `<ul>`
+   */
   log(line) {
-    const list = this.require("ul.plan-log")
+    const list = this.require(".plan-log")
+    if (list.localName === "ui-feed") {
+      const event = this.element("ui-event", { icon: "pen to square" })
+      event.innerHTML = `<ui-content><ui-summary><ui-date>${timeTag(this.now)}</ui-date> ${text(line)}</ui-summary></ui-content>`
+      list.append(event)
+      return
+    }
     const li = this.element("li")
     li.innerHTML = `${timeTag(this.now)} ${text(line)}`
     list.append(li)
@@ -285,6 +318,12 @@ export class PlanDocError extends Error {}
 function icon(status) {
   const { icon: name, color } = STATUS[status]
   return `<ui-icon name="${name}" color="${color}"></ui-icon>`
+}
+
+/** Set or remove boolean attribute `name` on `element`. */
+function toggle(element, name, on) {
+  if (on) element.setAttribute(name, "")
+  else element.removeAttribute(name)
 }
 
 /** `P2 · Short Name` -> `Short Name`. */

@@ -35,10 +35,42 @@ describe("PlanDoc phases", () => {
     plan.addPhase("One")
     plan.setPhase(1, "active")
     expect(plan.activePhase).toBe(1)
+    const step = plan.document.querySelector('ui-steps.plan-phases > ui-step[data-phase="1"]')
+    expect([step.hasAttribute("selected"), step.hasAttribute("completed")]).toEqual([true, false])
+    expect(step.getAttribute("href")).toBe("#p1")
+    expect(plan.document.querySelector("#p1 ui-icon").getAttribute("name")).toBe("circle half stroke")
+    expect(plan.document.querySelector(".plan-log").textContent).toContain("2026-10-01 09:05 P1 active")
+    plan.setPhase(1, "done")
+    expect([step.hasAttribute("selected"), step.hasAttribute("completed")]).toEqual([false, true])
+    expect(() => plan.setPhase(1, "finished")).toThrow(PlanDocError)
+  })
+
+  it("keeps the progress bar at done of all phases, hidden while there are none", () => {
+    const plan = freshPlan()
+    const bar = plan.document.querySelector("ui-progress.plan-progress")
+    expect(bar.hasAttribute("hidden")).toBe(true)
+    plan.addPhase("One")
+    plan.addPhase("Two")
+    plan.setPhase(1, "done")
+    expect([bar.getAttribute("value"), bar.getAttribute("total"), bar.hasAttribute("hidden")]).toEqual([
+      "1",
+      "2",
+      false
+    ])
+  })
+
+  it("still edits docs with the old list markup (`ul.plan-phases`, `ul.plan-log`)", () => {
+    const html = readFileSync(join(DOCS, "templates/plans/plan.html"), "utf8")
+      .replace(/<ui-steps class="plan-phases"[^>]*><\/ui-steps>/, '<ul class="plan-phases"></ul>')
+      .replace(/<ui-feed class="plan-log"[\s\S]*?<\/ui-feed>/, '<ul class="plan-log"></ul>')
+    const plan = PlanDoc.parse(html, NOW)
+    plan.addPhase("One")
+    plan.setPhase(1, "active")
     const icons = plan.document.querySelectorAll('[data-phase="1"] ui-icon')
     expect(Array.from(icons, (icon) => icon.getAttribute("name"))).toEqual(["circle half stroke", "circle half stroke"])
-    expect(plan.document.querySelector(".plan-log").textContent).toContain("2026-10-01 09:05 P1 active")
-    expect(() => plan.setPhase(1, "finished")).toThrow(PlanDocError)
+    expect(plan.phases).toEqual([{ n: 1, name: "One", status: "active" }])
+    expect(plan.document.querySelector("ul.plan-log > li").textContent).toContain("2026-10-01 09:05 P1 active")
+    expect(plan.check()).toEqual([])
   })
 
   it("done removes that phase's UPDATE markers, not other phases'", () => {

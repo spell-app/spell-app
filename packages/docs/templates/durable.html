@@ -19,19 +19,34 @@
           - Keep each h2's `id` stable once other pages link to it.
           - Finish with the steps in `packages/docs/AGENTS.md`, "Finishing a page".
         -->
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../index.html" target="src-packages-docs-index-html">Docs</ui-breadcrumb-section>
+          <ui-breadcrumb-section active>Short Title</ui-breadcrumb-section>
+        </ui-breadcrumb>
         <h1>Short Title</h1>
         <p class="lede">One sentence: what this doc settles, and for whom.</p>
-        <ul>
-          <li>Written for: who reads this, and what they're about to do</li>
-          <li>Status: draft / decided / built</li>
-          <li>Researched on: branch, date, and how the claims were checked (see <a href="#3-sources">Sources</a>)</li>
-        </ul>
+        <ui-list class="spell-meta">
+          <ui-item icon="user">Written for: who reads this, and what they're about to do</ui-item>
+          <ui-item icon="flag"
+            >Status: <ui-label size="mini" color="orange">draft</ui-label> (or decided / built)</ui-item
+          >
+          <ui-item icon="flask"
+            >Researched on: branch, date, and how the claims were checked (see
+            <a href="#4-sources">Sources</a>)</ui-item
+          >
+        </ui-list>
 
         <section class="s2">
           <ui-sticky class="spell-h2"><h2 id="1-summary">1. Summary</h2></ui-sticky>
+          <ui-statistics class="spell-stats" size="mini">
+            <ui-statistic value="3×" label="faster"></ui-statistic>
+            <ui-statistic value="1.2" label="ms, median"></ui-statistic>
+            <ui-statistic value="0" label="breaking changes"></ui-statistic>
+          </ui-statistics>
           <ul>
             <li>The conclusion first, one idea per bullet.</li>
             <li>Every fact, number and caveat survives condensing.</li>
+            <li>Headline numbers above: 2-4 of them, each also stated (with its caveat) in the body.</li>
           </ul>
           <ui-message state="positive" header="Recommendation">
             <ul>
@@ -42,21 +57,38 @@
 
         <section class="s2">
           <ui-sticky class="spell-h2"><h2 id="2-the-design">2. The design</h2></ui-sticky>
-          <p>A short lead, then an <code>h3</code> per distinct part.</p>
+          <p>
+            A short lead, then an <code>h3</code> per distinct part. A
+            <dfn class="spell-term" tabindex="0">coined term</dfn>
+            <ui-popup
+              header="coined term"
+              content="What it means here, in one line:  hover or focus the term."
+            ></ui-popup>
+            gets its meaning in a popup.
+          </p>
 
           <section class="s3">
             <ui-sticky class="spell-h3"><h3 id="how-it-flows">How it flows</h3></ui-sticky>
+            <ui-steps class="spell-steps" ordered>
+              <ui-step header="step one" description="What happens first, and when."></ui-step>
+              <ui-step header="step two" description="What it hands on."></ui-step>
+              <ui-step header="step three" description="Where it ends."></ui-step>
+            </ui-steps>
+          </section>
+
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="the-parts">The parts</h3></ui-sticky>
             <ui-cards class="spell-flow" stackable>
               <ui-card>
                 <ui-content>
-                  <ui-header>step one</ui-header>
-                  <ui-description>What happens first, and when.</ui-description>
+                  <ui-header>a part</ui-header>
+                  <ui-description>What it owns.</ui-description>
                 </ui-content>
               </ui-card>
               <ui-card>
                 <ui-content>
-                  <ui-header>step two</ui-header>
-                  <ui-description>What it hands on.</ui-description>
+                  <ui-header>another part</ui-header>
+                  <ui-description>What it leaves to the first.</ui-description>
                 </ui-content>
               </ui-card>
             </ui-cards>
@@ -91,6 +123,28 @@
           </section>
 
           <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="trade-offs">Trade-offs</h3></ui-sticky>
+            <ui-grid class="spell-pros-cons" columns="2" stackable>
+              <ui-column>
+                <ui-segment>
+                  <ui-label attached="top" color="green"><ui-icon name="thumbs up"></ui-icon> For</ui-label>
+                  <ul>
+                    <li>What this choice buys.</li>
+                  </ul>
+                </ui-segment>
+              </ui-column>
+              <ui-column>
+                <ui-segment>
+                  <ui-label attached="top" color="red"><ui-icon name="thumbs down"></ui-icon> Against</ui-label>
+                  <ul>
+                    <li>What it costs, and who pays.</li>
+                  </ul>
+                </ui-segment>
+              </ui-column>
+            </ui-grid>
+          </section>
+
+          <section class="s3">
             <ui-sticky class="spell-h3"><h3 id="the-code">The code</h3></ui-sticky>
             <p>Prefer an excerpt from a real, runnable file; say which.</p>
             <ui-accordion class="spell-code" styled open="0">
@@ -104,6 +158,29 @@ export function greet(name: string): string {
 const message = greet("spell")</code></pre>
               </ui-content>
             </ui-accordion>
+            <p>Variants of one snippet (before / after, TS / JS) go in tabs, one code block per tab.</p>
+            <ui-tabs class="spell-tabs" pointing secondary basic aria-label="Before and after">
+              <ui-tab label="Before">
+                <ui-accordion class="spell-code" styled open="0">
+                  <ui-title>before.ts · 3 lines</ui-title>
+                  <ui-content>
+                    <pre><code class="language-ts">export function greet(name: string): string {
+  return "hello, " + name
+}</code></pre>
+                  </ui-content>
+                </ui-accordion>
+              </ui-tab>
+              <ui-tab label="After">
+                <ui-accordion class="spell-code" styled open="0">
+                  <ui-title>after.ts · 3 lines</ui-title>
+                  <ui-content>
+                    <pre><code class="language-ts">export function greet(name: string): string {
+  return `hello, ${name}`
+}</code></pre>
+                  </ui-content>
+                </ui-accordion>
+              </ui-tab>
+            </ui-tabs>
             <ui-message state="warning" header="Heads up">
               <ul>
                 <li>A trap the reader will fall into, and how to avoid it.</li>
@@ -119,12 +196,54 @@ const message = greet("spell")</code></pre>
         </section>
 
         <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="3-sources">3. Sources and experiments</h2></ui-sticky>
+          <ui-sticky class="spell-h2"><h2 id="3-history">3. History</h2></ui-sticky>
+          <p class="meta">What changed in the decision, newest first. Not every edit: only what a reader must know.</p>
+          <ui-feed class="spell-history" size="small">
+            <ui-event icon="check">
+              <ui-content>
+                <ui-summary>Built, and the numbers re-measured <ui-date>2026-10-01</ui-date></ui-summary>
+              </ui-content>
+            </ui-event>
+            <ui-event icon="gavel">
+              <ui-content>
+                <ui-summary
+                  >Decided: the proposed design, over the obvious one <ui-date>2026-09-30</ui-date></ui-summary
+                >
+              </ui-content>
+            </ui-event>
+          </ui-feed>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="4-sources">4. Sources and experiments</h2></ui-sticky>
           <ul>
             <li>Runnable scripts in <code>&lt;topic&gt;/experiments/</code>, each saying how to run it.</li>
             <li>Tables quote medians of several runs, never a single run.</li>
           </ul>
+          <ui-items class="spell-sources" divided>
+            <ui-item>
+              <ui-content>
+                <ui-header><code>experiments/measure.ts</code></ui-header>
+                <ui-meta>experiment · <code>yarn tsx &lt;topic&gt;/experiments/measure.ts</code></ui-meta>
+                <ui-description>What it measures, and which claim above it backs.</ui-description>
+              </ui-content>
+            </ui-item>
+            <ui-item>
+              <ui-content>
+                <ui-header><a href="https://example.com/" target="ext-example-com">An external reference</a></ui-header>
+                <ui-meta>reference · read 2026-10-01</ui-meta>
+                <ui-description>What it says that this doc relies on.</ui-description>
+              </ui-content>
+            </ui-item>
+          </ui-items>
         </section>
+
+        <footer class="spell-doc-footer">
+          <ui-divider></ui-divider>
+          <p class="meta">
+            Last checked 2026-10-01 against branch <code>main</code>: re-run the experiments to update.
+          </p>
+        </footer>
       </main>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>

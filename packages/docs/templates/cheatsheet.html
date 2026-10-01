@@ -19,7 +19,12 @@
           - The filter matches every typed word against a card's text, and remembers it per page.
           - Wide cards (long code):  `data-spell-wide` on the `ui-card`.
           - Snippets stay bare `<pre><code>` inside cards:  no fold bar on a few lines.
+          - The badge filter (`data-spell-filter-badge`) keeps the cards with a `ui-label` of the chosen text.
         -->
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../index.html" target="src-packages-docs-index-html">Docs</ui-breadcrumb-section>
+          <ui-breadcrumb-section active>Short Title Cheat Sheet</ui-breadcrumb-section>
+        </ui-breadcrumb>
         <header>
           <h1>Short Title Cheat Sheet</h1>
           <p>What it covers, one card per feature.</p>
@@ -27,6 +32,11 @@
             <li>which version, and where the authoritative docs are</li>
             <li><ui-label size="mini" color="orange">spell</ui-label> notes are where our own findings differ</li>
           </ul>
+          <ui-labels class="spell-legend" size="mini">
+            <ui-label color="green">new</ui-label>
+            <ui-label color="orange">changed</ui-label>
+            <ui-label color="red">removed</ui-label>
+          </ui-labels>
         </header>
 
         <div class="spell-filter">
@@ -38,6 +48,11 @@
             aria-label="Filter cards"
             data-spell-filter
           ></ui-input>
+          <ui-select aria-label="Show cards with badge" placeholder="any badge" data-spell-filter-badge>
+            <ui-item value="new">new</ui-item>
+            <ui-item value="changed">changed</ui-item>
+            <ui-item value="removed">removed</ui-item>
+          </ui-select>
         </div>
         <p class="spell-filter-empty" id="empty" hidden>No card matches.</p>
 
@@ -47,12 +62,16 @@
             <ui-card>
               <ui-content>
                 <h3 id="a-feature">A feature <ui-label size="mini" color="green">new</ui-label></h3>
+                <ui-meta>since 1.2</ui-meta>
                 <pre><code class="language-ts">const value = feature("example")</code></pre>
                 <ul>
                   <li>what it does, in one line</li>
                   <li>the gotcha, in one more</li>
                 </ul>
               </ui-content>
+              <ui-extra
+                ><a href="https://example.com/docs/feature" target="ext-example-com-docs-feature">docs</a></ui-extra
+              >
             </ui-card>
             <ui-card>
               <ui-content>
@@ -71,6 +90,22 @@
         <section class="s2">
           <ui-sticky class="spell-h2"><h2 id="second-area">Second area</h2></ui-sticky>
           <ui-cards class="spell-grid" stackable>
+            <ui-card>
+              <ui-content>
+                <h3 id="a-feature-with-variants">A feature with variants</h3>
+                <ui-tabs class="spell-tabs" pointing secondary basic size="small" aria-label="Variants">
+                  <ui-tab label="TS">
+                    <pre><code class="language-ts">const n: number = count(items)</code></pre>
+                  </ui-tab>
+                  <ui-tab label="JSX">
+                    <pre><code class="language-tsx">const view = &lt;Count items={items} /&gt;</code></pre>
+                  </ui-tab>
+                </ui-tabs>
+                <ul>
+                  <li>one tab per way of writing it</li>
+                </ul>
+              </ui-content>
+            </ui-card>
             <ui-card data-spell-wide>
               <ui-content>
                 <h3 id="a-wide-card">A wide card <ui-label size="mini" color="red">removed</ui-label></h3>

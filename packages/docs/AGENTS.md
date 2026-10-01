@@ -45,10 +45,27 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
   - recommendations / warnings:  `<ui-message state="positive|negative|warning|info" header="...">`
   - comparisons:  `<ui-table celled compact striped unstackable>` around a native `<table>`;  number cells
     `class="num right aligned"`, verdict cells `yes positive` / `no negative` / `meh warning`
-  - small badges:  `<ui-label size="mini">`
-  - step flows:  `<ui-cards class="spell-flow" stackable>` of `<ui-card><ui-content><ui-header>` + `<ui-description>`
+  - small badges:  `<ui-label size="mini">`;  a legend of them:  `<ui-labels class="spell-legend" size="mini">`
+  - page top:  `<ui-breadcrumb class="spell-crumbs">` back to the index;  meta lines (who it's for, status, how
+    checked):  `<ui-list class="spell-meta">` of `<ui-item icon="...">`
+  - headline numbers:  `<ui-statistics class="spell-stats" size="mini">` of `<ui-statistic value label>`, 2-4, each
+    also stated with its caveat in the body
+  - ordered flows:  `<ui-steps class="spell-steps" ordered>` of `<ui-step header description>`
+  - parts side by side:  `<ui-cards class="spell-flow" stackable>` of `<ui-card><ui-content><ui-header>` +
+    `<ui-description>`
+  - for / against:  `<ui-grid class="spell-pros-cons" columns="2" stackable>` of `<ui-column><ui-segment>` with a
+    top-`attached` `<ui-label>`
+  - variants of one snippet (before / after, TS / JS):  `<ui-tabs class="spell-tabs" pointing secondary basic>` of
+    `<ui-tab label>`, each holding its code block
+  - a coined term:  `<dfn class="spell-term" tabindex="0">` followed by `<ui-popup header content>`
+  - history of the decision:  `<ui-feed class="spell-history">` of `<ui-event icon>` + `<ui-summary>` + `<ui-date>`
+  - sources:  `<ui-items class="spell-sources" divided>` of `<ui-item><ui-content>` with `<ui-header>`, `<ui-meta>`,
+    `<ui-description>`
+  - footer:  `<footer class="spell-doc-footer"><ui-divider>` + a `.meta` "last checked" line
   - asides / digressions:  `<ui-accordion class="spell-aside" styled>` with ONE `<ui-title>` / `<ui-content>` pair,
     collapsed (no `open`)
+  - an icon a page uses must be in `ICONS` in `scripts/bundle-spell-ui.js` (then `yarn docs:update`):  any other
+    name draws nothing
 - Code:
   - ALWAYS folded and colored:  `<ui-accordion class="spell-code" styled>` + `<ui-title>What it is · N lines</ui-title>`
     + `<ui-content><pre><code class="language-ts">`.  30 lines or fewer start open (`open="0"`).
@@ -61,7 +78,8 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
 ## Templates
 
 - `templates/durable.html` -- design notes, research, references:  prose sections, tables, code, callouts.
-- `templates/cheatsheet.html` -- an API reference:  a filterable grid of cards.
+- `templates/cheatsheet.html` -- an API reference:  a grid of cards, filtered by text and by badge
+  (`ui-select[data-spell-filter-badge]`);  a card may carry `<ui-meta>` (since when) and `<ui-extra>` (a docs link).
 - `templates/plans/plan.html` -- a plan doc.  NEVER copy by hand:  `yarn plan-doc new <name>`.
 - A new KIND of doc gets a template here, and a card in the index.
 
