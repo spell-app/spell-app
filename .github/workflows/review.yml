@@ -47,8 +47,8 @@ jobs:
       - run: yarn install --immutable
         working-directory: .
 
-      # ui's browser tests (and the fork's) run in a real chromium
-      - if: matrix.package == 'ui' || matrix.package == 'solid-element'
+      # browser tests (ui's, the fork's, util's) run in a real chromium
+      - if: contains(fromJSON('["ui", "solid-element", "util"]'), matrix.package)
         run: yarn playwright install --with-deps chromium
       # spell's type-aware lint needs the extension's `@types/vscode`:  it's its own yarn project
       - if: matrix.package == 'spell'

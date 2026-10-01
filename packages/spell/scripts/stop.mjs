@@ -1,27 +1,34 @@
 /**
  * `yarn stop`:  stop every server started from this repo -- `yarn start`, vite, the express server and its
  * `tsx watch` -- EXCEPT the language server (`src/lsp/server.ts`), which an editor started and would lose.
- * - Finds them by command line:  anything run from this package's or the monorepo's `node_modules` copy of
- *   `concurrently`, `vite` or `tsx`, so servers from other checkouts, and test runs (`vitest`), are left alone.
+ * - Finds them by command line:  anything run from this package's or this checkout's root `node_modules` copy of
+ *   `concurrently`, `vite` or `tsx` (yarn hoists them to the root), so servers from other checkouts, and test runs
+ *   (`vitest`), are left alone.
+ * - ...then by working folder:  only processes running IN this package, since `ui`'s and its docs site's dev servers
+ *   run the same hoisted `vite`.
  * - SIGTERM, like `pkill`.
  */
 import { execFileSync } from "child_process"
-import { dirname } from "path"
+import { resolve } from "path"
 
 const root = process.cwd()
-// yarn hoists to the monorepo root, so look in this package's `node_modules` and every parent's
-const modules = []
-for (let folder = root; ; folder = dirname(folder)) {
-  modules.push(`${escapeRegExp(folder)}/node_modules`)
-  if (dirname(folder) === folder) break
-}
-const ours = new RegExp(`(${modules.join("|")})/(concurrently/|vite/|tsx/|\\.bin/tsx)`)
+const monorepo = resolve(root, "../..")
+const ours = new RegExp(
+  `(${escapeRegExp(root)}|${escapeRegExp(monorepo)})/node_modules/(concurrently/|vite/|tsx/|\\.bin/tsx)`
+)
 const languageServer = "/src/lsp/server.ts"
 
-const stopped = []
+const candidates = []
 for (const line of execFileSync("ps", ["-Ao", "pid=,command="], { encoding: "utf8" }).split("\n")) {
   const [, pid, command] = /^\s*(\d+)\s+(.*)$/.exec(line) ?? []
   if (!pid || Number(pid) === process.pid || !ours.test(command) || command.includes(languageServer)) continue
+  candidates.push(pid)
+}
+
+const stopped = []
+for (const pid of candidates) {
+  const folder = workingFolder(pid)
+  if (folder !== root && !folder?.startsWith(`${root}/`)) continue
   try {
     process.kill(Number(pid), "SIGTERM")
     stopped.push(pid)
@@ -30,6 +37,16 @@ for (const line of execFileSync("ps", ["-Ao", "pid=,command="], { encoding: "utf
   }
 }
 console.log(stopped.length ? `Stopped spell servers:  ${stopped.join(", ")}` : "No spell servers running")
+
+/** Working folder of process `pid`, or `undefined` once it's gone. */
+function workingFolder(pid) {
+  try {
+    const out = execFileSync("lsof", ["-a", "-d", "cwd", "-Fn", "-p", pid], { encoding: "utf8" })
+    return /^n(.*)$/m.exec(out)?.[1]
+  } catch {
+    return undefined
+  }
+}
 
 /** `text` with regex specials escaped, to match literally. */
 function escapeRegExp(text) {
