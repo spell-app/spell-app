@@ -2,12 +2,12 @@ import { readFileSync } from "fs"
 import { resolve } from "path"
 import { describe, test, expect } from "vitest"
 
-import environment from "#spell/node/environment"
 import { PACKAGE_VERSION } from "#spell-util"
 
 describe("`PACKAGE_VERSION`", () => {
+  // every spell-family package shares one version (`spell`'s, which vite hands over), so ours will do
   test("is our package.json's version -- handed over by vite", () => {
-    const { version } = JSON.parse(readFileSync(resolve(environment.srcDir, "..", "package.json"), "utf8"))
+    const { version } = JSON.parse(readFileSync(resolve(import.meta.dirname, "..", "package.json"), "utf8"))
     expect(PACKAGE_VERSION).toBe(version)
   })
 })

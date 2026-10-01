@@ -7,7 +7,8 @@ const srcDir = resolve(fileURLToPath(import.meta.url), "..", "..")
 const packagesDir = resolve(srcDir, "..", "..")
 /** `spell-core`'s `src/`:  the runtime, and its built-in types' scope pack (`spellCore.scopes.js`). */
 const spellCoreDir = resolve(packagesDir, "spell-core", "src")
-const staticDir = resolve(srcDir, "..", "static")
+/** `spell-app`'s `static/`:  fonts and css the app serves. */
+const staticDir = resolve(packagesDir, "spell-app", "static")
 /** Every spell project on disk:  `system/` (examples, guides, library), `user/`, and `test/` (fixtures). */
 const projectsDir = resolve(srcDir, "..", "projects")
 

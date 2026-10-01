@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "start:lsp": "tsx src/server.ts --stdio",
+    "scopes": "tsx src/scopes.ts",
     "/////// CORRECTNESS": "",
     "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
     "ts": "echo '>>>>>>>>>>>\n>> RUNNING TSC' && tsc && tsc -p tsconfig.node.json && echo '<< TSC PASSED\n'",
@@ -22,6 +24,7 @@
     "oxfmt": "^0.71.0",
     "oxlint": "^1.86.0",
     "oxlint-tsgolint": "^7.0.2003",
+    "tsx": "4.20.3",
     "typescript": "^7.0.2",
     "vite": "^8.3.1",
     "vitest": "^5.0.2"
@@ -29,5 +32,14 @@
   "engines": {
     "node": ">=22.17"
   },
-  "packageManager": "yarn@4.18.0"
+  "packageManager": "yarn@4.18.0",
+  "dependencies": {
+    "@spell/parser": "workspace:*",
+    "@spell/spell": "workspace:*",
+    "@spell/spell-core": "workspace:*",
+    "@spell/spell-util": "workspace:*",
+    "json5": "^2.1.1",
+    "vscode-languageserver": "^10.1.2",
+    "vscode-languageserver-textdocument": "^1.0.15"
+  }
 }
