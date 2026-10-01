@@ -3,14 +3,14 @@
   "displayName": "Spell",
   "version": "0.8.0",
   "private": true,
-  "description": "Spell language support:  errors, hover, completion, go to definition, rename -- from the spell parser's language server.",
+  "description": "Spell language support:  errors, hover, completion, go to definition, rename -- from spell's language server.",
   "license": "MIT",
   "repository": "https://github.com/spell-app/spell",
   "publisher": "spell-app",
   "main": "./out/extension.js",
   "scripts": {
     "build": "node build.mjs",
-    "check": "cd .. && yarn tsc --noEmit -p vscode-extension",
+    "check": "cd ../.. && node_modules/.bin/tsc --noEmit -p packages/vscode",
     "package": "vsce package --no-dependencies --skip-license --out spell-language.vsix",
     "install-extension": "code --install-extension spell-language.vsix --force"
   },
@@ -42,7 +42,7 @@
         "spell.parserRoot": {
           "type": "string",
           "default": "",
-          "description": "Folder of the spell parser repo, whose language server to run.  Empty:  the repo the extension was built in."
+          "description": "Folder of the spell monorepo whose language server to run.  Empty:  the one the extension was built in."
         },
         "spell.compileOnSave": {
           "type": "boolean",

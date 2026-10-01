@@ -1,6 +1,6 @@
 /**
  * "Run Project":  runs a spell project in a webview beside its code, re-running each time the project compiles.
- * - The webview's code is the parser repo's runner bundle (`yarn build:runner` => `dist-runner/`,
+ * - The webview's code is `spell-app`'s runner bundle (`yarn build:runner` => `dist-runner/`,
  *   from `src/app/runner/`), with Semantic UI + Lato straight from its `static/`.
  * - Server compiles, NOT us:  `spell/compileProject`, answered by `spell/projectCompiled` with the javascript.
  * - Also re-runs when the project's `<Project>.compiled.js` changes on disk, e.g. compiled by the web app.
@@ -46,14 +46,14 @@ export class RunnerPanel {
   /** Run the next `spell/projectCompiled` even if it's what we last ran:  Restart, or the webview is new. */
   #forceRun = false
 
-  constructor(client: LanguageClient, parserRoot: string, info: ProjectInfo, uri: string) {
+  constructor(client: LanguageClient, repoRoot: string, info: ProjectInfo, uri: string) {
     this.client = client
     this.project = info.project
     this.uri = uri
     // the compiled file is in the project's folder too
     this.settingsUri = vscode.Uri.joinPath(vscode.Uri.parse(info.compiledUri), "..", SETTINGS_FILE)
-    const runner = vscode.Uri.file(resolve(parserRoot, "dist-runner"))
-    const statics = vscode.Uri.file(resolve(parserRoot, "static"))
+    const runner = vscode.Uri.file(resolve(repoRoot, "packages/spell-app/dist-runner"))
+    const statics = vscode.Uri.file(resolve(repoRoot, "packages/spell-app/static"))
     this.panel = vscode.window.createWebviewPanel(
       "spell.runner",
       `Run ${info.project.split(":").pop()}`,
@@ -88,9 +88,9 @@ export class RunnerPanel {
    * Set up "Run Project" -- call once, from `activate()`, before the client starts.
    * - SIDE EFFECT: registers the `spell.runProject` command, and listeners for compiles and saves.
    */
-  static register(context: vscode.ExtensionContext, client: LanguageClient, parserRoot: string): void {
+  static register(context: vscode.ExtensionContext, client: LanguageClient, repoRoot: string): void {
     context.subscriptions.push(
-      vscode.commands.registerCommand("spell.runProject", () => RunnerPanel.show(client, parserRoot)),
+      vscode.commands.registerCommand("spell.runProject", () => RunnerPanel.show(client, repoRoot)),
       client.onNotification("spell/projectCompiled", ({ project, compiled }: ProjectCompiled) => {
         const panel = RunnerPanel.panels.get(project)
         panel?.run(compiled, panel.#forceRun)
@@ -100,11 +100,11 @@ export class RunnerPanel {
   }
 
   /** Run the active spell file's project beside it, or bring its panel forward if it's already running. */
-  static async show(client: LanguageClient, parserRoot: string): Promise<void> {
+  static async show(client: LanguageClient, repoRoot: string): Promise<void> {
     const document = vscode.window.activeTextEditor?.document
     if (document?.languageId !== "spell") return
-    if (!existsSync(resolve(parserRoot, "dist-runner/runner.js"))) {
-      void vscode.window.showErrorMessage(`Spell:  no runner bundle.  Run \`yarn build:runner\` in '${parserRoot}'.`)
+    if (!existsSync(resolve(repoRoot, "dist-runner/runner.js"))) {
+      void vscode.window.showErrorMessage(`Spell:  no runner bundle.  Run \`yarn build:runner\` in '${repoRoot}'.`)
       return
     }
     const uri = document.uri.toString()
@@ -115,7 +115,7 @@ export class RunnerPanel {
     }
     const open = RunnerPanel.panels.get(info.project)
     if (open) open.panel.reveal(undefined, true)
-    else new RunnerPanel(client, parserRoot, info, uri)
+    else new RunnerPanel(client, repoRoot, info, uri)
   }
 
   /**
@@ -274,7 +274,7 @@ export class RunnerPanel {
     const csp = [
       "default-src 'none'",
       `script-src ${source} blob:`,
-      // the runner fetches its own copy of the spell runtime -- see `loadRuntime()` in the parser repo
+      // the runner fetches its own copy of the spell runtime -- see `loadRuntime()` in `spell-app`
       `connect-src ${source}`,
       `style-src ${source} 'unsafe-inline'`,
       `font-src ${source} data:`,
@@ -313,7 +313,7 @@ const PARSE_ERROR_MARKER = "/* PARSE ERROR:"
 
 ////////////////
 // ## Protocol types
-//  NOTE: restated from the parser repo, which this project can't import -- change both together.
+//  NOTE: restated from `spell-app` (`runner.types.ts`), which this project can't import -- change both together.
 ////////////////
 
 /** Answer to `spell/project`, as `LSP.ProjectInfo` -- just what we read. */

@@ -1,7 +1,7 @@
 /**
  * VS Code extension for spell:  runs the spell parser's language server, and shows a file's compiled javascript.
- * - The server is the parser repo's own `src/lsp/server.ts`, run by that repo's `tsx` -- see `getParserRoot()`.
- *   So the editor always runs the parser as it is on disk:  restart the server to pick up a parser change.
+ * - The server is the spell monorepo's own `packages/lsp/src/server.ts`, run by its `tsx` -- see `getRepoRoot()`.
+ *   So the editor always runs spell as it is on disk:  restart the server to pick up a change.
  * - The server asks to watch `project.json` / `.spell` files itself, so there's no `synchronize` here.
  */
 import { existsSync } from "fs"
@@ -25,21 +25,22 @@ const COMPILED_SCHEME = "spell-compiled"
 const REFRESH_DELAY = 300
 
 /** Parser repo this extension was built in -- set by `build.mjs`. */
-declare const PARSER_ROOT: string
+declare const REPO_ROOT: string
 
 /** Client for the running language server, once `activate()` has started it. */
 let client: LanguageClient | undefined
 
 /**
  * Start the language server and register our command.
- * - Shows an error, and does nothing else, if `spell.parserRoot` isn't a parser repo with its packages installed.
+ * - Shows an error, and does nothing else, if `spell.parserRoot` isn't the spell monorepo with its packages installed.
  */
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
-  const parserRoot = getParserRoot()
-  const tsx = findTsx(parserRoot)
-  const server = resolve(parserRoot, "src/lsp/server.ts")
+  const repoRoot = getRepoRoot()
+  const tsx = findTsx(repoRoot)
+  const lspDir = resolve(repoRoot, "packages/lsp")
+  const server = resolve(lspDir, "src/server.ts")
   if (!tsx || !existsSync(server)) {
-    const message = `Spell:  no language server in '${parserRoot}'.  Set \`spell.parserRoot\` to the parser repo, and run \`yarn\` there.`
+    const message = `Spell:  no language server in '${repoRoot}'.  Set \`spell.parserRoot\` to the spell monorepo, and run \`yarn\` there.`
     void vscode.window.showErrorMessage(message)
     return
   }
@@ -49,13 +50,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     command: tsx,
     args: [server],
     transport: TransportKind.stdio,
-    options: { cwd: parserRoot }
+    // `tsx` reads `tsconfig.json` (the aliases) where it runs
+    options: { cwd: lspDir }
   }
   const clientOptions: LanguageClientOptions = {
     documentSelector: [{ scheme: "file", language: "spell" }]
   }
   client = new LanguageClient("spell", "Spell", serverOptions, clientOptions)
-  RunnerPanel.register(context, client, parserRoot)
+  RunnerPanel.register(context, client, repoRoot)
 
   const compiled = new CompiledProvider(client)
   context.subscriptions.push(
@@ -74,22 +76,22 @@ export function deactivate(): Promise<void> | undefined {
 }
 
 /**
- * Folder of the parser repo whose server we run:  `spell.parserRoot` if set, else the repo we were built in.
+ * The spell monorepo whose server we run:  `spell.parserRoot` if set (named before the monorepo), else the one
+ * we were built in.
  * - NOT `context.extensionPath`:  an installed copy lives in VS Code's extensions folder, away from the repo.
  */
-function getParserRoot(): string {
+function getRepoRoot(): string {
   const configured = vscode.workspace.getConfiguration("spell").get<string>("parserRoot")
-  return configured ? resolve(configured) : PARSER_ROOT
+  return configured ? resolve(configured) : REPO_ROOT
 }
 
 /**
  * The repo's `tsx` executable, or `undefined` if no `yarn install` has run.
- * - Looks in `<parserRoot>/node_modules/.bin` and every parent:  yarn hoists to the monorepo root, so
- *   `packages/spell/node_modules/.bin/tsx` usually doesn't exist.  The nearest is `spell`'s own `tsx`
- *   (pinned to 4.20.3 -- see `PAPERCUTS.md`).
+ * - Looks in `<repoRoot>/node_modules/.bin` and every parent:  yarn hoists tools to the monorepo root.  It's
+ *   `spell`'s `tsx`, pinned to 4.20.3 -- see `PAPERCUTS.md`.
  */
-function findTsx(parserRoot: string): string | undefined {
-  for (let folder = parserRoot; ; folder = dirname(folder)) {
+function findTsx(repoRoot: string): string | undefined {
+  for (let folder = repoRoot; ; folder = dirname(folder)) {
     const candidate = resolve(folder, "node_modules/.bin/tsx")
     if (existsSync(candidate)) return candidate
     if (dirname(folder) === folder) return undefined

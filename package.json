@@ -6,15 +6,27 @@
   "repository": "https://github.com/spell-app/spell",
   "type": "module",
   "workspaces": [
-    "packages/*",
-    "packages/ui/site"
+    "packages/cli",
+    "packages/lsp",
+    "packages/parser",
+    "packages/solid-element",
+    "packages/spell",
+    "packages/spell-app",
+    "packages/spell-core",
+    "packages/spell-util",
+    "packages/ui",
+    "packages/ui/site",
+    "packages/util"
   ],
   "scripts": {
     "ts": "yarn workspaces foreach -A --exclude spell-root run ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:packages": "yarn workspaces foreach -A --exclude spell-root run test",
-    "review": "yarn workspaces foreach -A --exclude spell-root run review"
+    "review": "yarn workspaces foreach -A --exclude spell-root run review",
+    "vscode": "yarn vscode:build && yarn vscode:install",
+    "vscode:build": "cd packages/vscode && yarn install && yarn build && yarn package",
+    "vscode:install": "cd packages/vscode && yarn install-extension"
   },
   "devDependencies": {
     "@vitest/browser-playwright": "5.0.2",
