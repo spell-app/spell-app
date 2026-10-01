@@ -36,8 +36,8 @@
             <li data-status="done" data-phase="1">
               <ui-icon name="circle check" color="green"></ui-icon> <a href="#p1">P1 · Scope Packs</a>
             </li>
-            <li data-status="todo" data-phase="2">
-              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p2">P2 · Small Commands</a>
+            <li data-status="done" data-phase="2">
+              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p2">P2 · Small Commands</a>
             </li>
             <li data-status="todo" data-phase="3">
               <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p3">P3 · Language Tools</a>
@@ -157,7 +157,21 @@
 
         <section class="s2">
           <ui-sticky class="spell-h2"><h2 id="issues">5. Issues</h2></ui-sticky>
-          <ol class="plan-items" data-kind="issue"></ol>
+          <ol class="plan-items" data-kind="issue">
+            <li data-status="done" id="i1">
+              <a class="plan-id" href="#i1">I1</a>
+              <span class="plan-title">Listing a root whose folder is missing (@guides) crashed with ENOENT</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <code>projectIdsIn()</code> scanned every root's folder; <code>projects/system/guides</code> doesn't
+                    exist. Also hit <code>spell compile @guides</code>. Fixed: a missing folder = no projects.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+          </ol>
         </section>
 
         <section class="s2">
@@ -310,6 +324,22 @@
                 ></ui-accordion
               >
             </li>
+            <li data-status="open" id="d12">
+              <a class="plan-id" href="#d12">D12</a>
+              <span class="plan-title"
+                >speed: sides take turns run by run; one fluke dropped (average over 1.25x the median, 3+ runs); Change
+                shows + for slower</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Turns: a busy moment hits both sides alike. Fluke rule makes Owen's 'may discard one anomalous run'
+                    mechanical. The + sign isn't in Owen's example (only negatives and 0): added so slower is
+                    unmistakable.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
           </ol>
         </section>
 
@@ -360,9 +390,9 @@
               </li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="2" class="s3">
+          <section data-status="done" data-phase="2" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p2"><ui-icon name="circle outline" color="grey"></ui-icon> P2 · Small Commands</h3></ui-sticky
+              ><h3 id="p2"><ui-icon name="circle check" color="green"></ui-icon> P2 · Small Commands</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li>
@@ -371,8 +401,17 @@
               </li>
               <li>
                 <b>Files:</b> in <a href="../../../cli/src/" target="src-packages-cli-src"><code>cli/src/</code></a
-                >: <code>commands/projectsCommand.ts</code>, <code>speedCommand.ts</code>,
-                <code>formatCommand.ts</code>; <code>runner/speedTest.ts</code>;
+                >: <code>commands/projectsCommand.ts</code>,
+                <a
+                  href="../../../cli/src/commands/speedCommand.ts"
+                  target="src-packages-cli-src-commands-speedcommand-ts"
+                  ><code>speedCommand.ts</code></a
+                >,
+                <a
+                  href="../../../cli/src/commands/formatCommand.ts"
+                  target="src-packages-cli-src-commands-formatcommand-ts"
+                  ><code>formatCommand.ts</code></a
+                >; <code>runner/speedTest.ts</code>;
                 <a href="../../../cli/src/main.ts" target="src-packages-cli-src-main-ts"><code>main.ts</code></a>
               </li>
               <li>
@@ -476,6 +515,16 @@
               packs; SUSPECTED-BUGS cli + docs sections (plan-doc escaping, phone overflow)
             </li>
             <li><time datetime="2026-10-01T00:56-04:00">2026-10-01 00:56</time> P1 done</li>
+            <li><time datetime="2026-10-01T00:56-04:00">2026-10-01 00:56</time> P2 active</li>
+            <li>
+              <time datetime="2026-10-01T01:02-04:00">2026-10-01 01:02</time> I1 closed: Listing a root whose folder is
+              missing (@guides) crashed with ENOENT
+            </li>
+            <li>
+              <time datetime="2026-10-01T01:02-04:00">2026-10-01 01:02</time> P2 done: projects, speed (--against
+              verified on HEAD: 0% / 0% / -15%), format (--check; refuses projects/test)
+            </li>
+            <li><time datetime="2026-10-01T01:02-04:00">2026-10-01 01:02</time> P2 done</li>
           </ul>
         </section>
       </main>

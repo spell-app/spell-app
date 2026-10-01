@@ -65,6 +65,9 @@ Every command takes one or more targets:
 | `spell watch [targets...]` | Recompiles on every save, with a live list of errors.  `--check-only` re-checks and writes nothing.  `q` / `Ctrl-C` stops it. |
 | `spell run [target]` | Compiles and runs the project under node.  Its `print`s show as they happen. |
 | `spell test [targets...]` | Runs each `to test ...` and reports ✓, or ✗ with the checks that failed.  `--verbose` shows every check. |
+| `spell format <targets...>` | Tidies `.spell` files' whitespace, as VS Code's Format Document does.  `--check` writes nothing, lists what would change, exits 1 if anything would.  Never writes into `projects/test/`. |
+| `spell projects [root]` | Lists the project roots, or one root's projects, with the names to type.  `--json`. |
+| `spell speed [module]` | Times the parser's rule tests (`SP.spellParser.speedTest()`), 3 fresh runs, as a markdown table.  `--against HEAD` times that commit too, in a temp worktree, and adds a Change row.  `--runs`, `--json`. |
 
 - No target, for `explore` / `watch` / `run` / `test`, means `@workspace`.
 - Names in `describe` ignore case, and spaces ~== `-` ~== `_`:  `stock pile` finds `Stock_Pile`.
@@ -101,6 +104,17 @@ Every command takes one or more targets:
   - A test that throws FAILS, with the error.  Spell's own `spellCore.test()` swallows it silently.
   - It finds tests by their exported function names:  `test_*`.
   - `print` inside a test is hidden unless `--verbose`.
+
+### `speed`
+
+- Each run is a fresh node process:  `src/runner/speedTest.mts` (a warm-up, then 20 timed passes).
+- A side's runs combine as:  the mean of their averages, the lowest min, the highest max.  With 3 or more runs, ONE
+  fluke -- an average 25% over the median -- is dropped.
+- `--against <ref>`:
+  - makes a temp `git worktree` of the ref, links our `node_modules` into it, and copies the runner in -- a ref
+    with different dependencies may not run
+  - the ref must have `packages/spell` and the `$/` aliases:  from the monorepo on
+  - the two sides take turns, run by run;  the worktree is removed afterwards, even on failure
 
 ### `watch`
 
@@ -140,13 +154,10 @@ Every command takes one or more targets:
 
 ### Commands not built yet
 
-- `spell format [--check]`:  apply `SpellLanguageService.formatting()` edits
 - `spell explain <word>`:  hover text / rule syntax for a word, via `workspaceSymbols()` + `describeRecord()`
 - `spell parse "<text>" [--rule x]` / `spell repl`:  a line's match tree and compiled output, for debugging rules
 - `spell new <name>`:  make a project
 - `spell lsp`:  start the language server, so the extension spawns `spell lsp` rather than a `tsx` path
-- `spell speed`:  `SP.spellParser.speedTest()`
-- `spell projects [root]`:  list roots and projects
 
 ### Improvements
 

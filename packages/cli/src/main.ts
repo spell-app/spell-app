@@ -95,6 +95,33 @@ program
   .option("--check-only", "re-check instead of recompiling:  writes nothing")
   .action((targets: string[], _options, command) => run(CLI.watchCommand, targets, command.optsWithGlobals()))
 
+program
+  .command("format")
+  .description("tidy the whitespace of .spell files, as VS Code's Format Document does -- never in projects/test/")
+  .argument("<targets...>", "spell files, project folders, or @roots/projects")
+  .option("--check", "write nothing:  list files that would change, exiting 1 if any would")
+  .action((args: string[], _options, command) => run(CLI.formatCommand, args, command.optsWithGlobals()))
+
+program
+  .command("projects")
+  .description("list the project roots -- or, given one, the projects in it")
+  .argument("[root]", "a project root, e.g. @library or @user")
+  .option("--json", "print the list as JSON")
+  .action((root: string | undefined, _options, command) =>
+    run(CLI.projectsCommand, root ? [root] : [], command.optsWithGlobals())
+  )
+
+program
+  .command("speed")
+  .description("time the parser's rule tests -- --against HEAD to compare with a commit")
+  .argument("[module]", "only this module's rules, e.g. if")
+  .option("--runs <count>", "runs per side, each a fresh process", (value) => Number(value), 3)
+  .option("--against <ref>", "time this git commit too, e.g. HEAD, in a temp worktree")
+  .option("--json", "print each side's combined results as JSON")
+  .action((module: string | undefined, _options, command) =>
+    run(CLI.speedCommand, module ? [module] : [], command.optsWithGlobals())
+  )
+
 await program.parseAsync()
 
 /**

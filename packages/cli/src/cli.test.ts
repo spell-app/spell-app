@@ -198,6 +198,52 @@ describe("spell watch", () => {
   }, 30_000)
 })
 
+describe("spell projects", () => {
+  test("lists the roots, with the name to type for each", () => {
+    const { status, stdout } = spell(["projects"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/^@test +@test:fixtures +Test fixtures +2 projects$/m)
+    expect(stdout).toMatch(/^@user +@user:projects /m)
+  })
+
+  test("one root's projects, as JSON", () => {
+    const { stdout } = spell(["projects", "@test", "--json"])
+    expect(JSON.parse(stdout)).toEqual([
+      { name: "@test/FizzBuzz", id: "@test:fixtures:FizzBuzz" },
+      { name: "@test/Solitaire", id: "@test:fixtures:Solitaire" }
+    ])
+  })
+})
+
+describe("spell format", () => {
+  test("--check lists what would change, exit 1;  then format fixes it, and --check passes", () => {
+    const messy = tempProject("Messy", 'print   "hello"  \n\n\n\n\nprint "bye"')
+    const check = spell(["format", "--check", "."], messy)
+    expect(check.stdout).toBe("Messy.spell\n")
+    expect(check.status).toBe(1)
+    expect(readFileSync(resolve(messy, "Messy.spell"), "utf8")).toContain("print   ")
+
+    expect(spell(["format", "."], messy).status).toBe(0)
+    expect(readFileSync(resolve(messy, "Messy.spell"), "utf8")).toBe('print "hello"\n\n\nprint "bye"\n')
+    expect(spell(["format", "--check", "."], messy).status).toBe(0)
+  })
+
+  test("never writes into a test project", () => {
+    const { status, stderr } = spell(["format", "@test/Solitaire"])
+    expect(status).toBe(2)
+    expect(stderr).toContain("Won't format test projects")
+  })
+})
+
+describe("spell speed", () => {
+  test("times one module's rules:  a table and the pass count", () => {
+    const { status, stdout } = spell(["speed", "if", "--runs", "1"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/^\| +\| Average \|.*\n.*\n\| \*\*Current\*\* \| +\d+ \|/)
+    expect(stdout).toMatch(/Current: {2}\d+ passed, 0 failed\n$/)
+  }, 60_000)
+})
+
 /** Resolve once `condition()` holds, checking every 50ms -- or reject after `ms`. */
 async function until(condition: () => boolean, ms = 15_000): Promise<void> {
   const start = Date.now()

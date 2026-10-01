@@ -53,9 +53,11 @@ export function rootsNamed(name: string): SP.ProjectRootSpec[] {
 /**
  * Ids of the projects in `roots`, e.g. `["@system:library:cards"]`.
  * - Only folders holding a `project.json` -- see the header.
+ * - A root whose folder doesn't exist, e.g. `@guides` before any guide is written, has none.
  */
 export async function projectIdsIn(roots: SP.ProjectRootSpec[]): Promise<string[]> {
-  const lists = await Promise.all(roots.map((spec) => projectUtils.getProjectList(spec.path)))
+  const present = roots.filter((spec) => existsSync(projectUtils.serverPathForRoot(spec.path)))
+  const lists = await Promise.all(present.map((spec) => projectUtils.getProjectList(spec.path)))
   return lists.flat().filter((projectId) => hasManifest(new SP.SpellLocation(projectId).serverPath))
 }
 

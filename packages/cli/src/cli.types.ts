@@ -84,6 +84,34 @@ export type WatchOptions = GlobalOptions & {
   checkOnly?: boolean
 }
 
+/**
+ * `spell projects` flags.
+ * - `json`:  print the list as JSON
+ */
+export type ProjectsOptions = GlobalOptions & {
+  json?: boolean
+}
+
+/**
+ * `spell speed` flags.
+ * - `runs`:  how many runs per side, each a fresh process -- default 3
+ * - `against`:  a git ref, e.g. `HEAD`, to time as well, as "Previous"
+ * - `json`:  print each side's combined results as JSON
+ */
+export type SpeedOptions = GlobalOptions & {
+  runs?: number
+  against?: string
+  json?: boolean
+}
+
+/**
+ * `spell format` flags.
+ * - `check`:  write nothing:  list the files that would change, and exit 1 if any would
+ */
+export type FormatOptions = GlobalOptions & {
+  check?: boolean
+}
+
 ////////////////
 // ## Running
 ////////////////
