@@ -48,7 +48,8 @@ the whole time.  The plan doc is the user's view of the work:  they read it in C
      The LAST phase is always `Doc Review`.
   3. Overview:  numbered sections (structure, code, flows):  what will become durable docs
   4. Caveats, issues, todos, decisions (what + why), open questions
-- Ask open questions with AskUserQuestion before ExitPlanMode.
+- Ask open questions with AskUserQuestion before ExitPlanMode.  If the user hasn't said how many agents the work
+  may use, one of them is "How many agents can I use for this?";  record the answer as a decision.
 - Plan mode allows editing ONLY the harness plan file:  the plan doc waits until approval.
 
 ## 4. Fill the doc (right after ExitPlanMode is approved)

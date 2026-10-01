@@ -51,7 +51,7 @@
             <a href="../../ui-component-creation.html" target="docs-ui-component-creation">ui-component-creation.html</a
             >.
           </p>
-          <ui-progress class="plan-progress" value="12" total="12" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="12" total="16" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
           <ui-steps class="plan-phases" vertical ordered>
@@ -79,6 +79,10 @@
               data-phase="11"
             ></ui-step
             ><ui-step completed header="P12 · Emoji Name Sets" href="#p12" data-status="done" data-phase="12"></ui-step
+            ><ui-step selected header="P13 · Folder Rename" href="#p13" data-status="active" data-phase="13"></ui-step
+            ><ui-step header="P14 · Definitions And Topics" href="#p14" data-status="todo" data-phase="14"></ui-step
+            ><ui-step header="P15 · Sidebar Component Browser" href="#p15" data-status="todo" data-phase="15"></ui-step
+            ><ui-step header="P16 · Root Design" href="#p16" data-status="todo" data-phase="16"></ui-step
           ></ui-steps>
         </section>
 
@@ -1246,6 +1250,21 @@
                 ></ui-accordion
               >
             </li>
+            <li data-status="open" id="d40">
+              <a class="plan-id" href="#d40">D40</a>
+              <span class="plan-title"
+                >Folders per family named by tag (ui-button/), everything renamed; topics + aka in the vocabulary;
+                vocabulary stays live (describe()); ui-root design only</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Owen, 2026-10-01 (plan approved). Proposed: <code>parts</code> -&gt; <code>ui-parts/</code> (no
+                    ui-parts tag). Up to 4 agents.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
           </ol>
         </section>
 
@@ -1439,6 +1458,75 @@
                 <b>Verify:</b> both sets resolve; switching affects later lookups; examples render the same glyphs
                 (visual); yarn review; measure
               </li>
+            </ul>
+          </section>
+          <section data-status="active" data-phase="13" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p13">
+                <ui-icon name="circle half stroke" color="orange"></ui-icon> P13 · Folder Rename
+              </h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> src/components/&lt;family&gt;/ -&gt; ui-&lt;family&gt;/, files ui-&lt;family&gt;.*, one
+                vocabulary file per tag, loose constants / helpers lifted into ui-&lt;family&gt;.types.ts (shared ones
+                into components.types.ts); entries, URLs, baselines follow
+              </li>
+              <li>
+                <b>Files:</b> every component folder; vite.config.ts, package.json, src/index.ts, tools/, test/, site/,
+                docs/, AGENTS.md, test/visual/baselines
+              </li>
+              <li><b>Verify:</b> yarn review; build chain; test:visual ZERO diffs; pack --dry-run exports resolve</li>
+            </ul>
+          </section>
+          <section data-status="todo" data-phase="14" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p14">
+                <ui-icon name="circle outline" color="grey"></ui-icon> P14 · Definitions And Topics
+              </h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> topics + aka in every tag's vocabulary (translatable, live on the class); roll-up
+                component-definitions.ts; describe(); test
+              </li>
+              <li>
+                <b>Files:</b> src/vocabulary (types, ValueSets), every *.vocabulary.en.ts,
+                src/components/component-definitions.ts, UIElement, AGENTS.md, translation.md, site components.ts /
+                index
+              </li>
+              <li><b>Verify:</b> definitions test; yarn review; site:build</li>
+            </ul>
+          </section>
+          <section data-status="todo" data-phase="15" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p15">
+                <ui-icon name="circle outline" color="grey"></ui-icon> P15 · Sidebar Component Browser
+              </h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> one Components section: search (name, tag, topic, aka), A-Z and Topics views (collapsible,
+                many open), star favorites in localStorage
+              </li>
+              <li>
+                <b>Files:</b> site/src/layouts/Docs.astro, site/src/lib/nav.ts, site/src/scripts/component-browser.ts,
+                site CSS
+              </li>
+              <li><b>Verify:</b> Playwright click-through, axe, light + dark screenshots</li>
+            </ul>
+          </section>
+          <section data-status="todo" data-phase="16" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p16"><ui-icon name="circle outline" color="grey"></ui-icon> P16 · Root Design</h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> &lt;ui-root&gt; written up with examples and options (design only): on-demand loading, page
+                settings, subtree theme / size, display=when-ready|skeleton|immediately, skeleton descriptions
+              </li>
+              <li><b>Files:</b> this plan doc (Overview + questions)</li>
+              <li><b>Verify:</b> plan-doc check; screenshots looked at</li>
             </ul>
           </section>
         </section>
@@ -1923,6 +2011,41 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-01T09:55-04:00">2026-10-01 09:55</time></ui-date> P12
                   done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T12:02-04:00">2026-10-01 12:02</time></ui-date> P13 added: Folder
+                  Rename</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T12:02-04:00">2026-10-01 12:02</time></ui-date> P14 added:
+                  Definitions And Topics</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T12:02-04:00">2026-10-01 12:02</time></ui-date> P15 added: Sidebar
+                  Component Browser</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T12:02-04:00">2026-10-01 12:02</time></ui-date> P16 added: Root
+                  Design</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T12:02-04:00">2026-10-01 12:02</time></ui-date> P13
+                  active</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
