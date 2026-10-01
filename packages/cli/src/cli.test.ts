@@ -1,5 +1,5 @@
 import { spawn, spawnSync } from "child_process"
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "fs"
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "fs"
 import { tmpdir } from "os"
 import { resolve } from "path"
 import { afterAll, beforeAll, describe, test, expect } from "vitest"
@@ -13,7 +13,6 @@ import { fixturePath } from "$/spell/test"
  * - NEVER writes into a fixture:  compiles use `--stdout`.  Projects to break live in a temp folder -- see `tempProject()`.
  */
 const SPELL = resolve(import.meta.dirname, "..", "bin", "spell.mjs")
-
 /** Temp folder holding `tempProject()`s -- its REAL path:  on macOS `tmpdir()` is a symlink, and spell reports real paths. */
 const TEMP = realpathSync(mkdtempSync(resolve(tmpdir(), "spell-cli-")))
 afterAll(() => rmSync(TEMP, { recursive: true, force: true }))
@@ -62,6 +61,25 @@ describe("spell compile", () => {
     const { status, stderr } = spell(["compile", "@nope"])
     expect(status).toBe(2)
     expect(stderr).toContain("'@nope' isn't a project")
+  })
+
+  // NOTE: written by `SpellDiskWorkspace.writeScopes()`, as the language server and `yarn scopes` write theirs --
+  // which `yarn scopes` can't show here:  it takes a root's project id, not a temp folder.
+  test("a clean project writes its scope pack too", () => {
+    const copy = resolve(TEMP, "Solitaire")
+    cpSync(fixturePath("Solitaire"), copy, { recursive: true })
+    const { status, stderr } = spell(["compile", "."], copy)
+    expect(status).toBe(0)
+    expect(stderr).toContain(`wrote Solitaire${SP.COMPILED_JS_SUFFIX}, Solitaire${SP.SCOPES_JS_SUFFIX}`)
+    const pack = readFileSync(resolve(copy, `Solitaire${SP.SCOPES_JS_SUFFIX}`), "utf8")
+    expect(pack).toContain("type:Card")
+    expect(pack).not.toContain("file://")
+  }, 30_000)
+
+  test("a project with errors writes no scope pack", () => {
+    const broken = tempProject("BrokenPack", 'print "fine"\nflibbertigibbet the wombat\n')
+    expect(spell(["compile", "."], broken).status).toBe(1)
+    expect(existsSync(resolve(broken, `BrokenPack${SP.SCOPES_JS_SUFFIX}`))).toBe(false)
   })
 })
 
@@ -173,6 +191,7 @@ describe("spell watch", () => {
     writeFileSync(resolve(watched, "Watched.spell"), 'print "hello again"\n')
     await until(() => log.split("✓").length > 2)
     expect(readFileSync(resolve(watched, `Watched${SP.COMPILED_JS_SUFFIX}`), "utf8")).toContain("hello again")
+    expect(existsSync(resolve(watched, `Watched${SP.SCOPES_JS_SUFFIX}`))).toBe(true)
 
     child.kill("SIGINT")
     expect(await new Promise((done) => child.on("exit", done))).toBe(0)

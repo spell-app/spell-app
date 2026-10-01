@@ -58,7 +58,7 @@ Every command takes one or more targets:
 
 | Command | What it does |
 |---|---|
-| `spell compile <targets...>` | Writes each project's `<Project>.compiled.js`.  `--stdout` prints it and writes nothing.  A `.spell` file prints its javascript. |
+| `spell compile <targets...>` | Writes each project's `<Project>.compiled.js`, and with no errors its scope pack `<Project>.scopes.js`.  `--stdout` prints it and writes nothing.  A `.spell` file prints its javascript. |
 | `spell check <targets...>` | Lists errors on stdout as `path:line:col  message`.  `--json` for a JSON list. |
 | `spell describe <target> [name] [member]` | What the Type Explorer shows, as text.  E.g. `spell describe Card.spell Card color`.  `--compiled`, `--inherited`, `--json`. |
 | `spell explore [target]` | Full-screen Type Explorer.  `↑↓` move, `←→` fold, `Tab` switch pane, `/` filter, `c` compiled, `i` inherited, `o` open in editor, `q` quit. |
@@ -78,7 +78,8 @@ Every command takes one or more targets:
 
 ### What can write files
 
-- `compile` writes `<Project>.compiled.js`, as the app does.  `--stdout` doesn't.
+- `compile` writes `<Project>.compiled.js`, as the app does.  With no errors, also `<Project>.scopes.js`, as the
+  language server does.  `--stdout` writes neither.  `watch` the same after each rebuild, unless `--check-only`.
 - `check`, `describe`, `explore`, `run` and `test` write nothing of their own.  But if a project imports one that
   has NEVER been compiled, it's compiled first, which writes that project's `.compiled.js`.  Parsing fails without it.
 - An imported project's existing `.compiled.js` is used as is, even if its sources changed since.  Compile it first.
@@ -103,7 +104,7 @@ Every command takes one or more targets:
 
 ### `watch`
 
-- It watches each project's folder:  `.spell`, `.css`, `project.json`.  It ignores `*.compiled.js`.
+- It watches each project's folder:  `.spell`, `.css`, `project.json`.  It ignores `*.compiled.js` and `*.scopes.js`.
 - A project another imports doesn't rebuild the importer when it changes.  Watch both.
 - On macOS a save arrives as a `rename` event, so `watch` ignores event types and looks at what's on disk.
   See `PAPERCUTS.md`.
@@ -160,8 +161,6 @@ Every command takes one or more targets:
 - `run`:  optionally run UI projects in a real browser (e.g. playwright, already a dev dependency), or under a fake
   DOM.
 - `compile`:  a `--force` to recompile imported projects even when their `.compiled.js` exists.
-- `compile`:  write the project's scope pack, `<Project>.scopes.js`, as the language server does after a clean
-  compile -- via `SpellDiskWorkspace.writeScopes()`.  See the `TODO` in `../lsp/src/scopes.ts`.
 - `test`:  a `--watch`, and filtering tests by name.
 
 ### Review items

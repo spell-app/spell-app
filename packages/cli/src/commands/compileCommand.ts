@@ -4,6 +4,8 @@ import { CLI } from "$/cli"
 /**
  * `spell compile <target...>`:  compile each target, showing progress and errors on stderr.
  * - A project:  writes `<Project>.compiled.js`, as the app does -- or, with `--stdout`, prints it and writes nothing.
+ *   Compiled with no errors, it also writes `<Project>.scopes.js`, as the language server does -- see
+ *   `SpellDiskWorkspace.writeScopes()`.
  * - A `.spell` file:  prints its compiled javascript.  Writes nothing.
  * - Projects it imports that have never been compiled are compiled first -- see `CliSession.compileImports()`.
  * - Returns the exit code:  `EXIT.ERRORS` if anything had errors.
@@ -54,7 +56,12 @@ async function compileProject(
     return false
   }
   if (stdout) output.push(project.outputFile.contents ?? "")
-  const note = stdout ? undefined : `wrote ${session.relative(project.outputFile.location.serverPath)}`
+  const wrote = stdout ? [] : [project.outputFile.location.serverPath]
+  // a CLEAN compile writes its scope pack too, as the language server does
+  if (!stdout && !session.problems(project).length) {
+    wrote.push(await session.workspace.writeScopes(project, session.explorer))
+  }
+  const note = wrote.length ? `wrote ${wrote.map((path) => session.relative(path)).join(", ")}` : undefined
   return !session.report(status, row, project, { note }).length
 }
 

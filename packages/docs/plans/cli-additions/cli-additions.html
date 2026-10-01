@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>spell CLI Additions</title>
+    <meta name="description" content="Plan doc:  spell CLI Additions." />
+    <link rel="stylesheet" href="../../_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../_assets/plan-doc.css" />
+  </head>
+  <body class="spell-doc-page plan-doc" data-plan="cli-additions">
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <h1>spell CLI Additions</h1>
+        <ul class="plan-meta">
+          <li>Plan doc for <code>/plan-doc cli-additions</code>, branch <code>worktree-cli-additions</code></li>
+          <li>
+            Worktree:
+            <a href="../../../../" target="src-"
+              ><code>/Users/owen/www/spell-app/spell-app/.claude/worktrees/cli-additions</code></a
+            >
+          </li>
+          <li>Started <time id="plan-started">2026-10-01</time>, updated <time id="plan-updated">2026-10-01</time></li>
+        </ul>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="plan">1. Plan</h2></ui-sticky>
+          <p class="plan-summary">
+            <code>spell</code> gains scope packs on compile, seven new commands (<code>projects</code>,
+            <code>speed</code>, <code>format</code>, <code>parse</code>, <code>repl</code>, <code>explain</code>,
+            <code>new</code>) and upgrades to <code>watch</code> / <code>explore</code> / <code>test</code> /
+            <code>compile</code>. Parked for the monorepo move (2026-09-30), now run in one go overnight, one commit per
+            phase (<a href="#d1">D1</a>).
+          </p>
+          <ul class="plan-phases">
+            <li data-status="done" data-phase="1">
+              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p1">P1 · Scope Packs</a>
+            </li>
+            <li data-status="todo" data-phase="2">
+              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p2">P2 · Small Commands</a>
+            </li>
+            <li data-status="todo" data-phase="3">
+              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p3">P3 · Language Tools</a>
+            </li>
+            <li data-status="todo" data-phase="4">
+              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p4">P4 · Watch &amp; Explore</a>
+            </li>
+            <li data-status="todo" data-phase="5">
+              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p5">P5 · Doc Review</a>
+            </li>
+          </ul>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="questions">2. Questions</h2></ui-sticky>
+          <p class="meta">Waiting on the user. Each is also asked in Claude Code.</p>
+          <ol class="plan-items" data-kind="question"></ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="overview">3. Overview</h2></ui-sticky>
+          <p>Details of the plan: the part that becomes durable docs in the last phase.</p>
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="o1">3.1 Structure</h3></ui-sticky>
+            <ul>
+              <li>
+                <code>bin/spell.mjs</code> → <code>tsx</code> → <code>src/main.ts</code> (commander) →
+                <code>src/commands/&lt;name&gt;Command.ts</code>: <code>(session, args, options) =&gt; exitCode</code>.
+              </li>
+              <li>
+                <code>CliSession</code> owns <code>SpellDiskWorkspace</code> + <code>SpellLanguageService</code> +
+                <code>ScopeExplorer</code>: the CLI sees what an editor does.
+              </li>
+              <li>
+                Child processes in <code>src/runner/</code> (<code>run</code> / <code>test</code>, now
+                <code>speed</code>) never import <code>$/cli</code> values.
+              </li>
+              <li>Runs spell's SOURCE, no build (<a href="#c1">C1</a>).</li>
+            </ul>
+          </section>
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="o2">3.2 Scope packs</h3></ui-sticky>
+            <ul>
+              <li>
+                <code>&lt;Project&gt;.scopes.js</code>: the Type Explorer's data for a page with no parser (e.g.
+                <code>&lt;spell-app&gt;</code>).
+              </li>
+              <li>
+                Written after a CLEAN compile (compiled, no file errors) by three writers, all through
+                <code>SpellDiskWorkspace.writeScopes()</code>, so byte-identical: the language server,
+                <code>yarn scopes</code>, and now <code>spell compile</code> / <code>spell watch</code> (<a href="#p1"
+                  >P1</a
+                >).
+              </li>
+              <li>Not with <code>--stdout</code> or <code>--check-only</code>: those write nothing.</li>
+            </ul>
+          </section>
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="o3">3.3 spell speed</h3></ui-sticky>
+            <ol>
+              <li>One side = a child process running <code>SP.spellParser.speedTest()</code>, printing JSON.</li>
+              <li>
+                <code>--against &lt;ref&gt;</code>: temp <code>git worktree</code> of the ref, root
+                <code>node_modules</code> symlinked in, the runner COPIED in (<a href="#d3">D3</a>), run there, worktree
+                removed.
+              </li>
+              <li>
+                Each side 3 runs (<code>--runs</code>); combined: mean of averages (integer), lowest min, highest max.
+              </li>
+              <li>
+                Table: Previous / Current / Change, bold row headers, no <code>ms</code>, right-aligned equal columns.
+              </li>
+            </ol>
+          </section>
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="o4">3.4 Language tools</h3></ui-sticky>
+            <ul>
+              <li>
+                <code>parse</code>: a line's match tree + compiled output; <code>--in</code> parses in a project's
+                scope.
+              </li>
+              <li><code>repl</code>: the same, line after line, in an Ink screen.</li>
+              <li>
+                <code>explain</code>: hover text + rule syntax, via <code>workspaceSymbols()</code> +
+                <code>describeRecord()</code>.
+              </li>
+              <li>
+                <code>new</code>: <code>project.json</code> + a starter <code>.spell</code> (<a href="#d4">D4</a>).
+              </li>
+            </ul>
+          </section>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="caveats">4. Caveats</h2></ui-sticky>
+          <ol class="plan-items" data-kind="caveat">
+            <li data-status="open" id="c1">
+              <a class="plan-id" href="#c1">C1</a>
+              <span class="plan-title"
+                >CLI runs spell's working copy: a half-done change in lsp/src/ or SpellProject breaks spell
+                silently</span
+              >
+            </li>
+            <li data-status="open" id="c2">
+              <a class="plan-id" href="#c2">C2</a>
+              <span class="plan-title"
+                >speed --against symlinks today's root node_modules into the old tree: a ref with different deps may
+                fail</span
+              >
+            </li>
+            <li data-status="open" id="c3">
+              <a class="plan-id" href="#c3">C3</a>
+              <span class="plan-title">format relies on formatting() being whitespace-only (P.TokenFormatter)</span>
+            </li>
+          </ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="issues">5. Issues</h2></ui-sticky>
+          <ol class="plan-items" data-kind="issue"></ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="todos">6. Todos</h2></ui-sticky>
+          <p class="meta">For later: not caveats, not issues.</p>
+          <ol class="plan-items" data-kind="todo">
+            <li data-status="open" id="t1">
+              <a class="plan-id" href="#t1">T1</a>
+              <span class="plan-title">spell lsp, with the VS Code extension spawning it</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Skip <code>consoleGuard</code>: the server has its own <code>stdioGuard</code>.
+                    <code>yarn vscode</code> after.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="t2">
+              <a class="plan-id" href="#t2">T2</a>
+              <span class="plan-title">Single-file bundle, so spell installs without a checkout</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Needs <code>keepNames</code>, the alias, <code>__PACKAGE_VERSION__</code>, and
+                    <a href="../../../spell/src/node/environment.ts" target="src-packages-spell-src-node-environment-ts"
+                      ><code>environment.ts</code></a
+                    >
+                    to stop finding <code>projects/</code> next to
+                    <a href="../../../ui/src/" target="src-packages-ui-src"><code>src/</code></a
+                    >.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="t3">
+              <a class="plan-id" href="#t3">T3</a>
+              <span class="plan-title">Publish to npm (changesets fixed group)</span>
+            </li>
+          </ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="decisions">7. Decisions</h2></ui-sticky>
+          <p class="meta">What was decided, and why. Settled: don't re-argue without new facts.</p>
+          <ol class="plan-items" data-kind="decision">
+            <li data-status="open" id="d1">
+              <a class="plan-id" href="#d1">D1</a>
+              <span class="plan-title"
+                >All phases in one go, no stops; commit per phase on worktree-cli-additions only (never main, never
+                pushed)</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Owen, 2026-10-01, going to bed. A blocker that needs Owen: record as a question here, take the
+                    safest option, keep going. <code>yarn vscode</code> after each phase.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d2">
+              <a class="plan-id" href="#d2">D2</a>
+              <span class="plan-title">spell speed --against &lt;ref&gt; builds the temp worktree itself</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Replaces the manual speed-test routine. Plain <code>spell speed</code> = working copy only.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d3">
+              <a class="plan-id" href="#d3">D3</a>
+              <span class="plan-title">speed runner is copied into the other tree, not run from ours</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Aliases (<code>$/spell</code> ...) only resolve inside a tree: a script outside it can't import
+                    spell.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d4">
+              <a class="plan-id" href="#d4">D4</a>
+              <span class="plan-title">spell new defaults to @user (projects/user/), writes a tiny starter</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Starter: a comment naming the project + <code>print "hello from &lt;name&gt;"</code>. Written by the
+                    CLI itself, NOT <code>projectUtils.createProject()</code>, whose <code>getIndex()</code> writes
+                    <code>Untitled.spell</code>.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d5">
+              <a class="plan-id" href="#d5">D5</a>
+              <span class="plan-title">explore e edits descriptions in an inline Ink text field</span>
+            </li>
+            <li data-status="open" id="d6">
+              <a class="plan-id" href="#d6">D6</a>
+              <span class="plan-title">Small commands (P2) before language tools (P3)</span>
+            </li>
+            <li data-status="open" id="d7">
+              <a class="plan-id" href="#d7">D7</a> <span class="plan-title">Ink 6 + React 19: dropped</span>
+            </li>
+            <li data-status="open" id="d8">
+              <a class="plan-id" href="#d8">D8</a>
+              <span class="plan-title">test --watch = watch --test on the same targets: one implementation</span>
+            </li>
+            <li data-status="open" id="d9">
+              <a class="plan-id" href="#d9">D9</a>
+              <span class="plan-title">format requires targets, as compile / check do</span>
+            </li>
+            <li data-status="open" id="d10">
+              <a class="plan-id" href="#d10">D10</a>
+              <span class="plan-title">Scope-pack test checks content, not byte-identity with the scopes script</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    The <code>scopes</code> script takes a root's project id, not a temp folder. All three writers call
+                    <code>SpellDiskWorkspace.writeScopes()</code>. By hand:
+                    <code>spell compile @examples/Solitaire @examples/FizzBuzz @examples/Calculator</code> rewrote their
+                    CHECKED-IN packs unchanged: byte-identical to the language server's.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d11">
+              <a class="plan-id" href="#d11">D11</a>
+              <span class="plan-title">No VS Code extension rebuild after these phases</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Nothing here changes the extension or the server's behaviour (P1 only edits a comment in
+                    <a href="../../../lsp/src/scopes.ts" target="src-packages-lsp-src-scopes-ts"
+                      ><code>lsp/src/scopes.ts</code></a
+                    >). Run from this worktree, the rebuild would also install an extension built from the worktree over
+                    the main checkout's.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+          </ol>
+        </section>
+
+        <section class="s2" id="phases-section">
+          <ui-sticky class="spell-h2"><h2 id="phases">8. Phases</h2></ui-sticky>
+          <p class="meta">One section per phase: goal, decisions, files, how to verify.</p>
+          <section data-status="done" data-phase="1" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p1"><ui-icon name="circle check" color="green"></ui-icon> P1 · Scope Packs</h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> <code>spell compile</code> / <code>spell watch</code> write
+                <code>&lt;Project&gt;.scopes.js</code> after each clean compile, as the language server does (<a
+                  href="#o2"
+                  >3.2</a
+                >); plus monorepo-move leftovers
+              </li>
+              <li>
+                <b>Files:</b> in
+                <a href="../../../cli/src/commands/" target="src-packages-cli-src-commands"
+                  ><code>cli/src/commands/</code></a
+                >:
+                <a
+                  href="../../../cli/src/commands/compileCommand.ts"
+                  target="src-packages-cli-src-commands-compilecommand-ts"
+                  ><code>compileCommand.ts</code></a
+                >,
+                <a
+                  href="../../../cli/src/commands/watchCommand.tsx"
+                  target="src-packages-cli-src-commands-watchcommand-tsx"
+                  ><code>watchCommand.tsx</code></a
+                >;
+                <a href="../../../lsp/src/scopes.ts" target="src-packages-lsp-src-scopes-ts"
+                  ><code>lsp/src/scopes.ts</code></a
+                >
+                (drop TODO);
+                <a href="../../../cli/README.md" target="src-packages-cli-readme-md"><code>cli/README.md</code></a
+                >; root
+                <a href="../../../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
+                  ><code>SUSPECTED-BUGS.md</code></a
+                >
+                (<code>## cli</code>)
+              </li>
+              <li>
+                <b>Verify:</b> test compiles a temp copy of <code>@test/Solitaire</code>: pack exists, no
+                <code>file://</code>, byte-identical to <code>yarn scopes</code>; <code>yarn review</code>
+              </li>
+            </ul>
+          </section>
+          <section data-status="todo" data-phase="2" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p2"><ui-icon name="circle outline" color="grey"></ui-icon> P2 · Small Commands</h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> <code>spell projects</code>, <code>spell speed</code> (<code>--against &lt;ref&gt;</code>,
+                <a href="#o3">3.3</a>), <code>spell format</code> (<code>--check</code>)
+              </li>
+              <li>
+                <b>Files:</b> in <a href="../../../cli/src/" target="src-packages-cli-src"><code>cli/src/</code></a
+                >: <code>commands/projectsCommand.ts</code>, <code>speedCommand.ts</code>,
+                <code>formatCommand.ts</code>; <code>runner/speedTest.ts</code>;
+                <a href="../../../cli/src/main.ts" target="src-packages-cli-src-main-ts"><code>main.ts</code></a>
+              </li>
+              <li>
+                <b>Verify:</b> tests per command (<code>format</code> on temp copies only);
+                <code>spell speed --against HEAD</code> by hand; <code>yarn review</code>
+              </li>
+            </ul>
+          </section>
+          <section data-status="todo" data-phase="3" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p3"><ui-icon name="circle outline" color="grey"></ui-icon> P3 · Language Tools</h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> <code>spell parse</code>, <code>spell repl</code>, <code>spell explain</code>,
+                <code>spell new</code> (<a href="#o4">3.4</a>)
+              </li>
+              <li>
+                <b>Files:</b> in <a href="../../../cli/src/" target="src-packages-cli-src"><code>cli/src/</code></a
+                >: <code>commands/parseCommand.ts</code>, <code>replCommand.tsx</code>, <code>explainCommand.ts</code>,
+                <code>newCommand.ts</code>; <a href="../../../ui/" target="src-packages-ui"><code>ui/</code></a> (repl
+                screen);
+                <a href="../../../cli/src/main.ts" target="src-packages-cli-src-main-ts"><code>main.ts</code></a>
+              </li>
+              <li>
+                <b>Verify:</b> tests (<code>repl</code> via <code>ink-testing-library</code> at fixed size;
+                <code>new</code> into a temp <code>--in</code>); <code>yarn review</code>
+              </li>
+            </ul>
+          </section>
+          <section data-status="todo" data-phase="4" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p4">
+                <ui-icon name="circle outline" color="grey"></ui-icon> P4 · Watch &amp; Explore
+              </h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> <code>watch</code> rebuilds importers, <code>--test</code>; <code>explore</code> reloads,
+                <code>e</code> edits descriptions (<a href="#d5">D5</a>); <code>compile --force</code>;
+                <code>test --watch</code> (<a href="#d8">D8</a>) + name filter
+              </li>
+              <li>
+                <b>Files:</b> in <a href="../../../cli/src/" target="src-packages-cli-src"><code>cli/src/</code></a
+                >: <code>commands/watchCommand.tsx</code>,
+                <a
+                  href="../../../cli/src/commands/exploreCommand.tsx"
+                  target="src-packages-cli-src-commands-explorecommand-tsx"
+                  ><code>exploreCommand.tsx</code></a
+                >,
+                <a
+                  href="../../../cli/src/commands/compileCommand.ts"
+                  target="src-packages-cli-src-commands-compilecommand-ts"
+                  ><code>compileCommand.ts</code></a
+                >,
+                <a href="../../../cli/src/commands/runCommand.ts" target="src-packages-cli-src-commands-runcommand-ts"
+                  ><code>runCommand.ts</code></a
+                >; <a href="../../../ui/" target="src-packages-ui"><code>ui/</code></a
+                >;
+                <a href="../../../cli/src/CliSession.ts" target="src-packages-cli-src-clisession-ts"
+                  ><code>CliSession.ts</code></a
+                >
+              </li>
+              <li><b>Verify:</b> tests per item; <code>yarn review</code></li>
+            </ul>
+          </section>
+          <section data-status="todo" data-phase="5" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p5"><ui-icon name="circle outline" color="grey"></ui-icon> P5 · Doc Review</h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> prune this doc; durable page <code>packages/docs/cli.html</code>;
+                <code>yarn docs:index</code>
+              </li>
+              <li><b>Files:</b> <code>packages/docs/cli.html</code>, this plan doc</li>
+              <li>
+                <b>Verify:</b> <code>yarn plan-doc check</code>;
+                <a href="../../scripts/check-spell.js" target="src-packages-docs-scripts-check-spell-js"
+                  ><code>check-spell.js</code></a
+                >
+                on the new page
+              </li>
+            </ul>
+          </section>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="log">9. Log</h2></ui-sticky>
+          <p class="meta">Plan changes, oldest first, local time.</p>
+          <ul class="plan-log">
+            <li><time datetime="2026-10-01T00:21-04:00">2026-10-01 00:21</time> plan doc created</li>
+            <li><time datetime="2026-10-01T00:48-04:00">2026-10-01 00:48</time> P1 added: Scope Packs</li>
+            <li><time datetime="2026-10-01T00:48-04:00">2026-10-01 00:48</time> P2 added: Small Commands</li>
+            <li><time datetime="2026-10-01T00:48-04:00">2026-10-01 00:48</time> P3 added: Language Tools</li>
+            <li><time datetime="2026-10-01T00:48-04:00">2026-10-01 00:48</time> P4 added: Watch &amp; Explore</li>
+            <li><time datetime="2026-10-01T00:48-04:00">2026-10-01 00:48</time> P5 added: Doc Review</li>
+            <li><time datetime="2026-10-01T00:52-04:00">2026-10-01 00:52</time> P1 active</li>
+            <li>
+              <time datetime="2026-10-01T00:56-04:00">2026-10-01 00:56</time> P1 done: compile / watch write scope
+              packs; SUSPECTED-BUGS cli + docs sections (plan-doc escaping, phone overflow)
+            </li>
+            <li><time datetime="2026-10-01T00:56-04:00">2026-10-01 00:56</time> P1 done</li>
+          </ul>
+        </section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../_assets/spell-ui.js"></script>
+  </body>
+</html>

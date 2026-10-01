@@ -17,8 +17,8 @@ const MAX_LISTED = 12
 /**
  * `spell watch [target...]`:  recompile each project -- or `--check-only`, re-check it -- whenever its files change.
  * - No target:  `@workspace`, the project in the current folder.
- * - Watches each project's folder:  `.spell` and `.css` files, and `project.json`.  NOT `<Project>.compiled.js`,
- *   which compiling writes.
+ * - Watches each project's folder:  `.spell` and `.css` files, and `project.json`.  NOT `<Project>.compiled.js`
+ *   or `<Project>.scopes.js`, which compiling writes -- the scope pack after each recompile with no errors.
  * - Changes go through the language server's workspace, so only what changed re-parses.
  * - In a terminal:  a live `<WatchScreen>`.  Otherwise, e.g. piped:  a timestamped line per rebuild, on stderr.
  * - Runs until `q` or `Ctrl-C`.  Returns the exit code.
@@ -91,6 +91,8 @@ export async function watchCommand(
       for (const path of changes) await session.workspace.diskChanged(pathToFileURL(path).href, kindOf(project, path))
       if (!options.checkOnly) await project.compile()
       const problems = session.problems(project).map((problem) => session.problemLine(problem))
+      // a CLEAN recompile writes its scope pack too, as the language server does
+      if (!options.checkOnly && !problems.length) await session.workspace.writeScopes(project, session.explorer)
       const what = options.checkOnly ? "checked" : "compiled"
       const count = problems.length ? ` · ${problems.length} error${problems.length === 1 ? "" : "s"}` : ""
       update(row, {

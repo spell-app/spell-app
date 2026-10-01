@@ -841,3 +841,10 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
 - 2026-09-30 · Stripping colour codes from a pty capture of `spell explore` with
   `sed 's/\x1b\[[0-9;?]*[a-zA-Z]//g'` died with `sed: RE error: illegal byte sequence`:  macOS `sed` chokes on the
   box-drawing characters' bytes. · `perl -pe 's/\e\[[0-9;?]*[a-zA-Z]//g' <file>` instead. · spell/cli
+- 2026-10-01 · `check-spell.js` failed a plan doc with "116px horizontal scroll at phone width", and nothing in `main`
+  looked wider than the screen:  the overflow was TEXT (an unbreakable path in a phase's Files line), which
+  element rects don't show.  Bisected by deleting one section at a time in Playwright. · Shorten / `<code>`-split
+  long paths in phase lines;  see `SUSPECTED-BUGS.md` `## docs`. · docs
+- 2026-10-01 · In a worktree-isolated session, Bash commands with shell functions, `cd ..` chains or a Python
+  heredoc are refused ("too complex to verify that it stays inside the worktree"). · Plain `&&` chains of simple
+  commands;  write throwaway scripts with the Write tool, then run them. · tooling

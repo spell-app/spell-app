@@ -381,3 +381,22 @@ with icon packs `zoom` is in `fa7-brands`, and the `fomantic` pack gives the mag
 - `site/src/content/components/button.mdx` / `dropdown.mdx` "Framework usage":  the Solid 2 snippets use
   `on:ui-toggle` / `on:ui-change`;  AGENTS.md says Solid 2 has no `on:` namespace (a `ref` + `addEventListener`,
   as `tools/frameworks/solid/app.tsx`).  The new pages use the `ref` pattern.
+
+## cli
+
+### 1. Behavior bugs
+
+- (none yet:  the CLI's spell-side suspicions -- `SpellDiskWorkspace.diskChanged(uri, "created")`, `ScopeExplorer`
+  property names -- are under `spell`.)
+
+## docs
+
+### 1. Behavior bugs
+
+- `scripts/plan-doc.js` `add-phase`:  `--goal` / `--files` / `--verify` go into the page as raw HTML, so
+  `<Project>.scopes.js` or `--against <ref>` become bogus `<project>` / `<ref>` elements (oxfmt then indents them as
+  tags).  Escape them as text -- or document that they're HTML, as `--details` is.  Prove:
+  `yarn plan-doc add-phase x "A" --goal "write <Project>.js"`, then look at the `#p1` body.
+- `_assets/plan-doc.css` `.plan-phase-body`:  a long token with no break, e.g.
+  `cli/src/commands/{watch,explore,compile,run}Command.ts(x),`, overflows at phone width (`check-spell.js`:
+  "116px horizontal scroll").  `overflow-wrap: anywhere` there would let the script's plain-text phase lines wrap.
