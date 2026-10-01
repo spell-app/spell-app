@@ -1,0 +1,7 @@
+coverage
+build
+.cache
+dist
+dist-runner
+dist-element
+settings.json5

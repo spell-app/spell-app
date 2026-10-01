@@ -10,5 +10,14 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["vite.config.ts", "vite.editor.config.ts", "vite.element.config.ts", "vite.runner.config.ts", "vitest.config.ts", "../../vite.decorators.ts", "../../vite.packageVersion.ts", "../../types"]
+  "include": [
+    "vite.config.ts",
+    "vite.editor.config.ts",
+    "vite.element.config.ts",
+    "vite.runner.config.ts",
+    "vitest.config.ts",
+    "../../vite.decorators.ts",
+    "../../vite.packageVersion.ts",
+    "../../types"
+  ]
 }

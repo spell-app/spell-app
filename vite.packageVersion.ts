@@ -1,6 +1,6 @@
 import type { Plugin } from "vite"
 
-import { readPackageVersion } from "./packages/spell/src/packageVersion.node.ts"
+import { readPackageVersion } from "./packages/spell/src/node/packageVersion.node.ts"
 
 /**
  * Hand code our `package.json` version as `__PACKAGE_VERSION__` -- see `PACKAGE_VERSION` in `#spell-util`.

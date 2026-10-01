@@ -4,7 +4,6 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { describe, test, expect } from "vitest"
 
-
 /**
  * Production build smoke test.
  * - Rules defined as classes register under their CLASS NAME (`Rule.instantiate()`), so a minifier which

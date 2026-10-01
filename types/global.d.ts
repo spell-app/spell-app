@@ -10,5 +10,5 @@ declare module "global" {
  */
 interface Window {
   /** DEBUG: current `SpellProject`, set by `editor.selectPath()` for console access. */
-  project?: import("~/languages/spell").SP.SpellProject
+  project?: import("#spell").SP.SpellProject
 }

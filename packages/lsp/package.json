@@ -17,6 +17,15 @@
     "test": "echo '>>>>>>>>>>>\n>> RUNNING TESTS' && vitest run && echo '<< TESTS PASSED\n'",
     "test:watch": "vitest"
   },
+  "dependencies": {
+    "@spell/parser": "workspace:*",
+    "@spell/spell": "workspace:*",
+    "@spell/spell-core": "workspace:*",
+    "@spell/spell-util": "workspace:*",
+    "json5": "^2.1.1",
+    "vscode-languageserver": "^10.1.2",
+    "vscode-languageserver-textdocument": "^1.0.15"
+  },
   "devDependencies": {
     "@types/node": "^22.20.4",
     "@typescript/typescript6": "^6.0.2",
@@ -32,14 +41,5 @@
   "engines": {
     "node": ">=22.17"
   },
-  "packageManager": "yarn@4.18.0",
-  "dependencies": {
-    "@spell/parser": "workspace:*",
-    "@spell/spell": "workspace:*",
-    "@spell/spell-core": "workspace:*",
-    "@spell/spell-util": "workspace:*",
-    "json5": "^2.1.1",
-    "vscode-languageserver": "^10.1.2",
-    "vscode-languageserver-textdocument": "^1.0.15"
-  }
+  "packageManager": "yarn@4.18.0"
 }

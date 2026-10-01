@@ -281,9 +281,7 @@ export abstract class Rule<
   static compileSyntax(syntax: string, context?: unknown): Rule {
     const { rulexParser } = P.Parser
     if (!rulexParser) {
-      throw new TypeError(
-        'Rulex parser is not installed.  Use `import "#parser/rulex"` to import it and try again.'
-      )
+      throw new TypeError('Rulex parser is not installed.  Use `import "#parser/rulex"` to import it and try again.')
     }
     const compiled = rulexParser.compile(syntax)
     if (!compiled) {
