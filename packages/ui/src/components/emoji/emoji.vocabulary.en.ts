@@ -38,8 +38,8 @@ export const emojiVocabulary = {
       kind: "string",
       description:
         "The emoji's CLDR shortcode (Unicode's name, `thumbs_up`, `grinning_face_with_smiling_eyes`, " +
-        "`flag_united_states`) or Fomantic's name for it (`thumbsup`, `smile`, `flag_us`);  `:smile:`, `Thumbs Up` " +
-        "and `thumbs up` work too.  Where a Fomantic name is also another emoji's CLDR name (`dog`), CLDR's wins."
+        "`flag_united_states`) or Fomantic's name for it (`thumbsup`, `smile`, `flag_us`).  The words may be joined any " +
+        "way:  `thumbs up`, `thumbs-up`, `thumbsUp`, `thumbsup` (and `:smile:`, any case).  Where a Fomantic name is also another emoji's CLDR name (`dog`), CLDR's wins."
     },
     {
       name: "label",

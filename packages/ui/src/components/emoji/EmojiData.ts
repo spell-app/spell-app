@@ -13,6 +13,13 @@ export class EmojiData {
   /** Loaded name => emoji, plus `register()`ed ones. */
   private static readonly cache = new Map<string, string>()
 
+  /**
+   * The same, keyed by `loose()`:  the fallback when the exact name misses.
+   * - First name in wins;  chunks list names sorted, and `_` sorts before letters, so the CLDR spelling wins the one
+   *   clash in the data:  `ice-cream` / `IceCream` ~== `ice_cream` 🍨, while an exact `icecream` stays Fomantic's 🍦.
+   */
+  private static readonly looseCache = new Map<string, string>()
+
   /** Chunk key => its load, so each chunk is requested once at a time. */
   private static readonly loads = new Map<string, Promise<void>>()
 
@@ -20,11 +27,21 @@ export class EmojiData {
   private static readonly loaded = new Set<string>()
 
   /**
-   * Canonical form of a name as authors write it:  trimmed, lower case, Fomantic's `:colons:` stripped, runs of
-   * spaces => `_` (`thumbs up` ~== `thumbs_up`).  Dashes stay:  some names have them (`blond-haired_woman`).
+   * Canonical form of a name as authors write it:  trimmed, Fomantic's `:colons:` stripped, camelCase split
+   * (`thumbsUp`, from JS), lower case, runs of spaces => `_` (`Thumbs Up` ~== `thumbs_up`).  Dashes stay:  some names
+   * have them (`blond-haired_woman`);  `loose()` drops them for the fallback.
    */
   static normalize(name: string): string {
-    return name.trim().replace(COLONS, "").trim().toLowerCase().replace(SPACES, "_")
+    return name.trim().replace(COLONS, "").trim().replace(CAMEL, "$1_$2").toLowerCase().replace(SPACES, "_")
+  }
+
+  /**
+   * A NORMALIZED name with no separators at all (`thumbsup`, `thumbs-up` => `thumbsup`):  the fallback key, so a CLDR
+   * name works however its words are joined.  In the data, names that differ only in separators mean the same
+   * emoji, except `icecream` (see `looseCache`).
+   */
+  static loose(name: string): string {
+    return name.replace(SEPARATORS, "")
   }
 
   /** Chunk key of a NORMALIZED name:  its first letter, else `0`.  MUST match `scripts/gen-emoji.ts`. */
@@ -35,7 +52,7 @@ export class EmojiData {
 
   /** The emoji for `name` if it's already known (loaded or registered), else `undefined`.  Synchronous. */
   static peek(name: string | undefined): string | undefined {
-    return name ? EmojiData.cache.get(EmojiData.normalize(name)) : undefined
+    return name ? EmojiData.known(EmojiData.normalize(name)) : undefined
   }
 
   /**
@@ -45,16 +62,23 @@ export class EmojiData {
   static async get(name: string | undefined): Promise<string | undefined> {
     if (!name) return undefined
     const key = EmojiData.normalize(name)
-    const known = EmojiData.cache.get(key)
+    const known = EmojiData.known(key)
     if (known !== undefined || !key) return known
     const chunk = EmojiData.chunkOf(key)
     if (!EmojiData.loaded.has(chunk)) await EmojiData.load(chunk)
-    return EmojiData.cache.get(key)
+    return EmojiData.known(key)
   }
 
   /** Add (or override) one emoji without a request, e.g. an app's own name for a sequence. */
   static register(name: string, emoji: string) {
-    EmojiData.cache.set(EmojiData.normalize(name), emoji)
+    const key = EmojiData.normalize(name)
+    EmojiData.cache.set(key, emoji)
+    EmojiData.looseCache.set(EmojiData.loose(key), emoji)
+  }
+
+  /** A NORMALIZED name's emoji:  the exact name, else the same words joined any way. */
+  private static known(key: string): string | undefined {
+    return EmojiData.cache.get(key) ?? EmojiData.looseCache.get(EmojiData.loose(key))
   }
 
   /** Load chunk `chunk` once;  a failure is forgotten, so a later `get()` tries again. */
@@ -67,6 +91,8 @@ export class EmojiData {
         .then((module) => {
           for (const [name, emoji] of Object.entries(module.default)) {
             if (!EmojiData.cache.has(name)) EmojiData.cache.set(name, emoji)
+            const loose = EmojiData.loose(name)
+            if (!EmojiData.looseCache.has(loose)) EmojiData.looseCache.set(loose, emoji)
           }
           EmojiData.loaded.add(chunk)
         })
@@ -91,6 +117,12 @@ const COLONS = /^:+|:+$/g
 
 /** Runs of whitespace inside a name. */
 const SPACES = /\s+/g
+
+/** A camelCase word boundary:  a lower-case letter or digit, then a capital. */
+const CAMEL = /([a-z0-9])([A-Z])/g
+
+/** Every way a name's words may be joined. */
+const SEPARATORS = /[_-]/g
 
 /** A chunk letter. */
 const LETTER = /^[a-z]$/

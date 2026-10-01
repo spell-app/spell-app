@@ -1196,6 +1196,22 @@
                 ></ui-accordion
               >
             </li>
+            <li data-status="open" id="d37">
+              <a class="plan-id" href="#d37">D37</a>
+              <span class="plan-title"
+                >Emoji names: words joined any way (thumbs up, thumbs-up, thumbsUp, thumbsup)</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Owen, 2026-10-01: CLDR names should work without underscores, at least from the property; the data
+                    keeps the CLDR spelling. Lookup: the exact name (camelCase split, spaces as <code>_</code>), else
+                    the name with no separators. One clash in the data: an exact <code>icecream</code> stays Fomantic's
+                    🍦; <code>ice-cream</code> / <code>iceCream</code> are CLDR's 🍨. Failing-first tests.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
           </ol>
         </section>
 

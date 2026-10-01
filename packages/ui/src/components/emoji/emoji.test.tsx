@@ -73,6 +73,16 @@ describe("EmojiData", () => {
     expect(await EmojiData.get("memo")).toBe("\u{1F4DD}")
   })
 
+  it("finds a CLDR name however its words are joined:  spaces, dashes, camelCase, or none", async () => {
+    const bubble = "\u{1F441}️‍\u{1F5E8}️"
+    for (const name of ["eye in speech bubble", "eye-in-speech-bubble", "eyeInSpeechBubble", "eyeinspeechbubble"]) {
+      expect(await EmojiData.get(name), name).toBe(bubble)
+    }
+    // the one clash in the data:  an exact name first (Fomantic's `icecream`), else the CLDR spelling
+    expect(await EmojiData.get("icecream")).toBe("\u{1F366}")
+    for (const name of ["ice cream", "ice-cream", "iceCream"]) expect(await EmojiData.get(name), name).toBe("\u{1F368}")
+  })
+
   it("adds U+FE0F only to emoji that default to text (the data says which)", async () => {
     expect(await EmojiData.get("hourglass")).toBe("⌛")
     expect(await EmojiData.get("eye_in_speech_bubble")).toBe("\u{1F441}️‍\u{1F5E8}️")
@@ -121,6 +131,15 @@ describe("<ui-emoji>", () => {
     const { root } = await render(`<ui-emoji name="no_such_emoji" label="Nothing"></ui-emoji>`)
     expect(root.textContent).toBe("")
     expect(root.hasAttribute("role")).toBe(false)
+  })
+
+  it("takes a CLDR name without underscores, from the attribute or the property", async () => {
+    const { host, root } = await render(`<ui-emoji name="thumbs up"></ui-emoji>`)
+    expect(root.textContent).toBe("\u{1F44D}")
+    ;(host as unknown as { name: string }).name = "grinningFaceWithSmilingEyes"
+    await EmojiData.get("grinningFaceWithSmilingEyes")
+    await ElementFixture.tick()
+    expect(root.textContent).toBe("\u{1F604}")
   })
 
   it("follows name changes, the latest request winning", async () => {
