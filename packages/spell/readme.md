@@ -12,27 +12,16 @@ Experimental [Deepwiki Documentation](https://deepwiki.com/spell-app/spell)
 
 ## Getting Started
 
-- Install Docker Desktop
-- Clone this repo and switch into the project directory
-- Build the docker images (e.g. first time or when docker config changes)
-  - `docker compose build`
-- Start app server (port 3000) and api server (port 3001) with Docker
-  - `docker compose up` [1]
-  - `ctrl-c` in the terminal window to stop the image, or stop in docker desktop.
+- Install Node 22.17+ and enable Corepack (`corepack enable`), which supplies the repo's yarn
+- Clone the `spell` monorepo, and run `yarn` at its root
+- Start the app (port 3000) and the api server (port 3001):  `yarn start`, in `packages/spell`
+  - `yarn stop` stops them
 - Open http://localhost:3000 in your web browser.
 - Check out the [Solitaire Example](http://localhost:3000/run/examples/Solitaire/Card.spell)
 - Click the `Edit Example` button to see the code.
-- To run tests:
-  - `docker compose run api-server yarn test`
-
-### To install with local node/yarn/docker
-
-- Install Docker Desktop
-- Install node and yarn with volta (TODO)
-- `yarn docker-build`
-- `yarn docker` or `yarn docker-bg`
-- To run tests
-- `yarn test` or `yarn test:ui`
+- To run tests:  `yarn test` here, or at the monorepo root for every package;  `yarn test:ui` for vitest's UI
+- NOTE: Docker support was removed on 2026-09-30 (out of date, and broken by the monorepo move).  To bring it back,
+  start from `git show 02476e71:packages/spell/Dockerfile.dev` and its siblings.
 
 
 ### Editing spell in the app
@@ -149,10 +138,7 @@ with hover, completion, go to definition and the rest -- and feeds `<spell-app>`
 
 ## To see server logs
 
-- The `yarn docker` command will output server logs for both servers in the command line.
-- To see API server logs in docker:
-  - In Docker Desktop, click `Containers` => `parser` => `api-server`
-- To start docker without server logs, use `yarn docker-bg`.
+- `yarn start` prints both servers' logs in its terminal.
 
 ## To test
 

@@ -36,11 +36,7 @@
     "/////// VSCODE EXTENSION": "",
     "vscode": "yarn vscode:build && yarn vscode:install",
     "vscode:build": "cd vscode-extension && yarn install && yarn build && yarn package",
-    "vscode:install": "cd vscode-extension && yarn install-extension",
-    "/////// DOCKER (out of date)": "",
-    "docker": "docker compose up",
-    "docker-bg": "docker compose up --detach",
-    "docker-build": "docker compose build"
+    "vscode:install": "cd vscode-extension && yarn install-extension"
   },
   "dependencies": {
     "@nx-js/observer-util": "^4.2.2",
