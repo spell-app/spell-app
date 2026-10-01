@@ -2,7 +2,7 @@ import { singularize, typeCase } from "#spell-util"
 import { SPELL_CLASSES } from "#spell-core/spellCore.types"
 import { P } from "#parser"
 import { SP } from "#spell"
-import { LSP } from "~/lsp"
+import { LSP } from "#lsp"
 
 /**
  * The live scope tree a project parses in, as plain `LSP.ScopeNode`s -- for scope explorers in editors.

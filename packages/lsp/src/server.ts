@@ -8,8 +8,8 @@ import "./stdioGuard"
 import "#spell/node/packageVersion.node"
 
 const { createConnection, ProposedFeatures } = await import("vscode-languageserver/node")
-const { LSP } = await import("~/lsp")
-const { SpellDiskWorkspace } = await import("~/lsp/SpellDiskWorkspace")
+const { LSP } = await import("#lsp")
+const { SpellDiskWorkspace } = await import("#lsp/SpellDiskWorkspace")
 
 const connection = createConnection(ProposedFeatures.all)
 // `createConnection()` sends `console.*` to the editor's log.  Drop `info` / `debug`, which are parser chatter,

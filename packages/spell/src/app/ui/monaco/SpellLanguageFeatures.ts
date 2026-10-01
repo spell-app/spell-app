@@ -1,7 +1,7 @@
 import type { CodeLens, Location, Position } from "vscode-languageserver"
 
 import type { SP } from "#spell"
-import { LSP } from "~/lsp"
+import { LSP } from "#lsp"
 import type * as UIT from "~/app/ui/ui.types"
 import { monaco } from "./monaco"
 import { AppAddresses } from "./AppAddresses"

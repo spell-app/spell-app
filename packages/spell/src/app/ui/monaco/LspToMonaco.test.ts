@@ -10,8 +10,8 @@ import {
 } from "vscode-languageserver"
 import { CompletionItemInsertTextRule, MarkerSeverity } from "monaco-editor/editor/common/standalone/standaloneEnums"
 
-import { LSP } from "~/lsp"
-import { SpellDiskWorkspace } from "~/lsp/SpellDiskWorkspace"
+import { LSP } from "#lsp"
+import { SpellDiskWorkspace } from "#lsp/SpellDiskWorkspace"
 import { fixturePath } from "#spell/test"
 import { LspToMonaco } from "./LspToMonaco"
 

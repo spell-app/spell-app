@@ -1,5 +1,5 @@
 import { SP } from "#spell"
-import { LSP } from "~/lsp"
+import { LSP } from "#lsp"
 import { CLI } from "~/cli"
 
 /**

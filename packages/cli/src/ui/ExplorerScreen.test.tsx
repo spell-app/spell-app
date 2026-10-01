@@ -1,7 +1,7 @@
 import { render } from "ink-testing-library"
 import { beforeAll, describe, test, expect, vi } from "vitest"
 
-import { LSP } from "~/lsp"
+import { LSP } from "#lsp"
 import { CLI } from "~/cli"
 
 /**

@@ -10,7 +10,7 @@
  *   - `server.ts`:  the process entry, `yarn start:lsp`
  *   - `stdioGuard.ts`
  */
-export * as LSP from "."
+export * as LSP from "./"
 export * from "./lsp.types"
 
 export * from "./SpellLanguageService"

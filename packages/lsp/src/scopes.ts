@@ -8,7 +8,7 @@
  *   NOTE: OVERWRITES any hand edits there -- diff it before keeping.
  * - The language server writes a project's pack itself after each clean compile.
  *   TODO: `spell compile` should too -- via `SpellDiskWorkspace.writeScopes()`.  It's in the `cli` repo, `../cli`.
- * - NODE ONLY, and NOT in the `~/lsp` barrel:  it runs the moment it's imported.
+ * - NODE ONLY, and NOT in the `#lsp` barrel:  it runs the moment it's imported.
  */
 // FIRST:  defines `__PACKAGE_VERSION__`, which vite would, before anything reads it
 import "#spell/node/packageVersion.node"
@@ -18,8 +18,8 @@ import { relative, resolve } from "path"
 
 import environment from "#spell/node/environment"
 import { SP } from "#spell"
-import { LSP } from "~/lsp"
-import { SpellDiskWorkspace } from "~/lsp/SpellDiskWorkspace"
+import { LSP } from "#lsp"
+import { SpellDiskWorkspace } from "#lsp/SpellDiskWorkspace"
 
 const args = process.argv.slice(2).filter((arg) => arg !== "--compile")
 const compile = args.length < process.argv.length - 2

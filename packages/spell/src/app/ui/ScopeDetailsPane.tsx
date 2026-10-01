@@ -2,7 +2,7 @@ import classnames from "classnames"
 import React from "react"
 import * as SUI from "semantic-ui-react"
 
-// Import directly, NOT through the `~/lsp` barrel, which would pull the language service into the bundle.
+// Import directly, NOT through the `#lsp` barrel, which would pull the language service into the bundle.
 import {
   SCOPE_MEMBER_GROUPS,
   type ScopeDetails,
@@ -12,7 +12,7 @@ import {
   type SetDescriptionParams,
   firstLine,
   scopeSegment
-} from "~/lsp/lsp.types"
+} from "#lsp/lsp.types"
 import type { ScopeOrder } from "./ui.types"
 import { Markdown } from "./Markdown"
 

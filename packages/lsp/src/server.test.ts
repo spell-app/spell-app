@@ -13,8 +13,7 @@ import {
   type PublishDiagnosticsParams
 } from "vscode-languageserver/node"
 
-import environment from "#spell/node/environment"
-import type { LSP } from "~/lsp"
+import type { LSP } from "#lsp"
 import { tsxBinary } from "#spell/test"
 
 /**
@@ -22,9 +21,10 @@ import { tsxBinary } from "#spell/test"
  * - Catches anything printing to stdout, which would corrupt the protocol -- see `stdioGuard.ts`.
  */
 describe("spell language server over stdio", () => {
-  const repoRoot = resolve(environment.srcDir, "..")
-  const child = spawn(tsxBinary(), [resolve(environment.srcDir, "lsp/server.ts"), "--stdio"], {
-    cwd: repoRoot,
+  // this package's folder:  `tsx` reads the `tsconfig.json` (aliases) where it runs
+  const packageDir = resolve(import.meta.dirname, "..")
+  const child = spawn(tsxBinary(), [resolve(import.meta.dirname, "server.ts"), "--stdio"], {
+    cwd: packageDir,
     stdio: ["pipe", "pipe", "pipe"]
   })
   const connection = createMessageConnection(

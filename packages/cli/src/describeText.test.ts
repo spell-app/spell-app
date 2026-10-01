@@ -2,7 +2,7 @@ import { basename } from "path"
 import { fileURLToPath } from "url"
 import { beforeAll, describe, test, expect } from "vitest"
 
-import { LSP } from "~/lsp"
+import { LSP } from "#lsp"
 import { CLI } from "~/cli"
 
 /**

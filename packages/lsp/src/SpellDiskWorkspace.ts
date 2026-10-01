@@ -6,7 +6,7 @@ import { runInNewContext } from "vm"
 import environment from "#spell/node/environment"
 import { SP } from "#spell"
 import { installDiskFetch, locationForDiskPath } from "#spell/node/disk-fetch"
-import { LSP } from "~/lsp"
+import { LSP } from "#lsp"
 
 /**
  * The stdio language server's view of the editor's files, hosted on `SP.SpellProject` / `SP.SpellFile` loading from disk.
@@ -16,7 +16,7 @@ import { LSP } from "~/lsp"
  * - Every method that changes anything returns the spell files whose parse changed,
  *   so the server can publish their diagnostics.
  * - SIDE EFFECT (constructor):  makes EVERY `LoadableFile` load from disk -- see `installDiskFetch()`.
- * - NOTE: node-only, so deliberately NOT in the `~/lsp` barrel:  import it from this file.
+ * - NOTE: node-only, so deliberately NOT in the `#lsp` barrel:  import it from this file.
  */
 export class SpellDiskWorkspace implements LSP.FileAddresses {
   /** Latest text of each open document, by URI. */

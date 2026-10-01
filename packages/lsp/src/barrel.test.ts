@@ -2,14 +2,14 @@ import { describe, test, expect } from "vitest"
 
 import { $fetch, LoadableFile } from "#spell-util"
 import { SP } from "#spell"
-import { LSP } from "~/lsp"
+import { LSP } from "#lsp"
 
 /**
- * `~/lsp` MUST stay browser-safe:  the app's editor loads it.
+ * `#lsp` MUST stay browser-safe:  the app's editor loads it.
  * - Node-only `SpellDiskWorkspace` is kept out of the barrel.  Pulling it in would ALSO install disk loading
  *   for every `LoadableFile` and turn off `SpellLocation`'s registry -- which is what these check for.
  */
-describe("~/lsp barrel", () => {
+describe("#lsp barrel", () => {
   test("exports the portable pieces", () => {
     expect(LSP.SpellLanguageService).toBeTypeOf("function")
     expect(LSP.SpellLanguageServer).toBeTypeOf("function")

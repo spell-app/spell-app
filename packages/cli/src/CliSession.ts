@@ -4,8 +4,8 @@ import { fileURLToPath } from "url"
 import { DiagnosticSeverity } from "vscode-languageserver"
 
 import { SP } from "#spell"
-import { LSP } from "~/lsp"
-import { SpellDiskWorkspace } from "~/lsp/SpellDiskWorkspace"
+import { LSP } from "#lsp"
+import { SpellDiskWorkspace } from "#lsp/SpellDiskWorkspace"
 import { CLI } from "~/cli"
 
 /**

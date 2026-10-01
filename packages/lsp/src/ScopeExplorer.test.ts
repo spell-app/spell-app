@@ -7,10 +7,10 @@ import { runInNewContext } from "vm"
 
 import environment from "#spell/node/environment"
 import { SP } from "#spell"
-import { LSP } from "~/lsp"
-import { SpellDiskWorkspace } from "~/lsp/SpellDiskWorkspace"
+import { LSP } from "#lsp"
+import { SpellDiskWorkspace } from "#lsp/SpellDiskWorkspace"
 import { installDiskFetch, locationForDiskPath } from "#spell/node/disk-fetch"
-import { scopesFromPacks } from "~/app/runner/ScopesSource"
+import { scopesFromPacks } from "#lsp/ScopesSource"
 import { compiledFixture, fixturePath } from "#spell/test"
 
 /** The scope tree of a temp copy of the Solitaire example, as a scope explorer sees it. */

@@ -9,7 +9,7 @@
 import chalk from "chalk"
 import { stripVTControlCharacters } from "util"
 
-import { LSP } from "~/lsp"
+import { LSP } from "#lsp"
 
 /** Width of a member group's label column, e.g. `Properties  `. */
 const LABEL_WIDTH = 12

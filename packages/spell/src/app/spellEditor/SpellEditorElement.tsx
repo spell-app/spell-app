@@ -2,7 +2,7 @@ import { createRoot, type Root } from "react-dom/client"
 
 import { raw } from "#spell-util"
 import { SP } from "#spell"
-import { LSP } from "~/lsp"
+import { LSP } from "#lsp"
 import type * as UIT from "~/app/ui/ui.types"
 import type { monaco } from "~/app/ui/monaco"
 // Import directly, NOT through the `~/app/runner` barrel, which would pull in `runCompiled()`, and so `spellCore`.

@@ -1,4 +1,4 @@
-import type { LSP } from "~/lsp"
+import type { LSP } from "#lsp"
 import type { UI } from "~/app/ui"
 
 // ## Messages

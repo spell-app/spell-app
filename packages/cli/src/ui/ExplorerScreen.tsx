@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react"
 import chalk from "chalk"
 import wrapAnsi from "wrap-ansi"
 
-import type { LSP } from "~/lsp"
+import type { LSP } from "#lsp"
 import { CLI } from "~/cli"
 
 /** Keys, for the footer. */

@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vitest"
 import { renderToStaticMarkup } from "react-dom/server"
 
-import { buildScopeTree, type ScopeEntry } from "~/lsp/lsp.types"
+import { buildScopeTree, type ScopeEntry } from "#lsp/lsp.types"
 import type { ScopeOrder } from "./ui.types"
 import { TypeExplorer } from "./TypeExplorer"
 

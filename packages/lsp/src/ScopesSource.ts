@@ -6,7 +6,7 @@
  */
 import JSON5 from "json5"
 
-// Import directly, NOT through the `~/lsp` barrel, which would pull in the language service.
+// Import directly, NOT through the `#lsp` barrel, which would pull in the language service.
 import {
   SCOPE_PACK_GLOBAL,
   scopePath,
@@ -15,7 +15,7 @@ import {
   type ScopeLine,
   type ScopeNode,
   type ScopePack
-} from "~/lsp/lsp.types"
+} from "#lsp/lsp.types"
 
 /** What a Type Explorer shows:  a tree, and the details of what's in it, by `path`. */
 export type ScopesSource = {

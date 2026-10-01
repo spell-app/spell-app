@@ -2,7 +2,7 @@ import React from "react"
 import classnames from "classnames"
 import * as SUI from "semantic-ui-react"
 
-import type { LSP } from "~/lsp"
+import type { LSP } from "#lsp"
 import type { FromRunnerMessage, ProjectSettings, RunnerPaneId, ToRunnerMessage } from "~/app/runner"
 // Import directly, NOT through the `UI` barrel, which would pull in the whole editor.
 import { TypeExplorer } from "~/app/ui/TypeExplorer"

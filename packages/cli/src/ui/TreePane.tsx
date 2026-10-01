@@ -1,7 +1,7 @@
 import { Box, Text } from "ink"
 import chalk from "chalk"
 
-import type { LSP } from "~/lsp"
+import type { LSP } from "#lsp"
 import type { CLI } from "~/cli"
 
 /****************

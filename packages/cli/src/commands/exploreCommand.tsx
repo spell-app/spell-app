@@ -3,7 +3,7 @@ import { render } from "ink"
 import { fileURLToPath } from "url"
 
 import { SP } from "#spell"
-import { LSP } from "~/lsp"
+import { LSP } from "#lsp"
 import { CLI } from "~/cli"
 
 /** Switch the terminal to its alternate screen, and back -- so exploring leaves your scrollback as it was. */
