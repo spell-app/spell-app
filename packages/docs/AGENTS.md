@@ -127,7 +127,8 @@ In this order, from `packages/docs`:
 - `yarn docs:new` (`scripts/new-page.js`) -- a page from a template, at any depth.
 - `yarn docs:open [page]` (`scripts/open.js`) -- show a page (default:  the index) in Chrome, reusing its tab.
 - `scripts/pages.js` -- shared by the scripts:  `DOCS`, `findPages()`, `tidy()` (link targets + oxfmt),
-  `serialize()`, `openInChrome()`.
+  `serialize()`, `openInChrome()`, `openInVSCode()` (plan docs:  Simple Browser through the spell extension's
+  `DocPreview`).
 - `scripts/check-spell.js <page> [outDir]` -- Playwright:  fails on console errors, undefined / unrendered
   `ui-*`, contents vs headings, phone-width overflow, h2s that don't stick, a drawer that won't open;  writes
   screenshots.

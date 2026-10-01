@@ -116,10 +116,10 @@ While a phase is active, flag what changed so the user can spot it:
 |---|---|
 | `new <name> [--title "..."]` | copy the template to `plans/<name>/<name>.html`, fill it, update the docs index |
 | `add-phase <name> "Short Name" [--goal ...] [--files ...] [--verify ...]` | append a phase to the list and to `#phases` |
-| `phase <name> <N> todo\|active\|done [--no-open]` | set a phase's status;  `done` removes its UPDATE markers;  reloads the doc's Chrome tab |
+| `phase <name> <N> todo\|active\|done [--no-open]` | set a phase's status;  `done` removes its UPDATE markers;  reloads the doc's VS Code tab |
 | `add <name> question\|caveat\|issue\|todo\|decision "<title>" [--details "<html>"]` | append an item, print its id |
 | `close <name> <id>` / `reopen <name> <id>` | strike / unstrike an item |
 | `log <name> "<text>"` | add a timestamped line to the log |
 | `summary <name> [--json]` | open questions, issues, caveats, todos, and the next phase |
 | `check <name>` | ids unique, every `#id` link resolves, every phase has a status, then `check-spell.js` |
-| `open <name>` | open the doc in Chrome, reusing its tab and reloading it |
+| `open <name>` | show the doc rendered in VS Code (Simple Browser, beside the editor), reusing its tab and reloading it;  needs the spell extension (`yarn vscode`) |

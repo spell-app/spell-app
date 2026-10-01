@@ -44,8 +44,26 @@ export function tidy(files) {
   return true
 }
 
+/** Opens a doc in VS Code's Simple Browser:  the spell extension's URI handler (`packages/vscode/src/DocPreview.ts`). */
+const VSCODE_PREVIEW = "vscode://spell-app.spell-language/doc-preview"
+
 /**
- * Show `file` in Chrome, in ONE tab per page:  `yarn docs:open <page>`, `yarn plan-doc open <name>`.
+ * Show `file` rendered in a VS Code tab, beside the editor:  `yarn plan-doc open <name>`, `yarn plan-doc phase`.
+ * - the spell extension (`yarn vscode`) serves the repo locally and shows the page in Simple Browser, ONE tab,
+ *   reloaded on every open
+ * - `open` can't fail (macOS):  without the extension, VS Code says it can't handle the URI
+ * - `open` itself failed (not macOS):  falls back to Chrome
+ */
+export function openInVSCode(file) {
+  const path = resolve(file)
+  const run = spawnSync("open", [`${VSCODE_PREVIEW}?file=${encodeURIComponent(path)}`], { encoding: "utf8" })
+  if (run.status === 0) return console.log(`opened ${path} in VS Code`)
+  console.error(`VS Code via \`open\` failed (${(run.stderr ?? String(run.error)).trim()}):  falling back to Chrome`)
+  openInChrome(file)
+}
+
+/**
+ * Show `file` in Chrome, in ONE tab per page:  `yarn docs:open <page>`.
  * - finds a tab whose URL starts with the page's `file://` URL (any `#hash`), reloads it and brings it forward;
  *   else opens a new tab
  * - no Chrome (or AppleScript refused):  falls back to `open`, which can't reuse a tab
