@@ -23,12 +23,6 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 ### 1. Behavior bugs
 
-- `projects/system/examples/Solitaire-import`:  run in `<spell-app>` (`spell run @examples/Solitaire-import`, which
-  serves it by `src=`), it deals NOTHING onto the tableau -- only a king on the stock -- while `@examples/Solitaire`,
-  with the identical `Solitaire.spell`, deals a full game.  Every file loads (200, incl. the imported
-  `Solitaire.compiled.js`), no console errors, its tests pass.  Suspect:  the imported `Solitaire.compiled.js` runs
-  its OWN top-level code (`start the game`, a deal) when imported, sharing the runtime with the importer's game.
-  Prove:  check whether the app's own runner shows the same, then whether a compiled import's top-level statements run.
 - `test/unitTestModuleRules.ts` `compileMatch()`: a rule unit test NEVER checks that the rule consumed the
   whole input.  `compileMatch()` is `scope.parse(input, ruleName)` then `match.compile()` -- it compiles
   whatever matched and silently drops any tokens left over, so trailing garbage passes.  Two tests prove it:
@@ -108,6 +102,11 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   - FIXED 2026-09-29:  it used to fail outright, `TypeError: Cannot redefine property: play`, as Solitaire's
     `spellCore.define(Card.prototype, 'play', ...)` was non-configurable.  Methods are class methods now --
     writable -- and Solitaire-import's `Card.prototype.play = function ...` replaces Solitaire's.
+  - 2026-10-01 (cli-additions):  it now loads with no errors, but deals NOTHING -- one king on the stock -- in the
+    app's own runner (`/run/examples/Solitaire-import`) and in `<spell-app>` (`spell run`), while
+    `@examples/Solitaire`, same `Solitaire.spell`, deals a full game.  NOT just `game.start()`:  serving the
+    imported `Solitaire.compiled.js` with that line removed deals nothing either -- so its other top-level code
+    (`reset_the_game()`, piles, process flags in the shared `spellCore`) is the next suspect.
 
 - A full `vitest run` writes into the FROZEN fixture `projects/test/Solitaire/`:  it rewrites
   `Solitaire.compiled.js` and leaves an untracked `Solitaire.scopes.js`, both stamped mid-run.  Some test compiles

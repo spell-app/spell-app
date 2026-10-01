@@ -29,8 +29,9 @@
             <code>spell</code> gains scope packs on compile, seven new commands (<code>projects</code>,
             <code>speed</code>, <code>format</code>, <code>parse</code>, <code>repl</code>, <code>explain</code>,
             <code>new</code>) and upgrades to <code>watch</code> / <code>explore</code> / <code>test</code> /
-            <code>compile</code>. BUILT 2026-10-01 in one go overnight, one commit per phase (<a href="#d1">D1</a>); the
-            durable docs are <a href="../../cli.html" target="src-packages-docs-cli-html"><code>cli.html</code></a
+            <code>compile</code>; then (P6-P10) a target prompt, <code>icons</code>, UI projects run in the browser, and
+            <code>serve</code>. BUILT 2026-10-01, one commit per phase (<a href="#d1">D1</a>); the durable docs are
+            <a href="../../cli.html" target="src-packages-docs-cli-html"><code>cli.html</code></a
             >.
           </p>
           <ul class="plan-phases">
@@ -58,8 +59,8 @@
             <li data-status="done" data-phase="8">
               <ui-icon name="circle check" color="green"></ui-icon> <a href="#p8">P8 · Run In Browser</a>
             </li>
-            <li data-status="todo" data-phase="9">
-              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p9">P9 · Doc Review 2</a>
+            <li data-status="done" data-phase="9">
+              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p9">P9 · Doc Review 2</a>
             </li>
             <li data-status="done" data-phase="10">
               <ui-icon name="circle check" color="green"></ui-icon> <a href="#p10">P10 · Spell Server</a>
@@ -226,7 +227,7 @@
                 ></ui-accordion
               >
             </li>
-            <li data-status="open" id="i2">
+            <li data-status="done" id="i2">
               <a class="plan-id" href="#i2">I2</a>
               <span class="plan-title"
                 >@examples/Solitaire-import deals nothing in spell-app, though every file loads</span
@@ -244,7 +245,7 @@
                 ></ui-accordion
               >
             </li>
-            <li data-status="open" id="i3">
+            <li data-status="done" id="i3">
               <a class="plan-id" href="#i3">I3</a>
               <span class="plan-title"
                 >spell serve's end-to-end test timed out once (90s start) in a full review run; passed 3 reruns</span
@@ -799,9 +800,9 @@
               </li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="9" class="s3">
+          <section data-status="done" data-phase="9" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p9"><ui-icon name="circle outline" color="grey"></ui-icon> P9 · Doc Review 2</h3></ui-sticky
+              ><h3 id="p9"><ui-icon name="circle check" color="green"></ui-icon> P9 · Doc Review 2</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li><b>Goal:</b> cli.html + README: prompt, icons, run in browser; prune this doc</li>
@@ -912,6 +913,29 @@
               the target, save through /api checked, both servers stop on Ctrl-C
             </li>
             <li><time datetime="2026-10-01T09:40-04:00">2026-10-01 09:40</time> P10 done</li>
+            <li>
+              <time datetime="2026-10-01T11:26-04:00">2026-10-01 11:26</time> I2: same empty table in the app's own
+              runner -- not the CLI's. Already known, and planned as the spell-app plan's last phase (SUSPECTED-BUGS,
+              2026-09-29); findings added there
+            </li>
+            <li>
+              <time datetime="2026-10-01T11:27-04:00">2026-10-01 11:27</time> I2 closed: @examples/Solitaire-import
+              deals nothing in spell-app, though every file loads
+            </li>
+            <li><time datetime="2026-10-01T11:27-04:00">2026-10-01 11:27</time> P9 active</li>
+            <li>
+              <time datetime="2026-10-01T11:27-04:00">2026-10-01 11:27</time> I3: serve test passed 3 full runs in a
+              row; given one retry for a slow first vite start
+            </li>
+            <li>
+              <time datetime="2026-10-01T11:27-04:00">2026-10-01 11:27</time> I3 closed: spell serve's end-to-end test
+              timed out once (90s start) in a full review run; passed 3 reruns
+            </li>
+            <li>
+              <time datetime="2026-10-01T11:29-04:00">2026-10-01 11:29</time> P9 done: cli.html covers the prompt,
+              icons, run in the browser and serve; I2 / I3 closed
+            </li>
+            <li><time datetime="2026-10-01T11:29-04:00">2026-10-01 11:29</time> P9 done</li>
           </ul>
         </section>
       </main>

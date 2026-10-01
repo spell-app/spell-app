@@ -85,7 +85,9 @@ describe("spell icons", () => {
 })
 
 describe("spell serve", () => {
-  test("--headless:  runs the app -- editor and /api -- on --port, opens the target, stops both on Ctrl-C", async () => {
+  // one retry:  vite's first start, in a busy run, once timed out (plan doc I3)
+  const options = { timeout: 180_000, retry: 1 }
+  test("--headless:  runs the app -- editor and /api -- on --port, opens the target, stops both", options, async () => {
     // well away from the app's own 3000 / 3001, so a running `yarn start` doesn't clash
     const port = 3700 + Math.floor(Math.random() * 200) * 2
     const child = spawn(process.execPath, [SPELL, "serve", "@test/Solitaire", "--headless", "--port", String(port)], {
@@ -116,7 +118,7 @@ describe("spell serve", () => {
       )
     }
     expect(apiUp).toBe(false)
-  }, 180_000)
+  })
 
   test("a port in use", async () => {
     const busy = createServer()

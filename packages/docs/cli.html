@@ -50,7 +50,12 @@
             <li>
               Commands: <code>compile</code>, <code>check</code>, <code>describe</code>, <code>explore</code>,
               <code>watch</code>, <code>run</code>, <code>test</code>, <code>format</code>, <code>projects</code>,
-              <code>speed</code>, <code>parse</code>, <code>repl</code>, <code>explain</code>, <code>new</code>.
+              <code>speed</code>, <code>parse</code>, <code>repl</code>, <code>explain</code>, <code>new</code>,
+              <code>icons</code>, <code>serve</code>, <code>help</code>.
+            </li>
+            <li>
+              No target: the project here -- or, outside one, an autocompleting prompt. A UI project's
+              <code>run</code> opens in your browser.
             </li>
             <li>
               Output to stdout, progress and screens to stderr; exit codes <code>0</code> fine, <code>1</code> the spell
@@ -72,7 +77,8 @@
           <ui-sticky class="spell-h2"><h2 id="2-commands">2. Commands</h2></ui-sticky>
           <p>
             Targets everywhere: a <code>.spell</code> file, a project folder, <code>@workspace</code> (the project
-            here), <code>@library/cards</code>, a full id, or a whole root like <code>@examples</code>.
+            here), <code>@library/cards</code>, a full id, or a whole root like <code>@examples</code>. None: see
+            <a href="#target-prompt">Target prompt</a>.
           </p>
           <ui-table celled compact striped unstackable>
             <table>
@@ -108,7 +114,21 @@
                 </tr>
                 <tr>
                   <td><code>run</code> / <code>test</code></td>
-                  <td>run under node; <code>test --name</code>, <code>test --watch</code></td>
+                  <td>
+                    run under node -- a UI project then in your browser (<code>--browser</code>,
+                    <code>--no-browser</code>); <code>test --name</code>, <code>test --watch</code>
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>serve</code></td>
+                  <td>
+                    the spell app -- editor + <code>/api</code>, which saves to disk -- opened on the target;
+                    <code>--port</code>, <code>--headless</code>
+                  </td>
+                </tr>
+                <tr>
+                  <td><code>icons</code></td>
+                  <td>find ui icons by name, alias or keyword; <code>--open</code>: a gallery in your browser</td>
                 </tr>
                 <tr>
                   <td><code>format</code></td>
@@ -136,6 +156,10 @@
                     <code>project.json</code> + a starter <code>.spell</code>, in <code>@user</code> or
                     <code>--in</code>
                   </td>
+                </tr>
+                <tr>
+                  <td><code>help</code></td>
+                  <td>the commands, or one command's options</td>
                 </tr>
               </tbody>
             </table>
@@ -277,6 +301,51 @@ export function lineScope(project?: SP.SpellProject): P.Scope {
               <li><code>explore</code> reloads the same way, keeping what's open and the cursor, by path.</li>
             </ul>
           </section>
+
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="target-prompt">Target prompt</h3></ui-sticky>
+            <ul>
+              <li>No target, in a project's folder or below: that project, for every command.</li>
+              <li>
+                Outside one, in a terminal: a prompt that completes like a shell -- <code>Tab</code> completes a root
+                (<code>@examples/</code>), then a project, then "entire project" or one of its files. Piped: an error.
+              </li>
+              <li>
+                The last 3 picks come first, from
+                <a href="../cli/.recent-targets.json" target="src-packages-cli-recent-targets-json"
+                  ><code>packages/cli/.recent-targets.json</code></a
+                >
+                (gitignored, per checkout).
+              </li>
+              <li>
+                Keys arriving together -- typed while it's busy, or pasted -- are split and taken one at a time: Ink
+                only names a key that arrives alone.
+              </li>
+            </ul>
+          </section>
+
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="in-the-browser">In the browser</h3></ui-sticky>
+            <ul>
+              <li>
+                <a href="../cli/src/serve.ts" target="src-packages-cli-src-serve-ts"><code>serve.ts</code></a
+                >: a small server on <code>localhost</code>, answering only its routes;
+                <code>SPELL_NO_BROWSER=1</code> prints the URL instead of opening a browser.
+              </li>
+              <li>
+                <code>icons --open</code>: a gallery page of the packs' SVGs, with a filter box; click to copy a name.
+              </li>
+              <li>
+                <code>run</code>: the child tells <code>spell</code> over IPC that the project tried to show a UI; then
+                a page with app's <code>&lt;spell-app src=...&gt;</code> serves the project as compiled for this run,
+                its scope pack, and its imports. <code>dist-element/</code> is built first if missing.
+              </li>
+              <li>
+                <code>serve</code>: app's own <code>yarn start:dev</code> (vite) and <code>yarn start:server</code>
+                (express), each in its own process group, stopped together; a busy port is refused.
+              </li>
+            </ul>
+          </section>
         </section>
 
         <section class="s2">
@@ -306,6 +375,18 @@ export function lineScope(project?: SP.SpellProject): P.Scope {
               <b>Never writes into <code>projects/test/</code>:</b> test projects stay frozen -- <code>format</code> and
               <code>e</code> refuse, tests use temp copies.
             </li>
+            <li>
+              <b>Browser runs use <code>&lt;spell-app src=&gt;</code>, not the app server:</b> compiled JS and its scope
+              pack, served beside each other -- no <code>/api</code> to run.
+            </li>
+            <li>
+              <b><code>serve</code> isn't <code>yarn start</code>:</b> that runs <code>yarn install</code> and
+              <code>yarn stop</code>, which would stop other checkouts' servers.
+            </li>
+            <li>
+              <b>Icon keywords match a word's start:</b> names and aliases anywhere, so <code>bell</code> finds
+              <code>dumbbell</code> but not <code>brain</code> by its keyword <code>cerebellum</code>.
+            </li>
           </ul>
         </section>
 
@@ -330,7 +411,15 @@ export function lineScope(project?: SP.SpellProject): P.Scope {
               <code>watch</code> sees only what it watches: an imported project not watched doesn't rebuild its
               importer.
             </li>
-            <li><code>run</code> skips what needs a browser, e.g. starting a UI; other browser-only code throws.</li>
+            <li>
+              Under node, <code>run</code> skips what needs a browser, e.g. starting a UI; other browser-only code
+              throws. In the browser it serves what was compiled at the start: no live reload.
+            </li>
+            <li>
+              <code>@examples/Solitaire-import</code> deals nothing, in the browser and in the app alike: a known spell
+              runtime problem with importing an app project, not the CLI's.
+            </li>
+            <li><code>serve</code> opens only projects in the app's roots; others open the chooser.</li>
           </ul>
           <ui-message state="info" header="Not built yet">
             <ul>
