@@ -262,12 +262,12 @@ with icon packs `zoom` is in `fa7-brands`, and the `fomantic` pack gives the mag
 - `src/components/toast/UIToast.tsx` countdown:  on GitHub's Linux CI (chromium, `ubuntu-latest`) two
   `toast.test.tsx` "life" tests failed on every run -- an 80 ms toast never fired `ui-hide` (10 s timeout), and a
   40 ms toast never fired `ui-close` within 1 s -- so the countdown never ran.  Passes on macOS, at any
-  `--maxWorkers` and serially.  Theory, UNPROVEN:  the test pointer rests where toasts appear, so `pointerenter`
-  sets `hovered` and the timer never starts;  if so a real user's resting pointer does the same, and a toast that
-  appears under it never leaves.  Other suspects:  `focused`, or a race where the timer closes before the entry
-  animation ends, which drops `ui-show` (`appear()` emits it only `if (!this.closing)`).  The tests now set
-  `pause-on-hover="false"` to get CI green.  Prove:  run them in `mcr.microsoft.com/playwright:v1.63.0-noble`, logging
-  `hovered` / `focused` / `timer`.  (2026-09-30)
+  `--maxWorkers` and serially.  LIKELY HOVER:  with `pause-on-hover="false"` (the tests' only change) they pass on
+  CI, and that attribute only gates `onPointerEnter`.  So something fires `pointerenter` without a matching
+  `pointerleave` -- probably the test pointer resting where toasts appear.  If a real user's resting pointer does
+  the same, a toast that appears under it never leaves (Fomantic's toast had the same behaviour?).  Prove:  run
+  the original tests in `mcr.microsoft.com/playwright:v1.63.0-noble`, logging `pointerenter` and the pointer's
+  position.  (2026-09-30)
 - `src/elements/UIElement.tsx` `mount()`:  errors thrown in a `createEffect` COMPUTE set up there (e.g.
   `hostStates()`) never reach the fork's error boundary -- logged, but no `:state(errored)` and no fallback.  The
   table family switched its class-mirror effect to `createRenderEffect` to get the fallback (`table.test.tsx`).

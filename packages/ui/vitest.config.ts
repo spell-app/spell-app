@@ -56,6 +56,8 @@ export function uiProjects({ prefix = "", root }: { prefix?: string; root?: stri
         setupFiles: ["./test/setup.ts"],
         // a guard:  an element bug that halts rendering must fail its test, not hang the run
         testTimeout: 10_000,
+        // `inject("ci")` in a test:  timing budgets are skipped on a shared CI runner (`test/test.types.ts`)
+        provide: { ci: Boolean(process.env.CI) },
         browser: {
           enabled: true,
           provider: playwright(),

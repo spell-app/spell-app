@@ -5,6 +5,21 @@
  */
 
 ////////////////
+// ## Provided by `vitest.config.ts`
+////////////////
+
+declare module "vitest" {
+  /**
+   * What `provide` hands the browser tests, read with `inject()`.
+   * - NOTE: an `interface`, not a `type`:  module augmentation only merges interfaces.
+   */
+  export interface ProvidedContext {
+    /** Running on CI (`CI` set, as GitHub Actions does):  skip timing budgets a shared runner can't hold. */
+    ci: boolean
+  }
+}
+
+////////////////
 // ## Visual tests
 ////////////////
 
