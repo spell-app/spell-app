@@ -12,6 +12,15 @@
  * - Undo:  `git reset --hard` (from a tree that was clean before the run).
  *
  * ## Steps
+ * 0. Folders (gated on `packages/spell-app` existing):  `packages/spell-app` => `packages/app`, `packages/spell-core`
+ *    => `packages/core` (with `git mv`);  `packages/spell-util/src` => `packages/util/src/spell/`, merged INTO `util`
+ *    (manifests, tsconfig, vitest projects, barrel, lint config;  the rest of `spell-util` is deleted).  Aliases
+ *    `#spell-app` => `#app`, `#spell-core` => `#core`, `#spell-util[/x]` => `#util[/spell/x]`;  npm names
+ *    `@spell/spell-app` => `@spell-app/app`, `@spell/spell-core` => `@spell-app/core`, `@spell/spell-util` =>
+ *    `@spell-app/util` DIRECTLY (never via `@spell/core`, the module name compiled spell imports).  `ui`'s util
+ *    barrel is rewritten to import util's GENERIC files one by one, so spell's heavy utilities stay out of `ui`.
+ *    `spell-app` is also the GitHub org, the npm scope, the VS Code publisher and the `<spell-app>` element:  only
+ *    package-path / package-name / alias contexts are rewritten (`renameStep0`);  the rest by anchored edits.
  * 1. ui's own aliases:  `$/x` => `$/ui/x`, `$test/x` => `$/ui/test/x`, in module specifiers AND mentions
  *    (backticked, quoted, or the ui folder names:  "the $/elements barrel"), in every file;  plus the `paths` lines of
  *    any tsconfig (`"$/*": [".../src/*"]` => `"$/ui": [".../src/index.ts"]` + `"$/ui/*"`, `"$test/*"` => `"$/ui/test/*"`).
@@ -24,7 +33,7 @@
  *    steps 1 and 2.)
  * 4. npm scope:  `@spell/<name>` => `@spell-app/<name>` for exactly the workspace package names (every tracked
  *    `package.json` whose `name` starts `@spell/`).  `@spell/core` / `@spell/project/...` (module names compiled
- *    spell imports) are NOT workspace names and stay.
+ *    spell imports) are excluded EXPLICITLY (`RESERVED_MODULES`), on top of not being workspace names.
  * 5. `yarn install`, `yarn format` (oxfmt may re-sort imports / re-align tables).
  *
  * ## Skipped
@@ -33,7 +42,7 @@
  * historical Phase 4 codemod (`move-packages.mjs`, `package-moves.json`).
  */
 import { execFileSync } from "node:child_process"
-import { lstatSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
+import { existsSync, lstatSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { join, resolve } from "node:path"
 
 const ROOT = resolve(import.meta.dirname, "..")
@@ -52,6 +61,12 @@ const SKIP_FILE = new Set([
 ])
 const MAX_BYTES = 4_000_000
 
+/**
+ * `@spell/<name>` module names compiled spell imports (`@spell/core` = the runtime, `@spell/project/<id>`):  NOT npm
+ * packages, NEVER renamed by step 4 even if a workspace were ever called that.
+ */
+const RESERVED_MODULES = ["core", "project"]
+
 ////////////////
 // ## Entry
 ////////////////
@@ -60,14 +75,8 @@ const MAX_BYTES = 4_000_000
 function main() {
   const args = process.argv.slice(2)
   const dryRun = args.includes("--dry-run")
-  const files = loadFiles()
-  const base = files.get("tsconfig.base.json")
-  if (base === undefined) die("no tsconfig.base.json at the repo root")
-
-  const aliasNames = packageAliasNames(base)
-  const scopeNames = workspaceNames(files)
-  const uiPending = /"\$test\/\*"|"\$\/\*"/.test(base)
-  const uiEntries = uiEntryNames()
+  let files = loadFiles()
+  if (!files.has("tsconfig.base.json")) die("no tsconfig.base.json at the repo root")
   const tag = dryRun ? "[dry run] " : ""
   const changed = new Set()
 
@@ -85,6 +94,34 @@ function main() {
     }
     return { n, nFiles }
   }
+
+  console.log(
+    `${tag}step 0:  \`spell-app\` => \`app\`, \`spell-core\` => \`core\`, \`spell-util\` merged into \`util/src/spell/\``
+  )
+  if (!step0Pending()) console.log("  already done (no packages/spell-app);  skipped")
+  else {
+    const prep = prepareStep0(files, dryRun)
+    files = prep.files
+    for (const file of prep.generated) changed.add(file)
+    console.log(
+      `  folders moved:  ${dryRun ? "(dry run) " : ""}spell-app, spell-core, spell-util/src => util/src/spell;  ` +
+        `${prep.manifests} manifests merged / repointed, ${prep.generated.size} files generated`
+    )
+    const before = run((file, text) => applyStep0Before(file, text))
+    console.log(`  anchored edits and line removals:  ${before.n} in ${before.nFiles} files`)
+    const names = run((file, text) => renameStep0(text))
+    console.log(`  names, folders, aliases rewritten:  ${names.n} in ${names.nFiles} files`)
+    const after = run((file, text) => applyPatches(STEP0_AFTER, "step0", file, text))
+    console.log(`  wording / config edits:  ${after.n} in ${after.nFiles} files`)
+    reportMissingPatches(STEP0_BEFORE, "step0b", files)
+    reportMissingPatches(STEP0_AFTER, "step0", files)
+  }
+
+  const base = files.get("tsconfig.base.json")
+  const aliasNames = packageAliasNames(base)
+  const scopeNames = workspaceNames(files)
+  const uiPending = /"\$test\/\*"|"\$\/\*"/.test(base)
+  const uiEntries = uiEntryNames()
 
   console.log(`${tag}step 1:  ui's own aliases (\`$/x\` => \`$/ui/x\`, \`$test/x\` => \`$/ui/test/x\`)`)
   if (!uiPending) console.log("  already done (tsconfig.base.json has no `$/*` / `$test/*`);  skipped")
@@ -182,6 +219,14 @@ function workspaceNames(files) {
     }
     if (typeof name === "string" && name.startsWith(`${OLD_SCOPE}/`)) names.push(name.slice(OLD_SCOPE.length + 1))
   }
+  for (const reserved of RESERVED_MODULES) {
+    const at = names.indexOf(reserved)
+    if (at >= 0) names.splice(at, 1)
+  }
+  for (const reserved of RESERVED_MODULES) {
+    const at = names.indexOf(reserved)
+    if (at >= 0) names.splice(at, 1)
+  }
   return [...new Set(names)].sort((a, b) => b.length - a.length)
 }
 
@@ -192,6 +237,492 @@ function uiEntryNames() {
   names.delete("")
   return [...names].sort((a, b) => b.length - a.length)
 }
+
+////////////////
+// ## Step 0:  folder renames and the `spell-util` merge
+////////////////
+
+/** Step 0 is pending while the old folders exist (and the new ones don't):  the gate that makes reruns safe. */
+function step0Pending() {
+  return (
+    existsSync(join(ROOT, "packages/spell-app/package.json")) &&
+    !existsSync(join(ROOT, "packages/app")) &&
+    !existsSync(join(ROOT, "packages/core"))
+  )
+}
+
+/** New path of a file under step 0's folder moves, `null` when it is deleted, else itself. */
+function step0Path(file) {
+  const folder = /^packages\/spell-(app|core)\//.exec(file)
+  if (folder) return `packages/${folder[1]}/${file.slice(folder[0].length)}`
+  if (file.startsWith("packages/spell-util/src/"))
+    return `packages/util/src/spell/${file.slice("packages/spell-util/src/".length)}`
+  if (file === "packages/spell-util/.oxlintrc.json") return "packages/util/.oxlintrc.json"
+  if (file.startsWith("packages/spell-util/")) return null
+  return file
+}
+
+/** `files` re-keyed by `mapPath` (entries it maps to `null` dropped), same order. */
+function rekey(files, mapPath) {
+  const next = new Map()
+  for (const [file, text] of files) {
+    const to = mapPath(file)
+    if (to !== null) next.set(to, text)
+  }
+  return next
+}
+
+/** Performs step 0's folder moves with `git mv` / `git rm`, so history follows. */
+function moveFolders() {
+  git(["mv", "packages/spell-app", "packages/app"])
+  git(["mv", "packages/spell-core", "packages/core"])
+  git(["mv", "packages/spell-util/.oxlintrc.json", "packages/util/.oxlintrc.json"])
+  git(["mv", "packages/spell-util/src", "packages/util/src/spell"])
+  git(["rm", "-rfq", "--ignore-unmatch", "packages/spell-util"])
+  rmSync(join(ROOT, "packages/spell-util"), { recursive: true, force: true })
+}
+
+/**
+ * Merges `spell-util`'s manifest into `util`'s and repoints every dependent, in `files` (keys are the NEW paths;
+ * `spellUtilManifest` is the old `spell-util` manifest text).  Returns how many files it changed.
+ * - `util` gains `spell-util`'s `dependencies` / `devDependencies` (no duplicates;  `util`'s own versions win).
+ * - A package depending on `@spell/spell-util` now depends on `@spell/util` instead (step 4 renames the scope), or
+ *   just drops the line when it already had it.
+ * - The root `package.json` `workspaces` loses `packages/spell-util`.
+ */
+function mergeManifests(files, spellUtilManifest, generated) {
+  const spellUtil = JSON.parse(spellUtilManifest)
+  let n = 0
+  for (const [file, text] of files) {
+    if (file === "package.json") {
+      const next = text.replace(/^\s*"packages\/spell-util",?\n/m, "")
+      if (next !== text) (files.set(file, next), generated.add(file), n++)
+      continue
+    }
+    if (!/^packages\/(?:[^/]+\/)*package\.json$/.test(file) || file.includes("/node_modules/")) continue
+    if (file === "packages/util/package.json") {
+      files.set(file, mergeUtilManifest(JSON.parse(text), spellUtil))
+      generated.add(file)
+      n++
+      continue
+    }
+    if (!text.includes('"@spell/spell-util"')) continue
+    const json = JSON.parse(text)
+    for (const section of ["dependencies", "devDependencies", "peerDependencies"]) {
+      const deps = json[section]
+      if (!deps || !("@spell/spell-util" in deps)) continue
+      json[section] = Object.fromEntries(
+        Object.entries(deps).flatMap(([name, version]) =>
+          name === "@spell/spell-util" ? (deps["@spell/util"] ? [] : [["@spell/util", version]]) : [[name, version]]
+        )
+      )
+    }
+    files.set(file, `${JSON.stringify(json, null, 2)}\n`)
+    generated.add(file)
+    n++
+  }
+  return n
+}
+
+/** `util`'s manifest plus `spell-util`'s dependencies, as text. */
+function mergeUtilManifest(util, spellUtil) {
+  const sorted = (object) => Object.fromEntries(Object.entries(object).sort(([a], [b]) => a.localeCompare(b)))
+  const dependencies = sorted(
+    Object.fromEntries(Object.entries(spellUtil.dependencies ?? {}).filter(([name]) => name !== "@spell/util"))
+  )
+  const devDependencies = sorted({ ...spellUtil.devDependencies, ...util.devDependencies })
+  const out = {}
+  for (const [key, value] of Object.entries(util)) {
+    if (key === "devDependencies") out.dependencies = dependencies
+    out[key] = key === "devDependencies" ? devDependencies : value
+  }
+  out.description =
+    "Helpers shared by @spell/ui, spell and the CLI:  generic ones (@proto, class, string, DOM) and spell's own (src/spell/)"
+  return `${JSON.stringify(out, null, 2)}\n`
+}
+
+/** Merged `util/tsconfig.json`:  `util`'s options widened by `spell-util`'s (node + vite types, JSX, JSON, `types/`). */
+function mergeTsconfig(utilText, spellUtilText) {
+  const util = JSON.parse(utilText)
+  const spell = JSON.parse(spellUtilText)
+  const compilerOptions = { ...util.compilerOptions, ...spell.compilerOptions }
+  // `target` stays `spell-util`'s (ES2020):  at ES2022 `Logger`'s static initialisers are flagged (TS2729)
+  compilerOptions.lib = util.compilerOptions.lib
+  return `${JSON.stringify({ ...util, compilerOptions, include: ["src", "../../types"] }, null, 2)}\n`
+}
+
+/** `util/vitest.config.ts` after the merge:  the browser tests, plus a node project for `src/spell/`. */
+const UTIL_VITEST_CONFIG = `import { defineConfig, type TestProjectConfiguration } from "vitest/config"
+import { playwright } from "@vitest/browser-playwright"
+
+import { standardDecorators } from "../../vite.decorators.ts"
+import { packageVersion } from "../../vite.packageVersion.ts"
+
+/**
+ * Two projects:
+ * - \`browser\` -- the generic helpers' tests, in a REAL browser (Vitest browser mode + Playwright, chromium):
+ *   \`dom.test.ts\` needs shadow roots and a custom element registry, and \`decorators.test.ts\` proves \`@proto\` after
+ *   esbuild lowers standard decorators.
+ * - \`spell\` -- the tests of \`src/spell/\` (spell's utilities), in node:  fetch, tasks, constants.
+ * - \`standardDecorators()\` is what lowers decorators:  Vite 8's own transform (oxc) doesn't.  See \`AGENTS.md\`.
+ * - Aliases (\`#util\` ...) come from the repo root's \`tsconfig.base.json\`, through \`resolve.tsconfigPaths\`.
+ * - \`prefix\` / \`root\`:  the repo root's \`vitest.config.ts\` lists these with \`util:\` names and \`root\` set to this
+ *   package, since vitest doesn't nest \`projects\`.  Own run:  no prefix, \`root\` is the config's folder.
+ */
+export function utilProjects({ prefix = "", root }: { prefix?: string; root?: string } = {}): TestProjectConfiguration[] {
+  return [
+    {
+      plugins: [standardDecorators()],
+      resolve: { tsconfigPaths: true },
+      ...(root && { root }),
+      test: {
+        name: \`\${prefix}browser\`,
+        include: ["src/**/*.test.ts"],
+        exclude: ["**/node_modules/**", "src/spell/**"],
+        browser: {
+          enabled: true,
+          provider: playwright(),
+          headless: true,
+          instances: [{ browser: "chromium" }]
+        }
+      }
+    },
+    {
+      plugins: [standardDecorators(), packageVersion()],
+      resolve: { tsconfigPaths: true },
+      ...(root && { root }),
+      test: {
+        name: \`\${prefix}spell\`,
+        environment: "node",
+        include: ["src/spell/**/*.test.ts"]
+      }
+    }
+  ]
+}
+
+export default defineConfig({
+  test: {
+    projects: utilProjects()
+  }
+})
+`
+
+/** New header + barrel of `util/src/index.ts`. */
+const UTIL_INDEX = `/**
+ * Barrel for \`#util\` (\`@spell/util\`) -- helpers shared by \`ui\`, \`spell\` and \`cli\`, in two layers.
+ * - GENERIC (the files beside this one):  \`@proto\`, class, name-case string and shadow-aware DOM helpers.  No runtime
+ *   dependencies, safe anywhere, including \`*.types.ts\` files and SSR / node tooling.  \`@spell/ui\` is published and
+ *   bundles what it imports from here.
+ * - SPELL'S (\`./spell\`, flattened in LAST):  lodash, \`chalk\`, \`pluralize\`, the React-era state libraries, fetch,
+ *   tasks, prefs.  NEVER import them from \`ui\`:  \`ui\`'s \`src/util/index.ts\` imports the generic files one by one
+ *   (\`#util/class\` ...) and never this barrel, so none of it lands in \`ui\`'s bundles or published declarations.
+ * - NOTE: no namespace here (unlike \`UI\` / \`E\`):  utilities are imported by name,
+ *   e.g. \`import { proto, kebabCase } from "#util"\`.
+ * - NOTE: other packages import \`#util\` ONLY, never \`#util/<file>\` -- except \`ui\`'s util barrel, see above.
+ */
+
+export * from "./util.types"
+
+export * from "./class"
+export * from "./decorators"
+export * from "./string"
+export * from "./dom"
+
+export * from "./spell"
+`
+
+/** New header of `util/src/spell/index.ts` (was `spell-util`'s barrel;  its `export * from "#util"` goes). */
+const UTIL_SPELL_HEADER = `/**
+ * Barrel for \`#util/spell\` -- spell's own utilities, flattened into \`#util\` by \`../index.ts\`.
+ * - Grouped below by rough concern: constants, app plumbing, language helpers, fetch/observable, DOM, tasks.
+ * - A sub-folder, not beside the generic helpers:  \`ui\` is published and bundles the generic files, and these pull in
+ *   lodash, \`chalk\`, \`pluralize\` and the React-era state libraries.  \`string.ts\` and \`DOM.ts\` also share a name with
+ *   the generic \`../string.ts\` / \`../dom.ts\` (and macOS is case-insensitive).
+ * - NOTE: files here import the generic helpers by deep path (\`#util/class\`), never the \`#util\` barrel:  it re-exports
+ *   this folder, which would be a cycle.
+ * - NOTE: \`ResponseErrors.ts\` is deliberately NOT re-exported here -- its error classes (\`ResponseError\`,
+ *   \`MissingResourceError\`, etc) are consumed directly by \`$fetch.ts\`/\`LoadableFile.ts\` via relative import,
+ *   not by outside callers, so they stay off this barrel's public surface.
+ *   TODO: confirm that's intentional rather than a gap -- no other file imports them today.
+ */
+`
+
+/** New `ui/src/util/index.ts`:  util's GENERIC files only, one by one. */
+function uiUtilBarrel(genericFiles) {
+  return `/**
+ * Barrel for \`$/util\` -- general-purpose utilities with no dependency on the rest of the package.
+ * - Re-exports \`packages/util\`'s GENERIC files (\`@proto\`, class / string / DOM helpers, \`Prettify\` ...), shared with
+ *   \`spell\`:  they live there, not here, so every package shares ONE copy.
+ * - NOTE: imports them one by one (\`#util/class\` ...), NEVER \`#util\`'s barrel:  that also flattens in \`#util/spell\`
+ *   (lodash, \`chalk\`, \`pluralize\`, fetch, tasks ...), which would land in \`ui\`'s \`core\` bundle and published
+ *   declarations.  An allowed exception to "import another package's barrel only";  add a file here when \`util\`
+ *   gains a GENERIC one.  \`yarn measure\` and \`yarn smoke\` catch a leak.
+ * - Safe to import anywhere, including \`*.types.ts\` files and the runtime's lazily-loaded chunk.
+ * - NOTE: no namespace here (unlike \`UI\` / \`E\`):  utilities are imported by name,
+ *   e.g. \`import { proto, kebabCase } from "$/util"\`.
+ * - Nothing package-specific lives here yet.
+ */
+
+${genericFiles.map((name) => `export * from "#util/${name}"`).join("\n")}
+`
+}
+
+/**
+ * Step 0 text rules, on text whose file paths are already the NEW ones.  In order:
+ * 1. npm names:  `@spell/spell-app` => `@spell-app/app`, `@spell/spell-core` => `@spell-app/core`,
+ *    `@spell/spell-util` => `@spell-app/util` (DIRECTLY, never via `@spell/core`:  that is the module name compiled
+ *    spell imports).
+ * 2. folders:  `packages/spell-app` / `packages/spell-core` / `packages/spell-util[/src]`, and `../spell-app` etc.
+ * 3. aliases:  `#spell-app` => `#app`, `#spell-core` => `#core`, `#spell-util[/x]` => `#util[/spell/x]`.
+ * 4. the words `spell-core` / `spell-util` (never after `/ . @ # $ - <`, nor before `-` or `.ext`) => `core` / `util`.
+ * 5. `spell-app` ONLY as a backticked package (`` `spell-app` ``, `` `spell-app/...` ``):  it is also the GitHub org,
+ *    the npm scope, the VS Code publisher and the `<spell-app>` element, which stay.
+ */
+function renameStep0(text) {
+  let n = 0
+  const sub = (regex, replacement) => {
+    text = text.replace(regex, (...args) => {
+      n++
+      return typeof replacement === "function"
+        ? replacement(...args)
+        : replacement.replace(/\$(\d)/g, (_, index) => args[index])
+    })
+  }
+  sub(/(?<![\w])@spell(\\?\/)spell-app(?![\w-])/g, "@spell-app$1app")
+  sub(/(?<![\w])@spell(\\?\/)spell-core(?![\w-])/g, "@spell-app$1core")
+  sub(/(?<![\w])@spell(\\?\/)spell-util(?![\w-])/g, "@spell-app$1util")
+  sub(/packages\/spell-util\/src(?![\w-])/g, "packages/util/src/spell")
+  sub(/packages\/spell-(app|core)(?![\w-]|\.\w)/g, "packages/$1")
+  sub(/packages\/spell-util(?![\w-]|\.\w)/g, "packages/util")
+  sub(/(\.\.\/)spell-util\/src(?![\w-])/g, "$1util/src/spell")
+  sub(/(\.\.\/)spell-(app|core)(?![\w-]|\.\w)/g, "$1$2")
+  sub(/(\.\.\/)spell-util(?![\w-]|\.\w)/g, "$1util")
+  sub(/(["'`])#spell-util\//g, "$1#util/spell/")
+  sub(/(["'`])#spell-util(?=["'`])/g, "$1#util")
+  sub(/(["'`])#spell-(app|core)(?=[/"'`])/g, "$1#$2")
+  sub(/(?<=[\s(\[])#spell-util\/(?=\w)/g, "#util/spell/")
+  sub(/(?<=[\s(\[])#spell-(app|core)(?=\/\w)/g, "#$1")
+  sub(/(?<![\w@#/.$<-])spell-(core|util)(?![\w-]|\.\w)/g, (_, name) => name)
+  sub(/(?<=`)spell-app(?=[`/])/g, "app")
+  return { text, n }
+}
+
+/** Preparation of step 0:  moves (real run), re-keys `files`, merges manifests, writes the generated files. */
+function prepareStep0(files, dryRun) {
+  const spellUtilManifest = files.get("packages/spell-util/package.json")
+  const spellUtilTsconfig = files.get("packages/spell-util/tsconfig.json")
+  const spellUtilTsconfigNode = files.get("packages/spell-util/tsconfig.node.json")
+  // `util`'s GENERIC files, before the merge:  what `ui`'s util barrel may import
+  const genericFiles = readdirSync(join(ROOT, "packages/util/src"))
+    .filter((name) => /\.tsx?$/.test(name) && !/\.test\.tsx?$/.test(name) && name !== "index.ts")
+    .map((name) => name.replace(/\.tsx?$/, ""))
+    .sort()
+  genericExportMap = new Map()
+  for (const name of genericFiles) {
+    const text = files.get(`packages/util/src/${name}.ts`) ?? ""
+    for (const [, id] of text.matchAll(
+      /export\s+(?:declare\s+)?(?:abstract\s+)?(?:async\s+)?(?:const|let|function\*?|class|type|interface|enum)\s+(\w+)/g
+    ))
+      genericExportMap.set(id, name)
+    for (const [, list] of text.matchAll(/export\s+(?:type\s+)?\{([^}]*)\}/g))
+      for (const item of list.split(",")) {
+        const id = item.trim().split(/\s+as\s+/).pop()
+        if (id) genericExportMap.set(id, name)
+      }
+  }
+  if (!dryRun) moveFolders()
+  files = rekey(files, step0Path)
+  const generated = new Set()
+  const set = (file, text) => (files.set(file, text), generated.add(file))
+  const manifests = mergeManifests(files, spellUtilManifest, generated)
+  set("packages/util/tsconfig.json", mergeTsconfig(files.get("packages/util/tsconfig.json"), spellUtilTsconfig))
+  // `spell-util`'s node config also includes \`vite.packageVersion.ts\` and \`types/\`, which \`vitest.config.ts\` now needs
+  set("packages/util/tsconfig.node.json", spellUtilTsconfigNode)
+  set("packages/util/vitest.config.ts", UTIL_VITEST_CONFIG)
+  set("packages/util/src/index.ts", UTIL_INDEX)
+  set("packages/ui/src/util/index.ts", uiUtilBarrel(genericFiles))
+  return { files, generated, manifests }
+}
+
+/** Exports of `util`'s generic files:  name => file (no extension).  Filled by `prepareStep0`. */
+let genericExportMap = new Map()
+
+/** `#util` imports inside `util/src/spell/**` split by the generic FILE each name lives in (no cycle through the barrel). */
+function splitUtilImports(text) {
+  return text.replace(/^import (type )?\{([^}]*)\} from "#util"$/gm, (match, typeKw = "", names) => {
+    const groups = new Map()
+    for (const item of names
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean)) {
+      const id = item
+        .replace(/^type\s+/, "")
+        .split(/\s+as\s+/)[0]
+        .trim()
+      const file = genericExportMap.get(id)
+      if (!file) return match
+      groups.set(file, [...(groups.get(file) ?? []), item])
+    }
+    return [...groups].map(([file, items]) => `import ${typeKw}{ ${items.join(", ")} } from "#util/${file}"`).join("\n")
+  })
+}
+
+/** New `DEPENDENTS` of `.github/scripts/changed-packages.mjs`:  `spell-util` gone, `spell-app` / `spell-core` renamed. */
+const NEW_DEPENDENTS = `const DEPENDENTS = {
+  util: ["solid-element", "ui", "parser", "core", "spell", "lsp", "app", "cli"],
+  "solid-element": ["ui", "cli"],
+  ui: ["cli"],
+  parser: ["spell", "lsp", "app", "cli"],
+  core: ["spell", "lsp", "app", "cli"],
+  spell: ["lsp", "app", "cli"],
+  lsp: ["app", "cli"],
+  app: ["cli"],
+  // the extension runs \`lsp\` and \`app\`'s runner, but has no checks of its own yet
+  vscode: [],
+  cli: []
+}
+`
+
+/** Replacement of CODE-DEBT.md's `spell-util` bullet in "Phase 4 package split:  compromises". */
+const NEW_CODE_DEBT_BULLET = `- **\`util/src/spell/\` is the old \`~/util\`, whole.**
+  - **Cost**:  \`parser\` and \`core\` depend on lodash, \`chalk\`, \`pluralize\`, \`query-string\` and the React-era
+    state libraries (\`@nx-js/observer-util\`, \`@risingstack/react-easy-state\`) for a handful of helpers each;  a
+    published \`@spell/parser\` would drag them in.  They sit in \`util\`'s \`package.json\`, beside the generic helpers
+    \`ui\` bundles, and \`ui\`'s util barrel must import the generic files one by one to keep them out.
+  - **Cause**:  \`~/util\` mixed generic helpers (\`string\`, \`assert\`, \`paths\`) with reactive state (\`Observable\`,
+    \`extend\`), browser fetch (\`$fetch\`, \`Loadable\`) and app prefs (\`AppPrefStore\`, \`prefs\`).  The split moved it
+    whole into \`spell-util\`, which was then merged into \`util\` as the sub-folder \`src/spell/\`.
+  - **Fix**:  generic, dependency-free helpers => beside \`util\`'s generic files;  reactive state => \`core\`;
+    fetch / loadable / prefs => \`app\` or \`spell/node\`;  then \`src/spell/\` and its dependencies go.  Watch \`ui\`'s
+    bundle size (\`yarn measure\`).
+  - **Pinned at**:  \`packages/util/package.json\` \`dependencies\`, and \`packages/ui/src/util/index.ts\`' file-by-file
+    imports.
+`
+
+/** Line / block removals and structural rewrites of step 0 that no literal patch can express. */
+function applyStep0Before(file, text) {
+  let n = 0
+  const sub = (regex, replacement) => {
+    const next = text.replace(regex, replacement)
+    if (next !== text) (n++, (text = next))
+  }
+  if (file === "tsconfig.base.json") sub(/^\s*"#spell-util(?:\/\*)?":.*\n/gm, "")
+  if (file === "README.md") sub(/^\| \[`packages\/spell-util`\].*\n/m, "")
+  if (file === "packages/cli/README.md") sub(/^\s*spell-util\/\s+utilities\n/m, "")
+  if (file === "AGENTS.md")
+    sub(/^  - `packages\/spell-util\/` \(`@spell\/spell-util`, `#spell-util`\)[^\n]*\n[^\n]*\n/m, "")
+  if (file === "CODE-DEBT.md")
+    sub(
+      /- \*\*`spell-util` is the old `~\/util`, whole\.\*\*[\s\S]*?\*\*Pinned at\*\*:  `packages\/spell-util\/package\.json` `dependencies`\.\n/,
+      () => NEW_CODE_DEBT_BULLET
+    )
+  if (file === ".github/scripts/changed-packages.mjs") sub(/const DEPENDENTS = \{[\s\S]*?\n\}\n/, () => NEW_DEPENDENTS)
+  if (file === "packages/util/src/spell/index.ts")
+    sub(/^\/\*\*[\s\S]*?\*\/\n\nexport \* from "#util"\n/, () => `${UTIL_SPELL_HEADER}\n`)
+  if (file.startsWith("packages/util/src/spell/") && /\.tsx?$/.test(file)) sub(/^import (type )?\{[^}]*\} from "#util"$/gm, (m) => splitUtilImports(m))
+  const patched = applyPatches(STEP0_BEFORE, "step0b", file, text)
+  return { text: patched.text, n: n + patched.n }
+}
+
+/** Anchored edits BEFORE the renames (text still says `spell-util` / `#spell-util`). */
+const STEP0_BEFORE = [
+  ["packages/spell/src/node/environment.ts", '"spell-core", "src"', '"core", "src"'],
+  ["packages/spell/src/node/environment.ts", '"spell-app", "static"', '"app", "static"'],
+  ["AGENTS.md", "`parser` / `spell-core` -> `spell-util` -> `util`", "`parser` / `core` -> `util`"],
+  ["README.md", "`parser` / `spell-core` -> `spell-util` -> `util`", "`parser` / `core` -> `util`"],
+  [
+    "AGENTS.md",
+    "- `packages/util/` (`@spell/util`, `#util`) -- small generic helpers `ui` and spell's utilities share.",
+    "- `packages/util/` (`@spell/util`, `#util`) -- helpers `ui` and spell share:  small generic ones (`@proto` ...) and\n    spell's own in `src/spell/` (lodash, `Observable`, `Task` ...).  See its `AGENTS.md`."
+  ],
+  [
+    "AGENTS.md",
+    "import from `#util`, or `#spell-util` / `$/util`, which re-export it",
+    "import from `#util`;  `ui` has `$/util`, which re-exports the generic ones"
+  ],
+  ["AGENTS.md", "(`#spell-util`, `#util`, `$/util`)", "(`#util`, `$/util`)"],
+  ["AGENTS.md", "- `#util` / `#spell-util` and other general utilities", "- `#util` and other general utilities"],
+  [
+    "README.md",
+    "`spell`, `parser`, `spell-core`,\n  `spell-util`, `lsp`, `spell-app`, `cli`, `solid-element`, plus `ui:ssr` and `ui:browser`.",
+    "`spell`, `parser`, `core`,\n  `lsp`, `app`, `cli`, `solid-element`, plus `util:browser`, `util:spell`, `ui:ssr` and `ui:browser`."
+  ]
+]
+
+/** Anchored edits AFTER the renames and BEFORE step 1:  `#name` is a package alias, `$/x` is still ui's own. */
+const STEP0_AFTER = [
+  // `util`'s own `package.json` isn't `spell`'s any more, and the test moved one folder deeper
+  [
+    "packages/util/src/spell/constants.test.ts",
+    'resolve(import.meta.dirname, "..", "package.json")',
+    'resolve(import.meta.dirname, "..", "..", "..", "spell", "package.json")'
+  ],
+  [
+    "packages/util/src/spell/constants.test.ts",
+    "every spell-family package shares one version (`spell`'s, which vite hands over), so ours will do",
+    "every spell-family package shares one version, `spell`'s, which vite hands over"
+  ],
+  [
+    "vitest.config.ts",
+    'import { uiProjects } from "./packages/ui/vitest.config.ts"\n',
+    'import { uiProjects } from "./packages/ui/vitest.config.ts"\nimport { utilProjects } from "./packages/util/vitest.config.ts"\n'
+  ],
+  [
+    "vitest.config.ts",
+    '  ui: uiProjects({ prefix: "ui:", root: resolve(PACKAGES_DIR, "ui") })\n',
+    '  ui: uiProjects({ prefix: "ui:", root: resolve(PACKAGES_DIR, "ui") }),\n  util: utilProjects({ prefix: "util:", root: resolve(PACKAGES_DIR, "util") })\n'
+  ],
+  [
+    "vitest.config.ts",
+    " * - `ui`:  `ssr` MUST run before",
+    " * - `util`:  `browser` (generic helpers) and `spell` (node, `src/spell/`).\n * - `ui`:  `ssr` MUST run before"
+  ],
+  [
+    "packages/ui/vite.config.ts",
+    'exclude: ["src/**/*.test.ts", "src/**/*.test.tsx", "../util/src/**/*.test.ts"],',
+    'exclude: [\n      "src/**/*.test.ts",\n      "src/**/*.test.tsx",\n      "../util/src/**/*.test.ts",\n      "../util/src/spell/**",\n      "../util/src/index.ts"\n    ],'
+  ],
+  [
+    "packages/ui/vite.config.ts",
+    " * - `util` is not published on its own, so its declarations ship inside `@spell/ui`.",
+    " * - `util` is not published on its own, so its GENERIC declarations ship inside `@spell/ui`.  NOT `util/src/spell/` or\n *   `util`'s barrel (which flattens it in):  `exclude` lists them, and `src/util/index.ts` imports file by file."
+  ],
+  [
+    "packages/ui/AGENTS.md",
+    "    A helper only `ui` uses goes in `src/util/`, one `spell` also needs moves to `#util`.",
+    "    `src/util/index.ts` imports util's GENERIC files one by one (`#util/class` ...), never `#util`'s barrel, which also\n    holds spell's utilities (lodash, `chalk` ...):  an allowed exception to the barrel-only rule.\n    A helper only `ui` uses goes in `src/util/`, one `spell` also needs moves to `#util`."
+  ],
+  [
+    "AGENTS.md",
+    "    - `#spell/node/...` (node-only:  environment, files on disk)\n",
+    "    - `#spell/node/...` (node-only:  environment, files on disk)\n    - `#util/class`, `#util/decorators` ... (`util`'s GENERIC files, from `ui`'s `src/util/index.ts` only:  the barrel\n      also holds spell's heavy utilities)\n"
+  ],
+  [
+    "packages/util/AGENTS.md",
+    "anything needing a dependency `ui` doesn't already have (`pluralize`, CommonJS `lodash` ...):  it stays in its\n    package, e.g. `util`'s `src/string.ts`",
+    "anything needing a dependency `ui` doesn't already have (`pluralize`, CommonJS `lodash` ...):  it goes in\n    `src/spell/`, never beside the generic files"
+  ],
+  [
+    "packages/util/AGENTS.md",
+    "anything only ONE package uses:  `ui`'s `core.ts` re-exports `$/util` wholesale, so every helper here lands in\n    `ui`'s `core` bundle (`yarn measure`), used or not",
+    "anything only ONE package uses:  `ui`'s `core.ts` re-exports its `$/util` wholesale, which imports every GENERIC\n    file here, so each lands in `ui`'s `core` bundle (`yarn measure`), used or not"
+  ],
+  [
+    "packages/util/AGENTS.md",
+    "- Packages import `#util` (the barrel) ONLY, never `#util/<file>`.  Each keeps its own `util` barrel\n  (`#util`, `$/util`) for package-specific helpers, and that barrel re-exports `#util`.",
+    "- Packages import `#util` (the barrel) ONLY, never `#util/<file>` -- with ONE exception:  `ui`'s `src/util/index.ts`\n  imports the generic files one by one (`#util/class` ...), so spell's utilities never reach `ui`'s bundles or published\n  declarations.  `ui` keeps its own `util` barrel (`$/util`) for package-specific helpers."
+  ],
+  [
+    "packages/util/AGENTS.md",
+    "\n## Decorators\n",
+    "\n## Spell's utilities (`src/spell/`)\n\n- Spell's own utilities, flattened into the `#util` barrel LAST:  lodash and string helpers, `Observable` /\n  `Derivative` / `Loadable`, `Task` / `TaskList`, `$fetch`, `Logger`, prefs, `assert` / `die`, DOM helpers.  The bottom\n  of the spell chain:  every spell-family package may import it, and it imports nothing above it.\n  - Formerly the package `spell-util`.  A sub-folder, not loose files:  `string.ts` / `DOM.ts` would clash with the generic\n    `string.ts` / `dom.ts` (macOS is case-insensitive), and nothing in `ui` may import it.\n  - Its dependencies (lodash, `chalk`, `pluralize`, `react` ...) are `util`'s `dependencies`.  `ui` bundles none of\n    them:  `yarn measure` and `yarn smoke` (declarations) prove it.\n- Files in `src/spell/` import the generic helpers by deep path (`#util/class`), NEVER the `#util` barrel (it re-exports\n  this folder:  a cycle).\n- NOTE: `ResponseErrors.ts` is deliberately NOT in `src/spell/index.ts` -- see its header.\n- Reactivity here (`Observable`, `getProp` / `setProp`, stores) is Solid work:  READ the root's Solid 2 pointer first.\n- Tests: the generic ones run in a real browser (`util:browser`), `src/spell/**` in node (`util:spell`);\n  `vitest.config.ts` exports `utilProjects()` for the root run.\n\n## Decorators\n"
+  ],
+  [
+    "packages/util/AGENTS.md",
+    "- Commands:  `yarn review`, `yarn ts`, `yarn lint`, `yarn format`, `yarn test` (a real browser, chromium).",
+    "- Commands:  `yarn review`, `yarn ts`, `yarn lint`, `yarn format`, `yarn test` (a real browser, chromium, for the\n  generic files;  node for `src/spell/`)."
+  ]
+]
 
 ////////////////
 // ## Step 1:  ui's own aliases
@@ -360,8 +891,8 @@ const PROSE_PATCHES = [
   ],
   [
     "AGENTS.md",
-    "Every package's alias is `#name`\n  (`$/parser`, `$/spell-core`, `$/cli` ...);  `ui` is the exception, `$/` (and `$/ui/test/`), until it becomes `#ui`.\n  The one table is `tsconfig.base.json`.",
-    "Every package's alias is `$/name`\n  (`$/parser`, `$/spell-core`, `$/ui` ...), `$` meaning `packages/`.  `ui` is no exception:  its test helpers are\n  `$/ui/test/...`.  The one table is `tsconfig.base.json`."
+    "Every package's alias is `#name`\n  (`$/parser`, `$/core`, `$/cli` ...);  `ui` is the exception, `$/` (and `$/ui/test/`), until it becomes `#ui`.\n  The one table is `tsconfig.base.json`.",
+    "Every package's alias is `$/name`\n  (`$/parser`, `$/core`, `$/ui` ...), `$` meaning `packages/`.  `ui` is no exception:  its test helpers are\n  `$/ui/test/...`.  The one table is `tsconfig.base.json`."
   ],
   [
     "AGENTS.md",
@@ -401,9 +932,11 @@ const BASE_HEADER = `{
   // - \`$\` means \`packages/\`:  \`$/name\` is a package's barrel, \`$/name/...\` a file in its \`src/\`, and \`$/ui/test/...\`
   //   \`ui\`'s test helpers.  It can't collide with an npm name (\`@spell-app/...\`) the way a bare \`name/...\` could.
   // - From ANOTHER package, import the barrel only, except these entry points:  \`$/parser/rulex\` (opt-in),
-  //   \`$/parser/test\` / \`$/spell/test\` (test helpers), \`$/spell/node/...\` (node-only:  environment, files on disk).
+  //   \`$/parser/test\` / \`$/spell/test\` (test helpers), \`$/spell/node/...\` (node-only:  environment, files on disk),
+  //   and \`$/util/class\` etc. (\`util\`'s GENERIC files, imported one by one by \`ui\`'s \`src/util/index.ts\` only:  the
+  //   \`$/util\` barrel also holds spell's heavy utilities, which \`ui\` must not bundle).
   // - NOTE: every alias works from every package.  The one-way dependency rule is by convention:
-  //   \`cli\` -> \`spell-app\` -> \`lsp\` -> \`spell\` -> \`parser\` / \`spell-core\` -> \`spell-util\` -> \`util\`, and
+  //   \`cli\` -> \`app\` -> \`lsp\` -> \`spell\` -> \`parser\` / \`core\` -> \`util\`, and
   //   \`ui\` -> \`solid-element\` / \`util\`.  e.g. \`ui\` MUST NOT import \`$/spell\`.
 `
 
