@@ -1,5 +1,5 @@
 /**
- * What today's grammar does with the phrasings `precedence.spell.html` discusses -- the evidence behind its tables.
+ * What today's grammar does with the phrasings `precedence.html` discusses -- the evidence behind its tables.
  * - Run from `packages/docs`:  `yarn tsx precedence/experiments/grammar-today.mts`
  * - Parses scratch files in memory with `parseSpellProject()`, exactly as a project compile does;  writes nothing.
  * - The "cards" probes parse against the FROZEN Solitaire fixture's Card / Deck / Pile (`projects/test/Solitaire/`),

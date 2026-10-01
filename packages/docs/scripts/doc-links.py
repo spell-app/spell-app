@@ -1,8 +1,8 @@
-"""Link source references in `.spell.html` docs:  one named target per destination, new tab.  See `packages/docs/AGENTS.md`.
+"""Link source references in `.html` docs:  one named target per destination, new tab.  See `packages/docs/AGENTS.md`.
 
 Usage (from `packages/docs`):
-        python3 scripts/doc-links.py <folder>/<doc>.spell.html ...         -- add links (idempotent)
-        python3 scripts/doc-links.py --check <folder>/<doc>.spell.html ... -- verify, exit 1 on problems
+        python3 scripts/doc-links.py <folder>/<doc>.html ...         -- add links (idempotent)
+        python3 scripts/doc-links.py --check <folder>/<doc>.html ... -- verify, exit 1 on problems
 
 
 - `<code>path</code>` outside `<pre>` / `<a>` / `<head>` becomes a link when the path resolves to a real file or folder

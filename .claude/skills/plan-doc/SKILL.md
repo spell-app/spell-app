@@ -1,13 +1,13 @@
 ---
 name: plan-doc
-description: Run a planning session against a live plan doc, `packages/docs/plans/<name>/<name>.spell.html`, in its own worktree. User-invoked as `/plan-doc <name>`.
+description: Run a planning session against a live plan doc, `packages/docs/plans/<name>/<name>.html`, in its own worktree. User-invoked as `/plan-doc <name>`.
 argument-hint: <name>
 disable-model-invocation: true
 ---
 
 # /plan-doc
 
-Plan, then build, in worktree `<name>`, keeping `packages/docs/plans/<name>/<name>.spell.html` (the PLAN DOC) current
+Plan, then build, in worktree `<name>`, keeping `packages/docs/plans/<name>/<name>.html` (the PLAN DOC) current
 the whole time.  The plan doc is the user's view of the work:  they read it in Chrome while you work.
 
 - Rules for the doc (sections, ids, markers, prose):  `packages/docs/templates/plans/plan-doc.md`.  Read it first.
@@ -23,7 +23,7 @@ the whole time.  The plan doc is the user's view of the work:  they read it in C
 
 - `<name>` is `$ARGUMENTS`, lower-kebab-cased (`Docs Index` -> `docs-index`).  No argument:  ask for one.
 - Look for collisions (from the repo root):
-  - `packages/docs/plans/<name>/`, `packages/docs/<name>/`, `packages/docs/<name>.spell.html`
+  - `packages/docs/plans/<name>/`, `packages/docs/<name>/`, `packages/docs/<name>.html`
   - a worktree at `.claude/worktrees/<name>` (`git worktree list`), a branch `<name>` or `worktree-<name>`
 - Any hit:  AskUserQuestion, options "Reuse `<name>`" (continue that doc / worktree) and "Different name" (the user
   types it in "Other").  Never overwrite an existing plan doc.
@@ -83,9 +83,9 @@ the whole time.  The plan doc is the user's view of the work:  they read it in C
 ## 6. Doc Review (last phase)
 
 - Prune:  close stale items;  make the summary and Overview true to what was BUILT.
-- Turn it into durable docs, from `packages/docs/templates/durable.spell.html`:
-  - one page:  `packages/docs/<name>.spell.html`;  several files (pages, experiments):
-    `packages/docs/<name>/<name>.spell.html`
+- Turn it into durable docs:  `yarn docs:new durable <page> --title "..."` (fixes asset paths for the depth):
+  - one page:  `packages/docs/<name>.html`;  several files (pages, experiments):
+    `packages/docs/<name>/<name>.html`
   - from the plan doc:  Overview -> the body;  decisions -> a "Why" section;  open caveats -> "Limits"
   - finish as in `packages/docs/AGENTS.md`, "Finishing a page";  `yarn docs:index`
 - The plan doc stays in `plans/` as the record:  every phase done.  `yarn plan-doc open <name>` one last time.

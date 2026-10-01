@@ -1,4 +1,4 @@
-// Solid 2 experiment for solid-2.spell.html -- run (from `packages/docs`):  node solid/experiments/read-after-write.mjs [dev|prod]
+// Solid 2 experiment for solid-2.html -- run (from `packages/docs`):  node solid/experiments/read-after-write.mjs [dev|prod]
 // Imports @solidjs/signals by path from the repo root's node_modules, or from $SOLID_NODE_MODULES (another Solid version);  re-run on every Solid RC bump.
 const mode = process.argv[2] ?? "dev"
 const S = await import(

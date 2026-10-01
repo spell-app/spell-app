@@ -30,6 +30,7 @@
     "vscode:install": "cd packages/vscode && yarn install-extension",
     "docs:update": "yarn workspace @spell/docs docs:update",
     "docs:index": "yarn workspace @spell/docs docs:index",
+    "docs:new": "yarn workspace @spell/docs docs:new",
     "docs:open": "yarn workspace @spell/docs docs:open",
     "plan-doc": "yarn workspace @spell/docs plan-doc"
   },

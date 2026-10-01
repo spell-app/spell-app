@@ -38,9 +38,9 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
     `README.md`, and `UPSTREAM.md` for the upstream PR each fix maps to.
   - `packages/cli/` (`@spell/cli`, `#cli`, `CLI`) -- the `spell` command-line tool, running the spell-family
     packages' SOURCE through `tsx`.  See `packages/cli/AGENTS.md` and its `README.md`.
-  - `packages/docs/` (`@spell/docs`) -- every package's docs:  hand-authored `.spell.html` pages on `@spell/ui`,
+  - `packages/docs/` (`@spell/docs`) -- every package's docs:  hand-authored `.html` pages on `@spell/ui`,
     their templates, the plan docs `/plan-doc` keeps, the experiments behind them and the tooling.
-    Index:  `packages/docs/index.spell.html`.  See `packages/docs/AGENTS.md`.
+    Index:  `packages/docs/index.html`.  See `packages/docs/AGENTS.md`.
 - One change may touch several packages, but dependencies flow ONE way:
   `docs` -> anything (its experiments import any package;  nothing imports `docs`),
   `cli` -> `spell-app` -> `lsp` -> `spell` -> `parser` / `spell-core` -> `spell-util` -> `util`, and
@@ -61,8 +61,8 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 - The rules:  `packages/docs/solid/solid-2.md` (see the top of this file).  NOT `@`-imported on purpose:
   it loads only when the task needs it.  Claude also has the `solid-2` skill (`.claude/skills/solid-2/`), which
   triggers on Solid work.
-- The why and the measurements:  `packages/docs/solid/solid-2.spell.html`.
-  The API:  `packages/docs/solid/cheatsheet.spell.html`.
+- The why and the measurements:  `packages/docs/solid/solid-2.html`.
+  The API:  `packages/docs/solid/cheatsheet.html`.
 - MUST keep `solid-2.md` up to date when a Solid decision changes or an RC bump changes behaviour.
 - How `ui` writes its elements on Solid:  "Solid authoring" in `packages/ui/AGENTS.md`.
 

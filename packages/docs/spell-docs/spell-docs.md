@@ -1,7 +1,7 @@
-# How the `.spell.html` pages work
+# How the doc pages work
 
 The mechanics behind every page in `packages/docs`:  what loads, what the runtime builds, what the checks check.
-For people:  `spell-docs.spell.html` beside this explains the concept and `/plan-doc`;  this is the distilled version.
+For people:  `spell-docs.html` beside this explains the concept and `/plan-doc`;  this is the distilled version.
 How to WRITE a page (headings, widgets, code, links):  `../AGENTS.md`.  The scripts are the truth where this drifts.
 
 @spell/ui is unfinished, and these pages are also a test of it.  Work around a UI problem here when that's
@@ -9,10 +9,11 @@ reasonable, fix it in `packages/ui` when it's a real `ui` bug, and record it eit
 
 ## History
 
-- Until 2026-09-30 the pages were GENERATED:  hand-written `.html` (styled by `doc.css` / `doc.js`) went through
-  `to-spell.mjs` (a Playwright DOM transform) into `.spell.html`.
-- Since then the `.spell.html` pages ARE the sources:  `to-spell.mjs`, `doc.css`, `doc.js` and the `.html` sources
-  are gone, and the runtime builds the contents sidebar that `to-spell.mjs` used to write.
+- Until 2026-09-30 each page was GENERATED:  a hand-written `<name>.html` (styled by `doc.css` / `doc.js`) went
+  through `to-spell.mjs` (a Playwright DOM transform) into `<name>.spell.html`, and both were kept to compare.
+- Since then the `ui-*` pages ARE the sources:  `to-spell.mjs`, `doc.css`, `doc.js` and the plain sources are gone,
+  the runtime builds the contents sidebar that `to-spell.mjs` used to write, and pages are plain `<name>.html`
+  (the docs root is `index.html`, so a browser opens it for the folder).
 
 ## Hard constraints
 
@@ -31,7 +32,7 @@ reasonable, fix it in `packages/ui` when it's a real `ui` bug, and record it eit
 |---|---|
 | `scripts/update.js` (`yarn docs:update`) | bundle, `docs:index`, `doc-links.py --check`, `check-spell.js` on every page |
 | `scripts/bundle-spell-ui.js` | builds UI (fork + `yarn build`), then bundles `_assets/spell-ui.entry.js` -> `_assets/spell-ui.js` |
-| `scripts/index.js` (`yarn docs:index`) | rewrites the lists in `index.spell.html` from every page's title and description |
+| `scripts/index.js` (`yarn docs:index`) | rewrites the lists in `index.html` from every page's title and description |
 | `scripts/pages.js` | where the docs are, `findPages()`, `tidy()` (link targets + oxfmt) -- shared by the scripts |
 | `scripts/check-spell.js` | Playwright checks + four screenshots of one page |
 | `scripts/doc-links.py` | links `<code>path</code>` references;  `--check` verifies every link |

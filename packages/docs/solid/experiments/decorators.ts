@@ -1,4 +1,4 @@
-// Solid 2 experiment for solid-2.spell.html -- run (from `packages/docs`):  yarn tsx solid/experiments/decorators.ts [dev|prod]
+// Solid 2 experiment for solid-2.html -- run (from `packages/docs`):  yarn tsx solid/experiments/decorators.ts [dev|prod]
 // Strategy D:  HAND-WRITTEN spell classes (spellCore, `SP.*`, the editor) declare the same spell cells with
 // standard (TC39) decorators, lowered by esbuild as `vite.decorators.ts` / `tsx` do.  Compiled spell can't:  it runs
 // from a `blob:` URL with no transpile step, so it keeps emitting the lowered form (A).  Both must build the SAME

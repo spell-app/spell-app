@@ -1,5 +1,5 @@
 /**
- * `yarn docs:update`:  rebuild the @spell/ui bundle from the LATEST UI, then check every `**\/<name>.spell.html`
+ * `yarn docs:update`:  rebuild the @spell/ui bundle from the LATEST UI, then check every `**\/<name>.html`
  * page in a real browser.  Pages are hand-authored:  nothing here writes them.
  * Usage (from `packages/docs`):  node scripts/update.js [--skip-ui-build] [--no-check]
  * - `--skip-ui-build`:  reuse `../ui/dist` instead of rebuilding UI (the bundle is still rebuilt)
@@ -32,7 +32,7 @@ step("bundle @spell/ui", "node", ["scripts/bundle-spell-ui.js", ...(skipUiBuild 
 step("index", "node", ["scripts/index.js"])
 
 const pages = findPages().map((path) => relative(DOCS, path))
-if (!pages.length) fail("find pages", "no .spell.html pages")
+if (!pages.length) fail("find pages", "no .html pages")
 console.log(`\n== pages:  ${pages.join(", ")}`)
 
 step("check links", "python3", ["scripts/doc-links.py", "--check", ...pages])
@@ -41,7 +41,7 @@ const results = []
 if (check) {
   const shots = mkdtempSync(join(tmpdir(), "spell-docs-"))
   for (const output of pages) {
-    const outDir = join(shots, output.replace(/\.spell\.html$/, "").replaceAll("/", "--"))
+    const outDir = join(shots, output.replace(/\.html$/, "").replaceAll("/", "--"))
     const run = step(`check ${output}`, "node", ["scripts/check-spell.js", output, outDir], {
       capture: true,
       mayFail: true

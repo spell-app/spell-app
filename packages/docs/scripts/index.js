@@ -1,9 +1,9 @@
 /**
- * `yarn docs:index`:  rewrite the lists in `index.spell.html` from every page's `<title>` and description.
+ * `yarn docs:index`:  rewrite the lists in `index.html` from every page's `<title>` and description.
  * Usage (from `packages/docs`):  node scripts/index.js
  * - Groups:
  *   - Guides:  every page outside `templates/` and `plans/`
- *   - Plans:  `plans/<name>/<name>.spell.html`, with a status badge read from its phase list (`.plan-phases`)
+ *   - Plans:  `plans/<name>/<name>.html`, with a status badge read from its phase list (`.plan-phases`)
  *   - Templates:  `templates/**`
  * - Writes ONLY between `<!-- index:start -->` and `<!-- index:end -->`;  the rest of the page is hand-authored.
  * - Then tidies the page like any other (`pages.js` `tidy()`:  link targets, oxfmt), so a re-run with nothing new
@@ -17,7 +17,7 @@ import { parseHTML } from "linkedom"
 import { DOCS, findPages, tidy } from "./pages.js"
 
 /** The index page, relative to `DOCS`. */
-const INDEX = "index.spell.html"
+const INDEX = "index.html"
 const START = "<!-- index:start -->"
 const END = "<!-- index:end -->"
 

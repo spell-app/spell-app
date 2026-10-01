@@ -13,14 +13,14 @@ export const DOCS = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 /** Folders that hold no pages. */
 const SKIP_DIRS = new Set(["_assets", "scripts", "node_modules", "experiments"])
 
-/** Every `.spell.html` page under `dir` (default:  all of them), sorted, skipping tooling folders. */
+/** Every `.html` page under `dir` (default:  all of them), sorted, skipping tooling folders. */
 export function findPages(dir = DOCS) {
   const found = []
   for (const entry of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
     const path = join(dir, entry.name)
     if (entry.isDirectory()) {
       if (!SKIP_DIRS.has(entry.name)) found.push(...findPages(path))
-    } else if (entry.name.endsWith(".spell.html")) found.push(path)
+    } else if (entry.name.endsWith(".html")) found.push(path)
   }
   return found
 }
@@ -80,4 +80,18 @@ end tell`
   if (run.status === 0) return console.log(`opened ${url}`)
   console.error(`Chrome via AppleScript failed (${run.stderr.trim()}):  falling back to \`open\``)
   spawnSync("open", [url])
+}
+
+/**
+ * A parsed (linkedom) document as page HTML, ready to write.
+ * - `<!doctype html>` lowercase, and boolean attributes bare (`styled`, not `styled=""`), as written by hand and by
+ *   oxfmt.  Repeated until stable:  one pass fixes one attribute per tag, and `ui-table` has four.
+ */
+export function serialize(document) {
+  let html = document.toString().replace(/^<!DOCTYPE html>/i, "<!doctype html>")
+  for (let before; before !== html;) {
+    before = html
+    html = html.replace(/(<[a-z][\w-]*\b[^<>]*?) ([a-z][\w-]*)=""(?=[\s/>])/g, "$1 $2")
+  }
+  return html
 }

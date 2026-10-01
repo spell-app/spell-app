@@ -158,7 +158,7 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   markdown at `v2.solidjs.com/llms-full.txt`. · spell/parser
 - 2026-09-30 · A Solid 2 prototype died with `[REACTIVITY_HALTED] TypeError: r is not a function`, and every
   later update was ignored. · An effect's apply function RETURNS its cleanup:  `v => list.push(v)` returned a
-  number, which Solid then called.  Write `v => { ... }`.  See `packages/docs/solid/solid-2.spell.html#effect-apply-returns-its-cleanup`. · spell/parser
+  number, which Solid then called.  Write `v => { ... }`.  See `packages/docs/solid/solid-2.html#effect-apply-returns-its-cleanup`. · spell/parser
 - 2026-09-30 · A skill using `` !`cat file` `` context injection failed to load AT ALL (zero turns, only
   `Shell command permission check failed ... Permission to use Bash has been denied`) in a session with Bash
   denied.  `allowed-tools: Bash(cat ...)` in the skill's frontmatter does not override the denial. · Don't inject docs
@@ -170,7 +170,7 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   links shipped, and the link check passed.  oxfmt wraps long tags, so closing tags come out as `</a\n  >`. · Allow
   whitespace before `>` in every closing-tag pattern (`</a\s*>`), and make the checker count nested links:  both done
   in `scripts/doc-links.py`.  Re-run a transform after `oxfmt` and diff to prove it's idempotent. · spell/parser
-- 2026-09-30 · Bundling `../ui/dist/index.js` with esbuild for the `.spell.html` docs:  every `ui-*` element failed
+- 2026-09-30 · Bundling `../ui/dist/index.js` with esbuild for the `.html` docs:  every `ui-*` element failed
   with `NoOwnerError`.  The fork (`../ui/packages/solid-element`) has its OWN `node_modules/solid-js` and
   `@solidjs/*`, so a naive bundle carries two Solids. · Resolve every `solid-js` / `@solidjs/*` /
   `@spell/solid-element` import from UI's root (`packages/docs/scripts/bundle-spell-ui.js` does, and fails the build if a

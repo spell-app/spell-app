@@ -36,7 +36,7 @@
             <li>
               Every doc lives in <a href="../" target="src-packages-docs"><code>packages/docs</code></a
               >, one folder per topic, listed in
-              <a href="../index.spell.html" target="src-packages-docs-index-spell-html">the docs index</a>.
+              <a href="../index.html" target="src-packages-docs-index-html">the docs index</a>.
             </li>
             <li>
               A page is hand-written HTML using <code>ui-*</code> elements. No build step to read it: open the file.
@@ -65,43 +65,37 @@
                   <td>durable doc</td>
                   <td>design notes, research, references</td>
                   <td>
-                    <a href="../templates/durable.spell.html" target="src-packages-docs-templates-durable-spell-html"
-                      ><code>templates/durable.spell.html</code></a
+                    <a href="../templates/durable.html" target="src-packages-docs-templates-durable-html"
+                      ><code>templates/durable.html</code></a
                     >
                   </td>
-                  <td><code>&lt;topic&gt;/&lt;topic&gt;.spell.html</code></td>
+                  <td><code>&lt;topic&gt;/&lt;topic&gt;.html</code></td>
                 </tr>
                 <tr>
                   <td>cheat sheet</td>
                   <td>an API reference: a filterable grid of cards</td>
                   <td>
-                    <a
-                      href="../templates/cheatsheet.spell.html"
-                      target="src-packages-docs-templates-cheatsheet-spell-html"
-                      ><code>templates/cheatsheet.spell.html</code></a
+                    <a href="../templates/cheatsheet.html" target="src-packages-docs-templates-cheatsheet-html"
+                      ><code>templates/cheatsheet.html</code></a
                     >
                   </td>
-                  <td><code>&lt;topic&gt;/&lt;topic&gt;.spell.html</code></td>
+                  <td><code>&lt;topic&gt;/&lt;topic&gt;.html</code></td>
                 </tr>
                 <tr>
                   <td>plan doc</td>
                   <td>one planning session, kept live</td>
                   <td>
-                    <a
-                      href="../templates/plans/plan.spell.html"
-                      target="src-packages-docs-templates-plans-plan-spell-html"
-                      ><code>templates/plans/plan.spell.html</code></a
+                    <a href="../templates/plans/plan.html" target="src-packages-docs-templates-plans-plan-html"
+                      ><code>templates/plans/plan.html</code></a
                     >
                   </td>
-                  <td><code>plans/&lt;name&gt;/&lt;name&gt;.spell.html</code></td>
+                  <td><code>plans/&lt;name&gt;/&lt;name&gt;.html</code></td>
                 </tr>
               </tbody>
             </table>
           </ui-table>
           <ul>
-            <li>
-              A topic with one page and nothing beside it may sit at the top: <code>&lt;name&gt;.spell.html</code>.
-            </li>
+            <li>A topic with one page and nothing beside it may sit at the top: <code>&lt;name&gt;.html</code>.</li>
             <li>Claims backed by measurement keep their scripts in <code>&lt;topic&gt;/experiments/</code>.</li>
             <li>When agents need a doc's rules, a distilled <code>&lt;topic&gt;.md</code> sits beside it.</li>
           </ul>
@@ -178,7 +172,9 @@
           <ui-sticky class="spell-h2"><h2 id="4-writing-a-page">4. Writing a page</h2></ui-sticky>
           <ol>
             <li>
-              Copy a template to <code>&lt;topic&gt;/&lt;topic&gt;.spell.html</code> and replace its placeholders.
+              Start from a template:
+              <code>yarn docs:new durable &lt;topic&gt;/&lt;topic&gt;.html --title "Title"</code>, then replace its
+              placeholders.
             </li>
             <li>Headings are short labels; the claims go in bullets below them. Code is always folded and colored.</li>
             <li>
@@ -319,8 +315,8 @@
             <ui-message state="positive" header="An example">
               <p>
                 <a
-                  href="../plans/docs-workspace/docs-workspace.spell.html"
-                  target="src-packages-docs-plans-docs-workspace-docs-workspace-spell-html"
+                  href="../plans/docs-workspace/docs-workspace.html"
+                  target="src-packages-docs-plans-docs-workspace-docs-workspace-html"
                   >The plan doc for this docs workspace</a
                 >, built with the same tooling.
               </p>
@@ -390,6 +386,10 @@
                 <tr>
                   <td><code>yarn docs:index</code></td>
                   <td>rewrite the index's lists</td>
+                </tr>
+                <tr>
+                  <td><code>yarn docs:new &lt;template&gt; &lt;page&gt;</code></td>
+                  <td>start a page from a template, with asset paths fixed for its depth</td>
                 </tr>
                 <tr>
                   <td><code>yarn docs:open [page]</code></td>

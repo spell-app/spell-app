@@ -1,6 +1,6 @@
 # Solid 2 -- rules for agents
 
-Distilled from `solid-2.spell.html` (the why) and `cheatsheet.spell.html` (the API) in this folder.  Read this BEFORE writing
+Distilled from `solid-2.html` (the why) and `cheatsheet.html` (the API) in this folder.  Read this BEFORE writing
 or reviewing Solid code, JSX, `spellCore` rendering, `~/util` reactivity, or anything touching `@spell/ui`.
 
 ## Status
@@ -10,7 +10,7 @@ or reviewing Solid code, JSX, `spellCore` rendering, `~/util` reactivity, or any
   - Items marked (planned) below are decided but may not exist in code yet -- check before relying on them.
 - Target `solid-js` / `@solidjs/web` / `@solidjs/h` `2.0.0-rc.13` (current, 2026-09-30), pinned EXACTLY.
   - `../ui` still pins rc.11:  upgrade it and parser TOGETHER (one Solid per page).
-  - Re-verified on rc.13:  every experiment behaves as on rc.11, the public API is unchanged (`solid-2.spell.html`,
+  - Re-verified on rc.13:  every experiment behaves as on rc.11, the public API is unchanged (`solid-2.html`,
     "rc.11 vs rc.13").  rc.13's `CHEATSHEET.md` is identical to rc.11's -- trust it first;  v2.solidjs.com tracks rc.13.
   - RC bumps:  run `solid/experiments/*` on old and new (`SOLID_NODE_MODULES=<dir>` picks the Solid) and diff.
 - NEVER model Solid 2 on React OR on Solid 1:  both priors produce wrong code here.
@@ -40,7 +40,7 @@ count() // 1
 
 ## Spell's decisions
 
-- Spell state is NOT Solid signals:  spell needs read-after-write, Solid 2 can't give it (measured, `solid-2.spell.html` §2).
+- Spell state is NOT Solid signals:  spell needs read-after-write, Solid 2 can't give it (measured, `solid-2.html` §2).
 - **Spell cells** (planned, Phase 1, `~/util`) -- prototypes:  `solid/experiments/` (`spell-cells.core.ts`,
   `spell-cells.ts`, `decorators.ts`):
   - each instance keeps its values in a `Map` record, the ONLY truth, read and written synchronously
@@ -278,7 +278,7 @@ expect(button.textContent).toBe("Clicks: 1")
 ## When something breaks
 
 - A dev diagnostic code:  read `node_modules/solid-js/skills/reactivity-diagnostics/SKILL.md` (Solid's own repair
-  guide;  hoisted to the repo root's `node_modules`).  Codes are also in `cheatsheet.spell.html`.
+  guide;  hoisted to the repo root's `node_modules`).  Codes are also in `cheatsheet.html`.
 - Nothing updates after an error:  the scheduler halted -- find the first thrown error, not the last symptom.
 - A value reads stale right after a write:  that's staging -- use a cell, or `flush()` in tests.
 - A write is invisible even after `flush()`:  it's entangled with a held async write in the same batch.

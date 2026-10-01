@@ -1,4 +1,4 @@
-// Shared core for the spell-cells experiments (solid-2.spell.html §2) -- imported by `spell-cells.ts` and `decorators.ts`.
+// Shared core for the spell-cells experiments (solid-2.html §2) -- imported by `spell-cells.ts` and `decorators.ts`.
 // - cells, derived values with an equality cutoff, the `enableExternalSource` bridge, `flushAll()`
 // - property types (`Schema`), the accessor strategy (A:  `ThingA`, `CardA`) and the benchmark row (`perf`)
 // Imports @solidjs/signals by path from the repo root's node_modules:  `[dev|prod]` from the running script's argv.

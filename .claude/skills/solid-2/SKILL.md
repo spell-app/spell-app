@@ -14,8 +14,8 @@ Solid 2 is neither React nor Solid 1.  Distrust patterns from both.
 ## Going deeper
 
 - Why spell is built this way, the measurements and the rejected designs:
-  `packages/docs/solid/solid-2.spell.html`, especially §2 "Read-after-write" and §3 "Gotchas".
-- Every new API with an example:  `packages/docs/solid/cheatsheet.spell.html` (or Solid's own
+  `packages/docs/solid/solid-2.html`, especially §2 "Read-after-write" and §3 "Gotchas".
+- Every new API with an example:  `packages/docs/solid/cheatsheet.html` (or Solid's own
   `node_modules/solid-js/CHEATSHEET.md`, hoisted to the repo root;  identical in rc.11 and rc.13).
 - A dev diagnostic code:  `node_modules/solid-js/skills/reactivity-diagnostics/SKILL.md` (repo root).
 - Unsure how Solid behaves?  Test it, don't guess:  copy a script in `packages/docs/solid/experiments/` and run

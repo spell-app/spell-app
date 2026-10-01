@@ -1,6 +1,6 @@
 /**
- * Check a `.spell.html` doc in a real browser.
- * Usage:  node scripts/check-spell.js <folder>/<doc>.spell.html [outDir]
+ * Check a `.html` doc in a real browser.
+ * Usage:  node scripts/check-spell.js <folder>/<doc>.html [outDir]
  * - screenshots:  desktop top, desktop mid-page, phone mid-page, phone contents drawer (outDir, default a temp folder)
  * - fails (exit 1) on:
  *   - console / page errors
@@ -25,7 +25,7 @@ import { chromium } from "playwright"
 
 const [docPath, outArg] = process.argv.slice(2)
 if (!docPath) {
-  console.error("usage:  node scripts/check-spell.js <folder>/<doc>.spell.html [outDir]")
+  console.error("usage:  node scripts/check-spell.js <folder>/<doc>.html [outDir]")
   process.exit(2)
 }
 const out = outArg ?? mkdtempSync(join(tmpdir(), "check-spell-"))

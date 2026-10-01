@@ -1,18 +1,18 @@
 # packages/docs (`@spell/docs`)
 
-Docs for every package:  hand-authored `.spell.html` pages rendered with `@spell/ui`, their templates, the plan docs
+Docs for every package:  hand-authored `.html` pages rendered with `@spell/ui`, their templates, the plan docs
 `/plan-doc` keeps, the experiments behind the claims, and the tooling.  As the root's `AGENTS.md`, plus:
 
 ## Layout
 
-- `index.spell.html` -- the docs index.  The list between `<!-- index:start -->` / `<!-- index:end -->` is written by
+- `index.html` -- the docs index.  The list between `<!-- index:start -->` / `<!-- index:end -->` is written by
   `yarn docs:index`;  edit only outside the markers.
-- `<topic>/<topic>.spell.html` -- a doc, folder and file in lower-kebab-case, e.g. `solid/solid-2.spell.html`.
-  - One-file docs with nothing beside them MAY sit at the top level:  `<name>.spell.html`.
+- `<topic>/<topic>.html` -- a doc, folder and file in lower-kebab-case, e.g. `solid/solid-2.html`.
+  - One-file docs with nothing beside them MAY sit at the top level:  `<name>.html`.
   - `<topic>/experiments/` -- runnable scripts backing the doc's claims (see "Experiments").
   - `<topic>/<topic>.md` -- a distilled version for agents, when agents need the doc's rules (see "Agent rules").
 - `templates/` -- starting points, one per kind of doc (see "Templates").
-- `plans/<name>/<name>.spell.html` -- plan docs, one per `/plan-doc` session (see "Plan docs").
+- `plans/<name>/<name>.html` -- plan docs, one per `/plan-doc` session (see "Plan docs").
 - `_assets/` -- shared page assets:
   - `spell-doc.css` -- page layout, and what UI doesn't cover;  reaches into widgets via UI tokens and `::part()`
   - `spell-doc-runtime.js` -- page behaviour (contents sidebar, sticky headers, scroll-follow, code colors)
@@ -23,7 +23,8 @@ Docs for every package:  hand-authored `.spell.html` pages rendered with `@spell
 
 ## Writing a page
 
-- Start from a template:  copy it to `<topic>/<topic>.spell.html` and fix the `_assets` paths for its depth.
+- Start from a template:  `yarn docs:new durable|cheatsheet <topic>/<topic>.html --title "Title"` copies it, fixes
+  the `_assets` paths for the page's depth, and lists it in the index.
   NEVER inline copies of `_assets`:  improve the shared files instead, and every page gets it.
 - Pages open straight from disk (`file://`):  no server, no ES modules -- hence the one classic bundle.
 - The runtime builds the page from plain markup:
@@ -59,14 +60,14 @@ Docs for every package:  hand-authored `.spell.html` pages rendered with `@spell
 
 ## Templates
 
-- `templates/durable.spell.html` -- design notes, research, references:  prose sections, tables, code, callouts.
-- `templates/cheatsheet.spell.html` -- an API reference:  a filterable grid of cards.
-- `templates/plans/plan.spell.html` -- a plan doc.  NEVER copy by hand:  `yarn plan-doc new <name>`.
+- `templates/durable.html` -- design notes, research, references:  prose sections, tables, code, callouts.
+- `templates/cheatsheet.html` -- an API reference:  a filterable grid of cards.
+- `templates/plans/plan.html` -- a plan doc.  NEVER copy by hand:  `yarn plan-doc new <name>`.
 - A new KIND of doc gets a template here, and a card in the index.
 
 ## Plan docs
 
-- `/plan-doc <name>` (`.claude/skills/plan-doc/`) runs a planning session against `plans/<name>/<name>.spell.html`.
+- `/plan-doc <name>` (`.claude/skills/plan-doc/`) runs a planning session against `plans/<name>/<name>.html`.
 - How to write one, its sections, ids and markers:  `templates/plans/plan-doc.md`.
 - Edit through `yarn plan-doc <command>` wherever a command exists (phase status, items, log):  it keeps ids,
   icons and UPDATE markers consistent.
@@ -104,8 +105,11 @@ In this order, from `packages/docs`:
 - `yarn docs:update` (`scripts/update.js`) -- rebuild the bundle from the LATEST UI, `docs:index`, then
   `doc-links.py --check` and `check-spell.js` on every page.  `--skip-ui-build` reuses `../ui/dist`;  `--no-check` skips the browser.
 - `scripts/bundle-spell-ui.js` -- builds UI (fork + `yarn build`), bundles `_assets/spell-ui.js`.
-- `yarn docs:index` (`scripts/index.js`) -- rewrites the lists in `index.spell.html`.
-- `scripts/pages.js` -- shared by the scripts:  `DOCS`, `findPages()`, `tidy()` (link targets + oxfmt).
+- `yarn docs:index` (`scripts/index.js`) -- rewrites the lists in `index.html`.
+- `yarn docs:new` (`scripts/new-page.js`) -- a page from a template, at any depth.
+- `yarn docs:open [page]` (`scripts/open.js`) -- show a page (default:  the index) in Chrome, reusing its tab.
+- `scripts/pages.js` -- shared by the scripts:  `DOCS`, `findPages()`, `tidy()` (link targets + oxfmt),
+  `serialize()`, `openInChrome()`.
 - `scripts/check-spell.js <page> [outDir]` -- Playwright:  fails on console errors, undefined / unrendered
   `ui-*`, contents vs headings, phone-width overflow, h2s that don't stick, a drawer that won't open;  writes
   screenshots.

@@ -11,7 +11,7 @@ const NOW = new Date(2026, 9, 1, 9, 5)
 
 /** A fresh plan doc from the real template, so the tests break when the template drifts from the script. */
 function freshPlan() {
-  return PlanDoc.parse(readFileSync(join(DOCS, "templates/plans/plan.spell.html"), "utf8"), NOW)
+  return PlanDoc.parse(readFileSync(join(DOCS, "templates/plans/plan.html"), "utf8"), NOW)
 }
 
 describe("PlanDoc phases", () => {
@@ -124,6 +124,8 @@ describe("PlanDoc summary, check, output", () => {
     expect(html.startsWith("<!doctype html>")).toBe(true)
     expect(html).not.toMatch(/ styled=""/)
     expect(html).toMatch(/<ui-accordion class="spell-aside" styled>/)
+    plan.require("#o1").insertAdjacentHTML("afterend", "<ui-table celled compact striped unstackable></ui-table>")
+    expect(plan.toString()).toMatch(/<ui-table celled compact striped unstackable>/)
   })
 })
 

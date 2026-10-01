@@ -1,5 +1,5 @@
 /**
- * `yarn plan-doc <command> <name> ...`:  edit the structured parts of a plan doc, `plans/<name>/<name>.spell.html`.
+ * `yarn plan-doc <command> <name> ...`:  edit the structured parts of a plan doc, `plans/<name>/<name>.html`.
  * Rules, ids and markup:  `templates/plans/plan-doc.md`.  Used by the `/plan-doc` skill and its agents.
  * - Commands:  `new`, `add-phase`, `phase`, `add`, `close`, `reopen`, `log`, `summary`, `check`, `open`
  *   (`node scripts/plan-doc.js` with no command lists them).
@@ -14,10 +14,10 @@ import { pathToFileURL } from "node:url"
 
 import { parseHTML } from "linkedom"
 
-import { DOCS, openInChrome, tidy } from "./pages.js"
+import { DOCS, openInChrome, serialize, tidy } from "./pages.js"
 
 /** The template `new` copies, relative to `DOCS`. */
-const TEMPLATE = "templates/plans/plan.spell.html"
+const TEMPLATE = "templates/plans/plan.html"
 
 /** Phase status -> its icon and color (UI's `color` attribute, so themes and dark mode just work). */
 export const STATUS = {
@@ -71,11 +71,7 @@ export class PlanDoc {
    * - boolean attributes go back to bare (`styled`, not `styled=""`), as written by hand and by oxfmt
    */
   toString() {
-    return this.document
-      .toString()
-      .replace(/^<!DOCTYPE html>/i, "<!doctype html>")
-      .replace(/(<[a-z][\w-]*\b[^<>]*?) ([a-z][\w-]*)=""(?=[\s/>])/g, "$1 $2")
-      .replace(/(<[a-z][\w-]*\b[^<>]*?) ([a-z][\w-]*)=""(?=[\s/>])/g, "$1 $2")
+    return serialize(this.document)
   }
 
   ////////////////
@@ -325,7 +321,7 @@ export function isoDate(date = new Date()) {
 ////////////////
 
 /** Usage, printed with no command or a bad one. */
-const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/docs/plans/<name>/<name>.spell.html)
+const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/docs/plans/<name>/<name>.html)
   new <name> [--title "Title"]                     copy the template, fill it in, update the docs index
   add-phase <name> "Short Name" [--goal html] [--files html] [--verify html]
   phase <name> <N> todo|active|done [--no-open]    set a phase's status;  done drops its UPDATE markers;
@@ -425,7 +421,7 @@ function usage() {
 /** The doc of plan `name`;  names are lower-kebab-case, as the folder and file. */
 function docPath(name) {
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(name)) throw new PlanDocError(`name "${name}" must be lower-kebab-case`)
-  return join(DOCS, "plans", name, `${name}.spell.html`)
+  return join(DOCS, "plans", name, `${name}.html`)
 }
 
 /** The plan doc at `file`, parsed. */

@@ -1,4 +1,4 @@
-// Solid 2 experiment for solid-2.spell.html -- run (from `packages/docs`):  node solid/experiments/flush-cost-and-holds.mjs [dev|prod]
+// Solid 2 experiment for solid-2.html -- run (from `packages/docs`):  node solid/experiments/flush-cost-and-holds.mjs [dev|prod]
 // Imports @solidjs/signals by path from the repo root's node_modules, or from $SOLID_NODE_MODULES (another Solid version);  re-run on every Solid RC bump.
 const mode = process.argv[2] ?? "prod"
 const S = await import(

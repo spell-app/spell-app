@@ -1,5 +1,5 @@
 /*
- * Page behaviour for the `.spell.html` docs.
+ * Page behaviour for the `.html` docs.
  * Bundled into `spell-ui.js` (a classic IIFE, beside @spell/ui) by `scripts/bundle-spell-ui.js`;  side
  * effects only.  The page's markup is hand-authored;  this only DRIVES it:
  * - contents sidebar:  built from `main`'s h2 / h3 / h4 when the page has no `#spell-toc` (`buildContents()`)

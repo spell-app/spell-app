@@ -24,7 +24,7 @@
           <ui-sticky class="spell-h2"><h2 id="plan">1. Plan</h2></ui-sticky>
           <p class="plan-summary">
             Move every doc into a <a href="../../" target="src-packages-docs"><code>packages/docs</code></a> workspace
-            of hand-authored <code>.spell.html</code> pages on @spell/ui, with templates and a docs index. Then add
+            of hand-authored <code>.html</code> pages on @spell/ui, with templates and a docs index. Then add
             <code>/plan-doc &lt;name&gt;</code>: each planning session keeps a live plan doc like this one, built and
             kept current by <code>yarn plan-doc</code>.
           </p>
@@ -44,8 +44,8 @@
             <li data-status="done" data-phase="5">
               <ui-icon name="circle check" color="green"></ui-icon> <a href="#p5">P5 · Skill Write</a>
             </li>
-            <li data-status="todo" data-phase="6">
-              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p6">P6 · Doc Review</a>
+            <li data-status="done" data-phase="6">
+              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p6">P6 · Doc Review</a>
             </li>
           </ul>
         </section>
@@ -67,17 +67,16 @@
                 docs for every package (<a href="#d1">D1</a>)
               </li>
               <li>
-                <code>&lt;topic&gt;/&lt;topic&gt;.spell.html</code> + <code>&lt;topic&gt;/experiments/</code>: one
-                folder per doc
+                <code>&lt;topic&gt;/&lt;topic&gt;.html</code> + <code>&lt;topic&gt;/experiments/</code>: one folder per
+                doc
               </li>
               <li>
                 <a href="../../templates/" target="src-packages-docs-templates"><code>templates/</code></a
-                >: durable, cheat sheet, <code>plans/plan.spell.html</code> + <code>plans/plan-doc.md</code>
+                >: durable, cheat sheet, <code>plans/plan.html</code> + <code>plans/plan-doc.md</code>
               </li>
-              <li><code>plans/&lt;name&gt;/&lt;name&gt;.spell.html</code>: one per <code>/plan-doc</code> session</li>
+              <li><code>plans/&lt;name&gt;/&lt;name&gt;.html</code>: one per <code>/plan-doc</code> session</li>
               <li>
-                <a href="../../index.spell.html" target="src-packages-docs-index-spell-html"
-                  ><code>index.spell.html</code></a
+                <a href="../../index.html" target="src-packages-docs-index-html"><code>index.html</code></a
                 >: lists written by <code>yarn docs:index</code>
               </li>
               <li>
@@ -196,6 +195,10 @@
                 ><ui-content><p>spell-ui-findings #17. Cosmetic.</p></ui-content></ui-accordion
               >
             </li>
+            <li data-status="done" id="i2">
+              <a class="plan-id" href="#i2">I2</a>
+              <span class="plan-title">Dry run: a top-level durable page broke (template assumes one folder deep)</span>
+            </li>
           </ol>
         </section>
 
@@ -233,7 +236,8 @@
             </li>
             <li data-status="open" id="d2">
               <a class="plan-id" href="#d2">D2</a>
-              <span class="plan-title">All docs hand-authored .spell.html; .html pipeline retired</span
+              <span class="plan-title"
+                >All docs hand-authored ui-* HTML; the .html -&gt; .spell.html converter retired</span
               ><ui-accordion class="spell-aside" styled
                 ><ui-title>details</ui-title
                 ><ui-content
@@ -292,6 +296,12 @@
             <li data-status="open" id="d10">
               <a class="plan-id" href="#d10">D10</a>
               <span class="plan-title">Reload the plan doc's tab at every stage change; 'phase' does it itself</span>
+            </li>
+            <li data-status="open" id="d11">
+              <a class="plan-id" href="#d11">D11</a>
+              <span class="plan-title"
+                >Pages are plain .html; the docs root is index.html, so the browser opens it for the folder</span
+              >
             </li>
           </ol>
         </section>
@@ -386,9 +396,9 @@
               <li><b>Verify:</b> skill loads, steps match script</li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="6" class="s3">
+          <section data-status="done" data-phase="6" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p6"><ui-icon name="circle outline" color="grey"></ui-icon> P6 · Doc Review</h3></ui-sticky
+              ><h3 id="p6"><ui-icon name="circle check" color="green"></ui-icon> P6 · Doc Review</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li><b>Goal:</b> dry run; turn this plan doc into durable docs</li>
@@ -428,6 +438,15 @@
             <li>
               <time datetime="2026-09-30T23:32-04:00">2026-09-30 23:32</time> log: local timestamps, no longer folded
             </li>
+            <li>
+              <time datetime="2026-09-30T23:38-04:00">2026-09-30 23:38</time> I2 closed: Dry run: a top-level durable
+              page broke (template assumes one folder deep)
+            </li>
+            <li>
+              <time datetime="2026-09-30T23:38-04:00">2026-09-30 23:38</time> dry run in worktree demo-plan: new, open,
+              fill, phase cycle, summary, check, index badge, reuse check all ok; I2 found and fixed with yarn docs:new
+            </li>
+            <li><time datetime="2026-09-30T23:39-04:00">2026-09-30 23:39</time> P6 done</li>
           </ul>
         </section>
       </main>

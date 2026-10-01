@@ -1,5 +1,5 @@
 /**
- * What TypeScript says about the JS today's grammar emits -- the evidence behind section 9 of `precedence.spell.html`.
+ * What TypeScript says about the JS today's grammar emits -- the evidence behind section 9 of `precedence.html`.
  * - Run from `packages/docs`:
  *   `yarn tsc --ignoreConfig --noEmit --strict --target es2022 --pretty false precedence/experiments/typescript-check.ts`
  * - EXPECTED to report errors:  each line under "as emitted today" is what the parser emits for the spell above it

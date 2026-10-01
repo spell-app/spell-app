@@ -1,7 +1,7 @@
 # Plan docs
 
-How to write and update `plans/<name>/<name>.spell.html`, the live doc behind a `/plan-doc <name>` session.
-`plan.spell.html` beside this is the template;  `scripts/plan-doc.js` (`yarn plan-doc`) edits the structured parts.
+How to write and update `plans/<name>/<name>.html`, the live doc behind a `/plan-doc <name>` session.
+`plan.html` beside this is the template;  `scripts/plan-doc.js` (`yarn plan-doc`) edits the structured parts.
 
 ## Rules
 
@@ -101,7 +101,7 @@ While a phase is active, flag what changed so the user can spot it:
 
 | Command | Does |
 |---|---|
-| `new <name> [--title "..."]` | copy the template to `plans/<name>/<name>.spell.html`, fill it, update the docs index |
+| `new <name> [--title "..."]` | copy the template to `plans/<name>/<name>.html`, fill it, update the docs index |
 | `add-phase <name> "Short Name" [--goal ...] [--files ...] [--verify ...]` | append a phase to the list and to `#phases` |
 | `phase <name> <N> todo\|active\|done [--no-open]` | set a phase's status;  `done` removes its UPDATE markers;  reloads the doc's Chrome tab |
 | `add <name> question\|caveat\|issue\|todo\|decision "<title>" [--details "<html>"]` | append an item, print its id |

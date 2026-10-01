@@ -1,6 +1,6 @@
-# @spell/ui findings from the `.spell.html` docs
+# @spell/ui findings from the `.html` docs
 
-Problems in @spell/ui (`packages/ui`) met while building the `.spell.html` docs with `ui-*` widgets:
+Problems in @spell/ui (`packages/ui`) met while building the `.html` docs with `ui-*` widgets:
 `yarn docs:update` bundles UI into one classic script (`_assets/spell-ui.js`), and the pages open from file://.
 Each finding:  component, symptom, repro, the workaround used here, a suggested fix.  Workarounds live in
 `_assets/spell-doc.css`, `_assets/spell-doc-runtime.js` and `scripts/bundle-spell-ui.js`.

@@ -1,4 +1,4 @@
-// Solid 2 experiment for solid-2.spell.html -- run (from `packages/docs`):  yarn tsx solid/experiments/spell-cells.ts [dev|prod]
+// Solid 2 experiment for solid-2.html -- run (from `packages/docs`):  yarn tsx solid/experiments/spell-cells.ts [dev|prod]
 // Spell cells (candidate X), reached three ways -- the core lives in `spell-cells.core.ts`:
 // - A:  accessors on the prototype (the recommendation for Things)
 // - P:  a `Proxy` around each instance, wrapped AFTER construction (the naive version)
