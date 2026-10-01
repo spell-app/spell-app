@@ -1,54 +1,42 @@
 # AGENTS.md
 
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
-when working with code in this package, `spell`.
+when working with code in this package, `@spell/spell` (`#spell`, `SP`).
 
 Conventions every package shares -- Solid 2, Long-term debt, Documentation, Functions, Decorators,
 Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST.  Only what's local is below.
 
 ## Overview
 
-- `src/parser/` (`P`) is a generic rule-based parser;  `src/languages/spell/` (`SP`) is the spell language on it.
-- `src/lsp/` (`LSP`) is spell's language server, and `vscode-extension/` the VS Code extension that runs it --
-  its own yarn project (own `package.json` + `yarn.lock`), NOT a workspace of the repo's.  See "Language server" in `PARSING.md`.
-- The `spell` command-line tool is NOT here:  it's its own package beside this one, `../cli`, which runs this package's
-  SOURCE (`~/lsp`, `~/languages/spell` ...) through `tsx`.  See its `README.md`.
+- This package is the spell LANGUAGE:  `src/` (`SP`) is spell's rules, `SpellParser`, `SpellProject` and friends,
+  on the generic parser.  The pieces around it are packages of their own, beside this one:
+  - `../parser` (`#parser`, `P`) -- the generic rule-based parser.  `PARSING.md` (here) maps its pipeline.
+  - `../spell-core` (`#spell-core`, `SC`) -- the runtime compiled spell runs on.
+  - `../spell-util` (`#spell-util`) -- utilities.
+  - `../lsp` (`#lsp`, `LSP`) -- spell's language server.  See "Language server" in `PARSING.md`.
+  - `../vscode` -- the VS Code extension that runs it:  its own yarn project, NOT a workspace.
+  - `../spell-app` (`#spell-app`) -- the web app, its server, the runner and `<spell-app>` / `<spell-editor>`.
+    `yarn start` is run THERE.
+  - `../cli` -- the `spell` command line, which runs this package's SOURCE (and the others') through `tsx`.
+- `src/rules/` is spell's rule modules (see "Parser rules" below);  `src/parserTests/` holds parser tests that
+  need the spell grammar (the generic ones are in `../parser`).
+- `src/node/` (`#spell/node/...`) is NODE-ONLY:  `environment`, `packageVersion.node`, `disk-fetch`, `file-utils`,
+  `project-utils`, `response-utils`, `server.types`.
+  - The barrel NEVER exports it.  Other packages may import these files by name, the one deep-import exception
+    (see `tsconfig.base.json`'s header);  the app's server does.
+  - Nothing reachable from `#spell`'s barrel may import it:  the barrel runs in browsers.
+- `src/test/` (`#spell/test`) holds the test helpers, e.g. `loadFixtureProject()`, `fixturePath()`,
+  `fixtureProjectId()`.
 - `projects/` holds every spell project, OUTSIDE `src/`:  `system/examples/`, `system/library/`, `system/guides/`,
   `user/` and `test/` -- the `@system:examples` etc. roots.  See "Projects" in `PARSING.md`.
   - Tests read ONLY `projects/test/` (`@test:fixtures` ~== `@test/<Project>`, listed in the app in dev only):  frozen projects, never
     the live examples, which get edited.  Use `loadFixtureProject()`, `fixturePath()`, `fixtureProjectId()` from
-    `~/test` -- and NEVER update a fixture to follow its example.
+    `#spell/test` -- and NEVER update a fixture to follow its example.
   - Each fixture's compiled output is checked against `<Project>.snapshot.js` beside it (`src/test/fixtures.test.ts`).
     Add a fixture by copying a project in;  after a deliberate change, `yarn test:fixtures:bless` and read the diff.
-- `src/app/ui/monaco/` is the app's Monaco editor, whose language features call the SAME `LSP.SpellLanguageService`
-  in-process.  `~/lsp` MUST stay browser-safe for it.
-  - Loaded LAZILY, through `UI.LazyMonaco`:  NEVER import `~/app/ui/monaco` statically outside its folder -- types
-    aside -- or Monaco (~4.4 MB) lands in the main bundle again.
-- `src/app/runner/` runs compiled spell:  the pieces every runner shares -- the web app's editor, VS Code's
-  "Run Project" webview (`VSCodeRunner`, `yarn build:runner`) and the `<spell-app>` web component
-  (`SpellAppElement`, `yarn build:element` => `dist-element/`, demo at `/demo/spell-app.html` on the dev server).
-  - Programs run on `spell-runtime.js` (`spellRuntime.ts`), NEVER the page's own `spellCore`:  the app loads it
-    once (`editor.loadRuntime()`), the VS Code runner once, and each `<spell-app>` its OWN copy (`loadRuntime()`),
-    so apps on a page don't share a `spellCore`.  No import map:  `runCompiled()` links each program's imports.
-  - So ONLY `spellRuntime.ts` may value-import `~/spellCore`, in every bundle:  anything else -- the app, the
-    parser, the forms -- puts it in a shared chunk, or loads a second one.  They read `~/spellCore/spellCore.types`
-    (runtime-light), or the runtime's, e.g. `runtimeConsole()`.  Mind barrels:  `~/app/runner` holds
-    `runCompiled()`, so a bundle's entry imports its runner's file directly.  Pinned by `element.build.test.ts`
-    and `parser/build.test.ts`.
-  - It runs in a shadow root:  `spellCore.appRoot` is where an app mounts, and `spellCore.domRoot()` where to look
-    elements up and add styles -- NEVER `document`.
-  - Its Type Explorer reads scope packs, `<Project>.scopes.js` (`LSP.ScopePack`) -- no parser in the page.
-  - Its Thing Explorer reads the runtime copy's `spellCore.things` (`ThingRegistry`):  each `Thing`, and each
-    instance of a `List` sub-class, registers itself as it's made;  the program's exports are its top-level things.
-    `yarn scopes [--compile] <projectId...>` writes them;  so does the language server, after each clean compile.
-- `src/app/spellEditor/` is `<spell-editor>` (`SpellEditorElement`, `yarn build:element` => `spell-editor.js`, demo at
-  `/demo/spell-editor.html`):  the app's Monaco editor as a web component, editing a server project and feeding
-  `<spell-app>`s what it compiles (`SPELL_COMPILED_EVENT`, `SpellCompiled` in `runner.types.ts`).
-  - Its OWN build, `vite.editor.config.ts`, so Monaco's CSS stays out of `spell-app.css`.  Monaco is a lazy chunk:
-    the parser compiles, and apps run, before it loads.  Pinned by `element.build.test.ts`.
-  - Several on a page edit several projects:  each `SpellModels.use()`s its own, and listens with
-    `SpellMonaco.onEdit()` / `onOpen()` -- NOT the app's `editor`.  NEVER import `UI` or `LazyMonaco` there.
-- Styles are plain `.css`:  native nesting, custom properties (`spell.css`, `syntax.css`) -- no Less.
+- `docs/` holds the HTML docs (see "Creating docs"), `readme.md` is the project's front page.
+- `src/index.ts` is the barrel:  it is also pulled into the app's server, so nothing reachable from it may rely on
+  browser-only globals at module-evaluation time.  It imports `#spell-core`'s TYPES only, never its code.
 
 ## How parsing works
 
@@ -122,12 +110,12 @@ HTML docs for people -- design notes, research, references -- live in `docs/<top
 - A rule is a CLASS (behaviour AND what the rule is) plus its `syntax` + `tests`, passed when registering it:
   `parser.addRule(RuleClass, { syntax, tests })`.
   - Everything else -- `alias`, `precedence`, `declares`, `highlightAs`, `datatype`, `tokenType`, `pattern` ... --
-    goes ON THE CLASS as `@proto static` (from `~/util`), e.g. `@proto static alias = "expression"`.
+    goes ON THE CLASS as `@proto static` (from `#spell-util`), e.g. `@proto static alias = "expression"`.
     Why:  the class is the rule, reusable by other languages' parsers with their own `syntax`.
   - `@proto` only accepts a prop the rule declares -- `@proto static alais` is a compile error.
   - Class name IS the rule name.  Use plain `static ruleName = "if"` only for reserved words (`class _if`)
     or when class name isn't rule case (`class Block` => `"block"`).
-    Prod build MUST keep `output.keepNames` (`vite.config.ts`), pinned by `parser/build.test.ts`.
+    Prod build MUST keep `output.keepNames` (`../spell-app/vite.config.ts`), pinned by `../spell-app/src/build.test.ts`.
   - ONE `syntax` per registration.  A rule with several calls `addRule()` once per syntax, each with the
     `tests` for that syntax, e.g. `assignment_statement`.  Instances merge into a `P.Group` under the rule's name.
   - `@proto static` values are INHERITED:  a subclass of a registered rule gets its parent's `alias` etc.
@@ -138,8 +126,8 @@ HTML docs for people -- design notes, research, references -- live in `docs/<top
     value for an exception.
   - Constructor defaults (`super({ pattern, blacklist, ...props })`, see `SpellIdentifier`) also work for
     what every rule of a base class has in common.
-  - See `languages/spell/rules/variables.ts` for the finished shape, and the top docstring in
-    `parser/rules/Rule.ts` for all the ways to make a rule.
+  - See `src/rules/variables.ts` for the finished shape, and the top docstring in
+    `../parser/src/rules/Rule.ts` for all the ways to make a rule.
   - `SpellParser.addRule()` and `scope.addRule()` only TYPE `{ syntax, tests }` (`P.SyntaxAndTests`),
     so a stray `alias` there is a compile error.
   - Rules built WHILE PARSING (`scope.addRule()`) are a named class `specialize()`d with plain-data statics,
@@ -200,7 +188,7 @@ HTML docs for people -- design notes, research, references -- live in `docs/<top
   - Test setup shared by a rule's registrations:  `setup_<rule_class>()` returning `{ compileAs, beforeEach }`,
     spread into each block -- `{ ...setup_assignment_statement(), tests: [...] }`.
   - Tests need no type annotations there.  Each module needs a sibling `<module>.test.ts` calling
-    `unitTestModuleRules()`, or its tests never run.
+    `unitTestModuleRules()` (from `#parser/test`), or its tests never run.
 - Type arguments:  `Rule<Props, Groups, MatchData>`, all defaulted so bare `P.Rule` / `P.Sequence` / `P.Match` work.
   Rule base classes fix `Props` so authors write `SpellStatement<"type|property|specifier?", { ruleComment?: ... }>`.
   - `rule.matchGroup` (was `argument`) is the name a rule's match goes under in `match.groups`, e.g. `{thing:expression}`.
@@ -212,7 +200,7 @@ HTML docs for people -- design notes, research, references -- live in `docs/<top
 - `match.groups` holds ONLY what the syntax matched (`Match | Match[]`).  Anything a rule works out for itself
   goes in `match.data`, typically via a caching method:  `getBits(match) { return (match.data.bits ??= ...) }`.
   NEVER override `getGroupsForMatch()` to add derived values.
-- In `match.data`, use `NONE` (from `~/util`) for "looked, not found" rather than `null`;  name scope lookups
+- In `match.data`, use `NONE` (from `#spell-util`) for "looked, not found" rather than `null`;  name scope lookups
   `scopeVar` / `scopeConstant` / `scopeType`.
 - ONLY `mutateScope()` changes scope.  `getAST()` MUST be pure:  NEVER change scope, NEVER look it up -- ASTs are
   built lazily, when scope may have moved on.  Look up what the AST needs WHILE PARSING, into `match.data`.
@@ -235,15 +223,19 @@ HTML docs for people -- design notes, research, references -- live in `docs/<top
 
 As the root's, plus:
 
-- `vite.decorators.ts` (repo root) is used by every `vite*.config.ts` and `vitest.config.ts` here.
-  Server is fine as `tsx` is esbuild already.
+- `vite.decorators.ts` (repo root) is used by `vitest.config.ts` here.
+
+## Imports
+
+- As the root's, with our own `src/` as `#spell` / `#spell/*`, and `SP` ~== `#spell` as our one namespace.
+- Imports `#parser` (`P`), `#spell-core` (types only) and `#spell-util`.  NEVER import `#lsp`, `#spell-app` or `#cli`.
+- A rule module imports the generic parser's rule classes from `#parser`, and registers on `SpellParser` here.
 
 ## Types / Exports
 
-As the root's, plus our self-namespaces:
+As the root's, plus our self-namespace:
 
-- `P` ~== `~/parser`
-- `SP` ~== `~/languages/spell`
-- `UI` ~== `~/app/ui`
-- `F` ~== `~/app/ui/forms`
-- `SC` ~== `~/spellCore`
+- `SP` ~== `#spell`
+
+The other namespaces live in their own packages:  `P` (`../parser`), `SC` (`../spell-core`), `LSP` (`../lsp`),
+`UI` / `F` (`../spell-app`).

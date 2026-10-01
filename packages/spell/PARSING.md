@@ -6,9 +6,9 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 
 ## Text => tokens
 
-- `Parser.parse(input, ruleName, scope)` (`src/parser/Parser.ts`) tokenizes, then `scope.getRuleOrDie(ruleName).parse()`.
-- `SpellParser.tokenize()` (`src/languages/spell/SpellParser.ts`) calls `Tokenizer.tokenize()`, and for the `"block"`
-  rule then `breakIntoIndentedBlocks()` (`src/parser/tokenizer/Tokenizer.ts`):
+- `Parser.parse(input, ruleName, scope)` (`packages/parser/src/Parser.ts`) tokenizes, then `scope.getRuleOrDie(ruleName).parse()`.
+- `SpellParser.tokenize()` (`packages/spell/src/SpellParser.ts`) calls `Tokenizer.tokenize()`, and for the `"block"`
+  rule then `breakIntoIndentedBlocks()` (`packages/parser/src/tokenizer/Tokenizer.ts`):
   - result is ONE root `BlockToken` holding `LineToken`s and nested `BlockToken`s
   - indent ~== count of leading whitespace chars (tab === space === 1);  each extra level pushes a `BlockToken`
   - a blank line takes the indent of the NEXT non-blank line, so it doesn't break a nested block (lookahead)
@@ -29,16 +29,16 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 ## Rules and matching
 
 - A rule is `test()` (cheap "could this match at `start`?") plus `parse()` (build a `Match` or `undefined`).
-- `Choice.parse()` (`src/parser/rules/Choice.ts`) calls `parse()` on EVERY alternative, then `getBestMatch()`:
+- `Choice.parse()` (`packages/parser/src/rules/Choice.ts`) calls `parse()` on EVERY alternative, then `getBestMatch()`:
   - highest `precedence`, then longest match, then EARLIEST rule
-- `Sequence.parse()` (`src/parser/rules/Sequence.ts`) first runs `Sequence.test()`:
+- `Sequence.parse()` (`packages/parser/src/rules/Sequence.ts`) first runs `Sequence.test()`:
   - fixed words / symbols / patterns are checked where they must fall, subrules are skipped
   - rejects ~92% of attempts before any child parses
   - then each child is parsed at the head of the remaining tokens
 - `Subrule` looks its rule up BY NAME through `scope.getRuleOrDie()` at call time, so rules added mid-parse
   are visible to later lines.
 - `Literal` / `Literals` / `Pattern` / `TokenType` compare single tokens with `===` / regex -- cheap.
-- Cost, warm (`BENCH=1` run of `src/languages/spell/SpellProject.test.ts`, 2026-09-27):
+- Cost, warm (`BENCH=1` run of `packages/spell/src/SpellProject.test.ts`, 2026-09-27):
   Card.spell (121 lines) ~14ms, Solitaire.spell (259 lines) ~77ms, whole Solitaire project ~100ms.
   Compiling is <1ms per file, tokenizing about the same.  Parsing is the whole cost.
   `parser.rules` rebuilds after mid-parse `addRule()`s:  38 per project parse, ~1ms total -- not worth optimizing.
@@ -58,19 +58,19 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 
 ## File => block => line => statement
 
-- `Block.parse()` (`src/languages/spell/rules/Block.ts`) loops over the root `BlockToken`'s items:
+- `Block.parse()` (`packages/spell/src/rules/Block.ts`) loops over the root `BlockToken`'s items:
   - a `LineToken` => `parser.parse(items, "line", scope)` -- passes ALL remaining items, so a statement can
     take the indented block after it
   - a nested `BlockToken` nobody claimed => parsed recursively in the SAME scope
   - `items.splice(0, match.length)` -- a header + its nested block is one item of length 2
-- `BlockLine.parse()` (`src/languages/spell/rules/BlockLine.ts`), in order:
+- `BlockLine.parse()` (`packages/spell/src/rules/BlockLine.ts`), in order:
   1. blank line => `blank_line`
   2. pop a trailing comment
   3. parse the rest as `"statement"`;  leftovers become a `parse_error`
   4. `commitStatement()` -- the ONLY place a parsed statement changes scope, and only for the line's winner:
      - `mutateScope()` on the statement, then on each inline statement inside it, outermost first
      - if the rule takes a nested body and the next item is a `BlockToken` => `parseNestedBlock()`
-- `SpellStatement` (`src/languages/spell/rules/Statement.ts`):
+- `SpellStatement` (`packages/spell/src/rules/Statement.ts`):
   - A body keyword ending `syntax` -- `{statement_body}`, `{expression_body}`, etc, see `BODY_KEYWORDS` -- or a choice of them,
     is taken OUT of `rules` into `rule.bodySpec` at construction.
     A body is parsed in `match.nestedScope`, which needs the statement's match to exist first.
@@ -92,7 +92,7 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 
 ## Scope:  what's stored where
 
-- All scope collections are `ScopeList`s (`src/parser/scope/ScopeList.ts`):  `get` / `add` / `replace` only, no remove.
+- All scope collections are `ScopeList`s (`packages/parser/src/scope/ScopeList.ts`):  `get` / `add` / `replace` only, no remove.
   `get()` checks own items, then falls through to the parent list.  Changes are journaled -- see "Incremental parsing".
 - `Scope` owns nothing;  `variables` / `types` / `constants` / `rules` / `parser` all forward to `parentScope`.
 - `BlockScope` owns `variables` + `methods`.  `FileScope` is a `BlockScope`, so a file owns only variables.
@@ -103,7 +103,7 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 ## Scope:  who changes it, and when
 
 - Changes happen ONLY in `mutateScope()`, run by `commitStatement()` (step 4 above) -- `getAST()` is pure, see below:
-  - variables:  `assignment_statement`, `get` (`src/languages/spell/rules/assignment.ts`) -- into `match.scope`,
+  - variables:  `assignment_statement`, `get` (`packages/spell/src/rules/assignment.ts`) -- into `match.scope`,
     so inside a body they stay local
   - `get` / `set it to` ALWAYS declare a new `it` (`declareIt()`):  plain `it`, then `it_2`, `it_3`... numbered
     from the visible `it`'s `output`, skipping names in use -- so callbacks keep the `it` they captured
@@ -131,7 +131,7 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - methods (`to turn (a card) over`):  `MethodDefinition` adds a rule (`methods.ts`).  Methods live ONLY as
     parser rules;  `scope.methods` is never filled in production.
 - Types, constants and rules ALWAYS go to the project, from any depth.
-- `scope.addRule()` (`src/parser/scope/Scope.ts`) => `parser.addRule()` on the PROJECT's parser, plus a record in
+- `scope.addRule()` (`packages/parser/src/scope/Scope.ts`) => `parser.addRule()` on the PROJECT's parser, plus a record in
   `ProjectScope.rules`.
   - `Parser.addRule()` clears the memoized `rules` map;  next `parser.rules` rebuilds the whole merge.
   - `mergeRule()` is copy-on-write:  existing `Group`s are cloned, never mutated.
@@ -158,7 +158,7 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 
 - On disk:  `<repo>/projects/system/<domain>/<Project>/` for `@system:*` roots, `projects/user/<Project>/` for
   `@user:projects`, `projects/test/<Project>/` for `@test:fixtures` -- `serverPathForRoot()`
-  (`src/server/project-utils.ts`), from `environment.systemFilesRoot` / `userFilesRoot` / `testFilesRoot` and each
+  (`packages/spell/src/node/project-utils.ts`), from `environment.systemFilesRoot` / `userFilesRoot` / `testFilesRoot` and each
   root's `folder` (default its `domain`).  A root with `devOnly` is listed in the app's UI in dev only.
 - A root may have an `alias`, a short way to write its paths:  `@library/cards` ~== `@system:library:cards`,
   `@test/FizzBuzz/FizzBuzz.spell` ~== `@test:fixtures:FizzBuzz/FizzBuzz.spell`,
@@ -166,10 +166,10 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   `SpellLocation` expands it first (`SpellSetup.expandAlias()`), so ids are always stored in full.
 - A project's `<Project>.compiled.js` and a fixture's `<Project>.snapshot.js` are never its own files:  the
   server leaves them out of its index (`isManifestFile()`), which would otherwise add them to `project.json`.
-- `SpellProject` (`src/languages/spell/SpellProject.ts`):  files in `project.json` order,
+- `SpellProject` (`packages/spell/src/SpellProject.ts`):  files in `project.json` order,
   e.g. Card → Deck → Pile → Solitaire.
 - `SpellProject` / `SpellFile` load over HTTP (`$fetch()` on `/api/projects/...`) -- via `LoadableFile.fetch`,
-  which a node host swaps for `diskFetch()` (`src/server/disk-fetch.ts`) to answer the same URLs from disk.
+  which a node host swaps for `diskFetch()` (`packages/spell/src/node/disk-fetch.ts`) to answer the same URLs from disk.
 - Each project `parse()` / `compile()` builds a FRESH `ProjectScope` with `parser.clone()` (empty own rules,
   imports the base spell parser).  Every file gets a `FileScope` under it and SHARES that parser.
 - So one file's types, constants and rules are visible to every later file.
@@ -184,7 +184,7 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     - Leaves out what loading works out, e.g. an enumeration's constants, or a rule's owner (`of`, else `output`).
     - `defined: "/Card.spell:222-283"` -- where the statement is:  its character offsets, project-relative.
     - NO line numbers:  a page with no sources matches the code to a scope pack's entry by what it declares,
-      e.g. `property: "suit", of: "Card"` for `.../type:Card/property:suit` -- see `ScopesSource` in `src/app/runner/`.
+      e.g. `property: "suit", of: "Card"` for `.../type:Card/property:suit` -- see `ScopesSource` in `packages/spell-app/src/runner/`.
     - `kind` + `name` -- what its rule's `getDeclaration()` says, for editors, e.g. `name: "draw (a card)"` --
       unless a key already says, e.g. `type`.
   - `SpellProject` puts a one-line `/*! SPELL: PROJECT {...} */` header at the top (`header()`):  versions +
@@ -212,11 +212,11 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - types compile to `export class`, top-level functions to `export function`, top-level vars to `export let`
   - see "Classes" under Compile for what goes in a class's body
   - NO import map:  every runner -- the app, VS Code's, `<spell-app>` -- runs compiled code from a `blob:` URL,
-    with its specifiers rewritten (`runCompiled()` / `linkModule()` in `src/app/runner/`):  `@spell/core` => the
+    with its specifiers rewritten (`runCompiled()` / `linkModule()` in `packages/spell-app/src/runner/`):  `@spell/core` => the
     runtime it runs on (`spellRuntime.ts`), `@spell/project/<projectId>` => that project's compiled JS, fetched
     and linked the same way, afresh each run.  The app, parser and forms NEVER load `spellCore` themselves.
 - ALL files parse first, then ALL compile, so lazy compile-time lookups see the whole project.
-- Editor (`src/app/editor.ts` `onInputChanged`) => `project.updateText(file, text)` on every keystroke, which calls
+- Editor (`packages/spell-app/src/editor.ts` `onInputChanged`) => `project.updateText(file, text)` on every keystroke, which calls
   `updatedContentsFor(file)`:  `project.incremental.update()` re-parses what changed right away, and hands changed
   files their new match.  If that couldn't cope, `updateText()` parses from scratch straight away.
   After 2s:  compiles, saves `<Project>.compiled.js` and runs it.
@@ -226,13 +226,13 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 
 ## Incremental parsing
 
-- `P.IncrementalProject` (`src/parser/IncrementalProject.ts`):  a project's spell files, in order, sharing ONE
+- `P.IncrementalProject` (`packages/parser/src/IncrementalProject.ts`):  a project's spell files, in order, sharing ONE
   project scope + parser.  `update(path, text)` => the files whose match changed.  Owned by `SpellProject`.
 - `P.ParseJournal` (`parser.journal`):  every change parsing makes to shared state, undoable + redoable.
   - recorded by `ScopeList.add()` / `.replace()` (swap in a NEW items array) and `Parser.addRule()` (`#ownRules`)
   - `mark()` a point, `rewindTo(mark)` undoes everything after it, `replay()` puts it back -- marks included
   - only state existing AT the mark needs recording:  anything newer is re-parsed, or replayed back the same
-- `P.IncrementalParse` (`src/parser/IncrementalParse.ts`), one per file:
+- `P.IncrementalParse` (`packages/parser/src/IncrementalParse.ts`), one per file:
   - parses TOP-LEVEL items one by one (`parser.parseItem()`), with a journal mark before each.  An item match covers
     a line, or a header line + its indented body (`line` match `tokens` === `[LineToken, BlockToken]`).
   - `update(text)` diffs old vs new top-level items (source text + indent), then:
@@ -261,9 +261,9 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   every file from scratch.
 - Cost, Solitaire, vs full parse ~110ms:  body edit ~10ms;  comment / blank line / top-level statement anywhere
   ~1-2ms;  declaration edit near the END ~1ms, near the START of the first file ~110ms (~= full parse).
-- `src/parser/IncrementalProject.test.ts` edits lines of every Solitaire file (every line with `INCREMENTAL_FULL=1`),
+- `packages/parser/src/IncrementalProject.test.ts` edits lines of every Solitaire file (every line with `INCREMENTAL_FULL=1`),
   on ONE project, and after each edit -- and after undoing it -- checks output, errors and token positions against
-  a full parse.  `src/parser/ParseJournal.test.ts` checks a whole project's rewind / replay.
+  a full parse.  `packages/parser/src/ParseJournal.test.ts` checks a whole project's rewind / replay.
 
 ## Compile
 
@@ -297,26 +297,26 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 
 ## Language server
 
-- `src/lsp/` (`LSP`), run as `yarn start:lsp` -- or by the VS Code extension in `vscode-extension/`, which spawns the
-  repo's own `tsx` on `src/lsp/server.ts`.  `stdioGuard.ts` sends `console.*` to stderr first:  stdout is the protocol.
+- `packages/lsp/src/` (`LSP`), run as `yarn start:lsp` -- or by the VS Code extension in `packages/vscode/`, which spawns the
+  repo's own `tsx` on `packages/lsp/src/server.ts`.  `stdioGuard.ts` sends `console.*` to stderr first:  stdout is the protocol.
 - Hosts the SAME `SpellProject` / `SpellFile` the app uses, and takes everything from them:  `project.spellFiles`,
   `file.isActive`, `project.parseError`, and edits through `project.updateText()`, exactly as the app's editor does.
   All `SpellLanguageService` adds is `LSP.FileAddresses`:  the editor's URI for each file.
-- Used twice:  by VS Code over stdio, and IN-PROCESS by the app's Monaco editor (`src/app/ui/monaco/`), whose
+- Used twice:  by VS Code over stdio, and IN-PROCESS by the app's Monaco editor (`packages/spell-app/src/ui/monaco/`), whose
   `SpellModels` keep one Monaco model per file in step with `file.contents` (edits go through `updateText()`),
   and whose `SpellLanguageFeatures` call the service and convert its answers with `LspToMonaco`.
   - The app shows one project at a time;  `<spell-editor>`s on a page show one each, all in one Monaco -- each
     `SpellModels.use()`s its project, so another's models don't replace them.
 - `SpellDiskWorkspace` is the stdio server's:  loads from disk via `LoadableFile.fetch` (above), maps a `.spell`
   file to its project (nearest `project.json`), parses the project on first sight, and reacts to disk changes.
-  Node-only, so it's NOT in the `~/lsp` barrel, which MUST stay browser-safe (`src/lsp/barrel.test.ts`).
+  Node-only, so it's NOT in the `#lsp` barrel, which MUST stay browser-safe (`packages/lsp/src/barrel.test.ts`).
 - `SpellLanguageService` answers from each file's current `match`, never re-parsing:
   - positions from match / token OFFSETS, never `token.line` / `ch`
   - symbols from `rule.getDeclaration()`, colours from `rule.highlightAs`
   - definition / references from the scope record a word resolved to while parsing (`data.scopeVar` etc.)
     and that record's `declaredBy`;  method calls from `ScopeRule.instances`;  properties from their type's
     `variables` (`TypeScope.declareProperty()`), else by name
-- Formatting is `P.TokenFormatter` (`src/parser/tokenizer/`), indenting with TABS always:  whitespace only, from the tokens -- no
+- Formatting is `P.TokenFormatter` (`packages/parser/src/tokenizer/`), indenting with TABS always:  whitespace only, from the tokens -- no
   pretty-printer, the AST is a javascript tree.  Indent LEVELS come from indent widths, not the tokenizer's blocks
   (which nest one per whitespace character).  It re-tokenizes its result and gives up if anything but whitespace
   changed.  NOTE: a blank line takes the indent of the line AFTER it, unless it has its own -- so dropping the tab
@@ -343,4 +343,4 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
 
 - `parseSpellProject()` / `loadExampleProject()` / `summarize()` (`src/test/parseSpellProject.ts`) parse + compile
   a project headlessly, exactly as `SpellProject` does.  `summarize()` is the "same as a full parse" reference.
-- `src/languages/spell/SpellProject.test.ts` snapshots Solitaire's compiled output + errors, and benchmarks with `BENCH=1`.
+- `packages/spell/src/SpellProject.test.ts` snapshots Solitaire's compiled output + errors, and benchmarks with `BENCH=1`.

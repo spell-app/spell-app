@@ -25,14 +25,22 @@ components, a command line, and `@spell/ui`, a web component library that stands
 
 | Folder                                                       | Package                | What it is                                                                                                       |
 | ------------------------------------------------------------ | ---------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| [`packages/spell`](packages/spell/readme.md)                 | `spell-parser`         | The parser, the spell language, its runtime, language server, web app, VS Code extension and every spell project |
+| [`packages/spell`](packages/spell/readme.md)                 | `@spell/spell`         | The spell language, on the parser, and every spell project                                                       |
+| [`packages/parser`](packages/parser/AGENTS.md)               | `@spell/parser`        | The generic rule-based parser the language is built on;  imported as `#parser`                                   |
+| [`packages/spell-core`](packages/spell-core/AGENTS.md)       | `@spell/spell-core`    | The runtime compiled spell runs on;  imported as `#spell-core`                                                   |
+| [`packages/spell-util`](packages/spell-util/AGENTS.md)       | `@spell/spell-util`    | Spell's utilities (lodash, `Observable`, `Task` ...);  imported as `#spell-util`                                 |
+| [`packages/lsp`](packages/lsp/AGENTS.md)                     | `@spell/lsp`           | Spell's language server, browser-safe;  imported as `#lsp`                                                       |
+| [`packages/spell-app`](packages/spell-app/AGENTS.md)         | `@spell/spell-app`     | The web app and its server, the runner, and the `<spell-app>` / `<spell-editor>` web components                  |
+| [`packages/vscode`](packages/vscode)                         | `spell-language`       | The VS Code extension that runs the language server:  its own yarn project, not a workspace                      |
 | [`packages/ui`](packages/ui/README.md)                       | `@spell/ui`            | Fomantic UI's vocabulary as modern-CSS web components on Solid 2, for any framework or plain HTML                |
 | [`packages/solid-element`](packages/solid-element/README.md) | `@spell/solid-element` | Custom elements for Solid 2:  our fork of `@solidjs/element` + `component-register`                              |
 | [`packages/cli`](packages/cli/README.md)                     | `@spell/cli`           | The `spell` command line:  compile, check, explore, watch, run and test spell projects                           |
 | [`packages/util`](packages/util/README.md)                   | `@spell/util`          | Small generic helpers shared by the others (`@proto`, class, string and DOM utilities);  imported as `#util`    |
 
-Each package has its own README (how to use it) and `AGENTS.md` (how it's built).  They're split further as the
-monorepo settles -- the generic parser, the runtime and the language server each become their own package.
+Each package has its own README or `AGENTS.md` (how it's built).  Imports use one alias per package, `#parser`,
+`#spell-core` ... -- the table is [`tsconfig.base.json`](tsconfig.base.json).  Dependencies flow one way:
+`cli` -> `spell-app` -> `lsp` -> `spell` -> `parser` / `spell-core` -> `spell-util` -> `util`, and
+`ui` -> `solid-element` / `util`.
 
 ## Getting started
 
@@ -47,8 +55,8 @@ yarn                # installs every package
 Then, per package:
 
 ```sh
-cd packages/spell && yarn start        # the web app and its server
-cd packages/spell && yarn vscode       # build and install the VS Code extension
+cd packages/spell-app && yarn start    # the web app and its server
+yarn vscode                            # (at the root) build and install the VS Code extension
 cd packages/ui    && yarn dev          # @spell/ui's demo pages, hot-reloading
 cd packages/cli   && yarn cli:install  # put `spell` on your PATH
 ```
@@ -57,7 +65,8 @@ From the root, `yarn ts` and `yarn review` run in every package.  `review` also 
 can change files.
 
 `yarn test` is ONE vitest run over every package (the root `vitest.config.ts` lists them as `projects`):
-- `yarn test --project spell` runs one project:  `spell`, `cli`, `ui:ssr`, `ui:browser`, `solid-element`.
+- `yarn test --project spell` runs one project, named for its folder:  `spell`, `parser`, `spell-core`,
+  `spell-util`, `lsp`, `spell-app`, `cli`, `solid-element`, plus `ui:ssr` and `ui:browser`.
 - `yarn test:watch` is the watch mode, and the VS Code vitest extension reads the same config.
 - `yarn test:packages` runs each package's own `yarn test` one after another, as before.
 

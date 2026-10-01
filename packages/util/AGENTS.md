@@ -19,13 +19,13 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
 - What does NOT belong:
   - anything spell-specific
   - anything needing a dependency `ui` doesn't already have (`pluralize`, CommonJS `lodash` ...):  it stays in its
-    package, e.g. `spell`'s `~/util/string.ts`
+    package, e.g. `spell-util`'s `src/string.ts`
   - anything only ONE package uses:  `ui`'s `core.ts` re-exports `$/util` wholesale, so every helper here lands in
     `ui`'s `core` bundle (`yarn measure`), used or not
   - when in doubt, leave it in the package
 - Commands:  `yarn review`, `yarn ts`, `yarn lint`, `yarn format`, `yarn test` (a real browser, chromium).
 - Packages import `#util` (the barrel) ONLY, never `#util/<file>`.  Each keeps its own `util` barrel
-  (`~/util`, `$/util`) for package-specific helpers, and that barrel re-exports `#util`.
+  (`#spell-util`, `$/util`) for package-specific helpers, and that barrel re-exports `#util`.
 
 ## Decorators
 

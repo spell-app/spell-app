@@ -3,20 +3,26 @@
 Compile, check, describe, explore, watch, run and test spell projects from a terminal.  It runs straight from this
 checkout, through `tsx`, so there's no build step, and it sees projects exactly as the language server does.
 
-Code:  `src/` (namespace `CLI`, imported as `~/cli`), started by `bin/spell.mjs`.  See the header of `src/main.ts`.
+Code:  `src/` (namespace `CLI`, imported as `#cli`), started by `bin/spell.mjs`.  See the header of `src/main.ts`.
 
-This package holds ONLY the command line.  Spell itself -- the parser, the language server, the runtime, and the
-projects in `projects/` -- is the `spell` package beside this one in the monorepo, along with `ui`:
+This package holds ONLY the command line.  Spell itself -- the parser, the language, the language server, the
+runtime, and the projects in `spell/projects/` -- is the spell-family packages beside this one in the monorepo,
+along with `ui`:
 
 ```
 packages/
-  cli/      this package
-  spell/    spell itself:  its SOURCE runs, straight from `../spell/src`
-  ui/       `@spell/ui`
+  cli/         this package
+  spell/       the spell language, and `projects/`:  its SOURCE runs, straight from `../spell/src`
+  parser/      the generic parser
+  spell-core/  the runtime compiled spell runs on
+  spell-util/  utilities
+  lsp/         the language server
+  ui/          `@spell/ui`
 ```
 
-- `package.json` depends on both as workspaces (`workspace:*`);  one `yarn` at the monorepo root installs everything.
-- `~/cli` is this repo's `src/`;  any other `~/...` is the parser's `src/`.  See the monorepo's `tsconfig.base.json`.
+- `package.json` depends on `spell` and `ui` as workspaces (`workspace:*`), and the aliases reach the rest;  one `yarn` at the monorepo root installs everything.
+- `#cli` is this package's `src/`;  `#spell`, `#parser`, `#lsp` ... are the others'.  One alias table for the whole
+  monorepo:  `tsconfig.base.json`.
 - Moved here from the parser's `CLI` branch (`26830ef1`) on 2026-09-30.
 
 
@@ -112,13 +118,13 @@ Every command takes one or more targets:
 
 ### General
 
-- **It runs the parser's working copy:**  whatever is in `../spell` right now.  A half-finished
-  change there breaks `spell`, and `yarn ts` here reports the parser's type errors too.
-- **Startup takes about half a second:**  `tsx` compiles the parser on each run, and caches it.
+- **It runs the other packages' working copies:**  whatever is in `../spell`, `../parser`, `../lsp` ... right now.
+  A half-finished change there breaks `spell`, and `yarn ts` here reports their type errors too.
+- **Startup takes about half a second:**  `tsx` compiles their source on each run, and caches it.
 - **Ink is pinned at 5,** from when this lived in the parser, whose app is on React 18:  6+ needs React 19.
   This repo has its own React, so it's free to move.
 - **`yarn` warns `YN0072 ... --preserve-symlinks`,** about the two links.  Ignore it:  node follows each link to
-  the real folder, so the parser's imports find the parser's own packages -- which is what we want.
+  the real folder, so those packages' imports find their own dependencies -- which is what we want.
 - **`console.*` is silenced in the CLI** (`src/consoleGuard.ts`):  spell logs a lot, e.g. every `serverPath`
   lookup.  Write output with `session.out()` / `session.err()`.  An Ink screen MUST render with
   `patchConsole: false`.
@@ -156,15 +162,15 @@ Every command takes one or more targets:
   DOM.
 - `compile`:  a `--force` to recompile imported projects even when their `.compiled.js` exists.
 - `compile`:  write the project's scope pack, `<Project>.scopes.js`, as the language server does after a clean
-  compile -- via `SpellDiskWorkspace.writeScopes()`.  See the `TODO` in the parser's `src/lsp/scopes.ts`.
+  compile -- via `SpellDiskWorkspace.writeScopes()`.  See the `TODO` in `../lsp/src/scopes.ts`.
 - `test`:  a `--watch`, and filtering tests by name.
 
 ### Review items
 
 - Not yet reviewed by a person.  Tests:  `src/**/*.test.ts(x)`, 54 in all, including end-to-end runs of
   `bin/spell.mjs`.
-- The one thing it needs IN the parser:  `SpellProject.compile(parentScope, { save })` in
-  `src/languages/spell/SpellProject.ts`.  `save: false` skips writing `<Project>.compiled.js`.
+- The one thing it needs IN spell:  `SpellProject.compile(parentScope, { save })` in
+  `../spell/src/SpellProject.ts`.  `save: false` skips writing `<Project>.compiled.js`.
   Without it `--stdout`, `run` and `test` would write into the project.
 - Brought up to date with the parser's scope-tree rework when it moved here:
   - things in the Type Explorer's tree are named by `path`, not `id`

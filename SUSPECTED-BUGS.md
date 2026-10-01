@@ -50,22 +50,22 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   describe the real behaviour and `Rule.test.ts` pins it, but if the author's stated INTENT was right then the code
   is wrong and rule-ordering across every module would flip -- someone who knows the grammar should decide.
 
-- `languages/spell/rules/UI.ts` `css`: reads `match.data.file` (was ad hoc `match.file`, documented as "set externally by `SpellCSSFile`") but NOTHING sets it -- `SpellCSSFile.parse()` doesn't.  So compiled output is always `spellCore.installStyles(undefined, ...)`.  Likely fix: `match.data.file = this.file` after parsing, but untested so left alone.
+- `src/rules/UI.ts` `css`: reads `match.data.file` (was ad hoc `match.file`, documented as "set externally by `SpellCSSFile`") but NOTHING sets it -- `SpellCSSFile.parse()` doesn't.  So compiled output is always `spellCore.installStyles(undefined, ...)`.  Likely fix: `match.data.file = this.file` after parsing, but untested so left alone.
 
-- `languages/spell/rules/draw.ts` `draw_items`: `draw the cards of the deck` compiles to `spellCore.drawThing(deck.cards)`, test expects `spellCore.drawItems(deck)`.  `draw_thing` wins on `precedence: 100` (see §3).  Never noticed because `draw.ts` had no `draw.test.ts`, so its embedded tests never ran -- file added 2026-09-20, this one case marked `skip`.
+- `src/rules/draw.ts` `draw_items`: `draw the cards of the deck` compiles to `spellCore.drawThing(deck.cards)`, test expects `spellCore.drawItems(deck)`.  `draw_thing` wins on `precedence: 100` (see §3).  Never noticed because `draw.ts` had no `draw.test.ts`, so its embedded tests never ran -- file added 2026-09-20, this one case marked `skip`.
 
-- [V] `languages/spell/rules/assignment.ts` `get.getAST`: `variables.replace("it")` unconditionally;
+- [V] `src/rules/assignment.ts` `get.getAST`: `variables.replace("it")` unconditionally;
   sibling `assignment.getAST()` guards with `if (originalVar?.isAlias)`.  A real `it` variable loses `kind` / `datatype`.
 
-- [V] `languages/spell/rules/lists.ts` `list_range_iteration`: only iteration rule that doesn't pass `mapItTo` --
+- [V] `src/rules/lists.ts` `list_range_iteration`: only iteration rule that doesn't pass `mapItTo` --
   `it` not aliased inside `for each number from 1 to 10:` bodies.
 
-- [V] `spellCore/ui.ts`: `notify` / `alert` / `confirm` / `prompt` statements (`rules/UI.ts`) compile to `spellCore.notify()` etc,
+- [V] `spell-core/src/ui.ts`: `notify` / `alert` / `confirm` / `prompt` statements (`rules/UI.ts`) compile to `spellCore.notify()` etc,
   but no such methods exist anywhere in `spellCore`.
 
-- [V] `spellCore/SpellEvent.ts` instance `trigger`: calls `SpellEvent.trigger(this, event, props)` without `return`; typed `unknown[]`, results dropped.
+- [V] `spell-core/src/SpellEvent.ts` instance `trigger`: calls `SpellEvent.trigger(this, event, props)` without `return`; typed `unknown[]`, results dropped.
 
-- [V] `spellCore/classes/List.tsx` `_getZeroIndex`: `if (oneIndex === 0) return 1 // ???` -- returns second item.
+- [V] `spell-core/src/classes/List.tsx` `_getZeroIndex`: `if (oneIndex === 0) return 1 // ???` -- returns second item.
 
 - `app/ui/ConsoleViewer.tsx` `getDerivedStateFromProps`: says "Clear `state.error` if ...???" but `return oldState || {}` never clears it,
   unlike `MatchViewer` / `ASTViewer`.
@@ -75,13 +75,13 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 - `parser/ast/renderAST.tsx` `InCurlies` / `InSquareBrackets`: no empty-children case, unlike `stringifyAST.ts` twins.
   Latent: `DestructuredAssignment.renderChildren()` calls `render.InCurlies` directly.
 
-- `[V]` `languages/spell/rules/classes.ts` `quoted_property_formula`:  a quoted alias of an UNKNOWN property, e.g.
+- `[V]` `src/rules/classes.ts` `quoted_property_formula`:  a quoted alias of an UNKNOWN property, e.g.
   `a card "is a (rank)" for its ranksx`, still registers `_quoted_property_rule`, with no enumeration part in its
   syntax -- then compiling any use of it (`the card is a queen`) crashes in `compileASTExpression()`:
   `Cannot read properties of undefined (reading 'value')`, as `rhs` is `undefined`.  Crashes a full parse too.
   Probably wants a parse error instead of registering the rule -- see the `FIXME` in `computeBits()`.
 
-- `spellCore/classes/App.tsx` `App.show()`:  calls `createRoot(element)` on the SAME `#REACT_APP_ROOT_ID` element every
+- `spell-core/src/classes/App.tsx` `App.show()`:  calls `createRoot(element)` on the SAME `#REACT_APP_ROOT_ID` element every
   time a compiled app runs, e.g. each compile in the editor -- React warns "You are calling ReactDOMClient.createRoot()
   on a container that has already been passed to createRoot() before".  Probably wants to reuse (or unmount) the
   `REACT_ROOT` it already stashed on the element.
@@ -143,12 +143,12 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   language server if an editor ever reports a replaced file (e.g. delete + create, as some `git` operations do) as
   `created`.  Likely fix:  `refresh()` also reloads each file's contents from disk.
 
-- `languages/spell/rules/expressions.ts` `is_a`:  its operand is `{expression:type}`, and `type` accepts ANY word --
+- `src/rules/expressions.ts` `is_a`:  its operand is `{expression:type}`, and `type` accepts ANY word --
   so `print the card is a new card` compiles to `spellCore.isOfType(card, 'New')` and leaves `card` as a parse
   error, where `is_equal` + `a new card` was meant.  Probably wants `known_type`.  Run:
   `docs/precedence/experiments/grammar-today.mts`, probe P7.  Found 2026-09-30.
 
-- `languages/spell/rules/lists.ts` `list_length` (precedence 3) vs `list_filter` (2):  `the number of cards in the
+- `src/rules/lists.ts` `list_length` (precedence 3) vs `list_filter` (2):  `the number of cards in the
   deck where ...` likely matches `list_length` with `the deck` and leaves `where ...` unparsed, as precedence is
   compared before length.  From reading `Choice.getBestMatch()`, NOT run.  Found 2026-09-30.
 
@@ -179,15 +179,15 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 - `parser/tokenizer/Tokens.ts`: `JSXExpressionTokenProps.contents` is `string | Token`; `JSXAttribute` value still `any`.
 
-- `languages/spell/rules/draw.ts` `draw_thing`: `precedence: 100`, everything else uses ~1-20.
+- `src/rules/draw.ts` `draw_thing`: `precedence: 100`, everything else uses ~1-20.
 
-- `languages/spell/rules/methods.ts` `type_method_arg`: `method` fragment from `type.raw`, sibling `arg.name` uses `instanceCase(type.value)`.
+- `src/rules/methods.ts` `type_method_arg`: `method` fragment from `type.raw`, sibling `arg.name` uses `instanceCase(type.value)`.
 
-- `languages/spell/rules/async.ts` `pause` tests: 3 of 4 input strings have a stray trailing `"` (`` `pause for 2 seconds"` ``, `` `pause for 500 msec"` ``, `` `pause for 10 ticks"` ``) that the 4th (`pause for (10 + 10) sec`) doesn't -- looks like a copy-paste typo, not intentional. Left byte-for-byte while converting to `addRule()` per the rollout guide.
+- `src/rules/async.ts` `pause` tests: 3 of 4 input strings have a stray trailing `"` (`` `pause for 2 seconds"` ``, `` `pause for 500 msec"` ``, `` `pause for 10 ticks"` ``) that the 4th (`pause for (10 + 10) sec`) doesn't -- looks like a copy-paste typo, not intentional. Left byte-for-byte while converting to `addRule()` per the rollout guide.
 
-- `languages/spell/rules/UI.ts` `end_print_group` test: input `` `end print group"` `` has the same stray trailing `"`. Same as above.
+- `src/rules/UI.ts` `end_print_group` test: input `` `end print group"` `` has the same stray trailing `"`. Same as above.
 
-- `spellCore/collection-other.test.ts` `includes` test "returns false if one thing present, one not" expects
+- `spell-core/src/collection-other.test.ts` `includes` test "returns false if one thing present, one not" expects
   `true` -- both values are in `{ a: 1, b: 3 }`.  Probably meant to check `1, 2`.
 
 - `lsp/ScopeExplorer.ts` property names:  a type's property members come out as their JS names -- `short_suit`,
@@ -210,11 +210,11 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 - `parser/parser.types.ts` `RuleTestBlock.showAll`: set at several call sites, never read.
 
-- `languages/spell/rules/assignment.ts` `get.mutateScope`: sets `match.data.itVar` (the original local
+- `src/rules/assignment.ts` `get.mutateScope`: sets `match.data.itVar` (the original local
   `it` `ScopeVariable`, if any), but `get.getAST` never reads it -- only `match.data.isNewVariable`.
   Looks like dead state, found while converting the file to a rule class (2026-09-20).
 
-- `languages/spell/rules/core.ts` `eat_whitespace`: never referenced anywhere in `src` (grepped) -- dead.
+- `src/rules/core.ts` `eat_whitespace`: never referenced anywhere in `src` (grepped) -- dead.
   Its old bag form (`constructor: class eat_whitespace extends P.Subrule {}`, `syntax: "{whitespace}*"`)
   was actually broken: `{whitespace}*` compiles to a `Repeat`, not a `Subrule`, so the deprecated
   `Parser.defineRule()` bag path's `props = { ...rule, ...props }` merge silently copied the compiled
@@ -225,9 +225,9 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   to match its likely original intent.  No behavior change since nothing calls the rule either way
   (found 2026-09-20 converting `core.ts` to rule classes).
 
-- `spellCore/core.ts`: `repeat()` has no compiling rule; `get()` / `set()` are stubs with no callers.
+- `spell-core/src/core.ts`: `repeat()` has no compiling rule; `get()` / `set()` are stubs with no callers.
 
-- `spellCore/string.ts` `doubleQuote()`: no callers.
+- `spell-core/src/string.ts` `doubleQuote()`: no callers.
 
 - `server/response-utils.ts`: `sendText`, `sendJavascript`, `sendTextFile`, `sendJSFile`, `sendJSONFile`, `convertNumericId`, `getIdParams` -- no callers.
 
@@ -239,7 +239,7 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 ### 5. Structure / AGENTS.md conformance (your call)
 
-- `spellCore/index.ts` header claims `assert` is global for compiled spell; only `global.spellCore` assignment found.
+- `spell-core/src/index.ts` header claims `assert` is global for compiled spell; only `global.spellCore` assignment found.
 
 - `util/DOM.ts` uses ambient `global`; `abortableFetch.ts` imports `global` polyfill.
 
