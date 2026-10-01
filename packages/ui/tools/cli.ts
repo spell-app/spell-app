@@ -116,7 +116,7 @@ function loc() {
       "!src/**/*.test.ts"
     ],
     tests: ["src/**/*.test.{ts,tsx}", "test/**/*.{ts,tsx}"],
-    tooling: ["tools/**/*.{ts,tsx,js,html}", "vite.config.ts", "vitest.config.ts", "vite.decorators.ts"]
+    tooling: ["tools/**/*.{ts,tsx,js,html}", "vite.config.ts", "vitest.config.ts"]
   }).count()
   const folder = join(PACKAGE.root, PACKAGE.results)
   mkdirSync(folder, { recursive: true })

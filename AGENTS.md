@@ -108,7 +108,7 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 
 - Use STANDARD (TC39 2023-11) decorators, NEVER `experimentalDecorators`.  General-purpose ones live in the
   package's `util/decorators.ts` (`~/util/decorators.ts`, `$/util/decorators.ts`).
-- Lowered by esbuild via the package's `vite.decorators.ts` -- vite 8's own transformer (oxc) doesn't do it yet.
+- Lowered by esbuild via the repo root's `vite.decorators.ts` -- vite 8's own transformer (oxc) doesn't do it yet.
   Which configs use it:  the package's own "Decorators".
 - A decorator MUST be the first thing on its line (`@proto static inlineInitialType = false` is fine,
   and preferred) or that plugin won't notice the file.

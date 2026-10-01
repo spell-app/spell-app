@@ -202,8 +202,8 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
 
 As the root's, plus:
 
-- `vite.decorators.ts` is used by `vite.config.ts` (`baseConfig()`, shared with `vitest.config.ts`) and the
-  Astro config.
+- `vite.decorators.ts` (repo root) is used by `vite.config.ts` (`baseConfig()`, shared with `vitest.config.ts`) and
+  the Astro config.
 - The decorator pre-pass MUST run BEFORE the Solid plugin (both are `enforce: "pre"`;  `baseConfig()` orders them):
   the Solid compiler must see decorator-free code.
 

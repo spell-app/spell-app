@@ -1,7 +1,7 @@
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
 
-import { standardDecorators } from "./vite.decorators.ts"
+import { standardDecorators } from "../../vite.decorators.ts"
 import { packageVersion } from "./vite.packageVersion.ts"
 
 /**
