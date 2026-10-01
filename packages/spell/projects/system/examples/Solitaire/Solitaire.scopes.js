@@ -297,7 +297,7 @@
       ]
     },
     {
-      path: "project:Solitaire/file:Deck.spell/function:test deck creation", line: [19, 41],
+      path: "project:Solitaire/file:Deck.spell/function:test deck creation", line: [19, 33],
       section: "Deck:   US standard card deck (without jokers currently)",
       rules: [
         { name: "test_deck_creation", syntax: "test deck creation" }

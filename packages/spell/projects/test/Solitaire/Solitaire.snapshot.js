@@ -415,7 +415,7 @@ export class Deck extends List {
 /*! SPELL: DECLARES {
   syntax: "test deck creation", output: "test_deck_creation", rule: "method_call",
   alias: "statement", kind: "function", name: "deck creation",
-  defined: "/Deck.spell:468-1198",
+  defined: "/Deck.spell:468-1036",
 } */
 export function test_deck_creation() {
   return spellCore.test('test deck creation', function test_deck_creation() {
@@ -441,18 +441,6 @@ export function test_deck_creation() {
     spellCore.echoTestAction(`get the first card of the deck`)
     let it = spellCore.getItemOf(deck, 1)
     spellCore.expect(it.is_the_$rank_of_$suits('ace', 'clubs'), `it is the ace of clubs`, true, `yes`)
-    
-    spellCore.echoTestAction(`shuffle the deck`)
-    spellCore.randomize(deck)
-    spellCore.echoTestAction(`shuffle the deck`)
-    spellCore.randomize(deck)
-    
-    spellCore.echo("the deck after shuffling:")
-    spellCore.echoTestAction(`display the deck`)
-    deck.display()
-    spellCore.echoTestAction(`get the first card of the deck`)
-    let it_2 = spellCore.getItemOf(deck, 1)
-    spellCore.expect(it_2.is_the_$rank_of_$suits('ace', 'clubs'), `it is the ace of clubs`, false, `no`)
   })
 }
 test_deck_creation()

@@ -340,7 +340,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
     },
     {
       "alias": "statement",
-      "defined": "/Deck.spell:468-1198",
+      "defined": "/Deck.spell:468-1036",
       "kind": "function",
       "name": "deck creation",
       "output": "test_deck_creation",

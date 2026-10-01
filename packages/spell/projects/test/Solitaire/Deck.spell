@@ -31,12 +31,4 @@ to test deck creation
 	display the deck
 	get the first card of the deck
 	expect it is the ace of clubs to be yes
-
-	shuffle the deck
-	shuffle the deck
-
-	echo "the deck after shuffling:"
-	display the deck
-	get the first card of the deck
-	expect it is the ace of clubs to be no
 test deck creation

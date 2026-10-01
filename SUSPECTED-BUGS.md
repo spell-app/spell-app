@@ -90,10 +90,6 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   word that isn't in its enumeration outputs `` `'arg.value'` `` -- the literal text `'arg.value'`, not the
   word.  Probably meant `` `'${arg.value}'` ``.  Found 2026-09-28 while extracting the class.
 
-- [V] `projects/system/library/cards/Deck.spell` `test deck creation`:  after two shuffles it expects the first
-  card NOT to be the ace of clubs -- which it is, by chance, 1 time in 52.  So the test fails at random, ~2% of
-  runs.  Probably wants "the deck isn't in its original order" instead.  Found 2026-09-28.
-
 - `projects/system/examples/Solitaire-import` imports the WHOLE `@system:examples:Solitaire` project compiled,
   so importing it runs Solitaire's top-level code -- its tests, `reset_the_game()`, `game.start()` -- which an
   import probably shouldn't.  Likely fix:  import `@library/cards`, which holds just the cards.
