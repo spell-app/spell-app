@@ -38,7 +38,7 @@
   box-sizing: border-box;
 }
 /* a `ui-*` host's own `display` (in UI's layers) would beat the browser's `[hidden]` rule */
-:is(ui-button, ui-item, ui-title, ui-content, ui-card)[hidden] {
+:is(ui-button, ui-item, ui-title, ui-content, ui-card, ui-progress, ui-step, ui-event)[hidden] {
   display: none;
 }
 html {
@@ -156,7 +156,7 @@ ui-sticky.spell-h3 > h3 {
   font-size: 1.05rem;
   margin: 0 0 16px;
 }
-:is(.lede, .meta) + ul {
+:is(.lede, .meta) + :is(ul, ui-list) {
   color: var(--spell-muted);
   margin-top: -8px;
   font-size: 0.92rem;
@@ -164,6 +164,27 @@ ui-sticky.spell-h3 > h3 {
 .meta {
   color: var(--spell-muted);
   font-size: 0.9rem;
+}
+/* the breadcrumb above the h1:  `ui-breadcrumb.spell-crumbs` */
+.spell-crumbs {
+  display: block;
+  margin: 0 0 12px;
+}
+/* a page's meta lines (who it's for, status, how it was checked):  `ui-list.spell-meta` with an icon per item */
+ui-list.spell-meta {
+  display: block;
+  margin: 0 0 16px;
+}
+/* a coined term with a `<ui-popup>` after it:  dotted, so it reads as "hover me" */
+dfn.spell-term {
+  font-style: normal;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  cursor: help;
+}
+/* the page's last lines:  `<footer class="spell-doc-footer"><ui-divider>` + a `.meta` line */
+.spell-doc-footer {
+  margin-top: 56px;
 }
 code {
   font-family: var(--spell-mono);
@@ -196,8 +217,31 @@ pre code {
 *******************************/
 
 /* ## Messages, tables, cards:  page spacing;  tables scroll inside their box at phone width */
-.spell-doc-main :is(ui-message, ui-cards, ui-accordion) {
+.spell-doc-main :is(ui-message, ui-cards, ui-accordion, ui-statistics, ui-steps, ui-tabs, ui-grid, ui-feed, ui-items) {
   margin: 16px 0;
+}
+/* a code block inside a tab pane:  the tabs already space it */
+ui-tab > ui-accordion.spell-code {
+  margin: 8px 0 0;
+}
+ui-tab > pre {
+  margin: 8px 0 0;
+}
+/* ## Headline numbers:  `ui-statistics.spell-stats`, left-aligned with the text, wrapping at phone width */
+.spell-doc-main ui-statistics.spell-stats::part(group) {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  margin: 0;
+}
+/* ## Trade-offs:  `ui-grid.spell-pros-cons` of two `ui-segment`s, each with a top-attached label */
+.spell-doc-main ui-grid.spell-pros-cons ui-segment {
+  display: block;
+  height: 100%;
+}
+/* a top-attached label takes no room in the segment (UI can't reach "the element after it"):  clear it by hand */
+.spell-doc-main ui-grid.spell-pros-cons ul {
+  margin: 2.2em 0 0;
+  padding-left: 18px;
 }
 /* the source's density:  smaller type, tighter cells than Fomantic's `compact` (public tokens) */
 .spell-doc-main ui-table {
@@ -524,8 +568,15 @@ ui-button.spell-toc-open {
   margin: 24px 0;
 }
 
-/* The filter bar sticks above everything;  the runtime sticks the section headers below it (`--spell-top`). */
+/*
+ * The filter bar sticks above everything;  the runtime sticks the section headers below it (`--spell-top`).
+ * - the text filter, then the badge filter (`ui-select[data-spell-filter-badge]`);  wrapping at phone width
+ */
 .spell-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
   position: sticky;
   top: 0;
   z-index: 5;
@@ -536,6 +587,11 @@ ui-button.spell-toc-open {
 }
 .spell-filter ui-input {
   width: min(360px, 100%);
+}
+/* the badge legend under the header:  `ui-labels.spell-legend` */
+ui-labels.spell-legend {
+  display: block;
+  margin: 4px 0 0;
 }
 
 /*******************************

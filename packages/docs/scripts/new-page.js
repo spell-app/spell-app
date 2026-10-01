@@ -2,8 +2,10 @@
  * `yarn docs:new <template> <page> [--title "Title"] [--description "One sentence."]`:  start a page from a template.
  * - `<template>`:  `durable` or `cheatsheet` (or a path under `templates/`);  plans come from `yarn plan-doc new`
  * - `<page>`:  where it goes, relative to `packages/docs`, e.g. `parser/parser.html` or `glossary.html`
- * - Fixes the `_assets` paths for the page's depth:  templates assume one folder deep, a top-level page is zero.
- * - Sets `<title>`, the `h1` and the description;  drops the template's how-to comment;  refuses to overwrite.
+ * - Fixes the `_assets` and `index.html` paths for the page's depth:  templates assume one folder deep, a top-level
+ *   page is zero.
+ * - Sets `<title>`, the `h1`, the breadcrumb's last section and the description;  drops the template's how-to
+ *   comment;  refuses to overwrite.
  * - Then tidies the page and updates the docs index, so it's listed at once.
  */
 import { spawnSync } from "node:child_process"
@@ -26,14 +28,16 @@ const file = join(DOCS, page)
 if (existsSync(file)) fail(`${page} already exists`)
 
 const depth = page.split("/").length - 1
-const assets = `${"../".repeat(depth)}_assets/`
+const up = "../".repeat(depth)
 const title = flags.title ?? "Short Title"
 const html = readFileSync(join(DOCS, template), "utf8")
-  .replace(/((?:href|src)=")(?:\.\.\/)*_assets\//g, `$1${assets}`)
+  .replace(/((?:href|src)=")(?:\.\.\/)*(_assets\/|index\.html)/g, `$1${up}$2`)
   .replace(/\n\s*<!--\s*TEMPLATE:[\s\S]*?-->/, "")
 const { document } = parseHTML(html)
 document.querySelector("title").textContent = title
 document.querySelector("h1").textContent = title
+const crumb = document.querySelector("ui-breadcrumb-section[active]")
+if (crumb) crumb.textContent = title
 document.querySelector('meta[name="description"]').setAttribute("content", flags.description ?? "One sentence.")
 mkdirSync(dirname(file), { recursive: true })
 writeFileSync(file, serialize(document))

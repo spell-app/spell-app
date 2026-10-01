@@ -7,7 +7,7 @@
  *   the sections carry `--spell-h2-h` / `--spell-h3-h` so anchors land below both
  * - scroll-follow:  the current heading's contents link is highlighted and its panels open;  panels the scroll
  *   opened close again, panels the USER opened stay open
- * - the contents buttons (expand / collapse / code), the narrow-screen drawer, the CHEATSHEET card filter
+ * - the contents buttons (expand / collapse / code), the narrow-screen drawer, the CHEATSHEET card filters
  * - highlight.js, when the page loaded it
  * NOTE: panels open and close through the accordion's `open` PROPERTY (panel indexes as text):  that's
  * `<ui-accordion>`'s controlled state, and writing it announces nothing (`ui-open` / `ui-close` mean the user).
@@ -23,6 +23,7 @@ const TAGS = [
   "ui-sticky",
   "ui-button",
   "ui-input",
+  "ui-select",
   "ui-icon"
 ]
 
@@ -568,46 +569,58 @@ function titlesOf(accordion) {
 ////////////////
 
 /**
- * `ui-input[data-spell-filter]` shows only the cards holding every typed word;  sections without a visible card
- * hide too, and so do their contents entries.
- * - reads the value from the event's `detail`:  during `ui-input` the element's `value` is still the old one
- * - SIDE EFFECT:  remembers the filter in `localStorage` (when the browser allows it), per page:  under the input's
- *   `data-spell-filter` value, or `FILTER_KEY_PREFIX` + the page's path
+ * `ui-input[data-spell-filter]` shows only the cards holding every typed word, and `ui-select[data-spell-filter-badge]`
+ * only those with a `ui-label` badge of the chosen text ("" = any);  sections without a visible card hide too, and
+ * so do their contents entries.
+ * - reads values from the events' `detail`:  during `ui-input` / `ui-change` the element's `value` is still the old one
+ * - SIDE EFFECT:  remembers the typed filter (not the badge) in `localStorage` (when the browser allows it), per
+ *   page:  under the input's `data-spell-filter` value, or `FILTER_KEY_PREFIX` + the page's path
  */
 function wireFilter(main, toc) {
   const input = document.querySelector("ui-input[data-spell-filter]")
-  if (!input) return
-  const key = input.dataset.spellFilter || `${FILTER_KEY_PREFIX}${location.pathname}`
+  const badge = document.querySelector("ui-select[data-spell-filter-badge]")
+  if (!input && !badge) return
+  const key = input?.dataset.spellFilter || `${FILTER_KEY_PREFIX}${location.pathname}`
   const cards = Array.from(main.querySelectorAll("ui-card"))
   const sections = Array.from(main.querySelectorAll("section")).filter((section) => section.querySelector("ui-card"))
   const empty = document.getElementById("empty")
   const contents = toc ? filterContents(toc) : undefined
-  input.addEventListener("ui-input", apply)
-  input.addEventListener("ui-change", apply)
-  const saved = readSaved(key)
-  if (saved) {
-    input.value = saved
+  let typed = input ? readSaved(key) : ""
+  let chosen = String(badge?.value ?? "")
+  input?.addEventListener("ui-input", onType)
+  input?.addEventListener("ui-change", onType)
+  badge?.addEventListener("ui-change", (event) => {
+    chosen = String(event.detail?.value ?? badge.value ?? "")
     apply()
+  })
+  if (typed) input.value = typed
+  if (typed || chosen) apply()
+
+  /** The typed filter changed:  apply and save it. */
+  function onType(event) {
+    typed = String(event.detail?.value ?? input.value ?? "")
+    apply()
+    try {
+      localStorage.setItem(key, typed)
+    } catch {
+      // private window:  the filter just isn't remembered
+    }
   }
 
-  /** Hide what doesn't match;  save the filter. */
-  function apply(event) {
-    const text = String(event?.detail?.value ?? input.value ?? "")
-    const words = text.toLowerCase().split(/\s+/).filter(Boolean)
+  /** Hide what doesn't match. */
+  function apply() {
+    const words = typed.toLowerCase().split(/\s+/).filter(Boolean)
+    const wanted = chosen.trim().toLowerCase()
     let shown = 0
     for (const card of cards) {
       const content = card.textContent.toLowerCase()
-      card.hidden = !words.every((word) => content.includes(word))
+      const badges = Array.from(card.querySelectorAll("ui-label"), (label) => label.textContent.trim().toLowerCase())
+      card.hidden = !words.every((word) => content.includes(word)) || (!!wanted && !badges.includes(wanted))
       if (!card.hidden) shown++
     }
     for (const section of sections) section.hidden = !section.querySelector("ui-card:not([hidden])")
     if (empty) empty.hidden = shown > 0
     contents?.()
-    try {
-      localStorage.setItem(key, text)
-    } catch {
-      // private window:  the filter just isn't remembered
-    }
   }
 }
 
