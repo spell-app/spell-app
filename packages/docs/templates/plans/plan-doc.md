@@ -110,6 +110,26 @@ While a phase is active, flag what changed so the user can spot it:
 - Digressions:  a collapsed `<ui-accordion class="spell-aside" styled>`, title starting "Aside:".
 - Link caveats, issues, decisions and phases wherever prose mentions them.
 
+## Explaining a question or issue
+
+Anything the user must decide or weigh in on (a question, an issue with options) gets an explanation the user can
+decide from WITHOUT asking back:  in the item's details, or an Overview `h3` the item links to when it's long.
+
+- Plain words first:  what goes wrong (or what's being chosen), for whom, and how they'd notice.  Define every
+  coined or jargon word on first use:  "stacking:  things side by side go one under another when there's no room".
+- The real thing:  the actual code / markup / CSS rule it's about, excerpted from the file (folded `spell-code`),
+  never pseudo-code.
+- Concrete cases:  name the affected components / examples / tests ("breadcrumb `divider-icon`:  the divider stays
+  empty in Safari").
+- Many values:  a `ui-table` (the 19 renamed emoji:  name, today, if changed, other names that reach each).
+- Options:  side by side, `<ui-grid class="spell-pros-cons" columns="2" stackable>` of `<ui-segment>` with a
+  top-`attached` `<ui-label>` naming the option;  each says what changes, the cost, and a short code sample;  mark
+  ONE "(recommended)" and say why.
+- Live:  when the doc's bundle has the components, a working example (a resizable box for layout;  real buttons
+  for behaviour);  click it through in a browser before handing back.
+- Keep code in side-by-side boxes short (~40 columns) or it clips;  look at the screenshot.
+- The AskUserQuestion that asks it uses the same option names and order as the doc.
+
 ## Commands (`yarn plan-doc ...`, from anywhere in the repo)
 
 | Command | Does |
@@ -122,4 +142,4 @@ While a phase is active, flag what changed so the user can spot it:
 | `log <name> "<text>"` | add a timestamped line to the log |
 | `summary <name> [--json]` | open questions, issues, caveats, todos, and the next phase |
 | `check <name>` | ids unique, every `#id` link resolves, every phase has a status, then `check-spell.js` |
-| `open <name>` | open the doc in Chrome, reusing its tab and reloading it |
+| `open <name>` | show the doc in Chrome IN THE BACKGROUND, in its tab (named `<name>`;  any checkout of the doc reuses it), reloaded |

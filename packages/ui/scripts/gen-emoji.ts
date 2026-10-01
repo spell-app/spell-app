@@ -10,8 +10,8 @@
  *     written), `<twemoji code points>: <name>;`.  Its names that differ from the CLDR one are kept as ALIASES of the
  *     same character (`thumbsup`, `smile`, `flag_us`, `thumbsup_tone1`), so existing pages keep drawing.
  *     - If an alias is also the CLDR name of ANOTHER emoji (`dog`:  Fomantic's is the dog face, CLDR's the whole dog),
- *       Fomantic's meaning wins, so a page written for Fomantic doesn't change;  the other emoji keeps its other
- *       names (`dog2`).  The clashes are logged.
+ *       CLDR's meaning wins (Owen, 2026-10-01:  its pictures fit the names better);  Fomantic's emoji keeps its
+ *       other names (`dog_face`).  19 names;  the clashes are logged.
  * - The character comes from emojibase's HEX CODE, with U+FE0F where the emoji would otherwise show as TEXT:
  *   emojibase's hex codes already have it in sequences (keycaps, ZWJ);  for a text-default emoji (`type` 0, `2600`
  *   sunny, `00a9` copyright) the generator adds it after the first code point.  No hand-written presentation
@@ -112,7 +112,7 @@ class EmojiGenerator {
   }
 
   /**
-   * Add Fomantic's names that differ from the CLDR one as aliases (Fomantic's meaning wins a name clash);
+   * Add Fomantic's names that differ from the CLDR one as aliases (CLDR's meaning wins a name clash);
    * returns how many were added.  Throws if a Fomantic emoji is unknown to emojibase.
    */
   addFomantic(
@@ -127,7 +127,8 @@ class EmojiGenerator {
       if ([this.shortcodes[found.hexcode] ?? []].flat()[0] === name) continue
       const clash = names.get(name)
       if (clash !== undefined && clash !== found.emoji) {
-        console.log(`gen-emoji:  clash:  ${name} is Fomantic's ${found.emoji}, CLDR's ${clash} (Fomantic wins)`)
+        console.log(`gen-emoji:  clash:  ${name} is Fomantic's ${found.emoji}, CLDR's ${clash} (CLDR wins)`)
+        continue
       }
       names.set(name, found.emoji)
       added++

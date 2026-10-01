@@ -26,9 +26,7 @@
           <li>Status: built; branch <code>worktree-ui-component-creation</code>, not merged to <code>main</code></li>
           <li>
             Record of the session: the plan doc
-            <a
-              href="plans/ui-component-creation/ui-component-creation.html"
-              target="src-packages-docs-plans-ui-component-creation-ui-component-creation-html"
+            <a href="plans/ui-component-creation/ui-component-creation.html" target="ui-component-creation"
               ><code>plans/ui-component-creation/ui-component-creation.html</code></a
             >; before it, the handoff <i>/Users/owen/www/spell-app/outstanding/ui-component-build.md</i> (outside the
             repo)
@@ -53,7 +51,7 @@
           <ui-message state="positive" header="Next">
             <ul>
               <li>
-                Review the branch's commits, answer the four questions in <a href="#5-waiting-on-owen">5</a>, then
+                Review the branch's commits, answer the three open questions in <a href="#5-waiting-on-owen">5</a>, then
                 merge.
               </li>
             </ul>
@@ -138,7 +136,10 @@
               <b>Toast pause needs a real move:</b> a toast appearing under a resting pointer never left (Fomantic
               pauses on plain enter; a deliberate difference).
             </li>
-            <li><b>Fomantic wins emoji name clashes</b> (19 names): existing pages keep their picture.</li>
+            <li>
+              <b>CLDR wins emoji name clashes</b> (19 names, Owen): its pictures fit the names better; Fomantic's stay
+              reachable by another name.
+            </li>
             <li>
               <b>Unnamed grid / items container queries:</b> WebKit scopes container names to the tree, so a slotted
               column couldn't see the host's name.
@@ -168,6 +169,10 @@
             </li>
             <li>Emoji names data grew ~35% (a page still loads one ~5 kB chunk).</li>
             <li>
+              Emoji names are English only: translated names (emojibase ships CLDR names in 30 languages) are planned in
+              <a href="../ui/docs/translation.md" target="src-packages-ui-docs-translation-md"><code>packages/ui/docs/translation.md</code></a>, "Emoji names".
+            </li>
+            <li>
               The rest:
               <a href="../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"><code>SUSPECTED-BUGS.md</code></a> (<code
                 >## ui</code
@@ -181,29 +186,31 @@
 
         <section class="s2">
           <ui-sticky class="spell-h2"><h2 id="5-waiting-on-owen">5. Waiting on Owen</h2></ui-sticky>
-          <p>Four calls, each with what it means and an example. Item ids match the plan doc (Q9-Q12).</p>
+          <p>Each call with what it means and an example. Item ids match the plan doc; Q9 is decided.</p>
 
           <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="q-emoji">Q9 · Emoji names that changed meaning</h3></ui-sticky>
+            <ui-sticky class="spell-h3"
+              ><h3 id="q-emoji">Q9 · Emoji names that changed meaning (decided: CLDR)</h3></ui-sticky
+            >
             <ul>
               <li>
                 <code>&lt;ui-emoji name&gt;</code> now takes CLDR's names (Unicode's official short names), plus every
                 Fomantic name as an alias.
               </li>
+              <li>19 names exist in BOTH lists but mean different pictures.</li>
               <li>
-                19 names exist in BOTH lists but mean different pictures. Today Fomantic wins, so an existing page keeps
-                its picture; the CLDR picture stays reachable by another name.
+                <b>Decided (Owen, 2026-10-01): CLDR wins</b>; a page using one of these names now shows the right-hand
+                picture, and gets the left-hand one by its other name.
               </li>
-              <li>If CLDR won instead, every page using one of these names would show the right-hand picture.</li>
             </ul>
             <ui-table celled compact striped unstackable>
               <table>
                 <tbody>
                   <tr>
                     <th>name</th>
-                    <th>today (Fomantic)</th>
+                    <th>was (Fomantic)</th>
                     <th>also reached by</th>
-                    <th>if CLDR won</th>
+                    <th>now (CLDR)</th>
                     <th>also reached by</th>
                   </tr>
                   <tr>

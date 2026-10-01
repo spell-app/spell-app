@@ -232,9 +232,6 @@ Decided or knowingly left for later;  each should be picked up where noted.
 Built, but flagged for Owen's review before it's treated as settled.  Owen settled the 2026-09-30 batch on 2026-10-01
 (below, "Settled");  open now:
 
-- **Emoji name clashes** -- 19 names mean different emoji in Fomantic and CLDR (`dog`, `cat`, `pencil` ...);
-  Fomantic's meaning wins, so existing pages keep their picture (CLDR's stays reachable:  `dog2`, `dog_face`).
-  Keep, or let CLDR win?  Flagged 2026-10-01.
 - **WebKit:  style queries on `::before` / `::after`** -- WebKit doesn't re-evaluate a `@container style()` rule on a
   pseudo-element after the container's token changes (breadcrumb divider icon, feed number circles):  nudge the
   element after a change, or move those rules off style queries?  3 WebKit tests fail.  Flagged 2026-10-01.
@@ -251,7 +248,8 @@ Built, but flagged for Owen's review before it's treated as settled.  Owen settl
 - Invoker commands:  `<ui-button>` forwards `commandfor` / `command`;  `UI.browser.supports.invokers`;  without
   support, `Invoker.run()` runs the built-in commands and fires `command`.  Modal and flyout answer `--toggle` too;  popup and dropdown answer all three, toast `--close` (2026-10-01).
 - Popup:  `hoverable` (default on, WCAG 1.4.13);  `hoverable="false"` is Fomantic's default behaviour.
-- Emoji:  names from CLDR (`emojibase-data`, dev-only), Fomantic's as aliases;  presentation from Unicode data.
+- Emoji:  names from CLDR (`emojibase-data`, dev-only), Fomantic's as aliases;  CLDR wins the 19 clashing names
+  (`dog` = 🐕;  Fomantic's 🐶 is `dog_face`);  presentation from Unicode data.
 - Label colour:  matches Fomantic -- only its own or its `<ui-labels>` group's colour paints a `<ui-label>`.
 - Sidebar / flyout `width`:  Fomantic's words AND columns / fractions / % on both (`AGENTS.md` exception).
 - Container:  public per-breakpoint `--ui-container-scrolling-height-{tablet,computer,widescreen}`.

@@ -31,10 +31,17 @@ def slug(text):
     return re.sub(r"[^a-zA-Z0-9]+", "-", text).strip("-").lower()
 
 
+PLAN_DOC = re.compile(r"(?:^|/)packages/docs/plans/([^/]+)/\1\.html$")
+
+
 def target_for(abs_or_url):
     if re.match(r"https?://", abs_or_url):
         return "ext-" + slug(re.sub(r"^https?://(www\.)?", "", abs_or_url))[:80]
     rel = os.path.relpath(abs_or_url, MONOREPO)
+    # a plan doc's tab is its <name>:  the page sets `window.name` to it, and `yarn plan-doc open <name>` reuses it
+    plan = PLAN_DOC.search(rel)
+    if plan:
+        return plan.group(1)
     return "src-" + slug(rel)[:80]
 
 
@@ -78,6 +85,9 @@ def resolve(text):
     if re.match(r"^(v2\.)?solidjs\.com/|^v2\.solidjs\.com", text):
         return "https://" + text
     path = re.sub(r":\d+$", "", text)  # file.ts:75
+    # `/`, `./`, `..`:  operators and punctuation, not paths (`/` resolved to the filesystem root)
+    if not re.search(r"[A-Za-z0-9]", path):
+        return None
     if not re.fullmatch(r"[#~.@\w/-]+(\.\w+)?/?", path) or "/" not in path and "." not in path:
         return None
     alias = re.match(r"^#([\w-]+)/(.+)$", path)  # `$/util/spell/foo.ts` -> packages/util/src/spell/foo.ts
@@ -123,6 +133,9 @@ def linkify(path):
         if inside(m.start(), spans):
             continue
         dest = resolve(m.group(1))
+        # a path outside the repo (a handoff in a sibling folder) works only on this machine:  leave it as text
+        if dest and not dest.startswith("https://") and os.path.relpath(dest, MONOREPO).startswith(".."):
+            dest = None
         if not dest:
             if "/" in m.group(1) or re.search(r"\.(ts|tsx|md|mjs|js|html|json)(:\d+)?$", m.group(1)):
                 unresolved.add(m.group(1))
@@ -139,12 +152,17 @@ def linkify(path):
 
     def add_target(m):
         tag, href = m.group(0), m.group(1)
-        if "target=" in tag or href.startswith("#"):
+        if href.startswith("#"):
             return tag
-        dest = href if re.match(r"https?://", href) else os.path.normpath(os.path.join(doc_dir, href))
+        dest = href if re.match(r"https?://", href) else os.path.normpath(os.path.join(doc_dir, href.split("#")[0]))
+        if "target=" in tag:
+            # a plan doc's tab is renamed to its <name> even where a link already has a (pre-2026-10-01) target
+            if not PLAN_DOC.search(os.path.relpath(dest, MONOREPO)):
+                return tag
+            return re.sub(r'target="[^"]*"', f'target="{target_for(dest)}"', tag)
         return tag[:-1] + f' target="{target_for(dest)}">'
 
-    s = re.sub(r'<a href="([^"]+)"[^>]*>', add_target, s)
+    s = re.sub(r'<a\s+href="([^"]+)"[^>]*>', add_target, s)
     open(path, "w").write(s)
     print(f"{os.path.basename(path)}:  linked {linked} code spans;  unresolved path-like:  {sorted(unresolved)}")
 

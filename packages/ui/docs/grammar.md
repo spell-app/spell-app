@@ -726,7 +726,7 @@ first paint never needs the property.  No virtualization yet:  every row renders
   `emojibase-data` (a DEV-only dependency:  CLDR shortcodes -- `thumbs_up` -- and each emoji's code points and
   presentation, so U+FE0F is added exactly where the data says an emoji defaults to text) plus Fomantic's
   `emoji.variables` (its names that differ from CLDR's stay as ALIASES:  `thumbsup`, `smile`, `flag_us`;  where a
-  Fomantic name is another emoji's CLDR name, `dog`, Fomantic's wins).  Nothing new ships, no CDN.
+  Fomantic name is another emoji's CLDR name, `dog`, CLDR's wins;  19 names).  Nothing new ships, no CDN.
 - `EmojiData` loads ONE chunk per first letter on first use (`import()`, at most ~5 KB gzip), caches it, and answers
   later names synchronously;  nothing is in `core`.  `EmojiData.register(name, emoji)` adds an app's own names.
 - Names:  `smile` ~== `:smile:` ~== `Smile`;  spaces ~== `_`.  Unknown => an empty box with no role.

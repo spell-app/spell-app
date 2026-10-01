@@ -51,7 +51,7 @@
             <a href="../../ui-component-creation.html" target="docs-ui-component-creation">ui-component-creation.html</a
             >.
           </p>
-          <ui-progress class="plan-progress" value="9" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="11" total="11" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
           <ui-steps class="plan-phases" vertical ordered>
@@ -70,6 +70,14 @@
             <ui-step completed header="P7 · Merge And Upgrade" href="#p7" data-status="done" data-phase="7"></ui-step
             ><ui-step completed header="P8 · Invoker Commands" href="#p8" data-status="done" data-phase="8"></ui-step
             ><ui-step completed header="P9 · Docs Explainers" href="#p9" data-status="done" data-phase="9"></ui-step
+            ><ui-step completed header="P10 · CLDR Emoji Names" href="#p10" data-status="done" data-phase="10"></ui-step
+            ><ui-step
+              completed
+              header="P11 · Plan-doc Tabs And Skill"
+              href="#p11"
+              data-status="done"
+              data-phase="11"
+            ></ui-step
           ></ui-steps>
         </section>
 
@@ -117,7 +125,7 @@
               <a class="plan-id" href="#q8">Q8</a>
               <span class="plan-title">List: make first / last item padding tokens private, like step / menu?</span>
             </li>
-            <li data-status="open" id="q9">
+            <li data-status="done" id="q9">
               <a class="plan-id" href="#q9">Q9</a>
               <span class="plan-title"
                 >Emoji: 19 names mean different emoji in Fomantic and CLDR (dog, cat, pencil ...): keep Fomantic
@@ -194,12 +202,9 @@
           >
           <p>
             Source: the handoff,
-            <a
-              href="../../../../../../../../outstanding/ui-component-build.md"
-              target="src-outstanding-ui-component-build-md"
-              ><code>/Users/owen/www/spell-app/outstanding/ui-component-build.md</code></a
-            >, written by ui-1f when it paused (2026-09-30). This overview is the PLAN-time picture (3.4 lists the bugs
-            as they were before the sweep); what was built is in the durable page linked from the summary.
+            <code>/Users/owen/www/spell-app/outstanding/ui-component-build.md</code>, written by ui-1f when it paused
+            (2026-09-30). This overview is the PLAN-time picture (3.4 lists the bugs as they were before the sweep);
+            what was built is in the durable page linked from the summary.
           </p>
           <section class="s3">
             <ui-sticky class="spell-h3"><h3 id="o1">3.1 Where it stands</h3></ui-sticky>
@@ -594,6 +599,21 @@
                 ></ui-accordion
               >
             </li>
+            <li data-status="done" id="i9">
+              <a class="plan-id" href="#i9">I9</a>
+              <span class="plan-title"
+                >doc-links.py linked &lt;code&gt;/&lt;/code&gt; (an operator in a table) to the filesystem root, and
+                linked paths outside the repo</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Found re-linking every page. Fixed: code spans with no letter or digit, and paths outside the repo,
+                    stay text.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
           </ol>
         </section>
 
@@ -647,6 +667,13 @@
               <a class="plan-id" href="#t8">T8</a>
               <span class="plan-title"
                 >grid / card group hosts: same margin-collapse gap items had (C5); fix per owner like items.css</span
+              >
+            </li>
+            <li data-status="open" id="t9">
+              <a class="plan-id" href="#t9">T9</a>
+              <span class="plan-title"
+                >Translated emoji names: per-language data from emojibase (30 languages); plan in
+                packages/ui/docs/translation.md</span
               >
             </li>
           </ol>
@@ -1137,6 +1164,38 @@
                 ></ui-accordion
               >
             </li>
+            <li data-status="open" id="d35">
+              <a class="plan-id" href="#d35">D35</a>
+              <span class="plan-title">Emoji: CLDR wins the 19 clashing names (Q9)</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Owen, 2026-10-01: he likes CLDR's pictures better. Fomantic's stay reachable by another name
+                    (<code>dog_face</code>, <code>memo</code>).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d36">
+              <a class="plan-id" href="#d36">D36</a>
+              <span class="plan-title"
+                >plan-doc open: the tab is named &lt;name&gt; and found by the doc's path in packages/docs; never takes
+                focus</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Owen, 2026-10-01. Any checkout (a worktree) reuses the tab; the page sets <code>window.name</code>;
+                    links to a plan doc use <code>target="&lt;name&gt;"</code> (<a
+                      href="../../scripts/doc-links.py"
+                      target="src-packages-docs-scripts-doc-links-py"
+                      ><code>doc-links.py</code></a
+                    >). Fallbacks (Chrome not running, AppleScript refused) may still raise Chrome.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
           </ol>
         </section>
 
@@ -1277,6 +1336,40 @@
               </li>
               <li><b>Files:</b> packages/docs/ui-component-creation.html</li>
               <li><b>Verify:</b> doc-links --check; check-spell; screenshots looked at</li>
+            </ul>
+          </section>
+          <section data-status="done" data-phase="10" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p10"><ui-icon name="circle check" color="green"></ui-icon> P10 · CLDR Emoji Names</h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li><b>Goal:</b> CLDR wins the 19 emoji name clashes; translated emoji names planned</li>
+              <li>
+                <b>Files:</b> packages/ui/scripts/gen-emoji.ts, emoji data, emoji test / vocabulary / mdx, grammar.md,
+                status.md, translation.md
+              </li>
+              <li><b>Verify:</b> 19 data lines change; emoji tests; yarn review</li>
+            </ul>
+          </section>
+          <section data-status="done" data-phase="11" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p11">
+                <ui-icon name="circle check" color="green"></ui-icon> P11 · Plan-doc Tabs And Skill
+              </h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> plan-doc open: one tab per doc named
+                <name>, in the background; the skill explains questions with examples</name>
+              </li>
+              <li>
+                <b>Files:</b> packages/docs/scripts/pages.js, doc-links.py, _assets/spell-doc-runtime.js;
+                .claude/skills/plan-doc/SKILL.md; templates/plans/plan-doc.md
+              </li>
+              <li>
+                <b>Verify:</b> open reuses the tab and the frontmost app stays; every page passes doc-links --check;
+                docs tests
+              </li>
             </ul>
           </section>
         </section>
@@ -1687,6 +1780,50 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-01T09:02-04:00">2026-10-01 09:02</time></ui-date> P9
                   done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T09:30-04:00">2026-10-01 09:30</time></ui-date> P10 added: CLDR
+                  Emoji Names</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T09:30-04:00">2026-10-01 09:30</time></ui-date> P11 added:
+                  Plan-doc Tabs And Skill</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T09:30-04:00">2026-10-01 09:30</time></ui-date> Q9 closed: Emoji:
+                  19 names mean different emoji in Fomantic and CLDR (dog, cat, pencil ...): keep Fomantic
+                  winning?</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T09:30-04:00">2026-10-01 09:30</time></ui-date> P10
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T09:30-04:00">2026-10-01 09:30</time></ui-date> P11
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T09:30-04:00">2026-10-01 09:30</time></ui-date> I9 closed:
+                  doc-links.py linked &lt;code&gt;/&lt;/code&gt; (an operator in a table) to the filesystem root, and
+                  linked paths outside the repo</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

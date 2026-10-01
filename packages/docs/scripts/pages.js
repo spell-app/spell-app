@@ -4,7 +4,7 @@
  */
 import { spawnSync } from "node:child_process"
 import { readdirSync } from "node:fs"
-import { dirname, join, resolve } from "node:path"
+import { dirname, join, relative, resolve } from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 
 /** `packages/docs`. */
@@ -45,41 +45,49 @@ export function tidy(files) {
 }
 
 /**
- * Show `file` in Chrome, in ONE tab per page:  `yarn docs:open <page>`, `yarn plan-doc open <name>`.
- * - finds a tab whose URL starts with the page's `file://` URL (any `#hash`), reloads it and brings it forward;
- *   else opens a new tab
- * - no Chrome (or AppleScript refused):  falls back to `open`, which can't reuse a tab
+ * Show `file` in Chrome, in ONE tab per page, IN THE BACKGROUND:  `yarn docs:open <page>`, `yarn plan-doc open <name>`.
+ * - The tab is keyed by the page's path inside `packages/docs` (`plans/<name>/<name>.html`), not its full URL, so
+ *   the same page from another checkout (a worktree) reuses it:  re-pointed if the URL differs, else reloaded.
+ *   The page names its tab the same way (`spell-doc-runtime.js` `window.name`;  links use that `target`).
+ * - Never brings Chrome or its window forward:  the tab is made active in ITS window only;  a new tab goes in the
+ *   front window.
+ * - Chrome not running, or AppleScript refused:  `open -g -a "Google Chrome"`, which can't reuse a tab, and Chrome
+ *   may still raise itself for a URL it's handed (seen 2026-10-01).
+ * - NOTE: `key` is an AppleScript keyword:  the variable is `pageKey`.
  */
 export function openInChrome(file) {
   const url = pathToFileURL(resolve(file)).href
+  const key = `/packages/docs/${relative(DOCS, resolve(file))}`
   const script = `
 set target to ${JSON.stringify(url)}
+set pageKey to ${JSON.stringify(key)}
+if application "Google Chrome" is not running then return "launch"
 tell application "Google Chrome"
-  set found to false
   repeat with w in windows
     set i to 0
     repeat with t in tabs of w
       set i to i + 1
-      if (URL of t) starts with target then
-        tell t to reload
+      if (URL of t) contains pageKey then
+        if (URL of t) starts with target then
+          tell t to reload
+        else
+          set URL of t to target
+        end if
         set active tab index of w to i
-        set index of w to 1
-        set found to true
-        exit repeat
+        return "reused"
       end if
     end repeat
-    if found then exit repeat
   end repeat
-  if not found then
-    if (count of windows) is 0 then make new window
-    tell front window to make new tab with properties {URL:target}
-  end if
-  activate
+  if (count of windows) is 0 then make new window
+  tell front window to make new tab with properties {URL:target}
+  return "new tab"
 end tell`
   const run = spawnSync("osascript", ["-e", script], { encoding: "utf8" })
-  if (run.status === 0) return console.log(`opened ${url}`)
-  console.error(`Chrome via AppleScript failed (${run.stderr.trim()}):  falling back to \`open\``)
-  spawnSync("open", [url])
+  const how = run.stdout.trim()
+  if (run.status === 0 && how !== "launch") return console.log(`opened ${url} (${how}, in the background)`)
+  if (run.status !== 0) console.error(`Chrome via AppleScript failed (${run.stderr.trim()}):  falling back to \`open\``)
+  spawnSync("open", ["-g", "-a", "Google Chrome", url])
+  console.log(`opened ${url} (Chrome launched in the background)`)
 }
 
 /**

@@ -370,7 +370,7 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
   log <name> "text"                                timestamped line in the log
   summary <name> [--json]                          open questions, issues, caveats, todos;  the next phase
   check <name> [--no-browser]                      ids, links, phases;  then check-spell.js
-  open <name>                                      open in Chrome, reusing (and reloading) its tab`
+  open <name>                                      show in Chrome in the background, in its tab (named <name>), reloaded`
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   try {

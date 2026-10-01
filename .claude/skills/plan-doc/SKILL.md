@@ -14,7 +14,8 @@ the whole time.  The plan doc is the user's view of the work:  they read it in C
 - Structured edits go through `yarn plan-doc <command> <name> ...` (cheat sheet below), never by hand.  Hand-edit only
   prose:  the summary, Overview, phase bodies, item details.
 - Reload the plan doc whenever the session moves to a new stage (name -> worktree -> plan -> fill -> each phase ->
-  doc review):  `yarn plan-doc open <name>` reloads its Chrome tab.  `yarn plan-doc phase` does it for you.
+  doc review):  `yarn plan-doc open <name>` reloads its Chrome tab (the tab named `<name>`, in the background:  it never
+  takes focus).  `yarn plan-doc phase` does it for you.
 - Style, in replies, the plan and the doc:  caveman lite.  Drop filler and articles where they don't help, fragments
   OK, a full sentence where a fragment would be ambiguous, identifiers exact.  Lists bulleted, or numbered when
   order or reference matters.
@@ -79,6 +80,11 @@ the whole time.  The plan doc is the user's view of the work:  they read it in C
    - a caveat or todo worth acting on now
    - "Stop here"
    Questions the user must answer also go in the doc (`add ... question`);  close them once answered.
+6. Explain every question and every issue the user must weigh in on WITH EXAMPLES, in the doc (rules:
+   `plan-doc.md`, "Explaining a question or issue"), so the user can decide from the doc alone:  define each coined
+   word in plain language ("stacking", "nudge"), show the real code / markup it's about, compare many values in a
+   table, put the options side by side with one recommended, and add a LIVE example when the doc's widgets can show
+   it.  Then ask, with option labels that match the doc's.
 
 ## 6. Doc Review (last phase)
 
@@ -101,5 +107,5 @@ close <name> <id>  /  reopen <name> <id>            strike / unstrike, never del
 log <name> "text"                                   timestamped line in the doc's log
 summary <name> [--json]                             phases, next phase, open questions/issues/caveats/todos
 check <name> [--no-browser]                         ids, links, phases, then the browser check
-open <name>                                         show in Chrome, reusing its tab
+open <name>                                         show in Chrome in the background, in its tab (named <name>)
 ```

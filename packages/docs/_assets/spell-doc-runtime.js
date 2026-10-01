@@ -45,6 +45,7 @@ else void start()
 
 /** Highlight at once (plain DOM);  wire the widgets once their elements are defined. */
 async function start() {
+  nameTab()
   const main = document.querySelector("main.spell-doc-main") ?? document.querySelector("main")
   if (!main) return
   highlight()
@@ -61,6 +62,15 @@ async function start() {
   sticky.measure()
   if (location.hash) jump(hashId())
   else follow?.update()
+}
+
+/**
+ * A plan doc (`plans/<name>/<name>.html`) names its tab `<name>`:  every link to it has `target="<name>"`
+ * (`doc-links.py`), so they reuse this tab, as `yarn plan-doc open <name>` does.
+ */
+function nameTab() {
+  const plan = /\/plans\/([^/]+)\/\1\.html$/.exec(decodeURIComponent(location.pathname))
+  if (plan) window.name = plan[1]
 }
 
 /** highlight.js colors every `pre code`;  without it (offline) the code stays plain monospace. */

@@ -59,8 +59,8 @@ import VocabularyTable from "../../components/VocabularyTable.astro"
   `flag_united_states`, `rocket`), or the name [Fomantic's emoji list](https://fomantic-ui.com/elements/emoji.html)
   gives it (`thumbsup`, `smile`, `flag_us`, `one` for the keycap, the shortcodes Discord and JoyPixels use):  both
   draw the same emoji, 5,334 names in all.  Where a Fomantic name is also the CLDR name of a different emoji (`dog`
-  is the dog's face in Fomantic, the whole dog in CLDR), Fomantic's meaning wins, so pages written for it don't
-  change.  A name is case-blind, may keep its `:colons:`, and may use spaces for underscores (`Thumbs Up`).  An
+  is the dog's face in Fomantic, the whole dog in CLDR), CLDR's meaning wins:  19 names, each of Fomantic's
+  pictures still reachable by another name (`dog_face`).  A name is case-blind, may keep its `:colons:`, and may use spaces for underscores (`Thumbs Up`).  An
   unknown name draws nothing.
 
   The names load in small pieces, one per first letter, the first time a name starting with that letter is used;

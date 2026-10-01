@@ -64,11 +64,13 @@ describe("EmojiData", () => {
     expect(await EmojiData.get("1st_place_medal")).toBe("\u{1F947}")
   })
 
-  it("Fomantic's meaning wins where its name is another emoji's CLDR name", async () => {
+  it("CLDR's meaning wins where a Fomantic name is another emoji's CLDR name", async () => {
     // Fomantic's `dog` is the face (U+1F436), CLDR's `dog` the whole dog (U+1F415), which is `dog2` in Fomantic
-    expect(await EmojiData.get("dog")).toBe("\u{1F436}")
+    expect(await EmojiData.get("dog")).toBe("\u{1F415}")
     expect(await EmojiData.get("dog_face")).toBe("\u{1F436}")
     expect(await EmojiData.get("dog2")).toBe("\u{1F415}")
+    expect(await EmojiData.get("pencil")).toBe("\u{270F}\u{FE0F}")
+    expect(await EmojiData.get("memo")).toBe("\u{1F4DD}")
   })
 
   it("adds U+FE0F only to emoji that default to text (the data says which)", async () => {
