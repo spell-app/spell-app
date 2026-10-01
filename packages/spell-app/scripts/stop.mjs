@@ -16,7 +16,7 @@ const monorepo = resolve(root, "../..")
 const ours = new RegExp(
   `(${escapeRegExp(root)}|${escapeRegExp(monorepo)})/node_modules/(concurrently/|vite/|tsx/|\\.bin/tsx)`
 )
-const languageServer = "/src/lsp/server.ts"
+const languageServer = "/packages/lsp/src/server.ts"
 
 const candidates = []
 for (const line of execFileSync("ps", ["-Ao", "pid=,command="], { encoding: "utf8" }).split("\n")) {

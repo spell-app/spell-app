@@ -103,8 +103,9 @@ export class RunnerPanel {
   static async show(client: LanguageClient, repoRoot: string): Promise<void> {
     const document = vscode.window.activeTextEditor?.document
     if (document?.languageId !== "spell") return
-    if (!existsSync(resolve(repoRoot, "dist-runner/runner.js"))) {
-      void vscode.window.showErrorMessage(`Spell:  no runner bundle.  Run \`yarn build:runner\` in '${repoRoot}'.`)
+    const spellApp = resolve(repoRoot, "packages/spell-app")
+    if (!existsSync(resolve(spellApp, "dist-runner/runner.js"))) {
+      void vscode.window.showErrorMessage(`Spell:  no runner bundle.  Run \`yarn build:runner\` in '${spellApp}'.`)
       return
     }
     const uri = document.uri.toString()
