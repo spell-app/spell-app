@@ -283,8 +283,10 @@ describe("<ui-toast> actions bar", () => {
 })
 
 describe("<ui-toast> life", () => {
+  // `pause-on-hover="false"` on the timer tests:  on CI (Linux) they never time out, perhaps because the test
+  // pointer rests where toasts appear -- see `SUSPECTED-BUGS.md`.  Hover pausing has its own tests, below.
   it("fires ui-show, then closes itself after display-time:  ui-close (timeout), hidden, ui-hide", async () => {
-    const host = Fixture.render<Toast>(`<ui-toast display-time="80" message="Bye"></ui-toast>`)
+    const host = Fixture.render<Toast>(`<ui-toast display-time="80" pause-on-hover="false" message="Bye"></ui-toast>`)
     const shown = next<ToastShowDetail>(host, "ui-show")
     const closes = record(host, "ui-close")
     const hidden = next<ToastCloseDetail>(host, "ui-hide")
@@ -303,7 +305,7 @@ describe("<ui-toast> life", () => {
   })
 
   it("stays when a handler cancels ui-close", async () => {
-    const host = Fixture.render<Toast>(`<ui-toast display-time="40" message="Stay"></ui-toast>`)
+    const host = Fixture.render<Toast>(`<ui-toast display-time="40" pause-on-hover="false" message="Stay"></ui-toast>`)
     host.addEventListener("ui-close", (event) => event.preventDefault())
     const closes = record(host, "ui-close")
     await expect.poll(() => closes.length).toBe(1)
