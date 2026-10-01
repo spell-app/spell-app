@@ -335,7 +335,7 @@
     "/////// PACKAGE TOOLING (tools/)": "",
     "vendor": "tsx tools/cli.ts vendor",
     "measure": "tsx tools/cli.ts measure",
-    "smoke": "vite build --logLevel warn && tsx tools/cli.ts smoke",
+    "smoke": "vite build --logLevel warn && tsx tools/cli.ts declarations && tsx tools/cli.ts smoke",
     "serve": "tsx tools/cli.ts serve",
     "report": "tsx tools/cli.ts report",
     "icons:pack": "tsx tools/cli.ts icons:pack",

@@ -1,5 +1,5 @@
 import StorageShim from "node-storage-shim"
-import { hasOwnProp } from "./class"
+import { hasOwnProp } from "#util"
 
 /**
  * Set of preferences, currently stored in `localStorage`.

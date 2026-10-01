@@ -11,6 +11,7 @@ turns them into the tables of `docs/report.md`.
 | `tools.types.ts` | `PackageConfig`, result shapes (`MeasureResults`, `SmokeResults`, `LocResults`), `SolidIdentityHook` |
 | `BundleMeasure.ts` | in-memory `vite build` with the repo's config, modules bucketed into library / shared entries / own per family / lazy;  the library AS USED (bindings `dist/` imports) and in full;  standalone per-family builds;  structural checks |
 | `PeerVendor.ts` | one ES module per peer specifier + `importmap.json` in `vendor/`, deduped (ONE Solid), tree-shaken to the bindings `dist/` and the pages import |
+| `DeclarationCheck.ts` | `yarn smoke` runs it after `vite build`:  every `exports` `types` path exists, and no `dist/**.d.ts` import is an alias (`#util`, `$/`) or leaves `dist/` |
 | `ForkBuild.ts` | installs / builds `packages/solid-element` when its `node_modules` / `dist/` are missing or stale (`vendor`, `measure`) |
 | `HostApp.ts` | compiles the Solid 2 host app (`frameworks/solid/app.tsx`) with Solid external |
 | `SmokeRunner.ts` + `StaticServer.ts` | serves `dist/`, `vendor/`, `tools/`, `test/` from ONE static server, injects the import map, drives each page in headless chromium |

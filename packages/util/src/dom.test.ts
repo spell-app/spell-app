@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest"
 
-import { closestAcrossShadow, isBrowser, nextFrame, whenDefined } from "$/util"
+import { closestAcrossShadow, isBrowser, nextFrame, whenDefined } from "./dom"
 
 /** Unique tag per test, since `customElements.define()` can't be undone. */
 let tagCount = 0

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { camelCase, kebabCase, levenshtein, numberToWord, suggest } from "$/util"
+import { camelCase, kebabCase, levenshtein, numberToWord, suggest } from "./string"
 
 describe("kebabCase() / camelCase()", () => {
   it("converts property names to attribute names", () => {

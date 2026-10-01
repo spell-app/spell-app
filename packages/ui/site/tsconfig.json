@@ -4,6 +4,8 @@
     "allowImportingTsExtensions": true,
     "types": ["vite/client"],
     "paths": {
+      "#util": ["../../util/src/index.ts"],
+      "#util/*": ["../../util/src/*"],
       "$/*": ["../src/*"],
       "$test/*": ["../test/*"],
       "@spell/ui": ["../src/index.ts"]

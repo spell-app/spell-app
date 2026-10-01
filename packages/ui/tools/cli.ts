@@ -9,6 +9,7 @@
  * - `smoke` -- `SmokeRunner`:  `dist/` + `vendor/` through an import map, the framework host pages (the Solid 2 app
  *   on the SAME vendored Solid as the components) + the extra pages, headless chromium;
  *   `tools/results/smoke-results.json`
+ * - `declarations` -- `DeclarationCheck`:  `dist/**.d.ts` resolve for a consumer (no `#util` / `$/`, nothing outside `dist/`)
  * - `serve` -- the same pages and import map for a person:  prints the URLs, runs until killed
  * - `loc` / `report` -- `LocCount` (`loc-results.json`), then `ReportTables` rewrites `docs/report.md`'s generated
  *   tables
@@ -28,6 +29,7 @@ import { parseArgs } from "node:util"
 
 import {
   BundleMeasure,
+  DeclarationCheck,
   ForkBuild,
   HostApp,
   IconPackBuilder,
@@ -60,6 +62,13 @@ switch (command) {
   case "smoke":
     if (!(await runner().run()).pages.every((page) => page.ok)) process.exitCode = 1
     break
+  case "declarations": {
+    const problems = new DeclarationCheck(PACKAGE.root).problems()
+    problems.forEach((problem) => console.error(problem))
+    console.log(problems.length ? `declarations:  ${problems.length} problem(s)` : "declarations:  ok")
+    if (problems.length) process.exitCode = 1
+    break
+  }
   case "serve":
     await runner().serve()
     break
@@ -74,7 +83,9 @@ switch (command) {
     await iconPack()
     break
   default:
-    console.error("usage:  tsx tools/cli.ts vendor | measure | smoke | serve | loc | report | icons:pack")
+    console.error(
+      "usage:  tsx tools/cli.ts vendor | measure | smoke | declarations | serve | loc | report | icons:pack"
+    )
     process.exit(1)
 }
 

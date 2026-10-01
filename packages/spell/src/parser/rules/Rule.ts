@@ -1,8 +1,8 @@
 //  # Parser Rules
 //
 
+import { proto } from "#util"
 import { Derivative } from "~/util/Derivative"
-import { proto } from "~/util/decorators"
 import { P } from "~/parser"
 
 /**
@@ -169,7 +169,7 @@ export abstract class Rule<
   }
 
   /**
-   * Called by `@proto` as each `@proto static` is defined on us or a subclass -- see `~/util/decorators.ts`.
+   * Called by `@proto` as each `@proto static` is defined on us or a subclass -- see `packages/util/src/decorators.ts`.
    * - SIDE EFFECT: `@proto static importableAs = "<id>"` registers the class being defined under `<id>`.
    * - Throws if a DIFFERENT class already has that id.  The same class again, e.g. hot reload, replaces it.
    */

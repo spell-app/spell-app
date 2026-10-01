@@ -25,10 +25,15 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
     `README.md`, and `UPSTREAM.md` for the upstream PR each fix maps to.
   - `packages/cli/` (`@spell/cli`) -- the `spell` command-line tool, running `spell`'s SOURCE through `tsx`.
     See `packages/cli/AGENTS.md` and its `README.md`.
+  - `packages/util/` (`@spell/util`, alias `#util`) -- the small generic helpers more than one package uses:
+    `@proto` (`decorators.ts`), `class.ts`, `string.ts`, `dom.ts`.  See `packages/util/AGENTS.md`.
 - One change may touch several packages, but dependencies flow ONE way:  `cli` -> `spell` -> `ui` ->
-  `solid-element`.  NEVER make `ui` or `solid-element` import `spell` or `cli`:  `@spell/ui` lives on its own.
+  `solid-element`, and `util` under all of them (it imports none).  NEVER make `ui`, `solid-element` or `util`
+  import `spell` or `cli`:  `@spell/ui` lives on its own.
 - Each package has ONE import alias for its own `src/`:  `~/` in `spell`, `$/` in `ui`, `~/cli/` in `cli`.
   Examples below use `spell`'s, e.g. `~/util`.
+  - `#util` is the shared one (`tsconfig.base.json`):  import its barrel only, never `#util/<file>`.  `~/util` and
+    `$/util` re-export it, so existing imports keep working;  new code in a package may use either.
 
 ## Solid 2
 
@@ -106,8 +111,8 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 
 ## Decorators
 
-- Use STANDARD (TC39 2023-11) decorators, NEVER `experimentalDecorators`.  General-purpose ones live in the
-  package's `util/decorators.ts` (`~/util/decorators.ts`, `$/util/decorators.ts`).
+- Use STANDARD (TC39 2023-11) decorators, NEVER `experimentalDecorators`.  General-purpose ones live in
+  `packages/util/src/decorators.ts` (`@proto`:  import from `#util`, or `~/util` / `$/util`, which re-export it).
 - Lowered by esbuild via the package's `vite.decorators.ts` -- vite 8's own transformer (oxc) doesn't do it yet.
   Which configs use it:  the package's own "Decorators".
 - A decorator MUST be the first thing on its line (`@proto static inlineInitialType = false` is fine,

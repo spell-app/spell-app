@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import { proto } from "$/util"
+import { proto } from "./decorators"
 
 /**
  * Proves standard decorators are lowered (`vite.decorators.ts`) and `@proto` works in the browser.

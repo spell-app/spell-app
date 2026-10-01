@@ -1,7 +1,7 @@
 import solid from "@solidjs/vite-plugin"
 import { defineConfig, type Plugin, type UserConfig } from "vite"
-import dts from "vite-plugin-dts"
-import { readdirSync, readFileSync } from "node:fs"
+import dts, { type PluginOptions } from "vite-plugin-dts"
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 
@@ -160,18 +160,13 @@ export function baseConfig() {
  *   a hashed chunk.
  * - `css.transformer: "lightningcss"` so component CSS gets nesting / `@custom-media` lowering with the same engine
  *   that minifies it.  NOTE: postcss is never used.
- * - `vite-plugin-dts` emits `.d.ts` next to each entry for consumers.
+ * - `vite-plugin-dts` emits `.d.ts` for consumers, laid out like `exports` says (`declarations()`).
  */
 export default defineConfig(() => {
   const base = baseConfig()
   return {
     ...base,
-    plugins: [
-      ...base.plugins,
-      hotElements(),
-      emitIconPacks(),
-      dts({ include: ["src"], exclude: ["src/**/*.test.ts", "src/**/*.test.tsx"] })
-    ],
+    plugins: [...base.plugins, hotElements(), emitIconPacks(), dts(declarations())],
     build: {
       outDir: "dist",
       emptyOutDir: true,
@@ -189,6 +184,76 @@ export default defineConfig(() => {
     }
   } satisfies UserConfig
 })
+
+/**
+ * `vite-plugin-dts` options for the published declarations:  `dist/index.d.ts`, `dist/core.d.ts`,
+ * `dist/components/<name>/index.d.ts` ... -- the paths `package.json` `exports` names.
+ * - `src/` imports `#util` (`../util/src`, OUTSIDE this package), so the program's root is `packages/`
+ *   (`compilerOptions.rootDir`, else TS6059) and both `src/` trees are included.
+ * - Then `beforeWriteFile` moves what the plugin wrote to `dist/ui/src/**` up to `dist/**`, and
+ *   `dist/util/src/**` to `dist/_util/**` (not `dist/util/`:  that's `src/util/`'s), and rewrites `#util` and `$/`
+ *   specifiers to relative ones.  `pathsToAliases: false`:  the plugin's own rewrite measures from the layout
+ *   BEFORE the move, and gets `../packages/ui/src/...`.
+ * - `?inline` CSS imports (`styles/index.ts`) become `declare const x: string`:  only `vite/client` types them.
+ * - Why not `bundleTypes`:  it rolls each entry up on its own, so a class like `UIElement` is copied into every
+ *   entry that reaches it, and a class with private members is a DIFFERENT type in each copy.  Per-file
+ *   declarations keep one `UIElement` for `@spell/ui/core` and `@spell/ui/button` alike.
+ * - `util` is not published on its own, so its declarations ship inside `@spell/ui`.
+ * - MUST end with NO `#util`, `$/` or `$test` in `dist/**.d.ts` and no path outside `dist/`;  `yarn smoke` checks.
+ */
+export function declarations(): PluginOptions {
+  return {
+    include: ["src", "../util/src"],
+    exclude: ["src/**/*.test.ts", "src/**/*.test.tsx", "../util/src/**/*.test.ts"],
+    entryRoot: "..",
+    compilerOptions: { rootDir: ".." },
+    pathsToAliases: false,
+    beforeWriteFile: rewriteDeclaration
+  }
+}
+
+/**
+ * `declarations()`'s `beforeWriteFile`:  where a `.d.ts` goes in `dist/`, and its imports made to match.
+ * - Returns `false` (skip) for anything outside `ui/src` and `util/src`.
+ * - Only import / export STATEMENTS are rewritten (`from "..."`, `import("...")`):  doc comments may mention aliases.
+ * - A specifier is resolved against the SOURCE tree, then expressed in `dist/` terms.  A folder becomes
+ *   `<folder>/index`:  `dist/styles.js` (a lib entry) sits beside `dist/styles/`, and TypeScript would pick the `.js`.
+ * - `import sheet from "./x.css?inline"` (`styles/index.ts`) is typed by `vite/client`, which a consumer may not
+ *   have:  the sheets are plain strings.
+ */
+function rewriteDeclaration(filePath: string, content: string) {
+  const dist = path.resolve("dist")
+  const uiSrc = path.resolve("src")
+  const utilSrc = path.resolve("../util/src")
+  const written = path.relative(dist, filePath).split(path.sep).join("/")
+  const moved = written.startsWith("ui/src/")
+    ? written.slice("ui/src/".length)
+    : written.startsWith("util/src/")
+      ? `_util/${written.slice("util/src/".length)}`
+      : undefined
+  if (!moved) return false
+  const fromDir = path.posix.dirname(moved)
+  const sourceDir = moved.startsWith("_util/")
+    ? path.join(utilSrc, path.dirname(moved.slice("_util/".length)))
+    : path.join(uiSrc, path.dirname(moved))
+
+  const code = content
+    .replace(/(from |import\()(["'])(#util|\$\/[^"']+|\.\.?\/[^"']*)\2/g, (_, start, quote, specifier: string) => {
+      const source = specifier.startsWith(".")
+        ? path.resolve(sourceDir, specifier)
+        : specifier === "#util"
+          ? path.join(utilSrc, "index")
+          : path.join(uiSrc, specifier.slice("$/".length))
+      const file = existsSync(source) && statSync(source).isDirectory() ? path.join(source, "index") : source
+      const target = file.startsWith(`${utilSrc}${path.sep}`)
+        ? `_util/${path.relative(utilSrc, file)}`
+        : path.relative(uiSrc, file)
+      const relativeTarget = path.posix.relative(fromDir, target.split(path.sep).join("/"))
+      return `${start}${quote}${relativeTarget.startsWith(".") ? relativeTarget : `./${relativeTarget}`}${quote}`
+    })
+    .replace(/^import \{ default as (\w+) \} from ["'][^"']+\?inline["'];?$/gm, "declare const $1: string;")
+  return { filePath: path.join(dist, moved), content: code }
+}
 
 /**
  * Hot module replacement for the components in `yarn dev` (the fork's `solidElementHot()`;  `apply: "serve"`, so
