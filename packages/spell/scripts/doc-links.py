@@ -17,6 +17,8 @@ import html
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UI = os.path.normpath(os.path.join(REPO, "../ui"))
 DOC_DIR = f"{REPO}/docs"
+# yarn hoists to the monorepo root's `node_modules`;  a package's own folder holds only what couldn't hoist
+NODE_MODULES_DIRS = [f"{UI}/node_modules", f"{REPO}/node_modules", os.path.normpath(f"{REPO}/../../node_modules")]
 SEARCH_ROOTS = [f"{REPO}/src", f"{REPO}/docs", f"{UI}/../solid-element/src", f"{UI}/src", f"{UI}/docs", REPO, UI]
 SKIP_DIRS = {"icons", "glyphs", "node_modules", ".git", "dist", "dist-element", "dist-runner", "build", ".cache", "graphify-out", "worktrees"}
 
@@ -65,8 +67,10 @@ def resolve(text):
     text = html.unescape(text).strip()
     if text in SPECIAL:
         return SPECIAL[text]
-    if re.match(r"^(solid-js|@solidjs/[\w-]+)/.+\.\w+$", text) and os.path.exists(f"{UI}/node_modules/{text}"):
-        return f"{UI}/node_modules/{text}"
+    if re.match(r"^(solid-js|@solidjs/[\w-]+)/.+\.\w+$", text):
+        for folder in NODE_MODULES_DIRS:
+            if os.path.exists(f"{folder}/{text}"):
+                return f"{folder}/{text}"
     if re.match(r"^(v2\.)?solidjs\.com/|^v2\.solidjs\.com", text):
         return "https://" + text
     path = re.sub(r":\d+$", "", text)  # file.ts:75
@@ -80,6 +84,7 @@ def resolve(text):
         candidates.append(os.path.join(REPO, path))
     elif path.startswith("node_modules/"):
         candidates += [os.path.join(REPO, path), os.path.join(UI, path)]
+        candidates += [os.path.join(os.path.dirname(folder), path) for folder in NODE_MODULES_DIRS]
     else:
         candidates += [os.path.join(b, path) for b in (REPO, DOC_DIR, UI)]
     for candidate in candidates:

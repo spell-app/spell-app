@@ -1,7 +1,7 @@
 /**
  * What TypeScript says about the JS today's grammar emits -- the evidence behind section 9 of `precedence.html`.
  * - Run from the repo root:
- *   `node_modules/.bin/tsc --ignoreConfig --noEmit --strict --target es2022 --pretty false docs/precedence/experiments/typescript-check.ts`
+ *   `yarn tsc --ignoreConfig --noEmit --strict --target es2022 --pretty false docs/precedence/experiments/typescript-check.ts`
  * - EXPECTED to report errors:  each line under "as emitted today" is what the parser emits for the spell above it
  *   (see `grammar-today.mts`), typed the way the proposed backend would type it.  The errors are the point.
  * - The lines under "as the proposal parses them" MUST report nothing.

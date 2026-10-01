@@ -15,6 +15,7 @@ import {
 
 import environment from "~/environment"
 import type { LSP } from "~/lsp"
+import { tsxBinary } from "~/test"
 
 /**
  * The language server as an editor runs it:  a separate `yarn start:lsp` process, speaking JSON-RPC over stdio.
@@ -22,14 +23,10 @@ import type { LSP } from "~/lsp"
  */
 describe("spell language server over stdio", () => {
   const repoRoot = resolve(environment.srcDir, "..")
-  const child = spawn(
-    resolve(repoRoot, "node_modules/.bin/tsx"),
-    [resolve(environment.srcDir, "lsp/server.ts"), "--stdio"],
-    {
-      cwd: repoRoot,
-      stdio: ["pipe", "pipe", "pipe"]
-    }
-  )
+  const child = spawn(tsxBinary(), [resolve(environment.srcDir, "lsp/server.ts"), "--stdio"], {
+    cwd: repoRoot,
+    stdio: ["pipe", "pipe", "pipe"]
+  })
   const connection = createMessageConnection(
     new StreamMessageReader(child.stdout),
     new StreamMessageWriter(child.stdin)

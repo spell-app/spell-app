@@ -6,7 +6,8 @@
   "repository": "https://github.com/spell-app/spell",
   "type": "module",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "packages/ui/site"
   ],
   "scripts": {
     "ts": "yarn workspaces foreach -A --exclude spell-root run ts",
@@ -16,5 +17,11 @@
   "engines": {
     "node": ">=22.17"
   },
-  "packageManager": "yarn@4.18.0"
+  "packageManager": "yarn@4.18.0",
+  "resolutions": {
+    "solid-js": "2.0.0-rc.11",
+    "@solidjs/web": "2.0.0-rc.11",
+    "@solidjs/signals": "2.0.0-rc.11",
+    "@solidjs/element": "2.0.0-rc.11"
+  }
 }

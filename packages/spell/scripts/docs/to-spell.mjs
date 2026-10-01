@@ -16,7 +16,7 @@ import { fileURLToPath, pathToFileURL } from "node:url"
 import { chromium } from "playwright"
 
 const REPO = resolve(dirname(fileURLToPath(import.meta.url)), "../..")
-const OXFMT = join(REPO, "node_modules/.bin/oxfmt")
+const OXFMT = findBinary("oxfmt")
 
 /** Source classes that MUST have been mapped:  any left in an output means the converter missed one. */
 const UNMAPPED = [
@@ -112,6 +112,18 @@ async function openStatic(path) {
   await page.route(/^(?!file:)/, (route) => route.abort())
   await page.goto(pathToFileURL(path).href)
   return page
+}
+
+/**
+ * Path of executable `name` in the nearest `node_modules/.bin`, from this package up.
+ * - Why:  yarn hoists to the monorepo root, so `<package>/node_modules/.bin` usually lacks it.
+ */
+function findBinary(name) {
+  for (let dir = REPO; ; dir = dirname(dir)) {
+    const candidate = join(dir, "node_modules/.bin", name)
+    if (existsSync(candidate)) return candidate
+    if (dir === dirname(dir)) throw new Error(`no node_modules/.bin/${name} at or above ${REPO}:  run \`yarn install\``)
+  }
 }
 
 /** The `docs/` folder holding a source:  the nearest ancestor with an `_assets/` folder. */

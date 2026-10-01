@@ -1,9 +1,11 @@
 /// <reference types="node" />
 
-import { existsSync, readFileSync, statSync } from "node:fs"
+import { existsSync, statSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import solid from "@solidjs/vite-plugin"
 import * as vite from "vite"
+
+import { NodePackage } from "./NodePackage.ts"
 
 /**
  * Compiles the Solid 2 host app (`frameworks/solid/app.tsx` => `frameworks/solid/dist/app.js`) for the smoke page
@@ -32,15 +34,13 @@ export class HostApp {
 
   /** Compile the app. */
   static async build(): Promise<void> {
-    const pkg = JSON.parse(
-      readFileSync(fileURLToPath(new URL("../node_modules/solid-js/package.json", import.meta.url)), "utf8")
-    )
+    const version = NodePackage.version("solid-js")
     await vite.build({
       root: HostApp.ROOT,
       configFile: false,
       logLevel: "warn",
       plugins: [solid({ dev: false })],
-      define: { __SOLID_VERSION__: JSON.stringify((pkg as { version: string }).version) },
+      define: { __SOLID_VERSION__: JSON.stringify(version) },
       build: {
         outDir: `${HostApp.ROOT}frameworks/solid/dist`,
         emptyOutDir: true,

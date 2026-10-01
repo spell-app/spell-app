@@ -1,6 +1,6 @@
 /// <reference types="node" />
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { isAbsolute, join } from "node:path"
 import { gzipSync } from "node:zlib"
 import { transform } from "esbuild"
@@ -22,6 +22,7 @@ import type {
   SharedSize,
   Size
 } from "./tools.types.ts"
+import { NodePackage } from "./NodePackage.ts"
 
 /**
  * Bundle measurer of the package:  what each tier, family and page scenario costs, min and min+gz.
@@ -396,13 +397,13 @@ export class BundleMeasure {
     }
   }
 
-  /** Installed version of each peer package (from the root `node_modules`), plus the measuring toolchain. */
+  /** Installed version of each peer package (from `node_modules` at or above the root), plus the measuring toolchain. */
   private versions(specifiers: string[]): Record<string, string> {
     const packages = new Set(specifiers.map((specifier) => BundleMeasure.packageOf(specifier)))
     const versions: Record<string, string> = {}
     for (const name of packages) {
-      const file = join(this.config.root, "node_modules", name, "package.json")
-      if (existsSync(file)) versions[name] = (JSON.parse(readFileSync(file, "utf8")) as { version: string }).version
+      const version = NodePackage.version(name, this.config.root)
+      if (version) versions[name] = version
     }
     versions.vite = vite.version
     return versions

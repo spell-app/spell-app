@@ -777,6 +777,22 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   it. · In `tools/`, declare fields and assign them in the constructor, never `constructor(private readonly x)`.
   · spell/ui icon packs
 
+- 2026-09-30 · Deleted `nmHoistingLimits: workspaces` from `.yarnrc.yml` and `yarn install` STILL gave every package its
+  own `node_modules` (three copies of Solid):  yarn merges `.yarnrc.yml` from every PARENT folder, and this worktree
+  sits inside another checkout (`.claude/worktrees/…`) whose rc file still had the limit. · Set `nmHoistingLimits: none`
+  explicitly (check: `yarn config get nmHoistingLimits`). · monorepo
+- 2026-09-30 · After hoisting, `packages/<x>/node_modules/.bin/tsx` (and `oxfmt`, `tsc`...) no longer exist -- yarn only
+  links a package's own `.bin` for what it could NOT hoist -- and `<package>/node_modules/<dep>/package.json` reads
+  fail. · Search upward (`NodePackage` in `ui/tools`, `tsxBinary()` in `spell/src/test`, `findTsx()` in the extension,
+  `findBinary()` in `to-spell.mjs`);  in shell, `yarn <bin>`. · monorepo
+- 2026-09-30 · Hoisting picks ONE `tsx` for the root `node_modules/.bin/tsx`:  `spell` and `cli` pin `4.20.3` EXACTLY
+  (4.23 can't import `~/packageVersion.node`), `ui` wants `^4.23.15` and keeps its own nested copy.  Bump either side
+  and the root one may flip. · Keep `spell` / `cli` exact;  check `node_modules/.bin/tsx --version` is 4.20.3. · monorepo
+- 2026-09-30 · `yarn docs:update` fails at "bundle @spell/ui" with `Cannot read file: packages/ui/dist/glyphs/solid/*.js`:
+  `bundle-spell-ui.mjs` still expects `dist/glyphs/`, which `ui`'s build no longer emits (icons moved to
+  `dist/icon-packs/`).  Not caused by hoisting. · NOT fixed -- `bundle-spell-ui.mjs` needs porting to icon packs. · spell/ui
+- 2026-09-30 · `yarn smoke` in `ui` dies with `no vendor/importmap.json` on a fresh checkout. · `yarn vendor` first. · ui
+
 ## cli
 
 Entries before 2026-09-30 are from when the command line lived in the parser repo, on its `CLI` branch.

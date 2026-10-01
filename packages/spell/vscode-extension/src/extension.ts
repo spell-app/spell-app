@@ -5,7 +5,7 @@
  * - The server asks to watch `project.json` / `.spell` files itself, so there's no `synchronize` here.
  */
 import { existsSync } from "fs"
-import { resolve } from "path"
+import { dirname, resolve } from "path"
 import * as vscode from "vscode"
 import {
   LanguageClient,
@@ -36,9 +36,9 @@ let client: LanguageClient | undefined
  */
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   const parserRoot = getParserRoot()
-  const tsx = resolve(parserRoot, "node_modules/.bin/tsx")
+  const tsx = findTsx(parserRoot)
   const server = resolve(parserRoot, "src/lsp/server.ts")
-  if (!existsSync(tsx) || !existsSync(server)) {
+  if (!tsx || !existsSync(server)) {
     const message = `Spell:  no language server in '${parserRoot}'.  Set \`spell.parserRoot\` to the parser repo, and run \`yarn\` there.`
     void vscode.window.showErrorMessage(message)
     return
@@ -80,6 +80,20 @@ export function deactivate(): Promise<void> | undefined {
 function getParserRoot(): string {
   const configured = vscode.workspace.getConfiguration("spell").get<string>("parserRoot")
   return configured ? resolve(configured) : PARSER_ROOT
+}
+
+/**
+ * The repo's `tsx` executable, or `undefined` if no `yarn install` has run.
+ * - Looks in `<parserRoot>/node_modules/.bin` and every parent:  yarn hoists to the monorepo root, so
+ *   `packages/spell/node_modules/.bin/tsx` usually doesn't exist.  The nearest is `spell`'s own `tsx`
+ *   (pinned to 4.20.3 -- see `PAPERCUTS.md`).
+ */
+function findTsx(parserRoot: string): string | undefined {
+  for (let folder = parserRoot; ; folder = dirname(folder)) {
+    const candidate = resolve(folder, "node_modules/.bin/tsx")
+    if (existsSync(candidate)) return candidate
+    if (dirname(folder) === folder) return undefined
+  }
 }
 
 /**

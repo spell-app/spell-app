@@ -1,9 +1,9 @@
 // Solid 2 experiment for SOLID-2.html -- run:  node docs/solid/experiments/flush-per-write.mjs [dev|prod]
-// Imports @solidjs/signals by path from ../ui/node_modules, or from $SOLID_NODE_MODULES (another Solid version);  re-run on every Solid RC bump.
+// Imports @solidjs/signals by path from the repo root's node_modules, or from $SOLID_NODE_MODULES (another Solid version);  re-run on every Solid RC bump.
 // (F) Solid-native:  one signal per prop, every spell write is flush(() => set(v)), derived = Solid createMemo per instance
 // oxlint-disable no-unused-expressions -- bare reads ARE the experiment:  each runs a getter, to count recomputes
 const S = await import(
-  `${process.env.SOLID_NODE_MODULES ?? "/Users/owen/www/spell/ui/node_modules"}/@solidjs/signals/dist/prod/index.js`
+  `${process.env.SOLID_NODE_MODULES ?? new URL("../../../../../node_modules", import.meta.url).pathname}/@solidjs/signals/dist/prod/index.js`
 )
 const { createSignal, createMemo, createRoot, createRenderEffect, flush, runWithOwner } = S
 const log = (...a) => console.log(...a)

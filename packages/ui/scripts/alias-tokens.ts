@@ -2,6 +2,7 @@ import { readdirSync, readFileSync, writeFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 
 import { ComponentTokens } from "$/styles/ComponentTokens"
+import { NodePackage } from "../tools/NodePackage.ts"
 
 /**
  * `yarn tokens:alias <family> [--write]`:  the codemod of `docs/theming.md` "Converting a family".
@@ -17,7 +18,7 @@ class AliasTokensCommand {
   readonly root = fileURLToPath(new URL("../", import.meta.url))
 
   /** oxfmt binary, run over rewritten sheets so `yarn format` is a no-op afterwards */
-  readonly formatter = fileURLToPath(new URL("../node_modules/.bin/oxfmt", import.meta.url))
+  readonly formatter = `${NodePackage.need("oxfmt")}/bin/oxfmt`
 
   /**
    * Parse arguments, convert, report.

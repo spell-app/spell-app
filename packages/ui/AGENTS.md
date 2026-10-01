@@ -19,7 +19,7 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
 - Layout:
   - `../solid-element/` -- `@spell/solid-element`, the fork of `@solidjs/element` + `component-register`
     (upgrade, forms, lifecycle, error boundary, HMR fixes;  `UPSTREAM.md` maps each to a PR).  A workspace of
-    the monorepo (`workspace:*`), with its own `node_modules` and tests;  run its scripts with
+    the monorepo (`workspace:*`), with its own tests (its dependencies are hoisted to the root `node_modules`, like every package's);  run its scripts with
     `yarn fork <script>`.  NEVER import its files from `src/`:  use the package name.
   - `src/util/` -- general utilities with no dependency on the rest of the package:  `@proto` (`decorators.ts`),
     `class.ts`, `string.ts` (case, `numberToWord`, `suggest`), `dom.ts` (`closestAcrossShadow` ...), `util.types.ts`
@@ -103,8 +103,10 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
     needed by `yarn vendor` / `yarn measure`, which build it when stale (`tools/ForkBuild.ts`);  dev, tests,
     the site and the library build use its source
   - `yarn site:dev`, `yarn site:build`
-  - NEVER `npx tsc`:  `node_modules/.bin/tsc` is TypeScript 6 (see the root's `PAPERCUTS.md`, `## ui`).
-    Use `yarn tsc`.
+  - Use `yarn tsc`, not `npx tsc`:  yarn picks the workspace's TypeScript 7.  (The `@typescript/typescript6` that
+    `vite-plugin-dts` needs once linked `.bin/tsc` as TypeScript 6;  with hoisting the root `.bin/tsc` is 7 today,
+    but that's luck of the hoister -- see the root's `PAPERCUTS.md`, `## ui`.)
+  - NEVER hardcode `<package>/node_modules/<dep>`:  yarn hoists to the root.  Node code asks `tools/NodePackage.ts`.
 
 ## UI rules
 

@@ -1,8 +1,8 @@
 /// <reference types="node" />
 
-import { readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 
+import { NodePackage } from "../NodePackage.ts"
 import type { VisualBrowser, VisualOs } from "./visual.types.ts"
 
 /**
@@ -82,7 +82,7 @@ export class VisualSettings {
 
   /** Installed `@playwright/test` version:  the Docker image and the browser server MUST match it. */
   static playwrightVersion(): string {
-    const file = `${VisualSettings.ROOT}node_modules/@playwright/test/package.json`
-    return (JSON.parse(readFileSync(file, "utf8")) as { version: string }).version
+    NodePackage.need("@playwright/test")
+    return NodePackage.version("@playwright/test")!
   }
 }

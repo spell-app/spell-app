@@ -1,11 +1,11 @@
 // Shared core for the spell-cells experiments (SOLID-2.html §2) -- imported by `spell-cells.ts` and `decorators.ts`.
 // - cells, derived values with an equality cutoff, the `enableExternalSource` bridge, `flushAll()`
 // - property types (`Schema`), the accessor strategy (A:  `ThingA`, `CardA`) and the benchmark row (`perf`)
-// Imports @solidjs/signals by path from ../ui/node_modules:  `[dev|prod]` from the running script's argv.
+// Imports @solidjs/signals by path from the repo root's node_modules:  `[dev|prod]` from the running script's argv.
 
 export const mode = process.argv[2] ?? "prod"
 export const S = await import(
-  `${process.env.SOLID_NODE_MODULES ?? "/Users/owen/www/spell/ui/node_modules"}/@solidjs/signals/dist/${mode === "dev" ? "dev.js" : "prod/index.js"}`
+  `${process.env.SOLID_NODE_MODULES ?? new URL("../../../../../node_modules", import.meta.url).pathname}/@solidjs/signals/dist/${mode === "dev" ? "dev.js" : "prod/index.js"}`
 )
 export const { createRoot, createRenderEffect, flush, enableExternalSource } = S
 export const log = console.log

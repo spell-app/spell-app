@@ -13,21 +13,22 @@
  */
 
 import { build } from "esbuild"
-import { readFileSync, readdirSync, writeFileSync } from "node:fs"
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
+import { dirname, join } from "node:path"
 import { gzipSync } from "node:zlib"
 
 /** Absolute path of a file in this package. */
 const here = (path: string) => new URL(`../${path}`, import.meta.url).pathname
 
 const fork = await measure("fork", here("src/index.ts"))
-const original = await measure("original", here("node_modules/@solidjs/element/dist/index.js"))
+const original = await measure("original", installed("@solidjs/element/dist/index.js"))
 
 const forkSources = readdirSync(here("src"))
   .filter((name) => name.endsWith(".ts") && !name.includes(".test.") && name !== "testing.ts")
   .map((name) => here(`src/${name}`))
 const originalSources = [
-  here("node_modules/@solidjs/element/dist/index.js"),
-  here("node_modules/component-register/dist/component-register.js")
+  installed("@solidjs/element/dist/index.js"),
+  installed("component-register/dist/component-register.js")
 ]
 
 const results = {
@@ -43,6 +44,18 @@ console.log(
     row("`@spell/solid-element`", fork, results.loc.fork)
   ].join("\n")
 )
+
+/**
+ * Absolute path of a file inside an installed package:  `node_modules/<path>` here or in any parent folder.
+ * - Why:  yarn hoists to the repo root, so this package's own `node_modules` rarely holds it.
+ */
+function installed(path: string): string {
+  for (let folder = dirname(here("package.json")); ; folder = dirname(folder)) {
+    const file = join(folder, "node_modules", path)
+    if (existsSync(file)) return file
+    if (dirname(folder) === folder) throw new Error(`${path} is not installed`)
+  }
+}
 
 /** Minified and gzipped bytes of `entry`, peers external. */
 async function measure(name: string, entry: string) {

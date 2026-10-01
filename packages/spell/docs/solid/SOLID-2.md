@@ -278,7 +278,7 @@ expect(button.textContent).toBe("Clicks: 1")
 ## When something breaks
 
 - A dev diagnostic code:  read `node_modules/solid-js/skills/reactivity-diagnostics/SKILL.md` (Solid's own repair
-  guide;  until parser installs Solid, it's in `../ui/node_modules`).  Codes are also in `CHEATSHEET.html`.
+  guide;  hoisted to the repo root's `node_modules`).  Codes are also in `CHEATSHEET.html`.
 - Nothing updates after an error:  the scheduler halted -- find the first thrown error, not the last symptom.
 - A value reads stale right after a write:  that's staging -- use a cell, or `flush()` in tests.
 - A write is invisible even after `flush()`:  it's entangled with a held async write in the same batch.

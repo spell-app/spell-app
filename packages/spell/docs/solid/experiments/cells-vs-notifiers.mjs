@@ -1,11 +1,11 @@
 // Solid 2 experiment for SOLID-2.html -- run:  node docs/solid/experiments/cells-vs-notifiers.mjs [dev|prod]
-// Imports @solidjs/signals by path from ../ui/node_modules, or from $SOLID_NODE_MODULES (another Solid version);  re-run on every Solid RC bump.
+// Imports @solidjs/signals by path from the repo root's node_modules, or from $SOLID_NODE_MODULES (another Solid version);  re-run on every Solid RC bump.
 // Prototype:  (N) record + per-prop Solid notifier signals, derived = plain getter
 //             (X) record + tiny SYNC reactive core, derived = auto-memo, bridged into Solid via enableExternalSource
 // oxlint-disable no-unused-expressions -- bare reads ARE the experiment:  each runs a getter, to count recomputes
 const mode = process.argv[2] ?? "prod"
 const S = await import(
-  `${process.env.SOLID_NODE_MODULES ?? "/Users/owen/www/spell/ui/node_modules"}/@solidjs/signals/dist/${mode === "dev" ? "dev.js" : "prod/index.js"}`
+  `${process.env.SOLID_NODE_MODULES ?? new URL("../../../../../node_modules", import.meta.url).pathname}/@solidjs/signals/dist/${mode === "dev" ? "dev.js" : "prod/index.js"}`
 )
 console.log("mode", mode)
 const { createSignal, createMemo, createRoot, createRenderEffect, flush, getObserver, enableExternalSource, untrack } =

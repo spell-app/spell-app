@@ -4,6 +4,7 @@
 //
 
 export { unitTestModuleRules } from "./unitTestModuleRules"
+export { tsxBinary } from "./tsxBinary"
 export {
   parseSpellProject,
   loadFixtureProject,
