@@ -107,6 +107,20 @@ describe("segment.css examples", () => {
     expect(luminance(getComputedStyle(inverted.querySelector("p:last-child")!).color)).toBeGreaterThan(0.5)
   })
 
+  it("inverts the members of an inverted group (Fomantic: dark members), not segments nested in them", () => {
+    Sheets.adopt([...foundationCSS, segmentCSS])
+    const root = Fixture.render(
+      `<div class="ui inverted segments"><div class="ui segment" id="m"><div class="ui segment" id="n">N</div></div></div>`
+    )
+    const member = getComputedStyle(root.querySelector("#m")!)
+    expect(member.colorScheme).toBe("dark")
+    expect(member.getPropertyValue("--ui-inverted").trim()).toBe("1")
+    expect(luminance(member.backgroundColor)).toBeLessThan(0.3)
+    const nested = getComputedStyle(root.querySelector("#n")!)
+    expect(nested.colorScheme).toBe("light")
+    expect(luminance(nested.backgroundColor)).toBeGreaterThan(0.7)
+  })
+
   it("resets a plain segment nested in an inverted one to the light scheme, Fomantic-style", () => {
     Sheets.adopt([...foundationCSS, segmentCSS])
     const root = Fixture.render(

@@ -5,12 +5,17 @@
  *   `<ui-sidebar position="right" width="thin" transition="scale down" visible>` =>
  *   `ui right thin scale down visible sidebar`.  Without `transition`, the element adds Fomantic's default for
  *   its side (`uncover` left / right, `overlay` top / bottom).
- * - `position`, `width` and `transition` are `kind: "valueOnly"`:  each emits its value alone.
- * - `width` takes Fomantic's sidebar words (`very thin` ... `very wide`), never columns.
+ * - `position` and `transition` are `kind: "valueOnly"`:  each emits its value alone.
+ * - `width` (`kind: "width"`, as `<ui-flyout>`'s) takes Fomantic's sidebar words (`very thin` ... `very wide`),
+ *   which the element adds after the noun (`ui left sidebar thin`), AND columns of the viewport (`4`, `1/4`, `25%`
+ *   => `four wide`).
  * - `pushable` / `pusher` have no `ui` (Fomantic's `.pushable`, `.pusher`).
  */
 
 import type { ComponentVocabulary } from "$/ui/vocabulary"
+
+/** Fomantic's word widths (`thin sidebar`), which `width` takes beside column counts. */
+export const SIDEBAR_WORD_WIDTHS = ["very thin", "thin", "wide", "very wide"] as const
 
 /****************
  * ### `<ui-sidebar>`
@@ -31,11 +36,11 @@ export const sidebarVocabulary = {
     },
     {
       name: "width",
-      kind: "valueOnly",
-      values: ["very thin", "thin", "wide", "very wide"],
+      kind: "width",
       description:
-        "Width of a `left` / `right` sidebar:  `very thin` (60px), `thin` (150px), 260px by default, `wide` " +
-        "(350px), `very wide` (475px)."
+        "Width of a `left` / `right` sidebar:  Fomantic's words -- `very thin` (60px), `thin` (150px), 260px by " +
+        "default, `wide` (350px), `very wide` (475px) -- or columns of the viewport (`4`, `1/4`, `25%` => " +
+        "`four wide`)."
     },
     {
       name: "transition",

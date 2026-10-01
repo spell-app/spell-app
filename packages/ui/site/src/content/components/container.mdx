@@ -82,7 +82,9 @@ import VocabularyTable from "../../components/VocabularyTable.astro"
   Theme with the public `--ui-container-*` tokens:  set one on the element, on any ancestor (a region, `:root`), or on
   the inner box through `::part(container)`.  They inherit into the shadow root, where the sheet reads each through a
   private alias, so nothing inside blocks them.  The fixed widths are one token per breakpoint
-  (`--ui-container-width-tablet`, `-computer`, `-large-monitor`).
+  (`--ui-container-width-tablet`, `-computer`, `-large-monitor`);  so are the `scrolling` heights
+  (`--ui-container-scrolling-height` for phones, then `--ui-container-scrolling-height-tablet`, `-computer`,
+  `-widescreen`).
 
 ```css
 /* every container on the page */

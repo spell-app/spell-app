@@ -71,6 +71,42 @@
   :host([hidden]) {
     display: none;
   }
+  /*
+   * Colour, as Fomantic:  a plain `.ui.label` inside `.ui.red.segment` (or any coloured owner) stays grey;  only its
+   * own colour, or its `labels` group's (`.ui.red.labels .label`), paints.  So every host drops the `--ui-color*`
+   * tokens it inherits and takes back its group's, handed down as `--_labels-*` (unset outside a group, so the
+   * `var()` is invalid and the token is gone).  The root's own `.ui.red` remap sits below the host and still wins.
+   * - A host rule is beaten by the page's own style on the element, so `ui-label { --ui-color: ... }` still works.
+   */
+  :host {
+    --ui-color: var(--_labels-color);
+    --ui-color-text: var(--_labels-color-text);
+    --ui-color-header: var(--_labels-color-header);
+    --ui-color-border: var(--_labels-color-border);
+    --ui-color-background: var(--_labels-color-background);
+    --ui-color-inverted: var(--_labels-color-inverted);
+    --ui-color-hover: var(--_labels-color-hover);
+    --ui-color-focus: var(--_labels-color-focus);
+    --ui-color-down: var(--_labels-color-down);
+    --ui-color-active: var(--_labels-color-active);
+    --ui-color-on: var(--_labels-color-on);
+    --ui-color-inverted-on: var(--_labels-color-inverted-on);
+  }
+  /* A group root hands its colour to its members (it sits below its own host, so a coloured owner doesn't leak). */
+  .ui.labels {
+    --_labels-color: var(--ui-color);
+    --_labels-color-text: var(--ui-color-text);
+    --_labels-color-header: var(--ui-color-header);
+    --_labels-color-border: var(--ui-color-border);
+    --_labels-color-background: var(--ui-color-background);
+    --_labels-color-inverted: var(--ui-color-inverted);
+    --_labels-color-hover: var(--ui-color-hover);
+    --_labels-color-focus: var(--ui-color-focus);
+    --_labels-color-down: var(--ui-color-down);
+    --_labels-color-active: var(--ui-color-active);
+    --_labels-color-on: var(--ui-color-on);
+    --_labels-color-inverted-on: var(--ui-color-inverted-on);
+  }
 
   /*
    * Tokens:  one per `label.variables` entry that still matters, from the global tokens -- each the private alias

@@ -85,14 +85,16 @@ import VocabularyTable from "../../components/VocabularyTable.astro"
       </ui-pusher>
     </ui-pushable>
   </Variation>
-  <Variation title="Width" description="A side sidebar can be `very thin` (60px), `thin` (150px), 260px by default, `wide` (350px) or `very wide` (475px).">
+  <Variation title="Width" description="A side sidebar can be `very thin` (60px), `thin` (150px), 260px by default, `wide` (350px) or `very wide` (475px), or any columns of the viewport (`4`, `1/4`, `25%`).">
     <p class="ui-cluster">
       <button type="button" class="ui button" commandfor="sidebar-width-thin" command="--toggle">Thin</button>
       <button type="button" class="ui button" commandfor="sidebar-width-wide" command="--toggle">Wide</button>
+      <button type="button" class="ui button" commandfor="sidebar-width-quarter" command="--toggle">A quarter</button>
     </p>
     <ui-pushable style="height: 10em">
       <ui-sidebar id="sidebar-width-thin" width="thin" transition="overlay" inverted aria-label="Thin"><ui-menu vertical inverted fluid aria-label="Thin"><ui-item href="#one">Thin</ui-item></ui-menu></ui-sidebar>
       <ui-sidebar id="sidebar-width-wide" width="wide" transition="overlay" inverted aria-label="Wide"><ui-menu vertical inverted fluid aria-label="Wide"><ui-item href="#one">Wide</ui-item></ui-menu></ui-sidebar>
+      <ui-sidebar id="sidebar-width-quarter" width="1/4" transition="overlay" inverted aria-label="A quarter"><ui-menu vertical inverted fluid aria-label="A quarter"><ui-item href="#one">A quarter</ui-item></ui-menu></ui-sidebar>
       <ui-pusher>
         <ui-segment basic><p>The page.</p></ui-segment>
       </ui-pusher>

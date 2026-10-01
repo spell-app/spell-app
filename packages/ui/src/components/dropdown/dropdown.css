@@ -218,8 +218,12 @@
     text-shadow: none;
     cursor: auto;
   }
+  /*
+   * `fixed` (the popover default), NOT `absolute`:  webkit measures an absolute popover's `position-area` against the
+   * origin screenful of the page, so a dropdown anywhere below it flipped upwards although room remained.
+   */
   .ui.dropdown > .menu[popover] {
-    position: absolute;
+    position: fixed;
     position-anchor: var(--_ui-dropdown-anchor, --ui-dropdown);
     position-area: block-end span-inline-end;
     position-try-fallbacks: flip-block, flip-inline;
@@ -440,6 +444,10 @@
   }
   .ui.multiple.search.dropdown > .default.text {
     z-index: -1;
+  }
+  /* The text (the placeholder) gives way to the chips:  `.search > .text` (above) would otherwise draw it over them. */
+  .ui.multiple.search.dropdown > .label ~ .text {
+    display: none;
   }
   .ui.multiple.search.dropdown > input.search {
     position: static;

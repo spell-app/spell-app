@@ -92,6 +92,24 @@ describe("<ui-segment> states and owner tokens", () => {
     expect(getComputedStyle(light).getPropertyValue("--ui-scheme").trim()).not.toBe("dark")
   })
 
+  it("inverts the members of an <ui-segments inverted>, not a segment nested in a member", async () => {
+    const group = await ElementFixture.render<HTMLElement>(
+      `<ui-segments inverted><ui-segment id="m">A<ui-segment id="n">Nested</ui-segment></ui-segment><ui-segment id="o">B</ui-segment></ui-segments>`
+    )
+    await ElementFixture.settle(group)
+    const rootOf = (id: string) => group.querySelector(`#${id}`)!.shadowRoot!.firstElementChild!
+    for (const id of ["m", "o"]) {
+      const style = getComputedStyle(rootOf(id))
+      expect(style.getPropertyValue("--ui-inverted").trim(), id).toBe("1")
+      expect(style.colorScheme, id).toBe("dark")
+      expect(luminance(style.backgroundColor), id).toBeLessThan(0.3)
+    }
+    const nested = getComputedStyle(rootOf("n"))
+    expect(nested.getPropertyValue("--ui-inverted").trim()).toBe("0")
+    expect(nested.colorScheme).toBe("light")
+    expect(luminance(nested.backgroundColor)).toBeGreaterThan(0.7)
+  })
+
   it("is busy while loading, with an announcement;  aria-disabled while disabled", async () => {
     const { host, root } = await render(`<ui-segment loading disabled>x</ui-segment>`)
     expect(host.internals.ariaBusy).toBe("true")
@@ -195,3 +213,12 @@ describe("<ui-segment> accessibility", () => {
     await expectAccessible(root, { rules: { "heading-order": headingOrder } })
   })
 })
+
+/** Relative luminance (0..1) of any CSS colour, via a canvas pixel. */
+function luminance(color: string): number {
+  const context = document.createElement("canvas").getContext("2d")!
+  context.fillStyle = color
+  context.fillRect(0, 0, 1, 1)
+  const [r, g, b] = context.getImageData(0, 0, 1, 1).data
+  return (0.2126 * r! + 0.7152 * g! + 0.0722 * b!) / 255
+}

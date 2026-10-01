@@ -105,6 +105,18 @@ describe("<ui-feed> classes and markup", () => {
 })
 
 describe("<ui-event> labels", () => {
+  it("gives a LONE event (no feed) its defaults:  the label box is 2.5em wide", async () => {
+    const event = await ElementFixture.render<UIHost>(`<ui-event image="${AVATAR}">${CONTENT}</ui-event>`)
+    await ElementFixture.settle(event)
+    expect(event.matches(":state(in-feed)")).toBe(false)
+    expect(labelOf(event)!.getBoundingClientRect().width).toBe(40)
+  })
+
+  it("an event in an inverted feed keeps the feed's tokens, not its own defaults", async () => {
+    const { events } = await feed("inverted", `<ui-event image="${AVATAR}">${CONTENT}</ui-event>`)
+    expect(style(rootOf(events[0]!)).getPropertyValue("--_ui-feed-label-width")).toBe("2.5em")
+  })
+
   it("renders no label box without a label", async () => {
     const { events } = await feed("", `<ui-event>${CONTENT}</ui-event>`)
     expect(labelOf(events[0]!)).toBeNull()

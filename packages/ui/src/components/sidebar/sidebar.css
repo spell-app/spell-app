@@ -214,6 +214,59 @@
     --_ui-sidebar-width: 475px;
   }
 
+  /*
+   * Columns of the viewport (`four wide` = 4 / 16):  a column width also has the class `wide`, so these come
+   * AFTER the word rules at the same specificity and win.
+   */
+  .ui.wide[class*="one wide"]:is(.left, .right).sidebar {
+    --_ui-sidebar-width: calc(100% / 16);
+  }
+  .ui.wide[class*="two wide"]:is(.left, .right).sidebar {
+    --_ui-sidebar-width: calc(200% / 16);
+  }
+  .ui.wide[class*="three wide"]:is(.left, .right).sidebar {
+    --_ui-sidebar-width: calc(300% / 16);
+  }
+  .ui.wide[class*="four wide"]:is(.left, .right).sidebar {
+    --_ui-sidebar-width: calc(400% / 16);
+  }
+  .ui.wide[class*="five wide"]:is(.left, .right).sidebar {
+    --_ui-sidebar-width: calc(500% / 16);
+  }
+  .ui.wide[class*="six wide"]:is(.left, .right).sidebar {
+    --_ui-sidebar-width: calc(600% / 16);
+  }
+  .ui.wide[class*="seven wide"]:is(.left, .right).sidebar {
+    --_ui-sidebar-width: calc(700% / 16);
+  }
+  .ui.wide[class*="eight wide"]:is(.left, .right).sidebar {
+    --_ui-sidebar-width: calc(800% / 16);
+  }
+  .ui.wide[class*="nine wide"]:is(.left, .right).sidebar {
+    --_ui-sidebar-width: calc(900% / 16);
+  }
+  .ui.wide[class*="ten wide"]:is(.left, .right).sidebar {
+    --_ui-sidebar-width: calc(1000% / 16);
+  }
+  .ui.wide[class*="eleven wide"]:is(.left, .right).sidebar {
+    --_ui-sidebar-width: calc(1100% / 16);
+  }
+  .ui.wide[class*="twelve wide"]:is(.left, .right).sidebar {
+    --_ui-sidebar-width: calc(1200% / 16);
+  }
+  .ui.wide[class*="thirteen wide"]:is(.left, .right).sidebar {
+    --_ui-sidebar-width: calc(1300% / 16);
+  }
+  .ui.wide[class*="fourteen wide"]:is(.left, .right).sidebar {
+    --_ui-sidebar-width: calc(1400% / 16);
+  }
+  .ui.wide[class*="fifteen wide"]:is(.left, .right).sidebar {
+    --_ui-sidebar-width: calc(1500% / 16);
+  }
+  .ui.wide[class*="sixteen wide"]:is(.left, .right).sidebar {
+    --_ui-sidebar-width: calc(1600% / 16);
+  }
+
   /* ## Inverted:  a dark panel. */
   .ui.inverted.sidebar {
     --ui-inverted: 1;
@@ -351,6 +404,103 @@
   }
   .ui.visible[class*="very wide"].right.sidebar ~ :is(.fixed, .pusher) {
     transform: translate3d(-475px, 0, 0);
+  }
+  /* Column widths (`four wide`) move the pusher by that share of the viewport. */
+  .ui.visible.wide[class*="one wide"].left.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(100vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="two wide"].left.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(200vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="three wide"].left.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(300vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="four wide"].left.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(400vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="five wide"].left.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(500vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="six wide"].left.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(600vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="seven wide"].left.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(700vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="eight wide"].left.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(800vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="nine wide"].left.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(900vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="ten wide"].left.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(1000vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="eleven wide"].left.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(1100vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="twelve wide"].left.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(1200vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="thirteen wide"].left.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(1300vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="fourteen wide"].left.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(1400vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="fifteen wide"].left.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(1500vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="sixteen wide"].left.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(1600vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="one wide"].right.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(-100vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="two wide"].right.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(-200vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="three wide"].right.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(-300vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="four wide"].right.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(-400vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="five wide"].right.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(-500vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="six wide"].right.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(-600vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="seven wide"].right.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(-700vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="eight wide"].right.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(-800vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="nine wide"].right.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(-900vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="ten wide"].right.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(-1000vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="eleven wide"].right.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(-1100vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="twelve wide"].right.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(-1200vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="thirteen wide"].right.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(-1300vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="fourteen wide"].right.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(-1400vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="fifteen wide"].right.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(-1500vw / 16), 0, 0);
+  }
+  .ui.visible.wide[class*="sixteen wide"].right.sidebar ~ :is(.fixed, .pusher) {
+    transform: translate3d(calc(-1600vw / 16), 0, 0);
   }
   /* Opposite sides visible:  the content stays put. */
   .ui.visible.left.sidebar ~ .ui.visible.right.sidebar ~ :is(.fixed, .pusher),

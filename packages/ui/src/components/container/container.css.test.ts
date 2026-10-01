@@ -98,6 +98,25 @@ describe("container.css examples", () => {
 })
 
 describe("container.css tokens", () => {
+  it.each([
+    [500, "15em", "--ui-container-scrolling-height"],
+    [800, "18em", "--ui-container-scrolling-height-tablet"],
+    [1000, "24em", "--ui-container-scrolling-height-computer"],
+    [2000, "30em", "--ui-container-scrolling-height-widescreen"]
+  ])("at %ipx the scrolling height is %s, from %s", async (width, em, token) => {
+    await resize(width)
+    Sheets.adopt([...foundationCSS, containerCSS])
+    const root = Fixture.render(
+      `<div class="ui scrolling container" style="font-size: 10px">A</div>` +
+        `<div class="ui scrolling container" style="font-size: 10px; ${token}: 77px">B</div>`
+    )
+    const plain = root as HTMLElement | null
+    const themed = root.nextElementSibling as HTMLElement | null
+    const scroll = (element: HTMLElement) => parseFloat(getComputedStyle(element).maxHeight)
+    expect(scroll(plain!)).toBeCloseTo(parseFloat(em) * 10, 0)
+    expect(scroll(themed!)).toBeCloseTo(77, 0)
+  })
+
   it("takes a public token from a wrapper or the container itself (static markup)", () => {
     Sheets.adopt([...foundationCSS, containerCSS])
     const root = Fixture.render(

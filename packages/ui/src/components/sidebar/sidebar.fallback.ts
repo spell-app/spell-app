@@ -1,6 +1,6 @@
 import { NativeFallback, proto, type NativeFallbackRoot } from "$/ui/core"
 
-import { pushableVocabulary, pusherVocabulary, sidebarVocabulary } from "./sidebar.vocabulary.en"
+import { SIDEBAR_WORD_WIDTHS, pushableVocabulary, pusherVocabulary, sidebarVocabulary } from "./sidebar.vocabulary.en"
 
 /** Any of the family's vocabularies, for brevity. */
 type Vocabulary = typeof sidebarVocabulary | typeof pushableVocabulary | typeof pusherVocabulary
@@ -50,6 +50,16 @@ export class SidebarFallback extends NativeFallback<Vocabulary> {
     this.observer.observe(this.host, { attributeFilter: [VISIBLE] })
   }
 
+  /** The class grammar, plus a word width after the noun, as the element adds it. */
+  protected override classes(extra?: string): string {
+    const width = this.host
+      .getAttribute(WIDTH)
+      ?.trim()
+      .replace(/[\s-]+/g, " ")
+    const word = SIDEBAR_WORD_WIDTHS.find((each) => each === width)
+    return super.classes([word, extra].filter(Boolean).join(" ") || undefined)
+  }
+
   override dispose() {
     this.observer?.disconnect()
     super.dispose()
@@ -58,6 +68,9 @@ export class SidebarFallback extends NativeFallback<Vocabulary> {
 
 /** The family's vocabularies, by tag. */
 const VOCABULARIES: readonly Vocabulary[] = [sidebarVocabulary, pushableVocabulary, pusherVocabulary]
+
+/** The attribute with word values. */
+const WIDTH = "width"
 
 /** The attribute a sidebar follows. */
 const VISIBLE = "visible"

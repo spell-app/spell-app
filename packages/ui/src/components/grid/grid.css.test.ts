@@ -209,6 +209,8 @@ describe("grid.css examples", () => {
   it("stacks, doubles, reverses and re-sizes columns by the grid's width", () => {
     Sheets.adopt([...foundationCSS, gridCSS])
     const root = Fixture.render(EXAMPLES["./examples/responsive.html"]!)
+    // the example's wrappers (850px, 1000px) clamp to their column:  give it room
+    root.style.width = "1100px"
     const stacked = root.querySelectorAll<HTMLElement>(".ui.stackable.grid > .column")
     const stackWidth = stacked[0]!.parentElement!.getBoundingClientRect().width
     for (const column of stacked) expect(column.getBoundingClientRect().width).toBeCloseTo(stackWidth, 0)

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 
+import { UI } from "$/ui/runtime"
 import { Fixture } from "$/ui/test/fixture"
 import { expectAccessible } from "$/ui/test/a11y"
 import { FallbackStub, type StubHost } from "$/ui/components/fallback.stub"
@@ -121,6 +122,17 @@ describe("ButtonFallback", () => {
   it('never names a button "true" after a bare icon (`icon="true"`, as frameworks write it)', () => {
     const host = Fixture.render<StubHost>(`<x-fb-button icon="true"></x-fb-button>`)
     expect(FallbackStub.shadow(host).querySelector("button")!.hasAttribute("aria-label")).toBe(false)
+  })
+
+  it("runs an invoker command on click (the fallback's own, or the browser's)", async () => {
+    await UI.load()
+    const wrapper = Fixture.render<HTMLElement>(
+      `<div><x-fb-button commandfor="t" command="show-popover">Go</x-fb-button><div id="t" popover>p</div></div>`
+    )
+    const host = wrapper.querySelector<StubHost>("x-fb-button")!
+    FallbackStub.shadow(host).querySelector<HTMLElement>("button")!.click()
+    expect(wrapper.querySelector("#t")!.matches(":popover-open")).toBe(true)
+    wrapper.querySelector<HTMLElement>("#t")!.hidePopover()
   })
 
   it("stops reacting after dispose()", () => {

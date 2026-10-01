@@ -66,7 +66,8 @@
     --_ui-emoji-disabled-opacity: var(--ui-emoji-disabled-opacity, var(--ui-disabled-opacity));
     /* Fomantic's emoji ladder (`1.5em * n`), relative to the surrounding text. */
     --_ui-emoji-size-small: var(--ui-emoji-size-small, 1.5);
-    --_ui-emoji-size-medium: var(--ui-emoji-size-medium, 3);
+    /* Private on purpose:  the element never emits `medium` (the default size), only static class grammar reads it. */
+    --_ui-emoji-size-medium: 3;
     --_ui-emoji-size-large: var(--ui-emoji-size-large, 6);
     --_ui-emoji-size-big: var(--ui-emoji-size-big, 7.5);
     /* The generic size remap (`sizes.css`) resolves `--ui-size-<size>` HERE, so it picks the emoji ladder. */

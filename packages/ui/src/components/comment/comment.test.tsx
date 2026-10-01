@@ -95,6 +95,15 @@ describe("<ui-comments> classes and markup", () => {
   })
 })
 
+describe("<ui-comment> outside a list", () => {
+  it("a LONE comment has its defaults:  line height 1.2", async () => {
+    const comment = await ElementFixture.render<UIHost>(`<ui-comment>${PARTS}</ui-comment>`)
+    await ElementFixture.settle(comment)
+    expect(comment.matches(":state(in-comments)")).toBe(false)
+    expect(parseFloat(style(rootOf(comment)).lineHeight)).toBeCloseTo(1.2 * 16, 1)
+  })
+})
+
 describe("<ui-comments> tokens from outside", () => {
   /** The second comment's top margin, in `host`. */
   function distance(host: Element): string {

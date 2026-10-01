@@ -48,8 +48,20 @@
 @layer ui.components.items.types {
   /* Hosts:  the group is a block and the size container its items answer to;  items keep `item.css`'s. */
   :host(:state(items)) {
+    --_ui-items-margin: var(--ui-items-margin, 1.5em);
     display: block;
     container: ui-items / inline-size;
+    /*
+     * The group's outer margin sits on the HOST:  a size container is its own formatting context, so a margin on
+     * the root inside it never collapses with the heading above, as static markup's does.
+     */
+    margin-block: var(--_ui-items-margin);
+  }
+  :host(:state(items):first-child) {
+    margin-block-start: 0;
+  }
+  :host(:state(items):last-child) {
+    margin-block-end: 0;
   }
   :host([hidden]) {
     display: none;
@@ -104,11 +116,8 @@
     --_items-margin-bottom: 0;
   }
   /* Shadow DOM:  the root is always an only child, so the HOST's position decides. */
-  :host(:not(:first-child)) > .ui.items {
-    --_items-margin-top: initial;
-  }
-  :host(:not(:last-child)) > .ui.items {
-    --_items-margin-bottom: initial;
+  :host(:state(items)) > .ui.items {
+    margin: 0;
   }
   /* Components inside items don't scale twice. */
   .ui.items > slot {
@@ -310,6 +319,13 @@
       .ui.items > .item {
         --_ui-item-layout: stacked;
         flex-direction: column;
+      }
+      /* A slotted `<ui-image size="tiny">` takes its natural width too (Fomantic's `width: auto !important`). */
+      :host(:state(in-items)) > .item {
+        --_ui-image-owner-width: auto;
+      }
+      :host(:state(in-items)) > .item > slot::slotted(:state(in-items)) {
+        --_ui-image-owner-width: initial;
       }
       :host(:state(in-items)) > .item > img.image,
       :host(:state(in-items)) > .item > ::slotted(img),

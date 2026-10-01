@@ -427,5 +427,8 @@ Pitfalls met on the way:
 - A screen-size breakpoint changes a private DEFAULT, never the alias:  `modal.css` declares
   `--_ui-modal-width: var(--ui-modal-width, var(--_modal-width))` once and its `@media` rules set `--_modal-width`
   (the same for `search`'s result rows and `segment`'s scrolling height).  Writing the alias in a `@media` rule
-  would beat a page's `--ui-modal-width` on that screen.  The docs table shows such a default through
+  would beat a page's `--ui-modal-width` on that screen.
+  - the exception is a token that IS one breakpoint's value:  `container`'s `scrolling` height has
+    `--ui-container-scrolling-height` (mobile) and `-tablet`, `-computer`, `-widescreen`, each with its own
+    private alias, which the matching `@media` rule copies into the working alias.  The docs table shows such a default through
   `CssTokens`' `defaults` prop.

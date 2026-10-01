@@ -120,6 +120,12 @@ describe("card.css examples", () => {
     expect(style(first!.querySelector(".content")!).borderTopWidth).toBe("0px")
   })
 
+  it("a card's header link and extra link carry no underline (Fomantic: colour and hover only)", () => {
+    const [card] = cardsIn(sectionIn(example("types"), "Card"))
+    expect(style(card!.querySelector("a.header")!).textDecorationLine).toBe("none")
+    expect(style(card!.querySelector(".extra a")!).textDecorationLine).toBe("none")
+  })
+
   it("lays out a group in a row with Fomantic's spacing", () => {
     const [a, b] = cardsIn(sectionIn(example("types"), "Cards")).map((card) => card.getBoundingClientRect())
     expect(a!.top).toBe(b!.top)

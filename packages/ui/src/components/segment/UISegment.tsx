@@ -12,8 +12,9 @@ import segmentCSS from "./segment.css?inline"
  * ### `<ui-segment>`
  * A segment:  `<div class="ui … segment" part="segment"><slot></slot></div>`.
  * - OWNER side:  declares `--ui-inverted` on its root, default included (`0`), so parts inside a plain segment
- *   nested in an inverted one don't inherit the outer segment's `1` (`parts.css` "Owner tokens").  `inverted`
- *   itself (`1`, `color-scheme: dark`) comes from `segment.css`.
+ *   nested in an inverted one don't inherit the outer segment's `1` (`parts.css` "Owner tokens").  Inline only
+ *   when `inverted` (`1`):  the sheet declares the `0`, or `1` for a member of an `<ui-segments inverted>`, which an
+ *   inline `0` would beat.  `inverted` itself (`color-scheme: dark`) comes from `segment.css`.
  * - `:state(piled)`:  the host becomes the stacking context the rotated sheets sit behind.
  * - `scrolling`:  the root is a keyboard stop (`tabindex=0`), as every scrollable region must be.
  * - `loading`:  `aria-busy` (internals) and a visually hidden `role=status` "Loading…";  `disabled`:
@@ -47,7 +48,7 @@ export class UISegment extends UIElement<typeof segmentVocabulary> {
         class={this.classes()}
         part={this.part("segment")}
         tabindex={this.attrs.scrolling ? 0 : undefined}
-        style={{ [PART_OWNER_TOKENS.inverted]: this.attrs.inverted ? "1" : "0" }}
+        style={this.attrs.inverted ? { [PART_OWNER_TOKENS.inverted]: "1" } : undefined}
       >
         <slot />
         <Show when={this.attrs.loading}>

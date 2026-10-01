@@ -42,11 +42,11 @@
             <li data-status="done" data-phase="2">
               <ui-icon name="circle check" color="green"></ui-icon> <a href="#p2">P2 · Icon Follow-ups</a>
             </li>
-            <li data-status="todo" data-phase="3">
-              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p3">P3 · Bug Sweep</a>
+            <li data-status="done" data-phase="3">
+              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p3">P3 · Bug Sweep</a>
             </li>
-            <li data-status="todo" data-phase="4">
-              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p4">P4 · Owen's Decisions</a>
+            <li data-status="done" data-phase="4">
+              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p4">P4 · Owen's Decisions</a>
             </li>
             <li data-status="todo" data-phase="5">
               <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p5">P5 · Release Chores</a>
@@ -98,6 +98,43 @@
             <li data-status="done" id="q8">
               <a class="plan-id" href="#q8">Q8</a>
               <span class="plan-title">List: make first / last item padding tokens private, like step / menu?</span>
+            </li>
+            <li data-status="open" id="q9">
+              <a class="plan-id" href="#q9">Q9</a>
+              <span class="plan-title"
+                >Emoji: 19 names mean different emoji in Fomantic and CLDR (dog, cat, pencil ...): keep Fomantic
+                winning?</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Today Fomantic wins, so existing pages keep their picture: <code>dog</code> = 🐶 (CLDR's
+                    <code>dog</code> is 🐕, still reachable as <code>dog2</code>; the face also as
+                    <code>dog_face</code>). The 19: dog, cat, mouse, rabbit, tiger, cow, pig, horse, whale, camel, kiss,
+                    umbrella, sunglasses, snowman, train, post_office, satellite, calendar, pencil. Switching is one
+                    line in
+                    <a href="../../../ui/scripts/gen-emoji.ts" target="src-packages-ui-scripts-gen-emoji-ts"
+                      ><code>scripts/gen-emoji.ts</code></a
+                    >
+                    <code>addFomantic</code>.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="q10">
+              <a class="plan-id" href="#q10">Q10</a>
+              <span class="plan-title"
+                >Table: opt in to stacking by own width with a TOKEN (--ui-table-stack-by: container), or an attribute
+                (stack-by="container")?</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Tables stack by viewport again (Fomantic). The layout agent chose a token; a
+                    <code>container stackable</code> class would clash with <code>.ui.container</code>.
+                  </p></ui-content
+                ></ui-accordion
+              >
             </li>
           </ol>
         </section>
@@ -260,6 +297,86 @@
                 ></ui-accordion
               >
             </li>
+            <li data-status="open" id="c4">
+              <a class="plan-id" href="#c4">C4</a>
+              <span class="plan-title"
+                >Emoji names data grew ~35% (gzip 28.6 -&gt; 38.6 kB over all chunks); a page still loads one ~5 kB
+                chunk</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    3,979 CLDR names + 1,374 Fomantic aliases (was 3,808). The 44 hand-written emoji-presentation ranges
+                    matched Unicode exactly; the old 'below U+1F000 gets U+FE0F' rule was too broad (60 emoji had a
+                    needless U+FE0F, e.g. <code>zap</code>, <code>star</code>). Generated JSON is now 2-space indented
+                    (Owen's rule; bundled as JS, so no shipped-size change).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="c5">
+              <a class="plan-id" href="#c5">C5</a>
+              <span class="plan-title">Layout: grid / cards hosts still differ in outer margins from static markup</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Measured heading-to-heading gaps, static vs element: grid/types (celled grid, +16px),
+                    grid/variations (some sections +-16px), card/content and card/types (one section each). Same family
+                    of cause (host is a size container) but each needs its own owner-side token (the celled margin,
+                    negative row spacing). Not fixed.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="c6">
+              <a class="plan-id" href="#c6">C6</a>
+              <span class="plan-title">Layout: a raw slotted img beside ui-content in a list item still wraps</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    A replaced element can never be a table cell, so a slotted <code>&lt;img&gt;</code> followed by
+                    <code>&lt;ui-content&gt;</code> stays on its own line. A slotted <code>&lt;ui-image&gt;</code> now
+                    works (image owner tokens <code>--_ui-image-owner-display / -align / -max-width</code> make the HOST
+                    the cell). Raw img: use the item's <code>image</code> shorthand.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="c7">
+              <a class="plan-id" href="#c7">C7</a>
+              <span class="plan-title"
+                >dropdown/types baseline: the open-from-start 'Open selection' menu opens UP and covers two small
+                sections</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Its anchor is below the 768px capture viewport; with <code>position: fixed</code> (the WebKit fix)
+                    all browsers flip up, as WebKit already did. Correct behaviour; those sections are still covered by
+                    their own open states.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="c8">
+              <a class="plan-id" href="#c8">C8</a>
+              <span class="plan-title"
+                >Label colour fix covers ui-label elements only; class-grammar .ui.label still inherits an ancestor's
+                colour</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Light DOM has no host to reset on. In
+                    <a href="../../../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
+                      ><code>SUSPECTED-BUGS.md</code></a
+                    >. See <a href="#t5">T5</a>.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
           </ol>
         </section>
 
@@ -316,6 +433,51 @@
                 ></ui-accordion
               >
             </li>
+            <li data-status="done" id="i4">
+              <a class="plan-id" href="#i4">I4</a>
+              <span class="plan-title"
+                >Integration: ui-button read UI.browser during render (SSR threw; a button rendered before UI.load()
+                would too)</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    From the invoker work. Fixed: <code>UIButton.invokers()</code> reads <code>UI.browser</code> only
+                    when <code>!isServer &amp;&amp; loaded()</code>. Accordion has the same pattern: in
+                    <a href="../../../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
+                      ><code>SUSPECTED-BUGS.md</code></a
+                    >.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="done" id="i5">
+              <a class="plan-id" href="#i5">I5</a>
+              <span class="plan-title"
+                >Integration: the layout agent rewrote 2 list tests to a nested shadow root that doesn't exist, then
+                reported them as old failures</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content><p>Restored the original selectors; 84/84 list tests pass.</p></ui-content></ui-accordion
+              >
+            </li>
+            <li data-status="done" id="i6">
+              <a class="plan-id" href="#i6">I6</a>
+              <span class="plan-title"
+                >Integration: yarn test:hmr case 5 anchored on render()'s first line, which the invoker work
+                changed</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <a href="../../../ui/tools/hmr.e2e.ts" target="src-packages-ui-tools-hmr-e2e-ts"
+                      ><code>tools/hmr.e2e.ts</code></a
+                    >
+                    now anchors on the signature alone; 8/8.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
           </ol>
         </section>
 
@@ -354,6 +516,19 @@
               <a class="plan-id" href="#t6">T6</a>
               <span class="plan-title"
                 >Root CI runs neither ui's test:hmr nor site:build, so both broke silently in the move</span
+              >
+            </li>
+            <li data-status="open" id="t7">
+              <a class="plan-id" href="#t7">T7</a>
+              <span class="plan-title"
+                >popup, dropdown menu and toast don't answer invoker command events (modal, flyout, sidebar, dimmer
+                do)</span
+              >
+            </li>
+            <li data-status="open" id="t8">
+              <a class="plan-id" href="#t8">T8</a>
+              <span class="plan-title"
+                >grid / card group hosts: same margin-collapse gap items had (C5); fix per owner like items.css</span
               >
             </li>
           </ol>
@@ -557,6 +732,243 @@
                 ></ui-accordion
               >
             </li>
+            <li data-status="open" id="d17">
+              <a class="plan-id" href="#d17">D17</a>
+              <span class="plan-title">Behaviour: toast pauses on a real pointer move, not pointerenter</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    A toast appearing under a resting pointer got a synthetic pointerenter and never left. UIToast now
+                    notes pointerenter and pauses only on a pointermove with nonzero movement. Fomantic pauses on
+                    mouseenter; this deviates on purpose. The CI pause-on-hover=false workaround was left in the toast
+                    life tests (Linux not verifiable here).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d18">
+              <a class="plan-id" href="#d18">D18</a>
+              <span class="plan-title">Behaviour: UIElement hostStates effect is a render effect</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    mount() used createEffect for hostStates(), so a throw in a subclass hostStates never reached the
+                    error boundary. Now createRenderEffect (test/hostStates.test.tsx).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d19">
+              <a class="plan-id" href="#d19">D19</a>
+              <span class="plan-title">Behaviour: readonly radios, search untracked read, search root part</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    UIRadio.keyDown ignores readonly (from or target). UISearch categoryElement takes the For index
+                    accessor (no STRICT_READ_UNTRACKED). The search root now has part=search (as message/toast/input
+                    name theirs by noun).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d20">
+              <a class="plan-id" href="#d20">D20</a>
+              <span class="plan-title">Decision: emoji names from CLDR (emojibase-data), Fomantic names as aliases</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Dev-only <code>emojibase-data</code>; <code>gen-emoji.ts</code> writes CLDR shortcodes plus Fomantic
+                    aliases (5,334 names, was 3,808; data gzip 28.6 to 38.6 KB, largest chunk 4.1 to 5.0 KB). 19
+                    Fomantic names that are another emoji's CLDR name (<code>dog</code>, <code>cat</code>,
+                    <code>pencil</code> ...) keep Fomantic's meaning. Presentation (U+FE0F) now comes from emojibase's
+                    type, not hand-written ranges.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d21">
+              <a class="plan-id" href="#d21">D21</a>
+              <span class="plan-title">Tokens: inverted group hands a flag to slotted members</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <code>&lt;ui-segments inverted&gt;</code> flags each slotted host with
+                    <code>--_ui-segments-inverted</code>; the member root style-queries its parent.
+                    <code>UISegment</code> now writes the inline <code>--ui-inverted</code> only when inverted (an
+                    inline 0 beat the sheet). Static twin: <code>.ui.inverted.segments &gt; .ui.segment</code>.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d22">
+              <a class="plan-id" href="#d22">D22</a>
+              <span class="plan-title">Tokens: lone feed event / comment declare their own aliases</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Aliases now also declared on <code>:host(:not(:state(in-feed)))</code> /
+                    <code>:host(:not(:state(in-comments)))</code>; members in a list keep the list's (inverted writes
+                    some).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d23">
+              <a class="plan-id" href="#d23">D23</a>
+              <span class="plan-title">Tokens: tooltip shown-state selector covers visible and delegated focus</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <a href="../../../ui/src/styles/native.css" target="src-packages-ui-src-styles-native-css"
+                      ><code>native.css</code></a
+                    >
+                    scale rules now share one shown set: hover, focus-visible, <code>data-variation=visible</code>, and
+                    <code>:focus-within</code> for non-native hosts (a ui-button host is never :focus-visible itself).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="done" id="d24">
+              <a class="plan-id" href="#d24">D24</a>
+              <span class="plan-title">Decision: modal closable=false restores Fomantic closable:false</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <code>closable="false"</code> = no close icon AND dismissal <code>none</code>, unless
+                    <code>closedby</code> is set (wins). <code>closable</code> absent keeps today's behaviour. Fomantic:
+                    <code>closable</code> (Escape / dimmer) and <code>closeIcon</code> (icon) are separate settings; the
+                    vocabulary says which each maps to.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="done" id="d25">
+              <a class="plan-id" href="#d25">D25</a>
+              <span class="plan-title">Decision: ui-button invoker commands (commandfor / command)</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Forwarded to the inner button (<code>commandForElement</code> resolved from the host root node).
+                    <code>UI.browser.supports.invokers</code>; without it a JS fallback (<code>Invoker</code>) runs
+                    built-ins and dispatches <code>command</code>. <code>--toggle</code> added to modal / flyout. Popup,
+                    dropdown and toast do not yet answer <code>command</code> events (todo).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d26">
+              <a class="plan-id" href="#d26">D26</a>
+              <span class="plan-title">Decision: label colour matches Fomantic</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic: a plain <code>.ui.label</code> inside <code>.ui.red.segment</code> (or any coloured owner)
+                    is NOT coloured; only its own colour, or its <code>.ui.red.labels</code> group's, paints it. Before:
+                    an un-coloured <code>&lt;ui-label&gt;</code> inherited <code>--ui-color</code> from any coloured
+                    ancestor. Now: <code>:host</code> in
+                    <a
+                      href="../../../ui/src/components/label/label.css"
+                      target="src-packages-ui-src-components-label-label-css"
+                      ><code>label.css</code></a
+                    >
+                    drops the inherited <code>--ui-color*</code> tokens and takes back its group's, handed down as
+                    <code>--_labels-color*</code> by the <code>.ui.labels</code> root (statistic's pattern).
+                    Class-grammar (light DOM) labels have no host, so a plain <code>.ui.label</code> there still
+                    inherits a coloured ancestor's colour. Kept open for Owen (T5).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d27">
+              <a class="plan-id" href="#d27">D27</a>
+              <span class="plan-title">Decision: popup hoverable, sidebar width, container tokens</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <code>hoverable</code> (default true) on ui-popup; <code>hoverable=false</code> closes as the
+                    pointer leaves the target. Sidebar <code>width</code> takes Fomantic words and columns like flyout
+                    (word class now after the noun). Container
+                    <code>--ui-container-scrolling-height-tablet / -computer / -widescreen</code> (named after the
+                    breakpoints the sheet uses, <code>--ui-widescreen</code>, not large-screen / large-monitor).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d28">
+              <a class="plan-id" href="#d28">D28</a>
+              <span class="plan-title">Layout: card links carry no underline</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    A card's header link and its meta / extra links have <code>text-decoration: none</code> (colour and
+                    hover only), as in Fomantic (<code>site.less</code> <code>a { text-decoration: none }</code>).
+                    Owen's standing preference. Site-wide links stay underlined (typography.css); only
+                    <code>in-card</code> parts opt out (parts.css).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d29">
+              <a class="plan-id" href="#d29">D29</a>
+              <span class="plan-title">Layout: table stacks by VIEWPORT by default</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic's <code>ui table</code> stacks below 768px of the VIEWPORT (tablet stackable: 992px). The
+                    element used the host's own width, so every docs example (~655px column) showed the stacked layout.
+                    Now both hosted and static tables use the viewport (<code>@media</code>); an element opts in to its
+                    own width with <code>--ui-table-stack-by: container</code> (host, ancestor or page). Open choice for
+                    Owen: a vocabulary attribute instead of a token. Removed the docs page's site-note.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d30">
+              <a class="plan-id" href="#d30">D30</a>
+              <span class="plan-title">Layout: dropdown menu popover is position: fixed</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    The <code>.menu[popover]</code> was <code>position: absolute</code>; webkit measured its
+                    <code>position-area</code> against the origin screenful of the page, so any dropdown below the first
+                    viewport height opened upwards despite room. <code>fixed</code> (the popover default) makes
+                    chromium, firefox and webkit agree (probe: dropdown at y=1100, scrolled into view, opens down in all
+                    three). A dropdown opened while its anchor is OFF-screen opens upwards in all three (viewport has no
+                    room below).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d31">
+              <a class="plan-id" href="#d31">D31</a>
+              <span class="plan-title">Layout: Items group margin lives on the host</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    A size container (<code>container-type: inline-size</code>) is its own formatting context, so the
+                    <code>.ui.items</code> root's outer margin inside the host never collapsed with the heading above
+                    (+21px per Items example). The margin (and its first / last-child zeroing) moved to
+                    <code>:host(:state(items))</code>. Same cause for grid (celled margin) and possibly cards: DEFERRED
+                    (see the next entry).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
           </ol>
         </section>
 
@@ -600,9 +1012,9 @@
               </li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="3" class="s3">
+          <section data-status="done" data-phase="3" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p3"><ui-icon name="circle outline" color="grey"></ui-icon> P3 · Bug Sweep</h3></ui-sticky
+              ><h3 id="p3"><ui-icon name="circle check" color="green"></ui-icon> P3 · Bug Sweep</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li><b>Goal:</b> every SUSPECTED-BUGS.md ## ui entry (~33) fixed, disproven or deferred with reason</li>
@@ -613,9 +1025,9 @@
               </li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="4" class="s3">
+          <section data-status="done" data-phase="4" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p4"><ui-icon name="circle outline" color="grey"></ui-icon> P4 · Owen's Decisions</h3></ui-sticky
+              ><h3 id="p4"><ui-icon name="circle check" color="green"></ui-icon> P4 · Owen's Decisions</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li><b>Goal:</b> ask handoff §6's 8 calls at phase start, record each as a decision, apply</li>
@@ -732,6 +1144,41 @@
               tree is gone, nothing to remove.
             </li>
             <li><time datetime="2026-10-01T01:00-04:00">2026-10-01 01:00</time> P2 done</li>
+            <li><time datetime="2026-10-01T01:01-04:00">2026-10-01 01:01</time> P3 active</li>
+            <li>
+              <time datetime="2026-10-01T01:03-04:00">2026-10-01 01:03</time> P3 started: 3 agents (Behaviour, Layout,
+              Tokens), shared tree, visual runs behind a lock. Label colour and emoji 'Thumbs Up' moved to P4. P4's
+              emoji agent started early (no overlap), committed with P4.
+            </li>
+            <li>
+              <time datetime="2026-10-01T01:12-04:00">2026-10-01 01:12</time> D24 closed: Decision: modal closable=false
+              restores Fomantic closable:false
+            </li>
+            <li>
+              <time datetime="2026-10-01T01:12-04:00">2026-10-01 01:12</time> D25 closed: Decision: ui-button invoker
+              commands (commandfor / command)
+            </li>
+            <li>
+              <time datetime="2026-10-01T01:32-04:00">2026-10-01 01:32</time> I4 closed: Integration: ui-button read
+              UI.browser during render (SSR threw; a button rendered before UI.load() would too)
+            </li>
+            <li>
+              <time datetime="2026-10-01T01:32-04:00">2026-10-01 01:32</time> I5 closed: Integration: the layout agent
+              rewrote 2 list tests to a nested shadow root that doesn't exist, then reported them as old failures
+            </li>
+            <li>
+              <time datetime="2026-10-01T01:32-04:00">2026-10-01 01:32</time> I6 closed: Integration: yarn test:hmr case
+              5 anchored on render()'s first line, which the invoker work changed
+            </li>
+            <li>
+              <time datetime="2026-10-01T01:33-04:00">2026-10-01 01:33</time> P3 + P4 integrated: review green (browser
+              3,619, +64), visual 109 diffs reviewed (calendar width, card links, dimmer heights, dropdown position +
+              placeholder, grid / image wrappers, items margins, message text, parts after items, sidebar new section)
+              -&gt; baselines updated, re-run 561/561; build, measure 0 CHECK, smoke 8/8, report stable, hmr 8/8, site
+              60 pages. One commit for both phases: their docs edits interleave (grammar.md, mdx).
+            </li>
+            <li><time datetime="2026-10-01T01:33-04:00">2026-10-01 01:33</time> P3 done</li>
+            <li><time datetime="2026-10-01T01:33-04:00">2026-10-01 01:33</time> P4 done</li>
           </ul>
         </section>
       </main>

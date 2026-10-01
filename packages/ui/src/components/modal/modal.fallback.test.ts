@@ -61,6 +61,15 @@ describe("ModalFallback", () => {
     await expect.poll(() => host.hasAttribute("open")).toBe(false)
   })
 
+  it('closable="false":  no close button, and Escape\'s cancel is prevented', async () => {
+    const { dialog } = modal(`<x-fb-modal open closable="false">x</x-fb-modal>`)
+    expect(dialog.querySelector("[part=close]")).toBeNull()
+    await expect.poll(() => dialog.open).toBe(true)
+    const cancel = new Event("cancel", { cancelable: true })
+    dialog.dispatchEvent(cancel)
+    expect(cancel.defaultPrevented).toBe(true)
+  })
+
   it("approve / deny still ask (cancelable), then close", async () => {
     const { host, dialog } = modal(
       `<x-fb-modal open><button class="deny">No</button><button class="approve">Yes</button></x-fb-modal>`

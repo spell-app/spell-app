@@ -98,6 +98,23 @@ export const buttonVocabulary = {
       default: "button",
       description: "Form behaviour, as the native `<button type>`;  `submit` calls `form.requestSubmit()`."
     },
+    {
+      name: "commandfor",
+      kind: "string",
+      description:
+        "Invoker commands, as the native `<button commandfor>`:  the id of the element `command` acts on, looked up " +
+        "in the button's own tree (the inner `<button>` gets it as `commandForElement`, since a shadow button can't " +
+        "see a light-DOM id).  Without browser support (`UI.browser.supports.invokers`) a click runs the built-in " +
+        "commands itself."
+    },
+    {
+      name: "command",
+      kind: "string",
+      description:
+        "Invoker commands, as the native `<button command>`:  `show-modal` / `close` / `request-close` on a " +
+        "`<dialog>`, `show-popover` / `hide-popover` / `toggle-popover` on a popover, or a custom `--name` that " +
+        "the target hears as a `command` event (`<ui-modal>` answers `--show`, `--close`, `--toggle`)."
+    },
     { name: "href", kind: "string", description: "Renders a link (`<a>`) styled as a button." },
     { name: "target", kind: "string", description: "Link target, with `href`." },
     { name: "name", kind: "string", description: "Form field name submitted with the button's `value`." },

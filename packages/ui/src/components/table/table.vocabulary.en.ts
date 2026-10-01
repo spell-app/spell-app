@@ -47,7 +47,7 @@ export const tableVocabulary = {
     {
       name: "unstackable",
       kind: "keyOnly",
-      description: "Never stacks rows into blocks, even below 768px of its own width."
+      description: "Never stacks rows into blocks, even on a viewport below 768px."
     },
     {
       name: "basic",
@@ -78,8 +78,8 @@ export const tableVocabulary = {
       kind: "keyOrValueAndKey",
       values: ["tablet"],
       description:
-        "Rows become blocks below 768px of the table's OWN width (the default, `stackable`);  " +
-        '`stackable="tablet"` also below 992px.'
+        "Rows become blocks on a viewport below 768px (the default, `stackable`);  " +
+        '`stackable="tablet"` also below 992px.  `--ui-table-stack-by: container` follows the table\'s OWN width instead.'
     },
     {
       name: "scrolling",

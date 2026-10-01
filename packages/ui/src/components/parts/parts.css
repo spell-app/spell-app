@@ -161,9 +161,13 @@
     --_ui-part: value;
   }
 
-  /* A part's avatar image, whether rendered from `src` or slotted. */
-  .avatar img,
-  .avatar ::slotted(img) {
+  /*
+   * A part's avatar image, whether rendered from `src` or slotted.
+   * - NOT an image group:  Fomantic's `ui avatar images` (image.css) is a page-level `.avatar` too, and its
+   *   `<img>`s size themselves
+   */
+  .avatar:not(.images) img,
+  .avatar:not(.images) ::slotted(img) {
     display: block;
     width: 100%;
     height: 100%;
@@ -411,6 +415,11 @@
     font-weight: var(--ui-font-weight-bold);
     line-height: var(--ui-line-height-heading);
   }
+  /* Fomantic's card links carry colour and hover only, no underline (`site.less`'s `a { text-decoration: none }`). */
+  :host(:state(in-card)) > a.header,
+  a.in-card.header {
+    text-decoration: none;
+  }
   :host(:state(in-card)) > a.header:hover,
   a.in-card.header:hover {
     color: var(--ui-link-hover);
@@ -431,6 +440,7 @@
   :host(:state(in-card)) > .meta > ::slotted(a),
   .in-card.meta > a {
     color: var(--ui-text-light);
+    text-decoration: none;
   }
   :host(:state(in-card)) > .meta > ::slotted(a:hover),
   .in-card.meta > a:hover {
@@ -463,6 +473,7 @@
   :host(:state(in-card)) > .extra > ::slotted(a),
   .in-card.extra > a {
     color: var(--ui-text-unselected);
+    text-decoration: none;
   }
   :host(:state(in-card)) > .extra > ::slotted(a:hover),
   .in-card.extra > a:hover {

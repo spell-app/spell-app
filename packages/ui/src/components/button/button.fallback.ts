@@ -1,6 +1,7 @@
-import { Converters, NativeFallback, proto } from "$/ui/core"
+import { Converters, NativeFallback, proto, UI } from "$/ui/core"
 
 import { buttonVocabulary } from "./button.vocabulary.en"
+import { Invoker } from "./Invoker"
 
 /****************
  * ### `ButtonFallback`
@@ -51,9 +52,24 @@ export class ButtonFallback extends NativeFallback<typeof buttonVocabulary> {
     this.listen<MouseEvent>(control, "click", (event) => {
       if (disabled) return event.preventDefault()
       if (toggle) control.setAttribute("aria-pressed", String(control.classList.toggle("active")))
+      this.invoke(control, event)
       this.activate()
     })
     return [control]
+  }
+
+  /**
+   * Invoker command:  natively through the inner button's `commandForElement` (set now, the browser acts after this
+   * click), else run by `Invoker`.
+   */
+  private invoke(control: HTMLElement, event: MouseEvent) {
+    const command = this.attr("command")
+    if (!command) return
+    const target = Invoker.resolve(this.host, this.attr("commandfor") ?? undefined)
+    if (UI.browser.supports.invokers && control instanceof HTMLButtonElement) {
+      control.setAttribute("command", command)
+      control.commandForElement = target
+    } else if (target && !event.defaultPrevented) Invoker.run(target, command, this.host)
   }
 
   /** Submit or reset the host's form, by `type`. */

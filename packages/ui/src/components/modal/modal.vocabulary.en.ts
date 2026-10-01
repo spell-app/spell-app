@@ -8,7 +8,8 @@
  * - A modal OWNS the `header`, `content`, `description` and `actions` parts:  slotted ones get `:state(in-modal)`
  *   and style themselves from `parts.css`, reading `--_ui-modal-basic` / `--_ui-modal-header-size` (`modal.css`).
  * - `closedby` mirrors `<dialog closedby>`:  `any` (Fomantic's `closable: true`), `closerequest` (Escape only),
- *   `none`.  `closable` is the close ICON (Fomantic's `closeIcon`).
+ *   `none`.  `closable` is the close ICON (Fomantic's `closeIcon`), and `closable="false"` also brings back
+ *   Fomantic's `closable: false` (dismissal `none`) unless `closedby` is set.
  */
 
 import type { ComponentVocabulary } from "$/ui/vocabulary"
@@ -48,7 +49,14 @@ export const modalVocabulary = {
       key: "active",
       description: "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto the user's changes."
     },
-    { name: "closable", kind: "boolean", description: "Shows a close icon (Fomantic's `closeIcon`)." },
+    {
+      name: "closable",
+      kind: "boolean",
+      description:
+        "Shows a close icon (Fomantic's `closeIcon` setting).  `closable=\"false\"` is also Fomantic's `closable: " +
+        'false` setting:  no icon AND `closedby="none"` (Escape and the dimmer do nothing), unless `closedby` is ' +
+        "set, which wins for dismissal.  Absent:  no icon, dismissed by `closedby` (default `any`)."
+    },
     {
       name: "closedby",
       kind: "enum",
@@ -56,8 +64,9 @@ export const modalVocabulary = {
       default: "any",
       property: "closedBy",
       description:
-        "What dismisses it, as `<dialog closedby>`:  `any` -- Escape or a click on the dimmer (default);  " +
-        "`closerequest` -- Escape only;  `none` -- only its own buttons.  Read when it opens."
+        "What dismisses it, as `<dialog closedby>` (Fomantic's `closable` setting, in three steps):  `any` -- " +
+        "Escape or a click on the dimmer (default);  `closerequest` -- Escape only;  `none` -- only its own " +
+        'buttons.  Read when it opens;  when set, it wins over `closable="false"`.'
     },
     {
       name: "header",

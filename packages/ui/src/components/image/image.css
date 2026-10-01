@@ -47,9 +47,18 @@
 *******************************/
 
 @layer ui.components.image.types {
-  /* Hosts:  no box of their own;  the root is the image. */
+  /*
+   * Hosts:  no box of their own;  the root is the image.
+   * - Owner token `--_ui-image-owner-display` (a list item:  `table-cell`):  the HOST takes that box, so the
+   *   image is a cell beside its owner's content.  The root `<img>` can't be one (a replaced element is never a
+   *   table cell), so the host is the cell and the image fills it.  `--_ui-image-owner-max-width: none` there:  a
+   *   percentage maximum inside a shrink-to-fit cell would collapse the image to nothing.
+   * - `--_ui-image-owner-width` (stacked Items:  `auto`) beats the image's own size, as Fomantic's mobile
+   *   `.ui.items > .item > .image { width: auto !important }` does.
+   */
   :host {
-    display: contents;
+    display: var(--_ui-image-owner-display, contents);
+    vertical-align: var(--_ui-image-owner-align, baseline);
   }
   :host([hidden]) {
     display: none;
@@ -91,8 +100,8 @@
     display: var(--_image-display, inline-block);
     align-self: var(--_image-align, var(--_ui-images-align, auto));
     vertical-align: var(--_image-valign, middle);
-    width: var(--_image-width, var(--_ui-images-width, auto));
-    max-width: 100%;
+    width: var(--_ui-image-owner-width, var(--_image-width, var(--_ui-images-width, auto)));
+    max-width: var(--_ui-image-owner-max-width, 100%);
     height: var(--_image-height, var(--_ui-images-height, auto));
     margin: var(--_image-margin, var(--_ui-images-margin, 0));
     border: var(--_image-border, var(--_ui-images-border, none));

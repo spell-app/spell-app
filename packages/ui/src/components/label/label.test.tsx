@@ -10,6 +10,7 @@ import "$/ui/components/label"
 import "$/ui/components/icon"
 import "$/ui/components/parts"
 import "$/ui/components/statistic"
+import "$/ui/components/segment"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/label/examples/elements/*.html", {
@@ -186,6 +187,41 @@ describe("<ui-labels>", () => {
     const plain = await ElementFixture.render<UIHost>(`<ui-label>1</ui-label>`)
     const plainRoot = plain.shadowRoot!.querySelector<HTMLElement>("[part~=label]")!
     expect(getComputedStyle(child).borderRadius).not.toBe(getComputedStyle(plainRoot).borderRadius)
+  })
+})
+
+describe("<ui-label> colour (Fomantic:  only its own, or its `labels` group's)", () => {
+  /** The first label's root inside `html`, and a plain label's, for comparison. */
+  async function roots(html: string) {
+    const wrapper = await ElementFixture.render<UIHost>(html)
+    const root = (el: Element) => el.shadowRoot!.querySelector<HTMLElement>("[part~=label]")!
+    const plain = await label(`<ui-label>Plain</ui-label>`)
+    return { wrapper, inner: root(wrapper.querySelector("ui-label")!), plain: plain.root }
+  }
+
+  it("a plain label inside a coloured owner stays plain", async () => {
+    const { inner, plain } = await roots(`<ui-segment color="red"><ui-label>A</ui-label></ui-segment>`)
+    expect(getComputedStyle(inner).backgroundColor).toBe(getComputedStyle(plain).backgroundColor)
+    expect(getComputedStyle(inner).color).toBe(getComputedStyle(plain).color)
+  })
+
+  it("a plain label inside a `ui-red` wrapper stays plain", async () => {
+    const { inner, plain } = await roots(`<div class="ui-red"><ui-label>A</ui-label></div>`)
+    expect(getComputedStyle(inner).backgroundColor).toBe(getComputedStyle(plain).backgroundColor)
+  })
+
+  it("its own colour still paints", async () => {
+    const { inner, plain } = await roots(`<ui-segment color="red"><ui-label color="red">A</ui-label></ui-segment>`)
+    expect(getComputedStyle(inner).backgroundColor).not.toBe(getComputedStyle(plain).backgroundColor)
+  })
+
+  it("a coloured `labels` group colours its members, in a coloured owner or not", async () => {
+    const own = await roots(`<ui-labels color="red"><ui-label>A</ui-label></ui-labels>`)
+    const red = await label(`<ui-label color="red">R</ui-label>`)
+    expect(getComputedStyle(own.inner).backgroundColor).toBe(getComputedStyle(red.root).backgroundColor)
+    expect(getComputedStyle(own.inner).color).toBe(getComputedStyle(red.root).color)
+    const plainGroup = await roots(`<ui-segment color="red"><ui-labels><ui-label>A</ui-label></ui-labels></ui-segment>`)
+    expect(getComputedStyle(plainGroup.inner).backgroundColor).toBe(getComputedStyle(plainGroup.plain).backgroundColor)
   })
 })
 

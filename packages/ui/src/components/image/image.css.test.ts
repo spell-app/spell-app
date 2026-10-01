@@ -7,6 +7,7 @@ import { Sheets } from "$/ui/test/sheets"
 
 import { imagesVocabulary, imageVocabulary } from "./image.vocabulary.en"
 
+import partsCSS from "$/ui/components/parts/parts.css?inline"
 import imageCSS from "./image.css?inline"
 import imageRaw from "./image.css?raw"
 
@@ -141,6 +142,8 @@ describe("image.css examples", () => {
   it("sizes by Fomantic's width ladder, following --ui-font-size", () => {
     Sheets.adopt([...foundationCSS, imageCSS])
     const root = Fixture.render(EXAMPLES["./examples/variations.html"]!)
+    // the Size wrapper (1200px) clamps to its column:  give it room
+    root.style.width = "1300px"
     const width = (size: string) => root.querySelector(`.ui.${size}.image[class="ui ${size} image"]`)!.clientWidth
     const ladder = ["mini", "tiny", "small", "medium", "large", "big", "huge"].map(width)
     expect(ladder).toEqual([35, 80, 150, 300, 450, 600, 800])
@@ -171,6 +174,15 @@ describe("image.css groups", () => {
     expect(parseFloat(avatar.borderTopLeftRadius)).toBeGreaterThan(1000)
     expect(getComputedStyle(centered!).justifyContent).toBe("center")
     expect(centered!.firstElementChild!.clientWidth).toBe(35)
+  })
+})
+
+describe("image.css groups beside the page's other sheets", () => {
+  it("an `ui avatar images` group keeps its 2em avatars next to parts.css (whose bare `.avatar img` is a part's)", () => {
+    Sheets.adopt([...foundationCSS, imageCSS, partsCSS])
+    const root = Fixture.render(EXAMPLES["./examples/groups.html"]!)
+    const avatar = root.querySelector<HTMLElement>(".ui.avatar.images")!.firstElementChild as HTMLElement
+    expect(avatar.clientWidth).toBe(Math.round(2 * parseFloat(getComputedStyle(avatar).fontSize)))
   })
 })
 

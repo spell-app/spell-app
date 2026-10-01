@@ -107,6 +107,8 @@
     --_ui-popup-inverted-background: var(--ui-popup-inverted-background, var(--ui-ink));
     --_ui-popup-inverted-color: var(--ui-popup-inverted-color, var(--ui-surface));
     --_ui-popup-loading-opacity: var(--ui-popup-loading-opacity, 0.3);
+    /* Also declared on `:host` (which transitions too);  static markup has no host, so the box needs its own. */
+    --_ui-popup-duration: var(--ui-popup-duration, var(--ui-duration-normal));
     /* ## Owner tokens (`parts.css`):  declared on every root. */
     --_ui-popup-header-font-size: var(--ui-popup-header-font-size, 1.14285em);
     --_ui-popup-header-distance: var(--ui-popup-header-distance, 0.5em);

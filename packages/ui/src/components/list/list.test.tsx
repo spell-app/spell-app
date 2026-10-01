@@ -8,6 +8,7 @@ import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
 
 import "$/ui/components/list"
+import "$/ui/components/image"
 import "$/ui/components/parts"
 import "$/ui/components/segment"
 
@@ -232,6 +233,23 @@ describe("<ui-list> items adopt list.css and style by owner", () => {
     const header = items[0]!.querySelector("ui-header")!.shadowRoot!.querySelector(".header")!
     expect(header.className).toBe("header")
     expect(style(header).fontWeight).toBe("700")
+  })
+})
+
+describe("<ui-list> a slotted image beside content", () => {
+  /** A 40px square picture. */
+  const PICTURE =
+    "data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22%3E%3C/svg%3E"
+
+  it("a slotted <ui-image> and the <ui-content> after it share a row (a raw <img> can't be a cell:  use `image`)", async () => {
+    const { items } = await list(
+      "",
+      `<ui-item><ui-image src="${PICTURE}" alt="" width="40" height="40"></ui-image><ui-content>Title</ui-content></ui-item>`
+    )
+    const image = items[0]!.querySelector("ui-image")!.shadowRoot!.querySelector("img")!.getBoundingClientRect()
+    const content = items[0]!.querySelector("ui-content")!.shadowRoot!.firstElementChild!.getBoundingClientRect()
+    expect(content.top).toBeLessThan(image.bottom)
+    expect(content.left).toBeGreaterThanOrEqual(image.right - 1)
   })
 })
 

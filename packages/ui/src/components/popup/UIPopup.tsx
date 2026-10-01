@@ -29,7 +29,8 @@ type Vocabulary = typeof popupVocabulary
  *   element sibling -- Fomantic's `inline` markup, a popup right after its activator.
  * - `on`:  `hover` (with `show-delay` / `hide-delay`, and on keyboard focus too), `focus`, `click` (toggles),
  *   `manual` (only `open`).  A hovered popup stays open while the pointer is over it (WCAG 1.4.13), unlike
- *   Fomantic's default `hoverable: false`.
+ *   Fomantic's default `hoverable: false`;  `hoverable="false"` gives Fomantic's behaviour back (it hides as the
+ *   pointer leaves the target, after `hide-delay`).
  * - `open` is auto-controlled:  the cancelable `ui-open` / `ui-close` come first.  Escape and outside clicks come
  *   from `UI.overlays` (kind `popover`, the target counts as inside).
  * - Popover mode:  `hint` for hover / focus popups when `UI.browser.supports.popoverHint` (they don't close an
@@ -320,9 +321,9 @@ export class UIPopup extends UIElement<Vocabulary> {
     this.schedule(false, this.attrs.hideDelay ?? 0, event)
   }
 
-  /** Pointer onto the popup:  keep a hovered popup open. */
+  /** Pointer onto the popup:  keep a hovered popup open, unless `hoverable` is off (Fomantic's default). */
   private readonly onPopupEnter = () => {
-    if (untrack(this.trigger) === "hover") clearTimeout(this.timer)
+    if (untrack(this.trigger) === "hover" && untrack(() => this.attrs.hoverable) !== false) clearTimeout(this.timer)
   }
 
   /** Pointer off the popup:  hide a hovered popup after `hide-delay`. */

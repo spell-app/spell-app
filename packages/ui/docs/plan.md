@@ -78,7 +78,8 @@
   - React 19: `<ui-dropdown options={arr} value="x" open onui-change={fn} />`
   - Vue: `isCustomElement: tag => tag.startsWith("ui-")`, then `<ui-dropdown .options="arr" value="x" open @ui-change="fn">`
   - Svelte 5: `<ui-dropdown options={arr} value="x" open onui-change={fn}>`
-  - Solid: `<ui-dropdown prop:options={arr} value="x" bool:open={o} on:ui-change={fn}>`
+  - Solid 2: `<ui-dropdown prop:options={arr} prop:value={v()} prop:open={o()} ref={(el) => el.addEventListener("ui-change", fn)}>`
+    (Solid 2 has no `on:` / `bool:` namespaces;  see `tools/frameworks/solid/app.tsx`.  Updated 2026-10-01.)
   - Angular: `[options]="arr" (ui-change)="fn($event)"` + `CUSTOM_ELEMENTS_SCHEMA`
 - Vue may send `open="false"` when the property isn't found → the boolean converter treats `"false"`/`"no"` as false.
 
@@ -163,7 +164,7 @@
   - `@import` inside it pulls in more; late insertion, `load` and text edits are picked up (MutationObserver + link `load`)
   - order inside a shadow root: tokens → component → utilities → app stylesheet
 - Responsive: container queries inside components (grid `stackable` / `doubling`, cards, forms, tables); `@custom-media` breakpoints (Lightning CSS) for page-level ones.
-- Build outputs: ESM per component with its CSS inlined as a constructable sheet; `ui.css` (tokens + utilities + native + animations) for no-runtime pages; `themes/*.css`. Budget: lazy runtime chunk < 50 KB gzip (raised from 20 KB by Owen, 2026-09-29); average component ≤ 4 KB gzip.
+- Build outputs: ESM per component with its CSS inlined as a constructable sheet; `ui.css` (tokens + utilities + native + animations) for no-runtime pages; `themes/*.css`. Budget: lazy runtime chunk < 50 KB gzip (raised from 20 KB by Owen, 2026-09-29); average component ≤ 8 KB gzip (raised from 4 KB by Owen, 2026-10-01).
 
 ### Component runtime
 - `UIElement` base:

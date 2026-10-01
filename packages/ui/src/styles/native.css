@@ -179,13 +179,32 @@
   [data-tooltip]::after {
     transform-origin: center bottom;
   }
-  [data-tooltip][data-variation~="visible"]::before,
-  [data-tooltip][data-variation~="visible"]::after,
-  [data-tooltip]:is(:hover, :focus-visible)::before,
-  [data-tooltip]:is(:hover, :focus-visible)::after {
+  /*
+   * Shown:  hovered, keyboard-focused, `data-variation="visible"`, or -- for a host that delegates focus (a
+   * `<ui-button>`, whose `:focus-visible` is on its inner `<button>`) -- holding focus.  A native focusable keeps
+   * `:focus-visible` alone, so a mouse click doesn't pin its tooltip open.  The opacity AND the full-size scale
+   * below share it.
+   */
+  [data-tooltip]:is(
+      :hover,
+      :focus-visible,
+      :focus-within:not(button, a, input, select, textarea, summary),
+      [data-variation~="visible"]
+    )::before,
+  [data-tooltip]:is(
+      :hover,
+      :focus-visible,
+      :focus-within:not(button, a, input, select, textarea, summary),
+      [data-variation~="visible"]
+    )::after {
     opacity: 1;
   }
-  [data-tooltip]:is(:hover, :focus-visible)::before {
+  [data-tooltip]:is(
+      :hover,
+      :focus-visible,
+      :focus-within:not(button, a, input, select, textarea, summary),
+      [data-variation~="visible"]
+    )::before {
     transform: rotate(45deg) scale(1);
   }
 
@@ -194,30 +213,65 @@
   [data-tooltip]:is([data-position="top center"], [data-position="bottom center"])::after {
     transform: translateX(-50%) scale(0.8);
   }
-  [data-tooltip]:not([data-position]):is(:hover, :focus-visible)::after,
-  [data-tooltip]:is([data-position="top center"], [data-position="bottom center"]):is(:hover, :focus-visible)::after {
+  [data-tooltip]:not([data-position]):is(
+      :hover,
+      :focus-visible,
+      :focus-within:not(button, a, input, select, textarea, summary),
+      [data-variation~="visible"]
+    )::after,
+  [data-tooltip]:is([data-position="top center"], [data-position="bottom center"]):is(
+      :hover,
+      :focus-visible,
+      :focus-within:not(button, a, input, select, textarea, summary),
+      [data-variation~="visible"]
+    )::after {
     transform: translateX(-50%) scale(1);
   }
   [data-tooltip]:is([data-position="left center"], [data-position="right center"])::after {
     transform: translateY(-50%) scale(0.8);
   }
-  [data-tooltip]:is([data-position="left center"], [data-position="right center"]):is(:hover, :focus-visible)::after {
+  [data-tooltip]:is([data-position="left center"], [data-position="right center"]):is(
+      :hover,
+      :focus-visible,
+      :focus-within:not(button, a, input, select, textarea, summary),
+      [data-variation~="visible"]
+    )::after {
     transform: translateY(-50%) scale(1);
   }
   [data-tooltip]:is([data-position="top left"], [data-position="top right"])::after,
   [data-tooltip]:is([data-position="bottom left"], [data-position="bottom right"])::after {
     transform: scale(0.8);
   }
-  [data-tooltip]:is([data-position="top left"], [data-position="top right"]):is(:hover, :focus-visible)::after,
-  [data-tooltip]:is([data-position="bottom left"], [data-position="bottom right"]):is(:hover, :focus-visible)::after {
+  [data-tooltip]:is([data-position="top left"], [data-position="top right"]):is(
+      :hover,
+      :focus-visible,
+      :focus-within:not(button, a, input, select, textarea, summary),
+      [data-variation~="visible"]
+    )::after,
+  [data-tooltip]:is([data-position="bottom left"], [data-position="bottom right"]):is(
+      :hover,
+      :focus-visible,
+      :focus-within:not(button, a, input, select, textarea, summary),
+      [data-variation~="visible"]
+    )::after {
     transform: scale(1);
   }
   [data-tooltip]:is([data-position="left top"], [data-position="left bottom"])::after,
   [data-tooltip]:is([data-position="right top"], [data-position="right bottom"])::after {
     transform: scale(0.8);
   }
-  [data-tooltip]:is([data-position="left top"], [data-position="left bottom"]):is(:hover, :focus-visible)::after,
-  [data-tooltip]:is([data-position="right top"], [data-position="right bottom"]):is(:hover, :focus-visible)::after {
+  [data-tooltip]:is([data-position="left top"], [data-position="left bottom"]):is(
+      :hover,
+      :focus-visible,
+      :focus-within:not(button, a, input, select, textarea, summary),
+      [data-variation~="visible"]
+    )::after,
+  [data-tooltip]:is([data-position="right top"], [data-position="right bottom"]):is(
+      :hover,
+      :focus-visible,
+      :focus-within:not(button, a, input, select, textarea, summary),
+      [data-variation~="visible"]
+    )::after {
     transform: scale(1);
   }
 

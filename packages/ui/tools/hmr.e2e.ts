@@ -147,13 +147,10 @@ void describe("hot module replacement (Vite dev, tools/demo/hmr.html)", () => {
   })
 
   void it("5. a render that throws:  native fallback, `:state(errored)`, the page lives;  the fix recovers", async () => {
-    const renderStart = "  render(): JSX.Element {\n    return ("
+    // anchored on the signature alone, so `render()`'s first statements may change
+    const renderStart = "  render(): JSX.Element {\n"
     await update(() =>
-      edit(
-        FILES.button,
-        renderStart,
-        `  render(): JSX.Element {\n    if (this.host) throw new Error("hmr boom")\n    return (`
-      )
+      edit(FILES.button, renderStart, `  render(): JSX.Element {\n    if (this.host) throw new Error("hmr boom")\n`)
     )
     const broken = await snapshot()
     assert.equal(broken.marker, true, "no reload")

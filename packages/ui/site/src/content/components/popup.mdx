@@ -124,6 +124,12 @@ import VocabularyTable from "../../components/VocabularyTable.astro"
     <ui-button id="popup-variations-large">Large</ui-button>
     <ui-popup for="popup-variations-large" size="large" content="A large popup"></ui-popup>
   </Variation>
+  <Variation title="Hoverable" description="A hover popup stays open while the pointer is over it (WCAG 1.4.13).  `hoverable=&quot;false&quot;` is Fomantic's default:  it closes as the pointer leaves the target.">
+    <ui-button id="popup-variations-hoverable">Hoverable (default)</ui-button>
+    <ui-popup for="popup-variations-hoverable" hide-delay="200" content="Move the pointer onto me"></ui-popup>
+    <ui-button id="popup-variations-unhoverable">Not hoverable</ui-button>
+    <ui-popup for="popup-variations-unhoverable" hoverable="false" content="I close as you leave the button"></ui-popup>
+  </Variation>
   <Variation title="Fluid" description="A popup can take up the entire width of its target.">
     <ui-button id="popup-variations-fluid" fluid>Fluid</ui-button>
     <ui-popup for="popup-variations-fluid" fluid position="bottom left" content="As wide as its target"></ui-popup>
@@ -151,7 +157,8 @@ import VocabularyTable from "../../components/VocabularyTable.astro"
 
   - `hover` (the default):  pointer hover and keyboard focus, after `show-delay` (50ms);  it hides `hide-delay`
     (70ms) after the pointer leaves.  The popup stays open while the pointer is over it, so its text can be read
-    and selected (WCAG 1.4.13).
+    and selected (WCAG 1.4.13).  `hoverable="false"` is Fomantic's default instead:  it hides as the pointer
+    leaves the target, even onto the popup.
   - `focus`:  keyboard or pointer focus on the target only.
   - `click`:  a click toggles it;  it behaves as a small non-modal dialog, for content you interact with.
   - `manual`:  only your code, through `open`.

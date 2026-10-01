@@ -40,7 +40,10 @@ export const containerVocabulary = {
       name: "scrolling",
       kind: "keyOrValueAndKey",
       values: ["short", "very short", "long", "very long"],
-      description: "A capped height (per breakpoint) that scrolls;  `short` ... `very long` scale the cap."
+      description:
+        "A capped height (per breakpoint) that scrolls;  `short` ... `very long` scale the cap.  Heights are " +
+        "tokens:  `--ui-container-scrolling-height` (mobile, 15em), `--ui-container-scrolling-height-tablet` " +
+        "(18em), `-computer` (24em), `-widescreen` (30em)."
     },
     { name: "resizable", kind: "keyOnly", description: "With `scrolling`:  the user can drag its height." }
   ],

@@ -351,6 +351,7 @@ describe("<ui-toast> pausing", () => {
     const host = Fixture.render<Toast>(`<ui-toast display-time="120" progress="bottom" message="Hover"></ui-toast>`)
     await next(host, "ui-show")
     host.dispatchEvent(new PointerEvent("pointerenter"))
+    host.dispatchEvent(new PointerEvent("pointermove", { movementX: 2 }))
     await ElementFixture.tick()
     expect(host.matches(":state(paused)")).toBe(true)
     const bar = host.shadowRoot!.querySelector<HTMLElement>("[part~=bar]")!
@@ -361,10 +362,18 @@ describe("<ui-toast> pausing", () => {
     await expect.poll(() => host.hidden, { timeout: 1000 }).toBe(true)
   })
 
+  it("a toast appearing under a resting pointer (pointerenter, no move) still closes", async () => {
+    const host = Fixture.render<Toast>(`<ui-toast display-time="60" message="Rest"></ui-toast>`)
+    host.dispatchEvent(new PointerEvent("pointerenter"))
+    host.dispatchEvent(new PointerEvent("pointermove", { movementX: 0, movementY: 0 }))
+    await expect.poll(() => host.hidden, { timeout: 1000 }).toBe(true)
+  })
+
   it("doesn't pause on hover with pause-on-hover=false", async () => {
     const host = Fixture.render<Toast>(`<ui-toast display-time="60" pause-on-hover="false" message="Go"></ui-toast>`)
     await next(host, "ui-show")
     host.dispatchEvent(new PointerEvent("pointerenter"))
+    host.dispatchEvent(new PointerEvent("pointermove", { movementX: 2 }))
     await expect.poll(() => host.hidden, { timeout: 1000 }).toBe(true)
   })
 

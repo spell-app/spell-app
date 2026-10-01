@@ -327,8 +327,13 @@ ui-dropdown {
 ```
 
 ```jsx
-// Solid 2
-<ui-dropdown selection prop:options={options} value="x" on:ui-change={(e) => setValue(e.detail.value)} />
+// Solid 2:  no `on:` namespace -- listen through a ref;  `prop:` for the rich data
+<ui-dropdown
+  selection
+  prop:options={options}
+  value="x"
+  ref={(el) => el.addEventListener("ui-change", (e) => setValue(e.detail.value))}
+/>
 ```
 
 </Section>

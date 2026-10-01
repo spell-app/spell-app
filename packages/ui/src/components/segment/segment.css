@@ -224,6 +224,7 @@
     --_ui-segments-radius: initial;
     --_ui-segments-divider: initial;
     --_ui-segments-shadow: initial;
+    --_ui-segments-inverted: initial;
     --_segment-margin: initial;
     --_segment-margin-top: initial;
     --_segment-margin-bottom: initial;
@@ -535,7 +536,8 @@
    * Inverted:  the dark scheme.  The OWNER side:  `--ui-inverted` and `color-scheme` inherit into everything
    * slotted, so content re-resolves its `light-dark()` tokens.  A coloured one fills with its colour.
    */
-  .ui.inverted:is(.segment, .segments) {
+  .ui.inverted:is(.segment, .segments),
+  .ui.inverted.segments > .ui.segment {
     --ui-inverted: 1;
     --ui-scheme: dark;
     color-scheme: dark;
@@ -549,6 +551,29 @@
     --_segment-border: none;
     --_segment-shadow: 0 0 #0000;
     --_ui-label-owner-edge: 0px;
+  }
+  /*
+   * Members of an inverted `<ui-segments>` (Fomantic: `.ui.inverted.segments .segment` is dark):  the group
+   * can't style a member's shadow root, so it flags each slotted HOST (`--_ui-segments-inverted`), and the
+   * member root -- whose parent is that host -- style-queries it.  Segments nested in a member don't match:  the
+   * member root hands its children `initial` (`.ui.segment > *`).  The static twin is the selector above.
+   */
+  .ui.inverted.segments > ::slotted(*) {
+    --_ui-segments-inverted: 1;
+  }
+  @container style(--_ui-segments-inverted: 1) {
+    .ui.segment {
+      --ui-inverted: 1;
+      --ui-scheme: dark;
+      color-scheme: dark;
+      --_segment-bg: var(--ui-color, var(--_ui-segment-inverted-background));
+      --_segment-fg: var(--ui-color-on, var(--_ui-segment-color));
+      --_segment-accent: transparent;
+      --_segment-accent-line: transparent;
+      --_segment-border: none;
+      --_segment-shadow: 0 0 #0000;
+      --_ui-label-owner-edge: 0px;
+    }
   }
   .ui.inverted.segments {
     border: none;

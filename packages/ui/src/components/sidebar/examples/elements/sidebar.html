@@ -52,4 +52,21 @@
       </ui-pusher>
     </ui-pushable>
   </section>
+
+  <section>
+    <h4>Width in columns</h4>
+    <ui-pushable style="height: 10em">
+      <ui-sidebar id="sidebar-demo-quarter" width="1/4" transition="overlay" inverted aria-label="Quarter">
+        <ui-menu vertical inverted fluid aria-label="Quarter">
+          <ui-item href="#quarter">A quarter of the page</ui-item>
+        </ui-menu>
+      </ui-sidebar>
+      <ui-pusher>
+        <ui-segment basic>
+          <button type="button" class="ui button" commandfor="sidebar-demo-quarter" command="--toggle">Quarter</button>
+          <p>A sidebar `width` in columns (here 1/4).</p>
+        </ui-segment>
+      </ui-pusher>
+    </ui-pushable>
+  </section>
 </div>

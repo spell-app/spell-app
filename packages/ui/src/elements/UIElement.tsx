@@ -2,6 +2,7 @@ import {
   Show,
   createContext,
   createEffect,
+  createRenderEffect,
   createMemo,
   createSignal,
   getOwner,
@@ -192,7 +193,9 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
     // adopted HERE when the runtime was already loaded:  `sheetNames()` is overridable and may read subclass
     // fields, which don't exist yet while the base constructor runs
     if (!isServer && untrack(this.loaded)) this.adoptStyles()
-    createEffect(
+    // a RENDER effect:  a throw in `hostStates()` (a subclass's, in the compute) must reach the fork's error
+    // boundary, for `:state(errored)` and the fallback -- a plain effect's error is only logged
+    createRenderEffect(
       () => this.hostStates(),
       (states) => {
         for (const [name, on] of Object.entries(states)) this.host.setState(name, !!on)

@@ -25,8 +25,9 @@
  * - `--_table-hosted: 1`, set on `:host` and inherited down the flat tree, tells light-DOM rules (through
  *   `@container style()`) that a table sits in an element.  Cells reset it, so a table nested in a cell
  *   answers for itself.  It picks between:
- *   - stackable:  hosted tables stack by the HOST's width (`@container`, host `container-type: inline-size`,
- *     unnamed -- container names are tree-scoped);  static tables by the viewport (`@media`), as in Fomantic
+ *   - stackable:  by the viewport (`@media`), as in Fomantic, hosted or static;  a hosted table opts in to stacking
+ *     by the HOST's width with `--ui-table-stack-by: container` (`@container`, host `container-type: inline-size`,
+ *     unnamed -- container names are tree-scoped)
  *   - scrolling / overflowing:  hosted tables scroll in the shadow `.scroller`, the head (and foot) stuck;
  *     static tables keep Fomantic's `display: block` `tbody` (scrolling) and `table` (overflowing) scrollers
  * - Colours:
@@ -69,6 +70,7 @@
   /* Host:  a block and the size container `stackable` answers to;  the flag that says "hosted". */
   :host {
     --_table-hosted: 1;
+    --_table-stack-by: var(--ui-table-stack-by, viewport);
     /* a colour or size from outside never reaches the table:  its own classes remap them again */
     --ui-color: initial;
     --ui-color-text: initial;
@@ -226,6 +228,7 @@
     --ui-color-inverted-on: initial;
     --ui-scale: initial;
     --_table-hosted: initial;
+    --_table-stack-by: initial;
     transition:
       background var(--_ui-table-duration) var(--ui-ease),
       color var(--_ui-table-duration) var(--ui-ease);
@@ -1000,11 +1003,12 @@
   /*
    * Stackable:  below 768px (`tablet stackable`:  992px) rows become blocks.  This only FLAGS the table
    * (`--_table-stack: 1`);  the stacked layout is in the `states` sublayer.
-   * - In an element:  the host's width.
-   * - Static markup:  the viewport, as in Fomantic.
+   * - By the VIEWPORT (`@media`), as in Fomantic, for static markup and elements alike.
+   * - By the HOST's width (`@container`) only when an element opts in:  `--ui-table-stack-by: container` on the
+   *   host, an ancestor or the page (a table in a narrow sidebar of a wide screen).
    */
   @container (width < 768px) {
-    @container style(--_table-hosted: 1) {
+    @container style(--_table-stack-by: container) {
       .ui.table:not(.unstackable),
       .ui.stackable.table {
         --_table-stack: 1;
@@ -1012,14 +1016,14 @@
     }
   }
   @container (width < 992px) {
-    @container style(--_table-hosted: 1) {
+    @container style(--_table-stack-by: container) {
       .ui[class*="tablet stackable"].table {
         --_table-stack: 1;
       }
     }
   }
   @media (--ui-mobile) {
-    @container not style(--_table-hosted: 1) {
+    @container not style(--_table-stack-by: container) {
       .ui.table:not(.unstackable),
       .ui.stackable.table {
         --_table-stack: 1;
@@ -1027,7 +1031,7 @@
     }
   }
   @media (--ui-mobile), (--ui-tablet) {
-    @container not style(--_table-hosted: 1) {
+    @container not style(--_table-stack-by: container) {
       .ui[class*="tablet stackable"].table {
         --_table-stack: 1;
       }

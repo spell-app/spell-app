@@ -129,6 +129,7 @@
     --_ui-calendar-width-day: var(--ui-calendar-width-day, 18em);
     --_ui-calendar-width-hour: var(--ui-calendar-width-hour, 20em);
     --_ui-calendar-compact-padding: var(--ui-calendar-compact-padding, 0.3em);
+    --_ui-calendar-field-width: var(--ui-calendar-field-width, 20em);
   }
 
   /* Root */
@@ -149,6 +150,13 @@
   .ui.calendar > .ui.input {
     display: flex;
     anchor-name: var(--_ui-calendar-anchor, --ui-calendar);
+  }
+  /*
+   * The field's own width (it grows in a `fluid` one):  Fomantic leaves it to the browser's `<input>` default, which
+   * differs per engine (235 / 258 / 278px) and cuts "September 30, 2026 at 2:30 PM";  `20em` fits that value.
+   */
+  .ui.calendar > .ui.input > input {
+    inline-size: var(--_ui-calendar-field-width);
   }
   .ui.calendar > .ui.input > button.icon {
     padding: 0;

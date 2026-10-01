@@ -92,7 +92,11 @@ describe("<ui-sidebar> classes and markup", () => {
     ["", "ui left uncover sidebar"],
     ['position="right"', "ui right uncover sidebar"],
     ['position="top"', "ui top overlay sidebar"],
-    ['width="very thin" transition="scale down"', "ui left very thin scale down sidebar"],
+    ['width="very thin" transition="scale down"', "ui left scale down sidebar very thin"],
+    ['width="very-wide"', "ui left uncover sidebar very wide"],
+    ['width="4"', "ui left uncover four wide sidebar"],
+    ['width="1/4"', "ui left uncover four wide sidebar"],
+    ['width="50%"', "ui left uncover eight wide sidebar"],
     ['transition="slide along" inverted blurring', "ui left slide along blurring inverted sidebar"]
   ])("<ui-sidebar %s>", async (attributes, classes) => {
     const { panel } = await pushable(`<ui-sidebar ${attributes}>${LINKS}</ui-sidebar>`)
@@ -150,6 +154,15 @@ describe("<ui-sidebar> tokens from outside", () => {
     })
     const { panel } = await pushable(`<ui-sidebar>${LINKS}</ui-sidebar>`)
     expect(width(panel)).toBe("222px")
+  })
+
+  it("a column width is that share of the viewport, and moves the pusher by it", async () => {
+    const { host, panel, pusherBox, toggle } = await pushable(
+      `<ui-sidebar width="1/4" transition="push">${LINKS}</ui-sidebar>`
+    )
+    await show(host, toggle)
+    await expect.poll(() => Math.round(panel.getBoundingClientRect().width)).toBe(Math.round(innerWidth / 4))
+    await expect.poll(() => translation(pusherBox)[0]).toBe(Math.round(panel.offsetWidth))
   })
 
   it("a width word swaps it;  `inverted` swaps the background", async () => {

@@ -253,6 +253,19 @@ describe("<ui-popup> hover", () => {
     expect(shown(host)).toBe(false)
   })
 
+  it('`hoverable="false"` (Fomantic\'s default) closes as the pointer leaves the target, even onto the popup', async () => {
+    const { host, wrapper } = await popup(
+      `<button>Target</button><ui-popup hoverable="false" show-delay="0" hide-delay="40">Tip</ui-popup>`
+    )
+    await userEvent.hover(wrapper.querySelector("button")!)
+    await settle(20)
+    expect(shown(host)).toBe(true)
+    await userEvent.hover(host)
+    await settle(120)
+    expect(shown(host)).toBe(false)
+    expect(host.shadowRoot!.querySelector("[part~=popup]")!.className).not.toContain("hoverable")
+  })
+
   it("opens on keyboard focus at once, and closes when focus leaves", async () => {
     const { host, wrapper } = await popup(`<button>Target</button><ui-popup>Tip</ui-popup><button>Next</button>`)
     wrapper.querySelector("button")!.focus()

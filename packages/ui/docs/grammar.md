@@ -231,8 +231,8 @@ A table's semantics stay NATIVE and in the LIGHT DOM;  the element only adds the
   attribute selectors, `ui-table[celled] > table`, can do none of those.)
 - Rows and cells keep Fomantic's classes on native `tr` / `td` / `th` (`positive`, `red marked left`,
   `collapsing`, `four wide`):  no JS, no elements.
-- `stackable` answers to the HOST's width (it's a size container), not the viewport;  static markup keeps
-  Fomantic's viewport breakpoints.
+- `stackable` answers to the VIEWPORT, as in Fomantic, for elements and static markup alike;  an element opts in to
+  its HOST's width (it's a size container) with `--ui-table-stack-by: container`.
 - Sorting (`sortable`):  a header's `<button>` is its control (else the header becomes focusable);  the
   cancelable `ui-sort` (`{ column, key, direction }`) comes first, then `sort-column` / `sort-direction` and
   `aria-sort`.  `client-sort` reorders a simple table's rows by cell text;  otherwise the app sorts.
@@ -278,7 +278,8 @@ first paint never needs the property.  No virtualization yet:  every row renders
   target's first shadow box IMPLICITLY (`showPopover({ source })`, `position-anchor: auto`).
 - `on`:  `hover` (+ keyboard focus;  `show-delay` / `hide-delay`, Fomantic's 50 / 70 ms), `focus`, `click`,
   `manual`.  A hovered popup stays open while the pointer is over it (WCAG 1.4.13), where Fomantic defaulted to
-  `hoverable: false`.
+  `hoverable: false`;  `hoverable="false"` (boolean, default true) gives Fomantic's behaviour back:  it closes as
+  the pointer leaves the target (after `hide-delay`).
 - Accessibility follows `on`:  tooltip-like (`role=tooltip`, the target `aria-describedby` it) or, for `click`, a
   non-modal dialog (`role=dialog` named by `header`, the target `aria-haspopup=dialog` / `aria-expanded` /
   `aria-controls`).  The ARIA goes on the element that takes focus -- a `<ui-button>`'s inner `<button>`, by
@@ -287,6 +288,23 @@ first paint never needs the property.  No virtualization yet:  every row renders
   `<ui-content>` parts (owner context `in-popup`).
 - The CSS-only tooltip (`data-tooltip`, `data-position`, `data-inverted`, `data-variation`) is `native.css`, a page
   sheet;  pseudo-element text isn't reliably announced, so anything that matters belongs in a `<ui-popup>`.
+
+## Buttons:  invoker commands
+
+```html
+<ui-button commandfor="photo" command="--show">Change photo</ui-button>
+<ui-button commandfor="menu" command="toggle-popover">Menu</ui-button>
+```
+
+- `<ui-button commandfor="id" command="...">` is the native invoker on a custom element:  the inner `<button>` gets
+  `command` and a `commandForElement` resolved from the host's root node (a shadow button can't see a light-DOM
+  id), re-resolved when `commandfor` changes and at click time.
+- Without `UI.browser.supports.invokers` (`"commandForElement" in HTMLButtonElement.prototype`) a click runs it:  the
+  cancelable `command` event on the target (`event.command`, `event.source`), then `show-modal` / `close` /
+  `request-close` on a `<dialog>` or `show-popover` / `hide-popover` / `toggle-popover` on a popover.  Custom `--foo`
+  commands stop at the event.
+- Answering `command` events:  `<ui-modal>` / `<ui-flyout>`, `<ui-sidebar>`, `<ui-dimmer>` (`--show` / `--close` /
+  `--toggle`), `<ui-transition>`, `<ui-shape>` (their own).  Not yet:  `<ui-popup>`, the dropdown menu, toasts.
 
 ## Modals:  `<ui-modal>` on a native `<dialog>`
 
@@ -313,6 +331,10 @@ first paint never needs the property.  No virtualization yet:  every row renders
   overlay's outside click;  Escape always through `UI.overlays`, so only the topmost overlay closes.  `closable`
   is the close ICON (Fomantic's `closeIcon`) -- always INSIDE the box:  the dialog is its own scroll box, so
   Fomantic's outside placement would be clipped.
+  `closable="false"` also restores Fomantic's `closable: false`:  no icon AND `closedby="none"`, unless `closedby` is
+  set (it wins).  `closable` absent:  no icon, dismissed by `closedby`.
+- Invoker commands (`--show`, `--close`, `--toggle`) arrive as the `command` event on the host, from a native
+  `<button commandfor command>` or a `<ui-button commandfor command>`.
 - Events:  `ui-open` (cancelable;  a user action -- the `--show` invoker command), `ui-close` (cancelable, with
   `reason`:  `escape` / `outside` / `close` / `approve` / `deny` / `close-all`), then `ui-show` / `ui-hide` once
   the CSS transition has ended.  Writing `open` is the app's own decision and fires no `ui-open` / `ui-close`.
@@ -431,7 +453,9 @@ first paint never needs the property.  No virtualization yet:  every row renders
   `<ui-pusher>` (the page beside it).  A visible sidebar reports what it needs to its pushable, which sets inherited
   PRIVATE tokens (`PUSHER_TOKENS`, `--_ui-pusher-*`) the pusher reads:  where it moves (measured, as Fomantic's
   script did), its origin, dimmed, blurred.  Fomantic's sibling rules (`.visible.left.sidebar ~ .pusher`) stay for static markup.
-- `position` (`left` default, `right`, `top`, `bottom`), `width` (`very thin`, `thin`, `wide`, `very wide`),
+- `position` (`left` default, `right`, `top`, `bottom`), `width` (Fomantic's words `very thin` 60px, `thin` 150px, `wide`, `very wide`, AND columns / fractions /
+  percentages of the viewport:  `4`, `1/4`, `25%` => `four wide`;  as `<ui-flyout>`'s, the word goes after the noun:
+  `ui left sidebar thin`),
   `transition` (`overlay`, `push`, `scale down`, `uncover`, `slide along`, `slide out`;  default Fomantic's:
   `uncover` on the sides, `overlay` at the top / bottom), `inverted` (a dark panel), `blurring`.
 - Semantics, by APG, decided:
@@ -695,11 +719,13 @@ first paint never needs the property.  No virtualization yet:  every row renders
 
 ## Emoji:  `<ui-emoji name>`, native Unicode
 
-- The glyph is the platform's colour emoji, never an image:  Fomantic's 3,808 names (JoyPixels / Discord
-  shortcodes, `smile`, `thumbsup`, `flag_us`) map to Unicode sequences in `src/components/emoji/data/<letter>.json`,
-  generated from Fomantic's `emoji.variables` by `yarn gen:emoji` (`scripts/gen-emoji.ts`, which restores the
-  U+FE0F Twemoji's file names drop).  No new dependency, no CDN.
-- `EmojiData` loads ONE chunk per first letter on first use (`import()`, at most ~4 KB gzip), caches it, and answers
+- The glyph is the platform's colour emoji, never an image:  5,334 names map to Unicode sequences in
+  `src/components/emoji/data/<letter>.json`, generated by `yarn gen:emoji` (`scripts/gen-emoji.ts`) from
+  `emojibase-data` (a DEV-only dependency:  CLDR shortcodes -- `thumbs_up` -- and each emoji's code points and
+  presentation, so U+FE0F is added exactly where the data says an emoji defaults to text) plus Fomantic's
+  `emoji.variables` (its names that differ from CLDR's stay as ALIASES:  `thumbsup`, `smile`, `flag_us`;  where a
+  Fomantic name is another emoji's CLDR name, `dog`, Fomantic's wins).  Nothing new ships, no CDN.
+- `EmojiData` loads ONE chunk per first letter on first use (`import()`, at most ~5 KB gzip), caches it, and answers
   later names synchronously;  nothing is in `core`.  `EmojiData.register(name, emoji)` adds an app's own names.
 - Names:  `smile` ~== `:smile:` ~== `Smile`;  spaces ~== `_`.  Unknown => an empty box with no role.
 - Accessible name:  by default the character is plain TEXT, so assistive tech reads its Unicode name in the user's

@@ -287,7 +287,7 @@ export class UISearch extends FormElement<Vocabulary> {
   render(): JSX.Element {
     this.ids = { results: UI.ids.next(ID_PREFIX), anchor: `--${UI.ids.next(ID_PREFIX)}` }
     return (
-      <div class={this.classes()} style={{ [SEARCH_ANCHOR_PROPERTY]: this.ids.anchor }}>
+      <div class={this.classes()} part={this.part("search")} style={{ [SEARCH_ANCHOR_PROPERTY]: this.ids.anchor }}>
         <div
           class={[INPUT, { [LOADING]: this.isLoading(), [FLUID]: this.attrs.fluid, [DISABLED]: this.isDisabled() }]}
           part={this.part("input")}
@@ -347,7 +347,7 @@ export class UISearch extends FormElement<Vocabulary> {
         <Show when={this.shown()}>
           <Show when={this.flat().length} fallback={this.messageElement()}>
             <Show when={this.attrs.category} fallback={<For each={this.flat()}>{(result) => this.row(result)}</For>}>
-              <For each={this.groups()}>{(group, index) => this.categoryElement(group, index())}</For>
+              <For each={this.groups()}>{(group, index) => this.categoryElement(group, index)}</For>
             </Show>
           </Show>
         </Show>
@@ -356,16 +356,17 @@ export class UISearch extends FormElement<Vocabulary> {
   }
 
   /** One category:  its name, then its results, as a named `group`. */
-  private categoryElement(group: SearchCategory, index: number): JSX.Element {
-    const nameId = `${this.ids.results}-category-${index}`
+  private categoryElement(group: SearchCategory, index: () => number): JSX.Element {
+    // a function:  `index` is `<For>`'s accessor, so it's read in JSX (tracked), never in the callback body
+    const nameId = () => `${this.ids.results}-category-${index()}`
     return (
       <div
         class={[CATEGORY, { [ACTIVE]: group.results.includes(this.highlighted()!) }]}
         role="group"
-        aria-labelledby={nameId}
+        aria-labelledby={nameId()}
         part={this.part("category")}
       >
-        <div id={nameId} class={NAME} part={this.part("name")}>
+        <div id={nameId()} class={NAME} part={this.part("name")}>
           {group.name}
         </div>
         <div class={RESULTS} role="none">

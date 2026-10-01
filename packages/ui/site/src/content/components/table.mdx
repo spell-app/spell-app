@@ -16,10 +16,9 @@ import VocabularyTable from "../../components/VocabularyTable.astro"
 // it (`ui celled striped table`) and registers `table.css` as a page sheet.  Row and cell looks are Fomantic's
 // own classes on `tr` / `td` / `th`.  The examples in `src/components/table/examples/elements/` are ~2000 lines;
 // near-duplicates (every colour, both sizes, three attachments ...) are trimmed to a few rows each here.
-// `stackable` answers to the element's OWN width:  below 768px every table without `unstackable` stacks.
+// `stackable` answers to the VIEWPORT, as in Fomantic:  below 768px every table without `unstackable` stacks.
 
 <Section title="Types">
-  <p class="site-note">This page's example column is narrower than 768px, and a table stacks by its OWN width, so every example below without `unstackable` shows the stacked (mobile) layout.  Widen a table's container to see the usual rows.</p>
   <Example title="Table" description="A standard table.  Slot a real `<table>` into `<ui-table>`;  `celled` draws borders between cells.">
     <ui-table celled>
       <table>
@@ -299,7 +298,7 @@ import VocabularyTable from "../../components/VocabularyTable.astro"
   </Variation>
   <Variation
     title="Stackable"
-    description="Rows become blocks when the TABLE (not the viewport) is narrower than 768px;  `stackable=tablet` also below 992px.  `unstackable` never stacks."
+    description="Rows become blocks when the VIEWPORT is narrower than 768px;  `stackable=tablet` also below 992px.  `unstackable` never stacks."
   >
     <ui-table stackable>
       <table>
@@ -680,9 +679,9 @@ import VocabularyTable from "../../components/VocabularyTable.astro"
   `collapsing`, `four wide`, `right aligned`.  No script, no extra elements.  `columns="4"` is Fomantic's
   equal-width column count;  the data mode's column list is the separate `columnDefs` property.
 
-  `stackable` answers to the table's OWN width, not the viewport's, so a table in a narrow sidebar stacks even on a
-  wide screen.  Below 768px every table stacks unless it is `unstackable`, as in Fomantic;  `stackable="tablet"`
-  also stacks below 992px.
+  `stackable` answers to the VIEWPORT, as in Fomantic:  below 768px every table stacks unless it is `unstackable`;
+  `stackable="tablet"` also stacks below 992px.  A table in a narrow sidebar of a wide screen can opt in to its OWN
+  width instead with `--ui-table-stack-by: container` (on the table, an ancestor or the page).
 
   With `sortable`, every header in the `thead` sorts, unless it has `data-sortable="false"` (or Fomantic's
   `class="disabled"`).  A click, or Enter / Space on a focused header, first dispatches the cancelable `ui-sort`

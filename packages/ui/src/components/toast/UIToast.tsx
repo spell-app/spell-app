@@ -36,7 +36,7 @@ type Vocabulary = typeof toastVocabulary
  *   `display-time` (absent / `0`:  it stays).  Closing -- the countdown, the close icon, a click, Escape inside it,
  *   an action, `host.close()` -- fires the cancelable `ui-close` (with a `reason`), animates out, sets `hidden` on
  *   the HOST and fires `ui-hide`.  It never removes itself:  whoever inserted it owns the node.
- * - Countdown pauses while the pointer is over it (`pause-on-hover`, default on) and ALWAYS while focus is inside
+ * - Countdown pauses while the pointer is moving over it (`pause-on-hover`, default on) and ALWAYS while focus is inside
  *   (WCAG 2.2.1), with `:state(paused)`;  the progress bar pauses with it.
  * - Accessibility:  the toast is `role=status` (polite), `alert` for `type="error"`;  it never takes focus.  The
  *   close icon is a real `<button>`;  Escape closes it while focus is inside (no page-wide Escape:  kind `toast`
@@ -120,7 +120,10 @@ export class UIToast extends UIElement<Vocabulary> {
   /** Closing (or closed):  no further closes, no restarts.  `closingState` follows a microtask later. */
   private closing = false
 
-  /** The pointer is over it. */
+  /** The pointer entered it (maybe without moving). */
+  private entered = false
+
+  /** The pointer is over it and has really moved:  the countdown pauses. */
   private hovered = false
 
   /** Focus is inside it. */
@@ -140,6 +143,7 @@ export class UIToast extends UIElement<Vocabulary> {
     const listeners = new AbortController()
     const options = { signal: listeners.signal }
     host.addEventListener("pointerenter", this.onPointerEnter, options)
+    host.addEventListener("pointermove", this.onPointerMove, options)
     host.addEventListener("pointerleave", this.onPointerLeave, options)
     host.addEventListener("focusin", this.onFocusIn, options)
     host.addEventListener("focusout", this.onFocusOut, options)
@@ -426,8 +430,17 @@ export class UIToast extends UIElement<Vocabulary> {
   // ## Handlers
   ////////////////
 
-  /** Pointer over it:  pause (with `pause-on-hover`). */
+  /**
+   * Pointer entered it:  only noted.  A toast appearing under a RESTING pointer gets a `pointerenter` (the browser's
+   * synthetic move) with no real move;  pausing on that alone could hold it forever, so `onPointerMove` pauses.
+   */
   private readonly onPointerEnter = () => {
+    this.entered = true
+  }
+
+  /** A real pointer move over it (`movementX/Y` nonzero:  synthetic ones have none):  pause (with `pause-on-hover`). */
+  private readonly onPointerMove = (event: PointerEvent) => {
+    if (!this.entered || this.hovered || (!event.movementX && !event.movementY)) return
     if (!untrack(() => this.attrs.pauseOnHover)) return
     this.hovered = true
     this.updatePause()
@@ -435,6 +448,7 @@ export class UIToast extends UIElement<Vocabulary> {
 
   /** Pointer off it:  resume. */
   private readonly onPointerLeave = () => {
+    this.entered = false
     this.hovered = false
     this.updatePause()
   }

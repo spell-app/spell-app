@@ -6,7 +6,7 @@ import {
   HostAttribute,
   IconGlyph,
   MODAL_ACTION_SELECTORS,
-  MODAL_COMMANDS,
+  TOGGLE_COMMANDS,
   UI,
   UIElement,
   type AttributeName,
@@ -39,7 +39,7 @@ import {
  *   `rootPart`, `header`, `content`, `close`;  state `open`;  text `close`.
  * - `open` is auto-controlled:  `ui-open` / `ui-close` (with a `reason`) come first and can veto;  `ui-show` /
  *   `ui-hide` follow once the CSS transition has finished.
- * - Dismissal, by `closedby` (read when it opens):
+ * - Dismissal, by `closedby` (read when it opens;  see `closedBy()` for what an absent one means):
  *   - Escape:  through `UI.overlays` (kind `overlayKind`:  scroll lock, keyboard scope, focus restore), so only the
  *     topmost overlay closes and `ui-close` can veto;  the dialog's own `cancel` is always prevented
  *   - a click on the `::backdrop`:  the browser's light dismiss (`<dialog closedby>`) when
@@ -48,10 +48,12 @@ import {
  *   - a close the browser forces anyway (a repeated Escape it won't let a page veto) is followed:  a `ui-close`
  *     that can't veto, then `open` off
  * - Opening as a USER action (so `ui-open` fires):  an invoker command, `<button commandfor="id" command="--show">`
- *   (`MODAL_COMMANDS`;  `--close` closes);  an `open` write is the app's own decision and fires nothing.
+ *   (`TOGGLE_COMMANDS`;  `--close` closes, `--toggle` flips);  an `open` write is the app's own decision and fires nothing.
  * - Buttons:  a click on an approve / deny element (`MODAL_ACTION_SELECTORS`:  Fomantic's `.approve` / `.deny`
  *   classes, `<ui-button positive / negative>`) fires the cancelable `ui-approve` / `ui-deny`, then closes;  the
  *   `closable` icon closes (reason `close`).
+ * - `closable="false"` is Fomantic's `closable: false` AND `closeIcon: false`:  no icon, and (unless `closedby` is
+ *   set) `closedby="none"` -- Escape and the dimmer do nothing.
  * - Name:  the host's `aria-label`, else the `header` shorthand, else a slotted `<ui-header>` (element
  *   reflection:  an idref can't reach into the light DOM from here).
  ****************/
@@ -217,7 +219,7 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
   private show() {
     const dialog = this.dialog
     if (!dialog) return
-    const closedBy = untrack(() => this.dialogAttrs.closedby) ?? ANY
+    const closedBy = this.closedBy()
     const native = UI.browser.supports.dialogClosedBy
     if (native) dialog.setAttribute(CLOSEDBY, closedBy)
     else dialog.removeAttribute(CLOSEDBY)
@@ -283,11 +285,24 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
   // ## Handlers
   ////////////////
 
-  /** An invoker command aimed at the host (`MODAL_COMMANDS`). */
+  /** An invoker command aimed at the host (`TOGGLE_COMMANDS`). */
   private readonly onCommand = (event: Event) => {
     const { command } = event as Event & { command: string }
-    if (command === MODAL_COMMANDS.show) this.setOpen(event)
-    else if (command === MODAL_COMMANDS.close) this.requestClose(CLOSE, event)
+    const open = untrack(() => this.isOpen())
+    if (command === TOGGLE_COMMANDS.show || (command === TOGGLE_COMMANDS.toggle && !open)) this.setOpen(event)
+    else if (command === TOGGLE_COMMANDS.close || command === TOGGLE_COMMANDS.toggle) this.requestClose(CLOSE, event)
+  }
+
+  /**
+   * What dismisses it:  an explicit `closedby` wins;  else `none` for `closable="false"` (Fomantic's `closable:
+   * false`), else `any`.
+   * - NOTE: `closedby` has a vocabulary default, so presence is read off the host.
+   */
+  private closedBy(): NonNullable<DialogAttributes["closedby"]> {
+    if (this.host.hasAttribute(CLOSEDBY)) return untrack(() => this.dialogAttrs.closedby) ?? ANY
+    // NOTE: an absent boolean also converts to `false`, so `closable` must be present to mean "closable: false"
+    const off = this.host.hasAttribute(CLOSABLE) && !untrack(() => this.dialogAttrs.closable)
+    return off ? NONE : ANY
   }
 
   /** Close icon. */
@@ -314,7 +329,7 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
     const reason = this.backdropPress ? OUTSIDE : ESCAPE
     this.backdropPress = false
     if (this.dismissing) return
-    const closedBy = untrack(() => this.dialogAttrs.closedby) ?? ANY
+    const closedBy = this.closedBy()
     if (closedBy === NONE || (reason === OUTSIDE && closedBy !== ANY)) return
     this.requestClose(reason, event)
   }
@@ -402,6 +417,7 @@ const DENY = "deny"
 const ARIA_LABEL = "aria-label"
 const ARIA_LABELLEDBY = "aria-labelledby"
 const CLOSEDBY = "closedby"
+const CLOSABLE = "closable"
 
 /** Class words of the markup contract (`modal.css`, `flyout.css`) -- grammar, not attributes. */
 const HEADER = "header"

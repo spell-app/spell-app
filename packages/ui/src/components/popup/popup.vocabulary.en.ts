@@ -81,6 +81,16 @@ export const popupVocabulary = {
       kind: "string",
       description: "Shorthand for the text (Fomantic's `content`);  slotted content is the rich version."
     },
+    {
+      name: "hoverable",
+      kind: "boolean",
+      default: true,
+      description:
+        "`hover`:  the popup stays open while the pointer is over it, so it can be reached and its text read or " +
+        "selected -- on by default, as WCAG 1.4.13 (Content on Hover or Focus) asks for.  " +
+        '`hoverable="false"` is Fomantic\'s `hoverable: false` (its default):  it closes as the pointer leaves ' +
+        "the target, after `hide-delay`."
+    },
     { name: "show-delay", kind: "number", default: 50, description: "`hover`:  ms before it shows." },
     { name: "hide-delay", kind: "number", default: 70, description: "`hover`:  ms before it hides." },
     {

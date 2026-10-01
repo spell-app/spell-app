@@ -39,8 +39,8 @@ describe("EmojiData", () => {
 
   it("loads a name's chunk lazily, then answers synchronously", async () => {
     expect(EmojiData.peek("zap")).toBeUndefined()
-    expect(await EmojiData.get("zap")).toBe("\u26A1\uFE0F")
-    expect(EmojiData.peek(":ZAP:")).toBe("\u26A1\uFE0F")
+    expect(await EmojiData.get("zap")).toBe("\u26A1")
+    expect(EmojiData.peek(":ZAP:")).toBe("\u26A1")
     expect(EmojiData.peek("zebra")).toBe("\u{1F993}")
   })
 
@@ -49,6 +49,32 @@ describe("EmojiData", () => {
     expect(await EmojiData.get("one")).toBe("1\uFE0F\u20E3")
     expect(await EmojiData.get("flag_us")).toBe("\u{1F1FA}\u{1F1F8}")
     expect(await EmojiData.get("100")).toBe("\u{1F4AF}")
+  })
+
+  it("names are CLDR shortcodes;  Fomantic's names are aliases of the same character", async () => {
+    const thumbs = "\u{1F44D}"
+    expect(await EmojiData.get("thumbs_up")).toBe(thumbs)
+    expect(await EmojiData.get("thumbsup")).toBe(thumbs)
+    expect(await EmojiData.get(":thumbsup:")).toBe(thumbs)
+    expect(await EmojiData.get("Thumbs Up")).toBe(thumbs)
+    expect(await EmojiData.get("thumbsup_tone1")).toBe("\u{1F44D}\u{1F3FB}")
+    expect(await EmojiData.get("thumbs_up_tone1")).toBe("\u{1F44D}\u{1F3FB}")
+    expect(await EmojiData.get("grinning_face_with_smiling_eyes")).toBe(await EmojiData.get("smile"))
+    expect(await EmojiData.get("flag_united_states")).toBe(await EmojiData.get("flag_us"))
+    expect(await EmojiData.get("1st_place_medal")).toBe("\u{1F947}")
+  })
+
+  it("Fomantic's meaning wins where its name is another emoji's CLDR name", async () => {
+    // Fomantic's `dog` is the face (U+1F436), CLDR's `dog` the whole dog (U+1F415), which is `dog2` in Fomantic
+    expect(await EmojiData.get("dog")).toBe("\u{1F436}")
+    expect(await EmojiData.get("dog_face")).toBe("\u{1F436}")
+    expect(await EmojiData.get("dog2")).toBe("\u{1F415}")
+  })
+
+  it("adds U+FE0F only to emoji that default to text (the data says which)", async () => {
+    expect(await EmojiData.get("hourglass")).toBe("⌛")
+    expect(await EmojiData.get("eye_in_speech_bubble")).toBe("\u{1F441}️‍\u{1F5E8}️")
+    expect(await EmojiData.get("copyright")).toBe("©️")
   })
 
   it("answers undefined for unknown names, and takes registered ones", async () => {

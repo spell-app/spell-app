@@ -19,10 +19,10 @@ describe("SidebarFallback", () => {
     const host = Fixture.render<StubHost>(`<ui-sidebar position="right" width="thin" inverted>x</ui-sidebar>`)
     const panel = FallbackStub.shadow(host).querySelector<HTMLElement>("[part~=sidebar]")!
     expect(panel.localName).toBe("aside")
-    expect(panel.className).toBe("ui right thin inverted sidebar")
+    expect(panel.className).toBe("ui right inverted sidebar thin")
     expect(panel.getAttribute("aria-label")).toBe("Sidebar")
     host.setAttribute("visible", "")
-    await expect.poll(() => panel.className).toBe("ui right thin inverted visible sidebar")
+    await expect.poll(() => panel.className).toBe("ui right inverted visible sidebar thin")
     await expectAccessible(panel, AXE)
   })
 

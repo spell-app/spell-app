@@ -317,6 +317,73 @@ describe("<ui-modal> open / close", () => {
     expect(dialog.open).toBe(true)
   })
 
+  it('closable="false" (Fomantic\'s `closable: false`):  no icon, and Escape and the dimmer do nothing', async () => {
+    const { host, dialog } = await modal(`<ui-modal size="mini" closable="false" content="Body"></ui-modal>`)
+    await open(host)
+    expect(dialog.querySelector("[part~=close]")).toBeNull()
+    expect(dialog.getAttribute("closedby")).toBe("none")
+    await userEvent.keyboard("{Escape}")
+    await settle()
+    expect(dialog.open).toBe(true)
+    await userEvent.click(document.body, { position: { x: 3, y: 3 } })
+    await settle()
+    expect(dialog.open).toBe(true)
+  })
+
+  it('closable="false" with an explicit `closedby`:  `closedby` wins for dismissal', async () => {
+    const { host, dialog } = await modal(
+      `<ui-modal closable="false" closedby="closerequest" content="Body"></ui-modal>`
+    )
+    await open(host)
+    expect(dialog.getAttribute("closedby")).toBe("closerequest")
+    await userEvent.keyboard("{Escape}")
+    await settle()
+    expect(dialog.open).toBe(false)
+  })
+
+  it("`closable` present shows the icon and still dismisses by `closedby` (default any)", async () => {
+    const { host, dialog } = await modal(`<ui-modal closable content="Body"></ui-modal>`)
+    await open(host)
+    expect(dialog.querySelector("[part~=close]")).not.toBeNull()
+    expect(dialog.getAttribute("closedby")).toBe("any")
+  })
+
+  it("invoker commands:  `--toggle` opens a closed modal and closes an open one, as user actions", async () => {
+    const { host, dialog, wrapper } = await modal(`<ui-modal id="m" content="Body"></ui-modal>`)
+    wrapper.insertAdjacentHTML("afterbegin", `<button id="flip" commandfor="m" command="--toggle">Flip</button>`)
+    const opens = record(host, "ui-open")
+    const closes = record(host, "ui-close")
+    const flip = wrapper.querySelector<HTMLButtonElement>("#flip")!
+    flip.click()
+    await settle()
+    expect(dialog.open).toBe(true)
+    expect(opens).toHaveLength(1)
+    flip.click()
+    await settle()
+    expect(dialog.open).toBe(false)
+    expect(closes.map((detail) => detail.reason)).toEqual(["close"])
+  })
+
+  it("answers a plain `command` event (what the button's JS fallback dispatches)", async () => {
+    const { host, dialog } = await modal(`<ui-modal id="m" content="Body"></ui-modal>`)
+    const send = (command: string) => {
+      const event = Object.assign(new Event("command", { cancelable: true }), { command })
+      host.dispatchEvent(event)
+    }
+    send("--show")
+    await settle()
+    expect(dialog.open).toBe(true)
+    send("--toggle")
+    await settle()
+    expect(dialog.open).toBe(false)
+    send("--toggle")
+    await settle()
+    expect(dialog.open).toBe(true)
+    send("--close")
+    await settle()
+    expect(dialog.open).toBe(false)
+  })
+
   it("without native `closedby`, the overlay's outside click tells the dimmer from the dialog", async () => {
     const supports = UI.browser.supports
     const native = supports.dialogClosedBy

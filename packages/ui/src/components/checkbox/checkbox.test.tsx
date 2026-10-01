@@ -337,6 +337,23 @@ describe("<ui-radio> groups", () => {
     expect(c!.selected).toBe(true)
   })
 
+  it("arrow keys never change a readonly group", async () => {
+    const form = await ElementFixture.render<HTMLFormElement>(`<form>
+      <ui-radio name="n" value="a" selected readonly>A</ui-radio>
+      <ui-radio name="n" value="b" readonly>B</ui-radio>
+    </form>`)
+    await ElementFixture.tick()
+    const [a, b] = form.querySelectorAll<Check>("ui-radio")
+    const detailsA = changes(a!)
+    const detailsB = changes(b!)
+    parts(a!).input.focus()
+    await userEvent.keyboard("{ArrowDown}")
+    await ElementFixture.tick()
+    await ElementFixture.tick()
+    expect([a!.selected, b!.selected]).toEqual([true, false])
+    expect([...detailsA, ...detailsB]).toEqual([])
+  })
+
   it("groups by root node outside a form, and regroups on rename", async () => {
     const container = await ElementFixture.render<HTMLDivElement>(`<div>
       <ui-radio name="g" value="1" selected>One</ui-radio><ui-radio name="g" value="2">Two</ui-radio>

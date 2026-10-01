@@ -54,6 +54,26 @@ async function search(html: string, source?: SearchResult[]) {
   }
 }
 
+describe("<ui-search> rendering open from the start", () => {
+  it.each([
+    ["", FRUIT],
+    ["category", FOOD]
+  ])("%s results render without a STRICT_READ_UNTRACKED warning", async (attributes, source) => {
+    const logs: string[] = []
+    const spies = (["warn", "error", "info", "log"] as const).map((method) =>
+      vi.spyOn(console, method).mockImplementation((...args: unknown[]) => void logs.push(args.map(String).join(" ")))
+    )
+    try {
+      const { titles } = await search(`<ui-search open value="a" ${attributes}></ui-search>`, source)
+      await ElementFixture.tick()
+      expect(titles().length).toBeGreaterThan(0)
+    } finally {
+      spies.forEach((spy) => spy.mockRestore())
+    }
+    expect(logs.filter((line) => line.includes("STRICT_READ_UNTRACKED"))).toEqual([])
+  })
+})
+
 /** Collect `detail`s of `name` events. */
 function record(host: Element, name: string) {
   const details: unknown[] = []
@@ -515,6 +535,13 @@ describe("<ui-search> tokens from outside", () => {
   it("takes a token set through `::part(input)`", async () => {
     const wrapper = await ElementFixture.render(
       `<div><style>.themed::part(input) { --ui-search-prompt-radius: 3px }</style><ui-search class="themed"></ui-search></div>`
+    )
+    expect(radius(wrapper.querySelector("ui-search")!)).toBe("3px")
+  })
+
+  it("takes a token set through `::part(search)`, the root", async () => {
+    const wrapper = await ElementFixture.render(
+      `<div><style>.themed::part(search) { --ui-search-prompt-radius: 3px }</style><ui-search class="themed"></ui-search></div>`
     )
     expect(radius(wrapper.querySelector("ui-search")!)).toBe("3px")
   })

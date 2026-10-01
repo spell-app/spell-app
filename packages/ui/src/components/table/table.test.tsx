@@ -1,5 +1,5 @@
-import { describe, expect, it, onTestFinished } from "vitest"
-import { userEvent } from "vitest/browser"
+import { beforeEach, describe, expect, it, onTestFinished } from "vitest"
+import { page, userEvent } from "vitest/browser"
 
 import { UI } from "$/ui/runtime"
 import type { TableColumn, TableRow, TableSortDetail } from "$/ui/components/components.types"
@@ -49,6 +49,11 @@ async function table(attributes = "", inner = HEAD + BODY, tableAttributes = "")
   const host = wrapper.querySelector<TableHost>("ui-table")!
   return { host, table: host.querySelector("table")! }
 }
+
+/** A viewport no table stacks in:  tables stack by the VIEWPORT unless they opt in to their own width. */
+beforeEach(async () => {
+  await page.viewport(1200, 900)
+})
 
 /** Wrapper width that never stacks (tablet and up). */
 const WIDE = 1000
@@ -198,9 +203,22 @@ describe("<ui-table> shadow markup", () => {
     expect(getComputedStyle(element.tBodies[0]!).display).toBe("table-row-group")
   })
 
-  it("stacks by its own width, not the viewport", async () => {
+  it("stacks by the VIEWPORT, as in Fomantic, however wide or narrow its own column is", async () => {
     const wrapper = await ElementFixture.render<HTMLElement>(
-      `<div style="width: 500px"><ui-table><table>${HEAD}${BODY}</table></ui-table>` +
+      `<div style="width: ${NARROW}px"><ui-table><table>${HEAD}${BODY}</table></ui-table></div>`
+    )
+    await settle()
+    const cell = wrapper.querySelector("td")!
+    expect(getComputedStyle(cell).display).toBe("table-cell")
+    await page.viewport(500, 900)
+    wrapper.style.width = `${WIDE}px`
+    await new Promise((resolve) => requestAnimationFrame(resolve))
+    expect(getComputedStyle(cell).display).toBe("block")
+  })
+
+  it("stacks by its own width when `--ui-table-stack-by: container` opts in", async () => {
+    const wrapper = await ElementFixture.render<HTMLElement>(
+      `<div style="width: 500px; --ui-table-stack-by: container"><ui-table><table>${HEAD}${BODY}</table></ui-table>` +
         `<ui-table unstackable><table>${HEAD}${BODY}</table></ui-table></div>`
     )
     await settle()
@@ -252,6 +270,8 @@ describe("<ui-table> tokens from outside", () => {
   })
 
   it("sizes the scroller by `--ui-table-row-height`", async () => {
+    // the scroller's cap is 4 rows on a mobile viewport (more rows on larger ones)
+    await page.viewport(414, 900)
     const rows = Array.from({ length: 30 }, (_, index) => `<tr><td>${index}</td><td>x</td><td>y</td></tr>`).join("")
     const { host } = await table(`scrolling style="--ui-table-row-height: 10px"`, `${HEAD}<tbody>${rows}</tbody>`)
     expect(getComputedStyle(scroller(host)).maxBlockSize).toBe("40px")

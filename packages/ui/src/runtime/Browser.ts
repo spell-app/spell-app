@@ -109,6 +109,7 @@ export class Browser {
       anchorPositioning: css && probe(() => CSS.supports("anchor-name: --x")),
       popover: dom && probe(() => Object.hasOwn(HTMLElement.prototype, "popover")),
       popoverHint: dom && probe(() => this.popoverHintReflects()),
+      invokers: dom && probe(() => "commandForElement" in HTMLButtonElement.prototype),
       dialogClosedBy: dom && probe(() => "closedBy" in HTMLDialogElement.prototype),
       closeWatcher: "CloseWatcher" in globalThis,
       baseSelect: css && probe(() => CSS.supports("appearance", "base-select")),

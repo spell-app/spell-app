@@ -15,8 +15,8 @@
  * - Public tokens (`--ui-comments-*`, `--ui-comment-*`) are NEVER declared here:  the top list reads each through a
  *   private alias (`--_ui-comment-distance: var(--ui-comment-distance, 0.5em)`), which its comments and threads
  *   inherit and read.  So a value set on `:root`, an ancestor, the host or `::part(comments)` reaches every
- *   comment (`docs/theming.md` "Component tokens").  A comment or thread never re-declares them, so a lone
- *   `<ui-comment>` outside a list gets none, as before.
+ *   comment (`docs/theming.md` "Component tokens").  A comment in a list or a thread never re-declares them;  a
+ *   LONE `<ui-comment>` outside a list (`:host(:not(:state(in-comments)))`) declares its own.
  *   - the parts' look tokens (`--ui-comment-author-color` ...) are declared nowhere:  `parts.css` reads them
  * - The top list declares the variation tokens its threads and parts read, and they inherit all the way down:
  *   `--_ui-comments-minimal` (`parts.css`:  actions hidden until the comment is hovered or holds focus),
@@ -42,8 +42,11 @@
     display: none;
   }
 
-  /* Tokens:  one private alias per `comment.variables` entry that still matters;  threads inherit them. */
-  .ui.comments {
+  /* Tokens:  one private alias per `comment.variables` entry that still matters;  threads inherit them.
+     Declared on the top list AND on a LONE comment (outside a list), which has none to inherit from;  a comment
+     in a list declares none, so it keeps the list's. */
+  .ui.comments,
+  :host(:not(:state(in-comments))) {
     --_ui-comments-max-width: var(--ui-comments-max-width, calc(var(--ui-font-size) * 40.625));
     --_ui-comments-margin: var(--ui-comments-margin, 1.5em);
     --_ui-comment-distance: var(--ui-comment-distance, 0.5em);
@@ -58,6 +61,8 @@
     );
     --_ui-comments-reply-distance: var(--ui-comments-reply-distance, 1em);
     --_ui-comments-disabled-opacity: var(--ui-comments-disabled-opacity, var(--ui-disabled-opacity));
+  }
+  .ui.comments {
     /* Variations, read by threads and parts. */
     --_ui-comments-minimal: 0;
     --_comments-threaded: 0;

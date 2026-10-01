@@ -93,7 +93,8 @@ export const inputVocabulary = {
     {
       name: "label",
       kind: "string",
-      description: "Label text, joined to the field;  the `label` slot is the rich version."
+      description:
+        'Label text, joined to the field;  an ICON name with `labeled="corner"` / `"left corner"`;  the `label` slot is the rich version.'
     },
     {
       name: "type",

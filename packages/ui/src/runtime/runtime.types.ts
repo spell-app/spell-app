@@ -64,6 +64,8 @@ export type BrowserSupports = {
   popover: boolean
   /** `popover="hint"` -- tooltips that don't close `auto` popovers */
   popoverHint: boolean
+  /** invoker commands:  `<button commandfor command>`, set from script as `commandForElement` */
+  invokers: boolean
   /** `<dialog closedby="any">` -- light dismiss handled by the browser */
   dialogClosedBy: boolean
   /** `CloseWatcher` -- Escape AND Android back button close the top overlay */

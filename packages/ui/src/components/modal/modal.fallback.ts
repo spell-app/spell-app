@@ -52,6 +52,10 @@ export class ModalFallback extends NativeFallback<typeof modalVocabulary> {
     if (this.flag("closable")) dialog.append(this.closeButton())
     this.listen<MouseEvent>(dialog, "click", (event) => this.onClick(event))
     this.listen(dialog, "close", () => this.onClosed())
+    // `closable="false"` (Fomantic's `closable: false`) with no explicit `closedby`:  Escape does nothing
+    if (this.attr("closable") !== null && !this.flag("closable") && this.attr(CLOSEDBY) === null) {
+      this.listen(dialog, "cancel", (event) => event.preventDefault())
+    }
     this.dialog = this.decorate(dialog, this.rootPart)
     return [this.dialog]
   }
@@ -126,6 +130,7 @@ export class ModalFallback extends NativeFallback<typeof modalVocabulary> {
 
 /** The host attribute it follows. */
 const OPEN = "open"
+const CLOSEDBY = "closedby"
 
 /** Events it still fires, checked against the vocabulary. */
 const APPROVE: EventName<typeof modalVocabulary> = "ui-approve"

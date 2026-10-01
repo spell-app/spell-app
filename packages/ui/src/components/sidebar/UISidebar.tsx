@@ -19,7 +19,7 @@ import {
   type UIHost
 } from "$/ui/core"
 
-import { sidebarVocabulary } from "./sidebar.vocabulary.en"
+import { SIDEBAR_WORD_WIDTHS, sidebarVocabulary } from "./sidebar.vocabulary.en"
 import type { UIPushable } from "./UIPushable"
 import { SidebarFallback } from "./sidebar.fallback"
 
@@ -107,7 +107,19 @@ export class UISidebar extends UIElement<Vocabulary> {
   // ## Element hooks
   ////////////////
 
+  /** A word width (`thin`) goes after the noun;  `ClassBuilder`'s `width` kind only knows columns. */
+  protected extraClasses(): string | undefined {
+    return UISidebar.wordWidth(this.attrs.width)
+  }
+
+  /** `width` when it's one of Fomantic's words (spaces or dashes), else `undefined`. */
+  static wordWidth(width: string | number | undefined): string | undefined {
+    const text = typeof width === "string" ? width.trim().replace(/[\s-]+/g, " ") : undefined
+    return SIDEBAR_WORD_WIDTHS.find((word) => word === text)
+  }
+
   protected classValue(name: AttributeName<Vocabulary>): unknown {
+    if (name === "width" && UISidebar.wordWidth(this.attrs.width)) return undefined
     if (name === "visible") return this.isVisible()
     if (name === "transition") return this.transitionName()
     return super.classValue(name)

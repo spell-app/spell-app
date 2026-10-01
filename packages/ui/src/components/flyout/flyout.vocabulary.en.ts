@@ -49,7 +49,13 @@ export const flyoutVocabulary = {
         "Width of a `left` / `right` flyout:  Fomantic's words (`very thin`, `thin`, `wide`, `very wide`) or " +
         "columns of the viewport (`4`, `1/4`, `25%` => `four wide`)."
     },
-    { name: "closable", kind: "boolean", description: "Shows a close icon (Fomantic's `closeIcon`)." },
+    {
+      name: "closable",
+      kind: "boolean",
+      description:
+        "Shows a close icon (Fomantic's `closeIcon` setting).  `closable=\"false\"` is also Fomantic's `closable: " +
+        'false` setting:  no icon AND `closedby="none"`, unless `closedby` is set, which wins for dismissal.'
+    },
     {
       name: "closedby",
       kind: "enum",

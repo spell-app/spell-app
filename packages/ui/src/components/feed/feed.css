@@ -16,8 +16,8 @@
  * - Public tokens (`--ui-feed-*`, the theming surface) are NEVER declared here:  the FEED root reads each through a
  *   private alias (`--_ui-feed-label-width: var(--ui-feed-label-width, 2.5em)`), which its events inherit and
  *   read;  `inverted` writes one.  So a value set on `:root`, an ancestor, the host or `::part(feed)` reaches every
- *   event (`docs/theming.md` "Component tokens").  An event never re-declares them (it would drop the feed's
- *   variation), so a lone `<ui-event>` outside a feed gets none, as before.
+ *   event (`docs/theming.md` "Component tokens").  An event IN a feed never re-declares them (it would drop
+ *   the feed's variation);  a LONE `<ui-event>` outside a feed (`:host(:not(:state(in-feed)))`) declares its own.
  *   - the parts' look tokens (`--ui-feed-summary-color` ...) are declared nowhere:  `parts.css` reads them
  * - Feed variations reach the events as inherited private tokens (`--_feed-connected`, `--_feed-ordered`,
  *   `--_feed-divided`, `--_feed-basic`), which the event rules style-query;  NEVER set them from outside.
@@ -49,8 +49,11 @@
     display: none;
   }
 
-  /* Tokens:  one private alias per `feed.variables` entry that still matters, from the global tokens. */
-  .ui.feed {
+  /* Tokens:  one private alias per `feed.variables` entry that still matters, from the global tokens.
+     Declared on the feed root AND on a LONE event (outside a feed), which has no list to inherit them from;
+     an event in a feed declares none, so it keeps the feed's (`inverted` writes some). */
+  .ui.feed,
+  :host(:not(:state(in-feed))) {
     --_ui-feed-margin: var(--ui-feed-margin, 1em);
     --_ui-feed-event-padding: var(--ui-feed-event-padding, 0.21428em);
     --_ui-feed-label-width: var(--ui-feed-label-width, 2.5em);
@@ -65,6 +68,8 @@
     --_ui-feed-connected-color: var(--ui-feed-connected-color, var(--ui-border-color));
     --_ui-feed-divided-border: var(--ui-feed-divided-border, var(--ui-border-width) solid var(--ui-border-color));
     --_ui-feed-disabled-opacity: var(--ui-feed-disabled-opacity, var(--ui-disabled-opacity));
+  }
+  .ui.feed {
     /* The feed's variations, read by its events. */
     --_feed-connected: 0;
     --_feed-ordered: 0;

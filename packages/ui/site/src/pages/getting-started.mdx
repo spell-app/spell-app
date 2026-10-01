@@ -56,7 +56,7 @@ The contract holds in React 19, Vue 3.5, Svelte 5, Solid, Angular 20 and Preact 
 | React 19  | `<ui-dropdown options={arr} value="x" open onui-change={fn} />`                                                       |
 | Vue 3.5   | `isCustomElement: (tag) => tag.startsWith("ui-")`, then `<ui-dropdown .options="arr" value="x" open @ui-change="fn">` |
 | Svelte 5  | `<ui-dropdown options={arr} value="x" open onui-change={fn}>`                                                         |
-| Solid     | `<ui-dropdown prop:options={arr} value="x" bool:open={o} on:ui-change={fn}>`                                          |
+| Solid     | `<ui-dropdown prop:options={arr} value="x" open={o} ref={(el) => el.addEventListener("ui-change", fn)}>`              |
 | Angular   | `[options]="arr" (ui-change)="fn($event)"` plus `CUSTOM_ELEMENTS_SCHEMA`                                              |
 
 - Define the elements before the framework renders them. As a backstop, every component "upgrades" a property

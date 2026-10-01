@@ -153,6 +153,7 @@
     );
     --_ui-menu-first-radius: var(--_ui-menu-radius) 0 0 var(--_ui-menu-radius);
     --_ui-menu-last-radius: 0;
+    --_ui-menu-only-radius: var(--_ui-menu-first-radius);
     --_ui-menu-divider: var(--ui-menu-divider, var(--ui-border-color-internal));
     --_ui-menu-divider-display: var(--ui-menu-divider-display, block);
     --_ui-menu-divider-first-display: var(--ui-menu-divider-first-display, var(--_ui-menu-divider-display));
@@ -234,6 +235,7 @@
   .ui.menu .menu {
     --_ui-menu-first-radius: 0;
     --_ui-menu-last-radius: 0;
+    --_ui-menu-only-radius: 0;
     display: flex;
     margin: 0;
   }

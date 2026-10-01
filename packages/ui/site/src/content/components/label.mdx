@@ -249,6 +249,9 @@ import VocabularyTable from "../../components/VocabularyTable.astro"
   button that fires `ui-remove` (see the events table).  `<ui-labels>` shares size, colour, basic, tag and circular
   with every label inside it.
 
+  Colour follows Fomantic:  a plain label stays grey inside a coloured owner (a `ui-red` wrapper, a red segment);
+  only its own `color`, or its `<ui-labels color>` group's, paints it.
+
   <VocabularyTable family="label" />
 </Section>
 

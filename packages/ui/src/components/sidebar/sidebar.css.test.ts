@@ -100,6 +100,19 @@ describe("sidebar.css examples", () => {
     expect(pushable.querySelector<HTMLElement>(".sidebar")!.offsetWidth).toBe(pushable.clientWidth)
   })
 
+  it("a column width is that share of the viewport, and the pusher moves by it", () => {
+    const root = example()
+    const pushable = root.querySelectorAll<HTMLElement>(".pushable")[3]!
+    const sidebar = pushable.querySelector<HTMLElement>(".sidebar")!
+    // `%` of the containing block:  the viewport, or the pushable when it is one (a transform)
+    expect(sidebar.getBoundingClientRect().width).toBeCloseTo(innerWidth / 4, -1)
+    const pushed = Fixture.render(
+      `<div class="pushable" style="height: 100px"><div class="ui left four wide visible sidebar"></div>` +
+        `<div class="pusher"></div></div>`
+    )
+    expect(translation(pushed.querySelector(".pusher")!)[0]).toBeCloseTo(innerWidth / 4, -1)
+  })
+
   it("hidden sidebars sit off their edge;  uncover ones under the pusher, in place", () => {
     Sheets.adopt([...foundationCSS, sidebarCSS])
     const root = Fixture.render(

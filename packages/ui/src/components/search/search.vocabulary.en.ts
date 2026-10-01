@@ -148,6 +148,7 @@ export const searchVocabulary = {
   ],
   slots: [{ name: "icon", description: "Replaces the magnifying glass." }],
   parts: [
+    { name: "search", description: "The root box (`ui search`):  where the `--ui-search-*` tokens are read." },
     { name: "input", description: "The `ui icon input` box around the text field." },
     { name: "prompt", description: "The text `<input>` (the combobox)." },
     { name: "icon", description: "The icon box." },

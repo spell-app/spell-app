@@ -229,31 +229,33 @@ Decided or knowingly left for later;  each should be picked up where noted.
 
 ## To review (Owen)
 
-Built, but flagged for Owen's review before it's treated as settled.
+Built, but flagged for Owen's review before it's treated as settled.  Owen settled the 2026-09-30 batch on 2026-10-01
+(below, "Settled");  open now:
 
-- **Modal `closedby="any | closerequest | none"`** -- a new attribute name for Fomantic's `closable` dismissal
-  setting (clicking the dimmer, Escape), borrowed from native `<dialog closedby>`;  `closable` now means only the
-  close icon ([`docs/grammar.md`](grammar.md) "Modals").  Flagged 2026-09-30.
-- **Modal `--show` / `--close` invoker commands** -- a native `<button commandfor="id" command="--show">` opens a
-  modal with no JS.  Open questions:  `<ui-button>` doesn't forward `commandfor` / `command` to its inner
-  `<button>` yet;  browsers older than invoker commands (in our targets:  Chrome 125-134) get a dead button, with
-  no `UI.browser.supports` flag.  Flagged 2026-09-30.
-- **Popup hover behaviour** -- a hover popup always stays open while the pointer is over it (WCAG 1.4.13:
-  hoverable, dismissible with Escape, persistent);  Fomantic's default `hoverable: false` closed it when the
-  pointer left the target, and there is no attribute to get that back.  Keep it always-on, or add an opt-out?
-  ([`docs/grammar.md`](grammar.md) "Popups").  Flagged 2026-09-30.
-- **Emoji names** -- `<ui-emoji name>` uses Fomantic's 3,808 chat-style shortcodes (`thumbsup`, `flag_us`), from
-  its MIT `emoji.variables`, no new dependency.  Alternative:  official Unicode (CLDR) names or a fuller dataset
-  (`emojibase`) as a dev-only generator dependency.  Also:  `scripts/gen-emoji.ts`'s ~44 "show as emoji" code-point
-  ranges were written from memory, unverified (a miss only falls back to text style).  Flagged 2026-09-30.
-- **Label colour inheritance** -- a plain `<ui-label>` inside a coloured wrapper (`ui-red`) paints red:  label
-  passes `--ui-color` down to its children on purpose (coloured icons / details), so stopping the leak changes
-  that.  Statistic and menu now reset it.  Reset on label too, or keep it?  Flagged 2026-09-30.
+- **Emoji name clashes** -- 19 names mean different emoji in Fomantic and CLDR (`dog`, `cat`, `pencil` ...);
+  Fomantic's meaning wins, so existing pages keep their picture (CLDR's stays reachable:  `dog2`, `dog_face`).
+  Keep, or let CLDR win?  Flagged 2026-10-01.
+- **Table stacking opt-in** -- tables stack by VIEWPORT again (Fomantic);  an element opts in to stacking by its
+  own width with the TOKEN `--ui-table-stack-by: container`.  Keep a token, or add an attribute
+  (`stack-by="container"`)?  Flagged 2026-10-01.
+
+### Settled 2026-10-01
+
+- Modal:  `closedby` stays;  `closable="false"` keeps Fomantic's meaning too (no icon AND dismissal `none`), and an
+  explicit `closedby` wins for dismissal.  Also on `<ui-flyout>`.
+- Invoker commands:  `<ui-button>` forwards `commandfor` / `command`;  `UI.browser.supports.invokers`;  without
+  support, `Invoker.run()` runs the built-in commands and fires `command`.  Modal and flyout answer `--toggle` too.
+- Popup:  `hoverable` (default on, WCAG 1.4.13);  `hoverable="false"` is Fomantic's default behaviour.
+- Emoji:  names from CLDR (`emojibase-data`, dev-only), Fomantic's as aliases;  presentation from Unicode data.
+- Label colour:  matches Fomantic -- only its own or its `<ui-labels>` group's colour paints a `<ui-label>`.
+- Sidebar / flyout `width`:  Fomantic's words AND columns / fractions / % on both (`AGENTS.md` exception).
+- Container:  public per-breakpoint `--ui-container-scrolling-height-{tablet,computer,widescreen}`.
+- List:  first / last item padding tokens stay public.
 
 ## Budgets
 
-- **Average component ≤ 4 kB gzip (plan) -- currently over:**  the 53 families above average 7.3 kB own code.
-  Gzipped separately, an average family is classes 3.1 kB, CSS 2.4 kB (a full port of Fomantic's variations),
-  native fallback 1.7 kB, vocabulary 1.4 kB.  Not yet decided whether to raise the budget or trim.
+- **Average component ≤ 8 kB gzip** (raised from the plan's 4 kB by Owen, 2026-10-01):  the 53 families above
+  average 7.3 kB own code.  Gzipped separately, an average family is classes 3.1 kB, CSS 2.4 kB (a full port of
+  Fomantic's variations), native fallback 1.7 kB, vocabulary 1.4 kB.
 - Lazy runtime chunk < 50 kB gzip -- 31.0 kB.  Lazy data (emoji names, the Temporal polyfill) 60.7 kB, loaded
   only when used.

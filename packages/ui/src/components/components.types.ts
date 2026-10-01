@@ -469,14 +469,6 @@ export const MODAL_ACTION_SELECTORS = {
   deny: `.deny, .cancel, .negative, [negative]:not([negative="false"], [negative="no"])`
 } as const
 
-/**
- * Invoker commands a `<ui-modal>` answers (`<button commandfor="id" command="--show">`):  custom commands, since a
- * custom element gets no built-in ones (`show-modal` only reaches a real `<dialog>`).
- * - `--show` -- open, as a user action (the cancelable `ui-open` first)
- * - `--close` -- close, reason `close` (the cancelable `ui-close` first)
- */
-export const MODAL_COMMANDS = { show: "--show", close: "--close" } as const
-
 ////////////////
 // ## Select
 ////////////////
@@ -747,8 +739,12 @@ export type SidebarCloseDetail = {
 }
 
 /**
- * Invoker commands a `<ui-sidebar>` (and a `<ui-dimmer>`) answers, `<button commandfor="id" command="--toggle">`:
- * the modal's two (`MODAL_COMMANDS`) plus `--toggle`, as user actions (the cancelable `ui-open` / `ui-close` first).
+ * Invoker commands a `<ui-modal>`, `<ui-flyout>`, `<ui-sidebar>` and `<ui-dimmer>` answer
+ * (`<button commandfor="id" command="--toggle">`):  custom commands, since a custom element gets no built-in ones
+ * (`show-modal` only reaches a real `<dialog>`).  All are user actions (the cancelable `ui-open` / `ui-close` first).
+ * - `--show` -- open
+ * - `--close` -- close, reason `close`
+ * - `--toggle` -- either
  */
 export const TOGGLE_COMMANDS = { show: "--show", close: "--close", toggle: "--toggle" } as const
 

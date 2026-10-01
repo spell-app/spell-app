@@ -171,6 +171,13 @@ describe("calendar.css examples", () => {
     expect(getComputedStyle(disabled.querySelector(".ui.input")!).pointerEvents).toBe("none")
   })
 
+  it("the field has its own width, wide enough for a date-time value (no engine default)", () => {
+    const root = example("types")
+    const input = root.querySelector<HTMLElement>(".ui.calendar > .ui.input > input")!
+    const em = parseFloat(getComputedStyle(input).fontSize)
+    expect(input.getBoundingClientRect().width).toBeCloseTo(20 * em, 0)
+  })
+
   it("the field's icon box is a clickable button", () => {
     const root = example("types")
     const button = root.querySelector<HTMLElement>(".ui.calendar > .ui.input > button.icon")!

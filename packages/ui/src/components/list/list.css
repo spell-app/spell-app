@@ -293,6 +293,15 @@
     --_ui-icon-owner-align: var(--_ui-list-align);
     --_ui-icon-owner-size: initial;
     --_ui-icon-owner-opacity: initial;
+  }
+  /* Likewise a slotted `<ui-image>` (the shadow item only;  static markup's `.image` has its own rules). */
+  :host(:state(in-list)) > .item {
+    --_ui-image-owner-display: var(--_ui-list-image-display);
+    --_ui-image-owner-align: var(--_ui-list-align);
+    --_ui-image-owner-max-width: none;
+  }
+  :host(:state(in-list)) > .item,
+  :is(.ui.list, .ui.list .list) > .item {
     position: relative;
     display: var(--_ui-list-item-display);
     box-sizing: border-box;
@@ -340,6 +349,9 @@
     --_ui-icon-owner-display: initial;
     --_ui-icon-owner-margin: initial;
     --_ui-icon-owner-align: initial;
+    --_ui-image-owner-display: initial;
+    --_ui-image-owner-align: initial;
+    --_ui-image-owner-max-width: initial;
   }
 
   /* Marker:  a bullet or a number in the item's `::before`, hung outside its start edge. */

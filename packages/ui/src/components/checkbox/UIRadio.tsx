@@ -127,8 +127,10 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
     const group = untrack(() => this.group.get())
     if (!delta || !group) return
     event.preventDefault()
+    // `readonly` never changes the choice, from either end of the move
+    if (untrack(() => this.common.readonly)) return
     const target = group.step(this, delta) as UIRadio | undefined
-    if (!target) return
+    if (!target || untrack(() => target.common.readonly)) return
     target.focus()
     target.choose(true, event)
   }

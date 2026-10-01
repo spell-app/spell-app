@@ -2,10 +2,12 @@ import { describe, expect, it, onTestFinished, vi } from "vitest"
 
 import { expectAccessible } from "$/ui/test/a11y"
 
+import { UI } from "$/ui/runtime"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
 
 import "$/ui/components/button"
+import "$/ui/components/modal"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/button/examples/elements/*.html", {
@@ -296,6 +298,155 @@ describe("<ui-button> tokens from outside", () => {
     expect(radius(first!)).toBe("20px")
     expect(getComputedStyle(last!.shadowRoot!.querySelector("[part~=button]")!).borderTopRightRadius).toBe("20px")
     expect(getComputedStyle(first!.shadowRoot!.querySelector("[part~=button]")!).borderTopRightRadius).toBe("0px")
+  })
+})
+
+describe("<ui-button> invoker commands", () => {
+  /** Render a button wired to `target`, which is rendered after it. */
+  async function invoker(command: string, target: string) {
+    const wrapper = await ElementFixture.render<HTMLElement>(
+      `<div><ui-button commandfor="t" command="${command}">Go</ui-button>${target}</div>`
+    )
+    const host = wrapper.querySelector<UIHost>("ui-button")!
+    const control = host.shadowRoot!.querySelector<HTMLButtonElement>("[part~=button]")!
+    return { wrapper, host, control, target: wrapper.querySelector<HTMLElement>("#t")! }
+  }
+
+  /** Run `test` with `UI.browser.supports.invokers` forced to `value`. */
+  async function withInvokers(value: boolean, test: () => Promise<void>) {
+    await UI.load()
+    const supports = UI.browser.supports
+    const was = supports.invokers
+    supports.invokers = value
+    try {
+      await test()
+    } finally {
+      supports.invokers = was
+    }
+  }
+
+  it("detects invokers", async () => {
+    await UI.load()
+    expect(UI.browser.supports.invokers).toBe("commandForElement" in HTMLButtonElement.prototype)
+  })
+
+  it("native:  the inner button gets `command` and a `commandForElement` that is the light-DOM target", async () => {
+    await withInvokers("commandForElement" in HTMLButtonElement.prototype, async () => {
+      const { control, target } = await invoker("show-modal", `<dialog id="t">x</dialog>`)
+      expect(control.getAttribute("command")).toBe("show-modal")
+      expect(control.commandForElement).toBe(target)
+    })
+  })
+
+  it("native:  a click opens a dialog, and re-resolves when `commandfor` changes", async () => {
+    await withInvokers("commandForElement" in HTMLButtonElement.prototype, async () => {
+      const { wrapper, host, control } = await invoker(
+        "show-modal",
+        `<dialog id="t">x</dialog><dialog id="u">y</dialog>`
+      )
+      host.setAttribute("commandfor", "u")
+      await ElementFixture.settle()
+      expect(control.commandForElement).toBe(wrapper.querySelector("#u"))
+      control.click()
+      expect((wrapper.querySelector("#u") as HTMLDialogElement).open).toBe(true)
+      expect((wrapper.querySelector("#t") as HTMLDialogElement).open).toBe(false)
+      ;(wrapper.querySelector("#u") as HTMLDialogElement).close()
+    })
+  })
+
+  it("native:  a target that arrives after the button still works (resolved at click)", async () => {
+    await withInvokers("commandForElement" in HTMLButtonElement.prototype, async () => {
+      const { wrapper, control } = await invoker("show-popover", "")
+      wrapper.insertAdjacentHTML("beforeend", `<div id="t" popover>late</div>`)
+      control.click()
+      expect(wrapper.querySelector<HTMLElement>("#t")!.matches(":popover-open")).toBe(true)
+    })
+  })
+
+  it("native:  a custom command reaches a <ui-modal> (--toggle)", async () => {
+    await withInvokers("commandForElement" in HTMLButtonElement.prototype, async () => {
+      const { control } = await invoker("--toggle", `<ui-modal id="t" content="Body"></ui-modal>`)
+      const modal = document.querySelector<UIHost & { open: boolean }>("ui-modal#t")!
+      control.click()
+      await ElementFixture.settle()
+      expect(modal.open).toBe(true)
+      control.click()
+      await ElementFixture.settle()
+      expect(modal.open).toBe(false)
+    })
+  })
+
+  it("fallback (no invokers):  the inner button carries no command, and a click runs show-modal / close", async () => {
+    await withInvokers(false, async () => {
+      const { host, control, target } = await invoker("show-modal", `<dialog id="t">x</dialog>`)
+      expect(control.hasAttribute("command")).toBe(false)
+      expect(control.commandForElement).toBeNull()
+      control.click()
+      expect((target as HTMLDialogElement).open).toBe(true)
+      host.setAttribute("command", "close")
+      await ElementFixture.settle()
+      control.click()
+      expect((target as HTMLDialogElement).open).toBe(false)
+    })
+  })
+
+  it("fallback (no invokers):  show-popover / hide-popover / toggle-popover", async () => {
+    await withInvokers(false, async () => {
+      const { host, control, target } = await invoker("show-popover", `<div id="t" popover>p</div>`)
+      control.click()
+      expect(target.matches(":popover-open")).toBe(true)
+      host.setAttribute("command", "hide-popover")
+      await ElementFixture.settle()
+      control.click()
+      expect(target.matches(":popover-open")).toBe(false)
+      host.setAttribute("command", "toggle-popover")
+      await ElementFixture.settle()
+      control.click()
+      expect(target.matches(":popover-open")).toBe(true)
+      control.click()
+      expect(target.matches(":popover-open")).toBe(false)
+    })
+  })
+
+  it("fallback (no invokers):  a custom command dispatches `command` with `{ command }`;  preventDefault skips built-ins", async () => {
+    await withInvokers(false, async () => {
+      const { host, control, target } = await invoker("--foo", `<div id="t" popover>p</div>`)
+      const seen: string[] = []
+      target.addEventListener("command", (event) => seen.push((event as Event & { command: string }).command))
+      control.click()
+      expect(seen).toEqual(["--foo"])
+      host.setAttribute("command", "show-popover")
+      await ElementFixture.settle()
+      target.addEventListener("command", (event) => event.preventDefault())
+      control.click()
+      expect(seen).toEqual(["--foo", "show-popover"])
+      expect(target.matches(":popover-open")).toBe(false)
+    })
+  })
+
+  it("fallback (no invokers):  `--show` / `--toggle` reach a <ui-modal> as user actions", async () => {
+    await withInvokers(false, async () => {
+      const { host, control } = await invoker("--show", `<ui-modal id="t" content="Body"></ui-modal>`)
+      const modal = document.querySelector<UIHost & { open: boolean }>("ui-modal#t")!
+      control.click()
+      await ElementFixture.settle()
+      expect(modal.open).toBe(true)
+      host.setAttribute("command", "--toggle")
+      await ElementFixture.settle()
+      control.click()
+      await ElementFixture.settle()
+      expect(modal.open).toBe(false)
+    })
+  })
+
+  it("a disabled button invokes nothing", async () => {
+    await withInvokers(false, async () => {
+      const wrapper = await ElementFixture.render<HTMLElement>(
+        `<div><ui-button disabled commandfor="t" command="show-popover">Go</ui-button><div id="t" popover>p</div></div>`
+      )
+      wrapper.querySelector("ui-button")!.shadowRoot!.querySelector<HTMLElement>("[part~=button]")!.click()
+      expect(wrapper.querySelector("#t")!.matches(":popover-open")).toBe(false)
+    })
   })
 })
 

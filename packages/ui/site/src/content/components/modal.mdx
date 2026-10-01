@@ -113,13 +113,14 @@ import VocabularyTable from "../../components/VocabularyTable.astro"
   the dimmer.  The element adds page scroll lock, closes only the topmost overlay on Escape, and returns focus to
   whatever opened it.
 
-  Open it with no script from a native `<button commandfor="id" command="--show">` (an invoker command);
-  `command="--close"` closes it.  From code, set `open`:  writing it is your own decision and fires no
+  Open it with no script from a native `<button commandfor="id" command="--show">` or a `<ui-button>` (an invoker
+  command);  `--close` closes it and `--toggle` flips it.  From code, set `open`:  writing it is your own decision and fires no
   `ui-open` / `ui-close`.
 
   `closedby` says what dismisses it, like `<dialog closedby>`:  `any` (the default:  Escape or a click on the
-  dimmer), `closerequest` (Escape only) or `none` (only its own buttons).  `closable` is separate:  it adds the
-  close ICON inside the box.
+  dimmer), `closerequest` (Escape only) or `none` (only its own buttons).  `closable` adds the close ICON inside
+  the box (Fomantic's `closeIcon`), and `closable="false"` also brings back Fomantic's `closable: false` -- no icon,
+  and Escape and the dimmer do nothing -- unless `closedby` is set, which wins for dismissal.
 
   <Example title="Closed only by its buttons" description="`closedby=none`:  Escape and the dimmer do nothing.  The close button is a native invoker, `command=--close`.">
     <button type="button" class="ui button" commandfor="modal-behaviour-none" command="--show">Show</button>

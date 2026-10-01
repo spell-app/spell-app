@@ -125,6 +125,8 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
 - Sizes are ratios of 16.  `medium` is a real size meaning "default" -- a no-op that emits no class.
 - Booleans:  presence / `""` / `"true"` / `"yes"` ~== true;  `"false"` / `"no"` ~== false.
 - Widths:  attribute is `width`, NEVER `wide`;  accepts columns (`4` of 16), fractions (`1/4`), percentages (`25%`).
+  Exception:  `<ui-sidebar>` and `<ui-flyout>` also take Fomantic's width words (`very thin`, `thin`, `wide`,
+  `very wide`), which the element adds after the noun (`ui left sidebar thin`).
 - Chosen state:  `selected` is canonical (checkbox, radio, toggle, items, tabs, options);
   `checked` is accepted as an alias on checkbox / radio only.
 - Generic content parts (`<ui-content>`, `<ui-header>`, `<ui-meta>`, `<ui-description>`, `<ui-extra>`,

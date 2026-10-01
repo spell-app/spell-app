@@ -2774,6 +2774,7 @@ __metadata:
     "@vitest/browser-playwright": "npm:^5.0.2"
     "@vitest/ui": "npm:^5.0.2"
     axe-core: "npm:^4.13.0"
+    emojibase-data: "npm:^17.0.0"
     esbuild: "npm:^0.28.2"
     lightningcss: "npm:^1.33.0"
     lodash-es: "npm:^4.18.1"
@@ -5000,6 +5001,15 @@ __metadata:
   version: 9.2.2
   resolution: "emoji-regex@npm:9.2.2"
   checksum: 10c0/af014e759a72064cf66e6e694a7fc6b0ed3d8db680427b021a89727689671cefe9d04151b2cad51dbaf85d5ba790d061cd167f1cf32eb7b281f6368b3c181639
+  languageName: node
+  linkType: hard
+
+"emojibase-data@npm:^17.0.0":
+  version: 17.0.0
+  resolution: "emojibase-data@npm:17.0.0"
+  peerDependencies:
+    emojibase: "*"
+  checksum: 10c0/c1373438ac52e943a7953ce2315c0da4e29a6552a0ee9ae18a22dbf824a6b428d25655c55e2e48c69900358052408496807cdf7af12a43a0a1b39fb369cbf4a0
   languageName: node
   linkType: hard
 

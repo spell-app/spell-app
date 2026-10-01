@@ -522,6 +522,31 @@ describe("<ui-dropdown> tokens from outside", () => {
   })
 })
 
+describe("<ui-dropdown> multiple search", () => {
+  it("hides the placeholder text once a value's chip is shown (it drew over the chip)", async () => {
+    const { host } = await dropdown(
+      `<ui-dropdown multiple search selection placeholder="Skills" value="a"><ui-item value="a">Ember</ui-item><ui-item value="b">Meteor</ui-item></ui-dropdown>`
+    )
+    const text = host.shadowRoot!.querySelector<HTMLElement>(".text")!
+    expect(getComputedStyle(text).display).toBe("none")
+  })
+})
+
+describe("<ui-dropdown> menu placement", () => {
+  it("a dropdown below the first screenful, scrolled into view, opens its menu downwards (webkit measured an absolute popover against the origin screenful)", async () => {
+    await ElementFixture.render(
+      `<div style="height: ${innerHeight + 200}px"></div>${GENDER}<div style="height: 600px"></div>`
+    )
+    const host = document.querySelector<Dropdown>("ui-dropdown")!
+    const { menu } = parts(host)
+    host.scrollIntoView({ block: "center" })
+    host.open = true
+    await ElementFixture.tick()
+    await new Promise((resolve) => setTimeout(resolve, 300))
+    expect(menu.getBoundingClientRect().top).toBeGreaterThan(host.getBoundingClientRect().bottom - 1)
+  })
+})
+
 describe("<ui-dropdown> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {
     const root = await ElementFixture.render(EXAMPLES[path]!)

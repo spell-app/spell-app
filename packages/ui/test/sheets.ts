@@ -97,6 +97,7 @@ export class Sheets {
 
   /**
    * Class phrases `vocabulary` can emit for class-bearing attributes, one attribute at a time.
+   * - `equal` is probed only for a `width` whose spec sets `canEqual`.
    * - `size` / `color` are left out:  `sizes.css` / `colors.css` own those remaps.  `valueOnly` too (it was `color`
    *   until 2026-09-30, and states such as `error` are `colors.css` remaps).
    */
@@ -112,7 +113,7 @@ export class Sheets {
           : spec.kind === "keyOrValueAndKey"
             ? [true, ...Sheets.valuesOf(spec)]
             : Sheets.valuesOf(spec)
-      if (spec.kind === "width") values.push("equal")
+      if (spec.kind === "width" && spec.canEqual) values.push("equal")
       for (const value of values) {
         const text = builder.build({ [spec.name]: value })
         const phrase = text

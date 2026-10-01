@@ -277,6 +277,16 @@ describe("<ui-items> responsive (container queries)", () => {
     expect(image.getBoundingClientRect().width).toBe(125)
   })
 
+  it("a stacked item's sized <ui-image> takes its natural width, as static markup does (Fomantic's mobile `width: auto`)", async () => {
+    const sized = `<ui-item><ui-image size="tiny" src="${PHOTO}" alt=""></ui-image><ui-content>Text</ui-content></ui-item>`
+    const widthAt = async (width: number) => {
+      const { items } = await view("", sized, width)
+      return items[0]!.querySelector("ui-image")!.shadowRoot!.querySelector("img")!.getBoundingClientRect().width
+    }
+    expect(await widthAt(1000)).toBe(80)
+    expect(await widthAt(500)).toBeGreaterThan(80)
+  })
+
   it("narrows the image and the distance in a tablet-wide group", async () => {
     const { items } = await view("", ITEM, 800)
     expect(items[0]!.querySelector("img")!.getBoundingClientRect().width).toBe(150)
@@ -348,6 +358,19 @@ describe("<ui-items> keyboard", () => {
     expect(link!.shadowRoot!.activeElement).toBe(boxOf(link!))
     await userEvent.keyboard("{Tab}")
     expect(document.activeElement).toBe(after)
+  })
+})
+
+describe("<ui-items> outer margin", () => {
+  it("collapses with the heading above like static markup (the host, a size container, carries the margin)", async () => {
+    const wrapper = await ElementFixture.render(
+      `<div style="width: 1000px"><h4 style="margin: 0 0 10px">Heading</h4><ui-items>${ITEM}</ui-items></div>`
+    )
+    await ElementFixture.settle(wrapper)
+    const heading = wrapper.querySelector("h4")!.getBoundingClientRect()
+    const host = wrapper.querySelector("ui-items")!.getBoundingClientRect()
+    // max(10px, 1.5em of 16px), not their sum
+    expect(host.top - heading.bottom).toBeCloseTo(24, 0)
   })
 })
 

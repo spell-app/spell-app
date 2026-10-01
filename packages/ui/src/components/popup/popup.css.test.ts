@@ -1,10 +1,14 @@
 import { describe, expect, it, onTestFinished } from "vitest"
-import { page } from "vitest/browser"
+import { page, userEvent } from "vitest/browser"
 
 import { colorsCSS, foundationCSS, nativeCSS } from "$/ui/styles"
 
+import { ElementFixture } from "$/ui/test/ElementFixture"
 import { Fixture } from "$/ui/test/fixture"
+import type { UIHost } from "$/ui/elements"
 import { Sheets } from "$/ui/test/sheets"
+
+import "$/ui/components/button"
 
 import { popupVocabulary } from "./popup.vocabulary.en"
 
@@ -87,6 +91,11 @@ describe("popup.css source", () => {
     expect(Sheets.covers(popupRaw, "right center")).toBe(true)
     for (const position of ["left top", "left bottom", "right top", "right bottom"])
       expect(popupRaw, position).toContain(`[class*="${position}"]`)
+  })
+
+  it("resolves the duration alias on STATIC popups too (no host to declare it)", () => {
+    const popup = example("types").querySelector<HTMLElement>(".ui.popup")!
+    expect(getComputedStyle(popup).getPropertyValue("--_ui-popup-duration").trim()).not.toBe("")
   })
 
   it("tells beside-and-aligned positions from above / below ones with the same words", () => {
@@ -245,6 +254,52 @@ describe("CSS-only tooltip (native.css)", () => {
     expect(getComputedStyle(tip, "::after").opacity).toBe("1")
     const ink = getComputedStyle(Fixture.render(`<span style="background: var(--ui-ink)"></span>`)).backgroundColor
     expect(getComputedStyle(tip, "::after").backgroundColor).toBe(ink)
+  })
+})
+
+describe("CSS-only tooltip shown states", () => {
+  /** Scale factor of a computed `matrix(a, ...)` transform (`none` ~== 1). */
+  function scaleOf(transform: string): number {
+    return transform === "none" ? 1 : parseFloat(transform.replace(/^matrix\(/, ""))
+  }
+
+  it.each(["", "top center", "bottom left", "left center", "right top"])(
+    "a data-variation=visible tooltip (position %j) is full size, not 80%%",
+    (position) => {
+      Sheets.adopt([...foundationCSS, nativeCSS, buttonCSS])
+      const attributes = position ? `data-position="${position}"` : ""
+      const button = Fixture.render(`<button data-tooltip="Hi" data-variation="visible" ${attributes}>x</button>`)
+      expect(getComputedStyle(button, "::after").opacity).toBe("1")
+      expect(scaleOf(getComputedStyle(button, "::after").transform)).toBe(1)
+      // `::before` is the arrow, rotated 45deg:  cos(45deg) * scale
+      expect(parseFloat(getComputedStyle(button, "::before").transform.replace(/^matrix\(/, ""))).toBeCloseTo(
+        Math.cos(Math.PI / 4),
+        3
+      )
+    }
+  )
+
+  it("shows on KEYBOARD focus of a focus-delegating <ui-button> host", async () => {
+    Sheets.adopt([...foundationCSS, nativeCSS])
+    const host = await ElementFixture.render<UIHost>(`<ui-button data-tooltip="Add users">Top center</ui-button>`)
+    await ElementFixture.settle(host)
+    expect(getComputedStyle(host, "::after").opacity).toBe("0")
+    await userEvent.tab()
+    expect(document.activeElement, "focus landed on the host").toBe(host)
+    expect(host.matches(":focus"), "host :focus").toBe(true)
+    expect(host.shadowRoot!.querySelector(":focus-visible"), "inner :focus-visible").not.toBeNull()
+    // the host itself is NOT `:focus-visible` (only the inner button is):  why `native.css` also reads `:focus-within`
+    expect(host.matches(":focus-visible"), "host :focus-visible").toBe(false)
+    await expect.poll(() => getComputedStyle(host, "::after").opacity).toBe("1")
+  })
+
+  it("a mouse-focused native <button> doesn't pin its tooltip open", async () => {
+    Sheets.adopt([...foundationCSS, nativeCSS, buttonCSS])
+    const button = Fixture.render(`<button data-tooltip="Hi">x</button>`)
+    await userEvent.click(button)
+    await userEvent.unhover(button)
+    expect(document.activeElement).toBe(button)
+    await expect.poll(() => getComputedStyle(button, "::after").opacity).toBe("0")
   })
 })
 

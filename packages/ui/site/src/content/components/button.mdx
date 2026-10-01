@@ -358,6 +358,21 @@ const toggle = document.querySelector("ui-button[toggle]")
 toggle.addEventListener("ui-toggle", (event) => console.log(event.detail.active))
 ```
 
+  Invoker commands work from a `<ui-button>` like from a native `<button>`:  `commandfor` is the id of the target
+  (looked up in the button's own tree) and `command` the action, with no script.  `show-modal` / `close` /
+  `request-close` act on a `<dialog>`, `show-popover` / `hide-popover` / `toggle-popover` on a popover, and a
+  custom `--name` arrives as a `command` event on the target (`<ui-modal>` answers `--show`, `--close` and
+  `--toggle`).  The shadow `<button>` can't see a light-DOM id, so the element hands it the target element
+  (`commandForElement`);  in browsers without invokers (`UI.browser.supports.invokers`) a click runs the built-in
+  commands itself.
+
+  <Example title="Invoker commands" description="A `<ui-button>` opens and closes a popover and a modal with `commandfor` and `command`.">
+    <ui-button commandfor="button-invoker-popover" command="toggle-popover">Toggle popover</ui-button>
+    <div id="button-invoker-popover" popover style="padding: 1em">A native popover.</div>
+    <ui-button primary commandfor="button-invoker-modal" command="--show">Open modal</ui-button>
+    <ui-modal id="button-invoker-modal" header="Invoked" content="Opened by a ui-button." closable></ui-modal>
+  </Example>
+
   <VocabularyTable family="button" />
 </Section>
 
@@ -417,8 +432,14 @@ ui-button.cta::part(button) {
 ```
 
 ```jsx
-// Solid 2
-<ui-button primary toggle on:ui-toggle={(event) => setOn(event.detail.active)}>Vote</ui-button>
+// Solid 2:  no `on:` namespace -- listen through a ref
+<ui-button
+  primary
+  toggle
+  ref={(el) => el.addEventListener("ui-toggle", (event) => setOn(event.detail.active))}
+>
+  Vote
+</ui-button>
 ```
 
 </Section>

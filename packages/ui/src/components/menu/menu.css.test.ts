@@ -102,6 +102,21 @@ describe("menu.css examples", () => {
     expect(getComputedStyle(menu).width).toBe(`${15 * 16}px`)
   })
 
+  it("gives a menu nested in a vertical menu its OWN only-item corners, not the outer vertical radius", () => {
+    Sheets.adopt([...foundationCSS, menuCSS])
+    const root = Fixture.render(`
+      <div class="ui vertical menu">
+        <div class="item">Outer<div class="menu"><a class="item" id="sub">Sub only</a></div></div>
+        <div class="item"><div class="ui menu"><a class="item" id="nested">Nested only</a></div></div>
+      </div>`)
+    const sub = root.querySelector<HTMLElement>("#sub")!
+    const nested = root.querySelector<HTMLElement>("#nested")!
+    // a sub-menu's items are square (Fomantic zeroes its corners);  a nested top-level menu rounds its first item
+    expect(getComputedStyle(sub).borderRadius).toBe("0px")
+    expect(getComputedStyle(nested).borderTopLeftRadius).toBe(getComputedStyle(nested).borderBottomLeftRadius)
+    expect(getComputedStyle(nested).borderTopRightRadius).toBe("0px")
+  })
+
   it("resolves type combinations into item looks:  secondary pointing, tabular, text, pagination", () => {
     Sheets.adopt([...foundationCSS, menuCSS])
     const root = Fixture.render(EXAMPLES["./examples/types.html"]!)

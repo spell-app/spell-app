@@ -1,10 +1,11 @@
-import { Show, createMemo } from "solid-js"
+import { Show, createEffect, createMemo } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, IconGlyph, proto, SlotContent, UIElement, type AttributeName } from "$/ui/core"
+import { Cell, IconGlyph, proto, SlotContent, UI, UIElement, type AttributeName } from "$/ui/core"
 
 import { buttonVocabulary } from "./button.vocabulary.en"
 import { ButtonFallback } from "./button.fallback"
+import { Invoker } from "./Invoker"
 
 import buttonCSS from "./button.css?inline"
 
@@ -18,6 +19,9 @@ import buttonCSS from "./button.css?inline"
  * - Fomantic's `state` behaviour is two attributes, not an element:  `active-text` / `inactive-text` replace the
  *   content while `active` is on / off (`Follow` => `Following`).  A label that SAYS the state must not also be
  *   `aria-pressed` (WAI-ARIA APG, toggle button), so a toggle with a state text leaves it off.
+ * - Invoker commands:  `commandfor` / `command` go to the inner `<button>`, whose `commandForElement` is the element
+ *   `commandfor` names in the host's own tree (re-resolved when the attribute changes, and at click time, for a
+ *   target that arrived late).  Browsers without invokers (`UI.browser.supports.invokers`) get `Invoker.run()`.
  * - Icons come from the page's icon packs (`IconGlyph`) asynchronously;  the `.icon` box is sized by CSS, so the SVG arriving shifts nothing.
  ****************/
 export class UIButton extends UIElement<typeof buttonVocabulary> {
@@ -104,6 +108,7 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
   ////////////////
 
   render(): JSX.Element {
+    this.invokerEffect()
     return (
       <Show when={this.hasLabel()} fallback={this.control_()}>
         <div
@@ -130,7 +135,10 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
         when={this.attrs.href}
         fallback={
           <button
-            ref={(element) => (this.control = element)}
+            ref={(element) => {
+              this.control = element
+              this.resolveInvoker()
+            }}
             type="button"
             class={this.classes()}
             part={this.part("button")}
@@ -140,6 +148,7 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
             }
             aria-busy={this.attrs.loading ? "true" : undefined}
             aria-label={this.ariaLabel.get() ?? undefined}
+            command={this.invokers() ? this.attrs.command : undefined}
             onClick={this.onClick}
           >
             {content()}
@@ -192,12 +201,50 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
   // ## Behaviour
   ////////////////
 
-  /** Click:  toggle, then submit / reset the form for those types. */
+  /** Keep the inner button's `commandForElement` in step with `commandfor`. */
+  private invokerEffect() {
+    if (isServer) return
+    createEffect(
+      () => [this.attrs.commandfor, this.invokers()],
+      () => this.resolveInvoker()
+    )
+  }
+
+  /**
+   * Native invokers?  `undefined` until the runtime is loaded (`UI.browser` throws before that), and on the server.
+   * - Render-safe:  reads `loaded()` first, so a button rendered before `UI.load()` settles never touches `UI`.
+   */
+  private invokers(): boolean | undefined {
+    return !isServer && this.loaded() ? UI.browser.supports.invokers : undefined
+  }
+
+  /**
+   * Point the inner `<button>` at the element `commandfor` names.
+   * - Native invokers only;  `null` clears it.  The browser's activation runs AFTER the click event, so the
+   *   click handler can call this again for a target that arrived after the last attribute change.
+   */
+  private resolveInvoker() {
+    const control = this.control
+    if (!control || !this.invokers() || !(control instanceof HTMLButtonElement)) return
+    control.commandForElement = Invoker.resolve(this.host, this.attrs.commandfor)
+  }
+
+  /** Browsers without invokers:  run the command on the target, as the browser would. */
+  private runInvoker(event: MouseEvent) {
+    const { command, commandfor } = this.attrs
+    if (this.invokers() !== false || !command || event.defaultPrevented) return
+    const target = Invoker.resolve(this.host, commandfor)
+    if (target) Invoker.run(target, command, this.host)
+  }
+
+  /** Click:  invoker command, toggle, then submit / reset the form for those types. */
   private readonly onClick = (event: MouseEvent) => {
     if (this.isDisabled()) {
       event.preventDefault()
       return
     }
+    this.resolveInvoker()
+    this.runInvoker(event)
     if (this.attrs.toggle) {
       const next = !this.active.get()
       this.active.request(next, () => this.emit("ui-toggle", { active: next, originalEvent: event }))
