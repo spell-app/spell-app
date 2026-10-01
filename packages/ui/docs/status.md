@@ -5,7 +5,7 @@ as work lands ([AGENTS.md](../AGENTS.md)).  Last updated 2026-09-30.
 
 ## Working on now
 
-- **Paused 2026-09-30** for the monorepo switch;  resume from `/Users/owen/www/spell/outstanding/ui-component-build.md`.
+- **Paused 2026-09-30** for the monorepo switch;  resume from `/Users/owen/www/spell-app/outstanding/ui-component-build.md`.
 - Visual testing built and staged (Mac baselines for chromium / firefox / webkit);  Linux baselines wait on a
   working Docker Desktop.
 - Last committed:  themeable tokens, Phase C docs and fixes, commit `9f0a83c`.
