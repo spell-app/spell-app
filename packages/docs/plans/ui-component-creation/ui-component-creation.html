@@ -1229,6 +1229,23 @@
                 ></ui-accordion
               >
             </li>
+            <li data-status="open" id="d39">
+              <a class="plan-id" href="#d39">D39</a>
+              <span class="plan-title">Docs bundle loads emoji names lazily, both sets</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Owen, 2026-10-01: 'loading that data should be lazy, at least for fomantic'. UI's emoji chunks are
+                    named <code>dist/emoji/&lt;set&gt;/&lt;letter&gt;-&lt;hash&gt;.js</code>;
+                    <code>EmojiData.chunkLoader</code> is swappable; the docs bundler stubs the chunks and writes
+                    <code>_assets/emoji/&lt;set&gt;/&lt;letter&gt;.js</code> classic scripts, loaded on first use.
+                    Bundle 1.75 MB / 403 KB gzip (was 2.36 MB / 533 KB). Checked on file://: no request until an emoji
+                    draws, one script per letter per set.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
           </ol>
         </section>
 

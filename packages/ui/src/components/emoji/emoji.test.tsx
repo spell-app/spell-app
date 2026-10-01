@@ -108,6 +108,21 @@ describe("EmojiData name sets", () => {
     EmojiData.use("cldr")
   })
 
+  it("`chunkLoader` replaces the lazy `import()`s (a single-file build loads chunks as scripts)", async () => {
+    const asked: string[] = []
+    EmojiData.chunkLoader = async (set, chunk) => {
+      asked.push(`${set}/${chunk}`)
+      return { quokka_wave: "\u{1F44B}" }
+    }
+    onTestFinished(() => {
+      EmojiData.chunkLoader = undefined
+    })
+    EmojiData.use("fomantic")
+    expect(await EmojiData.get("Quokka Wave")).toBe("\u{1F44B}")
+    expect(await EmojiData.get("quokkaWave")).toBe("\u{1F44B}")
+    expect(asked).toEqual(["fomantic/q"])
+  })
+
   it("`fomantic` is Fomantic's names with Fomantic's meanings, and no CLDR-only name", async () => {
     EmojiData.use("fomantic")
     expect(EmojiData.names).toBe("fomantic")

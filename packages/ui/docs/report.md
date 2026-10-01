@@ -127,11 +127,11 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | library (full:  every export of the peer set) | 173.54 | 60.50 | comparison |
 | core (element core + foundation JS) | 46.35 | 14.54 | eager |
 | forms (form base, validation, menu options;  imported by `dropdown`, `input`, `checkbox`, `form`, `select`, `search`, `rating`, `slider`, `calendar`) | 20.56 | 7.45 | eager |
-| own, all 53 families | 1390.73 | 389.49 | eager |
+| own, all 53 families | 1391.48 | 389.60 | eager |
 | api (`E` / `V` namespaces, `@spell-app/ui/api`) | 0.70 | 0.31 | app only |
 | runtime (`UIRuntime` + foundation CSS) | 181.37 | 31.27 | lazy |
 | icons (none bundled:  pack indexes and SVGs are separate files, `docs/icons.md`) | 0.00 | 0.00 | lazy |
-| family data (emoji name chunks, each loaded on its own) | 459.18 | 91.26 | lazy |
+| family data (emoji name chunks, each loaded on its own) | 459.18 | 106.12 | lazy |
 <!-- /generated:bundle-tiers -->
 
 ### Own cost per family
@@ -178,7 +178,7 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | `rail` | **2.87** | 1.45 | 0.53 | 0.48 | 1.40 | core | 45.49 | 32.90 |
 | `reveal` | **4.07** | 2.02 | 0.91 | 0.58 | 1.58 | core | 46.69 | 34.08 |
 | `ad` | **3.42** | 1.52 | 0.84 | 0.56 | 1.50 | core | 46.05 | 33.43 |
-| `emoji` | **5.27** | 3.40 | 0.62 | 0.87 | 1.55 | core | 47.90 | 35.52 |
+| `emoji` | **5.38** | 3.52 | 0.62 | 0.87 | 1.55 | core | 48.01 | 35.63 |
 | `select` | **8.10** | 3.41 | 2.23 | 1.01 | 2.63 | core + forms | 58.18 | 53.02 |
 | `search` | **12.91** | 6.67 | 2.44 | 2.05 | 2.15 | core + forms | 62.99 | 53.20 |
 | `progress` | **7.41** | 3.33 | 2.09 | 1.26 | 1.75 | core | 50.03 | 37.80 |
@@ -200,8 +200,8 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | Scenario | Adds up | shared runtime min+gz kB | standalone build |
 | --- | --- | --: | --: |
 | page with one button | library + core + own:button | **55.68** | 42.41 |
-| all families | library + core + forms + own (53 families) | **439.56** | 438.60 |
-| app already ships the library | core + forms + own (53 families) | **411.48** | -- |
+| all families | library + core + forms + own (53 families) | **439.68** | 438.70 |
+| app already ships the library | core + forms + own (53 families) | **411.59** | -- |
 <!-- /generated:bundle-scenarios -->
 
 ### Checks
@@ -247,8 +247,8 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | components | 152 | 14801 | 9269 |
 | vocabularies & fallbacks | 106 | 10043 | 7924 |
 | foundation | 42 | 7978 | 4329 |
-| tests | 210 | 36223 | 30440 |
-| tooling | 53 | 6275 | 4406 |
+| tests | 210 | 36238 | 30454 |
+| tooling | 53 | 6291 | 4413 |
 <!-- /generated:loc -->
 
 ### Per file
@@ -544,8 +544,8 @@ Solid, Vite dev server) and the smoke perf page (`dist/` + vendored production S
 <!-- generated:perf -->
 | Where | Build | Open: update / + layout / + frame ms | Keystroke update min / avg / max ms | + layout | + frame |
 | --- | --- | --: | --: | --: | --: |
-| vitest browser mode | dev (Vite dev server) | 16.9 / 16.9 / 18.3 | 0.3 / **1.7** / 4.9 | 1.1 / **3.5** / 8.6 | 15.2 / **16.1** / 16.4 |
-| smoke perf page | production (`dist/` + vendored peers) | 17.0 / 17.0 / 18.6 | 0.3 / **1.3** / 3.9 | 0.8 / **3.1** / 10.4 | 13.7 / **15.5** / 16.5 |
+| vitest browser mode | dev (Vite dev server) | 19.0 / 19.0 / 20.7 | 0.5 / **1.8** / 4.9 | 1.2 / **3.9** / 10.0 | 13.2 / **15.7** / 16.4 |
+| smoke perf page | production (`dist/` + vendored peers) | 17.2 / 17.2 / 18.9 | 0.2 / **1.4** / 3.5 | 0.8 / **3.1** / 9.1 | 13.0 / **15.4** / 16.5 |
 <!-- /generated:perf -->
 
 - The test asserts an average update under 16 ms;  it passes with large headroom.  No windowing needed.

@@ -150,19 +150,27 @@ export class EmojiData {
     return set && SETS.has(set) ? set : DEFAULT_SET
   }
 
+  /**
+   * Where a chunk's names come from instead of this module's own lazy `import()`s:  `(set, chunk) => names`.
+   * - For a build that can't load ES modules lazily, e.g. the docs' single-file bundle on `file://`, which loads each
+   *   chunk as a classic `<script>` (`packages/docs/scripts/bundle-spell-ui.js`).  Set it before the first lookup.
+   */
+  static chunkLoader?: (set: string, chunk: string) => Promise<Record<string, string>>
+
   /** Load chunk `chunk` of the current set once;  a failure is forgotten, so a later `get()` tries again. */
   private static load(chunk: string): Promise<void> {
     const set = EmojiData.names
     const id = `${set}/${chunk}`
     let load = EmojiData.loads.get(id)
     if (!load) {
-      const loader = LOADERS[`./data/${id}.json`]
-      if (!loader) return Promise.resolve()
-      load = loader()
-        .then((module) => {
+      const own = LOADERS[`./data/${id}.json`]
+      if (!own) return Promise.resolve()
+      const names = EmojiData.chunkLoader ? EmojiData.chunkLoader(set, chunk) : own().then((module) => module.default)
+      load = names
+        .then((data) => {
           // a switch while loading:  these names belong to the old set
           if (EmojiData.set !== set) return
-          for (const [name, emoji] of Object.entries(module.default)) {
+          for (const [name, emoji] of Object.entries(data)) {
             if (!EmojiData.cache.has(name)) EmojiData.cache.set(name, emoji)
             const loose = EmojiData.loose(name)
             if (!EmojiData.looseCache.has(loose)) EmojiData.looseCache.set(loose, emoji)

@@ -12,6 +12,7 @@
  */
 
 import "spell-ui:icons"
+import "spell-ui:emoji"
 import "@spell-app/ui"
 import "./spell-doc-runtime.js"
 

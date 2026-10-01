@@ -178,12 +178,26 @@ export default defineConfig(() => {
         output: {
           // MUST stay on:  custom element class names are read by the manifest and dev-time warnings --
           // see `vite.decorators.ts`.
-          keepNames: true
+          keepNames: true,
+          chunkFileNames: emojiChunkNames
         }
       }
     }
   } satisfies UserConfig
 })
+
+/**
+ * Chunk file names:  an emoji data chunk (`src/components/emoji/data/<set>/<letter>.json`) goes to
+ * `emoji/<set>/<letter>-[hash].js`, so the two name sets' chunks are told apart -- by a reader of `dist/`, and by the
+ * docs' single-file bundler, which loads them lazily instead of inlining them (`packages/docs/scripts/bundle-spell-ui.js`).
+ */
+function emojiChunkNames(chunk: { facadeModuleId: string | null; moduleIds: readonly string[] }): string {
+  const data = EMOJI_DATA.exec(chunk.facadeModuleId ?? chunk.moduleIds[0] ?? "")
+  return data ? `emoji/${data[1]}/${data[2]}-[hash].js` : "[name]-[hash].js"
+}
+
+/** An emoji data module's id:  its set and chunk letter. */
+const EMOJI_DATA = /\/components\/emoji\/data\/([\w-]+)\/(\w+)\.json$/
 
 /**
  * `vite-plugin-dts` options for the published declarations:  `dist/index.d.ts`, `dist/core.d.ts`,
@@ -208,6 +222,8 @@ export function declarations(): PluginOptions {
     exclude: [
       "src/**/*.test.ts",
       "src/**/*.test.tsx",
+      // visual-test hooks:  they import `test/test.types.ts`, whose `vitest` augmentations this program can't resolve
+      "src/**/*.visual.ts",
       "../util/src/**/*.test.ts",
       "../util/src/spell/**",
       "../util/src/index.ts"

@@ -16,11 +16,15 @@
  * - Icons:  a classic script on `file://` can't load UI's icon packs, so the SVGs in `ICONS` are read from UI's
  *   `fa7-free` pack at build time and `UI.icons.register()`ed by the virtual `spell-ui:icons` module, which also
  *   `reset()`s the packs so the default one is never requested.  Any other icon name draws nothing.
+ * - Emoji names stay LAZY:  UI's emoji data chunks (`dist/emoji/<set>/<letter>-<hash>.js`, both name sets) are NOT
+ *   inlined;  each is written as a classic script, `_assets/emoji/<set>/<letter>.js`, which a `<script>` tag loads on
+ *   first use of a name in that chunk (`spell-ui:emoji` sets `EmojiData.chunkLoader`).  A page with no `<ui-emoji>`
+ *   loads none.
  */
 
 import { build } from "esbuild"
 import { spawnSync } from "node:child_process"
-import { existsSync, readFileSync } from "node:fs"
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs"
 import { dirname, join, relative, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import { gzipSync } from "node:zlib"
@@ -86,8 +90,18 @@ const ICONS = {
 /** Bare specifiers that MUST resolve from UI's root:  Solid (all subpaths) and the element-layer fork. */
 const SOLID = /^(solid-js|@solidjs\/[\w-]+|@spell-app\/solid-element)(\/.*)?$/
 
+/** UI's emoji name data:  `<set>/<letter>.json`, written out as lazy classic scripts (`writeEmojiChunks()`). */
+const EMOJI_DATA = join(UI_DIR, "src/components/emoji/data")
+
+/** Where the emoji chunk scripts go, and their URL relative to the bundle. */
+const EMOJI_OUT = join(ASSETS, "emoji")
+
+/** An emoji data chunk of UI's `dist/` (`emoji/cldr/a-UMC54g9e.js`), as imported by the emoji family. */
+const EMOJI_CHUNK = /(?:^|\/)emoji\/[\w-]+\/\w+-[\w-]+\.js$/
+
 const args = process.argv.slice(2)
 if (!args.includes("--skip-ui-build")) buildUI()
+writeEmojiChunks()
 const warnings = await bundle()
 report(warnings)
 
@@ -168,11 +182,15 @@ function spellUiResolver() {
     name: "spell-ui-resolver",
     setup(pluginBuild) {
       pluginBuild.onResolve({ filter: /^spell-ui:icons$/ }, () => ({ path: "icons", namespace: "spell-ui" }))
-      pluginBuild.onLoad({ filter: /.*/, namespace: "spell-ui" }, (loaded) =>
-        loaded.path === "icons"
-          ? { contents: iconsModule(), resolveDir: ASSETS, loader: "js" }
-          : { contents: "", loader: "js" }
-      )
+      pluginBuild.onResolve({ filter: /^spell-ui:emoji$/ }, () => ({ path: "emoji", namespace: "spell-ui" }))
+      // UI's emoji data chunks:  never inlined (`EmojiData.chunkLoader` loads them as scripts);  an empty stand-in
+      pluginBuild.onResolve({ filter: EMOJI_CHUNK }, () => ({ path: "emoji-chunk", namespace: "spell-ui" }))
+      pluginBuild.onLoad({ filter: /.*/, namespace: "spell-ui" }, (loaded) => {
+        if (loaded.path === "icons") return { contents: iconsModule(), resolveDir: ASSETS, loader: "js" }
+        if (loaded.path === "emoji") return { contents: emojiModule(), resolveDir: ASSETS, loader: "js" }
+        if (loaded.path === "emoji-chunk") return { contents: "export default {}", loader: "js" }
+        return { contents: "", loader: "js" }
+      })
       pluginBuild.onResolve({ filter: /^@spell-app\/ui(\/.*)?$/ }, ({ path }) => ({ path: uiDistPath(path) }))
       pluginBuild.onResolve({ filter: SOLID }, async ({ path, kind, pluginData }) => {
         if (pluginData?.fromUiRoot) return undefined
@@ -220,6 +238,50 @@ function iconsModule() {
     `  for (const [names, svg] of ICONS) for (const name of names) ui.icons.register(name, svg)`,
     `})`
   ].join("\n")
+}
+
+/**
+ * Source of `spell-ui:emoji`:  `EmojiData.chunkLoader` loads a name chunk as the classic script
+ * `emoji/<set>/<letter>.js` next to the bundle, which hands its names to `__spellEmojiChunk()`.
+ * - The bundle's own URL (`document.currentScript`, read while it runs) locates the scripts, at any page depth.
+ */
+function emojiModule() {
+  return [
+    `import { EmojiData } from "@spell-app/ui/emoji"`,
+    `const base = new URL("emoji/", document.currentScript?.src ?? location.href)`,
+    `const waiting = new Map()`,
+    `globalThis.__spellEmojiChunk = (set, chunk, names) => waiting.get(set + "/" + chunk)?.(names)`,
+    `EmojiData.chunkLoader = (set, chunk) =>`,
+    `  new Promise((resolve, reject) => {`,
+    `    const id = set + "/" + chunk`,
+    `    const script = document.createElement("script")`,
+    `    waiting.set(id, (names) => { waiting.delete(id); resolve(names) })`,
+    `    script.src = new URL(id + ".js", base).href`,
+    `    script.onload = () => script.remove()`,
+    `    script.onerror = () => { waiting.delete(id); script.remove(); reject(new Error("no emoji chunk " + id)) }`,
+    `    document.head.append(script)`,
+    `  })`
+  ].join("\n")
+}
+
+/**
+ * Writes every emoji name chunk of UI's data (`<set>/<letter>.json`) as `_assets/emoji/<set>/<letter>.js`:  a classic
+ * script handing its names to `__spellEmojiChunk()`.  The folder is emptied first, so a dropped chunk doesn't linger.
+ */
+function writeEmojiChunks() {
+  rmSync(EMOJI_OUT, { recursive: true, force: true })
+  let files = 0
+  for (const set of readdirSync(EMOJI_DATA)) {
+    mkdirSync(join(EMOJI_OUT, set), { recursive: true })
+    for (const file of readdirSync(join(EMOJI_DATA, set)).filter((name) => name.endsWith(".json"))) {
+      const chunk = file.slice(0, -".json".length)
+      const names = JSON.parse(readFileSync(join(EMOJI_DATA, set, file), "utf8"))
+      const body = `__spellEmojiChunk(${JSON.stringify(set)}, ${JSON.stringify(chunk)}, ${JSON.stringify(names, null, 2)})\n`
+      writeFileSync(join(EMOJI_OUT, set, `${chunk}.js`), `// generated by scripts/bundle-spell-ui.js:  edit UI's data\n${body}`)
+      files++
+    }
+  }
+  console.log(`-- _assets/emoji/  ${files} lazy name chunks`)
 }
 
 ////////////////
