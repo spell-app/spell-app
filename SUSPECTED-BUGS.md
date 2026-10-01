@@ -23,6 +23,12 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 ### 1. Behavior bugs
 
+- `projects/system/examples/Solitaire-import`:  run in `<spell-app>` (`spell run @examples/Solitaire-import`, which
+  serves it by `src=`), it deals NOTHING onto the tableau -- only a king on the stock -- while `@examples/Solitaire`,
+  with the identical `Solitaire.spell`, deals a full game.  Every file loads (200, incl. the imported
+  `Solitaire.compiled.js`), no console errors, its tests pass.  Suspect:  the imported `Solitaire.compiled.js` runs
+  its OWN top-level code (`start the game`, a deal) when imported, sharing the runtime with the importer's game.
+  Prove:  check whether the app's own runner shows the same, then whether a compiled import's top-level statements run.
 - `test/unitTestModuleRules.ts` `compileMatch()`: a rule unit test NEVER checks that the rule consumed the
   whole input.  `compileMatch()` is `scope.parse(input, ruleName)` then `match.compile()` -- it compiles
   whatever matched and silently drops any tokens left over, so trailing garbage passes.  Two tests prove it:

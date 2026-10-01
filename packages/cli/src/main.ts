@@ -80,8 +80,10 @@ program
 
 program
   .command("run")
-  .description("compile a project and run it -- what needs a browser, e.g. starting its UI, is skipped")
+  .description("compile a project and run it -- one that shows a UI opens in your browser, until Ctrl-C")
   .argument("[target]", TARGET_ARG)
+  .option("--browser", "open it in a browser even if it shows no UI")
+  .option("--no-browser", "never open a browser:  just skip what needs one")
   .action((target: string | undefined, _options, command) =>
     run(CLI.runCommand, target ? [target] : [], command.optsWithGlobals())
   )

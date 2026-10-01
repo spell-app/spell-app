@@ -14,10 +14,12 @@ const CLI_SRC_DIR = resolve(fileURLToPath(import.meta.url), "..", "..")
 
 /**
  * `spell run <target>`:  compile one project and run it under node -- its `print`s show as they happen.
- * - What needs a browser, e.g. `start the game`, is skipped, with a note -- see `runProject.ts`.
+ * - What needs a browser, e.g. `start the game`, is skipped there -- see `runProject.ts` -- and the project then
+ *   opens in a browser instead, until `Ctrl-C`.  See `runInBrowser()`.
+ * - `--browser`:  open it in a browser anyway;  `--no-browser`:  never.
  * - Returns the program's exit code.
  */
-export async function runCommand(session: CLI.CliSession, args: string[], options: CLI.GlobalOptions): Promise<number> {
+export async function runCommand(session: CLI.CliSession, args: string[], options: CLI.RunOptions): Promise<number> {
   const targets = await session.targets(args)
   if (targets.length > 1) throw new CLI.CliError("Run one project at a time -- `spell test` takes several")
   return runProjectAs("run", session, targets[0]!, options)
@@ -50,7 +52,7 @@ async function runProjectAs(
   mode: CLI.RunSpec["mode"],
   session: CLI.CliSession,
   target: CLI.ResolvedTarget,
-  options: CLI.TestOptions
+  options: CLI.TestOptions & CLI.RunOptions
 ): Promise<number> {
   const project = target.kind === "file" ? target.file.project : target.project
   const status = new CLI.StatusReporter(session.isInteractive)
@@ -68,7 +70,9 @@ async function runProjectAs(
     status.finish({ clear: status.rows.every((it) => it.state === "ok") })
   }
 
-  const { exitCode } = await runCompiled(mode, project, options)
+  const { exitCode, skipped } = await runCompiled(mode, project, options)
+  const wantsBrowser = mode === "run" && options.browser !== false && (options.browser || skipped.length > 0)
+  if (wantsBrowser && exitCode === CLI.EXIT.OK) return CLI.runInBrowser(session, project)
   return problems.length && exitCode === CLI.EXIT.OK ? CLI.EXIT.ERRORS : exitCode
 }
 
@@ -77,14 +81,15 @@ async function runProjectAs(
  * process.  See `runProjectAs()`.
  * - Its javascript goes to a temp file, removed after.
  * - `capture`:  collect the child's output, rather than streaming it to our terminal -- e.g. for `spell watch --test`.
- * - Resolves to its exit code, and with `capture`, what it wrote to stdout and stderr, together.
+ * - Resolves to its exit code;  with `capture`, what it wrote to stdout and stderr, together;  and, for `run`, what
+ *   it skipped which needs a browser -- see `CLI.RunReport`.
  */
 export async function runCompiled(
   mode: CLI.RunSpec["mode"],
   project: SP.SpellProject,
   options: CLI.TestOptions,
   { capture = false }: { capture?: boolean } = {}
-): Promise<{ exitCode: number; output: string }> {
+): Promise<ChildResult> {
   const folder = mkdtempSync(resolve(tmpdir(), "spell-run-"))
   try {
     const entry = resolve(folder, `${project.projectName}.compiled.mjs`)
@@ -104,11 +109,17 @@ export async function runCompiled(
   }
 }
 
+/** How a `runProject.ts` child went -- see `runCompiled()`. */
+type ChildResult = { exitCode: number; output: string; skipped: string[] }
+
 /**
  * URL of the compiled javascript of each project `project` imports -- and what THEY import -- by id.
- * - For the child's `@spell/project/<id>` imports -- see `hooks.mjs`.
+ * - For the child's `@spell/project/<id>` imports -- see `hooks.mjs` -- and `runInBrowser()`.
  */
-function importedOutputs(project: SP.SpellProject, outputs: Record<string, string> = {}): Record<string, string> {
+export function importedOutputs(
+  project: SP.SpellProject,
+  outputs: Record<string, string> = {}
+): Record<string, string> {
   for (const imported of LSP.ScopeExplorer.importedProjects(project)) {
     if (outputs[imported.projectId]) continue
     outputs[imported.projectId] = pathToFileURL(imported.outputFile.location.serverPath).href
@@ -119,12 +130,13 @@ function importedOutputs(project: SP.SpellProject, outputs: Record<string, strin
 
 /**
  * Run `runProject.ts` for `spec` in a child node process, sharing our terminal -- or, with `capture`, collecting
- * its output.  Resolves to its exit code, and what it captured.
+ * its output.  Resolves to its exit code, what it captured, and what it skipped.
+ * - `run` gets an IPC channel, for its `CLI.RunReport`.
  * - `tsx` compiles the runner and spell's runtime, with OUR `tsconfig.json` for `~/` paths --
  *   whatever the current folder.
  * - NOTE: `--verbose` reaches the child as `spec.verbose`:  ITS console isn't guarded, see `consoleGuard.ts`.
  */
-function runChild(spec: CLI.RunSpec, capture: boolean): Promise<{ exitCode: number; output: string }> {
+function runChild(spec: CLI.RunSpec, capture: boolean): Promise<ChildResult> {
   const runner = resolve(CLI_SRC_DIR, "runner")
   const args = [
     "--import",
@@ -138,12 +150,18 @@ function runChild(spec: CLI.RunSpec, capture: boolean): Promise<{ exitCode: numb
     SPELL_RUN: JSON.stringify(spec),
     TSX_TSCONFIG_PATH: resolve(CLI_SRC_DIR, "..", "tsconfig.json")
   }
+  const stdio: ("ignore" | "pipe" | "inherit" | "ipc")[] = capture
+    ? ["ignore", "pipe", "pipe"]
+    : ["inherit", "inherit", "inherit"]
+  if (spec.mode === "run") stdio.push("ipc")
   return new Promise((done) => {
-    const child = spawn(process.execPath, args, { stdio: capture ? ["ignore", "pipe", "pipe"] : "inherit", env })
+    const child = spawn(process.execPath, args, { stdio, env })
     let output = ""
+    let skipped: string[] = []
     child.stdout?.on("data", (data) => (output += data))
     child.stderr?.on("data", (data) => (output += data))
-    child.on("exit", (code, signal) => done({ exitCode: code ?? (signal ? 130 : CLI.EXIT.ERRORS), output }))
-    child.on("error", (error) => done({ exitCode: CLI.EXIT.ERRORS, output: output + error.message }))
+    child.on("message", (report: CLI.RunReport) => (skipped = report.skipped))
+    child.on("exit", (code, signal) => done({ exitCode: code ?? (signal ? 130 : CLI.EXIT.ERRORS), output, skipped }))
+    child.on("error", (error) => done({ exitCode: CLI.EXIT.ERRORS, output: output + error.message, skipped }))
   })
 }

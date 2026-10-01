@@ -210,11 +210,36 @@ describe("spell run", () => {
     expect(existsSync(fixturePath("FizzBuzz", `FizzBuzz${SP.COMPILED_JS_SUFFIX}`))).toBe(false)
   })
 
-  test("skips what needs a browser, and says so", () => {
-    const { status, stderr } = spell(["run", "@test/Solitaire"])
+  test("--no-browser:  skips what needs a browser, and says so", () => {
+    const { status, stderr } = spell(["run", "@test/Solitaire", "--no-browser"])
     expect(stderr).toContain("Solitaire shows a UI (start the game), which needs a browser")
     expect(status).toBe(0)
   })
+
+  test("a UI project runs in the browser, in <spell-app>, until interrupted -- writing nothing into it", async () => {
+    // the fixture keeps a compiled copy:  it must come out untouched
+    const output = fixturePath("Solitaire", `Solitaire${SP.COMPILED_JS_SUFFIX}`)
+    const before = readFileSync(output, "utf8")
+    const child = spawn(process.execPath, [SPELL, "run", "@test/Solitaire"], {
+      cwd: fixturePath(),
+      env: { ...process.env, SPELL_NO_BROWSER: "1" },
+      stdio: ["ignore", "pipe", "pipe"]
+    })
+    let out = ""
+    child.stdout.on("data", (data) => (out += data))
+    // after what the program printed as it ran under node
+    await until(() => /http:\/\/localhost:\d+\/\n/.test(out), 120_000)
+    const url = /http:\/\/localhost:\d+\//.exec(out)![0]
+    expect(await (await fetch(url)).text()).toContain('<spell-app src="app/Solitaire.compiled.js" toolbar>')
+    expect(await (await fetch(new URL("app/Solitaire.compiled.js", url))).text()).toContain("class Card")
+    expect(await (await fetch(new URL("app/Solitaire.scopes.js", url))).text()).toContain("type:Card")
+    expect((await fetch(new URL("element/spell-app.js", url))).status).toBe(200)
+    expect((await fetch(new URL("element/../../package.json", url))).status).toBe(404)
+
+    child.kill("SIGINT")
+    expect(await new Promise((done) => child.on("exit", done))).toBe(0)
+    expect(readFileSync(output, "utf8")).toBe(before)
+  }, 180_000)
 })
 
 describe("spell test", () => {

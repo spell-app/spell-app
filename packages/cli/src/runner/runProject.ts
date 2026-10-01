@@ -32,15 +32,19 @@ else await testProject()
 
 /**
  * Load the project, running its top-level statements, then say if it wanted a browser.
+ * - Started by `spell run`, with an IPC channel:  tells it what was skipped -- `{ skipped: [...] }` -- so it can
+ *   open the project in a browser, and lets the channel go, so this process can end.
  * - Exits 1 if it threw.  Otherwise leaves the process to end on its own, so anything it started, e.g. a `pause`,
  *   gets to finish.
  */
 async function runProject() {
-  if (!(await load())) process.exit(1)
-  if (skipped.size) {
-    const what = [...skipped].join(", ")
-    note(`${spec.name} shows a UI (${what}), which needs a browser:  run it in the app, or VS Code's ▶ Run Project.`)
+  const loaded = await load()
+  if (process.send) {
+    process.send({ skipped: [...skipped] } satisfies CLI.RunReport)
+    process.disconnect()
   }
+  if (!loaded) process.exit(1)
+  if (skipped.size) note(`${spec.name} shows a UI (${[...skipped].join(", ")}), which needs a browser.`)
 }
 
 /**

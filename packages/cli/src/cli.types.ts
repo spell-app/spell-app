@@ -91,6 +91,15 @@ export type WatchOptions = GlobalOptions & {
 }
 
 /**
+ * `spell run` flags.
+ * - `browser`:  `true` opens the project in a browser even if it shows no UI;  `false` never does.  Left out:  only
+ *   if it tried to show one.
+ */
+export type RunOptions = GlobalOptions & {
+  browser?: boolean
+}
+
+/**
  * `spell test` flags.
  * - `name`:  only tests whose names contain it, e.g. `deck` -- ignoring case, and spaces ~== `-` ~== `_`
  * - `watch`:  run them again whenever the project changes -- `spell watch --test`
@@ -193,6 +202,14 @@ export type RunSpec = {
   spellCore: string
   verbose?: boolean
   filter?: string
+}
+
+/**
+ * What `runProject.ts` tells `spell run` once the project has loaded, over IPC.
+ * - `skipped`:  what it tried which needs a browser, e.g. `start the game` -- see `headless()`
+ */
+export type RunReport = {
+  skipped: string[]
 }
 
 ////////////////

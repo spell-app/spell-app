@@ -65,7 +65,7 @@ Every command takes one or more targets:
 | `spell describe <target> [name] [member]` | What the Type Explorer shows, as text.  E.g. `spell describe Card.spell Card color`.  `--compiled`, `--inherited`, `--json`. |
 | `spell explore [target]` | Full-screen Type Explorer.  `↑↓` move, `←→` fold, `Tab` switch pane, `/` filter, `c` compiled, `i` inherited, `o` open in editor, `e` edit its description, `q` quit.  Reloads as files change. |
 | `spell watch [targets...]` | Recompiles on every save, with a live list of errors.  `--check-only` re-checks and writes nothing.  `--test` runs tests after each clean rebuild (`--name` picks which).  Rebuilds a watched project when one it imports changes.  `q` / `Ctrl-C` stops it. |
-| `spell run [target]` | Compiles and runs the project under node.  Its `print`s show as they happen. |
+| `spell run [target]` | Compiles and runs the project under node.  Its `print`s show as they happen.  One that shows a UI then opens in your browser, until `Ctrl-C`.  `--browser` always, `--no-browser` never. |
 | `spell test [targets...]` | Runs each `to test ...` and reports ✓, or ✗ with the checks that failed.  `--verbose` shows every check.  `--name <text>` runs only tests whose names contain it.  `--watch` is `spell watch --test`. |
 | `spell format <targets...>` | Tidies `.spell` files' whitespace, as VS Code's Format Document does.  `--check` writes nothing, lists what would change, exits 1 if anything would.  Never writes into `projects/test/`. |
 | `spell projects [root]` | Lists the project roots, or one root's projects, with the names to type.  `--json`. |
@@ -103,8 +103,13 @@ Every command takes one or more targets:
 ### `run` / `test`
 
 - They run in a separate node process, so each run gets a fresh `spellCore`.
-- What needs a browser does nothing, with a note:  starting a UI (`start the game`) and installing styles.
-  So `run` on a UI project runs its logic, then says to use the app or VS Code's ▶ Run Project.
+- Under node, what needs a browser does nothing, with a note:  starting a UI (`start the game`) and installing
+  styles.  Then `run` on a UI project opens it in your browser:
+  - a page with `app`'s `<spell-app>` element, served from `localhost` until `Ctrl-C`:  the project as compiled for
+    this run (nothing written), its scope pack for the Type Explorer, and the compiled projects it imports
+  - the first time in a checkout, it builds `<spell-app>` (`yarn build:element` in `packages/app`, a few seconds)
+  - no live reload:  it serves what was compiled at the start
+  - `SPELL_NO_BROWSER=1` prints the URL instead of opening a browser
 - Other browser-only code, e.g. touching `document` directly, will throw.
 - `test`:
   - A test the project runs ITSELF as it loads counts once, and isn't run again.  A second run would start from

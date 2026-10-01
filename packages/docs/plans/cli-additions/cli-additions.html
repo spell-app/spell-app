@@ -55,8 +55,8 @@
             <li data-status="done" data-phase="7">
               <ui-icon name="circle check" color="green"></ui-icon> <a href="#p7">P7 · Server &amp; Icons</a>
             </li>
-            <li data-status="todo" data-phase="8">
-              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p8">P8 · Run In Browser</a>
+            <li data-status="done" data-phase="8">
+              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p8">P8 · Run In Browser</a>
             </li>
             <li data-status="todo" data-phase="9">
               <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p9">P9 · Doc Review 2</a>
@@ -222,6 +222,24 @@
                   ><p>
                     <code>projectIdsIn()</code> scanned every root's folder; <code>projects/system/guides</code> doesn't
                     exist. Also hit <code>spell compile @guides</code>. Fixed: a missing folder = no projects.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="i2">
+              <a class="plan-id" href="#i2">I2</a>
+              <span class="plan-title"
+                >@examples/Solitaire-import deals nothing in spell-app, though every file loads</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Plain Solitaire deals a full game the same way. Suspect the imported compiled project runs its own
+                    top-level code. Logged in
+                    <a href="../../../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
+                      ><code>SUSPECTED-BUGS.md</code></a
+                    >
+                    under spell; not this CLI's.
                   </p></ui-content
                 ></ui-accordion
               >
@@ -735,9 +753,9 @@
               </li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="8" class="s3">
+          <section data-status="done" data-phase="8" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p8"><ui-icon name="circle outline" color="grey"></ui-icon> P8 · Run In Browser</h3></ui-sticky
+              ><h3 id="p8"><ui-icon name="circle check" color="green"></ui-icon> P8 · Run In Browser</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li>
@@ -853,6 +871,12 @@
               routes); spell icons search + --open gallery (3760 icons, checked by screenshot)
             </li>
             <li><time datetime="2026-10-01T09:27-04:00">2026-10-01 09:27</time> P7 done</li>
+            <li><time datetime="2026-10-01T09:27-04:00">2026-10-01 09:27</time> P8 active</li>
+            <li>
+              <time datetime="2026-10-01T09:32-04:00">2026-10-01 09:32</time> P8 done: spell run opens UI projects in
+              the browser via spell-app (Solitaire checked by screenshot); dist-element builds on demand in ~5s
+            </li>
+            <li><time datetime="2026-10-01T09:32-04:00">2026-10-01 09:32</time> P8 done</li>
           </ul>
         </section>
       </main>
