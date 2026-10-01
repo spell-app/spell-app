@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { userEvent } from "vitest/browser"
+import { Keys } from "$/ui/test/keys"
 
 import { UI } from "$/ui/runtime"
 import type { TransitionDetail } from "$/ui/components/components.types"
@@ -244,11 +245,11 @@ describe("<ui-transition> reduced motion, commands, accessibility", () => {
       `<button id="before">Before</button><ui-transition duration="30"><button id="inside">In</button></ui-transition>`
     )
     wrapper.querySelector<HTMLButtonElement>("#before")!.focus()
-    await userEvent.keyboard("{Tab}")
+    await Keys.tab()
     expect(document.activeElement?.id).not.toBe("inside")
     await host.show()
     wrapper.querySelector<HTMLButtonElement>("#before")!.focus()
-    await userEvent.keyboard("{Tab}")
+    await Keys.tab()
     expect(document.activeElement?.id).toBe("inside")
   })
 

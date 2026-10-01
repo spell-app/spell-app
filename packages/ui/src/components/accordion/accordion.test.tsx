@@ -370,7 +370,8 @@ describe("<ui-accordion> look", () => {
 
   it("indents a tree's content", async () => {
     const { contents } = await accordion('tree open="0"')
-    expect(getComputedStyle(contents[0]!).marginLeft).toBe(`${1.7 * 16}px`)
+    // (WebKit snaps lengths to 1/64 px)
+    expect(parseFloat(getComputedStyle(contents[0]!).marginLeft)).toBeCloseTo(1.7 * 16, 1)
     expect(getComputedStyle(contents[0]!).paddingTop).toBe("0px")
   })
 

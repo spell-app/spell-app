@@ -172,7 +172,10 @@ export class UIDimmer extends UIElement<Vocabulary> {
     const box = this.box
     if (page && box instanceof HTMLDialogElement) {
       this.overlay.closeOnEscape = (untrack(() => this.attrs.closedby) ?? ANY) !== NONE
-      if (!box.open) box.showModal()
+      if (!box.open) {
+        box.showModal()
+        UI.focus.enter(box)
+      }
       UI.overlays.open(this.overlay)
     }
     this.after(() => {

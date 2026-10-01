@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vitest"
 import { userEvent } from "vitest/browser"
+import { Keys } from "$/ui/test/keys"
 
 import { UI } from "$/ui/runtime"
 import type { DimmerCloseDetail } from "$/ui/components/components.types"
@@ -98,7 +99,9 @@ describe("<ui-dimmer> element dimmer", () => {
     const segment = wrapper.querySelector("ui-segment")!.shadowRoot!.querySelector("[part~=segment]")!
     // its padding box:  inside the border, as Fomantic's absolute dimmer
     const rect = box.getBoundingClientRect()
-    expect([rect.width, rect.height]).toEqual([segment.clientWidth, segment.clientHeight])
+    // `clientWidth` / `clientHeight` are rounded to integers;  Firefox lays the segment out at 118.4
+    expect(rect.width).toBeCloseTo(segment.clientWidth, 0)
+    expect(rect.height).toBeCloseTo(segment.clientHeight, 0)
     expect(rect.left - segment.getBoundingClientRect().left).toBe(segment.clientLeft)
     const hidden = next(host, "ui-hide")
     host.active = false
@@ -238,11 +241,11 @@ describe("<ui-dimmer on>", () => {
     expect(getComputedStyle(box).opacity).toBe("0")
     expect(getComputedStyle(box).pointerEvents).toBe("none")
     wrapper.querySelector<HTMLButtonElement>("#before")!.focus()
-    await userEvent.keyboard("{Tab}")
+    await Keys.tab()
     expect(document.activeElement?.id).toBe("add")
     await settle()
     expect(host.active).toBe(true)
-    await userEvent.keyboard("{Tab}")
+    await Keys.tab()
     await settle()
     expect(host.active).toBe(false)
   })

@@ -4,7 +4,8 @@
   "description": "Fomantic UI's vocabulary as modern-CSS web components, on Solid 2",
   "license": "MIT",
   "files": [
-    "dist"
+    "dist",
+    "/CHANGELOG.md"
   ],
   "type": "module",
   "sideEffects": [

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { userEvent } from "vitest/browser"
+import { Keys } from "$/ui/test/keys"
 
 import { expectAccessible } from "$/ui/test/a11y"
 
@@ -191,7 +192,10 @@ describe("<ui-card> content parts", () => {
     const [centred, floated] = host.querySelectorAll("ui-content")
     expect(partRoot(centred!).className).toBe("center aligned content")
     expect(style(partRoot(centred!)).textAlign).toBe("center")
-    expect(style(partRoot(floated!)).float).toBe("right")
+    expect(partRoot(floated!).className).toBe("right floated content")
+    // the float is moot in the card's flex column (the card.css tests prove the rule on static markup):  Chromium and
+    // Firefox still compute `right`, WebKit computes `none` for a flex item
+    expect(["right", "none"]).toContain(style(partRoot(floated!)).float)
   })
 
   it("keeps a header inside a nested segment standalone (a barrier)", async () => {
@@ -388,7 +392,7 @@ describe("<ui-card> keyboard", () => {
     const [before, after] = wrapper.querySelectorAll("button")
     const card = wrapper.querySelector("ui-card")!
     before!.focus()
-    await userEvent.keyboard("{Tab}")
+    await Keys.tab()
     expect(card.shadowRoot!.activeElement).toBe(rootOf(card))
     expect(style(rootOf(card)).outlineStyle).toBe("solid")
     let followed = ""
@@ -399,7 +403,7 @@ describe("<ui-card> keyboard", () => {
     await userEvent.keyboard("{Enter}")
     expect(followed).toBe("#kristy")
     // a plain card is no stop
-    await userEvent.keyboard("{Tab}")
+    await Keys.tab()
     expect(document.activeElement).toBe(after)
   })
 })

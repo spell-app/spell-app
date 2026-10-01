@@ -70,7 +70,7 @@ describe("items.css source", () => {
       const selectors = Sheets.selectors(css)
       expect(selectors.length).toBeGreaterThan(25)
       expect(selectors.some((selector) => selector.includes(":host(:state(in-items):first-child) > .item"))).toBe(true)
-      expect(css).toMatch(/@container ui-items \(width < 768px\)/)
+      expect(css).toMatch(/@container \(width < 768px\)/)
       expect(css).toMatch(/@container style\(--_items-stackable: ?1\)/)
     }
   })

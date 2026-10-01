@@ -144,7 +144,8 @@
     --_ui-list-align: top;
     --_ui-list-font-size: var(--ui-list-font-size, calc(var(--ui-font-size) * var(--ui-scale, 1)));
     --_ui-list-item-display: var(--ui-list-item-display, list-item);
-    --_ui-list-item-width: var(--ui-list-item-width, stretch);
+    --_ui-list-stretch: stretch;
+    --_ui-list-item-width: var(--ui-list-item-width, var(--_ui-list-stretch));
     --_ui-list-item-font-size: var(--ui-list-item-font-size, initial);
     --_ui-list-item-line-height: var(--ui-list-item-line-height, 1.14285714em);
     --_ui-list-item-padding-block: var(--ui-list-item-padding-block, 0.21428571em);
@@ -234,13 +235,29 @@
     --ui-scale: initial;
   }
 
+  /* `width: stretch` (fill the line, margins included):  Firefox spells it `-moz-available`, older Safari
+     `-webkit-fill-available`.  A token, since an unsupported keyword inside a `var()` is invalid at computed-value time
+     and silently drops the width to `auto` (a button item then shrinks to its text). */
+  @supports not (width: stretch) {
+    @supports (width: -webkit-fill-available) {
+      .ui.list {
+        --_ui-list-stretch: -webkit-fill-available;
+      }
+    }
+    @supports (width: -moz-available) {
+      .ui.list {
+        --_ui-list-stretch: -moz-available;
+      }
+    }
+  }
+
   /* Sub-list:  Fomantic's `.ui.list .list`, tighter child items that never inherit the outer list's layout. */
   :host(:state(in-list)) > .list,
   .ui.list .list:not(.ui) {
     --_ui-list-layout: vertical;
     --_ui-list-animated: 0;
     --_ui-list-item-display: list-item;
-    --_ui-list-item-width: stretch;
+    --_ui-list-item-width: var(--_ui-list-stretch);
     --_ui-list-item-font-size: initial;
     --_ui-list-item-line-height: initial;
     --_ui-list-item-padding-block: var(--_ui-list-child-item-padding-block);

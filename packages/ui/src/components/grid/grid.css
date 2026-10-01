@@ -41,6 +41,10 @@
  * - The top-level `<ui-grid>` HOST is a block and the size container `ui-grid` (a grid root can't query its
  *   own width, and `reversed` / `stackable` change the root).  Static markup makes the grid's parent the
  *   container instead (`:has(> .ui.grid)`).
+ * - NOTE: the sheet's own queries are UNNAMED (`@container (width < 768px)`, the nearest size container), though
+ *   the container has a name:  container names are tree-scoped, and a name set by `:host` lives in the grid's
+ *   shadow tree, which a slotted column's own shadow tree can't see (WebKit enforces it;  Chromium / Firefox
+ *   don't).  Page CSS may still query `ui-grid` by name.  Same in `items.css`.
  * - Ranges mirror Fomantic's breakpoints, compared with the space the GRID is given, not the viewport:
  *   `mobile` < 768px, `tablet` 768..991px, `computer` >= 992px, `large screen` 1200..1919px,
  *   `widescreen` >= 1920px.  They drive `stackable`, `doubling`, `reversed` and the per-device widths.
@@ -778,7 +782,7 @@
    */
 
   /* Mobile */
-  @container ui-grid (width < 768px) {
+  @container (width < 768px) {
     .ui[class*="one wide mobile"].column {
       --_grid-wide: 1;
     }
@@ -883,7 +887,7 @@
   }
 
   /* Tablet */
-  @container ui-grid (768px <= width < 992px) {
+  @container (768px <= width < 992px) {
     .ui[class*="one wide tablet"].column {
       --_grid-wide: 1;
     }
@@ -960,7 +964,7 @@
   }
 
   /* Computer and up */
-  @container ui-grid (width >= 992px) {
+  @container (width >= 992px) {
     .ui[class*="one wide computer"].column {
       --_grid-wide: 1;
     }
@@ -1020,7 +1024,7 @@
   }
 
   /* Large screen */
-  @container ui-grid (1200px <= width < 1920px) {
+  @container (1200px <= width < 1920px) {
     .ui[class*="one wide large screen"].column {
       --_grid-wide: 1;
     }
@@ -1072,7 +1076,7 @@
   }
 
   /* Widescreen */
-  @container ui-grid (width >= 1920px) {
+  @container (width >= 1920px) {
     .ui[class*="one wide widescreen"].column {
       --_grid-wide: 1;
     }

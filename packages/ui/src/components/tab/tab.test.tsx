@@ -1,4 +1,5 @@
 import { userEvent } from "vitest/browser"
+import { Keys } from "$/ui/test/keys"
 import { afterEach, describe, expect, it, onTestFinished, vi } from "vitest"
 
 import { expectAccessible } from "$/ui/test/a11y"
@@ -214,7 +215,7 @@ describe("<ui-tabs> keyboard", () => {
     before.textContent = "before"
     host.before(before)
     before.focus()
-    await userEvent.tab()
+    await Keys.tab()
     expect(focusedTab(host, buttons)).toBe(1)
     await userEvent.keyboard("{ArrowRight}")
     expect(focusedTab(host, buttons)).toBe(2)
@@ -229,8 +230,9 @@ describe("<ui-tabs> keyboard", () => {
     await expect.poll(() => shown(panes)).toEqual([0])
     await userEvent.keyboard("{ArrowLeft}")
     expect(focusedTab(host, buttons)).toBe(2)
-    // Tab leaves the list for the shown pane (a tabpanel Tab stop)
-    await userEvent.tab()
+    // Tab leaves the list for the shown pane (a tabpanel Tab stop):  once the selection has moved the pane
+    await expect.poll(() => shown(panes)).toEqual([2])
+    await Keys.tab()
     expect(document.activeElement).toBe(panes[2])
   })
 

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, onTestFinished } from "vitest"
 import { userEvent } from "vitest/browser"
+import { Keys } from "$/ui/test/keys"
 
 import { UI } from "$/ui/runtime"
 import type { EmbedActivateDetail } from "$/ui/components/components.types"
@@ -168,7 +169,7 @@ describe("<ui-embed> activation", () => {
     const before = Fixture.render<HTMLButtonElement>(`<button>Before</button>`)
     host.before(before)
     before.focus()
-    await userEvent.tab()
+    await Keys.tab()
     expect(host.shadowRoot!.activeElement?.getAttribute("part")).toBe("play")
     await userEvent.keyboard("{Enter}")
     await expect.poll(() => host.shadowRoot!.activeElement?.localName).toBe("iframe")

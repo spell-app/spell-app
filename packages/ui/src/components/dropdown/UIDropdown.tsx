@@ -627,6 +627,9 @@ export class UIDropdown extends FormElement<Vocabulary> {
 
   /** Trigger / input click:  toggle (the input only opens). */
   private readonly onTriggerClick = (event: MouseEvent) => {
+    // Safari doesn't focus a <button> on a mouse click, and the keys (arrows, Enter, Escape) need focus here
+    // (`detail` is 0 for a keyboard or scripted click, which has the focus it needs, or none to give)
+    if (event.detail > 0) this.combobox?.focus({ preventScroll: true })
     if (this.attrs.search && untrack(() => this.isOpen())) return
     this.setOpen(!untrack(() => this.isOpen()), event)
   }

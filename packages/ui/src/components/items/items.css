@@ -301,13 +301,13 @@
    * - Tablet:  a narrower image and content distance.  Mobile:  items stack (image above content, the image as wide
    *   as it can be up to 250px tall) unless `unstackable`, which keeps a 125px image beside the content.
    */
-  @container ui-items (768px <= width < 992px) {
+  @container (768px <= width < 992px) {
     .ui.items {
       --_items-image-width: var(--_ui-items-tablet-image-width);
       --_items-content-distance: var(--_ui-items-tablet-content-distance);
     }
   }
-  @container ui-items (width < 768px) {
+  @container (width < 768px) {
     .ui.items:not(.relaxed, .divided, .unstackable) {
       --_items-item-margin: var(--_ui-items-mobile-item-spacing) 0;
     }

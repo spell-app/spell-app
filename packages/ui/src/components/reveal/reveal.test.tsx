@@ -1,6 +1,7 @@
 /// <reference types="@vitest/browser-playwright" />
 import { describe, expect, it, onTestFinished } from "vitest"
-import { cdp, userEvent } from "vitest/browser"
+import { commands, userEvent } from "vitest/browser"
+import { Keys } from "$/ui/test/keys"
 
 import { expectAccessible } from "$/ui/test/a11y"
 
@@ -108,7 +109,7 @@ describe("<ui-reveal> revealing", () => {
     expect(root.getAttribute("role")).toBe("group")
     expect(root.getAttribute("aria-label")).toBe("Stevie")
     holder.querySelector("button")!.focus()
-    await userEvent.keyboard("{Tab}")
+    await Keys.tab()
     expect(root.matches(":focus-visible")).toBe(true)
     const visible = root.querySelector<HTMLElement>("[part=visible]")!
     await settled(visible)
@@ -139,11 +140,8 @@ describe("<ui-reveal> revealing", () => {
   })
 
   it("swaps at once under prefers-reduced-motion", async () => {
-    const session = cdp()
-    await session.send("Emulation.setEmulatedMedia", {
-      features: [{ name: "prefers-reduced-motion", value: "reduce" }]
-    })
-    onTestFinished(async () => void (await session.send("Emulation.setEmulatedMedia", { features: [] })))
+    await commands.emulateReducedMotion(true)
+    onTestFinished(() => commands.emulateReducedMotion(false))
     const { visible } = await render(markup("move"))
     // ~0:  the foundation's own reduced-motion rule (`reset.css`) may pin it to a hair above zero
     expect(parseFloat(getComputedStyle(visible).transitionDuration)).toBeLessThan(0.001)

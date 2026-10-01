@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vitest"
 import { userEvent } from "vitest/browser"
+import { Keys } from "$/ui/test/keys"
 
 import { UI } from "$/ui/runtime"
 import type { NagCloseDetail } from "$/ui/components/components.types"
@@ -169,7 +170,7 @@ describe("<ui-nag> closing", () => {
     const before = Fixture.render<HTMLButtonElement>(`<button>Before</button>`)
     host.before(before)
     before.focus()
-    await userEvent.tab()
+    await Keys.tab()
     expect(host.shadowRoot!.activeElement).toBe(host.shadowRoot!.querySelector("button"))
     const hidden = next(host, "ui-hide")
     await userEvent.keyboard("{Enter}")

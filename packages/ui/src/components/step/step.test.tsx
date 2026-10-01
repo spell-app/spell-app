@@ -1,5 +1,6 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 import { userEvent } from "vitest/browser"
+import { Keys } from "$/ui/test/keys"
 
 import { expectAccessible } from "$/ui/test/a11y"
 import { Fixture } from "$/ui/test/fixture"
@@ -333,16 +334,16 @@ describe("<ui-step> keyboard", () => {
     )
     const [, link, button] = stepRoots(holder)
     holder.querySelector("button")!.focus()
-    await userEvent.keyboard("{Tab}")
+    await Keys.tab()
     expect(link!.matches(":focus")).toBe(true)
-    await userEvent.keyboard("{Tab}")
+    await Keys.tab()
     expect(button!.matches(":focus")).toBe(true)
     let clicks = 0
     holder.querySelector("ui-step[link]")!.addEventListener("click", () => clicks++)
     await userEvent.keyboard("{Enter}")
     await userEvent.keyboard(" ")
     expect(clicks).toBe(2)
-    await userEvent.keyboard("{Tab}")
+    await Keys.tab()
     expect(document.activeElement).not.toBe(holder.querySelector("ui-step[disabled]"))
   })
 })

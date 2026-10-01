@@ -116,14 +116,14 @@ links open in an editor tab;  `.md` links do too because `.vscode/settings.json`
 | docs pages | ✅ | 53 pages:  every built family, plus the button page's `state` section (`active-text` / `inactive-text`).  Pages:  [accordion](../site/src/content/components/accordion.mdx), [ad](../site/src/content/components/ad.mdx), [breadcrumb](../site/src/content/components/breadcrumb.mdx), [button](../site/src/content/components/button.mdx), [calendar](../site/src/content/components/calendar.mdx), [card](../site/src/content/components/card.mdx), [checkbox](../site/src/content/components/checkbox.mdx), [comment](../site/src/content/components/comment.mdx), [container](../site/src/content/components/container.mdx), [dimmer](../site/src/content/components/dimmer.mdx), [divider](../site/src/content/components/divider.mdx), [dropdown](../site/src/content/components/dropdown.mdx), [embed](../site/src/content/components/embed.mdx), [emoji](../site/src/content/components/emoji.mdx), [feed](../site/src/content/components/feed.mdx), [flag](../site/src/content/components/flag.mdx), [flyout](../site/src/content/components/flyout.mdx), [form](../site/src/content/components/form.mdx), [grid](../site/src/content/components/grid.mdx), [icon](../site/src/content/components/icon.mdx), [image](../site/src/content/components/image.mdx), [input](../site/src/content/components/input.mdx), [item](../site/src/content/components/item.mdx), [items](../site/src/content/components/items.mdx), [label](../site/src/content/components/label.mdx), [list](../site/src/content/components/list.mdx), [loader](../site/src/content/components/loader.mdx), [menu](../site/src/content/components/menu.mdx), [message](../site/src/content/components/message.mdx), [modal](../site/src/content/components/modal.mdx), [nag](../site/src/content/components/nag.mdx), [parts](../site/src/content/components/parts.mdx), [placeholder](../site/src/content/components/placeholder.mdx), [popup](../site/src/content/components/popup.mdx), [progress](../site/src/content/components/progress.mdx), [rail](../site/src/content/components/rail.mdx), [rating](../site/src/content/components/rating.mdx), [reveal](../site/src/content/components/reveal.mdx), [search](../site/src/content/components/search.mdx), [segment](../site/src/content/components/segment.mdx), [select](../site/src/content/components/select.mdx), [shape](../site/src/content/components/shape.mdx), [sidebar](../site/src/content/components/sidebar.mdx), [slider](../site/src/content/components/slider.mdx), [statistic](../site/src/content/components/statistic.mdx), [step](../site/src/content/components/step.mdx), [sticky](../site/src/content/components/sticky.mdx), [tab](../site/src/content/components/tab.mdx), [table](../site/src/content/components/table.mdx), [text](../site/src/content/components/text.mdx), [toast](../site/src/content/components/toast.mdx), [transition](../site/src/content/components/transition.mdx), [visibility](../site/src/content/components/visibility.mdx)
 | theming guide | ✅ | [`site/src/pages/theming.mdx`](../site/src/pages/theming.mdx), [`docs/theming.md`](theming.md) |
 | translation contract | ✅ | [`docs/translation.md`](translation.md) (design only) |
-| kitchen sink | ⬜ | |
+| kitchen sink | ✅ | [`site/src/pages/kitchen-sink.astro`](../site/src/pages/kitchen-sink.astro):  every family's main example, live (2026-10-01) |
 | visual tests + cross-browser baselines | 🚧 | `yarn test:visual` built (Owen, 2026-09-30);  `local-darwin` baselines for all 3 browsers, every family (1,122 PNGs, 66 MB:  374 per browser);  `linux` baselines wait for a working Docker Desktop ([`docs/visual-testing.md`](visual-testing.md)) |
-| cross-browser test runs (firefox, webkit) | ⬜ | `yarn test:all` exists, not in the routine |
+| cross-browser test runs (firefox, webkit) | 🚧 | `yarn test:all` (2026-10-01):  10,849 pass;  4 WebKit failures wait on Owen (style queries on pseudo-elements, form container across a slot);  test files run one at a time there (one focus per page) |
 | axe audit of every example | ✅ | runs in each family's element test |
 | bundle-size report | ✅ | [`docs/report.md`](report.md) (`yarn report`) |
 | README | ✅ | [`README.md`](../README.md) |
-| CHANGELOG | ⬜ | |
-| npm publish dry run | ⬜ | |
+| CHANGELOG | ✅ | [`CHANGELOG.md`](../CHANGELOG.md), "Unreleased";  published with the package |
+| npm publish dry run | ✅ | `yarn npm publish --dry-run` (2026-10-01):  2.5 MB tarball, 2,726 files (`dist/` incl. 2,167 icon SVGs, `CHANGELOG.md`, `README.md`);  all 120 `exports` targets present |
 
 ## Deferred
 
@@ -235,6 +235,11 @@ Built, but flagged for Owen's review before it's treated as settled.  Owen settl
 - **Emoji name clashes** -- 19 names mean different emoji in Fomantic and CLDR (`dog`, `cat`, `pencil` ...);
   Fomantic's meaning wins, so existing pages keep their picture (CLDR's stays reachable:  `dog2`, `dog_face`).
   Keep, or let CLDR win?  Flagged 2026-10-01.
+- **WebKit:  style queries on `::before` / `::after`** -- WebKit doesn't re-evaluate a `@container style()` rule on a
+  pseudo-element after the container's token changes (breadcrumb divider icon, feed number circles):  nudge the
+  element after a change, or move those rules off style queries?  3 WebKit tests fail.  Flagged 2026-10-01.
+- **WebKit:  `<ui-form>` row stacking** -- WebKit's container lookup doesn't cross the slot, and the form host is
+  `display: contents`:  give the form a real box host, or another mechanism?  1 WebKit test fails.  Flagged 2026-10-01.
 - **Table stacking opt-in** -- tables stack by VIEWPORT again (Fomantic);  an element opts in to stacking by its
   own width with the TOKEN `--ui-table-stack-by: container`.  Keep a token, or add an attribute
   (`stack-by="container"`)?  Flagged 2026-10-01.

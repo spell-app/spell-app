@@ -2,6 +2,7 @@ import { describe, expect, it, onTestFinished } from "vitest"
 import { userEvent } from "vitest/browser"
 
 import { ClassBuilder } from "$/ui/elements"
+import { UI } from "$/ui/runtime"
 import { colorsCSS, foundationCSS } from "$/ui/styles"
 import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"
 
@@ -17,6 +18,13 @@ import selectRaw from "./select.css?raw"
  * light-DOM examples (the closed box every browser draws, and the customizable picker Chromium draws).
  * - Sheets are adopted into the document per test (foundation, then `select.css`) and removed again.
  */
+
+/**
+ * Customizable `<select>` (`appearance: base-select`):  Chromium only so far.  Where it is missing the browser drops
+ * the `::picker(select)` / `selectedcontent` rules at parse time, so those assertions wait for the flag, like the
+ * component's own `:state(customizable)`.
+ */
+const BASE_SELECT = (await UI.load()).browser.supports.baseSelect
 
 /** Every example fragment, by path. */
 const EXAMPLES = import.meta.glob<string>("./examples/*.html", { query: "?raw", import: "default", eager: true })
@@ -49,6 +57,7 @@ describe("select.css source", () => {
       const supports = [...sheet.cssRules].filter((rule) => rule instanceof CSSSupportsRule)
       expect(supports.map((rule) => (rule as CSSSupportsRule).conditionText)).toContain("(appearance: base-select)")
       const rules = styleRules(sheet)
+      if (!BASE_SELECT) continue
       expect(rules.some((rule) => rule.selectorText.includes("::picker(select)"))).toBe(true)
       expect(rules.some((rule) => rule.selectorText.includes("selectedcontent"))).toBe(true)
     }
@@ -96,7 +105,7 @@ describe("select.css examples", () => {
     expect(getComputedStyle(placeholder!).color).not.toBe(getComputedStyle(chosen!).color)
   })
 
-  it("is the customizable select where supported, with a hidden picker icon", () => {
+  it.skipIf(!BASE_SELECT)("is the customizable select where supported, with a hidden picker icon", () => {
     adoptIntoPage(SHEETS)
     const root = Fixture.render(EXAMPLES["./examples/types.html"]!)
     const select = root.querySelector<HTMLSelectElement>("select.ui.select")!
@@ -104,7 +113,7 @@ describe("select.css examples", () => {
     expect(getComputedStyle(select, "::picker-icon").display).toBe("none")
   })
 
-  it("opens the picker below the box, anchored and at least as wide", async () => {
+  it.skipIf(!BASE_SELECT)("opens the picker below the box, anchored and at least as wide", async () => {
     adoptIntoPage(SHEETS)
     const root = Fixture.render(EXAMPLES["./examples/types.html"]!)
     const select = root.querySelector<HTMLSelectElement>("select.ui.select")!

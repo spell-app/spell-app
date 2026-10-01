@@ -17,6 +17,9 @@ const EXAMPLES = import.meta.glob<string>("/src/components/select/examples/eleme
   eager: true
 })
 
+/** Customizable `<select>` (`appearance: base-select`) drawn?  Chromium only so far. */
+const BASE_SELECT = (await UI.load()).browser.supports.baseSelect
+
 /** A select host with its rich properties. */
 type Select = UIHost & { value: unknown; options: SelectOptions | undefined }
 
@@ -64,10 +67,11 @@ describe("<ui-select> markup", () => {
     expect(texts()).toEqual(["Gender", "Male", "Female", "Other"])
     expect(shown()).toBe("Gender")
     expect(native().options[0]!.className).toBe("placeholder")
-    expect(host.matches(":state(customizable)")).toBe(true)
+    expect(host.matches(":state(customizable)")).toBe(BASE_SELECT)
   })
 
-  it("draws the customizable select's button, with the chosen option's content", async () => {
+  // customizable select (`appearance: base-select`):  Chromium only so far, flagged by `BASE_SELECT`
+  it.skipIf(!BASE_SELECT)("draws the customizable select's button, with the chosen option's content", async () => {
     const { host, native } = await select(GENDER.replace("<ui-select", `<ui-select value="female"`))
     const button = native().querySelector(":scope > button")!
     expect(button.getAttribute("part")).toBe("button")
@@ -201,24 +205,27 @@ describe("<ui-select> value", () => {
 })
 
 describe("<ui-select> keyboard", () => {
-  it("opens the customizable picker, moves and chooses with the keys (the browser's own pattern)", async () => {
-    const { host, native, shown } = await select(GENDER)
-    const changes = record(host, "ui-change")
-    native().focus()
-    await userEvent.keyboard("{ArrowDown}")
-    await expect.poll(() => native().matches(":open")).toBe(true)
-    await userEvent.keyboard("{ArrowDown}{ArrowDown}{Enter}")
-    await ElementFixture.tick()
-    expect(native().matches(":open")).toBe(false)
-    expect(changes).toEqual([expect.objectContaining({ value: "female" })])
-    expect(host.value).toBe("female")
-    expect(shown()).toBe("Female")
-    await userEvent.keyboard("{ArrowDown}")
-    await expect.poll(() => native().matches(":open")).toBe(true)
-    await userEvent.keyboard("{Escape}")
-    await expect.poll(() => native().matches(":open")).toBe(false)
-    expect(host.value).toBe("female")
-  })
+  it.skipIf(!BASE_SELECT)(
+    "opens the customizable picker, moves and chooses with the keys (the browser's own pattern)",
+    async () => {
+      const { host, native, shown } = await select(GENDER)
+      const changes = record(host, "ui-change")
+      native().focus()
+      await userEvent.keyboard("{ArrowDown}")
+      await expect.poll(() => native().matches(":open")).toBe(true)
+      await userEvent.keyboard("{ArrowDown}{ArrowDown}{Enter}")
+      await ElementFixture.tick()
+      expect(native().matches(":open")).toBe(false)
+      expect(changes).toEqual([expect.objectContaining({ value: "female" })])
+      expect(host.value).toBe("female")
+      expect(shown()).toBe("Female")
+      await userEvent.keyboard("{ArrowDown}")
+      await expect.poll(() => native().matches(":open")).toBe(true)
+      await userEvent.keyboard("{Escape}")
+      await expect.poll(() => native().matches(":open")).toBe(false)
+      expect(host.value).toBe("female")
+    }
+  )
 
   it("focuses the select through the host (`delegatesFocus`)", async () => {
     const { host, native } = await select(GENDER)

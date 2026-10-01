@@ -45,6 +45,20 @@ export class Focus {
     return this.focusables(root).at(-1) ?? null
   }
 
+  /**
+   * The dialog focusing steps, through slots:  after `show()` / `showModal()` of a dialog whose content is SLOTTED
+   * (so the focus targets sit in the flat tree, not the dialog's own subtree), focus its `autofocus` element, else its
+   * first tabbable.
+   * - Chromium does this itself;  Firefox only looks at the dialog's own descendants, and leaves focus on the dialog
+   *   (or nowhere);  WebKit focuses the first tabbable of the dialog's OWN subtree (the shadow root's close icon),
+   *   not of the flat tree.  So this always focuses the flat-tree target, even when focus is already inside.
+   */
+  enter(dialog: HTMLElement): void {
+    const items = this.focusables(dialog)
+    const target = items.find((item) => item.hasAttribute("autofocus")) ?? items[0]
+    target?.focus()
+  }
+
   /** Is `element` inside `container`, following the composed tree (slots, shadow hosts)? */
   containsDeep(container: Node, element: Node | null): boolean {
     let current: Node | null = element
@@ -68,7 +82,8 @@ export class Focus {
    */
   trap(root: Element | ShadowRoot): Disposer {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Tab" || event.ctrlKey || event.metaKey || event.altKey) return
+      if (event.key !== "Tab" || event.ctrlKey || event.metaKey) return
+      // NOTE: Alt (Option) + Tab is NOT skipped:  in Safari it is the Tab that reaches links and buttons
       const items = this.focusables(root)
       if (!items.length) return event.preventDefault()
       const active = this.activeElementDeep()
@@ -134,6 +149,8 @@ export class Focus {
    */
   private isTabbable(element: HTMLElement): boolean {
     if (element.tabIndex < 0) return false
+    // Firefox reports a `<dialog>`'s tabIndex as 0 (Chromium: -1), but Tab never stops on the box itself
+    if (element instanceof HTMLDialogElement && !element.hasAttribute("tabindex")) return false
     if (element.matches(":disabled")) return false
     if (element.shadowRoot?.delegatesFocus) return false
     if (element instanceof HTMLInputElement && element.type === "hidden") return false

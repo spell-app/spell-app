@@ -63,7 +63,8 @@ describe("flag.css examples", () => {
     for (const flag of flags) {
       const style = getComputedStyle(flag)
       expect(style.display, flag.outerHTML.slice(0, 80)).toBe("inline-block")
-      expect(style.lineHeight).toBe(style.fontSize)
+      // `toBeCloseTo`:  Firefox snaps the font size and the line height to different fractions
+      expect(parseFloat(style.lineHeight)).toBeCloseTo(parseFloat(style.fontSize), 1)
       expect(style.fontFamily).toContain("Color Emoji")
       expect(parseFloat(style.marginRight)).toBeGreaterThan(0)
       expect(flag.getAttribute("role")).toBe("img")

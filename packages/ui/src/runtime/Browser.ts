@@ -118,7 +118,8 @@ export class Browser {
       customStates: typeof ElementInternals !== "undefined" && "states" in ElementInternals.prototype,
       viewTransitions: dom && "startViewTransition" in document,
       temporal: "Temporal" in globalThis,
-      interpolateSize: css && probe(() => CSS.supports("interpolate-size: allow-keywords"))
+      interpolateSize: css && probe(() => CSS.supports("interpolate-size: allow-keywords")),
+      anchoredQueries: css && probe(() => CSS.supports("container-type: anchored"))
     }
 
     /** Run a feature probe;  `false` if it throws. */

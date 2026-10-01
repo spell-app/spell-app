@@ -126,10 +126,10 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | library (as used:  the bindings `dist/` imports) | 78.36 | 28.08 | eager |
 | library (full:  every export of the peer set) | 173.54 | 60.50 | comparison |
 | core (element core + foundation JS) | 46.20 | 14.49 | eager |
-| forms (form base, validation, menu options;  imported by `dropdown`, `input`, `checkbox`, `form`, `select`, `search`, `rating`, `slider`, `calendar`) | 20.27 | 7.32 | eager |
-| own, all 53 families | 1383.09 | 387.73 | eager |
+| forms (form base, validation, menu options;  imported by `dropdown`, `input`, `checkbox`, `form`, `select`, `search`, `rating`, `slider`, `calendar`) | 20.56 | 7.45 | eager |
+| own, all 53 families | 1383.97 | 388.07 | eager |
 | api (`E` / `V` namespaces, `@spell-app/ui/api`) | 0.70 | 0.31 | app only |
-| runtime (`UIRuntime` + foundation CSS) | 180.94 | 31.12 | lazy |
+| runtime (`UIRuntime` + foundation CSS) | 181.19 | 31.19 | lazy |
 | icons (none bundled:  pack indexes and SVGs are separate files, `docs/icons.md`) | 0.00 | 0.00 | lazy |
 | family data (emoji name chunks, each loaded on its own) | 337.05 | 75.76 | lazy |
 <!-- /generated:bundle-tiers -->
@@ -140,14 +140,14 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | Family | own min+gz kB | classes | css | vocabulary | fallback | imports | page with only it | standalone (library bundled) |
 | --- | --: | --: | --: | --: | --: | --- | --: | --: |
 | `button` | **13.06** | 4.47 | 4.13 | 2.50 | 2.11 | core | 55.63 | 42.41 |
-| `dropdown` | **16.51** | 7.02 | 4.91 | 2.37 | 2.49 | core + forms | 66.40 | 64.98 |
+| `dropdown` | **16.54** | 7.05 | 4.91 | 2.37 | 2.49 | core + forms | 66.57 | 65.00 |
 | `icon` | **6.33** | 2.53 | 1.92 | 1.44 | 1.58 | core | 48.91 | 36.45 |
 | `label` | **8.61** | 2.87 | 3.53 | 1.58 | 1.56 | core | 51.19 | 50.05 |
 | `parts` | **15.07** | 5.46 | 5.61 | 2.27 | 1.62 | core | 57.65 | 51.30 |
 | `divider` | **3.82** | 1.67 | 0.96 | 0.72 | 1.48 | core | 46.40 | 33.95 |
-| `segment` | **7.40** | 2.27 | 3.35 | 1.41 | 1.45 | core | 49.98 | 37.70 |
+| `segment` | **7.40** | 2.27 | 3.35 | 1.41 | 1.45 | core | 49.98 | 37.71 |
 | `container` | **3.34** | 1.45 | 0.85 | 0.63 | 1.40 | core | 45.91 | 33.38 |
-| `grid` | **7.84** | 2.44 | 3.32 | 1.51 | 1.44 | core | 50.42 | 38.93 |
+| `grid` | **7.84** | 2.44 | 3.31 | 1.51 | 1.44 | core | 50.42 | 38.92 |
 | `image` | **5.61** | 2.32 | 1.62 | 1.15 | 1.60 | core | 48.18 | 35.49 |
 | `text` | **2.70** | 1.47 | 0.40 | 0.40 | 1.40 | core | 45.28 | 32.73 |
 | `flag` | **6.08** | 1.87 | 0.56 | 2.92 | 1.64 | core | 48.66 | 37.30 |
@@ -155,22 +155,22 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | `placeholder` | **5.90** | 3.31 | 1.38 | 0.80 | 1.57 | core | 48.47 | 35.94 |
 | `message` | **5.68** | 2.02 | 1.86 | 0.99 | 1.81 | core | 48.26 | 36.03 |
 | `breadcrumb` | **5.04** | 2.77 | 0.99 | 0.70 | 1.80 | core | 47.61 | 35.34 |
-| `input` | **10.41** | 4.61 | 2.76 | 1.88 | 2.22 | core + forms | 60.30 | 51.55 |
-| `checkbox` | **9.31** | 4.60 | 2.69 | 1.09 | 2.11 | core + forms | 59.20 | 45.38 |
-| `form` | **10.59** | 6.22 | 2.16 | 1.81 | 1.59 | core + forms | 60.48 | 49.48 |
+| `input` | **10.41** | 4.61 | 2.76 | 1.88 | 2.22 | core + forms | 60.44 | 51.70 |
+| `checkbox` | **9.31** | 4.60 | 2.69 | 1.09 | 2.11 | core + forms | 59.34 | 45.47 |
+| `form` | **10.59** | 6.22 | 2.16 | 1.81 | 1.59 | core + forms | 60.62 | 49.47 |
 | `item` | **4.88** | 2.71 | 0.37 | 0.97 | 1.91 | core | 47.46 | 39.76 |
-| `list` | **7.09** | 2.03 | 3.37 | 0.92 | 1.65 | core | 49.67 | 45.42 |
+| `list` | **7.16** | 2.03 | 3.44 | 0.92 | 1.65 | core | 49.74 | 45.51 |
 | `menu` | **10.07** | 2.82 | 4.36 | 1.36 | 1.62 | core | 52.65 | 47.87 |
 | `table` | **13.64** | 4.58 | 5.41 | 1.88 | 1.92 | core | 56.21 | 47.65 |
 | `popup` | **8.60** | 3.87 | 2.56 | 1.46 | 1.82 | core | 51.18 | 38.40 |
-| `modal` | **8.99** | 4.12 | 2.14 | 1.47 | 2.47 | core | 51.57 | 70.48 |
-| `transition` | **4.91** | 2.82 | 0.28 | 1.01 | 1.90 | core | 47.48 | 34.76 |
-| `dimmer` | **6.22** | 3.00 | 1.09 | 1.21 | 2.10 | core | 48.80 | 36.22 |
-| `flyout` | **5.20** | 1.48 | 1.84 | 1.29 | 1.59 | core | 47.78 | 74.26 |
-| `sidebar` | **8.45** | 4.62 | 1.84 | 1.34 | 1.92 | core | 51.02 | 38.46 |
+| `modal` | **9.01** | 4.13 | 2.14 | 1.47 | 2.47 | core | 51.58 | 70.49 |
+| `transition` | **4.91** | 2.82 | 0.28 | 1.01 | 1.90 | core | 47.48 | 34.77 |
+| `dimmer` | **6.23** | 3.01 | 1.09 | 1.21 | 2.10 | core | 48.81 | 36.23 |
+| `flyout` | **5.20** | 1.48 | 1.84 | 1.29 | 1.59 | core | 47.78 | 74.27 |
+| `sidebar` | **8.46** | 4.63 | 1.84 | 1.34 | 1.92 | core | 51.03 | 38.46 |
 | `shape` | **6.07** | 4.10 | 0.80 | 0.81 | 1.57 | core | 48.64 | 35.95 |
 | `card` | **8.19** | 3.30 | 2.71 | 1.44 | 1.92 | core | 50.76 | 56.65 |
-| `items` | **4.10** | 1.55 | 1.47 | 0.56 | 1.51 | core | 46.68 | 56.44 |
+| `items` | **4.10** | 1.55 | 1.47 | 0.56 | 1.51 | core | 46.67 | 56.43 |
 | `feed` | **5.75** | 2.70 | 1.49 | 0.87 | 1.88 | core | 48.33 | 54.60 |
 | `comment` | **4.45** | 2.40 | 0.87 | 0.67 | 1.70 | core | 47.02 | 53.29 |
 | `statistic` | **4.80** | 2.25 | 1.24 | 0.93 | 1.54 | core | 47.38 | 41.31 |
@@ -179,11 +179,11 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | `reveal` | **4.07** | 2.02 | 0.91 | 0.58 | 1.58 | core | 46.65 | 34.09 |
 | `ad` | **3.42** | 1.52 | 0.84 | 0.56 | 1.50 | core | 46.00 | 33.43 |
 | `emoji` | **4.14** | 2.32 | 0.61 | 0.67 | 1.55 | core | 46.72 | 34.20 |
-| `select` | **8.10** | 3.41 | 2.23 | 1.01 | 2.63 | core + forms | 57.99 | 52.89 |
-| `search` | **12.90** | 6.66 | 2.44 | 2.05 | 2.15 | core + forms | 62.80 | 53.05 |
+| `select` | **8.10** | 3.41 | 2.23 | 1.01 | 2.63 | core + forms | 58.13 | 53.02 |
+| `search` | **12.91** | 6.67 | 2.44 | 2.05 | 2.15 | core + forms | 62.94 | 53.20 |
 | `progress` | **7.41** | 3.33 | 2.09 | 1.26 | 1.75 | core | 49.99 | 37.80 |
-| `rating` | **6.24** | 3.43 | 0.94 | 0.89 | 2.11 | core + forms | 56.13 | 41.46 |
-| `slider` | **9.10** | 4.87 | 1.85 | 1.23 | 2.24 | core + forms | 59.00 | 44.15 |
+| `rating` | **6.44** | 3.64 | 0.94 | 0.89 | 2.11 | core + forms | 56.47 | 41.80 |
+| `slider` | **9.10** | 4.87 | 1.85 | 1.23 | 2.24 | core + forms | 59.13 | 44.28 |
 | `accordion` | **7.05** | 3.36 | 1.68 | 1.20 | 1.89 | core | 49.63 | 57.22 |
 | `tab` | **8.56** | 5.08 | 0.94 | 1.70 | 2.15 | core | 51.14 | 47.44 |
 | `toast` | **11.08** | 6.28 | 2.23 | 1.73 | 2.09 | core | 53.65 | 53.30 |
@@ -191,7 +191,7 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | `sticky` | **3.67** | 2.36 | 0.31 | 0.51 | 1.50 | core | 46.24 | 33.80 |
 | `visibility` | **3.58** | 2.12 | 0.14 | 0.78 | 1.60 | core | 46.15 | 33.63 |
 | `embed` | **6.31** | 3.57 | 0.87 | 1.16 | 2.06 | core | 48.89 | 36.46 |
-| `calendar` | **15.46** | 9.50 | 2.06 | 2.13 | 2.18 | core + forms | 65.36 | 54.52 |
+| `calendar` | **15.46** | 9.50 | 2.06 | 2.13 | 2.18 | core + forms | 65.49 | 54.66 |
 <!-- /generated:bundle-families -->
 
 ### Scenarios
@@ -200,8 +200,8 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | Scenario | Adds up | shared runtime min+gz kB | standalone build |
 | --- | --- | --: | --: |
 | page with one button | library + core + own:button | **55.63** | 42.41 |
-| all families | library + core + forms + own (53 families) | **437.62** | 436.31 |
-| app already ships the library | core + forms + own (53 families) | **409.54** | -- |
+| all families | library + core + forms + own (53 families) | **438.10** | 436.77 |
+| app already ships the library | core + forms + own (53 families) | **410.01** | -- |
 <!-- /generated:bundle-scenarios -->
 
 ### Checks
@@ -243,12 +243,12 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 <!-- generated:loc -->
 | Group | Files | Lines | Code lines |
 | --- | --: | --: | --: |
-| element core | 24 | 3819 | 2176 |
-| components | 151 | 14664 | 9179 |
+| element core | 24 | 3839 | 2189 |
+| components | 151 | 14704 | 9208 |
 | vocabularies & fallbacks | 106 | 10010 | 7899 |
-| foundation | 42 | 7920 | 4304 |
-| tests | 209 | 35720 | 30028 |
-| tooling | 53 | 6267 | 4404 |
+| foundation | 42 | 7943 | 4313 |
+| tests | 210 | 35822 | 30081 |
+| tooling | 53 | 6275 | 4406 |
 <!-- /generated:loc -->
 
 ### Per file
@@ -260,7 +260,7 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | `elements/Cell.ts` | 23 | 10 |
 | `elements/ClassBuilder.ts` | 185 | 122 |
 | `elements/ContentPart.tsx` | 85 | 48 |
-| `elements/ControlLabels.ts` | 223 | 144 |
+| `elements/ControlLabels.ts` | 243 | 157 |
 | `elements/Controlled.ts` | 86 | 41 |
 | `elements/ElementDefinition.ts` | 217 | 133 |
 | `elements/FormElement.ts` | 137 | 68 |
@@ -304,12 +304,12 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | `components/comment/index.ts` | 16 | 6 |
 | `components/container/UIContainer.tsx` | 27 | 17 |
 | `components/container/index.ts` | 10 | 3 |
-| `components/dimmer/UIDimmer.tsx` | 328 | 211 |
+| `components/dimmer/UIDimmer.tsx` | 331 | 214 |
 | `components/dimmer/index.ts` | 13 | 3 |
 | `components/divider/UIDivider.tsx` | 58 | 33 |
 | `components/divider/index.ts` | 10 | 3 |
 | `components/dropdown/SlottedItems.ts` | 135 | 92 |
-| `components/dropdown/UIDropdown.tsx` | 826 | 607 |
+| `components/dropdown/UIDropdown.tsx` | 829 | 608 |
 | `components/dropdown/index.ts` | 14 | 4 |
 | `components/embed/UIEmbed.tsx` | 190 | 116 |
 | `components/embed/UIEmbedHost.ts` | 30 | 16 |
@@ -389,11 +389,11 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | `components/progress/index.ts` | 13 | 4 |
 | `components/rail/UIRail.tsx` | 30 | 18 |
 | `components/rail/index.ts` | 10 | 3 |
-| `components/rating/UIRating.tsx` | 384 | 248 |
+| `components/rating/UIRating.tsx` | 412 | 269 |
 | `components/rating/index.ts` | 11 | 3 |
 | `components/reveal/UIReveal.tsx` | 104 | 62 |
 | `components/reveal/index.ts` | 11 | 3 |
-| `components/search/UISearch.tsx` | 734 | 538 |
+| `components/search/UISearch.tsx` | 737 | 539 |
 | `components/search/index.ts` | 12 | 4 |
 | `components/segment/UISegment.tsx` | 71 | 46 |
 | `components/segment/UISegments.tsx` | 29 | 18 |
@@ -405,7 +405,7 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | `components/shape/index.ts` | 13 | 6 |
 | `components/sidebar/UIPushable.tsx` | 122 | 78 |
 | `components/sidebar/UIPusher.tsx` | 36 | 22 |
-| `components/sidebar/UISidebar.tsx` | 359 | 224 |
+| `components/sidebar/UISidebar.tsx` | 362 | 227 |
 | `components/sidebar/index.ts` | 15 | 7 |
 | `components/slider/UISlider.tsx` | 496 | 337 |
 | `components/slider/index.ts` | 13 | 4 |
@@ -543,8 +543,8 @@ Solid, Vite dev server) and the smoke perf page (`dist/` + vendored production S
 <!-- generated:perf -->
 | Where | Build | Open: update / + layout / + frame ms | Keystroke update min / avg / max ms | + layout | + frame |
 | --- | --- | --: | --: | --: | --: |
-| vitest browser mode | dev (Vite dev server) | 18.4 / 18.4 / 19.9 | 0.4 / **1.9** / 5.3 | 1.1 / **4.0** / 9.9 | 13.7 / **15.9** / 16.8 |
-| smoke perf page | production (`dist/` + vendored peers) | 17.4 / 17.5 / 19.3 | 0.3 / **1.4** / 4.1 | 0.8 / **3.2** / 10.9 | 12.9 / **15.6** / 16.9 |
+| vitest browser mode | dev (Vite dev server) | 36.0 / 36.0 / 37.0 | 0.0 / **3.6** / 12.0 | 1.0 / **5.6** / 15.0 | 11.0 / **15.4** / 19.0 |
+| smoke perf page | production (`dist/` + vendored peers) | 18.2 / 18.2 / 19.7 | 0.2 / **1.2** / 3.4 | 0.8 / **2.9** / 9.2 | 13.5 / **15.7** / 17.6 |
 <!-- /generated:perf -->
 
 - The test asserts an average update under 16 ms;  it passes with large headroom.  No windowing needed.

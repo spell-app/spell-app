@@ -56,12 +56,23 @@ export function uiProjects({ prefix = "", root }: { prefix?: string; root?: stri
         setupFiles: ["./test/setup.ts"],
         // a guard:  an element bug that halts rendering must fail its test, not hang the run
         testTimeout: 10_000,
+        // Test files of one browser run in parallel iframes of ONE page, which has ONE focus:  firefox and webkit hand it
+        // to whichever iframe asked last, so `focus()` / Tab / Escape tests of another file fail.  Chromium fakes focus
+        // for every frame, so the quick single-browser run keeps its parallelism.
+        fileParallelism: !process.env.UI_TEST_ALL,
         // `inject("ci")` in a test:  timing budgets are skipped on a shared CI runner (`test/test.types.ts`)
         provide: { ci: Boolean(process.env.CI) },
         browser: {
           enabled: true,
           provider: playwright(),
           headless: true,
+          // `commands.emulateReducedMotion(true)` in a test:  Playwright's media emulation, in every browser (the
+          // `cdp()` session is Chromium-only)
+          commands: {
+            emulateReducedMotion: async ({ page }, reduce: boolean) => {
+              await page.emulateMedia({ reducedMotion: reduce ? "reduce" : null })
+            }
+          },
           instances: BROWSERS.map((browser) => ({ browser }))
         }
       }

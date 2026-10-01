@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vitest"
 import { userEvent } from "vitest/browser"
+import { Keys } from "$/ui/test/keys"
 
 import { UI } from "$/ui/runtime"
 import type { ModalCloseDetail } from "$/ui/components/components.types"
@@ -279,14 +280,14 @@ describe("<ui-flyout> behaviour (DialogElement)", () => {
     await shown
     expect(opens).toHaveLength(1)
     expect(UI.focus.containsDeep(host.querySelector(".deny")!, UI.focus.activeElementDeep()), "initial").toBe(true)
-    await userEvent.keyboard("{Tab}")
-    await userEvent.keyboard("{Tab}")
+    await Keys.tab()
+    await Keys.tab()
     expect(UI.focus.activeElementDeep()).toBe(dialog.querySelector("[part~=close]"))
     // past the last, the page behind stays out of reach (`inert`);  only the browser's own UI is next
-    await userEvent.keyboard("{Tab}")
+    await Keys.tab()
     const active = UI.focus.activeElementDeep()
     expect(active === show || active === wrapper.querySelector("#trigger"), "page reached").toBe(false)
-    await userEvent.keyboard("{Shift>}{Tab}{/Shift}")
+    await Keys.tab(true)
     await userEvent.keyboard("{Escape}")
     await settle()
     expect(dialog.open).toBe(false)

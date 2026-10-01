@@ -134,7 +134,8 @@ describe("breadcrumb.css examples", () => {
     const active = luminance(getComputedStyle(breadcrumb.querySelector(".active.section")!).color)
     const text = luminance(getComputedStyle(breadcrumb).color)
     expect(active).toBeGreaterThan(0.8)
-    expect(active).toBeGreaterThanOrEqual(text)
+    // a small slack:  the canvas round trip of a translucent colour is off by a few 1/255 in Firefox
+    expect(active).toBeGreaterThanOrEqual(text - 0.01)
   })
 })
 

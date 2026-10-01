@@ -36,7 +36,8 @@ export const HEADER_LINKS: NavLink[] = [
   { label: "Components", path: "/components/" },
   { label: "Theming", path: "/theming/" },
   { label: "Utilities", path: "/utilities/" },
-  { label: "Icons", path: "/icons/" }
+  { label: "Icons", path: "/icons/" },
+  { label: "Kitchen sink", path: "/kitchen-sink/" }
 ]
 
 /** Component categories in sidebar / index order, as Fomantic groups them. */
@@ -69,7 +70,8 @@ export async function sidebar(): Promise<NavSection[]> {
       links: [
         { label: "Theming", path: "/theming/" },
         { label: "Utilities", path: "/utilities/" },
-        { label: "Icons", path: "/icons/" }
+        { label: "Icons", path: "/icons/" },
+        { label: "Kitchen sink", path: "/kitchen-sink/" }
       ]
     }
   ]

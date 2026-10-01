@@ -1,5 +1,6 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 import { userEvent } from "vitest/browser"
+import { Keys } from "$/ui/test/keys"
 
 import type { FormHost } from "$/ui/elements"
 import { expectAccessible } from "$/ui/test/a11y"
@@ -191,9 +192,9 @@ describe("<ui-rating> keyboard", () => {
     await ElementFixture.tick()
     const host = container.querySelector<Rating>("ui-rating")!
     container.querySelector("button")!.focus()
-    await userEvent.keyboard("{Tab}")
+    await Keys.tab()
     expect(host.shadowRoot!.activeElement).toBe(parts(host).radios[2])
-    await userEvent.keyboard("{Tab}")
+    await Keys.tab()
     expect(document.activeElement).toBe(container.querySelectorAll("button")[1])
   })
 

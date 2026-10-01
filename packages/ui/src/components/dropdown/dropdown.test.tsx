@@ -158,7 +158,9 @@ describe("<ui-dropdown> open / close", () => {
     await userEvent.click(combobox)
     await ElementFixture.tick()
     expect(menu.matches(":popover-open")).toBe(true)
-    await userEvent.click(document.body, { position: { x: 5, y: 5 } })
+    // a real element below the dropdown:  a click at the body's corner can land ON the dropdown (WebKit's layout)
+    const outside = await ElementFixture.render(`<p style="margin-top: 200px">Outside</p>`)
+    await userEvent.click(outside)
     await ElementFixture.tick()
     expect(menu.matches(":popover-open")).toBe(false)
   })
@@ -539,6 +541,9 @@ describe("<ui-dropdown> menu placement", () => {
     )
     const host = document.querySelector<Dropdown>("ui-dropdown")!
     const { menu } = parts(host)
+    // WebKit resets the page scroll once, shortly after the previous tests (focused dropdowns, now removed):
+    // let that pass before scrolling
+    await new Promise((resolve) => setTimeout(resolve, 100))
     host.scrollIntoView({ block: "center" })
     host.open = true
     await ElementFixture.tick()

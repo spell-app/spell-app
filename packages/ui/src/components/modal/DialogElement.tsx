@@ -225,7 +225,10 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
     else dialog.removeAttribute(CLOSEDBY)
     this.overlay.closeOnEscape = closedBy !== NONE
     this.overlay.closeOnOutsideClick = !native && closedBy === ANY
-    if (!dialog.open) dialog.showModal()
+    if (!dialog.open) {
+      dialog.showModal()
+      UI.focus.enter(dialog)
+    }
     UI.overlays.open(this.overlay)
     this.after(() => {
       const detail: ModalOpenDetail = { open: true }

@@ -48,8 +48,8 @@
             <li data-status="done" data-phase="4">
               <ui-icon name="circle check" color="green"></ui-icon> <a href="#p4">P4 · Owen's Decisions</a>
             </li>
-            <li data-status="todo" data-phase="5">
-              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p5">P5 · Release Chores</a>
+            <li data-status="done" data-phase="5">
+              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p5">P5 · Release Chores</a>
             </li>
             <li data-status="todo" data-phase="6">
               <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p6">P6 · Doc Review</a>
@@ -132,6 +132,37 @@
                   ><p>
                     Tables stack by viewport again (Fomantic). The layout agent chose a token; a
                     <code>container stackable</code> class would clash with <code>.ui.container</code>.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="q11">
+              <a class="plan-id" href="#q11">Q11</a>
+              <span class="plan-title"
+                >WebKit: style-query rules on ::before / ::after go stale after a token change (breadcrumb divider icon,
+                feed number circles): nudge the element after the change, or move those rules off style queries?</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    See <a href="#i7">I7</a>. 3 WebKit tests fail on it (breadcrumb x2, feed x1). A WebKit bug: the
+                    element's own style updates, its pseudo-element doesn't; any inline style write refreshes it. The
+                    breadcrumb case is real (its glyph loads async).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="q12">
+              <a class="plan-id" href="#q12">Q12</a>
+              <span class="plan-title"
+                >WebKit: &lt;ui-form&gt; can't stack rows on a narrow form, because WebKit's container lookup doesn't
+                cross the slot: give the form a real box host, or another mechanism?</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    See <a href="#i8">I8</a>. 1 WebKit test fails. The host is <code>display: contents</code>, so it
+                    can't be the container; the container is <code>.ui.form</code> inside the shadow root.
                   </p></ui-content
                 ></ui-accordion
               >
@@ -377,6 +408,28 @@
                 ></ui-accordion
               >
             </li>
+            <li data-status="open" id="c9">
+              <a class="plan-id" href="#c9">C9</a>
+              <span class="plan-title">Browsers: Safari quirks the tests now allow for (keys, focus, sheets)</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Safari's Tab skips links/buttons (Option+Tab reaches them):
+                    <a href="../../../ui/test/keys.ts" target="src-packages-ui-test-keys-ts"
+                      ><code>test/keys.ts</code></a
+                    >
+                    <code>Keys.tab()</code>; <code>Focus.trap</code> no longer ignores Alt+Tab. A mouse click doesn't
+                    focus a button: the dropdown trigger focuses itself on a real click.
+                    <code>Focus.enter()</code> always focuses the flat-tree target (WebKit picks the shadow root's close
+                    icon). <code>replaceSync</code> twice before any <code>cssRules</code> read appends:
+                    <code>Styles.register</code> reads a rule first. Adopted sheets keep stale media results if no
+                    element using them is alive at a viewport resize: tests render first, then resize. WebKit has no
+                    anchored container queries: new flag <code>UI.browser.supports.anchoredQueries</code>.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
           </ol>
         </section>
 
@@ -474,6 +527,44 @@
                       ><code>tools/hmr.e2e.ts</code></a
                     >
                     now anchors on the signature alone; 8/8.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="i7">
+              <a class="plan-id" href="#i7">I7</a>
+              <span class="plan-title"
+                >Browsers: WebKit drops style-query results on ::before/::after after a dynamic change</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    In WebKit (Playwright 26), a <code>@container style(--x: v)</code> rule that changes a
+                    PSEUDO-ELEMENT's style is not re-evaluated when the container's custom property changes AFTER first
+                    style (set at creation: fine). Probe: nav with inline <code>--l</code> set later;
+                    <code>getComputedStyle(span, '::before').content</code> stays stale, while the span's own style
+                    updates. Touching the pseudo's originating element (<code>style.setProperty</code>) refreshes it.
+                    Affects breadcrumb (<code>divider-icon</code> loads async, so a real Safari bug) and feed (ordered /
+                    basic circles). Tests left failing: breadcrumb x2, feed x1. Options: a per-element nudge after a
+                    token change, or move the pseudo rules off style queries.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="i8">
+              <a class="plan-id" href="#i8">I8</a>
+              <span class="plan-title"
+                >Browsers: WebKit finds no container inside a shadow root above a slot (form)</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    WebKit's container lookup walks shadow-including DOM ancestors, not the flat tree through slots, so
+                    a size container that is an element INSIDE a shadow root (ui-form's <code>.ui.form</code>,
+                    <code>display: contents</code> host) is invisible to slotted descendants' own shadow trees.
+                    Container NAMES are also tree-scoped in WebKit (a name set by <code>:host</code> is not visible from
+                    a sibling shadow tree): fixed for grid and items by unnamed queries. ui-form needs its container on
+                    a real box host: test 'stacks rows on a narrow form' left failing.
                   </p></ui-content
                 ></ui-accordion
               >
@@ -969,6 +1060,37 @@
                 ></ui-accordion
               >
             </li>
+            <li data-status="open" id="d32">
+              <a class="plan-id" href="#d32">D32</a>
+              <span class="plan-title">Browsers: test files run one at a time under UI_TEST_ALL</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Files of one browser share ONE page focus (parallel iframes): with firefox / webkit, Tab / Escape /
+                    focus() tests of other files steal it. <code>fileParallelism: !UI_TEST_ALL</code> in
+                    <a href="../../../../vitest.config.ts" target="src-vitest-config-ts"
+                      ><code>vitest.config.ts</code></a
+                    >: the plain single-chromium run keeps its parallelism. Also:
+                    <code>commands.emulateReducedMotion</code> (Playwright) replaces the Chromium-only
+                    <code>cdp()</code>.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d33">
+              <a class="plan-id" href="#d33">D33</a>
+              <span class="plan-title">Browsers: grid / items container queries are unnamed</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    WebKit scopes container NAMES to the tree, so a slotted column's shadow tree can't see a host's
+                    name. The containers keep their names for page CSS. Checked by the visual run.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
           </ol>
         </section>
 
@@ -1038,9 +1160,9 @@
               <li><b>Verify:</b> yarn review; test:visual for rendering changes, baselines updated</li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="5" class="s3">
+          <section data-status="done" data-phase="5" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p5"><ui-icon name="circle outline" color="grey"></ui-icon> P5 · Release Chores</h3></ui-sticky
+              ><h3 id="p5"><ui-icon name="circle check" color="green"></ui-icon> P5 · Release Chores</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li>
@@ -1179,6 +1301,13 @@
             </li>
             <li><time datetime="2026-10-01T01:33-04:00">2026-10-01 01:33</time> P3 done</li>
             <li><time datetime="2026-10-01T01:33-04:00">2026-10-01 01:33</time> P4 done</li>
+            <li><time datetime="2026-10-01T01:33-04:00">2026-10-01 01:33</time> P5 active</li>
+            <li>
+              <time datetime="2026-10-01T02:02-04:00">2026-10-01 02:02</time> P5 browsers: firefox 3,615 pass (4
+              skipped: no customizable select); webkit 3,615 pass, 4 fail (Q11, Q12); test files run one at a time under
+              UI_TEST_ALL (one focus per page). Kitchen sink page (61 site pages); CHANGELOG.md.
+            </li>
+            <li><time datetime="2026-10-01T02:13-04:00">2026-10-01 02:13</time> P5 done</li>
           </ul>
         </section>
       </main>

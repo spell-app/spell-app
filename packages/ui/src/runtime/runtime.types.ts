@@ -84,6 +84,8 @@ export type BrowserSupports = {
   temporal: boolean
   /** `interpolate-size: allow-keywords` -- animate to `height: auto` */
   interpolateSize: boolean
+  /** `container-type: anchored` + `@container anchored(...)` -- style a positioned box by the fallback it landed on */
+  anchoredQueries: boolean
 }
 
 ////////////////

@@ -565,6 +565,9 @@ export class UISearch extends FormElement<Vocabulary> {
       .then((response) => {
         const groups = SearchMatcher.groups(response, max)
         this.cache.set(query, groups)
+        // superseded while the answer was on its way (a transport that ignores the signal still delivers it):  cached,
+        // not shown
+        if (controller.signal.aborted) return
         this.remote.set({ query, groups, status: "done" })
         this.emit("ui-results", { query, results: groups.flatMap((group) => group.results) })
       })

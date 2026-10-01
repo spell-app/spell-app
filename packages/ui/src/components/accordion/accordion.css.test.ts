@@ -143,7 +143,8 @@ describe("accordion.css examples", () => {
     expect(getComputedStyle(basic).boxShadow).toBe("none")
     expect(style(basic, "details:last-child > .title").borderTopStyle).toBe("none")
     const tree = root.querySelector<HTMLElement>(".ui.tree.accordion")!
-    expect(style(tree, ".content").marginLeft).toBe(`${1.7 * 16}px`)
+    // (WebKit snaps lengths to 1/64 px)
+    expect(parseFloat(style(tree, ".content").marginLeft)).toBeCloseTo(1.7 * 16, 1)
     expect(style(tree, ".content").paddingTop).toBe("0px")
     expect(style(tree, ".accordion").marginTop).toBe("0px")
   })

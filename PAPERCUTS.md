@@ -821,6 +821,13 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   `cookie` external, and from `dist/` that resolves to the root's hoisted `cookie@0.7.1` (express's), not Astro's
   nested 2.0.1.  `ssr.noExternal` doesn't reach it:  Astro 7 prerenders in its own Vite environment. ·
   `environments.prerender.resolve.noExternal: [..., "cookie"]` in `site/astro.config.mjs`. · ui
+- 2026-10-01 · First `yarn test:all` in a while:  92 failures (firefox 35, webkit 52, chromium 5), most keyboard /
+  focus tests.  Vitest runs a browser's test files in parallel iframes of ONE page, which has one focus, and firefox
+  / webkit hand it to whichever iframe asked last;  WebKit also needs Option+Tab to reach buttons and links. ·
+  `fileParallelism: !process.env.UI_TEST_ALL` in `vitest.config.ts`;  `Keys.tab()` (`test/keys.ts`) for Tab in
+  tests;  `yarn test:all` now ~10 min. · ui
+- 2026-10-01 · `"files": ["dist", "CHANGELOG.md"]` packed `reference/Fomantic-UI/CHANGELOG.md` too:  yarn matches a
+  bare name at any depth. · `"/CHANGELOG.md"`, anchored;  check with `yarn pack --dry-run`. · ui
 
 ## cli
 

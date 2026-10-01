@@ -77,7 +77,8 @@ describe("Styles", () => {
     const { root } = shadowHost()
     styles.adoptInto(root, ["button"])
     await styles.appSheetReady
-    expect(root.adoptedStyleSheets).toEqual([tokens, reset, button, utilities, styles.appSheet])
+    // spread:  Firefox's `adoptedStyleSheets` is an observable array, which `toEqual` won't match to a plain one
+    expect([...root.adoptedStyleSheets]).toEqual([tokens, reset, button, utilities, styles.appSheet])
   })
 
   it("re-pushes adopted roots when a foundation sheet is registered later, keeping foreign sheets", () => {
@@ -86,9 +87,9 @@ describe("Styles", () => {
     root.adoptedStyleSheets = [foreign]
     styles.setFoundation(["tokens"])
     styles.adoptInto(root, [])
-    expect(root.adoptedStyleSheets).toEqual([foreign, styles.appSheet])
+    expect([...root.adoptedStyleSheets]).toEqual([foreign, styles.appSheet])
     const tokens = styles.register("tokens", ":host { --x: 1 }")
-    expect(root.adoptedStyleSheets).toEqual([tokens, foreign, styles.appSheet])
+    expect([...root.adoptedStyleSheets]).toEqual([tokens, foreign, styles.appSheet])
   })
 
   it("swaps a re-registered sheet object into every root", () => {

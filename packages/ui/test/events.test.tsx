@@ -101,6 +101,8 @@ describe.each([
     const seen = listen(host, ["click", "keydown", "focusin"])
     const button = host.shadowRoot!.querySelector("button")!
     await userEvent.click(button, { position: { x: 2, y: 2 } })
+    // Safari doesn't focus a button on click (and clears focus):  focus it, so the focusin and the Enter happen there
+    button.focus()
     await userEvent.keyboard("{Enter}")
     expect(seen.map((entry) => entry.type)).toEqual(expect.arrayContaining(["focusin", "click", "keydown"]))
     for (const entry of seen) expect(entry).toMatchObject({ target: true, path0: "button" })

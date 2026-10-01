@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vitest"
 import { page, userEvent } from "vitest/browser"
+import { Keys } from "$/ui/test/keys"
 
 import { UI } from "$/ui/runtime"
 import type { ToastActionDetail, ToastCloseDetail, ToastShowDetail } from "$/ui/components/components.types"
@@ -141,11 +142,13 @@ describe("<ui-toast> tokens from outside", () => {
   })
 
   it("`compact` (the default) follows the width token (off phones)", async () => {
+    // Render first, THEN resize:  WebKit keeps a shared adopted sheet's media results stale when no element using it
+    // is alive at the resize (see PAPERCUTS), so the toast must already be in the page
+    const { root } = await toast(`<ui-toast style="--ui-toast-width: 200px" message="Hi"></ui-toast>`)
     const [previousWidth, previousHeight] = [window.innerWidth, window.innerHeight]
     await page.viewport(1000, 800)
     onTestFinished(() => page.viewport(previousWidth, previousHeight))
-    const { root } = await toast(`<ui-toast style="--ui-toast-width: 200px" message="Hi"></ui-toast>`)
-    expect(getComputedStyle(root).width).toBe("200px")
+    await expect.poll(() => getComputedStyle(root).width).toBe("200px")
   })
 })
 
@@ -387,7 +390,8 @@ describe("<ui-toast> pausing", () => {
     expect(host.matches(":state(paused)")).toBe(true)
     await wait(180)
     expect(host.hidden).toBe(false)
-    ;(document.activeElement as HTMLElement).blur()
+    // the DEEP active element:  `document.activeElement` is the host, and Firefox's `blur()` on a host does nothing
+    ;(UI.focus.activeElementDeep() as HTMLElement).blur()
     await expect.poll(() => host.hidden, { timeout: 1000 }).toBe(true)
   })
 })
@@ -466,7 +470,7 @@ describe("<ui-toast> keyboard", () => {
     const before = Fixture.render<HTMLButtonElement>(`<button>Before</button>`)
     host.before(before)
     before.focus()
-    await userEvent.tab()
+    await Keys.tab()
     expect(host.shadowRoot!.activeElement).toBe(host.shadowRoot!.querySelector("[part~=close]"))
     const closes = record(host, "ui-close")
     await userEvent.keyboard("{Enter}")

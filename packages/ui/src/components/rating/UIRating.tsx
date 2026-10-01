@@ -317,10 +317,38 @@ export class UIRating extends FormElement<typeof ratingVocabulary> {
       if (target && !target.checked) this.choose(Number(target.value), event)
       return
     }
+    const step = this.wrapStep(event)
+    if (step) {
+      // the browser's own arrow keys stop at the ends (WebKit):  wrap round, as the others do
+      const radios = this.radios().filter((radio) => !radio.disabled)
+      const target = step < 0 ? radios.at(-1) : radios[0]
+      event.preventDefault()
+      target?.focus()
+      if (target && !target.checked) this.choose(Number(target.value), event)
+      return
+    }
     if (CLEAR_KEYS.has(key) && untrack(() => this.isClearable())) {
       event.preventDefault()
       this.choose(0, event)
     }
+  }
+
+  /**
+   * Which way an arrow key would run off the end of the group:  -1 before the first radio, 1 past the last, 0 when
+   * it is not that (the browser moves, or wraps, on its own).
+   */
+  private wrapStep(event: KeyboardEvent): -1 | 0 | 1 {
+    const ARROWS: Record<string, number> = { ArrowUp: -1, ArrowDown: 1, ArrowLeft: -1, ArrowRight: 1 }
+    let step = ARROWS[event.key]
+    if (!step || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return 0
+    // a right-to-left group runs the horizontal arrows backwards
+    const horizontal = event.key === "ArrowLeft" || event.key === "ArrowRight"
+    if (horizontal && getComputedStyle(this.host).direction === "rtl") step = -step
+    const radios = this.radios().filter((radio) => !radio.disabled)
+    const active = this.host.shadowRoot?.activeElement
+    if (step < 0 && active === radios[0]) return -1
+    if (step > 0 && active === radios.at(-1)) return 1
+    return 0
   }
 
   /** A submit or `reportValidity()` found it invalid:  show it. */

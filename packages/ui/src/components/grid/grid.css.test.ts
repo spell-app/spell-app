@@ -43,7 +43,7 @@ describe("grid.css source", () => {
       const selectors = Sheets.selectors(css)
       expect(selectors.length).toBeGreaterThan(150)
       expect(selectors.some((selector) => selector.includes(":host(:first-child) > .ui.column"))).toBe(true)
-      expect(css).toMatch(/@container ui-grid \(width ?< ?768px\)/)
+      expect(css).toMatch(/@container \(width ?< ?768px\)/)
       expect(css).toMatch(/@container style\(--_grid-stackable: ?1\)/)
     }
     expect(gridCSS).not.toContain("--ui-mobile")

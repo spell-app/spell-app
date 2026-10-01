@@ -56,6 +56,9 @@ export class Styles {
     if (typeof css === "string") {
       if (!sheet) sheet = new CSSStyleSheet()
       if (this.texts.get(name) !== css) {
+        // WebKit: a second `replaceSync` before anything read `cssRules` APPENDS to the old rules (old ones stay
+        // live, and `cssRules` reads stale):  reading a rule first makes it replace
+        if (this.texts.has(name)) void sheet.cssRules[0]
         sheet.replaceSync(css)
         this.texts.set(name, css)
       }

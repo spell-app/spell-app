@@ -30,7 +30,8 @@ describe("CalendarFallback", () => {
     const types = { time: "time", datetime: "datetime-local", month: "month", year: "number" }
     for (const [type, native] of Object.entries(types)) {
       const other = Fixture.render<StubHost>(`<x-fb-calendar type="${type}" aria-label="${type}"></x-fb-calendar>`)
-      expect(FallbackStub.shadow(other).querySelector("input")!.type, type).toBe(native)
+      // the attribute, not `.type`:  Safari has no `month` input, and reflects it as `text`
+      expect(FallbackStub.shadow(other).querySelector("input")!.getAttribute("type"), type).toBe(native)
     }
     const fallback = Fixture.render<StubHost>(`<x-fb-calendar aria-label="Default"></x-fb-calendar>`)
     expect(FallbackStub.shadow(fallback).querySelector("input")!.type).toBe("datetime-local")

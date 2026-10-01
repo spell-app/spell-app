@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, onTestFinished } from "vitest"
 import { page, userEvent } from "vitest/browser"
+import { Keys } from "$/ui/test/keys"
 
 import { UI } from "$/ui/runtime"
 import type { PopupOpenDetail } from "$/ui/components/components.types"
@@ -145,11 +146,15 @@ describe("<ui-popup> tokens from outside", () => {
   })
 
   it("variations:  `wide` swaps the max width (off phones);  the gap derives from the arrow size", async () => {
+    // Render first, THEN resize:  WebKit keeps a shared adopted sheet's media results stale when no element using it
+    // is alive at the resize, so an OPEN popup must already be in the page
+    const { root } = await popup(
+      `<button>t</button><ui-popup wide on="manual" open style="--ui-popup-max-width: 100px">x</ui-popup>`
+    )
     const [previousWidth, previousHeight] = [window.innerWidth, window.innerHeight]
     await page.viewport(1000, 800)
     onTestFinished(() => page.viewport(previousWidth, previousHeight))
-    const { root } = await popup(`<button>t</button><ui-popup wide style="--ui-popup-max-width: 100px">x</ui-popup>`)
-    expect(getComputedStyle(root).maxWidth).toBe("350px")
+    await expect.poll(() => getComputedStyle(root).maxWidth).toBe("350px")
     const { root: plain } = await popup(`<button>t</button><ui-popup>x</ui-popup>`)
     const { root: bigger } = await popup(`<button>t</button><ui-popup style="--ui-popup-arrow-size: 3em">x</ui-popup>`)
     expect(parseFloat(getComputedStyle(bigger).marginBottom)).toBeGreaterThan(
@@ -271,7 +276,7 @@ describe("<ui-popup> hover", () => {
     wrapper.querySelector("button")!.focus()
     await settle()
     expect(shown(host)).toBe(true)
-    await userEvent.keyboard("{Tab}")
+    await Keys.tab()
     await settle()
     expect(shown(host)).toBe(false)
   })
@@ -358,7 +363,7 @@ describe("<ui-popup> click", () => {
     await userEvent.keyboard("{Enter}")
     await settle()
     expect(shown(host)).toBe(true)
-    await userEvent.keyboard("{Tab}")
+    await Keys.tab()
     expect(document.activeElement).toBe(host.querySelector("button"))
     await userEvent.keyboard("{Escape}")
     await settle()
@@ -498,7 +503,10 @@ describe("<ui-popup> positioning", () => {
     await Promise.all(root.getAnimations().map((animation) => animation.finished))
     const anchor = wrapper.querySelector("button")!.getBoundingClientRect()
     expect(root.getBoundingClientRect().top).toBeGreaterThanOrEqual(anchor.bottom)
-    expect(Number.parseFloat(getComputedStyle(root, "::before").top)).toBeLessThan(0)
+    // the arrow follows the flip through an anchored container query, which Safari doesn't have yet
+    if (UI.browser.supports.anchoredQueries) {
+      expect(Number.parseFloat(getComputedStyle(root, "::before").top)).toBeLessThan(0)
+    }
   })
 
   it("anchors to the inner box of a target without one (display: contents, e.g. <ui-icon>)", async () => {
@@ -533,7 +541,7 @@ describe("<ui-popup> accessibility", () => {
     wrapper.querySelector("button")!.focus()
     await settle()
     expect([shown(first!), shown(second!)]).toEqual([true, false])
-    await userEvent.keyboard("{Tab}")
+    await Keys.tab()
     await settle()
     expect([shown(first!), shown(second!)]).toEqual([false, true])
   })

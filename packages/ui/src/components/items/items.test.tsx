@@ -1,5 +1,6 @@
 import { describe, expect, it, onTestFinished, vi } from "vitest"
 import { userEvent } from "vitest/browser"
+import { Keys } from "$/ui/test/keys"
 
 import { expectAccessible } from "$/ui/test/a11y"
 
@@ -110,7 +111,8 @@ describe("<ui-item> owns its parts in the Items view", () => {
     expect(header.className).toBe("header")
     expect(style(header).fontWeight).toBe("700")
     expect(parseFloat(style(header).fontSize)).toBeCloseTo((18 / 14) * 16, 0)
-    expect(style(partRoot(item.querySelector("ui-description")!)).marginTop).toBe(`${0.6 * 16}px`)
+    // (WebKit snaps lengths to 1/64 px)
+    expect(parseFloat(style(partRoot(item.querySelector("ui-description")!)).marginTop)).toBeCloseTo(0.6 * 16, 1)
   })
 
   it("leaves a list's parts to the list", async () => {
@@ -354,9 +356,9 @@ describe("<ui-items> keyboard", () => {
     const [before, after] = wrapper.querySelectorAll("button")
     const [link] = itemsOf(wrapper.querySelector("ui-items")!)
     before!.focus()
-    await userEvent.keyboard("{Tab}")
+    await Keys.tab()
     expect(link!.shadowRoot!.activeElement).toBe(boxOf(link!))
-    await userEvent.keyboard("{Tab}")
+    await Keys.tab()
     expect(document.activeElement).toBe(after)
   })
 })

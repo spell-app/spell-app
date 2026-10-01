@@ -1,5 +1,6 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 import { page, userEvent } from "vitest/browser"
+import { Keys } from "$/ui/test/keys"
 
 import { colorsCSS, foundationCSS, nativeCSS } from "$/ui/styles"
 
@@ -284,7 +285,7 @@ describe("CSS-only tooltip shown states", () => {
     const host = await ElementFixture.render<UIHost>(`<ui-button data-tooltip="Add users">Top center</ui-button>`)
     await ElementFixture.settle(host)
     expect(getComputedStyle(host, "::after").opacity).toBe("0")
-    await userEvent.tab()
+    await Keys.tab()
     expect(document.activeElement, "focus landed on the host").toBe(host)
     expect(host.matches(":focus"), "host :focus").toBe(true)
     expect(host.shadowRoot!.querySelector(":focus-visible"), "inner :focus-visible").not.toBeNull()
@@ -297,8 +298,11 @@ describe("CSS-only tooltip shown states", () => {
     Sheets.adopt([...foundationCSS, nativeCSS, buttonCSS])
     const button = Fixture.render(`<button data-tooltip="Hi">x</button>`)
     await userEvent.click(button)
+    // Safari doesn't focus a button on click:  focus it (after the mouse, so it still isn't :focus-visible)
+    button.focus()
     await userEvent.unhover(button)
     expect(document.activeElement).toBe(button)
+    expect(button.matches(":focus-visible")).toBe(false)
     await expect.poll(() => getComputedStyle(button, "::after").opacity).toBe("0")
   })
 })

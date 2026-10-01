@@ -246,7 +246,10 @@ describe("<ui-list> a slotted image beside content", () => {
       "",
       `<ui-item><ui-image src="${PICTURE}" alt="" width="40" height="40"></ui-image><ui-content>Title</ui-content></ui-item>`
     )
-    const image = items[0]!.querySelector("ui-image")!.shadowRoot!.querySelector("img")!.getBoundingClientRect()
+    const picture = items[0]!.querySelector("ui-image")!.shadowRoot!.querySelector("img")!
+    // wait for the load:  until then Firefox lays the image out 0px wide (its percentage `max-width`), Chromium at 40px
+    await picture.decode()
+    const image = picture.getBoundingClientRect()
     const content = items[0]!.querySelector("ui-content")!.shadowRoot!.firstElementChild!.getBoundingClientRect()
     expect(content.top).toBeLessThan(image.bottom)
     expect(content.left).toBeGreaterThanOrEqual(image.right - 1)

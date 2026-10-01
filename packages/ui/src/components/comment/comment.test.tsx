@@ -1,5 +1,6 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 import { userEvent } from "vitest/browser"
+import { Keys } from "$/ui/test/keys"
 
 import { expectAccessible } from "$/ui/test/a11y"
 
@@ -276,7 +277,7 @@ describe("<ui-comments> keyboard", () => {
     const button = comments[0]!.querySelector("button")!
     author.focus()
     expect(comments[0]!.querySelector("ui-author")!.shadowRoot!.activeElement).toBe(author)
-    await userEvent.keyboard("{Tab}")
+    await Keys.tab()
     expect(document.activeElement).toBe(button)
     // a minimal comment's action is visible while focused
     await expect.poll(() => style(partRoot(comments[0]!.querySelector("ui-actions")!)).opacity).toBe("1")

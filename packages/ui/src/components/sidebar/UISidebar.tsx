@@ -214,7 +214,10 @@ export class UISidebar extends UIElement<Vocabulary> {
       // (`closedby` computes to `none`).  Opened by a click, it's the newest close-watcher group, and Chromium
       // processes only that group, so a watcher made before it never hears Escape.  Focus still returns:
       // `close()` refocuses what had focus before `show()`.
-      if (!box.open) box.show()
+      if (!box.open) {
+        box.show()
+        UI.focus.enter(box)
+      }
       UI.overlays.open(this.overlay)
       this.untrap = UI.focus.trap(this.host)
     }

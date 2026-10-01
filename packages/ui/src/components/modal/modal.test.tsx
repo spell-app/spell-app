@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vitest"
 import { page, userEvent } from "vitest/browser"
+import { Keys } from "$/ui/test/keys"
 
 import { UI } from "$/ui/runtime"
 import { PART_OWNER_TOKENS, type ModalCloseDetail } from "$/ui/components/components.types"
@@ -504,9 +505,9 @@ describe("<ui-modal> accessibility", () => {
     expect(dialog.open).toBe(true)
     const deny = host.querySelector(".deny")!
     expect(UI.focus.containsDeep(deny, UI.focus.activeElementDeep())).toBe(true)
-    await userEvent.keyboard("{Tab}")
+    await Keys.tab()
     expect(UI.focus.containsDeep(host.querySelector(".approve")!, UI.focus.activeElementDeep())).toBe(true)
-    await userEvent.keyboard("{Tab}")
+    await Keys.tab()
     expect(UI.focus.activeElementDeep()).toBe(dialog.querySelector("[part~=close]"))
     await userEvent.keyboard("{Escape}")
     await settle()

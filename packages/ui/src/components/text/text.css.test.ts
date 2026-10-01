@@ -70,7 +70,8 @@ describe("text.css examples", () => {
     for (const text of texts) {
       const style = getComputedStyle(text)
       expect(style.display, text.outerHTML.slice(0, 80)).toBe("inline")
-      expect(style.lineHeight).toBe(style.fontSize)
+      // `toBeCloseTo`:  Firefox snaps the font size (6.4px) and the line height to different fractions
+      expect(parseFloat(style.lineHeight)).toBeCloseTo(parseFloat(style.fontSize), 1)
     }
   })
 
@@ -100,9 +101,9 @@ describe("text.css examples", () => {
     const base = parseFloat(getComputedStyle(root.querySelector(".ui.medium.text")!.parentElement!).fontSize)
     const ratio = (size: string) =>
       parseFloat(getComputedStyle(root.querySelector(`.ui.${size}.text`)!).fontSize) / base
-    expect(["mini", "tiny", "small", "medium", "large", "big", "huge", "massive"].map(ratio)).toEqual([
-      0.4, 0.5, 0.75, 1, 1.5, 2, 4, 8
-    ])
+    const ratios = ["mini", "tiny", "small", "medium", "large", "big", "huge", "massive"].map(ratio)
+    // close, not equal:  Firefox rounds the 0.4em of `mini` to 0.3999
+    ratios.forEach((each, index) => expect(each).toBeCloseTo([0.4, 0.5, 0.75, 1, 1.5, 2, 4, 8][index]!, 2))
   })
 
   it("fades disabled text", () => {

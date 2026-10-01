@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vitest"
 import { userEvent } from "vitest/browser"
+import { Keys } from "$/ui/test/keys"
 
 import { UI } from "$/ui/runtime"
 import type { SidebarCloseDetail } from "$/ui/components/components.types"
@@ -214,7 +215,10 @@ describe("<ui-sidebar> modal (default)", () => {
     toggle.setAttribute("command", "--toggle")
     const closes = record(host, "ui-close")
     const shown = next(host, "ui-show")
-    await userEvent.click(toggle)
+    // Safari doesn't focus a button on a real click, so the open would have no focus to return to:  focus it, then
+    // click without moving focus
+    toggle.focus()
+    toggle.click()
     await shown
     const hidden = next(host, "ui-hide")
     await userEvent.keyboard("{Escape}")
@@ -248,11 +252,11 @@ describe("<ui-sidebar> modal (default)", () => {
     await show(host, toggle)
     const [one, two] = host.querySelectorAll("a")
     expect(document.activeElement).toBe(one)
-    await userEvent.keyboard("{Tab}")
+    await Keys.tab()
     expect(document.activeElement).toBe(two)
-    await userEvent.keyboard("{Tab}")
+    await Keys.tab()
     expect(document.activeElement).toBe(one)
-    await userEvent.keyboard("{Shift>}{Tab}{/Shift}")
+    await Keys.tab(true)
     expect(document.activeElement).toBe(two)
   })
 

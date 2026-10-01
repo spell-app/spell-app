@@ -19,6 +19,14 @@ declare module "vitest" {
   }
 }
 
+declare module "vitest/browser" {
+  /** Custom commands of `vitest.config.ts` (`browser.commands`). */
+  interface BrowserCommands {
+    /** Emulate (or stop emulating) `prefers-reduced-motion: reduce`, through Playwright, in every browser. */
+    emulateReducedMotion(reduce: boolean): Promise<void>
+  }
+}
+
 ////////////////
 // ## Visual tests
 ////////////////

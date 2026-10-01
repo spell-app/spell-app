@@ -71,7 +71,7 @@ export class ControlLabels {
       watch?.add(this)
       this.watch = watch
     }
-    const labels = [...(host.labels as NodeListOf<HTMLLabelElement>)]
+    const labels = this.labels()
     this.labelObserver?.disconnect()
     if (labels.length) {
       this.labelObserver ??= new MutationObserver(() => this.refresh())
@@ -80,6 +80,26 @@ export class ControlLabels {
       }
     }
     this.cell.set(this.compute(labels))
+  }
+
+  /**
+   * The `<label>`s naming the host, in document order.
+   * - `internals.labels`, checked against `label.control`, plus the root's `<label for>` this host's `id`:  Firefox
+   *   leaves `internals.labels` stale when a label's `for` changes (a retargeted label stays in it, and one retargeted
+   *   to the host never joins it).
+   */
+  private labels(): HTMLLabelElement[] {
+    const { host } = this
+    const found = new Set(host.labels as NodeListOf<HTMLLabelElement>)
+    if (host.id && host.isConnected) {
+      const root = host.getRootNode() as Document | ShadowRoot
+      for (const label of root.querySelectorAll<HTMLLabelElement>(`label[for="${CSS.escape(host.id)}"]`)) {
+        found.add(label)
+      }
+    }
+    return [...found]
+      .filter((label) => label.control === host)
+      .sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
   }
 
   /** The name from the host's attributes, else `labels`. */
