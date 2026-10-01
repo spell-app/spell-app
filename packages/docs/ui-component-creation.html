@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>UI Component Creation</title>
+    <meta
+      name="description"
+      content="Where @spell-app/ui stands after the 2026-10-01 resume:  what was fixed and decided, what's left, and how to check it."
+    />
+    <link rel="stylesheet" href="_assets/spell-doc.css" />
+  </head>
+  <body class="spell-doc-page">
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <h1>UI Component Creation</h1>
+        <p class="lede">
+          Where <a href="../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> stands after
+          the monorepo move: what the 2026-10-01 session fixed and decided, what's still open, and how to check it.
+        </p>
+        <ul>
+          <li>
+            Written for: Owen, and whoever picks up
+            <a href="../ui/" target="src-packages-ui"><code>packages/ui</code></a> next
+          </li>
+          <li>Status: built; branch <code>worktree-ui-component-creation</code>, not merged to <code>main</code></li>
+          <li>
+            Record of the session: the plan doc
+            <a
+              href="plans/ui-component-creation/ui-component-creation.html"
+              target="src-packages-docs-plans-ui-component-creation-ui-component-creation-html"
+              ><code>plans/ui-component-creation/ui-component-creation.html</code></a
+            >; before it, the handoff <code>/Users/owen/www/spell-app/outstanding/ui-component-build.md</code> (outside
+            the repo)
+          </li>
+        </ul>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="1-summary">1. Summary</h2></ui-sticky>
+          <ul>
+            <li>All 53 Fomantic families are built; every check passes in the monorepo again.</li>
+            <li>
+              The <a href="../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"><code>SUSPECTED-BUGS.md</code></a> ui
+              list was swept: each entry fixed (with a failing-first test), disproven, or kept with a reason.
+            </li>
+            <li>Owen's eight open design calls (2026-09-30) are settled and built.</li>
+            <li>Phase D is done except Linux visual baselines and 4 WebKit test failures that need Owen's call.</li>
+            <li>
+              Numbers: browser tests 3,619 (chromium); 10,849 pass across chromium / firefox / webkit; 561 visual tests
+              (macOS, 3 browsers, light + dark); 61 docs-site pages; 2.5 MB package, 120 export targets.
+            </li>
+          </ul>
+          <ui-message state="positive" header="Next">
+            <ul>
+              <li>
+                Review the branch's commits, answer the four questions in <a href="#5-waiting-on-owen">5</a>, then
+                merge.
+              </li>
+            </ul>
+          </ui-message>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="2-what-changed">2. What changed</h2></ui-sticky>
+          <p>One commit per phase on the branch (P3 and P4 share one: their docs edits interleave).</p>
+
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="re-establish">Re-establish (52ba1e85)</h3></ui-sticky>
+            <ul>
+              <li>
+                <code>yarn test:hmr</code>: Vite 8 resolves tsconfig aliases only for TS / JS importers; the HMR plugin
+                injected <code>$/ui/elements/HotDefinitions</code> into <code>?inline</code> sheets. Now injected by
+                file path.
+              </li>
+              <li>
+                <code>yarn site:build</code>: Astro 7's prerender bundle resolved <code>cookie</code> to express's
+                hoisted 0.7.1. Bundled in its <code>prerender</code> environment.
+              </li>
+              <li>A visual test changed every day: WebKit draws an empty date field from the system clock. Masked.</li>
+              <li>Root CI runs neither check, so both broke silently in the move.</li>
+            </ul>
+          </section>
+
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="icons">Icons (fec460c5)</h3></ui-sticky>
+            <ul>
+              <li>
+                <code>UI.icons.get()</code> / <code>use()</code> / <code>ready</code> never reject: a pack with no
+                usable URL (malformed, or a built-in pack in an IIFE bundle) is a failed pack, warned once.
+              </li>
+              <li><code>IconGlyph.load()</code> catches: no unhandled rejection per icon.</li>
+              <li>The pack builder is importable from any package: <code>$/ui/tools/IconPackBuilder</code>.</li>
+            </ul>
+          </section>
+
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="bugs-and-decisions">Bug sweep and decisions (2fe17423)</h3></ui-sticky>
+            <ul>
+              <li>
+                Behaviour: toast pauses only after a real pointer move; render-effect errors reach the fallback;
+                read-only radios; search reactivity and <code>::part(search)</code>.
+              </li>
+              <li>
+                Layout: calendar width; dropdown menus <code>position: fixed</code> (WebKit flipped every menu below the
+                first screen); card links; items margins; images in lists; tables stack by viewport again.
+              </li>
+              <li>Tokens: inverted segment groups; lone feed events / comments; CSS tooltips; private switches.</li>
+              <li>
+                Decisions built: modal <code>closable</code> + <code>closedby</code>; invoker commands on
+                <code>&lt;ui-button&gt;</code>; popup <code>hoverable</code>; CLDR emoji names; label colour like
+                Fomantic; sidebar / flyout width words and columns; container breakpoint tokens; 8 kB budget.
+              </li>
+            </ul>
+          </section>
+
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="release-chores">Release chores (04146653)</h3></ui-sticky>
+            <ul>
+              <li>
+                <code>yarn test:all</code>: 92 failures to 4. Real Firefox / WebKit bugs fixed (dialog focus through
+                slots, list widths, stale labels, rating wrap, <code>replaceSync</code>, grid container queries); tests
+                made browser-neutral (<code>Keys.tab()</code>, tolerances, support-flag skips).
+              </li>
+              <li>
+                Kitchen sink page;
+                <a href="../ui/CHANGELOG.md" target="src-packages-ui-changelog-md"><code>CHANGELOG.md</code></a
+                >; publish dry run.
+              </li>
+            </ul>
+          </section>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="3-why">3. Why</h2></ui-sticky>
+          <ul>
+            <li><b>Match Fomantic</b> where a call wasn't made: card links, table stacking, label colour.</li>
+            <li>
+              <b>Toast pause needs a real move:</b> a toast appearing under a resting pointer never left (Fomantic
+              pauses on plain enter; a deliberate difference).
+            </li>
+            <li><b>Fomantic wins emoji name clashes</b> (19 names): existing pages keep their picture.</li>
+            <li>
+              <b>Unnamed grid / items container queries:</b> WebKit scopes container names to the tree, so a slotted
+              column couldn't see the host's name.
+            </li>
+            <li>
+              <b>Test files run one at a time under <code>UI_TEST_ALL</code>:</b> a browser runs them in iframes of one
+              page with one focus; Firefox and WebKit hand it to the last iframe that asked.
+            </li>
+            <li><b>Budget 8 kB per family</b> (Owen): 7.3 kB average is a full port of Fomantic's variations.</li>
+          </ul>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="4-limits">4. Limits</h2></ui-sticky>
+          <ul>
+            <li>Visual baselines are macOS only: Docker Desktop 4.42.1 crashes on macOS 26.6, so no Linux set.</li>
+            <li>
+              A plain class-grammar <code>.ui.label</code> still takes a coloured ancestor's colour (elements don't).
+            </li>
+            <li>
+              Grid / card group hosts keep the margin gap items had; a raw slotted <code>&lt;img&gt;</code> in a list
+              item still wraps (use <code>&lt;ui-image&gt;</code> or <code>image</code>).
+            </li>
+            <li>
+              The open-from-start dropdown example opens upward in its screenshot (its anchor is below the capture
+              viewport): correct, but it covers two small sections.
+            </li>
+            <li>Emoji names data grew ~35% (a page still loads one ~5 kB chunk).</li>
+            <li>Popup, dropdown menu and toast don't answer invoker <code>command</code> events yet.</li>
+            <li>
+              The rest:
+              <a href="../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"><code>SUSPECTED-BUGS.md</code></a> (<code
+                >## ui</code
+              >) and
+              <a href="../ui/docs/status.md" target="src-packages-ui-docs-status-md"
+                ><code>packages/ui/docs/status.md</code></a
+              >.
+            </li>
+          </ul>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="5-waiting-on-owen">5. Waiting on Owen</h2></ui-sticky>
+          <ol>
+            <li>Emoji: keep Fomantic's meaning for the 19 clashing names (<code>dog</code> = 🐶), or let CLDR win?</li>
+            <li>
+              Table: opt in to stacking by own width with a token (<code>--ui-table-stack-by: container</code>) or an
+              attribute (<code>stack-by="container"</code>)?
+            </li>
+            <li>
+              WebKit: style-query rules on <code>::before</code> / <code>::after</code> go stale after a token change
+              (breadcrumb divider icon, feed numbers): nudge the element, or move those rules off style queries? 3
+              WebKit tests fail.
+            </li>
+            <li>
+              WebKit: <code>&lt;ui-form&gt;</code> can't stack rows (container lookup doesn't cross the slot): a real
+              box host, or another mechanism? 1 WebKit test fails.
+            </li>
+            <li>
+              Any time: Linux baselines (after a Docker update); the fork's upstream PRs; the CLI
+              <code>icons:pack</code> command (a cli session).
+            </li>
+          </ol>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="6-checks">6. Checks</h2></ui-sticky>
+          <p>
+            From <a href="../ui/" target="src-packages-ui"><code>packages/ui</code></a
+            >; all passed on the last commit except where noted.
+          </p>
+          <ul>
+            <li><code>yarn review</code>: tsc, oxlint, oxfmt, ssr 32, browser 3,619, fork 145.</li>
+            <li>
+              <code>yarn build</code>, <code>vendor</code>, <code>measure</code> (no <code>CHECK</code>),
+              <code>smoke</code> 8 / 8, <code>report</code> twice (no diff), <code>test:hmr</code> 8 / 8,
+              <code>site:build</code> 61 pages.
+            </li>
+            <li><code>yarn test:visual --os local --browsers all</code>: 561.</li>
+            <li>
+              <code>yarn test:all</code>: 10,849 pass, 4 WebKit failures (<a href="#5-waiting-on-owen">5</a>, items 3
+              and 4).
+            </li>
+            <li><code>yarn npm publish --dry-run</code>: 2,726 files; every <code>exports</code> target present.</li>
+          </ul>
+        </section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="_assets/spell-ui.js"></script>
+  </body>
+</html>

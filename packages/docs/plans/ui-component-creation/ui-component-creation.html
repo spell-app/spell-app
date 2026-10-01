@@ -29,11 +29,13 @@
         <section class="s2">
           <ui-sticky class="spell-h2"><h2 id="plan">1. Plan</h2></ui-sticky>
           <p class="plan-summary">
-            Resume ui-1f's component build in the monorepo: get
-            <a href="../../../ui/" target="src-packages-ui"><code>packages/ui</code></a> green, then close what the
-            handoff left open -- the icon loader bug, the ~33 suspected ui bugs, Owen's eight open design calls and
-            Phase D's release chores. Each phase ends verified, staged and asked before commit; Linux baselines wait on
-            Docker (<a href="#c1">C1</a>).
+            Built (2026-10-01, overnight, on branch <code>worktree-ui-component-creation</code>):
+            <a href="../../../ui/" target="src-packages-ui"><code>packages/ui</code></a> is green in the monorepo, the
+            icon loader never rejects, the suspected-bug list is swept, Owen's eight design calls are built, and Phase D
+            is done but for Linux baselines (<a href="#c1">C1</a>) and 4 WebKit failures (<a href="#q11">Q11</a>,
+            <a href="#q12">Q12</a>). Durable summary:
+            <a href="../../ui-component-creation.html" target="docs-ui-component-creation">ui-component-creation.html</a
+            >.
           </p>
           <ul class="plan-phases">
             <li data-status="done" data-phase="1">
@@ -51,8 +53,8 @@
             <li data-status="done" data-phase="5">
               <ui-icon name="circle check" color="green"></ui-icon> <a href="#p5">P5 · Release Chores</a>
             </li>
-            <li data-status="todo" data-phase="6">
-              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p6">P6 · Doc Review</a>
+            <li data-status="done" data-phase="6">
+              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p6">P6 · Doc Review</a>
             </li>
           </ul>
         </section>
@@ -178,7 +180,8 @@
               href="../../../../../../../../outstanding/ui-component-build.md"
               target="src-outstanding-ui-component-build-md"
               ><code>/Users/owen/www/spell-app/outstanding/ui-component-build.md</code></a
-            >, written by ui-1f when it paused (2026-09-30).
+            >, written by ui-1f when it paused (2026-09-30). This overview is the PLAN-time picture (3.4 lists the bugs
+            as they were before the sweep); what was built is in the durable page linked from the summary.
           </p>
           <section class="s3">
             <ui-sticky class="spell-h3"><h3 id="o1">3.1 Where it stands</h3></ui-sticky>
@@ -1176,9 +1179,9 @@
               </li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="6" class="s3">
+          <section data-status="done" data-phase="6" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p6"><ui-icon name="circle outline" color="grey"></ui-icon> P6 · Doc Review</h3></ui-sticky
+              ><h3 id="p6"><ui-icon name="circle check" color="green"></ui-icon> P6 · Doc Review</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li>
@@ -1308,6 +1311,13 @@
               UI_TEST_ALL (one focus per page). Kitchen sink page (61 site pages); CHANGELOG.md.
             </li>
             <li><time datetime="2026-10-01T02:13-04:00">2026-10-01 02:13</time> P5 done</li>
+            <li><time datetime="2026-10-01T02:13-04:00">2026-10-01 02:13</time> P6 active</li>
+            <li>
+              <time datetime="2026-10-01T02:15-04:00">2026-10-01 02:15</time> P6 done: durable page
+              packages/docs/ui-component-creation.html (links ok, check-spell ok, screenshots looked at); plan summary
+              rewritten to what was built; handoff marked resumed.
+            </li>
+            <li><time datetime="2026-10-01T02:15-04:00">2026-10-01 02:15</time> P6 done</li>
           </ul>
         </section>
       </main>
