@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // F5:  a new VS Code window with the spell extension (`packages/vscode/`), on the Solitaire example.
+      "name": "Run Spell Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode",
+        "${workspaceFolder}/packages/spell/projects/system/examples/Solitaire"
+      ],
+      "outFiles": ["${workspaceFolder}/packages/vscode/out/**/*.js"],
+      "preLaunchTask": "Build Spell Extension"
+    }
+  ]
+}
