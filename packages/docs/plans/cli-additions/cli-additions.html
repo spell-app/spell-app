@@ -39,8 +39,8 @@
             <li data-status="done" data-phase="2">
               <ui-icon name="circle check" color="green"></ui-icon> <a href="#p2">P2 · Small Commands</a>
             </li>
-            <li data-status="todo" data-phase="3">
-              <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p3">P3 · Language Tools</a>
+            <li data-status="done" data-phase="3">
+              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p3">P3 · Language Tools</a>
             </li>
             <li data-status="todo" data-phase="4">
               <ui-icon name="circle outline" color="grey"></ui-icon> <a href="#p4">P4 · Watch &amp; Explore</a>
@@ -151,6 +151,21 @@
             <li data-status="open" id="c3">
               <a class="plan-id" href="#c3">C3</a>
               <span class="plan-title">format relies on formatting() being whitespace-only (P.TokenFormatter)</span>
+            </li>
+            <li data-status="open" id="c4">
+              <a class="plan-id" href="#c4">C4</a>
+              <span class="plan-title">repl's interactive screen is tested only through ink-testing-library</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    The piped mode runs end to end in
+                    <a href="../../../cli/src/cli.test.ts" target="src-packages-cli-src-cli-test-ts"
+                      ><code>cli.test.ts</code></a
+                    >; the live screen wasn't driven in a real terminal tonight.
+                  </p></ui-content
+                ></ui-accordion
+              >
             </li>
           </ol>
         </section>
@@ -340,6 +355,37 @@
                 ></ui-accordion
               >
             </li>
+            <li data-status="open" id="d13">
+              <a class="plan-id" href="#d13">D13</a>
+              <span class="plan-title"
+                >parse / repl lines parse in a scope of their own, inside the project's with --in</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <code>CLI.lineScope()</code>: a <code>ProjectScope</code> whose parent is the project's, so its
+                    types and phrases are known but nothing typed lands in the project. <code>repl</code> commits each
+                    line there, so <code>x is 3</code> then <code>print x</code> works. No rule given:
+                    <code>statement</code>, then <code>expression</code>; several lines: <code>block</code>.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d14">
+              <a class="plan-id" href="#d14">D14</a>
+              <span class="plan-title"
+                >explain: rules by name or first word; declarations (--in) as the editor's hover, minus its rule
+                section</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    The hover's first section is the DECLARING statement's rule (e.g. <code>type</code>), which says
+                    nothing about the thing.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
           </ol>
         </section>
 
@@ -420,9 +466,9 @@
               </li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="3" class="s3">
+          <section data-status="done" data-phase="3" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p3"><ui-icon name="circle outline" color="grey"></ui-icon> P3 · Language Tools</h3></ui-sticky
+              ><h3 id="p3"><ui-icon name="circle check" color="green"></ui-icon> P3 · Language Tools</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li>
@@ -431,9 +477,20 @@
               </li>
               <li>
                 <b>Files:</b> in <a href="../../../cli/src/" target="src-packages-cli-src"><code>cli/src/</code></a
-                >: <code>commands/parseCommand.ts</code>, <code>replCommand.tsx</code>, <code>explainCommand.ts</code>,
-                <code>newCommand.ts</code>; <a href="../../../ui/" target="src-packages-ui"><code>ui/</code></a> (repl
-                screen);
+                >: <code>commands/parseCommand.ts</code>,
+                <a
+                  href="../../../cli/src/commands/replCommand.tsx"
+                  target="src-packages-cli-src-commands-replcommand-tsx"
+                  ><code>replCommand.tsx</code></a
+                >,
+                <a
+                  href="../../../cli/src/commands/explainCommand.ts"
+                  target="src-packages-cli-src-commands-explaincommand-ts"
+                  ><code>explainCommand.ts</code></a
+                >,
+                <a href="../../../cli/src/commands/newCommand.ts" target="src-packages-cli-src-commands-newcommand-ts"
+                  ><code>newCommand.ts</code></a
+                >; <a href="../../../ui/" target="src-packages-ui"><code>ui/</code></a> (repl screen);
                 <a href="../../../cli/src/main.ts" target="src-packages-cli-src-main-ts"><code>main.ts</code></a>
               </li>
               <li>
@@ -525,6 +582,12 @@
               verified on HEAD: 0% / 0% / -15%), format (--check; refuses projects/test)
             </li>
             <li><time datetime="2026-10-01T01:02-04:00">2026-10-01 01:02</time> P2 done</li>
+            <li><time datetime="2026-10-01T01:02-04:00">2026-10-01 01:02</time> P3 active</li>
+            <li>
+              <time datetime="2026-10-01T01:08-04:00">2026-10-01 01:08</time> P3 done: parse, repl (screen + piped),
+              explain, new
+            </li>
+            <li><time datetime="2026-10-01T01:08-04:00">2026-10-01 01:08</time> P3 done</li>
           </ul>
         </section>
       </main>

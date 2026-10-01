@@ -112,6 +112,36 @@ export type FormatOptions = GlobalOptions & {
   check?: boolean
 }
 
+/**
+ * `spell parse` flags.
+ * - `rule`:  parse as this rule only, e.g. `expression`
+ * - `in`:  parse inside this target's project, e.g. `@test/Solitaire`
+ * - `json`:  print the result as JSON
+ */
+export type ParseOptions = GlobalOptions & {
+  rule?: string
+  in?: string
+  json?: boolean
+}
+
+/**
+ * `spell explain` flags.
+ * - `in`:  look in this target's project, too, e.g. `@test/Solitaire`
+ * - `json`:  print what was found as JSON
+ */
+export type ExplainOptions = GlobalOptions & {
+  in?: string
+  json?: boolean
+}
+
+/**
+ * `spell new` flags.
+ * - `in`:  make the project in this folder -- default `@user`'s, `projects/user/`
+ */
+export type NewOptions = GlobalOptions & {
+  in?: string
+}
+
 ////////////////
 // ## Running
 ////////////////

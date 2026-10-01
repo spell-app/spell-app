@@ -68,6 +68,10 @@ Every command takes one or more targets:
 | `spell format <targets...>` | Tidies `.spell` files' whitespace, as VS Code's Format Document does.  `--check` writes nothing, lists what would change, exits 1 if anything would.  Never writes into `projects/test/`. |
 | `spell projects [root]` | Lists the project roots, or one root's projects, with the names to type.  `--json`. |
 | `spell speed [module]` | Times the parser's rule tests (`SP.spellParser.speedTest()`), 3 fresh runs, as a markdown table.  `--against HEAD` times that commit too, in a temp worktree, and adds a Change row.  `--runs`, `--json`. |
+| `spell parse "<text>"` | How spell reads a line:  its match tree, then its javascript.  Tried as a `statement`, then an `expression`;  `--rule` for another.  `--in <target>` parses in that project's scope.  `--json`. |
+| `spell repl [target]` | `spell parse`, a line at a time;  what a line declares, later lines know.  `↑↓` earlier lines, `Esc` quits.  Piped, it reads stdin. |
+| `spell explain <word>` | Rules `word` names or starts (`print`, `repeat`):  syntax and an example.  `--in <target>`:  also what that project declares by that name, as the editor's hover.  `--json`. |
+| `spell new <name>` | Makes `<name>/project.json` and a starter `<name>.spell` that prints a hello.  In `@user`'s folder, or `--in <folder>`.  Refuses a folder with anything in it. |
 
 - No target, for `explore` / `watch` / `run` / `test`, means `@workspace`.
 - Names in `describe` ignore case, and spaces ~== `-` ~== `_`:  `stock pile` finds `Stock_Pile`.
@@ -154,9 +158,6 @@ Every command takes one or more targets:
 
 ### Commands not built yet
 
-- `spell explain <word>`:  hover text / rule syntax for a word, via `workspaceSymbols()` + `describeRecord()`
-- `spell parse "<text>" [--rule x]` / `spell repl`:  a line's match tree and compiled output, for debugging rules
-- `spell new <name>`:  make a project
 - `spell lsp`:  start the language server, so the extension spawns `spell lsp` rather than a `tsx` path
 
 ### Improvements

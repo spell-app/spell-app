@@ -244,6 +244,83 @@ describe("spell speed", () => {
   }, 60_000)
 })
 
+describe("spell parse", () => {
+  test("a line:  its match tree, then its javascript", () => {
+    const { status, stdout } = spell(["parse", 'print "hi"'])
+    expect(status).toBe(0)
+    expect(stdout).toBe(
+      'statement › print  print "hi"\n  Keyword  print\n  expressions: Repeat  "hi"\n' +
+        '    expression › text  "hi"\n\nspellCore.console.log("hi")\n'
+    )
+  })
+
+  test("--in a project knows its types", () => {
+    expect(spell(["parse", "a new card"]).status).toBe(1)
+    const { status, stdout } = spell(["parse", "a new card", "--in", "@test/Solitaire"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/\nnew Card\(\)\n$/)
+  })
+
+  test("--json", () => {
+    const { stdout } = spell(["parse", "1 + 2", "--json"])
+    expect(JSON.parse(stdout)).toMatchObject({ rule: "expression", compiled: "(1 + 2)" })
+  })
+})
+
+describe("spell repl", () => {
+  test("piped:  each line in turn -- what one declares, the next knows", () => {
+    const { status, stdout } = spawnSync(process.execPath, [SPELL, "repl"], {
+      cwd: fixturePath(),
+      input: "x is 3\nprint x + 1\n",
+      encoding: "utf8"
+    })
+    expect(status).toBe(0)
+    expect(stdout).toContain("=> export let x = 3\n")
+    expect(stdout).toContain("lhs: simple_expression › known_variable  x\n")
+    expect(stdout).toMatch(/=> spellCore\.console\.log\(x \+ 1\)\n$/)
+  })
+})
+
+describe("spell explain", () => {
+  test("a rule:  its syntax and an example", () => {
+    const { status, stdout } = spell(["explain", "print"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/^print {2}print .*\ne\.g\. print /)
+  })
+
+  test("--in a project:  what it declares, as the editor's hover shows it", () => {
+    const { status, stdout } = spell(["explain", "card", "--in", "@test/Solitaire"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/Card\.spell:2\ntype Card is a Thing\n/)
+  })
+
+  test("nothing by that name", () => {
+    const { status, stderr } = spell(["explain", "wombat"])
+    expect(status).toBe(1)
+    expect(stderr).toContain("Nothing called 'wombat'")
+  })
+})
+
+describe("spell new", () => {
+  test("makes a project that runs -- and won't overwrite it", () => {
+    const { status, stdout } = spell(["new", "Snake", "--in", TEMP])
+    expect(status).toBe(0)
+    expect(stdout).toBe(`${resolve(TEMP, "Snake")}\n`)
+    expect(JSON.parse(readFileSync(resolve(TEMP, "Snake", SP.PROJECT_FILE), "utf8"))).toEqual({
+      imports: [{ path: "/Snake.spell", active: true }]
+    })
+    expect(spell(["run", "."], resolve(TEMP, "Snake")).stdout).toBe("hello from Snake\n")
+
+    const again = spell(["new", "Snake", "--in", TEMP])
+    expect(again.status).toBe(2)
+    expect(again.stderr).toContain("already holds a project")
+  })
+
+  test("a name spell can't use", () => {
+    expect(spell(["new", "9 lives", "--in", TEMP]).status).toBe(2)
+  })
+})
+
 /** Resolve once `condition()` holds, checking every 50ms -- or reject after `ms`. */
 async function until(condition: () => boolean, ms = 15_000): Promise<void> {
   const start = Date.now()

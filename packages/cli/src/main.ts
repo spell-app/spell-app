@@ -122,6 +122,38 @@ program
     run(CLI.speedCommand, module ? [module] : [], command.optsWithGlobals())
   )
 
+program
+  .command("parse")
+  .description("how spell reads a line:  its match tree, then the javascript it compiles to")
+  .argument("<text>", 'a line of spell, e.g. "print 1 + 2" -- several lines parse as a block')
+  .option("--rule <name>", "parse as this rule only, e.g. expression -- default statement, then expression")
+  .option("--in <target>", "parse inside this project's scope, e.g. @test/Solitaire")
+  .option("--json", "print the result as JSON")
+  .action((text: string, _options, command) => run(CLI.parseCommand, [text], command.optsWithGlobals()))
+
+program
+  .command("repl")
+  .description("spell parse, a line at a time -- what a line declares, later lines know.  Piped:  reads stdin")
+  .argument("[target]", "parse inside this project's scope, e.g. @test/Solitaire")
+  .action((target: string | undefined, _options, command) =>
+    run(CLI.replCommand, target ? [target] : [], command.optsWithGlobals())
+  )
+
+program
+  .command("explain")
+  .description("what a word means to spell:  rules it names or starts -- and, --in a project, what it declares")
+  .argument("<word>", "e.g. print, repeat -- or, with --in, a type, property or method")
+  .option("--in <target>", "look in this project too, e.g. @test/Solitaire")
+  .option("--json", "print what was found as JSON")
+  .action((word: string, _options, command) => run(CLI.explainCommand, [word], command.optsWithGlobals()))
+
+program
+  .command("new")
+  .description("make a spell project:  <name>/project.json and a starter <name>.spell")
+  .argument("<name>", "the project's name, e.g. Snake")
+  .option("--in <folder>", "make it in this folder -- default @user's, projects/user/")
+  .action((name: string, _options, command) => run(CLI.newCommand, [name], command.optsWithGlobals()))
+
 await program.parseAsync()
 
 /**
