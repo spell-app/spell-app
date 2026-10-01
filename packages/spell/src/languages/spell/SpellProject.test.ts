@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest"
 
-import { P } from "~/parser"
+import { P } from "#parser"
 import { loadFixtureProject, parseSpellProject, summarize } from "~/test"
 
 /**

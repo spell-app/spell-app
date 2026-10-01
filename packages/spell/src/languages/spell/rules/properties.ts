@@ -4,7 +4,7 @@
 // TODO: mixins / traits / composed classes / annotations
 
 import { NONE, proto } from "#spell-util"
-import { P } from "~/parser"
+import { P } from "#parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { identifierBlacklist } from "./identifier-blacklist"

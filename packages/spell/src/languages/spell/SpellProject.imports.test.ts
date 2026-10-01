@@ -6,7 +6,7 @@ import { pathToFileURL } from "url"
 import { describe, test, expect, beforeAll } from "vitest"
 
 import environment from "~/environment"
-import { P } from "~/parser"
+import { P } from "#parser"
 import { SP } from "~/languages/spell"
 import { installDiskFetch, locationForDiskPath } from "~/server/disk-fetch"
 import { describeParseErrors, fixturePath, tsxBinary } from "~/test"

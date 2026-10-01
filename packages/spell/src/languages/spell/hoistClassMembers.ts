@@ -6,7 +6,7 @@
  * - A member whose class ISN'T among the statements given stays where it is, patched onto its class:
  *   `Card.prototype.play = function () {...}` -- e.g. a class from another project.  See `P.ASTClassMember`.
  */
-import { P } from "~/parser"
+import { P } from "#parser"
 
 /**
  * `files`' statements, with every member of a class declared in them moved into that class's body.

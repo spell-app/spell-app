@@ -3,7 +3,7 @@
  * and `on`.
  */
 import { proto } from "#spell-util"
-import { P } from "~/parser"
+import { P } from "#parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"

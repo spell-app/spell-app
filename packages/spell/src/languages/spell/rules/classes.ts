@@ -8,7 +8,7 @@
  *   `property_value_either` / `property_value_getter`.
  */
 import { NONE, pluralize, proto, singularize, upperFirst } from "#spell-util"
-import { P } from "~/parser"
+import { P } from "#parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { SpellStatement } from "./Statement"
@@ -21,7 +21,7 @@ import { SpellConstant } from "./constants"
  * defined `as one of a, b, c` (see `define_property_has` below).  Not covered by `P.ScopeVariableProps`, and
  * only used in this file, so augmented locally.
  */
-declare module "~/parser/scope/ScopeVariable" {
+declare module "#parser/scope/ScopeVariable" {
   // NOTE: MUST stay an `interface` -- module augmentation merges into the declared `ScopeVariable`,
   // and `type` cannot merge.  Documented exception to the "always use `type`" rule.
   interface ScopeVariable {

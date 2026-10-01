@@ -1,4 +1,4 @@
-import { P } from "~/parser"
+import { P } from "#parser"
 import { SP } from "~/languages/spell"
 import { SpellStatement, commitStatement } from "./Statement"
 import { Block, type BlockMatchData } from "./Block"

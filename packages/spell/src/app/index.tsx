@@ -2,7 +2,7 @@
 import { createRoot } from "react-dom/client"
 
 // Import parser bits
-import "~/parser"
+import "#parser"
 import { editor } from "~/app/editor"
 import { UI, ErrorNotice, Notice } from "~/app/ui"
 

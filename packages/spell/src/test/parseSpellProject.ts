@@ -2,7 +2,7 @@ import { existsSync, readdirSync, readFileSync } from "fs"
 import { resolve } from "path"
 
 import environment from "~/environment"
-import { P } from "~/parser"
+import { P } from "#parser"
 import { SP } from "~/languages/spell"
 
 /**

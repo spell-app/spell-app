@@ -3,7 +3,7 @@ import { navigate } from "@reach/router"
 
 import { UIError, createStore, setPrefKey, getPref, setPref, CONFIRM } from "#spell-util"
 
-import { P } from "~/parser"
+import { P } from "#parser"
 import { SP } from "~/languages/spell"
 import type { SpellConsole } from "~/spellCore/console"
 import type { SpellRuntime } from "~/app/runner"

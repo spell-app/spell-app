@@ -3,7 +3,7 @@
  */
 import type { DocumentSymbol } from "vscode-languageserver"
 
-import type { P } from "~/parser"
+import type { P } from "#parser"
 import type { SP } from "~/languages/spell"
 
 // ## Workspace

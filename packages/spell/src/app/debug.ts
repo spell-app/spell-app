@@ -4,7 +4,7 @@ import _ from "lodash"
 import JSON5 from "json5"
 import * as SUI from "semantic-ui-react"
 
-import { P } from "~/parser"
+import { P } from "#parser"
 import { SP } from "~/languages/spell"
 import { editor, runtimeSpellCore } from "~/app/editor"
 

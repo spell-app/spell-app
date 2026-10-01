@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest"
 
-import { P } from "~/parser"
+import { P } from "#parser"
 import { SP, spellParser } from "~/languages/spell"
 
 /** Docstrings `getDocComments()` finds in `text`, by the text of the statement each documents. */

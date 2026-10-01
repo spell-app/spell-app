@@ -7,7 +7,7 @@
  *   `variable` to narrow with `match.is()`);  the rest are reached through `parser.rules` by name.
  */
 import { NONE, getPlurality, proto, type Plurality } from "#spell-util"
-import { P } from "~/parser"
+import { P } from "#parser"
 // Import directly to avoid circular import
 import { SpellParser } from "~/languages/spell/SpellParser"
 import { identifierBlacklist } from "./identifier-blacklist"

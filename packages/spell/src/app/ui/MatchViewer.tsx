@@ -1,7 +1,7 @@
 import React from "react"
 
 import { view, scrollForElement, centerElementInParent } from "#spell-util"
-import { P } from "~/parser"
+import { P } from "#parser"
 
 import { editor } from "~/app/editor"
 

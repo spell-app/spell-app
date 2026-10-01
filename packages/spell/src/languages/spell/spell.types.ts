@@ -1,12 +1,12 @@
 /**
  * Shared types for spell language layer.
- * - `import type` only, per `AGENTS.md` -- the `~/languages/rulex` registration this file used to carry
+ * - `import type` only, per `AGENTS.md` -- the `#parser/rulex` registration this file used to carry
  *   now lives in `SpellParser.ts`, which every rule module imports anyway.
  * - NOTE: `rules/Statement.ts` imports `BODY_KEYWORDS` from here directly, so this MUST stay free of
  *   runtime imports.
  */
 
-import type { P } from "~/parser"
+import type { P } from "#parser"
 import type { SpellLocation } from "./SpellLocation"
 import type { SpellFile } from "./SpellFile"
 import type { SpellJSFile } from "./SpellJSFile"

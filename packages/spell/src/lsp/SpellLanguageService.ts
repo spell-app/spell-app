@@ -33,7 +33,7 @@ import {
 } from "vscode-languageserver"
 
 import { typeCase } from "#spell-util"
-import { P } from "~/parser"
+import { P } from "#parser"
 import { SP } from "~/languages/spell"
 import type { LSP } from "~/lsp"
 

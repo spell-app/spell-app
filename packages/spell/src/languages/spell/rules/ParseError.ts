@@ -1,4 +1,4 @@
-import { P } from "~/parser"
+import { P } from "#parser"
 
 /**
  * Fallback rule matched (via `scope.parser.parse(tokens, "parse_error", scope)`) over tokens that no other

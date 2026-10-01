@@ -1,5 +1,5 @@
 import { TextFile, batch } from "#spell-util"
-import { P } from "~/parser"
+import { P } from "#parser"
 import { SP } from "~/languages/spell"
 
 /**

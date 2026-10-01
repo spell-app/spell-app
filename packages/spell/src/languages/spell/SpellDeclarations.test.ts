@@ -1,7 +1,7 @@
 import semver from "semver"
 import { describe, test, expect } from "vitest"
 
-import { P } from "~/parser"
+import { P } from "#parser"
 import { SP } from "~/languages/spell"
 import { loadFixtureProject, parseSpellProject, summarize, type SpellSourceFile } from "~/test"
 
