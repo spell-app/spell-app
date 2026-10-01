@@ -221,6 +221,175 @@
     flex-wrap: nowrap;
   }
 
+  /*******************************
+    Component browser (sidebar)
+  *******************************/
+
+  /* `ComponentBrowser.astro` + `scripts/component-browser.ts`:  search, A-Z / Topics, favorites. */
+
+  /* the rows and boxes below set `display`, which would beat the `hidden` attribute's UA rule */
+  .site-browser [hidden] {
+    display: none;
+  }
+  .site-sprite {
+    position: absolute;
+    inline-size: 0;
+    block-size: 0;
+    overflow: hidden;
+  }
+  .site-glyph {
+    flex: none;
+    inline-size: 1em;
+    block-size: 1em;
+    fill: currentColor;
+  }
+
+  /* Disclosure triangles:  a chevron pointing right, down when open. */
+  .site-browser-summary::after,
+  .site-browser-topic-title::before {
+    content: "";
+    flex: none;
+    inline-size: 0.4em;
+    block-size: 0.4em;
+    border-inline-end: 1.5px solid currentColor;
+    border-block-end: 1.5px solid currentColor;
+    transform: rotate(-45deg);
+    transition: transform var(--ui-duration-fast);
+  }
+  .site-browser[open] > .site-browser-summary::after,
+  .site-browser-topic[open] > .site-browser-topic-title::before {
+    transform: rotate(45deg);
+  }
+  :is(.site-browser-summary, .site-browser-topic-title)::-webkit-details-marker {
+    display: none;
+  }
+
+  /* undo `ui-native`'s framed `details`:  these are sidebar groups */
+  .site-browser,
+  .site-browser-topic {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+  }
+  .site-browser-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-inline-end: var(--ui-space-s);
+    margin-block-end: var(--ui-space-2xs);
+    list-style: none;
+    border-radius: var(--ui-radius);
+  }
+  .site-browser-summary > .site-sidebar-title {
+    margin: 0;
+  }
+
+  .site-browser-tools {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-xs);
+    margin-block-end: var(--ui-space-xs);
+    padding-inline: var(--ui-space-2xs);
+  }
+  .site-browser-search {
+    flex: 1;
+    min-inline-size: 0;
+  }
+  .site-browser-views {
+    flex: none;
+  }
+  .site-browser-views .site-segment {
+    display: inline-flex;
+    padding: var(--ui-space-xs);
+  }
+
+  .site-browser-empty {
+    padding: var(--ui-space-2xs) var(--ui-space-s);
+    color: var(--ui-text-muted);
+    font-style: italic;
+  }
+  .site-browser-favorites {
+    margin-block-end: var(--ui-space-s);
+    padding-block-end: var(--ui-space-xs);
+    border-block-end: var(--ui-border);
+  }
+  .site-browser-heading {
+    margin: 0;
+    padding: var(--ui-space-3xs) var(--ui-space-s);
+    font-weight: var(--ui-font-weight-semibold);
+  }
+
+  /* A row:  the link, then its star.  The star is muted until hovered, focused or pressed. */
+  .site-browser-row {
+    display: flex;
+    align-items: center;
+  }
+  .site-browser-link {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ui-space-xs);
+    min-inline-size: 0;
+  }
+  .site-star {
+    display: inline-flex;
+    flex: none;
+    padding: var(--ui-space-2xs) var(--ui-space-xs);
+    font: inherit;
+    font-size: 0.875em;
+    color: var(--ui-text-muted);
+    background: transparent;
+    border: 0;
+    border-radius: var(--ui-radius);
+    cursor: pointer;
+    opacity: 0.5;
+  }
+  .site-browser-row:hover .site-star,
+  .site-star:focus-visible,
+  .site-star[aria-pressed="true"] {
+    opacity: 1;
+  }
+  .site-star:hover {
+    color: var(--ui-text-color);
+  }
+  .site-star[aria-pressed="true"] {
+    color: var(--ui-yellow);
+  }
+  /* favorites need the script:  no stars until it runs */
+  .site-browser:not([data-ready]) .site-star {
+    display: none;
+  }
+
+  .site-browser-topic + .site-browser-topic {
+    margin-block-start: var(--ui-space-3xs);
+  }
+  .site-browser-topic-title {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-xs);
+    padding: var(--ui-space-3xs) var(--ui-space-s);
+    font-weight: var(--ui-font-weight-semibold);
+    list-style: none;
+    border-radius: var(--ui-radius);
+  }
+  .site-browser-topic-title:hover {
+    background-color: var(--ui-highlight);
+  }
+  .site-browser-count {
+    margin-inline-start: auto;
+    padding: 0 0.5em;
+    font-size: 0.8125em;
+    font-weight: var(--ui-font-weight-normal);
+    color: var(--ui-text-muted);
+    background-color: var(--ui-surface-strong);
+    border-radius: var(--ui-radius-pill);
+  }
+  .site-browser-topic > ul {
+    margin-block-end: var(--ui-space-xs);
+    padding-inline-start: var(--ui-space-s);
+  }
+
   .site-main {
     min-inline-size: 0;
     padding: var(--ui-space-xl) var(--ui-space-2xl) var(--ui-space-3xl);
@@ -481,6 +650,7 @@
   *******************************/
 
   .site-card {
+    box-sizing: border-box;
     block-size: 100%;
     color: inherit;
     background-color: var(--ui-surface);

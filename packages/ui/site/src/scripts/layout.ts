@@ -1,13 +1,16 @@
 import { UI } from "$/ui/runtime"
 
+import { ComponentBrowser } from "./component-browser"
 import { loadComponents } from "./components"
+import { SiteStorage } from "./storage"
 
 /**
- * Behaviour for `layouts/Docs.astro`:  colour scheme, Classic theme, mobile menu, "On this page" index.
+ * Behaviour for `layouts/Docs.astro`:  colour scheme, Classic theme, mobile menu, "On this page" index, and the
+ * sidebar's component browser (`ComponentBrowser`).
  * - Also imports the component module for every `ui-*` tag on the page (`components.ts`).
  * - Loads the `UI` runtime like any page using the library would, which also starts mirroring
  *   `#ui-app-stylesheet` into component shadow roots.
- * - Preferences persist in `localStorage` (wrapped:  private windows may throw);  the scheme is also
+ * - Preferences persist in `localStorage` (`SiteStorage`, wrapped:  private windows may throw);  the scheme is also
  *   re-applied by an inline `<head>` script before first paint.
  */
 class SiteLayout {
@@ -22,6 +25,7 @@ class SiteLayout {
     this.initClassic()
     this.initMenu()
     this.initToc()
+    ComponentBrowser.start()
   }
 
   ////////////////
@@ -33,7 +37,7 @@ class SiteLayout {
    * - System removes both, so `color-scheme: light dark` (from `tokens.css`) follows the OS.
    */
   private initScheme() {
-    const saved = SiteLayout.read(SiteLayout.SCHEME_KEY) ?? "system"
+    const saved = SiteStorage.read(SiteLayout.SCHEME_KEY) ?? "system"
     const radios = document.querySelectorAll<HTMLInputElement>('[data-scheme] input[type="radio"]')
     for (const radio of radios) {
       radio.checked = radio.value === saved
@@ -46,7 +50,7 @@ class SiteLayout {
     const root = document.documentElement
     root.classList.toggle("ui-light", scheme === "light")
     root.classList.toggle("ui-dark", scheme === "dark")
-    SiteLayout.write(SiteLayout.SCHEME_KEY, scheme === "system" ? undefined : scheme)
+    SiteStorage.write(SiteLayout.SCHEME_KEY, scheme === "system" ? undefined : scheme)
   }
 
   ////////////////
@@ -63,14 +67,14 @@ class SiteLayout {
   private initClassic() {
     const toggle = document.querySelector<HTMLInputElement>("[data-classic]")
     if (!toggle) return
-    toggle.checked = SiteLayout.read(SiteLayout.CLASSIC_KEY) === "1"
+    toggle.checked = SiteStorage.read(SiteLayout.CLASSIC_KEY) === "1"
     if (toggle.checked) void this.setClassic(true)
     toggle.addEventListener("change", () => void this.setClassic(toggle.checked))
   }
 
   /** Turn the Classic theme on or off, and persist it. */
   private async setClassic(on: boolean) {
-    SiteLayout.write(SiteLayout.CLASSIC_KEY, on ? "1" : undefined)
+    SiteStorage.write(SiteLayout.CLASSIC_KEY, on ? "1" : undefined)
     const [{ classicThemeCSS }] = await Promise.all([import("$/ui/styles"), UI.load()])
     UI.styles.register("classic", on ? classicThemeCSS : "", { page: true })
   }
@@ -142,29 +146,6 @@ class SiteLayout {
       { rootMargin: "0px 0px -70% 0px" }
     )
     for (const heading of headings) observer.observe(heading)
-  }
-
-  ////////////////
-  // ## Storage
-  ////////////////
-
-  /** `localStorage.getItem()`, `undefined` if storage is unavailable. */
-  static read(key: string): string | undefined {
-    try {
-      return localStorage.getItem(key) ?? undefined
-    } catch {
-      return undefined
-    }
-  }
-
-  /** `localStorage.setItem()`, or `removeItem()` for `undefined`;  silently skipped if unavailable. */
-  static write(key: string, value: string | undefined) {
-    try {
-      if (value === undefined) localStorage.removeItem(key)
-      else localStorage.setItem(key, value)
-    } catch {
-      // private mode / blocked storage:  the preference just doesn't persist
-    }
   }
 }
 

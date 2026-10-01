@@ -51,7 +51,7 @@
             <a href="../../ui-component-creation.html" target="docs-ui-component-creation">ui-component-creation.html</a
             >.
           </p>
-          <ui-progress class="plan-progress" value="15" total="16" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="16" total="16" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
           <ui-steps class="plan-phases" vertical ordered>
@@ -88,10 +88,10 @@
               data-phase="14"
             ></ui-step
             ><ui-step
-              selected
+              completed
               header="P15 · Sidebar Component Browser"
               href="#p15"
-              data-status="active"
+              data-status="done"
               data-phase="15"
             ></ui-step
             ><ui-step completed header="P16 · Root Design" href="#p16" data-status="done" data-phase="16"></ui-step
@@ -1361,6 +1361,22 @@ export class UICard extends UIElement&lt;...&gt; {
                 ></ui-accordion
               >
             </li>
+            <li data-status="open" id="c10">
+              <a class="plan-id" href="#c10">C10</a>
+              <span class="plan-title">Browser: astro check crashes (useCaseSensitiveFileNames)</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <code>yarn site:check</code> dies in <code>@volar/kit</code> createChecker (<code
+                      >Cannot read properties of undefined (reading 'useCaseSensitiveFileNames')</code
+                    >) before checking anything, likely a TypeScript version mismatch. Site .ts files were checked with
+                    <code>yarn tsc -p site/tsconfig.json --noEmit</code> (0 errors); .astro files only by
+                    <code>yarn site:build</code>.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
           </ol>
         </section>
 
@@ -1513,6 +1529,38 @@ export class UICard extends UIElement&lt;...&gt; {
                   ><p>
                     Found re-linking every page. Fixed: code spans with no letter or digit, and paths outside the repo,
                     stay text.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="i10">
+              <a class="plan-id" href="#i10">I10</a>
+              <span class="plan-title">Browser: ui-list-plain loses to ui-prose list indent</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <code>.ui-prose :where(ul, ol):not(...)</code> (utilities.css ~439) has the same specificity as
+                    <code>.ui-list-plain</code> and comes later, so a plain list inside the prose column keeps a 1.5em
+                    indent. The <code>/components/</code> index worked around it with <code>ui-not-prose</code>. Not
+                    fixed in
+                    <a href="../../../ui/src/styles/" target="src-packages-ui-src-styles"><code>src/styles</code></a>
+                    (another agent owns
+                    <a href="../../../ui/src/" target="src-packages-ui-src"><code>src/</code></a> right now).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="done" id="i11">
+              <a class="plan-id" href="#i11">I11</a>
+              <span class="plan-title">Browser: ComponentDefinitions.byTopic() order doesn't match its doc</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    The docstring says topics come in <code>ValueSets.topics</code> order; the code returns them in
+                    order of first use over the A-Z definitions. The site sorts by <code>ValueSets.topics</code> itself
+                    (<code>ComponentIndex.topics()</code>) and doesn't call <code>byTopic()</code>.
                   </p></ui-content
                 ></ui-accordion
               >
@@ -2272,6 +2320,42 @@ export class UICard extends UIElement&lt;...&gt; {
                 ></ui-accordion
               >
             </li>
+            <li data-status="open" id="d46">
+              <a class="plan-id" href="#d46">D46</a>
+              <span class="plan-title">Browser: loader reads a build-time tag index, not ComponentDefinitions</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    The site's auto-loader (<a
+                      href="../../../ui/site/src/scripts/components.ts"
+                      target="src-packages-ui-site-src-scripts-components-ts"
+                      ><code>site/src/scripts/components.ts</code></a
+                    >) and the component browser read tag =&gt; folder / search key from a JSON blob each page carries
+                    (<code>#site-component-index</code>, from <code>ComponentIndex.clientIndex()</code>, itself from
+                    <code>ComponentDefinitions</code> at build time). Importing
+                    <code>ComponentDefinitions</code> client-side would eagerly bundle all 93 vocabularies (~500 KB
+                    source) into every page. <code>EXTRA_TAGS</code> and the plural / prefix guessing are gone.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d47">
+              <a class="plan-id" href="#d47">D47</a>
+              <span class="plan-title">Browser: sidebar icons are a build-time sprite of fa7-free SVGs</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    The sidebar has ~520 rows (A-Z + every topic), each with a star: one
+                    <code>&lt;ui-icon&gt;</code> per star would be ~520 custom elements on every page. The pack's own
+                    SVG files (<code>star</code>, <code>star outline</code>, <code>arrow down a z</code>,
+                    <code>layer group</code>) are inlined once as <code>&lt;symbol&gt;</code>s and drawn with
+                    <code>&lt;use&gt;</code>. The search box is a real <code>&lt;ui-input icon=search&gt;</code>.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
           </ol>
         </section>
 
@@ -2503,10 +2587,10 @@ export class UICard extends UIElement&lt;...&gt; {
               <li><b>Verify:</b> definitions test; yarn review; site:build</li>
             </ul>
           </section>
-          <section data-status="active" data-phase="15" class="s3">
+          <section data-status="done" data-phase="15" class="s3">
             <ui-sticky class="spell-h3"
               ><h3 id="p15">
-                <ui-icon name="circle half stroke" color="orange"></ui-icon> P15 · Sidebar Component Browser
+                <ui-icon name="circle check" color="green"></ui-icon> P15 · Sidebar Component Browser
               </h3></ui-sticky
             >
             <ul class="plan-phase-body">
@@ -3107,6 +3191,28 @@ export class UICard extends UIElement&lt;...&gt; {
               ><ui-content
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-01T16:41-04:00">2026-10-01 16:41</time></ui-date> P14
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T16:57-04:00">2026-10-01 16:57</time></ui-date> I11 closed:
+                  Browser: ComponentDefinitions.byTopic() order doesn't match its doc</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T16:57-04:00">2026-10-01 16:57</time></ui-date> P15 done: sidebar
+                  component browser (search, A-Z / Topics, favorites); byTopic() now in ValueSets order (I11); review
+                  3,655, site 61 pages, visual 561 zero diffs.</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T16:57-04:00">2026-10-01 16:57</time></ui-date> P15
                   done</ui-summary
                 ></ui-content
               ></ui-event

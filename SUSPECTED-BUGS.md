@@ -294,6 +294,12 @@ every entry below that date was fixed or disproven;  what's left:
 - `src/components/ui-label/ui-label.css`:  a plain CLASS-GRAMMAR `.ui.label` inside a coloured ancestor still takes the
   ancestor's colour (Fomantic doesn't);  `<ui-label>` elements are fixed (host reset).  (2026-10-01)
 
+- `src/styles/utilities.css` ~line 439:  `.ui-prose :where(ul, ol)` comes after `.ui-list-plain` with the same
+  specificity, so a plain list inside prose keeps its 1.5em indent.  The docs' `/components/` index works around it
+  with `ui-not-prose`.  (2026-10-01)
+- docs site `/components/ui-popup/` scrolls sideways at 375px:  a popup example and a code block are wider than the
+  screen (menu closed too).  (2026-10-01)
+
 ### 4. Types / API surface
 
 - `src/components/ui-dropdown/ui-dropdown.vocabulary.en.ts` `parts`:  the root `div.ui.dropdown` has no part name, so tokens

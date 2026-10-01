@@ -828,6 +828,10 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   tests;  `yarn test:all` now ~10 min. · ui
 - 2026-10-01 · `"files": ["dist", "CHANGELOG.md"]` packed `reference/Fomantic-UI/CHANGELOG.md` too:  yarn matches a
   bare name at any depth. · `"/CHANGELOG.md"`, anchored;  check with `yarn pack --dry-run`. · ui
+- 2026-10-01 · `timeout 300 yarn tsc` printed nothing:  macOS has no `timeout`, so the shell failed silently. · Use the
+  tool's own timeout, or `gtimeout` (coreutils). · ui
+- 2026-10-01 · `yarn site:check` (astro check) crashes inside `@volar/kit` before checking anything. · `yarn tsc -p
+  site/tsconfig.json --noEmit` type-checks the site instead. · ui
 
 ## cli
 

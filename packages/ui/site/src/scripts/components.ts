@@ -1,4 +1,4 @@
-import { PART_NOUNS } from "$/ui/components/ui-parts/ui-parts.types"
+import type { ClientIndex } from "../lib/ComponentIndex"
 
 /**
  * Auto-loader for live examples:  imports the component FAMILY for every undefined `ui-*` tag on the page.
@@ -6,9 +6,9 @@ import { PART_NOUNS } from "$/ui/components/ui-parts/ui-parts.types"
  *   component client-side on its own.  This makes every page "just work":  write `<ui-button>` in an example and
  *   `$/ui/components/ui-button/index.ts` loads (it defines `ui-button`, `ui-buttons`, `ui-or`), on the pages that use it
  *   only.
- * - Tag => family (its folder, named after its main tag):  the tag itself (`ui-button`) or its singular
- *   (`ui-buttons`), a content part (`ui-header` => `ui-parts`, from `PART_NOUNS`), a family-prefixed sub-tag
- *   (`ui-breadcrumb-section`, `ui-placeholder-line`), or `EXTRA_TAGS`.
+ * - Tag => family folder comes from `ComponentDefinitions` (one definition per tag), written into every page at
+ *   build time as `#site-component-index` (`ComponentPageIndex`).  Not imported here:  `ComponentDefinitions` eagerly
+ *   imports every vocabulary (~500 KB of source), which no page should download to look up a folder name.
  * - Imports source through the `$` alias, so the site always shows the working tree, not a build.
  */
 const MODULES = import.meta.glob("$/ui/components/*/index.ts")
@@ -20,31 +20,18 @@ for (const [path, load] of Object.entries(MODULES)) {
   if (family) FAMILIES.set(family, load)
 }
 
-/** Tags a family defines besides `ui-<family>` / `ui-<family>s` / `ui-<family>-*` / the parts, => its folder. */
-const EXTRA_TAGS: Record<string, string> = {
-  "ui-or": "ui-button",
-  "ui-row": "ui-grid",
-  "ui-column": "ui-grid",
-  "ui-textarea": "ui-input",
-  "ui-radio": "ui-checkbox",
-  "ui-field": "ui-form",
-  "ui-fields": "ui-form",
-  "ui-event": "ui-feed",
-  "ui-pushable": "ui-sidebar",
-  "ui-pusher": "ui-sidebar",
-  "ui-side": "ui-shape"
-}
-
 /**
  * Import the family of each distinct undefined `ui-*` tag under `root`.
- * - Tags with no family (not built yet) are skipped silently.
+ * - Tags with no definition or no family (not built yet) are skipped silently.
  * - Resolves when every import has settled;  a failing module is logged, not thrown, so one broken component
  *   can't take the rest of the page down.
  */
 export async function loadComponents(root: ParentNode = document): Promise<void> {
+  const index = ComponentPageIndex.read()
   const loaders = new Set<() => Promise<unknown>>()
   for (const el of root.querySelectorAll(":not(:defined)")) {
-    const load = el.localName.startsWith("ui-") ? FAMILIES.get(familyOf(el.localName)) : undefined
+    const folder = index[el.localName]?.folder
+    const load = folder ? FAMILIES.get(folder) : undefined
     if (load) loaders.add(load)
   }
   const results = await Promise.allSettled([...loaders].map((load) => load()))
@@ -54,17 +41,29 @@ export async function loadComponents(root: ParentNode = document): Promise<void>
 }
 
 /**
- * Family that defines `tag`;  `""` if none.
- * - `ui-buttons` => `ui-button`
- * - `ui-header` => `ui-parts`
- * - `ui-placeholder-line` => `ui-placeholder`
+ * The page's component index:  tag => `{ folder, search }`, from `ComponentIndex.clientIndex()` at build time
+ * (`components/ComponentBrowser.astro` writes it into the sidebar as JSON).
  */
-function familyOf(tag: string): string {
-  const name = tag.slice("ui-".length)
-  if (FAMILIES.has(tag)) return tag
-  if (tag.endsWith("s") && FAMILIES.has(tag.slice(0, -1))) return tag.slice(0, -1)
-  if ((PART_NOUNS as readonly string[]).includes(name)) return "ui-parts"
-  if (EXTRA_TAGS[tag]) return EXTRA_TAGS[tag]
-  const prefix = `ui-${name.split("-")[0]}`
-  return FAMILIES.has(prefix) ? prefix : ""
+export class ComponentPageIndex {
+  /** Id of the `<script type="application/json">` holding it. */
+  static readonly ID = "site-component-index"
+  /** Parsed once per page. */
+  private static cached?: ClientIndex
+
+  /** The index;  `{}` if the page has none (a page not on `Docs.astro`). */
+  static read(): ClientIndex {
+    return (ComponentPageIndex.cached ??= ComponentPageIndex.parse())
+  }
+
+  /** Parse the JSON;  a broken one is logged and treated as empty. */
+  private static parse(): ClientIndex {
+    const text = document.getElementById(ComponentPageIndex.ID)?.textContent
+    if (!text) return {}
+    try {
+      return JSON.parse(text) as ClientIndex
+    } catch (error) {
+      console.error("[site] unreadable component index", error)
+      return {}
+    }
+  }
 }

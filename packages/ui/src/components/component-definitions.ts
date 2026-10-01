@@ -1,4 +1,4 @@
-import type { ComponentTopic, ComponentVocabulary } from "$/ui/vocabulary"
+import { ValueSets, type ComponentTopic, type ComponentVocabulary } from "$/ui/vocabulary"
 
 /** One tag, as the docs' component browser (and later `<ui-root>`'s loader) needs it. */
 export type ComponentDefinition = {
@@ -40,15 +40,12 @@ export class ComponentDefinitions {
     return ComponentDefinitions.all.find((definition) => definition.tag === tag)
   }
 
-  /** Topic => its definitions (sorted by name), in `ValueSets.topics` order of first use;  a tag under each topic. */
+  /** Topic => its definitions (sorted by name), in `ValueSets.topics` order, used topics only;  a tag under each of its topics. */
   static byTopic(): Map<ComponentTopic, ComponentDefinition[]> {
     const topics = new Map<ComponentTopic, ComponentDefinition[]>()
-    for (const definition of ComponentDefinitions.all) {
-      for (const topic of definition.topics) {
-        const list = topics.get(topic) ?? []
-        list.push(definition)
-        topics.set(topic, list)
-      }
+    for (const topic of ValueSets.topics) {
+      const list = ComponentDefinitions.all.filter((definition) => definition.topics.includes(topic))
+      if (list.length) topics.set(topic, list)
     }
     return topics
   }

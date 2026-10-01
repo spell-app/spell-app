@@ -36,16 +36,20 @@ site/
       TokenTable.astro       CSS custom properties table, with live colour swatches
       TokenPlayground.astro  inputs bound to tokens on :root (Theming page)
       ApiTable.astro         API tables from ../custom-elements.json ("coming soon" until it exists)
+      ComponentBrowser.astro the sidebar's Components section:  every tag, A-Z / by topic, search, favorites
     pages/                   index, getting-started, grammar, theming, utilities, icons, components/
-    lib/                     nav, HtmlFormatter (Show code), shiki themes, slug, the MDX plugin
-    scripts/                 layout behaviour, copy buttons, the component auto-loader
+    lib/                     nav, ComponentIndex (tags + links, from ComponentDefinitions), SearchText,
+                             HtmlFormatter (Show code), shiki themes, slug, the MDX plugin
+    scripts/                 layout behaviour, the component browser, storage, copy buttons, the auto-loader
     styles/site.css          site chrome = THE app stylesheet (`#ui-app-stylesheet`)
 ```
 
 ## Writing a component page
 
-Create `src/content/components/ui-<name>.mdx`.  It appears in the sidebar and at `/components/ui-<name>/`
-automatically;  the API table is appended for you.
+Create `src/content/components/ui-<name>.mdx`.  It appears at `/components/ui-<name>/` automatically;  the API table
+is appended for you.  The sidebar and the `/components/` index list TAGS, not pages:  each tag's vocabulary
+`topics` / `aka` file it (`ComponentDefinitions`), and a tag other than the folder's main one links to its
+`VocabularyTable` heading (`#ui-<tag>`).
 
 ```mdx
 ---

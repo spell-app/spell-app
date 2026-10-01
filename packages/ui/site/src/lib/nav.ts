@@ -1,9 +1,7 @@
-import { getCollection } from "astro:content"
-
 /**
  * Site navigation:  the header links and the left sidebar, in one place so they can't drift apart.
- * - Component entries come from the `components` content collection, so a component agent adds a page
- *   by adding one `.mdx` file -- no nav edit.
+ * - The sidebar's Components section is the component BROWSER (`components/ComponentBrowser.astro`), listing every
+ *   TAG from `ComponentDefinitions` (through `ComponentIndex`), so a new tag or page needs no nav edit.
  */
 
 /** One sidebar / header link. */
@@ -22,6 +20,8 @@ export type NavSection = {
   title: string
   /** its links, in display order */
   links: NavLink[]
+  /** render the component browser here instead of `links` */
+  browser?: true
 }
 
 /** Prefix `path` with Astro's `base`, so the site also works deployed under a sub-path. */
@@ -40,12 +40,8 @@ export const HEADER_LINKS: NavLink[] = [
   { label: "Kitchen sink", path: "/kitchen-sink/" }
 ]
 
-/** Component categories in sidebar / index order, as Fomantic groups them. */
-export const CATEGORIES = ["Elements", "Modules"] as const
-
-/** Sidebar sections, components listed alphabetically from the content collection. */
-export async function sidebar(): Promise<NavSection[]> {
-  const components = (await getCollection("components")).sort((a, b) => a.data.title.localeCompare(b.data.title))
+/** Sidebar sections;  "Components" is a placeholder for the component browser. */
+export function sidebar(): NavSection[] {
   return [
     {
       title: "Introduction",
@@ -55,16 +51,7 @@ export async function sidebar(): Promise<NavSection[]> {
         { label: "Grammar", path: "/grammar/" }
       ]
     },
-    ...CATEGORIES.map((category) => ({
-      title: category,
-      links: components
-        .filter((entry) => entry.data.category === category)
-        .map((entry) => ({
-          label: entry.data.title,
-          path: `/components/${entry.id}/`,
-          badge: STATUS_BADGES[entry.data.status]
-        }))
-    })).filter((section) => section.links.length),
+    { title: "Components", links: [], browser: true },
     {
       title: "Foundation",
       links: [
