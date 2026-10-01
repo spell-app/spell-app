@@ -159,6 +159,21 @@ program
   .option("--in <folder>", "make it in this folder -- default @user's, projects/user/")
   .action((name: string, _options, command) => run(CLI.newCommand, [name], command.optsWithGlobals()))
 
+// our own `help`, not commander's:  an unknown command is a mistake, not a reason to print the general help
+program.helpCommand(false)
+program
+  .command("help")
+  .description("show help -- for one command, e.g. spell help compile")
+  .argument("[command]", "the command to show help for")
+  .action((name: string | undefined) => {
+    const command = name === undefined ? program : program.commands.find((it) => it.name() === name)
+    if (!command) {
+      process.stderr.write(chalk.red(`No command '${name}' -- \`spell help\` lists them\n`))
+      process.exit(CLI.EXIT.USAGE)
+    }
+    command.outputHelp()
+  })
+
 await program.parseAsync()
 
 /**

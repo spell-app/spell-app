@@ -35,6 +35,27 @@ function spell(args: string[], cwd = fixturePath()) {
   return { status, stdout, stderr }
 }
 
+describe("spell help", () => {
+  test("lists the commands", () => {
+    const { status, stdout } = spell(["help"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/^Usage: spell \[options\] \[command\]\n/)
+    expect(stdout).toMatch(/^ {2}compile \[options\] <targets\.\.\.>/m)
+  })
+
+  test("one command", () => {
+    const { status, stdout } = spell(["help", "compile"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/^Usage: spell compile \[options\] <targets\.\.\.>\n/)
+  })
+
+  test("an unknown command", () => {
+    const { status, stderr } = spell(["help", "nope"])
+    expect(status).toBe(2)
+    expect(stderr).toContain("No command 'nope'")
+  })
+})
+
 describe("spell compile", () => {
   test("--stdout prints exactly the fixture's snapshot", () => {
     const { status, stdout, stderr } = spell(["compile", "@test/FizzBuzz", "--stdout"])
