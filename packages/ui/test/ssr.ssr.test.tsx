@@ -3,6 +3,7 @@
 import { describe, expect, it } from "vitest"
 import { renderToString } from "@solidjs/web"
 import { writeFile, mkdir } from "node:fs/promises"
+import { resolve } from "node:path"
 
 import { foundationCSS } from "$/styles"
 import { buttonVocabulary } from "$/components/button/button.vocabulary.en"
@@ -29,8 +30,9 @@ describe("SSR / Declarative Shadow DOM", () => {
     const dsd =
       `<ui-button primary><template shadowrootmode="open" shadowrootdelegatesfocus>` +
       `<style>${css}</style>${html}</template>Save</ui-button>`
-    await mkdir(".cache", { recursive: true })
-    await writeFile(".cache/ssr-button.html", dsd)
+    const cache = resolve(import.meta.dirname, "..", ".cache")
+    await mkdir(cache, { recursive: true })
+    await writeFile(resolve(cache, "ssr-button.html"), dsd)
     expect(html).toContain('class="ui primary button"')
     expect(html).toContain('part="button"')
     expect(html).toContain("<slot")

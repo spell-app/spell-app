@@ -1,4 +1,4 @@
-import { configDefaults, defineConfig } from "vitest/config"
+import { configDefaults, defineConfig, type TestProjectConfiguration } from "vitest/config"
 import { playwright } from "@vitest/browser-playwright"
 
 import { baseConfig } from "./vite.config.ts"
@@ -24,39 +24,51 @@ const TOOL_TESTS = ["tools/**/*.test.ts"]
  * - Each project gets its OWN Solid plugin instance (`baseConfig()`):  the plugin picks its posture (client, or
  *   the server build of `@solidjs/web`) from `test.environment` of the config it's created in, and never sees a
  *   project's `environment` through `extends: true`.
- * - NOTE: run `ssr` FIRST (`yarn test` does):  it writes `.cache/ssr-button.html`, which `test/dsd.test.ts`
- *   imports.
+ * - NOTE: `ssr` runs FIRST:  it writes `.cache/ssr-button.html`, which `test/dsd.test.ts` imports.
+ *   - `yarn test` here runs the projects one after the other.
+ *   - In the root's single run, `sequence.groupOrder` does it:  vitest runs project groups in ascending order, and
+ *     a group finishes before the next starts.
+ * - `prefix` / `root`:  the repo root's `vitest.config.ts` lists these with `ui:` names and `root` set to this
+ *   package, since vitest doesn't nest `projects`.  Own run:  no prefix, `root` is the config's folder.
  */
-export default defineConfig({
-  test: {
-    projects: [
-      {
-        ...baseConfig(),
-        test: {
-          name: "browser",
-          include: ["src/**/*.test.{ts,tsx}", "test/**/*.test.{ts,tsx}"],
-          exclude: [...configDefaults.exclude, ...SSR_TESTS],
-          setupFiles: ["./test/setup.ts"],
-          // a guard:  an element bug that halts rendering must fail its test, not hang the run
-          testTimeout: 10_000,
-          browser: {
-            enabled: true,
-            provider: playwright(),
-            headless: true,
-            instances: BROWSERS.map((browser) => ({ browser }))
-          }
-        }
-      },
-      {
-        ...baseConfig(),
-        test: {
-          name: "ssr",
-          environment: "node",
-          // vitest stubs CSS imports by default;  the DSD string needs the real `?inline` sheets
-          css: { include: [/.+/] },
-          include: [...SSR_TESTS, ...TOOL_TESTS]
+export function uiProjects({ prefix = "", root }: { prefix?: string; root?: string } = {}): TestProjectConfiguration[] {
+  return [
+    {
+      ...baseConfig(),
+      ...(root && { root }),
+      test: {
+        name: `${prefix}ssr`,
+        sequence: { groupOrder: 0 },
+        environment: "node",
+        // vitest stubs CSS imports by default;  the DSD string needs the real `?inline` sheets
+        css: { include: [/.+/] },
+        include: [...SSR_TESTS, ...TOOL_TESTS]
+      }
+    },
+    {
+      ...baseConfig(),
+      ...(root && { root }),
+      test: {
+        name: `${prefix}browser`,
+        sequence: { groupOrder: 1 },
+        include: ["src/**/*.test.{ts,tsx}", "test/**/*.test.{ts,tsx}"],
+        exclude: [...configDefaults.exclude, ...SSR_TESTS],
+        setupFiles: ["./test/setup.ts"],
+        // a guard:  an element bug that halts rendering must fail its test, not hang the run
+        testTimeout: 10_000,
+        browser: {
+          enabled: true,
+          provider: playwright(),
+          headless: true,
+          instances: BROWSERS.map((browser) => ({ browser }))
         }
       }
-    ]
+    }
+  ]
+}
+
+export default defineConfig({
+  test: {
+    projects: uiProjects()
   }
 })

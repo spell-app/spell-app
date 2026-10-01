@@ -4,6 +4,8 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { describe, test, expect } from "vitest"
 
+import environment from "~/environment"
+
 /**
  * Production builds of the runners:  `<spell-app>` (`yarn build:element`) and the VS Code runner (`yarn build:runner`)
  * -- and `<spell-editor>`, which `yarn build:element` builds beside `<spell-app>`.
@@ -75,6 +77,8 @@ describe("runner builds", () => {
 /** Build with vite config `config` into `outDir`. */
 function build(config: string, outDir: string) {
   execFileSync("npx", ["vite", "build", "-c", config, "--outDir", outDir, "--emptyOutDir", "--logLevel", "silent"], {
+    // the package folder:  a root run has another working directory
+    cwd: join(environment.srcDir, ".."),
     stdio: "pipe"
   })
 }

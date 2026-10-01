@@ -52,8 +52,13 @@ cd packages/ui    && yarn dev          # @spell/ui's demo pages, hot-reloading
 cd packages/cli   && yarn cli:install  # put `spell` on your PATH
 ```
 
-From the root, `yarn ts`, `yarn test` and `yarn review` run in every package.  `review` also FIXES lint and
-formatting, so it can change files.
+From the root, `yarn ts` and `yarn review` run in every package.  `review` also FIXES lint and formatting, so it
+can change files.
+
+`yarn test` is ONE vitest run over every package (the root `vitest.config.ts` lists them as `projects`):
+- `yarn test --project spell` runs one project:  `spell`, `cli`, `ui:ssr`, `ui:browser`, `solid-element`.
+- `yarn test:watch` is the watch mode, and the VS Code vitest extension reads the same config.
+- `yarn test:packages` runs each package's own `yarn test` one after another, as before.
 
 ## Working in the repo
 

@@ -4,6 +4,8 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { describe, test, expect } from "vitest"
 
+import environment from "~/environment"
+
 /**
  * Production build smoke test.
  * - Rules defined as classes register under their CLASS NAME (`Rule.instantiate()`), so a minifier which
@@ -18,6 +20,8 @@ describe("production build", () => {
     const outDir = mkdtempSync(join(tmpdir(), "spell-build-"))
     try {
       execFileSync("npx", ["vite", "build", "--outDir", outDir, "--emptyOutDir", "--logLevel", "silent"], {
+        // the package folder:  a root run has another working directory
+        cwd: join(environment.srcDir, ".."),
         stdio: "pipe"
       })
       const assets = join(outDir, "assets")
