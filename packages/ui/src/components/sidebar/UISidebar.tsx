@@ -5,9 +5,9 @@ import {
   HostAttribute,
   proto,
   PUSHABLE_HOST_STATE,
-  TOGGLE_COMMANDS,
   UI,
   UIElement,
+  ToggleCommands,
   type AttributeName,
   type Disposer,
   type DismissReason,
@@ -311,10 +311,12 @@ export class UISidebar extends UIElement<Vocabulary> {
 
   /** An invoker command aimed at the host (`TOGGLE_COMMANDS`). */
   private readonly onCommand = (event: Event) => {
-    const { command } = event as Event & { command: string }
-    const visible = untrack(() => this.isVisible())
-    if (command === TOGGLE_COMMANDS.show || (command === TOGGLE_COMMANDS.toggle && !visible)) this.setVisible(event)
-    else if (command === TOGGLE_COMMANDS.close || command === TOGGLE_COMMANDS.toggle) this.requestClose(CLOSE, event)
+    const action = ToggleCommands.action(
+      event,
+      untrack(() => this.isVisible())
+    )
+    if (action === "show") this.setVisible(event)
+    else if (action === "close") this.requestClose(CLOSE, event)
   }
 
   /** A non-modal dialog gets no `cancel` from Escape;  a `CloseWatcher` request might:  always prevented. */

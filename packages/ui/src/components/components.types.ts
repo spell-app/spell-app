@@ -739,7 +739,8 @@ export type SidebarCloseDetail = {
 }
 
 /**
- * Invoker commands a `<ui-modal>`, `<ui-flyout>`, `<ui-sidebar>` and `<ui-dimmer>` answer
+ * Invoker commands a `<ui-modal>`, `<ui-flyout>`, `<ui-sidebar>`, `<ui-dimmer>`, `<ui-popup>`, `<ui-dropdown>` and
+ * `<ui-toast>` (`--close` only) answer
  * (`<button commandfor="id" command="--toggle">`):  custom commands, since a custom element gets no built-in ones
  * (`show-modal` only reaches a real `<dialog>`).  All are user actions (the cancelable `ui-open` / `ui-close` first).
  * - `--show` -- open
@@ -747,6 +748,20 @@ export type SidebarCloseDetail = {
  * - `--toggle` -- either
  */
 export const TOGGLE_COMMANDS = { show: "--show", close: "--close", toggle: "--toggle" } as const
+
+/** Reads `TOGGLE_COMMANDS` off a `command` event:  the shared first step of every family's `onCommand`. */
+export class ToggleCommands {
+  /**
+   * What `event` asks of an element that is `open` now:  `"show"`, `"close"`, or `undefined` for a command it doesn't
+   * know (`--toggle` flips `open`).
+   */
+  static action(event: Event, open: boolean): "show" | "close" | undefined {
+    const { command } = event as Event & { command?: string }
+    if (command === TOGGLE_COMMANDS.show || (command === TOGGLE_COMMANDS.toggle && !open)) return "show"
+    if (command === TOGGLE_COMMANDS.close || command === TOGGLE_COMMANDS.toggle) return "close"
+    return undefined
+  }
+}
 
 /** Custom state every `<ui-pusher>` host carries:  `<ui-pushable>` finds and moves it by this, whatever its tag. */
 export const PUSHER_HOST_STATE = "pusher"

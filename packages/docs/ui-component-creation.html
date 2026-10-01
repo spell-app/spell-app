@@ -30,8 +30,8 @@
               href="plans/ui-component-creation/ui-component-creation.html"
               target="src-packages-docs-plans-ui-component-creation-ui-component-creation-html"
               ><code>plans/ui-component-creation/ui-component-creation.html</code></a
-            >; before it, the handoff <code>/Users/owen/www/spell-app/outstanding/ui-component-build.md</code> (outside
-            the repo)
+            >; before it, the handoff <i>/Users/owen/www/spell-app/outstanding/ui-component-build.md</i> (outside the
+            repo)
           </li>
         </ul>
 
@@ -46,7 +46,7 @@
             <li>Owen's eight open design calls (2026-09-30) are settled and built.</li>
             <li>Phase D is done except Linux visual baselines and 4 WebKit test failures that need Owen's call.</li>
             <li>
-              Numbers: browser tests 3,619 (chromium); 10,849 pass across chromium / firefox / webkit; 561 visual tests
+              Numbers: browser tests 3,633 (chromium); 10,890 pass across chromium / firefox / webkit; 561 visual tests
               (macOS, 3 browsers, light + dark); 61 docs-site pages; 2.5 MB package, 120 export targets.
             </li>
           </ul>
@@ -167,7 +167,6 @@
               viewport): correct, but it covers two small sections.
             </li>
             <li>Emoji names data grew ~35% (a page still loads one ~5 kB chunk).</li>
-            <li>Popup, dropdown menu and toast don't answer invoker <code>command</code> events yet.</li>
             <li>
               The rest:
               <a href="../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"><code>SUSPECTED-BUGS.md</code></a> (<code
@@ -182,36 +181,468 @@
 
         <section class="s2">
           <ui-sticky class="spell-h2"><h2 id="5-waiting-on-owen">5. Waiting on Owen</h2></ui-sticky>
-          <ol>
-            <li>Emoji: keep Fomantic's meaning for the 19 clashing names (<code>dog</code> = 🐶), or let CLDR win?</li>
-            <li>
-              Table: opt in to stacking by own width with a token (<code>--ui-table-stack-by: container</code>) or an
-              attribute (<code>stack-by="container"</code>)?
-            </li>
-            <li>
-              WebKit: style-query rules on <code>::before</code> / <code>::after</code> go stale after a token change
-              (breadcrumb divider icon, feed numbers): nudge the element, or move those rules off style queries? 3
-              WebKit tests fail.
-            </li>
-            <li>
-              WebKit: <code>&lt;ui-form&gt;</code> can't stack rows (container lookup doesn't cross the slot): a real
-              box host, or another mechanism? 1 WebKit test fails.
-            </li>
-            <li>
-              Any time: Linux baselines (after a Docker update); the fork's upstream PRs; the CLI
-              <code>icons:pack</code> command (a cli session).
-            </li>
-          </ol>
+          <p>Four calls, each with what it means and an example. Item ids match the plan doc (Q9-Q12).</p>
+
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="q-emoji">Q9 · Emoji names that changed meaning</h3></ui-sticky>
+            <ul>
+              <li>
+                <code>&lt;ui-emoji name&gt;</code> now takes CLDR's names (Unicode's official short names), plus every
+                Fomantic name as an alias.
+              </li>
+              <li>
+                19 names exist in BOTH lists but mean different pictures. Today Fomantic wins, so an existing page keeps
+                its picture; the CLDR picture stays reachable by another name.
+              </li>
+              <li>If CLDR won instead, every page using one of these names would show the right-hand picture.</li>
+            </ul>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <tbody>
+                  <tr>
+                    <th>name</th>
+                    <th>today (Fomantic)</th>
+                    <th>also reached by</th>
+                    <th>if CLDR won</th>
+                    <th>also reached by</th>
+                  </tr>
+                  <tr>
+                    <td><code>calendar</code></td>
+                    <td>📆</td>
+                    <td><code>tear_off_calendar</code></td>
+                    <td>📅</td>
+                    <td><code>date</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>camel</code></td>
+                    <td>🐫</td>
+                    <td><code>two_hump_camel</code></td>
+                    <td>🐪</td>
+                    <td><code>dromedary_camel</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>cat</code></td>
+                    <td>🐱</td>
+                    <td><code>cat_face</code></td>
+                    <td>🐈</td>
+                    <td><code>cat2</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>cow</code></td>
+                    <td>🐮</td>
+                    <td><code>cow_face</code></td>
+                    <td>🐄</td>
+                    <td><code>cow2</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>dog</code></td>
+                    <td>🐶</td>
+                    <td><code>dog_face</code></td>
+                    <td>🐕</td>
+                    <td><code>dog2</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>horse</code></td>
+                    <td>🐴</td>
+                    <td><code>horse_face</code></td>
+                    <td>🐎</td>
+                    <td><code>racehorse</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>kiss</code></td>
+                    <td>💋</td>
+                    <td><code>kiss_mark</code></td>
+                    <td>💏</td>
+                    <td><code>couplekiss</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>mouse</code></td>
+                    <td>🐭</td>
+                    <td><code>mouse_face</code></td>
+                    <td>🐁</td>
+                    <td><code>mouse2</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>pencil</code></td>
+                    <td>📝</td>
+                    <td><code>memo</code></td>
+                    <td>✏️</td>
+                    <td><code>pencil2</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>pig</code></td>
+                    <td>🐷</td>
+                    <td><code>pig_face</code></td>
+                    <td>🐖</td>
+                    <td><code>pig2</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>post_office</code></td>
+                    <td>🏣</td>
+                    <td><code>japanese_post_office</code></td>
+                    <td>🏤</td>
+                    <td><code>european_post_office</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>rabbit</code></td>
+                    <td>🐰</td>
+                    <td><code>rabbit_face</code></td>
+                    <td>🐇</td>
+                    <td><code>rabbit2</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>satellite</code></td>
+                    <td>📡</td>
+                    <td><code>satellite_antenna</code></td>
+                    <td>🛰️</td>
+                    <td><code>satellite_orbital</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>snowman</code></td>
+                    <td>⛄</td>
+                    <td><code>snowman_without_snow</code></td>
+                    <td>☃️</td>
+                    <td><code>snowman2</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>sunglasses</code></td>
+                    <td>😎</td>
+                    <td><code>smiling_face_with_sunglasses</code></td>
+                    <td>🕶️</td>
+                    <td><code>dark_sunglasses</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>tiger</code></td>
+                    <td>🐯</td>
+                    <td><code>tiger_face</code></td>
+                    <td>🐅</td>
+                    <td><code>tiger2</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>train</code></td>
+                    <td>🚋</td>
+                    <td><code>tram_car</code></td>
+                    <td>🚆</td>
+                    <td><code>train2</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>umbrella</code></td>
+                    <td>☔</td>
+                    <td><code>umbrella_with_rain_drops</code></td>
+                    <td>☂️</td>
+                    <td><code>umbrella2</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>whale</code></td>
+                    <td>🐳</td>
+                    <td><code>spouting_whale</code></td>
+                    <td>🐋</td>
+                    <td><code>whale2</code></td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </section>
+
+          <section class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="q-table-stacking">Q10 · Table stacking: token or attribute?</h3></ui-sticky
+            >
+            <ul>
+              <li>
+                <b>"Stacking"</b> is Fomantic's word for what a layout does when it's too narrow: things that sit SIDE
+                BY SIDE are put ONE UNDER ANOTHER, so nothing gets squeezed.
+                <ul>
+                  <li>a table: each row becomes a block, and each cell goes on its own line</li>
+                  <li>a form: fields in a row (first name | last name) go one per line</li>
+                  <li>a grid: columns become full-width rows</li>
+                </ul>
+              </li>
+              <li>
+                Tables: Fomantic stacks when the WINDOW is narrower than 768px (a phone). We had changed that to the
+                table's OWN width, so every table in the docs site's 655px example column showed the phone layout.
+                Fixed: by window again.
+              </li>
+              <li>
+                Kept as an opt-in: a table can stack by its own width instead, for a table in a narrow sidebar on a wide
+                screen. The question is only how to spell that opt-in.
+              </li>
+            </ul>
+            <ui-grid class="spell-pros-cons" columns="2" stackable>
+              <ui-column>
+                <ui-segment>
+                  <ui-label attached="top">Token (built)</ui-label>
+                  <p><code>&lt;ui-table style="--ui-table-stack-by: container"&gt;</code></p>
+                  <p>
+                    Settable from a stylesheet, for many tables at once; but invisible in the attribute list and the
+                    docs' API table.
+                  </p>
+                </ui-segment>
+              </ui-column>
+              <ui-column>
+                <ui-segment>
+                  <ui-label attached="top">Attribute</ui-label>
+                  <p><code>&lt;ui-table stack-by="container"&gt;</code></p>
+                  <p>Discoverable, validated by the vocabulary, translatable; but one table at a time.</p>
+                </ui-segment>
+              </ui-column>
+            </ui-grid>
+            <p>
+              Live: drag the box's corner narrower than 768px. This table opts in with the token, so it stacks by the
+              box, whatever the window.
+            </p>
+            <div style="resize: horizontal; overflow: auto; width: 100%; max-width: 100%; min-width: 280px">
+              <ui-table celled style="--ui-table-stack-by: container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Status</th>
+                      <th>Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Jamie</td>
+                      <td>Approved</td>
+                      <td>Requires call</td>
+                    </tr>
+                    <tr>
+                      <td>Jill</td>
+                      <td>Denied</td>
+                      <td>None</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </ui-table>
+            </div>
+          </section>
+
+          <section class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="q-webkit-nudge">Q11 · WebKit: decorations that don't redraw ("nudge")</h3></ui-sticky
+            >
+            <ul>
+              <li>
+                Some decorations are drawn by a <code>::before</code> rule that only applies while a setting (a CSS
+                custom property) has a certain value: a <code>@container style(...)</code> rule.
+              </li>
+              <li>
+                When the setting changes AFTER the first paint, Chromium and Firefox redraw the decoration; WebKit
+                (Safari) updates the element but NOT its <code>::before</code>, so the decoration stays as it was.
+              </li>
+              <li>
+                Two places hit it:
+                <ul>
+                  <li>
+                    <b>breadcrumb</b> <code>divider-icon="chevron right"</code>: the setting flips to "icon" only once
+                    the SVG has loaded, which is always after first paint. In Safari the divider stays EMPTY.
+                  </li>
+                  <li>
+                    <b>feed</b> <code>ordered</code>: numbers in circles beside each event. Turning
+                    <code>ordered</code> (or <code>basic</code>) on after first paint leaves Safari without numbers.
+                  </li>
+                </ul>
+              </li>
+            </ul>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>breadcrumb.css · the rule WebKit doesn't re-check</ui-title>
+              <ui-content>
+                <pre><code class="language-css">@container style(--_ui-breadcrumb-divider-layout: icon) {
+  :host &gt; .divider:empty::before {
+    content: "";
+    mask: var(--ui-breadcrumb-divider-icon) center / contain no-repeat;
+  }
+}</code></pre>
+              </ui-content>
+            </ui-accordion>
+            <ui-grid class="spell-pros-cons" columns="2" stackable>
+              <ui-column>
+                <ui-segment>
+                  <ui-label attached="top">A: nudge</ui-label>
+                  <p>
+                    Keep the rule; after changing the setting, write any inline style on the element, which makes WebKit
+                    recompute everything about it, <code>::before</code> included.
+                  </p>
+                  <pre><code class="language-ts">// LAYOUT:  the divider-layout token
+host.style.setProperty(LAYOUT, "icon")
+// WebKit: re-check ::before too
+divider.style.setProperty(
+  "--_nudge", String(++nudges))</code></pre>
+                  <p>Small; but a workaround every future style-query decoration must remember.</p>
+                </ui-segment>
+              </ui-column>
+              <ui-column>
+                <ui-segment>
+                  <ui-label attached="top">B: no style query (recommended)</ui-label>
+                  <p>
+                    The element marks itself instead, and the rule matches the mark: a class or custom state, which
+                    every browser re-checks.
+                  </p>
+                  <pre><code class="language-css">/* element:  a custom state */
+:host(:state(icon-divider))
+  &gt; .divider:empty::before { … }
+/* class grammar:  a class */
+.ui.breadcrumb
+  .divider.icon:empty::before { … }</code></pre>
+                  <p>
+                    Same as Fomantic's own markup (<code>&lt;i class="right chevron icon divider"&gt;</code>); feed
+                    would use the owner-context state it already has (<code>:state(in-feed)</code>).
+                  </p>
+                </ui-segment>
+              </ui-column>
+            </ui-grid>
+          </section>
+
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="q-form-stacking">Q12 · WebKit: form rows don't stack</h3></ui-sticky>
+            <ul>
+              <li>A form row puts fields side by side; on a narrow form they should stack, one per line:</li>
+            </ul>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>a two-field row, from form's content.html example · 12 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-html">&lt;ui-form&gt;
+  &lt;ui-fields widths="2"&gt;
+    &lt;ui-field&gt;
+      &lt;label for="first"&gt;First name&lt;/label&gt;
+      &lt;ui-input id="first" placeholder="First Name"&gt;&lt;/ui-input&gt;
+    &lt;/ui-field&gt;
+    &lt;ui-field&gt;
+      &lt;label for="last"&gt;Last name&lt;/label&gt;
+      &lt;ui-input id="last" placeholder="Last Name"&gt;&lt;/ui-input&gt;
+    &lt;/ui-field&gt;
+  &lt;/ui-fields&gt;
+&lt;/ui-form&gt;</code></pre>
+              </ui-content>
+            </ui-accordion>
+            <ul>
+              <li>
+                We stack by the FORM's width: a rule <code>@container ui-form (width &lt; 768px)</code>, where the
+                container is a <code>&lt;div class="ui form"&gt;</code> INSIDE <code>&lt;ui-form&gt;</code>'s shadow
+                root; the <code>&lt;ui-fields&gt;</code> above sits in the page and is shown through a slot.
+              </li>
+              <li>
+                Chromium looks for the container along the path the content is DRAWN in (through the slot) and finds the
+                div; WebKit looks along the page's own element tree, where the div isn't an ancestor, finds no
+                container, and never stacks. In Safari the two fields stay squeezed side by side on a phone.
+              </li>
+              <li>
+                The <code>&lt;ui-form&gt;</code> element itself can't be the container: it is
+                <code>display: contents</code> (it draws no box of its own).
+              </li>
+            </ul>
+            <ui-grid class="spell-pros-cons" columns="2" stackable>
+              <ui-column>
+                <ui-segment>
+                  <ui-label attached="top">A: give &lt;ui-form&gt; a box</ui-label>
+                  <p>
+                    The host becomes <code>display: block</code> and the container; works everywhere, keeps "by the
+                    form's width". Risk: every form now has an extra box (margins, flex / grid parents).
+                  </p>
+                </ui-segment>
+              </ui-column>
+              <ui-column>
+                <ui-segment>
+                  <ui-label attached="top">B: by window, like tables (recommended)</ui-label>
+                  <p>
+                    Fomantic stacks form rows by the WINDOW width; do the same, with the same opt-in as tables (<a
+                      href="#q-table-stacking"
+                      >Q10</a
+                    >) for "by the form's width" where a box can host it.
+                  </p>
+                </ui-segment>
+              </ui-column>
+            </ui-grid>
+          </section>
+
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="q-any-time">Any time</h3></ui-sticky>
+            <ul>
+              <li>
+                Linux visual baselines (after a Docker update); the fork's upstream PRs; the CLI
+                <code>icons:pack</code> command (a cli session).
+              </li>
+            </ul>
+          </section>
         </section>
 
         <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="6-checks">6. Checks</h2></ui-sticky>
+          <ui-sticky class="spell-h2"><h2 id="6-invoker-commands">6. Invoker commands</h2></ui-sticky>
+          <ul>
+            <li>
+              A new HTML feature (Chrome 135, 2025): a button controls another element by NAMING it, with no JavaScript.
+              <code>commandfor</code> is the target's id; <code>command</code> is what to do.
+            </li>
+            <li>
+              The browser fires a <code>command</code> event on the target. Built-in commands work on native elements
+              (<code>show-modal</code> on a <code>&lt;dialog&gt;</code>, <code>toggle-popover</code> on a popover);
+              custom elements get custom commands, which start with <code>--</code>.
+            </li>
+            <li>
+              Ours: <code>--show</code>, <code>--close</code>, <code>--toggle</code>, each run as if the user did it
+              (the cancelable <code>ui-open</code> / <code>ui-close</code> first).
+            </li>
+            <li>
+              <code>&lt;ui-button commandfor command&gt;</code> passes both to its inner <code>&lt;button&gt;</code>; in
+              browsers without the feature it sends the same event itself (<code>UI.browser.supports.invokers</code>).
+            </li>
+          </ul>
+          <ul>
+            <li>
+              Who answers: <code>&lt;ui-modal&gt;</code>, <code>&lt;ui-flyout&gt;</code>,
+              <code>&lt;ui-sidebar&gt;</code>, <code>&lt;ui-dimmer&gt;</code>, <code>&lt;ui-popup&gt;</code> and
+              <code>&lt;ui-dropdown&gt;</code> all three; <code>&lt;ui-toast&gt;</code> <code>--close</code> only (a
+              closed toast is gone for good, so there's nothing to show again).
+            </li>
+            <li>
+              A command button sits OUTSIDE the overlay it controls, so a click on it no longer counts as a click
+              outside (that closed the overlay first, then the command reopened it).
+            </li>
+          </ul>
+          <p>Live: three buttons drive one dropdown, and one toggles a modal.</p>
+          <div class="ui-cluster ui-gap-s">
+            <ui-button commandfor="inv-dropdown" command="--show">Open</ui-button>
+            <ui-button commandfor="inv-dropdown" command="--close">Close</ui-button>
+            <ui-button commandfor="inv-dropdown" command="--toggle">Toggle</ui-button>
+            <ui-dropdown id="inv-dropdown" selection placeholder="Gender">
+              <ui-item value="male">Male</ui-item>
+              <ui-item value="female">Female</ui-item>
+            </ui-dropdown>
+            <ui-button primary commandfor="inv-modal" command="--toggle">Toggle the modal</ui-button>
+          </div>
+          <ui-modal id="inv-modal" size="tiny" closable>
+            <ui-header>Opened by an invoker command</ui-header>
+            <ui-content>
+              <p>No JavaScript on this page opened me: the button named me with <code>commandfor</code>.</p>
+            </ui-content>
+            <ui-actions>
+              <ui-button commandfor="inv-modal" command="--close">Close</ui-button>
+            </ui-actions>
+          </ui-modal>
+          <ui-accordion class="spell-code" styled open="0">
+            <ui-title>the markup above · 9 lines</ui-title>
+            <ui-content>
+              <pre><code class="language-html">&lt;ui-button commandfor="inv-dropdown" command="--toggle"&gt;Toggle&lt;/ui-button&gt;
+&lt;ui-dropdown id="inv-dropdown" selection placeholder="Gender"&gt;
+  &lt;ui-item value="male"&gt;Male&lt;/ui-item&gt;
+  &lt;ui-item value="female"&gt;Female&lt;/ui-item&gt;
+&lt;/ui-dropdown&gt;
+
+&lt;ui-button primary commandfor="inv-modal" command="--toggle"&gt;Toggle the modal&lt;/ui-button&gt;
+&lt;ui-modal id="inv-modal" size="tiny" closable&gt; … &lt;/ui-modal&gt;</code></pre>
+            </ui-content>
+          </ui-accordion>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="7-checks">7. Checks</h2></ui-sticky>
           <p>
             From <a href="../ui/" target="src-packages-ui"><code>packages/ui</code></a
             >; all passed on the last commit except where noted.
           </p>
           <ul>
-            <li><code>yarn review</code>: tsc, oxlint, oxfmt, ssr 32, browser 3,619, fork 145.</li>
+            <li><code>yarn review</code>: tsc, oxlint, oxfmt, ssr 32, browser 3,633, fork 145.</li>
             <li>
               <code>yarn build</code>, <code>vendor</code>, <code>measure</code> (no <code>CHECK</code>),
               <code>smoke</code> 8 / 8, <code>report</code> twice (no diff), <code>test:hmr</code> 8 / 8,
@@ -219,8 +650,9 @@
             </li>
             <li><code>yarn test:visual --os local --browsers all</code>: 561.</li>
             <li>
-              <code>yarn test:all</code>: 10,849 pass, 4 WebKit failures (<a href="#5-waiting-on-owen">5</a>, items 3
-              and 4).
+              <code>yarn test:all</code>: 10,890 pass, 4 WebKit failures (plus a timing flake, see
+              <a href="../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"><code>SUSPECTED-BUGS.md</code></a
+              >) (<a href="#q-webkit-nudge">Q11</a>, <a href="#q-form-stacking">Q12</a>).
             </li>
             <li><code>yarn npm publish --dry-run</code>: 2,726 files; every <code>exports</code> target present.</li>
           </ul>

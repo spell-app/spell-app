@@ -8,6 +8,7 @@ import {
   IconGlyph,
   proto,
   SlotContent,
+  ToggleCommands,
   UI,
   type AttributeName,
   type DropdownOptions,
@@ -37,6 +38,8 @@ type Vocabulary = typeof dropdownVocabulary
  * popover menu, both in the shadow root.
  * - Model:  slotted `<ui-item>`s (`SlottedItems`) + the `options` property + additions, as `MenuOptions`;
  *   memos derive the visible list (exclude chosen, filter, additions) per keystroke.
+ * - Invoker commands (`<button commandfor="id" command="--toggle">`, `TOGGLE_COMMANDS`) open / close the menu as a user
+ *   action;  a disabled or read-only dropdown ignores them.
  * - `value` and `open` are auto-controlled (`Controlled`):  events first, the host may veto / override.
  * - Menu rows render only while open (`<For>` keyed by option identity);  `aria-activedescendant` points at
  *   the highlighted row.  Escape and outside clicks come from `UI.overlays`.
@@ -104,6 +107,13 @@ export class UIDropdown extends FormElement<Vocabulary> {
     kind: "popover",
     restoreFocus: false,
     onDismiss: () => void this.setOpen(false)
+  }
+
+  constructor(...args: ConstructorParameters<typeof FormElement>) {
+    super(...args)
+    const listeners = new AbortController()
+    this.host.addEventListener("command", this.onCommand, { signal: listeners.signal })
+    this.host.addReleaseCallback(() => listeners.abort())
   }
 
   ////////////////
@@ -625,6 +635,22 @@ export class UIDropdown extends FormElement<Vocabulary> {
   // ## Handlers
   ////////////////
 
+  /**
+   * An invoker command aimed at the host (`TOGGLE_COMMANDS`):  a user action, ignored when disabled / read-only.
+   * - Opening focuses the combobox, as opening it by keyboard leaves it (the keys need it).
+   */
+  private readonly onCommand = (event: Event) => {
+    if (untrack(() => this.isDisabled() || this.attrs.readonly)) return
+    const action = ToggleCommands.action(
+      event,
+      untrack(() => this.isOpen())
+    )
+    if (action === "show") {
+      this.combobox?.focus({ preventScroll: true })
+      this.setOpen(true, event)
+    } else if (action === "close") this.setOpen(false, event)
+  }
+
   /** Trigger / input click:  toggle (the input only opens). */
   private readonly onTriggerClick = (event: MouseEvent) => {
     // Safari doesn't focus a <button> on a mouse click, and the keys (arrows, Enter, Escape) need focus here
@@ -658,10 +684,17 @@ export class UIDropdown extends FormElement<Vocabulary> {
     this.emit("ui-search", { query, originalEvent: event })
   }
 
-  /** Leaving the combobox closes the menu, unless focus stays inside. */
+  /**
+   * Leaving the combobox closes the menu, unless focus stays inside, or moves to (or is lost by a press on) one of
+   * this dropdown's invoker buttons:  that button's `command` decides, so `--toggle` closes an open menu instead of
+   * closing it here and reopening it.
+   */
   private readonly onBlur = (event: FocusEvent) => {
     const next = event.relatedTarget as Node | null
     if (next && (this.host.contains(next) || this.host.renderRoot.contains(next))) return
+    const id = this.host.id
+    if (id && (next as Element | null)?.closest?.(`[commandfor="${CSS.escape(id)}"]`)) return
+    if (this.loaded() && UI.overlays.pressedInvokerOf(this.host)) return
     this.setOpen(false, event)
   }
 

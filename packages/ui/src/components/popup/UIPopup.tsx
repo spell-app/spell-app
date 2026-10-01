@@ -4,6 +4,7 @@ import type { JSX } from "@solidjs/web"
 import {
   Cell,
   proto,
+  ToggleCommands,
   UI,
   UIElement,
   type AttributeName,
@@ -31,6 +32,8 @@ type Vocabulary = typeof popupVocabulary
  *   `manual` (only `open`).  A hovered popup stays open while the pointer is over it (WCAG 1.4.13), unlike
  *   Fomantic's default `hoverable: false`;  `hoverable="false"` gives Fomantic's behaviour back (it hides as the
  *   pointer leaves the target, after `hide-delay`).
+ * - Invoker commands (`<button commandfor="id" command="--toggle">`, `TOGGLE_COMMANDS`) are user actions too:  the
+ *   popup opens at ITS target, whichever button sent the command.
  * - `open` is auto-controlled:  the cancelable `ui-open` / `ui-close` come first.  Escape and outside clicks come
  *   from `UI.overlays` (kind `popover`, the target counts as inside).
  * - Popover mode:  `hint` for hover / focus popups when `UI.browser.supports.popoverHint` (they don't close an
@@ -102,6 +105,7 @@ export class UIPopup extends UIElement<Vocabulary> {
     host.addEventListener("pointerleave", this.onPopupLeave, options)
     host.addEventListener("focusout", this.onPopupFocusOut, options)
     host.addEventListener("toggle", this.onToggle, options)
+    host.addEventListener("command", this.onCommand, options)
     host.addReleaseCallback(() => listeners.abort())
   }
 
@@ -354,6 +358,15 @@ export class UIPopup extends UIElement<Vocabulary> {
   /** Click on the target (`click`):  toggle. */
   private readonly onTargetClick = (event: MouseEvent) => {
     this.setOpen(!untrack(() => this.isOpen()), event)
+  }
+
+  /** An invoker command aimed at the host (`TOGGLE_COMMANDS`). */
+  private readonly onCommand = (event: Event) => {
+    const action = ToggleCommands.action(
+      event,
+      untrack(() => this.isOpen())
+    )
+    if (action) this.setOpen(action === "show", event)
   }
 
   /**

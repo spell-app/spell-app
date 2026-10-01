@@ -303,8 +303,10 @@ first paint never needs the property.  No virtualization yet:  every row renders
   cancelable `command` event on the target (`event.command`, `event.source`), then `show-modal` / `close` /
   `request-close` on a `<dialog>` or `show-popover` / `hide-popover` / `toggle-popover` on a popover.  Custom `--foo`
   commands stop at the event.
-- Answering `command` events:  `<ui-modal>` / `<ui-flyout>`, `<ui-sidebar>`, `<ui-dimmer>` (`--show` / `--close` /
-  `--toggle`), `<ui-transition>`, `<ui-shape>` (their own).  Not yet:  `<ui-popup>`, the dropdown menu, toasts.
+- Answering `command` events:  `<ui-modal>` / `<ui-flyout>`, `<ui-sidebar>`, `<ui-dimmer>`, `<ui-popup>` (opens at its own
+  target), `<ui-dropdown>` (opens the menu, focused;  ignored when disabled / read-only) (`--show` / `--close` /
+  `--toggle`);  `<ui-toast>` (`--close` only:  a closed toast stays `hidden`);  `<ui-transition>`, `<ui-shape>` (their
+  own).  The shared first step is `ToggleCommands.action(event, open)` (`components.types.ts`).
 
 ## Modals:  `<ui-modal>` on a native `<dialog>`
 

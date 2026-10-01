@@ -627,3 +627,70 @@ describe("<ui-toast> accessibility", () => {
     await expectAccessible(handle.element!.parentElement!)
   })
 })
+
+describe("<ui-toast> invoker commands", () => {
+  const NATIVE = "commandForElement" in HTMLButtonElement.prototype
+
+  /** A plain `command` event, what the button's JS fallback dispatches. */
+  const send = (host: Element, command: string) =>
+    host.dispatchEvent(Object.assign(new Event("command", { cancelable: true }), { command }))
+
+  it.skipIf(!NATIVE)("a native `--close` button dismisses it:  reason `close`, then hidden", async () => {
+    const wrapper = await ElementFixture.render<HTMLElement>(
+      `<div><ui-toast id="t" message="Hi"></ui-toast><button id="x" commandfor="t" command="--close">Dismiss</button></div>`
+    )
+    const host = wrapper.querySelector<Toast>("ui-toast")!
+    await host.ready
+    const closes = record(host, "ui-close")
+    const hidden = next<ToastCloseDetail>(host, "ui-hide")
+    wrapper.querySelector<HTMLButtonElement>("#x")!.click()
+    expect((await hidden).reason).toBe("close")
+    expect(closes.map((detail) => detail.reason)).toEqual(["close"])
+    expect(host.hidden).toBe(true)
+  })
+
+  it("a vetoed ui-close keeps it", async () => {
+    const { host } = await toast(`<ui-toast message="Hi"></ui-toast>`)
+    host.addEventListener("ui-close", (event) => event.preventDefault())
+    send(host, "--close")
+    await wait(400)
+    expect(host.hidden).toBe(false)
+  })
+
+  it("`--show` and `--toggle` do nothing:  a closed toast stays closed", async () => {
+    const { host } = await toast(`<ui-toast message="Hi"></ui-toast>`)
+    const closes = record(host, "ui-close")
+    send(host, "--toggle")
+    send(host, "--show")
+    await wait(50)
+    expect(closes).toHaveLength(0)
+    expect(host.hidden).toBe(false)
+    const hidden = next<ToastCloseDetail>(host, "ui-hide")
+    send(host, "--close")
+    await hidden
+    send(host, "--show")
+    send(host, "--toggle")
+    await wait(50)
+    expect(host.hidden).toBe(true)
+  })
+
+  it("the `Invoker.run()` fallback of a <ui-button> (no native invokers) dismisses it", async () => {
+    await UI.load()
+    const supports = UI.browser.supports
+    const was = supports.invokers
+    supports.invokers = false
+    try {
+      await import("$/ui/components/button")
+      const wrapper = await ElementFixture.render<HTMLElement>(
+        `<div><ui-toast id="t" message="Hi"></ui-toast><ui-button id="x" commandfor="t" command="--close">Dismiss</ui-button></div>`
+      )
+      const host = wrapper.querySelector<Toast>("ui-toast")!
+      await host.ready
+      const hidden = next<ToastCloseDetail>(host, "ui-hide")
+      wrapper.querySelector<HTMLElement>("#x")!.shadowRoot!.querySelector<HTMLButtonElement>("button")!.click()
+      expect((await hidden).reason).toBe("close")
+    } finally {
+      supports.invokers = was
+    }
+  })
+})

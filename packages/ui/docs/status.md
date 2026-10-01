@@ -249,7 +249,7 @@ Built, but flagged for Owen's review before it's treated as settled.  Owen settl
 - Modal:  `closedby` stays;  `closable="false"` keeps Fomantic's meaning too (no icon AND dismissal `none`), and an
   explicit `closedby` wins for dismissal.  Also on `<ui-flyout>`.
 - Invoker commands:  `<ui-button>` forwards `commandfor` / `command`;  `UI.browser.supports.invokers`;  without
-  support, `Invoker.run()` runs the built-in commands and fires `command`.  Modal and flyout answer `--toggle` too.
+  support, `Invoker.run()` runs the built-in commands and fires `command`.  Modal and flyout answer `--toggle` too;  popup and dropdown answer all three, toast `--close` (2026-10-01).
 - Popup:  `hoverable` (default on, WCAG 1.4.13);  `hoverable="false"` is Fomantic's default behaviour.
 - Emoji:  names from CLDR (`emojibase-data`, dev-only), Fomantic's as aliases;  presentation from Unicode data.
 - Label colour:  matches Fomantic -- only its own or its `<ui-labels>` group's colour paints a `<ui-label>`.

@@ -11,23 +11,37 @@
   <body class="spell-doc-page plan-doc" data-plan="ui-component-creation">
     <div class="spell-doc">
       <main class="spell-doc-main">
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../../index.html" target="src-packages-docs-index-html"
+            >Docs</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section href="../../index.html#plans" target="src-packages-docs-index-html"
+            >Plans</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section active>UI Component Creation</ui-breadcrumb-section>
+        </ui-breadcrumb>
         <h1>UI Component Creation</h1>
-        <ul class="plan-meta">
-          <li>
-            Plan doc for <code>/plan-doc ui-component-creation</code>, branch
-            <code>worktree-ui-component-creation</code>
-          </li>
-          <li>
-            Worktree:
+        <ui-list class="plan-meta">
+          <ui-item icon="code branch"
+            >Plan doc for <code>/plan-doc ui-component-creation</code>, branch
+            <code>worktree-ui-component-creation</code></ui-item
+          >
+          <ui-item icon="folder"
+            >Worktree:
             <a href="../../../../" target="src-"
               ><code>/Users/owen/www/spell-app/spell-app/.claude/worktrees/ui-component-creation</code></a
-            >
-          </li>
-          <li>Started <time id="plan-started">2026-10-01</time>, updated <time id="plan-updated">2026-10-01</time></li>
-        </ul>
+            ></ui-item
+          >
+          <ui-item icon="calendar"
+            >Started <time id="plan-started">2026-10-01</time>, updated
+            <time id="plan-updated">2026-10-01</time></ui-item
+          >
+        </ui-list>
 
         <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="plan">1. Plan</h2></ui-sticky>
+          <ui-sticky class="spell-h2"
+            ><h2 id="plan"><ui-icon name="map"></ui-icon> 1. Plan</h2></ui-sticky
+          >
           <p class="plan-summary">
             Built (2026-10-01, overnight, on branch <code>worktree-ui-component-creation</code>):
             <a href="../../../ui/" target="src-packages-ui"><code>packages/ui</code></a> is green in the monorepo, the
@@ -37,30 +51,32 @@
             <a href="../../ui-component-creation.html" target="docs-ui-component-creation">ui-component-creation.html</a
             >.
           </p>
-          <ul class="plan-phases">
-            <li data-status="done" data-phase="1">
-              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p1">P1 · Re-establish Baseline</a>
-            </li>
-            <li data-status="done" data-phase="2">
-              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p2">P2 · Icon Follow-ups</a>
-            </li>
-            <li data-status="done" data-phase="3">
-              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p3">P3 · Bug Sweep</a>
-            </li>
-            <li data-status="done" data-phase="4">
-              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p4">P4 · Owen's Decisions</a>
-            </li>
-            <li data-status="done" data-phase="5">
-              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p5">P5 · Release Chores</a>
-            </li>
-            <li data-status="done" data-phase="6">
-              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p6">P6 · Doc Review</a>
-            </li>
-          </ul>
+          <ui-progress class="plan-progress" value="9" total="9" bar-text="ratio" size="small" color="green"
+            >phases done</ui-progress
+          >
+          <ui-steps class="plan-phases" vertical ordered>
+            <ui-step
+              data-phase="1"
+              data-status="done"
+              href="#p1"
+              header="P1 · Re-establish Baseline"
+              completed
+            ></ui-step>
+            <ui-step data-phase="2" data-status="done" href="#p2" header="P2 · Icon Follow-ups" completed></ui-step>
+            <ui-step data-phase="3" data-status="done" href="#p3" header="P3 · Bug Sweep" completed></ui-step>
+            <ui-step data-phase="4" data-status="done" href="#p4" header="P4 · Owen's Decisions" completed></ui-step>
+            <ui-step data-phase="5" data-status="done" href="#p5" header="P5 · Release Chores" completed></ui-step>
+            <ui-step data-phase="6" data-status="done" href="#p6" header="P6 · Doc Review" completed></ui-step>
+            <ui-step completed header="P7 · Merge And Upgrade" href="#p7" data-status="done" data-phase="7"></ui-step
+            ><ui-step completed header="P8 · Invoker Commands" href="#p8" data-status="done" data-phase="8"></ui-step
+            ><ui-step completed header="P9 · Docs Explainers" href="#p9" data-status="done" data-phase="9"></ui-step
+          ></ui-steps>
         </section>
 
         <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="questions">2. Questions</h2></ui-sticky>
+          <ui-sticky class="spell-h2"
+            ><h2 id="questions"><ui-icon name="circle question"></ui-icon> 2. Questions</h2></ui-sticky
+          >
           <p class="meta">Waiting on the user. Each is also asked in Claude Code.</p>
           <ol class="plan-items" data-kind="question">
             <li data-status="done" id="q1">
@@ -173,7 +189,9 @@
         </section>
 
         <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="overview">3. Overview</h2></ui-sticky>
+          <ui-sticky class="spell-h2"
+            ><h2 id="overview"><ui-icon name="lightbulb"></ui-icon> 3. Overview</h2></ui-sticky
+          >
           <p>
             Source: the handoff,
             <a
@@ -298,7 +316,9 @@
         </section>
 
         <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="caveats">4. Caveats</h2></ui-sticky>
+          <ui-sticky class="spell-h2"
+            ><h2 id="caveats"><ui-icon name="triangle exclamation"></ui-icon> 4. Caveats</h2></ui-sticky
+          >
           <ol class="plan-items" data-kind="caveat">
             <li data-status="open" id="c1">
               <a class="plan-id" href="#c1">C1</a>
@@ -437,7 +457,9 @@
         </section>
 
         <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="issues">5. Issues</h2></ui-sticky>
+          <ui-sticky class="spell-h2"
+            ><h2 id="issues"><ui-icon name="bug"></ui-icon> 5. Issues</h2></ui-sticky
+          >
           <ol class="plan-items" data-kind="issue">
             <li data-status="done" id="i1">
               <a class="plan-id" href="#i1">I1</a>
@@ -576,7 +598,9 @@
         </section>
 
         <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="todos">6. Todos</h2></ui-sticky>
+          <ui-sticky class="spell-h2"
+            ><h2 id="todos"><ui-icon name="list check"></ui-icon> 6. Todos</h2></ui-sticky
+          >
           <p class="meta">For later: not caveats, not issues.</p>
           <ol class="plan-items" data-kind="todo">
             <li data-status="open" id="t1">
@@ -629,7 +653,9 @@
         </section>
 
         <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="decisions">7. Decisions</h2></ui-sticky>
+          <ui-sticky class="spell-h2"
+            ><h2 id="decisions"><ui-icon name="gavel"></ui-icon> 7. Decisions</h2></ui-sticky
+          >
           <p class="meta">What was decided, and why. Settled: don't re-argue without new facts.</p>
           <ol class="plan-items" data-kind="decision">
             <li data-status="open" id="d1">
@@ -1094,11 +1120,30 @@
                 ></ui-accordion
               >
             </li>
+            <li data-status="open" id="d34">
+              <a class="plan-id" href="#d34">D34</a>
+              <span class="plan-title"
+                >Invokers: a press on an element's own invoker button doesn't count as leaving it</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Found by the docs page's live example: after --show, a REAL click on a --toggle button blurred the
+                    dropdown (closing it) and the command reopened it. <code>UI.overlays.pressedInvokerOf()</code>; the
+                    dropdown's blur skips it. Failing-first test with <code>userEvent.click</code>; the agent's tests
+                    used <code>.click()</code>, which moves no focus. Popup checked the same way: fine. The shared step
+                    is a class, <code>ToggleCommands.action()</code> (Owen's class-first rule).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
           </ol>
         </section>
 
         <section class="s2" id="phases-section">
-          <ui-sticky class="spell-h2"><h2 id="phases">8. Phases</h2></ui-sticky>
+          <ui-sticky class="spell-h2"
+            ><h2 id="phases"><ui-icon name="layer group"></ui-icon> 8. Phases</h2></ui-sticky
+          >
           <p class="meta">One section per phase: goal, decisions, files, how to verify.</p>
           <section data-status="done" data-phase="1" class="s3">
             <ui-sticky class="spell-h3"
@@ -1192,133 +1237,460 @@
               <li><b>Verify:</b> yarn plan-doc check; yarn docs:index</li>
             </ul>
           </section>
+          <section data-status="done" data-phase="7" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p7"><ui-icon name="circle check" color="green"></ui-icon> P7 · Merge And Upgrade</h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> main's docs-template commit merged in; this plan doc in the new format (ui-steps phases,
+                ui-feed log, breadcrumb, h2 icons)
+              </li>
+              <li><b>Files:</b> packages/docs/_assets/spell-ui.js (regenerated); this doc</li>
+              <li><b>Verify:</b> yarn plan-doc check; the script edits the new markup (this phase was added by it)</li>
+            </ul>
+          </section>
+          <section data-status="done" data-phase="8" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p8"><ui-icon name="circle check" color="green"></ui-icon> P8 · Invoker Commands</h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> popup, dropdown and toast answer invoker commands (--show / --close / --toggle), like
+                modal, flyout, sidebar, dimmer
+              </li>
+              <li>
+                <b>Files:</b> UIPopup.tsx, UIDropdown.tsx, UIToast.tsx (+ fallbacks, vocabularies, tests, docs pages,
+                grammar.md)
+              </li>
+              <li><b>Verify:</b> a commandfor button opens / closes / toggles each; yarn review; test:all; visual</li>
+            </ul>
+          </section>
+          <section data-status="done" data-phase="9" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p9"><ui-icon name="circle check" color="green"></ui-icon> P9 · Docs Explainers</h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> the durable page explains with examples: the 19 emoji name deltas (table), table / form
+                'stacking', the WebKit 'nudge', invoker commands
+              </li>
+              <li><b>Files:</b> packages/docs/ui-component-creation.html</li>
+              <li><b>Verify:</b> doc-links --check; check-spell; screenshots looked at</li>
+            </ul>
+          </section>
         </section>
 
         <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="log">9. Log</h2></ui-sticky>
+          <ui-sticky class="spell-h2"
+            ><h2 id="log"><ui-icon name="clock rotate left"></ui-icon> 9. Log</h2></ui-sticky
+          >
           <p class="meta">Plan changes, oldest first, local time.</p>
-          <ul class="plan-log">
-            <li><time datetime="2026-10-01T00:42-04:00">2026-10-01 00:42</time> plan doc created</li>
-            <li><time datetime="2026-10-01T00:42-04:00">2026-10-01 00:42</time> P1 added: Re-establish Baseline</li>
-            <li><time datetime="2026-10-01T00:42-04:00">2026-10-01 00:42</time> P2 added: Icon Follow-ups</li>
-            <li><time datetime="2026-10-01T00:42-04:00">2026-10-01 00:42</time> P3 added: Bug Sweep</li>
-            <li><time datetime="2026-10-01T00:42-04:00">2026-10-01 00:42</time> P4 added: Owen's Decisions</li>
-            <li><time datetime="2026-10-01T00:42-04:00">2026-10-01 00:42</time> P5 added: Release Chores</li>
-            <li><time datetime="2026-10-01T00:42-04:00">2026-10-01 00:42</time> P6 added: Doc Review</li>
-            <li><time datetime="2026-10-01T00:44-04:00">2026-10-01 00:44</time> P1 active</li>
-            <li>
-              <time datetime="2026-10-01T00:45-04:00">2026-10-01 00:45</time> P1: yarn review green (ssr 32, browser
-              3,553 + 1 todo, fork 145). Handoff's ~3,634 browser count predates the icon-packs merge (e98c7114 deleted
-              Icons.test.ts 46 + Icons.exact.test.ts 11, dropped variant): not a regression. Fomantic 2.9.4 re-cloned.
-            </li>
-            <li>
-              <time datetime="2026-10-01T00:51-04:00">2026-10-01 00:51</time> Q1 closed: Modal: closedby = any |
-              closerequest | none (closable = icon only): keep?
-            </li>
-            <li>
-              <time datetime="2026-10-01T00:51-04:00">2026-10-01 00:51</time> Q2 closed: Invoker commands: should
-              ui-button forward commandfor / command (dead button before Chrome 135)?
-            </li>
-            <li>
-              <time datetime="2026-10-01T00:51-04:00">2026-10-01 00:51</time> Q3 closed: Popup: always hoverable (WCAG
-              1.4.13), or add an opt-out?
-            </li>
-            <li>
-              <time datetime="2026-10-01T00:51-04:00">2026-10-01 00:51</time> Q4 closed: Emoji names: Fomantic's 3,808
-              shortcodes, or CLDR / emojibase (dev-only)?
-            </li>
-            <li>
-              <time datetime="2026-10-01T00:51-04:00">2026-10-01 00:51</time> Q5 closed: Label: a plain ui-label inside
-              ui-red paints red: reset like statistic / menu?
-            </li>
-            <li>
-              <time datetime="2026-10-01T00:52-04:00">2026-10-01 00:52</time> Q6 closed: Sidebar / flyout width takes
-              words (very thin ... very wide): keep, or columns only?
-            </li>
-            <li>
-              <time datetime="2026-10-01T00:52-04:00">2026-10-01 00:52</time> Q7 closed: Container: add per-breakpoint
-              public scrolling-height tokens?
-            </li>
-            <li>
-              <time datetime="2026-10-01T00:52-04:00">2026-10-01 00:52</time> Q8 closed: List: make first / last item
-              padding tokens private, like step / menu?
-            </li>
-            <li>
-              <time datetime="2026-10-01T00:53-04:00">2026-10-01 00:53</time> I2 closed: yarn test:hmr broken since the
-              move: $/ui alias not resolved from ?inline sheets
-            </li>
-            <li>
-              <time datetime="2026-10-01T00:53-04:00">2026-10-01 00:53</time> I3 closed: yarn site:build broken since
-              the move: Astro's prerender gets express's cookie 0.7.1
-            </li>
-            <li>
-              <time datetime="2026-10-01T00:57-04:00">2026-10-01 00:57</time> P1 done: review, build, vendor, measure (0
-              CHECK), smoke 8/8, report x2 stable, test:hmr 8/8, site:build 60 pages, visual local 561/561 after the
-              date mask.
-            </li>
-            <li><time datetime="2026-10-01T00:57-04:00">2026-10-01 00:57</time> P1 done</li>
-            <li><time datetime="2026-10-01T00:57-04:00">2026-10-01 00:57</time> P2 active</li>
-            <li>
-              <time datetime="2026-10-01T01:00-04:00">2026-10-01 01:00</time> I1 closed: UI.icons.get() can reject,
-              though documented never to
-            </li>
-            <li>
-              <time datetime="2026-10-01T01:00-04:00">2026-10-01 01:00</time> P2 done: get()/use()/ready never reject
-              (IconPacks.url() catches), IconGlyph.load() catches; 2 failing-first tests; docs bundle rebuilt (2,017
-              KB); spell-ui-findings #2 corrected (the bug survived the icon packs); old icon-packs worktree: the old
-              tree is gone, nothing to remove.
-            </li>
-            <li><time datetime="2026-10-01T01:00-04:00">2026-10-01 01:00</time> P2 done</li>
-            <li><time datetime="2026-10-01T01:01-04:00">2026-10-01 01:01</time> P3 active</li>
-            <li>
-              <time datetime="2026-10-01T01:03-04:00">2026-10-01 01:03</time> P3 started: 3 agents (Behaviour, Layout,
-              Tokens), shared tree, visual runs behind a lock. Label colour and emoji 'Thumbs Up' moved to P4. P4's
-              emoji agent started early (no overlap), committed with P4.
-            </li>
-            <li>
-              <time datetime="2026-10-01T01:12-04:00">2026-10-01 01:12</time> D24 closed: Decision: modal closable=false
-              restores Fomantic closable:false
-            </li>
-            <li>
-              <time datetime="2026-10-01T01:12-04:00">2026-10-01 01:12</time> D25 closed: Decision: ui-button invoker
-              commands (commandfor / command)
-            </li>
-            <li>
-              <time datetime="2026-10-01T01:32-04:00">2026-10-01 01:32</time> I4 closed: Integration: ui-button read
-              UI.browser during render (SSR threw; a button rendered before UI.load() would too)
-            </li>
-            <li>
-              <time datetime="2026-10-01T01:32-04:00">2026-10-01 01:32</time> I5 closed: Integration: the layout agent
-              rewrote 2 list tests to a nested shadow root that doesn't exist, then reported them as old failures
-            </li>
-            <li>
-              <time datetime="2026-10-01T01:32-04:00">2026-10-01 01:32</time> I6 closed: Integration: yarn test:hmr case
-              5 anchored on render()'s first line, which the invoker work changed
-            </li>
-            <li>
-              <time datetime="2026-10-01T01:33-04:00">2026-10-01 01:33</time> P3 + P4 integrated: review green (browser
-              3,619, +64), visual 109 diffs reviewed (calendar width, card links, dimmer heights, dropdown position +
-              placeholder, grid / image wrappers, items margins, message text, parts after items, sidebar new section)
-              -&gt; baselines updated, re-run 561/561; build, measure 0 CHECK, smoke 8/8, report stable, hmr 8/8, site
-              60 pages. One commit for both phases: their docs edits interleave (grammar.md, mdx).
-            </li>
-            <li><time datetime="2026-10-01T01:33-04:00">2026-10-01 01:33</time> P3 done</li>
-            <li><time datetime="2026-10-01T01:33-04:00">2026-10-01 01:33</time> P4 done</li>
-            <li><time datetime="2026-10-01T01:33-04:00">2026-10-01 01:33</time> P5 active</li>
-            <li>
-              <time datetime="2026-10-01T02:02-04:00">2026-10-01 02:02</time> P5 browsers: firefox 3,615 pass (4
-              skipped: no customizable select); webkit 3,615 pass, 4 fail (Q11, Q12); test files run one at a time under
-              UI_TEST_ALL (one focus per page). Kitchen sink page (61 site pages); CHANGELOG.md.
-            </li>
-            <li><time datetime="2026-10-01T02:13-04:00">2026-10-01 02:13</time> P5 done</li>
-            <li><time datetime="2026-10-01T02:13-04:00">2026-10-01 02:13</time> P6 active</li>
-            <li>
-              <time datetime="2026-10-01T02:15-04:00">2026-10-01 02:15</time> P6 done: durable page
-              packages/docs/ui-component-creation.html (links ok, check-spell ok, screenshots looked at); plan summary
-              rewritten to what was built; handoff marked resumed.
-            </li>
-            <li><time datetime="2026-10-01T02:15-04:00">2026-10-01 02:15</time> P6 done</li>
-          </ul>
+          <ui-feed class="plan-log" size="small">
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T00:42-04:00">2026-10-01 00:42</time></ui-date> plan doc
+                  created</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T00:42-04:00">2026-10-01 00:42</time></ui-date> P1 added:
+                  Re-establish Baseline</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T00:42-04:00">2026-10-01 00:42</time></ui-date> P2 added: Icon
+                  Follow-ups</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T00:42-04:00">2026-10-01 00:42</time></ui-date> P3 added: Bug
+                  Sweep</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T00:42-04:00">2026-10-01 00:42</time></ui-date> P4 added: Owen's
+                  Decisions</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T00:42-04:00">2026-10-01 00:42</time></ui-date> P5 added: Release
+                  Chores</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T00:42-04:00">2026-10-01 00:42</time></ui-date> P6 added: Doc
+                  Review</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T00:44-04:00">2026-10-01 00:44</time></ui-date> P1
+                  active</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T00:45-04:00">2026-10-01 00:45</time></ui-date> P1: yarn review
+                  green (ssr 32, browser 3,553 + 1 todo, fork 145). Handoff's ~3,634 browser count predates the
+                  icon-packs merge (e98c7114 deleted Icons.test.ts 46 + Icons.exact.test.ts 11, dropped variant): not a
+                  regression. Fomantic 2.9.4 re-cloned.</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T00:51-04:00">2026-10-01 00:51</time></ui-date> Q1 closed: Modal:
+                  closedby = any | closerequest | none (closable = icon only): keep?</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T00:51-04:00">2026-10-01 00:51</time></ui-date> Q2 closed: Invoker
+                  commands: should ui-button forward commandfor / command (dead button before Chrome 135)?</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T00:51-04:00">2026-10-01 00:51</time></ui-date> Q3 closed: Popup:
+                  always hoverable (WCAG 1.4.13), or add an opt-out?</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T00:51-04:00">2026-10-01 00:51</time></ui-date> Q4 closed: Emoji
+                  names: Fomantic's 3,808 shortcodes, or CLDR / emojibase (dev-only)?</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T00:51-04:00">2026-10-01 00:51</time></ui-date> Q5 closed: Label:
+                  a plain ui-label inside ui-red paints red: reset like statistic / menu?</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T00:52-04:00">2026-10-01 00:52</time></ui-date> Q6 closed: Sidebar
+                  / flyout width takes words (very thin ... very wide): keep, or columns only?</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T00:52-04:00">2026-10-01 00:52</time></ui-date> Q7 closed:
+                  Container: add per-breakpoint public scrolling-height tokens?</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T00:52-04:00">2026-10-01 00:52</time></ui-date> Q8 closed: List:
+                  make first / last item padding tokens private, like step / menu?</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T00:53-04:00">2026-10-01 00:53</time></ui-date> I2 closed: yarn
+                  test:hmr broken since the move: $/ui alias not resolved from ?inline sheets</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T00:53-04:00">2026-10-01 00:53</time></ui-date> I3 closed: yarn
+                  site:build broken since the move: Astro's prerender gets express's cookie 0.7.1</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T00:57-04:00">2026-10-01 00:57</time></ui-date> P1 done: review,
+                  build, vendor, measure (0 CHECK), smoke 8/8, report x2 stable, test:hmr 8/8, site:build 60 pages,
+                  visual local 561/561 after the date mask.</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T00:57-04:00">2026-10-01 00:57</time></ui-date> P1
+                  done</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T00:57-04:00">2026-10-01 00:57</time></ui-date> P2
+                  active</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T01:00-04:00">2026-10-01 01:00</time></ui-date> I1 closed:
+                  UI.icons.get() can reject, though documented never to</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T01:00-04:00">2026-10-01 01:00</time></ui-date> P2 done:
+                  get()/use()/ready never reject (IconPacks.url() catches), IconGlyph.load() catches; 2 failing-first
+                  tests; docs bundle rebuilt (2,017 KB); spell-ui-findings #2 corrected (the bug survived the icon
+                  packs); old icon-packs worktree: the old tree is gone, nothing to remove.</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T01:00-04:00">2026-10-01 01:00</time></ui-date> P2
+                  done</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T01:01-04:00">2026-10-01 01:01</time></ui-date> P3
+                  active</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T01:03-04:00">2026-10-01 01:03</time></ui-date> P3 started: 3
+                  agents (Behaviour, Layout, Tokens), shared tree, visual runs behind a lock. Label colour and emoji
+                  'Thumbs Up' moved to P4. P4's emoji agent started early (no overlap), committed with P4.</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T01:12-04:00">2026-10-01 01:12</time></ui-date> D24 closed:
+                  Decision: modal closable=false restores Fomantic closable:false</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T01:12-04:00">2026-10-01 01:12</time></ui-date> D25 closed:
+                  Decision: ui-button invoker commands (commandfor / command)</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T01:32-04:00">2026-10-01 01:32</time></ui-date> I4 closed:
+                  Integration: ui-button read UI.browser during render (SSR threw; a button rendered before UI.load()
+                  would too)</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T01:32-04:00">2026-10-01 01:32</time></ui-date> I5 closed:
+                  Integration: the layout agent rewrote 2 list tests to a nested shadow root that doesn't exist, then
+                  reported them as old failures</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T01:32-04:00">2026-10-01 01:32</time></ui-date> I6 closed:
+                  Integration: yarn test:hmr case 5 anchored on render()'s first line, which the invoker work
+                  changed</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T01:33-04:00">2026-10-01 01:33</time></ui-date> P3 + P4
+                  integrated: review green (browser 3,619, +64), visual 109 diffs reviewed (calendar width, card links,
+                  dimmer heights, dropdown position + placeholder, grid / image wrappers, items margins, message text,
+                  parts after items, sidebar new section) -&gt; baselines updated, re-run 561/561; build, measure 0
+                  CHECK, smoke 8/8, report stable, hmr 8/8, site 60 pages. One commit for both phases: their docs edits
+                  interleave (grammar.md, mdx).</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T01:33-04:00">2026-10-01 01:33</time></ui-date> P3
+                  done</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T01:33-04:00">2026-10-01 01:33</time></ui-date> P4
+                  done</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T01:33-04:00">2026-10-01 01:33</time></ui-date> P5
+                  active</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T02:02-04:00">2026-10-01 02:02</time></ui-date> P5 browsers:
+                  firefox 3,615 pass (4 skipped: no customizable select); webkit 3,615 pass, 4 fail (Q11, Q12); test
+                  files run one at a time under UI_TEST_ALL (one focus per page). Kitchen sink page (61 site pages);
+                  CHANGELOG.md.</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T02:13-04:00">2026-10-01 02:13</time></ui-date> P5
+                  done</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T02:13-04:00">2026-10-01 02:13</time></ui-date> P6
+                  active</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T02:15-04:00">2026-10-01 02:15</time></ui-date> P6 done: durable
+                  page packages/docs/ui-component-creation.html (links ok, check-spell ok, screenshots looked at); plan
+                  summary rewritten to what was built; handoff marked resumed.</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square">
+              <ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T02:15-04:00">2026-10-01 02:15</time></ui-date> P6
+                  done</ui-summary
+                ></ui-content
+              >
+            </ui-event>
+            <ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T08:45-04:00">2026-10-01 08:45</time></ui-date> P7 added: Merge
+                  And Upgrade</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T08:45-04:00">2026-10-01 08:45</time></ui-date> P8 added: Invoker
+                  Commands</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T08:46-04:00">2026-10-01 08:46</time></ui-date> P9 added: Docs
+                  Explainers</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T08:46-04:00">2026-10-01 08:46</time></ui-date> P7
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T08:46-04:00">2026-10-01 08:46</time></ui-date> P8
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T09:02-04:00">2026-10-01 09:02</time></ui-date> P8 + P9 done:
+                  popup / dropdown / toast answer invoker commands; durable page explains stacking, the WebKit nudge,
+                  invokers, with the 19 emoji deltas and live examples. review 3,633; test:all 10,890 pass, 4 WebKit
+                  (Q11, Q12) + 1 timing flake; visual 561; build chain green.</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T09:02-04:00">2026-10-01 09:02</time></ui-date> P8
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T09:02-04:00">2026-10-01 09:02</time></ui-date> P9
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ></ui-feed
+          >
         </section>
       </main>
     </div>

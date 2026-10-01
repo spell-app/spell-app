@@ -12,7 +12,7 @@ import { toastVocabulary } from "./toast.vocabulary.en"
 export class ToastFallback extends NativeFallback<typeof toastVocabulary> {
   @proto static vocabulary = toastVocabulary
   @proto static degraded = [
-    "entry / exit animations, `ui-show`, the cancelable `ui-close`, `ui-approve` / `ui-deny`",
+    "entry / exit animations, invoker commands (`--close`), `ui-show`, the cancelable `ui-close`, `ui-approve` / `ui-deny`",
     'pausing the countdown, the progress bar, `display-time="auto"`, `close-on-click`, Escape, action buttons closing it',
     "icon glyph and the close glyph (a `×` stands in), translated `close` label (English only), action layouts"
   ]

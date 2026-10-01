@@ -163,6 +163,18 @@ import VocabularyTable from "../../components/VocabularyTable.astro"
   - `click`:  a click toggles it;  it behaves as a small non-modal dialog, for content you interact with.
   - `manual`:  only your code, through `open`.
 
+  A native button can drive it with no script, through an invoker command:  `--show`, `--close` or `--toggle`.  The
+  popup always opens at ITS target, whichever button sent the command (a `manual` popup suits this).
+
+  <Example title="Invoker commands" description="`commandfor` names the popup, `command` is `--show`, `--close` or `--toggle`.  It appears at the avatar, not at the buttons.">
+    <div class="ui small basic buttons">
+      <button type="button" class="ui button" commandfor="popup-invoker-tip" command="--toggle">Toggle</button>
+      <button type="button" class="ui button" commandfor="popup-invoker-tip" command="--close">Close</button>
+    </div>
+    <span id="popup-invoker-target" class="ui label">Anna</span>
+    <ui-popup id="popup-invoker-tip" for="popup-invoker-target" on="manual" content="Anna, project owner"></ui-popup>
+  </Example>
+
   Escape and a click elsewhere close it.  `open` is the controlled state:  writing it shows or hides the popup and
   fires nothing;  the user's own changes dispatch the cancelable `ui-open` / `ui-close` first.  Content comes from
   the `header` / `content` shorthands (Fomantic's `title` / `content`), slotted markup, or `<ui-header>` /

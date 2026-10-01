@@ -7,6 +7,7 @@ import {
   MODAL_ACTION_SELECTORS,
   proto,
   SlotContent,
+  TOGGLE_COMMANDS,
   UI,
   UIElement,
   type AttributeSpec,
@@ -43,6 +44,9 @@ type Vocabulary = typeof toastVocabulary
  *   in `UI.overlays`, which also lets `UI.overlays.closeAll("toast")` close every one).  Motion follows
  *   `UI.transitions` (reduced motion:  none);  the progress bar is `data-ui-motion="essential"`:  it IS the
  *   remaining time.
+ * - Invoker commands (`<button commandfor="id" command="--close">`):  `--close` closes it, reason `close`, as its
+ *   close icon does.  Nothing shows it again (a closed toast stays closed, `hidden`:  the app inserts a new one), so
+ *   `--show` and `--toggle` are not answered.
  * - Actions:  a slotted button closes the toast unless its click was `preventDefault()`ed;  approve / deny ones
  *   (`MODAL_ACTION_SELECTORS`) fire the cancelable `ui-approve` / `ui-deny` first.
  ****************/
@@ -147,6 +151,7 @@ export class UIToast extends UIElement<Vocabulary> {
     host.addEventListener("pointerleave", this.onPointerLeave, options)
     host.addEventListener("focusin", this.onFocusIn, options)
     host.addEventListener("focusout", this.onFocusOut, options)
+    host.addEventListener("command", this.onCommand, options)
     host.addReleaseCallback(() => {
       listeners.abort()
       clearTimeout(this.timer)
@@ -465,6 +470,11 @@ export class UIToast extends UIElement<Vocabulary> {
       this.focused = this.host.matches(FOCUS_WITHIN)
       this.updatePause()
     })
+  }
+
+  /** An invoker command aimed at the host:  only `TOGGLE_COMMANDS.close`. */
+  private readonly onCommand = (event: Event) => {
+    if ((event as Event & { command?: string }).command === TOGGLE_COMMANDS.close) this.close(CLOSE, event)
   }
 
   /** Close icon. */

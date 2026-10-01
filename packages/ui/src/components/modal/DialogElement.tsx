@@ -6,9 +6,9 @@ import {
   HostAttribute,
   IconGlyph,
   MODAL_ACTION_SELECTORS,
-  TOGGLE_COMMANDS,
   UI,
   UIElement,
+  ToggleCommands,
   type AttributeName,
   type AttributeValues,
   type CamelCase,
@@ -290,10 +290,12 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
 
   /** An invoker command aimed at the host (`TOGGLE_COMMANDS`). */
   private readonly onCommand = (event: Event) => {
-    const { command } = event as Event & { command: string }
-    const open = untrack(() => this.isOpen())
-    if (command === TOGGLE_COMMANDS.show || (command === TOGGLE_COMMANDS.toggle && !open)) this.setOpen(event)
-    else if (command === TOGGLE_COMMANDS.close || command === TOGGLE_COMMANDS.toggle) this.requestClose(CLOSE, event)
+    const action = ToggleCommands.action(
+      event,
+      untrack(() => this.isOpen())
+    )
+    if (action === "show") this.setOpen(event)
+    else if (action === "close") this.requestClose(CLOSE, event)
   }
 
   /**

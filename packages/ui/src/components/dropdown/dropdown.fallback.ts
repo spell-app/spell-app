@@ -22,7 +22,7 @@ export class DropdownFallback extends NativeFallback<typeof dropdownVocabulary> 
     "multiple-value labels (a native multi-select list)",
     "option `icon` / `image` / `flag` / `description`",
     "keyboard pattern:  the native `<select>`'s, not the combobox listbox",
-    "`ui-open` / `ui-close` / `ui-search` / `ui-add` / `ui-remove`",
+    "invoker commands, `ui-open` / `ui-close` / `ui-search` / `ui-add` / `ui-remove`",
     "`readonly` is a disabled select (the value still submits)"
   ]
 

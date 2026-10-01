@@ -271,12 +271,13 @@ every entry below that date was fixed or disproven;  what's left:
   memo.  `loaded()` is TRUE on the server, and `UI.browser` throws before the runtime loads, so an SSR render of an
   accordion probably throws (`<ui-button>` hit exactly this, fixed with an `isServer` guard).  Prove:  add an
   accordion case to `test/ssr.ssr.test.tsx`.  (2026-10-01)
-- `<ui-popup>`, the dropdown menu and `<ui-toast>` don't answer invoker `command` events (`--show` / `--close` /
-  `--toggle`), while modal, flyout, sidebar and dimmer do.  Gap, not a regression.  (2026-10-01)
 - `src/runtime/Styles.ts` shared adopted sheets, WebKit:  a viewport resize while NO element using a sheet is on the
   page leaves that sheet's `@media` results stale, so a transient component added later (toast, modal) renders at the
   old breakpoint.  Reproduced only through Playwright's viewport resize;  the toast / popup tests now render before
   resizing.  Possible fix:  one hidden persistent adopter per sheet.  Prove on a real device rotation.  (2026-10-01)
+- `src/elements/MenuOptions.test.ts` "filters 5000 cold options in under 50 ms":  failed once in a full
+  `yarn test:all` in webkit, passes 3 / 3 alone.  A wall-clock budget under 3-browser load;  maybe skip budgets under
+  `UI_TEST_ALL`, as CI skips the dropdown's 16 ms one.  (2026-10-01)
 - `src/components/popup/popup.test.tsx` "flips to the other side":  failed once in a full firefox run (arrow
   `::before` top 44px, expected < 0), then passed every time.  Maybe the arrow's `getAnimations` wait.  (2026-10-01)
 

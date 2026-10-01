@@ -110,6 +110,15 @@ import VocabularyTable from "../../components/VocabularyTable.astro"
   cancelable `ui-close` (`detail.reason`), then the exit animation, then `hidden` on the host and `ui-hide`.
   `ui-show` fires once it has appeared.
 
+  A native `<button commandfor="id" command="--close">` closes a toast in the page with no script, the same way the
+  close icon does (`detail.reason` is `close`).  Only `--close`:  a closed toast stays closed (`hidden`, never
+  removed), so there is nothing for `--show` or `--toggle` to bring back;  insert a new toast instead.
+
+  <Example title="Invoker command" description="`command=--close` dismisses the toast named by `commandfor`.">
+    <ui-toast id="toast-invoker" message="Saved your changes" icon="" closable=""></ui-toast>
+    <button type="button" class="ui button" commandfor="toast-invoker" command="--close">Dismiss it</button>
+  </Example>
+
   The countdown pauses while the pointer is over the toast (`pause-on-hover`) and always while focus is inside it.
   `progress="top"` or `"bottom"` shows it as a bar (`showProgress` in `UI.toast()`), which keeps running under reduced
   motion:  it tells time, it isn't decoration.

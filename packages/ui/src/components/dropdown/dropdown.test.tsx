@@ -559,3 +559,105 @@ describe("<ui-dropdown> accessibility", () => {
     await expectAccessible(root)
   })
 })
+
+describe("<ui-dropdown> invoker commands", () => {
+  const NATIVE = "commandForElement" in HTMLButtonElement.prototype
+
+  /** Render a dropdown `d` with `attrs`, and buttons that command it. */
+  async function commanded(attrs = "") {
+    const wrapper = await ElementFixture.render<HTMLElement>(
+      `<div><ui-dropdown id="d" selection ${attrs}>
+         <ui-item value="a">Alpha</ui-item><ui-item value="b">Beta</ui-item></ui-dropdown>
+       <button id="show" commandfor="d" command="--show">Show</button>
+       <button id="flip" commandfor="d" command="--toggle">Flip</button>
+       <button id="hide" commandfor="d" command="--close">Hide</button></div>`
+    )
+    const host = wrapper.querySelector<Dropdown>("ui-dropdown")!
+    await ElementFixture.tick()
+    return { wrapper, host, ...parts(host) }
+  }
+
+  it.skipIf(!NATIVE)("native buttons:  --show opens the menu (a cancelable ui-open) and focuses it", async () => {
+    const { host, wrapper, menu, combobox } = await commanded()
+    const opens = record(host, "ui-open")
+    wrapper.querySelector<HTMLButtonElement>("#show")!.click()
+    await ElementFixture.tick()
+    expect(opens).toHaveLength(1)
+    expect(host.open).toBe(true)
+    expect(menu.matches(":popover-open")).toBe(true)
+    expect(host.shadowRoot!.activeElement).toBe(combobox)
+  })
+
+  it.skipIf(!NATIVE)("native buttons:  --close closes, --toggle flips, a veto keeps it", async () => {
+    const { host, wrapper } = await commanded()
+    const press = (id: string) => wrapper.querySelector<HTMLButtonElement>(`#${id}`)!.click()
+    const closes = record(host, "ui-close")
+    press("show")
+    await ElementFixture.tick()
+    expect(host.open).toBe(true)
+    press("hide")
+    await ElementFixture.tick()
+    expect(host.open).toBe(false)
+    expect(closes).toHaveLength(1)
+    press("flip")
+    await ElementFixture.tick()
+    expect(host.open).toBe(true)
+    host.addEventListener("ui-close", (event) => event.preventDefault())
+    press("flip")
+    await ElementFixture.tick()
+    expect(host.open).toBe(true)
+  })
+
+  it.skipIf(!NATIVE)(
+    "a REAL click on --toggle closes an open menu (the blur it causes doesn't close + reopen)",
+    async () => {
+      const { host, wrapper } = await commanded()
+      await userEvent.click(wrapper.querySelector("#show")!)
+      await ElementFixture.tick()
+      expect(host.open).toBe(true)
+      await userEvent.click(wrapper.querySelector("#flip")!)
+      await ElementFixture.tick()
+      expect(host.open).toBe(false)
+      await userEvent.click(wrapper.querySelector("#flip")!)
+      await ElementFixture.tick()
+      expect(host.open).toBe(true)
+    }
+  )
+
+  it.skipIf(!NATIVE)("a disabled or read-only dropdown ignores commands", async () => {
+    for (const attrs of ["disabled", "readonly"]) {
+      const { host, wrapper } = await commanded(attrs)
+      const opens = record(host, "ui-open")
+      wrapper.querySelector<HTMLButtonElement>("#show")!.click()
+      wrapper.querySelector<HTMLButtonElement>("#flip")!.click()
+      await ElementFixture.tick()
+      expect(host.open).toBe(false)
+      expect(opens).toHaveLength(0)
+    }
+  })
+
+  it("the `Invoker.run()` fallback of a <ui-button> (no native invokers) opens it;  a plain event closes it", async () => {
+    await UI.load()
+    const supports = UI.browser.supports
+    const was = supports.invokers
+    supports.invokers = false
+    try {
+      await import("$/ui/components/button")
+      const wrapper = await ElementFixture.render<HTMLElement>(
+        `<div><ui-dropdown id="d" selection><ui-item value="a">Alpha</ui-item></ui-dropdown>
+         <ui-button id="flip" commandfor="d" command="--toggle">Flip</ui-button></div>`
+      )
+      const host = wrapper.querySelector<Dropdown>("ui-dropdown")!
+      await ElementFixture.tick()
+      const flip = wrapper.querySelector<HTMLElement>("#flip")!.shadowRoot!.querySelector<HTMLButtonElement>("button")!
+      flip.click()
+      await ElementFixture.tick()
+      expect(host.open).toBe(true)
+      host.dispatchEvent(Object.assign(new Event("command", { cancelable: true }), { command: "--close" }))
+      await ElementFixture.tick()
+      expect(host.open).toBe(false)
+    } finally {
+      supports.invokers = was
+    }
+  })
+})

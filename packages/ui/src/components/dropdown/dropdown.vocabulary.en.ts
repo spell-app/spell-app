@@ -143,7 +143,8 @@ export const dropdownVocabulary = {
       name: "ui-open",
       detail: "{ open: true, originalEvent?: Event }",
       cancelable: true,
-      description: "The menu is about to open;  `preventDefault()` keeps it closed."
+      description:
+        "The menu is about to open (a user action, an invoker command too);  `preventDefault()` keeps it closed."
     },
     {
       name: "ui-close",

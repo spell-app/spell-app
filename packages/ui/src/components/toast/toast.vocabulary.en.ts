@@ -94,7 +94,7 @@ export const toastVocabulary = {
       detail: "{ reason: ToastCloseReason, originalEvent?: Event }",
       cancelable: true,
       description:
-        "About to close:  the countdown ran out, the close icon, a click, Escape inside it, an action.  " +
+        "About to close:  the countdown ran out, the close icon, a click, Escape inside it, an action, a `--close` invoker command.  " +
         "`preventDefault()` keeps it (Fomantic's `onHide` returning `false`)."
     },
     {

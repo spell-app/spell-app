@@ -14,7 +14,7 @@ import { popupVocabulary } from "./popup.vocabulary.en"
 export class PopupFallback extends NativeFallback<typeof popupVocabulary> {
   @proto static vocabulary = popupVocabulary
   @proto static degraded = [
-    "showing it:  no popover, positioning, triggers, `ui-open` / `ui-close` or Escape;  a tooltip's text becomes " +
+    "showing it:  no popover, positioning, triggers, invoker commands, `ui-open` / `ui-close` or Escape;  a tooltip's text becomes " +
       "the target's native `title`",
     "click popups (`on=click`):  nothing at all"
   ]

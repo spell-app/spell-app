@@ -552,3 +552,106 @@ describe("<ui-popup> accessibility", () => {
     await expectAccessible(root)
   })
 })
+
+describe("<ui-popup> invoker commands", () => {
+  const NATIVE = "commandForElement" in HTMLButtonElement.prototype
+
+  /** A manual popup at its own target, and buttons elsewhere that command it. */
+  const MARKUP = `<button id="t">Target</button><ui-popup id="p" for="t" on="manual">Tip</ui-popup>
+    <button id="show" commandfor="p" command="--show">Show</button>
+    <button id="flip" commandfor="p" command="--toggle">Flip</button>
+    <button id="hide" commandfor="p" command="--close">Hide</button>`
+
+  /** A plain `command` event, what the button's JS fallback dispatches. */
+  const send = (host: Element, command: string) =>
+    host.dispatchEvent(Object.assign(new Event("command", { cancelable: true }), { command }))
+
+  it.skipIf(!NATIVE)(
+    "REAL clicks on --toggle flip a manual and a click popup (no outside-close + reopen)",
+    async () => {
+      for (const on of ["manual", "click"]) {
+        // ids per pass:  the first pass's popup is still on the page, and `commandfor` finds the FIRST `id`
+        const markup = MARKUP.replace('on="manual"', `on="${on}"`)
+          .replaceAll('"p"', `"p-${on}"`)
+          .replaceAll('id="flip"', `id="flip-${on}"`)
+        const { host, wrapper } = await popup(markup)
+        await userEvent.click(wrapper.querySelector(`#flip-${on}`)!)
+        await settle()
+        expect(shown(host), `${on}:  first toggle opens`).toBe(true)
+        await userEvent.click(wrapper.querySelector(`#flip-${on}`)!)
+        await settle()
+        expect(shown(host), `${on}:  second toggle closes`).toBe(false)
+      }
+    }
+  )
+
+  it.skipIf(!NATIVE)(
+    "native buttons:  --show opens it at ITS target, --toggle flips it, --close hides it",
+    async () => {
+      const { host, wrapper } = await popup(MARKUP)
+      const press = (id: string) => wrapper.querySelector<HTMLButtonElement>(`#${id}`)!.click()
+      const opens = record(host, "ui-open")
+      const closes = record(host, "ui-close")
+      press("show")
+      await settle()
+      expect(shown(host)).toBe(true)
+      expect(opens).toHaveLength(1)
+      // above the target (`top left`), not beside the button that sent the command
+      const anchor = wrapper.querySelector<HTMLElement>("#t")!.getBoundingClientRect()
+      expect(host.getBoundingClientRect().bottom).toBeLessThanOrEqual(anchor.top + 1)
+      press("flip")
+      await settle()
+      expect(shown(host)).toBe(false)
+      expect(closes).toHaveLength(1)
+      press("flip")
+      await settle()
+      expect(shown(host)).toBe(true)
+      press("hide")
+      await settle()
+      expect(shown(host)).toBe(false)
+      expect(closes).toHaveLength(2)
+    }
+  )
+
+  it.skipIf(!NATIVE)("a vetoed ui-open keeps it hidden", async () => {
+    const { host, wrapper } = await popup(MARKUP)
+    host.addEventListener("ui-open", (event) => event.preventDefault())
+    wrapper.querySelector<HTMLButtonElement>("#show")!.click()
+    await settle()
+    expect(shown(host)).toBe(false)
+  })
+
+  it("the `Invoker.run()` fallback of a <ui-button> (no native invokers) reaches it too", async () => {
+    const supports = UI.browser.supports
+    const was = supports.invokers
+    supports.invokers = false
+    try {
+      const { host, wrapper } = await popup(
+        `<button id="t">Target</button><ui-popup id="p" for="t" on="manual">Tip</ui-popup>
+         <ui-button id="flip" commandfor="p" command="--toggle">Flip</ui-button>`
+      )
+      const flip = wrapper.querySelector<HTMLElement>("#flip")!.shadowRoot!.querySelector<HTMLButtonElement>("button")!
+      flip.click()
+      await settle()
+      expect(shown(host)).toBe(true)
+      flip.click()
+      await settle()
+      expect(shown(host)).toBe(false)
+    } finally {
+      supports.invokers = was
+    }
+  })
+
+  it("answers a plain `command` event, and ignores unknown commands", async () => {
+    const { host } = await popup(MARKUP)
+    send(host, "--bogus")
+    await settle()
+    expect(shown(host)).toBe(false)
+    send(host, "--show")
+    await settle()
+    expect(shown(host)).toBe(true)
+    send(host, "--toggle")
+    await settle()
+    expect(shown(host)).toBe(false)
+  })
+})

@@ -194,6 +194,21 @@ export class Overlays {
     this.press = { path: event.composedPath(), x: event.clientX, y: event.clientY }
   }
 
+  /**
+   * Is the press in progress on an invoker button of `element` (`commandfor` = its id)?
+   * - For a blur that the press caused:  the button's `command` decides what happens, not the lost focus.  Safari
+   *   doesn't focus a clicked button, so the blur there has no `relatedTarget` to tell.
+   * - Only while an overlay is open (the listeners are installed then).
+   */
+  pressedInvokerOf(element: Element): boolean {
+    return !!this.press && Overlays.invokes(this.press.path, element)
+  }
+
+  /** Does `path` hold an invoker button (`commandfor`) of `element`? */
+  private static invokes(path: readonly EventTarget[], element: Element): boolean {
+    return !!element.id && path.some((node) => (node as Element).getAttribute?.(COMMANDFOR) === element.id)
+  }
+
   /** A click:  dismiss the topmost entry of each pool if the click both started and ended outside it. */
   private readonly onClick = (event: MouseEvent) => {
     const press = this.press
@@ -227,6 +242,8 @@ export class Overlays {
   private isInside(record: OverlayRecord, press: PointerPress): boolean {
     const { element, anchor } = record.entry
     if (anchor && press.path.includes(anchor)) return true
+    // an invoker button (`commandfor`) is the element's own control:  its `command` event decides, not "outside"
+    if (Overlays.invokes(press.path, element)) return true
     if (!press.path.includes(element)) return false
     const target = press.path[0]
     if (target instanceof HTMLDialogElement && !press.keyboard) {
@@ -328,3 +345,6 @@ const SCROLL_LOCK_CSS = `${LAYER_ORDER}
     padding-inline-end: var(--ui-scrollbar-width, 0px);
   }
 }`
+
+/** Attribute naming the element an invoker button commands. */
+const COMMANDFOR = "commandfor"

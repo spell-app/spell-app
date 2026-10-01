@@ -242,6 +242,19 @@ import VocabularyTable from "../../components/VocabularyTable.astro"
   `"options" in element`), and first paint never needs it -- slotted `<ui-item>`s or the `value` / `text` attributes
   carry what server rendering must show.  Options set through the property are added after the slotted items.
 
+  A native `<button commandfor="id" command="--toggle">` (or `--show` / `--close`) opens and closes the menu with no
+  script, as a user action (the cancelable `ui-open` / `ui-close` first), and focuses the dropdown so the arrow keys
+  work.  A disabled or read-only dropdown ignores commands.
+
+  <Example title="Invoker commands" description="Two native buttons drive one dropdown.">
+    <button type="button" class="ui button" commandfor="dropdown-invoker" command="--show">Open the menu</button>
+    <button type="button" class="ui button" commandfor="dropdown-invoker" command="--close">Close it</button>
+    <ui-dropdown id="dropdown-invoker" selection placeholder="Pick one">
+      <ui-item value="a">Alpha</ui-item>
+      <ui-item value="b">Beta</ui-item>
+    </ui-dropdown>
+  </Example>
+
   <Example
     title="Rich data"
     description="Set `options` from script and listen for `ui-change`.  `detail.value` is a string, or an array with `multiple`."
