@@ -8,8 +8,8 @@ import express, { Request, Response, NextFunction } from "express"
 import chalk from "chalk"
 import JSON5 from "json5"
 
-import * as responseUtils from "./response-utils"
-import * as projectUtils from "./project-utils"
+import * as responseUtils from "../node/response-utils"
+import * as projectUtils from "../node/project-utils"
 
 /** Router mounted at `/api` by `server/index.ts`. */
 export const api = express.Router()

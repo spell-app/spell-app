@@ -16,9 +16,9 @@
 import { existsSync, statSync } from "fs"
 import { basename, dirname, extname, resolve } from "path"
 
-import { SP } from "~/languages/spell"
-import { locationForDiskPath } from "~/server/disk-fetch"
-import * as projectUtils from "~/server/project-utils"
+import { SP } from "#spell"
+import { locationForDiskPath } from "#spell/node/disk-fetch"
+import * as projectUtils from "#spell/node/project-utils"
 import { CLI } from "~/cli"
 
 /** Stands for the current folder:  `@workspace` ~== `.` */

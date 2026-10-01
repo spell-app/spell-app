@@ -1,9 +1,9 @@
 import { existsSync, readdirSync, readFileSync } from "fs"
 import { resolve } from "path"
 
-import environment from "~/environment"
+import environment from "#spell/node/environment"
 import { P } from "#parser"
-import { SP } from "~/languages/spell"
+import { SP } from "#spell"
 
 /**
  * Parse + compile a spell project headlessly, the same way `SpellProject` does in the app:

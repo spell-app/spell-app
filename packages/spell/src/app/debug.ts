@@ -5,7 +5,7 @@ import JSON5 from "json5"
 import * as SUI from "semantic-ui-react"
 
 import { P } from "#parser"
-import { SP } from "~/languages/spell"
+import { SP } from "#spell"
 import { editor, runtimeSpellCore } from "~/app/editor"
 
 // Stick interesting bits on `global` to make console debugging easier.

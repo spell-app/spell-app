@@ -1,4 +1,4 @@
-import type { SP } from "~/languages/spell"
+import type { SP } from "#spell"
 import { MonacoEditor, type MonacoEditorProps } from "./MonacoEditor"
 import { SpellMonaco } from "./SpellMonaco"
 

@@ -3,9 +3,9 @@ import { basename, resolve } from "path"
 import { fileURLToPath, pathToFileURL } from "url"
 import { runInNewContext } from "vm"
 
-import environment from "~/environment"
-import { SP } from "~/languages/spell"
-import { installDiskFetch, locationForDiskPath } from "~/server/disk-fetch"
+import environment from "#spell/node/environment"
+import { SP } from "#spell"
+import { installDiskFetch, locationForDiskPath } from "#spell/node/disk-fetch"
 import { LSP } from "~/lsp"
 
 /**

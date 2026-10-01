@@ -1,7 +1,7 @@
 import { observe, unobserve } from "@nx-js/observer-util"
 
 import { raw } from "#spell-util"
-import { SP } from "~/languages/spell"
+import { SP } from "#spell"
 import type { LSP } from "~/lsp"
 import { monaco } from "./monaco"
 import { AppAddresses } from "./AppAddresses"

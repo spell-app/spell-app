@@ -1,7 +1,7 @@
 import { createRoot, type Root } from "react-dom/client"
 
-// Import directly, NOT through the `~/languages/spell` barrel, which would pull in the whole parser.
-import { SpellSetup } from "~/languages/spell/SpellSetup"
+// Import directly, NOT through the `#spell` barrel, which would pull in the whole parser.
+import { SpellSetup } from "#spell/SpellSetup"
 import { SPELL_COMPILED_EVENT, type SpellCompiled } from "./runner.types"
 import { shadowStyles } from "./shadowStyles"
 import {
@@ -251,7 +251,7 @@ function srcSource(src: string): SpellAppSource {
 
 /**
  * End of a compiled project's file name -- `SP.COMPILED_JS_SUFFIX`.
- * - NOTE: copies, NOT imported:  `~/languages/spell` would pull the whole parser into the bundle.
+ * - NOTE: copies, NOT imported:  `#spell` would pull the whole parser into the bundle.
  */
 const COMPILED_JS = ".compiled.js"
 

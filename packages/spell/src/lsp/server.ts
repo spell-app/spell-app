@@ -5,7 +5,7 @@
  */
 import "./stdioGuard"
 // Defines `__PACKAGE_VERSION__`, which vite would, before anything reads it
-import "~/packageVersion.node"
+import "#spell/node/packageVersion.node"
 
 const { createConnection, ProposedFeatures } = await import("vscode-languageserver/node")
 const { LSP } = await import("~/lsp")

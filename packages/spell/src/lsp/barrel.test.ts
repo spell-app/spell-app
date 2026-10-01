@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vitest"
 
 import { $fetch, LoadableFile } from "#spell-util"
-import { SP } from "~/languages/spell"
+import { SP } from "#spell"
 import { LSP } from "~/lsp"
 
 /**

@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vitest"
 
-import { SP } from "~/languages/spell"
-import { compiledFixture, fixturePath, fixtureProjectNames } from "~/test"
+import { SP } from "#spell"
+import { compiledFixture, fixturePath, fixtureProjectNames } from "#spell/test"
 
 /**
  * Every fixture project in `projects/test/` compiled, against its snapshot beside it:

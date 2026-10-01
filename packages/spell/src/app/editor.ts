@@ -4,7 +4,7 @@ import { navigate } from "@reach/router"
 import { UIError, createStore, setPrefKey, getPref, setPref, CONFIRM } from "#spell-util"
 
 import { P } from "#parser"
-import { SP } from "~/languages/spell"
+import { SP } from "#spell"
 import type { SpellConsole } from "#spell-core/console"
 import type { SpellRuntime } from "~/app/runner"
 import type * as UIT from "~/app/ui/ui.types"

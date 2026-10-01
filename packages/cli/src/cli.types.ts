@@ -2,7 +2,7 @@
  * Shared types for the `spell` command-line tool -- see `main.ts`.
  * - Runtime-light:  `import type` only, plus the small `CliError` class and `EXIT` codes.
  */
-import type { SP } from "~/languages/spell"
+import type { SP } from "#spell"
 
 ////////////////
 // ## Targets

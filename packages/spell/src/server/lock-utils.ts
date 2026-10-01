@@ -1,6 +1,6 @@
 import lockfile from "proper-lockfile"
-import { getPathFolder, makeFolder, saveFile } from "./file-utils"
-import { isFileOrFolderNotFoundError } from "./response-utils"
+import { getPathFolder, makeFolder, saveFile } from "../node/file-utils"
+import { isFileOrFolderNotFoundError } from "../node/response-utils"
 
 /**
  * Rationale: several client requests can race to read-modify-write same on-disk file

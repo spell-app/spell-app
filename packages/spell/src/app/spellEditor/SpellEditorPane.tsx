@@ -1,4 +1,4 @@
-import type { SP } from "~/languages/spell"
+import type { SP } from "#spell"
 import type { monaco } from "~/app/ui/monaco"
 
 import "./SpellEditorPane.css"

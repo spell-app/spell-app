@@ -9,7 +9,7 @@ import {
 } from "vscode-languageserver"
 import { TextDocument } from "vscode-languageserver-textdocument"
 
-import type { SP } from "~/languages/spell"
+import type { SP } from "#spell"
 import { LSP } from "~/lsp"
 import type { SpellDiskWorkspace } from "./SpellDiskWorkspace"
 

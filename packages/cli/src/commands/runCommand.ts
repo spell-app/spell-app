@@ -4,8 +4,8 @@ import { tmpdir } from "os"
 import { resolve } from "path"
 import { fileURLToPath, pathToFileURL } from "url"
 
-import environment from "~/environment"
-import { SP } from "~/languages/spell"
+import environment from "#spell/node/environment"
+import { SP } from "#spell"
 import { LSP } from "~/lsp"
 import { CLI } from "~/cli"
 

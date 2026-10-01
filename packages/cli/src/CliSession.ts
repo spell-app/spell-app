@@ -3,7 +3,7 @@ import { relative } from "path"
 import { fileURLToPath } from "url"
 import { DiagnosticSeverity } from "vscode-languageserver"
 
-import { SP } from "~/languages/spell"
+import { SP } from "#spell"
 import { LSP } from "~/lsp"
 import { SpellDiskWorkspace } from "~/lsp/SpellDiskWorkspace"
 import { CLI } from "~/cli"

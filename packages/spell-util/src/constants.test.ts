@@ -2,7 +2,7 @@ import { readFileSync } from "fs"
 import { resolve } from "path"
 import { describe, test, expect } from "vitest"
 
-import environment from "~/environment"
+import environment from "#spell/node/environment"
 import { PACKAGE_VERSION } from "#spell-util"
 
 describe("`PACKAGE_VERSION`", () => {

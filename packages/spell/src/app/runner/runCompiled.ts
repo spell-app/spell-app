@@ -122,7 +122,7 @@ const SPELL_IMPORT = /(\bfrom\s*)"(@spell\/[^"]+)"/g
 
 /**
  * Start of the specifier compiled spell imports another project by -- `SP.SPELL_PROJECT_MODULE`.
- * - NOTE: a copy, NOT imported:  `~/languages/spell` would pull the whole parser into the runner bundle.
+ * - NOTE: a copy, NOT imported:  `#spell` would pull the whole parser into the runner bundle.
  */
 const PROJECT_MODULE = "@spell/project/"
 

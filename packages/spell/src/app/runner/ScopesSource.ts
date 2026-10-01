@@ -213,7 +213,7 @@ function declaredPath(path: string): string | undefined {
 
 /**
  * What a `SPELL: DECLARES` marker says, as far as finding its entries goes -- see `SP.SpellDeclaration`.
- * - NOT imported from there:  `~/languages/spell` would pull the whole parser into the bundle.
+ * - NOT imported from there:  `#spell` would pull the whole parser into the bundle.
  */
 type MarkerDeclaration = {
   type?: string
@@ -276,7 +276,7 @@ const DECLARES = /\/\*! SPELL: DECLARES \{[\s\S]*?\} \*\//g
 
 /**
  * Between each file's code in a project's compiled output -- `SP.SpellProject.FILE_SEPARATOR`.
- * - NOTE: a copy, NOT imported:  `~/languages/spell` would pull the whole parser into the bundle.
+ * - NOTE: a copy, NOT imported:  `#spell` would pull the whole parser into the bundle.
  */
 const FILE_SEPARATOR = "\n// -----------\n"
 

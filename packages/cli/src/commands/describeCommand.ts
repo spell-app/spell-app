@@ -1,4 +1,4 @@
-import { SP } from "~/languages/spell"
+import { SP } from "#spell"
 import { LSP } from "~/lsp"
 import { CLI } from "~/cli"
 

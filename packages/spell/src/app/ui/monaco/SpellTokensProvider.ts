@@ -1,5 +1,5 @@
 import { P } from "#parser"
-import { SP } from "~/languages/spell"
+import { SP } from "#spell"
 
 import type { monaco } from "./monaco"
 

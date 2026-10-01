@@ -1,8 +1,8 @@
 import { describe, test, expect } from "vitest"
 
 import { P } from "#parser"
-import { SP } from "~/languages/spell"
-import { loadFixtureProject } from "~/test"
+import { SP } from "#spell"
+import { loadFixtureProject } from "#spell/test"
 
 /**
  * `P.ParseJournal` MUST take back everything parsing changes in shared state, and put it all back again.

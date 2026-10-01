@@ -34,7 +34,7 @@ import {
 
 import { typeCase } from "#spell-util"
 import { P } from "#parser"
-import { SP } from "~/languages/spell"
+import { SP } from "#spell"
 import type { LSP } from "~/lsp"
 
 /**

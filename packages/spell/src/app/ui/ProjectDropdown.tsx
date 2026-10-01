@@ -4,7 +4,7 @@ import * as SUI from "semantic-ui-react"
 
 import { view } from "#spell-util"
 
-import { SP } from "~/languages/spell"
+import { SP } from "#spell"
 import { editor } from "~/app/editor"
 
 import { UI } from "~/app/ui"

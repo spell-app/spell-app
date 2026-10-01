@@ -2,7 +2,7 @@ import { readFileSync } from "fs"
 import { defineConfig, type Plugin } from "vite"
 import react from "@vitejs/plugin-react"
 
-import environment from "./src/environment.ts"
+import environment from "./src/node/environment.ts"
 import { standardDecorators } from "../../vite.decorators.ts"
 import { packageVersion } from "../../vite.packageVersion.ts"
 

@@ -2,8 +2,8 @@ import { describe, test, expect } from "vitest"
 
 import { proto } from "#spell-util"
 import { P, Parser, Tokenizer, WhitespacePolicy } from "#parser"
-import { SP } from "~/languages/spell"
-import { loadFixtureProject, parseSpellProject } from "~/test"
+import { SP } from "#spell"
+import { loadFixtureProject, parseSpellProject } from "#spell/test"
 // These tests define rules with rulex `syntax`, so they must opt into the rulex parser.
 import "#parser/rulex"
 

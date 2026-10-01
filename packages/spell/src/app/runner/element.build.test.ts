@@ -4,7 +4,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { describe, test, expect } from "vitest"
 
-import environment from "~/environment"
+import environment from "#spell/node/environment"
 
 /**
  * Production builds of the runners:  `<spell-app>` (`yarn build:element`) and the VS Code runner (`yarn build:runner`)

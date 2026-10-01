@@ -4,8 +4,8 @@ import { tmpdir } from "os"
 import { resolve } from "path"
 import { afterAll, beforeAll, describe, test, expect } from "vitest"
 
-import { SP } from "~/languages/spell"
-import { fixturePath } from "~/test"
+import { SP } from "#spell"
+import { fixturePath } from "#spell/test"
 
 /**
  * The real `spell` command, end to end:  `bin/spell.mjs` run as a separate process, as a user would.

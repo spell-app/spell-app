@@ -5,13 +5,13 @@ import { resolve } from "path"
 import { pathToFileURL } from "url"
 import { runInNewContext } from "vm"
 
-import environment from "~/environment"
-import { SP } from "~/languages/spell"
+import environment from "#spell/node/environment"
+import { SP } from "#spell"
 import { LSP } from "~/lsp"
 import { SpellDiskWorkspace } from "~/lsp/SpellDiskWorkspace"
-import { installDiskFetch, locationForDiskPath } from "~/server/disk-fetch"
+import { installDiskFetch, locationForDiskPath } from "#spell/node/disk-fetch"
 import { scopesFromPacks } from "~/app/runner/ScopesSource"
-import { compiledFixture, fixturePath } from "~/test"
+import { compiledFixture, fixturePath } from "#spell/test"
 
 /** The scope tree of a temp copy of the Solitaire example, as a scope explorer sees it. */
 describe("ScopeExplorer", () => {

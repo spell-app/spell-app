@@ -13,9 +13,9 @@ import {
   type PublishDiagnosticsParams
 } from "vscode-languageserver/node"
 
-import environment from "~/environment"
+import environment from "#spell/node/environment"
 import type { LSP } from "~/lsp"
-import { tsxBinary } from "~/test"
+import { tsxBinary } from "#spell/test"
 
 /**
  * The language server as an editor runs it:  a separate `yarn start:lsp` process, speaking JSON-RPC over stdio.

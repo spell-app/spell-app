@@ -1,12 +1,12 @@
 // FIRST:  defines `__PACKAGE_VERSION__`, which vite would, before anything reads it
-import "~/packageVersion.node"
+import "#spell/node/packageVersion.node"
 
 import bodyParser from "body-parser"
 import express, { Request, Response } from "express"
 import express_json5 from "express-json5"
 import path from "path"
 
-import environment from "~/environment"
+import environment from "#spell/node/environment"
 import { api } from "./api"
 
 const app = express()

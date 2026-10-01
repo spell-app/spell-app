@@ -1,5 +1,5 @@
 import { P } from "#parser"
-import { SP } from "~/languages/spell"
+import { SP } from "#spell"
 
 /****************
  * ### `<MatchView>`
@@ -68,7 +68,7 @@ export type MatchViewProps = {
   match?: P.AnyMatch
 }
 
-/** Match from a `~/languages/spell` JSX rule (`jsxElement`/`jsxAttribute`/`jsxExpression`) -- see `SP.JSXMatchData`. */
+/** Match from a `#spell` JSX rule (`jsxElement`/`jsxAttribute`/`jsxExpression`) -- see `SP.JSXMatchData`. */
 type JSXMatch = P.Match<P.MatchGroups, SP.JSXMatchData>
 
 /****************

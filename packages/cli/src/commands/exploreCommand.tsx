@@ -2,7 +2,7 @@ import { spawnSync } from "child_process"
 import { render } from "ink"
 import { fileURLToPath } from "url"
 
-import { SP } from "~/languages/spell"
+import { SP } from "#spell"
 import { LSP } from "~/lsp"
 import { CLI } from "~/cli"
 

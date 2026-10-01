@@ -1,7 +1,7 @@
 import { describe, test, expect } from "vitest"
 
 import { P } from "#parser"
-import { SP } from "~/languages/spell"
+import { SP } from "#spell"
 import {
   describeParseErrors,
   loadFixtureProject,
@@ -9,7 +9,7 @@ import {
   summarize,
   type SpellProjectSummary,
   type SpellSourceFile
-} from "~/test"
+} from "#spell/test"
 
 /**
  * `P.IncrementalProject` MUST give exactly what a full parse gives:  same compiled output + errors, for every file,

@@ -1,5 +1,5 @@
 {
-  "name": "spell-parser",
+  "name": "@spell/spell",
   "version": "0.8.0",
   "license": "MIT",
   "repository": "https://github.com/spell-app/spell",

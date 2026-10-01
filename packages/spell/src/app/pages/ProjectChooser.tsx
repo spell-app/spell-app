@@ -1,7 +1,7 @@
 import React from "react"
 import type { RouteComponentProps } from "@reach/router"
 
-import { SP } from "~/languages/spell"
+import { SP } from "#spell"
 import { Actions } from "~/app/ui"
 import { UI, SpellPage } from "~/app/ui"
 

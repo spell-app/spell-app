@@ -4,7 +4,7 @@ import { render, type Instance } from "ink"
 import { basename, resolve } from "path"
 import { pathToFileURL } from "url"
 
-import { SP } from "~/languages/spell"
+import { SP } from "#spell"
 import { LSP } from "~/lsp"
 import { CLI } from "~/cli"
 

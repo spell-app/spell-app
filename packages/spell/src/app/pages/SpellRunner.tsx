@@ -1,7 +1,7 @@
 import React from "react"
 import type { RouteComponentProps } from "@reach/router"
 
-import { SP } from "~/languages/spell"
+import { SP } from "#spell"
 import { UI, Actions, AppRoot, ConsoleRoot, SpellPage, SplitPanel } from "~/app/ui"
 import { editor } from "~/app/editor"
 import type { SpellRouteParams } from "./pages.types"

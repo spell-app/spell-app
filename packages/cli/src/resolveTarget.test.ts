@@ -3,9 +3,9 @@ import { tmpdir } from "os"
 import { resolve } from "path"
 import { describe, test, expect } from "vitest"
 
-import { SP } from "~/languages/spell"
+import { SP } from "#spell"
 import { CLI } from "~/cli"
-import { fixturePath, fixtureProjectId, fixtureProjectNames, FIXTURES_DIR } from "~/test"
+import { fixturePath, fixtureProjectId, fixtureProjectNames, FIXTURES_DIR } from "#spell/test"
 
 /** What `arg` names, reduced to `kind` + id for comparing. */
 async function named(arg: string, cwd?: string) {
