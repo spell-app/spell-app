@@ -12,7 +12,7 @@ const NOW = new Date(2026, 9, 1, 9, 5)
 
 /** A fresh plan doc from the real template, so the tests break when the template drifts from the script. */
 function freshPlan() {
-  return PlanDoc.parse(readFileSync(join(DOCS, "templates/plans/plan.html"), "utf8"), NOW)
+  return PlanDoc.parse(readFileSync(join(DOCS, "templates/epics/plan.html"), "utf8"), NOW)
 }
 
 /** A plan doc in the layout before 2026-10-01 (`#plan` with a phase list, `ol.plan-items`):  the old template. */

@@ -1,6 +1,6 @@
 # Plan docs
 
-How to write and update `plans/<name>/<name>.html`, the live doc behind a `/plan-doc <name>` session.
+How to write and update `epics/<name>/<name>.html`, the live doc behind a `/epic <name>` session.
 `plan.html` beside this is the template;  `scripts/plan-doc.js` (`yarn plan-doc`) edits the structured parts.
 
 ## Rules
@@ -193,7 +193,7 @@ decide from WITHOUT asking back:  in the item's details, or an Overview sub-sect
 
 | Command | Does |
 |---|---|
-| `new <name> [--title "..."] [--prompt "..." \| --prompt-file <path>]` | copy the template to `plans/<name>/<name>.html`, fill it (the prompt that started the plan goes in the Overview), update the docs index |
+| `new <name> [--title "..."] [--prompt "..." \| --prompt-file <path>]` | copy the template to `epics/<name>/<name>.html`, fill it (the prompt that started the plan goes in the Overview), update the docs index |
 | `add-phase <name> "Short Name" [--goal ...] [--files ...] [--verify ...]` | append a phase to the list and to `#phases` |
 | `phase <name> <N> todo\|active\|done [--no-open]` | set a phase's status;  `done` removes its UPDATE markers;  reloads the doc's VS Code tab |
 | `add <name> question\|caveat\|issue\|todo\|decision "<title>" [--details "<html>"]` | append an item, print its id |

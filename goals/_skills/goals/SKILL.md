@@ -87,7 +87,7 @@ After EVERY answer, before the next question:
 
 - Only `ready` work.  Brief the agent with the topic's `.md` path, the `W` id, the `G` command path, and:
   "record progress with `G log <set/topic> ... --icon robot`, new risks or questions with `G add`;  never decide an
-  open question".  Several phases:  suggest `/plan-doc <name>` instead.
+  open question".  Several phases:  suggest `/epic <name>` instead.
 - `G status <set/topic> building` once work starts.
 
 ## Style

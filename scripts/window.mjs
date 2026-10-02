@@ -23,7 +23,7 @@
  * - Tests:  `node --test scripts/window.test.mjs`.  `SPELL_WINDOWS_DIR` overrides the registry folder.
  *
  * ## A worktree's window
- * - `/isolate` and `/plan-doc` open a worktree in a NEW window (`open <name>`), and close it on leaving (`close`).
+ * - `/isolate` and `/epic` open a worktree in a NEW window (`open <name>`), and close it on leaving (`close`).
  *   The session, and its chat, stay in the window they started in.
  * - Its file:  `.claude/worktrees/<name>.code-workspace`, beside the worktree, so git ignores it in both checkouts.
  * - Folders:  the MAIN repo root first, as in every window, so its Claude panel lists every session;  then the

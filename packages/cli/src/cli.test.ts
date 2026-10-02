@@ -57,6 +57,20 @@ describe("spell help", () => {
   })
 })
 
+describe("spell plan-doc", () => {
+  test("alone, lists the tool's commands", () => {
+    const { status, stderr } = spell(["plan-doc"])
+    expect(status).toBe(2)
+    expect(stderr).toContain("usage:  yarn plan-doc <command> <name>")
+  })
+
+  test("summarizes a plan doc", () => {
+    const { status, stdout } = spell(["plan-doc", "summary", "unified-server"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/^Unified Server\n {2}\[x\] P1 · Library Core/)
+  })
+})
+
 describe("spell icons", () => {
   test("finds icons by name, with their packs", () => {
     const { status, stdout } = spell(["icons", "bell", "slash", "--pack", "fomantic"])

@@ -537,7 +537,7 @@ knowingly kept:
   ...) and `index.js`;  both branches of `check-spell.js`.  Each runtime change must be checked against both.
 - **Cause** -- the goals pages (`templates/goals/`, the repo root's `goals/`) are generated and edited by the goals
   tooling (`yarn goals`, the `/goals*` skills, `goals-live.js`), which reads and writes the old markup;  migrating
-  them is its own task.  `plans/cli-additions` is another session's live plan, deliberately left old until that
+  them is its own task.  `epics/cli-additions` is another session's live plan, deliberately left old until that
   session runs `yarn plan-doc migrate cli-additions`.
 - **Fix** -- move the goals templates and tooling to `<ui-section>` (`scripts/to-ui-section.js` `convertSections()`
   does the markup), migrate `cli-additions`, then delete the HEADINGS branch of `spell-doc-runtime.js`

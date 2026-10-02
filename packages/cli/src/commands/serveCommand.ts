@@ -22,9 +22,9 @@ const START_TIMEOUT_MS = 90_000
 
 /**
  * `spell serve [target]`:  run EVERYTHING -- the spell app's editor, and the page server with the app's API, docs,
- * plans, goals and Spell UI -- and open the editor in a browser.
+ * epics, goals and Spell UI -- and open the editor in a browser.
  * - The PAGE SERVER of this checkout (`yarn server`, `$/server/page`), started if it isn't running:  the app's
- *   `/api` is one of its route modules (`app`'s `appRoutes.ts`), beside docs, plans, goals and `/ui/`.
+ *   `/api` is one of its route modules (`app`'s `appRoutes.ts`), beside docs, epics, goals and `/ui/`.
  * - The editor UI:  vite (`yarn start:dev` in `packages/app`), with hot reload, on `--port` (default 3000);  it passes
  *   `/api` on to the page server.  Recorded in `.spell-server.editor.json`, so the site header's "Editor" finds it.
  * - Stops no other servers, and runs no `yarn install`.
@@ -90,7 +90,7 @@ export async function serveCommand(
 
   const url = `http://localhost:${port}${path}`
   session.out(url)
-  session.err(`The spell app is at ${url};  docs, plans, goals and Spell UI at ${page.base}/ -- Ctrl-C to stop`)
+  session.err(`The spell app is at ${url};  docs, epics, goals and Spell UI at ${page.base}/ -- Ctrl-C to stop`)
   if (!options.headless) SRV.openBrowser(url)
 
   // until Ctrl-C -- or a server stops by itself

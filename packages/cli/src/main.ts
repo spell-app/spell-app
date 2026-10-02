@@ -212,6 +212,15 @@ program
   // everything after `goals`, raw:  commander would take `--all` as the global option
   .action(() => run(CLI.goalsCommand, process.argv.slice(process.argv.indexOf("goals") + 1), {}))
 
+program
+  .command("plan-doc")
+  .description("edit a plan doc (packages/docs/epics/):  `yarn plan-doc` -- `spell plan-doc` lists its commands")
+  .argument("[args...]", "a plan-doc command and its arguments, e.g. summary seo")
+  .allowUnknownOption()
+  .helpOption(false)
+  // everything after `plan-doc`, raw:  its `--goal` / `--estimate` ... are the tool's, not ours
+  .action(() => run(CLI.planDocCommand, process.argv.slice(process.argv.indexOf("plan-doc") + 1), {}))
+
 await program.parseAsync()
 
 /**

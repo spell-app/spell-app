@@ -1,15 +1,18 @@
 ---
-name: plan-doc
-description: Run a planning session against a live plan doc, `packages/docs/plans/<name>/<name>.html`, in its own worktree. Use for `/plan-doc <name> [what to plan]` (name alone:  the plan comes in the next prompt), or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.
+name: epic
+description: Run a planning session against a live plan doc, `packages/docs/epics/<name>/<name>.html`, in its own worktree. Use for `/epic <name> [what to plan]` (name alone:  the plan comes in the next prompt), or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.
 argument-hint: <name> [what to plan]
 ---
 
-# /plan-doc
+# /epic
 
-Plan, then build, in worktree `<name>`, keeping `packages/docs/plans/<name>/<name>.html` (the PLAN DOC) current
+An EPIC is a planning session and the work it plans;  its live record is the PLAN DOC.  (Was `/plan-doc` until
+2026-10-02;  `yarn plan-doc` keeps its name, since it edits the plan doc.)
+
+Plan, then build, in worktree `<name>`, keeping `packages/docs/epics/<name>/<name>.html` (the PLAN DOC) current
 the whole time.  The plan doc is the user's view of the work:  they read it in a VS Code tab beside the editor while you work.
 
-- Rules for the doc (sections, ids, markers, prose):  `packages/docs/templates/plans/plan-doc.md`.  Read it first.
+- Rules for the doc (sections, ids, markers, prose):  `packages/docs/templates/epics/plan-doc.md`.  Read it first.
 - Structured edits go through `yarn plan-doc <command> <name> ...` (cheat sheet below), never by hand.  Hand-edit only
   prose:  the summary, Overview, phase bodies, item details.
 - Reload the plan doc whenever the session moves to a new stage (name -> worktree -> plan -> fill -> each phase ->
@@ -33,7 +36,7 @@ the whole time.  The plan doc is the user's view of the work:  they read it in a
   - "Make this a plan doc" (invoked mid-session):  propose a name from the work so far in AskUserQuestion,
     recommended first;  the user can type another in "Other".
 - Look for collisions (from the repo root), every time:
-  - `packages/docs/plans/<name>/`, `packages/docs/<name>/`, `packages/docs/<name>.html`
+  - `packages/docs/epics/<name>/`, `packages/docs/<name>/`, `packages/docs/<name>.html`
   - the worktree and branch checks of `.claude/skills/isolate/SKILL.md`, "Start", step 2
   - any hit:  AskUserQuestion, options "Reuse `<name>`" (continue that doc / worktree) and "Different name" (the
     user types it in "Other").  Never overwrite an existing plan doc.
@@ -130,7 +133,7 @@ When the session already has work under way ("make this a plan doc"), carry it o
     `packages/docs/<name>/<name>.html`
   - from the plan doc:  Overview -> the body;  decisions -> a "Why" section;  open caveats -> "Limits"
   - finish as in `packages/docs/AGENTS.md`, "Finishing a page";  `yarn docs:index`
-- The plan doc stays in `plans/` as the record:  every phase done.  `yarn plan-doc open <name>` one last time.
+- The plan doc stays in `epics/` as the record:  every phase done.  `yarn plan-doc open <name>` one last time.
 - Then leave the worktree:  follow `.claude/skills/isolate/SKILL.md`, "Finish".
 - Last line of the reply:  "All done ..." (see the top).
 

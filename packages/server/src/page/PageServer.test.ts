@@ -102,6 +102,12 @@ describe("PageServer", () => {
     expect(served.etag).toBe(answer.headers.etag)
   })
 
+  it("redirects old plan doc URLs from plans/ to epics/, query kept", async () => {
+    const answer = await ask(port, "GET", "/packages/docs/plans/x/x.html?a=1")
+    expect(answer.status).toBe(302)
+    expect(answer.headers.location).toBe("/packages/docs/epics/x/x.html?a=1")
+  })
+
   it("refuses foreign hosts", async () => {
     expect((await ask(port, "GET", "/docs/page.html", { headers: { host: "evil.example" } })).status).toBe(403)
   })

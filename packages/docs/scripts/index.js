@@ -2,8 +2,8 @@
  * `yarn docs:index`:  rewrite the lists in `index.html` from every page's `<title>` and description.
  * Usage (from `packages/docs`):  node scripts/index.js
  * - Groups:
- *   - Guides:  every page outside `templates/` and `plans/`
- *   - Plans:  `plans/<name>/<name>.html`, with a status badge read from its phase sections (`#phases`)
+ *   - Guides:  every page outside `templates/` and `epics/`
+ *   - Epics:  `epics/<name>/<name>.html`, with a status badge read from its phase sections (`#phases`)
  *   - Templates:  `templates/**`
  * - Writes ONLY between `<!-- index:start -->` and `<!-- index:end -->`;  the rest of the page is hand-authored.
  * - Then tidies the page like any other (`pages.js` `tidy()`:  link targets, oxfmt), so a re-run with nothing new
@@ -30,15 +30,15 @@ const GROUPS = [
     id: "guides",
     title: "Guides",
     icon: "book open",
-    has: (path) => !/^(templates|plans)\//.test(path),
+    has: (path) => !/^(templates|epics)\//.test(path),
     none: "No guides yet."
   },
   {
-    id: "plans",
-    title: "Plans",
+    id: "epics",
+    title: "Epics",
     icon: "layer group",
-    has: (path) => path.startsWith("plans/"),
-    none: "No plans yet:  run /plan-doc in Claude Code."
+    has: (path) => path.startsWith("epics/"),
+    none: "No epics yet:  run /epic in Claude Code."
   },
   {
     id: "templates",
@@ -81,9 +81,9 @@ function describe(path) {
   const title = document.querySelector("title")?.textContent.trim() || path
   const description = document.querySelector('meta[name="description"]')?.getAttribute("content")?.trim() ?? ""
   // a plan's phases:  its phase sections in `#phases` (every plan doc has them):  `<ui-section data-phase>`, or
-  // `section[data-phase]` in a doc not yet migrated (`plan-doc.js` reads them the same way).  Plans only:  the
+  // `section[data-phase]` in a doc not yet migrated (`plan-doc.js` reads them the same way).  Epics only:  the
   // runtime's test page (`spell-docs/ui-section-test.html`) has phases too
-  const sections = path.startsWith("plans/")
+  const sections = path.startsWith("epics/")
     ? document.querySelectorAll("ui-section#phases ui-section[data-phase], #phases-section section[data-phase]")
     : []
   const phases = Array.from(sections, (section) => ({
