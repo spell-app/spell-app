@@ -3,7 +3,7 @@
  * `yarn window <command>`:  the VS Code windows Owen works in, one per package.
  *
  * ## Window files
- * - `packages/<pkg>/<pkg>.code-workspace`:  open a package's window from it (`code packages/ui/ui.code-workspace`).
+ * - `workspaces/<pkg>.code-workspace`:  open a package's window from it (`code workspaces/ui.code-workspace`).
  * - Its FIRST folder is the repo root, its second the package.  Why:  the Claude Code panel lists only the sessions
  *   saved under a window's first folder, so with the root first, every window lists every session.
  * - Its own colour theme, so windows are told apart at a glance (instead of VS Code profiles).
@@ -112,17 +112,17 @@ export class Window {
       .sort()
   }
 
-  /** `packages/<pkg>/<pkg>.code-workspace`. */
+  /** `workspaces/<pkg>.code-workspace`. */
   static file(pkg) {
-    return join(ROOT, "packages", pkg, `${pkg}.code-workspace`)
+    return join(ROOT, "workspaces", `${pkg}.code-workspace`)
   }
 
   /** The window file's contents for `pkg`. */
   static workspace(pkg) {
     return {
       folders: [
-        { path: "../..", name: "spell-app" },
-        { path: ".", name: pkg }
+        { path: "..", name: "spell-app" },
+        { path: `../packages/${pkg}`, name: pkg }
       ],
       settings: {
         "workbench.colorTheme": THEMES[pkg] ?? FALLBACK_THEME,
@@ -174,7 +174,7 @@ export class Window {
   /** `pkg`'s theme:  from its window file in the main checkout (Owen may have changed it), else `THEMES`. */
   static theme(pkg) {
     try {
-      const file = join(MAIN_ROOT, "packages", pkg, `${pkg}.code-workspace`)
+      const file = join(MAIN_ROOT, "workspaces", `${pkg}.code-workspace`)
       const theme = JSON.parse(readFileSync(file, "utf8")).settings?.["workbench.colorTheme"]
       if (theme) return theme
     } catch {
@@ -255,7 +255,7 @@ export class Window {
     if (back) {
       if (!from?.workspaceFile || real(from.workspaceFile) !== real(file)) return null
       const pkg = worktreePackage(file)
-      handoff = { sessionId, to: join(MAIN_ROOT, "packages", pkg, `${pkg}.code-workspace`), from: from.pid, close: "window", remove: file }
+      handoff = { sessionId, to: join(MAIN_ROOT, "workspaces", `${pkg}.code-workspace`), from: from.pid, close: "window", remove: file }
     }
     mkdirSync(Window.handoffs, { recursive: true, mode: 0o700 })
     writeFileSync(Window.handoffFile(sessionId), `${JSON.stringify(handoff, null, 2)}\n`, { mode: 0o600 })
@@ -294,9 +294,9 @@ export class Window {
     return { opened: true, closed, matches }
   }
 
-  /** The package of `window` (a registry entry):  its workspace file's `packages/<pkg>/<pkg>.code-workspace`. */
+  /** The package of `window` (a registry entry):  its workspace file's `workspaces/<pkg>.code-workspace`. */
   static packageOf(window) {
-    return window?.workspaceFile?.match(/packages[\\/]([^\\/]+)[\\/]\1\.code-workspace$/)?.[1] ?? null
+    return window?.workspaceFile?.match(/workspaces[\\/]([^\\/]+)\.code-workspace$/)?.[1] ?? null
   }
 
   ////////////////
@@ -471,7 +471,7 @@ const COMMANDS = ["init", "which", "add", "remove", "show", "open", "close", "ha
 
 /** Usage, printed for a bad command. */
 const USAGE = `usage:  yarn window <command>
-  init                         write each package's missing packages/<pkg>/<pkg>.code-workspace
+  init                         write each package's missing workspaces/<pkg>.code-workspace
   which                        this session's VS Code window:  pid, workspace file, folders
   add <path> [--name <name>]   add a folder (a worktree) to the window
   remove <path>                remove it again

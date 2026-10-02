@@ -121,7 +121,7 @@ test("mainRoot():  the checkout a worktree is in;  a main checkout is its own", 
 })
 
 test("packageOf():  a package window's package, else null", () => {
-  assert.equal(Window.packageOf({ workspaceFile: "/repo/packages/ui/ui.code-workspace" }), "ui")
+  assert.equal(Window.packageOf({ workspaceFile: "/repo/workspaces/ui.code-workspace" }), "ui")
   assert.equal(Window.packageOf({ workspaceFile: "/repo/.claude/worktrees/seo.code-workspace" }), null)
   assert.equal(Window.packageOf(null), null)
 })
@@ -204,7 +204,7 @@ test("handoff():  records the move, keyed by session;  needs a session and the w
     const worktree = { pid: process.ppid, port: 1, token: "t", folders: [], workspaceFile: Window.worktreeFile(name) }
     writeFileSync(join(dir, `${process.ppid}.json`), JSON.stringify(worktree))
     const back = Window.handoff(name, SESSION, { back: true })
-    assert.match(back.to, /packages\/ui\/ui\.code-workspace$/)
+    assert.match(back.to, /workspaces\/ui\.code-workspace$/)
     assert.equal(back.to.includes(".claude"), false)
     assert.equal(back.close, "window")
     assert.equal(back.remove, Window.worktreeFile(name))

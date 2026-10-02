@@ -1,11 +1,11 @@
 {
   "folders": [
     {
-      "path": "../..",
+      "path": "..",
       "name": "spell-app"
     },
     {
-      "path": ".",
+      "path": "../packages/parser",
       "name": "parser"
     }
   ],

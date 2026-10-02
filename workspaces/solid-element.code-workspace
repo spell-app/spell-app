@@ -1,16 +1,16 @@
 {
   "folders": [
     {
-      "path": "../..",
+      "path": "..",
       "name": "spell-app"
     },
     {
-      "path": ".",
-      "name": "vscode"
+      "path": "../packages/solid-element",
+      "name": "solid-element"
     }
   ],
   "settings": {
-    "workbench.colorTheme": "Default Light Modern",
+    "workbench.colorTheme": "Solarized Light",
     "files.exclude": {
       "packages": true,
       ".claude/worktrees": true
