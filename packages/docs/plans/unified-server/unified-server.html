@@ -54,6 +54,13 @@
               >spell serve</code
             >) on one port, with live reload, a shared site header and an API that edits pages in place.
           </p>
+          <blockquote class="plan-prompt">
+            <p>
+              We now have a bunch of different things that are creating/"serving" pages<br />- the editor app<br />-
+              general docs<br />- plan files<br />- spell/ui docs<br />- goals
+            </p>
+            <p>I think we should centralize that base functionality into a `server` package.</p>
+          </blockquote>
           <p>
             What gets built; becomes
             <a href="../../server.html" target="src-packages-docs-server-html"
@@ -244,7 +251,8 @@
                 ports, open, FileLock), unit-tested </ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> packages/server/**, tsconfig.base.json, root package.json, AGENTS.md</ui-item
-              ><ui-item icon="flask"><b>Verify:</b> yarn workspace @spell-app/server review</ui-item></ui-list
+              ><ui-item icon="flask"><b>Verify:</b> yarn workspace @spell-app/server review</ui-item
+              ><ui-item icon="gavel"><b>Judgement calls:</b> <a href="#t3">T3</a></ui-item></ui-list
             >
           </ui-section>
           <ui-section
@@ -267,8 +275,10 @@
                 page/PageEditor.ts, page/cli.ts, .gitignore </ui-item
               ><ui-item icon="flask">
                 <b>Verify:</b> integration tests: injection, SSE change, PUT, PATCH by id byte-exact, If-Match 409,
-                token 403, pid cleanup
-              </ui-item></ui-list
+                token 403, pid cleanup </ui-item
+              ><ui-item icon="gavel"
+                ><b>Judgement calls:</b> <a href="#t4">T4</a> <a href="#t5">T5</a></ui-item
+              ></ui-list
             >
           </ui-section>
           <ui-section
@@ -312,8 +322,11 @@
                 templates, ui/site layout, vscode/DocPreview.ts </ui-item
               ><ui-item icon="flask">
                 <b>Verify:</b> plan-doc open here + main (different ports), edit reloads, /ui/ works, header on all
-                properties, yarn vscode
-              </ui-item></ui-list
+                properties, yarn vscode </ui-item
+              ><ui-item icon="gavel"
+                ><b>Judgement calls:</b> <a href="#t6">T6</a> <a href="#t7">T7</a> <a href="#t8">T8</a>
+                <a href="#t9">T9</a> <a href="#t10">T10</a> <a href="#t17">T17</a></ui-item
+              ></ui-list
             >
           </ui-section>
           <ui-section
@@ -334,6 +347,8 @@
                 ><b>Files:</b> goals/_tools/goalsRoutes.ts, launch.js, goals.js, goals.sh, goals-live.js</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> route-module tests, startup time, yarn goals open, every button</ui-item
+              ><ui-item icon="gavel"
+                ><b>Judgement calls:</b> <a href="#t16">T16</a> <a href="#t17">T17</a></ui-item
               ></ui-list
             >
           </ui-section>
@@ -352,9 +367,8 @@
               ><ui-item icon="bullseye"><b>Goal:</b> app API off Express, behaviour unchanged</ui-item
               ><ui-item icon="folder">
                 <b>Files:</b> packages/app/src/server/*, packages/spell/src/node/response-utils.ts, project-utils.ts </ui-item
-              ><ui-item icon="flask"
-                ><b>Verify:</b> contract tests pass before and after; editor round-trip</ui-item
-              ></ui-list
+              ><ui-item icon="flask"><b>Verify:</b> contract tests pass before and after; editor round-trip</ui-item
+              ><ui-item icon="gavel"><b>Judgement calls:</b> <a href="#t11">T11</a></ui-item></ui-list
             >
           </ui-section>
           <ui-section
@@ -375,6 +389,9 @@
                 ><b>Files:</b> packages/app/src/server/appRoutes.ts, cli serveCommand.ts, app vite.config.ts</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> spell serve: header switches all properties; editor round-trip; cli tests</ui-item
+              ><ui-item icon="gavel"
+                ><b>Judgement calls:</b> <a href="#t12">T12</a> <a href="#t13">T13</a> <a href="#t14">T14</a>
+                <a href="#t15">T15</a> <a href="#t16">T16</a></ui-item
               ></ui-list
             >
           </ui-section>
