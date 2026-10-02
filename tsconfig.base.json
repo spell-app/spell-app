@@ -15,6 +15,8 @@
   // - NOTE: every alias works from every package.  The one-way dependency rule is by convention:
   //   `cli` -> `app` -> `lsp` -> `spell` -> `parser` / `core` -> `util`, and
   //   `ui` -> `solid-element` / `util`.  e.g. `ui` MUST NOT import `$/spell`.
+  //   `server` is a LEAF (node built-ins only):  anything may import it.  Its opt-in entry points:  `$/server/page/...`
+  //   (the page server) and `$/server/site/...` (the site header);  `$/server/test/...` are its test helpers.
   "compilerOptions": {
     "paths": {
       // ## Shared packages:  from another package, import the barrel only
@@ -32,6 +34,9 @@
       "$/app/*": ["./packages/app/src/*"],
       "$/cli": ["./packages/cli/src/index.ts"],
       "$/cli/*": ["./packages/cli/src/*"],
+      "$/server": ["./packages/server/src/index.ts"],
+      "$/server/*": ["./packages/server/src/*"],
+      "$/server/test/*": ["./packages/server/test/*"],
 
       // ## `ui`:  barrel, files, test helpers and node tools;  `$/ui/test/*` / `$/ui/tools/*` are longer than
       // `$/ui/*`, so they win
