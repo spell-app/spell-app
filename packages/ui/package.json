@@ -367,6 +367,7 @@
   },
   "dependencies": {
     "@spell-app/solid-element": "workspace:*",
+    "linkedom": "^0.18.13",
     "lodash-es": "^4.18.1",
     "temporal-polyfill": "^1.0.5"
   },

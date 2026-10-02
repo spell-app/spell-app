@@ -1,4 +1,4 @@
-import { Show, createEffect, createMemo, untrack } from "solid-js"
+import { Show, createMemo, untrack } from "solid-js"
 import { Dynamic, type JSX } from "@solidjs/web"
 
 import {
@@ -109,7 +109,7 @@ export class UIItem extends UIElement<typeof itemVocabulary> implements Conditio
   constructor(...args: ConstructorParameters<typeof UIElement>) {
     super(...args)
     // SIDE EFFECT:  host role follows the owner (`listitem` in a list)
-    createEffect(
+    this.hostEffect(
       () => this.itemContext()?.hostRole ?? null,
       (role) => {
         this.host.internals.role = role
