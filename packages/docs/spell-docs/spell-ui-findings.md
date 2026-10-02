@@ -190,6 +190,34 @@ Each finding:  component, symptom, repro, the workaround used here, a suggested 
       the lowest stuck edge;  a column-shaped sticky (the contents) reserves nothing.  Chromium and Firefox page by
       it;  Safari still pages the full viewport
 
+23. **`ui-section`:  no token for space ABOVE only, nor for the content's line height**
+    - symptom:  `--ui-section-margin` sets both edges, so a page whose sections space themselves from above (as
+      the `section.s2` pages did) gets a bottom margin too, which comes between the content and the host's
+      `::after` (plan docs' "none yet");  `.ui.section` sets `line-height: var(--ui-line-height)` (1.43), so
+      slotted prose loses the page's 1.6
+    - repro:  `<ui-section header="A"><p>...</p></ui-section>` in a page with `body { line-height: 1.6 }`, and
+      `ui-section::after { content: "x" }` on a section that isn't its parent's last child
+    - workaround:  `ui-section::part(section) { margin-bottom: 0; line-height: inherit }` (`spell-doc.css`)
+    - suggest:  `--ui-section-margin-top` / `-bottom` (defaulting to `--ui-section-margin`);  let the content
+      inherit its line height, or a `--ui-section-line-height` token
+
+24. **`ui-section`:  a `#hash` load opens a folded section itself, animated, before a page script can land**
+    - not a bug:  Chrome reveals `hidden="until-found"` content for fragment navigation (`beforematch`), so the
+      section unfolds with its height transition and announces a non-cancelable `ui-open`, as for find-in-page
+    - what it means for a page:  the target moves a few pixels while the fold grows;  and a page that saves folds
+      from `ui-open` would save the browser's reveal as the reader's
+    - workaround:  the runtime ignores non-cancelable `ui-open`s when saving folds, unfolds for links with
+      `--ui-section-duration: 0s`, and lands again after the transition's time unless the reader scrolled
+    - suggest:  document it in `ui-section.mdx` "Behaviour";  maybe put `originalEvent` (the `beforematch`) in the
+      detail, so a listener can tell the browser's reveal from the reader's click
+
+25. **`ui-section`:  a slotted `<ui-icon slot="icon">` sits further from the title than the `icon` shorthand**
+    - cosmetic:  the shorthand's `<svg>` is sized by the section (`height: 1em`), a slotted `<ui-icon>` keeps its own
+      box and margins, so a page mixing both has two icon gaps
+    - repro:  `<ui-section header="A" icon="bug">` above `<ui-section header="B"><ui-icon slot="icon" name="bug">`
+    - workaround:  none:  pages use the slotted form (the test page shows both)
+    - suggest:  `::slotted(ui-icon)` in the icon box:  no margin, `1em` box
+
 ## Verified working (no action)
 
 - find-in-page / text fragments open a folded `ui-accordion` panel (native `<details>`), and the accordion

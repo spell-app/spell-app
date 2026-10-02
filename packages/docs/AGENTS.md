@@ -32,27 +32,38 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
   the `_assets` paths for the page's depth, and lists it in the index.
   NEVER inline copies of `_assets`:  improve the shared files instead, and every page gets it.
 - Pages open straight from disk (`file://`):  no server, no ES modules -- hence the one classic bundle.
-- The runtime builds the page from plain markup:
+- Sections are `<ui-section>` elements (`spell-docs/spell-docs.md` "Page skeleton";  every piece of the markup:
+  `spell-docs/ui-section-test.html`):
+  - `<ui-section id="..." header="1. Summary" sticky collapsible dividing>`, EVERY one `sticky collapsible
+    dividing` (a rule under every title, every section folds), nested for sub-sections;  `collapsed` starts one
+    folded
+  - its icon:  a `<ui-icon slot="icon" name="...">` first inside it;  a title with markup:  a
+    `<span slot="header">` instead of `header`
+  - an optional sticky page header above them:  `<ui-sticky class="spell-h1"><header class="spell-page-head">`
+    around the h1 (plan docs have one)
+  - the OLD markup -- `section.s2|s3` > `<ui-sticky class="spell-h2|spell-h3">` > `<h2|h3 id>` -- is for the goals
+    pages only;  the runtime still drives it
+- The runtime builds the page from that markup:
   - contents sidebar:  sticky right column, expandable per section, follows the scroll;  a drawer on narrow screens.
-    Built at load from `main` h2 / h3 / h4 -- NEVER hand-write a contents list, or a "Contents" button.
-  - the rail:  a strip of the h2s' icons at the right edge, the contents button (bars) on top, shown while the
-    contents column isn't (narrow screens, or hidden by its button:  remembered for every page).  Give every h2 a
-    `<ui-icon>`:  without one, the rail shows its number
-  - sticky h2 / h3 headers, from `section.s2` / `section.s3` wrapping `<ui-sticky class="spell-h2|spell-h3">`;  an
-    optional sticky page header above them, `<ui-sticky class="spell-h1"><header class="spell-page-head">` around
-    the h1 (plan docs have one)
-  - folding:  every h2 / h3 section folds from a chevron on its heading;  folds are remembered per page,
-    `data-fold="closed"` on a section starts it folded
-  - counts:  a section holding `[data-status]` items shows `open/all` at its h2's right and the open count as a badge
-    in the contents and the rail (open:  any status but `done` or `decided`)
-  - links to any id in `main` land below the stuck headers, unfolding what hides the target and opening its panel
+    Built at load from `main`'s sections and the h3 / h4s in them -- NEVER hand-write a contents list, or a
+    "Contents" button.
+  - the rail:  a strip of the top-level sections' icons at the right edge, the contents button (bars) on top, shown
+    while the contents column isn't (narrow screens, or hidden by its button:  remembered for every page).  Give
+    every top-level section an icon:  without one, the rail shows its number
+  - sticky titles:  each top-level section's title sticks below the page header, nested ones stack below their
+    parents' (the runtime sets the top-level `offset`s)
+  - folding:  folds are remembered per page;  a link's unfold isn't
+  - counts:  a top-level section holding `[data-status]` items shows `open/all` on its title (its `badge`) and the
+    open count as a badge in the contents and the rail (open:  any status but `done` or `decided`);  nested
+    sections get no count of their own
+  - links to any id in `main` land below the stuck titles, unfolding what hides the target and opening its panel
   - code colors (highlight.js from cdnjs)
 - Headings:
-  - one `h1`;  numbered `h2` per major section (`2. Read-after-write`), each with a stable `id` -- other docs link
-    to them, so NEVER change an existing `id`
-  - `h3` for EVERY distinct sub-item, `h4` for sub-sub-items:  a list item with a bold title and several lines of
-    body becomes a heading, and long lists of such items are grouped under themed `h3`s
-  - headings are short labels (they're the contents entries);  the claim goes in the body
+  - one `h1`;  a numbered top-level `<ui-section>` per major section (`header="2. Read-after-write"`), each with a
+    stable `id` -- other docs link to them, so NEVER change an existing `id`
+  - a nested `<ui-section>` for EVERY distinct sub-item, `h4` for sub-sub-items:  a list item with a bold title and
+    several lines of body becomes a section, and long lists of such items are grouped under themed sections
+  - titles are short labels (they're the contents entries);  the claim goes in the body
 - Text:  bullets, not dense prose.
   - 3+ sentences => a short lead plus bullets, one idea each, nested for sub-points
   - keep every fact, number and caveat when you condense
@@ -156,8 +167,8 @@ In this order, from `packages/docs`:
   `serialize()`, `openInChrome()`, `openInVSCode()` (plan docs:  Simple Browser through the spell extension's
   `DocPreview`).
 - `scripts/check-spell.js <page> [outDir]` -- Playwright:  fails on console errors, undefined / unrendered
-  `ui-*`, contents vs headings, phone-width overflow, h2s that don't stick, a drawer that won't open;  writes
-  screenshots.
+  `ui-*`, contents vs sections, phone-width overflow, top-level titles that don't stick, a drawer that won't open;
+  writes screenshots.
 - `scripts/doc-links.py` -- see "Links".
 - A @spell-app/ui problem:  fix it in `packages/ui` when it's a real `ui` bug (the same change may touch both), else work
   around it here;  either way, add it to `spell-docs/spell-ui-findings.md`.
