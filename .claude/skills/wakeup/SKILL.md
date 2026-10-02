@@ -13,7 +13,7 @@ memory apply again -- ask before committing, stop after each phase, modals for q
 2. Still running (first line `<!-- bedtime: active -->` and phases unfinished in this session):  say which phase it
    was on, and that it stops now.
 3. Change the first line to `<!-- bedtime: done -->`.
-4. Reply:  the Summary, numbered judgement calls and problems (short), then AskUserQuestion, "Where first?":
+4. Reply:  the Summary, judgement calls by phase (`J<k>`) and problems (short), then AskUserQuestion, "Where first?":
    - the top problems / judgement calls ("Look at J2:  ...")
    - "Merge into `main`" (runs `/isolate done`'s steps, which ask again before merging)
    - "All fine"
