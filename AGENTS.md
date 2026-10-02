@@ -67,16 +67,17 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 - Enter a worktree with `/isolate <name>` (`/plan-doc` does it too), or `EnterWorktree`.  The `WorktreeCreate` hook
   (`.claude/hooks/worktree.mjs`) makes `.claude/worktrees/<name>` on branch `<name>` from local `main`, and keeps the
   session saved at the root (Claude's own worktrees move it, and it drops out of every window's list).
-- Show the worktree in the session's OWN window at once, from the worktree's root:
-  `node scripts/window.mjs add packages/<pkg> --name "<pkg> ⎇ <name>"`;  `... remove packages/<pkg>` on leaving.
-  It reaches the window the session runs in (the spell extension's `WindowBridge`), not the focused one.
-  Why:  Owen reviews in VS Code;  edits the window doesn't show are invisible there.
+- Open the worktree in its OWN new window at once, from the worktree's root:  `node scripts/window.mjs open <name>`;
+  `... close <name>` on leaving.  The session and its chat stay in the window they started in.
+  - The window:  `.claude/worktrees/<name>.code-workspace`, the package window's theme with a title bar tinted
+    per worktree, folders the worktree's root and `packages/<pkg>` (no main-checkout copies to edit by mistake).
+    Its Claude panel lists no sessions:  they're saved under the MAIN root.
+  - Why:  Owen reviews in VS Code;  edits a window doesn't show are invisible there.
   - `node`, not `yarn window`:  `yarn` runs no script in a worktree before its `yarn install`.
-  - Relative paths resolve from the current folder:  `packages/<pkg>` is the worktree's copy.
 - NEVER `code --add` / `--remove` (the focused window;  a one-folder window restarts its extensions, Claude panel
-  included), `code -n` (a new window) or `code -r` (restarts the session).
+  included) or `code -r` (restarts the session).  `code <file>.code-workspace` only through `window.mjs open`.
 - Leave with `ExitWorktree` `keep`;  the hook's `remove` never deletes uncommitted or unmerged work.
-- Say so in one line ("isolated in worktree <name> (branch <name>), shown in your window as <pkg> ⎇ <name>").
+- Say so in one line ("isolated in worktree <name> (branch <name>), open in its own window, <pkg> ⎇ <name>").
 
 ## Solid 2
 

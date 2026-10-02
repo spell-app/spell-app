@@ -1,6 +1,6 @@
 /**
  * Lets a Claude Code session (or any script it runs) talk to ITS OWN VS Code window:  add or remove a folder
- * (a worktree), show a doc in Simple Browser.  The client is the repo root's `scripts/window.mjs` (`yarn window`).
+ * (a worktree), show a doc in Simple Browser;  or to a worktree's window (`yarn window open`):  close it.  The client is the repo root's `scripts/window.mjs` (`yarn window`).
  * - Why not a `vscode://` URI:  macOS hands it to whichever window is FOCUSED, often not the session's.
  * - How a session finds its window:  by PID.  A session's process tree is `claude` -> `Code Helper (Plugin)` (the
  *   window's EXTENSION HOST, one per window) -> `Code`, and this code runs in that extension host.  So
@@ -15,6 +15,7 @@
  *   - `add-folder { path, name? }`:  add `path` as the window's last folder;  already there:  ok, no-op
  *   - `remove-folder { path }`:  remove it;  never folder 0 (the repo root);  not there:  ok, no-op
  *   - `show-doc { file }`:  `DocPreview.show(file)`
+ *   - `close-window {}`:  close this window, just after answering (`/isolate done` closes the worktree's window)
  * - NEVER adds a folder unless the window was opened from a SAVED workspace file (`packages/<pkg>/<pkg>.code-workspace`):
  *   in a one-folder or untitled window, the change re-opens the window as a new workspace, which restarts every
  *   extension -- including the Claude panel whose session asked.  `remove-folder` has no such rule:  it only ever
@@ -169,6 +170,10 @@ export class WindowBridge {
         await DocPreview.show(file)
         return { file }
       }
+      case "close-window":
+        // after the reply is on its way:  closing ends this extension host, and the server with it
+        setTimeout(() => void vscode.commands.executeCommand("workbench.action.closeWindow"), 200)
+        return { closing: true }
       default:
         throw new BridgeError(404, `unknown op '${op}'`)
     }

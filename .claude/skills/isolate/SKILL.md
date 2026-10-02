@@ -1,6 +1,6 @@
 ---
 name: isolate
-description: Move this session into its own git worktree `<name>` (worktree, branch and session all named `<name>`) and show it in the user's current VS Code window;  `/isolate done` offers to merge it into `main`, then leaves it.  Use for `/isolate <name>`, `/isolate done`, or when Owen says "isolate as <name>" / "isolate this" about the current session.
+description: Move this session into its own git worktree `<name>` (worktree, branch and session all named `<name>`) and open it in a new, tinted VS Code window;  `/isolate done` offers to merge it into `main`, then leaves it.  Use for `/isolate <name>`, `/isolate done`, or when Owen says "isolate as <name>" / "isolate this" about the current session.
 argument-hint: <name> | done
 ---
 
@@ -26,16 +26,16 @@ worktree, its branch and the session share one name.  `/plan-doc` runs these ste
 4. `EnterWorktree` with `name: "<name>"`, or `path: ".claude/worktrees/<name>"` when reusing one.  The repo's
    `WorktreeCreate` hook (`.claude/hooks/worktree.mjs`) makes it on branch `<name>` from local `main`, and keeps this
    session listed in every window.
-5. Show it in the user's window (root `AGENTS.md` "Worktrees"), from the worktree's root:
+5. Open it in its own window (root `AGENTS.md` "Worktrees"), from the worktree's root:
+   - `node scripts/window.mjs open <name>`:  a NEW window, the package window's theme with a tinted title bar, its
+     folders the worktree's root and `packages/<pkg>` (`<pkg>`:  this session's window's;  `--pkg <pkg>` when it
+     isn't a package window).  The session and its chat stay in THIS window.
    - `node scripts/window.mjs`, NOT `yarn window`:  a fresh worktree has no `node_modules/` yet, and `yarn` runs no
      script before `yarn install`
-   - `node scripts/window.mjs which`:  the window's second folder is its package, `packages/<pkg>`
-   - `node scripts/window.mjs add packages/<pkg> --name "<pkg> ⎇ <name>"`:  the path resolves from the current folder,
-     so `packages/<pkg>` is the worktree's copy (`.claude/worktrees/<name>/...` would nest it twice)
-   - no window, or `add` refused (a window not opened from its `.code-workspace`):  say so in one line and go on.
-     NEVER `code --add` / `-n` / `-r`:  they restart the Claude panel or target the focused window.
+   - fails:  say so in one line and go on.  NEVER `code --add` / `-r`:  they restart the Claude panel or target
+     the focused window.
 6. In the worktree, no `node_modules/` at the root:  `yarn install`.
-7. One line:  "isolated in worktree `<name>` (branch `<name>`), shown in your VS Code window as `<pkg> ⎇ <name>`".
+7. One line:  "isolated in worktree `<name>` (branch `<name>`), open in its own window, `<pkg> ⎇ <name>`".
 
 ## Finish:  `/isolate done`
 
@@ -72,8 +72,9 @@ worktree, its branch and the session share one name.  `/plan-doc` runs these ste
    - Can't fix them (keeping both sides needs a decision only the user can make, or the checks fail):
      `git merge --abort`, say so, list each file and why, then AskUserQuestion "Continue exiting?"
      options "Exit, unmerged" and "Stay isolated"
-4. Take it out of the window, from the worktree's root:  `node scripts/window.mjs remove packages/<pkg>` (the path
-   `add` used).
+4. Close its window, from the worktree's root:  `node scripts/window.mjs close <name>` (also deletes its
+   `.claude/worktrees/<name>.code-workspace`).  An older session that `add`ed the worktree to its own window
+   instead:  `node scripts/window.mjs remove packages/<pkg>`.
 5. `ExitWorktree` with `action: "keep"`:  the worktree and branch stay, and the session is back in the main checkout.
    Never `remove` unasked (and on a hook-made worktree `remove` refuses without `discard_changes`).
 6. Merging (only after "Merge now" got the branch ready), now in the main checkout:
