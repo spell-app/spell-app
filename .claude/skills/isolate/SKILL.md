@@ -33,6 +33,18 @@ worktree, its branch and the session share one name.  `/plan-doc` runs these ste
 
 ## Finish:  `/isolate done`
 
+0. Not in a worktree (the session's folder isn't under `.claude/worktrees/`):  say so in one line, then offer to
+   clean up:
+   - candidates:  each `.claude/worktrees/<name>` that
+     - no session is in:  under "No session in" from `python3 ~/.claude/skills/worktrees/scripts/worktrees.py`.
+       Why:  a fresh worktree has nothing outside `main` either, but its session is still using it.
+     - has nothing uncommitted (`git -C .claude/worktrees/<name> status --short`;  fine from the main checkout)
+     - has nothing outside `main` (`git log --oneline main..<branch>` empty)
+   - none:  stop
+   - else AskUserQuestion, multi-select, one option per candidate ("`<name>` (`<branch>`)";  it takes 2-4 options,
+     so one candidate is "Remove `<name>`" / "Keep it", and more than 4 go in several questions);  for each picked:
+     `git worktree remove .claude/worktrees/<name>`, `git branch -d <branch>`.  Then stop:  steps 1-7 are for a
+     session IN a worktree.
 1. Report what's uncommitted and unmerged in the worktree (`git status --short`, `git log --oneline main..HEAD`).
    Commit only as the root's rules allow (stage, then ask).
 2. Unmerged commits (`main..HEAD` not empty):  AskUserQuestion "Merge `<name>` into `main`?", options "Merge now"
