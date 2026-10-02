@@ -1,8 +1,7 @@
 ---
 name: isolate
-description: Move this session into its own git worktree `<name>` (worktree, branch and session all named `<name>`) and show it in the user's current VS Code window;  `/isolate done` offers to merge it into `main`, then leaves it.  User-invoked as `/isolate <name>` or `/isolate done`.
+description: Move this session into its own git worktree `<name>` (worktree, branch and session all named `<name>`) and show it in the user's current VS Code window;  `/isolate done` offers to merge it into `main`, then leaves it.  Use for `/isolate <name>`, `/isolate done`, or when Owen says "isolate as <name>" / "isolate this" about the current session.
 argument-hint: <name> | done
-disable-model-invocation: true
 ---
 
 # /isolate
@@ -12,7 +11,14 @@ worktree, its branch and the session share one name.  `/plan-doc` runs these ste
 
 ## Start:  `/isolate <name>`
 
-1. `<name>` is `$ARGUMENTS`, lower-kebab-cased (`Docs Index` -> `docs-index`).  No argument:  ask for one.
+0. Already mid-work ("isolate as <name>" in a running session):
+   - in plan mode:  it's read-only apart from the plan file, so `EnterWorktree` can't run, and ExitPlanMode would
+     ask to APPROVE a half-made plan.  Ask the user to leave plan mode (shift+tab);  the plan file survives.
+   - edits already made in the main checkout:  the worktree is cut from COMMITTED `main`, so they won't follow.
+     List them (`git status --short`) and AskUserQuestion:  "Carry them over" (`git stash -u` here, `git stash pop`
+     in the worktree after step 4), "Commit on `main` first" (stage, then ask) or "Leave them".
+1. `<name>` is `$ARGUMENTS` (or the `<name>` in "isolate as <name>"), lower-kebab-cased (`Docs Index` ->
+   `docs-index`).  No name:  propose one from the work so far in AskUserQuestion;  the user can type another.
 2. Collisions (from the repo root):  a worktree at `.claude/worktrees/<name>` (`git worktree list`), a branch `<name>`
    or `worktree-<name>`.  Any hit:  AskUserQuestion, options "Reuse `<name>`" and "Different name" (typed in "Other").
 3. Tell the user, in one line:  run `/rename <name>` so the session's tab and list entry show it.  A skill can't
