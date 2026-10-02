@@ -1,15 +1,20 @@
 import { createEffect } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, UIElement, UIT } from "$/ui/core"
+import { Cell, proto, StickyWatch, UIElement, UIT, type StickyWatchState } from "$/ui/core"
 
 import { stickyVocabulary } from "./ui-sticky.vocabulary.en"
 import { StickyFallback } from "./ui-sticky.fallback"
+import {
+  SENTINEL,
+  OFFSET_PROPERTY,
+  BOTTOM_OFFSET_PROPERTY,
+  BOTTOM_SENTINEL,
+  type StickyVocabulary,
+  type StickyConfig
+} from "./ui-sticky.types"
 
 import stickyCSS from "./ui-sticky.css?inline"
-import { SENTINEL, OFFSET_PROPERTY, BOTTOM_OFFSET_PROPERTY, BOTTOM_SENTINEL, SLACK, SCROLLING } from "./ui-sticky.types"
-import type { StickyVocabulary, StickyConfig } from "./ui-sticky.types"
-import { TOP, BOTTOM } from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-sticky>`
@@ -24,8 +29,17 @@ import { TOP, BOTTOM } from "$/ui/components/components.types"
  *   - private:  the attributes decide them (the observer measures against the same numbers), and an inline
  *     public name would block the page's value exactly like a sheet declaration
  * - Stuck:  the top sentinel (where the box would be) has passed the `offset` line while the box hasn't been pushed
- *   above it;  with `pushing`, also:  the bottom sentinel is below the bottom line.  Measured on every observer
- *   callback, against the nearest scroll container (else the document's viewport).
+ *   above it;  with `pushing`, also:  the bottom sentinel is below the bottom line.  Measured by `StickyWatch`
+ *   (shared with `<ui-section sticky>`) on every observer callback, against the nearest scroll container (else the
+ *   document's viewport).
+ * - SIDE EFFECT (`StickyWatch`'s):  while stuck, it RESERVES its room on the scroll container (`<html>` for the
+ *   page):  inline `scroll-padding-top` (`-bottom` at the bottom edge) is the furthest edge of every box stuck there.
+ *   So Page Down / Space, focus and `scrollIntoView()` keep content out from under it.  Chromium and Firefox honour
+ *   it for paging;  Safari only for the rest.
+ *   - a box taller than half the visible area, or narrower than half its width (`STICKY_MAX_RESERVE`), is a sticky
+ *     COLUMN (a sidebar), not a header:  it reserves nothing, or paging would barely move
+ *   - the inline property is the stickies' while any is stuck, removed once none is:  a page's own
+ *     `scroll-padding` belongs in a stylesheet
  ****************/
 export class UISticky extends UIElement<StickyVocabulary> {
   @proto static vocabulary = stickyVocabulary
@@ -53,8 +67,8 @@ export class UISticky extends UIElement<StickyVocabulary> {
   /** The sticky box. */
   private box?: HTMLDivElement
 
-  /** Last reported edge (the cell reads late). */
-  private stuckTo: UIT.StickyEdge | null = null
+  /** Observes the box and reserves its room while stuck. */
+  private readonly watch = new StickyWatch((state) => this.report(state))
 
   ////////////////
   // ## Element hooks
@@ -100,7 +114,7 @@ export class UISticky extends UIElement<StickyVocabulary> {
       }),
       (config) => {
         if (config.connected) return this.observe(config)
-        this.report(null, false)
+        this.watch.reset()
         return undefined
       }
     )
@@ -114,42 +128,13 @@ export class UISticky extends UIElement<StickyVocabulary> {
   private observe(config: StickyConfig): () => void {
     const { topSentinel, bottomSentinel, box } = this
     if (!topSentinel || !bottomSentinel || !box) return () => undefined
-    const scroller = UISticky.scrollContainer(this.host)
-    const observer = new IntersectionObserver(() => this.measure(scroller, config), {
-      root: scroller ?? this.host.ownerDocument,
-      rootMargin: `${-config.offset}px 0px ${-config.bottomOffset}px 0px`,
-      threshold: [0, 1]
-    })
-    for (const target of [topSentinel, bottomSentinel, box]) observer.observe(target)
-    return () => observer.disconnect()
-  }
-
-  /** Work out the edge and `bound` from where the sentinels and the box are now. */
-  private measure(scroller: Element | null, { offset, bottomOffset, pushing }: StickyConfig) {
-    const { topSentinel, bottomSentinel, box } = this
-    if (!topSentinel || !bottomSentinel || !box) return
-    const area = UISticky.area(scroller, this.host.ownerDocument)
-    const topLine = area.top + offset
-    const bottomLine = area.bottom - bottomOffset
-    const boxRect = box.getBoundingClientRect()
-    let edge: UIT.StickyEdge | null = null
-    let bound = false
-    if (topSentinel.getBoundingClientRect().top < topLine - SLACK) {
-      if (boxRect.top < topLine - SLACK) bound = true
-      else edge = TOP
-    } else if (pushing && bottomSentinel.getBoundingClientRect().top > bottomLine + SLACK) {
-      if (boxRect.bottom > bottomLine + SLACK) bound = true
-      else edge = BOTTOM
-    }
-    this.report(edge, bound)
+    return this.watch.observe({ host: this.host, top: topSentinel, bottom: bottomSentinel, box }, config)
   }
 
   /** Publish `edge` / `bound`, firing `ui-unstick` then `ui-stick` on a change. */
-  private report(edge: UIT.StickyEdge | null, bound: boolean) {
+  private report({ edge, bound, previous }: StickyWatchState) {
     this.bound.set(bound)
-    const previous = this.stuckTo
     if (edge === previous) return
-    this.stuckTo = edge
     this.edge.set(edge)
     if (previous) {
       const detail: UIT.StickyDetail = { edge: previous }
@@ -159,27 +144,5 @@ export class UISticky extends UIElement<StickyVocabulary> {
       const detail: UIT.StickyDetail = { edge }
       this.emit("ui-stick", detail)
     }
-  }
-
-  /** The visible area of `scroller` (its padding box), else of the document's viewport. */
-  private static area(scroller: Element | null, document: Document): { top: number; bottom: number } {
-    if (!scroller) return { top: 0, bottom: document.documentElement.clientHeight }
-    const top = scroller.getBoundingClientRect().top + scroller.clientTop
-    return { top, bottom: top + scroller.clientHeight }
-  }
-
-  /**
-   * Nearest ancestor that scrolls (clips) its content, across shadow roots:  the box sticks in it.  `null` for the
-   * document's own scrolling.
-   */
-  private static scrollContainer(element: Element): Element | null {
-    let current: Element | null = element
-    while (current) {
-      const parent: Element | null = current.parentElement ?? ((current.getRootNode() as ShadowRoot).host || null)
-      if (!parent || parent === document.body || parent === document.documentElement) return null
-      if (SCROLLING.has(getComputedStyle(parent).overflowY)) return parent
-      current = parent
-    }
-    return null
   }
 }

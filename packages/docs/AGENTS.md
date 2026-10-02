@@ -34,8 +34,18 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
 - Pages open straight from disk (`file://`):  no server, no ES modules -- hence the one classic bundle.
 - The runtime builds the page from plain markup:
   - contents sidebar:  sticky right column, expandable per section, follows the scroll;  a drawer on narrow screens.
-    Built at load from `main` h2 / h3 / h4 -- NEVER hand-write a contents list.
-  - sticky h2 / h3 headers, from `section.s2` / `section.s3` wrapping `<ui-sticky class="spell-h2|spell-h3">`
+    Built at load from `main` h2 / h3 / h4 -- NEVER hand-write a contents list, or a "Contents" button.
+  - the rail:  a strip of the h2s' icons at the right edge, the contents button (bars) on top, shown while the
+    contents column isn't (narrow screens, or hidden by its button:  remembered for every page).  Give every h2 a
+    `<ui-icon>`:  without one, the rail shows its number
+  - sticky h2 / h3 headers, from `section.s2` / `section.s3` wrapping `<ui-sticky class="spell-h2|spell-h3">`;  an
+    optional sticky page header above them, `<ui-sticky class="spell-h1"><header class="spell-page-head">` around
+    the h1 (plan docs have one)
+  - folding:  every h2 / h3 section folds from a chevron on its heading;  folds are remembered per page,
+    `data-fold="closed"` on a section starts it folded
+  - counts:  a section holding `[data-status]` items shows `open/all` at its h2's right and the open count as a badge
+    in the contents and the rail (open:  any status but `done` or `decided`)
+  - links to any id in `main` land below the stuck headers, unfolding what hides the target and opening its panel
   - code colors (highlight.js from cdnjs)
 - Headings:
   - one `h1`;  numbered `h2` per major section (`2. Read-after-write`), each with a stable `id` -- other docs link

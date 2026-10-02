@@ -146,6 +146,66 @@ describe("<ui-sticky> stuck state", () => {
   })
 })
 
+describe("<ui-sticky> reserves its room on the scroll container", () => {
+  it("sets scroll-padding-top to its bottom edge while stuck, and removes it once unstuck", async () => {
+    const { scroller, host } = await frame()
+    expect(scroller.style.scrollPaddingTop).toBe("")
+    scroller.scrollTop = 150
+    await expect.poll(() => host.matches(":state(stuck)")).toBe(true)
+    // offset 10 + 40px of content
+    await expect.poll(() => scroller.style.scrollPaddingTop).toBe("50px")
+    scroller.scrollTop = 0
+    await expect.poll(() => scroller.style.scrollPaddingTop).toBe("")
+  })
+
+  it("takes the lowest edge of several stuck stickies", async () => {
+    const scroller = await ElementFixture.render(
+      `<div style="height: 200px; overflow: auto"><div style="height: 100px"></div><div style="height: 900px">` +
+        `<ui-sticky id="a"><p style="height: 30px; margin: 0">A</p></ui-sticky>` +
+        `<div style="height: 50px"></div>` +
+        `<ui-sticky id="b" offset="30"><p style="height: 20px; margin: 0">B</p></ui-sticky>` +
+        `</div><div style="height: 800px"></div></div>`
+    )
+    const hosts = Array.from(scroller.querySelectorAll<UIHost>("ui-sticky"))
+    for (const host of hosts) await ElementFixture.settle(host)
+    scroller.scrollTop = 300
+    await expect.poll(() => hosts.every((host) => host.matches(":state(stuck)"))).toBe(true)
+    await expect.poll(() => scroller.style.scrollPaddingTop).toBe("50px")
+  })
+
+  it("reserves nothing for a box taller than half the visible area (a sticky column)", async () => {
+    const { scroller, host } = await frame()
+    host.querySelector("p")!.style.height = "120px"
+    scroller.scrollTop = 150
+    await expect.poll(() => host.matches(":state(stuck)")).toBe(true)
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(scroller.style.scrollPaddingTop).toBe("")
+  })
+
+  it("reserves nothing for a box narrower than half the visible width (a sidebar)", async () => {
+    const { scroller, host } = await frame()
+    // the box fills its parent:  a narrow parent is a narrow column
+    host.parentElement!.style.width = "40%"
+    scroller.scrollTop = 150
+    await expect.poll(() => host.matches(":state(stuck)")).toBe(true)
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    expect(scroller.style.scrollPaddingTop).toBe("")
+  })
+
+  it("sets scroll-padding-bottom while pushing at the bottom edge", async () => {
+    const scroller = await ElementFixture.render(
+      `<div style="height: 200px; overflow: auto"><div style="height: 1400px">` +
+        `<div style="height: 400px"></div>` +
+        `<ui-sticky pushing bottom-offset="5"><p style="height: 40px; margin: 0">S</p></ui-sticky>` +
+        `</div></div>`
+    )
+    const host = scroller.querySelector<UIHost>("ui-sticky")!
+    await ElementFixture.settle(host)
+    await expect.poll(() => host.matches(":state(stuck)")).toBe(true)
+    await expect.poll(() => scroller.style.scrollPaddingBottom).toBe("45px")
+  })
+})
+
 describe("<ui-sticky> tokens from outside", () => {
   /** The inner box's z index. */
   function measure(host: Element): string {

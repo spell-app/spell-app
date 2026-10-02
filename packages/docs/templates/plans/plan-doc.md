@@ -16,19 +16,30 @@ How to write and update `plans/<name>/<name>.html`, the live doc behind a `/plan
 - NEVER delete an item:  close it (`yarn plan-doc close`), and it stays, struck through.
 - Keep the doc current as you go:  a caveat, issue or decision found mid-phase goes in NOW, not at the end.
 
+## Page header
+
+The h1 sits in a sticky header, `<ui-sticky class="spell-h1"><header class="spell-page-head">`, with the step
+label at its right (`.plan-step`, written by the script):  the active phase (orange), else `DONE` (green) once every
+phase is, else the next phase (grey).
+
 ## Sections (ids are fixed)
 
 | Section | id | What |
 |---|---|---|
-| 1. Plan | `#plan` | 2-sentence summary (`p.plan-summary`), progress bar, then the phase list (`.plan-phases`) |
-| 2. Questions | `#questions` | waiting on the user;  each also asked with AskUserQuestion |
-| 3. Overview | `#overview` | the plan's substance in numbered h3s (`#o1` "3.1 Structure" ...):  becomes durable docs |
+| 1. Overview | `#overview` | 2-sentence summary (`p.plan-summary lede`), the prompt that started the plan (`blockquote.plan-prompt`), then the substance in numbered h3s (`#o1` "1.1 Structure" ...):  becomes durable docs |
+| 2. Phases | `#phases` | progress bar, then one h3 per phase (`#p1` ...):  goal, files, verify |
+| 3. Questions & Decisions | `#decisions` | open questions first (waiting on the user;  each also asked with AskUserQuestion), then what was decided and why:  settled unless new facts arrive.  `decide` answers a question:  the decision goes at the end, the struck question just above it |
 | 4. Caveats | `#caveats` | limits and risks we accept |
-| 5. Issues | `#issues` | problems found, open until fixed |
-| 6. Todos | `#todos` | later work that isn't a caveat or an issue |
-| 7. Decisions | `#decisions` | what was decided and why:  settled unless new facts arrive |
-| 8. Phases | `#phases` | one h3 per phase (`#p1` ...):  goal, decisions, files, verify |
-| 9. Log | `#log` | one-liners of plan changes, stamped with local date and time |
+| 5. Todos | `#todos` | later work that isn't a caveat or an issue |
+| 6. Issues | `#issues` | problems found, open until fixed |
+| 7. Log | `#log` | one-liners of plan changes, stamped with local date and time |
+
+- Every h2 / h3 section folds (the page runtime adds a chevron;  the reader's folds are remembered per page).
+- A section with items shows `open/all` at its h2's right, and its open count as a badge in the contents and the
+  rail.  Open:  any `data-status` but `done` and `decided`, so "Questions & Decisions" counts the questions waiting.
+- Docs made before 2026-10-01 had a `#plan` section (summary + phase list), a separate `#questions` and another
+  order:  `yarn plan-doc migrate <name>` brings one up to date (an answered question moves beside the decision whose
+  title names it, `(Q8)`).
 
 ## Ids:  short, so they're easy to say in chat
 
@@ -38,49 +49,57 @@ How to write and update `plans/<name>/<name>.html`, the live doc behind a `/plan
 
 ## Markup the script writes
 
-Phase list entry (in `#plan`'s `<ui-steps class="plan-phases" vertical ordered>`):
+Step label (in the page header's `.plan-step`):
 
 ```html
-<ui-step data-phase="2" data-status="active" href="#p2" header="P2 · Short Name" selected></ui-step>
+<ui-label basic color="orange" icon="circle half stroke" href="#p2">P2 · Short Name</ui-label>
 ```
 
-- status:  `active` -> `selected`, `done` -> `completed` (its number becomes a check)
-- above the list, `<ui-progress class="plan-progress">`:  `value` = phases done, `total` = all phases, `hidden`
-  while there are none
-- the phase's h3 carries a status icon:  `todo` -> `circle outline` grey, `active` -> `circle half stroke` orange,
-  `done` -> `circle check` green;  it shows in the contents sidebar too
-- docs made before 2026-10-01 have `<ul class="plan-phases">` of `<li data-phase data-status>` with the same icon
-  and a link;  the script still edits those
-
-Phase section (in `#phases`):
+Phase section (in `#phases`, after `<ui-progress class="plan-progress">`:  `value` = phases done, `total` = all,
+`hidden` while there are none):
 
 ```html
 <section class="s3" data-phase="2" data-status="active">
   <ui-sticky class="spell-h3"
     ><h3 id="p2"><ui-icon name="circle half stroke" color="orange"></ui-icon> P2 · Short Name</h3></ui-sticky
   >
-  <ul class="plan-phase-body">
-    <li><b>Goal:</b>  one line</li>
-    <li><b>Files:</b>  what changes</li>
-    <li><b>Verify:</b>  how we know it worked</li>
-  </ul>
+  <ui-list class="plan-phase-body">
+    <ui-item icon="bullseye"><b>Goal:</b>  one line</ui-item>
+    <ui-item icon="folder"><b>Files:</b>  what changes</ui-item>
+    <ui-item icon="flask"><b>Verify:</b>  how we know it worked</ui-item>
+  </ui-list>
 </section>
 ```
 
-Item (in any `ol.plan-items`):
+- the h3's status icon:  `todo` -> `circle outline` grey, `active` -> `circle half stroke` orange, `done` ->
+  `circle check` green;  it shows in the contents sidebar too
+- `data-fold="closed"`:  starts folded.  Setting a phase `done` folds every OTHER done phase:  the one finished last
+  stays open
+
+Item (in any `ui-list.plan-items`):
 
 ```html
-<li id="c3" data-status="open">
-  <a class="plan-id" href="#c3">C3</a> <span class="plan-title">One line</span>
-  <ui-accordion class="spell-aside" styled>
-    <ui-title>details</ui-title>
-    <ui-content>...</ui-content>
-  </ui-accordion>
-</li>
+<ui-item id="c3" data-status="open"><a class="plan-id" href="#c3">C3</a> <span class="plan-title">One line</span></ui-item>
 ```
 
-- `data-status="done"`:  struck through, never removed
+With details, the item's line IS the panel's title (it opens on a click, or on a link to `#c3`):
+
+```html
+<ui-item id="c3" data-status="open">
+  <ui-accordion class="plan-item">
+    <ui-title><a class="plan-id" href="#c3">C3</a> <span class="plan-title">One line</span></ui-title>
+    <ui-content>...</ui-content>
+  </ui-accordion>
+</ui-item>
+```
+
+- `data-status`:  `open` (questions, caveats, issues, todos), `decided` (a decision in force), `done` (struck
+  through, never removed:  fixed, answered, or a superseded decision)
+- an answered question:  `<a class="plan-answer" href="#d7">→ D7</a>` after its title;  its decision's title ends in
+  `(<a href="#q3">Q3</a>)` and its details say what was asked
 - details are optional;  they start collapsed
+- docs made before 2026-10-01 have `ol.plan-items` of `<li>`s with a "details" panel, and a phase list under
+  `#plan`;  the script still edits those, and `migrate` converts them
 
 Log line (in `#log`'s `<ui-feed class="plan-log">`;  a `<ul>` of `<time>` + text before 2026-10-01):
 
@@ -90,7 +109,14 @@ Log line (in `#log`'s `<ui-feed class="plan-log">`;  a `<ul>` of `<time>` + text
 </ui-event>
 ```
 
-Each section's h2 carries an icon (`map`, `circle question`, `lightbulb` ...):  keep it when editing a heading.
+Each section's h2 carries an icon (`lightbulb`, `layer group`, `circle question` ...):  keep it when editing a
+heading.  It is also the section's entry in the rail.
+
+Prompt (in `#overview`, after the summary;  `new --prompt` / `prompt` write it, escaped):
+
+```html
+<blockquote class="plan-prompt"><p>first paragraph<br>next line</p><p>second paragraph</p></blockquote>
+```
 
 ## UPDATE markers
 
@@ -134,12 +160,15 @@ decide from WITHOUT asking back:  in the item's details, or an Overview `h3` the
 
 | Command | Does |
 |---|---|
-| `new <name> [--title "..."]` | copy the template to `plans/<name>/<name>.html`, fill it, update the docs index |
+| `new <name> [--title "..."] [--prompt "..." \| --prompt-file <path>]` | copy the template to `plans/<name>/<name>.html`, fill it (the prompt that started the plan goes in the Overview), update the docs index |
 | `add-phase <name> "Short Name" [--goal ...] [--files ...] [--verify ...]` | append a phase to the list and to `#phases` |
 | `phase <name> <N> todo\|active\|done [--no-open]` | set a phase's status;  `done` removes its UPDATE markers;  reloads the doc's VS Code tab |
 | `add <name> question\|caveat\|issue\|todo\|decision "<title>" [--details "<html>"]` | append an item, print its id |
 | `close <name> <id>` / `reopen <name> <id>` | strike / unstrike an item |
+| `decide <name> <Q id> "<decision>" [--details "<html>"]` | answer a question:  a new decision (prints its id), the question struck and moved just above it |
 | `log <name> "<text>"` | add a timestamped line to the log |
+| `prompt <name> "<text>"` / `prompt <name> --file <path>` | set (replace) the prompt quoted in the Overview;  `""` removes it |
+| `migrate <name>` | bring a doc made before 2026-10-01 into this layout (prints what changed;  "already current" otherwise) |
 | `summary <name> [--json]` | open questions, issues, caveats, todos, and the next phase |
 | `check <name>` | ids unique, every `#id` link resolves, every phase has a status, then `check-spell.js` |
 | `open <name>` | show the doc rendered in VS Code (Simple Browser, beside the editor), reusing its tab and reloading it;  needs the spell extension (`yarn vscode`) |

@@ -9,10 +9,10 @@ First public version:  Fomantic UI 2.9.4's vocabulary as `ui-*` custom elements 
 
 ### Added
 
-- **53 component families**, each with its vocabulary, a full CSS port of Fomantic's `.less` / `.variables`, a native
+- **54 component families**, each with its vocabulary, a full CSS port of Fomantic's `.less` / `.variables`, a native
   (no-Solid) fallback, class-grammar and element examples, and a docs page:
   - elements:  button, container, divider, emoji, flag, icon, image, input, label, list, loader, parts (header,
-    content, meta, description, extra ...), placeholder, rail, reveal, segment, step, text
+    content, meta, description, extra ...), placeholder, rail, reveal, section, segment, step, text
   - collections:  breadcrumb, form, grid, menu, message, table
   - views:  ad, card, comment, feed, item / items, statistic
   - modules:  accordion, calendar, checkbox / radio / toggle, dimmer, dropdown, embed, flyout, modal, nag, popup,
@@ -36,6 +36,12 @@ First public version:  Fomantic UI 2.9.4's vocabulary as `ui-*` custom elements 
 - Emoji names are CLDR shortcodes (words joined any way:  `thumbs up`, `thumbsUp`);  a page opts in to Fomantic's names
   with `<ui-emoji-set names="fomantic">`.
 - Sidebar and flyout `width` take Fomantic's words (`very thin` ... `very wide`) and columns / fractions / %.
+- `<ui-section>` (ours, not Fomantic's):  a titled section with a real heading (`level`, default one below the
+  enclosing section's), icon, badge and actions;  `collapsible` (controlled `collapsed`, cancelable `ui-open` /
+  `ui-close`, find-in-page unfolds it) and `sticky` titles that stack when nested;  Fomantic's segment, header and
+  styled-accordion looks (`dividing`, `block`, `bordered`, `styled` ...).
+- `<ui-sticky>` reserves its room while stuck:  the scroll container's `scroll-padding-top` / `-bottom`, so Page Down,
+  Space, focus and `scrollIntoView()` keep content out from under it (not for sticky columns, e.g. a rail's).
 - Container scrolling height per breakpoint:  `--ui-container-scrolling-height-{tablet,computer,widescreen}`.
 - Works from any framework or plain HTML;  checked with vanilla, React 19, Vue 3, Solid 2 and Solid 1.9 hosts
   (`yarn smoke`), server-rendered to Declarative Shadow DOM, and hot-reloaded in Vite.

@@ -1,0 +1,168 @@
+<!--
+  Section types, after Fomantic's header / segment / accordion docs.
+  Light-DOM markup in the class grammar `ui-section.css` styles inside `<ui-section>`'s shadow root:  the title
+  bar (`header.title` > `hN.heading` > `.toggle`, then the badge and actions), the subhead and the content.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Section</h4>
+    <section class="ui section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"><span class="header">Getting started</span></span>
+        </h2>
+      </header>
+      <div class="content">
+        <p>A titled block of content. Its title is a real heading: an <code>h2</code> at the top level.</p>
+      </div>
+    </section>
+  </section>
+
+  <section>
+    <h4>Dividing</h4>
+    <section class="ui dividing section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"><span class="header">Installation</span></span>
+        </h2>
+      </header>
+      <div class="content"><p>A rule under the title.</p></div>
+    </section>
+  </section>
+
+  <section>
+    <h4>Block</h4>
+    <section class="ui block section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"><span class="header">Configuration</span></span>
+        </h2>
+      </header>
+      <div class="content"><p>The title bar sits in a tinted box.</p></div>
+    </section>
+  </section>
+
+  <section>
+    <h4>Bordered</h4>
+    <section class="ui bordered section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"><span class="header">Options</span></span>
+        </h2>
+      </header>
+      <div class="content"><p>A box around the whole section, as a segment.</p></div>
+    </section>
+    <section class="ui bordered raised section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"><span class="header">Raised options</span></span>
+        </h2>
+      </header>
+      <div class="content"><p>Lifted with a shadow.</p></div>
+    </section>
+  </section>
+
+  <section>
+    <h4>Styled</h4>
+    <section class="ui styled section">
+      <header class="title">
+        <h2 class="heading">
+          <button type="button" class="toggle" aria-expanded="true" aria-controls="section-styled-content">
+            <span class="fold icon"
+              ><svg viewBox="0 0 448 512" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M201.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 338.7 54.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"
+                /></svg></span
+            ><span class="header">Frequently asked</span>
+          </button>
+        </h2>
+      </header>
+      <div id="section-styled-content" class="content">
+        <p>Boxed as a styled accordion: a tinted title bar over padded content.</p>
+      </div>
+    </section>
+  </section>
+
+  <section>
+    <h4>Collapsible</h4>
+    <section class="ui dividing section">
+      <header class="title">
+        <h2 class="heading">
+          <button type="button" class="toggle" aria-expanded="true" aria-controls="section-open-content">
+            <span class="fold icon"
+              ><svg viewBox="0 0 448 512" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M201.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 338.7 54.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"
+                /></svg></span
+            ><span class="header">Open by default</span>
+          </button>
+        </h2>
+      </header>
+      <div id="section-open-content" class="content"><p>The title is a button that folds the content away.</p></div>
+    </section>
+    <section class="ui dividing section">
+      <header class="title">
+        <h2 class="heading">
+          <button type="button" class="toggle" aria-expanded="false" aria-controls="section-folded-content">
+            <span class="fold icon"
+              ><svg viewBox="0 0 448 512" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M201.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L224 338.7 54.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z"
+                /></svg></span
+            ><span class="header">Folded</span>
+          </button>
+        </h2>
+      </header>
+      <div id="section-folded-content" class="content" hidden="until-found">
+        <p>Only the title shows until it is unfolded, or find-in-page matches this text.</p>
+      </div>
+    </section>
+  </section>
+
+  <section>
+    <h4>Nested</h4>
+    <section class="ui dividing section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"><span class="header">Guide</span></span>
+        </h2>
+      </header>
+      <div class="content">
+        <p>Each nested section's heading is one level below its parent's.</p>
+        <section class="ui section">
+          <header class="title">
+            <h3 class="heading">
+              <span class="toggle"><span class="header">Chapter one</span></span>
+            </h3>
+          </header>
+          <div class="content">
+            <p>An <code>h3</code>.</p>
+            <section class="ui section">
+              <header class="title">
+                <h4 class="heading">
+                  <span class="toggle"><span class="header">Part A</span></span>
+                </h4>
+              </header>
+              <div class="content">
+                <p>An <code>h4</code>.</p>
+              </div>
+            </section>
+          </div>
+        </section>
+        <section class="ui section">
+          <header class="title">
+            <h3 class="heading">
+              <span class="toggle"><span class="header">Chapter two</span></span>
+            </h3>
+          </header>
+          <div class="content">
+            <p>Another <code>h3</code>.</p>
+          </div>
+        </section>
+      </div>
+    </section>
+  </section>
+</div>

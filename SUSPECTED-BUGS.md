@@ -295,6 +295,11 @@ every entry below that date was fixed or disproven;  what's left:
 - `src/components/ui-label/ui-label.css`:  a plain CLASS-GRAMMAR `.ui.label` inside a coloured ancestor still takes the
   ancestor's colour (Fomantic doesn't);  `<ui-label>` elements are fixed (host reset).  (2026-10-01)
 
+- `src/components/ui-menu/ui-menu.css` / `ui-item.css`:  `<ui-item icon="lightbulb">` with no text, inside
+  `<ui-menu vertical text>` (with or without `icon`), draws its `<svg>` 0 x 0:  the `.icon` box and the svg both
+  compute `width` / `height` `0px`, though the svg's rule says `height: 1em`.  Seen in the docs rail
+  (`packages/docs/_assets/spell-doc-runtime.js` `buildRail()`, which now slots a `<ui-icon>` instead).  Prove:  that
+  markup in a menu example, measure the svg.  (2026-10-01)
 - `src/styles/utilities.css` ~line 439:  `.ui-prose :where(ul, ol)` comes after `.ui-list-plain` with the same
   specificity, so a plain list inside prose keeps its 1.5em indent.  The docs' `/components/` index works around it
   with `ui-not-prose`.  (2026-10-01)
@@ -330,6 +335,3 @@ every entry below that date was fixed or disproven;  what's left:
   `<Project>.scopes.js` or `--against <ref>` become bogus `<project>` / `<ref>` elements (oxfmt then indents them as
   tags).  Escape them as text -- or document that they're HTML, as `--details` is.  Prove:
   `yarn plan-doc add-phase x "A" --goal "write <Project>.js"`, then look at the `#p1` body.
-- `_assets/plan-doc.css` `.plan-phase-body`:  a long token with no break, e.g.
-  `cli/src/commands/{watch,explore,compile,run}Command.ts(x),`, overflows at phone width (`check-spell.js`:
-  "116px horizontal scroll").  `overflow-wrap: anywhere` there would let the script's plain-text phase lines wrap.

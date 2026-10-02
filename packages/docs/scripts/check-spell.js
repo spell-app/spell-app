@@ -199,7 +199,8 @@ function scrollToMiddleSection() {
  * Whether h2 `id` sits at the top of the viewport, and which contents link is active.
  * - stuck:  its top is within 160px of the viewport top -- room for a sticky bar above it, e.g. CHEATSHEET's
  *   filter -- AND it's what shows at its own middle.  Scrolled mid-section, an h2 that DIDN'T stick is far above;
- *   one stuck but covered, e.g. by an h3 sticking at the same offset, doesn't count.
+ *   one stuck but covered, e.g. by an h3 sticking at the same offset, doesn't count.  One its short section's end
+ *   pushed out (`:state(bound)`) does:  it stuck, then left with its section.
  * - active:  a selected `ui-item`, or a title `<a class="active">`
  */
 function stuckAndActive(id) {
@@ -212,8 +213,15 @@ function stuckAndActive(id) {
     "#spell-toc ui-item[selected]:not([selected=false]), #spell-toc ui-item.selected, #spell-toc a.active"
   )
   const covering = shown?.closest("h1, h2, h3, h4, [id]")
+  // a short section's end pushes its h2 out (`:state(bound)`), under whatever sticks above it:  sticky works
+  let bound = false
+  try {
+    bound = !!h2?.parentElement?.matches("ui-sticky:state(bound)")
+  } catch {
+    // a browser without custom states:  judge by position alone
+  }
   return {
-    stuck: !!rect && rect.top >= -2 && rect.top <= 160 && shown?.closest("h2")?.id === id,
+    stuck: bound || (!!rect && rect.top >= -2 && rect.top <= 160 && shown?.closest("h2")?.id === id),
     top: rect && Math.round(rect.top),
     covering: covering && `${covering.localName}#${covering.id}`,
     active: active?.textContent.trim()

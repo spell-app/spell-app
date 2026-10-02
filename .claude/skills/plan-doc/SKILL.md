@@ -39,8 +39,12 @@ the whole time.  The plan doc is the user's view of the work:  they read it in a
   - no `node_modules/` at the root:  `yarn install`
   - no `packages/docs/scripts/plan-doc.js`:  the worktree's base predates `packages/docs` (it branches from
     `origin/main`).  STOP and tell the user:  merge or push `packages/docs` first, or set `worktree.baseRef: head`.
-- New doc:  `yarn plan-doc new <name> --title "<Title>"`.  Then `yarn plan-doc open <name>`:  rendered in VS Code's Simple
-  Browser, beside the editor (one tab, reloaded on every later `open`).  Needs the spell extension (`yarn vscode`).
+- New doc:  `yarn plan-doc new <name> --title "<Title>" --prompt-file <file>`, `<file>` holding the user's message
+  that kicked off the plan, verbatim (write it to the scratchpad first:  it may hold quotes and newlines).  It's
+  quoted at the top of the Overview.  Reusing a doc whose prompt is missing:  `yarn plan-doc prompt <name> --file
+  <file>`;  a doc from before 2026-10-01:  `yarn plan-doc migrate <name>` first.
+- Then `yarn plan-doc open <name>`:  rendered in VS Code's Simple Browser, beside the editor (one tab, reloaded on
+  every later `open`).  Needs the spell extension (`yarn vscode`).
 
 ## 3. Plan
 
@@ -58,7 +62,7 @@ the whole time.  The plan doc is the user's view of the work:  they read it in a
 
 - `yarn plan-doc add-phase <name> "Short Name" --goal "..." --files "..." --verify "..."` per phase, in order
 - `yarn plan-doc add <name> decision|caveat|issue|todo|question "title" [--details "<p>...</p>"]` per item
-- Hand-write `p.plan-summary` and the Overview's `h3`s (`#o1` "3.1 ...", `#o2` ...):  code in folded
+- Hand-write `p.plan-summary` and the Overview's `h3`s (`#o1` "1.1 ...", `#o2` ...):  code in folded
   `ui-accordion.spell-code`, digressions in collapsed `ui-accordion.spell-aside`, links to items and phases
   (`<a href="#d2">D2</a>`)
 - `yarn plan-doc check <name>`, then `yarn plan-doc open <name>` (new stage:  reload)
@@ -82,7 +86,8 @@ the whole time.  The plan doc is the user's view of the work:  they read it in a
    - the top open issue(s):  "Fix I<n>:  <title>"
    - a caveat or todo worth acting on now
    - "Stop here"
-   Questions the user must answer also go in the doc (`add ... question`);  close them once answered.
+   Questions the user must answer also go in the doc (`add ... question`);  once answered,
+   `decide <name> Q3 "what was decided"` (never `close`:  `decide` records the answer beside the question).
 6. Explain every question and every issue the user must weigh in on WITH EXAMPLES, in the doc (rules:
    `plan-doc.md`, "Explaining a question or issue"), so the user can decide from the doc alone:  define each coined
    word in plain language ("stacking", "nudge"), show the real code / markup it's about, compare many values in a
@@ -102,12 +107,15 @@ the whole time.  The plan doc is the user's view of the work:  they read it in a
 ## Cheat sheet (`yarn plan-doc ...`, from anywhere in the repo)
 
 ```
-new <name> [--title "Title"]                        create from the template, update the docs index
+new <name> [--title "Title"] [--prompt "..." | --prompt-file f]   create from the template, update the docs index
 add-phase <name> "Short Name" [--goal ..] [--files ..] [--verify ..]
 phase <name> <N> todo|active|done [--no-open]       done drops UPDATE markers;  reloads the VS Code tab
 add <name> question|caveat|issue|todo|decision "title" [--details "<p>html</p>"]   prints the id (C3)
+decide <name> <Q id> "decision" [--details html]   answer a question:  prints the decision's id (D7)
 close <name> <id>  /  reopen <name> <id>            strike / unstrike, never delete
 log <name> "text"                                   timestamped line in the doc's log
+prompt <name> "text" | --file f                     set the prompt quoted in the Overview
+migrate <name>                                      a doc from before 2026-10-01 into the current layout
 summary <name> [--json]                             phases, next phase, open questions/issues/caveats/todos
 check <name> [--no-browser]                         ids, links, phases, then the browser check
 open <name>                                         show in VS Code, beside the editor, reusing its tab

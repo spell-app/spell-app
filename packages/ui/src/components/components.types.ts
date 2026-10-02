@@ -836,6 +836,16 @@ export type AccordionPanel = {
   content?: Element
 }
 
+/** `detail` of the cancelable `ui-open` / `ui-close`, from a `<ui-section>`. */
+export type SectionToggleDetail = {
+  /** state the section is ABOUT to enter:  `true` unfolding */
+  open: boolean
+  /** the `<ui-section>` host */
+  section: Element
+  /** the click / key event on the toggle;  none for a browser-made change (find-in-page) */
+  originalEvent?: Event
+}
+
 /** `detail` of the cancelable `ui-open` / `ui-close`, from a `<ui-accordion>`. */
 export type AccordionToggleDetail = {
   /** panel index (0-based) */

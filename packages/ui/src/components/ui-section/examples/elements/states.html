@@ -1,0 +1,23 @@
+<!-- `src/components/ui-section/examples/states.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Collapsed</h4>
+    <ui-section header="Details" icon="circle question" collapsible collapsed bordered>
+      <p>Folded: only the title shows.</p>
+    </ui-section>
+  </section>
+
+  <section>
+    <h4>Loading</h4>
+    <ui-section header="Results" icon="bullseye" loading bordered>
+      <p>Dimmed under a spinner while busy.</p>
+    </ui-section>
+  </section>
+
+  <section>
+    <h4>Disabled</h4>
+    <ui-section header="Archived" collapsible disabled dividing>
+      <p>Dimmed and inert: it can't be folded.</p>
+    </ui-section>
+  </section>
+</div>

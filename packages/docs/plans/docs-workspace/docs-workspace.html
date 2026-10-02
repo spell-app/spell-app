@@ -11,56 +11,31 @@
   <body class="spell-doc-page plan-doc" data-plan="docs-workspace">
     <div class="spell-doc">
       <main class="spell-doc-main">
-        <h1>Docs workspace + /plan-doc</h1>
+        <ui-sticky class="spell-h1"
+          ><header class="spell-page-head">
+            <h1>Docs workspace + /plan-doc</h1>
+            <span class="plan-step"><ui-label color="green" icon="check">DONE</ui-label></span>
+          </header></ui-sticky
+        >
         <ul class="plan-meta">
           <li>Plan doc for <code>/plan-doc docs-workspace</code>, branch <code>docs-workspace</code></li>
           <li>
             Worktree: <a href="../../../../" target="src-"><code>/Users/owen/www/spell-app/spell-app</code></a>
           </li>
-          <li>Started <time id="plan-started">2026-09-30</time>, updated <time id="plan-updated">2026-09-30</time></li>
+          <li>Started <time id="plan-started">2026-09-30</time>, updated <time id="plan-updated">2026-10-01</time></li>
         </ul>
 
         <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="plan">1. Plan</h2></ui-sticky>
-          <p class="plan-summary">
+          <ui-sticky class="spell-h2"><h2 id="overview">1. Overview</h2></ui-sticky>
+          <p class="plan-summary lede">
             Move every doc into a <a href="../../" target="src-packages-docs"><code>packages/docs</code></a> workspace
             of hand-authored <code>.html</code> pages on @spell-app/ui, with templates and a docs index. Then add
             <code>/plan-doc &lt;name&gt;</code>: each planning session keeps a live plan doc like this one, built and
             kept current by <code>yarn plan-doc</code>.
           </p>
-          <ul class="plan-phases">
-            <li data-status="done" data-phase="1">
-              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p1">P1 · Docs Workspace</a>
-            </li>
-            <li data-status="done" data-phase="2">
-              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p2">P2 · Runtime + Index</a>
-            </li>
-            <li data-status="done" data-phase="3">
-              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p3">P3 · Doc Templates</a>
-            </li>
-            <li data-status="done" data-phase="4">
-              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p4">P4 · Plan Script</a>
-            </li>
-            <li data-status="done" data-phase="5">
-              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p5">P5 · Skill Write</a>
-            </li>
-            <li data-status="done" data-phase="6">
-              <ui-icon name="circle check" color="green"></ui-icon> <a href="#p6">P6 · Doc Review</a>
-            </li>
-          </ul>
-        </section>
-
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="questions">2. Questions</h2></ui-sticky>
-          <p class="meta">Waiting on the user. Each is also asked in Claude Code.</p>
-          <ol class="plan-items" data-kind="question"></ol>
-        </section>
-
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="overview">3. Overview</h2></ui-sticky>
           <p>What exists after this plan. Becomes durable docs in <a href="#p6">P6</a>.</p>
           <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="o1">3.1 Structure</h3></ui-sticky>
+            <ui-sticky class="spell-h3"><h3 id="o1">1.1 Structure</h3></ui-sticky>
             <ul>
               <li>
                 <a href="../../" target="src-packages-docs"><code>packages/docs/</code></a>
@@ -86,7 +61,7 @@
             </ul>
           </section>
           <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="o2">3.2 How a page works</h3></ui-sticky>
+            <ui-sticky class="spell-h3"><h3 id="o2">1.2 How a page works</h3></ui-sticky>
             <ul>
               <li>Opens from <code>file://</code>: no server, so ONE classic script, no ES modules.</li>
               <li>
@@ -114,7 +89,7 @@
             </ui-accordion>
           </section>
           <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="o3">3.3 A /plan-doc session</h3></ui-sticky>
+            <ui-sticky class="spell-h3"><h3 id="o3">1.3 A /plan-doc session</h3></ui-sticky>
             <ol>
               <li>Name check: reuse an existing doc or folder, or pick another name.</li>
               <li>Worktree <code>&lt;name&gt;</code>, then <code>yarn plan-doc new</code> + <code>open</code>.</li>
@@ -135,205 +110,35 @@
             </ui-accordion>
           </section>
         </section>
-
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="caveats">4. Caveats</h2></ui-sticky>
-          <ol class="plan-items" data-kind="caveat">
-            <li data-status="open" id="c1">
-              <a class="plan-id" href="#c1">C1</a>
-              <span class="plan-title">A skill can't rename the session or VS Code tab: ask user to run /rename</span>
-            </li>
-            <li data-status="open" id="c2">
-              <a class="plan-id" href="#c2">C2</a>
-              <span class="plan-title"
-                >EnterWorktree branches from origin/main: unpushed work isn't in the plan worktree</span
-              >
-            </li>
-            <li data-status="open" id="c3">
-              <a class="plan-id" href="#c3">C3</a>
-              <span class="plan-title">Hand-authored pages lost the converter's self-check</span
-              ><ui-accordion class="spell-aside" styled
-                ><ui-title>details</ui-title
-                ><ui-content
-                  ><p>
-                    <code>doc-links.py --check</code>,
-                    <a href="../../scripts/check-spell.js" target="src-packages-docs-scripts-check-spell-js"
-                      ><code>check-spell.js</code></a
-                    >
-                    and <code>plan-doc check</code> cover most of it.
-                  </p></ui-content
-                ></ui-accordion
-              >
-            </li>
-            <li data-status="open" id="c4">
-              <a class="plan-id" href="#c4">C4</a>
-              <span class="plan-title">Each plan-doc command takes ~1s (yarn + oxfmt)</span>
-            </li>
-            <li data-status="open" id="c5">
-              <a class="plan-id" href="#c5">C5</a>
-              <span class="plan-title"
-                >oxfmt collapses double spaces in HTML text: house two-space style doesn't survive in pages</span
-              >
-            </li>
-            <li data-status="open" id="c6">
-              <a class="plan-id" href="#c6">C6</a>
-              <span class="plan-title"
-                >A plan doc lives in its worktree: the main docs index lists it only after merge</span
-              >
-            </li>
-          </ol>
-        </section>
-
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="issues">5. Issues</h2></ui-sticky>
-          <ol class="plan-items" data-kind="issue">
-            <li data-status="open" id="i1">
-              <a class="plan-id" href="#i1">I1</a>
-              <span class="plan-title">Empty accordion pairs still show an expand arrow</span
-              ><ui-accordion class="spell-aside" styled
-                ><ui-title>details</ui-title
-                ><ui-content><p>spell-ui-findings #17. Cosmetic.</p></ui-content></ui-accordion
-              >
-            </li>
-            <li data-status="done" id="i2">
-              <a class="plan-id" href="#i2">I2</a>
-              <span class="plan-title">Dry run: a top-level durable page broke (template assumes one folder deep)</span>
-            </li>
-          </ol>
-        </section>
-
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="todos">6. Todos</h2></ui-sticky>
-          <p class="meta">For later: not caveats, not issues.</p>
-          <ol class="plan-items" data-kind="todo">
-            <li data-status="open" id="t1">
-              <a class="plan-id" href="#t1">T1</a>
-              <span class="plan-title">Tests for index.js (idempotence, grouping)</span>
-            </li>
-            <li data-status="open" id="t2">
-              <a class="plan-id" href="#t2">T2</a>
-              <span class="plan-title">Consider a docs dev server with live reload instead of AppleScript reloads</span>
-            </li>
-          </ol>
-        </section>
-
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="decisions">7. Decisions</h2></ui-sticky>
-          <p class="meta">What was decided, and why. Settled: don't re-argue without new facts.</p>
-          <ol class="plan-items" data-kind="decision">
-            <li data-status="open" id="d1">
-              <a class="plan-id" href="#d1">D1</a>
-              <span class="plan-title">packages/docs workspace holds docs, tooling, experiments</span
-              ><ui-accordion class="spell-aside" styled
-                ><ui-title>details</ui-title
-                ><ui-content
-                  ><p>
-                    Own deps (playwright, esbuild, oxfmt, linkedom); top of the dependency chain, like <code>cli</code>.
-                    Experiments import any package through the <code>#</code> aliases.
-                  </p></ui-content
-                ></ui-accordion
-              >
-            </li>
-            <li data-status="open" id="d2">
-              <a class="plan-id" href="#d2">D2</a>
-              <span class="plan-title"
-                >All docs hand-authored ui-* HTML; the .html -&gt; .spell.html converter retired</span
-              ><ui-accordion class="spell-aside" styled
-                ><ui-title>details</ui-title
-                ><ui-content
-                  ><p>
-                    User deleted the 3 <code>.html</code> sources. <code>to-spell.mjs</code>, <code>doc.css</code>,
-                    <code>doc.js</code> gone.
-                  </p></ui-content
-                ></ui-accordion
-              >
-            </li>
-            <li data-status="open" id="d3">
-              <a class="plan-id" href="#d3">D3</a>
-              <span class="plan-title">Contents sidebar built at load from headings, never hand-written</span>
-            </li>
-            <li data-status="open" id="d4">
-              <a class="plan-id" href="#d4">D4</a>
-              <span class="plan-title">/plan-doc uses real plan mode; plan doc filled after ExitPlanMode</span
-              ><ui-accordion class="spell-aside" styled
-                ><ui-title>details</ui-title
-                ><ui-content
-                  ><p>
-                    Plan mode only allows editing the harness plan file, so the doc can't be written during planning.
-                  </p></ui-content
-                ></ui-accordion
-              >
-            </li>
-            <li data-status="open" id="d5">
-              <a class="plan-id" href="#d5">D5</a>
-              <span class="plan-title">Chrome; AppleScript reuses one tab per doc</span>
-            </li>
-            <li data-status="open" id="d6">
-              <a class="plan-id" href="#d6">D6</a>
-              <span class="plan-title"
-                >UPDATE marker: ui-message for prose, ui-label for items, class plan-update + data-phase</span
-              ><ui-accordion class="spell-aside" styled
-                ><ui-title>details</ui-title
-                ><ui-content
-                  ><p>
-                    No <code>&lt;ui-alert&gt;</code> in @spell-app/ui. <code>phase N done</code> strips them.
-                  </p></ui-content
-                ></ui-accordion
-              >
-            </li>
-            <li data-status="open" id="d7">
-              <a class="plan-id" href="#d7">D7</a>
-              <span class="plan-title">Scripts .js, not .mjs; experiments keep their names</span>
-            </li>
-            <li data-status="open" id="d8">
-              <a class="plan-id" href="#d8">D8</a>
-              <span class="plan-title">Style caveman lite; lists bulleted, or numbered when order matters</span>
-            </li>
-            <li data-status="open" id="d9">
-              <a class="plan-id" href="#d9">D9</a>
-              <span class="plan-title">'Transgressions' read as digressions: collapsed ui-accordion.spell-aside</span>
-            </li>
-            <li data-status="open" id="d10">
-              <a class="plan-id" href="#d10">D10</a>
-              <span class="plan-title">Reload the plan doc's tab at every stage change; 'phase' does it itself</span>
-            </li>
-            <li data-status="open" id="d11">
-              <a class="plan-id" href="#d11">D11</a>
-              <span class="plan-title"
-                >Pages are plain .html; the docs root is index.html, so the browser opens it for the folder</span
-              >
-            </li>
-          </ol>
-        </section>
-
         <section class="s2" id="phases-section">
-          <ui-sticky class="spell-h2"><h2 id="phases">8. Phases</h2></ui-sticky>
+          <ui-sticky class="spell-h2"><h2 id="phases">2. Phases</h2></ui-sticky>
           <p class="meta">One section per phase: goal, decisions, files, how to verify.</p>
-          <section data-status="done" data-phase="1" class="s3">
+          <section data-fold="closed" data-status="done" data-phase="1" class="s3">
             <ui-sticky class="spell-h3"
               ><h3 id="p1"><ui-icon name="circle check" color="green"></ui-icon> P1 · Docs Workspace</h3></ui-sticky
             >
-            <ul class="plan-phase-body">
-              <li>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye">
                 <b>Goal:</b> docs, tooling, experiments move into
                 <a href="../../" target="src-packages-docs"><code>packages/docs</code></a
-                >, kebab-case
-              </li>
-              <li>
+                >, kebab-case </ui-item
+              ><ui-item icon="folder">
                 <b>Files:</b> <code>packages/docs/**</code>, root
                 <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a
-                >, <a href="../../../../README.md" target="src-readme-md"><code>README.md</code></a>
-              </li>
-              <li><b>Verify:</b> <code>doc-links.py --check</code> clean; experiments run</li>
-            </ul>
+                >, <a href="../../../../README.md" target="src-readme-md"><code>README.md</code></a> </ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> <code>doc-links.py --check</code> clean; experiments run</ui-item
+              ></ui-list
+            >
           </section>
-          <section data-status="done" data-phase="2" class="s3">
+          <section data-fold="closed" data-status="done" data-phase="2" class="s3">
             <ui-sticky class="spell-h3"
               ><h3 id="p2"><ui-icon name="circle check" color="green"></ui-icon> P2 · Runtime + Index</h3></ui-sticky
             >
-            <ul class="plan-phase-body">
-              <li><b>Goal:</b> icons via <code>UI.icons.register()</code>; sidebar built at load; docs index</li>
-              <li>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> icons via <code>UI.icons.register()</code>; sidebar built at load; docs index</ui-item
+              ><ui-item icon="folder">
                 <b>Files:</b>
                 <a href="../../scripts/bundle-spell-ui.js" target="src-packages-docs-scripts-bundle-spell-ui-js"
                   ><code>scripts/bundle-spell-ui.js</code></a
@@ -343,77 +148,240 @@
                 >,
                 <a href="../../scripts/index.js" target="src-packages-docs-scripts-index-js"
                   ><code>scripts/index.js</code></a
-                >
-              </li>
-              <li><b>Verify:</b> <code>yarn docs:update</code> green</li>
-            </ul>
+                > </ui-item
+              ><ui-item icon="flask"><b>Verify:</b> <code>yarn docs:update</code> green</ui-item></ui-list
+            >
           </section>
-          <section data-status="done" data-phase="3" class="s3">
+          <section data-fold="closed" data-status="done" data-phase="3" class="s3">
             <ui-sticky class="spell-h3"
               ><h3 id="p3"><ui-icon name="circle check" color="green"></ui-icon> P3 · Doc Templates</h3></ui-sticky
             >
-            <ul class="plan-phase-body">
-              <li><b>Goal:</b> durable, cheat sheet and plan templates</li>
-              <li><b>Files:</b> <code>templates/**</code></li>
-              <li>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"><b>Goal:</b> durable, cheat sheet and plan templates</ui-item
+              ><ui-item icon="folder"><b>Files:</b> <code>templates/**</code></ui-item
+              ><ui-item icon="flask">
                 <b>Verify:</b> templates pass
                 <a href="../../scripts/check-spell.js" target="src-packages-docs-scripts-check-spell-js"
                   ><code>check-spell.js</code></a
                 >, listed in index
-              </li>
-            </ul>
+              </ui-item></ui-list
+            >
           </section>
-          <section data-status="done" data-phase="4" class="s3">
+          <section data-fold="closed" data-status="done" data-phase="4" class="s3">
             <ui-sticky class="spell-h3"
               ><h3 id="p4"><ui-icon name="circle check" color="green"></ui-icon> P4 · Plan Script</h3></ui-sticky
             >
-            <ul class="plan-phase-body">
-              <li><b>Goal:</b> <code>yarn plan-doc</code> edits plan docs safely</li>
-              <li>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"><b>Goal:</b> <code>yarn plan-doc</code> edits plan docs safely</ui-item
+              ><ui-item icon="folder">
                 <b>Files:</b>
                 <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
                   ><code>scripts/plan-doc.js</code></a
                 >,
                 <a href="../../scripts/plan-doc.test.js" target="src-packages-docs-scripts-plan-doc-test-js"
                   ><code>scripts/plan-doc.test.js</code></a
-                >
-              </li>
-              <li><b>Verify:</b> vitest; this doc built with it</li>
-            </ul>
+                > </ui-item
+              ><ui-item icon="flask"><b>Verify:</b> vitest; this doc built with it</ui-item></ui-list
+            >
           </section>
-          <section data-status="done" data-phase="5" class="s3">
+          <section data-fold="closed" data-status="done" data-phase="5" class="s3">
             <ui-sticky class="spell-h3"
               ><h3 id="p5"><ui-icon name="circle check" color="green"></ui-icon> P5 · Skill Write</h3></ui-sticky
             >
-            <ul class="plan-phase-body">
-              <li><b>Goal:</b> <code>/plan-doc &lt;name&gt;</code> skill</li>
-              <li>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"><b>Goal:</b> <code>/plan-doc &lt;name&gt;</code> skill</ui-item
+              ><ui-item icon="folder">
                 <b>Files:</b>
                 <a href="../../../../.claude/skills/plan-doc/SKILL.md" target="src-claude-skills-plan-doc-skill-md"
                   ><code>.claude/skills/plan-doc/SKILL.md</code></a
-                >
-              </li>
-              <li><b>Verify:</b> skill loads, steps match script</li>
-            </ul>
+                > </ui-item
+              ><ui-item icon="flask"><b>Verify:</b> skill loads, steps match script</ui-item></ui-list
+            >
           </section>
           <section data-status="done" data-phase="6" class="s3">
             <ui-sticky class="spell-h3"
               ><h3 id="p6"><ui-icon name="circle check" color="green"></ui-icon> P6 · Doc Review</h3></ui-sticky
             >
-            <ul class="plan-phase-body">
-              <li><b>Goal:</b> dry run; turn this plan doc into durable docs</li>
-              <li>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"><b>Goal:</b> dry run; turn this plan doc into durable docs</ui-item
+              ><ui-item icon="folder">
                 <b>Files:</b>
                 <a href="../../spell-docs/" target="src-packages-docs-spell-docs"><code>spell-docs/</code></a
-                >, this doc
-              </li>
-              <li><b>Verify:</b> dry run end to end</li>
-            </ul>
+                >, this doc </ui-item
+              ><ui-item icon="flask"><b>Verify:</b> dry run end to end</ui-item></ui-list
+            >
           </section>
         </section>
-
         <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="log">9. Log</h2></ui-sticky>
+          <ui-sticky class="spell-h2"><h2 id="decisions">3. Questions &amp; Decisions</h2></ui-sticky>
+          <p class="meta">
+            Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why:
+            settled, don't re-argue without new facts. An answered question sits just above its decision.
+          </p>
+          <ui-list relaxed divided data-kind="decision" class="plan-items"
+            ><ui-item id="d1" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d1">D1</a>
+                  <span class="plan-title">packages/docs workspace holds docs, tooling, experiments</span></ui-title
+                ><ui-content
+                  ><p>
+                    Own deps (playwright, esbuild, oxfmt, linkedom); top of the dependency chain, like <code>cli</code>.
+                    Experiments import any package through the <code>#</code> aliases.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d2" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d2">D2</a>
+                  <span class="plan-title"
+                    >All docs hand-authored ui-* HTML; the .html -&gt; .spell.html converter retired</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    User deleted the 3 <code>.html</code> sources. <code>to-spell.mjs</code>, <code>doc.css</code>,
+                    <code>doc.js</code> gone.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d3" data-status="decided"
+              ><a class="plan-id" href="#d3">D3</a>
+              <span class="plan-title">Contents sidebar built at load from headings, never hand-written</span></ui-item
+            ><ui-item id="d4" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d4">D4</a>
+                  <span class="plan-title"
+                    >/plan-doc uses real plan mode; plan doc filled after ExitPlanMode</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Plan mode only allows editing the harness plan file, so the doc can't be written during planning.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d5" data-status="decided"
+              ><a class="plan-id" href="#d5">D5</a>
+              <span class="plan-title">Chrome; AppleScript reuses one tab per doc</span></ui-item
+            ><ui-item id="d6" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d6">D6</a>
+                  <span class="plan-title"
+                    >UPDATE marker: ui-message for prose, ui-label for items, class plan-update + data-phase</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    No <code>&lt;ui-alert&gt;</code> in @spell-app/ui. <code>phase N done</code> strips them.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d7" data-status="decided"
+              ><a class="plan-id" href="#d7">D7</a>
+              <span class="plan-title">Scripts .js, not .mjs; experiments keep their names</span></ui-item
+            ><ui-item id="d8" data-status="decided"
+              ><a class="plan-id" href="#d8">D8</a>
+              <span class="plan-title"
+                >Style caveman lite; lists bulleted, or numbered when order matters</span
+              ></ui-item
+            ><ui-item id="d9" data-status="decided"
+              ><a class="plan-id" href="#d9">D9</a>
+              <span class="plan-title"
+                >'Transgressions' read as digressions: collapsed ui-accordion.spell-aside</span
+              ></ui-item
+            ><ui-item id="d10" data-status="decided"
+              ><a class="plan-id" href="#d10">D10</a>
+              <span class="plan-title"
+                >Reload the plan doc's tab at every stage change; 'phase' does it itself</span
+              ></ui-item
+            ><ui-item id="d11" data-status="decided"
+              ><a class="plan-id" href="#d11">D11</a>
+              <span class="plan-title"
+                >Pages are plain .html; the docs root is index.html, so the browser opens it for the folder</span
+              ></ui-item
+            ></ui-list
+          >
+        </section>
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="caveats">4. Caveats</h2></ui-sticky>
+          <ui-list relaxed divided data-kind="caveat" class="plan-items"
+            ><ui-item id="c1" data-status="open"
+              ><a class="plan-id" href="#c1">C1</a>
+              <span class="plan-title"
+                >A skill can't rename the session or VS Code tab: ask user to run /rename</span
+              ></ui-item
+            ><ui-item id="c2" data-status="open"
+              ><a class="plan-id" href="#c2">C2</a>
+              <span class="plan-title"
+                >EnterWorktree branches from origin/main: unpushed work isn't in the plan worktree</span
+              ></ui-item
+            ><ui-item id="c3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c3">C3</a>
+                  <span class="plan-title">Hand-authored pages lost the converter's self-check</span></ui-title
+                ><ui-content
+                  ><p>
+                    <code>doc-links.py --check</code>,
+                    <a href="../../scripts/check-spell.js" target="src-packages-docs-scripts-check-spell-js"
+                      ><code>check-spell.js</code></a
+                    >
+                    and <code>plan-doc check</code> cover most of it.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c4" data-status="open"
+              ><a class="plan-id" href="#c4">C4</a>
+              <span class="plan-title">Each plan-doc command takes ~1s (yarn + oxfmt)</span></ui-item
+            ><ui-item id="c5" data-status="open"
+              ><a class="plan-id" href="#c5">C5</a>
+              <span class="plan-title"
+                >oxfmt collapses double spaces in HTML text: house two-space style doesn't survive in pages</span
+              ></ui-item
+            ><ui-item id="c6" data-status="open"
+              ><a class="plan-id" href="#c6">C6</a>
+              <span class="plan-title"
+                >A plan doc lives in its worktree: the main docs index lists it only after merge</span
+              ></ui-item
+            ></ui-list
+          >
+        </section>
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="todos">5. Todos</h2></ui-sticky>
+          <p class="meta">For later: not caveats, not issues.</p>
+          <ui-list relaxed divided data-kind="todo" class="plan-items"
+            ><ui-item id="t1" data-status="open"
+              ><a class="plan-id" href="#t1">T1</a>
+              <span class="plan-title">Tests for index.js (idempotence, grouping)</span></ui-item
+            ><ui-item id="t2" data-status="open"
+              ><a class="plan-id" href="#t2">T2</a>
+              <span class="plan-title"
+                >Consider a docs dev server with live reload instead of AppleScript reloads</span
+              ></ui-item
+            ></ui-list
+          >
+        </section>
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="issues">6. Issues</h2></ui-sticky>
+          <ui-list relaxed divided data-kind="issue" class="plan-items"
+            ><ui-item id="i1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i1">I1</a>
+                  <span class="plan-title">Empty accordion pairs still show an expand arrow</span></ui-title
+                ><ui-content><p>spell-ui-findings #17. Cosmetic.</p></ui-content></ui-accordion
+              ></ui-item
+            ><ui-item id="i2" data-status="done"
+              ><a class="plan-id" href="#i2">I2</a>
+              <span class="plan-title"
+                >Dry run: a top-level durable page broke (template assumes one folder deep)</span
+              ></ui-item
+            ></ui-list
+          >
+        </section>
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="log">7. Log</h2></ui-sticky>
           <p class="meta">Plan changes, oldest first, local time.</p>
           <ul class="plan-log">
             <li><time>2026-09-30</time> plan doc created</li>

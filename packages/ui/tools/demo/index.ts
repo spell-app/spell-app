@@ -3,7 +3,7 @@
  * beside its element markup in `examples/elements/` -- button, dropdown, icon, label, parts, divider, segment,
  * container, grid, image, text, flag, loader, placeholder, message, breadcrumb, input, checkbox, form, list, menu, table,
  * popup, modal, transition, dimmer, flyout, sidebar, shape, card, items, feed, comment, statistic, step, rail, reveal,
- * ad, emoji, progress, rating, slider, accordion, tab, calendar.
+ * ad, emoji, progress, rating, slider, accordion, tab, calendar, section.
  * - The originals need the component sheets on the PAGE;  the runtime already puts the foundation there.
  * - `item` has no examples of its own:  its look is its owners' (`ui-list.css`, `ui-menu.css`, `ui-items.css`).
  * - The parts' own examples use `stub-*` owners (`StubOwner`) only where the real owner is a hidden overlay
@@ -69,6 +69,7 @@ import stickyCSS from "$/ui/components/ui-sticky/ui-sticky.css?inline"
 import visibilityCSS from "$/ui/components/ui-visibility/ui-visibility.css?inline"
 import embedCSS from "$/ui/components/ui-embed/ui-embed.css?inline"
 import calendarCSS from "$/ui/components/ui-calendar/ui-calendar.css?inline"
+import sectionCSS from "$/ui/components/ui-section/ui-section.css?inline"
 
 /** Original fragments, by path. */
 const ORIGINALS = import.meta.glob<string>("/src/components/*/examples/*.html", {
@@ -139,7 +140,8 @@ for (const [name, css] of Object.entries({
   sticky: stickyCSS,
   visibility: visibilityCSS,
   embed: embedCSS,
-  calendar: calendarCSS
+  calendar: calendarCSS,
+  section: sectionCSS
 })) {
   UI.styles.register(name, css, { page: true })
 }

@@ -1,8 +1,8 @@
 /**
  * `yarn plan-doc <command> <name> ...`:  edit the structured parts of a plan doc, `plans/<name>/<name>.html`.
  * Rules, ids and markup:  `templates/plans/plan-doc.md`.  Used by the `/plan-doc` skill and its agents.
- * - Commands:  `new`, `add-phase`, `phase`, `add`, `close`, `reopen`, `log`, `summary`, `check`, `open`
- *   (`node scripts/plan-doc.js` with no command lists them).
+ * - Commands:  `new`, `add-phase`, `phase`, `add`, `close`, `reopen`, `log`, `prompt`, `summary`, `check`,
+ *   `open`, `migrate` (`node scripts/plan-doc.js` with no command lists them).
  * - Every edit:  takes the doc's lock (parallel agents queue instead of clobbering each other), parses it with
  *   linkedom, changes it through `PlanDoc`, stamps "updated", writes it, then tidies it (link targets, oxfmt).
  * - `PlanDoc` is pure (a parsed document in, changes on it):  `plan-doc.test.js` drives it directly.
@@ -26,17 +26,42 @@ export const STATUS = {
   done: { icon: "circle check", color: "green" }
 }
 
-/** Item kind -> its id prefix (`c3`) and the section its list lives in. */
+/**
+ * Item kind -> its id prefix (`c3`), the list it lives in (`.plan-items[data-kind=list]`) and its status while it
+ * counts:  a question waits (`open`), a decision is in force (`decided`) -- only `open` items are "open" in the
+ * section's count.
+ * - questions share the decisions' list since 2026-10-01:  open questions first, an answered one just before the
+ *   decision that answers it.  Docs not yet migrated still have their own question list.
+ */
 export const KINDS = {
-  question: { prefix: "q", section: "questions" },
-  caveat: { prefix: "c", section: "caveats" },
-  issue: { prefix: "i", section: "issues" },
-  todo: { prefix: "t", section: "todos" },
-  decision: { prefix: "d", section: "decisions" }
+  question: { prefix: "q", list: "decision", live: "open" },
+  caveat: { prefix: "c", list: "caveat", live: "open" },
+  issue: { prefix: "i", list: "issue", live: "open" },
+  todo: { prefix: "t", list: "todo", live: "open" },
+  decision: { prefix: "d", list: "decision", live: "decided" }
 }
 
 /** Kinds `summary` reports while open, in the order a reader should act on them. */
 const OPEN_KINDS = ["question", "issue", "caveat", "todo"]
+
+/**
+ * The sections, in page order, by their h2's id:  `migrate` puts an older doc's sections in this order and
+ * renumbers their headings.  `#plan` (summary + phase list) was dropped on 2026-10-01, and `#questions` merged into
+ * `#decisions` ("Questions & Decisions").
+ */
+const SECTION_ORDER = ["overview", "phases", "decisions", "caveats", "todos", "issues", "log"]
+
+/** The note under "Questions & Decisions" (the template's, which `migrate` writes into older docs). */
+const DECISIONS_NOTE =
+  "Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why: settled, " +
+  "don't re-argue without new facts. An answered question sits just above its decision."
+
+/** A phase body's fields:  label and icon. */
+const PHASE_FIELDS = [
+  ["Goal", "bullseye"],
+  ["Files", "folder"],
+  ["Verify", "flask"]
+]
 
 ////////////////
 // ## PlanDoc
@@ -79,15 +104,14 @@ export class PlanDoc {
   ////////////////
 
   /**
-   * Every phase, in order:  `{ n, name, status }`.
-   * - the list is `<ui-steps class="plan-phases">` of `<ui-step header>`s;  docs made before 2026-10-01 have
-   *   `<ul class="plan-phases">` of `<li>`s with a link
+   * Every phase, in order:  `{ n, name, status }`, from the phase sections in `#phases`.
+   * - docs not yet migrated also have a phase LIST (`.plan-phases`) under `#plan`:  `check()` keeps the two in step
    */
   get phases() {
-    return Array.from(this.document.querySelectorAll(".plan-phases > [data-phase]"), (entry) => ({
-      n: Number(entry.getAttribute("data-phase")),
-      name: phaseName(entry.getAttribute("header") ?? entry.querySelector("a")?.textContent ?? ""),
-      status: entry.getAttribute("data-status") ?? "todo"
+    return Array.from(this.document.querySelectorAll("#phases-section section[data-phase]"), (section) => ({
+      n: Number(section.getAttribute("data-phase")),
+      name: phaseName(section.querySelector("h3")?.textContent ?? ""),
+      status: section.getAttribute("data-status") ?? "todo"
     }))
   }
 
@@ -101,61 +125,104 @@ export class PlanDoc {
    * - `goal` / `files` / `verify`:  its body's bullets, as HTML;  omitted ones get a placeholder to fill in
    */
   addPhase(name, { goal, files, verify } = {}) {
-    const list = this.require(".plan-phases")
     const section = this.require("#phases-section")
     const n = this.phases.length + 1
     const label = `P${n} · ${name}`
-    if (list.localName === "ui-steps") {
-      list.append(this.element("ui-step", { "data-phase": n, "data-status": "todo", href: `#p${n}`, header: label }))
-    } else {
-      const li = this.element("li", { "data-phase": n, "data-status": "todo" })
-      li.innerHTML = `${icon("todo")} <a href="#p${n}">${text(label)}</a>`
-      list.append(li)
-    }
-    const body = [
-      ["Goal", goal],
-      ["Files", files],
-      ["Verify", verify]
-    ].map(([field, html]) => `<li><b>${field}:</b>  ${html ?? "TBD"}</li>`)
+    this.addOldListEntry(n, label)
+    const values = { Goal: goal, Files: files, Verify: verify }
+    const body = PHASE_FIELDS.map(
+      ([field, glyph]) => `<ui-item icon="${glyph}"><b>${field}:</b>  ${values[field] ?? "TBD"}</ui-item>`
+    )
     const phase = this.element("section", { class: "s3", "data-phase": n, "data-status": "todo" })
     phase.innerHTML = `<ui-sticky class="spell-h3"><h3 id="p${n}">${icon("todo")} ${text(label)}</h3></ui-sticky>
-<ul class="plan-phase-body">${body.join("")}</ul>`
+<ui-list class="plan-phase-body">${body.join("")}</ui-list>`
     section.append(phase)
     this.updateProgress()
     return n
   }
 
+  /** A doc not yet migrated keeps its phase list under `#plan` in step:  append phase `n` to it. */
+  addOldListEntry(n, label) {
+    const list = this.document.querySelector(".plan-phases")
+    if (!list) return
+    if (list.localName === "ui-steps") {
+      list.append(this.element("ui-step", { "data-phase": n, "data-status": "todo", href: `#p${n}`, header: label }))
+      return
+    }
+    const li = this.element("li", { "data-phase": n, "data-status": "todo" })
+    li.innerHTML = `${icon("todo")} <a href="#p${n}">${text(label)}</a>`
+    list.append(li)
+  }
+
   /**
-   * Set phase `n` to `status` (`todo` / `active` / `done`), in the list and on its heading.
+   * Set phase `n` to `status` (`todo` / `active` / `done`), on its section and heading (and an old doc's list).
    * - `done` removes the phase's UPDATE markers:  once it's finished, its changes are just the plan
+   * - `done` also folds every OTHER done phase (`data-fold="closed"`, read by the page runtime):  the phase just
+   *   finished stays open, the older ones get out of the way
    * - SIDE EFFECT:  logs the change
    */
   setPhase(n, status) {
     if (!STATUS[status]) throw new PlanDocError(`status must be ${Object.keys(STATUS).join(" / ")}, not "${status}"`)
-    const entry = this.require(`.plan-phases > [data-phase="${n}"]`)
-    const section = this.document.querySelector(`#phases-section section[data-phase="${n}"]`)
+    const section = this.require(`#phases-section section[data-phase="${n}"]`)
+    const entry = this.document.querySelector(`.plan-phases > [data-phase="${n}"]`)
     for (const node of [entry, section]) {
       if (!node) continue
       node.setAttribute("data-status", status)
       node.querySelector("ui-icon")?.replaceWith(this.fragment(icon(status)))
     }
-    if (entry.localName === "ui-step") {
+    if (entry?.localName === "ui-step") {
       toggle(entry, "selected", status === "active")
       toggle(entry, "completed", status === "done")
     }
-    if (status === "done") for (const marker of this.updateMarkers(n)) marker.remove()
+    if (status === "done") {
+      for (const marker of this.updateMarkers(n)) marker.remove()
+      this.foldDonePhases(n)
+    } else section.removeAttribute("data-fold")
     this.updateProgress()
     this.log(`P${n} ${status}`)
   }
 
-  /** The phases' progress bar (`ui-progress.plan-progress`, if the doc has one):  done of all, hidden while none. */
+  /** Fold every done phase but `latest` (the one finished last), which unfolds. */
+  foldDonePhases(latest) {
+    for (const section of this.document.querySelectorAll("#phases-section section[data-phase]")) {
+      const n = Number(section.getAttribute("data-phase"))
+      const fold = n !== latest && section.getAttribute("data-status") === "done"
+      if (fold) section.setAttribute("data-fold", "closed")
+      else section.removeAttribute("data-fold")
+    }
+  }
+
+  /**
+   * The phases' progress bar (`ui-progress.plan-progress`):  done of all, hidden while none.  Then the header's
+   * step label (`updateStep()`).
+   */
   updateProgress() {
     const bar = this.document.querySelector("ui-progress.plan-progress")
-    if (!bar) return
     const phases = this.phases
-    bar.setAttribute("value", String(phases.filter((phase) => phase.status === "done").length))
-    bar.setAttribute("total", String(phases.length))
-    toggle(bar, "hidden", phases.length === 0)
+    if (bar) {
+      bar.setAttribute("value", String(phases.filter((phase) => phase.status === "done").length))
+      bar.setAttribute("total", String(phases.length))
+      toggle(bar, "hidden", phases.length === 0)
+    }
+    this.updateStep()
+  }
+
+  /**
+   * The step label in the sticky page header (`.plan-step`):  where the plan is, at a glance.
+   * - the active phase (orange, links to it);  else "DONE" (green) once every phase is;  else the next one (grey)
+   * - hidden while there are no phases
+   */
+  updateStep() {
+    const step = this.document.querySelector(".plan-step")
+    if (!step) return
+    const phases = this.phases
+    const active = phases.find((phase) => phase.status === "active")
+    const next = phases.find((phase) => phase.status === "todo")
+    toggle(step, "hidden", phases.length === 0)
+    if (!phases.length) step.innerHTML = ""
+    else if (active) step.innerHTML = stepLabel(active, "orange", "circle half stroke", "")
+    else if (!next) step.innerHTML = `<ui-label color="green" icon="check">DONE</ui-label>`
+    else step.innerHTML = stepLabel(next, "grey", "circle outline", "next:  ")
   }
 
   /** UPDATE markers of phase `n`. */
@@ -168,51 +235,118 @@ export class PlanDoc {
   ////////////////
 
   /**
-   * Append a `kind` item titled `title`;  returns its id (`c3`).
-   * - `details`:  HTML for a collapsed "details" panel
+   * Add a `kind` item titled `title`;  returns its id (`c3`).
+   * - `details`:  HTML for a collapsed panel whose TITLE is the item's line (id + title):  the line opens it
+   * - `titleHTML`:  `title` is HTML, not text (`decide()`'s link back to its question)
+   * - a question in the shared list goes after the open questions at its top;  everything else at the end
    * - while a phase is active, the item gets that phase's UPDATE label
    */
-  addItem(kind, title, { details } = {}) {
+  addItem(kind, title, { details, titleHTML = false } = {}) {
     const spec = KINDS[kind]
     if (!spec) throw new PlanDocError(`kind must be ${Object.keys(KINDS).join(" / ")}, not "${kind}"`)
-    const list = this.require(`ol.plan-items[data-kind="${kind}"]`)
-    const taken = Array.from(list.children, (li) => Number(li.id.slice(spec.prefix.length)) || 0)
-    const id = `${spec.prefix}${Math.max(0, ...taken) + 1}`
-    const li = this.element("li", { id, "data-status": "open" })
-    li.innerHTML =
-      `<a class="plan-id" href="#${id}">${id.toUpperCase()}</a> <span class="plan-title">${text(title)}</span>` +
-      (details
-        ? `<ui-accordion class="spell-aside" styled><ui-title>details</ui-title><ui-content>${details}</ui-content></ui-accordion>`
-        : "")
-    list.append(li)
-    this.markUpdate(li)
+    const list = this.listOf(kind)
+    const id = `${spec.prefix}${Math.max(0, ...this.items(kind).map((item) => idNumber(item.id))) + 1}`
+    const item = this.element(list.localName === "ol" ? "li" : "ui-item", { id, "data-status": spec.live })
+    const label = titleHTML ? title : text(title)
+    const line = `<a class="plan-id" href="#${id}">${id.toUpperCase()}</a> <span class="plan-title">${label}</span>`
+    item.innerHTML = details
+      ? `<ui-accordion class="plan-item"><ui-title>${line}</ui-title><ui-content>${details}</ui-content></ui-accordion>`
+      : line
+    const shared = list.getAttribute("data-kind") !== kind
+    if (kind === "question" && shared) {
+      const last = this.openQuestions(list).at(-1)
+      if (last) last.after(item)
+      else list.prepend(item)
+    } else list.append(item)
+    this.markUpdate(item)
     return id
   }
 
-  /** Set item `id` open or done;  done items stay, struck through.  Returns its title. */
+  /**
+   * Answer question `questionId` with a decision titled `title`;  returns the decision's id (`d7`).
+   * - the decision goes at the end, its title ending in a link back (`(Q3)`), its details saying what was asked
+   * - the question closes (struck through), gets a link on to the decision (`-> D7`) and moves to just before it,
+   *   so each answered question sits with its answer
+   */
+  decide(questionId, title, { details } = {}) {
+    const question = this.item(questionId)
+    if (!question.id.startsWith(KINDS.question.prefix)) throw new PlanDocError(`${questionId} isn't a question`)
+    const asked = question.querySelector(".plan-title")?.textContent.trim() ?? ""
+    const q = question.id.toUpperCase()
+    const html = (details ?? "") + `<p class="meta">Answers <a href="#${question.id}">${q}</a>:  ${text(asked)}</p>`
+    const id = this.addItem("decision", `${text(title)} (<a href="#${question.id}">${q}</a>)`, {
+      details: html,
+      titleHTML: true
+    })
+    const decision = this.document.getElementById(id)
+    question.setAttribute("data-status", "done")
+    const line = question.querySelector(":scope > ui-accordion > ui-title") ?? question
+    const onward = this.fragment(` <a class="plan-answer" href="#${id}">→ ${id.toUpperCase()}</a>`)
+    line.querySelector(":scope > .plan-title").after(onward)
+    if (question.parentElement === decision.parentElement) decision.before(question)
+    return id
+  }
+
+  /**
+   * Set item `id` open or done;  done items stay, struck through.  Returns its title.
+   * - "open" means the kind's live status:  a reopened decision is `decided` again
+   */
   setItem(id, status) {
     if (status !== "open" && status !== "done") throw new PlanDocError(`item status must be open / done`)
-    const li = this.document.getElementById(id.toLowerCase())
-    if (!li?.closest("ol.plan-items")) throw new PlanDocError(`no item "${id}"`)
-    li.setAttribute("data-status", status)
-    this.markUpdate(li)
-    return li.querySelector(".plan-title")?.textContent ?? id
+    const item = this.item(id)
+    const kind = Object.values(KINDS).find((spec) => new RegExp(`^${spec.prefix}\\d+$`).test(item.id))
+    item.setAttribute("data-status", status === "open" ? (kind?.live ?? "open") : "done")
+    this.markUpdate(item)
+    return item.querySelector(".plan-title")?.textContent.trim() ?? id
+  }
+
+  /** The item with `id` (any case);  throws when there's none. */
+  item(id) {
+    const item = this.document.getElementById(String(id).toLowerCase())
+    if (!item?.parentElement?.matches(".plan-items")) throw new PlanDocError(`no item "${id}"`)
+    return item
   }
 
   /** Items of `kind`, in order:  `{ id, title, status }`. */
   items(kind) {
-    return Array.from(this.document.querySelectorAll(`ol.plan-items[data-kind="${kind}"] > li`), (li) => ({
-      id: li.id,
-      title: li.querySelector(".plan-title")?.textContent.trim() ?? "",
-      status: li.getAttribute("data-status") ?? "open"
-    }))
+    const pattern = new RegExp(`^${KINDS[kind].prefix}\\d+$`)
+    return Array.from(this.listOf(kind).children)
+      .filter((item) => pattern.test(item.id))
+      .map((item) => ({
+        id: item.id,
+        title: item.querySelector(".plan-title")?.textContent.trim() ?? "",
+        status: item.getAttribute("data-status") ?? "open"
+      }))
   }
 
-  /** While a phase is active, flag `li` as changed in it (once). */
-  markUpdate(li) {
+  /** The list `kind`'s items live in:  its own (a doc not yet migrated), else the one it shares. */
+  listOf(kind) {
+    const spec = KINDS[kind]
+    return (
+      this.document.querySelector(`.plan-items[data-kind="${kind}"]`) ??
+      this.require(`.plan-items[data-kind="${spec.list}"]`)
+    )
+  }
+
+  /** The open questions at the top of `list`, in order. */
+  openQuestions(list) {
+    const run = []
+    for (const item of list.children) {
+      if (!/^q\d+$/.test(item.id) || item.getAttribute("data-status") !== "open") break
+      run.push(item)
+    }
+    return run
+  }
+
+  /**
+   * While a phase is active, flag `item` as changed in it (once).
+   * - the label goes on the item's line:  in its panel's title when it has details
+   */
+  markUpdate(item) {
     const n = this.activePhase
-    if (!n || li.querySelector(":scope > .plan-update")) return
-    li.append(
+    const line = item.querySelector(":scope > ui-accordion > ui-title") ?? item
+    if (!n || line.querySelector(":scope > .plan-update")) return
+    line.append(
       this.fragment(` <ui-label class="plan-update" size="mini" color="orange" data-phase="${n}">UPDATE</ui-label>`)
     )
   }
@@ -263,6 +397,213 @@ export class PlanDoc {
   }
 
   /**
+   * Set the prompt that started the plan:  a `blockquote.plan-prompt` near the top of the Overview, one `<p>` per
+   * paragraph (blank lines split them, single newlines become `<br>`).  Replaces any earlier one;  "" removes it.
+   */
+  setPrompt(prompt) {
+    const quote = this.document.querySelector("blockquote.plan-prompt")
+    const html = promptHTML(prompt)
+    if (!html) return quote?.remove()
+    if (quote) {
+      quote.innerHTML = html
+      return
+    }
+    const added = this.element("blockquote", { class: "plan-prompt" })
+    added.innerHTML = html
+    const overview = this.require("#overview").closest("section")
+    const after = overview.querySelector(":scope > .plan-summary") ?? overview.querySelector(":scope > ui-sticky")
+    after.after(added)
+  }
+
+  ////////////////
+  // ## Migrate
+  ////////////////
+
+  /**
+   * Bring a doc made before 2026-10-01's layout change up to date;  returns what changed, as lines (none:  already
+   * current).
+   * - `#plan` goes:  its summary moves to the top of the Overview, its progress bar to `#phases`, its phase list away
+   * - sections in `SECTION_ORDER`, h2s renumbered, and the Overview's h3 / h4 numbers with them (`3.1` -> `1.1`)
+   * - the h1 goes into the sticky page header, with the step label
+   * - item lists become `ui-list`s of `ui-item`s;  an item's "details" panel takes the item's line as its title
+   * - phase bodies become `ui-list`s with an icon per field;  every done phase but the last folds
+   * - links to `#plan` go to `#overview`
+   */
+  migrate() {
+    const changes = []
+    if (this.migrateHeader()) changes.push("h1 in the sticky page header, with the step label")
+    if (this.migratePlanSection()) changes.push("#plan dropped:  summary to Overview, progress bar to Phases")
+    if (this.orderSections()) changes.push(`sections ordered ${SECTION_ORDER.join(", ")}, renumbered`)
+    const items = this.migrateItems()
+    if (items) changes.push(`${items} items as ui-item, details titled by their line`)
+    changes.push(...this.mergeQuestions())
+    const bodies = this.migratePhaseBodies()
+    if (bodies) changes.push(`${bodies} phase bodies as ui-list`)
+    const done = this.phases.filter((phase) => phase.status === "done")
+    if (done.length && !this.document.querySelector("#phases-section section[data-fold]")) {
+      this.foldDonePhases(done.at(-1).n)
+      if (done.length > 1) changes.push(`${done.length - 1} done phases folded`)
+    }
+    this.updateProgress()
+    return changes
+  }
+
+  /** The h1 into `<ui-sticky class="spell-h1"><header class="spell-page-head">` with a `.plan-step`;  done? */
+  migrateHeader() {
+    const h1 = this.document.querySelector("main h1")
+    if (!h1 || h1.closest("ui-sticky")) return false
+    const sticky = this.element("ui-sticky", { class: "spell-h1" })
+    const header = this.element("header", { class: "spell-page-head" })
+    h1.replaceWith(sticky)
+    sticky.append(header)
+    header.append(h1, this.element("span", { class: "plan-step", hidden: "" }))
+    return true
+  }
+
+  /** Drop `#plan`:  summary to the Overview's top, progress bar to `#phases`;  done? */
+  migratePlanSection() {
+    const plan = this.document.getElementById("plan")?.closest("section")
+    if (!plan) return false
+    const overview = this.require("#overview").closest("section")
+    const summary = plan.querySelector(".plan-summary")
+    if (summary) {
+      summary.classList.add("lede")
+      overview.querySelector(":scope > ui-sticky").after(summary)
+    }
+    const bar = plan.querySelector("ui-progress.plan-progress")
+    if (bar) this.require("#phases-section > ui-sticky").after(bar)
+    plan.remove()
+    for (const link of this.document.querySelectorAll('a[href="#plan"]')) link.setAttribute("href", "#overview")
+    return true
+  }
+
+  /** Sections in `SECTION_ORDER`, each h2 numbered by its place, the Overview's sub-numbers too;  changed? */
+  orderSections() {
+    const sections = SECTION_ORDER.map((id) => this.document.getElementById(id)?.closest("section")).filter(Boolean)
+    if (!sections.length) return false
+    const before = sections.map((section) => section.outerHTML).join("")
+    const anchor = this.document.createComment("sections")
+    sections[0].before(anchor)
+    for (const section of sections) anchor.before(section)
+    anchor.remove()
+    sections.forEach((section, index) => {
+      const h2 = section.querySelector(":scope > ui-sticky > h2")
+      const old = renumber(h2, /^(\s*)\d+\./, `$1${index + 1}.`)
+      if (old === undefined) return
+      const sub = new RegExp(`^(\\s*)${old}\\.`)
+      for (const heading of section.querySelectorAll("h3, h4")) renumber(heading, sub, `$1${index + 1}.`)
+    })
+    return sections.map((section) => section.outerHTML).join("") !== before
+  }
+
+  /** `ol.plan-items` -> `ui-list`, `li` -> `ui-item`, "details" panels titled by the item's line;  how many items. */
+  migrateItems() {
+    let count = 0
+    for (const list of this.document.querySelectorAll("ol.plan-items")) {
+      const replacement = this.element("ui-list", {
+        class: "plan-items",
+        "data-kind": list.getAttribute("data-kind"),
+        divided: "",
+        relaxed: ""
+      })
+      for (const li of Array.from(list.children)) {
+        const item = this.element("ui-item")
+        for (const { name, value } of Array.from(li.attributes)) item.setAttribute(name, value)
+        // an item added to the old list since this script changed is already titled by its line
+        const aside = li.querySelector(":scope > ui-accordion:not(.plan-item)")
+        if (aside) {
+          aside.remove()
+          const content = aside.querySelector(":scope > ui-content")
+          const panel = this.element("ui-accordion", { class: "plan-item" })
+          const title = this.element("ui-title")
+          const body = this.element("ui-content")
+          title.append(...Array.from(li.childNodes))
+          if (content) body.append(...Array.from(content.childNodes))
+          panel.append(title, body)
+          item.append(panel)
+        } else item.append(...Array.from(li.childNodes))
+        trimWhitespace(item.querySelector(":scope > ui-accordion > ui-title") ?? item)
+        replacement.append(item)
+        count++
+      }
+      list.replaceWith(replacement)
+    }
+    return count
+  }
+
+  /**
+   * Questions into "Questions & Decisions";  returns what changed, as lines.
+   * - decisions in force become `decided` (they were `open`, which now means "waiting")
+   * - open questions go to the top of the decisions' list;  an answered one goes just before the decision whose
+   *   title names it (`(Q8)`), with a link on to it, else after the open ones
+   * - `#questions` goes;  links to it go to `#decisions`;  the h2 and its note say what the section holds now
+   */
+  mergeQuestions() {
+    const changes = []
+    const decisions = this.document.querySelector('ui-list.plan-items[data-kind="decision"]')
+    if (!decisions) return changes
+    let decided = 0
+    for (const item of decisions.children) {
+      if (!/^d\d+$/.test(item.id) || item.getAttribute("data-status") !== "open") continue
+      item.setAttribute("data-status", "decided")
+      decided++
+    }
+    if (decided) changes.push(`${decided} decisions marked decided`)
+    const section = this.document.getElementById("questions")?.closest("section")
+    if (!section) return changes
+    const questions = Array.from(section.querySelectorAll(".plan-items > [id]"))
+    const open = questions.filter((question) => question.getAttribute("data-status") === "open")
+    decisions.prepend(...open)
+    let paired = 0
+    for (const question of questions.filter((item) => !open.includes(item))) {
+      const q = question.id.toUpperCase()
+      const answer = Array.from(decisions.children).find(
+        (item) =>
+          /^d\d+$/.test(item.id) && new RegExp(`\\b${q}\\b`).test(item.querySelector(".plan-title")?.textContent ?? "")
+      )
+      if (!answer) {
+        const last = open.at(-1)
+        if (last) last.after(question)
+        else decisions.prepend(question)
+        continue
+      }
+      answer.before(question)
+      const line = question.querySelector(":scope > ui-accordion > ui-title") ?? question
+      if (!line.querySelector(":scope > .plan-answer"))
+        line
+          .querySelector(":scope > .plan-title")
+          ?.after(this.fragment(` <a class="plan-answer" href="#${answer.id}">→ ${answer.id.toUpperCase()}</a>`))
+      paired++
+    }
+    section.remove()
+    for (const link of this.document.querySelectorAll('a[href="#questions"]')) link.setAttribute("href", "#decisions")
+    const h2 = this.require("#decisions")
+    replaceInHeading(h2, /\bDecisions\s*$/, "Questions & Decisions")
+    const note = h2.closest("section").querySelector(":scope > p.meta")
+    if (note) note.textContent = DECISIONS_NOTE
+    changes.push(`${questions.length} questions merged into Questions & Decisions (${paired} next to their answers)`)
+    return changes
+  }
+
+  /** `ul.plan-phase-body` -> `ui-list` of `ui-item`s with an icon per field;  how many. */
+  migratePhaseBodies() {
+    const icons = Object.fromEntries(PHASE_FIELDS)
+    let count = 0
+    for (const list of this.document.querySelectorAll("ul.plan-phase-body")) {
+      const replacement = this.element("ui-list", { class: "plan-phase-body" })
+      for (const li of Array.from(list.children)) {
+        const field = li.querySelector(":scope > b")?.textContent.replace(/:\s*$/, "").trim()
+        const item = this.element("ui-item", icons[field] ? { icon: icons[field] } : {})
+        item.append(...Array.from(li.childNodes))
+        replacement.append(item)
+      }
+      list.replaceWith(replacement)
+      count++
+    }
+    return count
+  }
+
+  /**
    * Structural problems, as text:  duplicate ids, `#id` links to nowhere, phases without a valid status, list and
    * sections out of step.
    */
@@ -275,13 +616,14 @@ export class PlanDoc {
       const id = a.getAttribute("href").slice(1)
       if (id && !seen.has(id)) problems.push(`link to missing #${id} ("${a.textContent.trim()}")`)
     }
-    const sections = this.document.querySelectorAll("#phases-section section[data-phase]")
     for (const phase of this.phases) {
       if (!STATUS[phase.status]) problems.push(`P${phase.n} has status "${phase.status}"`)
-      if (!this.document.getElementById(`p${phase.n}`)) problems.push(`P${phase.n} has no section #p${phase.n}`)
+      if (!this.document.getElementById(`p${phase.n}`)) problems.push(`P${phase.n} has no heading #p${phase.n}`)
     }
-    if (sections.length !== this.phases.length)
-      problems.push(`${this.phases.length} phases listed, ${sections.length} phase sections`)
+    // a doc not yet migrated:  its phase list must match the sections
+    const listed = this.document.querySelectorAll(".plan-phases > [data-phase]").length
+    if (this.document.querySelector(".plan-phases") && listed !== this.phases.length)
+      problems.push(`${listed} phases listed, ${this.phases.length} phase sections`)
     return problems
   }
 
@@ -313,6 +655,58 @@ export class PlanDoc {
 
 /** A problem the user should see as a message, not a stack trace. */
 export class PlanDocError extends Error {}
+
+/** `q12` -> `12`;  0 for an id without a number. */
+function idNumber(id) {
+  return Number(id.match(/\d+$/)?.[0]) || 0
+}
+
+/** The header's step label for `phase`:  a link to it, `prefix` before its name. */
+function stepLabel(phase, color, glyph, prefix) {
+  const label = text(`${prefix}P${phase.n} · ${phase.name}`)
+  return `<ui-label basic color="${color}" icon="${glyph}" href="#p${phase.n}">${label}</ui-label>`
+}
+
+/** A prompt's text as `<p>`s:  blank lines split paragraphs, single newlines become `<br>`;  "" for none. */
+function promptHTML(prompt) {
+  return String(prompt ?? "")
+    .trim()
+    .split(/\n\s*\n/)
+    .filter((paragraph) => paragraph.trim())
+    .map((paragraph) => `<p>${text(paragraph.trim()).replace(/\n/g, "<br>")}</p>`)
+    .join("")
+}
+
+/**
+ * Replace `pattern` in the first non-blank text node of `heading` (after its icons);  returns the number it
+ * replaced (`3` for `3.`), or `undefined` when it didn't match.
+ */
+function renumber(heading, pattern, replacement) {
+  return replaceInHeading(heading, pattern, replacement)?.[0].match(/\d+/)?.[0]
+}
+
+/**
+ * Replace `pattern` in the first non-blank text node of `heading` (after its icons);  returns the match, or
+ * `undefined` when that text doesn't match.
+ */
+function replaceInHeading(heading, pattern, replacement) {
+  if (!heading) return undefined
+  const walker = heading.ownerDocument.createTreeWalker(heading, 4 /* NodeFilter.SHOW_TEXT */)
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    if (!node.textContent.trim()) continue
+    const match = node.textContent.match(pattern)
+    if (!match) return undefined
+    node.textContent = node.textContent.replace(pattern, replacement)
+    return match
+  }
+  return undefined
+}
+
+/** Drop whitespace-only text at the start and end of `element`. */
+function trimWhitespace(element) {
+  while (element.firstChild?.nodeType === 3 && !element.firstChild.textContent.trim()) element.firstChild.remove()
+  while (element.lastChild?.nodeType === 3 && !element.lastChild.textContent.trim()) element.lastChild.remove()
+}
 
 /** A phase's status icon. */
 function icon(status) {
@@ -361,16 +755,20 @@ export function isoDate(date = new Date()) {
 
 /** Usage, printed with no command or a bad one. */
 const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/docs/plans/<name>/<name>.html)
-  new <name> [--title "Title"]                     copy the template, fill it in, update the docs index
+  new <name> [--title "Title"] [--prompt "text" | --prompt-file path]
+                                                   copy the template, fill it in, update the docs index
   add-phase <name> "Short Name" [--goal html] [--files html] [--verify html]
   phase <name> <N> todo|active|done [--no-open]    set a phase's status;  done drops its UPDATE markers;
                                                    reloads the doc's VS Code tab
   add <name> question|caveat|issue|todo|decision "title" [--details html]    prints the new id
+  decide <name> <Q id> "decision" [--details html]  answer a question:  a decision, the question struck beside it
   close <name> <id>  /  reopen <name> <id>         strike / unstrike an item
   log <name> "text"                                timestamped line in the log
+  prompt <name> "text" | --file path               set the prompt that started the plan ("" removes it)
   summary <name> [--json]                          open questions, issues, caveats, todos;  the next phase
   check <name> [--no-browser]                      ids, links, phases;  then check-spell.js
-  open <name>                                      show in VS Code, beside the editor (reloads its tab)`
+  open <name>                                      show in VS Code, beside the editor (reloads its tab)
+  migrate <name>                                   bring a doc from before 2026-10-01 into the current layout`
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   try {
@@ -408,6 +806,15 @@ function main(argv) {
       const id = edit(file, (plan) => plan.addItem(need(rest[0], "a kind"), need(rest[1], "a title"), flags))
       return console.log(id.toUpperCase())
     }
+    case "decide": {
+      const question = need(rest[0], "a question id")
+      const id = edit(file, (plan) => {
+        const decided = plan.decide(question, need(rest[1], "the decision"), flags)
+        plan.log(`${question.toUpperCase()} answered:  ${decided.toUpperCase()} ${rest[1]}`)
+        return decided
+      })
+      return console.log(id.toUpperCase())
+    }
     case "close":
     case "reopen":
       return edit(file, (plan) => {
@@ -416,6 +823,14 @@ function main(argv) {
       })
     case "log":
       return edit(file, (plan) => plan.log(need(rest[0], "the text")))
+    case "prompt": {
+      const prompt = flags.file ? readFileSync(flags.file, "utf8") : need(rest[0], "the prompt text")
+      return edit(file, (plan) => plan.setPrompt(prompt))
+    }
+    case "migrate": {
+      const changes = edit(file, (plan) => plan.migrate())
+      return console.log(changes.length ? changes.map((line) => `- ${line}`).join("\n") : "already current")
+    }
     case "summary":
       return printSummary(read(file).summary(), flags.json)
     case "check":
@@ -513,7 +928,7 @@ function withLock(file, fn) {
  * `new`:  copy the template to `file`, fill in name, title, date, branch and worktree, then update the index.
  * - refuses to overwrite:  the skill asks the user whether to reuse an existing doc
  */
-function create(name, file, { title = titleCase(name) }) {
+function create(name, file, { title = titleCase(name), prompt, promptFile }) {
   if (existsSync(file)) throw new PlanDocError(`${relative(DOCS, file)} already exists`)
   const now = new Date()
   const today = isoDate(now)
@@ -527,12 +942,14 @@ function create(name, file, { title = titleCase(name) }) {
   }
   const html = readFileSync(join(DOCS, TEMPLATE), "utf8")
     .replace(/\{\{(\w+)\}\}/g, (whole, key) =>
-      key === "timestamp" ? fill.timestamp : key in fill ? escapeAll(fill[key]) : whole
+      key === "timestamp" ? fill.timestamp : key in fill ? escapeAll(fill[key]) : key === "prompt" ? "" : whole
     )
     .replace(/\n\s*<!--\s*PLAN DOC TEMPLATE\.[\s\S]*?-->/, "")
   const plan = PlanDoc.parse(html, now)
   plan.document.querySelector("title").textContent = title
   plan.document.querySelector('meta[name="description"]').setAttribute("content", `Plan doc:  ${title}.`)
+  // the prompt that started the plan, quoted at the top of the Overview;  none:  the empty quote goes
+  plan.setPrompt(promptFile ? readFileSync(promptFile, "utf8") : (prompt ?? ""))
   mkdirSync(dirname(file), { recursive: true })
   writeFileSync(file, plan.toString())
   if (!tidy([relative(DOCS, file)])) throw new PlanDocError("tidy failed (see above)")

@@ -75,7 +75,7 @@ reasonable, fix it in `packages/ui` when it's a real `ui` bug, and record it eit
 ```
 
 - `../_assets/` is relative to the page's folder:  `_assets/` at the top level, `../../_assets/` two deep.
-- No contents sidebar and no `.spell-toc-open` button in the markup:  the runtime adds both.
+- No contents sidebar and no `.spell-toc-open` button in the markup:  the runtime adds both (the button in the rail).
 
 ## Runtime behaviour (`_assets/spell-doc-runtime.js` + `spell-doc.css`)
 
@@ -85,13 +85,34 @@ reasonable, fix it in `packages/ui` when it's a real `ui` bug, and record it eit
   - every link carries `data-target="{heading id}"` for scroll-follow
   - a heading's `<ui-icon>`s (a plan phase's status) are copied in front of its entry;  `ui-label` badges are not
   - a heading with no `id` gets a slug of its text -- but give headings other pages link to an explicit, stable id
+  - an h2 with open items gets their count as a round badge (`ui-label.spell-toc-count`)
 - Layout:  content column (max ~880px) + ~300px contents column that scrolls on its own.  Under 1100px the contents
-  become a right drawer, toggled by `.spell-toc-open` (fixed bottom-right);  clicking a contents link closes it.
-- Sticky headers:  h2 sticks at the top of its `section.s2`;  h3 just below its section's h2 (the runtime sets the h3
-  sticky's `offset`, re-measured on resize).  Headings get `scroll-margin-top` so anchors land below both.
+  become a right drawer;  clicking a contents link closes it.
+- Rail (`buildRail()`, `nav.spell-rail`):  a fixed strip at the right edge, shown while the contents column isn't
+  (under 1100px, or `body.spell-toc-hidden`):
+  - on top, the contents button (`ui-button.spell-toc-open`, bars):  narrow, it slides the drawer;  wide, it brings
+    the column back
+  - then one `ui-item` per h2, its `<ui-icon>` (else its number), its open count floating on it;  scroll-follow
+    selects the current section's
+  - pages from before 2026-10-01 hand-wrote a "Contents" `.spell-toc-open`:  the runtime removes it
+- Sticky headers:  an optional page header (`ui-sticky.spell-h1`) at the very top;  h2 sticks below it in its
+  `section.s2`;  h3 just below its section's h2 (the runtime sets each sticky's `offset`, re-measured on resize).
+  Everything with an id in `main` gets `scroll-margin-top` so anchors land below them all.
+  - `<ui-sticky>` reserves its room as the page's `scroll-padding-top` while stuck, so Page Down / Space skip what's
+    under the stuck headers (Chromium, Firefox;  Safari pages by the full viewport)
+- Folding (`wireFolds()`):  a chevron `ui-button.spell-fold` starts every h2 / h3;  it or a click on the heading folds
+  the section (`section.spell-folded`:  CSS hides all but the heading).  Saved per page in `localStorage`
+  (`spell-folds:<path>`);  `data-fold="closed"` starts a section folded.
+- Counts (`countItems()`):  a section with `[data-status]` items gets `ui-label.spell-count` "open/all" at its h2's
+  right.  Not open:  `done`, and `decided` (a plan's decision in force:  "Questions & Decisions" counts the
+  questions waiting).
+- Anchors:  any same-page link to an id in `main` -- a heading or a plan item -- is the runtime's:  it unfolds what
+  hides the target, opens the target's panel, and scrolls it below the stuck headers (the browser's own jump would
+  add the scroll padding on top).
 - Scroll-follow:  the current heading's contents link is highlighted and its panels open;  panels the scroll opened
   close again, panels the USER opened stay open;  the active link is kept in view.
-- Buttons:  `expand` / `collapse` every contents panel;  `code` folds / unfolds every `ui-accordion.spell-code`.
+- Buttons:  `expand` / `collapse` every contents panel;  `code` folds / unfolds every `ui-accordion.spell-code`;
+  `hide` drops the contents column for the rail (remembered for every page:  `spell-toc-hidden`).
 - Cheat sheets:  `ui-input[data-spell-filter]` filters `ui-card`s by text (every word must match), hides sections
   with no visible card, remembers the filter in `localStorage`.
 - Light / dark:  follows UI's scheme (the OS);  page colors from UI's `--ui-*` tokens.
@@ -101,5 +122,6 @@ reasonable, fix it in `packages/ui` when it's a real `ui` bug, and record it eit
 - `yarn docs:update` must pass;  `--skip-ui-build` reuses `../ui/dist`, `--no-check` skips the browser checks.
 - `node scripts/check-spell.js <page> [outDir]` checks one page and writes four screenshots -- look at them.
   - fails on:  console errors, undefined or unrendered `ui-*`, contents links that don't match the headings 1:1,
-    phone-width overflow, an h2 that doesn't stick, no active contents link after scrolling, a drawer that won't open
+    phone-width overflow, an h2 that doesn't stick (one its short section pushed out, `:state(bound)`, is fine), no
+    active contents link after scrolling, a drawer that won't open
 - Open pages as `file://` URLs:  that's how they're read.

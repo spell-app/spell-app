@@ -1,0 +1,58 @@
+<!-- `src/components/ui-section/examples/content.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Icon</h4>
+    <ui-section header="Ideas" icon="lightbulb" dividing>
+      <p>An icon before the title, by name.</p>
+    </ui-section>
+    <ui-section header="Experiments" dividing>
+      <ui-icon slot="icon" name="flask" color="teal"></ui-icon>
+      <p>Or any slotted icon.</p>
+    </ui-section>
+  </section>
+
+  <section>
+    <h4>Badge</h4>
+    <ui-section header="Tasks" icon="list check" badge="3/7" dividing>
+      <p>A small pill after the title, e.g. a count.</p>
+    </ui-section>
+    <ui-section header="Bugs" icon="bug" dividing>
+      <ui-label slot="badge" size="mini" color="red">2 open</ui-label>
+      <p>Or a slotted label.</p>
+    </ui-section>
+  </section>
+
+  <section>
+    <h4>Actions</h4>
+    <ui-section header="Drafts" icon="folder" block>
+      <ui-button slot="actions" size="mini" basic icon="pen to square">Edit</ui-button>
+      <p>Controls at the right of the title bar.</p>
+    </ui-section>
+  </section>
+
+  <section>
+    <h4>Subhead</h4>
+    <ui-section header="Decisions" icon="gavel" subhead="What we chose, and why" dividing>
+      <p>Smaller text under the title; it scrolls away with the content.</p>
+    </ui-section>
+    <ui-section header="Checks" icon="check" dividing>
+      <span slot="subhead">Last run <time datetime="2026-10-01">October 1</time></span>
+      <p>A rich subhead, slotted.</p>
+    </ui-section>
+  </section>
+
+  <section>
+    <h4>Rich header</h4>
+    <ui-section dividing>
+      <span slot="header">The <code>level</code> attribute</span>
+      <p>A slotted header can hold code and links.</p>
+    </ui-section>
+  </section>
+
+  <section>
+    <h4>Level</h4>
+    <ui-section header="Set by hand" level="5" dividing>
+      <p>An <code>h5</code>, whatever encloses it.</p>
+    </ui-section>
+  </section>
+</div>

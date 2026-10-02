@@ -43,10 +43,14 @@ export class PartContext {
   /** Only the flat-tree parent component counts. */
   private readonly direct: boolean
 
-  constructor(host: UIHost, noun: string, { direct = false }: PartContextProps = {}) {
+  /** Where the climb stops;  default `PartContext.isBarrier`. */
+  private readonly barrier: (element: Element) => boolean
+
+  constructor(host: UIHost, noun: string, { direct = false, barrier = PartContext.isBarrier }: PartContextProps = {}) {
     this.host = host
     this.noun = noun
     this.direct = direct
+    this.barrier = barrier
     this.owner = new Cell(this.find(), { equals: PartContext.sameOwner })
     CONTEXTS.set(host, this)
     createEffect(
@@ -101,7 +105,7 @@ export class PartContext {
 
   /** Nearest owner, read from the DOM now. */
   private find(): OwnerMatch | undefined {
-    if (!this.direct) return PartContext.ownerOf(this.host, this.noun)
+    if (!this.direct) return PartContext.ownerOf(this.host, this.noun, this.barrier)
     const root = this.host.getRootNode()
     return PartContext.ownerOf(
       this.host,
@@ -160,6 +164,11 @@ export class PartContext {
     return TAGS.has(element.localName) && !PART_TAGS.has(element.localName)
   }
 
+  /** A climb that never stops before the root:  for owners nesting through any component (`<ui-section>`). */
+  static noBarrier(this: void, _element: Element): boolean {
+    return false
+  }
+
   /**
    * A slot's assignment changed:  re-resolve every element that entered or left it, and their part descendants.
    * - `previous` is what the slot held before, since leavers aren't in `assignedElements()` any more.
@@ -198,6 +207,12 @@ export class PartContext {
 export type PartContextProps = {
   /** Only the flat-tree parent component counts (`<ui-icon>` in `<ui-icons>`). */
   direct?: boolean
+  /**
+   * Where the climb stops, ignored with `direct`;  default `PartContext.isBarrier` (any registered non-part
+   * component).
+   * - `<ui-section>` passes `PartContext.noBarrier`:  a section inside a segment inside a section is still nested.
+   */
+  barrier?: (element: Element) => boolean
 }
 
 /** Part noun => (tag => owner noun). */

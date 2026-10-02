@@ -1,7 +1,8 @@
 /**
  * Barrel for `$/ui/elements` (`E`) -- the element core every component builds on.
  * - Library-neutral:  `ClassBuilder`, `Validator`, `MenuOptions`, `OwnerContext`, `Shorthand`, `NativeFallback`
- *   (the base of the per-component `*.fallback.ts`, plain DOM when a render throws).
+ *   (the base of the per-component `*.fallback.ts`, plain DOM when a render throws), `StickyWatch` (reports and
+ *   reserves room for a `position: sticky` box).
  * - The Solid layer, on `@spell-app/solid-element`:  `UIHost` / `FormHost` (host bases), `UIElement` (the controller
  *   base), `ElementDefinition` (vocabulary => the fork's props), `FormElement`, `Controlled`, `Cell`,
  *   `SlotContent`, `HostAttribute`, `PartContext` + `ContentPart` (owner context), `IconGlyph`, `ControlLabels`.
@@ -20,6 +21,7 @@ export * from "./MenuOptions"
 export * from "./OwnerContext"
 export * from "./Shorthand"
 export * from "./NativeFallback"
+export * from "./StickyWatch"
 export * from "./Cell"
 export * from "./ElementDefinition"
 export * from "./UIHost"

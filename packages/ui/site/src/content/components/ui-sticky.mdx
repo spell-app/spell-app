@@ -95,8 +95,11 @@ ui-sticky {
 
 <Section title="Accessibility">
   - A sticky changes nothing for assistive technology:  its content stays where it is in reading and Tab order.
-  - Stuck content covers what scrolls under it.  When focus moves to something hidden underneath, browsers don't
-    always scroll it clear:  keep stuck content small, and give the page `scroll-padding-top` of the same size.
+  - Stuck content covers what scrolls under it, so while stuck the element RESERVES its room:  it sets its scroll
+    container's `scroll-padding-top` (`-bottom` at the bottom edge) to the lowest stuck edge.  Focus moves,
+    `scrollIntoView()` and Page Down / Space (Chromium, Firefox;  Safari pages the full viewport) then keep content
+    out from under it.  A sticky column (taller than half the view, or narrower than half its width) reserves
+    nothing.  Keep stuck content small all the same.
   - If the element can't render, its native fallback still sticks (it's CSS);  only `:state(stuck)` and the
     events are lost.
 </Section>
