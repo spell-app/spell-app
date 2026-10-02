@@ -10,6 +10,7 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
 
 - Serving pages locally, for every package:  `$/server` (`SRV`).  Before this package, six servers each had their
   own mime table, path check, port choice and opener;  now they share these.
+  - Docs:  `packages/docs/server.html` (the library, the page server's flows, route modules, safety, why).
   - `mime.ts` -- ONE content-type table, `typeFor()`
   - `safePath.ts` -- `resolveInside()`:  URL path -> file under a root, never outside it
   - `StaticHandler` -- folders under URL prefixes, with html / per-extension hooks and an `ETag`
@@ -18,6 +19,11 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
   - `ports.ts` -- `isFree`, `freePort`, `listenPreferred`
   - `open.ts` -- browser, new window, reused Chrome tab, VS Code's Simple Browser
   - `FileLock` -- `<file>.lock`, so tools writing the same file take turns
+  - `LiveReload` + `liveClient.ts` -- SSE live reload, and the page-side client (`/_server/live.js`, `editPage()`)
+  - `Guard` -- `Host` check, per-run token, same-origin writes
+  - `PidFile` -- a background server's `<root>/.spell-server.json`:  status, ensure, stop
+  - `proxy.ts` -- `proxyTo()` / `proxyUpgrade()`:  HTTP and websockets to another local server
+  - `WebServer` -- all of the above on `node:http`
   - `untilInterrupted.ts` -- run until `Ctrl-C`
 - It's a LEAF:  node built-ins only (json5 / esbuild come in as hooks), and it imports NO other package, so
   anything may import it -- `ui`'s tools and site, `spell/node`, `cli`, `app`, `docs`, `goals`, the VS Code
