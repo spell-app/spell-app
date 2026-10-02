@@ -25,9 +25,7 @@
           ><header class="spell-page-head">
             <h1>Solid Migration</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p4"
-                >next: P4 · Reactivity Engine</ui-label
-              ></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p6">next: P6 · Shared App UI</ui-label></span
             >
           </header></ui-sticky
         >
@@ -59,7 +57,7 @@
           </p>
 
           <blockquote class="plan-prompt"><p>convert this into a plan doc with name "solid-migration"</p></blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 16h 30m-26h in all, 13h-20h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 16h 30m-26h in all, 12h-18h left</p>
           <ui-section id="o1" header="1.1 Where it stands" sticky collapsible dividing>
             <ul>
               <li>
@@ -496,7 +494,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="3" total="10" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="4" total="10" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -548,7 +546,16 @@
               ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p3" data-phase="3" data-status="done" header="P3 · Tooling" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p3"
+            data-phase="3"
+            data-status="done"
+            header="P3 · Tooling"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
 
             <ui-list class="plan-phase-body"
@@ -571,27 +578,24 @@
           <ui-section
             id="p4"
             data-phase="4"
-            data-status="todo"
+            data-status="done"
             header="P4 · Reactivity Engine"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
-            <ui-message class="plan-update" state="warning" size="tiny" header="UPDATE" data-phase="4"
-              ><p>Narrowed to the bridge (<a href="#d13">D13</a>);  the full spell cells are
-                <a href="#p11">P11 · Spell Cells</a>.</p></ui-message
-            >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
-                ><b>Goal:</b> Solid code sees easy-state changes (spell Things, the editor store);  easy-state stays
+                ><b>Goal:</b> Solid code sees easy-state changes (spell Things, the editor store); easy-state stays
                 (handoff 1, narrowed)</ui-item
               ><ui-item icon="folder"
-                ><b>Files:</b> packages/util/src/spell/ (a <code>tracked()</code> helper:  a Solid accessor re-read when
-                the easy-state values it read change);  its tests</ui-item
+                ><b>Files:</b> packages/util/src/spell/ (a <code>tracked()</code> helper: a Solid accessor re-read when
+                the easy-state values it read change); its tests</ui-item
               ><ui-item icon="flask"
-                ><b>Verify:</b> tests in Solid's CLIENT build (<a href="#c7">C7</a>):  an easy-state write updates a
-                Solid memo / effect after <code>flush()</code>;  disposal stops tracking;  no
+                ><b>Verify:</b> tests in Solid's CLIENT build (<a href="#c7">C7</a>): an easy-state write updates a
+                Solid memo / effect after <code>flush()</code>; disposal stops tracking; no
                 <code>REACTIVE_WRITE_IN_OWNED_SCOPE</code></ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
             >
@@ -656,10 +660,7 @@
             dividing
           >
             <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
-            <ui-message class="plan-update" state="warning" size="tiny" header="UPDATE" data-phase="4"
-              ><p>New (<a href="#d13">D13</a>):  P4's full scope, run after P8 and before P9.  Numbered P11 because ids
-                never change;  the order on this page is the order of work.</p></ui-message
-            >
+
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> spell cells replace easy-state under Observable / extend.ts and the editor store, same
@@ -1245,7 +1246,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c7" data-status="open"
+            ><ui-item id="c7" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c7">C7</a>
@@ -1568,6 +1569,28 @@
                   ><ui-date><time datetime="2026-10-02T16:00-04:00">2026-10-02 16:00</time></ui-date> Q3: P4 narrowed to
                   the easy-state-to-Solid bridge; full cells now P11 · Spell Cells, run after P8, before P9. Q4:
                   bottom-up order kept.</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T16:08-04:00">2026-10-02 16:08</time></ui-date> C7 closed: App
+                  tests run Solid's SERVER build</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T16:08-04:00">2026-10-02 16:08</time></ui-date> P4: tracked() in
+                  packages/app/src/solid (not util: util's barrel feeds core's spell-runtime.js and the CLI); app gets a
+                  browser test project (app:browser) for Solid's client build</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T16:09-04:00">2026-10-02 16:09</time></ui-date> P4
+                  done</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

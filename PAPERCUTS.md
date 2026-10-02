@@ -990,3 +990,7 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   `spell/src/node/environment.ts`), so every review drags them into the diff. · `git restore` them after the
   review;  the real fix is formatting them once on `main` (or ignoring the generated emoji chunks in `.oxfmtrc`). ·
   docs, spell
+- 2026-10-02 · `yarn plan-doc add-phase` numbers a new phase by COUNTING phases, so after a phase was deleted by
+  hand (solid-migration's P5) it handed out `P10` again:  two `#p10` sections, and `check` didn't flag it. ·
+  Renumbered the new one by hand (`p11`) and moved it;  `add-phase` should use max id + 1, and `check` should fail
+  on duplicate ids. · docs
