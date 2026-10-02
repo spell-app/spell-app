@@ -80,6 +80,16 @@ def main():
 
 def find(name):
     """Print the sessions named `name` or that worked in worktree `name`, newest first."""
+    found = sessions_named(name)
+    for last, id, title, cwd in found:
+        print(f"{id[:8]}  {title:<24}  {last[:16]}  {cwd}")
+    if not found:
+        print(f"no session named or in worktree {name}")
+
+
+def sessions_named(name):
+    """`(last active, session id, title, latest cwd)` of each session named `name` or that worked in worktree
+    `name`, newest first.  Also used by `park`'s `status.py`."""
     worktree = f"/.claude/worktrees/{name}"
     found = []
     for path in glob.glob(os.path.expanduser("~/.claude/projects/*/*.jsonl")):
@@ -99,11 +109,8 @@ def find(name):
                 last = entry.get("timestamp", last)
                 in_worktree = in_worktree or cwd.endswith(worktree) or f"{worktree}/" in cwd
         if title == name or in_worktree:
-            found.append((last, os.path.basename(path)[:8], title or "-", cwd))
-    for last, id, title, cwd in sorted(found, reverse=True):
-        print(f"{id}  {title:<24}  {last[:16]}  {cwd}")
-    if not found:
-        print(f"no session named or in worktree {name}")
+            found.append((last, os.path.basename(path)[:-len(".jsonl")], title or "-", cwd))
+    return sorted(found, reverse=True)
 
 
 def prompt_text(text):
@@ -124,4 +131,5 @@ def cut(text, limit):
     return text if len(text) <= limit else text[:limit] + " [...]"
 
 
-main()
+if __name__ == "__main__":
+    main()

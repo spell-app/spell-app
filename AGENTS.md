@@ -78,6 +78,9 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 - NEVER `code --add` / `--remove` (the focused window;  a one-folder window restarts its extensions, Claude panel
   included) or `code -r` (restarts the session).  `code <file>.code-workspace` only through `window.mjs open`.
 - Leave with `ExitWorktree` `keep`;  the hook's `remove` never deletes uncommitted or unmerged work.
+- Shelve a session's work while another session changes what it depends on:  `/park` (a WIP commit in its own
+  worktree, plus a `PARKED-<name>.md` note), `/unpark` to pick it back up, or `/wait-for <other>` to wait for
+  that session to finish, then merge `main` in and carry on by itself.
 - Say so in one line ("isolated in worktree <name> (branch <name>), open in its own window, <pkg> ⎇ <name>").
 
 ## Solid 2
