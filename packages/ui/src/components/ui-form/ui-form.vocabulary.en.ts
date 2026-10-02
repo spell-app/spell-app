@@ -9,7 +9,9 @@
  * - Validation lives on `<ui-form>`:  `rules` is a PROPERTY (`json`) in Fomantic's `fields` shape.
  */
 
-import { UIT } from "$/ui/core"
+// pure data (vocabularies / types) never import `$/ui/core` by value:  it loads the element layer, which the
+// docs site evaluates on the server (`astro dev`), where Solid's client APIs throw
+import * as UIT from "$/ui/components/components.types"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 import { STATE_STATES } from "./ui-form.types"
 

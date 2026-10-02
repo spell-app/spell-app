@@ -3,7 +3,10 @@
  * - Runtime-light:  no element code, so every file of the family may import it.
  */
 
-import { type ValidationRule, UIT } from "$/ui/core"
+import type { ValidationRule } from "$/ui/core"
+// pure data (vocabularies / types) never import `$/ui/core` by value:  it loads the element layer, which the
+// docs site evaluates on the server (`astro dev`), where Solid's client APIs throw
+import * as UIT from "$/ui/components/components.types"
 import type { formVocabulary } from "./ui-form.vocabulary.en"
 
 /** Host states for the form states, so page CSS (`native.css`) can show messages by them. */

@@ -38,3 +38,21 @@ describe("vocabulary kinds, across families", () => {
     expect(spec.name).toBe("color")
   })
 })
+
+/** Source of every vocabulary and family types file:  pure data, read by the docs site's server render too. */
+const DATA_FILES = import.meta.glob<string>(["/src/components/*/*.vocabulary.en.ts", "/src/components/*/*.types.ts"], {
+  query: "?raw",
+  import: "default",
+  eager: true
+})
+
+describe("vocabularies and types files stay pure data", () => {
+  // `$/ui/core` by VALUE loads the element layer, whose Solid client APIs throw in `astro dev`'s server render
+  it.each(Object.entries(DATA_FILES))("%s imports `$/ui/core` for types only", (_, source) => {
+    // one statement:  `import { ... } from` (braces may span lines) or `import X from`, not `import type`
+    const valueImports = [...source.matchAll(/^import (?!type )(?:\{[^}]*\}|[\w*][^\n{]*?) from "\$\/ui\/core"/gm)]
+      .map((match) => match[0])
+      .filter((statement) => !/^import \{(\s*type \w+,?)+\s*\}/.test(statement))
+    expect(valueImports).toEqual([])
+  })
+})

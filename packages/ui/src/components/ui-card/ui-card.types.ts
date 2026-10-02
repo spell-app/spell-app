@@ -4,7 +4,9 @@
  * - Data only:  nothing here runs;  the classes import what they need from `./ui-card.types`.
  */
 
-import { UIT } from "$/ui/core"
+// pure data (vocabularies / types) never import `$/ui/core` by value:  it loads the element layer, which the
+// docs site evaluates on the server (`astro dev`), where Solid's client APIs throw
+import * as UIT from "$/ui/components/components.types"
 import type { cardVocabulary } from "./ui-card.vocabulary.en"
 import type { cardsVocabulary } from "./ui-cards.vocabulary.en"
 

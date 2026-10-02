@@ -63,6 +63,10 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
       `src/components/components.types.ts` and are used as `UIT.<NAME>` from `$/ui/core`.  NOTE:  a types file imports its
       vocabularies with `import type` only (vocabularies import values from it:  a value import is a cycle);
       `ui-parts.types.ts` is the exception
+    - vocabularies and types files are PURE DATA:  `$/ui/core` for types only;  shared constants by value come
+      straight from `components.types` (`import * as UIT from "$/ui/components/components.types"`).  Why:  core loads
+      the element layer, and the docs site's server render (`astro dev`) evaluates vocabularies, where Solid's client
+      APIs throw.  `test/vocabularies.test.ts` enforces it
     - `ui-<name>.fallback.ts` -- the native fallback (plain DOM, no Solid) shown when the element's render throws
     - `ui-<name>.test.tsx` (elements), `ui-<name>.css.test.ts` (the sheet on class-grammar markup),
       `ui-<name>.fallback.test.ts`, `ui-<name>.a11y.test.ts`, `ui-<name>.perf.test.tsx`

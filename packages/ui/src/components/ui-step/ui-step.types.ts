@@ -2,7 +2,9 @@
  * Loose constants, types and helpers of `<ui-step>`:  its element classes and native fallback import them from here.
  */
 
-import { UIT } from "$/ui/core"
+// pure data (vocabularies / types) never import `$/ui/core` by value:  it loads the element layer, which the
+// docs site evaluates on the server (`astro dev`), where Solid's client APIs throw
+import * as UIT from "$/ui/components/components.types"
 import { stepVocabulary } from "./ui-step.vocabulary.en"
 
 ////////////////
