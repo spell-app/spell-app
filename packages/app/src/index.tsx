@@ -8,6 +8,8 @@ import { Routes } from "$/app/pages/routes"
 
 // Use the below to set up methods/etc in the browser for hacking
 import "./debug"
+// Solid follows spell cells:  BEFORE anything renders
+import "$/app/solid/cellsBridge"
 
 // Programs run on the runtime `editor` loads -- start loading it now.  It registers the `UI` / `SUI` tags spell JSX
 // draws with, NOT the editor's `$/app/solid`.  NEVER import `$/core` here:  see `spellRuntime.ts`.

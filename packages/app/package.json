@@ -27,8 +27,6 @@
     "test:ui": "vitest --ui"
   },
   "dependencies": {
-    "@nx-js/observer-util": "^4.2.2",
-    "@risingstack/react-easy-state": "^6.3.0",
     "@solidjs/router": "2.0.0-next.35",
     "@solidjs/web": "2.0.0-rc.13",
     "@spell-app/core": "workspace:*",

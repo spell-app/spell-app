@@ -20,11 +20,12 @@ import "./ThingExplorer.css"
  *   switch.  See `UI.ThingOrder`.
  * - Keeps what's selected and open as a `UI.ThingExplorerState` through `state` + `onStateChange` -- else just
  *   while it's showing.  `state` is read ONCE, as it mounts:  echoing `onStateChange` back into it is fine.
- * - LIVE, and narrowly:  each piece reads the program's things (`easy-state`) through its OWN accessor, so a
+ * - LIVE, and narrowly:  each piece reads the program's things (spell cells) through its OWN accessor, so a
  *   change redraws just what read it:
  *   - the tree's lists:  the registry's `version` (things made and dropped), through `tracked()`
- *   - each row's label;  each property's value;  a list's items:  through `tracked(, { deferred: true })`, as reading them
- *     runs the PROGRAM's code, e.g. a card's computed `name` -- a microtask after the change, then `flush()`
+ *   - each row's label;  each property's value;  a list's items:  through `tracked()` too.  Reading them runs the
+ *     PROGRAM's code, e.g. a card's computed `name`:  Solid re-reads on its own schedule, never mid-write -- a
+ *     microtask after the change, or `spellCore.flush()`
  *   - NEVER a Solid store:  a store would wrap the things in proxies, and `===` breaks.
  * - (React's version re-read a whole snapshot in a microtask, `watchLive()`, and redrew it all.)
  * - NOTE: imports its peers directly, NOT the `$/app/solid` barrel:  a runner's bundle would get the whole editor
@@ -259,13 +260,13 @@ type GroupRowProps = {
 /****************
  * ### `<ThingRow>`
  * One thing in the tree, e.g. `Foundation clubs`, with an icon saying whether it's a list -- click to select it.
- * - Its label is its own `tracked(, { deferred: true })`:  it follows the thing's `name`, even a computed one.
+ * - Its label is its own `tracked()`:  it follows the thing's `name`, even a computed one.
  * - Scrolls itself into view when selected, e.g. from a link in `<ThingDetails>`.
  ****************/
 function ThingRow(props: ThingRowProps) {
   let element: HTMLDivElement | undefined
-  const label = tracked(() => props.things.labelOf(props.thing), { deferred: true })
-  const isList = createMemo(() => isListThing(props.things, props.thing))
+  const label = tracked(() => props.things.labelOf(props.thing))
+  const isList = createMemo(() => untrack(() => isListThing(props.things, props.thing)))
   const key = createMemo(() => thingKey(props.things, props.thing))
   const isSelected = () => key() !== undefined && key() === props.selected
 
@@ -315,24 +316,23 @@ function ThingIcon(props: { isList: boolean }) {
  * ### `<ThingDetails>`
  * Selected thing:  what it's called, its types, its properties -- computed ones too -- its actions, and its
  * items, if it's a list.
- * - Each property's value is its own `tracked(, { deferred: true })`, so a changed one redraws just its cell.
- * - The property LIST re-reads as the registry changes:  an undeclared property is a plain field, NOT observable.
+ * - Each property's value is its own `tracked()`, so a changed one redraws just its cell.
+ * - The property LIST re-reads as the registry changes, or a prop is first set:  an undeclared property is a plain
+ *   field, NOT observable.
  * - An action which takes no arguments, e.g. `turn over`, has a ▶ to do it -- see `ThingRegistry.perform()`.
  ****************/
 function ThingDetails(props: ThingDetailsProps) {
-  const label = tracked(() => props.things.labelOf(props.thing), { deferred: true })
+  const label = tracked(() => props.things.labelOf(props.thing))
   const typeChain = tracked(() => props.things.typeChainOf(props.thing).join(" → "))
   const properties = tracked(() => {
-    void props.things.store.version
+    void props.things.version
     return props.things.propertiesOf(props.thing)
   })
   const names = createMemo(() => properties().map(({ name }) => name))
   const computed = createMemo(() => new Set(properties().flatMap(({ name, computed }) => (computed ? [name] : []))))
   const actions = createMemo(() => props.things.actionsOf(props.thing))
-  const isList = createMemo(() => isListThing(props.things, props.thing))
-  const items = tracked(() => props.things.itemsOf(props.thing)?.map((item) => shownValue(props.things, item)), {
-    deferred: true
-  })
+  const isList = createMemo(() => untrack(() => isListThing(props.things, props.thing)))
+  const items = tracked(() => props.things.itemsOf(props.thing)?.map((item) => shownValue(props.things, item)))
 
   return (
     <div class="ScopeDetails ThingDetails">
@@ -372,7 +372,7 @@ function ThingDetails(props: ThingDetailsProps) {
 
   /** Row of property `name`:  its value, live. */
   function propertyRow(name: string) {
-    const value = tracked(() => propertyValue(props.things, props.thing, name), { deferred: true })
+    const value = tracked(() => propertyValue(props.things, props.thing, name))
     return (
       <tr>
         <th title={computed().has(name) ? "computed" : undefined}>
@@ -518,8 +518,7 @@ function propertyValue(things: ThingRegistry, thing: ThingLike, name: string): S
 /**
  * `value` as `<ThingValue>` shows it:  plain values as spell writes them, a thing we can select as a link,
  * a list with its items -- `depth` lists deep, down to `MAX_DEPTH`.
- * - Reads what it shows, e.g. a linked thing's label, a list's items:  inside a `tracked(, { deferred: true })`, those redraw
- *   it.
+ * - Reads what it shows, e.g. a linked thing's label, a list's items:  inside a `tracked()`, those redraw it.
  */
 export function shownValue(things: ThingRegistry, value: unknown, depth = 0): ShownValue {
   if (value === undefined || value === null) return { kind: "empty" }
@@ -602,7 +601,8 @@ function thingKey(things: ThingRegistry, thing: ThingLike): string | undefined {
 
 /**
  * Is `thing` a list?  Fixed for its life.
- * - NOTE: reads its `items` -- call it OUTSIDE a `tracked()`, or every change to them re-runs that.
+ * - NOTE: reads its `items` -- call it `untrack()`ed:  any Solid computation follows the cells it reads, so every
+ *   change to them would re-run it.
  */
 function isListThing(things: ThingRegistry, thing: ThingLike): boolean {
   return things.itemsOf(thing) !== undefined

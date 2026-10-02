@@ -7,6 +7,7 @@
 import _isArrayLike from "lodash/isArrayLike"
 import isEqual from "lodash/isEqual"
 
+import { flushCells } from "$/util"
 import { assert } from "$/core"
 import { defineSpellCoreModule, type PropCheck, type SpellCore } from "./spellCore.types"
 
@@ -47,6 +48,17 @@ export const spellCore = new (class spellCore {})() as SpellCore
 export const coreMethods = defineSpellCoreModule({
   /** Do nothing -- use this as a placeholder, e.g. in an `if` branch. */
   doNothing(): void {},
+
+  /**
+   * Settle everything that follows spell state NOW:  pending derived checks, then the host's Solid -- see
+   * `flushCells()` in `$/util`.
+   * - Spell state itself never needs it:  a read right after a write sees the write.  It's for what DRAWS it:  a
+   *   test asserting on the DOM, imperative code measuring it.
+   * - NEVER Solid's `flush()` directly:  a reader of only a derived value hears of a change on a microtask.
+   */
+  flush(): void {
+    flushCells()
+  },
 
   ////////////////
   // ## Meta-programming

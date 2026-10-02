@@ -513,9 +513,10 @@ type EnumerationRuleProps = Prettify<P.LiteralsProps & { typeName: string; group
  *   holding the raw values, adds string values to `scope.constants`, and registers an `EnumerationRule`
  *   so `Card Suits` / `card suits` resolve to that property -- its `/*! SPELL: DECLARES` comment says so, see
  *   `SP.SpellDeclarations.commentFor()`.
- * - Compiles to a reactive getter / setter pair in its class -- see `P.ASTReactiveProperty` -- e.g.
- *   `a player has a name as text` =>
- *   `get name() { return this.getProp('name') }` + `set name(value) { this.setProp('name', value, { type: 'text' }) }`
+ * - Compiles to a reactive getter / setter pair in its class, its type declared in the class's schema -- see
+ *   `P.ASTReactiveProperty` -- e.g. `a player has a name as text` =>
+ *   `static { this.declareProp('name', { type: 'text' }) }` + `get name() { return this.getProp('name') }` +
+ *   `set name(value) { this.setProp('name', value) }`
  * - An enumeration's values also go on the class, e.g. `static Suits = ['clubs', ...]` -- see `EnumerationRule`.
  */
 class define_property_has extends SpellStatement<"type|property|specifier?"> {
@@ -608,9 +609,10 @@ classes.addRule(define_property_has, {
         [
           "a player has a name as text",
           [
+            "Player.declareProp('name', { type: 'text' })",
             "Object.defineProperty(Player.prototype, 'name', {",
             "  get() { return this.getProp('name') },",
-            "  set(value) { this.setProp('name', value, { type: 'text' }) },",
+            "  set(value) { this.setProp('name', value) },",
             "  configurable: true",
             "})"
           ]
@@ -649,9 +651,10 @@ classes.addRule(define_property_has, {
           "cards have a direction as either up or down",
           [
             "Card.Directions = ['up', 'down']",
+            "Card.declareProp('direction', { oneOf: Card.Directions })",
             "Object.defineProperty(Card.prototype, 'direction', {",
             "  get() { return this.getProp('direction') },",
-            "  set(value) { this.setProp('direction', value, { oneOf: Card.Directions }) },",
+            "  set(value) { this.setProp('direction', value) },",
             "  configurable: true",
             "})"
           ]
@@ -659,9 +662,10 @@ classes.addRule(define_property_has, {
         [
           "todos have a title as text",
           [
+            "Todo.declareProp('title', { type: 'text' })",
             "Object.defineProperty(Todo.prototype, 'title', {",
             "  get() { return this.getProp('title') },",
-            "  set(value) { this.setProp('title', value, { type: 'text' }) },",
+            "  set(value) { this.setProp('title', value) },",
             "  configurable: true",
             "})"
           ]
@@ -669,9 +673,10 @@ classes.addRule(define_property_has, {
         [
           "todos have a property completed as yes or no",
           [
+            "Todo.declareProp('completed', { type: 'choice' })",
             "Object.defineProperty(Todo.prototype, 'completed', {",
             "  get() { return this.getProp('completed') },",
-            "  set(value) { this.setProp('completed', value, { type: 'choice' }) },",
+            "  set(value) { this.setProp('completed', value) },",
             "  configurable: true",
             "})"
           ]
@@ -679,8 +684,9 @@ classes.addRule(define_property_has, {
         [
           "todos have a property tags as a new list",
           [
+            "Todo.declareProp('tags', { init: () => new List() })",
             "Object.defineProperty(Todo.prototype, 'tags', {",
-            "  get() { return this.getProp('tags', () => new List()) },",
+            "  get() { return this.getProp('tags') },",
             "  set(value) { this.setProp('tags', value) },",
             "  configurable: true",
             "})"

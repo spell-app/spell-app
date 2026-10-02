@@ -1,6 +1,4 @@
-import { observe, unobserve } from "@nx-js/observer-util"
-
-import { raw } from "$/util"
+import { observe } from "$/util"
 import { SP } from "$/spell"
 import type { LSP } from "$/lsp"
 import { monaco } from "./monaco"
@@ -16,8 +14,8 @@ import { SpellMonaco } from "./SpellMonaco"
  * - File => model:  a change from outside, e.g. load or reload, replaces the model's text (and its undo).
  * - Parse => markers:  whenever a spell file's `match` changes -- even from an edit to ANOTHER file -- its
  *   diagnostics become the model's markers, and `onDidParse` fires, e.g. for fresh semantic colouring.
- * - Follows files with `observe()`, NOT `autoEffect()`:  that turns into a React hook inside a render,
- *   and `modelFor()` is called while rendering.
+ * - Follows files with `observe()` (`$/util`, on spell cells):  a plain function, re-run synchronously as the cells
+ *   it read change -- no framework, so it's fine wherever `modelFor()` is called from.
  * - Covers a project at a time:  a model for every spell file it parses (peek, references and rename need them),
  *   plus any other file once shown.  Showing a file of another project disposes of the last one's models --
  *   UNLESS something `use()`s it, e.g. a `<spell-editor>`, so several editors on a page can show several projects.
@@ -36,7 +34,7 @@ export class SpellModels {
   #models = new Map<string, { model: monaco.editor.ITextModel; project: SP.SpellProject; dispose: () => void }>()
   /**
    * Paths of files to save as soon as their model takes an edit -- see `saveAfterEdit()`.
-   * - By path, NOT file:  a file read through the store can be a proxy of the same one.
+   * - By path:  what `saveAfterEdit()` is handed may be a fresh object for the same file.
    */
   #toSave = new Set<string>()
   /** Fires when any spell file's parse changes. */
@@ -51,11 +49,9 @@ export class SpellModels {
 
   /**
    * Model for `file`, made if need be -- along with one for every spell file its project parses.
-   * - Unwraps `file` first (see `raw()`):  it's often read through the store while rendering, so a proxy.
    * - SIDE EFFECT:  a file of another project disposes of the last project's models first, unless it's `use()`d.
    */
-  modelFor(proxyOrFile: SP.AnySpellFile): monaco.editor.ITextModel {
-    const file = raw(proxyOrFile)
+  modelFor(file: SP.AnySpellFile): monaco.editor.ITextModel {
     const previous = this.#project
     if (file.project !== previous) {
       this.#project = file.project
@@ -69,8 +65,7 @@ export class SpellModels {
    * Keep `project`'s models while it's in use, e.g. by a `<spell-editor>` -- whatever other project's files are shown.
    * - Returns what stops using it:  once nobody does, its models go, unless it's the project last shown.
    */
-  use(proxyOrProject: SP.SpellProject): () => void {
-    const project = raw(proxyOrProject)
+  use(project: SP.SpellProject): () => void {
     this.#users.set(project, (this.#users.get(project) ?? 0) + 1)
     let released = false
     return () => {
@@ -127,15 +122,15 @@ export class SpellModels {
       monaco.editor.getModel(uri) ??
       monaco.editor.createModel(file.contents ?? "", SpellMonaco.languageForPath(file.path), uri)
     const listener = model.onDidChangeContent(() => this.modelEdited(file, model))
-    const followContents = observe(() => this.whenContentsChange(file, model))
-    const followParse = file instanceof SP.SpellFile ? observe(() => this.whenParsed(file, model)) : undefined
+    const stopContents = observe(() => this.whenContentsChange(file, model))
+    const stopParse = file instanceof SP.SpellFile ? observe(() => this.whenParsed(file, model)) : undefined
     this.#models.set(file.path, {
       model,
       project: file.project,
       dispose() {
         listener.dispose()
-        unobserve(followContents)
-        if (followParse) unobserve(followParse)
+        stopContents()
+        stopParse?.()
         model.dispose()
       }
     })
@@ -165,9 +160,8 @@ export class SpellModels {
 
   /**
    * Follow `file.contents` -- and ONLY that:  when they change, `contentsChanged()` in a microtask.
-   * - NEVER touch Monaco inside a reaction:  `setValue()` fires cursor events there and then, whose listeners
-   *   read the store -- and inside a reaction the store hands back tracking proxies, which Monaco then crawls
-   *   through, for ever in effect.
+   * - NEVER touch Monaco inside the reaction:  `setValue()` fires cursor events there and then, whose listeners read
+   *   spell state -- which the reaction would follow too.
    */
   private whenContentsChange(file: SP.AnySpellFile, model: monaco.editor.ITextModel): void {
     if (file.contents !== undefined) queueMicrotask(() => this.contentsChanged(file, model))

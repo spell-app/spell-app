@@ -8,7 +8,8 @@ or reviewing Solid code, JSX, `spellCore` rendering, `~/util` reactivity, or any
 - We are moving from React 18 + semantic-ui-react + easy-state to Solid 2 on `@spell-app/ui` web components.
   - Plan:  `packages/docs/epics/solid-migration/`.  React and Solid JSX COEXIST in `app`:  Solid is the default;  a
     React `.tsx` starts with `/** @jsxImportSource react */`, which `tsc` and `app`'s `vite.shared.ts` both read.
-    Moving a file to Solid = dropping that line.  `core` keeps rendering compiled spell with React (for now).
+    Moving a file to Solid = dropping that line.  `core` keeps rendering compiled spell with React (for now), through
+    `view()`, the React bridge onto spell cells.  `easy-state` is GONE (P11).
   - Items marked (planned) below are decided but may not exist in code yet -- check before relying on them.
 - Target `solid-js` / `@solidjs/web` / `@solidjs/h` `2.0.0-rc.13` (current, 2026-09-30), pinned EXACTLY.
   - Every package is on rc.13 (2026-10-02):  ONE copy at the repo root, pinned in the root `resolutions`;  upgrade
@@ -47,12 +48,23 @@ count() // 1
 ## Spell's decisions
 
 - Spell state is NOT Solid signals:  spell needs read-after-write, Solid 2 can't give it (measured, `solid-2.html` §2).
-- **Spell cells** (planned, Phase 1, `~/util`) -- prototypes:  `solid/experiments/` (`spell-cells.core.ts`,
-  `spell-cells.ts`, `decorators.ts`):
+- **Spell cells** -- BUILT (P11), `packages/util/src/spell/` (`cells.ts`, `Cell`, `Derived`, `Reaction`, `Schema`,
+  `extend.ts`, `Observable`);  prototypes kept in `solid/experiments/` (`spell-cells.core.ts`, `spell-cells.ts`,
+  `decorators.ts`), pinned by `util`'s `cells.test.ts` and `app`'s `cellsBridge.browser.test.tsx`:
   - each instance keeps its values in a `Map` record, the ONLY truth, read and written synchronously
   - a small synchronous core tracks deps and memoizes derived values
-  - one `enableExternalSource` bridge makes Solid computations re-run when cells change
+  - one `enableExternalSource` bridge makes Solid computations re-run when cells change:  `bridgeSolid()` in
+    `$/util`, INSTALLED BY THE HOST (`app`'s `src/solid/cellsBridge.ts`, imported by the editor, the runner,
+    `<spell-app>`, `<spell-editor>` and `tracked()`) -- `util` / `core` never import Solid, so `spell-runtime.js` holds
+    none
+  - ONE cells context per page, on `globalThis` (`Symbol.for("@spell-app/cells")`):  the app's `$/util` and every
+    `spell-runtime.js` copy share the "who's reading" slot, the pending checks and the host's flush, so the one
+    bridge sees every runtime's Things.  Bridged once per Solid (remembered there)
   - compiled output keeps its `getProp` / `setProp` accessor pairs;  derived getters may call `derive()`
+  - values are NOT made reactive themselves:  no proxies, `===` holds everywhere.  A list or plain object a prop holds
+    changed IN PLACE notifies nobody -- set the prop to a new one (spell's `List` copies on write)
+  - React follows cells through `view()` (`$/util`):  a `Reaction` per instance, `forceUpdate()` on a change.
+    Plain code:  `observe(fn)`
 - **Updates only on differences**, at three levels:
   - `setProp` ignores `===` writes:  nobody is notified
   - a memoized derived value bumps its version only when its value really changes (clean / check / dirty push-pull),
@@ -64,8 +76,10 @@ count() // 1
   - an overwrite keeps the position;  a delete (or setting `undefined`) removes the key;  re-setting appends it
   - the record MUST be a `Map`:  a plain object hoists integer-like keys (`"2"`, `"10"`) to the front
   - `keys()` tracks a per-instance `keys` cell, changed only when the key SET changes
-- **Property types** live in a per-class schema:
-  - declared by the parser (explicit specifier, or the default literal's type) -- declared types win
+- **Property types** live in a per-class schema (`schemaOf(Class)`, `Class.schema`):
+  - declared by the parser (explicit specifier, or the default literal's type) -- declared types win.  Compiled:
+    `static { this.declareProp('suit', { oneOf: Card.Suits }) }` in the class, `Card.declareProp(...)` outside it;
+    `Thing` / `List` check a declared prop on the PROGRAM's console (`spellCore.checkProp()`), as before
   - undeclared props:  observed per class, WIDENED on mismatch (`number | text`) with a dev warning, never thrown
   - `nothing` never counts;  Thing-typed props compare with `instanceof`, not by class name
 - **Accessors for Things, a `Proxy` only for class-less data** (nested plain objects, JSON a program holds):
@@ -78,8 +92,10 @@ count() // 1
 - **Decorators for HAND-WRITTEN classes** (spellCore `Thing` / `List` / `App`, `SP.*`, the editor) -- compiled spell
   can't use them (`blob:` URL, no transpile), so both spellings MUST build the same runtime shape:
   - `@prop({ type, default }) accessor x!: T` -- schema from decorator ARGS via `Symbol.metadata` (polyfilled in
-    `~/util`);  NEVER an initializer (it runs after `create()`);  object defaults as `{ init: () => [] }`
-  - `@derived get y()` -- memoized with the equality cutoff;  only for pure, worth-it getters
+    `$/util`'s `Schema.ts`);  NEVER an initializer (it runs after `create()`);  object defaults as
+    `{ init: () => [] }`.  BUILT:  `spellDecorators.ts`;  used by the editor (`EditorStore`), `SpellConsole`, forms'
+    `FormStore`
+  - `@derived get y()` -- memoized with the equality cutoff;  only for pure, worth-it getters.  BUILT
   - `@thing` on the class -- runs `create()` after the most-derived class's field initializers.  BUILT:
     `packages/util/src/spell/spellDecorators.ts` (`import { thing } from "$/util"`);  `Thing` / `List` skip their own
     `create()` call when a `@thing` class is in the chain (`runsCreate()`), so it runs exactly once, also for compiled
@@ -89,9 +105,13 @@ count() // 1
   - decorated classes read / call / write as fast as hand-lowered accessors;  construction is ~6x slower (fine for
     few-instance classes;  don't decorate fields on a base every spell Thing inherits)
   - a decorator MUST start its line, or `vite.decorators.ts` never sees the file
-- The editor store becomes a decorated class:  `editor.x = y` call sites don't change.  Solid 2 has NO mutable store.
-- `spellCore.flush()` (planned) = run pending derived checks, then Solid's `flush()`.  Tests and imperative code call
-  it, NEVER Solid's `flush()` directly.
+- The editor store is a decorated class (`EditorStore` in `app`'s `editor.ts`, BUILT):  `editor.x = y` call sites
+  didn't change.  Solid 2 has NO mutable store.
+- `spellCore.flush()` / `flushCells()` (`$/util`) = run pending derived checks, then the host's Solid `flush()`.  BUILT.
+  Tests and imperative code call it, NEVER Solid's `flush()` directly.
+- `tracked(read)` (`app`'s `$/app/solid`) = a Solid memo over a read of spell state (boxed, `equals: false`).  A plain
+  read in JSX is reactive too (the bridge);  `tracked()` shares one read among readers.  Re-reads on Solid's schedule:
+  never mid-write, so program code is safe to run in it (`deferred` is gone).
 - Compiled spell imports ONLY `@spell/core`, never Solid.  `spellCore.element()` is the adapter (planned, Phase 2):
   - builds on `@solidjs/h`
   - the parser emits THUNKS for every non-literal prop / child
@@ -271,7 +291,9 @@ h(Picker, { onPick: () => go() }) // WRONG:  becomes a getter, passes go()'s res
 - Under Node, `@solidjs/web` resolves to the SERVER build (no DOM `render`):  component tests need the
   `browser` + `development` conditions plus jsdom or vitest browser mode.  An SSR test project needs its own `solid()`.
 - `@solidjs/testing-library@next` (1.0.0-beta.3):  `render(() => <X />)`.
-- Reactive semantics this repo depends on are pinned by `solid/experiments/*` (planned:  vitest in `src/util/`).
+- Reactive semantics this repo depends on are pinned as vitest cases:  `util`'s `src/spell/cells.test.ts` (cells, no
+  Solid), `app`'s `src/solid/cellsBridge.browser.test.tsx` (Solid's client build:  staging, holds, the bridge) and
+  `src/ui/reactView.browser.test.tsx` (the React bridge).  The `solid/experiments/*` scripts stay, to re-measure.
 
 ```tsx
 fireEvent.click(button)

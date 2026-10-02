@@ -113,32 +113,6 @@ One `###` heading per item, under its package's `##` section, `---` between item
 
 ---
 
-### Store proxies stand in for the real objects
-
-`SP` objects (`SpellProject`, `SpellFile`...) keep their state in `react-easy-state` stores.  Read INSIDE a
-reaction -- a `view()` render, an `autoEffect()`, an `observe()` -- a store hands back a tracking PROXY of any
-nested object, and a cache filled there keeps the proxy.
-
-- **Cost**:
-  - identity breaks:  a proxy is not `===` the real object, so `includes()`, `Map` / `WeakMap` keys and `===`
-    all miss.  Found when `project.activeImports`, filled during a render, made `file.isActive` false for
-    every file, and the app editor's references / rename / cross-file definition came back empty.
-  - speed:  anything walked through a proxy inside a reaction registers every read.  Monaco's text model,
-    reached through the store inside an `observe()`, never finished.
-- **Cause**:  `@nx-js/observer-util` wraps nested objects lazily, only while a reaction is running (see
-  `isInsideRender()` in `util/extend.ts`).  `derivedFrom()` caches keep whatever they were computed with.
-- **Fix**:  keep non-state objects out of stores, and have caches store raw values -- e.g. `raw()` in
-  `derivedFrom()` -- or stop computing caches inside reactions.  Then drop the `raw()` calls below.
-- **Pinned at**:
-  - `SpellProject.spellFiles` and `SpellFile.isActive` unwrap with `raw()`
-  - `SpellModels.modelFor()` unwraps the file it's given;  it and `SpellModels` follow files with `observe()`,
-    touching Monaco only in microtasks OUTSIDE the reaction
-  - `editor.getInputEditor()`:  the Monaco editor lives outside the store (`packages/app/src/editor.ts`)
-  - `SpellModels.#toSave` and `editor.onFileEdited()` compare by `path`
-
-
----
-
 ### Review:  editor features added by Claude, 2026-09-27 / 28
 
 Everything below went in over two long sessions, tested (vitest, tsc, lint, a headless-Chromium run of the app,
@@ -173,7 +147,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
       `InputEditor.tsx`, `OutputEditor.tsx`, `ui/index.ts`, `ui.types.ts`, `pages/SpellEditor.tsx`, `debug.ts`
     - `src/types/monaco-internals.d.ts`, `src/util/Observable.ts` (`raw()`), `package.json` / `yarn.lock` (deps)
     - removed:  `packages/app/src/ui/CodeMirror*`, `codemirror-classes.txt`, `SpellFile.offsetForPosition` / `positionForOffset`
-    - see "Store proxies stand in for the real objects" above for the workarounds this needed
+    - its store-proxy workarounds (`raw()` ...) went with `easy-state` (solid-migration P11)
   - **Expecting mode:  what can come next** (in `95cbc54`, plus what's staged after it)
     - new `packages/parser/src/Expectations.ts` (+ test), `P.Expectation` (`parser.types.ts`), `Parser.expectedAfter()`
     - hooks in `packages/parser/src/rules/Sequence.ts` (incl. `allowRunOut`, `within`), `Choice.ts`, `Repeat.ts`, `Subrule.ts`
@@ -463,7 +437,7 @@ knowingly kept:
 
 - **`util/src/spell/` is the old `~/util`, whole.**
   - **Cost**:  `parser` and `core` depend on lodash, `chalk`, `pluralize`, `query-string` and the React-era
-    state libraries (`@nx-js/observer-util`, `@risingstack/react-easy-state`) for a handful of helpers each;  a
+    state code (spell cells, and React for `view()` -- `easy-state` went in P11) for a handful of helpers each;  a
     published `@spell-app/parser` would drag them in.  They sit in `util`'s `package.json`, beside the generic helpers
     `ui` bundles, and `ui`'s util barrel must import the generic files one by one to keep them out.
   - **Cause**:  `~/util` mixed generic helpers (`string`, `assert`, `paths`) with reactive state (`Observable`,

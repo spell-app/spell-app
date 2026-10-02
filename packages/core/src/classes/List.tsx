@@ -5,7 +5,7 @@
 import React from "react"
 import _ from "lodash"
 
-import { Observable, runsCreate, view } from "$/util"
+import { Observable, runsCreate, view, type PropInfo } from "$/util"
 import { spellCore } from "$/core/core"
 import type { PropCheck } from "$/core/spellCore.types"
 
@@ -13,6 +13,8 @@ import type { PropCheck } from "$/core/spellCore.types"
  * `List`: our array concept (1-based) -- what `a deck is a list` extends.
  * - Backed by reactive `items` state rather than a raw JS array, so mutations (`add`, `setItem`, ...)
  *   trigger re-renders of anything observing this `List`.
+ * - Copy on write:  each mutation sets `items` to a NEW array -- a spell cell notifies on a new value, never on a
+ *   change made in place.
  * - Delegates JS collection duck-typing (`itemCount`, `getKeys`, `getItem`, ...) to `spellCore`'s
  *   generic collection methods -- see `CollectionLike` in `collection-core.ts`.
  */
@@ -33,13 +35,17 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
   }
 
   /**
-   * Set reactive `property` to `value`, warning first if it fails `check` -- it's stored either way.
-   * - Compiled property setters call this, e.g. `set name(value) { this.setProp('name', value, { type: 'text' }) }`
-   * - Same as `Thing.setProp()`.
+   * Set reactive `property` to `value` -- see `Thing.setProp()`, which this mirrors:  `check` is how compiled spell
+   * said it before the class schema, still honoured.
    */
   protected setProp<T>(property: string, value: T, check?: PropCheck) {
     if (check) spellCore.checkProp(property, value, check)
     return super.setProp(property, value)
+  }
+
+  /** A declared prop was set:  warn on the PROGRAM's console if `value` isn't what `info` declares. */
+  protected checkPropType(property: string, value: unknown, info: PropInfo): void {
+    spellCore.checkProp(property, value, info)
   }
 
   /**
@@ -59,8 +65,8 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
   /**
    * React component which renders this list, memoized so the same component identity is reused
    * across renders (a fresh class each render would remount instead of updating).
-   * - NOTE: uses a class component, not a function component, to sidestep hook issues with
-   *   `react-easy-state`'s `view()` wrapper.
+   * - `view()` (`$/util`, the React bridge):  it re-renders when a spell cell its `draw()` read changes, e.g. `items`.
+   * - NOTE: a class component, as `Thing.Component`.
    */
   /*@memoize*/
   get Component(): ReactComponentType {

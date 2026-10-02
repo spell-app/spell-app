@@ -112,7 +112,7 @@ export type ConsoleLineProps = {
 /****************
  * ### `<ConsoleGroup>`
  * Console `group` line:  a toggleable disclosure triangle plus its (possibly collapsed) child `lines`.
- * - Its `lines` and `collapsed` are `easy-state` (`SpellConsoleGroup` is an `Observable`):  read through `tracked()`.
+ * - Its `lines` and `collapsed` are spell cells (`SpellConsoleGroup` is an `Observable`):  read through `tracked()`.
  * - SIDE EFFECT: `toggle` mutates `line.collapsed` directly, from the click handler.
  ****************/
 export function ConsoleGroup(props: ConsoleGroupProps) {
@@ -132,7 +132,7 @@ export function ConsoleGroup(props: ConsoleGroupProps) {
     </>
   )
 
-  /** Collapse / expand the group:  an `easy-state` write, so `collapsed()` follows. */
+  /** Collapse / expand the group:  a spell cell write, so `collapsed()` follows. */
   function toggle() {
     props.line.collapsed = !props.line.collapsed
   }

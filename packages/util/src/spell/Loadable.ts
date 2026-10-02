@@ -1,7 +1,5 @@
 import isEqual from "lodash/isEqual"
-import { batch } from "@risingstack/react-easy-state"
-
-import { Observable } from "./Observable"
+import { Observable, batch } from "./Observable"
 
 /**
  * Abstract class for a loadable / possibly saveable resource.

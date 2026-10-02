@@ -73,7 +73,7 @@ export type ActionProps = {
  * `<Actions.saveFile button />`.  Same names and behaviour as React's `UI.Actions` had.
  * - Props given at the call site win over the entry's own (`title`, `icon`, `onClick` ...).
  * - An entry whose look depends on `editor` reads it through `tracked()`, in its own body, and reads the accessor
- *   in JSX:  a plain `editor.x` read in JSX is NOT reactive (`editor` is `easy-state`, not Solid).
+ *   in JSX.  (A plain `editor.x` read in JSX is reactive too, through the cells bridge:  `tracked()` names it.)
  * - Entries that only touch `editor` in `onClick` read nothing:  that runs after render.
  * - NOTE: `PROJECT_DROPDOWN_ACTIONS` / `FILE_DROPDOWN_ACTIONS` are COMPONENTS here (React's are element arrays):
  *   Solid JSX makes DOM nodes at once, and one node can only be in one place.

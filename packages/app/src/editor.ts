@@ -1,4 +1,4 @@
-import { UIError, createStore, setPrefKey, getPref, setPref, CONFIRM } from "$/util"
+import { UIError, Observable, prop, setPrefKey, getPref, setPref, CONFIRM } from "$/util"
 
 import { P } from "$/parser"
 import { SP } from "$/spell"
@@ -15,15 +15,16 @@ import { navigate } from "$/app/pages/navigation"
 ////////////////
 
 setPrefKey("spellEditor:")
+
 /**
- * Initial contents of the `editor` singleton.
- * - NOTE: `EditorStore` is derived from this with `typeof`,
- *   so the docstrings below serve BOTH the constant and the type.
- * - NOTE: methods reach the reactive proxy via `editor.x`, NEVER `this`.
- * - MUST annotate any property whose initializer is narrower than its real type
- *   (e.g. `undefined as Foo | undefined`), or `typeof` will infer the narrow one.
+ * The editor:  what the app shows -- project root, project, file, selection, notices -- and everything it does.
+ * - Its state is spell cells (`@prop`):  `editor.x = y` anywhere, and Solid code reading `editor.x` re-runs (through
+ *   the cells bridge, `$/app/solid/cellsBridge`).  A read right after a write sees it.
+ * - ONE instance, `editor`, below.
+ * - NOTE: methods say `editor.x`, NEVER `this`:  they're handed around unbound, e.g. `setTimeout(editor.compileApp)`.
+ * - NOTE: a plain field (`compileAppSoonTimer`, the `last...For...()` helpers) is NOT reactive.
  */
-const EDITOR_DEFAULTS = {
+export class EditorStore extends Observable {
   ////////////////
   // ## Project and project actions
   ////////////////
@@ -32,34 +33,37 @@ const EDITOR_DEFAULTS = {
    * `SP.SpellProjectRoot` shown in `SpellEditor`.
    * Update with `editor.showEditor()
    */
-  projectRoot: undefined as SP.SpellProjectRoot | undefined,
+  @prop()
+  accessor projectRoot: SP.SpellProjectRoot | undefined
   /** Get/save last viewed `projectPath` for `projectRootPath`. */
-  lastProjectForRoot,
+  lastProjectForRoot = lastProjectForRoot
   /** Human-readable type of current `projectRoot`, e.g. `"Example"` -- falls back to `"Project"` if none selected. */
   get appType(): string {
     return editor.projectRoot?.Type || "Project"
-  },
+  }
 
   /**
    * Current `SP.SpellProject` shown in `SpellEditor`.
    * Update with `editor.showEditor()`
    */
-  project: undefined as SP.SpellProject | undefined,
+  @prop()
+  accessor project: SP.SpellProject | undefined
   /** Get/save last viewed full `filePath` for `projectPath`. */
-  lastFileForProject,
+  lastFileForProject = lastFileForProject
 
   /**
    * `SpellFile` etc shown in `SpellEditor`.
    * Update with `editor.showEditor()`
    */
-  file: undefined as EditorFile | undefined,
+  @prop()
+  accessor file: EditorFile | undefined
   /** Get/save last `selection` for `filePath`.  */
-  lastSelectionForFile,
+  lastSelectionForFile = lastSelectionForFile
 
   /** Show the project / example / guide chooser page. */
   showProjectChooser(): void {
     navigate("/")
-  },
+  }
 
   /** Show `<SpellEditor>` for a `path` by updating the URL, which will eventually call `selectPath` */
   showEditor(path?: string, selection?: UIT.EditorSelection): void {
@@ -71,7 +75,7 @@ const EDITOR_DEFAULTS = {
     } catch {
       editor.showError(`Path '${path}' is invalid!`)
     }
-  },
+  }
 
   /** Show `<SpellRunner>` for a `path` by updating the URL, which will eventually call `selectPath` */
   async showRunner(path?: string): Promise<void> {
@@ -82,39 +86,40 @@ const EDITOR_DEFAULTS = {
     } catch {
       editor.showError(`Path '${path}' is invalid!`)
     }
-  },
+  }
 
   // TODO: these are referenced by `$/app/solid`'s `Actions` but not yet implemented.
   /** Show settings for the current `project`. TODO: not yet implemented. */
   showProjectSettings(): void {
     console.warn("TODO: editor.showProjectSettings() not yet implemented")
-  },
+  }
   /** Show the "About Spell" dialog. TODO: not yet implemented. */
   aboutSpell(): void {
     console.warn("TODO: editor.aboutSpell() not yet implemented")
-  },
+  }
   /** Show documentation. TODO: not yet implemented. */
   showDocs(): void {
     console.warn("TODO: editor.showDocs() not yet implemented")
-  },
+  }
   /** Show help. TODO: not yet implemented. */
   showHelp(): void {
     console.warn("TODO: editor.showHelp() not yet implemented")
-  },
+  }
   /** Log the user in. TODO: not yet implemented. */
   logIn(): void {
     console.warn("TODO: editor.logIn() not yet implemented")
-  },
+  }
   /** Publish the current `project`. TODO: not yet implemented. */
   publishApp(): void {
     console.warn("TODO: editor.publishApp() not yet implemented")
-  },
+  }
 
   /**
    * Last project page we were showing: "editor" or "runner".
    * Set by `<SpellEditor>` or `<SpellRunner>`
    */
-  projectPage: "editor" as "editor" | "runner",
+  @prop({ type: "text", default: "editor" })
+  accessor projectPage!: "editor" | "runner"
 
   /**
    * Select a `path` to show in the `<SpellEditor/>` or `<SpellRunner>`.
@@ -197,7 +202,7 @@ const EDITOR_DEFAULTS = {
     await file.load(undefined)
     // If we switched projects, recompile
     if (!sameProject) void editor.compileApp()
-  },
+  }
 
   /**
    * Given a `match`, attempt to show it and put the cursor in the right spot.
@@ -216,7 +221,7 @@ const EDITOR_DEFAULTS = {
     await editor.selectPath(path, selection)
     // TODO....???
     editor.onInputEffect()
-  },
+  }
 
   /**
    * Create an app for the specified `projectRoot`.
@@ -235,7 +240,7 @@ const EDITOR_DEFAULTS = {
     } catch (e) {
       editor.showError(e)
     }
-  },
+  }
 
   /** Duplicate current `project` under `newProjectId` (auto-generated if omitted) and show it. */
   async duplicateApp(newProjectId?: string): Promise<void> {
@@ -249,7 +254,7 @@ const EDITOR_DEFAULTS = {
     } catch (e) {
       editor.showError(e)
     }
-  },
+  }
   /** Rename current `project` to `newProjectId` and show it. */
   async renameApp(newProjectId?: string): Promise<void> {
     try {
@@ -261,7 +266,7 @@ const EDITOR_DEFAULTS = {
     } catch (e) {
       editor.showError(e)
     }
-  },
+  }
   /** Delete current `project` (after `CONFIRM`), then navigate to `projectRoot`, which selects another project. */
   async deleteApp(): Promise<void> {
     try {
@@ -275,7 +280,7 @@ const EDITOR_DEFAULTS = {
     } catch (e) {
       editor.showError(e)
     }
-  },
+  }
 
   /**
    * Compile current `project` and, if compilation produced output, execute it.
@@ -309,7 +314,7 @@ const EDITOR_DEFAULTS = {
     } finally {
       output.groupEnd()
     }
-  },
+  }
 
   /**
    * Run already-`compiled` current `project` afresh, on the runtime programs run on -- logging how it went to
@@ -334,22 +339,22 @@ const EDITOR_DEFAULTS = {
     output.groupEnd()
     if (error) output.error(`${project.Type} failed with error:`, error)
     else output.info(`${project.Type} executed without errors.`)
-  },
+  }
 
   /** Timer id for a pending `compileAppSoon()`, if any. */
-  compileAppSoonTimer: undefined as ReturnType<typeof setTimeout> | undefined,
+  compileAppSoonTimer: ReturnType<typeof setTimeout> | undefined = undefined
   /** Compile after `delay` seconds. */
   compileAppSoon(delay: number = 1): void {
     editor.clearCompileAppSoon()
     editor.compileAppSoonTimer = setTimeout(editor.compileApp, delay * 1000)
-  },
+  }
   /** Cancel pending `compileAppSoon()` timer, if any. */
   clearCompileAppSoon(): void {
     if (editor.compileAppSoonTimer) {
       clearTimeout(editor.compileAppSoonTimer)
       editor.compileAppSoonTimer = undefined
     }
-  },
+  }
 
   ////////////////
   // ## Running
@@ -357,9 +362,10 @@ const EDITOR_DEFAULTS = {
 
   /**
    * Has the runtime programs run on loaded?  See `loadRuntime()`.
-   * - The runtime itself is NOT in the store:  read it with `runtimeSpellCore()` / `runtimeConsole()`.
+   * - The runtime itself is NOT spell state:  read it with `runtimeSpellCore()` / `runtimeConsole()`.
    */
-  runtimeLoaded: false,
+  @prop({ type: "choice", default: false })
+  accessor runtimeLoaded!: boolean
 
   /**
    * The runtime programs run on, loaded the first time it's asked for -- ONE for the page:  the editor runs one
@@ -376,12 +382,12 @@ const EDITOR_DEFAULTS = {
       return runtime
     })
     return loadingRuntime
-  },
+  }
 
-  /** Where the running app draws -- `<AppRoot>` hands it over, as a ref.  Kept OUTSIDE the store. */
+  /** Where the running app draws -- `<AppRoot>` hands it over, as a ref.  NOT spell state. */
   setAppRoot(element: HTMLElement | null): void {
     appRoot = element ?? undefined
-  },
+  }
   /**
    * Forget `element` as where the running app draws -- if it still is:  `<AppRoot>`'s cleanup.
    * - Why "if":  moving between the editor and the runner, the old page's cleanup may run AFTER the new page's
@@ -389,7 +395,7 @@ const EDITOR_DEFAULTS = {
    */
   releaseAppRoot(element: HTMLElement): void {
     if (appRoot === element) appRoot = undefined
-  },
+  }
 
   ////////////////
   // ## Projects actions
@@ -397,7 +403,7 @@ const EDITOR_DEFAULTS = {
   /** Create a new project under `SP.SpellProjectRoot.projects`. */
   createProject(projectId?: string): Promise<void> {
     return editor.createApp(SP.SpellProjectRoot.projects, projectId)
-  },
+  }
 
   ////////////////
   // ## Examples actions
@@ -405,7 +411,7 @@ const EDITOR_DEFAULTS = {
   /** Create a new example under `SP.SpellProjectRoot.examples`. */
   async createExample(projectId?: string): Promise<void> {
     return editor.createApp(SP.SpellProjectRoot.examples, projectId)
-  },
+  }
 
   ////////////////
   // ## Guides actions
@@ -413,7 +419,7 @@ const EDITOR_DEFAULTS = {
   /** Create a new guide under `SP.SpellProjectRoot.guides`. */
   async createGuide(projectId?: string): Promise<void> {
     return editor.createApp(SP.SpellProjectRoot.guides, projectId)
-  },
+  }
 
   ////////////////
   // ## File actions
@@ -423,7 +429,7 @@ const EDITOR_DEFAULTS = {
   async saveFile(): Promise<void> {
     const { file } = editor
     if (file?.isLoaded) await file.save(undefined)
-  },
+  }
   /** Reload current `file` from disk/storage and recompile. */
   async reloadFile(): Promise<void> {
     editor.clearCompileAppSoon()
@@ -432,7 +438,7 @@ const EDITOR_DEFAULTS = {
       await file.reload()
       void editor.compileApp()
     }
-  },
+  }
   /** Create `filePath` (with optional `contents`) in current `project` and show it. */
   async createFile(filePath?: string, contents?: string): Promise<void> {
     editor.clearCompileAppSoon()
@@ -445,7 +451,7 @@ const EDITOR_DEFAULTS = {
     } catch (e) {
       editor.showError(e)
     }
-  },
+  }
   /** Duplicate current `file` to `newPath` and show it. */
   async duplicateFile(newPath?: string): Promise<void> {
     editor.clearCompileAppSoon()
@@ -458,7 +464,7 @@ const EDITOR_DEFAULTS = {
     } catch (e) {
       editor.showError(e)
     }
-  },
+  }
   /** Rename current `file` to `newPath` and show it. */
   async renameFile(newPath?: string): Promise<void> {
     editor.clearCompileAppSoon()
@@ -471,7 +477,7 @@ const EDITOR_DEFAULTS = {
     } catch (e) {
       editor.showError(e)
     }
-  },
+  }
   /** Delete current `file` (after `CONFIRM`), then show next import or `project`. */
   async deleteFile(): Promise<void> {
     editor.clearCompileAppSoon()
@@ -492,7 +498,7 @@ const EDITOR_DEFAULTS = {
     } catch (e) {
       editor.showError(e)
     }
-  },
+  }
 
   ////////////////
   // ## Dialogs
@@ -502,7 +508,7 @@ const EDITOR_DEFAULTS = {
   async testDialog(): Promise<void> {
     const reply = await editor.confirm({ header: "Header", message: "Message?", ok: "Yep", cancel: "Nope" })
     console.warn("testDialog resolved with ", reply)
-  },
+  }
 
   /**
    * Get the user's answer to some question:  a `<ui-modal>` (`$/app/solid/modals`, on `@spell-app/ui`).
@@ -519,22 +525,22 @@ const EDITOR_DEFAULTS = {
    */
   alert(props: string | Modals.AlertModalProps): Promise<undefined> {
     return dialogs().then((modals) => modals.alert(props))
-  },
+  }
 
   /** See `alert()` above for shared `props` docs.  Resolves `true`/`false` for OK/Cancel button. */
   confirm(props: string | Modals.ConfirmModalProps): Promise<boolean> {
     return dialogs().then((modals) => modals.confirm(props))
-  },
+  }
 
   /** See `alert()` above for shared `props` docs.  Resolves field's string value, or `undefined` if cancelled. */
   prompt(props: string | Modals.PromptModalProps): Promise<string | undefined> {
     return dialogs().then((modals) => modals.prompt(props))
-  },
+  }
 
   /** Like `prompt()`, but numeric input -- defaults `type: "number"` and `step: 1`. */
   promptForNumber(props: string | Modals.PromptModalProps): Promise<string | undefined> {
     return dialogs().then((modals) => modals.promptForNumber(props))
-  },
+  }
 
   /** Show a chooser modal.  Rejects instead of showing anything if `message`/`options` are missing. */
   choose(props?: Modals.ChooserModalProps): Promise<unknown> {
@@ -543,7 +549,7 @@ const EDITOR_DEFAULTS = {
       return Promise.reject(undefined)
     }
     return dialogs().then((modals) => modals.choose(props))
-  },
+  }
 
   ////////////////
   // ## InputEditor event handlers
@@ -551,13 +557,12 @@ const EDITOR_DEFAULTS = {
 
   /**
    * Monaco editor of our `<InputEditor>`, if one's mounted.
-   * - NEVER kept in the store:  read through it inside a reaction, it would come back wrapped in a tracking proxy,
-   *   and Monaco's internals would crawl through it -- see `inputEditorInstance`.
+   * - NEVER spell state:  nothing should follow Monaco's internals -- see `inputEditorInstance`.
    * TODO: generalize this for multiple editors!
    */
   getInputEditor(): monaco.editor.IStandaloneCodeEditor | undefined {
     return inputEditorInstance
-  },
+  }
   /**
    * Remember `inputEditor`, showing `editor.file`, in our `<InputEditor onMount />` event.
    * - `api` is Monaco itself, handed over as Monaco is loaded lazily -- see `$/app/solid`'s `LazyMonaco`.
@@ -575,16 +580,17 @@ const EDITOR_DEFAULTS = {
     inputEditor.onDidScrollChange((event) => {
       if (event.scrollTopChanged) editor.onInputCursor("scroll")
     })
-  },
+  }
   /** Forget `inputEditor` in our `<InputEditor onUnmount />` event. */
   onInputWillUnmount(inputEditor: monaco.editor.IStandaloneCodeEditor): void {
     if (inputEditorInstance === inputEditor) inputEditorInstance = undefined
-  },
+  }
 
   /** Handle cursor move or scroll in our inputEditor, remembering the `selection`  */
-  selection: undefined as UIT.EditorSelection | undefined,
+  @prop()
+  accessor selection: UIT.EditorSelection | undefined
   /** Track cursor/scroll position in `inputEditor` -- see `onInputCursor()` below. */
-  onInputCursor,
+  onInputCursor = onInputCursor
 
   /**
    * Called from a `useEffect()` hook in our `<InputEditor />`:  if `editor.file.initialSelection` is set and
@@ -623,16 +629,16 @@ const EDITOR_DEFAULTS = {
       if (position.offset !== undefined) return textModel.getPositionAt(position.offset)
       return textModel.validatePosition({ lineNumber: position.line + 1, column: position.ch + 1 })
     }
-  },
+  }
 
   /**
    * `file` was edited in its Monaco model, and has taken the text -- see `SpellModels`.
    * - Compiles 2 seconds after input settles, if it's in the project we're showing.
    */
   onFileEdited(file: SP.AnySpellFile): void {
-    // by path:  one of them may be a store proxy of the other
+    // by path:  cheap, and the same however the project was reached
     if (file.project.path === editor.project?.path) editor.compileAppSoon(2)
-  },
+  }
 
   /**
    * Show the file at `path`, selecting `selection`, e.g. "go to definition" in another file.
@@ -642,7 +648,7 @@ const EDITOR_DEFAULTS = {
     await editor.selectPath(path, selection)
     navigate(new SP.SpellLocation(path).editorUrl)
     editor.onInputEffect()
-  },
+  }
 
   /**
    * The user edited `inputEditor`'s text to `value`, in `<InputEditor>`'s fallback editor, which has no model.
@@ -659,63 +665,61 @@ const EDITOR_DEFAULTS = {
     }
     // auto-compile 2 seconds after input settles
     editor.compileAppSoon(2)
-  },
+  }
 
   ////////////////
   // ## UI
   ////////////////
 
   /** Whether `<MatchRoot>` shows rule names alongside matches. */
-  showingMatchRuleNames: true,
+  @prop({ type: "choice", default: true })
+  accessor showingMatchRuleNames!: boolean
   /** Toggle (or force via `on`) `showingMatchRuleNames`. */
   toggleMatchRuleNames(on?: boolean): void {
     // NOTE: defaulted here rather than in the signature -- see `createApp()` above.
     on ??= !editor.showingMatchRuleNames
     editor.showingMatchRuleNames = on
-  },
+  }
 
   /** Single `notice` display. */
-  notice: undefined as string | undefined,
+  @prop({ type: "text" })
+  accessor notice: string | undefined
   /** Show `notice` banner with `notice` text. */
   showNotice(notice: string): void {
     console.info("showNotice:", notice)
     editor.notice = notice
-  },
+  }
   /** Clear `notice` banner. */
   hideNotice(): void {
     editor.notice = undefined
-  },
+  }
 
   /** Single error display. */
-  error: undefined as Error | undefined,
+  @prop()
+  accessor error: Error | undefined
   /** Show an error to the user. */
   showError(error: unknown): void {
     console.dir(error)
     editor.error = error instanceof Error ? error : new UIError(String(error))
-  },
+  }
   /** Clear `error` banner. */
   hideError(): void {
     editor.error = undefined
   }
 }
 
-/** Type of the `editor` singleton, derived from `EDITOR_DEFAULTS` above. */
-export type EditorStore = typeof EDITOR_DEFAULTS
-
-/** The runtime programs run on, once loaded -- OUTSIDE the store, whose proxies would wrap it.  See `loadRuntime()`. */
+/** The runtime programs run on, once loaded -- NOT spell state:  nothing follows it.  See `loadRuntime()`. */
 let appRuntime: SpellRuntime | undefined
 /** Loading `appRuntime`, once asked for. */
 let loadingRuntime: Promise<SpellRuntime> | undefined
-/** Where the running app draws -- OUTSIDE the store too.  See `editor.setAppRoot()`. */
+/** Where the running app draws -- NOT spell state either.  See `editor.setAppRoot()`. */
 let appRoot: HTMLElement | undefined
 
 /**
  * `spellCore` of the runtime programs run on -- `undefined` until it's loaded, see `editor.loadRuntime()`.
  * - NOT an import of `$/core`:  the app MUST NOT load one of its own, see `spellRuntime.ts`.
- * - A function, NOT a getter on `editor`:  the store would hand it out wrapped in a proxy -- see "Store proxies
- *   stand in for the real objects" in `CODE-DEBT.md`.  Worse, its class is named `spellCore`, which the proxy
- *   library looks up on `window` -- where `debug.ts` puts THIS, so a store getter recursed forever.
- * - Reads `editor.runtimeLoaded`, so a `view()` calling it redraws once it's loaded.
+ * - A function, NOT a getter on `editor`:  callers outside the editor read it too.
+ * - Reads `editor.runtimeLoaded`, so a reader calling it re-runs once it's loaded.
  */
 export function runtimeSpellCore(): SpellRuntime["spellCore"] | undefined {
   return editor.runtimeLoaded ? appRuntime?.spellCore : undefined
@@ -726,13 +730,13 @@ export function runtimeConsole(): SpellConsole | undefined {
   return runtimeSpellCore()?.console
 }
 
-/** Monaco editor of our `<InputEditor>`, if one's mounted -- OUTSIDE the store, see `editor.getInputEditor()`. */
+/** Monaco editor of our `<InputEditor>`, if one's mounted -- NOT spell state, see `editor.getInputEditor()`. */
 let inputEditorInstance: monaco.editor.IStandaloneCodeEditor | undefined
 /** Path of the file `inputEditorInstance` shows. */
 let inputEditorPath: string | undefined
 
-/** The `editor` singleton -- a reactive proxy over `EDITOR_DEFAULTS`. */
-export const editor: EditorStore = createStore(EDITOR_DEFAULTS)
+/** The `editor` singleton. */
+export const editor = new EditorStore({})
 
 ////////////////
 // ## Supporting types

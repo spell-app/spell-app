@@ -3,7 +3,8 @@
  * - Plumbing:
  *   - `loadUI.ts`:  SIDE EFFECT, defines every `@spell-app/ui` `<ui-*>` and adds the app's icon packs
  *     (`uiReady`).  The ONE place the app loads `$/ui`:  importing this barrel loads it.
- *   - `tracked()`:  Solid sees `easy-state` (spell Things, the editor store) change.
+ *   - `cellsBridge.ts`:  SIDE EFFECT, Solid follows spell cells (spell Things, `SP.*`, the editor).
+ *   - `tracked()`:  a memo over a read of spell state.
  *   - `on()`:  a `ref` listening for a `ui-*` event.
  *   - `solid.types.ts`:  `<ui-*>` tags in Solid JSX.
  * - Shared UI:

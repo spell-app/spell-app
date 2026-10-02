@@ -1,68 +1,64 @@
 /** @jsxImportSource react */
 import cloneDeep from "lodash/cloneDeep"
 
-import { createStore, getPath, setPath } from "$/util"
+import { Observable, getPath, prop, setPath } from "$/util"
 
 /**
- * Create a react-easy-state `store` for use in a form with form `value`.
- * See `FormStore` for details.
+ * Make the store for a form with form `value`.  See `FormStore` for details.
  */
 export function makeFormStore<V extends object>(value: V): FormStore<V> {
-  const formStore: FormStore<V> = createStore<FormStore<V>>({
-    value,
-    get raw() {
-      return cloneDeep(value)
-    },
-    // NOTE: read/write the raw `value` closure reference directly, NOT `formStore.value`.
-    // react-easy-state auto-wraps nested object properties in their own reactive proxy the first time
-    // they're read during a render. If `value` is already its own reactive object (e.g. a spellCore
-    // `Thing`), going through that second wrapper invokes `value`'s getters/setters with `this` bound to
-    // the WRAPPING proxy instead of the real instance -- writes then land in a different reactive slot
-    // than the one everything else (e.g. a spell `onClick` handler doing `app.x = y` directly) reads from,
-    // so e.g. a bound `<UI.Button disabled={...}>` never sees the change. Using `value` directly keeps
-    // every read/write going through the exact same getter/setter with `this` always the real instance.
-    getValue(path) {
-      return getPath(value, path)
-    },
-    setValue(path, newValue) {
-      setPath(value, path, newValue)
-    },
-    errors: {},
-    getError(path) {
-      return formStore.errors[path]
-    },
-    setError(path, error) {
-      if (error) formStore.errors[path] = error
-      else delete formStore.errors[path]
-    },
-    get hasErrors(): boolean {
-      return Object.keys(formStore.errors).length > 0
-    }
-  })
-  // console.warn(formStore)
-  return formStore
+  return new FormStore<V>({ value })
 }
 
 /**
- * Reactive store backing a `<Form>`.
- * - Holds the editable `value` plus per-path validation `errors`.
- * - `raw` is the un-proxied value, for reading without subscribing.
+ * Reactive store backing a `<Form>`:  the editable `value` plus per-path validation `errors`, as spell cells.
+ * - `value` is usually a spell `Thing` (e.g. a program's `todo`):  `getValue()` / `setValue()` go through ITS
+ *   getters / setters, so its own cells say when a field changes -- and a spell `onClick` doing `app.x = y`
+ *   directly is seen too.  A plain object `value` isn't reactive inside:  `<Form>` re-renders its fields after each
+ *   `setValue()` anyway (`Form.updateFields()`).
+ * - `errors` is replaced, never changed in place:  a spell cell notifies on a new value.
+ * - Read in a `view()` render (`$/util`'s React bridge), each of these re-renders it when it changes.
  */
-export type FormStore<V extends object> = {
-  /** Reactive form value -- read/write directly for the whole object, or via `getValue()`/`setValue()` per path. */
-  value: V
-  /** `cloneDeep(value)` -- un-proxied, so reading it does not subscribe to reactive updates. */
-  readonly raw: V
-  /** Reactively get a value by nested `path` (e.g. `"a.b[0].c"`), via `getPath()` in `$/util`. */
-  getValue(path: string): unknown
-  /** Reactively set a value by nested `path`, via `setPath()` in `$/util`. */
-  setValue(path: string, value: unknown): void
+export class FormStore<V extends object> extends Observable {
+  /** Form value -- read/write directly for the whole object, or via `getValue()`/`setValue()` per path. */
+  @prop()
+  accessor value!: V
+
   /** Per-path validation errors, keyed by the same flat `path` strings as `getValue()`/`setValue()`. */
-  errors: Record<string, string | undefined>
-  /** Reactively get the error for a field by `path`. */
-  getError(path: string): string | undefined
-  /** Reactively set the error for a field by `path`.  `undefined` clears it. */
-  setError(path: string, error: string | undefined): void
+  @prop({ init: () => ({}) })
+  accessor errors!: Readonly<Record<string, string | undefined>>
+
+  /** `cloneDeep(value)` -- a copy, so reading it does not follow later changes. */
+  get raw(): V {
+    return cloneDeep(this.value)
+  }
+
+  /** Get a value by nested `path` (e.g. `"a.b[0].c"`), via `getPath()` in `$/util`. */
+  getValue(path: string): unknown {
+    return getPath(this.value, path)
+  }
+
+  /** Set a value by nested `path`, via `setPath()` in `$/util`. */
+  setValue(path: string, value: unknown): void {
+    setPath(this.value, path, value)
+  }
+
+  /** The error for a field by `path`. */
+  getError(path: string): string | undefined {
+    return this.errors[path]
+  }
+
+  /** Set the error for a field by `path`.  `undefined` clears it. */
+  setError(path: string, error: string | undefined): void {
+    if (this.errors[path] === error) return
+    const errors = { ...this.errors }
+    if (error) errors[path] = error
+    else delete errors[path]
+    this.errors = errors
+  }
+
   /** Whether any `path` currently has an error. */
-  readonly hasErrors: boolean
+  get hasErrors(): boolean {
+    return Object.keys(this.errors).length > 0
+  }
 }

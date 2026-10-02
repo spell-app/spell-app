@@ -6,7 +6,6 @@ import {
   type SolidElementClass
 } from "@spell-app/solid-element"
 
-import { raw } from "$/util"
 import { SP } from "$/spell"
 import { LSP } from "$/lsp"
 import type * as UIT from "$/app/ui/ui.types"
@@ -15,6 +14,8 @@ import type { monaco } from "$/app/ui/monaco"
 import { SPELL_COMPILED_EVENT, type SpellCompiled } from "$/app/runner/runner.types"
 import { shadowStyles } from "$/app/runner/shadowStyles"
 import { SpellEditorPane, type SpellEditorStatus, type MonacoModule } from "./SpellEditorPane"
+
+import "$/app/solid/cellsBridge"
 
 /****************
  * ### `<spell-editor>`
@@ -261,7 +262,7 @@ class SpellEditorBase extends HTMLElement {
     this.setStatus({ state: "loading" })
     let project: SP.SpellProject
     try {
-      project = raw(new SP.SpellProject(SP.SpellProject.projectIdForImport(attribute)))
+      project = new SP.SpellProject(SP.SpellProject.projectIdForImport(attribute))
       await project.load()
     } catch (error) {
       if (attribute === this.#projectAttribute) this.setStatus({ state: "failed", message: messageOf(error) })

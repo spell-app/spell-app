@@ -2148,13 +2148,17 @@ export class ASTPropertyDefinition extends ASTClassMember {
 }
 
 /**
- * ReactiveProperty -- a property stored in its instance's reactive props, so drawing it redraws when it changes.
+ * ReactiveProperty -- a property stored in its instance's spell cells, so drawing it redraws when it changes.
  * - `type` (required) is its class, as a TypeExpression or bare name.
  * - `property` (required) is PropertyLiteral or string.
  * - `check` (optional) is what its setter warns about, e.g. `{ type: 'text' }` -- see `SC.PropCheck`.
  * - `initializer` (optional) is its default, made once per instance, e.g. `new List()`.
  * - A getter / setter pair over `getProp()` / `setProp()`, as a plain class field would shadow it:
  *   `get title() { return this.getProp('title') }` + `set title(value) { this.setProp('title', value) }`.
+ * - `check` and `initializer` go in its class's SCHEMA, declared once, NOT passed on every get / set:
+ *   `static { this.declareProp('title', { type: 'text' }) }`, or `Todo.declareProp(...)` from outside the class.
+ *   The same runtime shape as a hand-written class's `@prop({ type: 'text' }) accessor title` -- compiled spell runs
+ *   from a `blob:` URL, untranspiled, so it can't use decorators.  See `packages/docs/solid/solid-2.md`.
  */
 export type ASTReactivePropertyProps = Prettify<{
   type: string | ASTTypeExpression
@@ -2174,30 +2178,56 @@ export class ASTReactiveProperty extends ASTClassMember {
     this.assertType("check", ASTObjectLiteral, OPTIONAL)
     this.assertType("initializer", ASTExpression, OPTIONAL)
   }
-  /** `{ return this.getProp('name') }`, with its `initializer` as a default if it has one. */
+  /** `{ return this.getProp('name') }`:  its default, if any, is in its class's schema -- see `declaration`. */
   get getterBody(): string {
-    const initializer = this.initializer ? `, () => ${this.initializer.compile()}` : ""
-    return `{ return this.getProp(${quoted(this.property)}${initializer}) }`
+    return `{ return this.getProp(${quoted(this.property)}) }`
   }
-  /** `{ this.setProp('name', value) }`, with its `check` if it has one. */
+  /** `{ this.setProp('name', value) }`:  its `check`, if any, is in its class's schema -- see `declaration`. */
   get setterBody(): string {
-    const check = this.check ? `, ${this.check.compile()}` : ""
-    return `{ this.setProp(${quoted(this.property)}, value${check}) }`
+    return `{ this.setProp(${quoted(this.property)}, value) }`
   }
-  /** `get name() {...}` + `set name(value) {...}`, one line each. */
+  /**
+   * What its class's schema declares about it -- its `check`'s keys, plus `init` for its `initializer` -- e.g.
+   * `{ type: 'text' }`, `{ init: () => new List() }`.  `undefined` if nothing:  then it's undeclared.
+   */
+  get declaration(): string | undefined {
+    const parts = (this.check?.properties ?? []).map((property) => property.compile())
+    if (this.initializer) parts.push(`init: () => ${this.initializer.compile()}`)
+    return parts.length ? `{ ${parts.join(", ")} }` : undefined
+  }
+  /** `declareProp('name', {...})` with `declaration`, called on `owner`, e.g. `this` in its class's body. */
+  declareCall(owner: string): string | undefined {
+    const { declaration } = this
+    return declaration && `${owner}.declareProp(${quoted(this.property)}, ${declaration})`
+  }
+  /** `static { this.declareProp(...) }` (if it declares anything), `get name() {...}` + `set name(value) {...}`. */
   compileAsMember(): string {
     const name = this.property.compile()
-    return [`get ${name}() ${this.getterBody}`, `set ${name}(value) ${this.setterBody}`].join(stringify.NEWLINE)
+    const declare = this.declareCall("this")
+    return [
+      declare && `static { ${declare} }`,
+      `get ${name}() ${this.getterBody}`,
+      `set ${name}(value) ${this.setterBody}`
+    ]
+      .filter(Boolean)
+      .join(stringify.NEWLINE)
   }
-  /** `Object.defineProperty(Type.prototype, 'name', { get() {...}, set(value) {...}, configurable: true })`. */
+  /**
+   * `Type.declareProp(...)` (if it declares anything), then
+   * `Object.defineProperty(Type.prototype, 'name', { get() {...}, set(value) {...}, configurable: true })`.
+   */
   compile(): string {
     const descriptor = [`get() ${this.getterBody},`, `set(value) ${this.setterBody},`, "configurable: true"]
     const block = stringify.Block({ wrap: true, children: descriptor.join(stringify.NEWLINE) })
-    return `Object.defineProperty(${this.prototypeExpression.compile()}, ${quoted(this.property)}, ${block})`
+    const define = `Object.defineProperty(${this.prototypeExpression.compile()}, ${quoted(this.property)}, ${block})`
+    const declare = this.declareCall(this.type.compile())
+    return declare ? [declare, define].join(stringify.NEWLINE) : define
   }
   renderAsMember(): P.Markup {
     const name = this.property.markup
+    const declare = this.declareCall("this")
     return render.Fragment(
+      declare ? render.Fragment(render.STATIC, `{ ${declare} }`, render.NEWLINE) : undefined,
       render.GET,
       name,
       `() ${this.getterBody}`,

@@ -8,7 +8,7 @@ import "./RunnerConsole.css"
 /****************
  * ### `<RunnerConsole>`
  * A `spellCore.console`, e.g. what `print` statements say.
- * - Its lines are `easy-state`:  read through `tracked()`, so a line logged adds a row.
+ * - Its lines are spell cells:  read through `tracked()`, so a line logged adds a row.
  * - `console` is a prop, NOT the imported `spellCore`'s:  `<spell-app>` shows each app's own copy's.
  * - `console` is read ONCE:  remount for another, e.g. `<Show when={loaded()} keyed>`.
  ****************/
