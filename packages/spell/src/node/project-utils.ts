@@ -1,9 +1,8 @@
 /**
  * Utilities for working with projects and project files.
- * The `request_XXX` version can be passed directly to express.
+ * The `request_XXX` version can be passed directly to a `SRV.Router` route (Express-shaped).
  */
-import type { Request, Response } from "express"
-
+import type { SRV } from "$/server"
 import environment from "$/spell/node/environment"
 
 import { SP } from "$/spell"
@@ -13,6 +12,10 @@ import * as responseUtils from "./response-utils"
 import type { ManifestJSON, ProjectFileJSON, ProjectIndexJSON } from "./server.types"
 
 const { respondWithJSON } = responseUtils
+
+/** Express's names, kept so every handler reads as before. */
+type Request = SRV.Request
+type Response = SRV.Reply
 
 // HACKY!!!
 // Make sure we don't save `SP.SpellLocation` instances in the singleton registry or we'll leak memory!
@@ -243,7 +246,7 @@ export const request_getIndex = respondWithJSON(async (request) => {
  * `GET /api/projects/file/:projectId/:filePath*` -- fetch raw contents of one project file.
  * - Client sends: `projectId` and `filePath` route params (`filePath*` is a wildcard, so it can include
  *   `/`-separated nested folders).
- * - Returns: raw file body via express `sendFile()` (mime type set from extension); `{ dotfiles: "allow" }`
+ * - Returns: raw file body via `SRV.Reply.sendFile()` (mime type set from extension); `{ dotfiles: "allow" }`
  *   so dotfiles can be fetched too.
  * - Failure: 404 (via `responseUtils.sendFile()`) if file not found; 500 if `projectId`/`filePath` don't
  *   resolve to a valid file path (thrown by `SpellLocation.getFileLocation()`) or if the send itself fails.
