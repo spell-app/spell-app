@@ -23,6 +23,7 @@ import {
 } from "./SpellAppRunner"
 
 // Defines every `<ui-*>` the runner draws, once per page -- see `loadUI.ts`.
+import "$/app/solid/cellsBridge"
 import "$/app/solid/loadUI"
 
 /****************

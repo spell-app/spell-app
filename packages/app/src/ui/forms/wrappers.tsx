@@ -10,9 +10,7 @@
 
 import React from "react"
 import { findDOMNode } from "react-dom"
-import { view } from "@risingstack/react-easy-state"
-
-import { UIError } from "$/util"
+import { UIError, view } from "$/util"
 
 import type { Form } from "./Form"
 

@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test, vi } from "vitest"
 import { flush } from "solid-js"
 import { render } from "@solidjs/web"
 
-import { createStore, getPref, resetPref, setPref } from "$/util"
+import { getPref, reactiveObject, resetPref, setPref } from "$/util"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { SP } from "$/spell"
 import { editor, type EditorStore } from "$/app/editor"
@@ -229,9 +229,9 @@ describe("<ProjectMenu> / <ProjectDropdown>", () => {
 // ## Helpers
 ////////////////
 
-/** A project root of two examples, as an `easy-state` store (as real ones are), `isLoaded` or not. */
+/** A project root of two examples, as spell cells (as real ones are), `isLoaded` or not. */
 function fakeRoot(isLoaded: boolean): SP.SpellProjectRoot & { load: ReturnType<typeof vi.fn> } {
-  return createStore({
+  return reactiveObject({
     path: "@system:examples",
     isLoaded,
     projectPaths: ["@system:examples:Todos", "@system:examples:Solitaire"],

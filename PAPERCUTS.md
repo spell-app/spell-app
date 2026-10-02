@@ -915,6 +915,10 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   `getPadding()` reads `NaN` under vitest (`SUSPECTED-BUGS.md`, app), and one `NaN` in the measurements makes `drag()`
   bail silently. · Bisected by dumping the drag's measurements into a failing `expect`;  `SplitPanel.tsx` reads
   padding with `getComputedStyle()` itself. · app (solid-migration P8)
+- 2026-10-02 · `/demo/spell-app.html` 404s `/element/spell-app.js` on the dev server (`spell serve`):  nothing there
+  serves `dist-element/`, though the demo's comment says the dev server does.  The app's own pages work. · For a live
+  check:  a tiny static server for `/demo/` + `/element/` that proxies `/api/` to the page server -- dropping
+  `Origin` / `Referer`, or the page server answers 403. · app
 
 ## cli
 
@@ -969,6 +973,10 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   checkout>` ("redirects git to the shared checkout"), even a read-only `status`. · Get the branch ready in the
   worktree (`git log HEAD..main`, `git merge-tree --write-tree` to spot conflicts), `ExitWorktree`, then
   `git merge --ff-only <name>` from the main checkout.  The skill now does it in that order. · tooling
+- 2026-10-02 · `spell speed --against HEAD` died at once ("Previous side failed:  }") after a change REMOVED a
+  dependency (`easy-state`, P11):  the temp worktree of HEAD links OUR `node_modules`, where HEAD's import no longer
+  resolves.  The message hides the cause. · Put the dependency back in `package.json` + `yarn install` for the run,
+  then take it out again.  Better:  `speed` could print the child's stderr. · cli
 
 ## docs
 

@@ -18,8 +18,9 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
     (`renderToString`;  writes NOT staged, see `src/solid.test.tsx`), and `browser` (chromium) for
     `*.browser.test.ts(x)`:  Solid's client build, as in the app.
   - `$/app/solid` is the app's UI, all Solid (P8):  the pages' shell (`SpellPage`, `SplitPanel`, `AppRoot`), menus,
-    panes, dialogs, and the plumbing:  `tracked()` lets Solid code see `easy-state` (spell Things, the editor store)
-    change.
+    panes, dialogs, and the plumbing:  `cellsBridge.ts` makes every Solid computation follow spell cells (spell
+    Things, `SP.*`, the editor -- P11);  each entry imports it before rendering.  `tracked()` is a memo over such a
+    read.  Spell's React kit (`F`, `Thing.Component`) follows them through `$/util`'s `view()`.
 - `src/` is the app:
   `solid/` (the UI), `pages/` (the pages and the router), `ui/` (`UI`, `F` for `ui/forms`:  spell PROGRAMS' React
   kit), `runner/`, `spellEditor/`, `editor.ts`, `index.tsx` (Solid `render()` into `#app-root`).

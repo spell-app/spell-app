@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test, vi } from "vitest"
 import { flush } from "solid-js"
 import { render } from "@solidjs/web"
 
-import { createStore } from "$/util"
+import { reactiveObject } from "$/util"
 import type { SP } from "$/spell"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { editor, type EditorStore } from "$/app/editor"
@@ -16,7 +16,7 @@ import { OutputEditor } from "./OutputEditor"
 /**
  * The Solid source editors on real Monaco, in the browser:  `<InputEditor>` (lazy `<FileEditor>`, its error
  * fallback), `<OutputEditor>`, `<FileDropdown>`.
- * - Files are FAKES in an `easy-state` store:  a `.js` file (no parse) with just what `SpellModels` and `editor`
+ * - Files are FAKES, as spell cells (`reactiveObject()`):  a `.js` file (no parse) with just what `SpellModels` and `editor`
  *   read -- a real `SpellProject` loads from the API server, which tests don't have.
  */
 
@@ -184,9 +184,9 @@ describe("<InputRoot>", () => {
 // ## Helpers
 ////////////////
 
-/** A fake file of a fake loaded project, in an `easy-state` store, with the other file `two.js`. */
+/** A fake file of a fake loaded project, as spell cells (`reactiveObject()`), with the other file `two.js`. */
 function fakeFile(path: string, contents: string): FakeFile {
-  const project = createStore({
+  const project = reactiveObject({
     path: "test-project",
     isLoaded: true,
     spellFiles: [] as SP.SpellFile[],
@@ -196,7 +196,7 @@ function fakeFile(path: string, contents: string): FakeFile {
     ],
     updatedContentsFor: vi.fn()
   })
-  return createStore({
+  return reactiveObject({
     path,
     file: path.split("/").pop()!,
     contents,

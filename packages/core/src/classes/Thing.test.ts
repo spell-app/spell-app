@@ -1,6 +1,6 @@
 import { describe, test, expect, vi, afterEach } from "vitest"
-import { autoEffect, clearEffect } from "@risingstack/react-easy-state"
 
+import { observe } from "$/util"
 import { spellCore, Thing, List } from "$/core"
 
 /**
@@ -53,11 +53,11 @@ describe("compiled-style getter / setter properties", () => {
   test("reads are tracked:  a later write re-runs an observer", () => {
     const task = new Task({ title: "One" })
     const seen: string[] = []
-    const effect = autoEffect(() => {
+    const stop = observe(() => {
       seen.push(task.title)
     })
     task.title = "Two"
-    clearEffect(effect)
+    stop()
     expect(seen).toEqual(["One", "Two"])
   })
 

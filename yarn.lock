@@ -1620,13 +1620,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx-js/observer-util@npm:^4.2.2":
-  version: 4.2.2
-  resolution: "@nx-js/observer-util@npm:4.2.2"
-  checksum: 10c0/2b9953f598be95cc87fa1d02a59e73206f8a46d52f1ab20183e525d0f8273f470fa5fd27e176006db9adf2ec3f9e6e7e203a8844fc46998dacd28e9d5f704bd3
-  languageName: node
-  linkType: hard
-
 "@oslojs/encoding@npm:^1.1.0":
   version: 1.1.0
   resolution: "@oslojs/encoding@npm:1.1.0"
@@ -2115,17 +2108,6 @@ __metadata:
   version: 2.11.8
   resolution: "@popperjs/core@npm:2.11.8"
   checksum: 10c0/4681e682abc006d25eb380d0cf3efc7557043f53b6aea7a5057d0d1e7df849a00e281cd8ea79c902a35a414d7919621fc2ba293ecec05f413598e0b23d5a1e63
-  languageName: node
-  linkType: hard
-
-"@risingstack/react-easy-state@npm:^6.3.0":
-  version: 6.3.0
-  resolution: "@risingstack/react-easy-state@npm:6.3.0"
-  dependencies:
-    "@nx-js/observer-util": "npm:^4.2.2"
-  peerDependencies:
-    react: "*"
-  checksum: 10c0/afdd5d4849c30d588c933e9d149b3507aa688d13c7486f4fe9bc43ea32367139bdb3252a20f7c036b432445854bf714c1b1ea24ed626fec6f978ba114bff6979
   languageName: node
   linkType: hard
 
@@ -2635,8 +2617,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@spell-app/app@workspace:packages/app"
   dependencies:
-    "@nx-js/observer-util": "npm:^4.2.2"
-    "@risingstack/react-easy-state": "npm:^6.3.0"
     "@solidjs/router": "npm:2.0.0-next.35"
     "@solidjs/vite-plugin": "npm:3.0.0-next.47"
     "@solidjs/web": "npm:2.0.0-rc.13"
@@ -2712,7 +2692,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@spell-app/core@workspace:packages/core"
   dependencies:
-    "@risingstack/react-easy-state": "npm:^6.3.0"
     "@spell-app/util": "workspace:*"
     "@types/lodash": "npm:^4.17.17"
     "@types/node": "npm:^22.20.4"
@@ -2933,8 +2912,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@spell-app/util@workspace:packages/util"
   dependencies:
-    "@nx-js/observer-util": "npm:^4.2.2"
-    "@risingstack/react-easy-state": "npm:^6.3.0"
     "@types/lodash": "npm:^4.17.17"
     "@types/node": "npm:^22.20.4"
     "@types/pluralize": "npm:^0.0.33"

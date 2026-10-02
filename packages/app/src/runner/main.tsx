@@ -15,6 +15,7 @@ import type { FromRunnerMessage } from "$/app/runner"
 // NOT through the `$/app/runner` barrel:  it holds `runCompiled()`, whose `spellCore` would come along -- see above
 import { VSCodeRunner } from "./VSCodeRunner"
 
+import "$/app/solid/cellsBridge"
 import "$/app/solid/loadUI"
 
 /** VS Code's handle to post to the extension -- callable ONCE per webview. */

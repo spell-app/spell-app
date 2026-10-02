@@ -1,4 +1,4 @@
-import { JSON5File, $fetch, CONFIRM, TaskList, Task, getDier, raw, type KnownFormatMimeType } from "$/util"
+import { JSON5File, $fetch, CONFIRM, TaskList, Task, getDier, type KnownFormatMimeType } from "$/util"
 import { P } from "$/parser"
 // Import directly, NOT through the `$/core` barrel:  a project MUST NOT load `spellCore` itself -- each
 // runner runs its own copy.  See `spellRuntime.ts`.
@@ -407,9 +407,9 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   }
 
   /**
-   * HACK HACK HACK
-   * - When our `contents` are updated, immediately re-calculate derived properties below
-   *   to avoid react-easy-state rendering errors  :-(
+   * HACK:  when our `contents` are updated, re-calculate the derived properties below at once.
+   * - Was:  to dodge `react-easy-state` rendering errors.  Kept so the caches fill HERE, not inside whatever
+   *   reads them first, e.g. a Solid computation, which would then be the one making our files.
    */
   onContentsUpdated(): void {
     // Which files we have, or their order, may have changed:  parse from scratch next time.
@@ -530,11 +530,9 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   /**
    * Spell files we parse:  our active `.spell` imports, in order -- see `activeImports`.
    * - After any `source` project imports' files, which parse first -- see `sourceImportFiles`.
-   * - The REAL files, never store proxies, so `===` against a file from anywhere else works, e.g. `isActive`:
-   *   `activeImports` is cached, and filled inside a `view()` render it holds proxies -- see `raw()`.
    */
   get spellFiles(): SP.SpellFile[] {
-    const own = this.activeImports.filter((file) => file instanceof SP.SpellFile).map((file) => raw(file))
+    const own = this.activeImports.filter((file): file is SP.SpellFile => file instanceof SP.SpellFile)
     return [...this.sourceImportFiles, ...own]
   }
 

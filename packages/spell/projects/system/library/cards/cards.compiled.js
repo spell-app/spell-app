@@ -18,8 +18,9 @@ export class Card extends Thing {
     defined: "/Card.spell:125-205",
   } */
   static Ranks = ['ace', 2, 3, 4, 5, 6, 7, 8, 9, 10, 'jack', 'queen', 'king']
+  static { this.declareProp('rank', { oneOf: Card.Ranks }) }
   get rank() { return this.getProp('rank') }
-  set rank(value) { this.setProp('rank', value, { oneOf: Card.Ranks }) }
+  set rank(value) { this.setProp('rank', value) }
 
   /** card suits */
   /*! SPELL: DECLARES {
@@ -28,8 +29,9 @@ export class Card extends Thing {
     defined: "/Card.spell:221-282",
   } */
   static Suits = ['clubs', 'diamonds', 'hearts', 'spades']
+  static { this.declareProp('suit', { oneOf: Card.Suits }) }
   get suit() { return this.getProp('suit') }
-  set suit(value) { this.setProp('suit', value, { oneOf: Card.Suits }) }
+  set suit(value) { this.setProp('suit', value) }
 
   /** color as derivation of suit */
   /*! SPELL: DECLARES {
@@ -57,8 +59,9 @@ export class Card extends Thing {
     defined: "/Card.spell:533-576",
   } */
   static Directions = ['up', 'down']
+  static { this.declareProp('direction', { oneOf: Card.Directions }) }
   get direction() { return this.getProp('direction') }
-  set direction(value) { this.setProp('direction', value, { oneOf: Card.Directions }) }
+  set direction(value) { this.setProp('direction', value) }
 
   /////////////
   // ## aliases
@@ -303,8 +306,9 @@ export class Joker extends Card {
     defined: "/Card.spell:2845-2887",
   } */
   static Colors = ['red', 'black']
+  static { this.declareProp('color', { oneOf: Joker.Colors }) }
   get color() { return this.getProp('color') }
-  set color(value) { this.setProp('color', value, { oneOf: Joker.Colors }) }
+  set color(value) { this.setProp('color', value) }
 
   /** name as its color, e.g. "red joker" */
   /*! SPELL: DECLARES {
@@ -413,8 +417,9 @@ export class Deck extends List {
     property: "with_jokers", of: "Deck", datatype: "choice",
     defined: "/Deck.spell:208-245",
   } */
+  static { this.declareProp('with_jokers', { type: 'choice' }) }
   get with_jokers() { return this.getProp('with_jokers') }
-  set with_jokers(value) { this.setProp('with_jokers', value, { type: 'choice' }) }
+  set with_jokers(value) { this.setProp('with_jokers', value) }
 
   /*! SPELL: DECLARES {
     syntax: "set up {thisArg:expression}", output: "set_up", rule: "method_call", of: "Deck",

@@ -1,88 +1,40 @@
-import { observe, unobserve } from "@nx-js/observer-util"
-import { createSignal, getOwner, onCleanup, runWithOwner, type Accessor, type Signal } from "solid-js"
+import { createMemo, createRoot, getOwner, type Accessor } from "solid-js"
+
+import "./cellsBridge"
 
 /**
- * A Solid accessor over `easy-state` reads:  `read()` re-runs when an `easy-state` value it read changes, and Solid
- * code reading the accessor re-runs after.
- * - The bridge while spell state is `easy-state` (spell Things, the editor store):  Solid UI SEES it change, and
- *   React keeps rendering compiled spell from the same state.  P11 (spell cells) replaces what's under it.
- * - On `observer-util` directly, NOT `easy-state`'s `autoEffect()`:  that calls its scheduler before its reaction
- *   exists, so a `read()` that writes what it just read (a Solitaire computed property filling a new pile) threw
- *   "Cannot access 'observer' before initialization" (plan doc I3).
- * - When it re-reads:
- *   - default:  at once, on the `easy-state` write
- *   - never for a change `read()` makes itself while it runs (see `schedule()`)
- *   - `deferred`:  always on a microtask, once for any number of writes before it.  For reads that run a
- *     PROGRAM's code (a Thing's computed property):  never in the middle of the program's own writes, and 10
- *     writes cost one read.  A change shows after the microtask, then Solid's `flush()`.
- * - `equals: false`:  `easy-state` mutates objects in place, so a changed list is often the SAME array -- every
- *   re-read notifies.  Read narrowly (`() => editor.project?.title`, not `() => editor`).
- * - Writes are Solid's, so STAGED:  a read right after an `easy-state` write sees the old value until the
- *   microtask or `flush()`.
- * - SIDE EFFECT:  an `observer-util` reaction, stopped when the calling owner (component, root) is disposed.  With
- *   no owner it lives until `dispose()`:  call it.
+ * A Solid accessor over a read of spell state -- `read()` re-runs when a spell cell it read changes, and Solid code
+ * reading the accessor re-runs after.
+ * - Spell state is spell cells (`$/util`'s `cells.ts`):  spell Things, `SP.*`, the editor.  The bridge
+ *   (`./cellsBridge`) makes EVERY Solid computation follow the cells it reads, so a plain read in JSX
+ *   (`{editor.notice}`) is reactive too.  `tracked()` adds a memo:  `read()` runs once per change, however many
+ *   places read the accessor, and Solid code can hold the accessor.
+ * - Re-reads on Solid's schedule (a microtask, or `flush()`):  NEVER in the middle of a program's own writes, and ten
+ *   writes cost one read.  So it's safe for reads that run a PROGRAM's code, e.g. a Thing's computed property
+ *   (what `{ deferred: true }` used to ask for).
+ * - NEVER re-reads for a change `read()` makes itself:  a computed property that builds a new pile on every read
+ *   would re-read forever.  See `Reaction` in `$/util`.
+ * - Every re-read notifies (`equals: false`):  the value may be the same object with something else changed.  Read
+ *   narrowly (`() => editor.project?.title`, not `() => editor`).
+ * - The value is Solid's, so STAGED:  right after a write, the accessor still has the old value until the
+ *   microtask or `flush()` (`spellCore.flush()`).  A plain `editor.x` read is never stale.
+ * - Boxed, so `read()` may return a function or a Promise as a VALUE:  Solid would call / await them.
+ * - Owned by the calling owner (component, root), and disposed with it.  With no owner it lives until `dispose()`:
+ *   call it.
  */
-export function tracked<T>(read: () => T, { deferred = false }: TrackedOptions = {}): TrackedAccessor<T> {
-  let running = false
-  let queued = false
-  let stopped = false
-  let signal: Signal<Box<T>> | undefined
-  const reaction = observe(
-    () => {
-      running = true
-      try {
-        const value = read()
-        // first run (synchronous, right here):  make the signal.  Boxed:  `createSignal(fn)` would treat a function
-        // VALUE as a computation.
-        if (!signal) signal = createSignal<Box<T>>({ value }, { equals: false })
-        // later runs:  a Solid write, made OUTSIDE any owner -- `easy-state` writes happen in whatever scope wrote,
-        // and Solid 2 forbids writes in an owned scope (`REACTIVE_WRITE_IN_OWNED_SCOPE`)
-        else runWithOwner(null, () => signal![1]({ value }))
-      } finally {
-        running = false
-      }
-    },
-    { scheduler: schedule }
-  )
-  const [box] = signal!
-  const dispose = () => {
-    stopped = true
-    unobserve(reaction)
-  }
-  if (getOwner()) onCleanup(dispose)
-  return Object.assign(() => box().value, { dispose })
-
-  /**
-   * Called by `observer-util` when something `read()` read changed:  read again now, or on a microtask.
-   * - NEVER for a change `read()` made itself, while running:  a computed property that builds a new pile on every
-   *   read would re-read forever.
-   */
-  function schedule() {
-    if (stopped || running) return
-    if (!deferred) {
-      reaction()
-      return
-    }
-    if (queued) return
-    queued = true
-    queueMicrotask(() => {
-      queued = false
-      if (!stopped) reaction()
-    })
-  }
-}
-
-/** Options for `tracked()`. */
-export type TrackedOptions = {
-  /** Re-read on a microtask, once per batch of writes, never mid-write:  for reads that run a program's code. */
-  deferred?: boolean
+export function tracked<T>(read: () => T): TrackedAccessor<T> {
+  if (getOwner()) return Object.assign(memoOf(read), { dispose: () => {} })
+  return createRoot((dispose) => Object.assign(memoOf(read), { dispose }))
 }
 
 /** What `tracked()` returns:  the accessor, plus `dispose()` to stop tracking early (or with no owner). */
 export type TrackedAccessor<T> = Accessor<T> & {
-  /** Stop re-reading;  the accessor keeps its last value. */
+  /** Stop re-reading;  the accessor keeps its last value.  A no-op for one an owner disposes. */
   dispose(): void
 }
 
-/** A value in a box, so it can be any type, functions included. */
-type Box<T> = { value: T }
+/** A memo of `read()`, boxed -- see `tracked()`. */
+function memoOf<T>(read: () => T): Accessor<T> {
+  const box = createMemo(() => ({ value: read() }), { equals: false })
+  return () => box().value
+}

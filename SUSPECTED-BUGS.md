@@ -25,6 +25,15 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 ### 1. Behavior bugs
 
+- Calculator example [V]:  its operator buttons say `onClick={set its operator to "+"}`, which compiles to the
+  PROPERTY write `this.operator = "+"`, NOT the action `to set the operator of (a calculator) to (op)` (which also
+  clears `input`).  So `7 x 6 + 1 2` shows `7 + 7612 = 7619`.  Same on HEAD before P11:  the language picks the
+  property over the action -- or the example means the action.  Found 2026-10-02 (P11 live check).
+- Solitaire-import example [V]:  draws only a `K` on the stock and an empty tableau -- no dealt piles -- in the
+  editor and in `<spell-app>`.  Same on the commit before P11 (checked side by side), so not cells.  It imports
+  `Card` / `Deck` / `Pile` from `@system:examples:Solitaire`, whose compiled module runs its OWN top level (a game,
+  a deal) when imported:  probably the two programs' decks / piles collide.  Found 2026-10-02.
+
 - `test/unitTestModuleRules.ts` `compileMatch()`: a rule unit test NEVER checks that the rule consumed the
   whole input.  `compileMatch()` is `scope.parse(input, ruleName)` then `match.compile()` -- it compiles
   whatever matched and silently drops any tokens left over, so trailing garbage passes.  Two tests prove it:
@@ -122,7 +131,9 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   user's `create()` again, e.g. dealing cards, on every loop.  The result is thrown away.  Likely fix:  loops
   compile to `forEach` (or `forEachSequential` when async).  From reading the code, not run.  Found 2026-09-29.
 
-- A `to draw` which calls `spellCore.map()` / `filter()` on a List -- or anything else reading then changing
+- PROBABLY GONE (P11, 2026-10-02):  `view()` is on spell cells now, and a `Reaction` never re-runs for a change
+  made while it runs.  Not tried with a real `to draw`.  Was:
+  A `to draw` which calls `spellCore.map()` / `filter()` on a List -- or anything else reading then changing
   an observable it just made -- does it INSIDE `Thing.Component`'s `view()` render.  `map()` makes a new list,
   reads its `items`, then writes them:  the render's own reaction is set off mid-render.  That's what took the
   Thing Explorer down with React error #301 [V] (reading Solitaire's `pile.state`), so a program drawing that way
@@ -386,7 +397,8 @@ every entry below that date was fixed or disproven;  what's left:
   .../projects/system/guides`:  the folder isn't in git (no guides yet), so EVERY load of the chooser logs a failed
   request.  React's `ProjectMenu` left the rejection unhandled;  the Solid one (P8) says "Couldn't load Guides".
   Fix:  the API answers an empty list for a root whose folder doesn't exist (or commit `projects/system/guides/`).
-- `packages/app/src/solid/tracked.ts` `tracked()` [V]:  THROWS `Cannot access 'observer' before initialization` when
+- GONE (P11, 2026-10-02:  `tracked()` is a Solid memo on spell cells, whose `Reaction` ignores its own writes;
+  pinned by `tracked.browser.test.ts`).  Was:  `packages/app/src/solid/tracked.ts` `tracked()` [V]:  THROWS `Cannot access 'observer' before initialization` when
   `read()`, on its FIRST run, changes an `easy-state` value it has just read.  easy-state's `autoEffect()` is
   `const observer = observe(fn, { scheduler: () => scheduler.add(observer) })`, and `observe()` runs `fn` at once:  the
   self-trigger calls the scheduler while `observer` is still in its TDZ.  Hit by spell programs' computed properties,

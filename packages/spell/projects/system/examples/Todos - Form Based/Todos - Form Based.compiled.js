@@ -12,15 +12,17 @@ export class Task extends Thing {
     property: "title", of: "Task", datatype: "text",
     defined: "/todo.spell:38-64",
   } */
+  static { this.declareProp('title', { type: 'text' }) }
   get title() { return this.getProp('title') }
-  set title(value) { this.setProp('title', value, { type: 'text' }) }
+  set title(value) { this.setProp('title', value) }
 
   /*! SPELL: DECLARES {
     property: "completed", of: "Task", datatype: "choice",
     defined: "/todo.spell:65-109",
   } */
+  static { this.declareProp('completed', { type: 'choice' }) }
   get completed() { return this.getProp('completed') }
-  set completed(value) { this.setProp('completed', value, { type: 'choice' }) }
+  set completed(value) { this.setProp('completed', value) }
 
   /*! SPELL: DECLARES {
     syntax: "{operator:is} complete", output: "is_complete", rule: "method_postfix", of: "Task",
@@ -50,7 +52,8 @@ export class Todos_App extends App {
     property: "tasks", of: "Todos_App",
     defined: "/todo.spell:220-266",
   } */
-  get tasks() { return this.getProp('tasks', () => new List()) }
+  static { this.declareProp('tasks', { init: () => new List() }) }
+  get tasks() { return this.getProp('tasks') }
   set tasks(value) { this.setProp('tasks', value) }
 
   /*! SPELL: DECLARES {
@@ -66,8 +69,9 @@ export class Todos_App extends App {
     defined: "/todo.spell:306-365",
   } */
   static Filters = ['all', 'active', 'completed']
+  static { this.declareProp('filter', { oneOf: Todos_App.Filters }) }
   get filter() { return this.getProp('filter') }
-  set filter(value) { this.setProp('filter', value, { oneOf: Todos_App.Filters }) }
+  set filter(value) { this.setProp('filter', value) }
 
   /*! SPELL: DECLARES {
     syntax: "draw {thisArg:expression}", output: "draw", rule: "method_call", of: "Todos_App",

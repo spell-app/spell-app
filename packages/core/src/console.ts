@@ -1,4 +1,4 @@
-import { Observable } from "$/util/spell/Observable"
+import { Observable, prop } from "$/util"
 import { spellCore } from "./core"
 import { defineSpellCoreModule } from "./spellCore.types"
 
@@ -34,24 +34,17 @@ export class SpellConsoleGroup extends Observable<
   set level(level: "group") {
     this.override("level", level)
   }
-  /** Nested lines logged while this group was the active group -- see `SpellConsole._addLogLine()`. */
+  /**
+   * Nested lines logged while this group was the active group -- see `SpellConsole._addLogLine()`.
+   * - Replaced, never changed in place:  a spell cell notifies on a new value only.
+   */
   // REFACTOR: can we make this `state`?
-  /*@prop*/
-  get lines(): ConsoleLine[] {
-    return this.getProp<ConsoleLine[]>("lines", () => [])
-  }
-  set lines(lines: ConsoleLine[]) {
-    this.setProp<ConsoleLine[]>("lines", lines)
-  }
+  @prop({ type: "list", init: () => [] })
+  accessor lines!: ConsoleLine[]
 
-  /** Whether this group starts collapsed, e.g. from `spellCore.console.groupCollapsed()`. */
-  /*@prop*/
-  get collapsed(): boolean {
-    return this.getProp<boolean>("collapsed", () => false)
-  }
-  set collapsed(collapsed: boolean) {
-    this.setProp<boolean>("collapsed", collapsed)
-  }
+  /** Whether this group is collapsed:  starts so from `spellCore.console.groupCollapsed()`, a UI toggles it. */
+  @prop({ type: "choice", default: false })
+  accessor collapsed!: boolean
 }
 
 /**
@@ -67,15 +60,13 @@ export class SpellConsole extends Observable<Record<string, unknown>, { lines: C
     super(props)
   }
 
-  /** Logged `lines` -- `group` lines have their own nested `lines`, not flattened in here. */
+  /**
+   * Logged `lines` -- `group` lines have their own nested `lines`, not flattened in here.
+   * - Replaced, never changed in place:  a spell cell notifies on a new value only.
+   */
   // REFACTOR: can we make this `state`?
-  /*@prop*/
-  get lines(): ConsoleLine[] {
-    return this.getProp<ConsoleLine[]>("lines", () => [])
-  }
-  set lines(lines: ConsoleLine[]) {
-    this.setProp<ConsoleLine[]>("lines", lines)
-  }
+  @prop({ type: "list", init: () => [] })
+  accessor lines!: ConsoleLine[]
 
   /** Reverse stack of active groups (most-nested first) -- internal use only, not observable. (???) */
   groups: SpellConsoleGroup[] = []

@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Solid Migration</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p11">next: P11 · Spell Cells</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p9">next: P9 · Remove React</ui-label></span
             >
           </header></ui-sticky
         >
@@ -57,7 +57,7 @@
           </p>
 
           <blockquote class="plan-prompt"><p>convert this into a plan doc with name "solid-migration"</p></blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 16h 30m-26h in all, 6h-9h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 16h 30m-26h in all, 2h-3h left</p>
           <ui-section id="o1" header="1.1 Where it stands" sticky collapsible dividing>
             <ul>
               <li>
@@ -494,7 +494,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="7" total="10" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="8" total="10" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -650,7 +650,16 @@
               ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p8" data-phase="8" data-status="done" header="P8 · Editor Shell" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p8"
+            data-phase="8"
+            data-status="done"
+            header="P8 · Editor Shell"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"><b>Goal:</b> pages, router, hotkeys and AST views on Solid (handoff 5)</ui-item
@@ -664,13 +673,13 @@
           <ui-section
             id="p11"
             data-phase="11"
-            data-status="todo"
+            data-status="done"
             header="P11 · Spell Cells"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
 
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -1444,6 +1453,100 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="d25" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d25">D25</a>
+                  <span class="plan-title"
+                    >P11: the Solid bridge is the HOST's; one cells context per page, shared by every runtime copy</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    packages/util/src/spell/cells.ts keeps its state (who is reading, pending derived checks, host
+                    flushes) in ONE object on globalThis (Symbol.for('@spell-app/cells')), so the app's $/util and each
+                    spell-runtime.js copy (one per &lt;spell-app&gt;) track into the same readers; sources are
+                    duck-typed across copies. bridgeSolid({ enableExternalSource, flush }) in $/util is called by the
+                    host, packages/app/src/solid/cellsBridge.ts, imported by index.tsx, runner/main.tsx,
+                    SpellAppElement, SpellEditorElement and tracked(): util / core never import Solid, so
+                    spell-runtime.js holds none (element.build.test.ts still passes). Bridged once per Solid (remembered
+                    in the context): Solid pipes every enableExternalSource() call, so a second would wrap every
+                    computation twice. Pinned: app src/solid/cellsBridge.browser.test.tsx (incl. a second copy of
+                    cells.ts loaded with ?copy).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d26" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d26">D26</a>
+                  <span class="plan-title">P11: React bridge = view() in $/util, on cells</span> </ui-title
+                ><ui-content
+                  ><p>
+                    packages/util/src/spell/view.ts: a class component becomes a subclass whose instances render inside
+                    a Reaction (forceUpdate() on a change); a function component a wrapper holding one (useState). Same
+                    API as easy-state's view(), so Thing.Component, List and the forms (F) only changed their import.
+                    The only file in util importing react; util is sideEffects:false, so bundles that never call view()
+                    drop it. Spell's forms keep a local store, honestly: FormStore is now an Observable class (@prop
+                    value, errors replaced on each change). Pinned: app src/ui/reactView.browser.test.tsx.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d27" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d27">D27</a>
+                  <span class="plan-title"
+                    >P11: compiled props declare type / default in the class schema</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    ASTReactiveProperty now emits static { this.declareProp('suit', { oneOf: Card.Suits }) } in the
+                    class (Card.declareProp(...) when patched on from outside), and getProp('x') / setProp('x', value)
+                    with nothing else; a new List() default becomes { init: () =&gt; new List() }. Same runtime shape as
+                    @prop({...}) accessor: both land in schemaOf(Class) (decorators through Symbol.metadata,
+                    polyfilled). Thing / List check a declared type on the program's console (spellCore.checkProp, as
+                    before) when a value CHANGES; undeclared props are observed per class and widened with a dev
+                    warning. The old 3-argument setProp(name, value, check) still works, for programs compiled before.
+                    Fixtures blessed (only these lines changed), examples + library recompiled with spell compile.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d28" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d28">D28</a>
+                  <span class="plan-title"
+                    >P11: tracked() kept, as a Solid memo over the bridge; deferred gone</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    With the bridge every Solid computation follows the cells it reads, so a plain read in JSX is
+                    reactive. tracked(read) stays (57 call sites, unchanged) as createMemo(() =&gt; ({ value: read() }),
+                    { equals: false }) -- boxed, so a function or Promise is a value -- owned by the caller, or its own
+                    root with dispose(). Solid re-runs it on its schedule, never mid-write and once for ten writes, so {
+                    deferred: true } (the Thing Explorer's) is what everything does now: the option is gone. A read that
+                    writes what it read doesn't loop (the Reaction ignores its own run): plan doc I3 can't recur.
+                    Pinned: tracked.browser.test.ts.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d29" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d29">D29</a>
+                  <span class="plan-title"
+                    >P11: editor store is EditorStore, an Observable with @prop accessors</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    packages/app/src/editor.ts: EDITOR_DEFAULTS became class EditorStore extends Observable, its state
+                    @prop accessors (projectRoot, project, file, projectPage, runtimeLoaded, selection,
+                    showingMatchRuleNames, notice, error), methods unchanged (they say editor.x, handed around unbound),
+                    editor = new EditorStore({}). Call sites unchanged. compileAppSoonTimer and the last...For...()
+                    helpers are plain fields. SpellConsole / SpellConsoleGroup lines and collapsed are @prop too.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1719,6 +1822,36 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="c17" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c17">C17</a>
+                  <span class="plan-title">P11: a value changed IN PLACE inside a prop notifies nobody</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Cells follow props, not what they hold: no proxies (=== holds everywhere, raw() is gone). easy-state
+                    made nested objects reactive, so editor.file.someArray.push() redrew; now only setting the prop
+                    does. Audited: spell's List copies on write; Loadable's loadState uses dotted setState (notifies
+                    loadState); compiled examples hold only primitives and Lists. A plain array a PROGRAM keeps in a
+                    prop and changes with spellCore.append() won't redraw -- none of the examples do. The design's Proxy
+                    for class-less data isn't built (solid-2.md).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c18" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c18">C18</a>
+                  <span class="plan-title">P11: Solid dev warnings unchanged (seen on HEAD too)</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Live, the editor pages log STRICT_READ_UNTRACKED, WIDE_SCOPE_DEPS (a router memo with 31 sources)
+                    and HOT_SCOPE_TIME -- before P11 too (checked side by side on the commit before). HOT_SCOPE_TIME now
+                    names tracked()'s memo (memoOf.box) as the latest cause. Calculator's validateDOMNesting and
+                    Solitaire-import's createRoot() warnings are React's, from the programs, also before.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1779,6 +1912,18 @@
                     build ships in the VS Code extension. Turn on per build with the dir <code>BuiltInPacks</code> looks
                     in: <code>assets/icon-packs</code> for the app, <code>icon-packs</code> for element / runner /
                     editor.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t4">T4</a>
+                  <span class="plan-title">P9: move view() out of $/util</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Only core (Thing / List) and spell's React kit (F) use it; with P9 it could live beside them, and
+                    util would have no React at all.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -2264,6 +2409,62 @@
               ><ui-content
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T18:44-04:00">2026-10-02 18:44</time></ui-date> P8
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T18:45-04:00">2026-10-02 18:45</time></ui-date> P11
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T19:28-04:00">2026-10-02 19:28</time></ui-date> P11: spell cells
+                  replace easy-state -- util cells core (cells.ts, Cell, Derived, Reaction, Schema), Observable /
+                  extend.ts on cells (+ keys(), deleteProp(), derive(), declareProp(), per-class schema), @prop /
+                  @derived, view() (React bridge), observe(), bridgeSolid() installed by the host (app
+                  src/solid/cellsBridge.ts), spellCore.flush(); ThingRegistry.version a cell; editor = EditorStore
+                  (@prop); FormStore an Observable; tracked() a memo; raw() and createStore gone; easy-state +
+                  observer-util out of util, core, app (cli had none)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T19:28-04:00">2026-10-02 19:28</time></ui-date> P11:
+                  ASTReactiveProperty emits static { this.declareProp(...) } / Type.declareProp(...); Solitaire fixture
+                  + SpellProject snapshot blessed (emit lines only); examples + library recompiled (spell compile
+                  --all)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T19:28-04:00">2026-10-02 19:28</time></ui-date> P11 checks: util
+                  59 (29 new cells tests), core 388, parser 408, spell 784, lsp 96, cli 120, app 251 = node 103 +
+                  browser 148 (new: cellsBridge 13, reactView 5; tracked rewritten, 9); ts + lint clean except cli's
+                  pre-existing TargetPrompt warning. Speed: HEAD 71, diff 70 (608 pass both). Builds: dist main 601.2 kB
+                  / 163.1 gz, spell-runtime.js 39.9 kB (app build), 555.0 kB / 169.8 gz (element + runner
+                  builds)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T19:28-04:00">2026-10-02 19:28</time></ui-date> P11 live (3300):
+                  Todos edit -- add by typing (focus kept), tick, Active / Completed / All, Change name, + Add, Remove
+                  Completed; Solitaire AutoPlay + Cheat (score 0 -&amp;gt; 15); Calculator; Todos in spell-app with the
+                  Thing Explorer -- tree and details follow (filter, List of 4); demo page -- five apps, each its own;
+                  no new console errors</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T19:35-04:00">2026-10-02 19:35</time></ui-date> P11
                   done</ui-summary
                 ></ui-content
               ></ui-event
