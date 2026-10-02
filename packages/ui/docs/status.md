@@ -37,7 +37,7 @@ links open in an editor tab;  `.md` links do too because `.vscode/settings.json`
 
 | Component | Phase | Tags | Status | Tests | Size | Keys | Docs | Visual | Notes |
 |---|:-:|---|:-:|--:|--:|:-:|:-:|:-:|---|
-| icon | A | `ui-icon`, `ui-icons`, `ui-icon-set` | ✅ | 58 | 6.33 | — | [✅](../site/src/content/components/ui-icon.mdx) | 🚧 local | SVG icon packs (FA7 Free default;  brands, Fomantic opt-in);  [`docs/icons.md`](icons.md) |
+| icon | A | `ui-icon`, `ui-icons` | ✅ | 58 | 6.33 | — | [✅](../site/src/content/components/ui-icon.mdx) | 🚧 local | SVG icon packs (FA7 Free default;  brands, Fomantic opt-in);  [`docs/icons.md`](icons.md) |
 | button | A | `ui-button`, `ui-buttons`, `ui-or` | ✅ | 90 | 12.17 | native | [✅](../site/src/content/components/ui-button.mdx) | 🚧 local | |
 | label | A | `ui-label`, `ui-labels` | ✅ | 66 | 8.45 | — | [✅](../site/src/content/components/ui-label.mdx) | 🚧 local | |
 | content parts | A | `ui-content`, `ui-header`, `ui-description`, `ui-meta`, `ui-extra`, `ui-actions`, `ui-title`, `ui-summary`, `ui-date`, `ui-author`, `ui-avatar`, `ui-detail`, `ui-value` | ✅ | 103 | 15.05 | — | [✅](../site/src/content/components/ui-parts.mdx) | 🚧 local | styled by owner context |
@@ -68,7 +68,7 @@ links open in an editor tab;  `.md` links do too because `.vscode/settings.json`
 | rail | B | `ui-rail` | ✅ | 28 | 2.87 | — | [✅](../site/src/content/components/ui-rail.mdx) | 🚧 local | `position="left\|right"` for the side |
 | reveal | B | `ui-reveal` | ✅ | 33 | 4.07 | ✅ | [✅](../site/src/content/components/ui-reveal.mdx) | 🚧 local | `visible` / `hidden` slots;  reveals on hover, `active` AND focus (a tab stop unless the content is focusable);  instant under reduced motion |
 | ad | B | `ui-ad` | ✅ | 45 | 3.42 | — | [✅](../site/src/content/components/ui-ad.mdx) | 🚧 local | IAB units as `unit="medium rectangle"` |
-| emoji | B | `ui-emoji` | ✅ | 32 | 4.05 | — | [✅](../site/src/content/components/ui-emoji.mdx) | 🚧 local | NATIVE Unicode emoji, two name sets switched like icon packs (`cldr` default, 3,979;  `fomantic`, 3,808;  `<ui-emoji-set names>` / `EmojiData.use()`), lazy data chunks per set (`scripts/gen-emoji.ts`), no sprites / CDN |
+| emoji | B | `ui-emoji` | ✅ | 32 | 4.05 | — | [✅](../site/src/content/components/ui-emoji.mdx) | 🚧 local | NATIVE Unicode emoji, two name sets switched like icon packs (`cldr` default, 3,979;  `fomantic`, 3,808;  `<ui-root emoji>` / `EmojiData.use()`), lazy data chunks per set (`scripts/gen-emoji.ts`), no sprites / CDN |
 | dropdown | C | `ui-dropdown` (+ `ui-item`) | ✅ | 67 | 16.48 | ✅ | [✅](../site/src/content/components/ui-dropdown.mdx) | 🚧 local | built early, as the benchmark component |
 | popup | C | `ui-popup`, `[data-tooltip]` | ✅ | 78 | 8.41 | ✅ | [✅](../site/src/content/components/ui-popup.mdx) | 🚧 local | popover host, CSS anchor positioning only (Fomantic's 8 positions + 4 of ours, flips);  `on` hover / focus / click / manual;  tooltip or non-modal dialog ARIA;  CSS-only tooltip in `native.css` |
 | modal | C | `ui-modal`, `UI.modals.*` | ✅ | 68 | 8.74 | ✅ | [✅](../site/src/content/components/ui-modal.mdx) | 🚧 local | native `<dialog>` + `showModal()`, `::backdrop` dimmer;  `closedby`, approve / deny, `--show` invoker command;  `UI.modals.confirm/alert/prompt` |
@@ -90,7 +90,7 @@ links open in an editor tab;  `.md` links do too because `.vscode/settings.json`
 | shape | C | `ui-shape`, `ui-side` | ✅ | 35 | 6.07 | — | [✅](../site/src/content/components/ui-shape.mdx) | 🚧 local | Fomantic's flip geometry;  `active-index`, `direction`, host `flip()` / `next()` / `previous()`, invoker commands;  reduced motion swaps |
 | nag | C | `ui-nag` | ✅ | 41 | 6.01 | ✅ | [✅](../site/src/content/components/ui-nag.mdx) | 🚧 local | top / bottom, fixed / overlay;  opt-in `key` remembers the dismissal in local / session storage or a cookie, with expiry;  blocked storage tolerated |
 | visibility | C | `ui-visibility`, `UI.observeVisibility()` | ✅ | 19 (+8 runtime) | 3.58 | — | [✅](../site/src/content/components/ui-visibility.mdx) | 🚧 local | runtime service `UI.visibility` on `IntersectionObserver`:  Fomantic's callbacks, `once` / `continuous`, `offset`;  lazy images (`type="image"`, `lazyImage()`) |
-| root | C | `ui-root` | 🚧 | 22 | — | — | ⬜ | ⬜ | loads the families its content uses on demand (`ui-root.catalog.ts`, `yarn gen:root`), hides it until ready (`display`, `loading` message via `<ui-loader>`, `timeout`, `ui-ready` / `ui-error`), `theme` / `size` / `width` / `height` / `fixed` for its subtree;  P17 of the plan doc.  Next:  per-root icons / emoji (P18), skeletons (P19), docs page + the site on it (P20) |
+| root | C | `ui-root` | 🚧 | 23 | — | — | ⬜ | 🚧 local | loads the families its content uses on demand (`ui-root.catalog.ts`, `yarn gen:root`), hides it until ready (`display`, `loading` message via `<ui-loader>`, `timeout`, `ui-ready` / `ui-error`), `theme` / `size` / `width` / `height` / `fixed`;  per-root `icons` / `emoji` / `assets` (`RootSettings`, nested roots inherit + add).  Next:  skeletons (P19), docs page + the site on it (P20) |
 | api | C | `UI.api` | ✅ | | | | ⬜ | — | runtime service;  no element |
 | state | C | `ui-button` `active-text` / `inactive-text` | ✅ | 2 (in button) | — | native | ⬜ | — (in button) | Fomantic's `state` behaviour as two button attributes, not an element;  a toggle with a state text drops `aria-pressed` (APG);  [`docs/grammar.md`](grammar.md) "State" |
 
@@ -250,7 +250,7 @@ Built, but flagged for Owen's review before it's treated as settled.  Owen settl
 - Invoker commands:  `<ui-button>` forwards `commandfor` / `command`;  `UI.browser.supports.invokers`;  without
   support, `Invoker.run()` runs the built-in commands and fires `command`.  Modal and flyout answer `--toggle` too;  popup and dropdown answer all three, toast `--close` (2026-10-01).
 - Popup:  `hoverable` (default on, WCAG 1.4.13);  `hoverable="false"` is Fomantic's default behaviour.
-- Emoji:  two name sets, never merged, switched like icon packs (`<ui-emoji-set names>`, `EmojiData.use()`):  `cldr`
+- Emoji:  two name sets, never merged, switched like icon packs (`<ui-root emoji>`, `EmojiData.use()`):  `cldr`
   (default, from `emojibase-data`, dev-only) and `fomantic` (its own names and meanings:  `dog` = 🐶);  presentation
   from Unicode data.
 - Label colour:  matches Fomantic -- only its own or its `<ui-labels>` group's colour paints a `<ui-label>`.

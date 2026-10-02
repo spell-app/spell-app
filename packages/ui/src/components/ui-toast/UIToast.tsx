@@ -116,10 +116,10 @@ export class UIToast extends UIElement<ToastVocabulary> {
   readonly closingState = new Cell(false)
 
   /** Glyph of the icon:  the `icon` name, or the type's own for a bare `icon`. */
-  readonly glyph = new IconGlyph(() => this.iconName())
+  readonly glyph = new IconGlyph(this, () => this.iconName())
 
   /** Glyph of the close icon. */
-  readonly closeGlyph = new IconGlyph(() => (this.attrs.closable ? CLOSE_ICON : undefined))
+  readonly closeGlyph = new IconGlyph(this, () => (this.attrs.closable ? CLOSE_ICON : undefined))
 
   /** Has slotted actions? */
   readonly hasActions = createMemo(() => this.slots.has(this.slot("actions")))

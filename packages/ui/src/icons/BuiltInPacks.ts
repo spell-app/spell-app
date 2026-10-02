@@ -21,8 +21,8 @@ export class BuiltInPacks {
     return (BUILT_IN_ICON_PACKS as readonly string[]).includes(source)
   }
 
-  /** Absolute URL of built-in pack `id`'s index. */
-  static url(id: BuiltInIconPack): string {
-    return new URL(`icon-packs/${id}/${ICON_PACK_INDEX}`, BuiltInPacks.base).href
+  /** Absolute URL of built-in pack `id`'s index, under `base` (a `<ui-root assets>` folder) or `BuiltInPacks.base`. */
+  static url(id: BuiltInIconPack, base: string = BuiltInPacks.base): string {
+    return new URL(`icon-packs/${id}/${ICON_PACK_INDEX}`, base).href
   }
 }

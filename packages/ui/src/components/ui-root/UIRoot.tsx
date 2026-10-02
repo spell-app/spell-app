@@ -1,7 +1,7 @@
 import { Show, createEffect, createMemo, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, UIHost, proto, UIElement, type Disposer } from "$/ui/core"
+import { Cell, IconGlyph, RootSettings, UI, UIHost, proto, UIElement, type Disposer } from "$/ui/core"
 
 import { LoaderMessage, type RootLoading } from "./LoaderMessage"
 import { RootBox } from "./RootBox"
@@ -10,6 +10,7 @@ import { RootFallback } from "./ui-root.fallback"
 import {
   DISPLAY,
   MAX_ROUNDS,
+  PACK_SEPARATOR,
   RootTimeout,
   type RootFailure,
   type RootFailureReason,
@@ -31,6 +32,9 @@ import rootCSS from "./ui-root.css?inline"
  *   before any sheet), with its space kept (`when-ready`, `skeleton` until skeletons exist) or not drawn at all when
  *   the `loading` message shows instead.
  * - What shows while loading is swappable:  `UIRoot.Loading` (`LoaderMessage`, a `<ui-loader>`).
+ * - Settings for everything inside (`RootSettings`):  `icons` (a child icon-pack set over the outer root's, or the
+ *   page's), `emoji` (a name set);  nested roots inherit what they don't set.  A change redraws the icons / emoji
+ *   inside (`RootSettings.generation`).
  * - Theme, size, box:  `:state(light | dark)`, `:state(box)`, `:state(fixed)` in `ui-root.css`;  width, height and the
  *   subtree's `--ui-scale` in the root's own sheet (`RootBox`).
  ****************/
@@ -66,6 +70,9 @@ export class UIRoot extends UIElement<RootVocabulary> {
 
   /** Elements already awaited. */
   private readonly awaited = new WeakSet<Element>()
+
+  /** Settings requests, so a slower earlier one can't win. */
+  private settingsRequest = 0
 
   /** Started loading (on first connect). */
   private started = false
@@ -122,6 +129,18 @@ export class UIRoot extends UIElement<RootVocabulary> {
       () => this.connected.get(),
       (connected) => (connected ? this.watch() : undefined)
     )
+    createEffect(
+      () => ({
+        connected: this.connected.get(),
+        icons: this.attrs.icons,
+        emoji: this.attrs.emoji,
+        assets: this.attrs.assets
+      }),
+      ({ connected, icons, emoji, assets }) => {
+        if (connected) this.applySettings(UIRoot.packs(icons), emoji, assets)
+        else RootSettings.delete(this.host)
+      }
+    )
     const box = new RootBox(this.host.renderRoot)
     createEffect(
       () => RootBox.css({ width: this.attrs.width, height: this.attrs.height, size: this.attrs.size }),
@@ -139,6 +158,37 @@ export class UIRoot extends UIElement<RootVocabulary> {
       void this.start()
     }
     return () => observer.disconnect()
+  }
+
+  ////////////////
+  // ## Settings
+  ////////////////
+
+  /**
+   * Give everything inside `emoji` at once, and an icon-pack set of `packs` over the outer root's (or the page's)
+   * once the runtime is loaded.
+   */
+  private applySettings(packs: string[], emoji: string | undefined, assets: string | undefined) {
+    const request = ++this.settingsRequest
+    RootSettings.set(this.host, { emoji })
+    if (!packs.length) return
+    void UI.load().then((ui) => {
+      if (request !== this.settingsRequest || !this.host.isConnected) return
+      // never this root's own set:  its parent is whatever is ABOVE it
+      const outer = () => {
+        const above = RootSettings.parentOf(this.host)
+        return above ? IconGlyph.packsFor(above, ui.icons) : ui.icons
+      }
+      RootSettings.set(this.host, { emoji, icons: ui.icons.scope(packs, { assets, parent: outer }) })
+    })
+  }
+
+  /** `icons="fa7-free, /packs/lucide/pack.js"` => its packs, spaces around commas ignored. */
+  private static packs(icons: string | undefined): string[] {
+    return (icons ?? "")
+      .split(PACK_SEPARATOR)
+      .map((pack) => pack.trim())
+      .filter(Boolean)
   }
 
   ////////////////

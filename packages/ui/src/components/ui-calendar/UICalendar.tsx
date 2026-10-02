@@ -124,11 +124,14 @@ export class UICalendar extends FormElement<Vocabulary> {
   readonly labels = new ControlLabels(this.formHost)
 
   /** The popup button's glyph:  `icon`, else `calendar` (`clock` for `time`). */
-  readonly glyph = new IconGlyph(() => this.attrs.icon || (this.attrs.type === "time" ? CLOCK_ICON : CALENDAR_ICON))
+  readonly glyph = new IconGlyph(
+    this,
+    () => this.attrs.icon || (this.attrs.type === "time" ? CLOCK_ICON : CALENDAR_ICON)
+  )
 
   /** Previous / next page glyphs. */
-  readonly previousGlyph = new IconGlyph(() => PREVIOUS_ICON)
-  readonly nextGlyph = new IconGlyph(() => NEXT_ICON)
+  readonly previousGlyph = new IconGlyph(this, () => PREVIOUS_ICON)
+  readonly nextGlyph = new IconGlyph(this, () => NEXT_ICON)
 
   /** Starting value, for form reset:  the `value` ATTRIBUTE. */
   private readonly initialValue = untrack(() => this.host.getAttribute(this.definition.attribute("value").attribute))

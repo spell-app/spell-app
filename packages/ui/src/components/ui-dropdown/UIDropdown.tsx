@@ -834,14 +834,14 @@ export class UIDropdown extends FormElement<Vocabulary> {
 ////////////////
 
 /**
- * Draws an icon from the page's packs (`UI.icons`) into an element once it has loaded.
+ * Draws an icon from the packs the element sees (its `<ui-root icons>`, else `UI.icons`) into it once it has loaded.
  * - Plain DOM, no signal:  rows are many and their icons never change.
  */
 class SVGIcon {
   /** Replace `element`'s content with icon `name`, when loaded. */
   static async fill(element: HTMLElement, name: string | undefined) {
     if (!name) return
-    const { icons } = await UI.load()
+    const icons = IconGlyph.packsFor(element, (await UI.load()).icons)
     const template = icons.peek(name) ?? (await icons.get(name))
     if (template) element.replaceChildren(IconGlyph.draw(template))
   }

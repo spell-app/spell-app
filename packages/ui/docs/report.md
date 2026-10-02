@@ -125,11 +125,11 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | --- | --: | --: | --- |
 | library (as used:  the bindings `dist/` imports) | 78.36 | 28.08 | eager |
 | library (full:  every export of the peer set) | 173.54 | 60.50 | comparison |
-| core (element core + foundation JS) | 49.11 | 16.05 | eager |
+| core (element core + foundation JS) | 49.81 | 16.22 | eager |
 | forms (form base, validation, menu options;  imported by `ui-dropdown`, `ui-input`, `ui-checkbox`, `ui-form`, `ui-select`, `ui-search`, `ui-rating`, `ui-slider`, `ui-calendar`) | 20.56 | 7.45 | eager |
-| own, all 54 families | 1419.16 | 398.96 | eager |
-| api (`E` / `V` namespaces, `@spell-app/ui/api`) | 0.70 | 0.31 | app only |
-| runtime (`UIRuntime` + foundation CSS) | 181.47 | 31.31 | lazy |
+| own, all 54 families | 1413.72 | 398.31 | eager |
+| api (`E` / `V` namespaces, `@spell-app/ui/api`) | 0.73 | 0.33 | app only |
+| runtime (`UIRuntime` + foundation CSS) | 180.63 | 31.10 | lazy |
 | icons (none bundled:  pack indexes and SVGs are separate files, `docs/icons.md`) | 0.00 | 0.00 | lazy |
 | family data (emoji name chunks, each loaded on its own) | 459.18 | 106.12 | lazy |
 <!-- /generated:bundle-tiers -->
@@ -139,60 +139,60 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 <!-- generated:bundle-families -->
 | Family | own min+gz kB | classes | css | vocabulary | fallback | imports | page with only it | standalone (library bundled) |
 | --- | --: | --: | --: | --: | --: | --- | --: | --: |
-| `ui-button` | **13.16** | 4.49 | 4.13 | 2.60 | 2.11 | core | 57.30 | 43.10 |
-| `ui-dropdown` | **16.81** | 7.22 | 4.91 | 2.47 | 2.50 | core + forms | 68.40 | 65.60 |
-| `ui-icon` | **6.41** | 2.52 | 1.92 | 1.53 | 1.58 | core | 50.54 | 36.80 |
-| `ui-label` | **8.70** | 2.88 | 3.53 | 1.66 | 1.56 | core | 52.83 | 50.44 |
-| `ui-parts` | **15.36** | 5.52 | 5.61 | 2.55 | 1.62 | core | 59.49 | 51.92 |
-| `ui-divider` | **3.88** | 1.66 | 0.96 | 0.78 | 1.48 | core | 48.01 | 34.27 |
-| `ui-segment` | **7.46** | 2.26 | 3.35 | 1.48 | 1.45 | core | 51.60 | 38.02 |
-| `ui-container` | **3.39** | 1.45 | 0.85 | 0.68 | 1.40 | core | 47.52 | 33.68 |
-| `ui-grid` | **7.95** | 2.47 | 3.31 | 1.58 | 1.46 | core | 52.09 | 39.28 |
-| `ui-image` | **5.69** | 2.33 | 1.62 | 1.24 | 1.58 | core | 49.82 | 35.81 |
-| `ui-text` | **2.75** | 1.47 | 0.40 | 0.45 | 1.40 | core | 46.88 | 33.02 |
-| `ui-flag` | **6.09** | 4.33 | 0.56 | 0.60 | 1.64 | core | 50.23 | 37.59 |
-| `ui-loader` | **4.32** | 1.65 | 1.30 | 0.79 | 1.54 | core | 48.46 | 34.72 |
-| `ui-placeholder` | **5.99** | 3.33 | 1.38 | 0.90 | 1.54 | core | 50.13 | 36.27 |
-| `ui-message` | **5.75** | 2.03 | 1.86 | 1.06 | 1.81 | core | 49.88 | 36.34 |
-| `ui-breadcrumb` | **5.11** | 2.78 | 0.99 | 0.77 | 1.80 | core | 49.24 | 35.65 |
-| `ui-input` | **10.49** | 4.60 | 2.76 | 1.95 | 2.22 | core + forms | 62.08 | 52.02 |
-| `ui-checkbox` | **9.39** | 5.28 | 2.69 | 0.60 | 2.12 | core + forms | 60.98 | 45.78 |
-| `ui-form` | **10.74** | 6.32 | 2.16 | 1.84 | 1.61 | core + forms | 62.33 | 49.81 |
-| `ui-item` | **4.89** | 2.75 | 0.37 | 1.02 | 1.87 | core | 49.02 | 40.05 |
-| `ui-list` | **7.19** | 2.04 | 3.44 | 0.99 | 1.63 | core | 51.32 | 45.76 |
-| `ui-menu` | **10.10** | 2.81 | 4.36 | 1.42 | 1.62 | core | 54.23 | 48.16 |
-| `ui-table` | **13.67** | 4.58 | 5.41 | 1.93 | 1.92 | core | 57.81 | 47.89 |
-| `ui-popup` | **8.71** | 3.91 | 2.56 | 1.54 | 1.83 | core | 52.85 | 38.83 |
-| `ui-modal` | **9.02** | 4.10 | 2.14 | 1.53 | 2.47 | core | 53.16 | 71.52 |
-| `ui-transition` | **4.90** | 2.94 | 0.28 | 0.93 | 1.89 | core | 49.04 | 35.03 |
-| `ui-dimmer` | **6.27** | 3.00 | 1.09 | 1.26 | 2.10 | core | 50.41 | 36.56 |
-| `ui-flyout` | **5.26** | 1.49 | 1.84 | 1.34 | 1.59 | core | 49.40 | 75.27 |
-| `ui-sidebar` | **8.52** | 4.63 | 1.84 | 1.44 | 1.90 | core | 52.65 | 38.84 |
-| `ui-shape` | **6.11** | 4.09 | 0.80 | 0.87 | 1.56 | core | 50.24 | 36.23 |
-| `ui-card` | **8.25** | 3.33 | 2.71 | 1.51 | 1.90 | core | 52.39 | 57.23 |
-| `ui-items` | **4.15** | 1.55 | 1.47 | 0.61 | 1.50 | core | 48.28 | 56.95 |
-| `ui-feed` | **5.79** | 2.68 | 1.49 | 0.95 | 1.88 | core | 49.92 | 55.18 |
-| `ui-comment` | **4.49** | 2.38 | 0.87 | 0.76 | 1.70 | core | 48.63 | 53.87 |
-| `ui-statistic` | **4.89** | 2.25 | 1.24 | 1.01 | 1.54 | core | 49.02 | 41.66 |
-| `ui-step` | **8.84** | 2.98 | 3.62 | 1.55 | 1.86 | core | 52.97 | 50.64 |
-| `ui-rail` | **2.92** | 1.45 | 0.53 | 0.53 | 1.40 | core | 47.05 | 33.18 |
-| `ui-reveal` | **4.13** | 2.03 | 0.91 | 0.63 | 1.58 | core | 48.27 | 34.38 |
-| `ui-ad` | **3.47** | 1.55 | 0.84 | 0.60 | 1.48 | core | 47.60 | 33.72 |
-| `ui-emoji` | **5.44** | 3.50 | 0.62 | 0.93 | 1.55 | core | 49.57 | 35.94 |
-| `ui-select` | **8.10** | 3.42 | 2.23 | 1.07 | 2.53 | core + forms | 59.69 | 53.28 |
-| `ui-search` | **12.98** | 6.71 | 2.44 | 2.12 | 2.12 | core + forms | 64.57 | 53.48 |
-| `ui-progress` | **7.46** | 3.32 | 2.09 | 1.31 | 1.76 | core | 51.59 | 38.08 |
-| `ui-rating` | **6.50** | 3.64 | 0.94 | 0.95 | 2.11 | core + forms | 58.09 | 42.14 |
-| `ui-slider` | **9.11** | 4.84 | 1.85 | 1.28 | 2.23 | core + forms | 60.70 | 44.53 |
-| `ui-accordion` | **7.10** | 3.41 | 1.68 | 1.26 | 1.89 | core | 51.24 | 57.75 |
-| `ui-tab` | **8.55** | 5.08 | 0.94 | 1.77 | 2.12 | core | 52.69 | 47.67 |
-| `ui-toast` | **11.20** | 6.31 | 2.23 | 1.81 | 2.11 | core | 55.34 | 54.02 |
-| `ui-nag` | **6.06** | 3.17 | 0.95 | 1.23 | 1.76 | core | 50.20 | 36.44 |
-| `ui-sticky` | **3.72** | 2.37 | 0.31 | 0.56 | 1.50 | core | 47.85 | 34.08 |
-| `ui-visibility` | **3.63** | 2.13 | 0.14 | 0.84 | 1.60 | core | 47.77 | 33.91 |
-| `ui-embed` | **6.36** | 3.58 | 0.87 | 1.19 | 2.06 | core | 50.49 | 36.75 |
-| `ui-calendar` | **15.48** | 9.50 | 2.06 | 2.18 | 2.15 | core + forms | 67.07 | 54.92 |
-| `ui-root` | **6.25** | 4.39 | 0.30 | 1.22 | 1.37 | core | 50.38 | 51.52 |
+| `ui-button` | **13.17** | 4.49 | 4.13 | 2.60 | 2.11 | core | 57.47 | 43.28 |
+| `ui-dropdown` | **16.82** | 7.23 | 4.91 | 2.47 | 2.50 | core + forms | 68.58 | 65.82 |
+| `ui-icon` | **5.79** | 2.17 | 1.91 | 1.26 | 1.58 | core | 50.09 | 36.37 |
+| `ui-label` | **8.70** | 2.88 | 3.53 | 1.66 | 1.56 | core | 53.00 | 50.77 |
+| `ui-parts` | **15.36** | 5.52 | 5.61 | 2.55 | 1.62 | core | 59.66 | 51.92 |
+| `ui-divider` | **3.88** | 1.67 | 0.96 | 0.78 | 1.48 | core | 48.18 | 34.46 |
+| `ui-segment` | **7.46** | 2.26 | 3.35 | 1.48 | 1.45 | core | 51.77 | 38.02 |
+| `ui-container` | **3.39** | 1.45 | 0.85 | 0.68 | 1.40 | core | 47.69 | 33.67 |
+| `ui-grid` | **7.95** | 2.47 | 3.31 | 1.58 | 1.46 | core | 52.26 | 39.28 |
+| `ui-image` | **5.69** | 2.33 | 1.62 | 1.24 | 1.58 | core | 49.99 | 35.81 |
+| `ui-text` | **2.75** | 1.47 | 0.40 | 0.45 | 1.40 | core | 47.05 | 33.02 |
+| `ui-flag` | **6.09** | 4.33 | 0.56 | 0.60 | 1.64 | core | 50.40 | 37.58 |
+| `ui-loader` | **4.32** | 1.65 | 1.30 | 0.79 | 1.54 | core | 48.63 | 34.72 |
+| `ui-placeholder` | **5.99** | 3.33 | 1.38 | 0.90 | 1.54 | core | 50.30 | 36.26 |
+| `ui-message` | **5.75** | 2.03 | 1.86 | 1.06 | 1.81 | core | 50.05 | 36.55 |
+| `ui-breadcrumb` | **5.11** | 2.78 | 0.99 | 0.77 | 1.80 | core | 49.42 | 35.85 |
+| `ui-input` | **10.49** | 4.61 | 2.76 | 1.95 | 2.22 | core + forms | 62.25 | 52.24 |
+| `ui-checkbox` | **9.39** | 5.28 | 2.69 | 0.60 | 2.12 | core + forms | 61.15 | 45.78 |
+| `ui-form` | **10.74** | 6.32 | 2.16 | 1.84 | 1.61 | core + forms | 62.50 | 49.80 |
+| `ui-item` | **4.89** | 2.75 | 0.37 | 1.02 | 1.87 | core | 49.20 | 40.25 |
+| `ui-list` | **7.19** | 2.04 | 3.44 | 0.99 | 1.63 | core | 51.49 | 45.96 |
+| `ui-menu` | **10.10** | 2.81 | 4.36 | 1.42 | 1.62 | core | 54.41 | 48.34 |
+| `ui-table` | **13.67** | 4.58 | 5.41 | 1.93 | 1.92 | core | 57.98 | 47.89 |
+| `ui-popup` | **8.71** | 3.91 | 2.56 | 1.54 | 1.83 | core | 53.02 | 38.82 |
+| `ui-modal` | **9.03** | 4.10 | 2.14 | 1.53 | 2.47 | core | 53.33 | 71.81 |
+| `ui-transition` | **4.90** | 2.94 | 0.28 | 0.93 | 1.89 | core | 49.21 | 35.02 |
+| `ui-dimmer` | **6.27** | 3.00 | 1.09 | 1.26 | 2.10 | core | 50.58 | 36.56 |
+| `ui-flyout` | **5.26** | 1.49 | 1.84 | 1.34 | 1.59 | core | 49.57 | 75.56 |
+| `ui-sidebar` | **8.52** | 4.63 | 1.84 | 1.44 | 1.90 | core | 52.82 | 38.83 |
+| `ui-shape` | **6.11** | 4.09 | 0.80 | 0.87 | 1.56 | core | 50.41 | 36.23 |
+| `ui-card` | **8.25** | 3.33 | 2.71 | 1.51 | 1.90 | core | 52.56 | 57.23 |
+| `ui-items` | **4.15** | 1.55 | 1.47 | 0.61 | 1.50 | core | 48.45 | 57.26 |
+| `ui-feed` | **5.79** | 2.68 | 1.49 | 0.95 | 1.88 | core | 50.09 | 55.49 |
+| `ui-comment` | **4.49** | 2.38 | 0.87 | 0.76 | 1.70 | core | 48.80 | 53.87 |
+| `ui-statistic` | **4.89** | 2.25 | 1.24 | 1.01 | 1.54 | core | 49.19 | 41.66 |
+| `ui-step` | **8.84** | 2.99 | 3.62 | 1.55 | 1.86 | core | 53.15 | 50.94 |
+| `ui-rail` | **2.92** | 1.45 | 0.53 | 0.53 | 1.40 | core | 47.22 | 33.18 |
+| `ui-reveal` | **4.13** | 2.03 | 0.91 | 0.63 | 1.58 | core | 48.44 | 34.37 |
+| `ui-ad` | **3.47** | 1.55 | 0.84 | 0.60 | 1.48 | core | 47.77 | 33.71 |
+| `ui-emoji` | **4.91** | 3.02 | 0.61 | 0.74 | 1.57 | core | 49.21 | 35.51 |
+| `ui-select` | **8.10** | 3.42 | 2.23 | 1.07 | 2.53 | core + forms | 59.86 | 53.52 |
+| `ui-search` | **12.98** | 6.71 | 2.44 | 2.12 | 2.12 | core + forms | 64.74 | 53.73 |
+| `ui-progress` | **7.46** | 3.32 | 2.09 | 1.31 | 1.76 | core | 51.76 | 38.08 |
+| `ui-rating` | **6.50** | 3.64 | 0.94 | 0.95 | 2.11 | core + forms | 58.26 | 42.36 |
+| `ui-slider` | **9.11** | 4.84 | 1.85 | 1.28 | 2.23 | core + forms | 60.87 | 44.52 |
+| `ui-accordion` | **7.10** | 3.41 | 1.68 | 1.26 | 1.89 | core | 51.41 | 57.74 |
+| `ui-tab` | **8.55** | 5.08 | 0.94 | 1.77 | 2.12 | core | 52.86 | 47.90 |
+| `ui-toast` | **11.20** | 6.31 | 2.23 | 1.81 | 2.11 | core | 55.51 | 54.28 |
+| `ui-nag` | **6.07** | 3.17 | 0.95 | 1.23 | 1.76 | core | 50.37 | 36.65 |
+| `ui-sticky` | **3.72** | 2.37 | 0.31 | 0.56 | 1.50 | core | 48.02 | 34.07 |
+| `ui-visibility` | **3.63** | 2.13 | 0.14 | 0.84 | 1.60 | core | 47.94 | 33.91 |
+| `ui-embed` | **6.36** | 3.58 | 0.87 | 1.19 | 2.06 | core | 50.67 | 36.95 |
+| `ui-calendar` | **15.49** | 9.51 | 2.06 | 2.18 | 2.15 | core + forms | 67.24 | 55.13 |
+| `ui-root` | **6.70** | 4.63 | 0.30 | 1.43 | 1.37 | core | 51.00 | 52.42 |
 <!-- /generated:bundle-families -->
 
 ### Scenarios
@@ -200,9 +200,9 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 <!-- generated:bundle-scenarios -->
 | Scenario | Adds up | shared runtime min+gz kB | standalone build |
 | --- | --- | --: | --: |
-| page with one button | library + core + own:ui-button | **57.30** | 43.10 |
-| all families | library + core + forms + own (54 families) | **450.54** | 448.85 |
-| app already ships the library | core + forms + own (54 families) | **422.46** | -- |
+| page with one button | library + core + own:ui-button | **57.47** | 43.28 |
+| all families | library + core + forms + own (54 families) | **450.06** | 448.57 |
+| app already ships the library | core + forms + own (54 families) | **421.98** | -- |
 <!-- /generated:bundle-scenarios -->
 
 ### Checks
@@ -244,11 +244,11 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 <!-- generated:loc -->
 | Group | Files | Lines | Code lines |
 | --- | --: | --: | --: |
-| element core | 24 | 3859 | 2194 |
-| components | 355 | 26853 | 18262 |
+| element core | 25 | 3943 | 2241 |
+| components | 351 | 26784 | 18230 |
 | vocabularies & fallbacks | 0 | 0 | 0 |
-| foundation | 43 | 8321 | 4496 |
-| tests | 213 | 36554 | 30722 |
+| foundation | 43 | 8263 | 4456 |
+| tests | 213 | 36581 | 30744 |
 | tooling | 53 | 6296 | 4416 |
 <!-- /generated:loc -->
 
@@ -257,7 +257,7 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 <!-- generated:loc-files -->
 | File | Lines | Code lines |
 | --- | --: | --: |
-| `core.ts` | 44 | 20 |
+| `core.ts` | 45 | 21 |
 | `elements/Cell.ts` | 23 | 10 |
 | `elements/ClassBuilder.ts` | 185 | 122 |
 | `elements/ContentPart.tsx` | 85 | 48 |
@@ -268,18 +268,19 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | `elements/FormHost.ts` | 46 | 24 |
 | `elements/HostAttribute.ts` | 25 | 15 |
 | `elements/HotDefinitions.ts` | 126 | 71 |
-| `elements/IconGlyph.ts` | 71 | 38 |
+| `elements/IconGlyph.ts` | 92 | 52 |
 | `elements/MenuOptions.ts` | 303 | 191 |
 | `elements/NativeFallback.ts` | 212 | 118 |
 | `elements/OwnerContext.ts` | 85 | 47 |
 | `elements/PartContext.ts` | 222 | 124 |
+| `elements/RootSettings.ts` | 61 | 31 |
 | `elements/Shorthand.ts` | 96 | 54 |
 | `elements/SlotContent.ts` | 46 | 29 |
 | `elements/UIElement.tsx` | 502 | 271 |
 | `elements/UIHost.ts` | 74 | 30 |
 | `elements/Validator.ts` | 458 | 342 |
 | `elements/elements.types.ts` | 518 | 215 |
-| `elements/index.ts` | 37 | 21 |
+| `elements/index.ts` | 38 | 22 |
 | `forms.ts` | 18 | 5 |
 | `components/ui-accordion/UIAccordion.tsx` | 252 | 156 |
 | `components/ui-accordion/index.ts` | 13 | 4 |
@@ -306,7 +307,7 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | `components/ui-button/ui-button.vocabulary.en.ts` | 151 | 135 |
 | `components/ui-button/ui-buttons.vocabulary.en.ts` | 69 | 58 |
 | `components/ui-button/ui-or.vocabulary.en.ts` | 32 | 21 |
-| `components/ui-calendar/UICalendar.tsx` | 807 | 594 |
+| `components/ui-calendar/UICalendar.tsx` | 810 | 597 |
 | `components/ui-calendar/index.ts` | 13 | 3 |
 | `components/ui-calendar/ui-calendar.fallback.ts` | 77 | 56 |
 | `components/ui-calendar/ui-calendar.types.ts` | 266 | 158 |
@@ -358,12 +359,10 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | `components/ui-embed/ui-embed.fallback.ts` | 85 | 67 |
 | `components/ui-embed/ui-embed.types.ts` | 59 | 29 |
 | `components/ui-embed/ui-embed.vocabulary.en.ts` | 109 | 94 |
-| `components/ui-emoji/UIEmoji.tsx` | 71 | 46 |
-| `components/ui-emoji/UIEmojiSet.tsx` | 34 | 20 |
-| `components/ui-emoji/index.ts` | 16 | 6 |
-| `components/ui-emoji/ui-emoji-set.vocabulary.en.ts` | 38 | 25 |
-| `components/ui-emoji/ui-emoji.fallback.ts` | 34 | 24 |
-| `components/ui-emoji/ui-emoji.types.ts` | 43 | 11 |
+| `components/ui-emoji/UIEmoji.tsx` | 78 | 52 |
+| `components/ui-emoji/index.ts` | 14 | 4 |
+| `components/ui-emoji/ui-emoji.fallback.ts` | 35 | 25 |
+| `components/ui-emoji/ui-emoji.types.ts` | 47 | 14 |
 | `components/ui-emoji/ui-emoji.vocabulary.en.ts` | 67 | 45 |
 | `components/ui-feed/UIFeed.tsx` | 39 | 22 |
 | `components/ui-feed/UIFeedEvent.tsx` | 109 | 66 |
@@ -402,10 +401,8 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | `components/ui-grid/ui-grid.vocabulary.en.ts` | 116 | 97 |
 | `components/ui-grid/ui-row.vocabulary.en.ts` | 90 | 71 |
 | `components/ui-icon/UIIcon.tsx` | 65 | 40 |
-| `components/ui-icon/UIIconSet.tsx` | 25 | 11 |
 | `components/ui-icon/UIIcons.tsx` | 40 | 28 |
-| `components/ui-icon/index.ts` | 15 | 7 |
-| `components/ui-icon/ui-icon-set.vocabulary.en.ts` | 54 | 37 |
+| `components/ui-icon/index.ts` | 13 | 5 |
 | `components/ui-icon/ui-icon.fallback.ts` | 39 | 29 |
 | `components/ui-icon/ui-icon.types.ts` | 7 | 1 |
 | `components/ui-icon/ui-icon.vocabulary.en.ts` | 89 | 73 |
@@ -540,12 +537,12 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | `components/ui-reveal/ui-reveal.fallback.ts` | 35 | 26 |
 | `components/ui-reveal/ui-reveal.types.ts` | 21 | 6 |
 | `components/ui-reveal/ui-reveal.vocabulary.en.ts` | 65 | 50 |
-| `components/ui-root/UIRoot.tsx` | 219 | 149 |
+| `components/ui-root/UIRoot.tsx` | 269 | 182 |
 | `components/ui-root/index.ts` | 14 | 6 |
-| `components/ui-root/ui-root.catalog.ts` | 101 | 97 |
+| `components/ui-root/ui-root.catalog.ts` | 99 | 95 |
 | `components/ui-root/ui-root.fallback.ts` | 20 | 10 |
-| `components/ui-root/ui-root.types.ts` | 53 | 24 |
-| `components/ui-root/ui-root.vocabulary.en.ts` | 96 | 82 |
+| `components/ui-root/ui-root.types.ts` | 56 | 25 |
+| `components/ui-root/ui-root.vocabulary.en.ts` | 116 | 102 |
 | `components/ui-search/UISearch.tsx` | 699 | 529 |
 | `components/ui-search/index.ts` | 12 | 4 |
 | `components/ui-search/ui-search.fallback.ts` | 87 | 66 |
@@ -748,8 +745,8 @@ Solid, Vite dev server) and the smoke perf page (`dist/` + vendored production S
 <!-- generated:perf -->
 | Where | Build | Open: update / + layout / + frame ms | Keystroke update min / avg / max ms | + layout | + frame |
 | --- | --- | --: | --: | --: | --: |
-| vitest browser mode | dev (Vite dev server) | 17.5 / 17.5 / 19.6 | 0.4 / **2.2** / 6.1 | 1.1 / **4.5** / 11.1 | 13.6 / **16.0** / 18.4 |
-| smoke perf page | production (`dist/` + vendored peers) | 17.0 / 17.0 / 18.8 | 0.3 / **1.4** / 3.4 | 0.6 / **3.2** / 9.6 | 13.5 / **15.4** / 16.8 |
+| vitest browser mode | dev (Vite dev server) | 17.4 / 17.4 / 18.9 | 0.4 / **2.0** / 5.0 | 1.2 / **3.9** / 8.7 | 14.3 / **16.1** / 16.5 |
+| smoke perf page | production (`dist/` + vendored peers) | 17.7 / 17.7 / 19.5 | 0.3 / **1.5** / 4.1 | 1.0 / **3.4** / 10.7 | 12.5 / **15.4** / 16.1 |
 <!-- /generated:perf -->
 
 - The test asserts an average update under 16 ms;  it passes with large headroom.  No windowing needed.

@@ -35,7 +35,7 @@ export class UINag extends UIElement<Vocabulary> {
   ////////////////
 
   /** Glyph of the close icon. */
-  readonly closeGlyph = new IconGlyph(() => (this.attrs.closable ? UIT.CLOSE_ICON : undefined))
+  readonly closeGlyph = new IconGlyph(this, () => (this.attrs.closable ? UIT.CLOSE_ICON : undefined))
 
   /** Hidden because it was dismissed, now or before (stored). */
   readonly dismissedState = new Cell(untrack(() => this.hiddenByStorage()))

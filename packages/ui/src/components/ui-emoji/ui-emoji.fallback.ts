@@ -16,9 +16,10 @@ export class EmojiFallback extends NativeFallback<typeof emojiVocabulary> {
     const label = this.attr("label")
     const name = this.attr("name") ?? undefined
     const span = this.create("span", { class: this.classes(), "aria-hidden": label === "" ? "true" : null })
-    const cached = EmojiData.peek(name)
+    const set = EmojiData.setFor(this.host)
+    const cached = EmojiData.peek(name, set)
     if (cached) show(cached)
-    else void EmojiData.get(name).then(show)
+    else void EmojiData.get(name, set).then(show)
     return [this.decorate(span, "emoji")]
 
     /** Put `emoji` in the span, named by `label` when there is one;  nothing for an unknown name. */

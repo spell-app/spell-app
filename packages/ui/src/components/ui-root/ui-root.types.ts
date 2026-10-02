@@ -26,6 +26,9 @@ export type RootFailure = {
 /** `display` values. */
 export const DISPLAY = { skeleton: "skeleton", whenReady: "when-ready", immediately: "immediately" } as const
 
+/** Separates the packs in `icons="fa7-free, /packs/lucide/pack.js"`. */
+export const PACK_SEPARATOR = ","
+
 /** `width` / `height` value meaning "the viewport's". */
 export const WINDOW = "window"
 

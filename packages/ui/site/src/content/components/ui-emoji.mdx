@@ -52,18 +52,15 @@ import VocabularyTable from "../../components/VocabularyTable.astro"
 
 <Section title="Fomantic's names">
   A page that was written for [Fomantic's emoji list](https://fomantic-ui.com/elements/emoji.html) can keep its names:
-  a `<ui-emoji-set names="fomantic">` anywhere in the page switches every emoji to them (`thumbsup`, `smile`, `flag_us`,
+  a `<ui-root emoji="fomantic">` around them switches every emoji inside to them (`thumbsup`, `smile`, `flag_us`,
   `one` for the keycap, the shortcodes Discord and JoyPixels use), with FOMANTIC's meanings:  `dog` is the dog's face
-  there, the whole dog in CLDR.  The two sets are never mixed, so the CLDR names stop working.
+  there, the whole dog in CLDR.  The two sets are never mixed inside a root, so the CLDR names stop working there.
+  Emoji inside redraw when the root's `emoji` changes.  A page with no root switches page-wide from JS with
+  `EmojiData.use("fomantic")`.
 
-```html
-<ui-emoji-set names="fomantic"></ui-emoji-set>
-<p><ui-emoji name="smile"></ui-emoji> <ui-emoji name="thumbsup"></ui-emoji> <ui-emoji name="flag_us"></ui-emoji> <ui-emoji name="dog"></ui-emoji></p>
-<!-- 😄 👍 🇺🇸 🐶 -->
-```
-
-  There is no live example here:  the name set is the whole page's, so one on this page would switch every other
-  example on it.
+  <Example title="Fomantic's names" description="A root sets the name set for its subtree only.  `display=&quot;immediately&quot;` draws the content as it arrives.">
+    <ui-root emoji="fomantic" display="immediately"><p><ui-emoji name="smile"></ui-emoji> <ui-emoji name="thumbsup"></ui-emoji> <ui-emoji name="flag_us"></ui-emoji> <ui-emoji name="dog"></ui-emoji></p></ui-root>
+  </Example>
 
   A switch affects LATER lookups only:  an emoji already drawn keeps its glyph, so put the element at the top of the
   page (the page reads the last one it finds at its first lookup).  From JavaScript, `EmojiData.use("fomantic")`

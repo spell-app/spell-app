@@ -1,7 +1,7 @@
 import { createEffect, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, UIElement, UIT } from "$/ui/core"
+import { Cell, proto, RootSettings, UIElement, UIT } from "$/ui/core"
 
 import { emojiVocabulary } from "./ui-emoji.vocabulary.en"
 import { EmojiData } from "./EmojiData"
@@ -26,16 +26,23 @@ export class UIEmoji extends UIElement<typeof emojiVocabulary> {
   @proto static delegatesFocus = false
 
   /** The glyph, `undefined` while loading or for an unknown name;  tracked. */
-  readonly emoji = new Cell(untrack(() => EmojiData.peek(this.attrs.name)))
+  readonly emoji = new Cell(untrack(() => EmojiData.peek(this.attrs.name, EmojiData.setFor(this.host))))
 
-  /** `name` last asked for, so a slower earlier load can't win. */
-  private request: string | undefined
+  /** Request counter, so a slower earlier load can't win. */
+  private request = 0
 
   constructor(...args: ConstructorParameters<typeof UIElement>) {
     super(...args)
+    // again when connected (it may have moved under another root) and when any root's settings change
     createEffect(
-      () => this.attrs.name,
-      (name) => void this.load(name)
+      () => ({
+        name: this.attrs.name,
+        connected: this.connected.get(),
+        generation: RootSettings.generation.get()
+      }),
+      ({ name, connected }) => {
+        if (connected || !this.request) void this.load(name)
+      }
     )
   }
 
@@ -62,10 +69,10 @@ export class UIEmoji extends UIElement<typeof emojiVocabulary> {
     return !!this.attrs.label && !!this.emoji.get()
   }
 
-  /** Resolve `name`;  writes only if it is still the latest request. */
+  /** Resolve `name` in the set this element sees;  writes only if it is still the latest request. */
   private async load(name: string | undefined) {
-    this.request = name
-    const emoji = await EmojiData.get(name)
-    if (this.request === name) this.emoji.set(emoji)
+    const request = ++this.request
+    const emoji = await EmojiData.get(name, EmojiData.setFor(this.host))
+    if (this.request === request && untrack(this.emoji.get) !== emoji) this.emoji.set(emoji)
   }
 }

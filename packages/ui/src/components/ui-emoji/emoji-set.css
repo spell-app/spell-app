@@ -1,9 +1,0 @@
-/*
- * `<ui-emoji-set>`:  picks the emoji name set for the page (`EmojiData.use()` reads its `names`).  Never shown.
- */
-
-@layer ui.components.emoji.types {
-  :host {
-    display: none;
-  }
-}

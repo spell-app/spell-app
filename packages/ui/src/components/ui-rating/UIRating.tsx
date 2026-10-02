@@ -71,7 +71,7 @@ export class UIRating extends FormElement<typeof ratingVocabulary> {
   readonly labels = new ControlLabels(this.formHost)
 
   /** The icon, by name. */
-  readonly glyph = new IconGlyph(() => this.attrs.icon)
+  readonly glyph = new IconGlyph(this, () => this.attrs.icon)
 
   /** The radio group. */
   private group?: HTMLFieldSetElement

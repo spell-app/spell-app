@@ -1,9 +1,0 @@
-/*
- * `<ui-icon-set>`:  adds an icon pack to the page (the runtime, `UI.icons`, reads its attributes).  Never shown.
- */
-
-@layer ui.components.icon.types {
-  :host {
-    display: none;
-  }
-}

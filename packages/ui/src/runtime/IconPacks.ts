@@ -1,5 +1,4 @@
-import { Converters } from "$/ui/vocabulary"
-import { BuiltInPacks, DEFAULT_ICON_PACK, ICON_SET_ATTRIBUTES, ICON_SET_TAG, IconName } from "$/ui/icons"
+import { BuiltInPacks, DEFAULT_ICON_PACK, IconName } from "$/ui/icons"
 
 import type { IconPackOptions, ResolvedIcon } from "./runtime.types"
 import { IconPack } from "./IconPack"
@@ -9,13 +8,14 @@ import { IconPack } from "./IconPack"
  * - A pack is a folder of SVGs plus its index, `pack.js`.  Packs are added in order and the LAST one added wins a
  *   name;  `prefix:name` asks one pack.
  * - Starts on first use (any lookup or `use()`), not on construction, so a page that never draws an icon loads no
- *   index.  Then, in order:
- *   - the default pack (`fa7-free`), unless an `only` replaces it
- *   - every `<ui-icon-set>` in the document, in document order
- *   - `use()` calls, in call order
- * - Watches the document for `<ui-icon-set>`s added, removed or changed later.
- * - NOTE:  a pack added or removed later affects later lookups only:  icons already drawn keep their SVG.
- * - One cache per PAGE (the runtime is page-wide), so two bundles fetch an SVG once.
+ *   index.  Then, in order:  the default pack (`fa7-free`), unless an `only` replaces it;  `use()` calls, in call order.
+ * - Per `<ui-root>`:  a root's `icons="..."` makes a CHILD set (`scope()`) over its parent's -- the outer root's, else
+ *   the page's.  Its packs win, the parent's answer what they don't;  `IconGlyph.packsFor(element)` is the set an
+ *   element draws from (`RootSettings`).
+ * - NOTE:  a pack added or removed later affects later lookups only:  icons already drawn keep their SVG (a root's
+ *   change redraws its icons, through `RootSettings.generation`).
+ * - One SVG cache per PAGE, shared by every child set (the runtime is page-wide), so two roots, or two bundles,
+ *   fetch an SVG once.
  * - No sanitizing:  a pack's SVGs are verified when it's built (`IconPackBuilder`), and adding a pack runs its
  *   `pack.js`, so the page trusts it like any script it adds.
  */
@@ -24,10 +24,34 @@ export class IconPacks {
   private sources: IconPackSource[] = []
   /** `start()` has run */
   private started = false
-  /** SVG templates by URL;  an entry with no `svg` once settled is a known miss */
-  private readonly templates = new Map<string, IconTemplate>()
-  /** `register()`ed icons, by normalized name;  consulted before any pack */
-  private readonly registered = new Map<string, SVGSVGElement>()
+  /** SVG templates by URL;  an entry with no `svg` once settled is a known miss.  Shared with child sets. */
+  private readonly templates: Map<string, IconTemplate>
+  /** `register()`ed icons, by normalized name;  consulted before any pack.  Shared with child sets. */
+  private readonly registered: Map<string, SVGSVGElement>
+
+  /**
+   * The page's set (`UI.icons`), or a child set (`scope()`) over `parent`.
+   * - `parent` is a FUNCTION, asked at each lookup, so a root nested in another always sits over the outer root's
+   *   CURRENT set, even after the outer one changes its packs.
+   */
+  constructor(private readonly parent?: () => IconPacks) {
+    const top = parent?.()
+    this.templates = top?.templates ?? new Map()
+    this.registered = top?.registered ?? new Map()
+    // a child has no default pack:  its parent's answer what its own don't
+    this.started = !!parent
+  }
+
+  /**
+   * A child set:  `sources` (built-in ids or `pack.js` URLs) over `parent`'s packs -- what a `<ui-root icons="...">`
+   * draws from.
+   * - `assets`:  the folder built-in packs load from (`<assets>icon-packs/<id>/pack.js`), relative to the page.
+   */
+  scope(sources: readonly string[], { assets, parent }: { assets?: string; parent?: () => IconPacks } = {}): IconPacks {
+    const child = new IconPacks(parent ?? (() => this))
+    for (const source of sources) child.add({ source, options: {} }, assets)
+    return child
+  }
 
   /**
    * Add a pack:  a URL of its `pack.js`, or a built-in id (`"fa7-brands"`, `"fomantic"`).
@@ -41,11 +65,10 @@ export class IconPacks {
   }
 
   /**
-   * Drop every pack -- the default, the document's `<ui-icon-set>`s, `use()`d ones -- including any still loading;
-   * returns `this`, so `UI.icons.reset().use("/icons/lucide/pack.js")`.
-   * - Before first use, the default and the document's sets are never loaded at all.
+   * Drop every pack -- the default and `use()`d ones -- including any still loading;  returns `this`, so
+   * `UI.icons.reset().use("/icons/lucide/pack.js")`.
+   * - Before first use, the default is never loaded at all.
    * - A pack still loading is forgotten:  its index may still arrive, but is never used.
-   * - `<ui-icon-set>`s added AFTER a reset still count.
    * - Keeps `register()`ed icons and the SVG cache (a URL still means the same file).
    */
   reset(): this {
@@ -60,16 +83,18 @@ export class IconPacks {
     if (at >= 0) this.sources.splice(at, 1)
   }
 
-  /** Loaded packs, in order (last wins). */
+  /** Loaded packs, in order (last wins):  a child set's parent's first, then its own. */
   get packs(): IconPack[] {
     this.start()
-    return this.sources.flatMap((entry) => (entry.pack ? [entry.pack] : []))
+    const own = this.sources.flatMap((entry) => (entry.pack ? [entry.pack] : []))
+    return this.parent ? [...this.parent().packs, ...own] : own
   }
 
-  /** Resolves once every pack added so far has loaded (or failed). */
+  /** Resolves once every pack added so far has loaded (or failed), a child set's parent's too. */
   get ready(): Promise<void> {
     this.start()
-    return Promise.all(this.sources.map((entry) => entry.promise)).then(() => undefined)
+    const own = Promise.all(this.sources.map((entry) => entry.promise))
+    return Promise.all([own, this.parent?.().ready]).then(() => undefined)
   }
 
   /**
@@ -128,33 +153,23 @@ export class IconPacks {
   ////////////////
 
   /**
-   * First use:  the default pack, the document's `<ui-icon-set>`s, and a watch for later ones.
-   * - Sets before the last `only` one are skipped (never loaded), and so is the default.
-   * - `empty` (a `reset()` before first use):  only the watch.
+   * First use of the page's set:  the default pack.
+   * - `empty` (a `reset()` before first use):  nothing.
    */
   private start({ empty = false } = {}) {
     if (this.started) return
     this.started = true
-    if (typeof document === "undefined") return
-    const elements = empty ? [] : [...document.getElementsByTagName(ICON_SET_TAG)]
-    const lastOnly = elements.findLastIndex((element) => IconPacks.only(element))
-    if (!empty && lastOnly < 0) this.add({ source: DEFAULT_ICON_PACK, options: {} })
-    for (const element of elements.slice(Math.max(lastOnly, 0))) this.add(IconPacks.fromElement(element))
-    new MutationObserver((records) => this.onMutations(records)).observe(document.documentElement, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: Object.values(ICON_SET_ATTRIBUTES)
-    })
+    if (typeof document === "undefined" || empty) return
+    this.add({ source: DEFAULT_ICON_PACK, options: {} })
   }
 
   /**
    * Append `source` (dropping everything before it for `only`) and start loading its index.
    * - A source with no usable URL settles as a failed pack (warned), never a throw:  `ready` / `get()` never reject.
    */
-  private add(source: Omit<IconPackSource, "promise" | "pack">): IconPackSource {
+  private add(source: Omit<IconPackSource, "promise" | "pack">, assets?: string): IconPackSource {
     const entry = source as IconPackSource
-    const url = IconPacks.url(entry.source)
+    const url = IconPacks.url(entry.source, assets)
     entry.promise =
       url === undefined
         ? Promise.resolve(undefined)
@@ -171,67 +186,19 @@ export class IconPacks {
   }
 
   /**
-   * `<ui-icon-set>`s added, removed or re-pointed after start.
-   * - Added:  appended (last wins).  Removed:  its pack goes.  Attribute change:  re-added, as if new.
-   */
-  private onMutations(records: MutationRecord[]) {
-    for (const record of records) {
-      if (record.type === "attributes") {
-        if ((record.target as Element).localName !== ICON_SET_TAG) continue
-        this.drop(record.target as Element)
-        if (record.target.isConnected) this.add(IconPacks.fromElement(record.target as Element))
-        continue
-      }
-      for (const node of record.removedNodes) for (const element of IconPacks.sets(node)) this.drop(element)
-      for (const node of record.addedNodes) {
-        for (const element of IconPacks.sets(node)) if (element.isConnected) this.add(IconPacks.fromElement(element))
-      }
-    }
-  }
-
-  /** Remove the source `element` added. */
-  private drop(element: Element) {
-    this.sources = this.sources.filter((entry) => entry.element !== element)
-  }
-
-  /**
    * Where `source` (a built-in id or a URL) loads from, or `undefined` (warned) when that can't be worked out:  a
    * malformed URL, or a built-in pack with no `BuiltInPacks.base` (an IIFE bundle has no `import.meta.url`).
    */
-  private static url(source: string): string | undefined {
+  private static url(source: string, assets?: string): string | undefined {
     try {
+      const page = typeof document === "undefined" ? undefined : document.baseURI
       return BuiltInPacks.has(source)
-        ? BuiltInPacks.url(source)
-        : new URL(source, typeof document === "undefined" ? undefined : document.baseURI).href
+        ? BuiltInPacks.url(source, assets === undefined ? undefined : new URL(assets, page).href)
+        : new URL(source, page).href
     } catch (error) {
       console.warn(`UI.icons:  icon pack ${source} has no usable URL`, error)
       return undefined
     }
-  }
-
-  /** A source from a `<ui-icon-set>`'s attributes. */
-  private static fromElement(element: Element): Omit<IconPackSource, "promise" | "pack"> {
-    return {
-      element,
-      source: element.getAttribute(ICON_SET_ATTRIBUTES.src) ?? "",
-      options: {
-        prefix: element.getAttribute(ICON_SET_ATTRIBUTES.prefix) ?? undefined,
-        base: element.getAttribute(ICON_SET_ATTRIBUTES.base) ?? undefined,
-        only: IconPacks.only(element)
-      }
-    }
-  }
-
-  /** A `<ui-icon-set>`'s `only`, as any boolean attribute reads (`only="false"` ~== absent). */
-  private static only(element: Element): boolean {
-    return Converters.boolean(element.getAttribute(ICON_SET_ATTRIBUTES.only), ICON_SET_ATTRIBUTES.only)
-  }
-
-  /** `<ui-icon-set>`s in or under an added / removed `node`. */
-  private static sets(node: Node): Element[] {
-    if (!(node instanceof Element)) return []
-    const inside = [...node.getElementsByTagName(ICON_SET_TAG)]
-    return node.localName === ICON_SET_TAG ? [node, ...inside] : inside
   }
 
   ////////////////
@@ -287,8 +254,6 @@ type IconPackSource = {
   /** URL or built-in id */
   source: string
   options: IconPackOptions
-  /** the `<ui-icon-set>` that added it, if any */
-  element?: Element
   /** settles with the pack, or `undefined` if it failed */
   promise: Promise<IconPack | undefined>
   /** once loaded */

@@ -70,28 +70,5 @@ export const DEFAULT_ICON_PACK: BuiltInIconPack = "fa7-free"
 /** File name of every pack's index. */
 export const ICON_PACK_INDEX = "pack.js"
 
-////////////////
-// ## Page markup
-////////////////
-
-/**
- * `<ui-icon-set>`:  adds a pack from HTML.  The runtime reads these itself (`UI.icons`), so they work on pages that
- * never define the element.
- * - NOTE:  the runtime looks for THIS tag;  a translated tag set would need its own `ui-icon-set` spelling.
- */
-export const ICON_SET_TAG = "ui-icon-set"
-
-/** Attributes of `<ui-icon-set>`, as the runtime reads them. */
-export const ICON_SET_ATTRIBUTES = {
-  /** pack URL, or a built-in id */
-  src: "src",
-  /** extra prefix for `prefix:name` */
-  prefix: "prefix",
-  /** re-points the pack's SVG folder, e.g. at a CDN */
-  base: "base",
-  /** drop every pack added before this one, including the default */
-  only: "only"
-} as const
-
 /** Separates a pack prefix from the icon name:  `lucide:bell`. */
 export const ICON_PREFIX_SEPARATOR = ":"

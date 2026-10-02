@@ -10,13 +10,12 @@ import Example from "../../components/Example.astro"
 import Section from "../../components/Section.astro"
 import Variation from "../../components/Variation.astro"
 import VocabularyTable from "../../components/VocabularyTable.astro"
-// `ui-icon`, `ui-icons` and `ui-icon-set` are one family.  Icons are SVG files in packs, loaded lazily one file per
+// `ui-icon` and `ui-icons` are one family.  Icons are SVG files in packs, loaded lazily one file per
 // icon, so a page only pays for the icons it shows.
 
 <Section title="Types">
   Every Font Awesome 7 Free solid and regular icon is available by name, in words:  `circle check`, `bell outline`
-  (Font Awesome's dashed `circle-check` works too).  Brands and Fomantic's own names come in packs a page adds with
-  `<ui-icon-set>`.  Browse and copy names in the [icon browser](../../icons/), which replaces Fomantic's long list of
+  (Font Awesome's dashed `circle-check` works too).  Brands and Fomantic's own names come in packs a page or a `<ui-root>` adds.  Browse and copy names in the [icon browser](../../icons/), which replaces Fomantic's long list of
   icon sets.
 
   <Example title="Icon" description="An icon is a glyph used to represent something else.  Solid is the default set." class="ui-cluster">
@@ -189,15 +188,17 @@ import VocabularyTable from "../../components/VocabularyTable.astro"
   name resolution.  Icons have no events.
 
   **Icon packs.**  A pack is a folder of SVG files plus a `pack.js` index;  the page's packs are shared by every
-  component.  Font Awesome 7 Free is the default.  Add more with `<ui-icon-set>`, which renders nothing;  the pack
-  added last wins a name:
+  component.  Font Awesome 7 Free is the default.  Add more for a subtree with `<ui-root icons>`, a comma-separated
+  list of built-in ids or `pack.js` URLs (the last pack wins a name;  a nested root adds to its outer root's packs):
 
   ```html
-  <ui-icon-set src="fa7-brands"></ui-icon-set>                              <!-- every brand logo -->
-  <ui-icon-set src="fomantic"></ui-icon-set>                                <!-- Fomantic's names -->
-  <ui-icon-set src="/icons/lucide/pack.js" prefix="lucide"></ui-icon-set>   <!-- your own pack -->
-  <ui-icon-set src="/icons/fa-pro/pack.js" only></ui-icon-set>              <!-- replace the default -->
+  <ui-root icons="fa7-brands">...</ui-root>                                  <!-- every brand logo -->
+  <ui-root icons="fomantic">...</ui-root>                                    <!-- Fomantic's names -->
+  <ui-root icons="fa7-free, /icons/lucide/pack.js">...</ui-root>             <!-- your own pack, after the default -->
+  <ui-root icons="fomantic" assets="/assets/ui/">...</ui-root>               <!-- built-ins load from /assets/ui/icon-packs/ -->
   ```
+
+  A page without a root adds them from JS:  `UI.icons.use("fa7-brands")`, with `{ prefix, base, only }` options.
 
   Turn any folder of SVGs into a pack with `yarn icons:pack <folder> --id <id>`;  see `docs/icons.md`.
 

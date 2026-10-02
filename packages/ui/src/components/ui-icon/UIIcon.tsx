@@ -30,7 +30,7 @@ export class UIIcon extends UIElement<typeof iconVocabulary> {
   readonly context = new PartContext(this.host, this.vocabulary.noun, { direct: true })
 
   /** The glyph for `name` (+ `outline`). */
-  readonly glyph = new IconGlyph(() => this.iconName())
+  readonly glyph = new IconGlyph(this, () => this.iconName())
 
   constructor(...args: ConstructorParameters<typeof UIElement>) {
     super(...args)

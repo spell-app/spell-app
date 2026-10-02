@@ -2,7 +2,7 @@
  * Generates `src/components/ui-emoji/data/<set>/<chunk>.json`:  emoji NAMES => native Unicode emoji, one JSON file per
  * first letter of the name, per NAME SET, which `EmojiData` loads lazily.
  * - Run with `yarn gen:emoji` (`tsc -p scripts && tsx scripts/gen-emoji.ts`).
- * - Two sets, never merged (`EmojiData.use()` picks one, `<ui-emoji-set names>` does it from HTML).  Sources are read
+ * - Two sets, never merged (`EmojiData.use()` picks one, `<ui-root emoji>` does it per subtree).  Sources are read
  *   at generation time only (NOTHING new ships at runtime;  `emojibase-data` is a devDependency):
  *   - `cldr` (the default):  every emoji `emojibase-data` (`en/data.json` + `en/shortcodes/cldr.json`) gives a CLDR
  *     shortcode (`thumbs_up`, `grinning_face_with_smiling_eyes`, `flag_united_states`)

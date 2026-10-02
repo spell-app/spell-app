@@ -10,8 +10,8 @@ import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
  * ### `<ui-root>`
- * The top of a page or app:  loads the families its subtree uses on demand, sets theme and size for what's inside,
- * and hides it until every component in it is ready.
+ * The top of a page or app:  loads the families its subtree uses on demand, sets icon packs, emoji names, theme and
+ * size for what's inside, and hides it until every component in it is ready.
  ****************/
 export const rootVocabulary = {
   tag: "ui-root",
@@ -59,6 +59,26 @@ export const rootVocabulary = {
       description: "Height as a CSS length or `window` (the viewport's, following a phone's address bar)."
     },
     {
+      name: "icons",
+      kind: "string",
+      description:
+        "Icon packs for everything inside, comma-separated:  built-in ids (`fa7-free`, `fa7-brands`, `fomantic`) or " +
+        "`pack.js` URLs, later wins.  Added over the outer root's packs (or the page's)."
+    },
+    {
+      name: "emoji",
+      kind: "enum",
+      values: ["cldr", "fomantic"],
+      description: "Emoji names for everything inside:  `cldr` (the default) or `fomantic`."
+    },
+    {
+      name: "assets",
+      kind: "string",
+      description:
+        "Folder the built-in icon packs load from (`<assets>icon-packs/<id>/pack.js`), relative to the page;  " +
+        "default:  beside the library."
+    },
+    {
       name: "fixed",
       kind: "boolean",
       description:
@@ -78,7 +98,7 @@ export const rootVocabulary = {
       detail: "{ tag: string, reason: 'unknown' | 'failed' | 'timeout', error?: unknown }",
       cancelable: true,
       description:
-        "A tag inside couldn't load:  no such component (`unknown`), its family failed to import (`failed`), or it " +
+        "A tag inside couldn't load:  no such component (`unknown`), its family didn't load (`failed`), or it " +
         "wasn't ready in time (`timeout`).  Cancel it to skip the console warning."
     }
   ],

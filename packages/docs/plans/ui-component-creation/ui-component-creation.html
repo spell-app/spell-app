@@ -51,7 +51,7 @@
             <a href="../../ui-component-creation.html" target="docs-ui-component-creation">ui-component-creation.html</a
             >.
           </p>
-          <ui-progress class="plan-progress" value="16" total="21" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="17" total="21" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
           <ui-steps class="plan-phases" vertical ordered>
@@ -95,8 +95,8 @@
               data-phase="15"
             ></ui-step
             ><ui-step completed header="P16 · Root Design" href="#p16" data-status="done" data-phase="16"></ui-step
-            ><ui-step selected header="P17 · Root Element" href="#p17" data-status="active" data-phase="17"></ui-step
-            ><ui-step header="P18 · Root Settings" href="#p18" data-status="todo" data-phase="18"></ui-step
+            ><ui-step completed header="P17 · Root Element" href="#p17" data-status="done" data-phase="17"></ui-step
+            ><ui-step selected header="P18 · Root Settings" href="#p18" data-status="active" data-phase="18"></ui-step
             ><ui-step header="P19 · Skeletons" href="#p19" data-status="todo" data-phase="19"></ui-step
             ><ui-step header="P20 · Root Docs And Site" href="#p20" data-status="todo" data-phase="20"></ui-step
             ><ui-step header="P21 · Doc Review" href="#p21" data-status="todo" data-phase="21"></ui-step
@@ -1399,7 +1399,22 @@ export class UICard extends UIElement&lt;...&gt; {
                   </p></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="17">UPDATE</ui-label>
+            </li>
+            <li data-status="open" id="c12">
+              <a class="plan-id" href="#c12">C12</a>
+              <span class="plan-title"
+                >With display=immediately, an icon inside a root may draw from the page's packs for a moment</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    A root's icon set is made once the runtime loads (it lives in the runtime chunk). An icon that loads
+                    first draws from the page's packs, then redraws when the root's set arrives. The hidden display
+                    modes don't show it; emoji names apply at once.
+                  </p></ui-content
+                ></ui-accordion
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="18">UPDATE</ui-label>
             </li>
           </ol>
         </section>
@@ -2634,7 +2649,6 @@ export class UICard extends UIElement&lt;...&gt; {
                   </p></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="17">UPDATE</ui-label>
             </li>
             <li data-status="open" id="d65">
               <a class="plan-id" href="#d65">D65</a>
@@ -2659,7 +2673,46 @@ export class UICard extends UIElement&lt;...&gt; {
                   </p></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="17">UPDATE</ui-label>
+            </li>
+            <li data-status="open" id="d66">
+              <a class="plan-id" href="#d66">D66</a>
+              <span class="plan-title">RootSettings (core): a root's icons / emoji, found from any element inside</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <a
+                      href="../../../ui/src/elements/RootSettings.ts"
+                      target="src-packages-ui-src-elements-rootsettings-ts"
+                      ><code>src/elements/RootSettings.ts</code></a
+                    >: root element =&gt; <code>{ icons, emoji }</code>; <code>nearest(element, key)</code> climbs the
+                    flat tree (slot, parent, shadow host), so a nested root inherits what it doesn't set. In core
+                    because icons and emoji read it and must never import <code>&lt;ui-root&gt;</code>.
+                    <code>generation</code> (a signal) changes on any root change; <code>IconGlyph</code> and
+                    <code>&lt;ui-emoji&gt;</code> track it, plus <code>connected</code> (a move to another root), and
+                    redraw.
+                  </p></ui-content
+                ></ui-accordion
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="18">UPDATE</ui-label>
+            </li>
+            <li data-status="open" id="d67">
+              <a class="plan-id" href="#d67">D67</a>
+              <span class="plan-title">Icon packs: child sets over a parent function; EmojiData: names per set</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <code>UI.icons.scope(packs, { assets, parent })</code> makes a root's set; <code>parent</code> is a
+                    function asked at each lookup, so an inner root follows the outer root's CURRENT packs. SVG cache
+                    and registered icons are shared, one per page. <code>EmojiData</code> keeps loaded names per set
+                    (<code>peek</code> / <code>get</code> take a set; <code>setFor(element)</code>), so two roots can
+                    use different sets at once. <code>IconGlyph</code> now takes its owner:
+                    <code>new IconGlyph(this, () =&gt; name)</code>.
+                  </p></ui-content
+                ></ui-accordion
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="18">UPDATE</ui-label>
             </li>
           </ol>
         </section>
@@ -2844,7 +2897,8 @@ export class UICard extends UIElement&lt;...&gt; {
             <ul class="plan-phase-body">
               <li>
                 <b>Goal:</b> CLDR names (any separators) by default; opt in to Fomantic's names with
-                <ui-emoji-set names="fomantic"> / EmojiData.use(), one set at a time, like icon packs</ui-emoji-set>
+                <code>&lt;ui-emoji-set names="fomantic"&gt;</code> / <code>EmojiData.use()</code>, one set at a time, like
+                icon packs
               </li>
               <li>
                 <b>Files:</b> scripts/gen-emoji.ts, emoji data (data/cldr, data/fomantic), EmojiData.ts, UIEmojiSet.tsx,
@@ -2923,11 +2977,9 @@ export class UICard extends UIElement&lt;...&gt; {
               <li><b>Verify:</b> plan-doc check; screenshots looked at</li>
             </ul>
           </section>
-          <section data-status="active" data-phase="17" class="s3">
+          <section data-status="done" data-phase="17" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p17">
-                <ui-icon name="circle half stroke" color="orange"></ui-icon> P17 · Root Element
-              </h3></ui-sticky
+              ><h3 id="p17"><ui-icon name="circle check" color="green"></ui-icon> P17 · Root Element</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li>
@@ -2942,9 +2994,11 @@ export class UICard extends UIElement&lt;...&gt; {
               <li><b>Verify:</b> ui-root tests; yarn review, build, measure, smoke, hmr, site:build</li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="18" class="s3">
+          <section data-status="active" data-phase="18" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p18"><ui-icon name="circle outline" color="grey"></ui-icon> P18 · Root Settings</h3></ui-sticky
+              ><h3 id="p18">
+                <ui-icon name="circle half stroke" color="orange"></ui-icon> P18 · Root Settings
+              </h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li>
@@ -3838,6 +3892,20 @@ export class UICard extends UIElement&lt;...&gt; {
               ><ui-content
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-01T21:42-04:00">2026-10-01 21:42</time></ui-date> P17
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T21:55-04:00">2026-10-01 21:55</time></ui-date> P17
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T22:02-04:00">2026-10-01 22:02</time></ui-date> P18
                   active</ui-summary
                 ></ui-content
               ></ui-event

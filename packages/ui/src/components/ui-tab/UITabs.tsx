@@ -236,7 +236,7 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
   private renderTab(pane: UIHost, index: Accessor<number>): JSX.Element {
     const tab = UITabs.tab(pane)
     const selected = () => index() === this.selectedIndex()
-    const glyph = new IconGlyph(() => tab.attrs.icon)
+    const glyph = new IconGlyph(this, () => tab.attrs.icon)
     return (
       <button
         ref={(button: HTMLButtonElement) => (button.ariaControlsElements = [pane])}
