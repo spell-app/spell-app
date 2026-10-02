@@ -25,8 +25,8 @@
           ><header class="spell-page-head">
             <h1>Solid Migration</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p1"
-                >next: P1 · Construction Order</ui-label
+              ><ui-label basic color="grey" icon="circle outline" href="#p2"
+                >next: P2 · Solid rc.13 Bump</ui-label
               ></span
             >
           </header></ui-sticky
@@ -57,7 +57,7 @@
             move: research done, no app code changed yet.
           </p>
           <blockquote class="plan-prompt"><p>convert this into a plan doc with name "solid-migration"</p></blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 18h 30m-29h in all, 18h 30m-29h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 18h 30m-29h in all, 18h-28h left</p>
           <ui-section id="o1" header="1.1 Where it stands" sticky collapsible dividing>
             <ul>
               <li>
@@ -296,7 +296,12 @@
                     </td>
                   </tr>
                   <tr>
-                    <td><code>docs/solid/SOLID-2.md</code> ...</td>
+                    <td>
+                      <a href="../../solid/SOLID-2.md" target="src-packages-docs-solid-solid-2-md"
+                        ><code>docs/solid/SOLID-2.md</code></a
+                      >
+                      ...
+                    </td>
                     <td>
                       <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
                         ><code>packages/docs/solid/solid-2.md</code></a
@@ -496,20 +501,20 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="0" total="10" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="1" total="10" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
           <ui-section
             id="p1"
             data-phase="1"
-            data-status="todo"
+            data-status="done"
             header="P1 · Construction Order"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> create() runs exactly once, after all field initializers, for hand-written AND compiled
@@ -861,6 +866,40 @@
               ></ui-item
             ><ui-item id="d6" data-status="decided"
               ><a class="plan-id" href="#d6">D6</a> <span class="plan-title">Up to 5 agents</span></ui-item
+            ><ui-item id="d7" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d7">D7</a>
+                  <span class="plan-title"
+                    >@thing lives in packages/util/src/spell/spellDecorators.ts, not beside @proto</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>ui</code> re-exports all of <code>$/util/decorators</code> (<a
+                      href="../../../ui/src/util/index.ts"
+                      target="src-packages-ui-src-util-index-ts"
+                      ><code>packages/ui/src/util/index.ts</code></a
+                    >), and <code>@thing</code> is spell-only. P4's <code>@prop</code> / <code>@derived</code> go in the
+                    same file. Supersedes the handoff's 'beside <code>@proto</code>'.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d8" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d8">D8</a>
+                  <span class="plan-title">create() guard: runsCreate(), not a decorator-only fix</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>Thing</code> / <code>List</code> call <code>create()</code> only when no
+                    <code>@thing</code> class sits between <code>new.target</code> and them; a
+                    <code>@thing</code> wrapper calls it only when none sits between <code>new.target</code> and itself.
+                    So exactly once for: compiled classes (no fields, base calls it), <code>@thing</code> classes,
+                    compiled classes extending <code>@thing</code> ones, and <code>@thing</code> on <code>@thing</code>.
+                    Compiled output unchanged.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1052,6 +1091,28 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T12:08-04:00">2026-10-02 12:08</time></ui-date> moved from plans/
                   to epics/ (main renamed /plan-doc to /epic); 10 phases with estimates; Q1, Q2 decided</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T12:21-04:00">2026-10-02 12:21</time></ui-date> P1
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T12:26-04:00">2026-10-02 12:26</time></ui-date> P1: audit done --
+                  no hand-written Thing / List / App subclass; no Observable subclass defines create(); compiled spell
+                  never overrides create() ('to create a task' compiles to a function)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T12:27-04:00">2026-10-02 12:27</time></ui-date> P1
+                  done</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

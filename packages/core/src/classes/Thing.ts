@@ -3,7 +3,7 @@
  */
 import React from "react"
 
-import { Observable, view } from "$/util"
+import { Observable, runsCreate, view } from "$/util"
 import { spellCore } from "$/core/core"
 import { Eventful } from "$/core/SpellEvent"
 import type { PropCheck } from "$/core/spellCore.types"
@@ -28,10 +28,15 @@ export class Thing extends Eventful(Observable) {
   constructor(props: Record<string, unknown>) {
     super(props)
     spellCore.things.add(this)
-    this.create()
+    if (runsCreate(Thing, new.target)) this.create()
   }
 
-  /** Called automatically at end of `thing` constructor -- override in a subclass to set up initial state. */
+  /**
+   * Called once per instance, after constructor props are assigned -- override in a subclass to set up initial state.
+   * - NOTE: runs from THIS constructor, before any subclass field initializer:  a plain field set here is clobbered
+   *   by its initializer.  Compiled classes have no fields, so they're safe;  a hand-written subclass with fields
+   *   MUST be `@thing` (`$/util`), which runs `create()` after them instead.  Exactly once either way.
+   */
   create(): void {}
 
   /**

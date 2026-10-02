@@ -4,7 +4,7 @@
 import React from "react"
 import _ from "lodash"
 
-import { Observable, view } from "$/util"
+import { Observable, runsCreate, view } from "$/util"
 import { spellCore } from "$/core/core"
 import type { PropCheck } from "$/core/spellCore.types"
 
@@ -20,7 +20,7 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
   constructor(props: Record<string, unknown>) {
     super(props)
     spellCore.things.add(this)
-    this.create()
+    if (runsCreate(List, new.target)) this.create()
   }
 
   /** `items` array as state. */
@@ -41,7 +41,10 @@ export class List extends Observable<Record<string, unknown>, { items: unknown[]
     return super.setProp(property, value)
   }
 
-  /** Called automatically at end of `List` constructor -- override in a subclass to set up initial state. */
+  /**
+   * Called once per instance, after constructor props are assigned -- override in a subclass to set up initial state.
+   * - NOTE: same timing as `Thing.create()`:  a hand-written subclass with fields MUST be `@thing`.
+   */
   create(): void {}
 
   /** Default `type` to the name of our constructor.  Instances can override via the setter. */

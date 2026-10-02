@@ -985,3 +985,8 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
 - 2026-10-02 · Plan docs' phase "Estimate" line (`icon="clock"`) draws nothing:  `clock` isn't in `ICONS` in
   `packages/docs/scripts/bundle-spell-ui.js` (only `clock rotate left`), so `check` notes "N icon(s) with no
   <svg> drawn", one per phase. · Not fixed:  add `clock` to `ICONS`, then `yarn docs:update`. · docs
+- 2026-10-02 · Root `yarn review` (its `format` step) rewrote ~60 files nobody touched:  `main` holds unformatted
+  files (generated `_assets/emoji/*.js`, `goals-live.js`, `bundle-spell-ui.js`, `templates/epics/plan.html`,
+  `spell/src/node/environment.ts`), so every review drags them into the diff. · `git restore` them after the
+  review;  the real fix is formatting them once on `main` (or ignoring the generated emoji chunks in `.oxfmtrc`). ·
+  docs, spell
