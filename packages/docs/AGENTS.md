@@ -172,9 +172,9 @@ In this order, from `packages/docs`:
 - `yarn docs:index` (`scripts/index.js`) -- rewrites the lists in `index.html`.
 - `yarn docs:new` (`scripts/new-page.js`) -- a page from a template, at any depth.
 - `yarn docs:open [page] [--vs]` (`scripts/open.js`) -- show a page (default:  the index) in Chrome, reusing its
-  tab;  `--vs`:  in VS Code's doc preview, beside the editor (`/spell-docs`).
+  tab;  `--vs`:  in VS Code's doc preview, the right side bar's "Spell Docs" view (`/spell-docs`).
 - `scripts/pages.js` -- shared by the scripts:  `DOCS`, `findPages()`, `tidy()` (link targets + oxfmt),
-  `serialize()`, `openInChrome()`, `openInVSCode()` (plan docs:  Simple Browser through the spell extension's
+  `serialize()`, `openInChrome()`, `openInVSCode()` (plan docs:  the doc preview through the spell extension's
   `DocPreview`).
 - `scripts/check-spell.js <page> [outDir]` -- Playwright:  fails on console errors, undefined / unrendered
   `ui-*`, contents vs sections, phone-width overflow, top-level titles that don't stick, a section that won't fold /
