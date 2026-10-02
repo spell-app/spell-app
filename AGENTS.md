@@ -68,7 +68,8 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
   (`.claude/hooks/worktree.mjs`) makes `.claude/worktrees/<name>` on branch `<name>` from local `main`, and keeps the
   session saved at the root (Claude's own worktrees move it, and it drops out of every window's list).
 - Open the worktree in its OWN new window at once, from the worktree's root:  `node scripts/window.mjs open <name>`;
-  `... close <name>` on leaving.  The session and its chat stay in the window they started in.
+  `... close <name>` on leaving.  Then `... handoff <name>`:  when the turn ends, the session moves to that window,
+  in an editor tab (never the sidebar), and its old tab closes (the `Stop` hook, `.claude/hooks/handoff.mjs`).
   - The window:  `.claude/worktrees/<name>.code-workspace`, the package window's theme with a title bar tinted
     per worktree.  Folders:  the MAIN repo root first (so its Claude panel lists every session), then the
     worktree's `packages/<pkg>` (`<pkg> ⎇ <name>`) and root (`spell-app ⎇ <name>`).
