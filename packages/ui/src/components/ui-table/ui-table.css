@@ -26,7 +26,7 @@
  *   `@container style()`) that a table sits in an element.  Cells reset it, so a table nested in a cell
  *   answers for itself.  It picks between:
  *   - stackable:  by the viewport (`@media`), as in Fomantic, hosted or static;  a hosted table opts in to stacking
- *     by the HOST's width with `--ui-table-stack-by: container` (`@container`, host `container-type: inline-size`,
+ *     by the HOST's width with `stack-by="container"` or `--ui-table-stack-by: container` (`@container`, host `container-type: inline-size`,
  *     unnamed -- container names are tree-scoped)
  *   - scrolling / overflowing:  hosted tables scroll in the shadow `.scroller`, the head (and foot) stuck;
  *     static tables keep Fomantic's `display: block` `tbody` (scrolling) and `table` (overflowing) scrollers
@@ -71,6 +71,8 @@
   :host {
     --_table-hosted: 1;
     --_table-stack-by: var(--ui-table-stack-by, viewport);
+  }
+  :host {
     /* a colour or size from outside never reaches the table:  its own classes remap them again */
     --ui-color: initial;
     --ui-color-text: initial;
@@ -1004,8 +1006,17 @@
    * Stackable:  below 768px (`tablet stackable`:  992px) rows become blocks.  This only FLAGS the table
    * (`--_table-stack: 1`);  the stacked layout is in the `states` sublayer.
    * - By the VIEWPORT (`@media`), as in Fomantic, for static markup and elements alike.
-   * - By the HOST's width (`@container`) only when an element opts in:  `--ui-table-stack-by: container` on the
-   *   host, an ancestor or the page (a table in a narrow sidebar of a wide screen).
+   * - By the HOST's width (`@container`) only when an element opts in:  `stack-by="container"`, or
+   *   `--ui-table-stack-by: container` on the host, an ancestor or the page (a table in a narrow sidebar of a wide
+   *   screen);  the attribute wins.
+   */
+  /*
+   * Order matters below (same layer, equal specificity:  the later rule wins):
+   *   1. the token's way:  by the host's width when `--ui-table-stack-by: container`, else by the viewport
+   *   2. `stack-by` (the element's attribute:  a private class on the table, `stack-by-container` /
+   *      `stack-by-viewport`, from the canonical value) undoes 1, then stacks its own way
+   * - A class in SELECTORS, not a host state:  a state that set `--_table-stack-by` left WebKit evaluating a later
+   *   table's style queries wrongly, and `:state()` rules its viewport media queries.
    */
   @container (width < 768px) {
     @container style(--_table-stack-by: container) {
@@ -1035,6 +1046,30 @@
       .ui[class*="tablet stackable"].table {
         --_table-stack: 1;
       }
+    }
+  }
+  .ui.stack-by-container.table,
+  .ui.stack-by-viewport.table {
+    --_table-stack: initial;
+  }
+  @container (width < 768px) {
+    :is(.ui.table:not(.unstackable), .ui.stackable.table).stack-by-container {
+      --_table-stack: 1;
+    }
+  }
+  @container (width < 992px) {
+    .ui[class*="tablet stackable"].stack-by-container.table {
+      --_table-stack: 1;
+    }
+  }
+  @media (--ui-mobile) {
+    :is(.ui.table:not(.unstackable), .ui.stackable.table).stack-by-viewport {
+      --_table-stack: 1;
+    }
+  }
+  @media (--ui-mobile), (--ui-tablet) {
+    .ui[class*="tablet stackable"].stack-by-viewport.table {
+      --_table-stack: 1;
     }
   }
 }

@@ -53,3 +53,6 @@ export const ASCENDING: UIT.TableSortDirection = "ascending"
 
 /** The fallback's one part. */
 export const SCROLLER = "scroller"
+
+/** Prefix of the class `stack-by` adds to the table:  `stack-by-container`, `stack-by-viewport`. */
+export const STACK_BY_CLASS = "stack-by-"

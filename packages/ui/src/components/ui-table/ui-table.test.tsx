@@ -216,6 +216,21 @@ describe("<ui-table> shadow markup", () => {
     expect(getComputedStyle(cell).display).toBe("block")
   })
 
+  it('stacks by its own width with `stack-by="container"`, and the attribute beats the token', async () => {
+    const wrapper = await ElementFixture.render<HTMLElement>(
+      `<div style="width: 500px"><ui-table stack-by="container"><table>${HEAD}${BODY}</table></ui-table>` +
+        `<div style="--ui-table-stack-by: container"><ui-table stack-by="viewport"><table>${HEAD}${BODY}</table>` +
+        `</ui-table></div></div>`
+    )
+    await settle()
+    const [own, viewport] = wrapper.querySelectorAll("table")
+    expect(getComputedStyle(own!.querySelector("td")!).display).toBe("block")
+    expect(getComputedStyle(viewport!.querySelector("td")!).display).toBe("table-cell")
+    wrapper.style.width = "900px"
+    await new Promise((resolve) => requestAnimationFrame(resolve))
+    expect(getComputedStyle(own!.querySelector("td")!).display).toBe("table-cell")
+  })
+
   it("stacks by its own width when `--ui-table-stack-by: container` opts in", async () => {
     const wrapper = await ElementFixture.render<HTMLElement>(
       `<div style="width: 500px; --ui-table-stack-by: container"><ui-table><table>${HEAD}${BODY}</table></ui-table>` +

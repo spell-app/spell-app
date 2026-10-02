@@ -232,7 +232,8 @@ A table's semantics stay NATIVE and in the LIGHT DOM;  the element only adds the
 - Rows and cells keep Fomantic's classes on native `tr` / `td` / `th` (`positive`, `red marked left`,
   `collapsing`, `four wide`):  no JS, no elements.
 - `stackable` answers to the VIEWPORT, as in Fomantic, for elements and static markup alike;  an element opts in to
-  its HOST's width (it's a size container) with `--ui-table-stack-by: container`.
+  its HOST's width (it's a size container) with `stack-by="container"` (a host state;  or the region token
+  `--ui-table-stack-by: container`, which the attribute beats).
 - Sorting (`sortable`):  a header's `<button>` is its control (else the header becomes focusable);  the
   cancelable `ui-sort` (`{ column, key, direction }`) comes first, then `sort-column` / `sort-direction` and
   `aria-sort`.  `client-sort` reorders a simple table's rows by cell text;  otherwise the app sorts.

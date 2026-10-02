@@ -851,6 +851,11 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   Dev and tests were fine:  `css.lightningcss.targets` (`CSS_TARGETS`) covers transforms, but the BUILD's CSS minify
   reads `build.cssTarget`, which defaulted to an old Safari. · `build.cssTarget` = the same browsers in
   `vite.config.ts`;  `yarn measure`'s `lightDarkLowered` check fails if it comes back. · ui
+- 2026-10-01 · `<ui-table stack-by>` as a HOST STATE broke an unrelated WebKit test:  a later table's scroller kept the
+  desktop row count after `page.viewport(414, …)`.  Two tries failed the same way:  `:host(:state(x))` setting
+  `--_table-stack-by`, and page-sheet `:state(x) > table` rules.  Chromium / Firefox fine. · A private CLASS on the
+  table (`stack-by-container`, via `extraClasses()`) instead of a state.  Prove a WebKit-only CSS idea with
+  `UI_TEST_ALL=1 npx vitest run --project browser <family>` before building on it. · ui
 
 ## cli
 

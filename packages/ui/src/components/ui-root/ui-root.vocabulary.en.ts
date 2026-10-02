@@ -53,7 +53,8 @@ export const rootVocabulary = {
       kind: "string",
       description:
         "Width as a CSS length (`600px`, `40em`, `50%`) or `window` (the viewport's).  With a width or height the root " +
-        "is a box that scrolls its own content."
+        "is a box that scrolls its own content, in a region named by the host's `aria-label` (name each one when a " +
+        "page has several)."
     },
     {
       name: "height",
@@ -107,7 +108,13 @@ export const rootVocabulary = {
   slots: [{ name: "", description: "The page or app:  any markup, with `ui-*` elements anywhere inside." }],
   parts: [
     { name: "loading", description: "The `<ui-loader>` shown with `loading`." },
-    { name: "skeleton", description: 'The box of `<ui-placeholder>`s shown with `display="skeleton"`.' }
+    { name: "skeleton", description: 'The box of `<ui-placeholder>`s shown with `display="skeleton"`.' },
+    {
+      name: "scroller",
+      description:
+        "With `width` / `height` / `fixed`:  the region around the content that scrolls (a tab stop, named by the host's " +
+        '`aria-label`, else "Content").'
+    }
   ],
   states: [
     { name: "loading", description: "Components inside are still loading." },
@@ -117,5 +124,12 @@ export const rootVocabulary = {
     { name: "box", description: "A `width` or `height` is set:  a block box that scrolls its content." },
     { name: "fixed", description: "Pinned to the viewport." }
   ],
-  texts: [{ key: "loading", text: "Loading…", description: "The loader's message for a bare `loading`." }]
+  texts: [
+    { key: "loading", text: "Loading…", description: "The loader's message for a bare `loading`." },
+    {
+      key: "label",
+      text: "Content",
+      description: "Name of the scrolling region of a root with a box, when the host has no `aria-label`."
+    }
+  ]
 } as const satisfies ComponentVocabulary

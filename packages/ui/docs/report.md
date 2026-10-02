@@ -127,7 +127,7 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | library (full:  every export of the peer set) | 173.54 | 60.50 | comparison |
 | core (element core + foundation JS) | 49.81 | 16.22 | eager |
 | forms (form base, validation, menu options;  imported by `ui-dropdown`, `ui-input`, `ui-checkbox`, `ui-form`, `ui-select`, `ui-search`, `ui-rating`, `ui-slider`, `ui-calendar`) | 20.56 | 7.45 | eager |
-| own, all 54 families | 1417.02 | 399.79 | eager |
+| own, all 54 families | 1420.06 | 400.67 | eager |
 | api (`E` / `V` namespaces, `@spell-app/ui/api`) | 0.73 | 0.33 | app only |
 | runtime (`UIRuntime` + foundation CSS) | 170.88 | 30.88 | lazy |
 | icons (none bundled:  pack indexes and SVGs are separate files, `docs/icons.md`) | 0.00 | 0.00 | lazy |
@@ -154,14 +154,14 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | `ui-loader` | **4.30** | 1.65 | 1.28 | 0.79 | 1.54 | core | 48.61 | 34.70 |
 | `ui-placeholder` | **5.98** | 3.33 | 1.36 | 0.90 | 1.54 | core | 50.28 | 36.25 |
 | `ui-message` | **5.77** | 2.03 | 1.84 | 1.09 | 1.81 | core | 50.07 | 36.57 |
-| `ui-breadcrumb` | **5.12** | 2.78 | 0.97 | 0.80 | 1.80 | core | 49.42 | 35.85 |
+| `ui-breadcrumb` | **5.17** | 2.78 | 1.02 | 0.80 | 1.80 | core | 49.48 | 35.91 |
 | `ui-input` | **10.54** | 4.61 | 2.76 | 2.00 | 2.22 | core + forms | 62.29 | 52.29 |
 | `ui-checkbox` | **9.41** | 5.28 | 2.67 | 0.64 | 2.12 | core + forms | 61.17 | 45.80 |
-| `ui-form` | **10.76** | 6.32 | 2.16 | 1.86 | 1.61 | core + forms | 62.52 | 49.83 |
+| `ui-form` | **10.85** | 6.33 | 2.17 | 1.94 | 1.61 | core + forms | 62.61 | 49.93 |
 | `ui-item` | **4.90** | 2.75 | 0.37 | 1.03 | 1.87 | core | 49.20 | 40.26 |
 | `ui-list` | **7.20** | 2.04 | 3.42 | 1.02 | 1.63 | core | 51.51 | 45.98 |
 | `ui-menu` | **10.08** | 2.81 | 4.33 | 1.43 | 1.62 | core | 54.39 | 48.33 |
-| `ui-table` | **13.69** | 4.58 | 5.38 | 1.98 | 1.92 | core | 57.99 | 47.90 |
+| `ui-table` | **13.91** | 4.62 | 5.44 | 2.09 | 1.92 | core | 58.21 | 48.12 |
 | `ui-popup` | **8.72** | 3.91 | 2.56 | 1.55 | 1.83 | core | 53.02 | 38.83 |
 | `ui-modal` | **9.01** | 4.10 | 2.11 | 1.54 | 2.47 | core | 53.31 | 71.86 |
 | `ui-transition` | **4.91** | 2.94 | 0.28 | 0.94 | 1.89 | core | 49.22 | 35.03 |
@@ -171,7 +171,7 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | `ui-shape` | **6.10** | 4.09 | 0.79 | 0.88 | 1.56 | core | 50.41 | 36.23 |
 | `ui-card` | **8.30** | 3.33 | 2.69 | 1.57 | 1.90 | core | 52.60 | 57.31 |
 | `ui-items` | **4.17** | 1.55 | 1.45 | 0.66 | 1.50 | core | 48.48 | 57.30 |
-| `ui-feed` | **5.82** | 2.68 | 1.47 | 1.00 | 1.88 | core | 50.12 | 55.53 |
+| `ui-feed` | **5.93** | 2.68 | 1.57 | 1.00 | 1.88 | core | 50.23 | 55.64 |
 | `ui-comment` | **4.52** | 2.38 | 0.85 | 0.81 | 1.70 | core | 48.83 | 53.91 |
 | `ui-statistic` | **4.90** | 2.25 | 1.22 | 1.04 | 1.54 | core | 49.21 | 41.68 |
 | `ui-step` | **8.83** | 2.99 | 3.59 | 1.58 | 1.86 | core | 53.13 | 50.92 |
@@ -192,7 +192,7 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | `ui-visibility` | **3.64** | 2.13 | 0.14 | 0.85 | 1.60 | core | 47.95 | 33.92 |
 | `ui-embed` | **6.39** | 3.58 | 0.87 | 1.23 | 2.06 | core | 50.69 | 36.98 |
 | `ui-calendar` | **15.50** | 9.51 | 2.04 | 2.22 | 2.15 | core + forms | 67.25 | 55.14 |
-| `ui-root` | **7.67** | 5.60 | 0.27 | 1.48 | 1.37 | core | 51.97 | 57.96 |
+| `ui-root` | **8.08** | 5.79 | 0.35 | 1.63 | 1.37 | core | 52.39 | 58.43 |
 <!-- /generated:bundle-families -->
 
 ### Scenarios
@@ -201,8 +201,8 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | Scenario | Adds up | shared runtime min+gz kB | standalone build |
 | --- | --- | --: | --: |
 | page with one button | library + core + own:ui-button | **57.50** | 43.33 |
-| all families | library + core + forms + own (54 families) | **451.55** | 450.21 |
-| app already ships the library | core + forms + own (54 families) | **423.47** | -- |
+| all families | library + core + forms + own (54 families) | **452.43** | 451.12 |
+| app already ships the library | core + forms + own (54 families) | **424.35** | -- |
 <!-- /generated:bundle-scenarios -->
 
 ### Checks
@@ -246,10 +246,10 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | Group | Files | Lines | Code lines |
 | --- | --: | --: | --: |
 | element core | 25 | 3943 | 2241 |
-| components | 351 | 27017 | 18443 |
+| components | 351 | 27089 | 18500 |
 | vocabularies & fallbacks | 0 | 0 | 0 |
 | foundation | 43 | 8300 | 4471 |
-| tests | 213 | 36670 | 30824 |
+| tests | 213 | 36698 | 30850 |
 | tooling | 53 | 6311 | 4422 |
 <!-- /generated:loc -->
 
@@ -384,14 +384,14 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | `components/ui-flyout/ui-flyout.vocabulary.en.ts` | 131 | 112 |
 | `components/ui-form/UIField.tsx` | 81 | 54 |
 | `components/ui-form/UIFields.tsx` | 41 | 28 |
-| `components/ui-form/UIForm.tsx` | 388 | 266 |
+| `components/ui-form/UIForm.tsx` | 389 | 267 |
 | `components/ui-form/UIFormHost.ts` | 44 | 25 |
 | `components/ui-form/index.ts` | 16 | 7 |
 | `components/ui-form/ui-field.vocabulary.en.ts` | 65 | 46 |
 | `components/ui-form/ui-fields.vocabulary.en.ts` | 60 | 42 |
 | `components/ui-form/ui-form.fallback.ts` | 36 | 22 |
 | `components/ui-form/ui-form.types.ts` | 105 | 59 |
-| `components/ui-form/ui-form.vocabulary.en.ts` | 110 | 91 |
+| `components/ui-form/ui-form.vocabulary.en.ts` | 115 | 96 |
 | `components/ui-grid/UIColumn.ts` | 15 | 6 |
 | `components/ui-grid/UIGrid.ts` | 15 | 6 |
 | `components/ui-grid/UIRow.ts` | 13 | 6 |
@@ -538,12 +538,12 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | `components/ui-reveal/ui-reveal.fallback.ts` | 35 | 26 |
 | `components/ui-reveal/ui-reveal.types.ts` | 21 | 6 |
 | `components/ui-reveal/ui-reveal.vocabulary.en.ts` | 66 | 51 |
-| `components/ui-root/UIRoot.tsx` | 301 | 202 |
+| `components/ui-root/UIRoot.tsx` | 332 | 226 |
 | `components/ui-root/index.ts` | 14 | 6 |
 | `components/ui-root/ui-root.catalog.ts` | 154 | 150 |
 | `components/ui-root/ui-root.fallback.ts` | 20 | 10 |
 | `components/ui-root/ui-root.types.ts` | 72 | 33 |
-| `components/ui-root/ui-root.vocabulary.en.ts` | 121 | 107 |
+| `components/ui-root/ui-root.vocabulary.en.ts` | 135 | 121 |
 | `components/ui-search/UISearch.tsx` | 699 | 529 |
 | `components/ui-search/index.ts` | 12 | 4 |
 | `components/ui-search/ui-search.fallback.ts` | 87 | 66 |
@@ -608,11 +608,11 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | `components/ui-tab/ui-tab.types.ts` | 95 | 33 |
 | `components/ui-tab/ui-tab.vocabulary.en.ts` | 79 | 58 |
 | `components/ui-tab/ui-tabs.vocabulary.en.ts` | 114 | 93 |
-| `components/ui-table/UITable.tsx` | 385 | 236 |
+| `components/ui-table/UITable.tsx` | 394 | 239 |
 | `components/ui-table/index.ts` | 11 | 3 |
 | `components/ui-table/ui-table.fallback.ts` | 65 | 46 |
-| `components/ui-table/ui-table.types.ts` | 55 | 12 |
-| `components/ui-table/ui-table.vocabulary.en.ts` | 186 | 169 |
+| `components/ui-table/ui-table.types.ts` | 58 | 13 |
+| `components/ui-table/ui-table.vocabulary.en.ts` | 195 | 178 |
 | `components/ui-text/UIText.tsx` | 33 | 21 |
 | `components/ui-text/index.ts` | 10 | 3 |
 | `components/ui-text/ui-text.fallback.ts` | 16 | 9 |
@@ -746,8 +746,8 @@ Solid, Vite dev server) and the smoke perf page (`dist/` + vendored production S
 <!-- generated:perf -->
 | Where | Build | Open: update / + layout / + frame ms | Keystroke update min / avg / max ms | + layout | + frame |
 | --- | --- | --: | --: | --: | --: |
-| vitest browser mode | dev (Vite dev server) | 17.4 / 17.4 / 19.0 | 0.4 / **1.9** / 4.9 | 1.0 / **3.8** / 9.6 | 14.7 / **16.0** / 16.5 |
-| smoke perf page | production (`dist/` + vendored peers) | 16.1 / 16.1 / 17.8 | 0.4 / **1.3** / 3.8 | 1.0 / **3.0** / 10.0 | 14.3 / **15.7** / 17.1 |
+| vitest browser mode | dev (Vite dev server) | 56.0 / 56.0 / 58.0 | 1.0 / **4.6** / 17.0 | 1.0 / **6.2** / 21.0 | 6.0 / **14.8** / 21.0 |
+| smoke perf page | production (`dist/` + vendored peers) | 14.7 / 14.7 / 16.3 | 0.2 / **1.4** / 3.7 | 0.9 / **3.2** / 8.5 | 14.6 / **15.8** / 16.6 |
 <!-- /generated:perf -->
 
 - The test asserts an average update under 16 ms;  it passes with large headroom.  No windowing needed.

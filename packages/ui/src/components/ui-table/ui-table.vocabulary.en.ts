@@ -87,7 +87,16 @@ export const tableVocabulary = {
       values: ["tablet"],
       description:
         "Rows become blocks on a viewport below 768px (the default, `stackable`);  " +
-        '`stackable="tablet"` also below 992px.  `--ui-table-stack-by: container` follows the table\'s OWN width instead.'
+        '`stackable="tablet"` also below 992px.  `stack-by="container"` follows the table\'s OWN width instead.'
+    },
+    {
+      name: "stack-by",
+      kind: "enum",
+      values: ["viewport", "container"],
+      description:
+        "What `stackable` measures:  the `viewport` (Fomantic's way, the default) or the table's own width " +
+        "(`container`:  a table in a narrow column of a wide screen).  Also a token for a whole region:  " +
+        "`--ui-table-stack-by: container`;  the attribute wins."
     },
     {
       name: "scrolling",

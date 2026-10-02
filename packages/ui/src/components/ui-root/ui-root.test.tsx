@@ -245,9 +245,22 @@ describe("<ui-root> theme, size and box", () => {
     const { host, controller } = await root(`<ui-root fixed><p>Text</p></ui-root>`)
     await controller.settled
     await ElementFixture.settle(host)
-    const style = getComputedStyle(host)
-    expect(style.position).toBe("fixed")
-    expect(style.overscrollBehaviorY).toBe("contain")
+    expect(getComputedStyle(host).position).toBe("fixed")
+    const scroller = host.shadowRoot!.querySelector<HTMLElement>("[part~=scroller]")!
+    expect(getComputedStyle(scroller).overscrollBehaviorY).toBe("contain")
+  })
+
+  it("a box scrolls in a named region that takes focus;  without a box, no region", async () => {
+    const { host, controller } = await root(`<ui-root height="5em" aria-label="Report"><p>Text</p></ui-root>`)
+    await controller.settled
+    await ElementFixture.settle(host)
+    const scroller = host.shadowRoot!.querySelector<HTMLElement>("[part~=scroller]")!
+    expect(scroller.tabIndex).toBe(0)
+    expect(scroller.getAttribute("role")).toBe("region")
+    expect(scroller.getAttribute("aria-label")).toBe("Report")
+    expect(getComputedStyle(scroller).overflowY).toBe("auto")
+    const plain = await root(`<ui-root><p>Text</p></ui-root>`)
+    expect(plain.host.shadowRoot!.querySelector("[part~=scroller]")).toBeNull()
   })
 })
 

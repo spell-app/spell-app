@@ -23,7 +23,7 @@ import VocabularyTable from "../../components/VocabularyTable.astro"
     </ui-root>
   </Example>
   <Example title="Theme and size" description="`theme` and `size` apply to everything inside.">
-    <ui-root theme="dark" size="small" width="100%">
+    <ui-root theme="dark" size="small" width="100%" aria-label="Dark report">
       <ui-segment>
         <ui-header>Report</ui-header>
         <p>Dark and small:  everything inside follows.</p>
@@ -32,7 +32,7 @@ import VocabularyTable from "../../components/VocabularyTable.astro"
     </ui-root>
   </Example>
   <Example title="A box" description="With `width` or `height` (CSS lengths, or `window` for the viewport's), the root is a box that scrolls its own content.  `fixed` pins it to the viewport:  a full-page app shell.">
-    <ui-root height="8em">
+    <ui-root height="8em" aria-label="Numbers">
       <ui-list bulleted>
         <ui-item>One</ui-item>
         <ui-item>Two</ui-item>

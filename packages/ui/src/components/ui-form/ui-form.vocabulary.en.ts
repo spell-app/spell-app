@@ -104,7 +104,12 @@ export const formVocabulary = {
   states: [
     ...STATE_STATES,
     { name: "loading", description: "Busy." },
-    { name: "disabled", description: "Can't be used." }
+    { name: "disabled", description: "Can't be used." },
+    {
+      name: "root",
+      description:
+        "Always on:  the form's own host (its sheet also styles `<ui-fields>` / `<ui-field>` hosts), a block and the size container its rows stack by."
+    }
   ],
   texts: []
 } as const satisfies ComponentVocabulary

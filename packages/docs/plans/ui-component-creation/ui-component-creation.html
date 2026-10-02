@@ -51,7 +51,7 @@
             <a href="../../ui-component-creation.html" target="docs-ui-component-creation">ui-component-creation.html</a
             >.
           </p>
-          <ui-progress class="plan-progress" value="19" total="21" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="20" total="22" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
           <ui-steps class="plan-phases" vertical ordered>
@@ -99,13 +99,14 @@
             ><ui-step completed header="P18 · Root Settings" href="#p18" data-status="done" data-phase="18"></ui-step
             ><ui-step completed header="P19 · Skeletons" href="#p19" data-status="done" data-phase="19"></ui-step
             ><ui-step
-              selected
+              completed
               header="P20 · Root Docs And Site"
               href="#p20"
-              data-status="active"
+              data-status="done"
               data-phase="20"
             ></ui-step
-            ><ui-step header="P21 · Doc Review" href="#p21" data-status="todo" data-phase="21"></ui-step
+            ><ui-step selected header="P21 · Doc Review" href="#p21" data-status="active" data-phase="21"></ui-step
+            ><ui-step header="P22 · Doc Review" href="#p22" data-status="todo" data-phase="22"></ui-step
           ></ui-steps>
         </section>
 
@@ -892,9 +893,7 @@ export const cardSkeleton = {
           </section>
           <section class="s3">
             <ui-sticky class="spell-h3"><h3 id="o5">3.5 &lt;ui-root&gt;</h3></ui-sticky>
-            <ui-message class="plan-update" state="warning" size="tiny" header="UPDATE" data-phase="20"
-              ><p>Rewritten as built (P17-P19).</p></ui-message
-            >
+
             <p>
               Built in <a href="#p17">P17</a> (element), <a href="#p18">P18</a> (settings),
               <a href="#p19">P19</a> (skeletons); docs in <a href="#p20">P20</a>. One element around a page or app. It:
@@ -2154,7 +2153,7 @@ export class RootLoader {
                 ></ui-accordion
               >
             </li>
-            <li data-status="open" id="i7">
+            <li data-status="done" id="i7">
               <a class="plan-id" href="#i7">I7</a>
               <span class="plan-title"
                 >Browsers: WebKit drops style-query results on ::before/::after after a dynamic change</span
@@ -2173,8 +2172,9 @@ export class RootLoader {
                   </p></ui-content
                 ></ui-accordion
               >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="21">UPDATE</ui-label>
             </li>
-            <li data-status="open" id="i8">
+            <li data-status="done" id="i8">
               <a class="plan-id" href="#i8">I8</a>
               <span class="plan-title"
                 >Browsers: WebKit finds no container inside a shadow root above a slot (form)</span
@@ -2191,6 +2191,7 @@ export class RootLoader {
                   </p></ui-content
                 ></ui-accordion
               >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="21">UPDATE</ui-label>
             </li>
             <li data-status="done" id="i9">
               <a class="plan-id" href="#i9">I9</a>
@@ -2256,7 +2257,6 @@ export class RootLoader {
                   </p></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="20">UPDATE</ui-label>
             </li>
           </ol>
         </section>
@@ -3383,6 +3383,36 @@ export class RootLoader {
                 ></ui-accordion
               >
             </li>
+            <li data-status="open" id="d69">
+              <a class="plan-id" href="#d69">D69</a> <span class="plan-title">How D48-D50 were built</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      <b>Table</b> <code>stack-by</code>: an <code>enum</code> attribute that adds a private class to
+                      the table (<code>stack-by-container</code> / <code>stack-by-viewport</code>, from the canonical
+                      value); the sheet's later, equal-specificity rules undo the token's way and stack the attribute's
+                      way. Not a host state: <code>:host(:state())</code> setting <code>--_table-stack-by</code>, and
+                      <code>:state()</code> rules in the page sheet, both left WebKit with stale media / style queries
+                      on a LATER table.
+                    </li>
+                    <li>
+                      <b>Breadcrumb, feed</b>: style queries now match only REAL elements, which set private values
+                      (<code>--_ui-breadcrumb-divider-*</code>, <code>--_feed-line</code>,
+                      <code>--_feed-number*</code>); the <code>::before</code>s read them through <code>var()</code>,
+                      <code>content</code> defaulting to <code>none</code>. Fixes I7.
+                    </li>
+                    <li>
+                      <b>Form</b>: the form host (<code>:state(root)</code>, always on) is a block and an UNNAMED
+                      inline-size container; the stacking query is unnamed. <code>&lt;ui-fields&gt;</code> /
+                      <code>&lt;ui-field&gt;</code> share the sheet, so the rule is scoped by that state. Fixes I8.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="21">UPDATE</ui-label>
+            </li>
           </ol>
         </section>
 
@@ -3695,10 +3725,10 @@ export class RootLoader {
               <li><b>Verify:</b> description tests, visual baseline of a skeleton example</li>
             </ul>
           </section>
-          <section data-status="active" data-phase="20" class="s3">
+          <section data-status="done" data-phase="20" class="s3">
             <ui-sticky class="spell-h3"
               ><h3 id="p20">
-                <ui-icon name="circle half stroke" color="orange"></ui-icon> P20 · Root Docs And Site
+                <ui-icon name="circle check" color="green"></ui-icon> P20 · Root Docs And Site
               </h3></ui-sticky
             >
             <ul class="plan-phase-body">
@@ -3713,9 +3743,27 @@ export class RootLoader {
               <li><b>Verify:</b> site:build + click-through, docs:update</li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="21" class="s3">
+          <section data-status="active" data-phase="21" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p21"><ui-icon name="circle outline" color="grey"></ui-icon> P21 · Doc Review</h3></ui-sticky
+              ><h3 id="p21">
+                <ui-icon name="circle half stroke" color="orange"></ui-icon> P21 · Table And WebKit Fixes
+              </h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> build D48-D50: <code>&lt;ui-table stack-by="container"&gt;</code>; breadcrumb divider and
+                feed number rules off style queries (fixes I7); <code>&lt;ui-form&gt;</code> host a real box and size
+                container (fixes I8)
+              </li>
+              <li>
+                <b>Files:</b> ui-table vocabulary / css / tests; ui-breadcrumb.css, ui-feed.css; ui-form.css / UIForm
+              </li>
+              <li><b>Verify:</b> yarn review; yarn test:all (no WebKit failures); visual all browsers</li>
+            </ul>
+          </section>
+          <section data-status="todo" data-phase="22" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p22"><ui-icon name="circle outline" color="grey"></ui-icon> P22 · Doc Review</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li><b>Goal:</b> prune the plan doc; durable page true to what was built</li>
@@ -4609,6 +4657,41 @@ export class RootLoader {
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-01T22:48-04:00">2026-10-01 22:48</time></ui-date> I12 closed: Built
                   dist/ never switched colour scheme: light-dark() lowered by the CSS minify</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T22:54-04:00">2026-10-01 22:54</time></ui-date> P20
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T22:56-04:00">2026-10-01 22:56</time></ui-date> P22 added: Doc
+                  Review</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T22:56-04:00">2026-10-01 22:56</time></ui-date> P21
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T23:06-04:00">2026-10-01 23:06</time></ui-date> I7 closed:
+                  Browsers: WebKit drops style-query results on ::before/::after after a dynamic change</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T23:06-04:00">2026-10-01 23:06</time></ui-date> I8 closed:
+                  Browsers: WebKit finds no container inside a shadow root above a slot (form)</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

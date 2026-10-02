@@ -1,7 +1,18 @@
 import { Show, createEffect, createMemo, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, IconGlyph, RootSettings, UI, UIHost, proto, UIElement, type Disposer } from "$/ui/core"
+import {
+  Cell,
+  HostAttribute,
+  IconGlyph,
+  RootSettings,
+  UI,
+  UIHost,
+  UIT,
+  proto,
+  UIElement,
+  type Disposer
+} from "$/ui/core"
 
 import { LoaderMessage, type RootLoading } from "./LoaderMessage"
 import { PlaceholderSkeleton, type RootSkeletonRenderer } from "./PlaceholderSkeleton"
@@ -60,6 +71,9 @@ export class UIRoot extends UIElement<RootVocabulary> {
 
   declare Loading: RootLoading
   declare Skeleton: RootSkeletonRenderer
+
+  /** Host `aria-label`:  the scrolling region's name. */
+  readonly ariaLabel = new HostAttribute(this.host, UIT.ARIA_LABEL)
 
   /** Everything inside is ready (or the timeout passed). */
   readonly isReady = new Cell(false)
@@ -126,14 +140,39 @@ export class UIRoot extends UIElement<RootVocabulary> {
       <>
         <Show when={this.showLoading()}>{this.Loading.render(this.part("loading"), () => this.message())}</Show>
         <Show when={this.showSkeleton()}>{this.Skeleton.render(this.part("skeleton"), this.skeletons.get)}</Show>
-        <slot class={this.classes()} style={this.slotStyle()} />
+        <Show when={this.scrolls()} fallback={<slot class={this.classes()} style={this.slotStyle()} />}>
+          <div
+            part={this.part("scroller")}
+            tabindex="0"
+            role="region"
+            aria-label={this.ariaLabel.get() ?? this.runtimeText("label")}
+          >
+            <slot class={this.classes()} style={this.slotStyle()} />
+          </div>
+        </Show>
       </>
     )
   }
 
+  /**
+   * A box (`width` / `height` / `fixed`):  its content scrolls in an inner region, a tab stop with a name (as a
+   * scrolling `<ui-table>`'s), so keyboard users can scroll it -- Firefox doesn't make a scroller focusable by itself.
+   */
+  private scrolls(): boolean {
+    return RootBox.isBox(this.attrs.width, this.attrs.height) || !!this.attrs.fixed
+  }
+
   /** The loader's message:  `loading`'s value, or the default text for a bare `loading`. */
   private message(): string {
-    return this.attrs.loading || this.text("loading")
+    return this.attrs.loading || (this.runtimeText("loading") ?? "")
+  }
+
+  /**
+   * Text `key` once the runtime is loaded (tracked), else `undefined`:  the root renders `eager`ly, before `UI.i18n`
+   * exists, and `text()` throws until then.
+   */
+  private runtimeText(key: Parameters<UIRoot["text"]>[0]): string | undefined {
+    return this.loaded() ? this.text(key) : undefined
   }
 
   /** Inline style of the slot:  hidden while loading (unless `immediately`);  not drawn while the message or skeletons show. */

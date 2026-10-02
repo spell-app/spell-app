@@ -8,7 +8,7 @@ as work lands ([AGENTS.md](../AGENTS.md)).  Last updated 2026-09-30.
 - **Resumed 2026-10-01** in the monorepo (`packages/ui`), branch `worktree-ui-component-creation`;  plan doc
   [`packages/docs/plans/ui-component-creation/`](../../docs/plans/ui-component-creation/ui-component-creation.html):
   icon follow-ups, `SUSPECTED-BUGS.md` sweep, Owen's decisions ("To review (Owen)" below), Phase D chores.
-- **`<ui-root>`** (P17-P21, 2026-10-01):  P17 · Root Element in progress.
+- **`<ui-root>`** (P17-P20, 2026-10-01):  built;  P21 (D48-D50:  table `stack-by`, WebKit fixes) built;  P22 · Doc Review next.
 - Every check passes after the move;  `yarn test:hmr` and `yarn site:build` needed a fix each (`PAPERCUTS.md`).
 - Visual:  Mac baselines for chromium / firefox / webkit;  Linux baselines wait on a working Docker Desktop.
 
@@ -234,17 +234,14 @@ Decided or knowingly left for later;  each should be picked up where noted.
 Built, but flagged for Owen's review before it's treated as settled.  Owen settled the 2026-09-30 batch on 2026-10-01
 (below, "Settled");  open now:
 
-- **WebKit:  style queries on `::before` / `::after`** -- WebKit doesn't re-evaluate a `@container style()` rule on a
-  pseudo-element after the container's token changes (breadcrumb divider icon, feed number circles):  nudge the
-  element after a change, or move those rules off style queries?  3 WebKit tests fail.  Flagged 2026-10-01.
-- **WebKit:  `<ui-form>` row stacking** -- WebKit's container lookup doesn't cross the slot, and the form host is
-  `display: contents`:  give the form a real box host, or another mechanism?  1 WebKit test fails.  Flagged 2026-10-01.
-- **Table stacking opt-in** -- tables stack by VIEWPORT again (Fomantic);  an element opts in to stacking by its
-  own width with the TOKEN `--ui-table-stack-by: container`.  Keep a token, or add an attribute
-  (`stack-by="container"`)?  Flagged 2026-10-01.
+(none)
 
 ### Settled 2026-10-01
 
+- Table:  `stack-by="container"` (an attribute, beats the region token `--ui-table-stack-by`).  WebKit pseudo-element
+  style queries:  moved off (breadcrumb divider, feed numbers and line read `var()`s their real elements set).  Form:
+  the host is a block and the size container its rows stack by.  (D48-D50, built 2026-10-01;  `yarn test:all`:  no
+  WebKit failures left.)
 - Modal:  `closedby` stays;  `closable="false"` keeps Fomantic's meaning too (no icon AND dismissal `none`), and an
   explicit `closedby` wins for dismissal.  Also on `<ui-flyout>`.
 - Invoker commands:  `<ui-button>` forwards `commandfor` / `command`;  `UI.browser.supports.invokers`;  without
