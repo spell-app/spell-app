@@ -88,6 +88,8 @@ describe("StaticRender", () => {
     expect(html).toMatch(/<h2 [^>]*>.*Outer.*<\/h2>/)
     expect(html).toMatch(/<h3 [^>]*>.*Inner.*<\/h3>/)
     expect(html).toMatch(/<p>A<\/p><section [^>]*class="ui section in-section"/)
+    // I1:  an inline style object with computed keys lost its `;` in Solid's server compile
+    expect(html).toContain(`style="--_ui-section-top:0px;--_ui-section-depth:1"`)
     expect(html).not.toContain("<ui-")
     expect(html).not.toContain("<slot")
   })

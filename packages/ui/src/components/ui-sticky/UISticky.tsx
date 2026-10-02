@@ -82,6 +82,18 @@ export class UISticky extends UIElement<StickyVocabulary> {
   // ## Rendering
   ////////////////
 
+  /**
+   * The box's inline tokens:  top and bottom offsets.
+   * - A method, not an inline object:  Solid's server compile (rc.11) drops the `;` between an inline style
+   *   object's COMPUTED keys (`--a:1px--b:2`), and the browser then ignores both.
+   */
+  private boxStyle(): Record<string, string> {
+    return {
+      [OFFSET_PROPERTY]: `${this.attrs.offset ?? 0}px`,
+      [BOTTOM_OFFSET_PROPERTY]: `${this.attrs.bottomOffset ?? 0}px`
+    }
+  }
+
   render(): JSX.Element {
     this.effects()
     return (
@@ -91,10 +103,7 @@ export class UISticky extends UIElement<StickyVocabulary> {
           ref={(element) => (this.box = element)}
           class={this.classes()}
           part={this.part("sticky")}
-          style={{
-            [OFFSET_PROPERTY]: `${this.attrs.offset ?? 0}px`,
-            [BOTTOM_OFFSET_PROPERTY]: `${this.attrs.bottomOffset ?? 0}px`
-          }}
+          style={this.boxStyle()}
         >
           <slot />
         </div>

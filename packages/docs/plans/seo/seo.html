@@ -804,7 +804,7 @@
         <ui-section id="issues" header="6. Issues" sticky collapsible dividing>
           <ui-icon slot="icon" name="bug"></ui-icon>
           <ui-list class="plan-items" data-kind="issue" divided relaxed
-            ><ui-item id="i1" data-status="open"
+            ><ui-item id="i1" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i1">I1</a>
@@ -928,6 +928,21 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T09:41-04:00">2026-10-02 09:41</time></ui-date> P1
                   done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T09:46-04:00">2026-10-02 09:46</time></ui-date> I1 closed:
+                  Section's inline style loses the ; between declarations</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T09:46-04:00">2026-10-02 09:46</time></ui-date> I1 fixed: Solid
+                  SSR compile drops ; between computed style keys; UISection, UISlider, UISticky return style objects
+                  from methods; rule added to solid-2.md</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

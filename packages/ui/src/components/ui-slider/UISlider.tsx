@@ -241,6 +241,15 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
     this.trackLength.set(length)
   }
 
+  /**
+   * The inner box's inline tokens:  the selected range's two ends, as ratios.
+   * - A method, not an inline object:  Solid's server compile (rc.11) drops the `;` between an inline style
+   *   object's COMPUTED keys (`--a:1px--b:2`), and the browser then ignores both.
+   */
+  private innerStyle(): Record<string, string> {
+    return { [FROM]: String(this.ratio(FIRST, true)), [TO]: String(this.ratio(SECOND, true)) }
+  }
+
   render(): JSX.Element {
     return (
       <div class={this.classes()} part={this.part("slider")}>
@@ -249,7 +258,7 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
           class={INNER}
           role={this.isRange() ? GROUP : undefined}
           aria-label={this.isRange() ? this.labels.name() : undefined}
-          style={{ [FROM]: String(this.ratio(FIRST, true)), [TO]: String(this.ratio(SECOND, true)) }}
+          style={this.innerStyle()}
           onPointerDown={this.onPointerDown}
           onPointerMove={this.onPointerMove}
           onPointerUp={this.onPointerUp}
