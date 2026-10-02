@@ -1,5 +1,6 @@
 import chalk from "chalk"
 
+import { SRV } from "$/server"
 import { CLI } from "$/cli"
 
 /** Most icons listed as text:  the rest are counted.  `--json` and `--open` show them all. */
@@ -55,8 +56,8 @@ async function showGallery(session: CLI.CliSession, icons: CLI.IconInfo[], query
   })
   session.out(url)
   session.err(`Showing ${icons.length} icon${icons.length === 1 ? "" : "s"} at ${url} -- Ctrl-C to stop`)
-  CLI.openBrowser(url)
-  await CLI.untilInterrupted(server)
+  SRV.openBrowser(url)
+  await SRV.untilInterrupted(server)
   return CLI.EXIT.OK
 }
 

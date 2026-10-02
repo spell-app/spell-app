@@ -39,7 +39,9 @@
   },
   "pageServer": {
     "routes": [],
-    "watch": ["packages/docs"]
+    "watch": [
+      "packages/docs"
+    ]
   },
   "devDependencies": {
     "@vitest/browser-playwright": "5.0.2",

@@ -1,7 +1,7 @@
 import { spawn, type ChildProcess } from "child_process"
-import { createServer } from "net"
 import { resolve } from "path"
 
+import { SRV } from "$/server"
 import environment from "$/spell/node/environment"
 import { SP } from "$/spell"
 import { CLI } from "$/cli"
@@ -32,7 +32,8 @@ export async function serveCommand(
   const apiPort = options.port ? port + 1 : environment.expressPort
   if (!Number.isInteger(port) || port < 1 || port > 65_534) throw new CLI.CliError(`--port must be a port number`)
   for (const it of [port, apiPort]) {
-    if (!(await isFree(it))) {
+    // `::`, every interface:  vite listens on 0.0.0.0
+    if (!(await SRV.isFree(it, "::"))) {
       throw new CLI.CliError(
         `Port ${it} is in use -- \`spell serve --port <another>\`, or \`yarn stop\` in packages/app`
       )
@@ -68,7 +69,7 @@ export async function serveCommand(
   const url = `http://localhost:${port}${path}`
   session.out(url)
   session.err(`The spell app is at ${url} -- Ctrl-C to stop`)
-  if (!options.headless) CLI.openBrowser(url)
+  if (!options.headless) SRV.openBrowser(url)
 
   // until Ctrl-C -- or a server stops by itself
   const stopped = await Promise.race([
@@ -139,15 +140,6 @@ async function answers(url: string): Promise<void> {
       await new Promise((done) => setTimeout(done, 250))
     }
   }
-}
-
-/** Is `port` free on `localhost`? */
-function isFree(port: number): Promise<boolean> {
-  return new Promise((done) => {
-    const probe = createServer()
-    probe.once("error", () => done(false))
-    probe.listen(port, () => probe.close(() => done(true)))
-  })
 }
 
 /**

@@ -56,7 +56,7 @@
           <ui-steps class="plan-phases" vertical ordered
             ><ui-step completed header="P1 · Library Core" href="#p1" data-status="done" data-phase="1"></ui-step
             ><ui-step completed header="P2 · Page Server" href="#p2" data-status="done" data-phase="2"></ui-step
-            ><ui-step header="P3 · CLI And UI" href="#p3" data-status="todo" data-phase="3"></ui-step
+            ><ui-step selected header="P3 · CLI And UI" href="#p3" data-status="active" data-phase="3"></ui-step
             ><ui-step header="P4 · Docs And Preview" href="#p4" data-status="todo" data-phase="4"></ui-step
             ><ui-step header="P5 · Goals Migration" href="#p5" data-status="todo" data-phase="5"></ui-step
             ><ui-step header="P6 · App Router" href="#p6" data-status="todo" data-phase="6"></ui-step
@@ -350,6 +350,45 @@
                 ></ui-accordion
               >
             </li>
+            <li data-status="open" id="t3">
+              <a class="plan-id" href="#t3">T3</a> <span class="plan-title">Review: :name* holds the whole rest</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    P1. Chose to FIX Express 4's <code>:filePath*</code> (first segment only, rest in
+                    <code>params[0]</code>; nested project files 404 / EISDIR) over copying it. The app's QUIRK contract
+                    tests change with it in P6.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="t4">
+              <a class="plan-id" href="#t4">T4</a> <span class="plan-title">Review: edits require If-Match</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    P2. PUT / PATCH without <code>If-Match</code> answer 428, over allowing blind writes. Every caller
+                    (the edit UI, <code>editPage()</code>) has the ETag from the page it loaded.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="t5">
+              <a class="plan-id" href="#t5">T5</a>
+              <span class="plan-title">Review: live client is a stringified function</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    P2. <code>liveClient()</code> is TypeScript served as <code>(fn)()</code>, over a static
+                    <code>.js</code> asset: the VS Code bundle (cjs) has no <code>import.meta.url</code> to find an
+                    asset by. Needs a <code>__name</code> shim (tsx keepNames).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
           </ol>
         </section>
 
@@ -585,6 +624,22 @@
                 ></ui-accordion
               >
             </li>
+            <li data-status="open" id="d19">
+              <a class="plan-id" href="#d19">D19</a>
+              <span class="plan-title">P3: StaticServer kept as a thin wrapper over SRV.WebServer</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Kept the class (listen/close, plus a new untilInterrupted) so SmokeRunner is barely touched; it owns
+                    only the import-map html hook and the esbuild .ts transform. DockerBrowserServer.freePort now calls
+                    SRV.freePort (same 127.0.0.1, port 0). Side effect: listen() now falls back to any free port if the
+                    wanted one (5199) is taken, instead of failing.
+                  </p></ui-content
+                ></ui-accordion
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label>
+            </li>
           </ol>
         </section>
 
@@ -625,9 +680,9 @@
               </li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="3" class="s3">
+          <section data-status="active" data-phase="3" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p3"><ui-icon name="circle outline" color="grey"></ui-icon> P3 · CLI And UI</h3></ui-sticky
+              ><h3 id="p3"><ui-icon name="circle half stroke" color="orange"></ui-icon> P3 · CLI And UI</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li><b>Goal:</b> cli/serve.ts and ui/tools/StaticServer.ts become thin users of SRV</li>
@@ -803,6 +858,13 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T01:15-04:00">2026-10-02 01:15</time></ui-date> P2
                   done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:15-04:00">2026-10-02 01:15</time></ui-date> P3
+                  active</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

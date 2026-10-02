@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@inkjs/ui": "^2",
+    "@spell-app/server": "workspace:*",
     "@spell-app/spell": "workspace:*",
     "@spell-app/ui": "workspace:*",
     "chalk": "^5.6.0",

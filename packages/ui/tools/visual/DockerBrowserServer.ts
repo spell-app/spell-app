@@ -2,7 +2,8 @@
 
 import { spawnSync, type SpawnSyncReturns } from "node:child_process"
 import { existsSync } from "node:fs"
-import { createServer } from "node:net"
+
+import { SRV } from "$/server"
 
 import { NodePackage } from "../NodePackage.ts"
 import { VisualError } from "./visual.types.ts"
@@ -196,14 +197,7 @@ export class DockerBrowserServer {
 
   /** A free TCP port on the loopback. */
   private static freePort(): Promise<number> {
-    return new Promise((resolve, reject) => {
-      const server = createServer()
-      server.once("error", reject)
-      server.listen(0, "127.0.0.1", () => {
-        const address = server.address()
-        server.close(() => resolve(typeof address === "object" && address ? address.port : 0))
-      })
-    })
+    return SRV.freePort()
   }
 
   /** Wait `ms`. */
