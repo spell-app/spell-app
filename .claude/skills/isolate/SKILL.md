@@ -20,9 +20,12 @@ worktree, its branch and the session share one name.  `/plan-doc` runs these ste
 4. `EnterWorktree` with `name: "<name>"`, or `path: ".claude/worktrees/<name>"` when reusing one.  The repo's
    `WorktreeCreate` hook (`.claude/hooks/worktree.mjs`) makes it on branch `<name>` from local `main`, and keeps this
    session listed in every window.
-5. Show it in the user's window (root `AGENTS.md` "Worktrees"):
-   - `yarn window which`:  the window's second folder is its package, `packages/<pkg>`
-   - `yarn window add .claude/worktrees/<name>/packages/<pkg> --name "<pkg> ⎇ <name>"`
+5. Show it in the user's window (root `AGENTS.md` "Worktrees"), from the worktree's root:
+   - `node scripts/window.mjs`, NOT `yarn window`:  a fresh worktree has no `node_modules/` yet, and `yarn` runs no
+     script before `yarn install`
+   - `node scripts/window.mjs which`:  the window's second folder is its package, `packages/<pkg>`
+   - `node scripts/window.mjs add packages/<pkg> --name "<pkg> ⎇ <name>"`:  the path resolves from the current folder,
+     so `packages/<pkg>` is the worktree's copy (`.claude/worktrees/<name>/...` would nest it twice)
    - no window, or `add` refused (a window not opened from its `.code-workspace`):  say so in one line and go on.
      NEVER `code --add` / `-n` / `-r`:  they restart the Claude panel or target the focused window.
 6. In the worktree, no `node_modules/` at the root:  `yarn install`.
@@ -32,7 +35,8 @@ worktree, its branch and the session share one name.  `/plan-doc` runs these ste
 
 1. Report what's uncommitted and unmerged in the worktree (`git status --short`, `git log --oneline main..HEAD`).
    Commit only as the root's rules allow (stage, then ask).
-2. Take it out of the window:  `yarn window remove .claude/worktrees/<name>/packages/<pkg>` (the path `add` used).
+2. Take it out of the window, from the worktree's root:  `node scripts/window.mjs remove packages/<pkg>` (the path
+   `add` used).
 3. `ExitWorktree` with `action: "keep"`:  the worktree and branch stay for merging.  Never `remove` unasked (and on a
    hook-made worktree `remove` refuses without `discard_changes`).
 4. One line:  how to merge (`git merge <name>` from the main checkout), and that the worktree can then go

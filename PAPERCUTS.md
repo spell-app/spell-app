@@ -900,12 +900,10 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
 - 2026-10-01 · `check-spell.js` failed a plan doc with "116px horizontal scroll at phone width", and nothing in `main`
   looked wider than the screen:  the overflow was TEXT (an unbreakable path in a phase's Files line), which
   element rects don't show.  Bisected by deleting one section at a time in Playwright. · Shorten / `<code>`-split
-  long paths in phase lines;  see `SUSPECTED-BUGS.md` `
+  long paths in phase lines;  see `SUSPECTED-BUGS.md` `## docs`. · docs
 - 2026-10-01 · `spell goals thoughts --all spell` lost `--all`:  commander takes a GLOBAL option (`--all`) wherever
   it appears, even after a subcommand whose arguments are passed through. · The `goals` subcommand reads its own
   arguments raw from `process.argv` (`main.ts`). · cli
-
-## docs`. · docs
 - 2026-10-01 · In a worktree-isolated session, Bash commands with shell functions, `cd ..` chains or a Python
   heredoc are refused ("too complex to verify that it stays inside the worktree"). · Plain `&&` chains of simple
   commands;  write throwaway scripts with the Write tool, then run them. · tooling
@@ -913,6 +911,12 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   `ink-testing-library`:  keys typed while the app is busy arrive as ONE chunk, and Ink only names a key (`key.tab`)
   when it arrives alone. · Split `input` into keys yourself, and queue them -- see `keysIn()` in
   `cli/src/ui/TargetPrompt.tsx`.  Test it with a chunk (`stdin.write("@te\tSol\t\r")`) and in a pty (`expect`). · cli
+- 2026-10-01 · `/isolate`'s `yarn window which` died in a fresh worktree ("Couldn't find the node_modules state
+  file"):  `yarn` runs no script before `yarn install`, and the skill installed only AFTER showing the window. ·
+  `node scripts/window.mjs` directly:  it needs no dependencies.  The skill and root `AGENTS.md` now say so. · tooling
+- 2026-10-01 · `window add .claude/worktrees/<name>/packages/<pkg>` failed with "no folder
+  '.../worktrees/<name>/.claude/worktrees/<name>/...'":  the path resolves from the CURRENT folder, which after
+  `EnterWorktree` is the worktree. · From the worktree's root, pass `packages/<pkg>` (or an absolute path). · tooling
 
 ## docs
 
