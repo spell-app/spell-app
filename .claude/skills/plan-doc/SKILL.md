@@ -59,8 +59,8 @@ When the session already has work under way ("make this a plan doc"), carry it o
    them in the doc while the plan is up.  Nothing else yet (no phases, decisions, caveats ...).
    - Hand-write the Overview's sub-sections (shape:  "4. Fill the doc").
    - `yarn plan-doc add <name> question "title" --details "..."` per open question, explained with examples
-     ("5. Each phase", item 6).  If the user hasn't said how many agents the work may use, one is
-     "How many agents can I use for this?".
+     ("5. Each phase", item 6).  Agents:  up to 5, don't ask -- unless the user said "watch token
+     budget", then one question is "How many agents can I use for this?".
    - `yarn plan-doc check <name>`, then `yarn plan-doc open <name>`.
    - Why here:  plan mode allows editing ONLY the harness plan file.
 3. `EnterPlanMode`.  Draft the plan in the harness plan file, in the plan doc's shape:
