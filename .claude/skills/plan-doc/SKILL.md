@@ -17,6 +17,13 @@ the whole time.  The plan doc is the user's view of the work:  they read it in a
 - Style, in replies, the plan and the doc:  caveman lite.  Drop filler and articles where they don't help, fragments
   OK, a full sentence where a fragment would be ambiguous, identifiers exact.  Lists bulleted, or numbered when
   order or reference matters.
+- Naming a doc in a reply (the plan doc, a durable doc, any `packages/docs` page):  link it on the page server,
+  `[<name>](<url>)`, `<url>` from `yarn server url <ABSOLUTE path>` run in the checkout the doc is in (the
+  worktree has its own server;  a relative path resolves wrongly).
+- Phase complete:  the LAST line of that reply's text says where we are, each phase linked to its heading in the
+  plan doc (`<url>#p1`):
+  - "[P1 · Short Name](<url>#p1) complete.  Next is [P2 · Short Name](<url>#p2)."
+  - after the last phase:  "All done:  [P<N> · Doc Review](<url>#p<N>) complete."
 
 ## 1. Name
 
@@ -97,8 +104,8 @@ When the session already has work under way ("make this a plan doc"), carry it o
    plan doc as you find them".
 4. `yarn plan-doc phase <name> <N> done` (drops that phase's UPDATE markers, reloads the tab), then
    `yarn plan-doc summary <name>`.
-5. Reply:  a short bulleted list (done, issues, caveats, next), THEN AskUserQuestion so the user picks without
-   copying anything.  Options, most useful first:
+5. Reply:  a short bulleted list (done, issues, caveats, next), the "complete.  Next is" line (see the top), THEN
+   AskUserQuestion so the user picks without copying anything.  Options, most useful first:
    - "Start P<N+1> · <Name> (Recommended)"
    - the top open issue(s):  "Fix I<n>:  <title>"
    - a caveat or todo worth acting on now
@@ -121,6 +128,7 @@ When the session already has work under way ("make this a plan doc"), carry it o
   - finish as in `packages/docs/AGENTS.md`, "Finishing a page";  `yarn docs:index`
 - The plan doc stays in `plans/` as the record:  every phase done.  `yarn plan-doc open <name>` one last time.
 - Then leave the worktree:  follow `.claude/skills/isolate/SKILL.md`, "Finish".
+- Last line of the reply:  "All done ..." (see the top).
 
 ## Cheat sheet (`yarn plan-doc ...`, from anywhere in the repo)
 
