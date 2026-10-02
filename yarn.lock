@@ -2792,6 +2792,7 @@ __metadata:
     emojibase-data: "npm:^17.0.0"
     esbuild: "npm:^0.28.2"
     lightningcss: "npm:^1.33.0"
+    linkedom: "npm:^0.18.13"
     lodash-es: "npm:^4.18.1"
     oxfmt: "npm:^0.71.0"
     oxlint: "npm:^1.86.0"

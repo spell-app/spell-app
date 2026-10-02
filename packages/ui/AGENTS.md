@@ -75,6 +75,10 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
       `examples/elements/*.html` -- the same examples as `ui-*` ELEMENT markup (axe in `ui-<name>.test.tsx`,
       `yarn dev`, `yarn test:visual`);  `examples/elements/<example>.visual.ts` -- optional OPEN states for the
       visual tests (`docs/visual-testing.md`)
+  - `src/server/` (`$/ui/server`, `SSR`) -- the STATIC server render:  `StaticRender.page()` / `fragment()` turn
+    `ui-*` markup into plain light-DOM HTML (no shadow DOM, no JS) in node, for SEO.  Stand-in hosts are linkedom
+    elements (`ServerHost`), controllers render with `renderToString`, `StaticFlattener` swaps each host for its
+    root.  Node only:  NEVER imported by a component or `$/ui`.  Plan:  `packages/docs/plans/seo/seo.html`
   - `src/core.ts`, `src/forms.ts` -- the two SHARED lib entries (`@spell-app/ui/core`, `@spell-app/ui/forms`):  `core` is
     the element core + the foundation JS every family needs;  `forms` what only form controls with a VALUE need
     (`FormElement`, `FormHost`, `Validator`, `MenuOptions`).  Component files import shared code ONLY through
@@ -224,6 +228,10 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
 - **One Solid per page:**  every Vite config dedupes `solid-js` / `@solidjs/web` (`SOLID_DEDUPE`);  NEVER
   `import * as` a Solid package in shipped code (it pins every export into bundles and vendored copies).
 - SSR:  anything that reads the DOM in a constructor needs an `isServer` guard (`test/ssr.ssr.test.tsx`).
+  - Static render (`$/ui/server`):  hosts are linkedom elements, so NEVER `instanceof Element` / `Node` /
+    `ShadowRoot` / `HTMLSlotElement` in shared code (node has no such globals):  `nodeType`, `localName`.
+  - An effect whose APPLY writes the host (`internals.role`, ARIA, states) is `this.hostEffect(compute, apply)`:  the
+    server build never runs an apply, so a plain `createEffect` leaves the static output without it.
 
 ## Decorators
 
@@ -240,6 +248,7 @@ As the root's, plus our self-namespaces:
 
 - `UI` ~== the runtime singleton from `$/ui/runtime`
 - `E` ~== `$/ui/elements`
+- `SSR` ~== `$/ui/server` (node only)
 - `UIT` ~== `$/ui/components/components.types` -- the constants, types and `ToggleCommands` several families share:
   `UIT.TRUE`, `UIT.ARIA_LABEL`, `UIT.ToggleCommands.action(...)`, `UIT.SelectValue`.  Exported from `$/ui/core` and `$/ui`,
   never flat;  inside the folder itself, plain named imports

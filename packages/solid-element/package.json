@@ -16,6 +16,11 @@
       "development": "./src/index.ts",
       "default": "./dist/index.js"
     },
+    "./server": {
+      "types": "./src/server.ts",
+      "development": "./src/server.ts",
+      "default": "./dist/server.js"
+    },
     "./vite": {
       "types": "./src/vite.ts",
       "default": "./dist/vite.js"

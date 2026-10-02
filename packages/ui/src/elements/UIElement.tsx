@@ -258,6 +258,18 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
     return {}
   }
 
+  /**
+   * An effect that writes to the HOST (`internals.role`, ARIA, states):  `createEffect(compute, apply)`, except on
+   * a server, where it applies once, now.
+   * - Why:  the server build runs an effect's compute only, never its apply, so host ARIA a static render must
+   *   write out (`$/ui/server`) would never be set.
+   * - MUST be called from a constructor or field initializer, like `createEffect`.
+   */
+  protected hostEffect<T>(compute: () => T, apply: (value: T) => void) {
+    if (isServer) apply(untrack(compute))
+    else createEffect(compute, apply)
+  }
+
   /** True when the element can't be used;  the host swallows clicks then. */
   isDisabled(): boolean {
     return false
@@ -391,10 +403,8 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
    *   re-defines a new version of a class through here, see `HotDefinitions`).
    */
   static defineTag(this: UIElementClass, definition: ElementDefinition): CustomElementConstructor {
-    const { vocabulary, Host, isPart, delegatesFocus, slotAssignment, formAssociated, Fallback } = this.prototype
-    UIElement.definitions.set(definition.tag, definition)
-    PartContext.define(vocabulary, definition.tag, isPart, "ownsPart" in this.prototype)
-    UIElement.registerTexts(vocabulary)
+    const { Host, delegatesFocus, slotAssignment, formAssociated, Fallback } = this.prototype
+    UIElement.register.call(this, definition)
     return customElement(
       definition.tag,
       definition.props,
@@ -410,6 +420,19 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
         fallback: (element, error) => UIElement.renderFallback(element as unknown as UIHost, error, Fallback)
       }
     )
+  }
+
+  /**
+   * Record `definition` page-wide WITHOUT defining an element:  `definitions`, the part registry
+   * (`PartContext.define()`), its English texts.
+   * - `defineTag()` starts with it;  the server render (`$/ui/server`) calls it alone:  node has no
+   *   `customElements`.
+   */
+  static register(this: UIElementClass, definition: ElementDefinition) {
+    const { vocabulary, isPart } = this.prototype
+    UIElement.definitions.set(definition.tag, definition)
+    PartContext.define(vocabulary, definition.tag, isPart, "ownsPart" in this.prototype)
+    UIElement.registerTexts(vocabulary)
   }
 
   ////////////////
@@ -456,11 +479,15 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
    *   (an app's English, a translation) beats them, and two families may share a key (`label`) with different
    *   text.  Code outside the element (`UI.i18n.t("notifications")`, unscoped) gets the FIRST family's.
    * - Loads the runtime if it isn't yet;  idempotent per vocabulary.
+   * - Server:  never loads one (the real runtime needs `CSSStyleSheet`);  registers only into the one the server
+   *   render installed first (`ServerRuntime`).
    */
   private static registerTexts(vocabulary: ComponentVocabulary) {
-    if (isServer || TEXTS.has(vocabulary)) return
+    if (TEXTS.has(vocabulary)) return
+    const loaded = !!(globalThis as RuntimeGlobal)[RUNTIME_KEY]
+    if (isServer && !loaded) return
     TEXTS.add(vocabulary)
-    if ((globalThis as RuntimeGlobal)[RUNTIME_KEY]) register()
+    if (loaded) register()
     else void UI.load().then(register)
 
     /** Hand the vocabulary and its English texts to the runtime. */

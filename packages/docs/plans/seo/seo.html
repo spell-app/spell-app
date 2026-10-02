@@ -28,8 +28,8 @@
           ><header class="spell-page-head">
             <h1>SEO · Static Server Render</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p1"
-                >next: P1 · Server Render Spike</ui-label
+              ><ui-label basic color="grey" icon="circle outline" href="#p2"
+                >next: P2 · Static Stylesheet</ui-label
               ></span
             >
           </header></ui-sticky
@@ -423,20 +423,20 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="0" total="6" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="1" total="6" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
           <ui-section
             id="p1"
             data-phase="1"
-            data-status="todo"
+            data-status="done"
             header="P1 · Server Render Spike"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> render button, segment, card + parts, list + items, section from a real HTML page to
@@ -652,6 +652,65 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="d9" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d9">D9</a>
+                  <span class="plan-title">Fork server module: hooks register, never run</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>@spell-app/solid-element/server</code>'s <code>ServerElement</code>:
+                    <code>attach()</code> gives a linkedom element the fork's bookkeeping, <code>props()</code> converts
+                    attributes as the element would, <code>run()</code> makes it current + <code>ElementContext</code>.
+                    So <code>onConnect()</code> / <code>onFormReset()</code> register instead of throwing: no guards
+                    needed in <code>PartContext</code> or <code>FormElement</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d10" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d10">D10</a>
+                  <span class="plan-title"
+                    >hostEffect(): host-writing effects apply at once on a server</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Solid's server build runs an effect's compute only, never its apply, so host ARIA (<code
+                      >internals.role = "listitem"</code
+                    >) was never set. <code>UIElement.hostEffect(compute, apply)</code> ~== <code>createEffect</code> in
+                    a browser, applies once on a server. Used in <code>UIItem</code>, <code>UICard</code>; the rest in
+                    <a href="#p3">P3</a>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d11" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d11">D11</a>
+                  <span class="plan-title">ServerRuntime, not UIRuntime, in node</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>UIRuntime</code>'s constructor registers the foundation with <code>new CSSStyleSheet()</code>.
+                    <code>ServerRuntime</code> installs the real <code>browser</code>, <code>ids</code>,
+                    <code>i18n</code>, <code>vocabulary</code>, <code>icons</code> and a no-op <code>styles</code>; any
+                    other service throws, naming itself.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d12" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d12">D12</a>
+                  <span class="plan-title">A role=list root holding &lt;li&gt;s becomes &lt;ul&gt;</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>&lt;ui-cards&gt;</code>' root is <code>&lt;div role="list"&gt;</code>; once its cards are
+                    <code>&lt;li&gt;</code>-wrapped (<a href="#d4">D4</a>) the flattener re-tags it
+                    <code>&lt;ul&gt;</code>, attributes kept.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -700,6 +759,19 @@
             ><ui-item id="c6" data-status="open"
               ><a class="plan-id" href="#c6">C6</a>
               <span class="plan-title">ui pins Solid rc.11; spell is on rc.13</span></ui-item
+            ><ui-item id="c7" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c7">C7</a>
+                  <span class="plan-title">part attributes stay in the static output</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Harmless (no shadow root to expose them to), and app CSS can't reach them with
+                    <code>::part()</code> anyway (<a href="#c3">C3</a>). Strip in <a href="#p2">P2</a> if the stylesheet
+                    doesn't need them.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -711,13 +783,68 @@
             ><ui-item id="t1" data-status="open"
               ><a class="plan-id" href="#t1">T1</a>
               <span class="plan-title">Hover tooltips via interestfor once it ships beyond Chrome</span></ui-item
+            ><ui-item id="t2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t2">T2</a>
+                  <span class="plan-title"
+                    >Host-writing effects in the other families -&gt; hostEffect()</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Every <code>createEffect</code> whose apply writes <code>internals</code> / host state: loader,
+                    progress, placeholder, icon, step, feed event, tab ... <a href="#p3">P3</a>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
 
         <ui-section id="issues" header="6. Issues" sticky collapsible dividing>
           <ui-icon slot="icon" name="bug"></ui-icon>
-          <ui-list class="plan-items" data-kind="issue" divided relaxed></ui-list>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed
+            ><ui-item id="i1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i1">I1</a>
+                  <span class="plan-title">Section's inline style loses the ; between declarations</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <a
+                      href="../../../ui/src/components/ui-section/UISection.tsx"
+                      target="src-packages-ui-src-components-ui-section-uisection-tsx"
+                      ><code>UISection.tsx</code></a
+                    >
+                    <code>style={{ [STICK_TOP_PROPERTY]: ..., [DEPTH_PROPERTY]: ... }}</code> server-renders as
+                    <code>--_ui-section-top:0px--_ui-section-depth:0</code>. Computed keys in Solid's SSR compile;
+                    <code>ssrStyle()</code> itself joins with <code>;</code>. Fix in <a href="#p3">P3</a>; logged in
+                    <a href="../../../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
+                      ><code>SUSPECTED-BUGS.md</code></a
+                    >.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i2">I2</a>
+                  <span class="plan-title"
+                    >UIRuntime's docstring says it constructs outside a browser; it doesn't</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    "Constructs outside a browser too (SSR)" in
+                    <a href="../../../ui/src/runtime/UIRuntime.ts" target="src-packages-ui-src-runtime-uiruntime-ts"
+                      ><code>UIRuntime.ts</code></a
+                    >: <code>registerFoundation()</code> calls <code>new CSSStyleSheet()</code>. Worked around by
+                    <code>ServerRuntime</code> (<a href="#d11">D11</a>); fix the comment or make
+                    <code>Styles</code> lazy.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
         </ui-section>
 
         <ui-section id="log" header="7. Log" sticky collapsible dividing>
@@ -779,6 +906,28 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T09:31-04:00">2026-10-02 09:31</time></ui-date> plan approved: 6
                   phases, D1-D8, C1-C6, T1; Overview 1.1-1.6</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T09:32-04:00">2026-10-02 09:32</time></ui-date> P1
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T09:41-04:00">2026-10-02 09:41</time></ui-date> P1 done:
+                  StaticRender renders button, segment, cards + parts, list + items, nested sections; yarn review green
+                  (39 ssr, 4016 browser, 145 fork)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T09:41-04:00">2026-10-02 09:41</time></ui-date> P1
+                  done</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
