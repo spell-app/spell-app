@@ -1,7 +1,7 @@
 ---
 name: plan-doc
-description: Run a planning session against a live plan doc, `packages/docs/plans/<name>/<name>.html`, in its own worktree. Use for `/plan-doc <name>`, or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.
-argument-hint: <name>
+description: Run a planning session against a live plan doc, `packages/docs/plans/<name>/<name>.html`, in its own worktree. Use for `/plan-doc <name> [what to plan]` (name alone:  the plan comes in the next prompt), or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.
+argument-hint: <name> [what to plan]
 ---
 
 # /plan-doc
@@ -20,7 +20,12 @@ the whole time.  The plan doc is the user's view of the work:  they read it in a
 
 ## 1. Name
 
-- `<name>` is `$ARGUMENTS`, lower-kebab-cased (`Docs Index` -> `docs-index`).  No argument:  ask for one.
+- `<name>` is the first word of `$ARGUMENTS` (or a quoted phrase:  `"Docs Index"`), lower-kebab-cased
+  (`Docs Index` -> `docs-index`).  The rest, if any, is the plan:  the prompt that kicks it off.  No argument:  ask
+  for a name.
+- Name and nothing after it (and not mid-session):  the user sends the plan in the NEXT prompt.  Do nothing else
+  yet:  reply one line, "Plan doc `<name>`:  send the plan.", and stop.  That next message is the kickoff prompt
+  (verbatim, for `--prompt-file`);  carry on from "2. Session".
   - "Make this a plan doc" (invoked mid-session):  propose a name from the work so far in AskUserQuestion,
     recommended first;  the user can type another in "Other".
 
@@ -41,7 +46,7 @@ When the session already has work under way ("make this a plan doc"), carry it o
 - Isolate:  read `.claude/skills/isolate/SKILL.md` and follow "Start", steps 3-7 (and step 0 mid-session), with this `<name>` (a skill can't
   invoke another):  the `/rename` reminder, `EnterWorktree`, showing the worktree in VS Code, `yarn install`.
 - New doc:  `yarn plan-doc new <name> --title "<Title>" --prompt-file <file>`, `<file>` holding the user's message
-  that kicked off the plan, verbatim (write it to the scratchpad first:  it may hold quotes and newlines).  It's
+  that kicked off the plan, verbatim (the text after `<name>`, or the next prompt when there was none) (write it to the scratchpad first:  it may hold quotes and newlines).  It's
   quoted at the top of the Overview.  Reusing a doc whose prompt is missing:  `yarn plan-doc prompt <name> --file
   <file>`;  an older doc (before 2026-10-01, or `section.s2` markup):  `yarn plan-doc migrate <name>` first.
 - Then `yarn plan-doc open <name>`:  rendered in VS Code's Simple Browser, beside the editor, in THIS session's
