@@ -917,6 +917,10 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
 - 2026-10-01 · `window add .claude/worktrees/<name>/packages/<pkg>` failed with "no folder
   '.../worktrees/<name>/.claude/worktrees/<name>/...'":  the path resolves from the CURRENT folder, which after
   `EnterWorktree` is the worktree. · From the worktree's root, pass `packages/<pkg>` (or an absolute path). · tooling
+- 2026-10-01 · `/isolate done` couldn't merge into `main`:  a worktree-isolated session refuses `git -C <main
+  checkout>` ("redirects git to the shared checkout"), even a read-only `status`. · Get the branch ready in the
+  worktree (`git log HEAD..main`, `git merge-tree --write-tree` to spot conflicts), `ExitWorktree`, then
+  `git merge --ff-only <name>` from the main checkout.  The skill now does it in that order. · tooling
 
 ## docs
 

@@ -36,30 +36,33 @@ worktree, its branch and the session share one name.  `/plan-doc` runs these ste
 1. Report what's uncommitted and unmerged in the worktree (`git status --short`, `git log --oneline main..HEAD`).
    Commit only as the root's rules allow (stage, then ask).
 2. Unmerged commits (`main..HEAD` not empty):  AskUserQuestion "Merge `<name>` into `main`?", options "Merge now"
-   and "Leave unmerged", listing the commits in the question.  On "Merge now":
-   - the main checkout is the FIRST line of `git worktree list`;  run git there with `git -C <main checkout>`, never
-     `cd` (a worktree session refuses it)
-   - it must be on `main` (`git -C <main checkout> branch --show-current`) with nothing uncommitted
-     (`git -C <main checkout> status --short`):  another session may be working there.  Either fails:  say which,
-     don't merge, and go on
-   - `git -C <main checkout> merge <name>`;  a fast-forward or a clean merge commit is fine
-   - conflicts:  `git -C <main checkout> merge --abort` at once (never leave `main` mid-merge), then step 3
+   and "Leave unmerged", listing the commits in the question.  On "Merge now", get the BRANCH ready to fast-forward
+   `main`, all from the worktree (branches are shared, so `main` is visible here):
+   - NEVER `git -C <main checkout>` or `cd` there:  a worktree session refuses both.  `main` itself moves in step 6.
+   - `git log --oneline HEAD..main` empty (`main` hasn't moved):  ready, go on to step 4
+   - else `git merge-tree --write-tree --name-only main HEAD`, which merges without touching any files:
+     - exit 0:  `git merge main` (a clean merge commit), then step 4
+     - exit 1:  conflicts, the file names follow the tree id;  step 3
    - nothing unmerged:  skip this step and say "nothing to merge"
 3. Merge conflicts:  AskUserQuestion, listing the conflicting files, options:
-   - "Fix conflicts, then merge":  fix them in the WORKTREE, never in the main checkout:
+   - "Fix conflicts, then merge":
      - `git merge main` in the worktree;  resolve each file, keeping BOTH sides' intent
      - run the checks of each package the conflicts touch (`yarn ts`, `yarn test` there), if installed
-     - commit the merge ("Merge main into `<name>`";  the answer counts as the ask), then re-check the main checkout
-       as in step 2 and `git -C <main checkout> merge --ff-only <name>`
+     - commit the merge ("Merge main into `<name>`";  the answer counts as the ask), then step 4
    - "Exit anyway":  go on to step 4, unmerged
    - "Stay isolated":  stop here, still in the worktree
    - Can't fix them (keeping both sides needs a decision only the user can make, or the checks fail):
-     `git merge --abort` in the worktree, say so, list each file and why, then AskUserQuestion "Continue exiting?"
+     `git merge --abort`, say so, list each file and why, then AskUserQuestion "Continue exiting?"
      options "Exit, unmerged" and "Stay isolated"
 4. Take it out of the window, from the worktree's root:  `node scripts/window.mjs remove packages/<pkg>` (the path
    `add` used).
-5. `ExitWorktree` with `action: "keep"`:  the worktree and branch stay.  Never `remove` unasked (and on a hook-made
-   worktree `remove` refuses without `discard_changes`).
-6. One line:
+5. `ExitWorktree` with `action: "keep"`:  the worktree and branch stay, and the session is back in the main checkout.
+   Never `remove` unasked (and on a hook-made worktree `remove` refuses without `discard_changes`).
+6. Merging (only after "Merge now" got the branch ready), now in the main checkout:
+   - it must be on `main` (`git branch --show-current`) with nothing uncommitted (`git status --short`):  another
+     session may be working there.  Either fails:  say which and don't merge.
+   - `git merge --ff-only <name>`.  Refused (`main` moved since step 2):  say so and don't merge;  `/isolate <name>`
+     re-enters the worktree to merge `main` in again.
+7. One line:
    - merged:  the worktree can go (`git worktree remove .claude/worktrees/<name>`, `git branch -d <name>`)
    - not merged:  how to merge later (`git merge <name>` from the main checkout), then the same cleanup
