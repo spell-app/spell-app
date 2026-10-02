@@ -2798,6 +2798,7 @@ __metadata:
     oxlint: "npm:^1.86.0"
     oxlint-tsgolint: "npm:^7.0.2003"
     playwright: "npm:1.63.0"
+    postcss: "npm:^8.5.28"
     solid-js: "npm:2.0.0-rc.11"
     temporal-polyfill: "npm:^1.0.5"
     tsx: "npm:^4.23.15"

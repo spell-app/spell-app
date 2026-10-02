@@ -119,6 +119,9 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
       markup, tokens, an example) is handed back
     - a change that alters rendering MUST update its baselines in the SAME change (`--update`), after reviewing
       every diff in the HTML report;  never update to silence a diff you haven't looked at
+    - `--static` -- instead, compare the STATIC server render (`$/ui/server`) of the families in
+      `tools/visual/StaticFamilies.ts` with the elements;  report only (`tools/results/visual/static-parity.md`),
+      `--os local` by default
   - `yarn dev` -- `tools/demo/`:  every example as class grammar beside elements;  edits hot-reload
   - `yarn icons:pack <folder> --id <id> [--sanitize] [--skip-unsafe | --allow-unsafe]` -- verify a folder of SVGs
     and write its `pack.js` (keeps hand edits);  `--sanitize` strips unsafe attributes first;  files that still fail

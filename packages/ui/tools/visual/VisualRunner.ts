@@ -4,10 +4,11 @@ import { spawn, type ChildProcess } from "node:child_process"
 import { existsSync, readdirSync, rmSync } from "node:fs"
 import { createServer, type ViteDevServer } from "vite"
 
-import type { VisualBrowser, VisualOs } from "./visual.types.ts"
+import { VisualError, type VisualBrowser, type VisualOs } from "./visual.types.ts"
 import { NodePackage } from "../NodePackage.ts"
 import { DockerBrowserServer } from "./DockerBrowserServer.ts"
 import { ParityReport } from "./ParityReport.ts"
+import { StaticPages } from "./StaticPages.ts"
 import { VisualExamples } from "./VisualExamples.ts"
 import { VisualSettings } from "./VisualSettings.ts"
 
@@ -17,6 +18,8 @@ import { VisualSettings } from "./VisualSettings.ts"
  * - `linux` -- a `DockerBrowserServer`;  Playwright connects to it (`playwright.config.ts`, `connectOptions`)
  * - Playwright runs as a child process (`@playwright/test`'s CLI) with `VisualSettings.ENV` set;  its exit code is
  *   the OS's result.
+ * - `--static`:  the same server also serves the static pages (`StaticPages`), and Playwright runs only the static
+ *   comparisons;  the report is `tools/results/visual/static-parity.md`.
  * - After a FULL `--update` run (no `--grep`) the baselines no example makes any more are deleted:  a renamed or
  *   removed example leaves nothing behind.
  * - SIDE EFFECT: Ctrl-C / SIGTERM stop the child, remove the container and close the server before exiting.
@@ -53,7 +56,11 @@ export class VisualRunner {
         console.log(`[visual] report:  yarn playwright show-report ${this.reportFolder(os)}`)
         if (result !== 0) code = result
       }
-      if (this.options.parity) console.log(`[visual] parity report:  ${ParityReport.write(this.options.oses)}`)
+      if (this.options.parity)
+        console.log(`[visual] parity report:  ${ParityReport.write(this.options.oses, "parity")}`)
+      if (this.options.static) {
+        console.log(`[visual] static parity report:  ${ParityReport.write(this.options.oses, "static")}`)
+      }
     } finally {
       await this.cleanup()
     }
@@ -66,10 +73,12 @@ export class VisualRunner {
       ...process.env,
       [VisualSettings.ENV.os]: os,
       [VisualSettings.ENV.baseUrl]: baseUrl,
-      [VisualSettings.ENV.parity]: this.options.parity ? "1" : ""
+      [VisualSettings.ENV.parity]: this.options.parity ? "1" : "",
+      [VisualSettings.ENV.static]: this.options.static ? "1" : ""
     }
     if (this.options.workers) env[VisualSettings.ENV.workers] = this.options.workers
-    if (this.options.parity) ParityReport.clear(os)
+    if (this.options.parity) ParityReport.clear(os, "parity")
+    if (this.options.static) ParityReport.clear(os, "static")
     try {
       if (os === "linux") {
         this.docker = new DockerBrowserServer()
@@ -136,6 +145,8 @@ export class VisualRunner {
    *   a socket anyway.
    * - `optimizeDeps.entries` = the fixture, so the dependency scan covers what the pages import and Vite doesn't
    *   re-optimize (and reload) on a first request.
+   * - `StaticPages` serves `/static/...`;  with `--static` its stylesheet is fetched once up front:  that starts its
+   *   SSR renderer before parallel workers ask, and a render setup that fails stops the run with its error.
    */
   private async startServer(): Promise<string> {
     this.server = await createServer({
@@ -143,13 +154,18 @@ export class VisualRunner {
       configFile: `${VisualSettings.ROOT}vite.config.ts`,
       logLevel: "warn",
       server: { port: VisualRunner.PORT, strictPort: false, hmr: false, ws: false, open: false },
-      optimizeDeps: { entries: [VisualSettings.FIXTURE.slice(1)] }
+      optimizeDeps: { entries: [VisualSettings.FIXTURE.slice(1)] },
+      plugins: [new StaticPages().plugin()]
     })
     await this.server.listen()
     const origin = (this.server.resolvedUrls?.local[0] ?? `http://localhost:${VisualRunner.PORT}/`).replace(/\/$/, "")
     // warm-up:  transform the page and its module graph once, before a browser asks
     await fetch(`${origin}${VisualSettings.FIXTURE}`)
     await this.server.warmupRequest("/tools/visual/fixture.ts")
+    if (this.options.static) {
+      const response = await fetch(`${origin}${VisualSettings.STATIC_PAGES}ui.css`)
+      if (!response.ok) throw new VisualError(`static pages:  ${await response.text()}`)
+    }
     console.log(`[visual] dev server:  ${origin}`)
     return origin
   }
@@ -216,6 +232,8 @@ export type VisualRunnerOptions = {
   grep?: readonly string[]
   /** add the class-grammar vs elements comparison */
   parity: boolean
+  /** run ONLY the static render vs elements comparison (`StaticFamilies`' examples) */
+  static: boolean
   /** Playwright workers, e.g. `4` or `50%` */
   workers?: string
 }

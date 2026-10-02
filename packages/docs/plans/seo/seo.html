@@ -28,9 +28,7 @@
           ><header class="spell-page-head">
             <h1>SEO · Static Server Render</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p2"
-                >next: P2 · Static Stylesheet</ui-label
-              ></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p3">next: P3 · All Families</ui-label></span
             >
           </header></ui-sticky
         >
@@ -423,11 +421,12 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="1" total="6" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="2" total="6" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
           <ui-section
+            collapsed
             id="p1"
             data-phase="1"
             data-status="done"
@@ -453,13 +452,13 @@
           <ui-section
             id="p2"
             data-phase="2"
-            data-status="todo"
+            data-status="done"
             header="P2 · Static Stylesheet"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> one stylesheet that styles the flattened output like the elements: postcss rewrite, @scope
@@ -711,6 +710,161 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="d13" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d13">D13</a>
+                  <span class="plan-title"
+                    >Host states as data-state, author content as data-ui-slotted</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The flattener writes every host state as <code>data-state="a b"</code> (<code>:state(x)</code> =&gt;
+                    <code>[data-state~="x"]</code>; <code>in-*</code> also as classes), and marks each slotted element
+                    <code>data-ui-slotted</code>. The scope limit is
+                    <code>[data-ui-slotted]:not([data-ui]) &gt; *, :scope [data-ui] &gt; *</code>: slotted author
+                    elements and other components' roots are in scope (as <code>::slotted()</code> reached them), their
+                    insides aren't.
+                  </p>
+                </ui-content></ui-accordion
+              ></ui-item
+            ><ui-item id="d14" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d14">D14</a>
+                  <span class="plan-title"
+                    >List item wrappers: display: contents, child combinators step over them</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>&lt;li data-ui-li&gt;</code> is <code>display: contents</code> (the card stays the flex
+                    child), the slotted marker goes on the item's root, and in the sheets of cards / list / feed / steps
+                    / items each <code>A &gt; B</code> also matches <code>A &gt; [data-ui-li] &gt; B</code> (at most 3
+                    per selector: 2^n variants).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d15" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d15">D15</a>
+                  <span class="plan-title">Host-only rules move to @layer ui.reset</span> </ui-title
+                ><ui-content
+                  ><p>
+                    A host rule (<code>:host { --ui-color: initial }</code>) and the root's own rule
+                    (<code>.ui.red</code>, in <code>ui.tokens</code>) were on different elements; now they share one, so
+                    the host rule moves to the first layer and every later layer still wins. Their
+                    <code>display</code> is dropped (the host box's).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d16" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d16">D16</a>
+                  <span class="plan-title"
+                    >Page sheets lose their shadow-only selectors; reset.css is scoped to [data-ui]</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The foundation's <code>:host</code> token defaults never match on a page;
+                    <a href="../../../ui/src/styles/reset.css" target="src-packages-ui-src-styles-reset-css"
+                      ><code>reset.css</code></a
+                    >
+                    only ever applied inside shadow roots, so it's rewritten and scoped to every component.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d17" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d17">D17</a>
+                  <span class="plan-title"
+                    >Static parity renders through a second, SSR-only Vite server in vitest's ssr posture</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>yarn test:visual --static</code> serves
+                    <code>/static/&lt;family&gt;/&lt;example&gt;.html</code> from the visual dev server (<a
+                      href="../../../ui/tools/visual/StaticPages.ts"
+                      target="src-packages-ui-tools-visual-staticpages-ts"
+                      ><code>tools/visual/StaticPages.ts</code></a
+                    >), but renders through its OWN middleware-mode Vite server with <code>mode: "test"</code> +
+                    <code>test.environment: "node"</code>. Why: <code>@solidjs/vite-plugin</code> compiles JSX with
+                    <code>generate: "ssr"</code> only in test mode or with its <code>ssr</code> option; the dev server's
+                    plugin compiles every module <code>dom</code>, even for <code>ssrLoadModule</code>, and Solid's
+                    server build then throws "Client-only API called on the server side". Its <code>ssr</code> option
+                    would change the element pages' compile too (<code>hydratable</code>). Plus
+                    <code>ssr.noExternal: ["solid-js", "@solidjs/web"]</code> (the plugin adds it outside test mode,
+                    vitest inlines them itself): external, node resolves <code>solid-js</code>'s own imports without
+                    <code>development</code> and mixes builds ("Cannot set properties of undefined (setting 'server')").
+                    P5's <code>spell static</code> will hit the same two.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d18" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d18">D18</a>
+                  <span class="plan-title">Selectors anchored with :where(:scope, *)</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Fixes <a href="#i3">I3</a>: inside <code>@scope</code>, a selector without <code>:scope</code> is
+                    read as a descendant of the root, so <code>.ui.card</code> never styled the card.
+                    <code>StaticSelectors.anchor()</code> adds <code>:where(:scope, *)</code> to the subject: no
+                    specificity, still bounded by the scope. (The agent's experiment, measured: card / segment / section
+                    heights then match.)
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d19" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d19">D19</a>
+                  <span class="plan-title"
+                    >Adopted sheets recorded per render: scope roots and layer order</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Fixes <a href="#i4">I4</a>: <code>StaticRender.sheetUsage</code> records each element's
+                    <code>sheets()</code> (a new public <code>UIElement</code> method). A sheet is scoped to every noun
+                    seen adopting it (items take
+                    <a
+                      href="../../../ui/src/components/ui-list/ui-list.css"
+                      target="src-packages-ui-src-components-ui-list-ui-list-css"
+                      ><code>ui-list.css</code></a
+                    >), and sheets are emitted in an order keeping every adoption order
+                    (<code>StaticStylesheet.ordered()</code>, a topological sort): in the item's shadow root the list's
+                    sheet came AFTER the item's, so its layers won (<code>--_ui-item-media: image</code> vs
+                    <code>1</code>).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d20" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d20">D20</a>
+                  <span class="plan-title"
+                    >A &lt;div&gt; list item root becomes the &lt;li&gt;; only &lt;article&gt; / &lt;a&gt; /
+                    &lt;button&gt; roots are wrapped</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Refines <a href="#d4">D4</a> / <a href="#d14">D14</a>: a wrapper hides an item's siblings, so
+                    <code>:first-child</code> and <code>.item + .item</code> broke (every list item got the first item's
+                    padding). Wrapped roots remain (cards, link items): their position pseudo-classes are tested on the
+                    wrapper (<code>StaticSelectors.hostPosition()</code> / <code>wrapperPosition()</code>).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d21" data-status="decided"
+              ><a class="plan-id" href="#d21">D21</a>
+              <span class="plan-title">Pseudo-elements in both spellings</span></ui-item
+            ><ui-item id="d22" data-status="decided"
+              ><a class="plan-id" href="#d22">D22</a>
+              <span class="plan-title"
+                >The page's own &lt;style&gt;s are rewritten too: ::part(), :state(), ui-* tags</span
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -772,6 +926,37 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="c8" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c8">C8</a>
+                  <span class="plan-title"
+                    >The static stylesheet is big: ~210 kB for 4 families, unminified</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Every family's full sheet plus the page foundation; list groups' child-combinator variants add more.
+                    Minify (lightningcss) and include only the families a page uses, in <a href="#p5">P5</a>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c9" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c9">C9</a>
+                  <span class="plan-title"
+                    >display: contents on &lt;li&gt;: list semantics in older Safari</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Older WebKit dropped the list-item role of a <code>display: contents</code> element; current
+                    browsers keep it. The <code>role=list</code> on the <code>&lt;ul&gt;</code> stays either way.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c10" data-status="open"
+              ><a class="plan-id" href="#c10">C10</a>
+              <span class="plan-title">A few pixels of drift left in card groups and clearing segments</span></ui-item
             ></ui-list
           >
         </ui-section>
@@ -842,6 +1027,147 @@
                     <code>Styles</code> lazy.
                   </p></ui-content
                 ></ui-accordion
+              ></ui-item
+            ><ui-item id="i3" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i3">I3</a>
+                  <span class="plan-title"
+                    >Static stylesheet: rules miss every component ROOT (@scope's implicit descendant prefix)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Inside <code>@scope (root) to (limit)</code>, a selector with no <code>:scope</code> /
+                    <code>&amp;</code> is read as <code>:where(:scope) &lt;selector&gt;</code>, so
+                    <code>.ui.card</code>, <code>.ui.cards</code>, <code>.ui.segment</code>, <code>.ui.list</code> never
+                    match the root they are written for (checked in Chromium). Only the
+                    <code>:scope:is(...)</code> rules from <code>:host(...)</code> reach it. Seen in
+                    <code>yarn test:visual --static</code>: a standalone card is 992px wide with no border,
+                    <code>ul.ui.cards</code> keeps its UA 24px padding and stacks its cards, so
+                    <code>ui-card/types</code> is 2971px tall statically vs 1286px as elements.
+                  </p>
+                  <p>
+                    Tried in the browser only (<a
+                      href="../../../ui/tools/results/fix.mts"
+                      target="src-packages-ui-tools-results-fix-mts"
+                      ><code>tools/results/fix.mts</code></a
+                    >, nothing in <a href="../../../ui/src/" target="src-packages-ui-src"><code>src/</code></a
+                    >): appending <code>:where(:scope, *)</code> to every scoped selector (before any
+                    <code>::pseudo</code>) keeps specificity, still excludes elements outside the scope and past the
+                    limit, and brings static heights to the element ones exactly: card/types 1286 = 1286, segment/types
+                    1165 = 1165, section/types 1532 = 1532, button/variations 1131 = 1131. Belongs in
+                    <code>StaticSelectors.rewrite()</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i4" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i4">I4</a>
+                  <span class="plan-title"
+                    >Static stylesheet: list items don't get their owner's sheet (ui-list.css holds the item
+                    rules)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>UIItem</code> adopts its OWNER's sheets in its shadow root (<a
+                      href="../../../ui/src/components/ui-list/ui-list.css"
+                      target="src-packages-ui-src-components-ui-list-ui-list-css"
+                      ><code>ui-list.css</code></a
+                    >
+                    holds the item rules, e.g. the <code>image</code> shorthand's avatar size at
+                    <a
+                      href="../../../ui/src/components/ui-list/ui-list.css"
+                      target="src-packages-ui-src-components-ui-list-ui-list-css"
+                      ><code>ui-list.css:449</code></a
+                    >, <code>:host(:state(in-list)) &gt; .item &gt; img.avatar.image</code>).
+                    <code>StaticStylesheet</code> scopes
+                    <a
+                      href="../../../ui/src/components/ui-list/ui-list.css"
+                      target="src-packages-ui-src-components-ui-list-ui-list-css"
+                      ><code>ui-list.css</code></a
+                    >
+                    to <code>[data-ui="list"]</code> only, and the limit <code>[data-ui-slotted] &gt; *</code> stops at
+                    the slotted item root, so nothing inside an item gets list rules. Result: every
+                    <code>&lt;img class="ui avatar image"&gt;</code> renders at full width;
+                    <code>ui-list/variations</code> is 55575px tall statically vs 2736px as elements (98.7% different),
+                    <code>ui-list/content</code> 3791 vs 978px. Still off after the <a href="#i3">I3</a> fix (20872px).
+                    Needs a way to say "this family's roots also take the owner's sheets", e.g. scope
+                    <a
+                      href="../../../ui/src/components/ui-list/ui-list.css"
+                      target="src-packages-ui-src-components-ui-list-ui-list-css"
+                      ><code>ui-list.css</code></a
+                    >
+                    to <code>[data-ui="list"], [data-ui="item"][data-state~="in-list"]</code>; the same holds for
+                    <code>&lt;ui-items&gt;</code> once it is server-ready (<code>UIItem</code> adopts whichever owner's
+                    sheets).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i5" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i5">I5</a>
+                  <span class="plan-title"
+                    >Every element with an icon threw in node: RootSettings.parentOf used instanceof ShadowRoot</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>IconGlyph</code> peeks its packs through <code>RootSettings.nearest()</code>, whose
+                    <code>parentOf()</code> ended in <code>root instanceof ShadowRoot</code>:
+                    <code>ReferenceError: ShadowRoot is not defined</code> in node once the climb reaches the document.
+                    13 of 35 static pages failed (every button, section and list example with an icon). Fixed in
+                    <a
+                      href="../../../ui/src/elements/RootSettings.ts"
+                      target="src-packages-ui-src-elements-rootsettings-ts"
+                      ><code>packages/ui/src/elements/RootSettings.ts</code></a
+                    >
+                    with the <code>nodeType</code> test <code>OwnerContext.parentOf()</code> already uses. Still
+                    <code>instanceof ShadowRoot</code> / <code>Document</code>, not hit by today's examples:
+                    <code>ui-button/Invoker.ts:19</code> (a button's command target),
+                    <code>ui-menu/UIMenu.tsx:194</code>, <code>runtime/Focus.ts:73</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i6" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i6">I6</a>
+                  <span class="plan-title"
+                    >Stacked / piled segments lose their paper edges and gain 16px gaps</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>ui-segment/groups</code> (3%): the stacked and piled effects are pseudo-elements on the HOST
+                    box, which no longer exists; the groups also get gaps the elements don't have. Per-family rule work,
+                    <a href="#p3">P3</a>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i7" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i7">I7</a>
+                  <span class="plan-title"
+                    >card/groups and segment/variations differ by ~3%: not yet looked at</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    From
+                    <a
+                      href="../../../ui/tools/results/visual/static-parity.md"
+                      target="src-packages-ui-tools-results-visual-static-parity-md"
+                      ><code>tools/results/visual/static-parity.md</code></a
+                    >
+                    after the P2 fixes; every other pair of the P1 families is within 1%, apart from those using icons
+                    (empty until <a href="#p3">P3</a>) and families not yet server-ready.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i8" data-status="open"
+              ><a class="plan-id" href="#i8">I8</a>
+              <span class="plan-title"
+                >Element bug: &lt;ui-segments&gt; groups never get their vertical margins</span
               ></ui-item
             ></ui-list
           >
@@ -943,6 +1269,88 @@
                   ><ui-date><time datetime="2026-10-02T09:46-04:00">2026-10-02 09:46</time></ui-date> I1 fixed: Solid
                   SSR compile drops ; between computed style keys; UISection, UISlider, UISticky return style objects
                   from methods; rule added to solid-2.md</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T10:26-04:00">2026-10-02 10:26</time></ui-date> P2
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T10:46-04:00">2026-10-02 10:46</time></ui-date> I5 closed: Every
+                  element with an icon threw in node: RootSettings.parentOf used instanceof ShadowRoot</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T10:50-04:00">2026-10-02 10:50</time></ui-date> Static parity
+                  tool: yarn test:visual --static (tools/visual/StaticFamilies.ts, StaticPages.ts, StaticFixture.ts);
+                  first run, 35 examples x light/dark x 3 browsers: all differ over 1%, worst list/variations 98.7%,
+                  parts/avatar 97.9%, list/content 88.9%; causes I3, I4, C3, plus no icon glyphs; I5 fixed</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T11:02-04:00">2026-10-02 11:02</time></ui-date> I3 closed: Static
+                  stylesheet: rules miss every component ROOT (@scope's implicit descendant prefix)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T11:02-04:00">2026-10-02 11:02</time></ui-date> I4 closed: Static
+                  stylesheet: list items don't get their owner's sheet (ui-list.css holds the item rules)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T11:02-04:00">2026-10-02 11:02</time></ui-date> static parity
+                  (chromium): 23 of 70 pairs within 1% (was 0); rest: icons, families not yet server-ready, I6,
+                  I7</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T11:03-04:00">2026-10-02 11:03</time></ui-date> P2 done:
+                  StaticStylesheet + yarn test:visual --static; yarn review green (59 ssr, 4016 browser, 145
+                  fork)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T11:03-04:00">2026-10-02 11:03</time></ui-date> P2
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T11:17-04:00">2026-10-02 11:17</time></ui-date> I6 closed: Stacked
+                  / piled segments lose their paper edges and gain 16px gaps</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T11:17-04:00">2026-10-02 11:17</time></ui-date> I7 closed:
+                  card/groups and segment/variations differ by ~3%: not yet looked at</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T11:17-04:00">2026-10-02 11:17</time></ui-date> I6 / I7:
+                  pseudo-elements fixed for every sheet; page &lt;style&gt;s rewritten (::part, :state, tags); segment
+                  groups' margin is an element bug (I8)</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

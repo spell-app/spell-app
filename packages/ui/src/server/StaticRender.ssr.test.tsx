@@ -48,7 +48,7 @@ describe("StaticRender", () => {
   it("renders a segment around its children", () => {
     const html = StaticRender.fragment(`<ui-segment raised><p>Body</p></ui-segment>`)
     expect(sorted(html)).toBe(
-      sorted(`<div class="ui raised segment" part="segment" data-ui="segment"><p>Body</p></div>`)
+      sorted(`<div class="ui raised segment" part="segment" data-ui="segment"><p data-ui-slotted="">Body</p></div>`)
     )
   })
 
@@ -59,24 +59,26 @@ describe("StaticRender", () => {
     )
     expect(sorted(html)).toBe(
       sorted(
-        `<ul class="ui cards" part="group" role="list" data-ui="cards"><li>` +
-          `<article class="ui card in-cards" part="card" data-ui="card">` +
-          `<div class="content in-card" part="content" data-ui="content">` +
-          `<div class="header in-card" part="header" data-ui="header">Spell</div>` +
-          `<div class="meta in-card" part="meta" data-ui="meta">2026</div>` +
-          `<div class="description in-card" part="description" data-ui="description">Words that run.</div>` +
+        `<ul class="ui cards" part="group" role="list" data-ui="cards" data-state="cards"><li data-ui-li="">` +
+          `<article class="ui card in-cards" part="card" data-ui="card" data-state="in-cards" data-ui-slotted="">` +
+          `<div class="content in-card" part="content" data-ui="content" data-state="in-card" data-ui-slotted="">` +
+          `<div class="header in-card" part="header" data-ui="header" data-state="in-card" data-ui-slotted="">` +
+          `Spell</div>` +
+          `<div class="meta in-card" part="meta" data-ui="meta" data-state="in-card" data-ui-slotted="">2026</div>` +
+          `<div class="description in-card" part="description" data-ui="description" data-state="in-card" ` +
+          `data-ui-slotted="">Words that run.</div>` +
           `</div></article></li></ul>`
       )
     )
   })
 
-  it("renders a list:  owned items, each in an <li>", () => {
+  it("renders a list:  owned items, each root an <li>", () => {
     const html = StaticRender.fragment(`<ui-list bulleted><ui-item>One</ui-item><ui-item>Two</ui-item></ui-list>`)
     expect(sorted(html)).toBe(
       sorted(
         `<ul class="ui bulleted list" part="list" role="list" data-ui="list">` +
-          `<li><div class="item in-list" part="item" data-ui="item">One</div></li>` +
-          `<li><div class="item in-list" part="item" data-ui="item">Two</div></li></ul>`
+          `<li class="item in-list" part="item" data-ui="item" data-state="in-list" data-ui-slotted="">One</li>` +
+          `<li class="item in-list" part="item" data-ui="item" data-state="in-list" data-ui-slotted="">Two</li></ul>`
       )
     )
   })
@@ -87,7 +89,7 @@ describe("StaticRender", () => {
     )
     expect(html).toMatch(/<h2 [^>]*>.*Outer.*<\/h2>/)
     expect(html).toMatch(/<h3 [^>]*>.*Inner.*<\/h3>/)
-    expect(html).toMatch(/<p>A<\/p><section [^>]*class="ui section in-section"/)
+    expect(html).toMatch(/<p data-ui-slotted="">A<\/p><section [^>]*class="ui section in-section"/)
     // I1:  an inline style object with computed keys lost its `;` in Solid's server compile
     expect(html).toContain(`style="--_ui-section-top:0px;--_ui-section-depth:1"`)
     expect(html).not.toContain("<ui-")

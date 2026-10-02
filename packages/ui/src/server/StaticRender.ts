@@ -6,10 +6,11 @@ import { parseHTML } from "linkedom"
 
 import { ElementDefinition, UIElement, type UIElementClass, type UIHost } from "$/ui/elements"
 
-import type { StaticFamily, StaticView } from "./server.types"
+import type { StaticFamily, StaticSheetUsage, StaticView } from "./server.types"
 import { ServerHost } from "./ServerHost"
 import { ServerRuntime } from "./ServerRuntime"
 import { StaticFlattener } from "./StaticFlattener"
+import { StaticPageStyles } from "./StaticPageStyles"
 
 /****************
  * ### `StaticRender`
@@ -20,13 +21,17 @@ import { StaticFlattener } from "./StaticFlattener"
  *   2. build EVERY controller, in document order (owners first), before any renders:  items need their list, tab
  *      buttons their panes, a section's heading level its parent
  *   3. render each controller's view to HTML
- *   4. flatten (`StaticFlattener`):  hosts replaced by their roots, slots by their children
+ *   4. flatten (`StaticFlattener`):  hosts replaced by their roots, slots by their children;  then the page's own
+ *      `<style>`s are rewritten for that (`StaticPageStyles`:  `::part()`, `:state()`, `ui-*` tags)
  * - Families are opt-in (`define()`):  a `ui-*` tag without one stays as it is.
  * - NOTE: the page MUST NOT load the elements too:  an upgrade would take the flattened markup for slotted content.
  ****************/
 export class StaticRender {
   /** Families this render knows, by tag. */
   static readonly families = new Map<string, StaticFamily>()
+
+  /** Which sheets rendered elements adopted, and in what order, over every render so far. */
+  static readonly sheetUsage: StaticSheetUsage = { users: new Map(), orders: new Map() }
 
   /**
    * Make `classes` renderable, under their vocabularies' tags.
@@ -68,6 +73,7 @@ export class StaticRender {
       dispose
     }))
     try {
+      for (const { host, family } of hosts) StaticRender.recordSheets(host, family)
       const views: StaticView[] = hosts.map(({ host, family }) => ({
         element: host as unknown as Element,
         family,
@@ -81,9 +87,31 @@ export class StaticRender {
         )
       }))
       StaticFlattener.flatten(document, views)
+      StaticRender.rewriteStyles(document)
     } finally {
       dispose()
     }
+  }
+
+  /** The page's own `<style>`s, rewritten for the flattened output (`StaticPageStyles`). */
+  private static rewriteStyles(document: Document) {
+    const tags = new Map([...StaticRender.families].map(([tag, { definition }]) => [tag, definition.vocabulary.noun]))
+    for (const style of document.querySelectorAll("style")) {
+      style.textContent = StaticPageStyles.rewrite(style.textContent ?? "", tags)
+    }
+  }
+
+  /** Add `host`'s adopted sheets to `sheetUsage`:  under its family's noun, and their order. */
+  private static recordSheets(host: UIHost, family: StaticFamily) {
+    const { users, orders } = StaticRender.sheetUsage
+    const noun = family.definition.vocabulary.noun
+    const names = host.controller?.sheets() ?? []
+    for (const name of names) {
+      let nouns = users.get(name)
+      if (!nouns) users.set(name, (nouns = new Set()))
+      nouns.add(noun)
+    }
+    if (names.length > 1) orders.set(names.join(" "), names)
   }
 
   /** Stand-in host + controller for one element;  MUST run under the render's root. */

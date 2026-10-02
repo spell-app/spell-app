@@ -878,6 +878,13 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   c0f54984`, then `git merge main` in the worktree.  The hook (`.claude/hooks/worktree.mjs`) branches from local
   `main`, once a session starts with it registered. · tooling
 - 2026-10-02 · `yarn site:check` (`astro check`) crashes before checking anything:  `Cannot read properties of undefined (reading 'useCaseSensitiveFileNames')` in `@volar/kit/lib/createChecker.js`, with or without our changes (the repo's TS 7 vs the language server) · not fixed;  `yarn site:build` is the working gate · ui
+- 2026-10-02 · `server.ssrLoadModule()` of `$/ui/server` from the repo's dev server threw "Client-only API called on
+  the server side" (`ContentPart.tsx`):  `@solidjs/vite-plugin` compiles JSX `dom` even for SSR unless the config is
+  in test mode (`mode: "test"`) or the plugin has `ssr: true`.  In test mode it then skips its own
+  `ssr.noExternal: ["solid-js", "@solidjs/web"]` (vitest inlines them), so node resolved `solid-js`' imports without
+  `development` and mixed dev / prod builds:  "Cannot set properties of undefined (setting 'server')". · A second,
+  middleware-mode Vite server with `mode: "test"`, `test: { environment: "node" }` and that `noExternal`
+  (`tools/visual/StaticPages.ts`, `yarn test:visual --static`) · ui
 
 ## cli
 
