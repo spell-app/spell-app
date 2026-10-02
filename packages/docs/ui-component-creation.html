@@ -36,28 +36,43 @@
         <section class="s2">
           <ui-sticky class="spell-h2"><h2 id="1-summary">1. Summary</h2></ui-sticky>
           <ul>
-            <li>All 53 Fomantic families are built; every check passes in the monorepo again.</li>
+            <li>
+              54 families built: Fomantic's 53 plus <code>&lt;ui-root&gt;</code>. Every check passes in the monorepo,
+              and every test in chromium, firefox and webkit.
+            </li>
             <li>
               The <a href="../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"><code>SUSPECTED-BUGS.md</code></a> ui
               list was swept: each entry fixed (with a failing-first test), disproven, or kept with a reason.
             </li>
-            <li>Owen's eight open design calls (2026-09-30) are settled and built.</li>
+            <li>
+              Owen's design calls are settled and built: the eight from 2026-09-30, then emoji names (Q9), table
+              stacking and the two WebKit fixes (Q10-Q12, <a href="#5-waiting-on-owen">5</a>), and
+              <code>&lt;ui-root&gt;</code>
+              (Q13-Q21).
+            </li>
+            <li>
+              Reorganized: folders named by tag (<code>ui-button/</code>), topics and other names in every vocabulary,
+              the docs site's sidebar a component browser.
+            </li>
             <li>
               New: <code>&lt;ui-root&gt;</code>, one element around a page that loads the components inside it on demand
               (<a href="#7-ui-root">7</a>); it replaces <code>&lt;ui-icon-set&gt;</code> /
-              <code>&lt;ui-emoji-set&gt;</code>.
+              <code>&lt;ui-emoji-set&gt;</code>, and the docs site runs on it.
             </li>
-            <li>Phase D is done except Linux visual baselines and 4 WebKit test failures that need Owen's call.</li>
+            <li>Phase D is done except Linux visual baselines.</li>
             <li>
-              Numbers: browser tests 3,633 (chromium); 10,890 pass across chromium / firefox / webkit; 561 visual tests
-              (macOS, 3 browsers, light + dark); 61 docs-site pages; 2.5 MB package, 120 export targets.
+              Numbers: browser tests 3,920 (chromium); 11,756 pass, 0 fail across chromium / firefox / webkit; 570
+              visual tests (macOS, 3 browsers, light + dark); 62 docs-site pages.
             </li>
           </ul>
           <ui-message state="positive" header="Next">
             <ul>
+              <li>Review the branch's commits, then merge. Nothing waits on Owen.</li>
               <li>
-                Review the branch's commits, answer the three open questions in <a href="#5-waiting-on-owen">5</a>, then
-                merge.
+                Later: Linux visual baselines once Docker Desktop works; the open items in the plan doc's
+                <a href="plans/ui-component-creation/ui-component-creation.html#o4" target="ui-component-creation"
+                  >3.4</a
+                >.
               </li>
             </ul>
           </ui-message>
@@ -65,7 +80,10 @@
 
         <section class="s2">
           <ui-sticky class="spell-h2"><h2 id="2-what-changed">2. What changed</h2></ui-sticky>
-          <p>One commit per phase on the branch (P3 and P4 share one: their docs edits interleave).</p>
+          <p>
+            One commit per phase on the branch, or per step of a big one (P3 and P4 share one: their docs edits
+            interleave). Phase ids match the plan doc.
+          </p>
 
           <section class="s3">
             <ui-sticky class="spell-h3"><h3 id="re-establish">Re-establish (52ba1e85)</h3></ui-sticky>
@@ -134,7 +152,96 @@
 
           <section class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="root-element">Root element (c269f9d7, 2429ba24, bb087c1c)</h3></ui-sticky
+              ><h3 id="docs-and-tooling">Docs and plan-doc tooling (1fde9d75, 123b8562, da35fa2d)</h3></ui-sticky
+            >
+            <ul>
+              <li>P6: this page; the plan doc closed out.</li>
+              <li>P7: the plan doc moved to the new template (phases as steps, the log as a feed).</li>
+              <li>
+                P9: this page explains with examples: the emoji name table, "stacking" with a live table, the WebKit
+                questions with code, invoker commands live.
+              </li>
+              <li>
+                P11: <code>yarn plan-doc open</code> reuses one background tab per doc;
+                <a href="scripts/doc-links.py" target="src-packages-docs-scripts-doc-links-py"
+                  ><code>doc-links.py</code></a
+                >
+                no longer links <code>/</code> or paths outside the repo; the plan-doc skill explains a question with
+                plain words, real code and options side by side.
+              </li>
+            </ul>
+          </section>
+
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="invokers">Invoker commands (123b8562)</h3></ui-sticky>
+            <ul>
+              <li>
+                P8: <code>&lt;ui-popup&gt;</code> and <code>&lt;ui-dropdown&gt;</code> answer <code>--show</code> /
+                <code>--close</code> / <code>--toggle</code>, <code>&lt;ui-toast&gt;</code> <code>--close</code>; one
+                shared first step (<code>ToggleCommands.action()</code>).
+              </li>
+              <li>
+                A press on an element's own invoker button no longer counts as "outside" (a real click on
+                <code>--toggle</code> closed an open dropdown, then reopened it).
+              </li>
+              <li>What they are: <a href="#6-invoker-commands">6</a>.</li>
+            </ul>
+          </section>
+
+          <section class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="emoji-names">Emoji names (da35fa2d, 0803b49c, 6c9a37f6, 8fcc3b96)</h3></ui-sticky
+            >
+            <ul>
+              <li>P10: CLDR's picture wins the 19 names that clash with Fomantic's (<a href="#q-emoji">Q9</a>).</li>
+              <li>
+                Names work with their words joined any way: <code>thumbs up</code>, <code>thumbs-up</code>,
+                <code>thumbsUp</code>, <code>thumbsup</code>.
+              </li>
+              <li>
+                P12: two name sets, never merged: <code>cldr</code> (3,979 names, default) and <code>fomantic</code>
+                (3,808, its own meanings), switched like icon packs.
+              </li>
+              <li>
+                The docs bundle loads emoji names lazily, one chunk per letter, both sets (the bundle went from 2.36 MB
+                to 1.75 MB then).
+              </li>
+            </ul>
+          </section>
+
+          <section class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="folders-and-topics">
+                Folders, topics, component browser (31022840, 3a2a44b7, 9c171715, a4e8e3e2)
+              </h3></ui-sticky
+            >
+            <ul>
+              <li>
+                P13: <code>src/components/&lt;family&gt;/</code> became <code>ui-&lt;family&gt;/</code>, files
+                <code>ui-&lt;family&gt;.*</code>, package entries <code>@spell-app/ui/ui-&lt;family&gt;</code>; one
+                vocabulary file per tag; loose constants in <code>ui-&lt;family&gt;.types.ts</code>, shared ones as the
+                <code>UIT</code> namespace. Zero visual diffs.
+              </li>
+              <li>
+                P14: every tag's vocabulary names its <code>topics</code> and <code>aka</code> (other libraries' names);
+                <code>ComponentDefinitions</code> rolls them up; <code>UIButton.describe()</code> returns the live
+                vocabulary.
+              </li>
+              <li>
+                P15: the docs site's sidebar is a component browser: search by name, tag, topic or other name; A-Z and
+                Topics views; starred favorites.
+              </li>
+              <li>
+                Fix (6f340e27): vocabularies import shared constants as pure data, never through
+                <code>$/ui/core</code>; <code>astro dev</code> crashed on every page.
+              </li>
+              <li>P16: <code>&lt;ui-root&gt;</code> designed, with its questions (Q13-Q21).</li>
+            </ul>
+          </section>
+
+          <section class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="root-element">Root element (c269f9d7, 2429ba24, bb087c1c, 77620d7d)</h3></ui-sticky
             >
             <ul>
               <li>
@@ -146,7 +253,33 @@
                 <code>&lt;ui-emoji-set&gt;</code> removed, their pages migrated.
               </li>
               <li>Skeletons (P19): every tag's vocabulary describes its placeholder, or says <code>null</code>.</li>
+              <li>
+                P20: the docs site runs on <code>&lt;ui-root&gt;</code> (its own loader is gone); a
+                <code>ui-root</code> docs page.
+              </li>
+              <li>
+                Fix (P20): dark themes did nothing in
+                <a href="../ui/dist/" target="src-packages-ui-dist"><code>dist/</code></a> and the docs bundle: the
+                build's CSS minify lowered <code>light-dark()</code>. Now <code>build.cssTarget</code> follows our
+                browser targets, and <code>yarn measure</code> checks it.
+              </li>
               <li>What it does and how: <a href="#7-ui-root">7</a>.</li>
+            </ul>
+          </section>
+
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="table-and-webkit">Table and WebKit fixes (8db818cd)</h3></ui-sticky>
+            <ul>
+              <li>
+                P21 built Owen's answers to Q10-Q12 (<a href="#5-waiting-on-owen">5</a>):
+                <code>&lt;ui-table stack-by="container"&gt;</code>; breadcrumb and feed decorations off pseudo-element
+                style queries; <code>&lt;ui-form&gt;</code> a real box.
+              </li>
+              <li>
+                A boxed <code>&lt;ui-root&gt;</code> scrolls in a named region (Firefox flagged an unreachable
+                scroller).
+              </li>
+              <li><code>yarn test:all</code>: no WebKit failures left.</li>
             </ul>
           </section>
         </section>
@@ -171,7 +304,31 @@
               <b>Test files run one at a time under <code>UI_TEST_ALL</code>:</b> a browser runs them in iframes of one
               page with one focus; Firefox and WebKit hand it to the last iframe that asked.
             </li>
-            <li><b>Budget 8 kB per family</b> (Owen): 7.3 kB average is a full port of Fomantic's variations.</li>
+            <li>
+              <b>Budget 8 kB per family</b> (Owen): 7.4 kB average (54 families) is a full port of Fomantic's
+              variations.
+            </li>
+            <li>
+              <b>Folders named by tag</b> (Owen): <code>ui-button/</code> is the tag you type, the package entry and the
+              docs URL, all one name.
+            </li>
+            <li>
+              <b>The site reads a build-time tag index:</b> importing <code>ComponentDefinitions</code> in the browser
+              would bundle all 93 vocabularies into every page.
+            </li>
+            <li>
+              <b>Table <code>stack-by</code> is an attribute</b> (Owen): discoverable, validated by the vocabulary,
+              translatable. The token stays, for a whole region; the attribute wins.
+            </li>
+            <li>
+              <b>A class for <code>stack-by</code>, not a host state:</b> a state rule left WebKit with stale media
+              queries on a LATER table.
+            </li>
+            <li>
+              <b>No style queries on pseudo-elements; <code>&lt;ui-form&gt;</code> a box:</b> WebKit bugs, fixed by
+              markup every engine handles the same way rather than a per-element nudge (<a href="#q-webkit-nudge">Q11</a
+              >, <a href="#q-form-stacking">Q12</a>).
+            </li>
           </ul>
         </section>
 
@@ -198,7 +355,14 @@
               >, "Emoji names".
             </li>
             <li>
-              The rest:
+              A <code>.ui-list-plain</code> list inside <code>.ui-prose</code> keeps the prose indent (wrap it in
+              <code>ui-not-prose</code>).
+            </li>
+            <li><code>&lt;ui-root&gt;</code>'s own limits: <a href="#root-limits">7</a>.</li>
+            <li>
+              The rest, by area: the plan doc's
+              <a href="plans/ui-component-creation/ui-component-creation.html#o4" target="ui-component-creation">3.4</a
+              >;
               <a href="../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"><code>SUSPECTED-BUGS.md</code></a> (<code
                 >## ui</code
               >) and
@@ -210,8 +374,11 @@
         </section>
 
         <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="5-waiting-on-owen">5. Waiting on Owen</h2></ui-sticky>
-          <p>Each call with what it means and an example. Item ids match the plan doc; Q9 is decided.</p>
+          <ui-sticky class="spell-h2"><h2 id="5-waiting-on-owen">5. Owen's calls</h2></ui-sticky>
+          <p>
+            The calls asked after the first eight, each with what it means, an example, and what was built. Item ids
+            match the plan doc. All decided; nothing waits on Owen.
+          </p>
 
           <section class="s3">
             <ui-sticky class="spell-h3"
@@ -381,7 +548,7 @@
 
           <section class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="q-table-stacking">Q10 · Table stacking: token or attribute?</h3></ui-sticky
+              ><h3 id="q-table-stacking">Q10 · Table stacking: an attribute (built)</h3></ui-sticky
             >
             <ul>
               <li>
@@ -400,34 +567,45 @@
               </li>
               <li>
                 Kept as an opt-in: a table can stack by its own width instead, for a table in a narrow sidebar on a wide
-                screen. The question is only how to spell that opt-in.
+                screen. The question was how to spell that opt-in.
+              </li>
+              <li>
+                <b>Decided (Owen, D48) and built (P21):</b> both. The attribute for one table; the token for a whole
+                region, from a stylesheet; the attribute wins.
               </li>
             </ul>
             <ui-grid class="spell-pros-cons" columns="2" stackable>
               <ui-column>
                 <ui-segment>
-                  <ui-label attached="top">Token (built)</ui-label>
-                  <p><code>&lt;ui-table style="--ui-table-stack-by: container"&gt;</code></p>
+                  <ui-label attached="top" color="green">Attribute (chosen)</ui-label>
+                  <p><code>&lt;ui-table stack-by="container"&gt;</code></p>
                   <p>
-                    Settable from a stylesheet, for many tables at once; but invisible in the attribute list and the
-                    docs' API table.
+                    Discoverable, validated by the vocabulary, translatable. <code>container</code> or
+                    <code>viewport</code> (the default).
                   </p>
                 </ui-segment>
               </ui-column>
               <ui-column>
                 <ui-segment>
-                  <ui-label attached="top">Attribute</ui-label>
-                  <p><code>&lt;ui-table stack-by="container"&gt;</code></p>
-                  <p>Discoverable, validated by the vocabulary, translatable; but one table at a time.</p>
+                  <ui-label attached="top">Token (kept, underneath)</ui-label>
+                  <p><code>--ui-table-stack-by: container</code></p>
+                  <p>Set on a wrapper or the page: every table inside follows, unless it has the attribute.</p>
                 </ui-segment>
               </ui-column>
             </ui-grid>
+            <ul>
+              <li>
+                How: the attribute adds a private class to the inner table (<code>stack-by-container</code>), whose
+                rules undo the token's way and stack the attribute's. Not a host state: in WebKit, a state rule left a
+                LATER table's media queries stale.
+              </li>
+            </ul>
             <p>
-              Live: drag the box's corner narrower than 768px. This table opts in with the token, so it stacks by the
-              box, whatever the window.
+              Live: drag the box's corner narrower than 768px. This table has <code>stack-by="container"</code>, so it
+              stacks by the box, whatever the window.
             </p>
             <div style="resize: horizontal; overflow: auto; width: 100%; max-width: 100%; min-width: 280px">
-              <ui-table celled style="--ui-table-stack-by: container">
+              <ui-table celled stack-by="container">
                 <table>
                   <thead>
                     <tr>
@@ -455,33 +633,33 @@
 
           <section class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="q-webkit-nudge">Q11 · WebKit: decorations that don't redraw ("nudge")</h3></ui-sticky
+              ><h3 id="q-webkit-nudge">Q11 · WebKit: decorations that didn't redraw (fixed)</h3></ui-sticky
             >
             <ul>
               <li>
-                Some decorations are drawn by a <code>::before</code> rule that only applies while a setting (a CSS
-                custom property) has a certain value: a <code>@container style(...)</code> rule.
+                Some decorations were drawn by a <code>::before</code> rule that only applied while a setting (a CSS
+                custom property) had a certain value: a <code>@container style(...)</code> rule.
               </li>
               <li>
                 When the setting changes AFTER the first paint, Chromium and Firefox redraw the decoration; WebKit
-                (Safari) updates the element but NOT its <code>::before</code>, so the decoration stays as it was.
+                (Safari) updates the element but NOT its <code>::before</code>, so the decoration stayed as it was.
               </li>
               <li>
                 Two places hit it:
                 <ul>
                   <li>
                     <b>breadcrumb</b> <code>divider-icon="chevron right"</code>: the setting flips to "icon" only once
-                    the SVG has loaded, which is always after first paint. In Safari the divider stays EMPTY.
+                    the SVG has loaded, which is always after first paint. In Safari the divider stayed EMPTY.
                   </li>
                   <li>
                     <b>feed</b> <code>ordered</code>: numbers in circles beside each event. Turning
-                    <code>ordered</code> (or <code>basic</code>) on after first paint leaves Safari without numbers.
+                    <code>ordered</code> (or <code>basic</code>) on after first paint left Safari without numbers.
                   </li>
                 </ul>
               </li>
             </ul>
             <ui-accordion class="spell-code" styled open="0">
-              <ui-title>ui-breadcrumb.css · the rule WebKit doesn't re-check</ui-title>
+              <ui-title>ui-breadcrumb.css · the rule WebKit didn't re-check (before P21)</ui-title>
               <ui-content>
                 <pre><code class="language-css">@container style(--_ui-breadcrumb-divider-layout: icon) {
   :host &gt; .divider:empty::before {
@@ -494,7 +672,7 @@
             <ui-grid class="spell-pros-cons" columns="2" stackable>
               <ui-column>
                 <ui-segment>
-                  <ui-label attached="top">A: nudge</ui-label>
+                  <ui-label attached="top">A: nudge (not taken)</ui-label>
                   <p>
                     Keep the rule; after changing the setting, write any inline style on the element, which makes WebKit
                     recompute everything about it, <code>::before</code> included.
@@ -509,7 +687,7 @@ divider.style.setProperty(
               </ui-column>
               <ui-column>
                 <ui-segment>
-                  <ui-label attached="top">B: no style query (recommended)</ui-label>
+                  <ui-label attached="top" color="green">B: no style query on the ::before (chosen)</ui-label>
                   <p>
                     The element marks itself instead, and the rule matches the mark: a class or custom state, which
                     every browser re-checks.
@@ -527,10 +705,43 @@ divider.style.setProperty(
                 </ui-segment>
               </ui-column>
             </ui-grid>
+            <ul>
+              <li>
+                <b>Decided (Owen, D49) and built (P21):</b> B, in a simpler form than sketched. The style query stays,
+                but it matches only the REAL divider element, which sets private values; the <code>::before</code> reads
+                them through <code>var()</code>, which every engine re-checks.
+              </li>
+              <li>Feed's connecting line, numbers and basic circles work the same way. No WebKit failures left.</li>
+            </ul>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>ui-breadcrumb.css · now (excerpt) · 18 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-css">:host &gt; .divider:empty::before {
+  content: var(--_ui-breadcrumb-divider-content, var(--ui-breadcrumb-divider, "/"));
+  display: inline-block;
+  width: var(--_ui-breadcrumb-divider-box, auto);
+  height: var(--_ui-breadcrumb-divider-box, auto);
+  background-color: var(--_ui-breadcrumb-divider-fill, transparent);
+  vertical-align: var(--_ui-breadcrumb-divider-align, baseline);
+  mask: var(--_ui-breadcrumb-divider-icon, none) center / contain no-repeat;
+}
+@container style(--_ui-breadcrumb-divider-layout: icon) {
+  :host &gt; .divider:empty {
+    --_ui-breadcrumb-divider-content: "";
+    --_ui-breadcrumb-divider-box: 1em;
+    --_ui-breadcrumb-divider-fill: currentColor;
+    --_ui-breadcrumb-divider-align: -0.125em;
+    --_ui-breadcrumb-divider-icon: var(--ui-breadcrumb-divider-icon);
+  }
+}</code></pre>
+              </ui-content>
+            </ui-accordion>
           </section>
 
           <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="q-form-stacking">Q12 · WebKit: form rows don't stack</h3></ui-sticky>
+            <ui-sticky class="spell-h3"
+              ><h3 id="q-form-stacking">Q12 · WebKit: form rows didn't stack (fixed)</h3></ui-sticky
+            >
             <ul>
               <li>A form row puts fields side by side; on a narrow form they should stack, one per line:</li>
             </ul>
@@ -553,24 +764,24 @@ divider.style.setProperty(
             </ui-accordion>
             <ul>
               <li>
-                We stack by the FORM's width: a rule <code>@container ui-form (width &lt; 768px)</code>, where the
-                container is a <code>&lt;div class="ui form"&gt;</code> INSIDE <code>&lt;ui-form&gt;</code>'s shadow
-                root; the <code>&lt;ui-fields&gt;</code> above sits in the page and is shown through a slot.
+                We stack by the FORM's width. Before P21: a rule <code>@container ui-form (width &lt; 768px)</code>,
+                where the container was a <code>&lt;div class="ui form"&gt;</code> INSIDE <code>&lt;ui-form&gt;</code>'s
+                shadow root; the <code>&lt;ui-fields&gt;</code> above sits in the page and is shown through a slot.
               </li>
               <li>
                 Chromium looks for the container along the path the content is DRAWN in (through the slot) and finds the
                 div; WebKit looks along the page's own element tree, where the div isn't an ancestor, finds no
-                container, and never stacks. In Safari the two fields stay squeezed side by side on a phone.
+                container, and never stacked. In Safari the two fields stayed squeezed side by side on a phone.
               </li>
               <li>
-                The <code>&lt;ui-form&gt;</code> element itself can't be the container: it is
-                <code>display: contents</code> (it draws no box of its own).
+                The <code>&lt;ui-form&gt;</code> element itself couldn't be the container: it was
+                <code>display: contents</code> (it drew no box of its own).
               </li>
             </ul>
             <ui-grid class="spell-pros-cons" columns="2" stackable>
               <ui-column>
                 <ui-segment>
-                  <ui-label attached="top">A: give &lt;ui-form&gt; a box</ui-label>
+                  <ui-label attached="top" color="green">A: give &lt;ui-form&gt; a box (chosen)</ui-label>
                   <p>
                     The host becomes <code>display: block</code> and the container; works everywhere, keeps "by the
                     form's width". Risk: every form now has an extra box (margins, flex / grid parents).
@@ -579,7 +790,7 @@ divider.style.setProperty(
               </ui-column>
               <ui-column>
                 <ui-segment>
-                  <ui-label attached="top">B: by window, like tables (recommended)</ui-label>
+                  <ui-label attached="top">B: by window, like tables (not taken)</ui-label>
                   <p>
                     Fomantic stacks form rows by the WINDOW width; do the same, with the same opt-in as tables (<a
                       href="#q-table-stacking"
@@ -589,6 +800,33 @@ divider.style.setProperty(
                 </ui-segment>
               </ui-column>
             </ui-grid>
+            <ul>
+              <li>
+                <b>Decided (Owen, D50) and built (P21):</b> A. The form's host (<code>:state(root)</code>; its
+                <code>&lt;ui-fields&gt;</code> / <code>&lt;ui-field&gt;</code> share the sheet but stay boxless) is a
+                block and an UNNAMED size container: WebKit also keeps container names to their own shadow tree.
+              </li>
+              <li>Rows stack by the form's width in every engine; the WebKit test passes.</li>
+            </ul>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>ui-form.css · now (excerpt) · 14 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-css">:host(:state(root)) {
+  display: block;
+  container-type: inline-size;
+}
+
+/* UNNAMED:  WebKit can't see a name from another shadow tree */
+@container (width &lt; 768px) {
+  @container style(not (--_ui-form-unstackable: 1)) {
+    .fields:not(.unstackable) {
+      --_ui-fields-child-width: 100%;
+      /* ... */
+    }
+  }
+}</code></pre>
+              </ui-content>
+            </ui-accordion>
           </section>
 
           <section class="s3">
@@ -597,6 +835,12 @@ divider.style.setProperty(
               <li>
                 Linux visual baselines (after a Docker update); the fork's upstream PRs; the CLI
                 <code>icons:pack</code> command (a cli session).
+              </li>
+              <li>
+                Everything else open, by area: the plan doc's
+                <a href="plans/ui-component-creation/ui-component-creation.html#o4" target="ui-component-creation"
+                  >3.4</a
+                >.
               </li>
             </ul>
           </section>
@@ -682,7 +926,7 @@ divider.style.setProperty(
               a full-page app shell.
             </li>
             <li>
-              Load just the root: <code>import "@spell-app/ui/ui-root"</code> (7.7 kB min + gzip of its own). No
+              Load just the root: <code>import "@spell-app/ui/ui-root"</code> (8.1 kB min + gzip of its own). No
               Fomantic counterpart.
             </li>
             <li>
@@ -697,10 +941,10 @@ divider.style.setProperty(
             </li>
           </ul>
           <p>
-            Live: a dark, small root, 9em tall, that scrolls its own content (this page's components are loaded
-            already).
+            Live: a dark, small root, 9em tall, that scrolls its own content in a region named "Report" (this page's
+            components are loaded already). Tab to it, then scroll with the arrow keys.
           </p>
-          <ui-root theme="dark" size="small" height="9em">
+          <ui-root theme="dark" size="small" height="9em" aria-label="Report">
             <ui-segment>
               <ui-header>Report</ui-header>
               <p>Small: everything inside follows. Scroll for more.</p>
@@ -778,11 +1022,21 @@ divider.style.setProperty(
                   </tr>
                   <tr>
                     <td><code>width</code>, <code>height</code></td>
-                    <td>a CSS length or <code>window</code>: the root becomes a box that scrolls its own content</td>
+                    <td>
+                      a CSS length or <code>window</code>: the root becomes a box that scrolls its own content (see
+                      <code>aria-label</code>)
+                    </td>
                   </tr>
                   <tr>
                     <td><code>fixed</code></td>
-                    <td>fills the viewport and stays there: a full-page app shell</td>
+                    <td>fills the viewport and stays there: a full-page app shell (scrolls the same way)</td>
+                  </tr>
+                  <tr>
+                    <td><code>aria-label</code></td>
+                    <td>
+                      a box's content scrolls in an inner region, <code>part="scroller"</code>, a tab stop named by this
+                      (else "Content"); name each one when a page has several
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -857,22 +1111,26 @@ divider.style.setProperty(
           <ui-sticky class="spell-h2"><h2 id="7-checks">8. Checks</h2></ui-sticky>
           <p>
             From <a href="../ui/" target="src-packages-ui"><code>packages/ui</code></a
-            >; all passed on the last commit except where noted.
+            >; all passed on the last commit (P21) except where noted.
           </p>
           <ul>
-            <li><code>yarn review</code>: tsc, oxlint, oxfmt, ssr 32, browser 3,633, fork 145.</li>
+            <li><code>yarn review</code>: tsc, oxlint, oxfmt, ssr, browser 3,920 (chromium), the fork's suite.</li>
             <li>
               <code>yarn build</code>, <code>vendor</code>, <code>measure</code> (no <code>CHECK</code>),
               <code>smoke</code> 8 / 8, <code>report</code> twice (no diff), <code>test:hmr</code> 8 / 8,
-              <code>site:build</code> 61 pages.
+              <code>site:build</code> 62 pages.
             </li>
-            <li><code>yarn test:visual --os local --browsers all</code>: 561.</li>
+            <li><code>yarn test:visual --os local --browsers all</code>: 570.</li>
             <li>
-              <code>yarn test:all</code>: 10,890 pass, 4 WebKit failures (plus a timing flake, see
+              <code>yarn test:all</code>: 11,756 pass, 0 fail in chromium / firefox / webkit. Two one-off timing flakes
+              seen in earlier runs are in
               <a href="../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"><code>SUSPECTED-BUGS.md</code></a
-              >) (<a href="#q-webkit-nudge">Q11</a>, <a href="#q-form-stacking">Q12</a>).
+              >.
             </li>
-            <li><code>yarn npm publish --dry-run</code>: 2,726 files; every <code>exports</code> target present.</li>
+            <li>
+              <code>yarn npm publish --dry-run</code> (P5): 2.5 MB, 2,726 files; every <code>exports</code> target
+              present. Not re-run since <code>&lt;ui-root&gt;</code>.
+            </li>
           </ul>
         </section>
       </main>

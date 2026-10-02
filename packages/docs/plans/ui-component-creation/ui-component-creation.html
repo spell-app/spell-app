@@ -43,15 +43,17 @@
             ><h2 id="plan"><ui-icon name="map"></ui-icon> 1. Plan</h2></ui-sticky
           >
           <p class="plan-summary">
-            Built (2026-10-01, overnight, on branch <code>worktree-ui-component-creation</code>):
-            <a href="../../../ui/" target="src-packages-ui"><code>packages/ui</code></a> is green in the monorepo, the
-            icon loader never rejects, the suspected-bug list is swept, Owen's eight design calls are built, and Phase D
-            is done but for Linux baselines (<a href="#c1">C1</a>) and 4 WebKit failures (<a href="#q11">Q11</a>,
-            <a href="#q12">Q12</a>). Durable summary:
+            Built 2026-10-01 on branch <code>worktree-ui-component-creation</code>:
+            <a href="../../../ui/" target="src-packages-ui"><code>packages/ui</code></a> green in the monorepo, the bug
+            sweep, Owen's design calls (P1-P12); component folders named by tag, topics in every vocabulary, the docs
+            sidebar's component browser (P13-P15); <code>&lt;ui-root&gt;</code>, designed then built: on-demand loading,
+            per-root icons and emoji, skeletons, and the docs site running on it (P16-P20); table
+            <code>stack-by</code> and the WebKit fixes, so every test passes in chromium, firefox and webkit (P21).
+            Left: Linux baselines (<a href="#c1">C1</a>) and the open caveats and todos below. Durable summary:
             <a href="../../ui-component-creation.html" target="docs-ui-component-creation">ui-component-creation.html</a
             >.
           </p>
-          <ui-progress class="plan-progress" value="20" total="22" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="22" total="22" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
           <ui-steps class="plan-phases" vertical ordered>
@@ -105,8 +107,14 @@
               data-status="done"
               data-phase="20"
             ></ui-step
-            ><ui-step selected header="P21 · Doc Review" href="#p21" data-status="active" data-phase="21"></ui-step
-            ><ui-step header="P22 · Doc Review" href="#p22" data-status="todo" data-phase="22"></ui-step
+            ><ui-step
+              completed
+              header="P21 · Table And WebKit Fixes"
+              href="#p21"
+              data-status="done"
+              data-phase="21"
+            ></ui-step
+            ><ui-step completed header="P22 · Doc Review" href="#p22" data-status="done" data-phase="22"></ui-step
           ></ui-steps>
         </section>
 
@@ -773,28 +781,72 @@ export const cardSkeleton = {
           <ui-sticky class="spell-h2"
             ><h2 id="overview"><ui-icon name="lightbulb"></ui-icon> 3. Overview</h2></ui-sticky
           >
+
           <p>
-            Source: the handoff,
-            <code>/Users/owen/www/spell-app/outstanding/ui-component-build.md</code>, written by ui-1f when it paused
-            (2026-09-30). This overview is the PLAN-time picture (3.4 lists the bugs as they were before the sweep);
-            what was built is in the durable page linked from the summary.
+            Source: the handoff, <code>/Users/owen/www/spell-app/outstanding/ui-component-build.md</code>, written by
+            ui-1f when it paused (2026-09-30). 3.1, 3.3 and 3.4: the state now (after <a href="#p21">P21</a>). 3.2: how
+            the work ran. 3.5: <code>&lt;ui-root&gt;</code> as built. What changed, phase by phase: the durable page,
+            <a href="../../ui-component-creation.html" target="docs-ui-component-creation">ui-component-creation.html</a
+            >.
           </p>
           <section class="s3">
             <ui-sticky class="spell-h3"><h3 id="o1">3.1 Where it stands</h3></ui-sticky>
+
             <ul>
               <li>
-                All 53 planned families built: vocabulary, CSS port, native fallback, element / CSS / fallback tests
-                (axe on every example), class-grammar + element examples, docs page (60 site pages).
+                <b>Built:</b> 54 families: Fomantic's 53 plus <code>&lt;ui-root&gt;</code> (<a href="#p17">P17</a>-<a
+                  href="#p20"
+                  >P20</a
+                >). Each: one vocabulary per tag (with <code>topics</code> + <code>aka</code>), CSS port, native
+                fallback, element / CSS / fallback tests (axe on every example), class-grammar + element examples, a
+                docs page.
+                <ul>
+                  <li>
+                    folders named by tag, <code>ui-&lt;family&gt;/</code>; loose constants in
+                    <code>ui-&lt;family&gt;.types.ts</code>, shared ones as <code>UIT</code> (<a href="#p13">P13</a>)
+                  </li>
+                  <li>
+                    <code>ComponentDefinitions</code> roll-up, live <code>describe()</code> (<a href="#p14">P14</a>)
+                  </li>
+                  <li>
+                    docs site: 62 pages, a component browser in the sidebar (<a href="#p15">P15</a>), running on
+                    <code>&lt;ui-root display="immediately"&gt;</code> (<a href="#p20">P20</a>)
+                  </li>
+                </ul>
               </li>
               <li>
-                Phases A, B, C done; Phase D (site, hardening, release) partly: kitchen sink, cross-browser unit runs,
-                CHANGELOG, publish dry run left (<a href="#p5">P5</a>).
+                <b>Sizes</b> (min + gzip,
+                <a href="../../../ui/docs/report.md" target="src-packages-ui-docs-report-md"
+                  ><code>docs/report.md</code></a
+                >):
+                <ul>
+                  <li><code>core</code> 16.2 kB, <code>forms</code> 7.5 kB (only the 9 families with a form value)</li>
+                  <li>
+                    family own code: 7.4 kB average over 54 (budget 8, <a href="#d3">D3</a>); largest
+                    <code>ui-dropdown</code> 16.8, <code>ui-calendar</code> 15.5; <code>ui-root</code> 8.1
+                  </li>
+                  <li>
+                    lazy: runtime 30.9 kB (budget &lt; 50); emoji name data 106.1 kB over all chunks, a page loads only
+                    the chunks its names need
+                  </li>
+                  <li>
+                    page with one button: 57.5 kB, the library's 28.1 (Solid + the fork) included; all 54 families:
+                    452.4 kB
+                  </li>
+                </ul>
               </li>
               <li>
-                Sizes (min + gzip): <code>core</code> 14.5 kB, <code>forms</code> 7.3 kB, lazy runtime 31.0 kB (budget
-                &lt; 50), family own code 7.3 kB average (budget now 8, <a href="#d3">D3</a>).
+                <b>Tests:</b> <code>yarn review</code> green (3,920 browser tests, chromium);
+                <code>yarn test:all</code> 11,756 pass, 0 fail in chromium / firefox / webkit (<a href="#p21">P21</a>).
               </li>
-              <li>Visual tests built: Mac baselines for 3 browsers; Linux none (<a href="#c1">C1</a>).</li>
+              <li>
+                <b>Visual:</b> 570 Mac baselines per run (3 browsers, light + dark); Linux none (<a href="#c1">C1</a>,
+                <a href="#t1">T1</a>).
+              </li>
+              <li>
+                <b>Left:</b> Linux baselines, the open items in <a href="#o4">3.4</a>; branch
+                <code>worktree-ui-component-creation</code> not merged to <code>main</code>.
+              </li>
               <li>
                 Per-family truth:
                 <a href="../../../ui/docs/status.md" target="src-packages-ui-docs-status-md"
@@ -803,11 +855,6 @@ export const cardSkeleton = {
                 <a href="../../../ui/docs/plan.md" target="src-packages-ui-docs-plan-md"
                   ><code>packages/ui/docs/plan.md</code></a
                 >.
-              </li>
-              <li>
-                Monorepo move since: <code>$/ui/...</code> aliases, <code>@spell-app/*</code> names, hoisted
-                <code>node_modules</code>, fork is a workspace. The handoff's path breakages (§1.3) are already fixed;
-                <a href="#p1">P1</a> proves the rest.
               </li>
             </ul>
           </section>
@@ -841,23 +888,43 @@ export const cardSkeleton = {
           </section>
           <section class="s3">
             <ui-sticky class="spell-h3"><h3 id="o3">3.3 Icon packs</h3></ui-sticky>
+
             <ul>
               <li>
                 Icons are SVG files in packs: a folder of SVGs + a generated <code>pack.js</code> index (file, size,
-                aliases). Built-in: <code>fa7-free</code> (default), <code>fa7-brands</code>, <code>fomantic</code>.
+                aliases), built by <code>yarn icons:pack</code>. Built-in: <code>fa7-free</code> (default),
+                <code>fa7-brands</code>, <code>fomantic</code>.
               </li>
               <li>
-                <code>UI.icons</code> (runtime, page-wide): <code>use()</code>, <code>reset()</code>,
-                <code>resolve()</code>, <code>get()</code>, <code>peek()</code>, <code>register()</code>;
-                <code>&lt;ui-icon-set src&gt;</code> from HTML. Design:
-                <a href="../../../ui/docs/icons.md" target="src-packages-ui-docs-icons-md"
-                  ><code>packages/ui/docs/icons.md</code></a
-                >.
+                <b>Page-wide:</b> <code>UI.icons</code> (runtime): <code>use()</code>, <code>reset()</code>,
+                <code>resolve()</code>, <code>get()</code>, <code>peek()</code>, <code>register()</code>.
+                <ul>
+                  <li>
+                    <code>get()</code> / <code>use()</code> / <code>ready</code> never reject: a missing icon draws
+                    nothing, a pack with no usable URL warns once (<a href="#i1">I1</a>, fixed in <a href="#p2">P2</a>)
+                  </li>
+                </ul>
               </li>
               <li>
-                Contract: <code>get()</code> never rejects -- a missing icon draws nothing. Broken today (<a href="#i1"
-                  >I1</a
-                >), fixed in <a href="#p2">P2</a>.
+                <b>Per subtree:</b> <code>&lt;ui-root icons="fa7-free, /packs/lucide/pack.js" assets="..."&gt;</code>:
+                comma list, later wins (<a href="#d51">D51</a>).
+                <ul>
+                  <li>
+                    a root's packs are a child set, <code>UI.icons.scope(packs, { assets, parent })</code>, over the
+                    outer root's or the page's; <code>parent</code> is a function asked at each lookup, so a nested root
+                    follows the outer one's CURRENT packs (<a href="#d52">D52</a>, <a href="#d67">D67</a>)
+                  </li>
+                  <li>
+                    each icon finds its nearest root through <code>RootSettings</code> (flat tree: slots, shadow hosts)
+                    and redraws when a root changes or the icon moves (<a href="#d66">D66</a>)
+                  </li>
+                  <li>ONE SVG cache and one set of registered icons per page, shared by every root</li>
+                </ul>
+              </li>
+              <li>
+                <code>&lt;ui-icon-set&gt;</code> is gone (<a href="#p18">P18</a>, <a href="#d58">D58</a>): HTML uses
+                <code>&lt;ui-root icons&gt;</code>, JS <code>UI.icons.use()</code>. Emoji names work the same way:
+                <code>&lt;ui-root emoji&gt;</code> / <code>EmojiData.use()</code>.
               </li>
               <li>
                 Single-file (IIFE) pages:
@@ -866,28 +933,88 @@ export const cardSkeleton = {
                 >
                 calls <code>reset()</code> + <code>register()</code> for the icons it bundles, so nothing is fetched.
               </li>
+              <li>
+                Design:
+                <a href="../../../ui/docs/icons.md" target="src-packages-ui-docs-icons-md"
+                  ><code>packages/ui/docs/icons.md</code></a
+                >.
+              </li>
             </ul>
           </section>
           <section class="s3">
             <ui-sticky class="spell-h3"><h3 id="o4">3.4 Open bugs by area</h3></ui-sticky>
+
             <p>
-              <a href="../../../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"><code>SUSPECTED-BUGS.md</code></a
-              >, <code>## ui</code>: what <a href="#p3">P3</a> works through, one agent per area.
+              What's still open:
+              <a href="../../../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"><code>SUSPECTED-BUGS.md</code></a>
+              (<code>## ui</code>, swept in <a href="#p3">P3</a>; what's left was found since) plus this doc's open
+              caveats, issues and todos.
             </p>
             <ul>
               <li>
-                Behaviour (5): toast countdown on CI, effect errors in <code>mount()</code>, read-only radios move with
-                arrows, search's untracked reads, search parts.
+                <b>Behaviour</b> (all unproven):
+                <ul>
+                  <li>
+                    toast timer tests still set <code>pause-on-hover="false"</code> for Linux CI; the real-move fix
+                    should make it unneeded, but nobody ran the Linux image
+                  </li>
+                  <li>
+                    <code>UIAccordion</code> reads <code>UI.browser</code> in a memo: an SSR render probably throws (the
+                    <code>&lt;ui-button&gt;</code> twin was fixed, <a href="#i4">I4</a>)
+                  </li>
+                  <li>
+                    WebKit: a shared adopted sheet keeps stale <code>@media</code> results after a resize with no
+                    adopter on the page (<a href="#c9">C9</a>)
+                  </li>
+                  <li>
+                    two one-off flakes in <code>yarn test:all</code>: the 50 ms <code>MenuOptions</code> budget
+                    (webkit), popup "flips to the other side" (firefox)
+                  </li>
+                </ul>
               </li>
-              <li>Accessibility (1): breadcrumb example without <code>aria-label</code>.</li>
               <li>
-                Styling (~20): calendar width, dropdown strip + open direction, class-grammar images, card links, items
-                / card / grid containers, list media, table stacking, grid examples, tooltips,
-                <code>&lt;ui-segments inverted&gt;</code>, label colour, dimmer, menu / popup / feed / comment tokens.
+                <b>Layout / styling:</b>
+                <ul>
+                  <li>
+                    grid / card group hosts: bigger gap above than class grammar (<a href="#c5">C5</a>,
+                    <a href="#t8">T8</a>); items' host margin uses the unscaled font size (unmeasured)
+                  </li>
+                  <li>a raw slotted <code>&lt;img&gt;</code> in a list item wraps (<a href="#c6">C6</a>)</li>
+                  <li>
+                    class-grammar <code>.ui.label</code> takes a coloured ancestor's colour (<a href="#c8">C8</a>,
+                    <a href="#t5">T5</a>)
+                  </li>
+                  <li><code>.ui-prose</code> list indent beats <code>.ui-list-plain</code> (<a href="#i10">I10</a>)</li>
+                  <li>docs site <code>/components/ui-popup/</code> scrolls sideways at 375px</li>
+                </ul>
               </li>
               <li>
-                Types / docs (6): emoji text + token, form tokens, input label text, a message example, Solid
-                <code>on:</code> snippets on the docs site.
+                <b>Visual tests:</b> no Linux baselines (<a href="#c1">C1</a>); the empty date field is masked (<a
+                  href="#c3"
+                  >C3</a
+                >); the open-from-start dropdown opens up over two sections (<a href="#c7">C7</a>).
+              </li>
+              <li>
+                <b><code>&lt;ui-root&gt;</code>:</b> with <code>display="immediately"</code>, theme / size / box and the
+                root's icon packs apply once the runtime loads (<a href="#c11">C11</a>, <a href="#c12">C12</a>);
+                skeleton sizes are estimates, a grid of cards shows as one column (<a href="#c13">C13</a>).
+              </li>
+              <li>
+                <b>Types / API:</b> <code>ui-dropdown</code>'s root <code>div.ui.dropdown</code> has no part name. Four
+                other <code>## ui</code> entries look fixed already (form switches private, input
+                <code>label</code> description, message example text, no Solid <code>on:</code> snippets on the site):
+                the file needs a prune.
+              </li>
+              <li>
+                <b>Data:</b> emoji names grew ~35% (<a href="#c4">C4</a>); translated emoji names planned (<a href="#t9"
+                  >T9</a
+                >).
+              </li>
+              <li>
+                <b>Tooling / later:</b> <code>astro check</code> crashes (<a href="#c10">C10</a>); root CI runs neither
+                <code>test:hmr</code> nor <code>site:build</code> (<a href="#t6">T6</a>); CLI
+                <code>icons:pack</code> (<a href="#t2">T2</a>); the fork's upstream PRs (<a href="#t3">T3</a>);
+                translated tag sets, SSR hydration (<a href="#t4">T4</a>).
               </li>
             </ul>
           </section>
@@ -2172,7 +2299,6 @@ export class RootLoader {
                   </p></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="21">UPDATE</ui-label>
             </li>
             <li data-status="done" id="i8">
               <a class="plan-id" href="#i8">I8</a>
@@ -2191,7 +2317,6 @@ export class RootLoader {
                   </p></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="21">UPDATE</ui-label>
             </li>
             <li data-status="done" id="i9">
               <a class="plan-id" href="#i9">I9</a>
@@ -3411,7 +3536,6 @@ export class RootLoader {
                   </ul></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="21">UPDATE</ui-label>
             </li>
           </ol>
         </section>
@@ -3743,10 +3867,10 @@ export class RootLoader {
               <li><b>Verify:</b> site:build + click-through, docs:update</li>
             </ul>
           </section>
-          <section data-status="active" data-phase="21" class="s3">
+          <section data-status="done" data-phase="21" class="s3">
             <ui-sticky class="spell-h3"
               ><h3 id="p21">
-                <ui-icon name="circle half stroke" color="orange"></ui-icon> P21 · Table And WebKit Fixes
+                <ui-icon name="circle check" color="green"></ui-icon> P21 · Table And WebKit Fixes
               </h3></ui-sticky
             >
             <ul class="plan-phase-body">
@@ -3761,9 +3885,9 @@ export class RootLoader {
               <li><b>Verify:</b> yarn review; yarn test:all (no WebKit failures); visual all browsers</li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="22" class="s3">
+          <section data-status="done" data-phase="22" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p22"><ui-icon name="circle outline" color="grey"></ui-icon> P22 · Doc Review</h3></ui-sticky
+              ><h3 id="p22"><ui-icon name="circle check" color="green"></ui-icon> P22 · Doc Review</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li><b>Goal:</b> prune the plan doc; durable page true to what was built</li>
@@ -4692,6 +4816,27 @@ export class RootLoader {
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-01T23:06-04:00">2026-10-01 23:06</time></ui-date> I8 closed:
                   Browsers: WebKit finds no container inside a shadow root above a slot (form)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T23:23-04:00">2026-10-01 23:23</time></ui-date> P21
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T23:23-04:00">2026-10-01 23:23</time></ui-date> P22
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T23:33-04:00">2026-10-01 23:33</time></ui-date> P22
+                  done</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

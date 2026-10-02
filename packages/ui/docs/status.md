@@ -1,14 +1,14 @@
 # Status
 
 Checklist of every component in [`docs/plan.md`](plan.md), with what's done, in progress, deferred.  Kept up to date
-as work lands ([AGENTS.md](../AGENTS.md)).  Last updated 2026-09-30.
+as work lands ([AGENTS.md](../AGENTS.md)).  Last updated 2026-10-01.
 
 ## Working on now
 
 - **Resumed 2026-10-01** in the monorepo (`packages/ui`), branch `worktree-ui-component-creation`;  plan doc
   [`packages/docs/plans/ui-component-creation/`](../../docs/plans/ui-component-creation/ui-component-creation.html):
   icon follow-ups, `SUSPECTED-BUGS.md` sweep, Owen's decisions ("To review (Owen)" below), Phase D chores.
-- **`<ui-root>`** (P17-P20, 2026-10-01):  built;  P21 (D48-D50:  table `stack-by`, WebKit fixes) built;  P22 · Doc Review next.
+- **`<ui-root>`** (P17-P20, 2026-10-01):  built;  P21 (D48-D50:  table `stack-by`, WebKit fixes) built;  P22 doc review done.
 - Every check passes after the move;  `yarn test:hmr` and `yarn site:build` needed a fix each (`PAPERCUTS.md`).
 - Visual:  Mac baselines for chromium / firefox / webkit;  Linux baselines wait on a working Docker Desktop.
 
@@ -21,7 +21,7 @@ as work lands ([AGENTS.md](../AGENTS.md)).  Last updated 2026-09-30.
 - **Tests** = passing browser tests in the family folder (elements, CSS, fallback);  every family's element test runs
   axe on each `examples/elements/*.html`.
 - **Size** = the family's OWN code, min + gzip kB (classes + CSS + vocabulary + fallback), from `yarn measure`;
-  shared `core` (14.9 kB), `forms` (7.3 kB) and the base library are counted once per page, not here.
+  shared `core` (16.2 kB), `forms` (7.5 kB) and the base library are counted once per page, not here.
 - **Keys** = keyboard walkthrough tests (the plan's "keyboard per APG");  "native" = the shadow markup is a native
   control (`<button>`, `<a>`) whose keyboard behaviour is the browser's.
 - **Docs** = page on the Astro site (`site/src/content/components/`);  ✅ links to the page's source.
@@ -100,8 +100,8 @@ links open in an editor tab;  `.md` links do too because `.vscode/settings.json`
 |---|:-:|---|
 | `@spell-app/solid-element` fork | ✅ | 145 tests;  upgrade, forms, lifecycle, error boundary, HMR, event-target and slot-owner fixes |
 | upstream PRs for the fork | 💤 | outlined in [`packages/solid-element/UPSTREAM.md`](../packages/solid-element/UPSTREAM.md);  nothing filed without Owen's go-ahead |
-| element core (`core`, `forms` entries) | ✅ | 14.5 kB + 7.3 kB |
-| `UI` runtime (lazy) | ✅ | 31.0 kB (with `UI.icons`), budget < 50 kB;  [`docs/runtime.md`](runtime.md) |
+| element core (`core`, `forms` entries) | ✅ | 16.2 kB + 7.5 kB |
+| `UI` runtime (lazy) | ✅ | 30.9 kB (with `UI.icons`), budget < 50 kB;  [`docs/runtime.md`](runtime.md) |
 | icons | ✅ | SVG packs + `UI.icons` (2026-09-30):  default pack index 14.2 kB, loaded on first icon;  `yarn icons:pack`;  [`docs/icons.md`](icons.md) |
 | styles, tokens, utilities, themes | ✅ | OKLCH, `light-dark()`, contrast-picked foregrounds |
 | native fallbacks | ✅ | every family;  [`docs/fallback.md`](fallback.md) |
@@ -119,8 +119,8 @@ links open in an editor tab;  `.md` links do too because `.vscode/settings.json`
 | theming guide | ✅ | [`site/src/pages/theming.mdx`](../site/src/pages/theming.mdx), [`docs/theming.md`](theming.md) |
 | translation contract | ✅ | [`docs/translation.md`](translation.md) (design only) |
 | kitchen sink | ✅ | [`site/src/pages/kitchen-sink.astro`](../site/src/pages/kitchen-sink.astro):  every family's main example, live (2026-10-01) |
-| visual tests + cross-browser baselines | 🚧 | `yarn test:visual` built (Owen, 2026-09-30);  `local-darwin` baselines for all 3 browsers, every family (1,122 PNGs, 66 MB:  374 per browser);  `linux` baselines wait for a working Docker Desktop ([`docs/visual-testing.md`](visual-testing.md)) |
-| cross-browser test runs (firefox, webkit) | 🚧 | `yarn test:all` (2026-10-01):  10,849 pass;  4 WebKit failures wait on Owen (style queries on pseudo-elements, form container across a slot);  test files run one at a time there (one focus per page) |
+| visual tests + cross-browser baselines | 🚧 | `yarn test:visual` built (Owen, 2026-09-30);  `local-darwin` baselines for all 3 browsers, every family (1,140 PNGs:  380 per browser);  `linux` baselines wait for a working Docker Desktop ([`docs/visual-testing.md`](visual-testing.md)) |
+| cross-browser test runs (firefox, webkit) | ✅ | `yarn test:all` (2026-10-01, P21):  11,756 pass, 0 fail in chromium / firefox / webkit (the WebKit style-query and form-container failures fixed, D49 / D50);  test files run one at a time there (one focus per page) |
 | axe audit of every example | ✅ | runs in each family's element test |
 | bundle-size report | ✅ | [`docs/report.md`](report.md) (`yarn report`) |
 | README | ✅ | [`README.md`](../README.md) |
@@ -257,8 +257,8 @@ Built, but flagged for Owen's review before it's treated as settled.  Owen settl
 
 ## Budgets
 
-- **Average component ≤ 8 kB gzip** (raised from the plan's 4 kB by Owen, 2026-10-01):  the 53 families above
-  average 7.3 kB own code.  Gzipped separately, an average family is classes 3.1 kB, CSS 2.4 kB (a full port of
+- **Average component ≤ 8 kB gzip** (raised from the plan's 4 kB by Owen, 2026-10-01):  the 54 families above
+  average 7.4 kB own code.  Gzipped separately, an average family is classes 3.1 kB, CSS 2.4 kB (a full port of
   Fomantic's variations), native fallback 1.7 kB, vocabulary 1.4 kB.
-- Lazy runtime chunk < 50 kB gzip -- 31.0 kB.  Lazy data (emoji names, the Temporal polyfill) 60.7 kB, loaded
-  only when used.
+- Lazy runtime chunk < 50 kB gzip -- 30.9 kB.  Lazy data (emoji name chunks, both sets) 106.1 kB in all, one ~5 kB
+  chunk per first letter loaded only when used;  the Temporal polyfill loads only where `Temporal` is missing.
