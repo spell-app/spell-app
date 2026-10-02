@@ -292,11 +292,6 @@ every entry below that date was fixed or disproven;  what's left:
 
 ### 3. Styling / CSS
 
-- `src/components/ui-section/UISection.tsx` title `style={{ [STICK_TOP_PROPERTY]: ..., [DEPTH_PROPERTY]: ... }}`:
-  server-renders as `--_ui-section-top:0px--_ui-section-depth:0`, no `;` between the declarations, so a browser drops
-  both.  `ssrStyle()` in `@solidjs/web`'s server build joins with `;`, so it's likely the SSR COMPILE of computed keys
-  (rc.11).  Prove:  `src/server/StaticRender.ssr.test.tsx`'s nested-section case, print the HTML.  Seen in the seo
-  plan's P1 (I1).  (2026-10-02)
 - `src/components/ui-grid/ui-grid.css`, `ui-card.css`:  as `items` was (fixed 2026-10-01), a size-container group host keeps
   its root's top margin from collapsing with the heading above:  element markup shows a bigger gap than class grammar
   (grid/types +16px under the celled grid, grid/variations several sections, card/content and card/types one each).

@@ -195,6 +195,9 @@ const Active = dynamic(() => (editing() ? Editor : Viewer))
 ## DOM and `@spell-app/ui` elements
 
 - `class`, not `className`;  array / object form, NEVER built class strings.  No `classList`.
+- NEVER an inline `style={{ [A]: x, [B]: y }}` with two or more COMPUTED keys:  the server compile (rc.11) drops the
+  `;` between them (`--a:1px--b:2`) and the browser ignores both.  Return the object from a method or variable
+  (`style={this.titleStyle()}`);  literal keys and single computed keys are fine.  (Found by `$/ui/server`, 2026-10-02.)
 - Attributes are HTML:  lowercase built-in names, boolean = presence.  `attr:` / `bool:` / `on:` / `use:` are gone.
 - On a tag with a dash, a plain prop is a STRING ATTRIBUTE:  rich data MUST be `prop:options={...}`.
 - Events:
