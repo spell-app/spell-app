@@ -525,19 +525,20 @@ knowingly kept:
 
 ## app
 
-### React and Solid side by side
+### React for spell programs, beside the app's Solid
 
-- **Cost**: two JSX runtimes and two renderers in `app` (and what it compiles from `core`):  every `.tsx`
-  must say which it is, both plugins run in every `vite*.config.ts`, and React still ships beside Solid.
-  A React file missing its marker compiles as Solid:  `tsc` usually catches it, else it fails at runtime.
-- **Cause**: the Solid migration (`packages/docs/epics/solid-migration/`) moves the app's own UI one phase at a time,
-  and `core` keeps rendering compiled spell with React (its "Core + JSX Emit" phase was split off, D9 there).
-  Solid is the DEFAULT JSX (`tsconfig.json` `jsxImportSource: "@solidjs/web"`, so `@spell-app/ui`'s source
-  type-checks as-is);  React files carry `/** @jsxImportSource react */` on their first line, which both
-  TypeScript and `reactFiles()` (`packages/app/vite.shared.ts`) read.
-- **Fix**: move each React file to Solid and drop its marker (`app`'s own UI:  the migration's P6-P8).  React then
-  stays only where `core` renders compiled spell, until that moves too;  then delete `@vitejs/plugin-react`,
-  `reactFiles()` and the React deps.
+- **Cost**: two renderers in `app`'s builds.  The app's own UI is Solid (migration P6-P8, P9 pinned it React-free),
+  but compiled spell still draws with React + `semantic-ui-react` (`core`'s `Thing` / `List` / `App`, the forms
+  `F`, `SUIPassThroughs`):  `spell-runtime.js` ships React, every `vite*.config.ts` runs both JSX plugins, and the
+  React `.tsx` files must say so.  A React file missing its marker compiles as Solid:  `tsc` usually catches it,
+  else it fails at runtime.  `$/util`'s `view()` (the cells-to-React bridge) keeps React a dependency of `util`.
+- **Cause**: moving compiled spell to Solid ("Core + JSX Emit":  `core`'s `element()` on `@solidjs/h`, the parser's
+  JSX emit, spell projects to `<ui-*>`) was split off the migration (`packages/docs/epics/solid-migration/`, D9,
+  todo T2).  Solid is the DEFAULT JSX (`tsconfig.json` `jsxImportSource: "@solidjs/web"`);  React files carry
+  `/** @jsxImportSource react */` on their first line, which both TypeScript and `reactFiles()`
+  (`packages/app/vite.shared.ts`) read.
+- **Fix**: the Core + JSX Emit work;  then delete `@vitejs/plugin-react`, `reactFiles()`, `view()`, the forms /
+  pass-throughs and the React deps.
 - **Pinned at**: `packages/app/vite.shared.ts` (`REACT_DIRS`, `REACT_MARKER`);  the marker in each React `.tsx` of
-  `packages/app/src`, `packages/core/src`;  `packages/app/src/solid.test.tsx`.  (`packages/parser/src` has none since
-  P8:  its AST views draw framework-free `P.Markup`.)
+  `packages/app/src/ui/forms/`, `packages/core/src`;  `packages/app/src/build.test.ts` (the app's chunks hold no
+  React, `spell-runtime.js`'s do);  `packages/app/src/solid.test.tsx`.

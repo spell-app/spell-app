@@ -10,7 +10,9 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
 
 - The top of the chain (below `cli`):  the web app, its server, and the embeddable web components.  Everything
   else is a package it imports:  `$/spell`, `$/lsp`, `$/parser`, `$/util`, `@spell-app/ui` ...
-- React and Solid side by side, while the app moves to Solid 2 (READ the root's Solid 2 pointer for Solid work):
+- The app is Solid 2 (READ the root's Solid 2 pointer for Solid work);  React is ONLY what compiled spell draws
+  with (`core`'s classes, `src/ui/forms/`, `SUIPassThroughs`), loaded by `spell-runtime.js` -- `build.test.ts` pins
+  that the app's own chunks hold none:
   - Solid is the DEFAULT JSX:  a new `.tsx` is Solid.  A React file's FIRST line is `/** @jsxImportSource react */`
     -- `tsc` reads it, and so does `vite.shared.ts` (`reactFiles()`), which every `vite*.config.ts` /
     `vitest.config.ts` here builds on.  Restart `vite` after adding or dropping one.  `CODE-DEBT.md` "app".
