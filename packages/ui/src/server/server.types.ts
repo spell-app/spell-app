@@ -28,6 +28,24 @@ export type StaticFamily = {
   definition: ElementDefinition
 }
 
+/**
+ * Which sheets rendered elements adopted, over every render so far (`StaticRender.sheetUsage`), for
+ * `StaticStylesheet.build()`.
+ */
+export type StaticSheetUsage = {
+  /**
+   * Sheet registry name => nouns of the elements seen adopting it.
+   * - Beyond a family's own `styles`:  an item adopts its owner's sheet (`list`), a label in a statistic `parts`.
+   */
+  users: Map<string, Set<string>>
+  /**
+   * Each distinct adoption order seen, e.g. `["item", "list"]`, by its joined names.
+   * - In a shadow root, a sheet adopted LATER has the later layers;  one static stylesheet has one layer order,
+   *   so it must keep every order seen.
+   */
+  orders: Map<string, readonly string[]>
+}
+
 /** One rendered element, before flattening. */
 export type StaticView = {
   /** The page element (`<ui-button>`), a stand-in host. */

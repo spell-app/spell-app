@@ -235,6 +235,15 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
     return Object.keys(this.styles)
   }
 
+  /**
+   * Registry names of the sheets this element adopts now (`sheetNames()`, untracked).
+   * - For the static render (`$/ui/server`):  an item adopts its owner's sheet (`ui-list.css`), so that sheet's
+   *   static scope must include the item.
+   */
+  sheets(): string[] {
+    return untrack(() => this.sheetNames())
+  }
+
   /** Extra classes after the noun, e.g. `icon` for an icon-only button. */
   protected extraClasses(): string | undefined {
     return undefined

@@ -28,7 +28,12 @@ export class StaticFlattener {
     for (const slot of [...content.querySelectorAll("slot")]) StaticFlattener.fill(slot, element)
     let root = content.firstElementChild
     if (root) root = StaticFlattener.listRoot(document, root)
-    const listItem = ServerHost.state(element)?.internals.role === "listitem"
+    let listItem = ServerHost.state(element)?.internals.role === "listitem"
+    // a `<div>` item root BECOMES the `<li>`:  no wrapper, so `:first-child` / `.item + .item` still see the items
+    if (root && listItem && RETAGGABLE.has(root.localName)) {
+      root = StaticFlattener.retag(document, root, "li")
+      listItem = false
+    }
     if (root)
       StaticFlattener.decorate(
         root,
@@ -38,7 +43,9 @@ export class StaticFlattener {
     if (root) root.setAttribute("data-ui", family.definition.vocabulary.noun)
     let outer: Element | undefined = root ?? undefined
     if (listItem) {
+      // `data-ui-li`:  `display: contents` in the static stylesheet, so the root stays the group's layout child
       outer = document.createElement("li")
+      outer.setAttribute(LIST_ITEM_ATTRIBUTE, "")
       outer.append(...content.childNodes)
     }
     const slot = element.getAttribute("slot")
@@ -54,11 +61,16 @@ export class StaticFlattener {
   private static listRoot(document: Document, root: Element): Element {
     if (root.getAttribute("role") !== "list" || LIST_TAGS.has(root.localName)) return root
     if (![...root.children].some((child) => child.localName === "li")) return root
-    const list = document.createElement("ul")
-    for (const { name, value } of [...root.attributes]) list.setAttribute(name, value)
-    list.append(...root.childNodes)
-    root.replaceWith(list)
-    return list
+    return StaticFlattener.retag(document, root, "ul")
+  }
+
+  /** Replace `element` with a `tag` element holding its attributes and children;  returns the new one. */
+  private static retag(document: Document, element: Element, tag: string): Element {
+    const replacement = document.createElement(tag)
+    for (const { name, value } of [...element.attributes]) replacement.setAttribute(name, value)
+    replacement.append(...element.childNodes)
+    element.replaceWith(replacement)
+    return replacement
   }
 
   /** Replace `slot` with the nodes of `host` assigned to it, else keep its fallback content. */
@@ -66,7 +78,15 @@ export class StaticFlattener {
     const name = slot.getAttribute("name") ?? ""
     const assigned = [...host.childNodes].filter((node) => StaticFlattener.slotOf(node) === name)
     const nodes = assigned.length ? assigned : [...slot.childNodes]
-    for (const node of assigned) if (node.nodeType === ELEMENT_NODE) (node as Element).removeAttribute("slot")
+    for (const node of assigned) {
+      if (node.nodeType !== ELEMENT_NODE) continue
+      const element = node as Element
+      element.removeAttribute("slot")
+      // the static stylesheet's `@scope` stops inside it:  author content, as the shadow boundary kept it;  for a
+      // wrapped list item, the item's root, so the group's sheet still reaches it as `::slotted()` did
+      const slotted = element.hasAttribute(LIST_ITEM_ATTRIBUTE) ? (element.firstElementChild ?? element) : element
+      slotted.setAttribute("data-ui-slotted", "")
+    }
     slot.replaceWith(...nodes)
   }
 
@@ -92,6 +112,8 @@ export class StaticFlattener {
     const state = ServerHost.state(host)
     if (!state) return
     for (const name of state.states) if (name.startsWith("in-")) root.classList.add(name)
+    // every host state, for the static stylesheet's `[data-state~="x"]` (was `:state(x)`)
+    if (state.states.size) root.setAttribute("data-state", [...state.states].join(" "))
     for (const [key, value] of Object.entries(state.internals)) {
       if (value === null || value === undefined || typeof value === "object") continue
       const name = key === "role" ? "role" : StaticFlattener.ariaAttribute(key)
@@ -106,6 +128,12 @@ export class StaticFlattener {
     return "aria-" + key.slice(4).toLowerCase()
   }
 }
+
+/** Marks the `<li>` the flattener wraps a list item in. */
+const LIST_ITEM_ATTRIBUTE = "data-ui-li"
+
+/** List item roots that become the `<li>` itself;  others (`<article>`, `<a>`, `<button>`) are wrapped in one. */
+const RETAGGABLE = new Set(["div", "span"])
 
 /** Elements `<li>` may sit in. */
 const LIST_TAGS = new Set(["ul", "ol", "menu"])

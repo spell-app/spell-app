@@ -292,6 +292,11 @@ every entry below that date was fixed or disproven;  what's left:
 
 ### 3. Styling / CSS
 
+- `src/components/ui-segment/ui-segment.css` `.ui.segments:first-child` / `:last-child`:  a `<ui-segments>` root is
+  ALWAYS its shadow root's only child, so both rules always zero its vertical margins;  `.ui.segment` compensates
+  with `:host(:not(:first-child))`, groups don't.  So element groups sit flush where Fomantic's class grammar (and
+  the static render, `yarn test:visual --static`) gives them 1em.  Prove:  `yarn test:visual --parity --grep
+  segment`, `ui-segment/groups`.  Fix needs new visual baselines.  Seen in the seo plan (I8).  (2026-10-02)
 - `src/components/ui-grid/ui-grid.css`, `ui-card.css`:  as `items` was (fixed 2026-10-01), a size-container group host keeps
   its root's top margin from collapsing with the heading above:  element markup shows a bigger gap than class grammar
   (grid/types +16px under the celled grid, grid/variations several sections, card/content and card/types one each).
