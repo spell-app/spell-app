@@ -187,6 +187,11 @@ export type MeasureChecks = {
   unattributed: string[]
   /** external specifiers `dist/` imports that `peerEntry` doesn't list (an import map would miss them) */
   peersMissing: string[]
+  /**
+   * Chunks whose CSS had `light-dark()` lowered into `--lightningcss-light` variables:  those are fixed where a token
+   * is declared (`:root`), so `.ui-dark` / `<ui-root theme="dark">` change nothing (`build.cssTarget`, `vite.config.ts`)
+   */
+  lightDarkLowered: string[]
 }
 
 ////////////////

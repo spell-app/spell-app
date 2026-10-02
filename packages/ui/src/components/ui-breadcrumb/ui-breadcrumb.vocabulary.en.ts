@@ -18,6 +18,7 @@ export const breadcrumbVocabulary = {
   tag: "ui-breadcrumb",
   topics: ["navigation", "basic", "collections"],
   aka: ["crumbs", "path", "trail", "location"],
+  skeleton: { parts: [{ shape: "line", length: "medium" }] },
   noun: "breadcrumb",
   description: "A breadcrumb is used to show hierarchy between content.",
   attributes: [

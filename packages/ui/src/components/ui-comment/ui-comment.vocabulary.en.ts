@@ -20,6 +20,12 @@ export const commentVocabulary = {
   tag: "ui-comment",
   topics: ["social", "content parts", "views"],
   aka: ["reply", "post", "message"],
+  skeleton: {
+    parts: [
+      { shape: "header", image: true },
+      { shape: "paragraph", lines: 2 }
+    ]
+  },
   noun: "comment",
   ui: false,
   description: "One comment:  who wrote it, when, what, and the replies to it.",

@@ -950,7 +950,7 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   try {
-    main(process.argv.slice(2))
+    await main(process.argv.slice(2))
   } catch (error) {
     if (!(error instanceof PlanDocError)) throw error
     console.error(`plan-doc:  ${error.message}`)
@@ -958,7 +958,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   }
 }
 
-/** Run one command. */
+/** Run one command;  may return a promise (`phase` and `open` show the doc in VS Code). */
 function main(argv) {
   const { positional, flags } = parseArgs(argv)
   const [command, name, ...rest] = positional
@@ -1193,5 +1193,5 @@ function check(file, { noBrowser }) {
 /** `open`:  show the doc rendered in VS Code, reusing its tab (`pages.js` `openInVSCode()`). */
 function open(file) {
   read(file)
-  openInVSCode(file)
+  return openInVSCode(file)
 }

@@ -36,10 +36,10 @@ export class UILabel extends UIElement<typeof labelVocabulary> {
   readonly slots = new SlotContent(this.host)
 
   /** Glyph of the `icon` shorthand. */
-  readonly glyph = new IconGlyph(() => this.attrs.icon)
+  readonly glyph = new IconGlyph(this, () => this.attrs.icon)
 
   /** Glyph of the delete button. */
-  readonly deleteGlyph = new IconGlyph(() => (this.attrs.removable ? DELETE_ICON : undefined))
+  readonly deleteGlyph = new IconGlyph(this, () => (this.attrs.removable ? DELETE_ICON : undefined))
 
   /** Host `aria-label`, forwarded to the root. */
   readonly ariaLabel = new HostAttribute(this.host, UIT.ARIA_LABEL)

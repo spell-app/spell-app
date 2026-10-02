@@ -44,6 +44,7 @@ export const inputVocabulary = {
   tag: "ui-input",
   topics: ["forms", "inputs", "controls", "text", "basic", "elements"],
   aka: ["text field", "text box", "textbox", "input field", "search box"],
+  skeleton: { display: "inline", width: "14em", height: "2.5em" },
   noun: "input",
   description: "An input is a field used to elicit a response from a user.",
   attributes: [

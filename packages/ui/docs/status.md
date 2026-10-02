@@ -8,6 +8,7 @@ as work lands ([AGENTS.md](../AGENTS.md)).  Last updated 2026-10-02.
 - **Resumed 2026-10-01** in the monorepo (`packages/ui`), branch `worktree-ui-component-creation`;  plan doc
   [`packages/docs/plans/ui-component-creation/`](../../docs/plans/ui-component-creation/ui-component-creation.html):
   icon follow-ups, `SUSPECTED-BUGS.md` sweep, Owen's decisions ("To review (Owen)" below), Phase D chores.
+- **`<ui-root>`** (P17-P20, 2026-10-01):  built;  P21 (D48-D50:  table `stack-by`, WebKit fixes) built;  P22 doc review done.
 - Every check passes after the move;  `yarn test:hmr` and `yarn site:build` needed a fix each (`PAPERCUTS.md`).
 - Visual:  Mac baselines for chromium / firefox / webkit;  Linux baselines wait on a working Docker Desktop.
 
@@ -20,7 +21,7 @@ as work lands ([AGENTS.md](../AGENTS.md)).  Last updated 2026-10-02.
 - **Tests** = passing browser tests in the family folder (elements, CSS, fallback);  every family's element test runs
   axe on each `examples/elements/*.html`.
 - **Size** = the family's OWN code, min + gzip kB (classes + CSS + vocabulary + fallback), from `yarn measure`;
-  shared `core` (14.9 kB), `forms` (7.3 kB) and the base library are counted once per page, not here.
+  shared `core` (16.2 kB), `forms` (7.5 kB) and the base library are counted once per page, not here.
 - **Keys** = keyboard walkthrough tests (the plan's "keyboard per APG");  "native" = the shadow markup is a native
   control (`<button>`, `<a>`) whose keyboard behaviour is the browser's.
 - **Docs** = page on the Astro site (`site/src/content/components/`);  ✅ links to the page's source.
@@ -36,7 +37,7 @@ links open in an editor tab;  `.md` links do too because `.vscode/settings.json`
 
 | Component | Phase | Tags | Status | Tests | Size | Keys | Docs | Visual | Notes |
 |---|:-:|---|:-:|--:|--:|:-:|:-:|:-:|---|
-| icon | A | `ui-icon`, `ui-icons`, `ui-icon-set` | ✅ | 58 | 6.33 | — | [✅](../site/src/content/components/ui-icon.mdx) | 🚧 local | SVG icon packs (FA7 Free default;  brands, Fomantic opt-in);  [`docs/icons.md`](icons.md) |
+| icon | A | `ui-icon`, `ui-icons` | ✅ | 58 | 6.33 | — | [✅](../site/src/content/components/ui-icon.mdx) | 🚧 local | SVG icon packs (FA7 Free default;  brands, Fomantic opt-in);  [`docs/icons.md`](icons.md) |
 | button | A | `ui-button`, `ui-buttons`, `ui-or` | ✅ | 90 | 12.17 | native | [✅](../site/src/content/components/ui-button.mdx) | 🚧 local | |
 | label | A | `ui-label`, `ui-labels` | ✅ | 66 | 8.45 | — | [✅](../site/src/content/components/ui-label.mdx) | 🚧 local | |
 | content parts | A | `ui-content`, `ui-header`, `ui-description`, `ui-meta`, `ui-extra`, `ui-actions`, `ui-title`, `ui-summary`, `ui-date`, `ui-author`, `ui-avatar`, `ui-detail`, `ui-value` | ✅ | 103 | 15.05 | — | [✅](../site/src/content/components/ui-parts.mdx) | 🚧 local | styled by owner context |
@@ -67,7 +68,7 @@ links open in an editor tab;  `.md` links do too because `.vscode/settings.json`
 | rail | B | `ui-rail` | ✅ | 28 | 2.87 | — | [✅](../site/src/content/components/ui-rail.mdx) | 🚧 local | `position="left\|right"` for the side |
 | reveal | B | `ui-reveal` | ✅ | 33 | 4.07 | ✅ | [✅](../site/src/content/components/ui-reveal.mdx) | 🚧 local | `visible` / `hidden` slots;  reveals on hover, `active` AND focus (a tab stop unless the content is focusable);  instant under reduced motion |
 | ad | B | `ui-ad` | ✅ | 45 | 3.42 | — | [✅](../site/src/content/components/ui-ad.mdx) | 🚧 local | IAB units as `unit="medium rectangle"` |
-| emoji | B | `ui-emoji` | ✅ | 32 | 4.05 | — | [✅](../site/src/content/components/ui-emoji.mdx) | 🚧 local | NATIVE Unicode emoji, two name sets switched like icon packs (`cldr` default, 3,979;  `fomantic`, 3,808;  `<ui-emoji-set names>` / `EmojiData.use()`), lazy data chunks per set (`scripts/gen-emoji.ts`), no sprites / CDN |
+| emoji | B | `ui-emoji` | ✅ | 32 | 4.05 | — | [✅](../site/src/content/components/ui-emoji.mdx) | 🚧 local | NATIVE Unicode emoji, two name sets switched like icon packs (`cldr` default, 3,979;  `fomantic`, 3,808;  `<ui-root emoji>` / `EmojiData.use()`), lazy data chunks per set (`scripts/gen-emoji.ts`), no sprites / CDN |
 | dropdown | C | `ui-dropdown` (+ `ui-item`) | ✅ | 67 | 16.48 | ✅ | [✅](../site/src/content/components/ui-dropdown.mdx) | 🚧 local | built early, as the benchmark component |
 | popup | C | `ui-popup`, `[data-tooltip]` | ✅ | 78 | 8.41 | ✅ | [✅](../site/src/content/components/ui-popup.mdx) | 🚧 local | popover host, CSS anchor positioning only (Fomantic's 8 positions + 4 of ours, flips);  `on` hover / focus / click / manual;  tooltip or non-modal dialog ARIA;  CSS-only tooltip in `native.css` |
 | modal | C | `ui-modal`, `UI.modals.*` | ✅ | 68 | 8.74 | ✅ | [✅](../site/src/content/components/ui-modal.mdx) | 🚧 local | native `<dialog>` + `showModal()`, `::backdrop` dimmer;  `closedby`, approve / deny, `--show` invoker command;  `UI.modals.confirm/alert/prompt` |
@@ -89,6 +90,7 @@ links open in an editor tab;  `.md` links do too because `.vscode/settings.json`
 | shape | C | `ui-shape`, `ui-side` | ✅ | 35 | 6.07 | — | [✅](../site/src/content/components/ui-shape.mdx) | 🚧 local | Fomantic's flip geometry;  `active-index`, `direction`, host `flip()` / `next()` / `previous()`, invoker commands;  reduced motion swaps |
 | nag | C | `ui-nag` | ✅ | 41 | 6.01 | ✅ | [✅](../site/src/content/components/ui-nag.mdx) | 🚧 local | top / bottom, fixed / overlay;  opt-in `key` remembers the dismissal in local / session storage or a cookie, with expiry;  blocked storage tolerated |
 | visibility | C | `ui-visibility`, `UI.observeVisibility()` | ✅ | 19 (+8 runtime) | 3.58 | — | [✅](../site/src/content/components/ui-visibility.mdx) | 🚧 local | runtime service `UI.visibility` on `IntersectionObserver`:  Fomantic's callbacks, `once` / `continuous`, `offset`;  lazy images (`type="image"`, `lazyImage()`) |
+| root | C | `ui-root` | ✅ | 28 | 7.05 | — | [✅](../site/src/content/components/ui-root.mdx) | 🚧 local | loads the families its content uses on demand (`ui-root.catalog.ts`, `yarn gen:root`), hides it until ready (`display`, `loading` message via `<ui-loader>`, `timeout`, `ui-ready` / `ui-error`), `theme` / `size` / `width` / `height` / `fixed`;  per-root `icons` / `emoji` / `assets` (`RootSettings`);  skeletons:  `<ui-placeholder>`s from each tag's `skeleton` (37 tags, the rest `null`);  the docs site runs on it |
 | section | C | `ui-section` | ✅ | 83 | 🚧 | ✅ | [✅](../site/src/content/components/ui-section.mdx) | 🚧 local | ours, not Fomantic's (2026-10-02):  a `<section>` with a real `<h1>`...`<h6>` title (`level`, default the enclosing section's + 1, else 2), icon / badge / actions;  `collapsible` + controlled `collapsed` (a `<button aria-expanded>` inside the heading, cancelable `ui-open` / `ui-close`, `hidden=until-found` so find-in-page unfolds);  `sticky` titles stack when nested;  segment / header / styled-accordion looks |
 | api | C | `UI.api` | ✅ | | | | ⬜ | — | runtime service;  no element |
 | state | C | `ui-button` `active-text` / `inactive-text` | ✅ | 2 (in button) | — | native | ⬜ | — (in button) | Fomantic's `state` behaviour as two button attributes, not an element;  a toggle with a state text drops `aria-pressed` (APG);  [`docs/grammar.md`](grammar.md) "State" |
@@ -99,8 +101,8 @@ links open in an editor tab;  `.md` links do too because `.vscode/settings.json`
 |---|:-:|---|
 | `@spell-app/solid-element` fork | ✅ | 145 tests;  upgrade, forms, lifecycle, error boundary, HMR, event-target and slot-owner fixes |
 | upstream PRs for the fork | 💤 | outlined in [`packages/solid-element/UPSTREAM.md`](../packages/solid-element/UPSTREAM.md);  nothing filed without Owen's go-ahead |
-| element core (`core`, `forms` entries) | ✅ | 14.5 kB + 7.3 kB |
-| `UI` runtime (lazy) | ✅ | 31.0 kB (with `UI.icons`), budget < 50 kB;  [`docs/runtime.md`](runtime.md) |
+| element core (`core`, `forms` entries) | ✅ | 16.2 kB + 7.5 kB |
+| `UI` runtime (lazy) | ✅ | 30.9 kB (with `UI.icons`), budget < 50 kB;  [`docs/runtime.md`](runtime.md) |
 | icons | ✅ | SVG packs + `UI.icons` (2026-09-30):  default pack index 14.2 kB, loaded on first icon;  `yarn icons:pack`;  [`docs/icons.md`](icons.md) |
 | styles, tokens, utilities, themes | ✅ | OKLCH, `light-dark()`, contrast-picked foregrounds |
 | native fallbacks | ✅ | every family;  [`docs/fallback.md`](fallback.md) |
@@ -114,12 +116,12 @@ links open in an editor tab;  `.md` links do too because `.vscode/settings.json`
 
 | Item | Status | Notes |
 |---|:-:|---|
-| docs pages | ✅ | 54 pages:  every built family, plus the button page's `state` section (`active-text` / `inactive-text`).  Pages:  [accordion](../site/src/content/components/ui-accordion.mdx), [ad](../site/src/content/components/ui-ad.mdx), [breadcrumb](../site/src/content/components/ui-breadcrumb.mdx), [button](../site/src/content/components/ui-button.mdx), [calendar](../site/src/content/components/ui-calendar.mdx), [card](../site/src/content/components/ui-card.mdx), [checkbox](../site/src/content/components/ui-checkbox.mdx), [comment](../site/src/content/components/ui-comment.mdx), [container](../site/src/content/components/ui-container.mdx), [dimmer](../site/src/content/components/ui-dimmer.mdx), [divider](../site/src/content/components/ui-divider.mdx), [dropdown](../site/src/content/components/ui-dropdown.mdx), [embed](../site/src/content/components/ui-embed.mdx), [emoji](../site/src/content/components/ui-emoji.mdx), [feed](../site/src/content/components/ui-feed.mdx), [flag](../site/src/content/components/ui-flag.mdx), [flyout](../site/src/content/components/ui-flyout.mdx), [form](../site/src/content/components/ui-form.mdx), [grid](../site/src/content/components/ui-grid.mdx), [icon](../site/src/content/components/ui-icon.mdx), [image](../site/src/content/components/ui-image.mdx), [input](../site/src/content/components/ui-input.mdx), [item](../site/src/content/components/ui-item.mdx), [items](../site/src/content/components/ui-items.mdx), [label](../site/src/content/components/ui-label.mdx), [list](../site/src/content/components/ui-list.mdx), [loader](../site/src/content/components/ui-loader.mdx), [menu](../site/src/content/components/ui-menu.mdx), [message](../site/src/content/components/ui-message.mdx), [modal](../site/src/content/components/ui-modal.mdx), [nag](../site/src/content/components/ui-nag.mdx), [parts](../site/src/content/components/ui-parts.mdx), [placeholder](../site/src/content/components/ui-placeholder.mdx), [popup](../site/src/content/components/ui-popup.mdx), [progress](../site/src/content/components/ui-progress.mdx), [rail](../site/src/content/components/ui-rail.mdx), [rating](../site/src/content/components/ui-rating.mdx), [reveal](../site/src/content/components/ui-reveal.mdx), [search](../site/src/content/components/ui-search.mdx), [section](../site/src/content/components/ui-section.mdx), [segment](../site/src/content/components/ui-segment.mdx), [select](../site/src/content/components/ui-select.mdx), [shape](../site/src/content/components/ui-shape.mdx), [sidebar](../site/src/content/components/ui-sidebar.mdx), [slider](../site/src/content/components/ui-slider.mdx), [statistic](../site/src/content/components/ui-statistic.mdx), [step](../site/src/content/components/ui-step.mdx), [sticky](../site/src/content/components/ui-sticky.mdx), [tab](../site/src/content/components/ui-tab.mdx), [table](../site/src/content/components/ui-table.mdx), [text](../site/src/content/components/ui-text.mdx), [toast](../site/src/content/components/ui-toast.mdx), [transition](../site/src/content/components/ui-transition.mdx), [visibility](../site/src/content/components/ui-visibility.mdx)
+| docs pages | ✅ | 55 pages:  every built family, plus the button page's `state` section (`active-text` / `inactive-text`).  Pages:  [accordion](../site/src/content/components/ui-accordion.mdx), [ad](../site/src/content/components/ui-ad.mdx), [breadcrumb](../site/src/content/components/ui-breadcrumb.mdx), [button](../site/src/content/components/ui-button.mdx), [calendar](../site/src/content/components/ui-calendar.mdx), [card](../site/src/content/components/ui-card.mdx), [checkbox](../site/src/content/components/ui-checkbox.mdx), [comment](../site/src/content/components/ui-comment.mdx), [container](../site/src/content/components/ui-container.mdx), [dimmer](../site/src/content/components/ui-dimmer.mdx), [divider](../site/src/content/components/ui-divider.mdx), [dropdown](../site/src/content/components/ui-dropdown.mdx), [embed](../site/src/content/components/ui-embed.mdx), [emoji](../site/src/content/components/ui-emoji.mdx), [feed](../site/src/content/components/ui-feed.mdx), [flag](../site/src/content/components/ui-flag.mdx), [flyout](../site/src/content/components/ui-flyout.mdx), [form](../site/src/content/components/ui-form.mdx), [grid](../site/src/content/components/ui-grid.mdx), [icon](../site/src/content/components/ui-icon.mdx), [image](../site/src/content/components/ui-image.mdx), [input](../site/src/content/components/ui-input.mdx), [item](../site/src/content/components/ui-item.mdx), [items](../site/src/content/components/ui-items.mdx), [label](../site/src/content/components/ui-label.mdx), [list](../site/src/content/components/ui-list.mdx), [loader](../site/src/content/components/ui-loader.mdx), [menu](../site/src/content/components/ui-menu.mdx), [message](../site/src/content/components/ui-message.mdx), [modal](../site/src/content/components/ui-modal.mdx), [nag](../site/src/content/components/ui-nag.mdx), [parts](../site/src/content/components/ui-parts.mdx), [placeholder](../site/src/content/components/ui-placeholder.mdx), [popup](../site/src/content/components/ui-popup.mdx), [progress](../site/src/content/components/ui-progress.mdx), [rail](../site/src/content/components/ui-rail.mdx), [root](../site/src/content/components/ui-root.mdx), [rating](../site/src/content/components/ui-rating.mdx), [reveal](../site/src/content/components/ui-reveal.mdx), [search](../site/src/content/components/ui-search.mdx), [section](../site/src/content/components/ui-section.mdx), [segment](../site/src/content/components/ui-segment.mdx), [select](../site/src/content/components/ui-select.mdx), [shape](../site/src/content/components/ui-shape.mdx), [sidebar](../site/src/content/components/ui-sidebar.mdx), [slider](../site/src/content/components/ui-slider.mdx), [statistic](../site/src/content/components/ui-statistic.mdx), [step](../site/src/content/components/ui-step.mdx), [sticky](../site/src/content/components/ui-sticky.mdx), [tab](../site/src/content/components/ui-tab.mdx), [table](../site/src/content/components/ui-table.mdx), [text](../site/src/content/components/ui-text.mdx), [toast](../site/src/content/components/ui-toast.mdx), [transition](../site/src/content/components/ui-transition.mdx), [visibility](../site/src/content/components/ui-visibility.mdx)
 | theming guide | ✅ | [`site/src/pages/theming.mdx`](../site/src/pages/theming.mdx), [`docs/theming.md`](theming.md) |
 | translation contract | ✅ | [`docs/translation.md`](translation.md) (design only) |
 | kitchen sink | ✅ | [`site/src/pages/kitchen-sink.astro`](../site/src/pages/kitchen-sink.astro):  every family's main example, live (2026-10-01) |
-| visual tests + cross-browser baselines | 🚧 | `yarn test:visual` built (Owen, 2026-09-30);  `local-darwin` baselines for all 3 browsers, every family (1,122 PNGs, 66 MB:  374 per browser);  `linux` baselines wait for a working Docker Desktop ([`docs/visual-testing.md`](visual-testing.md)) |
-| cross-browser test runs (firefox, webkit) | 🚧 | `yarn test:all` (2026-10-01):  10,849 pass;  4 WebKit failures wait on Owen (style queries on pseudo-elements, form container across a slot);  test files run one at a time there (one focus per page) |
+| visual tests + cross-browser baselines | 🚧 | `yarn test:visual` built (Owen, 2026-09-30);  `local-darwin` baselines for all 3 browsers, every family (1,140 PNGs:  380 per browser);  `linux` baselines wait for a working Docker Desktop ([`docs/visual-testing.md`](visual-testing.md)) |
+| cross-browser test runs (firefox, webkit) | ✅ | `yarn test:all` (2026-10-01, P21):  11,756 pass, 0 fail in chromium / firefox / webkit (the WebKit style-query and form-container failures fixed, D49 / D50);  test files run one at a time there (one focus per page) |
 | axe audit of every example | ✅ | runs in each family's element test |
 | bundle-size report | ✅ | [`docs/report.md`](report.md) (`yarn report`) |
 | README | ✅ | [`README.md`](../README.md) |
@@ -233,23 +235,20 @@ Decided or knowingly left for later;  each should be picked up where noted.
 Built, but flagged for Owen's review before it's treated as settled.  Owen settled the 2026-09-30 batch on 2026-10-01
 (below, "Settled");  open now:
 
-- **WebKit:  style queries on `::before` / `::after`** -- WebKit doesn't re-evaluate a `@container style()` rule on a
-  pseudo-element after the container's token changes (breadcrumb divider icon, feed number circles):  nudge the
-  element after a change, or move those rules off style queries?  3 WebKit tests fail.  Flagged 2026-10-01.
-- **WebKit:  `<ui-form>` row stacking** -- WebKit's container lookup doesn't cross the slot, and the form host is
-  `display: contents`:  give the form a real box host, or another mechanism?  1 WebKit test fails.  Flagged 2026-10-01.
-- **Table stacking opt-in** -- tables stack by VIEWPORT again (Fomantic);  an element opts in to stacking by its
-  own width with the TOKEN `--ui-table-stack-by: container`.  Keep a token, or add an attribute
-  (`stack-by="container"`)?  Flagged 2026-10-01.
+(none)
 
 ### Settled 2026-10-01
 
+- Table:  `stack-by="container"` (an attribute, beats the region token `--ui-table-stack-by`).  WebKit pseudo-element
+  style queries:  moved off (breadcrumb divider, feed numbers and line read `var()`s their real elements set).  Form:
+  the host is a block and the size container its rows stack by.  (D48-D50, built 2026-10-01;  `yarn test:all`:  no
+  WebKit failures left.)
 - Modal:  `closedby` stays;  `closable="false"` keeps Fomantic's meaning too (no icon AND dismissal `none`), and an
   explicit `closedby` wins for dismissal.  Also on `<ui-flyout>`.
 - Invoker commands:  `<ui-button>` forwards `commandfor` / `command`;  `UI.browser.supports.invokers`;  without
   support, `Invoker.run()` runs the built-in commands and fires `command`.  Modal and flyout answer `--toggle` too;  popup and dropdown answer all three, toast `--close` (2026-10-01).
 - Popup:  `hoverable` (default on, WCAG 1.4.13);  `hoverable="false"` is Fomantic's default behaviour.
-- Emoji:  two name sets, never merged, switched like icon packs (`<ui-emoji-set names>`, `EmojiData.use()`):  `cldr`
+- Emoji:  two name sets, never merged, switched like icon packs (`<ui-root emoji>`, `EmojiData.use()`):  `cldr`
   (default, from `emojibase-data`, dev-only) and `fomantic` (its own names and meanings:  `dog` = 🐶);  presentation
   from Unicode data.
 - Label colour:  matches Fomantic -- only its own or its `<ui-labels>` group's colour paints a `<ui-label>`.
@@ -259,8 +258,8 @@ Built, but flagged for Owen's review before it's treated as settled.  Owen settl
 
 ## Budgets
 
-- **Average component ≤ 8 kB gzip** (raised from the plan's 4 kB by Owen, 2026-10-01):  the 53 families above
-  average 7.3 kB own code.  Gzipped separately, an average family is classes 3.1 kB, CSS 2.4 kB (a full port of
+- **Average component ≤ 8 kB gzip** (raised from the plan's 4 kB by Owen, 2026-10-01):  the 54 families above
+  average 7.4 kB own code.  Gzipped separately, an average family is classes 3.1 kB, CSS 2.4 kB (a full port of
   Fomantic's variations), native fallback 1.7 kB, vocabulary 1.4 kB.
-- Lazy runtime chunk < 50 kB gzip -- 31.0 kB.  Lazy data (emoji names, the Temporal polyfill) 60.7 kB, loaded
-  only when used.
+- Lazy runtime chunk < 50 kB gzip -- 30.9 kB.  Lazy data (emoji name chunks, both sets) 106.1 kB in all, one ~5 kB
+  chunk per first letter loaded only when used;  the Temporal polyfill loads only where `Temporal` is missing.

@@ -25,6 +25,13 @@ export const accordionVocabulary = {
   tag: "ui-accordion",
   topics: ["containers", "navigation", "data display", "modules"],
   aka: ["collapse", "collapsible", "disclosure", "expander", "details", "faq"],
+  skeleton: {
+    parts: [
+      { shape: "line", length: "long" },
+      { shape: "line", length: "long" },
+      { shape: "line", length: "long" }
+    ]
+  },
   noun: "accordion",
   description: "An accordion allows users to toggle the display of sections of content.",
   attributes: [

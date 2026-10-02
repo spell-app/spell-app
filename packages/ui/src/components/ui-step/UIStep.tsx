@@ -41,7 +41,7 @@ export class UIStep extends UIElement<typeof stepVocabulary> {
   readonly activeAttribute = new HostAttribute(this.host, ACTIVE)
 
   /** Glyph of the `icon` shorthand. */
-  readonly glyph = new IconGlyph(() => this.attrs.icon)
+  readonly glyph = new IconGlyph(this, () => this.attrs.icon)
 
   ////////////////
   // ## Derived state
@@ -59,7 +59,7 @@ export class UIStep extends UIElement<typeof stepVocabulary> {
   readonly hasShorthand = createMemo(() => !!this.attrs.header || !!this.attrs.description)
 
   /** The check a completed step shows in place of its icon;  after `hasIcon`, which it reads at once. */
-  readonly checkGlyph = new IconGlyph(() => (this.attrs.completed && this.hasIcon() ? CHECK : undefined))
+  readonly checkGlyph = new IconGlyph(this, () => (this.attrs.completed && this.hasIcon() ? CHECK : undefined))
 
   /** Root element:  a link, a button (`link`), or a box. */
   readonly tag = createMemo(() => (this.attrs.href ? LINK : this.attrs.link ? BUTTON : BOX))

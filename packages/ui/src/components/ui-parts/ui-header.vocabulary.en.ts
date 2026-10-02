@@ -20,6 +20,7 @@ export const headerVocabulary = {
   tag: "ui-header",
   topics: ["content parts", "typography", "text", "basic", "elements"],
   aka: ["heading", "title", "h1", "headline"],
+  skeleton: { parts: [{ shape: "line", length: "medium" }] },
   noun: "header",
   plural: "headers",
   description: "A header provides a short summary of content.",

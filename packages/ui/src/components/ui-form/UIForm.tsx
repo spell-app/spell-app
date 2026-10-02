@@ -86,7 +86,8 @@ export class UIForm extends UIElement<Vocabulary> {
       success: state === "success",
       warning: state === "warning",
       loading: this.attrs.loading,
-      disabled: this.attrs.disabled
+      disabled: this.attrs.disabled,
+      root: true
     }
   }
 

@@ -1,13 +1,13 @@
 import { UI } from "$/ui/runtime"
 
 import { ComponentBrowser } from "./component-browser"
-import { loadComponents } from "./components"
+import "$/ui/components/ui-root"
 import { SiteStorage } from "./storage"
 
 /**
  * Behaviour for `layouts/Docs.astro`:  colour scheme, Classic theme, mobile menu, "On this page" index, and the
  * sidebar's component browser (`ComponentBrowser`).
- * - Also imports the component module for every `ui-*` tag on the page (`components.ts`).
+ * - Imports `<ui-root>`, which wraps every page (`layouts/Docs.astro`) and loads the family of each `ui-*` tag on it.
  * - Loads the `UI` runtime like any page using the library would, which also starts mirroring
  *   `#ui-app-stylesheet` into component shadow roots.
  * - Preferences persist in `localStorage` (`SiteStorage`, wrapped:  private windows may throw);  the scheme is also
@@ -151,4 +151,3 @@ class SiteLayout {
 
 new SiteLayout().start()
 void UI.load()
-void loadComponents()

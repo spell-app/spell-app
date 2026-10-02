@@ -21,6 +21,7 @@ export const placeholderLineVocabulary = {
   tag: "ui-placeholder-line",
   topics: ["loading", "content parts", "elements"],
   aka: ["skeleton line"],
+  skeleton: null,
   noun: "line",
   ui: false,
   description: "One line of text's skeleton:  a bar.",

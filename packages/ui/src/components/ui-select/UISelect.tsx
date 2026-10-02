@@ -244,7 +244,7 @@ export class UISelect extends FormElement<SelectVocabulary> {
    *   content.  A space keeps the description apart from the text there.
    */
   private option(option: MenuOption): JSX.Element {
-    const glyph = new IconGlyph(() => (typeof option.icon === "string" ? option.icon : undefined))
+    const glyph = new IconGlyph(this, () => (typeof option.icon === "string" ? option.icon : undefined))
     return (
       <option class={ITEM} part={this.part("option")} value={option.value} disabled={!!option.disabled}>
         <Show when={typeof option.icon === "string"}>

@@ -1,0 +1,40 @@
+<!-- `<ui-root>` has no Fomantic counterpart, so no class-grammar original. -->
+<div class="ui-stack">
+  <section>
+    <h4>Root</h4>
+    <ui-root>
+      <ui-segment>
+        <ui-header>Report</ui-header>
+        <p>Every component inside was loaded by the root, on demand.</p>
+        <ui-button primary>Save</ui-button>
+      </ui-segment>
+    </ui-root>
+  </section>
+
+  <section>
+    <h4>Theme and size</h4>
+    <ui-root theme="dark" size="small" width="100%" aria-label="Dark report">
+      <ui-segment>
+        <ui-header>Report</ui-header>
+        <p>Dark and small: everything inside follows.</p>
+        <ui-button primary>Save</ui-button>
+      </ui-segment>
+    </ui-root>
+  </section>
+
+  <section>
+    <h4>A box that scrolls</h4>
+    <ui-root height="8em" aria-label="Numbers">
+      <ui-list bulleted>
+        <ui-item>One</ui-item>
+        <ui-item>Two</ui-item>
+        <ui-item>Three</ui-item>
+        <ui-item>Four</ui-item>
+        <ui-item>Five</ui-item>
+        <ui-item>Six</ui-item>
+        <ui-item>Seven</ui-item>
+        <ui-item>Eight</ui-item>
+      </ui-list>
+    </ui-root>
+  </section>
+</div>

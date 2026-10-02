@@ -19,6 +19,7 @@ export const progressVocabulary = {
   tag: "ui-progress",
   topics: ["progress", "loading", "feedback", "status", "modules"],
   aka: ["progress bar", "meter", "percent bar", "upload progress"],
+  skeleton: { height: "2em" },
   noun: "progress",
   description: "A progress bar shows the progression of a task.",
   attributes: [

@@ -488,6 +488,17 @@
     display: none;
   }
 
+  /*
+   * A `<ui-root>` whose script hasn't run yet hides the page it wraps (space kept), so nothing flashes unstyled
+   * before it takes over;  defined, it hides or shows by its `display`.  Only with scripting:  without JS (or a
+   * crawler, a static SSR page) the content shows as sent.
+   */
+  @media (scripting: enabled) {
+    :where(ui-root):not(:defined):not([display="immediately"]) {
+      visibility: hidden;
+    }
+  }
+
   /*******************************
          Opt-in native look
   *******************************/

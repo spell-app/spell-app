@@ -20,6 +20,8 @@ export const sectionVocabulary = {
   tag: "ui-section",
   topics: ["layout", "containers"],
   aka: ["section", "panel", "collapsible", "disclosure", "fieldset", "expander"],
+  // a title over its content, as a segment's skeleton
+  skeleton: { parts: [{ shape: "header" }, { shape: "paragraph" }] },
   noun: "section",
   description: "A section is a titled block of content that can fold away and keep its title in view.",
   attributes: [

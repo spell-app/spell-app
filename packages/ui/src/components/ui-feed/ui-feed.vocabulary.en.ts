@@ -19,6 +19,12 @@ export const feedVocabulary = {
   tag: "ui-feed",
   topics: ["social", "lists", "data display", "views"],
   aka: ["activity feed", "timeline", "news feed", "activity stream"],
+  skeleton: {
+    parts: [
+      { shape: "header", image: true },
+      { shape: "paragraph", lines: 2 }
+    ]
+  },
   noun: "feed",
   description: "A feed presents user activity chronologically.",
   attributes: [

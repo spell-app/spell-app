@@ -192,7 +192,44 @@ export type ComponentVocabulary = {
    * (`ComponentDictionary.aka`).
    */
   aka?: readonly string[]
+  /**
+   * What `<ui-root display="skeleton">` draws in this tag's place while its family loads:  a `<ui-placeholder>` built
+   * from this description (`SkeletonSpec`), or `null` for none of its own -- a part covered by its owner's skeleton
+   * (`ui-column` in a grid, `ui-item` in a list), or a tag with nothing to show (`ui-popup`).  NEVER translated:
+   * drawing data, like `states`.  `test/vocabularies.test.ts` requires every tag to say which.
+   */
+  skeleton?: SkeletonSpec | null
 }
+
+/**
+ * A tag's skeleton:  the `<ui-placeholder>` shapes that stand in for it until it loads (`ComponentVocabulary.skeleton`).
+ * - Sizes are CSS lengths in `em`, so the element's `size` still scales them;  `fluid` on the element fills the width.
+ * - No `parts`:  one block, `width` x `height` (a button, an input).
+ */
+export type SkeletonSpec = {
+  /** `inline`:  sits beside the next inline skeleton (buttons, labels);  default `block`. */
+  readonly display?: "block" | "inline"
+  /** Width, e.g. `"18em"`;  default the placeholder's own (up to 30em). */
+  readonly width?: string
+  /** Height of a part-less block, e.g. `"2.5em"`;  default the placeholder image's (6.25em). */
+  readonly height?: string
+  /** Shapes, top to bottom. */
+  readonly parts?: readonly SkeletonPart[]
+}
+
+/** One shape of a skeleton, as `ui-placeholder` draws it. */
+export type SkeletonPart =
+  /** An image block:  `square` (1:1), `rectangular` (4:3), else 6.25em tall. */
+  | { readonly shape: "image"; readonly ratio?: "square" | "rectangular" }
+  /** A header:  two short bars, with a square `image` beside them. */
+  | { readonly shape: "header"; readonly image?: boolean }
+  /** A paragraph of `lines` bars (default 3). */
+  | { readonly shape: "paragraph"; readonly lines?: number }
+  /** One bar, `length` as `<ui-placeholder-line>`'s (default full). */
+  | {
+      readonly shape: "line"
+      readonly length?: "full" | "very long" | "long" | "medium" | "short" | "very short"
+    }
 
 /** A topic id (`ValueSets.topics`):  `"forms"`, `"notifications"`, `"date & time"` ... */
 export type ComponentTopic = (typeof ValueSets.topics)[number]

@@ -31,10 +31,10 @@ export class UIMessage extends UIElement<typeof messageVocabulary> {
   readonly slots = new SlotContent(this.host)
 
   /** Glyph of the `icon` shorthand. */
-  readonly glyph = new IconGlyph(() => this.attrs.icon)
+  readonly glyph = new IconGlyph(this, () => this.attrs.icon)
 
   /** Glyph of the close button. */
-  readonly closeGlyph = new IconGlyph(() => (this.attrs.dismissible ? UIT.CLOSE_ICON : undefined))
+  readonly closeGlyph = new IconGlyph(this, () => (this.attrs.dismissible ? UIT.CLOSE_ICON : undefined))
 
   /** Has an icon (shorthand or `icon` slot)? */
   readonly hasIcon = createMemo(() => !!this.attrs.icon || this.slots.has(this.slot("icon")))

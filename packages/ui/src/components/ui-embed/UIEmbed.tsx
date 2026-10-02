@@ -48,7 +48,7 @@ export class UIEmbed extends UIElement<Vocabulary> {
   readonly activeState = this.controlled("active", false)
 
   /** Glyph over the placeholder. */
-  readonly glyph = new IconGlyph(() => this.attrs.icon || undefined)
+  readonly glyph = new IconGlyph(this, () => this.attrs.icon || undefined)
 
   /** The frame URL, `undefined` when there's nothing (safe) to load. */
   readonly url = createMemo(() =>

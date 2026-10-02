@@ -83,7 +83,7 @@ export class UIRuntime {
   readonly modals = new Modals()
   /** `fetch` with URL templates and throttling */
   readonly api = new Api()
-  /** icon packs (`<ui-icon-set>`) and the page's SVG cache */
+  /** the page's icon packs (`<ui-root icons>` adds child sets) and the SVG cache */
   readonly icons = new IconPacks()
   /** canonical + localized component names (the translation hook) */
   readonly vocabulary = new Vocabulary()

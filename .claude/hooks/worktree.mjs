@@ -1,0 +1,102 @@
+#!/usr/bin/env node
+/**
+ * Claude Code's `WorktreeCreate` / `WorktreeRemove` hooks (`.claude/settings.json`):  `worktree.mjs create|remove`,
+ * the hook's JSON on stdin.  They replace Claude's own git worktree logic, for `EnterWorktree`, `claude -w` and
+ * agents' `isolation: "worktree"`.
+ *
+ * ## Why a hook
+ * - A session in a worktree Claude made itself is saved under the WORKTREE's folder, so it drops out of the VS Code
+ *   Claude panel's list (which shows one folder's sessions) and is orphaned if it never leaves.  A session in a
+ *   worktree a hook made stays saved where it started:  the repo root, which every window lists
+ *   (`scripts/window.mjs`).  Checked with CLI 2.1.287.
+ * - Names agree:  worktree `.claude/worktrees/<name>`, branch `<name>` (Claude's own adds `worktree-`).
+ * - Branches from local `main` (unpushed work included), not `origin/main`.
+ *
+ * ## create
+ * - stdin `{ name, cwd, session_id, transcript_path, ... }`  (CLI 2.1.287:  no branch or base field, whatever the
+ *   docs say).  Prints the worktree's absolute path on stdout, the ONLY thing on stdout;  progress goes to stderr.
+ * - Reuses `.claude/worktrees/<name>` when it's already a worktree, and branch `<name>` when it exists.
+ *
+ * ## remove
+ * - stdin `{ worktree_path, cwd, ... }`.  Runs on `ExitWorktree` `remove` (only with `discard_changes: true`), at
+ *   session exit, and when an agent finishes.
+ * - Never loses work:  a worktree with uncommitted changes, or whose branch has commits `main` lacks, is KEPT
+ *   (exit 1 with the reason;  Claude shows stderr).  Otherwise removes the worktree and deletes its branch.
+ */
+import { execFileSync } from "node:child_process"
+import { existsSync } from "node:fs"
+import { dirname, join, resolve } from "node:path"
+
+/** The branch new worktrees start from. */
+const BASE = "main"
+
+/** Allowed worktree / branch names. */
+const NAME = /^[A-Za-z0-9][A-Za-z0-9._-]*$/
+
+/****************
+ * ### `Worktree`
+ ****************/
+class Worktree {
+  /** `git <args>` in `cwd`;  its trimmed stdout.  Git's own stderr goes to ours. */
+  static git(cwd, ...args) {
+    return execFileSync("git", args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", 2] }).trim()
+  }
+
+  /** The main checkout's folder, from anywhere inside it or one of its worktrees. */
+  static root(cwd) {
+    return dirname(Worktree.git(cwd, "rev-parse", "--path-format=absolute", "--git-common-dir"))
+  }
+
+  /** Whether `branch` exists. */
+  static hasBranch(root, branch) {
+    try {
+      Worktree.git(root, "rev-parse", "--verify", "--quiet", `refs/heads/${branch}`)
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  /** `create`:  make (or reuse) `.claude/worktrees/<name>` on branch `<name>`;  returns its path. */
+  static create({ name, cwd }) {
+    if (!NAME.test(name ?? "")) throw new Error(`worktree name must match ${NAME}:  got "${name}"`)
+    const root = Worktree.root(cwd)
+    const path = join(root, ".claude", "worktrees", name)
+    if (existsSync(join(path, ".git"))) {
+      console.error(`worktree hook:  reusing ${path}`)
+      return path
+    }
+    const args = Worktree.hasBranch(root, name) ? [path, name] : ["-b", name, path, BASE]
+    console.error(`worktree hook:  git worktree add ${args.join(" ")}`)
+    Worktree.git(root, "worktree", "add", "--quiet", ...args)
+    return path
+  }
+
+  /** `remove`:  remove the worktree and its branch, unless that would lose work;  returns what happened. */
+  static remove({ worktree_path: path }) {
+    path = resolve(path)
+    if (!existsSync(path)) return `${path} is already gone`
+    const root = Worktree.root(path)
+    const branch = Worktree.git(path, "branch", "--show-current")
+    if (Worktree.git(path, "status", "--porcelain")) throw new Error(`kept ${path}:  it has uncommitted changes`)
+    if (branch && Worktree.git(root, "rev-list", "--count", `${BASE}..${branch}`) !== "0") {
+      throw new Error(`kept ${path}:  branch ${branch} has commits ${BASE} doesn't;  merge it first`)
+    }
+    Worktree.git(root, "worktree", "remove", path)
+    if (branch) Worktree.git(root, "branch", "-d", branch)
+    return `removed ${path}${branch ? ` and branch ${branch}` : ""}`
+  }
+}
+
+let input = ""
+for await (const chunk of process.stdin) input += chunk
+try {
+  const data = JSON.parse(input)
+  const command = process.argv[2]
+  if (command === "create") console.log(Worktree.create(data))
+  else if (command === "remove") console.error(`worktree hook:  ${Worktree.remove(data)}`)
+  else throw new Error(`usage:  worktree.mjs create|remove  (got "${command}")`)
+} catch (error) {
+  console.error(`worktree hook:  ${error.message}`)
+  process.exit(1)
+}

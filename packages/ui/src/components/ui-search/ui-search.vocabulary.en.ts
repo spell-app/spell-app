@@ -19,6 +19,7 @@ export const searchVocabulary = {
   tag: "ui-search",
   topics: ["inputs", "forms", "navigation", "selection", "modules"],
   aka: ["autocomplete", "typeahead", "search box", "combobox", "lookup"],
+  skeleton: { display: "inline", width: "15em", height: "2.5em" },
   noun: "search",
   description: "A search module allows a user to query for results from a selection of data.",
   attributes: [

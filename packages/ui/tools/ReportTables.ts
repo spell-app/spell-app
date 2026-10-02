@@ -241,7 +241,8 @@ export class ReportTables {
       libraryBundled: "no Solid / fork module in `dist/`",
       lazyInEager: "runtime + icon data only in lazy chunks",
       unattributed: "every module attributed to a bucket",
-      peersMissing: "every external specifier is in the peer set"
+      peersMissing: "every external specifier is in the peer set",
+      lightDarkLowered: "`light-dark()` kept as is (never lowered to `--lightningcss-*` variables)"
     }
     const rows = Object.entries(labels).map(([key, label]) => {
       const found = results.checks[key as keyof MeasureResults["checks"]]

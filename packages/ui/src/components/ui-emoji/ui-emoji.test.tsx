@@ -6,7 +6,8 @@ import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
 
 import { EmojiData } from "$/ui/components/ui-emoji"
-import { emojiSetVocabulary } from "./ui-emoji-set.vocabulary.en"
+
+import "$/ui/components/ui-root"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/ui-emoji/examples/elements/*.html", {
@@ -27,7 +28,6 @@ async function render(html: string) {
 
 describe("EmojiData", () => {
   afterEach(() => {
-    for (const set of document.querySelectorAll("ui-emoji-set")) set.remove()
     EmojiData.use("cldr")
   })
 
@@ -104,7 +104,6 @@ describe("EmojiData", () => {
 
 describe("EmojiData name sets", () => {
   afterEach(() => {
-    for (const set of document.querySelectorAll("ui-emoji-set")) set.remove()
     EmojiData.use("cldr")
   })
 
@@ -145,21 +144,23 @@ describe("EmojiData name sets", () => {
     for (const name of ["ice cream", "ice-cream", "iceCream"]) expect(await EmojiData.get(name), name).toBe("\u{1F368}")
   })
 
-  it("switching clears the old set's names", async () => {
-    expect(await EmojiData.get("thumbs_up")).toBe("\u{1F44D}")
+  it("each set keeps its own names, side by side:  `pencil` is \u270F\uFE0F in cldr, \u{1F4DD} in fomantic", async () => {
+    EmojiData.reset()
+    expect(await EmojiData.get("pencil", "cldr")).toBe("\u270F\uFE0F")
+    expect(EmojiData.peek("pencil", "fomantic")).toBeUndefined()
+    expect(await EmojiData.get("pencil", "fomantic")).toBe("\u{1F4DD}")
+    expect(EmojiData.peek("pencil", "cldr")).toBe("\u270F\uFE0F")
     EmojiData.use("fomantic")
-    expect(EmojiData.peek("thumbs_up")).toBeUndefined()
-    expect(await EmojiData.get("thumbsup")).toBe("\u{1F44D}")
-    EmojiData.use("cldr")
-    expect(EmojiData.peek("thumbsup")).toBeUndefined()
-    expect(await EmojiData.get("thumbs_up")).toBe("\u{1F44D}")
+    expect(EmojiData.peek("pencil")).toBe("\u{1F4DD}")
   })
 
-  it("a switch while a chunk loads keeps the old set's names out of the new set", async () => {
-    const pending = EmojiData.get("thumbs_up")
+  it("a chunk loading for one set lands in that set only", async () => {
+    EmojiData.reset()
+    const pending = EmojiData.get("thumbs_up", "cldr")
     EmojiData.use("fomantic")
     await pending
     expect(EmojiData.peek("thumbs_up")).toBeUndefined()
+    expect(EmojiData.peek("thumbs_up", "cldr")).toBe("\u{1F44D}")
   })
 
   it("an unknown set means the default", () => {
@@ -176,43 +177,41 @@ describe("EmojiData name sets", () => {
     EmojiData.use("cldr")
     expect(EmojiData.peek("approve")).toBe("\u{1F44D}")
   })
+})
 
-  it("<ui-emoji-set> in the document before the first lookup picks the set", async () => {
-    EmojiData.reset()
+describe("<ui-emoji> in a <ui-root emoji>", () => {
+  /** `<ui-emoji>`'s glyph, once its load has settled. */
+  async function glyph(host: Element) {
+    await expect.poll(() => host.shadowRoot?.firstElementChild?.textContent).toBeTruthy()
+    return host.shadowRoot!.firstElementChild!.textContent
+  }
+
+  it("draws from its root's set;  outside a root, the page's", async () => {
     const holder = await ElementFixture.render(
-      `<div><ui-emoji-set names="cldr"></ui-emoji-set><ui-emoji-set names="fomantic"></ui-emoji-set></div>`
+      `<div><ui-root emoji="fomantic" display="immediately"><ui-emoji name="pencil"></ui-emoji></ui-root>` +
+        `<ui-emoji name="pencil"></ui-emoji></div>`
     )
-    expect(holder).toBeTruthy()
-    expect(await EmojiData.get("thumbsup")).toBe("\u{1F44D}")
-    expect(EmojiData.names).toBe("fomantic")
+    const [inside, outside] = holder.querySelectorAll("ui-emoji")
+    expect(await glyph(inside!)).toBe("\u{1F4DD}")
+    expect(await glyph(outside!)).toBe("\u270F\uFE0F")
   })
 
-  it("<ui-emoji-set> with no `names` is the default set", async () => {
-    EmojiData.reset()
-    await ElementFixture.render(`<ui-emoji-set></ui-emoji-set>`)
-    expect(EmojiData.names).toBe("cldr")
-    expect(await EmojiData.get("thumbs_up")).toBe("\u{1F44D}")
+  it("a nested root inherits the set it doesn't set", async () => {
+    const holder = await ElementFixture.render(
+      `<div><ui-root emoji="fomantic" display="immediately"><ui-root size="small" display="immediately">` +
+        `<ui-emoji name="pencil"></ui-emoji></ui-root></ui-root></div>`
+    )
+    expect(await glyph(holder.querySelector("ui-emoji")!)).toBe("\u{1F4DD}")
   })
 
-  it("one connected later switches LATER lookups only", async () => {
-    const drawn = await render(`<ui-emoji name="thumbs_up"></ui-emoji>`)
-    expect(drawn.root.textContent).toBe("\u{1F44D}")
-    expect(EmojiData.names).toBe("cldr")
-    await ElementFixture.render(`<ui-emoji-set names="fomantic"></ui-emoji-set>`)
-    await ElementFixture.tick()
-    expect(EmojiData.names).toBe("fomantic")
-    expect(drawn.root.textContent).toBe("\u{1F44D}")
-    const later = await render(`<ui-emoji name="smile"></ui-emoji>`)
-    expect(later.root.textContent).toBe("\u{1F604}")
-  })
-
-  it("has a vocabulary with the `names` enum", () => {
-    expect(emojiSetVocabulary.tag).toBe("ui-emoji-set")
-    expect(emojiSetVocabulary.attributes[0]).toMatchObject({
-      name: "names",
-      values: ["cldr", "fomantic"],
-      default: "cldr"
-    })
+  it("redraws when the root's set changes", async () => {
+    const holder = await ElementFixture.render(
+      `<div><ui-root display="immediately"><ui-emoji name="pencil"></ui-emoji></ui-root></div>`
+    )
+    const emoji = holder.querySelector("ui-emoji")!
+    expect(await glyph(emoji)).toBe("\u270F\uFE0F")
+    holder.querySelector("ui-root")!.setAttribute("emoji", "fomantic")
+    await expect.poll(() => emoji.shadowRoot!.firstElementChild!.textContent).toBe("\u{1F4DD}")
   })
 })
 

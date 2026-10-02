@@ -142,10 +142,21 @@
     vertical-align: baseline;
     opacity: var(--_ui-breadcrumb-divider-opacity);
   }
-  /* A section's own divider draws the breadcrumb's token;  the first section has none. */
+  /*
+   * A section's own divider draws the breadcrumb's token;  the first section has none.
+   * - The icon layout (below) never style-queries the `::before`:  WebKit doesn't re-evaluate a style query on a
+   *   pseudo-element when the container's token changes later (the icon loads after first paint).  The query sets
+   *   private values on the DIVIDER itself, a real element, and the `::before` reads them through `var()`.
+   */
   :host > .divider:empty::before,
   .ui.breadcrumb .divider:empty::before {
-    content: var(--ui-breadcrumb-divider, "/");
+    content: var(--_ui-breadcrumb-divider-content, var(--ui-breadcrumb-divider, "/"));
+    display: inline-block;
+    width: var(--_ui-breadcrumb-divider-box, auto);
+    height: var(--_ui-breadcrumb-divider-box, auto);
+    background-color: var(--_ui-breadcrumb-divider-fill, transparent);
+    vertical-align: var(--_ui-breadcrumb-divider-align, baseline);
+    mask: var(--_ui-breadcrumb-divider-icon, none) center / contain no-repeat;
   }
   :host(:first-child) > .divider,
   .ui.breadcrumb li:first-child > .divider:empty {
@@ -165,16 +176,11 @@
     :host > .divider:empty,
     .ui.breadcrumb .divider:empty {
       font-size: var(--_ui-breadcrumb-icon-divider-size);
-    }
-    :host > .divider:empty::before,
-    .ui.breadcrumb .divider:empty::before {
-      content: "";
-      display: inline-block;
-      width: 1em;
-      height: 1em;
-      background-color: currentColor;
-      vertical-align: -0.125em;
-      mask: var(--ui-breadcrumb-divider-icon) center / contain no-repeat;
+      --_ui-breadcrumb-divider-content: "";
+      --_ui-breadcrumb-divider-box: 1em;
+      --_ui-breadcrumb-divider-fill: currentColor;
+      --_ui-breadcrumb-divider-align: -0.125em;
+      --_ui-breadcrumb-divider-icon: var(--ui-breadcrumb-divider-icon);
     }
   }
 }

@@ -17,6 +17,7 @@ export const radioVocabulary = {
   tag: "ui-radio",
   topics: ["forms", "inputs", "controls", "selection", "modules"],
   aka: ["radio button", "option button", "radio group"],
+  skeleton: { display: "inline", width: "6em", height: "1.25em" },
   noun: "checkbox",
   description: "A radio button chooses exactly one value of a group.",
   attributes: [

@@ -23,6 +23,7 @@ export const pushableVocabulary = {
   tag: "ui-pushable",
   topics: ["layout", "navigation", "modules"],
   aka: ["sidebar container", "pushable area"],
+  skeleton: null,
   noun: "pushable",
   ui: false,
   description: "The context a sidebar appears in:  it clips them and moves its pusher.",
