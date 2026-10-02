@@ -30,11 +30,12 @@ export class PageEditor {
     this.root = root
   }
 
-  /** add the `/_server/page` routes to `router`, guarded by `guard` */
+  /** add the `/_server/page` routes to `router`, guarded by `guard`;  bodies up to 10mb */
   route(router: SRV.Router, guard: SRV.Guard): void {
+    const body = SRV.parseBodies({ limit: 10 * 1024 * 1024 })
     router.get("/_server/page", (request, reply) => this.read(request, reply))
-    router.put("/_server/page", guard.writeCheck, (request, reply) => this.write(request, reply, "put"))
-    router.patch("/_server/page", guard.writeCheck, (request, reply) => this.write(request, reply, "patch"))
+    router.put("/_server/page", guard.writeCheck, body, (request, reply) => this.write(request, reply, "put"))
+    router.patch("/_server/page", guard.writeCheck, body, (request, reply) => this.write(request, reply, "patch"))
   }
 
   /** answer `GET`:  `{ path, etag, html }` */
@@ -123,7 +124,7 @@ export function findById(source: string, id: string, parent?: string): ElementRa
   /** collect matching elements (or their `parent`s) under `node` */
   function visit(node: Parse5Node): void {
     if (node.sourceCodeLocation && node.attrs?.some((attr) => attr.name === "id" && attr.value === id)) {
-      const match = parent ? ancestors.findLast((each) => each.tagName === parent.toLowerCase()) : node
+      const match = parent ? [...ancestors].reverse().find((each) => each.tagName === parent.toLowerCase()) : node
       if (!match?.sourceCodeLocation) throw new SRV.HttpError(404, `#${id} has no <${parent}> around it`)
       found.push(match)
     }

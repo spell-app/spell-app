@@ -17,8 +17,9 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
   calls are NOT here, they're node-only code in `$/spell/node/...` (`project-utils`, `file-utils`, `disk-fetch` ...).
 - `index.html`, `demo/`, `static/` and the `vite*.config.ts` files are here too.
 - Scripts run HERE (`cd packages/app`):
-  - `yarn start` -- the app (port 3000, vite) and the api server (port 3001);  `yarn stop` stops them.
-    `yarn start:server:prod` runs the server alone.
+  - `yarn start` -- `spell serve --headless`:  the editor (port 3000, vite) and the page server with the API on it
+    (`src/server/appRoutes.ts`, a route module;  see `packages/server`).  `yarn stop` stops vite.
+    `yarn start:server` / `start:server:prod` still run the API alone, on port 3001 (`src/server/index.ts`).
   - `yarn build` -- the app.  `yarn build:runner` -- `dist-runner/` (VS Code's "Run Project" webview).
     `yarn build:element` -- `dist-element/` (`<spell-app>` and `<spell-editor>`).
   - `yarn vscode` is NOT here:  it's the repo root's.  `yarn start:lsp` and `yarn scopes` are in `../lsp`.

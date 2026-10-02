@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "yarn && yarn stop && concurrently \"yarn start:dev\" \"yarn start:server\"",
+    "start": "yarn && yarn stop && node ../cli/bin/spell.mjs serve --headless",
     "stop": "node scripts/stop.mjs",
     "start:dev": "vite",
     "start:server": "tsx watch src/server/index.ts",
