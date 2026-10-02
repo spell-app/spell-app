@@ -1,24 +1,18 @@
 /**
- * Starting things outside the goals tools:  the goals server, a browser window, VS Code's preview, and Claude Code
- * sessions in a terminal window.
+ * Starting Claude Code sessions in a terminal window, for the goals tools and their pages' buttons.
+ * - The server, browser windows and VS Code's preview are `$/server`'s:  the page server (`PageServer.ensure()`),
+ *   `SRV.openInNewWindow()`, `SRV.openInVSCode()`.
  * - macOS first:  terminals, browsers and VS Code are driven with `osascript` / `open`.  Elsewhere,
  *   `runInTerminal()` throws a `LaunchError` carrying the command, so the caller can show it to run by hand.
  * - NEVER builds a shell command from free text:  a target is resolved (`targets.js`) before it reaches a command
  *   line, and every argument is single-quoted.
  */
-import { spawn, spawnSync } from "node:child_process"
-import { existsSync, openSync, readFileSync } from "node:fs"
+import { spawnSync } from "node:child_process"
+import { existsSync } from "node:fs"
 import { homedir } from "node:os"
 import { delimiter, join } from "node:path"
 
-import { GOALS, ROOT } from "./targets.js"
-
-/** Where the running server says where it is:  `{ pid, port, goals, started }`. */
-export const SERVER_FILE = join(GOALS, ".server.json")
-/** The background server's output. */
-const SERVER_LOG = join(GOALS, ".server.log")
-/** The server script. */
-const SERVER = join(GOALS, "_tools/server.js")
+import { ROOT } from "./targets.js"
 
 /** The skills a page or `spell goals` may start, by name:  only these reach a command line. */
 export const SKILLS = ["goals", "goals-update"]
@@ -148,95 +142,4 @@ end tell`
 /** `text` as an AppleScript string literal. */
 function appleString(text) {
   return `"${text.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`
-}
-
-////////////////
-// ## Browser and VS Code
-////////////////
-
-/**
- * Show `url` in a NEW browser window.
- * - `prefs.browser`:  "Google Chrome" or "Safari" (macOS, by AppleScript), else the system's default browser
- */
-export function openInBrowser(url, prefs) {
-  if (process.platform === "darwin" && prefs.browser === "Google Chrome") {
-    const script = `tell application "Google Chrome"
-  activate
-  set newWindow to make new window
-  set URL of active tab of newWindow to ${appleString(url)}
-end tell`
-    if (spawnSync("osascript", ["-e", script]).status === 0) return "Google Chrome"
-  }
-  if (process.platform === "darwin" && prefs.browser === "Safari") {
-    const script = `tell application "Safari"
-  activate
-  make new document with properties {URL:${appleString(url)}}
-end tell`
-    if (spawnSync("osascript", ["-e", script]).status === 0) return "Safari"
-  }
-  const opener = process.platform === "darwin" ? "open" : process.platform === "win32" ? "explorer" : "xdg-open"
-  spawn(opener, [url], { detached: true, stdio: "ignore" }).unref()
-  return "the default browser"
-}
-
-/**
- * Show `url` in VS Code's Simple Browser, beside the editor:  the spell extension's `DocPreview` URI handler
- * (`packages/vscode/src/DocPreview.ts`), which takes a goals-server `url`, or a `file` to serve itself.
- * - needs the spell extension:  `yarn vscode` at the repo root
- */
-export function openInVSCode(url, file) {
-  const query = new URLSearchParams({ url, file }).toString()
-  const uri = `vscode://spell-app.spell-language/doc-preview?${query}`
-  const opener = process.platform === "darwin" ? "open" : process.platform === "win32" ? "explorer" : "xdg-open"
-  const run = spawnSync(opener, [uri], { encoding: "utf8" })
-  if (run.status !== 0) throw new LaunchError(`VS Code didn't open it:  ${run.stderr?.trim() ?? run.error}`)
-  return "VS Code"
-}
-
-////////////////
-// ## Goals server
-////////////////
-
-/**
- * The goals server for this goals folder, started in the background if it isn't running:  `{ port, base, started }`.
- * - running means:  `.server.json`'s process answers `/api/ping` for THIS goals folder
- * - SIDE EFFECT:  may start `server.js` detached, logging to `.server.log`
- */
-export async function ensureServer(prefs) {
-  const running = await serverStatus()
-  if (running) return { ...running, started: false }
-  const log = openSync(SERVER_LOG, "a")
-  spawn(process.execPath, [SERVER], { cwd: ROOT, detached: true, stdio: ["ignore", log, log] }).unref()
-  for (let tries = 0; tries < 50; tries++) {
-    await new Promise((done) => setTimeout(done, 100))
-    const status = await serverStatus()
-    if (status) return { ...status, started: true }
-  }
-  throw new LaunchError(`the goals server didn't start on port ${prefs.server.port}:  see ${SERVER_LOG}`)
-}
-
-/** The running server's `{ pid, port, base }`, or `undefined`. */
-export async function serverStatus() {
-  if (!existsSync(SERVER_FILE)) return undefined
-  let info
-  try {
-    info = JSON.parse(readFileSync(SERVER_FILE, "utf8"))
-  } catch {
-    return undefined
-  }
-  const base = `http://127.0.0.1:${info.port}`
-  try {
-    const answer = await (await fetch(`${base}/api/ping`, { signal: AbortSignal.timeout(1000) })).json()
-    return answer.goals === GOALS ? { pid: info.pid, port: info.port, base } : undefined
-  } catch {
-    return undefined
-  }
-}
-
-/** Stop the running server, if any;  returns whether one was stopped. */
-export async function stopServer() {
-  const running = await serverStatus()
-  if (!running) return false
-  process.kill(running.pid, "SIGTERM")
-  return true
 }

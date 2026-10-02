@@ -1,16 +1,21 @@
 /*
- * Live goals pages:  buttons to add thoughts and to start Claude sessions, and a reload whenever the page changes.
+ * Live goals pages:  buttons to add thoughts and to start Claude sessions.
  * Loaded after `spell-ui.js` by every goals page (`goals/**`, `templates/goals/**`).  Rules:  `goals/AGENTS.md`.
- * - Served by the goals server (`yarn goals open`), a page has `window.GOALS_SERVER` (`{ port, token, page }`):
- *   - thoughts save through `POST /api/thought`;  Claude sessions start through `POST /api/run`, in a terminal
- *   - `/api/events` says which file changed:  this page, or an asset, reloads in place (scroll kept)
+ * - Served by the page server (`yarn goals open`, `yarn server`) with goals' route module
+ *   (`goals/_tools/goalsRoutes.ts`), a page has `window.GOALS_SERVER` (`{ api }`) and the server's own
+ *   `window.SPELL_SERVER` (`{ token, ... }`):
+ *   - thoughts save through `POST <api>/thought`;  Claude sessions start through `POST <api>/run`, in a terminal
+ *   - writes carry the server's token (`x-server-token`)
+ *   - live reload is the page server's (`/_server/live.js`), not ours
  * - Opened from disk (`file://`):  the same buttons explain how to start the server, and link to the page on it.
  * - Classic script, no imports:  `file://` pages can't load modules.  `window.SpellUI.UI` is the bundle's `UI`.
  * - The buttons follow the docs' rule:  pills with an icon and text, or circles with an icon, an `aria-label` and a
  *   `<ui-popup>` tooltip right after.
  */
 ;(function () {
-  const SERVER = window.GOALS_SERVER
+  /** goals' routes on this server, when it has them:  `{ api, token }` */
+  const SERVER =
+    window.GOALS_SERVER && window.SPELL_SERVER ? { ...window.GOALS_SERVER, token: window.SPELL_SERVER.token } : undefined
   const body = document.body
   const SET = body.dataset.set
   const TOPIC = body.dataset.topic
@@ -18,7 +23,6 @@
   const BASE = SET ? (TOPIC ? `${SET}/${TOPIC}` : SET) : ""
   /** What the page calls itself in messages. */
   const NAME = BASE || "the goals home page"
-  const SCROLL_KEY = `goals-scroll:${location.pathname}`
   const DEFAULT_PORT = 4747
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true })
@@ -28,10 +32,8 @@
   // ## Start
   ////////////////
 
-  /** Wire the page:  reload on change, then the buttons once the runtime has built the contents. */
+  /** Wire the page:  the buttons, once the runtime has built the contents. */
   function start() {
-    restoreScroll()
-    if (SERVER) listen()
     if (!SET) return
     addHeadingTools()
     addItemTools()
@@ -204,9 +206,8 @@
       if (!text) return field.focus()
       save.setAttribute("loading", "")
       try {
-        const answer = await post("/api/thought", { target: modal.dataset.target, text })
+        const answer = await post(`${SERVER.api}/thought`, { target: modal.dataset.target, text })
         hide(modal)
-        rememberScroll()
         toast("Thought saved", `${answer.target} · ${answer.id}:  the page reloads with it.`, "success")
       } catch (error) {
         toast("Couldn't save the thought", error.message, "error")
@@ -233,7 +234,7 @@
   async function run(skill, target) {
     if (!SERVER) return openNoServer(`/${skill} ${target}`)
     try {
-      const answer = await post("/api/run", { skill, target }, [409])
+      const answer = await post(`${SERVER.api}/run`, { skill, target }, [409])
       if (answer.needs) return openSetup(answer.needs, () => run(skill, target))
       toast("Claude is starting", `In ${answer.how}:  /${skill} ${target}`, "success")
     } catch (error) {
@@ -295,7 +296,7 @@
       .addEventListener("click", () => copy(modal.querySelector(".goals-setup-install code").textContent))
     modal.querySelector(".goals-login").addEventListener("click", async () => {
       try {
-        const answer = await post("/api/claude/login", {})
+        const answer = await post(`${SERVER.api}/claude/login`, {})
         toast("Logging in", `Finish in ${answer.how} and your browser, then press Check again.`, "info")
       } catch (error) {
         if (error.command) return openCommand("Log in from a terminal", error.message, error.command)
@@ -306,7 +307,7 @@
       const button = event.currentTarget
       button.setAttribute("loading", "")
       try {
-        const status = await (await fetch("/api/claude")).json()
+        const status = await (await fetch(`${SERVER.api}/claude`)).json()
         if (!status.installed) return stepTo(modal, "install")
         if (!status.loggedIn) return stepTo(modal, "login")
         stepTo(modal, "talk")
@@ -340,7 +341,7 @@
   async function openVSCode(target) {
     if (!SERVER) return openNoServer(`yarn goals open-vs ${target}`)
     try {
-      await post("/api/open-vscode", { target })
+      await post(`${SERVER.api}/open-vscode`, { target })
       toast("Opening in VS Code", "Beside your editor, in Simple Browser.", "success")
     } catch (error) {
       toast("Couldn't open VS Code", error.message, "error")
@@ -354,9 +355,9 @@
   function openNoServer(what) {
     const command = `yarn goals open ${BASE}`
     const modal = commandModal()
-    modal.querySelector("ui-header").textContent = "Start the goals server"
+    modal.querySelector("ui-header").textContent = "Start the page server"
     modal.querySelector(".goals-modal-about").innerHTML =
-      `${what ? `<code>${escape(what)}</code> needs` : "Thoughts and Claude sessions need"} the goals server:  a small ` +
+      `${what ? `<code>${escape(what)}</code> needs` : "Thoughts and Claude sessions need"} the page server:  a small ` +
       `local web server that saves to these pages and starts Claude for you.  Start it from the project:`
     modal.querySelector("code.goals-command").textContent = command
     const link = modal.querySelector(".goals-served")
@@ -401,8 +402,9 @@
   }
 
   /**
-   * This page's URL on a goals server at the default port, worked out from where the docs' assets are:  the
-   * project root is the folder above `packages/docs/_assets/`.
+   * This page's URL on a page server at the default port (its real port is in `.spell-server.json`, which a
+   * `file://` page can't read), worked out from where the docs' assets are:  the project root is the folder above
+   * `packages/docs/_assets/`.
    */
   function servedURL() {
     const sheet = document.querySelector('link[href$="_assets/spell-doc.css"]')
@@ -414,48 +416,6 @@
   }
 
   ////////////////
-  // ## Live reload
-  ////////////////
-
-  /**
-   * Reload when the server says this page (or a stylesheet or script) changed;  keep the scroll position.
-   * - a server restarted with a new token makes POSTs fail:  reloading picks the new one up
-   */
-  function listen() {
-    const events = new EventSource("/api/events")
-    events.addEventListener("change", (event) => {
-      const { path } = JSON.parse(event.data)
-      if (decodeURI(path) === decodeURI(location.pathname) || /\.(css|js)$/.test(path)) {
-        rememberScroll()
-        location.reload()
-      }
-    })
-  }
-
-  /** Save the scroll position for the next load of this page. */
-  function rememberScroll() {
-    try {
-      sessionStorage.setItem(SCROLL_KEY, String(Math.round(scrollY)))
-    } catch {
-      // storage blocked:  the reload starts at the top
-    }
-  }
-
-  /** Back to the saved scroll position, once the page has laid out. */
-  function restoreScroll() {
-    let saved
-    try {
-      saved = sessionStorage.getItem(SCROLL_KEY)
-      sessionStorage.removeItem(SCROLL_KEY)
-    } catch {
-      return
-    }
-    if (saved === null) return
-    // after the runtime's own landing on the URL's heading
-    setTimeout(() => scrollTo(0, Number(saved)), 450)
-  }
-
-  ////////////////
   // ## Helpers
   ////////////////
 
@@ -463,14 +423,12 @@
   async function post(path, data, okStatuses = []) {
     const response = await fetch(path, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "X-Goals-Token": SERVER.token },
+      headers: { "Content-Type": "application/json", "X-Server-Token": SERVER.token },
       body: JSON.stringify(data)
     })
     const answer = await response.json().catch(() => ({}))
-    if (response.status === 403 && /token/.test(answer.error ?? "")) {
-      rememberScroll()
-      location.reload()
-    }
+    // a server restarted since:  its new token comes with a reload
+    if (response.status === 403 && /token/.test(answer.error ?? "")) location.reload()
     if (response.ok || okStatuses.includes(response.status)) return answer
     const error = new Error(answer.error ?? `${response.status} ${response.statusText}`)
     error.command = answer.command

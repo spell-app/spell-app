@@ -9,7 +9,7 @@
  *   - horizontal scroll at phone width
  *   - a content column squeezed at phone width (a wide-screen grid rule leaking into the narrow layout)
  *   - a top-level section's title (`<ui-section>` pages) or h2 (`section.s2` pages) that doesn't stick when scrolled
- *     into its section
+ *     into its section, or sticks under the fixed site header
  *   - no active contents link after scrolling
  *   - a `ui-accordion.spell-code` without a `<pre>`
  *   - a contents drawer that doesn't open at phone width
@@ -319,8 +319,9 @@ function scrollToMiddleSection() {
 
 /**
  * Whether section / h2 `id`'s title sits at the top of the viewport, and which contents link is active.
- * - stuck:  its title's top is within 160px of the viewport top -- room for a sticky bar above it, e.g.
- *   CHEATSHEET's filter -- AND it's what shows at its own middle.  Scrolled mid-section, a title that DIDN'T stick
+ * - stuck:  its title's top is within 160px BELOW the fixed site header (`--spell-site-header-height`;  never under
+ *   it) -- room for a sticky bar above it, e.g. a plan doc's page header, CHEATSHEET's filter -- AND it's what shows
+ *   at its own middle.  Scrolled mid-section, a title that DIDN'T stick
  *   is far above;  one stuck but covered, e.g. by an h3 sticking at the same offset, doesn't count.
  *   - `<ui-section>`:  its title is its shadow `title` part, and it must ALSO say `:state(stuck)`;  what shows
  *     there is the section host (the shadow retargets to it), not a nested section's
@@ -339,7 +340,9 @@ function stuckAndActive(id) {
     "#spell-toc ui-item[selected]:not([selected=false]), #spell-toc ui-item.selected, #spell-toc a.active"
   )
   const covering = shown?.closest("h1, h2, h3, h4, [id]")
-  const atTop = !!rect && rect.top >= -2 && rect.top <= 160
+  const header = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--spell-site-header-height"))
+  const below = header || 0
+  const atTop = !!rect && rect.top >= below - 2 && rect.top <= below + 160
   // a short section's end pushes its h2 out (`:state(bound)`), under whatever sticks above it:  sticky works
   let bound = false
   let stuckState = false

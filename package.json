@@ -14,6 +14,7 @@
     "packages/spell",
     "packages/app",
     "packages/core",
+    "packages/server",
     "packages/ui",
     "packages/ui/site",
     "packages/util"
@@ -32,8 +33,19 @@
     "docs:new": "yarn workspace @spell-app/docs docs:new",
     "docs:open": "yarn workspace @spell-app/docs docs:open",
     "plan-doc": "yarn workspace @spell-app/docs plan-doc",
-    "goals": "node goals/_tools/goals.js",
-    "window": "node scripts/window.mjs"
+    "goals": "TSX_TSCONFIG_PATH=goals/tsconfig.json node --import tsx goals/_tools/goals.js",
+    "goals:test": "TSX_TSCONFIG_PATH=goals/tsconfig.json node --import tsx --test goals/_tools/goalsRoutes.test.ts",
+    "window": "node scripts/window.mjs",
+    "server": "yarn workspace @spell-app/server server"
+  },
+  "pageServer": {
+    "routes": [
+      "goals/_tools/goalsRoutes.ts",
+      "packages/app/src/server/appRoutes.ts"
+    ],
+    "watch": [
+      "packages/docs"
+    ]
   },
   "devDependencies": {
     "@vitest/browser-playwright": "5.0.2",

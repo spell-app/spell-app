@@ -78,6 +78,7 @@ function isCurrent(path: string, prefix = false): boolean {
     <link rel="stylesheet" id="ui-app-stylesheet" href={siteCSSUrl} />
   </head>
   <body class="site ui-body ui-native">
+    <spell-site-header></spell-site-header>
     <a class="ui-visually-hidden site-skip" href="#main">Skip to content</a>
 
     <header class="site-header ui-dark">
@@ -182,7 +183,10 @@ function isCurrent(path: string, prefix = false): boolean {
     </ui-root>
 
     <script>
+      import { defineSite } from "$/server/site"
       import "../scripts/layout"
+
+      defineSite()
     </script>
   </body>
 </html>

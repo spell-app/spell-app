@@ -9,8 +9,12 @@ const packagesDir = resolve(srcDir, "..", "..")
 const spellCoreDir = resolve(packagesDir, "core", "src")
 /** `app`'s `static/`:  fonts and css the app serves. */
 const staticDir = resolve(packagesDir, "app", "static")
-/** Every spell project on disk:  `system/` (examples, guides, library), `user/`, and `test/` (fixtures). */
-const projectsDir = resolve(srcDir, "..", "projects")
+/**
+ * Every spell project on disk:  `system/` (examples, guides, library), `user/`, and `test/` (fixtures).
+ * - `SPELL_PROJECTS_DIR` env var overrides it, so the server's contract test (`api.test.ts`) can point the
+ *   server at a temp copy and never write into the real projects.
+ */
+const projectsDir = process.env.SPELL_PROJECTS_DIR ? resolve(process.env.SPELL_PROJECTS_DIR) : resolve(srcDir, "..", "projects")
 
 /**
  * Normalized environment variables for the server and client setup.

@@ -4,15 +4,15 @@
  *   there for its full contract (what client sends, what comes back, failure modes).
  */
 
-import express, { Request, Response, NextFunction } from "express"
 import chalk from "chalk"
 import JSON5 from "json5"
 
+import { SRV } from "$/server"
 import * as responseUtils from "$/spell/node/response-utils"
 import * as projectUtils from "$/spell/node/project-utils"
 
-/** Router mounted at `/api` by `server/index.ts`. */
-export const api = express.Router()
+/** Router mounted at `/api` by `server/index.ts`:  `$/server`'s Express-shaped `SRV.Router`. */
+export const api = new SRV.Router()
 
 /** Stringify `object` as indented `JSON5`, re-indenting continuation lines to line up under `indent`. */
 function stringify(object: any, indent: string) {
@@ -21,7 +21,7 @@ function stringify(object: any, indent: string) {
 }
 
 // Log every api request -- dev-time visibility only, not auth/audit logging.
-api.use((request: Request, response: Response, next: NextFunction) => {
+api.use((request, _response, next) => {
   const info = responseUtils.getRequestDetails(request)
 
   console.warn("\n\n==========================================================")
@@ -54,9 +54,9 @@ api.post("/projects/rename/file", projectUtils.request_renameFile)
 api.delete("/projects/remove/file", projectUtils.request_deleteFile)
 
 // returning project files -- see `projectUtils.request_getIndex` / `request_getFile` / `request_saveFile`.
-// NOTE: `:filePath*` is a path-to-regexp wildcard -- it captures the REST of the URL including `/`s, so
-// nested folder paths reach the handler as one string; see `SpellLocation`/`fileUtils` for how that
-// gets validated and turned back into a real path.
+// NOTE: `:filePath*` captures the REST of the URL including `/`s, so nested folder paths reach the handler as one
+// string (`SRV.Router`;  Express 4 kept only the first segment);  see `SpellLocation`/`fileUtils` for how that gets
+// validated and turned back into a real path.
 api.get("/projects/index/:projectId", projectUtils.request_getIndex)
 api.get("/projects/file/:projectId/:filePath*", projectUtils.request_getFile)
 api.post("/projects/file/:projectId/:filePath*", projectUtils.request_saveFile)
@@ -91,5 +91,5 @@ api.get("/error", (request, response) => response.status(500).send("No soup for 
 // Log an error to the console for an unknown API path.
 // NOTE: THIS MUST BE AT THE END OF THE FILE!
 ////////////////
-api.get("*", (request, response) => response.status(404).send(`API routine not defined on server:   '${request.url}'`))
-api.post("*", (request, response) => response.status(404).send(`API routine not defined on server:   '${request.url}'`))
+// every verb:  Express answered only GET / POST here, so an unknown DELETE got its default HTML 404
+api.all("*", (request, response) => response.status(404).send(`API routine not defined on server:   '${request.url}'`))

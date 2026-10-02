@@ -10,7 +10,7 @@
     "docs:index": "node scripts/index.js",
     "docs:new": "node scripts/new-page.js",
     "docs:open": "node scripts/open.js",
-    "plan-doc": "node scripts/plan-doc.js",
+    "plan-doc": "tsx scripts/plan-doc.js",
     "/////// CORRECTNESS": "",
     "review": "yarn ts && yarn lint:fix && yarn format && yarn test && echo '== REVIEW PASSED\n===========\n'",
     "ts": "echo '>>>>>>>>>>>\n>> RUNNING TSC' && tsc -p tsconfig.json && echo '<< TSC PASSED\n'",
@@ -23,6 +23,7 @@
     "test:watch": "vitest"
   },
   "devDependencies": {
+    "@spell-app/server": "workspace:*",
     "@spell-app/spell": "workspace:*",
     "@spell-app/ui": "workspace:*",
     "esbuild": "^0.28.2",

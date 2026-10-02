@@ -14,7 +14,7 @@ turns them into the tables of `docs/report.md`.
 | `DeclarationCheck.ts` | `yarn smoke` runs it after `vite build`:  every `exports` `types` path exists, and no `dist/**.d.ts` import is an alias (`$/util`, `$/ui`) or leaves `dist/` |
 | `ForkBuild.ts` | builds `packages/solid-element` when its `dist/` is missing or stale (`vendor`, `measure`) |
 | `HostApp.ts` | compiles the Solid 2 host app (`frameworks/solid/app.tsx`) with Solid external |
-| `SmokeRunner.ts` + `StaticServer.ts` | serves `dist/`, `vendor/`, `tools/`, `test/` from ONE static server, injects the import map, drives each page in headless chromium |
+| `SmokeRunner.ts` + `StaticServer.ts` | (`StaticServer` is a thin wrapper over `SRV.WebServer`) serves `dist/`, `vendor/`, `tools/`, `test/` from ONE static server, injects the import map, drives each page in headless chromium |
 | `LocCount.ts` | lines / code lines per file, by group |
 | `ReportTables.ts` | rewrites the `generated:<name>` tables of `docs/report.md` |
 | `peers.ts` | the peer specifiers `dist/` imports |

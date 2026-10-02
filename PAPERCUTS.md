@@ -877,6 +877,7 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   `origin/main` (`bec84199`), 21 commits behind local `main`. · `cd .claude/worktrees/doc-template && claude --resume
   c0f54984`, then `git merge main` in the worktree.  The hook (`.claude/hooks/worktree.mjs`) branches from local
   `main`, once a session starts with it registered. · tooling
+- 2026-10-02 · `yarn site:check` (`astro check`) crashes before checking anything:  `Cannot read properties of undefined (reading 'useCaseSensitiveFileNames')` in `@volar/kit/lib/createChecker.js`, with or without our changes (the repo's TS 7 vs the language server) · not fixed;  `yarn site:build` is the working gate · ui
 
 ## cli
 
@@ -964,3 +965,16 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   the content part clips (`overflow-y: clip`) and a card's border is a box-shadow;  `overflow-clip-margin` did
   nothing because Chromium applies it only when BOTH axes clip. · `overflow: clip; overflow-clip-margin: 6px` on
   `ui-section::part(content)` (`spell-doc.css`;  `spell-ui-findings.md` 26). · docs
+- 2026-10-02 · `yarn docs:update` failed at "check links" before any browser check, on pages nobody touched:
+  `plans/ui-component-creation` links `packages/ui/reference/Fomantic-UI/`, a git-ignored clone that a fresh
+  worktree (and here the main checkout too) doesn't have. · `mkdir -p packages/ui/reference/Fomantic-UI` for the
+  run, then remove it;  or clone Fomantic there. · docs
+- 2026-10-02 · `node scripts/plan-doc.js <command>` died with `Cannot find package '$'`:  since the unified-server
+  merge `plan-doc.js` imports `$/server` (`SRV.FileLock`), an alias only `tsx` (or vitest's `tsconfigPaths`)
+  resolves. · Run it as `yarn plan-doc ...` (the script is `tsx scripts/plan-doc.js`), or
+  `npx tsx scripts/plan-doc.js ...`. · docs
+- 2026-10-02 · `yarn docs:update` still fails at "check links" after the Fomantic fix:  `server.html` and
+  `plans/unified-server` link the page server's runtime files (`.spell-server.json`, `.spell-server.log`,
+  `.spell-server.astro.log`:  only there while it runs) and `packages/app/src/server/ts.zip` (deleted in P6). ·
+  Not fixed:  `yarn server ensure` first creates the runtime files;  `--no-check` skips the browser checks only. ·
+  docs

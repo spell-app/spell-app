@@ -4,4 +4,12 @@ node_modules
 .claude/worktrees/
 packages/solid-element/dist/
 __pycache__/
+
+# the page server's pid file and log (`yarn server`)
+.spell-server.json
+.spell-server.log
+.spell-server.*.log
+.spell-server.*.json
+
+# `/bedtime`'s morning report:  never committed
 MORNING-*.md

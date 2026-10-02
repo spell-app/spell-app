@@ -14,6 +14,8 @@
  * - sticky headers:  the page header (`ui-sticky.spell-h1`) sticks at the top, each top-level title below it,
  *   nested ones below their parents' (re-measured on resize);  CSS variables on the sections let anchors land below
  *   them all
+ * - everything that sticks or lands at the top starts BELOW the fixed site header (`<spell-site-header>`,
+ *   `siteHeaderHeight()`):  the page header, the titles, the contents column, the rail, the drawer
  * - folding:  every section folds from a chevron on its title;  folds are remembered per page, and `collapsed`
  *   (`data-fold="closed"` on HEADINGS pages) starts one folded
  * - counts:  a top-level section holding `[data-status]` items (plan docs' phases, questions, issues ...) shows
@@ -24,6 +26,24 @@
  *   hides it
  * - the contents buttons (expand / collapse / code / hide), the narrow-screen drawer, the CHEATSHEET card filters
  * - highlight.js, when the page loaded it
+ * LANDING -- where a jump puts its target, ONE model for every kind of jump:
+ * - the line:  just below the lowest title that will be stuck over the target:  site header + `--spell-top` (page
+ *   header, filter bar) + the stack of the target's sections' titles
+ * - CSS `scroll-margin-top` holds that line MINUS the site header (`spell-doc.css`);  the site header is added by
+ *   whoever does the scrolling, once:
+ *   - our jumps (link clicks, a `#hash` load, `hashchange` / `popstate`, so also `location.hash = id`):
+ *     `scrollTo()` with a computed top, which `scroll-padding` never touches:  `offsetFor()` adds the site header
+ *   - the browser's own (a `#hash` before this runs, `scrollIntoView()`, focus):  `:root`'s `scroll-padding-top`,
+ *     the site header's height (`<spell-site-header>` installs it)
+ *   - paging (Page Down / Up, Space):  ours (`wirePaging()`), measured at the destination:  the old bottom lands
+ *     just below the titles stuck THERE.  The browser's own paging (where ours stands aside) goes by
+ *     `scroll-padding-top`:  while titles are stuck, `<ui-section>` / `<ui-sticky>` (`StickyWatch`) write the
+ *     lowest stuck edge as an INLINE `scroll-padding-top` on `<html>` (it includes the site header:  titles stick
+ *     below it), overriding `:root`'s;  removed once none is stuck.  That's where it STARTS, so a title that sticks
+ *     on the way can cover the old bottom.
+ * - NOTE: a browser jump made WHILE titles are stuck adds that inline padding to the margin, landing one stack
+ *   lower:  every such jump that changes the hash (`hashchange`) lands again through ours;  `scrollIntoView()` from
+ *   code doesn't -- call `jump`'s path (a click on a `#id` link, or set `location.hash`) instead
  * NOTE: panels open and close through the accordion's `open` PROPERTY (panel indexes as text):  that's
  * `<ui-accordion>`'s controlled state, and writing it announces nothing (`ui-open` / `ui-close` mean the user).
  */
@@ -40,7 +60,9 @@ const TAGS = [
   "ui-input",
   "ui-select",
   "ui-icon",
-  "ui-section"
+  "ui-section",
+  // installs `--spell-site-header-height`, which every sticky line starts from
+  "spell-site-header"
 ]
 
 /**
@@ -99,6 +121,7 @@ async function start() {
   const follow = toc ? followScroll(main, outline, toc, rail) : undefined
   if (toc) wireContents(main, toc, follow)
   const jump = wireAnchors(main, outline, sticky, follow, folds)
+  wirePaging(main)
   wireFilter(main, toc)
   // UI renders its shadow content a little after the definitions:  land on the URL's target once it has
   await nextFrames(2)
@@ -617,20 +640,26 @@ function setFolded(section, folded) {
 ////////////////
 
 /**
- * Where each sticky title sticks, below whatever sticks above every section:  the page header
- * (`ui-sticky.spell-h1`) and the CHEATSHEET's filter bar (`.spell-filter`), whose height is `--spell-top` on `main`.
+ * Where each sticky title sticks:  below the fixed site header (`siteHeaderHeight()`), then whatever sticks above
+ * every section -- the page header (`ui-sticky.spell-h1`) and the CHEATSHEET's filter bar (`.spell-filter`), whose
+ * heights are `--spell-top` on `main`.
  * - SECTIONS:  sets each top-level `<ui-section>`'s `offset`;  nested ones stack themselves below their parents'.
  *   Writes `--spell-section-top` (where its title sticks) and `--spell-stack` (the bottom of its stack of stuck
  *   titles) on every section, which `scroll-margin-top` reads (`spell-doc.css`):  a section lands at its sticky
  *   line, anything in it below its stack.
  * - HEADINGS:  h2s below the bar, h3s just below their section's h2;  sets each sticky's `offset`, and
  *   `--spell-h2-h` / `--spell-h3-h` on the sections, which the headings' `scroll-margin-top` reads
+ * - also sticks the page header and the contents column just below the site header (their `offset`), and writes
+ *   the page header's height as `--spell-head-h` on `main` (the filter bar sticks below it)
+ * - NOTE: the `offset`s are from the VIEWPORT top, so they include the site header;  the CSS variables (and so
+ *   every `scroll-margin-top`) leave it OUT, as the browser adds it (see "Landing" in the header)
  * - re-measured whenever a title changes size (fonts loading, the window narrowing and titles wrapping)
  * - returns `{ measure, offsetFor }`:  `offsetFor(target)` is how far below the viewport top it should land
  */
 function trackStickyHeights(main, outline) {
   const head = main.querySelector(":scope > ui-sticky.spell-h1")
   const bar = main.querySelector(".spell-filter")
+  const contents = document.querySelector(".spell-doc-toc > ui-sticky")
   const h2Stickies = outline.sections ? [] : Array.from(main.querySelectorAll("ui-sticky.spell-h2"))
   const h3Stickies = outline.sections ? [] : Array.from(main.querySelectorAll("ui-sticky.spell-h3"))
   const sections = outline.sections ? Array.from(main.querySelectorAll("ui-section")) : []
@@ -643,16 +672,24 @@ function trackStickyHeights(main, outline) {
   measure()
   return { measure, offsetFor }
 
-  /** What sticks above the sections, onto `main`;  then each section's (heading's) sticky line. */
+  /** The site header and what sticks above the sections;  then each section's (heading's) sticky line. */
   function measure() {
-    const top = Math.round((head ? heightOf(head) : 0) + (bar ? bar.getBoundingClientRect().height : 0))
-    main.style.setProperty("--spell-top", `${top}px`)
-    if (outline.sections) measureSections(top)
-    else measureHeadings(top)
+    const header = siteHeaderHeight()
+    const headHeight = head ? heightOf(head) : 0
+    const top = Math.round(headHeight + (bar ? bar.getBoundingClientRect().height : 0))
+    setPixels(main, "--spell-head-h", headHeight)
+    setPixels(main, "--spell-top", top)
+    if (head) setOffset(head, header)
+    if (contents) setOffset(contents, header)
+    if (outline.sections) measureSections(header, top)
+    else measureHeadings(header, top)
   }
 
-  /** SECTIONS:  top-level `offset`s, and each section's sticky line and stack bottom, parents first. */
-  function measureSections(top) {
+  /**
+   * SECTIONS:  top-level `offset`s, and each section's sticky line and stack bottom, parents first.
+   * - `header`:  the site header's height;  `top`:  what sticks below it, above every section
+   */
+  function measureSections(header, top) {
     const bottoms = new Map()
     for (const section of sections) {
       const parent = section.parentElement?.closest("ui-section")
@@ -664,26 +701,38 @@ function trackStickyHeights(main, outline) {
       bottoms.set(section, line + height)
       setPixels(section, "--spell-section-top", line)
       setPixels(section, "--spell-stack", line + height)
-      if (!parent) setOffset(section, top)
+      if (!parent) setOffset(section, header + top)
     }
   }
 
   /** HEADINGS:  the h2 / h3 stickies' `offset`s and heights. */
-  function measureHeadings(top) {
+  function measureHeadings(header, top) {
     for (const sticky of h2Stickies) {
       sticky.parentElement.style.setProperty("--spell-h2-h", `${heightOf(sticky)}px`)
-      setOffset(sticky, top)
+      setOffset(sticky, header + top)
     }
     for (const sticky of h3Stickies) {
       sticky.parentElement.style.setProperty("--spell-h3-h", `${heightOf(sticky)}px`)
-      setOffset(sticky, top + h2HeightAbove(sticky))
+      setOffset(sticky, header + top + h2HeightAbove(sticky))
     }
   }
 
-  /** How far below the top a target lands:  its own `scroll-margin-top` (CSS derives it from the sections). */
+  /**
+   * How far below the viewport top a target lands:  the site header, then its own `scroll-margin-top` (CSS
+   * derives it from the sections).
+   */
   function offsetFor(target) {
-    return parseFloat(getComputedStyle(target).scrollMarginTop) || 0
+    return siteHeaderHeight() + (parseFloat(getComputedStyle(target).scrollMarginTop) || 0)
   }
+}
+
+/**
+ * Height of the fixed `<spell-site-header>` on top of the page, px:  its `--spell-site-header-height` on `:root`.
+ * - 0 when the page has none (or it isn't defined yet):  then everything sticks at the viewport top, as before
+ */
+function siteHeaderHeight() {
+  const value = getComputedStyle(document.documentElement).getPropertyValue("--spell-site-header-height")
+  return parseFloat(value) || 0
 }
 
 /** Write `pixels` as custom property `name` on `element`, unless it's already that. */
@@ -723,8 +772,8 @@ function h2HeightAbove(sticky) {
  * Same-page links to anything with an id in `main` (a section, a heading, a plan item) jump there ourselves, and
  * the contents follow AT ONCE.
  * - a section lands with its title at its sticky line;  anything else below every stuck title above it (both by
- *   their `scroll-margin-top`):  the browser's own jump would add the stuck titles' scroll padding (they reserve
- *   it) on top
+ *   the site header plus their `scroll-margin-top`, "Landing" in the header):  the browser's own jump would add
+ *   the stuck titles' scroll padding (they reserve it) on top
  * - HEADINGS:  a STICKY heading's jump goes to its section:  a stuck heading already "is" at the top, so the
  *   browser's own jump to it does nothing -- e.g. the contents link of the section you're reading
  * - folded sections around the target unfold first, and a target that is a folded item opens (`folds.reveal()`);
@@ -785,8 +834,9 @@ function wireAnchors(main, outline, sticky, follow, folds) {
 }
 
 /**
- * Scroll so `id` sits where its anchor should:  by its own box and `scroll-margin-top`;  a HEADINGS sticky heading
- * by its SECTION's box (it can't be measured where it is while stuck).  Instant, as the browser's own jump.
+ * Scroll so `id` sits where its anchor should:  by its own box, the site header and its `scroll-margin-top`
+ * (`offsetFor()`);  a HEADINGS sticky heading by its SECTION's box (it can't be measured where it is while stuck).
+ * Instant, as the browser's own jump.
  */
 function scrollToId(id, sticky) {
   const element = document.getElementById(id)
@@ -808,6 +858,108 @@ function topOf(element) {
   return range.getBoundingClientRect().top
 }
 
+////////////////
+// ## Paging
+////////////////
+
+/**
+ * Page Down / Page Up / Space / Shift+Space page the document ourselves, so a page always continues just below the
+ * stuck titles.
+ * - why:  the browser pages by the `scroll-padding-top` of where it STARTS (`StickyWatch`'s stuck edge), but paging
+ *   down can stick more titles (entering a nested section), which then cover the old bottom lines
+ * - down:  the old viewport bottom lands just below the lowest title stuck at the NEW position (`stuckBottom()`,
+ *   measured there:  a sticky box's position is computed in layout, so an instant scroll and a read find it);
+ *   up:  the old first line below the stuck titles lands at the viewport bottom
+ * - measured with instant scrolls, then put back and scrolled there for real (smooth, unless reduced motion):
+ *   nothing paints in between
+ * - left to the browser:  modifier keys, a key in a field, button, link or a scrolling box of its own (the contents
+ *   column, a wide `pre`), an open dialog
+ */
+function wirePaging(main) {
+  const keys = { PageDown: 1, PageUp: -1, " ": 1 }
+  document.addEventListener("keydown", (event) => {
+    let direction = keys[event.key]
+    if (!direction || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return
+    if (event.key === " " && event.shiftKey) direction = -1
+    if (document.querySelector("dialog[open]") || !pageOwnsKey(event, event.key === " ")) return
+    event.preventDefault()
+    const from = scrollY
+    const to = direction > 0 ? pageDownTo() : pageUpTo()
+    if (Math.abs(to - from) < 1) return
+    const smooth = !matchMedia("(prefers-reduced-motion: reduce)").matches
+    scrollTo({ top: from, behavior: "instant" })
+    scrollTo({ top: to, behavior: smooth ? "smooth" : "instant" })
+  })
+
+  /**
+   * Where Page Down goes:  the old viewport bottom just below the titles stuck THERE (settles in a few tries).
+   * - the furthest try that leaves the old bottom uncovered:  where the old bottom IS a title, the two positions
+   *   either side of its sticking alternate, and the nearer one shows it below the stack instead of stuck on it
+   */
+  function pageDownTo() {
+    const bottom = scrollY + innerHeight
+    const max = document.documentElement.scrollHeight - innerHeight
+    let top = scrollY
+    let best = top
+    for (let tries = 0; tries < 4; tries++) {
+      const next = Math.min(max, Math.max(0, bottom - stuckBottom(main)))
+      if (Math.abs(next - top) < 1) break
+      top = next
+      scrollTo({ top, behavior: "instant" })
+      if (bottom - top >= stuckBottom(main) - 1) best = Math.max(best, top)
+    }
+    return best
+  }
+
+  /** Where Page Up goes:  the first line below the stuck titles to the viewport bottom. */
+  function pageUpTo() {
+    return Math.max(0, scrollY + stuckBottom(main) - innerHeight)
+  }
+}
+
+/**
+ * Whether a paging key belongs to the page:  not to a field or a box that scrolls on its own;  Space not to a
+ * control either (it presses a button, follows a link).
+ */
+function pageOwnsKey(event, space) {
+  for (const node of event.composedPath()) {
+    if (!(node instanceof Element) || node === document.body || node === document.documentElement) continue
+    if (node.isContentEditable || node.matches(FIELDS) || (space && node.matches(CONTROLS))) return false
+    const overflow = getComputedStyle(node).overflowY
+    if ((overflow === "auto" || overflow === "scroll") && node.scrollHeight > node.clientHeight) return false
+  }
+  return true
+}
+
+/** What types or picks with a paging key. */
+const FIELDS = "input, textarea, select, ui-input, ui-select, ui-dropdown"
+
+/** What Space presses. */
+const CONTROLS = "a[href], button, summary, [tabindex], ui-button, ui-checkbox, ui-title, ui-item"
+
+/**
+ * The bottom of the lowest box stuck at the top now, from the viewport top:  the site header, the page header, the
+ * filter bar, every stuck (or being pushed out) section title or sticky heading in `main`.
+ * - a sticky box is stuck when it sits at (or above:  pushed out by its section's end) its computed `top`
+ */
+function stuckBottom(main) {
+  let bottom = siteHeaderHeight()
+  const boxes = Array.from(main.querySelectorAll(".spell-filter"))
+  // a `<ui-sticky>` host is `display: contents`:  the box that sticks is its shadow `sticky` part
+  for (const sticky of main.querySelectorAll("ui-sticky"))
+    boxes.push(sticky.shadowRoot?.querySelector('[part~="sticky"]'))
+  for (const section of main.querySelectorAll("ui-section[sticky]")) boxes.push(titleOf(section))
+  for (const box of boxes) {
+    if (!box) continue
+    const style = getComputedStyle(box)
+    const line = parseFloat(style.top)
+    if (style.position !== "sticky" || Number.isNaN(line)) continue
+    const rect = box.getBoundingClientRect()
+    if (rect.height && rect.top <= line + 1 && rect.bottom > bottom) bottom = rect.bottom
+  }
+  return bottom
+}
+
 /** The URL's `#hash` as an id, or "". */
 function hashId() {
   try {
@@ -823,8 +975,8 @@ function hashId() {
 
 /**
  * Highlight the current entry's contents link;  open its panels, close panels the scroll opened before.
- * - "Current":  the last entry (section, heading) whose top has reached its landing line (its `scroll-margin-top`,
- *   plus a little);  entries hidden by the filter or inside a folded section don't count
+ * - "Current":  the last entry (section, heading) whose top has reached its landing line (the site header and its
+ *   `scroll-margin-top`, plus a little);  entries hidden by the filter or inside a folded section don't count
  * - highlight:  a `<ui-item>` gets `selected`, a title's `<a>` class `active`
  * - panels the user opened or closed (`ui-open` / `ui-close`, only ever the user's) are left alone:
  *   `panel.dataset.user`
@@ -866,10 +1018,11 @@ function followScroll(main, outline, toc, rail) {
     if (pinned && Math.abs(scrollY - pinned.scrollY) < 2) return setActive(pinned.heading)
     pinned = null
     let current = headings[0]
+    const header = siteHeaderHeight()
     for (const heading of headings) {
       if (heading.offsetParent === null && !heading.getClientRects().length) continue // hidden by the filter
       if (outline.folded(heading)) continue // laid out in a folded box, but not shown
-      const line = (parseFloat(getComputedStyle(heading).scrollMarginTop) || 0) + 4
+      const line = header + (parseFloat(getComputedStyle(heading).scrollMarginTop) || 0) + 4
       if (heading.getBoundingClientRect().top <= line) current = heading
       else break // document order:  the first heading below its line ends the search
     }

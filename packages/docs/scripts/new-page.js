@@ -3,7 +3,7 @@
  * - `<template>`:  `durable` or `cheatsheet` (or a path under `templates/`);  plans come from `yarn plan-doc new`
  * - `<page>`:  where it goes, relative to `packages/docs`, e.g. `parser/parser.html` or `glossary.html`
  * - Fixes the `_assets` and `index.html` paths for the page's depth:  templates assume one folder deep, a top-level
- *   page is zero.
+ *   page is zero.  Likewise the site header's `root` (the path up to the repo root:  `packages/docs` is two more).
  * - Sets `<title>`, the `h1`, the breadcrumb's last section and the description;  drops the template's how-to
  *   comment;  refuses to overwrite.
  * - Then tidies the page and updates the docs index, so it's listed at once.
@@ -32,6 +32,7 @@ const up = "../".repeat(depth)
 const title = flags.title ?? "Short Title"
 const html = readFileSync(join(DOCS, template), "utf8")
   .replace(/((?:href|src)=")(?:\.\.\/)*(_assets\/|index\.html)/g, `$1${up}$2`)
+  .replace(/(<spell-site-header\b[^>]*?\broot=")[^"]*"/, `$1${up}../.."`)
   .replace(/\n\s*<!--\s*TEMPLATE:[\s\S]*?-->/, "")
 const { document } = parseHTML(html)
 document.querySelector("title").textContent = title

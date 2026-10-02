@@ -2,6 +2,8 @@
 
 Things that look like bugs but haven't been confirmed.  Add to the right section, under its package;  when one is confirmed and
 fixed, or disproven, delete it (note a disproof in a line at the top if the reasoning is worth keeping).
+- Fixed 2026-10-02 (unified-server P6, the app's API off Express):  `:filePath*` kept only the first segment (nested
+  project files 404 / EISDIR);  an unknown `DELETE /api/...` missed the API's own 404.
 `[V]` = checked against the code by hand.  Everything else is unverified.
 
 Entry format:  `` - `path/to/file.ts` `symbol()`: what looks wrong, why, and how to prove it. ``
@@ -316,6 +318,13 @@ every entry below that date was fixed or disproven;  what's left:
 
 - `src/components/ui-dropdown/ui-dropdown.vocabulary.en.ts` `parts`:  the root `div.ui.dropdown` has no part name, so tokens
   read at its root can't be themed via `::part()` (search got `::part(search)` on 2026-10-01).  (2026-10-01)
+
+## app
+
+### 1. Behavior bugs
+
+- `packages/spell/src/node/response-utils.ts` `sendJSFile` / `request_getCompiled` / `request_getScopes` [V]: the content-type is set
+  to `text/javascript` BEFORE the existence check, so a not-found 404 carries a JSON `{errors}` body labelled `text/javascript`.
 
 ## cli
 

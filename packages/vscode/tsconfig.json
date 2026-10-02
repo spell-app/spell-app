@@ -1,9 +1,11 @@
 {
+  // Extends the root alias table:  the extension bundles `$/server` (DocPreview), resolved by tsc AND esbuild.
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
-    "lib": ["ES2022"],
+    "lib": ["ES2023", "DOM"],
     "types": ["node", "vscode"],
     "strict": true,
     "noEmit": true,

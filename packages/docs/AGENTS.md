@@ -22,7 +22,7 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
     of a name (both sets:  `cldr`, `fomantic`).  GENERATED with `spell-ui.js`;  never edit.
   - `plan-doc.css` -- plan docs, on top of `spell-doc.css`
   - `goals.css`, `goals-live.js` -- goals pages (the repo root's `goals/`, and `templates/goals/`):  their look, and
-    their live buttons (thoughts, Claude sessions, reload on change) when the goals server serves them
+    their live buttons (thoughts, Claude sessions) when the page server serves them (goals' route module)
 - `scripts/` -- the tooling (see "Scripts").
 - `spell-docs/` -- how the pages work (`spell-docs.md`) and the @spell-app/ui problems they hit (`spell-ui-findings.md`).
 
@@ -30,8 +30,14 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
 
 - Start from a template:  `yarn docs:new durable|cheatsheet <topic>/<topic>.html --title "Title"` copies it, fixes
   the `_assets` paths for the page's depth, and lists it in the index.
-  NEVER inline copies of `_assets`:  improve the shared files instead, and every page gets it.
-- Pages open straight from disk (`file://`):  no server, no ES modules -- hence the one classic bundle.
+- Every page (templates too) starts its `<body>` with the site header, `<spell-site-header root="../..">`:  `root` is
+  the path from the page's folder to the REPO root.  The template tools (`docs:new`, `plan-doc new`, `goals new`)
+  set it;  everything that sticks or lands starts below it (`spell-doc-runtime.js` `siteHeaderHeight()`, and its
+  header's "Landing").  The element itself is `$/server/site`'s `SiteHeader`, bundled into `spell-ui.js`.
+- NEVER inline copies of `_assets`:  improve the shared files instead, and every page gets it.
+- Pages MUST still open straight from disk (`file://`):  no ES modules -- hence the one classic bundle.  But the
+  openers (`docs:open`, `plan-doc open`) show them from this checkout's PAGE SERVER (`yarn server`, see
+  `packages/server/AGENTS.md`):  live reload, edit mode, and the server-only properties (Spell UI, Editor).
 - Sections are `<ui-section>` elements (`spell-docs/spell-docs.md` "Page skeleton";  every piece of the markup:
   `spell-docs/ui-section-test.html`):
   - `<ui-section id="..." header="1. Summary" sticky collapsible dividing>`, EVERY one `sticky collapsible

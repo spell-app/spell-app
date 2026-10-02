@@ -150,14 +150,21 @@ ui-sticky.spell-h3 > h3 {
  * Anchors land below the stuck headers:  an h2 at the top, an h3 below its h2, anything else (h4s, plan items)
  * below both.  `--spell-top` is what sticks above every h2 (the page header, the CHEATSHEET's filter bar), set by
  * the runtime.
+ * - LANDING (one model for every jump, `spell-doc-runtime.js`'s header):  `scroll-margin-top` is the landing line
+ *   MINUS the fixed site header.  Whoever scrolls adds the header once:  the runtime's own jumps (`scrollTo()`,
+ *   which no `scroll-padding` touches) add `--spell-site-header-height`;  the browser's add `:root`'s
+ *   `scroll-padding-top` (the site header installs it).  While titles are stuck, `StickyWatch` overrides that with
+ *   an inline `scroll-padding-top` on `<html>`, the lowest stuck edge, so the browser's paging keeps clear of them
+ *   (the runtime pages itself where it can:  `wirePaging()`).
  */
 .spell-doc-main [id] {
   scroll-margin-top: calc(var(--spell-top, 0px) + var(--spell-h2-h, 0px) + var(--spell-h3-h, 0px) + 8px);
 }
-ui-sticky.spell-h2 > h2 {
+/* a sticky heading lands AT its sticky line;  `.spell-doc-main` so these beat the `[id]` rule above */
+.spell-doc-main ui-sticky.spell-h2 > h2 {
   scroll-margin-top: var(--spell-top, 0px);
 }
-ui-sticky.spell-h3 > h3 {
+.spell-doc-main ui-sticky.spell-h3 > h3 {
   scroll-margin-top: calc(var(--spell-top, 0px) + var(--spell-h2-h, 0px));
 }
 /* badges in headings sit on the text's middle */
@@ -252,7 +259,10 @@ ui-button.spell-fold {
   overflow: clip;
   overflow-clip-margin: 6px;
 }
-/* anchors:  a section lands with its title at its sticky line, anything in it below its stack of stuck titles */
+/*
+ * anchors:  a section lands with its title at its sticky line, anything in it below its stack of stuck titles --
+ * both measured from the site header's bottom (LANDING, above)
+ */
 .spell-doc-main ui-section[id] {
   scroll-margin-top: var(--spell-section-top, var(--spell-top, 0px));
 }
@@ -436,8 +446,8 @@ ui-accordion.spell-aside::part(content) {
 *******************************/
 
 /*
- * The aside stretches the grid row;  its `<ui-sticky offset="0">` sticks within it, and `.spell-toc-inner`
- * scrolls on its own.
+ * The aside stretches the grid row;  its `<ui-sticky>` sticks within it just below the site header (the runtime
+ * sets its `offset`), and `.spell-toc-inner` scrolls on its own, a viewport tall minus the header.
  */
 .spell-doc-toc {
   border-left: 1px solid var(--spell-rule);
@@ -447,8 +457,8 @@ ui-accordion.spell-aside::part(content) {
   --ui-font-size: 0.84rem;
 }
 .spell-toc-inner {
-  max-height: 100vh;
-  max-height: 100dvh;
+  max-height: calc(100vh - var(--spell-site-header-height, 0px));
+  max-height: calc(100dvh - var(--spell-site-header-height, 0px));
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 0 12px 40px 14px;
@@ -568,7 +578,7 @@ ui-accordion.spell-toc ui-accordion::part(title) {
 /*
  * The rail (`nav.spell-rail`, built by the runtime):  a strip at the right edge -- the contents button (bars) on
  * top, then one icon per h2, its open items floating on it.  Shown while the contents column isn't:  narrow
- * screens, or `body.spell-toc-hidden` (the contents' hide button).
+ * screens, or `body.spell-toc-hidden` (the contents' hide button).  Below the fixed site header, as the drawer.
  */
 :root {
   --spell-rail-width: 48px;
@@ -576,7 +586,7 @@ ui-accordion.spell-toc ui-accordion::part(title) {
 .spell-rail {
   display: none;
   position: fixed;
-  top: 0;
+  top: var(--spell-site-header-height, 0px);
   right: 0;
   bottom: 0;
   z-index: 899;
@@ -628,7 +638,7 @@ body.spell-toc-hidden .spell-doc-main {
   }
 }
 
-/* ## Narrow screens:  the contents become a right drawer, the rail shows */
+/* ## Narrow screens:  the contents become a right drawer below the site header, the rail shows */
 @media (max-width: 1100px) {
   .spell-doc {
     grid-template-columns: minmax(0, 1fr);
@@ -641,7 +651,7 @@ body.spell-toc-hidden .spell-doc-main {
   }
   .spell-doc-toc {
     position: fixed;
-    top: 0;
+    top: var(--spell-site-header-height, 0px);
     right: 0;
     bottom: 0;
     z-index: 900;
@@ -661,8 +671,8 @@ body.spell-toc-hidden .spell-doc-main {
     transition: transform 0.2s;
   }
   .spell-toc-inner {
-    height: 100vh;
-    height: 100dvh;
+    height: calc(100vh - var(--spell-site-header-height, 0px));
+    height: calc(100dvh - var(--spell-site-header-height, 0px));
   }
   .spell-toc-head {
     background: var(--ui-surface, Canvas);
@@ -754,7 +764,8 @@ body.spell-toc-hidden .spell-doc-main {
 }
 
 /*
- * The filter bar sticks above everything;  the runtime sticks the section headers below it (`--spell-top`).
+ * The filter bar sticks above everything but the site header and the page header (`--spell-head-h`, by the
+ * runtime);  the runtime sticks the section headers below it (`--spell-top`).
  * - the text filter, then the badge filter (`ui-select[data-spell-filter-badge]`);  wrapping at phone width
  */
 .spell-filter {
@@ -763,7 +774,7 @@ body.spell-toc-hidden .spell-doc-main {
   gap: 8px;
   align-items: center;
   position: sticky;
-  top: 0;
+  top: calc(var(--spell-site-header-height, 0px) + var(--spell-head-h, 0px));
   z-index: 5;
   margin: 12px 0 8px;
   padding-block: 10px;

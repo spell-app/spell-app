@@ -8,6 +8,8 @@
     "paths": {
       "$/util": ["../../util/src/index.ts"],
       "$/util/*": ["../../util/src/*"],
+      "$/server": ["../../server/src/index.ts"],
+      "$/server/*": ["../../server/src/*"],
       "$/ui": ["../src/index.ts"],
       "$/ui/*": ["../src/*"],
       "$/ui/test/*": ["../test/*"],

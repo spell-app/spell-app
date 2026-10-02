@@ -27,14 +27,18 @@
     --site-header-height: 3.5em;
     --site-sidebar-width: 16em;
     --site-toc-width: 13em;
+    /* the page server's `<spell-site-header>` bar above the site's own (0 outside it) */
+    --site-top: var(--spell-site-header-height, 0px);
+    /* where content sticks:  below both bars */
+    --site-stick: calc(var(--site-top) + var(--site-header-height));
     margin: 0;
-    min-block-size: 100dvh;
+    min-block-size: calc(100dvh - var(--site-top));
     color: var(--ui-text-color);
     background-color: var(--ui-background);
   }
   :where(html):has(.site) {
     /* header height + a little air;  `.site` is `<body>`, so its em ~== the root's */
-    scroll-padding-block-start: 4.5em;
+    scroll-padding-block-start: calc(4.5em + var(--spell-site-header-height, 0px));
     scroll-behavior: smooth;
   }
   @media (prefers-reduced-motion: reduce) {
@@ -59,7 +63,7 @@
 
   .site-header {
     position: sticky;
-    inset-block-start: 0;
+    inset-block-start: var(--site-top);
     z-index: var(--ui-z-sticky);
     block-size: var(--site-header-height);
     background-color: var(--ui-surface);
@@ -199,9 +203,9 @@
   /* Left sidebar:  Fomantic's dark vertical menu (`ui-dark` in the markup flips its tokens). */
   .site-sidebar {
     position: sticky;
-    inset-block-start: var(--site-header-height);
-    max-block-size: calc(100dvh - var(--site-header-height));
-    min-block-size: calc(100dvh - var(--site-header-height));
+    inset-block-start: var(--site-stick);
+    max-block-size: calc(100dvh - var(--site-stick));
+    min-block-size: calc(100dvh - var(--site-stick));
     padding: var(--ui-space-m) var(--ui-space-s);
     overflow-y: auto;
     overscroll-behavior: contain;
@@ -414,8 +418,8 @@
   /* Right-hand "On this page":  sticky, only when there's room. */
   .site-toc {
     position: sticky;
-    inset-block-start: var(--site-header-height);
-    max-block-size: calc(100dvh - var(--site-header-height));
+    inset-block-start: var(--site-stick);
+    max-block-size: calc(100dvh - var(--site-stick));
     padding: var(--ui-space-xl) var(--ui-space-s);
     overflow-y: auto;
     font-size: 0.875em;
@@ -470,7 +474,7 @@
     .site-sidebar {
       display: none;
       position: fixed;
-      inset: var(--site-header-height) 0 auto;
+      inset: var(--site-stick) 0 auto;
       z-index: var(--ui-z-sticky);
       min-block-size: 0;
       box-shadow: var(--ui-shadow-overlay);
@@ -488,7 +492,7 @@
   *******************************/
 
   .site-anchored {
-    scroll-margin-block-start: calc(var(--site-header-height) + var(--ui-space-m));
+    scroll-margin-block-start: calc(var(--site-stick) + var(--ui-space-m));
   }
   .site-anchor {
     margin-inline-start: 0.35em;

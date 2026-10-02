@@ -20,6 +20,8 @@ const SRC = fileURLToPath(new URL("../src", import.meta.url))
 const TEST = fileURLToPath(new URL("../test", import.meta.url))
 /** `../../util/src`, target of the `$/util` alias (`packages/util`, shared with `spell`);  its barrel is `index.ts`. */
 const UTIL = fileURLToPath(new URL("../../util/src", import.meta.url))
+/** `../../server/src`, target of the `$/server` alias (the shared `<spell-site-header>`, via `$/server/site`). */
+const SERVER = fileURLToPath(new URL("../../server/src", import.meta.url))
 /** The fork's source entry:  `@spell-app/solid-element` resolves here in dev AND build (no `dist/` needed). */
 const SOLID_ELEMENT = fileURLToPath(new URL("../../solid-element/src/index.ts", import.meta.url))
 
@@ -36,6 +38,8 @@ const SOLID_ELEMENT = fileURLToPath(new URL("../../solid-element/src/index.ts", 
  */
 export default defineConfig({
   output: "static",
+  // the page server (`packages/server`) proxies `/ui/*` here, path unchanged;  every internal URL goes through `url()` (`src/lib/nav.ts`)
+  base: "/ui",
   // `unwrapHtmlParagraphs`:  text on its own line inside `<p>` / `<ui-*>` stays inline, not a nested `<p>`
   integrations: [mdx({ processor: satteri({ mdastPlugins: [unwrapHtmlParagraphs] }) })],
   markdown: {
@@ -65,6 +69,8 @@ export default defineConfig({
       alias: [
         { find: /^\$\/util$/, replacement: `${UTIL}/index.ts` },
         { find: /^\$\/util\//, replacement: `${UTIL}/` },
+        { find: /^\$\/server$/, replacement: `${SERVER}/index.ts` },
+        { find: /^\$\/server\//, replacement: `${SERVER}/` },
         { find: /^\$\/ui\/test(?=\/|$)/, replacement: TEST },
         { find: /^\$\/ui$/, replacement: `${SRC}/index.ts` },
         { find: /^\$\/ui\//, replacement: `${SRC}/` },
