@@ -50,11 +50,12 @@ export class CliSession {
 
   /**
    * What `args` name, in order, with each bare root turned into its projects -- see `projectsFor()`.
+   * - No `args`:  see `defaultTarget()`.
    * - Throws `CLI.CliError` for anything it can't place.
    */
   async targets(args: string[]): Promise<CLI.ResolvedTarget[]> {
     const targets: CLI.ResolvedTarget[] = []
-    for (const arg of args) {
+    for (const arg of args.length ? args : [await this.defaultTarget()]) {
       const target = await CLI.resolveTarget(arg)
       if (target.kind !== "root") {
         targets.push(target)
@@ -65,6 +66,22 @@ export class CliSession {
       }
     }
     return targets
+  }
+
+  /**
+   * The target when none was given:
+   * - In a project's folder, or below it:  that project, `@workspace`.
+   * - Otherwise, in a terminal:  ask, at a `<TargetPrompt>`.  Throws `CLI.CliError` if cancelled.
+   * - Otherwise:  throws `CLI.CliError`, saying to name one.
+   */
+  async defaultTarget(): Promise<string> {
+    if (CLI.projectDirAbove(process.cwd())) return CLI.WORKSPACE_ARG
+    if (!this.isInteractive) {
+      throw new CLI.CliError("No spell project here -- name one, e.g. @examples/Solitaire, or `spell projects`")
+    }
+    const target = await CLI.promptForTarget()
+    if (!target) throw new CLI.CliError("Cancelled")
+    return target
   }
 
   /**
@@ -102,18 +119,24 @@ export class CliSession {
   /**
    * Compile each project `project` imports -- and what THEY import -- which has no `<Project>.compiled.js` yet.
    * - Why:  a compiled import is read from that file, so parsing `project` fails without it.
-   * - NOTE: an existing one is used as is, even if its sources have changed since.
+   * - NOTE: an existing one is used as is, even if its sources have changed since -- unless `force`
+   *   (`spell compile --force`), which recompiles them all, what they import first.
    * - Shows each on `status`, if given.
    */
-  async compileImports(project: SP.SpellProject, status?: CLI.StatusReporter, seen = new Set<SP.SpellProject>()) {
+  async compileImports(
+    project: SP.SpellProject,
+    status?: CLI.StatusReporter,
+    force = false,
+    seen = new Set<SP.SpellProject>()
+  ) {
     await project.load(undefined)
     for (const imported of LSP.ScopeExplorer.importedProjects(project)) {
       if (seen.has(imported)) continue
       seen.add(imported)
-      if (existsSync(imported.outputFile.location.serverPath)) continue
+      if (!force && existsSync(imported.outputFile.location.serverPath)) continue
 
       const row = status?.start(`${imported.projectId}  (imported by ${project.projectName})`)
-      await this.compileImports(imported, status, seen)
+      await this.compileImports(imported, status, force, seen)
       await imported.compile()
       if (row)
         this.report(status!, row, imported, { note: `wrote ${this.relative(imported.outputFile.location.serverPath)}` })

@@ -1,5 +1,6 @@
 /**
  * VS Code extension for spell:  runs the spell parser's language server, and shows a file's compiled javascript.
+ * - Also shows `packages/docs` pages rendered, beside the editor, when opened by URI -- see `DocPreview`.
  * - The server is the spell monorepo's own `packages/lsp/src/server.ts`, run by its `tsx` -- see `getRepoRoot()`.
  *   So the editor always runs spell as it is on disk:  restart the server to pick up a change.
  * - The server asks to watch `project.json` / `.spell` files itself, so there's no `synchronize` here.
@@ -16,6 +17,7 @@ import {
   type ServerOptions
 } from "vscode-languageclient/node"
 
+import { DocPreview } from "./DocPreview"
 import { RunnerPanel } from "./RunnerPanel"
 
 /** Scheme of the read-only documents showing a spell file's compiled javascript -- see `CompiledProvider`. */
@@ -35,6 +37,7 @@ let client: LanguageClient | undefined
  * - Shows an error, and does nothing else, if `spell.parserRoot` isn't the spell monorepo with its packages installed.
  */
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
+  DocPreview.register(context)
   const repoRoot = getRepoRoot()
   const tsx = findTsx(repoRoot)
   const lspDir = resolve(repoRoot, "packages/lsp")

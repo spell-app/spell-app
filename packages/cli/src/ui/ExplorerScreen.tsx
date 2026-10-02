@@ -1,3 +1,4 @@
+import { TextInput } from "@inkjs/ui"
 import { Box, Text, useApp, useInput, useStdout } from "ink"
 import { useEffect, useMemo, useState } from "react"
 import chalk from "chalk"
@@ -7,7 +8,7 @@ import type { LSP } from "$/lsp"
 import { CLI } from "$/cli"
 
 /** Keys, for the footer. */
-const HELP = "↑↓ move · ←→ fold · Tab switch pane · / filter · c compiled · i inherited · o open · q quit"
+const HELP = "↑↓ move · ←→ fold · Tab pane · / filter · c compiled · i inherited · o open · e describe · q quit"
 
 /****************
  * ### `<ExplorerScreen>`
@@ -15,9 +16,19 @@ const HELP = "↑↓ move · ←→ fold · Tab switch pane · / filter · c com
  * on the right -- the same text `spell describe` prints.
  * - Keys:  see `HELP`.  The tree pane moves the cursor, the details pane scrolls;  `Tab` switches.
  * - `/` filters the tree as you type:  `Enter` keeps the filter, `Esc` drops it.
+ * - `e` edits the selected thing's description in the footer:  `Enter` saves it, `Esc` doesn't.
  * - Fills the terminal, and follows it as it's resized -- or `size`, e.g. in tests.
  ****************/
-export function ExplorerScreen({ tree, title, describe, onOpen, initialPath, size }: ExplorerScreenProps) {
+export function ExplorerScreen({
+  tree,
+  title,
+  describe,
+  onOpen,
+  descriptionOf,
+  onEdit,
+  initialPath,
+  size
+}: ExplorerScreenProps) {
   const { exit } = useApp()
   const terminal = useTerminalSize()
   const { columns, rows } = size ?? terminal
@@ -31,6 +42,8 @@ export function ExplorerScreen({ tree, title, describe, onOpen, initialPath, siz
   const [compiled, setCompiled] = useState(false)
   const [inherited, setInherited] = useState(false)
   const [message, setMessage] = useState<string>()
+  // the description being edited -- see `startEditing()`
+  const [editing, setEditing] = useState<string>()
 
   const treeRows = useMemo(() => CLI.treeRows(tree, expanded, filter), [tree, expanded, filter])
   const cursor = Math.max(
@@ -50,54 +63,75 @@ export function ExplorerScreen({ tree, title, describe, onOpen, initialPath, siz
   )
   const maxScroll = Math.max(0, lines.length - (paneHeight - 2))
 
-  useInput((input, key) => {
-    setMessage(undefined)
-    if (isFiltering) {
-      if (key.escape) {
-        setFilter("")
-        setIsFiltering(false)
-      } else if (key.return) setIsFiltering(false)
-      else if (key.backspace || key.delete) setFilter(filter.slice(0, -1))
-      else if (key.upArrow) moveTo(cursor - 1)
-      else if (key.downArrow) moveTo(cursor + 1)
-      else if (input && !key.ctrl && !key.meta) setFilter(filter + input)
-      return
-    }
+  // while editing a description, the text field has the keys -- all but Esc, which cancels
+  useInput(
+    (_input, key) => {
+      if (key.escape) setEditing(undefined)
+    },
+    { isActive: editing !== undefined }
+  )
 
-    if (input === "q") return exit()
-    if (key.tab) return setFocus(focus === "tree" ? "details" : "tree")
-    if (input === "/") return setIsFiltering(true)
-    if (key.escape && filter) return setFilter("")
-    if (input === "c") return setCompiled(!compiled)
-    if (input === "i") return setInherited(!inherited)
-    if (input === "o" && row) return setMessage(onOpen?.(row.node))
+  useInput(
+    (input, key) => {
+      setMessage(undefined)
+      if (isFiltering) {
+        if (key.escape) {
+          setFilter("")
+          setIsFiltering(false)
+        } else if (key.return) setIsFiltering(false)
+        else if (key.backspace || key.delete) setFilter(filter.slice(0, -1))
+        else if (key.upArrow) moveTo(cursor - 1)
+        else if (key.downArrow) moveTo(cursor + 1)
+        else if (input && !key.ctrl && !key.meta) setFilter(filter + input)
+        return
+      }
 
-    const page = paneHeight - 3
-    if (focus === "details") {
-      if (key.upArrow || input === "k") setScroll(Math.max(0, scroll - 1))
-      else if (key.downArrow || input === "j") setScroll(Math.min(maxScroll, scroll + 1))
-      else if (key.pageUp) setScroll(Math.max(0, scroll - page))
-      else if (key.pageDown || input === " ") setScroll(Math.min(maxScroll, scroll + page))
-      return
-    }
+      if (input === "q") return exit()
+      if (key.tab) return setFocus(focus === "tree" ? "details" : "tree")
+      if (input === "/") return setIsFiltering(true)
+      if (key.escape && filter) return setFilter("")
+      if (input === "c") return setCompiled(!compiled)
+      if (input === "i") return setInherited(!inherited)
+      if (input === "o" && row) return setMessage(onOpen?.(row.node))
 
-    if (key.upArrow || input === "k") moveTo(cursor - 1)
-    else if (key.downArrow || input === "j") moveTo(cursor + 1)
-    else if (key.pageUp) moveTo(cursor - page)
-    else if (key.pageDown) moveTo(cursor + page)
-    else if (input === "g") moveTo(0)
-    else if (input === "G") moveTo(treeRows.length - 1)
-    else if (!row) return
-    else if (key.rightArrow || input === "l") {
-      if (row.hasChildren && !row.isOpen) setOpen(row.node.path, true)
-      else if (row.isOpen) moveTo(cursor + 1)
-    } else if (key.leftArrow || input === "h") {
-      if (row.isOpen && !filter) setOpen(row.node.path, false)
-      else moveToParent()
-    } else if (key.return || input === " ") {
-      if (row.hasChildren && !filter) setOpen(row.node.path, !row.isOpen)
-    }
-  })
+      const page = paneHeight - 3
+      if (focus === "details") {
+        if (key.upArrow || input === "k") setScroll(Math.max(0, scroll - 1))
+        else if (key.downArrow || input === "j") setScroll(Math.min(maxScroll, scroll + 1))
+        else if (key.pageUp) setScroll(Math.max(0, scroll - page))
+        else if (key.pageDown || input === " ") setScroll(Math.min(maxScroll, scroll + page))
+        return
+      }
+
+      if (key.upArrow || input === "k") moveTo(cursor - 1)
+      else if (key.downArrow || input === "j") moveTo(cursor + 1)
+      else if (key.pageUp) moveTo(cursor - page)
+      else if (key.pageDown) moveTo(cursor + page)
+      else if (input === "g") moveTo(0)
+      else if (input === "G") moveTo(treeRows.length - 1)
+      else if (!row) return
+      else if (key.rightArrow || input === "l") {
+        if (row.hasChildren && !row.isOpen) setOpen(row.node.path, true)
+        else if (row.isOpen) moveTo(cursor + 1)
+      } else if (key.leftArrow || input === "h") {
+        if (row.isOpen && !filter) setOpen(row.node.path, false)
+        else moveToParent()
+      } else if (key.return || input === " ") {
+        if (row.hasChildren && !filter) setOpen(row.node.path, !row.isOpen)
+      } else if (input === "e") startEditing(row.node)
+    },
+    { isActive: editing === undefined }
+  )
+
+  const footer =
+    editing !== undefined ? (
+      <Box>
+        <Text color="cyan">{` ${row?.node.name ?? ""} description:  `}</Text>
+        <TextInput defaultValue={editing} onSubmit={saveEdit} />
+      </Box>
+    ) : (
+      <Text wrap="truncate-end">{message ? chalk.yellow(` ${message}`) : chalk.dim(` ${HELP}`)}</Text>
+    )
 
   return (
     <Box flexDirection="column" width={columns}>
@@ -123,9 +157,27 @@ export function ExplorerScreen({ tree, title, describe, onOpen, initialPath, siz
           isFocused={focus === "details"}
         />
       </Box>
-      <Text wrap="truncate-end">{message ? chalk.yellow(` ${message}`) : chalk.dim(` ${HELP}`)}</Text>
+      {footer}
     </Box>
   )
+
+  /**
+   * Start editing `node`'s description in the footer -- or say why not:  nothing to edit with, nothing editable
+   * there, or a description of several lines, which a one-line field would flatten.
+   */
+  function startEditing(node: LSP.ScopeNode) {
+    const text = onEdit && descriptionOf?.(node)
+    if (text === undefined) return setMessage(`${node.name} has no description to edit here`)
+    if (text.includes("\n"))
+      return setMessage(`${node.name}'s description is several lines:  o to edit it in your editor`)
+    setEditing(text)
+  }
+
+  /** Save the edited description:  `onEdit()`, showing what it says. */
+  function saveEdit(text: string) {
+    setEditing(undefined)
+    if (row) setMessage(onEdit?.(row.node, text.trim()))
+  }
 
   /** Put the cursor on row `index`, kept in range, with its details scrolled to the top. */
   function moveTo(index: number) {
@@ -158,14 +210,20 @@ export function ExplorerScreen({ tree, title, describe, onOpen, initialPath, siz
  * - `title`:  shown atop the screen, e.g. the project's name
  * - `describe`:  lines for the details pane, for `node`, fitting `width` -- see `CLI.describeThing()`
  * - `onOpen`:  open `node`'s declaration in an editor.  Returns a message to show, e.g. what went wrong.
+ * - `descriptionOf`:  `node`'s description as markdown, `""` if none -- or `undefined` if it can't have one here,
+ *   e.g. it isn't declared in a file
+ * - `onEdit`:  make `text` `node`'s description.  Returns a message to show.
  * - `initialPath`:  `path` of the node to start on, with the way to it open
  * - `size`:  columns and rows to fill, rather than the terminal's
+ * - A new `tree`, e.g. after a file changed, keeps what's open and where the cursor is, by `path`.
  */
 export type ExplorerScreenProps = {
   tree: LSP.ScopeNode
   title: string
   describe: (node: LSP.ScopeNode, options: { compiled: boolean; inherited: boolean; width: number }) => string[]
   onOpen?: (node: LSP.ScopeNode) => string | undefined
+  descriptionOf?: (node: LSP.ScopeNode) => string | undefined
+  onEdit?: (node: LSP.ScopeNode, text: string) => string | undefined
   initialPath?: string
   size?: { columns: number; rows: number }
 }

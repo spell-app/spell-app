@@ -50,12 +50,28 @@ export function rootsNamed(name: string): SP.ProjectRootSpec[] {
   return roots.filter((spec) => spec.owner === name)
 }
 
+/** Project roots a person names, in setup order -- not the `@workspace:*` ones made as folders turn up. */
+export function knownRoots(): SP.ProjectRootSpec[] {
+  return Object.values(SP.SpellSetup.projectRoots).filter((spec) => spec.owner !== WORKSPACE_ARG)
+}
+
+/**
+ * What to type for root `spec`, as `resolveTarget()` reads it:  its `alias`, e.g. `@library`;  else its owner if
+ * it's the owner's only root, e.g. `@user`;  else `@<domain>`.
+ */
+export function rootName(spec: SP.ProjectRootSpec): string {
+  if (spec.alias) return spec.alias
+  return knownRoots().filter((it) => it.owner === spec.owner).length === 1 ? spec.owner : `@${spec.domain}`
+}
+
 /**
  * Ids of the projects in `roots`, e.g. `["@system:library:cards"]`.
  * - Only folders holding a `project.json` -- see the header.
+ * - A root whose folder doesn't exist, e.g. `@guides` before any guide is written, has none.
  */
 export async function projectIdsIn(roots: SP.ProjectRootSpec[]): Promise<string[]> {
-  const lists = await Promise.all(roots.map((spec) => projectUtils.getProjectList(spec.path)))
+  const present = roots.filter((spec) => existsSync(projectUtils.serverPathForRoot(spec.path)))
+  const lists = await Promise.all(present.map((spec) => projectUtils.getProjectList(spec.path)))
   return lists.flat().filter((projectId) => hasManifest(new SP.SpellLocation(projectId).serverPath))
 }
 
@@ -138,7 +154,7 @@ async function resolveDiskPath(arg: string, path: string): Promise<CLI.CliTarget
 }
 
 /** Nearest folder at or above `folder` holding a `project.json`, if any. */
-function projectDirAbove(folder: string): string | undefined {
+export function projectDirAbove(folder: string): string | undefined {
   for (let dir = folder; ; dir = dirname(dir)) {
     if (hasManifest(dir)) return dir
     if (dirname(dir) === dir) return undefined

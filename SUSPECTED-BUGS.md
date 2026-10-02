@@ -90,10 +90,6 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   word that isn't in its enumeration outputs `` `'arg.value'` `` -- the literal text `'arg.value'`, not the
   word.  Probably meant `` `'${arg.value}'` ``.  Found 2026-09-28 while extracting the class.
 
-- [V] `projects/system/library/cards/Deck.spell` `test deck creation`:  after two shuffles it expects the first
-  card NOT to be the ace of clubs -- which it is, by chance, 1 time in 52.  So the test fails at random, ~2% of
-  runs.  Probably wants "the deck isn't in its original order" instead.  Found 2026-09-28.
-
 - `projects/system/examples/Solitaire-import` imports the WHOLE `@system:examples:Solitaire` project compiled,
   so importing it runs Solitaire's top-level code -- its tests, `reset_the_game()`, `game.start()` -- which an
   import probably shouldn't.  Likely fix:  import `@library/cards`, which holds just the cards.
@@ -102,6 +98,11 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   - FIXED 2026-09-29:  it used to fail outright, `TypeError: Cannot redefine property: play`, as Solitaire's
     `spellCore.define(Card.prototype, 'play', ...)` was non-configurable.  Methods are class methods now --
     writable -- and Solitaire-import's `Card.prototype.play = function ...` replaces Solitaire's.
+  - 2026-10-01 (cli-additions):  it now loads with no errors, but deals NOTHING -- one king on the stock -- in the
+    app's own runner (`/run/examples/Solitaire-import`) and in `<spell-app>` (`spell run`), while
+    `@examples/Solitaire`, same `Solitaire.spell`, deals a full game.  NOT just `game.start()`:  serving the
+    imported `Solitaire.compiled.js` with that line removed deals nothing either -- so its other top-level code
+    (`reset_the_game()`, piles, process flags in the shared `spellCore`) is the next suspect.
 
 - A full `vitest run` writes into the FROZEN fixture `projects/test/Solitaire/`:  it rewrites
   `Solitaire.compiled.js` and leaves an untracked `Solitaire.scopes.js`, both stamped mid-run.  Some test compiles
@@ -304,3 +305,31 @@ every entry below that date was fixed or disproven;  what's left:
 
 - `src/components/ui-dropdown/ui-dropdown.vocabulary.en.ts` `parts`:  the root `div.ui.dropdown` has no part name, so tokens
   read at its root can't be themed via `::part()` (search got `::part(search)` on 2026-10-01).  (2026-10-01)
+- `src/components/ui-form/ui-form.css` lines 93-94:  `--ui-form-equal-width` and `--ui-form-unstackable` are internal 0/1
+  switches but carry the public `--ui-form-` prefix, so the docs' generated token table lists them as public.
+- `src/components/ui-input/ui-input.vocabulary.en.ts` ~line 95:  `label` is described as "Label text", but with
+  `labeled="corner"` / `"left corner"` it's read as an ICON name (`UIInput.cornerGlyph`).
+- `src/components/ui-message/examples/elements/content.html` line 15:  the "List" example says "Only the header, no
+  content block" but has no header.
+- `site/src/content/components/ui-button.mdx` / `ui-dropdown.mdx` "Framework usage":  the Solid 2 snippets use
+  `on:ui-toggle` / `on:ui-change`;  AGENTS.md says Solid 2 has no `on:` namespace (a `ref` + `addEventListener`,
+  as `tools/frameworks/solid/app.tsx`).  The new pages use the `ref` pattern.
+
+## cli
+
+### 1. Behavior bugs
+
+- (none yet:  the CLI's spell-side suspicions -- `SpellDiskWorkspace.diskChanged(uri, "created")`, `ScopeExplorer`
+  property names -- are under `spell`.)
+
+## docs
+
+### 1. Behavior bugs
+
+- `scripts/plan-doc.js` `add-phase`:  `--goal` / `--files` / `--verify` go into the page as raw HTML, so
+  `<Project>.scopes.js` or `--against <ref>` become bogus `<project>` / `<ref>` elements (oxfmt then indents them as
+  tags).  Escape them as text -- or document that they're HTML, as `--details` is.  Prove:
+  `yarn plan-doc add-phase x "A" --goal "write <Project>.js"`, then look at the `#p1` body.
+- `_assets/plan-doc.css` `.plan-phase-body`:  a long token with no break, e.g.
+  `cli/src/commands/{watch,explore,compile,run}Command.ts(x),`, overflows at phone width (`check-spell.js`:
+  "116px horizontal scroll").  `overflow-wrap: anywhere` there would let the script's plain-text phase lines wrap.

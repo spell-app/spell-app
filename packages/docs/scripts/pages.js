@@ -44,8 +44,26 @@ export function tidy(files) {
   return true
 }
 
+/** Opens a doc in VS Code's Simple Browser:  the spell extension's URI handler (`packages/vscode/src/DocPreview.ts`). */
+const VSCODE_PREVIEW = "vscode://spell-app.spell-language/doc-preview"
+
 /**
- * Show `file` in Chrome, in ONE tab per page, IN THE BACKGROUND:  `yarn docs:open <page>`, `yarn plan-doc open <name>`.
+ * Show `file` rendered in a VS Code tab, beside the editor:  `yarn plan-doc open <name>`, `yarn plan-doc phase`.
+ * - the spell extension (`yarn vscode`) serves the repo locally and shows the page in Simple Browser, ONE tab,
+ *   reloaded on every open
+ * - `open` can't fail (macOS):  without the extension, VS Code says it can't handle the URI
+ * - `open` itself failed (not macOS):  falls back to Chrome
+ */
+export function openInVSCode(file) {
+  const path = resolve(file)
+  const run = spawnSync("open", [`${VSCODE_PREVIEW}?file=${encodeURIComponent(path)}`], { encoding: "utf8" })
+  if (run.status === 0) return console.log(`opened ${path} in VS Code`)
+  console.error(`VS Code via \`open\` failed (${(run.stderr ?? String(run.error)).trim()}):  falling back to Chrome`)
+  openInChrome(file)
+}
+
+/**
+ * Show `file` in Chrome, in ONE tab per page, IN THE BACKGROUND:  `yarn docs:open <page>`;  `openInVSCode()`'s fallback.
  * - The tab is keyed by the page's path inside `packages/docs` (`plans/<name>/<name>.html`), not its full URL, so
  *   the same page from another checkout (a worktree) reuses it:  re-pointed if the URL differs, else reloaded.
  *   The page names its tab the same way (`spell-doc-runtime.js` `window.name`;  links use that `target`).

@@ -194,7 +194,7 @@ function indented(text: string): string[] {
 ////////////////
 
 /** Markdown `text` as terminal lines:  `#` headings and `**bold**` in bold, `` `code` `` in cyan, links as their text. */
-function markdownLines(text: string): string[] {
+export function markdownLines(text: string): string[] {
   return text.split("\n").map((line) => {
     const title = /^#+\s+(.*)$/.exec(line)
     return title ? chalk.bold(markdownLine(title[1]!)) : markdownLine(line)

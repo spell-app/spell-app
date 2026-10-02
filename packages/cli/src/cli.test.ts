@@ -1,7 +1,8 @@
 import { spawn, spawnSync } from "child_process"
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "fs"
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "fs"
+import { createServer } from "net"
 import { tmpdir } from "os"
-import { resolve } from "path"
+import { basename, resolve } from "path"
 import { afterAll, beforeAll, describe, test, expect } from "vitest"
 
 import { SP } from "$/spell"
@@ -13,7 +14,6 @@ import { fixturePath } from "$/spell/test"
  * - NEVER writes into a fixture:  compiles use `--stdout`.  Projects to break live in a temp folder -- see `tempProject()`.
  */
 const SPELL = resolve(import.meta.dirname, "..", "bin", "spell.mjs")
-
 /** Temp folder holding `tempProject()`s -- its REAL path:  on macOS `tmpdir()` is a symlink, and spell reports real paths. */
 const TEMP = realpathSync(mkdtempSync(resolve(tmpdir(), "spell-cli-")))
 afterAll(() => rmSync(TEMP, { recursive: true, force: true }))
@@ -35,6 +35,117 @@ function spell(args: string[], cwd = fixturePath()) {
   const { status, stdout, stderr } = spawnSync(process.execPath, [SPELL, ...args], { cwd, encoding: "utf8" })
   return { status, stdout, stderr }
 }
+
+describe("spell help", () => {
+  test("lists the commands", () => {
+    const { status, stdout } = spell(["help"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/^Usage: spell \[options\] \[command\]\n/)
+    expect(stdout).toMatch(/^ {2}compile \[options\] \[targets\.\.\.\]/m)
+  })
+
+  test("one command", () => {
+    const { status, stdout } = spell(["help", "compile"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/^Usage: spell compile \[options\] \[targets\.\.\.\]\n/)
+  })
+
+  test("an unknown command", () => {
+    const { status, stderr } = spell(["help", "nope"])
+    expect(status).toBe(2)
+    expect(stderr).toContain("No command 'nope'")
+  })
+})
+
+describe("spell icons", () => {
+  test("finds icons by name, with their packs", () => {
+    const { status, stdout } = spell(["icons", "bell", "slash", "--pack", "fomantic"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/^bell slash +fomantic {2}also alarm mute\nbell slash outline {2}fomantic\n$/)
+  })
+
+  test("--open serves a gallery until interrupted -- the page, and each icon's svg", async () => {
+    const child = spawn(process.execPath, [SPELL, "icons", "bell", "--open"], {
+      cwd: TEMP,
+      env: { ...process.env, SPELL_NO_BROWSER: "1" },
+      stdio: ["ignore", "pipe", "pipe"]
+    })
+    let out = ""
+    child.stdout.on("data", (data) => (out += data))
+    await until(() => out.includes("http://"))
+    const url = out.trim()
+    expect(await (await fetch(url)).text()).toContain("<figcaption>bell<small>fa7-free</small></figcaption>")
+    const svg = await fetch(new URL("svg/0.svg", url))
+    expect(svg.headers.get("content-type")).toBe("image/svg+xml")
+    expect((await fetch(new URL("svg/99999.svg", url))).status).toBe(404)
+
+    child.kill("SIGINT")
+    expect(await new Promise((done) => child.on("exit", done))).toBe(0)
+  }, 30_000)
+})
+
+describe("spell serve", () => {
+  // one retry:  vite's first start, in a busy run, once timed out (plan doc I3)
+  const options = { timeout: 180_000, retry: 1 }
+  test("--headless:  runs the app -- editor and /api -- on --port, opens the target, stops both", options, async () => {
+    // well away from the app's own 3000 / 3001, so a running `yarn start` doesn't clash
+    const port = 3700 + Math.floor(Math.random() * 200) * 2
+    const child = spawn(process.execPath, [SPELL, "serve", "@test/Solitaire", "--headless", "--port", String(port)], {
+      cwd: TEMP,
+      stdio: ["ignore", "pipe", "pipe"]
+    })
+    let out = ""
+    let err = ""
+    child.stdout.on("data", (data) => (out += data))
+    child.stderr.on("data", (data) => (err += data))
+    await until(() => out.includes("http://") || child.exitCode !== null, 120_000)
+    // on failure, `serve` prints both servers' last lines:  show them
+    expect(out, err).toContain("http://")
+    expect(out).toBe(`http://localhost:${port}/edit/fixtures/Solitaire\n`)
+    expect(await (await fetch(`http://localhost:${port}/`)).text()).toContain("<html")
+    const projects = await (await fetch(`http://localhost:${port}/api/projects/list/@test:fixtures`)).text()
+    expect(projects).toContain("Solitaire")
+
+    child.kill("SIGINT")
+    expect(await new Promise((done) => child.on("exit", done))).toBe(0)
+    // both servers stopped with it
+    let apiUp = true
+    for (let tries = 0; apiUp && tries < 40; tries++) {
+      await new Promise((done) => setTimeout(done, 250))
+      apiUp = await fetch(`http://localhost:${port + 1}/hello`).then(
+        () => true,
+        () => false
+      )
+    }
+    expect(apiUp).toBe(false)
+  })
+
+  test("a port in use", async () => {
+    const busy = createServer()
+    await new Promise<void>((done) => busy.listen(0, done))
+    const port = (busy.address() as { port: number }).port
+    const { status, stderr } = spell(["serve", "--headless", "--port", String(port)], TEMP)
+    busy.close()
+    expect(status).toBe(2)
+    expect(stderr).toContain(`Port ${port} is in use`)
+  })
+})
+
+describe("no target", () => {
+  test("in a project's folder:  that project -- for every command", () => {
+    const here = tempProject("Here", 'print "here"\n')
+    expect(spell(["check"], here).stderr).toContain("✓ @workspace:")
+    expect(spell(["compile"], here).stderr).toContain("wrote Here.compiled.js")
+    expect(spell(["run"], here).stdout).toBe("here\n")
+    expect(spell(["describe"], here).stdout).toMatch(/^Here\n/)
+  })
+
+  test("outside a project, with no terminal to ask on:  says to name one", () => {
+    const { status, stderr } = spell(["check"], TEMP)
+    expect(status).toBe(2)
+    expect(stderr).toContain("No spell project here -- name one")
+  })
+})
 
 describe("spell compile", () => {
   test("--stdout prints exactly the fixture's snapshot", () => {
@@ -62,6 +173,25 @@ describe("spell compile", () => {
     const { status, stderr } = spell(["compile", "@nope"])
     expect(status).toBe(2)
     expect(stderr).toContain("'@nope' isn't a project")
+  })
+
+  // NOTE: written by `SpellDiskWorkspace.writeScopes()`, as the language server and `yarn scopes` write theirs --
+  // which `yarn scopes` can't show here:  it takes a root's project id, not a temp folder.
+  test("a clean project writes its scope pack too", () => {
+    const copy = resolve(TEMP, "Solitaire")
+    cpSync(fixturePath("Solitaire"), copy, { recursive: true })
+    const { status, stderr } = spell(["compile", "."], copy)
+    expect(status).toBe(0)
+    expect(stderr).toContain(`wrote Solitaire${SP.COMPILED_JS_SUFFIX}, Solitaire${SP.SCOPES_JS_SUFFIX}`)
+    const pack = readFileSync(resolve(copy, `Solitaire${SP.SCOPES_JS_SUFFIX}`), "utf8")
+    expect(pack).toContain("type:Card")
+    expect(pack).not.toContain("file://")
+  }, 30_000)
+
+  test("a project with errors writes no scope pack", () => {
+    const broken = tempProject("BrokenPack", 'print "fine"\nflibbertigibbet the wombat\n')
+    expect(spell(["compile", "."], broken).status).toBe(1)
+    expect(existsSync(resolve(broken, `BrokenPack${SP.SCOPES_JS_SUFFIX}`))).toBe(false)
   })
 })
 
@@ -128,11 +258,36 @@ describe("spell run", () => {
     expect(existsSync(fixturePath("FizzBuzz", `FizzBuzz${SP.COMPILED_JS_SUFFIX}`))).toBe(false)
   })
 
-  test("skips what needs a browser, and says so", () => {
-    const { status, stderr } = spell(["run", "@test/Solitaire"])
+  test("--no-browser:  skips what needs a browser, and says so", () => {
+    const { status, stderr } = spell(["run", "@test/Solitaire", "--no-browser"])
     expect(stderr).toContain("Solitaire shows a UI (start the game), which needs a browser")
     expect(status).toBe(0)
   })
+
+  test("a UI project runs in the browser, in <spell-app>, until interrupted -- writing nothing into it", async () => {
+    // the fixture keeps a compiled copy:  it must come out untouched
+    const output = fixturePath("Solitaire", `Solitaire${SP.COMPILED_JS_SUFFIX}`)
+    const before = readFileSync(output, "utf8")
+    const child = spawn(process.execPath, [SPELL, "run", "@test/Solitaire"], {
+      cwd: fixturePath(),
+      env: { ...process.env, SPELL_NO_BROWSER: "1" },
+      stdio: ["ignore", "pipe", "pipe"]
+    })
+    let out = ""
+    child.stdout.on("data", (data) => (out += data))
+    // after what the program printed as it ran under node
+    await until(() => /http:\/\/localhost:\d+\/\n/.test(out), 120_000)
+    const url = /http:\/\/localhost:\d+\//.exec(out)![0]
+    expect(await (await fetch(url)).text()).toContain('<spell-app src="app/Solitaire.compiled.js" toolbar>')
+    expect(await (await fetch(new URL("app/Solitaire.compiled.js", url))).text()).toContain("class Card")
+    expect(await (await fetch(new URL("app/Solitaire.scopes.js", url))).text()).toContain("type:Card")
+    expect((await fetch(new URL("element/spell-app.js", url))).status).toBe(200)
+    expect((await fetch(new URL("element/../../package.json", url))).status).toBe(404)
+
+    child.kill("SIGINT")
+    expect(await new Promise((done) => child.on("exit", done))).toBe(0)
+    expect(readFileSync(output, "utf8")).toBe(before)
+  }, 180_000)
 })
 
 describe("spell test", () => {
@@ -173,10 +328,205 @@ describe("spell watch", () => {
     writeFileSync(resolve(watched, "Watched.spell"), 'print "hello again"\n')
     await until(() => log.split("✓").length > 2)
     expect(readFileSync(resolve(watched, `Watched${SP.COMPILED_JS_SUFFIX}`), "utf8")).toContain("hello again")
+    expect(existsSync(resolve(watched, `Watched${SP.SCOPES_JS_SUFFIX}`))).toBe(true)
 
     child.kill("SIGINT")
     expect(await new Promise((done) => child.on("exit", done))).toBe(0)
   }, 30_000)
+
+  test("rebuilds a project when one it imports changes", async () => {
+    // `@workspace:<folder>` is the root `resolveTarget()` makes for TEMP
+    const lib = tempProject("Lib", "a widget is a thing\n")
+    const app = resolve(TEMP, "App")
+    mkdirSync(app)
+    const imports = [
+      { path: `@workspace:${basename(TEMP)}:Lib`, active: true },
+      { path: "/App.spell", active: true }
+    ]
+    writeFileSync(resolve(app, SP.PROJECT_FILE), JSON.stringify({ imports }))
+    writeFileSync(resolve(app, "App.spell"), "print a new widget\n")
+    const { child, log } = watching(["watch", lib, app], TEMP)
+
+    await until(() => log().split("✓").length > 2)
+    writeFileSync(resolve(lib, "Lib.spell"), "a gadget is a thing\n")
+    await until(() => /✗ @workspace:\S+:App .*1 error/.test(log()))
+    writeFileSync(resolve(lib, "Lib.spell"), "a widget is a thing\n")
+    await until(() => log().split("✓ @workspace").length > 4)
+
+    child.kill("SIGINT")
+    expect(await new Promise((done) => child.on("exit", done))).toBe(0)
+  }, 30_000)
+
+  test("--test runs the tests after each clean rebuild, showing what failed", async () => {
+    const tested = tempProject("Tested", "to test math\n\texpect 1 + 1 to be 2\n")
+    const { child, log } = watching(["watch", ".", "--test"], tested)
+
+    await until(() => log().includes("1 passed"))
+    writeFileSync(resolve(tested, "Tested.spell"), "to test math\n\texpect 1 + 1 to be 3\n")
+    await until(() => log().includes("0 passed, 1 failed"))
+    expect(log()).toContain("    ✗ test math")
+
+    child.kill("SIGINT")
+    expect(await new Promise((done) => child.on("exit", done))).toBe(0)
+  }, 30_000)
+})
+
+/** Start `spell ...args` in `cwd`, collecting its stderr -- where `watch` logs -- as it comes. */
+function watching(args: string[], cwd: string) {
+  const child = spawn(process.execPath, [SPELL, ...args], { cwd, stdio: ["ignore", "pipe", "pipe"] })
+  let log = ""
+  child.stderr.on("data", (data) => (log += data))
+  return { child, log: () => log }
+}
+
+describe("spell compile --force", () => {
+  test("recompiles what a project imports, even when already compiled", () => {
+    const lib = tempProject("ForcedLib", "a widget is a thing\n")
+    const app = resolve(TEMP, "ForcedApp")
+    mkdirSync(app)
+    const imports = [
+      { path: `@workspace:${basename(TEMP)}:ForcedLib`, active: true },
+      { path: "/ForcedApp.spell", active: true }
+    ]
+    writeFileSync(resolve(app, SP.PROJECT_FILE), JSON.stringify({ imports }))
+    writeFileSync(resolve(app, "ForcedApp.spell"), "print a new widget\n")
+
+    expect(spell(["compile", "."], app).stderr).toContain("ForcedLib  (imported by ForcedApp)")
+    expect(spell(["compile", "."], app).stderr).not.toContain("imported by")
+    expect(spell(["compile", ".", "--force"], app).stderr).toContain("ForcedLib  (imported by ForcedApp)")
+    expect(existsSync(resolve(lib, `ForcedLib${SP.COMPILED_JS_SUFFIX}`))).toBe(true)
+  })
+})
+
+describe("spell test --name", () => {
+  test("only tests whose names contain it", () => {
+    const { status, stdout } = spell(["test", "@test/Solitaire", "--name", "deck"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/^✓ test deck creation {2}\(\d+ checks\)\n\n1 passed\n$/)
+  })
+})
+
+describe("spell projects", () => {
+  test("lists the roots, with the name to type for each", () => {
+    const { status, stdout } = spell(["projects"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/^@test +@test:fixtures +Test fixtures +2 projects$/m)
+    expect(stdout).toMatch(/^@user +@user:projects /m)
+  })
+
+  test("one root's projects, as JSON", () => {
+    const { stdout } = spell(["projects", "@test", "--json"])
+    expect(JSON.parse(stdout)).toEqual([
+      { name: "@test/FizzBuzz", id: "@test:fixtures:FizzBuzz" },
+      { name: "@test/Solitaire", id: "@test:fixtures:Solitaire" }
+    ])
+  })
+})
+
+describe("spell format", () => {
+  test("--check lists what would change, exit 1;  then format fixes it, and --check passes", () => {
+    const messy = tempProject("Messy", 'print   "hello"  \n\n\n\n\nprint "bye"')
+    const check = spell(["format", "--check", "."], messy)
+    expect(check.stdout).toBe("Messy.spell\n")
+    expect(check.status).toBe(1)
+    expect(readFileSync(resolve(messy, "Messy.spell"), "utf8")).toContain("print   ")
+
+    expect(spell(["format", "."], messy).status).toBe(0)
+    expect(readFileSync(resolve(messy, "Messy.spell"), "utf8")).toBe('print "hello"\n\n\nprint "bye"\n')
+    expect(spell(["format", "--check", "."], messy).status).toBe(0)
+  })
+
+  test("never writes into a test project", () => {
+    const { status, stderr } = spell(["format", "@test/Solitaire"])
+    expect(status).toBe(2)
+    expect(stderr).toContain("Won't format test projects")
+  })
+})
+
+describe("spell speed", () => {
+  test("times one module's rules:  a table and the pass count", () => {
+    const { status, stdout } = spell(["speed", "if", "--runs", "1"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/^\| +\| Average \|.*\n.*\n\| \*\*Current\*\* \| +\d+ \|/)
+    expect(stdout).toMatch(/Current: {2}\d+ passed, 0 failed\n$/)
+  }, 60_000)
+})
+
+describe("spell parse", () => {
+  test("a line:  its match tree, then its javascript", () => {
+    const { status, stdout } = spell(["parse", 'print "hi"'])
+    expect(status).toBe(0)
+    expect(stdout).toBe(
+      'statement › print  print "hi"\n  Keyword  print\n  expressions: Repeat  "hi"\n' +
+        '    expression › text  "hi"\n\nspellCore.console.log("hi")\n'
+    )
+  })
+
+  test("--in a project knows its types", () => {
+    expect(spell(["parse", "a new card"]).status).toBe(1)
+    const { status, stdout } = spell(["parse", "a new card", "--in", "@test/Solitaire"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/\nnew Card\(\)\n$/)
+  })
+
+  test("--json", () => {
+    const { stdout } = spell(["parse", "1 + 2", "--json"])
+    expect(JSON.parse(stdout)).toMatchObject({ rule: "expression", compiled: "(1 + 2)" })
+  })
+})
+
+describe("spell repl", () => {
+  test("piped:  each line in turn -- what one declares, the next knows", () => {
+    const { status, stdout } = spawnSync(process.execPath, [SPELL, "repl"], {
+      cwd: fixturePath(),
+      input: "x is 3\nprint x + 1\n",
+      encoding: "utf8"
+    })
+    expect(status).toBe(0)
+    expect(stdout).toContain("=> export let x = 3\n")
+    expect(stdout).toContain("lhs: simple_expression › known_variable  x\n")
+    expect(stdout).toMatch(/=> spellCore\.console\.log\(x \+ 1\)\n$/)
+  })
+})
+
+describe("spell explain", () => {
+  test("a rule:  its syntax and an example", () => {
+    const { status, stdout } = spell(["explain", "print"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/^print {2}print .*\ne\.g\. print /)
+  })
+
+  test("--in a project:  what it declares, as the editor's hover shows it", () => {
+    const { status, stdout } = spell(["explain", "card", "--in", "@test/Solitaire"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/Card\.spell:2\ntype Card is a Thing\n/)
+  })
+
+  test("nothing by that name", () => {
+    const { status, stderr } = spell(["explain", "wombat"])
+    expect(status).toBe(1)
+    expect(stderr).toContain("Nothing called 'wombat'")
+  })
+})
+
+describe("spell new", () => {
+  test("makes a project that runs -- and won't overwrite it", () => {
+    const { status, stdout } = spell(["new", "Snake", "--in", TEMP])
+    expect(status).toBe(0)
+    expect(stdout).toBe(`${resolve(TEMP, "Snake")}\n`)
+    expect(JSON.parse(readFileSync(resolve(TEMP, "Snake", SP.PROJECT_FILE), "utf8"))).toEqual({
+      imports: [{ path: "/Snake.spell", active: true }]
+    })
+    expect(spell(["run", "."], resolve(TEMP, "Snake")).stdout).toBe("hello from Snake\n")
+
+    const again = spell(["new", "Snake", "--in", TEMP])
+    expect(again.status).toBe(2)
+    expect(again.stderr).toContain("already holds a project")
+  })
+
+  test("a name spell can't use", () => {
+    expect(spell(["new", "9 lives", "--in", TEMP]).status).toBe(2)
+  })
 })
 
 /** Resolve once `condition()` holds, checking every 50ms -- or reject after `ms`. */

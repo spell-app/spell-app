@@ -1,0 +1,631 @@
+/*
+ * Goals pages (`goals/**`, `templates/goals/**`), on top of `spell-doc.css` and `plan-doc.css`.
+ * - Markup and conventions:  `goals/AGENTS.md`.  Tools:  `goals/_tools/`;  live buttons:  `goals-live.js` here.
+ * - Colors only from UI's tokens (`--ui-<hue>`, `--ui-<hue>-background` ...), so dark mode keeps working.
+ * - A page's accent:  `<body data-accent="violet">`, one of UI's hues.  Drives the hero wash, the eyebrow, the
+ *   topic number and the card stripe.
+ * - The stacked-card look (hero, topic cards) is a nod to HyperCard's stacks:  offset outlines behind the box,
+ *   drawn with `box-shadow`, so they never widen the page.
+ */
+
+@layer ui.reset, ui.tokens, ui.base, ui.components, ui.utilities, ui.theme, ui.app;
+
+/*******************************
+            Accents
+*******************************/
+
+:root,
+[data-accent] {
+  --goals-accent: var(--ui-violet, #6435c9);
+}
+[data-accent="red"] {
+  --goals-accent: var(--ui-red);
+}
+[data-accent="orange"] {
+  --goals-accent: var(--ui-orange);
+}
+[data-accent="yellow"] {
+  --goals-accent: var(--ui-yellow);
+}
+[data-accent="olive"] {
+  --goals-accent: var(--ui-olive);
+}
+[data-accent="green"] {
+  --goals-accent: var(--ui-green);
+}
+[data-accent="teal"] {
+  --goals-accent: var(--ui-teal);
+}
+[data-accent="blue"] {
+  --goals-accent: var(--ui-blue);
+}
+[data-accent="violet"] {
+  --goals-accent: var(--ui-violet);
+}
+[data-accent="purple"] {
+  --goals-accent: var(--ui-purple);
+}
+[data-accent="pink"] {
+  --goals-accent: var(--ui-pink);
+}
+[data-accent="brown"] {
+  --goals-accent: var(--ui-brown);
+}
+[data-accent="grey"] {
+  --goals-accent: var(--ui-grey);
+}
+
+/* derived:  a readable accent for text, and soft tints for washes and chips */
+:root,
+[data-accent] {
+  --goals-accent-ink: light-dark(
+    oklch(from var(--goals-accent) min(l, 0.48) c h),
+    oklch(from var(--goals-accent) max(l, 0.8) c h)
+  );
+  --goals-accent-soft: oklch(from var(--goals-accent) l c h / 0.14);
+  --goals-accent-faint: oklch(from var(--goals-accent) l c h / 0.07);
+  --goals-stack-edge: var(--spell-rule);
+}
+
+/*******************************
+             Hero
+*******************************/
+
+/*
+ * The box at the top of every page:  eyebrow, h1, lede, meta.  A stack of two cards peeks out behind it.
+ * - `.goals-hero-icon`:  the topic's icon, large, in the corner
+ */
+.goals-hero {
+  position: relative;
+  margin: 4px 14px 28px 0;
+  padding: 26px 28px 20px;
+  border: 1px solid var(--goals-stack-edge);
+  border-radius: 14px;
+  background:
+    radial-gradient(130% 140% at 100% 0%, var(--goals-accent-soft), transparent 58%),
+    radial-gradient(90% 120% at 0% 100%, var(--goals-accent-faint), transparent 60%), var(--spell-bg);
+  box-shadow:
+    7px 7px 0 -1px var(--spell-bg),
+    7px 7px 0 0 var(--goals-stack-edge),
+    14px 14px 0 -1px var(--spell-bg),
+    14px 14px 0 0 var(--goals-stack-edge);
+}
+.goals-hero h1 {
+  margin: 4px 0 10px;
+  font-size: 2.2rem;
+  letter-spacing: -0.015em;
+}
+.goals-hero .lede {
+  max-width: 62ch;
+  font-size: 1.12rem;
+  color: var(--spell-ink);
+  opacity: 0.86;
+}
+.goals-hero ui-list.spell-meta {
+  margin: 14px 0 0;
+}
+/* a `<span>` around the `<ui-icon>`:  the span positions, the icon sizes from its font-size */
+.goals-hero-icon {
+  position: absolute;
+  top: 22px;
+  right: 26px;
+  font-size: 2.8rem;
+  line-height: 1;
+  color: var(--goals-accent);
+  opacity: 0.9;
+}
+/* the eyebrow above the h1:  `TOPIC 6 · app` */
+.goals-eyebrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font: 600 0.78rem/1.4 var(--spell-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--goals-accent-ink);
+}
+.goals-eyebrow .goals-num {
+  font-size: 0.78rem;
+}
+@media (max-width: 600px) {
+  .goals-hero {
+    padding: 20px 18px 16px;
+  }
+  .goals-hero h1 {
+    font-size: 1.7rem;
+    padding-right: 44px;
+  }
+  .goals-hero-icon {
+    font-size: 1.8rem;
+    top: 16px;
+    right: 16px;
+  }
+}
+
+/* a topic's number:  a small round badge in its accent */
+.goals-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.9em;
+  height: 1.9em;
+  padding: 0 0.45em;
+  border-radius: 999px;
+  background: var(--goals-accent);
+  color: light-dark(white, oklch(0.2 0 0));
+  font: 700 0.85rem/1 var(--spell-mono);
+  letter-spacing: 0;
+}
+
+/*******************************
+          Topic cards
+*******************************/
+
+/*
+ * The contents page's topics:  `<ui-cards class="goals-topics">` of `<ui-card href data-accent>`, each a small
+ * stacked card with its number, icon, short name, title, one line, and status.
+ */
+.spell-doc-main ui-cards.goals-topics {
+  --spell-card-min: 240px;
+  --ui-font-size: 0.93rem;
+  --ui-card-content-padding: 14px 16px 10px;
+  --ui-card-description-color: var(--spell-ink);
+}
+.spell-doc-main ui-cards.goals-topics::part(group) {
+  gap: 18px 20px;
+  padding: 0 8px 8px 0;
+}
+.spell-doc-main ui-cards.goals-topics > ui-card::part(card) {
+  border-top: 4px solid var(--goals-accent);
+  box-shadow:
+    0 1px 2px oklch(from var(--ui-shadow-ink, black) l c h / 0.12),
+    5px 5px 0 -1px var(--spell-bg),
+    5px 5px 0 0 var(--goals-stack-edge);
+  transition:
+    transform 0.15s,
+    box-shadow 0.15s;
+}
+.spell-doc-main ui-cards.goals-topics > ui-card:hover::part(card) {
+  transform: translate(-2px, -2px);
+  box-shadow:
+    0 4px 12px oklch(from var(--ui-shadow-ink, black) l c h / 0.16),
+    7px 7px 0 -1px var(--spell-bg),
+    7px 7px 0 0 var(--goals-accent);
+}
+.goals-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.goals-card-top ui-icon {
+  font-size: 1.35rem;
+  color: var(--goals-accent);
+}
+.goals-short {
+  font: 700 1.05rem/1.3 var(--spell-mono);
+  color: var(--goals-accent-ink);
+}
+.goals-topics ui-meta {
+  display: block;
+  margin: 2px 0 6px;
+  font-weight: 600;
+  color: var(--spell-ink);
+}
+.goals-topics ui-description {
+  color: var(--spell-muted);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+.goals-card-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  font-size: 0.8rem;
+  color: var(--spell-muted);
+}
+
+/*******************************
+        Status + legend
+*******************************/
+
+/* the meta line's status, and the legend on the contents page */
+.goals-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  align-items: center;
+  margin: 6px 0 14px;
+  font-size: 0.86rem;
+  color: var(--spell-muted);
+}
+
+/*******************************
+       Horizons + items
+*******************************/
+
+/*
+ * Item lists reuse `plan-doc.css`'s `ol.plan-items` (id chip, title, folded details, struck through when done).
+ * Here:  the chip takes a color per kind, from the item id's letter.
+ * - G goal (accent) · Q question (orange) · D decision (green) · R risk (red) · W work (blue) · I idea (teal)
+ */
+ol.plan-items > li[id^="g"] > .plan-id {
+  background: var(--goals-accent-soft);
+}
+.spell-doc-main ol.plan-items > li[id^="g"] > a.plan-id {
+  color: var(--goals-accent-ink);
+}
+ol.plan-items > li[id^="q"] > .plan-id {
+  background: var(--ui-orange-background);
+}
+.spell-doc-main ol.plan-items > li[id^="q"] > a.plan-id {
+  color: var(--ui-orange-text);
+}
+ol.plan-items > li[id^="d"] > .plan-id {
+  background: var(--ui-green-background);
+}
+.spell-doc-main ol.plan-items > li[id^="d"] > a.plan-id {
+  color: var(--ui-green-text);
+}
+ol.plan-items > li[id^="r"] > .plan-id {
+  background: var(--ui-red-background);
+}
+.spell-doc-main ol.plan-items > li[id^="r"] > a.plan-id {
+  color: var(--ui-red-text);
+}
+ol.plan-items > li[id^="w"] > .plan-id {
+  background: var(--ui-blue-background);
+}
+.spell-doc-main ol.plan-items > li[id^="w"] > a.plan-id {
+  color: var(--ui-blue-text);
+}
+ol.plan-items > li[id^="i"] > .plan-id {
+  background: var(--ui-teal-background);
+}
+.spell-doc-main ol.plan-items > li[id^="i"] > a.plan-id {
+  color: var(--ui-teal-text);
+}
+/*
+ * Topic pages:  a hanging indent, so a wrapped title lines up with its first line, not under the id chip.
+ * - plan-doc.css indents the folded details by the chip's width;  the li's padding does it here
+ */
+body[data-topic] ol.plan-items > li {
+  position: relative;
+  padding-left: 3.4rem;
+}
+body[data-topic] ol.plan-items > li > .plan-id {
+  position: absolute;
+  left: 0;
+  top: 0.18em;
+  margin: 0;
+}
+body[data-topic] ol.plan-items > li > ui-accordion {
+  margin: 4px 0 0;
+}
+
+/* a one-line note after an item's title, before its folded details */
+.goals-note {
+  color: var(--spell-muted);
+}
+.goals-note::before {
+  content: "— ";
+}
+/* who an item waits on, or where it came from:  a tiny label after the title */
+ol.plan-items ui-label {
+  vertical-align: 1px;
+  margin-left: 4px;
+}
+
+/* a heading's icon (horizons, sections) in the page's accent */
+.spell-doc-main :is(h2, h3) > ui-icon {
+  margin-right: 6px;
+  color: var(--goals-accent);
+}
+
+/*******************************
+        Contents page
+*******************************/
+
+/*
+ * The 3-month arc:  `<ui-cards class="goals-months">` of three month cards, each with its own accent,
+ * a big month name, a short theme, and bullets.
+ */
+.spell-doc-main ui-cards.goals-months {
+  --spell-card-min: 220px;
+  --ui-font-size: 0.92rem;
+  --ui-card-content-padding: 14px 16px 12px;
+}
+.spell-doc-main ui-cards.goals-months::part(group) {
+  gap: 16px;
+}
+.spell-doc-main ui-cards.goals-months > ui-card::part(card) {
+  border-top: 4px solid var(--goals-accent);
+  background: linear-gradient(180deg, var(--goals-accent-faint), transparent 70%), var(--spell-bg);
+}
+.goals-month {
+  margin: 0;
+  font: 700 0.75rem/1.4 var(--spell-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--goals-accent-ink);
+}
+.goals-months ui-header {
+  display: block;
+  margin: 2px 0 8px;
+}
+.spell-doc-main ui-cards.goals-months ul {
+  margin: 0;
+  padding-left: 18px;
+}
+.spell-doc-main ui-cards.goals-months li {
+  margin: 3px 0;
+}
+/* the dialog loop:  how a topic moves */
+ui-steps.goals-loop {
+  display: block;
+}
+/* a quiet two-column list:  conventions, ids */
+.goals-pairs {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 16px;
+  margin: 12px 0;
+  font-size: 0.93rem;
+}
+.goals-pairs > dt {
+  font-weight: 600;
+}
+.goals-pairs > dd {
+  margin: 0;
+  color: var(--spell-muted);
+}
+@media (max-width: 600px) {
+  .goals-pairs {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .goals-pairs > dd {
+    margin-bottom: 8px;
+  }
+}
+
+/*******************************
+          Quotes
+*******************************/
+
+/* a pull quote:  the author's own words, or a source's */
+blockquote.goals-quote {
+  margin: 18px 0;
+  padding: 10px 18px;
+  border-left: 4px solid var(--goals-accent);
+  background: var(--goals-accent-faint);
+  border-radius: 0 10px 10px 0;
+  font-size: 1.08rem;
+}
+blockquote.goals-quote > p {
+  margin: 0;
+}
+blockquote.goals-quote > footer {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: var(--spell-muted);
+}
+
+/*******************************
+        Folded details
+*******************************/
+
+/*
+ * An item's "details" fold, lighter than a styled box:  a small muted toggle, then the text behind an accent rule.
+ * - plain properties through `::part()`:  `styled` sets the box, so its tokens can't undo it
+ */
+body[data-topic] ol.plan-items ui-accordion.spell-aside::part(accordion) {
+  width: auto;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+body[data-topic] ol.plan-items ui-accordion.spell-aside::part(title) {
+  padding: 0;
+  font-size: 0.8rem;
+}
+body[data-topic] ol.plan-items ui-accordion.spell-aside::part(content) {
+  margin: 4px 0 8px 5px;
+  padding: 2px 0 2px 14px;
+  border-left: 3px solid var(--goals-accent-soft);
+}
+body[data-topic] ol.plan-items ui-accordion.spell-aside :is(p, ul) {
+  margin: 4px 0;
+  font-size: 0.93rem;
+}
+
+/*******************************
+        Live:  buttons
+*******************************/
+
+/* the contents sidebar's goals buttons (`goals-live.js` `addSidebarTools()`), under its head */
+.goals-toc-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  padding: 2px 0 12px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--spell-rule);
+}
+/* the waiting-thoughts count inside Update */
+.goals-count {
+  display: inline-block;
+  min-width: 1.5em;
+  margin-left: 4px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--goals-accent);
+  color: light-dark(white, oklch(0.2 0 0));
+  font-weight: 700;
+  font-size: 0.85em;
+  text-align: center;
+}
+
+/*
+ * A heading's and an item's own buttons:  a thought bubble and a talk button, quiet until hovered or focused
+ * (always shown where there's no hover).
+ */
+.goals-heading-tools {
+  float: right;
+  display: inline-flex;
+  gap: 4px;
+  margin: 2px 0 0 8px;
+}
+.goals-item-tools {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+/* wide screens:  out in the gutter to the item's right, so a long title doesn't wrap around them */
+@media (min-width: 1101px) {
+  .goals-item-tools {
+    position: absolute;
+    top: 0;
+    left: calc(100% + 6px);
+    margin: 0;
+  }
+}
+/* the space between the docs' round tools and the goals' own */
+.goals-tool-gap {
+  width: 1px;
+  height: 18px;
+  margin: 0 3px;
+  background: var(--spell-rule);
+}
+:is(.goals-heading-tools, .goals-item-tools) {
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+:is(h2, h3):is(:hover, :focus-within) > .goals-heading-tools,
+ol.plan-items > li:is(:hover, :focus-within) > .goals-item-tools {
+  opacity: 1;
+}
+@media (hover: none) {
+  :is(.goals-heading-tools, .goals-item-tools) {
+    opacity: 0.7;
+  }
+}
+
+/*******************************
+        Live:  thoughts
+*******************************/
+
+/*
+ * Thoughts waiting for Claude:  `<ul class="goals-thoughts" data-for>` of `<li class="goals-thought" data-status>`,
+ * under a heading, in an item, or under the hero (`page.js` `addThought()`).  New ones are bubbles in the page's
+ * accent;  digested ones stay, quieter, with what came of them.
+ */
+ul.goals-thoughts {
+  display: grid;
+  gap: 6px;
+  margin: 6px 0 12px;
+  padding: 0;
+  list-style: none;
+  max-width: 72ch;
+}
+li.goals-thought {
+  position: relative;
+  padding: 8px 14px 8px 36px;
+  border: 1px solid var(--goals-accent-soft);
+  border-radius: 14px 14px 14px 4px;
+  background: var(--goals-accent-faint);
+  font-size: 0.93rem;
+  line-height: 1.5;
+}
+/* a `<span>` around the icon:  `<ui-icon>` hosts are `display: contents`, so they can't be positioned */
+li.goals-thought > .goals-thought-icon {
+  position: absolute;
+  left: 12px;
+  top: 10px;
+  color: var(--goals-accent);
+}
+li.goals-thought > time {
+  display: block;
+  font: 600 0.72rem/1.4 var(--spell-mono);
+  color: var(--spell-muted);
+}
+li.goals-thought[data-status="new"]::after {
+  content: "new";
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  font: 700 0.65rem/1.4 var(--spell-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--goals-accent-ink);
+}
+li.goals-thought[data-status="done"] {
+  background: transparent;
+  border-style: dashed;
+  color: var(--spell-muted);
+}
+.goals-thought-text > p {
+  margin: 0 0 6px;
+}
+.goals-thought-result {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.86rem;
+  color: var(--spell-ink);
+}
+.goals-thought-result::before {
+  content: "→ ";
+  color: var(--goals-accent);
+}
+/* inside an item, thoughts sit under its line, before its folded details */
+ol.plan-items > li > ul.goals-thoughts {
+  margin: 6px 0 4px;
+}
+/* the topic card's waiting-thoughts badge */
+ui-label.goals-new-thoughts {
+  margin-left: auto;
+}
+
+/*******************************
+        Live:  dialogs
+*******************************/
+
+.goals-textarea {
+  display: block;
+  width: 100%;
+  min-height: 8em;
+  padding: 10px 12px;
+  border: 1px solid var(--ui-border-color-strong, var(--spell-rule));
+  border-radius: 10px;
+  background: var(--spell-bg);
+  color: var(--spell-ink);
+  font: 0.98rem/1.5 var(--spell-sans);
+  resize: vertical;
+}
+.goals-textarea:focus {
+  outline: 2px solid var(--goals-accent);
+  outline-offset: 1px;
+}
+.goals-modal-about {
+  margin: 0 0 10px;
+}
+.goals-modal-hint {
+  margin: 6px 0 0;
+  font-size: 0.82rem;
+  color: var(--spell-muted);
+}
+.goals-setup-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 0;
+}
+ui-steps.goals-setup-steps {
+  display: block;
+  margin: 12px 0;
+}

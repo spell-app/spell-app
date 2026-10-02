@@ -40,9 +40,11 @@ export type GlobalOptions = {
 /**
  * `spell compile` flags.
  * - `stdout`:  print a project's compiled output rather than writing `<Project>.compiled.js`.
+ * - `force`:  recompile the projects it imports, too, even those already compiled
  */
 export type CompileOptions = GlobalOptions & {
   stdout?: boolean
+  force?: boolean
 }
 
 /**
@@ -79,9 +81,112 @@ export function normalizedName(name: string): string {
 /**
  * `spell watch` flags.
  * - `checkOnly`:  re-check on each change, rather than recompile -- writes nothing
+ * - `test`:  run each project's tests after each rebuild with no errors -- `spell test --watch`
+ * - `name`:  with `test`, only tests whose names contain it
  */
 export type WatchOptions = GlobalOptions & {
   checkOnly?: boolean
+  test?: boolean
+  name?: string
+}
+
+/**
+ * `spell run` flags.
+ * - `browser`:  `true` opens the project in a browser even if it shows no UI;  `false` never does.  Left out:  only
+ *   if it tried to show one.
+ */
+export type RunOptions = GlobalOptions & {
+  browser?: boolean
+}
+
+/**
+ * `spell test` flags.
+ * - `name`:  only tests whose names contain it, e.g. `deck` -- ignoring case, and spaces ~== `-` ~== `_`
+ * - `watch`:  run them again whenever the project changes -- `spell watch --test`
+ */
+export type TestOptions = GlobalOptions & {
+  name?: string
+  watch?: boolean
+}
+
+/**
+ * `spell projects` flags.
+ * - `json`:  print the list as JSON
+ */
+export type ProjectsOptions = GlobalOptions & {
+  json?: boolean
+}
+
+/**
+ * `spell speed` flags.
+ * - `runs`:  how many runs per side, each a fresh process -- default 3
+ * - `against`:  a git ref, e.g. `HEAD`, to time as well, as "Previous"
+ * - `json`:  print each side's combined results as JSON
+ */
+export type SpeedOptions = GlobalOptions & {
+  runs?: number
+  against?: string
+  json?: boolean
+}
+
+/**
+ * `spell format` flags.
+ * - `check`:  write nothing:  list the files that would change, and exit 1 if any would
+ */
+export type FormatOptions = GlobalOptions & {
+  check?: boolean
+}
+
+/**
+ * `spell parse` flags.
+ * - `rule`:  parse as this rule only, e.g. `expression`
+ * - `in`:  parse inside this target's project, e.g. `@test/Solitaire`
+ * - `json`:  print the result as JSON
+ */
+export type ParseOptions = GlobalOptions & {
+  rule?: string
+  in?: string
+  json?: boolean
+}
+
+/**
+ * `spell explain` flags.
+ * - `in`:  look in this target's project, too, e.g. `@test/Solitaire`
+ * - `json`:  print what was found as JSON
+ */
+export type ExplainOptions = GlobalOptions & {
+  in?: string
+  json?: boolean
+}
+
+/**
+ * `spell serve` flags.
+ * - `port`:  the editor's port -- default 3000;  its server's is the next one up
+ * - `headless`:  don't open a browser
+ */
+export type ServeOptions = GlobalOptions & {
+  port?: number
+  headless?: boolean
+}
+
+/**
+ * `spell icons` flags.
+ * - `pack`:  only this pack, e.g. `fa7-brands`
+ * - `json`:  print the icons found as JSON
+ * - `open`:  show them in a browser, as pictures
+ */
+export type IconsOptions = GlobalOptions & {
+  pack?: string
+  json?: boolean
+  open?: boolean
+}
+
+/**
+ * `spell new` flags.
+ * - `in`:  make the project in this folder -- default `@user`'s, `projects/user/`
+ */
+export type NewOptions = GlobalOptions & {
+  in?: string
 }
 
 ////////////////
@@ -97,6 +202,7 @@ export type WatchOptions = GlobalOptions & {
  * - `projects`:  URL of each project it imports' `<Project>.compiled.js`, by id -- for `@spell/project/<id>`
  * - `spellCore`:  URL of `core`'s `src/index.ts`, for `@spell/core`
  * - `verbose`:  `test` shows every check, and anything printed, not just failures
+ * - `filter`:  `test` runs only tests whose names contain it -- see `runProject.ts`
  */
 export type RunSpec = {
   mode: "run" | "test"
@@ -105,6 +211,15 @@ export type RunSpec = {
   projects: Record<string, string>
   spellCore: string
   verbose?: boolean
+  filter?: string
+}
+
+/**
+ * What `runProject.ts` tells `spell run` once the project has loaded, over IPC.
+ * - `skipped`:  what it tried which needs a browser, e.g. `start the game` -- see `headless()`
+ */
+export type RunReport = {
+  skipped: string[]
 }
 
 ////////////////

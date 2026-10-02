@@ -119,9 +119,10 @@ function buildContents(main) {
   toc.id = "spell-toc"
   toc.setAttribute("aria-label", "Contents")
   toc.innerHTML = `<ui-sticky offset="0"><div class="spell-toc-inner">
-<div class="spell-toc-head"><b>Contents</b><ui-buttons size="mini" basic>
-<ui-button data-toc="expand">expand</ui-button><ui-button data-toc="collapse">collapse</ui-button>
-<ui-button data-toc="code">code</ui-button></ui-buttons></div>
+<div class="spell-toc-head"><b>Contents</b><div class="spell-toc-tools">
+${tool("expand", "angles down", "Expand all", "Open every section of the contents")}
+${tool("collapse", "angles up", "Collapse all", "Close every section of the contents")}
+${tool("code", "code", "Fold code", "Fold or unfold every code block on the page")}</div></div>
 ${nodes(orphans)}<ui-accordion class="spell-toc" exclusive="no">${pairs.join("")}</ui-accordion>
 </div></ui-sticky>`
   main.after(toc)
@@ -133,6 +134,17 @@ ${nodes(orphans)}<ui-accordion class="spell-toc" exclusive="no">${pairs.join("")
     document.body.append(opener)
   }
   return toc
+
+  /**
+   * A contents button:  round, icon only, named for screen readers, with a tooltip (a `<ui-popup>` right after
+   * it targets it).
+   */
+  function tool(action, icon, label, tip) {
+    return (
+      `<ui-button data-toc="${action}" circular basic size="tiny" icon="${icon}" aria-label="${label}"></ui-button>` +
+      `<ui-popup inverted size="mini" position="bottom center" content="${tip}"></ui-popup>`
+    )
+  }
 
   /** Menus for runs of leaf nodes, a nested accordion for each node with children, in order. */
   function nodes(list) {
@@ -507,7 +519,11 @@ function wireContents(main, toc, follow) {
   opener?.setAttribute("aria-expanded", "false")
   // a page without folding code blocks (the CHEATSHEET's snippets stay bare) has no use for `code`
   const codeButton = toc.querySelector('[data-toc="code"]')
-  if (codeButton && !main.querySelector("ui-accordion.spell-code")) codeButton.hidden = true
+  if (codeButton && !main.querySelector("ui-accordion.spell-code")) {
+    codeButton.hidden = true
+    // its tooltip too:  the `<ui-popup>` right after it
+    if (codeButton.nextElementSibling?.localName === "ui-popup") codeButton.nextElementSibling.hidden = true
+  }
 
   /** One of the contents buttons. */
   function onButton(action) {

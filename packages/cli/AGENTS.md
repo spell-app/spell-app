@@ -28,8 +28,9 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
   - `console.*` is SILENCED -- output goes to `process.stdout` / `stderr`.  See `src/consoleGuard.ts`.
   - An Ink screen MUST render with `patchConsole: false`, or Ink puts `console.*` back on screen.
   - Ink is pinned at 5:  6+ needs React 19.
-- `src/runner/` is the CHILD process of `spell run` / `spell test`.  It NEVER imports `$/cli`'s values:
-  it needs only spell's runtime.
+- `src/runner/` holds CHILD processes:  `runProject.ts` for `spell run` / `spell test`, `speedTest.mts` for
+  `spell speed`.  They NEVER import `$/cli`'s values:  they need only spell.  `speedTest.mts` is copied into
+  other checkouts (`--against`), so it imports nothing of ours at all.
 - Each command is `src/commands/<name>Command.ts`:  `(session, args, options) => Promise<exitCode>`, wired up
   in `main.ts`.
 

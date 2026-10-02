@@ -58,15 +58,27 @@ Every command takes one or more targets:
 
 | Command | What it does |
 |---|---|
-| `spell compile <targets...>` | Writes each project's `<Project>.compiled.js`.  `--stdout` prints it and writes nothing.  A `.spell` file prints its javascript. |
+| `spell help [command]` | Lists the commands, or shows one's options:  `spell help compile` ~== `spell compile --help`. |
+| `spell serve [target]` | Runs the spell app -- its editor (vite, hot reload) and its server (express, `/api`, which saves files to disk) -- and opens the editor on `target` in your browser, until `Ctrl-C`.  `--port <n>` (default 3000;  the server takes the next one), `--headless`. |
+| `spell icons [query]` | Finds `@spell-app/ui` icons by name, alias or keyword:  name, pack, other names.  `--pack <id>`, `--json`.  `--open` shows them as pictures in your browser (click one to copy its name), until `Ctrl-C`. |
+| `spell compile <targets...>` | Writes each project's `<Project>.compiled.js`, and with no errors its scope pack `<Project>.scopes.js`.  `--stdout` prints it and writes nothing.  `--force` recompiles the projects it imports, too.  A `.spell` file prints its javascript. |
 | `spell check <targets...>` | Lists errors on stdout as `path:line:col  message`.  `--json` for a JSON list. |
 | `spell describe <target> [name] [member]` | What the Type Explorer shows, as text.  E.g. `spell describe Card.spell Card color`.  `--compiled`, `--inherited`, `--json`. |
-| `spell explore [target]` | Full-screen Type Explorer.  `↑↓` move, `←→` fold, `Tab` switch pane, `/` filter, `c` compiled, `i` inherited, `o` open in editor, `q` quit. |
-| `spell watch [targets...]` | Recompiles on every save, with a live list of errors.  `--check-only` re-checks and writes nothing.  `q` / `Ctrl-C` stops it. |
-| `spell run [target]` | Compiles and runs the project under node.  Its `print`s show as they happen. |
-| `spell test [targets...]` | Runs each `to test ...` and reports ✓, or ✗ with the checks that failed.  `--verbose` shows every check. |
+| `spell explore [target]` | Full-screen Type Explorer.  `↑↓` move, `←→` fold, `Tab` switch pane, `/` filter, `c` compiled, `i` inherited, `o` open in editor, `e` edit its description, `q` quit.  Reloads as files change. |
+| `spell watch [targets...]` | Recompiles on every save, with a live list of errors.  `--check-only` re-checks and writes nothing.  `--test` runs tests after each clean rebuild (`--name` picks which).  Rebuilds a watched project when one it imports changes.  `q` / `Ctrl-C` stops it. |
+| `spell run [target]` | Compiles and runs the project under node.  Its `print`s show as they happen.  One that shows a UI then opens in your browser, until `Ctrl-C`.  `--browser` always, `--no-browser` never. |
+| `spell test [targets...]` | Runs each `to test ...` and reports ✓, or ✗ with the checks that failed.  `--verbose` shows every check.  `--name <text>` runs only tests whose names contain it.  `--watch` is `spell watch --test`. |
+| `spell format <targets...>` | Tidies `.spell` files' whitespace, as VS Code's Format Document does.  `--check` writes nothing, lists what would change, exits 1 if anything would.  Never writes into `projects/test/`. |
+| `spell projects [root]` | Lists the project roots, or one root's projects, with the names to type.  `--json`. |
+| `spell speed [module]` | Times the parser's rule tests (`SP.spellParser.speedTest()`), 3 fresh runs, as a markdown table.  `--against HEAD` times that commit too, in a temp worktree, and adds a Change row.  `--runs`, `--json`. |
+| `spell parse "<text>"` | How spell reads a line:  its match tree, then its javascript.  Tried as a `statement`, then an `expression`;  `--rule` for another.  `--in <target>` parses in that project's scope.  `--json`. |
+| `spell repl [target]` | `spell parse`, a line at a time;  what a line declares, later lines know.  `↑↓` earlier lines, `Esc` quits.  Piped, it reads stdin. |
+| `spell explain <word>` | Rules `word` names or starts (`print`, `repeat`):  syntax and an example.  `--in <target>`:  also what that project declares by that name, as the editor's hover.  `--json`. |
+| `spell new <name>` | Makes `<name>/project.json` and a starter `<name>.spell` that prints a hello.  In `@user`'s folder, or `--in <folder>`.  Refuses a folder with anything in it. |
 
-- No target, for `explore` / `watch` / `run` / `test`, means `@workspace`.
+- No target:  the project here, for every command.  Outside a project, in a terminal, `spell` asks -- completing as
+  you type, like a shell:  `Tab` completes a root (`@examples/`), then a project, then "entire project" or one of
+  its files;  your last 3 picks come first (kept in `.recent-targets.json`, gitignored).  Piped, it says to name one.
 - Names in `describe` ignore case, and spaces ~== `-` ~== `_`:  `stock pile` finds `Stock_Pile`.
 - Everywhere:  `--verbose` lets spell's own logging through, on stderr.  `NO_COLOR=1` turns colour off.
 - `o` in `explore` runs `$SPELL_EDITOR -g path:line`, `code` by default.  Cursor works too.
@@ -78,7 +90,8 @@ Every command takes one or more targets:
 
 ### What can write files
 
-- `compile` writes `<Project>.compiled.js`, as the app does.  `--stdout` doesn't.
+- `compile` writes `<Project>.compiled.js`, as the app does.  With no errors, also `<Project>.scopes.js`, as the
+  language server does.  `--stdout` writes neither.  `watch` the same after each rebuild, unless `--check-only`.
 - `check`, `describe`, `explore`, `run` and `test` write nothing of their own.  But if a project imports one that
   has NEVER been compiled, it's compiled first, which writes that project's `.compiled.js`.  Parsing fails without it.
 - An imported project's existing `.compiled.js` is used as is, even if its sources changed since.  Compile it first.
@@ -91,8 +104,13 @@ Every command takes one or more targets:
 ### `run` / `test`
 
 - They run in a separate node process, so each run gets a fresh `spellCore`.
-- What needs a browser does nothing, with a note:  starting a UI (`start the game`) and installing styles.
-  So `run` on a UI project runs its logic, then says to use the app or VS Code's ▶ Run Project.
+- Under node, what needs a browser does nothing, with a note:  starting a UI (`start the game`) and installing
+  styles.  Then `run` on a UI project opens it in your browser:
+  - a page with `app`'s `<spell-app>` element, served from `localhost` until `Ctrl-C`:  the project as compiled for
+    this run (nothing written), its scope pack for the Type Explorer, and the compiled projects it imports
+  - the first time in a checkout, it builds `<spell-app>` (`yarn build:element` in `packages/app`, a few seconds)
+  - no live reload:  it serves what was compiled at the start
+  - `SPELL_NO_BROWSER=1` prints the URL instead of opening a browser
 - Other browser-only code, e.g. touching `document` directly, will throw.
 - `test`:
   - A test the project runs ITSELF as it loads counts once, and isn't run again.  A second run would start from
@@ -101,10 +119,32 @@ Every command takes one or more targets:
   - It finds tests by their exported function names:  `test_*`.
   - `print` inside a test is hidden unless `--verbose`.
 
+### `serve`
+
+- Runs `app`'s own `yarn start:dev` (vite) and `yarn start:server` (express), each in its own process group, and
+  stops both on `Ctrl-C` -- or if either stops.  Unlike `yarn start`, it stops no other servers and runs no
+  `yarn install`.
+- Refuses a port in use, rather than drifting to another:  `spell serve --port 3100`, or `yarn stop` in
+  `packages/app`.
+- Opens only projects in the app's roots (`spell projects`):  a project in some other folder opens the chooser.
+- Their output is hidden unless `--verbose`, or one fails.
+
+### `speed`
+
+- Each run is a fresh node process:  `src/runner/speedTest.mts` (a warm-up, then 20 timed passes).
+- A side's runs combine as:  the mean of their averages, the lowest min, the highest max.  With 3 or more runs, ONE
+  fluke -- an average 25% over the median -- is dropped.
+- `--against <ref>`:
+  - makes a temp `git worktree` of the ref, links our `node_modules` into it, and copies the runner in -- a ref
+    with different dependencies may not run
+  - the ref must have `packages/spell` and the `$/` aliases:  from the monorepo on
+  - the two sides take turns, run by run;  the worktree is removed afterwards, even on failure
+
 ### `watch`
 
-- It watches each project's folder:  `.spell`, `.css`, `project.json`.  It ignores `*.compiled.js`.
-- A project another imports doesn't rebuild the importer when it changes.  Watch both.
+- It watches each project's folder:  `.spell`, `.css`, `project.json`.  It ignores `*.compiled.js` and `*.scopes.js`.
+- Watching both a project and one it imports:  the importer rebuilds, from scratch, after the imported one does.
+  A project imported but not watched isn't seen changing.
 - On macOS a save arrives as a `rename` event, so `watch` ignores event types and looks at what's on disk.
   See `PAPERCUTS.md`.
 
@@ -139,13 +179,7 @@ Every command takes one or more targets:
 
 ### Commands not built yet
 
-- `spell format [--check]`:  apply `SpellLanguageService.formatting()` edits
-- `spell explain <word>`:  hover text / rule syntax for a word, via `workspaceSymbols()` + `describeRecord()`
-- `spell parse "<text>" [--rule x]` / `spell repl`:  a line's match tree and compiled output, for debugging rules
-- `spell new <name>`:  make a project
 - `spell lsp`:  start the language server, so the extension spawns `spell lsp` rather than a `tsx` path
-- `spell speed`:  `SP.spellParser.speedTest()`
-- `spell projects [root]`:  list roots and projects
 
 ### Improvements
 
@@ -154,15 +188,8 @@ Every command takes one or more targets:
   - the `~` alias
   - `__PACKAGE_VERSION__`
   - `environment.ts` to stop finding `projects/` next to `src/`
-- `watch`:  rebuild importers when a project they import changes.  Also, optionally, run tests after each rebuild.
-- `explore`:  reload on file changes (share `watch`'s workspace updates);  show the Type Explorer's editable
-  descriptions.
 - `run`:  optionally run UI projects in a real browser (e.g. playwright, already a dev dependency), or under a fake
   DOM.
-- `compile`:  a `--force` to recompile imported projects even when their `.compiled.js` exists.
-- `compile`:  write the project's scope pack, `<Project>.scopes.js`, as the language server does after a clean
-  compile -- via `SpellDiskWorkspace.writeScopes()`.  See the `TODO` in `../lsp/src/scopes.ts`.
-- `test`:  a `--watch`, and filtering tests by name.
 
 ### Review items
 

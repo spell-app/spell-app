@@ -32,39 +32,50 @@ else await testProject()
 
 /**
  * Load the project, running its top-level statements, then say if it wanted a browser.
+ * - Started by `spell run`, with an IPC channel:  tells it what was skipped -- `{ skipped: [...] }` -- so it can
+ *   open the project in a browser, and lets the channel go, so this process can end.
  * - Exits 1 if it threw.  Otherwise leaves the process to end on its own, so anything it started, e.g. a `pause`,
  *   gets to finish.
  */
 async function runProject() {
-  if (!(await load())) process.exit(1)
-  if (skipped.size) {
-    const what = [...skipped].join(", ")
-    note(`${spec.name} shows a UI (${what}), which needs a browser:  run it in the app, or VS Code's ▶ Run Project.`)
+  const loaded = await load()
+  if (process.send) {
+    process.send({ skipped: [...skipped] } satisfies CLI.RunReport)
+    process.disconnect()
   }
+  if (!loaded) process.exit(1)
+  if (skipped.size) note(`${spec.name} shows a UI (${[...skipped].join(", ")}), which needs a browser.`)
 }
 
 /**
  * Load the project quietly, then run each `test ...` function it exports, and report.
  * - Tests the project runs ITSELF as it loads count, and don't run again:  a second run would start
  *   from what the first left behind, e.g. a dealt deck.
+ * - `spec.filter`:  only tests whose names contain it, e.g. `deck` -- ignoring case, and spaces ~== `-` ~== `_`.
  */
 async function testProject() {
   const restore = quiet()
-  const results: TestResult[] = []
-  spellCore.test = (message: unknown, testMethod: () => void) => runTest(message, testMethod, results)
+  const all: TestResult[] = []
+  spellCore.test = (message: unknown, testMethod: () => void) => runTest(message, testMethod, all)
   const module = await load()
   if (!module) process.exit(1)
 
+  const wanted = (name: string) => !spec.filter || comparable(name).includes(comparable(spec.filter))
   const tests = Object.entries(module).filter(
-    ([name, value]) => name.startsWith("test_") && typeof value === "function"
+    ([name, value]) => name.startsWith("test_") && typeof value === "function" && wanted(name.slice(5))
   )
   for (const [name, test] of tests) {
-    if (!results.some((result) => comparable(result.name) === comparable(name))) (test as () => void)()
+    if (!all.some((result) => comparable(result.name) === comparable(name))) (test as () => void)()
   }
   restore()
 
+  const results = all.filter((result) => wanted(result.name.replace(/^test[\s_]/, "")))
   if (!results.length) {
-    note(`${spec.name} has no tests -- write one as \`to test <something>:\``)
+    note(
+      spec.filter
+        ? `${spec.name} has no tests matching '${spec.filter}'`
+        : `${spec.name} has no tests -- write one as \`to test <something>:\``
+    )
     process.exit(0)
   }
   for (const result of results) report(result)

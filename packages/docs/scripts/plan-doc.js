@@ -14,7 +14,7 @@ import { pathToFileURL } from "node:url"
 
 import { parseHTML } from "linkedom"
 
-import { DOCS, openInChrome, serialize, tidy } from "./pages.js"
+import { DOCS, openInVSCode, serialize, tidy } from "./pages.js"
 
 /** The template `new` copies, relative to `DOCS`. */
 const TEMPLATE = "templates/plans/plan.html"
@@ -364,13 +364,13 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
   new <name> [--title "Title"]                     copy the template, fill it in, update the docs index
   add-phase <name> "Short Name" [--goal html] [--files html] [--verify html]
   phase <name> <N> todo|active|done [--no-open]    set a phase's status;  done drops its UPDATE markers;
-                                                   reloads the doc's Chrome tab
+                                                   reloads the doc's VS Code tab
   add <name> question|caveat|issue|todo|decision "title" [--details html]    prints the new id
   close <name> <id>  /  reopen <name> <id>         strike / unstrike an item
   log <name> "text"                                timestamped line in the log
   summary <name> [--json]                          open questions, issues, caveats, todos;  the next phase
   check <name> [--no-browser]                      ids, links, phases;  then check-spell.js
-  open <name>                                      show in Chrome in the background, in its tab (named <name>), reloaded`
+  open <name>                                      show in VS Code, beside the editor (reloads its tab)`
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   try {
@@ -403,7 +403,7 @@ function main(argv) {
       edit(file, (plan) => plan.setPhase(Number(need(rest[0], "a phase number")), need(rest[1], "a status")))
       reindex()
       // a new stage:  show it to the user (their tab reloads), unless told not to
-      return flags.noOpen ? undefined : openInChrome(file)
+      return flags.noOpen ? undefined : openInVSCode(file)
     case "add": {
       const id = edit(file, (plan) => plan.addItem(need(rest[0], "a kind"), need(rest[1], "a title"), flags))
       return console.log(id.toUpperCase())
@@ -595,8 +595,8 @@ function check(file, { noBrowser }) {
   if (problems.length || !browserOk) process.exit(1)
 }
 
-/** `open`:  show the doc in Chrome, reusing its tab (`pages.js` `openInChrome()`). */
+/** `open`:  show the doc rendered in VS Code, reusing its tab (`pages.js` `openInVSCode()`). */
 function open(file) {
   read(file)
-  openInChrome(file)
+  openInVSCode(file)
 }

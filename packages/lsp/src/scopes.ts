@@ -6,8 +6,8 @@
  *   so a project another imports goes first.
  * - `yarn scopes --builtins`:  the built-in types' pack, `core`'s `src/spellCore.scopes.js`.
  *   NOTE: OVERWRITES any hand edits there -- diff it before keeping.
- * - The language server writes a project's pack itself after each clean compile.
- *   TODO: `spell compile` should too -- via `SpellDiskWorkspace.writeScopes()`.  It's in the `cli` repo, `../cli`.
+ * - The language server writes a project's pack itself after each clean compile, as do `spell compile` and
+ *   `spell watch` (`packages/cli`) -- all through `SpellDiskWorkspace.writeScopes()`.
  * - NODE ONLY, and NOT in the `$/lsp` barrel:  it runs the moment it's imported.
  */
 // FIRST:  defines `__PACKAGE_VERSION__`, which vite would, before anything reads it

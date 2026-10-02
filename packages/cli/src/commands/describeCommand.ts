@@ -3,7 +3,7 @@ import { LSP } from "$/lsp"
 import { CLI } from "$/cli"
 
 /**
- * `spell describe <target> [name] [member]`:  what the Type Explorer shows, as text -- see `describeText.ts`.
+ * `spell describe [target] [name] [member]`:  what the Type Explorer shows, as text -- see `describeText.ts`.
  * - No name:  an overview of the file or project -- each type with its members, each function and variable.
  * - `name`:  that ONE thing in full, e.g. `Card`, `test card setup`, `Suits`.  `member` picks one of its members,
  *   e.g. `spell describe Card.spell Card color`.
@@ -18,7 +18,7 @@ export async function describeCommand(
   options: CLI.DescribeOptions
 ): Promise<number> {
   const [arg, ...names] = args
-  const targets = await session.targets([arg!])
+  const targets = await session.targets(arg === undefined ? [] : [arg])
   if (names.length && targets.length > 1) throw new CLI.CliError(`Name one project to look for '${names.join(" ")}' in`)
 
   const width = process.stdout.columns || 100

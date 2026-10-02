@@ -8,7 +8,7 @@ Usage (from `packages/docs`):
 - `<code>path</code>` outside `<pre>` / `<a>` / `<head>` becomes a link when the path resolves to a real file or folder
 - existing `<a href>` without a target gets one (external:  per URL;  sibling docs:  per file)
 - `--check` verifies:  every local href resolves INSIDE the repo, every non-anchor link has a target, one target per
-  destination
+  destination (`target="_self"`, a same-tab link, is exempt from the last)
 """
 
 import os
@@ -188,6 +188,9 @@ def check(path):
             problems.append(f"outside repo:  {href}")
         if not target:
             problems.append(f"no target:  {href}")
+            continue
+        # `_self`:  a page that reads like a site (the master plan) navigates in place, on purpose
+        if target.group(1) == "_self":
             continue
         by_dest.setdefault(dest, set()).add(target.group(1))
         by_target.setdefault(target.group(1), set()).add(dest)

@@ -136,7 +136,9 @@
       }
     ]
   },
-  "activationEvents": [],
+  "activationEvents": [
+    "onUri"
+  ],
   "engines": {
     "vscode": "^1.100.0"
   },
