@@ -9,9 +9,13 @@ or reviewing Solid code, JSX, `spellCore` rendering, `~/util` reactivity, or any
   - Plan phases 0-6;  until Phase 6 React and Solid JSX COEXIST, split by path (`SOLID_FILES` in the vite configs).
   - Items marked (planned) below are decided but may not exist in code yet -- check before relying on them.
 - Target `solid-js` / `@solidjs/web` / `@solidjs/h` `2.0.0-rc.13` (current, 2026-09-30), pinned EXACTLY.
-  - `../ui` still pins rc.11:  upgrade it and parser TOGETHER (one Solid per page).
-  - Re-verified on rc.13:  every experiment behaves as on rc.11, the public API is unchanged (`solid-2.html`,
-    "rc.11 vs rc.13").  rc.13's `CHEATSHEET.md` is identical to rc.11's -- trust it first;  v2.solidjs.com tracks rc.13.
+  - Every package is on rc.13 (2026-10-02):  ONE copy at the repo root, pinned in the root `resolutions`;  upgrade
+    them all together (one Solid per page).
+  - Re-verified on rc.13:  every experiment behaves as on rc.11 (`solid-2.html`, "rc.11 vs rc.13").  rc.13's
+    `CHEATSHEET.md` is identical to rc.11's -- trust it first;  v2.solidjs.com tracks rc.13.
+  - rc.13 moved `createErrorBoundary`, `createLoadingBoundary`, `createRevealOrder`, `sharedConfig` and `$DEVCOMP`
+    out of `solid-js` into `solid-js/internal`.  NEVER import from `solid-js/internal`:  use `<Errored>` /
+    `<Loading>` / `<Reveal>` (callable as functions, `children` as a getter -- see `solid-element`'s `errors.ts`).
   - RC bumps:  run `solid/experiments/*` on old and new (`SOLID_NODE_MODULES=<dir>` picks the Solid) and diff.
 - NEVER model Solid 2 on React OR on Solid 1:  both priors produce wrong code here.
 

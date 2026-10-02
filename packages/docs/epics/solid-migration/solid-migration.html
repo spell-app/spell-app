@@ -25,9 +25,7 @@
           ><header class="spell-page-head">
             <h1>Solid Migration</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p2"
-                >next: P2 · Solid rc.13 Bump</ui-label
-              ></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p3">next: P3 · Tooling</ui-label></span
             >
           </header></ui-sticky
         >
@@ -51,13 +49,15 @@
           <ui-icon slot="icon" name="lightbulb"></ui-icon>
           <p class="plan-summary lede">
             Move editor app, <code>&lt;spell-app&gt;</code> / <code>&lt;spell-editor&gt;</code>, VS Code runner and
-            <code>core</code> (runtime compiled spell runs on) from React 18 + semantic-ui-react + easy-state to Solid
-            2, with <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a
+            <code>core</code>'s reactivity from React 18 + semantic-ui-react + easy-state to Solid 2 (compiled spell
+            still renders with React), with
+            <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a
             >'s <code>&lt;ui-*&gt;</code> elements as UI primitives. Resumes work paused 2026-09-30 before the monorepo
             move: research done, no app code changed yet.
           </p>
+
           <blockquote class="plan-prompt"><p>convert this into a plan doc with name "solid-migration"</p></blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 18h 30m-29h in all, 18h-28h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 15h 30m-24h in all, 14h-21h left</p>
           <ui-section id="o1" header="1.1 Where it stands" sticky collapsible dividing>
             <ul>
               <li>
@@ -427,20 +427,6 @@
                     <td class="no negative">HIGH: every Thing read / write goes through it</td>
                   </tr>
                   <tr>
-                    <td><a href="#p5">P5</a> Core + JSX Emit</td>
-                    <td>
-                      <a href="../../../core/src/ui.ts" target="src-packages-core-src-ui-ts"><code>ui.ts</code></a> 117;
-                      <code>Thing</code> / <code>List</code> / <code>App</code> ~310;
-                      <a href="../../../spell/src/rules/JSX.ts" target="src-packages-spell-src-rules-jsx-ts"
-                        ><code>JSX.ts</code></a
-                      >
-                      525; <code>ASTJSXElement</code> emit; 16 spell project files; fixtures
-                    </td>
-                    <td class="num right aligned">5-8h</td>
-                    <td class="num right aligned">3-5h</td>
-                    <td class="no negative">HIGH: compiled output changes shape</td>
-                  </tr>
-                  <tr>
                     <td><a href="#p6">P6</a> Shared App UI</td>
                     <td>
                       <a href="../../../app/src/ui/" target="src-packages-app-src-ui"
@@ -489,8 +475,8 @@
                   <tr>
                     <td><b>Total</b></td>
                     <td></td>
-                    <td class="num right aligned"><b>~29-46h</b></td>
-                    <td class="num right aligned"><b>~18-29h</b></td>
+                    <td class="num right aligned"><b>~23h 30m-38h</b></td>
+                    <td class="num right aligned"><b>~15h 30m-24h</b></td>
                     <td></td>
                   </tr>
                 </tbody>
@@ -501,11 +487,12 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="1" total="10" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="2" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
           <ui-section
+            collapsed
             id="p1"
             data-phase="1"
             data-status="done"
@@ -532,13 +519,13 @@
           <ui-section
             id="p2"
             data-phase="2"
-            data-status="todo"
+            data-status="done"
             header="P2 · Solid rc.13 Bump"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> ui + solid-element on rc.13; one Solid in root node_modules</ui-item
@@ -594,31 +581,6 @@
               ><ui-item icon="clock"><b>Estimate:</b> 4-6h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section
-            id="p5"
-            data-phase="5"
-            data-status="todo"
-            header="P5 · Core + JSX Emit"
-            sticky
-            collapsible
-            dividing
-          >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
-            <ui-list class="plan-phase-body"
-              ><ui-item icon="bullseye"
-                ><b>Goal:</b> compiled spell renders through Solid; clean break in spell JSX (handoff 2)</ui-item
-              ><ui-item icon="folder"
-                ><b>Files:</b> packages/core/src/ui.ts element() on @solidjs/h; Thing.Component, List.drawItems() -&gt;
-                <code>&lt;For&gt;</code>, App.start() -&gt; render() + dispose; packages/app/src/runner/spellRuntime.ts,
-                runCompiled.ts; packages/spell/src/rules/JSX.ts + ASTJSXElement emit thunks, diagnostics on SUI.* /
-                className; packages/spell/projects/system/ -&gt; <code>&lt;ui-*&gt;</code> / class=; new
-                <code>&lt;ui-*&gt;</code> fixture; PARSING.md</ui-item
-              ><ui-item icon="flask"
-                ><b>Verify:</b> fixtures never edited to follow examples; Solitaire / Todos / Calculator run; parser
-                speed test</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 3-5h</ui-item></ui-list
-            >
-          </ui-section>
           <ui-section id="p6" data-phase="6" data-status="todo" header="P6 · Shared App UI" sticky collapsible dividing>
             <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
             <ui-list class="plan-phase-body"
@@ -671,13 +633,18 @@
           </ui-section>
           <ui-section id="p9" data-phase="9" data-status="todo" header="P9 · Remove React" sticky collapsible dividing>
             <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+
             <ui-list class="plan-phase-body"
-              ><ui-item icon="bullseye"><b>Goal:</b> no React anywhere (handoff 6)</ui-item
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> no React in the app's own UI; React stays only where <code>core</code> renders compiled
+                spell (handoff 6, narrowed by <a href="#d9">D9</a>)</ui-item
               ><ui-item icon="folder"
-                ><b>Files:</b> React deps in app, core, util, parser, cli; @vitejs/plugin-react, the bridge,
-                SOLID_FILES, pragmas; tsconfig jsx: preserve + jsxImportSource: @solidjs/web; AGENTS.md, PARSING.md,
-                CODE-DEBT</ui-item
-              ><ui-item icon="flask"><b>Verify:</b> test: no react in any bundle; yarn review at root</ui-item
+                ><b>Files:</b> React deps in app (except what <code>core</code> needs), parser (AST views), cli;
+                @vitejs/plugin-react scoped to <code>core</code>-rendering files; SOLID_FILES / pragmas flipped to a
+                React allow-list; AGENTS.md, CODE-DEBT (React-for-spell-output entry)</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> test: no React in the editor / app bundles beyond <code>core</code>'s; yarn review at
+                root</ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
             >
           </ui-section>
@@ -900,6 +867,48 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="d9" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d9">D9</a>
+                  <span class="plan-title">P5 (Core + JSX Emit) removed: too much for this thread</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Owen, 2026-10-02. <code>core</code> rendering (<code>element()</code>, <code>Thing.Component</code>,
+                    <code>List</code>, <code>App.start()</code>), the parser's JSX emit and the spell projects'
+                    <code>SUI.*</code> → <code>&lt;ui-*&gt;</code> move stay React for now. Consequences:
+                  </p>
+                  <ul>
+                    <li>P4's React bridge stays past this thread</li>
+                    <li>P6 / P7 host compiled-spell React output inside Solid UI (two renderers on one page)</li>
+                    <li>P9 narrowed to the app's own UI</li>
+                    <li>phase ids kept: P1-P4, P6-P10 (renumbering would break links)</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d10" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d10">D10</a>
+                  <span class="plan-title"
+                    >solid-element: &lt;Errored&gt; instead of createErrorBoundary</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    rc.13 moved <code>createErrorBoundary</code> (and <code>createLoadingBoundary</code>,
+                    <code>createRevealOrder</code>, <code>sharedConfig</code>, <code>$DEVCOMP</code>) from
+                    <code>solid-js</code> to <code>solid-js/internal</code>.
+                    <a href="../../../solid-element/src/errors.ts" target="src-packages-solid-element-src-errors-ts"
+                      ><code>packages/solid-element/src/errors.ts</code></a
+                    >
+                    now calls the public <code>Errored</code> as a function (<code>children</code> as a getter), the
+                    same code in rc.11 and rc.13; fork tests pass on both. Rule added to
+                    <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
+                      ><code>solid-2.md</code></a
+                    >: never import <code>solid-js/internal</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -962,6 +971,31 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="c5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c5">C5</a>
+                  <span class="plan-title">React and Solid both on the page for spell output</span> </ui-title
+                ><ui-content
+                  ><p>
+                    With P5 gone, <code>&lt;spell-app&gt;</code> and the runner mount compiled spell's React tree inside
+                    Solid-rendered UI. P7 must keep React's root mount (<code>App.start()</code>) working inside a Solid
+                    host and shadow DOM.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c6">C6</a>
+                  <span class="plan-title">P2 visual tests: local (macOS) only</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>yarn test:visual --os local</code>: 582 passed on rc.13. The Linux (Docker) run wasn't done:
+                    Docker isn't running here, same as the ui plan's open item.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -979,6 +1013,35 @@
                   ></ui-title
                 ><ui-content
                   ><p><code>static { defineProps(...) }</code> instead of hand-written accessor pairs.</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t2">T2</a>
+                  <span class="plan-title">Core + JSX Emit (was P5): its own thread</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <a href="../../../core/src/ui.ts" target="src-packages-core-src-ui-ts"
+                      ><code>packages/core/src/ui.ts</code></a
+                    >
+                    <code>element()</code> on <code>@solidjs/h</code>; <code>Thing.Component</code>,
+                    <code>List.drawItems()</code> → <code>&lt;For&gt;</code>, <code>App.start()</code> →
+                    <code>render()</code> + dispose;
+                    <a
+                      href="../../../app/src/runner/spellRuntime.ts"
+                      target="src-packages-app-src-runner-spellruntime-ts"
+                      ><code>spellRuntime.ts</code></a
+                    >,
+                    <a href="../../../app/src/runner/runCompiled.ts" target="src-packages-app-src-runner-runcompiled-ts"
+                      ><code>runCompiled.ts</code></a
+                    >;
+                    <a href="../../../spell/src/rules/JSX.ts" target="src-packages-spell-src-rules-jsx-ts"
+                      ><code>packages/spell/src/rules/JSX.ts</code></a
+                    >
+                    + <code>ASTJSXElement</code> emit thunks; spell projects to <code>&lt;ui-*&gt;</code> /
+                    <code>class=</code>; <code>PARSING.md</code>. Was estimated 3-5h wall.
+                  </p></ui-content
                 ></ui-accordion
               ></ui-item
             ></ui-list
@@ -1112,6 +1175,42 @@
               ><ui-content
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T12:27-04:00">2026-10-02 12:27</time></ui-date> P1
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T12:32-04:00">2026-10-02 12:32</time></ui-date> P2
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T12:34-04:00">2026-10-02 12:34</time></ui-date> P5 · Core + JSX
+                  Emit removed (Owen); P9 narrowed; totals now 9 phases</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T12:34-04:00">2026-10-02 12:34</time></ui-date> P6 estimate:
+                  2-4h</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T12:44-04:00">2026-10-02 12:44</time></ui-date> P2: rc.13
+                  everywhere (root resolutions, ui, solid-element), vite-plugin next.47; ui review + 582 local visual +
+                  fork tests pass; 9 experiments same on rc.11 and rc.13; docs bundle rebuilt</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T12:48-04:00">2026-10-02 12:48</time></ui-date> P2
                   done</ui-summary
                 ></ui-content
               ></ui-event

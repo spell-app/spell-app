@@ -17,22 +17,28 @@
  * - `errorBoundary: false` restores the old behaviour.
  */
 
-import { createErrorBoundary, runWithOwner, untrack, type Accessor } from "solid-js"
+import { Errored, runWithOwner, untrack, type Accessor, type Element as SolidNode } from "solid-js"
 
 import { STATE, type ElementOptions, type SolidElement, type SolidElementClass } from "./solid-element.types"
 
-/** The render inside a boundary (unless disabled);  `render` runs untracked either way. */
+/**
+ * The render inside a boundary (unless disabled);  `render` runs untracked either way.
+ * - `<Errored>`, called as a function, not `createErrorBoundary`:  rc.13 moved that to `solid-js/internal`, and
+ *   `Errored` is the public wrapper over it in every RC.  `children` is a GETTER, so `render` runs inside it.
+ */
 export function renderWithBoundary(element: SolidElement, render: () => unknown): unknown {
   const options: ElementOptions = STATE in element ? (element.constructor as SolidElementClass).options : {}
   if (options.errorBoundary === false) return untrack(render)
-  return createErrorBoundary(
-    () => untrack(render),
-    (error: Accessor<unknown>) => {
+  return Errored({
+    get children() {
+      return untrack(render) as SolidNode
+    },
+    fallback: (error: Accessor<unknown>) => {
       const cause = error()
       const handled = runWithOwner(null, () => report(element, cause, options))
-      return handled && options.fallback ? untrack(() => options.fallback!(element, cause)) : undefined
+      return (handled && options.fallback ? untrack(() => options.fallback!(element, cause)) : undefined) as SolidNode
     }
-  )
+  })
 }
 
 /**
