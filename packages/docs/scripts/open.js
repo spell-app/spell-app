@@ -3,7 +3,8 @@
  * - `<page>` relative to `packages/docs` (or absolute), e.g. `index.html`;  default:  the docs index
  *   - `.html` and a folder's own page may be left off:  `solid/solid-2` ~== `solid/solid-2.html`,
  *     `server` ~== `server/server.html`
- * - `--vs`:  in VS Code's doc preview instead (Simple Browser beside the editor, `openInVSCode()`):  `/spell-docs`
+ * - `--vs`:  in VS Code's doc preview instead (the right side bar's "Spell Docs" view, `openInVSCode()`):
+ *   `/spell-docs`
  */
 import { existsSync, statSync } from "node:fs"
 import { basename, isAbsolute, join } from "node:path"

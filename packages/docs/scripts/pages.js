@@ -49,7 +49,7 @@ export function tidy(files) {
   return true
 }
 
-/** Opens a doc in VS Code's Simple Browser:  the spell extension's URI handler (`packages/vscode/src/DocPreview.ts`). */
+/** Opens a doc in VS Code's doc preview:  the spell extension's URI handler (`packages/vscode/src/DocPreview.ts`). */
 const VSCODE_PREVIEW = "vscode://spell-app.spell-language/doc-preview"
 
 /**
@@ -87,9 +87,10 @@ export function serverUrl(base, file) {
 }
 
 /**
- * Show `file` rendered in a VS Code tab, beside the editor:  `yarn plan-doc open <name>`, `yarn plan-doc phase`.
+ * Show `file` rendered in VS Code's doc preview:  `yarn plan-doc open <name>`, `yarn plan-doc phase`, `/spell-docs`.
  * - starts this checkout's page server first (`ensurePageServer()`), so the page live-reloads;  the spell extension
- *   (`yarn vscode`) finds it by its pid file and shows the page in Simple Browser, ONE tab, reloaded on every open
+ *   (`yarn vscode`) finds it by its pid file and shows the page in the right side bar's "Spell Docs" view (or Simple Browser,
+ *   `spell.docPreview.location`), reloaded on every open
  * - first asks THIS session's window, through the extension's window bridge (the repo root's
  *   `scripts/window.mjs`);  a `vscode://` URI goes to whichever window is focused
  * - the session is moving to a worktree's window (`/isolate`, `/epic`:  a pending handoff):  shown THERE once it

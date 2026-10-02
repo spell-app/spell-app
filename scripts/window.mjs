@@ -52,7 +52,7 @@
  * - `add <path> [--name <name>]`:  add a folder (a worktree) to the window;  needs a window opened from its
  *   `.code-workspace` (else the change would restart its extensions, Claude panel included)
  * - `remove <path>`:  remove that folder again;  never the window's first
- * - `show <file>`:  show an `.html` doc in the window's Simple Browser, beside the editor;  in the window this session
+ * - `show <file>`:  show an `.html` doc in the window's doc preview (the right side bar's "Spell Docs" view);  in the window this session
  *   is moving to, once it has, while a `handoff` is pending
  * - `open <name> [--pkg <pkg>]`:  write worktree `<name>`'s window file and open it in a new window;  `<pkg>`
  *   defaults to this session's window's package.  `close <name>`:  close that window, delete the file.
@@ -311,10 +311,10 @@ export class Window {
   }
 
   /**
-   * Show `file` (an `.html` doc) in this session's window, in Simple Browser beside the editor;  resolves to
+   * Show `file` (an `.html` doc) in this session's window's doc preview;  resolves to
    * `{ window }` (the registry entry it showed in) or `{ later }` (the window file it will show in).
    * - a `handoff` pending for `sessionId`:  NOT here, where the session's tab is about to close, but in the window
-   *   it moves to, once it has (`resume`).  Simple Browser has one tab, so the last doc asked for wins.
+   *   it moves to, once it has (`resume`).  The preview shows one doc, so the last asked for wins.
    * - throws as `request()` does:  no window, or it failed
    */
   static async show(file, sessionId = process.env.CLAUDE_CODE_SESSION_ID) {
@@ -518,7 +518,7 @@ const USAGE = `usage:  yarn window <command>
   which                        this session's VS Code window:  pid, workspace file, folders
   add <path> [--name <name>]   add a folder (a worktree) to the window
   remove <path>                remove it again
-  show <file>                  show an .html doc in the window's Simple Browser
+  show <file>                  show an .html doc in the window's doc preview (right side bar)
                                (moving:  in the window this session moves to)
   open <name> [--pkg <pkg>]    open worktree <name> in a new window (default package:  this window's)
   close <name>                 close that window, delete its file
