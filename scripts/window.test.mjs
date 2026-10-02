@@ -88,11 +88,12 @@ test("request():  no window, or none listening, throws a clear error", async () 
   await assert.rejects(Window.request("show-doc", {}, window), /didn't answer on port 1/)
 })
 
-test("a worktree's window:  its own root and package, the package's theme, tinted", () => {
+test("a worktree's window:  the main root first, then the worktree's package and root;  theme, tinted", () => {
   const workspace = Window.worktreeWorkspace("ui", "seo")
   assert.deepEqual(workspace.folders, [
-    { path: "seo", name: "spell-app ⎇ seo" },
-    { path: "seo/packages/ui", name: "ui ⎇ seo" }
+    { path: "../..", name: "spell-app" },
+    { path: "seo/packages/ui", name: "ui ⎇ seo" },
+    { path: "seo", name: "spell-app ⎇ seo" }
   ])
   assert.equal(workspace.settings["workbench.colorTheme"], Window.theme("ui"))
   assert.deepEqual(workspace.settings["workbench.colorCustomizations"], tint("seo"))

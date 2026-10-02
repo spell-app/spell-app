@@ -350,3 +350,13 @@ every entry below that date was fixed or disproven;  what's left:
   server` ran in -- the root's `yarn server` runs `yarn workspace ... server`, whose nested yarn resets `INIT_CWD`.
   Prove:  `yarn server url packages/docs/index.html` at the repo root prints
   `.../packages/server/packages/docs/index.html`.  An absolute path works.
+
+## vscode
+
+### 1. Behavior bugs
+
+- `src/WindowBridge.ts` `close-window`:  didn't close the worktree's window in Owen's test (2026-10-02), though
+  `scripts/window.mjs close doc-template` reported "closed" and the window's registry entry disappeared.  Maybe
+  `workbench.action.closeWindow` from a `setTimeout` after the reply runs too late or is refused;  or the window
+  that opened wasn't the one registered.  Prove:  `node scripts/window.mjs open <name> --pkg docs`, wait for its
+  `~/.spell/windows/*.json`, then `close <name>`, and watch the window.
