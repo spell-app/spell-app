@@ -60,8 +60,11 @@ When the session already has work under way ("make this a plan doc"), carry it o
   that kicked off the plan, verbatim (the text after `<name>`, or the next prompt when there was none) (write it to the scratchpad first:  it may hold quotes and newlines).  It's
   quoted at the top of the Overview.  Reusing a doc whose prompt is missing:  `yarn plan-doc prompt <name> --file
   <file>`;  an older doc (before 2026-10-01, or `section.s2` markup):  `yarn plan-doc migrate <name>` first.
-- Then `yarn plan-doc open <name>`:  rendered in VS Code's Simple Browser, beside the editor, in THIS session's
-  window, beside the chat, not the worktree's (`yarn window`;  one tab, reloaded on every later `open`).  Needs the spell extension (`yarn vscode`).
+- Then `yarn plan-doc open <name>`:  rendered in VS Code's Simple Browser, beside the session's tab, in the
+  WORKTREE's window (`yarn window`;  one tab, reloaded on every later `open`).  Needs the spell extension
+  (`yarn vscode`).
+  - The session moves there when this turn ends (the isolate step's `handoff`), so this `open` doesn't show it
+    now:  it waits for the move, then shows it there.  Every later `open` shows it in that window at once.
 
 ## 3. Plan
 
@@ -133,8 +136,10 @@ When the session already has work under way ("make this a plan doc"), carry it o
     `packages/docs/<name>/<name>.html`
   - from the plan doc:  Overview -> the body;  decisions -> a "Why" section;  open caveats -> "Limits"
   - finish as in `packages/docs/AGENTS.md`, "Finishing a page";  `yarn docs:index`
-- The plan doc stays in `epics/` as the record:  every phase done.  `yarn plan-doc open <name>` one last time.
-- Then leave the worktree:  follow `.claude/skills/isolate/SKILL.md`, "Finish".
+- The plan doc stays in `epics/` as the record:  every phase done.
+- Then leave the worktree:  follow `.claude/skills/isolate/SKILL.md`, "Finish".  Right after its step 4
+  (`handoff --back`), still in the worktree:  `yarn plan-doc open <name>` one last time, so the doc follows the
+  session back to its package's window (the worktree's window closes).
 - Last line of the reply:  "All done ..." (see the top).
 
 ## Cheat sheet (`yarn plan-doc ...`, from anywhere in the repo)

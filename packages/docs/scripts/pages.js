@@ -92,6 +92,8 @@ export function serverUrl(base, file) {
  *   (`yarn vscode`) finds it by its pid file and shows the page in Simple Browser, ONE tab, reloaded on every open
  * - first asks THIS session's window, through the extension's window bridge (the repo root's
  *   `scripts/window.mjs`);  a `vscode://` URI goes to whichever window is focused
+ * - the session is moving to a worktree's window (`/isolate`, `/epic`:  a pending handoff):  shown THERE once it
+ *   has moved, not in the window it's leaving
  * - no bridge (extension not reloaded, or not run from a VS Code window), or it failed:  the `vscode://` URI
  * - `open` can't fail (macOS):  without the extension, VS Code says it can't handle the URI
  * - `open` itself failed (not macOS):  falls back to Chrome
@@ -100,14 +102,12 @@ export function serverUrl(base, file) {
 export async function openInVSCode(file) {
   const path = resolve(file)
   const served = ensurePageServer()
-  const window = Window.current()
-  if (window) {
-    try {
-      await Window.request("show-doc", { file: path }, window)
-      return console.log(`opened ${path} in VS Code (window ${window.pid})`)
-    } catch (error) {
-      console.error(`${error.message}:  falling back to the vscode:// URI`)
-    }
+  try {
+    const { window, later } = await Window.show(path)
+    if (later) return console.log(`${path} shows in ${later} once this session moves there`)
+    return console.log(`opened ${path} in VS Code (window ${window.pid})`)
+  } catch (error) {
+    if (!/^no window/.test(error.message)) console.error(`${error.message}:  falling back to the vscode:// URI`)
   }
   const query = new URLSearchParams({ ...(served && { url: serverUrl(served.base, path) }), file: path })
   const run = spawnSync("open", [`${VSCODE_PREVIEW}?${query}`], { encoding: "utf8" })
