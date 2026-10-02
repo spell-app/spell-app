@@ -308,6 +308,17 @@ every entry below that date was fixed or disproven;  what's left:
   compute `width` / `height` `0px`, though the svg's rule says `height: 1em`.  Seen in the docs rail
   (`packages/docs/_assets/spell-doc-runtime.js` `buildRail()`, which now slots a `<ui-icon>` instead).  Prove:  that
   markup in a menu example, measure the svg.  (2026-10-01)
+  - Wider than that (2026-10-02, solid-migration P6):  EVERY menu item's `icon` shorthand, text or not, horizontal
+    too -- `<ui-menu><ui-item link icon="pencil">Plain</ui-item></ui-menu>`:  the `.icon` span computes `display: flex`,
+    span and svg `0 x 0`.  `ui`'s own baseline shows it:  `test/visual/baselines/local-darwin/chromium/ui-menu/
+    content-light.png`, "Icons and a dropdown item":  "Inbox" (`icon="inbox"`) has no icon, "Mail" (a slotted
+    `<ui-icon>`) has one.  The app's `<Action>` slots a `<ui-icon>` too (`packages/app/src/solid/Actions.tsx`, HACK).
+- `src/components/ui-menu/ui-menu.css`:  `<ui-menu inverted color="violet">` items draw DARK text on the violet fill;
+  Fomantic's inverted coloured menu has white text.  Plain `<ui-menu inverted>` is right (light on dark).  Prove:  that
+  markup, `getComputedStyle()` of `::part(item)`'s `color`.  (2026-10-02, solid-migration P6)
+- `src/components/ui-dropdown/UIDropdown.tsx` `label()`:  a host `aria-label` never reaches the combobox (only
+  `placeholder` / `text` / `name` do), so an icon-only dropdown (no text, an `icon` slot) has no accessible name.  The app's
+  `<MoreMenu>` ("...") is one.  (2026-10-02, solid-migration P6)
 - `src/styles/utilities.css` ~line 439:  `.ui-prose :where(ul, ol)` comes after `.ui-list-plain` with the same
   specificity, so a plain list inside prose keeps its 1.5em indent.  The docs' `/components/` index works around it
   with `ui-not-prose`.  (2026-10-01)

@@ -1,0 +1,62 @@
+/*
+ * Look of the app's Solid chrome (`chrome.tsx`):  React's `SUI-additions.css` menu rules, on `@spell-app/ui`.
+ * - `<ui-menu>` / `<ui-item>` hosts are `display: contents`:  rules reach the boxes through `::part(menu)` and
+ *   `::part(item)`.  A page's `::part()` rule beats the element's own sheet (outer tree wins), layers or not.
+ */
+
+/* `<PanelMenu>`:  over the panel below it */
+ui-menu.PanelMenu::part(menu) {
+  z-index: 10;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+ui-menu.PanelMenu > ui-item[type="header"]::part(item) {
+  padding-left: 1em;
+}
+
+/* "medium-short" menu */
+ui-menu.medium-short::part(menu) {
+  min-height: 32px;
+}
+ui-menu.medium-short ui-item::part(item) {
+  padding-block: 0;
+}
+
+/* "short" menu */
+ui-menu.short::part(menu) {
+  min-height: 28px;
+}
+ui-menu.short ui-item::part(item) {
+  padding-block: 0;
+}
+
+/* "tight" menu */
+ui-menu.tight ui-item::part(item) {
+  padding-inline: 8px;
+}
+
+/* `<Submenu left | center | right>`:  thirds that line up */
+ui-menu.third::part(menu) {
+  min-width: 33.3%;
+}
+
+/* an item without its divider line */
+ui-item.no-border::part(item)::before {
+  width: 0;
+}
+
+/* `<Spring>`:  eats the space left */
+ui-item.spring::part(item) {
+  flex: 1 1 auto;
+}
+
+/* `<DropdownLabel>`:  a quiet label before a dropdown */
+ui-item.dropdown-label::part(item) {
+  padding: 0 0 0 1em;
+  opacity: 0.8;
+}
+ui-item.dropdown-label::part(item)::before {
+  width: 0;
+}
+ui-item.dropdown-label + ui-item::part(item) {
+  padding-left: 0.6em;
+}

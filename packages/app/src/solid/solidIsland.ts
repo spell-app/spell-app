@@ -21,6 +21,7 @@ export function solidIsland<P extends object>(component: Component<P>, wrapper: 
     React.useLayoutEffect(() => {
       island.current = mount(component, element.current!, props)
       return () => island.current?.dispose()
+      // oxlint-disable-next-line react-hooks/exhaustive-deps -- mount ONCE;  the effect below hands on new props
     }, [])
     React.useLayoutEffect(() => {
       island.current?.update(props)

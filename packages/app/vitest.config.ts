@@ -66,6 +66,8 @@ function browserConfig() {
     ...config,
     optimizeDeps: {
       ...config.optimizeDeps,
+      // crawl the tests' imports up front:  `$/app/editor` pulls in more (`marked`, `semantic-ui-react`, lodash ...)
+      entries: BROWSER_TESTS,
       include: ["react", "react-dom", "react-dom/client", "solid-js", "@solidjs/web"]
     }
   }

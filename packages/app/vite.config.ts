@@ -9,9 +9,11 @@ const RUNTIME_ENTRY = "spell-runtime"
 /**
  * The editor app:  `yarn start:dev` / `yarn build` => `dist/`.
  * - Plugins, aliases, dedupe and CSS:  `appConfig()` (React and Solid side by side).
+ * - `iconPacks`:  `@spell-app/ui`'s built-in icon packs go beside the chunks (`assets/`), where `BuiltInPacks` looks;
+ *   the app's Solid UI draws Fomantic names from them (`$/app/solid`'s `loadUI.ts`).
  */
 export default defineConfig({
-  ...appConfig(),
+  ...appConfig({ iconPacks: "assets/icon-packs" }),
   server: {
     port: environment.vitePort,
     host: "0.0.0.0",
