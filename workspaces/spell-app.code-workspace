@@ -1,0 +1,15 @@
+{
+  "folders": [
+    {
+      "path": "..",
+      "name": "SPELL-APP"
+    }
+  ],
+  "settings": {
+    "workbench.colorTheme": "Dark",
+    "files.exclude": {
+      "packages": true,
+      ".claude/worktrees": true
+    }
+  }
+}
