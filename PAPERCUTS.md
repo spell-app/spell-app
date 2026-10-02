@@ -978,3 +978,10 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   `.spell-server.astro.log`:  only there while it runs) and `packages/app/src/server/ts.zip` (deleted in P6). ·
   Not fixed:  `yarn server ensure` first creates the runtime files;  `--no-check` skips the browser checks only. ·
   docs
+- 2026-10-02 · `yarn plan-doc add-phase` writes `--goal` / `--files` / `--verify` text into the page UNESCAPED:
+  `<ui-*>`, `<For>`, `<spell-app>` became real tags and `check` failed with "undefined elements:  ui-*". ·
+  Hand-escape them in the phase body (`<code>&lt;ui-*&gt;</code>`);  `add --details` takes HTML on purpose, but
+  `add-phase` text should be escaped by the script. · docs
+- 2026-10-02 · Plan docs' phase "Estimate" line (`icon="clock"`) draws nothing:  `clock` isn't in `ICONS` in
+  `packages/docs/scripts/bundle-spell-ui.js` (only `clock rotate left`), so `check` notes "N icon(s) with no
+  <svg> drawn", one per phase. · Not fixed:  add `clock` to `ICONS`, then `yarn docs:update`. · docs

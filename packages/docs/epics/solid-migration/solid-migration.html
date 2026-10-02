@@ -1,0 +1,1065 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Solid Migration</title>
+    <meta name="description" content="Plan doc:  Solid Migration." />
+    <link rel="stylesheet" href="../../_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../_assets/plan-doc.css" />
+  </head>
+  <body class="spell-doc-page plan-doc" data-plan="solid-migration">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../../index.html" target="src-packages-docs-index-html"
+            >Docs</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section href="../../index.html#epics" target="src-packages-docs-index-html"
+            >Epics</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section active>Solid Migration</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <ui-sticky class="spell-h1"
+          ><header class="spell-page-head">
+            <h1>Solid Migration</h1>
+            <span class="plan-step"
+              ><ui-label basic color="grey" icon="circle outline" href="#p1"
+                >next: P1 · Construction Order</ui-label
+              ></span
+            >
+          </header></ui-sticky
+        >
+        <ui-list class="plan-meta">
+          <ui-item icon="code branch"
+            >Plan doc for <code>/epic solid-migration</code>, branch <code>solid-migration</code></ui-item
+          >
+          <ui-item icon="folder"
+            >Worktree:
+            <a href="../../../../" target="src-"
+              ><code>/Users/owen/www/spell-app/spell-app/.claude/worktrees/solid-migration</code></a
+            ></ui-item
+          >
+          <ui-item icon="calendar"
+            >Started <time id="plan-started">2026-10-02</time>, updated
+            <time id="plan-updated">2026-10-02</time></ui-item
+          >
+        </ui-list>
+
+        <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
+          <ui-icon slot="icon" name="lightbulb"></ui-icon>
+          <p class="plan-summary lede">
+            Move editor app, <code>&lt;spell-app&gt;</code> / <code>&lt;spell-editor&gt;</code>, VS Code runner and
+            <code>core</code> (runtime compiled spell runs on) from React 18 + semantic-ui-react + easy-state to Solid
+            2, with <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a
+            >'s <code>&lt;ui-*&gt;</code> elements as UI primitives. Resumes work paused 2026-09-30 before the monorepo
+            move: research done, no app code changed yet.
+          </p>
+          <blockquote class="plan-prompt"><p>convert this into a plan doc with name "solid-migration"</p></blockquote>
+          <p class="plan-estimate"><b>Estimate:</b> 18h 30m-29h in all, 18h 30m-29h left</p>
+          <ui-section id="o1" header="1.1 Where it stands" sticky collapsible dividing>
+            <ul>
+              <li>
+                Source: handoff <code>/Users/owen/www/spell-app/outstanding/solid-migration.md</code>, written for the
+                pre-monorepo layout (paths re-mapped in <a href="#o3">1.3</a>).
+              </li>
+              <li>
+                <b>Phase 0a, research + docs: done.</b> Rules
+                <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
+                  ><code>packages/docs/solid/solid-2.md</code></a
+                >, design
+                <a href="../../solid/solid-2.html" target="src-packages-docs-solid-solid-2-html"
+                  ><code>packages/docs/solid/solid-2.html</code></a
+                >
+                §2, API
+                <a href="../../solid/cheatsheet.html" target="src-packages-docs-solid-cheatsheet-html"
+                  ><code>packages/docs/solid/cheatsheet.html</code></a
+                >, 9 scripts in
+                <a href="../../solid/experiments/" target="src-packages-docs-solid-experiments"
+                  ><code>packages/docs/solid/experiments/</code></a
+                >.
+                <ul>
+                  <li>
+                    re-checked 2026-10-02 in this worktree: <code>read-after-write.mjs dev</code> and
+                    <code>spell-cells.ts dev</code> run clean; experiments already load Solid from the repo root's
+                    <code>node_modules</code>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <b>Phase 0b, <code>create()</code> / construction order: analysed, not done.</b>
+              </li>
+              <li>
+                <b>Phase 0c and Phases 1-6: not started.</b> <code>app</code>, <code>core</code>, <code>util</code>,
+                <code>parser</code>, <code>cli</code> still depend on React 18.
+              </li>
+              <li>
+                Solid: root <code>node_modules</code> has <code>solid-js</code> / <code>@solidjs/web</code> /
+                <code>@solidjs/signals</code> <b>rc.11</b> (via <code>ui</code> and <code>solid-element</code>); rc.13
+                is current; <code>@solidjs/h</code> not installed. See <a href="#q1">Q1</a>.
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="o2" header="1.2 Design" sticky collapsible dividing>
+            <p>
+              Decided before the pause; the why and measurements are in
+              <a href="../../solid/solid-2.html" target="src-packages-docs-solid-solid-2-html"
+                ><code>packages/docs/solid/solid-2.html</code></a
+              >.
+            </p>
+            <ul>
+              <li>
+                <b>Taken with Owen:</b>
+                <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> from
+                SOURCE; CLEAN BREAK in spell JSX (no <code>SUI.*</code>, raw <code>&lt;ui-*&gt;</code> tags,
+                <code>class=</code>); INCREMENTAL phases, each green, stop for review after each.
+              </li>
+              <li>
+                <b>Solid 2 facts that force the design</b> (measured):
+                <ol>
+                  <li>
+                    writes are staged: read right after write returns OLD value until microtask / <code>flush()</code>.
+                    Spell is imperative (<code>set</code> then <code>print</code> must be exact), so spell state can't
+                    be Solid signals
+                  </li>
+                  <li>
+                    write feeding pending async is HELD with its whole batch (entanglement): even flush-per-write can
+                    read stale
+                  </li>
+                  <li>no writes in owned scope (dev throws; <code>untrack</code> doesn't exempt); no mutable store</li>
+                  <li>one Solid per page; one uncaught error halts the page's whole scheduler</li>
+                </ol>
+              </li>
+              <li>
+                <b>Spell cells:</b> each instance keeps a <code>Map</code> record, the ONLY truth, read and written
+                synchronously. ~200-line sync core (cells + memoized derived values, equality cutoff); one
+                <code>enableExternalSource</code> bridge tells Solid; <code>spellCore.flush()</code> = pending derived
+                checks, then Solid's. Prototype: <code>experiments/spell-cells.core.ts</code>.
+              </li>
+              <li>
+                <b>Accessors for Things, Proxy only for class-less data</b> (editor's nested plain data, JSON): a Proxy
+                costs ~2.5-6x on every access.
+              </li>
+              <li>
+                <b>Decorators for hand-written classes:</b> <code>@prop({ type, default }) accessor</code>,
+                <code>@derived</code>, <code>@thing</code> (runs <code>create()</code> after all field initializers).
+                Prototype: <code>experiments/decorators.ts</code>.
+              </li>
+              <li>
+                <b>Compiled output:</b> no decorators (runs from a <code>blob:</code> URL); accessor pairs + class
+                schema; JSX emits THUNKS for every non-literal prop / child; imports only <code>@spell-app/core</code>,
+                whose <code>element()</code> adapts onto <code>@solidjs/h</code>.
+              </li>
+              <li>
+                <b>Bundles:</b> Solid +
+                <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> in ONE
+                shared <code>spell-solid.js</code> across element / runner / editor builds, never in
+                <code>spell-runtime.js</code>; an import-map <code>&lt;spell-app&gt;</code> variant for host pages
+                already running Solid.
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="o3" header="1.3 Path map" sticky collapsible dividing>
+            <p>Handoff path → monorepo path.</p>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Handoff</th>
+                    <th>Now</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <code>src/spellCore/</code> (<a
+                        href="../../../core/src/things.ts"
+                        target="src-packages-core-src-things-ts"
+                        ><code>things.ts</code></a
+                      >, <a href="../../../core/src/ui.ts" target="src-packages-core-src-ui-ts"><code>ui.ts</code></a
+                      >, <code>classes/Thing.ts</code>,
+                      <a href="../../../core/src/classes/List.tsx" target="src-packages-core-src-classes-list-tsx"
+                        ><code>List.tsx</code></a
+                      >)
+                    </td>
+                    <td>
+                      <a href="../../../core/src/" target="src-packages-core-src"><code>packages/core/src/</code></a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="../../../ui/src/util/" target="src-packages-ui-src-util"><code>src/util/</code></a>
+                      (<code>Observable</code>,
+                      <a href="../../../util/src/spell/extend.ts" target="src-packages-util-src-spell-extend-ts"
+                        ><code>extend.ts</code></a
+                      >); <code>~/util/decorators.ts</code>
+                    </td>
+                    <td>
+                      <a href="../../../util/src/spell/" target="src-packages-util-src-spell"
+                        ><code>packages/util/src/spell/</code></a
+                      >;
+                      <a href="../../../util/src/decorators.ts" target="src-packages-util-src-decorators-ts"
+                        ><code>packages/util/src/decorators.ts</code></a
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <code>src/app/ui/</code> (<a
+                        href="../../../app/src/ui/SUIPassThroughs.ts"
+                        target="src-packages-app-src-ui-suipassthroughs-ts"
+                        ><code>SUIPassThroughs.ts</code></a
+                      >
+                      ...)
+                    </td>
+                    <td>
+                      <a href="../../../app/src/ui/" target="src-packages-app-src-ui"
+                        ><code>packages/app/src/ui/</code></a
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      runner,
+                      <a
+                        href="../../../app/src/runner/spellRuntime.ts"
+                        target="src-packages-app-src-runner-spellruntime-ts"
+                        ><code>spellRuntime.ts</code></a
+                      >,
+                      <a
+                        href="../../../app/src/runner/element.build.test.ts"
+                        target="src-packages-app-src-runner-element-build-test-ts"
+                        ><code>element.build.test.ts</code></a
+                      >
+                    </td>
+                    <td>
+                      <a href="../../../app/src/runner/" target="src-packages-app-src-runner"
+                        ><code>packages/app/src/runner/</code></a
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>pages, <code>SpellEditorElement</code></td>
+                    <td>
+                      <a href="../../../app/src/pages/" target="src-packages-app-src-pages"
+                        ><code>packages/app/src/pages/</code></a
+                      >,
+                      <a href="../../../app/src/spellEditor/" target="src-packages-app-src-spelleditor"
+                        ><code>packages/app/src/spellEditor/</code></a
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>rules/JSX.ts</code></td>
+                    <td>
+                      <a href="../../../spell/src/rules/JSX.ts" target="src-packages-spell-src-rules-jsx-ts"
+                        ><code>packages/spell/src/rules/JSX.ts</code></a
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>ASTReactiveProperty</code>, <code>ASTJSXElement</code></td>
+                    <td>
+                      <a href="../../../parser/src/ast/AST.tsx" target="src-packages-parser-src-ast-ast-tsx"
+                        ><code>packages/parser/src/ast/AST.tsx</code></a
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>projects/system/examples</code> + <code>library</code></td>
+                    <td>
+                      <a href="../../../spell/projects/system/" target="src-packages-spell-projects-system"
+                        ><code>packages/spell/projects/system/</code></a
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <code>vite*.config.ts</code>,
+                      <a href="../../../../vitest.config.ts" target="src-vitest-config-ts"
+                        ><code>vitest.config.ts</code></a
+                      >
+                    </td>
+                    <td>
+                      <a href="../../../app/" target="src-packages-app"><code>packages/app/</code></a>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>docs/SPELL-UI-FINDINGS.md</code></td>
+                    <td>
+                      <a
+                        href="../../spell-docs/spell-ui-findings.md"
+                        target="src-packages-docs-spell-docs-spell-ui-findings-md"
+                        ><code>packages/docs/spell-docs/spell-ui-findings.md</code></a
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>docs/solid/SOLID-2.md</code> ...</td>
+                    <td>
+                      <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
+                        ><code>packages/docs/solid/solid-2.md</code></a
+                      >
+                      ...
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>@spell/ui</code>, <code>@spell/solid-element</code>, <code>@spell/core</code></td>
+                    <td>
+                      <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a>
+                      (<code>$/ui</code>),
+                      <a href="../../../solid-element/README.md" target="src-packages-solid-element-readme-md"
+                        ><code>@spell-app/solid-element</code></a
+                      >, <code>@spell-app/core</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      sibling <a href="../../../ui/" target="src-packages-ui"><code>../ui</code></a> alias,
+                      <code>server.fs.allow</code>, <code>SOLID_NODE_MODULES</code> absolute path
+                    </td>
+                    <td>gone: one workspace, one hoisted <code>node_modules</code></td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+          <ui-section id="o4" header="1.4 Verification, each phase" sticky collapsible dividing>
+            <ul>
+              <li><code>yarn review</code> green; fixture diffs read, blessed only when deliberate</li>
+              <li>
+                <code>app</code> builds: <code>yarn build</code>, <code>build:runner</code>,
+                <code>build:element</code> (via
+                <a
+                  href="../../../app/src/runner/element.build.test.ts"
+                  target="src-packages-app-src-runner-element-build-test-ts"
+                  ><code>element.build.test.ts</code></a
+                >
+                /
+                <a href="../../../app/src/build.test.ts" target="src-packages-app-src-build-test-ts"
+                  ><code>build.test.ts</code></a
+                >)
+              </li>
+              <li>parser changes: <code>SP.spellParser.speedTest()</code> on diff AND HEAD</li>
+              <li><code>yarn vscode</code>, then Run Project on Solitaire / Todos / Calculator</li>
+              <li>
+                <code>yarn start</code>: Solitaire, Todos, Calculator run; typing in a Todos input keeps focus; Thing
+                Explorer updates live; <code>/demo/spell-app.html</code> runs two <code>&lt;spell-app&gt;</code>s
+                independently
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="o5" header="1.5 Effort by phase" sticky collapsible dividing>
+            <ul>
+              <li><b>Agent time:</b> one agent working alone, tests / review / <code>yarn vscode</code> included</li>
+              <li><b>Wall:</b> with up to 5 agents where the work splits; this is each phase's estimate</li>
+              <li>
+                Owen's review between phases not included; sized from line counts, not measured (<a href="#c4">C4</a>)
+              </li>
+            </ul>
+            <ui-table celled compact striped>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Phase</th>
+                    <th>What it touches</th>
+                    <th>Agent time</th>
+                    <th>Wall</th>
+                    <th>Risk</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><a href="#p1">P1</a> Construction Order</td>
+                    <td>
+                      <a href="../../../core/src/classes/Thing.ts" target="src-packages-core-src-classes-thing-ts"
+                        ><code>Thing.ts</code></a
+                      >
+                      79 +
+                      <a href="../../../core/src/classes/List.tsx" target="src-packages-core-src-classes-list-tsx"
+                        ><code>List.tsx</code></a
+                      >
+                      199 lines; audit 17 subclasses; 1 test
+                    </td>
+                    <td class="num right aligned">0.5-1h</td>
+                    <td class="num right aligned">same</td>
+                    <td class="yes positive">low</td>
+                  </tr>
+                  <tr>
+                    <td><a href="#p2">P2</a> Solid rc.13 Bump</td>
+                    <td>
+                      2 <a href="../../../../package.json" target="src-package-json"><code>package.json</code></a
+                      >s; ui SSR + browser + fork + visual suites; 9 experiments re-run
+                    </td>
+                    <td class="num right aligned">1-2h</td>
+                    <td class="num right aligned">same</td>
+                    <td class="meh warning">med: RC changes show up in ui tests</td>
+                  </tr>
+                  <tr>
+                    <td><a href="#p3">P3</a> Tooling</td>
+                    <td>4 vite configs + vitest; dual-JSX plugin order; smoke test</td>
+                    <td class="num right aligned">2-3h</td>
+                    <td class="num right aligned">same</td>
+                    <td class="meh warning">med: <code>@solidjs/vite-plugin</code> is a <code>next</code> build</td>
+                  </tr>
+                  <tr>
+                    <td><a href="#p4">P4</a> Reactivity Engine</td>
+                    <td>
+                      cells core ~200 new; <code>Observable</code> +
+                      <a href="../../../util/src/spell/extend.ts" target="src-packages-util-src-spell-extend-ts"
+                        ><code>extend.ts</code></a
+                      >
+                      470;
+                      <a href="../../../core/src/things.ts" target="src-packages-core-src-things-ts"
+                        ><code>things.ts</code></a
+                      >
+                      434; decorators; <code>ASTReactiveProperty</code> emit; React bridge; 9 experiments to tests;
+                      fixtures; speed test x2
+                    </td>
+                    <td class="num right aligned">6-10h</td>
+                    <td class="num right aligned">4-6h</td>
+                    <td class="no negative">HIGH: every Thing read / write goes through it</td>
+                  </tr>
+                  <tr>
+                    <td><a href="#p5">P5</a> Core + JSX Emit</td>
+                    <td>
+                      <a href="../../../core/src/ui.ts" target="src-packages-core-src-ui-ts"><code>ui.ts</code></a> 117;
+                      <code>Thing</code> / <code>List</code> / <code>App</code> ~310;
+                      <a href="../../../spell/src/rules/JSX.ts" target="src-packages-spell-src-rules-jsx-ts"
+                        ><code>JSX.ts</code></a
+                      >
+                      525; <code>ASTJSXElement</code> emit; 16 spell project files; fixtures
+                    </td>
+                    <td class="num right aligned">5-8h</td>
+                    <td class="num right aligned">3-5h</td>
+                    <td class="no negative">HIGH: compiled output changes shape</td>
+                  </tr>
+                  <tr>
+                    <td><a href="#p6">P6</a> Shared App UI</td>
+                    <td>
+                      <a href="../../../app/src/ui/" target="src-packages-app-src-ui"
+                        ><code>packages/app/src/ui/</code></a
+                      >
+                      ~45 files, ~6.5k lines (monaco plumbing mostly stays)
+                    </td>
+                    <td class="num right aligned">6-10h</td>
+                    <td class="num right aligned">2-4h</td>
+                    <td class="meh warning">med: splits well across agents</td>
+                  </tr>
+                  <tr>
+                    <td><a href="#p7">P7</a> Web Components + Runner</td>
+                    <td>runner + <code>SpellEditorElement</code> ~1.4k lines; 3 builds; CSP; import-map variant</td>
+                    <td class="num right aligned">3-5h</td>
+                    <td class="num right aligned">2-3h</td>
+                    <td class="meh warning">med: shadow DOM + one Solid per page</td>
+                  </tr>
+                  <tr>
+                    <td><a href="#p8">P8</a> Editor Shell</td>
+                    <td>
+                      pages ~400 lines; router; hotkeys;
+                      <a href="../../../parser/src/ast/renderAST.tsx" target="src-packages-parser-src-ast-renderast-tsx"
+                        ><code>renderAST.tsx</code></a
+                      >
+                      350 + AST views
+                    </td>
+                    <td class="num right aligned">3-4h</td>
+                    <td class="num right aligned">2h</td>
+                    <td class="meh warning">low-med</td>
+                  </tr>
+                  <tr>
+                    <td><a href="#p9">P9</a> Remove React</td>
+                    <td>React imports in 46 files (most gone by then); deps in 5 packages; tsconfig; bundle test</td>
+                    <td class="num right aligned">1-2h</td>
+                    <td class="num right aligned">same</td>
+                    <td class="yes positive">low</td>
+                  </tr>
+                  <tr>
+                    <td><a href="#p10">P10</a> Doc Review</td>
+                    <td>prune; durable doc</td>
+                    <td class="num right aligned">1h</td>
+                    <td class="num right aligned">same</td>
+                    <td class="yes positive">low</td>
+                  </tr>
+                  <tr>
+                    <td><b>Total</b></td>
+                    <td></td>
+                    <td class="num right aligned"><b>~29-46h</b></td>
+                    <td class="num right aligned"><b>~18-29h</b></td>
+                    <td></td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
+          <ui-icon slot="icon" name="layer group"></ui-icon>
+          <ui-progress class="plan-progress" value="0" total="10" bar-text="ratio" size="small" color="green"
+            >phases done</ui-progress
+          >
+
+          <ui-section
+            id="p1"
+            data-phase="1"
+            data-status="todo"
+            header="P1 · Construction Order"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> create() runs exactly once, after all field initializers, for hand-written AND compiled
+                subclasses (handoff 0b)</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/core/src/classes/Thing.ts, List.tsx; audit subclasses of Thing / List / App /
+                Observable, Loadable, Task (packages/util/src/spell/), console.ts, SP.*; what spell 'to create a …' /
+                'to set up …' compile to (Todos, Deck)</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> test pinning the order, incl. a compiled class extending a @thing class; NOTE: on
+                Thing.create()</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 30m-1h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p2"
+            data-phase="2"
+            data-status="todo"
+            header="P2 · Solid rc.13 Bump"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> ui + solid-element on rc.13; one Solid in root node_modules</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/ui/package.json, packages/solid-element/package.json, yarn.lock; solid-2.md if
+                behaviour changed</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> ui yarn review, test:visual, test:fork; re-run packages/docs/solid/experiments/* and
+                diff</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p3" data-phase="3" data-status="todo" header="P3 · Tooling" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> app builds with Solid and React side by side; nothing rendered by Solid yet (handoff
+                0c)</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/app/package.json (solid-js, @solidjs/web, @solidjs/h exact; @solidjs/vite-plugin
+                3.0.0-next.47; drop react-router-dom, react-keydown, prop-types, history); every
+                packages/app/vite*.config.ts + vitest.config.ts (dedupe Solid, Lightning CSS with ui's CSS_TARGETS,
+                emitGlyphs(), standardDecorators() -&gt; solid({ include: SOLID_FILES }) -&gt; react({ exclude }));
+                app.d.ts JSX aliases; CODE-DEBT dual-JSX entry</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> smoke test: Solid component with <code>&lt;ui-button&gt;</code> in a vitest SSR project;
+                build, build:runner, build:element</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p4"
+            data-phase="4"
+            data-status="todo"
+            header="P4 · Reactivity Engine"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> spell cells under Observable / extend.ts, same API; React still renders (handoff
+                1)</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/util/src/spell/ (cells from experiments/spell-cells.core.ts);
+                packages/util/src/decorators.ts (@prop / @derived / @thing); packages/parser/src/ast/AST.tsx
+                ASTReactiveProperty emits type + default; packages/core/src/things.ts store.version -&gt; cell;
+                temporary React bridge (view() collects through core)</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> experiments pinned as vitest cases (scripts kept); fixtures blessed, diff read; parser
+                speed test on diff AND HEAD</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 4-6h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p5"
+            data-phase="5"
+            data-status="todo"
+            header="P5 · Core + JSX Emit"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> compiled spell renders through Solid; clean break in spell JSX (handoff 2)</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/core/src/ui.ts element() on @solidjs/h; Thing.Component, List.drawItems() -&gt;
+                <code>&lt;For&gt;</code>, App.start() -&gt; render() + dispose; packages/app/src/runner/spellRuntime.ts,
+                runCompiled.ts; packages/spell/src/rules/JSX.ts + ASTJSXElement emit thunks, diagnostics on SUI.* /
+                className; packages/spell/projects/system/ -&gt; <code>&lt;ui-*&gt;</code> / class=; new
+                <code>&lt;ui-*&gt;</code> fixture; PARSING.md</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> fixtures never edited to follow examples; Solitaire / Todos / Calculator run; parser
+                speed test</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 3-5h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p6" data-phase="6" data-status="todo" header="P6 · Shared App UI" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> packages/app/src/ui/ on Solid + <code>&lt;ui-*&gt;</code> (handoff 3)</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/app/src/ui/ (~45 files, ~6.5k lines); delete SUIPassThroughs.ts; forms -&gt;
+                <code>&lt;ui-form&gt;</code>; modals -&gt; UI.modals.*; Monaco via lazy() (never static-import monaco);
+                <code>&lt;ui-*&gt;</code> JSX types in one ui.types.ts</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> explorer tests -&gt; renderToString; Thing Explorer updates live</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 2-4h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p7"
+            data-phase="7"
+            data-status="todo"
+            header="P7 · Web Components + Runner"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> <code>&lt;spell-app&gt;</code> / <code>&lt;spell-editor&gt;</code> and the VS Code runner
+                on Solid (handoff 4)</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/app/src/runner/SpellAppElement.tsx,
+                packages/app/src/spellEditor/SpellEditorElement.tsx -&gt; customElement() from @spell-app/solid-element;
+                runner components; webview drops semantic-ui-css, glyphs in localResourceRoots + CSP; import-map
+                <code>&lt;spell-app&gt;</code> variant</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> element.build.test.ts pins Solid only in spell-solid.js; /demo/spell-app.html runs two
+                <code>&lt;spell-app&gt;</code>s; yarn vscode Run Project</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p8" data-phase="8" data-status="todo" header="P8 · Editor Shell" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"><b>Goal:</b> pages, router, hotkeys and AST views on Solid (handoff 5)</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/app/src/pages/ (@reach/router -&gt; @solidjs/router@next, 7 routes); 4 hotkeys
+                -&gt; one listener; packages/parser/src/ast/AST.tsx views, renderAST.tsx</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> yarn start: every route; hotkeys; AST viewer</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 2h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p9" data-phase="9" data-status="todo" header="P9 · Remove React" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"><b>Goal:</b> no React anywhere (handoff 6)</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> React deps in app, core, util, parser, cli; @vitejs/plugin-react, the bridge,
+                SOLID_FILES, pragmas; tsconfig jsx: preserve + jsxImportSource: @solidjs/web; AGENTS.md, PARSING.md,
+                CODE-DEBT</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> test: no react in any bundle; yarn review at root</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p10" data-phase="10" data-status="todo" header="P10 · Doc Review" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"><b>Goal:</b> plan doc true to what was built; durable doc</ui-item
+              ><ui-item icon="folder"><b>Files:</b> this doc; packages/docs/solid/solid-2.html (or a new page)</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> yarn plan-doc check; Finishing a page</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
+            >
+          </ui-section></ui-section
+        >
+
+        <ui-section id="decisions" header="3. Questions & Decisions" sticky collapsible dividing>
+          <ui-icon slot="icon" name="gavel"></ui-icon>
+          <p class="meta">
+            Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why:
+            settled, don't re-argue without new facts. An answered question sits just above its decision.
+          </p>
+          <ui-list class="plan-items" data-kind="decision" divided relaxed
+            ><ui-item id="q1" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q1">Q1</a>
+                  <span class="plan-title">Solid version: bump ui to rc.13 first, or start app on rc.11?</span>
+                  <a class="plan-answer" href="#d1">→ D1</a></ui-title
+                ><ui-content
+                  ><p>
+                    One Solid per page: <code>app</code> must run the SAME Solid as
+                    <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a>
+                    and its fork <code>solid-element</code>. Today both pin <b>rc.11</b>; <b>rc.13</b> is current. Every
+                    experiment in
+                    <a href="../../solid/experiments/" target="src-packages-docs-solid-experiments"
+                      ><code>packages/docs/solid/experiments/</code></a
+                    >
+                    behaved the same on rc.11 and rc.13; public API unchanged.
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top" color="green">A. Bump ui to rc.13 first (recommended)</ui-label>
+                        <ul>
+                          <li>
+                            own phase before tooling: bump <code>ui</code> + <code>solid-element</code>, run
+                            <code>ui</code>'s <code>yarn review</code>, visual tests, fork tests
+                          </li>
+                          <li>app starts on rc.13 and never moves twice</li>
+                          <li>
+                            cost: one extra phase; touches <code>ui</code>, which another session may be working in
+                          </li>
+                        </ul></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B. Start app on rc.11</ui-label>
+                        <ul>
+                          <li>no <code>ui</code> changes now; start <code>app</code> work at once</li>
+                          <li>later bump moves ui AND app together, re-running both suites</li>
+                          <li>cost: migrate onto an older RC, bump mid-migration</li>
+                        </ul></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d1" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d1">D1</a>
+                  <span class="plan-title"
+                    >Bump ui to rc.13 first: P2, before Tooling (<a href="#q1">Q1</a>)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    App never moves Solid twice; ui's suites catch RC behaviour changes before app depends on them.
+                  </p>
+                  <p class="meta">
+                    Answers <a href="#q1">Q1</a>: Solid version: bump ui to rc.13 first, or start app on rc.11?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q2" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q2">Q2</a>
+                  <span class="plan-title">Merge each phase into main, or only at the end?</span>
+                  <a class="plan-answer" href="#d2">→ D2</a></ui-title
+                ><ui-content
+                  ><p>
+                    This plan has ~10 phases on branch <code>solid-migration</code>; every phase leaves the app green
+                    (React and Solid side by side from tooling until "Remove React").
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top" color="green">A. Merge each phase (recommended)</ui-label>
+                        <ul>
+                          <li>
+                            after your review of a phase: <code>/isolate done</code> style fast-forward into
+                            <code>main</code>, then carry on in the same worktree
+                          </li>
+                          <li>other sessions (ui, docs, server) see the changes early; small merges, few conflicts</li>
+                          <li>
+                            cost: <code>main</code> carries the dual-JSX period (React + Solid) for weeks; CODE-DEBT
+                            entry covers it
+                          </li>
+                        </ul></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B. Merge at the end</ui-label>
+                        <ul>
+                          <li><code>main</code> stays React-only until done</li>
+                          <li>cost: long-lived branch; <code>main</code> merged in repeatedly; big final merge</li>
+                        </ul></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d2" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d2">D2</a>
+                  <span class="plan-title"
+                    >Merge at the end: main stays React-only until P10 (<a href="#q2">Q2</a>)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Owen, 2026-10-02. Cost: long-lived branch, merge <code>main</code> in at each phase start to keep
+                    conflicts small.
+                  </p>
+                  <p class="meta">
+                    Answers <a href="#q2">Q2</a>: Merge each phase into main, or only at the end?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d3" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d3">D3</a>
+                  <span class="plan-title"
+                    >Design from 2026-09-30 stands: ui from source, clean break in spell JSX, incremental phases</span
+                  ></ui-title
+                ><ui-content
+                  ><p>Taken with Owen before the pause; see <a href="#o2">1.2</a>.</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d4" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d4">D4</a>
+                  <span class="plan-title">Spell state in spell cells, not Solid signals</span></ui-title
+                ><ui-content
+                  ><p>
+                    Solid 2 stages writes: read right after write returns the old value until flush. Spell is imperative
+                    (<code>set</code> then <code>print</code> must be exact). Measured:
+                    <a
+                      href="../../solid/experiments/read-after-write.mjs"
+                      target="src-packages-docs-solid-experiments-read-after-write-mjs"
+                      ><code>packages/docs/solid/experiments/read-after-write.mjs</code></a
+                    >,
+                    <a
+                      href="../../solid/experiments/entanglement.mjs"
+                      target="src-packages-docs-solid-experiments-entanglement-mjs"
+                      ><code>entanglement.mjs</code></a
+                    >.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d5" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d5">D5</a>
+                  <span class="plan-title">ui via the $/ui workspace alias, not a sibling ../ui alias</span></ui-title
+                ><ui-content
+                  ><p>
+                    Handoff risk 4 (build tied to a sibling checkout) is gone with the monorepo: one workspace, one
+                    hoisted <code>node_modules</code>, <code>$/ui</code> in
+                    <a href="../../../../tsconfig.base.json" target="src-tsconfig-base-json"
+                      ><code>tsconfig.base.json</code></a
+                    >. P3 drops <code>server.fs.allow ../ui</code> and the absolute-path aliases.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d6" data-status="decided"
+              ><a class="plan-id" href="#d6">D6</a> <span class="plan-title">Up to 5 agents</span></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="caveats" header="4. Caveats" sticky collapsible dividing>
+          <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
+          <ui-list class="plan-items" data-kind="caveat" divided relaxed
+            ><ui-item id="c1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c1">C1</a> <span class="plan-title">ui bugs we'll hit</span></ui-title
+                ><ui-content
+                  ><p>
+                    Known ones in
+                    <a
+                      href="../../spell-docs/spell-ui-findings.md"
+                      target="src-packages-docs-spell-docs-spell-ui-findings-md"
+                      ><code>packages/docs/spell-docs/spell-ui-findings.md</code></a
+                    >. Fix in <a href="../../../ui/" target="src-packages-ui"><code>packages/ui</code></a> when real,
+                    record there either way.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c2">C2</a>
+                  <span class="plan-title">RC churn: re-run experiments on every Solid bump</span></ui-title
+                ><ui-content
+                  ><p>
+                    <code>packages/docs/solid/experiments/*</code>, <code>SOLID_NODE_MODULES=&lt;dir&gt;</code> picks
+                    the version; diff the output, update
+                    <a href="../../solid/solid-2.md" target="src-packages-docs-solid-solid-2-md"
+                      ><code>solid-2.md</code></a
+                    >.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c3">C3</a>
+                  <span class="plan-title">Dual-JSX period, P3-P9: React and Solid side by side</span></ui-title
+                ><ui-content
+                  ><p>
+                    Files on Solid carry <code>/** @jsxImportSource @solidjs/web */</code>, listed in
+                    <code>SOLID_FILES</code>. CODE-DEBT entry in P3, removed in P9. On this branch only (<a href="#q2"
+                      >Q2</a
+                    >).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c4">C4</a> <span class="plan-title">Estimates are rough</span></ui-title
+                ><ui-content
+                  ><p>
+                    Sized from line counts (<a href="#o5">1.5</a>), not measured. P4 and P5 carry the most risk.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="todos" header="5. Todos" sticky collapsible dividing>
+          <ui-icon slot="icon" name="list check"></ui-icon>
+          <p class="meta">For later: not caveats, not issues.</p>
+          <ui-list class="plan-items" data-kind="todo" divided relaxed
+            ><ui-item id="t1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t1">T1</a>
+                  <span class="plan-title"
+                    >Compiled output: consider decorator helpers' plain-function form</span
+                  ></ui-title
+                ><ui-content
+                  ><p><code>static { defineProps(...) }</code> instead of hand-written accessor pairs.</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="issues" header="6. Issues" sticky collapsible dividing>
+          <ui-icon slot="icon" name="bug"></ui-icon>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="log" header="7. Log" sticky collapsible dividing>
+          <ui-icon slot="icon" name="clock rotate left"></ui-icon>
+          <p class="meta">Plan changes, oldest first, local time.</p>
+          <ui-feed class="plan-log" size="small">
+            <ui-event icon="pen to square">
+              <ui-content>
+                <ui-summary
+                  ><ui-date><time datetime="2026-10-02T12:07-04:00">2026-10-02 12:07</time></ui-date> plan doc
+                  created</ui-summary
+                >
+              </ui-content>
+            </ui-event>
+            <ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T12:07-04:00">2026-10-02 12:07</time></ui-date> P1 added:
+                  Construction Order</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T12:07-04:00">2026-10-02 12:07</time></ui-date> P2 added: Solid
+                  rc.13 Bump</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T12:07-04:00">2026-10-02 12:07</time></ui-date> P3 added:
+                  Tooling</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T12:07-04:00">2026-10-02 12:07</time></ui-date> P4 added:
+                  Reactivity Engine</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T12:07-04:00">2026-10-02 12:07</time></ui-date> P5 added: Core +
+                  JSX Emit</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T12:08-04:00">2026-10-02 12:08</time></ui-date> P6 added: Shared
+                  App UI</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T12:08-04:00">2026-10-02 12:08</time></ui-date> P7 added: Web
+                  Components + Runner</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T12:08-04:00">2026-10-02 12:08</time></ui-date> P8 added: Editor
+                  Shell</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T12:08-04:00">2026-10-02 12:08</time></ui-date> P9 added: Remove
+                  React</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T12:08-04:00">2026-10-02 12:08</time></ui-date> P10 added: Doc
+                  Review</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T12:08-04:00">2026-10-02 12:08</time></ui-date> Q1 answered: D1
+                  Bump ui to rc.13 first: P2, before Tooling</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T12:08-04:00">2026-10-02 12:08</time></ui-date> Q2 answered: D2
+                  Merge at the end: main stays React-only until P10</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T12:08-04:00">2026-10-02 12:08</time></ui-date> moved from plans/
+                  to epics/ (main renamed /plan-doc to /epic); 10 phases with estimates; Q1, Q2 decided</ui-summary
+                ></ui-content
+              ></ui-event
+            ></ui-feed
+          >
+        </ui-section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../_assets/spell-ui.js"></script>
+  </body>
+</html>
