@@ -74,7 +74,10 @@ count() // 1
   - `@prop({ type, default }) accessor x!: T` -- schema from decorator ARGS via `Symbol.metadata` (polyfilled in
     `~/util`);  NEVER an initializer (it runs after `create()`);  object defaults as `{ init: () => [] }`
   - `@derived get y()` -- memoized with the equality cutoff;  only for pure, worth-it getters
-  - `@thing` on the class -- runs `create()` after the most-derived class's field initializers
+  - `@thing` on the class -- runs `create()` after the most-derived class's field initializers.  BUILT:
+    `packages/util/src/spell/spellDecorators.ts` (`import { thing } from "$/util"`);  `Thing` / `List` skip their own
+    `create()` call when a `@thing` class is in the chain (`runsCreate()`), so it runs exactly once, also for compiled
+    classes extending a `@thing` class.  Pinned:  `packages/core/src/classes/construction.test.ts`
   - plain fields are NOT spell state:  not reactive, not keys, and clobbered by a base-constructor `create()` without
     `@thing`
   - decorated classes read / call / write as fast as hand-lowered accessors;  construction is ~6x slower (fine for
