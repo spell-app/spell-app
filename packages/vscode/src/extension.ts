@@ -1,6 +1,10 @@
 /**
  * VS Code extension for spell:  runs the spell parser's language server, and shows a file's compiled javascript.
  * - Also shows `packages/docs` pages rendered, beside the editor, when opened by URI -- see `DocPreview`.
+ * - And lets a Claude Code session reach ITS window (add a worktree folder, show a doc) -- see `WindowBridge`.
+ * - Activates at startup (`onStartupFinished`), in EVERY window, for the bridge;  the language server waits for the
+ *   window's first spell file, as it did when `onLanguage:spell` activated us.  A window without spell files runs
+ *   no server.
  * - The server is the spell monorepo's own `packages/lsp/src/server.ts`, run by its `tsx` -- see `getRepoRoot()`.
  *   So the editor always runs spell as it is on disk:  restart the server to pick up a change.
  * - The server asks to watch `project.json` / `.spell` files itself, so there's no `synchronize` here.
@@ -19,6 +23,7 @@ import {
 
 import { DocPreview } from "./DocPreview"
 import { RunnerPanel } from "./RunnerPanel"
+import { WindowBridge } from "./WindowBridge"
 
 /** Scheme of the read-only documents showing a spell file's compiled javascript -- see `CompiledProvider`. */
 const COMPILED_SCHEME = "spell-compiled"
@@ -33,11 +38,31 @@ declare const REPO_ROOT: string
 let client: LanguageClient | undefined
 
 /**
- * Start the language server and register our command.
- * - Shows an error, and does nothing else, if `spell.parserRoot` isn't the spell monorepo with its packages installed.
+ * Set up the doc preview and the window bridge, then the language server once a spell file is open.
+ * - The first two first:  they work even when the language server can't start.
  */
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   DocPreview.register(context)
+  WindowBridge.register(context)
+  if (vscode.workspace.textDocuments.some(isSpell)) return startLanguageServer(context)
+  const opened = vscode.workspace.onDidOpenTextDocument((document) => {
+    if (!isSpell(document)) return
+    opened.dispose()
+    void startLanguageServer(context)
+  })
+  context.subscriptions.push(opened)
+}
+
+/** Whether `document` is a spell file. */
+function isSpell(document: vscode.TextDocument): boolean {
+  return document.languageId === "spell"
+}
+
+/**
+ * Start the language server and register our commands -- once, for the window's first spell file.
+ * - Shows an error, and does nothing else, if `spell.parserRoot` isn't the spell monorepo with its packages installed.
+ */
+async function startLanguageServer(context: vscode.ExtensionContext): Promise<void> {
   const repoRoot = getRepoRoot()
   const tsx = findTsx(repoRoot)
   const lspDir = resolve(repoRoot, "packages/lsp")
