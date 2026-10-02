@@ -22,6 +22,16 @@
  * - `import { Window } from "<relative path>/scripts/window.mjs"`:  the CLI runs only when this file is run.
  * - Tests:  `node --test scripts/window.test.mjs`.  `SPELL_WINDOWS_DIR` overrides the registry folder.
  *
+ * ## A worktree's window
+ * - `/isolate` and `/plan-doc` open a worktree in a NEW window (`open <name>`), and close it on leaving (`close`).
+ *   The session, and its chat, stay in the window they started in.
+ * - Its file:  `.claude/worktrees/<name>.code-workspace`, beside the worktree, so git ignores it in both checkouts.
+ * - The package window's shape, every folder the worktree's:  its root first, then its `packages/<pkg>`.  So there
+ *   are no main-checkout copies in it to edit by mistake.  NOTE:  so its Claude panel lists no sessions (they're
+ *   saved under the MAIN root):  chat in the session's own window.
+ * - The package window's theme, title bar tinted in a colour of the worktree's own (from its name):  told apart at a
+ *   glance from the package window, and from other worktrees.
+ *
  * ## Commands
  * - `init`:  write the window file of every package that lacks one;  never overwrites (themes are Owen's to change)
  * - `which`:  this session's window:  pid, workspace file, folders
@@ -29,16 +39,21 @@
  *   `.code-workspace` (else the change would restart its extensions, Claude panel included)
  * - `remove <path>`:  remove that folder again;  never the window's first
  * - `show <file>`:  show an `.html` doc in the window's Simple Browser, beside the editor
+ * - `open <name> [--pkg <pkg>]`:  write worktree `<name>`'s window file and open it in a new window;  `<pkg>`
+ *   defaults to this session's window's package.  `close <name>`:  close that window, delete the file.
  * - No window (the extension isn't installed, or the window wasn't reloaded since):  exits 1, saying so.
  */
 import { spawnSync } from "node:child_process"
-import { existsSync, readdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs"
+import { existsSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { dirname, join, relative, resolve, sep } from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 
-/** The repo root. */
+/** The repo root:  a worktree's own, when run from one. */
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)))
+
+/** The MAIN checkout's root, even when run from a worktree:  where `.claude/worktrees/` is. */
+const MAIN_ROOT = mainRoot(ROOT)
 
 /** Each package's starting theme:  VS Code's built-ins, all different.  Owen picks real ones in the files. */
 const THEMES = {
@@ -104,6 +119,78 @@ export class Window {
       written.push(relative(ROOT, file))
     }
     return written
+  }
+
+  ////////////////
+  // ## A worktree's window
+  ////////////////
+
+  /** `.claude/worktrees/<name>.code-workspace`, in the main checkout. */
+  static worktreeFile(name) {
+    return join(MAIN_ROOT, ".claude", "worktrees", `${name}.code-workspace`)
+  }
+
+  /**
+   * The window file of worktree `name`, focused on `pkg`.
+   * - folder paths are relative to `.claude/worktrees/`
+   */
+  static worktreeWorkspace(pkg, name) {
+    return {
+      folders: [
+        { path: name, name: `spell-app ⎇ ${name}` },
+        { path: `${name}/packages/${pkg}`, name: `${pkg} ⎇ ${name}` }
+      ],
+      settings: {
+        "workbench.colorTheme": Window.theme(pkg),
+        "files.exclude": { packages: true, ".claude/worktrees": true },
+        "workbench.colorCustomizations": tint(name)
+      }
+    }
+  }
+
+  /** `pkg`'s theme:  from its window file in the main checkout (Owen may have changed it), else `THEMES`. */
+  static theme(pkg) {
+    try {
+      const file = join(MAIN_ROOT, "packages", pkg, `${pkg}.code-workspace`)
+      const theme = JSON.parse(readFileSync(file, "utf8")).settings?.["workbench.colorTheme"]
+      if (theme) return theme
+    } catch {
+      // missing, or JSONC VS Code's own parser would take:  the starting theme
+    }
+    return THEMES[pkg] ?? FALLBACK_THEME
+  }
+
+  /**
+   * `open`:  (re)write worktree `name`'s window file and open it with `code`;  returns the file.
+   * - already open:  VS Code focuses that window
+   */
+  static open(name, pkg) {
+    if (!existsSync(join(MAIN_ROOT, ".claude", "worktrees", name))) throw new Error(`no worktree ${name}`)
+    if (!Window.packages.includes(pkg)) throw new Error(`no package ${pkg}`)
+    const file = Window.worktreeFile(name)
+    writeFileSync(file, `${JSON.stringify(Window.worktreeWorkspace(pkg, name), null, 2)}\n`)
+    const run = spawnSync("code", [file], { encoding: "utf8" })
+    if (run.status !== 0) throw new Error(`\`code ${file}\` failed:  ${run.stderr || run.error?.message}`)
+    return file
+  }
+
+  /**
+   * `close`:  close worktree `name`'s window, if open, and delete its file;  returns whether a window closed.
+   * - finds the window by its registry entry's `workspaceFile`
+   */
+  static async close(name) {
+    const file = Window.worktreeFile(name)
+    const window = Array.from(Window.entries().values()).find(
+      (entry) => entry.workspaceFile && real(entry.workspaceFile) === real(file)
+    )
+    if (window) await Window.request("close-window", {}, window)
+    rmSync(file, { force: true })
+    return Boolean(window)
+  }
+
+  /** The package of `window` (a registry entry):  its workspace file's `packages/<pkg>/<pkg>.code-workspace`. */
+  static packageOf(window) {
+    return window?.workspaceFile?.match(/packages[\\/]([^\\/]+)[\\/]\1\.code-workspace$/)?.[1] ?? null
   }
 
   ////////////////
@@ -196,10 +283,11 @@ export class Window {
       console.log(written.length ? `wrote ${written.join(", ")}` : "every package has its window file")
       return 0
     }
-    if (!["which", "add", "remove", "show"].includes(command) || (command !== "which" && !target)) {
+    if (!["which", "add", "remove", "show", "open", "close"].includes(command) || (command !== "which" && !target)) {
       console.error(USAGE)
       return 1
     }
+    if (command === "open" || command === "close") return Window.worktreeCommand(command, target, flags)
     const window = Window.current()
     if (!window) {
       console.error("no window:  the spell extension's bridge isn't running in this session's VS Code window")
@@ -230,6 +318,24 @@ export class Window {
       return 1
     }
   }
+
+  /** `open` / `close` worktree `name`'s window;  resolves to the exit code. */
+  static async worktreeCommand(command, name, flags) {
+    try {
+      if (command === "close") {
+        const closed = await Window.close(name)
+        console.log(closed ? `closed the window of ${name}` : `no window of ${name} open;  its file is gone`)
+        return 0
+      }
+      const pkg = flags.pkg ?? Window.packageOf(Window.current())
+      if (!pkg) throw new Error("which package?  --pkg <pkg> (this session's window isn't a package window)")
+      console.log(`opened ${Window.open(name, pkg)}`)
+      return 0
+    } catch (error) {
+      console.error(error.message)
+      return 1
+    }
+  }
 }
 
 /** Usage, printed for a bad command. */
@@ -238,7 +344,9 @@ const USAGE = `usage:  yarn window <command>
   which                        this session's VS Code window:  pid, workspace file, folders
   add <path> [--name <name>]   add a folder (a worktree) to the window
   remove <path>                remove it again
-  show <file>                  show an .html doc in the window's Simple Browser`
+  show <file>                  show an .html doc in the window's Simple Browser
+  open <name> [--pkg <pkg>]    open worktree <name> in a new window (default package:  this window's)
+  close <name>                 close that window, delete its file`
 
 /** Whether a process `pid` exists:  signal 0 checks without signalling;  EPERM means it exists, someone else's. */
 function isAlive(pid) {
@@ -247,6 +355,44 @@ function isAlive(pid) {
     return true
   } catch (error) {
     return error.code === "EPERM"
+  }
+}
+
+/** The main checkout's root of `root`:  the part before `/.claude/worktrees/`, if `root` is a worktree. */
+export function mainRoot(root) {
+  return root.split(`${sep}.claude${sep}worktrees${sep}`)[0]
+}
+
+/**
+ * Title-bar colours for worktree `name`:  a hue of its own (a hash of the name), dark enough for white text;
+ * dimmer while the window isn't focused.
+ */
+export function tint(name) {
+  let hash = 0
+  for (const char of name) hash = (hash * 31 + char.codePointAt(0)) >>> 0
+  const hue = hash % 360
+  return {
+    "titleBar.activeBackground": hslHex(hue, 60, 32),
+    "titleBar.inactiveBackground": hslHex(hue, 35, 24),
+    "titleBar.activeForeground": "#ffffff",
+    "titleBar.inactiveForeground": "#ffffffaa"
+  }
+}
+
+/** HSL (degrees, percents) -> `#rrggbb`. */
+function hslHex(hue, saturation, lightness) {
+  const s = saturation / 100
+  const l = lightness / 100
+  const a = s * Math.min(l, 1 - l)
+  return `#${channel(0)}${channel(8)}${channel(4)}`
+
+  /** One channel, as two hex digits:  `n` 0 red, 8 green, 4 blue. */
+  function channel(n) {
+    const k = (n + hue / 30) % 12
+    const value = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))
+    return Math.round(value * 255)
+      .toString(16)
+      .padStart(2, "0")
   }
 }
 
