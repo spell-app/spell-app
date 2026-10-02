@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Solid Migration</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p9">next: P9 · Remove React</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p10">next: P10 · Doc Review</ui-label></span
             >
           </header></ui-sticky
         >
@@ -57,7 +57,7 @@
           </p>
 
           <blockquote class="plan-prompt"><p>convert this into a plan doc with name "solid-migration"</p></blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 16h 30m-26h in all, 2h-3h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 16h 30m-26h in all, 1h left</p>
           <ui-section id="o1" header="1.1 Where it stands" sticky collapsible dividing>
             <ul>
               <li>
@@ -494,7 +494,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="8" total="10" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="9" total="10" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -671,6 +671,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p11"
             data-phase="11"
             data-status="done"
@@ -696,8 +697,8 @@
               ><ui-item icon="clock"><b>Estimate:</b> 4-6h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p9" data-phase="9" data-status="todo" header="P9 · Remove React" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p9" data-phase="9" data-status="done" header="P9 · Remove React" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
 
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -1544,6 +1545,29 @@
                     showingMatchRuleNames, notice, error), methods unchanged (they say editor.x, handed around unbound),
                     editor = new EditorStore({}). Call sites unchanged. compileAppSoonTimer and the last...For...()
                     helpers are plain fields. SpellConsole / SpellConsoleGroup lines and collapsed are @prop too.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d30" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d30">D30</a>
+                  <span class="plan-title"
+                    >P9: React stays only for spell programs; view() stays in $/util; the CLI's Ink UI is out of
+                    scope</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The app's own chunks hold no React (pinned in
+                    <a href="../../../app/src/build.test.ts" target="src-packages-app-src-build-test-ts"
+                      ><code>packages/app/src/build.test.ts</code></a
+                    >, checked to fail on a leak): the last import was
+                    <a href="../../../app/src/debug.ts" target="src-packages-app-src-debug-ts"><code>debug.ts</code></a
+                    >'s <code>SUI</code> global, dropped. React remains in <code>spell-runtime.js</code> for compiled
+                    spell (D9): <code>core</code>'s classes, <code>src/ui/forms/</code>, <code>SUIPassThroughs</code>,
+                    and <code>$/util</code>'s <code>view()</code> bridge (T4 left for the Core + JSX thread).
+                    <a href="../../../cli/" target="src-packages-cli"><code>packages/cli</code></a
+                    >'s terminal UI uses React through Ink: not the web app, kept.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -2465,6 +2489,20 @@
               ><ui-content
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T19:35-04:00">2026-10-02 19:35</time></ui-date> P11
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T19:35-04:00">2026-10-02 19:35</time></ui-date> P9
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T19:41-04:00">2026-10-02 19:41</time></ui-date> P9
                   done</ui-summary
                 ></ui-content
               ></ui-event
