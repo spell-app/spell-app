@@ -1,0 +1,96 @@
+/**
+ * Every name `<ui-root>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
+ * Schema:  `ComponentVocabulary` (`$/ui/vocabulary`).
+ * - No Fomantic counterpart, so no class grammar:  every attribute is a property (`enum`, `string`, `boolean`), plus
+ *   `size` (kind `size`, for the shared value set), which the root applies to its subtree, not to a class.
+ * - Design:  `packages/docs/plans/ui-component-creation/ui-component-creation.html`, Overview 3.5 and D51-D63.
+ */
+
+import type { ComponentVocabulary } from "$/ui/vocabulary"
+
+/****************
+ * ### `<ui-root>`
+ * The top of a page or app:  loads the families its subtree uses on demand, sets theme and size for what's inside,
+ * and hides it until every component in it is ready.
+ ****************/
+export const rootVocabulary = {
+  tag: "ui-root",
+  topics: ["layout", "containers", "loading", "basic"],
+  aka: ["app shell", "app root", "provider", "loader", "lazy loading", "theme provider"],
+  noun: "root",
+  description:
+    "A root loads the components inside it on demand, sets their theme and size, and shows them once they're ready.",
+  attributes: [
+    {
+      name: "display",
+      kind: "enum",
+      values: ["skeleton", "when-ready", "immediately"],
+      default: "skeleton",
+      description:
+        "While components load:  `skeleton` -- placeholders, then the content;  `when-ready` -- nothing (space kept) " +
+        "until everything is ready;  `immediately` -- draw as things arrive."
+    },
+    {
+      name: "loading",
+      kind: "string",
+      description:
+        "A loader with this message while components load (bare `loading`:  the default text).  Not with `immediately`."
+    },
+    {
+      name: "timeout",
+      kind: "string",
+      default: "5s",
+      description:
+        "Longest wait before showing the content anyway:  `5s`, `500ms`, or milliseconds.  A component that didn't " +
+        "load fires `ui-error` and shows its native fallback."
+    },
+    { name: "theme", kind: "enum", values: ["light", "dark"], description: "Colour scheme of everything inside." },
+    { name: "size", kind: "size", description: "Size of everything inside, `mini` ... `massive`." },
+    {
+      name: "width",
+      kind: "string",
+      description:
+        "Width as a CSS length (`600px`, `40em`, `50%`) or `window` (the viewport's).  With a width or height the root " +
+        "is a box that scrolls its own content."
+    },
+    {
+      name: "height",
+      kind: "string",
+      description: "Height as a CSS length or `window` (the viewport's, following a phone's address bar)."
+    },
+    {
+      name: "fixed",
+      kind: "boolean",
+      description:
+        "Fills the viewport and stays there (`position: fixed`):  the page never scrolls, the root does.  A " +
+        "full-page app shell.  On iOS the keyboard can cover fields near the bottom."
+    }
+  ],
+  events: [
+    {
+      name: "ui-ready",
+      detail: "{ failed: { tag: string, reason: 'unknown' | 'failed' | 'timeout', error?: unknown }[] }",
+      description:
+        "Everything inside is ready (or the timeout passed):  the content shows.  `failed` lists what didn't load."
+    },
+    {
+      name: "ui-error",
+      detail: "{ tag: string, reason: 'unknown' | 'failed' | 'timeout', error?: unknown }",
+      cancelable: true,
+      description:
+        "A tag inside couldn't load:  no such component (`unknown`), its family failed to import (`failed`), or it " +
+        "wasn't ready in time (`timeout`).  Cancel it to skip the console warning."
+    }
+  ],
+  slots: [{ name: "", description: "The page or app:  any markup, with `ui-*` elements anywhere inside." }],
+  parts: [{ name: "loading", description: "The `<ui-loader>` shown with `loading`." }],
+  states: [
+    { name: "loading", description: "Components inside are still loading." },
+    { name: "ready", description: "Everything inside is ready (or the timeout passed)." },
+    { name: "light", description: '`theme="light"`.' },
+    { name: "dark", description: '`theme="dark"`.' },
+    { name: "box", description: "A `width` or `height` is set:  a block box that scrolls its content." },
+    { name: "fixed", description: "Pinned to the viewport." }
+  ],
+  texts: [{ key: "loading", text: "Loading…", description: "The loader's message for a bare `loading`." }]
+} as const satisfies ComponentVocabulary

@@ -8,6 +8,7 @@ as work lands ([AGENTS.md](../AGENTS.md)).  Last updated 2026-09-30.
 - **Resumed 2026-10-01** in the monorepo (`packages/ui`), branch `worktree-ui-component-creation`;  plan doc
   [`packages/docs/plans/ui-component-creation/`](../../docs/plans/ui-component-creation/ui-component-creation.html):
   icon follow-ups, `SUSPECTED-BUGS.md` sweep, Owen's decisions ("To review (Owen)" below), Phase D chores.
+- **`<ui-root>`** (P17-P21, 2026-10-01):  P17 · Root Element in progress.
 - Every check passes after the move;  `yarn test:hmr` and `yarn site:build` needed a fix each (`PAPERCUTS.md`).
 - Visual:  Mac baselines for chromium / firefox / webkit;  Linux baselines wait on a working Docker Desktop.
 
@@ -89,6 +90,7 @@ links open in an editor tab;  `.md` links do too because `.vscode/settings.json`
 | shape | C | `ui-shape`, `ui-side` | ✅ | 35 | 6.07 | — | [✅](../site/src/content/components/ui-shape.mdx) | 🚧 local | Fomantic's flip geometry;  `active-index`, `direction`, host `flip()` / `next()` / `previous()`, invoker commands;  reduced motion swaps |
 | nag | C | `ui-nag` | ✅ | 41 | 6.01 | ✅ | [✅](../site/src/content/components/ui-nag.mdx) | 🚧 local | top / bottom, fixed / overlay;  opt-in `key` remembers the dismissal in local / session storage or a cookie, with expiry;  blocked storage tolerated |
 | visibility | C | `ui-visibility`, `UI.observeVisibility()` | ✅ | 19 (+8 runtime) | 3.58 | — | [✅](../site/src/content/components/ui-visibility.mdx) | 🚧 local | runtime service `UI.visibility` on `IntersectionObserver`:  Fomantic's callbacks, `once` / `continuous`, `offset`;  lazy images (`type="image"`, `lazyImage()`) |
+| root | C | `ui-root` | 🚧 | 22 | — | — | ⬜ | ⬜ | loads the families its content uses on demand (`ui-root.catalog.ts`, `yarn gen:root`), hides it until ready (`display`, `loading` message via `<ui-loader>`, `timeout`, `ui-ready` / `ui-error`), `theme` / `size` / `width` / `height` / `fixed` for its subtree;  P17 of the plan doc.  Next:  per-root icons / emoji (P18), skeletons (P19), docs page + the site on it (P20) |
 | api | C | `UI.api` | ✅ | | | | ⬜ | — | runtime service;  no element |
 | state | C | `ui-button` `active-text` / `inactive-text` | ✅ | 2 (in button) | — | native | ⬜ | — (in button) | Fomantic's `state` behaviour as two button attributes, not an element;  a toggle with a state text drops `aria-pressed` (APG);  [`docs/grammar.md`](grammar.md) "State" |
 

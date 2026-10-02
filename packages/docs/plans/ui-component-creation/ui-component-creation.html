@@ -51,7 +51,7 @@
             <a href="../../ui-component-creation.html" target="docs-ui-component-creation">ui-component-creation.html</a
             >.
           </p>
-          <ui-progress class="plan-progress" value="16" total="16" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="16" total="21" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
           <ui-steps class="plan-phases" vertical ordered>
@@ -95,6 +95,11 @@
               data-phase="15"
             ></ui-step
             ><ui-step completed header="P16 · Root Design" href="#p16" data-status="done" data-phase="16"></ui-step
+            ><ui-step selected header="P17 · Root Element" href="#p17" data-status="active" data-phase="17"></ui-step
+            ><ui-step header="P18 · Root Settings" href="#p18" data-status="todo" data-phase="18"></ui-step
+            ><ui-step header="P19 · Skeletons" href="#p19" data-status="todo" data-phase="19"></ui-step
+            ><ui-step header="P20 · Root Docs And Site" href="#p20" data-status="todo" data-phase="20"></ui-step
+            ><ui-step header="P21 · Doc Review" href="#p21" data-status="todo" data-phase="21"></ui-step
           ></ui-steps>
         </section>
 
@@ -553,9 +558,12 @@ import "@spell-app/ui/core"
                       ><ui-segment
                         ><ui-label attached="top" color="green">A. Its own entry (recommended)</ui-label>
                         <p>
-                          <code>@spell-app/ui/ui-root</code>, <code>src/components/ui-root/</code> like any family.
-                          Imports <code>core</code> only for <code>UIElement</code>. Pages that don't use it pay
-                          nothing. It must NOT import the families statically.
+                          <code>@spell-app/ui/ui-root</code>,
+                          <a href="../../../ui/src/components/ui-root/" target="src-packages-ui-src-components-ui-root"
+                            ><code>src/components/ui-root/</code></a
+                          >
+                          like any family. Imports <code>core</code> only for <code>UIElement</code>. Pages that don't
+                          use it pay nothing. It must NOT import the families statically.
                         </p></ui-segment
                       ></ui-column
                     ><ui-column
@@ -1376,6 +1384,22 @@ export class UICard extends UIElement&lt;...&gt; {
                   </p></ui-content
                 ></ui-accordion
               >
+            </li>
+            <li data-status="open" id="c11">
+              <a class="plan-id" href="#c11">C11</a>
+              <span class="plan-title">Root theme / size / box apply once the runtime has loaded</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    The root renders eagerly, but its own sheet (states for theme / box / fixed) and
+                    <code>RootBox</code> arrive with <code>UI.load()</code>. With <code>display="immediately"</code> the
+                    content can show a moment in the page's scheme before switching. Hidden modes don't show it. Without
+                    a box (<code>display: contents</code>) a theme sets colours but paints no background.
+                  </p></ui-content
+                ></ui-accordion
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="17">UPDATE</ui-label>
             </li>
           </ol>
         </section>
@@ -2472,8 +2496,11 @@ export class UICard extends UIElement&lt;...&gt; {
                 ><ui-title>details</ui-title
                 ><ui-content
                   ><p>
-                    Owen: recommended. <code>src/components/ui-root/</code> like any family; pages that don't use it pay
-                    nothing; never imports families statically.
+                    Owen: recommended.
+                    <a href="../../../ui/src/components/ui-root/" target="src-packages-ui-src-components-ui-root"
+                      ><code>src/components/ui-root/</code></a
+                    >
+                    like any family; pages that don't use it pay nothing; never imports families statically.
                   </p></ui-content
                 ></ui-accordion
               >
@@ -2528,6 +2555,111 @@ export class UICard extends UIElement&lt;...&gt; {
                   </p></ui-content
                 ></ui-accordion
               >
+            </li>
+            <li data-status="open" id="d60">
+              <a class="plan-id" href="#d60">D60</a>
+              <span class="plan-title">Root box: width / height (CSS units or window) and a fixed flag</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Owen: <code>width</code> / <code>height</code> take CSS units or <code>window</code> (<code
+                      >100dvw</code
+                    >
+                    / <code>100dvh</code>); either set, the root is a box that scrolls its own content.
+                    <code>fixed</code> pins it to the viewport (<code>position: fixed; inset: 0</code>): a full-page app
+                    shell. Mobile: <code>inset: 0</code> tracks the address bar,
+                    <code>overscroll-behavior: contain</code>; iOS's keyboard can cover fields near the bottom
+                    (documented).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d61">
+              <a class="plan-id" href="#d61">D61</a>
+              <span class="plan-title"
+                >Root skeletons are ui-placeholder elements, drawn inside the root's shadow DOM</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Owen: real <code>&lt;ui-placeholder&gt;</code>s, one per described element in page order, stacked,
+                    in the root's own shadow; the page's DOM is never touched. Side-by-side layouts show as one column
+                    until ready (accepted).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d62">
+              <a class="plan-id" href="#d62">D62</a>
+              <span class="plan-title"
+                >Root loading look is swappable: UIRoot.Loading (ui-loader) and UIRoot.Skeleton (ui-placeholder)</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Owen: "make this easy to change in code later". Two small renderer classes on <code>UIRoot</code>; a
+                    subclass or one assignment swaps the look without touching the loader. They hold the only static
+                    family imports (<code>ui-loader</code>, <code>ui-placeholder</code>).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d63">
+              <a class="plan-id" href="#d63">D63</a>
+              <span class="plan-title"
+                >Root build: 4 agents; skeletons for stand-alone tags; the docs site runs on ui-root</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Owen's answers: up to 4 agents; skeleton descriptions for every tag that draws its own box (~50),
+                    parts covered by their owner, others hidden until ready; the site's own loader is replaced by
+                    <code>&lt;ui-root display="immediately"&gt;</code>.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d64">
+              <a class="plan-id" href="#d64">D64</a>
+              <span class="plan-title"
+                >UIElement.eager: an element may render before the runtime and its sheets arrive</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    New <code>@proto static eager</code> (default false). <code>&lt;ui-root&gt;</code> sets it, so the
+                    page inside shows (or hides, by an inline style on its slot) the moment the root is defined, not
+                    after <code>UI.load()</code>. Its render must look right unstyled until <code>loaded()</code>.
+                  </p></ui-content
+                ></ui-accordion
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="17">UPDATE</ui-label>
+            </li>
+            <li data-status="open" id="d65">
+              <a class="plan-id" href="#d65">D65</a>
+              <span class="plan-title"
+                >Root catalog is generated: yarn gen:root writes ui-root.catalog.ts (tag =&gt; family)</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <code>ComponentDefinitions</code> imports every vocabulary; a lib entry importing it would split
+                    each vocabulary into a shared chunk.
+                    <a
+                      href="../../../ui/scripts/gen-root-catalog.ts"
+                      target="src-packages-ui-scripts-gen-root-catalog-ts"
+                      ><code>scripts/gen-root-catalog.ts</code></a
+                    >
+                    writes a few-kB catalog;
+                    <a href="../../../ui/test/root-catalog.test.ts" target="src-packages-ui-test-root-catalog-test-ts"
+                      ><code>test/root-catalog.test.ts</code></a
+                    >
+                    fails while it's stale. Skeletons join it in P19.
+                  </p></ui-content
+                ></ui-accordion
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="17">UPDATE</ui-label>
             </li>
           </ol>
         </section>
@@ -2789,6 +2921,85 @@ export class UICard extends UIElement&lt;...&gt; {
               </li>
               <li><b>Files:</b> this plan doc (Overview + questions)</li>
               <li><b>Verify:</b> plan-doc check; screenshots looked at</li>
+            </ul>
+          </section>
+          <section data-status="active" data-phase="17" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p17">
+                <ui-icon name="circle half stroke" color="orange"></ui-icon> P17 · Root Element
+              </h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> &lt;ui-root&gt; family: generated catalog, on-demand loader, ready / timeout / events, hide
+                until ready, loading message (ui-loader), theme / size, width / height / fixed, swappable Loading /
+                Skeleton renderers
+              </li>
+              <li>
+                <b>Files:</b> src/components/ui-root/*, scripts/gen-root-catalog.ts, vite.config.ts, package.json,
+                src/index.ts, src/styles/utilities.css
+              </li>
+              <li><b>Verify:</b> ui-root tests; yarn review, build, measure, smoke, hmr, site:build</li>
+            </ul>
+          </section>
+          <section data-status="todo" data-phase="18" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p18"><ui-icon name="circle outline" color="grey"></ui-icon> P18 · Root Settings</h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> icons= / emoji= / assets= per root (nested inherit + add); IconGlyph knows its host;
+                EmojiData per set; ui-icon-set and ui-emoji-set removed and migrated
+              </li>
+              <li>
+                <b>Files:</b> src/elements/IconGlyph.ts, src/runtime/IconPacks.ts, src/components/ui-emoji/EmojiData.ts,
+                ~20 IconGlyph callers, docs/icons.md, site ui-icon.mdx / ui-emoji.mdx
+              </li>
+              <li><b>Verify:</b> per-root icon + emoji tests; yarn review, visual</li>
+            </ul>
+          </section>
+          <section data-status="todo" data-phase="19" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p19"><ui-icon name="circle outline" color="grey"></ui-icon> P19 · Skeletons</h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> skeleton description in each stand-alone tag's vocabulary; the root draws ui-placeholder
+                skeletons in its own shadow DOM until ready
+              </li>
+              <li>
+                <b>Files:</b> src/vocabulary/vocabulary.types.ts, ~50 vocabularies,
+                src/components/ui-root/PlaceholderSkeleton.tsx, ui-root.catalog.ts
+              </li>
+              <li><b>Verify:</b> description tests, visual baseline of a skeleton example</li>
+            </ul>
+          </section>
+          <section data-status="todo" data-phase="20" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p20">
+                <ui-icon name="circle outline" color="grey"></ui-icon> P20 · Root Docs And Site
+              </h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li>
+                <b>Goal:</b> the docs site runs on &lt;ui-root&gt; (its own loader removed); ui-root.mdx with live
+                examples; runtime / theming / icons docs; plan Overview 3.5 as built
+              </li>
+              <li>
+                <b>Files:</b> site/src/layouts/*, site/src/scripts/components.ts,
+                site/src/content/components/ui-root.mdx, docs/*.md, packages/docs/ui-component-creation.html
+              </li>
+              <li><b>Verify:</b> site:build + click-through, docs:update</li>
+            </ul>
+          </section>
+          <section data-status="todo" data-phase="21" class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="p21"><ui-icon name="circle outline" color="grey"></ui-icon> P21 · Doc Review</h3></ui-sticky
+            >
+            <ul class="plan-phase-body">
+              <li><b>Goal:</b> prune the plan doc; durable page true to what was built</li>
+              <li><b>Files:</b> TBD</li>
+              <li><b>Verify:</b> yarn plan-doc check</li>
             </ul>
           </section>
         </section>
@@ -3586,6 +3797,48 @@ export class UICard extends UIElement&lt;...&gt; {
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-01T21:21-04:00">2026-10-01 21:21</time></ui-date> C2 closed: Main
                   checkout has an unstaged packages/ui/.vscode/settings.json change: not ours, untouched</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T21:41-04:00">2026-10-01 21:41</time></ui-date> P17 added: Root
+                  Element</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T21:41-04:00">2026-10-01 21:41</time></ui-date> P18 added: Root
+                  Settings</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T21:41-04:00">2026-10-01 21:41</time></ui-date> P19 added:
+                  Skeletons</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T21:41-04:00">2026-10-01 21:41</time></ui-date> P20 added: Root
+                  Docs And Site</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T21:41-04:00">2026-10-01 21:41</time></ui-date> P21 added: Doc
+                  Review</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T21:42-04:00">2026-10-01 21:42</time></ui-date> P17
+                  active</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
