@@ -306,6 +306,20 @@ every entry below that date was fixed or disproven;  what's left:
 - `src/components/ui-dropdown/ui-dropdown.vocabulary.en.ts` `parts`:  the root `div.ui.dropdown` has no part name, so tokens
   read at its root can't be themed via `::part()` (search got `::part(search)` on 2026-10-01).  (2026-10-01)
 
+## app
+
+### 1. Behavior bugs
+
+- `packages/app/src/server/api.ts` `api.get/post("/projects/file/:projectId/:filePath*")` [V]: express 4's `:filePath*` captures
+  ONLY the first path segment (`filePath = "folder"`, rest in `params[0]`).  `GET .../folder/sub/file.spell` therefore
+  tries to `sendFile` the directory `folder`, errors, and falls through to the `/api` catch-all 404 ("API routine not
+  defined"); `POST .../folder/new.txt` writes to `folder` => 500 `EISDIR`.  `request_getFile` / `request_saveFile` read
+  only `params.filePath`.  Pinned by `api.test.ts` (`QUIRK` tests);  prove with `curl` on any nested project file.
+- `packages/spell/src/node/response-utils.ts` `sendJSFile` / `request_getCompiled` / `request_getScopes` [V]: the content-type is set
+  to `text/javascript` BEFORE the existence check, so a not-found 404 carries a JSON `{errors}` body labelled `text/javascript`.
+- `packages/app/src/server/api.ts` catch-all [V]: only `GET` and `POST` get the "API routine not defined" 404;  an unknown
+  `DELETE /api/...` gets the framework's default 404 page.
+
 ## cli
 
 ### 1. Behavior bugs

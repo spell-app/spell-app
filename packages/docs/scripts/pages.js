@@ -4,13 +4,16 @@
  */
 import { spawnSync } from "node:child_process"
 import { readdirSync } from "node:fs"
-import { dirname, join, relative, resolve } from "node:path"
+import { dirname, join, relative, resolve, sep } from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 
 import { Window } from "../../../scripts/window.mjs"
 
 /** `packages/docs`. */
 export const DOCS = resolve(dirname(fileURLToPath(import.meta.url)), "..")
+
+/** The checkout this file is in:  the repo, or a worktree of it. */
+export const ROOT = resolve(DOCS, "../..")
 
 /** Folders that hold no pages. */
 const SKIP_DIRS = new Set(["_assets", "scripts", "node_modules", "experiments"])
@@ -50,9 +53,43 @@ export function tidy(files) {
 const VSCODE_PREVIEW = "vscode://spell-app.spell-language/doc-preview"
 
 /**
+ * This checkout's page server (`yarn server`), started in the background if it isn't running:  `{ base, port }`,
+ * or `undefined` if it can't start (the caller falls back to `file://`).
+ * - runs `packages/server/src/page/cli.ts ensure` under `tsx`, with that package's `tsconfig.json` for its aliases;
+ *   ~1s when it has to start, ~0.3s when it runs
+ * - `SPELL_NO_SERVER=1`:  never starts it
+ */
+export function ensurePageServer() {
+  if (process.env.SPELL_NO_SERVER) return undefined
+  const run = spawnSync(
+    process.execPath,
+    ["--import", "tsx", join(ROOT, "packages/server/src/page/cli.ts"), "ensure", "--root", ROOT],
+    {
+      cwd: ROOT,
+      encoding: "utf8",
+      env: { ...process.env, TSX_TSCONFIG_PATH: join(ROOT, "packages/server/tsconfig.json") }
+    }
+  )
+  if (run.status !== 0) {
+    console.error(`page server didn't start (${(run.stderr ?? String(run.error)).trim().split("\n").at(-1)})`)
+    return undefined
+  }
+  try {
+    return JSON.parse(run.stdout)
+  } catch {
+    return undefined
+  }
+}
+
+/** URL of `file` on the page server at `base`, e.g. `http://127.0.0.1:4747/packages/docs/index.html`. */
+export function serverUrl(base, file) {
+  return `${base}/${relative(ROOT, resolve(file)).split(sep).map(encodeURIComponent).join("/")}`
+}
+
+/**
  * Show `file` rendered in a VS Code tab, beside the editor:  `yarn plan-doc open <name>`, `yarn plan-doc phase`.
- * - the spell extension (`yarn vscode`) serves the repo locally and shows the page in Simple Browser, ONE tab,
- *   reloaded on every open
+ * - starts this checkout's page server first (`ensurePageServer()`), so the page live-reloads;  the spell extension
+ *   (`yarn vscode`) finds it by its pid file and shows the page in Simple Browser, ONE tab, reloaded on every open
  * - first asks THIS session's window, through the extension's window bridge (the repo root's
  *   `scripts/window.mjs`);  a `vscode://` URI goes to whichever window is focused
  * - no bridge (extension not reloaded, or not run from a VS Code window), or it failed:  the `vscode://` URI
@@ -62,6 +99,7 @@ const VSCODE_PREVIEW = "vscode://spell-app.spell-language/doc-preview"
  */
 export async function openInVSCode(file) {
   const path = resolve(file)
+  const served = ensurePageServer()
   const window = Window.current()
   if (window) {
     try {
@@ -71,7 +109,8 @@ export async function openInVSCode(file) {
       console.error(`${error.message}:  falling back to the vscode:// URI`)
     }
   }
-  const run = spawnSync("open", [`${VSCODE_PREVIEW}?file=${encodeURIComponent(path)}`], { encoding: "utf8" })
+  const query = new URLSearchParams({ ...(served && { url: serverUrl(served.base, path) }), file: path })
+  const run = spawnSync("open", [`${VSCODE_PREVIEW}?${query}`], { encoding: "utf8" })
   if (run.status === 0) return console.log(`opened ${path} in VS Code`)
   console.error(`VS Code via \`open\` failed (${(run.stderr ?? String(run.error)).trim()}):  falling back to Chrome`)
   openInChrome(file)
@@ -79,6 +118,7 @@ export async function openInVSCode(file) {
 
 /**
  * Show `file` in Chrome, in ONE tab per page, IN THE BACKGROUND:  `yarn docs:open <page>`;  `openInVSCode()`'s fallback.
+ * - from this checkout's page server (live reload), started if need be;  `file://` if it can't start
  * - The tab is keyed by the page's path inside `packages/docs` (`plans/<name>/<name>.html`), not its full URL, so
  *   the same page from another checkout (a worktree) reuses it:  re-pointed if the URL differs, else reloaded.
  *   The page names its tab the same way (`spell-doc-runtime.js` `window.name`;  links use that `target`).
@@ -89,7 +129,8 @@ export async function openInVSCode(file) {
  * - NOTE: `key` is an AppleScript keyword:  the variable is `pageKey`.
  */
 export function openInChrome(file) {
-  const url = pathToFileURL(resolve(file)).href
+  const served = ensurePageServer()
+  const url = served ? serverUrl(served.base, file) : pathToFileURL(resolve(file)).href
   const key = `/packages/docs/${relative(DOCS, resolve(file))}`
   const script = `
 set target to ${JSON.stringify(url)}

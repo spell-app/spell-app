@@ -27,8 +27,10 @@ export type ServerConfig = {
 /**
  * One edit of the page's own file, through `PATCH /_server/page`.
  * - `id`:  the element to replace;  `html`:  its new markup;  `inner`:  replace its content only
+ * - `parent`:  a tag name:  replace `#id`'s nearest such ancestor instead (a section, through its heading)
+ * - `etag`:  the version edited (default:  the page's, as loaded)
  */
-export type PageEdit = { id: string; html: string; inner?: boolean }
+export type PageEdit = { id: string; html: string; inner?: boolean; parent?: string; etag?: string }
 
 /** What an edit answered:  `ok`, or the status and error;  `etag` is the file's new one. */
 export type PageEditResult = { ok: boolean; status: number; etag?: string; error?: string }
@@ -55,16 +57,16 @@ export function liveClient(): void {
   })
 
   let etag = config.etag
-  config.editPage = async ({ id, html, inner }) => {
+  config.editPage = async ({ id, html, inner, parent, etag: version = etag }) => {
     const url = `${config.edit ?? "/_server/page"}?path=${encodeURIComponent(config.file)}`
     const answer = await fetch(url, {
       method: "PATCH",
       headers: {
         "content-type": "application/json",
         "x-server-token": config.token,
-        ...(etag && { "if-match": etag })
+        ...(version && { "if-match": version })
       },
-      body: JSON.stringify({ id, html, inner })
+      body: JSON.stringify({ id, html, inner, parent })
     })
     const body = (await answer.json().catch(() => ({}))) as { etag?: string; error?: string }
     if (answer.ok) etag = body.etag

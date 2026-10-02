@@ -6,9 +6,12 @@ import { SRV } from "$/server"
 
 /**
  * Edits pages IN PLACE, for the page server:  `/_server/page`.
- * - `GET ?path=<url path>[&id=<id>][&inner=1]`:  the page's source (or one element's), and its `ETag`
+ * - `GET ?path=<url path>[&id=<id>][&parent=<tag>][&inner=1]`:  the page's source (or one element's), and its
+ *   `ETag`
  * - `PUT ?path=`:  the whole page;  body `text/html`, or JSON `{ html }`
- * - `PATCH ?path=`:  one element by `id`;  body JSON `{ id, html, inner? }`
+ * - `PATCH ?path=`:  one element by `id`;  body JSON `{ id, html, inner?, parent? }`
+ * - `parent`:  a tag name, e.g. `section`:  the nearest such ANCESTOR of `#id` instead -- a docs section has no
+ *   `id` of its own, but its heading does
  * - writes the ORIGINAL file in the checkout, and never commits:  that's for whoever reviews the change
  * - a section edit splices the element's exact byte range (parse5 source locations):  every other byte of the
  *   file stays as it was, so diffs show only the edit
@@ -40,7 +43,8 @@ export class PageEditor {
     const source = await readFile(file, "utf8")
     const etag = SRV.StaticHandler.etagOf(await stat(file))
     const id = one(request.query.id)
-    const html = id ? sliceOf(source, findById(source, id), Boolean(one(request.query.inner))) : source
+    const range = id ? findById(source, id, one(request.query.parent)) : undefined
+    const html = range ? sliceOf(source, range, Boolean(one(request.query.inner))) : source
     reply.set("Cache-Control", "no-store").json({ path, etag, html })
   }
 
@@ -49,7 +53,7 @@ export class PageEditor {
     const { path, file } = this.pageFile(request)
     const expected = request.get("if-match")
     if (!expected) throw new SRV.HttpError(428, "If-Match required:  send the ETag the page was served with")
-    const body = request.body as string | { html?: unknown; id?: unknown; inner?: unknown }
+    const body = request.body as string | { html?: unknown; id?: unknown; inner?: unknown; parent?: unknown }
     const etag = await SRV.FileLock.runAsync(file, async () => {
       const current = SRV.StaticHandler.etagOf(await stat(file))
       if (current !== expected)
@@ -64,8 +68,9 @@ export class PageEditor {
         if (!next.trim()) throw new SRV.HttpError(400, "no html to write")
       } else {
         if (typeof body !== "object" || typeof body.id !== "string" || typeof body.html !== "string")
-          throw new SRV.HttpError(400, "PATCH body must be JSON { id, html, inner? }")
-        next = replaceById(source, body.id, body.html, Boolean(body.inner))
+          throw new SRV.HttpError(400, "PATCH body must be JSON { id, html, inner?, parent? }")
+        const parent = typeof body.parent === "string" ? body.parent : undefined
+        next = replaceById(source, body.id, body.html, Boolean(body.inner), parent)
       }
       const temp = join(dirname(file), `.${basename(file)}.${process.pid}.tmp`)
       await writeFile(temp, next)
@@ -96,39 +101,45 @@ export class PageEditor {
 export type ElementRange = { start: number; end: number; innerStart?: number; innerEnd?: number }
 
 /**
- * The range of the ONE element with `id="<id>"` in `source`.
+ * The range of the ONE element with `id="<id>"` in `source` -- or, with `parent` (a tag name), of its nearest
+ * `<parent>` ancestor.
  * - none:  `HttpError(404)`;  several:  `HttpError(409)` -- an edit must name exactly one
  * - looks inside `<template>`s too
  */
-export function findById(source: string, id: string): ElementRange {
-  const found: ElementRange[] = []
+export function findById(source: string, id: string, parent?: string): ElementRange {
+  const found: Parse5Node[] = []
+  const ancestors: Parse5Node[] = []
   visit(parse(source, { sourceCodeLocationInfo: true }) as unknown as Parse5Node)
   if (!found.length) throw new SRV.HttpError(404, `no element with id "${id}"`)
   if (found.length > 1) throw new SRV.HttpError(409, `${found.length} elements with id "${id}":  ids must be unique`)
-  return found[0]!
+  const location = found[0]!.sourceCodeLocation!
+  return {
+    start: location.startOffset,
+    end: location.endOffset,
+    innerStart: location.endTag ? location.startTag?.endOffset : undefined,
+    innerEnd: location.endTag?.startOffset
+  }
 
-  /** collect matching elements under `node` */
+  /** collect matching elements (or their `parent`s) under `node` */
   function visit(node: Parse5Node): void {
-    const location = node.sourceCodeLocation
-    if (location && node.attrs?.some((attr) => attr.name === "id" && attr.value === id)) {
-      found.push({
-        start: location.startOffset,
-        end: location.endOffset,
-        innerStart: location.endTag ? location.startTag?.endOffset : undefined,
-        innerEnd: location.endTag?.startOffset
-      })
+    if (node.sourceCodeLocation && node.attrs?.some((attr) => attr.name === "id" && attr.value === id)) {
+      const match = parent ? ancestors.findLast((each) => each.tagName === parent.toLowerCase()) : node
+      if (!match?.sourceCodeLocation) throw new SRV.HttpError(404, `#${id} has no <${parent}> around it`)
+      found.push(match)
     }
+    ancestors.push(node)
     for (const child of node.childNodes ?? []) visit(child)
     if (node.content) visit(node.content)
+    ancestors.pop()
   }
 }
 
 /**
- * `source` with the element `#id` replaced by `html` (or, `inner`, its content).
+ * `source` with the element `#id` (or its `parent` ancestor) replaced by `html` (or, `inner`, its content).
  * - every other character is kept as it was
  */
-export function replaceById(source: string, id: string, html: string, inner = false): string {
-  const range = findById(source, id)
+export function replaceById(source: string, id: string, html: string, inner = false, parent?: string): string {
+  const range = findById(source, id, parent)
   const [start, end] = inner ? [range.innerStart, range.innerEnd] : [range.start, range.end]
   if (start === undefined || end === undefined) throw new SRV.HttpError(400, `#${id} has no end tag:  edit it whole`)
   return source.slice(0, start) + html + source.slice(end)
@@ -148,6 +159,7 @@ function one(value: string | string[] | undefined): string | undefined {
 
 /** The parts of a parse5 node `findById()` reads. */
 type Parse5Node = {
+  tagName?: string
   attrs?: { name: string; value: string }[]
   childNodes?: Parse5Node[]
   content?: Parse5Node

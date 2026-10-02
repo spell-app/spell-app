@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../../_assets/plan-doc.css" />
   </head>
   <body class="spell-doc-page plan-doc" data-plan="unified-server">
+    <spell-site-header root="../../../.."></spell-site-header>
     <div class="spell-doc">
       <main class="spell-doc-main">
         <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
@@ -50,14 +51,14 @@
               >spell serve</code
             >) on one port, with live reload, a shared site header and an API that edits pages in place.
           </p>
-          <ui-progress class="plan-progress" value="2" total="8" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="4" total="8" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
           <ui-steps class="plan-phases" vertical ordered
             ><ui-step completed header="P1 · Library Core" href="#p1" data-status="done" data-phase="1"></ui-step
             ><ui-step completed header="P2 · Page Server" href="#p2" data-status="done" data-phase="2"></ui-step
-            ><ui-step selected header="P3 · CLI And UI" href="#p3" data-status="active" data-phase="3"></ui-step
-            ><ui-step header="P4 · Docs And Preview" href="#p4" data-status="todo" data-phase="4"></ui-step
+            ><ui-step completed header="P3 · CLI And UI" href="#p3" data-status="done" data-phase="3"></ui-step
+            ><ui-step completed header="P4 · Docs And Preview" href="#p4" data-status="done" data-phase="4"></ui-step
             ><ui-step header="P5 · Goals Migration" href="#p5" data-status="todo" data-phase="5"></ui-step
             ><ui-step header="P6 · App Router" href="#p6" data-status="todo" data-phase="6"></ui-step
             ><ui-step header="P7 · Spell Serve" href="#p7" data-status="todo" data-phase="7"></ui-step
@@ -313,6 +314,63 @@
                 ></ui-accordion
               >
             </li>
+            <li data-status="open" id="c7">
+              <a class="plan-id" href="#c7">C7</a>
+              <span class="plan-title">yarn site:check is broken (pre-existing)</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <code>astro check</code> crashes in @volar/kit (<code>useCaseSensitiveFileNames</code> of undefined)
+                    even on the untouched tsconfig. Logged in PAPERCUTS.md. Also: the site's own header row overflows at
+                    390px (Classic toggle clipped); not new.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="c8">
+              <a class="plan-id" href="#c8">C8</a> <span class="plan-title">P4: root attribute per template tool</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <code>docs:new</code> (<a
+                      href="../../scripts/new-page.js"
+                      target="src-packages-docs-scripts-new-page-js"
+                      ><code>new-page.js</code></a
+                    >): <code>root</code> = the same <code>../</code> prefix as the assets, plus
+                    <code>../..</code> (packages/docs is two below the root). <code>goals new</code> /
+                    <code>new-set</code> (and the home page made from its template): <code>fromTemplate()</code> sets
+                    <code>root</code> = path from the page to goals' <code>ROOT</code> (the folder holding
+                    <a href="../../../../goals/" target="src-goals"><code>goals/</code></a
+                    >). <code>plan-doc new</code>: no change --
+                    <a href="../../templates/plans/plan.html" target="src-packages-docs-templates-plans-plan-html"
+                      ><code>templates/plans/plan.html</code></a
+                    >
+                    sits at the same depth as <code>plans/&lt;name&gt;/</code>, so its <code>../../../..</code> (like
+                    its unrewritten asset paths) is already right. Goals is meant to be portable: in another project the
+                    header's spell-specific properties would point nowhere.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="c9">
+              <a class="plan-id" href="#c9">C9</a> <span class="plan-title">docs:update fails on a fresh checkout</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <a href="../ui-component-creation/" target="src-packages-docs-plans-ui-component-creation"
+                      ><code>plans/ui-component-creation</code></a
+                    >
+                    links <code>packages/ui/reference/Fomantic-UI/</code>, a git-ignored clone missing from this
+                    worktree AND the main checkout, so <code>doc-links.py --check</code> stops
+                    <code>docs:update</code> before the browser checks. P4 ran it with an empty stand-in folder (removed
+                    after): all 17 docs pages passed; <code>yarn goals check</code>: all 17 goals pages passed.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
           </ol>
         </section>
 
@@ -320,7 +378,26 @@
           <ui-sticky class="spell-h2"
             ><h2 id="issues"><ui-icon name="bug"></ui-icon> 5. Issues</h2></ui-sticky
           >
-          <ol class="plan-items" data-kind="issue"></ol>
+          <ol class="plan-items" data-kind="issue">
+            <li data-status="open" id="i1">
+              <a class="plan-id" href="#i1">I1</a> <span class="plan-title">P4: header is 45px, not 44</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    The bar is <code>height: 44px</code> plus a 1px <code>border-bottom</code> (content-box), so it
+                    covers 45px while <code>--spell-site-header-height</code> says 44: every stuck h2 / filter bar /
+                    drawer sits 1px under the bar's border. Measured: bar bottom 45, stuck h2 top 44. Fix in
+                    <a href="../../../server/src/site/SiteHeader.ts" target="src-packages-server-src-site-siteheader-ts"
+                      ><code>SiteHeader.ts</code></a
+                    >
+                    STYLE: <code>box-sizing: border-box</code> on <code>header</code>. Not mine to edit
+                    (packages/server).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+          </ol>
         </section>
 
         <section class="s2">
@@ -385,6 +462,79 @@
                     P2. <code>liveClient()</code> is TypeScript served as <code>(fn)()</code>, over a static
                     <code>.js</code> asset: the VS Code bundle (cjs) has no <code>import.meta.url</code> to find an
                     asset by. Needs a <code>__name</code> shim (tsx keepNames).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="t6">
+              <a class="plan-id" href="#t6">T6</a>
+              <span class="plan-title">Review: Vite's root paths go to astro dev</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    P4. In dev, Astro serves its modules from the ROOT whatever <code>base</code> is
+                    (<code>/@vite/client</code>, <code>/@fs/...</code>, <code>/src/...</code>). Chose to proxy those
+                    paths to <code>astro dev</code> while it runs (none exists at the repo root) and its HMR websocket
+                    by its <code>vite-hmr</code> subprotocol, over running Astro on its own port in an iframe or a
+                    redirect.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="t7">
+              <a class="plan-id" href="#t7">T7</a> <span class="plan-title">Review: astro dev --ignore-lock</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    P4. Astro 7 backgrounds <code>astro dev</code> by itself when it detects an AI agent in the
+                    environment (<code>CLAUDECODE</code> ...), then exits; <code>--ignore-lock</code> keeps it in the
+                    foreground so the page server owns and stops it. Side effect: no Astro lock file, so
+                    <code>yarn site:dev</code> beside it won't notice it.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="t8">
+              <a class="plan-id" href="#t8">T8</a>
+              <span class="plan-title">Review: Open in VS Code is a vscode://file link</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    P4. The header's button is a plain <code>vscode://file/&lt;path&gt;</code> link: works from
+                    <code>file://</code> too, but opens in the LAST FOCUSED VS Code window, not this session's (the
+                    window bridge would need a server endpoint).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="t9">
+              <a class="plan-id" href="#t9">T9</a>
+              <span class="plan-title">Review: two theme toggles on Spell UI pages</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    P4. The header's light / dark / OS button sets <code>color-scheme</code> on
+                    <code>&lt;html&gt;</code>; the Astro site keeps its own Light / Dark / System toggle. They can
+                    disagree. Left both: the site's toggle is part of what it documents.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="t10">
+              <a class="plan-id" href="#t10">T10</a>
+              <span class="plan-title">Review: extension never starts the page server</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    P4. <code>DocPreview</code> uses a running page server (pid file), else its own in-process
+                    <code>SRV.WebServer</code> (live reload, no goals buttons, no <code>/ui/</code>). The scripts that
+                    open docs start the page server first. Alt: have the extension spawn it (GUI VS Code may lack node
+                    on PATH).
                   </p></ui-content
                 ></ui-accordion
               >
@@ -638,7 +788,43 @@
                   </p></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="3">UPDATE</ui-label>
+            </li>
+            <li data-status="open" id="d20">
+              <a class="plan-id" href="#d20">D20</a>
+              <span class="plan-title">Spell UI site: base /ui, header via alias</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    packages/ui/site now has <code>base: "/ui"</code>; internal URLs already went through
+                    <code>url()</code> (BASE_URL), so only config changed. <code>$/server</code> alias added to
+                    astro.config.mjs and site tsconfig (no package.json dependency needed, same as <code>$/util</code>).
+                    Docs.astro carries <code>&lt;spell-site-header&gt;</code> + <code>defineSite()</code>; site.css
+                    sticky header, sidebar, TOC and anchors are offset by <code>--spell-site-header-height</code>.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="d21">
+              <a class="plan-id" href="#d21">D21</a>
+              <span class="plan-title">P4: header height stays out of --spell-top</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    The header's own <code>:root { scroll-padding-top }</code> already adds
+                    <code>--spell-site-header-height</code> to every native jump, so <code>--spell-top</code> and the
+                    headings' CSS <code>scroll-margin-top</code> leave it out (else a native jump would count it twice).
+                    <a href="../../_assets/spell-doc-runtime.js" target="src-packages-docs-assets-spell-doc-runtime-js"
+                      ><code>spell-doc-runtime.js</code></a
+                    >
+                    adds it (<code>siteHeaderHeight()</code>, 0 without a header) where it measures from the viewport
+                    top: h2 / h3 sticky <code>offset</code>s, the contents' sticky <code>offset</code>, its own anchor
+                    jumps, and the scroll-follow line. CSS adds it to the cheatsheet filter bar's <code>top</code>, the
+                    contents column's height and the narrow-screen drawer's <code>top</code> / height.
+                  </p></ui-content
+                ></ui-accordion
+              >
             </li>
           </ol>
         </section>
@@ -680,9 +866,9 @@
               </li>
             </ul>
           </section>
-          <section data-status="active" data-phase="3" class="s3">
+          <section data-status="done" data-phase="3" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p3"><ui-icon name="circle half stroke" color="orange"></ui-icon> P3 · CLI And UI</h3></ui-sticky
+              ><h3 id="p3"><ui-icon name="circle check" color="green"></ui-icon> P3 · CLI And UI</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li><b>Goal:</b> cli/serve.ts and ui/tools/StaticServer.ts become thin users of SRV</li>
@@ -693,9 +879,9 @@
               <li><b>Verify:</b> ui smoke, spell icons --open, spell run on a UI project, cli tests</li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="4" class="s3">
+          <section data-status="done" data-phase="4" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p4"><ui-icon name="circle outline" color="grey"></ui-icon> P4 · Docs And Preview</h3></ui-sticky
+              ><h3 id="p4"><ui-icon name="circle check" color="green"></ui-icon> P4 · Docs And Preview</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li>
@@ -865,6 +1051,41 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T01:15-04:00">2026-10-02 01:15</time></ui-date> P3
                   active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:20-04:00">2026-10-02 01:20</time></ui-date> P3
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:20-04:00">2026-10-02 01:20</time></ui-date> P4
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:35-04:00">2026-10-02 01:35</time></ui-date> P4: docs, plans,
+                  goals and Spell UI served by the page server, site header on every page</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:35-04:00">2026-10-02 01:35</time></ui-date> P4: docs, plans,
+                  goals and Spell UI served by the page server; site header on every page</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:36-04:00">2026-10-02 01:36</time></ui-date> P4
+                  done</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

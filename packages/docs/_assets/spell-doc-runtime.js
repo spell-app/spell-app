@@ -5,6 +5,8 @@
  * - contents sidebar:  built from `main`'s h2 / h3 / h4 when the page has no `#spell-toc` (`buildContents()`)
  * - sticky headers:  each h3 `<ui-sticky>` sticks just below its section's h2 (`offset`, re-measured on resize);
  *   the sections carry `--spell-h2-h` / `--spell-h3-h` so anchors land below both
+ * - everything that sticks or lands at the top starts BELOW the fixed site header (`<spell-site-header>`,
+ *   `siteHeaderHeight()`)
  * - scroll-follow:  the current heading's contents link is highlighted and its panels open;  panels the scroll
  *   opened close again, panels the USER opened stay open
  * - the contents buttons (expand / collapse / code), the narrow-screen drawer, the CHEATSHEET card filters
@@ -227,9 +229,12 @@ function attr(value) {
 
 /**
  * Each h2 / h3 `<ui-sticky>` sticks within its parent (the section):  h2s below whatever sticks above every
- * section (the CHEATSHEET's filter bar, `.spell-filter`), h3s just below their section's h2.
- * - SIDE EFFECT:  sets each sticky's `offset`, `--spell-top` on `main` and `--spell-h2-h` / `--spell-h3-h` on the
- *   sections, which the headings' `scroll-margin-top` reads (`spell-doc.css`)
+ * section (the site header, then the CHEATSHEET's filter bar, `.spell-filter`), h3s just below their section's h2.
+ * - SIDE EFFECT:  sets each sticky's `offset` (the contents' too:  just below the site header), `--spell-top` on
+ *   `main` and `--spell-h2-h` / `--spell-h3-h` on the sections, which the headings' `scroll-margin-top` reads
+ *   (`spell-doc.css`)
+ * - NOTE: `--spell-top` and `scroll-margin-top` leave the site header OUT:  the header's own `scroll-padding-top`
+ *   on `:root` adds it to the browser's jumps, so it's added here only where we measure from the viewport top
  * - re-measured whenever a heading changes size (fonts loading, the window narrowing and titles wrapping)
  * - returns `{ measure, offsetFor }`:  `offsetFor(heading)` is how far below the viewport top it should land
  */
@@ -237,6 +242,7 @@ function trackStickyHeights(main) {
   const h2Stickies = Array.from(main.querySelectorAll("ui-sticky.spell-h2"))
   const h3Stickies = Array.from(main.querySelectorAll("ui-sticky.spell-h3"))
   const bar = main.querySelector(".spell-filter")
+  const contents = document.querySelector(".spell-doc-toc > ui-sticky")
   const observer = new ResizeObserver(() => measure())
   for (const sticky of [...h2Stickies, ...h3Stickies]) {
     const heading = sticky.firstElementChild
@@ -248,22 +254,36 @@ function trackStickyHeights(main) {
 
   /** Heights of the bar and every h2 / h3 onto `main` and their sections;  each sticky's `offset` from them. */
   function measure() {
+    const header = siteHeaderHeight()
     const top = bar ? bar.getBoundingClientRect().height : 0
     main.style.setProperty("--spell-top", `${top}px`)
+    if (contents) setOffset(contents, header)
     for (const sticky of h2Stickies) {
       sticky.parentElement.style.setProperty("--spell-h2-h", `${heightOf(sticky)}px`)
-      setOffset(sticky, top)
+      setOffset(sticky, header + top)
     }
     for (const sticky of h3Stickies) {
       sticky.parentElement.style.setProperty("--spell-h3-h", `${heightOf(sticky)}px`)
-      setOffset(sticky, top + h2HeightAbove(sticky))
+      setOffset(sticky, header + top + h2HeightAbove(sticky))
     }
   }
 
-  /** How far below the top a heading lands:  its own `scroll-margin-top` (CSS derives it from the sections). */
+  /**
+   * How far below the viewport top a heading lands:  the site header, then its own `scroll-margin-top` (CSS
+   * derives it from the sections).
+   */
   function offsetFor(heading) {
-    return parseFloat(getComputedStyle(heading).scrollMarginTop) || 0
+    return siteHeaderHeight() + (parseFloat(getComputedStyle(heading).scrollMarginTop) || 0)
   }
+}
+
+/**
+ * Height of the fixed `<spell-site-header>` on top of the page, px:  its `--spell-site-header-height` on `:root`.
+ * - 0 when the page has none (or it isn't defined yet):  then everything sticks at the viewport top, as before
+ */
+function siteHeaderHeight() {
+  const value = getComputedStyle(document.documentElement).getPropertyValue("--spell-site-header-height")
+  return parseFloat(value) || 0
 }
 
 /** A sticky's `offset`, in whole pixels;  re-setting the same value would restart its observer for nothing. */
@@ -367,7 +387,8 @@ function hashId() {
 
 /**
  * Highlight the current heading's contents link;  open its panels, close panels the scroll opened before.
- * - "Current":  the last heading whose top has reached its landing line (its `scroll-margin-top`, plus a little)
+ * - "Current":  the last heading whose top has reached its landing line (the site header and its
+ *   `scroll-margin-top`, plus a little)
  * - highlight:  a `<ui-item>` gets `selected`, a title's `<a>` class `active`
  * - panels the user opened or closed (`ui-open` / `ui-close`, only ever the user's) are left alone:
  *   `panel.dataset.user`
@@ -407,9 +428,10 @@ function followScroll(main, toc) {
     if (pinned && Math.abs(scrollY - pinned.scrollY) < 2) return setActive(pinned.heading)
     pinned = null
     let current = headings[0]
+    const header = siteHeaderHeight()
     for (const heading of headings) {
       if (heading.offsetParent === null && !heading.getClientRects().length) continue // hidden by the filter
-      const line = (parseFloat(getComputedStyle(heading).scrollMarginTop) || 0) + 4
+      const line = header + (parseFloat(getComputedStyle(heading).scrollMarginTop) || 0) + 4
       if (heading.getBoundingClientRect().top <= line) current = heading
       else break // document order:  the first heading below its line ends the search
     }

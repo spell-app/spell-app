@@ -36,6 +36,12 @@ describe("replaceById()", () => {
     expect(replaceById(PAGE, "two", "2", true)).toContain("<SECTION id='two'>2</SECTION>")
   })
 
+  it("finds a parent by tag, through a child's id", () => {
+    const next = replaceById(PAGE, "two", "<section>S</section>", false, "body")
+    expect(next).toMatch(/<html>\n  <head><title>T<\/title><\/head>\n  <section>S<\/section>\n<\/html>\n$/)
+    expect(() => findById(PAGE, "two", "article")).toThrow(/no <article>/)
+  })
+
   it("finds inside templates;  refuses missing, duplicate and end-tag-less inner", () => {
     expect(PAGE.slice(findById(PAGE, "in-template").start)).toMatch(/^<div id="in-template">/)
     expect(() => findById(PAGE, "nope")).toThrow(/no element/)
