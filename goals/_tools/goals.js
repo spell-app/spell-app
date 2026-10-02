@@ -153,11 +153,14 @@ export function writeIndexes() {
 /**
  * A template's text (`path` under `templates/goals/`), for a page at `dest`:  `{{placeholders}}` filled from
  * `fill`, asset paths fixed for `dest`'s depth, the template's own title and description replaced.
+ * - the site header's `root`:  the path from `dest` up to the project root (`ROOT`), for its `file://` links
  */
 function fromTemplate(path, dest, fill) {
   const assets = relative(dirname(dest), join(DOCS, "_assets")).split("\\").join("/")
+  const root = relative(dirname(dest), ROOT).split("\\").join("/") || "."
   let html = readFileSync(join(TEMPLATES, path), "utf8")
     .replace(/((?:href|src)=")(?:\.\.\/)*_assets\//g, `$1${assets}/`)
+    .replace(/(<spell-site-header\b[^>]*?\broot=")[^"]*"/, `$1${root}"`)
     .replace(/\{\{(\w+)\}\}/g, (whole, key) => (key in fill ? attr(fill[key]) : whole))
   if (fill.title) html = html.replace(/<title>[^<]*<\/title>/, `<title>${attr(fill.title)}</title>`)
   if (fill.description)

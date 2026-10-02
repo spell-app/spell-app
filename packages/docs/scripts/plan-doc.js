@@ -8,11 +8,13 @@
  * - `PlanDoc` is pure (a parsed document in, changes on it):  `plan-doc.test.js` drives it directly.
  */
 import { spawnSync } from "node:child_process"
-import { existsSync, mkdirSync, openSync, closeSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join, relative } from "node:path"
 import { pathToFileURL } from "node:url"
 
 import { parseHTML } from "linkedom"
+
+import { SRV } from "$/server"
 
 import { DOCS, openInVSCode, serialize, tidy } from "./pages.js"
 
@@ -470,11 +472,12 @@ function read(file) {
 }
 
 /**
- * Change the doc at `file` with `change(plan)`, under its lock;  returns what `change` returned.
+ * Change the doc at `file` with `change(plan)`, under its lock (`SRV.FileLock`:  parallel agents, and the page
+ * server's page edits, take turns);  returns what `change` returned.
  * - stamps "updated", writes, tidies (link targets + oxfmt)
  */
 function edit(file, change) {
-  return withLock(file, () => {
+  return SRV.FileLock.run(file, () => {
     const plan = read(file)
     const result = change(plan)
     plan.touch()
@@ -482,31 +485,6 @@ function edit(file, change) {
     if (!tidy([relative(DOCS, file)])) throw new PlanDocError("tidy failed (see above)")
     return result
   })
-}
-
-/**
- * Run `fn` holding `<file>.lock`, so parallel agents take turns.
- * - waits up to 20s;  a lock older than 60s is a crashed holder's, and is taken over
- */
-function withLock(file, fn) {
-  const lock = `${file}.lock`
-  const deadline = Date.now() + 20_000
-  for (;;) {
-    try {
-      closeSync(openSync(lock, "wx"))
-      break
-    } catch (error) {
-      if (error.code !== "EEXIST") throw error
-      if (Date.now() - statSync(lock, { throwIfNoEntry: false })?.mtimeMs > 60_000) rmSync(lock, { force: true })
-      else if (Date.now() > deadline) throw new PlanDocError(`${relative(DOCS, lock)} held for 20s:  stuck?`)
-      else Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 100)
-    }
-  }
-  try {
-    return fn()
-  } finally {
-    rmSync(lock, { force: true })
-  }
 }
 
 /**

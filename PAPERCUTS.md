@@ -877,6 +877,7 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   `origin/main` (`bec84199`), 21 commits behind local `main`. · `cd .claude/worktrees/doc-template && claude --resume
   c0f54984`, then `git merge main` in the worktree.  The hook (`.claude/hooks/worktree.mjs`) branches from local
   `main`, once a session starts with it registered. · tooling
+- 2026-10-02 · `yarn site:check` (`astro check`) crashes before checking anything:  `Cannot read properties of undefined (reading 'useCaseSensitiveFileNames')` in `@volar/kit/lib/createChecker.js`, with or without our changes (the repo's TS 7 vs the language server) · not fixed;  `yarn site:build` is the working gate · ui
 
 ## cli
 
@@ -948,3 +949,7 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   ONE path with a space in it.  Also, `oxlint` prints NOTHING on a clean run unless given `--format=default`, so a
   silent exit 0 doesn't prove it linted anything. · An array, `F=(a.ts b.ts); oxlint "${F[@]}"`, and
   `oxlint --format=default` to see "Found 0 warnings ... on N files". · tooling
+- 2026-10-02 · `yarn docs:update` failed at "check links" before any browser check, on pages nobody touched:
+  `plans/ui-component-creation` links `packages/ui/reference/Fomantic-UI/`, a git-ignored clone that a fresh
+  worktree (and here the main checkout too) doesn't have. · `mkdir -p packages/ui/reference/Fomantic-UI` for the
+  run, then remove it;  or clone Fomantic there. · docs

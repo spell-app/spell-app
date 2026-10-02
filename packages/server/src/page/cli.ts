@@ -10,16 +10,9 @@
  *   started the same way (`TSX_TSCONFIG_PATH`), whatever folder it's started from.
  */
 import { relative, resolve, sep } from "node:path"
-import { fileURLToPath } from "node:url"
 
 import { SRV } from "$/server"
 import { DEFAULT_PORT, PageServer, findRoot } from "$/server/page"
-
-/** This package's `tsconfig.json`:  the alias table a background server needs. */
-const TSCONFIG = fileURLToPath(new URL("../../tsconfig.json", import.meta.url))
-
-/** This file, to start again as `serve`. */
-const CLI = fileURLToPath(import.meta.url)
 
 await main(process.argv.slice(2))
 
@@ -39,7 +32,7 @@ async function main(args: string[]): Promise<void> {
     }
     case "start":
     case "ensure":
-      return print(await ensure(pidFile, root, port))
+      return print(await PageServer.ensure(root, port))
     case "stop":
       return console.log((await pidFile.stop()) ? "stopped" : "not running")
     case "status": {
@@ -54,21 +47,13 @@ async function main(args: string[]): Promise<void> {
     case "url": {
       const file = rest.find((arg) => !arg.startsWith("--") && arg !== flag(rest, "--root"))
       if (!file) throw new Error("usage:  yarn server url <file>")
-      const { base } = await ensure(pidFile, root, port)
+      const { base } = await PageServer.ensure(root, port)
       const path = relative(root, resolve(process.env.INIT_CWD ?? process.cwd(), file))
       return console.log(`${base}/${path.split(sep).map(encodeURIComponent).join("/")}`)
     }
     default:
       console.log(`usage:  yarn server serve|start|ensure|stop|status|url <file>  [--root <dir>] [--port <n>]`)
   }
-}
-
-/** The running server, started in the background if needed. */
-function ensure(pidFile: SRV.PidFile, root: string, port: number) {
-  return pidFile.ensure({
-    command: [process.execPath, ...process.execArgv, CLI, "serve", "--root", root, "--port", String(port)],
-    env: { TSX_TSCONFIG_PATH: TSCONFIG }
-  })
 }
 
 /** Value after `name` in `args`. */

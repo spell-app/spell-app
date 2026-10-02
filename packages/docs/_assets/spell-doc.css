@@ -126,6 +126,8 @@ ui-sticky.spell-h3 > h3 {
 /*
  * Anchors land below the stuck headers:  an h2 at the top, an h3 below its h2, anything else below both.
  * `--spell-top` is what sticks above every h2 (the CHEATSHEET's filter bar), set by the runtime.
+ * - NOTE: the site header is NOT in these:  its `scroll-padding-top` on `:root` already adds
+ *   `--spell-site-header-height` to every jump (the runtime adds it to its own)
  */
 .spell-doc-main :is(h2, h3, h4) {
   scroll-margin-top: calc(var(--spell-top, 0px) + var(--spell-h2-h, 0px) + var(--spell-h3-h, 0px) + 8px);
@@ -317,8 +319,8 @@ ui-accordion.spell-aside::part(content) {
 *******************************/
 
 /*
- * The aside stretches the grid row;  its `<ui-sticky offset="0">` sticks within it, and `.spell-toc-inner`
- * scrolls on its own.
+ * The aside stretches the grid row;  its `<ui-sticky>` sticks within it just below the site header (the runtime
+ * sets its `offset`), and `.spell-toc-inner` scrolls on its own, a viewport tall minus the header.
  */
 .spell-doc-toc {
   border-left: 1px solid var(--spell-rule);
@@ -328,8 +330,8 @@ ui-accordion.spell-aside::part(content) {
   --ui-font-size: 0.84rem;
 }
 .spell-toc-inner {
-  max-height: 100vh;
-  max-height: 100dvh;
+  max-height: calc(100vh - var(--spell-site-header-height, 0px));
+  max-height: calc(100dvh - var(--spell-site-header-height, 0px));
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 0 12px 40px 14px;
@@ -444,14 +446,14 @@ ui-button.spell-toc-open {
   --ui-button-color: var(--ui-text-color, CanvasText);
 }
 
-/* ## Narrow screens:  the contents become a right drawer */
+/* ## Narrow screens:  the contents become a right drawer, below the site header */
 @media (max-width: 1100px) {
   .spell-doc {
     grid-template-columns: minmax(0, 1fr);
   }
   .spell-doc-toc {
     position: fixed;
-    top: 0;
+    top: var(--spell-site-header-height, 0px);
     right: 0;
     bottom: 0;
     z-index: 900;
@@ -471,8 +473,8 @@ ui-button.spell-toc-open {
     transition: transform 0.2s;
   }
   .spell-toc-inner {
-    height: 100vh;
-    height: 100dvh;
+    height: calc(100vh - var(--spell-site-header-height, 0px));
+    height: calc(100dvh - var(--spell-site-header-height, 0px));
   }
   .spell-toc-head {
     background: var(--ui-surface, Canvas);
@@ -575,7 +577,8 @@ ui-button.spell-toc-open {
 }
 
 /*
- * The filter bar sticks above everything;  the runtime sticks the section headers below it (`--spell-top`).
+ * The filter bar sticks above everything but the site header;  the runtime sticks the section headers below it
+ * (`--spell-top`).
  * - the text filter, then the badge filter (`ui-select[data-spell-filter-badge]`);  wrapping at phone width
  */
 .spell-filter {
@@ -584,7 +587,7 @@ ui-button.spell-toc-open {
   gap: 8px;
   align-items: center;
   position: sticky;
-  top: 0;
+  top: var(--spell-site-header-height, 0px);
   z-index: 5;
   margin: 12px 0 8px;
   padding-block: 10px;

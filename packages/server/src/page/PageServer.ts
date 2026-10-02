@@ -1,15 +1,16 @@
 import { spawnSync } from "node:child_process"
 import { existsSync, readFileSync, statSync } from "node:fs"
 import { basename, dirname, join, resolve } from "node:path"
-import { pathToFileURL } from "node:url"
+import { fileURLToPath, pathToFileURL } from "node:url"
 
 import { SRV, type ServerInfo } from "$/server"
-import { PageEditor, type PageServerSettings, type RouteModule } from "$/server/page"
+import { AstroProxy, PageEditor, type PageServerSettings, type RouteModule } from "$/server/page"
 
 /**
  * THE page server:  one per checkout (the main one, and each worktree), serving the whole repo on one port.
  * - docs, plan docs, goals, Spell UI docs and (once `app` is in) the editor, all live-reloading
- * - `/` -> the docs index;  `/_server/ping` -> `ServerInfo`;  `/_server/page` -> `PageEditor`
+ * - `/` -> the docs index;  `/_server/ping` -> `ServerInfo`;  `/_server/page` -> `PageEditor`;  `/ui/` -> Spell UI's
+ *   docs (`AstroProxy`)
  * - route modules (`RouteModule`) from the root `package.json`'s `"pageServer"` add the rest, e.g. goals' buttons
  * - port:  `DEFAULT_PORT` (4747) if free, else any;  the real one goes in `<root>/.spell-server.json`, where
  *   `yarn server ensure` and the openers find it
@@ -27,6 +28,9 @@ export class PageServer {
 
   /** what `/_server/ping` answers;  `port` is set by `start()` */
   readonly info: ServerInfo
+
+  /** Spell UI's docs, `astro dev` behind `/ui/` */
+  readonly astro: AstroProxy
 
   /** run on `stop()`, from route modules */
   private stops: (() => unknown)[] = []
@@ -57,6 +61,9 @@ export class PageServer {
     const router = this.web.router
     router.get("/", (_request, reply) => reply.redirect("/packages/docs/index.html"))
     router.get("/_server/ping", (_request, reply) => reply.set("Cache-Control", "no-store").json(this.info))
+    // before body parsing:  the proxy streams bodies through
+    this.astro = new AstroProxy(this.root)
+    if (this.astro.exists) this.astro.route(this.web)
     router.use(SRV.parseBodies({ limit: 10 * 1024 * 1024 }))
     new PageEditor(this.root).route(router, this.web.guard)
   }
@@ -78,11 +85,26 @@ export class PageServer {
     return this
   }
 
-  /** stop:  route modules' stops, the pid file (if ours), the server */
+  /** stop:  route modules' stops, `astro dev`, the pid file (if ours), the server */
   async stop(): Promise<void> {
     for (const stop of this.stops) await Promise.resolve(stop()).catch(() => {})
+    this.astro.stop()
     this.pidFile.removeIfOurs()
     await this.web.close()
+  }
+
+  /**
+   * The page server of the checkout at `root`, started in the background if it isn't running:  its info, `base`
+   * URL, and whether it was `launched` just now.
+   * - runs `page/cli.ts serve` under `tsx`, with this package's `tsconfig.json` for the aliases
+   *   (`TSX_TSCONFIG_PATH`), whatever the caller's folder;  its output goes to `<root>/.spell-server.log`
+   * - what `yarn server ensure`, the goals tools and the openers call
+   */
+  static ensure(root: string, port = DEFAULT_PORT) {
+    return new SRV.PidFile(root).ensure({
+      command: [process.execPath, "--import", "tsx", CLI, "serve", "--root", resolve(root), "--port", String(port)],
+      env: { TSX_TSCONFIG_PATH: TSCONFIG }
+    })
   }
 
   /** the root `package.json`'s `"pageServer"` field */
@@ -110,6 +132,12 @@ export class PageServer {
     }
   }
 }
+
+/** `page/cli.ts`:  `yarn server`. */
+const CLI = fileURLToPath(new URL("./cli.ts", import.meta.url))
+
+/** This package's `tsconfig.json`:  the alias table a background server needs. */
+const TSCONFIG = fileURLToPath(new URL("../../tsconfig.json", import.meta.url))
 
 /** Port the page server asks for first:  `SPELL_SERVER_PORT`, else 4747 (the goals server's old port). */
 export const DEFAULT_PORT = Number(process.env.SPELL_SERVER_PORT) || 4747

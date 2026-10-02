@@ -1,5 +1,6 @@
-import { createServer, type Server } from "node:http"
+import { createServer, type IncomingMessage, type Server } from "node:http"
 import { relative, sep } from "node:path"
+import type { Duplex } from "node:stream"
 
 import { SRV, type FileTransform, type HtmlTransform, type Mount, type ServedFile } from "$/server"
 
@@ -36,6 +37,12 @@ export class WebServer {
   /** extra fields for each page's `window.SPELL_SERVER` */
   private configure?: (served: ServedFile) => Record<string, unknown>
 
+  /** websocket upgrades by path prefix, e.g. `/ui` -> a dev server's HMR */
+  private upgrades: { claims: (request: SRV.Request) => boolean; handle: UpgradeHandler }[] = []
+
+  /** upgraded sockets:  `closeAllConnections()` doesn't see them, so `close()` ends them itself */
+  private sockets = new Set<Duplex>()
+
   /** port once listening;  0 before */
   port = 0
 
@@ -61,6 +68,33 @@ export class WebServer {
     }
     top.use(this.router, this.files.handle, this.fallback)
     this.server = createServer(SRV.toListener(top.handle, { onError: onError ?? logError }))
+    this.server.on("upgrade", (raw: IncomingMessage, socket: Duplex, head: Buffer) => this.onUpgrade(raw, socket, head))
+  }
+
+  /**
+   * Answer websocket upgrades under `prefix` (or that `claims()` accepts) with `handle`, e.g. `SRV.proxyUpgrade` to
+   * a dev server.
+   * - the host check applies;  an upgrade nothing claims is refused
+   */
+  upgrade(prefix: string | ((request: SRV.Request) => boolean), handle: UpgradeHandler): this {
+    const claims = typeof prefix === "string" ? (request: SRV.Request) => SRV.underPrefix(request.path, prefix) : prefix
+    this.upgrades.push({ claims, handle })
+    return this
+  }
+
+  /** route one upgrade */
+  private onUpgrade(raw: IncomingMessage, socket: Duplex, head: Buffer): void {
+    const request = new SRV.Request(raw)
+    const claim = this.upgrades.find(({ claims }) => claims(request))
+    this.sockets.add(socket)
+    socket.on("close", () => this.sockets.delete(socket))
+    try {
+      if (!claim) throw new SRV.HttpError(404, "no upgrade here")
+      this.guard.checkHost(request)
+      void Promise.resolve(claim.handle(raw, socket, head)).catch(() => socket.destroy())
+    } catch {
+      socket.destroy()
+    }
   }
 
   /** base URL once listening, e.g. `http://127.0.0.1:4747` */
@@ -78,9 +112,10 @@ export class WebServer {
     return { url: this.url, port: this.port }
   }
 
-  /** stop:  live reload, open connections, the server */
+  /** stop:  live reload, open connections and websockets, the server */
   close(): Promise<void> {
     this.live?.close()
+    for (const socket of this.sockets) socket.destroy()
     this.server.closeAllConnections()
     return new Promise((done) => this.server.close(() => done()))
   }
@@ -127,6 +162,9 @@ export type WebServerProps = {
   checkHost?: boolean
   onError?: (error: unknown, request: SRV.Request) => void
 }
+
+/** Answers a websocket upgrade:  takes over `socket`. */
+export type UpgradeHandler = (raw: IncomingMessage, socket: Duplex, head: Buffer) => unknown
 
 /** Log a failure:  method, URL and stack. */
 function logError(error: unknown, request: SRV.Request): void {
