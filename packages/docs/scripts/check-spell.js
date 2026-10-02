@@ -57,6 +57,9 @@ if (middle.id && !stuck.stuck)
   )
 if (!stuck.active) problem("no active contents link after scrolling")
 
+const fold = await checkFold(desk)
+if (fold.problem) problem(`fold:  ${fold.problem}`)
+
 const phone = await open({ width: 390, height: 844 })
 await phone.evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2))
 await phone.waitForTimeout(400)
@@ -95,6 +98,7 @@ const summary = {
   stuck: stuck.stuck,
   atTop: stuck.covering,
   active: stuck.active,
+  fold,
   overflow,
   mainWidth,
   drawer,
@@ -120,6 +124,12 @@ async function open(viewport) {
   page.on("pageerror", (error) => problem(`page error (${label}):  ${error}`))
   page.on("console", (message) => message.type() === "error" && problem(`console (${label}):  ${message.text()}`))
   await page.goto(url)
+  await settle(page)
+  return page
+}
+
+/** Wait until every `ui-*` tag on `page` is defined (or 10s passed), then a second for the runtime. */
+async function settle(page) {
   await page
     .waitForFunction(
       () =>
@@ -131,7 +141,113 @@ async function open(viewport) {
     )
     .catch(() => {})
   await page.waitForTimeout(1000)
-  return page
+}
+
+/**
+ * The FOLD check:  a reader's fold works, and the page remembers it.  The check that would have caught the old
+ * markup's dead chevron (2026-10-01).
+ * - target:  `<ui-section>` pages, the first top-level `ui-section[collapsible]` (an open one if any);  old pages,
+ *   the first `section.s2`'s h2
+ * - clicks its toggle as a reader would:  the shadow `button[part~=toggle]`, or the old chevron `ui-button.spell-fold`
+ * - expects it folded (`collapsed` + `:state(collapsed)`, or `section.spell-folded`) with its content hidden;  still
+ *   folded after a reload;  unfolded by a second click
+ * - returns `{ target, steps, problem? }`;  starts from the page's own state, whatever it is
+ * - SIDE EFFECT:  clears the page's saved folds (`localStorage` `spell-folds:<path>`) at the end
+ */
+async function checkFold(page) {
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await page.waitForTimeout(300)
+  const target = await page.evaluate(foldTarget)
+  if (!target) return { target, steps: [], problem: "no foldable section on the page" }
+  const steps = []
+  const initial = await page.evaluate(foldState, target)
+  steps.push({ step: "initial", ...initial })
+  let problem = await toggleAndExpect("click", !initial.folded)
+  if (!problem) {
+    await page.reload()
+    await settle(page)
+    const state = await page.evaluate(foldState, target)
+    steps.push({ step: "reload", ...state })
+    if (state.folded !== !initial.folded)
+      problem = `#${target.id} ${initial.folded ? "folded" : "unfolded"} again after a reload:  the fold wasn't remembered`
+  }
+  if (!problem) problem = await toggleAndExpect("click again", initial.folded)
+  await page.evaluate(() => localStorage.removeItem(`spell-folds:${location.pathname}`))
+  return problem ? { target, steps, problem } : { target, steps }
+
+  /** Click the target's toggle, wait out the fold animation, and check it is `folded`;  a problem, or undefined. */
+  async function toggleAndExpect(step, folded) {
+    const toggle = await page.evaluateHandle(foldToggle, target)
+    const element = toggle.asElement()
+    if (!element) return `#${target.id} has no fold toggle`
+    try {
+      await element.click({ timeout: 3000 })
+    } catch (error) {
+      return `#${target.id}'s toggle can't be clicked:  ${String(error).split("\n")[0]}`
+    }
+    await page.waitForTimeout(700)
+    const state = await page.evaluate(foldState, target)
+    steps.push({ step, ...state })
+    const word = folded ? "fold" : "unfold"
+    if (state.folded !== folded) return `#${target.id} didn't ${word} on a ${step} of its toggle`
+    if (state.contentVisible === folded)
+      return `#${target.id} ${word}ed, but its content is ${folded ? "still" : "not"} visible`
+    return undefined
+  }
+}
+
+/** The section the fold check works on:  `{ id, kind }` (`ui-section`, or `section` for the old markup's h2 id). */
+function foldTarget() {
+  // one with content to hide, open to start with, if there is one
+  const sections = [...document.querySelectorAll("main > ui-section[collapsible][id]")]
+  if (sections.length) {
+    const filled = (section) => [...section.children].some((child) => !child.hasAttribute("slot"))
+    const best =
+      sections.find((section) => filled(section) && !section.hasAttribute("collapsed")) ??
+      sections.find(filled) ??
+      sections[0]
+    return { id: best.id, kind: "ui-section" }
+  }
+  const headings = [...document.querySelectorAll("main section.s2 > ui-sticky > h2[id]")]
+  const h2 = headings.find((heading) => heading.closest("section").children.length > 1) ?? headings[0]
+  return h2 ? { id: h2.id, kind: "section" } : null
+}
+
+/** The element a reader clicks to fold the target:  the shadow toggle button, or the old chevron host. */
+function foldToggle({ id, kind }) {
+  const element = document.getElementById(id)
+  if (kind === "ui-section") return element?.shadowRoot?.querySelector('button[part~="toggle"]') ?? null
+  return element?.querySelector(":scope > ui-button.spell-fold") ?? null
+}
+
+/**
+ * The target's fold:  `{ folded, contentVisible }`.
+ * - `<ui-section>`:  folded when its `collapsed` is true AND it says `:state(collapsed)`;  content:  its first
+ *   unslotted child
+ * - old markup:  `section.spell-folded`;  content:  the element after the heading's `ui-sticky`
+ * - visible:  `checkVisibility()`, which sees `hidden="until-found"` (content-visibility) and `display: none`
+ */
+function foldState({ id, kind }) {
+  const element = document.getElementById(id)
+  if (kind === "ui-section") {
+    let state = !!element.collapsed
+    try {
+      state = element.matches(":state(collapsed)")
+    } catch {
+      // a browser without custom states:  the property alone
+    }
+    const content = [...element.children].find((child) => !child.hasAttribute("slot"))
+    return {
+      folded: !!element.collapsed && state,
+      contentVisible: content ? content.checkVisibility({ visibilityProperty: true }) : null
+    }
+  }
+  const section = element.closest("section")
+  const content = section.children[1]
+  return {
+    folded: section.classList.contains("spell-folded"),
+    contentVisible: content ? content.checkVisibility({ visibilityProperty: true }) : null
+  }
 }
 
 /**

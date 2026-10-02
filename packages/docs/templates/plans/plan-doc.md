@@ -26,20 +26,41 @@ phase is, else the next phase (grey).
 
 | Section | id | What |
 |---|---|---|
-| 1. Overview | `#overview` | 2-sentence summary (`p.plan-summary lede`), the prompt that started the plan (`blockquote.plan-prompt`), then the substance in numbered h3s (`#o1` "1.1 Structure" ...):  becomes durable docs |
-| 2. Phases | `#phases` | progress bar, then one h3 per phase (`#p1` ...):  goal, files, verify |
+| 1. Overview | `#overview` | 2-sentence summary (`p.plan-summary lede`), the prompt that started the plan (`blockquote.plan-prompt`), then the substance in numbered sub-sections (`#o1` "1.1 Structure" ...):  becomes durable docs |
+| 2. Phases | `#phases` | progress bar, then one sub-section per phase (`#p1` ...):  goal, files, verify |
 | 3. Questions & Decisions | `#decisions` | open questions first (waiting on the user;  each also asked with AskUserQuestion), then what was decided and why:  settled unless new facts arrive.  `decide` answers a question:  the decision goes at the end, the struck question just above it |
 | 4. Caveats | `#caveats` | limits and risks we accept |
 | 5. Todos | `#todos` | later work that isn't a caveat or an issue |
 | 6. Issues | `#issues` | problems found, open until fixed |
 | 7. Log | `#log` | one-liners of plan changes, stamped with local date and time |
 
-- Every h2 / h3 section folds (the page runtime adds a chevron;  the reader's folds are remembered per page).
-- A section with items shows `open/all` at its h2's right, and its open count as a badge in the contents and the
-  rail.  Open:  any `data-status` but `done` and `decided`, so "Questions & Decisions" counts the questions waiting.
-- Docs made before 2026-10-01 had a `#plan` section (summary + phase list), a separate `#questions` and another
-  order:  `yarn plan-doc migrate <name>` brings one up to date (an answered question moves beside the decision whose
-  title names it, `(Q8)`).
+- Every section is a `<ui-section>` (markup below):  its title sticks, it folds from its chevron (the reader's folds
+  are remembered per page), a rule runs under its title.
+- A section with items shows `open/all` at its title's right (its `badge`, set by the page runtime), and its open
+  count as a badge in the contents and the rail.  Open:  any `data-status` but `done` and `decided`, so "Questions &
+  Decisions" counts the questions waiting.
+- Older docs:  `yarn plan-doc migrate <name>` brings one up to date, whatever its age, and prints what it changed:
+  - before 2026-10-01:  a `#plan` section (summary + phase list), a separate `#questions`, another order (an
+    answered question moves beside the decision whose title names it, `(Q8)`)
+  - before 2026-10-02:  `section.s2|s3` > `ui-sticky.spell-h2|h3` > `h2|h3` sections, phases in
+    `#phases-section` (the id is gone:  `#phases` is the section now), `data-fold="closed"`
+
+Section markup (the template's;  a hand-written Overview sub-section is the same, nested in `#overview`):
+
+```html
+<ui-section id="overview" header="1. Overview" sticky collapsible dividing>
+  <ui-icon slot="icon" name="lightbulb"></ui-icon>
+  <p class="plan-summary lede">...</p>
+  <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
+    ...  <!-- sub-sub-items:  <h4 id> -->
+  </ui-section>
+</ui-section>
+```
+
+- `header` is the title;  a title with markup is a `<span slot="header">` first inside instead (`1.2 The <code>x</code>
+  API`)
+- every section `sticky collapsible dividing`;  `collapsed` starts it folded
+- NEVER change an `id`:  the items, the log and other docs link to them
 
 ## Ids:  short, so they're easy to say in chat
 
@@ -59,22 +80,22 @@ Phase section (in `#phases`, after `<ui-progress class="plan-progress">`:  `valu
 `hidden` while there are none):
 
 ```html
-<section class="s3" data-phase="2" data-status="active">
-  <ui-sticky class="spell-h3"
-    ><h3 id="p2"><ui-icon name="circle half stroke" color="orange"></ui-icon> P2 · Short Name</h3></ui-sticky
-  >
+<ui-section id="p2" data-phase="2" data-status="active" header="P2 · Short Name" sticky collapsible dividing>
+  <ui-icon slot="icon" name="circle half stroke" color="orange"></ui-icon>
   <ui-list class="plan-phase-body">
     <ui-item icon="bullseye"><b>Goal:</b>  one line</ui-item>
     <ui-item icon="folder"><b>Files:</b>  what changes</ui-item>
     <ui-item icon="flask"><b>Verify:</b>  how we know it worked</ui-item>
   </ui-list>
-</section>
+</ui-section>
 ```
 
-- the h3's status icon:  `todo` -> `circle outline` grey, `active` -> `circle half stroke` orange, `done` ->
-  `circle check` green;  it shows in the contents sidebar too
-- `data-fold="closed"`:  starts folded.  Setting a phase `done` folds every OTHER done phase:  the one finished last
-  stays open
+- the status icon (`slot="icon"`):  `todo` -> `circle outline` grey, `active` -> `circle half stroke` orange,
+  `done` -> `circle check` green;  it shows in the contents sidebar too
+- `collapsed`:  starts folded.  Setting a phase `done` folds every OTHER done phase:  the one finished last stays
+  open
+- docs not yet migrated (`section.s3[data-phase]` in `#phases-section`, an h3 with the icon, `data-fold="closed"`):
+  the script still edits them as they are
 
 Item (in any `ui-list.plan-items`):
 
@@ -109,8 +130,8 @@ Log line (in `#log`'s `<ui-feed class="plan-log">`;  a `<ul>` of `<time>` + text
 </ui-event>
 ```
 
-Each section's h2 carries an icon (`lightbulb`, `layer group`, `circle question` ...):  keep it when editing a
-heading.  It is also the section's entry in the rail.
+Each top-level section carries an icon (`<ui-icon slot="icon">`:  `lightbulb`, `layer group`, `gavel` ...):  keep
+it when editing a section.  It is also the section's entry in the rail.
 
 Prompt (in `#overview`, after the summary;  `new --prompt` / `prompt` write it, escaped):
 
@@ -139,7 +160,7 @@ While a phase is active, flag what changed so the user can spot it:
 ## Explaining a question or issue
 
 Anything the user must decide or weigh in on (a question, an issue with options) gets an explanation the user can
-decide from WITHOUT asking back:  in the item's details, or an Overview `h3` the item links to when it's long.
+decide from WITHOUT asking back:  in the item's details, or an Overview sub-section the item links to when it's long.
 
 - Plain words first:  what goes wrong (or what's being chosen), for whom, and how they'd notice.  Define every
   coined or jargon word on first use:  "stacking:  things side by side go one under another when there's no room".
@@ -168,7 +189,7 @@ decide from WITHOUT asking back:  in the item's details, or an Overview `h3` the
 | `decide <name> <Q id> "<decision>" [--details "<html>"]` | answer a question:  a new decision (prints its id), the question struck and moved just above it |
 | `log <name> "<text>"` | add a timestamped line to the log |
 | `prompt <name> "<text>"` / `prompt <name> --file <path>` | set (replace) the prompt quoted in the Overview;  `""` removes it |
-| `migrate <name>` | bring a doc made before 2026-10-01 into this layout (prints what changed;  "already current" otherwise) |
+| `migrate <name>` | bring an older doc (before 2026-10-01, or with `section.s2` markup) into this layout (prints what changed;  "already current" otherwise) |
 | `summary <name> [--json]` | open questions, issues, caveats, todos, and the next phase |
 | `check <name>` | ids unique, every `#id` link resolves, every phase has a status, then `check-spell.js` |
 | `open <name>` | show the doc rendered in VS Code (Simple Browser, beside the editor), reusing its tab and reloading it;  needs the spell extension (`yarn vscode`) |

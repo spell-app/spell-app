@@ -39,14 +39,12 @@
           >
           <ui-item icon="calendar"
             >Started <time id="plan-started">2026-10-01</time>, updated
-            <time id="plan-updated">2026-10-01</time></ui-item
+            <time id="plan-updated">2026-10-02</time></ui-item
           >
         </ui-list>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"
-            ><h2 id="overview"><ui-icon name="lightbulb"></ui-icon> 1. Overview</h2></ui-sticky
-          >
+        <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
+          <ui-icon slot="icon" name="lightbulb"></ui-icon>
           <p class="plan-summary lede">
             Built (2026-10-01, overnight, on branch <code>worktree-ui-component-creation</code>):
             <a href="../../../ui/" target="src-packages-ui"><code>packages/ui</code></a> is green in the monorepo, the
@@ -62,8 +60,7 @@
             (2026-09-30). This overview is the PLAN-time picture (3.4 lists the bugs as they were before the sweep);
             what was built is in the durable page linked from the summary.
           </p>
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="o1">1.1 Where it stands</h3></ui-sticky>
+          <ui-section id="o1" header="1.1 Where it stands" sticky collapsible dividing>
             <ul>
               <li>
                 All 53 planned families built: vocabulary, CSS port, native fallback, element / CSS / fallback tests
@@ -93,9 +90,8 @@
                 <a href="#p1">P1</a> proves the rest.
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="o2">1.2 How work runs</h3></ui-sticky>
+          </ui-section>
+          <ui-section id="o2" header="1.2 How work runs" sticky collapsible dividing>
             <ul>
               <li>
                 Orchestrator (this session) plans, briefs agents, verifies, integrates, stages, asks. Agents build.
@@ -121,9 +117,8 @@
                 >).
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="o3">1.3 Icon packs</h3></ui-sticky>
+          </ui-section>
+          <ui-section id="o3" header="1.3 Icon packs" sticky collapsible dividing>
             <ul>
               <li>
                 Icons are SVG files in packs: a folder of SVGs + a generated <code>pack.js</code> index (file, size,
@@ -150,9 +145,8 @@
                 calls <code>reset()</code> + <code>register()</code> for the icons it bundles, so nothing is fetched.
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="o4">1.4 Open bugs by area</h3></ui-sticky>
+          </ui-section>
+          <ui-section id="o4" header="1.4 Open bugs by area" sticky collapsible dividing>
             <p>
               <a href="../../../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"><code>SUSPECTED-BUGS.md</code></a
               >, <code>## ui</code>: what <a href="#p3">P3</a> works through, one agent per area.
@@ -173,9 +167,8 @@
                 <code>on:</code> snippets on the docs site.
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="o5">1.5 &lt;ui-root&gt;</h3></ui-sticky>
+          </ui-section>
+          <ui-section id="o5" header="1.5 <ui-root>" sticky="" collapsible="" dividing="">
             <p>
               Design only, nothing built (<a href="#p16">P16</a>). One element you put at the top of a page. It
               <b>loads</b> the components the page uses, takes the page's <b>settings</b>, sets
@@ -509,21 +502,25 @@ export class UICard extends UIElement&lt;...&gt; {
               <a href="#q19">Q19</a> default display, <a href="#q20">Q20</a> attributes vs elements,
               <a href="#q21">Q21</a> where descriptions live.
             </p>
-          </section>
-        </section>
-        <section class="s2" id="phases-section">
-          <ui-sticky class="spell-h2"
-            ><h2 id="phases"><ui-icon name="layer group"></ui-icon> 2. Phases</h2></ui-sticky
+          </ui-section>
+        </ui-section>
+        <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
+          <ui-icon slot="icon" name="layer group"></ui-icon
           ><ui-progress class="plan-progress" value="16" total="16" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
           <p class="meta">One section per phase: goal, decisions, files, how to verify.</p>
-          <section data-fold="closed" data-status="done" data-phase="1" class="s3">
-            <ui-sticky class="spell-h3"
-              ><h3 id="p1">
-                <ui-icon name="circle check" color="green"></ui-icon> P1 · Re-establish Baseline
-              </h3></ui-sticky
-            >
+          <ui-section
+            id="p1"
+            data-phase="1"
+            data-status="done"
+            header="P1 · Re-establish Baseline"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye">
                 <b>Goal:</b> every handoff §1.5 check passes in the monorepo; reference/Fomantic-UI re-cloned; status.md
@@ -535,11 +532,18 @@ export class UICard extends UIElement&lt;...&gt; {
                 site:build (60 pages); test:visual --os local (chrome, then all)
               </ui-item></ui-list
             >
-          </section>
-          <section data-fold="closed" data-status="done" data-phase="2" class="s3">
-            <ui-sticky class="spell-h3"
-              ><h3 id="p2"><ui-icon name="circle check" color="green"></ui-icon> P2 · Icon Follow-ups</h3></ui-sticky
-            >
+          </ui-section>
+          <ui-section
+            id="p2"
+            data-phase="2"
+            data-status="done"
+            header="P2 · Icon Follow-ups"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye">
                 <b>Goal:</b> UI.icons.get() never rejects; IconGlyph.load() catches; pack builder importable by
@@ -552,11 +556,18 @@ export class UICard extends UIElement&lt;...&gt; {
                 bundle-spell-ui.js builds
               </ui-item></ui-list
             >
-          </section>
-          <section data-fold="closed" data-status="done" data-phase="3" class="s3">
-            <ui-sticky class="spell-h3"
-              ><h3 id="p3"><ui-icon name="circle check" color="green"></ui-icon> P3 · Bug Sweep</h3></ui-sticky
-            >
+          </ui-section>
+          <ui-section
+            id="p3"
+            data-phase="3"
+            data-status="done"
+            header="P3 · Bug Sweep"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> every SUSPECTED-BUGS.md ## ui entry (~33) fixed, disproven or deferred with
@@ -568,11 +579,18 @@ export class UICard extends UIElement&lt;...&gt; {
                 diff reviewed, then --update
               </ui-item></ui-list
             >
-          </section>
-          <section data-fold="closed" data-status="done" data-phase="4" class="s3">
-            <ui-sticky class="spell-h3"
-              ><h3 id="p4"><ui-icon name="circle check" color="green"></ui-icon> P4 · Owen's Decisions</h3></ui-sticky
-            >
+          </ui-section>
+          <ui-section
+            id="p4"
+            data-phase="4"
+            data-status="done"
+            header="P4 · Owen's Decisions"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> ask handoff §6's 8 calls at phase start, record each as a decision, apply</ui-item
@@ -583,11 +601,18 @@ export class UICard extends UIElement&lt;...&gt; {
                 ><b>Verify:</b> yarn review; test:visual for rendering changes, baselines updated</ui-item
               ></ui-list
             >
-          </section>
-          <section data-fold="closed" data-status="done" data-phase="5" class="s3">
-            <ui-sticky class="spell-h3"
-              ><h3 id="p5"><ui-icon name="circle check" color="green"></ui-icon> P5 · Release Chores</h3></ui-sticky
-            >
+          </ui-section>
+          <ui-section
+            id="p5"
+            data-phase="5"
+            data-status="done"
+            header="P5 · Release Chores"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye">
                 <b>Goal:</b> kitchen sink, yarn test:all green, CHANGELOG.md, npm publish --dry-run, 8 kB budget in
@@ -599,11 +624,18 @@ export class UICard extends UIElement&lt;...&gt; {
                 only)
               </ui-item></ui-list
             >
-          </section>
-          <section data-fold="closed" data-status="done" data-phase="6" class="s3">
-            <ui-sticky class="spell-h3"
-              ><h3 id="p6"><ui-icon name="circle check" color="green"></ui-icon> P6 · Doc Review</h3></ui-sticky
-            >
+          </ui-section>
+          <ui-section
+            id="p6"
+            data-phase="6"
+            data-status="done"
+            header="P6 · Doc Review"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye">
                 <b>Goal:</b> prune plan doc; durable page packages/docs/ui-component-creation.html; status.md final;
@@ -612,11 +644,18 @@ export class UICard extends UIElement&lt;...&gt; {
                 ><b>Files:</b> packages/docs/; packages/ui/docs/status.md; outstanding/ui-component-build.md</ui-item
               ><ui-item icon="flask"><b>Verify:</b> yarn plan-doc check; yarn docs:index</ui-item></ui-list
             >
-          </section>
-          <section data-fold="closed" data-status="done" data-phase="7" class="s3">
-            <ui-sticky class="spell-h3"
-              ><h3 id="p7"><ui-icon name="circle check" color="green"></ui-icon> P7 · Merge And Upgrade</h3></ui-sticky
-            >
+          </ui-section>
+          <ui-section
+            id="p7"
+            data-phase="7"
+            data-status="done"
+            header="P7 · Merge And Upgrade"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye">
                 <b>Goal:</b> main's docs-template commit merged in; this plan doc in the new format (ui-steps phases,
@@ -627,11 +666,18 @@ export class UICard extends UIElement&lt;...&gt; {
                 it)</ui-item
               ></ui-list
             >
-          </section>
-          <section data-fold="closed" data-status="done" data-phase="8" class="s3">
-            <ui-sticky class="spell-h3"
-              ><h3 id="p8"><ui-icon name="circle check" color="green"></ui-icon> P8 · Invoker Commands</h3></ui-sticky
-            >
+          </ui-section>
+          <ui-section
+            id="p8"
+            data-phase="8"
+            data-status="done"
+            header="P8 · Invoker Commands"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye">
                 <b>Goal:</b> popup, dropdown and toast answer invoker commands (--show / --close / --toggle), like
@@ -644,11 +690,18 @@ export class UICard extends UIElement&lt;...&gt; {
                 visual</ui-item
               ></ui-list
             >
-          </section>
-          <section data-fold="closed" data-status="done" data-phase="9" class="s3">
-            <ui-sticky class="spell-h3"
-              ><h3 id="p9"><ui-icon name="circle check" color="green"></ui-icon> P9 · Docs Explainers</h3></ui-sticky
-            >
+          </ui-section>
+          <ui-section
+            id="p9"
+            data-phase="9"
+            data-status="done"
+            header="P9 · Docs Explainers"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye">
                 <b>Goal:</b> the durable page explains with examples: the 19 emoji name deltas (table), table / form
@@ -658,11 +711,18 @@ export class UICard extends UIElement&lt;...&gt; {
                 ><b>Verify:</b> doc-links --check; check-spell; screenshots looked at</ui-item
               ></ui-list
             >
-          </section>
-          <section data-fold="closed" data-status="done" data-phase="10" class="s3">
-            <ui-sticky class="spell-h3"
-              ><h3 id="p10"><ui-icon name="circle check" color="green"></ui-icon> P10 · CLDR Emoji Names</h3></ui-sticky
-            >
+          </ui-section>
+          <ui-section
+            id="p10"
+            data-phase="10"
+            data-status="done"
+            header="P10 · CLDR Emoji Names"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> CLDR wins the 19 emoji name clashes; translated emoji names planned</ui-item
@@ -671,13 +731,18 @@ export class UICard extends UIElement&lt;...&gt; {
                 status.md, translation.md </ui-item
               ><ui-item icon="flask"><b>Verify:</b> 19 data lines change; emoji tests; yarn review</ui-item></ui-list
             >
-          </section>
-          <section data-fold="closed" data-status="done" data-phase="11" class="s3">
-            <ui-sticky class="spell-h3"
-              ><h3 id="p11">
-                <ui-icon name="circle check" color="green"></ui-icon> P11 · Plan-doc Tabs And Skill
-              </h3></ui-sticky
-            >
+          </ui-section>
+          <ui-section
+            id="p11"
+            data-phase="11"
+            data-status="done"
+            header="P11 · Plan-doc Tabs And Skill"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye">
                 <b>Goal:</b> plan-doc open: one tab per doc named
@@ -690,11 +755,18 @@ export class UICard extends UIElement&lt;...&gt; {
                 docs tests
               </ui-item></ui-list
             >
-          </section>
-          <section data-fold="closed" data-status="done" data-phase="12" class="s3">
-            <ui-sticky class="spell-h3"
-              ><h3 id="p12"><ui-icon name="circle check" color="green"></ui-icon> P12 · Emoji Name Sets</h3></ui-sticky
-            >
+          </ui-section>
+          <ui-section
+            id="p12"
+            data-phase="12"
+            data-status="done"
+            header="P12 · Emoji Name Sets"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye">
                 <b>Goal:</b> CLDR names (any separators) by default; opt in to Fomantic's names with
@@ -709,11 +781,18 @@ export class UICard extends UIElement&lt;...&gt; {
                 (visual); yarn review; measure
               </ui-item></ui-list
             >
-          </section>
-          <section data-fold="closed" data-status="done" data-phase="13" class="s3">
-            <ui-sticky class="spell-h3"
-              ><h3 id="p13"><ui-icon name="circle check" color="green"></ui-icon> P13 · Folder Rename</h3></ui-sticky
-            >
+          </ui-section>
+          <ui-section
+            id="p13"
+            data-phase="13"
+            data-status="done"
+            header="P13 · Folder Rename"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye">
                 <b>Goal:</b> src/components/&lt;family&gt;/ -&gt; ui-&lt;family&gt;/, files ui-&lt;family&gt;.*, one
@@ -727,13 +806,18 @@ export class UICard extends UIElement&lt;...&gt; {
                 resolve</ui-item
               ></ui-list
             >
-          </section>
-          <section data-fold="closed" data-status="done" data-phase="14" class="s3">
-            <ui-sticky class="spell-h3"
-              ><h3 id="p14">
-                <ui-icon name="circle check" color="green"></ui-icon> P14 · Definitions And Topics
-              </h3></ui-sticky
-            >
+          </ui-section>
+          <ui-section
+            id="p14"
+            data-phase="14"
+            data-status="done"
+            header="P14 · Definitions And Topics"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye">
                 <b>Goal:</b> topics + aka in every tag's vocabulary (translatable, live on the class); roll-up
@@ -744,13 +828,18 @@ export class UICard extends UIElement&lt;...&gt; {
                 index </ui-item
               ><ui-item icon="flask"><b>Verify:</b> definitions test; yarn review; site:build</ui-item></ui-list
             >
-          </section>
-          <section data-fold="closed" data-status="done" data-phase="15" class="s3">
-            <ui-sticky class="spell-h3"
-              ><h3 id="p15">
-                <ui-icon name="circle check" color="green"></ui-icon> P15 · Sidebar Component Browser
-              </h3></ui-sticky
-            >
+          </ui-section>
+          <ui-section
+            id="p15"
+            data-phase="15"
+            data-status="done"
+            header="P15 · Sidebar Component Browser"
+            sticky
+            collapsible
+            dividing
+            collapsed
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye">
                 <b>Goal:</b> one Components section: search (name, tag, topic, aka), A-Z and Topics views (collapsible,
@@ -762,11 +851,17 @@ export class UICard extends UIElement&lt;...&gt; {
                 ><b>Verify:</b> Playwright click-through, axe, light + dark screenshots</ui-item
               ></ui-list
             >
-          </section>
-          <section data-status="done" data-phase="16" class="s3">
-            <ui-sticky class="spell-h3"
-              ><h3 id="p16"><ui-icon name="circle check" color="green"></ui-icon> P16 · Root Design</h3></ui-sticky
-            >
+          </ui-section>
+          <ui-section
+            id="p16"
+            data-phase="16"
+            data-status="done"
+            header="P16 · Root Design"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye">
                 <b>Goal:</b> &lt;ui-root&gt; written up with examples and options (design only): on-demand loading, page
@@ -774,12 +869,10 @@ export class UICard extends UIElement&lt;...&gt; {
               ><ui-item icon="folder"><b>Files:</b> this plan doc (Overview + questions)</ui-item
               ><ui-item icon="flask"><b>Verify:</b> plan-doc check; screenshots looked at</ui-item></ui-list
             >
-          </section>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2"
-            ><h2 id="decisions"><ui-icon name="gavel"></ui-icon> 3. Questions &amp; Decisions</h2></ui-sticky
-          >
+          </ui-section>
+        </ui-section>
+        <ui-section id="decisions" header="3. Questions & Decisions" sticky collapsible dividing>
+          <ui-icon slot="icon" name="gavel"></ui-icon>
           <p class="meta">
             Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why:
             settled, don't re-argue without new facts. An answered question sits just above its decision.
@@ -2154,11 +2247,9 @@ export const cardSkeleton = {
               ></ui-item
             ></ui-list
           >
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2"
-            ><h2 id="caveats"><ui-icon name="triangle exclamation"></ui-icon> 4. Caveats</h2></ui-sticky
-          >
+        </ui-section>
+        <ui-section id="caveats" header="4. Caveats" sticky collapsible dividing>
+          <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
           <ui-list relaxed divided data-kind="caveat" class="plan-items"
             ><ui-item id="c1" data-status="open"
               ><a class="plan-id" href="#c1">C1</a>
@@ -2311,11 +2402,9 @@ export const cardSkeleton = {
               ></ui-item
             ></ui-list
           >
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2"
-            ><h2 id="todos"><ui-icon name="list check"></ui-icon> 5. Todos</h2></ui-sticky
-          >
+        </ui-section>
+        <ui-section id="todos" header="5. Todos" sticky collapsible dividing>
+          <ui-icon slot="icon" name="list check"></ui-icon>
           <p class="meta">For later: not caveats, not issues.</p>
           <ui-list relaxed divided data-kind="todo" class="plan-items"
             ><ui-item id="t1" data-status="open"
@@ -2364,11 +2453,9 @@ export const cardSkeleton = {
               ></ui-item
             ></ui-list
           >
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2"
-            ><h2 id="issues"><ui-icon name="bug"></ui-icon> 6. Issues</h2></ui-sticky
-          >
+        </ui-section>
+        <ui-section id="issues" header="6. Issues" sticky collapsible dividing>
+          <ui-icon slot="icon" name="bug"></ui-icon>
           <ui-list relaxed divided data-kind="issue" class="plan-items"
             ><ui-item id="i1" data-status="done"
               ><ui-accordion class="plan-item"
@@ -2551,11 +2638,9 @@ export const cardSkeleton = {
               ></ui-item
             ></ui-list
           >
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2"
-            ><h2 id="log"><ui-icon name="clock rotate left"></ui-icon> 7. Log</h2></ui-sticky
-          >
+        </ui-section>
+        <ui-section id="log" header="7. Log" sticky collapsible dividing>
+          <ui-icon slot="icon" name="clock rotate left"></ui-icon>
           <p class="meta">Plan changes, oldest first, local time.</p>
           <ui-feed class="plan-log" size="small">
             <ui-event icon="pen to square">
@@ -3150,7 +3235,7 @@ export const cardSkeleton = {
               ></ui-event
             ></ui-feed
           >
-        </section>
+        </ui-section>
       </main>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>

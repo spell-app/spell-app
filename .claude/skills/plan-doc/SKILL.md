@@ -42,7 +42,7 @@ the whole time.  The plan doc is the user's view of the work:  they read it in a
 - New doc:  `yarn plan-doc new <name> --title "<Title>" --prompt-file <file>`, `<file>` holding the user's message
   that kicked off the plan, verbatim (write it to the scratchpad first:  it may hold quotes and newlines).  It's
   quoted at the top of the Overview.  Reusing a doc whose prompt is missing:  `yarn plan-doc prompt <name> --file
-  <file>`;  a doc from before 2026-10-01:  `yarn plan-doc migrate <name>` first.
+  <file>`;  an older doc (before 2026-10-01, or `section.s2` markup):  `yarn plan-doc migrate <name>` first.
 - Then `yarn plan-doc open <name>`:  rendered in VS Code's Simple Browser, beside the editor (one tab, reloaded on
   every later `open`).  Needs the spell extension (`yarn vscode`).
 
@@ -62,9 +62,11 @@ the whole time.  The plan doc is the user's view of the work:  they read it in a
 
 - `yarn plan-doc add-phase <name> "Short Name" --goal "..." --files "..." --verify "..."` per phase, in order
 - `yarn plan-doc add <name> decision|caveat|issue|todo|question "title" [--details "<p>...</p>"]` per item
-- Hand-write `p.plan-summary` and the Overview's `h3`s (`#o1` "1.1 ...", `#o2` ...):  code in folded
+- Hand-write `p.plan-summary` and the Overview's sub-sections, nested in `#overview`:
+  `<ui-section id="o1" header="1.1 ..." sticky collapsible dividing>`, `#o2` ... (a title with markup:  a
+  `<span slot="header">` first inside instead of `header`;  sub-sub-items:  `<h4 id>`).  Code in folded
   `ui-accordion.spell-code`, digressions in collapsed `ui-accordion.spell-aside`, links to items and phases
-  (`<a href="#d2">D2</a>`)
+  (`<a href="#d2">D2</a>`).  NEVER change an existing `id`.
 - `yarn plan-doc check <name>`, then `yarn plan-doc open <name>` (new stage:  reload)
 
 ## 5. Each phase
@@ -115,7 +117,7 @@ decide <name> <Q id> "decision" [--details html]   answer a question:  prints th
 close <name> <id>  /  reopen <name> <id>            strike / unstrike, never delete
 log <name> "text"                                   timestamped line in the doc's log
 prompt <name> "text" | --file f                     set the prompt quoted in the Overview
-migrate <name>                                      a doc from before 2026-10-01 into the current layout
+migrate <name>                                      an older doc (any layout) into the current one
 summary <name> [--json]                             phases, next phase, open questions/issues/caveats/todos
 check <name> [--no-browser]                         ids, links, phases, then the browser check
 open <name>                                         show in VS Code, beside the editor, reusing its tab

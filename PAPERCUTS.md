@@ -912,3 +912,11 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   short `<ui-sticky>` (301px) counted as a header in the page's new `scroll-padding-top`, and Chrome's scroll
   anchoring picks its anchor below that padding, so an opening panel shifted the page. · A sticky narrower than half
   the scroll area reserves nothing (`UISticky.reserve()`). · ui
+- 2026-10-02 · Converted pages came out as `<ui-section dividing collapsible sticky header="..." id="...">`:
+  linkedom's `setAttribute` puts each NEW attribute first, so a built element serializes its attributes reversed. ·
+  Build elements from HTML instead (`createElement()` in `packages/docs/scripts/to-ui-section.js`, which
+  `plan-doc.js` `element()` uses too). · docs
+- 2026-10-02 · After moving a page to `<ui-section>`, a section ending in a card grid lost the cards' bottom border:
+  the content part clips (`overflow-y: clip`) and a card's border is a box-shadow;  `overflow-clip-margin` did
+  nothing because Chromium applies it only when BOTH axes clip. · `overflow: clip; overflow-clip-margin: 6px` on
+  `ui-section::part(content)` (`spell-doc.css`;  `spell-ui-findings.md` 26). · docs

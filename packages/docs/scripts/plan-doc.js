@@ -6,6 +6,8 @@
  * - Every edit:  takes the doc's lock (parallel agents queue instead of clobbering each other), parses it with
  *   linkedom, changes it through `PlanDoc`, stamps "updated", writes it, then tidies it (link targets, oxfmt).
  * - `PlanDoc` is pure (a parsed document in, changes on it):  `plan-doc.test.js` drives it directly.
+ * - Sections are `<ui-section>`s;  docs not yet migrated (`section.s2|s3`, cli-additions) are still read and edited
+ *   as they are, so every helper here takes either markup ("Sections, either markup").
  */
 import { spawnSync } from "node:child_process"
 import { existsSync, mkdirSync, openSync, closeSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs"
@@ -15,6 +17,7 @@ import { pathToFileURL } from "node:url"
 import { parseHTML } from "linkedom"
 
 import { DOCS, openInVSCode, serialize, tidy } from "./pages.js"
+import { convertSections, createElement } from "./to-ui-section.js"
 
 /** The template `new` copies, relative to `DOCS`. */
 const TEMPLATE = "templates/plans/plan.html"
@@ -45,11 +48,25 @@ export const KINDS = {
 const OPEN_KINDS = ["question", "issue", "caveat", "todo"]
 
 /**
- * The sections, in page order, by their h2's id:  `migrate` puts an older doc's sections in this order and
- * renumbers their headings.  `#plan` (summary + phase list) was dropped on 2026-10-01, and `#questions` merged into
+ * The sections, in page order, by id (the `<ui-section>`'s, or an old doc's h2's):  `migrate` puts an older doc's
+ * sections in this order and renumbers their titles.  `#plan` (summary + phase list) was dropped on 2026-10-01, and `#questions` merged into
  * `#decisions` ("Questions & Decisions").
  */
 const SECTION_ORDER = ["overview", "phases", "decisions", "caveats", "todos", "issues", "log"]
+
+/** Each section's icon, by its id (the template's):  `migrate` gives one to a section that has none. */
+const SECTION_ICONS = {
+  overview: "lightbulb",
+  phases: "layer group",
+  decisions: "gavel",
+  caveats: "triangle exclamation",
+  todos: "list check",
+  issues: "bug",
+  log: "clock rotate left"
+}
+
+/** Phase sections, either markup:  `<ui-section data-phase>` in `#phases`, or `section[data-phase]` (old). */
+const PHASE_SECTIONS = "ui-section#phases ui-section[data-phase], #phases-section section[data-phase]"
 
 /** The note under "Questions & Decisions" (the template's, which `migrate` writes into older docs). */
 const DECISIONS_NOTE =
@@ -108,11 +125,26 @@ export class PlanDoc {
    * - docs not yet migrated also have a phase LIST (`.plan-phases`) under `#plan`:  `check()` keeps the two in step
    */
   get phases() {
-    return Array.from(this.document.querySelectorAll("#phases-section section[data-phase]"), (section) => ({
+    return this.phaseSections.map((section) => ({
       n: Number(section.getAttribute("data-phase")),
-      name: phaseName(section.querySelector("h3")?.textContent ?? ""),
+      name: phaseName(titleText(section)),
       status: section.getAttribute("data-status") ?? "todo"
     }))
+  }
+
+  /**
+   * The phase sections, in order:  `<ui-section data-phase>` in `ui-section#phases`, or (old markup)
+   * `section[data-phase]` in `#phases-section`.
+   */
+  get phaseSections() {
+    return Array.from(this.document.querySelectorAll(PHASE_SECTIONS))
+  }
+
+  /** Phase `n`'s section;  throws when there's none. */
+  phaseSection(n) {
+    const section = this.phaseSections.find((phase) => phase.getAttribute("data-phase") === String(n))
+    if (!section) throw new PlanDocError(`no phase ${n} in the doc`)
+    return section
   }
 
   /** Number of the phase in progress, if any. */
@@ -121,11 +153,13 @@ export class PlanDoc {
   }
 
   /**
-   * Append phase `name` (2-4 words) to the phase list and to `#phases`;  returns its number.
+   * Append phase `name` (2-4 words) to `#phases` (and an old doc's phase list);  returns its number.
    * - `goal` / `files` / `verify`:  its body's bullets, as HTML;  omitted ones get a placeholder to fill in
+   * - `<ui-section id="p3" data-phase data-status header="P3 · Name" ...>`, its status icon slotted;  old markup:
+   *   `section.s3` > `ui-sticky.spell-h3` > `h3#p3`
    */
   addPhase(name, { goal, files, verify } = {}) {
-    const section = this.require("#phases-section")
+    const section = this.section("phases")
     const n = this.phases.length + 1
     const label = `P${n} · ${name}`
     this.addOldListEntry(n, label)
@@ -133,10 +167,26 @@ export class PlanDoc {
     const body = PHASE_FIELDS.map(
       ([field, glyph]) => `<ui-item icon="${glyph}"><b>${field}:</b>  ${values[field] ?? "TBD"}</ui-item>`
     )
-    const phase = this.element("section", { class: "s3", "data-phase": n, "data-status": "todo" })
-    phase.innerHTML = `<ui-sticky class="spell-h3"><h3 id="p${n}">${icon("todo")} ${text(label)}</h3></ui-sticky>
-<ui-list class="plan-phase-body">${body.join("")}</ui-list>`
-    section.append(phase)
+    const list = `<ui-list class="plan-phase-body">${body.join("")}</ui-list>`
+    if (section.localName === "ui-section") {
+      const phase = this.element("ui-section", {
+        id: `p${n}`,
+        "data-phase": n,
+        "data-status": "todo",
+        header: label,
+        sticky: "",
+        collapsible: "",
+        dividing: ""
+      })
+      // newlines around the parts:  oxfmt keeps a custom element's whitespace as it is
+      phase.innerHTML = `\n${icon("todo", true)}\n${list}\n`
+      section.append(this.document.createTextNode("\n"), phase)
+    } else {
+      const phase = this.element("section", { class: "s3", "data-phase": n, "data-status": "todo" })
+      phase.innerHTML = `<ui-sticky class="spell-h3"><h3 id="p${n}">${icon("todo")} ${text(label)}</h3></ui-sticky>
+${list}`
+      section.append(phase)
+    }
     this.updateProgress()
     return n
   }
@@ -157,18 +207,24 @@ export class PlanDoc {
   /**
    * Set phase `n` to `status` (`todo` / `active` / `done`), on its section and heading (and an old doc's list).
    * - `done` removes the phase's UPDATE markers:  once it's finished, its changes are just the plan
-   * - `done` also folds every OTHER done phase (`data-fold="closed"`, read by the page runtime):  the phase just
-   *   finished stays open, the older ones get out of the way
+   * - `done` also folds every OTHER done phase (`collapsed`;  old markup:  `data-fold="closed"`, read by the page
+   *   runtime):  the phase just finished stays open, the older ones get out of the way
    * - SIDE EFFECT:  logs the change
    */
   setPhase(n, status) {
     if (!STATUS[status]) throw new PlanDocError(`status must be ${Object.keys(STATUS).join(" / ")}, not "${status}"`)
-    const section = this.require(`#phases-section section[data-phase="${n}"]`)
+    const section = this.phaseSection(n)
     const entry = this.document.querySelector(`.plan-phases > [data-phase="${n}"]`)
     for (const node of [entry, section]) {
       if (!node) continue
       node.setAttribute("data-status", status)
-      node.querySelector("ui-icon")?.replaceWith(this.fragment(icon(status)))
+      if (node.localName !== "ui-section") {
+        node.querySelector("ui-icon")?.replaceWith(this.fragment(icon(status)))
+        continue
+      }
+      const glyph = node.querySelector(':scope > ui-icon[slot="icon"]')
+      if (glyph) glyph.replaceWith(this.fragment(icon(status, true)))
+      else node.prepend(this.fragment(icon(status, true)))
     }
     if (entry?.localName === "ui-step") {
       toggle(entry, "selected", status === "active")
@@ -177,18 +233,16 @@ export class PlanDoc {
     if (status === "done") {
       for (const marker of this.updateMarkers(n)) marker.remove()
       this.foldDonePhases(n)
-    } else section.removeAttribute("data-fold")
+    } else setFolded(section, false)
     this.updateProgress()
     this.log(`P${n} ${status}`)
   }
 
   /** Fold every done phase but `latest` (the one finished last), which unfolds. */
   foldDonePhases(latest) {
-    for (const section of this.document.querySelectorAll("#phases-section section[data-phase]")) {
+    for (const section of this.phaseSections) {
       const n = Number(section.getAttribute("data-phase"))
-      const fold = n !== latest && section.getAttribute("data-status") === "done"
-      if (fold) section.setAttribute("data-fold", "closed")
-      else section.removeAttribute("data-fold")
+      setFolded(section, n !== latest && section.getAttribute("data-status") === "done")
     }
   }
 
@@ -410,9 +464,10 @@ export class PlanDoc {
     }
     const added = this.element("blockquote", { class: "plan-prompt" })
     added.innerHTML = html
-    const overview = this.require("#overview").closest("section")
-    const after = overview.querySelector(":scope > .plan-summary") ?? overview.querySelector(":scope > ui-sticky")
-    after.after(added)
+    const overview = this.section("overview")
+    const summary = overview.querySelector(":scope > .plan-summary")
+    if (summary) summary.after(added)
+    else prependContent(overview, added)
   }
 
   ////////////////
@@ -420,14 +475,17 @@ export class PlanDoc {
   ////////////////
 
   /**
-   * Bring a doc made before 2026-10-01's layout change up to date;  returns what changed, as lines (none:  already
-   * current).
+   * Bring an older doc up to date (the layout before 2026-10-01, the `section.s2` markup before 2026-10-02);
+   * returns what changed, as lines (none:  already current).
    * - `#plan` goes:  its summary moves to the top of the Overview, its progress bar to `#phases`, its phase list away
-   * - sections in `SECTION_ORDER`, h2s renumbered, and the Overview's h3 / h4 numbers with them (`3.1` -> `1.1`)
+   * - sections in `SECTION_ORDER`, titles renumbered, and the numbers in them with them (`3.1` -> `1.1`)
    * - the h1 goes into the sticky page header, with the step label
    * - item lists become `ui-list`s of `ui-item`s;  an item's "details" panel takes the item's line as its title
    * - phase bodies become `ui-list`s with an icon per field;  every done phase but the last folds
    * - links to `#plan` go to `#overview`
+   * - every `section.s2|s3` becomes a `<ui-section>` (`to-ui-section.js` `convertSections()`);  a standard section
+   *   without an icon gets the template's
+   * - each step works on either markup, so a doc converted by `to-ui-section.js` alone still migrates
    */
   migrate() {
     const changes = []
@@ -439,13 +497,34 @@ export class PlanDoc {
     changes.push(...this.mergeQuestions())
     const bodies = this.migratePhaseBodies()
     if (bodies) changes.push(`${bodies} phase bodies as ui-list`)
+    const sections = convertSections(this.document)
+    if (sections.converted) {
+      const dropped = sections.droppedIds.map((id) => `#${id}`).join(", ")
+      changes.push(`${sections.converted} sections as <ui-section>${dropped ? ` (${dropped} gone)` : ""}`)
+    }
+    const icons = this.migrateSectionIcons()
+    if (icons) changes.push(`${icons} sections given their icon`)
     const done = this.phases.filter((phase) => phase.status === "done")
-    if (done.length && !this.document.querySelector("#phases-section section[data-fold]")) {
+    if (done.length && !this.phaseSections.some(isFolded)) {
       this.foldDonePhases(done.at(-1).n)
       if (done.length > 1) changes.push(`${done.length - 1} done phases folded`)
     }
     this.updateProgress()
     return changes
+  }
+
+  /** A `<ui-section>` among `SECTION_ICONS`' with no icon gets its icon (the template's);  how many. */
+  migrateSectionIcons() {
+    let count = 0
+    for (const [id, name] of Object.entries(SECTION_ICONS)) {
+      const section = this.document.getElementById(id)
+      if (section?.localName !== "ui-section" || section.hasAttribute("icon")) continue
+      if (section.querySelector(':scope > [slot="icon"]')) continue
+      const glyph = this.fragment(`<ui-icon slot="icon" name="${name}"></ui-icon>`)
+      section.prepend(this.document.createTextNode("\n"), glyph)
+      count++
+    }
+    return count
   }
 
   /** The h1 into `<ui-sticky class="spell-h1"><header class="spell-page-head">` with a `.plan-step`;  done? */
@@ -462,36 +541,42 @@ export class PlanDoc {
 
   /** Drop `#plan`:  summary to the Overview's top, progress bar to `#phases`;  done? */
   migratePlanSection() {
-    const plan = this.document.getElementById("plan")?.closest("section")
+    const plan = sectionOf(this.document, "plan")
     if (!plan) return false
-    const overview = this.require("#overview").closest("section")
     const summary = plan.querySelector(".plan-summary")
     if (summary) {
       summary.classList.add("lede")
-      overview.querySelector(":scope > ui-sticky").after(summary)
+      prependContent(this.section("overview"), summary)
     }
     const bar = plan.querySelector("ui-progress.plan-progress")
-    if (bar) this.require("#phases-section > ui-sticky").after(bar)
+    if (bar) prependContent(this.section("phases"), bar)
     plan.remove()
     for (const link of this.document.querySelectorAll('a[href="#plan"]')) link.setAttribute("href", "#overview")
     return true
   }
 
-  /** Sections in `SECTION_ORDER`, each h2 numbered by its place, the Overview's sub-numbers too;  changed? */
+  /**
+   * Sections in `SECTION_ORDER`, each title numbered by its place, the sub-numbers in it too (`3.1` -> `1.1`:  nested
+   * sections' titles, h3s, h4s);  changed?
+   */
   orderSections() {
-    const sections = SECTION_ORDER.map((id) => this.document.getElementById(id)?.closest("section")).filter(Boolean)
+    const sections = SECTION_ORDER.map((id) => sectionOf(this.document, id)).filter(Boolean)
     if (!sections.length) return false
     const before = sections.map((section) => section.outerHTML).join("")
-    const anchor = this.document.createComment("sections")
-    sections[0].before(anchor)
-    for (const section of sections) anchor.before(section)
-    anchor.remove()
+    // moved only when out of order:  a move leaves the whitespace between sections behind, so each gets a newline
+    const inOrder = sections.every((section, index) => !index || followsInDocument(sections[index - 1], section))
+    if (!inOrder) {
+      const anchor = this.document.createComment("sections")
+      sections[0].before(anchor)
+      for (const section of sections) anchor.before(this.document.createTextNode("\n"), section)
+      anchor.remove()
+    }
     sections.forEach((section, index) => {
-      const h2 = section.querySelector(":scope > ui-sticky > h2")
-      const old = renumber(h2, /^(\s*)\d+\./, `$1${index + 1}.`)
+      const old = renumber(section, /^(\s*)\d+\./, `$1${index + 1}.`)
       if (old === undefined) return
       const sub = new RegExp(`^(\\s*)${old}\\.`)
-      for (const heading of section.querySelectorAll("h3, h4")) renumber(heading, sub, `$1${index + 1}.`)
+      const inner = section.localName === "ui-section" ? "ui-section, h3, h4" : "h3, h4"
+      for (const heading of section.querySelectorAll(inner)) renumber(heading, sub, `$1${index + 1}.`)
     })
     return sections.map((section) => section.outerHTML).join("") !== before
   }
@@ -507,8 +592,7 @@ export class PlanDoc {
         relaxed: ""
       })
       for (const li of Array.from(list.children)) {
-        const item = this.element("ui-item")
-        for (const { name, value } of Array.from(li.attributes)) item.setAttribute(name, value)
+        const item = this.element("ui-item", Object.fromEntries(Array.from(li.attributes, (a) => [a.name, a.value])))
         // an item added to the old list since this script changed is already titled by its line
         const aside = li.querySelector(":scope > ui-accordion:not(.plan-item)")
         if (aside) {
@@ -549,7 +633,7 @@ export class PlanDoc {
       decided++
     }
     if (decided) changes.push(`${decided} decisions marked decided`)
-    const section = this.document.getElementById("questions")?.closest("section")
+    const section = sectionOf(this.document, "questions")
     if (!section) return changes
     const questions = Array.from(section.querySelectorAll(".plan-items > [id]"))
     const open = questions.filter((question) => question.getAttribute("data-status") === "open")
@@ -577,9 +661,9 @@ export class PlanDoc {
     }
     section.remove()
     for (const link of this.document.querySelectorAll('a[href="#questions"]')) link.setAttribute("href", "#decisions")
-    const h2 = this.require("#decisions")
-    replaceInHeading(h2, /\bDecisions\s*$/, "Questions & Decisions")
-    const note = h2.closest("section").querySelector(":scope > p.meta")
+    const target = this.section("decisions")
+    replaceInTitle(target, /\bDecisions\s*$/, "Questions & Decisions")
+    const note = target.querySelector(":scope > p.meta")
     if (note) note.textContent = DECISIONS_NOTE
     changes.push(`${questions.length} questions merged into Questions & Decisions (${paired} next to their answers)`)
     return changes
@@ -638,11 +722,16 @@ export class PlanDoc {
     return found
   }
 
-  /** New element with attributes. */
+  /** The section `id` titles (`sectionOf()`);  throws if the doc doesn't have it. */
+  section(id) {
+    const found = sectionOf(this.document, id)
+    if (!found) throw new PlanDocError(`no section #${id} in the doc:  is it a plan doc?`)
+    return found
+  }
+
+  /** New element with attributes, in order (`""`:  a bare boolean attribute). */
   element(tag, attributes = {}) {
-    const el = this.document.createElement(tag)
-    for (const [name, value] of Object.entries(attributes)) el.setAttribute(name, String(value))
-    return el
+    return createElement(this.document, tag, Object.entries(attributes))
   }
 
   /** Nodes of an HTML snippet, as a fragment to insert. */
@@ -677,12 +766,101 @@ function promptHTML(prompt) {
     .join("")
 }
 
+////////////////
+// ## Sections, either markup
+////////////////
+
 /**
- * Replace `pattern` in the first non-blank text node of `heading` (after its icons);  returns the number it
- * replaced (`3` for `3.`), or `undefined` when it didn't match.
+ * The section titled `id`:  the `<ui-section id>` itself, else (old markup) the `section` around the heading `#id`;
+ * `null` when there's none.
  */
-function renumber(heading, pattern, replacement) {
-  return replaceInHeading(heading, pattern, replacement)?.[0].match(/\d+/)?.[0]
+function sectionOf(document, id) {
+  const element = document.getElementById(id)
+  if (!element) return null
+  return element.localName === "ui-section" ? element : element.closest("section")
+}
+
+/** The old heading of `section.s2|s3` (`ui-sticky > h2|h3`), else null. */
+function oldHeading(section) {
+  return section.querySelector(":scope > ui-sticky > :is(h2, h3)")
+}
+
+/**
+ * A section's title as text, whitespace collapsed, badges (`ui-label`) left out:  a `<ui-section>`'s `header`, else
+ * its `slot="header"`;  an old section's h2 / h3.
+ */
+function titleText(section) {
+  const header = section.localName === "ui-section" ? section.getAttribute("header") : null
+  const source =
+    header === null
+      ? section.localName === "ui-section"
+        ? section.querySelector(':scope > [slot="header"]')
+        : oldHeading(section)
+      : null
+  let value = header ?? ""
+  if (source) {
+    const clone = source.cloneNode(true)
+    for (const label of clone.querySelectorAll("ui-label")) label.remove()
+    value = clone.textContent
+  }
+  return value.replace(/\s+/g, " ").trim()
+}
+
+/**
+ * Replace `pattern` in the title of `element`:  a `<ui-section>`'s `header` (else its `slot="header"`), an old
+ * section's heading, or a plain h3 / h4;  returns the match, or `undefined` when the title doesn't match.
+ */
+function replaceInTitle(element, pattern, replacement) {
+  if (element.localName === "ui-section") {
+    const header = element.getAttribute("header")
+    if (header === null)
+      return replaceInHeading(element.querySelector(':scope > [slot="header"]'), pattern, replacement)
+    const match = header.match(pattern)
+    if (match) element.setAttribute("header", header.replace(pattern, replacement))
+    return match ?? undefined
+  }
+  if (element.localName === "section") return replaceInHeading(oldHeading(element), pattern, replacement)
+  return replaceInHeading(element, pattern, replacement)
+}
+
+/**
+ * Replace `pattern` in the title of `element` (`replaceInTitle()`);  returns the number it replaced (`3` for
+ * `3.`), or `undefined` when it didn't match.
+ */
+function renumber(element, pattern, replacement) {
+  return replaceInTitle(element, pattern, replacement)?.[0].match(/\d+/)?.[0]
+}
+
+/**
+ * Put `node` first in `section`'s content:  after its title -- a `<ui-section>`'s slotted children at its start
+ * (icon, header), an old section's `ui-sticky`.
+ */
+function prependContent(section, node) {
+  let title = null
+  for (const child of section.children) {
+    if (!child.matches("ui-sticky, [slot]")) break
+    title = child
+  }
+  const space = section.ownerDocument.createTextNode("\n")
+  if (title) title.after(space, node)
+  else section.prepend(space, node)
+}
+
+/** Does `later` come after `earlier` in document order? */
+function followsInDocument(earlier, later) {
+  return !!(earlier.compareDocumentPosition(later) & 4) /* Node.DOCUMENT_POSITION_FOLLOWING */
+}
+
+/** Fold or unfold a phase section in the markup:  `collapsed` (`<ui-section>`), `data-fold="closed"` (old). */
+function setFolded(section, folded) {
+  if (section.localName === "ui-section") toggle(section, "collapsed", folded)
+  else if (folded) section.setAttribute("data-fold", "closed")
+  else section.removeAttribute("data-fold")
+}
+
+/** Is a phase section folded in the markup?  (`setFolded()`) */
+function isFolded(section) {
+  return section.localName === "ui-section" ? section.hasAttribute("collapsed") : section.hasAttribute("data-fold")
 }
 
 /**
@@ -708,10 +886,10 @@ function trimWhitespace(element) {
   while (element.lastChild?.nodeType === 3 && !element.lastChild.textContent.trim()) element.lastChild.remove()
 }
 
-/** A phase's status icon. */
-function icon(status) {
+/** A phase's status icon;  `slotted`:  a `<ui-section>`'s (`slot="icon"`). */
+function icon(status, slotted = false) {
   const { icon: name, color } = STATUS[status]
-  return `<ui-icon name="${name}" color="${color}"></ui-icon>`
+  return `<ui-icon${slotted ? ' slot="icon"' : ""} name="${name}" color="${color}"></ui-icon>`
 }
 
 /** Set or remove boolean attribute `name` on `element`. */
@@ -768,7 +946,7 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
   summary <name> [--json]                          open questions, issues, caveats, todos;  the next phase
   check <name> [--no-browser]                      ids, links, phases;  then check-spell.js
   open <name>                                      show in VS Code, beside the editor (reloads its tab)
-  migrate <name>                                   bring a doc from before 2026-10-01 into the current layout`
+  migrate <name>                                   bring an older doc (any layout) into the current one`
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   try {

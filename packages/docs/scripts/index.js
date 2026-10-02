@@ -21,16 +21,32 @@ const INDEX = "index.html"
 const START = "<!-- index:start -->"
 const END = "<!-- index:end -->"
 
-/** The groups, in page order:  heading id, heading, which pages, what to say when there are none. */
+/**
+ * The groups, in page order:  section id, title, icon (the rail's), which pages, what to say when there are none.
+ * - an icon must be in `ICONS` in `bundle-spell-ui.js`
+ */
 const GROUPS = [
-  { id: "guides", title: "Guides", has: (path) => !/^(templates|plans)\//.test(path), none: "No guides yet." },
+  {
+    id: "guides",
+    title: "Guides",
+    icon: "book open",
+    has: (path) => !/^(templates|plans)\//.test(path),
+    none: "No guides yet."
+  },
   {
     id: "plans",
     title: "Plans",
+    icon: "layer group",
     has: (path) => path.startsWith("plans/"),
     none: "No plans yet:  run /plan-doc in Claude Code."
   },
-  { id: "templates", title: "Templates", has: (path) => path.startsWith("templates/"), none: "No templates yet." }
+  {
+    id: "templates",
+    title: "Templates",
+    icon: "copy",
+    has: (path) => path.startsWith("templates/"),
+    none: "No templates yet."
+  }
 ]
 
 const pages = findPages()
@@ -64,23 +80,37 @@ function describe(path) {
   const { document } = parseHTML(readFileSync(join(DOCS, path), "utf8"))
   const title = document.querySelector("title")?.textContent.trim() || path
   const description = document.querySelector('meta[name="description"]')?.getAttribute("content")?.trim() ?? ""
-  // a plan's phases:  its phase sections in `#phases` (every plan doc has them, old layout or new)
-  const phases = Array.from(document.querySelectorAll("#phases-section section[data-phase]"), (section) => ({
+  // a plan's phases:  its phase sections in `#phases` (every plan doc has them):  `<ui-section data-phase>`, or
+  // `section[data-phase]` in a doc not yet migrated (`plan-doc.js` reads them the same way).  Plans only:  the
+  // runtime's test page (`spell-docs/ui-section-test.html`) has phases too
+  const sections = path.startsWith("plans/")
+    ? document.querySelectorAll("ui-section#phases ui-section[data-phase], #phases-section section[data-phase]")
+    : []
+  const phases = Array.from(sections, (section) => ({
     status: section.getAttribute("data-status"),
-    label: (section.querySelector("h3")?.textContent ?? "").replace(/\s+/g, " ").trim()
+    label: phaseLabel(section)
   }))
   return { path, title, description, phases }
 }
 
-/** One group's section:  a sticky h2 and a card per page. */
+/** A phase section's title, whitespace collapsed:  its `header` (else `slot="header"`), or an old one's h3. */
+function phaseLabel(section) {
+  const source =
+    section.localName === "ui-section"
+      ? (section.getAttribute("header") ?? section.querySelector(':scope > [slot="header"]')?.textContent)
+      : section.querySelector("h3")?.textContent
+  return (source ?? "").replace(/\s+/g, " ").trim()
+}
+
+/** One group's section:  a `<ui-section>` with the group's icon, and a card per page. */
 function section(group, list) {
   const body = list.length
     ? `<ui-cards class="spell-grid" stackable>\n${list.map(card).join("\n")}\n</ui-cards>`
     : `<p class="meta">${text(group.none)}</p>`
-  return `<section class="s2">
-<ui-sticky class="spell-h2"><h2 id="${group.id}">${group.title}</h2></ui-sticky>
+  return `<ui-section id="${group.id}" header="${attr(group.title)}" sticky collapsible dividing>
+<ui-icon slot="icon" name="${group.icon}"></ui-icon>
 ${body}
-</section>`
+</ui-section>`
 }
 
 /** A page's card:  linked title, description, path, and a plan's status badge. */

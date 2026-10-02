@@ -42,7 +42,8 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
   - an optional sticky page header above them:  `<ui-sticky class="spell-h1"><header class="spell-page-head">`
     around the h1 (plan docs have one)
   - the OLD markup -- `section.s2|s3` > `<ui-sticky class="spell-h2|spell-h3">` > `<h2|h3 id>` -- is for the goals
-    pages only;  the runtime still drives it
+    pages only;  the runtime still drives it.  `node scripts/to-ui-section.js <page>` converts a page (`yarn plan-doc
+    migrate <name>` a plan doc)
 - The runtime builds the page from that markup:
   - contents sidebar:  sticky right column, expandable per section, follows the scroll;  a drawer on narrow screens.
     Built at load from `main`'s sections and the h3 / h4s in them -- NEVER hand-write a contents list, or a
@@ -118,6 +119,8 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
   `index.html` (the home page:  every goal set), `set/index.html` (a set's contents page), `set/topic/topic.html`
   and `topic.md` (a topic's page and its agent notes).  NEVER copy by hand:  `yarn goals new-set` / `yarn goals new`
   fill the `{{placeholders}}` and fix the asset paths.  Rules:  the repo root's `goals/AGENTS.md`.
+- Every template but the goals pages is `<ui-section>` markup (see "Writing a page");  the goals pages keep the old
+  `section.s2` markup until they migrate (`CODE-DEBT.md`).
 - A new KIND of doc gets a template here, and a card in the index.
 
 ## Plan docs
@@ -167,8 +170,10 @@ In this order, from `packages/docs`:
   `serialize()`, `openInChrome()`, `openInVSCode()` (plan docs:  Simple Browser through the spell extension's
   `DocPreview`).
 - `scripts/check-spell.js <page> [outDir]` -- Playwright:  fails on console errors, undefined / unrendered
-  `ui-*`, contents vs sections, phone-width overflow, top-level titles that don't stick, a drawer that won't open;
-  writes screenshots.
+  `ui-*`, contents vs sections, phone-width overflow, top-level titles that don't stick, a section that won't fold /
+  unfold or forgets its fold on reload, a drawer that won't open;  writes screenshots.
+- `scripts/to-ui-section.js <page>...` -- converts old `section.s2|s3` pages to `<ui-section>` (ids kept);  its
+  `convertSections()` is also `plan-doc.js` `migrate`'s last step.  Idempotent;  refuses goals pages.
 - `scripts/doc-links.py` -- see "Links".
 - A @spell-app/ui problem:  fix it in `packages/ui` when it's a real `ui` bug (the same change may touch both), else work
   around it here;  either way, add it to `spell-docs/spell-ui-findings.md`.

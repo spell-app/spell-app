@@ -281,6 +281,12 @@ every entry below that date was fixed or disproven;  what's left:
   `UI_TEST_ALL`, as CI skips the dropdown's 16 ms one.  (2026-10-01)
 - `src/components/ui-popup/ui-popup.test.tsx` "flips to the other side":  failed once in a full firefox run (arrow
   `::before` top 44px, expected < 0), then passed every time.  Maybe the arrow's `getAnimations` wait.  (2026-10-01)
+- `src/components/ui-section/UISection.tsx` the toggle:  the `header` slot sits INSIDE the fold `<button>`, so a link
+  in a rich title (`<span slot="header">4. Ideas for <a href=...>`, `packages/docs/solid/solid-2.html` `#ui`) is
+  interactive content in a button.  The click half is FIXED (2026-10-02:  `fromControl()` leaves a click on a link /
+  control in the title alone, as ui-accordion does;  test "leaves a click on a link inside a rich title").  Left:
+  screen readers may not reach a link nested in a button.  Prove with VoiceOver on `#ui`;  a fix would render a
+  rich title's controls outside the button.  (2026-10-02)
 
 ### 3. Styling / CSS
 

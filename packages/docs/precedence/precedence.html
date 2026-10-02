@@ -24,10 +24,7 @@
           </li>
         </ul>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="1-summary">1. Summary</h2>
-          </ui-sticky>
+        <ui-section id="1-summary" header="1. Summary" sticky collapsible dividing>
           <ul>
             <li>
               The parser can't say what an expression <em>is</em> (its type) or how tightly it <em>binds</em> (its
@@ -50,17 +47,17 @@
             </li>
             <li>Types are named in spell's words everywhere, never JavaScript's.</li>
           </ul>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="2-the-problems">2. The problems</h2>
-          </ui-sticky>
+        </ui-section>
+        <ui-section id="2-the-problems" header="2. The problems" sticky collapsible dividing>
           <p>Eight of them, each with what the parser does today.</p>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="greedy-operands-no-backtracking">Greedy operands, no backtracking</h3>
-            </ui-sticky>
+          <ui-section
+            id="greedy-operands-no-backtracking"
+            header="Greedy operands, no backtracking"
+            sticky
+            collapsible
+            dividing
+          >
             <ul>
               <li>
                 A rule whose syntax ends in <code>{expression}</code> gives that slot the rest of the line, operators
@@ -145,11 +142,8 @@
                 </ul>
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="one-number-two-jobs">One number, two jobs</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="one-number-two-jobs" header="One number, two jobs" sticky collapsible dividing>
             <ul>
               <li>
                 <code>precedence</code> picks which whole match wins in <code>Choice.getBestMatch()</code>: highest
@@ -196,11 +190,8 @@
                 </tbody>
               </table>
             </ui-table>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="postfix-binds-tightest">Postfix binds tightest</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="postfix-binds-tightest" header="Postfix binds tightest" sticky collapsible dividing>
             <ul>
               <li>
                 The shunting-yard applies a postfix suffix to the top of its output stack at once, ignoring its
@@ -223,11 +214,8 @@
                 </tbody>
               </table>
             </ui-table>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="type-blind-call-rules">Type-blind call rules</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="type-blind-call-rules" header="Type-blind call rules" sticky collapsible dividing>
             <ul>
               <li>
                 A method's call rule is built from its words only. <code>to put (a card) on (a pile)</code> and
@@ -264,11 +252,14 @@
                 </tbody>
               </table>
             </ui-table>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="only-parens-make-a-parameter">Only parens make a parameter</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section
+            id="only-parens-make-a-parameter"
+            header="Only parens make a parameter"
+            sticky
+            collapsible
+            dividing
+          >
             <ul>
               <li>
                 <code>method_signature</code> is <code>({method_keyword}|\({method_arg}\))+</code> in
@@ -304,11 +295,8 @@
                 </tbody>
               </table>
             </ui-table>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="one-token-property-names">One-token property names</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="one-token-property-names" header="One-token property names" sticky collapsible dividing>
             <ul>
               <li>
                 <code>property</code> is a single-token pattern, <code>/^[a-z][\w-]*$/</code>, with the identifier
@@ -351,11 +339,14 @@
                 </tbody>
               </table>
             </ui-table>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="type-facts-written-never-read">Type facts written, never read</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section
+            id="type-facts-written-never-read"
+            header="Type facts written, never read"
+            sticky
+            collapsible
+            dividing
+          >
             <ul>
               <li>
                 A <code>datatype</code> exists on <code>ScopeVariable</code>, on a type's properties, on about 12 rules
@@ -399,11 +390,8 @@
                 </tbody>
               </table>
             </ui-table>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="what-the-examples-had-to-do">What the examples had to do</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="what-the-examples-had-to-do" header="What the examples had to do" sticky collapsible dividing>
             <p>
               A user can't tell these two lists apart, which is the point: the rules are unpredictable, so people
               parenthesize everything.
@@ -446,12 +434,9 @@
               </li>
               <li>Solitaire 94, 123, 155: <code>(merge all-piles into a new pile)</code> and two more like it</li>
             </ul>
-          </section>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="3-parsing-today">3. Parsing today</h2>
-          </ui-sticky>
+          </ui-section>
+        </ui-section>
+        <ui-section id="3-parsing-today" header="3. Parsing today" sticky collapsible dividing>
           <ul>
             <li>
               <code>expression</code> is a group of 42 rules, tried in module order. Rules added while parsing go first.
@@ -477,10 +462,7 @@
               <code>expression</code> choice parses anyway, at every nesting level.
             </li>
           </ul>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="why-one-sentence-goes-wrong">Why one sentence goes wrong</h3>
-            </ui-sticky>
+          <ui-section id="why-one-sentence-goes-wrong" header="Why one sentence goes wrong" sticky collapsible dividing>
             <ui-accordion class="spell-code" styled open="0">
               <ui-title>Code · 13 lines</ui-title>
               <ui-content>
@@ -499,18 +481,12 @@
 A 6-token left side, "the first card of the deck", is never tried:  the inner Choice returned one match.</code></pre>
               </ui-content>
             </ui-accordion>
-          </section>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="4-binding-power">4. Binding power</h2>
-          </ui-sticky>
+          </ui-section>
+        </ui-section>
+        <ui-section id="4-binding-power" header="4. Binding power" sticky collapsible dividing>
           <p>Split the one number in two, and let operands stop where their owner says.</p>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="two-numbers-two-jobs">Two numbers, two jobs</h3>
-            </ui-sticky>
+          <ui-section id="two-numbers-two-jobs" header="Two numbers, two jobs" sticky collapsible dividing>
             <ui-table celled compact striped unstackable>
               <table>
                 <tbody>
@@ -548,11 +524,8 @@ A 6-token left side, "the first card of the deck", is never tried:  the inner Ch
                 </tbody>
               </table>
             </ui-table>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="the-expression-loop">The expression loop</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="the-expression-loop" header="The expression loop" sticky collapsible dividing>
             <ul>
               <li>
                 <code>expression</code> becomes ONE rule: a generic <code>P.OperatorExpression</code>, registered by
@@ -618,11 +591,8 @@ class expression extends P.OperatorExpression {
               </li>
               <li>Each position is parsed once per bound, so this does less work than today's double parse.</li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="bounded-backtracking">Bounded backtracking</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="bounded-backtracking" header="Bounded backtracking" sticky collapsible dividing>
             <ul>
               <li>
                 <code>Choice.parse()</code> already computes every candidate. With more than one, it keeps them on the
@@ -646,11 +616,8 @@ class expression extends P.OperatorExpression {
   retry with "the card"  -&gt;  `of` fits   -&gt;  {callArgs} = "the pile"      -&gt;  card.remove_of_$pile(pile)</code></pre>
               </ui-content>
             </ui-accordion>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="binding-power-table">Binding-power table</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="binding-power-table" header="Binding-power table" sticky collapsible dividing>
             <ui-table celled compact striped unstackable>
               <table>
                 <tbody>
@@ -729,11 +696,8 @@ class expression extends P.OperatorExpression {
                 </li>
               </ul>
             </ui-message>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="precedence-table">Precedence table</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="precedence-table" header="Precedence table" sticky collapsible dividing>
             <ui-table celled compact striped unstackable>
               <table>
                 <tbody>
@@ -776,11 +740,14 @@ class expression extends P.OperatorExpression {
                 </tbody>
               </table>
             </ui-table>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="arguments-stay-full-expressions">Arguments stay full expressions</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section
+            id="arguments-stay-full-expressions"
+            header="Arguments stay full expressions"
+            sticky
+            collapsible
+            dividing
+          >
             <ul>
               <li>Only operators and prefix rules use <code>{operand}</code>.</li>
               <li>
@@ -789,11 +756,8 @@ class expression extends P.OperatorExpression {
               </li>
               <li>What stops an argument before the next word is <code>Sequence.test()</code> plus the backtrack.</li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="the-same-sentence-after">The same sentence, after</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="the-same-sentence-after" header="The same sentence, after" sticky collapsible dividing>
             <ui-accordion class="spell-code" styled open="0">
               <ui-title>Code · 9 lines</ui-title>
               <ui-content>
@@ -808,12 +772,9 @@ class expression extends P.OperatorExpression {
 =&gt; getItemOf(deck, 1).is_face_up</code></pre>
               </ui-content>
             </ui-accordion>
-          </section>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="5-before-and-after">5. Before and after</h2>
-          </ui-sticky>
+          </ui-section>
+        </ui-section>
+        <ui-section id="5-before-and-after" header="5. Before and after" sticky collapsible dividing>
           <ui-table celled compact striped unstackable>
             <table>
               <tbody>
@@ -910,17 +871,11 @@ class expression extends P.OperatorExpression {
               </tbody>
             </table>
           </ui-table>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="6-a-datatype-on-every-match">6. A datatype on every match</h2>
-          </ui-sticky>
+        </ui-section>
+        <ui-section id="6-a-datatype-on-every-match" header="6. A datatype on every match" sticky collapsible dividing>
           <p>Binding power fixes shape. The type problems need the parser to know what an expression is.</p>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="the-rule">The rule</h3>
-            </ui-sticky>
+          <ui-section id="the-rule" header="The rule" sticky collapsible dividing>
             <ul>
               <li>
                 It is the rule the codebase already follows for <code>scopeVar</code>: look it up WHILE PARSING, stash
@@ -935,11 +890,8 @@ class expression extends P.OperatorExpression {
                 stops parsing.
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="sources-2">Sources</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="sources-2" header="Sources" sticky collapsible dividing>
             <ul>
               <li>literals, from their rule</li>
               <li>a known variable, from its scope record</li>
@@ -950,11 +902,8 @@ class expression extends P.OperatorExpression {
               <li>arithmetic: <code>number</code>, or <code>text</code> when a side is text</li>
               <li>list rules: the item type, the list's type, or <code>number</code></li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="sinks">Sinks</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="sinks" header="Sinks" sticky collapsible dividing>
             <ul>
               <li>method arguments: <code>(a card)</code>, <code>(x as text)</code>, <code>with … as …</code></li>
               <li><code>this</code> and <code>it</code> inside a method, from its owner</li>
@@ -963,11 +912,8 @@ class expression extends P.OperatorExpression {
               <li><code>on card-click with a card</code></li>
               <li><code>a pile is a list of cards</code> records the item type on <code>Pile</code></li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="member-tables">Member tables</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="member-tables" header="Member tables" sticky collapsible dividing>
             <ul>
               <li>
                 <code>TypeScope.getMember(words)</code> walks the super-type chain. The code moves from the language
@@ -981,11 +927,8 @@ class expression extends P.OperatorExpression {
                 These are the facts <code>SPELL: DECLARES</code> already writes, so an imported project rebuilds them.
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="built-in-types">Built-in types</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="built-in-types" header="Built-in types" sticky collapsible dividing>
             <ul>
               <li>
                 <code>thing</code>, <code>list</code>, <code>app</code>, <code>text</code>, <code>number</code>,
@@ -1001,11 +944,8 @@ class expression extends P.OperatorExpression {
                 from the same table.
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="type-vocabulary">Type vocabulary</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="type-vocabulary" header="Type vocabulary" sticky collapsible dividing>
             <ul>
               <li>
                 Today one idea has several spellings: the AST says <code>"string"</code>, rules say <code>text</code>; a
@@ -1088,17 +1028,16 @@ class expression extends P.OperatorExpression {
                 </tbody>
               </table>
             </ui-table>
-          </section>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="7-signatures-calls-and-members">7. Signatures, calls and members</h2>
-          </ui-sticky>
-
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="paren-free-signatures">Paren-free signatures</h3>
-            </ui-sticky>
+          </ui-section>
+        </ui-section>
+        <ui-section
+          id="7-signatures-calls-and-members"
+          header="7. Signatures, calls and members"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-section id="paren-free-signatures" header="Paren-free signatures" sticky collapsible dividing>
             <ul>
               <li>
                 <code>a</code> or <code>an</code> before a KNOWN type is a typed parameter:
@@ -1116,11 +1055,8 @@ class expression extends P.OperatorExpression {
                 existing test pins the old reading.
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="typed-call-rules">Typed call rules</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="typed-call-rules" header="Typed call rules" sticky collapsible dividing>
             <ul>
               <li>A generated call rule carries its parameter types and its return type.</li>
               <li>
@@ -1137,11 +1073,8 @@ class expression extends P.OperatorExpression {
                 name, in four places.
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="multi-word-members">Multi-word members</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="multi-word-members" header="Multi-word members" sticky collapsible dividing>
             <ul>
               <li>
                 A <code>member_words</code> rule matches one to N words that aren't structural:
@@ -1173,11 +1106,8 @@ class expression extends P.OperatorExpression {
                 <code>EnumerationRule</code>, and fixes <code>the suits of the card</code> and dashed type names.
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="the-examples-rewritten">The examples, rewritten</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="the-examples-rewritten" header="The examples, rewritten" sticky collapsible dividing>
             <h4 id="today">Today</h4>
             <ui-accordion class="spell-code" styled open="0">
               <ui-title>Code · 11 lines</ui-title>
@@ -1208,12 +1138,9 @@ expect the last card of the deck is the black joker to be yes
 expect the first card of the deck is the ace of clubs to be yes</code></pre>
               </ui-content>
             </ui-accordion>
-          </section>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="exclusive-lists">8. Exclusive lists</h2>
-          </ui-sticky>
+          </ui-section>
+        </ui-section>
+        <ui-section id="exclusive-lists" header="8. Exclusive lists" sticky collapsible dividing>
           <p>From review: make "an item lives in one list of this kind at a time" a property of the list TYPE.</p>
           <ui-message state="info">
             <p>
@@ -1224,10 +1151,7 @@ expect the first card of the deck is the ace of clubs to be yes</code></pre>
             </p>
           </ui-message>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="declaration">Declaration</h3>
-            </ui-sticky>
+          <ui-section id="declaration" header="Declaration" sticky collapsible dividing>
             <ul>
               <li>Words to bikeshed: <code>a pile is an exclusive list of cards</code>.</li>
               <li>Records <code>exclusive</code> on <code>Pile</code>.</li>
@@ -1237,11 +1161,8 @@ expect the first card of the deck is the ace of clubs to be yes</code></pre>
                 one pile.
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="derived-member">Derived member</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="derived-member" header="Derived member" sticky collapsible dividing>
             <ul>
               <li>
                 The item type gains a read-only member named after the family root: <code>the pile of a card</code>.
@@ -1251,11 +1172,8 @@ expect the first card of the deck is the ace of clubs to be yes</code></pre>
               <li>It is written into <code>SPELL: DECLARES</code>, so an importing project rebuilds it.</li>
               <li>This is what the type plumbing is for: one line adds a fact to TWO types.</li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="runtime">Runtime</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="runtime" header="Runtime" sticky collapsible dividing>
             <ul>
               <li>
                 <code>List.add()</code>, <code>addAtPosition()</code>, <code>removeItem()</code> and
@@ -1273,11 +1191,8 @@ expect the first card of the deck is the ace of clubs to be yes</code></pre>
                 <code>add the card to the pile</code> does it.
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="open-questions">Open questions</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="open-questions" header="Open questions" sticky collapsible dividing>
             <ul>
               <li>Is "in a deck and in a pile" the default, or must a shared family be said out loud?</li>
               <li>
@@ -1286,21 +1201,15 @@ expect the first card of the deck is the ace of clubs to be yes</code></pre>
               </li>
               <li>What happens to <code>a copy of the pile</code>: a plain list, or a second owner?</li>
             </ul>
-          </section>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="typescript-backend">9. A TypeScript backend</h2>
-          </ui-sticky>
+          </ui-section>
+        </ui-section>
+        <ui-section id="typescript-backend" header="9. A TypeScript backend" sticky collapsible dividing>
           <p>
             From review: have the compiler emit TypeScript, and compile it a second time. The second step is a service
             the EDITOR has; a runner only ever loads the optimized JavaScript.
           </p>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="the-idea">The idea</h3>
-            </ui-sticky>
+          <ui-section id="the-idea" header="The idea" sticky collapsible dividing>
             <ul>
               <li>
                 The spell compiler writes TypeScript: types from each match's <code>datatype</code>, standard
@@ -1324,11 +1233,8 @@ expect the first card of the deck is the ace of clubs to be yes</code></pre>
                 </ul>
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="the-pipeline">The pipeline</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="the-pipeline" header="The pipeline" sticky collapsible dividing>
             <ui-cards class="spell-flow" stackable>
               <ui-card>
                 <ui-content>
@@ -1384,11 +1290,8 @@ expect the first card of the deck is the ace of clubs to be yes</code></pre>
                 </ui-content>
               </ui-card>
             </ui-cards>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="what-the-compiler-emits">What the compiler emits</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="what-the-compiler-emits" header="What the compiler emits" sticky collapsible dividing>
             <ui-accordion class="spell-code" styled>
               <ui-title
                 >Today: plain JavaScript, from
@@ -1527,11 +1430,8 @@ export class Card extends Thing {
                 deck and a pile with the same members are the same type.
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="what-the-check-catches">What the check catches</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="what-the-check-catches" header="What the check catches" sticky collapsible dividing>
             <p>Not a prediction: the lines today's grammar emits, typed as above, run through the real compiler.</p>
             <ui-table celled compact striped unstackable>
               <table>
@@ -1612,11 +1512,8 @@ export class Card extends Thing {
                 </li>
               </ul>
             </ui-message>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="how-it-guides-the-compile">How it guides the compile</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="how-it-guides-the-compile" header="How it guides the compile" sticky collapsible dividing>
             <ul>
               <li>
                 The parser never waits for TypeScript. Parsing is synchronous and per keystroke; checking is
@@ -1654,11 +1551,14 @@ export class Card extends Thing {
                 <li>The parser's own choice is never overridden. TypeScript reports, suggests, and fills in types.</li>
               </ul>
             </ui-message>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="errors-back-in-spell-s-words">Errors back in spell's words</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section
+            id="errors-back-in-spell-s-words"
+            header="Errors back in spell's words"
+            sticky
+            collapsible
+            dividing
+          >
             <ul>
               <li>
                 Half of the mapping exists: every AST node keeps the match it came from, file and offsets, even a member
@@ -1732,11 +1632,8 @@ function nodeAt(emitted: Emitted, offset: number): P.ASTNode | undefined {
                 error to its declaring statement.
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="solid-jsx-and-decorators">Solid JSX and decorators</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="solid-jsx-and-decorators" header="Solid JSX and decorators" sticky collapsible dividing>
             <ul>
               <li>
                 <a href="../solid/solid-2.html" target="src-packages-docs-solid-solid-2-html">The Solid 2 plan</a>
@@ -1818,11 +1715,8 @@ function nodeAt(emitted: Emitted, offset: number): P.ASTNode | undefined {
                 </li>
               </ul>
             </ui-message>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="the-service">The service</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="the-service" header="The service" sticky collapsible dividing>
             <ui-accordion class="spell-code" styled>
               <ui-title>TypeScript · 31 lines</ui-title>
               <ui-content>
@@ -1912,11 +1806,8 @@ async function checkAndLower(project: SP.SpellProject, service: TypeScriptServic
               </li>
               <li>An imported project's types are its saved <code>.tsx</code>.</li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="cost-and-timing">Cost and timing</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="cost-and-timing" header="Cost and timing" sticky collapsible dividing>
             <ul>
               <li>Per keystroke: parse only, as today.</li>
               <li>
@@ -1933,11 +1824,8 @@ async function checkAndLower(project: SP.SpellProject, service: TypeScriptServic
               </li>
               <li>Nothing is added to <code>spell-runtime.js</code> but the re-exported JSX helpers.</li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="what-it-changes-elsewhere">What it changes elsewhere</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="what-it-changes-elsewhere" header="What it changes elsewhere" sticky collapsible dividing>
             <ul>
               <li>
                 The Solid 2 rules: "compiled spell can't use decorators" and "<code>element()</code> thunks" get
@@ -1957,11 +1845,8 @@ async function checkAndLower(project: SP.SpellProject, service: TypeScriptServic
                 keeps <code>/*!</code> comments.
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="what-it-does-not-do">What it does not do</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="what-it-does-not-do" header="What it does not do" sticky collapsible dividing>
             <ul>
               <li>
                 It doesn't fix precedence. A mis-parse that happens to type-check is silent:
@@ -1973,12 +1858,9 @@ async function checkAndLower(project: SP.SpellProject, service: TypeScriptServic
               </li>
               <li>It never runs in a runner.</li>
             </ul>
-          </section>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="10-phases">10. Phases</h2>
-          </ui-sticky>
+          </ui-section>
+        </ui-section>
+        <ui-section id="10-phases" header="10. Phases" sticky collapsible dividing>
           <ul>
             <li>
               Each ends with: types, lint and tests green; fixtures re-blessed and the diff read; the parser speed test
@@ -2084,11 +1966,8 @@ async function checkAndLower(project: SP.SpellProject, service: TypeScriptServic
               </tbody>
             </table>
           </ui-table>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="11-decisions-to-confirm">11. Decisions to confirm</h2>
-          </ui-sticky>
+        </ui-section>
+        <ui-section id="11-decisions-to-confirm" header="11. Decisions to confirm" sticky collapsible dividing>
           <ol>
             <li>
               <code>a</code> / <code>an</code> plus a known type in a signature is a parameter; <code>the</code> plus
@@ -2117,15 +1996,9 @@ async function checkAndLower(project: SP.SpellProject, service: TypeScriptServic
             <li>Compiled classes: <code>@prop … accessor</code> lowered by us, or typed accessor pairs.</li>
             <li>Fixture snapshots hold the <code>.tsx</code>.</li>
           </ol>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="12-found-on-the-way">12. Found on the way</h2>
-          </ui-sticky>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="suspected-bugs">Suspected bugs</h3>
-            </ui-sticky>
+        </ui-section>
+        <ui-section id="12-found-on-the-way" header="12. Found on the way" sticky collapsible dividing>
+          <ui-section id="suspected-bugs" header="Suspected bugs" sticky collapsible dividing>
             <ul>
               <li>
                 <code>is_a</code> accepts any word as a type: <code>the card is a new card</code> compiles to
@@ -2144,22 +2017,16 @@ async function checkAndLower(project: SP.SpellProject, service: TypeScriptServic
                 Spell sources and output carry React attribute names, <code>className</code> and <code>colSpan</code>.
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="coverage">Coverage</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="coverage" header="Coverage" sticky collapsible dividing>
             <ul>
               <li>
                 The frozen Solitaire fixture predates jokers, so <code>is the (color) joker</code> has no fixture
                 coverage.
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="papercut">Papercut</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="papercut" header="Papercut" sticky collapsible dividing>
             <ul>
               <li>
                 A <code>tsx</code> script outside the repo, or a <code>.ts</code> one outside
@@ -2167,22 +2034,16 @@ async function checkAndLower(project: SP.SpellProject, service: TypeScriptServic
                 >, is compiled as CommonJS and trips the parser's circular-import trap. Name it <code>.mts</code>.
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="debt-this-retires">Debt this retires</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="debt-this-retires" header="Debt this retires" sticky collapsible dividing>
             <ul>
               <li>"Expression rules ending in <code>{expression}</code> swallow the operator after them": phase 1.</li>
               <li>"Enumerated properties are reachable under inconsistent names": phase 4.</li>
               <li>"<code>yarn scopes --builtins</code> overwrites the built-in types' hand-written docs": phase 5.</li>
             </ul>
-          </section>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="sources">13. Sources and experiments</h2>
-          </ui-sticky>
+          </ui-section>
+        </ui-section>
+        <ui-section id="sources" header="13. Sources and experiments" sticky collapsible dividing>
           <ul>
             <li>
               <a
@@ -2213,7 +2074,7 @@ async function checkAndLower(project: SP.SpellProject, service: TypeScriptServic
               >: where the precedence problems were first pinned.
             </li>
           </ul>
-        </section>
+        </ui-section>
       </main>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>

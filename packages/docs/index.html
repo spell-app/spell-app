@@ -18,8 +18,8 @@
         </ul>
 
         <!-- index:start -->
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="guides">Guides</h2></ui-sticky>
+        <ui-section id="guides" header="Guides" sticky collapsible dividing>
+          <ui-icon slot="icon" name="book open"></ui-icon>
           <ui-cards class="spell-grid" stackable>
             <ui-card
               ><ui-content>
@@ -117,9 +117,9 @@
               </ui-content></ui-card
             >
           </ui-cards>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="plans">Plans</h2></ui-sticky>
+        </ui-section>
+        <ui-section id="plans" header="Plans" sticky collapsible dividing>
+          <ui-icon slot="icon" name="layer group"></ui-icon>
           <ui-cards class="spell-grid" stackable>
             <ui-card
               ><ui-content>
@@ -156,9 +156,9 @@
               </ui-content></ui-card
             >
           </ui-cards>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="templates">Templates</h2></ui-sticky>
+        </ui-section>
+        <ui-section id="templates" header="Templates" sticky collapsible dividing>
+          <ui-icon slot="icon" name="copy"></ui-icon>
           <ui-cards class="spell-grid" stackable>
             <ui-card
               ><ui-content>
@@ -247,11 +247,11 @@
               </ui-content></ui-card
             >
           </ui-cards>
-        </section>
+        </ui-section>
         <!-- index:end -->
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="writing-docs">Writing docs</h2></ui-sticky>
+        <ui-section id="writing-docs" header="Writing docs" sticky collapsible dividing>
+          <ui-icon slot="icon" name="pen to square"></ui-icon>
           <ul>
             <li>
               Start from a template:
@@ -269,7 +269,7 @@
               <code>yarn docs:index</code>.
             </li>
           </ul>
-        </section>
+        </ui-section>
       </main>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>

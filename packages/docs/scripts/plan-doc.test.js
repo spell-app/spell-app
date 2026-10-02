@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest"
 
 import { DOCS } from "./pages.js"
 import { PlanDoc, PlanDocError, timeTag } from "./plan-doc.js"
+import { convertSections } from "./to-ui-section.js"
 
 /** When the tests' edits happen:  local 2026-10-01 09:05. */
 const NOW = new Date(2026, 9, 1, 9, 5)
@@ -19,16 +20,34 @@ function oldPlan() {
   return PlanDoc.parse(readFileSync(join(DOCS, "scripts/fixtures/plan-2026-09-30.html"), "utf8"), NOW)
 }
 
-/** Ids of `plan`'s h2s, in page order. */
+/** Ids of `plan`'s top-level sections (`main > ui-section`;  old markup:  h2s), in page order. */
 function sectionIds(plan) {
-  return Array.from(plan.document.querySelectorAll("main h2"), (h2) => h2.id)
+  return Array.from(plan.document.querySelectorAll("main > ui-section, main h2"), (section) => section.id)
+}
+
+/** Titles of `plan`'s top-level `<ui-section>`s, in page order. */
+function headers(plan) {
+  return Array.from(plan.document.querySelectorAll("main > ui-section"), (section) => section.getAttribute("header"))
+}
+
+/** Which phase sections are folded (`collapsed`), in order. */
+function folds(plan) {
+  return Array.from(plan.document.querySelectorAll("ui-section[data-phase]"), (section) =>
+    section.hasAttribute("collapsed")
+  )
 }
 
 describe("PlanDoc layout", () => {
-  it("has the sections in order, the h1 in a sticky header, no #plan", () => {
+  it("has the sections in order, as <ui-section>s with icons, the h1 in a sticky header, no #plan", () => {
     const plan = freshPlan()
     expect(sectionIds(plan)).toEqual(["overview", "phases", "decisions", "caveats", "todos", "issues", "log"])
-    expect(plan.document.getElementById("decisions").textContent).toContain("3. Questions & Decisions")
+    expect(headers(plan)[2]).toBe("3. Questions & Decisions")
+    for (const section of plan.document.querySelectorAll("main > ui-section")) {
+      expect(section.querySelector(':scope > ui-icon[slot="icon"]')).not.toBeNull()
+      for (const flag of ["sticky", "collapsible", "dividing"]) expect(section.hasAttribute(flag)).toBe(true)
+    }
+    expect(plan.document.querySelector("#overview > ui-section#o1").getAttribute("header")).toBe("1.1 Structure")
+    expect(plan.document.querySelector("section, h2, h3")).toBeNull()
     expect(plan.document.querySelector("ui-sticky.spell-h1 > header.spell-page-head > h1")).not.toBeNull()
     expect(plan.document.getElementById("plan")).toBeNull()
     expect(plan.check()).toEqual([])
@@ -44,10 +63,16 @@ describe("PlanDoc phases", () => {
       { n: 1, name: "Docs Workspace", status: "todo" },
       { n: 2, name: "Runtime + Index", status: "todo" }
     ])
-    const heading = plan.document.getElementById("p2")
-    expect(heading.textContent).toContain("P2 · Runtime + Index")
-    expect(heading.querySelector("ui-icon").getAttribute("name")).toBe("circle outline")
-    const body = plan.document.querySelector('section[data-phase="2"] > ui-list.plan-phase-body')
+    const phase = plan.document.getElementById("p2")
+    expect(phase.localName).toBe("ui-section")
+    expect(phase.parentElement.id).toBe("phases")
+    expect(phase.getAttribute("header")).toBe("P2 · Runtime + Index")
+    expect(phase.getAttribute("data-phase")).toBe("2")
+    expect(phase.querySelector(':scope > ui-icon[slot="icon"]').getAttribute("name")).toBe("circle outline")
+    expect(plan.toString()).toContain(
+      '<ui-section id="p2" data-phase="2" data-status="todo" header="P2 · Runtime + Index" sticky collapsible dividing>'
+    )
+    const body = plan.document.querySelector('ui-section[data-phase="2"] > ui-list.plan-phase-body')
     expect(Array.from(body.children, (item) => item.getAttribute("icon"))).toEqual(["bullseye", "folder", "flask"])
     expect(body.textContent).toContain("sidebar from headings")
     expect(plan.check()).toEqual([])
@@ -58,9 +83,10 @@ describe("PlanDoc phases", () => {
     plan.addPhase("One")
     plan.setPhase(1, "active")
     expect(plan.activePhase).toBe(1)
-    const section = plan.document.querySelector('section[data-phase="1"]')
+    const section = plan.document.querySelector('ui-section[data-phase="1"]')
     expect(section.getAttribute("data-status")).toBe("active")
-    expect(plan.document.querySelector("#p1 ui-icon").getAttribute("name")).toBe("circle half stroke")
+    const icons = section.querySelectorAll(':scope > ui-icon[slot="icon"]')
+    expect(Array.from(icons, (icon) => icon.getAttribute("name"))).toEqual(["circle half stroke"])
     expect(plan.document.querySelector(".plan-log").textContent).toContain("2026-10-01 09:05 P1 active")
     expect(() => plan.setPhase(1, "finished")).toThrow(PlanDocError)
   })
@@ -91,19 +117,18 @@ describe("PlanDoc phases", () => {
     for (const name of ["One", "Two", "Three"]) plan.addPhase(name)
     plan.setPhase(1, "done")
     plan.setPhase(2, "done")
-    const folds = () =>
-      Array.from(plan.document.querySelectorAll("section[data-phase]"), (section) => section.getAttribute("data-fold"))
-    expect(folds()).toEqual(["closed", null, null])
+    expect(folds(plan)).toEqual([true, false, false])
     // redoing P1:  it's the last finished now, P2 folds
     plan.setPhase(1, "active")
+    expect(folds(plan)).toEqual([false, false, false])
     plan.setPhase(1, "done")
-    expect(folds()).toEqual([null, "closed", null])
+    expect(folds(plan)).toEqual([false, true, false])
   })
 
   it("keeps the progress bar at done of all phases, hidden while there are none", () => {
     const plan = freshPlan()
     const bar = plan.document.querySelector("ui-progress.plan-progress")
-    expect(bar.closest("section").querySelector("h2").id).toBe("phases")
+    expect(bar.parentElement.id).toBe("phases")
     expect(bar.hasAttribute("hidden")).toBe(true)
     plan.addPhase("One")
     plan.addPhase("Two")
@@ -247,7 +272,7 @@ describe("PlanDoc prompt", () => {
     const plan = freshPlan()
     plan.setPrompt("Update the template\n- make <h1> sticky\n\nAlso & more")
     const quote = plan.document.querySelector("blockquote.plan-prompt")
-    expect(quote.closest("section").querySelector("h2").id).toBe("overview")
+    expect(quote.parentElement.id).toBe("overview")
     expect(quote.innerHTML).toBe("<p>Update the template<br>- make &lt;h1&gt; sticky</p><p>Also &amp; more</p>")
     plan.setPrompt("")
     expect(plan.document.querySelector("blockquote.plan-prompt")).toBeNull()
@@ -285,10 +310,14 @@ describe("PlanDoc migrate", () => {
     const changes = plan.migrate()
     expect(changes.length).toBeGreaterThan(3)
     expect(sectionIds(plan)).toEqual(["overview", "phases", "decisions", "caveats", "todos", "issues", "log"])
-    const h2s = Array.from(plan.document.querySelectorAll("main h2"), (h2) => h2.textContent.trim())
-    expect(h2s[0]).toBe("1. Overview")
-    expect(h2s[2]).toBe("3. Questions & Decisions")
-    expect(h2s[6]).toBe("7. Log")
+    expect(headers(plan)[0]).toBe("1. Overview")
+    expect(headers(plan)[2]).toBe("3. Questions & Decisions")
+    expect(headers(plan)[6]).toBe("7. Log")
+    // every section a <ui-section>, each top-level one with its icon;  `#phases-section` gone
+    expect(plan.document.querySelector("section, h2, h3, ui-sticky.spell-h2, ui-sticky.spell-h3")).toBeNull()
+    expect(plan.document.getElementById("phases-section")).toBeNull()
+    for (const section of plan.document.querySelectorAll("main > ui-section"))
+      expect(section.querySelector(':scope > ui-icon[slot="icon"]')).not.toBeNull()
     // open question on top, the answered one just before its decision, decisions in force `decided`
     const list = plan.document.querySelector('ui-list.plan-items[data-kind="decision"]')
     expect(Array.from(list.children, (item) => `${item.id}:${item.getAttribute("data-status")}`)).toEqual([
@@ -299,12 +328,10 @@ describe("PlanDoc migrate", () => {
     ])
     expect(plan.document.querySelector("#q1 a.plan-answer").getAttribute("href")).toBe("#d2")
     expect(plan.document.querySelector('a[href="#questions"]')).toBeNull()
-    expect(plan.document.getElementById("o1").textContent).toBe("1.1 Structure")
+    expect(plan.document.getElementById("o1").getAttribute("header")).toBe("1.1 Structure")
     expect(plan.document.querySelector(".plan-phases")).toBeNull()
-    expect(
-      plan.document.querySelector("#overview").closest("section").querySelector(".plan-summary.lede")
-    ).not.toBeNull()
-    expect(plan.document.querySelector("#phases-section > ui-progress.plan-progress")).not.toBeNull()
+    expect(plan.document.querySelector("ui-section#overview > .plan-summary.lede")).not.toBeNull()
+    expect(plan.document.querySelector("ui-section#phases > ui-progress.plan-progress")).not.toBeNull()
     expect(plan.document.querySelector("ui-sticky.spell-h1 .plan-step ui-label").textContent).toBe("P3 · Three")
     const decision = plan.document.getElementById("d1")
     expect(decision.localName).toBe("ui-item")
@@ -314,9 +341,26 @@ describe("PlanDoc migrate", () => {
     expect(decision.querySelector("ui-accordion.plan-item > ui-content").innerHTML).toBe("<p>why</p>")
     expect(plan.document.querySelector("#i1 > .plan-title").textContent).toBe("plain")
     expect(plan.document.querySelector("ui-list.plan-phase-body > ui-item[icon=bullseye]")).not.toBeNull()
-    const folds = Array.from(plan.document.querySelectorAll("section[data-phase]"), (s) => s.getAttribute("data-fold"))
-    expect(folds).toEqual(["closed", null, null])
+    expect(folds(plan)).toEqual([true, false, false])
+    const active = plan.document.querySelector('ui-section[data-phase="3"] > ui-icon[slot="icon"]')
+    expect(active.getAttribute("name")).toBe("circle half stroke")
     expect(plan.check()).toEqual([])
+  })
+
+  it("migrates a doc that to-ui-section.js converted first, to the same outline", () => {
+    const direct = filledOldPlan()
+    direct.migrate()
+    const converted = filledOldPlan()
+    expect(convertSections(converted.document).converted).toBe(13)
+    converted.migrate()
+    expect(sectionIds(converted)).toEqual(sectionIds(direct))
+    expect(headers(converted)).toEqual(headers(direct))
+    expect(converted.phases).toEqual(direct.phases)
+    expect(folds(converted)).toEqual(folds(direct))
+    const order = (plan) => Array.from(plan.document.querySelectorAll(".plan-items > [id]"), (item) => item.id)
+    expect(order(converted)).toEqual(order(direct))
+    expect(converted.document.querySelector("ui-section#overview > .plan-summary.lede")).not.toBeNull()
+    expect(converted.check()).toEqual([])
   })
 
   it("does nothing to a current doc", () => {

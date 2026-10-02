@@ -36,6 +36,7 @@ reasonable, fix it in `packages/ui` when it's a real `ui` bug, and record it eit
 | `scripts/pages.js` | where the docs are, `findPages()`, `tidy()` (link targets + oxfmt) -- shared by the scripts |
 | `scripts/check-spell.js` | Playwright checks + four screenshots of one page |
 | `scripts/doc-links.py` | links `<code>path</code>` references;  `--check` verifies every link |
+| `scripts/to-ui-section.js` | converts old `section.s2|s3` pages to `<ui-section>`;  `plan-doc.js` `migrate` runs its `convertSections()` |
 | `_assets/spell-ui.entry.js` | the bundle's entry:  icons first, then UI, then the runtime |
 | `_assets/spell-doc-runtime.js` | page behaviour (below) |
 | `_assets/spell-doc.css` | page layout and what UI doesn't cover;  reaches into widgets via UI tokens and `::part()` |
@@ -162,4 +163,10 @@ reasonable, fix it in `packages/ui` when it's a real `ui` bug, and record it eit
     headings 1:1, phone-width overflow, a top-level title that doesn't stick (a `<ui-section>` must also say
     `:state(stuck)`;  an h2 its short section pushed out, `:state(bound)`, is fine), no active contents link after
     scrolling, a drawer that won't open
+  - the FOLD check (in the JSON as `fold`):  clicks a top-level section's toggle as a reader would (the shadow
+    `button[part~=toggle]`, or the old chevron `ui-button.spell-fold`), expects it folded with its content hidden,
+    still folded after a reload, unfolded by a second click;  then clears the page's saved folds
+- `scripts/to-ui-section.js` converts a page:  ids kept (an old `<section id>` is dropped, its links go to the
+  heading's id), `data-fold="closed"` -> `collapsed`, a title with markup -> `<span slot="header">`, `level` set
+  where nesting would change the outline
 - Open pages as `file://` URLs:  that's how they're read.

@@ -24,9 +24,7 @@
           <li>Status: built; not yet reviewed by a person</li>
           <li>
             Built from the plan doc
-            <a
-              href="plans/cli-additions/cli-additions.html"
-              target="cli-additions"
+            <a href="plans/cli-additions/cli-additions.html" target="cli-additions"
               ><code>plans/cli-additions/cli-additions.html</code></a
             >
             (2026-10-01); every claim here is covered by
@@ -35,8 +33,7 @@
           </li>
         </ul>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="1-summary">1. Summary</h2></ui-sticky>
+        <ui-section id="1-summary" header="1. Summary" sticky collapsible dividing>
           <ul>
             <li>
               One command, <code>spell</code>, runs spell's SOURCE through <code>tsx</code>: no build step, so it's
@@ -71,10 +68,9 @@
               </li>
             </ul>
           </ui-message>
-        </section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="2-commands">2. Commands</h2></ui-sticky>
+        <ui-section id="2-commands" header="2. Commands" sticky collapsible dividing>
           <p>
             Targets everywhere: a <code>.spell</code> file, a project folder, <code>@workspace</code> (the project
             here), <code>@library/cards</code>, a full id, or a whole root like <code>@examples</code>. None: see
@@ -164,14 +160,12 @@
               </tbody>
             </table>
           </ui-table>
-        </section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="3-how-it-works">3. How it works</h2></ui-sticky>
+        <ui-section id="3-how-it-works" header="3. How it works" sticky collapsible dividing>
           <p>A command is one function; long-running work happens in child processes or on Ink screens.</p>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="structure">Structure</h3></ui-sticky>
+          <ui-section id="structure" header="Structure" sticky collapsible dividing>
             <ui-cards class="spell-flow" stackable>
               <ui-card>
                 <ui-content>
@@ -211,10 +205,9 @@
               </li>
               <li>Ink screens, <code>src/ui/</code>: always <code>patchConsole: false</code>.</li>
             </ul>
-          </section>
+          </ui-section>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="scope-packs">Scope packs</h3></ui-sticky>
+          <ui-section id="scope-packs" header="Scope packs" sticky collapsible dividing>
             <ul>
               <li>
                 <code>&lt;Project&gt;.scopes.js</code>: the Type Explorer's data for a page with no parser, e.g.
@@ -230,10 +223,9 @@
                 unchanged.
               </li>
             </ul>
-          </section>
+          </ui-section>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="speed">spell speed</h3></ui-sticky>
+          <ui-section id="speed" header="spell speed" sticky collapsible dividing>
             <ol>
               <li>
                 Each run is a fresh node process running <code>SP.spellParser.speedTest()</code>: a warm-up, then 20
@@ -249,10 +241,9 @@
                 fluke (an average over 1.25x the median) is dropped.
               </li>
             </ol>
-          </section>
+          </ui-section>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="language-tools">Language tools</h3></ui-sticky>
+          <ui-section id="language-tools" header="Language tools" sticky collapsible dividing>
             <ul>
               <li>
                 <code>parse</code> / <code>repl</code> parse in a scope of their own, inside the project's with
@@ -280,10 +271,9 @@ export function lineScope(project?: SP.SpellProject): P.Scope {
 }</code></pre>
               </ui-content>
             </ui-accordion>
-          </section>
+          </ui-section>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="watching">Watching</h3></ui-sticky>
+          <ui-section id="watching" header="Watching" sticky collapsible dividing>
             <ul>
               <li>
                 <code>fs.watch()</code> on each project's folder: <code>.spell</code>, <code>.css</code>,
@@ -300,10 +290,9 @@ export function lineScope(project?: SP.SpellProject): P.Scope {
               </li>
               <li><code>explore</code> reloads the same way, keeping what's open and the cursor, by path.</li>
             </ul>
-          </section>
+          </ui-section>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="target-prompt">Target prompt</h3></ui-sticky>
+          <ui-section id="target-prompt" header="Target prompt" sticky collapsible dividing>
             <ul>
               <li>No target, in a project's folder or below: that project, for every command.</li>
               <li>
@@ -320,10 +309,9 @@ export function lineScope(project?: SP.SpellProject): P.Scope {
                 only names a key that arrives alone.
               </li>
             </ul>
-          </section>
+          </ui-section>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="in-the-browser">In the browser</h3></ui-sticky>
+          <ui-section id="in-the-browser" header="In the browser" sticky collapsible dividing>
             <ul>
               <li>
                 <a href="../cli/src/serve.ts" target="src-packages-cli-src-serve-ts"><code>serve.ts</code></a
@@ -343,11 +331,10 @@ export function lineScope(project?: SP.SpellProject): P.Scope {
                 (express), each in its own process group, stopped together; a busy port is refused.
               </li>
             </ul>
-          </section>
-        </section>
+          </ui-section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="4-why">4. Why</h2></ui-sticky>
+        <ui-section id="4-why" header="4. Why" sticky collapsible dividing>
           <ul>
             <li>
               <b>The language server's workspace, not a parallel loader:</b> so the command line and the editor can't
@@ -386,10 +373,9 @@ export function lineScope(project?: SP.SpellProject): P.Scope {
               <code>dumbbell</code> but not <code>brain</code> by its keyword <code>cerebellum</code>.
             </li>
           </ul>
-        </section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="5-limits">5. Limits</h2></ui-sticky>
+        <ui-section id="5-limits" header="5. Limits" sticky collapsible dividing>
           <ul>
             <li>
               It runs spell's WORKING COPY: a half-done change in
@@ -426,10 +412,9 @@ export function lineScope(project?: SP.SpellProject): P.Scope {
               <li>publishing to npm</li>
             </ul>
           </ui-message>
-        </section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="6-sources">6. Sources</h2></ui-sticky>
+        <ui-section id="6-sources" header="6. Sources" sticky collapsible dividing>
           <ul>
             <li>
               <a href="../cli/src/cli.test.ts" target="src-packages-cli-src-cli-test-ts"
@@ -453,14 +438,12 @@ export function lineScope(project?: SP.SpellProject): P.Scope {
             </li>
             <li>
               The plan behind it:
-              <a
-                href="plans/cli-additions/cli-additions.html"
-                target="cli-additions"
+              <a href="plans/cli-additions/cli-additions.html" target="cli-additions"
                 ><code>plans/cli-additions/cli-additions.html</code></a
               >.
             </li>
           </ul>
-        </section>
+        </ui-section>
       </main>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
