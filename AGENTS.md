@@ -54,6 +54,18 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
   collide with an npm package name (`@spell-app/...`, `solid-js`) the way a bare `name/...` could.
   Examples below use `parser`'s, e.g. `$/parser`.
 
+## Worktrees
+
+- A session that works in a git worktree (`.claude/worktrees/<name>`) MUST show it to Owen in VS Code right away:
+  `code -n <worktree path>` -- a NEW window on the worktree, as soon as the session creates or enters it (and again
+  if it switches worktrees).  Why:  Owen reads and reviews the code in VS Code;  edits in a worktree his window
+  doesn't show are invisible to him.
+- NEVER `code -r` (reuse window):  it re-points the window the Claude session runs in, which restarts the session.
+- Say so in one line ("opened the worktree in a new VS Code window"), and name the worktree and branch.
+- To continue the conversation in that window:  the session's transcript follows it into the worktree, so the new
+  window's Claude Code history lists it (or `claude --resume <session id>` in its terminal);  close the old window's
+  panel first, or the two clients interleave into one transcript.
+
 ## Solid 2
 
 - `spell` is moving from React to Solid 2 (`2.0.0-rc.13`;  `@spell-app/ui` still pins rc.11) on `@spell-app/ui`.
