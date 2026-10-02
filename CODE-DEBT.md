@@ -57,7 +57,7 @@ One `###` heading per item, under its package's `##` section, `---` between item
 - **Fix**: leaves should not import their own barrel as a value.  Use `import type { P }` where
   only types are needed, and import base classes directly from their defining files.  This is
   already the documented convention in `AGENTS.md` -- it is just not applied consistently.
-  NOTE: the obvious partial fixes do not work.  `AST.tsx` needs `P.Match` and three `Scope`
+  NOTE: the obvious partial fixes do not work.  `AST.ts` needs `P.Match` and three `Scope`
   subclasses at runtime, but `Match.ts` and the scope files import the barrel as a value
   themselves, so importing them directly only relocates the cycle.  This is all-or-nothing.
 - **Pinned at**: `BROKEN_ENTRIES` in `packages/parser/src/barrel.test.ts` -- `$/parser/rules`,
@@ -157,7 +157,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
     - parser support:  `Rule.declares` / `getDeclaration()`, `highlightAs` (`packages/parser/src/rules/Rule.ts`,
       `rules.types.ts`, and `@proto static highlightAs` on `Keyword` / `Symbol` / spell base rules),
       `TypeScope.getOrStub()` / `claim()` / `declareProperty()`, `P.TokenFormatter` (`packages/parser/src/tokenizer/`)
-    - docstrings:  `Block.getDocComments()`, `ASTDocComment` / `ASTBannerComment` (`packages/parser/src/ast/AST.tsx`),
+    - docstrings:  `Block.getDocComments()`, `ASTDocComment` / `ASTBannerComment` (`packages/parser/src/ast/AST.ts`),
       `Block.ts` + `Block.test.ts`
   - **Scripts** (`eab5832`):  `start:*` renames, `yarn stop` (`package.json`, `Dockerfile.*`, `DOCKER.md`,
     `CODEBASE_INDEX.md`).  NOTE: `yarn stop` also kills the language server VS Code started.
@@ -553,7 +553,7 @@ knowingly kept:
 
 ### React and Solid side by side
 
-- **Cost**: two JSX runtimes and two renderers in `app` (and what it compiles from `core` / `parser`):  every `.tsx`
+- **Cost**: two JSX runtimes and two renderers in `app` (and what it compiles from `core`):  every `.tsx`
   must say which it is, both plugins run in every `vite*.config.ts`, and React still ships beside Solid.
   A React file missing its marker compiles as Solid:  `tsc` usually catches it, else it fails at runtime.
 - **Cause**: the Solid migration (`packages/docs/epics/solid-migration/`) moves the app's own UI one phase at a time,
@@ -565,4 +565,5 @@ knowingly kept:
   stays only where `core` renders compiled spell, until that moves too;  then delete `@vitejs/plugin-react`,
   `reactFiles()` and the React deps.
 - **Pinned at**: `packages/app/vite.shared.ts` (`REACT_DIRS`, `REACT_MARKER`);  the marker in each React `.tsx` of
-  `packages/app/src`, `packages/core/src`, `packages/parser/src`;  `packages/app/src/solid.test.tsx`.
+  `packages/app/src`, `packages/core/src`;  `packages/app/src/solid.test.tsx`.  (`packages/parser/src` has none since
+  P8:  its AST views draw framework-free `P.Markup`.)

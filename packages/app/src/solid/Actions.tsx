@@ -70,7 +70,7 @@ export type ActionProps = {
 
 /**
  * The app's public actions, each a Solid component around `<Action>`:  `<Actions.saveFile />`, or
- * `<Actions.saveFile button />`.  Same names and behaviour as React's `UI.Actions`.
+ * `<Actions.saveFile button />`.  Same names and behaviour as React's `UI.Actions` had.
  * - Props given at the call site win over the entry's own (`title`, `icon`, `onClick` ...).
  * - An entry whose look depends on `editor` reads it through `tracked()`, in its own body, and reads the accessor
  *   in JSX:  a plain `editor.x` read in JSX is NOT reactive (`editor` is `easy-state`, not Solid).

@@ -20,13 +20,19 @@ import { CSS_TARGETS, SOLID_DEDUPE, emitIconPacks } from "../ui/vite.config.ts"
  */
 
 /** Packages whose `src/` may hold React `.tsx`:  `app`'s own, and what it compiles from source. */
-const REACT_DIRS = ["app/src", "core/src", "parser/src"]
+const REACT_DIRS = ["app/src", "core/src"]
 
 /** First-line marker of a React file, as TypeScript reads it. */
 const REACT_MARKER = "@jsxImportSource react"
 
 /** `packages/`, absolute. */
 const PACKAGES = fileURLToPath(new URL("..", import.meta.url))
+
+/**
+ * `node_modules`, which the Solid plugin leaves alone -- except packages shipping Solid JSX SOURCE (their `solid`
+ * export condition), which it must compile:  `@solidjs/router` (`dist/*.jsx`).
+ */
+const NOT_SOLID_SOURCE = /\/node_modules\/(?!@solidjs\/router\/)/
 
 /** The fork's source entry:  `@spell-app/solid-element` resolves here in dev, tests AND build (no `dist/` needed). */
 const SOLID_ELEMENT = fileURLToPath(new URL("../solid-element/src/index.ts", import.meta.url))
@@ -47,7 +53,7 @@ export function appConfig({ iconPacks }: { iconPacks?: boolean } = {}) {
   const plugins: PluginOption[] = [
     standardDecorators(),
     packageVersion(),
-    solid({ exclude: [...reactOnly, /\/node_modules\//] }),
+    solid({ exclude: [...reactOnly, NOT_SOLID_SOURCE] }),
     react({ include: reactOnly })
   ]
   if (iconPacks) plugins.push(iconPacksBesideBuiltIns())

@@ -10,7 +10,7 @@ import { RunnerSplit, DEFAULT_SPLIT } from "./RunnerSplit"
 import { RunnerPane, type RunnerTab } from "./RunnerPane"
 import { RunnerConsole } from "./RunnerConsole"
 
-import "$/app/ui/AppContainer.css"
+import "$/app/solid/AppContainer.css"
 import "./VSCodeRunner.css"
 
 /****************

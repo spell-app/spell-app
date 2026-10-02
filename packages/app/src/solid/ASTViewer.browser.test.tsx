@@ -12,8 +12,8 @@ import { ASTRoot, ASTViewer } from "./ASTViewer"
 
 /**
  * `<ASTRoot>` / `<ASTViewer>` on a real spell compile, in the browser.
- * - The tree is React (`$/parser`'s `renderAST.tsx`) mounted by `<ReactHost>`, which renders on React's schedule:
- *   `expect.poll()` for it.
+ * - The tree is `ast.markup` (`$/parser`'s `renderAST.ts`) drawn as DOM in render:  there by the time `flush()`
+ *   returns, no polling.
  */
 
 /** Spell source:  a declaration, an `if` with an indented block, and a `print`. */
@@ -32,7 +32,7 @@ describe("<ASTViewer>", () => {
     const host = await mount(() => <ASTViewer ast={ast} scrolling />)
     const viewer = host.querySelector<HTMLElement>(".ASTViewer")!
     expect(viewer.classList.contains("scrolling")).toBe(true)
-    await expect.poll(() => viewer.textContent).toContain("export class Card extends Thing {}")
+    expect(viewer.textContent).toContain("export class Card extends Thing {}")
     expect(viewer.textContent).toContain("spellCore.console.log(2)")
     expect(viewer.querySelector('.ASTNode[data-match="number"][data-start="44"]')!.textContent).toBe("2")
   })
@@ -45,16 +45,14 @@ describe("<ASTViewer>", () => {
       scroll: { event: "scroll", percent: 0, max: 0, current: 0, total: 0, visible: 0 }
     } satisfies UI.EditorSelection
     const host = await mount(() => <ASTViewer ast={ast} selection={selection} />)
-    await expect
-      .poll(() => host.querySelector(".ASTNode.highlight")?.getAttribute("data-start"), { timeout: 2000 })
-      .toBe("44")
+    expect(host.querySelector(".ASTNode.highlight")?.getAttribute("data-start")).toBe("44")
     expect(host.querySelectorAll(".ASTNode.highlight").length).toBe(1)
   })
 
-  test("a throwing `ast.component` shows the error and tells `showError`;  a good `ast` heals it", async () => {
+  test("a throwing `ast.markup` shows the error and tells `showError`;  a good `ast` heals it", async () => {
     const showError = vi.fn()
     const broken = {
-      get component(): never {
+      get markup(): never {
         throw new Error("Broken AST")
       }
     } as unknown as P.ASTNode
@@ -67,17 +65,22 @@ describe("<ASTViewer>", () => {
     setAST(compile("print 1"))
     flush()
     expect(viewer.querySelector("ui-message")).toBeNull()
-    await expect.poll(() => viewer.textContent).toContain("spellCore.console.log(1)")
+    expect(viewer.textContent).toBe("spellCore.console.log(1)")
   })
 
-  test("unmounting unmounts the React tree", async () => {
-    const ast = compile("print 1")
-    const host = await mount(() => <ASTViewer ast={ast} />)
-    await expect.poll(() => host.querySelector(".ASTNode")).not.toBeNull()
-    const reactBox = host.querySelector<HTMLElement>(".ASTViewer > div")!
-    cleanups.pop()!()
-    await Promise.resolve()
-    expect(reactBox.childNodes.length).toBe(0)
+  test("one `ast` draws in two viewers at once:  fresh nodes for each, the Javascript it compiles to", async () => {
+    // NOTE: no declaration -- its `/*! SPELL: DECLARES` comment draws as `/* ...` (SUSPECTED-BUGS.md)
+    const ast = compile("if 1 is 2\n  print 1\nprint 2")
+    const host = await mount(() => (
+      <>
+        <ASTViewer ast={ast} />
+        <ASTViewer ast={ast} />
+      </>
+    ))
+    const [first, second] = host.querySelectorAll<HTMLElement>(".ASTViewer")
+    expect(first.textContent).toBe(ast.compile())
+    expect(second.textContent).toBe(ast.compile())
+    expect(first.querySelectorAll(".ASTNode").length).toBe(second.querySelectorAll(".ASTNode").length)
   })
 })
 
@@ -86,15 +89,15 @@ describe("<ASTRoot>", () => {
     setEditor("file", { AST: compile("print 1") } as unknown as EditorStore["file"])
     const host = await mount(() => <ASTRoot />)
     expect(host.querySelector("ui-menu.PanelMenu ui-item[type=header]")!.textContent).toBe("Javascript Output")
-    await expect.poll(() => host.querySelector(".ASTViewer")!.textContent).toBe("spellCore.console.log(1)")
+    expect(host.querySelector(".ASTViewer")!.textContent).toBe("spellCore.console.log(1)")
 
     editor.file = { AST: compile("print 2") } as unknown as EditorStore["file"]
     flush()
-    await expect.poll(() => host.querySelector(".ASTViewer")!.textContent).toBe("spellCore.console.log(2)")
+    expect(host.querySelector(".ASTViewer")!.textContent).toBe("spellCore.console.log(2)")
 
     editor.file = undefined
     flush()
-    await expect.poll(() => host.querySelector(".ASTViewer")!.textContent).toBe("")
+    expect(host.querySelector(".ASTViewer")!.textContent).toBe("")
   })
 })
 

@@ -2118,21 +2118,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@reach/router@npm:^1.3.4":
-  version: 1.3.4
-  resolution: "@reach/router@npm:1.3.4"
-  dependencies:
-    create-react-context: "npm:0.3.0"
-    invariant: "npm:^2.2.3"
-    prop-types: "npm:^15.6.1"
-    react-lifecycles-compat: "npm:^3.0.4"
-  peerDependencies:
-    react: 15.x || 16.x || 16.4.0-alpha.0911da3
-    react-dom: 15.x || 16.x || 16.4.0-alpha.0911da3
-  checksum: 10c0/083fcb658ae5cd0de2b7ebe56bbb8c1b4aa6ec035038d41916afcdd2f31ffd7ccdd6848f7ee8e53d562c31fc4c1b1953fd7007eb9d57daf65779f344ca5a5373
-  languageName: node
-  linkType: hard
-
 "@risingstack/react-easy-state@npm:^6.3.0":
   version: 6.3.0
   resolution: "@risingstack/react-easy-state@npm:6.3.0"
@@ -2561,6 +2546,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@solidjs/router@npm:2.0.0-next.35":
+  version: 2.0.0-next.35
+  resolution: "@solidjs/router@npm:2.0.0-next.35"
+  peerDependencies:
+    "@solidjs/web": ^2.0.0-rc.13
+    filesystem-routing: ">=0.4.0"
+    solid-js: ^2.0.0-rc.13
+  peerDependenciesMeta:
+    filesystem-routing:
+      optional: true
+  checksum: 10c0/4b4429f54648539c1b3efd5d6c009cbbd6ff6c2e1ab69b4e824c78f2e1c544e2020b2d5086b3b5930e9c013874669c82943cbc2142afc17353a3b055f38af531
+  languageName: node
+  linkType: hard
+
 "@solidjs/signals@npm:2.0.0-rc.13":
   version: 2.0.0-rc.13
   resolution: "@solidjs/signals@npm:2.0.0-rc.13"
@@ -2637,8 +2636,8 @@ __metadata:
   resolution: "@spell-app/app@workspace:packages/app"
   dependencies:
     "@nx-js/observer-util": "npm:^4.2.2"
-    "@reach/router": "npm:^1.3.4"
     "@risingstack/react-easy-state": "npm:^6.3.0"
+    "@solidjs/router": "npm:2.0.0-next.35"
     "@solidjs/vite-plugin": "npm:3.0.0-next.47"
     "@solidjs/web": "npm:2.0.0-rc.13"
     "@spell-app/core": "workspace:*"
@@ -2651,14 +2650,12 @@ __metadata:
     "@spell-app/util": "workspace:*"
     "@types/lodash": "npm:^4.17.17"
     "@types/node": "npm:^22.20.4"
-    "@types/reach__router": "npm:^1.3.15"
     "@types/react": "npm:^18.2.56"
     "@types/react-dom": "npm:^18.2.19"
     "@typescript/typescript6": "npm:^6.0.2"
     "@vitejs/plugin-react": "npm:^6.1.1"
     "@vitest/browser-playwright": "npm:^5.0.2"
     chalk: "npm:^5.6.0"
-    classnames: "npm:^2.2.6"
     concurrently: "npm:^8.2.2"
     esbuild: "npm:^0.28.2"
     global: "npm:^4.3.2"
@@ -2672,7 +2669,6 @@ __metadata:
     playwright: "npm:1.63.0"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
-    react-hotkeys-hook: "npm:^2.1.3"
     semantic-ui-react: "npm:3.0.0-beta.2"
     solid-js: "npm:2.0.0-rc.13"
     tsx: "npm:4.20.3"
@@ -2786,7 +2782,6 @@ __metadata:
     "@spell-app/util": "workspace:*"
     "@types/lodash": "npm:^4.17.17"
     "@types/node": "npm:^22.20.4"
-    "@types/react": "npm:^18.2.56"
     "@typescript/typescript6": "npm:^6.0.2"
     browser-or-node: "npm:^3.0.0"
     esbuild: "npm:^0.28.2"
@@ -2794,7 +2789,6 @@ __metadata:
     oxfmt: "npm:^0.71.0"
     oxlint: "npm:^1.86.0"
     oxlint-tsgolint: "npm:^7.0.2003"
-    react: "npm:^18.2.0"
     typescript: "npm:^7.0.2"
     vite: "npm:^8.3.1"
     vitest: "npm:^5.0.2"
@@ -3187,30 +3181,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/reach__router@npm:^1.3.15":
-  version: 1.3.15
-  resolution: "@types/reach__router@npm:1.3.15"
-  dependencies:
-    "@types/react": "npm:*"
-  checksum: 10c0/4d1c867369d2620f0941b224d3fe36c644eab90505ca9a7fce470cda0cbe0c2ee7469d52f382e97ed91440674d83f356c6bd6347cdf7167c9152e2631d28b7d4
-  languageName: node
-  linkType: hard
-
 "@types/react-dom@npm:^18.2.19":
   version: 18.3.7
   resolution: "@types/react-dom@npm:18.3.7"
   peerDependencies:
     "@types/react": ^18.0.0
   checksum: 10c0/8bd309e2c3d1604a28a736a24f96cbadf6c05d5288cfef8883b74f4054c961b6b3a5e997fd5686e492be903c8f3380dba5ec017eff3906b1256529cd2d39603e
-  languageName: node
-  linkType: hard
-
-"@types/react@npm:*":
-  version: 19.3.0
-  resolution: "@types/react@npm:19.3.0"
-  dependencies:
-    csstype: "npm:^3.2.2"
-  checksum: 10c0/fbcabf303f935ca9f36ed2dcf81751cf84744098c5a683c8a62a0fa7edd31714b48d5c46b12fd0014f7f2dfe4d9ec6de428a850748eec719a70294e51029551b
   languageName: node
   linkType: hard
 
@@ -4263,13 +4239,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"classnames@npm:^2.2.6":
-  version: 2.5.1
-  resolution: "classnames@npm:2.5.1"
-  checksum: 10c0/afff4f77e62cea2d79c39962980bf316bacb0d7c49e13a21adaadb9221e1c6b9d3cdb829d8bb1b23c406f4e740507f37e1dcf506f7e3b7113d17c5bab787aa69
-  languageName: node
-  linkType: hard
-
 "cli-boxes@npm:^3.0.0":
   version: 3.0.0
   resolution: "cli-boxes@npm:3.0.0"
@@ -4494,19 +4463,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"create-react-context@npm:0.3.0":
-  version: 0.3.0
-  resolution: "create-react-context@npm:0.3.0"
-  dependencies:
-    gud: "npm:^1.0.0"
-    warning: "npm:^4.0.3"
-  peerDependencies:
-    prop-types: ^15.0.0
-    react: ^0.14.0 || ^15.0.0 || ^16.0.0
-  checksum: 10c0/3f9dfde23da59e3f748b5f1b06c7ff8cbf48095cf2d62212427195860f1ee4b2b0b475280c19592f7fffb9fd100fd739af687281d7c5c93806d519bf66f6dd86
-  languageName: node
-  linkType: hard
-
 "cross-spawn@npm:^7.0.6":
   version: 7.0.6
   resolution: "cross-spawn@npm:7.0.6"
@@ -4610,7 +4566,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"csstype@npm:^3.1.0, csstype@npm:^3.2.2":
+"csstype@npm:^3.1.0":
   version: 3.2.3
   resolution: "csstype@npm:3.2.3"
   checksum: 10c0/cd29c51e70fa822f1cecd8641a1445bed7063697469d35633b516e60fe8c1bde04b08f6c5b6022136bb669b64c63d4173af54864510fbb4ee23281801841a3ce
@@ -5642,13 +5598,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"gud@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "gud@npm:1.0.0"
-  checksum: 10c0/a4db6edc18e2c4e3a22dc9e639e40a4e5650d53dae9cf384a96d5380dfa17ddda376cf6b7797a5c30d140d2532e5a69d167bdb70c2c151dd673253bac6b027f3
-  languageName: node
-  linkType: hard
-
 "h3@npm:^1.15.10":
   version: 1.15.11
   resolution: "h3@npm:1.15.11"
@@ -5857,13 +5806,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hotkeys-js@npm:3.8.1":
-  version: 3.8.1
-  resolution: "hotkeys-js@npm:3.8.1"
-  checksum: 10c0/76b6ff16e1c711159bbf6330a9e09dba73c6d80a0ea7b56644615d1428479f48a5e4545dca42ab02e07745d31f5a878e9248d3d37d32f0f78d0cbe7baec1729c
-  languageName: node
-  linkType: hard
-
 "html-entities@npm:2.3.3":
   version: 2.3.3
   resolution: "html-entities@npm:2.3.3"
@@ -6011,15 +5953,6 @@ __metadata:
   version: 0.2.7
   resolution: "inline-style-parser@npm:0.2.7"
   checksum: 10c0/d884d76f84959517430ae6c22f0bda59bb3f58f539f99aac75a8d786199ec594ed648c6ab4640531f9fc244b0ed5cd8c458078e592d016ef06de793beb1debff
-  languageName: node
-  linkType: hard
-
-"invariant@npm:^2.2.3":
-  version: 2.2.4
-  resolution: "invariant@npm:2.2.4"
-  dependencies:
-    loose-envify: "npm:^1.0.0"
-  checksum: 10c0/5af133a917c0bcf65e84e7f23e779e7abc1cd49cb7fdc62d00d1de74b0d8c1b5ee74ac7766099fb3be1b05b26dfc67bab76a17030d2fe7ea2eef867434362dfc
   languageName: node
   linkType: hard
 
@@ -8197,7 +8130,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prop-types@npm:^15.6.1, prop-types@npm:^15.6.2, prop-types@npm:^15.7.2":
+"prop-types@npm:^15.6.2, prop-types@npm:^15.7.2":
   version: 15.8.1
   resolution: "prop-types@npm:15.8.1"
   dependencies:
@@ -8267,18 +8200,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-hotkeys-hook@npm:^2.1.3":
-  version: 2.4.1
-  resolution: "react-hotkeys-hook@npm:2.4.1"
-  dependencies:
-    hotkeys-js: "npm:3.8.1"
-  peerDependencies:
-    react: ">=16.8.1"
-    react-dom: ">=16.8.1"
-  checksum: 10c0/f68230581b36680b2b1a35912cccca87a7439a3c4d1c7d1eedfc93eebbdd2b53a6c7956a56b433f583351257dc6ebd27710debbe54f82516e9cfd8c0b6d7582e
-  languageName: node
-  linkType: hard
-
 "react-is@npm:^16.13.1":
   version: 16.13.1
   resolution: "react-is@npm:16.13.1"
@@ -8290,13 +8211,6 @@ __metadata:
   version: 18.3.1
   resolution: "react-is@npm:18.3.1"
   checksum: 10c0/f2f1e60010c683479e74c63f96b09fb41603527cd131a9959e2aee1e5a8b0caf270b365e5ca77d4a6b18aae659b60a86150bb3979073528877029b35aecd2072
-  languageName: node
-  linkType: hard
-
-"react-lifecycles-compat@npm:^3.0.4":
-  version: 3.0.4
-  resolution: "react-lifecycles-compat@npm:3.0.4"
-  checksum: 10c0/1d0df3c85af79df720524780f00c064d53a9dd1899d785eddb7264b378026979acbddb58a4b7e06e7d0d12aa1494fd5754562ee55d32907b15601068dae82c27
   languageName: node
   linkType: hard
 
@@ -10499,7 +10413,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"warning@npm:^4.0.2, warning@npm:^4.0.3":
+"warning@npm:^4.0.2":
   version: 4.0.3
   resolution: "warning@npm:4.0.3"
   dependencies:

@@ -907,6 +907,14 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   shared chunk (named after a random module, `ui/customElement.js`), not in `spell-solid.js` -- even with
   `preserveEntrySignatures: "allow-extension"`. · One entry, the other its dynamic `import()`:  the lazy chunk then
   imports what the entry already holds from the entry. · app
+- 2026-10-02 · `expect(spy).not.toHaveBeenCalledWith(runnerRoot)` FAILED although the spy only ever got `editorRoot`
+  ("Compared values have no visual difference"):  vitest compares DOM elements by their MARKUP, and the editor's and
+  the runner's `#spell-app-root` look alike. · Compare elements by identity:  `spy.mock.calls[0][0]` with `toBe()`.
+  · app (solid-migration P8)
+- 2026-10-02 · `<SplitPanel>`'s drag did nothing in a browser test, yet worked on the dev server:  `$/util`'s
+  `getPadding()` reads `NaN` under vitest (`SUSPECTED-BUGS.md`, app), and one `NaN` in the measurements makes `drag()`
+  bail silently. · Bisected by dumping the drag's measurements into a failing `expect`;  `SplitPanel.tsx` reads
+  padding with `getComputedStyle()` itself. · app (solid-migration P8)
 
 ## cli
 

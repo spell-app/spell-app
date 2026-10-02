@@ -17,10 +17,12 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
   - Two test projects (`vitest.config.ts`):  `node` for most tests, where `solid-js` is its SERVER build
     (`renderToString`;  writes NOT staged, see `src/solid.test.tsx`), and `browser` (chromium) for
     `*.browser.test.ts(x)`:  Solid's client build, as in the app.
-  - `$/app/solid` is the Solid plumbing:  `tracked()` lets Solid code see `easy-state` (spell Things, the editor
-    store) change.
+  - `$/app/solid` is the app's UI, all Solid (P8):  the pages' shell (`SpellPage`, `SplitPanel`, `AppRoot`), menus,
+    panes, dialogs, and the plumbing:  `tracked()` lets Solid code see `easy-state` (spell Things, the editor store)
+    change.
 - `src/` is the app:
-  `ui/` (`UI`, `F` for `ui/forms`), `pages/`, `runner/`, `spellEditor/`, `editor.ts`, `index.tsx`.
+  `solid/` (the UI), `pages/` (the pages and the router), `ui/` (`UI`, `F` for `ui/forms`:  spell PROGRAMS' React
+  kit), `runner/`, `spellEditor/`, `editor.ts`, `index.tsx` (Solid `render()` into `#app-root`).
   `src/server/` is its API server (`api.ts`, `index.ts`) on `$/server`'s Express-shaped `SRV.Router` /
   `SRV.WebServer` (it was Express):  `api.test.ts` pins its behaviour over HTTP.  The file / project helpers it
   calls are NOT here, they're node-only code in `$/spell/node/...` (`project-utils`, `file-utils`, `disk-fetch` ...).
@@ -42,10 +44,16 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
   - Loaded LAZILY, through `$/app/solid`'s `LazyMonaco` (and `<spell-editor>`'s `loadMonaco()`):  NEVER import
     `$/app/ui/monaco` or `$/app/solid/monaco` statically outside those folders -- types aside -- or Monaco (~4.4 MB)
     lands in the main bundle again.
-- Solid panes in React pages (P6, until P8):  the React `UI` barrel's `./islands` mounts the Solid panes under
-  their old names (`UI.InputRoot`, `UI.ConsoleRoot` ...).  An island's wrapper is `.SolidIsland`, `display:
-  contents`:  a `> *` rule reaches its pane with `> .SolidIsland > *` (`SplitPanel.css`).  `index.html` wraps the app in `<ui-root icons="fomantic">`:  the
-  app's icon names are Fomantic's (`src/solid/loadUI.ts`).
+- Routing (P8):  `src/pages/routes.tsx`, `@solidjs/router@next` (`createRouter()`, pinned exactly):
+  - the router ships Solid JSX SOURCE (`dist/*.jsx`):  `vite.shared.ts`'s `NOT_SOLID_SOURCE` lets the Solid plugin
+    compile it out of `node_modules`.  Another such package goes there too
+  - `explicitLinks`:  it takes only `<a link>` clicks, never a running program's own `<a>`s
+  - `editor` navigates through `src/pages/navigation.ts` `navigate()` (no Solid in it), which the router's root
+    layout hands its `navigate()` to;  route components call `followRoute()`, which hands the URL's params to
+    `editor.selectPath()`
+  - the editor page's shortcuts are ONE `keydown` listener (`src/pages/editorHotkeys.ts`)
+- `index.html` wraps the app in `<ui-root icons="fomantic">`:  the app's icon names are Fomantic's
+  (`src/solid/loadUI.ts`).  It still links `semantic.min.css`:  running programs draw with Semantic UI's React kit.
 - `src/runner/` runs compiled spell:  the pieces every runner shares -- the web app's editor, VS Code's
   "Run Project" webview (`VSCodeRunner`, `yarn build:runner`) and the `<spell-app>` web component
   (`SpellAppElement`, `yarn build:element` => `dist-element/`, demo at `/demo/spell-app.html` on the dev server).

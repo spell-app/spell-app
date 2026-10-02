@@ -7,7 +7,7 @@ import "./chrome.css"
 
 //
 //  ## App chrome on `@spell-app/ui`:  menus, sub-menus and the "..." dropdown.
-//  Solid twins of React's `$/app/ui/chrome.tsx`, same names and props.  Look:  `chrome.css`.
+//  Same names and props as React's `$/app/ui/chrome.tsx` had.  Look:  `chrome.css`.
 //  - Menus are `<ui-menu>` of `<ui-item>`s;  a sub-menu is a `<ui-menu position>` inside one.
 //  - Hosts are `display: contents`:  style the boxes with `::part(menu)` / `::part(item)`, never the host.
 //
@@ -185,7 +185,6 @@ export function DropdownLabel(props: UIElementAttributes) {
 
 ////////////////
 // ## Icons
-// NOTE: the same names as React's `$/app/ui/chrome.tsx`, which keeps its own until it goes (P8 / P9).
 ////////////////
 
 /** Icon of a `<MoreMenu>`. */

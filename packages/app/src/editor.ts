@@ -1,5 +1,3 @@
-import { navigate } from "@reach/router"
-
 import { UIError, createStore, setPrefKey, getPref, setPref, CONFIRM } from "$/util"
 
 import { P } from "$/parser"
@@ -10,6 +8,7 @@ import type * as UIT from "$/app/ui/ui.types"
 import type { monaco } from "$/app/ui/monaco"
 // NOTE: types only:  the dialogs themselves load on first use, see `dialogs()`.
 import type * as Modals from "$/app/solid/modals"
+import { navigate } from "$/app/pages/navigation"
 
 ////////////////
 // ## The editor
@@ -58,8 +57,8 @@ const EDITOR_DEFAULTS = {
   lastSelectionForFile,
 
   /** Show the project / example / guide chooser page. */
-  showProjectChooser(): Promise<void> {
-    return navigate("/")
+  showProjectChooser(): void {
+    navigate("/")
   },
 
   /** Show `<SpellEditor>` for a `path` by updating the URL, which will eventually call `selectPath` */
@@ -67,7 +66,7 @@ const EDITOR_DEFAULTS = {
     if (!path) path = editor.file?.path
     // TODO: selection!!!!
     try {
-      void navigate(new SP.SpellLocation(path!).editorUrl)
+      navigate(new SP.SpellLocation(path!).editorUrl)
       void editor.compileApp()
     } catch {
       editor.showError(`Path '${path}' is invalid!`)
@@ -78,14 +77,14 @@ const EDITOR_DEFAULTS = {
   async showRunner(path?: string): Promise<void> {
     if (!path) path = editor.file?.path
     try {
-      await navigate(new SP.SpellLocation(path!).runnerUrl)
+      navigate(new SP.SpellLocation(path!).runnerUrl)
       void editor.compileApp()
     } catch {
       editor.showError(`Path '${path}' is invalid!`)
     }
   },
 
-  // TODO: these are referenced by `$/app/ui/Actions` but not yet implemented.
+  // TODO: these are referenced by `$/app/solid`'s `Actions` but not yet implemented.
   /** Show settings for the current `project`. TODO: not yet implemented. */
   showProjectSettings(): void {
     console.warn("TODO: editor.showProjectSettings() not yet implemented")
@@ -178,7 +177,8 @@ const EDITOR_DEFAULTS = {
     if (path !== file.path) {
       // console.warn({ path, file: file.path })
       const url = file.location[editor.projectPage === "editor" ? "editorUrl" : "runnerUrl"]
-      return navigate(url, { replace: true })
+      navigate(url, { replace: true })
+      return
     }
 
     const sameFile = editor.file === file
@@ -378,9 +378,17 @@ const EDITOR_DEFAULTS = {
     return loadingRuntime
   },
 
-  /** Where the running app draws -- `<AppContainer>` hands it over, as a ref.  Kept OUTSIDE the store. */
+  /** Where the running app draws -- `<AppRoot>` hands it over, as a ref.  Kept OUTSIDE the store. */
   setAppRoot(element: HTMLElement | null): void {
     appRoot = element ?? undefined
+  },
+  /**
+   * Forget `element` as where the running app draws -- if it still is:  `<AppRoot>`'s cleanup.
+   * - Why "if":  moving between the editor and the runner, the old page's cleanup may run AFTER the new page's
+   *   `<AppRoot>` handed its own over, which must not be forgotten.
+   */
+  releaseAppRoot(element: HTMLElement): void {
+    if (appRoot === element) appRoot = undefined
   },
 
   ////////////////
@@ -552,7 +560,7 @@ const EDITOR_DEFAULTS = {
   },
   /**
    * Remember `inputEditor`, showing `editor.file`, in our `<InputEditor onMount />` event.
-   * - `api` is Monaco itself, handed over as Monaco is loaded lazily -- see `UI.LazyMonaco`.
+   * - `api` is Monaco itself, handed over as Monaco is loaded lazily -- see `$/app/solid`'s `LazyMonaco`.
    * - SIDE EFFECT:  adds our save / reload / compile keys, and follows its cursor + scrolling into `selection`.
    *   Monaco disposes of both with the editor.
    */
@@ -632,7 +640,7 @@ const EDITOR_DEFAULTS = {
    */
   async showFileAt(path: string, selection?: UIT.EditorSelection): Promise<void> {
     await editor.selectPath(path, selection)
-    void navigate(new SP.SpellLocation(path).editorUrl)
+    navigate(new SP.SpellLocation(path).editorUrl)
     editor.onInputEffect()
   },
 

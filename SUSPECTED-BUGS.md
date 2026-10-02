@@ -74,8 +74,13 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 - `app/ui/modals/modals.types.ts` `ModalComponentProps.id`: `<ModalRoot>` passes `key` (not forwarded), never `id`.
 
-- `parser/ast/renderAST.tsx` `InCurlies` / `InSquareBrackets`: no empty-children case, unlike `stringifyAST.ts` twins.
+- `parser/ast/renderAST.ts` `InCurlies` / `InSquareBrackets`: no empty-children case, unlike `stringifyAST.ts` twins.
   Latent: `DestructuredAssignment.renderChildren()` calls `render.InCurlies` directly.
+
+- `[V]` `parser/ast/AST.ts` `ASTPreservedComment.renderChildren()` / `ASTDocComment.renderChildren()`:  draw
+  `/* ...` (`render.OPEN_COMMENT`) where `compile()` writes `/*! ...` / `/** ...`, so the editor's "Javascript Output"
+  pane shows NOT what runs, e.g. `/* SPELL: DECLARES {` for `/*! SPELL: DECLARES {`.  Prove:  for `a card is a
+  thing`, `P.render.toText(ast.markup)` starts `/* SPELL`, `ast.compile()` `/*! SPELL` (`ASTViewer.browser.test.tsx`).
 
 - `[V]` `src/rules/classes.ts` `quoted_property_formula`:  a quoted alias of an UNKNOWN property, e.g.
   `a card "is a (rank)" for its ranksx`, still registers `_quoted_property_rule`, with no enumeration part in its
@@ -207,8 +212,6 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 - `rules/math.ts` `gt_lt.getAST` / `is_gt_lt.getAST`: unreachable (output comes via `compileASTExpression()`).
 
-- `parser/ast/AST.tsx` `MethodDefinition.renderError()`: never called.
-
 - `parser/rules/Pattern.ts` constructor: `instanceof RegExp` branch unreachable per types; only caller passes object.
 
 - `parser/parser.types.ts` `RuleTestBlock.showAll`: set at several call sites, never read.
@@ -322,6 +325,11 @@ every entry below that date was fixed or disproven;  what's left:
 - `src/components/ui-menu/ui-menu.css`:  `<ui-menu inverted color="violet">` items draw DARK text on the violet fill;
   Fomantic's inverted coloured menu has white text.  Plain `<ui-menu inverted>` is right (light on dark).  Prove:  that
   markup, `getComputedStyle()` of `::part(item)`'s `color`.  (2026-10-02, solid-migration P6)
+- `src/components/ui-menu/` `<ui-menu vertical>` of `<ui-item link>`:  each item's `::part(item)` is a `<button>` at
+  `display: block`, which still shrinks to its text, so items are as wide as their labels and their dividers stop
+  short (seen in the app's chooser, `ProjectMenu`:  137 / 128 / 191px items in a 193px `fluid` menu).  Probably wants
+  `width: 100%` (and `text-align: start`) on a vertical menu's button items.  The app's `ProjectDropdown.css` does it
+  (HACK).  Prove:  the "Link items demo" in `examples/elements/content.html`.  (2026-10-02, solid-migration P8)
 - `src/components/ui-dropdown/UIDropdown.tsx` `label()`:  a host `aria-label` never reaches the combobox (only
   `placeholder` / `text` / `name` do), so an icon-only dropdown (no text, an `icon` slot) has no accessible name.  The app's
   `<MoreMenu>` ("...") is one.  (2026-10-02, solid-migration P6)
@@ -358,6 +366,26 @@ every entry below that date was fixed or disproven;  what's left:
   `STRICT_READ_UNTRACKED` for `constructor.isLoaded` / `createProps.get` while the first `<Chooser>` rendered
   `<ui-radio>`s inside Solid's `render()`;  three warm runs printed nothing.  Probably `solid-element` reading signals
   while an element upgrades inside an owner.  Prove:  clear `node_modules/.vite` / vitest's cache, rerun once.
+  - P8 (2026-10-02):  the dev server prints them on EVERY page load, with stacks:  `constructor.isLoaded` /
+    `createProps.get` from `packages/ui/src/components/ui-button/UIButton.tsx` `invokers()` / `resolveInvoker()`
+    (~lines 379-396, read in an effect's APPLY), and an unnamed one from `packages/ui/src/elements/RootSettings.ts`
+    `set()` via `UIRoot.applySettings()` (`UIRoot.tsx` ~242-275).  So `ui`'s, not the app's:  those reads belong in
+    the effects' compute (or `untrack()`).
+- `packages/app/src/solid/ProjectDropdown.tsx` `<ProjectDropdown>`:  the dev server warns `[WIDE_SCOPE_DEPS] memo
+  "computed" is subscribed to 30 sources` -- `createProps.get` x ~29 -- at `<ProjectDropdown> › children › computed ›
+  computed`, i.e. the `<For>` drawing its `<ui-item>`s.  Our code reads no props there;  probably each `<ui-item>`
+  upgrading synchronously as the `<For>` makes it, and the fork's `createProps` reads landing in OUR computation
+  (`packages/solid-element`).  `<FileDropdown>` does the same with fewer items, under the warning's threshold.  Prove:
+  a `<For>` of 30 `<ui-item>`s in a browser test, then Solid's `attribution` / the memo's sources.
+- `packages/util/src/spell/DOM.ts` `getPadding()` (`CSS_TLBR_VALUES`):  reads `NaN` for every side in `app`'s BROWSER
+  test project (vitest + chromium), while `getComputedStyle(el)["padding-left"]` there is `"0px"`;  on the dev server
+  it reads `0`.  Probably the `#top` ... private fields as the vitest transform lowers them (declared, no
+  initializer).  `src/solid/SplitPanel.tsx` reads padding itself now.  Prove:  `getPadding(document.body).left` in any
+  `*.browser.test.ts`.
+- `SP.SpellProjectRoot.guides.load()` (the chooser's "Open Guide" list):  the API answers 500, `ENOENT ... scandir
+  .../projects/system/guides`:  the folder isn't in git (no guides yet), so EVERY load of the chooser logs a failed
+  request.  React's `ProjectMenu` left the rejection unhandled;  the Solid one (P8) says "Couldn't load Guides".
+  Fix:  the API answers an empty list for a root whose folder doesn't exist (or commit `projects/system/guides/`).
 - `packages/app/src/solid/tracked.ts` `tracked()` [V]:  THROWS `Cannot access 'observer' before initialization` when
   `read()`, on its FIRST run, changes an `easy-state` value it has just read.  easy-state's `autoEffect()` is
   `const observer = observe(fn, { scheduler: () => scheduler.add(observer) })`, and `observe()` runs `fn` at once:  the
