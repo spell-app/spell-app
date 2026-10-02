@@ -293,6 +293,7 @@ Per region -- tokens inherit, so override them on a wrapper:
 ```html
 <section style="--ui-font-size: 18px; --ui-radius: 0">...</section>
 <section class="ui-dark">...</section>           <!-- whole region in the dark scheme -->
+<ui-root theme="dark" size="small">...</ui-root>  <!-- the same through a root:  scheme, and `--ui-scale` for all inside -->
 ```
 
 Per instance -- set the generic tokens on an UNCOLOURED component;  they inherit into its shadow:

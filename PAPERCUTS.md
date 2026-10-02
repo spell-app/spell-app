@@ -846,6 +846,11 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   window ON the worktree (`code -n <worktree>`), then the extension's link `open
   "vscode://anthropic.claude-code/open?session=<id>"`;  or `cd <worktree> && claude --resume <id>`.  `/worktrees`
   (`~/.claude/skills/worktrees/`) says which session runs where. · ui
+- 2026-10-01 · In `dist/` (and the docs' single-file bundle) `.ui-dark` / `<ui-root theme="dark">` changed nothing:
+  `light-dark()` was lowered into `--lightningcss-light/-dark` variables, fixed where tokens are declared (`:root`).
+  Dev and tests were fine:  `css.lightningcss.targets` (`CSS_TARGETS`) covers transforms, but the BUILD's CSS minify
+  reads `build.cssTarget`, which defaulted to an old Safari. · `build.cssTarget` = the same browsers in
+  `vite.config.ts`;  `yarn measure`'s `lightDarkLowered` check fails if it comes back. · ui
 
 ## cli
 

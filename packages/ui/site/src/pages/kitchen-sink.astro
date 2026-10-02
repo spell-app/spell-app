@@ -8,7 +8,7 @@
  *   `<script>`s, and none opens an overlay at load (page dimmer, modal, flyout, sidebar are all closed;  the
  *   `active` dimmers are contained in a segment).  If a future example breaks that, the `id`s need a per-family
  *   prefix (`commandfor`, `for` ... refer to them by id) and a pre-opened overlay needs the family's next example.
- * - Component families load through `scripts/components.ts`, which every `Docs` page includes.
+ * - Component families load through the `<ui-root>` that wraps every `Docs` page.
  */
 import Docs from "../layouts/Docs.astro"
 import { url } from "../lib/nav"

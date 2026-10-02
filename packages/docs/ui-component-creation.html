@@ -42,6 +42,11 @@
               list was swept: each entry fixed (with a failing-first test), disproven, or kept with a reason.
             </li>
             <li>Owen's eight open design calls (2026-09-30) are settled and built.</li>
+            <li>
+              New: <code>&lt;ui-root&gt;</code>, one element around a page that loads the components inside it on demand
+              (<a href="#7-ui-root">7</a>); it replaces <code>&lt;ui-icon-set&gt;</code> /
+              <code>&lt;ui-emoji-set&gt;</code>.
+            </li>
             <li>Phase D is done except Linux visual baselines and 4 WebKit test failures that need Owen's call.</li>
             <li>
               Numbers: browser tests 3,633 (chromium); 10,890 pass across chromium / firefox / webkit; 561 visual tests
@@ -126,6 +131,24 @@
               </li>
             </ul>
           </section>
+
+          <section class="s3">
+            <ui-sticky class="spell-h3"
+              ><h3 id="root-element">Root element (c269f9d7, 2429ba24, bb087c1c)</h3></ui-sticky
+            >
+            <ul>
+              <li>
+                <code>&lt;ui-root&gt;</code> (P17): on-demand family loading from a generated catalog, ready / timeout /
+                events, display modes, loading message, theme / size / box.
+              </li>
+              <li>
+                Per-root icon packs and emoji names (P18); <code>&lt;ui-icon-set&gt;</code> and
+                <code>&lt;ui-emoji-set&gt;</code> removed, their pages migrated.
+              </li>
+              <li>Skeletons (P19): every tag's vocabulary describes its placeholder, or says <code>null</code>.</li>
+              <li>What it does and how: <a href="#7-ui-root">7</a>.</li>
+            </ul>
+          </section>
         </section>
 
         <section class="s2">
@@ -203,8 +226,9 @@
               <li>19 names exist in both CLDR's and Fomantic's lists but mean different pictures (below).</li>
               <li>
                 <b>Decided (Owen, 2026-10-01):</b> CLDR's names by default; a page opts in to Fomantic's names, with
-                Fomantic's pictures, by <code>&lt;ui-emoji-set names="fomantic"&gt;</code> (or
-                <code>EmojiData.use("fomantic")</code>), like an icon pack. One set at a time, never both.
+                Fomantic's pictures, for a subtree by <code>&lt;ui-root emoji="fomantic"&gt;</code> (see
+                <a href="#7-ui-root">7</a>), or page-wide by <code>EmojiData.use("fomantic")</code>, like an icon pack.
+                One set per subtree, never both mixed.
               </li>
             </ul>
             <ui-table celled compact striped unstackable>
@@ -647,7 +671,190 @@ divider.style.setProperty(
         </section>
 
         <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="7-checks">7. Checks</h2></ui-sticky>
+          <ui-sticky class="spell-h2"><h2 id="7-ui-root">7. &lt;ui-root&gt;</h2></ui-sticky>
+          <ul>
+            <li>
+              One element around a page or app. Each <code>ui-*</code> tag inside loads its component the first time it
+              appears; nothing else is downloaded. The page shows once everything inside is ready.
+            </li>
+            <li>
+              It also sets icon packs, emoji names, theme and size for everything inside, and can be a scrolling box or
+              a full-page app shell.
+            </li>
+            <li>
+              Load just the root: <code>import "@spell-app/ui/ui-root"</code> (7.7 kB min + gzip of its own). No
+              Fomantic counterpart.
+            </li>
+            <li>
+              Docs page:
+              <a
+                href="../ui/site/src/content/components/ui-root.mdx"
+                target="src-packages-ui-site-src-content-components-ui-root-mdx"
+                ><code>packages/ui/site/src/content/components/ui-root.mdx</code></a
+              >; how it's built: the plan doc's Overview
+              <a href="plans/ui-component-creation/ui-component-creation.html#o5" target="ui-component-creation">3.5</a
+              >. The docs site itself runs inside <code>&lt;ui-root display="immediately"&gt;</code>.
+            </li>
+          </ul>
+          <p>
+            Live: a dark, small root, 9em tall, that scrolls its own content (this page's components are loaded
+            already).
+          </p>
+          <ui-root theme="dark" size="small" height="9em">
+            <ui-segment>
+              <ui-header>Report</ui-header>
+              <p>Small: everything inside follows. Scroll for more.</p>
+              <ui-list bulleted>
+                <ui-item>One</ui-item>
+                <ui-item>Two</ui-item>
+                <ui-item>Three</ui-item>
+                <ui-item>Four</ui-item>
+              </ui-list>
+              <ui-button primary>Save</ui-button>
+            </ui-segment>
+          </ui-root>
+          <ui-accordion class="spell-code" styled open="0">
+            <ui-title>a page using it · 12 lines</ui-title>
+            <ui-content>
+              <pre><code class="language-html">&lt;script type="module"&gt;
+  import "@spell-app/ui/ui-root"
+&lt;/script&gt;
+
+&lt;ui-root theme="dark" size="small" emoji="fomantic"
+         icons="fa7-brands" loading="Loading reports…"&gt;
+  &lt;ui-segment&gt;
+    &lt;ui-header&gt;Report&lt;/ui-header&gt;
+    &lt;p&gt;Dark and small: everything inside follows.&lt;/p&gt;
+    &lt;ui-button primary&gt;Save&lt;/ui-button&gt;
+  &lt;/ui-segment&gt;
+&lt;/ui-root&gt;</code></pre>
+            </ui-content>
+          </ui-accordion>
+
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="root-attributes">Attributes</h3></ui-sticky>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Attribute</th>
+                    <th>Does</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>display</code></td>
+                    <td>
+                      while loading: <code>skeleton</code> (default: grey placeholders),
+                      <code>when-ready</code> (nothing, space kept), <code>immediately</code> (as things arrive)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>loading</code></td>
+                    <td>a spinner with this message while loading (bare: "Loading…")</td>
+                  </tr>
+                  <tr>
+                    <td><code>timeout</code></td>
+                    <td>longest wait before showing anyway: <code>5s</code> (default), <code>500ms</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>icons</code></td>
+                    <td>
+                      icon packs for the subtree: built-in ids or <code>pack.js</code> URLs, comma-separated, later
+                      wins; added over the outer root's (or the page's)
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><code>emoji</code></td>
+                    <td>emoji names for the subtree: <code>cldr</code> (default) or <code>fomantic</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>assets</code></td>
+                    <td>folder the built-in icon packs load from</td>
+                  </tr>
+                  <tr>
+                    <td><code>theme</code>, <code>size</code></td>
+                    <td><code>light</code> / <code>dark</code>; <code>mini</code> ... <code>massive</code></td>
+                  </tr>
+                  <tr>
+                    <td><code>width</code>, <code>height</code></td>
+                    <td>a CSS length or <code>window</code>: the root becomes a box that scrolls its own content</td>
+                  </tr>
+                  <tr>
+                    <td><code>fixed</code></td>
+                    <td>fills the viewport and stays there: a full-page app shell</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <ul>
+              <li>
+                Events: <code>ui-ready</code> (<code>{ failed }</code>, what didn't load); <code>ui-error</code> per tag
+                that didn't load (no such component, import failed, not ready in time), cancelable to skip the console
+                warning.
+              </li>
+              <li>
+                <code>&lt;ui-icon-set&gt;</code> and <code>&lt;ui-emoji-set&gt;</code> are gone: a page without a root
+                calls <code>UI.icons.use()</code> / <code>EmojiData.use()</code>.
+              </li>
+            </ul>
+          </section>
+
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="root-how">How it works</h3></ui-sticky>
+            <ul>
+              <li>
+                Loading: which component defines a tag comes from a generated catalog (<code>yarn gen:root</code> after
+                adding a tag), never from guessing at its name. Each component is imported once per page, whatever the
+                number of roots; content added later loads too.
+              </li>
+              <li>
+                Ready: every component imported, then every element inside ready; a nested root counts once it is. Then
+                the content shows, and is never hidden again.
+              </li>
+              <li>
+                Skeletons: each tag's vocabulary describes its placeholder (37 do; parts and wrappers say
+                <code>null</code>). The root draws real <code>&lt;ui-placeholder&gt;</code>s in its own shadow DOM; the
+                page's DOM is never touched.
+              </li>
+              <li>
+                Settings: a nested root inherits what it doesn't set and adds its own icon packs; an icon or emoji finds
+                its nearest root, even from inside another component's shadow DOM.
+              </li>
+              <li>
+                Without JavaScript (a crawler, a server-rendered page) nothing is hidden: the hiding rule applies only
+                under <code>@media (scripting: enabled)</code>.
+              </li>
+              <li>
+                The loading look is swappable in code: <code>UIRoot.Loading</code> (a <code>&lt;ui-loader&gt;</code>),
+                <code>UIRoot.Skeleton</code> (<code>&lt;ui-placeholder&gt;</code>s).
+              </li>
+            </ul>
+          </section>
+
+          <section class="s3">
+            <ui-sticky class="spell-h3"><h3 id="root-limits">Limits</h3></ui-sticky>
+            <ul>
+              <li>
+                Skeleton sizes were judged by eye from Fomantic's defaults: expect some shift on reveal. Placeholders
+                stack in page order, so a grid of cards shows as one column until ready (inline ones, like buttons, sit
+                side by side).
+              </li>
+              <li>
+                With <code>display="immediately"</code>, theme, size and box apply once the runtime loads, and an icon
+                may draw from the page's packs for a moment first. The hidden modes don't show either.
+              </li>
+              <li>
+                Without a box (<code>width</code> / <code>height</code> / <code>fixed</code>), a theme sets colours but
+                paints no background.
+              </li>
+              <li>Language stays page-wide: no <code>lang</code> attribute yet.</li>
+            </ul>
+          </section>
+        </section>
+
+        <section class="s2">
+          <ui-sticky class="spell-h2"><h2 id="7-checks">8. Checks</h2></ui-sticky>
           <p>
             From <a href="../ui/" target="src-packages-ui"><code>packages/ui</code></a
             >; all passed on the last commit except where noted.

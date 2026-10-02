@@ -37,6 +37,13 @@ const { title, id = title ? slug(title) : undefined, description, level = 3, cla
 const html = Astro.slots.has("default") ? await Astro.slots.render("default") : ""
 const source = Astro.props.code ?? HtmlFormatter.format(html)
 const Heading = `h${level}` as "h3" | "h4"
+// `code` spans in the description, as in the page's prose:  escaped text, then each backtick pair => `<code>`
+const describe = (text: string) =>
+  text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
 ---
 
 <article class="site-example ui-stack ui-gap-s">
@@ -51,7 +58,7 @@ const Heading = `h${level}` as "h3" | "h4"
             </a>
           </Heading>
         )}
-        {description && <p class="site-example-description ui-muted ui-m-0">{description}</p>}
+        {description && <p class="site-example-description ui-muted ui-m-0" set:html={describe(description)} />}
       </header>
     )
   }
