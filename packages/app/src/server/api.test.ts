@@ -54,22 +54,19 @@ function request(method: string, path: string, body?: string, contentType?: stri
     const headers: Record<string, string> = {}
     if (contentType) headers["content-type"] = contentType
     if (body !== undefined) headers["content-length"] = String(Buffer.byteLength(body))
-    const outgoing = http.request(
-      { host: "localhost", port, method, path, headers },
-      (incoming) => {
-        let text = ""
-        incoming.setEncoding("utf8")
-        incoming.on("data", (chunk) => (text += chunk))
-        incoming.on("end", () =>
-          resolve({
-            status: incoming.statusCode!,
-            contentType: incoming.headers["content-type"] ?? null,
-            text,
-            json: () => JSON.parse(text)
-          })
-        )
-      }
-    )
+    const outgoing = http.request({ host: "localhost", port, method, path, headers }, (incoming) => {
+      let text = ""
+      incoming.setEncoding("utf8")
+      incoming.on("data", (chunk) => (text += chunk))
+      incoming.on("end", () =>
+        resolve({
+          status: incoming.statusCode!,
+          contentType: incoming.headers["content-type"] ?? null,
+          text,
+          json: () => JSON.parse(text)
+        })
+      )
+    })
     outgoing.on("error", reject)
     if (body !== undefined) outgoing.write(body)
     outgoing.end()
@@ -396,7 +393,12 @@ describe("DELETE /api/projects/remove/file", () => {
   })
 
   it("missing filePath => 500 sendError", async () => {
-    const reply = await request("DELETE", "/api/projects/remove/file", JSON.stringify({ projectId: PROJECT }), "application/json")
+    const reply = await request(
+      "DELETE",
+      "/api/projects/remove/file",
+      JSON.stringify({ projectId: PROJECT }),
+      "application/json"
+    )
     expect(reply.status).toBe(500)
     expect(reply.json().errors[0].message).toContain("You must pass a valid filePath")
   })

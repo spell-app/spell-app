@@ -1,7 +1,9 @@
 import { spawn, type ChildProcess } from "child_process"
-import { resolve } from "path"
+import { rmSync, writeFileSync } from "fs"
+import { join, resolve } from "path"
 
 import { SRV } from "$/server"
+import { PageServer } from "$/server/page"
 import environment from "$/spell/node/environment"
 import { SP } from "$/spell"
 import { CLI } from "$/cli"
@@ -9,19 +11,27 @@ import { CLI } from "$/cli"
 /** `app` -- the spell app, its editor UI and its server. */
 const APP_DIR = resolve(environment.packagesDir, "app")
 
+/** This checkout:  the page server's root. */
+const REPO_ROOT = resolve(environment.packagesDir, "..")
+
+/** Where `spell serve` records the editor for the page server's `/editor` (`app`'s `appRoutes.ts` `EDITOR_FILE`). */
+const EDITOR_FILE = join(REPO_ROOT, ".spell-server.editor.json")
+
 /** How long to wait for both servers to answer. */
 const START_TIMEOUT_MS = 90_000
 
 /**
- * `spell serve [target]`:  run the spell app -- its editor UI and its server, which saves files to disk -- as
- * `app`'s `yarn start` does, and open it in a browser.
- * - Two processes, from `packages/app`:  vite (`yarn start:dev`), the editor UI with hot reload, on `--port` (default
- *   3000);  and the express server (`yarn start:server`, `/api`), on the next port up -- vite passes `/api` on to it.
- * - Unlike `yarn start`, stops no other servers, and runs no `yarn install`.
+ * `spell serve [target]`:  run EVERYTHING -- the spell app's editor, and the page server with the app's API, docs,
+ * plans, goals and Spell UI -- and open the editor in a browser.
+ * - The PAGE SERVER of this checkout (`yarn server`, `$/server/page`), started if it isn't running:  the app's
+ *   `/api` is one of its route modules (`app`'s `appRoutes.ts`), beside docs, plans, goals and `/ui/`.
+ * - The editor UI:  vite (`yarn start:dev` in `packages/app`), with hot reload, on `--port` (default 3000);  it passes
+ *   `/api` on to the page server.  Recorded in `.spell-server.editor.json`, so the site header's "Editor" finds it.
+ * - Stops no other servers, and runs no `yarn install`.
  * - `target`:  opens the editor on it, e.g. `@examples/Solitaire`.  No target:  the project here, if the app knows
  *   its root -- else the app's project chooser.  Only projects in the app's roots open:  not a `@workspace` folder.
  * - `--headless`:  no browser, just the URL.  Their output shows with `--verbose`, or if one fails.
- * - Runs until `Ctrl-C`, then stops both.  Returns the exit code.
+ * - Runs until `Ctrl-C`, then stops vite -- and the page server, if it started it.  Returns the exit code.
  */
 export async function serveCommand(
   session: CLI.CliSession,
@@ -29,34 +39,46 @@ export async function serveCommand(
   options: CLI.ServeOptions
 ): Promise<number> {
   const port = options.port ?? environment.vitePort
-  const apiPort = options.port ? port + 1 : environment.expressPort
   if (!Number.isInteger(port) || port < 1 || port > 65_534) throw new CLI.CliError(`--port must be a port number`)
-  for (const it of [port, apiPort]) {
-    // `::`, every interface:  vite listens on 0.0.0.0
-    if (!(await SRV.isFree(it, "::"))) {
-      throw new CLI.CliError(
-        `Port ${it} is in use -- \`spell serve --port <another>\`, or \`yarn stop\` in packages/app`
-      )
-    }
+  // `::`, every interface:  vite listens on 0.0.0.0
+  if (!(await SRV.isFree(port, "::"))) {
+    throw new CLI.CliError(
+      `Port ${port} is in use -- \`spell serve --port <another>\`, or \`yarn stop\` in packages/app`
+    )
   }
   const path = await pathFor(session, args[0])
 
-  const env = { ...process.env, VITE_PORT: String(port), PORT: String(apiPort) }
+  const status = new CLI.StatusReporter(session.isInteractive)
+  const pageRow = status.start("Starting the page server")
+  let page: Awaited<ReturnType<typeof PageServer.ensure>>
+  try {
+    page = await PageServer.ensure(REPO_ROOT)
+    status.done(pageRow, "ok", `${page.base}/${page.launched ? "" : "  (already running)"}`)
+  } catch (error) {
+    status.done(pageRow, "failed", error instanceof Error ? error.message : String(error))
+    status.finish()
+    return CLI.EXIT.ERRORS
+  }
+
+  // vite's proxy reaches the page server by IP:  `localhost` may be ::1 first, where it doesn't listen
+  const env = { ...process.env, VITE_PORT: String(port), PORT: String(page.port), API_SERVER: "127.0.0.1" }
   const servers: Server[] = [
-    start("editor (vite)", ["start:dev", "--port", String(port), "--strictPort"], env, options.verbose),
-    start("server (express)", ["start:server"], env, options.verbose)
+    start("editor (vite)", ["start:dev", "--port", String(port), "--strictPort"], env, options.verbose)
   ]
-  const stopAll = () => servers.forEach(({ child }) => stop(child))
+  writeFileSync(EDITOR_FILE, `${JSON.stringify({ url: `http://localhost:${port}/`, pid: process.pid }, null, 2)}\n`)
+  const stopAll = () => {
+    servers.forEach(({ child }) => stop(child))
+    rmSync(EDITOR_FILE, { force: true })
+  }
   process.once("exit", stopAll)
 
-  const status = new CLI.StatusReporter(session.isInteractive)
-  const row = status.start(`Starting the spell app on port ${port}`)
+  const row = status.start(`Starting the editor on port ${port}`)
   try {
     await Promise.race([
-      Promise.all([answers(`http://localhost:${port}/`), answers(`http://localhost:${apiPort}/hello`)]),
+      Promise.all([answers(`http://localhost:${port}/`), answers(`${page.base}/hello`)]),
       ...servers.map(({ exited }) => exited)
     ])
-    status.done(row, "ok", `/api on ${apiPort}`)
+    status.done(row, "ok", `/api on the page server, ${page.base}`)
   } catch (error) {
     status.done(row, "failed", error instanceof Error ? error.message : String(error))
     status.finish()
@@ -68,7 +90,7 @@ export async function serveCommand(
 
   const url = `http://localhost:${port}${path}`
   session.out(url)
-  session.err(`The spell app is at ${url} -- Ctrl-C to stop`)
+  session.err(`The spell app is at ${url};  docs, plans, goals and Spell UI at ${page.base}/ -- Ctrl-C to stop`)
   if (!options.headless) SRV.openBrowser(url)
 
   // until Ctrl-C -- or a server stops by itself
@@ -85,6 +107,7 @@ export async function serveCommand(
     )
   ])
   stopAll()
+  if (page.launched) await new SRV.PidFile(REPO_ROOT).stop()
   if (!stopped) return CLI.EXIT.OK
   session.err(
     `${stopped.message}${servers.map(({ output }) => (output.text ? `\n${tail(output.text)}` : "")).join("")}`

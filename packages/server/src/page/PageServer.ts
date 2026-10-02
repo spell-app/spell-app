@@ -61,10 +61,9 @@ export class PageServer {
     const router = this.web.router
     router.get("/", (_request, reply) => reply.redirect("/packages/docs/index.html"))
     router.get("/_server/ping", (_request, reply) => reply.set("Cache-Control", "no-store").json(this.info))
-    // before body parsing:  the proxy streams bodies through
+    // NOTE: no body parsing here:  each route parses its own (the app's `/api` is JSON5), and the proxy streams
     this.astro = new AstroProxy(this.root)
     if (this.astro.exists) this.astro.route(this.web)
-    router.use(SRV.parseBodies({ limit: 10 * 1024 * 1024 }))
     new PageEditor(this.root).route(router, this.web.guard)
   }
 

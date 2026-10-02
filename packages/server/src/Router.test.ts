@@ -139,7 +139,10 @@ describe("Router", () => {
       const twice = new SRV.Router().use(SRV.parseBodies(), SRV.parseBodies())
       twice.post("/x", (request, reply) => reply.json(request.body))
       const again = await serveHandler(twice.handle)
-      const answer = await ask(again.port, "POST", "/x", { body: `{"a":1}`, headers: { "content-type": "application/json" } })
+      const answer = await ask(again.port, "POST", "/x", {
+        body: `{"a":1}`,
+        headers: { "content-type": "application/json" }
+      })
       expect(JSON.parse(answer.text)).toEqual({ a: 1 })
       await again.close()
     })

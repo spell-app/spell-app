@@ -51,7 +51,7 @@
               >spell serve</code
             >) on one port, with live reload, a shared site header and an API that edits pages in place.
           </p>
-          <ui-progress class="plan-progress" value="6" total="8" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="7" total="8" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
           <ui-steps class="plan-phases" vertical ordered
@@ -61,7 +61,7 @@
             ><ui-step completed header="P4 · Docs And Preview" href="#p4" data-status="done" data-phase="4"></ui-step
             ><ui-step completed header="P5 · Goals Migration" href="#p5" data-status="done" data-phase="5"></ui-step
             ><ui-step completed header="P6 · App Router" href="#p6" data-status="done" data-phase="6"></ui-step
-            ><ui-step header="P7 · Spell Serve" href="#p7" data-status="todo" data-phase="7"></ui-step
+            ><ui-step completed header="P7 · Spell Serve" href="#p7" data-status="done" data-phase="7"></ui-step
             ><ui-step header="P8 · Doc Review" href="#p8" data-status="todo" data-phase="8"></ui-step
           ></ui-steps>
         </section>
@@ -933,9 +933,9 @@
               <li><b>Verify:</b> contract tests pass before and after; editor round-trip</li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="7" class="s3">
+          <section data-status="done" data-phase="7" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p7"><ui-icon name="circle outline" color="grey"></ui-icon> P7 · Spell Serve</h3></ui-sticky
+              ><h3 id="p7"><ui-icon name="circle check" color="green"></ui-icon> P7 · Spell Serve</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li><b>Goal:</b> spell serve / yarn start = page server with docs, plans, goals, Spell UI, editor</li>
@@ -1135,6 +1135,20 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T01:47-04:00">2026-10-02 01:47</time></ui-date> T2 closed: Delete
                   app ts.zip if stale</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:48-04:00">2026-10-02 01:48</time></ui-date> P7
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:50-04:00">2026-10-02 01:50</time></ui-date> P7
+                  done</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

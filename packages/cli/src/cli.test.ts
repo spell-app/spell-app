@@ -87,38 +87,42 @@ describe("spell icons", () => {
 describe("spell serve", () => {
   // one retry:  vite's first start, in a busy run, once timed out (plan doc I3)
   const options = { timeout: 180_000, retry: 1 }
-  test("--headless:  runs the app -- editor and /api -- on --port, opens the target, stops both", options, async () => {
-    // well away from the app's own 3000 / 3001, so a running `yarn start` doesn't clash
-    const port = 3700 + Math.floor(Math.random() * 200) * 2
-    const child = spawn(process.execPath, [SPELL, "serve", "@test/Solitaire", "--headless", "--port", String(port)], {
-      cwd: TEMP,
-      stdio: ["ignore", "pipe", "pipe"]
-    })
-    let out = ""
-    let err = ""
-    child.stdout.on("data", (data) => (out += data))
-    child.stderr.on("data", (data) => (err += data))
-    await until(() => out.includes("http://") || child.exitCode !== null, 120_000)
-    // on failure, `serve` prints both servers' last lines:  show them
-    expect(out, err).toContain("http://")
-    expect(out).toBe(`http://localhost:${port}/edit/fixtures/Solitaire\n`)
-    expect(await (await fetch(`http://localhost:${port}/`)).text()).toContain("<html")
-    const projects = await (await fetch(`http://localhost:${port}/api/projects/list/@test:fixtures`)).text()
-    expect(projects).toContain("Solitaire")
+  test(
+    "--headless:  runs the editor on --port, /api on the page server, opens the target, stops vite",
+    options,
+    async () => {
+      // well away from the app's own 3000, so a running `yarn start` doesn't clash
+      const port = 3700 + Math.floor(Math.random() * 200) * 2
+      const child = spawn(process.execPath, [SPELL, "serve", "@test/Solitaire", "--headless", "--port", String(port)], {
+        cwd: TEMP,
+        stdio: ["ignore", "pipe", "pipe"]
+      })
+      let out = ""
+      let err = ""
+      child.stdout.on("data", (data) => (out += data))
+      child.stderr.on("data", (data) => (err += data))
+      await until(() => out.includes("http://") || child.exitCode !== null, 120_000)
+      // on failure, `serve` prints vite's last lines:  show them
+      expect(out, err).toContain("http://")
+      expect(out).toBe(`http://localhost:${port}/edit/fixtures/Solitaire\n`)
+      expect(await (await fetch(`http://localhost:${port}/`)).text()).toContain("<html")
+      const projects = await (await fetch(`http://localhost:${port}/api/projects/list/@test:fixtures`)).text()
+      expect(projects).toContain("Solitaire")
 
-    child.kill("SIGINT")
-    expect(await new Promise((done) => child.on("exit", done))).toBe(0)
-    // both servers stopped with it
-    let apiUp = true
-    for (let tries = 0; apiUp && tries < 40; tries++) {
-      await new Promise((done) => setTimeout(done, 250))
-      apiUp = await fetch(`http://localhost:${port + 1}/hello`).then(
-        () => true,
-        () => false
-      )
+      child.kill("SIGINT")
+      expect(await new Promise((done) => child.on("exit", done))).toBe(0)
+      // vite stopped with it
+      let viteUp = true
+      for (let tries = 0; viteUp && tries < 40; tries++) {
+        await new Promise((done) => setTimeout(done, 250))
+        viteUp = await fetch(`http://localhost:${port}/`).then(
+          () => true,
+          () => false
+        )
+      }
+      expect(viteUp).toBe(false)
     }
-    expect(apiUp).toBe(false)
-  })
+  )
 
   test("a port in use", async () => {
     const busy = createServer()

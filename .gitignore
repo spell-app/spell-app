@@ -9,6 +9,7 @@ __pycache__/
 .spell-server.json
 .spell-server.log
 .spell-server.*.log
+.spell-server.*.json
 
 # `/bedtime`'s morning report:  never committed
 MORNING-*.md
