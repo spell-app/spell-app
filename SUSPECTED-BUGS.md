@@ -289,6 +289,12 @@ every entry below that date was fixed or disproven;  what's left:
   control in the title alone, as ui-accordion does;  test "leaves a click on a link inside a rich title").  Left:
   screen readers may not reach a link nested in a button.  Prove with VoiceOver on `#ui`;  a fix would render a
   rich title's controls outside the button.  (2026-10-02)
+- `src/components/ui-root/UIRoot.tsx`:  every `<ui-root>` -- bare, `icons`, `display`, from JSX or plain HTML -- logs
+  Solid's dev warning `[STRICT_READ_UNTRACKED] Reactive value read directly in an effect callback will not update`
+  once as it connects (seen in `app`'s `src/runner/runner.browser.test.tsx`, P7 of `solid-migration`).  Something in
+  its setup reads a signal in an effect's APPLY (or `onSettled`):  that read won't re-run it.  Harmless if the value
+  never changes after;  a missed update if it does.  Prove:  dev build, break on the warning, read the stack.
+  (2026-10-02)
 
 ### 3. Styling / CSS
 

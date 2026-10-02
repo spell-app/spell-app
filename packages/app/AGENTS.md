@@ -31,6 +31,10 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
     `yarn start:server` / `start:server:prod` still run the API alone, on port 3001 (`src/server/index.ts`).
   - `yarn build` -- the app.  `yarn build:runner` -- `dist-runner/` (VS Code's "Run Project" webview).
     `yarn build:element` -- `dist-element/` (`<spell-app>` and `<spell-editor>`).
+  - ONE Solid per page across those bundles:  `vite.solid.config.ts` builds FIRST into each folder `spell-solid.js`
+    (Solid + `@spell-app/solid-element`) and `spell-ui.js` (`$/ui`, lazy;  its chunks in `ui/`, icon packs beside
+    it);  the element / editor / runner builds import them through `sharedSolid()` (`vite.shared.ts`), never
+    bundling their own.  `spell-runtime.js` never loads them.  Pinned by `element.build.test.ts`.
   - `yarn vscode` is NOT here:  it's the repo root's.  `yarn start:lsp` and `yarn scopes` are in `../lsp`.
 - `src/ui/monaco/` is the app's Monaco plumbing (no UI), whose language features call the SAME
   `LSP.SpellLanguageService` in-process.  `$/lsp` MUST stay browser-safe for it.  The editors on it are Solid,
@@ -39,13 +43,18 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
     `$/app/ui/monaco` or `$/app/solid/monaco` statically outside those folders -- types aside -- or Monaco (~4.4 MB)
     lands in the main bundle again.
 - Solid panes in React pages (P6, until P8):  the React `UI` barrel's `./islands` mounts the Solid panes under
-  their old names (`UI.InputRoot`, `UI.ConsoleRoot` ...);  the runners' `./runnerIslands` likewise, importing the
-  Solid files directly.  An island's wrapper is `.SolidIsland`, `display: contents`:  a `> *` rule reaches its pane
-  with `> .SolidIsland > *` (`SplitPanel.css`).  `index.html` wraps the app in `<ui-root icons="fomantic">`:  the
+  their old names (`UI.InputRoot`, `UI.ConsoleRoot` ...).  An island's wrapper is `.SolidIsland`, `display:
+  contents`:  a `> *` rule reaches its pane with `> .SolidIsland > *` (`SplitPanel.css`).  `index.html` wraps the app in `<ui-root icons="fomantic">`:  the
   app's icon names are Fomantic's (`src/solid/loadUI.ts`).
 - `src/runner/` runs compiled spell:  the pieces every runner shares -- the web app's editor, VS Code's
   "Run Project" webview (`VSCodeRunner`, `yarn build:runner`) and the `<spell-app>` web component
   (`SpellAppElement`, `yarn build:element` => `dist-element/`, demo at `/demo/spell-app.html` on the dev server).
+  - Solid (P7), on `@spell-app/ui`:  the runners import the Solid panes' FILES (`$/app/solid/ThingExplorer`,
+    `.../ConsoleLines`, `.../loadUI`), never the `$/app/solid` barrel (it pulls in the editor).  `<spell-app>` and
+    `<spell-editor>` are `customElement()`s (`@spell-app/solid-element`) on a base class holding their methods;
+    `<spell-app>` wraps its shadow root in `<ui-root icons="fomantic">`, VS Code's webview HTML its `#runner-root`.
+  - The PROGRAM still draws with React (`App.start()` makes its own root):  a runner hands it `appRoot`, a `<div>`
+    drawn once and never touched again;  Semantic UI's CSS stays wherever programs draw.
   - Programs run on `spell-runtime.js` (`spellRuntime.ts`), NEVER the page's own `core`:  the app loads it
     once (`editor.loadRuntime()`), the VS Code runner once, and each `<spell-app>` its OWN copy (`loadRuntime()`),
     so apps on a page don't share a `spellCore`.  No import map:  `runCompiled()` links each program's imports.

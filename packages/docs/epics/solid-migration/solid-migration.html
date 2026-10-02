@@ -25,9 +25,7 @@
           ><header class="spell-page-head">
             <h1>Solid Migration</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p7"
-                >next: P7 · Web Components + Runner</ui-label
-              ></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p8">next: P8 · Editor Shell</ui-label></span
             >
           </header></ui-sticky
         >
@@ -59,7 +57,7 @@
           </p>
 
           <blockquote class="plan-prompt"><p>convert this into a plan doc with name "solid-migration"</p></blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 16h 30m-26h in all, 10h-14h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 16h 30m-26h in all, 8h-11h left</p>
           <ui-section id="o1" header="1.1 Where it stands" sticky collapsible dividing>
             <ul>
               <li>
@@ -496,7 +494,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="5" total="10" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="6" total="10" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -603,7 +601,16 @@
               ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p6" data-phase="6" data-status="done" header="P6 · Shared App UI" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p6"
+            data-phase="6"
+            data-status="done"
+            header="P6 · Shared App UI"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -620,13 +627,13 @@
           <ui-section
             id="p7"
             data-phase="7"
-            data-status="todo"
+            data-status="done"
             header="P7 · Web Components + Runner"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> <code>&lt;spell-app&gt;</code> / <code>&lt;spell-editor&gt;</code> and the VS Code runner
@@ -1322,6 +1329,56 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="d21" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d21">D21</a>
+                  <span class="plan-title"
+                    >P7: one Solid per page across our builds -- spell-solid.js + spell-ui.js from a third build</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    A third build, packages/app/vite.solid.config.ts, runs FIRST in yarn build:element (and in yarn
+                    build:runner, --outDir dist-runner): its one entry is a virtual module re-exporting solid-js,
+                    @solidjs/web and @spell-app/solid-element WHOLE as spell-solid.js, plus loadSpellUI = () =&gt;
+                    import($/ui), which makes ui's barrel a lazy chunk, spell-ui.js, whose own lazy chunks go in ui/.
+                    The element, editor and runner builds add sharedSolid() (vite.shared.ts): an enforce-pre resolveId
+                    that makes solid-js, @solidjs/web, @spell-app/solid-element and $/ui externals, written as
+                    ./spell-solid.js / ./spell-ui.js by output.paths; any other Solid / ui specifier is a build error.
+                    Why not one build with three entries: cssCodeSplit false would put Monaco's CSS in spell-app.css
+                    (CODE-DEBT). Why ONE entry, not spell-ui as a second: with two entries rolldown split Solid into a
+                    shared ui/customElement.js chunk; as a dynamic import of spell-solid.js everything ui needs from
+                    Solid is exported by spell-solid.js (allow-extension). base ./ so Vite's module preloading of ui's
+                    chunks doesn't 404 at the page's /. spell-runtime.js never loads either file. The runner uses the
+                    same layout (one pin, one webview CSP). Bonus: an import-map variant of the elements is the same
+                    configs without output.paths. Pinned by element.build.test.ts (sourcemap sources per chunk).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d22" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d22">D22</a>
+                  <span class="plan-title"
+                    >P7a: elements are customElement() on a base class; pushed code is a property-only prop</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>&lt;spell-app&gt;</code> / <code>&lt;spell-editor&gt;</code> are <code>customElement()</code>s
+                    (<a href="../../../solid-element/README.md" target="src-packages-solid-element-readme-md"
+                      ><code>@spell-app/solid-element</code></a
+                    >) with <code>BaseElement</code> holding their methods (<code>run()</code>, <code>restart()</code>,
+                    <code>compile()</code>, <code>save()</code>, <code>assets</code>). Every attribute is now a property
+                    too. Code an editor pushed is the property-only prop <code>pushed</code>, dropped by an
+                    <code>addPropertyChangedCallback</code> when <code>project</code> / <code>src</code> /
+                    <code>scopes</code> / <code>name</code> / <code>editor</code> change. The editor keeps its state in
+                    <code>ownedWrite</code> signals the component draws. Leaving the page disposes a microtask later, so
+                    a same-tick move keeps the app. <code>&lt;spell-app&gt;</code> wraps its shadow root in
+                    <code>&lt;ui-root icons=fomantic display=immediately&gt;</code>; the VS Code webview HTML wraps
+                    <code>#runner-root</code> the same way.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1576,6 +1633,25 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="c16" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c16">C16</a>
+                  <span class="plan-title"
+                    >P7a: loadUI adds the fomantic icon pack PAGE-wide, also from spell-app.js</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The runners import <code>$/app/solid/loadUI</code>, which calls
+                    <code>UI.icons.use('fomantic')</code> for the whole page. On a host page that uses
+                    <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a>
+                    itself, loading <code>&lt;spell-app&gt;</code> switches the host's clashing icon names (27, e.g.
+                    <code>x</code>, <code>warning</code>) to Fomantic's. The runner's own icons don't need it: its
+                    shadow root has a <code>&lt;ui-root icons=fomantic&gt;</code>. Fix: a loadUI variant without the
+                    page-wide use() for the element bundle.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1624,7 +1700,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="t3" data-status="open"
+            ><ui-item id="t3" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t3">T3</a>
@@ -2017,6 +2093,67 @@
               ><ui-content
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T17:34-04:00">2026-10-02 17:34</time></ui-date> P6
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T17:34-04:00">2026-10-02 17:34</time></ui-date> P7
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T17:50-04:00">2026-10-02 17:50</time></ui-date> T3 closed: Icon
+                  packs: turn on when ui-* elements render (P6 / P7)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T17:50-04:00">2026-10-02 17:50</time></ui-date> T3 closed (P7 half
+                  B): appConfig({ iconPacks: true }) now FINDS the chunk holding BuiltInPacks and emits the packs beside
+                  it (vite.shared.ts iconPacksBesideBuiltIns(); build error if none). On for the app
+                  (assets/icon-packs), and vite.solid.config.ts (dist-element/icon-packs, dist-runner/icon-packs, beside
+                  spell-ui.js). All three packs: 2,170 files, 2.2 MB real bytes (the 8.7 MB was du's 4 kB blocks);
+                  fomantic points into fa7-free AND fa7-brands (448 icons), so emitting only the needed would save ~0.2
+                  MB. Verified: icons draw from the built dist-element (headless Chromium, 200s for pack.js +
+                  SVGs).</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T17:57-04:00">2026-10-02 17:57</time></ui-date> P7a (runners +
+                  elements): RunnerSplit / RunnerPane / RunnerConsole / SpellAppRunner / VSCodeRunner / main.tsx on
+                  Solid + ui-menu; runnerIslands.ts deleted; &lt;spell-app&gt; and &lt;spell-editor&gt; are
+                  customElement()s; VS Code webview wraps the runner in ui-root icons=fomantic. 20 browser tests
+                  (runner.browser.test.tsx, spellEditor.browser.test.tsx). Live: both demo pages, /run and /edit Todos,
+                  and a simulated webview under RunnerPanel's CSP, no console errors. Fixed: &lt;spell-editor&gt; with
+                  no project said Loading forever.</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T17:58-04:00">2026-10-02 17:58</time></ui-date> C16 closed: P7a:
+                  loadUI adds the fomantic icon pack PAGE-wide, also from spell-app.js</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T18:04-04:00">2026-10-02 18:04</time></ui-date> P7: runners,
+                  spell-app and spell-editor on Solid (customElement); one spell-solid.js per page across builds (D21);
+                  icon packs in builds (T3); C16 fixed (Fomantic page-wide only in the editor app)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T18:04-04:00">2026-10-02 18:04</time></ui-date> P7
                   done</ui-summary
                 ></ui-content
               ></ui-event

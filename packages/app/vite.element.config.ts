@@ -2,15 +2,18 @@ import { readFileSync } from "fs"
 import { defineConfig, type Plugin } from "vite"
 
 import environment from "../spell/src/node/environment.ts"
-import { appConfig } from "./vite.shared.ts"
+import { appConfig, sharedSolid } from "./vite.shared.ts"
 
 /**
- * Build the `<spell-app>` web component:  `yarn build:element` => `dist-element/`.
+ * Build the `<spell-app>` web component:  `yarn build:element` => `dist-element/`, after `vite.solid.config.ts`.
  * - Two entries:
  *   - `spell-app.js`:  the element, for pages to load -- see `src/runner/element.ts`
  *   - `spell-runtime.js`:  what ONE app runs on, loaded afresh per element -- see `spellRuntime.ts`
  * - What both use goes in shared chunks, e.g. React:  so every app's copy of the runtime shares ONE React.
  *   `spellCore` MUST stay in `spell-runtime.js` alone -- pinned by `element.build.test.ts`.
+ * - Solid, `@spell-app/solid-element` and `@spell-app/ui` are NOT bundled:  they come from `spell-solid.js` /
+ *   `spell-ui.js` beside it (`sharedSolid()`), which `<spell-editor>` imports too -- one Solid per page.
+ *   `spell-runtime.js` never imports them:  compiled spell runs on React.
  * - Fixed names, no hashes:  the element finds the runtime, styles and scope packs beside itself.
  * - One `spell-app.css`, which the element puts in each shadow root -- see `shadowStyles.ts`.
  * - `static/` is copied in, so Semantic UI and Lato sit beside the bundle -- and the built-in types' scope pack,
@@ -21,12 +24,13 @@ import { appConfig } from "./vite.shared.ts"
 const shared = appConfig()
 export default defineConfig({
   ...shared,
-  plugins: [...shared.plugins, builtInsPack()],
+  plugins: [...shared.plugins, sharedSolid(), builtInsPack()],
   publicDir: "static",
   build: {
     chunkSizeWarningLimit: 2000,
     outDir: "dist-element",
-    emptyOutDir: true,
+    // `vite.solid.config.ts` emptied it
+    emptyOutDir: false,
     sourcemap: true,
     cssCodeSplit: false,
     rolldownOptions: {
