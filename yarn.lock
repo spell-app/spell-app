@@ -2679,6 +2679,24 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@spell-app/server@workspace:packages/server":
+  version: 0.0.0-use.local
+  resolution: "@spell-app/server@workspace:packages/server"
+  dependencies:
+    "@types/node": "npm:^22.20.4"
+    "@typescript/typescript6": "npm:^6.0.2"
+    json5: "npm:^2.1.1"
+    oxfmt: "npm:^0.71.0"
+    oxlint: "npm:^1.86.0"
+    oxlint-tsgolint: "npm:^7.0.2003"
+    parse5: "npm:^7.3.0"
+    tsx: "npm:4.20.3"
+    typescript: "npm:^7.0.2"
+    vite: "npm:^8.3.1"
+    vitest: "npm:^5.0.2"
+  languageName: unknown
+  linkType: soft
+
 "@spell-app/solid-element@workspace:*, @spell-app/solid-element@workspace:packages/solid-element":
   version: 0.0.0-use.local
   resolution: "@spell-app/solid-element@workspace:packages/solid-element"
@@ -8424,7 +8442,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"parse5@npm:^7.0.0, parse5@npm:^7.1.2":
+"parse5@npm:^7.0.0, parse5@npm:^7.1.2, parse5@npm:^7.3.0":
   version: 7.3.0
   resolution: "parse5@npm:7.3.0"
   dependencies:

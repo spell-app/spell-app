@@ -1,0 +1,19 @@
+{
+  "folders": [
+    {
+      "path": "../..",
+      "name": "spell-app"
+    },
+    {
+      "path": ".",
+      "name": "server"
+    }
+  ],
+  "settings": {
+    "workbench.colorTheme": "Default Dark+",
+    "files.exclude": {
+      "packages": true,
+      ".claude/worktrees": true
+    }
+  }
+}

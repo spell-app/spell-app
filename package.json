@@ -14,6 +14,7 @@
     "packages/spell",
     "packages/app",
     "packages/core",
+    "packages/server",
     "packages/ui",
     "packages/ui/site",
     "packages/util"

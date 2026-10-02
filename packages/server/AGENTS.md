@@ -1,0 +1,49 @@
+# AGENTS.md
+
+This file provides guidance to AI coding agents (Claude Code, Codex, and others)
+when working with code in this package, `@spell-app/server`.
+
+**Root conventions apply:  READ the repo root's `AGENTS.md` FIRST** -- its Documentation, Functions,
+Types / Exports and Imports sections all apply here.  Only what DIFFERS is below.
+
+## Overview
+
+- Serving pages locally, for every package:  `$/server` (`SRV`).  Before this package, six servers each had their
+  own mime table, path check, port choice and opener;  now they share these.
+  - `mime.ts` -- ONE content-type table, `typeFor()`
+  - `safePath.ts` -- `resolveInside()`:  URL path -> file under a root, never outside it
+  - `StaticHandler` -- folders under URL prefixes, with html / per-extension hooks and an `ETag`
+  - `Request` / `Reply` / `Router` / `bodies.ts` -- the part of Express the app's `api.ts` uses
+  - `listener.ts` -- `toListener()`:  a `Handler` as node's `(req, res)`, with the 404 / error answers
+  - `ports.ts` -- `isFree`, `freePort`, `listenPreferred`
+  - `open.ts` -- browser, new window, reused Chrome tab, VS Code's Simple Browser
+  - `FileLock` -- `<file>.lock`, so tools writing the same file take turns
+  - `untilInterrupted.ts` -- run until `Ctrl-C`
+- It's a LEAF:  node built-ins only (json5 / esbuild come in as hooks), and it imports NO other package, so
+  anything may import it -- `ui`'s tools and site, `spell/node`, `cli`, `app`, `docs`, `goals`, the VS Code
+  extension.
+- NOT in the barrel, opt-in by path:
+  - `$/server/page/...` -- the page server (one per checkout), its CLI (`yarn server`), page edits;  may use deps
+    (`parse5`)
+  - `$/server/site/...` -- browser code:  the site header every page shows
+  - `$/server/test/...` -- test helpers (`serveHandler`, `ask`)
+- Commands:  `yarn review`, `yarn ts`, `yarn lint`, `yarn format`, `yarn test` (node).
+
+## Express, on purpose
+
+- `Request` / `Reply` / `Router` keep Express's names and behaviour (`params`, `query`, `body` default `{}`,
+  `originalUrl`, `baseUrl`, `status().send()`, `send(string)` is `text/html`, `sendFile` skips dot files), so
+  handlers move over unchanged.
+- ONE deliberate difference:  `:name*` holds the WHOLE rest of the path.  Express 4 put only the first segment there.
+
+## Imports
+
+- As the root's, with `SRV` ~== `$/server` as our one namespace.
+- Tests use `$/server/test/serve` (`serveHandler`, `ask`):  real HTTP through `node:http`, never `fetch`, which
+  resolves `..` before sending.
+
+## Types / Exports
+
+As the root's, plus our self-namespace:
+
+- `SRV` ~== `$/server`
