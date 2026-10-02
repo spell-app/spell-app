@@ -20,6 +20,7 @@ export const labelVocabulary = {
   tag: "ui-label",
   topics: ["status", "text", "basic", "elements"],
   aka: ["badge", "chip", "tag", "pill", "lozenge", "count"],
+  skeleton: { display: "inline", width: "4em", height: "1.8em" },
   noun: "label",
   plural: "labels",
   description: "A label displays content classification.",

@@ -21,6 +21,7 @@ export const placeholderImageVocabulary = {
   tag: "ui-placeholder-image",
   topics: ["loading", "images", "elements"],
   aka: ["skeleton image", "image placeholder"],
+  skeleton: null,
   noun: "image",
   ui: false,
   description: "The skeleton of an image:  a block of fixed height, or of a fixed aspect ratio.",

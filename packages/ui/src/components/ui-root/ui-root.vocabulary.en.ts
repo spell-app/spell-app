@@ -17,6 +17,7 @@ export const rootVocabulary = {
   tag: "ui-root",
   topics: ["layout", "containers", "loading", "basic"],
   aka: ["app shell", "app root", "provider", "loader", "lazy loading", "theme provider"],
+  skeleton: null,
   noun: "root",
   description:
     "A root loads the components inside it on demand, sets their theme and size, and shows them once they're ready.",
@@ -27,7 +28,8 @@ export const rootVocabulary = {
       values: ["skeleton", "when-ready", "immediately"],
       default: "skeleton",
       description:
-        "While components load:  `skeleton` -- placeholders, then the content;  `when-ready` -- nothing (space kept) " +
+        "While components load:  `skeleton` -- a placeholder per component that describes one (else nothing), then " +
+        "the content;  `when-ready` -- nothing (space kept) " +
         "until everything is ready;  `immediately` -- draw as things arrive."
     },
     {
@@ -103,7 +105,10 @@ export const rootVocabulary = {
     }
   ],
   slots: [{ name: "", description: "The page or app:  any markup, with `ui-*` elements anywhere inside." }],
-  parts: [{ name: "loading", description: "The `<ui-loader>` shown with `loading`." }],
+  parts: [
+    { name: "loading", description: "The `<ui-loader>` shown with `loading`." },
+    { name: "skeleton", description: 'The box of `<ui-placeholder>`s shown with `display="skeleton"`.' }
+  ],
   states: [
     { name: "loading", description: "Components inside are still loading." },
     { name: "ready", description: "Everything inside is ready (or the timeout passed)." },

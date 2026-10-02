@@ -20,6 +20,7 @@ export const itemVocabulary = {
   tag: "ui-item",
   topics: ["lists", "content parts", "data display", "views"],
   aka: ["list item", "media object", "row"],
+  skeleton: null,
   noun: "item",
   ui: false,
   description: "An item of a dropdown, list, menu or Items view.",

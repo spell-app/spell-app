@@ -17,6 +17,7 @@ export const sideVocabulary = {
   tag: "ui-side",
   topics: ["animation", "content parts", "modules"],
   aka: ["shape side", "face"],
+  skeleton: null,
   noun: "side",
   ui: false,
   description: "One side of a shape.",

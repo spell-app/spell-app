@@ -127,7 +127,7 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | library (full:  every export of the peer set) | 173.54 | 60.50 | comparison |
 | core (element core + foundation JS) | 49.81 | 16.22 | eager |
 | forms (form base, validation, menu options;  imported by `ui-dropdown`, `ui-input`, `ui-checkbox`, `ui-form`, `ui-select`, `ui-search`, `ui-rating`, `ui-slider`, `ui-calendar`) | 20.56 | 7.45 | eager |
-| own, all 54 families | 1413.72 | 398.31 | eager |
+| own, all 54 families | 1420.86 | 400.60 | eager |
 | api (`E` / `V` namespaces, `@spell-app/ui/api`) | 0.73 | 0.33 | app only |
 | runtime (`UIRuntime` + foundation CSS) | 180.63 | 31.10 | lazy |
 | icons (none bundled:  pack indexes and SVGs are separate files, `docs/icons.md`) | 0.00 | 0.00 | lazy |
@@ -139,60 +139,60 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 <!-- generated:bundle-families -->
 | Family | own min+gz kB | classes | css | vocabulary | fallback | imports | page with only it | standalone (library bundled) |
 | --- | --: | --: | --: | --: | --: | --- | --: | --: |
-| `ui-button` | **13.17** | 4.49 | 4.13 | 2.60 | 2.11 | core | 57.47 | 43.28 |
-| `ui-dropdown` | **16.82** | 7.23 | 4.91 | 2.47 | 2.50 | core + forms | 68.58 | 65.82 |
-| `ui-icon` | **5.79** | 2.17 | 1.91 | 1.26 | 1.58 | core | 50.09 | 36.37 |
-| `ui-label` | **8.70** | 2.88 | 3.53 | 1.66 | 1.56 | core | 53.00 | 50.77 |
-| `ui-parts` | **15.36** | 5.52 | 5.61 | 2.55 | 1.62 | core | 59.66 | 51.92 |
-| `ui-divider` | **3.88** | 1.67 | 0.96 | 0.78 | 1.48 | core | 48.18 | 34.46 |
-| `ui-segment` | **7.46** | 2.26 | 3.35 | 1.48 | 1.45 | core | 51.77 | 38.02 |
-| `ui-container` | **3.39** | 1.45 | 0.85 | 0.68 | 1.40 | core | 47.69 | 33.67 |
-| `ui-grid` | **7.95** | 2.47 | 3.31 | 1.58 | 1.46 | core | 52.26 | 39.28 |
-| `ui-image` | **5.69** | 2.33 | 1.62 | 1.24 | 1.58 | core | 49.99 | 35.81 |
-| `ui-text` | **2.75** | 1.47 | 0.40 | 0.45 | 1.40 | core | 47.05 | 33.02 |
-| `ui-flag` | **6.09** | 4.33 | 0.56 | 0.60 | 1.64 | core | 50.40 | 37.58 |
-| `ui-loader` | **4.32** | 1.65 | 1.30 | 0.79 | 1.54 | core | 48.63 | 34.72 |
-| `ui-placeholder` | **5.99** | 3.33 | 1.38 | 0.90 | 1.54 | core | 50.30 | 36.26 |
-| `ui-message` | **5.75** | 2.03 | 1.86 | 1.06 | 1.81 | core | 50.05 | 36.55 |
-| `ui-breadcrumb` | **5.11** | 2.78 | 0.99 | 0.77 | 1.80 | core | 49.42 | 35.85 |
-| `ui-input` | **10.49** | 4.61 | 2.76 | 1.95 | 2.22 | core + forms | 62.25 | 52.24 |
-| `ui-checkbox` | **9.39** | 5.28 | 2.69 | 0.60 | 2.12 | core + forms | 61.15 | 45.78 |
-| `ui-form` | **10.74** | 6.32 | 2.16 | 1.84 | 1.61 | core + forms | 62.50 | 49.80 |
-| `ui-item` | **4.89** | 2.75 | 0.37 | 1.02 | 1.87 | core | 49.20 | 40.25 |
-| `ui-list` | **7.19** | 2.04 | 3.44 | 0.99 | 1.63 | core | 51.49 | 45.96 |
-| `ui-menu` | **10.10** | 2.81 | 4.36 | 1.42 | 1.62 | core | 54.41 | 48.34 |
-| `ui-table` | **13.67** | 4.58 | 5.41 | 1.93 | 1.92 | core | 57.98 | 47.89 |
-| `ui-popup` | **8.71** | 3.91 | 2.56 | 1.54 | 1.83 | core | 53.02 | 38.82 |
-| `ui-modal` | **9.03** | 4.10 | 2.14 | 1.53 | 2.47 | core | 53.33 | 71.81 |
-| `ui-transition` | **4.90** | 2.94 | 0.28 | 0.93 | 1.89 | core | 49.21 | 35.02 |
-| `ui-dimmer` | **6.27** | 3.00 | 1.09 | 1.26 | 2.10 | core | 50.58 | 36.56 |
-| `ui-flyout` | **5.26** | 1.49 | 1.84 | 1.34 | 1.59 | core | 49.57 | 75.56 |
-| `ui-sidebar` | **8.52** | 4.63 | 1.84 | 1.44 | 1.90 | core | 52.82 | 38.83 |
-| `ui-shape` | **6.11** | 4.09 | 0.80 | 0.87 | 1.56 | core | 50.41 | 36.23 |
-| `ui-card` | **8.25** | 3.33 | 2.71 | 1.51 | 1.90 | core | 52.56 | 57.23 |
-| `ui-items` | **4.15** | 1.55 | 1.47 | 0.61 | 1.50 | core | 48.45 | 57.26 |
-| `ui-feed` | **5.79** | 2.68 | 1.49 | 0.95 | 1.88 | core | 50.09 | 55.49 |
-| `ui-comment` | **4.49** | 2.38 | 0.87 | 0.76 | 1.70 | core | 48.80 | 53.87 |
-| `ui-statistic` | **4.89** | 2.25 | 1.24 | 1.01 | 1.54 | core | 49.19 | 41.66 |
-| `ui-step` | **8.84** | 2.99 | 3.62 | 1.55 | 1.86 | core | 53.15 | 50.94 |
-| `ui-rail` | **2.92** | 1.45 | 0.53 | 0.53 | 1.40 | core | 47.22 | 33.18 |
-| `ui-reveal` | **4.13** | 2.03 | 0.91 | 0.63 | 1.58 | core | 48.44 | 34.37 |
-| `ui-ad` | **3.47** | 1.55 | 0.84 | 0.60 | 1.48 | core | 47.77 | 33.71 |
-| `ui-emoji` | **4.91** | 3.02 | 0.61 | 0.74 | 1.57 | core | 49.21 | 35.51 |
-| `ui-select` | **8.10** | 3.42 | 2.23 | 1.07 | 2.53 | core + forms | 59.86 | 53.52 |
-| `ui-search` | **12.98** | 6.71 | 2.44 | 2.12 | 2.12 | core + forms | 64.74 | 53.73 |
-| `ui-progress` | **7.46** | 3.32 | 2.09 | 1.31 | 1.76 | core | 51.76 | 38.08 |
-| `ui-rating` | **6.50** | 3.64 | 0.94 | 0.95 | 2.11 | core + forms | 58.26 | 42.36 |
-| `ui-slider` | **9.11** | 4.84 | 1.85 | 1.28 | 2.23 | core + forms | 60.87 | 44.52 |
-| `ui-accordion` | **7.10** | 3.41 | 1.68 | 1.26 | 1.89 | core | 51.41 | 57.74 |
-| `ui-tab` | **8.55** | 5.08 | 0.94 | 1.77 | 2.12 | core | 52.86 | 47.90 |
-| `ui-toast` | **11.20** | 6.31 | 2.23 | 1.81 | 2.11 | core | 55.51 | 54.28 |
-| `ui-nag` | **6.07** | 3.17 | 0.95 | 1.23 | 1.76 | core | 50.37 | 36.65 |
-| `ui-sticky` | **3.72** | 2.37 | 0.31 | 0.56 | 1.50 | core | 48.02 | 34.07 |
-| `ui-visibility` | **3.63** | 2.13 | 0.14 | 0.84 | 1.60 | core | 47.94 | 33.91 |
-| `ui-embed` | **6.36** | 3.58 | 0.87 | 1.19 | 2.06 | core | 50.67 | 36.95 |
-| `ui-calendar` | **15.49** | 9.51 | 2.06 | 2.18 | 2.15 | core + forms | 67.24 | 55.13 |
-| `ui-root` | **6.70** | 4.63 | 0.30 | 1.43 | 1.37 | core | 51.00 | 52.42 |
+| `ui-button` | **13.20** | 4.49 | 4.13 | 2.64 | 2.11 | core | 57.50 | 43.33 |
+| `ui-dropdown` | **16.85** | 7.23 | 4.91 | 2.51 | 2.50 | core + forms | 68.61 | 65.86 |
+| `ui-icon` | **5.81** | 2.17 | 1.91 | 1.29 | 1.58 | core | 50.12 | 36.40 |
+| `ui-label` | **8.73** | 2.88 | 3.53 | 1.70 | 1.56 | core | 53.04 | 50.81 |
+| `ui-parts` | **15.39** | 5.52 | 5.61 | 2.59 | 1.62 | core | 59.70 | 51.95 |
+| `ui-divider` | **3.89** | 1.67 | 0.96 | 0.80 | 1.48 | core | 48.20 | 34.48 |
+| `ui-segment` | **7.50** | 2.26 | 3.35 | 1.52 | 1.45 | core | 51.81 | 38.05 |
+| `ui-container` | **3.40** | 1.45 | 0.85 | 0.69 | 1.40 | core | 47.70 | 33.68 |
+| `ui-grid` | **7.96** | 2.47 | 3.31 | 1.59 | 1.46 | core | 52.27 | 39.29 |
+| `ui-image` | **5.73** | 2.33 | 1.62 | 1.28 | 1.58 | core | 50.03 | 35.85 |
+| `ui-text` | **2.76** | 1.47 | 0.40 | 0.46 | 1.40 | core | 47.06 | 33.03 |
+| `ui-flag` | **6.12** | 4.33 | 0.56 | 0.64 | 1.64 | core | 50.43 | 37.62 |
+| `ui-loader` | **4.33** | 1.65 | 1.30 | 0.79 | 1.54 | core | 48.63 | 34.73 |
+| `ui-placeholder` | **6.00** | 3.33 | 1.38 | 0.90 | 1.54 | core | 50.31 | 36.27 |
+| `ui-message` | **5.79** | 2.03 | 1.86 | 1.09 | 1.81 | core | 50.09 | 36.58 |
+| `ui-breadcrumb` | **5.14** | 2.78 | 0.99 | 0.80 | 1.80 | core | 49.45 | 35.88 |
+| `ui-input` | **10.54** | 4.61 | 2.76 | 2.00 | 2.22 | core + forms | 62.29 | 52.29 |
+| `ui-checkbox` | **9.43** | 5.28 | 2.69 | 0.64 | 2.12 | core + forms | 61.18 | 45.81 |
+| `ui-form` | **10.76** | 6.32 | 2.16 | 1.86 | 1.61 | core + forms | 62.52 | 49.83 |
+| `ui-item` | **4.90** | 2.75 | 0.37 | 1.03 | 1.87 | core | 49.20 | 40.26 |
+| `ui-list` | **7.22** | 2.04 | 3.44 | 1.02 | 1.63 | core | 51.52 | 45.99 |
+| `ui-menu` | **10.12** | 2.81 | 4.36 | 1.43 | 1.62 | core | 54.42 | 48.37 |
+| `ui-table` | **13.72** | 4.58 | 5.41 | 1.98 | 1.92 | core | 58.02 | 47.93 |
+| `ui-popup` | **8.72** | 3.91 | 2.56 | 1.55 | 1.83 | core | 53.02 | 38.83 |
+| `ui-modal` | **9.03** | 4.10 | 2.14 | 1.54 | 2.47 | core | 53.34 | 71.90 |
+| `ui-transition` | **4.91** | 2.94 | 0.28 | 0.94 | 1.89 | core | 49.22 | 35.03 |
+| `ui-dimmer` | **6.28** | 3.00 | 1.09 | 1.27 | 2.10 | core | 50.58 | 36.57 |
+| `ui-flyout` | **5.27** | 1.49 | 1.84 | 1.35 | 1.59 | core | 49.58 | 75.65 |
+| `ui-sidebar` | **8.53** | 4.63 | 1.84 | 1.45 | 1.90 | core | 52.83 | 38.84 |
+| `ui-shape` | **6.12** | 4.09 | 0.80 | 0.88 | 1.56 | core | 50.42 | 36.24 |
+| `ui-card` | **8.32** | 3.33 | 2.71 | 1.57 | 1.90 | core | 52.62 | 57.33 |
+| `ui-items` | **4.19** | 1.55 | 1.47 | 0.66 | 1.50 | core | 48.49 | 57.32 |
+| `ui-feed` | **5.84** | 2.68 | 1.49 | 1.00 | 1.88 | core | 50.14 | 55.55 |
+| `ui-comment` | **4.54** | 2.38 | 0.87 | 0.81 | 1.70 | core | 48.85 | 53.93 |
+| `ui-statistic` | **4.92** | 2.25 | 1.24 | 1.04 | 1.54 | core | 49.23 | 41.70 |
+| `ui-step` | **8.86** | 2.99 | 3.62 | 1.58 | 1.86 | core | 53.17 | 50.95 |
+| `ui-rail` | **2.93** | 1.45 | 0.53 | 0.54 | 1.40 | core | 47.23 | 33.19 |
+| `ui-reveal` | **4.14** | 2.03 | 0.91 | 0.64 | 1.58 | core | 48.45 | 34.38 |
+| `ui-ad` | **3.49** | 1.55 | 0.84 | 0.63 | 1.48 | core | 47.79 | 33.74 |
+| `ui-emoji` | **4.94** | 3.02 | 0.61 | 0.77 | 1.57 | core | 49.24 | 35.53 |
+| `ui-select` | **8.13** | 3.42 | 2.23 | 1.11 | 2.53 | core + forms | 59.89 | 53.56 |
+| `ui-search` | **13.02** | 6.71 | 2.44 | 2.16 | 2.12 | core + forms | 64.77 | 53.76 |
+| `ui-progress` | **7.47** | 3.32 | 2.09 | 1.32 | 1.76 | core | 51.77 | 38.09 |
+| `ui-rating` | **6.54** | 3.64 | 0.94 | 0.99 | 2.11 | core + forms | 58.29 | 42.39 |
+| `ui-slider` | **9.14** | 4.84 | 1.85 | 1.31 | 2.23 | core + forms | 60.89 | 44.54 |
+| `ui-accordion` | **7.14** | 3.41 | 1.68 | 1.29 | 1.89 | core | 51.44 | 57.80 |
+| `ui-tab` | **8.60** | 5.08 | 0.94 | 1.82 | 2.12 | core | 52.91 | 47.95 |
+| `ui-toast` | **11.21** | 6.31 | 2.23 | 1.82 | 2.11 | core | 55.52 | 54.33 |
+| `ui-nag` | **6.07** | 3.17 | 0.95 | 1.24 | 1.76 | core | 50.38 | 36.66 |
+| `ui-sticky` | **3.73** | 2.37 | 0.31 | 0.57 | 1.50 | core | 48.03 | 34.08 |
+| `ui-visibility` | **3.64** | 2.13 | 0.14 | 0.85 | 1.60 | core | 47.95 | 33.92 |
+| `ui-embed` | **6.39** | 3.58 | 0.87 | 1.23 | 2.06 | core | 50.69 | 36.98 |
+| `ui-calendar` | **15.52** | 9.51 | 2.06 | 2.22 | 2.15 | core + forms | 67.28 | 55.16 |
+| `ui-root` | **7.70** | 5.60 | 0.30 | 1.48 | 1.37 | core | 52.00 | 58.02 |
 <!-- /generated:bundle-families -->
 
 ### Scenarios
@@ -200,9 +200,9 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 <!-- generated:bundle-scenarios -->
 | Scenario | Adds up | shared runtime min+gz kB | standalone build |
 | --- | --- | --: | --: |
-| page with one button | library + core + own:ui-button | **57.47** | 43.28 |
-| all families | library + core + forms + own (54 families) | **450.06** | 448.57 |
-| app already ships the library | core + forms + own (54 families) | **421.98** | -- |
+| page with one button | library + core + own:ui-button | **57.50** | 43.33 |
+| all families | library + core + forms + own (54 families) | **452.36** | 451.01 |
+| app already ships the library | core + forms + own (54 families) | **424.28** | -- |
 <!-- /generated:bundle-scenarios -->
 
 ### Checks
@@ -245,10 +245,10 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | Group | Files | Lines | Code lines |
 | --- | --: | --: | --: |
 | element core | 25 | 3943 | 2241 |
-| components | 351 | 26784 | 18230 |
+| components | 351 | 27017 | 18443 |
 | vocabularies & fallbacks | 0 | 0 | 0 |
-| foundation | 43 | 8263 | 4456 |
-| tests | 213 | 36581 | 30744 |
+| foundation | 43 | 8300 | 4471 |
+| tests | 213 | 36670 | 30824 |
 | tooling | 53 | 6296 | 4416 |
 <!-- /generated:loc -->
 
@@ -286,189 +286,189 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | `components/ui-accordion/index.ts` | 13 | 4 |
 | `components/ui-accordion/ui-accordion.fallback.ts` | 65 | 51 |
 | `components/ui-accordion/ui-accordion.types.ts` | 49 | 21 |
-| `components/ui-accordion/ui-accordion.vocabulary.en.ts` | 113 | 91 |
+| `components/ui-accordion/ui-accordion.vocabulary.en.ts` | 120 | 98 |
 | `components/ui-ad/UIAd.tsx` | 44 | 29 |
 | `components/ui-ad/index.ts` | 10 | 3 |
 | `components/ui-ad/ui-ad.fallback.ts` | 27 | 19 |
 | `components/ui-ad/ui-ad.types.ts` | 13 | 3 |
-| `components/ui-ad/ui-ad.vocabulary.en.ts` | 69 | 53 |
+| `components/ui-ad/ui-ad.vocabulary.en.ts` | 70 | 54 |
 | `components/ui-breadcrumb/UIBreadcrumb.tsx` | 64 | 39 |
 | `components/ui-breadcrumb/UIBreadcrumbSection.tsx` | 58 | 38 |
 | `components/ui-breadcrumb/index.ts` | 13 | 5 |
-| `components/ui-breadcrumb/ui-breadcrumb-section.vocabulary.en.ts` | 37 | 26 |
+| `components/ui-breadcrumb/ui-breadcrumb-section.vocabulary.en.ts` | 38 | 27 |
 | `components/ui-breadcrumb/ui-breadcrumb.fallback.ts` | 57 | 39 |
 | `components/ui-breadcrumb/ui-breadcrumb.types.ts` | 23 | 6 |
-| `components/ui-breadcrumb/ui-breadcrumb.vocabulary.en.ts` | 47 | 32 |
+| `components/ui-breadcrumb/ui-breadcrumb.vocabulary.en.ts` | 48 | 33 |
 | `components/ui-button/UIButton.tsx` | 278 | 188 |
 | `components/ui-button/UIButtons.tsx` | 35 | 23 |
 | `components/ui-button/UIOr.tsx` | 24 | 14 |
 | `components/ui-button/index.ts` | 14 | 7 |
 | `components/ui-button/ui-button.fallback.ts` | 91 | 68 |
-| `components/ui-button/ui-button.vocabulary.en.ts` | 151 | 135 |
-| `components/ui-button/ui-buttons.vocabulary.en.ts` | 69 | 58 |
-| `components/ui-button/ui-or.vocabulary.en.ts` | 32 | 21 |
+| `components/ui-button/ui-button.vocabulary.en.ts` | 152 | 136 |
+| `components/ui-button/ui-buttons.vocabulary.en.ts` | 70 | 59 |
+| `components/ui-button/ui-or.vocabulary.en.ts` | 33 | 22 |
 | `components/ui-calendar/UICalendar.tsx` | 810 | 597 |
 | `components/ui-calendar/index.ts` | 13 | 3 |
 | `components/ui-calendar/ui-calendar.fallback.ts` | 77 | 56 |
 | `components/ui-calendar/ui-calendar.types.ts` | 266 | 158 |
-| `components/ui-calendar/ui-calendar.vocabulary.en.ts` | 188 | 172 |
+| `components/ui-calendar/ui-calendar.vocabulary.en.ts` | 189 | 173 |
 | `components/ui-card/UICard.tsx` | 190 | 133 |
 | `components/ui-card/UICards.tsx` | 43 | 24 |
 | `components/ui-card/index.ts` | 15 | 6 |
 | `components/ui-card/ui-card.fallback.ts` | 65 | 47 |
 | `components/ui-card/ui-card.types.ts` | 58 | 27 |
-| `components/ui-card/ui-card.vocabulary.en.ts` | 92 | 75 |
-| `components/ui-card/ui-cards.vocabulary.en.ts` | 53 | 42 |
+| `components/ui-card/ui-card.vocabulary.en.ts` | 96 | 79 |
+| `components/ui-card/ui-cards.vocabulary.en.ts` | 54 | 43 |
 | `components/ui-checkbox/UICheckbox.tsx` | 45 | 26 |
 | `components/ui-checkbox/UIRadio.tsx` | 138 | 90 |
 | `components/ui-checkbox/index.ts` | 13 | 5 |
 | `components/ui-checkbox/ui-checkbox.fallback.ts` | 78 | 57 |
 | `components/ui-checkbox/ui-checkbox.types.ts` | 133 | 88 |
-| `components/ui-checkbox/ui-checkbox.vocabulary.en.ts` | 52 | 34 |
-| `components/ui-checkbox/ui-radio.vocabulary.en.ts` | 41 | 28 |
+| `components/ui-checkbox/ui-checkbox.vocabulary.en.ts` | 53 | 35 |
+| `components/ui-checkbox/ui-radio.vocabulary.en.ts` | 42 | 29 |
 | `components/ui-comment/UIComment.tsx` | 59 | 37 |
 | `components/ui-comment/UIComments.tsx` | 64 | 39 |
 | `components/ui-comment/index.ts` | 16 | 6 |
 | `components/ui-comment/ui-comment.fallback.ts` | 44 | 30 |
 | `components/ui-comment/ui-comment.types.ts` | 17 | 5 |
-| `components/ui-comment/ui-comment.vocabulary.en.ts` | 50 | 33 |
-| `components/ui-comment/ui-comments.vocabulary.en.ts` | 47 | 35 |
+| `components/ui-comment/ui-comment.vocabulary.en.ts` | 56 | 39 |
+| `components/ui-comment/ui-comments.vocabulary.en.ts` | 48 | 36 |
 | `components/ui-container/UIContainer.tsx` | 27 | 17 |
 | `components/ui-container/index.ts` | 10 | 3 |
 | `components/ui-container/ui-container.fallback.ts` | 16 | 9 |
-| `components/ui-container/ui-container.vocabulary.en.ts` | 57 | 45 |
+| `components/ui-container/ui-container.vocabulary.en.ts` | 58 | 46 |
 | `components/ui-dimmer/UIDimmer.tsx` | 310 | 205 |
 | `components/ui-dimmer/index.ts` | 13 | 3 |
 | `components/ui-dimmer/ui-dimmer.fallback.ts` | 78 | 56 |
 | `components/ui-dimmer/ui-dimmer.types.ts` | 25 | 9 |
-| `components/ui-dimmer/ui-dimmer.vocabulary.en.ts` | 103 | 87 |
+| `components/ui-dimmer/ui-dimmer.vocabulary.en.ts` | 104 | 88 |
 | `components/ui-divider/UIDivider.tsx` | 47 | 30 |
 | `components/ui-divider/index.ts` | 10 | 3 |
 | `components/ui-divider/ui-divider.fallback.ts` | 27 | 19 |
 | `components/ui-divider/ui-divider.types.ts` | 11 | 2 |
-| `components/ui-divider/ui-divider.vocabulary.en.ts` | 58 | 46 |
+| `components/ui-divider/ui-divider.vocabulary.en.ts` | 59 | 47 |
 | `components/ui-dropdown/SlottedItems.ts` | 131 | 92 |
 | `components/ui-dropdown/UIDropdown.tsx` | 848 | 632 |
 | `components/ui-dropdown/index.ts` | 14 | 4 |
 | `components/ui-dropdown/ui-dropdown.fallback.ts` | 138 | 111 |
 | `components/ui-dropdown/ui-dropdown.types.ts` | 53 | 26 |
-| `components/ui-dropdown/ui-dropdown.vocabulary.en.ts` | 206 | 191 |
+| `components/ui-dropdown/ui-dropdown.vocabulary.en.ts` | 207 | 192 |
 | `components/ui-embed/UIEmbed.tsx` | 184 | 118 |
 | `components/ui-embed/UIEmbedHost.ts` | 25 | 13 |
 | `components/ui-embed/index.ts` | 12 | 5 |
 | `components/ui-embed/ui-embed.fallback.ts` | 85 | 67 |
 | `components/ui-embed/ui-embed.types.ts` | 59 | 29 |
-| `components/ui-embed/ui-embed.vocabulary.en.ts` | 109 | 94 |
+| `components/ui-embed/ui-embed.vocabulary.en.ts` | 110 | 95 |
 | `components/ui-emoji/UIEmoji.tsx` | 78 | 52 |
 | `components/ui-emoji/index.ts` | 14 | 4 |
 | `components/ui-emoji/ui-emoji.fallback.ts` | 35 | 25 |
 | `components/ui-emoji/ui-emoji.types.ts` | 47 | 14 |
-| `components/ui-emoji/ui-emoji.vocabulary.en.ts` | 67 | 45 |
+| `components/ui-emoji/ui-emoji.vocabulary.en.ts` | 68 | 46 |
 | `components/ui-feed/UIFeed.tsx` | 39 | 22 |
 | `components/ui-feed/UIFeedEvent.tsx` | 109 | 66 |
 | `components/ui-feed/index.ts` | 15 | 6 |
-| `components/ui-feed/ui-event.vocabulary.en.ts` | 53 | 41 |
+| `components/ui-feed/ui-event.vocabulary.en.ts` | 54 | 42 |
 | `components/ui-feed/ui-feed.fallback.ts` | 53 | 39 |
 | `components/ui-feed/ui-feed.types.ts` | 24 | 8 |
-| `components/ui-feed/ui-feed.vocabulary.en.ts` | 48 | 32 |
+| `components/ui-feed/ui-feed.vocabulary.en.ts` | 54 | 38 |
 | `components/ui-flag/UIFlag.tsx` | 56 | 35 |
 | `components/ui-flag/index.ts` | 12 | 4 |
 | `components/ui-flag/ui-flag.fallback.ts` | 38 | 27 |
 | `components/ui-flag/ui-flag.types.ts` | 337 | 307 |
-| `components/ui-flag/ui-flag.vocabulary.en.ts` | 58 | 37 |
+| `components/ui-flag/ui-flag.vocabulary.en.ts` | 59 | 38 |
 | `components/ui-flyout/UIFlyout.tsx` | 43 | 24 |
 | `components/ui-flyout/index.ts` | 14 | 3 |
 | `components/ui-flyout/ui-flyout.fallback.ts` | 31 | 20 |
 | `components/ui-flyout/ui-flyout.types.ts` | 16 | 4 |
-| `components/ui-flyout/ui-flyout.vocabulary.en.ts` | 130 | 111 |
+| `components/ui-flyout/ui-flyout.vocabulary.en.ts` | 131 | 112 |
 | `components/ui-form/UIField.tsx` | 81 | 54 |
 | `components/ui-form/UIFields.tsx` | 41 | 28 |
 | `components/ui-form/UIForm.tsx` | 388 | 266 |
 | `components/ui-form/UIFormHost.ts` | 44 | 25 |
 | `components/ui-form/index.ts` | 16 | 7 |
-| `components/ui-form/ui-field.vocabulary.en.ts` | 64 | 45 |
-| `components/ui-form/ui-fields.vocabulary.en.ts` | 59 | 41 |
+| `components/ui-form/ui-field.vocabulary.en.ts` | 65 | 46 |
+| `components/ui-form/ui-fields.vocabulary.en.ts` | 60 | 42 |
 | `components/ui-form/ui-form.fallback.ts` | 36 | 22 |
 | `components/ui-form/ui-form.types.ts` | 105 | 59 |
-| `components/ui-form/ui-form.vocabulary.en.ts` | 109 | 90 |
+| `components/ui-form/ui-form.vocabulary.en.ts` | 110 | 91 |
 | `components/ui-grid/UIColumn.ts` | 15 | 6 |
 | `components/ui-grid/UIGrid.ts` | 15 | 6 |
 | `components/ui-grid/UIRow.ts` | 13 | 6 |
 | `components/ui-grid/index.ts` | 15 | 7 |
-| `components/ui-grid/ui-column.vocabulary.en.ts` | 106 | 89 |
+| `components/ui-grid/ui-column.vocabulary.en.ts` | 107 | 90 |
 | `components/ui-grid/ui-grid.fallback.ts` | 28 | 16 |
 | `components/ui-grid/ui-grid.types.ts` | 7 | 1 |
-| `components/ui-grid/ui-grid.vocabulary.en.ts` | 116 | 97 |
-| `components/ui-grid/ui-row.vocabulary.en.ts` | 90 | 71 |
+| `components/ui-grid/ui-grid.vocabulary.en.ts` | 117 | 98 |
+| `components/ui-grid/ui-row.vocabulary.en.ts` | 91 | 72 |
 | `components/ui-icon/UIIcon.tsx` | 65 | 40 |
 | `components/ui-icon/UIIcons.tsx` | 40 | 28 |
 | `components/ui-icon/index.ts` | 13 | 5 |
 | `components/ui-icon/ui-icon.fallback.ts` | 39 | 29 |
 | `components/ui-icon/ui-icon.types.ts` | 7 | 1 |
-| `components/ui-icon/ui-icon.vocabulary.en.ts` | 89 | 73 |
-| `components/ui-icon/ui-icons.vocabulary.en.ts` | 43 | 28 |
+| `components/ui-icon/ui-icon.vocabulary.en.ts` | 90 | 74 |
+| `components/ui-icon/ui-icons.vocabulary.en.ts` | 44 | 29 |
 | `components/ui-image/UIImage.tsx` | 65 | 44 |
 | `components/ui-image/UIImages.tsx` | 29 | 18 |
 | `components/ui-image/index.ts` | 13 | 5 |
 | `components/ui-image/ui-image.fallback.ts` | 47 | 33 |
 | `components/ui-image/ui-image.types.ts` | 7 | 1 |
-| `components/ui-image/ui-image.vocabulary.en.ts` | 88 | 70 |
-| `components/ui-image/ui-images.vocabulary.en.ts` | 47 | 30 |
+| `components/ui-image/ui-image.vocabulary.en.ts` | 89 | 71 |
+| `components/ui-image/ui-images.vocabulary.en.ts` | 48 | 31 |
 | `components/ui-input/UIInput.tsx` | 209 | 145 |
 | `components/ui-input/UITextarea.tsx` | 48 | 36 |
 | `components/ui-input/index.ts` | 12 | 5 |
 | `components/ui-input/ui-input.fallback.ts` | 103 | 80 |
 | `components/ui-input/ui-input.types.ts` | 61 | 34 |
-| `components/ui-input/ui-input.vocabulary.en.ts` | 170 | 146 |
-| `components/ui-input/ui-textarea.vocabulary.en.ts` | 95 | 73 |
+| `components/ui-input/ui-input.vocabulary.en.ts` | 171 | 147 |
+| `components/ui-input/ui-textarea.vocabulary.en.ts` | 96 | 74 |
 | `components/ui-item/UIItem.tsx` | 235 | 142 |
 | `components/ui-item/index.ts` | 13 | 4 |
 | `components/ui-item/ui-item.fallback.ts` | 58 | 43 |
 | `components/ui-item/ui-item.types.ts` | 32 | 12 |
-| `components/ui-item/ui-item.vocabulary.en.ts` | 97 | 80 |
+| `components/ui-item/ui-item.vocabulary.en.ts` | 98 | 81 |
 | `components/ui-items/UIItems.tsx` | 46 | 25 |
 | `components/ui-items/index.ts` | 14 | 5 |
 | `components/ui-items/ui-items.fallback.ts` | 20 | 12 |
 | `components/ui-items/ui-items.types.ts` | 15 | 8 |
-| `components/ui-items/ui-items.vocabulary.en.ts` | 60 | 45 |
+| `components/ui-items/ui-items.vocabulary.en.ts` | 66 | 51 |
 | `components/ui-label/UILabel.tsx` | 145 | 89 |
 | `components/ui-label/UILabels.tsx` | 25 | 15 |
 | `components/ui-label/index.ts` | 12 | 5 |
 | `components/ui-label/ui-label.fallback.ts` | 32 | 25 |
 | `components/ui-label/ui-label.types.ts` | 13 | 3 |
-| `components/ui-label/ui-label.vocabulary.en.ts` | 125 | 108 |
-| `components/ui-label/ui-labels.vocabulary.en.ts` | 43 | 26 |
+| `components/ui-label/ui-label.vocabulary.en.ts` | 126 | 109 |
+| `components/ui-label/ui-labels.vocabulary.en.ts` | 44 | 27 |
 | `components/ui-list/UIList.tsx` | 134 | 72 |
 | `components/ui-list/index.ts` | 13 | 4 |
 | `components/ui-list/ui-list.fallback.ts` | 39 | 25 |
 | `components/ui-list/ui-list.types.ts` | 20 | 6 |
-| `components/ui-list/ui-list.vocabulary.en.ts` | 85 | 68 |
+| `components/ui-list/ui-list.vocabulary.en.ts` | 86 | 69 |
 | `components/ui-loader/UILoader.tsx` | 65 | 40 |
 | `components/ui-loader/index.ts` | 10 | 3 |
 | `components/ui-loader/ui-loader.fallback.ts` | 25 | 16 |
 | `components/ui-loader/ui-loader.types.ts` | 7 | 1 |
-| `components/ui-loader/ui-loader.vocabulary.en.ts` | 64 | 49 |
+| `components/ui-loader/ui-loader.vocabulary.en.ts` | 65 | 50 |
 | `components/ui-menu/UIMenu.tsx` | 255 | 163 |
 | `components/ui-menu/index.ts` | 13 | 4 |
 | `components/ui-menu/ui-menu.fallback.ts` | 29 | 19 |
 | `components/ui-menu/ui-menu.types.ts` | 27 | 9 |
-| `components/ui-menu/ui-menu.vocabulary.en.ts` | 125 | 107 |
+| `components/ui-menu/ui-menu.vocabulary.en.ts` | 126 | 108 |
 | `components/ui-message/UIMessage.tsx` | 94 | 55 |
 | `components/ui-message/index.ts` | 10 | 3 |
 | `components/ui-message/ui-message.fallback.ts` | 48 | 37 |
 | `components/ui-message/ui-message.types.ts` | 4 | 0 |
-| `components/ui-message/ui-message.vocabulary.en.ts` | 91 | 73 |
+| `components/ui-message/ui-message.vocabulary.en.ts` | 92 | 74 |
 | `components/ui-modal/UIModal.tsx` | 24 | 12 |
 | `components/ui-modal/index.ts` | 27 | 11 |
 | `components/ui-modal/ui-modal.fallback.ts` | 122 | 90 |
 | `components/ui-modal/ui-modal.types.ts` | 65 | 34 |
-| `components/ui-modal/ui-modal.vocabulary.en.ts` | 144 | 125 |
+| `components/ui-modal/ui-modal.vocabulary.en.ts` | 145 | 126 |
 | `components/ui-nag/UINag.tsx` | 203 | 125 |
 | `components/ui-nag/UINagHost.ts` | 35 | 19 |
 | `components/ui-nag/index.ts` | 12 | 5 |
 | `components/ui-nag/ui-nag.fallback.ts` | 41 | 31 |
 | `components/ui-nag/ui-nag.types.ts` | 64 | 34 |
-| `components/ui-nag/ui-nag.vocabulary.en.ts` | 102 | 89 |
+| `components/ui-nag/ui-nag.vocabulary.en.ts` | 103 | 90 |
 | `components/ui-parts/PartElement.ts` | 13 | 5 |
 | `components/ui-parts/UIActions.ts` | 14 | 6 |
 | `components/ui-parts/UIAuthor.ts` | 25 | 15 |
@@ -484,155 +484,155 @@ all tree-shaken · `yarn measure` all checks pass · `yarn smoke` 8 / 8 pages ·
 | `components/ui-parts/UITitle.ts` | 21 | 12 |
 | `components/ui-parts/UIValue.ts` | 14 | 6 |
 | `components/ui-parts/index.ts` | 48 | 41 |
-| `components/ui-parts/ui-actions.vocabulary.en.ts` | 37 | 20 |
-| `components/ui-parts/ui-author.vocabulary.en.ts` | 38 | 21 |
-| `components/ui-parts/ui-avatar.vocabulary.en.ts` | 42 | 25 |
-| `components/ui-parts/ui-content.vocabulary.en.ts` | 63 | 46 |
-| `components/ui-parts/ui-date.vocabulary.en.ts` | 32 | 15 |
-| `components/ui-parts/ui-description.vocabulary.en.ts` | 41 | 24 |
-| `components/ui-parts/ui-detail.vocabulary.en.ts` | 32 | 15 |
-| `components/ui-parts/ui-extra.vocabulary.en.ts` | 36 | 19 |
-| `components/ui-parts/ui-header.vocabulary.en.ts` | 89 | 72 |
-| `components/ui-parts/ui-meta.vocabulary.en.ts` | 37 | 20 |
+| `components/ui-parts/ui-actions.vocabulary.en.ts` | 38 | 21 |
+| `components/ui-parts/ui-author.vocabulary.en.ts` | 39 | 22 |
+| `components/ui-parts/ui-avatar.vocabulary.en.ts` | 43 | 26 |
+| `components/ui-parts/ui-content.vocabulary.en.ts` | 64 | 47 |
+| `components/ui-parts/ui-date.vocabulary.en.ts` | 33 | 16 |
+| `components/ui-parts/ui-description.vocabulary.en.ts` | 42 | 25 |
+| `components/ui-parts/ui-detail.vocabulary.en.ts` | 33 | 16 |
+| `components/ui-parts/ui-extra.vocabulary.en.ts` | 37 | 20 |
+| `components/ui-parts/ui-header.vocabulary.en.ts` | 90 | 73 |
+| `components/ui-parts/ui-meta.vocabulary.en.ts` | 38 | 21 |
 | `components/ui-parts/ui-parts.fallback.ts` | 43 | 28 |
 | `components/ui-parts/ui-parts.types.ts` | 58 | 45 |
-| `components/ui-parts/ui-summary.vocabulary.en.ts` | 32 | 15 |
-| `components/ui-parts/ui-title.vocabulary.en.ts` | 36 | 19 |
-| `components/ui-parts/ui-value.vocabulary.en.ts` | 35 | 18 |
+| `components/ui-parts/ui-summary.vocabulary.en.ts` | 33 | 16 |
+| `components/ui-parts/ui-title.vocabulary.en.ts` | 37 | 20 |
+| `components/ui-parts/ui-value.vocabulary.en.ts` | 36 | 19 |
 | `components/ui-placeholder/UIPlaceholder.tsx` | 41 | 26 |
 | `components/ui-placeholder/UIPlaceholderHeader.ts` | 13 | 6 |
 | `components/ui-placeholder/UIPlaceholderImage.ts` | 17 | 9 |
 | `components/ui-placeholder/UIPlaceholderLine.ts` | 18 | 9 |
 | `components/ui-placeholder/UIPlaceholderParagraph.ts` | 12 | 6 |
 | `components/ui-placeholder/index.ts` | 21 | 11 |
-| `components/ui-placeholder/ui-placeholder-header.vocabulary.en.ts` | 33 | 15 |
-| `components/ui-placeholder/ui-placeholder-image.vocabulary.en.ts` | 40 | 22 |
-| `components/ui-placeholder/ui-placeholder-line.vocabulary.en.ts` | 41 | 23 |
-| `components/ui-placeholder/ui-placeholder-paragraph.vocabulary.en.ts` | 33 | 15 |
+| `components/ui-placeholder/ui-placeholder-header.vocabulary.en.ts` | 34 | 16 |
+| `components/ui-placeholder/ui-placeholder-image.vocabulary.en.ts` | 41 | 23 |
+| `components/ui-placeholder/ui-placeholder-line.vocabulary.en.ts` | 42 | 24 |
+| `components/ui-placeholder/ui-placeholder-paragraph.vocabulary.en.ts` | 34 | 16 |
 | `components/ui-placeholder/ui-placeholder.fallback.ts` | 34 | 22 |
 | `components/ui-placeholder/ui-placeholder.types.ts` | 25 | 13 |
-| `components/ui-placeholder/ui-placeholder.vocabulary.en.ts` | 46 | 28 |
+| `components/ui-placeholder/ui-placeholder.vocabulary.en.ts` | 47 | 29 |
 | `components/ui-popup/UIPopup.tsx` | 478 | 305 |
 | `components/ui-popup/index.ts` | 11 | 3 |
 | `components/ui-popup/ui-popup.fallback.ts` | 58 | 40 |
 | `components/ui-popup/ui-popup.types.ts` | 71 | 34 |
-| `components/ui-popup/ui-popup.vocabulary.en.ts` | 134 | 116 |
+| `components/ui-popup/ui-popup.vocabulary.en.ts` | 135 | 117 |
 | `components/ui-progress/UIProgress.tsx` | 228 | 156 |
 | `components/ui-progress/index.ts` | 13 | 4 |
 | `components/ui-progress/ui-progress.fallback.ts` | 43 | 29 |
 | `components/ui-progress/ui-progress.types.ts` | 39 | 12 |
-| `components/ui-progress/ui-progress.vocabulary.en.ts` | 125 | 109 |
+| `components/ui-progress/ui-progress.vocabulary.en.ts` | 126 | 110 |
 | `components/ui-rail/UIRail.tsx` | 30 | 18 |
 | `components/ui-rail/index.ts` | 10 | 3 |
 | `components/ui-rail/ui-rail.fallback.ts` | 17 | 9 |
 | `components/ui-rail/ui-rail.types.ts` | 3 | 0 |
-| `components/ui-rail/ui-rail.vocabulary.en.ts` | 46 | 31 |
+| `components/ui-rail/ui-rail.vocabulary.en.ts` | 47 | 32 |
 | `components/ui-rating/UIRating.tsx` | 388 | 265 |
 | `components/ui-rating/index.ts` | 11 | 3 |
 | `components/ui-rating/ui-rating.fallback.ts` | 86 | 64 |
 | `components/ui-rating/ui-rating.types.ts` | 41 | 11 |
-| `components/ui-rating/ui-rating.vocabulary.en.ts` | 75 | 61 |
+| `components/ui-rating/ui-rating.vocabulary.en.ts` | 76 | 62 |
 | `components/ui-reveal/UIReveal.tsx` | 86 | 56 |
 | `components/ui-reveal/index.ts` | 11 | 3 |
 | `components/ui-reveal/ui-reveal.fallback.ts` | 35 | 26 |
 | `components/ui-reveal/ui-reveal.types.ts` | 21 | 6 |
-| `components/ui-reveal/ui-reveal.vocabulary.en.ts` | 65 | 50 |
-| `components/ui-root/UIRoot.tsx` | 269 | 182 |
+| `components/ui-reveal/ui-reveal.vocabulary.en.ts` | 66 | 51 |
+| `components/ui-root/UIRoot.tsx` | 301 | 202 |
 | `components/ui-root/index.ts` | 14 | 6 |
-| `components/ui-root/ui-root.catalog.ts` | 99 | 95 |
+| `components/ui-root/ui-root.catalog.ts` | 154 | 150 |
 | `components/ui-root/ui-root.fallback.ts` | 20 | 10 |
-| `components/ui-root/ui-root.types.ts` | 56 | 25 |
-| `components/ui-root/ui-root.vocabulary.en.ts` | 116 | 102 |
+| `components/ui-root/ui-root.types.ts` | 72 | 33 |
+| `components/ui-root/ui-root.vocabulary.en.ts` | 121 | 107 |
 | `components/ui-search/UISearch.tsx` | 699 | 529 |
 | `components/ui-search/index.ts` | 12 | 4 |
 | `components/ui-search/ui-search.fallback.ts` | 87 | 66 |
 | `components/ui-search/ui-search.types.ts` | 95 | 44 |
-| `components/ui-search/ui-search.vocabulary.en.ts` | 183 | 166 |
+| `components/ui-search/ui-search.vocabulary.en.ts` | 184 | 167 |
 | `components/ui-segment/UISegment.tsx` | 63 | 44 |
 | `components/ui-segment/UISegments.tsx` | 29 | 18 |
 | `components/ui-segment/index.ts` | 13 | 5 |
 | `components/ui-segment/ui-segment.fallback.ts` | 16 | 9 |
 | `components/ui-segment/ui-segment.types.ts` | 3 | 0 |
-| `components/ui-segment/ui-segment.vocabulary.en.ts` | 97 | 83 |
-| `components/ui-segment/ui-segments.vocabulary.en.ts` | 47 | 33 |
+| `components/ui-segment/ui-segment.vocabulary.en.ts` | 98 | 84 |
+| `components/ui-segment/ui-segments.vocabulary.en.ts` | 48 | 34 |
 | `components/ui-select/UISelect.tsx` | 319 | 217 |
 | `components/ui-select/index.ts` | 13 | 4 |
 | `components/ui-select/ui-select.fallback.ts` | 150 | 121 |
 | `components/ui-select/ui-select.types.ts` | 71 | 36 |
-| `components/ui-select/ui-select.vocabulary.en.ts` | 90 | 72 |
+| `components/ui-select/ui-select.vocabulary.en.ts` | 91 | 73 |
 | `components/ui-shape/UIShape.tsx` | 334 | 226 |
 | `components/ui-shape/UISide.tsx` | 35 | 22 |
 | `components/ui-shape/index.ts` | 13 | 6 |
 | `components/ui-shape/ui-shape.fallback.ts` | 34 | 22 |
 | `components/ui-shape/ui-shape.types.ts` | 51 | 19 |
-| `components/ui-shape/ui-shape.vocabulary.en.ts` | 62 | 47 |
-| `components/ui-shape/ui-side.vocabulary.en.ts` | 35 | 21 |
+| `components/ui-shape/ui-shape.vocabulary.en.ts` | 63 | 48 |
+| `components/ui-shape/ui-side.vocabulary.en.ts` | 36 | 22 |
 | `components/ui-sidebar/UIPushable.tsx` | 107 | 73 |
 | `components/ui-sidebar/UIPusher.tsx` | 34 | 22 |
 | `components/ui-sidebar/UISidebar.tsx` | 332 | 217 |
 | `components/ui-sidebar/index.ts` | 15 | 7 |
-| `components/ui-sidebar/ui-pushable.vocabulary.en.ts` | 35 | 15 |
-| `components/ui-sidebar/ui-pusher.vocabulary.en.ts` | 35 | 15 |
+| `components/ui-sidebar/ui-pushable.vocabulary.en.ts` | 36 | 16 |
+| `components/ui-sidebar/ui-pusher.vocabulary.en.ts` | 36 | 16 |
 | `components/ui-sidebar/ui-sidebar.fallback.ts` | 68 | 46 |
 | `components/ui-sidebar/ui-sidebar.types.ts` | 81 | 32 |
-| `components/ui-sidebar/ui-sidebar.vocabulary.en.ts` | 108 | 88 |
+| `components/ui-sidebar/ui-sidebar.vocabulary.en.ts` | 109 | 89 |
 | `components/ui-slider/UISlider.tsx` | 474 | 333 |
 | `components/ui-slider/index.ts` | 13 | 4 |
 | `components/ui-slider/ui-slider.fallback.ts` | 97 | 74 |
 | `components/ui-slider/ui-slider.types.ts` | 68 | 31 |
-| `components/ui-slider/ui-slider.vocabulary.en.ts` | 103 | 89 |
+| `components/ui-slider/ui-slider.vocabulary.en.ts` | 104 | 90 |
 | `components/ui-statistic/UIStatistic.tsx` | 59 | 38 |
 | `components/ui-statistic/UIStatistics.tsx` | 32 | 19 |
 | `components/ui-statistic/index.ts` | 15 | 5 |
 | `components/ui-statistic/ui-statistic.fallback.ts` | 28 | 19 |
 | `components/ui-statistic/ui-statistic.types.ts` | 21 | 5 |
-| `components/ui-statistic/ui-statistic.vocabulary.en.ts` | 67 | 46 |
-| `components/ui-statistic/ui-statistics.vocabulary.en.ts` | 53 | 33 |
+| `components/ui-statistic/ui-statistic.vocabulary.en.ts` | 68 | 47 |
+| `components/ui-statistic/ui-statistics.vocabulary.en.ts` | 54 | 34 |
 | `components/ui-step/UIStep.tsx` | 138 | 85 |
 | `components/ui-step/UISteps.tsx` | 38 | 22 |
 | `components/ui-step/index.ts` | 14 | 5 |
 | `components/ui-step/ui-step.fallback.ts` | 62 | 49 |
 | `components/ui-step/ui-step.types.ts` | 40 | 10 |
-| `components/ui-step/ui-step.vocabulary.en.ts` | 84 | 64 |
-| `components/ui-step/ui-steps.vocabulary.en.ts` | 80 | 61 |
+| `components/ui-step/ui-step.vocabulary.en.ts` | 85 | 65 |
+| `components/ui-step/ui-steps.vocabulary.en.ts` | 81 | 62 |
 | `components/ui-sticky/UISticky.tsx` | 185 | 119 |
 | `components/ui-sticky/index.ts` | 10 | 3 |
 | `components/ui-sticky/ui-sticky.fallback.ts` | 20 | 12 |
 | `components/ui-sticky/ui-sticky.types.ts` | 34 | 14 |
-| `components/ui-sticky/ui-sticky.vocabulary.en.ts` | 61 | 48 |
+| `components/ui-sticky/ui-sticky.vocabulary.en.ts` | 62 | 49 |
 | `components/ui-tab/UITab.tsx` | 170 | 113 |
 | `components/ui-tab/UITabs.tsx` | 475 | 292 |
 | `components/ui-tab/index.ts` | 14 | 5 |
 | `components/ui-tab/ui-tab.fallback.ts` | 100 | 76 |
 | `components/ui-tab/ui-tab.types.ts` | 95 | 33 |
-| `components/ui-tab/ui-tab.vocabulary.en.ts` | 78 | 57 |
-| `components/ui-tab/ui-tabs.vocabulary.en.ts` | 108 | 87 |
+| `components/ui-tab/ui-tab.vocabulary.en.ts` | 79 | 58 |
+| `components/ui-tab/ui-tabs.vocabulary.en.ts` | 114 | 93 |
 | `components/ui-table/UITable.tsx` | 385 | 236 |
 | `components/ui-table/index.ts` | 11 | 3 |
 | `components/ui-table/ui-table.fallback.ts` | 65 | 46 |
 | `components/ui-table/ui-table.types.ts` | 55 | 12 |
-| `components/ui-table/ui-table.vocabulary.en.ts` | 180 | 163 |
+| `components/ui-table/ui-table.vocabulary.en.ts` | 186 | 169 |
 | `components/ui-text/UIText.tsx` | 33 | 21 |
 | `components/ui-text/index.ts` | 10 | 3 |
 | `components/ui-text/ui-text.fallback.ts` | 16 | 9 |
 | `components/ui-text/ui-text.types.ts` | 3 | 0 |
-| `components/ui-text/ui-text.vocabulary.en.ts` | 43 | 29 |
+| `components/ui-text/ui-text.vocabulary.en.ts` | 44 | 30 |
 | `components/ui-toast/UIToast.tsx` | 592 | 409 |
 | `components/ui-toast/UIToastHost.ts` | 19 | 10 |
 | `components/ui-toast/index.ts` | 20 | 8 |
 | `components/ui-toast/ui-toast.fallback.ts` | 70 | 52 |
 | `components/ui-toast/ui-toast.types.ts` | 157 | 80 |
-| `components/ui-toast/ui-toast.vocabulary.en.ts` | 159 | 141 |
+| `components/ui-toast/ui-toast.vocabulary.en.ts` | 160 | 142 |
 | `components/ui-transition/UITransition.tsx` | 267 | 163 |
 | `components/ui-transition/index.ts` | 14 | 4 |
 | `components/ui-transition/ui-transition.fallback.ts` | 71 | 47 |
 | `components/ui-transition/ui-transition.types.ts` | 82 | 51 |
-| `components/ui-transition/ui-transition.vocabulary.en.ts` | 88 | 72 |
+| `components/ui-transition/ui-transition.vocabulary.en.ts` | 89 | 73 |
 | `components/ui-visibility/UIVisibility.tsx` | 130 | 99 |
 | `components/ui-visibility/index.ts` | 13 | 3 |
 | `components/ui-visibility/ui-visibility.fallback.ts` | 32 | 24 |
 | `components/ui-visibility/ui-visibility.types.ts` | 31 | 15 |
-| `components/ui-visibility/ui-visibility.vocabulary.en.ts` | 71 | 58 |
+| `components/ui-visibility/ui-visibility.vocabulary.en.ts` | 72 | 59 |
 <!-- /generated:loc-files -->
 
 Counted by `LocCount` (non-blank, non-comment lines as "code").  The fork is not counted here:  693 code lines in
@@ -745,8 +745,8 @@ Solid, Vite dev server) and the smoke perf page (`dist/` + vendored production S
 <!-- generated:perf -->
 | Where | Build | Open: update / + layout / + frame ms | Keystroke update min / avg / max ms | + layout | + frame |
 | --- | --- | --: | --: | --: | --: |
-| vitest browser mode | dev (Vite dev server) | 17.4 / 17.4 / 18.9 | 0.4 / **2.0** / 5.0 | 1.2 / **3.9** / 8.7 | 14.3 / **16.1** / 16.5 |
-| smoke perf page | production (`dist/` + vendored peers) | 17.7 / 17.7 / 19.5 | 0.3 / **1.5** / 4.1 | 1.0 / **3.4** / 10.7 | 12.5 / **15.4** / 16.1 |
+| vitest browser mode | dev (Vite dev server) | 17.1 / 17.1 / 18.6 | 0.4 / **1.8** / 5.0 | 1.0 / **3.7** / 9.4 | 13.6 / **15.9** / 16.4 |
+| smoke perf page | production (`dist/` + vendored peers) | 16.3 / 16.3 / 18.0 | 0.3 / **1.3** / 3.9 | 0.6 / **3.0** / 10.4 | 14.6 / **15.7** / 16.9 |
 <!-- /generated:perf -->
 
 - The test asserts an average update under 16 ms;  it passes with large headroom.  No windowing needed.

@@ -18,6 +18,12 @@ export const itemsVocabulary = {
   tag: "ui-items",
   topics: ["lists", "data display", "views"],
   aka: ["item list", "media list", "product list", "results"],
+  skeleton: {
+    parts: [
+      { shape: "header", image: true },
+      { shape: "paragraph", lines: 3 }
+    ]
+  },
   noun: "items",
   description: "A group of items:  site content, each an image beside its header, meta, description and extra.",
   attributes: [

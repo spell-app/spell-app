@@ -4,8 +4,10 @@ import { isServer, type JSX } from "@solidjs/web"
 import { Cell, IconGlyph, RootSettings, UI, UIHost, proto, UIElement, type Disposer } from "$/ui/core"
 
 import { LoaderMessage, type RootLoading } from "./LoaderMessage"
+import { PlaceholderSkeleton, type RootSkeletonRenderer } from "./PlaceholderSkeleton"
 import { RootBox } from "./RootBox"
 import { RootLoader } from "./RootLoader"
+import { ROOT_CATALOG } from "./ui-root.catalog"
 import { RootFallback } from "./ui-root.fallback"
 import {
   DISPLAY,
@@ -14,6 +16,7 @@ import {
   RootTimeout,
   type RootFailure,
   type RootFailureReason,
+  type RootSkeleton,
   type RootVocabulary
 } from "./ui-root.types"
 import { rootVocabulary } from "./ui-root.vocabulary.en"
@@ -29,9 +32,13 @@ import rootCSS from "./ui-root.css?inline"
  *   `timeout`.  Then `:state(ready)`, `ui-ready { failed }`, and the content shows.  Each tag that didn't load fires a
  *   cancelable `ui-error` first.  Content added later loads too, but is never hidden again.
  * - While loading (`display`, not `immediately`):  the slot is hidden by an INLINE style (the root renders `eager`ly,
- *   before any sheet), with its space kept (`when-ready`, `skeleton` until skeletons exist) or not drawn at all when
- *   the `loading` message shows instead.
- * - What shows while loading is swappable:  `UIRoot.Loading` (`LoaderMessage`, a `<ui-loader>`).
+ *   before any sheet), with its space kept (`when-ready`), or not drawn at all when the `loading` message or the
+ *   skeletons show instead.
+ * - `skeleton`:  every element inside whose tag describes a skeleton (`ComponentVocabulary.skeleton`, in the generated
+ *   catalog) gets a `<ui-placeholder>` in the root's shadow, in page order;  one inside another is covered by it.
+ *   Nothing described:  as `when-ready`.
+ * - What shows while loading is swappable:  `UIRoot.Loading` (`LoaderMessage`, a `<ui-loader>`) and `UIRoot.Skeleton`
+ *   (`PlaceholderSkeleton`).
  * - Settings for everything inside (`RootSettings`):  `icons` (a child icon-pack set over the outer root's, or the
  *   page's), `emoji` (a name set);  nested roots inherit what they don't set.  A change redraws the icons / emoji
  *   inside (`RootSettings.generation`).
@@ -48,10 +55,17 @@ export class UIRoot extends UIElement<RootVocabulary> {
   /** What shows with `loading`:  swap it for another look (`UIRoot.Loading = MyLoading`). */
   @proto static Loading: RootLoading = LoaderMessage
 
+  /** What shows with `display="skeleton"`:  swap it for another look (`UIRoot.Skeleton = MySkeleton`). */
+  @proto static Skeleton: RootSkeletonRenderer = PlaceholderSkeleton
+
   declare Loading: RootLoading
+  declare Skeleton: RootSkeletonRenderer
 
   /** Everything inside is ready (or the timeout passed). */
   readonly isReady = new Cell(false)
+
+  /** The skeletons to draw while loading (`display="skeleton"`), found when loading starts. */
+  readonly skeletons = new Cell<readonly RootSkeleton[]>([])
 
   /** Resolves `settled`. */
   private resolveSettled!: (failures: readonly RootFailure[]) => void
@@ -89,6 +103,11 @@ export class UIRoot extends UIElement<RootVocabulary> {
       this.attrs.loading !== null
   )
 
+  /** The skeletons show. */
+  private readonly showSkeleton = createMemo(
+    () => !this.isReady.get() && this.display() === DISPLAY.skeleton && this.skeletons.get().length > 0
+  )
+
   protected hostStates() {
     const ready = this.isReady.get()
     return {
@@ -106,6 +125,7 @@ export class UIRoot extends UIElement<RootVocabulary> {
     return (
       <>
         <Show when={this.showLoading()}>{this.Loading.render(this.part("loading"), () => this.message())}</Show>
+        <Show when={this.showSkeleton()}>{this.Skeleton.render(this.part("skeleton"), this.skeletons.get)}</Show>
         <slot class={this.classes()} style={this.slotStyle()} />
       </>
     )
@@ -116,10 +136,10 @@ export class UIRoot extends UIElement<RootVocabulary> {
     return this.attrs.loading || this.text("loading")
   }
 
-  /** Inline style of the slot:  hidden while loading (unless `immediately`);  not drawn while the message shows. */
+  /** Inline style of the slot:  hidden while loading (unless `immediately`);  not drawn while the message or skeletons show. */
   private slotStyle(): string | undefined {
     if (this.isReady.get() || this.display() === DISPLAY.immediately) return undefined
-    return this.showLoading() ? "display: none" : "visibility: hidden"
+    return this.showLoading() || this.showSkeleton() ? "display: none" : "visibility: hidden"
   }
 
   /** Watch the content while connected;  keep the root's own sheet current. */
@@ -197,6 +217,7 @@ export class UIRoot extends UIElement<RootVocabulary> {
 
   /** Load, wait (or time out), then show the content and say so. */
   private async start() {
+    if (untrack(this.display) === DISPLAY.skeleton) this.skeletons.set(this.findSkeletons())
     let timer: ReturnType<typeof setTimeout> | undefined
     const timeout = new Promise<"timeout">((resolve) => {
       timer = setTimeout(() => resolve("timeout"), RootTimeout.parse(untrack(() => this.attrs.timeout)))
@@ -217,6 +238,17 @@ export class UIRoot extends UIElement<RootVocabulary> {
       if (!pending.length) return
       await Promise.all(pending.map((element) => this.whenReady(element)))
     }
+  }
+
+  /** Each element inside whose tag describes a skeleton, in page order, skipping those inside another one. */
+  private findSkeletons(): RootSkeleton[] {
+    const skeletons: RootSkeleton[] = []
+    for (const element of this.host.querySelectorAll("*")) {
+      const spec = Object.hasOwn(ROOT_CATALOG, element.localName) ? ROOT_CATALOG[element.localName].skeleton : undefined
+      if (!spec || skeletons.some((outer) => outer.element.contains(element))) continue
+      skeletons.push({ element, spec })
+    }
+    return skeletons
   }
 
   /** Import the family of every undefined `ui-*` tag inside;  resolves once each import settled. */

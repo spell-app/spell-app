@@ -20,6 +20,7 @@ export const actionsVocabulary = {
   tag: "ui-actions",
   topics: ["content parts", "buttons", "dialogs"],
   aka: ["footer buttons", "button bar", "dialog actions"],
+  skeleton: null,
   noun: "actions",
   ui: false,
   description: "Actions a user can take:  a modal's or toast's buttons, a comment's reply links.",

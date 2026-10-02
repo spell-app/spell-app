@@ -4,21 +4,44 @@ import type { RootCatalogEntry } from "./ui-root.types"
 
 /** Every component tag => what `<ui-root>` needs before its family loads. */
 export const ROOT_CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
-  "ui-accordion": { folder: "ui-accordion" },
+  "ui-accordion": {
+    folder: "ui-accordion",
+    skeleton: {
+      parts: [
+        { shape: "line", length: "long" },
+        { shape: "line", length: "long" },
+        { shape: "line", length: "long" }
+      ]
+    }
+  },
   "ui-actions": { folder: "ui-parts" },
-  "ui-ad": { folder: "ui-ad" },
+  "ui-ad": { folder: "ui-ad", skeleton: { width: "18em", height: "15em" } },
   "ui-author": { folder: "ui-parts" },
   "ui-avatar": { folder: "ui-parts" },
-  "ui-breadcrumb": { folder: "ui-breadcrumb" },
+  "ui-breadcrumb": { folder: "ui-breadcrumb", skeleton: { parts: [{ shape: "line", length: "medium" }] } },
   "ui-breadcrumb-section": { folder: "ui-breadcrumb" },
-  "ui-button": { folder: "ui-button" },
+  "ui-button": { folder: "ui-button", skeleton: { display: "inline", width: "6em", height: "2.5em" } },
   "ui-buttons": { folder: "ui-button" },
-  "ui-calendar": { folder: "ui-calendar" },
-  "ui-card": { folder: "ui-card" },
+  "ui-calendar": { folder: "ui-calendar", skeleton: { display: "inline", width: "14em", height: "2.5em" } },
+  "ui-card": {
+    folder: "ui-card",
+    skeleton: {
+      width: "18em",
+      parts: [{ shape: "image", ratio: "square" }, { shape: "header" }, { shape: "paragraph", lines: 3 }]
+    }
+  },
   "ui-cards": { folder: "ui-card" },
-  "ui-checkbox": { folder: "ui-checkbox" },
+  "ui-checkbox": { folder: "ui-checkbox", skeleton: { display: "inline", width: "6em", height: "1.25em" } },
   "ui-column": { folder: "ui-grid" },
-  "ui-comment": { folder: "ui-comment" },
+  "ui-comment": {
+    folder: "ui-comment",
+    skeleton: {
+      parts: [
+        { shape: "header", image: true },
+        { shape: "paragraph", lines: 2 }
+      ]
+    }
+  },
   "ui-comments": { folder: "ui-comment" },
   "ui-container": { folder: "ui-container" },
   "ui-content": { folder: "ui-parts" },
@@ -26,33 +49,49 @@ export const ROOT_CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
   "ui-description": { folder: "ui-parts" },
   "ui-detail": { folder: "ui-parts" },
   "ui-dimmer": { folder: "ui-dimmer" },
-  "ui-divider": { folder: "ui-divider" },
-  "ui-dropdown": { folder: "ui-dropdown" },
-  "ui-embed": { folder: "ui-embed" },
-  "ui-emoji": { folder: "ui-emoji" },
+  "ui-divider": { folder: "ui-divider", skeleton: { height: "0.25em" } },
+  "ui-dropdown": { folder: "ui-dropdown", skeleton: { display: "inline", width: "14em", height: "2.5em" } },
+  "ui-embed": { folder: "ui-embed", skeleton: { width: "28em", height: "15.75em" } },
+  "ui-emoji": { folder: "ui-emoji", skeleton: { display: "inline", width: "1em", height: "1em" } },
   "ui-event": { folder: "ui-feed" },
   "ui-extra": { folder: "ui-parts" },
-  "ui-feed": { folder: "ui-feed" },
-  "ui-field": { folder: "ui-form" },
+  "ui-feed": {
+    folder: "ui-feed",
+    skeleton: {
+      parts: [
+        { shape: "header", image: true },
+        { shape: "paragraph", lines: 2 }
+      ]
+    }
+  },
+  "ui-field": { folder: "ui-form", skeleton: { height: "4.5em" } },
   "ui-fields": { folder: "ui-form" },
-  "ui-flag": { folder: "ui-flag" },
+  "ui-flag": { folder: "ui-flag", skeleton: { display: "inline", width: "1.1em", height: "0.8em" } },
   "ui-flyout": { folder: "ui-flyout" },
   "ui-form": { folder: "ui-form" },
   "ui-grid": { folder: "ui-grid" },
-  "ui-header": { folder: "ui-parts" },
-  "ui-icon": { folder: "ui-icon" },
-  "ui-icons": { folder: "ui-icon" },
-  "ui-image": { folder: "ui-image" },
+  "ui-header": { folder: "ui-parts", skeleton: { parts: [{ shape: "line", length: "medium" }] } },
+  "ui-icon": { folder: "ui-icon", skeleton: { display: "inline", width: "1em", height: "1em" } },
+  "ui-icons": { folder: "ui-icon", skeleton: { display: "inline", width: "1em", height: "1em" } },
+  "ui-image": { folder: "ui-image", skeleton: { width: "10em", parts: [{ shape: "image", ratio: "square" }] } },
   "ui-images": { folder: "ui-image" },
-  "ui-input": { folder: "ui-input" },
+  "ui-input": { folder: "ui-input", skeleton: { display: "inline", width: "14em", height: "2.5em" } },
   "ui-item": { folder: "ui-item" },
-  "ui-items": { folder: "ui-items" },
-  "ui-label": { folder: "ui-label" },
+  "ui-items": {
+    folder: "ui-items",
+    skeleton: {
+      parts: [
+        { shape: "header", image: true },
+        { shape: "paragraph", lines: 3 }
+      ]
+    }
+  },
+  "ui-label": { folder: "ui-label", skeleton: { display: "inline", width: "4em", height: "1.8em" } },
   "ui-labels": { folder: "ui-label" },
-  "ui-list": { folder: "ui-list" },
+  "ui-list": { folder: "ui-list", skeleton: { parts: [{ shape: "paragraph", lines: 3 }] } },
   "ui-loader": { folder: "ui-loader" },
-  "ui-menu": { folder: "ui-menu" },
-  "ui-message": { folder: "ui-message" },
+  "ui-menu": { folder: "ui-menu", skeleton: { height: "3em" } },
+  "ui-message": { folder: "ui-message", skeleton: { parts: [{ shape: "header" }, { shape: "line", length: "long" }] } },
   "ui-meta": { folder: "ui-parts" },
   "ui-modal": { folder: "ui-modal" },
   "ui-nag": { folder: "ui-nag" },
@@ -63,34 +102,50 @@ export const ROOT_CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
   "ui-placeholder-line": { folder: "ui-placeholder" },
   "ui-placeholder-paragraph": { folder: "ui-placeholder" },
   "ui-popup": { folder: "ui-popup" },
-  "ui-progress": { folder: "ui-progress" },
+  "ui-progress": { folder: "ui-progress", skeleton: { height: "2em" } },
   "ui-pushable": { folder: "ui-sidebar" },
   "ui-pusher": { folder: "ui-sidebar" },
-  "ui-radio": { folder: "ui-checkbox" },
+  "ui-radio": { folder: "ui-checkbox", skeleton: { display: "inline", width: "6em", height: "1.25em" } },
   "ui-rail": { folder: "ui-rail" },
-  "ui-rating": { folder: "ui-rating" },
+  "ui-rating": { folder: "ui-rating", skeleton: { display: "inline", width: "5.5em", height: "1.1em" } },
   "ui-reveal": { folder: "ui-reveal" },
   "ui-root": { folder: "ui-root" },
   "ui-row": { folder: "ui-grid" },
-  "ui-search": { folder: "ui-search" },
-  "ui-segment": { folder: "ui-segment" },
+  "ui-search": { folder: "ui-search", skeleton: { display: "inline", width: "15em", height: "2.5em" } },
+  "ui-segment": { folder: "ui-segment", skeleton: { parts: [{ shape: "header" }, { shape: "paragraph" }] } },
   "ui-segments": { folder: "ui-segment" },
-  "ui-select": { folder: "ui-select" },
+  "ui-select": { folder: "ui-select", skeleton: { display: "inline", width: "12em", height: "2.5em" } },
   "ui-shape": { folder: "ui-shape" },
   "ui-side": { folder: "ui-shape" },
   "ui-sidebar": { folder: "ui-sidebar" },
-  "ui-slider": { folder: "ui-slider" },
-  "ui-statistic": { folder: "ui-statistic" },
+  "ui-slider": { folder: "ui-slider", skeleton: { width: "16em", height: "1.25em" } },
+  "ui-statistic": { folder: "ui-statistic", skeleton: { display: "inline", width: "6em", height: "4em" } },
   "ui-statistics": { folder: "ui-statistic" },
   "ui-step": { folder: "ui-step" },
-  "ui-steps": { folder: "ui-step" },
+  "ui-steps": { folder: "ui-step", skeleton: { height: "5em" } },
   "ui-sticky": { folder: "ui-sticky" },
   "ui-summary": { folder: "ui-parts" },
   "ui-tab": { folder: "ui-tab" },
-  "ui-table": { folder: "ui-table" },
-  "ui-tabs": { folder: "ui-tab" },
+  "ui-table": {
+    folder: "ui-table",
+    skeleton: {
+      parts: [
+        { shape: "line", length: "long" },
+        { shape: "paragraph", lines: 4 }
+      ]
+    }
+  },
+  "ui-tabs": {
+    folder: "ui-tab",
+    skeleton: {
+      parts: [
+        { shape: "line", length: "medium" },
+        { shape: "paragraph", lines: 3 }
+      ]
+    }
+  },
   "ui-text": { folder: "ui-text" },
-  "ui-textarea": { folder: "ui-input" },
+  "ui-textarea": { folder: "ui-input", skeleton: { width: "20em", height: "6em" } },
   "ui-title": { folder: "ui-parts" },
   "ui-toast": { folder: "ui-toast" },
   "ui-transition": { folder: "ui-transition" },

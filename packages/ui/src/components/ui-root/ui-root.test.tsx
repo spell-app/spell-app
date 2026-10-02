@@ -92,7 +92,7 @@ describe("<ui-root> loading on demand", () => {
 describe("<ui-root> display", () => {
   const WAITING = `<ui-test-never-ready></ui-test-never-ready><p>Text</p>`
 
-  it("when-ready (and skeleton, until skeletons exist):  hidden, space kept", async () => {
+  it("when-ready (and skeleton with nothing described):  hidden, space kept", async () => {
     for (const display of ["when-ready", "skeleton", ""]) {
       const { slot } = await root(`<ui-root display="${display}" timeout="10s">${WAITING}</ui-root>`)
       expect(slot.style.visibility).toBe("hidden")
@@ -132,6 +132,83 @@ describe("<ui-root> display", () => {
       expect(host.shadowRoot!.querySelector("p[part=loading]")!.textContent).toBe("Wait")
     } finally {
       UIRoot.prototype.Loading = original
+    }
+  })
+})
+
+describe("<ui-root> skeletons", () => {
+  /** The root's skeleton box, if shown. */
+  function skeletonBox(host: Element) {
+    return host.shadowRoot!.querySelector("[part=skeleton]")
+  }
+
+  it("draws a <ui-placeholder> per described element, in page order, instead of the content", async () => {
+    const html =
+      `<ui-test-never-ready></ui-test-never-ready><ui-card></ui-card><p>Text</p>` +
+      `<ui-button>A</ui-button><ui-button size="small" fluid>B</ui-button>`
+    const { host, slot } = await root(`<ui-root timeout="10s">${html}</ui-root>`)
+    const placeholders = [...skeletonBox(host)!.children]
+    expect(placeholders.map((placeholder) => placeholder.localName)).toEqual(Array(3).fill("ui-placeholder"))
+    const [card, button, small] = placeholders as HTMLElement[]
+    expect([...card!.children].map((shape) => shape.localName)).toEqual([
+      "ui-placeholder-image",
+      "ui-placeholder-header",
+      "ui-placeholder-paragraph"
+    ])
+    expect(card!.children[0]!.hasAttribute("square")).toBe(true)
+    expect(card!.children[2]!.children).toHaveLength(3)
+    expect(card!.style.getPropertyValue("--ui-placeholder-max-width")).toBe("18em")
+    expect(button!.style.display).toBe("inline-block")
+    expect(button!.firstElementChild!.getAttribute("style")).toContain("--ui-placeholder-image-height: 2.5em")
+    expect(small!.style.getPropertyValue("--ui-scale")).toBe("var(--ui-size-small)")
+    expect(small!.hasAttribute("fluid")).toBe(true)
+    expect(slot.style.display).toBe("none")
+    // the page's own DOM is never touched:  no placeholder in it, the same children
+    expect(host.querySelector("ui-placeholder")).toBeNull()
+    expect([...host.children].map((child) => child.localName)).toEqual([
+      "ui-test-never-ready",
+      "ui-card",
+      "p",
+      "ui-button",
+      "ui-button"
+    ])
+  })
+
+  it("an element inside a described one is covered by it", async () => {
+    const { host } = await root(
+      `<ui-root timeout="10s"><ui-test-never-ready></ui-test-never-ready>` +
+        `<ui-segment><ui-button>A</ui-button></ui-segment></ui-root>`
+    )
+    expect(skeletonBox(host)!.children).toHaveLength(1)
+  })
+
+  it("goes once ready;  when-ready and immediately draw none", async () => {
+    const { host, controller } = await root(
+      `<ui-root timeout="30ms"><ui-test-never-ready></ui-test-never-ready><ui-button>A</ui-button></ui-root>`
+    )
+    expect(skeletonBox(host)).not.toBeNull()
+    await controller.settled
+    await ElementFixture.tick()
+    expect(skeletonBox(host)).toBeNull()
+    for (const display of ["when-ready", "immediately"]) {
+      const other = await root(`<ui-root display="${display}" timeout="10s"><ui-button>A</ui-button></ui-root>`)
+      expect(skeletonBox(other.host)).toBeNull()
+    }
+  })
+
+  it("UIRoot.Skeleton swaps the look", async () => {
+    const original = UIRoot.prototype.Skeleton
+    UIRoot.prototype.Skeleton = {
+      render: (part, skeletons) =>
+        Object.assign(document.createElement("p"), { part, textContent: `${skeletons().length}` })
+    }
+    try {
+      const { host } = await root(
+        `<ui-root timeout="10s"><ui-test-never-ready></ui-test-never-ready><ui-button>A</ui-button></ui-root>`
+      )
+      expect(host.shadowRoot!.querySelector("p[part=skeleton]")!.textContent).toBe("1")
+    } finally {
+      UIRoot.prototype.Skeleton = original
     }
   })
 })

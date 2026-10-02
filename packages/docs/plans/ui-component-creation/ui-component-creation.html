@@ -51,7 +51,7 @@
             <a href="../../ui-component-creation.html" target="docs-ui-component-creation">ui-component-creation.html</a
             >.
           </p>
-          <ui-progress class="plan-progress" value="17" total="21" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="18" total="21" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
           <ui-steps class="plan-phases" vertical ordered>
@@ -96,8 +96,8 @@
             ></ui-step
             ><ui-step completed header="P16 · Root Design" href="#p16" data-status="done" data-phase="16"></ui-step
             ><ui-step completed header="P17 · Root Element" href="#p17" data-status="done" data-phase="17"></ui-step
-            ><ui-step selected header="P18 · Root Settings" href="#p18" data-status="active" data-phase="18"></ui-step
-            ><ui-step header="P19 · Skeletons" href="#p19" data-status="todo" data-phase="19"></ui-step
+            ><ui-step completed header="P18 · Root Settings" href="#p18" data-status="done" data-phase="18"></ui-step
+            ><ui-step selected header="P19 · Skeletons" href="#p19" data-status="active" data-phase="19"></ui-step
             ><ui-step header="P20 · Root Docs And Site" href="#p20" data-status="todo" data-phase="20"></ui-step
             ><ui-step header="P21 · Doc Review" href="#p21" data-status="todo" data-phase="21"></ui-step
           ></ui-steps>
@@ -1414,7 +1414,21 @@ export class UICard extends UIElement&lt;...&gt; {
                   </p></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="18">UPDATE</ui-label>
+            </li>
+            <li data-status="open" id="c13">
+              <a class="plan-id" href="#c13">C13</a>
+              <span class="plan-title">Skeleton sizes are estimates, and side-by-side layouts show as one column</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    The descriptions' em sizes were chosen by eye from Fomantic's defaults; a page will see some shift
+                    on reveal. Placeholders stack in the root's shadow in page order (D61), so a grid of cards shows as
+                    a column until ready. Inline skeletons (buttons, labels, inputs) do sit side by side.
+                  </p></ui-content
+                ></ui-accordion
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="19">UPDATE</ui-label>
             </li>
           </ol>
         </section>
@@ -2694,7 +2708,6 @@ export class UICard extends UIElement&lt;...&gt; {
                   </p></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="18">UPDATE</ui-label>
             </li>
             <li data-status="open" id="d67">
               <a class="plan-id" href="#d67">D67</a>
@@ -2712,7 +2725,26 @@ export class UICard extends UIElement&lt;...&gt; {
                   </p></ui-content
                 ></ui-accordion
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="18">UPDATE</ui-label>
+            </li>
+            <li data-status="open" id="d68">
+              <a class="plan-id" href="#d68">D68</a>
+              <span class="plan-title">Every vocabulary says skeleton: a SkeletonSpec or null</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    <code>ComponentVocabulary.skeleton</code> (<code>SkeletonSpec | null</code>): 37 tags describe one
+                    (buttons, inputs, cards, tables ...); parts, group wrappers whose children are described, and
+                    overlays say <code>null</code>.
+                    <a href="../../../ui/test/vocabularies.test.ts" target="src-packages-ui-test-vocabularies-test-ts"
+                      ><code>test/vocabularies.test.ts</code></a
+                    >
+                    requires the field on every tag, so a new tag must decide. Written by 3 agents by family; sizes are
+                    judged from Fomantic's defaults, not measured.
+                  </p></ui-content
+                ></ui-accordion
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="19">UPDATE</ui-label>
             </li>
           </ol>
         </section>
@@ -2897,8 +2929,8 @@ export class UICard extends UIElement&lt;...&gt; {
             <ul class="plan-phase-body">
               <li>
                 <b>Goal:</b> CLDR names (any separators) by default; opt in to Fomantic's names with
-                <code>&lt;ui-emoji-set names="fomantic"&gt;</code> / <code>EmojiData.use()</code>, one set at a time, like
-                icon packs
+                <code>&lt;ui-emoji-set names="fomantic"&gt;</code> / <code>EmojiData.use()</code>, one set at a time,
+                like icon packs
               </li>
               <li>
                 <b>Files:</b> scripts/gen-emoji.ts, emoji data (data/cldr, data/fomantic), EmojiData.ts, UIEmojiSet.tsx,
@@ -2994,11 +3026,9 @@ export class UICard extends UIElement&lt;...&gt; {
               <li><b>Verify:</b> ui-root tests; yarn review, build, measure, smoke, hmr, site:build</li>
             </ul>
           </section>
-          <section data-status="active" data-phase="18" class="s3">
+          <section data-status="done" data-phase="18" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p18">
-                <ui-icon name="circle half stroke" color="orange"></ui-icon> P18 · Root Settings
-              </h3></ui-sticky
+              ><h3 id="p18"><ui-icon name="circle check" color="green"></ui-icon> P18 · Root Settings</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li>
@@ -3012,9 +3042,9 @@ export class UICard extends UIElement&lt;...&gt; {
               <li><b>Verify:</b> per-root icon + emoji tests; yarn review, visual</li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="19" class="s3">
+          <section data-status="active" data-phase="19" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p19"><ui-icon name="circle outline" color="grey"></ui-icon> P19 · Skeletons</h3></ui-sticky
+              ><h3 id="p19"><ui-icon name="circle half stroke" color="orange"></ui-icon> P19 · Skeletons</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li>
@@ -3906,6 +3936,20 @@ export class UICard extends UIElement&lt;...&gt; {
               ><ui-content
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-01T22:02-04:00">2026-10-01 22:02</time></ui-date> P18
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T22:18-04:00">2026-10-01 22:18</time></ui-date> P18
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-01T22:19-04:00">2026-10-01 22:19</time></ui-date> P19
                   active</ui-summary
                 ></ui-content
               ></ui-event

@@ -20,6 +20,7 @@ export const valueVocabulary = {
   tag: "ui-value",
   topics: ["content parts", "data display"],
   aka: ["statistic value", "number", "metric value"],
+  skeleton: null,
   noun: "value",
   ui: false,
   description: "A statistic's value;  a search result's price.",

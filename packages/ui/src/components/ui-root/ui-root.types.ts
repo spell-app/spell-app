@@ -2,6 +2,8 @@
  * Loose constants, types and helpers of `<ui-root>`:  its element class, loader, renderers and native fallback import
  * them from here.
  */
+import type { SkeletonSpec } from "$/ui/core"
+
 import type { rootVocabulary } from "./ui-root.vocabulary.en"
 
 /** `rootVocabulary`'s type. */
@@ -11,6 +13,14 @@ export type RootVocabulary = typeof rootVocabulary
 export type RootCatalogEntry = {
   /** Its folder under `src/components/`:  its family, imported to define it. */
   readonly folder: string
+  /** What `display="skeleton"` draws in its place;  none:  hidden until ready (or covered by its owner's). */
+  readonly skeleton?: SkeletonSpec
+}
+
+/** One skeleton to draw:  the element it stands for and its description. */
+export type RootSkeleton = {
+  readonly element: Element
+  readonly spec: SkeletonSpec
 }
 
 /** Why a tag inside a root didn't load:  no such component, its family's import failed, or not ready in time. */
@@ -25,6 +35,12 @@ export type RootFailure = {
 
 /** `display` values. */
 export const DISPLAY = { skeleton: "skeleton", whenReady: "when-ready", immediately: "immediately" } as const
+
+/** Bars in a skeleton paragraph unless it says. */
+export const DEFAULT_LINES = 3
+
+/** Bars in a skeleton header. */
+export const HEADER_LINES = 2
 
 /** Separates the packs in `icons="fa7-free, /packs/lucide/pack.js"`. */
 export const PACK_SEPARATOR = ","

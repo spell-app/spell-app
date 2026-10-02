@@ -18,6 +18,7 @@ export const iconsVocabulary = {
   tag: "ui-icons",
   topics: ["icons", "elements"],
   aka: ["icon group", "stacked icons", "icon stack"],
+  skeleton: { display: "inline", width: "1em", height: "1em" },
   noun: "icons",
   description: "Several icons can be used together as a group.",
   attributes: [

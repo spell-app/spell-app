@@ -1,6 +1,6 @@
 /**
  * Generates `src/components/ui-root/ui-root.catalog.ts`:  every component tag => what `<ui-root>` needs BEFORE that
- * tag's family loads (its folder, so the root knows which family to import).
+ * tag's family loads:  its folder (which family to import) and its skeleton (`ComponentVocabulary.skeleton`).
  * - Run with `yarn gen:root` (`tsc -p scripts && tsx scripts/gen-root-catalog.ts`) after adding or moving a tag.
  *   `test/root-catalog.test.ts` fails while the file is stale.
  * - Why generated, not `ComponentDefinitions`:  that roll-up imports every vocabulary (~325 kB of source);  a lib
@@ -21,8 +21,8 @@ const COMPONENTS = fileURLToPath(new URL("../src/components/", import.meta.url))
 /** The generated file. */
 const OUTPUT = path.join(COMPONENTS, "ui-root", "ui-root.catalog.ts")
 
-/** Tag => folder, sorted by tag. */
-const folders: Record<string, string> = {}
+/** Tag => its entry. */
+const entries: Record<string, { folder: string; skeleton?: unknown }> = {}
 for (const folder of readdirSync(COMPONENTS, { withFileTypes: true })) {
   if (!folder.isDirectory()) continue
   for (const file of readdirSync(path.join(COMPONENTS, folder.name))) {
@@ -33,15 +33,16 @@ for (const folder of readdirSync(COMPONENTS, { withFileTypes: true })) {
     >
     for (const value of Object.values(module)) {
       if (typeof value === "object" && value !== null && "tag" in value && "attributes" in value) {
-        folders[String(value.tag)] = folder.name
+        const skeleton = (value as { skeleton?: unknown }).skeleton
+        entries[String(value.tag)] = skeleton ? { folder: folder.name, skeleton } : { folder: folder.name }
       }
     }
   }
 }
 
-const entries = Object.keys(folders)
+const lines = Object.keys(entries)
   .sort()
-  .map((tag) => `  "${tag}": { folder: "${folders[tag]}" }`)
+  .map((tag) => `  ${JSON.stringify(tag)}: ${JSON.stringify(entries[tag])}`)
 writeFileSync(
   OUTPUT,
   `/* GENERATED -- do not edit, run \`yarn gen:root\` (source:  every \`<tag>.vocabulary.en.ts\`) */
@@ -50,9 +51,9 @@ import type { RootCatalogEntry } from "./ui-root.types"
 
 /** Every component tag => what \`<ui-root>\` needs before its family loads. */
 export const ROOT_CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
-${entries.join(",\n")}
+${lines.join(",\n")}
 }
 `
 )
 execFileSync(`${NodePackage.need("oxfmt")}/bin/oxfmt`, [OUTPUT], { stdio: "ignore" })
-console.log(`wrote ${path.relative(process.cwd(), OUTPUT)}:  ${entries.length} tags`)
+console.log(`wrote ${path.relative(process.cwd(), OUTPUT)}:  ${lines.length} tags`)
