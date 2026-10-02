@@ -1,6 +1,6 @@
 ---
 name: isolate
-description: Move this session into its own git worktree `<name>` (worktree, branch and session all named `<name>`) and show it in the user's current VS Code window;  `/isolate done` leaves it.  User-invoked as `/isolate <name>` or `/isolate done`.
+description: Move this session into its own git worktree `<name>` (worktree, branch and session all named `<name>`) and show it in the user's current VS Code window;  `/isolate done` offers to merge it into `main`, then leaves it.  User-invoked as `/isolate <name>` or `/isolate done`.
 argument-hint: <name> | done
 disable-model-invocation: true
 ---
@@ -35,9 +35,31 @@ worktree, its branch and the session share one name.  `/plan-doc` runs these ste
 
 1. Report what's uncommitted and unmerged in the worktree (`git status --short`, `git log --oneline main..HEAD`).
    Commit only as the root's rules allow (stage, then ask).
-2. Take it out of the window, from the worktree's root:  `node scripts/window.mjs remove packages/<pkg>` (the path
+2. Unmerged commits (`main..HEAD` not empty):  AskUserQuestion "Merge `<name>` into `main`?", options "Merge now"
+   and "Leave unmerged", listing the commits in the question.  On "Merge now":
+   - the main checkout is the FIRST line of `git worktree list`;  run git there with `git -C <main checkout>`, never
+     `cd` (a worktree session refuses it)
+   - it must be on `main` (`git -C <main checkout> branch --show-current`) with nothing uncommitted
+     (`git -C <main checkout> status --short`):  another session may be working there.  Either fails:  say which,
+     don't merge, and go on
+   - `git -C <main checkout> merge <name>`;  a fast-forward or a clean merge commit is fine
+   - conflicts:  `git -C <main checkout> merge --abort` at once (never leave `main` mid-merge), then step 3
+   - nothing unmerged:  skip this step and say "nothing to merge"
+3. Merge conflicts:  AskUserQuestion, listing the conflicting files, options:
+   - "Fix conflicts, then merge":  fix them in the WORKTREE, never in the main checkout:
+     - `git merge main` in the worktree;  resolve each file, keeping BOTH sides' intent
+     - run the checks of each package the conflicts touch (`yarn ts`, `yarn test` there), if installed
+     - commit the merge ("Merge main into `<name>`";  the answer counts as the ask), then re-check the main checkout
+       as in step 2 and `git -C <main checkout> merge --ff-only <name>`
+   - "Exit anyway":  go on to step 4, unmerged
+   - "Stay isolated":  stop here, still in the worktree
+   - Can't fix them (keeping both sides needs a decision only the user can make, or the checks fail):
+     `git merge --abort` in the worktree, say so, list each file and why, then AskUserQuestion "Continue exiting?"
+     options "Exit, unmerged" and "Stay isolated"
+4. Take it out of the window, from the worktree's root:  `node scripts/window.mjs remove packages/<pkg>` (the path
    `add` used).
-3. `ExitWorktree` with `action: "keep"`:  the worktree and branch stay for merging.  Never `remove` unasked (and on a
-   hook-made worktree `remove` refuses without `discard_changes`).
-4. One line:  how to merge (`git merge <name>` from the main checkout), and that the worktree can then go
-   (`git worktree remove .claude/worktrees/<name>`, `git branch -d <name>`).
+5. `ExitWorktree` with `action: "keep"`:  the worktree and branch stay.  Never `remove` unasked (and on a hook-made
+   worktree `remove` refuses without `discard_changes`).
+6. One line:
+   - merged:  the worktree can go (`git worktree remove .claude/worktrees/<name>`, `git branch -d <name>`)
+   - not merged:  how to merge later (`git merge <name>` from the main checkout), then the same cleanup
