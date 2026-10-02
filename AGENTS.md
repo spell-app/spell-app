@@ -70,11 +70,13 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 - Open the worktree in its OWN new window at once, from the worktree's root:  `node scripts/window.mjs open <name>`;
   `... close <name>` on leaving.  Then `... handoff <name>`:  when the turn ends, the session moves to that window,
   in an editor tab (never the sidebar), and its old tab closes (the `Stop` hook, `.claude/hooks/handoff.mjs`).
-  - The window:  `.claude/worktrees/<name>.code-workspace`, the package window's theme with a title bar tinted
-    per worktree.  Folders:  the MAIN repo root first (so its Claude panel lists every session), then the
+  - The window:  `workspaces/ongoing/<name>.code-workspace` (git-ignored), the package window's theme with a title
+    bar tinted per worktree.  Folders:  the MAIN repo root first (so its Claude panel lists every session), then the
     worktree's `packages/<pkg>` (`<pkg> ⎇ <name>`) and root (`spell-app ⎇ <name>`).
   - Why:  Owen reviews in VS Code;  edits a window doesn't show are invisible there.
   - `node`, not `yarn window`:  `yarn` runs no script in a worktree before its `yarn install`.
+  - A doc shown while the move is pending (`yarn plan-doc open`, `window.mjs show`) waits, then shows beside the
+    session in the window it moved to.
 - NEVER `code --add` / `--remove` (the focused window;  a one-folder window restarts its extensions, Claude panel
   included) or `code -r` (restarts the session).  `code <file>.code-workspace` only through `window.mjs open`.
 - Leave with `ExitWorktree` `keep`;  the hook's `remove` never deletes uncommitted or unmerged work.

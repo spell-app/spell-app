@@ -9,7 +9,7 @@ import { spawn, spawnSync } from "node:child_process"
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { createServer } from "node:http"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { dirname, join } from "node:path"
 import { after, beforeEach, test } from "node:test"
 
 import { Window, mainRoot, tint } from "./window.mjs"
@@ -95,12 +95,12 @@ test("a worktree's window:  the main root first, then the worktree's package and
   const workspace = Window.worktreeWorkspace("ui", "seo")
   assert.deepEqual(workspace.folders, [
     { path: "../..", name: "spell-app" },
-    { path: "seo/packages/ui", name: "ui ⎇ seo" },
-    { path: "seo", name: "spell-app ⎇ seo" }
+    { path: "../../.claude/worktrees/seo/packages/ui", name: "ui ⎇ seo" },
+    { path: "../../.claude/worktrees/seo", name: "spell-app ⎇ seo" }
   ])
   assert.equal(workspace.settings["workbench.colorTheme"], Window.theme("ui"))
   assert.deepEqual(workspace.settings["workbench.colorCustomizations"], tint("seo"))
-  assert.match(Window.worktreeFile("seo"), /\/\.claude\/worktrees\/seo\.code-workspace$/)
+  assert.match(Window.worktreeFile("seo"), /\/workspaces\/ongoing\/seo\.code-workspace$/)
 })
 
 test("tint():  a dark hue per name, the same every time", () => {
@@ -122,7 +122,7 @@ test("mainRoot():  the checkout a worktree is in;  a main checkout is its own", 
 
 test("packageOf():  a package window's package, else null", () => {
   assert.equal(Window.packageOf({ workspaceFile: "/repo/workspaces/ui.code-workspace" }), "ui")
-  assert.equal(Window.packageOf({ workspaceFile: "/repo/.claude/worktrees/seo.code-workspace" }), null)
+  assert.equal(Window.packageOf({ workspaceFile: "/repo/workspaces/ongoing/seo.code-workspace" }), null)
   assert.equal(Window.packageOf(null), null)
 })
 
@@ -171,9 +171,17 @@ test("resume():  opens the session in the target window, then closes its tab, or
   writeFileSync(remove, "")
   try {
     const tab = { sessionId: SESSION, to, from: sleeper.pid, close: "tab", remove: null }
-    assert.deepEqual(await Window.resume(tab, "isolate-me"), { opened: true, closed: true, matches: undefined })
+    const expected = { opened: true, closed: true, matches: undefined, shown: undefined }
+    assert.deepEqual(await Window.resume(tab, "isolate-me"), expected)
     assert.deepEqual(seen.splice(0), [
       ["/open-session", { sessionId: SESSION }],
+      ["/close-session-tab", { title: "isolate-me" }]
+    ])
+    // a doc asked for while the move was pending:  shown beside the session, before the old tab closes
+    assert.equal((await Window.resume({ ...tab, show: "/plan.html" }, "isolate-me")).shown, true)
+    assert.deepEqual(seen.splice(0), [
+      ["/open-session", { sessionId: SESSION }],
+      ["/show-doc", { file: "/plan.html" }],
       ["/close-session-tab", { title: "isolate-me" }]
     ])
     const window = { ...tab, close: "window", remove }
@@ -193,6 +201,7 @@ test("handoff():  records the move, keyed by session;  needs a session and the w
   const name = `test-${process.pid}`
   assert.throws(() => Window.handoff(name, undefined), /no session/)
   assert.throws(() => Window.handoff(name, SESSION), /no window file/)
+  mkdirSync(dirname(Window.worktreeFile(name)), { recursive: true })
   writeFileSync(Window.worktreeFile(name), JSON.stringify(Window.worktreeWorkspace("ui", name)))
   try {
     const handoff = Window.handoff(name, SESSION)
@@ -211,6 +220,21 @@ test("handoff():  records the move, keyed by session;  needs a session and the w
   } finally {
     rmSync(Window.worktreeFile(name), { force: true })
   }
+})
+
+test("show():  while a move is pending, the doc waits for the target window;  the last one wins", async () => {
+  const record = { sessionId: SESSION, to: "/repo/workspaces/ongoing/seo.code-workspace", show: null }
+  mkdirSync(Window.handoffs, { recursive: true })
+  writeFileSync(Window.handoffFile(SESSION), JSON.stringify(record))
+  try {
+    assert.deepEqual(await Window.show("/a.html", SESSION), { later: record.to })
+    assert.deepEqual(await Window.show("/b.html", SESSION), { later: record.to })
+    assert.equal(JSON.parse(readFileSync(Window.handoffFile(SESSION), "utf8")).show, "/b.html")
+  } finally {
+    rmSync(Window.handoffFile(SESSION), { force: true })
+  }
+  // nothing pending, and no window:  `request()`'s error
+  await assert.rejects(Window.show("/a.html", SESSION), /no window/)
 })
 
 /** Write a registry entry for `pid` with `folders`. */

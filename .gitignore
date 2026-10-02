@@ -2,6 +2,7 @@ node_modules
 .yarn/install-state.gz
 .DS_Store
 .claude/worktrees/
+workspaces/ongoing/
 packages/solid-element/dist/
 __pycache__/
 

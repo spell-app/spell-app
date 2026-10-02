@@ -31,7 +31,7 @@ this one.  AskUserQuestion:
 ## 3. The right window
 
 - This window:  `node scripts/window.mjs which`, its `workspace` line.
-- `<name>`'s window file:  `.claude/worktrees/<name>.code-workspace` in the main checkout.
+- `<name>`'s window file:  `workspaces/ongoing/<name>.code-workspace` in the main checkout.
 - Different (or no window file):  AskUserQuestion "This window isn't `<name>`'s.  Open it in a new window?":
   - "Open new window (Recommended)":
     1. not yet in the worktree:  `EnterWorktree` with `path: ".claude/worktrees/<name>"`
