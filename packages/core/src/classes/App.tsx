@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 /**
  * Base classes for spell.
  */

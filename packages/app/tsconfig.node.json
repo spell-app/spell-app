@@ -16,6 +16,7 @@
     "vite.element.config.ts",
     "vite.runner.config.ts",
     "vitest.config.ts",
+    "vite.shared.ts",
     "../../vite.decorators.ts",
     "../../vite.packageVersion.ts",
     "../../types"

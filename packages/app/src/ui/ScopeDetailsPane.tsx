@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 import classnames from "classnames"
 import React from "react"
 import * as SUI from "semantic-ui-react"

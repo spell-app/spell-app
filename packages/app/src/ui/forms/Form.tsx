@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 //
 //  ## `<Form>` itself, plus the reactive store backing it.
 //

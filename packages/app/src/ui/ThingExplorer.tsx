@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 import { observe, unobserve } from "@nx-js/observer-util"
 import classnames from "classnames"
 import React from "react"

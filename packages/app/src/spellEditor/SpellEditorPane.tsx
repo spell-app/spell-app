@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 import type { SP } from "$/spell"
 import type { monaco } from "$/app/ui/monaco"
 

@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 import { view } from "$/util"
 import type { SpellConsole } from "$/core/console"
 // Import directly, NOT through the `UI` barrel, which would pull in the whole editor.

@@ -25,7 +25,9 @@
           ><header class="spell-page-head">
             <h1>Solid Migration</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p3">next: P3 · Tooling</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p4"
+                >next: P4 · Reactivity Engine</ui-label
+              ></span
             >
           </header></ui-sticky
         >
@@ -57,7 +59,7 @@
           </p>
 
           <blockquote class="plan-prompt"><p>convert this into a plan doc with name "solid-migration"</p></blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 15h 30m-24h in all, 14h-21h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 15h 30m-24h in all, 12h-18h left</p>
           <ui-section id="o1" header="1.1 Where it stands" sticky collapsible dividing>
             <ul>
               <li>
@@ -487,7 +489,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="2" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="3" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -517,6 +519,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p2"
             data-phase="2"
             data-status="done"
@@ -538,18 +541,20 @@
               ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p3" data-phase="3" data-status="todo" header="P3 · Tooling" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p3" data-phase="3" data-status="done" header="P3 · Tooling" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> app builds with Solid and React side by side; nothing rendered by Solid yet (handoff
                 0c)</ui-item
               ><ui-item icon="folder"
-                ><b>Files:</b> packages/app/package.json (solid-js, @solidjs/web, @solidjs/h exact; @solidjs/vite-plugin
-                3.0.0-next.47; drop react-router-dom, react-keydown, prop-types, history); every
-                packages/app/vite*.config.ts + vitest.config.ts (dedupe Solid, Lightning CSS with ui's CSS_TARGETS,
-                emitGlyphs(), standardDecorators() -&gt; solid({ include: SOLID_FILES }) -&gt; react({ exclude }));
-                app.d.ts JSX aliases; CODE-DEBT dual-JSX entry</ui-item
+                ><b>Files:</b> packages/app/package.json (solid-js, @solidjs/web exact, @spell-app/ui,
+                @spell-app/solid-element; @solidjs/vite-plugin 3.0.0-next.47); packages/app/vite.shared.ts
+                <code>appConfig()</code> (decorators, Solid by default, React for marked files, dedupe, fork from
+                source, Lightning CSS with ui's CSS_TARGETS, optional icon packs) used by every vite*.config.ts +
+                vitest.config.ts; tsconfig.json Solid JSX + ES2023 lib; <code>/** @jsxImportSource react */</code> on 55
+                React .tsx; CODE-DEBT "app" entry</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> smoke test: Solid component with <code>&lt;ui-button&gt;</code> in a vitest SSR project;
                 build, build:runner, build:element</ui-item
@@ -909,6 +914,45 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="d11" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d11">D11</a>
+                  <span class="plan-title">JSX: Solid by default, React files marked</span> </ui-title
+                ><ui-content
+                  ><p>
+                    App's <code>tsc</code> follows <code>$/ui</code> into ui's 138 Solid <code>.tsx</code>, checked with
+                    app's JSX setting, so app can't stay React-by-default without touching all of ui. So:
+                    <a href="../../../app/tsconfig.json" target="src-packages-app-tsconfig-json"
+                      ><code>packages/app/tsconfig.json</code></a
+                    >
+                    <code>jsx: preserve</code> + <code>jsxImportSource: @solidjs/web</code>; the 55 React
+                    <code>.tsx</code> (51 app, 2 core, 2 parser) start with <code>/** @jsxImportSource react */</code>;
+                    <a href="../../../app/vite.shared.ts" target="src-packages-app-vite-shared-ts"
+                      ><code>packages/app/vite.shared.ts</code></a
+                    >
+                    <code>reactFiles()</code> reads the same marker for the React / Solid plugins. ONE marker, no path
+                    list (supersedes the handoff's <code>SOLID_FILES</code>). A missing marker: <code>tsc</code> fails
+                    (checked).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d12" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d12">D12</a>
+                  <span class="plan-title">Lightning CSS errorRecovery on in app</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Switching app to Lightning CSS (for ui's <code>@custom-media</code> and <code>light-dark()</code>)
+                    made the dev server 500 on <code>static/semantic-ui-css/semantic.min.css</code> (linked from
+                    <a href="../../index.html" target="src-packages-docs-index-html"><code>index.html</code></a
+                    >): selectors like <code>:before.ui</code> are invalid. <code>errorRecovery: true</code> drops such
+                    rules with a warning, as browsers already do. Checked: the app renders with Semantic's styles, no
+                    console errors besides the missing API server.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -996,6 +1040,39 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="c7" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c7">C7</a>
+                  <span class="plan-title">App tests run Solid's SERVER build</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <a href="../../../app/" target="src-packages-app"><code>packages/app</code></a> tests run in node,
+                    so <code>solid-js</code> resolves to its server build: writes are applied at once, not staged (<a
+                      href="../../../app/src/solid.test.tsx"
+                      target="src-packages-app-src-solid-test-tsx"
+                      ><code>packages/app/src/solid.test.tsx</code></a
+                    >
+                    pins it). P4's cells-to-Solid bridge tests need the client build: a browser project (as ui's) or the
+                    <code>browser</code> + <code>development</code> conditions.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c8" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c8">C8</a>
+                  <span class="plan-title">Two vite copies: ui has its own</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <a href="../../../ui/node_modules/vite/" target="src-packages-ui-node-modules-vite"
+                      ><code>packages/ui/node_modules/vite</code></a
+                    >
+                    differs from the root's, so ui's plugin types don't match app's (<code>emitIconPacks()</code> needs
+                    <code>as unknown as Plugin</code> in <code>vite.shared.ts</code>). Harmless at runtime so far.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1041,6 +1118,21 @@
                     >
                     + <code>ASTJSXElement</code> emit thunks; spell projects to <code>&lt;ui-*&gt;</code> /
                     <code>class=</code>; <code>PARSING.md</code>. Was estimated 3-5h wall.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t3">T3</a>
+                  <span class="plan-title">Icon packs: turn on when ui-* elements render (P6 / P7)</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>appConfig({ iconPacks })</code> emits ui's built-in icon packs (8.7 MB) beside a build's
+                    chunks. Off in every build for now: nothing renders <code>&lt;ui-*&gt;</code> yet, and the runner
+                    build ships in the VS Code extension. Turn on per build with the dir <code>BuiltInPacks</code> looks
+                    in: <code>assets/icon-packs</code> for the app, <code>icon-packs</code> for element / runner /
+                    editor.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1211,6 +1303,28 @@
               ><ui-content
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T12:48-04:00">2026-10-02 12:48</time></ui-date> P2
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T12:58-04:00">2026-10-02 12:58</time></ui-date> P3
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T13:06-04:00">2026-10-02 13:06</time></ui-date> P3: the handoff's
+                  dep removals (react-router-dom, react-keydown, prop-types, history) were already done on main;
+                  @solidjs/h not added (only P5's element() needed it)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T13:12-04:00">2026-10-02 13:12</time></ui-date> P3
                   done</ui-summary
                 ></ui-content
               ></ui-event

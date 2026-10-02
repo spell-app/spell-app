@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 /**
  * Entry of the runner bundle (`yarn build:runner` => `dist-runner/`), loaded by the VS Code extension's
  * "Run Project" webview -- see `RunnerPanel` there.
