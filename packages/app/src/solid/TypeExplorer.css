@@ -1,0 +1,336 @@
+/*
+ * Solid `<TypeExplorer>` (`TypeExplorer.tsx`):  "Scopes" tree on the left, "Details" on the right, each scrolling
+ * on its own.  React's `$/app/ui/TypeExplorer.css`, on the same class names, until that goes.
+ * - Icons are `<ui-icon>`s, whose hosts are `display: contents`:  rules reach the glyph through `::part(icon)`.
+ */
+.TypeExplorer {
+  display: flex;
+  height: 100%;
+  font-size: 12px;
+  background: white;
+
+  &.empty {
+    padding: 12px;
+    color: grey;
+  }
+
+  .ScopesPane,
+  .DetailsPane {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .ScopesPane {
+    flex: 0 0 35%;
+    border-right: 1px solid rgba(34, 36, 38, 0.15);
+  }
+
+  .DetailsPane {
+    flex: 1 1 auto;
+  }
+
+  .PaneHeader {
+    display: flex;
+    flex: 0 0 auto;
+    padding: 2px 8px;
+    font-weight: bold;
+    background: #f9fafb;
+    border-bottom: 1px solid rgba(34, 36, 38, 0.15);
+  }
+
+  /* Order buttons, then Refresh, at the right. */
+  .PaneHeader .tools {
+    display: flex;
+    gap: 2px;
+    margin-left: auto;
+    font-weight: normal;
+
+    /* the glyph box:  the host has none */
+    ui-icon.order::part(icon) {
+      opacity: 0.4;
+    }
+
+    ui-icon.order.active::part(icon) {
+      opacity: 1;
+    }
+  }
+
+  /* Heading a list in document order is under, e.g. "actions" -- a plain rule if none. */
+  .SectionMarker {
+    margin-top: 4px;
+    padding: 1px 8px 1px 0;
+    font-size: 11px;
+    font-style: italic;
+    color: grey;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &.empty {
+      height: 0;
+      margin: 4px 8px 3px 0;
+      padding: 0;
+      border-top: 1px solid rgba(34, 36, 38, 0.1);
+    }
+  }
+
+  .PaneBody {
+    flex: 1 1 auto;
+    overflow: auto;
+  }
+
+  .detail,
+  .inherited {
+    margin-left: 0.75em;
+    color: grey;
+  }
+
+  .inherited {
+    font-style: italic;
+  }
+
+  /* Left of the label -- indent and arrow -- opens / closes;  the label and everything right of it selects. */
+  .TreeRow {
+    display: flex;
+    padding: 1px 8px 1px 0;
+    white-space: nowrap;
+    cursor: pointer;
+
+    .opener {
+      flex: 0 0 auto;
+      padding-right: 2px;
+    }
+
+    .body {
+      flex: 1 1 auto;
+    }
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.04);
+    }
+
+    &.selected {
+      background: hsla(210, 100%, 50%, 0.15);
+    }
+
+    .toggle {
+      display: inline-block;
+      width: 14px;
+      font-size: 9px;
+    }
+
+    .body:hover .label {
+      text-decoration: underline;
+    }
+  }
+
+  /* "Properties", "Enumerations", "Actions" under a type:  just open / close. */
+  .ScopeTreeGroup {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: grey;
+
+    .body:hover .label {
+      text-decoration: none;
+    }
+  }
+
+  .ScopeDetails {
+    padding: 4px 8px;
+
+    .title {
+      font-weight: bold;
+    }
+  }
+
+  .Breadcrumbs {
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(34, 36, 38, 0.1);
+
+    .crumb {
+      white-space: nowrap;
+      cursor: pointer;
+      color: #4183c4;
+
+      &:hover {
+        text-decoration: underline;
+      }
+
+      &.current {
+        color: inherit;
+        font-weight: bold;
+      }
+    }
+
+    .divider {
+      margin: 0 0.4em;
+      color: grey;
+    }
+  }
+
+  .Description {
+    margin: 4px 0 8px;
+
+    /* markdown headings from `#` comments:  a size step each, compact */
+    h1,
+    h2,
+    h3,
+    h4 {
+      margin: 0.3em 0;
+    }
+
+    h1 {
+      font-size: 1.4em;
+    }
+
+    h2 {
+      font-size: 1.2em;
+    }
+
+    h3 {
+      font-size: 1.05em;
+    }
+
+    &.editable {
+      cursor: text;
+      border-radius: 3px;
+
+      &:hover {
+        background: rgba(0, 0, 0, 0.04);
+      }
+    }
+
+    &.empty {
+      color: grey;
+      font-style: italic;
+    }
+
+    &.editing textarea {
+      display: block;
+      width: 100%;
+      margin-bottom: 4px;
+      font: inherit;
+    }
+  }
+
+  /* A member group's heading reads as a label, not a section title. */
+  .MemberGroup > .DetailsSectionTitle {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: grey;
+  }
+
+  .MemberDetails {
+    margin: 2px 0 6px 7px;
+    padding-left: 8px;
+    border-left: 2px solid rgba(34, 36, 38, 0.1);
+  }
+
+  .DetailsSection {
+    margin-top: 8px;
+
+    .DetailsSectionTitle {
+      display: flex;
+      font-weight: bold;
+      cursor: pointer;
+
+      /* e.g. where it's defined, at the right */
+      .aside {
+        margin-left: auto;
+        font-weight: normal;
+        cursor: default;
+      }
+
+      .toggle {
+        display: inline-block;
+        width: 14px;
+        font-size: 9px;
+      }
+    }
+
+    .DetailsSectionBody {
+      margin: 2px 0 0 14px;
+    }
+  }
+
+  .Rule + .Rule {
+    margin-top: 4px;
+  }
+
+  .RuleName {
+    font-family: monaco, monospace;
+    font-size: 11px;
+    color: grey;
+  }
+
+  pre.code {
+    margin: 0;
+    padding: 4px 6px;
+    overflow: auto;
+    font-family: monaco, monospace;
+    font-size: 11px;
+    tab-size: 2;
+    background: #f6f8fa;
+    border-radius: 3px;
+  }
+
+  .ScopeMember {
+    .name {
+      padding: 1px 0;
+      white-space: nowrap;
+
+      .toggle {
+        display: inline-block;
+        width: 14px;
+        font-size: 9px;
+        cursor: pointer;
+      }
+
+      .label.selectable {
+        cursor: pointer;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+    }
+
+    &.open > .name {
+      font-weight: bold;
+    }
+  }
+
+  /* Looks like an editor hover. */
+  .Markdown {
+    p {
+      margin: 0 0 0.5em;
+    }
+
+    code {
+      font-family: monaco, monospace;
+      font-size: 11px;
+    }
+
+    pre {
+      margin: 0 0 0.5em;
+      padding: 4px;
+      overflow: auto;
+      background: #f6f8fa;
+    }
+
+    hr {
+      border: none;
+      border-top: 1px solid rgba(34, 36, 38, 0.15);
+    }
+
+    &.hover {
+      margin: 2px 0 6px 20px;
+      padding: 6px 8px;
+      border: 1px solid rgba(34, 36, 38, 0.15);
+      border-radius: 3px;
+      background: #fdfdfd;
+    }
+  }
+}

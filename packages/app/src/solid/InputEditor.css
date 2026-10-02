@@ -1,0 +1,14 @@
+/* `<InputRoot>` / `<InputEditor>` (`InputEditor.tsx`):  the same rules as React's `ui/InputEditor.css`. */
+
+.InputRoot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.InputEditor {
+  position: relative;
+  background: white;
+  flex: 1 1 auto;
+  overflow: hidden;
+}

@@ -163,6 +163,10 @@ spellCore.element({
   forever).  `lazy: true` autodisposes when unobserved.
 - Stores:  draft setters only.  A direct `store.x = 1` is SILENTLY IGNORED.
 - Errors:  wrap app roots in `<Errored>`;  it heals itself when the data recovers.
+  - NOTE: an error thrown by a `createEffect` COMPUTE is NOT caught by an enclosing `<Errored>`:  it goes to the
+    console, and the fallback never shows (measured, P6:  `app`'s `ASTViewer` / `MatchViewer`).  Read the value in
+    JSX (a render expression) where a throw must show the fallback, or give the effect an `{ effect, error }`
+    bundle.
 - Lists:  `<For each>` keys by identity (item = value, index = accessor);  `keyed={false}` by position (item =
   accessor);  `keyed={(t) => t.id}` by key.  `<Repeat count>` for windowing.  No `.map()` in JSX.
 - Context:  the context IS the provider.  No default => a missing provider throws.

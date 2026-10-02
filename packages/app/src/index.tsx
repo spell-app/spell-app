@@ -5,7 +5,7 @@ import { createRoot } from "react-dom/client"
 // Import parser bits
 import "$/parser"
 import { editor } from "$/app/editor"
-import { UI, ErrorNotice, Notice } from "$/app/ui"
+import { ErrorNotice, Notice } from "$/app/ui"
 
 import { Routes } from "./pages/routes"
 
@@ -19,7 +19,8 @@ void editor.loadRuntime()
 /**
  * Mount app into `#react-root`.
  * - `<Routes>` picks `ProjectChooser`/`SpellEditor`/`SpellRunner` by URL.
- * - `<UI.ModalRoot>`/`<Notice>`/`<ErrorNotice>` render `editor.modals`/`editor.notice`/`editor.error`.
+ * - `<Notice>`/`<ErrorNotice>` render `editor.notice`/`editor.error` (Solid islands).  Modals need no root:  each
+ *   `editor.alert()` / `choose()` ... opens its own `<ui-modal>`.
  */
 function renderApp() {
   const container = document.getElementById("react-root")!
@@ -27,7 +28,6 @@ function renderApp() {
   root.render(
     <>
       <Routes />
-      <UI.ModalRoot />
       <Notice />
       <ErrorNotice />
     </>

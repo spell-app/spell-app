@@ -5,45 +5,30 @@
 /** Import genric spell styles */
 import "./spell.css"
 
-/** Import syntax coloring custom properties, used by ASTViewer / MatchViewer. */
-import "./syntax.css"
-
 /** Import SUI-additions for spell */
 import "./SUI-additions.css"
 
 export * from "./ui.types"
 
 export * from "./Actions"
-export * from "./ASTViewer"
 export * from "./AppContainer"
 export * from "./AppRoot"
 export * from "./chrome"
-export * from "./ConsoleLines"
 export * from "./SUIPassThroughs"
-export * from "./ConsoleViewer"
-export * from "./ErrorHandler"
-export * from "./ErrorNotice"
 export * from "./FileDropdown"
 export * from "$/app/ui/forms"
-export * from "./InputEditor"
-export * from "./Markdown"
-export * from "./LazyMonaco"
-export * from "./MatchView"
-export * from "./MatchViewer"
-export * from "./Notice"
-export * from "./OutputEditor"
 export * from "./ProjectDropdown"
-export * from "./ScopeDetailsPane"
 export * from "./SpellPage"
 export * from "./SplitPanel"
-export * from "./ThingExplorer"
-export * from "./TypeExplorer"
-export * from "./modals"
+export * from "./islands"
 
 /**
- * Everything above as the `UI` barrel.
+ * Everything above as the `UI` barrel:  the React shell (pages' chrome, menus, layout) and spell's React UI kit.
  * - SIDE EFFECT: importing this pulls in every component.
- * - NOTE: `$/app/ui/monaco` is deliberately left out:  Monaco loads on first use -- see `LazyMonaco`.  Import a single component directly when that weight matters.
+ * - The panes are Solid (`$/app/solid`, P6):  `./islands` mounts them under their old names (`UI.InputRoot` ...).
+ * - `syntax.css` (the syntax colours) is imported by the Solid viewers that use it.
+ * - NOTE: `$/app/ui/monaco` is deliberately left out:  it's Monaco's plumbing, loaded on first use through
+ *   `$/app/solid`'s `LazyMonaco`.
  * - NOTE: files in THIS folder may use `UI` too, but only inside render bodies
  *   -- the barrel imports them back, so the binding is still in its TDZ at module-evaluation time.
  *   NEVER dereference `UI.x` at the top level of a file in this folder.

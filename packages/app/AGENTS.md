@@ -32,10 +32,17 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
   - `yarn build` -- the app.  `yarn build:runner` -- `dist-runner/` (VS Code's "Run Project" webview).
     `yarn build:element` -- `dist-element/` (`<spell-app>` and `<spell-editor>`).
   - `yarn vscode` is NOT here:  it's the repo root's.  `yarn start:lsp` and `yarn scopes` are in `../lsp`.
-- `src/ui/monaco/` is the app's Monaco editor, whose language features call the SAME `LSP.SpellLanguageService`
-  in-process.  `$/lsp` MUST stay browser-safe for it.
-  - Loaded LAZILY, through `UI.LazyMonaco`:  NEVER import `$/app/ui/monaco` statically outside its folder --
-    types aside -- or Monaco (~4.4 MB) lands in the main bundle again.
+- `src/ui/monaco/` is the app's Monaco plumbing (no UI), whose language features call the SAME
+  `LSP.SpellLanguageService` in-process.  `$/lsp` MUST stay browser-safe for it.  The editors on it are Solid,
+  `src/solid/monaco/` (`MonacoEditor`, `FileEditor`), whose barrel re-exports the plumbing.
+  - Loaded LAZILY, through `$/app/solid`'s `LazyMonaco` (and `<spell-editor>`'s `loadMonaco()`):  NEVER import
+    `$/app/ui/monaco` or `$/app/solid/monaco` statically outside those folders -- types aside -- or Monaco (~4.4 MB)
+    lands in the main bundle again.
+- Solid panes in React pages (P6, until P8):  the React `UI` barrel's `./islands` mounts the Solid panes under
+  their old names (`UI.InputRoot`, `UI.ConsoleRoot` ...);  the runners' `./runnerIslands` likewise, importing the
+  Solid files directly.  An island's wrapper is `.SolidIsland`, `display: contents`:  a `> *` rule reaches its pane
+  with `> .SolidIsland > *` (`SplitPanel.css`).  `index.html` wraps the app in `<ui-root icons="fomantic">`:  the
+  app's icon names are Fomantic's (`src/solid/loadUI.ts`).
 - `src/runner/` runs compiled spell:  the pieces every runner shares -- the web app's editor, VS Code's
   "Run Project" webview (`VSCodeRunner`, `yarn build:runner`) and the `<spell-app>` web component
   (`SpellAppElement`, `yarn build:element` => `dist-element/`, demo at `/demo/spell-app.html` on the dev server).

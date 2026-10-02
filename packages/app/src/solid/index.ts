@@ -13,6 +13,13 @@
  *   - `Actions.tsx`:  `Action`, `Actions`
  *   - `ErrorBoundary.tsx`:  `ErrorBoundary`, replacing React's `ErrorHandler`
  *   - `ErrorNotice.tsx`:  `ErrorDisplay`, `ErrorNotice`;  `Notice.tsx`;  `Markdown.tsx`
+ * - The editor's panes (P6;  React's are gone, the React pages mount these through `$/app/ui/islands.ts`):
+ *   console, match and AST viewers, type and thing explorers, the Monaco editors, `FileDropdown`.
+ * - NOTE: deliberately NOT here:
+ *   - `./monaco`:  Monaco loads on first use, through `LazyMonaco`;  NEVER import it statically, types aside
+ *   - `./modals`:  `editor.ts` imports it on first use (`import()`), so the editor never loads Solid up front
+ * - NOTE: runner bundles import the files they need DIRECTLY (`$/app/solid/ThingExplorer`, `.../loadUI`):  this
+ *   barrel pulls in the editor.
  * - NOTE: no namespace of its own (the app's are `UI` and `F`):  import by name,
  *   e.g. `import { tracked, PanelMenu } from "$/app/solid"`.  Names may match `UI.*`'s:  they're never mixed.
  */
@@ -29,3 +36,16 @@ export * from "./ErrorNotice"
 export * from "./ErrorBoundary"
 export * from "./Notice"
 export * from "./Markdown"
+
+export * from "./ConsoleLines"
+export * from "./ConsoleViewer"
+export * from "./MatchView"
+export * from "./MatchViewer"
+export * from "./ASTViewer"
+export * from "./ScopeDetailsPane"
+export * from "./TypeExplorer"
+export * from "./ThingExplorer"
+export * from "./LazyMonaco"
+export * from "./InputEditor"
+export * from "./OutputEditor"
+export * from "./FileDropdown"

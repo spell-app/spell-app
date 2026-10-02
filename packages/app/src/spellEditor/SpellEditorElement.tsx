@@ -374,12 +374,12 @@ const BUNDLE = import.meta.url.slice(0, import.meta.url.lastIndexOf("/") + 1)
 /** CSS files our shadow root adopts, from `assets` -- Monaco's, and ours.  See `vite.editor.config.ts`. */
 const EDITOR_CSS = ["spell-editor.css"]
 
-/** `$/app/ui/monaco`, loaded once -- Monaco is most of our code, so it waits till there's a project to show. */
+/** `$/app/solid/monaco`, loaded once -- Monaco is most of our code, so it waits till there's a project to show. */
 let monacoModule: Promise<MonacoModule> | undefined
 
-/** Load `$/app/ui/monaco`, once. */
+/** Load `$/app/solid/monaco` (Monaco, its spell plumbing, and the Solid `MonacoEditor`), once. */
 function loadMonaco(): Promise<MonacoModule> {
-  monacoModule ??= import("$/app/ui/monaco")
+  monacoModule ??= import("$/app/solid/monaco")
   return monacoModule
 }
 

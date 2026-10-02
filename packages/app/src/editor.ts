@@ -1,4 +1,3 @@
-import type { ComponentType } from "react"
 import { navigate } from "@reach/router"
 
 import { UIError, createStore, setPrefKey, getPref, setPref, CONFIRM } from "$/util"
@@ -9,8 +8,8 @@ import type { SpellConsole } from "$/core/console"
 import type { SpellRuntime } from "$/app/runner"
 import type * as UIT from "$/app/ui/ui.types"
 import type { monaco } from "$/app/ui/monaco"
-// NOTE: import `Modals` directly rather than through `UI` barrel to avoid circular import.
-import * as Modals from "$/app/ui/modals"
+// NOTE: types only:  the dialogs themselves load on first use, see `dialogs()`.
+import type * as Modals from "$/app/solid/modals"
 
 ////////////////
 // ## The editor
@@ -21,7 +20,7 @@ setPrefKey("spellEditor:")
  * Initial contents of the `editor` singleton.
  * - NOTE: `EditorStore` is derived from this with `typeof`,
  *   so the docstrings below serve BOTH the constant and the type.
- * - NOTE: methods reach the reactive proxy via `editor.x`, NEVER `this` -- see `showModal()`.
+ * - NOTE: methods reach the reactive proxy via `editor.x`, NEVER `this`.
  * - MUST annotate any property whose initializer is narrower than its real type
  *   (e.g. `undefined as Foo | undefined`), or `typeof` will infer the narrow one.
  */
@@ -498,44 +497,35 @@ const EDITOR_DEFAULTS = {
   },
 
   /**
-   * Get the user's answer to some question.
+   * Get the user's answer to some question:  a `<ui-modal>` (`$/app/solid/modals`, on `@spell-app/ui`).
    * `props`:
    *  - `message` (required) Message to show.
    *  - `header` (optional) Header for the dialog.  Default is no header.
-   *  - `ok` (optional) string or props for OK button.  Default is `"OK"`.
-   *  - `cancel` (optional) string or props for Cancel button.  Default is `"Cancel"`.
-   *  - any additional `props` will be passed to the `<Modal>`.s
+   *  - `ok` (optional) OK button text.  Default is `"OK"`.
+   *  - `cancel` (optional) Cancel button text.  Default is `"Cancel"`.
    * Instead of passing `props`, you can simply pass string `message` to use other defaults.
    *
    * `alert()` always resolves `undefined` (there's only an OK button).
-   * `confirm()` resolves `true`/`false` for the OK/Cancel buttons.
-   * `prompt()`/`promptForNumber()` resolve the field's string value, or `undefined` if cancelled.
+   * `confirm()` resolves `true`/`false` for the OK/Cancel buttons (Escape is Cancel).
+   * `prompt()`/`promptForNumber()` resolve the field's string value, or `undefined` if cancelled or empty.
    */
   alert(props: string | Modals.AlertModalProps): Promise<undefined> {
-    if (typeof props === "string") props = { message: props }
-    // `Modals.Alert` always resolves `undefined` (only an OK button); narrow past `showModal()`'s
-    // generic `Promise<unknown>` (`Modals.Alert`'s own `Modals.ModalComponentProps<Modals.AlertModalProps>` defaults
-    // its resolve value to `unknown`).
-    return editor.showModal(props, Modals.Alert) as Promise<undefined>
+    return dialogs().then((modals) => modals.alert(props))
   },
 
   /** See `alert()` above for shared `props` docs.  Resolves `true`/`false` for OK/Cancel button. */
   confirm(props: string | Modals.ConfirmModalProps): Promise<boolean> {
-    if (typeof props === "string") props = { message: props }
-    return editor.showModal(props, Modals.Confirm)
+    return dialogs().then((modals) => modals.confirm(props))
   },
 
   /** See `alert()` above for shared `props` docs.  Resolves field's string value, or `undefined` if cancelled. */
   prompt(props: string | Modals.PromptModalProps): Promise<string | undefined> {
-    if (typeof props === "string") props = { message: props }
-    return editor.showModal(props, Modals.Prompt)
+    return dialogs().then((modals) => modals.prompt(props))
   },
 
   /** Like `prompt()`, but numeric input -- defaults `type: "number"` and `step: 1`. */
   promptForNumber(props: string | Modals.PromptModalProps): Promise<string | undefined> {
-    if (typeof props === "string") props = { message: props }
-    props = { type: "number", inputProps: { step: 1 }, ...props }
-    return editor.showModal(props, Modals.Prompt)
+    return dialogs().then((modals) => modals.promptForNumber(props))
   },
 
   /** Show a chooser modal.  Rejects instead of showing anything if `message`/`options` are missing. */
@@ -544,20 +534,8 @@ const EDITOR_DEFAULTS = {
       console.warn("editor.choose(): must pass 'message' and 'options', got:", props)
       return Promise.reject(undefined)
     }
-    return editor.showModal(props, Modals.Chooser)
+    return dialogs().then((modals) => modals.choose(props))
   },
-
-  /** Sequence to generate unique modal `id`s. */
-  modalId: 0,
-  /** Current stack of modals, topmost at start. */
-  modals: [] as ModalEntry[],
-  /** When true, log each modal's resolve/reject value to console -- see `showModal()` below. */
-  debugModals: false,
-  /**
-   * Generic method to show a `component` modal with `props`.
-   * Returns a promise which will resolve/reject as per `component` setup.
-   */
-  showModal,
 
   ////////////////
   // ## InputEditor event handlers
@@ -758,29 +736,6 @@ export const editor: EditorStore = createStore(EDITOR_DEFAULTS)
  */
 export type EditorFile = SP.AnySpellFile & { initialSelection?: UIT.EditorSelection }
 
-/** Loose prop bag passed to a modal shown with `editor.showModal()`. */
-export type ModalProps = Record<string, unknown>
-
-/** A modal component (`Modals.Alert`, `Modals.Confirm`, etc), as rendered by `<Modals.ModalRoot>`. */
-export type ModalComponent = ComponentType<Modals.ModalComponentProps<ModalProps, unknown>>
-
-/**
- * One entry in `editor.modals`, the stack of currently-showing modals.
- * NOTE: this is a heterogeneous stack -- each entry's real `component` is typed for its own
- * specific props/resolve-value types (e.g. `Modals.Confirm` wants `Modals.ModalComponentProps<Modals.ConfirmModalProps,
- * boolean>`) -- so `component`/`resolve`/`reject` are type-erased to `ModalComponent`/`unknown` here.
- */
-export type ModalEntry = {
-  /** Props passed to `component`, plus generated `id` used to remove this entry from `editor.modals`. */
-  props: ModalProps & { id: string }
-  /** Modal component to render -- type-erased, see note above. */
-  component: ModalComponent
-  /** Resolve promise `showModal()` returned for this entry. */
-  resolve: (value?: unknown) => void
-  /** Reject promise `showModal()` returned for this entry. */
-  reject: (reason?: unknown) => void
-}
-
 ////////////////
 // ## Overloaded helpers (`arguments.length`-sensitive, so plain `function`s rather than arrows)
 ////////////////
@@ -853,40 +808,11 @@ function onInputCursor(event: UIT.EditorScrollInfo["event"]): void {
 }
 
 /**
- * Generic method to show a `component` modal with `props`.
- * Returns a promise which will resolve/reject as per `component` setup.
- * `P`/`R` are inferred from `component`'s own type (e.g. `Modals.Confirm` is typed for
- * `Modals.ModalComponentProps<Modals.ConfirmModalProps, boolean>`, so passing it infers `P = Modals.ConfirmModalProps`,
- * `R = boolean`).
+ * The app's dialogs (`$/app/solid/modals`), loaded on first use.
+ * - Dynamic:  they bring Solid and `$/ui`, which `editor.ts` -- imported by nearly everything -- shouldn't.
  */
-function showModal<P extends ModalProps, R = unknown>(
-  props: P,
-  component: ComponentType<Modals.ModalComponentProps<P, R>>
-): Promise<R> {
-  let modalProps!: ModalEntry
-  const promise = new Promise<R>((resolve, reject) => {
-    modalProps = {
-      props: { ...props, id: `Modal-${editor.modalId++}` },
-      // NOTE: `editor.modals` is a heterogeneous stack whose entries are typed for different
-      // props/resolve-value types; type-erase to `ModalComponent`/`unknown` here, right at the
-      // boundary where we know which `component`/`props`/`resolve`/`reject` set actually belongs together.
-      component: component as unknown as ModalComponent,
-      resolve: (value?: unknown) => resolve(value as R),
-      reject: (reason?: unknown) => reject(reason)
-    }
-    editor.modals = [modalProps, ...editor.modals]
-  }).finally(() => {
-    // make sure `editor.modals` gets cleaned up however we resolve the promise
-    editor.modals = editor.modals.filter((it) => it.props.id !== modalProps.props.id)
-  })
-
-  if (editor.debugModals) {
-    // NOTE: don't put this in the promise returned to the caller
-    void promise.then((value) => console.info("Modal resolved with:", value, "\nprops:", modalProps))
-    promise.catch((error) => console.info("Modal rejected with:", error, "\nprops:", modalProps))
-  }
-
-  return promise
+function dialogs() {
+  return import("$/app/solid/modals")
 }
 
 ////////////////

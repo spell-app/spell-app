@@ -1,6 +1,9 @@
 /** @jsxImportSource react */
+import { createComponent, omit } from "solid-js"
+
 import type { SP } from "$/spell"
 import type { monaco } from "$/app/ui/monaco"
+import { solidIsland } from "$/app/solid/solidIsland"
 
 import "./SpellEditorPane.css"
 
@@ -33,7 +36,8 @@ export function SpellEditorPane({ files, file, status, monaco, onSelect, onMount
       )}
       <div className="SpellEditorBody">
         {monaco && file ? (
-          <monaco.MonacoEditor
+          <MonacoIsland
+            module={monaco}
             model={monaco.SpellMonaco.models.modelFor(file)}
             onMount={onMount}
             onUnmount={onUnmount}
@@ -68,8 +72,24 @@ export type SpellEditorPaneProps = {
   onUnmount: (editor: monaco.editor.IStandaloneCodeEditor) => void
 }
 
-/** `$/app/ui/monaco`:  Monaco, and spell in it -- loaded lazily, see `SpellEditorElement`. */
-export type MonacoModule = typeof import("$/app/ui/monaco")
+/** `$/app/solid/monaco`:  Monaco, spell in it, and the Solid `MonacoEditor` -- loaded lazily, see `SpellEditorElement`. */
+export type MonacoModule = typeof import("$/app/solid/monaco")
+
+/****************
+ * ### `<MonacoIsland>`
+ * `module`'s Solid `MonacoEditor`, mounted as an island in this React pane (`<spell-editor>` moves to Solid in P7).
+ * - The module comes in lazily, so the island wraps a small Solid component that takes it as a prop.
+ * - NOTE: `createComponent`, not JSX:  this file's JSX is React's.
+ ****************/
+const MonacoIsland = solidIsland((props: MonacoIslandProps) =>
+  createComponent(props.module.MonacoEditor, omit(props, "module"))
+)
+
+/** Props for `<MonacoIsland>`:  the loaded module, and its `MonacoEditor`'s. */
+type MonacoIslandProps = Parameters<MonacoModule["MonacoEditor"]>[0] & {
+  /** The loaded `$/app/solid/monaco`. */
+  module: MonacoModule
+}
 
 /**
  * What a `<spell-editor>` is doing, for its status line.

@@ -25,7 +25,9 @@
           ><header class="spell-page-head">
             <h1>Solid Migration</h1>
             <span class="plan-step"
-              ><ui-label basic color="orange" icon="circle half stroke" href="#p6">P6 · Shared App UI</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p7"
+                >next: P7 · Web Components + Runner</ui-label
+              ></span
             >
           </header></ui-sticky
         >
@@ -57,7 +59,7 @@
           </p>
 
           <blockquote class="plan-prompt"><p>convert this into a plan doc with name "solid-migration"</p></blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 16h 30m-26h in all, 12h-18h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 16h 30m-26h in all, 10h-14h left</p>
           <ui-section id="o1" header="1.1 Where it stands" sticky collapsible dividing>
             <ul>
               <li>
@@ -494,7 +496,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="4" total="10" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="5" total="10" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -576,6 +578,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p4"
             data-phase="4"
             data-status="done"
@@ -600,16 +603,8 @@
               ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section
-            id="p6"
-            data-phase="6"
-            data-status="active"
-            header="P6 · Shared App UI"
-            sticky
-            collapsible
-            dividing
-          >
-            <ui-icon slot="icon" name="circle half stroke" color="orange"></ui-icon>
+          <ui-section id="p6" data-phase="6" data-status="done" header="P6 · Shared App UI" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> packages/app/src/ui/ on Solid + <code>&lt;ui-*&gt;</code> (handoff 3)</ui-item
@@ -1173,8 +1168,7 @@
                   ><a class="plan-id" href="#d15">D15</a>
                   <span class="plan-title"
                     >Solid UI loads @spell-app/ui once: $/app/solid loadUI.ts, Fomantic icon names</span
-                  >
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="6">UPDATE</ui-label></ui-title
+                  > </ui-title
                 ><ui-content
                   ><p>
                     <a href="../../../app/src/solid/loadUI.ts" target="src-packages-app-src-solid-loadui-ts"
@@ -1196,8 +1190,7 @@
                   ><a class="plan-id" href="#d16">D16</a>
                   <span class="plan-title"
                     >Shared Solid UI conventions (P6a): Action, MoreMenu, on(), ErrorBoundary</span
-                  >
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="6">UPDATE</ui-label></ui-title
+                  > </ui-title
                 ><ui-content
                   ><ul>
                     <li>
@@ -1233,6 +1226,100 @@
                       subclassing React's <code>ErrorHandler</code>.
                     </li>
                   </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d17" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d17">D17</a>
+                  <span class="plan-title"
+                    >P6c: ASTViewer mounts renderAST's React tree through a local React-in-Solid adapter</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>src/solid/ASTViewer.tsx</code> keeps <code>ast.component</code> (React, from
+                    <code>$/parser</code>'s
+                    <a href="../../../parser/src/ast/renderAST.tsx" target="src-packages-parser-src-ast-renderast-tsx"
+                      ><code>renderAST.tsx</code></a
+                    >, P8's) and mounts it with a private <code>&lt;ReactHost&gt;</code>: a React root on a
+                    <code>display: contents</code> div, re-rendered per new element, unmounted on a microtask at
+                    cleanup. Why not Solid: the drawing is spread through ~60 <code>renderChildren()</code> methods in
+                    <a href="../../../parser/src/ast/AST.tsx" target="src-packages-parser-src-ast-ast-tsx"
+                      ><code>AST.tsx</code></a
+                    >
+                    (2.7k lines), not one file. No <code>flushSync</code> (inside a <code>solidIsland()</code> it runs
+                    in React's commit, where it can't flush): a React error boundary (<code>&lt;ReactCatcher&gt;</code>)
+                    calls <code>onRendered</code> after each commit, which re-applies scroll/highlight.
+                    <code>ast.component</code> throwing is read in render so the Solid
+                    <code>&lt;ErrorBoundary&gt;</code> catches it (an effect's error would halt Solid). Goes in P8.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d18" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d18">D18</a>
+                  <span class="plan-title"
+                    >P6f: dialogs build their own &amp;lt;ui-modal&amp;gt; (no editor.modals / ModalRoot)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>editor.alert/confirm/prompt/promptForNumber</code> go to <code>UI.modals</code>;
+                    <code>choose()</code> to a Solid <code>&lt;Chooser&gt;</code> that <code>openChooser()</code> mounts
+                    in <code>&lt;body&gt;</code> and removes once hidden, like ui's own dialogs. So
+                    <code>editor.modals</code>, <code>modalId</code>, <code>debugModals</code>,
+                    <code>showModal()</code> and <code>ModalEntry</code> are gone, and nothing replaces React's
+                    <code>&lt;UI.ModalRoot /&gt;</code> in
+                    <a href="../../../app/src/index.tsx" target="src-packages-app-src-index-tsx"
+                      ><code>index.tsx</code></a
+                    >. <code>editor</code> loads <code>$/app/solid/modals</code> by dynamic <code>import()</code>,
+                    keeping Solid and <code>$/ui</code> out of
+                    <a href="../../../app/src/editor.ts" target="src-packages-app-src-editor-ts"
+                      ><code>editor.ts</code></a
+                    >.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d19" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d19">D19</a>
+                  <span class="plan-title"
+                    >P6e: Solid Monaco editors reuse the React-free plumbing in ui/monaco</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>src/solid/monaco/</code> holds only the Solid <code>MonacoEditor</code> /
+                    <code>FileEditor</code>; <code>monaco</code>, <code>SpellMonaco</code>, <code>SpellModels</code> ...
+                    stay in <code>$/app/ui/monaco</code> and the Solid barrel re-exports the three
+                    <code>LazyMonaco</code> needs. Monaco stays a lazy chunk: a scratch build with the Solid editors as
+                    an extra entry kept the 4.46 MB <code>monaco</code> chunk reachable only through
+                    <code>import()</code>, and the app entry's static closure unchanged (1129 kB before, 1130 kB after).
+                    P8 can move the plumbing into <code>solid/monaco</code> when the React editors go.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d20" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d20">D20</a>
+                  <span class="plan-title"
+                    >Thing Explorer: tracked() for registry lists, trackedProgram() for program-code reads, each per row
+                    / property</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Tree lists (<code>topLevel()</code>, <code>all()</code>, <code>bySuperType()</code>, a details'
+                    property list) through <code>tracked()</code>; each row label, property value and a list's items
+                    through <code>trackedProgram()</code>, which re-reads a microtask after the change (never mid-write;
+                    10 writes = 1 read per reader). So a prop change shows after a microtask, then <code>flush()</code>.
+                    One changed prop redraws its own cell only (pinned by
+                    <a
+                      href="../../../app/src/solid/ThingExplorer.browser.test.tsx"
+                      target="src-packages-app-src-solid-thingexplorer-browser-test-tsx"
+                      ><code>ThingExplorer.browser.test.tsx</code></a
+                    >). Things never go in a Solid store.
+                  </p></ui-content
                 ></ui-accordion
               ></ui-item
             ></ui-list
@@ -1355,6 +1442,140 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="c9" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c9">C9</a>
+                  <span class="plan-title"
+                    >Solid ConsoleLines must stay editor-free: imports ./tracked directly, never the $/app/solid
+                    barrel</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The barrel pulls in <code>Actions</code>, hence <code>$/app/editor</code>; the VS Code runner's
+                    <code>RunnerConsole</code> (P7) imports <code>src/solid/ConsoleLines.tsx</code> directly, as React's
+                    did. <code>ConsoleLines</code>' <code>lines</code> is a value: the caller tracks the top level
+                    (<code>tracked(() =&gt; console.lines)</code>); groups track their own <code>lines</code> /
+                    <code>collapsed</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c10" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c10">C10</a>
+                  <span class="plan-title">P6c: Solid effects' compute errors don't reach Errored</span> </ui-title
+                ><ui-content
+                  ><p>
+                    In rc.13 a <code>createEffect</code> whose compute throws is NOT caught by an enclosing
+                    <code>&lt;Errored&gt;</code> / <code>&lt;ErrorBoundary&gt;</code> (it went to the console, fallback
+                    never shown). Read a value that may throw in RENDER (a JSX expression or a memo JSX reads) so the
+                    boundary sees it, and give the effect an <code>{ effect, error }</code> bundle. Seen in
+                    <code>src/solid/ASTViewer.tsx</code> <code>&lt;ReactHost&gt;</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c11" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c11">C11</a>
+                  <span class="plan-title">P6c: MatchView has no collapsing</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The P6c brief asked for a 'collapsing a node' test, but React's <code>MatchView</code> has no
+                    collapse (only the rule-names toggle, <code>compact</code>). The Solid port keeps that; its tests
+                    pin the toggle instead. Collapsing would be a new feature.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c12" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c12">C12</a>
+                  <span class="plan-title">P6f dialogs: what changed from the React modals</span> </ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      Text only: <code>message</code> / <code>header</code> / <code>ok</code> / <code>cancel</code> are
+                      strings (no <code>ReactNode</code>, no <code>SUI.ButtonProps</code>); extra props no longer reach
+                      a modal.
+                    </li>
+                    <li>A dimmer click no longer cancels (<code>closedby=closerequest</code>); Escape does.</li>
+                    <li><code>confirm()</code> focuses Cancel first (ui's choice), not OK.</li>
+                    <li>
+                      <code>prompt()</code> resolves <code>undefined</code> when empty (its doc said so; React resolved
+                      <code>""</code> after clearing).
+                    </li>
+                    <li>
+                      <code>promptForNumber()</code> resolves the string, as its signature says (React resolved a number
+                      once typed: SUSPECTED-BUGS).
+                    </li>
+                    <li>
+                      <code>choose()</code> is a list of <code>&lt;ui-radio&gt;</code> /
+                      <code>&lt;ui-checkbox&gt;</code>, not a searchable dropdown; <code>inputProps</code> /
+                      <code>allowAdditions</code> are gone (unused, ignored before). Multiple + OK with nothing chosen
+                      resolves <code>[]</code>.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c13" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c13">C13</a>
+                  <span class="plan-title"
+                    >P6e: React and Solid LazyMonaco each connect editor when loaded</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Each <code>loadMonaco()</code> adds its own <code>SpellMonaco.onEdit</code> /
+                    <code>onOpen</code> listener. While both are loaded, an edit calls
+                    <code>editor.onFileEdited()</code> twice (harmless: <code>compileAppSoon()</code> restarts one
+                    timer) and the latest opener wins. Goes away when React's <code>UI.LazyMonaco</code> does (P8).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c14" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c14">C14</a>
+                  <span class="plan-title"
+                    >P6e: Solid FileDropdown is a ui-dropdown in a ui-item; InputEditor drops match</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>&lt;FileDropdown&gt;</code>: SUI's <code>item basic labeled lazyLoad</code> dropdown becomes
+                    <code>&lt;ui-item class=FileDropdown&gt;&lt;ui-dropdown id=FileDropdown&gt;</code> of
+                    <code>&lt;ui-item value=path&gt;</code>s; no <code>lazyLoad</code> (items always rendered); its
+                    value is held at <code>editor.file.path</code> and choosing CLICKS the item, as
+                    <code>&lt;MoreMenu&gt;</code> does. The File: label is a slotted <code>&lt;ui-icon&gt;</code> (the
+                    <code>&lt;Action&gt;</code> HACK). <code>&lt;InputEditor&gt;</code>: React's never-passed
+                    <code>match</code> prop (it reset the error) is gone: <code>&lt;ErrorBoundary&gt;</code> heals
+                    itself. <code>editor.onInputEffect()</code> now also runs once the lazy editor is made, and when the
+                    file loads or gets an <code>initialSelection</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c15" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c15">C15</a>
+                  <span class="plan-title">P6d explorers don't load the ui-* tags themselves</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>src/solid/TypeExplorer.tsx</code> /
+                    <a
+                      href="../../../app/src/solid/ThingExplorer.tsx"
+                      target="src-packages-app-src-solid-thingexplorer-tsx"
+                      ><code>ThingExplorer.tsx</code></a
+                    >
+                    import peers directly, not the <code>$/app/solid</code> barrel (it pulls
+                    <code>$/app/editor</code> into the runners' bundles via <code>Actions.tsx</code>), and not
+                    <code>./loadUI</code> (throws under node, where their tests render). Whoever mounts them in a runner
+                    must import <code>./loadUI</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1429,8 +1650,7 @@
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i1">I1</a>
-                  <span class="plan-title">ui-menu item icon shorthand draws 0x0</span>
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="6">UPDATE</ui-label></ui-title
+                  <span class="plan-title">ui-menu item icon shorthand draws 0x0</span> </ui-title
                 ><ui-content
                   ><p>
                     <code>&lt;ui-item icon&gt;</code> in any <code>&lt;ui-menu&gt;</code> renders its svg at 0 x 0 (ui's
@@ -1445,6 +1665,47 @@
                       ><code>SUSPECTED-BUGS.md</code></a
                     >
                     ui; not fixed in ui here.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i2">I2</a>
+                  <span class="plan-title">UI.modals.prompt() takes no input type or attributes</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>promptForNumber()</code> needs <code>type=number</code> and <code>min</code> /
+                    <code>max</code> / <code>step</code> / <code>placeholder</code>; <code>ModalOptions</code> has only
+                    <code>title</code>, <code>message</code>, <code>okText</code>, <code>cancelText</code>,
+                    <code>value</code>. HACK in <code>src/solid/modals/dialogs.ts</code> <code>fitInput()</code>: sets
+                    them on the input of the dialog ui just appended to <code>&lt;body&gt;</code>, and vetoes
+                    <code>ui-approve</code> while the input is invalid. Fix: an <code>input</code> option (type +
+                    attributes) on ui's <code>ModalOptions</code>, then drop the hack.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i3" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i3">I3</a>
+                  <span class="plan-title"
+                    >tracked() throws when its read changes what it just read (first run)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    easy-state's <code>autoEffect()</code> calls its scheduler with <code>observer</code> still in its
+                    TDZ when <code>read()</code> self-triggers on its first run (Solitaire's computed
+                    <code>state</code>, via <code>spellCore.map()</code>). P6d's
+                    <a
+                      href="../../../app/src/solid/ThingExplorer.tsx"
+                      target="src-packages-app-src-solid-thingexplorer-tsx"
+                      ><code>ThingExplorer.tsx</code></a
+                    >
+                    uses its own <code>trackedProgram()</code> (observer-util <code>observe()</code>, scheduler taking
+                    the reaction as its argument, re-reading in a microtask) for every read that runs program code. Fix
+                    <code>tracked()</code> the same way, then fold <code>trackedProgram()</code> back.
+                    SUSPECTED-BUGS.md, app.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1709,6 +1970,54 @@
                   ErrorDisplay / ErrorNotice, Notice, Markdown, on(), loadUI (D15, D16); browser tests
                   (sharedUI.browser.test.tsx); app build emits icon packs; vitest browser deps crawled up
                   front</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T16:37-04:00">2026-10-02 16:37</time></ui-date> P6b console:
+                  src/solid/ConsoleLines.tsx, ConsoleViewer.tsx (+ css, browser test, 11 pass). Prop rename ConsoleLines
+                  className -&gt; class; EDITOR_INSPECTOR now exported (for its test).</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T16:41-04:00">2026-10-02 16:41</time></ui-date> P6c: MatchView /
+                  MatchViewer / ASTViewer in Solid (src/solid/), 11 browser tests; ASTViewer mounts renderAST's React
+                  through a local ReactHost (D17).</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T17:02-04:00">2026-10-02 17:02</time></ui-date> P6d: Solid
+                  ScopeDetailsPane, TypeExplorer, ThingExplorer in src/solid (+ CSS copies, node + browser tests). Not
+                  yet in the barrel or wired into the runners.</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T17:34-04:00">2026-10-02 17:34</time></ui-date> I3 closed:
+                  tracked() throws when its read changes what it just read (first run)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T17:34-04:00">2026-10-02 17:34</time></ui-date> P6 wired: React
+                  pages and runners mount the Solid panes as islands (ui/islands.ts, runner/runnerIslands.ts); React
+                  originals and ui/modals deleted; tracked() fixed for I3 (observer-util, deferred option) and the
+                  explorers use it; loadUI imports $/ui dynamically; index.html wraps the app in ui-root
+                  icons=fomantic</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T17:34-04:00">2026-10-02 17:34</time></ui-date> P6
+                  done</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

@@ -1,8 +1,8 @@
 /** @jsxImportSource react */
 import { view } from "$/util"
 import type { SpellConsole } from "$/core/console"
-// Import directly, NOT through the `UI` barrel, which would pull in the whole editor.
-import { ConsoleLines } from "$/app/ui/ConsoleLines"
+// Solid, mounted as islands:  see `./runnerIslands`.
+import { ConsoleLines } from "./runnerIslands"
 
 import "./RunnerConsole.css"
 
@@ -16,7 +16,7 @@ export const RunnerConsole = view(function RunnerConsole({ console }: RunnerCons
   return (
     <div className="RunnerConsole ConsoleViewer scrolling">
       <div className="stretcher">
-        <ConsoleLines lines={console.lines} indent={0} />
+        <ConsoleLines lines={[...console.lines]} indent={0} />
       </div>
     </div>
   )

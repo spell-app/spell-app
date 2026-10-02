@@ -336,6 +336,34 @@ every entry below that date was fixed or disproven;  what's left:
 
 - `packages/spell/src/node/response-utils.ts` `sendJSFile` / `request_getCompiled` / `request_getScopes` [V]: the content-type is set
   to `text/javascript` BEFORE the existence check, so a not-found 404 carries a JSON `{errors}` body labelled `text/javascript`.
+- `packages/app/src/ui/ConsoleLines.tsx` (and its Solid twin `src/solid/ConsoleLines.tsx`) `<ConsoleObject>`:  a logged `true`,
+  `false` or `undefined` shows as an EMPTY value -- it's handed to JSX as is, which draws no text for them (React and
+  Solid alike).  Probably wants `String(thing)`;  kept as is in the Solid port (P6b) to keep behaviour.
+- `packages/app/src/editor.ts` `showingMatchRuleNames` [V]:  named backwards.  `<MatchRoot>` passes it as `compact`, and
+  `MatchViewer.css`'s `.compact .name { display: none }` HIDES the names, so `true` (the default) means names hidden;
+  `Actions.toggleMatchRuleNames` agrees with the CSS ("Show Rule Names" while it's `true`), not with the docstring.
+  Kept as is in the Solid port (P6c, `src/solid/MatchViewer.tsx`;  pinned by its browser test).  Fix:  rename to
+  `compactMatchView` / invert, together with the action's labels.
+- `packages/app/src/ui/modals/Prompt.tsx` `promptForNumber()`:  resolved a NUMBER once the user had typed (the forms'
+  `getEventValue()` does `parseFloat` for `type="number"`), though `editor.promptForNumber()` says
+  `Promise<string | undefined>`.  The Solid port (P6f, `src/solid/modals/dialogs.ts`) resolves the string, as typed.
+  Callers (only `ConsoleViewer`'s demo) don't care;  decide whether it should be `number | undefined`.
+- `packages/app/src/solid/modals/modals.browser.test.tsx`:  ONE cold run (fresh vite optimize) printed
+  `STRICT_READ_UNTRACKED` for `constructor.isLoaded` / `createProps.get` while the first `<Chooser>` rendered
+  `<ui-radio>`s inside Solid's `render()`;  three warm runs printed nothing.  Probably `solid-element` reading signals
+  while an element upgrades inside an owner.  Prove:  clear `node_modules/.vite` / vitest's cache, rerun once.
+- `packages/app/src/solid/tracked.ts` `tracked()` [V]:  THROWS `Cannot access 'observer' before initialization` when
+  `read()`, on its FIRST run, changes an `easy-state` value it has just read.  easy-state's `autoEffect()` is
+  `const observer = observe(fn, { scheduler: () => scheduler.add(observer) })`, and `observe()` runs `fn` at once:  the
+  self-trigger calls the scheduler while `observer` is still in its TDZ.  Hit by spell programs' computed properties,
+  e.g. Solitaire's `state` (`spellCore.map()` makes a new `Pile` and fills it).  Seen (P6d) as the Thing Explorer's
+  `state` cell showing that error;  `src/solid/ThingExplorer.tsx` works around it with its own `trackedProgram()`
+  (observer-util `observe()` + a scheduler that takes the reaction as its ARGUMENT).  Fix:  the same in `tracked()`.
+  Prove:  `tracked(() => { const list = store.list;  list.push(1);  return list.length })`.
+- `packages/app/src/solid/loadUI.ts` `uiReady`:  its docstring says under node (the `node` test project) it "defines
+  the tags only", but importing it there throws `customElements is not defined` (from `$/ui`'s families'
+  `define()`).  So a Solid component a `node` test renders can't import `./loadUI` or the `$/app/solid` barrel
+  (P6d's explorers don't, and say so).  Prove:  import `./loadUI` in any `src/**/*.test.tsx`.
 
 ## cli
 

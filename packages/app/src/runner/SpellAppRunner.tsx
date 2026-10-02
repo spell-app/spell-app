@@ -5,9 +5,8 @@ import * as SUI from "semantic-ui-react"
 
 import type { LSP } from "$/lsp"
 import type { ThingExplorerState, TypeExplorerState } from "$/app/ui/ui.types"
-// Import directly, NOT through the `UI` barrel, which would pull in the whole editor.
-import { TypeExplorer } from "$/app/ui/TypeExplorer"
-import { ThingExplorer } from "$/app/ui/ThingExplorer"
+// Solid, mounted as islands:  see `./runnerIslands`.
+import { TypeExplorer, ThingExplorer } from "./runnerIslands"
 import { loadRuntime, type LoadedRuntime } from "./loadRuntime"
 import { loadScopePack, scopesFromPacks, type ScopesSource } from "$/lsp/ScopesSource"
 import { RunnerSplit, DEFAULT_SPLIT } from "./RunnerSplit"
