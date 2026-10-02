@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Solid Migration</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p8">next: P8 · Editor Shell</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p11">next: P11 · Spell Cells</ui-label></span
             >
           </header></ui-sticky
         >
@@ -57,7 +57,7 @@
           </p>
 
           <blockquote class="plan-prompt"><p>convert this into a plan doc with name "solid-migration"</p></blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 16h 30m-26h in all, 8h-11h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 16h 30m-26h in all, 6h-9h left</p>
           <ui-section id="o1" header="1.1 Where it stands" sticky collapsible dividing>
             <ul>
               <li>
@@ -261,8 +261,8 @@
                   <tr>
                     <td><code>ASTReactiveProperty</code>, <code>ASTJSXElement</code></td>
                     <td>
-                      <a href="../../../parser/src/ast/AST.tsx" target="src-packages-parser-src-ast-ast-tsx"
-                        ><code>packages/parser/src/ast/AST.tsx</code></a
+                      <a href="../../../parser/src/ast/AST.ts" target="src-packages-parser-src-ast-ast-ts"
+                        ><code>packages/parser/src/ast/AST.ts</code></a
                       >
                     </td>
                   </tr>
@@ -456,8 +456,8 @@
                     <td><a href="#p8">P8</a> Editor Shell</td>
                     <td>
                       pages ~400 lines; router; hotkeys;
-                      <a href="../../../parser/src/ast/renderAST.tsx" target="src-packages-parser-src-ast-renderast-tsx"
-                        ><code>renderAST.tsx</code></a
+                      <a href="../../../parser/src/ast/renderAST.ts" target="src-packages-parser-src-ast-renderast-ts"
+                        ><code>renderAST.ts</code></a
                       >
                       350 + AST views
                     </td>
@@ -494,7 +494,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="6" total="10" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="7" total="10" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -625,6 +625,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p7"
             data-phase="7"
             data-status="done"
@@ -649,13 +650,13 @@
               ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p8" data-phase="8" data-status="todo" header="P8 · Editor Shell" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p8" data-phase="8" data-status="done" header="P8 · Editor Shell" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"><b>Goal:</b> pages, router, hotkeys and AST views on Solid (handoff 5)</ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> packages/app/src/pages/ (@reach/router -&gt; @solidjs/router@next, 7 routes); 4 hotkeys
-                -&gt; one listener; packages/parser/src/ast/AST.tsx views, renderAST.tsx</ui-item
+                -&gt; one listener; packages/parser/src/ast/AST.ts views, renderAST.ts</ui-item
               ><ui-item icon="flask"><b>Verify:</b> yarn start: every route; hotkeys; AST viewer</ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 2h</ui-item></ui-list
             >
@@ -677,7 +678,7 @@
                 API; React reads through a bridge (was P4's full scope, Q3)</ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> packages/util/src/spell/ (cells from experiments/spell-cells.core.ts);
-                packages/util/src/spell/spellDecorators.ts (@prop / @derived); packages/parser/src/ast/AST.tsx
+                packages/util/src/spell/spellDecorators.ts (@prop / @derived); packages/parser/src/ast/AST.ts
                 ASTReactiveProperty emits type + default; packages/core/src/things.ts store.version -&gt; cell; view()
                 over cells for React; P4's tracked() onto cells</ui-item
               ><ui-item icon="flask"
@@ -1246,13 +1247,13 @@
                   ><p>
                     <code>src/solid/ASTViewer.tsx</code> keeps <code>ast.component</code> (React, from
                     <code>$/parser</code>'s
-                    <a href="../../../parser/src/ast/renderAST.tsx" target="src-packages-parser-src-ast-renderast-tsx"
-                      ><code>renderAST.tsx</code></a
+                    <a href="../../../parser/src/ast/renderAST.ts" target="src-packages-parser-src-ast-renderast-ts"
+                      ><code>renderAST.ts</code></a
                     >, P8's) and mounts it with a private <code>&lt;ReactHost&gt;</code>: a React root on a
                     <code>display: contents</code> div, re-rendered per new element, unmounted on a microtask at
                     cleanup. Why not Solid: the drawing is spread through ~60 <code>renderChildren()</code> methods in
-                    <a href="../../../parser/src/ast/AST.tsx" target="src-packages-parser-src-ast-ast-tsx"
-                      ><code>AST.tsx</code></a
+                    <a href="../../../parser/src/ast/AST.ts" target="src-packages-parser-src-ast-ast-ts"
+                      ><code>AST.ts</code></a
                     >
                     (2.7k lines), not one file. No <code>flushSync</code> (inside a <code>solidIsland()</code> it runs
                     in React's commit, where it can't flush): a React error boundary (<code>&lt;ReactCatcher&gt;</code>)
@@ -1376,6 +1377,70 @@
                     a same-tick move keeps the app. <code>&lt;spell-app&gt;</code> wraps its shadow root in
                     <code>&lt;ui-root icons=fomantic display=immediately&gt;</code>; the VS Code webview HTML wraps
                     <code>#runner-root</code> the same way.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d23" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d23">D23</a>
+                  <span class="plan-title"
+                    >P8a: @solidjs/router@next, editor navigates through a handed-over navigate()</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    <code>@solidjs/router</code> <code>2.0.0-next.35</code> (rc.13), pinned exactly;
+                    <code>@reach/router</code>, <code>@types/reach__router</code> and
+                    <code>react-hotkeys-hook</code> removed. <code>src/pages/routes.tsx</code>: three routes, each
+                    page's URLs ONE route with a <code>path</code> array, so moving between files keeps the page
+                    mounted; route components call <code>followRoute()</code> (params to
+                    <code>editor.selectPath()</code>, in an effect). <code>explicitLinks</code>: only
+                    <code>&lt;a link&gt;</code> clicks, never a running program's own links.
+                    <a href="../../../app/src/editor.ts" target="src-packages-app-src-editor-ts"
+                      ><code>editor.ts</code></a
+                    >
+                    calls <code>src/pages/navigation.ts</code> <code>navigate()</code> (no Solid), which the router's
+                    root layout hands its <code>useNavigate()</code> to. The router ships JSX source:
+                    <code>vite.shared.ts</code> <code>NOT_SOLID_SOURCE</code> lets the Solid plugin compile it. Hotkeys:
+                    ONE <code>keydown</code> listener on <code>document</code> while the editor page is up
+                    (<code>editorHotkeys()</code>); React's <code>shift-command+r</code> never matched (<code
+                      >hotkeys-js</code
+                    >
+                    split on <code>+</code>), now Mod+Shift+R reloads the file.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d24" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d24">D24</a>
+                  <span class="plan-title"
+                    >P8: AST views draw framework-free Markup, not Solid JSX (supersedes D17)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    <a href="../../../parser/src/ast/AST.ts" target="src-packages-parser-src-ast-ast-ts"
+                      ><code>packages/parser/src/ast/AST.ts</code></a
+                    >
+                    (was <code>.tsx</code>) and
+                    <a href="../../../parser/src/ast/renderAST.ts" target="src-packages-parser-src-ast-renderast-ts"
+                      ><code>renderAST.ts</code></a
+                    >
+                    build <code>P.Markup</code>: plain data (<code>{ tag, attrs, children }</code>, text, arrays) from
+                    <code>render.h()</code> / <code>render.span()</code>. The app's <code>ASTViewer</code> draws it with
+                    <code>P.render.toDOM()</code> in render, inside its <code>&lt;ErrorBoundary&gt;</code>: no
+                    <code>&lt;ReactHost&gt;</code>, no React in
+                    <a href="../../../parser/" target="src-packages-parser"><code>packages/parser</code></a
+                    >. Why not Solid JSX:
+                    <a href="../../../parser/src/ast/AST.ts" target="src-packages-parser-src-ast-ast-ts"
+                      ><code>AST.ts</code></a
+                    >
+                    loads wherever the parser does, and the CLI / language server run its SOURCE through
+                    <code>tsx</code> (esbuild), the parser / spell / lsp / core / cli tests through Vite's oxc: none can
+                    compile Solid's JSX, and Solid's DOM build would land in node tools. Moving the ~55
+                    <code>renderChildren()</code> into an opt-in Solid module would split each class's drawing from its
+                    <code>compile()</code>. The tree is static (a new compile makes a new AST), so Solid's reactivity
+                    buys nothing. The pane's DOM is byte-identical to the React one (Todos, Solitaire).
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1576,7 +1641,7 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c13" data-status="open"
+            ><ui-item id="c13" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c13">C13</a>
@@ -1627,9 +1692,11 @@
                       ><code>ThingExplorer.tsx</code></a
                     >
                     import peers directly, not the <code>$/app/solid</code> barrel (it pulls
-                    <code>$/app/editor</code> into the runners' bundles via <code>Actions.tsx</code>), and not
-                    <code>./loadUI</code> (throws under node, where their tests render). Whoever mounts them in a runner
-                    must import <code>./loadUI</code>.
+                    <code>$/app/editor</code> into the runners' bundles via
+                    <a href="../../../app/src/solid/Actions.tsx" target="src-packages-app-src-solid-actions-tsx"
+                      ><code>Actions.tsx</code></a
+                    >), and not <code>./loadUI</code> (throws under node, where their tests render). Whoever mounts them
+                    in a runner must import <code>./loadUI</code>.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -2154,6 +2221,49 @@
               ><ui-content
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T18:04-04:00">2026-10-02 18:04</time></ui-date> P7
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T18:32-04:00">2026-10-02 18:32</time></ui-date> C13 closed: P6e:
+                  React and Solid LazyMonaco each connect editor when loaded</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T18:33-04:00">2026-10-02 18:33</time></ui-date> P8 half A (shell):
+                  index.tsx renders Solid into #app-root; @solidjs/router@next (D23); pages ProjectChooser / SpellEditor
+                  / SpellRunner / ProjectSettings on Solid; SpellPage, SplitPanel, AppRoot / AppContainer, ProjectMenu /
+                  ProjectDropdown in src/solid; React shell (chrome, Actions, FileDropdown, SplitPanel ...), islands.ts
+                  and solidIsland() deleted; ui/ is spell programs' React kit + types only; SUI-additions.css (dead)
+                  dropped. 27 browser tests (pages.browser.test.tsx, shell.browser.test.tsx). Main chunk 685.6 kB /
+                  187.7 gz to 595.8 kB / 160.2 gz (the forms moved into spell-runtime.js, 26.3 to 33.5 kB).</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T18:36-04:00">2026-10-02 18:36</time></ui-date> P8 half B: AST
+                  views off React (D24) -- parser AST.ts / renderAST.ts draw P.Markup, ASTViewer draws it with
+                  P.render.toDOM(), ReactHost gone; react / @types/react out of packages/parser; pane DOM byte-identical
+                  on Todos + Solitaire; speed test 75 -&gt; 73 (608 pass both).</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T18:44-04:00">2026-10-02 18:44</time></ui-date> P8: editor shell,
+                  router (@solidjs/router next.35), pages, hotkeys, layout on Solid; islands gone; AST drawn as data
+                  (D24), parser free of React and Solid</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T18:44-04:00">2026-10-02 18:44</time></ui-date> P8
                   done</ui-summary
                 ></ui-content
               ></ui-event

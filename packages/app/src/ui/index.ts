@@ -1,36 +1,23 @@
-//
-//  ## Master import file for the app UI.
-//
-
-/** Import genric spell styles */
-import "./spell.css"
-
-/** Import SUI-additions for spell */
-import "./SUI-additions.css"
+/**
+ * Barrel for `$/app/ui` (`UI`):  spell PROGRAMS' React UI kit, and the types the app's UI shares.
+ * - The kit, which compiled spell draws with (React, decision D9):
+ *   - `SUIPassThroughs.ts`:  `semantic-ui-react` components as `UI.Button`, `UI.Grid` ...
+ *   - `forms/` (`F`):  `UI.Form`, `UI.Input` ... on `semantic-ui-react`
+ *   - programs get it from the runtime (`spellRuntime.ts`, which imports those files directly), NOT this barrel
+ * - `ui.types.ts`:  editor selections, the explorers' saved state -- types only.
+ * - NOT the app's own UI:  that's Solid, on `@spell-app/ui`, in `$/app/solid` (P8 moved the last of it:  pages'
+ *   shell, menus, layout).
+ * - NOTE: deliberately left out:
+ *   - `./monaco`:  Monaco's plumbing (no UI), loaded on first use through `$/app/solid`'s `LazyMonaco`
+ *   - `syntax.css`:  the syntax colours, imported by the Solid viewers that use them
+ * - NOTE: files in THIS folder may use `UI` too, but only inside render bodies -- the barrel imports them back, so
+ *   the binding is still in its TDZ at module-evaluation time.  NEVER dereference `UI.x` at the top level of a file
+ *   in this folder.
+ */
 
 export * from "./ui.types"
 
-export * from "./Actions"
-export * from "./AppContainer"
-export * from "./AppRoot"
-export * from "./chrome"
 export * from "./SUIPassThroughs"
-export * from "./FileDropdown"
 export * from "$/app/ui/forms"
-export * from "./ProjectDropdown"
-export * from "./SpellPage"
-export * from "./SplitPanel"
-export * from "./islands"
 
-/**
- * Everything above as the `UI` barrel:  the React shell (pages' chrome, menus, layout) and spell's React UI kit.
- * - SIDE EFFECT: importing this pulls in every component.
- * - The panes are Solid (`$/app/solid`, P6):  `./islands` mounts them under their old names (`UI.InputRoot` ...).
- * - `syntax.css` (the syntax colours) is imported by the Solid viewers that use it.
- * - NOTE: `$/app/ui/monaco` is deliberately left out:  it's Monaco's plumbing, loaded on first use through
- *   `$/app/solid`'s `LazyMonaco`.
- * - NOTE: files in THIS folder may use `UI` too, but only inside render bodies
- *   -- the barrel imports them back, so the binding is still in its TDZ at module-evaluation time.
- *   NEVER dereference `UI.x` at the top level of a file in this folder.
- */
 export * as UI from "./"

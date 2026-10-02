@@ -289,6 +289,20 @@ expect(button.textContent).toBe("Clicks: 1")
 - Imports:  `solid-js/web` -> `@solidjs/web`;  `solid-js/store` -> `solid-js`;  `solid-js/h` -> `@solidjs/h`;
   `vite-plugin-solid` -> `@solidjs/vite-plugin`;  router = `@solidjs/router@next`, `createRouter({ routes })`
 
+## Router (`@solidjs/router@next`)
+
+- `2.0.0-next.35` runs on rc.13, pinned exactly (`app`, P8).  Config objects, no `<Route>` / `<A>` components.
+- `createRouter({ routes })` once, at module scope:  the instance IS the provider;  its render-prop child is the root
+  layout, which stays mounted.
+- It ships Solid JSX SOURCE (`dist/*.jsx`):  the bundler's Solid plugin must compile it out of `node_modules`
+  (`app`'s `vite.shared.ts` `NOT_SOLID_SOURCE`).
+- Links are plain `<a>`, taken by delegation from the WHOLE page:  `explicitLinks: true` limits it to `<a link>`
+  (the app's, so a running program's own links stay its own).
+- `useNavigate()` works only under the router:  code outside components (`app`'s `editor`) gets it handed over by the
+  root layout (`app`'s `src/pages/navigation.ts`).  A bare `history.pushState()` changes the URL, not the page.
+- A route whose `path` is an ARRAY stays mounted across those URLs:  read `props.params` in an effect's compute.
+- Tests:  `createRouter({ routes, history: memoryHistory("/url") })` per test.
+
 ## When something breaks
 
 - A dev diagnostic code:  read `node_modules/solid-js/skills/reactivity-diagnostics/SKILL.md` (Solid's own repair

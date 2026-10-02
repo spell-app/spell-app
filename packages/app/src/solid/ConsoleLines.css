@@ -1,4 +1,4 @@
-/* Solid twin of `$/app/ui/ConsoleLines.css`:  same rules, same class names (`<ConsoleLines>`). */
+/* `<ConsoleLines>` (`ConsoleLines.tsx`):  the same rules and class names as React's had. */
 /* `.ConsoleViewer` is the lines' scrolling container -- see `<ConsoleLines>`. */
 .ConsoleViewer {
   position: relative;

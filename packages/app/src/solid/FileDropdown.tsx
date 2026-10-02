@@ -8,7 +8,7 @@ import "./FileDropdown.css"
 /****************
  * ### `<FileDropdown>`
  * Menu of all available files for the selected project (`editor.project`):  a `<ui-dropdown>` of `<ui-item>`s,
- * showing `editor.file`.  Solid twin of React's `UI.FileDropdown`, same props.
+ * showing `editor.file`.  Same props as React's `UI.FileDropdown` had.
  * - Choosing a file shows it in `<SpellEditor>`, or `<SpellRunner>` with `useRunner`.
  * - Loading (spinning caret, no items) until the project's loaded and has a file.
  * - The dropdown's value is ALWAYS `editor.file`'s path:  choosing sets it back during the event, and shows the file

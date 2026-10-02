@@ -1,3 +1,8 @@
+/*
+ * Look of `<AppContainer>` (`AppContainer.tsx`), and of the VS Code runner's `.AppContainer`
+ * (`$/app/runner/VSCodeRunner.tsx`).
+ */
+
 .AppContainer {
   position: relative;
   background: white;
@@ -9,9 +14,5 @@
 
   &.padded {
     padding: 12px;
-  }
-
-  /** Element which React takes over to draw the app. */
-  & > .App {
   }
 }

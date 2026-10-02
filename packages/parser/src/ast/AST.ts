@@ -1,4 +1,3 @@
-/** @jsxImportSource react */
 /** AST classes.  These do not necessarily correspond do anyone else's AST. */
 
 import { getSuperHierarchy, Assertable, OPTIONAL } from "$/util"
@@ -103,13 +102,17 @@ export class ASTNode<Props extends object = object> extends Assertable {
   }
 
   ////////////////
-  // ## Rendering as React nodes
+  // ## Rendering as markup
   ////////////////
 
-  /** Rendered react component which draws this node as syntax-colored Javascript. */
+  /**
+   * Markup drawing this node as syntax-colored Javascript:  a `<span>` with our `className` around
+   * `renderChildren()` -- see `render.Node()`.
+   * - Plain data, not DOM:  the app's `<ASTViewer>` draws it with `render.toDOM()`.
+   */
   /*@memoize*/
-  get component(): ReactElement {
-    return this.derived("component", () => render.Node(this))
+  get markup(): P.MarkupElement {
+    return this.derived("markup", () => render.Node(this))
   }
 
   /**
@@ -123,14 +126,15 @@ export class ASTNode<Props extends object = object> extends Assertable {
   }
 
   /**
-   * Render children to render INSIDE outer element, which has `node.className`
+   * Markup to draw INSIDE our `markup`'s outer element, which has `node.className`
    * (e.g. `ASTNode ASTExpression ASTStringLiteral`) set.
    */
-  renderChildren(): ReactNode {
+  renderChildren(): P.Markup {
     return null
   }
 
-  // TEST: ensure that `compile()` output is the same as `ast.renderedText`
+  // TEST: ensure that `compile()` output is the same as `render.toText(ast.markup)` -- modulo indentation, which
+  //  the app's viewer draws with CSS:  `toText()` lacks it.
   // REFACTOR: was using enzyme to test component vs. compiled text, but enzyme was problematic
   //  so we're not using it anymore -- always return `true`.
   /** Always `true` -- see REFACTOR note above `test()`. */
@@ -157,7 +161,7 @@ export class ASTBlankLine extends ASTNode {
   compile(): string {
     return "" // "\n"
   }
-  renderChildren(): ReactNode {
+  renderChildren(): P.Markup {
     return null // render.NEWLINE
   }
 }
@@ -187,8 +191,8 @@ export class ASTExpressionWithComment extends ASTExpression {
   compile(): string {
     return `${this.expression.compile()} ${this.comment.compile()}`
   }
-  renderChildren(): ReactNode {
-    return render.Fragment(this.expression.component, render.SPACE, this.comment.component)
+  renderChildren(): P.Markup {
+    return render.Fragment(this.expression.markup, render.SPACE, this.comment.markup)
   }
 }
 
@@ -202,8 +206,8 @@ export class ASTLiteral extends ASTExpression {
   compile(): unknown {
     return this.value
   }
-  renderChildren(): ReactNode {
-    return <span className="value">{this.value as ReactNode}</span>
+  renderChildren(): P.Markup {
+    return render.span("value", this.value as P.Markup)
   }
 }
 
@@ -265,7 +269,7 @@ export class ASTBooleanLiteral extends ASTLiteral {
   compile(): string {
     return this.value ? "true" : "false"
   }
-  renderChildren(): ReactNode {
+  renderChildren(): P.Markup {
     return this.value ? "true" : "false"
   }
 }
@@ -299,8 +303,8 @@ export class ASTNullLiteral extends ASTLiteral {
   compile(): string {
     return "null"
   }
-  renderChildren(): ReactNode {
-    return <span className="value">null</span>
+  renderChildren(): P.Markup {
+    return render.span("value", "null")
   }
 }
 
@@ -316,8 +320,8 @@ export class ASTUndefinedLiteral extends ASTLiteral {
   compile(): string {
     return "undefined"
   }
-  renderChildren(): ReactNode {
-    return <span className="value">undefined</span>
+  renderChildren(): P.Markup {
+    return render.span("value", "undefined")
   }
 }
 
@@ -326,8 +330,8 @@ export class ASTThisLiteral extends ASTLiteral {
   compile(): string {
     return "this"
   }
-  renderChildren(): ReactNode {
-    return <span className="value">this</span>
+  renderChildren(): P.Markup {
+    return render.span("value", "this")
   }
 }
 
@@ -378,8 +382,8 @@ export class ASTArrayLiteral extends ASTLiteral {
     const { items, wrap } = this
     return stringify.Array({ items, wrap })
   }
-  renderChildren(): ReactNode {
-    return <render.Array items={this.items} wrap={this.wrap} />
+  renderChildren(): P.Markup {
+    return render.Array({ items: this.items, wrap: this.wrap })
   }
 }
 
@@ -400,8 +404,8 @@ export class ASTEnumeration extends ASTLiteral {
   compile(): string {
     return stringify.Array({ items: this.enumeration })
   }
-  renderChildren(): ReactNode {
-    return <render.Array items={this.enumeration} />
+  renderChildren(): P.Markup {
+    return render.Array({ items: this.enumeration })
   }
 }
 
@@ -431,12 +435,8 @@ export class ASTQuotedExpression extends ASTExpression {
   compile(): string {
     return stringify.InSingleQuotes({ children: String(this.expression.compile()) })
   }
-  renderChildren(): ReactNode {
-    return (
-      <render.InSingleQuotes>
-        <span className="expression">{this.expression.component}</span>
-      </render.InSingleQuotes>
-    )
+  renderChildren(): P.Markup {
+    return render.InSingleQuotes({ children: render.span("expression", this.expression.markup) })
   }
 }
 
@@ -462,12 +462,8 @@ export class ASTBackTickExpression extends ASTExpression {
   compile(): string {
     return stringify.InBackTicks({ children: String(this.expression.compile()) })
   }
-  renderChildren(): ReactNode {
-    return (
-      <render.InBackTicks>
-        <span className="expression">{this.expression.component}</span>
-      </render.InBackTicks>
-    )
+  renderChildren(): P.Markup {
+    return render.InBackTicks({ children: render.span("expression", this.expression.markup) })
   }
 }
 
@@ -493,13 +489,11 @@ export class ASTBacktickSubstitution extends ASTExpression {
   compile(): string {
     return "${" + this.expression.compile() + "}"
   }
-  renderChildren(): ReactNode {
-    return (
-      <>
-        <span className="literal">{"${"}</span>
-        <span className="expression">{this.expression.component}</span>
-        <span className="literal">{"}"}</span>
-      </>
+  renderChildren(): P.Markup {
+    return render.Fragment(
+      render.span("literal", "${"),
+      render.span("expression", this.expression.markup),
+      render.span("literal", "}")
     )
   }
 }
@@ -526,12 +520,8 @@ export class ASTTripleBackTickExpression extends ASTExpression {
   compile(): string {
     return stringify.InTripleBackTicks({ children: String(this.expression.compile()) })
   }
-  renderChildren(): ReactNode {
-    return (
-      <render.InTripleBackTicks>
-        <span className="expression">{this.expression.component}</span>
-      </render.InTripleBackTicks>
-    )
+  renderChildren(): P.Markup {
+    return render.InTripleBackTicks({ children: render.span("expression", this.expression.markup) })
   }
 }
 
@@ -566,9 +556,9 @@ export class ASTPropertyLiteral extends ASTLiteral {
   get className(): string {
     return `${super.className} ${this.isLegalIdentifier ? "legal-identifier" : "non-legal-identifier"}`
   }
-  renderChildren(): ReactNode {
-    const value = <span className="property">{this.value}</span>
-    return this.isLegalIdentifier ? value : <render.InSingleQuotes>{value}</render.InSingleQuotes>
+  renderChildren(): P.Markup {
+    const value = render.span("property", this.value)
+    return this.isLegalIdentifier ? value : render.InSingleQuotes({ children: value })
   }
 }
 
@@ -594,12 +584,12 @@ export class ASTPropertyExpression extends ASTExpression {
     if (this.property.isLegalIdentifier) return `${this.object.compile()}.${prop}`
     return `${this.object.compile()}['${prop}']`
   }
-  renderChildren(): ReactNode {
-    const object = <span className="object">{this.object.component}</span>
+  renderChildren(): P.Markup {
+    const object = render.span("object", this.object.markup)
     if (this.property.isLegalIdentifier) {
-      return render.Fragment(object, render.PERIOD, this.property.component)
+      return render.Fragment(object, render.PERIOD, this.property.markup)
     }
-    return render.Fragment(object, <render.InSquareBrackets>{this.property.component}</render.InSquareBrackets>)
+    return render.Fragment(object, render.InSquareBrackets({ children: this.property.markup }))
   }
 }
 
@@ -650,13 +640,9 @@ export class ASTVariableExpression extends ASTExpression {
     if (this.variable?.kind && !classes.includes(this.variable.kind)) classes.push(this.variable.kind)
     return classes.join(" ")
   }
-  renderChildren(): ReactNode {
-    if (!this.default) return <span className="name">{this.name}</span>
-    return render.Fragment(
-      <span className="name">{this.name}</span>,
-      render.EQUALS,
-      <span className="default">{this.default.component}</span>
-    )
+  renderChildren(): P.Markup {
+    if (!this.default) return render.span("name", this.name)
+    return render.Fragment(render.span("name", this.name), render.EQUALS, render.span("default", this.default.markup))
   }
 }
 
@@ -676,8 +662,8 @@ export class ASTAwaitExpression extends ASTExpression {
   compile(): string {
     return `await ${this.expression.compile()}`
   }
-  renderChildren(): ReactNode {
-    return render.Fragment(render.AWAIT, this.expression.component)
+  renderChildren(): P.Markup {
+    return render.Fragment(render.AWAIT, this.expression.markup)
   }
 }
 
@@ -716,13 +702,13 @@ export class ASTLineComment extends ASTComment {
   get className(): string {
     return `${super.className}${this.commentSymbol !== "//" ? " header" : ""}`
   }
-  renderChildren(): ReactNode {
+  renderChildren(): P.Markup {
     let { commentSymbol = "" } = this
     if (commentSymbol !== "//") commentSymbol = `//${commentSymbol}`
     return render.Fragment(
-      <span className="punctuation line-comment-symbol">{commentSymbol}</span>,
-      <span className="whitespace">{this.initialWhitespace || " "}</span>,
-      <span className="comment">{this.value}</span>
+      render.span("punctuation line-comment-symbol", commentSymbol),
+      render.span("whitespace", this.initialWhitespace || " "),
+      render.span("comment", this.value)
     )
   }
 }
@@ -741,8 +727,8 @@ export class ASTBlockComment extends ASTComment {
   compile(): string {
     return `/* ${this.value} */`
   }
-  renderChildren(): ReactNode {
-    return render.Fragment(render.OPEN_COMMENT, <span className="comment">{this.value}</span>, render.CLOSE_COMMENT)
+  renderChildren(): P.Markup {
+    return render.Fragment(render.OPEN_COMMENT, render.span("comment", this.value), render.CLOSE_COMMENT)
   }
 }
 
@@ -764,12 +750,8 @@ export class ASTDocComment extends ASTComment {
     if (lines.length === 1) return `/** ${lines[0]} */`
     return ["/**", ...lines.map((line) => ` * ${line}`), " */"].join("\n")
   }
-  renderChildren(): ReactNode {
-    return render.Fragment(
-      render.OPEN_COMMENT,
-      <span className="comment">{this.lines.join("\n")}</span>,
-      render.CLOSE_COMMENT
-    )
+  renderChildren(): P.Markup {
+    return render.Fragment(render.OPEN_COMMENT, render.span("comment", this.lines.join("\n")), render.CLOSE_COMMENT)
   }
 }
 
@@ -791,12 +773,8 @@ export class ASTPreservedComment extends ASTComment {
     const lines = this.lines.map((line) => line.replace(/\*\//g, "*\\/"))
     return `/*! ${lines.join("\n")} */`
   }
-  renderChildren(): ReactNode {
-    return render.Fragment(
-      render.OPEN_COMMENT,
-      <span className="comment">{this.lines.join("\n")}</span>,
-      render.CLOSE_COMMENT
-    )
+  renderChildren(): P.Markup {
+    return render.Fragment(render.OPEN_COMMENT, render.span("comment", this.lines.join("\n")), render.CLOSE_COMMENT)
   }
 }
 
@@ -821,8 +799,8 @@ export class ASTBannerComment extends ASTComment {
     const rule = "/".repeat(heading.length)
     return [rule, heading, rule].join("\n")
   }
-  renderChildren(): ReactNode {
-    return <span className="comment">{this.compile()}</span>
+  renderChildren(): P.Markup {
+    return render.span("comment", this.compile())
   }
 }
 
@@ -840,11 +818,11 @@ export class ASTParserAnnotation extends ASTBlockComment {
   compile(): string {
     return `/* ${this.annotation} ${this.value} */`
   }
-  renderChildren(): ReactNode {
+  renderChildren(): P.Markup {
     return render.Fragment(
       render.OPEN_COMMENT,
-      <span className="annotation">{this.annotation} </span>,
-      <span className="comment">{this.value}</span>,
+      render.span("annotation", this.annotation, " "),
+      render.span("comment", this.value),
       render.CLOSE_COMMENT
     )
   }
@@ -889,12 +867,8 @@ export class ASTParenthesizedExpression extends ASTExpression {
   compile(): string {
     return stringify.InParens({ children: String(this.expression.compile()) })
   }
-  renderChildren(): ReactNode {
-    return (
-      <render.InParens>
-        <span className="expression">{this.expression.component}</span>
-      </render.InParens>
-    )
+  renderChildren(): P.Markup {
+    return render.InParens({ children: render.span("expression", this.expression.markup) })
   }
 }
 
@@ -916,8 +890,8 @@ export class ASTNotExpression extends ASTExpression {
   compile(): string {
     return `!${this.expression.compile()}`
   }
-  renderChildren(): ReactNode {
-    return render.Fragment(render.BANG, <span className="expression">{this.expression.component}</span>)
+  renderChildren(): P.Markup {
+    return render.Fragment(render.BANG, render.span("expression", this.expression.markup))
   }
 }
 
@@ -937,11 +911,11 @@ export class ASTInfixExpression extends ASTExpression {
   compile(): string {
     return `${this.lhs.compile()} ${this.operator} ${this.rhs.compile()}`
   }
-  renderChildren(): ReactNode {
+  renderChildren(): P.Markup {
     return render.Fragment(
-      <span className="lhs">{this.lhs.component}</span>,
-      <span className="operator"> {this.operator} </span>,
-      <span className="rhs">{this.rhs.component}</span>
+      render.span("lhs", this.lhs.markup),
+      render.span("operator", " ", this.operator, " "),
+      render.span("rhs", this.rhs.markup)
     )
   }
 }
@@ -1006,8 +980,8 @@ export class ASTInvocationArgs extends ASTNode {
     const { args, wrap } = this
     return stringify.Args({ args, wrap })
   }
-  renderChildren(): ReactNode {
-    return <render.Args args={this.args} wrap={this.wrap} />
+  renderChildren(): P.Markup {
+    return render.Args({ args: this.args, wrap: this.wrap })
   }
 }
 
@@ -1048,8 +1022,8 @@ export class ASTMethodInvocation extends ASTExpression {
   compile(): string {
     return `${this.methodName}${this.args.compile()}`
   }
-  renderChildren(): ReactNode {
-    return render.Fragment(<span className="method-name">{this.methodName}</span>, this.args.component)
+  renderChildren(): P.Markup {
+    return render.Fragment(render.span("method-name", this.methodName), this.args.markup)
   }
 }
 
@@ -1071,12 +1045,12 @@ export class ASTScopedMethodInvocation extends ASTMethodInvocation {
   compile(): string {
     return `${this.thing.compile()}.${this.methodName}${this.args.compile()}`
   }
-  renderChildren(): ReactNode {
+  renderChildren(): P.Markup {
     return render.Fragment(
-      <span className="method-scope">{this.thing.component}</span>,
-      <span className="operator period">.</span>,
-      <span className="method-name">{this.methodName}</span>,
-      this.args.component
+      render.span("method-scope", this.thing.markup),
+      render.span("operator period", "."),
+      render.span("method-name", this.methodName),
+      this.args.markup
     )
   }
 }
@@ -1269,8 +1243,8 @@ export class ASTTypeExpression extends ASTExpression {
   compile(): string {
     return this.name
   }
-  renderChildren(): ReactNode {
-    return <span className="type">{this.name}</span>
+  renderChildren(): P.Markup {
+    return render.span("type", this.name)
   }
 
   /**
@@ -1308,8 +1282,8 @@ export class ASTPrototypeExpression extends ASTExpression {
     const { type } = this
     return `${type.compile()}.prototype`
   }
-  renderChildren(): ReactNode {
-    return render.Fragment(this.type.component, render.PERIOD, render.PROTOTYPE)
+  renderChildren(): P.Markup {
+    return render.Fragment(this.type.markup, render.PERIOD, render.PROTOTYPE)
   }
 }
 
@@ -1339,8 +1313,8 @@ export class ASTConstantExpression extends ASTExpression {
   compile(): string {
     return this.output
   }
-  renderChildren(): ReactNode {
-    return <span className="constant">{this.output}</span>
+  renderChildren(): P.Markup {
+    return render.span("constant", this.output)
   }
 }
 
@@ -1477,47 +1451,42 @@ export class ASTMethodDefinition extends ASTExpression {
     return `${async}function ${stringify.Args({ args: this.args })} ${this.body.compile()}${error}`
   }
   /** Draw as method shorthand under `name` -- see `compileNamed()`. */
-  renderNamed(name: ReactNode): ReactNode {
+  renderNamed(name: P.Markup): P.Markup {
     const async = this.isAsync && render.ASYNC
-    const methodName = <span className="method-name">{name}</span>
+    const methodName = render.span("method-name", name)
     return render.Fragment(
       async,
       methodName,
-      <render.Args args={this.args} />,
+      render.Args({ args: this.args }),
       render.SPACE,
-      this.body.component,
+      this.body.markup,
       this.renderError()
     )
   }
   /** Draw as an anonymous `function (args) {...}` -- see `compileAnonymous()`. */
-  renderAnonymous(): ReactNode {
+  renderAnonymous(): P.Markup {
     const async = this.isAsync && render.ASYNC
     return render.Fragment(
       async,
       render.FUNCTION,
-      <render.Args args={this.args} />,
+      render.Args({ args: this.args }),
       render.SPACE,
-      this.body.component,
+      this.body.markup,
       this.renderError()
     )
   }
   /** Render `error` (if any) prefixed with a space -- `null` when there's no error. */
-  renderError(): ReactNode {
+  renderError(): P.Markup {
     if (!this.error) return null
-    return render.Fragment(
-      <>
-        {render.SPACE}
-        {this.error.component}
-      </>
-    )
+    return render.Fragment(render.SPACE, this.error.markup)
   }
   /** SIDE EFFECT: `console.warn`s if `asProperty` is set but `methodName` is missing. */
-  renderChildren(): ReactNode {
+  renderChildren(): P.Markup {
     const async = this.isAsync && render.ASYNC
-    const methodName = !!this.methodName && <span className="method-name">{this.getMethodName()}</span>
-    const args = <render.Args args={this.args} />
-    const body = this.body.component
-    const error = !!this.error && render.Fragment(render.SPACE, this.error.component)
+    const methodName = !!this.methodName && render.span("method-name", this.getMethodName())
+    const args = render.Args({ args: this.args })
+    const body = this.body.markup
+    const error = !!this.error && render.Fragment(render.SPACE, this.error.markup)
     if (this.asProperty) {
       if (!methodName) console.warn("MethodDef: property missing methodName", this)
       if (this.inline)
@@ -1622,15 +1591,11 @@ export class ASTObjectLiteral extends ASTExpression {
       children: stringify.List({ items: this.properties, delimiter })
     })
   }
-  renderChildren(): ReactNode {
+  renderChildren(): P.Markup {
     if (!this.properties.length) return render.EMPTY_BLOCK
     const { wrap } = this
     const delimiter = wrap ? render.INDENTED_COMMA : render.SPACED_COMMA
-    return (
-      <render.Block wrap={wrap} space={!wrap}>
-        <render.List items={this.properties} delimiter={delimiter} />
-      </render.Block>
-    )
+    return render.Block({ wrap, space: !wrap, children: render.List({ items: this.properties, delimiter }) })
   }
 }
 
@@ -1667,12 +1632,11 @@ export class ASTObjectLiteralProperty extends ASTNode {
     if (!this.value) return `${prop}${error}`
     return `${prop}: ${this.value.compile()}${error}`
   }
-  renderChildren(): ReactNode {
+  renderChildren(): P.Markup {
     // If no value, assume it's available as a local variable.
-    const value =
-      !!this.value && render.Fragment(render.COLON_AND_SPACE, <span className="value">{this.value.component}</span>)
-    const error = !!this.error && render.Fragment(render.SPACE, this.error.component)
-    return render.Fragment(<span className="property">{this.property.component}</span>, value, error)
+    const value = !!this.value && render.Fragment(render.COLON_AND_SPACE, render.span("value", this.value.markup))
+    const error = !!this.error && render.Fragment(render.SPACE, this.error.markup)
+    return render.Fragment(render.span("property", this.property.markup), value, error)
   }
 }
 
@@ -1708,8 +1672,8 @@ export class ASTStatementGroup extends ASTStatement {
   compile(): string {
     return stringify.List({ items: this.statements, delimiter: stringify.NEWLINE })
   }
-  renderChildren(): ReactNode {
-    return <render.List items={this.statements} delimiter={render.NEWLINE} />
+  renderChildren(): P.Markup {
+    return render.List({ items: this.statements, delimiter: render.NEWLINE })
   }
 }
 
@@ -1750,13 +1714,12 @@ export class ASTStatementBlock extends ASTNode {
       })
     })
   }
-  renderChildren(): ReactNode {
+  renderChildren(): P.Markup {
     if (!this.statements || !this.statements.length) return render.EMPTY_BLOCK
-    return (
-      <render.Block wrap={this.wrap}>
-        <render.List items={this.statements} delimiter={render.INDENTED_NEWLINE} />
-      </render.Block>
-    )
+    return render.Block({
+      wrap: this.wrap,
+      children: render.List({ items: this.statements, delimiter: render.INDENTED_NEWLINE })
+    })
   }
 }
 
@@ -1813,30 +1776,11 @@ export class ASTTryCatchBlock extends ASTStatementGroup {
     if (finallyBlock) output.push(`finally ${finallyBlock.compile()}`)
     return output.join("\n")
   }
-  renderChildren(): ReactNode {
+  renderChildren(): P.Markup {
     const { body, catchBlock, finallyBlock } = this
-    const output: ReactNode[] = [
-      render.TRY,
-      <span key="try" className="try-block">
-        {body.component}
-      </span>
-    ]
-    if (catchBlock)
-      output.push(
-        render.NEWLINE,
-        render.CATCH,
-        <span key="catch" className="catch-block">
-          {catchBlock.component}
-        </span>
-      )
-    if (finallyBlock)
-      output.push(
-        render.NEWLINE,
-        render.FINALLY,
-        <span key="finally" className="finally-block">
-          {finallyBlock.component}
-        </span>
-      )
+    const output: P.Markup[] = [render.TRY, render.span("try-block", body.markup)]
+    if (catchBlock) output.push(render.NEWLINE, render.CATCH, render.span("catch-block", catchBlock.markup))
+    if (finallyBlock) output.push(render.NEWLINE, render.FINALLY, render.span("finally-block", finallyBlock.markup))
     return render.Fragment(...output)
   }
 }
@@ -1897,13 +1841,13 @@ export class ASTAssignmentStatement extends ASTStatement {
       .filter(Boolean)
       .join(" ")
   }
-  renderChildren(): ReactNode {
+  renderChildren(): P.Markup {
     return render.Fragment(
       this.exportVar && render.EXPORT,
       !!this.isNewVariable && render.LET,
-      <span className="thing">{this.thing.component}</span>,
+      render.span("thing", this.thing.markup),
       render.EQUALS,
-      <span className="value">{this.value.component}</span>
+      render.span("value", this.value.markup)
     )
   }
 }
@@ -1943,14 +1887,12 @@ export class ASTDestructuredAssignment extends ASTStatement {
   get className(): string {
     return `${super.className}${this.isNewVariable ? " declaration" : ""}`
   }
-  renderChildren(): ReactNode {
+  renderChildren(): P.Markup {
     return render.Fragment(
       !!this.isNewVariable && render.LET,
-      <render.InCurlies space>
-        <render.List items={this.variables} />
-      </render.InCurlies>,
+      render.InCurlies({ space: true, children: render.List({ items: this.variables }) }),
       render.EQUALS,
-      <span className="thing">{this.thing.component}</span>
+      render.span("thing", this.thing.markup)
     )
   }
 }
@@ -1971,8 +1913,8 @@ export class ASTReturnStatement extends ASTStatement {
     if (!this.value) return "return"
     return `return ${this.value.compile()}`
   }
-  renderChildren(): ReactNode {
-    const value = !!this.value && render.Fragment(render.SPACE, <span className="value">{this.value.component}</span>)
+  renderChildren(): P.Markup {
+    const value = !!this.value && render.Fragment(render.SPACE, render.span("value", this.value.markup))
     return render.Fragment(render.RETURN, value)
   }
 }
@@ -2024,20 +1966,19 @@ export class ASTClassDeclaration extends ASTStatement {
       .join(stringify.NEWLINE)
     return `${declaration}${stringify.LEFT_CURLY}${stringify.NEWLINE}${body}${stringify.NEWLINE}${stringify.RIGHT_CURLY}`
   }
-  renderChildren(): ReactNode {
-    const members = this.members?.length ? (
-      <render.Block wrap>
-        <render.List items={this.members} delimiter={render.INDENTED_NEWLINE} DrawItem={ClassMemberItem} />
-      </render.Block>
-    ) : (
-      render.EMPTY_BLOCK
-    )
+  renderChildren(): P.Markup {
+    const members = this.members?.length
+      ? render.Block({
+          wrap: true,
+          children: render.List({ items: this.members, delimiter: render.INDENTED_NEWLINE, DrawItem: ClassMemberItem })
+        })
+      : render.EMPTY_BLOCK
     return render.Fragment(
       render.EXPORT,
       render.CLASS,
-      <span className="type">{this.type.component}</span>,
+      render.span("type", this.type.markup),
       !!this.superType && render.EXTENDS,
-      !!this.superType && <span className="superType">{this.superType.component}</span>,
+      !!this.superType && render.span("superType", this.superType.markup),
       render.SPACE,
       members
     )
@@ -2045,9 +1986,9 @@ export class ASTClassDeclaration extends ASTStatement {
 }
 
 /** Draws one of `ASTClassDeclaration.members`:  a member as it looks in a class body, else as is. */
-function ClassMemberItem({ item }: { item?: ASTNode | null; index: number }): ReactNode {
-  if (item instanceof ASTClassMember) return item.memberComponent
-  return item?.component ?? null
+function ClassMemberItem({ item }: render.ListItemProps): P.Markup {
+  if (item instanceof ASTClassMember) return item.memberMarkup
+  return item?.markup ?? null
 }
 
 /** NewInstanceExpression -- `new Type(props)`.
@@ -2069,9 +2010,9 @@ export class ASTNewInstanceExpression extends ASTExpression {
     const props = stringify.InParens({ children: this.props?.compile() })
     return `new ${this.type.compile()}${props}`
   }
-  renderChildren(): ReactNode {
-    const props = this.props ? <render.InParens>{this.props.component}</render.InParens> : render.EMPTY_PARENS
-    return render.Fragment(render.NEW, <span className="type">{this.type.component}</span>, props)
+  renderChildren(): P.Markup {
+    const props = this.props ? render.InParens({ children: this.props.markup }) : render.EMPTY_PARENS
+    return render.Fragment(render.NEW, render.span("type", this.type.markup), props)
   }
 }
 
@@ -2091,12 +2032,8 @@ export class ASTListExpression extends ASTExpression {
       children: stringify.List({ items: this.items })
     })
   }
-  renderChildren(): ReactNode {
-    return (
-      <render.InSquareBrackets>
-        <render.List items={this.items} />
-      </render.InSquareBrackets>
-    )
+  renderChildren(): P.Markup {
+    return render.InSquareBrackets({ children: render.List({ items: this.items }) })
   }
 }
 
@@ -2131,13 +2068,11 @@ export abstract class ASTClassMember extends ASTStatement {
   /** JS for it in its class's body, e.g. `get title() {...}`. */
   abstract compileAsMember(): string
   /** Draws it in its class's body -- see `compileAsMember()`. */
-  abstract renderAsMember(): ReactNode
-  /** Component for `renderAsMember()`, as `component` is for `renderChildren()`. */
+  abstract renderAsMember(): P.Markup
+  /** Markup for `renderAsMember()`, as `markup` is for `renderChildren()`. */
   /*@memoize*/
-  get memberComponent(): ReactElement {
-    return this.derived("memberComponent", () => (
-      <span className={`${this.className} as-member`}>{this.renderAsMember()}</span>
-    ))
+  get memberMarkup(): P.MarkupElement {
+    return this.derived("memberMarkup", () => render.span(`${this.className} as-member`, this.renderAsMember()))
   }
 }
 
@@ -2187,22 +2122,25 @@ export class ASTPropertyDefinition extends ASTClassMember {
     }
     return `${prototype}${propertyAccess(this.property)} = ${this.method!.compileAnonymous()}`
   }
-  renderAsMember(): ReactNode {
-    const name = this.property.component
+  renderAsMember(): P.Markup {
+    const name = this.property.markup
     if (this.get) return this.get.renderNamed(render.Fragment(render.GET, name))
     return this.method!.renderNamed(name)
   }
-  renderChildren(): ReactNode {
-    const prototype = this.prototypeExpression.component
+  renderChildren(): P.Markup {
+    const prototype = this.prototypeExpression.markup
     if (this.get) {
       return render.Fragment(
         "Object.defineProperty",
-        <render.InParens>
-          {render.Fragment(prototype, render.SPACED_COMMA, quoted(this.property), render.SPACED_COMMA)}
-          <render.Block wrap>
-            {render.Fragment(this.get.renderNamed("get"), render.INDENTED_COMMA, "configurable: true")}
-          </render.Block>
-        </render.InParens>
+        render.InParens({
+          children: [
+            render.Fragment(prototype, render.SPACED_COMMA, quoted(this.property), render.SPACED_COMMA),
+            render.Block({
+              wrap: true,
+              children: render.Fragment(this.get.renderNamed("get"), render.INDENTED_COMMA, "configurable: true")
+            })
+          ]
+        })
       )
     }
     return render.Fragment(prototype, propertyAccess(this.property), render.EQUALS, this.method!.renderAnonymous())
@@ -2257,8 +2195,8 @@ export class ASTReactiveProperty extends ASTClassMember {
     const block = stringify.Block({ wrap: true, children: descriptor.join(stringify.NEWLINE) })
     return `Object.defineProperty(${this.prototypeExpression.compile()}, ${quoted(this.property)}, ${block})`
   }
-  renderAsMember(): ReactNode {
-    const name = this.property.component
+  renderAsMember(): P.Markup {
+    const name = this.property.markup
     return render.Fragment(
       render.GET,
       name,
@@ -2269,7 +2207,7 @@ export class ASTReactiveProperty extends ASTClassMember {
       `(value) ${this.setterBody}`
     )
   }
-  renderChildren(): ReactNode {
+  renderChildren(): P.Markup {
     return this.compile()
   }
 }
@@ -2302,11 +2240,11 @@ export class ASTStaticDefinition extends ASTClassMember {
   compile(): string {
     return `${this.type.compile()}.${this.name} = ${this.value.compile()}`
   }
-  renderAsMember(): ReactNode {
-    return render.Fragment(render.STATIC, this.name, render.EQUALS, this.value.component)
+  renderAsMember(): P.Markup {
+    return render.Fragment(render.STATIC, this.name, render.EQUALS, this.value.markup)
   }
-  renderChildren(): ReactNode {
-    return render.Fragment(this.type.component, render.PERIOD, this.name, render.EQUALS, this.value.component)
+  renderChildren(): P.Markup {
+    return render.Fragment(this.type.markup, render.PERIOD, this.name, render.EQUALS, this.value.markup)
   }
 }
 
@@ -2352,12 +2290,12 @@ export class ASTIfStatement extends ASTStatement {
   compile(): string {
     return `if ${this.condition.compile()} ${this.statements.compile()}`
   }
-  renderChildren(): ReactNode {
+  renderChildren(): P.Markup {
     return render.Fragment(
       render.IF,
-      <span className="condition">{this.condition.component}</span>,
+      render.span("condition", this.condition.markup),
       render.SPACE,
-      this.statements.component
+      this.statements.markup
     )
   }
 }
@@ -2390,13 +2328,13 @@ export class ASTElseIfStatement extends ASTStatement {
   compile(): string {
     return `else if ${this.condition.compile()} ${this.statements.compile()}`
   }
-  renderChildren(): ReactNode {
+  renderChildren(): P.Markup {
     return render.Fragment(
       render.ELSE,
       render.IF,
-      <span className="condition">{this.condition.component}</span>,
+      render.span("condition", this.condition.markup),
       render.SPACE,
-      this.statements.component
+      this.statements.markup
     )
   }
 }
@@ -2415,8 +2353,8 @@ export class ASTElseStatement extends ASTStatement {
   compile(): string {
     return `else ${this.statements.compile()}`
   }
-  renderChildren(): ReactNode {
-    return render.Fragment(render.ELSE, this.statements.component)
+  renderChildren(): P.Markup {
+    return render.Fragment(render.ELSE, this.statements.markup)
   }
 }
 
@@ -2447,16 +2385,16 @@ export class ASTTernaryExpression extends ASTExpression {
       children: `${condition.compile()} ? ${trueValue.compile()} : ${falseValue.compile()}`
     })
   }
-  renderChildren(): ReactNode {
-    return (
-      <render.InParens>
-        <span className="condition">{this.condition.component}</span>
-        {render.TERNARY_QUESTION}
-        {this.trueValue.component}
-        {render.TERNARY_COLON}
-        {this.falseValue.component}
-      </render.InParens>
-    )
+  renderChildren(): P.Markup {
+    return render.InParens({
+      children: [
+        render.span("condition", this.condition.markup),
+        render.TERNARY_QUESTION,
+        this.trueValue.markup,
+        render.TERNARY_COLON,
+        this.falseValue.markup
+      ]
+    })
   }
 }
 
@@ -2590,8 +2528,8 @@ export class ASTJSXElement extends ASTExpression {
   compile(): string {
     return this.output.compile()
   }
-  renderChildren(): ReactNode {
-    return this.output.component
+  renderChildren(): P.Markup {
+    return this.output.markup
   }
 }
 

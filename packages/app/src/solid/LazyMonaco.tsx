@@ -12,8 +12,6 @@ import type { FileEditorProps, MonacoEditorProps } from "$/app/solid/monaco"
  *   for everything else.
  * - NOTE: `$/app/solid/monaco` is NOT in the `$/app/solid` barrel:  anything importing it statically would pull
  *   Monaco into the main bundle again.  Import its TYPES only, elsewhere.
- * - NOTE: React's `UI.LazyMonaco` connects the editor too, when IT loads:  while both are in use, an edit tells
- *   `editor.onFileEdited()` twice (harmless:  `compileAppSoon()` restarts one timer).  React's goes in P8.
  */
 export const LazyMonaco = {
   /** `<MonacoEditor>` -- see `$/app/solid/monaco/MonacoEditor`. */

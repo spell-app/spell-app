@@ -1,0 +1,17 @@
+/*
+ * Look of `<ProjectDropdown>` and `<ProjectMenu>` (`ProjectDropdown.tsx`).  The dropdown:  React's
+ * `style={{ minWidth: "8em", fontWeight: 700 }}`.  Hosts are `display: contents`:  rules reach the boxes through
+ * `::part()`.
+ */
+
+ui-dropdown.ProjectDropdown::part(trigger) {
+  min-width: 8em;
+  font-weight: 700;
+}
+
+/* HACK: a vertical menu's `link` item is a `<button>`, which shrinks to its text even at `display: block`, so its
+   divider stops short:  fill the menu's width.  (`SUSPECTED-BUGS.md`, ui, `<ui-menu vertical>` link items) */
+ui-menu.ProjectMenu[vertical] > ui-item::part(item) {
+  width: 100%;
+  text-align: start;
+}

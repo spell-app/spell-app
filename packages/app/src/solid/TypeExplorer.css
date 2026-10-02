@@ -1,6 +1,6 @@
 /*
  * Solid `<TypeExplorer>` (`TypeExplorer.tsx`):  "Scopes" tree on the left, "Details" on the right, each scrolling
- * on its own.  React's `$/app/ui/TypeExplorer.css`, on the same class names, until that goes.
+ * on its own.  The same class names as React's had.
  * - Icons are `<ui-icon>`s, whose hosts are `display: contents`:  rules reach the glyph through `::part(icon)`.
  */
 .TypeExplorer {

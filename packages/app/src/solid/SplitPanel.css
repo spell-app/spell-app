@@ -1,8 +1,18 @@
+/*
+ * Look of `<SplitPanel>`, `<SplitPane>`, `<SplitSpacer>` and `<SplitSizer>` (`SplitPanel.tsx`).
+ * - Pane sizes are NOT here:  each pane's inline `flex`, set by `<SplitPanel>`.
+ * - `tightly` / `loosely` are classes beside `spaced` / `padded`, in any order:  match them together
+ *   (`.spaced.tightly`), never as a substring of `class`.
+ */
+
 .SplitPanel {
   position: relative;
   z-index: 1;
   display: flex;
   flex: 1 0 0;
+  /* a nested panel is a pane itself:  without these, wide content (a Solitaire board) would push it past its share */
+  min-width: 0;
+  min-height: 0;
 
   &.vertical {
     height: 100%;
@@ -14,31 +24,30 @@
     flex-direction: row;
   }
 
-  /* standard spell variants -- was `.spell-fluid-variant()` / `.spell-spaced-variant()` */
   &.fluid {
     flex: 1 0 0;
   }
 
-  /* Spacing around panes */
+  /* room around the panes, and between them (`.Spacer`) */
   &.spaced {
     padding: var(--spell-normal-padding);
     & > .Spacer {
       flex: 0 0 var(--spell-normal-padding);
     }
   }
-  &[class*="tightly spaced"] {
+  &.spaced.tightly {
     padding: var(--spell-tight-padding);
     & > .Spacer {
       flex: 0 0 var(--spell-tight-padding);
     }
   }
-  &[class*="loosely spaced"] {
+  &.spaced.loosely {
     padding: var(--spell-loose-padding);
     & > .Spacer {
       flex: 0 0 var(--spell-loose-padding);
     }
   }
-  /* Don't double space between two peer spaced elements. */
+  /* don't double the room between two spaced panels side by side */
   &.vertical.spaced + &.vertical.spaced {
     padding-left: 0;
   }
@@ -47,35 +56,25 @@
   }
 }
 
-/* Wrapper for children */
-.SplitPanelPane {
+/* one pane:  its one child fills it.
+   Under `.SplitPanel`, so these beat a pane child's own `position` (`.AppRoot`, `.ConsoleRoot`, etc.) whatever
+   order the sheets load in. */
+.SplitPanel > .SplitPanelPane {
   position: relative;
   overflow: hidden;
 
-  /* A SplitPane will have only one child.
-     Make it take up the entire space. */
-  /* TODO: is there a better way to get the result we want???
-     `.SolidIsland > *`:  a Solid pane mounted in this React panel (`solidIsland()`) sits in a `display: contents`
-     wrapper, so the rule reaches through it.  Goes with the React `SplitPanel` (P8). */
-  & > *,
-  & > .SolidIsland > * {
-    /* was `.spell-fill-container()` */
+  & > * {
     position: absolute;
     inset: 0;
   }
 
-  /* standard variants -- was `.spell-padded-with-inset-variant()` / `.spell-bordered-variant()` /
-     `.spell-light-variant()` / `.spell-rounded-variant()` / `.spell-scrolling-variant()` */
-  &.padded > *,
-  &.padded > .SolidIsland > * {
+  &.padded > * {
     inset: var(--spell-normal-padding);
   }
-  &[class*="tightly padded"] > *,
-  &[class*="tightly padded"] > .SolidIsland > * {
+  &.padded.tightly > * {
     inset: var(--spell-tight-padding);
   }
-  &[class*="loosely padded"] > *,
-  &[class*="loosely padded"] > .SolidIsland > * {
+  &.padded.loosely > * {
     inset: var(--spell-loose-padding);
   }
   &.bordered {
@@ -93,7 +92,7 @@
   }
 }
 
-/* Sizer element between children when resizable */
+/* the bar between two panes of a resizable panel */
 .SplitPanelSizer {
   z-index: 2;
   flex: 0 0 var(--spell-tight-padding);
