@@ -21,8 +21,8 @@ worktree, its branch and the session share one name.  `/plan-doc` runs these ste
    `docs-index`).  No name:  propose one from the work so far in AskUserQuestion;  the user can type another.
 2. Collisions (from the repo root):  a worktree at `.claude/worktrees/<name>` (`git worktree list`), a branch `<name>`
    or `worktree-<name>`.  Any hit:  AskUserQuestion, options "Reuse `<name>`" and "Different name" (typed in "Other").
-3. Tell the user, in one line:  run `/rename <name>` so the session's tab and list entry show it.  A skill can't
-   rename its own session.
+3. Tell the user, in one line:  run `/rename <name>` in the session's new tab (step 6) so the tab and list entry
+   show it.  A skill can't rename its own session.
 4. `EnterWorktree` with `name: "<name>"`, or `path: ".claude/worktrees/<name>"` when reusing one.  The repo's
    `WorktreeCreate` hook (`.claude/hooks/worktree.mjs`) makes it on branch `<name>` from local `main`, and keeps this
    session listed in every window.
@@ -30,13 +30,18 @@ worktree, its branch and the session share one name.  `/plan-doc` runs these ste
    - `node scripts/window.mjs open <name>`:  a NEW window, the package window's theme with a tinted title bar.
      Folders:  the MAIN root (so every session is listed), then the worktree's `packages/<pkg>` and root.
      `<pkg>`:  this session's window's;  `--pkg <pkg>` when it isn't a package window.
-   - The session and its chat stay in THIS window.
    - `node scripts/window.mjs`, NOT `yarn window`:  a fresh worktree has no `node_modules/` yet, and `yarn` runs no
      script before `yarn install`
    - fails:  say so in one line and go on.  NEVER `code --add` / `-r`:  they restart the Claude panel or target
      the focused window.
-6. In the worktree, no `node_modules/` at the root:  `yarn install`.
-7. One line:  "isolated in worktree `<name>` (branch `<name>`), open in its own window, `<pkg> ⎇ <name>`".
+6. Move the session there:  `node scripts/window.mjs handoff <name>`.  When this turn ends (whatever else it does
+   first), the new window opens the session in an editor tab (never the sidebar) and this window closes its tab.
+   The move itself is the `Stop` hook's (`.claude/hooks/handoff.mjs`).
+   - fails, or step 5 did:  say so in one line;  the session stays here
+7. In the worktree, no `node_modules/` at the root:  `yarn install`.
+8. One line:  "isolated in worktree `<name>` (branch `<name>`);  this session moves to its own window,
+   `<pkg> ⎇ <name>`, when this turn ends".  Old tab still open afterwards (its title didn't match):  close it by
+   hand;  the log is `~/.spell/windows/handoffs/<session id>.log`.
 
 ## Finish:  `/isolate done`
 
@@ -73,9 +78,11 @@ worktree, its branch and the session share one name.  `/plan-doc` runs these ste
    - Can't fix them (keeping both sides needs a decision only the user can make, or the checks fail):
      `git merge --abort`, say so, list each file and why, then AskUserQuestion "Continue exiting?"
      options "Exit, unmerged" and "Stay isolated"
-4. Close its window, from the worktree's root:  `node scripts/window.mjs close <name>` (also deletes its
-   `.claude/worktrees/<name>.code-workspace`).  An older session that `add`ed the worktree to its own window
-   instead:  `node scripts/window.mjs remove packages/<pkg>`.
+4. Move the session back, from the worktree's root:  `node scripts/window.mjs handoff <name> --back`.  When this
+   turn ends, the package's window opens the session in an editor tab, and the worktree's window closes (its
+   `.code-workspace` deleted).  A session that never moved there (it still ran in the package window):  it closes
+   the worktree's window at once instead.  An older session that `add`ed the worktree to its own window:
+   `node scripts/window.mjs remove packages/<pkg>`.
 5. `ExitWorktree` with `action: "keep"`:  the worktree and branch stay, and the session is back in the main checkout.
    Never `remove` unasked (and on a hook-made worktree `remove` refuses without `discard_changes`).
 6. Merging (only after "Merge now" got the branch ready), now in the main checkout:
@@ -83,6 +90,6 @@ worktree, its branch and the session share one name.  `/plan-doc` runs these ste
      session may be working there.  Either fails:  say which and don't merge.
    - `git merge --ff-only <name>`.  Refused (`main` moved since step 2):  say so and don't merge;  `/isolate <name>`
      re-enters the worktree to merge `main` in again.
-7. One line:
+7. One line (plus "this session moves back to `<pkg>`'s window when this turn ends", after step 4's move):
    - merged:  the worktree can go (`git worktree remove .claude/worktrees/<name>`, `git branch -d <name>`)
    - not merged:  how to merge later (`git merge <name>` from the main checkout), then the same cleanup

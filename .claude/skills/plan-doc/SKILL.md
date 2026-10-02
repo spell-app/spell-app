@@ -50,8 +50,8 @@ When the session already has work under way ("make this a plan doc"), carry it o
 
 ## 2. Session
 
-- Isolate:  read `.claude/skills/isolate/SKILL.md` and follow "Start", steps 3-7 (and step 0 mid-session), with this `<name>` (a skill can't
-  invoke another):  the `/rename` reminder, `EnterWorktree`, opening the worktree's own VS Code window,
+- Isolate:  read `.claude/skills/isolate/SKILL.md` and follow "Start", steps 3-8 (and step 0 mid-session), with this `<name>` (a skill can't
+  invoke another):  the `/rename` reminder, `EnterWorktree`, opening the worktree's own VS Code window, moving the session there,
   `yarn install`.
 - New doc:  `yarn plan-doc new <name> --title "<Title>" --prompt-file <file>`, `<file>` holding the user's message
   that kicked off the plan, verbatim (the text after `<name>`, or the next prompt when there was none) (write it to the scratchpad first:  it may hold quotes and newlines).  It's

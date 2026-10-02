@@ -23,8 +23,20 @@
  * - Tests:  `node --test scripts/window.test.mjs`.  `SPELL_WINDOWS_DIR` overrides the registry folder.
  *
  * ## A worktree's window
- * - `/isolate` and `/plan-doc` open a worktree in a NEW window (`open <name>`), and close it on leaving (`close`).
- *   The session, and its chat, stay in the window they started in.
+ * - `/isolate` and `/plan-doc` open a worktree in a NEW window (`open <name>`).
+ * - Then the session MOVES there (`handoff <name>`):  when its turn ends, the worktree's window opens it in an
+ *   editor tab (never the sidebar), and the old window closes its tab.
+ * - On leaving, it moves BACK (`handoff <name> --back`):  its package's window opens it, and the worktree's window
+ *   closes (its file deleted).  `close <name>` just closes the window:  for a session that never moved there.
+ *   - A session can't move processes:  the new tab RESUMES it (same session id), and closing the old tab ends the
+ *     old `claude` process.  The resumed session goes back into its worktree by itself (Claude records
+ *     `worktree-state` in the transcript).
+ *   - Why wait for the turn to end:  until then the old process is still writing the transcript, and the new tab
+ *     would load it half-written.  The repo's `Stop` hook (`.claude/hooks/handoff.mjs`) starts `resume`, detached,
+ *     since closing the old tab kills the hook's own `claude`.
+ *   - The old tab is found by its label, the session's title.  No single match (two sessions with one title):  it
+ *     stays open, idle;  close it by hand.
+ *   - Log:  `<registry>/handoffs/<session id>.log`.
  * - Its file:  `.claude/worktrees/<name>.code-workspace`, beside the worktree, so git ignores it in both checkouts.
  * - Folders:  the MAIN repo root first, as in every window, so its Claude panel lists every session;  then the
  *   worktree's `packages/<pkg>` and the worktree's root (whose `packages/` is hidden, as the main root's is).
@@ -40,10 +52,15 @@
  * - `show <file>`:  show an `.html` doc in the window's Simple Browser, beside the editor
  * - `open <name> [--pkg <pkg>]`:  write worktree `<name>`'s window file and open it in a new window;  `<pkg>`
  *   defaults to this session's window's package.  `close <name>`:  close that window, delete the file.
+ * - `handoff <name> [--back]`:  move this session to worktree `<name>`'s window when its turn ends;  `--back`:
+ *   from it to its package's window, closing it after.  Needs `$CLAUDE_CODE_SESSION_ID` (Claude sets it in a
+ *   session's commands).
+ * - `resume <record> [--title <title>]`:  the move itself, run by the `Stop` hook:  `<record>` the handoff's file
+ *   (deleted once read), `<title>` the session's tab's label
  * - No window (the extension isn't installed, or the window wasn't reloaded since):  exits 1, saying so.
  */
 import { spawnSync } from "node:child_process"
-import { existsSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { dirname, join, relative, resolve, sep } from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
@@ -74,6 +91,12 @@ const FALLBACK_THEME = "Default Dark+"
 
 /** How long a window gets to answer a request, in msec:  `show-doc` may start a server first. */
 const REQUEST_TIMEOUT = 10_000
+
+/** How long `resume` waits for a worktree's window to start, in msec. */
+const WINDOW_START_TIMEOUT = 60_000
+
+/** A Claude Code session id:  a uuid. */
+const SESSION_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 /****************
  * ### `Window`
@@ -180,12 +203,95 @@ export class Window {
    */
   static async close(name) {
     const file = Window.worktreeFile(name)
-    const window = Array.from(Window.entries().values()).find(
-      (entry) => entry.workspaceFile && real(entry.workspaceFile) === real(file)
-    )
+    const window = Window.worktreeWindow(name)
     if (window) await Window.request("close-window", {}, window)
     rmSync(file, { force: true })
     return Boolean(window)
+  }
+
+  /** The registry entry of worktree `name`'s window, or `null` when it isn't open. */
+  static worktreeWindow(name) {
+    return Window.windowOf(Window.worktreeFile(name))
+  }
+
+  /** The registry entry of the window opened from workspace file `file`, or `null` when none is. */
+  static windowOf(file) {
+    file = real(file)
+    for (const entry of Window.entries().values()) {
+      if (entry.workspaceFile && real(entry.workspaceFile) === file) return entry
+    }
+    return null
+  }
+
+  ////////////////
+  // ## Handing a session to a worktree's window
+  ////////////////
+
+  /** `<registry>/handoffs`:  pending moves (`<session id>.json`) and their logs (`<session id>.log`). */
+  static get handoffs() {
+    return join(Window.registry, "handoffs")
+  }
+
+  /** The pending move of session `sessionId`:  `<registry>/handoffs/<session id>.json`. */
+  static handoffFile(sessionId) {
+    return join(Window.handoffs, `${sessionId}.json`)
+  }
+
+  /**
+   * `handoff`:  record that session `sessionId` moves to another window when its turn ends;  returns the record,
+   * or `null` when it can't move back (see below).
+   * - to worktree `name`'s window;  then this window closes the session's TAB
+   * - `back`:  from worktree `name`'s window to its package's window;  then the worktree's window CLOSES and its
+   *   file goes.  Not in that window (an older session, or the move there failed):  `null`, nothing to move.
+   * - the record ~== `{ sessionId, to, from, close, remove }`:  `to` the target window's file, `from` this window's
+   *   pid, `close` `"tab"` or `"window"`, `remove` a file to delete after
+   */
+  static handoff(name, sessionId, { back = false } = {}) {
+    if (!SESSION_ID.test(sessionId ?? "")) throw new Error("no session:  $CLAUDE_CODE_SESSION_ID isn't set")
+    const file = Window.worktreeFile(name)
+    if (!existsSync(file)) throw new Error(`no window file for ${name}:  \`open ${name}\` first`)
+    const from = Window.current()
+    let handoff = { sessionId, to: file, from: from?.pid ?? null, close: "tab", remove: null }
+    if (back) {
+      if (!from?.workspaceFile || real(from.workspaceFile) !== real(file)) return null
+      const pkg = worktreePackage(file)
+      handoff = { sessionId, to: join(MAIN_ROOT, "packages", pkg, `${pkg}.code-workspace`), from: from.pid, close: "window", remove: file }
+    }
+    mkdirSync(Window.handoffs, { recursive: true, mode: 0o700 })
+    writeFileSync(Window.handoffFile(sessionId), `${JSON.stringify(handoff, null, 2)}\n`, { mode: 0o600 })
+    return handoff
+  }
+
+  /**
+   * `resume`:  carry out `handoff` (a record), `title` being the session's tab's label;  returns what happened.
+   * - opens window `to` (`code`, which just focuses it when open) and waits up to `WINDOW_START_TIMEOUT` for it
+   * - opens the session there, then closes its tab (`close: "tab"`, by `title`) or the whole window (`"window"`)
+   *   in window `from`
+   * - `from` gone, or no `title` for a tab:  closes nothing
+   */
+  static async resume(handoff, title) {
+    const { sessionId, to, from, close, remove } = handoff
+    if (!SESSION_ID.test(sessionId ?? "")) throw new Error(`bad session id '${sessionId}'`)
+    let window = Window.windowOf(to)
+    if (!window) spawnSync("code", [to], { encoding: "utf8" })
+    const deadline = Date.now() + WINDOW_START_TIMEOUT
+    while (!window && Date.now() < deadline) {
+      await new Promise((done) => setTimeout(done, 500))
+      window = Window.windowOf(to)
+    }
+    if (!window) throw new Error(`${to} didn't open within ${WINDOW_START_TIMEOUT / 1000}s`)
+    await Window.request("open-session", { sessionId }, window)
+    const old = from ? Window.entries().get(Number(from)) : undefined
+    let closed = false
+    let matches
+    if (old && close === "window") {
+      await Window.request("close-window", {}, old)
+      closed = true
+    } else if (old && title) {
+      ;({ closed, matches } = await Window.request("close-session-tab", { title }, old))
+    }
+    if (remove) rmSync(remove, { force: true })
+    return { opened: true, closed, matches }
   }
 
   /** The package of `window` (a registry entry):  its workspace file's `packages/<pkg>/<pkg>.code-workspace`. */
@@ -283,11 +389,11 @@ export class Window {
       console.log(written.length ? `wrote ${written.join(", ")}` : "every package has its window file")
       return 0
     }
-    if (!["which", "add", "remove", "show", "open", "close"].includes(command) || (command !== "which" && !target)) {
+    if (!COMMANDS.includes(command) || (command !== "which" && !target)) {
       console.error(USAGE)
       return 1
     }
-    if (command === "open" || command === "close") return Window.worktreeCommand(command, target, flags)
+    if (["open", "close", "handoff", "resume"].includes(command)) return Window.worktreeCommand(command, target, flags)
     const window = Window.current()
     if (!window) {
       console.error("no window:  the spell extension's bridge isn't running in this session's VS Code window")
@@ -319,9 +425,31 @@ export class Window {
     }
   }
 
-  /** `open` / `close` worktree `name`'s window;  resolves to the exit code. */
+  /**
+   * `open` / `close` / `handoff` worktree `name`'s window, or `resume` a handoff;  resolves to the exit code.
+   * - `resume`'s `name` is the handoff record's file:  read, then deleted
+   */
   static async worktreeCommand(command, name, flags) {
     try {
+      if (command === "handoff") {
+        const handoff = Window.handoff(name, process.env.CLAUDE_CODE_SESSION_ID, { back: Boolean(flags.back) })
+        if (!handoff) {
+          const closed = await Window.close(name)
+          console.log(`this session isn't in ${name}'s window, so stays put;  ${closed ? "closed" : "no"} window of ${name}`)
+          return 0
+        }
+        console.log(`this session moves to ${relative(MAIN_ROOT, handoff.to)}'s window when this turn ends`)
+        if (!handoff.from) console.log("  (this session's window not found:  its old tab stays open)")
+        return 0
+      }
+      if (command === "resume") {
+        const handoff = JSON.parse(readFileSync(name, "utf8"))
+        rmSync(name, { force: true })
+        const { closed, matches } = await Window.resume(handoff, flags.title)
+        console.log(`${new Date().toISOString()}  opened session ${handoff.sessionId} in ${handoff.to}`)
+        if (!closed) console.log(`  left its old ${handoff.close} open (${matches ?? "no"} tabs titled '${flags.title ?? ""}')`)
+        return 0
+      }
       if (command === "close") {
         const closed = await Window.close(name)
         console.log(closed ? `closed the window of ${name}` : `no window of ${name} open;  its file is gone`)
@@ -338,6 +466,9 @@ export class Window {
   }
 }
 
+/** Every command. */
+const COMMANDS = ["init", "which", "add", "remove", "show", "open", "close", "handoff", "resume"]
+
 /** Usage, printed for a bad command. */
 const USAGE = `usage:  yarn window <command>
   init                         write each package's missing packages/<pkg>/<pkg>.code-workspace
@@ -346,7 +477,19 @@ const USAGE = `usage:  yarn window <command>
   remove <path>                remove it again
   show <file>                  show an .html doc in the window's Simple Browser
   open <name> [--pkg <pkg>]    open worktree <name> in a new window (default package:  this window's)
-  close <name>                 close that window, delete its file`
+  close <name>                 close that window, delete its file
+  handoff <name> [--back]      move this session to <name>'s window when this turn ends
+                               (--back:  from it to its package's window, then close it)
+  resume <record> [--title <title>]
+                               the move itself (the Stop hook runs it)`
+
+/** The package worktree window file `file` focuses on:  its second folder, `<name>/packages/<pkg>`. */
+function worktreePackage(file) {
+  const folder = JSON.parse(readFileSync(file, "utf8")).folders?.[1]?.path ?? ""
+  const pkg = folder.match(/packages[\\/]([^\\/]+)$/)?.[1]
+  if (!pkg) throw new Error(`${file}:  no package folder`)
+  return pkg
+}
 
 /** Whether a process `pid` exists:  signal 0 checks without signalling;  EPERM means it exists, someone else's. */
 function isAlive(pid) {
