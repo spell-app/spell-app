@@ -10,7 +10,7 @@ import { TableSort } from "./TableSort"
 import { TableFallback } from "./ui-table.fallback"
 
 import tableCSS from "./ui-table.css?inline"
-import { ASCENDING, DESCENDING, GENERATED, ARIA_SORT, SPACE } from "./ui-table.types"
+import { ASCENDING, DESCENDING, GENERATED, ARIA_SORT, SPACE, STACK_BY_CLASS } from "./ui-table.types"
 import { ARIA_LABEL, BUTTON, TABINDEX, ENTER } from "$/ui/components/components.types"
 
 /****************
@@ -157,6 +157,15 @@ export class UITable extends UIElement<typeof tableVocabulary> {
       }
     )
     return content
+  }
+
+  /**
+   * `stack-by` as a class on the table after the noun (`ui stackable table stack-by-container`):  a private word the
+   * sheet keys on, from the CANONICAL value, so a translated attribute still works.  A class, not a host state:
+   * `:state()` rules in the page sheet left WebKit with stale viewport media queries on a later table.
+   */
+  protected extraClasses(): string | undefined {
+    return this.attrs.stackBy ? `${STACK_BY_CLASS}${this.attrs.stackBy}` : undefined
   }
 
   render(): JSX.Element {

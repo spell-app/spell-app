@@ -4,3 +4,4 @@ node_modules
 .claude/worktrees/
 packages/solid-element/dist/
 __pycache__/
+MORNING-*.md

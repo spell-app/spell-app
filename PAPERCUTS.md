@@ -846,6 +846,37 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   window ON the worktree (`code -n <worktree>`), then the extension's link `open
   "vscode://anthropic.claude-code/open?session=<id>"`;  or `cd <worktree> && claude --resume <id>`.  `/worktrees`
   (`~/.claude/skills/worktrees/`) says which session runs where. · ui
+- 2026-10-01 · In `dist/` (and the docs' single-file bundle) `.ui-dark` / `<ui-root theme="dark">` changed nothing:
+  `light-dark()` was lowered into `--lightningcss-light/-dark` variables, fixed where tokens are declared (`:root`).
+  Dev and tests were fine:  `css.lightningcss.targets` (`CSS_TARGETS`) covers transforms, but the BUILD's CSS minify
+  reads `build.cssTarget`, which defaulted to an old Safari. · `build.cssTarget` = the same browsers in
+  `vite.config.ts`;  `yarn measure`'s `lightDarkLowered` check fails if it comes back. · ui
+- 2026-10-01 · `<ui-table stack-by>` as a HOST STATE broke an unrelated WebKit test:  a later table's scroller kept the
+  desktop row count after `page.viewport(414, …)`.  Two tries failed the same way:  `:host(:state(x))` setting
+  `--_table-stack-by`, and page-sheet `:state(x) > table` rules.  Chromium / Firefox fine. · A private CLASS on the
+  table (`stack-by-container`, via `extraClasses()`) instead of a state.  Prove a WebKit-only CSS idea with
+  `UI_TEST_ALL=1 npx vitest run --project browser <family>` before building on it. · ui
+- 2026-10-01 · Why sessions go missing from the VS Code Claude panel (extension 2.1.287, read from its source):  the
+  list shows ONLY sessions filed under the window's FIRST folder, exact path (no subfolders, parents or worktrees;
+  extra folders of a multi-root window don't count), and a session's file MOVES with it:  `EnterWorktree` files it
+  under the worktree's folder until `ExitWorktree`.  So a session in a worktree vanishes from the window that started
+  it, and is orphaned if it never exits.  `code --add` can't help (not the first folder), and the extension's own
+  "Create Worktree" opens a NEW window.  `vscode://` links (session open, `yarn plan-doc open`) go to whichever window
+  is focused. · Find live ones with `/worktrees`;  open a window whose first folder is the session's folder.  A
+  worktree made by a `WorktreeCreate` hook keeps the session filed where it started (verified, CLI 2.1.287, even for
+  a session that never leaves its worktree).  FIXED 2026-10-01:  windows from `packages/<pkg>/<pkg>.code-workspace`
+  (repo root first), the hook `.claude/hooks/worktree.mjs`, `yarn window add` -- root `AGENTS.md` "Worktrees". · tooling
+- 2026-10-01 · On a worktree made by a `WorktreeCreate` hook, `ExitWorktree` `action: "remove"` refuses ("Could not
+  verify worktree state ... Refusing to remove without explicit confirmation") and the `WorktreeRemove` hook never
+  runs;  with `discard_changes: true` it runs the hook, but Claude leaves the BRANCH (the hook owns it).  The hook's
+  stdin is `{ name, cwd, session_id, transcript_path }` -- not the docs' `worktree_path` / `branch`. · Leave with
+  `keep`;  the remove hook decides about the branch. · tooling
+- 2026-10-01 · Lost the `/isolate doc-template` session (`c0f54984`) again:  its `code --add .` was the window's first
+  extra folder, so VS Code restarted its extensions and killed the command (exit 137) and the session with it.  Also,
+  built-in `EnterWorktree` (no `WorktreeCreate` hook loaded yet:  the session predated it) branched from
+  `origin/main` (`bec84199`), 21 commits behind local `main`. · `cd .claude/worktrees/doc-template && claude --resume
+  c0f54984`, then `git merge main` in the worktree.  The hook (`.claude/hooks/worktree.mjs`) branches from local
+  `main`, once a session starts with it registered. · tooling
 
 ## cli
 
@@ -879,12 +910,10 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
 - 2026-10-01 · `check-spell.js` failed a plan doc with "116px horizontal scroll at phone width", and nothing in `main`
   looked wider than the screen:  the overflow was TEXT (an unbreakable path in a phase's Files line), which
   element rects don't show.  Bisected by deleting one section at a time in Playwright. · Shorten / `<code>`-split
-  long paths in phase lines;  see `SUSPECTED-BUGS.md` `
+  long paths in phase lines;  see `SUSPECTED-BUGS.md` `## docs`. · docs
 - 2026-10-01 · `spell goals thoughts --all spell` lost `--all`:  commander takes a GLOBAL option (`--all`) wherever
   it appears, even after a subcommand whose arguments are passed through. · The `goals` subcommand reads its own
   arguments raw from `process.argv` (`main.ts`). · cli
-
-## docs`. · docs
 - 2026-10-01 · In a worktree-isolated session, Bash commands with shell functions, `cd ..` chains or a Python
   heredoc are refused ("too complex to verify that it stays inside the worktree"). · Plain `&&` chains of simple
   commands;  write throwaway scripts with the Write tool, then run them. · tooling
@@ -892,6 +921,16 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   `ink-testing-library`:  keys typed while the app is busy arrive as ONE chunk, and Ink only names a key (`key.tab`)
   when it arrives alone. · Split `input` into keys yourself, and queue them -- see `keysIn()` in
   `cli/src/ui/TargetPrompt.tsx`.  Test it with a chunk (`stdin.write("@te\tSol\t\r")`) and in a pty (`expect`). · cli
+- 2026-10-01 · `/isolate`'s `yarn window which` died in a fresh worktree ("Couldn't find the node_modules state
+  file"):  `yarn` runs no script before `yarn install`, and the skill installed only AFTER showing the window. ·
+  `node scripts/window.mjs` directly:  it needs no dependencies.  The skill and root `AGENTS.md` now say so. · tooling
+- 2026-10-01 · `window add .claude/worktrees/<name>/packages/<pkg>` failed with "no folder
+  '.../worktrees/<name>/.claude/worktrees/<name>/...'":  the path resolves from the CURRENT folder, which after
+  `EnterWorktree` is the worktree. · From the worktree's root, pass `packages/<pkg>` (or an absolute path). · tooling
+- 2026-10-01 · `/isolate done` couldn't merge into `main`:  a worktree-isolated session refuses `git -C <main
+  checkout>` ("redirects git to the shared checkout"), even a read-only `status`. · Get the branch ready in the
+  worktree (`git log HEAD..main`, `git merge-tree --write-tree` to spot conflicts), `ExitWorktree`, then
+  `git merge --ff-only <name>` from the main checkout.  The skill now does it in that order. · tooling
 
 ## docs
 
@@ -904,6 +943,11 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   FIRST on a Node process's `PATH`;  the terminal finds the current native install in `~/.local/bin`. · Run the
   NEWEST `claude` on `PATH` or in the installers' folders, by absolute path (`goals/_tools/launch.js`
   `claudePath()`).  Or remove the stale one:  `npm uninstall -g @anthropic-ai/claude-code` under Volta's Node. · goals
+- 2026-10-01 · `F="a.ts b.ts"; oxfmt --check $F` said "Expected at least one target file" and `oxlint $F` "No files
+  found to lint" (exit 0!):  the Bash tool's shell is zsh, which does NOT word-split an unquoted `$F`, so both got
+  ONE path with a space in it.  Also, `oxlint` prints NOTHING on a clean run unless given `--format=default`, so a
+  silent exit 0 doesn't prove it linted anything. · An array, `F=(a.ts b.ts); oxlint "${F[@]}"`, and
+  `oxlint --format=default` to see "Found 0 warnings ... on N files". · tooling
 - 2026-10-01 · In a worktree session, Bash refused heredocs (`python3 - <<'EOF'`), `cd ... && ...` chains and
   `git -C <main checkout>` as "too complex to verify that it stays inside the worktree". · Write the script to a
   file (scratchpad or the worktree) and run it with one plain command;  use the Edit tool for multi-line edits;

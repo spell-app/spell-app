@@ -79,7 +79,7 @@ export abstract class DialogElement<V extends ComponentVocabulary = ComponentVoc
   readonly openState = this.controlled(OPEN as AttributeName<V>, false as OpenValue<V>)
 
   /** Glyph of the close icon. */
-  readonly closeGlyph = new IconGlyph(() => (this.dialogAttrs.closable ? UIT.CLOSE_ICON : undefined))
+  readonly closeGlyph = new IconGlyph(this, () => (this.dialogAttrs.closable ? UIT.CLOSE_ICON : undefined))
 
   /** Host `aria-label`, forwarded to the dialog. */
   readonly ariaLabel = new HostAttribute(this.host, UIT.ARIA_LABEL)

@@ -23,6 +23,7 @@ export const sidebarVocabulary = {
   tag: "ui-sidebar",
   topics: ["navigation", "overlays", "layout", "menus", "modules"],
   aka: ["drawer", "off canvas", "side menu", "nav drawer", "hamburger menu"],
+  skeleton: null,
   noun: "sidebar",
   description: "A sidebar hides additional content beside a page.",
   attributes: [

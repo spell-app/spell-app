@@ -17,6 +17,7 @@ export const ratingVocabulary = {
   tag: "ui-rating",
   topics: ["inputs", "controls", "forms", "feedback", "modules"],
   aka: ["stars", "star rating", "score", "review stars", "hearts"],
+  skeleton: { display: "inline", width: "5.5em", height: "1.1em" },
   noun: "rating",
   description: "A rating indicates user interest in content.",
   attributes: [

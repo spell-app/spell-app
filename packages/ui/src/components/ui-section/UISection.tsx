@@ -87,10 +87,10 @@ export class UISection extends UIElement<SectionVocabulary> {
   readonly slots = new SlotContent(this.host)
 
   /** Glyph of the `icon` shorthand. */
-  readonly glyph = new IconGlyph(() => this.attrs.icon)
+  readonly glyph = new IconGlyph(this, () => this.attrs.icon)
 
   /** Glyph of the fold button, while `collapsible`. */
-  readonly foldGlyph = new IconGlyph(() => (this.attrs.collapsible ? FOLD_ICON : undefined))
+  readonly foldGlyph = new IconGlyph(this, () => (this.attrs.collapsible ? FOLD_ICON : undefined))
 
   /** `collapsed`:  the host's (a boolean is always the host's, see `Controlled`). */
   readonly collapsedState = this.controlled("collapsed", false)

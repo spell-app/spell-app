@@ -24,6 +24,7 @@ export const formVocabulary = {
   tag: "ui-form",
   topics: ["forms", "inputs", "basic", "collections"],
   aka: ["form layout", "fieldset", "validation"],
+  skeleton: null,
   noun: "form",
   description: "A form displays a set of related user input fields in a structured way.",
   attributes: [
@@ -103,7 +104,12 @@ export const formVocabulary = {
   states: [
     ...STATE_STATES,
     { name: "loading", description: "Busy." },
-    { name: "disabled", description: "Can't be used." }
+    { name: "disabled", description: "Can't be used." },
+    {
+      name: "root",
+      description:
+        "Always on:  the form's own host (its sheet also styles `<ui-fields>` / `<ui-field>` hosts), a block and the size container its rows stack by."
+    }
   ],
   texts: []
 } as const satisfies ComponentVocabulary

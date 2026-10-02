@@ -16,6 +16,7 @@ export const nagVocabulary = {
   tag: "ui-nag",
   topics: ["notifications", "messages", "overlays", "modules"],
   aka: ["banner", "cookie notice", "announcement bar", "sticky banner"],
+  skeleton: null,
   noun: "nag",
   description: "A nag is a persistent message that stays until dismissed, and can remember the dismissal.",
   attributes: [

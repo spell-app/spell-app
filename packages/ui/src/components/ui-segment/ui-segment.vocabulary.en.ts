@@ -17,6 +17,7 @@ export const segmentVocabulary = {
   tag: "ui-segment",
   topics: ["containers", "layout", "basic", "elements"],
   aka: ["panel", "box", "section", "well", "paper", "card"],
+  skeleton: { parts: [{ shape: "header" }, { shape: "paragraph" }] },
   noun: "segment",
   plural: "segments",
   description: "A segment is used to create a grouping of related content.",

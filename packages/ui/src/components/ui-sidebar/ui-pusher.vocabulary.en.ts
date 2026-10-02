@@ -23,6 +23,7 @@ export const pusherVocabulary = {
   tag: "ui-pusher",
   topics: ["layout", "navigation", "modules"],
   aka: ["page content", "pushed content"],
+  skeleton: null,
   noun: "pusher",
   ui: false,
   description: "The content a sidebar pushes (and dims) when it appears.",

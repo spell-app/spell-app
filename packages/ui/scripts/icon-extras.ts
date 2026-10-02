@@ -3,7 +3,7 @@
  * then `yarn gen:icons` (in a worktree:  see `scripts/gen-icons.ts`).
  * - Why:  brands and Fomantic's names are opt-in packs, but a few are common enough that a page shouldn't need a
  *   whole pack for them.  Starting set (2026-09-30):  what our own examples and docs pages use.
- * - Everything else:  `<ui-icon-set src="fa7-brands">` / `<ui-icon-set src="fomantic">`.
+ * - Everything else:  `<ui-root icons="fa7-brands">` / `<ui-root icons="fomantic">`.
  */
 export const ICON_EXTRAS = {
   /** brand icons copied into `fa7-free/brands/` */

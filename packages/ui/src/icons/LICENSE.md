@@ -34,4 +34,4 @@ Anything in this package that renders one of these icons satisfies Font Awesome'
 via this file, the licence comment in each SVG, and `docs/icons.md`.  No per-icon attribution is needed in consuming
 apps -- Font Awesome's own FAQ treats a single project-level notice as sufficient.
 
-Other packs a page adds (`<ui-icon-set>`) carry their own licences;  a pack index has a `license` field for it.
+Other packs a page adds (`<ui-root icons>`, `UI.icons.use()`) carry their own licences;  a pack index has a `license` field for it.

@@ -70,8 +70,20 @@
 
 @layer ui.components.form.types {
   /* Hosts:  no box of their own;  each root is the box (the form's block, a row's flex items). */
+  /*
+   * Host:  a real block box and a size container, so a slotted `<ui-fields>` finds the form's width in every engine.
+   * WebKit looks for a container through shadow-including ANCESTORS (not the flat tree through the slot), and keeps
+   * container names to their own shadow tree, so the `.ui.form` root inside this shadow is invisible to the fields'
+   * shadow roots there;  the host is an ancestor of the fields in the light tree.  Chromium finds `.ui.form` first:
+   * the same width.
+   */
   :host {
     display: contents;
+  }
+  /* (`:state(root)`:  only the form's host;  `<ui-fields>` / `<ui-field>` adopt this sheet too) */
+  :host(:state(root)) {
+    display: block;
+    container-type: inline-size;
   }
   :host([hidden]) {
     display: none;
@@ -419,8 +431,8 @@
     --_ui-form-unstackable: 1;
   }
 
-  /* Narrow forms stack their rows. */
-  @container ui-form (width < 768px) {
+  /* Narrow forms stack their rows.  UNNAMED:  WebKit can't see a container name from another shadow tree. */
+  @container (width < 768px) {
     @container style(not (--_ui-form-unstackable: 1)) {
       .fields:not(.unstackable) {
         --_ui-fields-child-width: 100%;

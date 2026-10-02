@@ -18,11 +18,15 @@ export const SETS = new Set(Object.keys(LOADERS).map((path) => path.split("/")[2
 /** The name set used until told otherwise. */
 export const DEFAULT_SET = "cldr"
 
-/** `<ui-emoji-set>`, as `emojiSetVocabulary` names it (this file stays free of the vocabulary:  no Solid, no core). */
-export const SET_TAG = "ui-emoji-set"
-
-/** Its attribute. */
-export const NAMES_ATTRIBUTE = "names"
+/** One name set's loaded names (`EmojiData`). */
+export type EmojiSetData = {
+  /** name => emoji */
+  readonly cache: Map<string, string>
+  /** `loose()` name => emoji:  the fallback when the exact name misses */
+  readonly looseCache: Map<string, string>
+  /** chunks loaded */
+  readonly loaded: Set<string>
+}
 
 /** Fomantic's `:name:` colons. */
 export const COLONS = /^:+|:+$/g

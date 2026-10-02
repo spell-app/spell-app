@@ -65,6 +65,7 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
   declare slotAssignment: SlotAssignmentMode
   declare formAssociated: boolean
   declare Fallback: FallbackClass | undefined
+  declare eager: boolean
 
   /** Sheets to adopt after the foundation, by registry name => CSS text, in order. */
   @proto static styles: Readonly<Record<string, string>> = {}
@@ -87,6 +88,13 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
 
   /** Form-associated (the fork's `formAssociated` option):  `FormElement`, and `UIButton` for submit / reset. */
   @proto static formAssociated = false
+
+  /**
+   * Render at once, before the runtime and this class's sheets arrive (`loaded()`), instead of waiting for them.
+   * - For an element whose content must not wait:  `<ui-root>`'s slot (the page) shows the moment the root is
+   *   defined.  Its render must look right unstyled (inline styles only) until `loaded()`.
+   */
+  @proto static eager = false
 
   /** Native fallback shown when this element fails (`$/ui/components/ui-<name>/ui-<name>.fallback.ts`);  none => a `<slot>`. */
   @proto static Fallback: FallbackClass | undefined = undefined
@@ -215,7 +223,7 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
       },
       { defer: true }
     )
-    return <Show when={this.loaded()}>{this.render()}</Show>
+    return <Show when={this.eager || this.loaded()}>{this.render()}</Show>
   }
 
   /**

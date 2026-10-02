@@ -55,8 +55,9 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
       slots, parts, states, text strings.  Translations become `<tag>.vocabulary.<lang>.ts`
       - and `topics` (2+ ids from `ValueSets.topics`:  how a newcomer looks for it AND how widget libraries file it)
         + `aka` (other libraries' / everyday names:  `ui-modal`:  `dialog`, `lightbox`).  A NEW TAG MUST fill both;
-        `src/components/component-definitions.ts` rolls them up (the docs' component browser, later `<ui-root>`)
-        and `test/component-definitions.test.ts` fails on a tag without them.  Live:  `UIButton.describe()`
+        `src/components/component-definitions.ts` rolls them up (the docs' component browser) and
+        `test/component-definitions.test.ts` fails on a tag without them.  A new or moved tag also needs `yarn gen:root`
+        (`<ui-root>`'s catalog of tag => family;  `test/root-catalog.test.ts` fails while it's stale).  Live:  `UIButton.describe()`
     - `ui-<name>.types.ts` -- the folder's loose constants, types and shared vocabulary pieces (nothing top-level
       stays loose in an element / fallback / helper file);  a helper function becomes a private static on the one class
       that uses it, else a static on a small class here.  Constants used by SEVERAL folders live in

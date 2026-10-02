@@ -95,7 +95,7 @@ export class UIItem extends UIElement<typeof itemVocabulary> implements Conditio
   })
 
   /** Glyph of the `icon` shorthand;  only loaded once rendered by an owner. */
-  readonly glyph = new IconGlyph(() => (this.itemContext() ? this.attrs.icon : undefined))
+  readonly glyph = new IconGlyph(this, () => (this.itemContext() ? this.attrs.icon : undefined))
 
   /** Has an icon (shorthand or `icon` slot)? */
   readonly hasIcon = createMemo(() => !!this.attrs.icon || this.slots.has(this.slot("icon")))

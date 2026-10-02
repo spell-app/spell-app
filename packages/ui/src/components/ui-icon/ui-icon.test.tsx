@@ -1,14 +1,12 @@
 import { describe, expect, it, onTestFinished } from "vitest"
 
-import { ICON_SET_ATTRIBUTES, ICON_SET_TAG } from "$/ui/icons"
 import { expectAccessible } from "$/ui/test/a11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { UIHost } from "$/ui/elements"
 
-import { iconSetVocabulary } from "./ui-icon-set.vocabulary.en"
-
 import "$/ui/components/ui-icon"
+import "$/ui/components/ui-root"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/ui-icon/examples/elements/*.html", {
@@ -188,33 +186,63 @@ describe("<ui-icons>", () => {
   })
 })
 
-describe("<ui-icon-set>", () => {
-  it("names the tag and attributes the runtime reads", () => {
-    expect(iconSetVocabulary.tag).toBe(ICON_SET_TAG)
-    expect(iconSetVocabulary.attributes.map((attribute) => attribute.name)).toEqual(Object.values(ICON_SET_ATTRIBUTES))
+describe("<ui-icon> in a <ui-root icons>", () => {
+  /** The stroke-style (Lucide-like) fixture pack:  `bell`, `sun`;  its id is `stroke`. */
+  const STROKE = new URL("/test/fixtures/stroke-pack/pack.js", location.href).href
+
+  /** `<div>` holding `html`, every element ready. */
+  async function page(html: string) {
+    return ElementFixture.render(`<div>${html}</div>`)
+  }
+
+  it("draws from its root's packs;  outside a root, the page's", async () => {
+    const holder = await page(
+      `<ui-root icons="fa7-brands" display="immediately"><ui-icon name="slack"></ui-icon></ui-root>` +
+        `<ui-icon name="slack"></ui-icon>`
+    )
+    const [inside, outside] = holder.querySelectorAll<UIHost>("ui-icon")
+    await expect.poll(() => path(inside!)).toBeTruthy()
+    expect(path(outside!)).toBeUndefined()
   })
 
-  it("is hidden, and adds a pack:  `slack` only draws once `fa7-brands` is added", async () => {
-    const { host: before, root } = await icon(`<ui-icon name="slack"></ui-icon>`)
-    await ElementFixture.settle()
-    expect(root.querySelector("svg")).toBeNull()
-    const set = await ElementFixture.render<UIHost>(`<ui-icon-set src="fa7-brands"></ui-icon-set>`)
-    expect(getComputedStyle(set).display).toBe("none")
-    const { host: after } = await icon(`<ui-icon name="slack"></ui-icon>`)
-    await expect.poll(() => path(after)).toBeTruthy()
-    expect(path(before)).toBeUndefined()
-    set.remove()
-  })
-
-  it("draws a stroke-style pack's icon stroked, not filled", async () => {
-    const pack = new URL("/test/fixtures/stroke-pack/pack.js", location.href).href
-    const set = await ElementFixture.render<UIHost>(`<ui-icon-set src="${pack}" prefix="lucide"></ui-icon-set>`)
-    const { root } = await icon(`<ui-icon name="lucide:bell"></ui-icon>`)
-    await expect.poll(() => root.querySelector("svg")).not.toBeNull()
-    const svg = root.querySelector("svg")!
+  it("two roots draw the same name from different packs;  a stroke pack draws stroked", async () => {
+    const holder = await page(
+      `<ui-root icons=" ${STROKE} , fa7-brands " display="immediately"><ui-icon name="bell"></ui-icon></ui-root>` +
+        `<ui-root display="immediately"><ui-icon name="bell"></ui-icon></ui-root>`
+    )
+    const [stroked, solid] = holder.querySelectorAll<UIHost>("ui-icon")
+    await expect.poll(() => path(stroked!) && path(solid!)).toBeTruthy()
+    expect(path(stroked!)).not.toBe(path(solid!))
+    const svg = stroked!.shadowRoot!.querySelector("svg")!
     expect(getComputedStyle(svg).fill).toBe("none")
     expect(getComputedStyle(svg).stroke).not.toBe("none")
-    set.remove()
+  })
+
+  it("a nested root inherits its outer root's packs and adds its own", async () => {
+    const holder = await page(
+      `<ui-root icons="fa7-brands" display="immediately"><ui-root icons="${STROKE}" display="immediately">` +
+        `<ui-icon name="slack"></ui-icon><ui-icon name="bell"></ui-icon></ui-root></ui-root>`
+    )
+    const [slack, bell] = holder.querySelectorAll<UIHost>("ui-icon")
+    await expect.poll(() => path(slack!) && path(bell!)).toBeTruthy()
+    expect(getComputedStyle(bell!.shadowRoot!.querySelector("svg")!).fill).toBe("none")
+  })
+
+  it("redraws when its root's packs change, and when it moves to another root", async () => {
+    const holder = await page(
+      `<ui-root display="immediately"><ui-icon name="slack"></ui-icon></ui-root>` +
+        `<ui-root icons="${STROKE}" display="immediately"></ui-root>`
+    )
+    const [first, second] = holder.querySelectorAll("ui-root")
+    const icon = holder.querySelector<UIHost>("ui-icon")!
+    expect(path(icon)).toBeUndefined()
+    first!.setAttribute("icons", "fa7-brands")
+    await expect.poll(() => path(icon)).toBeTruthy()
+    icon.setAttribute("name", "bell")
+    await expect.poll(() => path(icon)).toBeTruthy()
+    const solid = path(icon)
+    second!.append(icon)
+    await expect.poll(() => path(icon)).not.toBe(solid)
   })
 })
 

@@ -19,6 +19,7 @@ export const calendarVocabulary = {
   tag: "ui-calendar",
   topics: ["date & time", "forms", "inputs", "controls", "modules"],
   aka: ["date picker", "datepicker", "time picker", "datetime", "date range"],
+  skeleton: { display: "inline", width: "14em", height: "2.5em" },
   noun: "calendar",
   description: "A calendar lets a user pick a date, a time, or both.",
   attributes: [

@@ -1,5 +1,5 @@
 import { SearchText } from "../lib/SearchText"
-import { ComponentPageIndex } from "./components"
+import { ComponentPageIndex } from "./component-page-index"
 import { SiteStorage } from "./storage"
 
 /**

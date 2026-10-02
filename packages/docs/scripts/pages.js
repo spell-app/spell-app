@@ -7,6 +7,8 @@ import { readdirSync } from "node:fs"
 import { dirname, join, relative, resolve } from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 
+import { Window } from "../../../scripts/window.mjs"
+
 /** `packages/docs`. */
 export const DOCS = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 
@@ -51,11 +53,24 @@ const VSCODE_PREVIEW = "vscode://spell-app.spell-language/doc-preview"
  * Show `file` rendered in a VS Code tab, beside the editor:  `yarn plan-doc open <name>`, `yarn plan-doc phase`.
  * - the spell extension (`yarn vscode`) serves the repo locally and shows the page in Simple Browser, ONE tab,
  *   reloaded on every open
+ * - first asks THIS session's window, through the extension's window bridge (the repo root's
+ *   `scripts/window.mjs`);  a `vscode://` URI goes to whichever window is focused
+ * - no bridge (extension not reloaded, or not run from a VS Code window), or it failed:  the `vscode://` URI
  * - `open` can't fail (macOS):  without the extension, VS Code says it can't handle the URI
  * - `open` itself failed (not macOS):  falls back to Chrome
+ * - async for the bridge's http request;  never rejects
  */
-export function openInVSCode(file) {
+export async function openInVSCode(file) {
   const path = resolve(file)
+  const window = Window.current()
+  if (window) {
+    try {
+      await Window.request("show-doc", { file: path }, window)
+      return console.log(`opened ${path} in VS Code (window ${window.pid})`)
+    } catch (error) {
+      console.error(`${error.message}:  falling back to the vscode:// URI`)
+    }
+  }
   const run = spawnSync("open", [`${VSCODE_PREVIEW}?file=${encodeURIComponent(path)}`], { encoding: "utf8" })
   if (run.status === 0) return console.log(`opened ${path} in VS Code`)
   console.error(`VS Code via \`open\` failed (${(run.stderr ?? String(run.error)).trim()}):  falling back to Chrome`)

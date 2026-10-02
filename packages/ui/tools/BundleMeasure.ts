@@ -57,6 +57,9 @@ export class BundleMeasure {
   /** id of Rolldown's runtime module (`__name`, `__exportAll` ...);  `RUNTIME_MODULE_ID` in its types */
   static readonly RUNTIME_MODULE = "\0rolldown/runtime.js"
 
+  /** What Lightning CSS writes when it lowers `light-dark()` for an old target (`MeasureChecks.lightDarkLowered`). */
+  static readonly LOWERED_LIGHT_DARK = "--lightningcss-light"
+
   readonly config: PackageConfig
   /** the Vite config file, loaded once */
   private fileConfig: Promise<UserConfig> | undefined
@@ -112,11 +115,13 @@ export class BundleMeasure {
       libraryBundled: [],
       lazyInEager: [],
       unattributed: [],
-      peersMissing: []
+      peersMissing: [],
+      lightDarkLowered: []
     }
     for (const chunk of chunks) {
       const lazy = lazyFiles.has(chunk.fileName)
       if (chunk !== core && BundleMeasure.RUNTIME_MODULE in chunk.modules) checks.runtimeChunks.push(chunk.fileName)
+      if (chunk.code.includes(BundleMeasure.LOWERED_LIGHT_DARK)) checks.lightDarkLowered.push(chunk.fileName)
       for (const [id, module] of Object.entries(chunk.modules)) {
         const code = module.code ?? ""
         if (!code.trim()) continue

@@ -20,7 +20,7 @@ below):
 - FA's files keep their licence comment:  FA's IP, the attribution stays.
 - Default pack:  FA7 solid + regular, plus a hand-picked list of extras.  Brands and Fomantic's names are opt-in
   packs.
-- Opt-in from HTML (`<ui-icon-set>`) and JS (`UI.icons.use()`).
+- Opt-in per subtree from HTML (`<ui-root icons>`) and page-wide from JS (`UI.icons.use()`).
 - The pack added LAST wins a name;  `prefix:name` picks a pack.
 - ONE name per icon, words separated by spaces:  `address book`, `address book outline`, `github`.  No style /
   variant axis, no word-order guessing.
@@ -69,7 +69,7 @@ export default {
 ```
 
 - `icons` keys are SVG paths relative to the pack's **base**, without `.svg`.  The base defaults to the folder
-  `pack.js` was loaded from;  `use(…, { base })` / `<ui-icon-set base>` re-points it (relative to the page).
+  `pack.js` was loaded from;  `use(…, { base })` re-points it (relative to the page);  for the built-in packs, `<ui-root assets>` does.
 - `defaults` apply to every entry that doesn't set its own (`width`, `height`).
 - `alias`:  a string or a list.
 - One icon per line, so a hand-edit is a one-line diff;  re-running the builder keeps it (see "Building a pack").
@@ -88,7 +88,7 @@ In `src/icons/icon-packs/`, copied to `dist/icon-packs/` by `emitIconPacks()` (`
 
 - The extras (`scripts/icon-extras.ts`, hand-picked, edit freely):  the brands our own examples use (`discord`,
   `github`, `medium`, `twitter`) and the Fomantic names they use (`help`, `mail`, `setting`, `linkify`, as
-  aliases).  Everything else:  `<ui-icon-set src="fa7-brands">` / `<ui-icon-set src="fomantic">`.
+  aliases).  Everything else:  `<ui-root icons="fa7-brands">` / `<ui-root icons="fomantic">`.
 - FA's own aliases (`cog` -> `gear`, `contact book` -> `address book`) are aliases in both FA packs;  on a regular
   icon with ` outline` added (`contact book outline`).
 - `fomantic` ships no SVGs:  its keys point at the FA folders beside it (`"../fa7-free/solid/gear"`), so a page
@@ -107,7 +107,7 @@ In `src/icons/icon-packs/`, copied to `dist/icon-packs/` by `emitIconPacks()` (`
 | `desktop`, `computer` | `desktop`, `computer` | `display` |
 | ... | | |
 
-- The default pack gives Font Awesome's meaning.  Adding `fomantic` (after the default, as `<ui-icon-set>` does)
+- The default pack gives Font Awesome's meaning.  Adding `fomantic` (after the default, as `<ui-root icons="fomantic">` does)
   gives Fomantic's, because the last pack wins.  This replaces the old `<html ui-icon-names="fomantic">` switch
   and `fomantic-clashes.json`.
 - `fa7-free:x` or an unambiguous name (`xmark`) always means one icon.
@@ -131,37 +131,57 @@ name wins, `_` -> space.
 
 ## Using packs on a page
 
+Per subtree, with `<ui-root>`:
+
 ```html
-<ui-icon-set src="fa7-brands"></ui-icon-set>                                <!-- a built-in pack -->
-<ui-icon-set src="/icons/lucide/pack.js" prefix="lucide"></ui-icon-set>     <!-- your own -->
-<ui-icon-set src="/icons/fa-pro/pack.js" only></ui-icon-set>                <!-- replace everything before it -->
-<ui-icon-set src="fa7-free"
-  base="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/svgs/" only></ui-icon-set>
+<ui-root icons="fa7-brands">...</ui-root>                                   <!-- a built-in pack -->
+<ui-root icons="fa7-free, fomantic, /icons/lucide/pack.js">...</ui-root>   <!-- several, later wins -->
+<ui-root icons="fomantic" assets="/assets/ui/">...</ui-root>              <!-- built-ins load from /assets/ui/icon-packs/ -->
 ```
 
-- `src`:  a pack URL (relative to the page) or a built-in id (`fa7-free`, `fa7-brands`, `fomantic`).
-- `prefix`:  an extra name for `prefix:name` (the pack's id always works).
-- `base`:  where its SVGs load from instead of its own folder.  Our FA folders mirror FA's npm layout, so pointing
-  `fa7-free` at jsDelivr's copy of `@fortawesome/fontawesome-free@7.3.1/svgs/` works (checked 2026-09-30:  CORS,
-  immutable caching, byte-identical files).
-- `only`:  drop every pack added before it, including the default.  `only="false"` ~== absent.
-- JS:  `await UI.load();  UI.icons.use("fa7-brands", { prefix, base, only })`, `UI.icons.remove("fa7-free")`.
-- `UI.icons.reset()` drops every pack (the default, the document's sets, `use()`d ones, and any still loading) and
-  returns `UI.icons`, so `UI.icons.reset().use("/icons/lucide/pack.js")`.  `use(…, { only: true })` ~== that.
-  - Before first use, the default and the document's sets are never loaded.
-  - Keeps `register()`ed icons and fetched SVGs;  `<ui-icon-set>`s added AFTER a reset still count.
+- `icons`:  a COMMA-separated list (spaces around the commas ignored) of built-in ids (`fa7-free`, `fa7-brands`,
+  `fomantic`) or `pack.js` URLs (relative to the page).  The last pack in the list wins a name.
+- A root's packs are a CHILD set over the outer root's (or the page's):  they win, the outer ones answer what they
+  don't, so nested roots inherit and add.
+- `assets`:  the folder the BUILT-IN packs load from (`<assets>icon-packs/<id>/pack.js`), relative to the page;
+  default:  beside the library.  It replaces the old `base` for built-ins (checked 2026-09-30 for jsDelivr:  our FA
+  folders mirror FA's npm layout, so `UI.icons.use("fa7-free", { base })` pointed at
+  `https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/svgs/` works:  CORS, immutable caching,
+  byte-identical files).
+- A pack's `prefix:name` comes from its own `pack.js` id (`fa7-brands:github`);  the old `prefix` and `only`
+  attributes have no root equivalent (use JS for them).
+- Icons inside a root redraw when the root's `icons` or `assets` change.  The SVG cache is one per page, shared by
+  every root.
+
+Page-wide, from JS (pages without a root):
+
+```js
+await UI.load()
+UI.icons.use("fa7-brands")
+UI.icons.use("/icons/lucide/pack.js", { prefix: "lucide" })
+UI.icons.use("/icons/fa-pro/pack.js", { only: true })    // replace everything before it
+UI.icons.use("fa7-free", { base: "https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.3.1/svgs/", only: true })
+```
+
+- `use(source, { prefix, base, only })`:  `source` is a pack URL or a built-in id.
+  - `prefix`:  an extra name for `prefix:name` (the pack's id always works).
+  - `base`:  where its SVGs load from instead of its own folder.
+  - `only`:  drop every pack added before it, including the default.  `only="false"` ~== absent.
+- `UI.icons.remove("fa7-free")`.
+- `UI.icons.reset()` drops every pack (the default, `use()`d ones, and any still loading) and returns `UI.icons`, so
+  `UI.icons.reset().use("/icons/lucide/pack.js")`.  `use(…, { only: true })` ~== that.
+  - Before first use, the default is never loaded.
+  - Keeps `register()`ed icons and fetched SVGs.
 
 Order and timing (`IconPacks`):
 
 - Starts on first use (a lookup or `use()`), not on construction, so a page with no icons loads no index.  Then:
-  the default pack (unless an `only` replaces it:  it's never fetched), every `<ui-icon-set>` in the document in
-  document order, then `use()` calls in call order.
-- Watches the document for `<ui-icon-set>`s added, removed or re-pointed later:  removing the element removes its
-  pack.
-- The runtime reads the tag itself, so a page that never imports the icon family (`<ui-button icon>` only) can
-  still add packs.  The icon family defines `<ui-icon-set>` for its vocabulary, docs and `display: none`.
-- NOTE:  a pack added or removed later affects later lookups only:  icons already drawn keep their SVG.
-- NOTE:  only sets in the DOCUMENT count, not ones inside a shadow root.
+  the default pack (unless an `only` replaces it:  it's never fetched), then `use()` calls in call order.  A root's
+  `icons` list loads for its subtree, over its parent's set.
+- The runtime reads the root's attributes itself, so a page that never imports the icon family (`<ui-button icon>`
+  only) can still add packs.
+- NOTE:  on the PAGE set, a pack added or removed later affects later lookups only:  icons already drawn keep their
+  SVG.  A root's change redraws its icons.
 
 Other API (`UI.icons`):
 
@@ -252,7 +272,7 @@ The built-in packs must be served NEXT TO THE MODULE that contains `BuiltInPacks
 - **Docs site:**  `emitIconPacks("_astro/icon-packs")` beside Astro's chunks.
 - **An app that bundles `@spell-app/ui`:**  the bundler moves `BuiltInPacks` away from `node_modules`.  Copy
   `dist/icon-packs/` next to the app's chunks, OR add the packs by URL from wherever they're served
-  (`<ui-icon-set src="/assets/packs/fa7-free/pack.js" only>`), OR set `BuiltInPacks.base`.
+  (`<ui-root icons="/assets/packs/fa7-free/pack.js">`), OR set `BuiltInPacks.base`.
 - **A few known icons:**  `UI.icons.register(name, svgText)` for each (e.g. imported with `?raw`).  Registered
   names are answered before any pack is asked, so they draw with no pack deployed.  NOTE:  the default pack's
   index is still requested on first use (and warns once if it isn't there).

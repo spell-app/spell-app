@@ -23,6 +23,7 @@ export const fieldsVocabulary = {
   tag: "ui-fields",
   topics: ["forms", "layout", "collections"],
   aka: ["field group", "form row", "inline fields"],
+  skeleton: null,
   noun: "fields",
   ui: false,
   description: "A set of fields can appear grouped together, side by side or stacked.",

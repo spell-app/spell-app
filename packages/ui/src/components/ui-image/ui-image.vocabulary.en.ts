@@ -21,6 +21,7 @@ export const imageVocabulary = {
   tag: "ui-image",
   topics: ["images", "media", "basic", "elements"],
   aka: ["picture", "img", "photo", "avatar", "thumbnail"],
+  skeleton: { width: "10em", parts: [{ shape: "image", ratio: "square" }] },
   noun: "image",
   plural: "images",
   description: "An image is a graphic representation of something.",

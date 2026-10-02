@@ -5,7 +5,7 @@
  *   emoji`.  Fomantic's own markup is `<em data-emoji=":smile:" class="large link">` (no `ui`, no noun) drawing a
  *   Twemoji SVG from a CDN;  here the glyph is the NATIVE Unicode character, so the grammar gets its noun back.
  * - `name`:  a name from the page's NAME SET, one at a time:  CLDR shortcodes (`thumbs_up`, the default) or Fomantic's
- *   names (Discord / JoyPixels shortcodes:  `smile`, `thumbsup`, `flag_us`), picked with `<ui-emoji-set names>`.  With
+ *   names (Discord / JoyPixels shortcodes:  `smile`, `thumbsup`, `flag_us`), picked per subtree with `<ui-root emoji>` (or `EmojiData.use()`).  With
  *   or without `:colons:`, any case, spaces ~== `_`.  Resolved by `EmojiData` from lazily loaded chunks, generated
  *   by `scripts/gen-emoji.ts`.
  * - Accessible name, decided:
@@ -25,6 +25,7 @@ export const emojiVocabulary = {
   tag: "ui-emoji",
   topics: ["icons", "text", "media", "elements"],
   aka: ["emoticon", "smiley", "unicode emoji"],
+  skeleton: { display: "inline", width: "1em", height: "1em" },
   noun: "emoji",
   description: "An emoji is a glyph used to represent something else.",
   attributes: [
@@ -41,7 +42,7 @@ export const emojiVocabulary = {
       kind: "string",
       description:
         "The emoji's name in the page's name set:  by default its CLDR shortcode (Unicode's name, `thumbs_up`, " +
-        '`grinning_face_with_smiling_eyes`, `flag_united_states`);  with `<ui-emoji-set names="fomantic">`, ' +
+        '`grinning_face_with_smiling_eyes`, `flag_united_states`);  with `<ui-root emoji="fomantic">`, ' +
         "Fomantic's name (`thumbsup`, `smile`, `flag_us`).  The words may be joined any way:  `thumbs up`, " +
         "`thumbs-up`, `thumbsUp`, `thumbsup` (and `:smile:`, any case)."
     },

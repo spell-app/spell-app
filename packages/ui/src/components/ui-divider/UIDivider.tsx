@@ -25,7 +25,7 @@ export class UIDivider extends UIElement<typeof dividerVocabulary> {
   @proto static Fallback = DividerFallback
 
   /** Glyph of the `icon` shorthand. */
-  readonly glyph = new IconGlyph(() => this.attrs.icon)
+  readonly glyph = new IconGlyph(this, () => this.attrs.icon)
 
   render(): JSX.Element {
     return (

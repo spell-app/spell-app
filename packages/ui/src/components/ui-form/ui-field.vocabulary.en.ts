@@ -24,6 +24,7 @@ export const fieldVocabulary = {
   tag: "ui-field",
   topics: ["forms", "inputs", "collections"],
   aka: ["form field", "form group", "form control", "label and input"],
+  skeleton: { height: "4.5em" },
   noun: "field",
   ui: false,
   description: "A field is a form element containing a label and an input.",

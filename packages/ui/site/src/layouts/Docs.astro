@@ -130,6 +130,11 @@ function isCurrent(path: string, prefix = false): boolean {
       </div>
     </header>
 
+    <!--
+      Every page's examples load on demand:  `<ui-root>` imports the family of each `ui-*` tag inside (the site's own
+      dogfood of it).  `immediately`:  the docs' text never waits for a component.
+    -->
+    <ui-root display="immediately">
     <div class="site-shell" data-shell>
       <nav class="site-sidebar ui-dark" id="site-sidebar" aria-label="Documentation" data-sidebar>
         {
@@ -174,6 +179,7 @@ function isCurrent(path: string, prefix = false): boolean {
         <ol class="ui-list-plain" role="list" data-toc-list></ol>
       </aside>
     </div>
+    </ui-root>
 
     <script>
       import "../scripts/layout"

@@ -21,6 +21,7 @@ export const messageVocabulary = {
   tag: "ui-message",
   topics: ["messages", "feedback", "notifications", "status", "collections"],
   aka: ["alert", "callout", "notice", "banner", "info box", "error message"],
+  skeleton: { parts: [{ shape: "header" }, { shape: "line", length: "long" }] },
   noun: "message",
   description: "A message displays information that explains nearby content.",
   attributes: [

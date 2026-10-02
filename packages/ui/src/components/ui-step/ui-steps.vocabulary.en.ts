@@ -22,6 +22,7 @@ export const stepsVocabulary = {
   tag: "ui-steps",
   topics: ["navigation", "progress", "status", "elements"],
   aka: ["stepper", "wizard", "progress steps", "checkout steps"],
+  skeleton: { height: "5em" },
   noun: "steps",
   description: "A set of steps shows the progress of an activity in a series of steps.",
   attributes: [

@@ -67,10 +67,10 @@ export class UIInput extends TextControl<Vocabulary> {
   readonly isFile = createMemo(() => this.attrs.type === FILE)
 
   /** Glyph of the `icon` attribute. */
-  readonly glyph = new IconGlyph(() => this.attrs.icon)
+  readonly glyph = new IconGlyph(this, () => this.attrs.icon)
 
   /** Glyph of a corner label (its `label` is an icon name). */
-  readonly cornerGlyph = new IconGlyph(() => (this.labelPlace() === "corner" ? this.attrs.label : undefined))
+  readonly cornerGlyph = new IconGlyph(this, () => (this.labelPlace() === "corner" ? this.attrs.label : undefined))
 
   ////////////////
   // ## Element hooks

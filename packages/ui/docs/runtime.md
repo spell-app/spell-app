@@ -23,6 +23,26 @@ class UIThing extends HTMLElement {
 - The barrel exports service classes as **types only**. Exporting them as values would undo the code split. Reach services through the instance, e.g. `UI.keyboard.chord("Mod+K")` or `UI.focus.roving(...)`. Tests import leaf files directly.
 - `UI.ready` currently resolves as soon as the runtime is constructed. The foundation sheets (`$/ui/styles`) and `Vocabulary` (`$/ui/vocabulary`) register into the runtime once it has loaded; the orchestrator wires them in.
 
+## `<ui-root>`:  loading and settings for a subtree
+
+- `src/components/ui-root/` (`@spell-app/ui/ui-root`):  a page imports the root only;  every `ui-*` tag inside loads
+  its family on demand, once per page (`RootLoader`, a literal `import.meta.glob` per family).  Tag => family comes
+  from `ui-root.catalog.ts`, GENERATED from the vocabularies (`yarn gen:root`;  `test/root-catalog.test.ts` fails while
+  it's stale) -- never `ComponentDefinitions`, which would put every vocabulary in the root's chunk.
+- Ready:  families settled, then every element inside `ready` (an inner root:  its `settled`), or `timeout` (5s).
+  Then `:state(ready)`, `ui-ready { failed }`, a cancelable `ui-error` per failure before it.
+- `display`:  `skeleton` (default;  `<ui-placeholder>`s from each tag's vocabulary `skeleton`, drawn in the root's
+  shadow by `UIRoot.Skeleton`), `when-ready`, `immediately`;  `loading="..."` shows `UIRoot.Loading` (a `<ui-loader>`).
+  The root renders `eager`ly (`UIElement.eager`):  the slot is hidden by an inline style before any sheet loads.
+- Settings for everything inside, through `RootSettings` (`src/elements/RootSettings.ts`, in `core`):
+  - `icons="fa7-free, /packs/lucide/pack.js"` -- a child icon set, `UI.icons.scope(packs, { assets, parent })`, over
+    the outer root's (or the page's);  `parent` is a function, so it follows the outer root's current packs.  One
+    SVG cache per page.  `IconGlyph.packsFor(element, UI.icons)` is the set an element draws from.
+  - `emoji="fomantic"` -- `EmojiData.setFor(element)`;  each set keeps its own loaded names.
+  - `RootSettings.generation` changes on any root's change:  `IconGlyph` and `<ui-emoji>` track it (and their
+    `connected`) and redraw.
+- Pages without a root:  `UI.icons.use()` / `reset()` and `EmojiData.use()` set the PAGE's packs and names.
+
 ## Introspection
 
 - Every element class carries its whole vocabulary, live:  `UIButton.describe()` (~== `UIButton.prototype.vocabulary`)
@@ -30,7 +50,8 @@ class UIThing extends HTMLElement {
   `aka`.  The same object the element reads, so it can't drift.
 - Every tag at once:  `ComponentDefinitions` (`src/components/component-definitions.ts`):  `{ tag, folder, name,
   topics, aka, description }` per tag, from the vocabulary modules (no element is defined by reading it);  `byTag()`,
-  `byTopic()`, `byFolder()`.  Not in `core`.
+  `byTopic()`, `byFolder()`.  Not in `core`.  A tag's `skeleton` (what `<ui-root>` draws for it) is in its
+  vocabulary too.
 
 ## Services
 
@@ -47,6 +68,7 @@ class UIThing extends HTMLElement {
 | `UI.toasts` / `UI.toast()` | `Toasts` | `show(options)` / `dismiss(id)` delegate to the provider `ui-toast`'s barrel registers with `register(provider)` (`ToastStack`:  a `<ui-toast>` per call, in a popover container per position). `ToastOptions` are Fomantic's settings (`title`, `message`, `class` / `type`, `displayTime`, `showIcon`, `showProgress`, `actions`, `classActions`, `position` ...);  the handle carries `id`, `closed` and the `element`. Throws until registered. |
 | `UI.modals` | `Modals` | `confirm` / `alert` / `prompt` delegate to the provider `ui-modal`'s barrel registers with `register(provider)` (`ModalDialogs`:  a `<ui-modal>` per call). Throws until then. |
 | `UI.visibility` / `UI.observeVisibility()` | `Visibility` | Fomantic's visibility callbacks on `IntersectionObserver`:  `observe(el, { onOnScreen, onTopVisible, onBottomPassed ..., once, continuous, offset, context })` returns the undo;  checks run at crossings (in / out, an edge crossing the screen top or bottom), not per scrolled pixel. `lazyImage(img, { transition, duration, onLoad })` sets `data-src` / `data-srcset` once on screen, then fades in. |
+| `UI.icons` | `IconPacks` | Icon packs and the page's SVG cache (`docs/icons.md`):  `use(source, { prefix, base, only })`, `reset()`, `remove(id)`, `resolve` / `peek` / `get(name)`, `register(name, svg)`;  `scope(packs, { assets, parent })` makes a `<ui-root icons>`'s child set. |
 | `UI.api` | `Api` | `url(template, data)` and `request({ url, urlData, method, data, throttle, key, signal, timeout, headers, responseType })`. |
 
 ## Temporal

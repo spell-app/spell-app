@@ -9,6 +9,8 @@ First public version:  Fomantic UI 2.9.4's vocabulary as `ui-*` custom elements 
 
 ### Added
 
+- **`<ui-root>`**:  the top of a page or app.  Loads the families its subtree uses on demand, sets `icons`, `emoji`,
+  `assets`, theme and size for what's inside, and hides it until every component is ready.
 - **54 component families**, each with its vocabulary, a full CSS port of Fomantic's `.less` / `.variables`, a native
   (no-Solid) fallback, class-grammar and element examples, and a docs page:
   - elements:  button, container, divider, emoji, flag, icon, image, input, label, list, loader, parts (header,
@@ -20,8 +22,8 @@ First public version:  Fomantic UI 2.9.4's vocabulary as `ui-*` custom elements 
 - **Shared runtime** `UI` (one per page, loaded lazily):  keyboard, overlays, focus, styles, vocabulary, i18n,
   transitions, ids, toasts, modals, `UI.api`, `UI.icons`, and `UI.browser.supports` feature flags.
 - **Icon packs**:  icons are SVG files in packs (Font Awesome 7 Free by default;  FA7 Brands and Fomantic's names
-  opt-in) loaded by `UI.icons`;  `<ui-icon-set>` adds packs from HTML;  `yarn icons:pack` builds and verifies your
-  own pack.
+  opt-in) loaded by `UI.icons`;  `<ui-root icons>` adds packs per subtree, `UI.icons.use()` page-wide;
+  `yarn icons:pack` builds and verifies your own pack.
 - **Theming**:  OKLCH tokens, `@layer`s, light / dark, and public `--ui-<component>-*` tokens that reach the box from
   the page, an ancestor, the host or `::part()`.
 - **Translation**:  every attribute, value, event, slot, part and text string comes from a vocabulary file, so tag
@@ -34,7 +36,7 @@ First public version:  Fomantic UI 2.9.4's vocabulary as `ui-*` custom elements 
 - Modal `closedby="any | closerequest | none"`;  `closable="false"` keeps Fomantic's meaning (no icon, no dismissal).
 - Popup `hoverable` (on by default, WCAG 1.4.13);  `hoverable="false"` is Fomantic's default behaviour.
 - Emoji names are CLDR shortcodes (words joined any way:  `thumbs up`, `thumbsUp`);  a page opts in to Fomantic's names
-  with `<ui-emoji-set names="fomantic">`.
+  with `<ui-root emoji="fomantic">` or `EmojiData.use("fomantic")`.
 - Sidebar and flyout `width` take Fomantic's words (`very thin` ... `very wide`) and columns / fractions / %.
 - `<ui-section>` (ours, not Fomantic's):  a titled section with a real heading (`level`, default one below the
   enclosing section's), icon, badge and actions;  `collapsible` (controlled `collapsed`, cancelable `ui-open` /

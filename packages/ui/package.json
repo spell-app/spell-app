@@ -51,6 +51,7 @@
     "./dist/ui-statistic.js",
     "./dist/ui-step.js",
     "./dist/ui-rail.js",
+    "./dist/ui-root.js",
     "./dist/ui-reveal.js",
     "./dist/ui-ad.js",
     "./dist/ui-emoji.js",
@@ -238,6 +239,10 @@
       "types": "./dist/components/ui-rail/index.d.ts",
       "import": "./dist/ui-rail.js"
     },
+    "./ui-root": {
+      "types": "./dist/components/ui-root/index.d.ts",
+      "import": "./dist/ui-root.js"
+    },
     "./ui-reveal": {
       "types": "./dist/components/ui-reveal/index.d.ts",
       "import": "./dist/ui-reveal.js"
@@ -355,6 +360,7 @@
     "gen:styles": "tsc -p scripts && tsx scripts/gen-styles.ts",
     "gen:icons": "tsc -p scripts && tsx scripts/gen-icons.ts",
     "gen:emoji": "tsc -p scripts && tsx scripts/gen-emoji.ts",
+    "gen:root": "tsc -p scripts && tsx scripts/gen-root-catalog.ts",
     "tokens:alias": "tsx scripts/alias-tokens.ts",
     "/////// MANIFEST": "",
     "manifest": "custom-elements-manifest analyze --globs 'src/**/*.ts' 'src/**/*.tsx' --exclude 'src/**/*.test.ts' --exclude 'src/**/*.test.tsx'"

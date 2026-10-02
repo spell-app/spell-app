@@ -232,7 +232,8 @@ A table's semantics stay NATIVE and in the LIGHT DOM;  the element only adds the
 - Rows and cells keep Fomantic's classes on native `tr` / `td` / `th` (`positive`, `red marked left`,
   `collapsing`, `four wide`):  no JS, no elements.
 - `stackable` answers to the VIEWPORT, as in Fomantic, for elements and static markup alike;  an element opts in to
-  its HOST's width (it's a size container) with `--ui-table-stack-by: container`.
+  its HOST's width (it's a size container) with `stack-by="container"` (a host state;  or the region token
+  `--ui-table-stack-by: container`, which the attribute beats).
 - Sorting (`sortable`):  a header's `<button>` is its control (else the header becomes focusable);  the
   cancelable `ui-sort` (`{ column, key, direction }`) comes first, then `sort-column` / `sort-direction` and
   `aria-sort`.  `client-sort` reorders a simple table's rows by cell text;  otherwise the app sorts.
@@ -729,9 +730,8 @@ first paint never needs the property.  No virtualization yet:  every row renders
   exact name first, then one with no separators.  Nothing new ships, no CDN.
 - NAME SETS, one at a time, never merged:  `cldr` (the default;  every emoji emojibase names, 3,979) and `fomantic`
   (Fomantic's own 3,808 names with ITS meanings:  `dog` = 🐶, `pencil` = 📝).  Switched page-wide like icon packs:
-  `<ui-emoji-set names="fomantic">` (the last one in the document, read at the first lookup;  one connected later
-  switches later lookups) or `EmojiData.use("fomantic")`.  Known limit, as for icon packs:  a switch affects LATER
-  lookups only, emoji already drawn keep their glyph.  `EmojiData.register()` names survive a switch.
+  `<ui-root emoji="fomantic">` (for its subtree;  emoji inside redraw when it changes) or `EmojiData.use("fomantic")`
+  (page-wide, for pages without a root;  a switch affects LATER lookups only).  `EmojiData.register()` names survive a switch.
 - `EmojiData` loads ONE chunk per first letter on first use (`import()`, at most ~5 KB gzip), caches it, and answers
   later names synchronously;  nothing is in `core`.  `EmojiData.register(name, emoji)` adds an app's own names, for any set.
 - Names:  `thumbs_up` ~== `:thumbs_up:` ~== `Thumbs Up`;  spaces ~== `_`.  Unknown => an empty box with no role.

@@ -60,9 +60,9 @@ import Docs from "../layouts/Docs.astro"
   /** What a page adds to use each pack;  the default needs nothing. */
   const USAGE: Record<BuiltInIconPack, string> = {
     "fa7-free": "The default pack:  every page has it.",
-    "fa7-brands": 'Add to a page with <code>&lt;ui-icon-set src="fa7-brands"&gt;</code>.',
+    "fa7-brands": 'Add to a page with <code>&lt;ui-root icons="fa7-brands"&gt;</code> or <code>UI.icons.use("fa7-brands")</code>.',
     fomantic:
-      'Add to a page with <code>&lt;ui-icon-set src="fomantic"&gt;</code>;  added after the default, Fomantic\'s ' +
+      'Add to a page with <code>&lt;ui-root icons="fomantic"&gt;</code>;  added after the default, Fomantic\'s ' +
       "meaning wins where the two differ (<code>x</code>, <code>warning</code>)."
   }
 

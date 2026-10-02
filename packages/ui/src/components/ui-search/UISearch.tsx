@@ -98,7 +98,7 @@ export class UISearch extends FormElement<SearchVocabulary> {
   readonly openState = this.controlled("open", false)
 
   /** The magnifying glass. */
-  readonly glyph = new IconGlyph(() => SEARCH_ICON)
+  readonly glyph = new IconGlyph(this, () => SEARCH_ICON)
 
   /** Value to restore on form reset:  the `value` attribute. */
   private readonly initialValue = untrack(() => this.attrs.value)

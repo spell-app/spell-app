@@ -20,6 +20,7 @@ export const metaVocabulary = {
   tag: "ui-meta",
   topics: ["content parts", "text"],
   aka: ["metadata", "subtitle", "byline", "caption"],
+  skeleton: null,
   noun: "meta",
   ui: false,
   description: "Metadata about the content, e.g. a date or a category;  a comment's `metadata`.",

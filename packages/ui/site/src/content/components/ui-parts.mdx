@@ -12,7 +12,7 @@ import Variation from "../../components/Variation.astro"
 import VocabularyTable from "../../components/VocabularyTable.astro"
 // One page for thirteen tags:  `ui-content`, `ui-header`, `ui-description`, `ui-meta`, `ui-extra`, `ui-actions`,
 // `ui-title`, `ui-summary`, `ui-date`, `ui-author`, `ui-avatar`, `ui-detail`, `ui-value`.  They all live in the
-// `parts` family (`src/scripts/components.ts` maps each tag there).  Only the standalone `ui-header` is a
+// `parts` family (`<ui-root>`'s catalog, `ui-root.catalog.ts`, maps each tag there).  Only the standalone `ui-header` is a
 // component in its own right;  the rest are styled by their OWNER (card, item, modal ...):  the "Owned parts"
 // examples use the real owners, as `src/components/ui-parts/examples/elements/` does.
 

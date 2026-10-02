@@ -33,6 +33,18 @@ describe("vocabulary kinds, across families", () => {
     }
   )
 
+  // `<ui-root display="skeleton">` draws a placeholder for a described tag;  `null` says "none of its own" on purpose
+  it.each(VOCABULARIES.map((vocabulary) => [vocabulary.tag, vocabulary] as const))(
+    "<%s> says what its skeleton is (a description, or null)",
+    (_, vocabulary) => {
+      expect(vocabulary).toHaveProperty("skeleton")
+      const { skeleton } = vocabulary
+      if (skeleton === null) return
+      expect(skeleton?.parts?.length || skeleton?.height || skeleton?.width).toBeTruthy()
+      for (const length of [skeleton?.width, skeleton?.height]) if (length) expect(length).toMatch(/^\d+(\.\d+)?em$/)
+    }
+  )
+
   // the docs' API tables label `color` kinds "color";  a value emitted alone is `valueOnly`
   it.each(attributes((spec) => spec.kind === "color"))("<%s> `kind: color` is a colour", (_, spec) => {
     expect(spec.name).toBe("color")

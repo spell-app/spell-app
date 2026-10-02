@@ -9,5 +9,13 @@
       "Bash(npx *)",
       "Bash(git *)"
     ]
+  },
+  "hooks": {
+    "WorktreeCreate": [
+      { "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/worktree.mjs\" create" }] }
+    ],
+    "WorktreeRemove": [
+      { "hooks": [{ "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/worktree.mjs\" remove" }] }
+    ]
   }
 }

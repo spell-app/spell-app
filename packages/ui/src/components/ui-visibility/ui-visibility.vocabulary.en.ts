@@ -16,6 +16,7 @@ export const visibilityVocabulary = {
   tag: "ui-visibility",
   topics: ["animation", "media", "modules"],
   aka: ["scroll spy", "in view", "intersection", "lazy load", "on screen"],
+  skeleton: null,
   noun: "visibility",
   description: "Visibility provides a set of callbacks for when content appears in the viewport.",
   attributes: [

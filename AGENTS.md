@@ -56,16 +56,23 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 
 ## Worktrees
 
-- A session that works in a git worktree (`.claude/worktrees/<name>`) MUST show it to Owen in VS Code right away, IN
-  HIS CURRENT WINDOW:  `code --add <worktree path>` adds the worktree as another folder of that window (Explorer,
-  Source Control and search see it), as soon as the session creates or enters it.  Why:  Owen reads and reviews the
-  code in VS Code;  edits in a worktree his window doesn't show are invisible to him.  He wants ONE window.
-- When the session leaves or removes the worktree:  `code --remove <worktree path>`.
-- NEVER `code -n` (a new window) or `code -r` (re-points the window, which restarts the Claude session in it).
-- NOTE:  the FIRST extra folder turns a single-folder window into a multi-root workspace, which may restart VS Code's
-  extensions once (the Claude panel reloads;  the conversation resumes from its history).  A window opened from a
-  saved `.code-workspace` file avoids that.
-- Say so in one line ("added the worktree <name> (branch <branch>) to your VS Code window").
+- Owen works in one VS Code window per package, opened from `packages/<pkg>/<pkg>.code-workspace` (`yarn window
+  init` writes missing ones;  each has its own theme).  Folder 1 is the REPO ROOT, folder 2 the package.  Why:  the
+  Claude panel lists only the sessions saved under a window's FIRST folder, so every window lists every session.
+  - So sessions start at the repo root:  read the package's `AGENTS.md` before working in a package.
+- Enter a worktree with `/isolate <name>` (`/plan-doc` does it too), or `EnterWorktree`.  The `WorktreeCreate` hook
+  (`.claude/hooks/worktree.mjs`) makes `.claude/worktrees/<name>` on branch `<name>` from local `main`, and keeps the
+  session saved at the root (Claude's own worktrees move it, and it drops out of every window's list).
+- Show the worktree in the session's OWN window at once, from the worktree's root:
+  `node scripts/window.mjs add packages/<pkg> --name "<pkg> ⎇ <name>"`;  `... remove packages/<pkg>` on leaving.
+  It reaches the window the session runs in (the spell extension's `WindowBridge`), not the focused one.
+  Why:  Owen reviews in VS Code;  edits the window doesn't show are invisible there.
+  - `node`, not `yarn window`:  `yarn` runs no script in a worktree before its `yarn install`.
+  - Relative paths resolve from the current folder:  `packages/<pkg>` is the worktree's copy.
+- NEVER `code --add` / `--remove` (the focused window;  a one-folder window restarts its extensions, Claude panel
+  included), `code -n` (a new window) or `code -r` (restarts the session).
+- Leave with `ExitWorktree` `keep`;  the hook's `remove` never deletes uncommitted or unmerged work.
+- Say so in one line ("isolated in worktree <name> (branch <name>), shown in your window as <pkg> ⎇ <name>").
 
 ## Solid 2
 

@@ -680,7 +680,8 @@ import VocabularyTable from "../../components/VocabularyTable.astro"
 
   `stackable` answers to the VIEWPORT, as in Fomantic:  below 768px every table stacks unless it is `unstackable`;
   `stackable="tablet"` also stacks below 992px.  A table in a narrow sidebar of a wide screen can opt in to its OWN
-  width instead with `--ui-table-stack-by: container` (on the table, an ancestor or the page).
+  width instead with `stack-by="container"`, or for a whole region with the token `--ui-table-stack-by: container` (on
+  an ancestor or the page);  the attribute wins over the token.
 
   With `sortable`, every header in the `thead` sorts, unless it has `data-sortable="false"` (or Fomantic's
   `class="disabled"`).  A click, or Enter / Space on a focused header, first dispatches the cancelable `ui-sort`

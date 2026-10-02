@@ -1,0 +1,110 @@
+---
+title: Root
+tag: ui-root
+status: done
+summary: A root loads the components inside it on demand, sets their theme, size, icons and emoji, and shows them once they're ready.
+---
+
+import Example from "../../components/Example.astro"
+import RootDemo from "../../components/RootDemo.astro"
+import Section from "../../components/Section.astro"
+import VocabularyTable from "../../components/VocabularyTable.astro"
+// No Fomantic counterpart.  This whole site runs inside a `<ui-root display="immediately">` (`layouts/Docs.astro`),
+// which loads every example's components;  the examples below are roots NESTED in it.
+
+<Section title="Types">
+  <Example title="Root" description="Put one around a page or an app.  Each `ui-*` tag inside loads its component the first time it appears;  nothing else is downloaded.  Load just the root:  `import &quot;@spell-app/ui/ui-root&quot;`.">
+    <ui-root>
+      <ui-segment>
+        <ui-header>Report</ui-header>
+        <p>Every component in here was loaded by the root, on demand.</p>
+        <ui-button primary>Save</ui-button>
+      </ui-segment>
+    </ui-root>
+  </Example>
+  <Example title="Theme and size" description="`theme` and `size` apply to everything inside.">
+    <ui-root theme="dark" size="small" width="100%" aria-label="Dark report">
+      <ui-segment>
+        <ui-header>Report</ui-header>
+        <p>Dark and small:  everything inside follows.</p>
+        <ui-button primary>Save</ui-button>
+      </ui-segment>
+    </ui-root>
+  </Example>
+  <Example title="A box" description="With `width` or `height` (CSS lengths, or `window` for the viewport's), the root is a box that scrolls its own content.  `fixed` pins it to the viewport:  a full-page app shell.">
+    <ui-root height="8em" aria-label="Numbers">
+      <ui-list bulleted>
+        <ui-item>One</ui-item>
+        <ui-item>Two</ui-item>
+        <ui-item>Three</ui-item>
+        <ui-item>Four</ui-item>
+        <ui-item>Five</ui-item>
+        <ui-item>Six</ui-item>
+        <ui-item>Seven</ui-item>
+        <ui-item>Eight</ui-item>
+      </ui-list>
+    </ui-root>
+  </Example>
+</Section>
+
+<Section title="While loading">
+  `display` says what shows until every component inside is ready (or `timeout`, 5s by default, has passed):
+
+  - `skeleton` (the default):  a `<ui-placeholder>` for each component that describes one, drawn in the root's own
+    shadow DOM, so your page's DOM is never touched.  Placeholders stack in page order;  inline ones (buttons,
+    labels, inputs) sit side by side.
+  - `when-ready`:  nothing, with the space kept.
+  - `immediately`:  everything as it arrives.
+
+  `loading="..."` shows a `<ui-loader>` with that message instead (a bare `loading` says "Loading…").
+
+  <Example title="Replay" description="Components on this page are loaded already, so the demo holds the root for 2 seconds.">
+    <RootDemo />
+  </Example>
+</Section>
+
+<Section title="Icons and emoji">
+  <Example title="Icon packs" description="`icons` adds packs for everything inside:  built-in ids (`fa7-free`, `fa7-brands`, `fomantic`) or `pack.js` URLs, comma-separated, later wins.  Outside a root, the page's packs (`UI.icons.use()`).  Slack is only in `fa7-brands`:  inside the root it draws, outside it doesn't.">
+    <p>
+      Inside:  <ui-root icons="fa7-brands" display="immediately"><ui-icon name="slack" size="big" label="Slack"></ui-icon></ui-root>
+      Outside:  <ui-icon name="slack" size="big" label="Slack"></ui-icon>
+    </p>
+  </Example>
+  <Example title="Emoji names" description="`emoji=&quot;fomantic&quot;` uses Fomantic's names for everything inside;  outside, the page's set (CLDR by default).  `pencil` is a memo in Fomantic's names, a pencil in CLDR's.">
+    <p>
+      Inside:  <ui-root emoji="fomantic" display="immediately"><ui-emoji name="pencil" size="big" label="pencil (Fomantic)"></ui-emoji></ui-root>
+      Outside:  <ui-emoji name="pencil" size="big" label="pencil (CLDR)"></ui-emoji>
+    </p>
+  </Example>
+  <Example title="Nested roots" description="A root inside a root inherits what it doesn't set and adds its own packs.  The outer one is ready only once every inner one is.">
+    <ui-root icons="fa7-brands" display="immediately">
+      <ui-root size="large" display="immediately">
+        <p><ui-icon name="slack" label="Slack"></ui-icon> large, drawn from the outer root's packs</p>
+      </ui-root>
+    </ui-root>
+  </Example>
+</Section>
+
+<Section title="Behaviour">
+  - Loading:  each undefined `ui-*` tag inside (now, and whenever content is added) imports its component once per
+    page.  Which component defines a tag comes from a generated catalog (`yarn gen:root` after adding a tag).
+  - Ready:  every component imported, then every element inside ready (an inner root:  settled).  Then
+    `:state(ready)`, `ui-ready` with `{ failed }`, and the content shows.  Content added later loads too, but is never
+    hidden again.
+  - Failures:  a tag no component defines (`unknown`), a component that can't be imported (`failed`), or one not
+    ready by `timeout` (`timeout`) fires a cancelable `ui-error` (cancel it to skip the console warning) and is
+    listed in `ui-ready`'s `failed`.  The content shows anyway;  a broken element shows its native fallback.
+  - Without JavaScript (or before the root's script runs, with `@spell-app/ui/styles` loaded), an undefined root
+    hides its content only under `@media (scripting: enabled)`:  server-rendered pages still show as sent.
+  - Swap the loading look in code:  `UIRoot.Loading` (a `<ui-loader>`) and `UIRoot.Skeleton` (`<ui-placeholder>`s).
+
+  <VocabularyTable family="ui-root" />
+</Section>
+
+<Section title="Accessibility">
+  - While loading, the content is hidden (`visibility: hidden` or not drawn), so assistive technology doesn't read
+    half-built UI.  The placeholders are decorative (`aria-hidden`).
+  - The `loading` message is a `<ui-loader>`:  `role="status"`, announced politely.
+  - Without a box (no `width` / `height` / `fixed`) the root adds nothing to the page's structure:  headings and
+    landmarks inside are the page's own.
+</Section>

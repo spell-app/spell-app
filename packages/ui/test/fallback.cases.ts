@@ -122,6 +122,7 @@ export const FAMILY_FALLBACKS: readonly { family: string; html: string; root: st
     root: "ol[part~=steps]"
   },
   { family: "ui-rail", html: `<ui-rail position="left">Rail</ui-rail>`, root: "[part~=rail]" },
+  { family: "ui-root", html: `<ui-root display="immediately" size="small">Page</ui-root>`, root: "slot" },
   {
     family: "ui-reveal",
     html: `<ui-reveal fade><span slot="visible">Front</span><span slot="hidden">Back</span></ui-reveal>`,

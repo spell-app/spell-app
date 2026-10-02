@@ -1,7 +1,6 @@
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 import { BuiltInPacks } from "$/ui/icons"
-import { Fixture } from "$/ui/test/fixture"
 import { IconPacks } from "./IconPacks"
 
 /** The stroke-style (Lucide-like) fixture pack:  `bell`, `sun` (aliases `light`, `day`), 24 x 24. */
@@ -11,10 +10,6 @@ const STROKE = new URL("/test/fixtures/stroke-pack/pack.js", location.href).href
 function requests(part: string): number {
   return performance.getEntriesByType("resource").filter((entry) => entry.name.includes(part)).length
 }
-
-afterEach(() => {
-  for (const set of document.querySelectorAll("ui-icon-set")) set.remove()
-})
 
 describe("UI.icons:  names", () => {
   it("answers one normalized name:  case, dashes and spaces ~== the same icon", async () => {
@@ -114,22 +109,19 @@ describe("UI.icons:  packs", () => {
     expect(packs.resolve("bell")).toBeUndefined()
   })
 
-  it("reset() before first use loads neither the default nor the document's sets", async () => {
-    Fixture.render(`<ui-icon-set src="${STROKE}"></ui-icon-set>`)
+  it("reset() before first use never loads the default", async () => {
     const packs = new IconPacks().reset()
     await packs.ready
     expect(packs.packs).toEqual([])
     expect(packs.resolve("bell")).toBeUndefined()
   })
 
-  it("reset() forgets packs still loading, and sets added later still count", async () => {
+  it("reset() forgets packs still loading", async () => {
     const packs = new IconPacks()
     void packs.use(STROKE)
     packs.reset()
     await packs.ready
     expect(packs.packs).toEqual([])
-    Fixture.render(`<ui-icon-set src="fa7-brands"></ui-icon-set>`)
-    await expect.poll(async () => (await packs.ready, packs.packs.map((pack) => pack.id))).toEqual(["fa7-brands"])
   })
 
   it("reset() keeps register()ed icons", async () => {
@@ -146,35 +138,43 @@ describe("UI.icons:  packs", () => {
   })
 })
 
-describe("UI.icons:  <ui-icon-set>", () => {
-  it("adds the document's sets on first use, after the default", async () => {
-    Fixture.render(`<ui-icon-set src="${STROKE}"></ui-icon-set>`)
-    const packs = new IconPacks()
-    await packs.ready
-    expect(packs.packs.map((pack) => pack.id)).toEqual(["fa7-free", "stroke"])
+describe("UI.icons:  child sets (`<ui-root icons>`)", () => {
+  it("scope() adds packs over its parent's:  its own win, the parent's answer the rest", async () => {
+    const page = new IconPacks()
+    const child = page.scope([STROKE])
+    await child.ready
+    expect(child.packs.map((pack) => pack.id)).toEqual(["fa7-free", "stroke"])
+    expect(child.resolve("bell")?.pack).toBe("stroke")
+    expect(child.resolve("gear")?.pack).toBe("fa7-free")
+    expect(page.resolve("bell")?.pack).toBe("fa7-free")
   })
 
-  it('skips the default and earlier sets before an `only`, but not for `only="false"`', async () => {
-    Fixture.render(`<ui-icon-set src="fa7-brands"></ui-icon-set>`)
-    Fixture.render(`<ui-icon-set src="${STROKE}" only></ui-icon-set>`)
-    const packs = new IconPacks()
-    await packs.ready
-    expect(packs.packs.map((pack) => pack.id)).toEqual(["stroke"])
-
-    for (const set of document.querySelectorAll("ui-icon-set")) set.remove()
-    Fixture.render(`<ui-icon-set src="${STROKE}" only="false"></ui-icon-set>`)
-    const kept = new IconPacks()
-    await kept.ready
-    expect(kept.packs.map((pack) => pack.id)).toEqual(["fa7-free", "stroke"])
+  it("shares the page's SVG cache and registered icons", async () => {
+    const page = new IconPacks()
+    page.register("mine", `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"><path d="M0 0h1v1z"/></svg>`)
+    const child = page.scope(["fa7-brands"])
+    expect(await child.get("mine")).toBe(page.peek("mine"))
+    const gear = await page.get("gear")
+    expect(child.peek("gear")).toBe(gear)
   })
 
-  it("follows sets added and removed later", async () => {
-    const packs = new IconPacks()
-    await packs.ready
-    const set = Fixture.render(`<ui-icon-set src="fa7-brands" prefix="b"></ui-icon-set>`)
-    await expect.poll(async () => (await packs.ready, packs.resolve("b:slack")?.key)).toBe("brands/slack")
-    set.remove()
-    await expect.poll(() => packs.resolve("slack")).toBeUndefined()
+  it("asks its parent at each lookup, so it follows the parent's CURRENT packs", async () => {
+    const first = new IconPacks()
+    const second = new IconPacks().reset()
+    await second.use(STROKE)
+    let parent = first
+    const child = first.scope([], { parent: () => parent })
+    await child.ready
+    expect(child.resolve("gear")?.pack).toBe("fa7-free")
+    parent = second
+    expect(child.resolve("gear")).toBeUndefined()
+    expect(child.resolve("bell")?.pack).toBe("stroke")
+  })
+
+  it("`assets` re-points built-in packs:  `<assets>icon-packs/<id>/pack.js`", () => {
+    expect(BuiltInPacks.url("fa7-brands", "https://cdn.example/ui/")).toBe(
+      "https://cdn.example/ui/icon-packs/fa7-brands/pack.js"
+    )
   })
 })
 

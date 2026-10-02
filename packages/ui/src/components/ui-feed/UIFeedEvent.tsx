@@ -38,7 +38,7 @@ export class UIFeedEvent extends UIElement<typeof eventVocabulary> {
   readonly slots = new SlotContent(this.host)
 
   /** Glyph of the `icon` shorthand. */
-  readonly glyph = new IconGlyph(() => this.attrs.icon)
+  readonly glyph = new IconGlyph(this, () => this.attrs.icon)
 
   ////////////////
   // ## Derived state

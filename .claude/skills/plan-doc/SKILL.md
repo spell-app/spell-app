@@ -1,8 +1,7 @@
 ---
 name: plan-doc
-description: Run a planning session against a live plan doc, `packages/docs/plans/<name>/<name>.html`, in its own worktree. User-invoked as `/plan-doc <name>`.
+description: Run a planning session against a live plan doc, `packages/docs/plans/<name>/<name>.html`, in its own worktree. Use for `/plan-doc <name>`, or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.
 argument-hint: <name>
-disable-model-invocation: true
 ---
 
 # /plan-doc
@@ -22,29 +21,31 @@ the whole time.  The plan doc is the user's view of the work:  they read it in a
 ## 1. Name
 
 - `<name>` is `$ARGUMENTS`, lower-kebab-cased (`Docs Index` -> `docs-index`).  No argument:  ask for one.
+  - "Make this a plan doc" (invoked mid-session):  propose a name from the work so far in AskUserQuestion,
+    recommended first;  the user can type another in "Other".
+
+## Mid-session
+
+When the session already has work under way ("make this a plan doc"), carry it over -- don't start again:
+- Plan mode and edits already made on `main`:  `.claude/skills/isolate/SKILL.md`, "Start", step 0.
+- Step 3:  start from the plan drafted so far (harness plan file, conversation), reshaped into the plan doc's
+  shape;  explore only to fill gaps.  Decisions and questions already settled become `decision` items.
 - Look for collisions (from the repo root):
   - `packages/docs/plans/<name>/`, `packages/docs/<name>/`, `packages/docs/<name>.html`
-  - a worktree at `.claude/worktrees/<name>` (`git worktree list`), a branch `<name>` or `worktree-<name>`
+  - the worktree and branch checks of `.claude/skills/isolate/SKILL.md`, "Start", step 2
 - Any hit:  AskUserQuestion, options "Reuse `<name>`" (continue that doc / worktree) and "Different name" (the user
   types it in "Other").  Never overwrite an existing plan doc.
 
 ## 2. Session
 
-- Tell the user, in one line:  run `/rename <name>` so the VS Code tab shows it.  A skill can't rename the session.
-- `EnterWorktree` with `name: "<name>"`, or `path: ".claude/worktrees/<name>"` when reusing one.
-- Then show it to the user in VS Code AT ONCE, in their CURRENT window (root `AGENTS.md`, "Worktrees"):
-  `code --add <worktree path>`;  never `-n` (new window) or `-r` (restarts this session).  One line:  "added the
-  worktree to your VS Code window".
-- In the worktree:
-  - no `node_modules/` at the root:  `yarn install`
-  - no `packages/docs/scripts/plan-doc.js`:  the worktree's base predates `packages/docs` (it branches from
-    `origin/main`).  STOP and tell the user:  merge or push `packages/docs` first, or set `worktree.baseRef: head`.
+- Isolate:  read `.claude/skills/isolate/SKILL.md` and follow "Start", steps 3-7 (and step 0 mid-session), with this `<name>` (a skill can't
+  invoke another):  the `/rename` reminder, `EnterWorktree`, showing the worktree in VS Code, `yarn install`.
 - New doc:  `yarn plan-doc new <name> --title "<Title>" --prompt-file <file>`, `<file>` holding the user's message
   that kicked off the plan, verbatim (write it to the scratchpad first:  it may hold quotes and newlines).  It's
   quoted at the top of the Overview.  Reusing a doc whose prompt is missing:  `yarn plan-doc prompt <name> --file
   <file>`;  an older doc (before 2026-10-01, or `section.s2` markup):  `yarn plan-doc migrate <name>` first.
-- Then `yarn plan-doc open <name>`:  rendered in VS Code's Simple Browser, beside the editor (one tab, reloaded on
-  every later `open`).  Needs the spell extension (`yarn vscode`).
+- Then `yarn plan-doc open <name>`:  rendered in VS Code's Simple Browser, beside the editor, in THIS session's
+  window (`yarn window`;  one tab, reloaded on every later `open`).  Needs the spell extension (`yarn vscode`).
 
 ## 3. Plan
 
@@ -105,6 +106,7 @@ the whole time.  The plan doc is the user's view of the work:  they read it in a
   - from the plan doc:  Overview -> the body;  decisions -> a "Why" section;  open caveats -> "Limits"
   - finish as in `packages/docs/AGENTS.md`, "Finishing a page";  `yarn docs:index`
 - The plan doc stays in `plans/` as the record:  every phase done.  `yarn plan-doc open <name>` one last time.
+- Then leave the worktree:  follow `.claude/skills/isolate/SKILL.md`, "Finish".
 
 ## Cheat sheet (`yarn plan-doc ...`, from anywhere in the repo)
 

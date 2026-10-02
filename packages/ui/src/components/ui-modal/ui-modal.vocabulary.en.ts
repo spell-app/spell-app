@@ -22,6 +22,7 @@ export const modalVocabulary = {
   tag: "ui-modal",
   topics: ["dialogs", "overlays", "popups", "modules"],
   aka: ["dialog", "popup window", "lightbox", "confirm", "alert dialog"],
+  skeleton: null,
   noun: "modal",
   description: "A modal displays content that temporarily blocks interactions with the main view of a site.",
   attributes: [

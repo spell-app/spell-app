@@ -593,7 +593,7 @@ export type LazyImageOptions = {
 // ## Icons
 ////////////////
 
-/** How `UI.icons.use()` adds a pack (and what `<ui-icon-set>`'s attributes set). */
+/** How `UI.icons.use()` adds a pack. */
 export type IconPackOptions = {
   /** extra prefix for `prefix:name`;  the pack's `id` always works too */
   prefix?: string

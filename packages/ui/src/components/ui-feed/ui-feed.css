@@ -215,10 +215,10 @@
     height: var(--_ui-feed-label-width);
     margin-bottom: 0.3em;
     padding-top: 0.6em;
-    border: var(--_ui-feed-number-border) solid transparent;
+    border: var(--_ui-feed-number-border) solid var(--_feed-number-outline, transparent);
     border-radius: 50%;
-    background: var(--ui-color, var(--_ui-feed-number-background));
-    color: var(--ui-color-on, var(--_ui-feed-number-color));
+    background: var(--_feed-number-fill, var(--ui-color, var(--_ui-feed-number-background)));
+    color: var(--_feed-number-ink, var(--ui-color-on, var(--_ui-feed-number-color)));
     line-height: 1;
     text-align: center;
   }
@@ -248,14 +248,23 @@
     height: calc(100% - var(--_ui-feed-icon-size));
     border-left: var(--_ui-feed-connected-width) solid var(--ui-color, var(--_ui-feed-connected-color));
   }
+  /*
+   * Elements:  the feed's flags (`--_feed-connected`, `--_feed-ordered`, `--_feed-basic`) are style-queried on REAL
+   * elements only, which set private values the pseudo-elements read through `var()`.  WebKit doesn't re-evaluate a
+   * style query on a `::before` when the container's token changes after first style (a feed made `ordered` later).
+   * - `content` defaults to `none`:  no pseudo-element unless a flag turned it on.
+   */
+  :host(:not(:last-child)) > .event::before {
+    content: var(--_feed-line, none);
+    position: absolute;
+    top: var(--_feed-line-top, 2.1em);
+    left: 1.2em;
+    height: var(--_feed-line-height, calc(100% - var(--_ui-feed-icon-size)));
+    border-left: var(--_ui-feed-connected-width) solid var(--ui-color, var(--_ui-feed-connected-color));
+  }
   @container style(--_feed-connected: 1) {
-    :host(:not(:last-child)) > .event::before {
-      content: "";
-      position: absolute;
-      top: 2.1em;
-      left: 1.2em;
-      height: calc(100% - var(--_ui-feed-icon-size));
-      border-left: var(--_ui-feed-connected-width) solid var(--ui-color, var(--_ui-feed-connected-color));
+    :host > .event {
+      --_feed-line: "";
     }
     :host > .event > .label {
       position: relative;
@@ -274,22 +283,26 @@
     content: counter(ordered);
     counter-increment: ordered;
   }
+  :host > .event > .label::before {
+    box-sizing: border-box;
+    position: relative;
+    display: block;
+    height: var(--_ui-feed-label-width);
+    margin-bottom: 0.3em;
+    padding-top: 0.6em;
+    border: var(--_ui-feed-number-border) solid var(--_feed-number-outline, transparent);
+    border-radius: 50%;
+    background: var(--_feed-number-fill, var(--ui-color, var(--_ui-feed-number-background)));
+    color: var(--_feed-number-ink, var(--ui-color-on, var(--_ui-feed-number-color)));
+    line-height: 1;
+    text-align: center;
+    content: var(--_feed-number, none);
+    counter-increment: var(--_feed-number-step, none);
+  }
   @container style(--_feed-ordered: 1) {
-    :host > .event > .label::before {
-      box-sizing: border-box;
-      position: relative;
-      display: block;
-      height: var(--_ui-feed-label-width);
-      margin-bottom: 0.3em;
-      padding-top: 0.6em;
-      border: var(--_ui-feed-number-border) solid transparent;
-      border-radius: 50%;
-      background: var(--ui-color, var(--_ui-feed-number-background));
-      color: var(--ui-color-on, var(--_ui-feed-number-color));
-      line-height: 1;
-      text-align: center;
-      content: counter(ordered);
-      counter-increment: ordered;
+    :host > .event > .label {
+      --_feed-number: counter(ordered);
+      --_feed-number-step: ordered;
     }
   }
   /* A text label's own text, even in an ordered feed (Fomantic's `.ui.ui.feed` beats the counter). */
@@ -302,9 +315,9 @@
     height: calc(100% - 2.5em);
   }
   @container style(--_feed-connected: 1) and style(--_feed-ordered: 1) {
-    :host(:not(:last-child)) > .event::before {
-      top: 2.7em;
-      height: calc(100% - 2.5em);
+    :host > .event {
+      --_feed-line-top: 2.7em;
+      --_feed-line-height: calc(100% - 2.5em);
     }
   }
 
@@ -320,10 +333,10 @@
     color: var(--ui-color, inherit);
   }
   @container style(--_feed-basic: 1) {
-    :host > .event > .label::before {
-      border-color: currentColor;
-      background: transparent;
-      color: var(--ui-color, inherit);
+    :host > .event > .label {
+      --_feed-number-outline: currentColor;
+      --_feed-number-fill: transparent;
+      --_feed-number-ink: var(--ui-color, currentColor);
     }
   }
 

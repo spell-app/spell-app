@@ -20,6 +20,10 @@ export const cardVocabulary = {
   tag: "ui-card",
   topics: ["cards", "containers", "data display", "views"],
   aka: ["tile", "panel", "profile card"],
+  skeleton: {
+    width: "18em",
+    parts: [{ shape: "image", ratio: "square" }, { shape: "header" }, { shape: "paragraph", lines: 3 }]
+  },
   noun: "card",
   plural: "cards",
   description: "A card displays site content in a manner similar to a playing card.",

@@ -20,6 +20,7 @@ export const detailVocabulary = {
   tag: "ui-detail",
   topics: ["content parts", "text"],
   aka: ["secondary text", "note"],
+  skeleton: null,
   noun: "detail",
   ui: false,
   description: "A label's dimmer second value, e.g. a count.",

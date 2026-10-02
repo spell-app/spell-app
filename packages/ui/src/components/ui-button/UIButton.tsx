@@ -37,7 +37,7 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
   readonly slots = new SlotContent(this.host)
 
   /** Glyph of the `icon` attribute;  starts from the cache, so a known icon draws at once. */
-  readonly glyph = new IconGlyph(() => this.attrs.icon)
+  readonly glyph = new IconGlyph(this, () => this.attrs.icon)
 
   /** Host `aria-label`, forwarded to the inner control (an icon-only button's name). */
   private readonly ariaLabel = new Cell(this.host.getAttribute(UIT.ARIA_LABEL))

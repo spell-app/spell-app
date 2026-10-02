@@ -316,15 +316,6 @@ every entry below that date was fixed or disproven;  what's left:
 
 - `src/components/ui-dropdown/ui-dropdown.vocabulary.en.ts` `parts`:  the root `div.ui.dropdown` has no part name, so tokens
   read at its root can't be themed via `::part()` (search got `::part(search)` on 2026-10-01).  (2026-10-01)
-- `src/components/ui-form/ui-form.css` lines 93-94:  `--ui-form-equal-width` and `--ui-form-unstackable` are internal 0/1
-  switches but carry the public `--ui-form-` prefix, so the docs' generated token table lists them as public.
-- `src/components/ui-input/ui-input.vocabulary.en.ts` ~line 95:  `label` is described as "Label text", but with
-  `labeled="corner"` / `"left corner"` it's read as an ICON name (`UIInput.cornerGlyph`).
-- `src/components/ui-message/examples/elements/content.html` line 15:  the "List" example says "Only the header, no
-  content block" but has no header.
-- `site/src/content/components/ui-button.mdx` / `ui-dropdown.mdx` "Framework usage":  the Solid 2 snippets use
-  `on:ui-toggle` / `on:ui-change`;  AGENTS.md says Solid 2 has no `on:` namespace (a `ref` + `addEventListener`,
-  as `tools/frameworks/solid/app.tsx`).  The new pages use the `ref` pattern.
 
 ## cli
 

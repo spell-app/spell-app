@@ -19,6 +19,7 @@ export const iconVocabulary = {
   tag: "ui-icon",
   topics: ["icons", "basic", "images", "elements"],
   aka: ["glyph", "symbol", "font awesome", "svg icon"],
+  skeleton: { display: "inline", width: "1em", height: "1em" },
   noun: "icon",
   description: "An icon is a glyph used to represent something else.",
   attributes: [

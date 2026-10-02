@@ -20,6 +20,7 @@ export const listVocabulary = {
   tag: "ui-list",
   topics: ["lists", "data display", "typography", "basic", "elements"],
   aka: ["ul", "ol", "bullet list", "list view"],
+  skeleton: { parts: [{ shape: "paragraph", lines: 3 }] },
   noun: "list",
   description: "A list groups related content.",
   attributes: [

@@ -78,6 +78,7 @@ export const COMPONENTS = [
   "ui-visibility",
   "ui-embed",
   "ui-calendar",
+  "ui-root",
   "ui-section"
 ] as const
 
@@ -173,6 +174,10 @@ export default defineConfig(() => {
       emptyOutDir: true,
       sourcemap: true,
       lib: { entry: ENTRIES, formats: ["es"] },
+      // the build's CSS MINIFY reads `cssTarget`, not `css.lightningcss.targets`:  left at Vite's default (older
+      // Safari) it lowered `light-dark()` into `--lightningcss-light` variables fixed at `:root`, so `.ui-dark` /
+      // `<ui-root theme="dark">` changed nothing in `dist/` (dev and tests were fine).  Same browsers as `CSS_TARGETS`.
+      cssTarget: ["chrome125", "safari26", "firefox147"],
       rolldownOptions: {
         external: (id: string) => SOLID_EXTERNAL.test(id),
         preserveEntrySignatures: "allow-extension",

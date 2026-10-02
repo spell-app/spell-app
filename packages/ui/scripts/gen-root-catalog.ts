@@ -1,0 +1,59 @@
+/**
+ * Generates `src/components/ui-root/ui-root.catalog.ts`:  every component tag => what `<ui-root>` needs BEFORE that
+ * tag's family loads:  its folder (which family to import) and its skeleton (`ComponentVocabulary.skeleton`).
+ * - Run with `yarn gen:root` (`tsc -p scripts && tsx scripts/gen-root-catalog.ts`) after adding or moving a tag.
+ *   `test/root-catalog.test.ts` fails while the file is stale.
+ * - Why generated, not `ComponentDefinitions`:  that roll-up imports every vocabulary (~325 kB of source);  a lib
+ *   entry importing it would split each vocabulary into a chunk shared with its family.  The catalog is a few kB.
+ * - Reads the vocabularies the way `ComponentDefinitions` does:  every `<tag>.vocabulary.en.ts` of every folder,
+ *   every export with a `tag` and `attributes`.
+ */
+import { execFileSync } from "node:child_process"
+import { readdirSync, writeFileSync } from "node:fs"
+import path from "node:path"
+import { fileURLToPath, pathToFileURL } from "node:url"
+
+import { NodePackage } from "../tools/NodePackage.ts"
+
+/** `src/components/`. */
+const COMPONENTS = fileURLToPath(new URL("../src/components/", import.meta.url))
+
+/** The generated file. */
+const OUTPUT = path.join(COMPONENTS, "ui-root", "ui-root.catalog.ts")
+
+/** Tag => its entry. */
+const entries: Record<string, { folder: string; skeleton?: unknown }> = {}
+for (const folder of readdirSync(COMPONENTS, { withFileTypes: true })) {
+  if (!folder.isDirectory()) continue
+  for (const file of readdirSync(path.join(COMPONENTS, folder.name))) {
+    if (!file.endsWith(".vocabulary.en.ts")) continue
+    const module = (await import(pathToFileURL(path.join(COMPONENTS, folder.name, file)).href)) as Record<
+      string,
+      unknown
+    >
+    for (const value of Object.values(module)) {
+      if (typeof value === "object" && value !== null && "tag" in value && "attributes" in value) {
+        const skeleton = (value as { skeleton?: unknown }).skeleton
+        entries[String(value.tag)] = skeleton ? { folder: folder.name, skeleton } : { folder: folder.name }
+      }
+    }
+  }
+}
+
+const lines = Object.keys(entries)
+  .sort()
+  .map((tag) => `  ${JSON.stringify(tag)}: ${JSON.stringify(entries[tag])}`)
+writeFileSync(
+  OUTPUT,
+  `/* GENERATED -- do not edit, run \`yarn gen:root\` (source:  every \`<tag>.vocabulary.en.ts\`) */
+
+import type { RootCatalogEntry } from "./ui-root.types"
+
+/** Every component tag => what \`<ui-root>\` needs before its family loads. */
+export const ROOT_CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
+${lines.join(",\n")}
+}
+`
+)
+execFileSync(`${NodePackage.need("oxfmt")}/bin/oxfmt`, [OUTPUT], { stdio: "ignore" })
+console.log(`wrote ${path.relative(process.cwd(), OUTPUT)}:  ${lines.length} tags`)

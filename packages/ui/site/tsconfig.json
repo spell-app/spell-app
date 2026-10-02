@@ -2,6 +2,8 @@
   "extends": "astro/tsconfigs/strict",
   "compilerOptions": {
     "allowImportingTsExtensions": true,
+    "jsx": "preserve",
+    "jsxImportSource": "@solidjs/web",
     "types": ["vite/client"],
     "paths": {
       "$/util": ["../../util/src/index.ts"],

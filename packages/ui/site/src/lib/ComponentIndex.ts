@@ -41,13 +41,12 @@ export class ComponentIndex {
   }
 
   /**
-   * What client scripts need per tag, written into every page as JSON (`ComponentBrowser.astro`):
-   * - `folder`:  the auto-loader (`scripts/components.ts`) imports `$/ui/components/<folder>/index.ts` for the tag
-   * - `search`:  the browser's search key (`SearchText.key()`)
+   * What client scripts need per tag, written into every page as JSON (`ComponentBrowser.astro`):  `search`, the
+   * browser's search key (`SearchText.key()`).  Live examples load through `<ui-root>`'s own catalog.
    */
   static async clientIndex(): Promise<ClientIndex> {
     const index: ClientIndex = {}
-    for (const row of await ComponentIndex.rows()) index[row.tag] = { folder: row.folder, search: row.search }
+    for (const row of await ComponentIndex.rows()) index[row.tag] = { search: row.search }
     return index
   }
 
@@ -112,4 +111,4 @@ export type TopicGroup = {
 }
 
 /** Tag => what client scripts need about it (`ComponentIndex.clientIndex()`). */
-export type ClientIndex = Record<string, { folder: string; search: string }>
+export type ClientIndex = Record<string, { search: string }>
