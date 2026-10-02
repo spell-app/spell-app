@@ -27,11 +27,15 @@ export const DEFAULT_BODY_LIMIT = 1024 * 1024
  * - `text/*`:  the string
  * - `application/x-www-form-urlencoded`:  `{ key: value }`, a repeated key an array
  * - no body, or another type:  left as `{}`, and the body unread
+ * - a body already read by a parser earlier in the chain is left as it is (`request.locals.bodyRead`):  the stream
+ *   can't be read twice
  */
 export function parseBodies(options: BodyOptions = {}): Handler {
   const { limit = DEFAULT_BODY_LIMIT, parseJson = JSON.parse, jsonTypes = isJsonType } = options
   return async (request, _reply, next) => {
-    if (!hasBody(request.raw)) return next()
+    // read once:  a parser further up (the page server's) already has it, and the stream is drained
+    if (!hasBody(request.raw) || request.raw.readableEnded || request.locals.bodyRead) return next()
+    request.locals.bodyRead = true
     const type = request.contentType
     const json = jsonTypes(type)
     const form = type === "application/x-www-form-urlencoded"

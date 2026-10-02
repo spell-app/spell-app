@@ -23,8 +23,12 @@ waiting to be worked in, and the tools that keep it all consistent.  As the root
   - `goals.js` -- `yarn goals ...` / `spell goals ...` (below)
   - `page.js` -- `GoalsPage`:  every edit to a page, pure (HTML in, HTML out)
   - `targets.js` -- preferences, sets, topics, and what a target means
-  - `launch.js` -- the server in the background, browser windows, VS Code, Claude sessions in a terminal
-  - `server.js` -- the goals server
+  - `launch.js` -- Claude sessions in a terminal window
+  - `goalsRoutes.ts` -- the pages' buttons, as a route module of the page server (below);  tests:
+    `goalsRoutes.test.ts` (`yarn goals:test`)
+- The tools run under `tsx` (`goals.sh`, `yarn goals`), with `tsconfig.json` here for the repo's aliases:  they use
+  the page server's code (`$/server`).  So this folder now needs this repo:  copy it elsewhere and it needs
+  `packages/server` and `tsx` too.
 - `_skills/` -- the /goals skills:  `goals`, `goals-thought`, `goals-update`, `goals-open`, `goals-open-vs`.
   `_skills/goals/scripts/goals.sh` finds the nearest goals folder and runs its tool:  every skill calls it.
 - Templates:  `packages/docs/templates/goals/`.  Look:  `packages/docs/_assets/goals.css`.  Live buttons:
@@ -136,7 +140,7 @@ thought <target> "text" | -               a thought (-:  the text from stdin)
 digest <target/T3> "what came of it"
 index                                     rewrite every contents page's cards and numbers
 check [target] [--no-browser]             ids, links, status;  then check-spell.js in a real browser
-serve  /  server start|stop|status        the goals server
+serve  /  server start|stop|status        the page server, which serves the goals pages
 open [target]  /  open-vs [target]        a new browser window  /  VS Code, beside the editor
 talk [target] [--window]                  a /goals dialog with Claude, here (or in a new terminal window)
 update [target] [--print] [--window]      /goals-update with Claude (--print:  headless, no questions)
@@ -146,20 +150,26 @@ claude                                    is Claude Code installed and logged in
 - An icon a page uses must be in `ICONS` in `packages/docs/scripts/bundle-spell-ui.js`, then
   `node packages/docs/scripts/bundle-spell-ui.js --skip-ui-build`:  any other name draws nothing.
 
-## The goals server
+## The page server
 
+- Goals pages are served by the repo's PAGE SERVER (`packages/server`, `yarn server`), one per checkout, which
+  serves docs, plans and Spell UI too.  Goals plug in as a ROUTE MODULE, `_tools/goalsRoutes.ts`, listed in the
+  root `package.json`'s `"pageServer"`.
 - `yarn goals open` starts it in the background if need be (`yarn goals server start|stop|status`;  `serve` runs
-  it in front).  Port and the rest:  the preferences.  State and log:  `.server.json`, `.server.log` (git-ignored).
-- It serves the project's files on `127.0.0.1`, and gives each goals page `window.GOALS_SERVER`.  The page's
-  `goals-live.js` then:
-  - reloads the page (keeping the scroll) when the page, a stylesheet or a script changes on disk
+  it in front).  It asks for `server.port` (the preferences) first, else any free port.  State and log:
+  `<repo>/.spell-server.json`, `.spell-server.log` (git-ignored).
+- Each goals page gets `window.GOALS_SERVER` (`{ api }`) from the route module, and the server's
+  `window.SPELL_SERVER` (token, live reload).  The page server reloads the page (keeping the scroll) when the page,
+  a stylesheet or a script changes on disk.  The page's `goals-live.js`:
   - adds buttons:  Talk / Thought / Update under the contents' head, a round VS Code button beside its own, and a
     thought bubble and a talk button on every section heading and item (on hover)
-  - saves thoughts (`POST /api/thought`), starts Claude sessions in a terminal window (`POST /api/run`, skills
-    `goals` and `goals-update` only), and opens VS Code (`POST /api/open-vscode`)
+  - saves thoughts (`POST /api/goals/thought`), starts Claude sessions in a terminal window
+    (`POST /api/goals/run`, skills `goals` and `goals-update` only), and opens VS Code
+    (`POST /api/goals/open-vscode`)
   - no Claude Code, or not logged in:  a setup dialog, with Copy / Install guide / Log in buttons and "Check again"
 - Opened from disk instead, the buttons say how to start the server, and link to the page on it.
-- Safety:  loopback only;  any other `Host` refused;  POSTs need this run's token and a same-origin `Origin`;
+- Safety (the page server's `SRV.Guard`):  loopback only;  any other `Host` refused;  POSTs need this run's token
+  (`x-server-token`) and a same-origin `Origin`;
   dot-files and anything outside the project root are never served;  targets are resolved and skills checked
   before anything reaches a command line.
 - `GOALS_DRY_RUN=1` (for tests):  "starting" Claude only says what it would run.
@@ -169,7 +179,7 @@ claude                                    is Claude Code installed and logged in
 | Key | Means |
 |---|---|
 | `activeSet` | the set a target without one means;  `yarn goals use <set>` rewrites it, keeping comments |
-| `server.port` | the goals server's port |
+| `server.port` | the port the page server asks for first |
 | `browser` | where `open` shows pages, in a NEW window:  "Google Chrome", "Safari", or "default" |
 | `terminal` | where Claude sessions start from a page:  "Terminal" or "iTerm" |
 | `claude.command`, `claude.args` | the Claude Code command (a path, or the newest `claude` found) and extra arguments |

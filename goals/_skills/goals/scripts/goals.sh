@@ -33,4 +33,7 @@ elif ! goals=$(find_up); then
   goals=$(dirname "$found")
 fi
 
-exec node "$goals/_tools/goals.js" "$@"
+# under `tsx`, from the project's own node_modules, with the goals folder's `tsconfig.json`:  the tools import the
+# page server's code (`$/server`)
+root=$(dirname "$goals")
+TSX_TSCONFIG_PATH="$goals/tsconfig.json" exec node --import "file://$root/node_modules/tsx/dist/loader.mjs" "$goals/_tools/goals.js" "$@"

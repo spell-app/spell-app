@@ -135,6 +135,15 @@ describe("Router", () => {
       expect(JSON.parse(other.text).body).toEqual({})
     })
 
+    it("reads a body once, however many parsers run", async () => {
+      const twice = new SRV.Router().use(SRV.parseBodies(), SRV.parseBodies())
+      twice.post("/x", (request, reply) => reply.json(request.body))
+      const again = await serveHandler(twice.handle)
+      const answer = await ask(again.port, "POST", "/x", { body: `{"a":1}`, headers: { "content-type": "application/json" } })
+      expect(JSON.parse(answer.text)).toEqual({ a: 1 })
+      await again.close()
+    })
+
     it("parses DELETE bodies too", async () => {
       const answer = await ask(served.port, "DELETE", "/api/echo", {
         body: `{filePath: "x"}`,
