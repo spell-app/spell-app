@@ -54,8 +54,11 @@
 
   /* A SplitPane will have only one child.
      Make it take up the entire space. */
-  /* TODO: is there a better way to get the result we want??? */
-  & > * {
+  /* TODO: is there a better way to get the result we want???
+     `.SolidIsland > *`:  a Solid pane mounted in this React panel (`solidIsland()`) sits in a `display: contents`
+     wrapper, so the rule reaches through it.  Goes with the React `SplitPanel` (P8). */
+  & > *,
+  & > .SolidIsland > * {
     /* was `.spell-fill-container()` */
     position: absolute;
     inset: 0;
@@ -63,13 +66,16 @@
 
   /* standard variants -- was `.spell-padded-with-inset-variant()` / `.spell-bordered-variant()` /
      `.spell-light-variant()` / `.spell-rounded-variant()` / `.spell-scrolling-variant()` */
-  &.padded > * {
+  &.padded > *,
+  &.padded > .SolidIsland > * {
     inset: var(--spell-normal-padding);
   }
-  &[class*="tightly padded"] > * {
+  &[class*="tightly padded"] > *,
+  &[class*="tightly padded"] > .SolidIsland > * {
     inset: var(--spell-tight-padding);
   }
-  &[class*="loosely padded"] > * {
+  &[class*="loosely padded"] > *,
+  &[class*="loosely padded"] > .SolidIsland > * {
     inset: var(--spell-loose-padding);
   }
   &.bordered {

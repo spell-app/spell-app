@@ -1,0 +1,6 @@
+/* Solid twin of `$/app/ui/ConsoleViewer.css`:  `<ConsoleRoot>` stacks the toolbar over the viewer. */
+.ConsoleRoot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}

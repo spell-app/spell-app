@@ -9,8 +9,10 @@ import { render } from "@solidjs/web"
  *   P8 moves the pages to Solid, and this goes.
  * - Props stay live:  each React render hands the latest props to the Solid component, which reads them lazily
  *   (`props.x` where used), so only what changed re-runs.
- * - The wrapper is a `<div style="display: contents">`, so it doesn't box the island;  `wrapper` names its
- *   `class` / `id` when the page's CSS targets it.
+ * - The wrapper is a `<div class="SolidIsland" style="display: contents">`, so it doesn't box the island;  `wrapper`
+ *   adds a `class` / `id` when the page's CSS targets it.
+ *   - NOTE: a parent's `> *` rule now matches the wrapper, which takes no box:  reach through it with
+ *     `> .SolidIsland > *` (see `SplitPanel.css`).
  * - Each island is its own Solid root:  Solid context doesn't cross from one island to another.
  * - NOTE: no JSX here (it's React's AND Solid's), so this file is `.ts`.
  */
@@ -26,7 +28,8 @@ export function solidIsland<P extends object>(component: Component<P>, wrapper: 
     React.useLayoutEffect(() => {
       island.current?.update(props)
     })
-    return React.createElement("div", { ref: element, style: { display: "contents" }, ...wrapper })
+    const className = wrapper.className ? `SolidIsland ${wrapper.className}` : "SolidIsland"
+    return React.createElement("div", { ref: element, style: { display: "contents" }, id: wrapper.id, className })
   }
   SolidIsland.displayName = `SolidIsland(${component.name || "anonymous"})`
   return SolidIsland

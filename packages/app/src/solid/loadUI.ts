@@ -1,12 +1,13 @@
 import { isServer } from "@solidjs/web"
 
-import { UI as SpellUI } from "$/ui"
-
 /**
  * Loads `@spell-app/ui` for the app's Solid UI:  the ONE place the app does, imported by the `$/app/solid` barrel,
  * so any Solid component (which imports that barrel) has every `<ui-*>` it renders defined.
  * - SIDE EFFECT:  `$/ui`, its barrel, defines EVERY family as it's imported (as the docs' `spell-ui.js` does).
  *   Each element loads the `UI` runtime chunk on first connect;  starting it here lets us add icon packs first.
+ * - A DYNAMIC `import()`:  `ui` (~2 MB unminified) is its own chunk, off the app's first paint;  a `<ui-*>` rendered
+ *   before it arrives upgrades when it's defined.  And under node, where `customElements` doesn't exist, nothing
+ *   loads at all.
  * - Why the whole barrel, not family by family:  from another package, import its barrel only (root `AGENTS.md`,
  *   "Imports").  Per-tag loading is `<ui-root>`'s job;  revisit if the app's first paint gets heavy.
  * - Icon names:  the app speaks Fomantic's (`"ellipsis horizontal"`, `"app store ios"`), so the PAGE set adds
@@ -16,11 +17,13 @@ import { UI as SpellUI } from "$/ui"
  * - Builds:  the packs load from beside `BuiltInPacks`' chunk;  the app's `vite.config.ts` emits them there
  *   (`appConfig({ iconPacks })`).  In dev and tests they're served from `packages/ui/src/icons/icon-packs/`.
  * - NEVER reachable from `spell-runtime.js` (`spellRuntime.ts`):  compiled spell runs without Solid or `$/ui`.
- * - Server (the `node` test project, `renderToString`):  defines the tags only;  no runtime, no icons.
+ * - Server (the `node` test project, `renderToString`):  nothing;  the tags render as plain markup.
  */
-export const uiReady: Promise<void> = isServer ? Promise.resolve() : SpellUI.load().then(useAppIcons)
+export const uiReady: Promise<void> = isServer ? Promise.resolve() : loadUI()
 
-/** Add the icon packs the app's names come from, over the default. */
-function useAppIcons() {
+/** Import `$/ui` (defining every tag), start its runtime, then add the icon packs the app's names come from. */
+async function loadUI() {
+  const { UI: SpellUI } = await import("$/ui")
+  await SpellUI.load()
   void SpellUI.icons.use("fomantic")
 }

@@ -885,6 +885,20 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   imported `$/app/editor`:  vite found `marked`, `semantic-ui-react`, lodash ... mid-run, re-optimized and reloaded
   ("Failed to fetch dynamically imported module");  a second run passed. · `optimizeDeps.entries: BROWSER_TESTS` in
   `vitest.config.ts` `browserConfig()`, so the dep scan crawls the tests up front.  Cold-cache run green. · app
+- 2026-10-02 · The FIRST run of a new browser test that loads Monaco (`src/solid/InputEditor.browser.test.tsx`, via
+  `LazyMonaco`'s `import()`) failed 6 of 9 with "Failed to fetch dynamically imported module .../solid/monaco/index.ts";
+  the rerun passed, and every run since.  Same mid-run re-optimize as above, for `monaco-editor`'s deep imports (or
+  another agent's run colliding). · Rerun before investigating;  if it recurs on cold caches, add the `monaco-editor/...`
+  paths to `browserConfig()`'s `optimizeDeps.include`. · app
+- 2026-10-02 · A scratch `vite build -c <scratchpad>/vite.x.config.ts` importing `packages/app/vite.config.ts` died with
+  "`@solidjs/vite-plugin` ... default is not a function":  outside a `"type": "module"` package vite bundles the
+  config as CJS.  Then `$/app/...` imports in a scratch ENTRY didn't resolve (the aliases come from the package's
+  tsconfig). · Name it `.mts`;  import the app files by absolute path. · app
+- 2026-10-02 · A browser test (`src/solid/TypeExplorer.browser.test.tsx`) hung ~6 minutes with NO output, then
+  "Browser connection was closed", reported as `import 90%`:  it looked like a vite reload / collision.  Really a
+  microtask loop starving the page:  `tree={buildScopeTree(ENTRIES)}` makes a NEW tree on every read of the Solid
+  prop, the details cache was per tree object, so each answer asked again. · Bisect with a tiny probe test (passes
+  in a second);  if the real file still hangs, suspect a loop.  Fixed in the component (`currentTree()` memo). · app
 
 ## cli
 

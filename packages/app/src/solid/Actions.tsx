@@ -2,7 +2,7 @@ import { Show, createContext, omit, useContext } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { editor, runtimeConsole } from "$/app/editor"
-import type { UI } from "$/app/ui"
+import type * as Modals from "$/app/solid/modals"
 import { tracked } from "$/app/solid"
 
 /****************
@@ -274,19 +274,19 @@ export const Actions = {
   // - every other prop goes to the dialog.
   ////////////////
 
-  alert: (props: DialogActionProps<UI.AlertModalProps>) => (
+  alert: (props: DialogActionProps<Modals.AlertModalProps>) => (
     <DialogAction props={props} title="Alert" icon="warning sign" show={(modal) => editor.alert(modal)} />
   ),
-  confirm: (props: DialogActionProps<UI.ConfirmModalProps>) => (
+  confirm: (props: DialogActionProps<Modals.ConfirmModalProps>) => (
     <DialogAction props={props} title="Confirm" icon="question circle" show={(modal) => editor.confirm(modal)} />
   ),
-  prompt: (props: DialogActionProps<UI.PromptModalProps>) => (
+  prompt: (props: DialogActionProps<Modals.PromptModalProps>) => (
     <DialogAction props={props} title="Prompt" icon="edit" show={(modal) => editor.prompt(modal)} />
   ),
-  promptForNumber: (props: DialogActionProps<UI.PromptModalProps>) => (
+  promptForNumber: (props: DialogActionProps<Modals.PromptModalProps>) => (
     <DialogAction props={props} title="Prompt Number" icon="hashtag" show={(modal) => editor.promptForNumber(modal)} />
   ),
-  choose: (props: DialogActionProps<UI.ChooserModalProps>) => (
+  choose: (props: DialogActionProps<Modals.ChooserModalProps>) => (
     <DialogAction props={props} title="Choose" icon="list" show={(modal) => editor.choose(modal)} />
   ),
 

@@ -4,7 +4,7 @@ import * as SUI from "semantic-ui-react"
 import { view } from "$/util"
 
 import { editor, runtimeConsole } from "$/app/editor"
-import type { UI } from "$/app/ui"
+import type * as Modals from "$/app/solid/modals"
 
 /****************
  * ### `<Action>`
@@ -224,7 +224,7 @@ export const Actions = {
     icon = "warning sign",
     itemProps,
     ...modalProps
-  }: DialogActionProps<UI.AlertModalProps>) => {
+  }: DialogActionProps<Modals.AlertModalProps>) => {
     itemProps = { title, icon, ...itemProps }
     return <Action title={title} icon={icon} {...itemProps} onClick={() => editor.alert(modalProps).then(callback)} />
   },
@@ -234,7 +234,7 @@ export const Actions = {
     icon = "question circle",
     itemProps,
     ...modalProps
-  }: DialogActionProps<UI.ConfirmModalProps>) => {
+  }: DialogActionProps<Modals.ConfirmModalProps>) => {
     itemProps = { title, icon, ...itemProps }
     return <Action {...itemProps} onClick={() => editor.confirm(modalProps).then(callback)} />
   },
@@ -244,7 +244,7 @@ export const Actions = {
     icon = "edit",
     itemProps,
     ...modalProps
-  }: DialogActionProps<UI.PromptModalProps>) => {
+  }: DialogActionProps<Modals.PromptModalProps>) => {
     itemProps = { title, icon, ...itemProps }
     return <Action {...itemProps} onClick={() => editor.prompt(modalProps).then(callback)} />
   },
@@ -254,7 +254,7 @@ export const Actions = {
     icon = "hashtag",
     itemProps,
     ...modalProps
-  }: DialogActionProps<UI.PromptModalProps>) => {
+  }: DialogActionProps<Modals.PromptModalProps>) => {
     itemProps = { title, icon, ...itemProps }
     return <Action {...itemProps} onClick={() => editor.promptForNumber(modalProps).then(callback)} />
   },
@@ -264,7 +264,7 @@ export const Actions = {
     icon = "list",
     itemProps,
     ...modalProps
-  }: DialogActionProps<UI.ChooserModalProps>) => {
+  }: DialogActionProps<Modals.ChooserModalProps>) => {
     itemProps = { title, icon, ...itemProps }
     return <Action {...itemProps} onClick={() => editor.choose(modalProps).then(callback)} />
   },
