@@ -34,7 +34,12 @@
     "docs:open": "yarn workspace @spell-app/docs docs:open",
     "plan-doc": "yarn workspace @spell-app/docs plan-doc",
     "goals": "node goals/_tools/goals.js",
-    "window": "node scripts/window.mjs"
+    "window": "node scripts/window.mjs",
+    "server": "yarn workspace @spell-app/server server"
+  },
+  "pageServer": {
+    "routes": [],
+    "watch": ["packages/docs"]
   },
   "devDependencies": {
     "@vitest/browser-playwright": "5.0.2",
