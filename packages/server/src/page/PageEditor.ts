@@ -1,0 +1,160 @@
+import { readFile, rename, stat, writeFile } from "node:fs/promises"
+import { basename, dirname, join } from "node:path"
+import { parse } from "parse5"
+
+import { SRV } from "$/server"
+
+/**
+ * Edits pages IN PLACE, for the page server:  `/_server/page`.
+ * - `GET ?path=<url path>[&id=<id>][&inner=1]`:  the page's source (or one element's), and its `ETag`
+ * - `PUT ?path=`:  the whole page;  body `text/html`, or JSON `{ html }`
+ * - `PATCH ?path=`:  one element by `id`;  body JSON `{ id, html, inner? }`
+ * - writes the ORIGINAL file in the checkout, and never commits:  that's for whoever reviews the change
+ * - a section edit splices the element's exact byte range (parse5 source locations):  every other byte of the
+ *   file stays as it was, so diffs show only the edit
+ * - safety:
+ *   - writes need the `Guard` token and same origin
+ *   - `.html` under the root only, through `resolveInside()` (no dot files, no `..`)
+ *   - `If-Match` MUST be the `ETag` the page was served with:  if the file changed since (an editor, an agent),
+ *     409, and the caller reloads;  missing:  428
+ *   - written under `FileLock`, atomically (temp file + rename)
+ */
+export class PageEditor {
+  /** folder pages live under */
+  readonly root: string
+
+  constructor(root: string) {
+    this.root = root
+  }
+
+  /** add the `/_server/page` routes to `router`, guarded by `guard` */
+  route(router: SRV.Router, guard: SRV.Guard): void {
+    router.get("/_server/page", (request, reply) => this.read(request, reply))
+    router.put("/_server/page", guard.writeCheck, (request, reply) => this.write(request, reply, "put"))
+    router.patch("/_server/page", guard.writeCheck, (request, reply) => this.write(request, reply, "patch"))
+  }
+
+  /** answer `GET`:  `{ path, etag, html }` */
+  private async read(request: SRV.Request, reply: SRV.Reply): Promise<void> {
+    const { path, file } = this.pageFile(request)
+    const source = await readFile(file, "utf8")
+    const etag = SRV.StaticHandler.etagOf(await stat(file))
+    const id = one(request.query.id)
+    const html = id ? sliceOf(source, findById(source, id), Boolean(one(request.query.inner))) : source
+    reply.set("Cache-Control", "no-store").json({ path, etag, html })
+  }
+
+  /** answer `PUT` / `PATCH`:  `{ path, etag }`, the file's new `ETag` */
+  private async write(request: SRV.Request, reply: SRV.Reply, how: "put" | "patch"): Promise<void> {
+    const { path, file } = this.pageFile(request)
+    const expected = request.get("if-match")
+    if (!expected) throw new SRV.HttpError(428, "If-Match required:  send the ETag the page was served with")
+    const body = request.body as string | { html?: unknown; id?: unknown; inner?: unknown }
+    const etag = await SRV.FileLock.runAsync(file, async () => {
+      const current = SRV.StaticHandler.etagOf(await stat(file))
+      if (current !== expected)
+        throw new SRV.HttpError(409, "the page changed since it was loaded:  reload it", {
+          error: "the page changed since it was loaded:  reload it",
+          etag: current
+        })
+      const source = await readFile(file, "utf8")
+      let next: string
+      if (how === "put") {
+        next = typeof body === "string" ? body : typeof body.html === "string" ? body.html : ""
+        if (!next.trim()) throw new SRV.HttpError(400, "no html to write")
+      } else {
+        if (typeof body !== "object" || typeof body.id !== "string" || typeof body.html !== "string")
+          throw new SRV.HttpError(400, "PATCH body must be JSON { id, html, inner? }")
+        next = replaceById(source, body.id, body.html, Boolean(body.inner))
+      }
+      const temp = join(dirname(file), `.${basename(file)}.${process.pid}.tmp`)
+      await writeFile(temp, next)
+      await rename(temp, file)
+      return SRV.StaticHandler.etagOf(await stat(file))
+    })
+    reply.set("Cache-Control", "no-store").json({ path, etag })
+  }
+
+  /** the page a request names in `?path=`:  an `.html` file under the root, or an `HttpError` */
+  private pageFile(request: SRV.Request): { path: string; file: string } {
+    const asked = one(request.query.path)
+    if (!asked) throw new SRV.HttpError(400, "?path= required, e.g. /packages/docs/index.html")
+    const path = asked.startsWith("/") ? asked : `/${asked}`
+    const resolved = SRV.resolveInside(this.root, path, { index: false })
+    if ("status" in resolved) throw new SRV.HttpError(resolved.status, resolved.message)
+    if ("redirect" in resolved || !/\.html?$/i.test(resolved.file))
+      throw new SRV.HttpError(400, `not an .html page:  ${path}`)
+    return { path, file: resolved.file }
+  }
+}
+
+/**
+ * Where one element sits in a page's source:  character offsets.
+ * - `start` / `end`:  the whole element, tags included
+ * - `innerStart` / `innerEnd`:  its content;  `undefined` for an element with no end tag
+ */
+export type ElementRange = { start: number; end: number; innerStart?: number; innerEnd?: number }
+
+/**
+ * The range of the ONE element with `id="<id>"` in `source`.
+ * - none:  `HttpError(404)`;  several:  `HttpError(409)` -- an edit must name exactly one
+ * - looks inside `<template>`s too
+ */
+export function findById(source: string, id: string): ElementRange {
+  const found: ElementRange[] = []
+  visit(parse(source, { sourceCodeLocationInfo: true }) as unknown as Parse5Node)
+  if (!found.length) throw new SRV.HttpError(404, `no element with id "${id}"`)
+  if (found.length > 1) throw new SRV.HttpError(409, `${found.length} elements with id "${id}":  ids must be unique`)
+  return found[0]!
+
+  /** collect matching elements under `node` */
+  function visit(node: Parse5Node): void {
+    const location = node.sourceCodeLocation
+    if (location && node.attrs?.some((attr) => attr.name === "id" && attr.value === id)) {
+      found.push({
+        start: location.startOffset,
+        end: location.endOffset,
+        innerStart: location.endTag ? location.startTag?.endOffset : undefined,
+        innerEnd: location.endTag?.startOffset
+      })
+    }
+    for (const child of node.childNodes ?? []) visit(child)
+    if (node.content) visit(node.content)
+  }
+}
+
+/**
+ * `source` with the element `#id` replaced by `html` (or, `inner`, its content).
+ * - every other character is kept as it was
+ */
+export function replaceById(source: string, id: string, html: string, inner = false): string {
+  const range = findById(source, id)
+  const [start, end] = inner ? [range.innerStart, range.innerEnd] : [range.start, range.end]
+  if (start === undefined || end === undefined) throw new SRV.HttpError(400, `#${id} has no end tag:  edit it whole`)
+  return source.slice(0, start) + html + source.slice(end)
+}
+
+/** The markup of `range` in `source`:  the whole element, or (`inner`) its content. */
+function sliceOf(source: string, range: ElementRange, inner: boolean): string {
+  if (!inner) return source.slice(range.start, range.end)
+  if (range.innerStart === undefined || range.innerEnd === undefined) return ""
+  return source.slice(range.innerStart, range.innerEnd)
+}
+
+/** The first value of a query parameter. */
+function one(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value
+}
+
+/** The parts of a parse5 node `findById()` reads. */
+type Parse5Node = {
+  attrs?: { name: string; value: string }[]
+  childNodes?: Parse5Node[]
+  content?: Parse5Node
+  sourceCodeLocation?: {
+    startOffset: number
+    endOffset: number
+    startTag?: { endOffset: number }
+    endTag?: { startOffset: number }
+  }
+}

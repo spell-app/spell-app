@@ -50,12 +50,12 @@
               >spell serve</code
             >) on one port, with live reload, a shared site header and an API that edits pages in place.
           </p>
-          <ui-progress class="plan-progress" value="1" total="8" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="2" total="8" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
           <ui-steps class="plan-phases" vertical ordered
             ><ui-step completed header="P1 · Library Core" href="#p1" data-status="done" data-phase="1"></ui-step
-            ><ui-step header="P2 · Page Server" href="#p2" data-status="todo" data-phase="2"></ui-step
+            ><ui-step completed header="P2 · Page Server" href="#p2" data-status="done" data-phase="2"></ui-step
             ><ui-step header="P3 · CLI And UI" href="#p3" data-status="todo" data-phase="3"></ui-step
             ><ui-step header="P4 · Docs And Preview" href="#p4" data-status="todo" data-phase="4"></ui-step
             ><ui-step header="P5 · Goals Migration" href="#p5" data-status="todo" data-phase="5"></ui-step
@@ -139,7 +139,7 @@
             <ul>
               <li>
                 one per checkout root (main + each worktree): pid <code>&lt;root&gt;/.spell-server.json</code>, log
-                <code>.spell-server.log</code>
+                <a href="../../../../.spell-server.log" target="src-spell-server-log"><code>.spell-server.log</code></a>
               </li>
               <li>
                 port: prefer 4747, else any free; real port in pid file; pages read injected
@@ -606,9 +606,9 @@
               <li><b>Verify:</b> yarn workspace @spell-app/server review</li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="2" class="s3">
+          <section data-status="done" data-phase="2" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p2"><ui-icon name="circle outline" color="grey"></ui-icon> P2 · Page Server</h3></ui-sticky
+              ><h3 id="p2"><ui-icon name="circle check" color="green"></ui-icon> P2 · Page Server</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li>
@@ -789,6 +789,20 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T01:08-04:00">2026-10-02 01:08</time></ui-date> P1 done:
                   packages/server scaffold + library core, 46 tests</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:09-04:00">2026-10-02 01:09</time></ui-date> P2
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:15-04:00">2026-10-02 01:15</time></ui-date> P2
+                  done</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

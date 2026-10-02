@@ -5,5 +5,9 @@ node_modules
 packages/solid-element/dist/
 __pycache__/
 
+# the page server's pid file and log (`yarn server`)
+.spell-server.json
+.spell-server.log
+
 # `/bedtime`'s morning report:  never committed
 MORNING-*.md
