@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 //
 //  ## Lines of `spellCore.console`, drawn as a collapsible tree
 //

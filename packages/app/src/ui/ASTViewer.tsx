@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 import React from "react"
 
 import { view, scrollForElement, centerElementInParent } from "$/util"

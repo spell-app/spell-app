@@ -1,14 +1,15 @@
 import { defineConfig } from "vitest/config"
 
-import { standardDecorators } from "../../vite.decorators.ts"
-import { packageVersion } from "../../vite.packageVersion.ts"
+import { appConfig } from "./vite.shared.ts"
 
 /**
- * DOCME: vitest config for `@spell-app/app`.
- * - Aliases (`$/util` ...) come from the repo root's `tsconfig.base.json`, through `resolve.tsconfigPaths`.
- * - `standardDecorators()` lowers standard decorators:  vite 8's own transform (oxc) doesn't.
+ * Vitest config for `@spell-app/app`:  tests run in node.
+ * - `appConfig()`:  aliases (`$/util` ...) from the repo root's `tsconfig.base.json`, decorator lowering, and the
+ *   React / Solid plugins side by side.  Created HERE, so the Solid plugin takes node's server posture:  a Solid
+ *   component test renders with `@solidjs/web`'s `renderToString`.
  */
 export default defineConfig({
-  plugins: [standardDecorators(), packageVersion()],
-  resolve: { tsconfigPaths: true }
+  ...appConfig(),
+  // SAID here, not left as vitest's default:  the Solid plugin reads it, and picks jsdom + the client build without it
+  test: { environment: "node" }
 })

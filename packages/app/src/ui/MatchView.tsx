@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 import { P } from "$/parser"
 import { SP } from "$/spell"
 

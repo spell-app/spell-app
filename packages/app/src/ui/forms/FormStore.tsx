@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 import cloneDeep from "lodash/cloneDeep"
 
 import { createStore, getPath, setPath } from "$/util"

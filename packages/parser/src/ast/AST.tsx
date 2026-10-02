@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 /** AST classes.  These do not necessarily correspond do anyone else's AST. */
 
 import { getSuperHierarchy, Assertable, OPTIONAL } from "$/util"

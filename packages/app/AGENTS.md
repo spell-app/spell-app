@@ -10,7 +10,13 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
 
 - The top of the chain (below `cli`):  the web app, its server, and the embeddable web components.  Everything
   else is a package it imports:  `$/spell`, `$/lsp`, `$/parser`, `$/util`, `@spell-app/ui` ...
-- `src/` is the app (React 18, moving to Solid 2:  READ the root's Solid 2 pointer for Solid work):
+- React and Solid side by side, while the app moves to Solid 2 (READ the root's Solid 2 pointer for Solid work):
+  - Solid is the DEFAULT JSX:  a new `.tsx` is Solid.  A React file's FIRST line is `/** @jsxImportSource react */`
+    -- `tsc` reads it, and so does `vite.shared.ts` (`reactFiles()`), which every `vite*.config.ts` /
+    `vitest.config.ts` here builds on.  Restart `vite` after adding or dropping one.  `CODE-DEBT.md` "app".
+  - Tests run in node:  `solid-js` is its SERVER build there (`renderToString`;  writes NOT staged), see
+    `src/solid.test.tsx`.
+- `src/` is the app:
   `ui/` (`UI`, `F` for `ui/forms`), `pages/`, `runner/`, `spellEditor/`, `editor.ts`, `index.tsx`.
   `src/server/` is its API server (`api.ts`, `index.ts`) on `$/server`'s Express-shaped `SRV.Router` /
   `SRV.WebServer` (it was Express):  `api.test.ts` pins its behaviour over HTTP.  The file / project helpers it

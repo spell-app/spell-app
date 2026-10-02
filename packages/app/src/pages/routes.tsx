@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 import { Router as ReachRouter, type RouterProps } from "@reach/router"
 
 import { ProjectChooserRoute } from "./ProjectChooser"

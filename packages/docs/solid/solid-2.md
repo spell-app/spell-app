@@ -6,7 +6,9 @@ or reviewing Solid code, JSX, `spellCore` rendering, `~/util` reactivity, or any
 ## Status
 
 - We are moving from React 18 + semantic-ui-react + easy-state to Solid 2 on `@spell-app/ui` web components.
-  - Plan phases 0-6;  until Phase 6 React and Solid JSX COEXIST, split by path (`SOLID_FILES` in the vite configs).
+  - Plan:  `packages/docs/epics/solid-migration/`.  React and Solid JSX COEXIST in `app`:  Solid is the default;  a
+    React `.tsx` starts with `/** @jsxImportSource react */`, which `tsc` and `app`'s `vite.shared.ts` both read.
+    Moving a file to Solid = dropping that line.  `core` keeps rendering compiled spell with React (for now).
   - Items marked (planned) below are decided but may not exist in code yet -- check before relying on them.
 - Target `solid-js` / `@solidjs/web` / `@solidjs/h` `2.0.0-rc.13` (current, 2026-09-30), pinned EXACTLY.
   - Every package is on rc.13 (2026-10-02):  ONE copy at the repo root, pinned in the root `resolutions`;  upgrade

@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 // Common imports
 import { createRoot } from "react-dom/client"
 

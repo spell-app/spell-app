@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 import * as SUI from "semantic-ui-react"
 
 import { F } from "$/app/ui/forms"

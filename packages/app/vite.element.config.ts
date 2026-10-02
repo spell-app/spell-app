@@ -1,10 +1,8 @@
 import { readFileSync } from "fs"
 import { defineConfig, type Plugin } from "vite"
-import react from "@vitejs/plugin-react"
 
 import environment from "../spell/src/node/environment.ts"
-import { standardDecorators } from "../../vite.decorators.ts"
-import { packageVersion } from "../../vite.packageVersion.ts"
+import { appConfig } from "./vite.shared.ts"
 
 /**
  * Build the `<spell-app>` web component:  `yarn build:element` => `dist-element/`.
@@ -17,13 +15,13 @@ import { packageVersion } from "../../vite.packageVersion.ts"
  * - One `spell-app.css`, which the element puts in each shadow root -- see `shadowStyles.ts`.
  * - `static/` is copied in, so Semantic UI and Lato sit beside the bundle -- and the built-in types' scope pack,
  *   `spellCore.scopes.js`, see `builtInsPack()`.
- * - Plugins, alias and `define` as `vite.config.ts`.  `keepNames` MUST stay on -- see `parser/build.test.ts`.
+ * - Plugins, aliases, dedupe and CSS:  `appConfig()`, as `vite.config.ts`.  `keepNames` MUST stay on -- see
+ *   `parser/build.test.ts`.
  */
+const shared = appConfig()
 export default defineConfig({
-  plugins: [standardDecorators(), packageVersion(), react(), builtInsPack()],
-  resolve: {
-    tsconfigPaths: true
-  },
+  ...shared,
+  plugins: [...shared.plugins, builtInsPack()],
   publicDir: "static",
   build: {
     chunkSizeWarningLimit: 2000,

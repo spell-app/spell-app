@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 /**
  * Output backend for `ASTNode`s -- draws parens/lists/blocks/etc. as React elements, for syntax-highlighted display.
  * - Mirrors `stringifyAST.ts` export-for-export: same core names (`SPACE`, `COMMA`, `List`, `InParens`, `Block`, ...)

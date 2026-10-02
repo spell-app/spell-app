@@ -1,8 +1,6 @@
 import { defineConfig } from "vite"
-import react from "@vitejs/plugin-react"
 
-import { standardDecorators } from "../../vite.decorators.ts"
-import { packageVersion } from "../../vite.packageVersion.ts"
+import { appConfig } from "./vite.shared.ts"
 
 /**
  * Build the `<spell-editor>` web component into `dist-element/`, beside `<spell-app>` -- `yarn build:element` builds
@@ -14,14 +12,11 @@ import { packageVersion } from "../../vite.packageVersion.ts"
  * - One `spell-editor.css` -- Monaco's and ours -- which the element puts in its shadow root.  See `shadowStyles.ts`.
  * - Monaco's worker is `spell-editor-editor.worker.js`.
  * - Fixed names, no hashes, as `<spell-app>`'s:  the element finds its styles beside itself.
- * - Plugins, alias and `define` as `vite.config.ts`.  `keepNames` MUST stay on:  a rule's class name is its name --
- *   see `parser/build.test.ts`.
+ * - Plugins, aliases, dedupe and CSS:  `appConfig()`, as `vite.config.ts`.  `keepNames` MUST stay on:  a rule's
+ *   class name is its name -- see `parser/build.test.ts`.
  */
 export default defineConfig({
-  plugins: [standardDecorators(), packageVersion(), react()],
-  resolve: {
-    tsconfigPaths: true
-  },
+  ...appConfig(),
   // `vite.element.config.ts` copied `static/` in already
   publicDir: false,
   // relative:  Monaco's worker is found beside the bundle, wherever that's served from -- NOT `/` of the page

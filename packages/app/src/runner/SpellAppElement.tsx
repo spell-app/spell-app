@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 import { createRoot, type Root } from "react-dom/client"
 
 // Import directly, NOT through the `$/spell` barrel, which would pull in the whole parser.

@@ -1,19 +1,17 @@
 import { defineConfig } from "vite"
-import react from "@vitejs/plugin-react"
 
 import environment from "../spell/src/node/environment.ts"
-import { standardDecorators } from "../../vite.decorators.ts"
-import { packageVersion } from "../../vite.packageVersion.ts"
+import { appConfig } from "./vite.shared.ts"
 
 /** Name of the runtime's entry in a build:  `dist/spell-runtime.js` -- see `editor.loadRuntime()`. */
 const RUNTIME_ENTRY = "spell-runtime"
 
-// https://vitejs.dev/config/
+/**
+ * The editor app:  `yarn start:dev` / `yarn build` => `dist/`.
+ * - Plugins, aliases, dedupe and CSS:  `appConfig()` (React and Solid side by side).
+ */
 export default defineConfig({
-  plugins: [standardDecorators(), packageVersion(), react()],
-  resolve: {
-    tsconfigPaths: true
-  },
+  ...appConfig(),
   server: {
     port: environment.vitePort,
     host: "0.0.0.0",

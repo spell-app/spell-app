@@ -1,8 +1,6 @@
 import { defineConfig } from "vite"
-import react from "@vitejs/plugin-react"
 
-import { standardDecorators } from "../../vite.decorators.ts"
-import { packageVersion } from "../../vite.packageVersion.ts"
+import { appConfig } from "./vite.shared.ts"
 
 /**
  * Build the runner bundle for the VS Code extension's "Run Project" webview:  `yarn build:runner`.
@@ -12,13 +10,11 @@ import { packageVersion } from "../../vite.packageVersion.ts"
  * - What both use goes in ONE shared chunk, e.g. React.  `spellCore` MUST stay in `spell-runtime.js` alone --
  *   pinned by `element.build.test.ts`.  As `vite.element.config.ts`, which builds `<spell-app>`.
  * - Semantic UI + Lato are NOT bundled:  the webview loads them straight from `static/`.
- * - Plugins, alias and `define` as `vite.config.ts`.  `keepNames` MUST stay on -- see `parser/build.test.ts`.
+ * - Plugins, aliases, dedupe and CSS:  `appConfig()`, as `vite.config.ts`.  `keepNames` MUST stay on -- see
+ *   `parser/build.test.ts`.
  */
 export default defineConfig({
-  plugins: [standardDecorators(), packageVersion(), react()],
-  resolve: {
-    tsconfigPaths: true
-  },
+  ...appConfig(),
   build: {
     chunkSizeWarningLimit: 1000,
     outDir: "dist-runner",

@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 import { view } from "$/util"
 
 import { UI } from "$/app/ui"

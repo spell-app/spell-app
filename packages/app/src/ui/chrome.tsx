@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 //
 //  ## Generic SUI-derived app chrome: menus, submenus and dropdowns.
 //  Plain `semantic-ui-react` pass-throughs (`UI.Button` ...) live in `SUIPassThroughs.ts`.
