@@ -2,7 +2,7 @@
  * Shared types for `$/ui/elements` -- the element core:  class building, validation, menu options, owner context,
  * shorthand, native fallbacks (library-neutral), and the Solid layer:  how a `ComponentVocabulary` becomes typed,
  * converted property values, and what the pieces of `UIElement` hand each other.
- * - Runtime-light:  types, plus two name constants (`ERROR_EVENT`, `ERRORED_STATE`).
+ * - Runtime-light:  types, plus a few constants (`ERROR_EVENT`, `ERRORED_STATE`, `StickyWatch`'s thresholds).
  */
 
 import type { PropDefinition } from "@spell-app/solid-element"
@@ -516,3 +516,54 @@ export type MenuSeparator = {
 
 /** One row of a dropdown menu, in order:  an option or a separator. */
 export type MenuEntry = MenuOption | MenuSeparator
+
+////////////////
+// ## Sticky watch
+////////////////
+
+/** Edge a watched sticky box is stuck to (`StickyWatch`);  ~== `UIT.StickyEdge`. */
+export type StickyWatchEdge = "top" | "bottom"
+
+/** What `StickyWatch.observe()` watches:  elements the caller renders. */
+export type StickyWatchTargets = {
+  /** element whose ancestors decide the scroll container (the custom element's host) */
+  host: Element
+  /** 1px sentinel where the box's top would be, unstuck */
+  top: Element
+  /** 1px sentinel where the box's bottom would be;  only read with `pushing` */
+  bottom?: Element
+  /** the `position: sticky` box */
+  box: Element
+}
+
+/** Offsets one observation measures against;  a change means a new `observe()`. */
+export type StickyWatchOptions = {
+  /** pixels between the scroll container's top edge and the stuck box (CSS `top`) */
+  offset: number
+  /** pixels between the bottom edge and a box stuck there (CSS `bottom`) */
+  bottomOffset?: number
+  /** also sticks to the bottom edge */
+  pushing?: boolean
+}
+
+/** What a `StickyWatch` reports after every measurement. */
+export type StickyWatchState = {
+  /** edge stuck to now, or `null` */
+  edge: StickyWatchEdge | null
+  /** pushed out by the end of its container */
+  bound: boolean
+  /** edge stuck to before this report;  `edge !== previous` ~== the stuck state changed */
+  previous: StickyWatchEdge | null
+}
+
+/** `overflow-y` values that make a scroll container. */
+export const STICKY_SCROLLING: ReadonlySet<string> = new Set(["auto", "scroll", "overlay", "hidden"])
+
+/**
+ * A stuck box taller than this share of the visible area, or narrower than this share of its width, reserves no
+ * scroll padding:  it's a sticky column (a sidebar), and reserving its height would make Page Down barely move.
+ */
+export const STICKY_MAX_RESERVE = 0.5
+
+/** Sub-pixel slack when comparing edges. */
+export const STICKY_SLACK = 0.5

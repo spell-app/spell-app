@@ -76,6 +76,9 @@ body {
  * stickies' `offset` (their h2's height) and `--spell-h2-h` / `--spell-h3-h` on the sections.
  * - h2 above h3:  when a section ends, its h3 slides up UNDER the h2 (`--ui-sticky-z-index`, a public token)
  */
+ui-sticky.spell-h1 {
+  --ui-sticky-z-index: 5;
+}
 ui-sticky.spell-h2 {
   --ui-sticky-z-index: 4;
 }
@@ -97,8 +100,27 @@ h1 {
   margin: 0 0 8px;
   letter-spacing: -0.01em;
 }
+/*
+ * The sticky page header:  `<ui-sticky class="spell-h1"><header class="spell-page-head">` around the h1 and, in
+ * plan docs, the step label (`.plan-step`) at its right.  Smaller than a free h1:  it stays on screen.
+ */
+.spell-page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  padding-block: 8px;
+  background: var(--spell-bg);
+  border-bottom: 1px solid var(--spell-rule);
+}
+.spell-page-head > h1 {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-size: 1.6rem;
+}
 /* the stuck headings' background reaches a few px past the column, over the cards' outer 1px borders */
-:is(ui-sticky.spell-h2 > h2, ui-sticky.spell-h3 > h3, .spell-filter) {
+:is(ui-sticky.spell-h2 > h2, ui-sticky.spell-h3 > h3, .spell-filter, .spell-page-head) {
   margin-inline: -4px;
   padding-inline: 4px;
 }
@@ -124,10 +146,11 @@ ui-sticky.spell-h3 > h3 {
   margin: 22px 0 6px;
 }
 /*
- * Anchors land below the stuck headers:  an h2 at the top, an h3 below its h2, anything else below both.
- * `--spell-top` is what sticks above every h2 (the CHEATSHEET's filter bar), set by the runtime.
+ * Anchors land below the stuck headers:  an h2 at the top, an h3 below its h2, anything else (h4s, plan items)
+ * below both.  `--spell-top` is what sticks above every h2 (the page header, the CHEATSHEET's filter bar), set by
+ * the runtime.
  */
-.spell-doc-main :is(h2, h3, h4) {
+.spell-doc-main [id] {
   scroll-margin-top: calc(var(--spell-top, 0px) + var(--spell-h2-h, 0px) + var(--spell-h3-h, 0px) + 8px);
 }
 ui-sticky.spell-h2 > h2 {
@@ -139,6 +162,30 @@ ui-sticky.spell-h3 > h3 {
 /* badges in headings sit on the text's middle */
 :is(h2, h3, h4) ui-label {
   vertical-align: middle;
+}
+/* an h2's open / all items (`ui-label.spell-count`, by the runtime):  at the right */
+h2 > ui-label.spell-count::part(label) {
+  float: right;
+  margin: 0.35em 0 0 8px;
+}
+
+/*
+ * Folding:  every h2 / h3 section folds from a chevron button at the start of its heading (the runtime adds it);
+ * a folded section shows only its heading.
+ */
+.spell-doc-main section.spell-folded > :not(ui-sticky) {
+  display: none;
+}
+.spell-foldable {
+  cursor: pointer;
+}
+ui-button.spell-fold {
+  margin-right: 6px;
+  vertical-align: middle;
+}
+/* a folded h3 doesn't need its sticky room:  the next one follows right under it */
+.spell-doc-main section.spell-folded:has(> ui-sticky.spell-h3) {
+  margin-top: 6px;
 }
 
 /*******************************
@@ -436,18 +483,89 @@ ui-accordion.spell-toc ui-accordion::part(title) {
   font-weight: 600;
 }
 
-/* The narrow-screen opener:  hidden while the contents have their own column;  opaque over the text. */
-ui-button.spell-toc-open {
-  display: none;
-  --ui-button-background: var(--ui-surface-strong, Canvas);
-  --ui-button-background-hover: var(--ui-highlight, Canvas);
-  --ui-button-color: var(--ui-text-color, CanvasText);
+/* an h2's open items, after its contents link:  `ui-label.spell-toc-count` */
+.spell-toc ui-title > ui-label.spell-toc-count {
+  margin-inline-start: 4px;
+  vertical-align: middle;
 }
 
-/* ## Narrow screens:  the contents become a right drawer */
+/*******************************
+             Rail
+*******************************/
+
+/*
+ * The rail (`nav.spell-rail`, built by the runtime):  a strip at the right edge -- the contents button (bars) on
+ * top, then one icon per h2, its open items floating on it.  Shown while the contents column isn't:  narrow
+ * screens, or `body.spell-toc-hidden` (the contents' hide button).
+ */
+:root {
+  --spell-rail-width: 48px;
+}
+.spell-rail {
+  display: none;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 899;
+  width: var(--spell-rail-width);
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  overflow-y: auto;
+  background: var(--spell-bg);
+  border-left: 1px solid var(--spell-rule);
+}
+/* the menu's width is fixed:  icon items have none of their own, so a shrink-to-fit menu would collapse */
+.spell-rail ui-menu::part(menu) {
+  margin: 0;
+  min-height: 0;
+  width: calc(var(--spell-rail-width) - 12px);
+}
+.spell-rail ui-item::part(item) {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0;
+  border-radius: 6px;
+  color: var(--spell-muted);
+}
+.spell-rail ui-item::part(item):hover {
+  background: var(--spell-accent-soft);
+}
+.spell-rail ui-item[selected]::part(item) {
+  background: var(--spell-accent-soft);
+  color: var(--spell-accent);
+}
+/* the floating badge sits on the icon's corner, inside the strip */
+.spell-rail ui-label[floating] {
+  --ui-label-floating-offset: -0.4em;
+}
+body.spell-toc-hidden .spell-rail {
+  display: flex;
+}
+body.spell-toc-hidden .spell-doc-main {
+  padding-right: calc(var(--spell-rail-width) + 16px);
+}
+@media (min-width: 1101px) {
+  body.spell-toc-hidden .spell-doc {
+    grid-template-columns: minmax(0, 880px);
+  }
+  body.spell-toc-hidden .spell-doc-toc {
+    display: none;
+  }
+}
+
+/* ## Narrow screens:  the contents become a right drawer, the rail shows */
 @media (max-width: 1100px) {
   .spell-doc {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .spell-rail {
+    display: flex;
+  }
+  .spell-doc-main {
+    padding-right: calc(var(--spell-rail-width) + 16px);
   }
   .spell-doc-toc {
     position: fixed;
@@ -476,17 +594,6 @@ ui-button.spell-toc-open {
   }
   .spell-toc-head {
     background: var(--ui-surface, Canvas);
-  }
-  ui-button.spell-toc-open {
-    display: inline-block;
-    position: fixed;
-    right: 16px;
-    bottom: 16px;
-    z-index: 901;
-  }
-  ui-button.spell-toc-open::part(button) {
-    border-radius: 20px;
-    box-shadow: 0 2px 8px rgb(0 0 0 / 0.25);
   }
 }
 

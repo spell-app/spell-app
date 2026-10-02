@@ -3,7 +3,7 @@
  * Usage (from `packages/docs`):  node scripts/index.js
  * - Groups:
  *   - Guides:  every page outside `templates/` and `plans/`
- *   - Plans:  `plans/<name>/<name>.html`, with a status badge read from its phase list (`.plan-phases`)
+ *   - Plans:  `plans/<name>/<name>.html`, with a status badge read from its phase sections (`#phases`)
  *   - Templates:  `templates/**`
  * - Writes ONLY between `<!-- index:start -->` and `<!-- index:end -->`;  the rest of the page is hand-authored.
  * - Then tidies the page like any other (`pages.js` `tidy()`:  link targets, oxfmt), so a re-run with nothing new
@@ -64,9 +64,10 @@ function describe(path) {
   const { document } = parseHTML(readFileSync(join(DOCS, path), "utf8"))
   const title = document.querySelector("title")?.textContent.trim() || path
   const description = document.querySelector('meta[name="description"]')?.getAttribute("content")?.trim() ?? ""
-  const phases = Array.from(document.querySelectorAll(".plan-phases > li[data-status]"), (li) => ({
-    status: li.getAttribute("data-status"),
-    label: li.textContent.replace(/\s+/g, " ").trim()
+  // a plan's phases:  its phase sections in `#phases` (every plan doc has them, old layout or new)
+  const phases = Array.from(document.querySelectorAll("#phases-section section[data-phase]"), (section) => ({
+    status: section.getAttribute("data-status"),
+    label: (section.querySelector("h3")?.textContent ?? "").replace(/\s+/g, " ").trim()
   }))
   return { path, title, description, phases }
 }

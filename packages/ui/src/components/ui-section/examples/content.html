@@ -1,0 +1,167 @@
+<!--
+  Section content, after Fomantic's header / segment / accordion docs.
+  Light-DOM markup in the class grammar `ui-section.css` styles inside `<ui-section>`'s shadow root:  the title
+  bar (`header.title` > `hN.heading` > `.toggle`, then the badge and actions), the subhead and the content.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Icon</h4>
+    <section class="ui dividing section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"
+            ><span class="icon"
+              ><svg viewBox="0 0 384 512" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M292.9 384c7.3-22.3 21.9-42.5 38.4-59.9 32.7-34.4 52.7-80.9 52.7-132.1 0-106-86-192-192-192S0 86 0 192c0 51.2 20 97.7 52.7 132.1 16.5 17.4 31.2 37.6 38.4 59.9l201.7 0zM288 432l-192 0 0 16c0 44.2 35.8 80 80 80l32 0c44.2 0 80-35.8 80-80l0-16zM184 112c-39.8 0-72 32.2-72 72 0 13.3-10.7 24-24 24s-24-10.7-24-24c0-66.3 53.7-120 120-120 13.3 0 24 10.7 24 24s-10.7 24-24 24z"
+                /></svg></span
+            ><span class="header">Ideas</span></span
+          >
+        </h2>
+      </header>
+      <div class="content"><p>An icon before the title, by name.</p></div>
+    </section>
+    <section class="ui dividing section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"
+            ><span class="icon"
+              ><svg viewBox="0 0 448 512" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M288 0L128 0C110.3 0 96 14.3 96 32s14.3 32 32 32L128 215.5 7.5 426.3C2.6 435 0 444.7 0 454.7 0 486.4 25.6 512 57.3 512l333.4 0c31.6 0 57.3-25.6 57.3-57.3 0-10-2.6-19.8-7.5-28.4L320 215.5 320 64c17.7 0 32-14.3 32-32S337.7 0 320 0L288 0zM192 215.5l0-151.5 64 0 0 151.5c0 11.1 2.9 22.1 8.4 31.8l41.6 72.7-164 0 41.6-72.7c5.5-9.7 8.4-20.6 8.4-31.8z"
+                /></svg></span
+            ><span class="header">Experiments</span></span
+          >
+        </h2>
+      </header>
+      <div class="content"><p>Or any slotted icon.</p></div>
+    </section>
+  </section>
+
+  <section>
+    <h4>Badge</h4>
+    <section class="ui dividing section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"
+            ><span class="icon"
+              ><svg viewBox="0 0 512 512" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M133.8 36.3c10.9 7.6 13.5 22.6 5.9 33.4l-56 80c-4.1 5.8-10.5 9.5-17.6 10.1S52 158 47 153L7 113C-2.3 103.6-2.3 88.4 7 79S31.6 69.7 41 79l19.8 19.8 39.6-56.6c7.6-10.9 22.6-13.5 33.4-5.9zm0 160c10.9 7.6 13.5 22.6 5.9 33.4l-56 80c-4.1 5.8-10.5 9.5-17.6 10.1S52 318 47 313L7 273c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l19.8 19.8 39.6-56.6c7.6-10.9 22.6-13.5 33.4-5.9zM224 96c0-17.7 14.3-32 32-32l224 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-224 0c-17.7 0-32-14.3-32-32zm0 160c0-17.7 14.3-32 32-32l224 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-224 0c-17.7 0-32-14.3-32-32zM160 416c0-17.7 14.3-32 32-32l288 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-288 0c-17.7 0-32-14.3-32-32zM64 376a40 40 0 1 1 0 80 40 40 0 1 1 0-80z"
+                /></svg></span
+            ><span class="header">Tasks</span></span
+          >
+        </h2>
+        <span class="badge">3/7</span>
+      </header>
+      <div class="content"><p>A small pill after the title, e.g. a count.</p></div>
+    </section>
+    <section class="ui dividing section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"
+            ><span class="icon"
+              ><svg viewBox="0 0 576 512" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M192 96c0-53 43-96 96-96s96 43 96 96l0 3.6c0 15.7-12.7 28.4-28.4 28.4l-135.1 0c-15.7 0-28.4-12.7-28.4-28.4l0-3.6zm345.6 12.8c10.6 14.1 7.7 34.2-6.4 44.8l-97.8 73.3c5.3 8.9 9.3 18.7 11.8 29.1l98.8 0c17.7 0 32 14.3 32 32s-14.3 32-32 32l-96 0 0 32c0 2.6-.1 5.3-.2 7.9l83.4 62.5c14.1 10.6 17 30.7 6.4 44.8s-30.7 17-44.8 6.4l-63.1-47.3c-23.2 44.2-66.5 76.2-117.7 83.9L312 280c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 230.2c-51.2-7.7-94.5-39.7-117.7-83.9L83.2 473.6c-14.1 10.6-34.2 7.7-44.8-6.4s-7.7-34.2 6.4-44.8l83.4-62.5c-.1-2.6-.2-5.2-.2-7.9l0-32-96 0c-17.7 0-32-14.3-32-32s14.3-32 32-32l98.8 0c2.5-10.4 6.5-20.2 11.8-29.1L44.8 153.6c-14.1-10.6-17-30.7-6.4-44.8s30.7-17 44.8-6.4L192 184c12.3-5.1 25.8-8 40-8l112 0c14.2 0 27.7 2.8 40 8l108.8-81.6c14.1-10.6 34.2-7.7 44.8 6.4z"
+                /></svg></span
+            ><span class="header">Bugs</span></span
+          >
+        </h2>
+        <span class="badge"><span class="ui mini red label">2 open</span></span>
+      </header>
+      <div class="content"><p>Or a slotted label.</p></div>
+    </section>
+  </section>
+
+  <section>
+    <h4>Actions</h4>
+    <section class="ui block section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"
+            ><span class="icon"
+              ><svg viewBox="0 0 512 512" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M64 448l384 0c35.3 0 64-28.7 64-64l0-240c0-35.3-28.7-64-64-64L298.7 80c-6.9 0-13.7-2.2-19.2-6.4L241.1 44.8C230 36.5 216.5 32 202.7 32L64 32C28.7 32 0 60.7 0 96L0 384c0 35.3 28.7 64 64 64z"
+                /></svg></span
+            ><span class="header">Drafts</span></span
+          >
+        </h2>
+        <span class="actions"><button type="button" class="ui mini basic button">Edit</button></span>
+      </header>
+      <div class="content"><p>Controls at the right of the title bar.</p></div>
+    </section>
+  </section>
+
+  <section>
+    <h4>Subhead</h4>
+    <section class="ui dividing section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"
+            ><span class="icon"
+              ><svg viewBox="0 0 576 512" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M169.6 153.4l-18.7-18.7c-12.5-12.5-12.5-32.8 0-45.3L265.6-25.4c12.5-12.5 32.8-12.5 45.3 0L329.6-6.6c12.5 12.5 12.5 32.8 0 45.3L214.9 153.4c-12.5 12.5-32.8 12.5-45.3 0zM276 211.7l-31.4-31.4 112-112 119.4 119.4-112 112-31.4-31.4-232 232c-15.6 15.6-40.9 15.6-56.6 0s-15.6-40.9 0-56.6l232-232zM390.9 374.6c-12.5-12.5-12.5-32.8 0-45.3L505.6 214.6c12.5-12.5 32.8-12.5 45.3 0l18.7 18.7c12.5 12.5 12.5 32.8 0 45.3L454.9 393.4c-12.5 12.5-32.8 12.5-45.3 0l-18.7-18.7z"
+                /></svg></span
+            ><span class="header">Decisions</span></span
+          >
+        </h2>
+      </header>
+      <div class="subhead">What we chose, and why</div>
+      <div class="content"><p>Smaller text under the title; it scrolls away with the content.</p></div>
+    </section>
+    <section class="ui dividing section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"
+            ><span class="icon"
+              ><svg viewBox="0 0 448 512" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M434.8 70.1c14.3 10.4 17.5 30.4 7.1 44.7l-256 352c-5.5 7.6-14 12.3-23.4 13.1s-18.5-2.7-25.1-9.3l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l101.5 101.5 234-321.7c10.4-14.3 30.4-17.5 44.7-7.1z"
+                /></svg></span
+            ><span class="header">Checks</span></span
+          >
+        </h2>
+      </header>
+      <div class="subhead">Last run <time datetime="2026-10-01">October 1</time></div>
+      <div class="content"><p>A rich subhead, slotted.</p></div>
+    </section>
+  </section>
+
+  <section>
+    <h4>Rich header</h4>
+    <section class="ui dividing section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"
+            ><span class="header">The <code>level</code> attribute</span></span
+          >
+        </h2>
+      </header>
+      <div class="content"><p>A slotted header can hold code and links.</p></div>
+    </section>
+  </section>
+
+  <section>
+    <h4>Level</h4>
+    <section class="ui dividing section">
+      <header class="title">
+        <h5 class="heading">
+          <span class="toggle"><span class="header">Set by hand</span></span>
+        </h5>
+      </header>
+      <div class="content">
+        <p>An <code>h5</code>, whatever encloses it.</p>
+      </div>
+    </section>
+  </section>
+</div>

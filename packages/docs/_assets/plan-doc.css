@@ -1,21 +1,48 @@
 /*
  * Plan docs only (`plans/<name>/<name>.html`), on top of `spell-doc.css`.  Markup and ids:
  * `templates/plans/plan-doc.md`.  `scripts/plan-doc.js` writes most of what's styled here.
- * - Status colors come from `<ui-icon color>` (UI's own tokens), not from here:  grey not done, orange in progress,
- *   green done.
+ * - Status colors come from `<ui-icon color>` / `<ui-label color>` (UI's own tokens), not from here:  grey not
+ *   done, orange in progress, green done.
+ * - Folding, the h2 counts and the rail are every page's (`spell-doc.css`, `spell-doc-runtime.js`).
  */
 
 @layer ui.reset, ui.tokens, ui.base, ui.components, ui.utilities, ui.theme, ui.app;
 
 /*******************************
-         Phase list
+          Page header
+*******************************/
+
+/* the step label at the header's right:  `.plan-step` holding one `<ui-label>` (the script writes it) */
+.plan-step {
+  flex: none;
+}
+
+/*******************************
+           Overview
+*******************************/
+
+/* the prompt that started the plan:  `blockquote.plan-prompt`, one `<p>` per paragraph */
+blockquote.plan-prompt {
+  margin: 12px 0 16px;
+  padding: 8px 14px;
+  border-left: 4px solid var(--spell-accent);
+  border-radius: 0 6px 6px 0;
+  background: var(--spell-accent-soft);
+  font-size: 0.92rem;
+}
+blockquote.plan-prompt > p {
+  margin: 4px 0;
+}
+
+/*******************************
+            Phases
 *******************************/
 
 /*
- * PLAN's phase list:  `<ui-steps class="plan-phases" vertical ordered>` of
- * `<ui-step data-phase data-status href="#p1" header="P1 · Short Name">`, `selected` while active, `completed` when done;
- * above it, `ui-progress.plan-progress` (done of all phases).  Both written by the script.
- * - docs made before 2026-10-01:  `<ul class="plan-phases">` of `<li data-phase data-status><ui-icon> <a>...</a></li>`
+ * `#phases`:  `ui-progress.plan-progress` (done of all phases), then a `section.s3[data-phase][data-status]` per
+ * phase, its body a `ui-list.plan-phase-body` of `<ui-item icon>` (goal, files, verify).
+ * - docs made before 2026-10-01 had the phase list under `#plan`:  `ui-steps.plan-phases`, or
+ *   `<ul class="plan-phases">` of `<li data-phase data-status>`;  `yarn plan-doc migrate` drops it
  */
 ui-progress.plan-progress {
   max-width: 480px;
@@ -44,14 +71,26 @@ ui-steps.plan-phases {
 .spell-doc-main :is(h3, .plan-phases li) > ui-icon {
   margin-right: 4px;
 }
+/* a phase's lines wrap anywhere:  a long path with no break, e.g. `cli/src/commands/{watch,run}Command.ts`, would
+   widen the page at phone width */
+ui-list.plan-phase-body {
+  display: block;
+  overflow-wrap: anywhere;
+}
+/* a done phase's heading reads as finished */
+section[data-phase][data-status="done"] > ui-sticky > h3 {
+  color: var(--spell-muted);
+}
 
 /*******************************
-     Caveats, issues, todos ...
+     Questions, decisions ...
 *******************************/
 
 /*
- * `<ol class="plan-items">` of `<li id="c3" data-status="open|done">`:  an id chip, a title, optional details.
- * Done items stay, struck through:  the list is a history, not a queue.
+ * `<ui-list class="plan-items" divided relaxed>` of `<ui-item id="c3" data-status="open|done">`:  an id chip and a
+ * title -- or, with details, a `ui-accordion.plan-item` whose title IS that line.  Done items stay, struck
+ * through:  the list is a history, not a queue.
+ * - docs made before 2026-10-01:  `<ol class="plan-items">` of `<li>`s, details under a "details" panel
  */
 ol.plan-items {
   list-style: none;
@@ -59,6 +98,10 @@ ol.plan-items {
 }
 ol.plan-items > li {
   margin: 6px 0;
+}
+ui-list.plan-items {
+  display: block;
+  margin: 8px 0;
 }
 .plan-id {
   display: inline-block;
@@ -74,21 +117,67 @@ ol.plan-items > li {
 .spell-doc-main a.plan-id {
   color: var(--spell-accent);
 }
-ol.plan-items > li[data-status="done"] > .plan-title {
+.plan-items > [data-status="done"] .plan-title {
   text-decoration: line-through;
   color: var(--spell-muted);
 }
-ol.plan-items > li[data-status="done"] > .plan-id {
+.plan-items > [data-status="done"] .plan-id {
   opacity: 0.6;
 }
-ol.plan-items > li > ui-accordion {
+/*
+ * "Questions & Decisions":  an open question (`#q3`, `data-status="open"`) is waiting on the reader, so its chip is
+ * orange (UI's orange tokens);  an answered one is struck through, with a link on to its decision
+ * (`a.plan-answer`, "-> D7").
+ */
+.plan-items > [id^="q"][data-status="open"] .plan-id {
+  background: var(--ui-orange-background, light-dark(#fdebd8, #4a2e14));
+}
+.spell-doc-main .plan-items > [id^="q"][data-status="open"] a.plan-id {
+  color: var(--ui-orange-text, light-dark(#a8530c, #f2a25a));
+}
+.spell-doc-main a.plan-answer {
+  margin-left: 4px;
+  font: 600 0.8rem var(--spell-mono);
+  text-decoration: none;
+}
+/* a decision's link back to its question, `(Q8)`:  no underline in the title */
+.spell-doc-main .plan-title > a {
+  text-decoration: none;
+}
+/*
+ * An item with details:  a plain accordion whose title is the item's line, its arrow in front;  an item without
+ * starts as far in, so every id chip lines up (UI's arrow:  1.25em + 0.25em margin).
+ */
+ui-accordion.plan-item {
+  --ui-accordion-title-padding: 0;
+  --ui-accordion-content-padding: 6px 0 4px;
+  --ui-accordion-content-indent: 1.5em;
+  display: block;
+  margin: 0;
+}
+ui-accordion.plan-item::part(title) {
+  font-weight: 400;
+}
+.plan-items > ui-item:not(:has(> ui-accordion))::part(item) {
+  padding-inline-start: 1.5em;
+}
+ol.plan-items > li > ui-accordion.spell-aside {
   margin: 4px 0 0 calc(2.6em + 18px);
 }
-/* empty sections say so, until the script adds the first item */
-:is(ol.plan-items, .plan-phases):empty::before {
+/* empty lists say so, until the script adds the first item */
+ol.plan-items:empty::before {
   content: "none yet";
   color: var(--spell-muted);
   font-style: italic;
+}
+/* a `ui-list` host has no box for `::before`:  the section says it instead, after the list */
+section:has(> ui-list.plan-items:empty)::after {
+  content: "none yet";
+  color: var(--spell-muted);
+  font-style: italic;
+}
+.spell-doc-main section.spell-folded::after {
+  content: none;
 }
 
 /*******************************

@@ -11,19 +11,17 @@ import type { stickyVocabulary } from "./ui-sticky.vocabulary.en"
 /** StickyVocabulary type, for brevity. */
 export type StickyVocabulary = typeof stickyVocabulary
 
-/** What an observation depends on. */
+/**
+ * What an observation depends on.
+ * - NOTE: the scroll-container / reservation thresholds (`STICKY_SCROLLING`, `STICKY_MAX_RESERVE`, `STICKY_SLACK`)
+ *   moved to `$/ui/elements` with `StickyWatch`, shared with `<ui-section sticky>`.
+ */
 export type StickyConfig = {
   connected: boolean
   offset: number
   bottomOffset: number
   pushing: boolean
 }
-
-/** `overflow-y` values that make a scroll container. */
-export const SCROLLING = new Set(["auto", "scroll", "overlay", "hidden"])
-
-/** Sub-pixel slack when comparing edges. */
-export const SLACK = 0.5
 
 /** Class words of the sentinels (`ui-sticky.css`). */
 export const SENTINEL = "sentinel"

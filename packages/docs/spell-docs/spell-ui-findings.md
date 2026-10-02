@@ -175,6 +175,21 @@ Each finding:  component, symptom, repro, the workaround used here, a suggested 
     - workaround:  `placeholder="any badge"`, and no `value=""` item (cheatsheet badge filter)
     - suggest:  document `placeholder` as the "no choice" option, or treat a `value=""` item as the placeholder
 
+21. **`ui-item`'s `icon` shorthand draws nothing in a `vertical text` `ui-menu`**
+    - symptom:  an icon-only item (`icon`, no text) renders its `<svg>`, but the `.icon` box and the svg compute
+      `0px` x `0px`
+    - repro:  `<ui-menu vertical text><ui-item href="#a" icon="lightbulb"></ui-item></ui-menu>` (with or without the
+      menu's `icon` variation)
+    - workaround:  the rail slots a `<ui-icon name>` into the item instead (`buildRail()` in `spell-doc-runtime.js`)
+    - suggest:  `SUSPECTED-BUGS.md`, `## ui`;  measure the shorthand's svg in a menu example
+
+22. **`ui-sticky` covered what Page Down scrolled to** -- fixed in `packages/ui` (2026-10-01)
+    - symptom:  Page Down / Space scrolled a full viewport, so the lines that ended under the stuck headers were
+      never seen
+    - fix:  a stuck `<ui-sticky>` sets its scroll container's `scroll-padding-top` (`-bottom` at the bottom edge) to
+      the lowest stuck edge;  a column-shaped sticky (the contents) reserves nothing.  Chromium and Firefox page by
+      it;  Safari still pages the full viewport
+
 ## Verified working (no action)
 
 - find-in-page / text fragments open a folded `ui-accordion` panel (native `<details>`), and the accordion

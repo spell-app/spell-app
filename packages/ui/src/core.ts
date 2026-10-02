@@ -6,7 +6,8 @@
  *   - the element core -- `UIHost`, `UIElement`, `ElementDefinition`, `ContentPart` + `PartContext` (owner
  *     context), `Controlled`, `Cell`, `SlotContent`, `HostAttribute`, `IconGlyph`
  *   - `$/ui/util`, `$/ui/vocabulary` -- foundation JS;  `$/ui/components/components.types` as the namespace `UIT` (`UIT.TRUE`, `UIT.ARIA_LABEL`, `UIT.SelectValue` ...)
- *   - from `$/ui/elements`:  `ClassBuilder`, `Shorthand`, `OwnerContext`, `NativeFallback` (the fallbacks' base)
+ *   - from `$/ui/elements`:  `ClassBuilder`, `Shorthand`, `OwnerContext`, `NativeFallback` (the fallbacks' base),
+ *     `StickyWatch` (`<ui-sticky>` and `<ui-section sticky>`)
  *   - `$/ui/runtime` -- ONLY the eager loader (`UI`, `loadUI`);  `UIRuntime` stays a lazy chunk
  *   - `$/ui/icons` -- the icon pack format (`IconName`, `BuiltInPacks`);  the packs are separate files
  *     (`dist/icon-packs/`), loaded by the runtime (`UI.icons`)
@@ -28,6 +29,7 @@ export * from "$/ui/elements/ClassBuilder"
 export * from "$/ui/elements/Shorthand"
 export * from "$/ui/elements/OwnerContext"
 export * from "$/ui/elements/NativeFallback"
+export * from "$/ui/elements/StickyWatch"
 export * from "$/ui/runtime"
 export * from "$/ui/icons"
 export * as UIT from "$/ui/components/components.types"

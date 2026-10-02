@@ -1,0 +1,248 @@
+<!--
+  Section variations, after Fomantic's header / segment / accordion docs.
+  Light-DOM markup in the class grammar `ui-section.css` styles inside `<ui-section>`'s shadow root:  the title
+  bar (`header.title` > `hN.heading` > `.toggle`, then the badge and actions), the subhead and the content.
+-->
+<div class="ui-stack">
+  <section>
+    <h4>Colored</h4>
+    <section class="ui teal dividing section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"><span class="header">Teal</span></span>
+        </h2>
+      </header>
+      <div class="content"><p>The hue of the title and its rule.</p></div>
+    </section>
+    <section class="ui red block section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"><span class="header">Red</span></span>
+        </h2>
+      </header>
+      <div class="content"><p>The hue of the title bar.</p></div>
+    </section>
+    <section class="ui blue bordered section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"><span class="header">Blue</span></span>
+        </h2>
+      </header>
+      <div class="content"><p>The hue of the title and the box edge.</p></div>
+    </section>
+  </section>
+
+  <section>
+    <h4>Size</h4>
+    <section class="ui small dividing section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"><span class="header">Small content</span></span>
+        </h2>
+      </header>
+      <div class="content"><p>The content's text is smaller; the title keeps its level's size.</p></div>
+    </section>
+    <section class="ui large dividing section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"><span class="header">Large content</span></span>
+        </h2>
+      </header>
+      <div class="content"><p>The content's text is larger; the title keeps its level's size.</p></div>
+    </section>
+  </section>
+
+  <section>
+    <h4>Compact and padded</h4>
+    <section class="ui bordered compact section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"><span class="header">Compact</span></span>
+        </h2>
+      </header>
+      <div class="content"><p>Less padding and space around the title.</p></div>
+    </section>
+    <section class="ui bordered padded section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"><span class="header">Padded</span></span>
+        </h2>
+      </header>
+      <div class="content"><p>More padding in the content.</p></div>
+    </section>
+    <section class="ui bordered very padded section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"><span class="header">Very padded</span></span>
+        </h2>
+      </header>
+      <div class="content"><p>Even more.</p></div>
+    </section>
+  </section>
+
+  <section>
+    <h4>Basic</h4>
+    <section class="ui basic bordered dividing section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"><span class="header">Basic</span></span>
+        </h2>
+      </header>
+      <div class="content"><p>No box, rule or tint, whatever else is set.</p></div>
+    </section>
+  </section>
+
+  <section>
+    <h4>Attached</h4>
+    <div>
+      <section class="ui bordered top attached section">
+        <header class="title">
+          <h2 class="heading">
+            <span class="toggle"><span class="header">Top</span></span>
+          </h2>
+        </header>
+        <div class="content"><p>Joined to the box below.</p></div>
+      </section>
+      <section class="ui bordered attached section">
+        <header class="title">
+          <h2 class="heading">
+            <span class="toggle"><span class="header">Middle</span></span>
+          </h2>
+        </header>
+        <div class="content"><p>Between two.</p></div>
+      </section>
+      <section class="ui bordered bottom attached section">
+        <header class="title">
+          <h2 class="heading">
+            <span class="toggle"><span class="header">Bottom</span></span>
+          </h2>
+        </header>
+        <div class="content"><p>Joined to the box above.</p></div>
+      </section>
+    </div>
+  </section>
+
+  <section>
+    <h4>Scrolling</h4>
+    <section class="ui bordered very short scrolling section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"><span class="header">Log</span></span>
+        </h2>
+      </header>
+      <div class="content">
+        <p>The content has a capped height and scrolls.</p>
+        <p>Line two of the log.</p>
+        <p>Line three of the log.</p>
+        <p>Line four of the log.</p>
+        <p>Line five of the log.</p>
+        <p>Line six of the log.</p>
+      </div>
+    </section>
+    <section class="ui bordered scrolling section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"><span class="header">Six em high</span></span>
+        </h2>
+      </header>
+      <div class="content" style="--_ui-section-height: 6em">
+        <p>Any CSS length caps the content.</p>
+        <p>Line two.</p>
+        <p>Line three.</p>
+        <p>Line four.</p>
+        <p>Line five.</p>
+      </div>
+    </section>
+  </section>
+
+  <section>
+    <h4>Text alignment</h4>
+    <section class="ui dividing center aligned section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"><span class="header">Centered</span></span>
+        </h2>
+      </header>
+      <div class="content"><p>Aligns the title, not the content.</p></div>
+    </section>
+    <section class="ui dividing right aligned section">
+      <header class="title">
+        <h2 class="heading">
+          <span class="toggle"><span class="header">Right</span></span>
+        </h2>
+      </header>
+      <div class="content"><p>Aligns the title, not the content.</p></div>
+    </section>
+  </section>
+
+  <section>
+    <h4>Sticky</h4>
+    <div
+      style="height: 16em; overflow: auto; border: 1px solid var(--ui-border-color)"
+      tabindex="0"
+      role="region"
+      aria-label="Sticky sections example"
+    >
+      <section class="ui block sticky section">
+        <header class="title">
+          <h2 class="heading">
+            <span class="toggle"><span class="header">Chapter</span></span>
+          </h2>
+        </header>
+        <div class="content">
+          <p>Scroll: the chapter's title sticks to the top while the chapter is on screen.</p>
+          <section class="ui dividing sticky section">
+            <header class="title" style="--_ui-section-top: 51px; --_ui-section-depth: 1">
+              <h3 class="heading">
+                <span class="toggle"><span class="header">Part one</span></span>
+              </h3>
+            </header>
+            <div class="content">
+              <p>A nested sticky title sticks just below its parent's.</p>
+              <p>Te eum doming eirmod, nominati pertinacia argumentum ad his.</p>
+              <p>Ex eam alia facete scriptorem, est autem aliquip detraxit at.</p>
+              <p>Usu ocurreret referrentur at, cu epicurei appellantur vix.</p>
+              <p>Cum ea laoreet recteque electram, eos choro alterum definiebas in.</p>
+            </div>
+          </section>
+          <section class="ui dividing sticky section">
+            <header class="title" style="--_ui-section-top: 51px; --_ui-section-depth: 1">
+              <h3 class="heading">
+                <span class="toggle"><span class="header">Part two</span></span>
+              </h3>
+            </header>
+            <div class="content">
+              <p>Takes over once part one has scrolled away.</p>
+              <p>Te eum doming eirmod, nominati pertinacia argumentum ad his.</p>
+              <p>Ex eam alia facete scriptorem, est autem aliquip detraxit at.</p>
+              <p>Usu ocurreret referrentur at, cu epicurei appellantur vix.</p>
+              <p>Cum ea laoreet recteque electram, eos choro alterum definiebas in.</p>
+            </div>
+          </section>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <section>
+    <h4>Inverted</h4>
+    <div class="ui inverted segment">
+      <section class="ui teal dividing inverted section">
+        <header class="title">
+          <h2 class="heading">
+            <span class="toggle"
+              ><span class="icon"
+                ><svg viewBox="0 0 512 512" aria-hidden="true">
+                  <path
+                    fill="currentColor"
+                    d="M232.5 5.2c14.9-6.9 32.1-6.9 47 0l218.6 101c8.5 3.9 13.9 12.4 13.9 21.8s-5.4 17.9-13.9 21.8l-218.6 101c-14.9 6.9-32.1 6.9-47 0L13.9 149.8C5.4 145.8 0 137.3 0 128s5.4-17.9 13.9-21.8L232.5 5.2zM48.1 218.4l164.3 75.9c27.7 12.8 59.6 12.8 87.3 0l164.3-75.9 34.1 15.8c8.5 3.9 13.9 12.4 13.9 21.8s-5.4 17.9-13.9 21.8l-218.6 101c-14.9 6.9-32.1 6.9-47 0L13.9 277.8C5.4 273.8 0 265.3 0 256s5.4-17.9 13.9-21.8l34.1-15.8zM13.9 362.2l34.1-15.8 164.3 75.9c27.7 12.8 59.6 12.8 87.3 0l164.3-75.9 34.1 15.8c8.5 3.9 13.9 12.4 13.9 21.8s-5.4 17.9-13.9 21.8l-218.6 101c-14.9 6.9-32.1 6.9-47 0L13.9 405.8C5.4 401.8 0 393.3 0 384s5.4-17.9 13.9-21.8z"
+                  /></svg></span
+              ><span class="header">Night mode</span></span
+            >
+          </h2>
+        </header>
+        <div class="content"><p>For dark backgrounds.</p></div>
+      </section>
+    </div>
+  </section>
+</div>
