@@ -51,7 +51,7 @@
               >spell serve</code
             >) on one port, with live reload, a shared site header and an API that edits pages in place.
           </p>
-          <ui-progress class="plan-progress" value="4" total="8" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="5" total="8" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
           <ui-steps class="plan-phases" vertical ordered
@@ -59,7 +59,7 @@
             ><ui-step completed header="P2 · Page Server" href="#p2" data-status="done" data-phase="2"></ui-step
             ><ui-step completed header="P3 · CLI And UI" href="#p3" data-status="done" data-phase="3"></ui-step
             ><ui-step completed header="P4 · Docs And Preview" href="#p4" data-status="done" data-phase="4"></ui-step
-            ><ui-step header="P5 · Goals Migration" href="#p5" data-status="todo" data-phase="5"></ui-step
+            ><ui-step completed header="P5 · Goals Migration" href="#p5" data-status="done" data-phase="5"></ui-step
             ><ui-step header="P6 · App Router" href="#p6" data-status="todo" data-phase="6"></ui-step
             ><ui-step header="P7 · Spell Serve" href="#p7" data-status="todo" data-phase="7"></ui-step
             ><ui-step header="P8 · Doc Review" href="#p8" data-status="todo" data-phase="8"></ui-step
@@ -367,6 +367,20 @@
                     worktree AND the main checkout, so <code>doc-links.py --check</code> stops
                     <code>docs:update</code> before the browser checks. P4 ran it with an empty stand-in folder (removed
                     after): all 17 docs pages passed; <code>yarn goals check</code>: all 17 goals pages passed.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="c10">
+              <a class="plan-id" href="#c10">C10</a> <span class="plan-title">goals is +0.13s per call under tsx</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    Measured: <code>goals.sh help</code> 0.05s with node, 0.18s under tsx;
+                    <code>yarn goals help</code> ~0.6s (mostly yarn). The goals folder now needs this repo's
+                    <a href="../../../server/" target="src-packages-server"><code>packages/server</code></a> and
+                    <code>tsx</code> to run elsewhere.
                   </p></ui-content
                 ></ui-accordion
               >
@@ -897,9 +911,9 @@
               </li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="5" class="s3">
+          <section data-status="done" data-phase="5" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p5"><ui-icon name="circle outline" color="grey"></ui-icon> P5 · Goals Migration</h3></ui-sticky
+              ><h3 id="p5"><ui-icon name="circle check" color="green"></ui-icon> P5 · Goals Migration</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li><b>Goal:</b> goals served by page server; server.js gone; goals CLI under tsx</li>
@@ -1085,6 +1099,20 @@
               ><ui-content
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T01:36-04:00">2026-10-02 01:36</time></ui-date> P4
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:37-04:00">2026-10-02 01:37</time></ui-date> P5
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:44-04:00">2026-10-02 01:44</time></ui-date> P5
                   done</ui-summary
                 ></ui-content
               ></ui-event
