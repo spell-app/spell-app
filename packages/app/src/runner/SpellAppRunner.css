@@ -14,11 +14,6 @@
   display: none;
 }
 
-/* What React draws into -- see `SpellAppElement`. */
-.SpellAppMount {
-  height: 100%;
-}
-
 /* Toolbar, then the app over the debug pane -- filling a fixed height, or as tall as they need when `fluid`. */
 .SpellApp {
   height: 100%;
@@ -29,13 +24,15 @@
     height: auto;
   }
 
-  & > .SpellAppToolbar {
+  /* `<ui-menu>` is `display: contents`:  its box is `::part(menu)` */
+  & > .SpellAppToolbar::part(menu) {
     flex: 0 0 auto;
-    border-radius: 0 !important;
+    border-radius: 0;
+    margin: 0;
+  }
 
-    & .error {
-      color: #9f3a38;
-    }
+  & > .SpellAppToolbar > .error::part(item) {
+    color: #9f3a38;
   }
 
   & > .SpellAppError {

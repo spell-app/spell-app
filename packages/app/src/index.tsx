@@ -6,6 +6,7 @@ import { createRoot } from "react-dom/client"
 import "$/parser"
 import { editor } from "$/app/editor"
 import { ErrorNotice, Notice } from "$/app/ui"
+import { addAppIconsPageWide } from "$/app/solid/loadUI"
 
 import { Routes } from "./pages/routes"
 
@@ -15,6 +16,9 @@ import "./debug"
 // Programs run on the runtime `editor` loads -- start loading it now.  It registers the `UI` / `SUI` tags spell JSX
 // draws with, NOT the editor's `UI` barrel.  NEVER import `$/core` here:  see `spellRuntime.ts`.
 void editor.loadRuntime()
+
+// The editor's icon names are Fomantic's, page-wide too:  its dialogs open on `<body>`, outside `index.html`'s `<ui-root>`.
+void addAppIconsPageWide()
 
 /**
  * Mount app into `#react-root`.

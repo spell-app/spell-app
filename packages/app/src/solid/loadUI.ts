@@ -10,10 +10,11 @@ import { isServer } from "@solidjs/web"
  *   loads at all.
  * - Why the whole barrel, not family by family:  from another package, import its barrel only (root `AGENTS.md`,
  *   "Imports").  Per-tag loading is `<ui-root>`'s job;  revisit if the app's first paint gets heavy.
- * - Icon names:  the app speaks Fomantic's (`"ellipsis horizontal"`, `"app store ios"`), so the PAGE set adds
- *   the `fomantic` pack over the default `fa7-free`.  The last pack wins:  27 names mean another icon in Font
- *   Awesome (`packages/ui/docs/icons.md`, "Clashes").  Added before any element can ask:  our `then` is the
- *   first one on `UI.load()`'s shared promise.
+ * - Icon names:  the app speaks Fomantic's (`"ellipsis horizontal"`, `"app store ios"`).  Each surface says so
+ *   with a `<ui-root icons="fomantic">` around itself (the editor's `index.html`, `<spell-app>`'s shadow root, the
+ *   VS Code webview):  NOT page-wide here, as `<spell-app>` loads this on HOST pages, whose own `<ui-*>` must keep
+ *   their icons (27 names mean another icon in Font Awesome, `packages/ui/docs/icons.md` "Clashes";  plan doc
+ *   C16).  The editor app also wants it page-wide, for dialogs opened outside its root:  `addAppIconsPageWide()`.
  * - Builds:  the packs load from beside `BuiltInPacks`' chunk;  the app's `vite.config.ts` emits them there
  *   (`appConfig({ iconPacks })`).  In dev and tests they're served from `packages/ui/src/icons/icon-packs/`.
  * - NEVER reachable from `spell-runtime.js` (`spellRuntime.ts`):  compiled spell runs without Solid or `$/ui`.
@@ -21,9 +22,19 @@ import { isServer } from "@solidjs/web"
  */
 export const uiReady: Promise<void> = isServer ? Promise.resolve() : loadUI()
 
-/** Import `$/ui` (defining every tag), start its runtime, then add the icon packs the app's names come from. */
+/**
+ * Add the `fomantic` icon pack PAGE-wide, for `<ui-*>` outside any `<ui-root icons>`, e.g. dialogs on `<body>`.
+ * - The editor app's, from its entry:  NEVER from code a host page loads (`<spell-app>`):  see above.
+ */
+export async function addAppIconsPageWide(): Promise<void> {
+  if (isServer) return
+  await uiReady
+  const { UI: SpellUI } = await import("$/ui")
+  void SpellUI.icons.use("fomantic")
+}
+
+/** Import `$/ui` (defining every tag) and start its runtime. */
 async function loadUI() {
   const { UI: SpellUI } = await import("$/ui")
   await SpellUI.load()
-  void SpellUI.icons.use("fomantic")
 }

@@ -1,5 +1,10 @@
-/** @jsxImportSource react */
-import { createRoot, type Root } from "react-dom/client"
+import { Show, createEffect, createMemo } from "solid-js"
+import {
+  customElement,
+  type ComponentOptions,
+  type SolidElement,
+  type SolidElementClass
+} from "@spell-app/solid-element"
 
 // Import directly, NOT through the `$/spell` barrel, which would pull in the whole parser.
 import { SpellSetup } from "$/spell/SpellSetup"
@@ -17,8 +22,12 @@ import {
   type SpellAppSource
 } from "./SpellAppRunner"
 
-/**
- * `<spell-app>`:  runs a compiled spell project in any page, in its own shadow root -- no editor.
+// Defines every `<ui-*>` the runner draws, once per page -- see `loadUI.ts`.
+import "$/app/solid/loadUI"
+
+/****************
+ * ### `<spell-app>`
+ * Runs a compiled spell project in any page, in its own shadow root -- no editor.
  * - What to run, one of:
  *   - `project="@system:examples:Solitaire"` -- or `@examples/Solitaire` -- from the spell server's `/api`,
  *     sources and all, so the Type Explorer shows each declaration's spell and compiled code
@@ -36,144 +45,166 @@ import {
  *   - `debug="explorer"` / `debug="things"` / `debug="console"`:  open the debug pane to start, on that tab
  *   - `width` / `height`:  `fluid` (default) or a CSS length, e.g. `50%`, `30em`.  A fluid height is as tall as
  *     the app, plus the debug pane if open.  Each sets our inline style, so page CSS works too.
- *   - `assets`:  where Semantic UI, Lato and `spell-app.css` are -- default, beside this script
+ *   - `assets`:  where Semantic UI, Lato and `spell-app.css` are -- default, beside this script.  Read as we
+ *     join the page.
+ * - Each attribute is a property too (`app.project = ...`), via `@spell-app/solid-element`'s `customElement()`.
  * - `restart()` runs it again, afresh -- code pushed to us too.
  * - Fires `spell-open` -- bubbling, out of the shadow root -- with `detail: { href }` when a Type Explorer
  *   link is clicked, e.g. `spell:/@system:examples:Solitaire/Card.spell#L12`.
  * - Each runs on its own copy of the spell runtime, so many can run on a page at once -- see `loadRuntime()`.
- * - NOTE: NOT in the `$/app/runner` barrel:  `extends HTMLElement` fails where there's no DOM, e.g. tests.
+ * - Draws in Solid, the runner's UI on `@spell-app/ui`, inside a `<ui-root icons="fomantic">`:  the runner's icon
+ *   names are Fomantic's.  The PROGRAM draws with React, Semantic UI's CSS adopted here (`shadowStyles()`).
+ * - Leaving the page stops the app and lets go of its runtime, a microtask later:  a move in one go keeps it.
+ * - NOTE: NOT in the `$/app/runner` barrel:  defining an element fails where there's no DOM, e.g. tests.
+ ****************/
+export function defineSpellApp(): SpellAppElementClass {
+  return customElement("spell-app", SPELL_APP_PROPS, SpellApp, { BaseElement: SpellAppBase }) as SpellAppElementClass
+}
+
+/**
+ * `<spell-app>`'s attributes, each a property too -- see `defineSpellApp()`.
+ * - `pushed`:  property only, code pushed to us last -- see `run()`.
  */
-export class SpellAppElement extends HTMLElement {
-  static observedAttributes = [
-    "project",
-    "src",
-    "scopes",
-    "name",
-    "editor",
-    "toolbar",
-    "debug",
-    "width",
-    "height",
-    "assets"
-  ]
+const SPELL_APP_PROPS = {
+  project: { type: String },
+  src: { type: String },
+  scopes: { type: String },
+  name: { type: String },
+  editor: { type: String },
+  toolbar: { type: Boolean },
+  debug: { type: String },
+  width: { type: String },
+  height: { type: String },
+  pushed: { attribute: false as const, value: undefined as SpellCompiled | undefined }
+}
 
-  /** React root drawing us, while we're in the page. */
-  #root?: Root
-  /** What our runner lets us do -- see `restart()`. */
-  #controls?: SpellAppControls
+/** `<spell-app>`'s props, as its component reads them. */
+type SpellAppProps = {
+  project?: string
+  src?: string
+  scopes?: string
+  name?: string
+  editor?: string
+  toolbar: boolean
+  debug?: string
+  width?: string
+  height?: string
+  pushed?: SpellCompiled
+}
+
+/** A `<spell-app>`:  its methods, its props as properties, and the element plumbing. */
+export type SpellAppElement = SpellAppBase & SpellAppProps & SolidElement
+
+/** The `<spell-app>` class `defineSpellApp()` defines. */
+export type SpellAppElementClass = SolidElementClass & { new (): SpellAppElement }
+
+/**
+ * What `<spell-app>` adds to `HTMLElement`, beside its props:  `run()`, `restart()`, `assets`.
+ * - The BASE of the class `customElement()` makes, so its prop accessors come on top.
+ * - NOTE: `declare` only for the props it reads:  a field would shadow their accessors.
+ */
+class SpellAppBase extends HTMLElement {
+  declare project?: string
+  declare src?: string
+  declare scopes?: string
+  declare name?: string
+  declare editor?: string
+  declare pushed?: SpellCompiled
+
+  /** What our runner lets us do -- handed over by `<SpellAppRunner>`, see `restart()`. */
+  controls?: SpellAppControls
+
   /**
-   * What we run, as last worked out -- kept while what it's from doesn't change, so it isn't re-run.
-   * - From `pushed` if set, else the attributes in `key`.  `source` is `undefined` if there's nothing to run.
+   * What `pushed` was pushed for:  our `project`, `src`, `scopes`, `name` and `editor` then -- see `pushedKey()`.
+   * - Pushed code counts only while they're the same.
    */
-  #source?: { key: string; pushed: SpellCompiled | undefined; source: SpellAppSource | undefined }
-  /**
-   * Code an editor pushed to us last -- see `run()`.
-   * - Kept across leaving and rejoining the page.  Dropped when an attribute saying what to run changes.
-   */
-  #pushed?: SpellCompiled
-  /** Where we listen for our `editor`'s compiles:  our root node, while we're in the page with an `editor`. */
-  #listeningOn?: Node
-
-  /** Draw ourselves -- in a shadow root, made the first time -- and listen for our `editor`. */
-  connectedCallback() {
-    const shadow = this.shadowRoot ?? this.attachShadow({ mode: "open" })
-    void shadowStyles(this.assets).then((sheets) => (shadow.adoptedStyleSheets = sheets))
-    const mount = document.createElement("div")
-    mount.className = "SpellAppMount"
-    shadow.replaceChildren(mount)
-    this.#root = createRoot(mount)
-    this.listen()
-    this.render()
-  }
-
-  /** Gone from the page:  stop the app, let go of its runtime, and stop listening for our `editor`. */
-  disconnectedCallback() {
-    this.unlisten()
-    this.#root?.unmount()
-    this.#root = undefined
-  }
-
-  /**
-   * An attribute changed:  draw again -- which re-runs the program, if what to run changed.
-   * - SIDE EFFECT:  `project`, `src`, `scopes`, `name` or `editor` drops code pushed to us -- see `dropsPushedCode()`.
-   * - A new `editor`:  listen for it instead, and run what it compiled already.
-   */
-  attributeChangedCallback(attribute: string, old: string | null, value: string | null) {
-    if (old === value) return
-    if (dropsPushedCode(attribute, old, value)) this.#pushed = undefined
-    if (!this.#root) return
-    if (attribute === "editor") this.listen()
-    this.render()
-  }
+  pushedFor?: string
 
   /**
    * Run `compiled`, what an editor compiled -- instead of what our attributes say, until one of them changes.
    * - Its imports and sources are its project's, from the spell server -- as for `project`.
    * - Ignores `compiled` if it's what we ran last:  we may hear of one compile twice -- from our `editor`, AND
    *   from an editor whose `app` names us.  A `SpellCompiled` is a NEW object per compile.
-   * - Before we're in the page, runs it once we are.
+   * - Before we're in the page, runs it once we are.  Kept across leaving and rejoining the page.
    */
   run(compiled: SpellCompiled): void {
-    if (compiled === this.#pushed) return
-    this.#pushed = compiled
-    if (this.#root) this.render()
+    if (compiled === this.pushed && this.pushedFor === pushedKey(this)) return
+    this.pushedFor = pushedKey(this)
+    this.pushed = compiled
   }
 
   /** Run the program again, afresh -- code pushed to us, if any. */
   restart() {
-    this.#controls?.restart()
+    this.controls?.restart()
   }
 
   /** Where Semantic UI, Lato and `spell-app.css` are -- see `assets`. */
   get assets(): string {
     return new URL(this.getAttribute("assets") ?? BUNDLE, document.baseURI).href
   }
+}
 
-  /** Draw with our attributes as they are. */
-  private render() {
-    this.style.width = cssSize(this.getAttribute("width"))
-    this.style.height = cssSize(this.getAttribute("height"))
-    const source = this.source()
-    const debug = this.getAttribute("debug")
-    const editor = this.getAttribute("editor")
-    this.#root?.render(
-      source ? (
-        <SpellAppRunner
-          source={source}
-          toolbar={this.hasAttribute("toolbar")}
-          debug={DEBUG_PANES.includes(debug as DebugPane) ? (debug as DebugPane) : undefined}
-          fluid={!cssSize(this.getAttribute("height"))}
-          runtimeUrl={new URL("spell-runtime.js", BUNDLE).href}
-          builtInsUrl={new URL("spellCore.scopes.js", BUNDLE).href}
-          onOpen={(href) =>
-            this.dispatchEvent(new CustomEvent("spell-open", { detail: { href }, bubbles: true, composed: true }))
-          }
-          onControls={(controls) => (this.#controls = controls)}
-        />
-      ) : (
-        <div className="SpellAppError">
-          {editor ? `Waiting for its editor, ${editor}, to compile…` : "Give <spell-app> a project or src to run."}
-        </div>
-      )
-    )
-  }
+/**
+ * `<spell-app>`'s component:  styles its shadow root, works out what to run, and draws `<SpellAppRunner>`.
+ * - SIDE EFFECT:  sets our inline `width` / `height`, and listens for our `editor`'s compiles on our root node.
+ */
+function SpellApp(props: SpellAppProps, options: ComponentOptions) {
+  // the class `customElement()` made, on our base:  its types can't say so
+  const element = options.element as unknown as SpellAppElement
+  const root = element.renderRoot as ShadowRoot
+  void shadowStyles(element.assets).then((sheets) => {
+    root.adoptedStyleSheets = [...sheets, ...root.adoptedStyleSheets.filter((sheet) => !sheets.includes(sheet))]
+  })
 
+  // An attribute saying what to run, or which editor, changed:  drop code pushed to us.
+  element.addPropertyChangedCallback((key, value, old) => {
+    if (!dropsPushedCode(key, old as string | null, value as string | null)) return
+    element.pushedFor = undefined
+    element.pushed = undefined
+  })
+
+  // Our size, as our inline style.
+  createEffect(
+    () => [cssSize(props.width), cssSize(props.height)] as const,
+    ([width, height]) => {
+      element.style.width = width
+      element.style.height = height
+    }
+  )
+
+  // Our `editor`'s compiles, heard on our root node -- so it's found in a shadow root too.  And what it compiled
+  // already, if anything:  it may have compiled before we joined the page.
+  createEffect(
+    () => props.editor,
+    (selector) => {
+      if (!selector) return
+      const node = element.getRootNode()
+      node.addEventListener(SPELL_COMPILED_EVENT, onCompiled)
+      const compiled = editorCompiled(node as ParentNode, selector)
+      if (compiled) element.run(compiled)
+      return () => node.removeEventListener(SPELL_COMPILED_EVENT, onCompiled)
+    }
+  )
+
+  /** What we run, as last worked out:  kept while what it's from doesn't change, so it isn't re-run. */
+  let last: { key: string; pushed: SpellCompiled | undefined; source: SpellAppSource | undefined } | undefined
   /**
-   * What to run -- the same object while what it's from doesn't change.  `undefined` without anything.
+   * What to run -- the SAME object while what it's from doesn't change.  `undefined` without anything.
    * - Code pushed to us if there is some, see `run()`, else from our attributes.
    * - NOTE: `editor` isn't in `key`:  changing it drops pushed code, but NEVER re-runs what our attributes say.
    */
-  private source(): SpellAppSource | undefined {
-    const [project, src, scopes, name] = ["project", "src", "scopes", "name"].map((it) => this.getAttribute(it))
+  const source = createMemo(() => {
+    const { project, src, scopes, name } = props
     const key = JSON.stringify([project, src, scopes, name])
-    const pushed = this.#pushed
-    if (this.#source?.key !== key || this.#source.pushed !== pushed)
-      this.#source = {
+    const pushed = props.pushed && element.pushedFor === pushedKey(props) ? props.pushed : undefined
+    if (last?.key !== key || last.pushed !== pushed) {
+      last = {
         key,
         pushed,
         source: pushed ? pushedSource(projectSource(pushed.projectId), pushed, name) : attributeSource()
       }
-    return this.#source.source
+    }
+    return last.source
 
     /** What to run from our attributes alone -- `undefined` without `project` or `src`. */
     function attributeSource(): SpellAppSource | undefined {
@@ -183,36 +214,54 @@ export class SpellAppElement extends HTMLElement {
       if (name) source.name = name
       return source
     }
-  }
+  })
+
+  return (
+    <ui-root icons="fomantic" display="immediately">
+      <Show
+        when={source()}
+        fallback={
+          <div class="SpellAppError">
+            {props.editor
+              ? `Waiting for its editor, ${props.editor}, to compile…`
+              : "Give <spell-app> a project or src to run."}
+          </div>
+        }
+      >
+        {(it) => (
+          <SpellAppRunner
+            source={it()}
+            toolbar={props.toolbar}
+            debug={DEBUG_PANES.includes(props.debug as DebugPane) ? (props.debug as DebugPane) : undefined}
+            fluid={!cssSize(props.height)}
+            runtimeUrl={new URL("spell-runtime.js", BUNDLE).href}
+            builtInsUrl={new URL("spellCore.scopes.js", BUNDLE).href}
+            onOpen={(href) =>
+              element.dispatchEvent(new CustomEvent("spell-open", { detail: { href }, bubbles: true, composed: true }))
+            }
+            onControls={(controls) => (element.controls = controls)}
+          />
+        )}
+      </Show>
+    </ui-root>
+  )
 
   /**
-   * Listen for our `editor`'s compiles, if we have one -- on our root node, so it's found in a shadow root too.
-   * - Runs what it compiled already, if anything:  it may have compiled before we joined the page.
+   * A `SPELL_COMPILED_EVENT` on our root node:  run it, if it's from our `editor`.
+   * - Reads `editor` as it is now:  a listener is only ever added for the current one.
    */
-  private listen() {
-    this.unlisten()
-    const selector = this.getAttribute("editor")
-    if (!selector) return
-    const root = (this.#listeningOn = this.getRootNode())
-    root.addEventListener(SPELL_COMPILED_EVENT, this.#onCompiled)
-    const compiled = editorCompiled(root as ParentNode, selector)
-    if (compiled) this.run(compiled)
+  function onCompiled(event: Event) {
+    const selector = element.editor
+    if (selector && isEditor(event.target, selector)) element.run((event as CustomEvent<SpellCompiled>).detail)
   }
+}
 
-  /** Stop listening for our `editor`'s compiles. */
-  private unlisten() {
-    this.#listeningOn?.removeEventListener(SPELL_COMPILED_EVENT, this.#onCompiled)
-    this.#listeningOn = undefined
-  }
-
-  /**
-   * A `SPELL_COMPILED_EVENT` in our root node:  run it, if it's from our `editor`.
-   * - NOTE: an arrow, so it's the same function to add and remove.
-   */
-  #onCompiled = (event: Event) => {
-    const selector = this.getAttribute("editor")
-    if (selector && isEditor(event.target, selector)) this.run((event as CustomEvent<SpellCompiled>).detail)
-  }
+/**
+ * Our `project`, `src`, `scopes`, `name` and `editor` as one string -- what pushed code was pushed for.
+ * - NOTE: from properties, NOT attributes:  a property set by script isn't reflected.
+ */
+function pushedKey(app: Pick<SpellAppProps, "project" | "src" | "scopes" | "name" | "editor">): string {
+  return JSON.stringify([app.project, app.src, app.scopes, app.name, app.editor])
 }
 
 /**
@@ -260,6 +309,6 @@ const COMPILED_JS = ".compiled.js"
 const SCOPES_JS = ".scopes.js"
 
 /** `width` / `height` attribute `value` as a CSS size:  `""` for `fluid`, or none. */
-function cssSize(value: string | null): string {
+function cssSize(value: string | null | undefined): string {
   return !value || value === "fluid" ? "" : value
 }

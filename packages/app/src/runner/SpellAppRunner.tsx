@@ -1,12 +1,10 @@
-/** @jsxImportSource react */
-import React from "react"
-import classnames from "classnames"
-import * as SUI from "semantic-ui-react"
+import { Match, Show, Switch, createEffect, createSignal, onSettled, untrack } from "solid-js"
 
 import type { LSP } from "$/lsp"
 import type { ThingExplorerState, TypeExplorerState } from "$/app/ui/ui.types"
-// Solid, mounted as islands:  see `./runnerIslands`.
-import { TypeExplorer, ThingExplorer } from "./runnerIslands"
+// Import directly, NOT through the `$/app/solid` barrel, which pulls in the editor
+import { TypeExplorer } from "$/app/solid/TypeExplorer"
+import { ThingExplorer } from "$/app/solid/ThingExplorer"
 import { loadRuntime, type LoadedRuntime } from "./loadRuntime"
 import { loadScopePack, scopesFromPacks, type ScopesSource } from "$/lsp/ScopesSource"
 import { RunnerSplit, DEFAULT_SPLIT } from "./RunnerSplit"
@@ -23,131 +21,188 @@ import "./SpellAppRunner.css"
  * - Runs on its OWN copy of the spell runtime -- see `loadRuntime()` -- so many can run on a page at once.
  * - Runs `source` when the runtime's loaded, again when `source` changes -- a NEW object -- and on Restart.
  *   Restart fetches the program afresh, so a recompiled one shows -- or runs `source.compiled` again, if set.
- * - A program with NO app shows its console on top instead, and the explorers below.
+ * - The program draws with REACT (`App.start()` makes its own root):  we only hand it `appRoot`, a `<div>` drawn
+ *   once and never touched again.  Its React root is unmounted with us.
+ * - A program with NO app shows its console on top instead, and the explorers below.  One that starts its app
+ *   AFTER the run finished, e.g. from a timer, shows it once it draws.
  * - The Type Explorer is read-only, and shows only if there's a scope pack -- see `ScopesSource`.
+ * - `debug` and `fluid` are read once, to start;  `runtimeUrl` once per copy loaded.
+ * - Its `<ui-*>` tags are the caller's to define (`$/app/solid/loadUI`), with Fomantic's icon names.
  * - NEVER imports `$/core`:  it'd land in the bundle's shared chunk, so every app would share it.
  *   Everything of spell's comes from this app's copy of the runtime.
  ****************/
 export function SpellAppRunner(props: SpellAppRunnerProps) {
-  const { source, toolbar, fluid, runtimeUrl, builtInsUrl, onOpen, onControls } = props
-  const appRef = React.useRef<HTMLDivElement>(null)
-  const [loaded, setLoaded] = React.useState<LoadedRuntime>()
-  const [error, setError] = React.useState<string>()
+  const [loaded, setLoaded] = createSignal<LoadedRuntime>()
+  const [error, setError] = createSignal<string>()
   // Does the program draw an app?  Assume so until a run says.
-  const [hasApp, setHasApp] = React.useState(true)
-  const [debugOpen, setDebugOpen] = React.useState(!!props.debug)
-  const [pane, setPane] = React.useState<DebugPane>(props.debug ?? "explorer")
-  const [split, setSplit] = React.useState(fluid ? DEFAULT_DEBUG_HEIGHT : DEFAULT_SPLIT)
-  const [scopes, setScopes] = React.useState<ScopesSource>()
-  const [explorerState, setExplorerState] = React.useState<TypeExplorerState>({})
-  const [thingsState, setThingsState] = React.useState<ThingExplorerState>({})
+  const [hasApp, setHasApp] = createSignal(true)
+  const [debugOpen, setDebugOpen] = createSignal(!!untrack(() => props.debug))
+  const [pane, setPane] = createSignal<DebugPane>(untrack(() => props.debug) ?? "explorer")
+  const [split, setSplit] = createSignal(untrack(() => props.fluid) ? DEFAULT_DEBUG_HEIGHT : DEFAULT_SPLIT)
+  const [scopes, setScopes] = createSignal<ScopesSource>()
+  // the explorers' state, kept here so it outlives switching tabs:  each reads it once, as it mounts
+  let explorerState: TypeExplorerState = {}
+  let thingsState: ThingExplorerState = {}
   // compiled javascript of each project the last run loaded, by id -- for the Type Explorer's "Compiled Output"
-  const compiledRef = React.useRef(new Map<string, string>())
+  const compiledRef: CompiledRef = { current: new Map() }
 
-  // this app's own copy of the runtime, for as long as we're here
-  React.useEffect(() => {
-    const appRoot = appRef.current as AppElement | null
-    let copy: LoadedRuntime | undefined
-    let gone = false
-    loadRuntime(runtimeUrl).then(
-      (it) => (gone ? it.release() : setLoaded((copy = it))),
-      (problem: unknown) => setError(messageOf(problem))
-    )
-    return () => {
-      gone = true
-      appRoot?.REACT_ROOT?.unmount()
-      copy?.release()
+  // NOTE: ALWAYS here, just hidden without an app -- so its mount point is never redrawn
+  const appRoot = (<div class="App" />) as HTMLDivElement
+  const appPane = <div class={["SpellAppApp", { hidden: !hasApp() }]}>{appRoot}</div>
+
+  // this app's own copy of the runtime, for as long as we're here -- and its app, unmounted with us
+  createEffect(
+    () => props.runtimeUrl,
+    (runtimeUrl) => {
+      let copy: LoadedRuntime | undefined
+      let gone = false
+      loadRuntime(runtimeUrl).then(
+        (it) => (gone ? it.release() : setLoaded((copy = it))),
+        (problem: unknown) => setError(messageOf(problem))
+      )
+      return () => {
+        gone = true
+        ;(appRoot as AppElement).REACT_ROOT?.unmount()
+        copy?.release()
+      }
     }
-  }, [runtimeUrl])
-
-  /** Run the program afresh in `copy` -- see `runProgram()` -- and show how it went. */
-  const run = React.useCallback(
-    async (copy: LoadedRuntime) => {
-      const ran = await runProgram(copy, source, appRef.current!)
-      compiledRef.current = ran.compiled
-      setError(ran.error)
-      setHasApp(ran.hasApp)
-    },
-    [source]
   )
 
-  React.useEffect(() => {
-    if (loaded) void run(loaded)
-  }, [loaded, run])
-
-  React.useEffect(() => {
-    let gone = false
-    void loadScopes(source, builtInsUrl, compiledRef).then((it) => gone || setScopes(it))
-    return () => {
-      gone = true
+  // run the program -- once the runtime's loaded, and again for each new `source`
+  createEffect(
+    () => [loaded(), props.source] as const,
+    ([copy, source]) => {
+      if (copy) void run(copy, source)
     }
-  }, [source, builtInsUrl])
+  )
 
-  React.useEffect(() => {
-    onControls?.({ restart })
-  })
+  // the Type Explorer's scopes, for each new `source`
+  createEffect(
+    () => [props.source, props.builtInsUrl] as const,
+    ([source, builtInsUrl]) => {
+      let gone = false
+      void loadScopes(source, builtInsUrl, compiledRef).then((it) => gone || setScopes(it))
+      return () => {
+        gone = true
+      }
+    }
+  )
 
   // An app started AFTER the run finished, e.g. from a timer, shows once it draws.
-  React.useEffect(() => {
-    const element = appRef.current
-    if (!element) return
+  onSettled(() => {
     const observer = new MutationObserver(() => {
-      if (element.childElementCount) setHasApp(true)
+      if (appRoot.childElementCount) setHasApp(true)
     })
-    observer.observe(element, { childList: true })
+    observer.observe(appRoot, { childList: true })
     return () => observer.disconnect()
-  }, [])
+  })
 
-  const output = loaded && <RunnerConsole console={loaded.runtime.spellCore.console} />
-  const explorer = scopes && (
-    <TypeExplorer
-      readonly
-      tree={scopes.tree}
-      loadDetails={scopes.details}
-      onOpen={onOpen}
-      state={explorerState}
-      onStateChange={setExplorerState}
-    />
-  )
-  const things = loaded && (
-    <ThingExplorer things={loaded.runtime.spellCore.things} state={thingsState} onStateChange={setThingsState} />
-  )
-  const content: Record<DebugPane, ReactNode> = { explorer, things, console: output }
-  let bottom: ReactNode = undefined
-  if (debugOpen) {
-    // no app:  its console's on top already
-    const ids = [...(explorer ? ["explorer" as const] : []), "things" as const, ...(hasApp ? ["console" as const] : [])]
-    const showing = ids.includes(pane) ? pane : ids[0]
-    bottom = (
-      <RunnerPane tabs={ids.map((id) => DEBUG_TABS[id])} pane={showing} onPane={setPane} content={content[showing]} />
-    )
-  }
+  props.onControls?.({ restart })
 
   return (
-    <div className={classnames("SpellApp", { fluid })}>
-      {toolbar && (
+    <div class={["SpellApp", { fluid: props.fluid }]}>
+      <Show when={props.toolbar}>
         <SpellAppToolbar
-          name={source.name}
-          error={error}
+          name={props.source.name}
+          error={error()}
           onRestart={restart}
-          debugOpen={debugOpen}
-          onToggleDebug={() => setDebugOpen(!debugOpen)}
+          debugOpen={debugOpen()}
+          onToggleDebug={() => setDebugOpen(!debugOpen())}
         />
-      )}
-      {!toolbar && !!error && <div className="SpellAppError">{error}</div>}
-      <RunnerSplit unit={fluid ? "px" : "%"} split={split} onSplit={setSplit} bottom={bottom}>
-        {/* NOTE: ALWAYS here, just hidden without an app -- so its mount point is never redrawn */}
-        <div className={classnames("SpellAppApp", { hidden: !hasApp })}>
-          <div ref={appRef} className="App" />
-        </div>
-        {!hasApp && <RunnerPane tabs={[DEBUG_TABS.console]} pane="console" content={output} />}
+      </Show>
+      <Show when={!props.toolbar && error()}>
+        <div class="SpellAppError">{error()}</div>
+      </Show>
+      <RunnerSplit
+        unit={props.fluid ? "px" : "%"}
+        split={split()}
+        onSplit={setSplit}
+        showBottom={debugOpen()}
+        bottom={
+          <RunnerPane tabs={debugTabs().map((id) => DEBUG_TABS[id])} pane={showing()} onPane={setPane}>
+            <Switch>
+              <Match when={showing() === "explorer"}>{explorer()}</Match>
+              <Match when={showing() === "things"}>{things()}</Match>
+              <Match when={showing() === "console"}>{output()}</Match>
+            </Switch>
+          </RunnerPane>
+        }
+      >
+        {appPane}
+        <Show when={!hasApp()}>
+          <RunnerPane tabs={[DEBUG_TABS.console]} pane="console">
+            {output()}
+          </RunnerPane>
+        </Show>
       </RunnerSplit>
     </div>
   )
 
+  /** Tabs the debug pane has now -- no console without an app:  it's on top already. */
+  function debugTabs(): DebugPane[] {
+    return [...(scopes() ? ["explorer" as const] : []), "things" as const, ...(hasApp() ? ["console" as const] : [])]
+  }
+
+  /** Tab the debug pane shows:  the one chosen, if it has it, else its first. */
+  function showing(): DebugPane {
+    const tabs = debugTabs()
+    return tabs.includes(pane()) ? pane() : tabs[0]!
+  }
+
   /** Run the program again, afresh -- once the runtime's loaded. */
   function restart() {
-    if (loaded) void run(loaded)
+    const copy = loaded()
+    if (copy) void run(copy, props.source)
+  }
+
+  /** Run `source` afresh in `copy` -- see `runProgram()` -- and show how it went. */
+  async function run(copy: LoadedRuntime, source: SpellAppSource) {
+    const ran = await runProgram(copy, source, appRoot)
+    compiledRef.current = ran.compiled
+    setError(ran.error)
+    setHasApp(ran.hasApp)
+  }
+
+  /** The Type Explorer, read-only, if there's a scope pack. */
+  function explorer() {
+    return (
+      <Show when={scopes()} keyed>
+        {(it) => (
+          <TypeExplorer
+            readonly
+            tree={it.tree}
+            loadDetails={it.details}
+            onOpen={(href) => props.onOpen(href)}
+            state={explorerState}
+            onStateChange={(state) => (explorerState = state)}
+          />
+        )}
+      </Show>
+    )
+  }
+
+  /** The Thing Explorer, once the runtime's loaded. */
+  function things() {
+    return (
+      <Show when={loaded()} keyed>
+        {(copy) => (
+          <ThingExplorer
+            things={copy.runtime.spellCore.things}
+            state={thingsState}
+            onStateChange={(state) => (thingsState = state)}
+          />
+        )}
+      </Show>
+    )
+  }
+
+  /** The program's console, once the runtime's loaded. */
+  function output() {
+    return (
+      <Show when={loaded()} keyed>
+        {(copy) => <RunnerConsole console={copy.runtime.spellCore.console} />}
+      </Show>
+    )
   }
 }
 
@@ -214,17 +269,29 @@ export const DEBUG_PANES: DebugPane[] = ["explorer", "things", "console"]
 /****************
  * ### `<SpellAppToolbar>`
  * The app's name, Restart, the last run's error if it threw, then "Debug" at the right.
+ * - HACK: icons are slotted `<ui-icon>`s, not the items' `icon`:  see `<RunnerPane>`.
  ****************/
-function SpellAppToolbar({ name, error, onRestart, debugOpen, onToggleDebug }: SpellAppToolbarProps) {
+function SpellAppToolbar(props: SpellAppToolbarProps) {
   return (
-    <SUI.Menu attached="top" size="small" className="SpellAppToolbar">
-      <SUI.Menu.Item header content={name} />
-      <SUI.Menu.Item icon="redo" content="Restart" onClick={onRestart} />
-      {!!error && <SUI.Menu.Item className="error" icon="warning sign" content={error} />}
-      <SUI.Menu.Menu position="right">
-        <SUI.Menu.Item icon="bug" content="Debug" active={debugOpen} onClick={onToggleDebug} />
-      </SUI.Menu.Menu>
-    </SUI.Menu>
+    <ui-menu attached="top" size="small" class="SpellAppToolbar">
+      <ui-item type="header">{props.name}</ui-item>
+      <ui-item link="" class="restart" onClick={() => props.onRestart()}>
+        <ui-icon name="redo" />
+        Restart
+      </ui-item>
+      <Show when={props.error}>
+        <ui-item class="error">
+          <ui-icon name="warning sign" />
+          {props.error}
+        </ui-item>
+      </Show>
+      <ui-menu position="right">
+        <ui-item link="" class="debug" selected={props.debugOpen} onClick={() => props.onToggleDebug()}>
+          <ui-icon name="bug" />
+          Debug
+        </ui-item>
+      </ui-menu>
+    </ui-menu>
   )
 }
 
@@ -292,7 +359,7 @@ type Ran = {
 async function loadScopes(
   source: SpellAppSource,
   builtInsUrl: string,
-  compiledRef: React.MutableRefObject<Map<string, string>>
+  compiledRef: CompiledRef
 ): Promise<ScopesSource | undefined> {
   const [builtIns, pack] = await Promise.all([
     loadScopePack(builtInsUrl),
@@ -409,3 +476,6 @@ function messageOf(problem: unknown): string {
 
 /** The app's mount point, with the React root `App.start()` leaves on it. */
 type AppElement = HTMLElement & { REACT_ROOT?: { unmount(): void } }
+
+/** Compiled javascript the last run loaded, by project id -- a box, so the Type Explorer reads the latest. */
+type CompiledRef = { current: Map<string, string> }

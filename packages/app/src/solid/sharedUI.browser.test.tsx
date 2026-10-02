@@ -1,11 +1,21 @@
-import { afterEach, describe, expect, test, vi } from "vitest"
+import { afterEach, beforeAll, describe, expect, test, vi } from "vitest"
 import { flush } from "solid-js"
 import { render } from "@solidjs/web"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { UI as SpellUI } from "$/ui"
 import { editor, type EditorStore } from "$/app/editor"
-import { Actions, ErrorBoundary, MoreMenu, Notice, PanelMenu, Submenu, uiReady, type ActionProps } from "$/app/solid"
+import {
+  Actions,
+  ErrorBoundary,
+  MoreMenu,
+  Notice,
+  PanelMenu,
+  Submenu,
+  addAppIconsPageWide,
+  uiReady,
+  type ActionProps
+} from "$/app/solid"
 
 /**
  * The shared Solid UI (`chrome.tsx`, `Actions.tsx`, `ErrorBoundary.tsx`, `Notice.tsx`) on real `<ui-*>` elements,
@@ -15,12 +25,15 @@ import { Actions, ErrorBoundary, MoreMenu, Notice, PanelMenu, Submenu, uiReady, 
 /** Undo for each test:  unmount, restore `editor` fields. */
 const cleanups: (() => void)[] = []
 
+// as the editor app's entry does:  its icon names are Fomantic's
+beforeAll(() => addAppIconsPageWide())
+
 afterEach(() => {
   for (const cleanup of cleanups.splice(0).reverse()) cleanup()
 })
 
 describe("loadUI", () => {
-  test("the app's Fomantic icon names draw", async () => {
+  test("with `addAppIconsPageWide()`, the app's Fomantic icon names draw", async () => {
     await uiReady
     await SpellUI.icons.ready
     for (const name of ["ellipsis horizontal", "app store ios", "trash alternate outline", "caret right"]) {

@@ -101,7 +101,8 @@ count() // 1
 - One Solid per page, shared with `@spell-app/ui` (whose `UI` runtime is already one per page, on `globalThis`):
   - within a bundle:  Solid + `@spell-app/ui` live in the shared chunk, NEVER `spell-runtime.js`.  Each `<spell-app>`
     keeps its OWN `spellCore`, all share ONE Solid.  Register `enableExternalSource` once, shared.
-  - across our bundles (planned):  element / runner / editor builds import ONE `spell-solid.js`, not a Solid each
+  - across our bundles:  element / runner / editor builds import ONE `spell-solid.js` (and `ui` from `spell-ui.js`),
+    not a Solid each -- `app`'s `vite.solid.config.ts` + `sharedSolid()`, pinned by `element.build.test.ts`
   - on host pages with their own Solid / `@spell-app/ui`:  an import-map variant of `<spell-app>` (bare specifiers)
   - two copies on one page FAIL SILENTLY:  the fork's `register()` swaps `existing.Component` across copies
 - NEVER put Things (class instances) in a Solid store:  stores wrap them in proxies, `===` breaks.

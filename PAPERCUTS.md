@@ -899,6 +899,14 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   microtask loop starving the page:  `tree={buildScopeTree(ENTRIES)}` makes a NEW tree on every read of the Solid
   prop, the details cache was per tree object, so each answer asked again. · Bisect with a tiny probe test (passes
   in a second);  if the real file still hangs, suspect a loop.  Fixed in the component (`currentTree()` memo). · app
+- 2026-10-02 · The built `dist-element/` drew fine, yet logged 27 404s per page:  vite's module preloading of `ui`'s
+  lazy chunks asked for `/ui/UIRuntime.js` ... at the page's ROOT (default `base: "/"`), not beside the bundle.
+  Same cause as the editor's worker 404 (`spell` section). · `base: "./"` in `vite.solid.config.ts`.  Any build whose
+  chunks are served from a sub-folder needs it. · app
+- 2026-10-02 · Two rolldown ENTRIES (`spell-solid`, `spell-ui`) both reaching Solid:  rolldown put Solid in a THIRD,
+  shared chunk (named after a random module, `ui/customElement.js`), not in `spell-solid.js` -- even with
+  `preserveEntrySignatures: "allow-extension"`. · One entry, the other its dynamic `import()`:  the lazy chunk then
+  imports what the entry already holds from the entry. · app
 
 ## cli
 
