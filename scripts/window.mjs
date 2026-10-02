@@ -26,9 +26,8 @@
  * - `/isolate` and `/plan-doc` open a worktree in a NEW window (`open <name>`), and close it on leaving (`close`).
  *   The session, and its chat, stay in the window they started in.
  * - Its file:  `.claude/worktrees/<name>.code-workspace`, beside the worktree, so git ignores it in both checkouts.
- * - The package window's shape, every folder the worktree's:  its root first, then its `packages/<pkg>`.  So there
- *   are no main-checkout copies in it to edit by mistake.  NOTE:  so its Claude panel lists no sessions (they're
- *   saved under the MAIN root):  chat in the session's own window.
+ * - Folders:  the MAIN repo root first, as in every window, so its Claude panel lists every session;  then the
+ *   worktree's `packages/<pkg>` and the worktree's root (whose `packages/` is hidden, as the main root's is).
  * - The package window's theme, title bar tinted in a colour of the worktree's own (from its name):  told apart at a
  *   glance from the package window, and from other worktrees.
  *
@@ -137,8 +136,9 @@ export class Window {
   static worktreeWorkspace(pkg, name) {
     return {
       folders: [
-        { path: name, name: `spell-app ⎇ ${name}` },
-        { path: `${name}/packages/${pkg}`, name: `${pkg} ⎇ ${name}` }
+        { path: "../..", name: "spell-app" },
+        { path: `${name}/packages/${pkg}`, name: `${pkg} ⎇ ${name}` },
+        { path: name, name: `spell-app ⎇ ${name}` }
       ],
       settings: {
         "workbench.colorTheme": Window.theme(pkg),

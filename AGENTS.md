@@ -70,8 +70,8 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 - Open the worktree in its OWN new window at once, from the worktree's root:  `node scripts/window.mjs open <name>`;
   `... close <name>` on leaving.  The session and its chat stay in the window they started in.
   - The window:  `.claude/worktrees/<name>.code-workspace`, the package window's theme with a title bar tinted
-    per worktree, folders the worktree's root and `packages/<pkg>` (no main-checkout copies to edit by mistake).
-    Its Claude panel lists no sessions:  they're saved under the MAIN root.
+    per worktree.  Folders:  the MAIN repo root first (so its Claude panel lists every session), then the
+    worktree's `packages/<pkg>` (`<pkg> ⎇ <name>`) and root (`spell-app ⎇ <name>`).
   - Why:  Owen reviews in VS Code;  edits a window doesn't show are invisible there.
   - `node`, not `yarn window`:  `yarn` runs no script in a worktree before its `yarn install`.
 - NEVER `code --add` / `--remove` (the focused window;  a one-folder window restarts its extensions, Claude panel

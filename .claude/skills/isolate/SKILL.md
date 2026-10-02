@@ -27,9 +27,10 @@ worktree, its branch and the session share one name.  `/plan-doc` runs these ste
    `WorktreeCreate` hook (`.claude/hooks/worktree.mjs`) makes it on branch `<name>` from local `main`, and keeps this
    session listed in every window.
 5. Open it in its own window (root `AGENTS.md` "Worktrees"), from the worktree's root:
-   - `node scripts/window.mjs open <name>`:  a NEW window, the package window's theme with a tinted title bar, its
-     folders the worktree's root and `packages/<pkg>` (`<pkg>`:  this session's window's;  `--pkg <pkg>` when it
-     isn't a package window).  The session and its chat stay in THIS window.
+   - `node scripts/window.mjs open <name>`:  a NEW window, the package window's theme with a tinted title bar.
+     Folders:  the MAIN root (so every session is listed), then the worktree's `packages/<pkg>` and root.
+     `<pkg>`:  this session's window's;  `--pkg <pkg>` when it isn't a package window.
+   - The session and its chat stay in THIS window.
    - `node scripts/window.mjs`, NOT `yarn window`:  a fresh worktree has no `node_modules/` yet, and `yarn` runs no
      script before `yarn install`
    - fails:  say so in one line and go on.  NEVER `code --add` / `-r`:  they restart the Claude panel or target
