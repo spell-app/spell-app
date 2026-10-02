@@ -171,7 +171,8 @@ In this order, from `packages/docs`:
 - `scripts/bundle-spell-ui.js` -- builds UI (fork + `yarn build`), bundles `_assets/spell-ui.js`.
 - `yarn docs:index` (`scripts/index.js`) -- rewrites the lists in `index.html`.
 - `yarn docs:new` (`scripts/new-page.js`) -- a page from a template, at any depth.
-- `yarn docs:open [page]` (`scripts/open.js`) -- show a page (default:  the index) in Chrome, reusing its tab.
+- `yarn docs:open [page] [--vs]` (`scripts/open.js`) -- show a page (default:  the index) in Chrome, reusing its
+  tab;  `--vs`:  in VS Code's doc preview, beside the editor (`/spell-docs`).
 - `scripts/pages.js` -- shared by the scripts:  `DOCS`, `findPages()`, `tidy()` (link targets + oxfmt),
   `serialize()`, `openInChrome()`, `openInVSCode()` (plan docs:  Simple Browser through the spell extension's
   `DocPreview`).
