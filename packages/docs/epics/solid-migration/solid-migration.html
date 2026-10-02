@@ -59,7 +59,7 @@
           </p>
 
           <blockquote class="plan-prompt"><p>convert this into a plan doc with name "solid-migration"</p></blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 15h 30m-24h in all, 12h-18h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 16h 30m-26h in all, 13h-20h left</p>
           <ui-section id="o1" header="1.1 Where it stands" sticky collapsible dividing>
             <ul>
               <li>
@@ -412,6 +412,13 @@
                   </tr>
                   <tr>
                     <td><a href="#p4">P4</a> Reactivity Engine</td>
+                    <td>the easy-state-to-Solid bridge (<code>tracked()</code>) and its client-build tests</td>
+                    <td class="num right aligned">1-2h</td>
+                    <td class="num right aligned">same</td>
+                    <td class="yes positive">low</td>
+                  </tr>
+                  <tr>
+                    <td><a href="#p11">P11</a> Spell Cells (after P8)</td>
                     <td>
                       cells core ~200 new; <code>Observable</code> +
                       <a href="../../../util/src/spell/extend.ts" target="src-packages-util-src-spell-extend-ts"
@@ -477,8 +484,8 @@
                   <tr>
                     <td><b>Total</b></td>
                     <td></td>
-                    <td class="num right aligned"><b>~23h 30m-38h</b></td>
-                    <td class="num right aligned"><b>~15h 30m-24h</b></td>
+                    <td class="num right aligned"><b>~24h 30m-40h</b></td>
+                    <td class="num right aligned"><b>~16h 30m-26h</b></td>
                     <td></td>
                   </tr>
                 </tbody>
@@ -489,7 +496,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="3" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="3" total="10" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -571,19 +578,22 @@
             dividing
           >
             <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-message class="plan-update" state="warning" size="tiny" header="UPDATE" data-phase="4"
+              ><p>Narrowed to the bridge (<a href="#d13">D13</a>);  the full spell cells are
+                <a href="#p11">P11 · Spell Cells</a>.</p></ui-message
+            >
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
-                ><b>Goal:</b> spell cells under Observable / extend.ts, same API; React still renders (handoff
-                1)</ui-item
+                ><b>Goal:</b> Solid code sees easy-state changes (spell Things, the editor store);  easy-state stays
+                (handoff 1, narrowed)</ui-item
               ><ui-item icon="folder"
-                ><b>Files:</b> packages/util/src/spell/ (cells from experiments/spell-cells.core.ts);
-                packages/util/src/decorators.ts (@prop / @derived / @thing); packages/parser/src/ast/AST.tsx
-                ASTReactiveProperty emits type + default; packages/core/src/things.ts store.version -&gt; cell;
-                temporary React bridge (view() collects through core)</ui-item
+                ><b>Files:</b> packages/util/src/spell/ (a <code>tracked()</code> helper:  a Solid accessor re-read when
+                the easy-state values it read change);  its tests</ui-item
               ><ui-item icon="flask"
-                ><b>Verify:</b> experiments pinned as vitest cases (scripts kept); fixtures blessed, diff read; parser
-                speed test on diff AND HEAD</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 4-6h</ui-item></ui-list
+                ><b>Verify:</b> tests in Solid's CLIENT build (<a href="#c7">C7</a>):  an easy-state write updates a
+                Solid memo / effect after <code>flush()</code>;  disposal stops tracking;  no
+                <code>REACTIVE_WRITE_IN_OWNED_SCOPE</code></ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
             >
           </ui-section>
           <ui-section id="p6" data-phase="6" data-status="todo" header="P6 · Shared App UI" sticky collapsible dividing>
@@ -634,6 +644,35 @@
                 -&gt; one listener; packages/parser/src/ast/AST.tsx views, renderAST.tsx</ui-item
               ><ui-item icon="flask"><b>Verify:</b> yarn start: every route; hotkeys; AST viewer</ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 2h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p11"
+            data-phase="11"
+            data-status="todo"
+            header="P11 · Spell Cells"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-message class="plan-update" state="warning" size="tiny" header="UPDATE" data-phase="4"
+              ><p>New (<a href="#d13">D13</a>):  P4's full scope, run after P8 and before P9.  Numbered P11 because ids
+                never change;  the order on this page is the order of work.</p></ui-message
+            >
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> spell cells replace easy-state under Observable / extend.ts and the editor store, same
+                API; React reads through a bridge (was P4's full scope, Q3)</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/util/src/spell/ (cells from experiments/spell-cells.core.ts);
+                packages/util/src/spell/spellDecorators.ts (@prop / @derived); packages/parser/src/ast/AST.tsx
+                ASTReactiveProperty emits type + default; packages/core/src/things.ts store.version -&gt; cell; view()
+                over cells for React; P4's tracked() onto cells</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> experiments pinned as browser vitest cases (scripts kept); fixtures blessed, diff read;
+                parser speed test on diff AND HEAD; Solitaire / Todos / Calculator run</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 4-6h</ui-item></ui-list
             >
           </ui-section>
           <ui-section id="p9" data-phase="9" data-status="todo" header="P9 · Remove React" sticky collapsible dividing>
@@ -950,6 +989,172 @@
                     >): selectors like <code>:before.ui</code> are invalid. <code>errorRecovery: true</code> drops such
                     rules with a warning, as browsers already do. Checked: the app renders with Semantic's styles, no
                     console errors besides the missing API server.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q3" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q3">Q3</a>
+                  <span class="plan-title"
+                    >P4 scope, now spell output stays React: bridge only, or full spell cells?</span
+                  >
+                  <a class="plan-answer" href="#d13">→ D13</a></ui-title
+                ><ui-content
+                  ><p>
+                    P4 was designed to serve P5: spell state moves to <dfn>spell cells</dfn> (each Thing keeps its
+                    values in a <code>Map</code>, read and written synchronously, with one bridge telling Solid about
+                    changes) so compiled spell could render through Solid and still read its own writes at once. With P5
+                    gone, compiled spell keeps rendering with React, on today's <code>easy-state</code> store proxies.
+                    What the Solid app UI (P6-P8) still needs is to SEE spell state and the editor store change: the
+                    Thing Explorer, the project list, the console.
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable>
+                    <ui-column
+                      ><ui-segment
+                        ><ui-label attached="top" color="green">A. Bridge only (recommended)</ui-label>
+                        <ul>
+                          <li>keep <code>easy-state</code> under <code>Observable</code> and the editor store</li>
+                          <li>
+                            add one helper in <code>$/util</code>: a Solid accessor that re-reads when
+                            <code>easy-state</code> says its inputs changed
+                          </li>
+                          <li>
+                            cells, <code>@prop</code> / <code>@derived</code>, the class schema and the parser emit move
+                            to the Core + JSX thread (<a href="#t2">T2</a>)
+                          </li>
+                          <li>no compiled-output change, no fixture bless; ~1-2h instead of 4-6h; risk low</li>
+                        </ul>
+                        <pre><code class="language-ts">const title = tracked(
+  () =&gt; editor.project?.title
+)
+// JSX:  &lt;h1&gt;{title()}&lt;/h1&gt;</code></pre>
+                      </ui-segment></ui-column
+                    >
+                    <ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B. Full P4, as designed</ui-label>
+                        <ul>
+                          <li>cells replace <code>easy-state</code> for Things and the editor store now</li>
+                          <li>
+                            React views (spell output, UI not yet moved) read through a bridge, which stays as long as
+                            spell output is React
+                          </li>
+                          <li>compiled output changes (class schema); fixtures blessed; parser speed test</li>
+                          <li>4-6h; risk HIGH: every Thing read / write goes through it</li>
+                        </ul>
+                        <pre><code class="language-ts">@thing class Card extends Thing {
+  @prop({ type: "text" })
+  accessor suit!: string
+}</code></pre>
+                      </ui-segment></ui-column
+                    >
+                  </ui-grid>
+                  <p>
+                    Recommend A: same reason P5 went -- B's payoff (read-after-write for spell, keys in order, types)
+                    arrives with compiled spell on Solid, which is now another thread.
+                  </p>
+                </ui-content></ui-accordion
+              ></ui-item
+            ><ui-item id="d13" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d13">D13</a>
+                  <span class="plan-title"
+                    >P4 = bridge only; full spell cells become their own phase, between P8 and P9 (P11 · Spell Cells)
+                    (<a href="#q3">Q3</a>)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Owen, 2026-10-02. P4: keep easy-state, add a <code>$/util</code> helper so Solid UI sees easy-state
+                    changes. P11 (run after P8, before P9): cells replace easy-state for Things and the editor store,
+                    <code>@prop</code> / <code>@derived</code>, class schema and parser emit, React reading through a
+                    bridge.
+                  </p>
+                  <p class="meta">
+                    Answers <a href="#q3">Q3</a>: P4 scope, now spell output stays React: bridge only, or full spell
+                    cells?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q4" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q4">Q4</a>
+                  <span class="plan-title">Conversion order: top-down (Solid shell first) or bottom-up?</span>
+                  <a class="plan-answer" href="#d14">→ D14</a></ui-title
+                ><ui-content
+                  ><p>
+                    React and Solid will live in one page for a while. An <dfn>island</dfn> is a component of one
+                    framework mounted inside the other: a small adapter renders it into its own
+                    <code>&lt;div&gt;</code>. Compiled spell's React output inside the Solid runner is a
+                    <dfn>React island</dfn>, and with P5 gone that one stays. The question is which way the app's own UI
+                    converts.
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable>
+                    <ui-column
+                      ><ui-segment
+                        ><ui-label attached="top" color="green">A. Top-down (recommended)</ui-label>
+                        <ul>
+                          <li>order P8 Editor Shell, P7 Web Components + Runner, P6 Shared UI, then P9</li>
+                          <li>
+                            the Solid shell hosts not-yet-moved React components as React islands, swapped out one by
+                            one
+                          </li>
+                          <li>ONE adapter (Solid hosts React), the same one spell output needs anyway</li>
+                          <li>
+                            each island is its own React root: React context doesn't cross islands (only
+                            <a
+                              href="../../../app/src/ui/ConsoleLines.tsx"
+                              target="src-packages-app-src-ui-consolelines-tsx"
+                              ><code>ConsoleLines.tsx</code></a
+                            >
+                            uses one, inside itself); state is in global stores, so it does
+                          </li>
+                        </ul>
+                        <pre><code class="language-tsx">&lt;ReactIsland
+  component={ThingExplorer}
+  props={{ things }}
+/&gt;</code></pre>
+                      </ui-segment></ui-column
+                    >
+                    <ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B. Bottom-up (handoff order)</ui-label>
+                        <ul>
+                          <li>order P6 Shared UI, P7, P8, then P9</li>
+                          <li>React pages host converted Solid components as Solid islands until P8 flips the shell</li>
+                          <li>TWO adapters: Solid-in-React for P6-P8, React-in-Solid for spell output</li>
+                          <li>the Solid-in-React adapter is thrown away at P8</li>
+                        </ul>
+                        <pre><code class="language-tsx">&lt;SolidIsland
+  component={ThingExplorer}
+  things={things}
+/&gt;</code></pre>
+                      </ui-segment></ui-column
+                    >
+                  </ui-grid>
+                  <p>
+                    Recommend A: one adapter, which we need anyway, and no throw-away code. Phase ids stay; only the
+                    order changes.
+                  </p>
+                </ui-content></ui-accordion
+              ></ui-item
+            ><ui-item id="d14" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d14">D14</a>
+                  <span class="plan-title"
+                    >Bottom-up, the handoff order: P6, P7, P8 (<a href="#q4">Q4</a>)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Owen, 2026-10-02. React pages host converted Solid components through a Solid-in-React island
+                    adapter until P8 flips the shell (then it goes); compiled spell's React output sits in a
+                    React-in-Solid island for good.
+                  </p>
+                  <p class="meta">
+                    Answers <a href="#q4">Q4</a>: Conversion order: top-down (Solid shell first) or bottom-up?
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1326,6 +1531,43 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T13:12-04:00">2026-10-02 13:12</time></ui-date> P3
                   done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T16:00-04:00">2026-10-02 16:00</time></ui-date> Q3 answered: D13
+                  P4 = bridge only; full spell cells become their own phase, between P8 and P9 (P11 · Spell
+                  Cells)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T16:00-04:00">2026-10-02 16:00</time></ui-date> Q4 answered: D14
+                  Bottom-up, the handoff order: P6, P7, P8</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T16:00-04:00">2026-10-02 16:00</time></ui-date> P11 added: Spell
+                  Cells</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T16:00-04:00">2026-10-02 16:00</time></ui-date> P4 estimate:
+                  1-2h</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T16:00-04:00">2026-10-02 16:00</time></ui-date> Q3: P4 narrowed to
+                  the easy-state-to-Solid bridge; full cells now P11 · Spell Cells, run after P8, before P9. Q4:
+                  bottom-up order kept.</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
