@@ -879,6 +879,13 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   `main`, once a session starts with it registered. · tooling
 - 2026-10-02 · `yarn site:check` (`astro check`) crashes before checking anything:  `Cannot read properties of undefined (reading 'useCaseSensitiveFileNames')` in `@volar/kit/lib/createChecker.js`, with or without our changes (the repo's TS 7 vs the language server) · not fixed;  `yarn site:build` is the working gate · ui
 
+## app
+
+- 2026-10-02 · `app`'s `browser` test project failed EVERY file on a cold `node_modules/.vite/vitest` cache once a test
+  imported `$/app/editor`:  vite found `marked`, `semantic-ui-react`, lodash ... mid-run, re-optimized and reloaded
+  ("Failed to fetch dynamically imported module");  a second run passed. · `optimizeDeps.entries: BROWSER_TESTS` in
+  `vitest.config.ts` `browserConfig()`, so the dep scan crawls the tests up front.  Cold-cache run green. · app
+
 ## cli
 
 Entries before 2026-09-30 are from when the command line lived in the parser repo, on its `CLI` branch.

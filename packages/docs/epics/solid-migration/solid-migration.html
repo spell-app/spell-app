@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Solid Migration</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p6">next: P6 · Shared App UI</ui-label></span
+              ><ui-label basic color="orange" icon="circle half stroke" href="#p6">P6 · Shared App UI</ui-label></span
             >
           </header></ui-sticky
         >
@@ -600,8 +600,16 @@
               ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p6" data-phase="6" data-status="todo" header="P6 · Shared App UI" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section
+            id="p6"
+            data-phase="6"
+            data-status="active"
+            header="P6 · Shared App UI"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle half stroke" color="orange"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> packages/app/src/ui/ on Solid + <code>&lt;ui-*&gt;</code> (handoff 3)</ui-item
@@ -1159,6 +1167,74 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="d15" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d15">D15</a>
+                  <span class="plan-title"
+                    >Solid UI loads @spell-app/ui once: $/app/solid loadUI.ts, Fomantic icon names</span
+                  >
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="6">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    <a href="../../../app/src/solid/loadUI.ts" target="src-packages-app-src-solid-loadui-ts"
+                      ><code>packages/app/src/solid/loadUI.ts</code></a
+                    >, imported by the <code>$/app/solid</code> barrel: <code>$/ui</code> whole (every family defines
+                    itself, as the docs bundle does; from another package, barrel only), then <code>UI.load()</code> and
+                    <code>UI.icons.use("fomantic")</code> page-wide (the app speaks Fomantic icon names; the last pack
+                    wins). Exports <code>uiReady</code> for tests. Never reachable from <code>spell-runtime.js</code>.
+                    The app build (<a href="../../../ui/vite.config.ts" target="src-packages-ui-vite-config-ts"
+                      ><code>vite.config.ts</code></a
+                    >) now emits the packs to <code>assets/icon-packs</code> (T3, app build only; runner / element /
+                    editor builds still off).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d16" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d16">D16</a>
+                  <span class="plan-title"
+                    >Shared Solid UI conventions (P6a): Action, MoreMenu, on(), ErrorBoundary</span
+                  >
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="6">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      Menus: <code>&lt;ui-menu&gt;</code> of <code>&lt;ui-item link&gt;</code>; sub-menus
+                      <code>&lt;ui-menu position&gt;</code>; hosts are <code>display: contents</code>, so page CSS
+                      styles <code>::part(menu)</code> / <code>::part(item)</code> (<a
+                        href="../../../app/src/solid/chrome.css"
+                        target="src-packages-app-src-solid-chrome-css"
+                        ><code>chrome.css</code></a
+                      >).
+                    </li>
+                    <li>
+                      <code>&lt;MoreMenu&gt;</code> is a <code>&lt;ui-dropdown&gt;</code> whose items are DATA: choosing
+                      one clicks the <code>&lt;ui-item&gt;</code> (so <code>onClick</code> works in menus and dropdowns
+                      alike) and resets the value; it provides the <code>InDropdown</code> context, so
+                      <code>&lt;Action&gt;</code> renders its icon as the item's <code>icon</code> attribute there and
+                      keeps titles text.
+                    </li>
+                    <li>
+                      <code>ui-*</code> events: <code>ref={on("ui-change", handler)}</code> (<code>$/app/solid</code>
+                      <code>on()</code>); native events: <code>onClick</code>.
+                    </li>
+                    <li>
+                      <code>editor</code> reads: <code>tracked(() =&gt; editor.x)</code> in the component body, the
+                      accessor read in JSX.
+                    </li>
+                    <li>
+                      <code>Actions.PROJECT_DROPDOWN_ACTIONS</code> / <code>FILE_DROPDOWN_ACTIONS</code> are components
+                      now, not element arrays.
+                    </li>
+                    <li>
+                      <code>&lt;ErrorBoundary fallback onError&gt;</code> wraps <code>&lt;Errored&gt;</code>; replaces
+                      subclassing React's <code>ErrorHandler</code>.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1348,7 +1424,32 @@
 
         <ui-section id="issues" header="6. Issues" sticky collapsible dividing>
           <ui-icon slot="icon" name="bug"></ui-icon>
-          <ui-list class="plan-items" data-kind="issue" divided relaxed></ui-list>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed
+            ><ui-item id="i1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i1">I1</a>
+                  <span class="plan-title">ui-menu item icon shorthand draws 0x0</span>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="6">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    <code>&lt;ui-item icon&gt;</code> in any <code>&lt;ui-menu&gt;</code> renders its svg at 0 x 0 (ui's
+                    own baseline <code>ui-menu/content-light.png</code> shows it: Inbox has no icon). Workaround:
+                    <code>&lt;Action&gt;</code> and <code>&lt;MoreMenu stub&gt;</code> slot a
+                    <code>&lt;ui-icon&gt;</code> (HACK in
+                    <a href="../../../app/src/solid/Actions.tsx" target="src-packages-app-src-solid-actions-tsx"
+                      ><code>packages/app/src/solid/Actions.tsx</code></a
+                    >). Also seen: an inverted coloured menu draws dark item text; a host <code>aria-label</code> never
+                    reaches <code>&lt;ui-dropdown&gt;</code>'s combobox. All in
+                    <a href="../../../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
+                      ><code>SUSPECTED-BUGS.md</code></a
+                    >
+                    ui; not fixed in ui here.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
         </ui-section>
 
         <ui-section id="log" header="7. Log" sticky collapsible dividing>
@@ -1591,6 +1692,23 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T16:09-04:00">2026-10-02 16:09</time></ui-date> P4
                   done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T16:09-04:00">2026-10-02 16:09</time></ui-date> P6
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T16:30-04:00">2026-10-02 16:30</time></ui-date> P6a: shared Solid
+                  UI in packages/app/src/solid -- chrome (menus, MoreMenu), Action / Actions, ErrorBoundary,
+                  ErrorDisplay / ErrorNotice, Notice, Markdown, on(), loadUI (D15, D16); browser tests
+                  (sharedUI.browser.test.tsx); app build emits icon packs; vitest browser deps crawled up
+                  front</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
