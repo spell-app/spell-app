@@ -341,3 +341,12 @@ every entry below that date was fixed or disproven;  what's left:
   `<Project>.scopes.js` or `--against <ref>` become bogus `<project>` / `<ref>` elements (oxfmt then indents them as
   tags).  Escape them as text -- or document that they're HTML, as `--details` is.  Prove:
   `yarn plan-doc add-phase x "A" --goal "write <Project>.js"`, then look at the `#p1` body.
+
+## server
+
+### 1. Behavior bugs
+
+- `[V]` `src/page/cli.ts` `url`:  a RELATIVE `<file>` resolves against `packages/server`, not the folder `yarn
+  server` ran in -- the root's `yarn server` runs `yarn workspace ... server`, whose nested yarn resets `INIT_CWD`.
+  Prove:  `yarn server url packages/docs/index.html` at the repo root prints
+  `.../packages/server/packages/docs/index.html`.  An absolute path works.
