@@ -54,21 +54,30 @@ When the session already has work under way ("make this a plan doc"), carry it o
 
 ## 3. Plan
 
-- `EnterPlanMode`.  Explore, then draft the plan in the harness plan file, in the plan doc's shape:
-  1. Summary:  2 sentences
-  2. Phases:  `P1 · Short Name`, 2-4 words each, so "start P2" is unambiguous;  each with goal, files, verify.
-     The LAST phase is always `Doc Review`.
-  3. Overview:  numbered sections (structure, code, flows):  what will become durable docs
-  4. Caveats, issues, todos, decisions (what + why), open questions
-- Ask open questions with AskUserQuestion before ExitPlanMode.  If the user hasn't said how many agents the work
-  may use, one of them is "How many agents can I use for this?";  record the answer as a decision.
-- Plan mode allows editing ONLY the harness plan file:  the plan doc waits until approval.
+1. Explore (read-only), BEFORE plan mode.
+2. Minimal plan doc, BEFORE presenting the plan:  only the Overview and the open questions, so the user can read
+   them in the doc while the plan is up.  Nothing else yet (no phases, decisions, caveats ...).
+   - Hand-write the Overview's sub-sections (shape:  "4. Fill the doc").
+   - `yarn plan-doc add <name> question "title" --details "..."` per open question, explained with examples
+     ("5. Each phase", item 6).  If the user hasn't said how many agents the work may use, one is
+     "How many agents can I use for this?".
+   - `yarn plan-doc check <name>`, then `yarn plan-doc open <name>`.
+   - Why here:  plan mode allows editing ONLY the harness plan file.
+3. `EnterPlanMode`.  Draft the plan in the harness plan file, in the plan doc's shape:
+   1. Summary:  2 sentences
+   2. Phases:  `P1 · Short Name`, 2-4 words each, so "start P2" is unambiguous;  each with goal, files, verify.
+      The LAST phase is always `Doc Review`.
+   3. Overview:  numbered sections (structure, code, flows):  what will become durable docs
+   4. Caveats, issues, todos, decisions (what + why), open questions (the doc's ids:  `Q1` ...)
+4. Ask the open questions with AskUserQuestion (labels matching the doc's) before ExitPlanMode.
 
 ## 4. Fill the doc (right after ExitPlanMode is approved)
 
 - `yarn plan-doc add-phase <name> "Short Name" --goal "..." --files "..." --verify "..."` per phase, in order
 - `yarn plan-doc add <name> decision|caveat|issue|todo|question "title" [--details "<p>...</p>"]` per item
-- Hand-write `p.plan-summary` and the Overview's sub-sections, nested in `#overview`:
+- Questions answered in "3. Plan", the agents one included:  `decide <name> Q<n> "..."`
+- Hand-write `p.plan-summary`;  bring the Overview (written in "3. Plan") in line with the approved plan, nested in
+  `#overview`:
   `<ui-section id="o1" header="1.1 ..." sticky collapsible dividing>`, `#o2` ... (a title with markup:  a
   `<span slot="header">` first inside instead of `header`;  sub-sub-items:  `<h4 id>`).  Code in folded
   `ui-accordion.spell-code`, digressions in collapsed `ui-accordion.spell-aside`, links to items and phases
