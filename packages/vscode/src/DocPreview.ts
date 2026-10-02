@@ -2,6 +2,9 @@
  * Shows an `.html` doc (`packages/docs`) rendered, in VS Code's Simple Browser beside the editor.
  * - Opened by URI:  `vscode://spell-app.spell-language/doc-preview?file=<absolute path>` -- what
  *   `packages/docs/scripts/pages.js` `openInVSCode()` opens (`yarn plan-doc open`, `yarn plan-doc phase`).
+ * - Or `?url=<http://127.0.0.1:port/...>`:  a page some local server already serves, shown as is -- the goals
+ *   server's live pages (`goals/_tools/launch.js` `openInVSCode()`, `/goals-open-vs`).  Loopback URLs only;  with
+ *   a `file` too, the file is the fallback when the URL isn't loopback.
  * - Simple Browser loads only http(s), so the doc's git root (the repo, or the worktree it's in) is served from a
  *   local server on `127.0.0.1`, one per root, for as long as the extension runs.  Served from the ROOT, not the
  *   doc's folder:  docs link to source files all over the repo.
@@ -51,7 +54,10 @@ export class DocPreview {
       vscode.window.registerUriHandler({
         handleUri: (uri) => {
           if (uri.path !== PATH) return
-          const file = new URLSearchParams(uri.query).get("file")
+          const query = new URLSearchParams(uri.query)
+          const url = query.get("url")
+          if (url && isLoopback(url)) return void DocPreview.showUrl(url)
+          const file = query.get("file")
           if (file) void DocPreview.show(resolve(file), servers)
         }
       }),
@@ -72,11 +78,27 @@ export class DocPreview {
       DocPreview.ports.set(root, port)
     }
     const path = file.slice(root.length).split(sep).map(encodeURIComponent).join("/")
-    const url = `http://127.0.0.1:${await port}${path}?t=${Date.now()}`
-    await vscode.commands.executeCommand("simpleBrowser.api.open", vscode.Uri.parse(url), {
+    await DocPreview.showUrl(`http://127.0.0.1:${await port}${path}`)
+  }
+
+  /** Show `url` in Simple Browser, beside the editor, afresh:  a `?t=` stamp makes each open a reload. */
+  static async showUrl(url: string): Promise<void> {
+    const fresh = new URL(url)
+    fresh.searchParams.set("t", String(Date.now()))
+    await vscode.commands.executeCommand("simpleBrowser.api.open", vscode.Uri.parse(fresh.href), {
       viewColumn: vscode.ViewColumn.Beside,
       preserveFocus: true
     })
+  }
+}
+
+/** Whether `url` is plain http on this machine (`127.0.0.1` / `localhost`):  never open anything else. */
+function isLoopback(url: string): boolean {
+  try {
+    const parsed = new URL(url)
+    return parsed.protocol === "http:" && ["127.0.0.1", "localhost"].includes(parsed.hostname)
+  } catch {
+    return false
   }
 }
 

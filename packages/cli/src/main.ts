@@ -203,6 +203,15 @@ program
     command.outputHelp()
   })
 
+program
+  .command("goals")
+  .description("plans in goals/:  talk, add thoughts, update, open -- `spell goals help` lists its commands")
+  .argument("[args...]", "a goals command and its arguments, e.g. update spell/motivation")
+  .allowUnknownOption()
+  .helpOption(false)
+  // everything after `goals`, raw:  commander would take `--all` as the global option
+  .action(() => run(CLI.goalsCommand, process.argv.slice(process.argv.indexOf("goals") + 1), {}))
+
 await program.parseAsync()
 
 /**

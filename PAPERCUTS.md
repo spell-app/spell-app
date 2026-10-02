@@ -811,6 +811,20 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   `fa7-free` at build time and `UI.icons.register()`s them, then `reset()`s the packs (a page on `file://` can't load
   one). · docs/ui
 - 2026-09-30 · `yarn smoke` in `ui` dies with `no vendor/importmap.json` on a fresh checkout. · `yarn vendor` first. · ui
+- 2026-10-01 · `<ui-icon class="x">` ignored `position: absolute` and sizing set on the host (the master plan's
+  hero icon sat in the text flow).  The host is `display: contents` by design (`icon.css`:  "no box of their
+  own"). · Wrap the icon in a `<span>` and position / size the span;  the icon follows its font-size. · goals
+- 2026-10-01 · The "UI component creation" Claude panel vanished mid-session right after `code --add <worktree>`:
+  turning a single-folder VS Code window into a multi-root one restarts its extensions, Claude Code's included. ·
+  Resume it from the panel's past conversations, or `claude --resume <session id>` in the worktree folder.  Avoid it
+  by opening the window from a saved `.code-workspace` file, so adding folders later restarts nothing. · ui
+- 2026-10-01 · Couldn't open a worktree session (`595c46a7`, started in `.claude/worktrees/ui-component-creation`) in
+  the VS Code Claude panel of a window opened on `packages/ui`:  the panel's Session Manager lists only sessions
+  saved for the window's OWN folder, its funnel filters only status / tabs, and `code --add <worktree>` doesn't add
+  that folder's sessions.  The session's own advice ("reopen it in VS Code's Claude panel") was wrong. · Open a
+  window ON the worktree (`code -n <worktree>`), then the extension's link `open
+  "vscode://anthropic.claude-code/open?session=<id>"`;  or `cd <worktree> && claude --resume <id>`.  `/worktrees`
+  (`~/.claude/skills/worktrees/`) says which session runs where. · ui
 
 ## cli
 
@@ -844,7 +858,12 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
 - 2026-10-01 · `check-spell.js` failed a plan doc with "116px horizontal scroll at phone width", and nothing in `main`
   looked wider than the screen:  the overflow was TEXT (an unbreakable path in a phase's Files line), which
   element rects don't show.  Bisected by deleting one section at a time in Playwright. · Shorten / `<code>`-split
-  long paths in phase lines;  see `SUSPECTED-BUGS.md` `## docs`. · docs
+  long paths in phase lines;  see `SUSPECTED-BUGS.md` `
+- 2026-10-01 · `spell goals thoughts --all spell` lost `--all`:  commander takes a GLOBAL option (`--all`) wherever
+  it appears, even after a subcommand whose arguments are passed through. · The `goals` subcommand reads its own
+  arguments raw from `process.argv` (`main.ts`). · cli
+
+## docs`. · docs
 - 2026-10-01 · In a worktree-isolated session, Bash commands with shell functions, `cd ..` chains or a Python
   heredoc are refused ("too complex to verify that it stays inside the worktree"). · Plain `&&` chains of simple
   commands;  write throwaway scripts with the Write tool, then run them. · tooling
@@ -852,3 +871,15 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   `ink-testing-library`:  keys typed while the app is busy arrive as ONE chunk, and Ink only names a key (`key.tab`)
   when it arrives alone. · Split `input` into keys yourself, and queue them -- see `keysIn()` in
   `cli/src/ui/TargetPrompt.tsx`.  Test it with a chunk (`stdin.write("@te\tSol\t\r")`) and in a pty (`expect`). · cli
+
+## docs
+
+- 2026-10-01 · `tidy()` (`packages/docs/scripts/pages.js`) failed on a page outside `packages/docs`:  oxfmt
+  refuses any path containing `..` ("PATH must not contain \"..\""), and `tidy()` runs in `packages/docs`. ·
+  Pass ABSOLUTE paths to `tidy()`:  oxfmt and `doc-links.py` both accept them (`goals/_tools/goals.js`
+  `tidyOrFail()`). · goals
+- 2026-10-01 · The goals server said Claude Code was "not logged in" though `claude auth status` said it was:  a Node
+  process found a stale npm-installed `claude` 1.0.98 (no `auth status`) in Volta's Node image, which Volta puts
+  FIRST on a Node process's `PATH`;  the terminal finds the current native install in `~/.local/bin`. · Run the
+  NEWEST `claude` on `PATH` or in the installers' folders, by absolute path (`goals/_tools/launch.js`
+  `claudePath()`).  Or remove the stale one:  `npm uninstall -g @anthropic-ai/claude-code` under Volta's Node. · goals

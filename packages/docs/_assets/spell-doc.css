@@ -334,6 +334,12 @@ ui-accordion.spell-aside::part(content) {
   overscroll-behavior: contain;
   padding: 0 12px 40px 14px;
 }
+/* the contents buttons:  round, icon only, each with a tooltip (`spell-doc-runtime.js` `tool()`) */
+.spell-toc-tools {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
 .spell-toc-head {
   position: sticky;
   top: 0;

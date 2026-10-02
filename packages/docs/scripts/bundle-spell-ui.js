@@ -80,7 +80,50 @@ const ICONS = {
   "solid/calendar": ["calendar"],
   // trade-offs (durable template)
   "solid/thumbs-up": ["thumbs up"],
-  "solid/thumbs-down": ["thumbs down"]
+  "solid/thumbs-down": ["thumbs down"],
+  // master plan (`goals/` at the repo root):  one per topic
+  "solid/heart": ["heart"],
+  "solid/bullseye": ["bullseye"],
+  "solid/users": ["users"],
+  "solid/palette": ["palette"],
+  "solid/feather": ["feather"],
+  "solid/window-maximize": ["window maximize"],
+  "solid/wand-magic-sparkles": ["wand magic sparkles", "magic"],
+  "solid/desktop": ["desktop"],
+  "solid/puzzle-piece": ["puzzle piece", "puzzle"],
+  "solid/book-open": ["book open"],
+  "solid/cubes": ["cubes"],
+  "solid/globe": ["globe"],
+  "solid/language": ["language"],
+  "solid/laptop-code": ["laptop code"],
+  "solid/terminal": ["terminal"],
+  // master plan:  page furniture -- horizons, dialog, notes for agents
+  "solid/seedling": ["seedling"],
+  "solid/tree": ["tree"],
+  "solid/mountain-sun": ["mountain sun"],
+  "solid/compass": ["compass"],
+  "solid/route": ["route"],
+  "solid/comments": ["comments"],
+  "solid/rocket": ["rocket"],
+  "solid/robot": ["robot"],
+  "solid/hat-wizard": ["hat wizard"],
+  "solid/scroll": ["scroll"],
+  "solid/arrow-right": ["arrow right"],
+  "solid/flag-checkered": ["flag checkered"],
+  "solid/eye": ["eye"],
+  // contents buttons (every page):  expand / collapse every section, fold / unfold code
+  "solid/angles-down": ["angles down"],
+  "solid/angles-up": ["angles up"],
+  "solid/code": ["code"],
+  // master plan:  live pages (thoughts, Claude sessions, setup)
+  "regular/comment-dots": ["comment dots"],
+  "solid/arrows-rotate": ["arrows rotate", "refresh"],
+  "solid/up-right-from-square": ["up right from square", "external alternate"],
+  "solid/right-to-bracket": ["right to bracket", "sign in"],
+  "solid/download": ["download"],
+  "solid/paper-plane": ["paper plane"],
+  "solid/plug": ["plug"],
+  "solid/circle-play": ["circle play"]
 }
 
 /** Bare specifiers that MUST resolve from UI's root:  Solid (all subpaths) and the element-layer fork. */
