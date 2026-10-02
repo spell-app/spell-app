@@ -33,6 +33,7 @@
     "@spell-app/core": "workspace:*",
     "@spell-app/lsp": "workspace:*",
     "@spell-app/parser": "workspace:*",
+    "@spell-app/server": "workspace:*",
     "@spell-app/spell": "workspace:*",
     "@spell-app/util": "workspace:*",
     "body-parser": "^1.19.0",

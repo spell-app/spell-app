@@ -370,6 +370,7 @@
     "@playwright/test": "1.63.0",
     "@solidjs/vite-plugin": "3.0.0-next.46",
     "@solidjs/web": "2.0.0-rc.11",
+    "@spell-app/server": "workspace:*",
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^22.20.4",
     "@typescript/typescript6": "^6.0.2",

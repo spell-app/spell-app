@@ -23,6 +23,7 @@
     "test:watch": "vitest"
   },
   "devDependencies": {
+    "@spell-app/server": "workspace:*",
     "@spell-app/spell": "workspace:*",
     "@spell-app/ui": "workspace:*",
     "esbuild": "^0.28.2",

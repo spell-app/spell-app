@@ -13,6 +13,7 @@ import { existsSync } from "fs"
 import { resolve } from "path"
 import { fileURLToPath } from "url"
 
+import { SRV } from "$/server"
 import environment from "$/spell/node/environment"
 import { SP } from "$/spell"
 import { LSP } from "$/lsp"
@@ -53,8 +54,8 @@ export async function runInBrowser(session: CLI.CliSession, project: SP.SpellPro
   })
   session.out(url)
   session.err(`${name} shows a UI:  running it at ${url} -- Ctrl-C to stop`)
-  CLI.openBrowser(url)
-  await CLI.untilInterrupted(server)
+  SRV.openBrowser(url)
+  await SRV.untilInterrupted(server)
   return CLI.EXIT.OK
 }
 
