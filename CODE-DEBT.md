@@ -524,3 +524,25 @@ knowingly kept:
   it;  give it a `DialogVocabulary` constraint type checked with a conditional type.
 - **Pinned at** -- `src/components/ui-modal/DialogElement.tsx` (class docs), `src/components/ui-flyout/UIFlyout.tsx`,
   `ui-flyout.fallback.ts` (the `vocabulary` cast), `docs/grammar.md` "Flyouts".
+
+## docs
+
+### The page runtime and plan-doc.js drive two section markups
+
+- **Cost** -- every page but the goals pages is `<ui-section>` markup (2026-10-02), yet the runtime, the CSS and the
+  scripts still carry the OLD `section.s2|s3` > `ui-sticky.spell-h2|h3` > `h2|h3` markup alongside:  a second
+  outline reader, chevron folding (`section.spell-folded`, `data-fold`), `ui-label.spell-count` counts, per-h2 / h3
+  sticky offsets and `--spell-h2-h` / `--spell-h3-h` anchors in `spell-doc-runtime.js`;  the `section.s2` rules in
+  `spell-doc.css` / `plan-doc.css`;  the either-markup helpers in `plan-doc.js` (`sectionOf()`, `PHASE_SECTIONS`
+  ...) and `index.js`;  both branches of `check-spell.js`.  Each runtime change must be checked against both.
+- **Cause** -- the goals pages (`templates/goals/`, the repo root's `goals/`) are generated and edited by the goals
+  tooling (`yarn goals`, the `/goals*` skills, `goals-live.js`), which reads and writes the old markup;  migrating
+  them is its own task.  `plans/cli-additions` is another session's live plan, deliberately left old until that
+  session runs `yarn plan-doc migrate cli-additions`.
+- **Fix** -- move the goals templates and tooling to `<ui-section>` (`scripts/to-ui-section.js` `convertSections()`
+  does the markup), migrate `cli-additions`, then delete the HEADINGS branch of `spell-doc-runtime.js`
+  (`readHeadings()`, `wireHeadingFolds()`, `headingSection()` ...), the old-markup CSS, and the old-markup paths in
+  `plan-doc.js` / `index.js` / `check-spell.js` (and the old-layout fixture's tests, or migrate them).
+- **Pinned at** -- `packages/docs/_assets/spell-doc-runtime.js` (header:  SECTIONS / HEADINGS), `_assets/spell-doc.css`
+  ("The goals pages' markup"), `scripts/plan-doc.js` ("Sections, either markup"), `scripts/fixtures/plan-2026-09-30.html`,
+  `AGENTS.md` "Writing a page" / "Templates".

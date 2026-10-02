@@ -33,6 +33,8 @@ import {
   SCROLLING,
   SENTINEL,
   STATIC_TOGGLE_TAG,
+  TOGGLE_BUTTON,
+  CONTROLS,
   STICK_TOP_PROPERTY,
   SUBHEAD,
   TITLE,
@@ -316,7 +318,19 @@ export class UISection extends UIElement<SectionVocabulary> {
 
   /** A click on the toggle (Enter / Space on the button click it too). */
   private readonly onToggleClick = (event: MouseEvent) => {
+    // a link or control inside a rich `slot="header"` title acts on its own, as in an accordion's title
+    if (UISection.fromControl(event)) return
     this.toggle(event)
+  }
+
+  /** Did the click land on a control inside the title, before reaching the fold button? */
+  private static fromControl(event: Event): boolean {
+    for (const target of event.composedPath()) {
+      if (!(target instanceof Element)) continue
+      if (target.matches(TOGGLE_BUTTON)) return false
+      if (target.matches(CONTROLS)) return true
+    }
+    return false
   }
 
   /**

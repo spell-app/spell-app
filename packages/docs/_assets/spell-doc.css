@@ -242,6 +242,16 @@ ui-button.spell-fold {
 .spell-doc-main ui-section::part(title) {
   margin-inline: -4px;
 }
+/*
+ * the content clips its block edges (`overflow-y: clip`, for the fold animation):  a card's or styled accordion's
+ * border is a box-shadow drawn past its box, so a section ending in one lost its bottom edge.  The clip reaches a
+ * few px past the box instead -- `overflow-clip-margin` needs `clip` on BOTH axes (Chromium), hence `overflow`.
+ * (`spell-docs/spell-ui-findings.md`)
+ */
+.spell-doc-main ui-section::part(content) {
+  overflow: clip;
+  overflow-clip-margin: 6px;
+}
 /* anchors:  a section lands with its title at its sticky line, anything in it below its stack of stuck titles */
 .spell-doc-main ui-section[id] {
   scroll-margin-top: var(--spell-section-top, var(--spell-top, 0px));

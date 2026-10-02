@@ -30,8 +30,7 @@
           </li>
         </ul>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="1-summary">1. Summary</h2></ui-sticky>
+        <ui-section id="1-summary" header="1. Summary" sticky collapsible dividing>
           <ul>
             <li>
               Every doc lives in <a href="../" target="src-packages-docs"><code>packages/docs</code></a
@@ -48,10 +47,9 @@
             </li>
             <li>The last phase of every plan turns the plan doc into durable docs.</li>
           </ul>
-        </section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="2-kinds-of-docs">2. Kinds of docs</h2></ui-sticky>
+        <ui-section id="2-kinds-of-docs" header="2. Kinds of docs" sticky collapsible dividing>
           <ui-table celled compact striped unstackable>
             <table>
               <tbody>
@@ -99,13 +97,10 @@
             <li>Claims backed by measurement keep their scripts in <code>&lt;topic&gt;/experiments/</code>.</li>
             <li>When agents need a doc's rules, a distilled <code>&lt;topic&gt;.md</code> sits beside it.</li>
           </ul>
-        </section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="3-how-a-page-works">3. How a page works</h2></ui-sticky>
-
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="one-script">One script, from disk</h3></ui-sticky>
+        <ui-section id="3-how-a-page-works" header="3. How a page works" sticky collapsible dividing>
+          <ui-section id="one-script" header="One script, from disk" sticky collapsible dividing>
             <ul>
               <li>
                 Browsers refuse ES modules on <code>file://</code>, so a page loads ONE classic script,
@@ -120,7 +115,7 @@
               <li>highlight.js, from a CDN, colors code; offline, code is plain monospace.</li>
             </ul>
             <ui-accordion class="spell-code" styled open="0">
-              <ui-title>a page's skeleton · 17 lines</ui-title>
+              <ui-title>a page's skeleton · 21 lines</ui-title>
               <ui-content>
                 <pre><code class="language-html">&lt;head&gt;
   &lt;title&gt;Short Title&lt;/title&gt;
@@ -131,26 +126,32 @@
   &lt;div class="spell-doc"&gt;
     &lt;main class="spell-doc-main"&gt;
       &lt;h1&gt;Short Title&lt;/h1&gt;
-      &lt;section class="s2"&gt;
-        &lt;ui-sticky class="spell-h2"&gt;&lt;h2 id="1-summary"&gt;1. Summary&lt;/h2&gt;&lt;/ui-sticky&gt;
+      &lt;ui-section id="1-summary" header="1. Summary" sticky collapsible dividing&gt;
+        &lt;ui-icon slot="icon" name="lightbulb"&gt;&lt;/ui-icon&gt;
         ...
-      &lt;/section&gt;
+        &lt;ui-section id="a-part" header="1.1 A part" sticky collapsible dividing&gt;
+          ...
+        &lt;/ui-section&gt;
+      &lt;/ui-section&gt;
     &lt;/main&gt;
   &lt;/div&gt;
   &lt;script src="../_assets/spell-ui.js"&gt;&lt;/script&gt;
 &lt;/body&gt;</code></pre>
               </ui-content>
             </ui-accordion>
-          </section>
+          </ui-section>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="what-the-runtime-adds">What the runtime adds</h3></ui-sticky>
+          <ui-section id="what-the-runtime-adds" header="What the runtime adds" sticky collapsible dividing>
             <ul>
               <li>
-                The contents sidebar, built from the page's headings when it loads, so it can never drift from them. A
+                The contents sidebar, built from the page's sections when it loads, so it can never drift from them. A
                 drawer on narrow screens.
               </li>
-              <li>Sticky section headings: each h3 sticks just below its h2.</li>
+              <li>
+                Sticky section titles: every section is a <code>&lt;ui-section sticky collapsible dividing&gt;</code>,
+                so each title sticks below its parent's, folds its section, and has a rule under it. Folds are
+                remembered per page.
+              </li>
               <li>Scroll-follow: the current section is highlighted in the sidebar, and its panel opens.</li>
               <li>Buttons to expand or collapse the sidebar, and to fold every code block.</li>
               <li>On cheat sheets, a filter that shows only the cards matching every typed word.</li>
@@ -165,11 +166,10 @@
                 </p>
               </ui-content>
             </ui-accordion>
-          </section>
-        </section>
+          </ui-section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="4-writing-a-page">4. Writing a page</h2></ui-sticky>
+        <ui-section id="4-writing-a-page" header="4. Writing a page" sticky collapsible dividing>
           <ol>
             <li>
               Start from a template:
@@ -198,17 +198,15 @@
               a page".
             </p>
           </ui-message>
-        </section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="5-plan-docs">5. Plan docs and /plan-doc</h2></ui-sticky>
+        <ui-section id="5-plan-docs" header="5. Plan docs and /plan-doc" sticky collapsible dividing>
           <p>
             A plan doc is a planning session's live record: the plan, what's done, what's open. You read it in Chrome
             while Claude Code works; its tab reloads whenever the session moves to a new stage.
           </p>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="a-session">A session</h3></ui-sticky>
+          <ui-section id="a-session" header="A session" sticky collapsible dividing>
             <ui-cards class="spell-flow" stackable>
               <ui-card>
                 <ui-content>
@@ -250,10 +248,9 @@
                 </ui-content>
               </ui-card>
             </ui-cards>
-          </section>
+          </ui-section>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="whats-in-a-plan-doc">What's in a plan doc</h3></ui-sticky>
+          <ui-section id="whats-in-a-plan-doc" header="What's in a plan doc" sticky collapsible dividing>
             <ui-table celled compact striped unstackable>
               <table>
                 <tbody>
@@ -314,17 +311,14 @@
             </ul>
             <ui-message state="positive" header="An example">
               <p>
-                <a
-                  href="../plans/docs-workspace/docs-workspace.html"
-                  target="docs-workspace"
+                <a href="../plans/docs-workspace/docs-workspace.html" target="docs-workspace"
                   >The plan doc for this docs workspace</a
                 >, built with the same tooling.
               </p>
             </ui-message>
-          </section>
+          </ui-section>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="yarn-plan-doc">yarn plan-doc</h3></ui-sticky>
+          <ui-section id="yarn-plan-doc" header="yarn plan-doc" sticky collapsible dividing>
             <p>
               Claude Code and its agents change a plan doc's structure only through this command, so ids, icons and
               flags stay consistent and parallel agents take turns.
@@ -367,11 +361,10 @@
                 </tbody>
               </table>
             </ui-table>
-          </section>
-        </section>
+          </ui-section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="6-commands">6. Commands</h2></ui-sticky>
+        <ui-section id="6-commands" header="6. Commands" sticky collapsible dividing>
           <ui-table celled compact striped unstackable>
             <table>
               <tbody>
@@ -404,10 +397,9 @@
               </tbody>
             </table>
           </ui-table>
-        </section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="7-limits">7. Limits</h2></ui-sticky>
+        <ui-section id="7-limits" header="7. Limits" sticky collapsible dividing>
           <ul>
             <li>Claude Code can't rename its session or tab: run <code>/rename &lt;name&gt;</code> yourself.</li>
             <li>
@@ -418,7 +410,7 @@
             <li>An icon a page uses must be in the bundle's list; any other name draws nothing.</li>
             <li>The formatter collapses double spaces in page text.</li>
           </ul>
-        </section>
+        </ui-section>
       </main>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>

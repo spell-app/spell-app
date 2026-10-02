@@ -218,6 +218,18 @@ Each finding:  component, symptom, repro, the workaround used here, a suggested 
     - workaround:  none:  pages use the slotted form (the test page shows both)
     - suggest:  `::slotted(ui-icon)` in the icon box:  no margin, `1em` box
 
+26. **`ui-section`:  the content clips the bottom edge of a card or styled accordion that ends it**
+    - symptom:  the last row of a `ui-cards` grid at the end of a section loses its bottom border (found 2026-10-02,
+      when the docs index moved to `<ui-section>`)
+    - cause:  for the fold animation the content part is `overflow-y: clip` (`:host(:state(animated))`);  a card's
+      border and shadow are box-shadows drawn outside its box, and the last child's bottom margin collapses out
+      of the content, so the clip edge is the card's own bottom edge.  `overflow-clip-margin` would fix it, but
+      Chromium applies it only when BOTH axes clip
+    - repro:  `<ui-section header="A"><ui-cards><ui-card>...</ui-card></ui-cards></ui-section>`:  no bottom border
+    - workaround:  `ui-section::part(content) { overflow: clip; overflow-clip-margin: 6px }` (`spell-doc.css`)
+    - suggest:  the same in `ui-section.css` (clip both axes with a small clip margin, or a
+      `--ui-section-clip-margin` token)
+
 ## Verified working (no action)
 
 - find-in-page / text fragments open a folded `ui-accordion` panel (native `<details>`), and the accordion

@@ -17,6 +17,8 @@
         <!--
           PLAN DOC TEMPLATE.  NEVER copy by hand:  `yarn plan-doc new <name>` fills the {{placeholders}}.
           - Ids and classes here are what `scripts/plan-doc.js` edits:  keep them.  Rules:  `plan-doc.md` beside this.
+          - Sections are `<ui-section id header sticky collapsible dividing>`;  Overview sub-sections nest inside it
+            (`#o1` "1.1 ...");  phases are `<ui-section data-phase>` in `#phases`, written by the script.
         -->
         <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
           <ui-breadcrumb-section href="../../index.html" target="src-packages-docs-index-html"
@@ -42,64 +44,49 @@
           >
         </ui-list>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"
-            ><h2 id="overview"><ui-icon name="lightbulb"></ui-icon> 1. Overview</h2></ui-sticky
-          >
+        <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
+          <ui-icon slot="icon" name="lightbulb"></ui-icon>
           <p class="plan-summary lede">Two sentences: what this plan does, and why.</p>
           <blockquote class="plan-prompt">{{prompt}}</blockquote>
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="o1">1.1 Structure</h3></ui-sticky>
+          <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
             <p>What goes where: the part that becomes durable docs in the last phase.</p>
-          </section>
-        </section>
+          </ui-section>
+        </ui-section>
 
-        <section class="s2" id="phases-section">
-          <ui-sticky class="spell-h2"
-            ><h2 id="phases"><ui-icon name="layer group"></ui-icon> 2. Phases</h2></ui-sticky
-          >
+        <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
+          <ui-icon slot="icon" name="layer group"></ui-icon>
           <ui-progress class="plan-progress" value="0" total="0" bar-text="ratio" size="small" color="green" hidden
             >phases done</ui-progress
           >
-        </section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"
-            ><h2 id="decisions"><ui-icon name="gavel"></ui-icon> 3. Questions & Decisions</h2></ui-sticky
-          >
+        <ui-section id="decisions" header="3. Questions & Decisions" sticky collapsible dividing>
+          <ui-icon slot="icon" name="gavel"></ui-icon>
           <p class="meta">
             Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why:
             settled, don't re-argue without new facts. An answered question sits just above its decision.
           </p>
           <ui-list class="plan-items" data-kind="decision" divided relaxed></ui-list>
-        </section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"
-            ><h2 id="caveats"><ui-icon name="triangle exclamation"></ui-icon> 4. Caveats</h2></ui-sticky
-          >
+        <ui-section id="caveats" header="4. Caveats" sticky collapsible dividing>
+          <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
           <ui-list class="plan-items" data-kind="caveat" divided relaxed></ui-list>
-        </section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"
-            ><h2 id="todos"><ui-icon name="list check"></ui-icon> 5. Todos</h2></ui-sticky
-          >
+        <ui-section id="todos" header="5. Todos" sticky collapsible dividing>
+          <ui-icon slot="icon" name="list check"></ui-icon>
           <p class="meta">For later: not caveats, not issues.</p>
           <ui-list class="plan-items" data-kind="todo" divided relaxed></ui-list>
-        </section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"
-            ><h2 id="issues"><ui-icon name="bug"></ui-icon> 6. Issues</h2></ui-sticky
-          >
+        <ui-section id="issues" header="6. Issues" sticky collapsible dividing>
+          <ui-icon slot="icon" name="bug"></ui-icon>
           <ui-list class="plan-items" data-kind="issue" divided relaxed></ui-list>
-        </section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"
-            ><h2 id="log"><ui-icon name="clock rotate left"></ui-icon> 7. Log</h2></ui-sticky
-          >
+        <ui-section id="log" header="7. Log" sticky collapsible dividing>
+          <ui-icon slot="icon" name="clock rotate left"></ui-icon>
           <p class="meta">Plan changes, oldest first, local time.</p>
           <ui-feed class="plan-log" size="small">
             <ui-event icon="pen to square">
@@ -108,7 +95,7 @@
               </ui-content>
             </ui-event>
           </ui-feed>
-        </section>
+        </ui-section>
       </main>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>

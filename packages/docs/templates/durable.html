@@ -16,7 +16,9 @@
         <!--
           TEMPLATE:  copy to `<topic>/<topic>.html` (same depth, so `../_assets/` still works).
           - Replace every placeholder;  delete the widgets you don't need.
-          - Keep each h2's `id` stable once other pages link to it.
+          - Sections are `<ui-section id header sticky collapsible dividing>`, nested for sub-sections;  a title with
+            markup is a `<span slot="header">`, the icon a `<ui-icon slot="icon">`.  `h4` for sub-sub-items.
+          - Keep each section's `id` stable once other pages link to it.
           - Finish with the steps in `packages/docs/AGENTS.md`, "Finishing a page".
         -->
         <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
@@ -36,8 +38,7 @@
           >
         </ui-list>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="1-summary">1. Summary</h2></ui-sticky>
+        <ui-section id="1-summary" header="1. Summary" sticky collapsible dividing>
           <ui-statistics class="spell-stats" size="mini">
             <ui-statistic value="3×" label="faster"></ui-statistic>
             <ui-statistic value="1.2" label="ms, median"></ui-statistic>
@@ -53,12 +54,11 @@
               <li>What to do, in one line.</li>
             </ul>
           </ui-message>
-        </section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="2-the-design">2. The design</h2></ui-sticky>
+        <ui-section id="2-the-design" header="2. The design" sticky collapsible dividing>
           <p>
-            A short lead, then an <code>h3</code> per distinct part. A
+            A short lead, then a nested <code>&lt;ui-section&gt;</code> per distinct part. A
             <dfn class="spell-term" tabindex="0">coined term</dfn>
             <ui-popup
               header="coined term"
@@ -67,17 +67,15 @@
             gets its meaning in a popup.
           </p>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="how-it-flows">How it flows</h3></ui-sticky>
+          <ui-section id="how-it-flows" header="How it flows" sticky collapsible dividing>
             <ui-steps class="spell-steps" ordered>
               <ui-step header="step one" description="What happens first, and when."></ui-step>
               <ui-step header="step two" description="What it hands on."></ui-step>
               <ui-step header="step three" description="Where it ends."></ui-step>
             </ui-steps>
-          </section>
+          </ui-section>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="the-parts">The parts</h3></ui-sticky>
+          <ui-section id="the-parts" header="The parts" sticky collapsible dividing>
             <ui-cards class="spell-flow" stackable>
               <ui-card>
                 <ui-content>
@@ -92,10 +90,9 @@
                 </ui-content>
               </ui-card>
             </ui-cards>
-          </section>
+          </ui-section>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="today-vs-proposed">Today vs proposed</h3></ui-sticky>
+          <ui-section id="today-vs-proposed" header="Today vs proposed" sticky collapsible dividing>
             <ui-table celled compact striped unstackable>
               <table>
                 <tbody>
@@ -120,10 +117,9 @@
                 </tbody>
               </table>
             </ui-table>
-          </section>
+          </ui-section>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="trade-offs">Trade-offs</h3></ui-sticky>
+          <ui-section id="trade-offs" header="Trade-offs" sticky collapsible dividing>
             <ui-grid class="spell-pros-cons" columns="2" stackable>
               <ui-column>
                 <ui-segment>
@@ -142,10 +138,9 @@
                 </ui-segment>
               </ui-column>
             </ui-grid>
-          </section>
+          </ui-section>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="the-code">The code</h3></ui-sticky>
+          <ui-section id="the-code" header="The code" sticky collapsible dividing>
             <p>Prefer an excerpt from a real, runnable file; say which.</p>
             <ui-accordion class="spell-code" styled open="0">
               <ui-title>example.ts · 6 lines</ui-title>
@@ -192,11 +187,10 @@ const message = greet("spell")</code></pre>
                 <p>A digression the main text can skip. Starts collapsed.</p>
               </ui-content>
             </ui-accordion>
-          </section>
-        </section>
+          </ui-section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="3-history">3. History</h2></ui-sticky>
+        <ui-section id="3-history" header="3. History" sticky collapsible dividing>
           <p class="meta">What changed in the decision, newest first. Not every edit: only what a reader must know.</p>
           <ui-feed class="spell-history" size="small">
             <ui-event icon="check">
@@ -212,10 +206,9 @@ const message = greet("spell")</code></pre>
               </ui-content>
             </ui-event>
           </ui-feed>
-        </section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="4-sources">4. Sources and experiments</h2></ui-sticky>
+        <ui-section id="4-sources" header="4. Sources and experiments" sticky collapsible dividing>
           <ul>
             <li>Runnable scripts in <code>&lt;topic&gt;/experiments/</code>, each saying how to run it.</li>
             <li>Tables quote medians of several runs, never a single run.</li>
@@ -236,7 +229,7 @@ const message = greet("spell")</code></pre>
               </ui-content>
             </ui-item>
           </ui-items>
-        </section>
+        </ui-section>
 
         <footer class="spell-doc-footer">
           <ui-divider></ui-divider>

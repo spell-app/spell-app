@@ -42,6 +42,12 @@ export const CONTENT_ID = "content"
 /** Tag of the toggle when the section can't fold:  a plain box (a fold button is `<button>`). */
 export const STATIC_TOGGLE_TAG = "span"
 
+/** The fold button, in the shadow root:  where a click's path stops counting as "inside the title". */
+export const TOGGLE_BUTTON = "button.toggle"
+
+/** What acts on its own inside a rich title:  a click on one never folds the section (as accordion's `CONTROLS`). */
+export const CONTROLS = "a[href], button, input, select, textarea, label, [contenteditable], [tabindex]"
+
 /** Prefix of the heading's tag:  `h` + level. */
 export const HEADING_TAG = "h"
 

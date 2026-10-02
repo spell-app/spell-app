@@ -233,6 +233,17 @@ describe("<ui-section> folding", () => {
     expect(content.hasAttribute("hidden")).toBe(false)
   })
 
+  it("leaves a click on a link inside a rich title to the link:  no fold", async () => {
+    const { host } = await section(
+      `<ui-section collapsible><span slot="header">See <a href="#nowhere">this</a></span>Body</ui-section>`
+    )
+    const seen = record(host)
+    await userEvent.click(host.querySelector("a")!)
+    await ElementFixture.tick()
+    expect(seen).toEqual([])
+    expect(host.collapsed).toBeFalsy()
+  })
+
   it("folds on a click:  a cancelable, composed ui-close first, then `collapsed`", async () => {
     const { host, toggle, content } = await section(`<ui-section header="H" collapsible>Body</ui-section>`)
     const seen = record(host)

@@ -33,8 +33,7 @@
           </li>
         </ul>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="1-summary">1. Summary</h2></ui-sticky>
+        <ui-section id="1-summary" header="1. Summary" sticky collapsible dividing>
           <ul>
             <li>All 53 Fomantic families are built; every check passes in the monorepo again.</li>
             <li>
@@ -56,14 +55,12 @@
               </li>
             </ul>
           </ui-message>
-        </section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="2-what-changed">2. What changed</h2></ui-sticky>
+        <ui-section id="2-what-changed" header="2. What changed" sticky collapsible dividing>
           <p>One commit per phase on the branch (P3 and P4 share one: their docs edits interleave).</p>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="re-establish">Re-establish (52ba1e85)</h3></ui-sticky>
+          <ui-section id="re-establish" header="Re-establish (52ba1e85)" sticky collapsible dividing>
             <ul>
               <li>
                 <code>yarn test:hmr</code>: Vite 8 resolves tsconfig aliases only for TS / JS importers; the HMR plugin
@@ -77,10 +74,9 @@
               <li>A visual test changed every day: WebKit draws an empty date field from the system clock. Masked.</li>
               <li>Root CI runs neither check, so both broke silently in the move.</li>
             </ul>
-          </section>
+          </ui-section>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="icons">Icons (fec460c5)</h3></ui-sticky>
+          <ui-section id="icons" header="Icons (fec460c5)" sticky collapsible dividing>
             <ul>
               <li>
                 <code>UI.icons.get()</code> / <code>use()</code> / <code>ready</code> never reject: a pack with no
@@ -89,10 +85,9 @@
               <li><code>IconGlyph.load()</code> catches: no unhandled rejection per icon.</li>
               <li>The pack builder is importable from any package: <code>$/ui/tools/IconPackBuilder</code>.</li>
             </ul>
-          </section>
+          </ui-section>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="bugs-and-decisions">Bug sweep and decisions (2fe17423)</h3></ui-sticky>
+          <ui-section id="bugs-and-decisions" header="Bug sweep and decisions (2fe17423)" sticky collapsible dividing>
             <ul>
               <li>
                 Behaviour: toast pauses only after a real pointer move; render-effect errors reach the fallback;
@@ -109,10 +104,9 @@
                 Fomantic; sidebar / flyout width words and columns; container breakpoint tokens; 8 kB budget.
               </li>
             </ul>
-          </section>
+          </ui-section>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="release-chores">Release chores (04146653)</h3></ui-sticky>
+          <ui-section id="release-chores" header="Release chores (04146653)" sticky collapsible dividing>
             <ul>
               <li>
                 <code>yarn test:all</code>: 92 failures to 4. Real Firefox / WebKit bugs fixed (dialog focus through
@@ -125,11 +119,10 @@
                 >; publish dry run.
               </li>
             </ul>
-          </section>
-        </section>
+          </ui-section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="3-why">3. Why</h2></ui-sticky>
+        <ui-section id="3-why" header="3. Why" sticky collapsible dividing>
           <ul>
             <li><b>Match Fomantic</b> where a call wasn't made: card links, table stacking, label colour.</li>
             <li>
@@ -150,10 +143,9 @@
             </li>
             <li><b>Budget 8 kB per family</b> (Owen): 7.3 kB average is a full port of Fomantic's variations.</li>
           </ul>
-        </section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="4-limits">4. Limits</h2></ui-sticky>
+        <ui-section id="4-limits" header="4. Limits" sticky collapsible dividing>
           <ul>
             <li>Visual baselines are macOS only: Docker Desktop 4.42.1 crashes on macOS 26.6, so no Linux set.</li>
             <li>
@@ -184,16 +176,18 @@
               >.
             </li>
           </ul>
-        </section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="5-waiting-on-owen">5. Waiting on Owen</h2></ui-sticky>
+        <ui-section id="5-waiting-on-owen" header="5. Waiting on Owen" sticky collapsible dividing>
           <p>Each call with what it means and an example. Item ids match the plan doc; Q9 is decided.</p>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"
-              ><h3 id="q-emoji">Q9 · Emoji names that changed meaning (decided: CLDR)</h3></ui-sticky
-            >
+          <ui-section
+            id="q-emoji"
+            header="Q9 · Emoji names that changed meaning (decided: CLDR)"
+            sticky
+            collapsible
+            dividing
+          >
             <ul>
               <li>
                 <code>&lt;ui-emoji name&gt;</code> takes CLDR's names (Unicode's official short names), with the words
@@ -353,12 +347,15 @@
                 </tbody>
               </table>
             </ui-table>
-          </section>
+          </ui-section>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"
-              ><h3 id="q-table-stacking">Q10 · Table stacking: token or attribute?</h3></ui-sticky
-            >
+          <ui-section
+            id="q-table-stacking"
+            header="Q10 · Table stacking: token or attribute?"
+            sticky
+            collapsible
+            dividing
+          >
             <ul>
               <li>
                 <b>"Stacking"</b> is Fomantic's word for what a layout does when it's too narrow: things that sit SIDE
@@ -427,12 +424,15 @@
                 </table>
               </ui-table>
             </div>
-          </section>
+          </ui-section>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"
-              ><h3 id="q-webkit-nudge">Q11 · WebKit: decorations that don't redraw ("nudge")</h3></ui-sticky
-            >
+          <ui-section
+            id="q-webkit-nudge"
+            header='Q11 · WebKit: decorations that don&apos;t redraw ("nudge")'
+            sticky
+            collapsible
+            dividing
+          >
             <ul>
               <li>
                 Some decorations are drawn by a <code>::before</code> rule that only applies while a setting (a CSS
@@ -503,10 +503,9 @@ divider.style.setProperty(
                 </ui-segment>
               </ui-column>
             </ui-grid>
-          </section>
+          </ui-section>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="q-form-stacking">Q12 · WebKit: form rows don't stack</h3></ui-sticky>
+          <ui-section id="q-form-stacking" header="Q12 · WebKit: form rows don't stack" sticky collapsible dividing>
             <ul>
               <li>A form row puts fields side by side; on a narrow form they should stack, one per line:</li>
             </ul>
@@ -565,21 +564,19 @@ divider.style.setProperty(
                 </ui-segment>
               </ui-column>
             </ui-grid>
-          </section>
+          </ui-section>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3"><h3 id="q-any-time">Any time</h3></ui-sticky>
+          <ui-section id="q-any-time" header="Any time" sticky collapsible dividing>
             <ul>
               <li>
                 Linux visual baselines (after a Docker update); the fork's upstream PRs; the CLI
                 <code>icons:pack</code> command (a cli session).
               </li>
             </ul>
-          </section>
-        </section>
+          </ui-section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="6-invoker-commands">6. Invoker commands</h2></ui-sticky>
+        <ui-section id="6-invoker-commands" header="6. Invoker commands" sticky collapsible dividing>
           <ul>
             <li>
               A new HTML feature (Chrome 135, 2025): a button controls another element by NAMING it, with no JavaScript.
@@ -644,10 +641,9 @@ divider.style.setProperty(
 &lt;ui-modal id="inv-modal" size="tiny" closable&gt; … &lt;/ui-modal&gt;</code></pre>
             </ui-content>
           </ui-accordion>
-        </section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="7-checks">7. Checks</h2></ui-sticky>
+        <ui-section id="7-checks" header="7. Checks" sticky collapsible dividing>
           <p>
             From <a href="../ui/" target="src-packages-ui"><code>packages/ui</code></a
             >; all passed on the last commit except where noted.
@@ -667,7 +663,7 @@ divider.style.setProperty(
             </li>
             <li><code>yarn npm publish --dry-run</code>: 2,726 files; every <code>exports</code> target present.</li>
           </ul>
-        </section>
+        </ui-section>
       </main>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>

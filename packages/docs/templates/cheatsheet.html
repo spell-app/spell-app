@@ -15,7 +15,8 @@
       <main class="spell-doc-main">
         <!--
           TEMPLATE:  copy to `<topic>/<topic>.html` (same depth, so `../_assets/` still works).
-          - One `h2` section per area, one `ui-card` per feature;  the card's `h3` is its contents entry.
+          - One `<ui-section id header sticky collapsible dividing>` per area, one `ui-card` per feature;  the card's
+            `h3` is its contents entry.
           - The filter matches every typed word against a card's text, and remembers it per page.
           - Wide cards (long code):  `data-spell-wide` on the `ui-card`.
           - Snippets stay bare `<pre><code>` inside cards:  no fold bar on a few lines.
@@ -56,8 +57,7 @@
         </div>
         <p class="spell-filter-empty" id="empty" hidden>No card matches.</p>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="first-area">First area</h2></ui-sticky>
+        <ui-section id="first-area" header="First area" sticky collapsible dividing>
           <ui-cards class="spell-grid" stackable>
             <ui-card>
               <ui-content>
@@ -85,10 +85,9 @@
               </ui-content>
             </ui-card>
           </ui-cards>
-        </section>
+        </ui-section>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2"><h2 id="second-area">Second area</h2></ui-sticky>
+        <ui-section id="second-area" header="Second area" sticky collapsible dividing>
           <ui-cards class="spell-grid" stackable>
             <ui-card>
               <ui-content>
@@ -116,7 +115,7 @@ export function longerExample(input: string[]): Map&lt;string, number&gt; {
               </ui-content>
             </ui-card>
           </ui-cards>
-        </section>
+        </ui-section>
       </main>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>

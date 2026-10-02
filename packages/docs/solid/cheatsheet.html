@@ -53,10 +53,7 @@
         </div>
         <p class="spell-filter-empty" id="empty" hidden>No card matches.</p>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="packages">Packages</h2>
-          </ui-sticky>
+        <ui-section id="packages" header="Packages" sticky collapsible dividing>
           <ui-cards class="spell-grid" stackable>
             <ui-card>
               <ui-content>
@@ -123,11 +120,8 @@ plugins: [standardDecorators(), solid()]</code></pre>
               </ui-content>
             </ui-card>
           </ui-cards>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="timing">Write timing and scheduling</h2>
-          </ui-sticky>
+        </ui-section>
+        <ui-section id="timing" header="Write timing and scheduling" sticky collapsible dividing>
           <ui-cards class="spell-grid" stackable>
             <ui-card>
               <ui-content>
@@ -229,11 +223,8 @@ setX(p =&gt; { seen = p; return p })   // seen === 5</code></pre>
               </ui-content>
             </ui-card>
           </ui-cards>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="signals">Signals and memos</h2>
-          </ui-sticky>
+        </ui-section>
+        <ui-section id="signals" header="Signals and memos" sticky collapsible dividing>
           <ui-cards class="spell-grid" stackable>
             <ui-card>
               <ui-content>
@@ -322,11 +313,8 @@ setX(p =&gt; { seen = p; return p })   // seen === 5</code></pre>
               </ui-content>
             </ui-card>
           </ui-cards>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="effects">Effects and lifecycle</h2>
-          </ui-sticky>
+        </ui-section>
+        <ui-section id="effects" header="Effects and lifecycle" sticky collapsible dividing>
           <ui-cards class="spell-grid" stackable>
             <ui-card>
               <ui-content>
@@ -419,11 +407,8 @@ runWithOwner(null, () =&gt; createRoot(...))  // detach (module singletons)</cod
               </ui-content>
             </ui-card>
           </ui-cards>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="async">Async lives in the graph</h2>
-          </ui-sticky>
+        </ui-section>
+        <ui-section id="async" header="Async lives in the graph" sticky collapsible dividing>
           <ui-cards class="spell-grid" stackable>
             <ui-card>
               <ui-content>
@@ -509,11 +494,8 @@ const v = await resolve(() =&gt; user())   // tests / imperative code</code></pr
               </ui-content>
             </ui-card>
           </ui-cards>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="actions">Actions and optimistic state</h2>
-          </ui-sticky>
+        </ui-section>
+        <ui-section id="actions" header="Actions and optimistic state" sticky collapsible dividing>
           <ui-cards class="spell-grid" stackable>
             <ui-card>
               <ui-content>
@@ -543,11 +525,8 @@ const [saving, setSaving] = createOptimistic(false)   // "saving…" flag</code>
               </ui-content>
             </ui-card>
           </ui-cards>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="stores">Stores</h2>
-          </ui-sticky>
+        </ui-section>
+        <ui-section id="stores" header="Stores" sticky collapsible dividing>
           <ui-cards class="spell-grid" stackable>
             <ui-card>
               <ui-content>
@@ -608,11 +587,8 @@ setStore(storePath("user", "city", "Paris"))   // 1.x path-setter compat</code><
               </ui-content>
             </ui-card>
           </ui-cards>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="flow">Control flow</h2>
-          </ui-sticky>
+        </ui-section>
+        <ui-section id="flow" header="Control flow" sticky collapsible dividing>
           <ui-cards class="spell-grid" stackable>
             <ui-card>
               <ui-content>
@@ -656,11 +632,8 @@ return &lt;Active value={value()} /&gt;</code></pre>
               </ui-content>
             </ui-card>
           </ui-cards>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="components">Components, props, context</h2>
-          </ui-sticky>
+        </ui-section>
+        <ui-section id="components" header="Components, props, context" sticky collapsible dividing>
           <ui-cards class="spell-grid" stackable>
             <ui-card>
               <ui-content>
@@ -706,11 +679,8 @@ const Heavy = lazy(() =&gt; import("./Heavy"))   // inside &lt;Loading&gt;;  Hea
               </ui-content>
             </ui-card>
           </ui-cards>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="dom">DOM</h2>
-          </ui-sticky>
+        </ui-section>
+        <ui-section id="dom" header="DOM" sticky collapsible dividing>
           <ui-cards class="spell-grid" stackable>
             <ui-card>
               <ui-content>
@@ -834,11 +804,9 @@ const on = (t, fn, o) =&gt; el =&gt; el.addEventListener(t, fn, o)</code></pre>
               </ui-content>
             </ui-card>
           </ui-cards>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="h">Hyperscript (<code>@solidjs/h</code>): no compiler</h2>
-          </ui-sticky>
+        </ui-section>
+        <ui-section id="h" sticky collapsible dividing>
+          <span slot="header">Hyperscript (<code>@solidjs/h</code>): no compiler</span>
           <ui-cards class="spell-grid" stackable>
             <ui-card>
               <ui-content>
@@ -884,11 +852,8 @@ h(Comp, { onPick: e =&gt; go() })    // ✓ arity ≥ 1 = callback</code></pre>
               </ui-content>
             </ui-card>
           </ui-cards>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="tooling">Tooling and ecosystem</h2>
-          </ui-sticky>
+        </ui-section>
+        <ui-section id="tooling" header="Tooling and ecosystem" sticky collapsible dividing>
           <ui-cards class="spell-grid" stackable>
             <ui-card>
               <ui-content>
@@ -947,11 +912,8 @@ import { render } from "@solidjs/testing-library"   // @next = 1.0.0-beta.3</cod
               </ui-content>
             </ui-card>
           </ui-cards>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="diagnostics">Dev diagnostic codes</h2>
-          </ui-sticky>
+        </ui-section>
+        <ui-section id="diagnostics" header="Dev diagnostic codes" sticky collapsible dividing>
           <ui-cards class="spell-grid" stackable>
             <ui-card data-spell-wide>
               <ui-content>
@@ -1019,11 +981,8 @@ import { render } from "@solidjs/testing-library"   // @next = 1.0.0-beta.3</cod
               </ui-content>
             </ui-card>
           </ui-cards>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="renames">1.x → 2.0 at a glance</h2>
-          </ui-sticky>
+        </ui-section>
+        <ui-section id="renames" header="1.x → 2.0 at a glance" sticky collapsible dividing>
           <ui-cards class="spell-grid" stackable>
             <ui-card data-spell-wide>
               <ui-content>
@@ -1126,7 +1085,7 @@ import { render } from "@solidjs/testing-library"   // @next = 1.0.0-beta.3</cod
               </ui-content>
             </ui-card>
           </ui-cards>
-        </section>
+        </ui-section>
       </main>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>

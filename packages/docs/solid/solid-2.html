@@ -38,22 +38,19 @@
           </li>
         </ul>
 
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="model">1. The rendering model in one page</h2>
-          </ui-sticky>
-
+        <ui-section id="model" header="1. The rendering model in one page" sticky collapsible dividing>
           <p>
             The four newest posts on the Solid blog build one idea: <strong>the reactive graph always knows</strong>.
             Here it is compressed, with what each part means for us.
           </p>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="components-run-once-expressions-are-the-unit-of-">
-                Components run once; expressions are the unit of update
-              </h3>
-            </ui-sticky>
+          <ui-section
+            id="components-run-once-expressions-are-the-unit-of-"
+            header="Components run once; expressions are the unit of update"
+            sticky
+            collapsible
+            dividing
+          >
             <p>A component is a setup function that runs a single time.</p>
             <ul>
               <li>No re-render and no diff</li>
@@ -86,13 +83,14 @@
                 <li>Parser already knows which expressions are literals, so emitting those thunks is cheap</li>
               </ul>
             </ui-message>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="writes-are-staged-the-graph-never-shows-half-an-">
-                Writes are staged; the graph never shows half an update
-              </h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section
+            id="writes-are-staged-the-graph-never-shows-half-an-"
+            header="Writes are staged; the graph never shows half an update"
+            sticky
+            collapsible
+            dividing
+          >
             <p>Solid 2 batches every write.</p>
             <ul>
               <li>
@@ -105,13 +103,14 @@
               <li>That is the price of the headline guarantee: "at no point does the UI disagree with itself"</li>
               <li>There is no <code>batch()</code>, because everything is a batch</li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="async-is-a-property-of-a-value-not-a-mode-of-the">
-                Async is a property of a value, not a mode of the app
-              </h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section
+            id="async-is-a-property-of-a-value-not-a-mode-of-the"
+            header="Async is a property of a value, not a mode of the app"
+            sticky
+            collapsible
+            dividing
+          >
             <p>A memo may return a Promise.</p>
             <ul>
               <li>Everything downstream just waits</li>
@@ -129,11 +128,14 @@
               </li>
               <li>Both are questions you can ask anywhere, not state you must keep</li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="mutations-are-speculative-overlays">Mutations are speculative overlays</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section
+            id="mutations-are-speculative-overlays"
+            header="Mutations are speculative overlays"
+            sticky
+            collapsible
+            dividing
+          >
             <p>
               <code>action(function* () { ...; yield api.save(); refresh(src) })</code> holds a transaction open across
               awaits.
@@ -149,11 +151,14 @@
                 the data underneath recovers
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="compared-with-what-we-have-now">Compared with what we have now</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section
+            id="compared-with-what-we-have-now"
+            header="Compared with what we have now"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-table celled compact striped unstackable>
               <table>
                 <tbody>
@@ -211,11 +216,8 @@
                 </tbody>
               </table>
             </ui-table>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="the-core-tension">The core tension</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="the-core-tension" header="The core tension" sticky collapsible dividing>
             <ui-message state="negative">
               <ul>
                 <li>
@@ -228,19 +230,22 @@
                 <li>Section 2 is how</li>
               </ul>
             </ui-message>
-          </section>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="raw">2. Read-after-write with auto-memoized derived properties</h2>
-          </ui-sticky>
-
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="what-solid-2-actually-does-measured-rc-11">
-                What Solid 2 actually does (measured, rc.11 and rc.13)
-              </h3>
-            </ui-sticky>
+          </ui-section>
+        </ui-section>
+        <ui-section
+          id="raw"
+          header="2. Read-after-write with auto-memoized derived properties"
+          sticky
+          collapsible
+          dividing
+        >
+          <ui-section
+            id="what-solid-2-actually-does-measured-rc-11"
+            header="What Solid 2 actually does (measured, rc.11 and rc.13)"
+            sticky
+            collapsible
+            dividing
+          >
             <p>
               None of this is spelled out in the docs. Each row was checked by a script (see
               <a href="#sources">Sources</a>).
@@ -326,11 +331,8 @@
                 recomputes on every read and memoizes nothing
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="the-candidates">The candidates</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="the-candidates" header="The candidates" sticky collapsible dividing>
             <p>
               Each was prototyped on a <code>Card</code> with stored <code>suit</code> and <code>rank</code>, and
               derived <code>color</code> and <code>label</code>, plus a <code>Todos</code> with an "incomplete count"
@@ -488,11 +490,8 @@
               <li>The absolute numbers are small either way</li>
               <li>Nothing here will be spell's bottleneck; the choice is about correctness</li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="recommendation">Recommendation</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="recommendation" header="Recommendation" sticky collapsible dividing>
             <ui-message state="positive" header="X, spell cells">
               <ul>
                 <li>
@@ -524,11 +523,8 @@
                 </li>
               </ul>
             </ui-message>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="how-spell-cells-work">How spell cells work</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="how-spell-cells-work" header="How spell cells work" sticky collapsible dividing>
             <h4 id="the-parts">The parts</h4>
             <ui-cards class="spell-flow" stackable>
               <ui-card>
@@ -1068,11 +1064,8 @@ class Todos extends Thing {
                 Later, top-level spell <code>let</code>s could become cells too, which widens what counts as pure.
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="keys">Keys in creation order</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="keys" header="Keys in creation order" sticky collapsible dividing>
             <h4 id="semantics">Semantics</h4>
             <ul>
               <li>
@@ -1123,11 +1116,8 @@ card.setProp("score", "high") // undeclared:  observed type widens to "number | 
 Card.schema.typeOf("score") // "number | text"</code></pre>
               </ui-content>
             </ui-accordion>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="types">Property types</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="types" header="Property types" sticky collapsible dividing>
             <h4 id="where-types-come-from">Where types come from</h4>
             <p>Each class's schema knows a type per property.</p>
             <ul>
@@ -1201,12 +1191,8 @@ Card.schema.typeOf("score") // "number | text"</code></pre>
                 <li><b>Types are per class, not per instance.</b> A subclass's schema chains to its parent's.</li>
               </ul>
             </ui-message>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="proxy">Accessors or a Proxy?</h3>
-            </ui-sticky>
-
+          </ui-section>
+          <ui-section id="proxy" header="Accessors or a Proxy?" sticky collapsible dividing>
             <h4 id="what-it-would-look-like">What it would look like</h4>
             <p>
               Instead of an accessor pair per property, each Thing is a <code>Proxy</code> that routes properties to the
@@ -1512,11 +1498,8 @@ class CardP2 extends ThingP2 {
 }</code></pre>
               </ui-content>
             </ui-accordion>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="decorators">Decorators for hand-written classes</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="decorators" header="Decorators for hand-written classes" sticky collapsible dividing>
             <ul>
               <li>Compiled spell can't use decorators: it runs from a <code>blob:</code> URL with no transpile step</li>
               <li>
@@ -1818,11 +1801,8 @@ class ThingD extends ThingA {
 }</code></pre>
               </ui-content>
             </ui-accordion>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="caveats">Caveats for Phase 1</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="caveats" header="Caveats for Phase 1" sticky collapsible dividing>
             <h4 id="enableexternalsource-is-global-and-chains">
               <code>enableExternalSource</code> is global and chains
             </h4>
@@ -1914,17 +1894,10 @@ class ThingD extends ThingA {
               <li>Bridge nodes unlink on <code>dispose</code>, so there's nothing to leak</li>
               <li>Verify with a heap snapshot after a run plus <code>unmountApp()</code></li>
             </ul>
-          </section>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="gotchas">3. Gotchas, with the spell consequence</h2>
-          </ui-sticky>
-
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="reactivity-and-effects">Reactivity and effects</h3>
-            </ui-sticky>
+          </ui-section>
+        </ui-section>
+        <ui-section id="gotchas" header="3. Gotchas, with the spell consequence" sticky collapsible dividing>
+          <ui-section id="reactivity-and-effects" header="Reactivity and effects" sticky collapsible dividing>
             <h4 id="effect-apply-returns-its-cleanup">
               <ui-label size="mini">bit us</ui-label>An effect's apply function returns its cleanup
             </h4>
@@ -1990,11 +1963,8 @@ class ThingD extends ThingA {
               <li>Plain <code>createEffect</code> readers don't hold</li>
               <li>Everything in the same batch is held too; later batches aren't</li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="stores">Stores</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="stores" header="Stores" sticky collapsible dividing>
             <h4 id="no-mutable-store">No mutable store</h4>
             <ul>
               <li>
@@ -2011,11 +1981,14 @@ class ThingD extends ThingA {
               Never put Things in Solid stores; <code>&lt;For each={list.items}&gt;</code> over raw instances keeps
               identity.
             </p>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="dom-events-and-custom-elements">DOM, events and custom elements</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section
+            id="dom-events-and-custom-elements"
+            header="DOM, events and custom elements"
+            sticky
+            collapsible
+            dividing
+          >
             <h4 id="custom-element-props-are-attributes-by-default">Custom-element props are attributes by default</h4>
             <ul>
               <li>On a tag with a dash, <code>options={list}</code> becomes a stringified attribute</li>
@@ -2079,11 +2052,8 @@ class ThingD extends ThingA {
               <li><code>Context.Provider</code> is the context itself</li>
               <li><code>&lt;Dynamic&gt;</code> becomes <code>dynamic(() =&gt; src)</code>, created once outside JSX</li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="hyperscript-and-bundling">Hyperscript and bundling</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="hyperscript-and-bundling" header="Hyperscript and bundling" sticky collapsible dividing>
             <h4 id="hyperscript-turns-a-zero-argument-function-prop-">
               Hyperscript turns a zero-argument function prop on a component into a getter
             </h4>
@@ -2201,11 +2171,8 @@ class ThingD extends ThingA {
                 >). The second copy's components then render inside the first copy's Solid roots, silently.
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="testing-and-versions">Testing and versions</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="testing-and-versions" header="Testing and versions" sticky collapsible dividing>
             <h4 id="tests-resolve-the-server-build-under-node">Tests resolve the server build under Node</h4>
             <ul>
               <li>
@@ -2284,24 +2251,19 @@ class ThingD extends ThingA {
               </li>
               <li><code>@solidjs/testing-library@next</code>: 1.0.0-beta.3</li>
             </ul>
-          </section>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="ui">
-              4. Ideas for
-              <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a>
-            </h2>
-          </ui-sticky>
+          </ui-section>
+        </ui-section>
+        <ui-section id="ui" sticky collapsible dividing>
+          <span slot="header"
+            >4. Ideas for
+            <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a></span
+          >
           <p>
             Suggestions for that project, none of them made there. Each one uses something Solid 2 gives us that Solid 1
             didn't.
           </p>
 
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="element-state-and-data">Element state and data</h3>
-            </ui-sticky>
+          <ui-section id="element-state-and-data" header="Element state and data" sticky collapsible dividing>
             <h4 id="read-after-write-on-element-properties">Read-after-write on element properties</h4>
             <ul>
               <li>
@@ -2360,11 +2322,8 @@ class ThingD extends ThingA {
               </li>
               <li>It could be offered as an optional <code>commit</code> property that returns a Promise</li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="performance">Performance</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="performance" header="Performance" sticky collapsible dividing>
             <h4 id="unobserved-callbacks-for-costly-observers">
               <code>unobserved</code> callbacks for costly observers
             </h4>
@@ -2381,11 +2340,8 @@ class ThingD extends ThingA {
               Status lists virtualization as deferred. <code>&lt;Repeat count from&gt;</code> renders a window by index
               with no diffing, so it's the Solid 2 building block for exactly that.
             </p>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="integration">Integration</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="integration" header="Integration" sticky collapsible dividing>
             <h4 id="context-across-elements-now-there-s-one-solid">Context across elements now there's one Solid</h4>
             <ul>
               <li>
@@ -2410,11 +2366,8 @@ class ThingD extends ThingA {
             Parser needs these types too, and
             <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> can ship them
             once for every consumer.
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="robustness">Robustness</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="robustness" header="Robustness" sticky collapsible dividing>
             <h4 id="errors-that-heal">Errors that heal</h4>
             <ul>
               <li><code>&lt;Errored&gt;</code> recovers by itself when the data underneath does</li>
@@ -2444,17 +2397,10 @@ class ThingD extends ThingA {
                 The <code>UI</code> runtime already tolerates duplicate bundles; the elements should fail as loudly
               </li>
             </ul>
-          </section>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="plan">5. What this changes in the migration plan</h2>
-          </ui-sticky>
-
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="property-storage">Property storage</h3>
-            </ui-sticky>
+          </ui-section>
+        </ui-section>
+        <ui-section id="plan" header="5. What this changes in the migration plan" sticky collapsible dividing>
+          <ui-section id="property-storage" header="Property storage" sticky collapsible dividing>
             <p>becomes spell cells (X), replacing "record + notifiers". The details:</p>
             <ul>
               <li>the record is a <code>Map</code> (key order)</li>
@@ -2463,17 +2409,11 @@ class ThingD extends ThingA {
               <li><code>keys()</code> tracks the key set</li>
               <li><b>Things keep accessors; a Proxy is only for class-less data</b></li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="mutable-store">Mutable store</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="mutable-store" header="Mutable store" sticky collapsible dividing>
             <p>there's no Solid replacement, so the editor store is built on spell cells. Decided.</p>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="parser">Parser</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="parser" header="Parser" sticky collapsible dividing>
             <ul>
               <li>
                 derived properties get a pure / worth-it analysis and emit <code>this.derive(...)</code> when both hold
@@ -2481,11 +2421,9 @@ class ThingD extends ThingA {
               <li>JSX emits thunks as planned</li>
               <li>handlers keep their <code>(event)</code> parameter</li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="spellcore-element"><code>spellCore.element()</code></h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="spellcore-element" sticky collapsible dividing>
+            <span slot="header"><code>spellCore.element()</code></span>
             <p>owns four things:</p>
             <ul>
               <li><code>prop:</code> routing for non-primitive values on <code>ui-*</code> tags</li>
@@ -2493,45 +2431,29 @@ class ThingD extends ThingA {
               <li><code>try/catch</code> around every thunk</li>
               <li>building on <code>@solidjs/h</code>, which exists at rc.11 and rc.13</li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="react-bridge-phase-1">React bridge (Phase 1)</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="react-bridge-phase-1" header="React bridge (Phase 1)" sticky collapsible dividing>
             <p>
               <code>view()</code> subscribes through our core. A React render collects like any other collector, so the
               bridge doesn't need Solid's <code>createReaction</code>.
             </p>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="routing">Routing</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="routing" header="Routing" sticky collapsible dividing>
             <p>
               <code>@solidjs/router@next</code>'s <code>createRouter</code>. It covers our 7 routes; no hand-rolled
               router.
             </p>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="tests">Tests</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="tests" header="Tests" sticky collapsible dividing>
             <p>
               add <code>@solidjs/testing-library@next</code> and jsdom, or vitest browser mode as in
               <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a
               >, for component tests. Keep a Node project for parser and spell-cells tests.
             </p>
-          </section>
-        </section>
-        <section class="s2">
-          <ui-sticky class="spell-h2">
-            <h2 id="sources">6. Sources and experiments</h2>
-          </ui-sticky>
-
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="read">Read</h3>
-            </ui-sticky>
+          </ui-section>
+        </ui-section>
+        <ui-section id="sources" header="6. Sources and experiments" sticky collapsible dividing>
+          <ui-section id="read" header="Read" sticky collapsible dividing>
             <ul>
               <li>
                 Solid blog, oldest first:
@@ -2614,11 +2536,8 @@ class ThingD extends ThingA {
                 >.
               </li>
             </ul>
-          </section>
-          <section class="s3">
-            <ui-sticky class="spell-h3">
-              <h3 id="experiments">Experiments</h3>
-            </ui-sticky>
+          </ui-section>
+          <ui-section id="experiments" header="Experiments" sticky collapsible dividing>
             <p>
               Plain Node scripts in
               <a href="experiments/" target="src-packages-docs-solid-experiments"
@@ -2728,8 +2647,8 @@ class ThingD extends ThingA {
                 >: F's correctness hole
               </li>
             </ul>
-          </section>
-        </section>
+          </ui-section>
+        </ui-section>
       </main>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
