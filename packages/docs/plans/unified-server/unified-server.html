@@ -51,7 +51,7 @@
               >spell serve</code
             >) on one port, with live reload, a shared site header and an API that edits pages in place.
           </p>
-          <ui-progress class="plan-progress" value="7" total="8" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="8" total="8" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
           <ui-steps class="plan-phases" vertical ordered
@@ -62,7 +62,7 @@
             ><ui-step completed header="P5 · Goals Migration" href="#p5" data-status="done" data-phase="5"></ui-step
             ><ui-step completed header="P6 · App Router" href="#p6" data-status="done" data-phase="6"></ui-step
             ><ui-step completed header="P7 · Spell Serve" href="#p7" data-status="done" data-phase="7"></ui-step
-            ><ui-step header="P8 · Doc Review" href="#p8" data-status="todo" data-phase="8"></ui-step
+            ><ui-step completed header="P8 · Doc Review" href="#p8" data-status="done" data-phase="8"></ui-step
           ></ui-steps>
         </section>
 
@@ -78,7 +78,13 @@
           <ui-sticky class="spell-h2"
             ><h2 id="overview"><ui-icon name="lightbulb"></ui-icon> 3. Overview</h2></ui-sticky
           >
-          <p>What gets built; becomes <code>packages/docs/server.html</code> in <a href="#p8">P8</a>.</p>
+          <p>
+            What gets built; becomes
+            <a href="../../server.html" target="src-packages-docs-server-html"
+              ><code>packages/docs/server.html</code></a
+            >
+            in <a href="#p8">P8</a>.
+          </p>
           <section class="s3">
             <ui-sticky class="spell-h3"><h3 id="o1">3.1 Structure</h3></ui-sticky>
             <p>
@@ -137,6 +143,7 @@
           </section>
           <section class="s3">
             <ui-sticky class="spell-h3"><h3 id="o2">3.2 Page Server</h3></ui-sticky>
+
             <ul>
               <li>
                 one per checkout root (main + each worktree): pid <code>&lt;root&gt;/.spell-server.json</code>, log
@@ -161,6 +168,14 @@
                 <code>"pageServer": {"routes": [...]}</code>: goals (<a href="#p5">P5</a>), app (<a href="#p7">P7</a>)
               </li>
               <li><code>yarn server serve|start|ensure|stop|status|url &lt;file&gt;</code></li>
+              <li>
+                no body parsing of its own: each route parses its own (page edits 10mb, goals 64kb, the app's
+                <code>/api</code> as JSON5); a second parser skips a body already read
+              </li>
+              <li>
+                <code>/editor</code>: the app's route module redirects to vite's dev server, which
+                <code>spell serve</code> records in <code>.spell-server.editor.json</code>
+              </li>
             </ul>
           </section>
           <section class="s3">
@@ -169,8 +184,9 @@
               <li>writes the ORIGINAL file; never commits (<a href="#d12">D12</a>)</li>
               <li><code>PUT /_server/page?path=</code>: whole page</li>
               <li>
-                <code>PATCH /_server/page?path=</code> <code>{id, html, inner?}</code>: one element by <code>id</code>;
-                parse5 source locations give its byte range, so the rest of the file is untouched
+                <code>PATCH /_server/page?path=</code> <code>{id, html, inner?, parent?}</code>: one element by
+                <code>id</code> (or, <code>parent: "section"</code>, the section around it); parse5 source locations
+                give its byte range, so the rest of the file is untouched
               </li>
               <li>missing id 404, duplicate id 409, stale <code>If-Match</code> 409, bad token 403</li>
               <li>
@@ -186,10 +202,7 @@
               <li>
                 <code>SRV.FileLock</code>: tools that cooperate (page-edit API, <code>yarn plan-doc</code>,
                 <code>yarn goals</code>, app saves); replaces two copied <code>withLock</code>s and the unused
-                <code>proper-lockfile</code>
-                <a href="../../../app/src/server/lock-utils.ts" target="src-packages-app-src-server-lock-utils-ts"
-                  ><code>lock-utils.ts</code></a
-                >
+                <code>proper-lockfile</code> <code>lock-utils.ts</code> (deleted in <a href="#p6">P6</a>)
               </li>
               <li>
                 <code>If-Match</code> / <code>ETag</code>: writers that don't lock (VS Code, Claude's Edit): 409, caller
@@ -234,7 +247,7 @@
               <li>VS Code preview <code>?file=</code>: page server running -&gt; its URL; else an in-process server</li>
               <li>
                 <code>spell serve</code>: ensure page server (all route modules), then Vite for editor dev,
-                <code>/api</code> proxied to it
+                <code>/api</code> proxied to it; Ctrl-C stops vite, and the page server if it started it
               </li>
             </ol>
           </section>
@@ -245,7 +258,7 @@
             ><h2 id="caveats"><ui-icon name="triangle exclamation"></ui-icon> 4. Caveats</h2></ui-sticky
           >
           <ol class="plan-items" data-kind="caveat">
-            <li data-status="open" id="c1">
+            <li data-status="done" id="c1">
               <a class="plan-id" href="#c1">C1</a> <span class="plan-title">tsx slows each goals call</span
               ><ui-accordion class="spell-aside" styled
                 ><ui-title>details</ui-title
@@ -393,7 +406,7 @@
             ><h2 id="issues"><ui-icon name="bug"></ui-icon> 5. Issues</h2></ui-sticky
           >
           <ol class="plan-items" data-kind="issue">
-            <li data-status="open" id="i1">
+            <li data-status="done" id="i1">
               <a class="plan-id" href="#i1">I1</a> <span class="plan-title">P4: header is 45px, not 44</span
               ><ui-accordion class="spell-aside" styled
                 ><ui-title>details</ui-title
@@ -420,7 +433,7 @@
           >
           <p class="meta">For later: not caveats, not issues.</p>
           <ol class="plan-items" data-kind="todo">
-            <li data-status="open" id="t1">
+            <li data-status="done" id="t1">
               <a class="plan-id" href="#t1">T1</a> <span class="plan-title">Adopt SRV.FileLock everywhere</span
               ><ui-accordion class="spell-aside" styled
                 ><ui-title>details</ui-title
@@ -549,6 +562,91 @@
                     <code>SRV.WebServer</code> (live reload, no goals buttons, no <code>/ui/</code>). The scripts that
                     open docs start the page server first. Alt: have the extension spawn it (GUI VS Code may lack node
                     on PATH).
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="t11">
+              <a class="plan-id" href="#t11">T11</a>
+              <span class="plan-title">Review: API behaviour changed on purpose</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    P6. Beyond the nested-path fix: an unknown <code>DELETE /api/...</code> now gets the API's own 404
+                    text; a <code>.spell</code> file is served as <code>text/plain</code> (was
+                    <code>application/octet-stream</code>); a bad JSON5 body answers <code>400 {error}</code> JSON (was
+                    an HTML page). Marked <code>CHANGED</code> in <code>api.test.ts</code>.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="t12">
+              <a class="plan-id" href="#t12">T12</a> <span class="plan-title">Review: Editor is a redirect to vite</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    P7. <code>/editor</code> on the page server redirects to vite's dev server (recorded by
+                    <code>spell serve</code>), over serving a built editor under <code>/editor/</code> (needs a vite
+                    <code>base</code> and router basename). So the editor has no site header, and the Editor tab leaves
+                    the page server's origin.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="t13">
+              <a class="plan-id" href="#t13">T13</a>
+              <span class="plan-title">Review: yarn start is spell serve --headless</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    P7. <code>yarn start</code> in
+                    <a href="../../../app/" target="src-packages-app"><code>packages/app</code></a> now runs
+                    <code>spell serve --headless</code>: the API is on the page server (4747 or free), not 3001.
+                    <code>yarn start:server</code> still runs the API alone on 3001.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="t14">
+              <a class="plan-id" href="#t14">T14</a>
+              <span class="plan-title">Review: app API has no token, only an Origin check</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    P7. The editor calls <code>/api</code> from vite's origin through vite's proxy, so the page server's
+                    token can't apply. Writes with a non-local <code>Origin</code> are refused (CSRF from other sites);
+                    Express had no check at all.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="t15">
+              <a class="plan-id" href="#t15">T15</a>
+              <span class="plan-title">Review: spell serve stops only a page server it started</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    P7. Ctrl-C stops vite, and the page server only if <code>spell serve</code> launched it; one already
+                    running (docs open elsewhere) stays.
+                  </p></ui-content
+                ></ui-accordion
+              >
+            </li>
+            <li data-status="open" id="t16">
+              <a class="plan-id" href="#t16">T16</a>
+              <span class="plan-title">Review: parseBodies reads once, and body parsing is per route</span
+              ><ui-accordion class="spell-aside" styled
+                ><ui-title>details</ui-title
+                ><ui-content
+                  ><p>
+                    P5 / P7. The page server parses no bodies itself: each route (page edits, goals 64kb, the app's
+                    JSON5 10mb) does its own, and a second parser in a chain skips an already-read body. Found when
+                    goals' buttons hung.
                   </p></ui-content
                 ></ui-accordion
               >
@@ -943,9 +1041,9 @@
               <li><b>Verify:</b> spell serve: header switches all properties; editor round-trip; cli tests</li>
             </ul>
           </section>
-          <section data-status="todo" data-phase="8" class="s3">
+          <section data-status="done" data-phase="8" class="s3">
             <ui-sticky class="spell-h3"
-              ><h3 id="p8"><ui-icon name="circle outline" color="grey"></ui-icon> P8 · Doc Review</h3></ui-sticky
+              ><h3 id="p8"><ui-icon name="circle check" color="green"></ui-icon> P8 · Doc Review</h3></ui-sticky
             >
             <ul class="plan-phase-body">
               <li><b>Goal:</b> plan doc true to what was built; durable page packages/docs/server.html</li>
@@ -1148,6 +1246,41 @@
               ><ui-content
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T01:50-04:00">2026-10-02 01:50</time></ui-date> P7
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:51-04:00">2026-10-02 01:51</time></ui-date> P8
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:51-04:00">2026-10-02 01:51</time></ui-date> I1 closed: P4:
+                  header is 45px, not 44</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:51-04:00">2026-10-02 01:51</time></ui-date> T1 closed: Adopt
+                  SRV.FileLock everywhere</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:51-04:00">2026-10-02 01:51</time></ui-date> C1 closed: tsx
+                  slows each goals call</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T01:59-04:00">2026-10-02 01:59</time></ui-date> P8
                   done</ui-summary
                 ></ui-content
               ></ui-event
