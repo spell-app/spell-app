@@ -206,7 +206,7 @@ export type ElementOptions = {
    * - Default `false`:  disposed a microtask after a disconnect that wasn't followed by a reconnect.
    */
   keepAlive?: boolean
-  /** Wrap the render in `createErrorBoundary`;  default `true`. */
+  /** Wrap the render in an `<Errored>` boundary;  default `true`. */
   errorBoundary?: boolean
   /**
    * An error escaped the component;  default logs one `console.error` naming the tag.

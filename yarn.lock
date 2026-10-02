@@ -2384,9 +2384,35 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@solidjs/babel-plugin@npm:^2.0.0-rc.13":
+  version: 2.0.0-rc.13
+  resolution: "@solidjs/babel-plugin@npm:2.0.0-rc.13"
+  dependencies:
+    "@babel/helper-module-imports": "npm:7.18.6"
+    "@babel/plugin-syntax-jsx": "npm:^7.18.6"
+    "@babel/types": "npm:^7.20.7"
+    html-entities: "npm:2.3.3"
+    parse5: "npm:^7.1.2"
+  peerDependencies:
+    "@babel/core": ^7.20.12
+    "@tsrx/core": 0.1.63
+  peerDependenciesMeta:
+    "@tsrx/core":
+      optional: true
+  checksum: 10c0/552b2a0a901d659f4d748473dc3d8beb2611db6dab3f0c51ac092674cd7120200f5602e6d4bc319b1c2df159d4abd62fb0d667078cee51a8b400277a3feb9fa6
+  languageName: node
+  linkType: hard
+
 "@solidjs/compiler-darwin-arm64@npm:2.0.0-rc.11":
   version: 2.0.0-rc.11
   resolution: "@solidjs/compiler-darwin-arm64@npm:2.0.0-rc.11"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@solidjs/compiler-darwin-arm64@npm:2.0.0-rc.13":
+  version: 2.0.0-rc.13
+  resolution: "@solidjs/compiler-darwin-arm64@npm:2.0.0-rc.13"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
@@ -2398,6 +2424,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@solidjs/compiler-darwin-x64@npm:2.0.0-rc.13":
+  version: 2.0.0-rc.13
+  resolution: "@solidjs/compiler-darwin-x64@npm:2.0.0-rc.13"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
 "@solidjs/compiler-linux-arm64-gnu@npm:2.0.0-rc.11":
   version: 2.0.0-rc.11
   resolution: "@solidjs/compiler-linux-arm64-gnu@npm:2.0.0-rc.11"
@@ -2405,9 +2438,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@solidjs/compiler-linux-arm64-gnu@npm:2.0.0-rc.13":
+  version: 2.0.0-rc.13
+  resolution: "@solidjs/compiler-linux-arm64-gnu@npm:2.0.0-rc.13"
+  conditions: os=linux & cpu=arm64 & libc=glibc
+  languageName: node
+  linkType: hard
+
 "@solidjs/compiler-linux-x64-gnu@npm:2.0.0-rc.11":
   version: 2.0.0-rc.11
   resolution: "@solidjs/compiler-linux-x64-gnu@npm:2.0.0-rc.11"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@solidjs/compiler-linux-x64-gnu@npm:2.0.0-rc.13":
+  version: 2.0.0-rc.13
+  resolution: "@solidjs/compiler-linux-x64-gnu@npm:2.0.0-rc.13"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
@@ -2423,9 +2470,27 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@solidjs/compiler-wasm32-wasi@npm:2.0.0-rc.13":
+  version: 2.0.0-rc.13
+  resolution: "@solidjs/compiler-wasm32-wasi@npm:2.0.0-rc.13"
+  dependencies:
+    "@emnapi/core": "npm:1.11.3"
+    "@emnapi/runtime": "npm:1.11.3"
+    "@napi-rs/wasm-runtime": "npm:^1.1.6"
+  checksum: 10c0/6a2cea8bf6c922dc959c0394600c9374908acb62eb2b6779768c55b6b454850f1fc6dcb62d0ae3df8850860c9eed1f49633722fd48a91d1b8ec508bcfe4a865f
+  languageName: node
+  linkType: hard
+
 "@solidjs/compiler-win32-x64-msvc@npm:2.0.0-rc.11":
   version: 2.0.0-rc.11
   resolution: "@solidjs/compiler-win32-x64-msvc@npm:2.0.0-rc.11"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@solidjs/compiler-win32-x64-msvc@npm:2.0.0-rc.13":
+  version: 2.0.0-rc.13
+  resolution: "@solidjs/compiler-win32-x64-msvc@npm:2.0.0-rc.13"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -2457,22 +2522,49 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@solidjs/element@npm:2.0.0-rc.11":
-  version: 2.0.0-rc.11
-  resolution: "@solidjs/element@npm:2.0.0-rc.11"
+"@solidjs/compiler@npm:^2.0.0-rc.13":
+  version: 2.0.0-rc.13
+  resolution: "@solidjs/compiler@npm:2.0.0-rc.13"
   dependencies:
-    component-register: "npm:^0.8.7"
-  peerDependencies:
-    "@solidjs/web": ^2.0.0-rc.11
-    solid-js: ^2.0.0-rc.11
-  checksum: 10c0/c5fb314929cc9629d6f82134e5c59e3bff22a0017a947bd863b1ee0f3fd83562553ee20c90a5ab50793ff203557d46e061376501f541e1cd5acf8105be5433a6
+    "@solidjs/compiler-darwin-arm64": "npm:2.0.0-rc.13"
+    "@solidjs/compiler-darwin-x64": "npm:2.0.0-rc.13"
+    "@solidjs/compiler-linux-arm64-gnu": "npm:2.0.0-rc.13"
+    "@solidjs/compiler-linux-x64-gnu": "npm:2.0.0-rc.13"
+    "@solidjs/compiler-wasm32-wasi": "npm:2.0.0-rc.13"
+    "@solidjs/compiler-win32-x64-msvc": "npm:2.0.0-rc.13"
+  dependenciesMeta:
+    "@solidjs/compiler-darwin-arm64":
+      optional: true
+    "@solidjs/compiler-darwin-x64":
+      optional: true
+    "@solidjs/compiler-linux-arm64-gnu":
+      optional: true
+    "@solidjs/compiler-linux-x64-gnu":
+      optional: true
+    "@solidjs/compiler-wasm32-wasi":
+      optional: true
+    "@solidjs/compiler-win32-x64-msvc":
+      optional: true
+  checksum: 10c0/379f8086a2b274b0b321652d7f2a4824ee60220115ee43590fdd7be9bc58de67e6fb32f69591c64c21a0cdd0fb041c22ee7d89229f8821f33f8b39b73919ceb2
   languageName: node
   linkType: hard
 
-"@solidjs/signals@npm:2.0.0-rc.11":
-  version: 2.0.0-rc.11
-  resolution: "@solidjs/signals@npm:2.0.0-rc.11"
-  checksum: 10c0/482332551157cd6f249769bc986e3839073958616923db4a703945a7fe93c1cd5e07fabfe0c461e27755754e81d39bd4b428a5b1c305947510bea45f579feac5
+"@solidjs/element@npm:2.0.0-rc.13":
+  version: 2.0.0-rc.13
+  resolution: "@solidjs/element@npm:2.0.0-rc.13"
+  dependencies:
+    component-register: "npm:^0.8.7"
+  peerDependencies:
+    "@solidjs/web": ^2.0.0-rc.13
+    solid-js: ^2.0.0-rc.13
+  checksum: 10c0/b52cd5b241b09644c59b628ceff76577446944d51fe0984acf366b3658ba9db944d8e274afc7ee506d5b79e66a86f700958c46dee38826a218cefadb983982b5
+  languageName: node
+  linkType: hard
+
+"@solidjs/signals@npm:2.0.0-rc.13":
+  version: 2.0.0-rc.13
+  resolution: "@solidjs/signals@npm:2.0.0-rc.13"
+  checksum: 10c0/6355d60a6a77a374545ac35268d6da798311bc870bb3cfcb4d8c736733e2aa79850a3f2dc1ff9e392bf47dae9599e092b6ffab0f25c77cdcbc09b88f658ef383
   languageName: node
   linkType: hard
 
@@ -2502,15 +2594,41 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@solidjs/web@npm:2.0.0-rc.11":
-  version: 2.0.0-rc.11
-  resolution: "@solidjs/web@npm:2.0.0-rc.11"
+"@solidjs/vite-plugin@npm:3.0.0-next.47":
+  version: 3.0.0-next.47
+  resolution: "@solidjs/vite-plugin@npm:3.0.0-next.47"
+  dependencies:
+    "@ampproject/remapping": "npm:^2.3.0"
+    "@babel/core": "npm:^7.23.3"
+    "@solidjs/babel-plugin": "npm:^2.0.0-rc.13"
+    "@solidjs/compiler": "npm:^2.0.0-rc.13"
+    "@types/babel__core": "npm:^7.20.4"
+    merge-anything: "npm:^5.1.7"
+    vitefu: "npm:^1.0.4"
+  peerDependencies:
+    "@solidjs/start-devtools": ^1.0.0-next.2
+    "@solidjs/web": ^2.0.0-rc.13
+    "@testing-library/jest-dom": ^5.16.6 || ^5.17.0 || ^6.0.0 || ^7.0.0
+    solid-js: ^2.0.0-rc.13
+    vite: ^8.0.0 || ^9.0.0
+  peerDependenciesMeta:
+    "@solidjs/start-devtools":
+      optional: true
+    "@testing-library/jest-dom":
+      optional: true
+  checksum: 10c0/e21f49eb594c362abb16fc59fd4e93b2ddae3f336e6fb82246c16d23a0daef2e4fcb0cbd2a0011fc52b26715e5b88295822ed4519fb6dada3183a0598fe58f7d
+  languageName: node
+  linkType: hard
+
+"@solidjs/web@npm:2.0.0-rc.13":
+  version: 2.0.0-rc.13
+  resolution: "@solidjs/web@npm:2.0.0-rc.13"
   dependencies:
     seroval: "npm:~1.6.7"
     seroval-plugins: "npm:~1.6.7"
   peerDependencies:
-    solid-js: ^2.0.0-rc.11
-  checksum: 10c0/d813d393522766c9b97a04e74345392000835e3ff9fed9b79b5b60ff28fdff5b473b085257975923aead57997efedf4ba95fa8bb65b510223a364b5b94f84e69
+    solid-js: ^2.0.0-rc.13
+  checksum: 10c0/e9f81c9dae02b4689c0ad329ddd98a3e1da7ed52928a3df7b9c2dc8b59bb1caf5c554e7230b6849d09b06ed547054a90d77f60f2dadd41dc51ddc8def696ca60
   languageName: node
   linkType: hard
 
@@ -2698,9 +2816,9 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@spell-app/solid-element@workspace:packages/solid-element"
   dependencies:
-    "@solidjs/element": "npm:2.0.0-rc.11"
-    "@solidjs/vite-plugin": "npm:3.0.0-next.46"
-    "@solidjs/web": "npm:2.0.0-rc.11"
+    "@solidjs/element": "npm:2.0.0-rc.13"
+    "@solidjs/vite-plugin": "npm:3.0.0-next.47"
+    "@solidjs/web": "npm:2.0.0-rc.13"
     "@types/node": "npm:22.20.4"
     "@vitest/browser-playwright": "npm:5.0.2"
     component-register: "npm:0.8.8"
@@ -2708,13 +2826,13 @@ __metadata:
     oxfmt: "npm:^0.71.0"
     oxlint: "npm:^1.86.0"
     playwright: "npm:1.63.0"
-    solid-js: "npm:2.0.0-rc.11"
+    solid-js: "npm:2.0.0-rc.13"
     typescript: "npm:7.0.2"
     vite: "npm:8.3.1"
     vitest: "npm:5.0.2"
   peerDependencies:
-    "@solidjs/web": 2.0.0-rc.11
-    solid-js: 2.0.0-rc.11
+    "@solidjs/web": 2.0.0-rc.13
+    solid-js: 2.0.0-rc.13
   languageName: unknown
   linkType: soft
 
@@ -2779,8 +2897,8 @@ __metadata:
   dependencies:
     "@custom-elements-manifest/analyzer": "npm:^0.11.0"
     "@playwright/test": "npm:1.63.0"
-    "@solidjs/vite-plugin": "npm:3.0.0-next.46"
-    "@solidjs/web": "npm:2.0.0-rc.11"
+    "@solidjs/vite-plugin": "npm:3.0.0-next.47"
+    "@solidjs/web": "npm:2.0.0-rc.13"
     "@spell-app/server": "workspace:*"
     "@spell-app/solid-element": "workspace:*"
     "@types/lodash-es": "npm:^4.17.12"
@@ -2797,7 +2915,7 @@ __metadata:
     oxlint: "npm:^1.86.0"
     oxlint-tsgolint: "npm:^7.0.2003"
     playwright: "npm:1.63.0"
-    solid-js: "npm:2.0.0-rc.11"
+    solid-js: "npm:2.0.0-rc.13"
     temporal-polyfill: "npm:^1.0.5"
     tsx: "npm:^4.23.15"
     typescript: "npm:^7.0.2"
@@ -2805,8 +2923,8 @@ __metadata:
     vite-plugin-dts: "npm:^5.1.1"
     vitest: "npm:^5.0.2"
   peerDependencies:
-    "@solidjs/web": 2.0.0-rc.11
-    solid-js: 2.0.0-rc.11
+    "@solidjs/web": 2.0.0-rc.13
+    solid-js: 2.0.0-rc.13
   languageName: unknown
   linkType: soft
 
@@ -8988,15 +9106,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"solid-js@npm:2.0.0-rc.11":
-  version: 2.0.0-rc.11
-  resolution: "solid-js@npm:2.0.0-rc.11"
+"solid-js@npm:2.0.0-rc.13":
+  version: 2.0.0-rc.13
+  resolution: "solid-js@npm:2.0.0-rc.13"
   dependencies:
-    "@solidjs/signals": "npm:^2.0.0-rc.11"
+    "@solidjs/signals": "npm:^2.0.0-rc.13"
     csstype: "npm:^3.1.0"
     seroval: "npm:~1.6.7"
     seroval-plugins: "npm:~1.6.7"
-  checksum: 10c0/0fe2023bcc545d657aea0d14f8fda9ff29e7c282481c2cac5e8a0028f164f8a6166e3dff03f53e388321d86820096cd1637db1f44f24ddba8d2281e2ade929e1
+  checksum: 10c0/41378b113028b905678ba1abcd6a0e64815cc6779b1764de82e3677ec9ec7b728b9c4becbb27aa71c243bde8d71e1c3fffb32cd6177f5d9609b5711295fa0ad9
   languageName: node
   linkType: hard
 
