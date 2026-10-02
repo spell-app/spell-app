@@ -6,7 +6,7 @@ as work lands ([AGENTS.md](../AGENTS.md)).  Last updated 2026-10-02.
 ## Working on now
 
 - **Resumed 2026-10-01** in the monorepo (`packages/ui`), branch `worktree-ui-component-creation`;  plan doc
-  [`packages/docs/plans/ui-component-creation/`](../../docs/plans/ui-component-creation/ui-component-creation.html):
+  [`packages/docs/epics/ui-component-creation/`](../../docs/epics/ui-component-creation/ui-component-creation.html):
   icon follow-ups, `SUSPECTED-BUGS.md` sweep, Owen's decisions ("To review (Owen)" below), Phase D chores.
 - **`<ui-root>`** (P17-P20, 2026-10-01):  built;  P21 (D48-D50:  table `stack-by`, WebKit fixes) built;  P22 doc review done.
 - Every check passes after the move;  `yarn test:hmr` and `yarn site:build` needed a fix each (`PAPERCUTS.md`).

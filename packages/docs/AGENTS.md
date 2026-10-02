@@ -1,7 +1,7 @@
 # packages/docs (`@spell-app/docs`)
 
 Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/ui`, their templates, the plan docs
-`/plan-doc` keeps, the experiments behind the claims, and the tooling.  As the root's `AGENTS.md`, plus:
+`/epic` keeps, the experiments behind the claims, and the tooling.  As the root's `AGENTS.md`, plus:
 
 ## Layout
 
@@ -12,7 +12,7 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
   - `<topic>/experiments/` -- runnable scripts backing the doc's claims (see "Experiments").
   - `<topic>/<topic>.md` -- a distilled version for agents, when agents need the doc's rules (see "Agent rules").
 - `templates/` -- starting points, one per kind of doc (see "Templates").
-- `plans/<name>/<name>.html` -- plan docs, one per `/plan-doc` session (see "Plan docs").
+- `epics/<name>/<name>.html` -- plan docs, one per `/epic` session (see "Plan docs").
 - `_assets/` -- shared page assets:
   - `spell-doc.css` -- page layout, and what UI doesn't cover;  reaches into widgets via UI tokens and `::part()`
   - `spell-doc-runtime.js` -- page behaviour (contents sidebar, sticky headers, scroll-follow, code colors)
@@ -120,7 +120,7 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
 - `templates/durable.html` -- design notes, research, references:  prose sections, tables, code, callouts.
 - `templates/cheatsheet.html` -- an API reference:  a grid of cards, filtered by text and by badge
   (`ui-select[data-spell-filter-badge]`);  a card may carry `<ui-meta>` (since when) and `<ui-extra>` (a docs link).
-- `templates/plans/plan.html` -- a plan doc.  NEVER copy by hand:  `yarn plan-doc new <name>`.
+- `templates/epics/plan.html` -- a plan doc.  NEVER copy by hand:  `yarn plan-doc new <name>`.
 - `templates/goals/` -- goals pages, laid out as a goals folder is, so their links work in place:
   `index.html` (the home page:  every goal set), `set/index.html` (a set's contents page), `set/topic/topic.html`
   and `topic.md` (a topic's page and its agent notes).  NEVER copy by hand:  `yarn goals new-set` / `yarn goals new`
@@ -131,8 +131,8 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
 
 ## Plan docs
 
-- `/plan-doc <name>` (`.claude/skills/plan-doc/`) runs a planning session against `plans/<name>/<name>.html`.
-- How to write one, its sections, ids and markers:  `templates/plans/plan-doc.md`.
+- `/epic <name>` (`.claude/skills/epic/`) runs a planning session against `epics/<name>/<name>.html`.
+- How to write one, its sections, ids and markers:  `templates/epics/plan-doc.md`.
 - Edit through `yarn plan-doc <command>` wherever a command exists (phase status, items, log):  it keeps ids,
   icons and UPDATE markers consistent.
 

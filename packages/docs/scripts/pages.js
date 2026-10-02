@@ -119,7 +119,7 @@ export async function openInVSCode(file) {
 /**
  * Show `file` in Chrome, in ONE tab per page, IN THE BACKGROUND:  `yarn docs:open <page>`;  `openInVSCode()`'s fallback.
  * - from this checkout's page server (live reload), started if need be;  `file://` if it can't start
- * - The tab is keyed by the page's path inside `packages/docs` (`plans/<name>/<name>.html`), not its full URL, so
+ * - The tab is keyed by the page's path inside `packages/docs` (`epics/<name>/<name>.html`), not its full URL, so
  *   the same page from another checkout (a worktree) reuses it:  re-pointed if the URL differs, else reloaded.
  *   The page names its tab the same way (`spell-doc-runtime.js` `window.name`;  links use that `target`).
  * - Never brings Chrome or its window forward:  the tab is made active in ITS window only;  a new tab goes in the

@@ -1,5 +1,5 @@
 /**
- * Shows an `.html` doc (`packages/docs`, goals, plans) rendered, in VS Code's Simple Browser beside the editor.
+ * Shows an `.html` doc (`packages/docs`, goals, epics) rendered, in VS Code's Simple Browser beside the editor.
  * - Opened by URI:  `vscode://spell-app.spell-language/doc-preview?file=<absolute path>` -- what
  *   `packages/docs/scripts/pages.js` `openInVSCode()` opens (`yarn plan-doc open`, `yarn plan-doc phase`).
  * - Or `?url=<http://127.0.0.1:port/...>`:  a page some local server already serves, shown as is -- the page

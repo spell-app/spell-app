@@ -1,6 +1,6 @@
 /**
- * `yarn plan-doc <command> <name> ...`:  edit the structured parts of a plan doc, `plans/<name>/<name>.html`.
- * Rules, ids and markup:  `templates/plans/plan-doc.md`.  Used by the `/plan-doc` skill and its agents.
+ * `yarn plan-doc <command> <name> ...`:  edit the structured parts of a plan doc, `epics/<name>/<name>.html`.
+ * Rules, ids and markup:  `templates/epics/plan-doc.md`.  Used by the `/epic` skill and its agents.
  * - Commands:  `new`, `add-phase`, `phase`, `estimate`, `add`, `close`, `reopen`, `log`, `prompt`, `summary`, `check`,
  *   `open`, `migrate` (`node scripts/plan-doc.js` with no command lists them).
  * - Every edit:  takes the doc's lock (parallel agents queue instead of clobbering each other), parses it with
@@ -22,7 +22,7 @@ import { DOCS, openInVSCode, serialize, tidy } from "./pages.js"
 import { convertSections, createElement } from "./to-ui-section.js"
 
 /** The template `new` copies, relative to `DOCS`. */
-const TEMPLATE = "templates/plans/plan.html"
+const TEMPLATE = "templates/epics/plan.html"
 
 /** Phase status -> its icon and color (UI's `color` attribute, so themes and dark mode just work). */
 export const STATUS = {
@@ -1061,7 +1061,7 @@ export function isoDate(date = new Date()) {
 ////////////////
 
 /** Usage, printed with no command or a bad one. */
-const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/docs/plans/<name>/<name>.html)
+const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/docs/epics/<name>/<name>.html)
   new <name> [--title "Title"] [--prompt "text" | --prompt-file path]
                                                    copy the template, fill it in, update the docs index
   add-phase <name> "Short Name" [--goal html] [--files html] [--verify html] [--estimate 2h]
@@ -1189,7 +1189,7 @@ function usage() {
 /** The doc of plan `name`;  names are lower-kebab-case, as the folder and file. */
 function docPath(name) {
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(name)) throw new PlanDocError(`name "${name}" must be lower-kebab-case`)
-  return join(DOCS, "plans", name, `${name}.html`)
+  return join(DOCS, "epics", name, `${name}.html`)
 }
 
 /** The plan doc at `file`, parsed. */

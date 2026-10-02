@@ -131,11 +131,11 @@ async function start() {
 }
 
 /**
- * A plan doc (`plans/<name>/<name>.html`) names its tab `<name>`:  every link to it has `target="<name>"`
+ * A plan doc (`epics/<name>/<name>.html`) names its tab `<name>`:  every link to it has `target="<name>"`
  * (`doc-links.py`), so they reuse this tab, as `yarn plan-doc open <name>` does.
  */
 function nameTab() {
-  const plan = /\/plans\/([^/]+)\/\1\.html$/.exec(decodeURIComponent(location.pathname))
+  const plan = /\/epics\/([^/]+)\/\1\.html$/.exec(decodeURIComponent(location.pathname))
   if (plan) window.name = plan[1]
 }
 

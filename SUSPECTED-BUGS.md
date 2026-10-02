@@ -262,7 +262,7 @@ Disproven (2026-10-01):  the "empty strip" under an open multiple-selection drop
 the open menu floats over.  The "mini images at full width" were the static `ui avatar images` group, hit by a bare
 `.avatar img { width: 100% }` in `ui-parts.css` (fixed).  `--ui-form-equal-width` / `-unstackable` were already private.
 Parts inside a lone `<ui-event>` / `<ui-comment>` read the owner switches only in style queries, so unset is fine.
-Swept 2026-10-01 (branch `worktree-ui-component-creation`, plan doc `packages/docs/plans/ui-component-creation/`):
+Swept 2026-10-01 (branch `worktree-ui-component-creation`, plan doc `packages/docs/epics/ui-component-creation/`):
 every entry below that date was fixed or disproven;  what's left:
 
 ### 1. Behavior bugs

@@ -15,7 +15,7 @@ Owen has lost the thread:  hand it back in one screen.  Read-only -- change noth
 - `?`, or Owen typed `wtf?` without the slash:  ASK mode (step 4).
 - No `<name>`:  THIS session.
 - `<name>`:  the plan or isolate session of that name -- worktree `.claude/worktrees/<name>`, branch `<name>`, plan
-  doc `packages/docs/plans/<name>/`, a session renamed `<name>`.  Nothing by that name:  say so in one line, list
+  doc `packages/docs/epics/<name>/`, a session renamed `<name>`.  Nothing by that name:  say so in one line, list
   the names that do exist (worktrees, plan docs), stop.
 
 ## 2. Gather (in parallel where possible)
@@ -30,8 +30,8 @@ Owen has lost the thread:  hand it back in one screen.  Read-only -- change noth
     yet answered.
 - Where:  in the session's checkout (`git -C .claude/worktrees/<name>` for `<name>`):  `git branch --show-current`,
   `git status --short`, `git log --oneline main..HEAD` (a worktree) or the session's own commits (`main`).
-- Plan doc, if any:  the session's `/plan-doc <name>`, else a worktree name with `packages/docs/plans/<name>/`, else
-  one the session wrote to.
+- Plan doc, if any:  the session's `/epic <name>`, else a worktree name with `packages/docs/epics/<name>/`, else
+  one the session wrote to.  A branch from before 2026-10-02 still has it under `plans/<name>/`.
   - `yarn plan-doc summary <name> --json`:  phases with status, next phase, open questions / issues / caveats / todos
   - its URL:  `yarn server url <ABSOLUTE path>`, run in the checkout the doc is in (a relative path resolves
     wrongly:  `SUSPECTED-BUGS.md`, "server")
@@ -54,7 +54,7 @@ id, running / idle / waiting / not running.
 5. **In flight** -- agents, background jobs, wakeups:  what each is doing.
 6. **Waiting on you** -- numbered (Owen refers to them by number):  open questions (linked), a modal the session
    is sitting on, issues needing a call, staged work awaiting "commit?".
-7. Last line:  where we are, as `/plan-doc` says it --
+7. Last line:  where we are, as `/epic` says it --
    "[P1 · Short Name](<url>#p1) complete.  Next is [P2 · Short Name](<url>#p2)." or "All done";
    without a plan doc, the same in words ("Skill edits staged.  Next is committing them.").
 

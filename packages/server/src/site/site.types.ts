@@ -21,7 +21,7 @@ export const PROPERTIES: SiteProperty[] = [
   {
     name: "Docs",
     path: "packages/docs/index.html",
-    match: (path) => /\/packages\/docs\//.test(path) && !/\/packages\/docs\/plans\//.test(path)
+    match: (path) => /\/packages\/docs\//.test(path) && !/\/packages\/docs\/epics\//.test(path)
   },
   {
     name: "Spell UI",
@@ -29,7 +29,7 @@ export const PROPERTIES: SiteProperty[] = [
     serverOnly: true,
     match: (path) => /^\/ui(\/|$)|\/packages\/ui\/site\//.test(path)
   },
-  { name: "Plans", path: "packages/docs/index.html#plans", match: (path) => /\/packages\/docs\/plans\//.test(path) },
+  { name: "Epics", path: "packages/docs/index.html#epics", match: (path) => /\/packages\/docs\/epics\//.test(path) },
   { name: "Goals", path: "goals/index.html", match: (path) => /\/goals\//.test(path) },
   { name: "Editor", path: "/editor/", serverOnly: true, match: (path) => /^\/editor(\/|$)/.test(path) }
 ]

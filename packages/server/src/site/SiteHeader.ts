@@ -9,7 +9,7 @@ import { EDIT_KEY, PROPERTIES, THEME_KEY, type SiteProperty } from "$/server/sit
  *   `<spell-site-header root="../.."></spell-site-header>`.  From `file://` its links stay relative;  served by
  *   the page server they're absolute, and server-only properties (Spell UI, Editor) turn on.
  * - Also shows:
- *   - the page's place:  `Plans › Unified Server` (the property, then `document.title`)
+ *   - the page's place:  `Epics › Unified Server` (the property, then `document.title`)
  *   - the checkout serving it:  `⎇ <worktree or branch>` (served pages only)
  *   - "open in VS Code":  a `vscode://file/...` link to the page's source
  *   - edit mode (pages the page server serves):  hover a section, edit its source in place -- `<spell-section-editor>`

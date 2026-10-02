@@ -7,7 +7,7 @@ argument-hint: <name> | done
 # /isolate
 
 Work in worktree `.claude/worktrees/<name>`, so this session's edits never collide with another session's.  The
-worktree, its branch and the session share one name.  `/plan-doc` runs these steps too.
+worktree, its branch and the session share one name.  `/epic` runs these steps too.
 
 ## Start:  `/isolate <name>`
 

@@ -31,7 +31,7 @@ def slug(text):
     return re.sub(r"[^a-zA-Z0-9]+", "-", text).strip("-").lower()
 
 
-PLAN_DOC = re.compile(r"(?:^|/)packages/docs/plans/([^/]+)/\1\.html$")
+PLAN_DOC = re.compile(r"(?:^|/)packages/docs/epics/([^/]+)/\1\.html$")
 
 
 def target_for(abs_or_url):

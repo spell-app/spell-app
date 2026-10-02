@@ -38,11 +38,11 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
   - `packages/cli/` (`@spell-app/cli`, `$/cli`, `CLI`) -- the `spell` command-line tool, running the spell-family
     packages' SOURCE through `tsx`.  See `packages/cli/AGENTS.md` and its `README.md`.
   - `packages/docs/` (`@spell-app/docs`) -- every package's docs:  hand-authored `.html` pages on `@spell-app/ui`,
-    their templates, the plan docs `/plan-doc` keeps, the experiments behind them and the tooling.
+    their templates, the plan docs `/epic` keeps, the experiments behind them and the tooling.
     Index:  `packages/docs/index.html`.  See `packages/docs/AGENTS.md`.
   - `packages/server/` (`@spell-app/server`, `$/server`, `SRV`) -- serving pages locally:  static folders, an
     Express-shaped router, live reload, ports, openers, a file lock, and the ONE page server per checkout
-    (`yarn server`) that serves docs, plans, goals and Spell UI docs.  See `packages/server/AGENTS.md`.
+    (`yarn server`) that serves docs, epics, goals and Spell UI docs.  See `packages/server/AGENTS.md`.
 - One change may touch several packages, but dependencies flow ONE way:
   `docs` -> anything (its experiments import any package;  nothing imports `docs`),
   `cli` -> `app` -> `lsp` -> `spell` -> `parser` / `core` -> `util`, and
@@ -64,7 +64,7 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
   init` writes missing ones;  each has its own theme).  Folder 1 is the REPO ROOT, folder 2 the package.  Why:  the
   Claude panel lists only the sessions saved under a window's FIRST folder, so every window lists every session.
   - So sessions start at the repo root:  read the package's `AGENTS.md` before working in a package.
-- Enter a worktree with `/isolate <name>` (`/plan-doc` does it too), or `EnterWorktree`.  The `WorktreeCreate` hook
+- Enter a worktree with `/isolate <name>` (`/epic` does it too), or `EnterWorktree`.  The `WorktreeCreate` hook
   (`.claude/hooks/worktree.mjs`) makes `.claude/worktrees/<name>` on branch `<name>` from local `main`, and keeps the
   session saved at the root (Claude's own worktrees move it, and it drops out of every window's list).
 - Open the worktree in its OWN new window at once, from the worktree's root:  `node scripts/window.mjs open <name>`;
