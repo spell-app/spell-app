@@ -1,0 +1,16 @@
+{
+  // For `tsx`, which runs the goals tools:  the repo's alias table (`$/server`), so they share the page server's
+  // code.  `goals.sh` and the root `yarn goals` point `TSX_TSCONFIG_PATH` here.  Nothing is type-checked.
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "types": ["node"]
+  },
+  "include": ["_tools"]
+}

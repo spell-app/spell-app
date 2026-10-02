@@ -59,7 +59,7 @@ Every command takes one or more targets:
 | Command | What it does |
 |---|---|
 | `spell help [command]` | Lists the commands, or shows one's options:  `spell help compile` ~== `spell compile --help`. |
-| `spell serve [target]` | Runs the spell app -- its editor (vite, hot reload) and its server (express, `/api`, which saves files to disk) -- and opens the editor on `target` in your browser, until `Ctrl-C`.  `--port <n>` (default 3000;  the server takes the next one), `--headless`. |
+| `spell serve [target]` | Runs everything -- the spell app's editor (vite, hot reload) and this checkout's page server (`yarn server`:  the app's `/api`, which saves files to disk, plus docs, plans, goals and Spell UI) -- and opens the editor on `target` in your browser, until `Ctrl-C`.  `--port <n>` (the editor's;  default 3000), `--headless`. |
 | `spell icons [query]` | Finds `@spell-app/ui` icons by name, alias or keyword:  name, pack, other names.  `--pack <id>`, `--json`.  `--open` shows them as pictures in your browser (click one to copy its name), until `Ctrl-C`. |
 | `spell compile <targets...>` | Writes each project's `<Project>.compiled.js`, and with no errors its scope pack `<Project>.scopes.js`.  `--stdout` prints it and writes nothing.  `--force` recompiles the projects it imports, too.  A `.spell` file prints its javascript. |
 | `spell check <targets...>` | Lists errors on stdout as `path:line:col  message`.  `--json` for a JSON list. |
@@ -121,10 +121,13 @@ Every command takes one or more targets:
 
 ### `serve`
 
-- Runs `app`'s own `yarn start:dev` (vite) and `yarn start:server` (express), each in its own process group, and
-  stops both on `Ctrl-C` -- or if either stops.  Unlike `yarn start`, it stops no other servers and runs no
-  `yarn install`.
-- Refuses a port in use, rather than drifting to another:  `spell serve --port 3100`, or `yarn stop` in
+- Starts this checkout's PAGE SERVER if it isn't running (`packages/server`;  port 4747, else any free one), whose
+  route modules serve the app's `/api` (`app`'s `appRoutes.ts`), goals' buttons, docs, plans and `/ui/`.
+- Runs `app`'s own `yarn start:dev` (vite) in its own process group, passing `/api` on to the page server;  records
+  it in `.spell-server.editor.json`, so the site header's "Editor" (`/editor` on the page server) reaches it.
+- `Ctrl-C`, or vite stopping:  stops vite, and the page server if it started it (one that already ran, stays).
+  It stops no other servers and runs no `yarn install`.
+- Refuses an editor port in use, rather than drifting to another:  `spell serve --port 3100`, or `yarn stop` in
   `packages/app`.
 - Opens only projects in the app's roots (`spell projects`):  a project in some other folder opens the chooser.
 - Their output is hidden unless `--verbose`, or one fails.

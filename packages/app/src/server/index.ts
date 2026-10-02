@@ -1,49 +1,47 @@
 // FIRST:  defines `__PACKAGE_VERSION__`, which vite would, before anything reads it
 import "$/spell/node/packageVersion.node"
 
-import bodyParser from "body-parser"
-import express, { Request, Response } from "express"
-import express_json5 from "express-json5"
+import JSON5 from "json5"
 import path from "path"
 
+import { SRV } from "$/server"
 import environment from "$/spell/node/environment"
 import { api } from "./api"
 
-const app = express()
-
-// Add JSON / JSON5 body-parser support -- lets request bodies use `express-json5`'s more forgiving syntax.
-app.use(express_json5())
-
-// Set up body parsers for text, json and form-urlencoded.
-// NOTE: applies globally regardless of HTTP verb, so `DELETE` routes with a JSON body (see `api.ts`) still parse.
-app.use(bodyParser.text({ limit: "10mb" }))
-app.use(bodyParser.json({ limit: "10mb" }))
-app.use(bodyParser.urlencoded({ extended: true, limit: "10mb" }))
-
-// Trivial liveness route, unrelated to `/api` -- just confirms express itself is up.
-app.get("/hello", (request: Request, response: Response) => {
-  response.json({ message: "Hello from the API!" })
+/**
+ * The app's API server, on `$/server`'s `WebServer` (it was Express):  `yarn start:server`.
+ * - `/api/...` -- see `./api` for the route table;  `/hello` -- liveness
+ * - bodies parse for EVERY verb (a `DELETE` with a JSON body too), as JSON5 (forgiving JSON), text or a form, up to
+ *   10mb
+ * - production (`NODE_ENV=production`):  `dist/`, and `index.html` for any other path (the SPA's client routing)
+ * - development:  `/static`, `/element` (`<spell-app>`'s bundle) and `/demo`;  the editor UI itself is vite's
+ * - binds 0.0.0.0, as Express did:  vite (and a LAN device) reach it;  no `Host` check, since vite's proxy and the
+ *   page server pass requests on with their own
+ */
+const server = new SRV.WebServer({
+  checkHost: false,
+  mounts:
+    process.env.NODE_ENV === "production"
+      ? [{ prefix: "/", dir: path.join(process.cwd(), "dist") }]
+      : [
+          { prefix: "/static", dir: environment.staticDir },
+          { prefix: "/element", dir: path.join(process.cwd(), "dist-element") },
+          { prefix: "/demo", dir: path.join(process.cwd(), "demo") }
+        ]
 })
+
+server.router.use(SRV.parseBodies({ limit: 10 * 1024 * 1024, parseJson: JSON5.parse }))
+
+// Trivial liveness route, unrelated to `/api` -- just confirms the server itself is up.
+server.router.get("/hello", (_request, reply) => reply.json({ message: "Hello from the API!" }))
 
 // Mount all real api routines under `/api/...` -- see `./api` for the route table.
-app.use("/api", api)
+server.router.use("/api", api)
 
-// Serve static files from `dist` in production.
+// Production:  `index.html` for every other path, so client-side (SPA) routing can take over.
 if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(process.cwd(), "dist")))
-
-  // Serve `index.html` for all non-API routes so client-side (SPA) routing can take over.
-  app.get("*", (req: Request, res: Response) => {
-    res.sendFile(path.join(process.cwd(), "dist", "index.html"))
-  })
-} else {
-  // Development: serve static files from `environment.staticDir` instead of a built `dist`.
-  app.use("/static", express.static(environment.staticDir))
-  // `<spell-app>`:  its bundle (`yarn build:element`), and a page trying it out, `/demo/spell-app.html`
-  app.use("/element", express.static(path.join(process.cwd(), "dist-element")))
-  app.use("/demo", express.static(path.join(process.cwd(), "demo")))
+  server.fallback.get("*", (_request, reply) => reply.sendFile(path.join(process.cwd(), "dist", "index.html")))
 }
 
-app.listen(environment.expressPort, () => {
-  console.log(`Server running at http://localhost:${environment.expressPort}`)
-})
+await server.listen({ port: environment.expressPort, host: "0.0.0.0", fallback: false })
+console.log(`Server running at http://localhost:${server.port}`)

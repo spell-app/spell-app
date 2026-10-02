@@ -73,10 +73,12 @@ export class SmokeRunner {
     return results
   }
 
-  /** Serve the pages for a person:  prints each URL, runs until killed. */
+  /** Serve the pages for a person:  prints each URL, runs until `Ctrl-C`, then stops cleanly. */
   async serve(port = 5199): Promise<void> {
-    const origin = await (await this.server()).listen(port)
+    const server = await this.server()
+    const origin = await server.listen(port)
     for (const [path] of this.pagePaths()) console.log(`${origin}${path}`)
+    await server.untilInterrupted()
   }
 
   ////////////////

@@ -9,21 +9,18 @@
  * - Reuses `packages/docs/scripts/pages.js` (`tidy()`):  the pages ARE spell docs, kept outside `packages/docs`.
  */
 import { spawnSync } from "node:child_process"
-import { closeSync, existsSync, mkdirSync, openSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs"
 import { dirname, join, relative, resolve } from "node:path"
 import { pathToFileURL } from "node:url"
 
 import { DOCS, tidy } from "../../packages/docs/scripts/pages.js"
+import { SRV } from "$/server"
+import { PageServer } from "$/server/page"
 import {
   LaunchError,
   claudeCommand,
   claudeStatus,
-  ensureServer,
-  openInBrowser,
-  openInVSCode,
-  runInTerminal,
-  serverStatus,
-  stopServer
+  runInTerminal
 } from "./launch.js"
 import {
   ACCENTS,
@@ -70,7 +67,7 @@ export function readPage(file) {
  * - stamps "updated", writes, tidies, then rewrites the contents pages
  */
 export function editPage(file, change) {
-  const result = withLock(file, () => {
+  const result = SRV.FileLock.run(file, () => {
     const page = readPage(file)
     const value = change(page)
     page.touch()
@@ -89,31 +86,6 @@ export function editPage(file, change) {
  */
 export function tidyOrFail(files) {
   if (!tidy(files.map((file) => resolve(file)))) throw new GoalsError("tidy failed (see above)")
-}
-
-/**
- * Run `fn` holding `<file>.lock`, so parallel agents (and the server) take turns.
- * - waits up to 20s;  a lock older than 60s is a crashed holder's, and is taken over
- */
-function withLock(file, fn) {
-  const lock = `${file}.lock`
-  const deadline = Date.now() + 20_000
-  for (;;) {
-    try {
-      closeSync(openSync(lock, "wx"))
-      break
-    } catch (error) {
-      if (error.code !== "EEXIST") throw error
-      if (Date.now() - statSync(lock, { throwIfNoEntry: false })?.mtimeMs > 60_000) rmSync(lock, { force: true })
-      else if (Date.now() > deadline) throw new GoalsError(`${relative(ROOT, lock)} held for 20s:  stuck?`)
-      else Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 100)
-    }
-  }
-  try {
-    return fn()
-  } finally {
-    rmSync(lock, { force: true })
-  }
 }
 
 /** Every topic summary of `set`. */
@@ -153,11 +125,14 @@ export function writeIndexes() {
 /**
  * A template's text (`path` under `templates/goals/`), for a page at `dest`:  `{{placeholders}}` filled from
  * `fill`, asset paths fixed for `dest`'s depth, the template's own title and description replaced.
+ * - the site header's `root`:  the path from `dest` up to the project root (`ROOT`), for its `file://` links
  */
 function fromTemplate(path, dest, fill) {
   const assets = relative(dirname(dest), join(DOCS, "_assets")).split("\\").join("/")
+  const root = relative(dirname(dest), ROOT).split("\\").join("/") || "."
   let html = readFileSync(join(TEMPLATES, path), "utf8")
     .replace(/((?:href|src)=")(?:\.\.\/)*_assets\//g, `$1${assets}/`)
+    .replace(/(<spell-site-header\b[^>]*?\broot=")[^"]*"/, `$1${root}"`)
     .replace(/\{\{(\w+)\}\}/g, (whole, key) => (key in fill ? attr(fill[key]) : whole))
   if (fill.title) html = html.replace(/<title>[^<]*<\/title>/, `<title>${attr(fill.title)}</title>`)
   if (fill.description)
@@ -281,21 +256,23 @@ async function main(argv) {
     case "check":
       return check(rest[0], prefs, flags)
     case "serve": {
-      const { startServer } = await import("./server.js")
-      return startServer({ port: Number(flags.port) || prefs.server.port })
+      const server = await new PageServer({ root: ROOT }).start({ port: Number(flags.port) || prefs.server.port })
+      console.log(`page server:  ${server.web.url}/${relative(ROOT, HOME)}`)
+      return SRV.untilInterrupted(server.web.server, () => server.stop())
     }
     case "server":
       return server(rest[0] ?? "status", prefs)
     case "open": {
       const target = resolveTarget(rest[0] ?? "", prefs)
-      const { base } = await ensureServer(prefs)
-      const how = openInBrowser(`${base}${target.path}`, prefs)
+      const { base } = await PageServer.ensure(ROOT, prefs.server.port)
+      const how = SRV.openInNewWindow(`${base}${target.path}`, prefs.browser)
       return console.log(`opened ${target.name} in ${how}`)
     }
     case "open-vs": {
       const target = resolveTarget(rest[0] ?? "", prefs)
-      const { base } = await ensureServer(prefs)
-      openInVSCode(`${base}${target.path}`, target.file)
+      const { base } = await PageServer.ensure(ROOT, prefs.server.port)
+      if (!SRV.openInVSCode({ url: `${base}${target.path}`, file: target.file }))
+        throw new LaunchError("VS Code didn't open it")
       return console.log(`opened ${target.name} in VS Code`)
     }
     case "talk":
@@ -554,14 +531,15 @@ function check(text, prefs, { noBrowser }) {
   if (failed) process.exit(1)
 }
 
-/** `server start|stop|status`. */
+/** `server start|stop|status`:  this checkout's page server (`yarn server`), which serves the goals pages. */
 async function server(action, prefs) {
   if (action === "start") {
-    const { base, started } = await ensureServer(prefs)
-    return console.log(`${started ? "started" : "already running"}:  ${base}/${relative(ROOT, HOME)}`)
+    const { base, launched } = await PageServer.ensure(ROOT, prefs.server.port)
+    return console.log(`${launched ? "started" : "already running"}:  ${base}/${relative(ROOT, HOME)}`)
   }
-  if (action === "stop") return console.log((await stopServer()) ? "stopped" : "not running")
-  const running = await serverStatus()
+  const pidFile = new SRV.PidFile(ROOT)
+  if (action === "stop") return console.log((await pidFile.stop()) ? "stopped" : "not running")
+  const running = await pidFile.status()
   console.log(running ? `running (pid ${running.pid}):  ${running.base}/${relative(ROOT, HOME)}` : "not running")
 }
 

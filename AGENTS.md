@@ -40,11 +40,15 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
   - `packages/docs/` (`@spell-app/docs`) -- every package's docs:  hand-authored `.html` pages on `@spell-app/ui`,
     their templates, the plan docs `/plan-doc` keeps, the experiments behind them and the tooling.
     Index:  `packages/docs/index.html`.  See `packages/docs/AGENTS.md`.
+  - `packages/server/` (`@spell-app/server`, `$/server`, `SRV`) -- serving pages locally:  static folders, an
+    Express-shaped router, live reload, ports, openers, a file lock, and the ONE page server per checkout
+    (`yarn server`) that serves docs, plans, goals and Spell UI docs.  See `packages/server/AGENTS.md`.
 - One change may touch several packages, but dependencies flow ONE way:
   `docs` -> anything (its experiments import any package;  nothing imports `docs`),
   `cli` -> `app` -> `lsp` -> `spell` -> `parser` / `core` -> `util`, and
   `ui` -> `solid-element` / `util`.  NEVER make `ui` or `solid-element` import `spell` or any package above it:
   `@spell-app/ui` lives on its own.
+  - `server` is a LEAF (node built-ins only, imports no package):  ANY package may import it, `ui`'s tools too.
   - The direction is by convention, not enforced:  every alias works from every package.
 - ONE alias table, `tsconfig.base.json` at the repo root, read its header comment.  Every package's `tsconfig.json`
   extends it, so `$/parser` means the same file wherever it's compiled from.

@@ -114,17 +114,27 @@ reasonable, fix it in `packages/ui` when it's a real `ui` bug, and record it eit
   - then one `ui-item` per top-level section (h2), its icon (else its number), its open count floating on it;
     scroll-follow selects the current section's
   - pages from before 2026-10-01 hand-wrote a "Contents" `.spell-toc-open`:  the runtime removes it
-- Sticky titles (`trackStickyHeights()`):  an optional page header (`ui-sticky.spell-h1`) at the very top, and the
-  CHEATSHEET's `.spell-filter` bar;  their height is `--spell-top` on `main`, re-measured on resize.
-  - `<ui-section>`:  the runtime sets each TOP-LEVEL section's `offset` to `--spell-top`;  nested sections stack
-    their titles below their parents' by themselves.  It also writes `--spell-section-top` (where the title sticks)
-    and `--spell-stack` (the bottom of its stack of stuck titles) on every section:  `scroll-margin-top` reads them,
-    so a section lands with its title at its sticky line and anything in it below its stack.
+- The site header (`<spell-site-header>`, `$/server/site`):  fixed on top of every page, its height
+  `--spell-site-header-height` on `:root` (`siteHeaderHeight()`).  Everything that sticks or lands starts below it:
+  the page header, the filter bar, the titles, the contents column, the rail, the drawer.
+- Sticky titles (`trackStickyHeights()`):  an optional page header (`ui-sticky.spell-h1`) just below the site header,
+  and the CHEATSHEET's `.spell-filter` bar;  their height is `--spell-top` on `main`, re-measured on resize.
+  - `<ui-section>`:  the runtime sets each TOP-LEVEL section's `offset` to the site header + `--spell-top`;  nested
+    sections stack their titles below their parents' by themselves.  It also writes `--spell-section-top` (where the
+    title sticks) and `--spell-stack` (the bottom of its stack of stuck titles) on every section:
+    `scroll-margin-top` reads them, so a section lands with its title at its sticky line and anything in it below
+    its stack.
   - old markup:  h2 sticks below the header in its `section.s2`, h3 just below its section's h2 (the runtime sets
     each `<ui-sticky>`'s `offset`);  `--spell-h2-h` / `--spell-h3-h` on the sections feed `scroll-margin-top`
-  - stuck titles reserve their room as the page's `scroll-padding-top` (`StickyWatch`, both elements), so Page Down
-    / Space skip what's under them (Chromium, Firefox;  Safari pages by the full viewport).  Chromium pages by the
-    viewport minus that padding minus its own 40px overlap.
+  - LANDING:  every CSS variable and `scroll-margin-top` leaves the site header OUT;  whoever scrolls adds it once
+    -- the runtime's `scrollTo()` jumps explicitly, the browser's own jumps through `:root`'s `scroll-padding-top`
+    (the site header's height, installed by the element)
+  - stuck titles reserve their room as the page's `scroll-padding-top` (`StickyWatch`, both elements:  an INLINE
+    style on `<html>`, the lowest stuck edge, so it includes the site header and overrides `:root`'s while
+    anything is stuck), so the browser's Page Down / Space skip what's under them (Chromium, Firefox;  Safari pages
+    by the full viewport).  Chromium pages by the viewport minus that padding minus its own 40px overlap -- the
+    padding where it STARTS, so a title that sticks on the way covered the old bottom:  the runtime pages itself
+    (`wirePaging()`), measuring the titles stuck at the destination.
 - Folding (`wireFolds()`), saved per page in `localStorage` (`spell-folds:<path>`, `{ [id]: folded }`):
   - `<ui-section collapsible>` folds itself (its chevron, or a click on its title);  the runtime restores the saved
     folds before the sections first draw (else the markup's `collapsed` stands) and saves the reader's toggles
@@ -139,8 +149,8 @@ reasonable, fix it in `packages/ui` when it's a real `ui` bug, and record it eit
   waiting).
 - Anchors (`wireAnchors()`):  any same-page link to an id in `main` -- a section, a heading or a plan item -- is the
   runtime's:  it unfolds every folded section around the target (`collapsed = false`:  not saved), opens the
-  target's panel (a plan item's `ui-accordion`), and scrolls by the target's `scroll-margin-top` (the browser's own
-  jump would add the scroll padding on top).
+  target's panel (a plan item's `ui-accordion`), and scrolls by the site header plus the target's
+  `scroll-margin-top` (the browser's own jump would add the stuck titles' scroll padding on top).
   - an unfolded `<ui-section>` unfolds without its animation (`--ui-section-duration: 0s` on `main` for a few
     frames) and draws on the next frames:  the jump lands then, and once more after a fold transition's time
     unless the reader scrolled (a `#hash` load lets the browser open the fold itself, animated)

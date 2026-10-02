@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="_assets/spell-doc.css" />
   </head>
   <body class="spell-doc-page">
+    <spell-site-header root="../.."></spell-site-header>
     <div class="spell-doc">
       <main class="spell-doc-main">
         <h1>Spell docs</h1>
@@ -43,6 +44,16 @@
                   anyone about to change the parser's rules.</ui-description
                 >
                 <ui-meta>precedence/precedence.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header><a href="server.html" target="src-packages-docs-server-html">Page Server</a></ui-header>
+                <ui-description
+                  >One live-reloading server per checkout for docs, plans, goals, Spell UI and the editor: the $/server
+                  library, its flows, route modules, safety, and why it's built this way.</ui-description
+                >
+                <ui-meta>server.html</ui-meta>
               </ui-content></ui-card
             >
             <ui-card
@@ -153,6 +164,16 @@
                 >
                 <ui-description>Plan doc: UI Component Creation.</ui-description>
                 <ui-meta>plans/ui-component-creation/ui-component-creation.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="plans/unified-server/unified-server.html" target="unified-server">Unified Server</a>
+                  <ui-label size="mini" color="green">done</ui-label></ui-header
+                >
+                <ui-description>Plan doc: Unified Server.</ui-description>
+                <ui-meta>plans/unified-server/unified-server.html</ui-meta>
               </ui-content></ui-card
             >
           </ui-cards>
