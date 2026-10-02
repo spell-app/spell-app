@@ -57,7 +57,11 @@ Until `/wakeup`, these OVERRIDE the root rules and memory:
   `git add -A`.
 - Don't stop between phases for review.
 - NEVER merge into `main`, push, `/isolate done`, `ExitWorktree`, or delete anything outside the worktree.
-  Something needing those:  record it as a todo and go on.
+  Something needing those:  record it as a todo (plan doc `add <name> todo`, and the MORNING PLAN's "Todos for
+  Owen") and go on.
+
+With a plan doc, it is the RECORD:  everything in the MORNING PLAN also goes into the doc (items or `log` lines),
+so nothing is lost when the gitignored MORNING PLAN goes.
 
 Everything else stands:  `yarn vscode` after each stage, the parser speed test on parser changes, `PAPERCUTS.md`,
 `SUSPECTED-BUGS.md`, `CODE-DEBT.md`, the plan doc's rules.
@@ -68,30 +72,38 @@ Everything else stands:  `yarn vscode` after each stage, the parser speed test o
 2. Do the work and run its verify and the touched packages' checks (`yarn ts`, `yarn test`).
 3. JUDGEMENT CALL (a choice Owen might have made differently):  pick the option the plan and code best support,
    then record it, with the options and why:
-   - MORNING PLAN, "Judgement calls":  `P<n>`, what, the choice, the alternatives
+   - MORNING PLAN, under the phase in "Phases":  `J<k>` (numbered across the night), what, the choice, the
+     alternatives
    - plan doc:  ALSO `add <name> todo "Review:  <the call>" --details "<p>chose ... over ... because ...</p>"`, so
-     every call is an open todo there
+     every call is an open todo there, and link it from the phase's body (hand-edited prose):  a
+     `<li><b>Judgement calls:</b>  <a href="#t4">T4</a> ...</li>` after its Goal / Files / Verify, one link per
+     call
 4. Checks fail and you can't fix them:
    - commit what's there as `WIP P<n>:  <name>`
    - record an issue (plan doc `add ... issue`, and the MORNING PLAN's "Problems")
    - go on only with later phases that don't build on this one;  skip the rest, saying why
-5. Plan doc:  `yarn plan-doc phase <name> <N> done`.
-6. Commit:  `P<n>:  <Name> -- <one-line summary>`.  Add the hash and a one-line result to the MORNING PLAN.
+     (plan doc:  `log <name> "P<m> skipped:  builds on WIP P<n>"`, and the MORNING PLAN's "Problems")
+5. Plan doc:  `yarn plan-doc phase <name> <N> done` (not for a WIP phase:  it stays `active`).
+6. Plan doc:  `yarn plan-doc log <name> "P<n> done|WIP:  <what was built>;  checks:  <results>"`, BEFORE the commit
+   so the line goes in with it.
+7. Commit:  `P<n>:  <Name> -- <one-line summary>` (`WIP P<n>:  ...` for WIP).  Add the hash and the same one-line
+   result to the MORNING PLAN.
 
 ## 6. Morning report
 
 The MORNING PLAN's sections:
 1. Summary:  phases done / skipped / WIP, branch, commits (`git log --oneline main..HEAD`)
-2. Phases:  per phase, the hash, what was built, check results
-3. Judgement calls:  numbered, each with the choice and the alternatives
-4. Problems:  failing checks, skipped phases and why, suspected bugs found
-5. Decisions:  the up-front answers
-6. Todos for Owen:  anything needing a merge, push, delete or decision
+2. Phases:  per phase, the hash, what was built, check results, then its judgement calls (`J<k>`:  the choice and
+   the alternatives)
+3. Problems:  failing checks, skipped phases and why, suspected bugs found
+4. Decisions:  the up-front answers
+5. Todos for Owen:  anything needing a merge, push, delete or decision
 
 At the end:
-- plan doc:  `yarn plan-doc check <name>`, `yarn plan-doc open <name>`
+- plan doc:  `log <name> "Bedtime done:  <done / WIP / skipped counts>"`, `yarn plan-doc check <name>`, commit
+  any plan doc changes still uncommitted (`Bedtime:  morning log`), then `yarn plan-doc open <name>`
 - link the MORNING PLAN in the reply (`[MORNING-<name>.md](MORNING-<name>.md)`), so Owen opens it with a click
-- final reply:  the Summary and the numbered judgement calls and problems, then ONE AskUserQuestion,
+- final reply:  the Summary, the judgement calls by phase (`J<k>`) and the problems, then ONE AskUserQuestion,
   "Dig into which?", options:  the top problems / judgement calls ("Look at J2:  ..."), "All fine".
   Owen answers in the morning.
 - Do NOT merge.  Bedtime mode lasts until `/wakeup`.

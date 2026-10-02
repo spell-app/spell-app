@@ -1022,6 +1022,68 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item data-status="open" id="t17"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t17">T17</a>
+                  <span class="plan-title">Review: plan-doc and goals run under tsx</span></ui-title
+                ><ui-content
+                  ><p>
+                    P4 / P5. To use <code>SRV.FileLock</code> and <code>PageServer.ensure()</code>,
+                    <code>yarn plan-doc</code> (~1.2s per call) and the goals tools (+0.13s) run under <code>tsx</code>.
+                    Alt: keep them plain node with their own copies.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-status="done" id="t18"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t18">T18</a>
+                  <span class="plan-title">Rebuild the extension from main</span></ui-title
+                ><ui-content
+                  ><p>Done after the merge: <code>yarn vscode</code> from the main checkout.</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-status="open" id="t19"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t19">T19</a>
+                  <span class="plan-title">Stop the old goals server on 4747</span></ui-title
+                ><ui-content
+                  ><p>
+                    It still runs the deleted <code>server.js</code>; until it stops the page server takes another port.
+                    Kill the pid in
+                    <a href="../../../../goals/.server.json" target="src-goals-server-json"
+                      ><code>goals/.server.json</code></a
+                    >.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-status="open" id="t20"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t20">T20</a>
+                  <span class="plan-title">Reload open goals pages once</span></ui-title
+                ><ui-content
+                  ><p>
+                    Their endpoints and token header changed (<code>/api/goals/*</code>, <code>x-server-token</code>).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-status="open" id="t21"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t21">T21</a>
+                  <span class="plan-title">Remove the unified-server worktree</span></ui-title
+                ><ui-content
+                  ><p>
+                    <code
+                      >git worktree remove .claude/worktrees/unified-server &amp;&amp; git branch -d
+                      unified-server</code
+                    >
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1043,6 +1105,89 @@
                     >
                     STYLE: <code>box-sizing: border-box</code> on <code>header</code>. Not mine to edit
                     (packages/server).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-status="done" id="i2"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i2">I2</a>
+                  <span class="plan-title">macOS fs.watch reports the watched folder itself</span></ui-title
+                ><ui-content
+                  ><p>
+                    P2. <code>docs</code> came through as <code>/docs/docs</code>, so live reload sometimes skipped the
+                    real change. Fixed: <code>LiveReload</code> ignores folders.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-status="done" id="i3"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i3">I3</a>
+                  <span class="plan-title">tsx keepNames broke the stringified live client</span></ui-title
+                ><ui-content
+                  ><p>
+                    P2. <code>__name()</code> calls in <code>()()</code> would throw in the browser. Fixed: a no-op
+                    shim.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-status="done" id="i4"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i4">I4</a>
+                  <span class="plan-title">astro dev exited at once</span></ui-title
+                ><ui-content
+                  ><p>
+                    P4. Astro 7 backgrounds itself when it detects an AI agent in the environment. Fixed:
+                    <code>--ignore-lock</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-status="done" id="i5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i5">I5</a> <span class="plan-title">goals buttons hung</span></ui-title
+                ><ui-content
+                  ><p>
+                    P5. The page server's own body parser drained the stream; goals' parser then waited forever. Fixed:
+                    a body is read once, and parsing is per route.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-status="done" id="i6"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i6">I6</a>
+                  <span class="plan-title">Express :filePath* kept only the first segment</span></ui-title
+                ><ui-content
+                  ><p>
+                    P6. Found by the contract tests: nested project files 404'd and saves hit EISDIR. Fixed by
+                    <code>SRV.Router</code>; removed from SUSPECTED-BUGS.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-status="open" id="i7"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i7">I7</a>
+                  <span class="plan-title">Editor home lists @system:guides, which doesn't exist</span></ui-title
+                ><ui-content
+                  ><p>Pre-existing (main too): a console error on the editor's home page.</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item data-status="open" id="i8"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i8">I8</a>
+                  <span class="plan-title">cli yarn lint fails on an existing warning</span></ui-title
+                ><ui-content
+                  ><p>
+                    Pre-existing:
+                    <a href="../../../cli/src/ui/TargetPrompt.tsx" target="src-packages-cli-src-ui-targetprompt-tsx"
+                      ><code>TargetPrompt.tsx</code></a
+                    >
+                    exhaustive-deps; <code>--max-warnings 0</code> fails on it.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1276,6 +1421,55 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T01:59-04:00">2026-10-02 01:59</time></ui-date> P8
                   done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T07:16-04:00">2026-10-02 07:16</time></ui-date> I2 closed: macOS
+                  fs.watch reports the watched folder itself</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T07:16-04:00">2026-10-02 07:16</time></ui-date> I3 closed: tsx
+                  keepNames broke the stringified live client</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T07:16-04:00">2026-10-02 07:16</time></ui-date> I4 closed: astro
+                  dev exited at once</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T07:17-04:00">2026-10-02 07:17</time></ui-date> I5 closed: goals
+                  buttons hung</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T07:17-04:00">2026-10-02 07:17</time></ui-date> I6 closed: Express
+                  :filePath* kept only the first segment</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T07:17-04:00">2026-10-02 07:17</time></ui-date> T18 closed:
+                  Rebuild the extension from main</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T07:17-04:00">2026-10-02 07:17</time></ui-date> Bedtime run done:
+                  P1-P8 merged into main (8818db63); morning notes folded in</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
