@@ -72,6 +72,7 @@ body {
 *******************************/
 
 /*
+ * The goals pages' markup (`section.s2|s3`;  every other page:  `<ui-section>`, "Sections" below).
  * Each heading's `<ui-sticky>` is `display: contents`, so it sticks within its section.  The runtime sets the h3
  * stickies' `offset` (their h2's height) and `--spell-h2-h` / `--spell-h3-h` on the sections.
  * - h2 above h3:  when a section ends, its h3 slides up UNDER the h2 (`--ui-sticky-z-index`, a public token)
@@ -186,6 +187,67 @@ ui-button.spell-fold {
 /* a folded h3 doesn't need its sticky room:  the next one follows right under it */
 .spell-doc-main section.spell-folded:has(> ui-sticky.spell-h3) {
   margin-top: 6px;
+}
+
+/*******************************
+          Sections
+*******************************/
+
+/*
+ * `<ui-section id header sticky collapsible dividing>`:  the page markup (the goals pages keep `section.s2` above).
+ * The element draws the title, the fold chevron, the rule and the stack of stuck titles;  its PUBLIC tokens give
+ * it the headings' look:  top-level titles as the h2s above (1.4rem), nested ones as the h3s (1.1rem), a rule
+ * under every title.
+ * - tokens are inherited:  set on every section, then again on the nested ones
+ * - the runtime sets top-level `offset`s (what sticks above them), and `--spell-section-top` (where a section's
+ *   title sticks) / `--spell-stack` (the bottom of its stack of stuck titles) on each, which anchors read below
+ * - a stuck title covers what scrolls under it:  the page's background, above the content;  the page header
+ *   (`ui-sticky.spell-h1`, 5) above every title, nested titles under their parents' (UI subtracts the depth)
+ */
+.spell-doc-main ui-section {
+  --ui-section-margin: 40px;
+  --ui-section-h2: 1.4;
+  --ui-section-h3: 1.1;
+  --ui-section-h4: 1;
+  --ui-section-h5: 0.95;
+  --ui-section-h6: 0.9;
+  --ui-section-title-line-height: 1.3;
+  --ui-section-title-gap: 0.4em;
+  --ui-section-title-padding: 12px 4px 8px;
+  --ui-section-content-padding: 10px 0 0;
+  --ui-section-dividing-border: 1px solid var(--spell-rule);
+  --ui-section-sticky-background: var(--spell-bg);
+  --ui-section-stuck-shadow: none;
+  --ui-section-z-index: 4;
+}
+.spell-doc-main ui-section ui-section {
+  --ui-section-margin: 22px;
+  --ui-section-title-padding: 8px 4px 6px;
+  --ui-section-content-padding: 6px 0 0;
+}
+/* a folded nested section doesn't need its room:  the next one follows right under it */
+.spell-doc-main ui-section ui-section[collapsed] {
+  --ui-section-margin: 6px;
+}
+/*
+ * - prose inside keeps the page's line height (the section box sets UI's)
+ * - space goes ABOVE a section only, as the `section.s2` pages':  `--ui-section-margin` is both edges, and a
+ *   bottom margin would come between the content and what the page adds after it (plan docs' "none yet")
+ */
+.spell-doc-main ui-section::part(section) {
+  margin-bottom: 0;
+  line-height: inherit;
+}
+/* the stuck title's background reaches a few px past the column, over the cards' outer 1px borders */
+.spell-doc-main ui-section::part(title) {
+  margin-inline: -4px;
+}
+/* anchors:  a section lands with its title at its sticky line, anything in it below its stack of stuck titles */
+.spell-doc-main ui-section[id] {
+  scroll-margin-top: var(--spell-section-top, var(--spell-top, 0px));
+}
+.spell-doc-main ui-section [id]:not(ui-section) {
+  scroll-margin-top: calc(var(--spell-stack, 0px) + 8px);
 }
 
 /*******************************

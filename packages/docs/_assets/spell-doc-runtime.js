@@ -1,20 +1,27 @@
 /*
  * Page behaviour for the `.html` docs.
  * Bundled into `spell-ui.js` (a classic IIFE, beside @spell-app/ui) by `scripts/bundle-spell-ui.js`;  side
- * effects only.  The page's markup is hand-authored;  this only DRIVES it:
- * - contents sidebar:  built from `main`'s h2 / h3 / h4 when the page has no `#spell-toc` (`buildContents()`)
- * - the RAIL:  a strip of the h2s' icons at the right edge, with the contents button (bars) on top, shown while the
- *   contents column isn't:  narrow screens, or hidden by its button (remembered for every page)
- * - sticky headers:  the page header (`ui-sticky.spell-h1`) sticks at the top, each h2 below it, each h3 just
- *   below its section's h2 (`offset`, re-measured on resize);  the sections carry `--spell-h2-h` / `--spell-h3-h`
- *   so anchors land below them all
- * - folding:  every h2 / h3 section folds from a chevron on its heading (or a click on the heading);  folds are
- *   remembered per page, `data-fold="closed"` sections start folded
- * - counts:  a section holding `[data-status]` items (plan docs' phases, questions, issues ...) shows open / all in
- *   its h2, and the open count as a badge in the contents and the rail
- * - scroll-follow:  the current heading's contents link is highlighted and its panels open;  panels the scroll
- *   opened close again, panels the USER opened stay open
- * - links to any id in `main` (a heading, a plan item) land below the stuck headers, unfolding what hides it
+ * effects only.  The page's markup is hand-authored;  this only DRIVES it.
+ * - Two page markups, read into ONE outline (`outlineOf()`) that everything below works from:
+ *   - SECTIONS (every page but the goals pages):  `<ui-section id header sticky collapsible dividing>` in `main`,
+ *     nested for sub-sections, `collapsed` to start folded.  The element draws the title, the fold button, the rule
+ *     and the stack of stuck titles;  this runtime sets the top-level `offset`s, remembers folds, writes counts.
+ *   - HEADINGS (the goals pages):  `section.s2|s3` > `<ui-sticky class="spell-h2|spell-h3">` > `<h2|h3 id>`;
+ *     this runtime adds the fold chevrons and every sticky's `offset`
+ * - contents sidebar:  built from the outline when the page has no `#spell-toc` (`buildContents()`)
+ * - the RAIL:  a strip of the top-level sections' icons at the right edge, with the contents button (bars) on top,
+ *   shown while the contents column isn't:  narrow screens, or hidden by its button (remembered for every page)
+ * - sticky headers:  the page header (`ui-sticky.spell-h1`) sticks at the top, each top-level title below it,
+ *   nested ones below their parents' (re-measured on resize);  CSS variables on the sections let anchors land below
+ *   them all
+ * - folding:  every section folds from a chevron on its title;  folds are remembered per page, and `collapsed`
+ *   (`data-fold="closed"` on HEADINGS pages) starts one folded
+ * - counts:  a top-level section holding `[data-status]` items (plan docs' phases, questions, issues ...) shows
+ *   open / all on its title, and the open count as a badge in the contents and the rail
+ * - scroll-follow:  the current section's (heading's) contents link is highlighted and its panels open;  panels the
+ *   scroll opened close again, panels the USER opened stay open
+ * - links to any id in `main` (a section, a heading, a plan item) land below the stuck titles, unfolding what
+ *   hides it
  * - the contents buttons (expand / collapse / code / hide), the narrow-screen drawer, the CHEATSHEET card filters
  * - highlight.js, when the page loaded it
  * NOTE: panels open and close through the accordion's `open` PROPERTY (panel indexes as text):  that's
@@ -32,8 +39,22 @@ const TAGS = [
   "ui-button",
   "ui-input",
   "ui-select",
-  "ui-icon"
+  "ui-icon",
+  "ui-section"
 ]
+
+/**
+ * Frames a `<ui-section>` takes to draw what `collapsed = false` revealed:  the write lands on a microtask, the
+ * render on the next frame.  A jump lands only then:  before, the target is laid out in a box of no height.
+ */
+const UNFOLD_FRAMES = 2
+
+/**
+ * When a jump on a `<ui-section>` page lands once more, unless the reader scrolled since:  a fold the BROWSER
+ * opened (a `#hash` load reveals `hidden="until-found"` content itself) grows with its transition
+ * (`--ui-section-duration`, 300ms) and moves the target a few pixels after the first landing.
+ */
+const SETTLE_MS = 450
 
 /** Contents links further than this from the contents column's edges get scrolled into view. */
 const TOC_MARGIN = 60
@@ -44,7 +65,7 @@ const TOC_MARGIN = 60
  */
 const FILTER_KEY_PREFIX = "spell-filter:"
 
-/** `localStorage` key prefix of a page's folds (`{ [heading id]: folded }`), per page like the filter's. */
+/** `localStorage` key prefix of a page's folds (`{ [section or heading id]: folded }`), per page like the filter's. */
 const FOLD_KEY_PREFIX = "spell-folds:"
 
 /** `localStorage` key of "contents column hidden":  one reader preference for every page. */
@@ -66,18 +87,20 @@ async function start() {
   const main = document.querySelector("main.spell-doc-main") ?? document.querySelector("main")
   if (!main) return
   highlight()
-  const counts = countItems(main)
-  const toc = document.getElementById("spell-toc") ?? buildContents(main, counts)
-  const rail = toc ? buildRail(main, counts) : undefined
+  const outline = outlineOf(main)
+  const counts = countItems(outline)
+  const toc = document.getElementById("spell-toc") ?? buildContents(main, outline, counts)
+  const rail = toc ? buildRail(outline, counts) : undefined
+  // before the sections first draw, so a saved fold doesn't animate shut
+  const folds = wireFolds(main, outline)
   const used = TAGS.filter((tag) => document.querySelector(tag))
   await Promise.all(used.map((tag) => customElements.whenDefined(tag)))
-  const sticky = trackStickyHeights(main)
-  const folds = wireFolds(main)
-  const follow = toc ? followScroll(main, toc, rail) : undefined
+  const sticky = trackStickyHeights(main, outline)
+  const follow = toc ? followScroll(main, outline, toc, rail) : undefined
   if (toc) wireContents(main, toc, follow)
-  const jump = wireAnchors(main, sticky, follow, folds)
+  const jump = wireAnchors(main, outline, sticky, follow, folds)
   wireFilter(main, toc)
-  // UI renders its shadow content a little after the definitions:  land on the URL's heading once it has
+  // UI renders its shadow content a little after the definitions:  land on the URL's target once it has
   await nextFrames(2)
   sticky.measure()
   if (location.hash) jump(hashId())
@@ -103,38 +126,177 @@ function highlight() {
 }
 
 ////////////////
+// ## Outline
+////////////////
+
+/**
+ * The page's outline, from either markup (see the header):  what the contents, the rail, the counts, scroll-follow
+ * and the anchors work from.
+ * - SECTIONS markup (`main > ui-section` exists):  top-level `<ui-section>`s are the groups;  nested sections, and
+ *   the h3s / h4s in a section's own content (CHEATSHEET cards, sub-sub-items), are their entries, at any depth.
+ *   An h4 right after an h3 of the same section goes under it.
+ * - HEADINGS markup:  h2s are the groups, h3s their entries, h4s under the h3 before them
+ * - a node:  `{ element, id, label, icons, glyph, children }` -- `icons` the HTML of its `<ui-icon>`s, `glyph` the
+ *   first one's name
+ * - returns `{ sections, groups, orphans, targets, entryOf, groupOf, folded }`:
+ *   - `orphans`:  entries before or outside any group
+ *   - `targets`:  selector of every entry's element, for scroll-follow
+ *   - `entryOf(element)`:  the entry holding `element`, which a jump to it makes current
+ *   - `groupOf(entry)`:  its top-level element, for the rail
+ *   - `folded(element)`:  hidden by a folded section around it (SECTIONS;  HEADINGS hide those with `display`)
+ * - SIDE EFFECT:  gives an entry with no `id` a slug of its label (`-2`, `-3` ... when taken)
+ */
+function outlineOf(main) {
+  const sections = !!main.querySelector(":scope > ui-section")
+  const groups = []
+  const orphans = []
+  if (sections) readSections()
+  else readHeadings()
+  return {
+    sections,
+    groups,
+    orphans,
+    targets: sections ? "ui-section[id], h3[id], h4[id]" : "h2[id], h3[id], h4[id]",
+    entryOf,
+    groupOf,
+    folded
+  }
+
+  /** SECTIONS:  every `<ui-section>`, h3 and h4 in `main`, under the section it's in. */
+  function readSections() {
+    const nodes = new Map()
+    for (const element of main.querySelectorAll("ui-section, h3, h4")) {
+      const node = nodeOf(element)
+      nodes.set(element, node)
+      const owner = element.parentElement?.closest("ui-section")
+      const list = owner ? nodes.get(owner).children : element.localName === "ui-section" ? groups : orphans
+      const last = list.at(-1)
+      if (element.localName === "h4" && last?.element.localName === "h3") last.children.push(node)
+      else list.push(node)
+    }
+  }
+
+  /** HEADINGS:  h2 / h3 / h4 in document order. */
+  function readHeadings() {
+    for (const heading of main.querySelectorAll("h2, h3, h4")) {
+      const node = nodeOf(heading)
+      const group = groups.at(-1)
+      if (heading.localName === "h2") groups.push(node)
+      else if (heading.localName === "h3") (group?.children ?? orphans).push(node)
+      else {
+        const parent = group?.children.at(-1)
+        if (parent?.element.localName === "h3") parent.children.push(node)
+        else (group?.children ?? orphans).push(node)
+      }
+    }
+  }
+
+  /** The entry a jump to `element` makes current:  itself, else its section's (heading's) entry. */
+  function entryOf(element) {
+    if (sections) return element.closest("ui-section, h3, h4")
+    if (/^H[234]$/.test(element.tagName)) return element
+    return element.closest("section")?.querySelector(":scope > ui-sticky > :is(h2, h3)") ?? null
+  }
+
+  /** The top-level element `entry` is in:  the outermost section, or the h2. */
+  function groupOf(entry) {
+    if (!sections) return entry.localName === "h2" ? entry : entry.closest("section.s2")?.querySelector("h2")
+    let top = null
+    for (let section = entry.closest("ui-section"); section; section = section.parentElement?.closest("ui-section"))
+      top = section
+    return top
+  }
+
+  /** Is `element` inside a folded `<ui-section>` (not counting itself)? */
+  function folded(element) {
+    if (!sections) return false
+    for (let section = element.parentElement?.closest("ui-section"); section;) {
+      if (isCollapsed(section)) return true
+      section = section.parentElement?.closest("ui-section")
+    }
+    return false
+  }
+}
+
+/** An outline node for a heading or a `<ui-section>`;  gives it an id if it has none. */
+function nodeOf(element) {
+  const section = element.localName === "ui-section"
+  const label = section ? sectionLabel(element) : labelOf(element)
+  if (!element.id) element.id = uniqueId(slug(label) || "section")
+  const icons = section
+    ? sectionIcon(element)
+    : Array.from(element.querySelectorAll("ui-icon"), (icon) => icon.outerHTML).join("")
+  const glyph = section
+    ? (element.querySelector(':scope > ui-icon[slot="icon"]')?.getAttribute("name") ?? element.getAttribute("icon"))
+    : element.querySelector("ui-icon")?.getAttribute("name")
+  return { element, id: element.id, label, icons, glyph: glyph || undefined, children: [] }
+}
+
+/** A `<ui-section>`'s label:  its `header`, else the text of its `slot="header"` child. */
+function sectionLabel(section) {
+  const header = section.getAttribute("header")?.trim()
+  if (header) return header
+  const slotted = section.querySelector(':scope > [slot="header"]')
+  return slotted ? labelOf(slotted) : ""
+}
+
+/**
+ * A `<ui-section>`'s icon as contents HTML:  a copy of its slotted `<ui-icon>` (without `slot`, which would
+ * slot it into the contents item's own icon box), else a `<ui-icon>` of its `icon` attribute, else "".
+ */
+function sectionIcon(section) {
+  const slotted = section.querySelector(':scope > [slot="icon"]')
+  if (slotted) {
+    if (slotted.localName !== "ui-icon") return ""
+    const copy = slotted.cloneNode(true)
+    copy.removeAttribute("slot")
+    return copy.outerHTML
+  }
+  const name = section.getAttribute("icon")
+  return name ? `<ui-icon name="${attr(name)}"></ui-icon>` : ""
+}
+
+/** `id`, or `id-2`, `id-3` ... if the page already has it. */
+function uniqueId(id) {
+  let candidate = id
+  for (let n = 2; document.getElementById(candidate); n++) candidate = `${id}-${n}`
+  return candidate
+}
+
+/** Is `section` (a `<ui-section>`) folded?  Its `collapsed` property, else (not upgraded yet) the attribute. */
+function isCollapsed(section) {
+  return typeof section.collapsed === "boolean" ? section.collapsed : section.hasAttribute("collapsed")
+}
+
+/** Fold or unfold a `<ui-section>` without an event:  `collapsed` is controlled, so writing it announces nothing. */
+function setCollapsed(section, collapsed) {
+  section.toggleAttribute("collapsed", collapsed)
+}
+
+/** The shadow title bar of a `<ui-section>` (its public `title` part), once it has rendered. */
+function titleOf(section) {
+  return section.shadowRoot?.querySelector('[part~="title"]') ?? null
+}
+
+////////////////
 // ## Contents
 ////////////////
 
 /**
- * Build the contents sidebar from `main`'s h2 / h3 / h4, in document order, and return it.
- * - Hand-authored pages never write one:  this is its ONLY source, so it can't drift from the headings.
- * - one accordion pair per h2;  inside, runs of leaf h3s (and h4s straight under the h2) share a `ui-menu`,
- *   an h3 with h4s gets a nested one-pair accordion
+ * Build the contents sidebar from the outline, and return it.
+ * - Hand-authored pages never write one:  this is its ONLY source, so it can't drift from the sections.
+ * - one accordion pair per group;  inside, runs of leaf entries share a `ui-menu`, an entry with children gets a
+ *   nested one-pair accordion
  * - every link carries `data-target` for scroll-follow
- * - a heading's `<ui-icon>`s (e.g. a plan phase's status) are copied in front of its label;  `ui-label` badges
+ * - an entry's `<ui-icon>`s (e.g. a plan phase's status) are copied in front of its label;  `ui-label` badges
  *   are left out
- * - an h2 with open items (`counts`) gets their number as a round badge after its link
- * - SIDE EFFECT:  gives a heading with no `id` a slug of its label (`-2`, `-3` ... when taken);  inserts the
- *   aside after `main`
+ * - a group with open items (`counts`) gets their number as a round badge after its link
+ * - SIDE EFFECT:  inserts the aside after `main`
  */
-function buildContents(main, counts) {
-  const groups = []
-  const orphans = []
-  for (const heading of main.querySelectorAll("h2, h3, h4")) {
-    if (!heading.id) heading.id = uniqueId(slug(labelOf(heading)) || "section")
-    const group = groups.at(-1)
-    if (heading.localName === "h2") groups.push({ heading, children: [] })
-    else if (heading.localName === "h3") (group?.children ?? orphans).push({ heading, children: [] })
-    else {
-      const parent = group?.children.at(-1)
-      if (parent?.heading.localName === "h3") parent.children.push({ heading, children: [] })
-      else (group?.children ?? orphans).push({ heading, children: [] })
-    }
-  }
-  const pairs = groups.map(
+function buildContents(main, outline, counts) {
+  const pairs = outline.groups.map(
     (group) =>
-      `<ui-title>${link(group.heading)}${badge(counts.get(group.heading))}</ui-title>` +
+      `<ui-title>${link(group)}${badge(counts.get(group.element))}</ui-title>` +
       `<ui-content>${nodes(group.children)}</ui-content>`
   )
   const toc = document.createElement("aside")
@@ -147,12 +309,12 @@ ${tool("expand", "angles down", "Expand all", "Open every section of the content
 ${tool("collapse", "angles up", "Collapse all", "Close every section of the contents")}
 ${tool("code", "code", "Fold code", "Fold or unfold every code block on the page")}
 ${tool("hide", "bars", "Hide contents", "Hide the contents:  icons only")}</div></div>
-${nodes(orphans)}<ui-accordion class="spell-toc" exclusive="no">${pairs.join("")}</ui-accordion>
+${nodes(outline.orphans)}<ui-accordion class="spell-toc" exclusive="no">${pairs.join("")}</ui-accordion>
 </div></ui-sticky>`
   main.after(toc)
   return toc
 
-  /** The round badge of an h2's open items, or "" when none are open. */
+  /** The round badge of a group's open items, or "" when none are open. */
   function badge(count) {
     if (!count?.open) return ""
     return `<ui-label class="spell-toc-count" circular size="mini" color="orange" title="${count.open} open">${count.open}</ui-label>`
@@ -180,7 +342,7 @@ ${nodes(orphans)}<ui-accordion class="spell-toc" exclusive="no">${pairs.join("")
       }
       flush()
       out.push(
-        `<ui-accordion exclusive="no"><ui-title>${link(node.heading)}</ui-title>` +
+        `<ui-accordion exclusive="no"><ui-title>${link(node)}</ui-title>` +
           `<ui-content>${nodes(node.children)}</ui-content></ui-accordion>`
       )
     }
@@ -191,30 +353,21 @@ ${nodes(orphans)}<ui-accordion class="spell-toc" exclusive="no">${pairs.join("")
     function flush() {
       if (!run.length) return
       const items = run.map(
-        ({ heading }) =>
-          `<ui-item href="#${attr(heading.id)}" data-target="${attr(heading.id)}">${label(heading)}</ui-item>`
+        (node) => `<ui-item href="#${attr(node.id)}" data-target="${attr(node.id)}">${label(node)}</ui-item>`
       )
       out.push(`<ui-menu vertical text fluid>${items.join("")}</ui-menu>`)
       run = []
     }
   }
 
-  /** A title's link to a heading. */
-  function link(heading) {
-    return `<a href="#${attr(heading.id)}" data-target="${attr(heading.id)}">${label(heading)}</a>`
+  /** A title's link to an entry. */
+  function link(node) {
+    return `<a href="#${attr(node.id)}" data-target="${attr(node.id)}">${label(node)}</a>`
   }
 
-  /** A contents entry's inner HTML:  the heading's icons, then its text. */
-  function label(heading) {
-    const icons = Array.from(heading.querySelectorAll("ui-icon"), (icon) => icon.outerHTML).join("")
-    return `${icons}${text(labelOf(heading))}`
-  }
-
-  /** `id`, or `id-2`, `id-3` ... if the page already has it. */
-  function uniqueId(id) {
-    let candidate = id
-    for (let n = 2; document.getElementById(candidate); n++) candidate = `${id}-${n}`
-    return candidate
+  /** A contents entry's inner HTML:  the entry's icons, then its text. */
+  function label(node) {
+    return `${node.icons}${text(node.label)}`
   }
 }
 
@@ -255,29 +408,41 @@ function attr(value) {
 const CLOSED = new Set(["done", "decided"])
 
 /**
- * Each h2 section's items -- `[data-status]` elements, not counting ones inside another -- as `{ open, total }`,
- * by h2;  "open" is any status but `CLOSED`'s.  Sections without items are left out.
- * - plan docs:  phases (`section[data-phase]`), questions, decisions, caveats, todos, issues
- * - SIDE EFFECT:  writes `open/total` as a badge at the right of the h2 (`ui-label.spell-count`)
+ * Each top-level section's items -- `[data-status]` elements, not counting ones inside another -- as
+ * `{ open, total }`, by the group's element (the `<ui-section>`, or the h2);  "open" is any status but `CLOSED`'s.
+ * Sections without items are left out;  nested sections get no count of their own.
+ * - plan docs:  phases (`ui-section[data-phase]`), questions, decisions, caveats, todos, issues
+ * - SIDE EFFECT:  writes `open/total` on the section's title:  its `badge` (SECTIONS), or a `ui-label.spell-count`
+ *   at the right of the h2 (HEADINGS)
  */
-function countItems(main) {
+function countItems(outline) {
   const counts = new Map()
-  for (const sticky of main.querySelectorAll("section > ui-sticky.spell-h2")) {
-    const heading = sticky.firstElementChild
-    const section = sticky.parentElement
+  for (const { element } of outline.groups) {
+    const section = outline.sections ? element : headingSection(element)
+    if (!section) continue
     const items = Array.from(section.querySelectorAll("[data-status]")).filter((item) => outermost(item, section))
-    if (!heading || !items.length) continue
+    if (!items.length) continue
     const open = items.filter((item) => !CLOSED.has(item.dataset.status)).length
-    counts.set(heading, { open, total: items.length })
+    counts.set(element, { open, total: items.length })
+    if (outline.sections) {
+      element.setAttribute("badge", `${open}/${items.length}`)
+      continue
+    }
     const label = document.createElement("ui-label")
     label.className = "spell-count"
     label.setAttribute("size", "tiny")
     label.setAttribute("basic", "")
     label.title = `${open} open of ${items.length}`
     label.textContent = `${open}/${items.length}`
-    heading.append(label)
+    element.append(label)
   }
   return counts
+}
+
+/** The `section.s2` an h2 heads (`section > ui-sticky.spell-h2 > h2`), else null. */
+function headingSection(h2) {
+  const sticky = h2.parentElement
+  return sticky?.matches("section > ui-sticky.spell-h2") ? sticky.parentElement : null
 }
 
 /** Is `item` the outermost `[data-status]` within `section` (not an item's part)? */
@@ -291,28 +456,28 @@ function outermost(item, section) {
 ////////////////
 
 /**
- * The rail:  a narrow strip at the right edge, the contents button (bars) on top, then one icon per h2 that jumps
- * to it -- for when the contents column isn't shown (narrow screens, or the reader hid it).
- * - an h2's icon is its own `<ui-icon>`;  an h2 without one shows its number (`2.`), else its first letter
- * - the h2's open items (`counts`) float on its icon as a small badge
- * - every entry has a tooltip:  its heading's label
+ * The rail:  a narrow strip at the right edge, the contents button (bars) on top, then one icon per top-level
+ * section that jumps to it -- for when the contents column isn't shown (narrow screens, or the reader hid it).
+ * - a section's icon is its own `<ui-icon>` (or `icon`);  one without shows its number (`2.`), else its first letter
+ * - the section's open items (`counts`) float on its icon as a small badge
+ * - every entry has a tooltip:  its section's label
  * - CSS decides when it shows (`spell-doc.css`, "Rail");  scroll-follow selects the current section's entry
  * - SIDE EFFECT:  appends the `<nav>` to the body;  removes a hand-written `.spell-toc-open` (pages before
  *   2026-10-01 had a "Contents" button at the bottom)
  */
-function buildRail(main, counts) {
+function buildRail(outline, counts) {
   for (const old of document.querySelectorAll(".spell-toc-open")) old.remove()
-  const entries = Array.from(main.querySelectorAll("section > ui-sticky.spell-h2 > h2[id]"), (heading) => {
-    const glyph = heading.querySelector("ui-icon")?.getAttribute("name")
-    const label = labelOf(heading)
+  // HEADINGS:  only the h2s that head a sticky section (an index page's plain h2s get no icon)
+  const groups = outline.sections ? outline.groups : outline.groups.filter((group) => headingSection(group.element))
+  const entries = groups.map(({ element, id, label, glyph }) => {
     const mark = glyph ? "" : text((label.match(/^\d+/) ?? [label.charAt(0)])[0])
-    const count = counts.get(heading)
+    const count = counts.get(element)
     const badge = count?.open ? `<ui-label floating circular size="mini" color="orange">${count.open}</ui-label>` : ""
     // a slotted `<ui-icon>`, not the item's `icon` shorthand:  that draws nothing in a vertical text menu
     // (SUSPECTED-BUGS.md, ui)
     const face = glyph ? `<ui-icon name="${attr(glyph)}"></ui-icon>` : mark
     return (
-      `<ui-item href="#${attr(heading.id)}" data-rail="${attr(heading.id)}" aria-label="${attr(label)}">` +
+      `<ui-item href="#${attr(id)}" data-rail="${attr(id)}" aria-label="${attr(label)}">` +
       `${face}${badge}</ui-item>` +
       `<ui-popup inverted size="mini" position="left center" content="${attr(label)}"></ui-popup>`
     )
@@ -333,57 +498,111 @@ function buildRail(main, counts) {
 ////////////////
 
 /**
- * Every h2 / h3 section folds:  a chevron button starts its heading, and a click anywhere on the heading (not on a
- * link or button in it) toggles it too.  Folded:  `section.spell-folded`, everything but the heading hidden by CSS.
- * - starts folded when the reader folded it last time on this page (`localStorage`), else when it says
- *   `data-fold="closed"` (plan docs:  done phases but the last)
- * - the reader's toggles are remembered, per page;  `reveal()` unfolding for a link is not
+ * Every section folds, and the reader's folds are remembered per page (`localStorage`, `{ [id]: folded }`).
+ * - SECTIONS:  `<ui-section collapsible>` folds itself;  this restores the saved folds (else the markup's
+ *   `collapsed` stands) and saves the reader's toggles (`ui-open` / `ui-close`)
+ * - HEADINGS:  a chevron button starts each h2 / h3, and a click anywhere on the heading (not on a link or button
+ *   in it) toggles it too;  folded:  `section.spell-folded`, all but the heading hidden by CSS.  Starts folded as
+ *   saved, else when the section says `data-fold="closed"`.
+ * - `reveal()` unfolding for a link is never saved
  * - returns `{ reveal(element) }`:  unfold every section hiding `element`, and open its own panel if it is a
- *   folded item (a plan item's details)
+ *   folded item (a plan item's details);  true when it unfolded a `<ui-section>` (it draws a little later)
+ *   - a `<ui-section>` unfolds WITHOUT its height animation (`--ui-section-duration: 0s` on `main` for a few
+ *     frames):  the jump measures the target once it has drawn, and a growing box would move it (scroll
+ *     anchoring) after the page has landed
  */
-function wireFolds(main) {
+function wireFolds(main, outline) {
   const key = `${FOLD_KEY_PREFIX}${location.pathname}`
   const saved = readJSON(key)
-  for (const sticky of main.querySelectorAll("section > ui-sticky:is(.spell-h2, .spell-h3)")) {
-    const heading = sticky.firstElementChild
-    if (!heading?.id) continue
-    const section = sticky.parentElement
-    const button = document.createElement("ui-button")
-    button.className = "spell-fold"
-    for (const [name, value] of Object.entries({ circular: "", basic: "", size: "mini", icon: "chevron down" }))
-      button.setAttribute(name, value)
-    const tip = document.createElement("ui-popup")
-    for (const [name, value] of Object.entries({ inverted: "", size: "mini", content: "Fold / unfold" }))
-      tip.setAttribute(name, value)
-    heading.prepend(button, tip)
-    heading.classList.add("spell-foldable")
-    setFolded(section, heading.id in saved ? !!saved[heading.id] : section.dataset.fold === "closed")
-    heading.addEventListener("click", (event) => {
-      const own = event.composedPath().find((node) => node instanceof Element && node.matches("a, ui-button, button"))
-      if (own && own !== button) return
-      event.preventDefault()
-      const folded = !section.classList.contains("spell-folded")
-      setFolded(section, folded)
-      saved[heading.id] = folded
-      writeJSON(key, saved)
-    })
-  }
+  if (outline.sections) wireSectionFolds()
+  else wireHeadingFolds()
   return { reveal }
+
+  /** SECTIONS:  restore the saved folds, save the reader's. */
+  function wireSectionFolds() {
+    for (const section of main.querySelectorAll("ui-section[collapsible][id]"))
+      if (section.id in saved) setCollapsed(section, !!saved[section.id])
+    main.addEventListener("ui-open", onToggle)
+    main.addEventListener("ui-close", onToggle)
+  }
+
+  /**
+   * The reader folded or unfolded a section (accordions' `ui-open` / `ui-close` bubble here too:  not ours).
+   * - a `ui-open` that can't be cancelled is the BROWSER's reveal (find-in-page, a `#hash` load):  not saved,
+   *   as a link's unfold isn't
+   */
+  function onToggle(event) {
+    const section = event.target
+    if (event.defaultPrevented || !event.cancelable || section.localName !== "ui-section" || !section.id) return
+    saved[section.id] = !event.detail?.open
+    writeJSON(key, saved)
+  }
+
+  /** HEADINGS:  a chevron on every h2 / h3 of a sticky section. */
+  function wireHeadingFolds() {
+    for (const sticky of main.querySelectorAll("section > ui-sticky:is(.spell-h2, .spell-h3)")) {
+      const heading = sticky.firstElementChild
+      if (!heading?.id) continue
+      const section = sticky.parentElement
+      const button = document.createElement("ui-button")
+      button.className = "spell-fold"
+      for (const [name, value] of Object.entries({ circular: "", basic: "", size: "mini", icon: "chevron down" }))
+        button.setAttribute(name, value)
+      const tip = document.createElement("ui-popup")
+      for (const [name, value] of Object.entries({ inverted: "", size: "mini", content: "Fold / unfold" }))
+        tip.setAttribute(name, value)
+      heading.prepend(button, tip)
+      heading.classList.add("spell-foldable")
+      setFolded(section, heading.id in saved ? !!saved[heading.id] : section.dataset.fold === "closed")
+      heading.addEventListener("click", (event) => {
+        // the chevron's own `<button>` (in its shadow root) comes first in the path:  look for the HOST
+        const path = event.composedPath()
+        if (!path.includes(button)) {
+          const before = path.slice(0, Math.max(0, path.indexOf(heading)))
+          if (before.some((node) => node instanceof Element && node.matches("a, ui-button, button"))) return
+        }
+        event.preventDefault()
+        const folded = !section.classList.contains("spell-folded")
+        setFolded(section, folded)
+        saved[heading.id] = folded
+        writeJSON(key, saved)
+      })
+    }
+  }
 
   /** Unfold every section around `element`;  open `element`'s own folded panel. */
   function reveal(element) {
-    for (
-      let section = element.closest("section.spell-folded");
-      section;
-      section = section.parentElement?.closest("section.spell-folded")
-    )
-      setFolded(section, false)
+    let unfolded = false
+    if (outline.sections) {
+      for (
+        let section = element.closest("ui-section");
+        section;
+        section = section.parentElement?.closest("ui-section")
+      ) {
+        if (!isCollapsed(section)) continue
+        if (!unfolded) main.style.setProperty("--ui-section-duration", "0s")
+        setCollapsed(section, false)
+        unfolded = true
+      }
+      if (unfolded) void nextFrames(UNFOLD_FRAMES + 1).then(() => main.style.removeProperty("--ui-section-duration"))
+    } else {
+      for (
+        let section = element.closest("section.spell-folded");
+        section;
+        section = section.parentElement?.closest("section.spell-folded")
+      )
+        setFolded(section, false)
+    }
     const panel = element.querySelector(":scope > ui-accordion > ui-title")
     if (panel && !isPanelOpen(panel)) setPanel(panel, true)
+    return unfolded
   }
 }
 
-/** Fold or unfold `section`:  its class, its chevron (down / right) and the chevron's state for screen readers. */
+/**
+ * HEADINGS:  fold or unfold `section`:  its class, its chevron (down / right) and the chevron's state for screen
+ * readers.
+ */
 function setFolded(section, folded) {
   section.classList.toggle("spell-folded", folded)
   const button = section.querySelector(":scope > ui-sticky > * > ui-button.spell-fold")
@@ -398,19 +617,23 @@ function setFolded(section, folded) {
 ////////////////
 
 /**
- * Each h2 / h3 `<ui-sticky>` sticks within its parent (the section):  h2s below whatever sticks above every
- * section (the page header, `ui-sticky.spell-h1`;  the CHEATSHEET's filter bar, `.spell-filter`), h3s just below
- * their section's h2.
- * - SIDE EFFECT:  sets each sticky's `offset`, `--spell-top` on `main` and `--spell-h2-h` / `--spell-h3-h` on the
- *   sections, which the headings' `scroll-margin-top` reads (`spell-doc.css`)
- * - re-measured whenever a heading changes size (fonts loading, the window narrowing and titles wrapping)
+ * Where each sticky title sticks, below whatever sticks above every section:  the page header
+ * (`ui-sticky.spell-h1`) and the CHEATSHEET's filter bar (`.spell-filter`), whose height is `--spell-top` on `main`.
+ * - SECTIONS:  sets each top-level `<ui-section>`'s `offset`;  nested ones stack themselves below their parents'.
+ *   Writes `--spell-section-top` (where its title sticks) and `--spell-stack` (the bottom of its stack of stuck
+ *   titles) on every section, which `scroll-margin-top` reads (`spell-doc.css`):  a section lands at its sticky
+ *   line, anything in it below its stack.
+ * - HEADINGS:  h2s below the bar, h3s just below their section's h2;  sets each sticky's `offset`, and
+ *   `--spell-h2-h` / `--spell-h3-h` on the sections, which the headings' `scroll-margin-top` reads
+ * - re-measured whenever a title changes size (fonts loading, the window narrowing and titles wrapping)
  * - returns `{ measure, offsetFor }`:  `offsetFor(target)` is how far below the viewport top it should land
  */
-function trackStickyHeights(main) {
-  const h2Stickies = Array.from(main.querySelectorAll("ui-sticky.spell-h2"))
-  const h3Stickies = Array.from(main.querySelectorAll("ui-sticky.spell-h3"))
+function trackStickyHeights(main, outline) {
   const head = main.querySelector(":scope > ui-sticky.spell-h1")
   const bar = main.querySelector(".spell-filter")
+  const h2Stickies = outline.sections ? [] : Array.from(main.querySelectorAll("ui-sticky.spell-h2"))
+  const h3Stickies = outline.sections ? [] : Array.from(main.querySelectorAll("ui-sticky.spell-h3"))
+  const sections = outline.sections ? Array.from(main.querySelectorAll("ui-section")) : []
   const observer = new ResizeObserver(() => measure())
   for (const sticky of [head, ...h2Stickies, ...h3Stickies]) {
     const heading = sticky?.firstElementChild
@@ -420,10 +643,33 @@ function trackStickyHeights(main) {
   measure()
   return { measure, offsetFor }
 
-  /** Heights of the header, the bar and every h2 / h3 onto `main` and the sections;  the stickies' `offset`s. */
+  /** What sticks above the sections, onto `main`;  then each section's (heading's) sticky line. */
   function measure() {
-    const top = (head ? heightOf(head) : 0) + (bar ? bar.getBoundingClientRect().height : 0)
+    const top = Math.round((head ? heightOf(head) : 0) + (bar ? bar.getBoundingClientRect().height : 0))
     main.style.setProperty("--spell-top", `${top}px`)
+    if (outline.sections) measureSections(top)
+    else measureHeadings(top)
+  }
+
+  /** SECTIONS:  top-level `offset`s, and each section's sticky line and stack bottom, parents first. */
+  function measureSections(top) {
+    const bottoms = new Map()
+    for (const section of sections) {
+      const parent = section.parentElement?.closest("ui-section")
+      const line = parent ? (bottoms.get(parent) ?? top) : top
+      const title = titleOf(section)
+      // a title renders once UI has loaded:  observe it when it's there (observing twice is a no-op)
+      if (title) observer.observe(title)
+      const height = title && section.hasAttribute("sticky") ? title.getBoundingClientRect().height : 0
+      bottoms.set(section, line + height)
+      setPixels(section, "--spell-section-top", line)
+      setPixels(section, "--spell-stack", line + height)
+      if (!parent) setOffset(section, top)
+    }
+  }
+
+  /** HEADINGS:  the h2 / h3 stickies' `offset`s and heights. */
+  function measureHeadings(top) {
     for (const sticky of h2Stickies) {
       sticky.parentElement.style.setProperty("--spell-h2-h", `${heightOf(sticky)}px`)
       setOffset(sticky, top)
@@ -440,7 +686,16 @@ function trackStickyHeights(main) {
   }
 }
 
-/** A sticky's `offset`, in whole pixels;  re-setting the same value would restart its observer for nothing. */
+/** Write `pixels` as custom property `name` on `element`, unless it's already that. */
+function setPixels(element, name, pixels) {
+  const value = `${Math.round(pixels * 100) / 100}px`
+  if (element.style.getPropertyValue(name) !== value) element.style.setProperty(name, value)
+}
+
+/**
+ * A sticky's (top-level section's) `offset`, in whole pixels;  re-setting the same value would restart its
+ * observer for nothing.
+ */
 function setOffset(sticky, offset) {
   const text = String(Math.round(offset))
   if (sticky.getAttribute("offset") !== text) sticky.setAttribute("offset", text)
@@ -465,19 +720,22 @@ function h2HeightAbove(sticky) {
 ////////////////
 
 /**
- * Same-page links to anything with an id in `main` (a heading, a plan item) jump there ourselves, and the contents
- * follow AT ONCE.
- * - a STICKY heading's jump goes to its section:  a stuck heading already "is" at the top, so the browser's own
- *   jump to it does nothing -- e.g. the contents link of the section you're reading
- * - other targets land by their `scroll-margin-top`, below every stuck header:  the browser's own jump would add
- *   the stuck headers' scroll padding (`<ui-sticky>` reserves it) on top
- * - folded sections around the target unfold first, and a target that is a folded item opens (`folds.reveal()`)
- * - the target's heading becomes the current one even when the page can't scroll it up to its line (the last
+ * Same-page links to anything with an id in `main` (a section, a heading, a plan item) jump there ourselves, and
+ * the contents follow AT ONCE.
+ * - a section lands with its title at its sticky line;  anything else below every stuck title above it (both by
+ *   their `scroll-margin-top`):  the browser's own jump would add the stuck titles' scroll padding (they reserve
+ *   it) on top
+ * - HEADINGS:  a STICKY heading's jump goes to its section:  a stuck heading already "is" at the top, so the
+ *   browser's own jump to it does nothing -- e.g. the contents link of the section you're reading
+ * - folded sections around the target unfold first, and a target that is a folded item opens (`folds.reveal()`);
+ *   an unfolded `<ui-section>` draws on the next frames, so the jump lands once it has, and once more after a fold's
+ *   transition (`SETTLE_MS`) unless the reader scrolled meanwhile
+ * - the target's entry becomes the current one even when the page can't scroll it up to its line (the last
  *   short sections), until the user scrolls on (`follow.pin()`)
  * - `hashchange` / `popstate` (back, forward, a typed hash) jump the same way
  * - returns `jump(id)`
  */
-function wireAnchors(main, sticky, follow, folds) {
+function wireAnchors(main, outline, sticky, follow, folds) {
   document.addEventListener("click", (event) => {
     if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey) return
     const id = targetIdOf(event)
@@ -490,19 +748,25 @@ function wireAnchors(main, sticky, follow, folds) {
   addEventListener("hashchange", () => jump(hashId()))
   return jump
 
-  /** Scroll to `id` and make its heading the current one. */
+  /** Scroll to `id` and make its entry the current one;  once what it unfolded has drawn. */
   function jump(id) {
     const target = targetIn(id)
     if (!target) return
-    folds.reveal(target)
-    scrollToId(id, sticky)
-    const heading = /^H[234]$/.test(target.tagName)
-      ? target
-      : target.closest("section")?.querySelector(":scope > ui-sticky > :is(h2, h3)")
-    if (heading) follow?.pin(heading)
+    let landed = NaN
+    if (folds.reveal(target)) void nextFrames(UNFOLD_FRAMES).then(land)
+    else land()
+    if (outline.sections) setTimeout(() => Math.abs(scrollY - landed) < 2 && land(), SETTLE_MS)
+
+    /** Scroll to the target, pin its entry. */
+    function land() {
+      scrollToId(id, sticky)
+      const entry = outline.entryOf(target)
+      if (entry) follow?.pin(entry)
+      landed = scrollY
+    }
   }
 
-  /** The heading `id` a click goes to:  a contents entry's `data-target`, or a same-page `#hash` link. */
+  /** The `id` a click goes to:  a contents entry's `data-target`, or a same-page `#hash` link. */
   function targetIdOf(event) {
     for (const node of event.composedPath()) {
       if (!(node instanceof Element)) continue
@@ -521,8 +785,8 @@ function wireAnchors(main, sticky, follow, folds) {
 }
 
 /**
- * Scroll so `id` sits where its anchor should:  a sticky heading at the top of its SECTION (it can't be measured
- * where it is while stuck), anything else by its own box.  Instant, as the browser's own jump.
+ * Scroll so `id` sits where its anchor should:  by its own box and `scroll-margin-top`;  a HEADINGS sticky heading
+ * by its SECTION's box (it can't be measured where it is while stuck).  Instant, as the browser's own jump.
  */
 function scrollToId(id, sticky) {
   const element = document.getElementById(id)
@@ -558,18 +822,19 @@ function hashId() {
 ////////////////
 
 /**
- * Highlight the current heading's contents link;  open its panels, close panels the scroll opened before.
- * - "Current":  the last heading whose top has reached its landing line (its `scroll-margin-top`, plus a little)
+ * Highlight the current entry's contents link;  open its panels, close panels the scroll opened before.
+ * - "Current":  the last entry (section, heading) whose top has reached its landing line (its `scroll-margin-top`,
+ *   plus a little);  entries hidden by the filter or inside a folded section don't count
  * - highlight:  a `<ui-item>` gets `selected`, a title's `<a>` class `active`
  * - panels the user opened or closed (`ui-open` / `ui-close`, only ever the user's) are left alone:
  *   `panel.dataset.user`
- * - the rail's entry of the current heading's h2 is `selected` too
+ * - the rail's entry of the current entry's top-level section is `selected` too
  * - returns `{ update, reset, pin }`:
  *   - `reset()` forgets what the scroll opened (after collapse-all)
- *   - `pin(heading)` makes it current until the page scrolls again (a link was followed)
+ *   - `pin(entry)` makes it current until the page scrolls again (a link was followed)
  */
-function followScroll(main, toc, rail) {
-  const headings = Array.from(main.querySelectorAll("h2[id], h3[id], h4[id]"))
+function followScroll(main, outline, toc, rail) {
+  const headings = Array.from(main.querySelectorAll(outline.targets))
   const links = new Map()
   for (const link of toc.querySelectorAll("[data-target]")) links.set(link.dataset.target, link)
   const railItems = Array.from(rail?.querySelectorAll("[data-rail]") ?? [])
@@ -603,6 +868,7 @@ function followScroll(main, toc, rail) {
     let current = headings[0]
     for (const heading of headings) {
       if (heading.offsetParent === null && !heading.getClientRects().length) continue // hidden by the filter
+      if (outline.folded(heading)) continue // laid out in a folded box, but not shown
       const line = (parseFloat(getComputedStyle(heading).scrollMarginTop) || 0) + 4
       if (heading.getBoundingClientRect().top <= line) current = heading
       else break // document order:  the first heading below its line ends the search
@@ -615,8 +881,8 @@ function followScroll(main, toc, rail) {
     if (!heading || heading === active) return
     highlightLink(links.get(active?.id), false)
     active = heading
-    const section = heading.localName === "h2" ? heading : heading.closest("section.s2")?.querySelector("h2")
-    for (const item of railItems) item.toggleAttribute("selected", item.dataset.rail === section?.id)
+    const group = outline.groupOf(heading)
+    for (const item of railItems) item.toggleAttribute("selected", item.dataset.rail === group?.id)
     const link = links.get(heading.id)
     if (!link) return
     highlightLink(link, true)
@@ -825,7 +1091,10 @@ function wireFilter(main, toc) {
   if (!input && !badge) return
   const key = input?.dataset.spellFilter || `${FILTER_KEY_PREFIX}${location.pathname}`
   const cards = Array.from(main.querySelectorAll("ui-card"))
-  const sections = Array.from(main.querySelectorAll("section")).filter((section) => section.querySelector("ui-card"))
+  // HEADINGS' `section`s, or `<ui-section>`s (`:host([hidden])` hides one)
+  const sections = Array.from(main.querySelectorAll("section, ui-section")).filter((section) =>
+    section.querySelector("ui-card")
+  )
   const empty = document.getElementById("empty")
   const contents = toc ? filterContents(toc) : undefined
   let typed = input ? readSaved(key) : ""

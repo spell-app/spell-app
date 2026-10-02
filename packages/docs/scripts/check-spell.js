@@ -5,10 +5,11 @@
  * - fails (exit 1) on:
  *   - console / page errors
  *   - a `ui-*` element that isn't defined, or never rendered (no shadow root)
- *   - a contents list that doesn't match the headings, or a `data-target` that points nowhere
+ *   - a contents list that doesn't match the sections / headings, or a `data-target` that points nowhere
  *   - horizontal scroll at phone width
  *   - a content column squeezed at phone width (a wide-screen grid rule leaking into the narrow layout)
- *   - an h2 that doesn't stick when scrolled into its section
+ *   - a top-level section's title (`<ui-section>` pages) or h2 (`section.s2` pages) that doesn't stick when scrolled
+ *     into its section
  *   - no active contents link after scrolling
  *   - a `ui-accordion.spell-code` without a `<pre>`
  *   - a contents drawer that doesn't open at phone width
@@ -52,7 +53,7 @@ await desk.screenshot({ path: join(out, "desk-mid.png") })
 const stuck = await desk.evaluate(stuckAndActive, middle.id)
 if (middle.id && !stuck.stuck)
   problem(
-    `h2 #${middle.id} not stuck at the top (its top at ${stuck.top}px, ${stuck.covering ?? "nothing"} showing at its middle)`
+    `${middle.tag} #${middle.id} not stuck at the top (its title's top at ${stuck.top}px, ${stuck.covering ?? "nothing"} showing at its middle)`
   )
 if (!stuck.active) problem("no active contents link after scrolling")
 
@@ -148,7 +149,10 @@ function inspectPage() {
       unrendered[el.localName] = (unrendered[el.localName] ?? 0) + 1
   }
   const undefinedTags = Object.keys(elements).filter((tag) => !customElements.get(tag))
-  const headingIds = [...document.querySelectorAll("main h2[id], main h3[id], main h4[id]")].map((h) => h.id)
+  // `<ui-section>` pages:  the sections are entries too (their headings are in their shadow roots)
+  const headingIds = [...document.querySelectorAll("main ui-section[id], main h2[id], main h3[id], main h4[id]")].map(
+    (h) => h.id
+  )
   const targets = [...document.querySelectorAll("#spell-toc [data-target]")].map((a) => a.dataset.target)
   const icons = all.filter((el) => el.localName === "ui-icon" || el.hasAttribute("icon"))
   const blank = icons.filter((el) => !hasSvg(el.shadowRoot))
@@ -181,47 +185,58 @@ function inspectPage() {
 }
 
 /**
- * Scroll into the middle `section.s2`, part way down, and return its h2's id.
+ * Scroll into the middle top-level section (`main > ui-section`, or `section.s2`), part way down, and return its
+ * id (the h2's, for `section.s2`) and what it is.
  * - only sections that can scroll up to the top:  a short page's last section never sticks
  */
 function scrollToMiddleSection() {
   const room = document.documentElement.scrollHeight - innerHeight
-  const sections = [...document.querySelectorAll("section.s2")].filter(
+  const sections = [...document.querySelectorAll("main > ui-section, section.s2")].filter(
     (s) => s.getBoundingClientRect().top + scrollY + 200 < room
   )
   const middle = sections[Math.floor(sections.length / 2)]
   middle?.scrollIntoView()
   window.scrollBy(0, Math.min(600, (middle?.offsetHeight ?? 0) / 2))
-  return { id: middle?.querySelector("h2")?.id }
+  const section = middle?.localName === "ui-section"
+  return { id: section ? middle.id : middle?.querySelector("h2")?.id, tag: section ? "ui-section" : "h2" }
 }
 
 /**
- * Whether h2 `id` sits at the top of the viewport, and which contents link is active.
- * - stuck:  its top is within 160px of the viewport top -- room for a sticky bar above it, e.g. CHEATSHEET's
- *   filter -- AND it's what shows at its own middle.  Scrolled mid-section, an h2 that DIDN'T stick is far above;
- *   one stuck but covered, e.g. by an h3 sticking at the same offset, doesn't count.  One its short section's end
- *   pushed out (`:state(bound)`) does:  it stuck, then left with its section.
+ * Whether section / h2 `id`'s title sits at the top of the viewport, and which contents link is active.
+ * - stuck:  its title's top is within 160px of the viewport top -- room for a sticky bar above it, e.g.
+ *   CHEATSHEET's filter -- AND it's what shows at its own middle.  Scrolled mid-section, a title that DIDN'T stick
+ *   is far above;  one stuck but covered, e.g. by an h3 sticking at the same offset, doesn't count.
+ *   - `<ui-section>`:  its title is its shadow `title` part, and it must ALSO say `:state(stuck)`;  what shows
+ *     there is the section host (the shadow retargets to it), not a nested section's
+ *   - h2:  one its short section's end pushed out (`:state(bound)`) counts:  it stuck, then left with its section
  * - active:  a selected `ui-item`, or a title `<a class="active">`
  */
 function stuckAndActive(id) {
-  const h2 = id && document.getElementById(id)
+  const element = id && document.getElementById(id)
+  const section = element?.localName === "ui-section" ? element : null
+  const title = section ? section.shadowRoot?.querySelector('[part~="title"]') : element
   const left = document.querySelector("main").getBoundingClientRect().left + 40
-  const rect = h2?.getBoundingClientRect()
+  const rect = title?.getBoundingClientRect()
   const probe = rect ? Math.max(4, rect.top + rect.height / 2) : 16
   const shown = document.elementFromPoint(left, probe)
   const active = document.querySelector(
     "#spell-toc ui-item[selected]:not([selected=false]), #spell-toc ui-item.selected, #spell-toc a.active"
   )
   const covering = shown?.closest("h1, h2, h3, h4, [id]")
+  const atTop = !!rect && rect.top >= -2 && rect.top <= 160
   // a short section's end pushes its h2 out (`:state(bound)`), under whatever sticks above it:  sticky works
   let bound = false
+  let stuckState = false
   try {
-    bound = !!h2?.parentElement?.matches("ui-sticky:state(bound)")
+    bound = !!element?.parentElement?.matches("ui-sticky:state(bound)")
+    stuckState = !!section?.matches(":state(stuck)")
   } catch {
     // a browser without custom states:  judge by position alone
+    stuckState = true
   }
+  const ownTitle = section ? shown?.closest("ui-section") === section : shown?.closest("h2")?.id === id
   return {
-    stuck: bound || (!!rect && rect.top >= -2 && rect.top <= 160 && shown?.closest("h2")?.id === id),
+    stuck: section ? stuckState && atTop && ownTitle : bound || (atTop && ownTitle),
     top: rect && Math.round(rect.top),
     covering: covering && `${covering.localName}#${covering.id}`,
     active: active?.textContent.trim()
