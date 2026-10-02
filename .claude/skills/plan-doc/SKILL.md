@@ -33,9 +33,9 @@ the whole time.  The plan doc is the user's view of the work:  they read it in C
 
 - Tell the user, in one line:  run `/rename <name>` so the VS Code tab shows it.  A skill can't rename the session.
 - `EnterWorktree` with `name: "<name>"`, or `path: ".claude/worktrees/<name>"` when reusing one.
-- Then show it to the user in VS Code AT ONCE (root `AGENTS.md`, "Worktrees"):  `code -n <worktree path>`, a NEW
-  window;  never `code -r` (it re-points the window this session runs in, which restarts the session).  One line:
-  "opened the worktree in a new VS Code window".
+- Then show it to the user in VS Code AT ONCE, in their CURRENT window (root `AGENTS.md`, "Worktrees"):
+  `code --add <worktree path>`;  never `-n` (new window) or `-r` (restarts this session).  One line:  "added the
+  worktree to your VS Code window".
 - In the worktree:
   - no `node_modules/` at the root:  `yarn install`
   - no `packages/docs/scripts/plan-doc.js`:  the worktree's base predates `packages/docs` (it branches from

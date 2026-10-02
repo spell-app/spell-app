@@ -56,15 +56,16 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 
 ## Worktrees
 
-- A session that works in a git worktree (`.claude/worktrees/<name>`) MUST show it to Owen in VS Code right away:
-  `code -n <worktree path>` -- a NEW window on the worktree, as soon as the session creates or enters it (and again
-  if it switches worktrees).  Why:  Owen reads and reviews the code in VS Code;  edits in a worktree his window
-  doesn't show are invisible to him.
-- NEVER `code -r` (reuse window):  it re-points the window the Claude session runs in, which restarts the session.
-- Say so in one line ("opened the worktree in a new VS Code window"), and name the worktree and branch.
-- To continue the conversation in that window:  the session's transcript follows it into the worktree, so the new
-  window's Claude Code history lists it (or `claude --resume <session id>` in its terminal);  close the old window's
-  panel first, or the two clients interleave into one transcript.
+- A session that works in a git worktree (`.claude/worktrees/<name>`) MUST show it to Owen in VS Code right away, IN
+  HIS CURRENT WINDOW:  `code --add <worktree path>` adds the worktree as another folder of that window (Explorer,
+  Source Control and search see it), as soon as the session creates or enters it.  Why:  Owen reads and reviews the
+  code in VS Code;  edits in a worktree his window doesn't show are invisible to him.  He wants ONE window.
+- When the session leaves or removes the worktree:  `code --remove <worktree path>`.
+- NEVER `code -n` (a new window) or `code -r` (re-points the window, which restarts the Claude session in it).
+- NOTE:  the FIRST extra folder turns a single-folder window into a multi-root workspace, which may restart VS Code's
+  extensions once (the Claude panel reloads;  the conversation resumes from its history).  A window opened from a
+  saved `.code-workspace` file avoids that.
+- Say so in one line ("added the worktree <name> (branch <branch>) to your VS Code window").
 
 ## Solid 2
 
