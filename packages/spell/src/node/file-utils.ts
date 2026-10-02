@@ -10,6 +10,8 @@ import nodejs_path from "path"
 import fse, { Stats, CopyOptions, MoveOptions } from "fs-extra"
 import filterAsync from "node-filter-async"
 
+import { SRV } from "$/server"
+
 import { isFileOrFolderNotFoundError } from "./response-utils"
 import type { GetFolderContentsOptions } from "./server.types"
 
@@ -323,14 +325,14 @@ export function loadFiles(paths: string[], format: EncodingFormat, optional?: "O
  * Write `fileData` to disk at server `path` according to file `format`.
  * - Creates any intervening folders as necessary.
  * - Resolves with `true` on success.
- * - SIDE EFFECT: overwrites any existing file at `path` with no merge/conflict check -- see `lock-utils.ts`
- *   for a mechanism (currently unwired, see its TODO) meant to protect concurrent writers from clobbering
- *   each other here.
+ * - Under `SRV.FileLock`:  writers that cooperate (the app's saves, the page server's page edits, `yarn plan-doc`,
+ *   `yarn goals`) take turns on the same file.
+ * - SIDE EFFECT: overwrites any existing file at `path` with no merge/conflict check:  the last save wins.
  */
 export async function saveFile(path: string, fileData: any, format: EncodingFormat = FORMAT.TEXT): Promise<boolean> {
   // Make sure directory exists
   await makeFolder(getPathFolder(path))
-  await fse.writeFile(path, fileData, format)
+  await SRV.FileLock.runAsync(path, () => fse.writeFile(path, fileData, format))
   return true
 }
 

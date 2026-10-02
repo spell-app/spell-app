@@ -12,8 +12,9 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
   else is a package it imports:  `$/spell`, `$/lsp`, `$/parser`, `$/util`, `@spell-app/ui` ...
 - `src/` is the app (React 18, moving to Solid 2:  READ the root's Solid 2 pointer for Solid work):
   `ui/` (`UI`, `F` for `ui/forms`), `pages/`, `runner/`, `spellEditor/`, `editor.ts`, `index.tsx`.
-  `src/server/` is its express server (`api.ts`, `index.ts`);  the file / project helpers it calls are NOT here,
-  they're node-only code in `$/spell/node/...` (`project-utils`, `file-utils`, `disk-fetch` ...).
+  `src/server/` is its API server (`api.ts`, `index.ts`) on `$/server`'s Express-shaped `SRV.Router` /
+  `SRV.WebServer` (it was Express):  `api.test.ts` pins its behaviour over HTTP.  The file / project helpers it
+  calls are NOT here, they're node-only code in `$/spell/node/...` (`project-utils`, `file-utils`, `disk-fetch` ...).
 - `index.html`, `demo/`, `static/` and the `vite*.config.ts` files are here too.
 - Scripts run HERE (`cd packages/app`):
   - `yarn start` -- the app (port 3000, vite) and the api server (port 3001);  `yarn stop` stops them.

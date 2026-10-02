@@ -2,7 +2,10 @@
  * HTTP-level CONTRACT tests for the app's server (`./index.ts` + `./api.ts`).
  * - Talk HTTP only:  spawn the server as a child process, never import the server framework, so the same
  *   file passes unchanged when the framework is swapped.
- * - Pins the CURRENT behaviour, quirks and all (marked `QUIRK`);  a deliberate change fails here on purpose.
+ * - Pins the behaviour, quirks and all (marked `QUIRK`);  a deliberate change fails here on purpose.
+ * - Written against Express, kept for `$/server`'s `SRV.Router` (unified-server P6).  What changed ON PURPOSE is
+ *   marked `CHANGED`:  nested `:filePath*` paths work, an unknown DELETE gets the API's 404, a `.spell` file is
+ *   text, and a bad body is JSON, not an HTML error page.
  * - SIDE EFFECT: starts a server on a free port with `SPELL_PROJECTS_DIR` pointing at a temp dir, so the real
  *   `packages/spell/projects` is never written.  Deleted afterwards.
  * - Node environment (vitest's default;  this package's config sets none).
@@ -172,10 +175,10 @@ describe("liveness and canned routes", () => {
     expect(reply.text).toBe("API routine not defined on server:   '/nope'")
   })
 
-  it("unknown DELETE /api/nope => falls through to the framework's own 404 (no catch-all for DELETE)", async () => {
+  it("CHANGED:  unknown DELETE /api/nope => the API's 404 too (Express had no catch-all for DELETE)", async () => {
     const reply = await request("DELETE", "/api/nope")
     expect(reply.status).toBe(404)
-    expect(reply.text).not.toContain("API routine not defined")
+    expect(reply.text).toBe("API routine not defined on server:   '/nope'")
   })
 })
 
@@ -213,8 +216,8 @@ describe("GET /api/projects/file/:projectId/:filePath*", () => {
   it("top-level file => 200, raw contents, content-type from the extension", async () => {
     const reply = await request("GET", `/api/projects/file/${PROJECT}/top.spell`)
     expect(reply.status).toBe(200)
-    // `.spell` is unknown to the mime table
-    expect(reply.contentType).toBe("application/octet-stream")
+    // CHANGED:  `.spell` is text in `SRV.TYPES` (Express:  `application/octet-stream`)
+    expect(reply.contentType).toBe("text/plain; charset=utf-8")
     expect(reply.text).toBe("to do something\n")
   })
 
@@ -236,22 +239,16 @@ describe("GET /api/projects/file/:projectId/:filePath*", () => {
     expect(typeof body.errors[0].trace).toBe("string")
   })
 
-  it("QUIRK:  `:filePath*` captures ONLY THE FIRST segment, so a nested file is not served", async () => {
-    // express 4 (path-to-regexp 0.1) gives `filePath = "folder"` and the rest in `params[0]`, which
-    // `request_getFile` ignores.  The handler serves the DIRECTORY `folder`, express's `sendFile` errors,
-    // and the request falls through to the `/api` 404 catch-all.
+  it("CHANGED:  `:filePath*` captures the WHOLE rest, so a nested file is served", async () => {
+    // Express 4 (path-to-regexp 0.1) gave `filePath = "folder"` and the rest in `params[0]`:  a 404
     const reply = await request("GET", `/api/projects/file/${PROJECT}/folder/sub/file.spell`)
-    expect(reply.status).toBe(404)
-    expect(reply.contentType).toMatch(/^text\/html/)
-    expect(reply.text).toBe(
-      `API routine not defined on server:   '/projects/file/${PROJECT}/folder/sub/file.spell'`
-    )
+    expect(reply.status).toBe(200)
+    expect(reply.text).toBe(readFixture("user/Proj/folder/sub/file.spell"))
   })
 
-  it("QUIRK:  a directory (single segment) also falls through to the catch-all 404", async () => {
+  it("a directory => 404", async () => {
     const reply = await request("GET", `/api/projects/file/${PROJECT}/folder`)
     expect(reply.status).toBe(404)
-    expect(reply.text).toContain("API routine not defined on server")
   })
 
   it.each([
@@ -287,11 +284,10 @@ describe("POST /api/projects/file/:projectId/:filePath*", () => {
     expect(readFixture("user/Proj/over.txt")).toBe("two")
   })
 
-  it("QUIRK:  nested path writes to the FIRST segment only, so a folder name => 500 EISDIR", async () => {
+  it("CHANGED:  a nested path writes the nested file (Express:  500 EISDIR on the first segment)", async () => {
     const reply = await request("POST", `/api/projects/file/${PROJECT}/folder/new.txt`, "x", "text/plain")
-    expect(reply.status).toBe(500)
-    expect(reply.json().errors[0].message).toContain("EISDIR")
-    expect(readFixture("user/Proj/folder/new.txt")).toBeUndefined()
+    expect(reply.status).toBe(200)
+    expect(readFixture("user/Proj/folder/new.txt")).toBe("x")
   })
 
   it("JSON body => 500 (body is an object, file write wants a string)", async () => {
@@ -302,11 +298,11 @@ describe("POST /api/projects/file/:projectId/:filePath*", () => {
     expect(readFixture("user/Proj/data.json")).toBeUndefined()
   })
 
-  it("text body under application/json5 that is not JSON5 => 400 HTML error page", async () => {
+  it("CHANGED:  text body under application/json5 that is not JSON5 => 400 JSON { error } (Express:  an HTML page)", async () => {
     const reply = await request("POST", `/api/projects/file/${PROJECT}/bad.txt`, "hi there", "application/json5")
     expect(reply.status).toBe(400)
-    expect(reply.contentType).toMatch(/^text\/html/)
-    expect(reply.text).toContain("SyntaxError")
+    expect(reply.contentType).toMatch(/^application\/json/)
+    expect(reply.json().error).toMatch(/^bad JSON body:  JSON5:/)
   })
 
   it("traversal in the path => 500 'Invalid path', nothing written", async () => {

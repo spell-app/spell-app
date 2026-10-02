@@ -1,13 +1,17 @@
 //----------------------------
 //
-//  Express API utility functions to `send` various responses conveniently/consistently.
+//  API utility functions to `send` various responses conveniently/consistently, on `$/server`'s
+//  Express-shaped `SRV.Request` / `SRV.Reply` (the app's server was Express until the unified-server plan).
 //
 //  This is mostly generic express/node stuff -- see `project-utils.ts` for the app-specific handlers
 //  that use these.
 //
 //----------------------------
-import type { Request, Response } from "express"
-import type { SendFileOptions } from "express-serve-static-core"
+import type { SRV } from "$/server"
+
+/** Express's names, kept so every handler reads as before. */
+type Request = SRV.Request
+type Response = SRV.Reply
 // File manipulation utilities and path config
 import * as fileUtils from "./file-utils"
 
@@ -75,16 +79,16 @@ export function sendJavascript(response: Response, javascript: string) {
   return response.send(javascript)
 }
 
-/** `SendFileOptions` (express) plus our own `defaultValue` fallback -- see `sendFile()` / `sendTextFile()`. */
-type ExtendedSendFileOptions = SendFileOptions & {
+/** `SRV.SendFileOptions` plus our own `defaultValue` fallback -- see `sendFile()` / `sendTextFile()`. */
+type ExtendedSendFileOptions = SRV.SendFileOptions & {
   /** Value to send instead of a 404 when file is not found.  `undefined` = still 404. */
   defaultValue?: any
 }
 
 /**
  * Return file at `path` as `response` to `request`.
- * - Uses express `sendFile()` to do the magic, which should set mime type automatically.
- * - Pass `options` per https://expressjs.com/en/api.html#res.sendFile.
+ * - `SRV.Reply.sendFile()` sets the content type from the extension, unless one is set.
+ * - `options.dotfiles`:  `"allow"` serves a file whose name starts with `.` (default:  404).
  * - Sends a 404 if file was not found, unless you set `options.defaultValue` -- then we return
  *   that instead of failing.
  */
@@ -119,7 +123,7 @@ export async function sendTextFile(
  * Return js file at `path` (as `application/javascript`) as `response` to `request`.
  * - NOTE: comment historically said `text/plain`, but code sets `application/javascript` -- doc now matches code.
  */
-export async function sendJSFile(response: Response, path: string, options: SendFileOptions = {}) {
+export async function sendJSFile(response: Response, path: string, options: SRV.SendFileOptions = {}) {
   response.set("Content-Type", "application/javascript")
   if (await fileUtils.pathExists(path)) return response.sendFile(path, options)
   return sendError(response, 404, new Error(`File not found: '${path}'`))
@@ -139,7 +143,7 @@ export function sendJSON(response: Response, json: any) {
 /**
  * Return contents of a single file at `path` as JSON `response` to `request`.
  * - NOTE: unlike `sendFile()`, does not check `pathExists` first -- a missing file becomes
- *   express's default `sendFile` error handling rather than our `sendError()` 404 shape.
+ *   `SRV.Reply.sendFile()`'s plain 404 rather than our `sendError()` shape.
  */
 export function sendJSONFile(response: Response, path: string) {
   response.set("Content-Type", "application/json")

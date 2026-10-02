@@ -2,6 +2,8 @@
 
 Things that look like bugs but haven't been confirmed.  Add to the right section, under its package;  when one is confirmed and
 fixed, or disproven, delete it (note a disproof in a line at the top if the reasoning is worth keeping).
+- Fixed 2026-10-02 (unified-server P6, the app's API off Express):  `:filePath*` kept only the first segment (nested
+  project files 404 / EISDIR);  an unknown `DELETE /api/...` missed the API's own 404.
 `[V]` = checked against the code by hand.  Everything else is unverified.
 
 Entry format:  `` - `path/to/file.ts` `symbol()`: what looks wrong, why, and how to prove it. ``
@@ -310,15 +312,8 @@ every entry below that date was fixed or disproven;  what's left:
 
 ### 1. Behavior bugs
 
-- `packages/app/src/server/api.ts` `api.get/post("/projects/file/:projectId/:filePath*")` [V]: express 4's `:filePath*` captures
-  ONLY the first path segment (`filePath = "folder"`, rest in `params[0]`).  `GET .../folder/sub/file.spell` therefore
-  tries to `sendFile` the directory `folder`, errors, and falls through to the `/api` catch-all 404 ("API routine not
-  defined"); `POST .../folder/new.txt` writes to `folder` => 500 `EISDIR`.  `request_getFile` / `request_saveFile` read
-  only `params.filePath`.  Pinned by `api.test.ts` (`QUIRK` tests);  prove with `curl` on any nested project file.
 - `packages/spell/src/node/response-utils.ts` `sendJSFile` / `request_getCompiled` / `request_getScopes` [V]: the content-type is set
   to `text/javascript` BEFORE the existence check, so a not-found 404 carries a JSON `{errors}` body labelled `text/javascript`.
-- `packages/app/src/server/api.ts` catch-all [V]: only `GET` and `POST` get the "API routine not defined" 404;  an unknown
-  `DELETE /api/...` gets the framework's default 404 page.
 
 ## cli
 

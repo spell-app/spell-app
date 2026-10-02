@@ -36,12 +36,20 @@ export class Reply {
     return this
   }
 
-  /** set header `name` to `value`, or every header in `headers`;  chainable */
+  /**
+   * Set header `name` to `value`, or every header in `headers`;  chainable.
+   * - a text `Content-Type` without a charset gets `; charset=utf-8`, as Express's `res.set()` does:  `text/*`,
+   *   `application/json`, `application/javascript`
+   */
   set(name: string, value: OutgoingHttpHeader): this
   set(headers: Record<string, OutgoingHttpHeader>): this
   set(name: string | Record<string, OutgoingHttpHeader>, value?: OutgoingHttpHeader): this {
-    if (typeof name === "string") this.raw.setHeader(name, value!)
-    else for (const [key, each] of Object.entries(name)) this.raw.setHeader(key, each)
+    if (typeof name !== "string") {
+      for (const [key, each] of Object.entries(name)) this.set(key, each)
+      return this
+    }
+    if (name.toLowerCase() === "content-type" && typeof value === "string") value = withCharset(value)
+    this.raw.setHeader(name, value!)
     return this
   }
 
@@ -136,6 +144,12 @@ export class Reply {
     else this.raw.end(body)
     return this
   }
+}
+
+/** `type` with `; charset=utf-8` added when it's text and has none. */
+function withCharset(type: string): string {
+  if (/;\s*charset=/i.test(type) || !/^(text\/|application\/(json|javascript)\b)/i.test(type)) return type
+  return `${type}; charset=utf-8`
 }
 
 /** How `Reply.sendFile()` treats a file whose name starts with `.`. */
