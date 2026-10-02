@@ -60,7 +60,7 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 
 ## Worktrees
 
-- Owen works in one VS Code window per package, opened from `packages/<pkg>/<pkg>.code-workspace` (`yarn window
+- Owen works in one VS Code window per package, opened from `workspaces/<pkg>.code-workspace` (`yarn window
   init` writes missing ones;  each has its own theme).  Folder 1 is the REPO ROOT, folder 2 the package.  Why:  the
   Claude panel lists only the sessions saved under a window's FIRST folder, so every window lists every session.
   - So sessions start at the repo root:  read the package's `AGENTS.md` before working in a package.

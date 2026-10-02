@@ -22,7 +22,7 @@
  *     `/isolate` hands its session to the worktree's window this way
  *   - `close-session-tab { title }`:  close the ONE Claude Code tab labelled `title`;  none or several:  ok,
  *     `closed: false`.  Closing the tab ends that tab's `claude` process.
- * - NEVER adds a folder unless the window was opened from a SAVED workspace file (`packages/<pkg>/<pkg>.code-workspace`):
+ * - NEVER adds a folder unless the window was opened from a SAVED workspace file (`workspaces/<pkg>.code-workspace`):
  *   in a one-folder or untitled window, the change re-opens the window as a new workspace, which restarts every
  *   extension -- including the Claude panel whose session asked.  `remove-folder` has no such rule:  it only ever
  *   takes away a folder `add-folder` put there.
@@ -213,7 +213,7 @@ export class WindowBridge {
       throw new BridgeError(
         409,
         "this window isn't a saved workspace:  adding a folder would restart its extensions (and the Claude panel)." +
-          "  Open it from packages/<pkg>/<pkg>.code-workspace."
+          "  Open it from workspaces/<pkg>.code-workspace."
       )
     }
     if (!existsSync(folder) || !statSync(folder).isDirectory()) throw new BridgeError(404, `no folder '${folder}'`)
