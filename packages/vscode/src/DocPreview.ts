@@ -8,6 +8,7 @@
  * - Simple Browser loads only http(s), so the doc's git root (the repo, or the worktree it's in) is served from a
  *   local server on `127.0.0.1`, one per root, for as long as the extension runs.  Served from the ROOT, not the
  *   doc's folder:  docs link to source files all over the repo.
+ * - Or by `WindowBridge`'s `show-doc`:  a session asks ITS window (not the focused one) to show the doc.
  * - Simple Browser keeps ONE tab:  each open loads the doc there afresh (a `?t=` stamp), as a reload.
  */
 import { existsSync, readFile, stat } from "fs"
@@ -42,6 +43,8 @@ const TYPES: Record<string, string> = {
 export class DocPreview {
   /** Port of each git root's server, once listening. */
   static readonly ports = new Map<string, Promise<number>>()
+  /** Every server started, so `register()`'s disposable can close them. */
+  static readonly servers: Server[] = []
 
   /**
    * Set up the URI handler -- call once, first thing in `activate()`, so it works even when the language server
@@ -49,7 +52,6 @@ export class DocPreview {
    * - SIDE EFFECT:  servers close when the extension deactivates.
    */
   static register(context: vscode.ExtensionContext): void {
-    const servers: Server[] = []
     context.subscriptions.push(
       vscode.window.registerUriHandler({
         handleUri: (uri) => {
@@ -58,15 +60,15 @@ export class DocPreview {
           const url = query.get("url")
           if (url && isLoopback(url)) return void DocPreview.showUrl(url)
           const file = query.get("file")
-          if (file) void DocPreview.show(resolve(file), servers)
+          if (file) void DocPreview.show(resolve(file))
         }
       }),
-      { dispose: () => servers.forEach((server) => server.close()) }
+      { dispose: () => DocPreview.servers.forEach((server) => server.close()) }
     )
   }
 
   /** Show `file` in Simple Browser, beside the editor, serving its git root first if need be. */
-  static async show(file: string, servers: Server[]): Promise<void> {
+  static async show(file: string): Promise<void> {
     if (!existsSync(file)) {
       void vscode.window.showErrorMessage(`Spell doc preview:  no file '${file}'.`)
       return
@@ -74,7 +76,7 @@ export class DocPreview {
     const root = gitRoot(file)
     let port = DocPreview.ports.get(root)
     if (!port) {
-      port = serve(root, servers)
+      port = serve(root, DocPreview.servers)
       DocPreview.ports.set(root, port)
     }
     const path = file.slice(root.length).split(sep).map(encodeURIComponent).join("/")

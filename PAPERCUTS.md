@@ -846,6 +846,27 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   window ON the worktree (`code -n <worktree>`), then the extension's link `open
   "vscode://anthropic.claude-code/open?session=<id>"`;  or `cd <worktree> && claude --resume <id>`.  `/worktrees`
   (`~/.claude/skills/worktrees/`) says which session runs where. · ui
+- 2026-10-01 · Why sessions go missing from the VS Code Claude panel (extension 2.1.287, read from its source):  the
+  list shows ONLY sessions filed under the window's FIRST folder, exact path (no subfolders, parents or worktrees;
+  extra folders of a multi-root window don't count), and a session's file MOVES with it:  `EnterWorktree` files it
+  under the worktree's folder until `ExitWorktree`.  So a session in a worktree vanishes from the window that started
+  it, and is orphaned if it never exits.  `code --add` can't help (not the first folder), and the extension's own
+  "Create Worktree" opens a NEW window.  `vscode://` links (session open, `yarn plan-doc open`) go to whichever window
+  is focused. · Find live ones with `/worktrees`;  open a window whose first folder is the session's folder.  A
+  worktree made by a `WorktreeCreate` hook keeps the session filed where it started (verified, CLI 2.1.287, even for
+  a session that never leaves its worktree).  FIXED 2026-10-01:  windows from `packages/<pkg>/<pkg>.code-workspace`
+  (repo root first), the hook `.claude/hooks/worktree.mjs`, `yarn window add` -- root `AGENTS.md` "Worktrees". · tooling
+- 2026-10-01 · On a worktree made by a `WorktreeCreate` hook, `ExitWorktree` `action: "remove"` refuses ("Could not
+  verify worktree state ... Refusing to remove without explicit confirmation") and the `WorktreeRemove` hook never
+  runs;  with `discard_changes: true` it runs the hook, but Claude leaves the BRANCH (the hook owns it).  The hook's
+  stdin is `{ name, cwd, session_id, transcript_path }` -- not the docs' `worktree_path` / `branch`. · Leave with
+  `keep`;  the remove hook decides about the branch. · tooling
+- 2026-10-01 · Lost the `/isolate doc-template` session (`c0f54984`) again:  its `code --add .` was the window's first
+  extra folder, so VS Code restarted its extensions and killed the command (exit 137) and the session with it.  Also,
+  built-in `EnterWorktree` (no `WorktreeCreate` hook loaded yet:  the session predated it) branched from
+  `origin/main` (`bec84199`), 21 commits behind local `main`. · `cd .claude/worktrees/doc-template && claude --resume
+  c0f54984`, then `git merge main` in the worktree.  The hook (`.claude/hooks/worktree.mjs`) branches from local
+  `main`, once a session starts with it registered. · tooling
 
 ## cli
 
@@ -904,3 +925,8 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   FIRST on a Node process's `PATH`;  the terminal finds the current native install in `~/.local/bin`. · Run the
   NEWEST `claude` on `PATH` or in the installers' folders, by absolute path (`goals/_tools/launch.js`
   `claudePath()`).  Or remove the stale one:  `npm uninstall -g @anthropic-ai/claude-code` under Volta's Node. · goals
+- 2026-10-01 · `F="a.ts b.ts"; oxfmt --check $F` said "Expected at least one target file" and `oxlint $F` "No files
+  found to lint" (exit 0!):  the Bash tool's shell is zsh, which does NOT word-split an unquoted `$F`, so both got
+  ONE path with a space in it.  Also, `oxlint` prints NOTHING on a clean run unless given `--format=default`, so a
+  silent exit 0 doesn't prove it linted anything. · An array, `F=(a.ts b.ts); oxlint "${F[@]}"`, and
+  `oxlint --format=default` to see "Found 0 warnings ... on N files". · tooling
