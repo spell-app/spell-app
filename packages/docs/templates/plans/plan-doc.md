@@ -26,8 +26,8 @@ phase is, else the next phase (grey).
 
 | Section | id | What |
 |---|---|---|
-| 1. Overview | `#overview` | 2-sentence summary (`p.plan-summary lede`), the prompt that started the plan (`blockquote.plan-prompt`), then the substance in numbered sub-sections (`#o1` "1.1 Structure" ...):  becomes durable docs |
-| 2. Phases | `#phases` | progress bar, then one sub-section per phase (`#p1` ...):  goal, files, verify |
+| 1. Overview | `#overview` | 2-sentence summary (`p.plan-summary lede`), the prompt that started the plan (`blockquote.plan-prompt`), the total estimate (`p.plan-estimate`, written by the script), then the substance in numbered sub-sections (`#o1` "1.1 Structure" ...):  becomes durable docs |
+| 2. Phases | `#phases` | progress bar, then one sub-section per phase (`#p1` ...):  goal, files, verify, estimate |
 | 3. Questions & Decisions | `#decisions` | open questions first (waiting on the user;  each also asked with AskUserQuestion), then what was decided and why:  settled unless new facts arrive.  `decide` answers a question:  the decision goes at the end, the struck question just above it |
 | 4. Caveats | `#caveats` | limits and risks we accept |
 | 5. Todos | `#todos` | later work that isn't a caveat or an issue |
@@ -86,9 +86,21 @@ Phase section (in `#phases`, after `<ui-progress class="plan-progress">`:  `valu
     <ui-item icon="bullseye"><b>Goal:</b>  one line</ui-item>
     <ui-item icon="folder"><b>Files:</b>  what changes</ui-item>
     <ui-item icon="flask"><b>Verify:</b>  how we know it worked</ui-item>
+    <ui-item icon="clock"><b>Estimate:</b>  1-2h</ui-item>
   </ui-list>
 </ui-section>
 ```
+
+- Estimate:  wall-clock time for Claude to do the phase, agents included, Owen's review not.  `30m`, `2h`, `1h30m`,
+  or a range, `1-2h`.  `yarn plan-doc estimate <name> <N> "..."` changes it.
+- The total, in the Overview below the summary and the prompt:
+
+  ```html
+  <p class="plan-estimate"><b>Estimate:</b>  4h-5h 30m in all, 2h-3h left (P5 not estimated)</p>
+  ```
+
+  every phase's estimate added up, and the phases not done;  rewritten whenever a phase is added, estimated or
+  changes status.  An estimate that won't parse is named as not counted.
 
 - the status icon (`slot="icon"`):  `todo` -> `circle outline` grey, `active` -> `circle half stroke` orange,
   `done` -> `circle check` green;  it shows in the contents sidebar too

@@ -72,15 +72,18 @@ When the session already has work under way ("make this a plan doc"), carry it o
    - Why here:  plan mode allows editing ONLY the harness plan file.
 3. `EnterPlanMode`.  Draft the plan in the harness plan file, in the plan doc's shape:
    1. Summary:  2 sentences
-   2. Phases:  `P1 · Short Name`, 2-4 words each, so "start P2" is unambiguous;  each with goal, files, verify.
-      The LAST phase is always `Doc Review`.
-   3. Overview:  numbered sections (structure, code, flows):  what will become durable docs
+   2. Phases:  `P1 · Short Name`, 2-4 words each, so "start P2" is unambiguous;  each with goal, files, verify,
+      estimate (wall-clock for Claude, agents included, review not:  `30m`, `2h`, `1-2h`).  The LAST phase is
+      always `Doc Review`.
+   3. Overview:  the total estimate, then numbered sections (structure, code, flows):  what will become durable
+      docs
    4. Caveats, issues, todos, decisions (what + why), open questions (the doc's ids:  `Q1` ...)
 4. Ask the open questions with AskUserQuestion (labels matching the doc's) before ExitPlanMode.
 
 ## 4. Fill the doc (right after ExitPlanMode is approved)
 
-- `yarn plan-doc add-phase <name> "Short Name" --goal "..." --files "..." --verify "..."` per phase, in order
+- `yarn plan-doc add-phase <name> "Short Name" --goal "..." --files "..." --verify "..." --estimate "1-2h"` per
+  phase, in order:  the Overview's total (`p.plan-estimate`) follows by itself
 - `yarn plan-doc add <name> decision|caveat|issue|todo|question "title" [--details "<p>...</p>"]` per item
 - Questions answered in "3. Plan", the agents one included:  `decide <name> Q<n> "..."`
 - Hand-write `p.plan-summary`;  bring the Overview (written in "3. Plan") in line with the approved plan, nested in
@@ -134,7 +137,8 @@ When the session already has work under way ("make this a plan doc"), carry it o
 
 ```
 new <name> [--title "Title"] [--prompt "..." | --prompt-file f]   create from the template, update the docs index
-add-phase <name> "Short Name" [--goal ..] [--files ..] [--verify ..]
+add-phase <name> "Short Name" [--goal ..] [--files ..] [--verify ..] [--estimate 2h]
+estimate <name> <N> "1-2h"                          change a phase's estimate;  the Overview's total follows
 phase <name> <N> todo|active|done [--no-open]       done drops UPDATE markers;  reloads the VS Code tab
 add <name> question|caveat|issue|todo|decision "title" [--details "<p>html</p>"]   prints the id (C3)
 decide <name> <Q id> "decision" [--details html]   answer a question:  prints the decision's id (D7)
