@@ -12,15 +12,6 @@ import type { UIT } from "$/ui"
  * - `import type` from `$/ui`:  makes `tsc` check `@spell-app/ui`'s Solid source under the app's `tsconfig.json`.
  */
 
-/** `<ui-button>` for JSX, until the app's `<ui-*>` types land (P6). */
-declare module "@solidjs/web/types/jsx.js" {
-  namespace JSX {
-    interface IntrinsicElements {
-      "ui-button": HTMLAttributes<HTMLElement> & { primary?: boolean | "" }
-    }
-  }
-}
-
 /** A Solid component around a `<ui-button>`:  its label from a prop, read where used. */
 function SaveButton(props: { label: string }) {
   return <ui-button primary="">{props.label}</ui-button>

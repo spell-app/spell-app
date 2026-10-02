@@ -33,7 +33,7 @@ export function appProjects({
       }
     },
     {
-      ...appConfig(),
+      ...browserConfig(),
       ...(root && { root }),
       test: {
         name: `${prefix}browser`,
@@ -54,3 +54,19 @@ export default defineConfig({
     projects: appProjects()
   }
 })
+
+/**
+ * `appConfig()` for the `browser` project, with React and Solid pre-bundled up front.
+ * - Without it, the first run on a fresh cache finds them mid-run, re-optimizes and RELOADS:  a test file then
+ *   imports a second React (`Cannot read properties of null (reading 'useRef')`).
+ */
+function browserConfig() {
+  const config = appConfig()
+  return {
+    ...config,
+    optimizeDeps: {
+      ...config.optimizeDeps,
+      include: ["react", "react-dom", "react-dom/client", "solid-js", "@solidjs/web"]
+    }
+  }
+}
