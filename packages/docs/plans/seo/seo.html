@@ -1,0 +1,792 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SEO · Static Server Render</title>
+    <meta
+      name="description"
+      content="Plan doc:  server-render ui-* pages to static light-DOM HTML for SEO, no shadow DOM, no JS."
+    />
+    <link rel="stylesheet" href="../../_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../_assets/plan-doc.css" />
+  </head>
+  <body class="spell-doc-page plan-doc" data-plan="seo">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../../index.html" target="src-packages-docs-index-html"
+            >Docs</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section href="../../index.html#plans" target="src-packages-docs-index-html"
+            >Plans</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section active>SEO · Static Server Render</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <ui-sticky class="spell-h1"
+          ><header class="spell-page-head">
+            <h1>SEO · Static Server Render</h1>
+            <span class="plan-step"
+              ><ui-label basic color="grey" icon="circle outline" href="#p1"
+                >next: P1 · Server Render Spike</ui-label
+              ></span
+            >
+          </header></ui-sticky
+        >
+        <ui-list class="plan-meta">
+          <ui-item icon="code branch">Plan doc for <code>/plan-doc seo</code>, branch <code>seo</code></ui-item>
+          <ui-item icon="folder"
+            >Worktree:
+            <a href="../../../../" target="src-"
+              ><code>/Users/owen/www/spell-app/spell-app/.claude/worktrees/seo</code></a
+            ></ui-item
+          >
+          <ui-item icon="calendar"
+            >Started <time id="plan-started">2026-10-02</time>, updated
+            <time id="plan-updated">2026-10-02</time></ui-item
+          >
+        </ui-list>
+
+        <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
+          <ui-icon slot="icon" name="lightbulb"></ui-icon>
+          <p class="plan-summary lede">
+            Server-render pages of <code>ui-*</code> elements in node (Solid 2 <code>renderToString</code>) into plain
+            light-DOM HTML plus one stylesheet: no shadow DOM, no JS, interactive parts present but hidden, dialogs,
+            click popups and accordions opening natively. For crawlers and no-JS readers: each host is replaced by its
+            rendered root, and CSS stays isolated with <code>@scope</code>.
+          </p>
+          <blockquote class="plan-prompt">
+            <p>/doc-plan seo</p>
+            <p>
+              How hard would it be to get spell/ui components to have a "render statically, no shadow dom" for SEO
+              pages?
+            </p>
+            <p>Interactive functionality (tooltips, dropdowns, modals) would render, but hidden.</p>
+            <p>
+              Ideeally we'd have very minimal functionality. e.g. a button that shows a modal would open the modal with
+              CSS somehow.
+            </p>
+          </blockquote>
+          <ui-section id="o1" header="1.1 Pipeline" sticky collapsible dividing>
+            <p><code>spell static page.html</code>, in order:</p>
+            <ui-steps class="spell-steps" ordered vertical size="small">
+              <ui-step
+                header="Parse"
+                description="linkedom reads the page;  every ui-* element gets a server host:  attributes through the fork's converters, a parent / children view, a state slot"
+              ></ui-step>
+              <ui-step
+                header="Build controllers, owners first"
+                description="items need their list, tab buttons their panes, a section's heading level its parent:  every controller exists before any renders"
+              ></ui-step>
+              <ui-step
+                header="Render"
+                description="renderToString per element (Solid compiled with generate: ssr), against a server UI runtime:  English texts, page-wide ids, browser.supports all false"
+              ></ui-step>
+              <ui-step
+                header="Flatten"
+                description="host -> its root;  slots -> the assigned children;  :state() -> classes (in-card);  internals ARIA -> attributes;  element refs -> ids;  list items in <li>;  data-ui on each root"
+              ></ui-step>
+              <ui-step
+                header="Stylesheet"
+                description="component sheets rewritten for light DOM, each wrapped in @scope;  page CSS layered before ui"
+              ></ui-step>
+            </ui-steps>
+            <ui-message state="info" size="small" header="Static pages don't load the elements">
+              <p>
+                An upgrade would treat the flattened markup as slotted content and show it twice (<a href="#c4">C4</a>).
+              </p>
+            </ui-message>
+          </ui-section>
+
+          <ui-section id="o2" header="1.2 Why a Solid server render" sticky collapsible dividing>
+            <p>Three ways to get flattened HTML were costed (<a href="#d2">D2</a>):</p>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Option</th>
+                    <th>Needs</th>
+                    <th>Per request</th>
+                    <th>Fidelity</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><b>Solid server render</b> (chosen)</td>
+                    <td>fork server path, runtime shim, tree driver, guards</td>
+                    <td class="yes positive">yes</td>
+                    <td>exact, once each family works</td>
+                  </tr>
+                  <tr>
+                    <td>Simulated DOM (linkedom / happy-dom)</td>
+                    <td>patch gaps: no <code>ElementInternals</code>, <code>CSSStyleSheet</code>, custom states</td>
+                    <td class="meh warning">slow</td>
+                    <td>depends on the fake DOM</td>
+                  </tr>
+                  <tr>
+                    <td>Browser prerender (Playwright)</td>
+                    <td>headless Chrome at build</td>
+                    <td class="no negative">no</td>
+                    <td>exact</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <h4 id="o2-blockers">What the server render must fix</h4>
+            <ul>
+              <li>
+                today's probe (<a
+                  href="../../../ui/test/ssr.ssr.test.tsx"
+                  target="src-packages-ui-test-ssr-ssr-test-tsx"
+                  ><code>packages/ui/test/ssr.ssr.test.tsx</code></a
+                >) passes only because its stub host has no children, parent or internals
+              </li>
+              <li>
+                fork (<a href="../../../solid-element/" target="src-packages-solid-element"
+                  ><code>packages/solid-element</code></a
+                >): no server path; <code>customElements</code>, <code>attachInternals</code>,
+                <code>attachShadow</code>, <code>insert</code> all browser-only; hooks throw without an element in
+                context
+              </li>
+              <li>
+                unguarded hooks: <code>PartContext</code> <code>onConnect</code> (34 tags), <code>FormElement</code>
+                <code>onFormReset</code> (8 families)
+              </li>
+              <li>
+                <code>SlotContent</code> uses <code>Element</code> / <code>Node</code> globals: crashes on any host with
+                children
+              </li>
+              <li>
+                <code>UI</code> runtime won't construct in node (<code>new CSSStyleSheet()</code>); ~25 families call
+                <code>text()</code>, <code>UI.ids</code>, <code>UI.i18n</code> or <code>UI.browser</code> while
+                rendering
+              </li>
+              <li>
+                <code>isServer</code> short-circuits that EMPTY output today: accordion panels, tab buttons, card
+                slotted parts, table rows
+              </li>
+              <li>icons: async packs + <code>DOMParser</code>; on the server, empty boxes</li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="o3" header="1.3 Replace host with root" sticky collapsible dividing>
+            <p>
+              Each host gives way to its rendered root, light children spliced in where the slot was (<a href="#d3"
+                >D3</a
+              >). Most hosts are already <code>display: contents</code>, so the box that lays out doesn't change.
+            </p>
+            <ui-accordion class="spell-code" styled open="0"
+              ><ui-title>Element markup -&gt; static output · 10 lines</ui-title
+              ><ui-content>
+                <pre><code class="language-html">&lt;ui-cards&gt;
+  &lt;ui-card header="Spell" meta="2026"&gt;&lt;p&gt;Words that run.&lt;/p&gt;&lt;/ui-card&gt;
+&lt;/ui-cards&gt;
+
+&lt;ol class="ui cards" role="list" data-ui="cards"&gt;
+  &lt;li&gt;&lt;article class="ui card" data-ui="card"&gt;
+    &lt;div class="content in-card"&gt;&lt;div class="header"&gt;Spell&lt;/div&gt;&lt;div class="meta"&gt;2026&lt;/div&gt;
+      &lt;p&gt;Words that run.&lt;/p&gt;&lt;/div&gt;
+  &lt;/article&gt;&lt;/li&gt;
+&lt;/ol&gt;</code></pre>
+              </ui-content></ui-accordion
+            >
+            <ul>
+              <li>
+                <b>clean</b> (~40 of 55): output == the family's class-grammar <code>examples/*.html</code>, which the
+                <code>ui-*.css.test.ts</code> tests already cover
+              </li>
+              <li>
+                <b>list items</b>: card in cards, feed event, list item, step wrap in <code>&lt;li&gt;</code> (<a
+                  href="#d4"
+                  >D4</a
+                >)
+              </li>
+              <li><b>host is the box</b>: popup, shape side; the root takes the box and state classes</li>
+              <li>
+                <b>special</b>: breadcrumb section -&gt; <code>&lt;li&gt;</code>; sticky drops its sentinels; unowned
+                item unwraps; dropdown / select drop light items and render rows; accordion pairs its children; form
+                merges into <code>&lt;form class="ui form"&gt;</code>; <code>ui-root</code> becomes a theme wrapper
+              </li>
+              <li>
+                <b>attributes move</b>: <code>id</code>, <code>class</code>, <code>style</code>, <code>title</code>,
+                <code>lang</code>, <code>data-*</code>, <code>aria-*</code> to the root; form controls' <code>id</code>,
+                <code>name</code>, <code>value</code> to the inner <code>&lt;input&gt;</code>; internals
+                <code>role</code> / <code>aria-*</code> written out
+              </li>
+            </ul>
+            <ui-accordion class="spell-aside" styled
+              ><ui-title>Aside: why not keep the tags</ui-title
+              ><ui-content
+                ><p>
+                  <a href="../../../ui/src/styles/native.css" target="src-packages-ui-src-styles-native-css"
+                    ><code>native.css</code></a
+                  >
+                  hides undefined <code>ui-root</code> (<code>visibility: hidden</code> whenever scripting is on, as for
+                  Googlebot) and <code>ui-popup</code> / <code>ui-modal</code>. Never-registered kept tags would hide
+                  the page.
+                </p></ui-content
+              ></ui-accordion
+            >
+          </ui-section>
+
+          <ui-section id="o4" header="1.4 CSS isolation" sticky collapsible dividing>
+            <p>Without shadow DOM, CSS leaks two ways:</p>
+            <h4 id="o4-nested">Component into nested component (<a href="#d5">D5</a>)</h4>
+            <ul>
+              <li>
+                <code>.ui.menu .item</code> would reach a nested dropdown's rows; leaky selectors: menu 44, list 34,
+                dropdown 34, form 22, message 21, breadcrumb 14, comment 9
+              </li>
+              <li>
+                fix: <code>data-ui="&lt;noun&gt;"</code> on each root, each sheet wrapped in <code>@scope</code> from
+                its root down to, not into, other components
+              </li>
+            </ul>
+            <ui-accordion class="spell-code" styled open="0"
+              ><ui-title>Scoped sheet · 3 lines</ui-title
+              ><ui-content>
+                <pre><code class="language-css">@scope ([data-ui="menu"]) to ([data-ui] &gt; *) {
+  /* ui-menu.css, rules unchanged */
+}</code></pre>
+              </ui-content></ui-accordion
+            >
+            <h4 id="o4-page">Page into component (<a href="#d6">D6</a>)</h4>
+            <ul>
+              <li>
+                unlayered page CSS beats every <code>ui.*</code> layer: page <code>a { color }</code> would recolor a
+                menu's <code>&lt;a class="item"&gt;</code>
+              </li>
+              <li>fix: <code>@layer page, ui;</code>: component wins conflicts, page fills gaps</li>
+            </ul>
+            <h4 id="o4-rest">Rest of the rewrite</h4>
+            <ul>
+              <li>
+                ~376 <code>:host</code> and 132 <code>::slotted</code> rules already have class-grammar twins: drop the
+                shadow half
+              </li>
+              <li>
+                ~224 <code>:host</code> + 20 <code>::slotted</code> without twins: rewrite (box rules drop; position
+                rules use the real DOM)
+              </li>
+              <li><code>:state(in-card)</code> -&gt; <code>.in-card</code> (parts' documented static form)</li>
+              <li>
+                token resets on host / <code>&lt;slot&gt;</code> -&gt; root / <code>.ui.X &gt; *</code> in an early
+                layer, so colors and scale don't leak into nested components
+              </li>
+              <li><code>[hidden] { display: none }</code>: component <code>display</code> rules beat the browser's</li>
+              <li>
+                inherited properties already cross shadow boundaries: no change; app <code>::part()</code> /
+                <code>:state()</code> CSS doesn't apply (<a href="#c3">C3</a>)
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="o5" header="1.5 No-JS interaction" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Family</th>
+                    <th>Static, no JS</th>
+                    <th>How</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>modal, flyout, page dimmer</td>
+                    <td class="yes positive">opens</td>
+                    <td>
+                      id on <code>&lt;dialog&gt;</code>, native
+                      <code>&lt;button commandfor command="show-modal"&gt;</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>click popup</td>
+                    <td class="yes positive">opens</td>
+                    <td><code>popover</code> + <code>popovertarget</code> (implicit anchor)</td>
+                  </tr>
+                  <tr>
+                    <td>accordion</td>
+                    <td class="yes positive">works</td>
+                    <td><code>&lt;details name&gt;</code> (exclusive too)</td>
+                  </tr>
+                  <tr>
+                    <td>select, checkbox, radio</td>
+                    <td class="yes positive">works</td>
+                    <td>native controls</td>
+                  </tr>
+                  <tr>
+                    <td>sticky, progress, reveal</td>
+                    <td class="yes positive">works</td>
+                    <td>CSS</td>
+                  </tr>
+                  <tr>
+                    <td>sidebar</td>
+                    <td class="meh warning">overlay only</td>
+                    <td><code>show-modal</code>; push / uncover need JS</td>
+                  </tr>
+                  <tr>
+                    <td>tabs</td>
+                    <td class="meh warning">selected pane</td>
+                    <td>others in the HTML, hidden</td>
+                  </tr>
+                  <tr>
+                    <td>hover / focus popup</td>
+                    <td class="meh warning"><code>title</code></td>
+                    <td><code>interestfor</code> later (<a href="#t1">T1</a>)</td>
+                  </tr>
+                  <tr>
+                    <td>dropdown</td>
+                    <td class="meh warning">menu opens</td>
+                    <td>rows render; choosing needs JS</td>
+                  </tr>
+                  <tr>
+                    <td>calendar, search, shape, slider, element dimmer, nag close</td>
+                    <td class="no negative">static</td>
+                    <td>first state only (<a href="#c1">C1</a>)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <p>
+              Custom <code>--show</code> / <code>--close</code> / <code>--toggle</code> commands translate to native
+              ones; element reflection (tabs <code>aria-controls</code>, modal <code>aria-labelledby</code>) becomes id
+              attributes from one page-wide allocator.
+            </p>
+          </ui-section>
+
+          <ui-section id="o6" header="1.6 Size and effort" sticky collapsible dividing>
+            <h4 id="o6-size">Client bundles: server-only (<a href="#d8">D8</a>)</h4>
+            <ul>
+              <li>
+                <code>@spell-app/ui/server</code> (runtime shim, server host, tree driver, flattener) and the fork's
+                server helper: separate exports, never in client bundles
+              </li>
+              <li>static stylesheet: written by <code>spell static</code>, not shipped with components</li>
+              <li>
+                client code gains only <code>isServer</code> guards (a constant <code>false</code> in the browser
+                build); budget under 1 kB min+gz, <code>yarn measure</code> before / after
+              </li>
+            </ul>
+            <h4 id="o6-effort">Effort (agent hours, review on top)</h4>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Phase</th>
+                    <th class="right aligned">Hours</th>
+                    <th>Risk</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><a href="#p1">P1</a> · Server Render Spike</td>
+                    <td class="num right aligned">8-12</td>
+                    <td>fork server path, tree driver design</td>
+                  </tr>
+                  <tr>
+                    <td><a href="#p2">P2</a> · Static Stylesheet</td>
+                    <td class="num right aligned">8-14</td>
+                    <td>parity diffs across 55 families</td>
+                  </tr>
+                  <tr>
+                    <td><a href="#p3">P3</a> · All Families</td>
+                    <td class="num right aligned">16-28</td>
+                    <td>accordion, tabs, dropdown, select, forms, calendar; icons</td>
+                  </tr>
+                  <tr>
+                    <td><a href="#p4">P4</a> · No-JS Interactions</td>
+                    <td class="num right aligned">4-6</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td><a href="#p5">P5</a> · spell static Command</td>
+                    <td class="num right aligned">3-5</td>
+                    <td>Vite module runner in a child process</td>
+                  </tr>
+                  <tr>
+                    <td><a href="#p6">P6</a> · Doc Review</td>
+                    <td class="num right aligned">2-3</td>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td><b>Total</b></td>
+                    <td class="num right aligned"><b>41-68</b></td>
+                    <td>~18-30 wall-clock with up to 5 agents (<a href="#d1">D1</a>)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
+          <ui-icon slot="icon" name="layer group"></ui-icon>
+          <ui-progress class="plan-progress" value="0" total="6" bar-text="ratio" size="small" color="green"
+            >phases done</ui-progress
+          >
+
+          <ui-section
+            id="p1"
+            data-phase="1"
+            data-status="todo"
+            header="P1 · Server Render Spike"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> render button, segment, card + parts, list + items, section from a real HTML page to
+                flattened light-DOM HTML</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/solid-element/src/ (server helper), packages/ui/src/elements/ (PartContext,
+                SlotContent, UIElement, new server/), packages/ui/src/runtime/ (shim)</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> node test renders the five families; output matches their class-grammar
+                examples/*.html</ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p2"
+            data-phase="2"
+            data-status="todo"
+            header="P2 · Static Stylesheet"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> one stylesheet that styles the flattened output like the elements: postcss rewrite, @scope
+                per component, token resets, @layer page, ui</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/ui/src/server/ (stylesheet builder), packages/ui/src/styles/native.css</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> screenshot parity static vs element per example (tools/visual parity diff); nested
+                menu-in-dropdown leak test</ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section id="p3" data-phase="3" data-status="todo" header="P3 · All Families" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> every family renders on the server, easy -&gt; medium -&gt; hard; icons as inline SVG from
+                preloaded packs</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/ui/src/components/ui-*/ (guards, server branches),
+                packages/ui/src/elements/IconGlyph.ts</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> every examples/elements/*.html renders; parity screenshots; axe on static output; yarn
+                measure under 1 kB</ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p4"
+            data-phase="4"
+            data-status="todo"
+            header="P4 · No-JS Interactions"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> dialogs via native command=show-modal, click popups via popover + popovertarget, accordion
+                details, custom commands -&gt; native, page-unique ids</ui-item
+              ><ui-item icon="folder"><b>Files:</b> packages/ui/src/server/ (flattener)</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> Playwright with JS disabled: open / close each</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p5"
+            data-phase="5"
+            data-status="todo"
+            header="P5 · spell static Command"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> spell static
+                <in.html>
+                  [-o out.html] in packages/cli, rendering in a child process through Vite's module runner; try on one
+                  docs page</in.html
+                ></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/cli/src/commands/staticCommand.ts, packages/cli/src/main.ts,
+                packages/cli/src/runner/</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> page renders with JS off; view-source has all text; cli test on a fixture page</ui-item
+              ></ui-list
+            >
+          </ui-section>
+          <ui-section id="p6" data-phase="6" data-status="todo" header="P6 · Doc Review" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> prune the plan; durable doc from Overview + decisions + caveats</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/docs/seo.html (or seo/), packages/docs/plans/seo/seo.html</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> yarn plan-doc check seo; doc-links --check; check-spell</ui-item
+              ></ui-list
+            >
+          </ui-section></ui-section
+        >
+
+        <ui-section id="decisions" header="3. Questions & Decisions" sticky collapsible dividing>
+          <ui-icon slot="icon" name="gavel"></ui-icon>
+          <p class="meta">
+            Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why:
+            settled, don't re-argue without new facts. An answered question sits just above its decision.
+          </p>
+          <ui-list class="plan-items" data-kind="decision" divided relaxed
+            ><ui-item id="d1" data-status="decided"
+              ><a class="plan-id" href="#d1">D1</a> <span class="plan-title">Agents: up to 5</span></ui-item
+            ><ui-item id="d2" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d2">D2</a>
+                  <span class="plan-title">Solid server render, not simulated DOM or browser prerender</span></ui-title
+                ><ui-content
+                  ><p>
+                    Chosen after costing (<a href="#o2">1.2</a>): biggest job, but no browser at build or request time,
+                    renders per request from a node server, and fixes ui's SSR for everyone.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d3" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d3">D3</a>
+                  <span class="plan-title">Replace each host with its rendered root</span></ui-title
+                ><ui-content
+                  ><p>
+                    ~40 of 55 families replace cleanly, output == their class-grammar examples (already CSS-tested).
+                    Keeping hosts would hide the page:
+                    <a href="../../../ui/src/styles/native.css" target="src-packages-ui-src-styles-native-css"
+                      ><code>native.css</code></a
+                    >
+                    hides undefined <code>ui-root</code> / <code>ui-popup</code> / <code>ui-modal</code>. See
+                    <a href="#o3">1.3</a>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d4" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d4">D4</a>
+                  <span class="plan-title">List-item families wrap in &lt;li&gt;</span></ui-title
+                ><ui-content
+                  ><p>
+                    card in cards, feed event, list item, step: their host's <code>role=listitem</code> has no valid
+                    place on an <code>&lt;article&gt;</code> / <code>&lt;a&gt;</code> /
+                    <code>&lt;button&gt;</code> root, and <code>ul &gt; div</code> is invalid. Costs CSS like
+                    <code>.ui.cards &gt; li &gt; .card</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d5" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d5">D5</a>
+                  <span class="plan-title">Nested isolation: data-ui on roots + @scope</span></ui-title
+                ><ui-content
+                  ><p>
+                    Flattener marks each component root <code>data-ui="&lt;noun&gt;"</code>; each sheet wrapped
+                    <code>@scope ([data-ui="menu"]) to ([data-ui] &gt; *)</code>. No new browser floor: anchor
+                    positioning already needs Firefox 147 / Safari 26, and
+                    <a href="../../../ui/docs/plan.md" target="src-packages-ui-docs-plan-md"
+                      ><code>packages/ui/docs/plan.md</code></a
+                    >
+                    lists <code>@scope</code> as assume-present. Vue-style per-element attributes not needed. See
+                    <a href="#o4">1.4</a>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d6" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d6">D6</a>
+                  <span class="plan-title">Page CSS in a layer before ui</span></ui-title
+                ><ui-content
+                  ><p>
+                    <code>@layer page, ui;</code>: component wins conflicts, page fills gaps. Unlayered page CSS would
+                    beat every <code>ui.*</code> layer.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d7" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d7">D7</a>
+                  <span class="plan-title">spell CLI command, not a yarn script</span></ui-title
+                ><ui-content
+                  ><p>
+                    <code>spell static</code> in
+                    <a href="../../../cli/" target="src-packages-cli"><code>packages/cli</code></a
+                    >; yarn only wraps the CLI.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d8" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d8">D8</a>
+                  <span class="plan-title">Server code stays out of client bundles</span></ui-title
+                ><ui-content
+                  ><p>
+                    Separate <code>@spell-app/ui/server</code> entry and fork server helper; client gets only
+                    <code>isServer</code> guards (dead code in the browser build). Budget under 1 kB min+gz,
+                    <code>yarn measure</code> before / after.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="caveats" header="4. Caveats" sticky collapsible dividing>
+          <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
+          <ui-list class="plan-items" data-kind="caveat" divided relaxed
+            ><ui-item id="c1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c1">C1</a>
+                  <span class="plan-title"
+                    >No zero-JS path for tabs, hover popups, dropdown choosing, calendar, search, shape, slider, element
+                    dimmer, nag close</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Tabs show the selected pane only (others in the HTML, hidden); hover / focus popups fall back to
+                    <code>title</code>. See <a href="#o5">1.5</a>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c2" data-status="open"
+              ><a class="plan-id" href="#c2">C2</a>
+              <span class="plan-title"
+                >Server can't know: tabs history hash, nag dismissal, measured sizes</span
+              ></ui-item
+            ><ui-item id="c3" data-status="open"
+              ><a class="plan-id" href="#c3">C3</a>
+              <span class="plan-title">App CSS using ::part() / :state() doesn't apply to static output</span></ui-item
+            ><ui-item id="c4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c4">C4</a>
+                  <span class="plan-title">Static pages must not load the elements</span></ui-title
+                ><ui-content
+                  ><p>
+                    An upgrade would treat the flattened markup as slotted content and show it twice; the fork only
+                    clears declarative shadow roots.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c5" data-status="open"
+              ><a class="plan-id" href="#c5">C5</a>
+              <span class="plan-title">closedby=any (backdrop close) not in Safari</span></ui-item
+            ><ui-item id="c6" data-status="open"
+              ><a class="plan-id" href="#c6">C6</a>
+              <span class="plan-title">ui pins Solid rc.11; spell is on rc.13</span></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="todos" header="5. Todos" sticky collapsible dividing>
+          <ui-icon slot="icon" name="list check"></ui-icon>
+          <p class="meta">For later: not caveats, not issues.</p>
+          <ui-list class="plan-items" data-kind="todo" divided relaxed
+            ><ui-item id="t1" data-status="open"
+              ><a class="plan-id" href="#t1">T1</a>
+              <span class="plan-title">Hover tooltips via interestfor once it ships beyond Chrome</span></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="issues" header="6. Issues" sticky collapsible dividing>
+          <ui-icon slot="icon" name="bug"></ui-icon>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="log" header="7. Log" sticky collapsible dividing>
+          <ui-icon slot="icon" name="clock rotate left"></ui-icon>
+          <p class="meta">Plan changes, oldest first, local time.</p>
+          <ui-feed class="plan-log" size="small">
+            <ui-event icon="pen to square">
+              <ui-content>
+                <ui-summary
+                  ><ui-date><time datetime="2026-10-02T08:27-04:00">2026-10-02 08:27</time></ui-date> plan doc
+                  created</ui-summary
+                >
+              </ui-content>
+            </ui-event>
+            <ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T09:29-04:00">2026-10-02 09:29</time></ui-date> P1 added: Server
+                  Render Spike</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T09:29-04:00">2026-10-02 09:29</time></ui-date> P2 added: Static
+                  Stylesheet</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T09:29-04:00">2026-10-02 09:29</time></ui-date> P3 added: All
+                  Families</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T09:29-04:00">2026-10-02 09:29</time></ui-date> P4 added: No-JS
+                  Interactions</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T09:29-04:00">2026-10-02 09:29</time></ui-date> P5 added: spell
+                  static Command</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T09:29-04:00">2026-10-02 09:29</time></ui-date> P6 added: Doc
+                  Review</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T09:31-04:00">2026-10-02 09:31</time></ui-date> plan approved: 6
+                  phases, D1-D8, C1-C6, T1; Overview 1.1-1.6</ui-summary
+                ></ui-content
+              ></ui-event
+            ></ui-feed
+          >
+        </ui-section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../_assets/spell-ui.js"></script>
+  </body>
+</html>
