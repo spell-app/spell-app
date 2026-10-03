@@ -31,8 +31,12 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
   calls are NOT here, they're node-only code in `$/spell/node/...` (`project-utils`, `file-utils`, `disk-fetch` ...).
 - `index.html`, `demo/`, `static/` and the `vite*.config.ts` files are here too.
 - Scripts run HERE (`cd packages/app`):
-  - `yarn start` -- `spell serve --headless`:  the editor (port 3000, vite) and the page server with the API on it
-    (`src/server/appRoutes.ts`, a route module;  see `packages/server`).  `yarn stop` stops vite.
+  - The editor (vite, port 3000 if free, else any) is the PAGE SERVER's child:  `src/server/appRoutes.ts` (a route
+    module;  see `packages/server`) starts it with `EditorServer` once the page server listens, and stops it with
+    the page server.  So `yarn server` (repo root) runs the API AND the editor;  its URL is in
+    `<root>/.spell-server.editor.json`, its output in `.spell-server.editor.log`;  `SPELL_NO_EDITOR=1` skips it.
+  - `yarn start` -- restarts the page server, then `spell serve --headless` (waits for the editor, prints its URL).
+    `yarn stop` stops vite (an orphan, or the page server's:  then restart the page server).
     `yarn start:server` / `start:server:prod` still run the API alone, on port 3001 (`src/server/index.ts`).
   - `yarn build` -- the app.  `yarn build:runner` -- `dist-runner/` (VS Code's "Run Project" webview).
     `yarn build:element` -- `dist-element/` (`<spell-app>` and `<spell-editor>`).
