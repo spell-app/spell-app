@@ -501,7 +501,10 @@ export abstract class UIElement<V extends ComponentVocabulary = ComponentVocabul
 
     /** Hand the vocabulary and its English texts to the runtime. */
     function register() {
-      UI.vocabulary.register(vocabulary)
+      // a server keeps ONE runtime on `globalThis` while Vite re-runs edited modules (a new vocabulary object for the
+      // same tag):  swap it in, as hot reload does
+      if (isServer) UI.vocabulary.replace(vocabulary)
+      else UI.vocabulary.register(vocabulary)
       const texts: Record<string, string> = {}
       for (const { key, text } of vocabulary.texts) texts[key] = text
       UI.i18n.registerDefaults(texts, vocabulary.tag)

@@ -97,13 +97,6 @@ export const CHECKBOX = "checkbox"
 /** `UI.ids` prefix. */
 export const ID_PREFIX = "ui-checkbox"
 
-/**
- * Marks the NATIVE control in a static server render (`$/ui/server`), for the flattener:  the host's `id` and ARIA
- * names belong there, so a `<label for>` the host's id labels the control.
- * - TODO: one shared constant (`UIT`) once `StaticFlattener` reads it (seo plan, P3).
- */
-export const STATIC_CONTROL = "data-ui-control"
-
 /** `Node.DOCUMENT_POSITION_FOLLOWING`, without the `Node` global:  node has none (static server render). */
 export const DOCUMENT_POSITION_FOLLOWING = 4
 

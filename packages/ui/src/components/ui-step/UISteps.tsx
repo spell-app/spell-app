@@ -24,8 +24,16 @@ export class UISteps extends UIElement<typeof stepsVocabulary> {
   @proto static Fallback = StepFallback
   @proto static delegatesFocus = false
 
+  /**
+   * `steps` always;  `block` while the root is block-level (`fluid`, or `circular` and not `vertical`), `circular`
+   * while circular.
+   * - Why:  the host is a size container (its own formatting context), so a block-level root's outer margin sits on
+   *   the HOST to collapse with the content above, as class grammar's does;  an inline-flex root's never collapses,
+   *   so it stays on the root (`ui-step.css`).
+   */
   protected hostStates() {
-    return { steps: true }
+    const circular = !!this.attrs.circular
+    return { steps: true, block: !!this.attrs.fluid || (circular && !this.attrs.vertical), circular }
   }
 
   render(): JSX.Element {

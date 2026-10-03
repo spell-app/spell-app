@@ -26,6 +26,20 @@ export type StaticFamily = {
   Class: UIElementClass
   /** Its definition under the tag it renders as. */
   definition: ElementDefinition
+  /**
+   * What its roots are marked with (`data-ui="<kind>"`):  the tag without `ui-` (`placeholder-image`).
+   * - NOT the vocabulary noun:  nouns aren't unique (`ui-image` / `ui-placeholder-image` are both `image`), and the
+   *   static stylesheet scopes each sheet by this mark.
+   */
+  kind: string
+}
+
+/**
+ * A family's optional static hook for `StaticRender.prepare()`:  load the data `html`'s render will read
+ * synchronously (`UIEmoji`:  emoji names), for the elements tagged `tag`.
+ */
+export type StaticPreload = {
+  preload(html: string, tag: string): Promise<unknown>
 }
 
 /**

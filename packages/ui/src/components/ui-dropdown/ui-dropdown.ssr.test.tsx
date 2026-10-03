@@ -43,9 +43,9 @@ describe("ui-dropdown (static render)", () => {
     )
   })
 
-  it("submits its value without JS:  one hidden input per value, the combobox marked for the flattener", () => {
+  it("submits its value without JS:  one hidden input per value, the host's id on the combobox", () => {
     const html = StaticRender.fragment(
-      `<ui-dropdown multiple selection name="skills" value="css,html">` +
+      `<ui-dropdown id="skills" multiple selection name="skills" value="css,html">` +
         `<ui-item value="css">CSS</ui-item><ui-item value="html">HTML</ui-item><ui-item value="js">JS</ui-item>` +
         `</ui-dropdown>`
     )
@@ -54,7 +54,9 @@ describe("ui-dropdown (static render)", () => {
       `<input type="hidden" name="skills" value="html">`
     ])
     expect(html).toMatch(/<span class="ui label" part="label">CSS/)
-    expect(html).toMatch(/<button [^>]*data-ui-control=""/)
+    expect(html).toMatch(/<button [^>]*id="skills"/)
+    expect(html.match(/^<div [^>]*>/)?.[0]).not.toContain(` id=`)
+    expect(html).not.toContain("data-ui-control")
   })
 
   it("renders an open dropdown's menu as a plain (non-popover) menu under its active root", () => {
@@ -63,11 +65,13 @@ describe("ui-dropdown (static render)", () => {
     expect(html.match(/<div [^>]*role="listbox"[^>]*>/)?.[0]).not.toContain("popover")
   })
 
-  it("projects a rich item's markup into its row", () => {
-    // NOTE: one element child:  text BESIDE it would be lost (the flattener's slot hand-over, see the seo plan)
+  it("projects a rich item's markup into its row, text beside its elements too", () => {
+    // the unowned item renders a `<span>` on a server, the stand-in host the row's slot receives (seo plan, I20)
     const html = StaticRender.fragment(
-      `<ui-dropdown text="Pick"><ui-item value="a"><b>Bold</b></ui-item></ui-dropdown>`
+      `<ui-dropdown text="Pick"><ui-item value="a"><b>Bold</b> one</ui-item></ui-dropdown>`
     )
-    expect(html).toMatch(/<div [^>]*role="option"[^>]*><b [^>]*>Bold<\/b><\/div>/)
+    expect(html).toMatch(
+      /<div [^>]*role="option"[^>]*><span [^>]*data-ui="item"[^>]*><b [^>]*>Bold<\/b> one<\/span><\/div>/
+    )
   })
 })

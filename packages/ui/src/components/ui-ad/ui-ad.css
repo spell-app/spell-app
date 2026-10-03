@@ -55,6 +55,10 @@
   .ui.ad:last-child {
     margin: 0;
   }
+  /* Shadow DOM:  the root is always an only child, so the HOST's position decides (as `ui-segment.css`). */
+  :host(:not(:first-child, :last-child)) > .ui.ad {
+    margin: var(--_ui-ad-margin);
+  }
   .ui.ad ::slotted(iframe),
   .ui.ad iframe {
     margin: 0;

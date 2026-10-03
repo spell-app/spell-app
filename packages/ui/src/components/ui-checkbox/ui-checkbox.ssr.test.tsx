@@ -20,9 +20,11 @@ describe("ui-checkbox (static render)", () => {
     expect(html).toMatch(/^<div [^>]*class="ui checkbox"[^>]*><input [^>]*><label [^>]*>Agree<\/label><\/div>$/)
     expect(html).toContain(`data-state="selected"`)
     const input = html.match(/<input [^>]*>/)?.[0] ?? ""
-    for (const attribute of [`type="checkbox"`, `name="terms"`, `value="yes"`, ` checked`, `data-ui-control=""`]) {
+    for (const attribute of [`type="checkbox"`, `name="terms"`, `value="yes"`, ` checked`]) {
       expect(input).toContain(attribute)
     }
+    // the flattener's mark, used and dropped
+    expect(html).not.toContain("data-ui-control")
     const id = input.match(/ id="([^"]+)"/)?.[1]
     expect(html).toContain(`<label for="${id}" part="label">`)
   })

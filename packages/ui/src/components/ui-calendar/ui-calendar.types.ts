@@ -221,13 +221,6 @@ export const DEFAULT_POSITION = "bottom left"
 /** `UI.ids` prefix. */
 export const ID_PREFIX = "ui-calendar"
 
-/**
- * Marks the field in a static server render (`$/ui/server`), for the flattener:  the host's `id` and ARIA names
- * belong there, so a `<label for>` the host's id labels the field.
- * - TODO: one shared constant (`UIT`) once `StaticFlattener` reads it (seo plan, P3).
- */
-export const STATIC_CONTROL = "data-ui-control"
-
 /** Hidden input carrying an inline calendar's value in a static server render:  `type`. */
 export const HIDDEN = "hidden"
 

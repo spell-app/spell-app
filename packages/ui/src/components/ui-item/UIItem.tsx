@@ -1,5 +1,5 @@
 import { Show, createMemo, untrack } from "solid-js"
-import { Dynamic, type JSX } from "@solidjs/web"
+import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
 import {
   Converters,
@@ -179,7 +179,7 @@ export class UIItem extends UIElement<typeof itemVocabulary> implements Conditio
   /** The slot alone (unowned), a divider, or the item box. */
   render(): JSX.Element {
     return (
-      <Show when={this.itemContext()} fallback={<slot />}>
+      <Show when={this.itemContext()} fallback={this.unowned()}>
         <Show
           when={this.attrs.type !== DIVIDER}
           fallback={<div class={DIVIDER} part={this.part("item")} role={SEPARATOR} />}
@@ -187,6 +187,23 @@ export class UIItem extends UIElement<typeof itemVocabulary> implements Conditio
           {this.box()}
         </Show>
       </Show>
+    )
+  }
+
+  /**
+   * An unowned item's render:  just its content, the bare `<slot>`.
+   * - Server render (`$/ui/server`):  wrapped in a `<span>`, the host's stand-in (`:host`'s `display: contents`
+   *   reaches it as the root).  Why:  the flattener hands a host's `slot` to its render's FIRST element only, so a
+   *   rich dropdown item (`<b>Bold</b> one`, assigned to its row's named slot) would lose the text beside its
+   *   element (seo plan, I20).
+   */
+  private unowned(): JSX.Element {
+    return isServer ? (
+      <span>
+        <slot />
+      </span>
+    ) : (
+      <slot />
     )
   }
 

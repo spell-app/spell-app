@@ -6,10 +6,12 @@ import { parseHTML } from "linkedom"
 
 import { ElementDefinition, UIElement, type UIElementClass, type UIHost } from "$/ui/elements"
 
-import type { StaticFamily, StaticSheetUsage, StaticView } from "./server.types"
+import type { StaticFamily, StaticPreload, StaticSheetUsage, StaticView } from "./server.types"
 import { ServerHost } from "./ServerHost"
 import { ServerRuntime } from "./ServerRuntime"
+import type { ServerIds } from "./ServerIds"
 import { StaticFlattener } from "./StaticFlattener"
+import { StaticInteractions } from "./StaticInteractions"
 import { StaticPageStyles } from "./StaticPageStyles"
 
 /****************
@@ -21,7 +23,8 @@ import { StaticPageStyles } from "./StaticPageStyles"
  *   2. build EVERY controller, in document order (owners first), before any renders:  items need their list, tab
  *      buttons their panes, a section's heading level its parent
  *   3. render each controller's view to HTML
- *   4. flatten (`StaticFlattener`):  hosts replaced by their roots, slots by their children;  then the page's own
+ *   4. flatten (`StaticFlattener`):  hosts replaced by their roots, slots by their children
+ *   5. wire what works without scripts (`StaticInteractions`:  dialogs, popovers, unique ids);  then the page's own
  *      `<style>`s are rewritten for that (`StaticPageStyles`:  `::part()`, `:state()`, `ui-*` tags)
  * - Families are opt-in (`define()`):  a `ui-*` tag without one stays as it is.
  * - NOTE: the page MUST NOT load the elements too:  an upgrade would take the flattened markup for slotted content.
@@ -29,6 +32,12 @@ import { StaticPageStyles } from "./StaticPageStyles"
 export class StaticRender {
   /** Families this render knows, by tag. */
   static readonly families = new Map<string, StaticFamily>()
+
+  /**
+   * Tags the LAST `page()` / `fragment()` rendered:  a page's stylesheet needs only their families
+   * (`StaticStylesheet.build([...lastTags].map((tag) => families.get(tag)!), sheetUsage)`).
+   */
+  static lastTags: ReadonlySet<string> = new Set()
 
   /** Which sheets rendered elements adopted, and in what order, over every render so far. */
   static readonly sheetUsage: StaticSheetUsage = { users: new Map(), orders: new Map() }
@@ -44,8 +53,29 @@ export class StaticRender {
       const definition = new ElementDefinition(Class.prototype.vocabulary)
       if (StaticRender.families.has(definition.tag)) continue
       UIElement.register.call(Class, definition)
-      StaticRender.families.set(definition.tag, { Class, definition })
+      StaticRender.families.set(definition.tag, { Class, definition, kind: StaticRender.kind(definition.tag) })
     }
+  }
+
+  /** The `data-ui` mark of `tag`'s roots:  the tag without its `ui-` prefix. */
+  static kind(tag: string): string {
+    return tag.replace(/^ui-/, "")
+  }
+
+  /**
+   * Load what `html`'s render will read synchronously, before `page()` / `fragment()`:  the icon packs
+   * (`ServerRuntime.icons()`), and each defined family's own data through its optional `static preload(html, tag)`
+   * (`UIEmoji`:  the emoji names the page uses).
+   * - MUST be awaited:  data loads asynchronously, the render is synchronous.
+   */
+  static async prepare(html: string, icons?: readonly string[]): Promise<void> {
+    await ServerRuntime.icons(icons)
+    const loads: Promise<unknown>[] = []
+    for (const [tag, { Class }] of StaticRender.families) {
+      const preload = (Class as Partial<StaticPreload>).preload
+      if (typeof preload === "function" && html.includes(`<${tag}`)) loads.push(preload.call(Class, html, tag))
+    }
+    await Promise.all(loads)
   }
 
   /** Render a whole document;  returns its HTML. */
@@ -62,12 +92,15 @@ export class StaticRender {
     return document.body.innerHTML
   }
 
-  /** Steps 2-4 on a parsed `document`. */
+  /** Steps 2-5 on a parsed `document`. */
   private static render(document: Document) {
-    ServerRuntime.install()
+    const ids = ServerRuntime.install().ids as unknown as ServerIds
+    // generated ids skip the page's own, numbered from 1 per page
+    ids.reset(document)
     const elements = [...document.querySelectorAll("*")].filter((element) =>
       StaticRender.families.has(element.localName)
     )
+    StaticRender.lastTags = new Set(elements.map((element) => element.localName))
     const { hosts, dispose } = createRoot((dispose) => ({
       hosts: elements.map((element) => StaticRender.build(element)),
       dispose
@@ -87,24 +120,43 @@ export class StaticRender {
         )
       }))
       StaticFlattener.flatten(document, views)
+      StaticInteractions.wire(document, ids)
       StaticRender.rewriteStyles(document)
     } finally {
       dispose()
     }
   }
 
-  /** The page's own `<style>`s, rewritten for the flattened output (`StaticPageStyles`). */
+  /**
+   * The page's own `<style>`s, rewritten for the flattened output (`StaticPageStyles`).
+   * - A sheet that doesn't parse is left as written:  a page's broken CSS must not fail its render.
+   */
   private static rewriteStyles(document: Document) {
-    const tags = new Map([...StaticRender.families].map(([tag, { definition }]) => [tag, definition.vocabulary.noun]))
+    const tags = StaticRender.tags()
     for (const style of document.querySelectorAll("style")) {
-      style.textContent = StaticPageStyles.rewrite(style.textContent ?? "", tags)
+      try {
+        style.textContent = StaticPageStyles.rewrite(style.textContent ?? "", tags)
+      } catch {
+        // left as written
+      }
     }
+  }
+
+  /** Every defined tag => the `data-ui` kind of its roots, for `StaticPageStyles.rewrite()`. */
+  static tags(): Map<string, string> {
+    return new Map([...StaticRender.families].map(([tag, { kind }]) => [tag, kind]))
+  }
+
+  /** Forget which sheets elements adopted (`sheetUsage`), so the next stylesheet covers only what renders next. */
+  static resetUsage() {
+    StaticRender.sheetUsage.users.clear()
+    StaticRender.sheetUsage.orders.clear()
   }
 
   /** Add `host`'s adopted sheets to `sheetUsage`:  under its family's noun, and their order. */
   private static recordSheets(host: UIHost, family: StaticFamily) {
     const { users, orders } = StaticRender.sheetUsage
-    const noun = family.definition.vocabulary.noun
+    const noun = family.kind
     const names = host.controller?.sheets() ?? []
     for (const name of names) {
       let nouns = users.get(name)

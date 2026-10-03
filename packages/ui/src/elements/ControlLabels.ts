@@ -23,6 +23,9 @@ import type { FormHost } from "./FormHost"
  *   - `<label>`s added to / removed from the host's tree, and their `for` changes:  ONE observer per root node
  *     (document or shadow root), shared by every control in it (`LabelWatch`)
  *   - NOTE: `aria-labelledby` targets added later are not watched
+ * - Server render (`$/ui/server`):  read ONCE, in the constructor, from the parsed page (`serverLabels()`);
+ *   nothing is watched.  Why:  a slider thumb, a rating's radio group, an inline calendar's group can't be named by
+ *   a `<label for>` on the static page either.
  * - MUST be created under the element's owner (it creates a signal and an `onSettled`).
  */
 export class ControlLabels {
@@ -43,7 +46,8 @@ export class ControlLabels {
 
   constructor(host: FormHost) {
     this.host = host
-    this.cell = new Cell<string | undefined>(undefined)
+    // a server render (`$/ui/server`) reads the page once:  nothing changes, nothing is watched
+    this.cell = new Cell<string | undefined>(isServer ? this.compute(this.serverLabels()) : undefined)
     this.name = this.cell.get
     if (isServer) return
     onSettled(() => {
@@ -99,7 +103,26 @@ export class ControlLabels {
     }
     return [...found]
       .filter((label) => label.control === host)
-      .sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
+      .sort((a, b) => (a.compareDocumentPosition(b) & DOCUMENT_POSITION_FOLLOWING ? -1 : 1))
+  }
+
+  /**
+   * `labels()` in a server render, where the host is a linkedom element:  no `internals.labels`, no `label.control`,
+   * no `CSS.escape`.
+   * - The `<label>` wrapping the host (without a `for`, or `for` its id), then the root's `<label for>` its `id`;
+   *   in document order, as an ancestor comes first.
+   */
+  private serverLabels(): HTMLLabelElement[] {
+    const { host } = this
+    const found = new Set<HTMLLabelElement>()
+    const wrapping = host.parentElement?.closest<HTMLLabelElement>(LABEL)
+    if (wrapping && (!wrapping.hasAttribute(FOR) || wrapping.getAttribute(FOR) === host.id)) found.add(wrapping)
+    if (host.id) {
+      const root = host.getRootNode() as Document | ShadowRoot
+      const id = host.id.replace(/["\\]/g, "\\$&")
+      for (const label of root.querySelectorAll?.<HTMLLabelElement>(`${LABEL}[${FOR}="${id}"]`) ?? []) found.add(label)
+    }
+    return [...found]
   }
 
   /** The name from the host's attributes, else `labels`. */
@@ -131,12 +154,19 @@ export class ControlLabels {
 
   /** Text of `label`, minus anything inside the host. */
   private textOf(label: HTMLLabelElement): string {
-    const walker = label.ownerDocument.createTreeWalker(label, NodeFilter.SHOW_TEXT)
+    return this.textIn(label).replace(/\s+/g, " ").trim()
+  }
+
+  /**
+   * Text nodes' text under `node`, in order, skipping the host's subtree.
+   * - A walk over `childNodes`, not a `TreeWalker`:  a server render's linkedom document has none.
+   */
+  private textIn(node: Node): string {
+    if (node === this.host) return ""
+    if (node.nodeType === TEXT_NODE) return node.textContent ?? ""
     let text = ""
-    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-      if (!this.host.contains(node)) text += node.textContent ?? ""
-    }
-    return text.replace(/\s+/g, " ").trim()
+    for (const child of node.childNodes) text += this.textIn(child)
+    return text
   }
 }
 
@@ -207,7 +237,7 @@ class LabelWatch {
       }
       for (const nodes of [record.addedNodes, record.removedNodes]) {
         for (const node of nodes) {
-          if (node.nodeType !== Node.ELEMENT_NODE) continue
+          if (node.nodeType !== ELEMENT_NODE) continue
           const element = node as Element
           const labels = isLabel(element) ? [element] : element.getElementsByTagName(LABEL)
           for (const label of labels as Iterable<HTMLLabelElement>) {
@@ -241,3 +271,12 @@ const ARIA_LABELLEDBY = "aria-labelledby"
 
 /** Host attributes that change the name (`id` changes which `<label for>`s match). */
 const WATCHED_ATTRIBUTES = [ARIA_LABEL, ARIA_LABELLEDBY, "id"]
+
+/** `Node.ELEMENT_NODE`, without the `Node` global (a server render has none). */
+const ELEMENT_NODE = 1
+
+/** `Node.TEXT_NODE`, without the `Node` global. */
+const TEXT_NODE = 3
+
+/** `Node.DOCUMENT_POSITION_FOLLOWING`, without the `Node` global. */
+const DOCUMENT_POSITION_FOLLOWING = 4

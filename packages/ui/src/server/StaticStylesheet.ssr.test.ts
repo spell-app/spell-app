@@ -21,7 +21,7 @@ describe("StaticStylesheet", () => {
   })
 
   it("starts with the page layer, before every ui layer", () => {
-    expect(css.startsWith("@layer page, ui;")).toBe(true)
+    expect(css.startsWith("@layer ui-slotted, page, ui;")).toBe(true)
   })
 
   it("leaves no shadow-only selector", () => {
@@ -33,8 +33,8 @@ describe("StaticStylesheet", () => {
 
   it("wraps each component sheet in a scope from its root to other components' insides", () => {
     expect(css).toContain(
-      `@scope (:is([data-ui="menu"], .ui.menu:not([data-ui]))) to ` +
-        `([data-ui-slotted]:not([data-ui]) > *, :scope [data-ui] > *)`
+      `@scope (:is([data-ui="menu"], .ui.menu:not([data-ui]):is(:not([data-ui] *), [data-ui-slotted]:not([data-ui]), ` +
+        `[data-ui-slotted]:not([data-ui]) *))) to ([data-ui-slotted]:not([data-ui]) > *, :scope [data-ui] > *)`
     )
     // `ui-parts.css` is shared:  one copy, scoped to every part that adopts it
     const parts = css.slice(css.indexOf("/* parts */"))
@@ -54,7 +54,9 @@ describe("StaticStylesheet", () => {
       "[data-ui]"
     )
     expect(css).not.toContain("display")
-    expect(css).toMatch(/@layer ui\.reset \{\s*@scope [^{]+\{\s*@media \(width > 1px\) \{\s*:scope:where\(\[data-ui\]\) \{ --ui-x: 1 \}/)
+    expect(css).toMatch(
+      /@layer ui\.reset \{\s*@scope [^{]+\{\s*@media \(width > 1px\) \{\s*:scope:where\(\[data-ui\]\) \{ --ui-x: 1 \}/
+    )
     expect(css).toMatch(/@layer ui\.components\.x \{\s*@scope [^{]+\{\s*@media \(width > 1px\) \{\s*\.ui\.x/)
   })
 
@@ -88,6 +90,17 @@ describe("StaticStylesheet", () => {
       ".ui.list > .item:first-child:where(:scope, :not([data-ui-slotted]))",
       ".ui.list > [data-ui-li]:first-child > .item:where(:scope, :not([data-ui-slotted]))"
     ])
+  })
+
+  it("moves a whole :not(position) onto the wrapper, never leaving an empty :not()", () => {
+    expect(StaticSelectors.rewrite(".ui.feed > .event:not(:first-child)", { listItems: true }).selectors).toEqual([
+      ".ui.feed > .event:not(:first-child):where(:scope, :not([data-ui-slotted]))",
+      ".ui.feed > [data-ui-li]:not(:first-child) > .event:where(:scope, :not([data-ui-slotted]))"
+    ])
+    expect(
+      StaticSelectors.rewrite(":is(.ui.card, .ui.cards > .card) > :is(.button, .buttons)", { listItems: true })
+        .selectors.length
+    ).toBeGreaterThan(1)
   })
 
   it("lets a list group's child combinators step over the item wrapper", () => {

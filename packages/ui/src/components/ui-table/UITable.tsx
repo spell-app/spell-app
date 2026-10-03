@@ -182,6 +182,16 @@ export class UITable extends UIElement<typeof tableVocabulary> {
     return this.attrs.stackBy ? `${STACK_BY_CLASS}${this.attrs.stackBy}` : undefined
   }
 
+  /**
+   * `attached` (any edge), `attached-top`, `attached-bottom`:  the HOST carries the table's outer margin
+   * (`ui-table.css`:  inside a size container a margin never collapses with the content above), so it mirrors the
+   * attached scroller's.
+   */
+  protected hostStates() {
+    const attached = this.scrollerValue("attached")
+    return { attached: !!attached, "attached-top": attached === "top", "attached-bottom": attached === "bottom" }
+  }
+
   render(): JSX.Element {
     this.registerPageSheets()
     return (

@@ -34,8 +34,7 @@ import {
   NAME,
   RESULT,
   PRICE,
-  ABORT_ERROR,
-  STATIC_CONTROL
+  ABORT_ERROR
 } from "./ui-search.types"
 import type { SearchVocabulary, RemoteAnswer, SearchMessage } from "./ui-search.types"
 import {
@@ -348,7 +347,7 @@ export class UISearch extends FormElement<SearchVocabulary> {
    * mark, so a static form submits it;  `{}` in a browser, where the HOST submits (`ElementInternals`).
    */
   private staticControl(): Record<string, unknown> {
-    return isServer ? { [STATIC_CONTROL]: "", name: this.attrs.name } : {}
+    return isServer ? { [UIT.STATIC_CONTROL]: "", name: this.attrs.name } : {}
   }
 
   /** The results popover:  a listbox while there are results, else the message. */

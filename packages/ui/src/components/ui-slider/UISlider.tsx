@@ -2,7 +2,7 @@ import { For, Repeat, Show, createEffect, createMemo, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 import { onFormStateRestore } from "@spell-app/solid-element"
 
-import { Cell, Converters, proto, UI, type AttributeName, type FieldValue } from "$/ui/core"
+import { Cell, Converters, proto, UI, UIT, type AttributeName, type FieldValue } from "$/ui/core"
 import { ControlLabels, FormElement } from "$/ui/forms"
 
 import { sliderVocabulary } from "./ui-slider.vocabulary.en"
@@ -35,7 +35,6 @@ import {
   PAGE_MULTIPLIER,
   PAGE_DOWN,
   SECOND_CLASS,
-  STATIC_CONTROL,
   HIDDEN
 } from "./ui-slider.types"
 import type { Thumb } from "./ui-slider.types"
@@ -322,7 +321,7 @@ export class UISlider extends FormElement<typeof sliderVocabulary> {
    * group, whichever the host's name belongs to;  `{}` in a browser.
    */
   private staticMark(on: boolean): Record<string, unknown> {
-    return isServer && on ? { [STATIC_CONTROL]: "" } : {}
+    return isServer && on ? { [UIT.STATIC_CONTROL]: "" } : {}
   }
 
   /**

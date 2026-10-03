@@ -108,6 +108,11 @@ describe("StaticRender", () => {
     )
   })
 
+  it("makes a <div> root inside a <p> a <span>, so parsing doesn't end the paragraph", () => {
+    const html = StaticRender.fragment(`<p>Before <ui-segment basic>inline</ui-segment> after</p>`)
+    expect(html).toMatch(/^<p>Before <span [^>]*class="ui basic segment"[^>]*>inline<\/span> after<\/p>$/)
+  })
+
   it("leaves tags of families it doesn't know", () => {
     expect(StaticRender.fragment(`<ui-unknown>x</ui-unknown>`)).toBe(`<ui-unknown>x</ui-unknown>`)
   })

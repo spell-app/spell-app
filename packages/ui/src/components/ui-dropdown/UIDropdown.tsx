@@ -34,7 +34,6 @@ import {
   MENU,
   REGIONAL_A,
   SELECTED,
-  STATIC_CONTROL,
   TEXT,
   VALUE_PLACEHOLDER,
   Vocabulary
@@ -344,7 +343,7 @@ export class UIDropdown extends FormElement<Vocabulary> {
       "aria-readonly": this.attrs.readonly ? "true" : undefined,
       "aria-required": this.attrs.required ? "true" : undefined,
       "aria-invalid": this.validation().valid ? undefined : "true",
-      [STATIC_CONTROL]: isServer ? "" : undefined
+      [UIT.STATIC_CONTROL]: isServer ? "" : undefined
     } as const
   }
 
