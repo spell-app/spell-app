@@ -25,9 +25,7 @@
           ><header class="spell-page-head">
             <h1>Spell UI Pages</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p1"
-                >next: P1 · Fomantic Reference</ui-label
-              ></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p2">next: P2 · Docs Components</ui-label></span
             >
           </header></ui-sticky
         >
@@ -50,10 +48,10 @@
         <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
           <ui-icon slot="icon" name="lightbulb"></ui-icon>
           <p class="plan-summary lede">
-            Replace Spell UI's Astro doc site with hand-authored HTML pages built only from <code>&lt;ui-*&gt;</code>
-            widgets plus new doc-only <code>&lt;ui-docs-*&gt;</code> elements, carrying Fomantic's text, examples and
-            images, and log every widget gap that shows up.  Port Fomantic's 25 themes into our token-sheet themes,
-            picked from the page header.
+            Replace Spell UI's Astro doc site with hand-authored HTML pages built only from
+            <code>&lt;ui-*&gt;</code> widgets plus new doc-only <code>&lt;ui-docs-*&gt;</code> elements, carrying
+            Fomantic's text, examples and images, and log every widget gap that shows up. Port Fomantic's 25 themes into
+            our token-sheet themes, picked from the page header.
           </p>
           <blockquote class="plan-prompt">
             <p>
@@ -65,57 +63,182 @@
               12 agents to do this.<br />I'm going to bed soon, let's make this plan snappy.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 14h 30m-19h 30m in all, 14h 30m-19h 30m left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 14h 30m-19h 30m in all, 14h-19h left</p>
           <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
             <ui-list bulleted>
-              <ui-item><code>packages/ui/site/</code>:  the site, plain <code>.html</code>, served at <code>/ui/</code> by the page server (<a href="#d7">D7</a>)
+              <ui-item
+                ><a href="../../../ui/site/" target="src-packages-ui-site"><code>packages/ui/site/</code></a
+                >: the site, plain <code>.html</code>, served at <code>/ui/</code> by the page server (<a href="#d7"
+                  >D7</a
+                >)
                 <ui-list>
-                  <ui-item><code>index.html</code>, foundation pages (getting-started, grammar, theming, utilities, icons, kitchen-sink)</ui-item>
-                  <ui-item><code>components/ui-&lt;name&gt;.html</code>:  one per tag</ui-item>
-                  <ui-item><code>_parts/*.html</code>:  shared header / footer, pulled in by <code>&lt;ui-include&gt;</code> (<a href="#d8">D8</a>)</ui-item>
-                  <ui-item><code>_assets/</code>:  the COMMITTED ui bundle;  <code>images/</code>:  Fomantic's avatars, wireframes, logo</ui-item>
+                  <ui-item
+                    ><a href="../../index.html" target="src-packages-docs-index-html"><code>index.html</code></a
+                    >, foundation pages (getting-started, grammar, theming, utilities, icons, kitchen-sink)</ui-item
+                  >
+                  <ui-item><code>components/ui-&lt;name&gt;.html</code>: one per tag</ui-item>
+                  <ui-item
+                    ><code>_parts/*.html</code>: shared header / footer, pulled in by
+                    <code>&lt;ui-include&gt;</code> (<a href="#d8">D8</a>)</ui-item
+                  >
+                  <ui-item
+                    ><a href="../../_assets/" target="src-packages-docs-assets"><code>_assets/</code></a
+                    >: the COMMITTED ui bundle; <code>images/</code>: Fomantic's avatars, wireframes, logo</ui-item
+                  >
                 </ui-list>
               </ui-item>
-              <ui-item><code>packages/docs/templates/spell-ui-docs.html</code>:  the page template (<a href="#d1">D1</a>)</ui-item>
-              <ui-item><code>packages/ui/src/docs-components/ui-docs-*</code>:  doc-only Solid elements;  <code>&lt;ui-root&gt;</code> lazy-loads them, the component list doesn't show them (<a href="#d2">D2</a>)</ui-item>
-              <ui-item><code>packages/ui/src/styles/themes/&lt;name&gt;.css</code>:  one token sheet per Fomantic theme (<a href="#d5">D5</a>)</ui-item>
-              <ui-item><code>packages/ui/reference/</code> (git-ignored):  Fomantic-UI 2.9.4 and Fomantic-UI-Docs clones, the source of text, examples, images and themes</ui-item>
+              <ui-item
+                ><code>packages/docs/templates/spell-ui-docs.html</code>: the page template (<a href="#d1">D1</a
+                >)</ui-item
+              >
+              <ui-item
+                ><code>packages/ui/src/docs-components/ui-docs-*</code>: doc-only Solid elements;
+                <code>&lt;ui-root&gt;</code> lazy-loads them, the component list doesn't show them (<a href="#d2">D2</a
+                >)</ui-item
+              >
+              <ui-item
+                ><code>packages/ui/src/styles/themes/&lt;name&gt;.css</code>: one token sheet per Fomantic theme (<a
+                  href="#d5"
+                  >D5</a
+                >)</ui-item
+              >
+              <ui-item
+                ><a href="../../../ui/reference/" target="src-packages-ui-reference"
+                  ><code>packages/ui/reference/</code></a
+                >
+                (git-ignored): Fomantic-UI 2.9.4 and Fomantic-UI-Docs clones, the source of text, examples, images and
+                themes</ui-item
+              >
             </ui-list>
           </ui-section>
           <ui-section id="o2" header="1.2 A page" sticky collapsible dividing>
             <ui-list bulleted>
-              <ui-item><code>&lt;ui-root&gt;</code> around everything:  loads each family on first use</ui-item>
-              <ui-item>header (<code>&lt;ui-menu&gt;</code>) with <code>&lt;ui-docs-themes&gt;</code>:  theme picker + light / dark / system</ui-item>
-              <ui-item>left:  <code>&lt;ui-docs-nav&gt;</code>, every component listed together, grouped by topic, with search</ui-item>
-              <ui-item>masthead:  title, summary, top tabs in the icons-page segmented style (<a href="#d4">D4</a>):  Examples / Usage / API / Theming</ui-item>
-              <ui-item>body:  Fomantic's sections (Types, Content, States, Variations, Groups), each example a <code>&lt;ui-docs-example&gt;</code> (live markup + its source in <code>&lt;ui-code&gt;</code>), prose in <code>&lt;ui-markdown&gt;</code></ui-item>
-              <ui-item>API / Theming tabs:  <code>&lt;ui-docs-api&gt;</code>, <code>&lt;ui-docs-tokens&gt;</code>, built from the tag's vocabulary</ui-item>
+              <ui-item><code>&lt;ui-root&gt;</code> around everything: loads each family on first use</ui-item>
+              <ui-item
+                >header (<code>&lt;ui-menu&gt;</code>) with <code>&lt;ui-docs-themes&gt;</code>: theme picker + light /
+                dark / system</ui-item
+              >
+              <ui-item
+                >left: <code>&lt;ui-docs-nav&gt;</code>, every component listed together, grouped by topic, with
+                search</ui-item
+              >
+              <ui-item
+                >masthead: title, summary, top tabs in the icons-page segmented style (<a href="#d4">D4</a>): Examples /
+                Usage / API / Theming</ui-item
+              >
+              <ui-item
+                >body: Fomantic's sections (Types, Content, States, Variations, Groups), each example a
+                <code>&lt;ui-docs-example&gt;</code> (live markup + its source in <code>&lt;ui-code&gt;</code>), prose
+                in <code>&lt;ui-markdown&gt;</code></ui-item
+              >
+              <ui-item
+                >API / Theming tabs: <code>&lt;ui-docs-api&gt;</code>, <code>&lt;ui-docs-tokens&gt;</code>, built from
+                the tag's vocabulary</ui-item
+              >
             </ui-list>
           </ui-section>
-          <ui-section id="o3" header="1.3 Widget gaps" sticky collapsible dividing>
+          <ui-section id="o4" header="1.3 Fomantic page map" sticky collapsible dividing>
             <p>
-              Every Fomantic example or bit of chrome a <code>&lt;ui-*&gt;</code> widget can't do becomes an issue
-              (<a href="#d6">D6</a>);  <a href="#p8">P8 · Gap Report</a> rolls them into one table.
+              Source:
+              <code>packages/ui/reference/Fomantic-UI-Docs/server/documents/&lt;group&gt;/&lt;name&gt;.html.eco</code>.
+              Images: the 87 its pages reference, fetched from fomantic-ui.com into
+              <a href="../../../ui/site/images/" target="src-packages-ui-site-images"
+                ><code>packages/ui/site/images/</code></a
+              >
+              (3.3 MB).
+            </p>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Our page</th>
+                    <th>Fomantic page</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      button, container, divider, emoji, flag, icon, image, input, label, list, loader, placeholder,
+                      rail, reveal, segment, step, text
+                    </td>
+                    <td><code>elements/&lt;same&gt;</code></td>
+                  </tr>
+                  <tr>
+                    <td>parts (<code>ui-header</code>, <code>ui-content</code> ...)</td>
+                    <td><code>elements/header</code> + the part sections of card / item / comment / feed</td>
+                  </tr>
+                  <tr>
+                    <td>breadcrumb, form, grid, menu, message, table</td>
+                    <td><code>collections/&lt;same&gt;</code> (form also <code>behaviors/form</code>: validation)</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      accordion, calendar, checkbox, dimmer, dropdown, embed, flyout, modal, nag, popup, progress,
+                      rating, search, shape, sidebar, slider, sticky, tab, toast, transition
+                    </td>
+                    <td><code>modules/&lt;same&gt;</code></td>
+                  </tr>
+                  <tr>
+                    <td>select</td>
+                    <td><code>modules/dropdown</code> (selection variants)</td>
+                  </tr>
+                  <tr>
+                    <td>ad, card, comment, feed, item + items, statistic</td>
+                    <td><code>views/advertisement</code>, <code>views/&lt;same&gt;</code></td>
+                  </tr>
+                  <tr>
+                    <td>visibility</td>
+                    <td><code>behaviors/visibility</code></td>
+                  </tr>
+                  <tr>
+                    <td>code, include, markdown, root, section</td>
+                    <td>none: ours only; keep our content, restyled</td>
+                  </tr>
+                  <tr>
+                    <td>index, getting-started, theming, kitchen-sink</td>
+                    <td>
+                      <code>index</code>, <code>introduction/getting-started</code>, <code>usage/theming</code>,
+                      <code>kitchen-sink</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>no page of ours</td>
+                    <td>
+                      <code>behaviors/api</code>, <code>behaviors/state</code>, <code>globals/reset</code>,
+                      <code>globals/site</code>, <code>usage/layout</code>, <code>introduction/*</code> (but
+                      getting-started)
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+          <ui-section id="o3" header="1.4 Widget gaps" sticky collapsible dividing>
+            <p>
+              Every Fomantic example or bit of chrome a <code>&lt;ui-*&gt;</code> widget can't do becomes an issue (<a
+                href="#d6"
+                >D6</a
+              >); <a href="#p8">P8 · Gap Report</a> rolls them into one table.
             </p>
           </ui-section>
         </ui-section>
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="0" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="1" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
           <ui-section
             id="p1"
             data-phase="1"
-            data-status="todo"
+            data-status="done"
             header="P1 · Fomantic Reference"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> Clone Fomantic-UI 2.9.4 + Fomantic-UI-Docs into packages/ui/reference/; copy avatar /
@@ -471,6 +594,28 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T22:33-04:00">2026-10-02 22:33</time></ui-date> P9 added: Doc
                   Review</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:34-04:00">2026-10-02 22:34</time></ui-date> P1
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:35-04:00">2026-10-02 22:35</time></ui-date> P1
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:35-04:00">2026-10-02 22:35</time></ui-date> P1 done:
+                  Fomantic-UI 2.9.4 + Fomantic-UI-Docs cloned to packages/ui/reference/; 87 doc images in
+                  packages/ui/site/images/; page map in 1.3; checks: n/a (assets only)</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
