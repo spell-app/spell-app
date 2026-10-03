@@ -13,15 +13,11 @@ import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } 
 import { dirname, join, relative, resolve } from "node:path"
 import { pathToFileURL } from "node:url"
 
-import { DOCS, tidy } from "../../packages/docs/scripts/pages.js"
+import { DOCS, openInVSCode, tidy } from "../../packages/docs/scripts/pages.js"
+import { Window } from "../../scripts/window.mjs"
 import { SRV } from "$/server"
 import { PageServer } from "$/server/page"
-import {
-  LaunchError,
-  claudeCommand,
-  claudeStatus,
-  runInTerminal
-} from "./launch.js"
+import { LaunchError, claudeCommand, claudeStatus, runInTerminal } from "./launch.js"
 import {
   ACCENTS,
   GoalsError,
@@ -182,7 +178,7 @@ Showing and talking
   serve                                run the goals server here (Ctrl-C stops it)
   server start|stop|status             the goals server, in the background
   open [target]                        start the server if need be, show the page in a NEW browser window
-  open-vs [target]                     show the page in VS Code, beside the editor
+  open-vs [target]                     show the page in VS Code's side bar;  not in VS Code:  as \`open\`
   talk [target] [--window]             a /goals dialog with Claude (--window:  in a new terminal window)
   update [target] [--print] [--window] /goals-update with Claude (--print:  headless, no questions)
   claude                               is Claude Code installed and logged in?`
@@ -262,18 +258,17 @@ async function main(argv) {
     }
     case "server":
       return server(rest[0] ?? "status", prefs)
-    case "open": {
+    case "open":
+    case "open-vs": {
       const target = resolveTarget(rest[0] ?? "", prefs)
+      // in VS Code:  the side bar's doc preview, in THIS session's window;  else a browser window
+      if (command === "open-vs" && Window.inVSCode) {
+        await openInVSCode(target.file, { hash: target.anchor })
+        return console.log(`opened ${target.name} in VS Code`)
+      }
       const { base } = await PageServer.ensure(ROOT, prefs.server.port)
       const how = SRV.openInNewWindow(`${base}${target.path}`, prefs.browser)
       return console.log(`opened ${target.name} in ${how}`)
-    }
-    case "open-vs": {
-      const target = resolveTarget(rest[0] ?? "", prefs)
-      const { base } = await PageServer.ensure(ROOT, prefs.server.port)
-      if (!SRV.openInVSCode({ url: `${base}${target.path}`, file: target.file }))
-        throw new LaunchError("VS Code didn't open it")
-      return console.log(`opened ${target.name} in VS Code`)
     }
     case "talk":
     case "update":

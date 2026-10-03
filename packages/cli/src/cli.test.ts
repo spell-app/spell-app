@@ -5,6 +5,7 @@ import { tmpdir } from "os"
 import { basename, resolve } from "path"
 import { afterAll, beforeAll, describe, test, expect } from "vitest"
 
+import { SRV } from "$/server"
 import { SP } from "$/spell"
 import { fixturePath } from "$/spell/test"
 
@@ -14,6 +15,9 @@ import { fixturePath } from "$/spell/test"
  * - NEVER writes into a fixture:  compiles use `--stdout`.  Projects to break live in a temp folder -- see `tempProject()`.
  */
 const SPELL = resolve(import.meta.dirname, "..", "bin", "spell.mjs")
+
+/** This checkout:  its page server is the one `spell serve` uses. */
+const REPO_ROOT = resolve(import.meta.dirname, "..", "..", "..")
 /** Temp folder holding `tempProject()`s -- its REAL path:  on macOS `tmpdir()` is a symlink, and spell reports real paths. */
 const TEMP = realpathSync(mkdtempSync(resolve(tmpdir(), "spell-cli-")))
 afterAll(() => rmSync(TEMP, { recursive: true, force: true }))
@@ -57,6 +61,20 @@ describe("spell help", () => {
   })
 })
 
+describe("spell plan-doc", () => {
+  test("alone, lists the tool's commands", () => {
+    const { status, stderr } = spell(["plan-doc"])
+    expect(status).toBe(2)
+    expect(stderr).toContain("usage:  yarn plan-doc <command> <name>")
+  })
+
+  test("summarizes a plan doc", () => {
+    const { status, stdout } = spell(["plan-doc", "summary", "unified-server"])
+    expect(status).toBe(0)
+    expect(stdout).toMatch(/^Unified Server\n {2}\[x\] P1 · Library Core/)
+  })
+})
+
 describe("spell icons", () => {
   test("finds icons by name, with their packs", () => {
     const { status, stdout } = spell(["icons", "bell", "slash", "--pack", "fomantic"])
@@ -88,9 +106,11 @@ describe("spell serve", () => {
   // one retry:  vite's first start, in a busy run, once timed out (plan doc I3)
   const options = { timeout: 180_000, retry: 1 }
   test(
-    "--headless:  runs the editor on --port, /api on the page server, opens the target, stops vite",
+    "--headless:  the page server's editor (on --port if it starts the page server), /api through it, the target",
     options,
     async () => {
+      // the editor is the page server's child:  a page server already running (a developer's) keeps its own port
+      const running = Boolean(await new SRV.PidFile(REPO_ROOT).status())
       // well away from the app's own 3000, so a running `yarn start` doesn't clash
       const port = 3700 + Math.floor(Math.random() * 200) * 2
       const child = spawn(process.execPath, [SPELL, "serve", "@test/Solitaire", "--headless", "--port", String(port)], {
@@ -102,29 +122,31 @@ describe("spell serve", () => {
       child.stdout.on("data", (data) => (out += data))
       child.stderr.on("data", (data) => (err += data))
       await until(() => out.includes("http://") || child.exitCode !== null, 120_000)
-      // on failure, `serve` prints vite's last lines:  show them
-      expect(out, err).toContain("http://")
-      expect(out).toBe(`http://localhost:${port}/edit/fixtures/Solitaire\n`)
-      expect(await (await fetch(`http://localhost:${port}/`)).text()).toContain("<html")
-      const projects = await (await fetch(`http://localhost:${port}/api/projects/list/@test:fixtures`)).text()
+      expect(out, err).toMatch(/^http:\/\/localhost:\d+\/edit\/fixtures\/Solitaire\n$/)
+      const editor = new URL(out.trim()).origin
+      if (!running) expect(editor).toBe(`http://localhost:${port}`)
+      expect(await (await fetch(`${editor}/`)).text()).toContain("<html")
+      const projects = await (await fetch(`${editor}/api/projects/list/@test:fixtures`)).text()
       expect(projects).toContain("Solitaire")
 
       child.kill("SIGINT")
       expect(await new Promise((done) => child.on("exit", done))).toBe(0)
-      // vite stopped with it
-      let viteUp = true
-      for (let tries = 0; viteUp && tries < 40; tries++) {
+      // the editor stops with the page server -- if `spell serve` started it;  else both run on
+      let editorUp = true
+      for (let tries = 0; editorUp === !running && tries < 40; tries++) {
         await new Promise((done) => setTimeout(done, 250))
-        viteUp = await fetch(`http://localhost:${port}/`).then(
+        editorUp = await fetch(`${editor}/`).then(
           () => true,
           () => false
         )
       }
-      expect(viteUp).toBe(false)
+      expect(editorUp).toBe(running)
     }
   )
 
-  test("a port in use", async () => {
+  test("a port in use:  refused, when it would start the page server", async (context) => {
+    // with the page server running, `--port` doesn't apply:  `spell serve` would just run
+    if (await new SRV.PidFile(REPO_ROOT).status()) context.skip()
     const busy = createServer()
     await new Promise<void>((done) => busy.listen(0, done))
     const port = (busy.address() as { port: number }).port

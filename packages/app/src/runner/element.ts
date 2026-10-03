@@ -8,8 +8,7 @@
  * - NEVER imports `$/core`, even indirectly:  each app loads its own copy, `spell-runtime.js` -- see
  *   `spellRuntime.ts`, `element.build.test.ts`.
  */
-import { SpellAppElement } from "./SpellAppElement"
+import { defineSpellApp, type SpellAppElementClass } from "./SpellAppElement"
 
-if (!customElements.get("spell-app")) customElements.define("spell-app", SpellAppElement)
-
-export { SpellAppElement }
+/** The `<spell-app>` class:  ours, or whoever defined it first. */
+export const SpellAppElement = (customElements.get("spell-app") as SpellAppElementClass | undefined) ?? defineSpellApp()

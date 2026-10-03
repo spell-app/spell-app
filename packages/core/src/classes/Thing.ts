@@ -3,7 +3,7 @@
  */
 import React from "react"
 
-import { Observable, view } from "$/util"
+import { Observable, runsCreate, view, type PropInfo } from "$/util"
 import { spellCore } from "$/core/core"
 import { Eventful } from "$/core/SpellEvent"
 import type { PropCheck } from "$/core/spellCore.types"
@@ -28,20 +28,33 @@ export class Thing extends Eventful(Observable) {
   constructor(props: Record<string, unknown>) {
     super(props)
     spellCore.things.add(this)
-    this.create()
+    if (runsCreate(Thing, new.target)) this.create()
   }
 
-  /** Called automatically at end of `thing` constructor -- override in a subclass to set up initial state. */
+  /**
+   * Called once per instance, after constructor props are assigned -- override in a subclass to set up initial state.
+   * - NOTE: runs from THIS constructor, before any subclass field initializer:  a plain field set here is clobbered
+   *   by its initializer.  Compiled classes have no fields, so they're safe;  a hand-written subclass with fields
+   *   MUST be `@thing` (`$/util`), which runs `create()` after them instead.  Exactly once either way.
+   */
   create(): void {}
 
   /**
-   * Set reactive `property` to `value`, warning first if it fails `check` -- it's stored either way.
-   * - Compiled property setters call this, e.g. `set title(value) { this.setProp('title', value, { type: 'text' }) }`
+   * Set reactive `property` to `value` -- see `Observable.setProp()`.
+   * - Compiled property setters call this, e.g. `set title(value) { this.setProp('title', value) }`:  what it's
+   *   checked against is declared in the class's schema, `static { this.declareProp('title', { type: 'text' }) }`.
+   * - `check`:  how compiled spell said it BEFORE the schema, e.g. `this.setProp('title', value, { type: 'text' })` --
+   *   still honoured, warning first if it fails, so programs compiled then still run.
    * - Same as `List.setProp()`.
    */
   protected setProp<T>(property: string, value: T, check?: PropCheck) {
     if (check) spellCore.checkProp(property, value, check)
     return super.setProp(property, value)
+  }
+
+  /** A declared prop was set:  warn on the PROGRAM's console if `value` isn't what `info` declares -- see `checkProp()`. */
+  protected checkPropType(property: string, value: unknown, info: PropInfo): void {
+    spellCore.checkProp(property, value, info)
   }
 
   /** Default `type` to the name of our constructor.  Instances can override via the setter. */
@@ -63,8 +76,9 @@ export class Thing extends Eventful(Observable) {
   /**
    * Return a React.Component which renders an instance, memoized so the same component identity
    * is reused across renders (a fresh class each render would remount instead of updating).
-   * - NOTE: uses a class component, not a function component, to sidestep hook issues with
-   *   `react-easy-state`'s `view()` wrapper.
+   * - `view()` (`$/util`, the React bridge):  it re-renders when a spell cell its `draw()` read changes.
+   * - NOTE: a class component, not a function component:  `draw()` may be any program code, and a class keeps
+   *   hooks out of it.
    */
   /*@memoize*/
   get Component(): ReactComponentType {

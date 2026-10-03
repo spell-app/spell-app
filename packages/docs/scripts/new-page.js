@@ -1,6 +1,6 @@
 /**
  * `yarn docs:new <template> <page> [--title "Title"] [--description "One sentence."]`:  start a page from a template.
- * - `<template>`:  `durable` or `cheatsheet` (or a path under `templates/`);  plans come from `yarn plan-doc new`
+ * - `<template>`:  `durable` or `cheatsheet` (or a path under `templates/`);  plan docs come from `yarn plan-doc new`
  * - `<page>`:  where it goes, relative to `packages/docs`, e.g. `parser/parser.html` or `glossary.html`
  * - Fixes the `_assets` and `index.html` paths for the page's depth:  templates assume one folder deep, a top-level
  *   page is zero.  Likewise the site header's `root` (the path up to the repo root:  `packages/docs` is two more).
@@ -21,7 +21,7 @@ const [templateArg, page] = positional
 if (!templateArg || !page?.endsWith(".html")) {
   fail(`usage:  yarn docs:new durable|cheatsheet <topic>/<topic>.html [--title "Title"] [--description "..."]`)
 }
-if (/^templates\/plans\/|^plan$/.test(templateArg)) fail("plan docs:  `yarn plan-doc new <name>`")
+if (/^templates\/epics\/|^plan$/.test(templateArg)) fail("plan docs:  `yarn plan-doc new <name>`")
 const template = templateArg.includes("/") ? templateArg : `templates/${templateArg}.html`
 if (!existsSync(join(DOCS, template))) fail(`no template ${template}`)
 const file = join(DOCS, page)

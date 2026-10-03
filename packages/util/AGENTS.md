@@ -41,7 +41,11 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
 - Files in `src/spell/` import the generic helpers by deep path (`$/util/class`), NEVER the `$/util` barrel (it re-exports
   this folder:  a cycle).
 - NOTE: `ResponseErrors.ts` is deliberately NOT in `src/spell/index.ts` -- see its header.
-- Reactivity here (`Observable`, `getProp` / `setProp`, stores) is Solid work:  READ the root's Solid 2 pointer first.
+- Reactivity here is spell CELLS (P11):  `cells.ts` (the page-wide context, tracking, `flushCells()`), `Cell`,
+  `Derived`, `Reaction`, `Schema` (per-class prop types), `extend.ts` (records + `getProp` / `setProp` /
+  `getState`...), `Observable`, `spellDecorators.ts` (`@prop` / `@derived` / `@thing`), `bridges.ts` (`bridgeSolid()`,
+  which the HOST calls -- this package never imports Solid;  `observe()`), `view.ts` (the React bridge).  It's Solid
+  work:  READ the root's Solid 2 pointer first.
 - Tests: the generic ones run in a real browser (`util:browser`), `src/spell/**` in node (`util:spell`);
   `vitest.config.ts` exports `utilProjects()` for the root run.
 

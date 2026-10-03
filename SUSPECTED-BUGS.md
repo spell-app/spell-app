@@ -25,6 +25,15 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 ### 1. Behavior bugs
 
+- Calculator example [V]:  its operator buttons say `onClick={set its operator to "+"}`, which compiles to the
+  PROPERTY write `this.operator = "+"`, NOT the action `to set the operator of (a calculator) to (op)` (which also
+  clears `input`).  So `7 x 6 + 1 2` shows `7 + 7612 = 7619`.  Same on HEAD before P11:  the language picks the
+  property over the action -- or the example means the action.  Found 2026-10-02 (P11 live check).
+- Solitaire-import example [V]:  draws only a `K` on the stock and an empty tableau -- no dealt piles -- in the
+  editor and in `<spell-app>`.  Same on the commit before P11 (checked side by side), so not cells.  It imports
+  `Card` / `Deck` / `Pile` from `@system:examples:Solitaire`, whose compiled module runs its OWN top level (a game,
+  a deal) when imported:  probably the two programs' decks / piles collide.  Found 2026-10-02.
+
 - `test/unitTestModuleRules.ts` `compileMatch()`: a rule unit test NEVER checks that the rule consumed the
   whole input.  `compileMatch()` is `scope.parse(input, ruleName)` then `match.compile()` -- it compiles
   whatever matched and silently drops any tokens left over, so trailing garbage passes.  Two tests prove it:
@@ -74,8 +83,13 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 - `app/ui/modals/modals.types.ts` `ModalComponentProps.id`: `<ModalRoot>` passes `key` (not forwarded), never `id`.
 
-- `parser/ast/renderAST.tsx` `InCurlies` / `InSquareBrackets`: no empty-children case, unlike `stringifyAST.ts` twins.
+- `parser/ast/renderAST.ts` `InCurlies` / `InSquareBrackets`: no empty-children case, unlike `stringifyAST.ts` twins.
   Latent: `DestructuredAssignment.renderChildren()` calls `render.InCurlies` directly.
+
+- `[V]` `parser/ast/AST.ts` `ASTPreservedComment.renderChildren()` / `ASTDocComment.renderChildren()`:  draw
+  `/* ...` (`render.OPEN_COMMENT`) where `compile()` writes `/*! ...` / `/** ...`, so the editor's "Javascript Output"
+  pane shows NOT what runs, e.g. `/* SPELL: DECLARES {` for `/*! SPELL: DECLARES {`.  Prove:  for `a card is a
+  thing`, `P.render.toText(ast.markup)` starts `/* SPELL`, `ast.compile()` `/*! SPELL` (`ASTViewer.browser.test.tsx`).
 
 - `[V]` `src/rules/classes.ts` `quoted_property_formula`:  a quoted alias of an UNKNOWN property, e.g.
   `a card "is a (rank)" for its ranksx`, still registers `_quoted_property_rule`, with no enumeration part in its
@@ -117,7 +131,9 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
   user's `create()` again, e.g. dealing cards, on every loop.  The result is thrown away.  Likely fix:  loops
   compile to `forEach` (or `forEachSequential` when async).  From reading the code, not run.  Found 2026-09-29.
 
-- A `to draw` which calls `spellCore.map()` / `filter()` on a List -- or anything else reading then changing
+- PROBABLY GONE (P11, 2026-10-02):  `view()` is on spell cells now, and a `Reaction` never re-runs for a change
+  made while it runs.  Not tried with a real `to draw`.  Was:
+  A `to draw` which calls `spellCore.map()` / `filter()` on a List -- or anything else reading then changing
   an observable it just made -- does it INSIDE `Thing.Component`'s `view()` render.  `map()` makes a new list,
   reads its `items`, then writes them:  the render's own reaction is set off mid-render.  That's what took the
   Thing Explorer down with React error #301 [V] (reading Solitaire's `pile.state`), so a program drawing that way
@@ -207,8 +223,6 @@ what the adjacent `TODO: how to surface this error???` is really about.  Code le
 
 - `rules/math.ts` `gt_lt.getAST` / `is_gt_lt.getAST`: unreachable (output comes via `compileASTExpression()`).
 
-- `parser/ast/AST.tsx` `MethodDefinition.renderError()`: never called.
-
 - `parser/rules/Pattern.ts` constructor: `instanceof RegExp` branch unreachable per types; only caller passes object.
 
 - `parser/parser.types.ts` `RuleTestBlock.showAll`: set at several call sites, never read.
@@ -262,7 +276,7 @@ Disproven (2026-10-01):  the "empty strip" under an open multiple-selection drop
 the open menu floats over.  The "mini images at full width" were the static `ui avatar images` group, hit by a bare
 `.avatar img { width: 100% }` in `ui-parts.css` (fixed).  `--ui-form-equal-width` / `-unstackable` were already private.
 Parts inside a lone `<ui-event>` / `<ui-comment>` read the owner switches only in style queries, so unset is fine.
-Swept 2026-10-01 (branch `worktree-ui-component-creation`, plan doc `packages/docs/plans/ui-component-creation/`):
+Swept 2026-10-01 (branch `worktree-ui-component-creation`, plan doc `packages/docs/epics/ui-component-creation/`):
 every entry below that date was fixed or disproven;  what's left:
 
 ### 1. Behavior bugs
@@ -289,6 +303,12 @@ every entry below that date was fixed or disproven;  what's left:
   control in the title alone, as ui-accordion does;  test "leaves a click on a link inside a rich title").  Left:
   screen readers may not reach a link nested in a button.  Prove with VoiceOver on `#ui`;  a fix would render a
   rich title's controls outside the button.  (2026-10-02)
+- `src/components/ui-root/UIRoot.tsx`:  every `<ui-root>` -- bare, `icons`, `display`, from JSX or plain HTML -- logs
+  Solid's dev warning `[STRICT_READ_UNTRACKED] Reactive value read directly in an effect callback will not update`
+  once as it connects (seen in `app`'s `src/runner/runner.browser.test.tsx`, P7 of `solid-migration`).  Something in
+  its setup reads a signal in an effect's APPLY (or `onSettled`):  that read won't re-run it.  Harmless if the value
+  never changes after;  a missed update if it does.  Prove:  dev build, break on the warning, read the stack.
+  (2026-10-02)
 
 ### 3. Styling / CSS
 
@@ -344,6 +364,22 @@ every entry below that date was fixed or disproven;  what's left:
   compute `width` / `height` `0px`, though the svg's rule says `height: 1em`.  Seen in the docs rail
   (`packages/docs/_assets/spell-doc-runtime.js` `buildRail()`, which now slots a `<ui-icon>` instead).  Prove:  that
   markup in a menu example, measure the svg.  (2026-10-01)
+  - Wider than that (2026-10-02, solid-migration P6):  EVERY menu item's `icon` shorthand, text or not, horizontal
+    too -- `<ui-menu><ui-item link icon="pencil">Plain</ui-item></ui-menu>`:  the `.icon` span computes `display: flex`,
+    span and svg `0 x 0`.  `ui`'s own baseline shows it:  `test/visual/baselines/local-darwin/chromium/ui-menu/
+    content-light.png`, "Icons and a dropdown item":  "Inbox" (`icon="inbox"`) has no icon, "Mail" (a slotted
+    `<ui-icon>`) has one.  The app's `<Action>` slots a `<ui-icon>` too (`packages/app/src/solid/Actions.tsx`, HACK).
+- `src/components/ui-menu/ui-menu.css`:  `<ui-menu inverted color="violet">` items draw DARK text on the violet fill;
+  Fomantic's inverted coloured menu has white text.  Plain `<ui-menu inverted>` is right (light on dark).  Prove:  that
+  markup, `getComputedStyle()` of `::part(item)`'s `color`.  (2026-10-02, solid-migration P6)
+- `src/components/ui-menu/` `<ui-menu vertical>` of `<ui-item link>`:  each item's `::part(item)` is a `<button>` at
+  `display: block`, which still shrinks to its text, so items are as wide as their labels and their dividers stop
+  short (seen in the app's chooser, `ProjectMenu`:  137 / 128 / 191px items in a 193px `fluid` menu).  Probably wants
+  `width: 100%` (and `text-align: start`) on a vertical menu's button items.  The app's `ProjectDropdown.css` does it
+  (HACK).  Prove:  the "Link items demo" in `examples/elements/content.html`.  (2026-10-02, solid-migration P8)
+- `src/components/ui-dropdown/UIDropdown.tsx` `label()`:  a host `aria-label` never reaches the combobox (only
+  `placeholder` / `text` / `name` do), so an icon-only dropdown (no text, an `icon` slot) has no accessible name.  The app's
+  `<MoreMenu>` ("...") is one.  (2026-10-02, solid-migration P6)
 - `src/styles/utilities.css` ~line 439:  `.ui-prose :where(ul, ol)` comes after `.ui-list-plain` with the same
   specificity, so a plain list inside prose keeps its 1.5em indent.  The docs' `/components/` index works around it
   with `ui-not-prose`.  (2026-10-01)
@@ -361,6 +397,55 @@ every entry below that date was fixed or disproven;  what's left:
 
 - `packages/spell/src/node/response-utils.ts` `sendJSFile` / `request_getCompiled` / `request_getScopes` [V]: the content-type is set
   to `text/javascript` BEFORE the existence check, so a not-found 404 carries a JSON `{errors}` body labelled `text/javascript`.
+- `packages/app/src/ui/ConsoleLines.tsx` (and its Solid twin `src/solid/ConsoleLines.tsx`) `<ConsoleObject>`:  a logged `true`,
+  `false` or `undefined` shows as an EMPTY value -- it's handed to JSX as is, which draws no text for them (React and
+  Solid alike).  Probably wants `String(thing)`;  kept as is in the Solid port (P6b) to keep behaviour.
+- `packages/app/src/editor.ts` `showingMatchRuleNames` [V]:  named backwards.  `<MatchRoot>` passes it as `compact`, and
+  `MatchViewer.css`'s `.compact .name { display: none }` HIDES the names, so `true` (the default) means names hidden;
+  `Actions.toggleMatchRuleNames` agrees with the CSS ("Show Rule Names" while it's `true`), not with the docstring.
+  Kept as is in the Solid port (P6c, `src/solid/MatchViewer.tsx`;  pinned by its browser test).  Fix:  rename to
+  `compactMatchView` / invert, together with the action's labels.
+- `packages/app/src/ui/modals/Prompt.tsx` `promptForNumber()`:  resolved a NUMBER once the user had typed (the forms'
+  `getEventValue()` does `parseFloat` for `type="number"`), though `editor.promptForNumber()` says
+  `Promise<string | undefined>`.  The Solid port (P6f, `src/solid/modals/dialogs.ts`) resolves the string, as typed.
+  Callers (only `ConsoleViewer`'s demo) don't care;  decide whether it should be `number | undefined`.
+- `packages/app/src/solid/modals/modals.browser.test.tsx`:  ONE cold run (fresh vite optimize) printed
+  `STRICT_READ_UNTRACKED` for `constructor.isLoaded` / `createProps.get` while the first `<Chooser>` rendered
+  `<ui-radio>`s inside Solid's `render()`;  three warm runs printed nothing.  Probably `solid-element` reading signals
+  while an element upgrades inside an owner.  Prove:  clear `node_modules/.vite` / vitest's cache, rerun once.
+  - P8 (2026-10-02):  the dev server prints them on EVERY page load, with stacks:  `constructor.isLoaded` /
+    `createProps.get` from `packages/ui/src/components/ui-button/UIButton.tsx` `invokers()` / `resolveInvoker()`
+    (~lines 379-396, read in an effect's APPLY), and an unnamed one from `packages/ui/src/elements/RootSettings.ts`
+    `set()` via `UIRoot.applySettings()` (`UIRoot.tsx` ~242-275).  So `ui`'s, not the app's:  those reads belong in
+    the effects' compute (or `untrack()`).
+- `packages/app/src/solid/ProjectDropdown.tsx` `<ProjectDropdown>`:  the dev server warns `[WIDE_SCOPE_DEPS] memo
+  "computed" is subscribed to 30 sources` -- `createProps.get` x ~29 -- at `<ProjectDropdown> › children › computed ›
+  computed`, i.e. the `<For>` drawing its `<ui-item>`s.  Our code reads no props there;  probably each `<ui-item>`
+  upgrading synchronously as the `<For>` makes it, and the fork's `createProps` reads landing in OUR computation
+  (`packages/solid-element`).  `<FileDropdown>` does the same with fewer items, under the warning's threshold.  Prove:
+  a `<For>` of 30 `<ui-item>`s in a browser test, then Solid's `attribution` / the memo's sources.
+- `packages/util/src/spell/DOM.ts` `getPadding()` (`CSS_TLBR_VALUES`):  reads `NaN` for every side in `app`'s BROWSER
+  test project (vitest + chromium), while `getComputedStyle(el)["padding-left"]` there is `"0px"`;  on the dev server
+  it reads `0`.  Probably the `#top` ... private fields as the vitest transform lowers them (declared, no
+  initializer).  `src/solid/SplitPanel.tsx` reads padding itself now.  Prove:  `getPadding(document.body).left` in any
+  `*.browser.test.ts`.
+- `SP.SpellProjectRoot.guides.load()` (the chooser's "Open Guide" list):  the API answers 500, `ENOENT ... scandir
+  .../projects/system/guides`:  the folder isn't in git (no guides yet), so EVERY load of the chooser logs a failed
+  request.  React's `ProjectMenu` left the rejection unhandled;  the Solid one (P8) says "Couldn't load Guides".
+  Fix:  the API answers an empty list for a root whose folder doesn't exist (or commit `projects/system/guides/`).
+- GONE (P11, 2026-10-02:  `tracked()` is a Solid memo on spell cells, whose `Reaction` ignores its own writes;
+  pinned by `tracked.browser.test.ts`).  Was:  `packages/app/src/solid/tracked.ts` `tracked()` [V]:  THROWS `Cannot access 'observer' before initialization` when
+  `read()`, on its FIRST run, changes an `easy-state` value it has just read.  easy-state's `autoEffect()` is
+  `const observer = observe(fn, { scheduler: () => scheduler.add(observer) })`, and `observe()` runs `fn` at once:  the
+  self-trigger calls the scheduler while `observer` is still in its TDZ.  Hit by spell programs' computed properties,
+  e.g. Solitaire's `state` (`spellCore.map()` makes a new `Pile` and fills it).  Seen (P6d) as the Thing Explorer's
+  `state` cell showing that error;  `src/solid/ThingExplorer.tsx` works around it with its own `trackedProgram()`
+  (observer-util `observe()` + a scheduler that takes the reaction as its ARGUMENT).  Fix:  the same in `tracked()`.
+  Prove:  `tracked(() => { const list = store.list;  list.push(1);  return list.length })`.
+- `packages/app/src/solid/loadUI.ts` `uiReady`:  its docstring says under node (the `node` test project) it "defines
+  the tags only", but importing it there throws `customElements is not defined` (from `$/ui`'s families'
+  `define()`).  So a Solid component a `node` test renders can't import `./loadUI` or the `$/app/solid` barrel
+  (P6d's explorers don't, and say so).  Prove:  import `./loadUI` in any `src/**/*.test.tsx`.
 
 ## cli
 
@@ -377,3 +462,28 @@ every entry below that date was fixed or disproven;  what's left:
   `<Project>.scopes.js` or `--against <ref>` become bogus `<project>` / `<ref>` elements (oxfmt then indents them as
   tags).  Escape them as text -- or document that they're HTML, as `--details` is.  Prove:
   `yarn plan-doc add-phase x "A" --goal "write <Project>.js"`, then look at the `#p1` body.
+
+## server
+
+### 1. Behavior bugs
+
+- `src/page/AstroProxy.ts` `start()` spawns `yarn astro dev`:  a page server launched by a `yarn` script
+  (`yarn server ensure`, which runs it detached) inherits a PATH whose `yarn` is a temporary shim
+  (`/var/folders/.../xfs-*/yarn`), gone once that script exits -- so the first `/ui` request may fail with
+  `/bin/sh: .../yarn: No such file or directory`.  Seen for the app's editor (2026-10-02), which now runs vite's
+  script under `process.execPath` instead (`packages/app/src/server/EditorServer.ts`);  `/ui` not checked.
+
+- `[V]` `src/page/cli.ts` `url`:  a RELATIVE `<file>` resolves against `packages/server`, not the folder `yarn
+  server` ran in -- the root's `yarn server` runs `yarn workspace ... server`, whose nested yarn resets `INIT_CWD`.
+  Prove:  `yarn server url packages/docs/index.html` at the repo root prints
+  `.../packages/server/packages/docs/index.html`.  An absolute path works.
+
+## vscode
+
+### 1. Behavior bugs
+
+- `src/WindowBridge.ts` `close-window`:  didn't close the worktree's window in Owen's test (2026-10-02), though
+  `scripts/window.mjs close doc-template` reported "closed" and the window's registry entry disappeared.  Maybe
+  `workbench.action.closeWindow` from a `setTimeout` after the reply runs too late or is refused;  or the window
+  that opened wasn't the one registered.  Prove:  `node scripts/window.mjs open <name> --pkg docs`, wait for its
+  `~/.spell/windows/*.json`, then `close <name>`, and watch the window.

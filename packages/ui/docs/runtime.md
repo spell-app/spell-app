@@ -70,6 +70,7 @@ class UIThing extends HTMLElement {
 | `UI.visibility` / `UI.observeVisibility()` | `Visibility` | Fomantic's visibility callbacks on `IntersectionObserver`:  `observe(el, { onOnScreen, onTopVisible, onBottomPassed ..., once, continuous, offset, context })` returns the undo;  checks run at crossings (in / out, an edge crossing the screen top or bottom), not per scrolled pixel. `lazyImage(img, { transition, duration, onLoad })` sets `data-src` / `data-srcset` once on screen, then fades in. |
 | `UI.icons` | `IconPacks` | Icon packs and the page's SVG cache (`docs/icons.md`):  `use(source, { prefix, base, only })`, `reset()`, `remove(id)`, `resolve` / `peek` / `get(name)`, `register(name, svg)`;  `scope(packs, { assets, parent })` makes a `<ui-root icons>`'s child set. |
 | `UI.api` | `Api` | `url(template, data)` and `request({ url, urlData, method, data, throttle, key, signal, timeout, headers, responseType })`. |
+| `UI.sources` | `Sources` | Same-origin text files the source elements (`<ui-include>`, `<ui-code>`, `<ui-markdown>`) show and save:  `load(source, { fresh, signal })` (cached per URL, `ETag` kept), `resolve(source)` (refuses another origin / `file://`), `save({ url, text, etag, fragment })` through `saver`, the page's `SourceSaver` (none by default), `forget(source?)`.  Failures are `SourceError`s with a `kind`. |
 
 ## Temporal
 

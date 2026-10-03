@@ -5,6 +5,7 @@
  */
 
 import type { FieldValue, MenuOption, ValidationRule } from "$/ui/elements"
+import type { SourceErrorKind } from "$/ui/runtime"
 
 ////////////////
 // ## Button
@@ -1095,3 +1096,138 @@ export const TEXT = "text"
 
 /** Orientations (`aria-orientation`, roving). */
 export const HORIZONTAL = "horizontal"
+
+////////////////
+// ## Sources:  shared by ui-include, ui-code, ui-markdown (`SourceElement`)
+////////////////
+
+/** When a `source` is fetched:  now, once scrolled into view, or when the browser is idle (Astro's islands). */
+export const SOURCE_LOAD_MODES = ["eager", "visible", "idle"] as const
+
+/** A `SOURCE_LOAD_MODES` value. */
+export type SourceLoadMode = (typeof SOURCE_LOAD_MODES)[number]
+
+/** Attributes every source element has;  spread first into its vocabulary's `attributes`. */
+export const SOURCE_ATTRIBUTES = [
+  {
+    name: "source",
+    kind: "string",
+    description:
+      "URL of the file to show, relative to the page;  same origin only (another site's URL shows an error).  " +
+      "Changing it loads the new file.  Without it, the element shows its own content."
+  },
+  {
+    name: "load",
+    kind: "enum",
+    values: SOURCE_LOAD_MODES,
+    default: "eager",
+    description:
+      "When to fetch `source`:  `eager` (at once), `visible` (once scrolled into view) or `idle` (when the browser " +
+      "has nothing else to do).  Like Astro's `client:visible` / `client:idle`."
+  }
+] as const
+
+/** Events every source element dispatches;  spread into its vocabulary's `events`. */
+export const SOURCE_EVENTS = [
+  {
+    name: "ui-load",
+    detail: "{ source?: string, content: string }",
+    description: "Content arrived:  fetched from `source`, or read from the element's own content."
+  },
+  {
+    name: "ui-change",
+    detail: "{ content: string }",
+    description: "The `content` property was set:  the element shows the new text, and is `dirty` until saved."
+  },
+  {
+    name: "ui-save",
+    detail: "{ source?: string, content: string, etag?: string }",
+    cancelable: true,
+    description:
+      "`host.save()` is about to save:  `preventDefault()` to save it yourself (an editor posting elsewhere)."
+  },
+  {
+    name: "ui-saved",
+    detail: "{ source?: string, etag?: string }",
+    description: "Saved;  `etag` is the file's new version."
+  },
+  {
+    name: "ui-error",
+    detail:
+      "{ kind: 'load' | 'cross-origin' | 'file-protocol' | 'save' | 'conflict' | 'no-saver' | 'render', source?: string, error: unknown }",
+    cancelable: true,
+    description:
+      "Loading, showing or saving failed;  `kind` says why.  Load and render failures show an error message " +
+      "unless cancelled;  save failures keep the content as it is."
+  }
+] as const
+
+/** Parts every source element has. */
+export const SOURCE_PARTS = [
+  { name: "loader", description: "The `<ui-loader>` shown while `source` loads." },
+  { name: "error", description: "The `<ui-message>` shown when loading or showing failed." }
+] as const
+
+/** States every source element has. */
+export const SOURCE_STATES = [
+  { name: "loading", description: "Fetching `source`." },
+  { name: "error", description: "Loading or showing failed:  the error message shows." },
+  { name: "saving", description: "`save()` is in progress." },
+  { name: "dirty", description: "`content` changed since it was loaded or saved." }
+] as const
+
+/** Texts every source element shows;  `{source}` is the URL as written. */
+export const SOURCE_TEXTS = [
+  { key: "sourceLoading", text: "Loading {source}", description: "Accessible name of the loader." },
+  { key: "sourceLoadError", text: "Couldn't load {source}.", description: "The fetch failed." },
+  {
+    key: "sourceCrossOrigin",
+    text: "Can't show {source}:  only files from this site can be shown.",
+    description: "`source` is on another origin."
+  },
+  {
+    key: "sourceFileProtocol",
+    text: "Can't load {source}:  this page was opened from disk.  Open it from a web server to see it.",
+    description: "The page is a `file://` page."
+  },
+  { key: "sourceRenderError", text: "Couldn't show {source}.", description: "The text arrived, but couldn't be shown." }
+] as const
+
+/** `detail` of `ui-load`. */
+export type SourceLoadDetail = {
+  /** `source` as written, or `undefined` for the element's own content */
+  source?: string
+  /** the text */
+  content: string
+}
+
+/** `detail` of `ui-change`. */
+export type SourceChangeDetail = {
+  /** the new text */
+  content: string
+}
+
+/** `detail` of the cancelable `ui-save`. */
+export type SourceSaveDetail = {
+  source?: string
+  /** what's about to be saved */
+  content: string
+  /** version it was edited from */
+  etag?: string
+}
+
+/** `detail` of `ui-saved`. */
+export type SourceSavedDetail = {
+  source?: string
+  /** the file's new version */
+  etag?: string
+}
+
+/** `detail` of a source element's `ui-error`. */
+export type SourceErrorDetail = {
+  /** why, see `SourceErrorKind` */
+  kind: SourceErrorKind
+  source?: string
+  /** what was thrown */
+  error: unknown
+}

@@ -1,80 +1,157 @@
-import _set from "lodash/set"
-import _unset from "lodash/unset"
-import { store as createStore, view, batch, autoEffect, clearEffect } from "@risingstack/react-easy-state"
-import { raw } from "@nx-js/observer-util"
-
 import { Derivative } from "./Derivative"
 import * as extend from "./extend"
-
-/** Re-export `react-easy-state` primitives for convenience, so callers don't need a second import. */
-export { createStore, view, batch, autoEffect, clearEffect }
-
-/**
- * The real object behind a store proxy, or `object` itself if it isn't one.
- * - Read inside a reaction, e.g. a `view()` render, a store hands back PROXIES of nested objects -- and a cache
- *   filled there keeps them.  A proxy is a different object from the real one:  `===`, `includes()`, `Map` keys
- *   and `WeakMap` keys all miss.  Unwrap with this where identity matters.
- */
-export { raw }
+import { DERIVED, KEYS, PROP_CELLS, PROPS, STATE, STATE_CELLS } from "./extend"
+import { HAS_SCHEMA, declareProp, schemaOf, spellTypeOf, type PropInfo, type Schema } from "./Schema"
+import type { Cell } from "./Cell"
+import type { Derived } from "./Derived"
 
 /**
- * Base class giving subclasses reactive `props` and `state`, backed by `react-easy-state`.
- * - Subclass `Observable` and declare public properties as `@prop key defaultValue`.
- * - Declare transient private properties as `@state key defaultValue`.
- * - "Normal" getters/setters are reactive if they reference a `@prop` or `@state` variable.
+ * Base class giving subclasses reactive `props` and `state`, on spell cells (`cells.ts`, `extend.ts`).
+ * - A prop is a getter / setter pair over `getProp()` / `setProp()` -- what compiled spell emits, and what
+ *   `@prop accessor` (`spellDecorators.ts`) makes for hand-written classes.  Same runtime shape either way.
+ * - Reads and writes are SYNCHRONOUS:  a read right after a write sees it.  Readers -- Solid computations through
+ *   the host's bridge, React views through `view()`, `observe()` -- re-run when a value they read REALLY changes:
+ *   an `===` write notifies nobody.
+ * - "Normal" getters are reactive if they read a prop or state.  `derive()` / `@derived` memoize one, with an
+ *   equality cutoff -- only for pure, worth-it ones.
+ * - Each class has a schema (`Schema.ts`):  declared prop types win, undeclared ones are observed and widened.
  * - As for all classes, non-observable SHARED properties or defaults can be defined with `@proto`.
- * - NOTE: can't trap `delete this[<prop>]` -- do `this.<prop> = undefined` instead.
+ * - NOTE: `delete this.prop` isn't trapped -- `deleteProp()`, or set it to `undefined`.
+ * - NOTE: a plain field (`foo = 1`, or a constructor prop with no setter) is NOT spell state:  not reactive, not
+ *   one of `keys()`.
  *
  * Props vs state:
- * - `props` are "normal" reactive user gettable/settable properties -- just assign to change them reactively.
- * - `state` is transient internal state, e.g. `@state runCount = 0`.
- *   - We set up a getter to access its value: `print(this.runCount)`.
- *   - To update the value, do `this.setState("runCount", this.runCount + 1)`.
- *   - Use `this.resetState()` or `this.resetState(<stateKey>...)` to reset state.
+ * - `props` are public:  `keys()` and `toJSON()` list them, in the order they were first set.
+ * - `state` is transient internal state, e.g. a `Task`'s `status`:  a getter over `this.getState("status")`, set
+ *   with `this.setState("status", ...)`, cleared with `this.resetState()`.
  */
 export class Observable<
   Props extends Record<string, any> = Record<string, any>,
   State extends Record<string, any> = Record<string, any>
 > extends Derivative {
+  /** Every subclass keeps a schema -- see `schemaOf()`. */
+  static [HAS_SCHEMA] = true;
+
+  /** Prop values, in the order first set -- see `extend.ts`. */
+  [PROPS] = new Map<string, unknown>();
+  /** State values, made on first use. */
+  [STATE]: Map<string, unknown> | null = null;
+  /** Cells of props someone read. */
+  [PROP_CELLS]: Map<string, Cell> | null = null;
+  /** Cells of state someone read. */
+  [STATE_CELLS]: Map<string, Cell> | null = null;
+  /** Cell of the props' key set. */
+  [KEYS]: Cell | null = null;
+  /** Memoized derived values -- see `derive()`. */
+  [DERIVED]: Map<string, Derived> | null = null
+
   /**
    * On construction, assign `props` passed in to our instance.
-   * - `props` here can include `@state` keys too, since we don't distinguish them at the call site.
+   * - Through each key's setter, if it has one;  a key without one becomes a plain field.
+   * - `props` here can include state keys too, since we don't distinguish them at the call site.
    */
   constructor(props: Partial<Props & State>) {
     super()
-    extend.initializeExtended(this, "props", "state")
-    // Assign properties to our instance -- invoking our getter/setters for `props` or `state`.
     Object.assign(this, props)
+  }
+
+  ////////////////
+  // ## Schema
+  ////////////////
+
+  /** This class's schema:  declared and observed prop types -- see `Schema`. */
+  static get schema(): Schema {
+    return schemaOf(this)
+  }
+
+  /**
+   * Declare prop `name` of this class:  its type, default, legal values -- see `PropInfo`.
+   * - What compiled spell emits, e.g. `static { this.declareProp('suit', { oneOf: Card.Suits }) }`.
+   * - Same runtime shape as `@prop(info) accessor name` in a hand-written class.
+   */
+  static declareProp(name: string, info: PropInfo): void {
+    declareProp(this, name, info)
   }
 
   ////////////////
   // ## Props
   ////////////////
 
-  /** Return reactive `property`, defaulting to `initializer` if never set. */
-  protected getProp<T>(property: string, initializer?: () => T) {
+  /**
+   * Prop `property`, tracked -- `initializer()`'s value if it's unset (stored), else its declared default.
+   * - See `extend.getProp()`.
+   */
+  protected getProp<T>(property: string, initializer?: () => T): T {
     return extend.getProp(this, property, initializer)
   }
+
   /**
-   * Set reactive `property` to `value`.
-   * - If `value` is `undefined`, deletes the property instead.
+   * Set prop `property` to `value` -- returns `value`.
+   * - `undefined` deletes it instead;  `===` its current value does nothing.
+   * - A CHANGED value is checked against the class's schema:  its declaration, else its observed type -- see
+   *   `checkPropType()`.  Stored either way.
    */
-  protected setProp<T>(property: string, value: T) {
-    return extend.setProp(this, property, value)
+  protected setProp<T>(property: string, value: T): T {
+    if (extend.storeProp(this, property, value) && value !== undefined) {
+      const Class = this.constructor as typeof Observable
+      const info = schemaOf(Class).observe(property, value, Class.name)
+      if (info) this.checkPropType(property, value, info)
+    }
+    return value
+  }
+
+  /** Delete prop `property`:  it leaves `keys()`.  Returns whether it was set. */
+  deleteProp(property: string): boolean {
+    return extend.deleteProp(this, property)
+  }
+
+  /**
+   * Names of our props, in the order they were first set -- tracked:  a reader re-runs when a key comes or goes,
+   * NOT when a value changes.  An overwrite keeps its place;  a delete removes it;  setting it again appends it.
+   */
+  keys(): string[] {
+    return extend.keysOf(this)
+  }
+
+  /**
+   * `value` was just set as declared prop `property`:  warn if it isn't what `info` declares.  Stored either way.
+   * - Here:  a dev warning, for hand-written classes.  `Thing` / `List` override it to warn on the program's console.
+   */
+  protected checkPropType(property: string, value: unknown, info: PropInfo): void {
+    if (import.meta.env?.PROD) return
+    if (info.oneOf && !info.oneOf.includes(value)) {
+      console.warn(`${this.constructor.name}.${property}:  expected one of ${info.oneOf.join(", ")}, got`, value)
+    } else if (info.type && !isOfType(value, info.type)) {
+      console.warn(`${this.constructor.name}.${property}:  expected ${info.type}, got`, value)
+    }
+  }
+
+  ////////////////
+  // ## Derived
+  ////////////////
+
+  /**
+   * Memoized derived value `name`:  `fn()`, re-computed only when what it read changes, its readers re-run only when
+   * its value REALLY changes.  Call from a getter;  `@derived` does it for you.
+   * - `fn` MUST be pure:  reads cells, writes nothing.  See `extend.derive()`.
+   */
+  derive<T>(name: string, fn: (this: this) => T): T {
+    return extend.derive(this, name, fn)
   }
 
   ////////////////
   // ## State
   ////////////////
 
-  /** Get state `property`, defaulting to `initializer` if never set. */
+  /** State `property`, tracked -- `initializer()`'s value if unset. */
   protected getState<T>(property: string, initializer?: () => T): T {
     return extend.getState(this, property, initializer)
   }
+
   /**
-   * Set property `property` on our `$state` to `value`.
-   * - If `value` is `undefined`, deletes the property instead.
-   * - `property` can be a dotted path.
+   * Set state `property` to `value`.
+   * - `undefined` deletes it instead.
+   * - `property` can be a dotted path:  see `extend.setState()`.
    */
   protected setState<T>(property: string, value: T) {
     return extend.setState(this, property, value)
@@ -96,8 +173,27 @@ export class Observable<
    */
   onRemove() {}
 
-  /** Output our non-state `props` when serializing to JSON. */
+  /** Our `props` (not `state`), in `keys()` order, when serializing to JSON. */
   toJSON() {
     return extend.getProps(this)
   }
+}
+
+/**
+ * Run `fn` and return what it returns.
+ * - DEPRECATED:  `easy-state` needed it to re-render once for many writes.  Cells don't:  Solid re-runs a reader on
+ *   its own schedule, React batches, so ten writes re-run a reader once anyway.
+ */
+export function batch<T>(fn: () => T): T {
+  return fn()
+}
+
+/** Is `value` of declared type `type` -- by spell's name for it, or a class it's an instance of (by name)? */
+function isOfType(value: unknown, type: string): boolean {
+  if (spellTypeOf(value) === type) return true
+  if (typeof value !== "object" || value === null) return false
+  for (let proto = Object.getPrototypeOf(value); proto; proto = Object.getPrototypeOf(proto)) {
+    if (proto.constructor?.name === type) return true
+  }
+  return false
 }

@@ -12,11 +12,11 @@ MORNING PLAN:  what was done, every judgement call, every problem.  `/wakeup` en
 - `<name>`:  the plan doc's name if there is one, else the worktree / branch name.
 - MORNING PLAN:  `MORNING-<name>.md` at the worktree root (gitignored, never committed).  Its first line is
   `<!-- bedtime: active -->` while the run goes on.  It's how a compacted session knows it's still in bedtime mode.
-- Style:  caveman lite, as in `/plan-doc`.
+- Style:  caveman lite, as in `/epic`.
 
 ## 1. Find the phases
 
-- Plan doc (`packages/docs/plans/<name>/`, or the one this session has been keeping):
+- Plan doc (`packages/docs/epics/<name>/`, or the one this session has been keeping):
   `yarn plan-doc summary <name> --json`.  To-do phases:  every one whose `status` isn't `done`.
 - No plan doc:  the phases of the plan this session drafted (harness plan file, conversation).
 - No phases:  say so in one line and stop.
@@ -37,7 +37,7 @@ would otherwise stop you mid-night.  Then ask, in one or more AskUserQuestion ca
 option first):
 - Not in a worktree (the session's folder isn't under `.claude/worktrees/`):  "Isolate first?", options
   "Isolate as `<proposed-name>` (Recommended)", "New branch here (`git switch -c`)", "Stop".  Never commit to `main`.
-- How many agents may the work use, if Owen hasn't said (max 5).
+- How many agents may the work use:  ONLY if Owen said "watch token budget";  otherwise up to 5, unasked.
 - Every real question:  ambiguous goals, choices between designs, anything a phase's text leaves open.  Ask
   generously -- this is the LAST chance;  a question asked now beats a judgement call made at 3am.
 

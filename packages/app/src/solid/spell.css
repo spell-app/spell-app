@@ -1,0 +1,11 @@
+/*
+ * Spacing the app's layout shares:  `<SpellPage>`, `<SplitPanel>` and their panes (`SpellPage.css`,
+ * `SplitPanel.css`).  Imported by `SpellPage.tsx` and `SplitPanel.tsx`.
+ */
+
+:root,
+:host {
+  --spell-tight-padding: 0.3em;
+  --spell-normal-padding: 0.6em;
+  --spell-loose-padding: 1em;
+}

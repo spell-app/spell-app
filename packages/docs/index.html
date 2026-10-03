@@ -50,7 +50,7 @@
               ><ui-content>
                 <ui-header><a href="server.html" target="src-packages-docs-server-html">Page Server</a></ui-header>
                 <ui-description
-                  >One live-reloading server per checkout for docs, plans, goals, Spell UI and the editor: the $/server
+                  >One live-reloading server per checkout for docs, epics, goals, Spell UI and the editor: the $/server
                   library, its flows, route modules, safety, and why it's built this way.</ui-description
                 >
                 <ui-meta>server.html</ui-meta>
@@ -88,13 +88,27 @@
             <ui-card
               ><ui-content>
                 <ui-header
+                  ><a href="solid-migration.html" target="src-packages-docs-solid-migration-html"
+                    >Solid Migration</a
+                  ></ui-header
+                >
+                <ui-description
+                  >How the spell editor app is built on Solid 2 and @spell-app/ui since the React migration, and why:
+                  spell cells, the bridges, one Solid per page, and where React remains.</ui-description
+                >
+                <ui-meta>solid-migration.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
                   ><a href="spell-docs/spell-docs.html" target="src-packages-docs-spell-docs-spell-docs-html"
                     >How Spell Docs Work</a
                   ></ui-header
                 >
                 <ui-description
                   >How spell's docs are built and written -- pages on @spell-app/ui, templates, the docs index -- and
-                  how /plan-doc keeps a live plan doc for each planning session.</ui-description
+                  how /epic keeps a live plan doc for each planning session.</ui-description
                 >
                 <ui-meta>spell-docs/spell-docs.html</ui-meta>
               </ui-content></ui-card
@@ -127,66 +141,111 @@
                 <ui-meta>ui-component-creation.html</ui-meta>
               </ui-content></ui-card
             >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="ui-import/examples/part.html" target="src-packages-docs-ui-import-examples-part-html"
+                    >A part to include</a
+                  ></ui-header
+                >
+
+                <ui-meta>ui-import/examples/part.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="ui-import/ui-import.html" target="src-packages-docs-ui-import-ui-import-html"
+                    >UI Import: include, code, markdown</a
+                  ></ui-header
+                >
+                <ui-description
+                  >Three ui elements that show a file of the site -- a page, code, markdown -- and save it back:
+                  loading, saving, lazy engines.</ui-description
+                >
+                <ui-meta>ui-import/ui-import.html</ui-meta>
+              </ui-content></ui-card
+            >
           </ui-cards>
         </ui-section>
-        <ui-section id="plans" header="Plans" sticky collapsible dividing>
+        <ui-section id="epics" header="Epics" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
           <ui-cards class="spell-grid" stackable>
             <ui-card
               ><ui-content>
                 <ui-header
-                  ><a href="plans/cli-additions/cli-additions.html" target="cli-additions">spell CLI Additions</a>
+                  ><a href="epics/cli-additions/cli-additions.html" target="cli-additions">spell CLI Additions</a>
                   <ui-label size="mini" color="green">done</ui-label></ui-header
                 >
                 <ui-description>Plan doc: spell CLI Additions.</ui-description>
-                <ui-meta>plans/cli-additions/cli-additions.html</ui-meta>
+                <ui-meta>epics/cli-additions/cli-additions.html</ui-meta>
               </ui-content></ui-card
             >
             <ui-card
               ><ui-content>
                 <ui-header
-                  ><a href="plans/docs-workspace/docs-workspace.html" target="docs-workspace"
+                  ><a href="epics/docs-workspace/docs-workspace.html" target="docs-workspace"
                     >Docs workspace + /plan-doc</a
                   >
                   <ui-label size="mini" color="green">done</ui-label></ui-header
                 >
                 <ui-description>Plan doc: Docs workspace + /plan-doc.</ui-description>
-                <ui-meta>plans/docs-workspace/docs-workspace.html</ui-meta>
+                <ui-meta>epics/docs-workspace/docs-workspace.html</ui-meta>
               </ui-content></ui-card
             >
             <ui-card
               ><ui-content>
                 <ui-header
-                  ><a href="plans/seo/seo.html" target="seo">SEO · Static Server Render</a>
+                  ><a href="epics/seo/seo.html" target="seo">SEO · Static Server Render</a>
                   <ui-label size="mini" color="orange">P3 · All Families (2/6)</ui-label></ui-header
                 >
                 <ui-description
                   >Plan doc: server-render ui-* pages to static light-DOM HTML for SEO, no shadow DOM, no
                   JS.</ui-description
                 >
-                <ui-meta>plans/seo/seo.html</ui-meta>
+                <ui-meta>epics/seo/seo.html</ui-meta>
               </ui-content></ui-card
             >
             <ui-card
               ><ui-content>
                 <ui-header
-                  ><a href="plans/ui-component-creation/ui-component-creation.html" target="ui-component-creation"
+                  ><a href="epics/solid-migration/solid-migration.html" target="solid-migration">Solid Migration</a>
+                  <ui-label size="mini" color="green">done</ui-label></ui-header
+                >
+                <ui-description>Plan doc: Solid Migration.</ui-description>
+                <ui-meta>epics/solid-migration/solid-migration.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="epics/ui-component-creation/ui-component-creation.html" target="ui-component-creation"
                     >UI Component Creation</a
                   >
                   <ui-label size="mini" color="green">done</ui-label></ui-header
                 >
                 <ui-description>Plan doc: UI Component Creation.</ui-description>
-                <ui-meta>plans/ui-component-creation/ui-component-creation.html</ui-meta>
+                <ui-meta>epics/ui-component-creation/ui-component-creation.html</ui-meta>
               </ui-content></ui-card
             >
             <ui-card
               ><ui-content>
                 <ui-header
-                  ><a href="plans/unified-server/unified-server.html" target="unified-server">Unified Server</a>
+                  ><a href="epics/ui-import/ui-import.html" target="ui-import">UI Import</a>
+                  <ui-label size="mini" color="green">done</ui-label></ui-header
+                >
+                <ui-description>Plan doc: UI Import.</ui-description>
+                <ui-meta>epics/ui-import/ui-import.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="epics/unified-server/unified-server.html" target="unified-server">Unified Server</a>
                   <ui-label size="mini" color="green">done</ui-label></ui-header
                 >
                 <ui-description>Plan doc: Unified Server.</ui-description>
-                <ui-meta>plans/unified-server/unified-server.html</ui-meta>
+                <ui-meta>epics/unified-server/unified-server.html</ui-meta>
               </ui-content></ui-card
             >
           </ui-cards>
@@ -220,6 +279,20 @@
                   asides.</ui-description
                 >
                 <ui-meta>templates/durable.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="templates/epics/plan.html" target="src-packages-docs-templates-epics-plan-html"
+                    >Plan Doc Template</a
+                  ></ui-header
+                >
+                <ui-description
+                  >Plan doc template: copied by `yarn plan-doc new &lt;name&gt;`, kept live by
+                  /plan-doc.</ui-description
+                >
+                <ui-meta>templates/epics/plan.html</ui-meta>
               </ui-content></ui-card
             >
             <ui-card
@@ -266,20 +339,6 @@
                 <ui-meta>templates/goals/set/topic/topic.html</ui-meta>
               </ui-content></ui-card
             >
-            <ui-card
-              ><ui-content>
-                <ui-header
-                  ><a href="templates/plans/plan.html" target="src-packages-docs-templates-plans-plan-html"
-                    >Plan Doc Template</a
-                  ></ui-header
-                >
-                <ui-description
-                  >Plan doc template: copied by `yarn plan-doc new &lt;name&gt;`, kept live by
-                  /plan-doc.</ui-description
-                >
-                <ui-meta>templates/plans/plan.html</ui-meta>
-              </ui-content></ui-card
-            >
           </ui-cards>
         </ui-section>
         <!-- index:end -->
@@ -292,7 +351,7 @@
               <code>yarn docs:new durable &lt;topic&gt;/&lt;topic&gt;.html --title "Title"</code>.
             </li>
             <li>
-              A plan doc: run <code>/plan-doc &lt;name&gt;</code> in Claude Code. Never copy the plan template by hand.
+              A plan doc: run <code>/epic &lt;name&gt;</code> in Claude Code. Never copy the plan template by hand.
             </li>
             <li>
               The rules: <a href="AGENTS.md" target="src-packages-docs-agents-md">AGENTS.md</a>. How the pages work:

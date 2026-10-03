@@ -46,3 +46,4 @@ export {
 
 export * from "./SpellDeclarations"
 export * from "./hoistClassMembers"
+export * from "./highlight"
