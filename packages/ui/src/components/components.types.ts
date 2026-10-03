@@ -916,10 +916,14 @@ export type CalendarOpenDetail = {
 }
 
 /**
- * Invoker commands a `<ui-shape>` answers, `<button commandfor="id" command="--next">`:  turn to the next / previous
- * side, the `direction` attribute's way.
+ * Invoker commands a `<ui-shape>` answers, `<button commandfor="id" command="--next">`.
+ * - `next` / `previous`:  turn to the next / previous side, the `direction` attribute's way
+ * - `flip` + a `ShapeFlip`:  turn to the next side THAT way (`--flip-up` ...), Fomantic's `flip up` behaviour
  */
-export const SHAPE_COMMANDS = { next: "--next", previous: "--previous" } as const
+export const SHAPE_COMMANDS = { next: "--next", previous: "--previous", flip: "--flip-" } as const
+
+/** Every `ShapeFlip`, for the `--flip-<direction>` commands. */
+export const SHAPE_FLIPS: readonly ShapeFlip[] = ["up", "down", "left", "right", "over", "back"]
 
 ////////////////
 // ## Shared words

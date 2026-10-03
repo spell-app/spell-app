@@ -17,7 +17,7 @@ import { chromium, type Browser, type BrowserContextOptions, type Page } from "p
  * - Problems (exit 1):
  *   - console errors, page errors, failed requests and responses >= 400 (favicon aside)
  *   - `ui-*` / `spell-*` elements still undefined once settled;  defined `ui-*` with no shadow root
- *   - component pages:  not exactly one `ui-tabs.site-tabs` with panes `examples`, `usage`, `api`, `theming`;  a pane
+ *   - component pages (`components/ui-*.html`, not the index):  not exactly one `ui-tabs.site-tabs` with panes `examples`, `usage`, `api`, `theming`;  a pane
  *     that isn't the shown one when loaded with its `#hash`, or shows under 50px
  *   - `ui-docs-toc`:  hidden or empty on desktop, visible on phone
  *   - horizontal scroll at phone width, listing the elements past the edge, outermost and deepest:  what a fixer
@@ -133,6 +133,15 @@ export class SiteCheck {
     return file
   }
 
+  /**
+   * A page's screenshot prefix:  its file name (`ui-button`, `grammar`), or its path for a folder's `index.html`
+   * (`components/index.html` => `components-index`), which would else overwrite the home page's shots.
+   */
+  static shotName(path: string): string {
+    const name = basename(path, ".html")
+    return name === "index" && path.includes("/") ? path.replace(/\.html$/, "").replaceAll("/", "-") : name
+  }
+
   /** Every page:  `site/*.html` and `site/components/*.html`, minus `_`-prefixed ones (smoke pages, partials). */
   static allPages(): string[] {
     return [SiteCheck.SITE, join(SiteCheck.SITE, "components")].flatMap((folder) =>
@@ -216,7 +225,7 @@ export class SiteCheck {
       screenshots: []
     }
     const seen = new Map<string, number>()
-    const context: CheckContext = { file, path, name: basename(file, ".html"), report, problem, unsettled: false }
+    const context: CheckContext = { file, path, name: SiteCheck.shotName(path), report, problem, unsettled: false }
     for (const step of [this.checkDesktop, this.checkPhone, this.checkDark]) {
       try {
         await step.call(this, context)
@@ -259,7 +268,8 @@ export class SiteCheck {
       for (const [tag, count] of Object.entries(elements.unrendered)) problem(`${count} <${tag}> without a shadow root`)
 
       const tabs = await page.evaluate(tabsState)
-      const component = check.path.startsWith("components/")
+      // a family page (`components/ui-<name>.html`);  NOT the component index, `components/index.html`
+      const component = check.path.startsWith("components/ui-")
       report.counts.tabs = tabs.values
       let values: string[] = []
       if (component) {

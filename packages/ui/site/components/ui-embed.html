@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Embed | Spell UI</title>
+    <meta
+      name="description"
+      content="An embed displays content from other websites, like YouTube videos, loaded only when asked for."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var s = localStorage.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <ui-root class="site" icons="fa7-brands, fomantic" display="immediately">
+      <ui-include class="site-header" source="../_parts/header.html" page-styles>
+        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
+      </ui-include>
+
+      <div class="site-layout">
+        <aside class="site-nav">
+          <ui-docs-nav></ui-docs-nav>
+        </aside>
+
+        <main id="main" class="site-main">
+          <ui-segment vertical class="site-masthead">
+            <ui-container>
+              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-embed.html"
+                  icon="pen to square"
+                  aria-label="This page's source on GitHub"
+                  title="This page's source on GitHub"
+                ></ui-item>
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-embed%3A%20%20"
+                  icon="bug"
+                  aria-label="Report a bug"
+                  title="Report a bug"
+                ></ui-item>
+                <ui-item
+                  href="https://fomantic-ui.com/modules/embed.html"
+                  icon="up right from square"
+                  aria-label="Fomantic UI's original page"
+                  title="Fomantic UI's original page"
+                ></ui-item>
+              </ui-menu>
+              <ui-header level="1" class="site-title">
+                Embed
+                <ui-header
+                  >An embed displays content from other websites, like YouTube videos, loaded only when asked
+                  for.</ui-header
+                >
+              </ui-header>
+              <ui-docs-themes for="ui-embed" show="theme" class="site-themes"></ui-docs-themes>
+            </ui-container>
+          </ui-segment>
+
+          <ui-container class="site-body">
+            <ui-rail position="right" class="site-rail">
+              <ui-sticky class="site-toc" offset="64">
+                <ui-docs-toc for="site-tabs" header="Embed"></ui-docs-toc>
+              </ui-sticky>
+            </ui-rail>
+
+            <ui-tabs id="site-tabs" class="site-tabs" history basic compact>
+              <ui-tab value="examples" label="Examples">
+                <!--
+                  EXAMPLES:  Fomantic's embed page, section by section, in its order (Types, Variations), plus our extra (Placeholder
+                  content).  Nothing third-party loads on this page until a reader clicks a play button.
+                -->
+                <ui-header level="2" dividing id="types">Types</ui-header>
+
+                <ui-docs-example header="YouTube">
+                  <p slot="description">
+                    An embed can be used to display YouTube content. Only a click loads the video, from
+                    <code>youtube-nocookie.com</code>.
+                  </p>
+                  <ui-embed
+                    source="youtube"
+                    video-id="O6Xo21L0ybE"
+                    alt="A Youtube Video about a waving bear"
+                    placeholder="../images/image-16by9.png"
+                  ></ui-embed>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Vimeo"
+                  description='An embed can be used to display Vimeo content:  `source="vimeo"` with the video&apos;s id.'
+                >
+                  <ui-embed
+                    source="vimeo"
+                    video-id="125292332"
+                    label="A Vimeo video"
+                    placeholder="../images/vimeo-example.jpg"
+                  ></ui-embed>
+                </ui-docs-example>
+
+                <ui-docs-example header="Custom Content">
+                  <p slot="description">
+                    An embed can display any web content: <code>url</code> frames any <code>http(s)</code> address.
+                  </p>
+                  <ui-message slot="description" size="small" state="info"
+                    >Embeds use an intrinsic aspect ratio to embed content responsively: content keeps its aspect ratio
+                    at every browser size.</ui-message
+                  >
+                  <ui-embed
+                    url="https://rasterbuster.lubber.de"
+                    label="Rasterbuster"
+                    placeholder="../images/image-16by9.png"
+                    icon="arrow circle right"
+                  ></ui-embed>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Placeholder content"
+                  description="Children go inside the play button, over the image:  a caption, a duration."
+                >
+                  <ui-embed
+                    source="youtube"
+                    video-id="O6Xo21L0ybE"
+                    label="A waving bear"
+                    placeholder="../images/image-16by9.png"
+                  >
+                    <ui-label color="black" attached="top right">Watch · 2:10</ui-label>
+                  </ui-embed>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="variations">Variations</ui-header>
+
+                <ui-docs-example
+                  header="Aspect Ratio"
+                  description="An embed can specify an alternative aspect ratio out of `square`, `4:3`, `16:9` (the default) or `21:9`."
+                >
+                  <ui-embed
+                    source="youtube"
+                    video-id="HTZudKi36bo"
+                    aspect-ratio="4:3"
+                    label="A 4:3 video"
+                    placeholder="../images/4by3.jpg"
+                  ></ui-embed>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-grid columns="3">
+                    <ui-column>
+                      <ui-embed
+                        source="vimeo"
+                        video-id="125292332"
+                        aspect-ratio="square"
+                        label="Square video"
+                      ></ui-embed>
+                    </ui-column>
+                    <ui-column>
+                      <ui-embed source="vimeo" video-id="125292332" aspect-ratio="16:9" label="16:9 video"></ui-embed>
+                    </ui-column>
+                    <ui-column>
+                      <ui-embed source="vimeo" video-id="125292332" aspect-ratio="21:9" label="21:9 video"></ui-embed>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+              </ui-tab>
+
+              <ui-tab value="usage" label="Usage">
+                <!-- USAGE:  sources, privacy, events, script API, keyboard, accessibility, frameworks. -->
+                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Write `<ui-embed>` with what to show; there is no `.embed()` call to make. The content comes from:
+
+                    - `source` (`youtube` or `vimeo`) plus `video-id` (Fomantic's `data-id`: `id` is the element's own) -- your
+                      backend stores the meaningful id, the element builds the URL
+                    - or any `http(s)` `url` (other protocols are refused); a YouTube / Vimeo URL gets their player parameters
+
+                    `placeholder` is the image shown before the frame loads, `icon` the icon over it (`icon="false"` for none),
+                    `label` names it (default `alt`, else "video" / "embedded content"). `autoplay` is on by default, since the
+                    click already asked for the video; `branded-ui` keeps the player's branding, and the `parameters` property adds
+                    URL parameters (`{ start: 30 }`).
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="privacy">Privacy</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Until it's activated, an embed makes no request to the other site, not even a preconnect. Fomantic loaded the
+                    frame at once; here the placeholder is a real `<button>`, and only a click (or **Enter** / **Space**) loads the
+                    `<iframe>`. YouTube videos play from `youtube-nocookie.com`.
+                  </script>
+                </ui-markdown>
+                <ui-message size="small" class="site-not-ported"
+                  >Not ported: custom sources (<code>$.fn.embed.settings.sources</code>) and Fomantic's per-source
+                  <code>hd</code> / <code>color</code> settings -- give any other player its <code>url</code>, and its
+                  options through <code>parameters</code>.</ui-message
+                >
+
+                <ui-header level="2" dividing id="events">Events</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - `ui-activate` -- about to load the frame from `url` (a click, **Enter** / **Space**, `host.activate()`);
+                      `detail` is `{ url, originalEvent? }`. `preventDefault()` keeps the placeholder: the place to ask for
+                      consent.
+                    - `ui-reset` -- back to the placeholder (`host.reset()`, Fomantic's `reset`); the frame is gone.
+
+                    Writing `active` loads the frame without an event.
+                  </script>
+                </ui-markdown>
+                <ui-code language="js">
+                  <script type="text/plain">
+                    const tour = document.querySelector("ui-embed")
+                    tour.parameters = { start: 30 }
+                    tour.addEventListener("ui-activate", (event) => {
+                      if (!consent.video) {
+                        event.preventDefault() // keep the placeholder
+                        askForConsent()
+                      }
+                    })
+                    tour.reset() // back to the placeholder
+                  </script>
+                </ui-code>
+
+                <ui-header level="2" dividing id="behaviors">Behaviors</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Fomantic's behaviors are methods and properties on the host:
+
+                    - `change(source, id, url)` -- set `source` / `video-id` / `url`
+                    - `reset` -- `host.reset()`
+                    - `show` -- `host.activate()` (fires `ui-activate`), or `host.active = true` (no event)
+                    - `get url`, `get id`, `get placeholder` ... -- read the attributes
+                    - `has placeholder` -- `host.placeholder`
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - **Tab** reaches the play button.
+                    - **Enter** / **Space** loads the frame and moves focus into it.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - The placeholder is a real `<button>` named "Play" plus the `label` ("Play Fomantic UI intro"; translated).
+                      Give every embed a `label`: it also becomes the frame's `title`, which is how screen readers name an
+                      `<iframe>`.
+                    - Once activated, focus moves into the frame, so keyboard users land on the player they asked for.
+                    - The video's own controls and captions are the other site's.
+                    - If the element can't render, its native fallback is the same play button, which swaps itself for the frame:
+                      the video still plays, and still only after a click. `ui-activate`, `reset()` and the focus move are lost.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="frameworks">Framework usage</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Set `parameters` as a property, and listen for `ui-activate` to gate loading.
+                  </script>
+                </ui-markdown>
+                <ui-header level="4" id="framework-react">React 19</ui-header>
+                <ui-code language="jsx">
+                  <script type="text/plain">
+                    <ui-embed source="youtube" video-id={id} label={title} parameters={{ start: 30 }} onui-activate={track} />
+                  </script>
+                </ui-code>
+                <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+                <ui-code language="html">
+                  <script type="text/plain">
+                    <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                    <ui-embed source="youtube" :video-id="id" :label="title" :parameters="{ start: 30 }" @ui-activate="track" />
+                  </script>
+                </ui-code>
+                <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+                <ui-code language="jsx">
+                  <script type="text/plain">
+                    // no `on:` namespace:  listen through a ref;  `prop:` for the property
+                    <ui-embed
+                      source="youtube"
+                      video-id={id}
+                      label={title}
+                      prop:parameters={{ start: 30 }}
+                      ref={(el) => el.addEventListener("ui-activate", track)}
+                    />
+                  </script>
+                </ui-code>
+              </ui-tab>
+
+              <ui-tab value="api" label="API">
+                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+                <ui-docs-api family="ui-embed"></ui-docs-api>
+              </ui-tab>
+
+              <ui-tab value="theming" label="Theming">
+                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Theme with the public `--ui-embed-*` tokens on the embed or any ancestor; `::part(embed)` works too. They
+                    inherit into the shadow root, where the sheet reads each through a private alias, so nothing inside blocks
+                    them. Style the pieces with `::part()`: `play` (the button), `placeholder` (the image), `icon` and `frame`.
+                  </script>
+                </ui-markdown>
+                <ui-code language="css">
+                  <script type="text/plain">
+                    /* every embed on the page */
+                    ui-embed {
+                      --ui-embed-icon-size: 4em;
+                      --ui-embed-icon-color: var(--ui-red);
+                    }
+                    /* the box */
+                    ui-embed::part(embed) {
+                      border-radius: 0.5em;
+                      overflow: hidden;
+                    }
+                  </script>
+                </ui-code>
+                <ui-message state="info" size="small">
+                  <ui-markdown>
+                    <script type="text/markdown">
+                      An `aspect-ratio` attribute (`4:3`, `21:9`, `square`) replaces `--ui-embed-ratio`, whatever you set. Never
+                      set the `--_ui-embed-*` names: they're the sheet's private plumbing.
+                    </script>
+                  </ui-markdown>
+                </ui-message>
+                <ui-markdown>Edit a value below to try it.</ui-markdown>
+                <ui-docs-tokens family="ui-embed" playground></ui-docs-tokens>
+
+                <ui-header level="2" dividing id="themes">Themes</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                    theme to the whole site. No Fomantic theme restyles embeds (Fomantic's embed page lists only its default
+                    theme).
+                  </script>
+                </ui-markdown>
+              </ui-tab>
+            </ui-tabs>
+          </ui-container>
+
+          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
+        </main>
+      </div>
+    </ui-root>
+  </body>
+</html>

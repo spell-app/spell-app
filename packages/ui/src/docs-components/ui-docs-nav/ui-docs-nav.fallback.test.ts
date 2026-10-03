@@ -45,12 +45,13 @@ describe("DocsNavFallback", () => {
     expect(box.getAttribute("part")).toBe("nav")
     const nav = box.querySelector("nav[part=menu]")!
     expect(nav.getAttribute("aria-label")).toBe("Documentation")
-    await expect.poll(() => nav.querySelectorAll("a").length).toBe(9)
+    await expect.poll(() => nav.querySelectorAll("a").length).toBe(10)
     const links = [...nav.querySelectorAll("a")].map((link) => link.getAttribute("href"))
-    expect(links.slice(0, 5)).toEqual([
+    expect(links.slice(0, 6)).toEqual([
       "#/index.html",
       "#/getting-started.html",
       "#/grammar.html",
+      "#/components/index.html",
       "#/components/ui-button.html",
       "#/components/ui-input.html"
     ])
@@ -64,7 +65,7 @@ describe("DocsNavFallback", () => {
     const host = Fixture.render<StubHost>(`<x-fb-docs-nav base="#/" current="theming"></x-fb-docs-nav>`)
     const nav = FallbackStub.shadow(host).querySelector("nav")!
     await expect(SiteData.load()).rejects.toThrow()
-    expect(nav.querySelectorAll("a")).toHaveLength(7)
+    expect(nav.querySelectorAll("a")).toHaveLength(8)
     expect(nav.querySelector("[aria-current=page]")!.textContent).toBe("Theming")
   })
 })

@@ -36,6 +36,7 @@
     "**/site/**/*.mdx",
     "**/ui/site/_assets/**",
     "**/ui/site/_data/**",
+    "**/ui/site/**/*.html",
     "**/site/.astro/**",
     "**/vendor/**",
     "**/packages/*/dist/**",

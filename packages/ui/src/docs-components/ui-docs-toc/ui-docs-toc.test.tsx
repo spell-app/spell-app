@@ -86,6 +86,14 @@ describe("<ui-docs-toc> scan", () => {
     expect(links(toc, "section")).toEqual([])
   })
 
+  it("leaves a heading's sub header out of its link text", async () => {
+    const { toc } = await render(
+      `<div><ui-docs-toc for="subbed"></ui-docs-toc><section id="subbed">` +
+        `<ui-header level="2">Tokens <ui-header>Light and dark</ui-header></ui-header></section></div>`
+    )
+    expect(links(toc, "section")).toEqual(["Tokens"])
+  })
+
   it("slugs text", () => {
     expect(TocIndex.slug("Labeled Icon")).toBe("labeled-icon")
     expect(TocIndex.slug("  Émphasis & More! ")).toBe("emphasis-more")

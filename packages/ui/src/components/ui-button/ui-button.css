@@ -83,6 +83,10 @@
   :host(:state(right-floated)) {
     float: right;
   }
+  /* The `hidden` attribute:  the host's own `display` would beat the browser's `[hidden]` rule. */
+  :host([hidden]) {
+    display: none;
+  }
   /* `delegatesFocus`:  the inner `<button>` draws the ring, never the host. */
   :host(:focus-visible) {
     outline: none;

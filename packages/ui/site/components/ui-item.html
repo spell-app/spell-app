@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Item | Spell UI</title>
+    <meta name="description" content="One item for dropdowns, lists and menus, rendered by whatever holds it." />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var s = localStorage.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <ui-root class="site" icons="fa7-brands, fomantic" display="immediately">
+      <ui-include class="site-header" source="../_parts/header.html" page-styles>
+        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
+      </ui-include>
+
+      <div class="site-layout">
+        <aside class="site-nav">
+          <ui-docs-nav></ui-docs-nav>
+        </aside>
+
+        <main id="main" class="site-main">
+          <ui-segment vertical class="site-masthead">
+            <ui-container>
+              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-item.html"
+                  icon="pen to square"
+                  aria-label="This page's source on GitHub"
+                  title="This page's source on GitHub"
+                ></ui-item>
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-item%3A%20%20"
+                  icon="bug"
+                  aria-label="Report a bug"
+                  title="Report a bug"
+                ></ui-item>
+                <ui-item
+                  href="https://fomantic-ui.com/views/item.html"
+                  icon="up right from square"
+                  aria-label="Fomantic UI's original page"
+                  title="Fomantic UI's original page"
+                ></ui-item>
+              </ui-menu>
+              <ui-header level="1" class="site-title">
+                Item
+                <ui-header>One item for dropdowns, lists and menus, rendered by whatever holds it.</ui-header>
+              </ui-header>
+              <ui-docs-themes for="ui-item" show="theme" class="site-themes"></ui-docs-themes>
+            </ui-container>
+          </ui-segment>
+
+          <ui-container class="site-body">
+            <ui-rail position="right" class="site-rail">
+              <ui-sticky class="site-toc" offset="64">
+                <ui-docs-toc for="site-tabs" header="Item"></ui-docs-toc>
+              </ui-sticky>
+            </ui-rail>
+
+            <ui-tabs id="site-tabs" class="site-tabs" history basic compact>
+              <ui-tab value="examples" label="Examples">
+                <!--
+                  EXAMPLES:  ours only (Fomantic shares one `.item` between dropdowns, lists, menus and the Items view, and documents
+                  it on those pages):  the old page's content, restyled.  Every example is an item inside its owner, which loads its
+                  own family;  the owners' pages show them in full.
+                -->
+                <ui-header level="2" dividing id="types">Types</ui-header>
+
+                <ui-docs-example
+                  header="In a dropdown"
+                  description="Inside a dropdown an item is data:  the dropdown reads its `value`, text, `icon`, `flag`, `description` and `selected`, and draws the option rows itself."
+                >
+                  <ui-dropdown selection placeholder="Fruit">
+                    <ui-item value="apple">Apple</ui-item>
+                    <ui-item value="pear" selected>Pear</ui-item>
+                    <ui-item value="plum" description="in season">Plum</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+
+                <ui-docs-example header="In a list" description="Inside a list an item is a list row.">
+                  <ui-list divided>
+                    <ui-item icon="users">Friends</ui-item>
+                    <ui-item icon="map marker">Worldwide</ui-item>
+                    <ui-item icon="mail">Messages</ui-item>
+                  </ui-list>
+                </ui-docs-example>
+
+                <ui-docs-example header="In a menu" description="Inside a menu an item is a menu item.">
+                  <ui-menu pointing aria-label="Item in a menu demo">
+                    <ui-item href="#inbox" selected>Inbox</ui-item>
+                    <ui-item href="#starred">Starred</ui-item>
+                    <ui-item href="#sent">Sent</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <!-- GAP I49 (same root):  the Items view stacks (image above content) inside the ~755px docs column on desktop. -->
+                <ui-docs-example
+                  header="In an Items view"
+                  description="Inside `<ui-items>` an item is a media object:  its `image` beside a `<ui-content>` of header, meta, description and extra."
+                >
+                  <ui-items>
+                    <ui-item image="../images/wireframe/image.png">
+                      <ui-content>
+                        <ui-header>Cute Dog</ui-header>
+                        <ui-meta><span>Description</span></ui-meta>
+                        <ui-description>
+                          <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                        </ui-description>
+                        <ui-extra>Additional Details</ui-extra>
+                      </ui-content>
+                    </ui-item>
+                  </ui-items>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="content">Content</ui-header>
+
+                <ui-docs-example
+                  header="Link, button or block"
+                  description="In a list or menu, `href` renders a link;  `link` (or a `selection` list, or a `link`, `pagination` or `interactive` menu) renders a button;  anything else is a plain block."
+                >
+                  <ui-list>
+                    <ui-item href="#link-button-or-block" icon="linkify">A link</ui-item>
+                    <ui-item link icon="hand pointer">A button</ui-item>
+                    <ui-item icon="square outline">A plain block</ui-item>
+                  </ui-list>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Icon and image"
+                  description="`icon` takes an icon name, the `icon` slot any glyph, and `image` a URL shown as an avatar."
+                >
+                  <ui-list>
+                    <ui-item icon="star">Icon attribute</ui-item>
+                    <ui-item><ui-icon slot="icon" name="heart" color="red"></ui-icon>Icon slot</ui-item>
+                    <ui-item image="../images/avatar/small/helen.jpg">Image attribute</ui-item>
+                  </ui-list>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Content parts"
+                  description="An item can hold a `<ui-content>` with a `<ui-header>` and `<ui-description>`:  they take the list's look."
+                >
+                  <ui-list relaxed>
+                    <ui-item icon="github">
+                      <ui-content>
+                        <ui-header href="#content-parts">fomantic/Fomantic-UI</ui-header>
+                        <ui-description>Updated 10 mins ago</ui-description>
+                      </ui-content>
+                    </ui-item>
+                    <ui-item icon="github">
+                      <ui-content>
+                        <ui-header href="#content-parts">fomantic/Fomantic-UI-Docs</ui-header>
+                        <ui-description>Updated 22 mins ago</ui-description>
+                      </ui-content>
+                    </ui-item>
+                  </ui-list>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Header and divider"
+                  description="`type` picks the row kind:  an `item`, a group `header` (dropdown, menu) or a `divider` line (dropdown).  Open the dropdown to see its header and divider."
+                >
+                  <ui-menu text aria-label="Header item demo">
+                    <ui-item type="header">Sort By</ui-item>
+                    <ui-item href="#header-and-divider" selected>Closest</ui-item>
+                    <ui-item href="#header-and-divider">Most Popular</ui-item>
+                  </ui-menu>
+                  <ui-dropdown text="File">
+                    <ui-item type="header">Recent</ui-item>
+                    <ui-item>report.pdf</ui-item>
+                    <ui-item type="divider"></ui-item>
+                    <ui-item description="ctrl + o">Open...</ui-item>
+                  </ui-dropdown>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Nested list or menu"
+                  description="A `<ui-list>` or `<ui-menu>` inside an item is its sub list or sub menu."
+                >
+                  <ui-list bulleted>
+                    <ui-item>
+                      Benefits
+                      <ui-list>
+                        <ui-item>Rebates</ui-item>
+                        <ui-item>Discounts</ui-item>
+                      </ui-list>
+                    </ui-item>
+                  </ui-list>
+                  <ui-menu vertical aria-label="Nested menu demo">
+                    <ui-item>
+                      Home
+                      <ui-menu>
+                        <ui-item href="#nested-list-or-menu" selected>Search</ui-item>
+                        <ui-item href="#nested-list-or-menu">Add</ui-item>
+                      </ui-menu>
+                    </ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="states">States</ui-header>
+
+                <ui-docs-example
+                  header="Selected"
+                  description="`selected` marks the chosen item:  the dropdown's value, or the list's or menu's current item.  Fomantic's word, `active`, works too in lists and menus."
+                >
+                  <ui-menu secondary aria-label="Selected demo">
+                    <ui-item href="#selected" selected>selected</ui-item>
+                    <ui-item href="#selected">Other</ui-item>
+                  </ui-menu>
+                  <ui-menu secondary aria-label="Active alias demo">
+                    <ui-item href="#selected" active>active</ui-item>
+                    <ui-item href="#selected">Other</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example header="Disabled" description="A disabled item can't be chosen or followed.">
+                  <ui-list link>
+                    <ui-item href="#disabled">Enabled</ui-item>
+                    <ui-item href="#disabled" disabled>Disabled</ui-item>
+                  </ui-list>
+                  <ui-menu compact aria-label="Disabled item demo">
+                    <ui-item href="#disabled">Enabled</ui-item>
+                    <ui-item href="#disabled" disabled>Disabled</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="variations">Variations</ui-header>
+
+                <ui-docs-example header="Colored" description="In a menu, an item's `color` tints it while selected.">
+                  <ui-menu pointing aria-label="Colored item demo">
+                    <ui-item href="#colored" color="red" selected>Red</ui-item>
+                    <ui-item href="#colored" color="blue">Blue</ui-item>
+                    <ui-item href="#colored" color="green">Green</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Position"
+                  description='In a menu, `position="right"` pushes an item (and those after it) to the far end.'
+                >
+                  <ui-menu aria-label="Positioned item demo">
+                    <ui-item href="#position">Home</ui-item>
+                    <ui-item href="#position" position="right">Logout</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Fitted"
+                  description="In a menu, `fitted` removes an item's padding;  `horizontally` or `vertically` keeps the other axis."
+                >
+                  <ui-menu aria-label="Fitted item demo">
+                    <ui-item href="#fitted" fitted>No padding</ui-item>
+                    <ui-item href="#fitted" fitted="horizontally">No horizontal padding</ui-item>
+                    <ui-item href="#fitted" fitted="vertically">No vertical padding</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+              </ui-tab>
+
+              <ui-tab value="usage" label="Usage">
+                <!-- USAGE:  how to use it (attributes in practice, events, framework snippets), keyboard, accessibility. -->
+                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Fomantic shares one `.item` between dropdowns, lists and menus, and so does this library: there is one
+                    `<ui-item>`, never a `ui-list-item` or `ui-menu-item`. The item looks at what holds it and renders to match:
+
+                    - In a dropdown it is data. It renders only its content, and the dropdown draws the option rows (rich markup
+                      inside an item is shown in its row).
+                    - In a list it is a list row; in a menu it is a menu item. The box is a link with `href`, a button with `link` or
+                      when the owner makes its items interactive, otherwise a plain block that can hold text, inputs, buttons or a
+                      dropdown.
+                    - In an Items view (`<ui-items>`) it is a media object and OWNS the content parts inside it (header, meta,
+                      description, extra); in a list or menu those parts see through it to the list or menu.
+                    - Anywhere else it renders just its content.
+
+                    `selected` is the canonical attribute for the chosen item; `active`, Fomantic's word, is accepted as an alias in
+                    lists and menus. Attributes marked "Dropdown", "List" or "Menu" on the API tab are read only by that owner.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="events">Events</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    An item fires no events of its own: its list or menu fires `ui-select` when a link or button item is activated
+                    (`detail.item` is the `<ui-item>`), and a dropdown fires `ui-change`.
+                  </script>
+                </ui-markdown>
+                <ui-code language="js">
+                  <script type="text/plain">
+                    document.querySelector("ui-menu").addEventListener("ui-select", (event) => {
+                      console.log(event.detail.item.textContent)
+                    })
+                  </script>
+                </ui-code>
+
+                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - A link or button item is a real `<a href>` or `<button>`: **Tab** reaches it, **Enter** follows or clicks it
+                      (**Space** too, for a button).
+                    - In an `interactive` menu the menu moves focus between its items with the arrow keys (see the menu's page).
+                    - In a dropdown the dropdown handles the keys: its items are never focused themselves.
+                    - A `disabled` item is skipped.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - In a list the item is a `listitem`; in an `interactive` menu its box is a `menuitem` and the item itself has
+                      `role="none"`; in a navigation menu it adds no role, so its link or button speaks for itself.
+                    - A link or button box is a real `<a href>` or `<button>`, so focus, Enter, Space and the accessible name come
+                      from the browser. An icon-only item needs a name: put `aria-label` on the `<ui-item>` and it moves to the box.
+                    - A selected item is `aria-current="page"` when it is a link, `aria-current="true"` otherwise.
+                    - `disabled` removes a link's `href` (and sets `aria-disabled`), or disables a button.
+                    - The `image` shorthand is decorative (`alt=""`); a `divider` is a `role="separator"`.
+                    - In a dropdown the dropdown owns the semantics: items become `option`s of its listbox (see the dropdown's page).
+                    - If the item can't render, its native fallback keeps the list or menu box and class words: links stay links. It
+                      drops the `icon` and `image` shorthands, button items (a plain block unless `href`), `menuitem` roles and the
+                      `aria-current` of non-link items.
+                  </script>
+                </ui-markdown>
+              </ui-tab>
+
+              <ui-tab value="api" label="API">
+                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+                <ui-docs-api family="ui-item"></ui-docs-api>
+              </ui-tab>
+
+              <ui-tab value="theming" label="Theming">
+                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    An item has no tokens of its own: its look comes from its owner, so theme it through the list, menu, dropdown or
+                    Items-view tokens (their Theming tabs). `ui-item.css` declares only a private flag (`--_ui-item-media`); never set
+                    it.
+
+                    Style the pieces of a list or menu item with `::part()`: `item` (the box), `icon` and `image`.
+                  </script>
+                </ui-markdown>
+                <ui-code language="css">
+                  <script type="text/plain">
+                    ui-menu ui-item::part(item) {
+                      font-weight: bold;
+                    }
+                    ui-list ui-item::part(image) {
+                      border-radius: 0.25em;
+                    }
+                  </script>
+                </ui-code>
+                <ui-docs-tokens family="ui-item" playground></ui-docs-tokens>
+
+                <ui-header level="2" dividing id="themes">Themes</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    No theme restyles items directly: a theme that restyles lists, menus or dropdowns restyles their items. The theme
+                    picker in the header applies a theme to the whole site.
+                  </script>
+                </ui-markdown>
+              </ui-tab>
+            </ui-tabs>
+          </ui-container>
+
+          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
+        </main>
+      </div>
+    </ui-root>
+  </body>
+</html>

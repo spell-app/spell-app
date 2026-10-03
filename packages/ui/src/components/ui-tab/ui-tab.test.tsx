@@ -409,6 +409,15 @@ describe("<ui-tabs> look", () => {
     expect(menu.getBoundingClientRect().height).toBeGreaterThan(0)
   })
 
+  it.each(["secondary", 'pointing secondary color="red"'])(
+    "<ui-tabs %s>:  the panes keep a plain top edge (the set's hue is the tabs')",
+    async (attributes) => {
+      const { panes } = await tabs(attributes)
+      const box = getComputedStyle(boxOf(panes[0]!))
+      expect(box.borderTopColor).toBe(box.borderBottomColor)
+    }
+  )
+
   it("draws the tabs as menu items:  the tabular active tab joins its pane", async () => {
     const { menu, buttons } = await tabs("tabular attached")
     const active = getComputedStyle(buttons[0]!)

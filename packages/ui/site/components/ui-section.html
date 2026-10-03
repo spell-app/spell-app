@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Section | Spell UI</title>
+    <meta
+      name="description"
+      content="A section is a titled block of content that can fold away and keep its title in view."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var s = localStorage.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <ui-root class="site" icons="fa7-brands, fomantic" display="immediately">
+      <ui-include class="site-header" source="../_parts/header.html" page-styles>
+        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
+      </ui-include>
+
+      <div class="site-layout">
+        <aside class="site-nav">
+          <ui-docs-nav></ui-docs-nav>
+        </aside>
+
+        <main id="main" class="site-main">
+          <ui-segment vertical class="site-masthead">
+            <ui-container>
+              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-section.html"
+                  icon="pen to square"
+                  aria-label="This page's source on GitHub"
+                  title="This page's source on GitHub"
+                ></ui-item>
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-section%3A%20%20"
+                  icon="bug"
+                  aria-label="Report a bug"
+                  title="Report a bug"
+                ></ui-item>
+              </ui-menu>
+              <ui-header level="1" class="site-title">
+                Section
+                <ui-label color="yellow" size="small">In progress</ui-label>
+                <ui-header
+                  >A section is a titled block of content that can fold away and keep its title in view.</ui-header
+                >
+              </ui-header>
+              <ui-docs-themes for="ui-section" show="theme" class="site-themes"></ui-docs-themes>
+            </ui-container>
+          </ui-segment>
+
+          <ui-container class="site-body">
+            <ui-rail position="right" class="site-rail">
+              <ui-sticky class="site-toc" offset="64">
+                <ui-docs-toc for="site-tabs" header="Section"></ui-docs-toc>
+              </ui-sticky>
+            </ui-rail>
+
+            <ui-tabs id="site-tabs" class="site-tabs" history basic compact>
+              <ui-tab value="examples" label="Examples">
+                <!--
+                  EXAMPLES:  ours only, no Fomantic page.  The old Astro page's examples, restyled;  they mirror the family's
+                  `examples/elements/` files (types, content, states, variations).
+                  - Each example's outer section says `level="4"`:  it sits under the example's `h3`, so a default `h2` would break
+                    the page's outline.  Nested sections show the default (parent + 1).
+                  - The sticky example scrolls inside a `<ui-root height>` box (a named, focusable region), framed by a segment.
+                -->
+                <ui-header level="2" dividing id="types">Types</ui-header>
+
+                <ui-docs-example
+                  header="Section"
+                  description="A section is a title over its content.  The title is a real heading:  `level` picks `h1` ... `h6`."
+                >
+                  <ui-section header="Getting started" level="4">
+                    <p>Install the package, import the families you use, and write the tags in your markup.</p>
+                  </ui-section>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Collapsible"
+                  description="A `collapsible` section folds and unfolds when its title is activated.  `collapsed` starts it folded."
+                >
+                  <ui-section header="Release notes" level="4" collapsible>
+                    <p>Open by default: activate the title to fold it.</p>
+                  </ui-section>
+                  <ui-section header="Older releases" level="4" collapsible collapsed>
+                    <p>Folded at the start: only the title shows until it is activated.</p>
+                  </ui-section>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Sticky"
+                  description="A `sticky` section keeps its title in view while its content scrolls past.  Nested sticky titles stack below their parent's.  Scroll the box."
+                >
+                  <ui-segment>
+                    <ui-root height="16em" aria-label="Sticky section example" display="immediately">
+                      <ui-section header="Chapter 1" level="4" sticky block>
+                        <p>The chapter's title sticks to the top of the box while any of the chapter is on screen.</p>
+                        <ui-section header="Part A" sticky dividing>
+                          <p>This title sticks just below the chapter's.</p>
+                          <p>Keep scrolling: both titles stay until their sections end.</p>
+                          <p>When Part A ends, Part B's title takes its place.</p>
+                        </ui-section>
+                        <ui-section header="Part B" sticky dividing>
+                          <p>A second nested section, stuck below the same chapter title.</p>
+                          <p>Its title leaves with it at the end of the chapter.</p>
+                        </ui-section>
+                      </ui-section>
+                      <ui-section header="Chapter 2" level="4" sticky block>
+                        <p>The next chapter's title pushes the first one out.</p>
+                        <p>The end of the box.</p>
+                      </ui-section>
+                    </ui-root>
+                  </ui-segment>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="content">Content</ui-header>
+
+                <ui-docs-example
+                  header="Subhead"
+                  description="A `subhead` sits under the title, in smaller text.  It scrolls away with the content:  it never sticks."
+                >
+                  <ui-section header="Billing" subhead="Invoices, payment methods and receipts" level="4">
+                    <p>Your next invoice is due on the first of the month.</p>
+                  </ui-section>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Icon"
+                  description='An `icon` goes before the title;  a `slot="icon"` child replaces it with any markup.'
+                >
+                  <ui-section header="Reading list" icon="book" level="4">
+                    <p>Three books, two articles.</p>
+                  </ui-section>
+                  <ui-section header="Inbox" level="4">
+                    <ui-icon slot="icon" name="envelope" color="blue"></ui-icon>
+                    <p>No new mail.</p>
+                  </ui-section>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Badge"
+                  description='A `badge` is a small pill after the title, such as a count;  `slot="badge"` takes a richer one, e.g. a `<ui-label>`.'
+                >
+                  <ui-section header="Tasks" badge="3/7" level="4">
+                    <p>Three of seven done.</p>
+                  </ui-section>
+                  <ui-section header="Alerts" level="4">
+                    <ui-label slot="badge" color="red" size="mini">2 new</ui-label>
+                    <p>Two alerts need your attention.</p>
+                  </ui-section>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Actions"
+                  description="The `actions` slot holds controls at the right of the title bar.  They are not part of the fold button:  activating one never folds the section."
+                >
+                  <ui-section header="Members" level="4" collapsible dividing>
+                    <ui-button slot="actions" size="mini" basic icon="user plus">Invite</ui-button>
+                    <p>Four people can edit this project.</p>
+                  </ui-section>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Rich header"
+                  description='`slot="header"` is the rich version of `header`:  code, links, emphasis.'
+                >
+                  <ui-section level="4">
+                    <span slot="header">The <code>collapsed</code> attribute</span>
+                    <p>Set it to fold the section from code.</p>
+                  </ui-section>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Nested"
+                  description="Sections nest.  A nested section's heading is one level below its parent's, so the page outline follows the markup."
+                >
+                  <ui-section header="Settings" level="4">
+                    <ui-section header="Profile">
+                      <p>An <code>h5</code>: one below its parent.</p>
+                    </ui-section>
+                    <ui-section header="Notifications">
+                      <p>Another <code>h5</code>.</p>
+                    </ui-section>
+                  </ui-section>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="states">States</ui-header>
+
+                <ui-docs-example
+                  header="Collapsed"
+                  description="A collapsed section shows only its title.  Its content stays in the page, hidden until found (see Folding, on the Usage tab)."
+                >
+                  <ui-section header="Advanced options" level="4" collapsible collapsed dividing>
+                    <p>Hidden until the section unfolds.</p>
+                  </ui-section>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Loading"
+                  description="A `loading` section dims its content under a spinner and is `aria-busy`."
+                >
+                  <ui-section header="Recent activity" level="4" bordered loading>
+                    <p>Fetching the latest events.</p>
+                  </ui-section>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Disabled"
+                  description="A `disabled` section is dimmed and inert, and can't be folded."
+                >
+                  <ui-section header="Archived" level="4" collapsible disabled>
+                    <p>Nothing here can be used.</p>
+                  </ui-section>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="variations">Variations</ui-header>
+
+                <ui-docs-example
+                  header="Dividing"
+                  description="A section can have a rule under its title, like a dividing header."
+                >
+                  <ui-section header="Overview" level="4" dividing>
+                    <p>The rule separates the title from the content.</p>
+                  </ui-section>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Block"
+                  description="A section can put its title bar in a tinted box, like a block header."
+                >
+                  <ui-section header="Overview" level="4" block>
+                    <p>The tinted bar stands out when sections run together.</p>
+                  </ui-section>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Bordered"
+                  description="A section can sit in a box, like a segment;  `raised` lifts it with a shadow."
+                >
+                  <ui-section header="Bordered" level="4" bordered>
+                    <p>A box around title and content.</p>
+                  </ui-section>
+                  <ui-section header="Raised" level="4" bordered raised>
+                    <p>The same box, lifted.</p>
+                  </ui-section>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Styled"
+                  description="A section can look like a styled accordion panel:  a tinted title bar over padded content."
+                >
+                  <ui-section header="Styled" level="4" styled collapsible>
+                    <p>Pairs well with <code>collapsible</code>.</p>
+                  </ui-section>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Attached"
+                  description='Boxed sections can join edge to edge:  `attached="top"` above, bare `attached` between, `attached="bottom"` below.'
+                >
+                  <ui-section header="Step 1" level="4" bordered attached="top">
+                    <p>Choose a plan.</p>
+                  </ui-section>
+                  <ui-section header="Step 2" level="4" bordered attached>
+                    <p>Add your details.</p>
+                  </ui-section>
+                  <ui-section header="Step 3" level="4" bordered attached="bottom">
+                    <p>Confirm.</p>
+                  </ui-section>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Colored"
+                  description="A section can be colored:  the title, and the rule or box edge with it."
+                >
+                  <ui-section header="Red" level="4" color="red" dividing><p>Red.</p></ui-section>
+                  <ui-section header="Teal" level="4" color="teal" dividing><p>Teal.</p></ui-section>
+                  <ui-section header="Blue" level="4" color="blue" block><p>Blue.</p></ui-section>
+                  <ui-section header="Purple" level="4" color="purple" bordered><p>Purple.</p></ui-section>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Size"
+                  description="`size` scales the CONTENT only;  the title keeps its level's size."
+                >
+                  <ui-section header="Small content" level="4" size="small"><p>This content is small.</p></ui-section>
+                  <ui-section header="Large content" level="4" size="large"><p>This content is large.</p></ui-section>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Compact and padded"
+                  description='`compact` tightens the space around the title;  `padded` (or `padded="very"`) gives the content more room.'
+                >
+                  <ui-section header="Compact" level="4" bordered compact
+                    ><p>Less space around the title.</p></ui-section
+                  >
+                  <ui-section header="Padded" level="4" bordered padded><p>More padding in the content.</p></ui-section>
+                  <ui-section header="Very padded" level="4" bordered padded="very"><p>Even more.</p></ui-section>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Scrolling"
+                  description="A section can cap its content's height and scroll it:  `scrolling` (`short` ... `very long`, caps that grow with the viewport), or any CSS length as `height`."
+                >
+                  <ui-section header="Log" level="4" bordered scrolling="very short">
+                    <p>09:00 Build started</p>
+                    <p>09:01 Dependencies installed</p>
+                    <p>09:03 Tests passed</p>
+                    <p>09:04 Bundle written</p>
+                    <p>09:05 Deployed</p>
+                    <p>09:06 Smoke tests passed</p>
+                    <p>09:10 Traffic switched</p>
+                    <p>09:15 Old version drained</p>
+                    <p>09:20 Old version stopped</p>
+                    <p>09:30 Done</p>
+                  </ui-section>
+                  <ui-section header="Six em high" level="4" bordered height="6em">
+                    <p>Any CSS length caps the content.</p>
+                    <p>Line two.</p>
+                    <p>Line three.</p>
+                    <p>Line four.</p>
+                    <p>Line five.</p>
+                  </ui-section>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Aligned"
+                  description="`text-align` aligns the title `left`, `center` or `right`."
+                >
+                  <ui-section header="Centered title" level="4" text-align="center" dividing>
+                    <p>The content keeps its own alignment.</p>
+                  </ui-section>
+                  <ui-section header="Right title" level="4" text-align="right" dividing>
+                    <p>The content keeps its own alignment.</p>
+                  </ui-section>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Basic"
+                  description="`basic` drops every box, rule and tint, whatever else is set."
+                >
+                  <ui-section header="Basic" level="4" bordered dividing basic>
+                    <p><code>bordered</code> and <code>dividing</code> are set, but <code>basic</code> wins.</p>
+                  </ui-section>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Inverted"
+                  description="A section can use the dark scheme, for dark backgrounds."
+                >
+                  <ui-section header="Inverted" level="4" bordered inverted>
+                    <p>The dark scheme.</p>
+                  </ui-section>
+                  <ui-section header="Inverted styled" level="4" styled inverted collapsible>
+                    <p>Styled, on dark.</p>
+                  </ui-section>
+                </ui-docs-example>
+              </ui-tab>
+
+              <ui-tab value="usage" label="Usage">
+                <!-- USAGE:  the old Astro page's Behaviour, Accessibility and Framework usage, restyled. -->
+                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Reach for a section when content needs a TITLE that means something to the page outline, and maybe folding or a
+                    title that stays in view. Its neighbours:
+
+                    | You want                                                     | Use                            |
+                    | ------------------------------------------------------------ | ------------------------------ |
+                    | a box or group of content, no title                          | [segment](ui-segment.html)     |
+                    | a heading on its own, styled                                 | [header](ui-header.html)       |
+                    | several panels where opening one may close the others        | [accordion](ui-accordion.html) |
+                    | a titled block that can fold, stick, or both, in the outline | `<ui-section>`                 |
+                    | content that sticks, without a title of its own              | [sticky](ui-sticky.html)       |
+
+                    An accordion's titles are buttons, not headings, and its panels are one group; each section folds on its own and
+                    its title IS a heading. A section borrows Fomantic's looks for its box: `dividing` and `block` from the header,
+                    `bordered`, `raised`, `attached` and `padded` from the segment, `styled` from the accordion.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="heading-levels">Heading levels</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    The title renders as `<h1>` ... `<h6>`. Without `level`, a section takes its enclosing section's level + 1, and a
+                    top-level one is an `h2` (under the page's `h1`), so nesting sections builds a correct outline by itself. Set
+                    `level` where the section sits under a heading that isn't a section (as the examples on this page do), or to
+                    restart the count. Levels stop at `h6`.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="folding">Folding</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    `collapsible` makes the title fold and unfold the content. `collapsed` is CONTROLLED, as the accordion's `open`
+                    is: writing it folds or unfolds and fires nothing. When the USER activates the title, the cancelable `ui-open` /
+                    `ui-close` go first, with `{ open, section, originalEvent }`; `preventDefault()` keeps things as they were. The
+                    section folds with a height transition where the browser can animate to `auto` (`interpolate-size`); with reduced
+                    motion it snaps.
+
+                    A folded section's content is `hidden="until-found"`: it stays in the page, so find-in-page (Ctrl / Cmd + F)
+                    finds text inside it and unfolds the section to show the match. That unfolding fires `ui-open` with
+                    `cancelable: false`: the browser has already revealed the match, so it can't be vetoed.
+                  </script>
+                </ui-markdown>
+                <ui-code language="js">
+                  <script type="text/plain">
+                    const section = document.querySelector("ui-section[collapsible]")
+                    section.addEventListener("ui-close", (event) => {
+                      if (hasUnsavedChanges) event.preventDefault() // stays open
+                    })
+                    section.collapsed = false // unfold from code:  no event
+                  </script>
+                </ui-code>
+
+                <ui-header level="2" dividing id="sticky-titles">Sticky titles</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    With `sticky`, the title bar sticks to the top of the scroll container while any of its section is on screen, and
+                    the end of the section pushes it out. A sticky section INSIDE another sticks just below its parent's title, so
+                    nested titles stack like breadcrumbs. `offset` (pixels) moves a TOP-LEVEL section's stuck title down, e.g. below
+                    a fixed page header; nested sections work theirs out. The subhead scrolls away: only the title bar sticks.
+                    `:state(stuck)` is set while it is stuck.
+
+                    Stuck titles cover what scrolls under them, so a stuck title reserves its room on the scroll container as
+                    `scroll-padding-top`, as [`<ui-sticky>`](ui-sticky.html) does: Page Down, Space, focus and `scrollIntoView()`
+                    keep content out from under the stack instead of hiding the next line behind it.
+                  </script>
+                </ui-markdown>
+                <ui-code language="css">
+                  <script type="text/plain">
+                    ui-section:state(stuck)::part(title) {
+                      box-shadow: 0 2px 4px oklch(0 0 0 / 0.15);
+                    }
+                  </script>
+                </ui-code>
+
+                <ui-header level="2" dividing id="slots">Slots</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    The default slot is the content: anything, nested sections included. `header`, `subhead`, `icon` and `badge` each
+                    have an attribute for plain text and a slot for rich markup; the slot wins. `actions` has no attribute: its
+                    controls sit at the right of the title bar, OUTSIDE the fold button, so clicking one never folds the section, and
+                    they stay visible while it is folded.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="events">Events</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - `ui-open` (cancelable) -- the user is unfolding the section: `{ open: true, section, originalEvent }`. Not
+                      cancelable when find-in-page unfolds it.
+                    - `ui-close` (cancelable) -- the user is folding the section: `{ open: false, section, originalEvent }`.
+                    - Writing `collapsed` fires neither.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
+                <ui-table celled compact unstackable>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Key</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>Tab / Shift + Tab</td>
+                        <td>Move to the fold button, then the actions, then the content</td>
+                      </tr>
+                      <tr>
+                        <td>Enter / Space</td>
+                        <td>Fold or unfold the focused section</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </ui-table>
+
+                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - The title is a real heading, so sections appear in the page outline and screen readers can jump between them.
+                    - With `collapsible`, the heading CONTAINS the fold button (`<hN><button aria-expanded>`), as the APG accordion
+                      pattern does: the heading stays in the outline, and the button says whether the content is shown. The fold
+                      icon is decoration; the button's tooltip says "Fold" or "Unfold" (translatable).
+                    - The actions are outside the button, so each one is its own tab stop with its own name.
+                    - Find-in-page reaches folded content and unfolds it.
+                    - `loading` sets `aria-busy` and announces "Loading…"; `disabled` makes the section inert.
+                    - Color is never the only signal: say in the title what a colored section means.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="frameworks">Framework usage</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Bind `collapsed` and listen for `ui-open` / `ui-close` to follow the user.
+                  </script>
+                </ui-markdown>
+                <ui-header level="4" id="framework-react">React 19</ui-header>
+                <ui-code language="jsx">
+                  <script type="text/plain">
+                    <ui-section
+                      header="Details"
+                      collapsible
+                      collapsed={folded}
+                      onui-open={() => setFolded(false)}
+                      onui-close={() => setFolded(true)}
+                    >
+                      ...
+                    </ui-section>
+                  </script>
+                </ui-code>
+                <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+                <ui-code language="html">
+                  <script type="text/plain">
+                    <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                    <ui-section
+                      header="Details"
+                      collapsible
+                      :collapsed="folded"
+                      @ui-open="folded = false"
+                      @ui-close="folded = true"
+                    >
+                      ...
+                    </ui-section>
+                  </script>
+                </ui-code>
+                <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+                <ui-code language="jsx">
+                  <script type="text/plain">
+                    // no `on:` namespace:  listen through a ref
+                    <ui-section
+                      header="Details"
+                      collapsible
+                      collapsed={folded()}
+                      ref={(el) => el.addEventListener("ui-close", () => setFolded(true))}
+                    >
+                      ...
+                    </ui-section>
+                  </script>
+                </ui-code>
+              </ui-tab>
+
+              <ui-tab value="api" label="API">
+                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+                <ui-docs-api family="ui-section"></ui-docs-api>
+              </ui-tab>
+
+              <ui-tab value="theming" label="Theming">
+                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Theme with the public `--ui-section-*` tokens: set one on the element, on any ancestor (`:root` for every
+                    section), or on the box through `::part(section)`. `basic` replaces the box, rule and tint whatever you set. Never
+                    set the `--_ui-section-*` names: they're the sheet's private plumbing.
+
+                    Style the pieces with `::part()`: `title` (the bar that sticks), `heading`, `toggle` and `fold-icon` (with
+                    `collapsible`), `icon`, `header`, `badge`, `actions`, `subhead` and `content`.
+                  </script>
+                </ui-markdown>
+                <ui-code language="css">
+                  <script type="text/plain">
+                    ui-section {
+                      --ui-section-scrolling-height: 20em;
+                    }
+                    ui-section::part(heading) {
+                      letter-spacing: 0.02em;
+                    }
+                  </script>
+                </ui-code>
+                <ui-markdown>Edit a value below to try it.</ui-markdown>
+                <ui-docs-tokens family="ui-section" playground></ui-docs-tokens>
+
+                <ui-header level="2" dividing id="themes">Themes</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Section is ours, not Fomantic's, so no Fomantic theme restyles it directly: the theme picker in the header changes
+                    the page around it, and the header, segment and accordion looks it borrows follow the colour scheme.
+                  </script>
+                </ui-markdown>
+              </ui-tab>
+            </ui-tabs>
+          </ui-container>
+
+          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
+        </main>
+      </div>
+    </ui-root>
+  </body>
+</html>

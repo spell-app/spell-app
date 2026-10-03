@@ -57,11 +57,15 @@ export class ThemeMenu {
 
   /**
    * The dropdown's text for chosen theme `theme` (`undefined`:  our own look):  `GitHub theme`;  with `for`, while
-   * the chosen theme isn't one of the family's, how many are (`3 themes`), as Fomantic's per-page dropdown says.
+   * the chosen theme isn't one of the family's, how many are (`3 themes`, `1 theme`), as Fomantic's per-page dropdown
+   * says.
+   * - A family no theme touches shows the chosen look instead of `0 themes`.
    */
   label(theme: string | undefined, text: DocsThemesText): string {
-    if (this.forTag && (theme === undefined || !this.themes().includes(theme))) {
-      return text("themeCount", { count: this.themes().length })
+    // a family no Fomantic theme touches shows the chosen look, never "0 themes"
+    const count = this.themes().length
+    if (this.forTag && count > 0 && (theme === undefined || !this.themes().includes(theme))) {
+      return count === 1 ? text("themeCountOne") : text("themeCount", { count })
     }
     return text("themeLabel", { title: theme === undefined ? text("default") : this.title(theme) })
   }

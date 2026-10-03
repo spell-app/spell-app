@@ -137,9 +137,19 @@ export class TocIndex {
     return id
   }
 
-  /** A heading's link text:  an example's `header`, else its text, whitespace collapsed. */
+  /**
+   * A heading's link text:  an example's `header`, else its text, whitespace collapsed.
+   * - A nested heading of the same tag is its SUB header (`<ui-header>Title<ui-header>sub</ui-header></ui-header>`):
+   *   left out, so the link says `Title`, not `Title sub`.
+   */
   private static text(heading: Element): string {
-    const text = heading.localName === EXAMPLE_TAG ? heading.getAttribute("header") : heading.textContent
+    const text =
+      heading.localName === EXAMPLE_TAG
+        ? heading.getAttribute("header")
+        : [...heading.childNodes]
+            .filter((node) => !(node instanceof Element && node.localName === heading.localName))
+            .map((node) => node.textContent)
+            .join("")
     return (text ?? "").replace(/\s+/g, " ").trim()
   }
 

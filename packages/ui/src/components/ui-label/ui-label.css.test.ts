@@ -133,6 +133,18 @@ describe("ui-label.css examples", () => {
     expect(Math.abs(attached.getBoundingClientRect().top - edge.top)).toBeLessThan(1)
   })
 
+  it("pins bottom CORNER attached labels to the bottom edge (I91)", () => {
+    Sheets.adopt([...foundationCSS, labelCSS])
+    const root = Fixture.render(
+      `<div><div class="owner" style="position: relative; height: 200px">` +
+        `<div class="ui bottom left attached label">L</div><div class="ui bottom right attached label">R</div></div></div>`
+    )
+    const owner = root.querySelector(".owner")!.getBoundingClientRect()
+    for (const label of root.querySelectorAll<HTMLElement>(".ui.label")) {
+      expect(Math.abs(label.getBoundingClientRect().bottom - owner.bottom)).toBeLessThan(1)
+    }
+  })
+
   it("takes a public token from a wrapper (static markup)", () => {
     Sheets.adopt([...foundationCSS, labelCSS])
     const root = Fixture.render(`<div style="--ui-label-radius: 12px"><div class="ui label">A</div></div>`)

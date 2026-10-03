@@ -123,7 +123,12 @@
     flex: var(--_ui-tabs-pane-flex);
     min-width: 0;
   }
+  /*
+   * The set's colour words (`color`, and `secondary`, which the colour sheet also reads as a hue) are the TABS':
+   * the panes would inherit the set root's `--ui-color` and draw it as a segment's coloured top edge.
+   */
   :host(:state(in-tabs)) > .ui.tab {
+    --ui-color: initial;
     margin: var(--_ui-tabs-pane-margin);
   }
   /* Static markup:  a pane straight inside a `.ui.tabs` root is the flex item itself. */

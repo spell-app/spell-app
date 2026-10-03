@@ -77,6 +77,7 @@ export const docsThemesVocabulary = {
       text: "{count} themes",
       description: "The dropdown's text with `for`, while the chosen theme isn't one of the family's."
     },
+    { key: "themeCountOne", text: "1 theme", description: "`themeCount` when the family has exactly one theme." },
     { key: "themeName", text: "Theme", description: "Accessible name of the theme dropdown." },
     { key: "default", text: "Default", description: "Our own look." },
     { key: "defaultDescription", text: "Spell UI", description: "Under `Default` in the menu." },

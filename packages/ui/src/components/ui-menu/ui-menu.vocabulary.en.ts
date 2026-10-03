@@ -35,7 +35,9 @@ export const menuVocabulary = {
       name: "position",
       kind: "valueOnly",
       values: ["left", "right", "center"],
-      description: "Sub-menu only:  pushes it to the `right` / `left` end, or the `center`."
+      description:
+        "Sub-menu:  pushes it to the `right` / `left` end, or the `center`.  A `vertical tabular` menu:  `right` " +
+        "opens its tabs to the left, for a menu on the content's right (`ui right vertical tabular menu`)."
     },
     { name: "secondary", kind: "keyOnly", description: "De-emphasized:  no box, rounded items." },
     {

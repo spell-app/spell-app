@@ -915,6 +915,22 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   `scrollWidth` (925 === 925) while `visualViewport.width` and `documentElement.clientWidth` stay 390. · Measure
   overflow as `documentElement.scrollWidth - documentElement.clientWidth`, never against `innerWidth`
   (`tools/SiteCheck.ts` `overflowState`). · ui
+- 2026-10-03 · `yarn site:check` failed with "Unable to attach ElementInternals to a customized built-in element"
+  on one `<ui-docs-example>`:  its `description="... `widths="4"` is ..."` had raw double quotes, so the attribute
+  ended early and the leftover words became attributes -- one of them `is`, which makes the element a CUSTOMIZED
+  BUILT-IN. · Write `&quot;` for a quote inside an attribute (PAGES.md says so;  the error doesn't). · ui
+- 2026-10-03 · `yarn site:check`'s `-desk-full.png` of the placeholder page showed every `<ui-placeholder>` below the
+  first screen as an EMPTY box, which looked like a broken widget.  The shimmer gradient is
+  `background-attachment: fixed` (one sweep shared by every shape), and Playwright's full-page screenshot paints
+  fixed backgrounds against the first viewport only. · Not a bug:  check the viewport shots (`-phone-mid`,
+  `-desk-examples`), which draw the shapes.  Any page with placeholders (skeletons) shows the same. · ui
+- 2026-10-03 · `yarn site:new icons` refused ("site/components/ui-icon.html exists"):  a PAGE name that is a tag's
+  name or plural (`icons` => `ui-icons`, a tag of the `ui-icon` family) is taken for that family. · Name it with the
+  extension, `yarn site:new icons.html --title "Icons"`:  `ui-icons.html` matches no tag, so it falls through to a page.
+  · ui
+- 2026-10-03 · A helper script in the session scratchpad (`splice.py`) was rewritten mid-run:  parallel page agents
+  share ONE scratchpad folder, so common file names collide. · Give scratch files an agent-unique folder
+  (`tools/results/<agent>/`, git-ignored, or `scratchpad/<agent>/`). · ui
 
 ## app
 
@@ -1097,6 +1113,10 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
 
 ## claude-code
 
+- 2026-10-03 · Parallel subagents of one session (epic `spell-ui-pages` P4 page agents) share ONE scratchpad
+  directory:  another agent overwrote my `scratchpad/p4/splice.py` with its own version mid-task. · Give each
+  parallel agent its own scratchpad SUBFOLDER (named for its pages, e.g. `p4-collections/`), and say so in the brief.
+  · claude-code
 - 2026-10-02 · `vscode://anthropic.claude-code/open?session=<id>` (via `open` or `code --open-url`) "did nothing":
   VS Code delivered it to a DIFFERENT window, not the focused one. · Add `&windowId=<n>`;  a Claude process's
   window is the `window<n>` in the log paths its extension host (parent pid) holds open (`lsof -p`).
@@ -1127,6 +1147,18 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
 - 2026-10-02 · `yarn plan-doc ...` failed with `Couldn't find a script named "plan-doc"` run from `packages/ui`,
   though `/epic`'s cheat sheet says "from anywhere in the repo":  only the root (and `packages/docs`) define it. ·
   Run it from the worktree root. · claude-code
+- 2026-10-03 · `yarn review` (oxfmt `--fix`) silently mangled `<ui-markdown>` text in Spell UI's site pages:
+  markdown inside `<script type="text/markdown">` re-wrapped mid code span and bullets merged (`ui-table.html`,
+  `ui-transition.html`, the `ui-button.html` pilot).  A small test file with the same lines came through untouched,
+  so it depends on the page around it. · `.oxfmtrc.json` ignores `**/ui/site/**/*.html`;  repaired by hand. · ui
+- 2026-10-03 · Parallel page agents share ONE session scratchpad:  another agent's `splice.py` silently replaced
+  mine mid-task.  And in a worktree-isolated session, any Bash with a shell variable or `for` loop around
+  `yarn` / `python3` / `sed` (`$S/splice.py`, `for f in ...; do yarn site:new ui-$f`) is refused as "can't verify
+  it isn't git". · Give each agent its own subfolder (or the git-ignored `packages/ui/tools/results/<agent>/`), and
+  spell commands out literally, chained with `&&`. · claude-code
+- 2026-10-03 · Same guard, more shapes:  a `python3 - <<'EOF'` heredoc (and any command after a heredoc) is refused
+  too;  and a stray `python3 - file.html` (meant as `python3 script.py file.html`) waits on stdin until the 5-minute
+  Bash timeout. · Write the script to a file with the Write tool, run `python3 /abs/path/script.py`. · claude-code
 
 ## vscode
 

@@ -17,6 +17,12 @@ export const CHECK = "check"
 /** Root of a plain step. */
 export const BOX = "div"
 
+/**
+ * Prefix of the colour remap class a coloured step adds (`ui-red`):  `colors.css` keys on `.ui.red` / `.ui-red`, and a
+ * step has no `ui`, so without it a step's own `color` resolved to nothing (an invisible ring).
+ */
+export const COLOR_CLASS_PREFIX = "ui-"
+
 /** `aria-current` of the selected step. */
 export const STEP = "step"
 

@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Flyout | Spell UI</title>
+    <meta name="description" content="A flyout is a modal that slides in from a side of the page." />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var s = localStorage.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <ui-root class="site" icons="fa7-brands, fomantic" display="immediately">
+      <ui-include class="site-header" source="../_parts/header.html" page-styles>
+        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
+      </ui-include>
+
+      <div class="site-layout">
+        <aside class="site-nav">
+          <ui-docs-nav></ui-docs-nav>
+        </aside>
+
+        <main id="main" class="site-main">
+          <ui-segment vertical class="site-masthead">
+            <ui-container>
+              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-flyout.html"
+                  icon="pen to square"
+                  aria-label="This page's source on GitHub"
+                  title="This page's source on GitHub"
+                ></ui-item>
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-flyout%3A%20%20"
+                  icon="bug"
+                  aria-label="Report a bug"
+                  title="Report a bug"
+                ></ui-item>
+                <ui-item
+                  href="https://fomantic-ui.com/modules/flyout.html"
+                  icon="up right from square"
+                  aria-label="Fomantic UI's original page"
+                  title="Fomantic UI's original page"
+                ></ui-item>
+              </ui-menu>
+              <ui-header level="1" class="site-title">
+                Flyout
+                <ui-header>A flyout is a modal that slides in from a side of the page.</ui-header>
+              </ui-header>
+              <ui-docs-themes for="ui-flyout" show="theme" class="site-themes"></ui-docs-themes>
+            </ui-container>
+          </ui-segment>
+
+          <ui-container class="site-body">
+            <ui-rail position="right" class="site-rail">
+              <ui-sticky class="site-toc" offset="64">
+                <ui-docs-toc for="site-tabs" header="Flyout"></ui-docs-toc>
+              </ui-sticky>
+            </ui-rail>
+
+            <ui-tabs id="site-tabs" class="site-tabs" history basic compact>
+              <ui-tab value="examples" label="Examples">
+                <!--
+                  EXAMPLES:  Fomantic's flyout page, section by section, in its order (Types, Variations), plus our extras
+                  (Shorthands, Inverted, Blurring).  Every flyout opens from a button through an invoker command (`commandfor` +
+                  `command="--show"`):  no script.  Never `open` on load:  it would block the page.
+                  `GAP I<n>` comments mark examples a widget can't render yet (plan-doc issues).
+                -->
+                <ui-header level="2" dividing id="types">Types</ui-header>
+
+                <ui-docs-example header="Flyout">
+                  <p slot="description">
+                    A flyout: a modal panel that slides in from the left, with a header, content and actions. The
+                    approve / deny buttons close it.
+                  </p>
+                  <ui-message slot="description" size="small" state="warning"
+                    >On a phone, a side flyout is never wider than the viewport (Fomantic shows it
+                    <code>fullscreen</code> there).</ui-message
+                  >
+                  <ui-button commandfor="flyout-types-standard" command="--show">Show</ui-button>
+                  <ui-flyout id="flyout-types-standard" closable>
+                    <ui-header>
+                      <ui-icon name="question"></ui-icon>
+                      <ui-content>Archive Old Messages</ui-content>
+                    </ui-header>
+                    <ui-content>
+                      <p>
+                        Your inbox is getting full, would you like us to enable automatic archiving of old messages?
+                      </p>
+                    </ui-content>
+                    <ui-actions>
+                      <ui-button class="cancel" color="red" icon="remove">No</ui-button>
+                      <ui-button class="ok" color="green" icon="checkmark">Yes</ui-button>
+                    </ui-actions>
+                  </ui-flyout>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Shorthands"
+                  description="`header` and `content` are shorthands for a header and a block of text;  `closable` adds a close icon."
+                >
+                  <ui-button commandfor="flyout-types-shorthand" command="--show">Show</ui-button>
+                  <ui-flyout
+                    id="flyout-types-shorthand"
+                    header="Profile"
+                    content="A flyout from its attributes alone."
+                    closable
+                  ></ui-flyout>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="variations">Variations</ui-header>
+
+                <ui-docs-example
+                  header="Width"
+                  description="A flyout can specify its width:  `very thin`, `thin`, the default, `wide` or `very wide`."
+                >
+                  <ui-button commandfor="flyout-width-very-thin" command="--show">Very thin</ui-button>
+                  <ui-button commandfor="flyout-width-thin" command="--show">Thin</ui-button>
+                  <ui-button commandfor="flyout-width-default" command="--show">Default</ui-button>
+                  <ui-button commandfor="flyout-width-wide" command="--show">Wide</ui-button>
+                  <ui-button commandfor="flyout-width-very-wide" command="--show">Very wide</ui-button>
+                  <ui-flyout id="flyout-width-very-thin" width="very thin" header="Very thin" closable></ui-flyout>
+                  <ui-flyout
+                    id="flyout-width-thin"
+                    width="thin"
+                    header="Thin"
+                    content="A thin flyout."
+                    closable
+                  ></ui-flyout>
+                  <ui-flyout
+                    id="flyout-width-default"
+                    header="Default"
+                    content="The default width."
+                    closable
+                  ></ui-flyout>
+                  <ui-flyout
+                    id="flyout-width-wide"
+                    width="wide"
+                    header="Wide"
+                    content="A wide flyout."
+                    closable
+                  ></ui-flyout>
+                  <ui-flyout
+                    id="flyout-width-very-wide"
+                    width="very wide"
+                    header="Very wide"
+                    content="A very wide flyout."
+                    closable
+                  ></ui-flyout>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <p slot="description">
+                    Width can also be defined like the grid system: columns of sixteen (<code>width="5"</code>), a
+                    fraction (<code>1/4</code>) or a percentage (<code>25%</code>).
+                  </p>
+                  <ui-message slot="description" size="small" state="warning"
+                    >A flyout's width applies only to <code>left</code> and <code>right</code> flyouts.</ui-message
+                  >
+                  <ui-button commandfor="flyout-width-2" command="--show">Two wide</ui-button>
+                  <ui-button commandfor="flyout-width-5" command="--show">Five wide</ui-button>
+                  <ui-button commandfor="flyout-width-8" command="--show">Eight wide</ui-button>
+                  <ui-button commandfor="flyout-width-12" command="--show">Twelve wide</ui-button>
+                  <ui-flyout id="flyout-width-2" width="2" header="Two" closable></ui-flyout>
+                  <ui-flyout
+                    id="flyout-width-5"
+                    width="5"
+                    header="Five wide"
+                    content="Five columns of sixteen."
+                    closable
+                  ></ui-flyout>
+                  <ui-flyout
+                    id="flyout-width-8"
+                    width="8"
+                    header="Eight wide"
+                    content="Half the viewport."
+                    closable
+                  ></ui-flyout>
+                  <ui-flyout
+                    id="flyout-width-12"
+                    width="12"
+                    header="Twelve wide"
+                    content="Three quarters of the viewport."
+                    closable
+                  ></ui-flyout>
+                </ui-docs-example>
+
+                <ui-docs-example header="Position">
+                  <p slot="description">
+                    A flyout can specify its display position: <code>position="left"</code> (the default),
+                    <code>right</code>, <code>top</code> or <code>bottom</code>.
+                  </p>
+                  <ui-message slot="description" size="small" state="info"
+                    >Top and bottom flyouts are full width, and their height is defined by their content.</ui-message
+                  >
+                  <ui-button commandfor="flyout-position-left" command="--show">Left</ui-button>
+                  <ui-button commandfor="flyout-position-right" command="--show">Right</ui-button>
+                  <ui-button commandfor="flyout-position-top" command="--show">Top</ui-button>
+                  <ui-button commandfor="flyout-position-bottom" command="--show">Bottom</ui-button>
+                  <ui-flyout
+                    id="flyout-position-left"
+                    position="left"
+                    header="Left"
+                    content="From the left edge."
+                    closable
+                  ></ui-flyout>
+                  <ui-flyout
+                    id="flyout-position-right"
+                    position="right"
+                    header="Right"
+                    content="From the right edge."
+                    closable
+                  ></ui-flyout>
+                  <ui-flyout
+                    id="flyout-position-top"
+                    position="top"
+                    header="Top"
+                    content="From the top edge."
+                    closable
+                  ></ui-flyout>
+                  <ui-flyout id="flyout-position-bottom" position="bottom" aria-label="Cookies">
+                    <ui-content><p>This page uses no cookies.</p></ui-content>
+                    <ui-actions><ui-button class="approve" primary>Got it</ui-button></ui-actions>
+                  </ui-flyout>
+                </ui-docs-example>
+
+                <ui-docs-example header="Fullscreen" description="A flyout can take all the entire screen if needed.">
+                  <ui-button commandfor="flyout-fullscreen" command="--show">Show</ui-button>
+                  <ui-flyout
+                    id="flyout-fullscreen"
+                    fullscreen
+                    header="Full screen"
+                    content="The whole viewport wide."
+                    closable
+                  ></ui-flyout>
+                </ui-docs-example>
+
+                <ui-docs-example header="Scrolling Content">
+                  <p slot="description">A flyout can have a scrolling content.</p>
+                  <ui-message slot="description" size="small" state="info"
+                    >The flyout is a column: header at the top, actions at the bottom, and the content grows between
+                    them. The flyout itself scrolls when it's too tall, so
+                    <code>&lt;ui-content scrolling&gt;</code> caps nothing here.</ui-message
+                  >
+                  <ui-button commandfor="flyout-content-scrolling" command="--show">Show terms</ui-button>
+                  <ui-flyout id="flyout-content-scrolling" position="right" header="Terms" closable>
+                    <ui-content scrolling>
+                      <p>A flyout's content grows to fill its height.</p>
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                      <p>Until the very end.</p>
+                    </ui-content>
+                    <ui-actions><ui-button class="approve" primary>I agree</ui-button></ui-actions>
+                  </ui-flyout>
+                </ui-docs-example>
+
+                <!-- GAP I99, I110:  no centred actions (`<ui-actions>` has no text-align), and the header ignores its text-align;  only the content centres. -->
+                <ui-docs-example
+                  header="Center Aligned"
+                  description='You can center align the header, the content or even actions individually:  `text-align="center"`.'
+                >
+                  <ui-button commandfor="flyout-center" command="--show">Show</ui-button>
+                  <ui-flyout id="flyout-center">
+                    <ui-header text-align="center">Header is centered</ui-header>
+                    <ui-content text-align="center"><p>Content is centered</p></ui-content>
+                    <ui-actions>
+                      <ui-button negative>Cancel</ui-button>
+                      <ui-button positive>OK</ui-button>
+                    </ui-actions>
+                  </ui-flyout>
+                </ui-docs-example>
+
+                <!-- GAP I99:  no left actions;  they stay on the right. -->
+                <ui-docs-example header="Left Actions" description="You can also place the action buttons to the left.">
+                  <ui-button commandfor="flyout-left-actions" command="--show">Show</ui-button>
+                  <ui-flyout id="flyout-left-actions">
+                    <ui-header>Look at the Actions</ui-header>
+                    <ui-content><p>They are aligned to the left</p></ui-content>
+                    <ui-actions>
+                      <ui-button negative>Cancel</ui-button>
+                      <ui-button positive>OK</ui-button>
+                    </ui-actions>
+                  </ui-flyout>
+                </ui-docs-example>
+
+                <!-- GAP I99:  no basic header or actions;  they keep their tinted backgrounds and rules. -->
+                <ui-docs-example
+                  header="Basic Header and Actions"
+                  description="Header and/or Actions can also appear on the same basic background as the content."
+                >
+                  <ui-button commandfor="flyout-basic-parts" command="--show">Show</ui-button>
+                  <ui-flyout id="flyout-basic-parts">
+                    <ui-header>Basic Header</ui-header>
+                    <ui-content><p>Basic Actions below</p></ui-content>
+                    <ui-actions>
+                      <ui-button negative>Cancel</ui-button>
+                      <ui-button positive>OK</ui-button>
+                    </ui-actions>
+                  </ui-flyout>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Inverted"
+                  description="A flyout can use the dark scheme:  `inverted` replaces the background, the header colour and the actions background."
+                >
+                  <ui-button commandfor="flyout-inverted" command="--show">Show</ui-button>
+                  <ui-flyout id="flyout-inverted" position="top" inverted header="Notice" closable>
+                    <ui-content><p>A top flyout in the dark scheme.</p></ui-content>
+                  </ui-flyout>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Blurring"
+                  description="`blurring` blurs and greys the page behind the flyout's dimmer."
+                >
+                  <ui-button commandfor="flyout-blurring" command="--show">Show</ui-button>
+                  <ui-flyout
+                    id="flyout-blurring"
+                    position="right"
+                    blurring
+                    header="Blurring"
+                    content="The page behind is blurred."
+                    closable
+                  ></ui-flyout>
+                </ui-docs-example>
+              </ui-tab>
+
+              <ui-tab value="usage" label="Usage">
+                <!-- USAGE:  what a flyout is, opening, dismissal, events, keyboard, accessibility, frameworks. -->
+                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    A flyout is `<ui-modal>`'s element in a flyout's clothes: the same `<dialog>` opened with `showModal()`, so
+                    focus moves inside, the rest of the page is inert and scroll-locked, **Escape** closes only the topmost overlay,
+                    and focus returns to whatever opened it. Its dimmer is lighter than a modal's. Loading the flyout family
+                    defines `<ui-modal>` too.
+
+                    Write a `<ui-flyout>` anywhere in the page with its parts inside -- `<ui-header>`, `<ui-content>`,
+                    `<ui-actions>` with buttons -- or the `header` / `content` shorthands. There is no `.flyout()` call to make.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="opening">Opening it</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - With no script, from a native `<button commandfor="id" command="--show">` or a `<ui-button>` (an invoker
+                      command; Fomantic's `attach events`). `--close` closes it and `--toggle` flips it (Fomantic's `toggle`).
+                    - From code, write `open` (which fires no `ui-open` / `ui-close`).
+
+                    `closedby` says what dismisses it: `any` (the default: **Escape** or a click on the dimmer), `closerequest`
+                    (**Escape** only) or `none` (only its own buttons). `closable` adds the close icon; `closable="false"` is also
+                    Fomantic's `closable: false`, unless `closedby` is set.
+                  </script>
+                </ui-markdown>
+                <ui-docs-example
+                  header="Toggle from a menu"
+                  description='A menu item drives the flyout through a button with `command="--toggle"`.'
+                >
+                  <ui-menu attached="top">
+                    <ui-item>
+                      <ui-button basic commandfor="flyout-usage-menu" command="--toggle" icon="sidebar"
+                        >Toggle flyout</ui-button
+                      >
+                    </ui-item>
+                  </ui-menu>
+                  <ui-segment attached="bottom">
+                    <ui-header level="3">Application Content</ui-header>
+                    <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                  <ui-flyout id="flyout-usage-menu" closable>
+                    <ui-header>
+                      <ui-icon name="question"></ui-icon>
+                      <ui-content>Archive Old Messages</ui-content>
+                    </ui-header>
+                    <ui-content>
+                      <p>
+                        Your inbox is getting full, would you like us to enable automatic archiving of old messages?
+                      </p>
+                    </ui-content>
+                    <ui-actions>
+                      <ui-button class="cancel" color="red" icon="remove">No</ui-button>
+                      <ui-button class="ok" color="green" icon="checkmark">Yes</ui-button>
+                    </ui-actions>
+                  </ui-flyout>
+                </ui-docs-example>
+                <ui-message size="small" class="site-not-ported"
+                  >Not ported: a custom <code>context</code> (a flyout inside a segment instead of the page) -- the
+                  flyout is a modal <code>&lt;dialog&gt;</code> in the top layer, always against the viewport. For a
+                  panel inside a region, use <code>&lt;ui-sidebar&gt;</code> in a
+                  <code>&lt;ui-pushable&gt;</code>.</ui-message
+                >
+
+                <ui-header level="2" dividing id="events">Events</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Buttons inside act by Fomantic's classes: `approve` / `ok` / `positive` approve, `deny` / `cancel` / `negative`
+                    deny, each first dispatching the cancelable `ui-approve` / `ui-deny` (`{ action, originalEvent? }`).
+
+                    - `ui-open` (cancelable) -- a user asked to open it, through an invoker command.
+                    - `ui-close` (cancelable) -- about to close; `detail.reason` is `escape`, `outside`, `close`, `approve`, `deny`
+                      or `close-all`.
+                    - `ui-show` / `ui-hide` -- shown or hidden, once the slide has finished (Fomantic's `onVisible` / `onHidden`).
+                  </script>
+                </ui-markdown>
+                <ui-code language="js">
+                  <script type="text/plain">
+                    const help = document.querySelector("#help")
+                    help.addEventListener("ui-approve", (event) => {
+                      if (!form.checkValidity()) event.preventDefault() // stay open
+                    })
+                    help.addEventListener("ui-close", (event) => console.log(event.detail.reason))
+                    help.open = true // open from code:  no ui-open
+                  </script>
+                </ui-code>
+                <ui-message size="small" class="site-not-ported"
+                  >Not ported: Fomantic's behaviors (<code>show</code>, <code>hide</code>, <code>toggle</code> ...), the
+                  <code>dimPage</code> / <code>returnScroll</code> / <code>transition</code> settings and its callbacks
+                  -- write <code>open</code>, use invoker commands, and listen for the events.</ui-message
+                >
+
+                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - **Tab** / **Shift+Tab** move between the controls inside the flyout, never out.
+                    - **Enter** / **Space** activate the focused button (approve, deny, close).
+                    - **Escape** closes it (`closedby` `any` or `closerequest`).
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - A real modal `<dialog>`: focus moves inside and **Tab** stays there, the rest of the page is inert, and focus
+                      returns to the opener when it closes.
+                    - Named by the host's `aria-label`, else the `header` shorthand, else a slotted `<ui-header>`. A flyout with
+                      neither (a cookie bar) needs `aria-label`.
+                    - The close icon is a real button named "Close" (translated), placed last so the first focus lands in the
+                      content. Put `autofocus` on the control that should take focus first.
+                    - **Escape** closes it unless `closedby="none"`; with `none`, make sure a button inside closes it.
+                    - If the element fails to render, its native fallback is the modal's: the same `<dialog>`, shown with
+                      `showModal()` while the host has `open`, so it still traps focus, dims the page and closes on Escape. It
+                      drops invoker commands (open it by setting `open`), the `ui-open` / `ui-close` vetoes and the slide.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="frameworks">Framework usage</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Bind `open` to your state and listen for `ui-close` (and `ui-approve` / `ui-deny`) to follow the user.
+                  </script>
+                </ui-markdown>
+                <ui-header level="4" id="framework-react">React 19</ui-header>
+                <ui-code language="jsx">
+                  <script type="text/plain">
+                    <ui-flyout open={open} position="right" header="Help" onui-close={() => setOpen(false)}>
+                      ...
+                    </ui-flyout>
+                  </script>
+                </ui-code>
+                <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+                <ui-code language="html">
+                  <script type="text/plain">
+                    <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                    <ui-flyout :open="open" position="right" header="Help" @ui-close="open = false">...</ui-flyout>
+                  </script>
+                </ui-code>
+                <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+                <ui-code language="jsx">
+                  <script type="text/plain">
+                    // no `on:` namespace:  listen through a ref
+                    <ui-flyout
+                      prop:open={open()}
+                      position="right"
+                      header="Help"
+                      ref={(el) => el.addEventListener("ui-close", () => setOpen(false))}
+                    >
+                      ...
+                    </ui-flyout>
+                  </script>
+                </ui-code>
+              </ui-tab>
+
+              <ui-tab value="api" label="API">
+                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+                <ui-docs-api family="ui-flyout"></ui-docs-api>
+              </ui-tab>
+
+              <ui-tab value="theming" label="Theming">
+                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Theme with the public `--ui-flyout-*` tokens: set one on the element, on any ancestor (`:root` for every
+                    flyout), or on the box through `::part(flyout)`. They inherit into the shadow root, where the sheet reads each
+                    through a private alias, so nothing inside blocks them.
+
+                    - The `width` words and columns replace `--ui-flyout-width`; `inverted` replaces the background, the header
+                      colour and the actions background.
+                    - Slotted parts read `--ui-flyout-header-color` and `--ui-flyout-actions-background` from the flyout, so set
+                      those on the flyout or above it, not on the part.
+                    - `--ui-flyout-dimmer-background` colours the backdrop; `blurring` reads the shared dimmer tokens.
+                    - The shorthands are parts: `header`, `content`, and `close` for the close icon.
+                  </script>
+                </ui-markdown>
+                <ui-code language="css">
+                  <script type="text/plain">
+                    /* every flyout on the page */
+                    ui-flyout {
+                      --ui-flyout-width: 480px;
+                      --ui-flyout-dimmer-background: oklch(0 0 0 / 0.25);
+                    }
+                    /* the close icon */
+                    ui-flyout::part(close) {
+                      opacity: 1;
+                    }
+                  </script>
+                </ui-code>
+                <ui-message state="info" size="small">
+                  <ui-markdown>
+                    <script type="text/markdown">
+                      Never set the `--_ui-flyout-*` names: they're the sheet's private plumbing.
+                    </script>
+                  </ui-markdown>
+                </ui-message>
+                <ui-markdown>Edit a value below to try it.</ui-markdown>
+                <ui-docs-tokens family="ui-flyout" playground></ui-docs-tokens>
+
+                <ui-header level="2" dividing id="themes">Themes</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                    theme to the whole site. No Fomantic theme restyles flyouts (Fomantic's flyout page lists only its default
+                    theme).
+                  </script>
+                </ui-markdown>
+              </ui-tab>
+            </ui-tabs>
+          </ui-container>
+
+          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
+        </main>
+      </div>
+    </ui-root>
+  </body>
+</html>
