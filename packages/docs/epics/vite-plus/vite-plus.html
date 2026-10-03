@@ -25,7 +25,9 @@
           ><header class="spell-page-head">
             <h1>Vite+</h1>
             <span class="plan-step"
-              ><ui-label basic color="orange" icon="circle half stroke" href="#p1">P1 · Spike Migrate</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p2"
+                >next: P2 · Measure + Decide</ui-label
+              ></span
             >
           </header></ui-sticky
         >
@@ -56,7 +58,7 @@
               this snappy
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 2h 20m-2h 50m in all, 2h 20m-2h 50m left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 2h 20m-2h 50m in all, 1h 20m-1h 50m left</p>
           <ui-section id="o1" header="1.1 What Vite+ is" sticky collapsible dividing>
             <p>One CLI, <code>vp</code>, wrapping tools we already use one by one:</p>
             <ul>
@@ -162,20 +164,12 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="0" total="4" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="1" total="4" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
-          <ui-section
-            id="p1"
-            data-phase="1"
-            data-status="active"
-            header="P1 · Spike Migrate"
-            sticky
-            collapsible
-            dividing
-          >
-            <ui-icon slot="icon" name="circle half stroke" color="orange"></ui-icon>
+          <ui-section id="p1" data-phase="1" data-status="done" header="P1 · Spike Migrate" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"><b>Goal:</b> vite-plus 1.0.0 in, Node 24, every root script green</ui-item
               ><ui-item icon="folder"
@@ -184,7 +178,11 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> yarn ts, yarn test, yarn test:packages (ui browser), yarn review, app build*, yarn
                 vscode</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
+              ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item
+              ><ui-item icon="gavel"
+                ><b>Judgement calls:</b> <a href="#t1">T1</a> <a href="#t3">T3</a> <a href="#t4">T4</a>
+                <a href="#t5">T5</a> <a href="#t6">T6</a> <a href="#t7">T7</a></ui-item
+              ></ui-list
             >
           </ui-section>
           <ui-section
@@ -319,15 +317,13 @@
               ><a class="plan-id" href="#d7">D7</a>
               <span class="plan-title"
                 >Rewrite vitest imports to vite-plus/test* (as vp migrate does), in a commit of its own</span
-              >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="1">UPDATE</ui-label></ui-item
+              > </ui-item
             ><ui-item id="d8" data-status="decided"
               ><a class="plan-id" href="#d8">D8</a>
               <span class="plan-title"
                 >Fold .oxlintrc.json / .oxfmtrc.json into lint / fmt blocks of vite.config.ts</span
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="1">UPDATE</ui-label></ui-item
-            ></ui-list
+            </ui-item></ui-list
           >
         </ui-section>
 
@@ -378,6 +374,34 @@
               <span class="plan-title"
                 >No speed win for dev / build / test: same engines. Only vp run caching saves time</span
               ></ui-item
+            ><ui-item id="c6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c6">C6</a>
+                  <span class="plan-title"
+                    >Cold vite deps cache fails app browser tests on a fresh install; they pass warm</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Same on main (baseline) and vite-plus: first run after install,
+                    <code>Failed to fetch dynamically imported module .vite/deps/...</code>. Second run: 251/251.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c7" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c7">C7</a>
+                  <span class="plan-title"
+                    >cli.test.ts spawn tests time out at 5s under load (root yarn test); pass alone</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Root run on vite-plus: 4 cli failures, all 5s timeouts spawning <code>spell</code>; cli alone: only
+                    the pre-existing <code>spell serve --headless</code> failure, as on main.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -385,7 +409,121 @@
         <ui-section id="todos" header="5. Todos" sticky collapsible dividing>
           <ui-icon slot="icon" name="list check"></ui-icon>
           <p class="meta">For later: not caveats, not issues.</p>
-          <ui-list class="plan-items" data-kind="todo" divided relaxed></ui-list>
+          <ui-list class="plan-items" data-kind="todo" divided relaxed
+            ><ui-item id="t1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t1">T1</a>
+                  <span class="plan-title"
+                    >Review J1: lint / fmt settings in one root module, vite.lint.ts</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose one module spread by every
+                    <a href="../../../../vite.config.ts" target="src-vite-config-ts"><code>vite.config.ts</code></a>
+                    (comments restored) over keeping <code>.oxlintrc.json</code> as a base file (against
+                    <a href="#d8">D8</a>) or migrate's duplicated blocks, whose <code>extends</code> pointed at deleted
+                    files.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t2" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t2">T2</a>
+                  <span class="plan-title"
+                    >Review J1: lint / fmt settings in one root module, vite.lint.ts</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose one module spread by every
+                    <a href="../../../../vite.config.ts" target="src-vite-config-ts"><code>vite.config.ts</code></a>
+                    (comments restored) over keeping <code>.oxlintrc.json</code> as a base file (against
+                    <a href="#d8">D8</a>) or migrate's duplicated blocks, whose <code>extends</code> pointed at deleted
+                    files.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t3">T3</a>
+                  <span class="plan-title"
+                    >Review J2: dropped lint options.typeCheck that vp migrate added</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>yarn ts</code> already runs <code>tsc</code>; the old config avoided duplicate diagnostics on
+                    purpose. Alternative: keep it, so <code>vp check</code> type-checks too.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t4">T4</a>
+                  <span class="plan-title"
+                    >Review J3: root lint block has React overrides; editor reads root config only</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Vite+'s editor setup (<code>oxc.disableNestedConfig</code>,
+                    <code>oxc.fmt.disableNestedConfig</code>): editor and <code>vp check</code> read the root block, so
+                    it carries React's rules for app/cli/core/lsp/parser/spell/util. Verified root-only lint still flags
+                    cli's <code>exhaustive-deps</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t5" data-status="open"
+              ><a class="plan-id" href="#t5">T5</a>
+              <span class="plan-title">Review J4: migrate run with --no-hooks --no-agent --no-editor</span> </ui-item
+            ><ui-item id="t6" data-status="open"
+              ><a class="plan-id" href="#t6">T6</a>
+              <span class="plan-title"
+                >Review J5: engines.node &gt;=24.11 in every package.json; CI node 24</span
+              > </ui-item
+            ><ui-item id="t7" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t7">T7</a>
+                  <span class="plan-title"
+                    >Review J6: yarn oxfmt / yarn oxlint gone in packages; docs say yarn vp fmt / yarn vp lint</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Migrate dropped <code>oxfmt</code> / <code>oxlint</code> as direct deps, so
+                    <code>yarn oxfmt</code> fails in a package (<code>yarn vitest</code> still works). Fixed
+                    <a href="../../scripts/pages.js" target="src-packages-docs-scripts-pages-js"
+                      ><code>packages/docs/scripts/pages.js</code></a
+                    >
+                    <code>tidy()</code> (plan-doc broke) and
+                    <a href="../../AGENTS.md" target="src-packages-docs-agents-md"
+                      ><code>packages/docs/AGENTS.md</code></a
+                    >. Alternative: re-add both as catalog deps.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t8" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t8">T8</a>
+                  <span class="plan-title"
+                    >Owen: check VS Code format-on-save still uses our fmt settings (no semicolons, 120 cols)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The Oxc extension used to read <code>.oxfmtrc.json</code>; now it must find the
+                    <code>fmt</code> block of the root
+                    <a href="../../../../vite.config.ts" target="src-vite-config-ts"><code>vite.config.ts</code></a
+                    >. Can't check the editor unattended. Wrong: saves add semicolons. Fix: update the Oxc extension, or
+                    set <code>oxc.fmt.configPath</code> to
+                    <a href="../../../../vite.config.ts" target="src-vite-config-ts"><code>./vite.config.ts</code></a
+                    >.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
         </ui-section>
 
         <ui-section id="issues" header="6. Issues" sticky collapsible dividing>
@@ -459,6 +597,36 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T22:16-04:00">2026-10-02 22:16</time></ui-date> P1
                   active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:54-04:00">2026-10-02 22:54</time></ui-date> T2 closed: Review
+                  J1: lint / fmt settings in one root module, vite.lint.ts</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:54-04:00">2026-10-02 22:54</time></ui-date> T2 closed:
+                  duplicate of T1 (first add's tidy failed, see I-list)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:55-04:00">2026-10-02 22:55</time></ui-date> P1
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:55-04:00">2026-10-02 22:55</time></ui-date> P1 done: vite-plus
+                  1.0.0 via vp migrate, Node 24, lint/fmt in vite.lint.ts; checks: every package's
+                  ts/lint/format:check/test as on main (baseline), app build + build:element + yarn vscode
+                  ok</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

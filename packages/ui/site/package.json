@@ -29,10 +29,11 @@
     "@emnapi/runtime": "^1.11.3",
     "@types/node": "^22",
     "typescript": "^6",
-    "vite": "^8.3.1"
+    "vite": "catalog:",
+    "vite-plus": "catalog:"
   },
   "engines": {
-    "node": ">=22.12"
+    "node": ">=24.11"
   },
   "packageManager": "yarn@4.18.0"
 }
