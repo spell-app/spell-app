@@ -1,6 +1,7 @@
 import { spawn, type ChildProcess } from "node:child_process"
 import { existsSync, openSync } from "node:fs"
-import { join } from "node:path"
+import { createRequire } from "node:module"
+import { dirname, join } from "node:path"
 
 import { SRV } from "$/server"
 
@@ -12,6 +13,9 @@ import { SRV } from "$/server"
  *   (`/@vite/client`, `/@fs/...`, `/src/...`, `/node_modules/.vite/...`) -- `VITE_PATHS`;  none exists at the repo
  *   root, and its HMR websocket is known by its `vite-hmr` subprotocol
  * - its output goes to `<root>/.spell-server.astro.log`
+ * - runs Astro's own script with this `node`, NOT `yarn astro dev`:  a page server launched by a `yarn` script
+ *   (`yarn server ensure`, `yarn serve`) inherits a PATH whose `yarn` is a temporary shim, gone once that script
+ *   exits
  * - NOTE: if the page server dies without stopping (kill -9), `astro dev` keeps running:  find it with
  *   `ps aux | grep "astro dev"`
  */
@@ -91,12 +95,20 @@ export class AstroProxy {
     const log = openSync(join(this.root, ".spell-server.astro.log"), "a")
     // `--ignore-lock`:  stay in the foreground, ours to stop -- Astro 7 backgrounds itself when it detects an agent
     // (`CLAUDECODE` ...) in the environment, and then exits at once
-    this.child = spawn("yarn", ["astro", "dev", "--port", String(port), "--host", "127.0.0.1", "--ignore-lock"], {
-      cwd: this.site,
-      detached: true,
-      stdio: ["ignore", log, log],
-      env: { ...process.env, BROWSER: "none" }
-    })
+    const astro = join(
+      dirname(createRequire(join(this.site, "package.json")).resolve("astro/package.json")),
+      "bin/astro.mjs"
+    )
+    this.child = spawn(
+      process.execPath,
+      [astro, "dev", "--port", String(port), "--host", "127.0.0.1", "--ignore-lock"],
+      {
+        cwd: this.site,
+        detached: true,
+        stdio: ["ignore", log, log],
+        env: { ...process.env, BROWSER: "none" }
+      }
+    )
     const child = this.child
     child.on("exit", () => {
       if (this.child === child) this.stop()
