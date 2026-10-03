@@ -46,18 +46,18 @@
           <ui-icon slot="icon" name="map"></ui-icon>
           <ui-statistics class="spell-stats" size="mini">
             <ui-statistic value="218" label="commits, 2 weeks"></ui-statistic>
-            <ui-statistic value="6" label="epics merged"></ui-statistic>
-            <ui-statistic value="4" label="epics in worktrees"></ui-statistic>
+            <ui-statistic value="7" label="epics merged"></ui-statistic>
+            <ui-statistic value="3" label="epics in worktrees"></ui-statistic>
             <ui-statistic value="12" label="packages"></ui-statistic>
           </ui-statistics>
           <ul>
             <li>218 commits from 2026-09-19 to 2026-10-03, nearly all from 09-27 on (70 on 10-02 alone).</li>
             <li>
-              6 epics are done and merged: docs-workspace, cli-additions, ui-component-creation, unified-server,
-              solid-migration and ui-import.
+              7 epics are done and merged: docs-workspace, cli-additions, ui-component-creation, unified-server,
+              solid-migration, ui-import and seo.
             </li>
             <li>
-              4 more live only in worktrees: seo and vite-plus are done but unmerged; spell-ui-pages and commands are in
+              3 more live only in worktrees: vite-plus is done but unmerged; spell-ui-pages and commands are in
               progress.
             </li>
             <li>
@@ -77,43 +77,6 @@
             </li>
             <li>Each moves to section 3, with plan-doc links, when it merges.</li>
           </ul>
-
-          <ui-section id="seo" header="seo · done 2026-10-02" sticky collapsible dividing>
-            <ui-list class="spell-meta">
-              <ui-item icon="code branch"
-                >Branch <code>seo</code>, worktree only; all 6 phases done, judgement calls accepted 23:43</ui-item
-              >
-            </ui-list>
-            <p>
-              <code>spell static page.html</code> renders every <code>ui-*</code> family on the server (Solid 2
-              <code>renderToString</code>) into light-DOM HTML plus one <code>@scope</code>-fenced stylesheet, so pages
-              work for SEO and with JS off.
-            </p>
-            <ul>
-              <li>
-                P1: <code>StaticRender</code>; <code>@spell-app/solid-element/server</code> <code>ServerElement</code>,
-                <code>ServerRuntime</code>, <code>hostEffect()</code>, <code>ServerHost</code> on linkedom; fixed Solid
-                SSR dropping <code>;</code> between style keys.
-              </li>
-              <li>
-                P2: <code>StaticStylesheet</code> (postcss, <code>@scope</code> per component, token resets);
-                <code>yarn test:visual --static</code> parity tool.
-              </li>
-              <li>
-                P3: all 93 classes render statically; icons as inline SVG; server-only shapes for breadcrumb, sticky,
-                transition, step, visibility; 287 of 342 visual pairs within 1%.
-              </li>
-              <li>
-                P4: no-JS interactions: native modal commands, <code>popovertarget</code> popups,
-                <code>&lt;details&gt;</code> accordions; form round-trip tests; a JS-off Chromium test.
-              </li>
-              <li>
-                P5: the <code>spell static</code> command (<code>-o</code>, <code>--css</code>, <code>--inline</code>,
-                <code>--no-minify</code>), rendering in a child process; 12 new CLI tests.
-              </li>
-              <li>P6: durable doc; ui review 202 ssr, 4,149 browser, 145 fork tests.</li>
-            </ul>
-          </ui-section>
 
           <ui-section id="vite-plus" header="vite-plus · done 2026-10-02" sticky collapsible dividing>
             <ui-list class="spell-meta">
@@ -177,6 +140,65 @@
           <ui-icon slot="icon" name="flag checkered"></ui-icon>
 
           <ui-section id="2026-10" header="October 2026" sticky collapsible dividing>
+            <ui-section id="seo" header="2026-10-01 → 10-03 · Static pages for SEO" sticky collapsible dividing>
+              <ui-list class="spell-meta">
+                <ui-item icon="code branch"
+                  >Branch <code>seo</code>; plan doc
+                  <a href="epics/seo/seo.html" target="seo">Static Pages for SEO</a></ui-item
+                >
+                <ui-item icon="book"
+                  >Durable doc: <a href="seo/seo.html" target="src-packages-docs-seo-seo-html">seo/seo.html</a></ui-item
+                >
+              </ui-list>
+              <p>
+                <code>spell static page.html</code> renders every <code>ui-*</code> family on the server (Solid 2
+                <code>renderToString</code>) into light-DOM HTML plus one <code>@scope</code>-fenced stylesheet, so
+                pages work for SEO and with JS off.
+              </p>
+              <ul>
+                <li>
+                  P1: <code>StaticRender</code>; <code>@spell-app/solid-element/server</code>
+                  <code>ServerElement</code>, <code>ServerRuntime</code>, <code>hostEffect()</code>,
+                  <code>ServerHost</code> on linkedom; each host replaced by its root, slots by their children, list
+                  items wrapped in <code>&lt;li&gt;</code>.
+                </li>
+                <li>I1: fixed Solid SSR dropping <code>;</code> between computed style keys.</li>
+                <li>
+                  P2: <code>StaticStylesheet</code> (postcss, <code>@scope</code> per component fenced by
+                  <code>data-ui</code>, token resets, <code>@layer ui-slotted, page, ui</code>);
+                  <code>yarn test:visual --static</code> parity tool.
+                </li>
+                <li>
+                  P3: all 93 classes render statically; icons as inline SVG; server-only shapes for breadcrumb, sticky,
+                  transition, step, visibility; 287 of 342 visual pairs within 1%; element bugs found by the parity
+                  check fixed (darwin baselines only).
+                </li>
+                <li>
+                  P4: no-JS interactions: native modal commands, <code>popovertarget</code> popups,
+                  <code>&lt;details&gt;</code> accordions, tooltips as <code>title</code>; form round-trip tests; a
+                  JS-off Chromium test.
+                </li>
+                <li>
+                  P5: the <code>spell static</code> command (<code>-o</code>, <code>--css</code>,
+                  <code>--no-minify</code>), rendering in a child process on a Vite SSR server; Lightning CSS minify.
+                </li>
+                <li>P6: durable doc; ui review 202 ssr, 4,149 browser, 145 fork tests.</li>
+                <li>
+                  Morning after: ONE cached <code>ui.static.css</code> per output folder by default, its first line
+                  recording what it covers so later runs only add to it; <code>--inline-css</code> (was
+                  <code>--inline</code>); minified sheet by sheet.
+                </li>
+                <li>
+                  Morning after: the app's menu items use their <code>icon</code> attribute again (the
+                  <code>InDropdown</code> workaround removed).
+                </li>
+                <li>
+                  <code>yarn docs:update</code> green again: <code>doc-links.py --check</code> accepts missing
+                  gitignored targets, <code>findPages()</code> skips <code>examples/</code>.
+                </li>
+              </ul>
+            </ui-section>
+
             <ui-section
               id="isolate-changes"
               header="2026-10-03 · /isolate and /epic:  move first, prompt gate, running epics"
@@ -861,7 +883,7 @@
 
         <footer class="spell-doc-footer">
           <ui-divider></ui-divider>
-          <p class="meta">Last updated 2026-10-03 from <code>main</code> at <code>33bddb54</code>.</p>
+          <p class="meta">Last updated 2026-10-03 from <code>main</code> at <code>48627e28</code>, plus seo.</p>
         </footer>
       </main>
     </div>

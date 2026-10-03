@@ -171,7 +171,10 @@ def linkify(path):
 
 
 def git_ignored(dest):
-    """Whether git ignores `dest`:  a local-only or runtime file, fine to be missing here."""
+    """Whether git ignores `dest`:  a local-only or runtime file, fine to be missing here.
+
+    - a folder MUST keep its trailing `/`:  a missing path can't match a folder-only rule (`ongoing/`) without it
+    """
     run = subprocess.run(["git", "-C", MONOREPO, "check-ignore", "-q", dest], capture_output=True)
     return run.returncode == 0
 
@@ -192,7 +195,7 @@ def check(path):
         href = html.unescape(href.group(1))
         dest = href if re.match(r"https?://", href) else os.path.normpath(os.path.join(doc_dir, href.split("#")[0]))
         if not dest.startswith("http") and not os.path.exists(dest):
-            if not git_ignored(dest):
+            if not git_ignored(dest + ("/" if href.split("#")[0].endswith("/") else "")):
                 problems.append(f"missing:  {href}")
         elif not dest.startswith("http") and os.path.commonpath([dest, MONOREPO]) != MONOREPO:
             problems.append(f"outside repo:  {href}")
