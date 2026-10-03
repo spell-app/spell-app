@@ -45,8 +45,8 @@
           </ui-statistics>
           <ul>
             <li>
-              <code>spell static page.html</code> writes <code>page.static.html</code> and <code>page.static.css</code>
-              beside it.
+              <code>spell static page.html</code> writes <code>page.static.html</code> beside it, and the folder's
+              shared, cached stylesheet, <code>ui.static.css</code>.
               <ul>
                 <li>every <code>ui-*</code> element is rendered in node and replaced by plain HTML</li>
                 <li>the scripts that load the elements are removed</li>
@@ -106,11 +106,14 @@
                 <tbody>
                   <tr>
                     <td><code>spell static page.html</code></td>
-                    <td><code>page.static.html</code> + <code>page.static.css</code>, beside the page</td>
+                    <td>
+                      <code>page.static.html</code> beside the page, + <code>ui.static.css</code> in its folder (shared
+                      by every page there; its first line records what it covers, so later runs only add to it)
+                    </td>
                   </tr>
                   <tr>
                     <td><code>spell static page.html -o out.html</code></td>
-                    <td><code>out.html</code> + <code>out.static.css</code></td>
+                    <td><code>out.html</code> + <code>ui.static.css</code> beside it</td>
                   </tr>
                   <tr>
                     <td><code>spell static docs/ -o site/</code></td>
@@ -120,8 +123,8 @@
                     </td>
                   </tr>
                   <tr>
-                    <td><code>--inline</code></td>
-                    <td>the stylesheet in a <code>&lt;style&gt;</code>, no <code>.css</code> file</td>
+                    <td><code>--inline-css</code></td>
+                    <td>each page's own stylesheet in a <code>&lt;style&gt;</code>, no <code>.css</code> file</td>
                   </tr>
                   <tr>
                     <td><code>--css site/ui.css</code></td>
@@ -165,8 +168,9 @@
                 the elements is removed: one naming
                 <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a
                 >, <code>$/ui</code>, <code>ui</code>'s
-                <a href="../../ui/src/" target="src-packages-ui-src"><code>src/</code></a> / <code>dist/</code>, a
-                family folder, or the docs'
+                <a href="../../ui/src/" target="src-packages-ui-src"><code>src/</code></a> /
+                <a href="../../ui/dist/" target="src-packages-ui-dist"><code>dist/</code></a
+                >, a family folder, or the docs'
                 <a href="../_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
                   ><code>spell-ui.js</code></a
                 >. Other scripts and import maps stay.

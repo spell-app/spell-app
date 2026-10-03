@@ -192,11 +192,11 @@ program
 
 program
   .command("static")
-  .description("ui-* pages as plain HTML for crawlers and no-JS readers:  page.static.html + page.static.css")
+  .description("ui-* pages as plain HTML for crawlers and no-JS readers:  page.static.html + ui.static.css")
   .argument("<pages...>", "html pages, or folders of them -- writes each as <page>.static.html beside it")
   .option("-o, --output <path>", "write the page here -- or, for several, into this folder")
-  .option("--inline", "put the stylesheet in a <style> in the page, not a file beside it")
-  .option("--css <file>", "write ONE stylesheet, for every page, here")
+  .option("--inline-css", "put each page's stylesheet in a <style> in the page, not the folder's ui.static.css")
+  .option("--css <file>", "write ONE stylesheet, for every page, here (default:  ui.static.css per folder)")
   .option("--no-minify", "leave the stylesheet readable")
   .action((pages: string[], _options, command) => run(CLI.staticCommand, pages, command.optsWithGlobals()))
 

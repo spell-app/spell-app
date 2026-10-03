@@ -496,12 +496,10 @@ function buildRail(outline, counts) {
     const mark = glyph ? "" : text((label.match(/^\d+/) ?? [label.charAt(0)])[0])
     const count = counts.get(element)
     const badge = count?.open ? `<ui-label floating circular size="mini" color="orange">${count.open}</ui-label>` : ""
-    // a slotted `<ui-icon>`, not the item's `icon` shorthand:  that draws nothing in a vertical text menu
-    // (SUSPECTED-BUGS.md, ui)
-    const face = glyph ? `<ui-icon name="${attr(glyph)}"></ui-icon>` : mark
+    const icon = glyph ? ` icon="${attr(glyph)}"` : ""
     return (
-      `<ui-item href="#${attr(id)}" data-rail="${attr(id)}" aria-label="${attr(label)}">` +
-      `${face}${badge}</ui-item>` +
+      `<ui-item href="#${attr(id)}" data-rail="${attr(id)}" aria-label="${attr(label)}"${icon}>` +
+      `${mark}${badge}</ui-item>` +
       `<ui-popup inverted size="mini" position="left center" content="${attr(label)}"></ui-popup>`
     )
   })

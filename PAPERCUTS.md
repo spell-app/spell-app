@@ -1000,6 +1000,11 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   dependency (`easy-state`, P11):  the temp worktree of HEAD links OUR `node_modules`, where HEAD's import no longer
   resolves.  The message hides the cause. · Put the dependency back in `package.json` + `yarn install` for the run,
   then take it out again.  Better:  `speed` could print the child's stderr. · cli
+- 2026-10-03 · `src/cli.test.ts > spell serve > --headless` failed (no editor URL, "Starting the page server ...
+  (already running)", ~3 min with a retry) after an overnight run:  a page server an agent started the night before
+  (`packages/server/src/page/cli.ts serve`, pid from `lsof -nP -iTCP -sTCP:LISTEN`) was still up with that evening's
+  code, and the test reused it. · Kill the stale server (check its folder with `lsof -a -p <pid> -d cwd`) and
+  rerun.  Better:  the test could refuse a page server it didn't start, or one older than the checkout. · cli
 
 ## docs
 

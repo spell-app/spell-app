@@ -40,7 +40,7 @@
           >
           <ui-item icon="calendar"
             >Started <time id="plan-started">2026-10-02</time>, updated
-            <time id="plan-updated">2026-10-02</time></ui-item
+            <time id="plan-updated">2026-10-03</time></ui-item
           >
         </ui-list>
 
@@ -1305,7 +1305,7 @@
             ><ui-item id="d39" data-status="decided"
               ><a class="plan-id" href="#d39">D39</a>
               <span class="plan-title">Bedtime: merge main into seo at the start (plans/ -&gt; epics/)</span> </ui-item
-            ><ui-item id="d40" data-status="decided"
+            ><ui-item id="d40" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#d40">D40</a>
@@ -1389,7 +1389,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="d50" data-status="decided"
+            ><ui-item id="d50" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#d50">D50</a>
@@ -1422,9 +1422,9 @@
                     <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a
                     >, <code>$/ui</code>,
                     <a href="../../../ui/src/" target="src-packages-ui-src"><code>ui/src/</code></a> /
-                    <code>ui/dist/</code>, a family folder (<code>/components/ui-x/</code>) or
-                    <code>spell-ui*.js</code>. Other scripts stay (the docs' highlight.js CDN script), import maps too.
-                    The docs'
+                    <a href="../../../ui/dist/" target="src-packages-ui-dist"><code>ui/dist/</code></a
+                    >, a family folder (<code>/components/ui-x/</code>) or <code>spell-ui*.js</code>. Other scripts stay
+                    (the docs' highlight.js CDN script), import maps too. The docs'
                     <a href="../../_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
                       ><code>spell-ui.js</code></a
                     >
@@ -1605,8 +1605,16 @@
               <span class="plan-title"
                 >Reviewer fixes: :not(position) on list wrappers, slotted compound, slot rules to ui-slotted,
                 @starting-style, deep &lt;div&gt; in &lt;p&gt;, ids</span
-              >
-            </ui-item></ui-list
+              > </ui-item
+            ><ui-item id="d61" data-status="decided"
+              ><a class="plan-id" href="#d61">D61</a>
+              <span class="plan-title"
+                >spell static: one cached ui.static.css per output folder, by default; --inline-css</span
+              ></ui-item
+            ><ui-item id="d62" data-status="decided"
+              ><a class="plan-id" href="#d62">D62</a>
+              <span class="plan-title">T25 done: menu items use their icon attribute again</span></ui-item
+            ></ui-list
           >
         </ui-section>
 
@@ -1832,7 +1840,7 @@
               <span class="plan-title"
                 >Examples using test-only stub owners (stub-accordion, stub-search) can't match statically</span
               > </ui-item
-            ><ui-item id="c19" data-status="open"
+            ><ui-item id="c19" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c19">C19</a>
@@ -2084,10 +2092,10 @@
                 ><ui-content
                   ><p>
                     chose <code>page.static.html</code> beside <code>page.html</code> over a separate
-                    <code>dist/</code> folder because the page's own relative links
-                    (<code>../_assets/spell-doc.css</code>, images) keep working without copying assets, and
-                    <code>*.static.html</code> is easy to ignore / clean. <code>-o &lt;folder&gt;</code> keeps names
-                    unchanged for a deploy folder.
+                    <a href="../../../ui/dist/" target="src-packages-ui-dist"><code>dist/</code></a> folder because the
+                    page's own relative links (<code>../_assets/spell-doc.css</code>, images) keep working without
+                    copying assets, and <code>*.static.html</code> is easy to ignore / clean.
+                    <code>-o &lt;folder&gt;</code> keeps names unchanged for a deploy folder.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -4090,6 +4098,35 @@
                   ><ui-date><time datetime="2026-10-02T23:43-04:00">2026-10-02 23:43</time></ui-date> Owen accepted
                   every bedtime judgement call ("All fine"): T9, T10, T11, T12, T13, T16, T17, T18, T19, T20, T21, T22,
                   T23, T24, T25, T26, T27, T28, T29, T30, T33, T34, T35, T36 closed</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T09:59-04:00">2026-10-03 09:59</time></ui-date> D40 closed: P5:
+                  spell static writes page.html + a linked page.static.css</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T09:59-04:00">2026-10-03 09:59</time></ui-date> D50 closed: P5:
+                  spell static writes page.static.html + page.static.css beside page.html</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T09:59-04:00">2026-10-03 09:59</time></ui-date> C19 closed:
+                  Minifying the static stylesheet saves only ~16%</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T09:59-04:00">2026-10-03 09:59</time></ui-date> morning: C19 -&gt;
+                  cached ui.static.css per folder (default), --inline-css; T25 done; cli 13 static tests, app sharedUI
+                  tests green</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

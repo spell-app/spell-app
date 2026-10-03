@@ -20,10 +20,13 @@ const RUNNER = resolve(CLI_SRC_DIR, "runner", "renderStatic.ts")
  * - Writes, for `page.html`:
  *   - `page.static.html` beside it -- or `-o <file>` for one page, `-o <folder>` for several (each keeps its name,
  *     under the folder, as under the folder named)
- *   - `page.static.css` beside THAT, linked first in its `<head>`, so its layer order comes before the page's own CSS
- *   - `--inline`:  the stylesheet in a `<style>` instead, no file
- *   - `--css <file>`:  ONE stylesheet for every page, there, linked from each
- * - The stylesheet holds only the families the page uses, minified (Lightning CSS);  `--no-minify` to read it.
+ *   - `ui.static.css` in THAT folder (`FOLDER_SHEET`):  ONE stylesheet every page there links (first in its `<head>`,
+ *     so its layer order comes before the page's own CSS), cached by the browser across them
+ *   - `--css <file>`:  ONE stylesheet for every page, there, instead
+ *   - `--inline-css`:  each page's own stylesheet in a `<style>`, no file
+ * - A shared stylesheet holds the families its pages use, PLUS whatever it held before:  its first line records what
+ *   it covers (`CLI.StaticSheetJob`'s `coverage`), so re-rendering one page never drops another page's styles.
+ *   Minified (Lightning CSS);  `--no-minify` to read it.
  * - Removes each `<script>` that loads the elements (`StaticDocument.ELEMENT_SCRIPT`):  an upgrade would show the
  *   content twice.  Other scripts stay.
  * - Renders in a child process, through Vite -- see `runner/renderStatic.ts`.
@@ -35,24 +38,37 @@ export async function staticCommand(
   args: string[],
   options: CLI.StaticOptions
 ): Promise<number> {
-  if (options.inline && options.css) throw new CLI.CliError("--inline and --css:  pick one")
+  if (options.inlineCss && options.css) throw new CLI.CliError("--inline-css and --css:  pick one")
   const pages = staticPages(args, options)
-  const shared = options.css ? resolve(options.css) : undefined
   const minify = options.minify !== false
+  // each page's shared sheet:  `--css`, else its folder's;  none with `--inline-css`
+  const sheetOf = (output: string) =>
+    options.inlineCss ? undefined : options.css ? resolve(options.css) : resolve(dirname(output), FOLDER_SHEET)
+  const sheets = new Map<string, CLI.StaticSheetJob>()
+  for (const [index, page] of pages.entries()) {
+    const path = sheetOf(page.output)
+    if (!path) continue
+    let sheet = sheets.get(path)
+    if (!sheet) sheets.set(path, (sheet = { path, pages: [], coverage: readCoverage(path) }))
+    sheet.pages.push(index)
+  }
   const job: CLI.StaticMessage = {
     kind: "job",
-    shared: !!shared,
+    sheets: [...sheets.values()],
     minify,
-    pages: pages.map((page) => ({
-      html: readFileSync(page.input, "utf8"),
-      options: {
-        href: options.inline ? undefined : href(page.output, shared ?? cssFile(page.output)),
-        shared: !!shared,
-        minify,
-        input: page.input,
-        output: page.output
+    pages: pages.map((page) => {
+      const sheet = sheetOf(page.output)
+      return {
+        html: readFileSync(page.input, "utf8"),
+        options: {
+          href: sheet ? href(page.output, sheet) : undefined,
+          shared: !!sheet,
+          minify,
+          input: page.input,
+          output: page.output
+        }
       }
-    }))
+    })
   }
 
   session.err(chalk.dim(`Rendering ${pages.length} page${pages.length === 1 ? "" : "s"}...`))
@@ -79,8 +95,7 @@ export async function staticCommand(
     const { html, css, unrendered, dropped } = reply.result
     write(page.output, html)
     const notes = [size(html)]
-    if (css && !options.inline) write(cssFile(page.output), css.text)
-    if (css) notes.push(`css ${size(css.text)}${minify ? ` from ${kB(css.fullSize)}` : ""}`)
+    if (css) notes.push(`inline css ${size(css.text)}${minify ? ` from ${kB(css.fullSize)}` : ""}`)
     session.out(session.relative(page.output))
     session.err(`${session.relative(page.input)} -> ${session.relative(page.output)}  ${chalk.dim(notes.join(", "))}`)
     if (dropped.length) session.err(chalk.dim(`  removed scripts:  ${dropped.join(", ")}`))
@@ -88,13 +103,17 @@ export async function staticCommand(
     if (left.length) session.err(chalk.yellow(`  left as they were (no static render):  ${left.join(", ")}`))
     if (css?.minifyFallback) session.err(chalk.yellow(`  css not minified, only stripped:  ${css.minifyFallback}`))
   }
-  const sheet = replies.find((reply) => reply.kind === "stylesheet")
-  if (shared && sheet?.kind === "stylesheet") {
-    write(shared, sheet.result.text)
-    const from = minify ? ` from ${kB(sheet.result.fullSize)}` : ""
-    session.err(`${session.relative(shared)}  ${chalk.dim(`${size(sheet.result.text)}${from}, for every page`)}`)
-    if (sheet.result.minifyFallback) {
-      session.err(chalk.yellow(`  css not minified, only stripped:  ${sheet.result.minifyFallback}`))
+  for (const reply of replies) {
+    if (reply.kind !== "stylesheet") continue
+    const { path, result } = reply
+    write(path, `${coverageLine(result.coverage)}\n${result.text}`)
+    const from = minify ? ` from ${kB(result.fullSize)}` : ""
+    const count = sheets.get(path)?.pages.length ?? 0
+    const pagesNote = `${count} page${count === 1 ? "" : "s"} this run, ${result.coverage.tags.length} tags in all`
+    session.out(session.relative(path))
+    session.err(`${session.relative(path)}  ${chalk.dim(`${size(result.text)}${from}, ${pagesNote}`)}`)
+    if (result.minifyFallback) {
+      session.err(chalk.yellow(`  some sheets not minified, only stripped:  ${result.minifyFallback}`))
     }
   }
   return errors ? CLI.EXIT.ERRORS : CLI.EXIT.OK
@@ -157,13 +176,34 @@ function htmlFiles(folder: string): string[] {
   return files.sort()
 }
 
-/** The stylesheet beside page `output`:  `page.static.html` => `page.static.css`, `out.html` => `out.static.css`. */
-export function cssFile(output: string): string {
-  if (/\.static\.html?$/i.test(output)) return output.replace(/\.html?$/i, ".css")
-  return output.replace(/(\.html?)?$/i, ".static.css")
+/** The shared stylesheet every static page in a folder links, unless `--css` / `--inline-css` say otherwise. */
+export const FOLDER_SHEET = "ui.static.css"
+
+/**
+ * What the stylesheet at `path` already covers:  its first line (`coverageLine()`), else nothing (no file yet, or
+ * one this command didn't write).
+ */
+export function readCoverage(path: string): CLI.StaticSheetJob["coverage"] {
+  if (!existsSync(path)) return undefined
+  const first = readFileSync(path, "utf8").split("\n", 1)[0]!
+  const json = COVERAGE.exec(first)?.[1]
+  if (!json) return undefined
+  try {
+    return JSON.parse(json) as CLI.StaticSheetJob["coverage"]
+  } catch {
+    return undefined
+  }
 }
 
-/** URL of `file` from page `output`, e.g. `page.static.css`, `../site.css`. */
+/** A shared stylesheet's first line:  what it covers, as JSON in a comment minifiers keep (`/*!`). */
+export function coverageLine(coverage: NonNullable<CLI.StaticSheetJob["coverage"]>): string {
+  return `/*! spell-static ${JSON.stringify(coverage)} */`
+}
+
+/** `coverageLine()`'s shape:  the JSON inside. */
+const COVERAGE = /^\/\*! spell-static (\{.*\}) \*\/$/
+
+/** URL of `file` from page `output`, e.g. `ui.static.css`, `../site.css`. */
 function href(output: string, file: string): string {
   return encodeURI(relative(dirname(output), file).split(sep).join("/"))
 }

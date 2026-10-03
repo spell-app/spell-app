@@ -362,7 +362,7 @@ export type StaticDocumentResult = {
 export type StaticDocumentModule = {
   StaticDocument: {
     render(html: string, options?: StaticDocumentOptions): Promise<StaticDocumentResult>
-    stylesheet(tags: Iterable<string>, minify?: boolean): StaticStylesheetResult
+    stylesheet(tags: Iterable<string>, minify?: boolean, coverage?: StaticCoverage): StaticStylesheetResult
   }
 }
 
@@ -374,4 +374,19 @@ export type StaticStylesheetResult = {
   fullSize: number
   /** why minifying fell back to stripping comments and blank lines, if it did */
   minifyFallback?: string
+  /** what it covers:  every tag it styles and what they adopt -- for the next run to build on */
+  coverage: StaticCoverage
+}
+
+/**
+ * What a shared stylesheet covers, so a later run that renders only SOME of its pages still builds one that styles
+ * them all (`spell static` keeps it in the sheet's first line).
+ */
+export type StaticCoverage = {
+  /** every tag the sheet styles, e.g. `ui-card` */
+  tags: string[]
+  /** sheet name => nouns seen adopting it (`StaticRender.sheetUsage.users`) */
+  users: Record<string, string[]>
+  /** adoption orders seen (`StaticRender.sheetUsage.orders`) */
+  orders: string[][]
 }
