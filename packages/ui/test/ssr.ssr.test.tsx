@@ -1,6 +1,6 @@
 /// <reference types="node" />
 
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "vite-plus/test"
 import { renderToString } from "@solidjs/web"
 import { writeFile, mkdir } from "node:fs/promises"
 import { resolve } from "node:path"

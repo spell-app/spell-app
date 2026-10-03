@@ -1,4 +1,4 @@
-import { describe, test, expect, beforeAll } from "vitest"
+import { describe, test, expect, beforeAll } from "vite-plus/test"
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from "fs"
 import { tmpdir } from "os"
 import { basename, resolve } from "path"

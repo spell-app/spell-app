@@ -1,4 +1,4 @@
-import { describe } from "vitest"
+import { describe } from "vite-plus/test"
 import { unitTestModuleRules } from "$/parser/test"
 import { rulex } from "$/parser/rulex"
 

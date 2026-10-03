@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vitest"
-import { userEvent } from "vitest/browser"
+import { afterEach, beforeEach, describe, expect, it, onTestFinished } from "vite-plus/test"
+import { userEvent } from "vite-plus/test/browser"
 
 import { UI } from "$/ui/runtime"
 import type { ShapeChangeDetail } from "$/ui/components/components.types"

@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from "vitest"
+import { beforeAll, describe, expect, it } from "vite-plus/test"
 import { Dynamic, type JSX } from "@solidjs/web"
 
 import { expectAccessible } from "$/ui/test/a11y"

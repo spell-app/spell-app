@@ -1,6 +1,6 @@
-/// <reference types="@vitest/browser-playwright" />
-import { describe, expect, it, onTestFinished } from "vitest"
-import { commands, userEvent } from "vitest/browser"
+/// <reference types="vite-plus/test/browser-playwright" />
+import { describe, expect, it, onTestFinished } from "vite-plus/test"
+import { commands, userEvent } from "vite-plus/test/browser"
 import { Keys } from "$/ui/test/keys"
 
 import { expectAccessible } from "$/ui/test/a11y"

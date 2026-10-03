@@ -11,7 +11,7 @@
 
 import * as original from "@solidjs/element"
 import { flush } from "solid-js"
-import { expect, it } from "vitest"
+import { expect, it } from "vite-plus/test"
 
 import { customElement } from "./customElement"
 import { getCurrentElement, noShadowDOM } from "./current"

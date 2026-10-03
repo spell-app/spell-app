@@ -1,5 +1,5 @@
-import { expect, inject, it } from "vitest"
-import { commands } from "vitest/browser"
+import { expect, inject, it } from "vite-plus/test"
+import { commands } from "vite-plus/test/browser"
 import { flush } from "solid-js"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
