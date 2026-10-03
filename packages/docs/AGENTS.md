@@ -125,7 +125,11 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
   `index.html` (the home page:  every goal set), `set/index.html` (a set's contents page), `set/topic/topic.html`
   and `topic.md` (a topic's page and its agent notes).  NEVER copy by hand:  `yarn goals new-set` / `yarn goals new`
   fill the `{{placeholders}}` and fix the asset paths.  Rules:  the repo root's `goals/AGENTS.md`.
-- Every template but the goals pages is `<ui-section>` markup (see "Writing a page");  the goals pages keep the old
+- `templates/spell-ui-docs.html` -- a Spell UI docs page (`packages/ui/site/`):  Fomantic's docs layout in `<ui-*>`
+  widgets (nav, masthead, Examples / Usage / API / Theming tabs, an "On this page" rail), loading the UI site's
+  bundle, NOT `spell-ui.js`.  NEVER copy by hand:  `yarn site:new <tag|page>` in `packages/ui`;  how to write one:
+  `epics/spell-ui-pages/PAGES.md`;  checked by `yarn site:check` there (`docs:update` skips it).
+- Every template but the goals pages and `spell-ui-docs.html` is `<ui-section>` markup (see "Writing a page");  the goals pages keep the old
   `section.s2` markup until they migrate (`CODE-DEBT.md`).
 - A new KIND of doc gets a template here, and a card in the index.
 

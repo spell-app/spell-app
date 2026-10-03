@@ -24,9 +24,12 @@ export class NavPreferences {
     return view === "topics" || view === "az" ? view : undefined
   }
 
-  /** Remember `view`;  A-Z, the default, removes the key. */
+  /**
+   * Remember `view`, either one:  the default is Topics (`DEFAULT_VIEW`), so A-Z must be stored too.
+   * - NOTE:  the Astro site stored only `topics` (A-Z was its default), so its A-Z viewers now start on Topics.
+   */
   static setView(view: NavView) {
-    NavPreferences.write(STORAGE_KEYS.view, view === "az" ? undefined : view)
+    NavPreferences.write(STORAGE_KEYS.view, view)
   }
 
   /** Topic ids the viewer opened. */

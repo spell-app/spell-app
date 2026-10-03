@@ -19,6 +19,7 @@ turns them into the tables of `docs/report.md`.
 | `ReportTables.ts` | rewrites the `generated:<name>` tables of `docs/report.md` |
 | `peers.ts` | the peer specifiers `dist/` imports |
 | `IconPackBuilder.ts` | `yarn icons:pack <folder> --id <id>`:  verifies a folder of SVGs (no script, no external resources) and writes its `pack.js` index, keeping hand edits;  `--sanitize` strips unsafe attributes first, `--skip-unsafe` / `--allow-unsafe` leave out / keep files that still fail;  also run by `scripts/gen-icons.ts` |
+| `SiteCheck.ts` | `yarn site:check <page...> \| --all [--out <dir>]`:  the plain-HTML docs site (`site/*.html`, `site/components/ui-<name>.html`) in headless chromium, from the page server's `/ui/` (`yarn server ensure`):  errors and failed requests, undefined / unrendered `ui-*`, the four component tabs each loaded from its `#hash`, `ui-docs-toc`, phone overflow (with the offending elements), the nav flyout, dark;  screenshots in `tools/results/site-check/`, JSON summary on stdout, exit 1 on any problem |
 | `hmr.e2e.ts` | `yarn test:hmr`:  dev server + headless chromium + real file edits, 8 scenarios |
 | `screenshots.ts` | `yarn screenshots`:  one PNG per example pair of `demo/index.html`, for a quick look (no baselines;  regression tests are `visual/`) |
 | `frameworks/` | host pages `vanilla` / `react` (esm.sh) / `vue` (unpkg) / `solid` (Solid 2 app + `identity.js` probe), the shared round trip `check.js`, `perf.html` |

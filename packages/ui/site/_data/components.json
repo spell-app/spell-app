@@ -12975,6 +12975,11 @@
           "description": "The tab menu takes the full width (or, vertical, its column's)."
         },
         {
+          "name": "compact",
+          "kind": "keyOnly",
+          "description": "The tab menu is only as wide as its tabs (Fomantic's `compact` menu):  a segmented switch."
+        },
+        {
           "name": "basic",
           "kind": "keyOnly",
           "description": "Panes without the segment box (Fomantic's `basic segment`):  no border, no shadow."
@@ -14772,6 +14777,113 @@
       "main": true
     },
     {
+      "tag": "ui-docs-toc",
+      "name": "Docs toc",
+      "folder": "ui-docs-toc",
+      "topics": [
+        "documentation",
+        "navigation"
+      ],
+      "aka": [
+        "table of contents",
+        "on this page",
+        "page index",
+        "scrollspy",
+        "toc",
+        "following menu"
+      ],
+      "description": "A table of contents lists the page's sections and examples as links, opens the one in view and follows the scroll.",
+      "noun": "toc",
+      "attributes": [
+        {
+          "name": "for",
+          "kind": "string",
+          "description": "Id of the element whose headings to list.  A `<ui-tabs>`:  its SHOWN pane, followed as the tabs switch.  Default:  the page's `<main>`, else `<body>`."
+        },
+        {
+          "name": "header",
+          "kind": "string",
+          "description": "Title above the links, e.g. the page's name (Fomantic's `Button`)."
+        },
+        {
+          "name": "size",
+          "kind": "size",
+          "values": [
+            "mini",
+            "tiny",
+            "small",
+            "medium",
+            "large",
+            "big",
+            "huge",
+            "massive"
+          ],
+          "valueSet": "sizes",
+          "default": "small",
+          "description": "Text size, `mini` ... `massive`."
+        },
+        {
+          "name": "expanded",
+          "kind": "keyOnly",
+          "description": "Show every section's entries, not only the current section's (Fomantic opens the one in view)."
+        }
+      ],
+      "slots": [],
+      "events": [
+        {
+          "name": "ui-change",
+          "detail": "{ value: string }",
+          "description": "The entry in view changed (scroll, a link, the tabs);  `value` is its target's id."
+        },
+        {
+          "name": "ui-render",
+          "detail": "{ ids: string[] }",
+          "description": "The list was built (again):  the ids of every entry, in page order."
+        }
+      ],
+      "parts": [
+        {
+          "name": "toc",
+          "description": "The whole box (`<div class=\"ui toc\">`)."
+        },
+        {
+          "name": "header",
+          "description": "The `<ui-header>` with `header`'s text."
+        },
+        {
+          "name": "menu",
+          "description": "The `<ui-menu vertical text>` of sections (a navigation landmark)."
+        },
+        {
+          "name": "section",
+          "description": "A section's link `<ui-item>` (a level 2 heading)."
+        },
+        {
+          "name": "entries",
+          "description": "The `<ui-menu>` of a section's entries (examples, level 3 headings)."
+        },
+        {
+          "name": "entry",
+          "description": "One entry's link `<ui-item>`."
+        }
+      ],
+      "states": [
+        {
+          "name": "empty",
+          "description": "Nothing to list (the followed content has no headings)."
+        }
+      ],
+      "texts": [
+        {
+          "key": "label",
+          "text": "On this page",
+          "description": "Accessible name of the links' landmark."
+        }
+      ],
+      "mainTag": "ui-docs-toc",
+      "main": true
+    },
+    {
       "tag": "ui-docs-tokens",
       "name": "Docs tokens",
       "folder": "ui-docs-tokens",
@@ -16564,6 +16676,37 @@
           "default": "0.5em",
           "description": "Space between the dropdown and the scheme buttons.",
           "type": "length"
+        }
+      ]
+    },
+    "ui-docs-toc": {
+      "folder": "ui-docs-toc",
+      "mainTag": "ui-docs-toc",
+      "title": "Docs table of contents",
+      "summary": "A table of contents lists the page's sections and examples as links, opens the one in view and follows the scroll.",
+      "status": "done",
+      "docs": true,
+      "tags": [
+        "ui-docs-toc"
+      ],
+      "tokens": [
+        {
+          "name": "--ui-docs-toc-indent",
+          "default": "0.5em",
+          "description": "Indent of a section's entries under its title.",
+          "type": "length"
+        },
+        {
+          "name": "--ui-docs-toc-section-weight",
+          "default": "bold",
+          "description": "Weight of a section's title.",
+          "type": "other"
+        },
+        {
+          "name": "--ui-docs-toc-current-weight",
+          "default": "bold",
+          "description": "Weight of the entry in view (docs.css `.following.menu .menu .active.item`).",
+          "type": "other"
         }
       ]
     },

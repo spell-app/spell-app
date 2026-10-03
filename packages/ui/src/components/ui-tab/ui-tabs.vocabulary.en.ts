@@ -55,6 +55,11 @@ export const tabsVocabulary = {
     },
     { name: "fluid", kind: "keyOnly", description: "The tab menu takes the full width (or, vertical, its column's)." },
     {
+      name: "compact",
+      kind: "keyOnly",
+      description: "The tab menu is only as wide as its tabs (Fomantic's `compact` menu):  a segmented switch."
+    },
+    {
       name: "basic",
       kind: "keyOnly",
       description: "Panes without the segment box (Fomantic's `basic segment`):  no border, no shadow."

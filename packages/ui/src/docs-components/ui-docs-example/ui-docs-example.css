@@ -93,10 +93,24 @@
   [part~="code"] {
     display: block;
   }
-  /* Closed (or bare), the demo is unframed and unpadded:  the live markup sits on the page as written. */
-  :host(:not(:state(open))) [part~="demo"],
-  .ui.bare.example [part~="demo"] {
-    --ui-segment-padding: 0;
+  /*
+   * Closed (or bare), the demo is unframed and unpadded:  the live markup sits on the page as written.  On the
+   * segment's own box, NOT through `--ui-segment-padding`:  that token would inherit into every segment the example
+   * shows.
+   */
+  :host(:not(:state(open))) [part~="demo"]::part(segment),
+  .ui.bare.example [part~="demo"]::part(segment) {
+    padding: 0;
+  }
+  /* Floated example content stays inside the frame (Fomantic's `.example` clears its floats too). */
+  [part~="demo"]::part(segment) {
+    display: flow-root;
+  }
+  /* Phones:  an example wider than the column scrolls inside its frame, never the page. */
+  @media (width < 768px) {
+    [part~="demo"]::part(segment) {
+      overflow-x: auto;
+    }
   }
 }
 

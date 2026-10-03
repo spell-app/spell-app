@@ -85,6 +85,8 @@ function serve(data: unknown): string {
 
 beforeEach(() => {
   localStorage.clear()
+  // most cases read the A-Z list;  the default (Topics) has its own case
+  localStorage.setItem(STORAGE_KEYS.view, "az")
   SiteData.reset(serve(DATA))
 })
 
@@ -216,6 +218,12 @@ describe("<ui-docs-nav> lists", () => {
 })
 
 describe("<ui-docs-nav> topics", () => {
+  it("starts on Topics when neither the page nor the viewer chose a view", async () => {
+    localStorage.removeItem(STORAGE_KEYS.view)
+    const nav = await render()
+    expect(nav.shadowRoot!.querySelectorAll(".topic")).toHaveLength(3)
+  })
+
   it("groups by topic:  a toggle per used topic with its count, a tag under each of its topics", async () => {
     const nav = await render(`view="topics"`)
     const toggles = [...nav.shadowRoot!.querySelectorAll(".topic")]
@@ -376,7 +384,7 @@ describe("<ui-docs-nav> favourites", () => {
       getItem.mockRestore()
       setItem.mockRestore()
     })
-    const nav = await render()
+    const nav = await render(`view="az"`)
     await click(nav, '[data-nav-star="ui-input"]')
     expect(links(nav, ".favorites")).toEqual(["ui-input"])
   })

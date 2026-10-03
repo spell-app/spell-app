@@ -75,6 +75,15 @@ export const ROOT_CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
     }
   },
   "ui-docs-themes": { folder: "ui-docs-themes", skeleton: { display: "inline", width: "16em", height: "2.5em" } },
+  "ui-docs-toc": {
+    folder: "ui-docs-toc",
+    skeleton: {
+      parts: [
+        { shape: "line", length: "short" },
+        { shape: "paragraph", lines: 6 }
+      ]
+    }
+  },
   "ui-docs-tokens": {
     folder: "ui-docs-tokens",
     skeleton: {
