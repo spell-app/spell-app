@@ -93,6 +93,9 @@ export function serverUrl(base, file) {
  *   `spell.docPreview.location`), reloaded on every open
  * - first asks THIS session's window, through the extension's window bridge (the repo root's
  *   `scripts/window.mjs`);  a `vscode://` URI goes to whichever window is focused
+ * - NOT run from VS Code (`Window.inVSCode`:  a CLI session in another terminal):  `openInChrome()` instead, and
+ *   `hash` is dropped
+ * - `hash`:  an id on the page to land on, e.g. a goal `g1`
  * - the session is moving to a worktree's window (`/isolate`, `/epic`:  a pending handoff):  shown THERE once it
  *   has moved, not in the window it's leaving
  * - no bridge (extension not reloaded, or not run from a VS Code window), or it failed:  the `vscode://` URI
@@ -100,17 +103,19 @@ export function serverUrl(base, file) {
  * - `open` itself failed (not macOS):  falls back to Chrome
  * - async for the bridge's http request;  never rejects
  */
-export async function openInVSCode(file) {
+export async function openInVSCode(file, { hash } = {}) {
+  if (!Window.inVSCode) return openInChrome(file)
   const path = resolve(file)
   const served = ensurePageServer()
   try {
-    const { window, later } = await Window.show(path)
+    const { window, later } = await Window.show(path, { hash })
     if (later) return console.log(`${path} shows in ${later} once this session moves there`)
     return console.log(`opened ${path} in VS Code (window ${window.pid})`)
   } catch (error) {
     if (!/^no window/.test(error.message)) console.error(`${error.message}:  falling back to the vscode:// URI`)
   }
-  const query = new URLSearchParams({ ...(served && { url: serverUrl(served.base, path) }), file: path })
+  const url = served && `${serverUrl(served.base, path)}${hash ? `#${hash}` : ""}`
+  const query = new URLSearchParams({ ...(url && { url }), file: path })
   const run = spawnSync("open", [`${VSCODE_PREVIEW}?${query}`], { encoding: "utf8" })
   if (run.status === 0) return console.log(`opened ${path} in VS Code`)
   console.error(`VS Code via \`open\` failed (${(run.stderr ?? String(run.error)).trim()}):  falling back to Chrome`)

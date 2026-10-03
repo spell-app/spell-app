@@ -178,10 +178,11 @@ test("resume():  opens the session in the target window, then closes its tab, or
       ["/close-session-tab", { title: "isolate-me" }]
     ])
     // a doc asked for while the move was pending:  shown beside the session, before the old tab closes
-    assert.equal((await Window.resume({ ...tab, show: "/plan.html" }, "isolate-me")).shown, true)
+    const show = { file: "/plan.html", hash: "p2" }
+    assert.equal((await Window.resume({ ...tab, show }, "isolate-me")).shown, true)
     assert.deepEqual(seen.splice(0), [
       ["/open-session", { sessionId: SESSION }],
-      ["/show-doc", { file: "/plan.html" }],
+      ["/show-doc", show],
       ["/close-session-tab", { title: "isolate-me" }]
     ])
     const window = { ...tab, close: "window", remove }
@@ -227,14 +228,15 @@ test("show():  while a move is pending, the doc waits for the target window;  th
   mkdirSync(Window.handoffs, { recursive: true })
   writeFileSync(Window.handoffFile(SESSION), JSON.stringify(record))
   try {
-    assert.deepEqual(await Window.show("/a.html", SESSION), { later: record.to })
-    assert.deepEqual(await Window.show("/b.html", SESSION), { later: record.to })
-    assert.equal(JSON.parse(readFileSync(Window.handoffFile(SESSION), "utf8")).show, "/b.html")
+    assert.deepEqual(await Window.show("/a.html", { sessionId: SESSION }), { later: record.to })
+    assert.deepEqual(await Window.show("/b.html", { hash: "g1", sessionId: SESSION }), { later: record.to })
+    const { show } = JSON.parse(readFileSync(Window.handoffFile(SESSION), "utf8"))
+    assert.deepEqual(show, { file: "/b.html", hash: "g1" })
   } finally {
     rmSync(Window.handoffFile(SESSION), { force: true })
   }
   // nothing pending, and no window:  `request()`'s error
-  await assert.rejects(Window.show("/a.html", SESSION), /no window/)
+  await assert.rejects(Window.show("/a.html", { sessionId: SESSION }), /no window/)
 })
 
 /** Write a registry entry for `pid` with `folders`. */

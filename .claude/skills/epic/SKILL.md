@@ -16,7 +16,7 @@ the whole time.  The plan doc is the user's view of the work:  they read it in V
 - Structured edits go through `yarn plan-doc <command> <name> ...` (cheat sheet below), never by hand.  Hand-edit only
   prose:  the summary, Overview, phase bodies, item details.
 - Reload the plan doc whenever the session moves to a new stage (name -> worktree -> plan -> fill -> each phase ->
-  doc review):  `yarn plan-doc open <name>` reloads its VS Code tab.  `yarn plan-doc phase` does it for you.
+  doc review):  `yarn plan-doc open <name>` reloads it in the side bar's doc preview.  `yarn plan-doc phase` does it for you.
 - Style, in replies, the plan and the doc:  caveman lite.  Drop filler and articles where they don't help, fragments
   OK, a full sentence where a fragment would be ambiguous, identifiers exact.  Lists bulleted, or numbered when
   order or reference matters.

@@ -16,7 +16,7 @@
  *   answers `{ ok: true, ... }`, or `{ ok: false, error }` with a 4xx / 5xx status.  Ops:
  *   - `add-folder { path, name? }`:  add `path` as the window's last folder;  already there:  ok, no-op
  *   - `remove-folder { path }`:  remove it;  never folder 0 (the repo root);  not there:  ok, no-op
- *   - `show-doc { file }`:  `DocPreview.show(file)`
+ *   - `show-doc { file, hash? }`:  `DocPreview.show(file, hash)`;  `hash` an id on the page to land on
  *   - `close-window {}`:  close this window, just after answering (`/isolate done` closes the worktree's window)
  *   - `open-session { sessionId }`:  open Claude Code session `sessionId` in an editor tab (never the sidebar);
  *     `/isolate` hands its session to the worktree's window this way
@@ -182,7 +182,7 @@ export class WindowBridge {
       case "show-doc": {
         const file = path(body, "file")
         if (!existsSync(file) || !statSync(file).isFile()) throw new BridgeError(404, `no file '${file}'`)
-        await DocPreview.show(file)
+        await DocPreview.show(file, typeof body.hash === "string" ? body.hash : undefined)
         return { file }
       }
       case "close-window":

@@ -64,13 +64,15 @@ export class DocPreview {
     )
   }
 
-  /** Show `file`, from its page server, else from one of our own. */
-  static async show(file: string): Promise<void> {
+  /** Show `file`, from its page server, else from one of our own;  at id `hash` on it, if given. */
+  static async show(file: string, hash?: string): Promise<void> {
     if (!existsSync(file)) {
       void vscode.window.showErrorMessage(`Spell doc preview:  no file '${file}'.`)
       return
     }
-    await DocPreview.showUrl(await DocPreview.urlOf(file))
+    const url = new URL(await DocPreview.urlOf(file))
+    if (hash) url.hash = hash
+    await DocPreview.showUrl(url.href)
   }
 
   /** `file`'s URL on its checkout's page server, else on a server of our own (started if need be). */
