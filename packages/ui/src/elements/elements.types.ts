@@ -7,6 +7,7 @@
 
 import type { PropDefinition } from "@spell-app/solid-element"
 
+import type { SourceErrorKind } from "$/ui/runtime"
 import type { AttributeSpec, ComponentVocabulary } from "$/ui/vocabulary"
 
 ////////////////
@@ -502,6 +503,41 @@ export const ERROR_EVENT = "ui-error"
 
 /** Custom state of a failed element (`:state(errored)`), set by the fork's boundary and by the fallback. */
 export const ERRORED_STATE = "errored"
+
+////////////////
+// ## Source elements
+////////////////
+
+/** Where a `SourceElement` is with its content. */
+export type SourceStatus = "idle" | "loading" | "loaded" | "error"
+
+/** A failure a `SourceElement` shows as its error message. */
+export type SourceFailure = {
+  /** why, see `SourceErrorKind` */
+  kind: SourceErrorKind
+  /** what was thrown */
+  error: unknown
+}
+
+/** What `SourceHost` asks of its controller (`SourceElement`). */
+export type SourceController = {
+  /** the text now shown, edits included */
+  getContent(): string
+  /** show `text` instead, `dirty` until saved */
+  setContent(text: string): void
+  /** version of the last load / save */
+  getEtag(): string | undefined
+  /** changed since loaded / saved? */
+  isDirty(): boolean
+  /** save, see `SourceElement.save()` */
+  save(text?: string): Promise<boolean>
+  /** fetch again past the cache, dropping edits */
+  reload(): Promise<string>
+}
+
+/** Element names a `SourceElement` builds with the DOM (Solid's JSX has no types for our tags). */
+export const SOURCE_LOADER_TAG = "ui-loader"
+export const SOURCE_MESSAGE_TAG = "ui-message"
 
 ////////////////
 // ## Dropdown
