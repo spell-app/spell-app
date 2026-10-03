@@ -36,7 +36,7 @@ export function runningSessions(home = claudeHome()): Map<string, CLI.RunningSes
   const found = new Map<string, CLI.RunningSession>()
   const folder = join(home, "sessions")
   if (!existsSync(folder)) return found
-  for (const name of readdirSync(folder)) {
+  for (const name of readdirSync(folder).sort()) {
     if (!name.endsWith(".json")) continue
     const record = readJSON(join(folder, name)) as Partial<CLI.RunningSession>
     if (typeof record.pid === "number" && record.sessionId && isAlive(record.pid)) {
@@ -213,6 +213,55 @@ const HARNESS_MESSAGES = ["Base directory for this skill:", "Another Claude sess
 /** A folder's name under `~/.claude/projects`:  every character but a letter or digit becomes `-`. */
 export function projectSlug(path: string): string {
   return path.replace(/[^A-Za-z0-9]/g, "-")
+}
+
+/**
+ * The transcript of session `id`, in any project folder;  `undefined` when there's none.
+ * - one session's transcript can sit in two folders (copied when it moved):  the first found wins
+ */
+export function transcriptOf(id: string, home = claudeHome()): string | undefined {
+  const projects = join(home, "projects")
+  if (!existsSync(projects)) return undefined
+  for (const dir of readdirSync(projects)) {
+    const path = join(projects, dir, `${id}.jsonl`)
+    if (existsSync(path)) return path
+  }
+  return undefined
+}
+
+/**
+ * Session `id`'s title:  its last `custom-title`, else its last `ai-title`;  `null` when it has neither.
+ * - the same rule as `.claude/hooks/handoff.mjs`, which finds a session's tab by it
+ */
+export function sessionTitle(id: string, home = claudeHome()): string | null {
+  const path = transcriptOf(id, home)
+  if (!path) return null
+  let custom: string | null = null
+  let ai: string | null = null
+  for (const line of readFileSync(path, "utf8").split("\n")) {
+    if (!line.includes('"custom-title"') && !line.includes('"ai-title"')) continue
+    const entry = parseJSONLine(line)
+    if (entry.type === "custom-title") custom = (entry.customTitle as string) ?? null
+    else if (entry.type === "ai-title") ai = (entry.aiTitle as string) ?? null
+  }
+  return custom || ai
+}
+
+/** The last folder session `id` worked in:  the last `"cwd"` in its transcript's final 256KB, or `null`. */
+export function lastCwd(id: string, home = claudeHome()): string | null {
+  const path = transcriptOf(id, home)
+  const found = path ? [...readTail(path, 256_000).matchAll(/"cwd":"([^"]*)"/g)] : []
+  return found.length ? found.at(-1)![1] : null
+}
+
+/** The pids above this process, so the session that ran us can be told apart (or left out). */
+export function ancestorPids(): Set<number> {
+  const pids = new Set<number>()
+  for (let pid = process.ppid; pid > 1 && !pids.has(pid);) {
+    pids.add(pid)
+    pid = Number(run("ps", ["-o", "ppid=", "-p", String(pid)]).trim() || 0)
+  }
+  return pids
 }
 
 ////////////////

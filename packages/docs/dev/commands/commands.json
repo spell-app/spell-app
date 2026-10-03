@@ -327,7 +327,11 @@
         {
           "op": "List worktrees and the session in each",
           "cli": {
-            "mark": "could"
+            "mark": "same",
+            "names": [
+              "spell dev worktree"
+            ],
+            "note": "`list [--json]`"
           },
           "skill": {
             "mark": "other",
@@ -339,9 +343,9 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`~/.claude/skills/worktrees/scripts/worktrees.py`",
+          "runs": "`packages/cli/src/dev/worktrees.ts` (`sessionPlaces()`)",
           "notes": "`/worktrees` is a user skill (`~/.claude/skills`), not in the repo.",
-          "target": "(R3) `spell dev worktree list --json`;  user skill /worktrees calls it, `worktrees.py` fallback"
+          "target": "(R3) built:  `spell dev worktree list`;  /worktrees and /isolate switch in P11"
         },
         {
           "op": "Tell whether a session is in a worktree",
@@ -924,7 +928,11 @@
         {
           "op": "List parked work",
           "cli": {
-            "mark": "could"
+            "mark": "same",
+            "names": [
+              "spell dev park"
+            ],
+            "note": "`list` (JSON)"
           },
           "skill": {
             "mark": "other",
@@ -936,14 +944,17 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`status.py --parked`",
-          "target": "(R5) `spell dev park list --json`;  /unpark /whassup call it"
+          "runs": "`packages/cli/src/dev/parking.ts` (`parkedNotes()`)",
+          "target": "(R5) built:  `spell dev park list`;  /unpark /whassup switch in P11"
         },
         {
           "op": "Say where a name stands",
           "cli": {
-            "mark": "could",
-            "note": "`spell dev status <name>`"
+            "mark": "same",
+            "names": [
+              "spell dev worktree"
+            ],
+            "note": "`status <name>` (JSON)"
           },
           "skill": {
             "mark": "other",
@@ -957,9 +968,9 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`.claude/skills/park/scripts/status.py <name>`",
+          "runs": "`packages/cli/src/dev/worktrees.ts` (`nameStatus()`)",
           "notes": "Resolves worktree, branch, plan doc, sessions.  `/wtf` resolves names by prose, same rule.",
-          "target": "(R4) `spell dev session status <name> --json`;  replaces `status.py <name>`;  /wtf too"
+          "target": "(R3) built:  `spell dev worktree status <name>`;  /park /unpark /wait-for /wtf switch in P11"
         },
         {
           "op": "List the names that exist",
@@ -983,7 +994,11 @@
         {
           "op": "List what could be waited for",
           "cli": {
-            "mark": "could"
+            "mark": "same",
+            "names": [
+              "spell dev park"
+            ],
+            "note": "`candidates` (JSON)"
           },
           "skill": {
             "mark": "other",
@@ -995,14 +1010,17 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`status.py --candidates`",
-          "target": "(R5) `spell dev park candidates --json`;  `/wait-for ?` modal reads it"
+          "runs": "`packages/cli/src/dev/parking.ts` (`waitCandidates()`)",
+          "target": "(R5) built:  `spell dev park candidates`;  /wait-for switches in P11"
         },
         {
           "op": "Wait until another session finishes",
           "cli": {
-            "mark": "could",
-            "note": "poll only"
+            "mark": "same",
+            "names": [
+              "spell dev park"
+            ],
+            "note": "`wait <name> [--every] [--max]`:  exits 0 / 2 / 3"
           },
           "skill": {
             "mark": "same",
@@ -1014,9 +1032,9 @@
             "mark": "could",
             "note": "poll only"
           },
-          "runs": "`status.py --wait <name>` in a background Bash",
+          "runs": "`packages/cli/src/dev/parking.ts` (`waitFor()`), in a background Bash",
           "notes": "Gives up after ~2h (exit 2, restarted).  Dies with the session.",
-          "target": "(R5) `spell dev park wait <name>` in background Bash;  /wait-for calls it"
+          "target": "(R5) built:  `spell dev park wait`;  /wait-for switches in P11"
         },
         {
           "op": "Pick parked work back up",
@@ -2399,7 +2417,7 @@
               "docs docs:update"
             ]
           },
-          "runs": "`scripts/update.js`:  `bundle-spell-ui.js`, `index.js`, `doc-links.py --check`, `check-spell.js`",
+          "runs": "`scripts/update.js`:  `bundle-spell-ui.js`, `index.js`, `doc-links.js --check`, `check-spell.js`",
           "notes": "Screenshots land in a temp folder nobody looks at unless told.",
           "target": "(R2) `spell dev docs update`;  yarn `docs:update` aliases it"
         },
@@ -2558,9 +2576,9 @@
           },
           "yarn": {
             "mark": "could",
-            "note": "unscripted:  `python3 scripts/doc-links.py <page>`"
+            "note": "unscripted:  `node scripts/doc-links.js <page>`"
           },
-          "runs": "`scripts/doc-links.py`",
+          "runs": "`scripts/doc-links.js`",
           "notes": "Only Python tool in docs;  every other script is node.",
           "target": "(R2) step 1 of `spell dev docs finish <page>`"
         },
@@ -2578,9 +2596,9 @@
               "root docs:update",
               "docs docs:update"
             ],
-            "note": "all pages only;  one page:  `doc-links.py --check`"
+            "note": "all pages only;  one page:  `doc-links.js --check`"
           },
-          "runs": "`scripts/doc-links.py --check`",
+          "runs": "`scripts/doc-links.js --check`",
           "target": "(R2) `spell dev docs check <page>` (links + browser)"
         },
         {
@@ -2600,7 +2618,7 @@
             "mark": "could",
             "note": "`docs docs:finish <page>`"
           },
-          "runs": "prose in `packages/docs/AGENTS.md` (\"Finishing a page\"):  `doc-links.py`, `oxfmt`, `check-spell.js`, `index.js`",
+          "runs": "prose in `packages/docs/AGENTS.md` (\"Finishing a page\"):  `doc-links.js`, `oxfmt`, `check-spell.js`, `index.js`",
           "notes": "Five-step sequence lives only in prose;  strong CLI / script candidate.",
           "target": "(R2) `spell dev docs finish <page>`;  /epic calls it"
         },

@@ -24,6 +24,8 @@ export type RunningSession = {
   cwd?: string
   /** title the registry knows, when any */
   name?: string
+  /** what a `waiting` session waits for, e.g. `permission` */
+  waitingFor?: string
 }
 
 /**
@@ -72,6 +74,57 @@ export type PendingQuestion = {
   question?: string
   options?: { label?: string; description?: string }[]
 }
+
+////////////////
+// ## Worktrees and parked work
+////////////////
+
+/**
+ * Where a live session works -- `spell dev worktree list`.
+ * - `worktree`:  `main checkout`, `worktree <name>`, or `(not in git)`
+ * - `folder`:  inside its checkout (`""` at the root);  the full path outside a checkout
+ * - `this`:  the session that ran the command
+ */
+export type SessionPlace = {
+  name: string
+  id: string
+  status: string
+  where: string
+  worktree: string
+  branch: string
+  folder: string
+  this: boolean
+}
+
+/**
+ * Where session / worktree / plan `name` stands -- `nameStatus()`.
+ * - `ahead`:  commits on branch `name` not in `main`
+ * - `merged`:  the branch had commits of its own (its reflog moved past "Created") and all are in `main` now
+ * - `plan`:  its plan doc folder;  `planDone`:  every phase done
+ * - `finished`:  `merged` or `planDone`, `why` saying which (`park wait` adds "worktree removed", "session exited")
+ */
+export type NameStatus = {
+  name: string
+  worktree: string | null
+  branch: string | null
+  ahead: number
+  merged: boolean
+  plan: string | null
+  planDone: boolean
+  sessions: { id: string; title: string | null; running: boolean; pid: number | null }[]
+  finished: boolean
+  why: string | null
+}
+
+/** Something `/wait-for ?` offers:  a worktree, an epic, or a running session. */
+export type WaitCandidate = { name: string; label: string }
+
+/**
+ * A parked worktree's note, `.claude/worktrees/<name>/PARKED-<name>.md`.
+ * - `state`:  from line 1, `<!-- park: <state> -->`:  `parked`, `waiting:<other>`, `resumed`
+ * - `stopped`:  the first line under "## Where it stopped"
+ */
+export type ParkedNote = { name: string; file: string; state: string; stopped: string }
 
 /** Entrypoints of LOCAL sessions:  web, cloud and SDK sessions are left out. */
 export const LOCAL_ENTRYPOINTS = new Set(["cli", "claude-vscode", "claude-desktop"])

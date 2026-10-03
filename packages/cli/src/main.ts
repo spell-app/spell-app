@@ -256,6 +256,37 @@ dev
     run(CLI.sessionCommand, verb ? [verb, ...args] : [], command.optsWithGlobals())
   )
 
+dev
+  .command("worktree")
+  .description(
+    "git worktrees:  list the live sessions and where they work, or where a worktree / plan / session stands"
+  )
+  .argument("[verb]", "list (default) | status <name>")
+  .argument("[name]", "status:  a worktree, branch, plan doc or session name")
+  .option("--json", "list:  print the data as JSON")
+  .action((verb: string | undefined, name: string | undefined, _options, command) =>
+    run(
+      CLI.worktreeCommand,
+      [verb, name].filter((it) => it !== undefined),
+      command.optsWithGlobals()
+    )
+  )
+
+dev
+  .command("park")
+  .description("parked work:  list the PARKED notes, what /wait-for could wait on, or wait for a name to finish")
+  .argument("<verb>", "list | candidates | wait <name>")
+  .argument("[name]", "wait:  a worktree, branch, plan doc or session name")
+  .option("--every <seconds>", "wait:  poll this often (default 60)")
+  .option("--max <seconds>", "wait:  give up after this long, exiting 2 (default 7140)")
+  .action((verb: string, name: string | undefined, _options, command) =>
+    run(
+      CLI.parkCommand,
+      [verb, name].filter((it) => it !== undefined),
+      command.optsWithGlobals()
+    )
+  )
+
 await program.parseAsync()
 
 /**
