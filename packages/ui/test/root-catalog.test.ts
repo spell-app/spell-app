@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "vite-plus/test"
 
 import { ComponentDefinitions } from "$/ui/components/component-definitions"
 import { ROOT_CATALOG } from "$/ui/components/ui-root/ui-root.catalog"

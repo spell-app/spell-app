@@ -1,5 +1,5 @@
-import { describe, expect, it, onTestFinished } from "vitest"
-import { userEvent } from "vitest/browser"
+import { describe, expect, it, onTestFinished } from "vite-plus/test"
+import { userEvent } from "vite-plus/test/browser"
 
 import { ClassBuilder } from "$/ui/elements"
 import { UI } from "$/ui/runtime"

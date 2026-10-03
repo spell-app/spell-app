@@ -7,7 +7,7 @@
 
 import { createSignal, flush } from "solid-js"
 import { render } from "@solidjs/web"
-import { afterEach, describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it } from "vite-plus/test"
 
 import { customElement } from "./customElement"
 import { cleanup, mount, nextTag, reproduce } from "./testing"

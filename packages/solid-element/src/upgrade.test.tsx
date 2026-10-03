@@ -6,7 +6,7 @@
 /** FIX 2:  prototype accessors, the upgrade step, no shadowing of native members. */
 
 import { flush } from "solid-js"
-import { afterEach, describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it } from "vite-plus/test"
 
 import { customElement } from "./customElement"
 import { cleanup, mount, nextTag, reproduce } from "./testing"

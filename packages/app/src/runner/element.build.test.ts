@@ -2,7 +2,7 @@ import { execFileSync } from "node:child_process"
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join, posix } from "node:path"
-import { afterAll, beforeAll, describe, test, expect } from "vitest"
+import { afterAll, beforeAll, describe, test, expect } from "vite-plus/test"
 
 /**
  * Production builds of the runners:  `<spell-app>` and `<spell-editor>` (`yarn build:element` => `dist-element/`) and

@@ -6,7 +6,7 @@
 /** FIX 6:  `keepAlive`, `onConnect` / `onDisconnect`, `dispose()`;  the default stays compatible. */
 
 import { createSignal, flush, onCleanup } from "solid-js"
-import { afterEach, describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it } from "vite-plus/test"
 
 import { customElement } from "./customElement"
 import { onConnect, onDisconnect } from "./lifecycle"

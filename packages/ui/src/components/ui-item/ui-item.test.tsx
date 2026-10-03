@@ -1,5 +1,5 @@
 import type { JSX } from "@solidjs/web"
-import { describe, expect, it } from "vitest"
+import { describe, expect, it } from "vite-plus/test"
 
 import type { ItemContext, ItemOwner } from "$/ui/components/components.types"
 import { UIElement, type UIElementClass, type UIHost } from "$/ui/elements"

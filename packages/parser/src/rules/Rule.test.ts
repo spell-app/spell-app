@@ -1,4 +1,4 @@
-import { describe, test, expect } from "vitest"
+import { describe, test, expect } from "vite-plus/test"
 import { proto } from "$/util"
 import { P, Match, Parser, Tokenizer, WhitespacePolicy } from "$/parser"
 // These tests define rules with rulex `syntax`, so they must opt into the rulex parser.

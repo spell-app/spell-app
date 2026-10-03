@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest"
+import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test"
 
 import { Fixture } from "$/ui/test/fixture"
 import { Styles } from "./Styles"

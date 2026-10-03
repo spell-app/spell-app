@@ -1,5 +1,5 @@
-import { userEvent } from "vitest/browser"
-import { describe, expect, it, onTestFinished } from "vitest"
+import { userEvent } from "vite-plus/test/browser"
+import { describe, expect, it, onTestFinished } from "vite-plus/test"
 
 import { expectAccessible } from "$/ui/test/a11y"
 

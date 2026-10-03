@@ -1,4 +1,4 @@
-import { expect, it } from "vitest"
+import { expect, it } from "vite-plus/test"
 import ssrButton from "/.cache/ssr-button.html?raw"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
