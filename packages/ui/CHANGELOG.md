@@ -20,7 +20,8 @@ First public version:  Fomantic UI 2.9.4's vocabulary as `ui-*` custom elements 
   - modules:  accordion, calendar, checkbox / radio / toggle, dimmer, dropdown, embed, flyout, modal, nag, popup,
     progress, rating, search, select, shape, sidebar, slider, sticky, tab, toast, transition, visibility
 - **Source elements** (ours):  `<ui-include>` shows another page of the site, `<ui-code>` highlighted code
-  (highlight.js, loaded lazily;  `UI.code.register()` adds languages);  each takes inline text or a
+  (highlight.js, loaded lazily;  `UI.code.register()` adds languages;  spell's own colours), `<ui-markdown>` GitHub
+  markdown (marked + DOMPurify, loaded lazily);  each takes inline text or a
   same-origin `source` through `UI.sources`, shows loading / error states, and has `content` / `save()` for editors
   (a page registers `UI.sources.saver`).
 - **Shared runtime** `UI` (one per page, loaded lazily):  keyboard, overlays, focus, styles, vocabulary, i18n,

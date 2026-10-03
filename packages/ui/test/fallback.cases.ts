@@ -181,7 +181,8 @@ export const FAMILY_FALLBACKS: readonly { family: string; html: string; root: st
     html: `<ui-include source="/test/fixtures/sources/part.html">Placeholder</ui-include>`,
     root: "[part~=content]"
   },
-  { family: "ui-code", html: `<ui-code language="text">let x = 1</ui-code>`, root: "[part~=box]" }
+  { family: "ui-code", html: `<ui-code language="text">let x = 1</ui-code>`, root: "[part~=box]" },
+  { family: "ui-markdown", html: `<ui-markdown size="small"># Title</ui-markdown>`, root: "[part~=body]" }
 ]
 
 export const FALLBACK_CASES: readonly FallbackCase[] = [

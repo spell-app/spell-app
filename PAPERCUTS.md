@@ -884,6 +884,12 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
 - 2026-10-02 · Defining an element threw `prop "source" would shadow the element's own "source"`:  its host class had a
   PRIVATE getter named `source`.  The fork checks every host member against prop names, private ones too (TS
   `private` is compile-time only). · Name host internals so they can't match an attribute (`controllerApi`). · ui
+- 2026-10-02 · Every visual test timed out in WebKit only (`window.visual` never set), not just the new family's:
+  WebKit has HTML's new `headingoffset`, so `HTMLElement.prototype.headingOffset` exists there, and the fork refused
+  `<ui-markdown>`'s `heading-offset` prop ("would shadow the element's own") -- one bad `define()` stops the whole
+  `$/ui` bundle.  Chromium and Firefox have no such property, so unit tests passed. · Name the property something
+  else (`property: "headingLevelOffset"`);  a `property` equal to the camelCased name doesn't count as a rename.
+  Found by loading the fixture in Playwright's WebKit and logging `pageerror`. · ui
 
 ## cli
 

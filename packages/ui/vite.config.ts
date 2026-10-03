@@ -81,7 +81,8 @@ export const COMPONENTS = [
   "ui-root",
   "ui-section",
   "ui-include",
-  "ui-code"
+  "ui-code",
+  "ui-markdown"
 ] as const
 
 /**
@@ -127,8 +128,8 @@ export const SOLID_DEDUPE = ["solid-js", "@solidjs/web"]
  *   compiler must see decorator-free code.
  * - `UI_SOLID_PROD=1`:  Solid's PRODUCTION runtime under `vite dev` (no dev diagnostics, no performance tracks),
  *   for timing `tools/demo/perf.html`.
- * - `optimizeDeps`:  `axe-core`, `temporal-polyfill` (only a Temporal-less page imports it) and highlight.js (only
- *   `<ui-code>`'s lazy `CodeEngine` imports it) pre-bundled up front, so the first test run doesn't reload mid-run;  NOT
+ * - `optimizeDeps`:  `axe-core`, `temporal-polyfill` (only a Temporal-less page imports it), highlight.js, marked and
+ *   DOMPurify (only the lazy `CodeEngine` / `MarkdownEngine` import them) pre-bundled up front, so the first test run doesn't reload mid-run;  NOT
  *   `@spell-app/solid-element`:  it's linked TypeScript source (its `development` export), compiled by the Solid
  *   plugin like our own files.
  */
@@ -141,7 +142,14 @@ export function baseConfig() {
       dedupe: SOLID_DEDUPE
     },
     optimizeDeps: {
-      include: ["axe-core", "temporal-polyfill", "highlight.js/lib/core", "highlight.js/lib/languages/*"],
+      include: [
+        "axe-core",
+        "temporal-polyfill",
+        "highlight.js/lib/core",
+        "highlight.js/lib/languages/*",
+        "marked",
+        "dompurify"
+      ],
       exclude: ["@spell-app/solid-element"]
     },
     css: {

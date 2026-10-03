@@ -69,6 +69,7 @@
     "./dist/ui-embed.js",
     "./dist/ui-calendar.js",
     "./dist/ui-section.js",
+    "./dist/ui-markdown.js",
     "./dist/ui-code.js",
     "./dist/ui-include.js",
     "./tools/demo/**"
@@ -313,6 +314,10 @@
       "types": "./dist/components/ui-section/index.d.ts",
       "import": "./dist/ui-section.js"
     },
+    "./ui-markdown": {
+      "types": "./dist/components/ui-markdown/index.d.ts",
+      "import": "./dist/ui-markdown.js"
+    },
     "./ui-code": {
       "types": "./dist/components/ui-code/index.d.ts",
       "import": "./dist/ui-code.js"
@@ -378,8 +383,10 @@
   },
   "dependencies": {
     "@spell-app/solid-element": "workspace:*",
+    "dompurify": "^3.4.0",
     "highlight.js": "^11.12.0",
     "lodash-es": "^4.18.1",
+    "marked": "^18.0.0",
     "temporal-polyfill": "^1.0.5"
   },
   "devDependencies": {
