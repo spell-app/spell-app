@@ -25,8 +25,7 @@ try {
     renameSync(file, running)
     const script = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "scripts", "window.mjs")
     const args = [script, "resume", running]
-    const title = sessionTitle(transcript)
-    if (title) args.push("--title", title)
+    for (const title of sessionTitles(transcript)) args.push("--title", title)
     const log = openSync(join(Window.handoffs, `${sessionId}.log`), "a", 0o600)
     spawn(process.execPath, args, { detached: true, stdio: ["ignore", log, log] }).unref()
   }
@@ -35,11 +34,12 @@ try {
 }
 
 /**
- * The session's title, as its tab shows it:  the last `/rename` (`custom-title`), else Claude's own (`ai-title`);
- * `null` if none.
+ * The titles the session's tab may show, most likely first:  the last `/rename` (`custom-title`, which the prompt
+ * hook `prompt-gate.mjs` sets on `/isolate <name>`), then Claude's own (`ai-title`);  `[]` if none.
+ * - both, since the tab's label may lag a rename
  */
-function sessionTitle(transcript) {
-  if (!transcript || !existsSync(transcript)) return null
+function sessionTitles(transcript) {
+  if (!transcript || !existsSync(transcript)) return []
   let custom = null
   let ai = null
   for (const line of readFileSync(transcript, "utf8").split("\n")) {
@@ -52,5 +52,5 @@ function sessionTitle(transcript) {
       // a half-written last line
     }
   }
-  return custom ?? ai
+  return [...new Set([custom, ai].filter(Boolean))]
 }
