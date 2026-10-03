@@ -122,6 +122,8 @@ turn to end, and the stub doc keeps the kickoff prompt safe whatever happens to 
 1. `yarn plan-doc phase <name> <N> active`
 2. Do the work.  Record as you go, not at the end:
    - found a problem:  `add ... issue`;  a limit we accept:  `add ... caveat`;  a choice:  `add ... decision`
+   - something only Owen can check (a live window, a click, a look):  `add ... test "<step>" --details "<p>what
+     should happen</p>"`, into "To test";  `close` it once he says it passed
    - fixed or obsolete:  `close <name> <id>` (it stays, struck through)
    - changed a prose block:  put
      `<ui-message class="plan-update" state="warning" size="tiny" header="UPDATE" data-phase="N"><p>what changed</p></ui-message>`
@@ -147,6 +149,8 @@ turn to end, and the stub doc keeps the kickoff prompt safe whatever happens to 
 ## 6. Doc Review (last phase)
 
 - Prune:  close stale items;  make the summary and Overview true to what was BUILT.
+- "To test":  every hand check the work needs before merging is there, each a step and what should happen;  list
+  the open ones in the reply, as bullets.
 - Turn it into durable docs:  `yarn docs:new durable <page> --title "..."` (fixes asset paths for the depth):
   - one page:  `packages/docs/<name>.html`;  several files (pages, experiments):
     `packages/docs/<name>/<name>.html`
@@ -169,7 +173,7 @@ new <name> [--title "Title"] [--prompt "..." | --prompt-file f]   create from th
 add-phase <name> "Short Name" [--goal ..] [--files ..] [--verify ..] [--estimate 2h]
 estimate <name> <N> "1-2h"                          change a phase's estimate;  the Overview's total follows
 phase <name> <N> todo|active|done [--no-open]       done drops UPDATE markers;  reloads the VS Code tab
-add <name> question|caveat|issue|todo|decision "title" [--details "<p>html</p>"]   prints the id (C3)
+add <name> question|caveat|issue|todo|test|decision "title" [--details "<p>html</p>"]   prints the id (C3)
 decide <name> <Q id> "decision" [--details html]   answer a question:  prints the decision's id (D7)
 close <name> <id>  /  reopen <name> <id>            strike / unstrike, never delete
 log <name> "text"                                   timestamped line in the doc's log
