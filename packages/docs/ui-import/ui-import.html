@@ -343,13 +343,16 @@
                   <tr>
                     <td>method</td>
                     <td><code>save(text?)</code></td>
-                    <td><code>Promise&lt;void&gt;</code></td>
-                    <td>see above</td>
+                    <td><code>Promise&lt;boolean&gt;</code></td>
+                    <td>
+                      <code>true</code> once saved here; <code>false</code> when a listener took over (cancelled
+                      <code>ui-save</code>) or it failed (<code>ui-error</code>)
+                    </td>
                   </tr>
                   <tr>
                     <td>method</td>
                     <td><code>reload()</code></td>
-                    <td><code>Promise&lt;void&gt;</code></td>
+                    <td><code>Promise&lt;string&gt;</code></td>
                     <td>re-fetch past the cache; drops edits</td>
                   </tr>
                   <tr>
