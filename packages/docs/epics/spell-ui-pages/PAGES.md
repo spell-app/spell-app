@@ -27,7 +27,8 @@ yarn site:new getting-started --title "Getting started" --summary "One line."   
   - the nav column, the masthead (title, summary, status label unless done, source / bug / Fomantic links, the
     family's `<ui-docs-themes for>`)
   - `<ui-rail>` + `<ui-sticky>` + `<ui-docs-toc for="site-tabs">` ("On this page", built at runtime)
-  - `<ui-tabs id="site-tabs" class="site-tabs" history basic compact>` with four panes:  `examples`, `usage`, `api`,
+  - `<ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>` (a
+    segmented control across the column, four equal tabs) with four panes:  `examples`, `usage`, `api`,
     `theming`.  YOU fill the CONTENTS of the `examples`, `usage` and `theming` panes;  `api` is done
     (`<ui-docs-api family>`, generated from the vocabularies).
 

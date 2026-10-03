@@ -66,7 +66,7 @@
               </ui-sticky>
             </ui-rail>
 
-            <ui-tabs id="site-tabs" class="site-tabs" history basic compact>
+            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
               <ui-tab value="examples" label="Examples">
                 <!--
                   EXAMPLES:  Fomantic's menu page, section by section, in its order (Types, Content, States, Variations), plus our
@@ -304,6 +304,33 @@
                     <ui-item href="#closest" selected>Closest</ui-item>
                     <ui-item href="#comments">Most Comments</ui-item>
                     <ui-item href="#popular">Most Popular</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Segmented"
+                  description='A menu can be a segmented control, a bordered group of joined items:  `appearance="segmented"`.  The selected item is filled with the primary colour, or the menu&apos;s `color`.'
+                >
+                  <ui-menu appearance="segmented" aria-label="View, segmented">
+                    <ui-item href="#list" selected>List</ui-item>
+                    <ui-item href="#grid">Grid</ui-item>
+                    <ui-item href="#map">Map</ui-item>
+                  </ui-menu>
+                  <ui-divider hidden></ui-divider>
+                  <ui-menu appearance="segmented" color="teal" aria-label="Range, segmented">
+                    <ui-item href="#day">Day</ui-item>
+                    <ui-item href="#week" selected>Week</ui-item>
+                    <ui-item href="#month">Month</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Appearance"
+                  description='The look is one word:  `appearance="tabular | pointing | secondary | text | segmented"`.  The older booleans (`<ui-menu pointing>`, `secondary` ...) stay as aliases, and combine:  `appearance="pointing" secondary` ~== `secondary pointing`.'
+                >
+                  <ui-menu appearance="pointing" secondary aria-label="Profile, underlined">
+                    <ui-item href="#bio" selected>Bio</ui-item>
+                    <ui-item href="#photos">Photos</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
                   </ui-menu>
                 </ui-docs-example>
 
@@ -960,6 +987,51 @@
                     <ui-item href="#buy">Buy</ui-item>
                     <ui-item href="#sell">Sell</ui-item>
                     <ui-item href="#rent">Rent</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Equal"
+                  description='`equal` makes every item the same width, counted from the items themselves:  each as wide as the widest, the menu hugging them.  `items="3"` / `items="equal"` above are the older, count-based spellings.'
+                >
+                  <ui-menu equal aria-label="Listing, equal items">
+                    <ui-item href="#buy">Buy</ui-item>
+                    <ui-item href="#sell" selected>Sell your home</ui-item>
+                    <ui-item href="#rent">Rent</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example description='With `alignment="fluid"`, each equal item takes an equal share of the bar.'>
+                  <ui-menu equal alignment="fluid" aria-label="Listing, equal fluid">
+                    <ui-item href="#buy">Buy</ui-item>
+                    <ui-item href="#sell" selected>Sell your home</ui-item>
+                    <ui-item href="#rent">Rent</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Alignment"
+                  description='`alignment` places the items:  `left`, `center` or `right` packs them at that end of the bar;  `fluid` makes them fill it.'
+                >
+                  <ui-menu alignment="center" aria-label="Sections, centered">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#docs">Docs</ui-item>
+                    <ui-item href="#blog">Blog</ui-item>
+                  </ui-menu>
+                  <ui-menu alignment="fluid" aria-label="Sections, fluid">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#docs">Documentation</ui-item>
+                    <ui-item href="#blog">Blog</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example description="A segmented menu is its items, so it moves as a whole.">
+                  <ui-menu appearance="segmented" alignment="right" aria-label="View, right">
+                    <ui-item href="#list" selected>List</ui-item>
+                    <ui-item href="#grid">Grid</ui-item>
+                  </ui-menu>
+                  <ui-menu appearance="segmented" alignment="fluid" equal aria-label="View, fluid">
+                    <ui-item href="#list" selected>List</ui-item>
+                    <ui-item href="#grid">Grid</ui-item>
+                    <ui-item href="#map">Map</ui-item>
                   </ui-menu>
                 </ui-docs-example>
 

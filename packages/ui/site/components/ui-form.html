@@ -66,7 +66,7 @@
               </ui-sticky>
             </ui-rail>
 
-            <ui-tabs id="site-tabs" class="site-tabs" history basic compact>
+            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
               <ui-tab value="examples" label="Examples">
                 <!--
                   EXAMPLES:  Fomantic's form page, section by section, in its order (Types, Content, Form States, Field States, Form
@@ -1145,6 +1145,28 @@
                         <ui-field>
                           <label for="form-last-name-87">Last name</label>
                           <ui-input id="form-last-name-87" placeholder="Last Name"></ui-input>
+                        </ui-field>
+                      </ui-fields>
+                    </form>
+                  </ui-form>
+                </ui-docs-example>
+                <ui-docs-example
+                  description='`equal` is the same, spelled like the other groups&apos; (`<ui-buttons equal>`, `<ui-tabs equal>` ...):  `widths="equal"` is its older, count-based spelling.'
+                >
+                  <ui-form>
+                    <form method="dialog">
+                      <ui-fields equal>
+                        <ui-field>
+                          <label for="form-city-equal">City</label>
+                          <ui-input id="form-city-equal" placeholder="City"></ui-input>
+                        </ui-field>
+                        <ui-field>
+                          <label for="form-state-equal">State</label>
+                          <ui-input id="form-state-equal" placeholder="State"></ui-input>
+                        </ui-field>
+                        <ui-field>
+                          <label for="form-zip-equal">Zip</label>
+                          <ui-input id="form-zip-equal" placeholder="Zip"></ui-input>
                         </ui-field>
                       </ui-fields>
                     </form>

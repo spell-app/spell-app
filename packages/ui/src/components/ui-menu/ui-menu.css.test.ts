@@ -68,7 +68,8 @@ describe("ui-menu.css examples", () => {
     const menus = root.querySelectorAll<HTMLElement>(".ui.menu")
     expect(menus.length).toBeGreaterThan(0)
     for (const menu of menus) {
-      expect(["flex", "inline-flex", "block", "inline-block"]).toContain(getComputedStyle(menu).display)
+      // `grid`:  a packed `equal` menu (equal columns, each as wide as the widest)
+      expect(["flex", "inline-flex", "block", "inline-block", "grid"]).toContain(getComputedStyle(menu).display)
       for (const item of menu.querySelectorAll<HTMLElement>(":scope > .item")) {
         expect(getComputedStyle(item).position, item.outerHTML.slice(0, 80)).toBe("relative")
         expect(getComputedStyle(item).lineHeight).not.toBe("normal")

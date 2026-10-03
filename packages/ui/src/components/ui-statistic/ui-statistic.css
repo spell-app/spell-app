@@ -38,6 +38,7 @@
  *   member without its own size inherits the group's
  * - `--_statistics-layout: horizontal`, `--_statistics-inverted: 1` -- a horizontal / inverted group
  * - `--_statistics-min-width` / `--_statistics-member-margin` -- an evenly divided group (`three statistics`)
+ * - `--_statistics-flex` -- a member's `flex`:  an equal share of the row in an `equal` group
  * - `--_statistics-stacked: 1` -- a `stackable` group narrower than 768px (the GROUP's width:  the group root
  *   answers the size query in its own tree and hands the answer down;  container names are tree-scoped, so a
  *   member couldn't query its group's container itself)
@@ -167,7 +168,7 @@
     :host > .ui.statistic,
     .ui.statistics > .statistic {
       display: inline-flex;
-      flex: 0 1 auto;
+      flex: var(--_statistics-flex, 0 1 auto);
       flex-direction: column;
       min-width: var(--_statistics-min-width, 0);
       max-width: none;
@@ -320,6 +321,13 @@
     --_statistics-min-width: 10%;
   }
 
+  /* Equal (`equal`, no count):  one row, an equal share of it each (the group spans its row). */
+  .ui.equal.statistics:not(.horizontal) {
+    --_statistics-flex: 1 1 0%;
+    --_statistics-member-margin: 0 0 var(--_ui-statistic-row-spacing);
+    margin: 0 0 calc(-1 * var(--_ui-statistic-row-spacing));
+  }
+
   /* Stackable:  below 768px of the group, one full-width statistic per row. */
   @container ui-statistics (width < 768px) {
     @container not style(--ui-stack-with: page) {
@@ -357,6 +365,8 @@
     :host > .ui.statistic,
     .ui.statistics > .statistic {
       box-sizing: border-box;
+      /* an `equal` group's share would keep them in one row */
+      flex: 0 1 auto;
       width: 100%;
       margin: 0;
       padding: calc(var(--_ui-statistic-stackable-padding) / 2);

@@ -644,6 +644,22 @@
     flex: 1 1 0%;
   }
 
+  /*
+   * Equal (`equal`, no count):  every child as wide as the widest -- a grid of equal columns, so the group hugs them;
+   * with `fluid`, an equal share of the row each (as `width`, whose `equal width` is left out here).
+   * - NOTE: a packed group's `<ui-or>` takes a column of its own:  use `fluid` (or `width`) with `or`s
+   */
+  .ui.equal.buttons:not(.width, .fluid, .vertical) {
+    display: inline-grid;
+    grid-auto-columns: 1fr;
+    grid-auto-flow: column;
+  }
+  .ui.equal.fluid.buttons:not(.width, .vertical) > :not(.or),
+  .ui.equal.fluid.buttons:not(.width, .vertical) > ::slotted(:not(:state(or))) {
+    --_ui-buttons-flex: 1 1 0%;
+    flex: 1 1 0%;
+  }
+
   /* Basic group:  one outer border, hairline dividers between children. */
   .ui.basic.buttons {
     border: var(--_ui-button-basic-border-width) solid var(--ui-color-border, var(--ui-border-color));

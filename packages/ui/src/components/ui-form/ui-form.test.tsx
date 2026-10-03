@@ -229,6 +229,25 @@ describe("<ui-form> layout", () => {
   })
 })
 
+describe("<ui-fields equal>", () => {
+  it('is Fomantic\'s `equal width fields`:  an equal share of the row each, as `widths="equal"`', async () => {
+    const { host } = await form(
+      `<div style="width: 900px"><ui-form><form><ui-fields equal>` +
+        `<ui-field><label for="eq-a">A</label><ui-input id="eq-a"></ui-input></ui-field>` +
+        `<ui-field><label for="eq-b">B</label><ui-input id="eq-b"></ui-input></ui-field>` +
+        `<ui-field><label for="eq-c">C</label><ui-input id="eq-c"></ui-input></ui-field>` +
+        `</ui-fields></form></ui-form></div>`
+    )
+    const fields = host.querySelector<HTMLElement>("ui-fields")!
+    expect(fields.shadowRoot!.querySelector("[part~=fields]")!.className).toBe("equal width fields")
+    const widths = [...fields.querySelectorAll("ui-field")].map((field) =>
+      Math.round(field.shadowRoot!.firstElementChild!.getBoundingClientRect().width)
+    )
+    expect(new Set(widths).size).toBe(1)
+    expect(widths[0]).toBeGreaterThan(250)
+  })
+})
+
 describe("<ui-form> tokens from outside", () => {
   /** A row of two fields (in a form) whose row margin `--ui-form-gutter` drives. */
   const ROW = `<ui-fields><ui-field>A</ui-field><ui-field>B</ui-field></ui-fields>`

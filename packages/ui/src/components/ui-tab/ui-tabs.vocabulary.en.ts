@@ -11,8 +11,12 @@
  *     selected)
  * - `selected` is the canonical chosen state (`active`, Fomantic's word, is an alias);  the chosen pane is the tabs'
  *   `value`.
+ * - The tab list's look is the menu's ONE word, `appearance` (`UIT.MENU_APPEARANCES`:  `tabular`, `pointing`,
+ *   `secondary`, `text`, `segmented`);  the older booleans stay as aliases.  `alignment` and `equal` place and size
+ *   the tabs, as on `<ui-menu>`.
  */
 
+import * as UIT from "$/ui/components/components.types"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
@@ -38,15 +42,37 @@ export const tabsVocabulary = {
       kind: "size",
       description: "Size of the tab menu, `mini` ... `massive`;  `medium` is the default."
     },
-    { name: "color", kind: "color", description: "Hue of the selected tab." },
-    { name: "tabular", kind: "keyOnly", description: "Tabs drawn as file-folder tabs (Fomantic's classic tab look)." },
+    {
+      name: "color",
+      kind: "color",
+      description: "Hue of the selected tab (`segmented`:  its fill;  default the primary colour)."
+    },
+    {
+      name: "appearance",
+      kind: "valueOnly",
+      values: UIT.MENU_APPEARANCES,
+      description:
+        "The tab list's look, as `<ui-menu appearance>`:  `tabular` (file-folder tabs), `pointing`, `secondary`, " +
+        "`text`, `segmented` (a bordered group of joined tabs, the selected one filled:  a segmented control).  The " +
+        "booleans below are aliases."
+    },
+    {
+      name: "tabular",
+      kind: "keyOnly",
+      description: 'Tabs drawn as file-folder tabs (Fomantic\'s classic tab look).  Alias of `appearance="tabular"`.'
+    },
     {
       name: "pointing",
       kind: "keyOnly",
-      description: "The selected tab points at its pane;  an underline with `secondary`."
+      description:
+        'The selected tab points at its pane;  an underline with `secondary`.  Alias of `appearance="pointing"`.'
     },
-    { name: "secondary", kind: "keyOnly", description: "De-emphasized tabs:  no box." },
-    { name: "text", kind: "keyOnly", description: "Plain text tabs." },
+    {
+      name: "secondary",
+      kind: "keyOnly",
+      description: 'De-emphasized tabs:  no box.  Alias of `appearance="secondary"`.'
+    },
+    { name: "text", kind: "keyOnly", description: 'Plain text tabs.  Alias of `appearance="text"`.' },
     { name: "inverted", kind: "keyOnly", description: "The dark scheme for the tabs and the panes." },
     {
       name: "vertical",
@@ -57,7 +83,23 @@ export const tabsVocabulary = {
     {
       name: "compact",
       kind: "keyOnly",
-      description: "The tab menu is only as wide as its tabs (Fomantic's `compact` menu):  a segmented switch."
+      description: "The tab menu is only as wide as its tabs (Fomantic's `compact` menu)."
+    },
+    {
+      name: "alignment",
+      kind: "valueAndKey",
+      key: "aligned",
+      values: UIT.ITEM_ALIGNMENTS,
+      description:
+        "Where the tabs sit:  `fluid` -- they fill the row;  `left` / `center` / `right` -- packed at that end (a " +
+        "`segmented` tab list moves as a whole).  Ignored when `vertical`."
+    },
+    {
+      name: "equal",
+      kind: "keyOnly",
+      description:
+        'Every tab the same width, from the tabs themselves (no count):  with `alignment="fluid"` an equal share ' +
+        "of the row each;  otherwise each as wide as the widest."
     },
     {
       name: "basic",

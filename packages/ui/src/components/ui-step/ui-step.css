@@ -33,6 +33,7 @@
  * | `--_ui-steps-first-radius` / `-last-` / `-only-` | corners of the first / last / only step, | layout, `attached`   |
  * |                                          | from `--ui-steps-radius`                   |                              |
  * | `--_ui-steps-step-width` / `-step-wrap`  | each step's width, its content wrapping    | `widths` (`three steps`)     |
+ * | `--_ui-steps-step-flex`                  | each step's `flex`                         | `equal fluid`                |
  * | `--_ui-steps-accent`                     | circular:  ring / line colour of current   | `color`                      |
  * |                                          | and completed steps                        |                              |
  * | `--_ui-step-*` / `--_ui-steps-*` aliases | the look (`step.variables`), declared on   | `inverted` re-resolves the   |
@@ -121,6 +122,7 @@
     --_ui-steps-only-radius: var(--_ui-steps-radius);
     --_ui-steps-step-width: auto;
     --_ui-steps-step-wrap: wrap;
+    --_ui-steps-step-flex: 1 0 auto;
     --_ui-steps-accent: var(--ui-color, var(--ui-positive));
     --_ui-steps-border: var(--ui-steps-border, var(--ui-border-width) solid var(--ui-border-color));
     /* The check on a completed circular step's accent. */
@@ -256,7 +258,7 @@
     :host > .step,
     .ui.steps > .step {
       display: flex;
-      flex: 1 0 auto;
+      flex: var(--_ui-steps-step-flex);
       flex-flow: row var(--_ui-steps-step-wrap);
       align-items: center;
       justify-content: center;
@@ -391,6 +393,21 @@
         mask: var(--_ui-step-check) center / contain no-repeat;
       }
     }
+  }
+
+  /* --------------
+         Equal
+  --------------- */
+
+  /* `equal` (no count):  every step as wide as the widest -- a grid of equal columns, so the group hugs them;  with
+     `fluid`, an equal share of the row each.  Stacking (below) still wins:  it comes later at the same specificity. */
+  .ui.equal.steps:not(.vertical, .circular, .fluid) {
+    display: inline-grid;
+    grid-auto-columns: 1fr;
+    grid-auto-flow: column;
+  }
+  .ui.equal.fluid.steps:not(.vertical, .circular) {
+    --_ui-steps-step-flex: 1 1 0%;
   }
 
   /* --------------

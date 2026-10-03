@@ -333,6 +333,27 @@ describe("<ui-statistics>", () => {
   })
 })
 
+describe("<ui-statistics equal>", () => {
+  it("one row, an equal share of it each, from the statistics themselves", async () => {
+    const box = await ElementFixture.render(
+      `<div style="width: 900px"><ui-statistics equal>` +
+        `<ui-statistic value="1" label="One"></ui-statistic>` +
+        `<ui-statistic value="31,200,000" label="Views"></ui-statistic>` +
+        `<ui-statistic value="2" label="Two"></ui-statistic>` +
+        `</ui-statistics></div>`
+    )
+    const group = box.querySelector<UIHost>("ui-statistics")!
+    const root = group.shadowRoot!.firstElementChild as HTMLElement
+    expect(root.className).toBe("ui equal statistics")
+    const boxes = [...group.querySelectorAll<UIHost>("ui-statistic")].map((statistic) =>
+      (statistic.shadowRoot!.firstElementChild as HTMLElement).getBoundingClientRect()
+    )
+    const share = root.clientWidth / boxes.length
+    for (const bounds of boxes) expect(bounds.width).toBeCloseTo(share, -0.5)
+    expect(new Set(boxes.map((bounds) => Math.round(bounds.top))).size).toBe(1)
+  })
+})
+
 describe("<ui-statistic> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {
     const root = await ElementFixture.render(EXAMPLES[path]!)

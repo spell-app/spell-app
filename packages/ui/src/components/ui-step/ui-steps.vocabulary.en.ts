@@ -47,6 +47,13 @@ export const stepsVocabulary = {
     },
     { name: "fluid", kind: "keyOnly", description: "Takes the full width of its container." },
     {
+      name: "equal",
+      kind: "keyOnly",
+      description:
+        "Every step the same width, from the steps themselves (no count):  each as wide as the widest;  with " +
+        "`fluid`, an equal share of the row each.  Not for `vertical` or `circular` steps (already alike)."
+    },
+    {
       name: "attached",
       kind: "keyOrValueAndKey",
       values: ["top", "bottom"],
@@ -79,7 +86,9 @@ export const stepsVocabulary = {
       kind: "width",
       widthClass: "",
       values: ["1", "2", "3", "4", "5", "6", "7", "8"],
-      description: 'Divides the group evenly between N steps:  `widths="3"` => `three steps`.'
+      description:
+        'Older, count-based alias of `equal fluid`:  divides the group evenly between N steps (`widths="3"` => ' +
+        "`three steps`)."
     },
     { name: "inverted", kind: "keyOnly", description: "For dark backgrounds." }
   ],

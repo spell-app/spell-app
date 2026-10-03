@@ -246,6 +246,29 @@ export class StackClasses {
 }
 
 ////////////////
+// ## Menu appearance
+////////////////
+
+/**
+ * `appearance` of `<ui-menu>` and `<ui-tabs>` (whose tab list IS a menu):  the menu's LOOK, one word.
+ * - Each value emits itself as the class word (`kind: "valueOnly"`), so `appearance="tabular"` ~== the older
+ *   boolean `tabular`, which stays as an alias;  `appearance="pointing" secondary` ~== `secondary pointing`.
+ * - `segmented` is ours:  a bordered group of joined items, the selected one filled with the menu's colour (the
+ *   primary colour by default) -- a segmented control.  It hugs its items;  `alignment` places it.
+ * - NOTE: not `vertical` (an orientation every look combines with) or `basic` (`<ui-tabs basic>` is the panes')
+ */
+export const MENU_APPEARANCES = ["tabular", "pointing", "secondary", "text", "segmented"] as const
+
+/**
+ * `alignment` of `<ui-menu>` and `<ui-tabs>`:  where the items sit along the bar, emitted as `<value> aligned`.
+ * - `fluid`:  the items fill the bar (each grows from its own width;  with `equal`, every item the same share)
+ * - `left` / `center` / `right`:  the items pack at that end;  the bar itself spans the row, except a `segmented`
+ *   one, which IS its items and moves as a whole
+ * - Unset:  as before (packed left, the bar as its look makes it)
+ */
+export const ITEM_ALIGNMENTS = ["fluid", "left", "center", "right"] as const
+
+////////////////
 // ## Message
 ////////////////
 

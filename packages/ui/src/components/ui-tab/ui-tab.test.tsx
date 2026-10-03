@@ -44,6 +44,35 @@ function parts(host: Element) {
   return { root, menu, buttons, panes }
 }
 
+/** Width of the box `wide()` renders a tab set in. */
+const WIDTH = 800
+
+/** Three panes with labels of very different widths. */
+const UNEVEN =
+  `<ui-tab label="A" value="a">A</ui-tab>` +
+  `<ui-tab label="A much longer label" value="b">B</ui-tab>` +
+  `<ui-tab label="C" value="c">C</ui-tab>`
+
+/** Render one `<ui-tabs>` in a `WIDTH`-wide box;  returns it and its parts. */
+async function wide(attributes = "", panes = PANES) {
+  const box = await ElementFixture.render(
+    `<div style="width: ${WIDTH}px"><ui-tabs aria-label="Test" ${attributes}>${panes}</ui-tabs></div>`
+  )
+  await ElementFixture.tick()
+  const host = box.querySelector<TabsHost>("ui-tabs")!
+  return { host, ...parts(host) }
+}
+
+/** `value` (a CSS colour, tokens allowed) as computed on a probe in the document. */
+function colorOf(value: string): string {
+  const probe = document.createElement("span")
+  probe.style.color = value
+  document.body.append(probe)
+  const color = getComputedStyle(probe).color
+  probe.remove()
+  return color
+}
+
 /** A pane's box. */
 function boxOf(pane: Element): HTMLElement {
   return pane.shadowRoot!.querySelector<HTMLElement>("[part~=tab]")!
@@ -81,7 +110,15 @@ describe("<ui-tabs> classes", () => {
     ["vertical tabular fluid", "ui fluid tabular vertical tabs", "ui fluid tabular vertical menu"],
     ["vertical tabular attached", "ui tabular vertical tabs", "ui tabular vertical menu"],
     ["inverted basic", "ui basic inverted tabs", "ui inverted menu"],
-    ["compact basic", "ui basic compact tabs", "ui compact menu"]
+    ["compact basic", "ui basic compact tabs", "ui compact menu"],
+    ['appearance="segmented" basic', "ui segmented basic tabs", "ui segmented menu"],
+    ['appearance="tabular" attached', "ui tabular top attached tabs", "ui tabular top attached menu"],
+    [
+      'appearance="segmented" alignment="fluid" equal',
+      "ui segmented equal fluid aligned tabs",
+      "ui segmented equal fluid aligned menu"
+    ],
+    ['vertical alignment="center"', "ui vertical tabs", "ui vertical menu"]
   ])("<ui-tabs %s>", async (attributes, rootClasses, menuClasses) => {
     const { root, menu } = await tabs(attributes)
     expect(root.className).toBe(rootClasses)
@@ -434,6 +471,41 @@ describe("<ui-tabs> look", () => {
     expect(Math.round(active!.right)).toBe(Math.round(edge))
     expect(Math.round(other!.right)).toBe(Math.round(edge - 1))
     expect(Math.round(boxOf(panes[0]!).getBoundingClientRect().left)).toBe(Math.round(edge))
+  })
+})
+
+describe("<ui-tabs> appearance, alignment, equal", () => {
+  it("segmented:  the tab list hugs its tabs, the selected one filled with the primary colour", async () => {
+    const { menu, buttons } = await wide('appearance="segmented"')
+    expect(menu.getBoundingClientRect().width).toBeLessThan(WIDTH / 2)
+    expect(getComputedStyle(buttons[0]!).backgroundColor).toBe(colorOf("var(--ui-primary)"))
+    expect(getComputedStyle(buttons[0]!).color).toBe(colorOf("var(--ui-primary-on)"))
+    expect(getComputedStyle(buttons[1]!).backgroundColor).not.toBe(colorOf("var(--ui-primary)"))
+  })
+
+  it("segmented + alignment=center:  the tab list moves to the middle", async () => {
+    const { root, menu } = await wide('appearance="segmented" alignment="center"')
+    const outer = root.getBoundingClientRect()
+    const bar = menu.getBoundingClientRect()
+    expect(Math.abs(bar.left - outer.left - (outer.right - bar.right))).toBeLessThan(2)
+  })
+
+  it("equal, packed:  every tab as wide as the widest", async () => {
+    const natural = await wide("", UNEVEN)
+    const widest = Math.max(...natural.buttons.map((button) => button.getBoundingClientRect().width))
+    const { menu, buttons } = await wide("equal", UNEVEN)
+    for (const button of buttons) expect(button.getBoundingClientRect().width).toBeCloseTo(widest, -0.5)
+    expect(menu.getBoundingClientRect().width).toBeLessThan(WIDTH)
+  })
+
+  it('equal + alignment="fluid":  an equal share of the row each, and the tab list keeps its tablist semantics', async () => {
+    const { host, menu, buttons } = await wide('appearance="segmented" alignment="fluid" equal', UNEVEN)
+    const share = menu.clientWidth / buttons.length
+    for (const button of buttons) expect(button.getBoundingClientRect().width).toBeCloseTo(share, -0.5)
+    expect(menu.getAttribute("role")).toBe("tablist")
+    expect(buttons.map((button) => button.getAttribute("role"))).toEqual(["tab", "tab", "tab"])
+    expect(buttons[0]!.getAttribute("aria-selected")).toBe("true")
+    await expectAccessible(host)
   })
 })
 

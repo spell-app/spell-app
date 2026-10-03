@@ -1117,6 +1117,11 @@
           "description": "Takes the full width of its container."
         },
         {
+          "name": "equal",
+          "kind": "keyOnly",
+          "description": "Every button the same width, from the buttons themselves (no count):  each as wide as the widest;  with `fluid`, an equal share of the row each."
+        },
+        {
           "name": "wrapping",
           "kind": "keyOnly",
           "description": "Buttons wrap onto more rows."
@@ -1174,7 +1179,7 @@
             "16"
           ],
           "valueSet": "widths",
-          "description": "Equal-width buttons filling the row:  a count (`width=\"3\"` => `three`) or `\"equal\"`."
+          "description": "Older, count-based alias of `equal fluid`:  equal-width buttons filling the row, a count (`width=\"3\"` => `three`) or `\"equal\"` (`equal width`)."
         }
       ],
       "slots": [
@@ -4560,6 +4565,11 @@
           "description": "Every field dimmed and not usable."
         },
         {
+          "name": "equal",
+          "kind": "keyOnly",
+          "description": "Every field the same width, from the fields themselves (no count):  an equal share of the row each (Fomantic's `equal width fields`;  ~== `widths=\"equal\"`)."
+        },
+        {
           "name": "widths",
           "kind": "width",
           "values": [
@@ -4573,7 +4583,7 @@
             "9",
             "10"
           ],
-          "description": "Fields per row, sharing it equally:  `widths=\"2\"` => `two fields`;  `\"equal\"` => any number."
+          "description": "Older, count-based alias of `equal`:  fields per row, sharing it equally (`widths=\"2\"` => `two fields`);  `\"equal\"` => any number (`equal width`)."
         }
       ],
       "slots": [
@@ -7601,7 +7611,19 @@
             "black"
           ],
           "valueSet": "hues",
-          "description": "Hue of the active item;  with `inverted`, the menu's fill."
+          "description": "Hue of the active item;  with `inverted`, the menu's fill;  `segmented`, the selected item's fill."
+        },
+        {
+          "name": "appearance",
+          "kind": "valueOnly",
+          "values": [
+            "tabular",
+            "pointing",
+            "secondary",
+            "text",
+            "segmented"
+          ],
+          "description": "The look:  `tabular` (tabs on a rule), `pointing` (the active item points at the content), `secondary` (no box, rounded items), `text` (plain words), `segmented` (a bordered group of joined items, the selected one filled with `color`, else the primary colour).  The booleans `tabular`, `pointing`, `secondary`, `text` are aliases:  `appearance=\"pointing\" secondary` ~== `secondary pointing`."
         },
         {
           "name": "position",
@@ -7616,22 +7638,22 @@
         {
           "name": "secondary",
           "kind": "keyOnly",
-          "description": "De-emphasized:  no box, rounded items."
+          "description": "De-emphasized:  no box, rounded items.  Alias of `appearance=\"secondary\"`."
         },
         {
           "name": "pointing",
           "kind": "keyOnly",
-          "description": "The active item points at the content below (an arrow;  an underline with `secondary`)."
+          "description": "The active item points at the content below (an arrow;  an underline with `secondary`).  Alias of `appearance=\"pointing\"`."
         },
         {
           "name": "tabular",
           "kind": "keyOnly",
-          "description": "Looks like tabs (Fomantic 2.9's `tabbed`)."
+          "description": "Looks like tabs (Fomantic 2.9's `tabbed`).  Alias of `appearance=\"tabular\"`."
         },
         {
           "name": "text",
           "kind": "keyOnly",
-          "description": "Plain text items, no box."
+          "description": "Plain text items, no box.  Alias of `appearance=\"text\"`."
         },
         {
           "name": "vertical",
@@ -7737,6 +7759,22 @@
           "description": "Fixed to an edge of the viewport."
         },
         {
+          "name": "alignment",
+          "kind": "valueAndKey",
+          "values": [
+            "fluid",
+            "left",
+            "center",
+            "right"
+          ],
+          "description": "Where the items sit:  `fluid` -- they fill the bar;  `left` / `center` / `right` -- packed at that end of a full-width bar (a `segmented` menu moves as a whole).  `alignment=\"center\"` => `center aligned`."
+        },
+        {
+          "name": "equal",
+          "kind": "keyOnly",
+          "description": "Every item the same width, from the items themselves (no count):  with `alignment=\"fluid\"` each takes an equal share of the bar;  otherwise each is as wide as the widest, packed."
+        },
+        {
           "name": "items",
           "kind": "width",
           "values": [
@@ -7758,7 +7796,7 @@
             "16"
           ],
           "valueSet": "widths",
-          "description": "Divides the width evenly between N items (`items=\"3\"` => `three item`), or `equal` widths."
+          "description": "Older, count-based alias of `equal`:  divides the width evenly between N items (`items=\"3\"` => `three item`);  `items=\"equal\"` => `equal width` (Fomantic's, ~== `equal alignment=\"fluid\"`)."
         },
         {
           "name": "interactive",
@@ -12072,6 +12110,11 @@
           "description": "What `stackable` measures:  `container` (the default) -- the group's own width;  `page` -- the screen's, as in Fomantic.  Unset:  the page-wide `--ui-stack-with` token decides (`<ui-root stack-with>`)."
         },
         {
+          "name": "equal",
+          "kind": "keyOnly",
+          "description": "Every statistic the same width, from the statistics themselves (no count):  one row, an equal share of it each (the group spans its row).  Not with `horizontal` (a column)."
+        },
+        {
           "name": "widths",
           "kind": "width",
           "values": [
@@ -12086,7 +12129,7 @@
             "9",
             "10"
           ],
-          "description": "Divides each row evenly between N statistics:  `widths=\"3\"` => `three statistics`."
+          "description": "Older, count-based alias of `equal`:  divides each row evenly between N statistics (`widths=\"3\"` => `three statistics`), wrapping after N."
         }
       ],
       "slots": [
@@ -12343,6 +12386,11 @@
           "description": "Takes the full width of its container."
         },
         {
+          "name": "equal",
+          "kind": "keyOnly",
+          "description": "Every step the same width, from the steps themselves (no count):  each as wide as the widest;  with `fluid`, an equal share of the row each.  Not for `vertical` or `circular` steps (already alike)."
+        },
+        {
           "name": "attached",
           "kind": "keyOrValueAndKey",
           "values": [
@@ -12386,7 +12434,7 @@
             "7",
             "8"
           ],
-          "description": "Divides the group evenly between N steps:  `widths=\"3\"` => `three steps`."
+          "description": "Older, count-based alias of `equal fluid`:  divides the group evenly between N steps (`widths=\"3\"` => `three steps`)."
         },
         {
           "name": "inverted",
@@ -13000,27 +13048,39 @@
             "black"
           ],
           "valueSet": "hues",
-          "description": "Hue of the selected tab."
+          "description": "Hue of the selected tab (`segmented`:  its fill;  default the primary colour)."
+        },
+        {
+          "name": "appearance",
+          "kind": "valueOnly",
+          "values": [
+            "tabular",
+            "pointing",
+            "secondary",
+            "text",
+            "segmented"
+          ],
+          "description": "The tab list's look, as `<ui-menu appearance>`:  `tabular` (file-folder tabs), `pointing`, `secondary`, `text`, `segmented` (a bordered group of joined tabs, the selected one filled:  a segmented control).  The booleans below are aliases."
         },
         {
           "name": "tabular",
           "kind": "keyOnly",
-          "description": "Tabs drawn as file-folder tabs (Fomantic's classic tab look)."
+          "description": "Tabs drawn as file-folder tabs (Fomantic's classic tab look).  Alias of `appearance=\"tabular\"`."
         },
         {
           "name": "pointing",
           "kind": "keyOnly",
-          "description": "The selected tab points at its pane;  an underline with `secondary`."
+          "description": "The selected tab points at its pane;  an underline with `secondary`.  Alias of `appearance=\"pointing\"`."
         },
         {
           "name": "secondary",
           "kind": "keyOnly",
-          "description": "De-emphasized tabs:  no box."
+          "description": "De-emphasized tabs:  no box.  Alias of `appearance=\"secondary\"`."
         },
         {
           "name": "text",
           "kind": "keyOnly",
-          "description": "Plain text tabs."
+          "description": "Plain text tabs.  Alias of `appearance=\"text\"`."
         },
         {
           "name": "inverted",
@@ -13040,7 +13100,23 @@
         {
           "name": "compact",
           "kind": "keyOnly",
-          "description": "The tab menu is only as wide as its tabs (Fomantic's `compact` menu):  a segmented switch."
+          "description": "The tab menu is only as wide as its tabs (Fomantic's `compact` menu)."
+        },
+        {
+          "name": "alignment",
+          "kind": "valueAndKey",
+          "values": [
+            "fluid",
+            "left",
+            "center",
+            "right"
+          ],
+          "description": "Where the tabs sit:  `fluid` -- they fill the row;  `left` / `center` / `right` -- packed at that end (a `segmented` tab list moves as a whole).  Ignored when `vertical`."
+        },
+        {
+          "name": "equal",
+          "kind": "keyOnly",
+          "description": "Every tab the same width, from the tabs themselves (no count):  with `alignment=\"fluid\"` an equal share of the row each;  otherwise each as wide as the widest."
         },
         {
           "name": "basic",
@@ -19294,6 +19370,11 @@
           "name": "--ui-menu-active-accent",
           "default": "initial",
           "type": "other"
+        },
+        {
+          "name": "--ui-menu-active-focus-color",
+          "default": "var(--ui-focus-color)",
+          "type": "color"
         },
         {
           "name": "--ui-menu-arrow",
