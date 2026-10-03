@@ -79,7 +79,8 @@ export const COMPONENTS = [
   "ui-embed",
   "ui-calendar",
   "ui-root",
-  "ui-section"
+  "ui-section",
+  "ui-include"
 ] as const
 
 /**

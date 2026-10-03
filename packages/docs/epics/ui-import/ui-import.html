@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>UI Import</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p2">next: P2 · Include Element</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p3">next: P3 · Code Element</ui-label></span
             >
           </header></ui-sticky
         >
@@ -67,7 +67,7 @@
               language.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 11h-15h 30m in all, 10h-14h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 11h-15h 30m in all, 8h 30m-12h left</p>
           <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
             <ul>
               <li>
@@ -674,11 +674,12 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="1" total="7" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="2" total="7" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
           <ui-section
+            collapsed
             id="p1"
             data-phase="1"
             data-status="done"
@@ -704,13 +705,13 @@
           <ui-section
             id="p2"
             data-phase="2"
-            data-status="todo"
+            data-status="done"
             header="P2 · Include Element"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> <code>&lt;ui-include&gt;</code>: shadow content, page-styles, select, load (islands), link
@@ -1269,6 +1270,27 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T20:23-04:00">2026-10-02 20:23</time></ui-date> P1 done:
                   UI.sources + SourceElement / SourceHost, 30 tests</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T20:23-04:00">2026-10-02 20:23</time></ui-date> P2
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T20:32-04:00">2026-10-02 20:32</time></ui-date> P2
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T20:32-04:00">2026-10-02 20:32</time></ui-date> P2 done:
+                  &lt;ui-include&gt;, 30 tests, Mac visual baselines</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

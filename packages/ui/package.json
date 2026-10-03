@@ -69,6 +69,7 @@
     "./dist/ui-embed.js",
     "./dist/ui-calendar.js",
     "./dist/ui-section.js",
+    "./dist/ui-include.js",
     "./tools/demo/**"
   ],
   "main": "./dist/index.js",
@@ -310,6 +311,10 @@
     "./ui-section": {
       "types": "./dist/components/ui-section/index.d.ts",
       "import": "./dist/ui-section.js"
+    },
+    "./ui-include": {
+      "types": "./dist/components/ui-include/index.d.ts",
+      "import": "./dist/ui-include.js"
     },
     "./styles": {
       "types": "./dist/styles/index.d.ts",

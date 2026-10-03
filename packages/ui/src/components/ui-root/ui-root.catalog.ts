@@ -75,6 +75,7 @@ export const ROOT_CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
   "ui-icons": { folder: "ui-icon", skeleton: { display: "inline", width: "1em", height: "1em" } },
   "ui-image": { folder: "ui-image", skeleton: { width: "10em", parts: [{ shape: "image", ratio: "square" }] } },
   "ui-images": { folder: "ui-image" },
+  "ui-include": { folder: "ui-include", skeleton: { parts: [{ shape: "paragraph", lines: 4 }] } },
   "ui-input": { folder: "ui-input", skeleton: { display: "inline", width: "14em", height: "2.5em" } },
   "ui-item": { folder: "ui-item" },
   "ui-items": {

@@ -235,6 +235,11 @@ export abstract class SourceElement<V extends ComponentVocabulary = ComponentVoc
       return undefined
     }
     if (source === this.fetchedFor && !this.fresh) return undefined
+    const refusal = this.refuseSource(source)
+    if (refusal) {
+      this.loadFailed(refusal, refusal.kind)
+      return undefined
+    }
     const controller = new AbortController()
     let undo: (() => void) | undefined
     const start = () => {
@@ -388,6 +393,14 @@ export abstract class SourceElement<V extends ComponentVocabulary = ComponentVoc
     this.fetchedFor = undefined
     this.stopLoad = this.schedule(source, EAGER)
     return host.loaded
+  }
+
+  /**
+   * A reason NOT to load `source`, checked before fetching;  default none.
+   * - `<ui-include>`:  a cycle (an include inside an include of the same file).
+   */
+  protected refuseSource(_source: string): SourceError | undefined {
+    return undefined
   }
 
   /** `id` of the one element a save replaces (`<ui-include select>`);  default the whole file. */
