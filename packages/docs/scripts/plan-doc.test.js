@@ -339,6 +339,26 @@ describe("PlanDoc prompt", () => {
     plan.setPrompt("again")
     expect(plan.document.querySelector(".plan-summary + blockquote.plan-prompt").textContent).toBe("again")
   })
+
+  it('copies it into the "Plan hung?" notice, exact, with a copy button;  the notice goes once a phase starts', () => {
+    const plan = freshPlan()
+    const copy = () => plan.document.querySelector("ui-message.plan-hung > ui-code.plan-hung-prompt[copy]")
+    plan.setPrompt("make <h1> & co\n\nline 3 </script> x")
+    expect(copy().querySelector("script").textContent).toBe("make <h1> & co\n\nline 3 <\\/script> x")
+    expect(plan.toString()).toContain("make <h1> & co")
+    plan.setPrompt("")
+    expect(copy()).toBeNull()
+    plan.setPrompt("again")
+    expect(plan.document.querySelectorAll("ui-code.plan-hung-prompt").length).toBe(1)
+    plan.addPhase("First")
+    plan.setPhase(1, "todo")
+    expect(plan.document.querySelector("ui-message.plan-hung")).not.toBeNull()
+    plan.setPhase(1, "active")
+    expect(plan.document.querySelector("ui-message.plan-hung")).toBeNull()
+    // and with it gone, a new prompt doesn't bring it back
+    plan.setPrompt("later")
+    expect(copy()).toBeNull()
+  })
 })
 
 describe("PlanDoc migrate", () => {

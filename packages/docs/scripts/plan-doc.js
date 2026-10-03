@@ -264,6 +264,7 @@ ${list}`
    * - `done` removes the phase's UPDATE markers:  once it's finished, its changes are just the plan
    * - `done` also folds every OTHER done phase (`collapsed`;  old markup:  `data-fold="closed"`, read by the page
    *   runtime):  the phase just finished stays open, the older ones get out of the way
+   * - any phase leaving `todo` removes the "Plan hung?" notice (`ui-message.plan-hung`):  planning is over
    * - SIDE EFFECT:  logs the change
    */
   setPhase(n, status) {
@@ -289,6 +290,7 @@ ${list}`
       for (const marker of this.updateMarkers(n)) marker.remove()
       this.foldDonePhases(n)
     } else setFolded(section, false)
+    if (status !== "todo") this.document.querySelector("ui-message.plan-hung")?.remove()
     this.updateProgress()
     this.updateEstimate()
     this.log(`P${n} ${status}`)
@@ -513,8 +515,10 @@ ${list}`
   /**
    * Set the prompt that started the plan:  a `blockquote.plan-prompt` near the top of the Overview, one `<p>` per
    * paragraph (blank lines split them, single newlines become `<br>`).  Replaces any earlier one;  "" removes it.
+   * - the "Plan hung?" notice's copy of it too (`setHungPrompt()`)
    */
   setPrompt(prompt) {
+    this.setHungPrompt(prompt)
     const quote = this.document.querySelector("blockquote.plan-prompt")
     const html = promptHTML(prompt)
     if (!html) return quote?.remove()
@@ -528,6 +532,23 @@ ${list}`
     const summary = overview.querySelector(":scope > .plan-summary")
     if (summary) summary.after(added)
     else prependContent(overview, added)
+  }
+
+  /**
+   * The "Plan hung?" notice's copy of the kickoff prompt:  a `ui-code` with a copy button, so a restart can paste
+   * it back.  "" (or no notice:  planning is over) removes it.
+   * - the text exact, in a `<script type="text/plain">`;  NOTE:  `</script` in it is written `<\/script`
+   */
+  setHungPrompt(prompt) {
+    const notice = this.document.querySelector("ui-message.plan-hung")
+    notice?.querySelector(":scope > ui-code.plan-hung-prompt")?.remove()
+    const text = (prompt ?? "").trim()
+    if (!notice || !text) return
+    const code = this.element("ui-code", { class: "plan-hung-prompt", language: "text", wrap: "", copy: "" })
+    const script = this.element("script", { type: "text/plain" })
+    script.textContent = text.replace(/<\/script/gi, "<\\/script")
+    code.append(script)
+    notice.append(code)
   }
 
   ////////////////

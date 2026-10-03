@@ -22,6 +22,13 @@ The h1 sits in a sticky header, `<ui-sticky class="spell-h1"><header class="spel
 label at its right (`.plan-step`, written by the script):  the active phase (orange), else `DONE` (green) once every
 phase is, else the next phase (grey).
 
+Below the meta lines, while planning:  the "Plan hung?" notice, `ui-message.plan-hung`.
+- How to restart a hung plan:  a new session in the worktree's window, `/epic <name>`, "Reuse".  Plus the kickoff
+  prompt in a `ui-code.plan-hung-prompt` with a copy button (`setPrompt()` keeps it in step with the Overview's
+  quote).
+- Why:  `/epic` writes this stub doc BEFORE planning, so the prompt survives a hung or lost session.
+- The script removes it once any phase leaves `todo`;  never add it back by hand.
+
 ## Sections (ids are fixed)
 
 | Section | id | What |
