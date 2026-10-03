@@ -190,6 +190,16 @@ program
   .option("--open", "show them as pictures in a browser, until Ctrl-C")
   .action((query: string[], _options, command) => run(CLI.iconsCommand, query, command.optsWithGlobals()))
 
+program
+  .command("static")
+  .description("ui-* pages as plain HTML for crawlers and no-JS readers:  page.static.html + page.static.css")
+  .argument("<pages...>", "html pages, or folders of them -- writes each as <page>.static.html beside it")
+  .option("-o, --output <path>", "write the page here -- or, for several, into this folder")
+  .option("--inline", "put the stylesheet in a <style> in the page, not a file beside it")
+  .option("--css <file>", "write ONE stylesheet, for every page, here")
+  .option("--no-minify", "leave the stylesheet readable")
+  .action((pages: string[], _options, command) => run(CLI.staticCommand, pages, command.optsWithGlobals()))
+
 // our own `help`, not commander's:  an unknown command is a mistake, not a reason to print the general help
 program.helpCommand(false)
 program

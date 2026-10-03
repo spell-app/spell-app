@@ -2,8 +2,9 @@
 
 import { readFileSync } from "node:fs"
 import type { IncomingMessage, ServerResponse } from "node:http"
-import { createServer, type InlineConfig, type Plugin, type ViteDevServer } from "vite"
+import type { Plugin, ViteDevServer } from "vite"
 
+import { StaticRenderer } from "../StaticRenderer.ts"
 import { VisualSettings } from "./VisualSettings.ts"
 
 /**
@@ -13,12 +14,8 @@ import { VisualSettings } from "./VisualSettings.ts"
  * - `/static/ui.css` -- that stylesheet
  * - A failed render answers 500 with the error as plain text;  the spec reports it.
  * - Rendering runs in node through Vite's SSR (`StaticFixture`, `ssrLoadModule()`) on a SECOND, SSR-only Vite server
- *   (`renderer`), in the posture of vitest's `ssr` project:  `mode: "test"` + `test.environment: "node"`.
- *   - Why:  `@solidjs/vite-plugin` compiles JSX for the server (`generate: "ssr"`) only in test mode or with its
- *     `ssr` option;  the dev server's own plugin (no `ssr`) compiles every module `dom`, even for SSR, and Solid's
- *     server build then throws "Client-only API called on the server side".  Its `ssr` option would change the
- *     ELEMENT pages' compile too (`hydratable`), so the visual server stays as it is.
- *   - `mode: "test"` touches only this server:  `import.meta.env.MODE`, `.env.test` files (none).
+ *   (`renderer`, `StaticRenderer`):  the dev server's own Solid plugin compiles every module `dom`, even for SSR, and
+ *   its `ssr` option would change the ELEMENT pages' compile too (`hydratable`), so the visual server stays as it is.
  * - NOTE: pages are NOT passed through `transformIndexHtml`, which would inject Vite's client script.
  * - SIDE EFFECT:  the renderer starts on the first request and closes with the dev server.
  */
@@ -59,7 +56,7 @@ export class StaticPages {
     const rest = path.slice(VisualSettings.STATIC_PAGES.length)
     const isPage = /^[\w-]+\/[\w-]+\.html$/.test(rest)
     if (rest !== "ui.css" && !isPage) return false
-    const renderer = await (this.renderer ??= StaticPages.startRenderer(server))
+    const renderer = await (this.renderer ??= StaticRenderer.start(server.config.root, server.config.configFile))
     try {
       const { StaticFixture } = (await renderer.ssrLoadModule(
         StaticPages.MODULE
@@ -105,31 +102,5 @@ export class StaticPages {
     response.setHeader("Content-Type", `${type}; charset=utf-8`)
     response.setHeader("Cache-Control", "no-store")
     response.end(body)
-  }
-
-  ////////////////
-  // ## Renderer
-  ////////////////
-
-  /**
-   * The SSR-only Vite server:  same root and config file as `server`, in vitest's `ssr` posture, no HTTP of its own.
-   * - `test` isn't a Vite option:  the Solid plugin reads it from the user config.
-   */
-  private static startRenderer(server: ViteDevServer): Promise<ViteDevServer> {
-    const config: InlineConfig & { test: { environment: string } } = {
-      root: server.config.root,
-      configFile: server.config.configFile,
-      mode: "test",
-      test: { environment: "node" },
-      logLevel: "warn",
-      appType: "custom",
-      server: { middlewareMode: true, hmr: false, ws: false },
-      optimizeDeps: { noDiscovery: true },
-      // as the plugin does outside test mode (vitest inlines them itself):  external, `solid-js`' own imports would
-      // be resolved by node, without `development`, and land on the PRODUCTION `@solidjs/signals` beside its dev
-      // build ("Cannot set properties of undefined (setting 'server')")
-      ssr: { noExternal: ["solid-js", "@solidjs/web"] }
-    }
-    return createServer(config)
   }
 }

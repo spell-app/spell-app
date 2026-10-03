@@ -3,6 +3,7 @@
  * - Runtime-light:  `import type` only, plus the small `CliError` class and `EXIT` codes.
  */
 import type { SP } from "$/spell"
+import type { StaticDocumentOptions, StaticDocumentResult, StaticStylesheetResult } from "$/ui/tools/tools.types"
 
 ////////////////
 // ## Targets
@@ -182,6 +183,20 @@ export type IconsOptions = GlobalOptions & {
 }
 
 /**
+ * `spell static` flags.
+ * - `output`:  `-o`:  the page to write, for one input;  a FOLDER to write into, for several
+ * - `inline`:  the stylesheet in a `<style>` in the page, rather than a file beside it
+ * - `css`:  ONE stylesheet for every page, written here, rather than one per page
+ * - `minify`:  `false` (`--no-minify`) leaves the stylesheet readable
+ */
+export type StaticOptions = GlobalOptions & {
+  output?: string
+  inline?: boolean
+  css?: string
+  minify?: boolean
+}
+
+/**
  * `spell new` flags.
  * - `in`:  make the project in this folder -- default `@user`'s, `projects/user/`
  */
@@ -221,6 +236,23 @@ export type RunSpec = {
 export type RunReport = {
   skipped: string[]
 }
+
+/**
+ * What `spell static` and its child process, `runner/renderStatic.ts`, say to each other over IPC, in order:
+ * - `ready`:  child to parent, once its Vite server is up
+ * - `job`:  parent to child, once:  each page's HTML and stylesheet options;  `shared`:  build ONE stylesheet for
+ *   them all afterwards, `minify`d or not
+ * - `page`:  child to parent, one per page in `job` order (`index`):  its `result`, or the `error` that stopped it
+ * - `stylesheet`:  child to parent, after the pages, for a `shared` job
+ * - `done`, or `failed` with the error that stopped the whole job
+ */
+export type StaticMessage =
+  | { kind: "ready" }
+  | { kind: "job"; pages: { html: string; options: StaticDocumentOptions }[]; shared: boolean; minify: boolean }
+  | { kind: "page"; index: number; result?: StaticDocumentResult; error?: string }
+  | { kind: "stylesheet"; result: StaticStylesheetResult }
+  | { kind: "done" }
+  | { kind: "failed"; error: string }
 
 ////////////////
 // ## Places
