@@ -994,3 +994,12 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   sparse:  they're `skip-worktree` (`git ls-files -v` shows `S`), so VS Code's edits (themes, worktree folders)
   never show as changes, and `git mv` carries the flag. · Stage the new contents with `git hash-object -w` +
   `git update-index --cacheinfo`, then `git update-index --skip-worktree` again. · tooling
+
+## vscode
+
+- 2026-10-02 · A freshly installed extension feature (`DocView`) never showed after a reload:  docs still opened in a
+  new editor tab.  The extension is installed ONCE for all of VS Code, and a `yarn vscode` in another checkout (the
+  `solid-migration` worktree, 6 minutes later) had overwritten it with its own branch's build, which also runs THAT
+  checkout's language server. · Check which checkout built it:
+  `grep -o '"/Users/owen/www/spell-app/[^"]*"' ~/.vscode/extensions/spell-app.spell-language-*/out/extension.js`
+  (its `REPO_ROOT`), then `yarn vscode` from the checkout you want and reload. · vscode
