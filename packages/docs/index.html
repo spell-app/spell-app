@@ -18,10 +18,23 @@
           <li>The lists below are written by <code>yarn docs:index</code>. Edit only outside its markers.</li>
         </ul>
 
+        <!-- the page server puts running epics here (`$/server/page` `RunningEpics`):  plan docs still in a worktree -->
+        <!-- running-epics -->
+
         <!-- index:start -->
         <ui-section id="guides" header="Guides" sticky collapsible dividing>
           <ui-icon slot="icon" name="book open"></ui-icon>
           <ui-cards class="spell-grid" stackable>
+            <ui-card
+              ><ui-content>
+                <ui-header><a href="changelog.html" target="src-packages-docs-changelog-html">Changelog</a></ui-header>
+                <ui-description
+                  >Everything the monorepo shipped, newest first: one entry per epic or isolated piece of work, linked
+                  to its plan doc and durable doc.</ui-description
+                >
+                <ui-meta>changelog.html</ui-meta>
+              </ui-content></ui-card
+            >
             <ui-card
               ><ui-content>
                 <ui-header><a href="cli.html" target="src-packages-docs-cli-html">spell Command Line</a></ui-header>
@@ -44,6 +57,19 @@
                   anyone about to change the parser's rules.</ui-description
                 >
                 <ui-meta>precedence/precedence.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="seo/seo.html" target="src-packages-docs-seo-seo-html">Static Pages for SEO</a></ui-header
+                >
+                <ui-description
+                  >Render @spell-app/ui pages to plain light-DOM HTML and one stylesheet, for crawlers and no-JS
+                  readers: spell static, the $/ui/server API, how isolation works without shadow DOM, and the rules for
+                  component code.</ui-description
+                >
+                <ui-meta>seo/seo.html</ui-meta>
               </ui-content></ui-card
             >
             <ui-card
@@ -158,17 +184,6 @@
             <ui-card
               ><ui-content>
                 <ui-header
-                  ><a href="ui-import/examples/part.html" target="src-packages-docs-ui-import-examples-part-html"
-                    >A part to include</a
-                  ></ui-header
-                >
-
-                <ui-meta>ui-import/examples/part.html</ui-meta>
-              </ui-content></ui-card
-            >
-            <ui-card
-              ><ui-content>
-                <ui-header
                   ><a href="ui-import/ui-import.html" target="src-packages-docs-ui-import-ui-import-html"
                     >UI Import: include, code, markdown</a
                   ></ui-header
@@ -205,6 +220,31 @@
                 >
                 <ui-description>Plan doc: Docs workspace + /plan-doc.</ui-description>
                 <ui-meta>epics/docs-workspace/docs-workspace.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="epics/isolate-changes/isolate-changes.html" target="isolate-changes"
+                    >Isolate &amp; Epic Changes</a
+                  >
+                  <ui-label size="mini" color="green">done</ui-label></ui-header
+                >
+                <ui-description>Plan doc: Isolate &amp; Epic Changes.</ui-description>
+                <ui-meta>epics/isolate-changes/isolate-changes.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="epics/seo/seo.html" target="seo">SEO · Static Server Render</a>
+                  <ui-label size="mini" color="green">done</ui-label></ui-header
+                >
+                <ui-description
+                  >Plan doc: server-render ui-* pages to static light-DOM HTML for SEO, no shadow DOM, no
+                  JS.</ui-description
+                >
+                <ui-meta>epics/seo/seo.html</ui-meta>
               </ui-content></ui-card
             >
             <ui-card

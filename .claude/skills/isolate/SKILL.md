@@ -11,40 +11,78 @@ worktree, its branch and the session share one name.  `/epic` runs these steps t
 
 ## Start:  `/isolate <name>`
 
-0. Already mid-work ("isolate as <name>" in a running session):
+0. Checks and rename, BEFORE anything else.  A typed `/isolate <name>` got them from the repo's `UserPromptSubmit`
+   hook (`.claude/hooks/prompt-gate.mjs`, read its header):  it renamed the session `<name>`, or blocked the prompt.
+   "Isolate as <name>" in plain words never reaches the hook, so do its checks here:
    - in plan mode:  it's read-only apart from the plan file, so `EnterWorktree` can't run, and ExitPlanMode would
      ask to APPROVE a half-made plan.  Ask the user to leave plan mode (shift+tab);  the plan file survives.
+   - in another worktree:  the session's folder is under `.claude/worktrees/<other>`, or its window is a worktree's
+     (`node scripts/window.mjs which`:  `workspace` under `workspaces/ongoing/`).  `<other>` isn't `<name>`:  stop,
+     saying so in one line ("`/isolate done` first, or start from a package window").
+   - rename:  `python3 ~/.claude/skills/session/scripts/session.py name <name>`.  It lands on the next prompt, or
+     when the session opens in its new window.
+   - a saved prompt `~/.spell/prompts/<name>.md` (the hook saved it while blocking an earlier `/isolate <name>
+     ...`):  it's the task to carry on with once isolated.  Delete it once done.
+   Already mid-work ("isolate as <name>" in a running session):
    - edits already made in the main checkout:  the worktree is cut from COMMITTED `main`, so they won't follow.
-     List them (`git status --short`) and AskUserQuestion:  "Carry them over" (`git stash -u` here, `git stash pop`
-     in the worktree after step 4), "Commit on `main` first" (stage, then ask) or "Leave them".
+     List them (`git status --short`) and AskUserQuestion:  "Carry them over", "Commit on `main` first" (stage,
+     then ask) or "Leave them".  Carry over with a TAGGED stash (the stash stack is shared with every worktree):
+     `git stash push -u -m "isolate:<name>"` here, its sha from `git stash list --format='%H %gs'`, then
+     `git stash apply <sha>` in the worktree after step 3, and drop that entry.
 1. `<name>` is `$ARGUMENTS` (or the `<name>` in "isolate as <name>"), lower-kebab-cased (`Docs Index` ->
    `docs-index`).  No name:  propose one from the work so far in AskUserQuestion;  the user can type another.
+   Then rename (step 0's `session.py name`), since the hook only renames a name it was given.
 2. Collisions (from the repo root):  a worktree at `.claude/worktrees/<name>` (`git worktree list`), a branch `<name>`
    or `worktree-<name>`.  Any hit:  AskUserQuestion, options "Reuse `<name>`" and "Different name" (typed in "Other").
-3. Tell the user, in one line:  run `/rename <name>` in the session's new tab (step 6) so the tab and list entry
-   show it.  A skill can't rename its own session.
-4. `EnterWorktree` with `name: "<name>"`, or `path: ".claude/worktrees/<name>"` when reusing one.  The repo's
+3. `EnterWorktree` with `name: "<name>"`, or `path: ".claude/worktrees/<name>"` when reusing one.  The repo's
    `WorktreeCreate` hook (`.claude/hooks/worktree.mjs`) makes it on branch `<name>` from local `main`, and keeps this
    session listed in every window.
-5. Open it in its own window (root `AGENTS.md` "Worktrees"), from the worktree's root:
+4. Open it in its own window (root `AGENTS.md` "Worktrees"), from the worktree's root:
    - `node scripts/window.mjs open <name>`:  a NEW window from `workspaces/ongoing/<name>.code-workspace` (main
      checkout, git-ignored), the package window's theme with a tinted title bar.  Folders:  the MAIN root (so every
      session is listed), then the worktree's `packages/<pkg>` and root.
-     `<pkg>`:  this session's window's;  `--pkg <pkg>` when it isn't a package window.
+     `<pkg>`:  this session's window's.
+   - "which package?" (this isn't a package window):  AskUserQuestion "Which package's window?", up to 4 packages
+     the work touches, most likely first and "(Recommended)";  then `open <name> --pkg <pkg>`.
    - `node scripts/window.mjs`, NOT `yarn window`:  a fresh worktree has no `node_modules/` yet, and `yarn` runs no
      script before `yarn install`
-   - fails:  say so in one line and go on.  NEVER `code --add` / `-r`:  they restart the Claude panel or target
-     the focused window.
-6. Move the session there:  `node scripts/window.mjs handoff <name>`.  When this turn ends (whatever else it does
-   first), the new window opens the session in an editor tab (never the sidebar) and this window closes its tab.
-   The move itself is the `Stop` hook's (`.claude/hooks/handoff.mjs`).
-   - a doc shown from here on this turn (`yarn plan-doc open`) waits for the move, then shows beside the session
-     in the new window
-   - fails, or step 5 did:  say so in one line;  the session stays here
-7. In the worktree, no `node_modules/` at the root:  `yarn install`.
-8. One line:  "isolated in worktree `<name>` (branch `<name>`);  this session moves to its own window,
-   `<pkg> ⎇ <name>`, when this turn ends".  Old tab still open afterwards (its title didn't match):  close it by
-   hand;  the log is `~/.spell/windows/handoffs/<session id>.log`.
+   - fails otherwise:  say so in one line, skip step 5, and do "Continue" now, in this window.  NEVER
+     `code --add` / `-r`:  they restart the Claude panel or target the focused window.
+5. Move the session there:  `node scripts/window.mjs handoff <name> --prompt continue`.  When this turn ends, the
+   new window opens the session in an editor tab (never the sidebar), `continue` typed into its input, and this
+   window closes its tab.  The move itself is the `Stop` hook's (`.claude/hooks/handoff.mjs`).
+   - a doc shown from here on (`yarn plan-doc open`) waits for the move, then shows beside the session in the
+     new window
+   - fails:  say so in one line, and do "Continue" now, in this window
+6. END THE TURN now, so the move happens at once:  nothing else this turn (no `yarn install`, no exploring, no
+   questions).  One line:  "isolated in worktree `<name>` (branch `<name>`);  moving to `<pkg> ⎇ <name>`:  press
+   enter on `continue` there".  Why:  the move waits for the turn to end, and Owen waits for the move.
+
+## Continue:  the first turn in the new window
+
+The turn after step 6, whatever Owen sends (`continue`, typed in by the move, or anything else):
+1. Old tab still open in the old window (its title didn't match):  say so in one line, close it by hand;  the log
+   is `~/.spell/windows/handoffs/<session id>.log`.
+2. No `node_modules/` at the worktree's root:  `yarn install` (a few seconds).
+3. Check the session's name ("Session name" below).
+4. Carry on:  the saved prompt `~/.spell/prompts/<name>.md` if any (then delete it), the work under way
+   (mid-session), or `/epic`'s next step.  Nothing to carry on with:  one line, "ready in `<name>`".
+
+## Session name
+
+The session MUST stay titled `<name>`:  the handoff finds its old tab by title, and Owen finds it in the panel's
+list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hook never ran (a plain-words
+"isolate as ...", a resumed or reopened session), or Owen renamed it.
+- Check, and rename if needed, whenever an isolated or epic session STARTS or RESUMES work:
+  - "Continue" above (the first turn in the new window)
+  - each `/epic` phase start ("5. Each phase", step 1;  Doc Review is a phase too)
+  - `.claude/skills/park/SKILL.md` "Resume" (`/unpark`, `/wait-for`), and `/wakeup`
+  - Owen reopening the session to carry on ("start P3", "continue")
+- How:  `python3 ~/.claude/skills/session/scripts/session.py name <name>`.  It checks first:  already `<name>`
+  (or queued), it does nothing;  else it queues `<name>`, which lands on Owen's NEXT prompt.
+  - renamed:  one line, "session renamed `<name>` (was "<old>");  shows on your next message"
+  - `session.py title` shows the current title, and any queued one
+- `<name>`:  the worktree's (`.claude/worktrees/<name>`), which is the branch's and the plan doc's.
 
 ## Finish:  `/isolate done`
 
@@ -66,6 +104,8 @@ worktree, its branch and the session share one name.  `/epic` runs these steps t
    and "Leave unmerged", listing the commits in the question.  On "Merge now", get the BRANCH ready to fast-forward
    `main`, all from the worktree (branches are shared, so `main` is visible here):
    - NEVER `git -C <main checkout>` or `cd` there:  a worktree session refuses both.  `main` itself moves in step 6.
+   - first, the changelog:  add or move this branch's entry in `packages/docs/changelog.html` ("Changelog" in the
+     root's `AGENTS.md`) and commit it on the branch (the "Merge now" answer counts as the ask)
    - `git log --oneline HEAD..main` empty (`main` hasn't moved):  ready, go on to step 4
    - else `git merge-tree --write-tree --name-only main HEAD`, which merges without touching any files:
      - exit 0:  `git merge main` (a clean merge commit), then step 4

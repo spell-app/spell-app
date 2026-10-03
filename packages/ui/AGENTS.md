@@ -85,6 +85,11 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
     its shadow root imports their families in its barrel, and adds their tags to `DocsJSXTags`.  They read the site's
     data through `SiteData` (`site/_data/components.json`), NEVER the vocabularies.  The barrel's header says how to
     add one
+  - `src/server/` (`$/ui/server`, `SSR`) -- the STATIC server render:  `StaticRender.page()` / `fragment()` turn
+    `ui-*` markup into plain light-DOM HTML (no shadow DOM, no JS) in node, for SEO.  Stand-in hosts are linkedom
+    elements (`ServerHost`), controllers render with `renderToString`, `StaticFlattener` swaps each host for its
+    root, `StaticInteractions` wires what works without JS.  Node only:  NEVER imported by a component or `$/ui`.
+    Plan:  `packages/docs/epics/seo/seo.html`
   - `src/core.ts`, `src/forms.ts` -- the two SHARED lib entries (`@spell-app/ui/core`, `@spell-app/ui/forms`):  `core` is
     the element core + the foundation JS every family needs;  `forms` what only form controls with a VALUE need
     (`FormElement`, `FormHost`, `Validator`, `MenuOptions`).  Component files import shared code ONLY through
@@ -143,6 +148,9 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
       markup, tokens, an example) is handed back
     - a change that alters rendering MUST update its baselines in the SAME change (`--update`), after reviewing
       every diff in the HTML report;  never update to silence a diff you haven't looked at
+    - `--static` -- instead, compare the STATIC server render (`$/ui/server`) of the families in
+      `tools/visual/StaticFamilies.ts` with the elements;  report only (`tools/results/visual/static-parity.md`),
+      `--os local` by default
   - `yarn dev` -- `tools/demo/`:  every example as class grammar beside elements;  edits hot-reload
   - `yarn icons:pack <folder> --id <id> [--sanitize] [--skip-unsafe | --allow-unsafe]` -- verify a folder of SVGs
     and write its `pack.js` (keeps hand edits);  `--sanitize` strips unsafe attributes first;  files that still fail
@@ -267,6 +275,10 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
 - **One Solid per page:**  every Vite config dedupes `solid-js` / `@solidjs/web` (`SOLID_DEDUPE`);  NEVER
   `import * as` a Solid package in shipped code (it pins every export into bundles and vendored copies).
 - SSR:  anything that reads the DOM in a constructor needs an `isServer` guard (`test/ssr.ssr.test.tsx`).
+  - Static render (`$/ui/server`):  hosts are linkedom elements, so NEVER `instanceof Element` / `Node` /
+    `ShadowRoot` / `HTMLSlotElement` in shared code (node has no such globals):  `nodeType`, `localName`.
+  - An effect whose APPLY writes the host (`internals.role`, ARIA, states) is `this.hostEffect(compute, apply)`:  the
+    server build never runs an apply, so a plain `createEffect` leaves the static output without it.
 
 ## Decorators
 
@@ -283,6 +295,7 @@ As the root's, plus our self-namespaces:
 
 - `UI` ~== the runtime singleton from `$/ui/runtime`
 - `E` ~== `$/ui/elements`
+- `SSR` ~== `$/ui/server` (node only)
 - `UIT` ~== `$/ui/components/components.types` -- the constants, types and `ToggleCommands` several families share:
   `UIT.TRUE`, `UIT.ARIA_LABEL`, `UIT.ToggleCommands.action(...)`, `UIT.SelectValue`.  Exported from `$/ui/core` and `$/ui`,
   never flat;  inside the folder itself, plain named imports

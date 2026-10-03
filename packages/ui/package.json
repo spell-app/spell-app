@@ -390,8 +390,10 @@
     "@spell-app/solid-element": "workspace:*",
     "dompurify": "^3.4.0",
     "highlight.js": "^11.12.0",
+    "linkedom": "^0.18.13",
     "lodash-es": "^4.18.1",
     "marked": "^18.0.0",
+    "postcss": "^8.5.28",
     "temporal-polyfill": "^1.0.5"
   },
   "devDependencies": {

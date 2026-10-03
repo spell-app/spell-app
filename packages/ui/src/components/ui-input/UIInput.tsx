@@ -131,6 +131,7 @@ export class UIInput extends TextControl<Vocabulary> {
           aria-busy={this.attrs.loading ? "true" : undefined}
           {...this.constraints()}
           {...this.controlAria()}
+          {...this.staticControl()}
           onInput={this.onInput}
           onChange={this.onFileOrChange}
           onFocus={this.onFocus}

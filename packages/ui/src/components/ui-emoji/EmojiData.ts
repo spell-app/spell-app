@@ -120,6 +120,18 @@ export class EmojiData {
     return EmojiData.known(key, set)
   }
 
+  /**
+   * Load the chunks of every name in `names`, in each of `sets` (default:  every set that ships), so later `peek()`s
+   * find them synchronously.  Never rejects.
+   * - For the static server render (`$/ui/server`), which is synchronous:  see `UIEmoji.preload()`.
+   */
+  static async preload(names: Iterable<string>, sets: Iterable<string> = SETS): Promise<void> {
+    const list = [...new Set(names)]
+    const loads: Promise<unknown>[] = []
+    for (const set of sets) for (const name of list) loads.push(EmojiData.get(name, set))
+    await Promise.all(loads)
+  }
+
   /** Add (or override) one emoji without a request, e.g. an app's own name for a sequence.  Applies to any set. */
   static register(name: string, emoji: string) {
     const key = EmojiData.normalize(name)

@@ -21,8 +21,9 @@ the whole time.  The plan doc is the user's view of the work:  they read it in V
   OK, a full sentence where a fragment would be ambiguous, identifiers exact.  Lists bulleted, or numbered when
   order or reference matters.
 - Naming a doc in a reply (the plan doc, a durable doc, any `packages/docs` page):  link it on the page server,
-  `[<name>](<url>)`, `<url>` from `yarn server url <ABSOLUTE path>` run in the checkout the doc is in (the
-  worktree has its own server;  a relative path resolves wrongly).
+  `[<name>](<url>)`, `<url>` from `yarn server url <ABSOLUTE path>` run in the checkout the doc is in (a relative
+  path resolves wrongly).  A worktree's doc gets the MAIN server's URL (`/worktrees/<name>/...`) when that one runs;
+  else the worktree's own server's.
 - Phase complete:  the LAST line of that reply's text says where we are, each phase linked to its heading in the
   plan doc (`<url>#p1`):
   - "[P1 · Short Name](<url>#p1) complete.  Next is [P2 · Short Name](<url>#p2)."
@@ -35,14 +36,22 @@ the whole time.  The plan doc is the user's view of the work:  they read it in V
   for a name.
   - "Make this a plan doc" (invoked mid-session):  propose a name from the work so far in AskUserQuestion,
     recommended first;  the user can type another in "Other".
+- Checks and rename, BEFORE anything else:  as `.claude/skills/isolate/SKILL.md` "Start", step 0.  A typed
+  `/epic <name> ...` got them from the repo's `UserPromptSubmit` hook (`.claude/hooks/prompt-gate.mjs`):  it
+  renamed the session `<name>`, or blocked the prompt (plan mode, another worktree) and saved its text.
+- The kickoff prompt, SAFE before anything else:  the text after `<name>`, verbatim.  Write it to
+  `~/.spell/prompts/<name>.md` at once (as the hook does when it blocks;  an older, different file there:  rename
+  it `<name>.<time>.md` first).  No text, but that file exists:  it IS the kickoff prompt (the hook saved it);  say
+  so in one line.  Delete the file only once the plan doc holds it (`plan-doc new --prompt-file`).
 - Look for collisions (from the repo root), every time:
   - `packages/docs/epics/<name>/`, `packages/docs/<name>/`, `packages/docs/<name>.html`
   - the worktree and branch checks of `.claude/skills/isolate/SKILL.md`, "Start", step 2
   - any hit:  AskUserQuestion, options "Reuse `<name>`" (continue that doc / worktree) and "Different name" (the
     user types it in "Other").  Never overwrite an existing plan doc.
-- Name and nothing after it (and not mid-session):  the user sends the plan in the NEXT prompt.  Nothing else yet
-  (collisions settled):  reply one line, "Plan doc `<name>`:  send the plan.", and stop.  That next message is the
-  kickoff prompt (verbatim, for `--prompt-file`);  carry on from "2. Session".
+- Name and nothing after it, nothing saved (and not mid-session):  the user sends the plan in the NEXT prompt, in
+  the new window.  Do "2. Session" now anyway (a stub doc with no prompt, then the move);  its last line asks for
+  the plan.  That next message is the kickoff prompt:  `yarn plan-doc prompt <name> --file <file>` first, then
+  "3. Plan".
 
 ## Mid-session
 
@@ -51,24 +60,31 @@ When the session already has work under way ("make this a plan doc"), carry it o
 - Step 3:  start from the plan drafted so far (harness plan file, conversation), reshaped into the plan doc's
   shape;  explore only to fill gaps.  Decisions and questions already settled become `decision` items.
 
-## 2. Session
+## 2. Session:  stub doc, then move
 
-- Isolate:  read `.claude/skills/isolate/SKILL.md` and follow "Start", steps 3-8 (and step 0 mid-session), with this `<name>` (a skill can't
-  invoke another):  the `/rename` reminder, `EnterWorktree`, opening the worktree's own VS Code window, moving the session there,
-  `yarn install`.
-- New doc:  `yarn plan-doc new <name> --title "<Title>" --prompt-file <file>`, `<file>` holding the user's message
-  that kicked off the plan, verbatim (the text after `<name>`, or the next prompt when there was none) (write it to the scratchpad first:  it may hold quotes and newlines).  It's
-  quoted at the top of the Overview.  Reusing a doc whose prompt is missing:  `yarn plan-doc prompt <name> --file
-  <file>`;  an older doc (before 2026-10-01, or `section.s2` markup):  `yarn plan-doc migrate <name>` first.
-- Then `yarn plan-doc open <name>`:  rendered in VS Code's doc preview (the right side bar's "Spell Docs" view), in
-  the WORKTREE's window (`yarn window`;  one tab, reloaded on every later `open`).  Needs the spell extension
-  (`yarn vscode`).
-  - The session moves there when this turn ends (the isolate step's `handoff`), so this `open` doesn't show it
-    now:  it waits for the move, then shows it there.  Every later `open` shows it in that window at once.
+All in the FIRST turn, in this order, then the turn ends.  Why:  the move to the worktree's window waits for the
+turn to end, and the stub doc keeps the kickoff prompt safe whatever happens to this session.
+1. Isolate:  read `.claude/skills/isolate/SKILL.md` and follow "Start", step 3 (and step 0 mid-session), with this
+   `<name>` (a skill can't invoke another):  `EnterWorktree`.
+2. `yarn install` in the worktree (a few seconds:  `yarn plan-doc` needs it).
+3. The STUB doc:  `yarn plan-doc new <name> --title "<Title>" --prompt-file ~/.spell/prompts/<name>.md` (no file:
+   no `--prompt-file`).  Quoted at the top of the Overview, and in the "Plan hung?" notice above it (copy button,
+   restart steps;  it goes once P1 starts).  Then delete the prompt file.
+   - Reusing a doc:  its prompt missing:  `yarn plan-doc prompt <name> --file <file>`;  an older doc (before
+     2026-10-01, or `section.s2` markup):  `yarn plan-doc migrate <name>` first.  No phases yet:  a restart after
+     a hang.  Plan again from its prompt ("3. Plan");  explore only what the doc doesn't say.
+4. `yarn plan-doc open <name>`:  shown in VS Code's doc preview (the right side bar's "Spell Docs" view) of the
+   window the session moves to, once it has (`yarn window`;  one tab, reloaded on every later `open`).  Needs the
+   spell extension (`yarn vscode`).
+5. Isolate "Start", steps 4-6:  the worktree's own window, `handoff <name> --prompt continue` (name alone, no plan
+   yet:  no `--prompt`), END THE TURN.  Last line:  "moving to `<pkg> ⎇ <name>`:  press enter on `continue`
+   there" (no plan yet:  "send the plan there").
+6. Next turn, in the new window:  isolate's "Continue" step 1 (old tab), then "3. Plan".
 
 ## 3. Plan
 
-1. Explore (read-only), BEFORE plan mode.
+1. Explore (read-only), BEFORE plan mode.  NEVER `EnterPlanMode` before "2. Session" is done:  plan mode can't
+   make the worktree or the doc.
 2. Minimal plan doc, BEFORE presenting the plan:  only the Overview and the open questions, so the user can read
    them in the doc while the plan is up.  Nothing else yet (no phases, decisions, caveats ...).
    - Hand-write the Overview's sub-sections (shape:  "4. Fill the doc").
@@ -103,10 +119,13 @@ When the session already has work under way ("make this a plan doc"), carry it o
 
 ## 5. Each phase
 
-1. `yarn plan-doc phase <name> <N> active`
+1. `yarn plan-doc phase <name> <N> active`, and check the session's name (`.claude/skills/isolate/SKILL.md`,
+   "Session name").
 2. Do the work.  Record as you go, not at the end:
    - found a problem:  `add ... issue`;  a limit we accept:  `add ... caveat`;  a choice:  `add ... decision`;  a
      choice made WITHOUT Owen (he is away, or an agent decided):  `add ... judgement` (ids `J1` ...;  see `/bedtime`)
+   - something only Owen can check (a live window, a click, a look):  `add ... test "<step>" --details "<p>what
+     should happen</p>"`, into "To test";  `close` it once he says it passed
    - fixed or obsolete:  `close <name> <id>` (it stays, struck through)
    - changed a prose block:  put
      `<ui-message class="plan-update" state="warning" size="tiny" header="UPDATE" data-phase="N"><p>what changed</p></ui-message>`
@@ -132,12 +151,18 @@ When the session already has work under way ("make this a plan doc"), carry it o
 ## 6. Doc Review (last phase)
 
 - Prune:  close stale items;  make the summary and Overview true to what was BUILT.
+- "To test":  every hand check the work needs before merging is there, each a step and what should happen;  list
+  the open ones in the reply, as bullets.
 - Turn it into durable docs:  `yarn docs:new durable <page> --title "..."` (fixes asset paths for the depth):
   - one page:  `packages/docs/<name>.html`;  several files (pages, experiments):
     `packages/docs/<name>/<name>.html`
   - from the plan doc:  Overview -> the body;  decisions -> a "Why" section;  open caveats -> "Limits"
-  - finish as in `packages/docs/AGENTS.md`, "Finishing a page";  `yarn docs:index`
+  - finish as in `packages/docs/AGENTS.md`, "Finishing a page";  `yarn docs:index`, which also adds the plan
+    doc's own card:  `yarn plan-doc` doesn't touch the index in a worktree (until now the main server listed it
+    under "Running epics")
 - The plan doc stays in `epics/` as the record:  every phase done.
+- Changelog:  add the epic's entry to `packages/docs/changelog.html` ("Changelog" in the root's `AGENTS.md`), linking
+  the plan doc and the durable doc;  under "3. Merged into main" if "Finish" below merges it, else "2. In worktrees".
 - Then leave the worktree:  follow `.claude/skills/isolate/SKILL.md`, "Finish".  Right after its step 4
   (`handoff --back`), still in the worktree:  `yarn plan-doc open <name>` one last time, so the doc follows the
   session back to its package's window (the worktree's window closes).
@@ -150,7 +175,7 @@ new <name> [--title "Title"] [--prompt "..." | --prompt-file f]   create from th
 add-phase <name> "Short Name" [--goal ..] [--files ..] [--verify ..] [--estimate 2h]
 estimate <name> <N> "1-2h"                          change a phase's estimate;  the Overview's total follows
 phase <name> <N> todo|active|done [--no-open]       done drops UPDATE markers;  reloads the VS Code tab
-add <name> question|judgement|caveat|issue|todo|decision "title" [--details "<p>html</p>"]   prints the id (C3)
+add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details "<p>html</p>"]   prints the id (C3)
 decide <name> <Q id> "decision" [--details html]   answer a question:  prints the decision's id (D7)
 close <name> <id>  /  reopen <name> <id>            strike / unstrike, never delete
 log <name> "text"                                   timestamped line in the doc's log

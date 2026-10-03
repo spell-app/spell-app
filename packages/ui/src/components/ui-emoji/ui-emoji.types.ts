@@ -45,3 +45,9 @@ export const LETTER = /^[a-z]$/
 
 /** Chunk of names starting with anything but a letter. */
 export const DIGIT_CHUNK = "0"
+
+/**
+ * A start tag's `name="..."` attribute, any quoting:  `UIEmoji.preload()` reads the names a page uses from its markup.
+ * - Groups 1-3:  the value in double, single or no quotes.
+ */
+export const NAME_ATTRIBUTE = /(?:^|\s)name\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/i

@@ -7,6 +7,8 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
 
 - `index.html` -- the docs index.  The list between `<!-- index:start -->` / `<!-- index:end -->` is written by
   `yarn docs:index`;  edit only outside the markers.
+- `changelog.html` -- what the repo shipped, newest first;  every `/isolate` and `/epic` adds to it (the root's
+  `AGENTS.md`, "Changelog").
 - `<topic>/<topic>.html` -- a doc, folder and file in lower-kebab-case, e.g. `solid/solid-2.html`.
   - One-file docs with nothing beside them MAY sit at the top level:  `<name>.html`.
   - `<topic>/experiments/` -- runnable scripts backing the doc's claims (see "Experiments").

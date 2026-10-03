@@ -10,6 +10,9 @@ export const SVG_NS = "http://www.w3.org/2000/svg"
 /** Attribute declaring it. */
 export const XMLNS = "xmlns"
 
+/** An `<svg>` start tag's name, and whether it declares `xmlns` already:  group 1 is the rest of the tag. */
+export const SVG_START = /^\s*<svg\b([^>]*)>/
+
 /** Line breaks, escaped in a CSS string. */
 export const LINE_BREAK = /\r\n|\r|\n/g
 

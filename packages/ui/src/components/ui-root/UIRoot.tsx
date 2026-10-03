@@ -24,6 +24,7 @@ import {
   DISPLAY,
   MAX_ROUNDS,
   PACK_SEPARATOR,
+  SERVER_CONTENTS,
   RootTimeout,
   type RootFailure,
   type RootFailureReason,
@@ -57,6 +58,8 @@ import rootCSS from "./ui-root.css?inline"
  *   subtree's `--ui-scale` in the root's own sheet (`RootBox`).
  * - `stack-with`:  the subtree's `--ui-stack-with` token (also in `RootBox`), which every stacking element without a
  *   `stack-with` of its own follows (`UIT.STACK_WITH_TOKEN`).
+ * - Static server render (`$/ui/server`):  nothing loads and nothing is hidden;  the root is a plain wrapper
+ *   (`serverRender()`).
  ****************/
 export class UIRoot extends UIElement<RootVocabulary> {
   @proto static vocabulary = rootVocabulary
@@ -125,7 +128,8 @@ export class UIRoot extends UIElement<RootVocabulary> {
   )
 
   protected hostStates() {
-    const ready = this.isReady.get()
+    // a static server render waits for nothing:  ready at once
+    const ready = isServer || this.isReady.get()
     return {
       loading: !ready,
       ready,
@@ -137,6 +141,7 @@ export class UIRoot extends UIElement<RootVocabulary> {
   }
 
   render(): JSX.Element {
+    if (isServer) return this.serverRender()
     this.effects()
     return (
       <>
@@ -154,6 +159,43 @@ export class UIRoot extends UIElement<RootVocabulary> {
         </Show>
       </>
     )
+  }
+
+  /**
+   * The root in a static server render:  a `<div>` around the content, carrying its classes and theme / box states
+   * (the flattener's `data-state`), never hidden -- a static page has nothing to wait for.
+   * - Its inline style is what the browser puts on the host:  `RootBox`'s width, height, `--ui-scale` and
+   *   `--ui-stack-with`, and `display: contents` unless it's a box (the host's own `display`, which a static
+   *   stylesheet drops).
+   * - A box scrolls its content in the same named region as in the browser.
+   */
+  private serverRender(): JSX.Element {
+    return (
+      <div class={this.classes()} style={this.serverStyle()}>
+        <Show when={this.scrolls()} fallback={<slot />}>
+          <div
+            part={this.part("scroller")}
+            tabindex="0"
+            role="region"
+            aria-label={this.ariaLabel.get() ?? this.runtimeText("label")}
+          >
+            <slot />
+          </div>
+        </Show>
+      </div>
+    )
+  }
+
+  /** The server wrapper's inline style:  `RootBox`'s declarations, or `display: contents` when not a box. */
+  private serverStyle(): string | undefined {
+    const box = RootBox.css({
+      width: this.attrs.width,
+      height: this.attrs.height,
+      size: this.attrs.size,
+      stackWith: this.attrs.stackWith
+    })
+    const declarations = [this.scrolls() ? "" : SERVER_CONTENTS, box].filter(Boolean)
+    return declarations.join("; ") || undefined
   }
 
   /**

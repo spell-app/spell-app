@@ -5836,7 +5836,15 @@
           >
         </ui-section>
 
-        <ui-section id="log" header="8. Log" sticky collapsible dividing>
+        <ui-section id="tests" header="8. To test" sticky collapsible dividing>
+          <ui-icon slot="icon" name="flask"></ui-icon>
+          <p class="meta">
+            What to check by hand before merging: each a step, and what should happen. Struck through once it passes.
+          </p>
+          <ui-list class="plan-items" data-kind="test" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="log" header="9. Log" sticky collapsible dividing>
           <ui-icon slot="icon" name="clock rotate left"></ui-icon>
           <p class="meta">Plan changes, oldest first, local time.</p>
           <ui-feed class="plan-log" size="small">

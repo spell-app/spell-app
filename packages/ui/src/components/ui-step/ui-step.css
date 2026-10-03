@@ -180,8 +180,12 @@
     --_ui-step-circular-title-background: var(--ui-step-circular-title-background, var(--ui-surface));
   }
 
-  /* Group:  a bordered row of steps. */
+  /* Group:  a bordered row of steps.
+     - `container: none`:  the root is never the size container (its host is, or in static markup its parent);  a
+       static server render (`$/ui/server`) moves the host's `container` onto the root, where inline-size
+       containment would shrink the inline-flex group to nothing. */
   .ui.steps {
+    container: none;
     box-sizing: border-box;
     display: inline-flex;
     flex-flow: row wrap;
@@ -210,6 +214,28 @@
   :host(:last-child) > .ui.steps,
   .ui.steps:last-child {
     margin-bottom: 0;
+  }
+  /*
+   * Shadow DOM:  the root is always an only child, so `.ui.steps:first-child` above always matches there;  the
+   * HOST's position decides instead.
+   * - An inline-flex root's margins never collapse (class grammar's neither), so they stay on the root.
+   * - A block-level root's (`:state(block)`:  `fluid`, circular) sit on the HOST:  a size container is its own
+   *   formatting context, so a root margin inside it would never collapse with the heading above.  The root's are
+   *   zeroed in "Circular" (variations), after the circular margins;  a static render's root keeps its own.
+   */
+  :host(:not(:first-child)) > .ui.steps {
+    margin-top: 1em;
+  }
+  :host(:not(:last-child)) > .ui.steps {
+    margin-bottom: 1em;
+  }
+  :host(:state(block):not(:first-child)),
+  :host(:state(block):state(circular)) {
+    margin-block-start: 1em;
+  }
+  :host(:state(block):not(:last-child)),
+  :host(:state(block):state(circular)) {
+    margin-block-end: 1em;
   }
 }
 
@@ -710,6 +736,10 @@
     display: inline-flex;
     flex-flow: column wrap;
     align-items: flex-start;
+  }
+  /* Shadow DOM:  a block-level root's outer margin is the HOST's (see "Group"). */
+  :host(:state(block)) > .ui.steps:not([data-ui]) {
+    margin-block: 0;
   }
 
   @container style(--_ui-steps-circular: 1) {

@@ -29,3 +29,13 @@ export const DEFAULT_DURATION = 1000
 /** Lazy images (Fomantic's `metadata.src`). */
 export const DATA_SRC = "data-src"
 export const LAZY_IMAGES = "img[data-src]"
+
+/**
+ * A lazy image's attributes in a static server render (`$/ui/server`):  `data-src` / `data-srcset` become the real
+ * ones, and the browser's own lazy loading (`loading="lazy"`) stands in for the observer.
+ */
+export const DATA_SRCSET = "data-srcset"
+export const SRC = "src"
+export const SRCSET = "srcset"
+export const LOADING = "loading"
+export const LAZY = "lazy"

@@ -40,7 +40,17 @@ function folds(plan) {
 describe("PlanDoc layout", () => {
   it("has the sections in order, as <ui-section>s with icons, the h1 in a sticky header, no #plan", () => {
     const plan = freshPlan()
-    expect(sectionIds(plan)).toEqual(["overview", "phases", "decisions", "judgements", "caveats", "todos", "issues", "log"])
+    expect(sectionIds(plan)).toEqual([
+      "overview",
+      "phases",
+      "decisions",
+      "judgements",
+      "caveats",
+      "todos",
+      "issues",
+      "tests",
+      "log"
+    ])
     expect(headers(plan)[2]).toBe("3. Questions & Decisions")
     for (const section of plan.document.querySelectorAll("main > ui-section")) {
       expect(section.querySelector(':scope > ui-icon[slot="icon"]')).not.toBeNull()
@@ -247,13 +257,13 @@ describe("PlanDoc items", () => {
 
   it("files a judgement call (J1) in #judgements;  open until closed;  summary lists it after questions", () => {
     const plan = freshPlan()
-    expect(plan.addItem("judgement", "nav starts on Topics", { details: "<p>chose ... over ... because ...</p>" })).toBe(
-      "j1"
-    )
+    expect(
+      plan.addItem("judgement", "nav starts on Topics", { details: "<p>chose ... over ... because ...</p>" })
+    ).toBe("j1")
     const item = plan.document.getElementById("j1")
     expect(item.closest("ui-section").id).toBe("judgements")
     expect(item.getAttribute("data-status")).toBe("open")
-    expect(Object.keys(plan.summary().open)).toEqual(["question", "judgement", "issue", "caveat", "todo"])
+    expect(Object.keys(plan.summary().open)).toEqual(["question", "judgement", "issue", "caveat", "todo", "test"])
     expect(plan.summary().open.judgement.map((open) => open.id)).toEqual(["j1"])
     plan.setItem("j1", "done")
     expect(plan.summary().open.judgement).toEqual([])
@@ -354,6 +364,47 @@ describe("PlanDoc prompt", () => {
     plan.setPrompt("again")
     expect(plan.document.querySelector(".plan-summary + blockquote.plan-prompt").textContent).toBe("again")
   })
+
+  it('copies it into the "Plan hung?" notice, exact, with a copy button;  the notice goes once a phase starts', () => {
+    const plan = freshPlan()
+    const copy = () => plan.document.querySelector("ui-message.plan-hung > ui-code.plan-hung-prompt[copy]")
+    plan.setPrompt("make <h1> & co\n\nline 3 </script> x")
+    expect(copy().querySelector("script").textContent).toBe("make <h1> & co\n\nline 3 <\\/script> x")
+    expect(plan.toString()).toContain("make <h1> & co")
+    plan.setPrompt("")
+    expect(copy()).toBeNull()
+    plan.setPrompt("again")
+    expect(plan.document.querySelectorAll("ui-code.plan-hung-prompt").length).toBe(1)
+    plan.addPhase("First")
+    plan.setPhase(1, "todo")
+    expect(plan.document.querySelector("ui-message.plan-hung")).not.toBeNull()
+    plan.setPhase(1, "active")
+    expect(plan.document.querySelector("ui-message.plan-hung")).toBeNull()
+    // and with it gone, a new prompt doesn't bring it back
+    plan.setPrompt("later")
+    expect(copy()).toBeNull()
+  })
+})
+
+describe("PlanDoc tests", () => {
+  it("adds a test to 'To test' (V1), open until closed;  summary counts it", () => {
+    const plan = freshPlan()
+    const id = plan.addItem("test", "/isolate tmp-x moves within seconds")
+    expect(id).toBe("v1")
+    expect(plan.document.getElementById("v1").parentElement.closest("ui-section").id).toBe("tests")
+    expect(plan.summary().open.test.map((item) => item.id)).toEqual(["v1"])
+    plan.setItem("v1", "done")
+    expect(plan.summary().open.test).toEqual([])
+  })
+
+  it("adds the section to a doc from before it, just above the Log, renumbered", () => {
+    const plan = freshPlan()
+    plan.document.getElementById("tests").remove()
+    expect(headers(plan).at(-1)).toBe("9. Log")
+    plan.addItem("test", "x")
+    expect(sectionIds(plan).slice(-2)).toEqual(["tests", "log"])
+    expect(headers(plan).slice(-2)).toEqual(["8. To test", "9. Log"])
+  })
 })
 
 describe("PlanDoc migrate", () => {
@@ -384,11 +435,22 @@ describe("PlanDoc migrate", () => {
     const plan = filledOldPlan()
     const changes = plan.migrate()
     expect(changes.length).toBeGreaterThan(3)
-    expect(sectionIds(plan)).toEqual(["overview", "phases", "decisions", "judgements", "caveats", "todos", "issues", "log"])
+    expect(sectionIds(plan)).toEqual([
+      "overview",
+      "phases",
+      "decisions",
+      "judgements",
+      "caveats",
+      "todos",
+      "issues",
+      "tests",
+      "log"
+    ])
     expect(headers(plan)[0]).toBe("1. Overview")
     expect(headers(plan)[2]).toBe("3. Questions & Decisions")
     expect(headers(plan)[3]).toBe("4. Judgement calls")
-    expect(headers(plan)[7]).toBe("8. Log")
+    expect(headers(plan)[7]).toBe("8. To test")
+    expect(headers(plan)[8]).toBe("9. Log")
     // every section a <ui-section>, each top-level one with its icon;  `#phases-section` gone
     expect(plan.document.querySelector("section, h2, h3, ui-sticky.spell-h2, ui-sticky.spell-h3")).toBeNull()
     expect(plan.document.getElementById("phases-section")).toBeNull()

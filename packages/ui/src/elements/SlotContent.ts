@@ -34,13 +34,22 @@ export class SlotContent {
     return this.occupied().has(name)
   }
 
-  /** Occupied slot names, read from the DOM now. */
+  /**
+   * Occupied slot names, read from the DOM now.
+   * - No `Element` / `Node` globals:  the server render scans linkedom elements in node (`$/ui/server`).
+   */
   private scan(): Set<string> {
     const names = new Set<string>()
     for (const node of this.host.childNodes) {
-      if (node instanceof Element) names.add(node.slot)
-      else if (node.nodeType === Node.TEXT_NODE && node.textContent?.trim()) names.add("")
+      if (node.nodeType === ELEMENT_NODE) names.add((node as Element).getAttribute("slot") ?? "")
+      else if (node.nodeType === TEXT_NODE && node.textContent?.trim()) names.add("")
     }
     return names
   }
 }
+
+/** `Node.ELEMENT_NODE`, without the `Node` global. */
+const ELEMENT_NODE = 1
+
+/** `Node.TEXT_NODE`, without the `Node` global. */
+const TEXT_NODE = 3

@@ -261,6 +261,40 @@ describe("<ui-table> shadow markup", () => {
   })
 })
 
+describe("<ui-table> outer margin", () => {
+  /** Three tables after a 10px-margin heading;  returns the heading and the hosts. */
+  async function tables(attributes: readonly string[]) {
+    const wrapper = await ElementFixture.render<HTMLElement>(
+      `<div style="width: ${WIDE}px"><h4 style="margin: 0 0 10px">Heading</h4>` +
+        attributes.map((each) => `<ui-table ${each}><table>${BODY}</table></ui-table>`).join("") +
+        `</div>`
+    )
+    await settle()
+    return { heading: wrapper.querySelector("h4")!, hosts: [...wrapper.querySelectorAll<TableHost>("ui-table")] }
+  }
+
+  it("sits on the HOST, so it collapses with the heading above as class grammar's does", async () => {
+    const { heading, hosts } = await tables(["", "", ""])
+    expect(getComputedStyle(scroller(hosts[0]!)).marginTop).toBe("0px")
+    expect(hosts.map((host) => getComputedStyle(host).marginTop)).toEqual(["16px", "16px", "16px"])
+    expect(getComputedStyle(hosts[2]!).marginBottom).toBe("0px")
+    // max(10px, 16px), not their sum
+    expect(hosts[0]!.getBoundingClientRect().top - heading.getBoundingClientRect().bottom).toBeCloseTo(16, 0)
+  })
+
+  it("mirrors attached tables:  no margin on a joined edge", async () => {
+    const { hosts } = await tables(['attached="top"', "attached", 'attached="bottom"'])
+    const margins = hosts.map((host) => [getComputedStyle(host).marginTop, getComputedStyle(host).marginBottom])
+    expect(margins).toEqual([
+      ["16px", "0px"],
+      ["0px", "0px"],
+      ["0px", "0px"]
+    ])
+    expect(hosts[0]!.matches(":state(attached):state(attached-top)")).toBe(true)
+    expect(hosts[2]!.matches(":state(attached-bottom)")).toBe(true)
+  })
+})
+
 describe("<ui-table> tokens from outside", () => {
   /** The table's top-left radius, which `--ui-table-radius` drives. */
   function radius(element: Element): string {

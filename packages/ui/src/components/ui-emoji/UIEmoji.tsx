@@ -6,6 +6,7 @@ import { Cell, proto, RootSettings, UIElement, UIT } from "$/ui/core"
 import { emojiVocabulary } from "./ui-emoji.vocabulary.en"
 import { EmojiData } from "./EmojiData"
 import { EmojiFallback } from "./ui-emoji.fallback"
+import { NAME_ATTRIBUTE } from "./ui-emoji.types"
 
 import emojiCSS from "./ui-emoji.css?inline"
 
@@ -44,6 +45,23 @@ export class UIEmoji extends UIElement<typeof emojiVocabulary> {
         if (connected || !this.request) void this.load(name)
       }
     )
+  }
+
+  /**
+   * Load every emoji `html` names (`<ui-emoji name="...">`), so a static server render of it draws them.
+   * - MUST be awaited before `StaticRender.fragment(html)` / `page(html)` (`$/ui/server`):  that render is synchronous
+   *   and draws only names already loaded (`EmojiData.peek()`);  a browser loads them after first paint instead.
+   * - In every name set that ships:  which one an element uses depends on its `<ui-root emoji>`, unknown in markup.
+   * - `tag`:  the tag the family is defined under, if not its own.
+   */
+  static preload(html: string, tag: string = emojiVocabulary.tag): Promise<void> {
+    const names: string[] = []
+    for (const [, attributes = ""] of html.matchAll(new RegExp(`<${tag}(\\s[^>]*)?>`, "gi"))) {
+      const match = NAME_ATTRIBUTE.exec(attributes)
+      const name = match && (match[1] ?? match[2] ?? match[3])
+      if (name) names.push(name)
+    }
+    return EmojiData.preload(names)
   }
 
   protected hostStates() {

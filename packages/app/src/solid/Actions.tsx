@@ -1,4 +1,4 @@
-import { Show, createContext, omit, useContext } from "solid-js"
+import { Show, omit } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { editor, runtimeConsole } from "$/app/editor"
@@ -11,24 +11,17 @@ import { tracked } from "$/app/solid"
  * - `title` is the text, `icon` an icon name (Fomantic's, see `loadUI.ts`), `active` highlights it:  the item's
  *   `selected`, the button's `active`.
  * - Everything else goes to the element as is:  `onClick`, `color`, `disabled`, `value`, `class` ...
- * - Inside a `<MoreMenu>` (a `<ui-dropdown>`, which provides `InDropdown`), the item is DATA:  the dropdown draws
- *   it from its attributes and text (`icon` included).  Keep `title` TEXT there:  an item with element children is
- *   a "rich" option.
- * - HACK: in a menu, the icon is a slotted `<ui-icon>`, not the item's `icon` attribute:  `<ui-menu>` draws the
- *   attribute's glyph at 0 x 0 (`SUSPECTED-BUGS.md`, "ui").  TODO: back to `icon` once that's fixed.
+ * - Inside a `<MoreMenu>` (a `<ui-dropdown>`) the item is DATA:  the dropdown draws it from its attributes and
+ *   text (`icon` included).  Keep `title` TEXT:  an item with element children is a "rich" option.
  * - Reactivity is the caller's:  pass values read from `tracked()` accessors (see `Actions`).
  ****************/
 export function Action(props: ActionProps) {
-  const inDropdown = useContext(InDropdown)
   const rest = omit(props, "title", "button", "icon", "active")
   return (
     <Show
       when={props.button}
       fallback={
-        <ui-item link="" icon={inDropdown ? props.icon : undefined} selected={props.active} {...rest}>
-          <Show when={!inDropdown && props.icon}>
-            <ui-icon name={props.icon} />
-          </Show>
+        <ui-item link="" icon={props.icon} selected={props.active} {...rest}>
           {props.title}
         </ui-item>
       }
@@ -39,12 +32,6 @@ export function Action(props: ActionProps) {
     </Show>
   )
 }
-
-/**
- * Are `<Action>`s here items of a dropdown (`<MoreMenu>`)?  The context IS the provider:
- * `<InDropdown value={true}>...</InDropdown>`.  Default:  `false`, a menu.
- */
-export const InDropdown = createContext(false)
 
 /** Props for `<Action>`:  the ones below, plus any attribute or handler of `<ui-item>` / `<ui-button>`. */
 export type ActionProps = {

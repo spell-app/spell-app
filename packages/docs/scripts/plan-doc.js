@@ -37,12 +37,15 @@ export const STATUS = {
  * section's count.
  * - questions share the decisions' list since 2026-10-01:  open questions first, an answered one just before the
  *   decision that answers it.  Docs not yet migrated still have their own question list.
+ * - `test`:  something Owen checks by hand before merging (`V1`, "verify":  `t` is taken), in "To test";  `close`
+ *   one once it passes
  */
 export const KINDS = {
   question: { prefix: "q", list: "decision", live: "open" },
   caveat: { prefix: "c", list: "caveat", live: "open" },
   issue: { prefix: "i", list: "issue", live: "open" },
   todo: { prefix: "t", list: "todo", live: "open" },
+  test: { prefix: "v", list: "test", live: "open" },
   decision: { prefix: "d", list: "decision", live: "decided" },
   judgement: { prefix: "j", list: "judgement", live: "open" }
 }
@@ -52,14 +55,14 @@ export const KINDS = {
  * - `judgement`:  a choice Claude made without Owen (a `/bedtime` run, an agent mid-phase);  open until he reviews
  *   it, then `close`d (accepted), or turned into a question.
  */
-const OPEN_KINDS = ["question", "judgement", "issue", "caveat", "todo"]
+const OPEN_KINDS = ["question", "judgement", "issue", "caveat", "todo", "test"]
 
 /**
  * The sections, in page order, by id (the `<ui-section>`'s, or an old doc's h2's):  `migrate` puts an older doc's
  * sections in this order and renumbers their titles.  `#plan` (summary + phase list) was dropped on 2026-10-01, and `#questions` merged into
  * `#decisions` ("Questions & Decisions").
  */
-const SECTION_ORDER = ["overview", "phases", "decisions", "judgements", "caveats", "todos", "issues", "log"]
+const SECTION_ORDER = ["overview", "phases", "decisions", "judgements", "caveats", "todos", "issues", "tests", "log"]
 
 /** Each section's icon, by its id (the template's):  `migrate` gives one to a section that has none. */
 const SECTION_ICONS = {
@@ -70,8 +73,13 @@ const SECTION_ICONS = {
   caveats: "triangle exclamation",
   todos: "list check",
   issues: "bug",
+  tests: "flask",
   log: "clock rotate left"
 }
+
+/** The note under "To test" (the template's, which `addTestsSection()` writes into older docs). */
+const TESTS_NOTE =
+  "What to check by hand before merging:  each a step, and what should happen.  Struck through once it passes."
 
 /** Phase sections, either markup:  `<ui-section data-phase>` in `#phases`, or `section[data-phase]` (old). */
 const PHASE_SECTIONS = "ui-section#phases ui-section[data-phase], #phases-section section[data-phase]"
@@ -280,6 +288,7 @@ ${list}`
    * - `done` removes the phase's UPDATE markers:  once it's finished, its changes are just the plan
    * - `done` also folds every OTHER done phase (`collapsed`;  old markup:  `data-fold="closed"`, read by the page
    *   runtime):  the phase just finished stays open, the older ones get out of the way
+   * - any phase leaving `todo` removes the "Plan hung?" notice (`ui-message.plan-hung`):  planning is over
    * - SIDE EFFECT:  logs the change
    */
   setPhase(n, status) {
@@ -305,6 +314,7 @@ ${list}`
       for (const marker of this.updateMarkers(n)) marker.remove()
       this.foldDonePhases(n)
     } else setFolded(section, false)
+    if (status !== "todo") this.document.querySelector("ui-message.plan-hung")?.remove()
     this.updateProgress()
     this.updateEstimate()
     this.log(`P${n} ${status}`)
@@ -445,13 +455,39 @@ ${list}`
       }))
   }
 
-  /** The list `kind`'s items live in:  its own (a doc not yet migrated), else the one it shares. */
+  /**
+   * The list `kind`'s items live in:  its own (a doc not yet migrated), else the one it shares.
+   * - `test` in a doc from before "To test" (2026-10-03):  the section is added first (`addTestsSection()`)
+   */
   listOf(kind) {
     const spec = KINDS[kind]
-    return (
-      this.document.querySelector(`.plan-items[data-kind="${kind}"]`) ??
-      this.require(`.plan-items[data-kind="${spec.list}"]`)
-    )
+    const own = this.document.querySelector(`.plan-items[data-kind="${kind}"]`)
+    if (own) return own
+    if (kind === "test") return this.addTestsSection()
+    return this.require(`.plan-items[data-kind="${spec.list}"]`)
+  }
+
+  /**
+   * Add the "To test" section, `#tests`, just before the Log (else last), and renumber;  returns its list.
+   * - for docs from before it was in the template (2026-10-03)
+   */
+  addTestsSection() {
+    const section = this.element("ui-section", {
+      id: "tests",
+      // numbered by `orderSections()` below:  its place, and the Log the next
+      header: "0. To test",
+      sticky: "",
+      collapsible: "",
+      dividing: ""
+    })
+    section.innerHTML =
+      `\n<ui-icon slot="icon" name="${SECTION_ICONS.tests}"></ui-icon>\n<p class="meta">${TESTS_NOTE}</p>\n` +
+      `<ui-list class="plan-items" data-kind="test" divided relaxed></ui-list>\n`
+    const log = sectionOf(this.document, "log")
+    if (log) log.before(section, this.document.createTextNode("\n\n"))
+    else this.require("main").append(section)
+    this.orderSections()
+    return section.querySelector(".plan-items")
   }
 
   /** The open questions at the top of `list`, in order. */
@@ -529,8 +565,10 @@ ${list}`
   /**
    * Set the prompt that started the plan:  a `blockquote.plan-prompt` near the top of the Overview, one `<p>` per
    * paragraph (blank lines split them, single newlines become `<br>`).  Replaces any earlier one;  "" removes it.
+   * - the "Plan hung?" notice's copy of it too (`setHungPrompt()`)
    */
   setPrompt(prompt) {
+    this.setHungPrompt(prompt)
     const quote = this.document.querySelector("blockquote.plan-prompt")
     const html = promptHTML(prompt)
     if (!html) return quote?.remove()
@@ -544,6 +582,23 @@ ${list}`
     const summary = overview.querySelector(":scope > .plan-summary")
     if (summary) summary.after(added)
     else prependContent(overview, added)
+  }
+
+  /**
+   * The "Plan hung?" notice's copy of the kickoff prompt:  a `ui-code` with a copy button, so a restart can paste
+   * it back.  "" (or no notice:  planning is over) removes it.
+   * - the text exact, in a `<script type="text/plain">`;  NOTE:  `</script` in it is written `<\/script`
+   */
+  setHungPrompt(prompt) {
+    const notice = this.document.querySelector("ui-message.plan-hung")
+    notice?.querySelector(":scope > ui-code.plan-hung-prompt")?.remove()
+    const text = (prompt ?? "").trim()
+    if (!notice || !text) return
+    const code = this.element("ui-code", { class: "plan-hung-prompt", language: "text", wrap: "", copy: "" })
+    const script = this.element("script", { type: "text/plain" })
+    script.textContent = text.replace(/<\/script/gi, "<\\/script")
+    code.append(script)
+    notice.append(code)
   }
 
   ////////////////
@@ -578,6 +633,10 @@ ${list}`
     if (sections.converted) {
       const dropped = sections.droppedIds.map((id) => `#${id}`).join(", ")
       changes.push(`${sections.converted} sections as <ui-section>${dropped ? ` (${dropped} gone)` : ""}`)
+    }
+    if (!this.document.querySelector('.plan-items[data-kind="test"]') && sectionOf(this.document, "log")) {
+      this.addTestsSection()
+      changes.push('"To test" section added')
     }
     const icons = this.migrateSectionIcons()
     if (icons) changes.push(`${icons} sections given their icon`)
@@ -1095,7 +1154,7 @@ const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/doc
   estimate <name> <N> "1-2h"                       set a phase's estimate;  the Overview's total follows
   phase <name> <N> todo|active|done [--no-open]    set a phase's status;  done drops its UPDATE markers;
                                                    reloads the doc's VS Code tab
-  add <name> question|judgement|caveat|issue|todo|decision "title" [--details html]    prints the new id
+  add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details html]    prints the new id
   decide <name> <Q id> "decision" [--details html]  answer a question:  a decision, the question struck beside it
   close <name> <id>  /  reopen <name> <id>         strike / unstrike an item
   log <name> "text"                                timestamped line in the log
@@ -1290,8 +1349,14 @@ function git(...args) {
   return run.status === 0 ? run.stdout.trim() : ""
 }
 
-/** Rewrite the docs index:  a plan's status badge follows its phases. */
+/**
+ * Rewrite the docs index:  a plan's status badge follows its phases.
+ * - NOT in a worktree:  every phase change there would rewrite the committed `index.html`, and two epics' worktrees
+ *   then conflict on merge.  The main checkout's page server lists running epics live instead (`$/server/page`
+ *   `RunningEpics`);  the epic's card comes with Doc Review's `yarn docs:index`.
+ */
 function reindex() {
+  if (/[\\/]\.claude[\\/]worktrees[\\/]/.test(DOCS)) return
   const run = spawnSync("node", ["scripts/index.js"], { cwd: DOCS, encoding: "utf8" })
   if (run.status !== 0) process.stderr.write(`plan-doc:  docs index not updated\n${run.stdout}${run.stderr}`)
 }

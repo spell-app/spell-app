@@ -395,6 +395,16 @@
   .ui.segments:last-child {
     margin-bottom: 0;
   }
+  /*
+   * Shadow DOM:  the root is always an only child, so the HOST's position decides (as `.ui.segment` above).
+   * - `--_segments-margin`:  a nested group's `0` still wins.
+   */
+  :host(:not(:first-child)) > .ui.segments {
+    margin-top: var(--_segments-margin, var(--_ui-segment-margin));
+  }
+  :host(:not(:last-child)) > .ui.segments {
+    margin-bottom: var(--_segments-margin, var(--_ui-segment-margin));
+  }
 
   /* Children:  one box, hairlines between them;  only the outer corners round. */
   .ui.segments > *,

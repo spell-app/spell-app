@@ -1,5 +1,5 @@
 import { createEffect, createMemo, untrack } from "solid-js"
-import type { JSX } from "@solidjs/web"
+import { isServer, type JSX } from "@solidjs/web"
 
 import {
   Converters,
@@ -64,17 +64,24 @@ export class UITab extends UIElement<TabVocabulary> {
     return controller?.paneState ? (controller as TabOwner) : undefined
   })
 
-  /** How to show:  the owner's say, else its own attributes. */
-  readonly state = createMemo((): TabPaneState => {
-    const owner = this.owner()
-    if (owner) return owner.paneState(this.host)
-    return {
-      selected: this.ownSelected(),
-      attached: this.attrs.attached,
-      basic: this.attrs.basic,
-      inverted: this.attrs.inverted
-    }
-  })
+  /**
+   * How to show:  the owner's say, else its own attributes.
+   * - `lazy` on a server:  the owner's answer reads every pane's controller, and a static render (`$/ui/server`)
+   *   builds this one before its later siblings';  a server memo computes once, so it waits for render time.
+   */
+  readonly state = createMemo(
+    (): TabPaneState => {
+      const owner = this.owner()
+      if (owner) return owner.paneState(this.host)
+      return {
+        selected: this.ownSelected(),
+        attached: this.attrs.attached,
+        basic: this.attrs.basic,
+        inverted: this.attrs.inverted
+      }
+    },
+    { lazy: isServer }
+  )
 
   /** Its own `selected` (or `active`):  the tabs read it for the first pane to show.  Tracked. */
   ownSelected(): boolean {
@@ -123,10 +130,11 @@ export class UITab extends UIElement<TabVocabulary> {
   /**
    * Role, name and Tab stop while owned;  `ui-show` (and lazy content) each time it becomes the shown pane.
    * - Created in `mount()`:  they read the owner and overridable state.
+   * - Role, name and Tab stop are host effects:  a static render (`$/ui/server`) writes them out.
    */
   private effects() {
     const { host } = this
-    createEffect(
+    this.hostEffect(
       () => !!this.owner(),
       (owned) => {
         host.internals.role = owned ? TABPANEL : null
@@ -139,7 +147,7 @@ export class UITab extends UIElement<TabVocabulary> {
         }
       }
     )
-    createEffect(
+    this.hostEffect(
       () => (this.owner() ? (this.attrs.label ?? this.attrs.value ?? null) : null),
       (label) => {
         host.internals.ariaLabel = label

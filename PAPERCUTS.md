@@ -878,6 +878,13 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   c0f54984`, then `git merge main` in the worktree.  The hook (`.claude/hooks/worktree.mjs`) branches from local
   `main`, once a session starts with it registered. · tooling
 - 2026-10-02 · `yarn site:check` (`astro check`) crashes before checking anything:  `Cannot read properties of undefined (reading 'useCaseSensitiveFileNames')` in `@volar/kit/lib/createChecker.js`, with or without our changes (the repo's TS 7 vs the language server) · not fixed;  `yarn site:build` is the working gate · ui
+- 2026-10-02 · `server.ssrLoadModule()` of `$/ui/server` from the repo's dev server threw "Client-only API called on
+  the server side" (`ContentPart.tsx`):  `@solidjs/vite-plugin` compiles JSX `dom` even for SSR unless the config is
+  in test mode (`mode: "test"`) or the plugin has `ssr: true`.  In test mode it then skips its own
+  `ssr.noExternal: ["solid-js", "@solidjs/web"]` (vitest inlines them), so node resolved `solid-js`' imports without
+  `development` and mixed dev / prod builds:  "Cannot set properties of undefined (setting 'server')". · A second,
+  middleware-mode Vite server with `mode: "test"`, `test: { environment: "node" }` and that `noExternal`
+  (`tools/visual/StaticPages.ts`, `yarn test:visual --static`) · ui
 - 2026-10-02 · A test-only element defined as `<x-source>` never fired `ui-change` / `ui-load`:  `emit()` names events
   with the TAG's prefix (`ElementDefinition`), so they went out as `x-change`. · Give a test element a `ui-` tag
   (`ui-test-source`) when the test listens for `ui-*` events. · ui
@@ -931,6 +938,10 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
 - 2026-10-03 · A helper script in the session scratchpad (`splice.py`) was rewritten mid-run:  parallel page agents
   share ONE scratchpad folder, so common file names collide. · Give scratch files an agent-unique folder
   (`tools/results/<agent>/`, git-ignored, or `scratchpad/<agent>/`). · ui
+- 2026-10-02 · Several agents running `yarn test:visual` in ONE worktree:  each run rewrites `tools/results/visual/`
+  (`parity.md`, `static-parity.md`, Playwright's `output/` is emptied first), so a report or diff image read a minute
+  later belonged to another agent's run, or was gone. · Copy the report to the scratchpad right after each run, and
+  read diff images before starting the next run. · ui
 
 ## app
 
@@ -1030,6 +1041,11 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   dependency (`easy-state`, P11):  the temp worktree of HEAD links OUR `node_modules`, where HEAD's import no longer
   resolves.  The message hides the cause. · Put the dependency back in `package.json` + `yarn install` for the run,
   then take it out again.  Better:  `speed` could print the child's stderr. · cli
+- 2026-10-03 · `src/cli.test.ts > spell serve > --headless` failed (no editor URL, "Starting the page server ...
+  (already running)", ~3 min with a retry) after an overnight run:  a page server an agent started the night before
+  (`packages/server/src/page/cli.ts serve`, pid from `lsof -nP -iTCP -sTCP:LISTEN`) was still up with that evening's
+  code, and the test reused it. · Kill the stale server (check its folder with `lsof -a -p <pid> -d cwd`) and
+  rerun.  Better:  the test could refuse a page server it didn't start, or one older than the checkout. · cli
 
 ## docs
 
@@ -1110,6 +1126,16 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   history) resolves, so `doc-links.py` links it to a second path for the same file;  unlinking it by hand gets
   re-linked on the next run. · Wrote the old name as plain text;  `doc-links.py` should resolve paths
   case-sensitively (compare against the real directory listing). · docs
+- 2026-10-03 · `yarn docs:update` failed its link check on every run, so its page checks never ran:  links to
+  gitignored runtime files (`.spell-server.json`, `goals/.server.json`) and local clones (`packages/ui/reference/`)
+  count as "missing" in any checkout without them, plus one renamed skill and one deleted file.  Past those, the
+  check crashed on `ui-import/examples/part.html`, an include fragment `findPages()` took for a page. ·
+  `doc-links.py --check` accepts a missing target git ignores;  `findPages()` skips `examples/`;  the two real
+  links fixed. · docs
+- 2026-10-03 · `yarn review` in `packages/docs` (oxfmt) rewrote 50 GENERATED emoji chunks (`_assets/emoji/**`,
+  every key unquoted) and collapsed the plan template's two spaces after a period (`templates/epics/plan.html`):
+  `.oxfmtrc.json` ignores `docs/_assets/spell-ui.js` and `lazy/`, not `emoji/`. · Reverted with `git checkout`
+  after the run;  `**/docs/_assets/emoji/**` (and maybe the templates) want an ignore pattern. · docs
 
 ## claude-code
 
@@ -1164,6 +1190,33 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
 - 2026-10-03 · Same guard, more shapes:  a `python3 - <<'EOF'` heredoc (and any command after a heredoc) is refused
   too;  and a stray `python3 - file.html` (meant as `python3 script.py file.html`) waits on stdin until the 5-minute
   Bash timeout. · Write the script to a file with the Write tool, run `python3 /abs/path/script.py`. · claude-code
+- 2026-10-02 · `vscode://anthropic.claude-code/open?session=2ae3516d...` opened an idle tab of a DIFFERENT session
+  (`f09af4f3`, the one `/clear` had replaced):  `2ae3516d`'s transcript was saved under the worktree's project
+  folder (`...--claude-worktrees-ui-import/`), not the repo root's, which is where the window's panel looks. ·
+  Copy the `.jsonl` (and its sidecar folder) into `~/.claude/projects/-Users-owen-www-spell-app-spell-app/`, then
+  open it again;  `session.py open` now treats the two copies as one session. · claude-code
+- 2026-10-02 · After merging `ui-import` into `main`, `yarn ts` in `packages/app` failed:  `Cannot find module
+  'highlight.js/lib/languages/...'` from `ui`'s `CodeEngine.ts`.  The branch added a dependency, and the main
+  checkout's `node_modules` was never reinstalled. · `yarn install` at the root after merging a branch that
+  changes any `package.json`. · claude-code
+- 2026-10-02 · In a worktree session, read-only commands were refused too:  a `for` loop over `git rev-list`, a
+  `time ( ... )` subshell, and a `grep ... .gitignore` chained after `ls` ("names git in a form too complex").  The
+  check is on the command TEXT, so even a file name with `git` in it trips it. · One plain command per Bash call;
+  loops and git calls over other branches go in a Python script (`/whassup`'s `whassup.py`). · tooling
+- 2026-10-03 · More worktree-session refusals:  `sed -n "$(grep -n ... | cut -d: -f1),+30p"` (a computed value where
+  an option may stand) and `python3 -c "...open('$HOME/...')"` (a program computed from a variable). · Read with
+  `Read` and its `offset`;  spell paths out, or put the script in a scratchpad file. · tooling
+- 2026-10-03 · Testing what a `UserPromptSubmit` hook gets for a typed slash command, without running the skill. ·
+  `claude -p "/epic x text" --settings <file> --permission-mode plan`, the settings holding one hook that saves
+  its stdin and answers `{"decision":"block"}`:  the input has the raw prompt and `permission_mode`. · claude-code
+- 2026-10-03 · `/isolate` "didn't switch" the session:  the move waits for the turn to end, and `/epic` kept the
+  same turn going (`yarn install`, the doc, exploring, plan mode), so the new window sat empty for minutes. · The
+  skills end the turn right after `window.mjs handoff`, and do the rest in the new window (`--prompt continue`
+  types the next message in). · claude-code
+- 2026-10-03 · After a move, the old tab stayed open, looking live (5 of 7 moves;  ~20 tabs titled `ui-import`):
+  it's found by its label, and a new session has none (`no tabs titled ''`), while sessions opened in a worktree's
+  window share that worktree's title. · `.claude/hooks/prompt-gate.mjs` renames the session on `/isolate|epic|unpark
+  <name>` before Claude runs, and blocks those inside another worktree. · claude-code
 
 ## vscode
 
