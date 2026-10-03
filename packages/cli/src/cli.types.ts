@@ -190,6 +190,17 @@ export type CommandsOptions = GlobalOptions & {
 }
 
 /**
+ * `spell dev session` flags.
+ * - `all`:  `list` every project's sessions, not just this repo's (the same flag as the global `--all`)
+ * - `limit`:  `list` at most this many -- default 15
+ * - `json`:  print the data as JSON
+ */
+export type SessionOptions = GlobalOptions & {
+  limit?: string
+  json?: boolean
+}
+
+/**
  * `spell new` flags.
  * - `in`:  make the project in this folder -- default `@user`'s, `projects/user/`
  */
