@@ -18,10 +18,23 @@
           <li>The lists below are written by <code>yarn docs:index</code>. Edit only outside its markers.</li>
         </ul>
 
+        <!-- the page server puts running epics here (`$/server/page` `RunningEpics`):  plan docs still in a worktree -->
+        <!-- running-epics -->
+
         <!-- index:start -->
         <ui-section id="guides" header="Guides" sticky collapsible dividing>
           <ui-icon slot="icon" name="book open"></ui-icon>
           <ui-cards class="spell-grid" stackable>
+            <ui-card
+              ><ui-content>
+                <ui-header><a href="changelog.html" target="src-packages-docs-changelog-html">Changelog</a></ui-header>
+                <ui-description
+                  >Everything the monorepo shipped, newest first: one entry per epic or isolated piece of work, linked
+                  to its plan doc and durable doc.</ui-description
+                >
+                <ui-meta>changelog.html</ui-meta>
+              </ui-content></ui-card
+            >
             <ui-card
               ><ui-content>
                 <ui-header><a href="cli.html" target="src-packages-docs-cli-html">spell Command Line</a></ui-header>
@@ -193,6 +206,18 @@
                 >
                 <ui-description>Plan doc: Docs workspace + /plan-doc.</ui-description>
                 <ui-meta>epics/docs-workspace/docs-workspace.html</ui-meta>
+              </ui-content></ui-card
+            >
+            <ui-card
+              ><ui-content>
+                <ui-header
+                  ><a href="epics/isolate-changes/isolate-changes.html" target="isolate-changes"
+                    >Isolate &amp; Epic Changes</a
+                  >
+                  <ui-label size="mini" color="green">done</ui-label></ui-header
+                >
+                <ui-description>Plan doc: Isolate &amp; Epic Changes.</ui-description>
+                <ui-meta>epics/isolate-changes/isolate-changes.html</ui-meta>
               </ui-content></ui-card
             >
             <ui-card

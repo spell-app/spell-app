@@ -1,5 +1,5 @@
 import { spawn, type ChildProcess } from "node:child_process"
-import { openSync, rmSync, writeFileSync } from "node:fs"
+import { createWriteStream, rmSync, writeFileSync } from "node:fs"
 import { createRequire } from "node:module"
 import { dirname, join } from "node:path"
 
@@ -15,7 +15,8 @@ import environment from "$/spell/node/environment"
  *   and `spell serve` find it.
  * - It reaches the page server's `/api` through vite's proxy, by IP:  `localhost` may be ::1 first, where the page
  *   server doesn't listen.
- * - Its output goes to `<root>/.spell-server.editor.log`.
+ * - Its output goes to `<root>/.spell-server.editor.log`, through a pipe:  the record is written when vite itself
+ *   says it's ready.
  * - Runs vite's own script with this `node`, NOT `yarn start:dev`:  a page server launched by a `yarn` script
  *   (`yarn server ensure`) inherits a PATH whose `yarn` is a temporary shim, gone once that script exits.
  * - `SPELL_NO_EDITOR=1`:  don't start it.
@@ -44,19 +45,32 @@ export class EditorServer {
   async start(pagePort: number): Promise<void> {
     if (process.env.SPELL_NO_EDITOR || this.child) return
     const port = await editorPort()
-    const log = openSync(join(this.root, ".spell-server.editor.log"), "a")
+    const log = createWriteStream(join(this.root, ".spell-server.editor.log"), { flags: "a" })
     const env = { ...process.env, VITE_PORT: String(port), PORT: String(pagePort), API_SERVER: "127.0.0.1" }
     const child = spawn(process.execPath, [VITE, "--port", String(port), "--strictPort"], {
       cwd: APP_DIR,
       env,
       detached: true,
-      stdio: ["ignore", log, log]
+      stdio: ["ignore", "pipe", "pipe"]
     })
     this.child = child
     child.on("exit", () => {
       if (this.child === child) this.stop()
     })
-    void this.record(`http://localhost:${port}/`, child)
+    // its output to the log -- and the record once IT says it's ready:  a fetch could be answered by another
+    // checkout's editor holding the port, before ours fails with "already in use" (`--strictPort`)
+    let output = ""
+    let ready = false
+    const watch = (data: Buffer) => {
+      log.write(data)
+      if (ready) return
+      output += data
+      if (!READY.test(output)) return
+      ready = true
+      if (this.child === child) this.record(`http://localhost:${port}/`, child)
+    }
+    child.stdout!.on("data", watch)
+    child.stderr!.on("data", watch)
   }
 
   /** stop vite and everything it started, and forget its record */
@@ -72,18 +86,9 @@ export class EditorServer {
     }
   }
 
-  /** Write the record once `url` answers -- unless `child` stopped first, or another start replaced it. */
-  private async record(url: string, child: ChildProcess): Promise<void> {
-    const deadline = Date.now() + START_TIMEOUT_MS
-    while (Date.now() < deadline && this.child === child && child.exitCode === null) {
-      try {
-        await fetch(url, { signal: AbortSignal.timeout(2000) })
-        writeFileSync(this.recordFile, `${JSON.stringify({ url, pid: child.pid }, null, 2)}\n`)
-        return
-      } catch {
-        await new Promise((done) => setTimeout(done, 250))
-      }
-    }
+  /** Write the record:  `url` is `child`'s, which said it's ready. */
+  private record(url: string, child: ChildProcess): void {
+    writeFileSync(this.recordFile, `${JSON.stringify({ url, pid: child.pid }, null, 2)}\n`)
   }
 }
 
@@ -96,11 +101,15 @@ const APP_DIR = join(environment.packagesDir, "app")
 /** vite's command-line script, as `packages/app` resolves it. */
 const VITE = join(dirname(createRequire(join(APP_DIR, "package.json")).resolve("vite/package.json")), "bin/vite.js")
 
-/** How long vite may take to answer before it's given up on (it may be building its dependency cache). */
-const START_TIMEOUT_MS = 90_000
+/** What vite prints once it listens, e.g. `VITE v8.3.1  ready in 226 ms`. */
+const READY = /\bready in\b/
 
-/** The editor's port:  the wanted one if free on every interface (vite listens on 0.0.0.0), else any free one. */
+/**
+ * The editor's port:  the wanted one if free on IPv4 AND IPv6 (vite listens on 0.0.0.0), else any free one.
+ * - NOTE: both:  on macOS `::` binds even while another process holds `0.0.0.0:<port>` -- another checkout's editor.
+ */
 async function editorPort(): Promise<number> {
   const wanted = Number(process.env.SPELL_EDITOR_PORT) || environment.vitePort
-  return (await SRV.isFree(wanted, "::")) ? wanted : SRV.freePort()
+  const free = (await SRV.isFree(wanted, "0.0.0.0")) && (await SRV.isFree(wanted, "::"))
+  return free ? wanted : SRV.freePort()
 }

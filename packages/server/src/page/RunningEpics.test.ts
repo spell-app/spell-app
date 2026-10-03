@@ -1,0 +1,116 @@
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
+import { dirname, join } from "node:path"
+import { afterAll, beforeAll, describe, expect, it } from "vitest"
+
+import { MARKER, PageServer, RunningEpics, type RunningEpic } from "$/server/page"
+import { ask } from "$/server/test/serve"
+
+/** A plan doc with `phases`, each `[status, header]`;  its phase tags spread over lines, as oxfmt writes them. */
+function planDoc(title: string, phases: [string, string][] = []): string {
+  const sections = phases.map(
+    ([status, header], i) =>
+      `<ui-section\n  id="p${i + 1}"\n  data-phase="${i + 1}"\n  data-status="${status}"\n  header="${header}"\n  sticky\n></ui-section>`
+  )
+  return `<!doctype html><html><head><title>${title}</title></head><body>${sections.join("\n")}</body></html>\n`
+}
+
+/** Write `html` at `path` under `root`, making folders. */
+function put(root: string, path: string, html: string): void {
+  mkdirSync(dirname(join(root, path)), { recursive: true })
+  writeFileSync(join(root, path), html)
+}
+
+describe("RunningEpics", () => {
+  const root = mkdtempSync(join(tmpdir(), "srv-epics-"))
+  let server: PageServer
+  let port: number
+
+  beforeAll(async () => {
+    writeFileSync(join(root, "package.json"), JSON.stringify({ pageServer: { watch: ["packages/docs"] } }))
+    put(root, "packages/docs/index.html", `<html><head></head><body><h1>Docs</h1>${MARKER}</body></html>\n`)
+    // merged into the main checkout:  a worktree's copy of it is stale, never listed
+    put(root, "packages/docs/epics/old/old.html", planDoc("Old"))
+    put(root, ".claude/worktrees/seo/packages/docs/epics/old/old.html", planDoc("Old, stale"))
+    // the worktree's own epic, mid-way;  and one planning, in another worktree
+    put(
+      root,
+      ".claude/worktrees/seo/packages/docs/epics/seo/seo.html",
+      planDoc("SEO &amp; co", [
+        ["done", "P1 · Meta Tags"],
+        ["active", "P2 · Site Map"],
+        ["todo", "P3 · Doc Review"]
+      ])
+    )
+    put(root, ".claude/worktrees/vite/packages/docs/epics/vite/vite.html", planDoc("Vite"))
+    server = await new PageServer({ root }).start({ port: 0, routes: false })
+    port = server.info.port
+  })
+
+  afterAll(async () => {
+    await server.stop()
+    rmSync(root, { recursive: true, force: true })
+  })
+
+  it("lists each worktree's own epic, and any the main checkout lacks;  never stale copies", () => {
+    const expected: RunningEpic[] = [
+      {
+        name: "seo",
+        worktree: "seo",
+        url: "/worktrees/seo/packages/docs/epics/seo/seo.html",
+        title: "SEO & co",
+        done: 1,
+        total: 3,
+        active: "P2 · Site Map"
+      },
+      {
+        name: "vite",
+        worktree: "vite",
+        url: "/worktrees/vite/packages/docs/epics/vite/vite.html",
+        title: "Vite",
+        done: 0,
+        total: 0
+      }
+    ]
+    expect(new RunningEpics(root).list()).toEqual(expected)
+  })
+
+  it("serves them under `/worktrees/`, and the list as JSON", async () => {
+    const doc = await ask(port, "GET", "/worktrees/seo/packages/docs/epics/seo/seo.html")
+    expect(doc.status).toBe(200)
+    expect(doc.text).toContain("SEO &amp; co")
+    const list = JSON.parse((await ask(port, "GET", "/_server/epics")).text) as RunningEpic[]
+    expect(list.map((epic) => epic.name)).toEqual(["seo", "vite"])
+  })
+
+  it("gives a worktree's page that worktree's badge", async () => {
+    const doc = await ask(port, "GET", "/worktrees/seo/packages/docs/epics/seo/seo.html")
+    const config = JSON.parse(/window\.SPELL_SERVER = (.*?)<\/script>/.exec(doc.text)![1]!) as { worktree?: string }
+    expect(config.worktree).toBe("seo")
+  })
+
+  it("still refuses dot paths inside a worktree", async () => {
+    put(root, ".claude/worktrees/seo/.env", "SECRET=1")
+    expect((await ask(port, "GET", "/worktrees/seo/.env")).status).toBe(403)
+  })
+
+  it("puts a Running epics section in the docs index, by its marker", async () => {
+    const index = (await ask(port, "GET", "/packages/docs/index.html")).text
+    expect(index).not.toContain(MARKER)
+    expect(index).toContain(`<ui-section id="running-epics"`)
+    expect(index).toContain(`href="/worktrees/seo/packages/docs/epics/seo/seo.html"`)
+    expect(index).toContain(`color="orange">P2 · Site Map</ui-label>`)
+    expect(index).toContain(`color="blue">planning</ui-label>`)
+    expect(index).toContain("SEO &amp; co")
+  })
+
+  it("renders nothing with no running epic, or no marker", () => {
+    const empty = mkdtempSync(join(tmpdir(), "srv-epics-none-"))
+    try {
+      expect(new RunningEpics(empty).render(`<p>${MARKER}</p>`)).toBe(`<p>${MARKER}</p>`)
+      expect(new RunningEpics(root).render("<p>no marker</p>")).toBe("<p>no marker</p>")
+    } finally {
+      rmSync(empty, { recursive: true, force: true })
+    }
+  })
+})

@@ -75,8 +75,14 @@ export class DocPreview {
     await DocPreview.showUrl(url.href)
   }
 
-  /** `file`'s URL on its checkout's page server, else on a server of our own (started if need be). */
+  /**
+   * `file`'s URL on its checkout's page server, else on a server of our own (started if need be).
+   * - a worktree's file:  on the MAIN checkout's page server first, when it serves worktrees
+   *   (`SRV.mainServerUrl()`), so a running epic's plan doc shows on the one port every link uses
+   */
   static async urlOf(file: string): Promise<string> {
+    const main = await SRV.mainServerUrl(file)
+    if (main) return main
     const root = gitRoot(file)
     const path = file.slice(root.length).split(sep).map(encodeURIComponent).join("/")
     const running = await new SRV.PidFile(root).status()

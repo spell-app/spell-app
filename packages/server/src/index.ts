@@ -27,6 +27,7 @@ export * from "./liveClient"
 export * from "./LiveReload"
 export * from "./Guard"
 export * from "./PidFile"
+export * from "./mainServer"
 export * from "./WebServer"
 
 export * as SRV from "."
