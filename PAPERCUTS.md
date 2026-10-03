@@ -1049,6 +1049,15 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   history) resolves, so `doc-links.py` links it to a second path for the same file;  unlinking it by hand gets
   re-linked on the next run. · Wrote the old name as plain text;  `doc-links.py` should resolve paths
   case-sensitively (compare against the real directory listing). · docs
+- 2026-10-02 · After `vp migrate` (Vite+), every `yarn plan-doc add` failed with "Couldn't find a script named
+  `oxfmt`" -- AFTER writing the item, so a retry made a duplicate.  Migrate drops `oxfmt` / `oxlint` as direct deps
+  (they come with `vite-plus`), and `yarn <bin>` only runs a package's OWN deps' binaries. · `tidy()` in
+  `scripts/pages.js` runs `yarn vp fmt`;  use `yarn vp fmt` / `yarn vp lint` by hand (`yarn vitest` still works). · docs
+- 2026-10-02 · `yarn vp run -r ts --cache` printed ` --cache` from every script:  flags AFTER the task name go to
+  the task. · Flags first:  `vp run --cache -r ts`. · docs
+- 2026-10-02 · `vp run --cache` replayed "TSC PASSED" for a package with a planted type error:  input
+  auto-tracking can't see TS 7's native `tsc` read files. · NEVER `--cache` plain scripts;  a cached task needs
+  explicit `cache.input` globs (`run.tasks` in `vite.config.ts`).  See `epics/vite-plus` I1. · docs
 
 ## claude-code
 
