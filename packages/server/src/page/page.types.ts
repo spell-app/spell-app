@@ -22,6 +22,8 @@ export type RouteModule = {
  * - `live`:  `live.watch(dir)` to reload pages when files under `dir` change
  * - `web`:  the whole server, e.g. `web.files.html.push()` for an html hook
  * - `info`:  pid, port, root, branch ...
+ * - `onListening`:  run `start` once the server listens -- `info.port` is set by then, e.g. to start a child process
+ *   that needs the page server's port (`setup()` runs BEFORE it listens)
  * - `onStop`:  run `stop` when the server stops, e.g. to end a child process
  */
 export type RouteContext = {
@@ -31,6 +33,7 @@ export type RouteContext = {
   live: SRV.LiveReload
   web: SRV.WebServer
   info: ServerInfo
+  onListening: (start: () => unknown) => void
   onStop: (stop: () => unknown) => void
 }
 

@@ -8,8 +8,8 @@
  * - Holds the parser, to compile in the page.  Monaco is a chunk of its own, loaded once there's a project to show.
  * - NEVER imports `$/core`, even indirectly:  apps run on their own copy -- see `spellRuntime.ts`.
  */
-import { SpellEditorElement } from "./SpellEditorElement"
+import { defineSpellEditor, type SpellEditorElementClass } from "./SpellEditorElement"
 
-if (!customElements.get("spell-editor")) customElements.define("spell-editor", SpellEditorElement)
-
-export { SpellEditorElement }
+/** The `<spell-editor>` class:  ours, or whoever defined it first. */
+export const SpellEditorElement =
+  (customElements.get("spell-editor") as SpellEditorElementClass | undefined) ?? defineSpellEditor()

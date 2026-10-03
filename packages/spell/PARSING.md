@@ -284,9 +284,13 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     - in its class's body (`compileAsMember()`), e.g. `get title() {...}`, `draw() {...}`, `static Suits = [...]`
     - patched on from outside (`compile()`), e.g. `Card.prototype.play = function () {...}` -- when its class
       isn't compiled with it:  it's from another project, or a rule test compiles the statement alone
-  - A property is a getter / setter pair over the instance's reactive props (`P.ASTReactiveProperty`):
-    `this.getProp('title')` / `this.setProp('title', value, { type: 'text' })`.  NEVER a class field:  that would
-    shadow the accessor, and nothing would redraw.
+  - A property is a getter / setter pair over the instance's reactive props (spell cells, `P.ASTReactiveProperty`):
+    `this.getProp('title')` / `this.setProp('title', value)`.  NEVER a class field:  that would shadow the accessor,
+    and nothing would redraw.
+    - What it's checked against and its default go in the class's SCHEMA, declared once:
+      `static { this.declareProp('title', { type: 'text' }) }` in the class (`Todo.declareProp(...)` from outside),
+      `{ init: () => new List() }` for a default made per instance.  The same runtime shape as a hand-written
+      class's `@prop({ type: 'text' }) accessor title`.  Older output's `setProp(name, value, check)` still runs.
   - `Block.getAST()` makes each declaring line ONE `P.ASTStatementGroup` -- docstring, `SPELL: DECLARES`
     comment, code -- then `SP.hoistClassMembers()` moves each member into its class's body, if that's in the block.
     Comments directly above a member go with it, e.g. a `## properties` banner -- past a heading's

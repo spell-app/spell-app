@@ -10,13 +10,13 @@ An EPIC is a planning session and the work it plans;  its live record is the PLA
 2026-10-02;  `yarn plan-doc` keeps its name, since it edits the plan doc.)
 
 Plan, then build, in worktree `<name>`, keeping `packages/docs/epics/<name>/<name>.html` (the PLAN DOC) current
-the whole time.  The plan doc is the user's view of the work:  they read it in a VS Code tab beside the editor while you work.
+the whole time.  The plan doc is the user's view of the work:  they read it in VS Code's doc preview (the right side bar's "Spell Docs" view) while you work.
 
 - Rules for the doc (sections, ids, markers, prose):  `packages/docs/templates/epics/plan-doc.md`.  Read it first.
 - Structured edits go through `yarn plan-doc <command> <name> ...` (cheat sheet below), never by hand.  Hand-edit only
   prose:  the summary, Overview, phase bodies, item details.
 - Reload the plan doc whenever the session moves to a new stage (name -> worktree -> plan -> fill -> each phase ->
-  doc review):  `yarn plan-doc open <name>` reloads its VS Code tab.  `yarn plan-doc phase` does it for you.
+  doc review):  `yarn plan-doc open <name>` reloads it in the side bar's doc preview.  `yarn plan-doc phase` does it for you.
 - Style, in replies, the plan and the doc:  caveman lite.  Drop filler and articles where they don't help, fragments
   OK, a full sentence where a fragment would be ambiguous, identifiers exact.  Lists bulleted, or numbered when
   order or reference matters.
@@ -60,8 +60,8 @@ When the session already has work under way ("make this a plan doc"), carry it o
   that kicked off the plan, verbatim (the text after `<name>`, or the next prompt when there was none) (write it to the scratchpad first:  it may hold quotes and newlines).  It's
   quoted at the top of the Overview.  Reusing a doc whose prompt is missing:  `yarn plan-doc prompt <name> --file
   <file>`;  an older doc (before 2026-10-01, or `section.s2` markup):  `yarn plan-doc migrate <name>` first.
-- Then `yarn plan-doc open <name>`:  rendered in VS Code's Simple Browser, beside the session's tab, in the
-  WORKTREE's window (`yarn window`;  one tab, reloaded on every later `open`).  Needs the spell extension
+- Then `yarn plan-doc open <name>`:  rendered in VS Code's doc preview (the right side bar's "Spell Docs" view), in
+  the WORKTREE's window (`yarn window`;  one tab, reloaded on every later `open`).  Needs the spell extension
   (`yarn vscode`).
   - The session moves there when this turn ends (the isolate step's `handoff`), so this `open` doesn't show it
     now:  it waits for the move, then shows it there.  Every later `open` shows it in that window at once.
@@ -157,5 +157,5 @@ prompt <name> "text" | --file f                     set the prompt quoted in the
 migrate <name>                                      an older doc (any layout) into the current one
 summary <name> [--json]                             phases, next phase, open questions/issues/caveats/todos
 check <name> [--no-browser]                         ids, links, phases, then the browser check
-open <name>                                         show in VS Code, beside the editor, reusing its tab
+open <name>                                         show in VS Code's doc preview (right side bar)
 ```

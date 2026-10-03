@@ -20,8 +20,9 @@ export class Card extends Thing {
     defined: "/Card.spell:126-206",
   } */
   static Ranks = ['ace', 2, 3, 4, 5, 6, 7, 8, 9, 10, 'jack', 'queen', 'king']
+  static { this.declareProp('rank', { oneOf: Card.Ranks }) }
   get rank() { return this.getProp('rank') }
-  set rank(value) { this.setProp('rank', value, { oneOf: Card.Ranks }) }
+  set rank(value) { this.setProp('rank', value) }
 
   /** card suits */
   /*! SPELL: DECLARES {
@@ -30,8 +31,9 @@ export class Card extends Thing {
     defined: "/Card.spell:222-283",
   } */
   static Suits = ['clubs', 'diamonds', 'hearts', 'spades']
+  static { this.declareProp('suit', { oneOf: Card.Suits }) }
   get suit() { return this.getProp('suit') }
-  set suit(value) { this.setProp('suit', value, { oneOf: Card.Suits }) }
+  set suit(value) { this.setProp('suit', value) }
 
   /** color as derivation of suit */
   /*! SPELL: DECLARES {
@@ -59,8 +61,9 @@ export class Card extends Thing {
     defined: "/Card.spell:534-577",
   } */
   static Directions = ['up', 'down']
+  static { this.declareProp('direction', { oneOf: Card.Directions }) }
   get direction() { return this.getProp('direction') }
-  set direction(value) { this.setProp('direction', value, { oneOf: Card.Directions }) }
+  set direction(value) { this.setProp('direction', value) }
 
   /////////////
   // ## aliases
@@ -474,8 +477,9 @@ export class Game extends App {
     property: "score", of: "Game", datatype: "number",
     defined: "/Solitaire.spell:166-196",
   } */
+  static { this.declareProp('score', { type: 'number' }) }
   get score() { return this.getProp('score') }
-  set score(value) { this.setProp('score', value, { type: 'number' }) }
+  set score(value) { this.setProp('score', value) }
 
   //## actions
 

@@ -90,7 +90,8 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 
 ## Solid 2
 
-- `spell` is moving from React to Solid 2 (`2.0.0-rc.13`;  `@spell-app/ui` still pins rc.11) on `@spell-app/ui`.
+- `spell`'s editor app, runners and web components are Solid 2 (`2.0.0-rc.13`, every package, one copy at the root)
+  on `@spell-app/ui`;  compiled spell still draws with React, for now (`CODE-DEBT.md`, "app").
   Solid 2 is NEITHER React NOR Solid 1.
 - The rules:  `packages/docs/solid/solid-2.md` (see the top of this file).  NOT `@`-imported on purpose:
   it loads only when the task needs it.  Claude also has the `solid-2` skill (`.claude/skills/solid-2/`), which

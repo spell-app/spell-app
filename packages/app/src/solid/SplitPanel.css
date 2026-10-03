@@ -1,0 +1,104 @@
+/*
+ * Look of `<SplitPanel>`, `<SplitPane>`, `<SplitSpacer>` and `<SplitSizer>` (`SplitPanel.tsx`).
+ * - Pane sizes are NOT here:  each pane's inline `flex`, set by `<SplitPanel>`.
+ * - `tightly` / `loosely` are classes beside `spaced` / `padded`, in any order:  match them together
+ *   (`.spaced.tightly`), never as a substring of `class`.
+ */
+
+.SplitPanel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 1 0 0;
+  /* a nested panel is a pane itself:  without these, wide content (a Solitaire board) would push it past its share */
+  min-width: 0;
+  min-height: 0;
+
+  &.vertical {
+    height: 100%;
+    flex-direction: column;
+  }
+
+  &.horizontal {
+    width: 100%;
+    flex-direction: row;
+  }
+
+  &.fluid {
+    flex: 1 0 0;
+  }
+
+  /* room around the panes, and between them (`.Spacer`) */
+  &.spaced {
+    padding: var(--spell-normal-padding);
+    & > .Spacer {
+      flex: 0 0 var(--spell-normal-padding);
+    }
+  }
+  &.spaced.tightly {
+    padding: var(--spell-tight-padding);
+    & > .Spacer {
+      flex: 0 0 var(--spell-tight-padding);
+    }
+  }
+  &.spaced.loosely {
+    padding: var(--spell-loose-padding);
+    & > .Spacer {
+      flex: 0 0 var(--spell-loose-padding);
+    }
+  }
+  /* don't double the room between two spaced panels side by side */
+  &.vertical.spaced + &.vertical.spaced {
+    padding-left: 0;
+  }
+  &.horizontal.spaced + &.horizontal.spaced {
+    padding-top: 0;
+  }
+}
+
+/* one pane:  its one child fills it.
+   Under `.SplitPanel`, so these beat a pane child's own `position` (`.AppRoot`, `.ConsoleRoot`, etc.) whatever
+   order the sheets load in. */
+.SplitPanel > .SplitPanelPane {
+  position: relative;
+  overflow: hidden;
+
+  & > * {
+    position: absolute;
+    inset: 0;
+  }
+
+  &.padded > * {
+    inset: var(--spell-normal-padding);
+  }
+  &.padded.tightly > * {
+    inset: var(--spell-tight-padding);
+  }
+  &.padded.loosely > * {
+    inset: var(--spell-loose-padding);
+  }
+  &.bordered {
+    border: 1px solid rgba(34, 36, 38, 0.15);
+  }
+  &.light {
+    background: white;
+    box-shadow: 0 1px 2px 0 rgba(34, 36, 38, 0.15);
+  }
+  &.rounded {
+    border-radius: 0.28571429rem;
+  }
+  &.scrolling {
+    overflow: auto;
+  }
+}
+
+/* the bar between two panes of a resizable panel */
+.SplitPanelSizer {
+  z-index: 2;
+  flex: 0 0 var(--spell-tight-padding);
+  cursor: col-resize;
+}
+
+.vertical.SplitPanel > .SplitPanelSizer {
+  cursor: row-resize;
+}

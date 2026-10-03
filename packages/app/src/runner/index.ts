@@ -4,7 +4,7 @@
  * - The shared pieces first:  `runCompiled()`, and the split, pane and console runners lay out.
  * - NOTE: left out:
  *   - bundle entries, which act the moment they're imported:  `main.tsx`, `element.ts`, `spellRuntime.ts`
- *   - `SpellAppElement`:  `extends HTMLElement` fails where there's no DOM, e.g. in tests
+ *   - `SpellAppElement`:  `extends HTMLElement`, and `customElement()`, fail where there's no DOM, e.g. in tests
  */
 export * from "./runner.types"
 

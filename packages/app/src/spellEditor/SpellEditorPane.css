@@ -16,11 +16,6 @@
   display: none;
 }
 
-/* What React draws into -- see `SpellEditorElement`. */
-.SpellEditorMount {
-  height: 100%;
-}
-
 /* Tabs, then the editor, then the status line -- the editor takes what's left. */
 .SpellEditor {
   height: 100%;

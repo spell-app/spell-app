@@ -1,6 +1,7 @@
 /**
  * VS Code extension for spell:  runs the spell parser's language server, and shows a file's compiled javascript.
- * - Also shows `packages/docs` pages rendered, beside the editor, when opened by URI -- see `DocPreview`.
+ * - Also shows `packages/docs` pages rendered, in the right side bar's "Spell Docs" view (`DocView`), when opened by
+ *   URI or through the bridge -- see `DocPreview`.
  * - And lets a Claude Code session reach ITS window (add a worktree folder, show a doc) -- see `WindowBridge`.
  * - Activates at startup (`onStartupFinished`), in EVERY window, for the bridge;  the language server waits for the
  *   window's first spell file, as it did when `onLanguage:spell` activated us.  A window without spell files runs

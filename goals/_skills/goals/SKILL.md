@@ -34,8 +34,9 @@ suggestion -- and write every answer down as it happens.
 
 ## 2. Present it
 
-- `G open <target>` the first time a page comes up in a session (a new browser window;  it starts the goals
-  server if need be), unless Owen is reading in VS Code (`G open-vs <target>`).
+- `G open-vs <target>` the first time a page comes up in a session:  in VS Code, the side bar's "Spell Docs" view
+  in this session's window;  anywhere else, a new browser window, as `G open`.  It starts the page server if need
+  be.  `G open` only when Owen asks for the browser.
 - `G summary <set/topic>`, and read the topic's `.md` and the page's parts that matter for the target.
 - Then in chat, short:
   - an ITEM (`G1`, `Q3`):  its title, note and details;  what's around it (related goals, questions, decisions)

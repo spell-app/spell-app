@@ -171,8 +171,10 @@ program
     "[target]",
     "open the editor on this, e.g. @examples/Solitaire -- default the project here, else the chooser"
   )
-  .option("--port <port>", "the editor's port -- default 3000;  the server's is the next one up", (value) =>
-    Number(value)
+  .option(
+    "--port <port>",
+    "the editor's port, for a page server this starts -- default 3000, else any free one",
+    (value) => Number(value)
   )
   .option("--headless", "don't open a browser:  just print the URL")
   .action((target: string | undefined, _options, command) =>

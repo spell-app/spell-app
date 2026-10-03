@@ -10,7 +10,7 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
 
 - `@spell-app/ui` is Fomantic UI reborn as `ui-*` custom elements on a modern CSS foundation:  Fomantic's
   vocabulary (`ui small primary basic icon button`), shadow DOM, `@layer`s, OKLCH tokens, accessibility built in.
-  Usable from any framework or plain HTML.  Built on **Solid 2** (`solid-js` / `@solidjs/web` `2.0.0-rc.11`,
+  Usable from any framework or plain HTML.  Built on **Solid 2** (`solid-js` / `@solidjs/web` `2.0.0-rc.13`,
   pinned exactly) through our fork of its custom-element layer, `@spell-app/solid-element`.
 - The approved design is `docs/plan.md`.  Read "Decisions" and "Architecture" there BEFORE adding a component
   or runtime service.  `docs/report.md` is the generated status report (bundle, perf, hosts, HMR, fallbacks).

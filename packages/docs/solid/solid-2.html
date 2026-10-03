@@ -17,12 +17,32 @@
         <h1>Spell on Solid 2</h1>
         <p class="lede">What spell needs to know about Solid 2 that the Solid docs don't tell you.</p>
         <ul>
-          <li>Written for whoever ports spell's runtime, editor and web components from React</li>
+          <li>
+            Written for whoever moves spell from React: the editor and web components moved on 2026-10-02 (<a
+              href="../solid-migration.html"
+              target="src-packages-docs-solid-migration-html"
+              >Solid Migration</a
+            >, how it's built now); compiled spell's runtime is next
+          </li>
           <li>Also for anyone reasoning about spell reactivity afterwards</li>
         </ul>
+        <ui-message state="info" header="Status">
+          <ul>
+            <li>
+              BUILT (2026-10-02): spell cells, the Solid and React bridges, decorators, the editor store, one Solid per
+              page across builds, the router. See <a href="#plan">5. What the migration did with it</a>.
+            </li>
+            <li>
+              NOT built, moved to the Core + JSX thread: <code>spellCore.element()</code> on <code>@solidjs/h</code>,
+              JSX thunks; also the parser's <code>derive()</code> analysis, the import-map
+              <code>&lt;spell-app&gt;</code>, a Proxy for class-less data.
+            </li>
+          </ul>
+        </ui-message>
         <p class="meta">
-          Solid <code>2.0.0-rc.13</code> (current, 2026-09-30), researched on <code>rc.11</code> -- which
-          <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> still pins.
+          Solid <code>2.0.0-rc.13</code> (current, 2026-09-30), researched on <code>rc.11</code>. Every package,
+          <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> included, is on
+          rc.13 since 2026-10-02.
         </p>
         <ul>
           <li>
@@ -165,7 +185,7 @@
                 <tbody>
                   <tr>
                     <th></th>
-                    <th>React 18 + easy-state (today)</th>
+                    <th>React 18 + easy-state (before the migration)</th>
                     <th>Solid 1</th>
                     <th>Solid 2</th>
                   </tr>
@@ -518,7 +538,7 @@
                     <li>It's X without memoization</li>
                     <li>
                       The two share the <code>record</code>, so switching is local to
-                      <a href="../../util/src/spell/" target="src-packages-spell-util-src"><code>~/util</code></a>
+                      <a href="../../util/src/spell/" target="src-packages-spell-util-src"><code>$/util</code></a>
                     </li>
                   </ul>
                 </li>
@@ -1186,8 +1206,11 @@ Card.schema.typeOf("score") // "number | text"</code></pre>
                 </li>
                 <li>
                   <b>Thing-typed props must compare with <code>instanceof</code>, not by name,</b> or a
-                  <code>FaceCard</code> in a <code>Card</code> prop warns. The prototype compares names; Phase 1 fixes
-                  it.
+                  <code>FaceCard</code> in a <code>Card</code> prop warns. The prototype compares names; the built
+                  <a href="../../util/src/spell/Schema.ts" target="src-packages-util-src-spell-schema-ts"
+                    ><code>Schema.ts</code></a
+                  >
+                  uses <code>instanceof</code>.
                 </li>
                 <li><b>Types are per class, not per instance.</b> A subclass's schema chains to its parent's.</li>
               </ul>
@@ -1659,7 +1682,7 @@ class Card extends ThingD {
                 <ul>
                   <li>
                     decorators and emitted code call the same
-                    <a href="../../util/src/spell/" target="src-packages-spell-util-src"><code>~/util</code></a>
+                    <a href="../../util/src/spell/" target="src-packages-spell-util-src"><code>$/util</code></a>
                     helpers, so the Thing Explorer, <code>keys()</code> and types can't tell them apart
                   </li>
                   <li>
@@ -1670,20 +1693,31 @@ class Card extends ThingD {
                 </ul>
               </li>
               <li>
-                <b>Hand-written classes move to <code>@prop</code> / <code>@derived</code> in Phase 1</b>, dropping
-                their hand-written <code>getProp</code> / <code>setProp</code> pairs
+                <b>Hand-written classes move to <code>@prop</code> / <code>@derived</code></b
+                >, dropping their hand-written <code>getProp</code> / <code>setProp</code> pairs. Built (P11):
+                <code>EditorStore</code>, <code>SpellConsole</code>, <code>FormStore</code>; <code>Thing</code> /
+                <code>List</code> / <code>App</code> keep <code>getProp</code> / <code>setProp</code>
               </li>
               <li>
                 <b>The editor store becomes a decorated class:</b> <code>editor.x = y</code> call sites don't change,
-                since accessors intercept assignment. The deep Proxy shrinks to nested plain data.
+                since accessors intercept assignment. Built (P11): <code>EditorStore</code>. No deep Proxy was kept: a
+                value changed in place notifies nobody.
               </li>
               <li>
-                <b>Phase 0b is resolved for hand-written classes</b> by <code>@thing</code>.
+                <b>Phase 0b is resolved for hand-written classes</b> by <code>@thing</code>. Built (P1):
+                <code>runsCreate()</code> in <code>Thing</code> / <code>List</code>, pinned by
+                <a
+                  href="../../core/src/classes/construction.test.ts"
+                  target="src-packages-core-src-classes-construction-test-ts"
+                  ><code>packages/core/src/classes/construction.test.ts</code></a
+                >.
                 <ul>
                   <li>
                     open case: a compiled class extending a <code>@thing</code> class. <code>new.target</code> is the
                     compiled class, so the wrapper won't call <code>create()</code>. The helper must guarantee exactly
-                    one call either way. Test it.
+                    one call either way. Closed by <code>runsCreate()</code>: <code>Thing</code> /
+                    <code>List</code> call <code>create()</code> only when no <code>@thing</code> class sits between
+                    <code>new.target</code> and them, so the base calls it once; pinned.
                   </li>
                 </ul>
               </li>
@@ -1692,7 +1726,7 @@ class Card extends ThingD {
                 <ul>
                   <li>
                     the <code>Symbol.metadata</code> polyfill lives in
-                    <a href="../../util/src/spell/" target="src-packages-spell-util-src"><code>~/util</code></a
+                    <a href="../../util/src/spell/" target="src-packages-spell-util-src"><code>$/util</code></a
                     >, loaded before any decorated class, in every bundle and in <code>spell-runtime.js</code>
                   </li>
                   <li>esbuild's decorator helpers cost about 1.2 kB per bundle</li>
@@ -1803,7 +1837,7 @@ class ThingD extends ThingA {
               </ui-content>
             </ui-accordion>
           </ui-section>
-          <ui-section id="caveats" header="Caveats for Phase 1" sticky collapsible dividing>
+          <ui-section id="caveats" header="Caveats for spell cells" sticky collapsible dividing>
             <h4 id="enableexternalsource-is-global-and-chains">
               <code>enableExternalSource</code> is global and chains
             </h4>
@@ -1818,7 +1852,14 @@ class ThingD extends ThingA {
                 Measure it on the
                 <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> demo page
               </li>
-              <li>Register it once, in the shared chunk, before anything renders</li>
+              <li>
+                Register it once, before anything renders. Built: <code>bridgeSolid()</code> in <code>$/util</code>,
+                called by the host (<a
+                  href="../../app/src/solid/cellsBridge.ts"
+                  target="src-packages-app-src-solid-cellsbridge-ts"
+                  ><code>packages/app/src/solid/cellsBridge.ts</code></a
+                >), once per Solid however many hosts call it
+              </li>
             </ul>
 
             <h4 id="check-timing">Check timing</h4>
@@ -2106,7 +2147,13 @@ class ThingD extends ThingA {
                     Each <code>&lt;spell-app&gt;</code> keeps its own <code>spellCore</code> copy but imports Solid from
                     there, as it imports React today
                   </li>
-                  <li>Register <code>enableExternalSource</code> once, from the shared chunk</li>
+                  <li>
+                    Register <code>enableExternalSource</code> once. Built: from the host (<a
+                      href="../../app/src/solid/cellsBridge.ts"
+                      target="src-packages-app-src-solid-cellsbridge-ts"
+                      ><code>cellsBridge.ts</code></a
+                    >), remembered in the page's shared cells context
+                  </li>
                 </ul>
               </li>
               <li>
@@ -2121,6 +2168,23 @@ class ThingD extends ThingA {
                     >
                     ONCE into a stable <code>spell-solid.js</code> that every build imports by relative URL, or make
                     them one multi-entry build
+                  </li>
+                  <li>
+                    Built: the first.
+                    <a href="../../app/vite.solid.config.ts" target="src-packages-app-vite-solid-config-ts"
+                      ><code>packages/app/vite.solid.config.ts</code></a
+                    >
+                    makes <code>spell-solid.js</code> and
+                    <a href="../_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                      ><code>spell-ui.js</code></a
+                    >
+                    (<code>ui</code>'s barrel, lazy); <code>sharedSolid()</code> in
+                    <a href="../../app/vite.shared.ts" target="src-packages-app-vite-shared-ts"
+                      ><code>packages/app/vite.shared.ts</code></a
+                    >
+                    points the element, editor and runner builds at them. One multi-entry build was rejected:
+                    <code>cssCodeSplit: false</code> would put Monaco's CSS in
+                    <code>spell-app.css</code>
                   </li>
                   <li>
                     Pin it in
@@ -2153,7 +2217,10 @@ class ThingD extends ThingA {
                       </li>
                     </ul>
                   </li>
-                  <li>So ship a <code>&lt;spell-app&gt;</code> variant that imports those as bare specifiers</li>
+                  <li>
+                    So ship a <code>&lt;spell-app&gt;</code> variant that imports those as bare specifiers. Not shipped
+                    yet (plan doc T5)
+                  </li>
                   <li>
                     That doesn't contradict the runner's "no import map" rule, which keeps each app's
                     <code>spellCore</code> separate
@@ -2201,9 +2268,12 @@ class ThingD extends ThingA {
             <h4 id="docs-track-rc-13-we-re-on-rc-11">rc.11 vs rc.13</h4>
             <ul>
               <li>
-                rc.13 is current (2026-09-30; there was no npm rc.12).
-                <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> still
-                pins rc.11: upgrade it and parser together
+                rc.13 is current (2026-09-30; there was no npm rc.12). Every package,
+                <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> and
+                <a href="../../solid-element/README.md" target="src-packages-solid-element-readme-md"
+                  ><code>@spell-app/solid-element</code></a
+                >
+                included, moved to it on 2026-10-02 (one copy, pinned in the root <code>resolutions</code>)
               </li>
               <li>
                 <b>Behaviour: no difference found.</b> Every experiment gives the same results on both, in dev and prod
@@ -2242,13 +2312,13 @@ class ThingD extends ThingA {
               <li><code>@solidjs/h</code> and <code>@solidjs/html</code>: rc.11 and rc.13 exist</li>
               <li>
                 <code>@solidjs/router@next</code> (2.0.0-next.32): a new <code>createRouter({ routes })</code> API, not
-                Solid 1's <code>&lt;Route&gt;</code>
+                Solid 1's <code>&lt;Route&gt;</code>. The app pins <code>2.0.0-next.35</code> (runs on rc.13)
               </li>
               <li>
                 <code>@solidjs/vite-plugin</code> replaces <code>vite-plugin-solid</code>, with the OXC compiler by
                 default. Newest: 3.0.0-next.47 (npm's <code>next</code> tag still says next.35;
-                <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> pins
-                next.46)
+                <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> pinned
+                next.46). <code>app</code> and <code>ui</code> pin next.47 since 2026-10-02
               </li>
               <li><code>@solidjs/testing-library@next</code>: 1.0.0-beta.3</li>
             </ul>
@@ -2279,7 +2349,7 @@ class ThingD extends ThingA {
               </li>
               <li>
                 Backing host properties with a plain record plus notifier, or with spell cells if the two projects share
-                <a href="../../util/src/spell/" target="src-packages-spell-util-src"><code>~/util</code></a
+                <a href="../../util/src/spell/" target="src-packages-spell-util-src"><code>$/util</code></a
                 >, makes the DOM contract synchronous again, as native elements are
               </li>
               <li>Test first: <code>el.value = x; expect(el.value).toBe(x)</code> with no flush</li>
@@ -2400,56 +2470,103 @@ class ThingD extends ThingA {
             </ul>
           </ui-section>
         </ui-section>
-        <ui-section id="plan" header="5. What this changes in the migration plan" sticky collapsible dividing>
+        <ui-section id="plan" header="5. What the migration did with it" sticky collapsible dividing>
+          <p>
+            What this research asked of the migration, and what was built (2026-10-02). How the app works now:
+            <a href="../solid-migration.html" target="src-packages-docs-solid-migration-html">Solid Migration</a>; the
+            record: its <a href="../epics/solid-migration/solid-migration.html" target="solid-migration">plan doc</a>.
+          </p>
+          <ui-labels class="spell-legend" size="mini"
+            ><ui-label color="green">built</ui-label><ui-label color="grey">not built</ui-label></ui-labels
+          >
           <ui-section id="property-storage" header="Property storage" sticky collapsible dividing>
-            <p>becomes spell cells (X), replacing "record + notifiers". The details:</p>
+            <p>
+              <ui-label size="mini" color="green">built</ui-label> becomes spell cells (X), replacing "record +
+              notifiers" (P11,
+              <a href="../../util/src/spell/cells.ts" target="src-packages-util-src-spell-cells-ts"
+                ><code>packages/util/src/spell/cells.ts</code></a
+              >). The details:
+            </p>
             <ul>
               <li>the record is a <code>Map</code> (key order)</li>
-              <li>defaults and types live in a per-class schema, replacing <code>Class.defaults</code></li>
+              <li>
+                defaults and types live in a per-class schema (<code>schemaOf()</code>), replacing
+                <code>Class.defaults</code>
+              </li>
               <li>derived values have an equality cutoff</li>
               <li><code>keys()</code> tracks the key set</li>
-              <li><b>Things keep accessors; a Proxy is only for class-less data</b></li>
+              <li>
+                <b>Things keep accessors; a Proxy is only for class-less data</b>. Accessors built; the Proxy
+                <ui-label size="mini" color="grey">not built</ui-label>: nothing is proxied, so a value changed in place
+                notifies nobody
+              </li>
             </ul>
           </ui-section>
           <ui-section id="mutable-store" header="Mutable store" sticky collapsible dividing>
-            <p>there's no Solid replacement, so the editor store is built on spell cells. Decided.</p>
+            <p>
+              <ui-label size="mini" color="green">built</ui-label> there's no Solid replacement, so the editor store is
+              built on spell cells: <code>EditorStore</code>, an <code>Observable</code> with
+              <code>@prop</code> accessors (<a href="../../app/src/editor.ts" target="src-packages-app-src-editor-ts"
+                ><code>packages/app/src/editor.ts</code></a
+              >).
+            </p>
           </ui-section>
           <ui-section id="parser" header="Parser" sticky collapsible dividing>
             <ul>
               <li>
-                derived properties get a pure / worth-it analysis and emit <code>this.derive(...)</code> when both hold
+                <ui-label size="mini" color="green">built</ui-label> props declare type and default in the class schema:
+                <code>static { this.declareProp(...) }</code>
               </li>
-              <li>JSX emits thunks as planned</li>
-              <li>handlers keep their <code>(event)</code> parameter</li>
+              <li>
+                <ui-label size="mini" color="grey">not built</ui-label> derived properties get a pure / worth-it
+                analysis and emit <code>this.derive(...)</code> when both hold (plan doc T6)
+              </li>
+              <li>
+                <ui-label size="mini" color="grey">not built</ui-label> JSX emits thunks; handlers keep their
+                <code>(event)</code> parameter -- the Core + JSX thread (plan doc T2)
+              </li>
             </ul>
           </ui-section>
           <ui-section id="spellcore-element" sticky collapsible dividing>
             <span slot="header"><code>spellCore.element()</code></span>
-            <p>owns four things:</p>
+            <p>
+              <ui-label size="mini" color="grey">not built</ui-label> the Core + JSX thread (plan doc T2): compiled
+              spell still draws with React. It will own four things:
+            </p>
             <ul>
               <li><code>prop:</code> routing for non-primitive values on <code>ui-*</code> tags</li>
               <li>mapping <code>onUiChange</code> to a <code>ui-change</code> listener</li>
               <li><code>try/catch</code> around every thunk</li>
-              <li>building on <code>@solidjs/h</code>, which exists at rc.11 and rc.13</li>
+              <li>building on <code>@solidjs/h</code>, which exists at rc.11 and rc.13 (not installed yet)</li>
             </ul>
           </ui-section>
-          <ui-section id="react-bridge-phase-1" header="React bridge (Phase 1)" sticky collapsible dividing>
+          <ui-section id="react-bridge-phase-1" header="React bridge" sticky collapsible dividing>
             <p>
-              <code>view()</code> subscribes through our core. A React render collects like any other collector, so the
-              bridge doesn't need Solid's <code>createReaction</code>.
+              <ui-label size="mini" color="green">built</ui-label> <code>view()</code> subscribes through our core (<a
+                href="../../util/src/spell/view.ts"
+                target="src-packages-util-src-spell-view-ts"
+                ><code>packages/util/src/spell/view.ts</code></a
+              >). A React render collects like any other collector, so the bridge doesn't need Solid's
+              <code>createReaction</code>. It stays while compiled spell draws with React.
             </p>
           </ui-section>
           <ui-section id="routing" header="Routing" sticky collapsible dividing>
             <p>
-              <code>@solidjs/router@next</code>'s <code>createRouter</code>. It covers our 7 routes; no hand-rolled
-              router.
+              <ui-label size="mini" color="green">built</ui-label> <code>@solidjs/router@next</code>'s
+              <code>createRouter</code>, <code>2.0.0-next.35</code>; no hand-rolled router. The old 7 routes became 3
+              (each page's URLs one route with a <code>path</code> array):
+              <a href="../../app/src/pages/routes.tsx" target="src-packages-app-src-pages-routes-tsx"
+                ><code>packages/app/src/pages/routes.tsx</code></a
+              >.
             </p>
           </ui-section>
           <ui-section id="tests" header="Tests" sticky collapsible dividing>
             <p>
-              add <code>@solidjs/testing-library@next</code> and jsdom, or vitest browser mode as in
-              <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a
-              >, for component tests. Keep a Node project for parser and spell-cells tests.
+              <ui-label size="mini" color="green">built</ui-label> vitest browser mode as in
+              <a href="../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> for
+              component tests (<code>app</code>'s <code>*.browser.test.ts(x)</code>, rendering with
+              <code>@solidjs/web</code>'s <code>render()</code>; no testing-library), and a Node project for parser and
+              spell-cells tests.
             </p>
           </ui-section>
         </ui-section>
@@ -2557,8 +2674,23 @@ class ThingD extends ThingA {
                 They stay:
                 <ul>
                   <li>
-                    Phase 1 ALSO pins the semantics this doc depends on as vitest cases in
-                    <a href="../../util/src/spell/" target="src-packages-spell-util-src"><code>src/util/</code></a>
+                    the semantics this doc depends on are ALSO pinned as vitest cases:
+                    <a href="../../util/src/spell/cells.test.ts" target="src-packages-util-src-spell-cells-test-ts"
+                      ><code>packages/util/src/spell/cells.test.ts</code></a
+                    >
+                    (cells, no Solid),
+                    <a
+                      href="../../app/src/solid/cellsBridge.browser.test.tsx"
+                      target="src-packages-app-src-solid-cellsbridge-browser-test-tsx"
+                      ><code>packages/app/src/solid/cellsBridge.browser.test.tsx</code></a
+                    >
+                    (Solid's client build) and
+                    <a
+                      href="../../app/src/ui/reactView.browser.test.tsx"
+                      target="src-packages-app-src-ui-reactview-browser-test-tsx"
+                      ><code>packages/app/src/ui/reactView.browser.test.tsx</code></a
+                    >
+                    (the React bridge)
                   </li>
                   <li>the scripts remain the quick way to re-measure, and to compare designs on a new RC</li>
                 </ul>
