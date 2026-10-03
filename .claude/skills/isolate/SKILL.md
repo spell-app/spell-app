@@ -87,6 +87,8 @@ The turn after step 6, whatever Owen sends (`continue`, typed in by the move, or
    and "Leave unmerged", listing the commits in the question.  On "Merge now", get the BRANCH ready to fast-forward
    `main`, all from the worktree (branches are shared, so `main` is visible here):
    - NEVER `git -C <main checkout>` or `cd` there:  a worktree session refuses both.  `main` itself moves in step 6.
+   - first, the changelog:  add or move this branch's entry in `packages/docs/changelog.html` ("Changelog" in the
+     root's `AGENTS.md`) and commit it on the branch (the "Merge now" answer counts as the ask)
    - `git log --oneline HEAD..main` empty (`main` hasn't moved):  ready, go on to step 4
    - else `git merge-tree --write-tree --name-only main HEAD`, which merges without touching any files:
      - exit 0:  `git merge main` (a clean merge commit), then step 4
