@@ -1284,8 +1284,14 @@ function git(...args) {
   return run.status === 0 ? run.stdout.trim() : ""
 }
 
-/** Rewrite the docs index:  a plan's status badge follows its phases. */
+/**
+ * Rewrite the docs index:  a plan's status badge follows its phases.
+ * - NOT in a worktree:  every phase change there would rewrite the committed `index.html`, and two epics' worktrees
+ *   then conflict on merge.  The main checkout's page server lists running epics live instead (`$/server/page`
+ *   `RunningEpics`);  the epic's card comes with Doc Review's `yarn docs:index`.
+ */
 function reindex() {
+  if (/[\\/]\.claude[\\/]worktrees[\\/]/.test(DOCS)) return
   const run = spawnSync("node", ["scripts/index.js"], { cwd: DOCS, encoding: "utf8" })
   if (run.status !== 0) process.stderr.write(`plan-doc:  docs index not updated\n${run.stdout}${run.stderr}`)
 }
