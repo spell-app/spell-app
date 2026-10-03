@@ -1088,6 +1088,11 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
 - 2026-10-02 · A shell command chaining several `yarn plan-doc add-phase ...` calls with `&&` was refused in a
   worktree session ("names git in a form too complex to verify"). · Put the calls in a script in the scratchpad
   and run `bash <script>`. · tooling
+- 2026-10-02 · `/session 2ae3516d` said "0 sessions match", and `/worktrees` showed the worktree as empty, for a
+  titled session that holds a whole epic plan:  `session.py` dropped transcripts with no typed prompt, and this one
+  started `/clear` -> `/epic` -> `/bedtime`, only slash commands (`<command-name>`, skipped as harness text). ·
+  `session.py`'s `prompt_text` now reads a slash command as `/name args`, and a title alone keeps a session
+  listed. · claude-code
 
 ## vscode
 
