@@ -21,8 +21,9 @@ the whole time.  The plan doc is the user's view of the work:  they read it in V
   OK, a full sentence where a fragment would be ambiguous, identifiers exact.  Lists bulleted, or numbered when
   order or reference matters.
 - Naming a doc in a reply (the plan doc, a durable doc, any `packages/docs` page):  link it on the page server,
-  `[<name>](<url>)`, `<url>` from `yarn server url <ABSOLUTE path>` run in the checkout the doc is in (the
-  worktree has its own server;  a relative path resolves wrongly).
+  `[<name>](<url>)`, `<url>` from `yarn server url <ABSOLUTE path>` run in the checkout the doc is in (a relative
+  path resolves wrongly).  A worktree's doc gets the MAIN server's URL (`/worktrees/<name>/...`) when that one runs;
+  else the worktree's own server's.
 - Phase complete:  the LAST line of that reply's text says where we are, each phase linked to its heading in the
   plan doc (`<url>#p1`):
   - "[P1 · Short Name](<url>#p1) complete.  Next is [P2 · Short Name](<url>#p2)."
@@ -150,7 +151,9 @@ turn to end, and the stub doc keeps the kickoff prompt safe whatever happens to 
   - one page:  `packages/docs/<name>.html`;  several files (pages, experiments):
     `packages/docs/<name>/<name>.html`
   - from the plan doc:  Overview -> the body;  decisions -> a "Why" section;  open caveats -> "Limits"
-  - finish as in `packages/docs/AGENTS.md`, "Finishing a page";  `yarn docs:index`
+  - finish as in `packages/docs/AGENTS.md`, "Finishing a page";  `yarn docs:index`, which also adds the plan
+    doc's own card:  `yarn plan-doc` doesn't touch the index in a worktree (until now the main server listed it
+    under "Running epics")
 - The plan doc stays in `epics/` as the record:  every phase done.
 - Then leave the worktree:  follow `.claude/skills/isolate/SKILL.md`, "Finish".  Right after its step 4
   (`handoff --back`), still in the worktree:  `yarn plan-doc open <name>` one last time, so the doc follows the

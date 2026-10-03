@@ -85,6 +85,8 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
   - `node`, not `yarn window`:  `yarn` runs no script in a worktree before its `yarn install`.
   - A doc shown while the move is pending (`yarn plan-doc open`, `window.mjs show`) waits, then shows beside the
     session in the window it moved to.
+  - A running epic's plan doc is on the MAIN checkout's page server too (`/worktrees/<w>/...`), listed in the docs
+    index's "Running epics";  `yarn server url` gives that URL (`packages/docs/server.html`, "Running epics").
 - NEVER `code --add` / `--remove` (the focused window;  a one-folder window restarts its extensions, Claude panel
   included) or `code -r` (restarts the session).  `code <file>.code-workspace` only through `window.mjs open`.
 - Leave with `ExitWorktree` `keep`;  the hook's `remove` never deletes uncommitted or unmerged work.

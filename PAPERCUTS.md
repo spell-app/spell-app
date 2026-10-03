@@ -1112,6 +1112,14 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
 - 2026-10-03 · Testing what a `UserPromptSubmit` hook gets for a typed slash command, without running the skill. ·
   `claude -p "/epic x text" --settings <file> --permission-mode plan`, the settings holding one hook that saves
   its stdin and answers `{"decision":"block"}`:  the input has the raw prompt and `permission_mode`. · claude-code
+- 2026-10-03 · `/isolate` "didn't switch" the session:  the move waits for the turn to end, and `/epic` kept the
+  same turn going (`yarn install`, the doc, exploring, plan mode), so the new window sat empty for minutes. · The
+  skills end the turn right after `window.mjs handoff`, and do the rest in the new window (`--prompt continue`
+  types the next message in). · claude-code
+- 2026-10-03 · After a move, the old tab stayed open, looking live (5 of 7 moves;  ~20 tabs titled `ui-import`):
+  it's found by its label, and a new session has none (`no tabs titled ''`), while sessions opened in a worktree's
+  window share that worktree's title. · `.claude/hooks/prompt-gate.mjs` renames the session on `/isolate|epic|unpark
+  <name>` before Claude runs, and blocks those inside another worktree. · claude-code
 
 ## vscode
 
