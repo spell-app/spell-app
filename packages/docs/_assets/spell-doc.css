@@ -784,6 +784,21 @@ body.spell-toc-hidden .spell-doc-main {
 .spell-filter ui-input {
   width: min(360px, 100%);
 }
+/*
+ * Command reference pages (`templates/commands.html`, drawn by `commands.js`):  a note under a cell's names, the
+ * packages after a yarn script;  names don't break at their dashes
+ */
+.spell-doc-main :is(.commands-notes, .commands-where) {
+  color: var(--spell-muted);
+  font-size: 0.85em;
+}
+.spell-doc-main .commands-notes {
+  margin-top: 4px;
+}
+.spell-doc-main [data-commands-families] td > code {
+  white-space: nowrap;
+}
+
 /* the badge legend under the header:  `ui-labels.spell-legend` */
 ui-labels.spell-legend {
   display: block;

@@ -23,13 +23,16 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
   - `plan-doc.css` -- plan docs, on top of `spell-doc.css`
   - `goals.css`, `goals-live.js` -- goals pages (the repo root's `goals/`, and `templates/goals/`):  their look, and
     their live buttons (thoughts, Claude sessions) when the page server serves them (goals' route module)
+  - `commands.js` -- command reference pages (`templates/commands.html`):  draws their tables from the page's JSON,
+    then loads `spell-ui.js` itself (the page loads `commands.js` INSTEAD of the bundle)
 - `scripts/` -- the tooling (see "Scripts").
 - `spell-docs/` -- how the pages work (`spell-docs.md`) and the @spell-app/ui problems they hit (`spell-ui-findings.md`).
 
 ## Writing a page
 
-- Start from a template:  `yarn docs:new durable|cheatsheet <topic>/<topic>.html --title "Title"` copies it, fixes
-  the `_assets` paths for the page's depth, and lists it in the index.
+- Start from a template:  `yarn docs:new durable|cheatsheet|commands <topic>/<topic>.html --title "Title"` copies
+  it (and `commands`' JSON, as `<topic>.json`), fixes the `_assets` paths for the page's depth, and lists it in the
+  index.
 - Every page (templates too) starts its `<body>` with the site header, `<spell-site-header root="../..">`:  `root` is
   the path from the page's folder to the REPO root.  The template tools (`docs:new`, `plan-doc new`, `goals new`)
   set it;  everything that sticks or lands starts below it (`spell-doc-runtime.js` `siteHeaderHeight()`, and its
@@ -38,6 +41,10 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
 - Pages MUST still open straight from disk (`file://`):  no ES modules -- hence the one classic bundle.  But the
   openers (`docs:open`, `plan-doc open`) show them from this checkout's PAGE SERVER (`yarn server`, see
   `packages/server/AGENTS.md`):  live reload, edit mode, and the server-only properties (Spell UI, Editor).
+  - The ONE exception:  a `commands` page fetches its JSON, so it draws its tables only from the page server;  from
+    `file://` it says so where they'd go.  Its `<body data-spell-needs-server>` makes `check-spell.js` load it from
+    the server.  Why:  Owen chose a plain JSON file over a JS data file or tables rendered into the HTML (epic
+    `commands`, D4).
 - Sections are `<ui-section>` elements (`spell-docs/spell-docs.md` "Page skeleton";  every piece of the markup:
   `spell-docs/ui-section-test.html`):
   - `<ui-section id="..." header="1. Summary" sticky collapsible dividing>`, EVERY one `sticky collapsible
@@ -118,6 +125,9 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
 ## Templates
 
 - `templates/durable.html` -- design notes, research, references:  prose sections, tables, code, callouts.
+- `templates/commands.html` + `commands.json` -- a command reference:  operations by family, which CLI / skill /
+  yarn command does each, in tables `_assets/commands.js` draws from the JSON (its header has the JSON's shape);
+  hand-written prose around them.  E.g. `dev/commands/commands.html`.
 - `templates/cheatsheet.html` -- an API reference:  a grid of cards, filtered by text and by badge
   (`ui-select[data-spell-filter-badge]`);  a card may carry `<ui-meta>` (since when) and `<ui-extra>` (a docs link).
 - `templates/epics/plan.html` -- a plan doc.  NEVER copy by hand:  `yarn plan-doc new <name>`.
@@ -176,8 +186,8 @@ In this order, from `packages/docs`:
 - `scripts/pages.js` -- shared by the scripts:  `DOCS`, `findPages()`, `tidy()` (link targets + oxfmt),
   `serialize()`, `openInChrome()`, `openInVSCode()` (plan docs:  the doc preview through the spell extension's
   `DocPreview`).
-- `scripts/check-spell.js <page> [outDir]` -- Playwright:  fails on console errors, undefined / unrendered
-  `ui-*`, contents vs sections, phone-width overflow, top-level titles that don't stick, a section that won't fold /
+- `scripts/check-spell.js <page> [outDir]` -- Playwright, from `file://` (from the page server when the page says
+  `data-spell-needs-server`):  fails on console errors, undefined / unrendered `ui-*`, contents vs sections, phone-width overflow, top-level titles that don't stick, a section that won't fold /
   unfold or forgets its fold on reload, a drawer that won't open;  writes screenshots.
 - `scripts/to-ui-section.js <page>...` -- converts old `section.s2|s3` pages to `<ui-section>` (ids kept);  its
   `convertSections()` is also `plan-doc.js` `migrate`'s last step.  Idempotent;  refuses goals pages.

@@ -1,0 +1,1093 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Commands: CLI, skills, yarn</title>
+    <meta name="description" content="Plan doc:  Commands:  CLI, skills, yarn." />
+    <link rel="stylesheet" href="../../_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../_assets/plan-doc.css" />
+  </head>
+  <body class="spell-doc-page plan-doc" data-plan="commands">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../../index.html" target="src-packages-docs-index-html"
+            >Docs</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section href="../../index.html#epics" target="src-packages-docs-index-html"
+            >Epics</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section active>Commands: CLI, skills, yarn</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <ui-sticky class="spell-h1"
+          ><header class="spell-page-head">
+            <h1>Commands: CLI, skills, yarn</h1>
+            <span class="plan-step"
+              ><ui-label basic color="grey" icon="circle outline" href="#p2">next: P2 · Inventory Data</ui-label></span
+            >
+          </header></ui-sticky
+        >
+        <ui-list class="plan-meta">
+          <ui-item icon="code branch">Plan doc for <code>/epic commands</code>, branch <code>commands</code></ui-item>
+          <ui-item icon="folder"
+            >Worktree:
+            <a href="../../../../" target="src-"
+              ><code>/Users/owen/www/spell-app/spell-app/.claude/worktrees/commands</code></a
+            ></ui-item
+          >
+          <ui-item icon="calendar"
+            >Started <time id="plan-started">2026-10-02</time>, updated
+            <time id="plan-updated">2026-10-03</time></ui-item
+          >
+        </ui-list>
+
+        <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
+          <ui-icon slot="icon" name="lightbulb"></ui-icon>
+          <p class="plan-summary lede">
+            A new docs template draws a command reference from a JSON list; its first page,
+            <code>packages/docs/dev/commands/</code>, maps every operation to CLI / skill / yarn / the tool that runs
+            it. Then one naming scheme (noun then verb, repo tools under <code>spell dev</code>), a roadmap toward "CLI
+            drives everything", a drift check and an AGENTS rule that keeps the page current.
+          </p>
+          <blockquote class="plan-prompt">
+            <p>
+              We have been creating a bunch of skills, and creating a CLI as well. And we have a shit ton of yarn
+              commands. I'd like them all to be as similar as possible.
+            </p>
+            <p>
+              Start by reviewing all three. Make an HTML doc which lists everything each can do, with a column for
+              whether each does do / does w/different name / couldn't really do each bit. This will turn into long-term
+              documentation in `packages/docs/dev/commands` folder.
+            </p>
+            <p>Goal is that the CLI drives everything, skills and yarn use that as much as possible.</p>
+            <p>
+              Also, add something to AGENTS which instructs you think about how new cli/skill/yarn affects this (by
+              reading the durable doc page above) and make suggestions whenever I ask for a new skill/cli tool, or when
+              you create a new yarn script to solve some problem. Instruct it to keep that doc up to date.
+            </p>
+          </blockquote>
+          <p class="plan-estimate"><b>Estimate:</b> 7h-12h in all, 5h-9h left</p>
+          <ui-section id="o1" header="1.1 What exists today" sticky collapsible dividing>
+            <p>Three ways to make the repo do something, grown separately:</p>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Surface</th>
+                    <th class="num right aligned">Count</th>
+                    <th>Where</th>
+                    <th>Runs as</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>spell</code> CLI</td>
+                    <td class="num right aligned">20</td>
+                    <td>
+                      <a href="../../../cli/src/commands/" target="src-packages-cli-src-commands"
+                        ><code>packages/cli/src/commands/</code></a
+                      >
+                    </td>
+                    <td>commander, source through <code>tsx</code>; one symlinked checkout</td>
+                  </tr>
+                  <tr>
+                    <td>yarn scripts</td>
+                    <td class="num right aligned">170</td>
+                    <td>
+                      14 <a href="../../../../package.json" target="src-package-json"><code>package.json</code></a
+                      >s
+                    </td>
+                    <td>shell one-liners; <code>node</code>, <code>tsx</code> or <code>node --import tsx</code></td>
+                  </tr>
+                  <tr>
+                    <td>skills</td>
+                    <td class="num right aligned">12 + 9</td>
+                    <td>
+                      <a href="../../../../.claude/skills/" target="src-claude-skills"><code>.claude/skills/</code></a
+                      >, <code>~/.claude/skills/</code> (goals ones symlink into
+                      <a href="../../../../goals/_skills/" target="src-goals-skills"><code>goals/_skills/</code></a
+                      >)
+                    </td>
+                    <td>prose Claude follows, calling scripts</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <ul>
+              <li>
+                Behind them, a fourth layer nobody named: standalone tools the skills and yarn call.
+                <ul>
+                  <li>
+                    node:
+                    <a href="../../../../scripts/window.mjs" target="src-scripts-window-mjs"
+                      ><code>scripts/window.mjs</code></a
+                    >,
+                    <a href="../../../../scripts/serve.mjs" target="src-scripts-serve-mjs"
+                      ><code>scripts/serve.mjs</code></a
+                    >,
+                    <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
+                      ><code>packages/docs/scripts/plan-doc.js</code></a
+                    >,
+                    <a href="../../../../goals/_tools/goals.js" target="src-goals-tools-goals-js"
+                      ><code>goals/_tools/goals.js</code></a
+                    >,
+                    <a href="../../../server/src/page/cli.ts" target="src-packages-server-src-page-cli-ts"
+                      ><code>packages/server/src/page/cli.ts</code></a
+                    >,
+                    <a href="../../../ui/tools/cli.ts" target="src-packages-ui-tools-cli-ts"
+                      ><code>packages/ui/tools/cli.ts</code></a
+                    >
+                  </li>
+                  <li>
+                    python: <code>park/scripts/status.py</code>, <code>whassup/scripts/whassup.py</code>,
+                    <code>wtf/scripts/transcript.py</code>, <code>~/.claude/skills/session/scripts/session.py</code>,
+                    <code>~/.claude/skills/worktrees/scripts/worktrees.py</code>
+                  </li>
+                </ul>
+              </li>
+              <li>
+                CLI already wraps two of them as raw passthroughs: <code>spell plan-doc ...</code> ~==
+                <code>yarn plan-doc ...</code>, <code>spell goals ...</code> ~== <code>yarn goals ...</code>.
+              </li>
+              <li>
+                Skills keep much logic as PROSE only: collision checks, merge readiness, PARKED / MORNING notes, cleanup
+                candidates. Claude redoes it by hand each run; no script can, and it drifts between skills (isolate
+                merges <code>--ff-only</code>, whassup <code>--no-edit</code>).
+              </li>
+              <li>
+                Python helpers repeat each other: session registry read in 4 scripts, session title worked out 3 times,
+                main-checkout root found 5 times.
+              </li>
+            </ul>
+            <ui-accordion class="spell-aside" styled>
+              <ui-title>Aside: yarn oddities found so far</ui-title>
+              <ui-content>
+                <ul>
+                  <li>
+                    the same 8 scripts (<code>review ts lint lint:fix format format:check test test:watch</code>) copied
+                    into 10 packages, with drift (<code>;</code> vs <code>&amp;&amp;</code>, <code>yarn tsc</code> vs
+                    <code>tsc</code>)
+                  </li>
+                  <li>
+                    typecheck has three names: <code>ts</code>, <code>tsc</code> (solid-element),
+                    <code>check</code> (vscode)
+                  </li>
+                  <li>
+                    <code>serve</code> (all servers), <code>server</code> (page server), ui <code>serve</code> (smoke
+                    pages): three things
+                  </li>
+                  <li>
+                    colon vs dash (<code>docs:new</code> / <code>plan-doc</code>), noun:verb vs verb:noun (<code
+                      >docs:new</code
+                    >
+                    / <code>start:server</code>)
+                  </li>
+                  <li>
+                    misnamed: <code>test:browsers</code> installs browsers; <code>fork:install</code> is plain
+                    <code>yarn install</code>; ui <code>lint:fix</code> runs the fork's non-fix lint
+                  </li>
+                  <li>
+                    never referenced: app <code>start:server:prod</code>, spell <code>test:coverage</code> /
+                    <code>test:fixtures</code>, cli <code>spell</code>
+                  </li>
+                </ul>
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+
+          <ui-section id="o2" header="1.2 The commands doc" sticky collapsible dividing>
+            <ul>
+              <li>
+                Durable page: <code>packages/docs/dev/commands/commands.html</code> (your path), built in
+                <a href="#p2">P2</a>, not at the end.
+              </li>
+              <li>
+                Data:
+                <a href="../../templates/commands.json" target="src-packages-docs-templates-commands-json"
+                  ><code>commands.json</code></a
+                >
+                beside it, the list of operations; the page fetches it from the page server and draws the tables (<a
+                  href="#d4"
+                  >D4</a
+                >). A new template,
+                <a href="../../templates/commands.html" target="src-packages-docs-templates-commands-html"
+                  ><code>templates/commands.html</code></a
+                >, makes more such pages (<a href="#p1">P1</a>).
+              </li>
+              <li>
+                Rows: OPERATIONS ("start the servers", "merge a worktree into main"), grouped by family (worktrees,
+                sessions, plan docs, goals, docs, servers, build, check, spell language ...). ~80 rows; the copied
+                8-script yarn block one row per script (<a href="#d7">D7</a>).
+              </li>
+              <li>
+                Columns: op · CLI · skill · yarn · runs (the tool doing the work) · target (<a href="#d6">D6</a>). Each
+                surface cell one of:
+              </li>
+            </ul>
+            <ui-table celled compact unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Mark</th>
+                    <th>Means</th>
+                    <th>Example</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="yes positive">✓ <code>name</code></td>
+                    <td>does it, under the shared name</td>
+                    <td>plan doc edits: CLI <code>spell plan-doc</code> · yarn <code>plan-doc</code></td>
+                  </tr>
+                  <tr>
+                    <td class="meh warning">≈ <code>other</code></td>
+                    <td>does it, different name</td>
+                    <td>typecheck: yarn <code>ts</code> / <code>tsc</code> / <code>check</code></td>
+                  </tr>
+                  <tr>
+                    <td>○</td>
+                    <td>doesn't, but could</td>
+                    <td>CLI has no "start all servers" (<code>yarn serve</code> / <code>/spell-serve</code> do)</td>
+                  </tr>
+                  <tr>
+                    <td class="no negative">—</td>
+                    <td>couldn't really</td>
+                    <td>yarn can't ask a modal question; a skill can't run from a shell</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <ul>
+              <li>Also: a legend, counts, the oddities list, and how each surface adds a command (real code).</li>
+              <li>Agent rules distilled beside it: <code>commands.md</code> (see <a href="#o4">1.4</a>).</li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="o3" header="1.3 Target:  CLI drives everything" sticky collapsible dividing>
+            <p>Layering, top calls down:</p>
+            <ui-cards class="spell-flow" stackable>
+              <ui-card
+                ><ui-content
+                  ><ui-header>Skill</ui-header
+                  ><ui-description
+                    >Judgement + dialog only: which name, which modal, what to say. Every repo action one CLI
+                    call.</ui-description
+                  ></ui-content
+                ></ui-card
+              >
+              <ui-card
+                ><ui-content
+                  ><ui-header>yarn script</ui-header
+                  ><ui-description
+                    >Short alias for a CLI call, or the package's own build / test / lint (tool-native,
+                    stays).</ui-description
+                  ></ui-content
+                ></ui-card
+              >
+              <ui-card
+                ><ui-content
+                  ><ui-header><code>spell</code> CLI</ui-header
+                  ><ui-description
+                    >Every repo action, <code>--json</code> for skills, one help, one naming scheme.</ui-description
+                  ></ui-content
+                ></ui-card
+              >
+            </ui-cards>
+            <ul>
+              <li>
+                Example: <code>/isolate done</code>'s merge check, today ~15 lines of prose + 4 git commands, becomes
+                <code>spell dev worktree merge-check &lt;name&gt; --json</code> →
+                <code>{ready, conflicts: [...]}</code>.
+              </li>
+              <li>
+                Names: noun then verb (<code>spell dev server start</code> = yarn <code>server:start</code>); repo tools
+                under <code>spell dev</code>, spell-language verbs bare (<code>spell compile</code>) (<a href="#d2"
+                  >D2</a
+                >, <a href="#d3">D3</a>).
+              </li>
+              <li>
+                This epic: the doc, the scheme and a roadmap of moves (<a href="#d1">D1</a>); the only new CLI command
+                is the drift check, <code>spell dev commands check</code> (<a href="#p4">P4</a>), run by hand (<a
+                  href="#d8"
+                  >D8</a
+                >).
+              </li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="o4" header="1.4 AGENTS rule" sticky collapsible dividing>
+            <ul>
+              <li>
+                Root <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a
+                >, new section "Commands", plus an "if adding a command, READ ..." line at the top.
+              </li>
+              <li>
+                Triggers: Owen asks for a new skill or CLI command, or Claude is about to add a yarn script. Then:
+                <ol>
+                  <li>read <code>packages/docs/dev/commands/commands.md</code></li>
+                  <li>suggest where it belongs (CLI first), its name under the scheme, and what it would replace</li>
+                  <li>
+                    update <code>dev/commands/commands.json</code> in the same change, then
+                    <code>yarn commands:check</code>
+                  </li>
+                </ol>
+              </li>
+            </ul>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
+          <ui-icon slot="icon" name="layer group"></ui-icon>
+          <ui-progress class="plan-progress" value="1" total="6" bar-text="ratio" size="small" color="green"
+            >phases done</ui-progress
+          >
+
+          <ui-section
+            id="p1"
+            data-phase="1"
+            data-status="done"
+            header="P1 · Commands Template"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> New kind of doc: a page drawing its tables from a sibling JSON, fetched from the page
+                server</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> templates/commands.html + .json, _assets/commands.js, scripts/new-page.js,
+                scripts/check-spell.js, docs AGENTS.md, index card</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> renders from page server, notice from file://; check-spell passes; screenshots</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item
+              ><ui-item icon="gavel"><b>Judgement calls:</b>  <a href="#t2">T2</a> <a href="#t3">T3</a></ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p2"
+            data-phase="2"
+            data-status="todo"
+            header="P2 · Inventory Data"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> packages/docs/dev/commands/commands.html + commands.json: ~80 operations by family, CLI /
+                skill / yarn / runs cells</ui-item
+              ><ui-item icon="folder"><b>Files:</b> packages/docs/dev/commands/*</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> every yarn script, CLI command, skill named in the JSON; docs Finishing a page
+                1-5</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p3" data-phase="3" data-status="todo" header="P3 · Target Scheme" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> Page sections Target (layering, spell dev, noun-verb) and Roadmap; a target on every
+                row</ui-item
+              ><ui-item icon="folder"><b>Files:</b> dev/commands/commands.html, commands.json</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> no row without a target; roadmap links to rows</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p4" data-phase="4" data-status="todo" header="P4 · Drift Check" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> spell dev commands [check] [--json]: lists yarn scripts, CLI commands, skills from source;
+                check fails on names missing from / stale in commands.json</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/cli/src/commands/commandsCommand.ts, main.ts, cli.types.ts, test; root yarn
+                commands:check</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> cli yarn review green; delete a JSON row and check names it</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p5" data-phase="5" data-status="todo" header="P5 · AGENTS Rule" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> Root AGENTS.md Commands section + READ-first line; distilled commands.md; pointer in cli
+                AGENTS.md</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> AGENTS.md, packages/docs/dev/commands/commands.md, packages/cli/AGENTS.md</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> read-through; doc-links.py --check</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 30m-1h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p6" data-phase="6" data-status="todo" header="P6 · Doc Review" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> Prune plan doc; summary/Overview true to what was built; decisions to page Why, caveats to
+                Limits; docs:index</ui-item
+              ><ui-item icon="folder"><b>Files:</b> plan doc, dev/commands/commands.html</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> plan-doc check; check-spell on the page</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 30m-1h</ui-item></ui-list
+            >
+          </ui-section></ui-section
+        >
+
+        <ui-section id="decisions" header="3. Questions & Decisions" sticky collapsible dividing>
+          <ui-icon slot="icon" name="gavel"></ui-icon>
+          <p class="meta">
+            Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why:
+            settled, don't re-argue without new facts. An answered question sits just above its decision.
+          </p>
+          <ui-list class="plan-items" data-kind="decision" divided relaxed
+            ><ui-item id="q1" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q1">Q1</a> <span class="plan-title">How far does this epic go?</span>
+                  <a class="plan-answer" href="#d1">→ D1</a></ui-title
+                ><ui-content
+                  ><p>
+                    Your prompt says "start by reviewing"; the goal is CLI-drives-everything. Moving every operation is
+                    weeks of work, so where does THIS epic stop?
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A. Doc + rule + roadmap (recommended)</ui-label>
+                        <p>
+                          Inventory doc, target naming scheme, AGENTS rule, a ranked roadmap of moves. Each move later
+                          is its own small epic.
+                        </p>
+                        <p>
+                          Why recommended: you review the scheme before any renames ripple through skills, docs and
+                          muscle memory.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B. A + quick wins</ui-label>
+                        <p>
+                          Also do the cheap, safe ones now: fix misnamed yarn scripts (<code>test:browsers</code>,
+                          <code>fork:install</code>, ui <code>lint:fix</code>), drop dead ones, add CLI passthroughs for
+                          <code>window</code>, <code>server</code>, <code>serve</code>, <code>docs</code>.
+                        </p>
+                        <p>Cost: +2-3h; renames touch skills and docs that name them.</p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">C. A + first real move</ui-label>
+                        <p>
+                          Also port ONE prose-heavy chunk into the CLI end to end, e.g. worktree status / merge-check /
+                          cleanup (isolate, park, whassup share it), to prove the pattern.
+                        </p>
+                        <p>Cost: +4-6h.</p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">D. Everything</ui-label>
+                        <p>Move all ~80 operations. Many phases, many days; better as several epics.</p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d1" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d1">D1</a>
+                  <span class="plan-title"
+                    >A: doc + rule + roadmap; moves are later epics (<a href="#q1">Q1</a>)</span
+                  ></ui-title
+                ><ui-content
+                  ><p class="meta">Answers <a href="#q1">Q1</a>: How far does this epic go?</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q2" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q2">Q2</a>
+                  <span class="plan-title">Where do repo-dev commands live in the CLI?</span>
+                  <a class="plan-answer" href="#d2">→ D2</a></ui-title
+                ><ui-content
+                  ><p>
+                    <code>spell</code> today is mostly the spell LANGUAGE tool (<code>compile</code>,
+                    <code>check</code>, <code>run</code>), headed for npm (cli-additions T3). Repo tooling (worktrees,
+                    windows, plan docs, goals, servers) only works inside this checkout. Two passthroughs,
+                    <code>spell plan-doc</code> and <code>spell goals</code>, already sit at the top level.
+                  </p>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A. Flat, grouped help (recommended)</ui-label>
+                        <pre><code>spell worktree status seo
+spell plan-doc phase x 2 done
+spell compile @library/cards</code></pre>
+                        <p>
+                          One binary, shortest to type, matches what exists. Help splits "Spell" and "Repo" sections;
+                          repo commands only register inside a checkout, so a published <code>spell</code> never shows
+                          them.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B. Namespace <code>spell dev</code></ui-label>
+                        <pre><code>spell dev worktree status seo
+spell dev plan-doc phase x 2 done</code></pre>
+                        <p>
+                          Clear split, but 4 more characters on every call, and <code>spell plan-doc</code> /
+                          <code>spell goals</code> move.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">C. Second binary</ui-label>
+                        <pre><code>sp worktree status seo</code></pre>
+                        <p>Cleanest for npm; two installs, two helps, shared code needs a home.</p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d2" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d2">D2</a>
+                  <span class="plan-title"
+                    >B: repo-dev commands under spell dev &lt;noun&gt; &lt;verb&gt;; moving spell plan-doc / spell goals
+                    there goes on the roadmap (<a href="#q2">Q2</a>)</span
+                  ></ui-title
+                ><ui-content
+                  ><p class="meta">
+                    Answers <a href="#q2">Q2</a>: Where do repo-dev commands live in the CLI?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q3" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q3">Q3</a>
+                  <span class="plan-title">One naming scheme: noun then verb?</span>
+                  <a class="plan-answer" href="#d3">→ D3</a></ui-title
+                ><ui-content
+                  ><p>
+                    Today yarn mixes <code>docs:new</code> (noun:verb) with <code>start:server</code> (verb:noun),
+                    colons with dashes (<code>plan-doc</code>, <code>install-extension</code>). The CLI is
+                    <code>spell &lt;noun&gt; &lt;verb&gt;</code> for tools (<code>spell plan-doc add</code>) but bare
+                    verbs for spell itself (<code>spell compile</code>).
+                  </p>
+                  <ui-table celled compact unstackable
+                    ><table>
+                      <thead>
+                        <tr>
+                          <th>Operation</th>
+                          <th>CLI</th>
+                          <th>yarn</th>
+                          <th>skill</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>start servers</td>
+                          <td><code>spell server start</code></td>
+                          <td><code>server:start</code></td>
+                          <td><code>/spell-serve</code></td>
+                        </tr>
+                        <tr>
+                          <td>new doc page</td>
+                          <td><code>spell docs new</code></td>
+                          <td><code>docs:new</code></td>
+                          <td>—</td>
+                        </tr>
+                        <tr>
+                          <td>build extension</td>
+                          <td><code>spell vscode build</code></td>
+                          <td><code>vscode:build</code></td>
+                          <td>—</td>
+                        </tr>
+                        <tr>
+                          <td>compile spell</td>
+                          <td><code>spell compile</code></td>
+                          <td>(none)</td>
+                          <td>—</td>
+                        </tr>
+                      </tbody>
+                    </table></ui-table
+                  >
+                  <ul>
+                    <li>
+                      <b>Recommended:</b> noun then verb everywhere (CLI words = yarn <code>noun:verb</code>, dashes
+                      inside a word); spell-language verbs stay bare, since <code>spell</code> IS the noun.
+                    </li>
+                    <li>
+                      Skills keep their short names (<code>/isolate</code>, <code>/park</code>): they are workflows, not
+                      operations; the doc maps each to the CLI calls it makes.
+                    </li>
+                    <li>
+                      Alternative: verb then noun (<code>spell start server</code>, <code>start:server</code>): reads
+                      like English, but groups badly in help and tab-completion.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d3" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d3">D3</a>
+                  <span class="plan-title"
+                    >Noun then verb: spell dev server start = yarn server:start; spell-language verbs stay bare; skills
+                    keep short names (<a href="#q3">Q3</a>)</span
+                  ></ui-title
+                ><ui-content
+                  ><p class="meta">Answers <a href="#q3">Q3</a>: One naming scheme: noun then verb?</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q4" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q4">Q4</a> <span class="plan-title">How does the doc stay true?</span>
+                  <a class="plan-answer" href="#d4">→ D4</a></ui-title
+                ><ui-content
+                  ><p>170 yarn scripts, 20 CLI commands and 21 skills will keep changing; a hand-kept table drifts.</p>
+                  <ui-grid class="spell-pros-cons" columns="2" stackable
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">A. Hand-written + drift check (recommended)</ui-label>
+                        <p>
+                          Page stays hand-authored HTML (rows are operations, which need judgement). A check lists every
+                          yarn script, CLI command and skill from their sources and fails on any name the page never
+                          mentions:
+                        </p>
+                        <pre><code>$ spell commands check
+missing from commands.html:
+  yarn ui test:hmr
+  skill /wakeup</code></pre>
+                        <p>Run in <code>yarn review</code> for docs.</p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">B. Generated from data</ui-label>
+                        <p>
+                          A
+                          <a href="../../templates/commands.json" target="src-packages-docs-templates-commands-json"
+                            ><code>commands.json</code></a
+                          >
+                          of rows renders the table. Never drifts in format, but every edit is JSON, and the prose (why,
+                          target) fits badly.
+                        </p></ui-segment
+                      ></ui-column
+                    ><ui-column
+                      ><ui-segment
+                        ><ui-label attached="top">C. Hand-written only</ui-label>
+                        <p>
+                          The AGENTS rule alone keeps it current. Cheapest; drifts the first time someone forgets.
+                        </p></ui-segment
+                      ></ui-column
+                    ></ui-grid
+                  ></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d4" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d4">D4</a>
+                  <span class="plan-title"
+                    >A docs template whose page reads a JSON list of commands, fetched from the page server; file://
+                    shows a notice (exception to the open-from-disk rule) (<a href="#q4">Q4</a>)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Owen's answer: make a docs template for it, JSON file for the list of commands which it reads.
+                    Follow-up: page server only, over rendering into the page or a classic data script. Drift check:
+                    manual only (<code>yarn commands:check</code>), not in any review.
+                  </p>
+                  <p class="meta">Answers <a href="#q4">Q4</a>: How does the doc stay true?</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q5" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q5">Q5</a> <span class="plan-title">Which skills count?</span>
+                  <a class="plan-answer" href="#d5">→ D5</a></ui-title
+                ><ui-content
+                  ><p>
+                    Repo skills (<a href="../../../../.claude/skills/" target="src-claude-skills"
+                      ><code>.claude/skills/</code></a
+                    >, 12) are in. The user-level ones in <code>~/.claude/skills/</code> are mixed:
+                  </p>
+                  <ui-table celled compact unstackable
+                    ><table>
+                      <thead>
+                        <tr>
+                          <th>Skill</th>
+                          <th>Really</th>
+                          <th>Proposed</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>
+                            <code>goals</code>, <code>goals-open</code>, <code>goals-open-vs</code>,
+                            <code>goals-thought</code>, <code>goals-update</code>
+                          </td>
+                          <td>
+                            symlinks into this repo (<a href="../../../../goals/_skills/" target="src-goals-skills"
+                              ><code>goals/_skills/</code></a
+                            >); need its <code>tsx</code>, page server, extension
+                          </td>
+                          <td class="yes positive">in</td>
+                        </tr>
+                        <tr>
+                          <td><code>session</code>, <code>worktrees</code></td>
+                          <td>
+                            user-level, but repo skills call their scripts (<code>/isolate done</code> parses
+                            <code>worktrees.py</code>); share code with <code>status.py</code>
+                          </td>
+                          <td class="yes positive">in</td>
+                        </tr>
+                        <tr>
+                          <td><code>graphify</code></td>
+                          <td>third-party, generic</td>
+                          <td class="no negative">out</td>
+                        </tr>
+                        <tr>
+                          <td><code>solid-2</code></td>
+                          <td>reference only, runs nothing</td>
+                          <td class="meh warning">listed, no row</td>
+                        </tr>
+                      </tbody>
+                    </table></ui-table
+                  >
+                  <p>
+                    <b>Recommended:</b> as the table. Moving <code>session</code> / <code>worktrees</code> logic into
+                    <code>spell</code> makes them depend on a checkout; the skills can fall back to their python when no
+                    <code>spell</code> is on PATH.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d5" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d5">D5</a>
+                  <span class="plan-title"
+                    >Repo skills + goals* + session / worktrees in; graphify out; solid-2 listed, no row (<a href="#q5"
+                      >Q5</a
+                    >)</span
+                  ></ui-title
+                ><ui-content
+                  ><p class="meta">Answers <a href="#q5">Q5</a>: Which skills count?</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d6" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d6">D6</a>
+                  <span class="plan-title"
+                    >Rows are operations, not commands; columns op / CLI / skill / yarn / runs / target</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Bedtime answer: add a <b>runs</b> column for the tool doing the work (<code>window.mjs</code>,
+                    <code>status.py</code>, prose ...), since the roadmap is mostly about moving those into the CLI.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d7" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d7">D7</a>
+                  <span class="plan-title">The copied 8-script block gets one row per script</span></ui-title
+                ><ui-content
+                  ><p>
+                    8 rows (<code>review ts lint lint:fix format format:check test test:watch</code>); the yarn cell
+                    lists the packages and the odd names (<code>tsc</code> in solid-element, <code>check</code> in
+                    vscode).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d8" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d8">D8</a>
+                  <span class="plan-title">Drift check is manual only</span></ui-title
+                ><ui-content
+                  ><p>
+                    <code>yarn commands:check</code> (runs <code>spell dev commands check</code>); not wired into any
+                    <code>review</code>. The AGENTS rule says to run it. Chosen at bedtime over root review / docs
+                    review.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d9" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d9">D9</a>
+                  <span class="plan-title"
+                    >Tools stay put this epic; durable page built in P2 at Owen's path</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    <code>goals.js</code>, <code>window.mjs</code> and the python scripts stay where they are; the
+                    roadmap says which move into
+                    <a href="../../../cli/" target="src-packages-cli"><code>packages/cli</code></a
+                    >. The page lives at <code>packages/docs/dev/commands/</code> from P2 on; the plan doc stays the
+                    record. Agents: up to 5.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="caveats" header="4. Caveats" sticky collapsible dividing>
+          <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
+          <ui-list class="plan-items" data-kind="caveat" divided relaxed
+            ><ui-item id="c1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c1">C1</a>
+                  <span class="plan-title">Commands page needs the page server</span></ui-title
+                ><ui-content
+                  ><p>
+                    It fetches its JSON; from <code>file://</code> it shows a notice instead of the tables. Owen's
+                    choice (<a href="#d4">D4</a>).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c2">C2</a>
+                  <span class="plan-title">spell symlink points at ONE checkout</span></ui-title
+                ><ui-content
+                  ><p>
+                    <code>yarn cli:install</code> links <code>spell</code> to one checkout (normally main).
+                    <code>spell dev</code> commands must find the nearest checkout from the cwd, as
+                    <code>spell plan-doc</code> / <code>spell goals</code> do.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c3">C3</a>
+                  <span class="plan-title">CLI startup ~0.5s (tsx)</span></ui-title
+                ><ui-content
+                  ><p>
+                    Fine for a person; adds up in a skill that calls <code>spell</code> many times per run. Roadmap
+                    item: the single-file bundle (cli-additions T2).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c4">C4</a>
+                  <span class="plan-title">Commands filter doesn't touch the contents sidebar</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Typing in the filter hides rows and empty families, but the contents column still lists every
+                    family. The runtime's own filter (<code>wireFilter()</code>) only knows cheat-sheet cards. Fix with
+                    the runtime hook in <a href="#t2">T2</a>, if that's chosen.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="todos" header="5. Todos" sticky collapsible dividing>
+          <ui-icon slot="icon" name="list check"></ui-icon>
+          <p class="meta">For later: not caveats, not issues.</p>
+          <ui-list class="plan-items" data-kind="todo" divided relaxed
+            ><ui-item id="t1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t1">T1</a>
+                  <span class="plan-title">P6 stops before isolate Finish</span></ui-title
+                ><ui-content
+                  ><p>
+                    Bedtime never merges. After <code>/wakeup</code>: <code>/isolate done</code> to merge
+                    <code>commands</code> into <code>main</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t2">T2</a>
+                  <span class="plan-title">Review: commands.js boots the bundle itself</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The runtime builds the contents sidebar, rail and sticky titles once, at start, from the sections in
+                    <code>main</code>; fetched families must be in the page first. <b>Chose:</b> the page loads
+                    <a href="../../_assets/commands.js" target="src-packages-docs-assets-commands-js"
+                      ><code>_assets/commands.js</code></a
+                    >
+                    instead of
+                    <a href="../../_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                      ><code>spell-ui.js</code></a
+                    >; it draws, then adds the bundle's script tag. <b>Over:</b> a hook in
+                    <a href="../../_assets/spell-doc-runtime.js" target="src-packages-docs-assets-spell-doc-runtime-js"
+                      ><code>spell-doc-runtime.js</code></a
+                    >
+                    that waits for a page's promise before starting: cleaner for future data pages, but it lives in the
+                    generated bundle, and rebuilding that means a full UI build plus a big generated diff. Easy to
+                    switch later.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t3">T3</a>
+                  <span class="plan-title">Review: family icons only from the bundled set</span> </ui-title
+                ><ui-content
+                  ><p>
+                    An icon must be in <code>ICONS</code> (<a
+                      href="../../scripts/bundle-spell-ui.js"
+                      target="src-packages-docs-scripts-bundle-spell-ui-js"
+                      ><code>scripts/bundle-spell-ui.js</code></a
+                    >) or it draws nothing, and adding one means rebuilding the bundle. <b>Chose:</b> template and
+                    families use icons already bundled (<code>folder</code>, <code>list check</code>,
+                    <code>book open</code>, <code>code branch</code> ...). <b>Over:</b> adding <code>database</code>,
+                    <code>list</code>, <code>book</code> with a bundle rebuild.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="issues" header="6. Issues" sticky collapsible dividing>
+          <ui-icon slot="icon" name="bug"></ui-icon>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="log" header="7. Log" sticky collapsible dividing>
+          <ui-icon slot="icon" name="clock rotate left"></ui-icon>
+          <p class="meta">Plan changes, oldest first, local time.</p>
+          <ui-feed class="plan-log" size="small">
+            <ui-event icon="pen to square">
+              <ui-content>
+                <ui-summary
+                  ><ui-date><time datetime="2026-10-02T23:45-04:00">2026-10-02 23:45</time></ui-date> plan doc
+                  created</ui-summary
+                >
+              </ui-content>
+            </ui-event>
+            <ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:03-04:00">2026-10-03 00:03</time></ui-date> P1 added: Commands
+                  Template</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:03-04:00">2026-10-03 00:03</time></ui-date> P2 added:
+                  Inventory Data</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:03-04:00">2026-10-03 00:03</time></ui-date> P3 added: Target
+                  Scheme</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:03-04:00">2026-10-03 00:03</time></ui-date> P4 added: Drift
+                  Check</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:03-04:00">2026-10-03 00:03</time></ui-date> P5 added: AGENTS
+                  Rule</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:03-04:00">2026-10-03 00:03</time></ui-date> P6 added: Doc
+                  Review</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:03-04:00">2026-10-03 00:03</time></ui-date> Q1 answered: D1 A:
+                  doc + rule + roadmap; moves are later epics</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:03-04:00">2026-10-03 00:03</time></ui-date> Q2 answered: D2 B:
+                  repo-dev commands under spell dev &lt;noun&gt; &lt;verb&gt;; moving spell plan-doc / spell goals there
+                  goes on the roadmap</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:03-04:00">2026-10-03 00:03</time></ui-date> Q3 answered: D3
+                  Noun then verb: spell dev server start = yarn server:start; spell-language verbs stay bare; skills
+                  keep short names</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:03-04:00">2026-10-03 00:03</time></ui-date> Q4 answered: D4 A
+                  docs template whose page reads a JSON list of commands, fetched from the page server; file:// shows a
+                  notice (exception to the open-from-disk rule)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:03-04:00">2026-10-03 00:03</time></ui-date> Q5 answered: D5
+                  Repo skills + goals* + session / worktrees in; graphify out; solid-2 listed, no row</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:05-04:00">2026-10-03 00:05</time></ui-date> P1
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:11-04:00">2026-10-03 00:11</time></ui-date> P1
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:11-04:00">2026-10-03 00:11</time></ui-date> P1 done:
+                  templates/commands.html + .json, _assets/commands.js (draws from JSON, boots bundle), docs:new
+                  commands, check-spell server mode, docs AGENTS; checks: docs lint/ts/test green, check-spell ok on
+                  template</ui-summary
+                ></ui-content
+              ></ui-event
+            ></ui-feed
+          >
+        </ui-section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../_assets/spell-ui.js"></script>
+  </body>
+</html>
