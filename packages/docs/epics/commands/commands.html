@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Commands: CLI, skills, yarn</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p2">next: P2 · Inventory Data</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p3">next: P3 · Target Scheme</ui-label></span
             >
           </header></ui-sticky
         >
@@ -47,9 +47,11 @@
           <ui-icon slot="icon" name="lightbulb"></ui-icon>
           <p class="plan-summary lede">
             A new docs template draws a command reference from a JSON list; its first page,
-            <code>packages/docs/dev/commands/</code>, maps every operation to CLI / skill / yarn / the tool that runs
-            it. Then one naming scheme (noun then verb, repo tools under <code>spell dev</code>), a roadmap toward "CLI
-            drives everything", a drift check and an AGENTS rule that keeps the page current.
+            <a href="../../dev/commands/" target="src-packages-docs-dev-commands"
+              ><code>packages/docs/dev/commands/</code></a
+            >, maps every operation to CLI / skill / yarn / the tool that runs it. Then one naming scheme (noun then
+            verb, repo tools under <code>spell dev</code>), a roadmap toward "CLI drives everything", a drift check and
+            an AGENTS rule that keeps the page current.
           </p>
           <blockquote class="plan-prompt">
             <p>
@@ -68,7 +70,7 @@
               you create a new yarn script to solve some problem. Instruct it to keep that doc up to date.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 7h-12h in all, 5h-9h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 7h-12h in all, 3h-6h left</p>
           <ui-section id="o1" header="1.1 What exists today" sticky collapsible dividing>
             <p>Three ways to make the repo do something, grown separately:</p>
             <ui-table celled compact striped unstackable>
@@ -200,8 +202,11 @@
           <ui-section id="o2" header="1.2 The commands doc" sticky collapsible dividing>
             <ul>
               <li>
-                Durable page: <code>packages/docs/dev/commands/commands.html</code> (your path), built in
-                <a href="#p2">P2</a>, not at the end.
+                Durable page:
+                <a href="../../dev/commands/commands.html" target="src-packages-docs-dev-commands-commands-html"
+                  ><code>packages/docs/dev/commands/commands.html</code></a
+                >
+                (your path), built in <a href="#p2">P2</a>, not at the end.
               </li>
               <li>
                 Data:
@@ -329,7 +334,11 @@
                   <li>read <code>packages/docs/dev/commands/commands.md</code></li>
                   <li>suggest where it belongs (CLI first), its name under the scheme, and what it would replace</li>
                   <li>
-                    update <code>dev/commands/commands.json</code> in the same change, then
+                    update
+                    <a href="../../dev/commands/commands.json" target="src-packages-docs-dev-commands-commands-json"
+                      ><code>dev/commands/commands.json</code></a
+                    >
+                    in the same change, then
                     <code>yarn commands:check</code>
                   </li>
                 </ol>
@@ -340,11 +349,12 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="1" total="6" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="2" total="6" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
           <ui-section
+            collapsed
             id="p1"
             data-phase="1"
             data-status="done"
@@ -364,19 +374,21 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> renders from page server, notice from file://; check-spell passes; screenshots</ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item
-              ><ui-item icon="gavel"><b>Judgement calls:</b>  <a href="#t2">T2</a> <a href="#t3">T3</a></ui-item></ui-list
+              ><ui-item icon="gavel"
+                ><b>Judgement calls:</b> <a href="#t2">T2</a> <a href="#t3">T3</a></ui-item
+              ></ui-list
             >
           </ui-section>
           <ui-section
             id="p2"
             data-phase="2"
-            data-status="todo"
+            data-status="done"
             header="P2 · Inventory Data"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> packages/docs/dev/commands/commands.html + commands.json: ~80 operations by family, CLI /
@@ -385,7 +397,8 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> every yarn script, CLI command, skill named in the JSON; docs Finishing a page
                 1-5</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
+              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item
+              ><ui-item icon="gavel"><b>Judgement calls:</b> <a href="#t4">T4</a></ui-item></ui-list
             >
           </ui-section>
           <ui-section id="p3" data-phase="3" data-status="todo" header="P3 · Target Scheme" sticky collapsible dividing>
@@ -833,8 +846,11 @@ missing from commands.html:
                     <code>goals.js</code>, <code>window.mjs</code> and the python scripts stay where they are; the
                     roadmap says which move into
                     <a href="../../../cli/" target="src-packages-cli"><code>packages/cli</code></a
-                    >. The page lives at <code>packages/docs/dev/commands/</code> from P2 on; the plan doc stays the
-                    record. Agents: up to 5.
+                    >. The page lives at
+                    <a href="../../dev/commands/" target="src-packages-docs-dev-commands"
+                      ><code>packages/docs/dev/commands/</code></a
+                    >
+                    from P2 on; the plan doc stays the record. Agents: up to 5.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -955,6 +971,20 @@ missing from commands.html:
                     families use icons already bundled (<code>folder</code>, <code>list check</code>,
                     <code>book open</code>, <code>code branch</code> ...). <b>Over:</b> adding <code>database</code>,
                     <code>list</code>, <code>book</code> with a bundle rebuild.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t4">T4</a>
+                  <span class="plan-title">Review: 227 rows, not ~80</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Agents went finer than planned: each <code>plan-doc</code> / <code>goals</code> subcommand, each
+                    copied yarn script, each spell-language command is its own row. <b>Chose:</b> keep them (every name
+                    sits in an obvious row; the filter finds things). <b>Over:</b> merging into ~80 coarse rows, which
+                    hides naming drift inside one cell. Easy to merge rows in <code>commands.json</code> later.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1080,6 +1110,28 @@ missing from commands.html:
                   templates/commands.html + .json, _assets/commands.js (draws from JSON, boots bundle), docs:new
                   commands, check-spell server mode, docs AGENTS; checks: docs lint/ts/test green, check-spell ok on
                   template</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:12-04:00">2026-10-03 00:12</time></ui-date> P2
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:21-04:00">2026-10-03 00:21</time></ui-date> P2
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:21-04:00">2026-10-03 00:21</time></ui-date> P2 done:
+                  dev/commands/commands.html + commands.json, 227 operations in 13 families; checks: every one of 205
+                  yarn / CLI / skill names covered, none stale; check-spell ok; doc-links ok</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
