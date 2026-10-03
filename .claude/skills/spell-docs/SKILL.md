@@ -6,6 +6,9 @@ argument-hint: "[page]"
 
 # /spell-docs
 
+0. FIRST start the servers, as `/spell-serve` does:  `yarn serve` in the checkout this session is in.  It starts
+   what isn't running (page server, editor, Spell UI's docs) and prints their ports;  a failed row:  say so in one
+   line, with `/spell-serve`'s advice, and go on -- the docs need only the page server.
 1. From the checkout this session is in (a worktree shows ITS docs):  `yarn docs:open $ARGUMENTS --vs`.
    - No argument:  the docs index, `packages/docs/index.html` (the page server's `/`).
    - `<page>` is relative to `packages/docs`;  `.html` and a folder's own page may be left off (`solid/solid-2`,
@@ -19,4 +22,5 @@ argument-hint: "[page]"
 2. `no page <page>`:  `ls packages/docs` (and the folder it named), offer the closest in AskUserQuestion, run again.
 3. Nothing shows up (it fell back to the `vscode://` link, or the window has no bridge):  `yarn vscode`, reload
    the window, try again.  Meanwhile `yarn docs:open [page]` shows it in Chrome.
-4. Reply in one line, the page linked on the page server (`yarn server url <ABSOLUTE path>`).
+4. Reply in one line, the page linked on the page server (`yarn server url <ABSOLUTE path>`), then the servers'
+   ports from step 0 (page server, editor, Spell UI) on one more line.

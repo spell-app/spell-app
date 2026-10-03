@@ -152,6 +152,17 @@
                     <td><code>ensure</code>, then print the URL serving <code>file</code></td>
                   </tr>
                   <tr>
+                    <td><code>yarn serve</code></td>
+                    <td>
+                      every server of the checkout, started if need be: <code>ensure</code>, wait for the editor, ask
+                      for <code>/ui/</code> (which starts <code>astro dev</code>); prints each one's port and URL (<a
+                        href="../../scripts/serve.mjs"
+                        target="src-scripts-serve-mjs"
+                        ><code>scripts/serve.mjs</code></a
+                      >, <code>/spell-serve</code>)
+                    </td>
+                  </tr>
+                  <tr>
                     <td><code>spell serve [target]</code></td>
                     <td>
                       everything: the page server, whose app route module runs the API and the editor (vite); waits for
@@ -731,8 +742,10 @@
                 >.
               </li>
               <li>
-                Once vite answers, the module records it in <code>.spell-server.editor.json</code>: the page server's
-                <code>/editor</code> redirects there.
+                Once vite answers, the module records it in
+                <a href="../../.spell-server.editor.json" target="src-spell-server-editor-json"
+                  ><code>.spell-server.editor.json</code></a
+                >: the page server's <code>/editor</code> redirects there.
               </li>
               <li>
                 <code>spell serve</code> waits (up to 90s) for that record to answer; opens the editor, unless
