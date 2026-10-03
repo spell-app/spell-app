@@ -1,0 +1,1 @@
+{"nodes": [{"id": "$graphify-root$_packages_ui_site_src_components_tokentable_astro", "label": "TokenTable.astro", "file_type": "code", "source_file": "packages/ui/site/src/components/TokenTable.astro", "source_location": "L1"}], "edges": [], "raw_calls": [], "parse_errors": {"first_error_line": 10, "multiline_error": true}}
