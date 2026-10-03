@@ -9,10 +9,30 @@ import python from "highlight.js/lib/languages/python"
 import typescript from "highlight.js/lib/languages/typescript"
 import xml from "highlight.js/lib/languages/xml"
 import yaml from "highlight.js/lib/languages/yaml"
+import cLanguage from "highlight.js/lib/languages/c"
+import cppLanguage from "highlight.js/lib/languages/cpp"
+import csharpLanguage from "highlight.js/lib/languages/csharp"
+import diffLanguage from "highlight.js/lib/languages/diff"
+import dockerfileLanguage from "highlight.js/lib/languages/dockerfile"
+import goLanguage from "highlight.js/lib/languages/go"
+import graphqlLanguage from "highlight.js/lib/languages/graphql"
+import iniLanguage from "highlight.js/lib/languages/ini"
+import javaLanguage from "highlight.js/lib/languages/java"
+import kotlinLanguage from "highlight.js/lib/languages/kotlin"
+import lessLanguage from "highlight.js/lib/languages/less"
+import luaLanguage from "highlight.js/lib/languages/lua"
+import makefileLanguage from "highlight.js/lib/languages/makefile"
+import phpLanguage from "highlight.js/lib/languages/php"
+import powershellLanguage from "highlight.js/lib/languages/powershell"
+import rubyLanguage from "highlight.js/lib/languages/ruby"
+import rustLanguage from "highlight.js/lib/languages/rust"
+import scssLanguage from "highlight.js/lib/languages/scss"
+import shellLanguage from "highlight.js/lib/languages/shell"
+import sqlLanguage from "highlight.js/lib/languages/sql"
+import swiftLanguage from "highlight.js/lib/languages/swift"
 
-import type { CodeGrammar } from "$/ui/core"
-
-import { PLAINTEXT } from "./ui-code.types"
+// Import directly:  see the class docs
+import { SourceError, type CodeGrammar } from "$/ui/runtime/runtime.types"
 
 /** A highlight.js language function, as its modules export it. */
 type LanguageFn = Parameters<typeof core.registerLanguage>[1]
@@ -22,10 +42,16 @@ type LanguageFn = Parameters<typeof core.registerLanguage>[1]
  * highlight.js, in `<ui-code>`'s LAZY chunk:  imported by `CodeHighlighter` on the first highlight, so a page pays
  * for it only when it shows code.
  * - Its own instance (`newInstance()`):  a page's global `hljs` (the docs pages load one) is never touched.
- * - The DETECT SET is built in (~20 kB):  what auto-detection chooses from, and what most pages show.  Every other
- *   language in `MORE` loads by name on first use, one chunk each (literal `import()`s:  the docs' single-file
- *   bundle can see them, and no variable `import()` drags Rolldown's helper into the chunk).
+ * - The DETECT SET:  what auto-detection chooses from, and what most pages show.  `MORE` languages are in the chunk
+ *   too, registered by name on first use (one chunk each would split Rolldown's runtime off, see below).
  * - Languages registered through `UI.code` join here when first used (`register()`).
+ * - NEVER a value import but highlight.js and `SourceError`:  the docs bundler builds this file ALONE into a
+ *   classic script (`CodeHighlighter.engineLoader`), which mustn't drag the family in again.
+ * - Imports `SourceError` straight from `$/ui/runtime/runtime.types` (built into `core.js`), and USES it:  a lazy
+ *   chunk that needs Rolldown's helpers (`__name`, from `keepNames`) without depending on core makes Rolldown split
+ *   them into a `rolldown-runtime-<hash>.js` EVERY page loads (`yarn measure`'s `runtimeChunks`;  see
+ *   `runtime/TemporalPolyfill.ts`).  Straight, not through `$/ui/core`:  the docs bundler builds this file alone, and
+ *   `runtime.types` is all it may pull in.
  ****************/
 export class CodeEngine {
   /** Built-in languages auto-detection chooses from. */
@@ -41,29 +67,33 @@ export class CodeEngine {
     yaml
   }
 
-  /** Languages loaded on first use, by highlight.js name. */
-  static readonly MORE: Readonly<Record<string, () => Promise<{ default: LanguageFn }>>> = {
-    c: () => import("highlight.js/lib/languages/c"),
-    cpp: () => import("highlight.js/lib/languages/cpp"),
-    csharp: () => import("highlight.js/lib/languages/csharp"),
-    diff: () => import("highlight.js/lib/languages/diff"),
-    dockerfile: () => import("highlight.js/lib/languages/dockerfile"),
-    go: () => import("highlight.js/lib/languages/go"),
-    graphql: () => import("highlight.js/lib/languages/graphql"),
-    ini: () => import("highlight.js/lib/languages/ini"),
-    java: () => import("highlight.js/lib/languages/java"),
-    kotlin: () => import("highlight.js/lib/languages/kotlin"),
-    less: () => import("highlight.js/lib/languages/less"),
-    lua: () => import("highlight.js/lib/languages/lua"),
-    makefile: () => import("highlight.js/lib/languages/makefile"),
-    php: () => import("highlight.js/lib/languages/php"),
-    powershell: () => import("highlight.js/lib/languages/powershell"),
-    ruby: () => import("highlight.js/lib/languages/ruby"),
-    rust: () => import("highlight.js/lib/languages/rust"),
-    scss: () => import("highlight.js/lib/languages/scss"),
-    shell: () => import("highlight.js/lib/languages/shell"),
-    sql: () => import("highlight.js/lib/languages/sql"),
-    swift: () => import("highlight.js/lib/languages/swift")
+  /** highlight.js's name for no colouring (`language="text"`). */
+  static readonly PLAINTEXT = "plaintext"
+
+  /** Languages registered on first use, by highlight.js name (in this chunk too:  each its own chunk would
+   * split Rolldown's runtime off, see the class docs). */
+  static readonly MORE: Readonly<Record<string, LanguageFn>> = {
+    c: cLanguage,
+    cpp: cppLanguage,
+    csharp: csharpLanguage,
+    diff: diffLanguage,
+    dockerfile: dockerfileLanguage,
+    go: goLanguage,
+    graphql: graphqlLanguage,
+    ini: iniLanguage,
+    java: javaLanguage,
+    kotlin: kotlinLanguage,
+    less: lessLanguage,
+    lua: luaLanguage,
+    makefile: makefileLanguage,
+    php: phpLanguage,
+    powershell: powershellLanguage,
+    ruby: rubyLanguage,
+    rust: rustLanguage,
+    scss: scssLanguage,
+    shell: shellLanguage,
+    sql: sqlLanguage,
+    swift: swiftLanguage
   }
 
   /** Other names for `MORE` languages, before they're loaded (loaded ones answer their own aliases). */
@@ -97,13 +127,14 @@ export class CodeEngine {
 
   private constructor() {
     for (const [name, language] of Object.entries(CodeEngine.DETECT_SET)) this.hljs.registerLanguage(name, language)
-    this.hljs.registerLanguage(PLAINTEXT, plaintext)
+    this.hljs.registerLanguage(CodeEngine.PLAINTEXT, plaintext)
     this.hljs.configure({ ignoreUnescapedHTML: true })
   }
 
   /** Add (or replace) grammar `name`;  `detect` makes auto-detection consider it. */
   register(name: string, grammar: CodeGrammar, options: { aliases?: readonly string[]; detect?: boolean } = {}) {
     if (this.grammars.get(name) === grammar) return
+    if (typeof grammar !== "function") throw new SourceError("render", `"${name}" isn't a highlight.js grammar`)
     this.grammars.set(name, grammar)
     this.hljs.registerLanguage(name, grammar as LanguageFn)
     if (options.aliases?.length) this.hljs.registerAliases([...options.aliases], { languageName: name })
@@ -119,9 +150,9 @@ export class CodeEngine {
     const known = this.hljs.getLanguage(key)
     if (known) return this.canonical(key)
     const name = CodeEngine.MORE_ALIASES[key] ?? key
-    const loader = CodeEngine.MORE[name]
-    if (!loader) return undefined
-    this.hljs.registerLanguage(name, (await loader()).default)
+    const grammar = CodeEngine.MORE[name]
+    if (!grammar) return undefined
+    this.hljs.registerLanguage(name, grammar)
     return name
   }
 

@@ -25,9 +25,7 @@
           ><header class="spell-page-head">
             <h1>UI Import</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p6"
-                >next: P6 · Server Save + Docs</ui-label
-              ></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p7">next: P7 · Doc Review</ui-label></span
             >
           </header></ui-sticky
         >
@@ -69,7 +67,7 @@
               language.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 11h-15h 30m in all, 2h 30m-3h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 11h-15h 30m in all, 1h left</p>
           <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
             <ul>
               <li>
@@ -677,7 +675,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="5" total="7" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="6" total="7" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -775,6 +773,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p5"
             data-phase="5"
             data-status="done"
@@ -798,13 +797,13 @@
           <ui-section
             id="p6"
             data-phase="6"
-            data-status="todo"
+            data-status="done"
             header="P6 · Server Save + Docs"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> PageEditor PUT for text files, SPELL_SERVER.saveFile, docs-runtime saver; docs bundle
@@ -962,7 +961,10 @@
                     parser/spell."
                     <a href="../../../spell/" target="src-packages-spell"><code>packages/spell</code></a> builds
                     <code>spell-highlight.&lt;lang&gt;.js</code>; <code>ui</code> ships it in
-                    <code>dist/languages/</code> and loads it by URL. See <a href="#o5">1.5</a>, <a href="#p4">P4</a>.
+                    <a href="../../../ui/dist/languages/" target="src-packages-ui-dist-languages"
+                      ><code>dist/languages/</code></a
+                    >
+                    and loads it by URL. See <a href="#o5">1.5</a>, <a href="#p4">P4</a>.
                   </p>
                   <p class="meta">
                     Answers <a href="#q4">Q4</a>: How does &lt;ui-code&gt; highlight spell, given ui may not import
@@ -1075,7 +1077,8 @@
                 ><ui-content
                   ><p>
                     A glob works the same under Vite dev, the tests and the lib build (the chunk ships in
-                    <code>dist/</code>), with no URL to configure.
+                    <a href="../../../ui/dist/" target="src-packages-ui-dist"><code>dist/</code></a
+                    >), with no URL to configure.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1128,6 +1131,82 @@
               <span class="plan-title"
                 >&lt;ui-markdown&gt;'s heading-offset property is headingLevelOffset: WebKit's native
                 HTMLElement.headingOffset (HTML's new headingoffset) can't be shadowed</span
+              > </ui-item
+            ><ui-item id="d24" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d24">D24</a>
+                  <span class="plan-title"
+                    >The page server serves a script's fetch() (Sec-Fetch-Dest: empty) the file AS IS: no injected
+                    live-reload tags</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Found while wiring the save: every served <code>.html</code> gets
+                    <code>window.SPELL_SERVER</code> and <code>/_server/live.js</code> injected, so an include would
+                    have shown them and a save would have written them into the file. Navigations, scripts and module
+                    imports still get the hooks.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d25" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d25">D25</a>
+                  <span class="plan-title"
+                    >PUT /_server/page writes text files (.md, .ts, .js, .css, .spell, .txt, .yaml, .svg ...), NOT
+                    .json; PATCH stays pages-only</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>.json</code> is config, not content:
+                    <a href="../../../../package.json" target="src-package-json"><code>package.json</code></a> holds the
+                    page server's own settings (the existing test refuses it, and still does).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d26" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d26">D26</a>
+                  <span class="plan-title"
+                    >Docs pages keep the engines lazy: each is its own classic script, _assets/lazy/&lt;name&gt;.js,
+                    which UI's loader hooks (CodeHighlighter.engineLoader, MarkdownRenderer.engineLoader,
+                    SpellLanguage.bundleLoader) load on first use</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Like the emoji chunks: a classic script can't keep <code>import()</code>s, and inlining them would
+                    have put ~210 kB (gzip) into every docs page.
+                    <a href="../../_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                      ><code>spell-ui.js</code></a
+                    >
+                    grew ~11 kB for the three families.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d27" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d27">D27</a>
+                  <span class="plan-title"
+                    >Each lazy engine chunk imports SourceError from runtime.types and uses it, anchoring it to core: no
+                    rolldown-runtime chunk (yarn measure's runtimeChunks)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The <code>TemporalPolyfill</code> fix, for the same reason. So highlight.js's extra languages live
+                    IN the engine chunk (one chunk each would split the runtime off again), and spell's bundle loads
+                    through a generated wrapper, <code>src/languages/spell.&lt;lang&gt;.ts</code>, around
+                    <code>spell.&lt;lang&gt;.bundle.js</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d28" data-status="decided"
+              ><a class="plan-id" href="#d28">D28</a>
+              <span class="plan-title"
+                >Savers may throw { kind, message, status } (a page's classic script can't import SourceError);
+                UI.sources turns it into a SourceError</span
               >
             </ui-item></ui-list
           >
@@ -1151,12 +1230,12 @@
               <span class="plan-title"
                 >file:// pages can't load source (fetch blocked): the error message says so</span
               ></ui-item
-            ><ui-item id="c4" data-status="open"
+            ><ui-item id="c4" data-status="done"
               ><a class="plan-id" href="#c4">C4</a>
               <span class="plan-title"
                 >Docs bundle inlines lazy import()s: P6 must keep the engine chunks lazy or spell-ui.js grows ~50
                 kB</span
-              ></ui-item
+              > </ui-item
             ><ui-item id="c5" data-status="open"
               ><a class="plan-id" href="#c5">C5</a>
               <span class="plan-title"
@@ -1212,6 +1291,12 @@
               <span class="plan-title"
                 >Headings inside markdown join the page outline: heading-offset fits them under the page's own (axe
                 heading-order)</span
+              > </ui-item
+            ><ui-item id="c15" data-status="open"
+              ><a class="plan-id" href="#c15">C15</a>
+              <span class="plan-title"
+                >&lt;ui-code&gt;'s engine chunk is 54 kB gzipped (highlight.js + 30 languages), loaded with the first
+                code shown; the docs' copy 49 kB</span
               >
             </ui-item></ui-list
           >
@@ -1505,6 +1590,36 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T21:07-04:00">2026-10-02 21:07</time></ui-date> P5 done:
                   &lt;ui-markdown&gt;, 19 tests, Mac visual baselines; full local visual run (591) passes</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T21:07-04:00">2026-10-02 21:07</time></ui-date> P6
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T21:22-04:00">2026-10-02 21:22</time></ui-date> C4 closed: Docs
+                  bundle inlines lazy import()s: P6 must keep the engine chunks lazy or spell-ui.js grows ~50
+                  kB</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T21:22-04:00">2026-10-02 21:22</time></ui-date> P6: page-server
+                  saves round-trip end to end (Playwright through the worktree's page server); site pages for the three
+                  elements</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T21:22-04:00">2026-10-02 21:22</time></ui-date> P6
+                  done</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

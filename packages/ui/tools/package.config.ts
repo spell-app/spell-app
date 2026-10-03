@@ -21,7 +21,9 @@ const EXTRA_ENTRIES = { api: ENTRIES.api! }
  *   - `api.ts` and the two barrels it namespaces (`E`, `V`) => `extra:api`:  only `api.js` holds them
  *   - lazy tiers:  runtime services + foundation sheets => `runtime`;  icon name / alias maps => `icons`;  a
  *     family's lazily imported data (`components/ui-<family>/data/`, the emoji chunks) and the Temporal polyfill
- *     (`temporal-polyfill`, loaded only where the browser lacks `Temporal`) => `data`
+ *     (`temporal-polyfill`, loaded only where the browser lacks `Temporal`) => `data`;  so are the source
+ *     elements' engines' libraries (highlight.js, marked, DOMPurify) and spell's pre-compiled highlighter
+ *     (`src/languages/`), loaded on first use
  *   - any other `src/` module (incl. `\0` virtual helpers) => `core`
  */
 export const PACKAGE: PackageConfig = {
@@ -58,13 +60,13 @@ function bucket(id: string): Bucket {
   if (/\/node_modules\/(solid-js|@solidjs|@spell-app\/solid-element)\/|\/packages\/solid-element\//.test(id)) {
     return "library"
   }
-  if (/\/node_modules\/temporal-(polyfill|utils)\//.test(id)) return "data"
+  if (/\/node_modules\/(temporal-(polyfill|utils)|highlight\.js|marked|dompurify)\//.test(id)) return "data"
   const src = /\/src\/(.+)$/.exec(id.split("?")[0]!)?.[1]
   if (!src) return "other"
   if (/^(forms\.ts|elements\/(FormElement|FormHost|Validator|MenuOptions|ControlLabels)\.ts)$/.test(src))
     return "shared:forms"
   if (/^(api\.ts|elements\/index\.ts|vocabulary\/vocabulary\.api\.ts)$/.test(src)) return "extra:api"
-  if (/^components\/[\w-]+\/data\//.test(src)) return "data"
+  if (/^components\/[\w-]+\/data\/|^languages\//.test(src)) return "data"
   const component = /^components\/([\w-]+)\/([\w.-]+)$/.exec(src)
   if (component) {
     const [, family, file] = component as unknown as [string, string, string]

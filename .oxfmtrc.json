@@ -23,6 +23,7 @@
     "**/projects/**",
     "**/vscode-extension/out/**",
     "**/docs/_assets/spell-ui.js",
+    "**/docs/_assets/lazy/**",
     "**/src/test/fixtures/**",
     "**/src/graphify-out/**",
     "**/coverage/**",

@@ -7,6 +7,8 @@
  *   - `spell-ui:icons` FIRST:  a module the bundler writes, registering the icons our widgets and pages draw
  *     with `UI.icons` before any element asks for one (a classic script can't load UI's icon packs)
  *   - then UI, which defines -- and so upgrades -- every `ui-*` already in the page
+ *   - then `spell-ui:lazy`, pointing `<ui-code>` / `<ui-markdown>`'s engine loaders at their lazy scripts (before
+ *     any element highlights:  that waits for `UI.load()`), and the source elements' saver (`spell-ui-sources.js`)
  *   - then the page runtime, with every tag defined
  *   - then the site header (`$/server/site`):  `defineSite()` runs once every import has, so `<spell-site-header>`
  *     upgrades -- and sets `--spell-site-header-height` -- before the runtime first measures its sticky offsets
@@ -19,6 +21,8 @@
 import "spell-ui:icons"
 import "spell-ui:emoji"
 import "@spell-app/ui"
+import "spell-ui:lazy"
+import "./spell-ui-sources.js"
 import "./spell-doc-runtime.js"
 import { defineSite } from "$/server/site"
 

@@ -114,6 +114,17 @@ describe("Sources.save()", () => {
     expect(failure.message).toMatch(/disk full/)
   })
 
+  it("takes a `{ kind }`-shaped error from a saver that can't import SourceError", async () => {
+    const sources = new Sources()
+    sources.saver = async () => {
+      throw { kind: "conflict", message: "changed on disk", status: 409 }
+    }
+    const failure = (await sources.save({ url: HELLO, text: "x" }).catch((e: unknown) => e)) as SourceError
+    expect(failure).toBeInstanceOf(SourceError)
+    expect(failure.kind).toBe("conflict")
+    expect(failure.status).toBe(409)
+  })
+
   it("a fragment save drops the cache entry instead", async () => {
     const sources = new Sources()
     sources.saver = async () => ({ etag: '"v3"' })
