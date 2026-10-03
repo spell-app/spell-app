@@ -910,6 +910,11 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
 - 2026-10-03 · `yarn plan-doc add ... "<ui-docs-nav> ..."` with the title pre-escaped (`&lt;ui-docs-nav&gt;`) stored
   `&amp;lt;` -- the script escapes titles itself (details are raw HTML), and there's no retitle command. · Pass tags
   in titles RAW;  escape only inside `--details`. · ui / docs
+- 2026-10-03 · A Playwright phone check (`isMobile: true`) read 0px horizontal overflow on a page with a 900px-wide
+  element:  with `isMobile`, chromium widens the layout viewport to fit the content, so `innerWidth` grows to
+  `scrollWidth` (925 === 925) while `visualViewport.width` and `documentElement.clientWidth` stay 390. · Measure
+  overflow as `documentElement.scrollWidth - documentElement.clientWidth`, never against `innerWidth`
+  (`tools/SiteCheck.ts` `overflowState`). · ui
 
 ## app
 

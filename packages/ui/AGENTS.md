@@ -120,8 +120,8 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
     - `_parts/` -- shared header / footer, pulled in with `<ui-include>`
   - `docs/` -- design docs (`plan.md`, `grammar.md`, `theming.md`, `translation.md`, `icons.md`, `fallback.md`,
     `runtime.md`) and the generated `report.md`
-  - `scripts/` -- generators (`gen-styles.ts`, `gen-icons.ts`, `gen-root-catalog.ts`, `gen-spell.ts`, `gen-site-data.ts`)
-    and the site bundle's build (`site-bundle.ts`)
+  - `scripts/` -- generators (`gen-styles.ts`, `gen-icons.ts`, `gen-root-catalog.ts`, `gen-spell.ts`, `gen-site-data.ts`,
+    `site-new.ts`) and the site bundle's build (`site-bundle.ts`)
   - `src/languages/` -- GENERATED, committed:  `spell.<lang>.js`, spell's pre-compiled highlighter for
     `<ui-code language="spell">` (`yarn gen:spell`;  the root `AGENTS.md`'s one `ui` -> spell exception).  NEVER edit;
     lint and format skip it
@@ -153,7 +153,14 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
     the site and the library build use its source
   - `yarn site:build` ~== `yarn site:data` (`site/_data/components.json`) + `yarn site:bundle` (`site/_assets/`, sizes
     printed):  rerun after changing a vocabulary, a family sheet or any source the site shows, and commit the output.
-    `yarn site:dev` / `site:preview` / `site:check` are the old Astro site's
+    `yarn site:dev` / `site:preview` are the old Astro site's
+  - `yarn site:new <tag|page> [--title ...] [--summary ...] [--force]` -- a site page from the template
+    (`packages/docs/templates/spell-ui-docs.html`, `scripts/site-new.ts`):  `site/components/<main tag>.html` for a
+    tag, else `site/<page>.html`;  title / summary / status from `site/_data/pages.json`.  How to write one:
+    `packages/docs/epics/spell-ui-pages/PAGES.md`
+  - `yarn site:check <page...> | --all` -- `tools/SiteCheck.ts`:  loads pages from the page server (Playwright),
+    fails on console errors, 404s, undefined / unrendered `ui-*`, missing tabs, an empty toc, phone-width overflow,
+    a nav flyout that won't open;  screenshots in `tools/results/site-check/`.  LOOK at them
   - Use `yarn tsc`, not `npx tsc`:  yarn picks the workspace's TypeScript 7.  (The `@typescript/typescript6` that
     `vite-plugin-dts` needs once linked `.bin/tsc` as TypeScript 6;  with hoisting the root `.bin/tsc` is 7 today,
     but that's luck of the hoister -- see the root's `PAPERCUTS.md`, `## ui`.)

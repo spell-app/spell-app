@@ -159,6 +159,7 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
       inverted: this.attrs.inverted,
       vertical: this.attrs.vertical,
       fluid: this.attrs.fluid,
+      compact: this.attrs.compact,
       attached: this.menuEdge()
     })
   )

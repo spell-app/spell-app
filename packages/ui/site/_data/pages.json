@@ -93,6 +93,11 @@
       "summary": "Theme controls pick the page's theme and its light, dark or system colour scheme, and remember both for the next page.",
       "status": "done"
     },
+    "ui-docs-toc": {
+      "title": "Docs table of contents",
+      "summary": "A table of contents lists the page's sections and examples as links, opens the one in view and follows the scroll.",
+      "status": "done"
+    },
     "ui-docs-tokens": {
       "title": "Docs tokens",
       "summary": "A token table lists the CSS custom properties of a component family, or of the whole foundation, with their defaults and a live swatch for each colour;  a playground adds inputs that restyle a live preview.",

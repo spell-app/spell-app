@@ -199,3 +199,14 @@ describe("<ui-docs-example> accessibility", () => {
     await expectAccessible(root)
   })
 })
+
+describe("<ui-docs-example> demo frame", () => {
+  it("unpads its own demo box only:  a segment in the example keeps its padding (I18)", async () => {
+    const { host } = await render(`<ui-docs-example><ui-segment>Inside</ui-segment></ui-docs-example>`)
+    await ElementFixture.settle(host)
+    const demo = host.shadowRoot!.querySelector("[part~=demo]")!.shadowRoot!.querySelector("[part~=segment]")!
+    expect(getComputedStyle(demo).paddingTop).toBe("0px")
+    const inner = host.querySelector("ui-segment")!.shadowRoot!.querySelector("[part~=segment]")!
+    expect(parseFloat(getComputedStyle(inner).paddingTop)).toBeGreaterThan(0)
+  })
+})

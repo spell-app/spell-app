@@ -25,9 +25,7 @@
           ><header class="spell-page-head">
             <h1>Spell UI Pages</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p3"
-                >next: P3 · Template &amp; Shell</ui-label
-              ></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p4">next: P4 · Component Pages</ui-label></span
             >
           </header></ui-sticky
         >
@@ -65,7 +63,7 @@
               12 agents to do this.<br />I'm going to bed soon, let's make this plan snappy.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 14h 30m-19h 30m in all, 9h-12h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 14h 30m-19h 30m in all, 7h-9h left</p>
           <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
             <ui-list bulleted>
               <ui-item
@@ -90,8 +88,9 @@
                 </ui-list>
               </ui-item>
               <ui-item
-                ><code>packages/docs/templates/spell-ui-docs.html</code>: the page template (<a href="#d1">D1</a
-                >)</ui-item
+                ><a href="../../templates/spell-ui-docs.html" target="src-packages-docs-templates-spell-ui-docs-html"
+                  ><code>packages/docs/templates/spell-ui-docs.html</code></a
+                >: the page template (<a href="#d1">D1</a>)</ui-item
               >
               <ui-item
                 ><code>packages/ui/src/docs-components/ui-docs-*</code>: doc-only Solid elements;
@@ -227,7 +226,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="3" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="4" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -277,13 +276,13 @@
           <ui-section
             id="p3"
             data-phase="3"
-            data-status="todo"
+            data-status="done"
             header="P3 · Template & Shell"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> packages/docs/templates/spell-ui-docs.html; shared parts via ui-include; committed ui
@@ -336,7 +335,16 @@
               ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p6" data-phase="6" data-status="done" header="P6 · Themes Port" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p6"
+            data-phase="6"
+            data-status="done"
+            header="P6 · Themes Port"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -1135,6 +1143,146 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="d32" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d32">D32</a>
+                  <span class="plan-title"
+                    >P3: page layout -- Fomantic's docs grid in ui-* widgets, glue in site/_src/site.css</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Template
+                    <a href="../../templates/spell-ui-docs.html" target="src-packages-docs-templates-spell-ui-docs-html"
+                      ><code>packages/docs/templates/spell-ui-docs.html</code></a
+                    >
+                    (viewable as is from the page server; <code>yarn site:new</code> fills it). Body
+                    <code>class=ui-typography</code> (Fomantic's site look, dark mode). Inside
+                    <code>&lt;ui-root icons="fa7-brands, fomantic" display=immediately&gt;</code>:
+                  </p>
+                  <ul>
+                    <li>
+                      header: <code>&lt;ui-include page-styles source=_parts/header.html&gt;</code> (top
+                      <code>&lt;ui-menu inverted&gt;</code>: menu button, logo, links,
+                      <code>&lt;ui-docs-themes inverted&gt;</code>; plus the narrow-screen
+                      <code>&lt;ui-flyout&gt;</code> with a second <code>&lt;ui-docs-nav&gt;</code>), a same-size
+                      placeholder menu inside the include until it loads. Chose include for the header too (Owen wants
+                      ui-include exercised; one file to change for every page); page-styles so site.css lays it out and
+                      <code>commandfor</code> finds the flyout. Parts link with <code>../</code> (ui-include rewrites
+                      against the part's URL).
+                    </li>
+                    <li>
+                      left: <code>&lt;aside class=site-nav&gt;&lt;ui-docs-nav&gt;</code>, a sticky 250px column below
+                      the 44px spell-site-header; under 992px hidden, and the header's menu button opens the flyout
+                      (invoker <code>--show</code>). On phones the theme picker moves into the flyout nav's header slot.
+                    </li>
+                    <li>
+                      main: masthead <code>&lt;ui-segment vertical&gt;&lt;ui-container&gt;</code> (icon
+                      <code>&lt;ui-menu floated=right&gt;</code>: source on GitHub, report a bug, Fomantic's page;
+                      <code>&lt;ui-header level=1&gt;</code> + nested sub header; status
+                      <code>&lt;ui-label yellow&gt;</code> unless done;
+                      <code>&lt;ui-docs-themes for show=theme&gt;</code>), then
+                      <code>&lt;ui-container class=site-body&gt;</code> holding the rail and the tabs; footer
+                      <code>&lt;ui-include load=visible&gt;</code>.
+                    </li>
+                    <li>
+                      measures from Fomantic's docs.css: content 3em from the nav, 387px kept right for a 319px
+                      dividing-free rail; rail hidden under 1200px and whenever the toc is empty (the API tab: content
+                      takes the room).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d33" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d33">D33</a>
+                  <span class="plan-title"
+                    >P3: top tabs = &lt;ui-tabs history basic compact&gt;, hash = pane value</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    D4's segmented switcher in widgets: Fomantic's plain bordered menu (its docs'
+                    <code>tabs menu</code>) made only as wide as its tabs, grey selected item, no icons (four fit a
+                    390px phone). <code>&lt;ui-tabs&gt;</code> had no <code>compact</code>: ADDED (vocabulary + menu
+                    class word + <code>align-self</code> in ui-tab.css + a class test; under 15 min, local).
+                    <code>history</code> mirrors the pane in the hash (<code>#api</code>), so links, reloads and Back
+                    land on the tab. A hash naming an element INSIDE a hidden pane (<code>#emphasis</code>) is handled
+                    by <code>&lt;ui-docs-toc&gt;</code>, which shows that pane and scrolls; heading ids never take a
+                    pane value. Considered: <code>&lt;ui-buttons&gt;</code> + standalone <code>&lt;ui-tab&gt;</code>s
+                    (needs page script and radio semantics, I12/I17), secondary pointing tabs (not segmented). Remaining
+                    look gaps: see the ui-tabs gap issue.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d34" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d34">D34</a>
+                  <span class="plan-title"
+                    >P3: &lt;ui-docs-toc&gt; -- the On this page rail, a new docs element</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    No widget builds a table of contents from the page, so
+                    <a
+                      href="../../../ui/src/docs-components/ui-docs-toc/"
+                      target="src-packages-ui-src-docs-components-ui-docs-toc"
+                      ><code>src/docs-components/ui-docs-toc/</code></a
+                    >
+                    (P2-style family, topic documentation, 10 tests + fallback + css). <code>for</code> names the
+                    followed element; a <code>&lt;ui-tabs&gt;</code> means its shown pane (rescanned on
+                    <code>ui-show</code>). Level 2 headings are sections, <code>ui-docs-example[header]</code> and level
+                    3 headings their entries; headings inside an example's live markup skipped; ids given where missing
+                    (slug, unique, never a pane value). Renders <code>&lt;ui-header&gt;</code> +
+                    <code>&lt;ui-menu vertical text fluid&gt;</code> of link items, the current section's entries in a
+                    sub-menu (Fomantic's following accordion menu, without the accordion: I15). Follows the scroll
+                    (reading line = scroll-padding + 20% of the viewport, ResizeObserver for late layout),
+                    <code>ui-change {value}</code>, <code>ui-render {ids}</code>, <code>:state(empty)</code>. In
+                    <code>&lt;ui-rail position=right&gt;&lt;ui-sticky offset=64&gt;</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d35" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d35">D35</a>
+                  <span class="plan-title"
+                    >P3: yarn site:new + yarn site:check; docs:update skips site pages</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>yarn site:new &lt;tag|page&gt;</code> (<a
+                      href="../../../ui/scripts/site-new.ts"
+                      target="src-packages-ui-scripts-site-new-ts"
+                      ><code>packages/ui/scripts/site-new.ts</code></a
+                    >) fills the template's
+                    <code
+                      >{{title}} {{summary}} {{status}} {{tag}} {{family}} {{fomantic}} {{source}} {{bugTitle}}</code
+                    >
+                    from
+                    <a href="../../../ui/site/_data/pages.json" target="src-packages-ui-site-data-pages-json"
+                      ><code>site/_data/pages.json</code></a
+                    >
+                    / components.json, keeps the <code>site:component</code> or <code>site:page</code> blocks (drops
+                    <code>site:status</code> for done families, <code>site:fomantic</code> when the reference docs have
+                    no page), rewrites <code>../../ui/site/</code> and the site header's <code>root</code> for depth;
+                    refuses to overwrite without <code>--force</code>. <code>yarn site:check</code> (<a
+                      href="../../../ui/tools/SiteCheck.ts"
+                      target="src-packages-ui-tools-sitecheck-ts"
+                      ><code>tools/SiteCheck.ts</code></a
+                    >, replaces the Astro check) loads pages from the page server's <code>/ui/</code> mount.
+                    <code>docs:update</code> no longer runs check-spell on a page loading
+                    <a href="../../../ui/site/_assets/site.js" target="src-packages-ui-site-assets-site-js"
+                      ><code>ui/site/_assets/site.js</code></a
+                    >
+                    (the template). Authoring guide for P4:
+                    <a href="PAGES.md" target="src-packages-docs-epics-spell-ui-pages-pages-md"
+                      ><code>packages/docs/epics/spell-ui-pages/PAGES.md</code></a
+                    >.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1448,6 +1596,46 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="c17" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c17">C17</a>
+                  <span class="plan-title"
+                    >P3: the toc can't list or reveal headings inside shadow roots (the API tab)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>&lt;ui-docs-api family&gt;</code> draws its tag headers (<code>#ui-or</code>) in its shadow
+                    root: the toc can't find them, so the API tab's toc is empty and the rail hides there (content takes
+                    the room; the tables would stack at the 720px column anyway). A link to <code>#ui-or</code> from
+                    another tab doesn't switch to the API tab (no light-DOM element has that id);
+                    <code>&lt;ui-docs-api&gt;</code> scrolls to it only when already shown. Fix later: the toc lists
+                    <code>ui-docs-api</code>'s <code>ui-render {tags}</code>, and
+                    <code>&lt;ui-docs-api&gt;</code> exposes its header elements.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c18" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c18">C18</a>
+                  <span class="plan-title">P3: example ids are given at runtime by the toc</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Section headers carry ids in the markup (PAGES.md says so); examples get theirs
+                    (<code>#labeled-icon</code>) from <code>&lt;ui-docs-toc&gt;</code> as it scans, so a deep link works
+                    once the toc has run (it scrolls again when the page's <code>&lt;ui-root&gt;</code> is ready). A
+                    heading renamed in a page renames its example's id. The sticky's <code>offset=64</code> in the
+                    template assumes the 44px spell-site-header. Visual baselines:
+                    <a
+                      href="../../../ui/src/docs-components/ui-docs-example/ui-docs-example.css"
+                      target="src-packages-ui-src-docs-components-ui-docs-example-ui-docs-example-css"
+                      ><code>ui-docs-example.css</code></a
+                    >
+                    changed (demo padding / flow-root / phone scroll), not re-run (Docker; the lead's P8 visual pass).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1557,8 +1745,11 @@
                   > </ui-title
                 ><ui-content
                   ><p>
-                    For the page template (<code>packages/docs/templates/spell-ui-docs.html</code>) and
-                    <code>_parts/</code>:
+                    For the page template (<a
+                      href="../../templates/spell-ui-docs.html"
+                      target="src-packages-docs-templates-spell-ui-docs-html"
+                      ><code>packages/docs/templates/spell-ui-docs.html</code></a
+                    >) and <code>_parts/</code>:
                   </p>
                   <ul>
                     <li>
@@ -1599,6 +1790,19 @@
                     <code>yarn test:visual --grep menu/content,menu/variations,list/content,list/types --update</code>
                     on a machine with Docker. Reviewed: icon menus were EMPTY before, list icons oversized; both now 1em
                     glyphs.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t8" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t8">T8</a>
+                  <span class="plan-title">Review: nav starts on Topics, not A-Z</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Owen prefers the topic-grouped sidebar; the nav defaulted to A-Z (the Astro default). Chose
+                    <code>DEFAULT_VIEW = topics</code>, and A-Z is now stored too; Astro-era A-Z viewers start on Topics
+                    once. (J7)
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1980,6 +2184,216 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="i18" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i18">I18</a>
+                  <span class="plan-title"
+                    >Gap: &lt;ui-docs-example&gt; leaks --ui-segment-padding: 0 into the example's own segments</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic example: button page, Inverted (<code>&lt;div class="ui inverted segment"&gt;</code> around
+                    the buttons) and Vertically Attached (<code>ui attached segment</code> around a wireframe image).
+                    Both segments have 1em padding on fomantic-ui.com.
+                  </p>
+                  <p>
+                    What the page does: <code>&lt;ui-segment inverted&gt;</code> /
+                    <code>&lt;ui-segment attached&gt;</code> render with padding 0, buttons touching the dark edge, the
+                    image flush with the border. Cause:
+                    <a
+                      href="../../../ui/src/docs-components/ui-docs-example/ui-docs-example.css"
+                      target="src-packages-ui-src-docs-components-ui-docs-example-ui-docs-example-css"
+                      ><code>ui-docs-example.css</code></a
+                    >
+                    sets the PUBLIC token <code>--ui-segment-padding: 0</code> on its closed demo segment to unframe it,
+                    and that inherits into every <code>&lt;ui-segment&gt;</code> in the live example. Fix: unpad the
+                    demo through a private <code>--_segment-padding</code> (or <code>::part</code>), never a public
+                    token that inherits. Page left as is (<code>GAP</code> comments in
+                    <a
+                      href="../../../ui/site/components/ui-button.html"
+                      target="src-packages-ui-site-components-ui-button-html"
+                      ><code>site/components/ui-button.html</code></a
+                    >).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i19" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i19">I19</a>
+                  <span class="plan-title"
+                    >Gap: &lt;ui-docs-example&gt; demo doesn't contain floated children</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic example: button page, Floated (<code>ui right floated button</code> +
+                    <code>ui left floated button</code>); Fomantic's example block clears its floats.
+                  </p>
+                  <p>
+                    What the page does: <code>&lt;ui-button floated="right"&gt;</code> /
+                    <code>floated="left"</code> escape the demo segment (plain <code>display: block</code>) and the next
+                    example's header wraps beside them. Workaround on the page: the two buttons sit in a
+                    <code>&lt;ui-segment basic clearing&gt;</code>, which then shows in the code. Fix:
+                    <code>display: flow-root</code> on the demo part.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i20" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i20">I20</a>
+                  <span class="plan-title"
+                    >Gap: &lt;ui-button attached="top|bottom"&gt; inner button isn't full width</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic example: button page, Vertically Attached (<code>ui top attached button</code> above a
+                    segment, <code>ui bottom attached button</code> below); the buttons span the segment's width.
+                  </p>
+                  <p>
+                    What the page does: <code>&lt;ui-button attached="top"&gt;Top&lt;/ui-button&gt;</code>: the HOST is
+                    block-level and full width (<code>:state(fluid)</code>, <code>display: flex</code>, 1093px), but the
+                    inner <code>&lt;button class="ui top attached button"&gt;</code> stays its content width (76px), so
+                    the button is a tab sitting on the segment's corner. <code>fluid</code> does stretch, so the
+                    attached top / bottom case just misses the same rule. Page left as is.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i21" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i21">I21</a>
+                  <span class="plan-title"
+                    >Gap: &lt;ui-button inverted basic color&gt; loses its colour</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic example: button page, Inverted, second block (<code>ui inverted red basic button</code> ...
+                    for every hue, plus primary / secondary): a light-hued ring and text on the dark segment.
+                  </p>
+                  <p>
+                    What the page does: <code>&lt;ui-button inverted color="red" basic&gt;</code> renders
+                    <code>ui red basic inverted button</code> with a WHITE ring and text (computed
+                    <code>color: oklch(0.99 ...)</code>, inset shadow white 0.5), so all 16 buttons look the same.
+                    <code>inverted color</code> without <code>basic</code> is right. Page left as is.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i22" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i22">I22</a>
+                  <span class="plan-title"
+                    >Gap: &lt;ui-button loading&gt; has no double / elastic loader</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic example: button page, States, Loading: rows 2 and 3 are
+                    <code>ui double loading button</code> and <code>ui elastic loading button</code> (plain, basic,
+                    primary, secondary).
+                  </p>
+                  <p>
+                    What the page does: only the first row (plain <code>loading</code>); <code>loading</code> is a
+                    boolean, with no value for the loader style. Suggest <code>loading="double"</code> /
+                    <code>loading="elastic"</code> (<code>keyOrValueAndKey</code>), as <code>ui-loader</code> may
+                    already name them.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i23" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i23">I23</a>
+                  <span class="plan-title"
+                    >Gap: icon names miss Fomantic's word order (right arrow) and draw nothing, silently</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic example: button page uses <code>right arrow icon</code>, <code>left chevron icon</code>,
+                    <code>right chevron icon</code>: class words, so any order works in Fomantic.
+                  </p>
+                  <p>
+                    What happened: <code>&lt;ui-button icon="right arrow"&gt;</code> (and
+                    <code>&lt;ui-icon name="right arrow"&gt;</code>) rendered an EMPTY icon box, with no console
+                    warning; the pack only knows <code>arrow right</code> / <code>chevron left</code>. The page now uses
+                    the canonical order. Suggest: match a multi-word name order-insensitively (or add the reversed
+                    aliases Fomantic's docs use), and warn once on an unknown name in dev.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i24" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i24">I24</a>
+                  <span class="plan-title"
+                    >Gap: &lt;ui-tabs&gt; no equal-width items and no filled selected tab</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic's docs tab menu is <code>ui four item tabs menu</code> (equal widths across the column);
+                    the old icons page's segmented switch fills the selected segment with the primary colour.
+                    <code>&lt;ui-tabs&gt;</code> has neither an item count (<code>&lt;ui-menu items&gt;</code> has) nor
+                    a filled selected look (a colour only tints the selected tab's text; Fomantic's coloured menus do
+                    the same unless inverted). What the site does: <code>basic compact</code> (compact added in P3),
+                    grey selected tab. Also: with <code>color</code>, basic panes still draw the segment's coloured top
+                    edge (SUSPECTED-BUGS).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i25" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i25">I25</a>
+                  <span class="plan-title">Gap: &lt;ui-menu&gt; no flush page-bar look</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic's docs top bar is <code>ui big fixed inverted main menu</code>: square, no margin. Our
+                    <code>fixed</code> means position fixed (not wanted under spell-site-header),
+                    <code>attached=top</code> overhangs 1px each side (Fomantic's <code>calc(100% + 2px)</code>, which
+                    made the 390px page scroll sideways). What site.css does:
+                    <code>.site-top-menu::part(menu) { margin: 0; border-radius: 0 }</code>. Wanted: e.g. a
+                    <code>flush</code> / page-bar variation, or a margin + radius token pair on ui-menu (it has
+                    <code>--ui-menu-radius</code> but no margin token).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i26" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i26">I26</a>
+                  <span class="plan-title">Gap: ui.css foundation keeps the browser's 8px body margin</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic's reset zeroes <code>body</code> margin; ours (<a
+                      href="../../../ui/src/styles/reset.css"
+                      target="src-packages-ui-src-styles-reset-css"
+                      ><code>reset.css</code></a
+                    >,
+                    <a href="../../../ui/src/styles/typography.css" target="src-packages-ui-src-styles-typography-css"
+                      ><code>typography.css</code></a
+                    >) never touches <code>body</code>, so a page's chrome stood 8px off the edges. What site.css does:
+                    <code>body { margin: 0 }</code>. Fix: <code>:where(.ui-typography)</code> on body (or the reset)
+                    sets margin 0.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i27" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i27">I27</a>
+                  <span class="plan-title"
+                    >Gap: &lt;ui-segment vertical&gt; draws no rule below a masthead</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic's <code>.ui.vertical.segment</code> has a bottom border (so its docs masthead ends in a
+                    rule); ours draws a top rule between consecutive vertical segments only, so the masthead followed by
+                    a container shows no line. Left as is (minor). Fix: a <code>dividing</code> style word, or the
+                    bottom-border grammar.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -2252,6 +2666,66 @@
                   ><ui-date><time datetime="2026-10-03T00:05-04:00">2026-10-03 00:05</time></ui-date> P2 + P6 done: 5
                   ui-docs-* elements, site data + committed bundle, /ui/ static; 24 themes + ThemeSheets; checks: ui
                   review 4364 tests, server 70, theme 50, local visual menu/list updated</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T09:58-04:00">2026-10-03 09:58</time></ui-date> P3
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T09:58-04:00">2026-10-03 09:58</time></ui-date> Bedtime resumed
+                  for P3-P9 (Owen, after P2 + P6 commit 8c2c785d)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:19-04:00">2026-10-03 10:19</time></ui-date> I18 closed: Gap:
+                  &lt;ui-docs-example&gt; leaks --ui-segment-padding: 0 into the example's own segments</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:19-04:00">2026-10-03 10:19</time></ui-date> I19 closed: Gap:
+                  &lt;ui-docs-example&gt; demo doesn't contain floated children</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:19-04:00">2026-10-03 10:19</time></ui-date> P3: I18 + I19
+                  fixed in ui-docs-example.css (demo unpadded on its own ::part(segment), not via the inherited
+                  --ui-segment-padding; demo is flow-root; phones: a wide demo scrolls in its frame); test
+                  added</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:24-04:00">2026-10-03 10:24</time></ui-date> P3: template +
+                  _parts + site.css + site:new + site:check + ui-docs-toc + pilot ui-button (6 sections, 56 examples,
+                  Usage / API / Theming); ui-tabs compact; I18 I19 fixed; D32-D35, I20-I27, caveats</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:32-04:00">2026-10-03 10:32</time></ui-date> P3
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:32-04:00">2026-10-03 10:32</time></ui-date> P3 done:
+                  spell-ui-docs template, yarn site:new, yarn site:check, _parts header/footer, ui-docs-toc, pilot
+                  ui-button (56 examples), PAGES.md; checks: ui review 4383 tests, site:check ui-button ok</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

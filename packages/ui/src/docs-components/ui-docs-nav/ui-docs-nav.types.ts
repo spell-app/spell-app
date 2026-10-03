@@ -57,7 +57,7 @@ export const PAGE_EXTENSION = ".html"
 export type NavView = "az" | "topics"
 
 /** `view` when neither the page nor the viewer chose one. */
-export const DEFAULT_VIEW: NavView = "az"
+export const DEFAULT_VIEW: NavView = "topics"
 
 /** One component tag in the lists. */
 export type NavRow = {

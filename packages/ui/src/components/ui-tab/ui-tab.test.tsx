@@ -80,7 +80,8 @@ describe("<ui-tabs> classes", () => {
     ['size="small" color="red" text', "ui small red text tabs", "ui small red text menu"],
     ["vertical tabular fluid", "ui fluid tabular vertical tabs", "ui fluid tabular vertical menu"],
     ["vertical tabular attached", "ui tabular vertical tabs", "ui tabular vertical menu"],
-    ["inverted basic", "ui basic inverted tabs", "ui inverted menu"]
+    ["inverted basic", "ui basic inverted tabs", "ui inverted menu"],
+    ["compact basic", "ui basic compact tabs", "ui compact menu"]
   ])("<ui-tabs %s>", async (attributes, rootClasses, menuClasses) => {
     const { root, menu } = await tabs(attributes)
     expect(root.className).toBe(rootClasses)

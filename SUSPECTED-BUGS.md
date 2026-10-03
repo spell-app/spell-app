@@ -284,6 +284,11 @@ every entry below that date was fixed or disproven;  what's left:
 - `src/components/ui-toast/ui-toast.test.tsx` "life" tests:  still set `pause-on-hover="false"` for Linux CI.  The toast now
   pauses only after a real pointer MOVE (a toast appearing under a resting pointer closes), which should be the CI
   cause, but nobody ran the Linux image.  Prove:  drop the attribute and push;  CI green => remove it.  (2026-10-01)
+- `src/components/ui-tab/` `<ui-tabs basic color="blue">`:  the BASIC panes draw a dark rule along their top edge
+  (seen at 1000px, chromium, scratch page in epic `spell-ui-pages` P3);  `basic` should drop the segment box, and a
+  segment's `color` only paints the top edge of a NON-basic segment.  Likely `ui-segment.css`'s coloured-edge rule
+  isn't scoped out by `.basic`, or the pane forwards `color`.  Prove:  `<ui-tabs basic color="blue">` vs `<ui-tabs
+  basic>` in a pane screenshot.  (2026-10-03)
 - `src/components/ui-accordion/UIAccordion.tsx` ~line 82:  `this.loaded() && UI.browser.supports.interpolateSize` in a
   memo.  `loaded()` is TRUE on the server, and `UI.browser` throws before the runtime loads, so an SSR render of an
   accordion probably throws (`<ui-button>` hit exactly this, fixed with an `isServer` guard).  Prove:  add an
