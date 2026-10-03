@@ -371,6 +371,7 @@
     "gen:icons": "tsc -p scripts && tsx scripts/gen-icons.ts",
     "gen:emoji": "tsc -p scripts && tsx scripts/gen-emoji.ts",
     "gen:root": "tsc -p scripts && tsx scripts/gen-root-catalog.ts",
+    "gen:spell": "tsc -p scripts && tsx scripts/gen-spell.ts",
     "tokens:alias": "tsx scripts/alias-tokens.ts",
     "/////// MANIFEST": "",
     "manifest": "custom-elements-manifest analyze --globs 'src/**/*.ts' 'src/**/*.tsx' --exclude 'src/**/*.test.ts' --exclude 'src/**/*.test.tsx'"

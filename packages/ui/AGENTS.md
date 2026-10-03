@@ -98,7 +98,10 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   - `site/` -- Astro docs site, modelled on Fomantic's docs, on the live components
   - `docs/` -- design docs (`plan.md`, `grammar.md`, `theming.md`, `translation.md`, `icons.md`, `fallback.md`,
     `runtime.md`) and the generated `report.md`
-  - `scripts/` -- generators (`gen-styles.ts`, `gen-icons.ts`)
+  - `scripts/` -- generators (`gen-styles.ts`, `gen-icons.ts`, `gen-root-catalog.ts`, `gen-spell.ts`)
+  - `src/languages/` -- GENERATED, committed:  `spell.<lang>.js`, spell's pre-compiled highlighter for
+    `<ui-code language="spell">` (`yarn gen:spell`;  the root `AGENTS.md`'s one `ui` -> spell exception).  NEVER edit;
+    lint and format skip it
   - `reference/Fomantic-UI/` -- READ-ONLY, git-ignored clone of Fomantic for porting.  NEVER edit or import it.
 - Commands:
   - `yarn review` -- tsc (root, node configs, the fork) + oxlint `--fix` + oxfmt + every test (`ssr`, `browser`,

@@ -25,8 +25,8 @@
           ><header class="spell-page-head">
             <h1>UI Import</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p4"
-                >next: P4 · Spell Highlighting</ui-label
+              ><ui-label basic color="grey" icon="circle outline" href="#p5"
+                >next: P5 · Markdown Element</ui-label
               ></span
             >
           </header></ui-sticky
@@ -69,7 +69,7 @@
               language.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 11h-15h 30m in all, 6h 30m-9h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 11h-15h 30m in all, 4h 30m-6h left</p>
           <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
             <ul>
               <li>
@@ -430,9 +430,10 @@
                 bundle only:
                 <ul>
                   <li>
-                    <code>packages/spell/src/highlight/</code>: <code>SP.highlightSpans(text)</code> parses with
-                    <code>SP.spellParser</code> and maps each rule's <code>highlightAs</code>; tokenize-only on a parse
-                    error
+                    <a href="../../../spell/src/highlight/" target="src-packages-spell-src-highlight"
+                      ><code>packages/spell/src/highlight/</code></a
+                    >: <code>SP.highlightSpans(text)</code> parses with <code>SP.spellParser</code> and maps each rule's
+                    <code>highlightAs</code>; tokenize-only on a parse error
                   </li>
                   <li>
                     <code>yarn gen:spell</code> (in <code>ui</code>) bundles it with esbuild into a COMMITTED file,
@@ -676,7 +677,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="3" total="7" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="4" total="7" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -726,7 +727,16 @@
               ><ui-item icon="clock"><b>Estimate:</b> 1.5-2h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p3" data-phase="3" data-status="done" header="P3 · Code Element" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p3"
+            data-phase="3"
+            data-status="done"
+            header="P3 · Code Element"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -743,13 +753,13 @@
           <ui-section
             id="p4"
             data-phase="4"
-            data-status="todo"
+            data-status="done"
             header="P4 · Spell Highlighting"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> SP.highlightSpans browser entry, esbuild bundle per language (en now), copied into ui's
@@ -1038,6 +1048,52 @@
               <span class="plan-title"
                 >Run all phases in one go, a commit per phase; leave the branch for review (no merge)</span
               ></ui-item
+            ><ui-item id="d17" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d17">D17</a>
+                  <span class="plan-title"
+                    >Unknown language, or a spell translation with no bundle: the code stays PLAIN, with a render
+                    ui-error and no message box</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The code is still worth reading; a message box over it would be noise. An app that wants a message
+                    listens for <code>ui-error</code>. (The plan had said an error message for <code>spell/xx</code>.)
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d18" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d18">D18</a>
+                  <span class="plan-title"
+                    >spell bundles load through a literal import.meta.glob (one lazy chunk per spell.&lt;lang&gt;.js),
+                    not by URL: UI.code.languageBase dropped</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    A glob works the same under Vite dev, the tests and the lib build (the chunk ships in
+                    <code>dist/</code>), with no URL to configure.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d19" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d19">D19</a>
+                  <span class="plan-title"
+                    >Spell highlighting = token colours, then a best-effort parse as a block refining them by each
+                    rule's highlightAs (SP.SpellHighlighter)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Lines that don't parse (names declared in other files) keep their token colours. Lighter than the
+                    language server's <code>highlightSpans()</code>: no project, so no declaration / built-in
+                    refinements.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1097,6 +1153,18 @@
               <span class="plan-title"
                 >Vite's dev server transforms fetched .ts / .css / .html (a JS module, its client script): &lt;ui-code
                 source&gt; shows that under yarn dev / tests; the page server serves files raw</span
+              > </ui-item
+            ><ui-item id="c11" data-status="open"
+              ><a class="plan-id" href="#c11">C11</a>
+              <span class="plan-title"
+                >spell.en.js is 469 kB minified, 138 kB gzipped (parser + rules + lodash, json5, semver, easy-state);
+                react-dom is stubbed out of it. Loaded only for language=spell</span
+              > </ui-item
+            ><ui-item id="c12" data-status="open"
+              ><a class="plan-id" href="#c12">C12</a>
+              <span class="plan-title"
+                >The spell bundle is committed: regenerate (yarn gen:spell in packages/ui) after changing spell's
+                grammar, or ui colours with the old one</span
               >
             </ui-item></ui-list
           >
@@ -1138,7 +1206,25 @@
 
         <ui-section id="issues" header="6. Issues" sticky collapsible dividing>
           <ui-icon slot="icon" name="bug"></ui-icon>
-          <ui-list class="plan-items" data-kind="issue" divided relaxed></ui-list>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed
+            ><ui-item id="i1" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i1">I1</a>
+                  <span class="plan-title"
+                    >Bundling spell needs keepNames: rules are found by class name (Rule 'sequence' not found
+                    otherwise)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Known (<a href="../../../spell/AGENTS.md" target="src-packages-spell-agents-md"
+                      ><code>packages/spell/AGENTS.md</code></a
+                    >, "Parser rules"); <code>gen-spell.ts</code> sets it.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
         </ui-section>
 
         <ui-section id="log" header="7. Log" sticky collapsible dividing>
@@ -1321,6 +1407,36 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T20:41-04:00">2026-10-02 20:41</time></ui-date> P3 done:
                   &lt;ui-code&gt;, UI.code registry, 29 tests, Mac visual baselines</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T20:41-04:00">2026-10-02 20:41</time></ui-date> P4
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T20:49-04:00">2026-10-02 20:49</time></ui-date> I1 closed:
+                  Bundling spell needs keepNames: rules are found by class name (Rule 'sequence' not found
+                  otherwise)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T20:49-04:00">2026-10-02 20:49</time></ui-date> P4
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T20:49-04:00">2026-10-02 20:49</time></ui-date> P4 done:
+                  SP.SpellHighlighter + pre-compiled spell.en.js (138 kB gz), language=spell in
+                  &lt;ui-code&gt;</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

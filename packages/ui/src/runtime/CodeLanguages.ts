@@ -6,15 +6,10 @@ import { CODE_LANGUAGES_EVENT, type CodeLanguage } from "./runtime.types"
  *   on first use (spell's pre-compiled bundle, `language="spell/es"`).
  * - A name may carry a VARIANT after a `/`:  `spell/es` is language `spell`, variant `es`;  `find()` splits it.
  * - Only the registry lives here (it's in the runtime chunk);  highlight.js itself loads with `ui-code`'s own chunk.
- * - `languageBase`:  where `ui-code` finds the language files it ships (`spell.<lang>.js`);  default beside the
- *   module, set it when the files are served elsewhere.
  * - `version` goes up on every `register()`, and `document` gets `CODE_LANGUAGES_EVENT`, so an element showing a
  *   now-registered language highlights again.
  */
 export class CodeLanguages {
-  /** where the shipped language files are served;  `undefined` = beside `ui-code`'s module */
-  languageBase?: string
-
   /** bumped by each `register()` */
   version = 0
 

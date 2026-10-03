@@ -27,6 +27,7 @@
     "**/src/icons/icon-packs",
     "**/src/icons/data",
     "**/src/components/ui-emoji/data",
+    "**/src/languages",
     "**/site/dist",
     "**/tools/frameworks/solid/dist",
     "**/tools/results",

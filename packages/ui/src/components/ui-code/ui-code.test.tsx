@@ -136,6 +136,30 @@ describe("<ui-code>", () => {
     expect(codeOf(host).querySelector(".hljs-keyword")!.textContent).toBe("HELLO")
   })
 
+  it("colours spell with spell's own parser (the pre-compiled bundle)", async () => {
+    const host = await code(`<ui-code language="spell"><script type="text/plain">
+      ## Piles
+      a pile is a list of cards
+      the value of a pile is:
+      \treturn 0
+    </script></ui-code>`)
+    expect(codeOf(host).querySelector(".hljs-section")!.textContent).toBe("## Piles")
+    expect(codeOf(host).querySelector(".hljs-type")!.textContent).toBe("pile")
+    expect(codeOf(host).querySelector(".hljs-property")!.textContent).toBe("value")
+    expect(codeOf(host).classList.contains("language-spell")).toBe(true)
+  })
+
+  it("`spell/<lang>` with no such translation stays plain, naming it in the ui-error", async () => {
+    const onError = vi.fn()
+    document.addEventListener("ui-error", onError)
+    const host = await code(`<ui-code language="spell/xx">a pile is a list</ui-code>`)
+    document.removeEventListener("ui-error", onError)
+    expect(linesOf(host)).toEqual(["a pile is a list"])
+    const { detail } = onError.mock.calls.at(-1)![0]
+    expect(detail.kind).toBe("render")
+    expect(String(detail.error)).toMatch(/"xx" translation/)
+  })
+
   it("copies the code", async () => {
     const writeText = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue()
     const host = await code(`<ui-code language="text" copy>copy me</ui-code>`)
