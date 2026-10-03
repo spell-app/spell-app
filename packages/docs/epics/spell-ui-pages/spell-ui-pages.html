@@ -697,7 +697,7 @@
                 ><b>Files:</b> packages/ui/src/docs-components/, scripts/gen-root-catalog.ts, vite.config.ts</ui-item
               ><ui-item icon="flask"><b>Verify:</b> unit tests per element; yarn gen:root; yarn ts</ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item
-              ><ui-item icon="gavel"><b>Judgement calls:</b> <a href="#t4">T4</a></ui-item></ui-list
+              ><ui-item icon="compass"><b>Judgement calls:</b>  <a href="#j4">J4</a> <a href="#j6">J6</a></ui-item></ui-list
             >
           </ui-section>
           <ui-section
@@ -721,7 +721,7 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> pilot page renders on the page server, no console errors, Chrome side-by-side</ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item
-              ><ui-item icon="gavel"><b>Judgement calls:</b> <a href="#t8">T8</a></ui-item></ui-list
+              ><ui-item icon="compass"><b>Judgement calls:</b>  <a href="#j7">J7</a></ui-item></ui-list
             >
           </ui-section>
           <ui-section
@@ -744,7 +744,7 @@
               ><ui-item icon="folder"><b>Files:</b> packages/ui/site/components/*.html</ui-item
               ><ui-item icon="flask"><b>Verify:</b> each page loads clean; spot checks in Chrome</ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 3-4h</ui-item
-              ><ui-item icon="gavel"><b>Judgement calls:</b> <a href="#t10">T10</a></ui-item></ui-list
+              ><ui-item icon="compass"><b>Judgement calls:</b>  <a href="#j8">J8</a></ui-item></ui-list
             >
           </ui-section>
           <ui-section
@@ -764,7 +764,7 @@
                 as ui-* HTML</ui-item
               ><ui-item icon="folder"><b>Files:</b> packages/ui/site/*.html</ui-item
               ><ui-item icon="flask"><b>Verify:</b> each page loads clean</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
+              ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item><ui-item icon="compass"><b>Judgement calls:</b>  <a href="#j8">J8</a></ui-item></ui-list
             >
           </ui-section>
           <ui-section
@@ -787,10 +787,7 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> every theme on kitchen-sink; yarn test:visual default theme unchanged</ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 3-4h</ui-item
-              ><ui-item icon="gavel"
-                ><b>Judgement calls:</b> <a href="#t1">T1</a> <a href="#t2">T2</a> <a href="#t3">T3</a>
-                <a href="#t5">T5</a></ui-item
-              ></ui-list
+              ><ui-item icon="compass"><b>Judgement calls:</b>  <a href="#j1">J1</a> <a href="#j2">J2</a> <a href="#j3">J3</a> <a href="#j5">J5</a> <a href="#j6">J6</a></ui-item></ui-list
             >
           </ui-section>
           <ui-section
@@ -1836,7 +1833,179 @@
           >
         </ui-section>
 
-        <ui-section id="caveats" header="4. Caveats" sticky collapsible dividing>
+        <ui-section id="judgements" header="4. Judgement calls" sticky collapsible dividing>
+          <ui-icon slot="icon" name="compass"></ui-icon>
+          <p class="meta">
+            Choices made without you (a bedtime run, an agent mid-phase): what was chosen, over what, and why. Open
+            until you review it; struck = accepted. Disagree: say so, and it becomes a question.
+          </p>
+          <ui-list class="plan-items" data-kind="judgement" divided relaxed
+            ><ui-item id="j1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j1">J1</a>
+                  <span class="plan-title">P6 themes ported in parallel with P2, not in plan order</span></ui-title
+                ><ui-content
+                  ><p>
+                    Chose to start the 4 theme agents while P2 ran (separate files:
+                    <a href="../../../ui/src/styles/themes/" target="src-packages-ui-src-styles-themes"
+                      ><code>src/styles/themes/</code></a
+                    >,
+                    <a href="../../../ui/src/runtime/Styles.ts" target="src-packages-ui-src-runtime-styles-ts"
+                      ><code>Styles.ts</code></a
+                    >) over strict plan order, to fit the night. Commits stayed per phase.
+                  </p>
+                  <ul>
+                    <li>other option: P6 after P5, as planned</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j2">J2</a>
+                  <span class="plan-title">Fomantic themes load ON TOP of classic</span></ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic themes are deltas on Fomantic's default look, which ours is
+                    <a
+                      href="../../../ui/src/styles/themes/classic.css"
+                      target="src-packages-ui-src-styles-themes-classic-css"
+                      ><code>classic.css</code></a
+                    >; <code>ThemeSheets.apply(name)</code> registers classic + the theme.
+                  </p>
+                  <ul>
+                    <li>copy classic's tokens into each of 25 sheets (duplication)</li>
+                    <li>apply themes on our default look (wrong base sizes and palette)</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j3">J3</a>
+                  <span class="plan-title">Fomantic's own classic theme is named fomantic-classic</span></ui-title
+                ><ui-content
+                  ><p>
+                    Our
+                    <a
+                      href="../../../ui/src/styles/themes/classic.css"
+                      target="src-packages-ui-src-styles-themes-classic-css"
+                      ><code>classic.css</code></a
+                    >
+                    is already Fomantic's DEFAULT look, so Fomantic's theme named classic became
+                    <a
+                      href="../../../ui/src/styles/themes/fomantic-classic.css"
+                      target="src-packages-ui-src-styles-themes-fomantic-classic-css"
+                      ><code>fomantic-classic.css</code></a
+                    >.
+                  </p>
+                  <ul>
+                    <li>rename ours (breaks the existing Classic toggle and docs)</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j4">J4</a>
+                  <span class="plan-title"
+                    >ui-docs-* read a generated components.json, not the vocabularies</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    A committed
+                    <a href="../../../ui/site/_data/components.json" target="src-packages-ui-site-data-components-json"
+                      ><code>site/_data/components.json</code></a
+                    >
+                    (<code>yarn site:data</code>) feeds the doc elements.
+                  </p>
+                  <ul>
+                    <li>
+                      import vocabularies directly: <code>ComponentDefinitions</code> is ~325 KB of source, and
+                      <code>&lt;ui-root&gt;</code>'s glob would drag it into docs'
+                      <a href="../../_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                        ><code>spell-ui.js</code></a
+                      >
+                      too
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j5">J5</a>
+                  <span class="plan-title"
+                    >Theme overrides reach shadow roots via UI.styles.register(..., { shadow: true })</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic <code>.overrides</code> are class-grammar CSS, and ours render that grammar INSIDE shadow
+                    roots; a new <code>shadow: true</code> adopts a sheet into every shadow root, like the app
+                    stylesheet.
+                  </p>
+                  <ul>
+                    <li>tokens-only themes: most overrides lost</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j6">J6</a>
+                  <span class="plan-title">P2 and P6 in one commit</span></ui-title
+                ><ui-content
+                  ><p>
+                    They share
+                    <a href="../../../ui/docs/status.md" target="src-packages-ui-docs-status-md"
+                      ><code>status.md</code></a
+                    >,
+                    <a href="../../../ui/docs/theming.md" target="src-packages-ui-docs-theming-md"
+                      ><code>theming.md</code></a
+                    >, <code>components.json</code> and component files; chose one commit (8c2c785d) over splitting by
+                    hand.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j7" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j7">J7</a>
+                  <span class="plan-title">The sidebar starts on Topics, not A-Z</span></ui-title
+                ><ui-content
+                  ><p>
+                    You prefer the topic-grouped sidebar; the nav defaulted to A-Z (the Astro default).
+                    <code>DEFAULT_VIEW = topics</code>; A-Z is now stored too, so Astro-era A-Z viewers start on Topics
+                    once.
+                  </p>
+                  <ul>
+                    <li>keep A-Z first</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j8" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j8">J8</a>
+                  <span class="plan-title">P4 and P5 in one commit</span></ui-title
+                ><ui-content
+                  ><p>
+                    Pages, data, the index / kitchen-sink generators and widget fixes share
+                    <a href="../../../ui/site/_assets/" target="src-packages-ui-site-assets"
+                      ><code>site/_assets</code></a
+                    >, <code>_data</code> and
+                    <a href="../../../ui/docs/status.md" target="src-packages-ui-docs-status-md"
+                      ><code>status.md</code></a
+                    >; one commit (df8ca0bf) over splitting by hand.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="caveats" header="5. Caveats" sticky collapsible dividing>
           <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
           <ui-list class="plan-items" data-kind="caveat" divided relaxed
             ><ui-item id="c1" data-status="open"
@@ -2312,11 +2481,11 @@
           >
         </ui-section>
 
-        <ui-section id="todos" header="5. Todos" sticky collapsible dividing>
+        <ui-section id="todos" header="6. Todos" sticky collapsible dividing>
           <ui-icon slot="icon" name="list check"></ui-icon>
           <p class="meta">For later: not caveats, not issues.</p>
           <ui-list class="plan-items" data-kind="todo" divided relaxed
-            ><ui-item id="t1" data-status="open"
+            ><ui-item id="t1" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t1">T1</a>
@@ -2333,7 +2502,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="t2" data-status="open"
+            ><ui-item id="t2" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t2">T2</a>
@@ -2350,7 +2519,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="t3" data-status="open"
+            ><ui-item id="t3" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t3">T3</a>
@@ -2373,7 +2542,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="t4" data-status="open"
+            ><ui-item id="t4" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t4">T4</a>
@@ -2393,7 +2562,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="t5" data-status="open"
+            ><ui-item id="t5" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t5">T5</a>
@@ -2465,7 +2634,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="t8" data-status="open"
+            ><ui-item id="t8" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t8">T8</a>
@@ -2493,7 +2662,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="t10" data-status="open"
+            ><ui-item id="t10" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t10">T10</a>
@@ -2525,7 +2694,7 @@
           >
         </ui-section>
 
-        <ui-section id="issues" header="6. Issues" sticky collapsible dividing>
+        <ui-section id="issues" header="7. Issues" sticky collapsible dividing>
           <ui-icon slot="icon" name="bug"></ui-icon>
           <ui-list class="plan-items" data-kind="issue" divided relaxed
             ><ui-item id="i1" data-status="open"
@@ -5255,7 +5424,7 @@
           >
         </ui-section>
 
-        <ui-section id="log" header="7. Log" sticky collapsible dividing>
+        <ui-section id="log" header="8. Log" sticky collapsible dividing>
           <ui-icon slot="icon" name="clock rotate left"></ui-icon>
           <p class="meta">Plan changes, oldest first, local time.</p>
           <ui-feed class="plan-log" size="small">
@@ -5897,6 +6066,63 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-03T12:03-04:00">2026-10-03 12:03</time></ui-date> Bedtime done: 9 /
                   9 phases done, 0 WIP, 0 skipped</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T12:52-04:00">2026-10-03 12:52</time></ui-date> T1 closed: Review:
+                  P6 themes ported in parallel with P2</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T12:52-04:00">2026-10-03 12:52</time></ui-date> T2 closed: Review:
+                  Fomantic themes load ON TOP of classic</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T12:52-04:00">2026-10-03 12:52</time></ui-date> T3 closed: Review:
+                  Fomantic's classic theme named fomantic-classic</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T12:52-04:00">2026-10-03 12:52</time></ui-date> T4 closed: Review:
+                  ui-docs-* read a generated components.json</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T12:52-04:00">2026-10-03 12:52</time></ui-date> T5 closed: Review:
+                  theme overrides reach shadow roots via UI.styles shadow:true</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T12:52-04:00">2026-10-03 12:52</time></ui-date> T8 closed: Review:
+                  nav starts on Topics, not A-Z</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T12:52-04:00">2026-10-03 12:52</time></ui-date> T10 closed:
+                  Review: P4 and P5 in one commit</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T12:52-04:00">2026-10-03 12:52</time></ui-date> Judgement calls
+                  moved to their own section (J1-J8); the 'Review:' todos T1-T5, T8, T10 they replace are
+                  closed</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

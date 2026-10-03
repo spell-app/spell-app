@@ -105,7 +105,8 @@ When the session already has work under way ("make this a plan doc"), carry it o
 
 1. `yarn plan-doc phase <name> <N> active`
 2. Do the work.  Record as you go, not at the end:
-   - found a problem:  `add ... issue`;  a limit we accept:  `add ... caveat`;  a choice:  `add ... decision`
+   - found a problem:  `add ... issue`;  a limit we accept:  `add ... caveat`;  a choice:  `add ... decision`;  a
+     choice made WITHOUT Owen (he is away, or an agent decided):  `add ... judgement` (ids `J1` ...;  see `/bedtime`)
    - fixed or obsolete:  `close <name> <id>` (it stays, struck through)
    - changed a prose block:  put
      `<ui-message class="plan-update" state="warning" size="tiny" header="UPDATE" data-phase="N"><p>what changed</p></ui-message>`
@@ -149,7 +150,7 @@ new <name> [--title "Title"] [--prompt "..." | --prompt-file f]   create from th
 add-phase <name> "Short Name" [--goal ..] [--files ..] [--verify ..] [--estimate 2h]
 estimate <name> <N> "1-2h"                          change a phase's estimate;  the Overview's total follows
 phase <name> <N> todo|active|done [--no-open]       done drops UPDATE markers;  reloads the VS Code tab
-add <name> question|caveat|issue|todo|decision "title" [--details "<p>html</p>"]   prints the id (C3)
+add <name> question|judgement|caveat|issue|todo|decision "title" [--details "<p>html</p>"]   prints the id (C3)
 decide <name> <Q id> "decision" [--details html]   answer a question:  prints the decision's id (D7)
 close <name> <id>  /  reopen <name> <id>            strike / unstrike, never delete
 log <name> "text"                                   timestamped line in the doc's log
