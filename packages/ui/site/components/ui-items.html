@@ -85,10 +85,9 @@
                 <ui-docs-example header="Items">
                   <p slot="description">A group of items.</p>
                   <ui-message slot="description" state="positive" size="small"
-                    >Item views are designed to be responsive, with images stacking at mobile widths. Ours stack by the
-                    width of the GROUP, not the window: below 768px the image sits above its text, and this page's
-                    example column is narrower than that, so the examples here show the stacked layout unless they say
-                    <code>unstackable</code>.</ui-message
+                    >Item views are designed to be responsive, with images stacking at mobile widths. By default ours
+                    stack by the width of the GROUP (<code>stack-with="container"</code>);  this site sets
+                    <code>stack-with="page"</code>, so here they stack by the window, as in Fomantic.</ui-message
                   >
                   <ui-items>
                     <ui-item image="../images/wireframe/image.png">
@@ -619,8 +618,9 @@
                     - `href` makes the whole item one link; `link` on the group is only the hover look.
                     - `<ui-content vertical-align="middle|bottom">` aligns the content against the image; `floated` on a part
                       (a `<ui-button floated="right">` in `<ui-extra>`) floats it.
-                    - Items stack, image above content, when the GROUP is narrower than 768px, whatever the window's width;
-                      `unstackable` keeps them side by side. A stacked image takes its natural width, up to 250px tall.
+                    - Items stack, image above content, below 768px:  of the GROUP's width by default, of the window's with
+                      `stack-with="page"` (here, or on a `<ui-root>`);  `unstackable` keeps them side by side. A stacked
+                      image takes its natural width, up to 250px tall.
                   </script>
                 </ui-markdown>
                 <ui-code language="html">
