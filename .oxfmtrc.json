@@ -30,6 +30,7 @@
     "**/src/icons/data/**",
     "**/src/icons/icon-packs/**",
     "**/src/components/ui-emoji/data/**",
+    "**/src/languages/spell.*.js",
     "**/site/dist/**",
     "**/site/**/*.mdx",
     "**/site/.astro/**",
