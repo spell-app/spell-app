@@ -1166,6 +1166,18 @@ missing from commands.html:
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="d13" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d13">D13</a>
+                  <span class="plan-title">doc-links.js stays plain Node (T10)</span></ui-title
+                ><ui-content
+                  ><p>
+                    Owen (2026-10-03): an implementation detail only agents see, so Claude's call, not his. Kept the
+                    375-line plain-Node rewrite.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1243,7 +1255,7 @@ missing from commands.html:
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="t2" data-status="open"
+            ><ui-item id="t2" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t2">T2</a>
@@ -1268,7 +1280,7 @@ missing from commands.html:
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="t3" data-status="open"
+            ><ui-item id="t3" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t3">T3</a>
@@ -1330,7 +1342,7 @@ missing from commands.html:
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="t7" data-status="open"
+            ><ui-item id="t7" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t7">T7</a>
@@ -1379,7 +1391,7 @@ missing from commands.html:
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="t10" data-status="open"
+            ><ui-item id="t10" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t10">T10</a>
@@ -1828,6 +1840,42 @@ missing from commands.html:
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-03T10:19-04:00">2026-10-03 10:19</time></ui-date> Bedtime done
                   (second run): P7-P12 done, 0 WIP, 0 skipped</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:33-04:00">2026-10-03 10:33</time></ui-date> T10 closed:
+                  Review: doc-links.js rewritten as plain Node</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:34-04:00">2026-10-03 10:34</time></ui-date> T2 closed: Review:
+                  commands.js boots the bundle itself</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:34-04:00">2026-10-03 10:34</time></ui-date> T3 closed: Review:
+                  family icons only from the bundled set</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:34-04:00">2026-10-03 10:34</time></ui-date> T7 closed: Review:
+                  drift check reads main.ts as text</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:34-04:00">2026-10-03 10:34</time></ui-date> Owen:
+                  implementation-only calls are Claude's (D13); closed T2, T3, T7, T10; T4, T5, T6, T9 stay open for
+                  review</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
