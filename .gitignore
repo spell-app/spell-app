@@ -2,6 +2,7 @@ node_modules
 .yarn/install-state.gz
 .DS_Store
 .claude/worktrees/
+workspaces/ongoing/
 packages/solid-element/dist/
 __pycache__/
 
@@ -13,3 +14,6 @@ __pycache__/
 
 # `/bedtime`'s morning report:  never committed
 MORNING-*.md
+
+# `/park`'s note on where parked work stopped:  never committed
+PARKED-*.md

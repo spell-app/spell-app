@@ -34,6 +34,24 @@
         "category": "Spell",
         "icon": "$(play)",
         "enablement": "editorLangId == spell"
+      },
+      {
+        "command": "spell.docView.home",
+        "title": "Docs Index",
+        "category": "Spell",
+        "icon": "$(home)"
+      },
+      {
+        "command": "spell.docView.reload",
+        "title": "Reload Doc",
+        "category": "Spell",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "spell.docView.openExternal",
+        "title": "Open Doc in Browser",
+        "category": "Spell",
+        "icon": "$(link-external)"
       }
     ],
     "configuration": {
@@ -48,6 +66,19 @@
           "type": "boolean",
           "default": false,
           "description": "On save, compile the project to its .output.js, so a running app picks it up."
+        },
+        "spell.docPreview.location": {
+          "type": "string",
+          "enum": [
+            "sidebar",
+            "beside"
+          ],
+          "default": "sidebar",
+          "enumDescriptions": [
+            "The \"Spell Docs\" view, in the right (secondary) side bar.",
+            "Simple Browser, in an editor column beside the editor."
+          ],
+          "description": "Where docs pages open (`yarn plan-doc open`, `/spell-docs`, `/goals-open-vs`)."
         }
       }
     },
@@ -82,6 +113,23 @@
           "command": "spell.runProject",
           "when": "editorLangId == spell",
           "group": "navigation"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "spell.docView.home",
+          "when": "view == spell.docView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "spell.docView.reload",
+          "when": "view == spell.docView",
+          "group": "navigation@2"
+        },
+        {
+          "command": "spell.docView.openExternal",
+          "when": "view == spell.docView",
+          "group": "navigation@3"
         }
       ]
     },
@@ -134,7 +182,25 @@
         "id": "heading4",
         "description": "A fourth-level or deeper heading comment:  `####` ... at the start of a line."
       }
-    ]
+    ],
+    "viewsContainers": {
+      "secondarySidebar": [
+        {
+          "id": "spell-docs",
+          "title": "Spell Docs",
+          "icon": "$(book)"
+        }
+      ]
+    },
+    "views": {
+      "spell-docs": [
+        {
+          "type": "webview",
+          "id": "spell.docView",
+          "name": "Spell Docs"
+        }
+      ]
+    }
   },
   "activationEvents": [
     "onStartupFinished",
