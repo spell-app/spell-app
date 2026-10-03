@@ -182,6 +182,14 @@ export type IconsOptions = GlobalOptions & {
 }
 
 /**
+ * `spell dev commands` flags.
+ * - `json`:  print every command, and the problems, as JSON
+ */
+export type CommandsOptions = GlobalOptions & {
+  json?: boolean
+}
+
+/**
  * `spell new` flags.
  * - `in`:  make the project in this folder -- default `@user`'s, `projects/user/`
  */

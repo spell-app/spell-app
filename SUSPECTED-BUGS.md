@@ -432,6 +432,8 @@ every entry below that date was fixed or disproven;  what's left:
 - `[V]` `src/main.ts` `.version(globalThis.__PACKAGE_VERSION__)`:  `spell --version` prints `@spell-app/spell`'s
   version, not the CLI's (`0.8.0`):  `$/spell/node/packageVersion.node` reads the `package.json` three folders up
   from ITSELF.  Prove:  `spell --version` vs `packages/cli/package.json`.  (found by epic `commands`, P2)
+  NOTE: `main.ts`'s comment calls this deliberate ("the PARSER's, which `spell --version` prints"), so maybe not a
+  bug -- but then the CLI's own `0.8.0` is shown nowhere.
 - `package.json` `spell` script (`node bin/spell.mjs`):  yarn runs it with the cwd at `packages/cli`, so a relative
   target or `@workspace` resolves there, not where you typed it.  Prove:  `yarn workspace @spell-app/cli spell check .`
   from `packages/spell/projects/...`.  Nothing references the script;  drop it or document `INIT_CWD`.

@@ -1,4 +1,13 @@
 {
+  "sources": {
+    "userSkills": [
+      "session",
+      "worktrees"
+    ],
+    "ignore": [
+      "/solid-2"
+    ]
+  },
   "families": [
     {
       "id": "worktrees",
@@ -14,7 +23,13 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/isolate", "/epic", "/park", "/unpark", "/bedtime"],
+            "names": [
+              "/isolate",
+              "/epic",
+              "/park",
+              "/unpark",
+              "/bedtime"
+            ],
             "note": "`EnterWorktree`;  `/bedtime` only via isolate"
           },
           "yarn": {
@@ -32,7 +47,11 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/isolate", "/epic", "/park"],
+            "names": [
+              "/isolate",
+              "/epic",
+              "/park"
+            ],
             "note": "prose"
           },
           "yarn": {
@@ -50,7 +69,10 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/isolate", "/epic"],
+            "names": [
+              "/isolate",
+              "/epic"
+            ],
             "note": "`/epic` adds plan-doc paths"
           },
           "yarn": {
@@ -68,7 +90,10 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/isolate", "/park"],
+            "names": [
+              "/isolate",
+              "/park"
+            ],
             "note": "`/isolate` asks first;  `/park` carries this session's files only"
           },
           "yarn": {
@@ -87,7 +112,12 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/isolate", "/epic", "/unpark", "/wait-for"],
+            "names": [
+              "/isolate",
+              "/epic",
+              "/unpark",
+              "/wait-for"
+            ],
             "note": "`/isolate` step 7, park Resume step 3"
           },
           "yarn": {
@@ -106,7 +136,11 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/isolate", "/whassup", "/wtf"],
+            "names": [
+              "/isolate",
+              "/whassup",
+              "/wtf"
+            ],
             "note": "`/isolate done` step 1"
           },
           "yarn": {
@@ -124,7 +158,12 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/isolate", "/whassup", "/unpark", "/wait-for"],
+            "names": [
+              "/isolate",
+              "/whassup",
+              "/unpark",
+              "/wait-for"
+            ],
             "note": "`/isolate done` step 2, park Resume step 2"
           },
           "yarn": {
@@ -142,7 +181,11 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/isolate", "/unpark", "/wait-for"],
+            "names": [
+              "/isolate",
+              "/unpark",
+              "/wait-for"
+            ],
             "note": "conflicts resolved keeping both sides' intent"
           },
           "yarn": {
@@ -161,7 +204,12 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/unpark", "/wait-for", "/isolate", "/bedtime"],
+            "names": [
+              "/unpark",
+              "/wait-for",
+              "/isolate",
+              "/bedtime"
+            ],
             "note": "park Resume step 3"
           },
           "yarn": {
@@ -180,7 +228,11 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/isolate", "/whassup", "/wakeup"],
+            "names": [
+              "/isolate",
+              "/whassup",
+              "/wakeup"
+            ],
             "note": "`/isolate done`;  `/wakeup` runs its steps"
           },
           "yarn": {
@@ -198,7 +250,10 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/isolate", "/epic"],
+            "names": [
+              "/isolate",
+              "/epic"
+            ],
             "note": "`/isolate done`;  `/epic` Doc Review calls it"
           },
           "yarn": {
@@ -216,7 +271,10 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/isolate", "/whassup"],
+            "names": [
+              "/isolate",
+              "/whassup"
+            ],
             "note": "`/isolate done` cleanup;  `/whassup` remove"
           },
           "yarn": {
@@ -234,7 +292,9 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/whassup"],
+            "names": [
+              "/whassup"
+            ],
             "note": "`discard`, asks twice"
           },
           "yarn": {
@@ -251,7 +311,10 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/isolate", "/whassup"],
+            "names": [
+              "/isolate",
+              "/whassup"
+            ],
             "note": "`/isolate done` outside a worktree"
           },
           "yarn": {
@@ -268,7 +331,10 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/worktrees", "/whassup"]
+            "names": [
+              "/worktrees",
+              "/whassup"
+            ]
           },
           "yarn": {
             "mark": "could"
@@ -284,7 +350,12 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/isolate", "/park", "/bedtime", "/unpark"],
+            "names": [
+              "/isolate",
+              "/park",
+              "/bedtime",
+              "/unpark"
+            ],
             "note": "prose:  folder under `.claude/worktrees/`"
           },
           "yarn": {
@@ -310,11 +381,17 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/isolate", "/epic", "/unpark"]
+            "names": [
+              "/isolate",
+              "/epic",
+              "/unpark"
+            ]
           },
           "yarn": {
             "mark": "same",
-            "names": ["root window"],
+            "names": [
+              "root window"
+            ],
             "note": "`open <name> [--pkg]`;  skills call `node scripts/window.mjs`"
           },
           "runs": "`scripts/window.mjs open`",
@@ -328,12 +405,17 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/whassup", "/isolate"],
+            "names": [
+              "/whassup",
+              "/isolate"
+            ],
             "note": "`/whassup` close / remove;  `/isolate done` via `handoff --back`"
           },
           "yarn": {
             "mark": "same",
-            "names": ["root window"],
+            "names": [
+              "root window"
+            ],
             "note": "`close <name>`"
           },
           "runs": "`scripts/window.mjs close`",
@@ -347,12 +429,18 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/isolate", "/epic", "/unpark"],
+            "names": [
+              "/isolate",
+              "/epic",
+              "/unpark"
+            ],
             "note": "`handoff <name>`, `--back` on leaving"
           },
           "yarn": {
             "mark": "same",
-            "names": ["root window"],
+            "names": [
+              "root window"
+            ],
             "note": "`handoff <name> [--back]`"
           },
           "runs": "`scripts/window.mjs handoff` -> `Stop` hook `.claude/hooks/handoff.mjs`",
@@ -370,7 +458,9 @@
           },
           "yarn": {
             "mark": "same",
-            "names": ["root window"],
+            "names": [
+              "root window"
+            ],
             "note": "`resume <record> [--title]`, hook-only"
           },
           "runs": "`scripts/window.mjs resume`, started detached by `handoff.mjs`",
@@ -384,12 +474,16 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/unpark"],
+            "names": [
+              "/unpark"
+            ],
             "note": "step 3, its `workspace` line"
           },
           "yarn": {
             "mark": "same",
-            "names": ["root window"],
+            "names": [
+              "root window"
+            ],
             "note": "`which`"
           },
           "runs": "`scripts/window.mjs which`",
@@ -402,12 +496,16 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/isolate"],
+            "names": [
+              "/isolate"
+            ],
             "note": "`remove`, for older sessions only"
           },
           "yarn": {
             "mark": "same",
-            "names": ["root window"],
+            "names": [
+              "root window"
+            ],
             "note": "`add <path>` / `remove <path>`"
           },
           "runs": "`scripts/window.mjs add|remove`",
@@ -422,12 +520,18 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/goals-open-vs", "/epic", "/spell-docs"],
+            "names": [
+              "/goals-open-vs",
+              "/epic",
+              "/spell-docs"
+            ],
             "note": "via `plan-doc open`, `goals open-vs`"
           },
           "yarn": {
             "mark": "same",
-            "names": ["root window"],
+            "names": [
+              "root window"
+            ],
             "note": "`show <file>`;  also `root plan-doc` `open`"
           },
           "runs": "`scripts/window.mjs show` (`Window.show`), from `packages/docs/scripts/pages.js` `openInVSCode`",
@@ -445,7 +549,9 @@
           },
           "yarn": {
             "mark": "same",
-            "names": ["root window"],
+            "names": [
+              "root window"
+            ],
             "note": "`init`"
           },
           "runs": "`scripts/window.mjs init`",
@@ -460,7 +566,11 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/worktrees", "/session", "/whassup"]
+            "names": [
+              "/worktrees",
+              "/session",
+              "/whassup"
+            ]
           },
           "yarn": {
             "mark": "could"
@@ -476,7 +586,10 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/session", "/wtf"],
+            "names": [
+              "/session",
+              "/wtf"
+            ],
             "note": "`/wtf` via `transcript.py --find`"
           },
           "yarn": {
@@ -493,7 +606,10 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/session", "/whassup"],
+            "names": [
+              "/session",
+              "/whassup"
+            ],
             "note": "`/whassup` open action"
           },
           "yarn": {
@@ -511,7 +627,9 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/session"],
+            "names": [
+              "/session"
+            ],
             "note": "`/session name`;  `/isolate` reminds to `/rename`"
           },
           "yarn": {
@@ -529,7 +647,12 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/park", "/unpark", "/whassup", "/wtf"],
+            "names": [
+              "/park",
+              "/unpark",
+              "/whassup",
+              "/wtf"
+            ],
             "note": "park / unpark / nudge / relay answers"
           },
           "yarn": {
@@ -545,7 +668,9 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/whassup"],
+            "names": [
+              "/whassup"
+            ],
             "note": "`kill` action, never its own pid"
           },
           "yarn": {
@@ -561,7 +686,9 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/wtf"]
+            "names": [
+              "/wtf"
+            ]
           },
           "yarn": {
             "mark": "could"
@@ -578,7 +705,9 @@
           },
           "skill": {
             "mark": "same",
-            "names": ["/wtf"],
+            "names": [
+              "/wtf"
+            ],
             "note": "`/wtf <name>` for another session"
           },
           "yarn": {
@@ -594,7 +723,10 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/wtf", "/whassup"],
+            "names": [
+              "/wtf",
+              "/whassup"
+            ],
             "note": "`/wtf <name>?`;  `/whassup` answer"
           },
           "yarn": {
@@ -611,7 +743,9 @@
           },
           "skill": {
             "mark": "same",
-            "names": ["/whassup"],
+            "names": [
+              "/whassup"
+            ],
             "note": "picks and actions need Claude"
           },
           "yarn": {
@@ -629,7 +763,12 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/isolate", "/epic", "/park", "/bedtime"],
+            "names": [
+              "/isolate",
+              "/epic",
+              "/park",
+              "/bedtime"
+            ],
             "note": "prose"
           },
           "yarn": {
@@ -671,7 +810,9 @@
           },
           "skill": {
             "mark": "same",
-            "names": ["/park"]
+            "names": [
+              "/park"
+            ]
           },
           "yarn": {
             "mark": "could",
@@ -688,7 +829,9 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/park"],
+            "names": [
+              "/park"
+            ],
             "note": "`/park <other>`"
           },
           "yarn": {
@@ -705,7 +848,10 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/park", "/bedtime"],
+            "names": [
+              "/park",
+              "/bedtime"
+            ],
             "note": "`WIP (parked): ...`;  `/bedtime` `WIP P<n>: ...`"
           },
           "yarn": {
@@ -723,7 +869,10 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/park", "/wait-for"]
+            "names": [
+              "/park",
+              "/wait-for"
+            ]
           },
           "yarn": {
             "mark": "could"
@@ -740,7 +889,11 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/wait-for", "/unpark", "/park"],
+            "names": [
+              "/wait-for",
+              "/unpark",
+              "/park"
+            ],
             "note": "first line `<!-- park: <state> -->`"
           },
           "yarn": {
@@ -757,7 +910,10 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/unpark", "/whassup"]
+            "names": [
+              "/unpark",
+              "/whassup"
+            ]
           },
           "yarn": {
             "mark": "could"
@@ -773,7 +929,12 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/park", "/unpark", "/wait-for", "/wtf"]
+            "names": [
+              "/park",
+              "/unpark",
+              "/wait-for",
+              "/wtf"
+            ]
           },
           "yarn": {
             "mark": "could"
@@ -789,7 +950,9 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/wtf"],
+            "names": [
+              "/wtf"
+            ],
             "note": "on an unknown name"
           },
           "yarn": {
@@ -806,7 +969,9 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/wait-for"],
+            "names": [
+              "/wait-for"
+            ],
             "note": "`/wait-for ?`"
           },
           "yarn": {
@@ -823,7 +988,9 @@
           },
           "skill": {
             "mark": "same",
-            "names": ["/wait-for"]
+            "names": [
+              "/wait-for"
+            ]
           },
           "yarn": {
             "mark": "could",
@@ -841,7 +1008,9 @@
           },
           "skill": {
             "mark": "same",
-            "names": ["/unpark"],
+            "names": [
+              "/unpark"
+            ],
             "note": "also `/wait-for` when the wait ends"
           },
           "yarn": {
@@ -857,7 +1026,10 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/unpark", "/wait-for"]
+            "names": [
+              "/unpark",
+              "/wait-for"
+            ]
           },
           "yarn": {
             "mark": "could"
@@ -873,7 +1045,9 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/whassup"],
+            "names": [
+              "/whassup"
+            ],
             "note": "`nudge`"
           },
           "yarn": {
@@ -889,7 +1063,9 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/whassup"],
+            "names": [
+              "/whassup"
+            ],
             "note": "`apply` / `drop`"
           },
           "yarn": {
@@ -902,16 +1078,24 @@
           "op": "Log parking in the plan doc",
           "cli": {
             "mark": "same",
-            "names": ["spell plan-doc"],
+            "names": [
+              "spell plan-doc"
+            ],
             "note": "`log`"
           },
           "skill": {
             "mark": "other",
-            "names": ["/park", "/unpark"]
+            "names": [
+              "/park",
+              "/unpark"
+            ]
           },
           "yarn": {
             "mark": "same",
-            "names": ["root plan-doc", "docs plan-doc"],
+            "names": [
+              "root plan-doc",
+              "docs plan-doc"
+            ],
             "note": "`log`"
           },
           "runs": "`packages/docs/scripts/plan-doc.js log`",
@@ -924,7 +1108,9 @@
           },
           "skill": {
             "mark": "same",
-            "names": ["/bedtime"],
+            "names": [
+              "/bedtime"
+            ],
             "note": "Owen-only:  `disable-model-invocation`"
           },
           "yarn": {
@@ -942,7 +1128,9 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/bedtime"],
+            "names": [
+              "/bedtime"
+            ],
             "note": "`P<n>:  <Name> -- <summary>`"
           },
           "yarn": {
@@ -956,17 +1144,24 @@
           "op": "Record judgement calls for review",
           "cli": {
             "mark": "same",
-            "names": ["spell plan-doc"],
+            "names": [
+              "spell plan-doc"
+            ],
             "note": "`add todo \"Review: ...\"`"
           },
           "skill": {
             "mark": "other",
-            "names": ["/bedtime"],
+            "names": [
+              "/bedtime"
+            ],
             "note": "`J<k>` in the morning plan"
           },
           "yarn": {
             "mark": "same",
-            "names": ["root plan-doc", "docs plan-doc"],
+            "names": [
+              "root plan-doc",
+              "docs plan-doc"
+            ],
             "note": "`add`"
           },
           "runs": "`plan-doc.js add` + prose",
@@ -980,7 +1175,9 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/bedtime"]
+            "names": [
+              "/bedtime"
+            ]
           },
           "yarn": {
             "mark": "could"
@@ -996,7 +1193,9 @@
           },
           "skill": {
             "mark": "same",
-            "names": ["/wakeup"]
+            "names": [
+              "/wakeup"
+            ]
           },
           "yarn": {
             "mark": "no"
@@ -1017,16 +1216,23 @@
           "op": "Start a plan doc",
           "cli": {
             "mark": "same",
-            "names": ["spell plan-doc"],
+            "names": [
+              "spell plan-doc"
+            ],
             "note": "`new`"
           },
           "skill": {
             "mark": "other",
-            "names": ["/epic"]
+            "names": [
+              "/epic"
+            ]
           },
           "yarn": {
             "mark": "same",
-            "names": ["root plan-doc", "docs plan-doc"],
+            "names": [
+              "root plan-doc",
+              "docs plan-doc"
+            ],
             "note": "`new`"
           },
           "runs": "`packages/docs/scripts/plan-doc.js new`",
@@ -1037,17 +1243,24 @@
           "op": "Add a phase",
           "cli": {
             "mark": "same",
-            "names": ["spell plan-doc"],
+            "names": [
+              "spell plan-doc"
+            ],
             "note": "`add-phase`"
           },
           "skill": {
             "mark": "other",
-            "names": ["/epic"],
+            "names": [
+              "/epic"
+            ],
             "note": "after plan mode is approved"
           },
           "yarn": {
             "mark": "same",
-            "names": ["root plan-doc", "docs plan-doc"],
+            "names": [
+              "root plan-doc",
+              "docs plan-doc"
+            ],
             "note": "`add-phase`"
           },
           "runs": "`packages/docs/scripts/plan-doc.js add-phase`",
@@ -1057,16 +1270,23 @@
           "op": "Change a phase's estimate",
           "cli": {
             "mark": "same",
-            "names": ["spell plan-doc"],
+            "names": [
+              "spell plan-doc"
+            ],
             "note": "`estimate`"
           },
           "skill": {
             "mark": "other",
-            "names": ["/epic"]
+            "names": [
+              "/epic"
+            ]
           },
           "yarn": {
             "mark": "same",
-            "names": ["root plan-doc", "docs plan-doc"],
+            "names": [
+              "root plan-doc",
+              "docs plan-doc"
+            ],
             "note": "`estimate`"
           },
           "runs": "`packages/docs/scripts/plan-doc.js estimate`",
@@ -1077,16 +1297,24 @@
           "op": "Set a phase's status",
           "cli": {
             "mark": "same",
-            "names": ["spell plan-doc"],
+            "names": [
+              "spell plan-doc"
+            ],
             "note": "`phase`"
           },
           "skill": {
             "mark": "other",
-            "names": ["/epic", "/bedtime"]
+            "names": [
+              "/epic",
+              "/bedtime"
+            ]
           },
           "yarn": {
             "mark": "same",
-            "names": ["root plan-doc", "docs plan-doc"],
+            "names": [
+              "root plan-doc",
+              "docs plan-doc"
+            ],
             "note": "`phase`"
           },
           "runs": "`packages/docs/scripts/plan-doc.js phase`",
@@ -1097,16 +1325,24 @@
           "op": "Add a question, caveat, issue, todo or decision",
           "cli": {
             "mark": "same",
-            "names": ["spell plan-doc"],
+            "names": [
+              "spell plan-doc"
+            ],
             "note": "`add`"
           },
           "skill": {
             "mark": "other",
-            "names": ["/epic", "/bedtime"]
+            "names": [
+              "/epic",
+              "/bedtime"
+            ]
           },
           "yarn": {
             "mark": "same",
-            "names": ["root plan-doc", "docs plan-doc"],
+            "names": [
+              "root plan-doc",
+              "docs plan-doc"
+            ],
             "note": "`add`"
           },
           "runs": "`packages/docs/scripts/plan-doc.js add`",
@@ -1117,17 +1353,25 @@
           "op": "Answer a question",
           "cli": {
             "mark": "same",
-            "names": ["spell plan-doc"],
+            "names": [
+              "spell plan-doc"
+            ],
             "note": "`decide`"
           },
           "skill": {
             "mark": "other",
-            "names": ["/epic", "/wtf"],
+            "names": [
+              "/epic",
+              "/wtf"
+            ],
             "note": "`/wtf ?` in this session"
           },
           "yarn": {
             "mark": "same",
-            "names": ["root plan-doc", "docs plan-doc"],
+            "names": [
+              "root plan-doc",
+              "docs plan-doc"
+            ],
             "note": "`decide`"
           },
           "runs": "`packages/docs/scripts/plan-doc.js decide`",
@@ -1138,17 +1382,24 @@
           "op": "Close or reopen an item",
           "cli": {
             "mark": "same",
-            "names": ["spell plan-doc"],
+            "names": [
+              "spell plan-doc"
+            ],
             "note": "`close`"
           },
           "skill": {
             "mark": "other",
-            "names": ["/epic"],
+            "names": [
+              "/epic"
+            ],
             "note": "`close` / `reopen`"
           },
           "yarn": {
             "mark": "same",
-            "names": ["root plan-doc", "docs plan-doc"],
+            "names": [
+              "root plan-doc",
+              "docs plan-doc"
+            ],
             "note": "`close`"
           },
           "runs": "`packages/docs/scripts/plan-doc.js close`",
@@ -1159,16 +1410,26 @@
           "op": "Log a line in the plan doc",
           "cli": {
             "mark": "same",
-            "names": ["spell plan-doc"],
+            "names": [
+              "spell plan-doc"
+            ],
             "note": "`log`"
           },
           "skill": {
             "mark": "other",
-            "names": ["/epic", "/park", "/unpark", "/bedtime"]
+            "names": [
+              "/epic",
+              "/park",
+              "/unpark",
+              "/bedtime"
+            ]
           },
           "yarn": {
             "mark": "same",
-            "names": ["root plan-doc", "docs plan-doc"],
+            "names": [
+              "root plan-doc",
+              "docs plan-doc"
+            ],
             "note": "`log`"
           },
           "runs": "`packages/docs/scripts/plan-doc.js log`",
@@ -1178,17 +1439,24 @@
           "op": "Set the kickoff prompt",
           "cli": {
             "mark": "same",
-            "names": ["spell plan-doc"],
+            "names": [
+              "spell plan-doc"
+            ],
             "note": "`prompt`"
           },
           "skill": {
             "mark": "other",
-            "names": ["/epic"],
+            "names": [
+              "/epic"
+            ],
             "note": "verbatim, via `--file`"
           },
           "yarn": {
             "mark": "same",
-            "names": ["root plan-doc", "docs plan-doc"],
+            "names": [
+              "root plan-doc",
+              "docs plan-doc"
+            ],
             "note": "`prompt`"
           },
           "runs": "`packages/docs/scripts/plan-doc.js prompt`",
@@ -1198,16 +1466,23 @@
           "op": "Migrate an older plan doc",
           "cli": {
             "mark": "same",
-            "names": ["spell plan-doc"],
+            "names": [
+              "spell plan-doc"
+            ],
             "note": "`migrate`"
           },
           "skill": {
             "mark": "other",
-            "names": ["/epic"]
+            "names": [
+              "/epic"
+            ]
           },
           "yarn": {
             "mark": "same",
-            "names": ["root plan-doc", "docs plan-doc"],
+            "names": [
+              "root plan-doc",
+              "docs plan-doc"
+            ],
             "note": "`migrate`"
           },
           "runs": "`packages/docs/scripts/plan-doc.js migrate`",
@@ -1217,17 +1492,26 @@
           "op": "Summarize a plan",
           "cli": {
             "mark": "same",
-            "names": ["spell plan-doc"],
+            "names": [
+              "spell plan-doc"
+            ],
             "note": "`summary`"
           },
           "skill": {
             "mark": "other",
-            "names": ["/epic", "/wtf", "/bedtime"],
+            "names": [
+              "/epic",
+              "/wtf",
+              "/bedtime"
+            ],
             "note": "`--json` for phases and open items"
           },
           "yarn": {
             "mark": "same",
-            "names": ["root plan-doc", "docs plan-doc"],
+            "names": [
+              "root plan-doc",
+              "docs plan-doc"
+            ],
             "note": "`summary`"
           },
           "runs": "`packages/docs/scripts/plan-doc.js summary`",
@@ -1237,16 +1521,24 @@
           "op": "Check a plan doc",
           "cli": {
             "mark": "same",
-            "names": ["spell plan-doc"],
+            "names": [
+              "spell plan-doc"
+            ],
             "note": "`check`"
           },
           "skill": {
             "mark": "other",
-            "names": ["/epic", "/bedtime"]
+            "names": [
+              "/epic",
+              "/bedtime"
+            ]
           },
           "yarn": {
             "mark": "same",
-            "names": ["root plan-doc", "docs plan-doc"],
+            "names": [
+              "root plan-doc",
+              "docs plan-doc"
+            ],
             "note": "`check`"
           },
           "runs": "`packages/docs/scripts/plan-doc.js check`",
@@ -1257,17 +1549,25 @@
           "op": "Show a plan doc in VS Code",
           "cli": {
             "mark": "same",
-            "names": ["spell plan-doc"],
+            "names": [
+              "spell plan-doc"
+            ],
             "note": "`open`"
           },
           "skill": {
             "mark": "other",
-            "names": ["/epic", "/bedtime"],
+            "names": [
+              "/epic",
+              "/bedtime"
+            ],
             "note": "every new stage"
           },
           "yarn": {
             "mark": "same",
-            "names": ["root plan-doc", "docs plan-doc"],
+            "names": [
+              "root plan-doc",
+              "docs plan-doc"
+            ],
             "note": "`open`"
           },
           "runs": "`packages/docs/scripts/plan-doc.js open`",
@@ -1281,7 +1581,9 @@
           },
           "skill": {
             "mark": "same",
-            "names": ["/epic"]
+            "names": [
+              "/epic"
+            ]
           },
           "yarn": {
             "mark": "no"
@@ -1297,7 +1599,9 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/epic"]
+            "names": [
+              "/epic"
+            ]
           },
           "yarn": {
             "mark": "no"
@@ -1313,12 +1617,19 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/epic"],
+            "names": [
+              "/epic"
+            ],
             "note": "Doc Review phase"
           },
           "yarn": {
             "mark": "other",
-            "names": ["root docs:new", "docs docs:new", "root docs:index", "docs docs:index"],
+            "names": [
+              "root docs:new",
+              "docs docs:new",
+              "root docs:index",
+              "docs docs:index"
+            ],
             "note": "`docs:new durable <page>`"
           },
           "runs": "`packages/docs/scripts/new-page.js` + prose",
@@ -1332,7 +1643,10 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/wtf", "/wait-for"],
+            "names": [
+              "/wtf",
+              "/wait-for"
+            ],
             "note": "prose;  `status.py` `plan`"
           },
           "yarn": {
@@ -1350,11 +1664,17 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/epic", "/wtf"]
+            "names": [
+              "/epic",
+              "/wtf"
+            ]
           },
           "yarn": {
             "mark": "other",
-            "names": ["root server", "server server"],
+            "names": [
+              "root server",
+              "server server"
+            ],
             "note": "`server url <ABSOLUTE path>`"
           },
           "runs": "`packages/server/src/page/cli.ts url`",
@@ -1369,7 +1689,10 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/epic", "/wtf"],
+            "names": [
+              "/epic",
+              "/wtf"
+            ],
             "note": "linked `P1 complete.  Next is P2` line"
           },
           "yarn": {
@@ -1391,17 +1714,23 @@
           "op": "List goal sets",
           "cli": {
             "mark": "same",
-            "names": ["spell goals"],
+            "names": [
+              "spell goals"
+            ],
             "note": "`sets`"
           },
           "skill": {
             "mark": "same",
-            "names": ["/goals"],
+            "names": [
+              "/goals"
+            ],
             "note": "`/goals sets`"
           },
           "yarn": {
             "mark": "same",
-            "names": ["root goals"],
+            "names": [
+              "root goals"
+            ],
             "note": "`sets`"
           },
           "runs": "`goals/_tools/goals.js sets`",
@@ -1411,17 +1740,23 @@
           "op": "Make a goal set active",
           "cli": {
             "mark": "same",
-            "names": ["spell goals"],
+            "names": [
+              "spell goals"
+            ],
             "note": "`use`"
           },
           "skill": {
             "mark": "same",
-            "names": ["/goals"],
+            "names": [
+              "/goals"
+            ],
             "note": "`/goals use <set>`;  also on naming another set"
           },
           "yarn": {
             "mark": "same",
-            "names": ["root goals"],
+            "names": [
+              "root goals"
+            ],
             "note": "`use`"
           },
           "runs": "`goals/_tools/goals.js use`",
@@ -1431,16 +1766,23 @@
           "op": "Resolve a target",
           "cli": {
             "mark": "same",
-            "names": ["spell goals"],
+            "names": [
+              "spell goals"
+            ],
             "note": "`resolve`"
           },
           "skill": {
             "mark": "other",
-            "names": ["/goals", "/goals-thought"]
+            "names": [
+              "/goals",
+              "/goals-thought"
+            ]
           },
           "yarn": {
             "mark": "same",
-            "names": ["root goals"],
+            "names": [
+              "root goals"
+            ],
             "note": "`resolve`"
           },
           "runs": "`goals/_tools/goals.js resolve`",
@@ -1451,16 +1793,22 @@
           "op": "Summarize a set or topic",
           "cli": {
             "mark": "same",
-            "names": ["spell goals"],
+            "names": [
+              "spell goals"
+            ],
             "note": "`summary`"
           },
           "skill": {
             "mark": "other",
-            "names": ["/goals"]
+            "names": [
+              "/goals"
+            ]
           },
           "yarn": {
             "mark": "same",
-            "names": ["root goals"],
+            "names": [
+              "root goals"
+            ],
             "note": "`summary`"
           },
           "runs": "`goals/_tools/goals.js summary`",
@@ -1470,16 +1818,23 @@
           "op": "List waiting thoughts",
           "cli": {
             "mark": "same",
-            "names": ["spell goals"],
+            "names": [
+              "spell goals"
+            ],
             "note": "`thoughts`"
           },
           "skill": {
             "mark": "other",
-            "names": ["/goals", "/goals-update"]
+            "names": [
+              "/goals",
+              "/goals-update"
+            ]
           },
           "yarn": {
             "mark": "same",
-            "names": ["root goals"],
+            "names": [
+              "root goals"
+            ],
             "note": "`thoughts`"
           },
           "runs": "`goals/_tools/goals.js thoughts`",
@@ -1490,7 +1845,9 @@
           "op": "Create a goal set or topic",
           "cli": {
             "mark": "same",
-            "names": ["spell goals"],
+            "names": [
+              "spell goals"
+            ],
             "note": "`new-set`"
           },
           "skill": {
@@ -1499,7 +1856,9 @@
           },
           "yarn": {
             "mark": "same",
-            "names": ["root goals"],
+            "names": [
+              "root goals"
+            ],
             "note": "`new-set`"
           },
           "runs": "`goals/_tools/goals.js new-set`",
@@ -1510,16 +1869,23 @@
           "op": "Add a goal, idea, question, risk, decision or work item",
           "cli": {
             "mark": "same",
-            "names": ["spell goals"],
+            "names": [
+              "spell goals"
+            ],
             "note": "`add`"
           },
           "skill": {
             "mark": "other",
-            "names": ["/goals", "/goals-update"]
+            "names": [
+              "/goals",
+              "/goals-update"
+            ]
           },
           "yarn": {
             "mark": "same",
-            "names": ["root goals"],
+            "names": [
+              "root goals"
+            ],
             "note": "`add`"
           },
           "runs": "`goals/_tools/goals.js add`",
@@ -1529,17 +1895,24 @@
           "op": "Close or reopen an item",
           "cli": {
             "mark": "same",
-            "names": ["spell goals"],
+            "names": [
+              "spell goals"
+            ],
             "note": "`close`"
           },
           "skill": {
             "mark": "other",
-            "names": ["/goals", "/goals-update"],
+            "names": [
+              "/goals",
+              "/goals-update"
+            ],
             "note": "`close` / `reopen`"
           },
           "yarn": {
             "mark": "same",
-            "names": ["root goals"],
+            "names": [
+              "root goals"
+            ],
             "note": "`close`"
           },
           "runs": "`goals/_tools/goals.js close`",
@@ -1550,16 +1923,23 @@
           "op": "Log a history entry",
           "cli": {
             "mark": "same",
-            "names": ["spell goals"],
+            "names": [
+              "spell goals"
+            ],
             "note": "`log`"
           },
           "skill": {
             "mark": "other",
-            "names": ["/goals", "/goals-update"]
+            "names": [
+              "/goals",
+              "/goals-update"
+            ]
           },
           "yarn": {
             "mark": "same",
-            "names": ["root goals"],
+            "names": [
+              "root goals"
+            ],
             "note": "`log`"
           },
           "runs": "`goals/_tools/goals.js log`",
@@ -1569,16 +1949,22 @@
           "op": "Set a topic's status",
           "cli": {
             "mark": "same",
-            "names": ["spell goals"],
+            "names": [
+              "spell goals"
+            ],
             "note": "`status`"
           },
           "skill": {
             "mark": "other",
-            "names": ["/goals"]
+            "names": [
+              "/goals"
+            ]
           },
           "yarn": {
             "mark": "same",
-            "names": ["root goals"],
+            "names": [
+              "root goals"
+            ],
             "note": "`status`"
           },
           "runs": "`goals/_tools/goals.js status`",
@@ -1589,16 +1975,22 @@
           "op": "Jot a thought on a page",
           "cli": {
             "mark": "same",
-            "names": ["spell goals"],
+            "names": [
+              "spell goals"
+            ],
             "note": "`thought`"
           },
           "skill": {
             "mark": "same",
-            "names": ["/goals-thought"]
+            "names": [
+              "/goals-thought"
+            ]
           },
           "yarn": {
             "mark": "same",
-            "names": ["root goals"],
+            "names": [
+              "root goals"
+            ],
             "note": "`thought`"
           },
           "runs": "`goals/_tools/goals.js thought`",
@@ -1609,16 +2001,22 @@
           "op": "Mark a thought digested",
           "cli": {
             "mark": "same",
-            "names": ["spell goals"],
+            "names": [
+              "spell goals"
+            ],
             "note": "`digest`"
           },
           "skill": {
             "mark": "other",
-            "names": ["/goals-update"]
+            "names": [
+              "/goals-update"
+            ]
           },
           "yarn": {
             "mark": "same",
-            "names": ["root goals"],
+            "names": [
+              "root goals"
+            ],
             "note": "`digest`"
           },
           "runs": "`goals/_tools/goals.js digest`",
@@ -1628,7 +2026,9 @@
           "op": "Rewrite contents pages",
           "cli": {
             "mark": "same",
-            "names": ["spell goals"],
+            "names": [
+              "spell goals"
+            ],
             "note": "`index`"
           },
           "skill": {
@@ -1636,7 +2036,9 @@
           },
           "yarn": {
             "mark": "same",
-            "names": ["root goals"],
+            "names": [
+              "root goals"
+            ],
             "note": "`index`"
           },
           "runs": "`goals/_tools/goals.js index`",
@@ -1647,17 +2049,24 @@
           "op": "Check goals pages",
           "cli": {
             "mark": "same",
-            "names": ["spell goals"],
+            "names": [
+              "spell goals"
+            ],
             "note": "`check`"
           },
           "skill": {
             "mark": "other",
-            "names": ["/goals", "/goals-update"],
+            "names": [
+              "/goals",
+              "/goals-update"
+            ],
             "note": "`--no-browser` mid-dialog"
           },
           "yarn": {
             "mark": "same",
-            "names": ["root goals"],
+            "names": [
+              "root goals"
+            ],
             "note": "`check`"
           },
           "runs": "`goals/_tools/goals.js check`",
@@ -1667,7 +2076,9 @@
           "op": "Run or start the goals server",
           "cli": {
             "mark": "same",
-            "names": ["spell goals"],
+            "names": [
+              "spell goals"
+            ],
             "note": "`server`"
           },
           "skill": {
@@ -1676,7 +2087,9 @@
           },
           "yarn": {
             "mark": "same",
-            "names": ["root goals"],
+            "names": [
+              "root goals"
+            ],
             "note": "`server`"
           },
           "runs": "`goals/_tools/goals.js server`",
@@ -1687,16 +2100,22 @@
           "op": "Open a goals page in the browser",
           "cli": {
             "mark": "same",
-            "names": ["spell goals"],
+            "names": [
+              "spell goals"
+            ],
             "note": "`open`"
           },
           "skill": {
             "mark": "same",
-            "names": ["/goals-open"]
+            "names": [
+              "/goals-open"
+            ]
           },
           "yarn": {
             "mark": "same",
-            "names": ["root goals"],
+            "names": [
+              "root goals"
+            ],
             "note": "`open`"
           },
           "runs": "`goals/_tools/goals.js open`",
@@ -1707,16 +2126,22 @@
           "op": "Open a goals page in VS Code",
           "cli": {
             "mark": "same",
-            "names": ["spell goals"],
+            "names": [
+              "spell goals"
+            ],
             "note": "`open-vs`"
           },
           "skill": {
             "mark": "same",
-            "names": ["/goals-open-vs"]
+            "names": [
+              "/goals-open-vs"
+            ]
           },
           "yarn": {
             "mark": "same",
-            "names": ["root goals"],
+            "names": [
+              "root goals"
+            ],
             "note": "`open-vs`"
           },
           "runs": "`goals/_tools/goals.js open-vs`",
@@ -1727,16 +2152,22 @@
           "op": "Talk through a goal with Claude",
           "cli": {
             "mark": "same",
-            "names": ["spell goals"],
+            "names": [
+              "spell goals"
+            ],
             "note": "`talk`"
           },
           "skill": {
             "mark": "same",
-            "names": ["/goals"]
+            "names": [
+              "/goals"
+            ]
           },
           "yarn": {
             "mark": "same",
-            "names": ["root goals"],
+            "names": [
+              "root goals"
+            ],
             "note": "`talk`"
           },
           "runs": "`goals.js talk` -> `claude /goals` (`launch.js`)",
@@ -1747,16 +2178,22 @@
           "op": "Digest new thoughts",
           "cli": {
             "mark": "same",
-            "names": ["spell goals"],
+            "names": [
+              "spell goals"
+            ],
             "note": "`update`"
           },
           "skill": {
             "mark": "same",
-            "names": ["/goals-update"]
+            "names": [
+              "/goals-update"
+            ]
           },
           "yarn": {
             "mark": "same",
-            "names": ["root goals"],
+            "names": [
+              "root goals"
+            ],
             "note": "`update`"
           },
           "runs": "`goals.js update` -> `claude /goals-update` (`launch.js`)",
@@ -1767,7 +2204,9 @@
           "op": "Check Claude Code is installed and logged in",
           "cli": {
             "mark": "same",
-            "names": ["spell goals"],
+            "names": [
+              "spell goals"
+            ],
             "note": "`claude`"
           },
           "skill": {
@@ -1776,7 +2215,9 @@
           },
           "yarn": {
             "mark": "same",
-            "names": ["root goals"],
+            "names": [
+              "root goals"
+            ],
             "note": "`claude`"
           },
           "runs": "`goals/_tools/goals.js claude`",
@@ -1786,7 +2227,9 @@
           "op": "List goals commands",
           "cli": {
             "mark": "same",
-            "names": ["spell goals"],
+            "names": [
+              "spell goals"
+            ],
             "note": "`help`"
           },
           "skill": {
@@ -1794,7 +2237,9 @@
           },
           "yarn": {
             "mark": "same",
-            "names": ["root goals"],
+            "names": [
+              "root goals"
+            ],
             "note": "`help`"
           },
           "runs": "`goals/_tools/goals.js help`",
@@ -1809,7 +2254,10 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/goals", "/goals-update"],
+            "names": [
+              "/goals",
+              "/goals-update"
+            ],
             "note": "three commands"
           },
           "yarn": {
@@ -1827,7 +2275,10 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/goals", "/goals-update"],
+            "names": [
+              "/goals",
+              "/goals-update"
+            ],
             "note": "hand-edited"
           },
           "yarn": {
@@ -1841,17 +2292,27 @@
           "op": "Find the goals folder",
           "cli": {
             "mark": "other",
-            "names": ["spell goals"],
+            "names": [
+              "spell goals"
+            ],
             "note": "up from cwd, else this checkout"
           },
           "skill": {
             "mark": "other",
-            "names": ["/goals", "/goals-open", "/goals-open-vs", "/goals-thought", "/goals-update"],
+            "names": [
+              "/goals",
+              "/goals-open",
+              "/goals-open-vs",
+              "/goals-thought",
+              "/goals-update"
+            ],
             "note": "via `goals.sh`"
           },
           "yarn": {
             "mark": "other",
-            "names": ["root goals"],
+            "names": [
+              "root goals"
+            ],
             "note": "always the repo root's"
           },
           "runs": "`goals/_skills/goals/scripts/goals.sh`;  `goalsCommand.ts` `findGoals()`",
@@ -1865,7 +2326,9 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/goals"],
+            "names": [
+              "/goals"
+            ],
             "note": "step 6;  several phases:  suggests `/epic`"
           },
           "yarn": {
@@ -1885,7 +2348,9 @@
           },
           "yarn": {
             "mark": "same",
-            "names": ["root goals:test"]
+            "names": [
+              "root goals:test"
+            ]
           },
           "runs": "`node --test goals/_tools/goalsRoutes.test.ts` under `tsx`",
           "notes": "Not in root `test` (vitest over packages):  `goals/` isn't a package and uses `node --test`.",
@@ -1911,7 +2376,10 @@
           },
           "yarn": {
             "mark": "same",
-            "names": ["root docs:update", "docs docs:update"]
+            "names": [
+              "root docs:update",
+              "docs docs:update"
+            ]
           },
           "runs": "`scripts/update.js`:  `bundle-spell-ui.js`, `index.js`, `doc-links.py --check`, `check-spell.js`",
           "notes": "Screenshots land in a temp folder nobody looks at unless told.",
@@ -1942,12 +2410,17 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/epic"],
+            "names": [
+              "/epic"
+            ],
             "note": "Doc Review step, prose"
           },
           "yarn": {
             "mark": "same",
-            "names": ["root docs:index", "docs docs:index"]
+            "names": [
+              "root docs:index",
+              "docs docs:index"
+            ]
           },
           "runs": "`scripts/index.js` (between `index:start` / `index:end` markers)",
           "target": "(R2) `spell dev docs index`;  yarn `docs:index` aliases it;  /epic calls it"
@@ -1960,12 +2433,17 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/epic"],
+            "names": [
+              "/epic"
+            ],
             "note": "Doc Review:  `docs:new durable`"
           },
           "yarn": {
             "mark": "same",
-            "names": ["root docs:new", "docs docs:new"]
+            "names": [
+              "root docs:new",
+              "docs docs:new"
+            ]
           },
           "runs": "`scripts/new-page.js` (then tidies + `index.js`)",
           "notes": "Plan docs refused here:  `plan-doc new`.  Copies a sibling `.json` too (`commands`).",
@@ -1983,7 +2461,10 @@
           },
           "yarn": {
             "mark": "same",
-            "names": ["root docs:open", "docs docs:open"]
+            "names": [
+              "root docs:open",
+              "docs docs:open"
+            ]
           },
           "runs": "`scripts/open.js` -> `pages.js` `openInChrome()`",
           "target": "(R2) `spell dev docs open`;  yarn `docs:open` aliases it"
@@ -1996,11 +2477,16 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/spell-docs"]
+            "names": [
+              "/spell-docs"
+            ]
           },
           "yarn": {
             "mark": "other",
-            "names": ["root docs:open", "docs docs:open"],
+            "names": [
+              "root docs:open",
+              "docs docs:open"
+            ],
             "note": "`--vs`"
           },
           "runs": "`scripts/open.js` -> `pages.js` `openInVSCode()` -> extension `DocPreview`",
@@ -2015,7 +2501,9 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/spell-docs"],
+            "names": [
+              "/spell-docs"
+            ],
             "note": "step 2:  `ls`, then a modal"
           },
           "yarn": {
@@ -2068,7 +2556,10 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["root docs:update", "docs docs:update"],
+            "names": [
+              "root docs:update",
+              "docs docs:update"
+            ],
             "note": "all pages only;  one page:  `doc-links.py --check`"
           },
           "runs": "`scripts/doc-links.py --check`",
@@ -2082,7 +2573,9 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/epic"],
+            "names": [
+              "/epic"
+            ],
             "note": "points at `packages/docs/AGENTS.md` prose"
           },
           "yarn": {
@@ -2100,7 +2593,9 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/epic"],
+            "names": [
+              "/epic"
+            ],
             "note": "Doc Review prose"
           },
           "yarn": {
@@ -2122,16 +2617,22 @@
           "op": "Start every server of this checkout and print their ports",
           "cli": {
             "mark": "other",
-            "names": ["spell serve"],
+            "names": [
+              "spell serve"
+            ],
             "note": "page server + editor only, no astro;  opens browser, foreground"
           },
           "skill": {
             "mark": "same",
-            "names": ["/spell-serve"]
+            "names": [
+              "/spell-serve"
+            ]
           },
           "yarn": {
             "mark": "same",
-            "names": ["root serve"]
+            "names": [
+              "root serve"
+            ]
           },
           "runs": "`scripts/serve.mjs`:  `yarn server ensure`, waits for editor record, fetches `/ui/` to wake astro",
           "notes": "`root serve` vs `root server` vs `ui serve`:  three different things, one-letter apart.",
@@ -2141,16 +2642,23 @@
           "op": "Start the page server in the background",
           "cli": {
             "mark": "other",
-            "names": ["spell serve"],
+            "names": [
+              "spell serve"
+            ],
             "note": "starts it if needed, but stays in foreground"
           },
           "skill": {
             "mark": "other",
-            "names": ["/spell-serve"]
+            "names": [
+              "/spell-serve"
+            ]
           },
           "yarn": {
             "mark": "same",
-            "names": ["root server", "server server"],
+            "names": [
+              "root server",
+              "server server"
+            ],
             "note": "`start` or `ensure`:  aliases"
           },
           "runs": "`packages/server/src/page/cli.ts` -> `PageServer.ensure()`",
@@ -2161,7 +2669,9 @@
           "op": "Run the page server in the foreground",
           "cli": {
             "mark": "other",
-            "names": ["spell serve"],
+            "names": [
+              "spell serve"
+            ],
             "note": "until Ctrl-C;  stops it only if it started it"
           },
           "skill": {
@@ -2169,7 +2679,10 @@
           },
           "yarn": {
             "mark": "same",
-            "names": ["root server", "server server"],
+            "names": [
+              "root server",
+              "server server"
+            ],
             "note": "`serve`"
           },
           "runs": "`PageServer.start()` + `SRV.untilInterrupted()`",
@@ -2183,12 +2696,17 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/spell-serve"],
+            "names": [
+              "/spell-serve"
+            ],
             "note": "step 3 prose:  `yarn server stop`"
           },
           "yarn": {
             "mark": "same",
-            "names": ["root server", "server server"],
+            "names": [
+              "root server",
+              "server server"
+            ],
             "note": "`stop`"
           },
           "runs": "`SRV.PidFile.stop()`",
@@ -2202,12 +2720,17 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/spell-serve"],
+            "names": [
+              "/spell-serve"
+            ],
             "note": "via `yarn serve` rows"
           },
           "yarn": {
             "mark": "same",
-            "names": ["root server", "server server"],
+            "names": [
+              "root server",
+              "server server"
+            ],
             "note": "`status`:  JSON, exit 1 if not"
           },
           "runs": "`SRV.PidFile.status()`",
@@ -2221,12 +2744,19 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/spell-docs", "/epic", "/wtf"],
+            "names": [
+              "/spell-docs",
+              "/epic",
+              "/wtf"
+            ],
             "note": "prose:  link every doc named"
           },
           "yarn": {
             "mark": "same",
-            "names": ["root server", "server server"],
+            "names": [
+              "root server",
+              "server server"
+            ],
             "note": "`url <file>`, ensures first"
           },
           "runs": "`page/cli.ts` `url` -> `PageServer.ensure()`",
@@ -2237,7 +2767,9 @@
           "op": "Open the spell editor in a browser",
           "cli": {
             "mark": "same",
-            "names": ["spell serve"],
+            "names": [
+              "spell serve"
+            ],
             "note": "`[target]` opens a project"
           },
           "skill": {
@@ -2245,7 +2777,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["app start"],
+            "names": [
+              "app start"
+            ],
             "note": "`--headless`:  prints URL, no browser"
           },
           "runs": "`serveCommand.ts` -> `PageServer.ensure()` + `SRV.openBrowser()`",
@@ -2259,12 +2793,16 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/spell-serve"],
+            "names": [
+              "/spell-serve"
+            ],
             "note": "failure advice:  `yarn server stop`, then `yarn serve`"
           },
           "yarn": {
             "mark": "other",
-            "names": ["app start"]
+            "names": [
+              "app start"
+            ]
           },
           "runs": "`yarn` (install) + `yarn workspace @spell-app/server server stop` + `spell serve --headless`",
           "notes": "`app start` also runs `yarn install` and kills a page server other sessions may be using.",
@@ -2280,7 +2818,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["app stop"]
+            "names": [
+              "app stop"
+            ]
           },
           "runs": "`packages/app/scripts/stop.mjs` (`ps` + `lsof`, SIGTERM;  spares the language server)",
           "notes": "Docstring stale:  mentions `yarn start`'s `concurrently`, an express server, `src/lsp/server.ts`.",
@@ -2294,7 +2834,9 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/spell-serve"],
+            "names": [
+              "/spell-serve"
+            ],
             "note": "step 2 prose"
           },
           "yarn": {
@@ -2315,7 +2857,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["app start:dev"]
+            "names": [
+              "app start:dev"
+            ]
           },
           "runs": "`vite`",
           "target": "(R8) rename app `start:dev` -> `dev`"
@@ -2331,7 +2875,10 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["app start:server", "app start:server:prod"],
+            "names": [
+              "app start:server",
+              "app start:server:prod"
+            ],
             "note": "`:prod` = no watch"
           },
           "runs": "`tsx watch src/server/index.ts` / `tsx src/server/index.ts`",
@@ -2348,7 +2895,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["app preview"]
+            "names": [
+              "app preview"
+            ]
           },
           "runs": "`vite preview`",
           "target": "stays:  tool-native package script"
@@ -2364,7 +2913,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["lsp start:lsp"]
+            "names": [
+              "lsp start:lsp"
+            ]
           },
           "runs": "`tsx src/server.ts --stdio`",
           "notes": "VS Code extension starts it itself;  script is for debugging.",
@@ -2380,7 +2931,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui dev"]
+            "names": [
+              "ui dev"
+            ]
           },
           "runs": "`vite --open /tools/demo/index.html`",
           "target": "stays:  tool-native package script"
@@ -2395,7 +2948,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui serve"]
+            "names": [
+              "ui serve"
+            ]
           },
           "runs": "`tsx tools/cli.ts serve` -> `SmokeRunner.serve()`",
           "notes": "Needs `ui vendor` first.  Same name as `root serve`, unrelated.",
@@ -2411,7 +2966,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui preview"]
+            "names": [
+              "ui preview"
+            ]
           },
           "runs": "`vite preview`",
           "target": "stays:  tool-native package script"
@@ -2424,12 +2981,17 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/spell-serve"],
+            "names": [
+              "/spell-serve"
+            ],
             "note": "via page server `/ui/`"
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui site:dev", "ui-site dev"],
+            "names": [
+              "ui site:dev",
+              "ui-site dev"
+            ],
             "note": "also `root serve`, behind the page server"
           },
           "runs": "`astro dev`;  page server starts it on first `/ui/` request (`AstroProxy`)",
@@ -2446,7 +3008,10 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui site:preview", "ui-site preview"]
+            "names": [
+              "ui site:preview",
+              "ui-site preview"
+            ]
           },
           "runs": "`astro preview`",
           "target": "stays:  tool-native package script"
@@ -2455,7 +3020,9 @@
           "op": "Show icons as pictures in a browser",
           "cli": {
             "mark": "other",
-            "names": ["spell icons"],
+            "names": [
+              "spell icons"
+            ],
             "note": "`--open`, until Ctrl-C"
           },
           "skill": {
@@ -2471,7 +3038,9 @@
           "op": "Run a compiled project's UI in a browser",
           "cli": {
             "mark": "other",
-            "names": ["spell run"],
+            "names": [
+              "spell run"
+            ],
             "note": "auto when it needs a browser;  `--browser` forces"
           },
           "skill": {
@@ -2503,7 +3072,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["app build"]
+            "names": [
+              "app build"
+            ]
           },
           "runs": "`tsc && vite build` -> `dist/`",
           "target": "stays:  tool-native package script (app `build`)"
@@ -2518,7 +3089,9 @@
           },
           "yarn": {
             "mark": "same",
-            "names": ["app build:runner"],
+            "names": [
+              "app build:runner"
+            ],
             "note": "`vscode build` runs it too"
           },
           "runs": "`vite build` x2 (`vite.solid.config.ts`, `vite.runner.config.ts`)",
@@ -2534,7 +3107,9 @@
           },
           "yarn": {
             "mark": "same",
-            "names": ["app build:element"]
+            "names": [
+              "app build:element"
+            ]
           },
           "runs": "`vite build` x3 (solid, element, editor configs) -> `dist-element/`",
           "target": "stays:  tool-native app `build:element`"
@@ -2549,7 +3124,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["app clean"]
+            "names": [
+              "app clean"
+            ]
           },
           "runs": "`rm -rf ./.cache ./build`",
           "notes": "Drift:  builds write `dist/`, `dist-runner/`, `dist-element/`;  `clean` removes none of them.",
@@ -2565,7 +3142,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui build"]
+            "names": [
+              "ui build"
+            ]
           },
           "runs": "`tsc && vite build` -> `dist/`",
           "notes": "`bundle-spell-ui.js` runs it, falling back to `vite build` alone if `tsc` fails.",
@@ -2581,7 +3160,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui clean"]
+            "names": [
+              "ui clean"
+            ]
           },
           "runs": "`rm -rf` caches, `dist`, `vendor`, test results, `tools/frameworks/solid/dist`",
           "target": "stays:  tool-native package script"
@@ -2596,7 +3177,10 @@
           },
           "yarn": {
             "mark": "same",
-            "names": ["solid-element build", "ui fork:build"],
+            "names": [
+              "solid-element build",
+              "ui fork:build"
+            ],
             "note": "ui alias `fork:build`"
           },
           "runs": "`vite build` + `vite build -c vite.node.config.ts`",
@@ -2613,7 +3197,10 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui site:build", "ui-site build"]
+            "names": [
+              "ui site:build",
+              "ui-site build"
+            ]
           },
           "runs": "`astro build`",
           "target": "stays:  tool-native package script"
@@ -2628,7 +3215,10 @@
           },
           "yarn": {
             "mark": "same",
-            "names": ["vscode build", "root vscode:build"],
+            "names": [
+              "vscode build",
+              "root vscode:build"
+            ],
             "note": "root one also installs deps and packages"
           },
           "runs": "`packages/vscode/build.mjs` (esbuild)",
@@ -2645,7 +3235,9 @@
           },
           "yarn": {
             "mark": "same",
-            "names": ["vscode package"],
+            "names": [
+              "vscode package"
+            ],
             "note": "also inside `root vscode:build`"
           },
           "runs": "`vsce package`",
@@ -2661,7 +3253,10 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["vscode install-extension", "root vscode:install"],
+            "names": [
+              "vscode install-extension",
+              "root vscode:install"
+            ],
             "note": "dash vs colon"
           },
           "runs": "`code --install-extension spell-language.vsix --force`",
@@ -2675,12 +3270,17 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/spell-docs", "/epic"],
+            "names": [
+              "/spell-docs",
+              "/epic"
+            ],
             "note": "recovery / stage-end prose:  `yarn vscode`"
           },
           "yarn": {
             "mark": "same",
-            "names": ["root vscode"]
+            "names": [
+              "root vscode"
+            ]
           },
           "runs": "`yarn vscode:build && yarn vscode:install`",
           "notes": "Memory rule:  NEVER from a branch behind `main`;  nothing enforces it.",
@@ -2696,7 +3296,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["vscode check"],
+            "names": [
+              "vscode check"
+            ],
             "note": "every other package calls it `ts`"
           },
           "runs": "`tsc --noEmit -p packages/vscode` from the repo root",
@@ -2714,7 +3316,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["cli cli:install"]
+            "names": [
+              "cli cli:install"
+            ]
           },
           "runs": "`packages/cli/scripts/install-cli.mjs` (symlink to `bin/spell.mjs`)",
           "notes": "Links ONE checkout;  `plan-doc` / `goals` then search upward for the nearest one.",
@@ -2731,7 +3335,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["cli spell"]
+            "names": [
+              "cli spell"
+            ]
           },
           "runs": "`node bin/spell.mjs`",
           "notes": "Likely dead since `cli:install`.",
@@ -2741,7 +3347,10 @@
           "op": "Write scope packs for `<spell-app>`'s Type Explorer",
           "cli": {
             "mark": "other",
-            "names": ["spell compile", "spell watch"],
+            "names": [
+              "spell compile",
+              "spell watch"
+            ],
             "note": "after each clean compile;  no `--builtins`"
           },
           "skill": {
@@ -2749,7 +3358,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["lsp scopes"]
+            "names": [
+              "lsp scopes"
+            ]
           },
           "runs": "`packages/lsp/src/scopes.ts` -> `SpellDiskWorkspace.writeScopes()`",
           "notes": "`--builtins` overwrites hand edits in `spellCore.scopes.js`.",
@@ -2765,7 +3376,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui manifest"]
+            "names": [
+              "ui manifest"
+            ]
           },
           "runs": "`custom-elements-manifest analyze`",
           "notes": "Output unused, uncommitted;  `docs/plan.md` wants VS Code custom data from it someday.",
@@ -2781,7 +3394,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui vendor"]
+            "names": [
+              "ui vendor"
+            ]
           },
           "runs": "`tsx tools/cli.ts vendor` -> `PeerVendor` (`vendor/importmap.json`)",
           "target": "stays:  ui package tooling"
@@ -2866,7 +3481,10 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui-site check", "ui site:check"]
+            "names": [
+              "ui-site check",
+              "ui site:check"
+            ]
           },
           "runs": "`astro check`",
           "notes": "astro, not `tsc`.  Named `check` like vscode's `tsc` script.  In no `review`, not reached by root `ts`.",
@@ -3028,7 +3646,10 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["root test", "root test:packages"],
+            "names": [
+              "root test",
+              "root test:packages"
+            ],
             "note": "`test`:  one vitest run, each package a project.  `test:packages`:  each package's own `test`, in turn"
           },
           "runs": "`vitest run` on root `vitest.config.ts` / `yarn workspaces foreach -A run test`",
@@ -3076,7 +3697,11 @@
           },
           "yarn": {
             "mark": "same",
-            "names": ["app test:ui", "spell test:ui", "ui test:ui"]
+            "names": [
+              "app test:ui",
+              "spell test:ui",
+              "ui test:ui"
+            ]
           },
           "runs": "`vitest --ui`",
           "notes": "`test:ui` sounds like testing ui;  it means vitest's UI.  Only 3 packages have it.",
@@ -3092,7 +3717,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["spell test:coverage"]
+            "names": [
+              "spell test:coverage"
+            ]
           },
           "runs": "`vitest run --coverage`",
           "notes": "Likely broken:  no `@vitest/coverage-v8` (or istanbul provider) installed.  spell only.",
@@ -3109,7 +3736,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["spell test:fixtures"]
+            "names": [
+              "spell test:fixtures"
+            ]
           },
           "runs": "`vitest run src/test/fixtures.test.ts`",
           "notes": "Each `projects/test/` project vs its `<Project>.snapshot.js`.  Also runs in spell's `yarn test`.",
@@ -3127,7 +3756,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["spell test:fixtures:bless"]
+            "names": [
+              "spell test:fixtures:bless"
+            ]
           },
           "runs": "`vitest run src/test/fixtures.test.ts --update=all`",
           "notes": "After a deliberate change only;  read the diff (spell `AGENTS.md`).",
@@ -3153,7 +3784,9 @@
           "op": "Time the parser's rule tests",
           "cli": {
             "mark": "same",
-            "names": ["spell speed"],
+            "names": [
+              "spell speed"
+            ],
             "note": "`[module]`, `--runs`, `--json`"
           },
           "skill": {
@@ -3172,7 +3805,9 @@
           "op": "Compare parser speed against a commit",
           "cli": {
             "mark": "same",
-            "names": ["spell speed"],
+            "names": [
+              "spell speed"
+            ],
             "note": "`--against HEAD`"
           },
           "skill": {
@@ -3193,7 +3828,11 @@
           },
           "skill": {
             "mark": "other",
-            "names": ["/park", "/isolate", "/bedtime"],
+            "names": [
+              "/park",
+              "/isolate",
+              "/bedtime"
+            ],
             "note": "prose:  `/park`'s Resume (also `/unpark`, `/wait-for`), `/isolate done` on conflicts, `/bedtime` each phase"
           },
           "yarn": {
@@ -3216,14 +3855,18 @@
           "op": "Compile a project to javascript",
           "cli": {
             "mark": "same",
-            "names": ["spell compile"]
+            "names": [
+              "spell compile"
+            ]
           },
           "skill": {
             "mark": "could"
           },
           "yarn": {
             "mark": "other",
-            "names": ["lsp scopes"],
+            "names": [
+              "lsp scopes"
+            ],
             "note": "`--compile <projectId...>`, then writes scope packs"
           },
           "runs": "`CLI.compileCommand` -> `SpellProject.compile()`;  writes `<Project>.compiled.js`",
@@ -3234,7 +3877,9 @@
           "op": "Print a project's compiled javascript without writing it",
           "cli": {
             "mark": "same",
-            "names": ["spell compile"],
+            "names": [
+              "spell compile"
+            ],
             "note": "`--stdout`;  a `.spell` file prints by default"
           },
           "skill": {
@@ -3251,7 +3896,9 @@
           "op": "Recompile the projects a project imports",
           "cli": {
             "mark": "same",
-            "names": ["spell compile"],
+            "names": [
+              "spell compile"
+            ],
             "note": "`--force`"
           },
           "skill": {
@@ -3268,7 +3915,10 @@
           "op": "Write a project's scope pack (`<Project>.scopes.js`)",
           "cli": {
             "mark": "other",
-            "names": ["spell compile", "spell watch"],
+            "names": [
+              "spell compile",
+              "spell watch"
+            ],
             "note": "on each clean compile"
           },
           "skill": {
@@ -3276,7 +3926,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["lsp scopes"],
+            "names": [
+              "lsp scopes"
+            ],
             "note": "`--builtins`:  core's pack, yarn only"
           },
           "runs": "`SpellDiskWorkspace.writeScopes()`",
@@ -3287,7 +3939,9 @@
           "op": "Check spell projects for errors",
           "cli": {
             "mark": "same",
-            "names": ["spell check"],
+            "names": [
+              "spell check"
+            ],
             "note": "`--json`;  exits 1 on errors"
           },
           "skill": {
@@ -3304,7 +3958,9 @@
           "op": "Describe what a file or project declares",
           "cli": {
             "mark": "same",
-            "names": ["spell describe"],
+            "names": [
+              "spell describe"
+            ],
             "note": "`[name] [member]`, `--inherited`, `--compiled`, `--json`"
           },
           "skill": {
@@ -3321,7 +3977,9 @@
           "op": "Browse a project in a full-screen Type Explorer",
           "cli": {
             "mark": "same",
-            "names": ["spell explore"]
+            "names": [
+              "spell explore"
+            ]
           },
           "skill": {
             "mark": "no",
@@ -3338,7 +3996,9 @@
           "op": "Run a project",
           "cli": {
             "mark": "same",
-            "names": ["spell run"],
+            "names": [
+              "spell run"
+            ],
             "note": "`--browser` / `--no-browser`"
           },
           "skill": {
@@ -3355,7 +4015,9 @@
           "op": "Run a project's spell tests (`to test ...`)",
           "cli": {
             "mark": "same",
-            "names": ["spell test"],
+            "names": [
+              "spell test"
+            ],
             "note": "`--name`, `--watch`"
           },
           "skill": {
@@ -3372,7 +4034,9 @@
           "op": "Recompile projects on every save",
           "cli": {
             "mark": "same",
-            "names": ["spell watch"]
+            "names": [
+              "spell watch"
+            ]
           },
           "skill": {
             "mark": "no",
@@ -3389,7 +4053,9 @@
           "op": "Re-check projects on every save, writing nothing",
           "cli": {
             "mark": "same",
-            "names": ["spell watch"],
+            "names": [
+              "spell watch"
+            ],
             "note": "`--check-only`"
           },
           "skill": {
@@ -3405,7 +4071,10 @@
           "op": "Re-run a project's spell tests on every save",
           "cli": {
             "mark": "same",
-            "names": ["spell watch", "spell test"],
+            "names": [
+              "spell watch",
+              "spell test"
+            ],
             "note": "`spell watch --test` ~== `spell test --watch`"
           },
           "skill": {
@@ -3421,7 +4090,9 @@
           "op": "Format .spell files",
           "cli": {
             "mark": "same",
-            "names": ["spell format"]
+            "names": [
+              "spell format"
+            ]
           },
           "skill": {
             "mark": "could"
@@ -3438,7 +4109,9 @@
           "op": "Check .spell formatting without writing",
           "cli": {
             "mark": "same",
-            "names": ["spell format"],
+            "names": [
+              "spell format"
+            ],
             "note": "`--check`;  exits 1 if any would change"
           },
           "skill": {
@@ -3454,7 +4127,9 @@
           "op": "List project roots, or a root's projects",
           "cli": {
             "mark": "same",
-            "names": ["spell projects"],
+            "names": [
+              "spell projects"
+            ],
             "note": "`--json`"
           },
           "skill": {
@@ -3471,7 +4146,9 @@
           "op": "Show how spell reads a line",
           "cli": {
             "mark": "same",
-            "names": ["spell parse"],
+            "names": [
+              "spell parse"
+            ],
             "note": "`--rule`, `--in`, `--json`"
           },
           "skill": {
@@ -3487,7 +4164,9 @@
           "op": "Parse spell a line at a time (REPL)",
           "cli": {
             "mark": "same",
-            "names": ["spell repl"]
+            "names": [
+              "spell repl"
+            ]
           },
           "skill": {
             "mark": "no",
@@ -3503,7 +4182,9 @@
           "op": "Explain what a word means to spell",
           "cli": {
             "mark": "same",
-            "names": ["spell explain"],
+            "names": [
+              "spell explain"
+            ],
             "note": "`--in <target>`, `--json`"
           },
           "skill": {
@@ -3520,7 +4201,9 @@
           "op": "Make a new spell project",
           "cli": {
             "mark": "same",
-            "names": ["spell new"],
+            "names": [
+              "spell new"
+            ],
             "note": "`--in <folder>`, default `@user`"
           },
           "skill": {
@@ -3552,7 +4235,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["cli cli:install"]
+            "names": [
+              "cli cli:install"
+            ]
           },
           "runs": "`scripts/install-cli.mjs`:  symlink to `bin/spell.mjs` in the first writable PATH folder",
           "notes": "Links ONE checkout (main);  rerun after moving it.  `SPELL_BIN_DIR` overrides.  Not `npm link`.",
@@ -3568,7 +4253,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["cli spell"]
+            "names": [
+              "cli spell"
+            ]
           },
           "runs": "`node bin/spell.mjs` -> `tsx` -> `src/main.ts`",
           "notes": "Runs with cwd `packages/cli`, so relative targets and `@workspace` resolve there:  near useless.  `node packages/cli/bin/spell.mjs` works.",
@@ -3578,7 +4265,9 @@
           "op": "List the commands, or one command's options",
           "cli": {
             "mark": "same",
-            "names": ["spell help"],
+            "names": [
+              "spell help"
+            ],
             "note": "~== `--help`;  unknown command exits 2"
           },
           "skill": {
@@ -3634,7 +4323,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["lsp start:lsp"]
+            "names": [
+              "lsp start:lsp"
+            ]
           },
           "runs": "`tsx src/server.ts --stdio`;  VS Code spawns the repo's `tsx` on it directly",
           "notes": "T1:  extension spawns `spell lsp`;  skip `consoleGuard`;  `yarn vscode` after.",
@@ -3704,6 +4395,45 @@
           "runs": "by hand:  command file, barrel line, `program.command(...)` in `main.ts`",
           "notes": "Passthroughs (`goals`, `plan-doc`) follow a second pattern:  `allowUnknownOption` + `spawnSync`.",
           "target": "stays:  by hand;  `spell dev` passthroughs share one pattern"
+        },
+        {
+          "op": "List the repo's own tools",
+          "cli": {
+            "mark": "same",
+            "names": [
+              "spell dev"
+            ]
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "commander group in `packages/cli/src/main.ts`",
+          "target": "(R1) the `spell dev` group;  every repo tool goes under it"
+        },
+        {
+          "op": "Check every command is on the commands page",
+          "cli": {
+            "mark": "same",
+            "names": [
+              "spell dev commands"
+            ],
+            "note": "`list`, `check`, `--json`"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": [
+              "root commands:check"
+            ]
+          },
+          "runs": "`packages/cli/src/commands/commandsCommand.ts`",
+          "target": "stays;  run after adding, renaming or removing a command",
+          "notes": "Reads the checkout's `package.json`s, `main.ts` text and `SKILL.md`s;  manual, in no `review`."
         }
       ]
     },
@@ -3723,7 +4453,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui gen:styles"]
+            "names": [
+              "ui gen:styles"
+            ]
           },
           "runs": "`scripts/gen-styles.ts` (`StyleGenerator`, then oxfmt)",
           "target": "stays:  ui package tooling"
@@ -3738,7 +4470,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui gen:icons"]
+            "names": [
+              "ui gen:icons"
+            ]
           },
           "runs": "`scripts/gen-icons.ts` -> `IconPackBuilder`",
           "notes": "Deletes and rewrites every pack:  MUST run in a worktree while tests run elsewhere.",
@@ -3754,7 +4488,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui gen:emoji"]
+            "names": [
+              "ui gen:emoji"
+            ]
           },
           "runs": "`scripts/gen-emoji.ts` (emojibase + Fomantic reference)",
           "target": "stays:  ui package tooling"
@@ -3769,7 +4505,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui gen:root"]
+            "names": [
+              "ui gen:root"
+            ]
           },
           "runs": "`scripts/gen-root-catalog.ts`",
           "notes": "`test/root-catalog.test.ts` fails while stale:  the only reminder.",
@@ -3786,7 +4524,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui gen:spell"]
+            "names": [
+              "ui gen:spell"
+            ]
           },
           "runs": "`scripts/gen-spell.ts` (esbuild of `packages/spell/src/highlight/browser.ts`)",
           "notes": "Nothing flags a stale bundle after a grammar change;  only AGENTS prose.",
@@ -3802,7 +4542,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui tokens:alias"],
+            "names": [
+              "ui tokens:alias"
+            ],
             "note": "dry run unless `--write`"
           },
           "runs": "`scripts/alias-tokens.ts` -> `ComponentTokens.convert()`",
@@ -3819,7 +4561,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui icons:pack"]
+            "names": [
+              "ui icons:pack"
+            ]
           },
           "runs": "`tsx tools/cli.ts icons:pack` -> `IconPackBuilder`",
           "target": "stays:  ui package tooling"
@@ -3828,7 +4572,9 @@
           "op": "Find icons by name, alias or keyword",
           "cli": {
             "mark": "same",
-            "names": ["spell icons"]
+            "names": [
+              "spell icons"
+            ]
           },
           "skill": {
             "mark": "could"
@@ -3849,7 +4595,10 @@
           },
           "yarn": {
             "mark": "same",
-            "names": ["ui measure", "solid-element measure"]
+            "names": [
+              "ui measure",
+              "solid-element measure"
+            ]
           },
           "runs": "`BundleMeasure` (`tools/cli.ts measure`);  fork:  `scripts/measure.ts`",
           "notes": "Both write `measure-results.json`;  runtimes differ (tsx vs `node --experimental-strip-types`).",
@@ -3880,7 +4629,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui report"]
+            "names": [
+              "ui report"
+            ]
           },
           "runs": "`tsx tools/cli.ts report`:  `LocCount` then `ReportTables`",
           "target": "stays:  ui package tooling"
@@ -3895,7 +4646,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui smoke"],
+            "names": [
+              "ui smoke"
+            ],
             "note": "only inside smoke;  alone:  `tsx tools/cli.ts declarations`"
           },
           "runs": "`DeclarationCheck`",
@@ -3911,7 +4664,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui smoke"]
+            "names": [
+              "ui smoke"
+            ]
           },
           "runs": "`vite build` + `declarations` + `SmokeRunner` (headless chromium)",
           "notes": "Needs `ui vendor` first;  not chained, throws if `vendor/importmap.json` missing.",
@@ -3927,7 +4682,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui screenshots"]
+            "names": [
+              "ui screenshots"
+            ]
           },
           "runs": "`tools/screenshots.ts` (vite + Playwright) -> `.cache/screenshots/`",
           "target": "stays:  ui package tooling"
@@ -3942,7 +4699,9 @@
           },
           "yarn": {
             "mark": "same",
-            "names": ["ui test:visual"]
+            "names": [
+              "ui test:visual"
+            ]
           },
           "runs": "`tools/visual/cli.ts` -> `VisualRunner`",
           "target": "stays:  ui package tooling (visual tests)"
@@ -3957,7 +4716,9 @@
           },
           "yarn": {
             "mark": "same",
-            "names": ["ui test:visual:update"]
+            "names": [
+              "ui test:visual:update"
+            ]
           },
           "runs": "`tools/visual/cli.ts --update`",
           "target": "stays:  ui package tooling (visual tests)"
@@ -3972,7 +4733,9 @@
           },
           "yarn": {
             "mark": "same",
-            "names": ["ui test:hmr"]
+            "names": [
+              "ui test:hmr"
+            ]
           },
           "runs": "`tools/hmr.e2e.ts` (edits real files, restores, checks `git diff --quiet`)",
           "target": "stays:  ui package tooling"
@@ -3987,7 +4750,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui test:all"]
+            "names": [
+              "ui test:all"
+            ]
           },
           "runs": "`vitest` ssr + browser with `UI_TEST_ALL=1`",
           "notes": "Skips `test:fork`, which plain `ui test` runs:  \"all\" is less than all.",
@@ -4003,7 +4768,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui test:browsers"]
+            "names": [
+              "ui test:browsers"
+            ]
           },
           "runs": "`playwright install chromium firefox webkit`",
           "notes": "Named like a test;  only installs.",
@@ -4019,7 +4786,11 @@
           },
           "yarn": {
             "mark": "same",
-            "names": ["app test:ui", "spell test:ui", "ui test:ui"]
+            "names": [
+              "app test:ui",
+              "spell test:ui",
+              "ui test:ui"
+            ]
           },
           "runs": "`vitest --ui`",
           "target": "stays:  tool-native package script (vitest's UI)"
@@ -4034,7 +4805,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui test:fork"]
+            "names": [
+              "ui test:fork"
+            ]
           },
           "runs": "`yarn fork test` ~== `yarn workspace @spell-app/solid-element test`",
           "target": "stays:  ui package script"
@@ -4049,7 +4822,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui fork"]
+            "names": [
+              "ui fork"
+            ]
           },
           "runs": "`yarn workspace @spell-app/solid-element <script>`",
           "target": "stays:  ui package script"
@@ -4064,7 +4839,9 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui fork:install"]
+            "names": [
+              "ui fork:install"
+            ]
           },
           "runs": "`yarn install`",
           "notes": "Misleading:  plain workspace-wide `yarn install`, nothing fork-specific.",
@@ -4080,7 +4857,10 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["ui site:check", "ui-site check"]
+            "names": [
+              "ui site:check",
+              "ui-site check"
+            ]
           },
           "runs": "`astro check`",
           "notes": "Not part of `ui ts` / `ui review`.",
@@ -4143,7 +4923,9 @@
           "op": "Convert old section markup to `<ui-section>`",
           "cli": {
             "mark": "other",
-            "names": ["spell plan-doc"],
+            "names": [
+              "spell plan-doc"
+            ],
             "note": "`migrate`:  plan docs only"
           },
           "skill": {
@@ -4151,7 +4933,10 @@
           },
           "yarn": {
             "mark": "other",
-            "names": ["root plan-doc", "docs plan-doc"],
+            "names": [
+              "root plan-doc",
+              "docs plan-doc"
+            ],
             "note": "`migrate`;  other pages:  `node scripts/to-ui-section.js`"
           },
           "runs": "`packages/docs/scripts/to-ui-section.js` `convertSections()`",
