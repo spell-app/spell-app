@@ -25,9 +25,7 @@
           ><header class="spell-page-head">
             <h1>Commands: CLI, skills, yarn</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p8"
-                >next: P8 · Worktree And Park</ui-label
-              ></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p9">next: P9 · Take Stock</ui-label></span
             >
           </header></ui-sticky
         >
@@ -72,7 +70,7 @@
               you create a new yarn script to solve some problem. Instruct it to keep that doc up to date.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 13h-19h 30m in all, 4h 30m-5h 30m left (P11 not estimated)</p>
+          <p class="plan-estimate"><b>Estimate:</b> 13h-19h 30m in all, 3h-3h 30m left (P11 not estimated)</p>
           <ui-section id="o1" header="1.1 What exists today" sticky collapsible dividing>
             <p>Three ways to make the repo do something, grown separately:</p>
             <ui-table celled compact striped unstackable>
@@ -373,7 +371,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="7" total="12" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="8" total="12" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -514,6 +512,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p7"
             data-phase="7"
             data-status="done"
@@ -537,13 +536,13 @@
           <ui-section
             id="p8"
             data-phase="8"
-            data-status="todo"
+            data-status="done"
             header="P8 · Worktree And Park"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> Port status.py and worktrees.py: spell dev worktree status, list; spell dev park list,
@@ -1041,9 +1040,7 @@ missing from commands.html:
                     Owen (2026-10-03): one language for every tool. <code>status.py</code>, <code>whassup.py</code>,
                     <code>transcript.py</code>, <code>session.py</code>, <code>worktrees.py</code> become
                     <code>spell dev session|worktree|park|stock</code>;
-                    <a href="../../scripts/doc-links.py" target="src-packages-docs-scripts-doc-links-py"
-                      ><code>doc-links.py</code></a
-                    >
+                    <code>doc-links.py</code>
                     becomes
                     <a href="../../scripts/doc-links.js" target="src-packages-docs-scripts-doc-links-js"
                       ><code>doc-links.js</code></a
@@ -1606,6 +1603,29 @@ missing from commands.html:
                   session list|find|open|title|window|transcript (src/dev/sessions.ts, transcript.ts, git.ts); checks:
                   list identical to session.py on 120 sessions, find identical to transcript.py --find, digests differ
                   only by dropped agent messages (T9); cli review green (129 tests); commands:check 209/209</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T09:55-04:00">2026-10-03 09:55</time></ui-date> P8
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:01-04:00">2026-10-03 10:01</time></ui-date> P8
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:01-04:00">2026-10-03 10:01</time></ui-date> P8 done: spell dev
+                  worktree list|status, spell dev park list|candidates|wait (src/dev/worktrees.ts, parking.ts); checks:
+                  worktree list identical to worktrees.py, status of 7 names + park list + candidates identical JSON to
+                  status.py, wait exits 0/2/3 checked; cli review green (134 tests); commands:check 211/211</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

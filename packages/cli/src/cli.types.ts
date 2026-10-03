@@ -201,6 +201,24 @@ export type SessionOptions = GlobalOptions & {
 }
 
 /**
+ * `spell dev worktree` flags.
+ * - `json`:  `list` prints the data as JSON (`status` always does)
+ */
+export type WorktreeOptions = GlobalOptions & {
+  json?: boolean
+}
+
+/**
+ * `spell dev park` flags.
+ * - `every`:  `wait` polls this often, in seconds -- default 60
+ * - `max`:  `wait` gives up after this many seconds -- default 7140, under a background Bash command's 2 hours
+ */
+export type ParkOptions = GlobalOptions & {
+  every?: string
+  max?: string
+}
+
+/**
  * `spell new` flags.
  * - `in`:  make the project in this folder -- default `@user`'s, `projects/user/`
  */
