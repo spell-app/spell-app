@@ -561,8 +561,11 @@
         {
           "op": "List running sessions and where they run",
           "cli": {
-            "mark": "could",
-            "note": "`spell dev sessions`"
+            "mark": "same",
+            "names": [
+              "spell dev session"
+            ],
+            "note": "`list [words] [--all] [--json]`;  live ones marked running"
           },
           "skill": {
             "mark": "other",
@@ -575,14 +578,18 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`worktrees.py`, `session.py list`, `whassup.py`",
+          "runs": "`packages/cli/src/dev/sessions.ts` (`savedSessions()`, `runningSessions()`);  still `worktrees.py`, `whassup.py`",
           "notes": "Session registry / alive / ancestors code copied in four Python scripts.",
-          "target": "(R4) `spell dev session list --json`;  one registry module replaces four Python copies"
+          "target": "(R4) built:  `spell dev session list`;  `worktree list` and `stock` next (P8, P9)"
         },
         {
           "op": "Find a saved session by words or id",
           "cli": {
-            "mark": "could"
+            "mark": "same",
+            "names": [
+              "spell dev session"
+            ],
+            "note": "`list <words>`;  `find <name>` (title or worktree)"
           },
           "skill": {
             "mark": "other",
@@ -595,14 +602,18 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`session.py list <words>`;  `transcript.py --find <name>`;  `status.py`",
+          "runs": "`packages/cli/src/dev/sessions.ts` (`savedSessions()`, `sessionsNamed()`)",
           "notes": "Three name matchers:  title vs worktree vs both.",
-          "target": "(R4) `spell dev session find <words>`:  ONE matcher;  /session /wtf call it"
+          "target": "(R4) built:  `spell dev session list <words>` / `find <name>`;  skills switch in P11"
         },
         {
           "op": "Open a session in VS Code's Claude panel",
           "cli": {
-            "mark": "could"
+            "mark": "same",
+            "names": [
+              "spell dev session"
+            ],
+            "note": "`open <id|title>`"
           },
           "skill": {
             "mark": "other",
@@ -615,15 +626,18 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`session.py open` -> `vscode://anthropic.claude-code/open`",
+          "runs": "`sessionCommand.ts` -> `vscode://anthropic.claude-code/open?session=...&windowId=...`",
           "notes": "A terminal or Desktop session is refused.",
-          "target": "(R4) `spell dev session open <id>`;  /session /whassup call it"
+          "target": "(R4) built:  `spell dev session open`;  /session /whassup switch in P11"
         },
         {
           "op": "Title this session",
           "cli": {
-            "mark": "no",
-            "note": "Claude-session-only"
+            "mark": "same",
+            "names": [
+              "spell dev session"
+            ],
+            "note": "`title <title>` queues it;  needs `CLAUDE_CODE_SESSION_ID`"
           },
           "skill": {
             "mark": "other",
@@ -635,9 +649,9 @@
           "yarn": {
             "mark": "no"
           },
-          "runs": "`session.py name` queues it;  `~/.claude/hooks/session-title.mjs` applies it",
+          "runs": "`queueTitle()` writes `~/.claude/session-titles/<id>`;  `~/.claude/hooks/session-title.mjs` applies it",
           "notes": "Lands on the NEXT prompt.  Undocumented hook output (`sessionTitle`, CLI 2.1.287).",
-          "target": "(R4) `spell dev session title [title]` queues it;  hook applies;  /session calls it"
+          "target": "(R4) built:  `spell dev session title`;  /session switches in P11"
         },
         {
           "op": "Message another session",
@@ -682,7 +696,11 @@
         {
           "op": "Digest another session's transcript",
           "cli": {
-            "mark": "could"
+            "mark": "same",
+            "names": [
+              "spell dev session"
+            ],
+            "note": "`transcript <id> [--json]`"
           },
           "skill": {
             "mark": "other",
@@ -693,9 +711,9 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`.claude/skills/wtf/scripts/transcript.py <id>`",
+          "runs": "`packages/cli/src/dev/transcript.ts` (`digestTranscript()`)",
           "notes": "Prompts, last reply, waiting question.",
-          "target": "(R4) `spell dev session transcript <id> --json`;  /wtf calls it"
+          "target": "(R4) built:  `spell dev session transcript`;  /wtf switches in P11"
         },
         {
           "op": "Say where we are",

@@ -242,6 +242,20 @@ dev
     run(CLI.commandsCommand, verb ? [verb] : [], command.optsWithGlobals())
   )
 
+dev
+  .command("session")
+  .description("Claude Code sessions:  list, find, open in VS Code, title this one, digest another's transcript")
+  .argument(
+    "[verb]",
+    "list (default) [words...] | find <name> | open <id|title> | title <title> | window [pid] | transcript <id>"
+  )
+  .argument("[args...]", "the verb's arguments")
+  .option("--limit <n>", "list:  at most this many (default 15)")
+  .option("--json", "list, find, transcript:  print the data as JSON")
+  .action((verb: string | undefined, args: string[], _options, command) =>
+    run(CLI.sessionCommand, verb ? [verb, ...args] : [], command.optsWithGlobals())
+  )
+
 await program.parseAsync()
 
 /**

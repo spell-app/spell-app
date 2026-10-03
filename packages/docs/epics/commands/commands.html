@@ -25,7 +25,9 @@
           ><header class="spell-page-head">
             <h1>Commands: CLI, skills, yarn</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p7">next: P7 · Session Module</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p8"
+                >next: P8 · Worktree And Park</ui-label
+              ></span
             >
           </header></ui-sticky
         >
@@ -70,7 +72,7 @@
               you create a new yarn script to solve some problem. Instruct it to keep that doc up to date.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 13h-19h 30m in all, 6h-7h 30m left (P11 not estimated)</p>
+          <p class="plan-estimate"><b>Estimate:</b> 13h-19h 30m in all, 4h 30m-5h 30m left (P11 not estimated)</p>
           <ui-section id="o1" header="1.1 What exists today" sticky collapsible dividing>
             <p>Three ways to make the repo do something, grown separately:</p>
             <ui-table celled compact striped unstackable>
@@ -371,7 +373,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="6" total="12" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="7" total="12" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -491,7 +493,16 @@
               ><ui-item icon="clock"><b>Estimate:</b> 30m-1h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p6" data-phase="6" data-status="done" header="P6 · Doc Review" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p6"
+            data-phase="6"
+            data-status="done"
+            header="P6 · Doc Review"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -505,13 +516,13 @@
           <ui-section
             id="p7"
             data-phase="7"
-            data-status="todo"
+            data-status="done"
             header="P7 · Session Module"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> Port session.py, transcript.py and the registry / title helpers to TS: spell dev session
@@ -519,7 +530,8 @@
               ><ui-item icon="folder"><b>Files:</b> packages/cli/src/dev/ (sessions), commands, main.ts, tests</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> JSON output matches the python scripts on live data; cli review green</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1h30m-2h</ui-item></ui-list
+              ><ui-item icon="clock"><b>Estimate:</b> 1h30m-2h</ui-item
+              ><ui-item icon="gavel"><b>Judgement calls:</b> <a href="#t9">T9</a></ui-item></ui-list
             >
           </ui-section>
           <ui-section
@@ -1032,8 +1044,11 @@ missing from commands.html:
                     <a href="../../scripts/doc-links.py" target="src-packages-docs-scripts-doc-links-py"
                       ><code>doc-links.py</code></a
                     >
-                    becomes <code>doc-links.js</code>. Phases P7-P12 in this epic, over a separate epic. Cost accepted:
-                    ~0.6s per <code>spell</code> call vs ~0.05s for python.
+                    becomes
+                    <a href="../../scripts/doc-links.js" target="src-packages-docs-scripts-doc-links-js"
+                      ><code>doc-links.js</code></a
+                    >. Phases P7-P12 in this epic, over a separate epic. Cost accepted: ~0.6s per
+                    <code>spell</code> call vs ~0.05s for python.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1044,8 +1059,10 @@ missing from commands.html:
                   <span class="plan-title">TS tools live inside packages/cli</span></ui-title
                 ><ui-content
                   ><p>
-                    Owen's pick over a new <code>packages/dev</code>. Code in <code>packages/cli/src/dev/</code>,
-                    flattened into <code>$/cli</code>. Node built-ins only: no spell import, so a lean
+                    Owen's pick over a new <code>packages/dev</code>. Code in
+                    <a href="../../../cli/src/dev/" target="src-packages-cli-src-dev"
+                      ><code>packages/cli/src/dev/</code></a
+                    >, flattened into <code>$/cli</code>. Node built-ins only: no spell import, so a lean
                     <code>spell dev</code> entry stays possible later.
                   </p></ui-content
                 ></ui-accordion
@@ -1256,6 +1273,24 @@ missing from commands.html:
                 ><ui-content
                   ><p>
                     Once the repo copies exist (P11): outside the worktree, so Owen's call, not bedtime's.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t9" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t9">T9</a>
+                  <span class="plan-title">Review: session prompts skip other sessions' messages</span> </ui-title
+                ><ui-content
+                  ><p>
+                    One prompt filter now serves <code>session list</code> and <code>session transcript</code> (was two,
+                    in <code>session.py</code> and <code>transcript.py</code>). <b>Chose:</b> also drop messages
+                    starting "Another Claude session sent a message:" (subagent reports), which
+                    <code>transcript.py</code> listed as Owen's prompts. Lists are byte-identical to
+                    <code>session.py</code> on all 120 sessions; digests differ only by those dropped messages.
+                    <b>Over:</b> a faithful copy of each script's filter. Also:
+                    <code>session status &lt;name&gt;</code> moves to P8 as <code>worktree status</code> (it's
+                    <code>status.py</code>).
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1548,6 +1583,29 @@ missing from commands.html:
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-03T09:45-04:00">2026-10-03 09:45</time></ui-date> Owen (morning):
                   port the python tools to TS in this epic (D10-D12); phases P7-P12 added</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T09:47-04:00">2026-10-03 09:47</time></ui-date> P7
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T09:55-04:00">2026-10-03 09:55</time></ui-date> P7
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T09:55-04:00">2026-10-03 09:55</time></ui-date> P7 done: spell dev
+                  session list|find|open|title|window|transcript (src/dev/sessions.ts, transcript.ts, git.ts); checks:
+                  list identical to session.py on 120 sessions, find identical to transcript.py --find, digests differ
+                  only by dropped agent messages (T9); cli review green (129 tests); commands:check 209/209</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
