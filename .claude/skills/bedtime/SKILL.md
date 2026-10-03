@@ -72,12 +72,12 @@ Everything else stands:  `yarn vscode` after each stage, the parser speed test o
 2. Do the work and run its verify and the touched packages' checks (`yarn ts`, `yarn test`).
 3. JUDGEMENT CALL (a choice Owen might have made differently):  pick the option the plan and code best support,
    then record it, with the options and why:
-   - MORNING PLAN, under the phase in "Phases":  `J<k>` (numbered across the night), what, the choice, the
-     alternatives
-   - plan doc:  ALSO `add <name> todo "Review:  <the call>" --details "<p>chose ... over ... because ...</p>"`, so
-     every call is an open todo there, and link it from the phase's body (hand-edited prose):  a
-     `<li><b>Judgement calls:</b>  <a href="#t4">T4</a> ...</li>` after its Goal / Files / Verify, one link per
-     call
+   - plan doc FIRST:  `add <name> judgement "<the call>" --details "<p>chose ... over ... because ...</p><ul>
+     <li>options ...</li></ul>"` -- it prints the id (`J4`):  the plan doc's "Judgement calls" section is where Owen
+     finds them, open until he reviews each.  Then link it from the phase's body (hand-edited):
+     `<ui-item icon="compass"><b>Judgement calls:</b>  <a href="#j4">J4</a> ...</ui-item>` after Goal / Files /
+     Verify, one link per call.  Agents you start record theirs the same way (put the command in their prompt).
+   - MORNING PLAN, under the phase in "Phases":  the SAME id (`J4`), what, the choice, the alternatives
 4. Checks fail and you can't fix them:
    - commit what's there as `WIP P<n>:  <name>`
    - record an issue (plan doc `add ... issue`, and the MORNING PLAN's "Problems")
