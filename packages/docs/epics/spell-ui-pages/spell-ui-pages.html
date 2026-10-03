@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Spell UI Pages</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p8">next: P8 · Gap Report</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p9">next: P9 · Doc Review</ui-label></span
             >
           </header></ui-sticky
         >
@@ -63,7 +63,7 @@
               12 agents to do this.<br />I'm going to bed soon, let's make this plan snappy.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 14h 30m-19h 30m in all, 2h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 14h 30m-19h 30m in all, 1h left</p>
           <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
             <ui-list bulleted>
               <ui-item
@@ -222,11 +222,399 @@
               >); <a href="#p8">P8 · Gap Report</a> rolls them into one table.
             </p>
           </ui-section>
+          <ui-section id="o5" header="1.5 Gap report" sticky collapsible dividing>
+            <p>
+              103 widget gaps open after building 66 pages and 1608 live examples from <code>&lt;ui-*&gt;</code> only;
+              ~30 more were small enough to fix in passing (closed issues). Grouped by what would fix them:
+            </p>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Group</th>
+                    <th class="num right aligned">Open</th>
+                    <th>Why</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Stacking in the docs column</td>
+                    <td class="num right aligned">6</td>
+                    <td>
+                      Stackable grids, cards, steps, token tables measure their CONTAINER (container queries), Fomantic
+                      measures the SCREEN. In the ~755px docs column they stack on a desktop. One design decision fixes
+                      most of it.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Loader styles on host widgets</td>
+                    <td class="num right aligned">8</td>
+                    <td>
+                      Fomantic's double / elastic / slow / coloured loaders, missing wherever a widget shows its own
+                      <code>loading</code> spinner: one shared loader option would cover all.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Styling across shadow roots</td>
+                    <td class="num right aligned">11</td>
+                    <td>
+                      Things a page or an owner can't reach inside another element's shadow root: a table's sheet,
+                      inline code, link colours, parts sized or placed by their owner.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Module settings not ported</td>
+                    <td class="num right aligned">21</td>
+                    <td>Fomantic JS settings with no attribute yet.</td>
+                  </tr>
+                  <tr>
+                    <td>Element variations missing</td>
+                    <td class="num right aligned">46</td>
+                    <td>Fomantic class words with no equivalent attribute or look.</td>
+                  </tr>
+                  <tr>
+                    <td>Platform, icons, emoji, a11y</td>
+                    <td class="num right aligned">10</td>
+                    <td>
+                      Cross-cutting: right-to-left, image emoji, icon naming, page reset, markdown, colour input,
+                      accessibility, the docs example look.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Other</td>
+                    <td class="num right aligned">1</td>
+                    <td>Not grouped.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <ui-message state="info" header="Recommended next">
+              <ui-list bulleted>
+                <ui-item
+                  ><b>Decide stacking</b> (<a href="#i49">I49</a>): container-relative stacking is right for components,
+                  wrong for Fomantic's page-level <code>stackable</code> / <code>doubling</code>. Options: a
+                  <code>stack-on="screen|container"</code> switch, or screen media queries for those words only. Biggest
+                  visible win on the docs.</ui-item
+                >
+                <ui-item
+                  ><b>One loader option</b> for every <code>loading</code> widget: closes 8 gaps at once.</ui-item
+                >
+                <ui-item
+                  ><b>Fix <a href="#i7">I7</a></b> (<code>&lt;ui-table&gt;</code> unstyled inside another shadow root):
+                  every docs element works around it.</ui-item
+                >
+                <ui-item
+                  ><b>Icon word order</b> (<a href="#i23">I23</a>): Fomantic names like <code>right arrow</code> draw
+                  nothing, silently; accept both orders, or warn.</ui-item
+                >
+              </ui-list>
+            </ui-message>
+            <h4 id="o5-stacking-in-the-docs-column">Stacking in the docs column (6)</h4>
+            <ui-list bulleted>
+              <ui-item
+                ><a href="#i49">I49</a> stackable / doubling &lt;ui-grid&gt; and &lt;ui-cards&gt; stack inside the docs
+                column on</ui-item
+              >
+              <ui-item
+                ><a href="#i82">I82</a> &lt;ui-steps&gt; stack by default inside the docs column on desktop (I49's
+                root)</ui-item
+              >
+              <ui-item
+                ><a href="#i129">I129</a> &lt;ui-cards horizontal&gt; one card per row in the docs column</ui-item
+              >
+              <ui-item
+                ><a href="#i58">I58</a> &lt;ui-docs-tokens&gt; tables stack to cards inside the docs column on
+                desktop</ui-item
+              >
+              <ui-item
+                ><a href="#i45">I45</a> &lt;ui-divider vertical&gt; in a stackable &lt;ui-grid&gt; doesn't turn
+                horizontal when the</ui-item
+              >
+              <ui-item
+                ><a href="#i32">I32</a> &lt;ui-docs-example&gt; wide demos overflow the column on desktop</ui-item
+              >
+            </ui-list>
+            <h4 id="o5-loader-styles-on-host-widgets">Loader styles on host widgets (8)</h4>
+            <ui-list bulleted>
+              <ui-item><a href="#i22">I22</a> &lt;ui-button loading&gt; has no double / elastic loader</ui-item>
+              <ui-item
+                ><a href="#i39">I39</a> &lt;ui-search loading&gt; no double / elastic / slow / coloured loader</ui-item
+              >
+              <ui-item><a href="#i41">I41</a> &lt;ui-popup loading&gt; has no double or slow / fast loader</ui-item>
+              <ui-item
+                ><a href="#i46">I46</a> &lt;ui-segment loading&gt; has no double loader and no usual (default-colour)
+                loader</ui-item
+              >
+              <ui-item
+                ><a href="#i96">I96</a> &lt;ui-input loading&gt; no double / elastic / coloured / fast loader</ui-item
+              >
+              <ui-item
+                ><a href="#i108">I108</a> &lt;ui-dropdown loading&gt; has no slow / double / elastic loader</ui-item
+              >
+              <ui-item><a href="#i124">I124</a> &lt;ui-form loading&gt; no colour or double loader</ui-item>
+              <ui-item
+                ><a href="#i127">I127</a> &lt;ui-card loading&gt; loader: no double style, no card colour, no
+                usual</ui-item
+              >
+            </ui-list>
+            <h4 id="o5-styling-across-shadow-roots">Styling across shadow roots (11)</h4>
+            <ui-list bulleted>
+              <ui-item><a href="#i7">I7</a> &lt;ui-table&gt; unstyled inside another element's shadow root</ui-item>
+              <ui-item><a href="#i9">I9</a> no inline &lt;code&gt; look inside shadow roots</ui-item>
+              <ui-item><a href="#i78">I78</a> &lt;ui-detail href&gt; in a label draws the browser's link blue</ui-item>
+              <ui-item
+                ><a href="#i89">I89</a> &lt;ui-header href&gt; in a list item draws an underlined browser link</ui-item
+              >
+              <ui-item
+                ><a href="#i104">I104</a> &lt;ui-header&gt; image header: a slotted &lt;ui-image&gt; stacks above the
+                content</ui-item
+              >
+              <ui-item><a href="#i110">I110</a> &lt;ui-header text-align="center"&gt; is ignored in a modal</ui-item>
+              <ui-item
+                ><a href="#i115">I115</a> &lt;ui-header&gt; doesn't size a slotted &lt;ui-image&gt; (Fomantic's circular
+                image in a</ui-item
+              >
+              <ui-item
+                ><a href="#i128">I128</a> &lt;ui-header sub&gt; inside a card's content draws as the card
+                header</ui-item
+              >
+              <ui-item
+                ><a href="#i125">I125</a> card parts no floated / text-align on &lt;ui-meta&gt;,
+                &lt;ui-extra&gt;,</ui-item
+              >
+              <ui-item><a href="#i42">I42</a> &lt;ui-date&gt; no floated (Fomantic's right floated feed date)</ui-item>
+              <ui-item
+                ><a href="#i90">I90</a> &lt;ui-statistic&gt; after a non-statistic sibling still takes the sibling
+                margin</ui-item
+              >
+            </ui-list>
+            <h4 id="o5-module-settings-not-ported">Module settings not ported (21)</h4>
+            <ui-list bulleted>
+              <ui-item><a href="#i63">I63</a> &lt;ui-calendar&gt; no multi-month view</ui-item>
+              <ui-item><a href="#i64">I64</a> &lt;ui-calendar&gt; no start view (year first)</ui-item>
+              <ui-item><a href="#i65">I65</a> &lt;ui-calendar&gt; no custom text format</ui-item>
+              <ui-item><a href="#i66">I66</a> &lt;ui-calendar&gt; can not be coupled to a button</ui-item>
+              <ui-item
+                ><a href="#i68">I68</a> &lt;ui-calendar&gt; disables only dates and weekdays: no hours, months, years,
+                enable-only</ui-item
+              >
+              <ui-item
+                ><a href="#i83">I83</a> &lt;ui-slider vertical&gt; no height attribute: the host needs
+                style=height</ui-item
+              >
+              <ui-item
+                ><a href="#i84">I84</a> &lt;ui-slider labeled&gt; no label settings: restricted, highlighted-range,
+                ui-label and fixed</ui-item
+              >
+              <ui-item
+                ><a href="#i85">I85</a> &lt;ui-slider range&gt; no minimum / maximum distance between the
+                thumbs</ui-item
+              >
+              <ui-item><a href="#i86">I86</a> &lt;ui-slider&gt; no thumb tooltips</ui-item>
+              <ui-item
+                ><a href="#i37">I37</a> &lt;ui-search&gt; input look is fixed: always a right search icon, no plain
+                prompt, no left</ui-item
+              >
+              <ui-item><a href="#i38">I38</a> &lt;ui-search&gt; no clearable remove icon</ui-item>
+              <ui-item
+                ><a href="#i40">I40</a> &lt;ui-search url&gt; no response mapping (Fomantic fields / onResponse
+                /</ui-item
+              >
+              <ui-item
+                ><a href="#i53">I53</a> &lt;ui-dropdown&gt; no menu-item / action-menu mode (Fomantic dropdown item,
+                nested</ui-item
+              >
+              <ui-item
+                ><a href="#i106">I106</a> &lt;ui-dropdown&gt; missing search / multiple settings: unfilterable items,
+                ignore diacritics,</ui-item
+              >
+              <ui-item
+                ><a href="#i107">I107</a> &lt;ui-dropdown&gt; menu content: header icons, vertical items, floated
+                content, label dots,</ui-item
+              >
+              <ui-item
+                ><a href="#i117">I117</a> &lt;ui-toast&gt; no colour of the progress bar's own (classProgress)</ui-item
+              >
+              <ui-item
+                ><a href="#i118">I118</a> &lt;ui-toast&gt; no centered actions (classActions: 'centered')</ui-item
+              >
+              <ui-item
+                ><a href="#i119">I119</a> UI.toast() no transition settings (showMethod / hideMethod /
+                durations)</ui-item
+              >
+              <ui-item
+                ><a href="#i121">I121</a> &lt;ui-toast actions="attached"&gt; button group sits inset in a light frame,
+                not flush</ui-item
+              >
+              <ui-item
+                ><a href="#i70">I70</a> &lt;ui-transition&gt; no grouped transitions (interval / reverse order)</ui-item
+              >
+              <ui-item
+                ><a href="#i112">I112</a> &lt;ui-visibility&gt; no grouped onPassed thresholds (pixels /
+                percentages)</ui-item
+              >
+            </ui-list>
+            <h4 id="o5-element-variations-missing">Element variations missing (46)</h4>
+            <ui-list bulleted>
+              <ui-item><a href="#i74">I74</a> &lt;ui-label&gt; no right icon (icon after the text)</ui-item>
+              <ui-item><a href="#i75">I75</a> &lt;ui-label ribbon&gt; no bottom / center ribbon</ui-item>
+              <ui-item
+                ><a href="#i76">I76</a> &lt;ui-label floating&gt; no left / right aligned (long floating text)</ui-item
+              >
+              <ui-item
+                ><a href="#i77">I77</a> &lt;ui-label attached&gt; in a &lt;ui-segment&gt; doesn't pad the content after
+                it</ui-item
+              >
+              <ui-item
+                ><a href="#i111">I111</a> &lt;ui-label&gt; inside a &lt;kbd&gt; keeps the page's kbd box around
+                it</ui-item
+              >
+              <ui-item
+                ><a href="#i95">I95</a> &lt;ui-input type="file"&gt; no invisible variant triggered by a &lt;label
+                for&gt;</ui-item
+              >
+              <ui-item><a href="#i97">I97</a> &lt;ui-input&gt; one joined label only (no label on both sides)</ui-item>
+              <ui-item
+                ><a href="#i98">I98</a> &lt;ui-input&gt; label joins only a text field, not a selection
+                dropdown</ui-item
+              >
+              <ui-item
+                ><a href="#i100">I100</a> &lt;ui-input type="file"&gt; choose-file button takes no custom
+                content</ui-item
+              >
+              <ui-item><a href="#i101">I101</a> &lt;ui-textarea&gt; no icon or corner label</ui-item>
+              <ui-item
+                ><a href="#i102">I102</a> &lt;ui-input&gt; slotted &lt;ui-label&gt; sits inside the joined label
+                box</ui-item
+              >
+              <ui-item
+                ><a href="#i103">I103</a> &lt;ui-input inverted&gt; in an inverted segment draws no visible
+                field</ui-item
+              >
+              <ui-item
+                ><a href="#i126">I126</a> &lt;ui-card&gt; no reveal / dimmable / linked image (only a slotted
+                &lt;img&gt;)</ui-item
+              >
+              <ui-item
+                ><a href="#i59">I59</a> &lt;ui-segment placeholder&gt; doesn't lay out its buttons and fields (no
+                centred block, no</ui-item
+              >
+              <ui-item
+                ><a href="#i60">I60</a> &lt;ui-segment secondary|tertiary inverted color&gt; loses its colour</ui-item
+              >
+              <ui-item><a href="#i27">I27</a> &lt;ui-segment vertical&gt; draws no rule below a masthead</ui-item>
+              <ui-item
+                ><a href="#i15">I15</a> &lt;ui-menu&gt; no collapsible group item (Fomantic accordion menu)</ui-item
+              >
+              <ui-item
+                ><a href="#i16">I16</a> &lt;ui-menu vertical&gt; leaves a link (button) item shrink-wrapped</ui-item
+              >
+              <ui-item><a href="#i25">I25</a> &lt;ui-menu&gt; no flush page-bar look</ui-item>
+              <ui-item
+                ><a href="#i31">I31</a> &lt;ui-menu&gt; items inside a &lt;ui-container&gt; lose the menu
+                layout</ui-item
+              >
+              <ui-item
+                ><a href="#i81">I81</a> &lt;ui-menu vertical&gt; item labels don't float right, and a sized menu doesn't
+                size its</ui-item
+              >
+              <ui-item><a href="#i24">I24</a> &lt;ui-tabs&gt; no equal-width items and no filled selected tab</ui-item>
+              <ui-item><a href="#i51">I51</a> &lt;ui-tabs&gt; no centered tab item (Fomantic's center item)</ui-item>
+              <ui-item><a href="#i12">I12</a> &lt;ui-buttons&gt; no single-choice (radio) group</ui-item>
+              <ui-item><a href="#i17">I17</a> &lt;ui-buttons&gt; no single-choice (segmented) group</ui-item>
+              <ui-item
+                ><a href="#i20">I20</a> &lt;ui-button attached="top|bottom"&gt; inner button isn't full width</ui-item
+              >
+              <ui-item><a href="#i21">I21</a> &lt;ui-button inverted basic color&gt; loses its colour</ui-item>
+              <ui-item><a href="#i55">I55</a> &lt;ui-image&gt; holds no children, so no dimmer over an image</ui-item>
+              <ui-item><a href="#i56">I56</a> &lt;ui-image size="medium"&gt; is the natural size, not 300px</ui-item>
+              <ui-item
+                ><a href="#i87">I87</a> &lt;ui-image&gt; can't wrap an &lt;svg&gt; (or the author's own
+                &lt;img&gt;)</ui-item
+              >
+              <ui-item
+                ><a href="#i35">I35</a> &lt;ui-comment&gt; reply slot sits below the whole comment, not beside the
+                avatar</ui-item
+              >
+              <ui-item
+                ><a href="#i93">I93</a> &lt;ui-divider&gt; no divider header look (Fomantic's ui horizontal divider
+                header)</ui-item
+              >
+              <ui-item><a href="#i29">I29</a> &lt;ui-progress&gt; no centered or custom bar text</ui-item>
+              <ui-item
+                ><a href="#i36">I36</a> &lt;ui-progress attached&gt; in a &lt;ui-segment&gt; stays inside the
+                padding</ui-item
+              >
+              <ui-item><a href="#i33">I33</a> &lt;ui-rail&gt; fixed 300px width, no attribute to narrow it</ui-item>
+              <ui-item
+                ><a href="#i30">I30</a> &lt;ui-ad&gt; no mobile modifier on other units (Fomantic's mobile
+                banner)</ui-item
+              >
+              <ui-item><a href="#i28">I28</a> &lt;ui-breadcrumb&gt; one divider for the whole trail</ui-item>
+              <ui-item
+                ><a href="#i50">I50</a> &lt;ui-placeholder&gt; / &lt;ui-placeholder-image&gt; no size attribute
+                (Fomantic's 150px</ui-item
+              >
+              <ui-item
+                ><a href="#i79">I79</a> &lt;ui-column stretched&gt; doesn't grow a &lt;ui-segment&gt; child</ui-item
+              >
+              <ui-item
+                ><a href="#i57">I57</a> &lt;ui-checkbox&gt; no public token for the chosen box's background /
+                border</ui-item
+              >
+              <ui-item
+                ><a href="#i62">I62</a> &lt;ui-root size&gt; scales only components, not text or a bare &lt;ui-icon&gt;
+                inside</ui-item
+              >
+              <ui-item><a href="#i73">I73</a> &lt;ui-item&gt; no invoker commands (commandfor / command)</ui-item>
+              <ui-item
+                ><a href="#i130">I130</a> &lt;ui-field state&gt; tints its label and input, not a &lt;ui-dropdown&gt;
+                or</ui-item
+              >
+              <ui-item
+                ><a href="#i99">I99</a> &lt;ui-actions&gt; / &lt;ui-header&gt; in a modal: no left or centred actions,
+                no basic header</ui-item
+              >
+              <ui-item><a href="#i11">I11</a> &lt;ui-dropdown&gt; no basic button look</ui-item>
+              <ui-item><a href="#i5">I5</a> secondary menus pick up the secondary COLOUR remap</ui-item>
+            </ui-list>
+            <h4 id="o5-platform-icons-emoji-a-y">Platform, icons, emoji, a11y (10)</h4>
+            <ui-list bulleted>
+              <ui-item><a href="#i3">I3</a> component sheets use physical properties, so RTL only half-mirrors</ui-item>
+              <ui-item><a href="#i1">I1</a> &lt;ui-emoji&gt; no image emoji sets (JoyPixels, Twemoji)</ui-item>
+              <ui-item><a href="#i48">I48</a> no searchable gallery of every emoji (Fomantic's Emojis tab)</ui-item>
+              <ui-item
+                ><a href="#i23">I23</a> icon names miss Fomantic's word order (right arrow) and draw nothing,
+                silently</ui-item
+              >
+              <ui-item><a href="#i26">I26</a> ui.css foundation keeps the browser's 8px body margin</ui-item>
+              <ui-item><a href="#i6">I6</a> &lt;ui-markdown&gt; no inline mode</ui-item>
+              <ui-item><a href="#i8">I8</a> &lt;ui-header href level&gt; fails axe (a role=heading)</ui-item>
+              <ui-item
+                ><a href="#i10">I10</a> &lt;ui-input type="color"&gt; shows only the native swatch: no hex / OKLCH text,
+                no</ui-item
+              >
+              <ui-item
+                ><a href="#i123">I123</a> &lt;ui-docs-example&gt; no highlighted / colored grid look (Fomantic's
+                docs.css)</ui-item
+              >
+              <ui-item
+                ><a href="#i43">I43</a> &lt;ui-dimmer&gt; doesn't show or invert the &lt;ui-loader&gt; inside
+                it</ui-item
+              >
+            </ui-list>
+            <h4 id="o5-other">Other (1)</h4>
+            <ui-list bulleted>
+              <ui-item
+                ><a href="#i88">I88</a> &lt;ui-steps circular&gt; no center aligned / bottom aligned content</ui-item
+              >
+            </ui-list>
+          </ui-section>
         </ui-section>
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="7" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="8" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -360,7 +748,16 @@
               ><ui-item icon="clock"><b>Estimate:</b> 3-4h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p7" data-phase="7" data-status="done" header="P7 · Retire Astro" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p7"
+            data-phase="7"
+            data-status="done"
+            header="P7 · Retire Astro"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -372,8 +769,8 @@
               ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p8" data-phase="8" data-status="todo" header="P8 · Gap Report" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p8" data-phase="8" data-status="done" header="P8 · Gap Report" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> Gap table (widget, missing feature, Fomantic example, workaround); SUSPECTED-BUGS; yarn
@@ -5387,6 +5784,28 @@
                   ><ui-date><time datetime="2026-10-03T11:51-04:00">2026-10-03 11:51</time></ui-date> P7 done: Astro
                   site, MDX, workspace and 330 lockfile packages gone; site:dev = bundle watch + page server; every live
                   reference updated; checks: ui review 4400, server 70, site:check --all OK</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T11:51-04:00">2026-10-03 11:51</time></ui-date> P8
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T11:52-04:00">2026-10-03 11:52</time></ui-date> P8
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T11:52-04:00">2026-10-03 11:52</time></ui-date> P8 done: gap
+                  report (Overview 1.5): 118 open gaps in 6 groups, 4 recommendations; checks: plan-doc check +
+                  check-spell ok (review / visual / site:check already green in P7)</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
