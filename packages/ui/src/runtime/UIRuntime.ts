@@ -23,6 +23,7 @@ import {
 } from "./runtime.types"
 import { Api } from "./Api"
 import { Browser } from "./Browser"
+import { CodeLanguages } from "./CodeLanguages"
 import { Focus } from "./Focus"
 import { I18n } from "./I18n"
 import { IconPacks } from "./IconPacks"
@@ -88,6 +89,8 @@ export class UIRuntime {
   readonly icons = new IconPacks()
   /** same-origin text files elements load and save (`<ui-include>`, `<ui-code>`, `<ui-markdown>`) */
   readonly sources = new Sources()
+  /** languages `<ui-code>` highlights beyond its own:  `register()`, e.g. spell */
+  readonly code = new CodeLanguages()
   /** canonical + localized component names (the translation hook) */
   readonly vocabulary = new Vocabulary()
 

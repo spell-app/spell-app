@@ -180,7 +180,8 @@ export const FAMILY_FALLBACKS: readonly { family: string; html: string; root: st
     family: "ui-include",
     html: `<ui-include source="/test/fixtures/sources/part.html">Placeholder</ui-include>`,
     root: "[part~=content]"
-  }
+  },
+  { family: "ui-code", html: `<ui-code language="text">let x = 1</ui-code>`, root: "[part~=box]" }
 ]
 
 export const FALLBACK_CASES: readonly FallbackCase[] = [

@@ -25,7 +25,9 @@
           ><header class="spell-page-head">
             <h1>UI Import</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p3">next: P3 · Code Element</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p4"
+                >next: P4 · Spell Highlighting</ui-label
+              ></span
             >
           </header></ui-sticky
         >
@@ -67,7 +69,7 @@
               language.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 11h-15h 30m in all, 8h 30m-12h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 11h-15h 30m in all, 6h 30m-9h left</p>
           <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
             <ul>
               <li>
@@ -674,7 +676,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="2" total="7" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="3" total="7" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -703,6 +705,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p2"
             data-phase="2"
             data-status="done"
@@ -723,8 +726,8 @@
               ><ui-item icon="clock"><b>Estimate:</b> 1.5-2h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p3" data-phase="3" data-status="todo" header="P3 · Code Element" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p3" data-phase="3" data-status="done" header="P3 · Code Element" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> <code>&lt;ui-code&gt;</code>: lazy highlight.js, detect set, UI.code.register, line
@@ -1089,7 +1092,13 @@
               <span class="plan-title"
                 >ui -&gt; spell bundle is a documented exception to "ui never imports spell" (root AGENTS.md)</span
               ></ui-item
-            ></ui-list
+            ><ui-item id="c10" data-status="open"
+              ><a class="plan-id" href="#c10">C10</a>
+              <span class="plan-title"
+                >Vite's dev server transforms fetched .ts / .css / .html (a JS module, its client script): &lt;ui-code
+                source&gt; shows that under yarn dev / tests; the page server serves files raw</span
+              >
+            </ui-item></ui-list
           >
         </ui-section>
 
@@ -1291,6 +1300,27 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T20:32-04:00">2026-10-02 20:32</time></ui-date> P2 done:
                   &lt;ui-include&gt;, 30 tests, Mac visual baselines</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T20:32-04:00">2026-10-02 20:32</time></ui-date> P3
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T20:41-04:00">2026-10-02 20:41</time></ui-date> P3
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T20:41-04:00">2026-10-02 20:41</time></ui-date> P3 done:
+                  &lt;ui-code&gt;, UI.code registry, 29 tests, Mac visual baselines</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

@@ -261,6 +261,8 @@ All under `src/components/`, no Elements/Collections/Views/Modules split. Each r
     inline text or a same-origin `source` (`UI.sources`), loading / error looks, a `save()` hook (`SourceElement`):
     - `include`:  another page of the site shown here (shadow root, or light DOM with `page-styles`), `select`,
       `load="visible|idle"` (islands)
+    - `code`:  highlighted code (highlight.js, lazy;  auto-detect;  `UI.code.register()` for more, spell's own),
+      `line-numbers`, `wrap`, `copy`
 - **Phase D – site, hardening, release**: docs pages for every component (Fomantic's presentation, style and content as the model), theming guide, translation contract, kitchen sink, visual tests + cross-browser baselines for EVERY family (deferred here from each component's definition of done, Owen 2026-09-29), axe audit of every example, bundle-size report, README, CHANGELOG, npm publish dry run.
 
 ## Definition of done for a component

@@ -70,6 +70,7 @@ import visibilityCSS from "$/ui/components/ui-visibility/ui-visibility.css?inlin
 import embedCSS from "$/ui/components/ui-embed/ui-embed.css?inline"
 import calendarCSS from "$/ui/components/ui-calendar/ui-calendar.css?inline"
 import sectionCSS from "$/ui/components/ui-section/ui-section.css?inline"
+import codeCSS from "$/ui/components/ui-code/ui-code.css?inline"
 import includeCSS from "$/ui/components/ui-include/ui-include.css?inline"
 
 /** Original fragments, by path. */
@@ -143,6 +144,7 @@ for (const [name, css] of Object.entries({
   embed: embedCSS,
   calendar: calendarCSS,
   section: sectionCSS,
+  code: codeCSS,
   include: includeCSS
 })) {
   UI.styles.register(name, css, { page: true })
