@@ -120,7 +120,7 @@
                     <td>Editor</td>
                     <td><code>/editor/</code></td>
                     <td class="no negative">no</td>
-                    <td>a redirect to vite, which <code>spell serve</code> starts</td>
+                    <td>a redirect to the editor (vite), which the app's route module starts with the page server</td>
                   </tr>
                 </tbody>
               </table>
@@ -154,8 +154,8 @@
                   <tr>
                     <td><code>spell serve [target]</code></td>
                     <td>
-                      everything: the page server (with the app's <code>/api</code>) plus vite for the editor;
-                      <code>yarn start</code> in
+                      everything: the page server, whose app route module runs the API and the editor (vite); waits for
+                      the editor and opens it. <code>yarn start</code> in
                       <a href="../app/" target="src-packages-app"><code>packages/app</code></a> is
                       <code>spell serve --headless</code>
                     </td>
@@ -708,28 +708,38 @@
           </ui-section>
 
           <ui-section id="spell-serve" header="spell serve" sticky collapsible dividing>
+            <p>
+              The editor is the PAGE SERVER's child, so <code>yarn server</code> alone runs it too: the app's route
+              module (<a href="../app/src/server/appRoutes.ts" target="src-packages-app-src-server-approutes-ts"
+                ><code>appRoutes.ts</code></a
+              >) starts it with <code>EditorServer</code> once the page server listens (<code>onListening</code>), and
+              stops it with the page server (<code>onStop</code>).
+            </p>
             <ol>
-              <li>Check the editor's port (<code>--port</code>, default 3000) is free.</li>
               <li>
-                <code>PageServer.ensure()</code>: the page server, with every route module -- the app's
-                <code>/api</code> among them.
+                <code>--port</code>, if given, goes to a page server this STARTS as <code>SPELL_EDITOR_PORT</code>
+                (default 3000, else any free port); one already running keeps its editor where it is.
               </li>
               <li>
-                Start vite (<code>yarn start:dev</code> in
+                <code>PageServer.ensure()</code>: the page server, with every route module. Once it listens, the app's
+                module starts vite (its script, under this <code>node</code>, in
                 <a href="../app/" target="src-packages-app"><code>packages/app</code></a
                 >) with <code>PORT</code> = the page server's port and <code>API_SERVER=127.0.0.1</code>, so its proxy
-                sends <code>/api</code> there.
+                sends <code>/api</code> there; its output goes to
+                <a href="../../.spell-server.editor.log" target="src-spell-server-editor-log"
+                  ><code>.spell-server.editor.log</code></a
+                >.
               </li>
               <li>
-                Record the editor in <code>.spell-server.editor.json</code>: the page server's
+                Once vite answers, the module records it in <code>.spell-server.editor.json</code>: the page server's
                 <code>/editor</code> redirects there.
               </li>
               <li>
-                Wait (up to 90s) for vite and the page server's <code>/hello</code>; open the editor, unless
+                <code>spell serve</code> waits (up to 90s) for that record to answer; opens the editor, unless
                 <code>--headless</code>.
               </li>
               <li>
-                <code>Ctrl-C</code>: stop vite and drop the record -- and stop the page server only if
+                <code>Ctrl-C</code>: stop the page server -- and with it the editor -- only if
                 <code>spell serve</code> started it.
               </li>
             </ol>
@@ -759,6 +769,10 @@
                     <code>web</code> -- the whole server, e.g. <code>web.files.html.push()</code> for an html hook
                   </li>
                   <li><code>root</code>, <code>info</code> -- the checkout; pid, port, branch</li>
+                  <li>
+                    <code>onListening(start)</code> -- run once the server listens (<code>info.port</code> is set), e.g.
+                    to start a child process that needs the page server's port: the app's editor
+                  </li>
                   <li><code>onStop(stop)</code> -- run when the server stops, e.g. to end a child process</li>
                 </ul>
               </li>
