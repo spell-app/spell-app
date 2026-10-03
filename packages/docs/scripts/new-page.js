@@ -1,6 +1,8 @@
 /**
  * `yarn docs:new <template> <page> [--title "Title"] [--description "One sentence."]`:  start a page from a template.
- * - `<template>`:  `durable` or `cheatsheet` (or a path under `templates/`);  plan docs come from `yarn plan-doc new`
+ * - `<template>`:  `durable`, `cheatsheet` or `commands` (or a path under `templates/`);  plan docs come from
+ *   `yarn plan-doc new`
+ * - SIDE EFFECT:  a template with a JSON beside it (`commands.json`) copies that too, as `<page>.json`
  * - `<page>`:  where it goes, relative to `packages/docs`, e.g. `parser/parser.html` or `glossary.html`
  * - Fixes the `_assets` and `index.html` paths for the page's depth:  templates assume one folder deep, a top-level
  *   page is zero.  Likewise the site header's `root` (the path up to the repo root:  `packages/docs` is two more).
@@ -9,8 +11,8 @@
  * - Then tidies the page and updates the docs index, so it's listed at once.
  */
 import { spawnSync } from "node:child_process"
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
-import { dirname, join, relative } from "node:path"
+import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
+import { basename, dirname, join, relative } from "node:path"
 
 import { parseHTML } from "linkedom"
 
@@ -19,7 +21,7 @@ import { DOCS, serialize, tidy } from "./pages.js"
 const { positional, flags } = parseArgs(process.argv.slice(2))
 const [templateArg, page] = positional
 if (!templateArg || !page?.endsWith(".html")) {
-  fail(`usage:  yarn docs:new durable|cheatsheet <topic>/<topic>.html [--title "Title"] [--description "..."]`)
+  fail(`usage:  yarn docs:new durable|cheatsheet|commands <topic>/<topic>.html [--title "Title"] [--description "..."]`)
 }
 if (/^templates\/epics\/|^plan$/.test(templateArg)) fail("plan docs:  `yarn plan-doc new <name>`")
 const template = templateArg.includes("/") ? templateArg : `templates/${templateArg}.html`
@@ -40,8 +42,15 @@ document.querySelector("h1").textContent = title
 const crumb = document.querySelector("ui-breadcrumb-section[active]")
 if (crumb) crumb.textContent = title
 document.querySelector('meta[name="description"]').setAttribute("content", flags.description ?? "One sentence.")
+// a data-driven template (`commands`) has its JSON beside it:  the page gets a copy, named after the page
+const data = join(DOCS, template.replace(/\.html$/, ".json"))
+const pageData = file.replace(/\.html$/, ".json")
+for (const code of document.querySelectorAll("ui-list.spell-meta code")) {
+  if (code.textContent === "short-title.json") code.textContent = basename(pageData)
+}
 mkdirSync(dirname(file), { recursive: true })
 writeFileSync(file, serialize(document))
+if (existsSync(data)) copyFileSync(data, pageData)
 if (!tidy([page])) process.exit(1)
 const run = spawnSync("node", ["scripts/index.js"], { cwd: DOCS, encoding: "utf8" })
 if (run.status !== 0) process.stderr.write(run.stderr)
