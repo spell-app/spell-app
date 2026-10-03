@@ -891,6 +891,47 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   else (`property: "headingLevelOffset"`);  a `property` equal to the camelCased name doesn't count as a rename.
   Found by loading the fixture in Playwright's WebKit and logging `pageerror`. · ui
 
+## app
+
+- 2026-10-02 · `app`'s `browser` test project failed EVERY file on a cold `node_modules/.vite/vitest` cache once a test
+  imported `$/app/editor`:  vite found `marked`, `semantic-ui-react`, lodash ... mid-run, re-optimized and reloaded
+  ("Failed to fetch dynamically imported module");  a second run passed. · `optimizeDeps.entries: BROWSER_TESTS` in
+  `vitest.config.ts` `browserConfig()`, so the dep scan crawls the tests up front.  Cold-cache run green. · app
+- 2026-10-02 · The FIRST run of a new browser test that loads Monaco (`src/solid/InputEditor.browser.test.tsx`, via
+  `LazyMonaco`'s `import()`) failed 6 of 9 with "Failed to fetch dynamically imported module .../solid/monaco/index.ts";
+  the rerun passed, and every run since.  Same mid-run re-optimize as above, for `monaco-editor`'s deep imports (or
+  another agent's run colliding). · Rerun before investigating;  if it recurs on cold caches, add the `monaco-editor/...`
+  paths to `browserConfig()`'s `optimizeDeps.include`. · app
+- 2026-10-02 · A scratch `vite build -c <scratchpad>/vite.x.config.ts` importing `packages/app/vite.config.ts` died with
+  "`@solidjs/vite-plugin` ... default is not a function":  outside a `"type": "module"` package vite bundles the
+  config as CJS.  Then `$/app/...` imports in a scratch ENTRY didn't resolve (the aliases come from the package's
+  tsconfig). · Name it `.mts`;  import the app files by absolute path. · app
+- 2026-10-02 · A browser test (`src/solid/TypeExplorer.browser.test.tsx`) hung ~6 minutes with NO output, then
+  "Browser connection was closed", reported as `import 90%`:  it looked like a vite reload / collision.  Really a
+  microtask loop starving the page:  `tree={buildScopeTree(ENTRIES)}` makes a NEW tree on every read of the Solid
+  prop, the details cache was per tree object, so each answer asked again. · Bisect with a tiny probe test (passes
+  in a second);  if the real file still hangs, suspect a loop.  Fixed in the component (`currentTree()` memo). · app
+- 2026-10-02 · The built `dist-element/` drew fine, yet logged 27 404s per page:  vite's module preloading of `ui`'s
+  lazy chunks asked for `/ui/UIRuntime.js` ... at the page's ROOT (default `base: "/"`), not beside the bundle.
+  Same cause as the editor's worker 404 (`spell` section). · `base: "./"` in `vite.solid.config.ts`.  Any build whose
+  chunks are served from a sub-folder needs it. · app
+- 2026-10-02 · Two rolldown ENTRIES (`spell-solid`, `spell-ui`) both reaching Solid:  rolldown put Solid in a THIRD,
+  shared chunk (named after a random module, `ui/customElement.js`), not in `spell-solid.js` -- even with
+  `preserveEntrySignatures: "allow-extension"`. · One entry, the other its dynamic `import()`:  the lazy chunk then
+  imports what the entry already holds from the entry. · app
+- 2026-10-02 · `expect(spy).not.toHaveBeenCalledWith(runnerRoot)` FAILED although the spy only ever got `editorRoot`
+  ("Compared values have no visual difference"):  vitest compares DOM elements by their MARKUP, and the editor's and
+  the runner's `#spell-app-root` look alike. · Compare elements by identity:  `spy.mock.calls[0][0]` with `toBe()`.
+  · app (solid-migration P8)
+- 2026-10-02 · `<SplitPanel>`'s drag did nothing in a browser test, yet worked on the dev server:  `$/util`'s
+  `getPadding()` reads `NaN` under vitest (`SUSPECTED-BUGS.md`, app), and one `NaN` in the measurements makes `drag()`
+  bail silently. · Bisected by dumping the drag's measurements into a failing `expect`;  `SplitPanel.tsx` reads
+  padding with `getComputedStyle()` itself. · app (solid-migration P8)
+- 2026-10-02 · `/demo/spell-app.html` 404s `/element/spell-app.js` on the dev server (`spell serve`):  nothing there
+  serves `dist-element/`, though the demo's comment says the dev server does.  The app's own pages work. · For a live
+  check:  a tiny static server for `/demo/` + `/element/` that proxies `/api/` to the page server -- dropping
+  `Origin` / `Referer`, or the page server answers 403. · app
+
 ## cli
 
 Entries before 2026-09-30 are from when the command line lived in the parser repo, on its `CLI` branch.
@@ -944,6 +985,10 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   checkout>` ("redirects git to the shared checkout"), even a read-only `status`. · Get the branch ready in the
   worktree (`git log HEAD..main`, `git merge-tree --write-tree` to spot conflicts), `ExitWorktree`, then
   `git merge --ff-only <name>` from the main checkout.  The skill now does it in that order. · tooling
+- 2026-10-02 · `spell speed --against HEAD` died at once ("Previous side failed:  }") after a change REMOVED a
+  dependency (`easy-state`, P11):  the temp worktree of HEAD links OUR `node_modules`, where HEAD's import no longer
+  resolves.  The message hides the cause. · Put the dependency back in `package.json` + `yarn install` for the run,
+  then take it out again.  Better:  `speed` could print the child's stderr. · cli
 
 ## docs
 
@@ -998,6 +1043,32 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   `yarn format` (`oxfmt .`) formats the GENERATED emoji chunks, and the bundler writes them back quoted on every
   `bundle-spell-ui.js` run, so the two fight. · Not fixed:  `git checkout -- packages/docs/_assets/emoji` after a
   review;  the fix is an `ignorePatterns` entry for `**/docs/_assets/emoji/**` (as `_assets/lazy/` has). · docs
+- 2026-10-02 · `yarn plan-doc add-phase` writes `--goal` / `--files` / `--verify` text into the page UNESCAPED:
+  `<ui-*>`, `<For>`, `<spell-app>` became real tags and `check` failed with "undefined elements:  ui-*". ·
+  Hand-escape them in the phase body (`<code>&lt;ui-*&gt;</code>`);  `add --details` takes HTML on purpose, but
+  `add-phase` text should be escaped by the script. · docs
+- 2026-10-02 · Plan docs' phase "Estimate" line (`icon="clock"`) draws nothing:  `clock` isn't in `ICONS` in
+  `packages/docs/scripts/bundle-spell-ui.js` (only `clock rotate left`), so `check` notes "N icon(s) with no
+  <svg> drawn", one per phase. · Not fixed:  add `clock` to `ICONS`, then `yarn docs:update`. · docs
+- 2026-10-02 · Root `yarn review` (its `format` step) rewrote ~60 files nobody touched:  `main` holds unformatted
+  files (generated `_assets/emoji/*.js`, `goals-live.js`, `bundle-spell-ui.js`, `templates/epics/plan.html`,
+  `spell/src/node/environment.ts`), so every review drags them into the diff. · `git restore` them after the
+  review;  the real fix is formatting them once on `main` (or ignoring the generated emoji chunks in `.oxfmtrc`). ·
+  docs, spell
+- 2026-10-02 · `yarn plan-doc add-phase` numbers a new phase by COUNTING phases, so after a phase was deleted by
+  hand (solid-migration's P5) it handed out `P10` again:  two `#p10` sections, and `check` didn't flag it. ·
+  Renumbered the new one by hand (`p11`) and moved it;  `add-phase` should use max id + 1, and `check` should fail
+  on duplicate ids. · docs
+- 2026-10-02 · `yarn plan-doc check` failed "fold:  #overview unfolded, but its content is not visible" after an
+  UPDATE `<ui-message>` went first in `#overview`, as `plan-doc.md` says ("just before" the changed block):
+  `check-spell.js` `foldState()` tests the FIRST unslotted child with `checkVisibility()`, which is `false` for a
+  `display: contents` host such as `<ui-message>`. · Put the summary's UPDATE note just AFTER `p.plan-summary`;
+  `foldState()` should skip `display: contents` children (or test their first box). · docs
+- 2026-10-02 · `doc-links.py --check` failed on a plan doc with "target ... shared by" `solid/solid-2.md` and
+  `solid/SOLID-2.md`:  on macOS's case-insensitive disk an old name (`<code>docs/solid/SOLID-2.md</code>`, kept as
+  history) resolves, so `doc-links.py` links it to a second path for the same file;  unlinking it by hand gets
+  re-linked on the next run. · Wrote the old name as plain text;  `doc-links.py` should resolve paths
+  case-sensitively (compare against the real directory listing). · docs
 
 ## claude-code
 
@@ -1017,3 +1088,12 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
 - 2026-10-02 · A shell command chaining several `yarn plan-doc add-phase ...` calls with `&&` was refused in a
   worktree session ("names git in a form too complex to verify"). · Put the calls in a script in the scratchpad
   and run `bash <script>`. · tooling
+
+## vscode
+
+- 2026-10-02 · A freshly installed extension feature (`DocView`) never showed after a reload:  docs still opened in a
+  new editor tab.  The extension is installed ONCE for all of VS Code, and a `yarn vscode` in another checkout (the
+  `solid-migration` worktree, 6 minutes later) had overwritten it with its own branch's build, which also runs THAT
+  checkout's language server. · Check which checkout built it:
+  `grep -o '"/Users/owen/www/spell-app/[^"]*"' ~/.vscode/extensions/spell-app.spell-language-*/out/extension.js`
+  (its `REPO_ROOT`), then `yarn vscode` from the checkout you want and reload. · vscode

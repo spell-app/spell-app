@@ -1,6 +1,11 @@
-import { createRoot, type Root } from "react-dom/client"
+import { createEffect, createSignal, onCleanup, type Accessor } from "solid-js"
+import {
+  customElement,
+  type ComponentOptions,
+  type SolidElement,
+  type SolidElementClass
+} from "@spell-app/solid-element"
 
-import { raw } from "$/util"
 import { SP } from "$/spell"
 import { LSP } from "$/lsp"
 import type * as UIT from "$/app/ui/ui.types"
@@ -10,9 +15,11 @@ import { SPELL_COMPILED_EVENT, type SpellCompiled } from "$/app/runner/runner.ty
 import { shadowStyles } from "$/app/runner/shadowStyles"
 import { SpellEditorPane, type SpellEditorStatus, type MonacoModule } from "./SpellEditorPane"
 
-/**
- * `<spell-editor>`:  edits a spell project in any page, in Monaco -- and feeds `<spell-app>`s on the page what it
- * compiles.
+import "$/app/solid/cellsBridge"
+
+/****************
+ * ### `<spell-editor>`
+ * Edits a spell project in any page, in Monaco -- and feeds `<spell-app>`s on the page what it compiles.
  * - `project="@system:examples:Solitaire"` -- or `@examples/Solitaire` -- from the spell server's `/api`, as
  *   `<spell-app project>`.  Edits SAVE back to it:  every compile saves the files edited since, and Cmd+S saves.
  * - Also:
@@ -20,7 +27,8 @@ import { SpellEditorPane, type SpellEditorStatus, type MonacoModule } from "./Sp
  *   - `app`:  a CSS selector for `<spell-app>`s to run what we compile, e.g. `#game` -- see `pushToApps()`.
  *     Or an app can name US, with its `editor` attribute.  Either will do.
  *   - `width` / `height`:  a CSS length, e.g. `50%`, `30em` -- each sets our inline style, so page CSS works too.
- *   - `assets`:  where `spell-editor.css` and Lato are -- default, beside this script
+ *   - `assets`:  where `spell-editor.css` and Lato are -- default, beside this script.  Read as we join the page.
+ * - Each attribute is a property too (`editor.project = ...`), via `@spell-app/solid-element`'s `customElement()`.
  * - Compiles when it opens the project, 2 seconds after typing stops, and at once on Cmd+Enter.
  *   After each compile with no parse errors:
  *   - `compiled` holds what it made -- a `SpellCompiled`
@@ -30,10 +38,49 @@ import { SpellEditorPane, type SpellEditorStatus, type MonacoModule } from "./Sp
  * - Compiles WITHOUT Monaco, so apps run straight away.  Monaco -- most of our code -- loads after, for the view.
  * - Several may edit several projects on a page -- see `SpellModels.use()`.  Two of ONE project share its files, so
  *   typing in one shows in the other.
- * - NOTE: NOT in the `$/app/spellEditor` barrel:  `extends HTMLElement` fails where there's no DOM, e.g. tests.
+ * - Draws in Solid (`<SpellEditorPane>`), no `<ui-*>`:  plain tabs and status line, styled by `spell-editor.css`.
+ * - Leaving the page lets go of the project, a microtask later:  a move in one go keeps it.
+ * - NOTE: NOT in the `$/app/spellEditor` barrel:  defining an element fails where there's no DOM, e.g. tests.
+ ****************/
+export function defineSpellEditor(): SpellEditorElementClass {
+  return customElement("spell-editor", SPELL_EDITOR_PROPS, SpellEditor, {
+    BaseElement: SpellEditorBase
+  }) as SpellEditorElementClass
+}
+
+/** `<spell-editor>`'s attributes, each a property too -- see `defineSpellEditor()`. */
+const SPELL_EDITOR_PROPS = {
+  project: { type: String },
+  file: { type: String },
+  app: { type: String },
+  width: { type: String },
+  height: { type: String }
+}
+
+/** `<spell-editor>`'s props, as its component reads them. */
+type SpellEditorProps = {
+  project?: string
+  file?: string
+  app?: string
+  width?: string
+  height?: string
+}
+
+/** A `<spell-editor>`:  its methods, its props as properties, and the element plumbing. */
+export type SpellEditorElement = SpellEditorBase & SpellEditorProps & SolidElement
+
+/** The `<spell-editor>` class `defineSpellEditor()` defines. */
+export type SpellEditorElementClass = SolidElementClass & { new (): SpellEditorElement; COMPILE_DELAY: number }
+
+/**
+ * What `<spell-editor>` adds to `HTMLElement`, beside its props:  compiling, saving, the project and Monaco.
+ * - The BASE of the class `customElement()` makes, so its prop accessors come on top.
+ * - What it shows is in signals (`view`), written from anywhere (`ownedWrite`):  its component draws them.
+ * - NOTE: `declare` only for the props it reads:  a field would shadow their accessors.
  */
-export class SpellEditorElement extends HTMLElement {
-  static observedAttributes = ["project", "file", "app", "width", "height", "assets"]
+class SpellEditorBase extends HTMLElement {
+  declare file?: string
+  declare app?: string
 
   /** How long after the last edit to compile, in msec. */
   static COMPILE_DELAY = 2000
@@ -41,18 +88,21 @@ export class SpellEditorElement extends HTMLElement {
   /** What we last compiled with no parse errors -- see `compile()`. */
   compiled: SpellCompiled | undefined
 
-  /** React root drawing us, while we're in the page. */
-  #root?: Root
   /** Project we're editing, once `project` names one. */
-  #project?: SP.SpellProject
-  /** `project` attribute we opened `#project` for. */
-  #projectAttribute?: string
+  #project = createSignal<SP.SpellProject | undefined>(undefined, { ownedWrite: true })
+  /**
+   * `project` attribute we opened `#project` for -- `null` before we've opened anything.
+   * - NOTE: NOT `undefined`:  that's "no project", which says so in the status line.
+   */
+  #projectAttribute: string | undefined | null = null
   /** File we're showing. */
-  #file?: SP.SpellFile
+  #file = createSignal<SP.SpellFile | undefined>(undefined, { ownedWrite: true })
   /** What we're doing, for the status line. */
-  #status: SpellEditorStatus = { state: "loading" }
+  #status = createSignal<SpellEditorStatus>({ state: "loading" }, { ownedWrite: true })
   /** Monaco and our spell features, once loaded. */
-  #monaco?: MonacoModule
+  #monaco = createSignal<MonacoModule | undefined>(undefined, { ownedWrite: true })
+  /** Bumped when the project's files change in ways no signal says, e.g. edited since saved -- see `redraw()`. */
+  #version = createSignal(0, { ownedWrite: true })
   /** Our Monaco editor, once made. */
   #editor?: monaco.editor.IStandaloneCodeEditor
   /** Where to put the cursor when the editor next shows `path` -- e.g. "go to definition" from another file. */
@@ -66,32 +116,16 @@ export class SpellEditorElement extends HTMLElement {
   /** Projects we've parsed that `#project` imports compiled, for its scope pack -- see `scopesOf()`. */
   #parsedImports = new WeakSet<SP.SpellProject>()
 
-  /** Draw ourselves -- in a shadow root, made the first time -- and open our project. */
-  connectedCallback() {
-    const shadow = this.shadowRoot ?? this.attachShadow({ mode: "open" })
-    void shadowStyles(this.assets, EDITOR_CSS).then((sheets) => (shadow.adoptedStyleSheets = sheets))
-    const mount = document.createElement("div")
-    mount.className = "SpellEditorMount"
-    shadow.replaceChildren(mount)
-    this.#root = createRoot(mount)
-    this.render()
-    void this.openProject()
-  }
-
-  /** Gone from the page:  stop compiling, and let go of our project. */
-  disconnectedCallback() {
-    this.closeProject()
-    this.#projectAttribute = undefined
-    this.#root?.unmount()
-    this.#root = undefined
-  }
-
-  /** An attribute changed:  open another project, show another file, or just draw again. */
-  attributeChangedCallback(name: string) {
-    if (!this.#root) return
-    if (name === "project") void this.openProject()
-    else if (name === "file") this.showFile(this.namedFile())
-    else this.render()
+  /** What we show, for our component to draw:  read-only accessors over our state. */
+  readonly view: SpellEditorView = {
+    files: () => this.#project[0]()?.spellFiles ?? [],
+    file: () => this.#file[0](),
+    status: () => this.#status[0](),
+    monaco: () => this.#monaco[0](),
+    isDirty: (file) => {
+      this.#version[0]()
+      return file.isDirty
+    }
   }
 
   /** Where `spell-editor.css` and Lato are -- see `assets`. */
@@ -117,7 +151,7 @@ export class SpellEditorElement extends HTMLElement {
 
   /** Save the files edited since they were last saved.  Returns once they are. */
   async save(): Promise<void> {
-    const project = this.#project
+    const project = this.#project[0]()
     if (!project) return
     const dirty = project.spellFiles.filter((file) => file.isDirty)
     if (!dirty.length) return
@@ -128,7 +162,8 @@ export class SpellEditorElement extends HTMLElement {
   /** Compile `COMPILE_DELAY` after this -- unless asked again before. */
   private compileSoon() {
     this.clearCompileSoon()
-    this.#compileTimer = setTimeout(() => void this.compile(), SpellEditorElement.COMPILE_DELAY)
+    const delay = (this.constructor as typeof SpellEditorBase).COMPILE_DELAY
+    this.#compileTimer = setTimeout(() => void this.compile(), delay)
   }
 
   /** Forget any pending `compileSoon()`. */
@@ -139,18 +174,18 @@ export class SpellEditorElement extends HTMLElement {
 
   /** Compile `#project` -- see `compile()`. */
   private async compileNow(): Promise<SpellCompiled | undefined> {
-    const project = this.#project
+    const project = this.#project[0]()
     if (!project) return undefined
     this.setStatus({ state: "compiling" })
     try {
       await this.save()
       await project.compile()
     } catch (error) {
-      if (project === this.#project) this.setStatus({ state: "failed", message: messageOf(error) })
+      if (project === this.#project[0]()) this.setStatus({ state: "failed", message: messageOf(error) })
       return undefined
     }
     // opened another meanwhile
-    if (project !== this.#project) return undefined
+    if (project !== this.#project[0]()) return undefined
     const errors = parseErrors(project)
     const compiled = project.outputFile.contents ?? project.compiled
     if (errors || !compiled) {
@@ -163,7 +198,7 @@ export class SpellEditorElement extends HTMLElement {
       return undefined
     })
     if (scopes) detail.scopes = scopes
-    if (project !== this.#project) return undefined
+    if (project !== this.#project[0]()) return undefined
 
     this.compiled = detail
     this.dispatchEvent(new CustomEvent(SPELL_COMPILED_EVENT, { detail, bubbles: true, composed: true }))
@@ -179,7 +214,7 @@ export class SpellEditorElement extends HTMLElement {
    * - Parses the projects it imports compiled first, once each, to show their sources -- see `LSP.ScopeExplorer`.
    */
   private async scopesOf(project: SP.SpellProject): Promise<LSP.ScopePack | undefined> {
-    const service = this.#monaco?.SpellMonaco.register().service
+    const service = this.#monaco[0]()?.SpellMonaco.register().service
     if (!service) return undefined
     const explorer = new LSP.ScopeExplorer(service)
     for (const imported of LSP.ScopeExplorer.importedProjects(project)) {
@@ -197,7 +232,7 @@ export class SpellEditorElement extends HTMLElement {
    * - NOTE: an app added to the page later gets our NEXT compile.  One that names us, with `editor`, gets this one.
    */
   private async pushToApps(compiled: SpellCompiled) {
-    const selector = this.getAttribute("app")
+    const selector = this.app
     if (!selector) return
     await customElements.whenDefined("spell-app")
     if (compiled !== this.compiled) return
@@ -212,11 +247,11 @@ export class SpellEditorElement extends HTMLElement {
   ////////////////
 
   /**
-   * Open the project our `project` attribute names -- if it names another -- and compile it.  Then load Monaco,
-   * to show it.
+   * Open project `attribute` -- our `project` -- if it's another than we have open, and compile it.  Then load
+   * Monaco, to show it.
+   * - For our component, as `project` changes.
    */
-  private async openProject() {
-    const attribute = this.getAttribute("project") ?? undefined
+  async openProject(attribute: string | undefined) {
     if (attribute === this.#projectAttribute) return
     this.closeProject()
     this.#projectAttribute = attribute
@@ -227,42 +262,58 @@ export class SpellEditorElement extends HTMLElement {
     this.setStatus({ state: "loading" })
     let project: SP.SpellProject
     try {
-      project = raw(new SP.SpellProject(SP.SpellProject.projectIdForImport(attribute)))
+      project = new SP.SpellProject(SP.SpellProject.projectIdForImport(attribute))
       await project.load()
     } catch (error) {
       if (attribute === this.#projectAttribute) this.setStatus({ state: "failed", message: messageOf(error) })
       return
     }
     if (attribute !== this.#projectAttribute) return
-    this.#project = project
-    this.#file = this.namedFile()
+    this.#project[1](project)
+    this.#file[1](this.namedFile(project))
     await this.compile()
     await this.loadMonaco(project)
   }
 
-  /** Stop editing our project:  no more compiles, and let go of everything we used for it. */
-  private closeProject() {
+  /**
+   * Stop editing our project:  no more compiles, and let go of everything we used for it.
+   * - `forget`:  forget which `project` we opened too, so the next `openProject()` opens it afresh -- as we leave
+   *   the page.
+   */
+  closeProject({ forget = false } = {}) {
     this.clearCompileSoon()
     for (const stop of this.#stops.splice(0)) stop()
-    this.#project = undefined
-    this.#file = undefined
+    this.#project[1](undefined)
+    this.#file[1](undefined)
     this.compiled = undefined
+    if (forget) this.#projectAttribute = null
   }
 
-  /** The file our `file` attribute names, else our project's first spell file. */
-  private namedFile(): SP.SpellFile | undefined {
-    const files = this.#project?.spellFiles ?? []
-    const name = this.getAttribute("file")
+  /**
+   * Show the file our `file` attribute names, else our project's first spell file.
+   * - For our component, as `file` changes.
+   */
+  showNamedFile() {
+    const project = this.#project[0]()
+    if (project) this.showFile(this.namedFile(project))
+  }
+
+  /** The file our `file` attribute names in `project`, else its first spell file. */
+  private namedFile(project: SP.SpellProject): SP.SpellFile | undefined {
+    const files = project.spellFiles
+    const name = this.file
     return files.find((file) => file.file === name || file.path === name) ?? files[0]
   }
 
-  /** Show `file`, putting the cursor at `selection` if given. */
-  private showFile(file: SP.SpellFile | undefined, selection?: UIT.EditorSelection) {
+  /**
+   * Show `file`, putting the cursor at `selection` if given.
+   * - For our component too:  a tab clicked.  Leaves our `file` attribute as it is.
+   */
+  showFile(file: SP.SpellFile | undefined, selection?: UIT.EditorSelection) {
     if (!file) return
     if (selection) this.#pendingSelection = { path: file.path, selection }
-    const same = file === this.#file
-    this.#file = file
-    this.render()
+    const same = file === this.#file[0]()
+    this.#file[1](file)
     if (same) this.applyPendingSelection()
   }
 
@@ -276,15 +327,14 @@ export class SpellEditorElement extends HTMLElement {
    */
   private async loadMonaco(project: SP.SpellProject) {
     const module = await loadMonaco()
-    if (project !== this.#project) return
-    this.#monaco = module
+    if (project !== this.#project[0]()) return
     const { SpellMonaco } = module
     this.#stops.push(
       SpellMonaco.models.use(project),
       SpellMonaco.onEdit((file) => {
         if (file.project.path !== project.path) return
         this.compileSoon()
-        this.render()
+        this.redraw()
       }),
       SpellMonaco.onOpen((path, selection, source) => {
         const file = project.spellFiles.find((it) => it.path === path)
@@ -293,11 +343,14 @@ export class SpellEditorElement extends HTMLElement {
         return true
       })
     )
-    this.render()
+    this.#monaco[1](module)
   }
 
-  /** Our Monaco editor was made:  add our keys, and put the cursor where asked once it shows a file. */
-  private onEditorMount(editor: monaco.editor.IStandaloneCodeEditor, api: typeof monaco) {
+  /**
+   * Our Monaco editor was made:  add our keys, and put the cursor where asked once it shows a file.
+   * - For our component.
+   */
+  onEditorMount(editor: monaco.editor.IStandaloneCodeEditor, api: typeof monaco) {
     this.#editor = editor
     const { KeyMod, KeyCode } = api
     // `addAction()`, NOT `addCommand()`:  Monaco keeps commands for the page, so with several editors, the last wins
@@ -316,21 +369,21 @@ export class SpellEditorElement extends HTMLElement {
     editor.onDidChangeModel(() => this.applyPendingSelection())
   }
 
-  /** Our Monaco editor is going. */
-  private onEditorUnmount(editor: monaco.editor.IStandaloneCodeEditor) {
+  /** Our Monaco editor is going.  For our component. */
+  onEditorUnmount(editor: monaco.editor.IStandaloneCodeEditor) {
     if (this.#editor === editor) this.#editor = undefined
   }
 
   /** Put the cursor where `showFile()` was asked to, if our editor now shows that file. */
   private applyPendingSelection() {
     const pending = this.#pendingSelection
+    const module = this.#monaco[0]()
     const model = this.#editor?.getModel()
-    if (!pending || !model || !this.#monaco || model.uri.toString() !== this.#monaco.AppAddresses.uriOf(pending.path))
-      return
+    if (!pending || !model || !module || model.uri.toString() !== module.AppAddresses.uriOf(pending.path)) return
     this.#pendingSelection = undefined
     const { anchor, head = anchor } = pending.selection
     if (!anchor || !head) return
-    const selection = new this.#monaco.monaco.Selection(anchor.line + 1, anchor.ch + 1, head.line + 1, head.ch + 1)
+    const selection = new module.monaco.Selection(anchor.line + 1, anchor.ch + 1, head.line + 1, head.ch + 1)
     this.#editor!.setSelection(selection)
     this.#editor!.revealRangeInCenterIfOutsideViewport(selection)
     this.#editor!.focus()
@@ -342,26 +395,79 @@ export class SpellEditorElement extends HTMLElement {
 
   /** Say what we're doing, in the status line. */
   private setStatus(status: SpellEditorStatus) {
-    this.#status = status
-    this.render()
+    this.#status[1](status)
+    this.redraw()
   }
 
-  /** Draw with our attributes and state as they are. */
-  private render() {
-    this.style.width = this.getAttribute("width") ?? ""
-    this.style.height = this.getAttribute("height") ?? ""
-    this.#root?.render(
-      <SpellEditorPane
-        files={this.#project?.spellFiles ?? []}
-        file={this.#file}
-        status={this.#status}
-        monaco={this.#monaco}
-        onSelect={(file) => this.showFile(file)}
-        onMount={(editor, api) => this.onEditorMount(editor, api)}
-        onUnmount={(editor) => this.onEditorUnmount(editor)}
-      />
-    )
+  /** Draw what no signal says changed again, e.g. which files are edited since saved. */
+  private redraw() {
+    this.#version[1]((version) => version + 1)
   }
+}
+
+/** What a `<spell-editor>` shows, as accessors over its state -- see `SpellEditorBase.view`. */
+export type SpellEditorView = {
+  /** Spell files of the project, for the tabs. */
+  files: Accessor<SP.SpellFile[]>
+  /** File showing. */
+  file: Accessor<SP.SpellFile | undefined>
+  /** What it's doing, for the status line. */
+  status: Accessor<SpellEditorStatus>
+  /** Monaco and our spell features, once loaded. */
+  monaco: Accessor<MonacoModule | undefined>
+  /** Is `file` edited since saved?  Re-read as files are edited and saved. */
+  isDirty: (file: SP.SpellFile) => boolean
+}
+
+/**
+ * `<spell-editor>`'s component:  styles its shadow root, follows its props, and draws `<SpellEditorPane>`.
+ * - SIDE EFFECT:  sets our inline `width` / `height`;  opens `project`, and lets go of it as we leave the page.
+ */
+function SpellEditor(props: SpellEditorProps, options: ComponentOptions) {
+  // the class `customElement()` made, on our base:  its types can't say so
+  const element = options.element as unknown as SpellEditorElement
+  const root = element.renderRoot as ShadowRoot
+  void shadowStyles(element.assets, EDITOR_CSS).then((sheets) => {
+    root.adoptedStyleSheets = [...sheets, ...root.adoptedStyleSheets.filter((sheet) => !sheets.includes(sheet))]
+  })
+
+  // Our size, as our inline style.
+  createEffect(
+    () => [props.width ?? "", props.height ?? ""] as const,
+    ([width, height]) => {
+      element.style.width = width
+      element.style.height = height
+    }
+  )
+
+  // Another project:  open it.  Another file:  show it.
+  createEffect(
+    () => props.project,
+    (project) => {
+      void element.openProject(project)
+    }
+  )
+  createEffect(
+    () => props.file,
+    () => {
+      element.showNamedFile()
+    }
+  )
+  onCleanup(() => element.closeProject({ forget: true }))
+
+  const { view } = element
+  return (
+    <SpellEditorPane
+      files={view.files()}
+      file={view.file()}
+      status={view.status()}
+      monaco={view.monaco()}
+      isDirty={view.isDirty}
+      onSelect={(file) => element.showFile(file)}
+      onMount={(editor, api) => element.onEditorMount(editor, api)}
+      onUnmount={(editor) => element.onEditorUnmount(editor)}
+    />
+  )
 }
 
 /**
@@ -373,12 +479,12 @@ const BUNDLE = import.meta.url.slice(0, import.meta.url.lastIndexOf("/") + 1)
 /** CSS files our shadow root adopts, from `assets` -- Monaco's, and ours.  See `vite.editor.config.ts`. */
 const EDITOR_CSS = ["spell-editor.css"]
 
-/** `$/app/ui/monaco`, loaded once -- Monaco is most of our code, so it waits till there's a project to show. */
+/** `$/app/solid/monaco`, loaded once -- Monaco is most of our code, so it waits till there's a project to show. */
 let monacoModule: Promise<MonacoModule> | undefined
 
-/** Load `$/app/ui/monaco`, once. */
+/** Load `$/app/solid/monaco` (Monaco, its spell plumbing, and the Solid `MonacoEditor`), once. */
 function loadMonaco(): Promise<MonacoModule> {
-  monacoModule ??= import("$/app/ui/monaco")
+  monacoModule ??= import("$/app/solid/monaco")
   return monacoModule
 }
 

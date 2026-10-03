@@ -1,3 +1,4 @@
+/** @jsxImportSource react */
 //
 //  ## `<Form>` itself, plus the reactive store backing it.
 //
@@ -18,7 +19,7 @@ import { F } from "$/app/ui/forms"
  ****************/
 export class Form<V extends object> extends React.Component<FormProps<V>> {
   /**
-   * Create react-easy-state store on construction.
+   * Create its `F.FormStore` on construction.
    * NOTE: to get a handle to the store OUTSIDE the `<Form>`, do:
    *       `myStore = makeFormStore()`
    *       `return <Form store={myStore}... />`

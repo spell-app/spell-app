@@ -12,12 +12,14 @@ body,
   display: flex;
   flex-direction: column;
 
-  & > .VSCodeRunnerToolbar {
+  /* `<ui-menu>` is `display: contents`:  its box is `::part(menu)` */
+  & > .VSCodeRunnerToolbar::part(menu) {
     flex: 0 0 auto;
-    border-radius: 0 !important;
+    border-radius: 0;
+    margin: 0;
   }
 
-  & > .VSCodeRunnerToolbar .error {
+  & > .VSCodeRunnerToolbar > .error::part(item) {
     color: #9f3a38;
   }
 }

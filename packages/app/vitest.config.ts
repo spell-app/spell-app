@@ -1,14 +1,74 @@
-import { defineConfig } from "vitest/config"
+import { configDefaults, defineConfig, type TestProjectConfiguration } from "vitest/config"
+import { playwright } from "@vitest/browser-playwright"
 
-import { standardDecorators } from "../../vite.decorators.ts"
-import { packageVersion } from "../../vite.packageVersion.ts"
+import { appConfig } from "./vite.shared.ts"
+
+/** Tests that need a real browser, and Solid's CLIENT build:  `*.browser.test.ts(x)`, anywhere in `src/`. */
+const BROWSER_TESTS = ["src/**/*.browser.test.{ts,tsx}"]
 
 /**
- * DOCME: vitest config for `@spell-app/app`.
- * - Aliases (`$/util` ...) come from the repo root's `tsconfig.base.json`, through `resolve.tsconfigPaths`.
- * - `standardDecorators()` lowers standard decorators:  vite 8's own transform (oxc) doesn't.
+ * Two projects, each with its OWN `appConfig()` (aliases from the repo root's `tsconfig.base.json`, decorator
+ * lowering, React / Solid plugins side by side):
+ * - `node` -- every test but `BROWSER_TESTS`.  `solid-js` is its SERVER build there:  `renderToString`, writes NOT
+ *   staged (`src/solid.test.tsx` pins it).
+ * - `browser` -- `BROWSER_TESTS`, in chromium (Vitest browser mode + Playwright):  Solid's client build, so staged
+ *   writes, effects and `flush()` behave as in the app.
+ * - `node` SAYS `environment: "node"`:  the Solid plugin reads it from the config it's created in to pick the server
+ *   build (without it, jsdom + the client build);  `browser` mode gets the client build.
+ * - `prefix` / `root`:  the repo root's `vitest.config.ts` lists these with `app:` names and `root` set to this
+ *   package, since vitest doesn't nest `projects`.  Own run:  no prefix, `root` is the config's folder.
  */
+export function appProjects({
+  prefix = "",
+  root
+}: { prefix?: string; root?: string } = {}): TestProjectConfiguration[] {
+  return [
+    {
+      ...appConfig(),
+      ...(root && { root }),
+      test: {
+        name: `${prefix}node`,
+        environment: "node",
+        exclude: [...configDefaults.exclude, ...BROWSER_TESTS]
+      }
+    },
+    {
+      ...browserConfig(),
+      ...(root && { root }),
+      test: {
+        name: `${prefix}browser`,
+        include: BROWSER_TESTS,
+        browser: {
+          enabled: true,
+          provider: playwright(),
+          headless: true,
+          instances: [{ browser: "chromium" }]
+        }
+      }
+    }
+  ]
+}
+
 export default defineConfig({
-  plugins: [standardDecorators(), packageVersion()],
-  resolve: { tsconfigPaths: true }
+  test: {
+    projects: appProjects()
+  }
 })
+
+/**
+ * `appConfig()` for the `browser` project, with React and Solid pre-bundled up front.
+ * - Without it, the first run on a fresh cache finds them mid-run, re-optimizes and RELOADS:  a test file then
+ *   imports a second React (`Cannot read properties of null (reading 'useRef')`).
+ */
+function browserConfig() {
+  const config = appConfig()
+  return {
+    ...config,
+    optimizeDeps: {
+      ...config.optimizeDeps,
+      // crawl the tests' imports up front:  `$/app/editor` pulls in more (`marked`, `semantic-ui-react`, lodash ...)
+      entries: BROWSER_TESTS,
+      include: ["react", "react-dom", "react-dom/client", "solid-js", "@solidjs/web"]
+    }
+  }
+}

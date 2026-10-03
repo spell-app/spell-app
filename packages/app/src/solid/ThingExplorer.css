@@ -1,0 +1,86 @@
+/*
+ * Solid `<ThingExplorer>` (`ThingExplorer.tsx`):  on top of `.TypeExplorer`'s panes and tree rows.  React's
+ * `$/app/ui/ThingExplorer.css`, on the same class names, until that goes.
+ */
+.ThingExplorer {
+  /* "Top level" and each type:  just open / close, like a type's member groups. */
+  .ThingTreeGroup {
+    font-weight: bold;
+
+    .body:hover .label {
+      text-decoration: none;
+    }
+  }
+
+  .TypeChain {
+    margin-bottom: 6px;
+    color: grey;
+  }
+
+  .DetailsSectionTitle {
+    margin-top: 8px;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: grey;
+  }
+
+  /* Name, then value -- a property's, or a list's item's. */
+  .ThingValues {
+    border-collapse: collapse;
+
+    th,
+    td {
+      padding: 1px 0;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    th {
+      padding-right: 1em;
+      font-weight: normal;
+      color: grey;
+      white-space: nowrap;
+    }
+  }
+
+  .ThingValue {
+    &.text {
+      color: #a31515;
+    }
+
+    &.number,
+    &.boolean,
+    &.bigint {
+      color: darkblue;
+    }
+
+    &.empty,
+    &.other {
+      color: grey;
+      font-style: italic;
+    }
+
+    &.error {
+      color: #db2828;
+    }
+
+    &.list > summary {
+      cursor: pointer;
+      color: grey;
+    }
+  }
+
+  a.ThingValue {
+    cursor: pointer;
+    color: #4183c4;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  /* Does an action which takes no arguments:  a `<ui-icon color="green">`, so no colour here. */
+  ui-icon.perform::part(icon) {
+    cursor: pointer;
+  }
+}

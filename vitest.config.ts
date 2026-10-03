@@ -2,6 +2,7 @@ import { existsSync, readdirSync } from "node:fs"
 import { resolve } from "node:path"
 import { defineConfig, type TestProjectConfiguration } from "vitest/config"
 
+import { appProjects } from "./packages/app/vitest.config.ts"
 import { uiProjects } from "./packages/ui/vitest.config.ts"
 import { utilProjects } from "./packages/util/vitest.config.ts"
 
@@ -20,11 +21,13 @@ const PACKAGES_DIR = resolve(import.meta.dirname, "packages")
 /**
  * Packages whose config holds several projects:  folder -> projects, built from the package's own exported
  * factory so the two stay in step.
+ * - `app`:  `node` (most tests) and `browser` (`*.browser.test.ts(x)`:  Solid's client build).
  * - `util`:  `browser` (generic helpers) and `spell` (node, `src/spell/`).
  * - `ui`:  `ssr` MUST run before `browser` (it writes `.cache/ssr-button.html`, which `test/dsd.test.ts` imports),
  *   so `uiProjects` sets `sequence.groupOrder`.  See there.
  */
 const SPECIAL: Record<string, TestProjectConfiguration[]> = {
+  app: appProjects({ prefix: "app:", root: resolve(PACKAGES_DIR, "app") }),
   ui: uiProjects({ prefix: "ui:", root: resolve(PACKAGES_DIR, "ui") }),
   util: utilProjects({ prefix: "util:", root: resolve(PACKAGES_DIR, "util") })
 }

@@ -1,0 +1,9 @@
+/*
+ * Look of `<FileDropdown>` (`FileDropdown.tsx`):  React's `style={{ minWidth: "8em", fontWeight: 700 }}`, on
+ * `@spell-app/ui`.  Hosts are `display: contents`:  rules reach the boxes through `::part()`.
+ */
+
+ui-dropdown.FileDropdown::part(trigger) {
+  min-width: 8em;
+  font-weight: 700;
+}

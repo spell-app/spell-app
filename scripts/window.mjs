@@ -52,7 +52,7 @@
  * - `add <path> [--name <name>]`:  add a folder (a worktree) to the window;  needs a window opened from its
  *   `.code-workspace` (else the change would restart its extensions, Claude panel included)
  * - `remove <path>`:  remove that folder again;  never the window's first
- * - `show <file>`:  show an `.html` doc in the window's Simple Browser, beside the editor;  in the window this session
+ * - `show <file>`:  show an `.html` doc in the window's doc preview (the right side bar's "Spell Docs" view);  in the window this session
  *   is moving to, once it has, while a `handoff` is pending
  * - `open <name> [--pkg <pkg>]`:  write worktree `<name>`'s window file and open it in a new window;  `<pkg>`
  *   defaults to this session's window's package.  `close <name>`:  close that window, delete the file.
@@ -250,8 +250,8 @@ export class Window {
    * - `back`:  from worktree `name`'s window to its package's window;  then the worktree's window CLOSES and its
    *   file goes.  Not in that window (an older session, or the move there failed):  `null`, nothing to move.
    * - the record ~== `{ sessionId, to, from, close, remove, show }`:  `to` the target window's file, `from` this
-   *   window's pid, `close` `"tab"` or `"window"`, `remove` a file to delete after, `show` a doc to show there
-   *   (`Window.show()` sets it)
+   *   window's pid, `close` `"tab"` or `"window"`, `remove` a file to delete after, `show` a doc to show there,
+   *   `{ file, hash }` (`Window.show()` sets it)
    */
   static handoff(name, sessionId, { back = false } = {}) {
     if (!SESSION_ID.test(sessionId ?? "")) throw new Error("no session:  $CLAUDE_CODE_SESSION_ID isn't set")
@@ -292,7 +292,7 @@ export class Window {
     await Window.request("open-session", { sessionId }, window)
     let shown
     if (show) {
-      shown = await Window.request("show-doc", { file: show }, window).then(
+      shown = await Window.request("show-doc", show, window).then(
         () => true,
         () => false
       )
@@ -311,22 +311,33 @@ export class Window {
   }
 
   /**
-   * Show `file` (an `.html` doc) in this session's window, in Simple Browser beside the editor;  resolves to
+   * Show `file` (an `.html` doc) in this session's window's doc preview, at id `hash` if given;  resolves to
    * `{ window }` (the registry entry it showed in) or `{ later }` (the window file it will show in).
    * - a `handoff` pending for `sessionId`:  NOT here, where the session's tab is about to close, but in the window
-   *   it moves to, once it has (`resume`).  Simple Browser has one tab, so the last doc asked for wins.
+   *   it moves to, once it has (`resume`).  The preview shows one doc, so the last asked for wins.
    * - throws as `request()` does:  no window, or it failed
    */
-  static async show(file, sessionId = process.env.CLAUDE_CODE_SESSION_ID) {
+  static async show(file, { hash, sessionId = process.env.CLAUDE_CODE_SESSION_ID } = {}) {
+    const show = hash ? { file, hash } : { file }
     const pending = SESSION_ID.test(sessionId ?? "") ? Window.handoffFile(sessionId) : null
     if (pending && existsSync(pending)) {
-      const handoff = { ...JSON.parse(readFileSync(pending, "utf8")), show: file }
+      const handoff = { ...JSON.parse(readFileSync(pending, "utf8")), show }
       writeFileSync(pending, `${JSON.stringify(handoff, null, 2)}\n`, { mode: 0o600 })
       return { later: handoff.to }
     }
     const window = Window.current()
-    await Window.request("show-doc", { file }, window)
+    await Window.request("show-doc", show, window)
     return { window }
+  }
+
+  /**
+   * Whether this process runs in VS Code:  a session in the Claude Code extension, or anything in VS Code's
+   * integrated terminal.
+   * - NOT whether a VS Code window is open:  a CLI session in another terminal is "not in VS Code", even with the
+   *   repo open in a window, so its docs go to the browser
+   */
+  static get inVSCode() {
+    return process.env.CLAUDE_CODE_ENTRYPOINT === "claude-vscode" || process.env.TERM_PROGRAM === "vscode"
   }
 
   /** The package of `window` (a registry entry):  its workspace file's `workspaces/<pkg>.code-workspace`. */
@@ -488,7 +499,7 @@ export class Window {
         rmSync(name, { force: true })
         const { closed, matches, shown } = await Window.resume(handoff, flags.title)
         console.log(`${new Date().toISOString()}  opened session ${handoff.sessionId} in ${handoff.to}`)
-        if (shown !== undefined) console.log(`  ${shown ? "showed" : "couldn't show"} ${handoff.show}`)
+        if (shown !== undefined) console.log(`  ${shown ? "showed" : "couldn't show"} ${handoff.show.file}`)
         if (!closed)
           console.log(`  left its old ${handoff.close} open (${matches ?? "no"} tabs titled '${flags.title ?? ""}')`)
         return 0
@@ -518,7 +529,7 @@ const USAGE = `usage:  yarn window <command>
   which                        this session's VS Code window:  pid, workspace file, folders
   add <path> [--name <name>]   add a folder (a worktree) to the window
   remove <path>                remove it again
-  show <file>                  show an .html doc in the window's Simple Browser
+  show <file>                  show an .html doc in the window's doc preview (right side bar)
                                (moving:  in the window this session moves to)
   open <name> [--pkg <pkg>]    open worktree <name> in a new window (default package:  this window's)
   close <name>                 close that window, delete its file

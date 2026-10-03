@@ -7,7 +7,7 @@
  *   e.g. `all_piles`, shows too.
  * - And the heading each was made under, as the program ran -- see `heading()`.
  */
-import { createStore, raw } from "$/util"
+import { Cell } from "$/util"
 
 import { spellCore } from "./core"
 import { defineSpellCoreModule } from "./spellCore.types"
@@ -20,15 +20,21 @@ import { App } from "./classes/App"
  * Registry of the things one run of a program made -- `spellCore.things`, cleared by `resetRuntime()`.
  * - Holds each thing WEAKLY, so it shows only while the program still holds it:  a thing thrown away drops out
  *   once it's garbage-collected -- which may be a while.
- * - `version` is observable, so a `view()` reading the registry redraws as things come and go.  Their
- *   properties are observable already.
- * - NOTE: `version` is bumped in a microtask, NOT as a thing registers -- a thing made while a `view()` renders,
- *   e.g. in a `to draw`, would otherwise change what the explorer observes mid-render.  It also makes one
- *   bump of a loop making 52 cards.
+ * - `version` is a spell cell, so a reader of the registry (the Thing Explorer) re-runs as things come and go.
+ *   Their properties are cells already.
+ * - NOTE: `version` changes in a microtask, NOT as a thing registers -- a thing made while a reader reads, e.g. in a
+ *   `to draw`, would otherwise change what the explorer reads mid-read.  It also makes one change of a loop making
+ *   52 cards.
  */
 export class ThingRegistry {
-  /** Observable change count -- read it to redraw as the registry changes. */
-  readonly store = createStore({ version: 0 })
+  /** Changes as the registry does -- see `version`. */
+  private versionCell = new Cell()
+
+  /** Change count, tracked:  read it to re-run as the registry changes. */
+  get version(): number {
+    this.versionCell.read()
+    return this.versionCell.version
+  }
 
   /** Each thing made, by creation number -- in order, as a `Map` iterates. */
   private entries = new Map<number, WeakRef<ThingLike>>()
@@ -115,11 +121,11 @@ export class ThingRegistry {
   /**
    * Things still alive, grouped by `type`, e.g. `Card` -- types in order of their first thing, each type's
    * things in the order they were made.
-   * - Reads `version`, so a `view()` calling it redraws as things come and go.
+   * - Reads `version`, so a reader calling it re-runs as things come and go.
    * - Groups by each thing's `type` NOW, which an instance may override.
    */
   byType(): ThingsOfType[] {
-    void this.store.version
+    void this.version
     const byType = new Map<string, ThingLike[]>()
     for (const ref of this.entries.values()) {
       const thing = ref.deref()
@@ -154,7 +160,7 @@ export class ThingRegistry {
 
   /** Things still alive, in the order they were made.  Reads `version`, as `byType()`. */
   all(): ThingLike[] {
-    void this.store.version
+    void this.version
     return [...this.entries.values()].map((ref) => ref.deref()).filter((thing) => thing !== undefined)
   }
 
@@ -163,7 +169,7 @@ export class ThingRegistry {
    * - Includes plain lists, e.g. `all_piles`, which `byType()` leaves out.
    */
   topLevel(): NamedThing[] {
-    void this.store.version
+    void this.version
     return Object.entries(this.exports)
       .filter((entry): entry is [string, ThingLike] => entry[1] instanceof Thing || entry[1] instanceof List)
       .map(([name, thing]) => ({ name, thing }))
@@ -187,16 +193,9 @@ export class ThingRegistry {
     return number === undefined ? undefined : this.headings.get(number)
   }
 
-  /**
-   * Top-level name `thing` goes by, e.g. `deck` -- `undefined` if it has none.
-   * - `thing` may be a store proxy, e.g. read from another thing's property -- see `raw()`.
-   */
+  /** Top-level name `thing` goes by, e.g. `deck` -- `undefined` if it has none. */
   nameOf(thing: ThingLike): string | undefined {
-    const target = raw(thing)
-    return Object.keys(this.exports).find((name) => {
-      const value = this.exports[name]
-      return typeof value === "object" && value !== null && raw(value) === target
-    })
+    return Object.keys(this.exports).find((name) => this.exports[name] === thing)
   }
 
   /**
@@ -204,7 +203,7 @@ export class ThingRegistry {
    * registered, e.g. a plain list.
    */
   numberOf(thing: ThingLike): number | undefined {
-    return this.numbers.get(raw(thing))
+    return this.numbers.get(thing)
   }
 
   ////////////////
@@ -272,7 +271,7 @@ export class ThingRegistry {
    */
   typeChainOf(thing: ThingLike): string[] {
     const chain = [thing.type]
-    for (let proto = Object.getPrototypeOf(raw(thing)) as object | null; proto; proto = Object.getPrototypeOf(proto)) {
+    for (let proto = Object.getPrototypeOf(thing) as object | null; proto; proto = Object.getPrototypeOf(proto)) {
       const { name } = proto.constructor
       if (name && !chain.includes(name)) chain.push(name)
       if (proto === Thing.prototype || proto === List.prototype) break
@@ -289,7 +288,7 @@ export class ThingRegistry {
    *   field, NOT observable:  it shows its value as of the last redraw.
    */
   propertiesOf(thing: ThingLike): ThingProperty[] {
-    const target = raw(thing)
+    const target = thing
     const properties = new Map<string, ThingProperty>()
     for (
       let proto = Object.getPrototypeOf(target) as object | null;
@@ -315,7 +314,7 @@ export class ThingRegistry {
    * - An action spell compiles to a getter, e.g. `(a card) is face up`, is a computed property instead.
    */
   actionsOf(thing: ThingLike): ThingAction[] {
-    const own = Object.getPrototypeOf(raw(thing)) as object
+    const own = Object.getPrototypeOf(thing) as object
     const actions = new Map<string, ThingAction>()
     for (
       let proto: object | null = own;
@@ -346,13 +345,13 @@ export class ThingRegistry {
     }
   }
 
-  /** Bump `version` in a microtask, once however many changes before it -- see `ThingRegistry`. */
+  /** Change `version` in a microtask, once however many changes before it -- see `ThingRegistry`. */
   private changed(): void {
     if (this.changePending) return
     this.changePending = true
     queueMicrotask(() => {
       this.changePending = false
-      this.store.version++
+      this.versionCell.changed()
     })
   }
 }

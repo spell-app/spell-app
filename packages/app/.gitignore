@@ -5,3 +5,6 @@ dist
 dist-runner
 dist-element
 settings.json5
+
+# vitest browser mode:  screenshots of failures, attachments
+.vitest/

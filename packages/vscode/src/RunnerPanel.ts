@@ -265,9 +265,16 @@ export class RunnerPanel {
 
   /**
    * Webview HTML:  Semantic UI + Lato from `statics`, then the runner bundle from `runner`.
-   * - CSP allows `blob:` scripts, which is how the runner imports its copy of the spell runtime and the project's
-   *   javascript;  fetching from `runner`, for that copy's source;  and inline styles, which
-   *   `spellCore.installStyles()` adds.
+   * - The runner draws in Solid on `@spell-app/ui`;  programs still draw with React + Semantic UI, so its CSS stays.
+   * - `<ui-root icons="fomantic">` around `#runner-root`:  the runner's icon names are Fomantic's (as the web app's
+   *   `index.html`).  Its packs load from `runner`'s `icon-packs/`, beside `@spell-app/ui`'s chunks.
+   * - CSP allows, all from `runner` (inside `localResourceRoots`):
+   *   - `blob:` scripts:  how the runner imports its copy of the spell runtime and the project's javascript
+   *   - scripts:  the bundle's lazy chunks -- `@spell-app/ui`'s families and runtime, emoji data, each icon pack's
+   *     `pack.js`
+   *   - fetching:  the runtime's source, for its copy, and the icons' SVG files
+   *   - inline styles:  `spellCore.installStyles()` adds them, and `<ui-*>` elements set inline styles (their sheets
+   *     are constructable, adopted by their shadow roots)
    * - NOTE: `semantic.min.css` `@import`s Lato from Google, which the CSP blocks -- harmless, we load our own.
    */
   static html(webview: vscode.Webview, runner: vscode.Uri, statics: vscode.Uri): string {
@@ -297,7 +304,7 @@ export class RunnerPanel {
     </style>
   </head>
   <body>
-    <div id="runner-root"></div>
+    <ui-root icons="fomantic" display="immediately"><div id="runner-root"></div></ui-root>
     <script type="module" src="${url(runner, "runner.js")}"></script>
   </body>
 </html>`

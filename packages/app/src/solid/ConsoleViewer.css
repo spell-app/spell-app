@@ -1,0 +1,6 @@
+/* `<ConsoleRoot>` (`ConsoleViewer.tsx`) stacks the toolbar over the viewer. */
+.ConsoleRoot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
