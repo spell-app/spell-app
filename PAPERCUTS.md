@@ -1049,3 +1049,28 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   history) resolves, so `doc-links.py` links it to a second path for the same file;  unlinking it by hand gets
   re-linked on the next run. · Wrote the old name as plain text;  `doc-links.py` should resolve paths
   case-sensitively (compare against the real directory listing). · docs
+
+## claude-code
+
+- 2026-10-02 · `vscode://anthropic.claude-code/open?session=<id>` (via `open` or `code --open-url`) "did nothing":
+  VS Code delivered it to a DIFFERENT window, not the focused one. · Add `&windowId=<n>`;  a Claude process's
+  window is the `window<n>` in the log paths its extension host (parent pid) holds open (`lsof -p`).
+  `~/.claude/skills/session/scripts/session.py window` does it. · claude-code
+- 2026-10-02 · The `claude-code-guide` agent said nothing can set a session's title but `/rename`. · Wrong for CLI
+  2.1.287:  `UserPromptSubmit` / `SessionStart` hooks may return `hookSpecificOutput.sessionTitle` (in the
+  binary's hook schema, not the docs).  Grep the binary (`strings ~/.local/share/claude/versions/<v>`) before
+  trusting "not supported". · claude-code
+- 2026-10-02 · Moving the package window files (`git mv packages/<pkg>/<pkg>.code-workspace workspaces/`) staged their
+  OLD contents, and `git add` called them "outside of your sparse-checkout definition" in a checkout that isn't
+  sparse:  they're `skip-worktree` (`git ls-files -v` shows `S`), so VS Code's edits (themes, worktree folders)
+  never show as changes, and `git mv` carries the flag. · Stage the new contents with `git hash-object -w` +
+  `git update-index --cacheinfo`, then `git update-index --skip-worktree` again. · tooling
+
+## vscode
+
+- 2026-10-02 · A freshly installed extension feature (`DocView`) never showed after a reload:  docs still opened in a
+  new editor tab.  The extension is installed ONCE for all of VS Code, and a `yarn vscode` in another checkout (the
+  `solid-migration` worktree, 6 minutes later) had overwritten it with its own branch's build, which also runs THAT
+  checkout's language server. · Check which checkout built it:
+  `grep -o '"/Users/owen/www/spell-app/[^"]*"' ~/.vscode/extensions/spell-app.spell-language-*/out/extension.js`
+  (its `REPO_ROOT`), then `yarn vscode` from the checkout you want and reload. · vscode

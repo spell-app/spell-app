@@ -27,8 +27,9 @@ worktree, its branch and the session share one name.  `/epic` runs these steps t
    `WorktreeCreate` hook (`.claude/hooks/worktree.mjs`) makes it on branch `<name>` from local `main`, and keeps this
    session listed in every window.
 5. Open it in its own window (root `AGENTS.md` "Worktrees"), from the worktree's root:
-   - `node scripts/window.mjs open <name>`:  a NEW window, the package window's theme with a tinted title bar.
-     Folders:  the MAIN root (so every session is listed), then the worktree's `packages/<pkg>` and root.
+   - `node scripts/window.mjs open <name>`:  a NEW window from `workspaces/ongoing/<name>.code-workspace` (main
+     checkout, git-ignored), the package window's theme with a tinted title bar.  Folders:  the MAIN root (so every
+     session is listed), then the worktree's `packages/<pkg>` and root.
      `<pkg>`:  this session's window's;  `--pkg <pkg>` when it isn't a package window.
    - `node scripts/window.mjs`, NOT `yarn window`:  a fresh worktree has no `node_modules/` yet, and `yarn` runs no
      script before `yarn install`
@@ -37,6 +38,8 @@ worktree, its branch and the session share one name.  `/epic` runs these steps t
 6. Move the session there:  `node scripts/window.mjs handoff <name>`.  When this turn ends (whatever else it does
    first), the new window opens the session in an editor tab (never the sidebar) and this window closes its tab.
    The move itself is the `Stop` hook's (`.claude/hooks/handoff.mjs`).
+   - a doc shown from here on this turn (`yarn plan-doc open`) waits for the move, then shows beside the session
+     in the new window
    - fails, or step 5 did:  say so in one line;  the session stays here
 7. In the worktree, no `node_modules/` at the root:  `yarn install`.
 8. One line:  "isolated in worktree `<name>` (branch `<name>`);  this session moves to its own window,

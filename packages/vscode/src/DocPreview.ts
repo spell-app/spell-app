@@ -1,5 +1,6 @@
 /**
- * Shows an `.html` doc (`packages/docs`, goals, epics) rendered, in VS Code's Simple Browser beside the editor.
+ * Shows an `.html` doc (`packages/docs`, goals, epics) rendered:  in the "Spell Docs" view in the right side bar
+ * (`DocView`), or in VS Code's Simple Browser beside the editor -- setting `spell.docPreview.location`.
  * - Opened by URI:  `vscode://spell-app.spell-language/doc-preview?file=<absolute path>` -- what
  *   `packages/docs/scripts/pages.js` `openInVSCode()` opens (`yarn plan-doc open`, `yarn plan-doc phase`).
  * - Or `?url=<http://127.0.0.1:port/...>`:  a page some local server already serves, shown as is -- the page
@@ -15,13 +16,16 @@
  *   open docs start it first (`pages.js` `ensurePageServer()`).
  * - Served from the ROOT, not the doc's folder:  docs link to source files all over the repo.
  * - Or by `WindowBridge`'s `show-doc`:  a session asks ITS window (not the focused one) to show the doc.
- * - Simple Browser keeps ONE tab:  each open loads the doc there afresh (a `?t=` stamp), as a reload.
+ * - ONE place either way (the view, or Simple Browser's one tab):  each open loads the doc there afresh (a `?t=`
+ *   stamp), as a reload.
  */
 import { existsSync } from "fs"
 import { dirname, join, resolve, sep } from "path"
 import * as vscode from "vscode"
 
 import { SRV } from "$/server"
+
+import { DocView, docsIndex } from "./DocView"
 
 /** The URI handler's path:  `vscode://spell-app.spell-language/doc-preview?file=...`. */
 const PATH = "/doc-preview"
@@ -40,6 +44,11 @@ export class DocPreview {
    * - SIDE EFFECT:  servers close when the extension deactivates.
    */
   static register(context: vscode.ExtensionContext): void {
+    DocView.register(context)
+    DocView.home = async () => {
+      const index = docsIndex()
+      return index && (await DocPreview.urlOf(index))
+    }
     context.subscriptions.push(
       vscode.window.registerUriHandler({
         handleUri: (uri) => {
@@ -55,17 +64,22 @@ export class DocPreview {
     )
   }
 
-  /** Show `file` in Simple Browser, beside the editor:  from its page server, else from one of our own. */
+  /** Show `file`, from its page server, else from one of our own. */
   static async show(file: string): Promise<void> {
     if (!existsSync(file)) {
       void vscode.window.showErrorMessage(`Spell doc preview:  no file '${file}'.`)
       return
     }
+    await DocPreview.showUrl(await DocPreview.urlOf(file))
+  }
+
+  /** `file`'s URL on its checkout's page server, else on a server of our own (started if need be). */
+  static async urlOf(file: string): Promise<string> {
     const root = gitRoot(file)
     const path = file.slice(root.length).split(sep).map(encodeURIComponent).join("/")
     const running = await new SRV.PidFile(root).status()
     const base = running?.base ?? (await DocPreview.serverFor(root)).url
-    await DocPreview.showUrl(`${base}${path}`)
+    return `${base}${path}`
   }
 
   /**
@@ -81,10 +95,15 @@ export class DocPreview {
     return server
   }
 
-  /** Show `url` in Simple Browser, beside the editor, afresh:  a `?t=` stamp makes each open a reload. */
+  /**
+   * Show `url` afresh (a `?t=` stamp makes each open a reload):  in the right side bar's "Spell Docs" view, or in
+   * Simple Browser beside the editor (`spell.docPreview.location`).
+   */
   static async showUrl(url: string): Promise<void> {
     const fresh = new URL(url)
     fresh.searchParams.set("t", String(Date.now()))
+    const location = vscode.workspace.getConfiguration("spell").get<string>("docPreview.location")
+    if (location !== "beside") return DocView.show(fresh.href)
     await vscode.commands.executeCommand("simpleBrowser.api.open", vscode.Uri.parse(fresh.href), {
       viewColumn: vscode.ViewColumn.Beside,
       preserveFocus: true
