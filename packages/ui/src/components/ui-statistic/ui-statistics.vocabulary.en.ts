@@ -13,6 +13,7 @@
  *   a `<ui-label>` before a `<ui-value>` is Fomantic's top label.
  */
 
+import * as UIT from "$/ui/components/components.types"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
@@ -34,7 +35,17 @@ export const statisticsVocabulary = {
     {
       name: "stackable",
       kind: "keyOnly",
-      description: "Below 768px of the GROUP's width (a container query), one statistic per row, full width."
+      description:
+        "Below 768px of the group's width (or the screen's:  `stack-with`), one statistic per row, full width."
+    },
+    {
+      name: "stack-with",
+      kind: "enum",
+      values: UIT.STACK_WITH_VALUES,
+      description:
+        "What `stackable` measures:  `container` (the default) -- the group's own width;  `page` -- the " +
+        "screen's, as in Fomantic.  Unset:  the page-wide `--ui-stack-with` token decides (`<ui-root " +
+        "stack-with>`)."
     },
     {
       name: "widths",

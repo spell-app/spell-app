@@ -5,6 +5,7 @@ import { Keys } from "$/ui/test/keys"
 import { expectAccessible } from "$/ui/test/a11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
+import { Viewport } from "$/ui/test/viewport"
 import type { UIHost } from "$/ui/elements"
 
 import "$/ui/components/ui-items"
@@ -270,6 +271,23 @@ describe("<ui-items> responsive (container queries)", () => {
     expect(content.getBoundingClientRect().top).toBeGreaterThanOrEqual(image.getBoundingClientRect().bottom)
     expect(style(content).paddingLeft).toBe("0px")
     expect(style(content).paddingTop).toBe("24px")
+  })
+
+  it('`stack-with="page"` stacks by the SCREEN;  the token too, and the attribute beats it', async () => {
+    const wrapper = await ElementFixture.render(
+      `<div style="width: 500px"><ui-items stack-with="page">${ITEM}</ui-items>` +
+        `<div style="--ui-stack-with: page"><ui-items>${ITEM}</ui-items>` +
+        `<ui-items stack-with="container">${ITEM}</ui-items></div></div>`
+    )
+    await ElementFixture.settle(wrapper)
+    const groups = [...wrapper.querySelectorAll("ui-items")]
+    expect(rootOf(groups[0]!).className).toBe("ui items stack-with-page")
+    /** `group`'s first item's flex direction:  `column` when stacked. */
+    const direction = (group: Element) => style(boxOf(itemsOf(group)[0]!)).flexDirection
+    await Viewport.resize(1200)
+    await expect.poll(() => groups.map(direction)).toEqual(["row", "row", "column"])
+    await Viewport.resize(500)
+    await expect.poll(() => groups.map(direction)).toEqual(["column", "column", "column"])
   })
 
   it("keeps a 125px image beside the content when `unstackable`", async () => {

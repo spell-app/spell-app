@@ -18,7 +18,7 @@
   </head>
   <body class="ui-typography">
     <spell-site-header root="../../../.."></spell-site-header>
-    <ui-root class="site" icons="fa7-brands, fomantic" display="immediately">
+    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
       <ui-include class="site-header" source="../_parts/header.html" page-styles>
         <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
       </ui-include>
@@ -476,7 +476,6 @@
                     </ui-grid>
                   </ui-container>
                 </ui-docs-example>
-                <!-- GAP I49:  stacks / doubles by the GRID's own width (a container query), so in the ~755px docs column it shows the narrow layout on desktop too. -->
                 <ui-docs-example header="Stackable">
                   <p slot="description">
                     A <a href="#stackable"><code>stackable</code></a> will automatically stack rows to a single columns
@@ -500,7 +499,6 @@
                     <ui-column>Third</ui-column>
                   </ui-grid>
                 </ui-docs-example>
-                <!-- GAP I49:  stacks / doubles by the GRID's own width (a container query), so in the ~755px docs column it shows the narrow layout on desktop too. -->
                 <ui-docs-example header="Doubling">
                   <p slot="description">
                     A <a href="#doubling"><code>doubling</code></a> grid will double column widths for each device jump.
@@ -1264,7 +1262,6 @@
 
                 <ui-header level="2" dividing id="responsive-variations">Responsive Variations</ui-header>
 
-                <!-- GAP I49:  stacks / doubles by the GRID's own width (a container query), so in the ~755px docs column it shows the narrow layout on desktop too. -->
                 <ui-docs-example header="Doubling">
                   <p slot="description">A grid can double its column width on tablet and mobile sizes</p>
                   <ui-message slot="description" state="info" size="small"
@@ -1290,7 +1287,6 @@
                     </ui-column>
                   </ui-grid>
                 </ui-docs-example>
-                <!-- GAP I49:  stacks / doubles by the GRID's own width (a container query), so in the ~755px docs column it shows the narrow layout on desktop too. -->
                 <ui-docs-example header="Stackable">
                   <p slot="description">
                     A grid can have its columns stack on-top of each other after reaching mobile breakpoints

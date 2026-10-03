@@ -165,10 +165,13 @@ describe("<ui-docs-tokens family>", () => {
     expect(host.shadowRoot!.querySelector("[part~=playground]")).toBeNull()
   })
 
-  it("stacks its tables by their own width", async () => {
+  it("stacks its tables by their own width, unless the page-wide token says `page`", async () => {
     const host = await render(`<ui-docs-tokens family="x-button"></ui-docs-tokens>`)
-    expect(host.shadowRoot!.querySelector("ui-table")!.getAttribute("stack-by")).toBe("container")
+    const table = host.shadowRoot!.querySelector("ui-table")!
+    expect(getComputedStyle(table).getPropertyValue("--ui-table-stack-by").trim()).toBe("container")
     expect(tablesOf(host)[0]!.classList.contains("table")).toBe(true) // the table sheet reaches it in here
+    host.style.setProperty("--ui-stack-with", "page")
+    expect(getComputedStyle(table).getPropertyValue("--ui-table-stack-by").trim()).toBe("page")
   })
 
   it("gives colour rows a LIVE swatch:  the default, then whatever the page sets", async () => {

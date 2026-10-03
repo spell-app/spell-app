@@ -12,6 +12,7 @@
  *   `HTMLElement` property, as the popup's `header`) and `description`.
  */
 
+import * as UIT from "$/ui/components/components.types"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
@@ -54,13 +55,24 @@ export const stepsVocabulary = {
     {
       name: "unstackable",
       kind: "keyOnly",
-      description: "Never stacks;  by default steps stack below 768px of the GROUP's width (a container query)."
+      description:
+        "Never stacks;  by default steps stack below 768px of the group's width (or the screen's:  `stack-with`)."
     },
     {
       name: "stackable",
       kind: "valueAndKey",
       values: ["tablet"],
-      description: '`stackable="tablet"`:  stacks below 992px of the group\'s width, not just 768px.'
+      description:
+        "`stackable=\"tablet\"`:  stacks below 992px (of the group's width, or the screen's), not just 768px."
+    },
+    {
+      name: "stack-with",
+      kind: "enum",
+      values: UIT.STACK_WITH_VALUES,
+      description:
+        'What stacking (and `stackable="tablet"`) measures:  `container` (the default) -- the group\'s own ' +
+        "width;  `page` -- the screen's, as in Fomantic.  Unset:  the page-wide `--ui-stack-with` token " +
+        "decides (`<ui-root stack-with>`)."
     },
     {
       name: "widths",

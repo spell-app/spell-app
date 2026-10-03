@@ -96,7 +96,8 @@ export const tableVocabulary = {
       description:
         "What `stackable` measures:  the `viewport` (Fomantic's way, the default) or the table's own width " +
         "(`container`:  a table in a narrow column of a wide screen).  Also a token for a whole region:  " +
-        "`--ui-table-stack-by: container`;  the attribute wins."
+        "`--ui-table-stack-by: container`;  the attribute wins.  Neither:  the page-wide `--ui-stack-with` " +
+        "(`<ui-root stack-with>`;  `page` ~== `viewport`)."
     },
     {
       name: "scrolling",

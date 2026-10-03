@@ -1,7 +1,7 @@
 # Status
 
 Checklist of every component in [`docs/plan.md`](plan.md), with what's done, in progress, deferred.  Kept up to date
-as work lands ([AGENTS.md](../AGENTS.md)).  Last updated 2026-10-02.
+as work lands ([AGENTS.md](../AGENTS.md)).  Last updated 2026-10-03.
 
 ## Working on now
 
@@ -9,6 +9,10 @@ as work lands ([AGENTS.md](../AGENTS.md)).  Last updated 2026-10-02.
   [`packages/docs/epics/ui-component-creation/`](../../docs/epics/ui-component-creation/ui-component-creation.html):
   icon follow-ups, `SUSPECTED-BUGS.md` sweep, Owen's decisions ("To review (Owen)" below), Phase D chores.
 - **`<ui-root>`** (P17-P20, 2026-10-01):  built;  P21 (D48-D50:  table `stack-by`, WebKit fixes) built;  P22 doc review done.
+- **`stack-with="container | page"`** (2026-10-03, epic `spell-ui-pages` P10, D40):  grid, cards, steps, form,
+  items, statistics stack by their own width (default) or the screen's;  `<ui-root stack-with>` sets the
+  inherited `--ui-stack-with` for a page (tables' `stack-by` follows it too);  the docs site uses `page`.
+  [`docs/theming.md`](theming.md) "Stacking".
 - Every check passes after the move;  `yarn test:hmr` and `yarn site:build` needed a fix each (`PAPERCUTS.md`).
 - Visual:  Mac baselines for chromium / firefox / webkit;  Linux baselines wait on a working Docker Desktop.
 
@@ -44,7 +48,7 @@ links open in an editor tab;  `.md` links do too because `.vscode/settings.json`
 | divider | A | `ui-divider` | ✅ | 37 | 3.82 | — | [✅](../site/components/ui-divider.html) | 🚧 local | |
 | segment | A | `ui-segment`, `ui-segments` | ✅ | 65 | 7.37 | — | [✅](../site/components/ui-segment.html) | 🚧 local | |
 | container | A | `ui-container` | ✅ | 32 | 3.24 | — | [✅](../site/components/ui-container.html) | 🚧 local | |
-| grid | A | `ui-grid`, `ui-row`, `ui-column` | ✅ | 77 | 7.84 | — | [✅](../site/components/ui-grid.html) | 🚧 local | stackable / doubling by container query |
+| grid | A | `ui-grid`, `ui-row`, `ui-column` | ✅ | 77 | 7.84 | — | [✅](../site/components/ui-grid.html) | 🚧 local | stackable / doubling / per-device widths / `reversed` by container query, or the screen with `stack-with="page"` (rows and columns follow the grid) |
 | image | A | `ui-image`, `ui-images` | ✅ | 57 | 5.57 | — | [✅](../site/components/ui-image.html) | 🚧 local | |
 | text | A | `ui-text` | ✅ | 39 | 2.70 | — | [✅](../site/components/ui-text.html) | 🚧 local | |
 | flag | A | `ui-flag` | ✅ | 45 | 6.08 | — | [✅](../site/components/ui-flag.html) | 🚧 local | |
@@ -52,19 +56,19 @@ links open in an editor tab;  `.md` links do too because `.vscode/settings.json`
 | placeholder | A | `ui-placeholder` (+ `-header`, `-paragraph`, `-line`, `-image`) | ✅ | 47 | 5.90 | — | [✅](../site/components/ui-placeholder.html) | 🚧 local | |
 | input | A | `ui-input`, `ui-textarea` | ✅ | 68 | 10.38 | ✅ | [✅](../site/components/ui-input.html) | 🚧 local | form-associated |
 | checkbox | A | `ui-checkbox`, `ui-radio` | ✅ | 60 | 9.29 | ✅ | [✅](../site/components/ui-checkbox.html) | 🚧 local | standard / radio / slider / toggle;  `checked` aliases `selected` |
-| form | A | `ui-form`, `ui-field`, `ui-fields` | ✅ | 59 | 10.59 | ✅ | [✅](../site/components/ui-form.html) | 🚧 local | Fomantic's validation rules |
+| form | A | `ui-form`, `ui-field`, `ui-fields` | ✅ | 59 | 10.59 | ✅ | [✅](../site/components/ui-form.html) | 🚧 local | Fomantic's validation rules;  rows stack by the form's width, or the screen's with `stack-with="page"` |
 | message | A | `ui-message` | ✅ | 57 | 5.68 | — | [✅](../site/components/ui-message.html) | 🚧 local | |
 | item | A | `ui-item` | ✅ | 31 | 4.88 | — | [✅](../site/components/ui-item.html) | — (owners' examples) | ONE generic item for dropdown / list / menu (and the Items view);  `active` aliases `selected`;  the host's `aria-expanded` goes to a `<button>` box (a disclosure item);  the `icon` shorthand's glyph sized again (it was 0 x 0:  `> svg` missed the slot fallback, 2026-10-03) |
 | list | A | `ui-list` | ✅ | 83 | 7.05 | ✅ | [✅](../site/components/ui-list.html) | 🚧 local | |
 | table | A | `ui-table` | ✅ | 83 | 13.59 | ✅ | [✅](../site/components/ui-table.html) | 🚧 local | native `<table>` in light DOM;  data mode (`rows`, `columnDefs`), sorting |
 | menu | A | `ui-menu` | ✅ | 78 | 10.06 | ✅ | [✅](../site/components/ui-menu.html) | 🚧 local | `<nav>` by default, `interactive` menubar;  nested `ui-menu` = sub-menu |
 | breadcrumb | A | `ui-breadcrumb`, `ui-breadcrumb-section` | ✅ | 43 | 5.05 | native | [✅](../site/components/ui-breadcrumb.html) | 🚧 local | |
-| card | B | `ui-card`, `ui-cards` | ✅ | 62 | 8.19 | native | [✅](../site/components/ui-card.html) | 🚧 local | `<article>`, a link card is one `<a>`;  shorthands render static parts;  a group hands its cards its variations;  `columns`, doubling / stackable by container query |
-| items (view) | B | `ui-items` + the generic `ui-item` | ✅ | 52 | 4.06 | native | [✅](../site/components/ui-items.html) | 🚧 local | no second item tag (decided 2026-09-29);  the item owns its parts here only (`ConditionalOwner`);  stacks by container query |
+| card | B | `ui-card`, `ui-cards` | ✅ | 62 | 8.19 | native | [✅](../site/components/ui-card.html) | 🚧 local | `<article>`, a link card is one `<a>`;  shorthands render static parts;  a group hands its cards its variations;  `columns`, doubling / stackable by container query, or the screen with `stack-with="page"` |
+| items (view) | B | `ui-items` + the generic `ui-item` | ✅ | 52 | 4.06 | native | [✅](../site/components/ui-items.html) | 🚧 local | no second item tag (decided 2026-09-29);  the item owns its parts here only (`ConditionalOwner`);  stacks by container query, or the screen with `stack-with="page"` |
 | feed | B | `ui-feed`, `ui-event` | ✅ | 49 | 5.73 | — | [✅](../site/components/ui-feed.html) | 🚧 local | a list of `listitem` events;  the feed owns the parts (an event is transparent);  image / icon / text labels, ordered by CSS counters, connected |
 | comment | B | `ui-comment`, `ui-comments` | ✅ | 47 | 4.44 | — | [✅](../site/components/ui-comment.html) | 🚧 local | `<article>` comments owning their parts;  a list inside a comment is its thread;  threaded, minimal (actions show on hover or focus), collapsed, `reply` slot |
-| statistic | B | `ui-statistic`, `ui-statistics` | ✅ | 54 | 4.80 | — | [✅](../site/components/ui-statistic.html) | 🚧 local | value / label are the generic parts (`<ui-value>`, `<ui-label>`) or shorthands;  group `stackable` by container query |
-| step | B | `ui-step`, `ui-steps` | ✅ | 60 | 8.78 | native | [✅](../site/components/ui-step.html) | 🚧 local | `<ol>` + `listitem` steps, `aria-current="step"`;  stacks below 768px of the GROUP (container query);  circular steps too;  `active` aliases `selected`;  a step's own `color` adds `ui-<color>` (the remap needs it, no `ui`) |
+| statistic | B | `ui-statistic`, `ui-statistics` | ✅ | 54 | 4.80 | — | [✅](../site/components/ui-statistic.html) | 🚧 local | value / label are the generic parts (`<ui-value>`, `<ui-label>`) or shorthands;  group `stackable` by container query, or the screen with `stack-with="page"` |
+| step | B | `ui-step`, `ui-steps` | ✅ | 60 | 8.78 | native | [✅](../site/components/ui-step.html) | 🚧 local | `<ol>` + `listitem` steps, `aria-current="step"`;  stacks below 768px of the GROUP (container query), or of the screen with `stack-with="page"`;  circular steps too;  `active` aliases `selected`;  a step's own `color` adds `ui-<color>` (the remap needs it, no `ui`) |
 | rail | B | `ui-rail` | ✅ | 28 | 2.87 | — | [✅](../site/components/ui-rail.html) | 🚧 local | `position="left\|right"` for the side |
 | reveal | B | `ui-reveal` | ✅ | 33 | 4.07 | ✅ | [✅](../site/components/ui-reveal.html) | 🚧 local | `visible` / `hidden` slots;  reveals on hover, `active` AND focus (a tab stop unless the content is focusable);  instant under reduced motion |
 | ad | B | `ui-ad` | ✅ | 45 | 3.42 | — | [✅](../site/components/ui-ad.html) | 🚧 local | IAB units as `unit="medium rectangle"` |
@@ -90,7 +94,7 @@ links open in an editor tab;  `.md` links do too because `.vscode/settings.json`
 | shape | C | `ui-shape`, `ui-side` | ✅ | 36 | 6.07 | — | [✅](../site/components/ui-shape.html) | 🚧 local | Fomantic's flip geometry;  `active-index`, `direction`, host `flip()` / `next()` / `previous()`, invoker commands (`--next`, `--previous`, `--flip-<direction>`);  reduced motion swaps |
 | nag | C | `ui-nag` | ✅ | 42 | 6.01 | ✅ | [✅](../site/components/ui-nag.html) | 🚧 local | top / bottom, fixed / overlay;  opt-in `key` remembers the dismissal in local / session storage or a cookie, with expiry;  blocked storage tolerated;  invoker commands `--show` / `--close` / `--toggle` |
 | visibility | C | `ui-visibility`, `UI.observeVisibility()` | ✅ | 19 (+8 runtime) | 3.58 | — | [✅](../site/components/ui-visibility.html) | 🚧 local | runtime service `UI.visibility` on `IntersectionObserver`:  Fomantic's callbacks, `once` / `continuous`, `offset`;  lazy images (`type="image"`, `lazyImage()`) |
-| root | C | `ui-root` | ✅ | 28 | 7.05 | — | [✅](../site/components/ui-root.html) | 🚧 local | loads the families its content uses on demand (`ui-root.catalog.ts`, `yarn gen:root`), hides it until ready (`display`, `loading` message via `<ui-loader>`, `timeout`, `ui-ready` / `ui-error`), `theme` / `size` / `width` / `height` / `fixed`;  per-root `icons` / `emoji` / `assets` (`RootSettings`);  skeletons:  `<ui-placeholder>`s from each tag's `skeleton` (37 tags, the rest `null`);  the docs site runs on it |
+| root | C | `ui-root` | ✅ | 28 | 7.05 | — | [✅](../site/components/ui-root.html) | 🚧 local | loads the families its content uses on demand (`ui-root.catalog.ts`, `yarn gen:root`), hides it until ready (`display`, `loading` message via `<ui-loader>`, `timeout`, `ui-ready` / `ui-error`), `theme` / `size` / `width` / `height` / `fixed` / `stack-with` (the inherited `--ui-stack-with`);  per-root `icons` / `emoji` / `assets` (`RootSettings`);  skeletons:  `<ui-placeholder>`s from each tag's `skeleton` (37 tags, the rest `null`);  the docs site runs on it |
 | section | C | `ui-section` | ✅ | 83 | 🚧 | ✅ | [✅](../site/components/ui-section.html) | 🚧 local | ours, not Fomantic's (2026-10-02):  a `<section>` with a real `<h1>`...`<h6>` title (`level`, default the enclosing section's + 1, else 2), icon / badge / actions;  `collapsible` + controlled `collapsed` (a `<button aria-expanded>` inside the heading, cancelable `ui-open` / `ui-close`, `hidden=until-found` so find-in-page unfolds);  `sticky` titles stack when nested;  segment / header / styled-accordion looks |
 | include | C | `ui-include` | ✅ | 30 | 4.34 | — | [✅](../site/components/ui-include.html) | 🚧 local | ours (2026-10-02, plan doc `epics/ui-import`):  another page of the site shown here, from a same-origin `source` (`UI.sources`);  shadow root, or light DOM with `page-styles`;  `select`;  `load="eager\|visible\|idle"` (islands);  `ui-*` families inside load on demand (`RootLoader`);  relative URLs rewritten;  scripts don't run;  cycle guard;  `content` / `save()` (a `select`ed part by its `id`) |
 | code | C | `ui-code` | ✅ | 31 | 6.94 | — | [✅](../site/components/ui-code.html) | 🚧 local | ours (2026-10-02):  a code block from inline text (`<script type="text/plain">` keeps `<` / `&`) or `source`;  highlight.js in a LAZY chunk (`CodeEngine`:  core + a detect set of 9 languages, 21 more by name), `language` absent => guessed (`detectedLanguage`), `text` => plain;  `UI.code.register()` adds languages (a grammar, our own span highlighter, or `load()`);  `language="spell"` (`spell/<lang>`) colours with spell's own parser, pre-compiled (`src/languages/spell.en.js`, `yarn gen:spell`, 138 kB gz, lazy);  `line-numbers` (`start`) and `wrap` as CSS;  `copy`;  Atom One colours, AA in light mode, `--ui-code-*` tokens |

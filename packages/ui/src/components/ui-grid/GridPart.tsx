@@ -15,7 +15,8 @@ import gridCSS from "./ui-grid.css?inline"
  *   `--_grid-*` tokens (count, gutter, dividers ...), and a column's own `N wide` classes win.  The element
  *   only renders the class grammar.
  * - Responsive:  a top-level `<ui-grid>` host is the `ui-grid` size container (`GRID_CONTAINER_NAME`), so
- *   `stackable`, `doubling`, `reversed` and per-device widths follow the space the GRID gets, not the viewport.
+ *   `stackable`, `doubling`, `reversed` and per-device widths follow the space the GRID gets, not the viewport --
+ *   unless the grid says `stack-with="page"` (or the page-wide `--ui-stack-with` does):  then the screen's.
  * - Nothing focusable in the shadow root:  no `delegatesFocus`.
  ****************/
 export abstract class GridPart<V extends ComponentVocabulary = ComponentVocabulary> extends UIElement<V> {

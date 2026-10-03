@@ -21,7 +21,7 @@
   </head>
   <body class="ui-typography">
     <spell-site-header root="../../.."></spell-site-header>
-    <ui-root class="site" icons="fa7-brands, fomantic" display="immediately">
+    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
       <ui-include class="site-header" source="_parts/header.html" page-styles>
         <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
       </ui-include>
@@ -150,7 +150,7 @@
               >
                 <ui-form>
                   <form>
-                    <ui-fields widths="2" unstackable>
+                    <ui-fields widths="2">
                       <ui-field>
                         <label for="theming-first">First name</label>
                         <ui-input id="theming-first" name="first" placeholder="First name"></ui-input>
@@ -235,7 +235,6 @@
                 </ui-comments>
               </ui-docs-example>
 
-              <!-- GAP I58:  the steps stack in the docs column (container query under 768px). -->
               <ui-docs-example
                 header="Progress, steps and loaders"
                 description="Basic, Fomantic classic and Striped restyle progress bars;  Basic and GitHub steps;  Duo and Pulsar loaders."
@@ -631,7 +630,6 @@
               </ui-code>
 
               <!-- GAP I57:  no public token for the chosen box's background / border, so Fomantic's branded checkbox can't come from tokens alone. -->
-              <!-- GAP I58:  the token tables stack to cards in the docs column. -->
               <ui-docs-example header="Component defaults">
                 <p slot="description">
                   Components inherit the global tokens and redefine what's theirs in public

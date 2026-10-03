@@ -1887,6 +1887,15 @@
           "description": "One card per row in a narrow group (mobile widths)."
         },
         {
+          "name": "stack-with",
+          "kind": "enum",
+          "values": [
+            "container",
+            "page"
+          ],
+          "description": "What `stackable` and `doubling` measure:  `container` (the default) -- the group's own width;  `page` -- the screen's, as in Fomantic.  Unset:  the page-wide `--ui-stack-with` token decides (`<ui-root stack-with>`)."
+        },
+        {
           "name": "centered",
           "kind": "keyOnly",
           "description": "Centres each row of cards."
@@ -4940,6 +4949,15 @@
           "description": "Rows of fields never stack on narrow forms."
         },
         {
+          "name": "stack-with",
+          "kind": "enum",
+          "values": [
+            "container",
+            "page"
+          ],
+          "description": "What its rows of fields stack by:  `container` (the default) -- the form's own width;  `page` -- the screen's, as in Fomantic.  Its `<ui-fields>` follow it.  Unset:  the page-wide `--ui-stack-with` token decides (`<ui-root stack-with>`)."
+        },
+        {
           "name": "on",
           "kind": "enum",
           "values": [
@@ -5176,6 +5194,15 @@
             "computer vertically"
           ],
           "description": "Reverses the column order at these grid widths, e.g. `reversed=\"mobile tablet vertically\"`."
+        },
+        {
+          "name": "stack-with",
+          "kind": "enum",
+          "values": [
+            "container",
+            "page"
+          ],
+          "description": "What `stackable`, `doubling`, `reversed` and per-device widths measure:  `container` (the default) -- the grid's own width;  `page` -- the screen's, as in Fomantic.  Unset:  the page-wide `--ui-stack-with` token decides (`<ui-root stack-with>`).  Rows and columns follow their grid."
         },
         {
           "name": "text-align",
@@ -6624,6 +6651,15 @@
           "name": "unstackable",
           "kind": "keyOnly",
           "description": "Keeps the image beside the content in a narrow group (mobile widths), where items otherwise stack."
+        },
+        {
+          "name": "stack-with",
+          "kind": "enum",
+          "values": [
+            "container",
+            "page"
+          ],
+          "description": "What stacking and the tablet image width measure:  `container` (the default) -- the group's own width;  `page` -- the screen's, as in Fomantic.  Unset:  the page-wide `--ui-stack-with` token decides (`<ui-root stack-with>`)."
         },
         {
           "name": "inverted",
@@ -9806,6 +9842,15 @@
           "description": "Size of everything inside, `mini` ... `massive`."
         },
         {
+          "name": "stack-with",
+          "kind": "enum",
+          "values": [
+            "container",
+            "page"
+          ],
+          "description": "What stacking layouts inside measure (`stackable`, `doubling` ... on grids, cards, steps, forms, items, statistics;  tables' `stack-by`):  `container` -- each element's own width (their default);  `page` -- the screen's, as in Fomantic.  Sets the `--ui-stack-with` token;  an element's own `stack-with` wins."
+        },
+        {
           "name": "width",
           "kind": "string",
           "description": "Width as a CSS length (`600px`, `40em`, `50%`) or `window` (the viewport's).  With a width or height the root is a box that scrolls its own content, in a region named by the host's `aria-label` (name each one when a page has several)."
@@ -12015,7 +12060,16 @@
         {
           "name": "stackable",
           "kind": "keyOnly",
-          "description": "Below 768px of the GROUP's width (a container query), one statistic per row, full width."
+          "description": "Below 768px of the group's width (or the screen's:  `stack-with`), one statistic per row, full width."
+        },
+        {
+          "name": "stack-with",
+          "kind": "enum",
+          "values": [
+            "container",
+            "page"
+          ],
+          "description": "What `stackable` measures:  `container` (the default) -- the group's own width;  `page` -- the screen's, as in Fomantic.  Unset:  the page-wide `--ui-stack-with` token decides (`<ui-root stack-with>`)."
         },
         {
           "name": "widths",
@@ -12300,7 +12354,7 @@
         {
           "name": "unstackable",
           "kind": "keyOnly",
-          "description": "Never stacks;  by default steps stack below 768px of the GROUP's width (a container query)."
+          "description": "Never stacks;  by default steps stack below 768px of the group's width (or the screen's:  `stack-with`)."
         },
         {
           "name": "stackable",
@@ -12308,7 +12362,16 @@
           "values": [
             "tablet"
           ],
-          "description": "`stackable=\"tablet\"`:  stacks below 992px of the group's width, not just 768px."
+          "description": "`stackable=\"tablet\"`:  stacks below 992px (of the group's width, or the screen's), not just 768px."
+        },
+        {
+          "name": "stack-with",
+          "kind": "enum",
+          "values": [
+            "container",
+            "page"
+          ],
+          "description": "What stacking (and `stackable=\"tablet\"`) measures:  `container` (the default) -- the group's own width;  `page` -- the screen's, as in Fomantic.  Unset:  the page-wide `--ui-stack-with` token decides (`<ui-root stack-with>`)."
         },
         {
           "name": "widths",
@@ -12748,7 +12811,7 @@
             "viewport",
             "container"
           ],
-          "description": "What `stackable` measures:  the `viewport` (Fomantic's way, the default) or the table's own width (`container`:  a table in a narrow column of a wide screen).  Also a token for a whole region:  `--ui-table-stack-by: container`;  the attribute wins."
+          "description": "What `stackable` measures:  the `viewport` (Fomantic's way, the default) or the table's own width (`container`:  a table in a narrow column of a wide screen).  Also a token for a whole region:  `--ui-table-stack-by: container`;  the attribute wins.  Neither:  the page-wide `--ui-stack-with` (`<ui-root stack-with>`;  `page` ~== `viewport`)."
         },
         {
           "name": "scrolling",
@@ -22016,7 +22079,7 @@
         },
         {
           "name": "--ui-table-stack-by",
-          "default": "viewport",
+          "default": "var(--ui-stack-with, viewport)",
           "type": "other"
         }
       ]

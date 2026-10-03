@@ -4,6 +4,7 @@ import { GRID_CONTAINER_NAME } from "$/ui/components/components.types"
 import { expectAccessible } from "$/ui/test/a11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
+import { Viewport } from "$/ui/test/viewport"
 import type { UIHost } from "$/ui/elements"
 
 import "$/ui/components/ui-grid"
@@ -49,7 +50,8 @@ describe("<ui-grid> classes", () => {
     ['only="large screen"', "ui large screen only grid"],
     ['reversed="mobile tablet vertically"', "ui mobile reversed tablet vertically reversed grid"],
     ['text-align="center" vertical-align="middle"', "ui center aligned middle aligned grid"],
-    ['columns="2" stretched text-align="justified"', "ui stretched two column justified grid"]
+    ['columns="2" stretched text-align="justified"', "ui stretched two column justified grid"],
+    ['stack-with="container"', "ui grid stack-with-container"]
   ])("<ui-grid %s>", async (attributes, classes) => {
     const host = await ElementFixture.render<UIHost>(`<ui-grid ${attributes}></ui-grid>`)
     const root = rootOf(host)
@@ -218,11 +220,71 @@ describe("<ui-grid> layout across shadow roots", () => {
     expect(left(narrow, 0)).toBeGreaterThan(left(narrow, 1))
   })
 
+  it("hands the GRID's range to a row's own `stackable`", async () => {
+    const markup =
+      `<ui-grid columns="3"><ui-row stackable><ui-column>A</ui-column><ui-column>B</ui-column>` +
+      `<ui-column>C</ui-column></ui-row></ui-grid>`
+    for (const fraction of fractions(await inBox(900, markup))) expect(fraction).toBeCloseTo(1 / 3, 2)
+    for (const fraction of fractions(await inBox(500, markup))) expect(fraction).toBeCloseTo(1, 2)
+  })
+
   it("fills a coloured column, never its plain neighbour", async () => {
     const box = await inBox(800, `<ui-grid><ui-column color="red">A</ui-column><ui-column>B</ui-column></ui-grid>`)
     const [red, plain] = [...box.querySelectorAll("ui-column")].map((column) => getComputedStyle(rootOf(column)))
     expect(red!.backgroundColor).not.toBe(plain!.backgroundColor)
     expect(plain!.backgroundColor).toBe("rgba(0, 0, 0, 0)")
+  })
+})
+
+describe("<ui-grid stack-with>", () => {
+  /** A stackable three-column grid, `attributes` on the grid. */
+  const stackable = (attributes = "") =>
+    `<ui-grid stackable columns="3" ${attributes}><ui-column>A</ui-column><ui-column>B</ui-column>` +
+    `<ui-column>C</ui-column></ui-grid>`
+
+  /** Whether every column of the grid in `box` fills its line. */
+  const stacked = (box: Element) => fractions(box).every((fraction) => Math.abs(fraction - 1) < 0.01)
+
+  it("`page` follows the SCREEN:  no stacking in a narrow box on a desktop, stacking on a phone", async () => {
+    const box = await inBox(500, stackable('stack-with="page"'))
+    expect(rootOf(box.querySelector("ui-grid")!).className).toBe("ui stackable three column grid stack-with-page")
+    await Viewport.resize(1200)
+    await expect.poll(() => stacked(box)).toBe(false)
+    await Viewport.resize(500)
+    box.style.width = "900px"
+    await expect.poll(() => stacked(box)).toBe(true)
+  })
+
+  it("`container` (and no attribute) follows the GRID's width, whatever the screen", async () => {
+    const box = await inBox(500, stackable('stack-with="container"') + stackable())
+    await Viewport.resize(1200)
+    const [own, bare] = box.querySelectorAll("ui-grid")
+    for (const grid of [own!, bare!]) for (const fraction of fractions(box, grid)) expect(fraction).toBeCloseTo(1, 2)
+  })
+
+  it("takes the page-wide `--ui-stack-with` token, and its own attribute beats it", async () => {
+    const box = await inBox(
+      500,
+      `<div style="--ui-stack-with: page">${stackable()}${stackable('stack-with="container"')}</div>`
+    )
+    await Viewport.resize(1200)
+    const [token, own] = box.querySelectorAll("ui-grid")
+    for (const fraction of fractions(box, token)) expect(fraction).toBeCloseTo(1 / 3, 2)
+    for (const fraction of fractions(box, own)) expect(fraction).toBeCloseTo(1, 2)
+  })
+
+  it("`page` moves per-device widths and `reversed` to the screen too", async () => {
+    const box = await inBox(
+      500,
+      `<ui-grid stack-with="page" reversed="mobile" columns="2"><ui-column width-computer="4" width-mobile="16">` +
+        `A</ui-column><ui-column width-computer="4">B</ui-column></ui-grid>`
+    )
+    await Viewport.resize(1200)
+    const [a, b] = [...box.querySelectorAll("ui-column")].map((column) => rootOf(column).getBoundingClientRect())
+    expect(a!.width / rootOf(box.querySelector("ui-grid")!).getBoundingClientRect().width).toBeCloseTo(0.25, 3)
+    expect(a!.left).toBeLessThan(b!.left)
+    await Viewport.resize(600)
+    await expect.poll(() => fractions(box)[0]).toBeCloseTo(1, 3)
   })
 })
 

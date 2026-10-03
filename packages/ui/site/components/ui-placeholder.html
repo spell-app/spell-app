@@ -21,7 +21,7 @@
   </head>
   <body class="ui-typography">
     <spell-site-header root="../../../.."></spell-site-header>
-    <ui-root class="site" icons="fa7-brands, fomantic" display="immediately">
+    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
       <ui-include class="site-header" source="../_parts/header.html" page-styles>
         <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
       </ui-include>
@@ -104,9 +104,8 @@
                     </ui-placeholder-paragraph>
                   </ui-placeholder>
                 </ui-docs-example>
-                <!-- GAP I49:  `stackable` / `doubling` stack these inside the docs column (container queries), so they're left off. -->
                 <ui-docs-example>
-                  <ui-grid columns="3">
+                  <ui-grid columns="3" stackable>
                     <ui-column>
                       <ui-segment raised>
                         <ui-placeholder>
@@ -157,7 +156,7 @@
                     card -- a page script, not part of the placeholder. Replace the placeholder with the real content
                     when it arrives.</ui-message
                   >
-                  <ui-cards columns="3">
+                  <ui-cards columns="3" doubling stackable>
                     <ui-card>
                       <ui-placeholder>
                         <ui-placeholder-image square></ui-placeholder-image>

@@ -21,7 +21,7 @@
   </head>
   <body class="ui-typography">
     <spell-site-header root="../../.."></spell-site-header>
-    <ui-root class="site" icons="fa7-brands, fomantic" display="immediately">
+    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
       <ui-include class="site-header" source="_parts/header.html" page-styles>
         <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
       </ui-include>
@@ -87,9 +87,9 @@
               </ui-segment>
 
               <!--
-                GAP I49:  stackable grids query their own width, so in this ~755px column they stack on desktop too
-                (Fomantic's stripes are side by side).  Fomantic's `very relaxed` gutters are left out:  they overflow
-                the page's 1em phone margin (Fomantic's grids are `container`s).
+                Stackable grids stack by the SCREEN here (the root's `stack-with="page"`), as Fomantic's stripes do.
+                Fomantic's `very relaxed` gutters are left out:  they overflow the page's 1em phone margin (Fomantic's
+                grids are `container`s).
               -->
               <ui-segment vertical basic padded="very">
                 <ui-grid stackable vertical-align="middle">

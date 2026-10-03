@@ -18,7 +18,7 @@
   </head>
   <body class="ui-typography">
     <spell-site-header root="../../../.."></spell-site-header>
-    <ui-root class="site" icons="fa7-brands, fomantic" display="immediately">
+    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
       <ui-include class="site-header" source="../_parts/header.html" page-styles>
         <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
       </ui-include>
@@ -529,7 +529,7 @@
                   </ui-card>
                 </ui-docs-example>
 
-                <!-- GAP I129:  the horizontal cards sit one per row, not two side by side. -->
+                <!-- GAP I129:  the horizontal cards sit one per row, not two side by side (each is 400px wide). -->
                 <ui-docs-example>
                   <ui-cards horizontal>
                     <ui-card>
@@ -818,15 +818,10 @@
                   </ui-cards>
                 </ui-docs-example>
 
-                <!-- GAP I49:  stackable cards stack inside the docs column on desktop (a container query). -->
                 <ui-docs-example header="Stackable">
                   <p slot="description">
                     A group of cards can automatically stack rows to a single column on mobile devices.
                   </p>
-                  <ui-message slot="description" state="warning" size="small"
-                    >Ours stack by the GROUP's width, not the browser's: this column is under 768px wide, so these stack
-                    on a desktop too (I49).</ui-message
-                  >
                   <ui-cards columns="3" stackable>
                     <ui-card><img src="../images/avatar/large/elliot.jpg" alt="Elliot Fu" /></ui-card>
                     <ui-card><img src="../images/avatar/large/helen.jpg" alt="Helen Troy" /></ui-card>
@@ -837,13 +832,8 @@
                   </ui-cards>
                 </ui-docs-example>
 
-                <!-- GAP I49:  doubling cards double inside the docs column on desktop (a container query). -->
                 <ui-docs-example header="Doubling">
                   <p slot="description">A group of cards can double its column width for mobile.</p>
-                  <ui-message slot="description" state="warning" size="small"
-                    >Ours double by the GROUP's width, so in this column six become three on a desktop too
-                    (I49).</ui-message
-                  >
                   <ui-cards columns="6" doubling>
                     <ui-card><img src="../images/avatar/large/elliot.jpg" alt="Elliot Fu" /></ui-card>
                     <ui-card><img src="../images/avatar/large/helen.jpg" alt="Helen Troy" /></ui-card>
