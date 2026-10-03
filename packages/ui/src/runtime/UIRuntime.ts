@@ -30,6 +30,7 @@ import { Ids } from "./Ids"
 import { Keyboard } from "./Keyboard"
 import { Modals } from "./Modals"
 import { Overlays } from "./Overlays"
+import { Sources } from "./Sources"
 import { Styles } from "./Styles"
 import { Toasts } from "./Toasts"
 import { Transitions } from "./Transitions"
@@ -85,6 +86,8 @@ export class UIRuntime {
   readonly api = new Api()
   /** the page's icon packs (`<ui-root icons>` adds child sets) and the SVG cache */
   readonly icons = new IconPacks()
+  /** same-origin text files elements load and save (`<ui-include>`, `<ui-code>`, `<ui-markdown>`) */
+  readonly sources = new Sources()
   /** canonical + localized component names (the translation hook) */
   readonly vocabulary = new Vocabulary()
 

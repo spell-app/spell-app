@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>UI Import</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p1">next: P1 · Source Loading</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p2">next: P2 · Include Element</ui-label></span
             >
           </header></ui-sticky
         >
@@ -67,7 +67,7 @@
               language.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 11h-15h 30m in all, 11h-15h 30m left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 11h-15h 30m in all, 10h-14h left</p>
           <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
             <ul>
               <li>
@@ -82,11 +82,22 @@
               <li>
                 Shared:
                 <ul>
-                  <li><code>src/runtime/Sources.ts</code>: the <code>UI.sources</code> service</li>
                   <li>
-                    <code>src/elements/SourceElement.tsx</code> + <code>SourceHost.ts</code>: base controller and host
-                    for "content from inline text or <code>source</code>" (<code>content</code>, <code>save()</code>,
-                    <code>reload()</code>)
+                    <a href="../../../ui/src/runtime/Sources.ts" target="src-packages-ui-src-runtime-sources-ts"
+                      ><code>src/runtime/Sources.ts</code></a
+                    >: the <code>UI.sources</code> service
+                  </li>
+                  <li>
+                    <a
+                      href="../../../ui/src/elements/SourceElement.tsx"
+                      target="src-packages-ui-src-elements-sourceelement-tsx"
+                      ><code>src/elements/SourceElement.tsx</code></a
+                    >
+                    +
+                    <a href="../../../ui/src/elements/SourceHost.ts" target="src-packages-ui-src-elements-sourcehost-ts"
+                      ><code>SourceHost.ts</code></a
+                    >: base controller and host for "content from inline text or <code>source</code>"
+                    (<code>content</code>, <code>save()</code>, <code>reload()</code>)
                   </li>
                 </ul>
               </li>
@@ -320,13 +331,13 @@
             <ul>
               <li><code>&lt;ui-include source="/docs/part.html" select="main" load="visible"&gt;</code></li>
               <li>
-                Content goes in its shadow root by default (<a href="#d14">D14</a>):  page CSS stays out, ui tokens
-                (inherited custom properties) still apply.  <code>page-styles</code> renders it into the include's LIGHT
-                DOM instead:  page CSS applies, and so does <code>&lt;ui-root&gt;</code>.
+                Content goes in its shadow root by default (<a href="#d14">D14</a>): page CSS stays out, ui tokens
+                (inherited custom properties) still apply. <code>page-styles</code> renders it into the include's LIGHT
+                DOM instead: page CSS applies, and so does <code>&lt;ui-root&gt;</code>.
               </li>
               <li>
                 Either way the include loads undefined <code>ui-*</code> families in its content itself, through
-                <code>RootLoader.undefinedTags(root)</code>:  <code>&lt;ui-root&gt;</code> can't see into a shadow root,
+                <code>RootLoader.undefinedTags(root)</code>: <code>&lt;ui-root&gt;</code> can't see into a shadow root,
                 and a page may have no <code>&lt;ui-root&gt;</code>.
               </li>
               <li>
@@ -424,7 +435,7 @@
                   <li>
                     <code>yarn gen:spell</code> (in <code>ui</code>) bundles it with esbuild into a COMMITTED file,
                     <code>packages/ui/src/languages/spell.&lt;lang&gt;.js</code> (<a href="#d15">D15</a>, like icon
-                    packs):  <code>ui</code> builds without building spell;  loaded lazily when first asked for
+                    packs): <code>ui</code> builds without building spell; loaded lazily when first asked for
                   </li>
                   <li>
                     <code>language="spell"</code> ~== <code>spell/en</code>; <code>spell/es</code> loads Spanish. No
@@ -663,20 +674,20 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="0" total="7" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="1" total="7" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
           <ui-section
             id="p1"
             data-phase="1"
-            data-status="todo"
+            data-status="done"
             header="P1 · Source Loading"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> UI.sources (load, cache, same-origin, ETag, pluggable saver) + SourceElement / SourceHost
@@ -1237,6 +1248,27 @@
                   ><ui-date><time datetime="2026-10-02T20:13-04:00">2026-10-02 20:13</time></ui-date> Up-front answers:
                   page-styles = light DOM (D14), committed spell bundle (D15), one go + commit per phase
                   (D16)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T20:14-04:00">2026-10-02 20:14</time></ui-date> P1
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T20:23-04:00">2026-10-02 20:23</time></ui-date> P1
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T20:23-04:00">2026-10-02 20:23</time></ui-date> P1 done:
+                  UI.sources + SourceElement / SourceHost, 30 tests</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

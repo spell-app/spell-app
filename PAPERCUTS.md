@@ -878,6 +878,12 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   c0f54984`, then `git merge main` in the worktree.  The hook (`.claude/hooks/worktree.mjs`) branches from local
   `main`, once a session starts with it registered. · tooling
 - 2026-10-02 · `yarn site:check` (`astro check`) crashes before checking anything:  `Cannot read properties of undefined (reading 'useCaseSensitiveFileNames')` in `@volar/kit/lib/createChecker.js`, with or without our changes (the repo's TS 7 vs the language server) · not fixed;  `yarn site:build` is the working gate · ui
+- 2026-10-02 · A test-only element defined as `<x-source>` never fired `ui-change` / `ui-load`:  `emit()` names events
+  with the TAG's prefix (`ElementDefinition`), so they went out as `x-change`. · Give a test element a `ui-` tag
+  (`ui-test-source`) when the test listens for `ui-*` events. · ui
+- 2026-10-02 · Defining an element threw `prop "source" would shadow the element's own "source"`:  its host class had a
+  PRIVATE getter named `source`.  The fork checks every host member against prop names, private ones too (TS
+  `private` is compile-time only). · Name host internals so they can't match an attribute (`controllerApi`). · ui
 
 ## cli
 

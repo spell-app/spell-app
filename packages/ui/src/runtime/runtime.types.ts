@@ -509,6 +509,86 @@ export class ApiError extends Error {
 }
 
 ////////////////
+// ## Sources
+////////////////
+
+/** Text `UI.sources.load()` fetched. */
+export type SourceText = {
+  /** absolute URL it came from */
+  url: string
+  /** the body */
+  text: string
+  /** the response's `ETag`:  the version a save must match (`If-Match`) */
+  etag?: string
+  /** the response's `Content-Type`, e.g. `text/markdown` */
+  type?: string
+}
+
+/** Options for `UI.sources.load()`. */
+export type SourceLoadOptions = {
+  /** skip the cache:  fetch again, and cache the new answer */
+  fresh?: boolean
+  /** caller's abort signal;  aborting rejects with an `AbortError` and drops the cache entry */
+  signal?: AbortSignal
+}
+
+/** What `UI.sources.save()` hands its saver. */
+export type SourceSaveRequest = {
+  /** absolute, same-origin URL of the file */
+  url: string
+  /** the whole new text -- or, with `fragment`, the new markup of that one element */
+  text: string
+  /** version the text was edited from (`SourceText.etag`);  a saver sends it as `If-Match` */
+  etag?: string
+  /** `id` of the ONE element of an HTML page to replace, e.g. `<ui-include select="#intro">` saving its part */
+  fragment?: string
+}
+
+/** What a saver resolves with. */
+export type SourceSaveResult = {
+  /** the saved file's new version */
+  etag?: string
+}
+
+/**
+ * Writes text back to where it came from;  `UI.sources.saver`.
+ * - `ui` ships none:  it can't know the server.  The page server's lives in `$/server` (`SPELL_SERVER.saveFile`),
+ *   registered by the docs runtime.
+ * - MUST throw `SourceError` (`conflict` for a 409 / 412, `save` otherwise) on failure.
+ */
+export type SourceSaver = (request: SourceSaveRequest) => Promise<SourceSaveResult>
+
+/**
+ * Why loading or saving a source failed, as `SourceError.kind` and `ui-error`'s `detail.kind`.
+ * - `load`:  the fetch failed or answered non-2xx
+ * - `cross-origin`:  the URL is on another origin, so it was never fetched
+ * - `file-protocol`:  the page is a `file://` page, which can't fetch its neighbours
+ * - `save`:  the saver failed
+ * - `conflict`:  the file changed since it was loaded (`If-Match` failed);  reload, then save again
+ * - `no-saver`:  nothing registered `UI.sources.saver`
+ * - `render`:  the text arrived but the element couldn't show it (bad markdown, unknown language ...)
+ */
+export type SourceErrorKind = "load" | "cross-origin" | "file-protocol" | "save" | "conflict" | "no-saver" | "render"
+
+/**
+ * Thrown by `UI.sources` (and savers) when a source can't be loaded or saved;  `kind` says why.
+ * - `status`:  the HTTP status, when there was a response.
+ */
+export class SourceError extends Error {
+  /** why, see `SourceErrorKind` */
+  readonly kind: SourceErrorKind
+  /** HTTP status, when a response said no */
+  readonly status?: number
+
+  constructor(kind: SourceErrorKind, message: string, status?: number) {
+    super(message)
+    this.name = "SourceError"
+    this.kind = kind
+    this.status = status
+  }
+}
+
+////////////////
 // ## Visibility
 ////////////////
 
