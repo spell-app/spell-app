@@ -446,6 +446,11 @@ every entry below that date was fixed or disproven;  what's left:
   `<Project>.scopes.js` or `--against <ref>` become bogus `<project>` / `<ref>` elements (oxfmt then indents them as
   tags).  Escape them as text -- or document that they're HTML, as `--details` is.  Prove:
   `yarn plan-doc add-phase x "A" --goal "write <Project>.js"`, then look at the `#p1` body.
+- `scripts/doc-links.js` `resolve()`:  the alias form is still `#name/...` (from before the `$/` aliases), and `$`
+  isn't in the path character class, so `<code>$/util/index.ts</code>` never links;  `cli.html`, `server.html`,
+  `solid-migration.html` list dozens of `$/...` spans as unresolved.  Kept as-is in the python port (P10, epic
+  `commands`) to stay byte-identical.  Prove:  `node scripts/doc-links.js server.html`, see `'$/server'` in the
+  unresolved list.
 
 ## server
 

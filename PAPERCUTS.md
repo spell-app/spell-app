@@ -1069,6 +1069,11 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   history) resolves, so `doc-links.py` links it to a second path for the same file;  unlinking it by hand gets
   re-linked on the next run. · Wrote the old name as plain text;  `doc-links.py` should resolve paths
   case-sensitively (compare against the real directory listing). · docs
+- 2026-10-03 · `git ls-files 'packages/docs/**/*.html'` left out the top-level pages (`index.html`, `cli.html` ...):
+  a quoted `**/` pathspec didn't match zero folders here, so a "every page" comparison silently skipped five.  And
+  `git checkout -- <pages>` to reset between runs reverted another agent's live plan-doc edit in the same worktree.
+  · Use `pages.js` `findPages()` for "every page";  compare on COPIES (same folder, other name), never reset shared
+  pages. · docs
 
 ## claude-code
 
@@ -1106,6 +1111,9 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   `time ( ... )` subshell, and a `grep ... .gitignore` chained after `ls` ("names git in a form too complex").  The
   check is on the command TEXT, so even a file name with `git` in it trips it. · One plain command per Bash call;
   loops and git calls over other branches go in a Python script (`/whassup`'s `whassup.py`). · tooling
+- 2026-10-03 · Same check, two more trips:  `rsync --exclude /.git` (the text names git), and `sort -u $P` (an
+  unquoted variable "where an option may stand").  Also any `git ls-files ... > file && ...` chain. · Write the
+  steps to a `.sh` / `.mjs` in the scratchpad and run that file;  run `git` alone in its own Bash call. · tooling
 - 2026-10-02 · After `/epic`'s handoff, the session kept answering in its OLD window:  the move opened it in the
   worktree's window, but the old tab stayed, so Owen typed there.  `window.mjs` finds the old tab by the session's
   title, and an untitled session (`/rename` not yet run) matches nothing:  the log says "no tabs titled ''". · Close
