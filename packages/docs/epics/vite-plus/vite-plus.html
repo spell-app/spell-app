@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vite+</title>
+    <meta name="description" content="Plan doc:  Vite+." />
+    <link rel="stylesheet" href="../../_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../_assets/plan-doc.css" />
+  </head>
+  <body class="spell-doc-page plan-doc" data-plan="vite-plus">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../../index.html" target="src-packages-docs-index-html"
+            >Docs</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section href="../../index.html#epics" target="src-packages-docs-index-html"
+            >Epics</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section active>Vite+</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <ui-sticky class="spell-h1"
+          ><header class="spell-page-head">
+            <h1>Vite+</h1>
+            <span class="plan-step"
+              ><ui-label basic color="orange" icon="circle half stroke" href="#p1">P1 · Spike Migrate</ui-label></span
+            >
+          </header></ui-sticky
+        >
+        <ui-list class="plan-meta">
+          <ui-item icon="code branch">Plan doc for <code>/epic vite-plus</code>, branch <code>vite-plus</code></ui-item>
+          <ui-item icon="folder"
+            >Worktree:
+            <a href="../../../../" target="src-"
+              ><code>/Users/owen/www/spell-app/spell-app/.claude/worktrees/vite-plus</code></a
+            ></ui-item
+          >
+          <ui-item icon="calendar"
+            >Started <time id="plan-started">2026-10-02</time>, updated
+            <time id="plan-updated">2026-10-02</time></ui-item
+          >
+        </ui-list>
+
+        <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
+          <ui-icon slot="icon" name="lightbulb"></ui-icon>
+          <p class="plan-summary lede">
+            Move the repo to Vite+ 1.0.0 (<code>vite-plus</code>, command <code>vp</code>, shipped 2026-09-28, MIT),
+            taking its pinned tool versions across the board (<a href="#d1">D1</a>). We already run every tool it
+            bundles, so the gain is mostly <code>vp run</code> (cached workspace tasks) and one dep instead of five.
+          </p>
+          <blockquote class="plan-prompt">
+            <p>
+              Upgrade to new vite+ latest. What gets better? Any reasons not to?<br />I'm going to bed soon, so keep
+              this snappy
+            </p>
+          </blockquote>
+          <p class="plan-estimate"><b>Estimate:</b> 2h 20m-2h 50m in all, 2h 20m-2h 50m left</p>
+          <ui-section id="o1" header="1.1 What Vite+ is" sticky collapsible dividing>
+            <p>One CLI, <code>vp</code>, wrapping tools we already use one by one:</p>
+            <ul>
+              <li>Vite 8 + Rolldown (<code>vp dev</code>, <code>vp build</code>), Vitest (<code>vp test</code>)</li>
+              <li>Oxlint + Oxfmt + tsgolint (<code>vp check</code>, <code>vp fmt</code>)</li>
+              <li>tsdown (library builds), Vite Task (<code>vp run</code>: monorepo tasks with a cache)</li>
+              <li><code>vp hooks</code> / <code>vp staged</code>: git hooks on staged files</li>
+              <li>Node + package-manager management (we opt out: <a href="#c4">C4</a>)</li>
+            </ul>
+          </ui-section>
+          <ui-section id="o2" header="1.2 Version delta" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>tool</th>
+                    <th>ours</th>
+                    <th>vite-plus 1.0.0</th>
+                    <th>what we lose</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>vite</td>
+                    <td>8.3.1</td>
+                    <td><code>@voidzero-dev/vite-plus-core</code> on 8.3.1</td>
+                    <td class="yes positive">nothing (<a href="#c2">C2</a>)</td>
+                  </tr>
+                  <tr>
+                    <td>vitest + browser-playwright</td>
+                    <td>5.0.2</td>
+                    <td>5.0.1</td>
+                    <td class="yes positive">9 bug fixes, none we knowingly need</td>
+                  </tr>
+                  <tr>
+                    <td>oxlint</td>
+                    <td>1.86.0</td>
+                    <td>1.85.0</td>
+                    <td class="meh warning">false-positive fixes (<a href="#c1">C1</a>)</td>
+                  </tr>
+                  <tr>
+                    <td>oxfmt</td>
+                    <td>0.71.0</td>
+                    <td>0.70.0</td>
+                    <td class="meh warning">formatter output changes (<a href="#q3">Q3</a>)</td>
+                  </tr>
+                  <tr>
+                    <td>oxlint-tsgolint</td>
+                    <td>7.0.2003</td>
+                    <td>7.0.2003</td>
+                    <td class="yes positive">same</td>
+                  </tr>
+                  <tr>
+                    <td>node</td>
+                    <td>22.17.0</td>
+                    <td>needs ≥22.18</td>
+                    <td>bump to 24 LTS (<a href="#d2">D2</a>)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <p>
+              Every downgrade is 1-2 weeks old. No feature we use is lost; the risks are lint false positives and
+              one-time format churn, both measured in <a href="#p1">P1</a> / <a href="#p2">P2</a>.
+            </p>
+          </ui-section>
+          <ui-section id="o3" header="1.3 What gets better" sticky collapsible dividing>
+            <ul>
+              <li>
+                <code>vp run</code>: replaces root <code>yarn workspaces foreach -A run ts|test|review</code>; unchanged
+                packages skip from cache. Biggest real win.
+              </li>
+              <li>
+                <code>vp check</code>: lint + fmt check + type-aware lint in one pass (today: <code>lint</code> +
+                <code>format:check</code> per package).
+              </li>
+              <li><code>vp staged</code>: pre-commit checks on staged files (we have none).</li>
+              <li>
+                One <code>vite-plus</code> dep instead of vite + vitest + oxlint + oxfmt + tsgolint in 11
+                <a href="../../../../package.json" target="src-package-json"><code>package.json</code></a
+                >s; versions move together.
+              </li>
+              <li>NOT faster dev / build / test: same engines underneath (<a href="#c5">C5</a>).</li>
+            </ul>
+          </ui-section>
+          <ui-section id="o4" header="1.4 Reasons not to" sticky collapsible dividing>
+            <ol>
+              <li>4 days old; pins lag ours, so we go backwards a little (<a href="#o2">1.2</a>).</li>
+              <li>
+                <code>vite</code> becomes a repackaged fork: our custom configs are where that bites (<a href="#c2"
+                  >C2</a
+                >).
+              </li>
+              <li>Node bump on every machine (<a href="#d2">D2</a>).</li>
+              <li>
+                Two toolchains:
+                <a href="../../../vscode/" target="src-packages-vscode"><code>packages/vscode</code></a> stays on plain
+                vite (<a href="#c3">C3</a>).
+              </li>
+            </ol>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
+          <ui-icon slot="icon" name="layer group"></ui-icon>
+          <ui-progress class="plan-progress" value="0" total="4" bar-text="ratio" size="small" color="green"
+            >phases done</ui-progress
+          >
+
+          <ui-section
+            id="p1"
+            data-phase="1"
+            data-status="active"
+            header="P1 · Spike Migrate"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle half stroke" color="orange"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"><b>Goal:</b> vite-plus 1.0.0 in, Node 24, every root script green</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> root + 11 package.json, vitest.config.ts files, .oxlintrc.json, .oxfmtrc.json,
+                .node-version</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> yarn ts, yarn test, yarn test:packages (ui browser), yarn review, app build*, yarn
+                vscode</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p2"
+            data-phase="2"
+            data-status="todo"
+            header="P2 · Measure + Decide"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> time yarn foreach vs vp run (cold + warm cache); size of oxfmt churn; list
+                breakages</ui-item
+              ><ui-item icon="folder"><b>Files:</b> none (numbers into the doc)</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> medians of 3 runs in a table</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 30m</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p3" data-phase="3" data-status="todo" header="P3 · Rollout" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> only if adopted: scripts to vp run / vp check, AGENTS.md toolchain notes</ui-item
+              ><ui-item icon="folder"><b>Files:</b> package.json scripts, AGENTS.md, PAPERCUTS.md</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> root scripts green; vp check clean</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 30m-1h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p4" data-phase="4" data-status="todo" header="P4 · Doc Review" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"><b>Goal:</b> durable doc, prune, finish worktree</ui-item
+              ><ui-item icon="folder"><b>Files:</b> packages/docs/vite-plus.html</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> yarn plan-doc check, check-spell</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 20m</ui-item></ui-list
+            >
+          </ui-section></ui-section
+        >
+
+        <ui-section id="decisions" header="3. Questions & Decisions" sticky collapsible dividing>
+          <ui-icon slot="icon" name="gavel"></ui-icon>
+          <p class="meta">
+            Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why:
+            settled, don't re-argue without new facts. An answered question sits just above its decision.
+          </p>
+          <ui-list class="plan-items" data-kind="decision" divided relaxed
+            ><ui-item id="q1" data-status="done"
+              ><a class="plan-id" href="#q1">Q1</a>
+              <span class="plan-title">Timing: spike now, or wait for 1.0.x pins to catch up?</span>
+              <a class="plan-answer" href="#d1">→ D1</a></ui-item
+            ><ui-item id="d1" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d1">D1</a>
+                  <span class="plan-title"
+                    >Go with vite+'s pinned versions across the board, pending P1 showing no blocking breakage (<a
+                      href="#q1"
+                      >Q1</a
+                    >)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>Owen: inclined to use what vite+ uses. Delta and losses: Overview 1.2.</p>
+                  <p class="meta">
+                    Answers <a href="#q1">Q1</a>: Timing: spike now, or wait for 1.0.x pins to catch up?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q2" data-status="done"
+              ><a class="plan-id" href="#q2">Q2</a> <span class="plan-title">Node target: 22.18 or 24 LTS?</span>
+              <a class="plan-answer" href="#d2">→ D2</a></ui-item
+            ><ui-item id="d2" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d2">D2</a>
+                  <span class="plan-title">Node 24 LTS (<a href="#q2">Q2</a>)</span></ui-title
+                ><ui-content
+                  ><p class="meta">Answers <a href="#q2">Q2</a>: Node target: 22.18 or 24 LTS?</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="q3" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#q3">Q3</a>
+                  <span class="plan-title"
+                    >oxfmt 0.70 may reformat files 0.71 wrote: accept one churn commit, or config/ignore to avoid
+                    it?</span
+                  >
+                  <a class="plan-answer" href="#d3">→ D3</a></ui-title
+                ><ui-content
+                  ><p>
+                    0.71 treats <code>/***</code> as JSDoc (our <code>/**** ### &lt;Component&gt;</code> headers), keeps
+                    trailing double spaces in JSDoc, moves comments around <code>=</code>. Downgrade may undo those.
+                    Decide in P2 once diff size is known.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d3" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d3">D3</a>
+                  <span class="plan-title"
+                    >One churn commit: run oxfmt 0.70 over the repo, commit it alone (format: oxfmt 0.70) (<a href="#q3"
+                      >Q3</a
+                    >)</span
+                  ></ui-title
+                ><ui-content
+                  ><p class="meta">
+                    Answers <a href="#q3">Q3</a>: oxfmt 0.70 may reformat files 0.71 wrote: accept one churn commit, or
+                    config/ignore to avoid it?
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d4" data-status="decided"
+              ><a class="plan-id" href="#d4">D4</a>
+              <span class="plan-title"
+                >Bedtime run: all phases, P4 stops short of leaving the worktree / merging</span
+              ></ui-item
+            ><ui-item id="d5" data-status="decided"
+              ><a class="plan-id" href="#d5">D5</a>
+              <span class="plan-title"
+                >Node 24 via volta install node@24 (global default); CI workflow to 24</span
+              ></ui-item
+            ><ui-item id="d6" data-status="decided"
+              ><a class="plan-id" href="#d6">D6</a>
+              <span class="plan-title"
+                >Adopt bar: every root script green on vite+; timings recorded, don't gate P3</span
+              ></ui-item
+            ><ui-item id="d7" data-status="decided"
+              ><a class="plan-id" href="#d7">D7</a>
+              <span class="plan-title"
+                >Rewrite vitest imports to vite-plus/test* (as vp migrate does), in a commit of its own</span
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="1">UPDATE</ui-label></ui-item
+            ><ui-item id="d8" data-status="decided"
+              ><a class="plan-id" href="#d8">D8</a>
+              <span class="plan-title"
+                >Fold .oxlintrc.json / .oxfmtrc.json into lint / fmt blocks of vite.config.ts</span
+              >
+              <ui-label class="plan-update" size="mini" color="orange" data-phase="1">UPDATE</ui-label></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="caveats" header="4. Caveats" sticky collapsible dividing>
+          <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
+          <ui-list class="plan-items" data-kind="caveat" divided relaxed
+            ><ui-item id="c1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c1">C1</a>
+                  <span class="plan-title"
+                    >oxlint 1.85 lacks 1.86 false-positive fixes; --max-warnings 0 may turn review red</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Lost fixes: <code>require-await</code> + <code>await using</code>;
+                    <code>no-unused-vars</code> (array rest, update exprs); <code>prefer-const</code> embedded assigns;
+                    <code>import/no-duplicates</code> with import attributes.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c2">C2</a>
+                  <span class="plan-title"
+                    >vite aliased to @voidzero-dev/vite-plus-core (repackaged vite 8.3.1)</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Custom configs most exposed: <code>packages/app/vite.*.config.ts</code>,
+                    <a href="../../../../vite.decorators.ts" target="src-vite-decorators-ts"
+                      ><code>vite.decorators.ts</code></a
+                    >, <code>vite-plugin-dts</code>, <code>@vitejs/plugin-react</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c3" data-status="open"
+              ><a class="plan-id" href="#c3">C3</a>
+              <span class="plan-title">packages/vscode is its own yarn project: stays on plain vite</span></ui-item
+            ><ui-item id="c4" data-status="open"
+              ><a class="plan-id" href="#c4">C4</a>
+              <span class="plan-title"
+                >vp manages Node + package manager; keep corepack yarn 4.18, opt out</span
+              ></ui-item
+            ><ui-item id="c5" data-status="open"
+              ><a class="plan-id" href="#c5">C5</a>
+              <span class="plan-title"
+                >No speed win for dev / build / test: same engines. Only vp run caching saves time</span
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="todos" header="5. Todos" sticky collapsible dividing>
+          <ui-icon slot="icon" name="list check"></ui-icon>
+          <p class="meta">For later: not caveats, not issues.</p>
+          <ui-list class="plan-items" data-kind="todo" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="issues" header="6. Issues" sticky collapsible dividing>
+          <ui-icon slot="icon" name="bug"></ui-icon>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="log" header="7. Log" sticky collapsible dividing>
+          <ui-icon slot="icon" name="clock rotate left"></ui-icon>
+          <p class="meta">Plan changes, oldest first, local time.</p>
+          <ui-feed class="plan-log" size="small">
+            <ui-event icon="pen to square">
+              <ui-content>
+                <ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:03-04:00">2026-10-02 22:03</time></ui-date> plan doc
+                  created</ui-summary
+                >
+              </ui-content>
+            </ui-event>
+            <ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:03-04:00">2026-10-02 22:03</time></ui-date> P1 added: Spike
+                  Migrate</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:03-04:00">2026-10-02 22:03</time></ui-date> P2 added: Measure
+                  + Decide</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:03-04:00">2026-10-02 22:03</time></ui-date> P3 added:
+                  Rollout</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:03-04:00">2026-10-02 22:03</time></ui-date> P4 added: Doc
+                  Review</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:03-04:00">2026-10-02 22:03</time></ui-date> Q1 answered: D1 Go
+                  with vite+'s pinned versions across the board, pending P1 showing no blocking breakage</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:03-04:00">2026-10-02 22:03</time></ui-date> Q2 answered: D2
+                  Node 24 LTS</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:16-04:00">2026-10-02 22:16</time></ui-date> Q3 answered: D3
+                  One churn commit: run oxfmt 0.70 over the repo, commit it alone (format: oxfmt 0.70)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:16-04:00">2026-10-02 22:16</time></ui-date> P1
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ></ui-feed
+          >
+        </ui-section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../_assets/spell-ui.js"></script>
+  </body>
+</html>
