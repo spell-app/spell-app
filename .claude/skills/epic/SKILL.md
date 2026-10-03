@@ -35,6 +35,11 @@ the whole time.  The plan doc is the user's view of the work:  they read it in V
   for a name.
   - "Make this a plan doc" (invoked mid-session):  propose a name from the work so far in AskUserQuestion,
     recommended first;  the user can type another in "Other".
+- Checks and rename, BEFORE anything else:  as `.claude/skills/isolate/SKILL.md` "Start", step 0.  A typed
+  `/epic <name> ...` got them from the repo's `UserPromptSubmit` hook (`.claude/hooks/prompt-gate.mjs`):  it
+  renamed the session `<name>`, or blocked the prompt (plan mode, another worktree) and saved its text.
+- A saved prompt `~/.spell/prompts/<name>.md` and no text after `<name>`:  that's the plan, the kickoff prompt.  Say
+  so in one line.  Delete it only once the plan doc holds it (`plan-doc new --prompt-file`).
 - Look for collisions (from the repo root), every time:
   - `packages/docs/epics/<name>/`, `packages/docs/<name>/`, `packages/docs/<name>.html`
   - the worktree and branch checks of `.claude/skills/isolate/SKILL.md`, "Start", step 2

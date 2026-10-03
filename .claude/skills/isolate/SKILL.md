@@ -11,9 +11,19 @@ worktree, its branch and the session share one name.  `/epic` runs these steps t
 
 ## Start:  `/isolate <name>`
 
-0. Already mid-work ("isolate as <name>" in a running session):
+0. Checks and rename, BEFORE anything else.  A typed `/isolate <name>` got them from the repo's `UserPromptSubmit`
+   hook (`.claude/hooks/prompt-gate.mjs`, read its header):  it renamed the session `<name>`, or blocked the prompt.
+   "Isolate as <name>" in plain words never reaches the hook, so do its checks here:
    - in plan mode:  it's read-only apart from the plan file, so `EnterWorktree` can't run, and ExitPlanMode would
      ask to APPROVE a half-made plan.  Ask the user to leave plan mode (shift+tab);  the plan file survives.
+   - in another worktree:  the session's folder is under `.claude/worktrees/<other>`, or its window is a worktree's
+     (`node scripts/window.mjs which`:  `workspace` under `workspaces/ongoing/`).  `<other>` isn't `<name>`:  stop,
+     saying so in one line ("`/isolate done` first, or start from a package window").
+   - rename:  `python3 ~/.claude/skills/session/scripts/session.py name <name>`.  It lands on the next prompt, or
+     when the session opens in its new window.
+   - a saved prompt `~/.spell/prompts/<name>.md` (the hook saved it while blocking an earlier `/isolate <name>
+     ...`):  it's the task to carry on with once isolated.  Delete it once done.
+   Already mid-work ("isolate as <name>" in a running session):
    - edits already made in the main checkout:  the worktree is cut from COMMITTED `main`, so they won't follow.
      List them (`git status --short`) and AskUserQuestion:  "Carry them over" (`git stash -u` here, `git stash pop`
      in the worktree after step 4), "Commit on `main` first" (stage, then ask) or "Leave them".

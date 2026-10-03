@@ -19,6 +19,11 @@ finds what to resume and makes sure it happens in the right place.
   - several:  AskUserQuestion "Which parked work?", one option per entry, labelled `<name>`, description its
     `stopped` line and `state` (4 per question;  more in extra questions)
 
+- Rename this session `<name>`, BEFORE anything else.  A typed `/unpark <name>` already was, by the repo's
+  `UserPromptSubmit` hook (`.claude/hooks/prompt-gate.mjs`).  Else (no argument, or plain words):
+  `python3 ~/.claude/skills/session/scripts/session.py name <name>`, which lands on the next prompt, or when the
+  session opens in its new window.
+
 ## 2. Parked by a session that's still open
 
 `python3 .claude/skills/park/scripts/status.py <name>`:  a session in `sessions` with `running: true`, other than

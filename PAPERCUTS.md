@@ -1106,6 +1106,12 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   `time ( ... )` subshell, and a `grep ... .gitignore` chained after `ls` ("names git in a form too complex").  The
   check is on the command TEXT, so even a file name with `git` in it trips it. · One plain command per Bash call;
   loops and git calls over other branches go in a Python script (`/whassup`'s `whassup.py`). · tooling
+- 2026-10-03 · More worktree-session refusals:  `sed -n "$(grep -n ... | cut -d: -f1),+30p"` (a computed value where
+  an option may stand) and `python3 -c "...open('$HOME/...')"` (a program computed from a variable). · Read with
+  `Read` and its `offset`;  spell paths out, or put the script in a scratchpad file. · tooling
+- 2026-10-03 · Testing what a `UserPromptSubmit` hook gets for a typed slash command, without running the skill. ·
+  `claude -p "/epic x text" --settings <file> --permission-mode plan`, the settings holding one hook that saves
+  its stdin and answers `{"decision":"block"}`:  the input has the raw prompt and `permission_mode`. · claude-code
 
 ## vscode
 
