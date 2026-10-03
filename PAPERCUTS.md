@@ -1093,6 +1093,10 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   started `/clear` -> `/epic` -> `/bedtime`, only slash commands (`<command-name>`, skipped as harness text). ·
   `session.py`'s `prompt_text` now reads a slash command as `/name args`, and a title alone keeps a session
   listed. · claude-code
+- 2026-10-02 · In a worktree session, read-only commands were refused too:  a `for` loop over `git rev-list`, a
+  `time ( ... )` subshell, and a `grep ... .gitignore` chained after `ls` ("names git in a form too complex").  The
+  check is on the command TEXT, so even a file name with `git` in it trips it. · One plain command per Bash call;
+  loops and git calls over other branches go in a Python script (`/whassup`'s `whassup.py`). · tooling
 
 ## vscode
 
