@@ -589,6 +589,49 @@ export class SourceError extends Error {
 }
 
 ////////////////
+// ## Code languages
+////////////////
+
+/** Event on `document` after `UI.code.register()`:  a `<ui-code>` waiting for that language highlights again. */
+export const CODE_LANGUAGES_EVENT = "ui-code-languages"
+
+/**
+ * A highlight.js language definition:  `(hljs) => Language` (highlight.js's own "language function").
+ * - Typed loosely so `$/ui/runtime` needn't import highlight.js's types:  `ui-code` hands it to `hljs.registerLanguage`.
+ */
+export type CodeGrammar = (hljs: any) => object
+
+/** One coloured stretch of code from a `CodeHighlight` function;  offsets into the code, `kind` a highlight.js class. */
+export type CodeSpan = {
+  /** first character */
+  start: number
+  /** one past the last */
+  end: number
+  /** highlight.js scope, e.g. `keyword`, `string`, `title.function`:  coloured as `.hljs-<kind>` */
+  kind: string
+}
+
+/** A highlighter of our own (not highlight.js):  the coloured stretches of `code`, in order, not overlapping. */
+export type CodeHighlight = (code: string) => CodeSpan[] | Promise<CodeSpan[]>
+
+/**
+ * A language `UI.code.register()` adds, one of:
+ * - `grammar`:  a highlight.js language;  joins auto-detection when `detect`
+ * - `highlight`:  a function of our own, e.g. spell's parser
+ * - `load(variant)`:  either of the above, fetched on first use;  `variant` is what follows the `/` in
+ *   `language="spell/es"` (`undefined` for plain `spell`)
+ */
+export type CodeLanguage = {
+  grammar?: CodeGrammar
+  highlight?: CodeHighlight
+  load?: (variant: string | undefined) => Promise<Omit<CodeLanguage, "load">>
+  /** other names for it, e.g. `["sp"]` */
+  aliases?: readonly string[]
+  /** take part in auto-detection (`grammar` only);  default `false` */
+  detect?: boolean
+}
+
+////////////////
 // ## Visibility
 ////////////////
 

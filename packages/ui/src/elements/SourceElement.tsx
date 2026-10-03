@@ -413,7 +413,7 @@ export abstract class SourceElement<V extends ComponentVocabulary = ComponentVoc
   ////////////////
 
   /** `emit()` for the shared source events (`UIT.SOURCE_EVENTS`), which every source vocabulary spreads. */
-  private emitSource(name: string, detail: object): boolean {
+  protected emitSource(name: string, detail: object): boolean {
     return (this.emit as (name: string, detail: object) => boolean)(name, detail)
   }
 

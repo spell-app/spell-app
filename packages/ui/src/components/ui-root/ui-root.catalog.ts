@@ -32,6 +32,7 @@ export const ROOT_CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
   },
   "ui-cards": { folder: "ui-card" },
   "ui-checkbox": { folder: "ui-checkbox", skeleton: { display: "inline", width: "6em", height: "1.25em" } },
+  "ui-code": { folder: "ui-code", skeleton: { parts: [{ shape: "paragraph", lines: 5 }] } },
   "ui-column": { folder: "ui-grid" },
   "ui-comment": {
     folder: "ui-comment",
