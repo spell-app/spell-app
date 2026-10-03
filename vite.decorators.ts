@@ -13,7 +13,8 @@ import type { Plugin } from "vite"
  *   and custom element classes keep their class names (`UIButton`), which the custom-elements manifest and
  *   dev-time warnings read -- the build keeps them too.
  * - JSX is preserved (loader `tsx`) for vite's react / Solid plugin to deal with;  the Solid plugin runs next.
- * - MUST be used by BOTH `vite.config.ts` and `vitest.config.ts` in every package, and by the Astro config in `@spell-app/ui/site/`.
+ * - MUST be used by BOTH `vite.config.ts` and `vitest.config.ts` in every package (`@spell-app/ui`'s site bundle,
+ *   `vite.site.config.ts`, gets it through `baseConfig()`).
  * - TODO: delete this file when oxc lowers standard decorators.
  */
 export function standardDecorators(): Plugin {

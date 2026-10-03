@@ -35,8 +35,9 @@ yarn site:new getting-started --title "Getting started" --summary "One line."   
 - Our names:  `packages/ui/src/components/ui-<name>/*.vocabulary.en.ts` -- the ONLY attributes and values that exist.
   `examples/elements/*.html` beside them:  Fomantic's examples already translated to element markup;  reuse them.
   `examples/*.html`:  the class grammar.
-- What our old page says (Usage, Theming prose, a11y, framework snippets, our own extras):
-  `packages/ui/site/src/content/components/ui-<name>.mdx`.  Keep our extras that Fomantic lacks.
+- What our old Astro page said (Usage, Theming prose, a11y, framework snippets, our own extras):  deleted in P7,
+  so from git:  `git show df8ca0bf:packages/ui/site/src/content/components/ui-<name>.mdx`.  Keep our extras that
+  Fomantic lacks.
 - Images:  `../images/...`, same paths as fomantic-ui.com's `/images/...` (`packages/ui/site/images/`).  A missing
   image:  a gap note in the page, not a hotlink.
 - Grammar rules (attribute <-> class words):  `packages/ui/docs/grammar.md`.
@@ -78,7 +79,7 @@ yarn site:new getting-started --title "Getting started" --summary "One line."   
     layout wrapper, only if the example needs one:  a `<ui-*>` (`<ui-segment basic>`, `<ui-container>`).  Inverted
     examples:  `<ui-segment inverted>` (Fomantic's `ui inverted segment`).
   - NO comments inside a `<ui-docs-example>` (they show in its code).
-- A Fomantic feature we DELIBERATELY don't have (the vocabulary or the mdx says "not ported"):  one line in its place,
+- A Fomantic feature we DELIBERATELY don't have (the vocabulary or the old mdx says "not ported"):  one line in its place,
   `<ui-message size="small" class="site-not-ported">Not ported:  <what> -- <why, one clause>.</ui-message>` (or as a
   `slot="description"` child of the nearest example).
 - Things that bit the pilot:
@@ -116,7 +117,7 @@ Not in the table:  read the tag's vocabulary;  still nothing => it's a gap (sect
 
 ## 4. Usage pane
 
-Sections (`<ui-header level="2" dividing id>`), from the mdx, tightened:
+Sections (`<ui-header level="2" dividing id>`), from the old mdx (git, above), tightened:
 
 - Using it -- what to write, which attributes matter (class words, booleans, shorthands vs slots), groups / owners
 - Events -- every `ui-*` event with its `detail`, a `<ui-code language="js">` listener

@@ -54,7 +54,7 @@ describe("vocabulary kinds, across families", () => {
   })
 })
 
-/** Source of every vocabulary and family types file:  pure data, read by the docs site's server render too. */
+/** Source of every vocabulary and family types file:  pure data, imported in node too (`yarn site:data`, `gen:root`). */
 const DATA_FILES = import.meta.glob<string>(
   [
     "/src/components/*/*.vocabulary.en.ts",
@@ -66,7 +66,8 @@ const DATA_FILES = import.meta.glob<string>(
 )
 
 describe("vocabularies and types files stay pure data", () => {
-  // `$/ui/core` by VALUE loads the element layer, whose Solid client APIs throw in `astro dev`'s server render
+  // `$/ui/core` by VALUE loads the element layer, which node can't:  `yarn site:data` / `yarn gen:root` import every
+  // vocabulary through tsx (no `?inline` css, no JSX)
   it.each(Object.entries(DATA_FILES))("%s imports `$/ui/core` for types only", (_, source) => {
     // one statement:  `import { ... } from` (braces may span lines) or `import X from`, not `import type`
     const valueImports = [...source.matchAll(/^import (?!type )(?:\{[^}]*\}|[\w*][^\n{]*?) from "\$\/ui\/core"/gm)]

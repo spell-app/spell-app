@@ -245,8 +245,8 @@ export type SiteFoundationGroup = {
 /**
  * `site/_data/pages.json`:  the hand-kept per-family facts the vocabularies don't hold -- title, summary, status,
  * and how to read its tokens.  `yarn site:data` reads it and writes `components.json`.
- * - Seeded ONCE per family from the old Astro page (`site/src/content/components/<folder>.mdx` frontmatter and its
- *   `<CssTokens>` props);  from then on THIS file is the source, so the MDX can go.  Edit it by hand.
+ * - Seeded ONCE per new family from its vocabulary (`SiteDataBuilder`);  from then on THIS file is the source.  Edit
+ *   it by hand.  (The first seeds came from the old Astro site's MDX pages, deleted in epic `spell-ui-pages` P7.)
  */
 export type SitePagesFile = {
   readonly $comment: string

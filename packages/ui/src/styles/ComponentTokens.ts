@@ -3,7 +3,7 @@
  * sheet DECLARES them, the private aliases (`--_ui-x: var(--ui-x, <default>)`) that replace them, and the codemod
  * that converts a family.  See `docs/theming.md` "Component tokens".
  * - Pure text in, text out:  no DOM, no Vite, so the browser test (`test/component-tokens.test.ts`), the codemod
- *   (`yarn tokens:alias`, `scripts/alias-tokens.ts`) and the docs site (`CssTokens.astro`) share it.
+ *   (`yarn tokens:alias`, `scripts/alias-tokens.ts`) and the docs site's token tables (`tools/FamilyTokens.ts`) share it.
  * - Build / test time only:  left out of the `$/ui/styles` barrel, import the leaf file.
  * - A COMPONENT token is `--ui-<tag>` or `--ui-<tag>-*` for a tag some vocabulary declares (`ui-button` =>
  *   `--ui-button-radius`), minus the foundation's own names (`--ui-text-color` is a token of `tokens.css`, not of
@@ -119,7 +119,7 @@ export class ComponentTokens {
 
   /**
    * Public tokens a sheet exposes through private aliases:  `--_ui-x: var(--ui-x, <default>)`, first one wins,
-   * with the `/* comment *\/` right above as the description (`CssTokens.astro`).
+   * with the `/* comment *\/` right above as the description (the docs' token tables, `tools/FamilyTokens.ts`).
    */
   static aliases(css: string): Array<{ name: string; default: string; description?: string }> {
     const found = new Map<string, { name: string; default: string; description?: string }>()

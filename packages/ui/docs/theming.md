@@ -131,7 +131,7 @@ does).  `contrast-color()` would do it in CSS, but is Chromium-only.
 
 Every family exposes PUBLIC per-component tokens, `--ui-<tag>-*`, one per Fomantic `.variables` entry that still
 matters:  `--ui-button-radius`, `--ui-card-width`, `--ui-header-color`.  Each docs page lists them with their
-defaults (`CssTokens.astro` reads them from the sheet).  Decided 2026-09-30 (Owen).
+defaults (`tools/FamilyTokens.ts` reads them from the sheet).  Decided 2026-09-30 (Owen).
 
 ### Where you can set them
 
@@ -177,7 +177,7 @@ each public token through a PRIVATE ALIAS declared where the public one used to 
   is named after the token it reads, and no sheet reads an aliased token bare.  `EXCEPTIONS` lists deliberate
   cross-family theming, each with why.
 - A token nothing varies needs no alias:  the rule reads it where it paints, `var(--ui-modal-content-padding, 1.5em)`.
-  `CssTokens.astro` lists both kinds.
+  `tools/FamilyTokens.ts` (the docs' token tables) lists both kinds.
 
 ### Variations
 
@@ -491,7 +491,7 @@ owner), `parts` (the header's own tokens, and the part side of owner tokens).
 1. Dry run:  `yarn tokens:alias <family>` prints, per sheet, the notes to review and every OTHER file still naming
    one of the family's public tokens.  `--write` applies it (and runs oxfmt over the sheets).
    - Without the codemod:  `grep -nE -- '^\s*--ui-<tag>-[a-z0-9-]+\s*:' src/components/ui-<family>/*.css` finds the
-     declarations (one grep per tag:  `button`, `buttons`, `or`);  `grep -rnE -- '--ui-<tag>-' src test site/src
+     declarations (one grep per tag:  `button`, `buttons`, `or`);  `grep -rnE -- '--ui-<tag>-' src test site
      docs` finds the rest.
 2. What the codemod does, per sheet:  the FIRST declaration of each public token becomes the alias
    (`--_ui-x: var(--ui-x, <value>)`), every later declaration (a variation) writes `--_ui-x`, and every
@@ -533,8 +533,8 @@ owner), `parts` (the header's own tokens, and the part side of owner tokens).
    - an owner:  one owner look token set on the owner reaches a part
    - variations:  one that swaps (wins over the base token) or derives (follows it)
    - static markup (`ui-<family>.css.test.ts`):  one set on a wrapper of class-grammar markup
-9. Docs page (`site/src/content/components/ui-<family>.mdx`, Theming):  "set it on the element, any ancestor, or
-   `::part()`", as `button.mdx`.  The `CssTokens` table reads the aliases on its own.
+9. Docs page (`site/components/ui-<family>.html`, Theming tab):  "set it on the element, any ancestor, or
+   `::part()`", as `ui-button.html`.  The `<ui-docs-tokens>` table reads the aliases on its own (`yarn site:data`).
 10. Look unchanged:  compare computed styles of every example before and after (the reference conversions did, for
     every property that paints);  run `yarn vitest run --project browser src/components/ui-<family> test/`.
 
