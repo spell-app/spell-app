@@ -289,6 +289,14 @@ describe("<ui-items> responsive (container queries)", () => {
     expect(await widthAt(500)).toBeGreaterThan(80)
   })
 
+  it("caps a stacked item's sized <ui-image> at 250px tall, keeping its shape (Fomantic's mobile `max-height`)", async () => {
+    const sized = `<ui-item><ui-image size="tiny" src="${PHOTO}" alt=""></ui-image><ui-content>Text</ui-content></ui-item>`
+    const { items } = await view("", sized, 500)
+    const box = items[0]!.querySelector("ui-image")!.shadowRoot!.querySelector("img")!.getBoundingClientRect()
+    expect(box.height).toBe(250)
+    expect(box.width).toBe(375)
+  })
+
   it("narrows the image and the distance in a tablet-wide group", async () => {
     const { items } = await view("", ITEM, 800)
     expect(items[0]!.querySelector("img")!.getBoundingClientRect().width).toBe(150)

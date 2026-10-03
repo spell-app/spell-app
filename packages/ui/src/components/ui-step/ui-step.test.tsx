@@ -76,7 +76,7 @@ describe("<ui-step>", () => {
     ["selected", "div", "active step"],
     ["active", "div", "step active"],
     ["completed disabled", "div", "completed disabled step"],
-    ['color="red"', "div", "red step"],
+    ['color="red"', "div", "red step ui-red"],
     ['href="#a"', "a", "step"],
     ["link", "button", "link step"]
   ])("<ui-step %s> => <%s class=%s>", async (attributes, tag, classes) => {
@@ -239,6 +239,19 @@ describe("<ui-steps> layouts", () => {
     expect(ring.borderTopLeftRadius).toBe("50%")
     const red = Fixture.render(`<span style="color: var(--ui-red)"></span>`)
     expect(ring.borderTopColor).toBe(getComputedStyle(red).color)
+  })
+
+  it("draws a step's own `color` on its ring, over the group's or with none", async () => {
+    const holder = await ElementFixture.render(
+      `<div style="width: 900px"><ui-steps circular><ui-step color="teal"></ui-step><ui-step></ui-step></ui-steps>` +
+        `<ui-steps circular color="red"><ui-step color="orange"></ui-step></ui-steps></div>`
+    )
+    const [teal, plain, orange] = stepRoots(holder)
+    const hue = (name: string) =>
+      getComputedStyle(Fixture.render(`<span style="color: var(--ui-${name})"></span>`)).color
+    expect(getComputedStyle(teal!, "::before").borderTopColor).toBe(hue("teal"))
+    expect(getComputedStyle(orange!, "::before").borderTopColor).toBe(hue("orange"))
+    expect(getComputedStyle(plain!, "::before").borderTopColor).not.toBe(hue("teal"))
   })
 })
 

@@ -193,7 +193,8 @@
       var(--_ui-segments-shadow, var(--_segment-shadow, var(--_ui-segment-shadow)));
     color: var(--_segment-fg, var(--_ui-segment-color));
     font-size: calc(var(--ui-font-size) * var(--ui-scale, 1));
-    text-align: var(--_segment-text-align, start);
+    /* Inherits unless aligned:  Fomantic's segment sets none, so a `right aligned` grid column reaches its text. */
+    text-align: var(--_segment-text-align, inherit);
   }
   /* Spacing between neighbours:  none before the first, none after the last. */
   .ui.segment:first-child {

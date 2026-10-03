@@ -168,6 +168,20 @@ describe("<ui-docs-themes> menu", () => {
     const data = { components: [], docs: [], families: {}, themes: [] } as unknown as SiteDataFile
     expect(new ThemeMenu(["github"], data, "ui-nope").themes()).toEqual(["github"])
   })
+
+  it("ThemeMenu:  `1 theme`, and the chosen look (never `0 themes`) for a family no theme touches", () => {
+    const text = (key: string, values?: Record<string, unknown>) =>
+      ({
+        themeCount: `${values?.count} themes`,
+        themeCountOne: "1 theme",
+        themeLabel: `${values?.title} theme`,
+        default: "Default"
+      })[key] ?? key
+    const one = new ThemeMenu(["github"], undefined, "ui-button")
+    expect(one.label(undefined, text as never)).toBe("1 theme")
+    const none = new ThemeMenu([], undefined, "ui-sticky")
+    expect(none.label(undefined, text as never)).toBe("Default theme")
+  })
 })
 
 describe("<ui-docs-themes> choosing", () => {

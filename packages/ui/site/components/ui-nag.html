@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Nag | Spell UI</title>
+    <meta
+      name="description"
+      content="A nag is a persistent message that stays until dismissed, and can remember the dismissal."
+    />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var s = localStorage.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <ui-root class="site" icons="fa7-brands, fomantic" display="immediately">
+      <ui-include class="site-header" source="../_parts/header.html" page-styles>
+        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
+      </ui-include>
+
+      <div class="site-layout">
+        <aside class="site-nav">
+          <ui-docs-nav></ui-docs-nav>
+        </aside>
+
+        <main id="main" class="site-main">
+          <ui-segment vertical class="site-masthead">
+            <ui-container>
+              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-nag.html"
+                  icon="pen to square"
+                  aria-label="This page's source on GitHub"
+                  title="This page's source on GitHub"
+                ></ui-item>
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-nag%3A%20%20"
+                  icon="bug"
+                  aria-label="Report a bug"
+                  title="Report a bug"
+                ></ui-item>
+                <ui-item
+                  href="https://fomantic-ui.com/modules/nag.html"
+                  icon="up right from square"
+                  aria-label="Fomantic UI's original page"
+                  title="Fomantic UI's original page"
+                ></ui-item>
+              </ui-menu>
+              <ui-header level="1" class="site-title">
+                Nag
+                <ui-header
+                  >A nag is a persistent message that stays until dismissed, and can remember the dismissal.</ui-header
+                >
+              </ui-header>
+              <ui-docs-themes for="ui-nag" show="theme" class="site-themes"></ui-docs-themes>
+            </ui-container>
+          </ui-segment>
+
+          <ui-container class="site-body">
+            <ui-rail position="right" class="site-rail">
+              <ui-sticky class="site-toc" offset="64">
+                <ui-docs-toc for="site-tabs" header="Nag"></ui-docs-toc>
+              </ui-sticky>
+            </ui-rail>
+
+            <ui-tabs id="site-tabs" class="site-tabs" history basic compact>
+              <ui-tab value="examples" label="Examples">
+                <!--
+                  EXAMPLES:  Fomantic's nag page, section by section, in its order (Types, Groups, Variations).  Nags here sit in the
+                  flow of the page;  the fixed ones start `hidden` and open from a button, so they never cover the docs.  Most are
+                  `closable="false"`, so a stray click doesn't take the example away.
+                -->
+                <ui-header level="2" dividing id="types">Types</ui-header>
+
+                <ui-message size="small" state="info"
+                  >A nag shows as soon as it is on the page, unless its dismissal is remembered (see the Usage tab) or
+                  it starts <code>hidden</code>; Fomantic's starts hidden until script calls it.</ui-message
+                >
+
+                <ui-docs-example
+                  header="Nag"
+                  description="A simple nag appears in the DOM where it is declared.  Closing it hides it for this visit."
+                >
+                  <ui-nag>Look, I am a nag!</ui-nag>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Title"
+                  description='A nag can have a title:  a `<span class="title">` inside is set off in the title colour.'
+                >
+                  <ui-nag closable="false"
+                    ><span class="title">Welcome to the nag module</span> Look, I am a nag!</ui-nag
+                  >
+                </ui-docs-example>
+
+                <ui-docs-example header="Fixed Nag">
+                  <p slot="description">
+                    A fixed nag appears at the top of the screen. This one starts <code>hidden</code> and a button shows
+                    it (<code>command="--show"</code>); <code>persist</code> ignores the stored dismissal, for the demo.
+                  </p>
+                  <ui-button commandfor="nag-fixed" command="--show" icon="eye">Show fixed nag</ui-button>
+                  <ui-nag id="nag-fixed" fixed hidden persist>Look, I am a fixed nag!</ui-nag>
+                </ui-docs-example>
+                <ui-docs-example description="A fixed nag can appear at the bottom of the screen:  `fixed bottom`.">
+                  <ui-button commandfor="nag-bottom-fixed" command="--show" icon="eye">Show bottom fixed nag</ui-button>
+                  <ui-nag id="nag-bottom-fixed" fixed bottom hidden persist>Look, I am a bottom fixed nag!</ui-nag>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Overlay Nag"
+                  description="An overlay nag is absolute positioned and appears at the top of the parent element, over its content."
+                >
+                  <ui-segment>
+                    <ui-nag overlay closable="false"
+                      ><span class="title">Welcome to the nag module</span> Look, I am a top overlay nag!</ui-nag
+                    >
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                </ui-docs-example>
+                <ui-docs-example
+                  description="An overlay nag can appear at the bottom of the parent element:  `overlay bottom`."
+                >
+                  <ui-segment>
+                    <ui-nag overlay bottom closable="false"
+                      ><span class="title">Welcome to the nag module</span> Look, I am a bottom overlay nag!</ui-nag
+                    >
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="groups">Groups</ui-header>
+
+                <ui-docs-example header="Nags">
+                  <p slot="description">A group of nags can be formatted to appear together.</p>
+                  <ui-message slot="description" size="small" class="site-not-ported"
+                    >Not ported: the <code>.ui.nags</code> group (several nags joined in one bar) -- here they simply
+                    stack, each with its own close icon.</ui-message
+                  >
+                  <ui-nag><span class="title">First nag</span></ui-nag>
+                  <ui-nag><span class="title">Second nag</span></ui-nag>
+                  <ui-nag><span class="title">Third nag</span></ui-nag>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="variations">Variations</ui-header>
+
+                <ui-docs-example header="Colored" description="A nag can be formatted to be different colors.">
+                  <ui-nag color="red" closable="false"><span class="title">Red</span></ui-nag>
+                  <ui-nag color="orange" closable="false"><span class="title">Orange</span></ui-nag>
+                  <ui-nag color="yellow" closable="false"><span class="title">Yellow</span></ui-nag>
+                  <ui-nag color="olive" closable="false"><span class="title">Olive</span></ui-nag>
+                  <ui-nag color="green" closable="false"><span class="title">Green</span></ui-nag>
+                  <ui-nag color="teal" closable="false"><span class="title">Teal</span></ui-nag>
+                  <ui-nag color="blue" closable="false"><span class="title">Blue</span></ui-nag>
+                  <ui-nag color="violet" closable="false"><span class="title">Violet</span></ui-nag>
+                  <ui-nag color="purple" closable="false"><span class="title">Purple</span></ui-nag>
+                  <ui-nag color="pink" closable="false"><span class="title">Pink</span></ui-nag>
+                  <ui-nag color="brown" closable="false"><span class="title">Brown</span></ui-nag>
+                  <ui-nag color="black" closable="false"><span class="title">Black</span></ui-nag>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Inverted"
+                  description="A nag can be formatted to appear inverted:  a nag is dark by default, `inverted` makes it light;  a coloured one takes its tint."
+                >
+                  <ui-nag inverted closable="false"
+                    ><span class="title">Inverted</span> This nag has inverted colors</ui-nag
+                  >
+                  <ui-nag inverted color="red" closable="false"
+                    ><span class="title">Inverted red</span> A tinted nag</ui-nag
+                  >
+                </ui-docs-example>
+
+                <ui-docs-example header="Size" description="A nag can have different sizes.">
+                  <ui-nag size="mini" closable="false"><span class="title">Mini nag</span></ui-nag>
+                  <ui-nag size="tiny" closable="false"><span class="title">Tiny nag</span></ui-nag>
+                  <ui-nag size="small" closable="false"><span class="title">Small nag</span></ui-nag>
+                  <ui-nag size="large" closable="false"><span class="title">Large nag</span></ui-nag>
+                  <ui-nag size="big" closable="false"><span class="title">Big nag</span></ui-nag>
+                  <ui-nag size="huge" closable="false"><span class="title">Huge nag</span></ui-nag>
+                  <ui-nag size="massive" closable="false"><span class="title">Massive nag</span></ui-nag>
+                </ui-docs-example>
+              </ui-tab>
+
+              <ui-tab value="usage" label="Usage">
+                <!-- USAGE:  showing, remembering, events, script API, accessibility, frameworks. -->
+                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Nags present a one-time message that persists until the user acknowledges it: the site's use of cookies, an
+                    important change to the site. Write `<ui-nag>` with the text inside; there is no `.nag()` call to make.
+
+                    - It shows as soon as it is on the page, with a close icon (`closable`, on by default).
+                    - A `<span class="title">` inside is set off in the title colour.
+                    - Plain, it pushes the content down; `overlay` puts it over the top of its container, `fixed` pins it to the
+                      top of the viewport, and `bottom` moves either to the bottom edge.
+                    - `display-time` hides it after that many milliseconds, without storing anything.
+                    - Start it `hidden` to show it later: `host.show()`, or a button with `commandfor` and `command="--show"`
+                      (`--close` and `--toggle` work too).
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="remembering">Remembering the dismissal</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Remembering is opt-in. With a `key`, closing the nag stores `value` (default `dismiss`) under that key in
+                    `storage`, so this browser doesn't get the nag again:
+
+                    - `storage`: `local` (`localStorage`), `session` (`sessionStorage`) or `cookie` (Fomantic's default, with
+                      `path`, `domain`, `secure` and `samesite`)
+                    - `expires`: days the dismissal lasts (30 by default; `0` never expires)
+                    - a nag whose dismissal is stored is hidden before it paints, unless it `persist`s
+                    - blocked storage (a private window, a strict browser) just doesn't remember: the nag still shows and closes
+                  </script>
+                </ui-markdown>
+                <ui-docs-example
+                  header="Cookie nag"
+                  description='Dismiss it, then reload:  it stays dismissed for this session (`storage="session"`).'
+                >
+                  <ui-nag key="site-cookie-nag" storage="session"
+                    ><span class="title"
+                      >We use cookies to ensure you get the best experience on our website</span
+                    ></ui-nag
+                  >
+                </ui-docs-example>
+                <ui-code language="js">
+                  <script type="text/plain">
+                    const nag = document.querySelector("ui-nag[key=site-cookie-nag]")
+                    nag.dismissed // true once dismissed, now or on an earlier visit
+                    nag.clear() // forget the dismissal ...
+                    nag.show() // ... and show it again
+                  </script>
+                </ui-code>
+                <ui-message size="small" class="site-not-ported"
+                  >Not ported: Fomantic's API-backed dismissal, <code>expirationKey</code>, <code>detachable</code> and
+                  <code>context</code> -- the nag stays where it is written; store the dismissal on a server from
+                  <code>ui-hide</code>.</ui-message
+                >
+
+                <ui-header level="2" dividing id="events">Events</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - `ui-show` -- shown, its entry animation finished (Fomantic's `onVisible`); `detail` is `{}`.
+                    - `ui-close` -- about to close, cancelable; `detail.reason` is `close` (the icon), `timeout` (`display-time`)
+                      or `dismiss` (`host.close()`, an invoker command). `preventDefault()` keeps it and stores nothing
+                      (Fomantic's `onHide` returning `false`).
+                    - `ui-hide` -- closed, its exit animation finished (Fomantic's `onHidden`); the host is `hidden` now.
+                  </script>
+                </ui-markdown>
+                <ui-code language="js">
+                  <script type="text/plain">
+                    const nag = document.querySelector("ui-nag[key=cookies]")
+                    nag.addEventListener("ui-close", (event) => {
+                      if (!consentSaved) event.preventDefault() // keep it up, store nothing
+                    })
+                    nag.addEventListener("ui-hide", (event) => console.log(event.detail.reason))
+                    if (nag.dismissed) loadAnalytics()
+                  </script>
+                </ui-code>
+
+                <ui-header level="2" dividing id="behaviors">Behaviors</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Fomantic's behaviors are methods on the host:
+
+                    - `show` -- `nag.show()`: shows it again, unless a dismissal is stored (and it doesn't `persist`); true when it
+                      shows
+                    - `hide` / `dismiss` -- `nag.close()`: closes it, storing the dismissal when it has a `key`
+                    - `clear` -- `nag.clear()`: forgets a stored dismissal
+                    - `nag.dismissed` -- true once dismissed, now or before
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - **Tab** reaches the close icon, a real `<button>`.
+                    - **Enter** / **Space** on it closes the nag.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - A nag has no role of its own: it's content, read in page order. If it must be announced when it appears,
+                      give it `role="status"` (or a `role="region"` with an `aria-label`, for a banner) yourself.
+                    - The close icon is a real button named "Close" (translated). With `closable="false"`, make sure something
+                      else closes it.
+                    - A `fixed` nag covers the page's edge: leave room for it (padding on the body), so it never hides content.
+                    - If the element can't render, its native fallback still shows the nag with a working close button (which
+                      hides it and fires `ui-hide`). Remembering, `display-time` and the vetoes are lost.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="frameworks">Framework usage</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    A nag manages itself: put it in the template with a `key`, and listen for `ui-hide` if you track it.
+                  </script>
+                </ui-markdown>
+                <ui-header level="4" id="framework-react">React 19</ui-header>
+                <ui-code language="jsx">
+                  <script type="text/plain">
+                    <ui-nag key="cookies" storage="local" onui-hide={() => setConsent(true)}>
+                      We use cookies.
+                    </ui-nag>
+                  </script>
+                </ui-code>
+                <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+                <ui-code language="html">
+                  <script type="text/plain">
+                    <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                    <ui-nag key="cookies" storage="local" @ui-hide="consent = true">We use cookies.</ui-nag>
+                  </script>
+                </ui-code>
+                <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+                <ui-code language="jsx">
+                  <script type="text/plain">
+                    // no `on:` namespace:  listen through a ref
+                    <ui-nag key="cookies" storage="local" ref={(el) => el.addEventListener("ui-hide", () => setConsent(true))}>
+                      We use cookies.
+                    </ui-nag>
+                  </script>
+                </ui-code>
+              </ui-tab>
+
+              <ui-tab value="api" label="API">
+                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+                <ui-docs-api family="ui-nag"></ui-docs-api>
+              </ui-tab>
+
+              <ui-tab value="theming" label="Theming">
+                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Theme with the public `--ui-nag-*` tokens: set one on the element, on any ancestor (`:root` for every nag), or
+                    on the bar through `::part(nag)`. They inherit into the shadow root, where the sheet reads each through a
+                    private alias, so nothing inside blocks them. `inverted` reads the `--ui-nag-inverted-*` tokens instead. Style
+                    the close icon with `::part(close)`.
+                  </script>
+                </ui-markdown>
+                <ui-code language="css">
+                  <script type="text/plain">
+                    /* every nag on the page */
+                    ui-nag {
+                      --ui-nag-padding: 1em 2em;
+                    }
+                    /* the close icon */
+                    ui-nag::part(close) {
+                      opacity: 1;
+                    }
+                  </script>
+                </ui-code>
+                <ui-message state="info" size="small">
+                  <ui-markdown>
+                    <script type="text/markdown">
+                      Fomantic's grey bar with dark text and a white title (3.2:1 contrast) is a dark grey bar with light text here.
+                      Never set the `--_ui-nag-*` names: they're the sheet's private plumbing.
+                    </script>
+                  </ui-markdown>
+                </ui-message>
+                <ui-markdown>Edit a value below to try it.</ui-markdown>
+                <ui-docs-tokens family="ui-nag" playground></ui-docs-tokens>
+
+                <ui-header level="2" dividing id="themes">Themes</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                    theme to the whole site. No Fomantic theme restyles nags (Fomantic's nag page lists only its default theme),
+                    so the picker here holds the site-wide themes only.
+                  </script>
+                </ui-markdown>
+              </ui-tab>
+            </ui-tabs>
+          </ui-container>
+
+          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
+        </main>
+      </div>
+    </ui-root>
+  </body>
+</html>

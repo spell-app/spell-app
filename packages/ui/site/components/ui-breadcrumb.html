@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Breadcrumb | Spell UI</title>
+    <meta name="description" content="A breadcrumb is used to show hierarchy between content." />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var s = localStorage.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <ui-root class="site" icons="fa7-brands, fomantic" display="immediately">
+      <ui-include class="site-header" source="../_parts/header.html" page-styles>
+        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
+      </ui-include>
+
+      <div class="site-layout">
+        <aside class="site-nav">
+          <ui-docs-nav></ui-docs-nav>
+        </aside>
+
+        <main id="main" class="site-main">
+          <ui-segment vertical class="site-masthead">
+            <ui-container>
+              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-breadcrumb.html"
+                  icon="pen to square"
+                  aria-label="This page's source on GitHub"
+                  title="This page's source on GitHub"
+                ></ui-item>
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-breadcrumb%3A%20%20"
+                  icon="bug"
+                  aria-label="Report a bug"
+                  title="Report a bug"
+                ></ui-item>
+                <ui-item
+                  href="https://fomantic-ui.com/collections/breadcrumb.html"
+                  icon="up right from square"
+                  aria-label="Fomantic UI's original page"
+                  title="Fomantic UI's original page"
+                ></ui-item>
+              </ui-menu>
+              <ui-header level="1" class="site-title">
+                Breadcrumb
+                <ui-header>A breadcrumb is used to show hierarchy between content.</ui-header>
+              </ui-header>
+              <ui-docs-themes for="ui-breadcrumb" show="theme" class="site-themes"></ui-docs-themes>
+            </ui-container>
+          </ui-segment>
+
+          <ui-container class="site-body">
+            <ui-rail position="right" class="site-rail">
+              <ui-sticky class="site-toc" offset="64">
+                <ui-docs-toc for="site-tabs" header="Breadcrumb"></ui-docs-toc>
+              </ui-sticky>
+            </ui-rail>
+
+            <ui-tabs id="site-tabs" class="site-tabs" history basic compact>
+              <ui-tab value="examples" label="Examples">
+                <!--
+                  EXAMPLES:  Fomantic's breadcrumb page, section by section, in its order (Types, Content, States, Variations).
+                  Each breadcrumb is a `<nav>` landmark, so every example names its own with `aria-label`:  two landmarks with one
+                  name on a page are ambiguous.  `GAP I<n>` comments mark examples a widget can't render yet (plan-doc issues).
+                -->
+
+                <ui-header level="2" dividing id="types">Types</ui-header>
+
+                <ui-docs-example header="Breadcrumb">
+                  <p slot="description">
+                    A standard breadcrumb. Each <code>&lt;ui-breadcrumb-section&gt;</code> draws its own divider, so
+                    there is nothing to write between them.
+                  </p>
+                  <ui-breadcrumb aria-label="Standard breadcrumb">
+                    <ui-breadcrumb-section href="#home">Home</ui-breadcrumb-section>
+                    <ui-breadcrumb-section href="#store">Store</ui-breadcrumb-section>
+                    <ui-breadcrumb-section active>T-Shirt</ui-breadcrumb-section>
+                  </ui-breadcrumb>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-breadcrumb aria-label="Breadcrumb with icon dividers" divider-icon="angle right">
+                    <ui-breadcrumb-section href="#home">Home</ui-breadcrumb-section>
+                    <ui-breadcrumb-section href="#store">Store</ui-breadcrumb-section>
+                    <ui-breadcrumb-section active>T-Shirt</ui-breadcrumb-section>
+                  </ui-breadcrumb>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="content">Content</ui-header>
+
+                <ui-docs-example
+                  header="Divider"
+                  description="A breadcrumb can contain a divider to show the relationship between sections, this can be formatted as an icon or text:  `divider` sets the text (`/` when unset), `divider-icon` an icon."
+                >
+                  <ui-breadcrumb aria-label="Text divider" divider="/">
+                    <ui-breadcrumb-section href="#home">Home</ui-breadcrumb-section>
+                    <ui-breadcrumb-section href="#registration">Registration</ui-breadcrumb-section>
+                    <ui-breadcrumb-section active>Personal Information</ui-breadcrumb-section>
+                  </ui-breadcrumb>
+                </ui-docs-example>
+                <!-- GAP I28:  Fomantic mixes a `right chevron` and a `right arrow` divider in one breadcrumb;  ours has one divider per breadcrumb. -->
+                <ui-docs-example>
+                  <ui-breadcrumb aria-label="Chevron dividers" divider-icon="chevron right">
+                    <ui-breadcrumb-section href="#home">Home</ui-breadcrumb-section>
+                    <ui-breadcrumb-section href="#registration">Registration</ui-breadcrumb-section>
+                    <ui-breadcrumb-section active>Personal Information</ui-breadcrumb-section>
+                  </ui-breadcrumb>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-breadcrumb aria-label="Arrow dividers" divider-icon="arrow right">
+                    <ui-breadcrumb-section href="#home">Home</ui-breadcrumb-section>
+                    <ui-breadcrumb-section href="#registration">Registration</ui-breadcrumb-section>
+                    <ui-breadcrumb-section active>Personal Information</ui-breadcrumb-section>
+                  </ui-breadcrumb>
+                </ui-docs-example>
+                <ui-docs-example description="Any text works as a divider, e.g. a guillemet or a pipe.">
+                  <ui-breadcrumb aria-label="Guillemet divider" divider="›">
+                    <ui-breadcrumb-section href="#home">Home</ui-breadcrumb-section>
+                    <ui-breadcrumb-section href="#store">Store</ui-breadcrumb-section>
+                    <ui-breadcrumb-section active>T-Shirt</ui-breadcrumb-section>
+                  </ui-breadcrumb>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-breadcrumb aria-label="Pipe divider" divider="|">
+                    <ui-breadcrumb-section href="#home">Home</ui-breadcrumb-section>
+                    <ui-breadcrumb-section active>Search</ui-breadcrumb-section>
+                  </ui-breadcrumb>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Section"
+                  description="A breadcrumb can contain sections that can either be formatted as a link (`href`) or text."
+                >
+                  <ui-breadcrumb aria-label="Text sections">
+                    <ui-breadcrumb-section>Home</ui-breadcrumb-section>
+                    <ui-breadcrumb-section active>Search</ui-breadcrumb-section>
+                  </ui-breadcrumb>
+                </ui-docs-example>
+
+                <ui-docs-example header="Link" description="A section may be linkable or contain a link.">
+                  <ui-breadcrumb aria-label="Section holding a link">
+                    <ui-breadcrumb-section href="#home">Home</ui-breadcrumb-section>
+                    <ui-breadcrumb-section active
+                      >Search for: <a href="#paper-towels">paper towels</a></ui-breadcrumb-section
+                    >
+                  </ui-breadcrumb>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="states">States</ui-header>
+
+                <ui-docs-example
+                  header="Active"
+                  description='A section can be active:  the current page, bold, never a link, with `aria-current="page"`.'
+                >
+                  <ui-breadcrumb aria-label="Active section">
+                    <ui-breadcrumb-section href="#products">Products</ui-breadcrumb-section>
+                    <ui-breadcrumb-section active>Paper Towels</ui-breadcrumb-section>
+                  </ui-breadcrumb>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="variations">Variations</ui-header>
+
+                <ui-docs-example header="Inverted" description="A breadcrumb can be inverted.">
+                  <ui-segment inverted>
+                    <ui-breadcrumb inverted aria-label="Inverted links" divider-icon="chevron right">
+                      <ui-breadcrumb-section href="#home">Home</ui-breadcrumb-section>
+                      <ui-breadcrumb-section href="#registration">Registration</ui-breadcrumb-section>
+                      <ui-breadcrumb-section active>Personal Information</ui-breadcrumb-section>
+                    </ui-breadcrumb>
+                    <ui-divider hidden></ui-divider>
+                    <ui-breadcrumb inverted aria-label="Inverted text" divider-icon="chevron right">
+                      <ui-breadcrumb-section>Home</ui-breadcrumb-section>
+                      <ui-breadcrumb-section>Registration</ui-breadcrumb-section>
+                      <ui-breadcrumb-section active>Personal Information</ui-breadcrumb-section>
+                    </ui-breadcrumb>
+                  </ui-segment>
+                </ui-docs-example>
+
+                <ui-docs-example header="Size" description="A breadcrumb can vary in size.">
+                  <ui-breadcrumb size="mini" aria-label="Mini" divider-icon="chevron right">
+                    <ui-breadcrumb-section href="#home">Home</ui-breadcrumb-section>
+                    <ui-breadcrumb-section href="#registration">Registration</ui-breadcrumb-section>
+                    <ui-breadcrumb-section active>Personal Information</ui-breadcrumb-section>
+                  </ui-breadcrumb>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-breadcrumb size="tiny" aria-label="Tiny" divider-icon="chevron right">
+                    <ui-breadcrumb-section href="#home">Home</ui-breadcrumb-section>
+                    <ui-breadcrumb-section href="#registration">Registration</ui-breadcrumb-section>
+                    <ui-breadcrumb-section active>Personal Information</ui-breadcrumb-section>
+                  </ui-breadcrumb>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-breadcrumb size="small" aria-label="Small" divider-icon="chevron right">
+                    <ui-breadcrumb-section href="#home">Home</ui-breadcrumb-section>
+                    <ui-breadcrumb-section href="#registration">Registration</ui-breadcrumb-section>
+                    <ui-breadcrumb-section active>Personal Information</ui-breadcrumb-section>
+                  </ui-breadcrumb>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-breadcrumb size="large" aria-label="Large" divider-icon="chevron right">
+                    <ui-breadcrumb-section href="#home">Home</ui-breadcrumb-section>
+                    <ui-breadcrumb-section href="#registration">Registration</ui-breadcrumb-section>
+                    <ui-breadcrumb-section active>Personal Information</ui-breadcrumb-section>
+                  </ui-breadcrumb>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-breadcrumb size="big" aria-label="Big" divider-icon="chevron right">
+                    <ui-breadcrumb-section href="#home">Home</ui-breadcrumb-section>
+                    <ui-breadcrumb-section href="#registration">Registration</ui-breadcrumb-section>
+                    <ui-breadcrumb-section active>Personal Information</ui-breadcrumb-section>
+                  </ui-breadcrumb>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-breadcrumb size="huge" aria-label="Huge" divider-icon="chevron right">
+                    <ui-breadcrumb-section href="#home">Home</ui-breadcrumb-section>
+                    <ui-breadcrumb-section href="#registration">Registration</ui-breadcrumb-section>
+                    <ui-breadcrumb-section active>Personal Information</ui-breadcrumb-section>
+                  </ui-breadcrumb>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-breadcrumb size="massive" aria-label="Massive" divider-icon="chevron right">
+                    <ui-breadcrumb-section href="#home">Home</ui-breadcrumb-section>
+                    <ui-breadcrumb-section href="#registration">Registration</ui-breadcrumb-section>
+                    <ui-breadcrumb-section active>Personal Information</ui-breadcrumb-section>
+                  </ui-breadcrumb>
+                </ui-docs-example>
+              </ui-tab>
+
+              <ui-tab value="usage" label="Usage">
+                <!-- USAGE:  how to use it (sections, dividers), keyboard, accessibility. -->
+                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    `<ui-breadcrumb>` is a `<nav>` around an ordered list; each `<ui-breadcrumb-section>` is one item of it.
+
+                    - A section with `href` is a link (`target` works too); one without is plain text.
+                    - An `active` section is the current page: bold, never a link, even with `href`.
+                    - Each section draws its own divider before it (hidden on the first), so there is nothing to put between them.
+                    - `divider` sets the text divider (`/` when unset); `divider-icon` draws an icon instead, in the text colour.
+                    - `size` and `inverted` are the only look words.
+                  </script>
+                </ui-markdown>
+                <ui-code language="html">
+                  <script type="text/plain">
+                    <ui-breadcrumb aria-label="Location" divider-icon="chevron right">
+                      <ui-breadcrumb-section href="/">Home</ui-breadcrumb-section>
+                      <ui-breadcrumb-section href="/store">Store</ui-breadcrumb-section>
+                      <ui-breadcrumb-section active>T-Shirt</ui-breadcrumb-section>
+                    </ui-breadcrumb>
+                  </script>
+                </ui-code>
+
+                <ui-header level="2" dividing id="events">Events</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Breadcrumbs have no events of their own: a linked section is a real `<a>`, so it fires the native `click` and
+                    navigates.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - **Tab** / **Shift+Tab** moves between the linked sections; text and `active` sections are not tab stops.
+                    - **Enter** follows the focused link.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - The WAI-ARIA breadcrumb pattern: a `<nav>` landmark around an `<ol>`, whose items are the sections.
+                    - The landmark is named "Breadcrumb" (translatable); an `aria-label` on the host replaces it. Give each breadcrumb
+                      on a page its own name.
+                    - The `active` section carries `aria-current="page"`. Linked sections are real `<a>`s: focusable, with Enter to
+                      follow.
+                    - Dividers are drawn by CSS and hidden from assistive technology, so the list reads as its section names only.
+                    - Without JavaScript the native fallback renders the same `<nav>`, list, links and text dividers. It drops
+                      `divider-icon` (the text divider shows instead), and the "Breadcrumb" name stays English.
+                  </script>
+                </ui-markdown>
+              </ui-tab>
+
+              <ui-tab value="api" label="API">
+                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+                <ui-docs-api family="ui-breadcrumb"></ui-docs-api>
+              </ui-tab>
+
+              <ui-tab value="theming" label="Theming">
+                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Theme with the public `--ui-breadcrumb-*` tokens: set one on the element, on any ancestor (a header, `:root`), or
+                    on the breadcrumb's box through `::part(breadcrumb)`. The sections inherit them from the breadcrumb, so set them
+                    there or above, not on a section.
+
+                    The text divider is the `--ui-breadcrumb-divider` token (a CSS string), so a whole site can change it once
+                    instead of setting `divider` on every breadcrumb; a `divider` attribute still wins.
+                  </script>
+                </ui-markdown>
+                <ui-code language="css">
+                  <script type="text/plain">
+                    header ui-breadcrumb {
+                      --ui-breadcrumb-divider: "»";
+                      --ui-breadcrumb-divider-color: var(--ui-primary);
+                      --ui-breadcrumb-active-font-weight: normal;
+                    }
+                  </script>
+                </ui-code>
+                <ui-message state="info" size="small">
+                  <ui-markdown>
+                    <script type="text/markdown">
+                      `size` scales every token measured in `em`; `inverted` switches the breadcrumb to the dark scheme, so its colour
+                      tokens resolve to their dark values. Never set the `--_ui-*` names: they're the sheet's private plumbing.
+                    </script>
+                  </ui-markdown>
+                </ui-message>
+                <ui-markdown>Edit a value below to try it.</ui-markdown>
+                <ui-docs-tokens family="ui-breadcrumb" playground></ui-docs-tokens>
+
+                <ui-header level="2" dividing id="themes">Themes</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                    theme to the whole site.
+
+                    Themes that restyle breadcrumbs: GitHub.
+                  </script>
+                </ui-markdown>
+              </ui-tab>
+            </ui-tabs>
+          </ui-container>
+
+          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
+        </main>
+      </div>
+    </ui-root>
+  </body>
+</html>

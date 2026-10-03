@@ -320,12 +320,17 @@
         --_ui-item-layout: stacked;
         flex-direction: column;
       }
-      /* A slotted `<ui-image size="tiny">` takes its natural width too (Fomantic's `width: auto !important`). */
+      /* A slotted `<ui-image size="tiny">` takes its natural width too (Fomantic's `width: auto !important`), no
+         taller than a stacked image (its `max-height: 250px !important`) and centred (its `margin: auto`). */
       :host(:state(in-items)) > .item {
         --_ui-image-owner-width: auto;
+        --_ui-image-owner-max-height: var(--_ui-items-mobile-image-height);
+        --_ui-image-owner-align-self: center;
       }
       :host(:state(in-items)) > .item > slot::slotted(:state(in-items)) {
         --_ui-image-owner-width: initial;
+        --_ui-image-owner-max-height: initial;
+        --_ui-image-owner-align-self: initial;
       }
       :host(:state(in-items)) > .item > img.image,
       :host(:state(in-items)) > .item > ::slotted(img),

@@ -684,19 +684,18 @@
                 <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
                 <ui-markdown>
                   <script type="text/markdown">
-                                        Write `<ui-button>` with text inside, and add attributes for the look. Most attributes become
-                                        Fomantic's class words on the real `<button>` in the shadow root: `<ui-button size="small" primary
+                    Write `<ui-button>` with text inside, and add attributes for the look. Most attributes become
+                    Fomantic's class words on the real `<button>` in the shadow root:
+                    `<ui-button size="small" primary basic>` renders `ui small basic primary button`.
 
-                    basic>`renders`ui small basic primary button`.
-
-                                        - A boolean attribute is true when present, empty, `"true"` or `"yes"`, and false for `"false"` or
-                                          `"no"`.
-                                        - `medium` is a real size meaning "default": it renders no class.
-                                        - `icon`, `label` and `content` are shorthands for the `icon`, `label` and default slots; slotted
-                                          children win.
-                                        - `href` renders an `<a>` instead of a `<button>`, so the button navigates like a link.
-                                        - Wrap buttons in `<ui-buttons>` to join them; the group's words (`basic`, `size`, `color` ...)
-                                          reach every button in it.
+                    - A boolean attribute is true when present, empty, `"true"` or `"yes"`, and false for `"false"` or
+                      `"no"`.
+                    - `medium` is a real size meaning "default": it renders no class.
+                    - `icon`, `label` and `content` are shorthands for the `icon`, `label` and default slots; slotted
+                      children win.
+                    - `href` renders an `<a>` instead of a `<button>`, so the button navigates like a link.
+                    - Wrap buttons in `<ui-buttons>` to join them; the group's words (`basic`, `size`, `color` ...)
+                      reach every button in it.
                   </script>
                 </ui-markdown>
 

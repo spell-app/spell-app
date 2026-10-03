@@ -13,6 +13,7 @@ import "$/ui/components/ui-popup"
 import "$/ui/components/ui-button"
 import "$/ui/components/ui-icon"
 import "$/ui/components/ui-parts"
+import "$/ui/components/ui-grid"
 
 /** Element-markup rewrites of every example, by path. */
 const EXAMPLES = import.meta.glob<string>("/src/components/ui-popup/examples/elements/*.html", {
@@ -160,6 +161,15 @@ describe("<ui-popup> tokens from outside", () => {
     expect(parseFloat(getComputedStyle(bigger).marginBottom)).toBeGreaterThan(
       parseFloat(getComputedStyle(plain).marginBottom)
     )
+  })
+
+  it("`flowing`:  a slotted grid sizes the popup by its content, not to a sliver (no size containment)", async () => {
+    const columns = ["Basic Plan", "Business Plan", "Premium Plan"].map((text) => `<ui-column>${text}</ui-column>`)
+    const html = `<button>t</button><ui-popup flowing on="manual" open><ui-grid columns="3">${columns.join("")}</ui-grid></ui-popup>`
+    const { host, root } = await popup(html)
+    await settle()
+    expect(getComputedStyle(host.querySelector("ui-grid")!).containerType).toBe("normal")
+    expect(root.getBoundingClientRect().width).toBeGreaterThan(200)
   })
 
   it("owner tokens:  a header size set on the popup or above it reaches a slotted header", async () => {

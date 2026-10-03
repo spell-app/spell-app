@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Progress | Spell UI</title>
+    <meta name="description" content="A progress bar shows the progression of a task." />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var s = localStorage.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <ui-root class="site" icons="fa7-brands, fomantic" display="immediately">
+      <ui-include class="site-header" source="../_parts/header.html" page-styles>
+        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
+      </ui-include>
+
+      <div class="site-layout">
+        <aside class="site-nav">
+          <ui-docs-nav></ui-docs-nav>
+        </aside>
+
+        <main id="main" class="site-main">
+          <ui-segment vertical class="site-masthead">
+            <ui-container>
+              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-progress.html"
+                  icon="pen to square"
+                  aria-label="This page's source on GitHub"
+                  title="This page's source on GitHub"
+                ></ui-item>
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-progress%3A%20%20"
+                  icon="bug"
+                  aria-label="Report a bug"
+                  title="Report a bug"
+                ></ui-item>
+                <ui-item
+                  href="https://fomantic-ui.com/modules/progress.html"
+                  icon="up right from square"
+                  aria-label="Fomantic UI's original page"
+                  title="Fomantic UI's original page"
+                ></ui-item>
+              </ui-menu>
+              <ui-header level="1" class="site-title">
+                Progress
+                <ui-header>A progress bar shows the progression of a task.</ui-header>
+              </ui-header>
+              <ui-docs-themes for="ui-progress" show="theme" class="site-themes"></ui-docs-themes>
+            </ui-container>
+          </ui-segment>
+
+          <ui-container class="site-body">
+            <ui-rail position="right" class="site-rail">
+              <ui-sticky class="site-toc" offset="64">
+                <ui-docs-toc for="site-tabs" header="Progress"></ui-docs-toc>
+              </ui-sticky>
+            </ui-rail>
+
+            <ui-tabs id="site-tabs" class="site-tabs" history basic compact>
+              <ui-tab value="examples" label="Examples">
+                <!--
+                  EXAMPLES:  Fomantic's progress page, section by section, in its order (Types, Content, States, Variations), plus
+                  our own extra (Ratio).  Fomantic's plus / minus demo buttons are page script, left out:  every bar here is static.
+                  `GAP I<n>` comments mark examples a widget can't render yet (plan-doc issues).
+                -->
+                <ui-header level="2" dividing id="types">Types</ui-header>
+
+                <ui-docs-example
+                  header="Standard"
+                  description="A standard progress bar.  `value` is a percentage unless there is a `total`."
+                >
+                  <ui-progress value="74" bar-text="percent" label="Uploading Files"></ui-progress>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Indicating"
+                  description="An indicating progress bar visually indicates the current level of progress of a task:  its colour runs from red to green."
+                >
+                  <ui-progress indicating value="12" label="{percent}% funded"></ui-progress>
+                  <ui-progress indicating value="47" label="{percent}% funded"></ui-progress>
+                  <ui-progress indicating value="91" label="{percent}% funded"></ui-progress>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="content">Content</ui-header>
+
+                <ui-docs-example
+                  header="Bar"
+                  description="A progress element can contain a bar visually indicating progress."
+                >
+                  <ui-progress value="30" aria-label="Bar only"></ui-progress>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Progress"
+                  description='A progress bar can contain a text value indicating current progress:  `bar-text="percent"`.'
+                >
+                  <ui-progress value="60" bar-text="percent" aria-label="With percent"></ui-progress>
+                </ui-docs-example>
+
+                <!-- GAP I29:  no centered bar text;  the percent stays at the bar's end. -->
+                <ui-docs-example
+                  header="Centered Progress Text"
+                  description="The text inside a progress can be centered."
+                >
+                  <ui-progress value="60" bar-text="percent" aria-label="Centered text"></ui-progress>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Ratio"
+                  description='With a `total`, `value` counts towards it, and `bar-text="ratio"` shows the count.'
+                >
+                  <ui-progress value="9" total="20" bar-text="ratio" aria-label="With ratio"></ui-progress>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Label"
+                  description="A progress element can contain a label.  Slotted text is the rich version of `label`, and names the bar."
+                >
+                  <ui-progress value="55" bar-text="percent">Uploading Files</ui-progress>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Multiple Bars"
+                  description="A progress element can have multiple bars:  `value` (or `percent`) takes a comma list, `bar-colors` a hue per bar."
+                >
+                  <ui-progress
+                    percent="50,0,10,20"
+                    bar-colors="blue yellow purple green"
+                    aria-label="Disk usage"
+                  ></ui-progress>
+                </ui-docs-example>
+
+                <!-- GAP I29:  no per-bar names (`WIP`, `Review` ...) in the bar text;  each bar shows its plain percent. -->
+                <ui-docs-example
+                  header="Multiple Bars with Text (Proportion)"
+                  description="A progress bar can contain text values indicating current proportion:  each value is a share of the one `total`."
+                >
+                  <ui-progress
+                    value="60,30,20,30"
+                    total="200"
+                    bar-colors="blue yellow purple green"
+                    bar-text="percent"
+                    label="Tickets"
+                  ></ui-progress>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="states">States</ui-header>
+
+                <ui-docs-example
+                  header="Active"
+                  description="A progress bar can show activity:  a pulse runs along the bar."
+                >
+                  <ui-progress active value="42" bar-text="percent" label="Uploading Files"></ui-progress>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Success"
+                  description="A progress bar can show a success state.  A single bar turns `success` by itself at 100%."
+                >
+                  <ui-progress
+                    value="100"
+                    bar-text="percent"
+                    label="Everything worked, your file is all ready."
+                  ></ui-progress>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Warning"
+                  description='A progress bar can show a warning state:  `state="warning"`.'
+                >
+                  <ui-progress state="warning" value="100" bar-text="percent"
+                    >Your file didn't meet the minimum resolution requirements.</ui-progress
+                  >
+                </ui-docs-example>
+
+                <ui-docs-example header="Error" description="A progress bar can show an error state.">
+                  <ui-progress state="error" value="100" bar-text="percent" label="There was an error."></ui-progress>
+                </ui-docs-example>
+
+                <ui-docs-example header="Disabled" description="A progress bar can be disabled.">
+                  <ui-progress disabled value="80" aria-label="Disabled"></ui-progress>
+                </ui-docs-example>
+
+                <!-- GAP I29:  no text inside an indeterminate bar;  each bar's words are its `label` instead. -->
+                <ui-docs-example header="Indeterminate">
+                  <p slot="description">
+                    A progress bar can be shown in different indeterminate states: bare
+                    <code>indeterminate</code> pulses, or <code>filling</code>, <code>sliding</code> or
+                    <code>swinging</code>.
+                  </p>
+                  <ui-message slot="description" state="warning" size="small"
+                    >The <code>indeterminate</code> progress state is not supposed to be used in combination with
+                    multiple progress bars.</ui-message
+                  >
+                  <ui-progress indeterminate color="blue" label="Pulsating (default)"></ui-progress>
+                  <ui-progress indeterminate="filling" color="blue" label="Filling"></ui-progress>
+                  <ui-progress indeterminate="sliding" color="blue" label="Sliding"></ui-progress>
+                  <ui-progress indeterminate="swinging" color="blue" label="Swinging"></ui-progress>
+                </ui-docs-example>
+                <ui-docs-example
+                  description='Indeterminate progress can also vary in speed:  `speed="slow"` or `"fast"`.'
+                >
+                  <ui-progress indeterminate speed="slow" color="blue" label="Slow"></ui-progress>
+                  <ui-progress indeterminate speed="fast" color="blue" label="Fast"></ui-progress>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="variations">Variations</ui-header>
+
+                <ui-docs-example
+                  header="Right aligned"
+                  description="A progress bar can be right aligned growing to the left."
+                >
+                  <ui-progress
+                    right-aligned
+                    active
+                    value="35"
+                    bar-text="percent"
+                    aria-label="Right aligned"
+                  ></ui-progress>
+                </ui-docs-example>
+
+                <ui-docs-example header="Inverted" description="A progress bar can have its colors inverted.">
+                  <ui-segment inverted>
+                    <ui-progress inverted value="64" bar-text="percent" label="Uploading Files"></ui-progress>
+                    <ui-progress inverted state="success" value="100" bar-text="percent" label="Success"></ui-progress>
+                    <ui-progress inverted state="warning" value="70" bar-text="percent" label="Warning"></ui-progress>
+                    <ui-progress inverted state="error" value="40" bar-text="percent" label="Error"></ui-progress>
+                  </ui-segment>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Basic"
+                  description="A basic progress has its remaining background bar removed."
+                >
+                  <ui-progress basic value="45" bar-text="percent" aria-label="Basic"></ui-progress>
+                </ui-docs-example>
+
+                <!-- GAP I36:  attached bars sit inside the segment's padding, not on its edges. -->
+                <ui-docs-example header="Attached">
+                  <p slot="description">
+                    A progress bar can show progress of an element: a thin line on its <code>top</code> or
+                    <code>bottom</code> edge.
+                  </p>
+                  <ui-segment>
+                    <ui-progress attached="top" value="30" aria-label="Top"></ui-progress>
+                    <p>La la la la</p>
+                    <ui-progress attached="bottom" value="70" aria-label="Bottom"></ui-progress>
+                  </ui-segment>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-card>
+                    <img src="../images/wireframe/image.png" alt="" />
+                    <ui-content>
+                      <ui-header href="#project">Project</ui-header>
+                      <ui-meta><span>Started in 2014</span></ui-meta>
+                    </ui-content>
+                    <ui-extra
+                      ><a href="#project-friends"><ui-icon name="user"></ui-icon> 22 Friends</a></ui-extra
+                    >
+                    <ui-progress attached="bottom" value="40" aria-label="Project progress"></ui-progress>
+                  </ui-card>
+                </ui-docs-example>
+
+                <ui-docs-example header="Size">
+                  <p slot="description">A progress bar can vary in size.</p>
+                  <ui-message slot="description" state="info" size="small"
+                    >Some small sizes may not be able to fit an inlined label.</ui-message
+                  >
+                  <ui-progress size="tiny" value="20" label="Tiny"></ui-progress>
+                  <ui-progress size="small" value="40" label="Small"></ui-progress>
+                  <ui-progress value="50" label="Standard"></ui-progress>
+                  <ui-progress size="large" value="60" label="Large"></ui-progress>
+                  <ui-progress size="big" value="80" label="Big"></ui-progress>
+                </ui-docs-example>
+
+                <ui-docs-example header="Color" description="A progress bar can have different colors.">
+                  <ui-progress color="red" value="30" aria-label="Red"></ui-progress>
+                  <ui-progress color="orange" value="35" aria-label="Orange"></ui-progress>
+                  <ui-progress color="yellow" value="40" aria-label="Yellow"></ui-progress>
+                  <ui-progress color="olive" value="45" aria-label="Olive"></ui-progress>
+                  <ui-progress color="green" value="50" aria-label="Green"></ui-progress>
+                  <ui-progress color="teal" value="55" aria-label="Teal"></ui-progress>
+                  <ui-progress color="blue" value="60" aria-label="Blue"></ui-progress>
+                  <ui-progress color="violet" value="65" aria-label="Violet"></ui-progress>
+                  <ui-progress color="purple" value="70" aria-label="Purple"></ui-progress>
+                  <ui-progress color="pink" value="75" aria-label="Pink"></ui-progress>
+                  <ui-progress color="brown" value="80" aria-label="Brown"></ui-progress>
+                  <ui-progress color="grey" value="85" aria-label="Grey"></ui-progress>
+                  <ui-progress color="black" value="90" aria-label="Black"></ui-progress>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Inverted Color"
+                  description="These colors can also be inverted for improved contrast on dark backgrounds."
+                >
+                  <ui-segment inverted>
+                    <ui-progress inverted color="red" value="30" bar-text="percent" aria-label="Red"></ui-progress>
+                    <ui-progress
+                      inverted
+                      color="orange"
+                      value="35"
+                      bar-text="percent"
+                      aria-label="Orange"
+                    ></ui-progress>
+                    <ui-progress
+                      inverted
+                      color="yellow"
+                      value="40"
+                      bar-text="percent"
+                      aria-label="Yellow"
+                    ></ui-progress>
+                    <ui-progress inverted color="olive" value="45" bar-text="percent" aria-label="Olive"></ui-progress>
+                    <ui-progress inverted color="green" value="50" bar-text="percent" aria-label="Green"></ui-progress>
+                    <ui-progress inverted color="teal" value="55" bar-text="percent" aria-label="Teal"></ui-progress>
+                    <ui-progress inverted color="blue" value="60" bar-text="percent" aria-label="Blue"></ui-progress>
+                    <ui-progress
+                      inverted
+                      color="violet"
+                      value="65"
+                      bar-text="percent"
+                      aria-label="Violet"
+                    ></ui-progress>
+                    <ui-progress
+                      inverted
+                      color="purple"
+                      value="70"
+                      bar-text="percent"
+                      aria-label="Purple"
+                    ></ui-progress>
+                    <ui-progress inverted color="pink" value="75" bar-text="percent" aria-label="Pink"></ui-progress>
+                    <ui-progress inverted color="brown" value="80" bar-text="percent" aria-label="Brown"></ui-progress>
+                    <ui-progress inverted color="grey" value="85" bar-text="percent" aria-label="Grey"></ui-progress>
+                    <ui-progress inverted color="black" value="90" bar-text="percent" aria-label="Black"></ui-progress>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-tab>
+
+              <ui-tab value="usage" label="Usage">
+                <!-- USAGE:  how to use it (numbers, labels, events), Fomantic's usage tab translated, accessibility, frameworks. -->
+                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Write `<ui-progress>` with its numbers as attributes (or the matching properties), and the bar follows. There is
+                    no `.progress()` call to make: Fomantic's metadata (`data-percent`, `data-value`, `data-total`) and settings
+                    object are the attributes.
+
+                    - `value` is a share of `total`, or a percentage when there is no `total`; `percent` wins over both.
+                    - A comma list (`value="10,20,30"`) makes several bars; `bar-colors` gives each a hue.
+                    - `bar-text` puts `percent` (`45%`) or `ratio` (`9 of 20`, needs `total`) inside the bar; unset, none.
+                    - `label` (or the slotted text) is the line under the bar, and names the bar for assistive tech.
+                    - `precision` sets the decimal places shown in the texts.
+                    - `state` (`success`, `warning`, `error`) tints the bar and its label; unset, a single bar turns `success` at
+                      100% by itself.
+                    - `active` is only the look, on while you set it: Fomantic's JS pulsed every bar between 0 and 100% by itself.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="task-completion">Task completion</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    With a `total`, a bar keeps track of the current value as a ratio of the total: useful for a series of steps
+                    with a known count, like "uploading 1 of 20" photos. Each step is a write to `value`.
+                  </script>
+                </ui-markdown>
+                <ui-docs-example
+                  header="Adding a total value"
+                  description='`total` sets what `value` counts up to;  `bar-text="ratio"` shows the count.'
+                >
+                  <ui-progress indicating value="1" total="20" bar-text="ratio" label="Adding Photos"></ui-progress>
+                </ui-docs-example>
+                <ui-code language="js">
+                  <script type="text/plain">
+                    const photos = document.querySelector("ui-progress[total]")
+                    photos.value = String(Number(photos.value) + 1) // Fomantic's .progress("increment")
+                  </script>
+                </ui-code>
+
+                <ui-header level="2" dividing id="custom-labels">Custom labels</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    `label` is a template: these words are filled in on every change.
+
+                    - `{percent}` -- current percentage
+                    - `{value}` -- current value
+                    - `{total}` -- total value
+                    - `{left}` -- distance to the total, or the percentage left
+                  </script>
+                </ui-markdown>
+                <ui-docs-example
+                  header="Templated label"
+                  description='`label="Adding {value} of {total} photos"`, filled in as the value changes.'
+                >
+                  <ui-progress indicating value="7" total="20" label="Adding {value} of {total} photos"></ui-progress>
+                  <ui-progress value="12" total="20" label="{left} photos to go"></ui-progress>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Translation"
+                  description="The label is yours, so write it in the page's language;  the bar texts (`45%`, `9 of 20`) are the vocabulary's `progressPercent` / `progressRatio` texts, which a translation replaces."
+                >
+                  <ui-progress value="15" total="20" label="{value} de {total}: carga de archivos"></ui-progress>
+                </ui-docs-example>
+                <ui-message size="small" class="site-not-ported"
+                  >Not ported: Fomantic's per-state label texts (<code>text.active</code>,
+                  <code>text.success</code> ...) and its automatic <code>label: 'ratio'</code> switch -- one
+                  <code>label</code> template covers both; swap it on <code>ui-complete</code> when the finished bar
+                  should say something else.</ui-message
+                >
+
+                <ui-header level="2" dividing id="events">Events</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Both fire after the first render, whatever wrote the numbers (there is no user input).
+
+                    - `ui-change` -- the percentage changed; `detail` is `{ percent, percents, value?, total? }` (`percents` holds
+                      one entry per bar).
+                    - `ui-complete` -- the percentage reached 100; `detail` is `{ value?, total? }`.
+                  </script>
+                </ui-markdown>
+                <ui-code language="js">
+                  <script type="text/plain">
+                    const progress = document.querySelector("ui-progress")
+                    progress.addEventListener("ui-change", (event) => console.log(event.detail.percent))
+                    progress.addEventListener("ui-complete", () => console.log("done"))
+                    for (let done = 0; done <= 20; done++) progress.value = String(done) // with total="20"
+                  </script>
+                </ui-code>
+
+                <ui-header level="2" dividing id="behaviors">Behaviors</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Fomantic's behaviors are property writes here:
+
+                    - `set percent(percent)` -- `progress.percent = "45"` (or `"20,30,50"` for several bars)
+                    - `set progress(value)`, `update progress(value)` -- `progress.value = "9"`
+                    - `set total(total)` -- `progress.total = 20`
+                    - `increment` / `decrement` -- read `value`, write it back plus or minus a step
+                    - `complete` -- `progress.percent = "100"`
+                    - `set success` / `set warning` / `set error` -- `progress.state = "warning"`
+                    - `is complete` -- `progress.matches(":state(complete)")`
+                  </script>
+                </ui-markdown>
+                <ui-message size="small" class="site-not-ported"
+                  >Not ported: the random <code>increment</code> step, the animation <code>duration</code> /
+                  <code>updateInterval</code> settings and the <code>onChange</code> / <code>onSuccess</code> ...
+                  callbacks -- the bar transitions in CSS, and the callbacks are the two events.</ui-message
+                >
+
+                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - The element itself is the `progressbar`, with `aria-valuemin`, `aria-valuemax` (the `total`, else 100) and
+                      `aria-valuenow`; `aria-valuetext` reads like the bar text (`45%`, or `9 of 20`). An indeterminate bar has no
+                      value, which assistive tech reads as "progress unknown".
+                    - Name every bar: `aria-label` on the host, or the `label` / slotted label text.
+                    - Colour is never the only signal: pair `state` with a label that says what happened.
+                    - The indeterminate and `active` animations stop under reduced motion.
+                    - If the element can't render, its native fallback is a real `<progress>` with the same value and label;
+                      several bars show as one (their sum), and the bar text, colours per bar and the animated looks are dropped.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="frameworks">Framework usage</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Numbers are plain attributes; listen for `ui-change` / `ui-complete` like any custom event.
+                  </script>
+                </ui-markdown>
+                <ui-header level="4" id="framework-react">React 19</ui-header>
+                <ui-code language="jsx">
+                  <script type="text/plain">
+                    <ui-progress value={done} total={20} bar-text="ratio" onui-complete={() => setFinished(true)} />
+                  </script>
+                </ui-code>
+                <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+                <ui-code language="html">
+                  <script type="text/plain">
+                    <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                    <ui-progress :value="done" total="20" bar-text="ratio" @ui-complete="finished = true" />
+                  </script>
+                </ui-code>
+                <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+                <ui-code language="jsx">
+                  <script type="text/plain">
+                    // no `on:` namespace:  listen through a ref
+                    <ui-progress
+                      value={done()}
+                      total="20"
+                      bar-text="ratio"
+                      ref={(el) => el.addEventListener("ui-complete", () => setFinished(true))}
+                    />
+                  </script>
+                </ui-code>
+              </ui-tab>
+
+              <ui-tab value="api" label="API">
+                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+                <ui-docs-api family="ui-progress"></ui-docs-api>
+              </ui-tab>
+
+              <ui-tab value="theming" label="Theming">
+                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Theme with the public `--ui-progress-*` tokens: set one on the element, on any ancestor (`:root` for every
+                    progress bar), or on the track through `::part(progress)`. They inherit into the shadow root, where the sheet
+                    reads each through a private alias, so nothing inside blocks them. Style each bar with `::part(bar)` and its
+                    text with `::part(bar-text)`.
+                  </script>
+                </ui-markdown>
+                <ui-code language="css">
+                  <script type="text/plain">
+                    /* every progress bar on the page */
+                    :root {
+                      --ui-progress-radius: 999px;
+                    }
+                    /* one kind */
+                    ui-progress.slim {
+                      --ui-progress-bar-height: 0.75em;
+                    }
+                    /* each bar */
+                    ui-progress.striped::part(bar) {
+                      background-image: repeating-linear-gradient(45deg, transparent 0 0.5em, rgb(255 255 255 / 0.2) 0.5em 1em);
+                    }
+                  </script>
+                </ui-code>
+                <ui-message state="info" size="small">
+                  <ui-markdown>
+                    <script type="text/markdown">
+                      A `size` replaces the bar height, `inverted` the label colour, and `indicating` / `state` repaint the bar
+                      whatever `color` says. Never set the `--_ui-progress-*` / `--_progress-*` names: they're the sheet's private
+                      plumbing.
+                    </script>
+                  </ui-markdown>
+                </ui-message>
+                <ui-markdown>Edit a value below to try it.</ui-markdown>
+                <ui-docs-tokens family="ui-progress" playground></ui-docs-tokens>
+
+                <ui-header level="2" dividing id="themes">Themes</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                    theme to the whole site.
+
+                    Themes that restyle progress bars: Basic, Fomantic classic and Striped -- Fomantic's own progress page lists
+                    Classic, Basic and Striped.
+                  </script>
+                </ui-markdown>
+              </ui-tab>
+            </ui-tabs>
+          </ui-container>
+
+          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
+        </main>
+      </div>
+    </ui-root>
+  </body>
+</html>

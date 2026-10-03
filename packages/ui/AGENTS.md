@@ -114,14 +114,14 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
       NEVER edit
     - `_src/` -- the bundle's entry (`site.ts`:  what's in it and why) and the site's layout-glue CSS (`site.css`);
       config `vite.site.config.ts`
-    - `_data/` -- `components.json`, GENERATED, committed (`yarn site:data`;  shape `SiteDataFile` in
-      `src/docs-components/docs-components.types.ts`), and `pages.json`, hand-kept per-family facts it reads (title,
-      summary, status, token-table overrides)
+    - `_data/` -- `components.json` and `icons.json` (the icon browser's search terms), GENERATED, committed
+      (`yarn site:data`;  shapes `SiteDataFile` / `SiteIconsFile` in `src/docs-components/docs-components.types.ts`),
+      and `pages.json`, hand-kept per-family facts it reads (title, summary, status, token-table overrides)
     - `_parts/` -- shared header / footer, pulled in with `<ui-include>`
   - `docs/` -- design docs (`plan.md`, `grammar.md`, `theming.md`, `translation.md`, `icons.md`, `fallback.md`,
     `runtime.md`) and the generated `report.md`
   - `scripts/` -- generators (`gen-styles.ts`, `gen-icons.ts`, `gen-root-catalog.ts`, `gen-spell.ts`, `gen-site-data.ts`,
-    `site-new.ts`) and the site bundle's build (`site-bundle.ts`)
+    `site-new.ts`, `site-components-index.ts`, `site-kitchen-sink.ts`) and the site bundle's build (`site-bundle.ts`)
   - `src/languages/` -- GENERATED, committed:  `spell.<lang>.js`, spell's pre-compiled highlighter for
     `<ui-code language="spell">` (`yarn gen:spell`;  the root `AGENTS.md`'s one `ui` -> spell exception).  NEVER edit;
     lint and format skip it
@@ -151,8 +151,11 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   - `yarn fork <script>`, `yarn fork:install`, `yarn fork:build` -- the fork's own scripts.  Its `dist/` is only
     needed by `yarn vendor` / `yarn measure`, which build it when stale (`tools/ForkBuild.ts`);  dev, tests,
     the site and the library build use its source
-  - `yarn site:build` ~== `yarn site:data` (`site/_data/components.json`) + `yarn site:bundle` (`site/_assets/`, sizes
-    printed):  rerun after changing a vocabulary, a family sheet or any source the site shows, and commit the output.
+  - `yarn site:build` ~== `yarn site:data` (`site/_data/components.json`, `icons.json`) + `yarn site:index` (the
+    component index's cards, `site/components/index.html`;  `--check`) + `yarn site:kitchen` (the kitchen sink's
+    examples, `site/kitchen-sink.html`, from every family's `examples/elements/types.html`;  `--check`) + `yarn
+    site:bundle` (`site/_assets/`, sizes printed):  rerun after changing a vocabulary, a family sheet, an example or any
+    source the site shows, and commit the output.
     `yarn site:dev` / `site:preview` are the old Astro site's
   - `yarn site:new <tag|page> [--title ...] [--summary ...] [--force]` -- a site page from the template
     (`packages/docs/templates/spell-ui-docs.html`, `scripts/site-new.ts`):  `site/components/<main tag>.html` for a

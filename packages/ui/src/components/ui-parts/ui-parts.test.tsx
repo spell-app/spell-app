@@ -216,6 +216,15 @@ describe("<ui-header> standalone", () => {
     expect(root(host).localName).toBe("h3")
     expect(host.getAttribute("level")).toBe("3")
   })
+
+  it("sizes a leveled `sub` header as a sub header, not by its level (Fomantic's `h2.ui.sub.header`)", async () => {
+    const holder = await ElementFixture.render(
+      `<div><ui-header level="2" sub>Price</ui-header><ui-header sub>Price</ui-header></div>`
+    )
+    const [leveled, plain] = [...holder.querySelectorAll("ui-header")]
+    expect(root(leveled!).localName).toBe("h2")
+    expect(getComputedStyle(root(leveled!)).fontSize).toBe(getComputedStyle(root(plain!)).fontSize)
+  })
 })
 
 describe("owner context", () => {

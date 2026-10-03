@@ -32,7 +32,8 @@ export type NavPage = {
 export const TOP_PAGES: readonly NavPage[] = [
   { id: "index", file: "index.html", text: "overview" },
   { id: "getting-started", file: "getting-started.html", text: "gettingStarted" },
-  { id: "grammar", file: "grammar.html", text: "grammar" }
+  { id: "grammar", file: "grammar.html", text: "grammar" },
+  { id: "components", file: "components/index.html", text: "allComponents" }
 ]
 
 /** Foundation links, below the components. */

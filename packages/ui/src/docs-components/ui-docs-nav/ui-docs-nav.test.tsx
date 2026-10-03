@@ -157,6 +157,7 @@ describe("<ui-docs-nav> lists", () => {
       "index",
       "getting-started",
       "grammar",
+      "components",
       "ui-button",
       "ui-buttons",
       "ui-calendar",

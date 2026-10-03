@@ -91,6 +91,16 @@ describe("<ui-button> classes", () => {
     expect(host.matches(":state(fluid)")).toBe(true)
     expect(host.matches(":state(left-floated)")).toBe(true)
   })
+
+  it("hides with the `hidden` attribute, fluid or not", async () => {
+    const { host } = await button(`<ui-button hidden>Go</ui-button>`)
+    expect(getComputedStyle(host).display).toBe("none")
+    host.setAttribute("fluid", "")
+    await ElementFixture.settle()
+    expect(getComputedStyle(host).display).toBe("none")
+    host.removeAttribute("hidden")
+    expect(getComputedStyle(host).display).toBe("flex")
+  })
 })
 
 describe("<ui-button> behaviour", () => {

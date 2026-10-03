@@ -101,6 +101,7 @@ export const docsNavVocabulary = {
     { key: "overview", text: "Overview", description: "Link to `index.html`." },
     { key: "gettingStarted", text: "Getting started", description: "Link to `getting-started.html`." },
     { key: "grammar", text: "Grammar", description: "Link to `grammar.html`." },
+    { key: "allComponents", text: "All components", description: "Link to `components/index.html`, the card index." },
     { key: "components", text: "Components", description: "Header of the component lists." },
     { key: "foundation", text: "Foundation", description: "Header of the Foundation links." },
     { key: "theming", text: "Theming", description: "Link to `theming.html`." },

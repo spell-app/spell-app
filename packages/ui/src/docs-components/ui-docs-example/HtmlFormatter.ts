@@ -126,7 +126,7 @@ export class HtmlFormatter {
       if (VERBATIM.has(element.tag)) return [pad + element.open + element.raw + close]
       const raw = element.raw.replace(/^\n+|\s+$/g, "")
       if (!raw.includes("\n")) return [`${pad}${element.open}${raw}${close}`]
-      return [pad + element.open, raw, pad + close]
+      return [pad + element.open, ...this.reindent(raw, pad + this.indent), pad + close]
     }
     if (!element.children.some((child) => !this.isInline(child))) {
       const oneLine = pad + element.open + this.inlineChildren(element) + close
@@ -135,6 +135,16 @@ export class HtmlFormatter {
     const inner = this.printChildren(element.children, depth + 1)
     if (!inner.length) return [pad + element.open + close]
     return [pad + element.open, ...inner, pad + close]
+  }
+
+  /**
+   * `raw`'s lines (a `<script>` / `<style>` body) moved to `pad`:  their common leading whitespace dropped, so a
+   * script indented with the page around it reads like the markup around it.  Blank lines stay blank.
+   */
+  private reindent(raw: string, pad: string): string[] {
+    const lines = raw.split("\n")
+    const common = Math.min(...lines.filter((line) => line.trim()).map((line) => line.match(/^\s*/)![0].length))
+    return lines.map((line) => (line.trim() ? pad + line.slice(common) : ""))
   }
 
   /** Is `node` part of an inline run (text, or a text-level element with only inline content)? */

@@ -87,6 +87,18 @@ describe("<ui-ad> units and test", () => {
     expect(root.className).toBe("ui small rectangle ad")
   })
 
+  it("keeps its margin between siblings, and drops it as first / last child", async () => {
+    const holder = await ElementFixture.render(
+      `<div><ui-ad unit="button"></ui-ad><ui-ad unit="button"></ui-ad><ui-ad unit="button"></ui-ad></div>`
+    )
+    const [first, middle, last] = [...holder.querySelectorAll<UIHost>("ui-ad")].map(
+      (ad) => getComputedStyle(ad.shadowRoot!.firstElementChild!).marginTop
+    )
+    expect(first).toBe("0px")
+    expect(parseFloat(middle)).toBeGreaterThan(0)
+    expect(last).toBe("0px")
+  })
+
   it("centres a centered ad", async () => {
     const holder = await ElementFixture.render(
       `<div style="width: 600px"><p>x</p><ui-ad unit="small rectangle" centered></ui-ad><p>y</p></div>`
