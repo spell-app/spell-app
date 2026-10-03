@@ -38,16 +38,19 @@ the whole time.  The plan doc is the user's view of the work:  they read it in V
 - Checks and rename, BEFORE anything else:  as `.claude/skills/isolate/SKILL.md` "Start", step 0.  A typed
   `/epic <name> ...` got them from the repo's `UserPromptSubmit` hook (`.claude/hooks/prompt-gate.mjs`):  it
   renamed the session `<name>`, or blocked the prompt (plan mode, another worktree) and saved its text.
-- A saved prompt `~/.spell/prompts/<name>.md` and no text after `<name>`:  that's the plan, the kickoff prompt.  Say
-  so in one line.  Delete it only once the plan doc holds it (`plan-doc new --prompt-file`).
+- The kickoff prompt, SAFE before anything else:  the text after `<name>`, verbatim.  Write it to
+  `~/.spell/prompts/<name>.md` at once (as the hook does when it blocks;  an older, different file there:  rename
+  it `<name>.<time>.md` first).  No text, but that file exists:  it IS the kickoff prompt (the hook saved it);  say
+  so in one line.  Delete the file only once the plan doc holds it (`plan-doc new --prompt-file`).
 - Look for collisions (from the repo root), every time:
   - `packages/docs/epics/<name>/`, `packages/docs/<name>/`, `packages/docs/<name>.html`
   - the worktree and branch checks of `.claude/skills/isolate/SKILL.md`, "Start", step 2
   - any hit:  AskUserQuestion, options "Reuse `<name>`" (continue that doc / worktree) and "Different name" (the
     user types it in "Other").  Never overwrite an existing plan doc.
-- Name and nothing after it (and not mid-session):  the user sends the plan in the NEXT prompt.  Nothing else yet
-  (collisions settled):  reply one line, "Plan doc `<name>`:  send the plan.", and stop.  That next message is the
-  kickoff prompt (verbatim, for `--prompt-file`);  carry on from "2. Session".
+- Name and nothing after it, nothing saved (and not mid-session):  the user sends the plan in the NEXT prompt, in
+  the new window.  Do "2. Session" now anyway (a stub doc with no prompt, then the move);  its last line asks for
+  the plan.  That next message is the kickoff prompt:  `yarn plan-doc prompt <name> --file <file>` first, then
+  "3. Plan".
 
 ## Mid-session
 
@@ -56,24 +59,31 @@ When the session already has work under way ("make this a plan doc"), carry it o
 - Step 3:  start from the plan drafted so far (harness plan file, conversation), reshaped into the plan doc's
   shape;  explore only to fill gaps.  Decisions and questions already settled become `decision` items.
 
-## 2. Session
+## 2. Session:  stub doc, then move
 
-- Isolate:  read `.claude/skills/isolate/SKILL.md` and follow "Start", steps 3-6 (and step 0 mid-session), with
-  this `<name>` (a skill can't invoke another):  `EnterWorktree`, opening the worktree's own VS Code window, moving
-  the session there, ending the turn.  Then its "Continue" (`yarn install`) in the new window, and on here.
-- New doc:  `yarn plan-doc new <name> --title "<Title>" --prompt-file <file>`, `<file>` holding the user's message
-  that kicked off the plan, verbatim (the text after `<name>`, or the next prompt when there was none) (write it to the scratchpad first:  it may hold quotes and newlines).  It's
-  quoted at the top of the Overview.  Reusing a doc whose prompt is missing:  `yarn plan-doc prompt <name> --file
-  <file>`;  an older doc (before 2026-10-01, or `section.s2` markup):  `yarn plan-doc migrate <name>` first.
-- Then `yarn plan-doc open <name>`:  rendered in VS Code's doc preview (the right side bar's "Spell Docs" view), in
-  the WORKTREE's window (`yarn window`;  one tab, reloaded on every later `open`).  Needs the spell extension
-  (`yarn vscode`).
-  - The session moves there when this turn ends (the isolate step's `handoff`), so this `open` doesn't show it
-    now:  it waits for the move, then shows it there.  Every later `open` shows it in that window at once.
+All in the FIRST turn, in this order, then the turn ends.  Why:  the move to the worktree's window waits for the
+turn to end, and the stub doc keeps the kickoff prompt safe whatever happens to this session.
+1. Isolate:  read `.claude/skills/isolate/SKILL.md` and follow "Start", step 3 (and step 0 mid-session), with this
+   `<name>` (a skill can't invoke another):  `EnterWorktree`.
+2. `yarn install` in the worktree (a few seconds:  `yarn plan-doc` needs it).
+3. The STUB doc:  `yarn plan-doc new <name> --title "<Title>" --prompt-file ~/.spell/prompts/<name>.md` (no file:
+   no `--prompt-file`).  Quoted at the top of the Overview, and in the "Plan hung?" notice above it (copy button,
+   restart steps;  it goes once P1 starts).  Then delete the prompt file.
+   - Reusing a doc:  its prompt missing:  `yarn plan-doc prompt <name> --file <file>`;  an older doc (before
+     2026-10-01, or `section.s2` markup):  `yarn plan-doc migrate <name>` first.  No phases yet:  a restart after
+     a hang.  Plan again from its prompt ("3. Plan");  explore only what the doc doesn't say.
+4. `yarn plan-doc open <name>`:  shown in VS Code's doc preview (the right side bar's "Spell Docs" view) of the
+   window the session moves to, once it has (`yarn window`;  one tab, reloaded on every later `open`).  Needs the
+   spell extension (`yarn vscode`).
+5. Isolate "Start", steps 4-6:  the worktree's own window, `handoff <name> --prompt continue` (name alone, no plan
+   yet:  no `--prompt`), END THE TURN.  Last line:  "moving to `<pkg> ⎇ <name>`:  press enter on `continue`
+   there" (no plan yet:  "send the plan there").
+6. Next turn, in the new window:  isolate's "Continue" step 1 (old tab), then "3. Plan".
 
 ## 3. Plan
 
-1. Explore (read-only), BEFORE plan mode.
+1. Explore (read-only), BEFORE plan mode.  NEVER `EnterPlanMode` before "2. Session" is done:  plan mode can't
+   make the worktree or the doc.
 2. Minimal plan doc, BEFORE presenting the plan:  only the Overview and the open questions, so the user can read
    them in the doc while the plan is up.  Nothing else yet (no phases, decisions, caveats ...).
    - Hand-write the Overview's sub-sections (shape:  "4. Fill the doc").

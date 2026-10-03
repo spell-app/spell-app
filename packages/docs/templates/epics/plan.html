@@ -42,6 +42,12 @@
             >Started <time id="plan-started">{{date}}</time>, updated <time id="plan-updated">{{date}}</time></ui-item
           >
         </ui-list>
+        <ui-message class="plan-hung" state="info" size="small" header="Plan hung?">
+          <p>
+            Close its Claude tab, open a new session in this worktree's window, then run <code>/epic {{name}}</code> and
+            pick "Reuse":  it plans again from the kickoff prompt.  This note goes once P1 starts.
+          </p>
+        </ui-message>
 
         <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
           <ui-icon slot="icon" name="lightbulb"></ui-icon>
