@@ -56,10 +56,7 @@
               7 epics are done and merged: docs-workspace, cli-additions, ui-component-creation, unified-server,
               solid-migration, ui-import and seo.
             </li>
-            <li>
-              3 more live only in worktrees: vite-plus is done but unmerged; spell-ui-pages and commands are in
-              progress.
-            </li>
+            <li>2 more live only in worktrees: vite-plus is done but unmerged; commands is in progress.</li>
             <li>
               12 packages since the monorepo move: util, parser, core, spell, lsp, app, vscode, cli, ui, solid-element,
               docs and server.
@@ -97,27 +94,6 @@
             </ul>
           </ui-section>
 
-          <ui-section id="spell-ui-pages" header="spell-ui-pages · in progress" sticky collapsible dividing>
-            <ui-list class="spell-meta">
-              <ui-item icon="code branch"
-                >Branch <code>spell-ui-pages</code>; P1, P2, P6 done, P3 next; 9-12 h left</ui-item
-              >
-            </ui-list>
-            <p>Replace Spell UI's Astro site with hand-written pages built only from <code>&lt;ui-*&gt;</code>.</p>
-            <ul>
-              <li>P1: Fomantic-UI 2.9.4 and its docs cloned for reference; 87 doc images copied.</li>
-              <li>
-                P2: 5 <code>&lt;ui-docs-*&gt;</code> elements (example, api, tokens, nav, themes);
-                <code>yarn site:data</code> / <code>site:bundle</code>; <code>/ui/</code> a static mount,
-                <code>AstroProxy</code> deleted; two <code>&lt;ui-item&gt;</code> fixes.
-              </li>
-              <li>
-                P6: 24 Fomantic themes ported as lazy token sheets (<code>ThemeSheets.apply()</code>), Roboto and Source
-                Sans bundled.
-              </li>
-            </ul>
-          </ui-section>
-
           <ui-section id="commands" header="commands · in progress" sticky collapsible dividing>
             <ui-list class="spell-meta">
               <ui-item icon="code branch">Branch <code>commands</code>; P1 active, 7-12 h estimated</ui-item>
@@ -140,6 +116,80 @@
           <ui-icon slot="icon" name="flag checkered"></ui-icon>
 
           <ui-section id="2026-10" header="October 2026" sticky collapsible dividing>
+            <ui-section
+              id="spell-ui-pages"
+              header="2026-10-02 → 10-03 · Spell UI docs in Fomantic's style"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-list class="spell-meta">
+                <ui-item icon="code branch"
+                  >Branch <code>spell-ui-pages</code>; plan doc
+                  <a href="epics/spell-ui-pages/spell-ui-pages.html" target="spell-ui-pages">Spell UI Pages</a></ui-item
+                >
+                <ui-item icon="book"
+                  >Durable doc:
+                  <a href="spell-ui-pages.html" target="src-packages-docs-spell-ui-pages-html"
+                    >spell-ui-pages.html</a
+                  ></ui-item
+                >
+              </ui-list>
+              <p>
+                Spell UI's docs rebuilt as 66 hand-written HTML pages in Fomantic's docs style (1608 live examples),
+                built only from <code>&lt;ui-*&gt;</code>; the Astro site is gone; 100 widget gaps logged.
+              </p>
+              <ul>
+                <li>P1: Fomantic-UI 2.9.4 and Fomantic-UI-Docs cloned for reference; 87 doc images copied.</li>
+                <li>
+                  P2: 5 <code>&lt;ui-docs-*&gt;</code> elements (example, api, tokens, nav, themes), known to
+                  <code>&lt;ui-root&gt;</code>, fed by a generated
+                  <a href="../ui/site/_data/components.json" target="src-packages-ui-site-data-components-json"
+                    ><code>site/_data/components.json</code></a
+                  >; a committed, code-split site bundle; <code>/ui/</code> a static mount,
+                  <code>AstroProxy</code> deleted.
+                </li>
+                <li>
+                  P3: the <code>spell-ui-docs</code> page template, <code>yarn site:new</code>,
+                  <code>yarn site:check</code> (Playwright), shared header / footer through
+                  <code>&lt;ui-include&gt;</code>, <code>&lt;ui-docs-toc&gt;</code>, the button page as the pilot,
+                  <a href="epics/spell-ui-pages/PAGES.md" target="src-packages-docs-epics-spell-ui-pages-pages-md"
+                    ><code>PAGES.md</code></a
+                  >.
+                </li>
+                <li>
+                  P4 + P5: 59 component pages and 7 foundation pages (home, getting started, grammar, theming with a
+                  theme gallery, utilities, icons, a generated kitchen sink, a 378-card component index); ~30 small
+                  widget fixes (item and message icon shorthands, label bottom corners, ad margins, tab pane border, nag
+                  commands, shape flip directions, step colour, header sub, ...).
+                </li>
+                <li>
+                  P6: 24 Fomantic themes as token sheets on top of
+                  <code>classic</code> (<code>ThemeSheets.apply()</code>),
+                  <code>UI.styles.register(..., { shadow: true })</code> for their class-grammar overrides; fonts
+                  bundled where Fomantic loaded them.
+                </li>
+                <li>
+                  P7: the Astro site, MDX and 330 lockfile packages removed; <code>yarn site:dev</code> watch build.
+                </li>
+                <li>P8: the gap report, grouped, with recommendations.</li>
+                <li>
+                  P10: <code>stack-with="container|page"</code> on grid, cards, steps, form, items, statistics, and
+                  page-wide on <code>&lt;ui-root&gt;</code>; the docs use <code>page</code>.
+                </li>
+                <li>
+                  P11: <code>appearance</code> (+ <code>segmented</code>) and <code>alignment</code> on
+                  <code>&lt;ui-menu&gt;</code> / <code>&lt;ui-tabs&gt;</code>; <code>equal</code> on menu, tabs,
+                  buttons, statistics, steps, fields.
+                </li>
+                <li>
+                  Plan docs: judgement calls are their own item kind (<code>J1</code> ..., a "Judgement calls" section);
+                  <code>/bedtime</code> and <code>/epic</code> record them there.
+                </li>
+                <li>P9, P12: the durable doc and the plan doc made true to the build.</li>
+              </ul>
+            </ui-section>
+
             <ui-section id="seo" header="2026-10-01 → 10-03 · Static pages for SEO" sticky collapsible dividing>
               <ui-list class="spell-meta">
                 <ui-item icon="code branch"
@@ -883,7 +933,9 @@
 
         <footer class="spell-doc-footer">
           <ui-divider></ui-divider>
-          <p class="meta">Last updated 2026-10-03 from <code>main</code> at <code>48627e28</code>, plus seo.</p>
+          <p class="meta">
+            Last updated 2026-10-03 from <code>main</code> at <code>48627e28</code>, plus seo and spell-ui-pages.
+          </p>
         </footer>
       </main>
     </div>
