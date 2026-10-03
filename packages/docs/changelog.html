@@ -178,6 +178,103 @@
 
           <ui-section id="2026-10" header="October 2026" sticky collapsible dividing>
             <ui-section
+              id="isolate-changes"
+              header="2026-10-03 · /isolate and /epic:  move first, prompt gate, running epics"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-list class="spell-meta">
+                <ui-item icon="code branch"
+                  >Branch <code>isolate-changes</code>; no plan doc (planned in plan mode)</ui-item
+                >
+                <ui-item icon="book"
+                  >Durable doc:
+                  <a href="server.html#running-epics-flow" target="src-packages-docs-server-html">server.html, "Running epics"</a></ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>
+                  <b>P1 · Prompt Gate</b>:
+                  <a href="../../.claude/hooks/prompt-gate.mjs" target="src-claude-hooks-prompt-gate-mjs"
+                    ><code>.claude/hooks/prompt-gate.mjs</code></a
+                  >, a <code>UserPromptSubmit</code> hook on <code>/isolate</code>, <code>/epic</code> and
+                  <code>/unpark &lt;name&gt;</code>
+                  <ul>
+                    <li>renames the session <code>&lt;name&gt;</code> before Claude reads the prompt</li>
+                    <li>
+                      plan mode: blocks the prompt, saving its text to <code>~/.spell/prompts/&lt;name&gt;.md</code> and
+                      quoting it back; <code>/epic &lt;name&gt;</code> alone picks it up
+                    </li>
+                    <li>inside another worktree (by folder or by window): blocks the same way</li>
+                    <li>
+                      the global title hook also runs on <code>SessionStart</code> (resume), so a moved session gets its
+                      queued title
+                    </li>
+                    <li>skills repeat the checks for plain-word triggers; <code>/park</code> renames itself</li>
+                  </ul>
+                </li>
+                <li>
+                  <b>P2 · Move First</b>
+                  <ul>
+                    <li>
+                      <code>/isolate</code> ends its turn right after <code>handoff</code>;
+                      <code>yarn install</code> and the rest run in the new window ("Continue")
+                    </li>
+                    <li>
+                      <code>handoff --prompt</code> types <code>continue</code> into the new tab (the Claude extension's
+                      <code>initialPrompt</code>)
+                    </li>
+                    <li>
+                      the old tab is closed by any title it may show (<code>/rename</code> title, then Claude's own)
+                    </li>
+                    <li>no package window: <code>/isolate</code> asks which package instead of failing</li>
+                    <li>
+                      carried-over edits use a tagged stash, applied by sha; <code>window.mjs</code>'s flag parser no
+                      longer swallows the next flag
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <b>P3 · Epic Stub First</b>
+                  <ul>
+                    <li>
+                      <code>/epic</code> saves the kickoff prompt, makes the worktree, writes the stub plan doc, then
+                      moves and ends the turn; planning happens in the new window
+                    </li>
+                    <li>
+                      the plan doc template's "Plan hung?" notice: restart steps and the prompt with a copy button;
+                      <code>plan-doc</code> drops it once a phase starts
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <b>P4 · Central Epic Docs</b>
+                  <ul>
+                    <li>
+                      <code>RunningEpics</code>: main's page server serves <code>/worktrees/&lt;w&gt;/</code>, lists
+                      running epics at <code>/_server/epics</code>, and fills the docs index's "Running epics" section
+                    </li>
+                    <li>
+                      <code>SRV.mainServerUrl()</code>: <code>yarn server url</code> and the VS Code doc preview give a
+                      worktree's file on port 4747
+                    </li>
+                    <li>
+                      <code>yarn plan-doc</code> no longer rewrites the committed index inside a worktree (merge
+                      conflicts)
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <b>P5 · Doc Review</b>:
+                  <a href="server.html" target="src-packages-docs-server-html"><code>server.html</code></a
+                  >, <a href="AGENTS.md" target="src-packages-docs-agents-md"><code>AGENTS.md</code></a> "Worktrees",
+                  the skills, <a href="../../PAPERCUTS.md" target="src-papercuts-md"><code>PAPERCUTS.md</code></a>
+                </li>
+              </ul>
+            </ui-section>
+
+            <ui-section
               id="session-tooling"
               header="2026-10-01 → 10-03 · Windows, worktrees and sessions"
               sticky
@@ -278,10 +375,8 @@
                   redirect).
                 </li>
                 <li>
-                  Epic "stub first": the kickoff prompt saved, a stub doc with a "Plan hung?" notice, then the move.
-                </li>
-                <li>
-                  Central epics: main's page server serves each worktree and lists running epics on the docs index.
+                  Move first, the prompt gate, epic "stub first" and running epics: see
+                  <a href="#isolate-changes">/isolate and /epic</a>.
                 </li>
               </ul>
             </ui-section>
@@ -761,7 +856,7 @@
 
         <footer class="spell-doc-footer">
           <ui-divider></ui-divider>
-          <p class="meta">Last updated 2026-10-03 from <code>main</code> at <code>0f01f883</code>.</p>
+          <p class="meta">Last updated 2026-10-03 from <code>main</code> at <code>33bddb54</code>.</p>
         </footer>
       </main>
     </div>
