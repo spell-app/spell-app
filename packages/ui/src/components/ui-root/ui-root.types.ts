@@ -48,6 +48,15 @@ export const PACK_SEPARATOR = ","
 /** `width` / `height` value meaning "the viewport's". */
 export const WINDOW = "window"
 
+/**
+ * A length a static server render accepts for `width` / `height` (node has no `CSS.supports()`):  numbers, units,
+ * `%`, `calc()` / `var()` / `min()` ... -- never `;`, `:`, braces or quotes, which could inject other declarations.
+ */
+export const SERVER_LENGTH = /^[\w.%+\-*/(), ]+$/
+
+/** The static server render's wrapper when it isn't a box:  no box of its own, as the browser's host. */
+export const SERVER_CONTENTS = "display: contents"
+
 /** Fallback `timeout`, ms:  `rootVocabulary`'s default, `5s`. */
 export const DEFAULT_TIMEOUT = 5000
 

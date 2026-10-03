@@ -66,8 +66,8 @@ export class UIStep extends UIElement<typeof stepVocabulary> {
 
   constructor(...args: ConstructorParameters<typeof UIElement>) {
     super(...args)
-    // SIDE EFFECT:  one item of the group's ordered list
-    if (!isServer) this.host.internals.role = LISTITEM
+    // SIDE EFFECT:  one item of the group's ordered list;  a server render (`$/ui/server`) makes the root an `<li>`
+    this.host.internals.role = LISTITEM
   }
 
   isDisabled(): boolean {
@@ -108,9 +108,12 @@ export class UIStep extends UIElement<typeof stepVocabulary> {
       >
         <Show when={this.hasIcon()}>
           <span class={ICON} part={this.part("icon")}>
-            <slot name={this.slot("icon")} hidden={attrs.completed || undefined}>
-              {this.glyph.svg()}
-            </slot>
+            {/* a server render (`$/ui/server`) swaps the slot for its content, `hidden` and all:  leave it out */}
+            <Show when={!(isServer && attrs.completed)}>
+              <slot name={this.slot("icon")} hidden={attrs.completed || undefined}>
+                {this.glyph.svg()}
+              </slot>
+            </Show>
             {this.checkGlyph.svg()}
           </span>
         </Show>

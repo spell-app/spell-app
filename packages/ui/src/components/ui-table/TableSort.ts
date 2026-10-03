@@ -1,5 +1,5 @@
 import { UIT } from "$/ui/core"
-import { HEADER, TABLE, DESCENDING } from "./ui-table.types"
+import { HEADER, TABLE, DESCENDING, COLSPAN, STATIC_HEADER_ROWS } from "./ui-table.types"
 import { DISABLED } from "$/ui/components/components.types"
 
 /****************
@@ -68,6 +68,26 @@ export class TableSort {
     for (const cell of row.cells) {
       if (column < start + cell.colSpan) return column >= start ? cell : undefined
       start += cell.colSpan
+    }
+    return undefined
+  }
+
+  /**
+   * `headerAt()` without the table DOM API (`tHead`, `rows`, `cells`, `colSpan`):  a static server render's tables
+   * are linkedom elements, which have none.  Same answer:  the lowest header row's `th` covering `column`.
+   */
+  static staticHeaderAt(table: Element, column: number): Element | undefined {
+    const rows = [...table.querySelectorAll(STATIC_HEADER_ROWS)].reverse()
+    for (const row of rows) {
+      let start = 0
+      for (const cell of row.children) {
+        const span = Number(cell.getAttribute(COLSPAN)) || 1
+        if (column < start + span) {
+          if (column >= start && cell.localName === HEADER) return cell
+          break
+        }
+        start += span
+      }
     }
     return undefined
   }

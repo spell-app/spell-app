@@ -1,5 +1,5 @@
 import { For, Show, createEffect, createMemo, untrack } from "solid-js"
-import type { JSX } from "@solidjs/web"
+import { isServer, type JSX } from "@solidjs/web"
 
 import {
   Cell,
@@ -203,6 +203,7 @@ export class UISelect extends FormElement<SelectVocabulary> {
         required={this.attrs.required}
         aria-label={this.label()}
         aria-invalid={this.validation().valid ? undefined : "true"}
+        {...this.staticSelect()}
         onChange={this.onChange}
       >
         <Show when={this.customizable()}>
@@ -216,6 +217,7 @@ export class UISelect extends FormElement<SelectVocabulary> {
             part={this.part("placeholder")}
             value=""
             disabled={this.attrs.required && this.attrs.placeholder !== undefined}
+            {...this.staticOption("")}
           >
             {this.attrs.placeholder ?? ""}
           </option>
@@ -246,7 +248,13 @@ export class UISelect extends FormElement<SelectVocabulary> {
   private option(option: MenuOption): JSX.Element {
     const glyph = new IconGlyph(this, () => (typeof option.icon === "string" ? option.icon : undefined))
     return (
-      <option class={ITEM} part={this.part("option")} value={option.value} disabled={!!option.disabled}>
+      <option
+        class={ITEM}
+        part={this.part("option")}
+        value={option.value}
+        disabled={!!option.disabled}
+        {...this.staticOption(option.value)}
+      >
         <Show when={typeof option.icon === "string"}>
           <span class={ICON} aria-hidden="true">
             {glyph.svg()}
@@ -265,6 +273,24 @@ export class UISelect extends FormElement<SelectVocabulary> {
         </Show>
       </option>
     )
+  }
+
+  /**
+   * Server render only (`$/ui/server`):  the select's `name`, so it submits without JS;  `{}` in a browser, where
+   * the HOST submits (`ElementInternals`).
+   */
+  private staticSelect(): Record<string, unknown> {
+    return isServer ? { name: this.attrs.name } : {}
+  }
+
+  /**
+   * Server render only:  `selected` on the option of `value` while it's chosen (`""`:  the placeholder, while
+   * nothing is);  `{}` in a browser, where `syncSelect()` sets it.
+   */
+  private staticOption(value: string): Record<string, unknown> {
+    if (!isServer) return {}
+    const values = this.values()
+    return { selected: value === "" ? !values.length : values.includes(value) }
   }
 
   /**

@@ -39,6 +39,7 @@ import {
   FLUID,
   FOCUS,
   FOCUSED_CELL,
+  HIDDEN,
   ID_PREFIX,
   INPUT,
   LINK,
@@ -52,6 +53,7 @@ import {
   PREVIOUS_ICON,
   RANGE,
   SPACE,
+  STATIC_CONTROL,
   TABLE,
   TITLE,
   TODAY,
@@ -239,7 +241,11 @@ export class UICalendar extends FormElement<Vocabulary> {
     const typed = this.typed.get()
     if (typed !== null) return typed
     const value = this.value()
-    return value ? this.words().value(value, this.type()) : ""
+    if (value) return this.words().value(value, this.type())
+    if (!isServer) return ""
+    // server render:  no `Temporal`, so the value's fields read by hand, formatted as a browser would
+    const fields = CalendarDates.isoFields(String(this.valueState.get() ?? ""), this.type())
+    return fields ? this.words().value(fields, this.type()) : String(this.valueState.get() ?? "")
   }
 
   /** What `CalendarView` needs, or `undefined` before `Temporal`;  tracked. */
@@ -350,8 +356,25 @@ export class UICalendar extends FormElement<Vocabulary> {
             {this.picker()}
           </div>
         </Show>
+        {isServer && this.staticValue()}
       </div>
     )
+  }
+
+  /** Server render only (`$/ui/server`):  the field's `STATIC_CONTROL` mark;  `{}` in a browser. */
+  private staticControl(): Record<string, unknown> {
+    return isServer ? { [STATIC_CONTROL]: "" } : {}
+  }
+
+  /**
+   * Server render only:  the ISO value as a hidden input, so a static form submits it as the HOST would
+   * (`ElementInternals`) -- the field shows it formatted.
+   */
+  private staticValue(): JSX.Element {
+    const name = this.attrs.name
+    const value = this.formValue()
+    if (!name || value === null) return undefined
+    return <input type={HIDDEN} name={name} value={String(value)} disabled={this.isDisabled()} />
   }
 
   /** Field + icon button + popover. */
@@ -374,6 +397,7 @@ export class UICalendar extends FormElement<Vocabulary> {
             aria-label={this.labels.name() ?? this.attrs.placeholder}
             aria-required={this.attrs.required ? "true" : undefined}
             aria-invalid={this.validation().valid ? undefined : "true"}
+            {...this.staticControl()}
             onInput={this.onInput}
             onChange={this.onChange}
             onClick={this.onFieldClick}

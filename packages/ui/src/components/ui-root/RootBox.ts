@@ -1,11 +1,14 @@
-import { WINDOW } from "./ui-root.types"
+import { isServer } from "@solidjs/web"
+
+import { SERVER_LENGTH, WINDOW } from "./ui-root.types"
 
 /****************
  * ### `RootBox`
  * One root's own sheet:  `:host { width; height; --ui-scale }` from its `width`, `height` and `size`.
  * - A constructed sheet adopted into the root's shadow (`UI.styles.adoptInto()` keeps sheets it didn't make), not an
  *   inline `style`:  the host's `style` attribute is the author's.
- * - Lengths are checked with `CSS.supports()`, so an attribute can never inject other declarations.
+ * - Lengths are checked with `CSS.supports()`, so an attribute can never inject other declarations;  a static server
+ *   render (no `CSS` in node) checks them against `SERVER_LENGTH` instead.
  ****************/
 export class RootBox {
   /** Created on first use (never on the server). */
@@ -44,6 +47,7 @@ export class RootBox {
     const trimmed = value?.trim()
     if (!trimmed) return undefined
     if (trimmed === WINDOW) return viewport
+    if (isServer) return SERVER_LENGTH.test(trimmed) ? trimmed : undefined
     return CSS.supports(property, trimmed) ? trimmed : undefined
   }
 }

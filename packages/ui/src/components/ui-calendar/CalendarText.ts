@@ -8,6 +8,7 @@ import {
   DatePart,
   LABEL_FORMATS,
   Moment,
+  MomentLike,
   MomentFields,
   TITLE_FORMATS,
   UTC,
@@ -47,12 +48,12 @@ export class CalendarText {
   ////////////////
 
   /** `moment` through `Intl.DateTimeFormat` with `options`, in UTC (see class docs). */
-  format(moment: Moment, options: Intl.DateTimeFormatOptions): string {
+  format(moment: MomentLike, options: Intl.DateTimeFormatOptions): string {
     return this.i18n.formatDate(CalendarDates.epoch(moment), { ...options, timeZone: UTC }, this.locale)
   }
 
   /** The field's text for a value of `type`, e.g. `September 30, 2026 at 2:30 PM`. */
-  value(moment: Moment, type: UIT.CalendarType): string {
+  value(moment: MomentLike, type: UIT.CalendarType): string {
     return this.format(moment, VALUE_FORMATS[type])
   }
 

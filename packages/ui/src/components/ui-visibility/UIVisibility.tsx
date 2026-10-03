@@ -1,5 +1,5 @@
 import { createEffect } from "solid-js"
-import type { JSX } from "@solidjs/web"
+import { isServer, type JSX } from "@solidjs/web"
 
 import {
   ANIMATION_NAMES,
@@ -17,7 +17,17 @@ import { visibilityVocabulary } from "./ui-visibility.vocabulary.en"
 import { VisibilityFallback } from "./ui-visibility.fallback"
 
 import visibilityCSS from "./ui-visibility.css?inline"
-import { DEFAULT_DURATION, LAZY_IMAGES, DATA_SRC, FADE } from "./ui-visibility.types"
+import {
+  DEFAULT_DURATION,
+  LAZY_IMAGES,
+  DATA_SRC,
+  DATA_SRCSET,
+  FADE,
+  LAZY,
+  LOADING,
+  SRC,
+  SRCSET
+} from "./ui-visibility.types"
 import type { VisibilityVocabulary, VisibilityConfig } from "./ui-visibility.types"
 import { IMAGE } from "$/ui/components/components.types"
 
@@ -54,6 +64,7 @@ export class UIVisibility extends UIElement<VisibilityVocabulary> {
 
   render(): JSX.Element {
     this.effects()
+    if (isServer && this.attrs.type === IMAGE) this.serverImages()
     return (
       <div class={this.classes()} part={this.part("visibility")}>
         <slot />
@@ -119,6 +130,20 @@ export class UIVisibility extends UIElement<VisibilityVocabulary> {
     return () => {
       observer.disconnect()
       for (const stop of stops.values()) stop()
+    }
+  }
+
+  /**
+   * Static server render (`$/ui/server`):  nothing will observe, so each `<img data-src>` gets its source now, with
+   * `loading="lazy"` (unless it says otherwise):  crawlers and no-JS readers see the image, the browser defers it.
+   * - SIDE EFFECT:  writes the host's light-DOM images, which the flattener then moves into the root.
+   */
+  private serverImages() {
+    for (const image of this.host.querySelectorAll(LAZY_IMAGES)) {
+      image.setAttribute(SRC, image.getAttribute(DATA_SRC)!)
+      const srcset = image.getAttribute(DATA_SRCSET)
+      if (srcset) image.setAttribute(SRCSET, srcset)
+      if (!image.hasAttribute(LOADING)) image.setAttribute(LOADING, LAZY)
     }
   }
 

@@ -122,6 +122,13 @@
     vertical-align: baseline;
     backface-visibility: hidden;
   }
+  /*
+   * Shrink-wrapped, as an `inline-block` already is:  a no-op inside the host, but a static render's root
+   * (`$/ui/server`) IS the flex / grid item the host was, and would stretch.
+   */
+  .ui.checkbox:not(.invisible) {
+    inline-size: fit-content;
+  }
 
   /* The input:  invisible, over the box, so clicks and focus land on it. */
   .ui.checkbox > input {

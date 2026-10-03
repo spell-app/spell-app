@@ -106,7 +106,10 @@ export class StaticFlattener {
     for (const { name, value } of [...host.attributes]) {
       if (skip.has(name)) continue
       if (name === "class") root.setAttribute("class", `${root.getAttribute("class") ?? ""} ${value}`.trim())
-      else if (name === "style") root.setAttribute("style", `${root.getAttribute("style") ?? ""};${value}`)
+      else if (name === "style") {
+        const style = [root.getAttribute("style"), value].filter(Boolean).join(";")
+        if (style) root.setAttribute("style", style)
+      }
       else if (!root.hasAttribute(name)) root.setAttribute(name, value)
     }
     const state = ServerHost.state(host)

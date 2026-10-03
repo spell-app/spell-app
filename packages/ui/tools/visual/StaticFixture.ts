@@ -9,7 +9,7 @@
  */
 
 import type { UIElementClass } from "$/ui/elements"
-import { StaticRender, StaticStylesheet } from "$/ui/server"
+import { ServerRuntime, StaticRender, StaticStylesheet } from "$/ui/server"
 
 import { StaticFamilies } from "./StaticFamilies.ts"
 
@@ -62,8 +62,12 @@ export class StaticFixture {
     return (StaticFixture.defined ??= StaticFixture.load())
   }
 
-  /** Import every `StaticFamilies` class from its own file and `StaticRender.define()` them all. */
+  /**
+   * Import every `StaticFamilies` class from its own file and `StaticRender.define()` them all;  load the default
+   * icon pack first, as the element pages' runtime does (`ServerRuntime.icons()`).
+   */
   private static async load(): Promise<void> {
+    await ServerRuntime.icons()
     const classes: UIElementClass[] = []
     for (const [family, names] of Object.entries(StaticFamilies.CLASSES)) {
       for (const name of names) {
@@ -97,7 +101,8 @@ export class StaticFixture {
 
   /** Tags in `html` that `StaticRender` defines. */
   private static definedTags(html: string): Set<string> {
-    const tags = [...html.matchAll(/<(ui-[\w-]+)/g)].map((match) => match[1]!)
+    // comments may name tags (`<!-- <ui-root> ... -->`)
+    const tags = [...html.replace(/<!--[\s\S]*?-->/g, "").matchAll(/<(ui-[\w-]+)/g)].map((match) => match[1]!)
     return new Set(tags.filter((tag) => StaticRender.families.has(tag)))
   }
 }

@@ -6,6 +6,13 @@
 import type { ValidationResult } from "$/ui/core"
 import type { inputVocabulary } from "./ui-input.vocabulary.en"
 
+/**
+ * Marks the NATIVE control in a static server render (`$/ui/server`), for the flattener:  the host's `id` and ARIA
+ * names belong there, so a `<label for>` the host's id labels the control.
+ * - TODO: one shared constant (`UIT`) once `StaticFlattener` reads it (seo plan, P3).
+ */
+export const STATIC_CONTROL = "data-ui-control"
+
 /** Converted attributes every text control has (`input` and `textarea`), see `TextControl.common`. */
 export type CommonAttributes = {
   readonly value: string | undefined

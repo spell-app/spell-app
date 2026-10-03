@@ -1,5 +1,5 @@
 import { For, Show, createEffect, createMemo, untrack } from "solid-js"
-import type { JSX } from "@solidjs/web"
+import { isServer, type JSX } from "@solidjs/web"
 
 import {
   Cell,
@@ -34,7 +34,8 @@ import {
   NAME,
   RESULT,
   PRICE,
-  ABORT_ERROR
+  ABORT_ERROR,
+  STATIC_CONTROL
 } from "./ui-search.types"
 import type { SearchVocabulary, RemoteAnswer, SearchMessage } from "./ui-search.types"
 import {
@@ -323,6 +324,7 @@ export class UISearch extends FormElement<SearchVocabulary> {
             aria-busy={this.isLoading() ? "true" : undefined}
             aria-required={this.attrs.required ? "true" : undefined}
             aria-invalid={this.validation().valid ? undefined : "true"}
+            {...this.staticControl()}
             onInput={this.onInput}
             onKeyDown={this.onKeyDown}
             onFocus={this.onFocus}
@@ -339,6 +341,14 @@ export class UISearch extends FormElement<SearchVocabulary> {
         </span>
       </div>
     )
+  }
+
+  /**
+   * Server render only (`$/ui/server`):  the input's `name` (it holds the query, the value) and the `STATIC_CONTROL`
+   * mark, so a static form submits it;  `{}` in a browser, where the HOST submits (`ElementInternals`).
+   */
+  private staticControl(): Record<string, unknown> {
+    return isServer ? { [STATIC_CONTROL]: "", name: this.attrs.name } : {}
   }
 
   /** The results popover:  a listbox while there are results, else the message. */
