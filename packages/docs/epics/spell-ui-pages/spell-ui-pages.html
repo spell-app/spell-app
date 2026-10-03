@@ -24,9 +24,7 @@
         <ui-sticky class="spell-h1"
           ><header class="spell-page-head">
             <h1>Spell UI Pages</h1>
-            <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p12">next: P12 · Doc Review 2</ui-label></span
-            >
+            <span class="plan-step"><ui-label color="green" icon="check">DONE</ui-label></span>
           </header></ui-sticky
         >
         <ui-list class="plan-meta">
@@ -51,8 +49,11 @@
             Built: Spell UI's docs are now 66 hand-authored HTML pages in Fomantic's docs style (1608 live examples),
             made only of <code>&lt;ui-*&gt;</code> widgets plus six doc-only <code>&lt;ui-docs-*&gt;</code> elements,
             with Fomantic's text, examples and images; the Astro site is gone. 24 of Fomantic's 25 themes are ported as
-            token sheets, and the 103 widget gaps the pages exposed are grouped in 1.5.
+            token sheets. Two widget fixes the pages asked for landed (<code>stack-with</code>, P10;
+            <code>appearance</code> / <code>alignment</code> / <code>equal</code> on menus and tabs, P11); the 100
+            widget gaps still open are grouped in 1.5.
           </p>
+
           <blockquote class="plan-prompt">
             <p>
               The spell/ui doc pages are ugly.<br />Re-do them in the style of the Fomantic UI ones. Use their
@@ -63,7 +64,7 @@
               12 agents to do this.<br />I'm going to bed soon, let's make this plan snappy.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 18h-25h in all, 30m left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 18h-25h in all, 0m left</p>
           <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
             <ui-list bulleted>
               <ui-item
@@ -140,8 +141,10 @@
           <ui-section id="o2" header="1.2 A page" sticky collapsible dividing>
             <ui-list bulleted>
               <ui-item
-                ><code>&lt;spell-site-header&gt;</code> on top, then <code>&lt;ui-root&gt;</code> around the page: it
-                loads each family on first use</ui-item
+                ><code>&lt;spell-site-header&gt;</code> on top, then
+                <code>&lt;ui-root stack-with="page"&gt;</code> around the page: it loads each family on first use, and
+                makes every stacking example (grid, cards, steps, form rows, items, statistics, token tables) stack by
+                the SCREEN, as on fomantic-ui.com, not by the ~755px docs column (<a href="#d40">D40</a>)</ui-item
               >
               <ui-item
                 >header (<code>_parts/header.html</code>, a <code>&lt;ui-menu inverted&gt;</code>): top links,
@@ -154,10 +157,11 @@
               >
               <ui-item
                 >masthead: title, summary, status, source / bug / Fomantic links, the per-family theme picker, and the
-                top tabs (<code>&lt;ui-tabs history&gt;</code>, URL hash): Examples / Usage / API / Theming (<a
-                  href="#d4"
-                  >D4</a
-                >; the selected tab isn't filled yet, <a href="#i24">I24</a>)</ui-item
+                top tabs (<code>&lt;ui-tabs history basic appearance="segmented" alignment="fluid" equal&gt;</code>, URL
+                hash): Examples / Usage / API / Theming as one segmented control across the column, four equal tabs, the
+                selected one filled with the primary colour (<a href="#d4">D4</a>, <a href="#d41">D41</a>-<a href="#d43"
+                  >D43</a
+                >; <a href="#i24">I24</a> fixed in P11)</ui-item
               >
               <ui-item
                 >body: Fomantic's sections (Types, Content, States, Variations, Groups), each example a
@@ -264,9 +268,22 @@
           </ui-section>
           <ui-section id="o5" header="1.5 Gap report" sticky collapsible dividing>
             <p>
-              103 widget gaps open after building 66 pages and 1608 live examples from <code>&lt;ui-*&gt;</code> only;
-              27 more were small enough to fix in passing (closed issues). Grouped by what would fix them:
+              100 widget gaps open after building 66 pages and 1608 live examples from <code>&lt;ui-*&gt;</code> only.
+              Closed so far:
             </p>
+            <ui-list bulleted>
+              <ui-item>27 small enough to fix in passing (P2-P5)</ui-item>
+              <ui-item
+                ><a href="#i49">I49</a>, <a href="#i58">I58</a>, <a href="#i82">I82</a>: stacking in the docs column, by
+                <code>stack-with</code> (<a href="#p10">P10</a>)</ui-item
+              >
+              <ui-item
+                ><a href="#i24">I24</a>: equal-width, filled tabs, by <code>appearance</code> / <code>alignment</code> /
+                <code>equal</code> (<a href="#p11">P11</a>)</ui-item
+              >
+              <ui-item>new since P8: <a href="#i131">I131</a> (steps text doesn't shrink in the column)</ui-item>
+            </ui-list>
+            <p>Grouped by what would fix them:</p>
             <ui-table celled compact striped unstackable>
               <table>
                 <thead>
@@ -278,12 +295,12 @@
                 </thead>
                 <tbody>
                   <tr>
-                    <td>Stacking in the docs column</td>
-                    <td class="num right aligned">6</td>
+                    <td>Layout in the docs column</td>
+                    <td class="num right aligned">4</td>
                     <td>
-                      Stackable grids, cards, steps, token tables measure their CONTAINER (container queries), Fomantic
-                      measures the SCREEN. In the ~755px docs column they stack on a desktop. One design decision fixes
-                      most of it.
+                      What's left once <code>stack-with="page"</code> (P10) made the site stack by the SCREEN:
+                      horizontal cards one per row, a vertical divider in a stacked grid, wide demos, steps text that
+                      doesn't shrink.
                     </td>
                   </tr>
                   <tr>
@@ -309,7 +326,7 @@
                   </tr>
                   <tr>
                     <td>Element variations missing</td>
-                    <td class="num right aligned">46</td>
+                    <td class="num right aligned">45</td>
                     <td>Fomantic class words with no equivalent attribute or look.</td>
                   </tr>
                   <tr>
@@ -328,16 +345,28 @@
                 </tbody>
               </table>
             </ui-table>
+            <ui-message state="positive" header="Done since P8">
+              <ui-list bulleted>
+                <ui-item
+                  ><b>Stacking</b> (<a href="#i49">I49</a>, <a href="#d40">D40</a>, <a href="#p10">P10</a>):
+                  <code>stack-with="container|page"</code> on grid, cards, steps, form, items, statistics, and page-wide
+                  by <code>&lt;ui-root stack-with&gt;</code> (token <code>--ui-stack-with</code>); the site uses
+                  <code>page</code>. Closed I49, I58, I82.</ui-item
+                >
+                <ui-item
+                  ><b>The tab look</b> (<a href="#i24">I24</a>, <a href="#d41">D41</a>-<a href="#d43">D43</a>,
+                  <a href="#p11">P11</a>): <code>appearance</code> / <code>alignment</code> on menus and tabs,
+                  <code>equal</code> on six row widgets; the site's top tabs are segmented, fluid and equal.</ui-item
+                >
+              </ui-list>
+            </ui-message>
             <ui-message state="info" header="Recommended next">
               <ui-list bulleted>
                 <ui-item
-                  ><b>Decide stacking</b> (<a href="#i49">I49</a>): container-relative stacking is right for components,
-                  wrong for Fomantic's page-level <code>stackable</code> / <code>doubling</code>. Options: a
-                  <code>stack-on="screen|container"</code> switch, or screen media queries for those words only. Biggest
-                  visible win on the docs.</ui-item
-                >
-                <ui-item
-                  ><b>One loader option</b> for every <code>loading</code> widget: closes 8 gaps at once.</ui-item
+                  ><b>One loader option</b> for every <code>loading</code> widget: closes 8 gaps at once (<a
+                    href="#o5-loader-styles-on-host-widgets"
+                    >the loader group</a
+                  >).</ui-item
                 >
                 <ui-item
                   ><b>Fix <a href="#i7">I7</a></b> (<code>&lt;ui-table&gt;</code> unstyled inside another shadow root):
@@ -347,31 +376,33 @@
                   ><b>Icon word order</b> (<a href="#i23">I23</a>): Fomantic names like <code>right arrow</code> draw
                   nothing, silently; accept both orders, or warn.</ui-item
                 >
+                <ui-item
+                  ><b>A single-choice button group</b> (<a href="#i12">I12</a>, <a href="#i17">I17</a>): the site's
+                  light / dark / system switch and the icon-pack switcher are one choice of several, but a screen reader
+                  can't tell which is chosen. Radio semantics on <code>&lt;ui-buttons&gt;</code>, next to P11's
+                  <code>equal</code>, closes both.</ui-item
+                >
               </ui-list>
             </ui-message>
-            <h4 id="o5-stacking-in-the-docs-column">Stacking in the docs column (6)</h4>
+            <h4 id="o5-stacking-in-the-docs-column">Layout in the docs column (4)</h4>
             <ui-list bulleted>
-              <ui-item
-                ><a href="#i49">I49</a> stackable / doubling &lt;ui-grid&gt; and &lt;ui-cards&gt; stack inside the docs
-                column on</ui-item
-              >
-              <ui-item
-                ><a href="#i82">I82</a> &lt;ui-steps&gt; stack by default inside the docs column on desktop (I49's
-                root)</ui-item
-              >
               <ui-item
                 ><a href="#i129">I129</a> &lt;ui-cards horizontal&gt; one card per row in the docs column</ui-item
               >
               <ui-item
-                ><a href="#i58">I58</a> &lt;ui-docs-tokens&gt; tables stack to cards inside the docs column on
-                desktop</ui-item
-              >
-              <ui-item
                 ><a href="#i45">I45</a> &lt;ui-divider vertical&gt; in a stackable &lt;ui-grid&gt; doesn't turn
-                horizontal when the</ui-item
+                horizontal when the grid stacks</ui-item
               >
               <ui-item
                 ><a href="#i32">I32</a> &lt;ui-docs-example&gt; wide demos overflow the column on desktop</ui-item
+              >
+              <ui-item
+                ><a href="#i131">I131</a> &lt;ui-steps&gt; a three-step row wraps its third step at 1440px: the text
+                doesn't shrink (new in P10)</ui-item
+              >
+              <ui-item
+                ><s><a href="#i49">I49</a>, <a href="#i58">I58</a>, <a href="#i82">I82</a></s> closed by
+                <code>stack-with</code> (P10)</ui-item
               >
             </ui-list>
             <h4 id="o5-loader-styles-on-host-widgets">Loader styles on host widgets (8)</h4>
@@ -494,7 +525,7 @@
                 percentages)</ui-item
               >
             </ui-list>
-            <h4 id="o5-element-variations-missing">Element variations missing (46)</h4>
+            <h4 id="o5-element-variations-missing">Element variations missing (45)</h4>
             <ui-list bulleted>
               <ui-item><a href="#i74">I74</a> &lt;ui-label&gt; no right icon (icon after the text)</ui-item>
               <ui-item><a href="#i75">I75</a> &lt;ui-label ribbon&gt; no bottom / center ribbon</ui-item>
@@ -558,7 +589,10 @@
                 ><a href="#i81">I81</a> &lt;ui-menu vertical&gt; item labels don't float right, and a sized menu doesn't
                 size its</ui-item
               >
-              <ui-item><a href="#i24">I24</a> &lt;ui-tabs&gt; no equal-width items and no filled selected tab</ui-item>
+              <ui-item
+                ><s><a href="#i24">I24</a> &lt;ui-tabs&gt; no equal-width items and no filled selected tab</s> closed by
+                P11</ui-item
+              >
               <ui-item><a href="#i51">I51</a> &lt;ui-tabs&gt; no centered tab item (Fomantic's center item)</ui-item>
               <ui-item><a href="#i12">I12</a> &lt;ui-buttons&gt; no single-choice (radio) group</ui-item>
               <ui-item><a href="#i17">I17</a> &lt;ui-buttons&gt; no single-choice (segmented) group</ui-item>
@@ -654,7 +688,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="11" total="12" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="12" total="12" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -883,6 +917,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p11"
             data-phase="11"
             data-status="done"
@@ -913,13 +948,13 @@
           <ui-section
             id="p12"
             data-phase="12"
-            data-status="todo"
+            data-status="done"
             header="P12 · Doc Review 2"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"><b>Goal:</b> durable doc + plan doc true to P10-P11</ui-item
               ><ui-item icon="folder"><b>Files:</b> packages/docs/spell-ui-pages.html</ui-item
@@ -2695,7 +2730,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="c19" data-status="open"
+            ><ui-item id="c19" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c19">C19</a>
@@ -3029,6 +3064,22 @@
                   > </ui-title
                 ><ui-content
                   ><p>Kept by P7 (generic, tested). Delete or keep as a reusable piece: Owen's call.</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t12" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t12">T12</a>
+                  <span class="plan-title"
+                    >ui-items page: its first example's note still says the examples stack (stale since P10's
+                    stack-with=page)</span
+                  > </ui-title
+                ><ui-content
+                  >packages/ui/site/components/ui-items.html, the Types / Items example's positive ui-message: 'this
+                  page's example column is narrower than that, so the examples here show the stacked layout'. Since P10
+                  the site root is stack-with=page, so on a desktop items show the image beside the text (site-check
+                  screenshot ui-items-desk-examples.png). Reword it to say items stack by the screen here, by the
+                  group's width elsewhere (stack-with). C19 closed for the same reason.</ui-content
                 ></ui-accordion
               ></ui-item
             ></ui-list
@@ -6605,6 +6656,53 @@
                   appearance (+ segmented) and alignment on ui-menu / ui-tabs, equal on menu / tabs / buttons /
                   statistics / steps / fields; site tabs segmented; I24 closed; checks: ui review 4455, site:check --all
                   67 OK, visual 87 pass (existing baselines unchanged)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T15:47-04:00">2026-10-03 15:47</time></ui-date> P12
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T15:51-04:00">2026-10-03 15:51</time></ui-date> C19 closed:
+                  ui-items page: every example stacks (the docs column is under 768px)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T15:55-04:00">2026-10-03 15:55</time></ui-date> P12: plan doc
+                  summary, 1.2 and 1.5 true to P10 + P11 (100 gaps open, stacking + tab look done, next: loader option,
+                  I7, I23, I12/I17); C19 closed (stack-with=page), T12 for the stale ui-items note; durable doc
+                  spell-ui-pages.html: stack-with + appearance / alignment / equal in anatomy, workflows, why, limits;
+                  judgement calls in the record</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T15:56-04:00">2026-10-03 15:56</time></ui-date> T12 closed:
+                  ui-items page: its first example's note still says the examples stack (stale since P10's
+                  stack-with=page)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T15:56-04:00">2026-10-03 15:56</time></ui-date> P12
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T15:56-04:00">2026-10-03 15:56</time></ui-date> P12 done: plan doc
+                  + durable doc true to P10-P11; 100 gaps open; T12 fixed (items page note); checks: plan-doc check,
+                  doc-links, check-spell, site:check ui-items</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

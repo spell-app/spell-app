@@ -29,7 +29,7 @@
             bundle</ui-item
           >
           <ui-item icon="flag"
-            >Status: <ui-label size="mini" color="green">built</ui-label> (epic <code>spell-ui-pages</code>, P1-P8,
+            >Status: <ui-label size="mini" color="green">built</ui-label> (epic <code>spell-ui-pages</code>, P1-P11,
             2026-10-02 / 03)</ui-item
           >
           <ui-item icon="flask"
@@ -44,7 +44,7 @@
             <ui-statistic value="66" label="pages"></ui-statistic>
             <ui-statistic value="1608" label="live examples"></ui-statistic>
             <ui-statistic value="24" label="Fomantic themes"></ui-statistic>
-            <ui-statistic value="103" label="open widget gaps"></ui-statistic>
+            <ui-statistic value="100" label="open widget gaps"></ui-statistic>
           </ui-statistics>
           <ul>
             <li>
@@ -72,7 +72,8 @@
                 header="gap"
                 content="A Fomantic example or bit of page chrome no ui-* widget can render right:  a missing attribute or value, a wrong look, or one that needs hand CSS.  Logged as an issue in the plan doc."
               ></ui-popup>
-              in the plan doc. 103 are open (<a href="#8-limits">section 8</a>), about 30 more were fixed along the way.
+              in the plan doc. 100 are open (<a href="#8-limits">section 8</a>); 31 more were fixed, 27 in passing and 4
+              by the two widget phases that followed (stacking and the tab bar, <a href="#frame-widgets">section 3</a>).
             </li>
             <li>
               Where: <a href="../ui/site/" target="src-packages-ui-site"><code>packages/ui/site/</code></a
@@ -273,8 +274,14 @@
             <ol>
               <li>
                 <b>Site header</b>: <code>&lt;spell-site-header&gt;</code>, the bar every page-server page shares, then
-                <code>&lt;ui-root icons="fa7-brands, fomantic" display="immediately"&gt;</code> around the rest: it
-                loads each family on first use.
+                <code
+                  >&lt;ui-root class="site" stack-with="page" icons="fa7-brands, fomantic"
+                  display="immediately"&gt;</code
+                >
+                around the rest: it loads each family on first use, and makes every example stack by the screen (<a
+                  href="#frame-widgets"
+                  >below</a
+                >).
               </li>
               <li>
                 <b>Top menu</b>: <code>_parts/header.html</code> through <code>&lt;ui-include page-styles&gt;</code>: an
@@ -292,8 +299,10 @@
                 the family's own <code>&lt;ui-docs-themes for show="theme"&gt;</code>.
               </li>
               <li>
-                <b>Tabs</b>: <code>&lt;ui-tabs id="site-tabs" history basic compact&gt;</code>: Examples / Usage / API /
-                Theming. The shown tab is in the URL hash (<code>#api</code>), so links, reloads and Back land on it.
+                <b>Tabs</b>:
+                <code>&lt;ui-tabs id="site-tabs" history basic appearance="segmented" alignment="fluid" equal&gt;</code
+                >: Examples / Usage / API / Theming, one segmented control across the column. The shown tab is in the
+                URL hash (<code>#api</code>), so links, reloads and Back land on it.
               </li>
               <li>
                 <b>On this page</b>: <code>&lt;ui-docs-toc for="site-tabs"&gt;</code> in a
@@ -305,6 +314,110 @@
                 with Fomantic's MIT attribution.
               </li>
             </ol>
+          </ui-section>
+
+          <ui-section id="frame-widgets" header="Stacking and the tab bar" sticky collapsible dividing>
+            <p>
+              Two widget features the frame leans on, added for these pages (P10, P11) but usable anywhere, not only on
+              the site.
+            </p>
+            <h4 id="stack-with">Stacking: <code>stack-with</code></h4>
+            <ul>
+              <li>
+                Fomantic's responsive words (<code>stackable</code>, <code>doubling</code>, per-device widths,
+                <code>reversed</code>) measure the SCREEN. Ours measure the element's own width by default: right for a
+                component in a 300px sidebar, wrong in the ~755px docs column, where examples stacked on a desktop.
+              </li>
+              <li>
+                <code>stack-with</code> picks which:
+                <ul>
+                  <li>
+                    on the element: <code>stack-with="container"</code> (default) or <code>"page"</code>, e.g.
+                    <code>&lt;ui-grid stackable columns="3" stack-with="page"&gt;</code>
+                  </li>
+                  <li>
+                    for a subtree: the inherited token <code>--ui-stack-with: page | container</code>, which
+                    <code>&lt;ui-root stack-with="page"&gt;</code> sets
+                  </li>
+                </ul>
+              </li>
+              <li>
+                On <code>&lt;ui-grid&gt;</code> (its rows and columns follow), <code>&lt;ui-cards&gt;</code>,
+                <code>&lt;ui-steps&gt;</code>, <code>&lt;ui-form&gt;</code> (its <code>&lt;ui-fields&gt;</code> follow),
+                <code>&lt;ui-items&gt;</code>, <code>&lt;ui-statistics&gt;</code>. The attribute beats the token;
+                neither: <code>container</code>.
+              </li>
+              <li>
+                <code>&lt;ui-table&gt;</code> keeps its own <code>stack-by</code> (viewport by default); without one it
+                follows the token.
+              </li>
+              <li>
+                None on menus, button groups, horizontal segments: they already stack by the screen (<a
+                  href="epics/spell-ui-pages/spell-ui-pages.html#j13"
+                  target="spell-ui-pages"
+                  >J13</a
+                >).
+              </li>
+              <li>
+                The site: every page's root says <code>stack-with="page"</code>, so examples lay out as on
+                fomantic-ui.com. So keep Fomantic's markup: no <code>unstackable</code> to stop a desktop stack, and no
+                <code>stack-with</code> on an example unless it is ABOUT <code>stack-with</code>.
+              </li>
+              <li>
+                The design:
+                <a href="../ui/docs/theming.md" target="src-packages-ui-docs-theming-md"
+                  ><code>packages/ui/docs/theming.md</code></a
+                >
+                "Stacking".
+              </li>
+            </ul>
+            <h4 id="tab-look">The tab bar: <code>appearance</code>, <code>alignment</code>, <code>equal</code></h4>
+            <ul>
+              <li>
+                <code>appearance</code> on <code>&lt;ui-menu&gt;</code> and <code>&lt;ui-tabs&gt;</code>: the look, one
+                word.
+                <ul>
+                  <li>
+                    <code>tabular</code>, <code>pointing</code>, <code>secondary</code>, <code>text</code> (Fomantic's),
+                    and <code>segmented</code> (ours): a bordered group of joined items, the selected one filled with
+                    <code>color</code>, else the primary colour.
+                  </li>
+                  <li>
+                    The old booleans (<code>tabular</code>, <code>pointing</code> ...) stay as aliases and combine.
+                  </li>
+                </ul>
+              </li>
+              <li>
+                <code>alignment="fluid | left | center | right"</code> on the same two: where the items sit along a
+                horizontal bar, packed at one end or filling it (<code>fluid</code>).
+                <ul>
+                  <li>A segmented menu moves as a whole; ignored when <code>vertical</code>.</li>
+                </ul>
+              </li>
+              <li>
+                <code>equal</code> on menus, tabs, <code>&lt;ui-buttons&gt;</code>, <code>&lt;ui-statistics&gt;</code>,
+                <code>&lt;ui-steps&gt;</code>, <code>&lt;ui-fields&gt;</code>: every child the same width, worked out
+                from the children, no count.
+                <ul>
+                  <li>packed: each as wide as the widest, the group hugging them</li>
+                  <li><code>fluid</code>: an equal share of the bar; statistics and fields always share their row</li>
+                  <li>
+                    the old counts (<code>items="3"</code>, <code>width</code>, <code>widths</code>) stay as aliases
+                  </li>
+                </ul>
+              </li>
+              <li>
+                The site's top tabs: <code>appearance="segmented" alignment="fluid" equal</code>, four equal tabs across
+                the column; the icons page's pack switcher is <code>&lt;ui-buttons equal&gt;</code>.
+              </li>
+              <li>
+                The grammar:
+                <a href="../ui/docs/grammar.md" target="src-packages-ui-docs-grammar-md"
+                  ><code>packages/ui/docs/grammar.md</code></a
+                >
+                "Menus".
+              </li>
+            </ul>
           </ui-section>
 
           <ui-section id="the-tabs" header="The four tabs" sticky collapsible dividing>
@@ -748,6 +861,18 @@
                 nothing and warns nothing.
               </li>
               <li>
+                Stacking: keep Fomantic's <code>stackable</code> / <code>doubling</code> as they are. The root's
+                <code>stack-with="page"</code> already stacks them by the screen; no <code>unstackable</code> to stop a
+                desktop stack, no <code>stack-with</code> unless the example is about it (<a href="#frame-widgets"
+                  >section 3</a
+                >).
+              </li>
+              <li>
+                Menus and tabs: Fomantic's <code>tabular</code> / <code>pointing</code> / <code>secondary</code> /
+                <code>text</code> words work as they are; our own look, alignment and equal widths are
+                <code>appearance</code>, <code>alignment</code> and <code>equal</code>.
+              </li>
+              <li>
                 Text holding <code>&lt;tags&gt;</code>: wrap <code>&lt;ui-markdown&gt;</code> content in
                 <code>&lt;script type="text/markdown"&gt;</code> and <code>&lt;ui-code&gt;</code> content in
                 <code>&lt;script type="text/plain"&gt;</code>, or the tags parse as real elements.
@@ -1104,8 +1229,36 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
                       <a href="epics/spell-ui-pages/spell-ui-pages.html#d4" target="spell-ui-pages">D4</a>,
                       <a href="epics/spell-ui-pages/spell-ui-pages.html#d33" target="spell-ui-pages">D33</a>
                     </td>
-                    <td>Top tabs are <code>&lt;ui-tabs history basic compact&gt;</code>, the hash naming the pane</td>
+                    <td>Top tabs are <code>&lt;ui-tabs history&gt;</code>, the hash naming the pane</td>
                     <td>Owen liked the old site's switcher; the hash makes links, reloads and Back land on the tab</td>
+                  </tr>
+                  <tr>
+                    <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d40" target="spell-ui-pages">D40</a></td>
+                    <td>
+                      <code>stack-with="container|page"</code>, per element AND page-wide; the site says
+                      <code>page</code>
+                    </td>
+                    <td>
+                      container-relative is right for components, wrong for Fomantic's page-level
+                      <code>stackable</code>: the ~755px column stacked every example on a desktop
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="epics/spell-ui-pages/spell-ui-pages.html#d41" target="spell-ui-pages">D41</a>-<a
+                        href="epics/spell-ui-pages/spell-ui-pages.html#d43"
+                        target="spell-ui-pages"
+                        >D43</a
+                      >
+                    </td>
+                    <td>
+                      <code>appearance</code> and <code>alignment</code> on menus and tabs; <code>equal</code> on every
+                      row widget, the old counts kept as aliases
+                    </td>
+                    <td>
+                      the site's tab bar needed equal, filled tabs (I24); one word for the look, and a width taken from
+                      the children rather than counted
+                    </td>
                   </tr>
                   <tr>
                     <td><a href="epics/spell-ui-pages/spell-ui-pages.html#d6" target="spell-ui-pages">D6</a></td>
@@ -1309,11 +1462,11 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
             Two kinds: gaps in the widgets the pages exposed, and caveats about the site and themes themselves. The full
             lists: the plan doc's
             <a href="epics/spell-ui-pages/spell-ui-pages.html#o5" target="spell-ui-pages">1.5 Gap report</a> and
-            <a href="epics/spell-ui-pages/spell-ui-pages.html#caveats" target="spell-ui-pages">4. Caveats</a>.
+            <a href="epics/spell-ui-pages/spell-ui-pages.html#caveats" target="spell-ui-pages">5. Caveats</a>.
           </p>
 
           <ui-section id="gap-report" header="Widget gaps" sticky collapsible dividing>
-            <p>103 open gaps, grouped by what would fix them (plus 1 ungrouped):</p>
+            <p>100 open gaps, grouped by what would fix them (plus 1 ungrouped):</p>
             <ui-table celled compact striped unstackable>
               <table>
                 <thead>
@@ -1326,7 +1479,7 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
                 <tbody>
                   <tr>
                     <td>Element variations missing</td>
-                    <td class="num right aligned">46</td>
+                    <td class="num right aligned">45</td>
                     <td>Fomantic class words with no attribute or look</td>
                   </tr>
                   <tr>
@@ -1353,11 +1506,11 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
                     <td>no double / elastic / slow / coloured loader wherever a widget shows <code>loading</code></td>
                   </tr>
                   <tr>
-                    <td>Stacking in the docs column</td>
-                    <td class="num right aligned">6</td>
+                    <td>Layout in the docs column</td>
+                    <td class="num right aligned">4</td>
                     <td>
-                      <code>stackable</code> grids, cards, steps measure their CONTAINER, Fomantic the SCREEN: in the
-                      ~755px docs column they stack on a desktop
+                      what <code>stack-with</code> left: horizontal cards one per row, a vertical divider in a stacked
+                      grid, wide demos, steps text that doesn't shrink
                     </td>
                   </tr>
                   <tr>
@@ -1368,16 +1521,23 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
                 </tbody>
               </table>
             </ui-table>
-            <ui-message state="positive" header="Recommended next">
-              <ol>
+            <ui-message state="positive" header="Done since the report">
+              <ul>
                 <li>
-                  <b>Decide stacking</b> (<a href="epics/spell-ui-pages/spell-ui-pages.html#i49" target="spell-ui-pages"
-                    >I49</a
-                  >): container-relative is right for components, wrong for Fomantic's page-level
-                  <code>stackable</code> / <code>doubling</code>. Options: a
-                  <code>stack-on="screen|container"</code> switch, or screen media queries for those words only. The
-                  biggest visible win on the docs.
+                  <b>Stacking</b> (P10): <code>stack-with</code>, closing
+                  <a href="epics/spell-ui-pages/spell-ui-pages.html#i49" target="spell-ui-pages">I49</a>,
+                  <a href="epics/spell-ui-pages/spell-ui-pages.html#i58" target="spell-ui-pages">I58</a>,
+                  <a href="epics/spell-ui-pages/spell-ui-pages.html#i82" target="spell-ui-pages">I82</a>; one new,
+                  <a href="epics/spell-ui-pages/spell-ui-pages.html#i131" target="spell-ui-pages">I131</a>.
                 </li>
+                <li>
+                  <b>The tab look</b> (P11): <code>appearance</code> / <code>alignment</code> / <code>equal</code>,
+                  closing <a href="epics/spell-ui-pages/spell-ui-pages.html#i24" target="spell-ui-pages">I24</a>.
+                </li>
+              </ul>
+            </ui-message>
+            <ui-message state="info" header="Recommended next">
+              <ol>
                 <li><b>One loader option</b> for every <code>loading</code> widget: closes 8 gaps at once.</li>
                 <li>
                   <b>Fix <a href="epics/spell-ui-pages/spell-ui-pages.html#i7" target="spell-ui-pages">I7</a></b
@@ -1388,6 +1548,15 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
                   <b>Icon word order</b> (<a href="epics/spell-ui-pages/spell-ui-pages.html#i23" target="spell-ui-pages"
                     >I23</a
                   >): Fomantic's <code>right arrow</code> draws nothing, silently; accept both orders, or warn.
+                </li>
+                <li>
+                  <b>A single-choice button group</b> (<a
+                    href="epics/spell-ui-pages/spell-ui-pages.html#i12"
+                    target="spell-ui-pages"
+                    >I12</a
+                  >, <a href="epics/spell-ui-pages/spell-ui-pages.html#i17" target="spell-ui-pages">I17</a>): the site's
+                  light / dark / system switch and the icon-pack switcher are one choice of several, but a screen reader
+                  can't tell which is chosen. Radio semantics on <code>&lt;ui-buttons&gt;</code> closes both.
                 </li>
               </ol>
             </ui-message>
@@ -1406,8 +1575,8 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
                 header.
               </li>
               <li>
-                <b>The Items page shows mobile layout on desktop</b> (C19), the same container-vs-screen issue as the
-                stacking gaps.
+                <b>The Items page's first note is stale</b> (T12): it still says the examples stack, but since
+                <code>stack-with="page"</code> they show the desktop layout (C19, closed).
               </li>
               <li>
                 <b>Most family tokens have no description</b> (C15): sheets comment groups, not tokens
@@ -1534,8 +1703,23 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
                     >Questions &amp; Decisions</a
                   ></ui-header
                 >
-                <ui-meta>plan doc · D1-D39</ui-meta>
+                <ui-meta>plan doc · D1-D43</ui-meta>
                 <ui-description>The full text behind section 7.</ui-description>
+              </ui-content>
+            </ui-item>
+            <ui-item>
+              <ui-content>
+                <ui-header
+                  ><a href="epics/spell-ui-pages/spell-ui-pages.html#judgements" target="spell-ui-pages"
+                    >Judgement calls</a
+                  ></ui-header
+                >
+                <ui-meta>plan doc · J1-J19</ui-meta>
+                <ui-description
+                  >Choices made WITHOUT Owen (a bedtime run, an agent mid-phase): what was chosen, over what, and why.
+                  Open until he reviews them; struck = accepted. J9-J13 shaped <code>stack-with</code>, J14-J19 the menu
+                  and tab attributes.</ui-description
+                >
               </ui-content>
             </ui-item>
             <ui-item>
@@ -1556,7 +1740,7 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
                     >Issues</a
                   ></ui-header
                 >
-                <ui-meta>plan doc · I1-I130</ui-meta>
+                <ui-meta>plan doc · I1-I131</ui-meta>
                 <ui-description
                   >Every gap, open and closed: what Fomantic does, what the page does instead.</ui-description
                 >
@@ -1602,6 +1786,21 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
           <ui-feed class="spell-history" size="small">
             <ui-event icon="check">
               <ui-content>
+                <ui-summary
+                  >P11: <code>appearance</code> / <code>alignment</code> / <code>equal</code>; segmented site tabs
+                  <ui-date>2026-10-03</ui-date></ui-summary
+                >
+              </ui-content>
+            </ui-event>
+            <ui-event icon="check">
+              <ui-content>
+                <ui-summary
+                  >P10: <code>stack-with</code>; the site stacks by the page <ui-date>2026-10-03</ui-date></ui-summary
+                >
+              </ui-content>
+            </ui-event>
+            <ui-event icon="check">
+              <ui-content>
                 <ui-summary>P8: gap report, 4 recommendations <ui-date>2026-10-03</ui-date></ui-summary>
               </ui-content>
             </ui-event>
@@ -1644,8 +1843,8 @@ await ThemeSheets.apply(undefined) // our own look</code></pre>
         <footer class="spell-doc-footer">
           <ui-divider></ui-divider>
           <p class="meta">
-            Last checked 2026-10-03 against branch <code>spell-ui-pages</code> (after P8): counts from the files and the
-            plan doc's issue list.
+            Last checked 2026-10-03 against branch <code>spell-ui-pages</code> (after P11): counts from the files and
+            the plan doc's issue list.
           </p>
         </footer>
       </main>
