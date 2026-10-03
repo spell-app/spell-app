@@ -16,7 +16,7 @@ Each item ~== `{key, kind, name, group, why[], actions[], ...facts}`:
 - `group`:
   - `active` -- actually in process:  a session working in it, or touched in the last `RECENT` hours
   - `dead` -- hanging on with nothing of value left:  merged or empty worktrees and branches, sessions idle for
-    `STALE` hours, window files with no worktree
+    `STALE` hours (`RECENT` outside any worktree), window files with no worktree
   - `stalled` -- hung or parked:  `/park`ed, waiting, a busy session gone silent, a question nobody answered, work
     nobody has touched in `RECENT` hours, a plan with phases left and nothing working on it
 - `actions`:  what `/whassup` offers for it, each `{id, label, commands[]}`.  `commands` are plain shell lines to run
@@ -137,8 +137,10 @@ def classify_checkout(item):
     if why:
         return set_group(item, "stalled", why + notes(item, parked), stalled_actions(item))
 
-    # a session moving in it beats a leftover note:  it may be resuming, or the note is stale
-    moving = any(s["state"] in ("busy", "waiting") or hours_since(s["lastActive"]) < RECENT for s in sessions)
+    # a session moving in it beats a leftover morning report.  Not a `/park` note:  parking is the LAST thing a
+    # session does (so it was just active), and resuming sets the note to `resumed`
+    moving = any(s["state"] in ("busy", "waiting") or (not parked and hours_since(s["lastActive"]) < RECENT)
+                 for s in sessions)
     if moving or (sessions and not parked and not item["morning"] and hours_since(item["lastTouched"]) < STALE):
         return set_group(item, "active", [describe_sessions(item)] + notes(item, parked), active_actions(item))
     if parked or item["morning"]:
@@ -202,8 +204,9 @@ def session_item(session):
     if session["state"] == "idle" and not session["used"] and hours_since(session["lastActive"]) >= 1:
         why = [f"`{session['name']}` never got a prompt, open {age(session['lastActive'])} ({where})"]
         return set_group(item, "dead", why, [kill(session)])
-    if session["state"] == "idle" and hours_since(session["lastActive"]) >= STALE:
-        why = [f"`{session['name']}` idle since {age(session['lastActive'])} ({where})"]
+    # outside a worktree nothing else is in flight, so `RECENT`, not `STALE`
+    if session["state"] == "idle" and hours_since(session["lastActive"]) >= RECENT:
+        why = [f"`{session['name']}` idle, last active {age(session['lastActive'])} ({where})"]
         return set_group(item, "dead", why, [kill(session), opener])
     why = [f"`{session['name']}` {session['state']}, last active {age(session['lastActive'])} ({where})"]
     return set_group(item, "active", why, [opener])
