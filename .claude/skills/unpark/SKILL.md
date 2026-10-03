@@ -42,7 +42,7 @@ this one.  AskUserQuestion:
     1. not yet in the worktree:  `EnterWorktree` with `path: ".claude/worktrees/<name>"`
     2. `node scripts/window.mjs open <name>` (`--pkg <pkg>` when this isn't a package window), then
        `node scripts/window.mjs handoff <name>`, both from the worktree's root, as `.claude/skills/isolate/SKILL.md`
-       "Start" steps 5-6.  The session moves there when this turn ends.
+       "Start" steps 4-5.  The session moves there when this turn ends.
   - "Stay in this window":  step 1 only.
 - Same:  `EnterWorktree` if not in it yet, and go on.
 

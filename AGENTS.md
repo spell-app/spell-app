@@ -71,8 +71,13 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
   (`.claude/hooks/worktree.mjs`) makes `.claude/worktrees/<name>` on branch `<name>` from local `main`, and keeps the
   session saved at the root (Claude's own worktrees move it, and it drops out of every window's list).
 - Open the worktree in its OWN new window at once, from the worktree's root:  `node scripts/window.mjs open <name>`;
-  `... close <name>` on leaving.  Then `... handoff <name>`:  when the turn ends, the session moves to that window,
-  in an editor tab (never the sidebar), and its old tab closes (the `Stop` hook, `.claude/hooks/handoff.mjs`).
+  `... close <name>` on leaving.  Then `... handoff <name> --prompt continue`:  when the turn ends, the session
+  moves to that window, in an editor tab (never the sidebar), `continue` typed into it, and its old tab closes
+  (the `Stop` hook, `.claude/hooks/handoff.mjs`).
+  - So END THE TURN right after `handoff`:  the rest (`yarn install` ...) happens in the new window.
+  - The old tab is found by the session's title.  The `UserPromptSubmit` hook `.claude/hooks/prompt-gate.mjs`
+    renames the session on `/isolate <name>`, `/epic <name>` and `/unpark <name>`.  It also blocks those prompts in
+    plan mode or inside another worktree, saving their text to `~/.spell/prompts/<name>.md` first.
   - The window:  `workspaces/ongoing/<name>.code-workspace` (git-ignored), the package window's theme with a title
     bar tinted per worktree.  Folders:  the MAIN repo root first (so its Claude panel lists every session), then the
     worktree's `packages/<pkg>` (`<pkg> ⎇ <name>`) and root (`spell-app ⎇ <name>`).
