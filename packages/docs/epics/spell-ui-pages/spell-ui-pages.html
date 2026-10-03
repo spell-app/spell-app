@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Spell UI Pages</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p2">next: P2 · Docs Components</ui-label></span
+              ><ui-label basic color="orange" icon="circle half stroke" href="#p2">P2 · Docs Components</ui-label></span
             >
           </header></ui-sticky
         >
@@ -252,13 +252,13 @@
           <ui-section
             id="p2"
             data-phase="2"
-            data-status="todo"
+            data-status="active"
             header="P2 · Docs Components"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle half stroke" color="orange"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> Solid elements in packages/ui/src/docs-components/: ui-docs-example, ui-docs-api,
@@ -513,7 +513,95 @@
         <ui-section id="todos" header="5. Todos" sticky collapsible dividing>
           <ui-icon slot="icon" name="list check"></ui-icon>
           <p class="meta">For later: not caveats, not issues.</p>
-          <ui-list class="plan-items" data-kind="todo" divided relaxed></ui-list>
+          <ui-list class="plan-items" data-kind="todo" divided relaxed
+            ><ui-item id="t1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t1">T1</a>
+                  <span class="plan-title">Review: P6 themes ported in parallel with P2</span>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    Chose to start the theme agents while P2 runs (separate files:
+                    <a href="../../../ui/src/styles/themes/" target="src-packages-ui-src-styles-themes"
+                      ><code>src/styles/themes/</code></a
+                    >,
+                    <a href="../../../ui/src/runtime/Styles.ts" target="src-packages-ui-src-runtime-styles-ts"
+                      ><code>Styles.ts</code></a
+                    >) over strict plan order, to fit the night. Commits still land per phase. (J1)
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t2">T2</a>
+                  <span class="plan-title">Review: Fomantic themes load ON TOP of classic</span>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic themes are deltas on Fomantic's default look; ours is
+                    <a
+                      href="../../../ui/src/styles/themes/classic.css"
+                      target="src-packages-ui-src-styles-themes-classic-css"
+                      ><code>classic.css</code></a
+                    >. Chose classic + theme over copying classic's tokens into each sheet (25 copies) or applying
+                    themes on our default look (wrong base sizes / palette). (J2)
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t3">T3</a>
+                  <span class="plan-title">Review: Fomantic's classic theme named fomantic-classic</span>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    Our
+                    <a
+                      href="../../../ui/src/styles/themes/classic.css"
+                      target="src-packages-ui-src-styles-themes-classic-css"
+                      ><code>classic.css</code></a
+                    >
+                    is already Fomantic's DEFAULT look; chose <code>fomantic-classic.css</code> over renaming ours. (J3)
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t4">T4</a>
+                  <span class="plan-title">Review: ui-docs-* read a generated components.json</span>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    Chose a committed <code>site/_data/components.json</code> (from the vocabularies,
+                    <code>yarn site:data</code>) over importing vocabularies in the elements:
+                    <code>ComponentDefinitions</code> is ~325 KB of source and <code>&lt;ui-root&gt;</code>'s glob would
+                    drag it into docs'
+                    <a href="../../_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                      ><code>spell-ui.js</code></a
+                    >. (J4)
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t5">T5</a>
+                  <span class="plan-title">Review: theme overrides reach shadow roots via UI.styles shadow:true</span>
+                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic <code>.overrides</code> are class-grammar CSS; ours render that grammar INSIDE shadow
+                    roots. Chose a new <code>register(..., { shadow: true })</code> that adopts a sheet into every
+                    shadow root (like the app stylesheet) over tokens-only themes (would drop most overrides). (J5)
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
         </ui-section>
 
         <ui-section id="issues" header="6. Issues" sticky collapsible dividing>
@@ -616,6 +704,13 @@
                   ><ui-date><time datetime="2026-10-02T22:35-04:00">2026-10-02 22:35</time></ui-date> P1 done:
                   Fomantic-UI 2.9.4 + Fomantic-UI-Docs cloned to packages/ui/reference/; 87 doc images in
                   packages/ui/site/images/; page map in 1.3; checks: n/a (assets only)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:35-04:00">2026-10-02 22:35</time></ui-date> P2
+                  active</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
