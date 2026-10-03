@@ -6,6 +6,7 @@ import { expectAccessible } from "$/ui/test/a11y"
 import { Fixture } from "$/ui/test/fixture"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
+import { Viewport } from "$/ui/test/viewport"
 import type { UIHost } from "$/ui/elements"
 
 import "$/ui/components/ui-step"
@@ -183,6 +184,26 @@ describe("<ui-steps> layouts", () => {
     const kept = await ElementFixture.render(three("unstackable", 500))
     const row = stepRoots(kept)
     expect(row[1]!.getBoundingClientRect().top).toBe(row[0]!.getBoundingClientRect().top)
+  })
+
+  it('`stack-with="page"` stacks by the SCREEN;  the token too, and the attribute beats it', async () => {
+    const holder = await ElementFixture.render(
+      `<div style="width: 500px">${three('stack-with="page"')}<div style="--ui-stack-with: page">${three()}` +
+        `${three('stack-with="container"')}</div></div>`
+    )
+    const groups = [...holder.querySelectorAll("ui-steps")]
+    expect(groups[0]!.shadowRoot!.firstElementChild!.className).toBe("ui steps stack-with-page")
+    /** Whether `group`'s steps are stacked. */
+    const stacked = (group: Element) => token(stepRoots(group)[0]!, "--_ui-step-layout") === "stacked"
+    await Viewport.resize(1200)
+    await expect.poll(() => groups.map(stacked)).toEqual([false, false, true])
+    await Viewport.resize(900)
+    const tablet = await ElementFixture.render(
+      `<div style="width: 1200px">${three('stackable="tablet" stack-with="page"')}</div>`
+    )
+    await expect.poll(() => stacked(tablet.querySelector("ui-steps")!)).toBe(true)
+    await Viewport.resize(500)
+    await expect.poll(() => groups.map(stacked)).toEqual([true, true, true])
   })
 
   it("stacks a tablet-stackable group below 992px", async () => {

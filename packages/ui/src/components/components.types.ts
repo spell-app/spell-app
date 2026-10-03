@@ -197,10 +197,53 @@ export const PART_STATIC_CLASS_PREFIX = "in-"
 
 /**
  * Size container a top-level `<ui-grid>` HOST establishes (`container: ui-grid / inline-size`), see `ui-grid.css`.
- * - `stackable`, `doubling`, `reversed` and per-device widths answer to it, not to the viewport.
+ * - `stackable`, `doubling`, `reversed` and per-device widths answer to it, not to the viewport (unless
+ *   `stack-with="page"`, see "Stacking").
  * - Page CSS may query it too, e.g. `@container ui-grid (width < 768px) { ... }` inside a column.
  */
 export const GRID_CONTAINER_NAME = "ui-grid"
+
+////////////////
+// ## Stacking
+////////////////
+
+/**
+ * `stack-with`'s values:  what a stacking layout's breakpoints (`stackable`, `doubling` ...) compare with.
+ * - `container`:  the element's OWN width (container queries), the default
+ * - `page`:  the screen's width (`@media`), as Fomantic
+ * - On `<ui-grid>`, `<ui-cards>`, `<ui-steps>`, `<ui-form>`, `<ui-items>`, `<ui-statistics>`, and on `<ui-root>`,
+ *   which sets `STACK_WITH_TOKEN` for everything inside
+ */
+export const STACK_WITH_VALUES = ["container", "page"] as const
+
+/** One of `STACK_WITH_VALUES`. */
+export type StackWith = (typeof STACK_WITH_VALUES)[number]
+
+/**
+ * Page-wide token the stacking sheets read when an element has no `stack-with` of its own:
+ * `--ui-stack-with: page` on any ancestor (`<ui-root stack-with="page">` sets it).
+ * - Inherited, global:  NOT a component token, declared nowhere by default (unset ~== `container`)
+ */
+export const STACK_WITH_TOKEN = "--ui-stack-with"
+
+/**
+ * Prefix of the private class an element's `stack-with` adds after the noun:  `ui stackable grid stack-with-page`.
+ * - A class, not a host state:  `:state()` rules left WebKit with stale viewport media queries (`ui-table.css`'s
+ *   `stack-by`, the same mechanism)
+ * - From the CANONICAL value, so a translated attribute still works
+ */
+export const STACK_WITH_CLASS = "stack-with-"
+
+/****************
+ * ### `StackClasses`
+ * The class `stack-with` adds, shared by every element that has the attribute.
+ ****************/
+export class StackClasses {
+  /** `stack-with-page` / `stack-with-container` for `value`;  `undefined` when unset (the token decides). */
+  static of(value: StackWith | undefined): string | undefined {
+    return value ? `${STACK_WITH_CLASS}${value}` : undefined
+  }
+}
 
 ////////////////
 // ## Message

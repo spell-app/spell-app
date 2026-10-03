@@ -43,7 +43,8 @@ import tableCSS from "$/ui/components/ui-table/ui-table.css?inline"
  *   `target="page"`.  The swatches follow.  Empty input:  the token is removed.
  * - Events:  the inner `<ui-input>`s' `ui-input` / `ui-change` stop here;  the element's own `ui-input`
  *   (`{ token, value }`) and `ui-reset` (`{ tokens }`) say what the playground did.
- * - Phone width:  every table is `stackable` by its OWN width (`stack-by="container"`).
+ * - Phone width:  every table is `stackable` by its OWN width (the sheet sets `--ui-table-stack-by: container` on the
+ *   host), or by the screen's when the page-wide `--ui-stack-with` says `page` (`<ui-root stack-with="page">`).
  * - Sheets:  `ui-table.css` is adopted HERE too:  `<ui-table>` styles its light-DOM `<table>` with a PAGE sheet, which
  *   never reaches a table inside this shadow root (plan-doc gap, as `<ui-docs-api>`).
  * - A doc-only element (`src/docs-components/`):  its shadow composes other families' widgets, which its barrel
@@ -199,7 +200,7 @@ export class UIDocsTokens extends UIElement<DocsTokensVocabulary> {
   private renderTable(table: TokenTable): JSX.Element {
     const described = table.rows.some((row) => row.description)
     const grid = (
-      <ui-table part={this.part("table")} celled="" compact="" stack-by="container">
+      <ui-table part={this.part("table")} celled="" compact="">
         <table>
           <Show when={table.title ?? this.attrs.caption}>
             <caption class={table.title ? "ui-visually-hidden" : undefined}>

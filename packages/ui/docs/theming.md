@@ -214,7 +214,7 @@ An owner hands the components inside it (content parts, items, icons, labels) in
     `circular`, `ordered`, corners ...;  the aliases of `--ui-steps-radius` / `-border` / `-accent-on` share the
     prefix)
   - forms:  `--_ui-field-state-*`, `--_ui-fields-*` (inline, stacked, child widths, paddings), `--_ui-form-equal-width`,
-    `--_ui-form-unstackable`
+    `--_ui-form-unstackable`, `--_ui-form-stack-with` (see "Stacking")
   - menus, lists, tabs:  `--_ui-menu-layout`, `--_ui-menu-stackable`, `--_ui-menu-divider-side`,
     `--_ui-menu-first-radius` / `-last-radius` / `-only-radius`, `--_ui-list-layout`, `--_ui-list-align`,
     `--_ui-list-marker`, `--_ui-list-animated`, `--_ui-item-*`, `--_ui-tabs-pane-flex`
@@ -336,6 +336,42 @@ adopted into the page and every shadow root:
   2s cap), `ui-hidden`, `ui-block`, `ui-flex`, `ui-hidden-{mobile,tablet,computer}`
 
 `<space>` is `3xs 2xs xs s m l xl 2xl 3xl`;  `<size>` is `mini tiny small medium large big huge massive`.
+
+## Stacking:  the element's width or the page's (`stack-with`)
+
+Fomantic's responsive words (`stackable`, `doubling`, per-device widths, `reversed`) are SCREEN-based.  Ours are
+CONTAINER-based by default:  a stackable grid in a 300px sidebar stacks on a desktop, which is the point of a
+component.  `stack-with` picks per element, or for a whole page (decided 2026-10-03, D40 in the `spell-ui-pages` plan
+doc):
+
+| Where | Says | Example |
+|---|---|---|
+| the element | `stack-with="container"` (default) or `"page"` | `<ui-grid stackable columns="3" stack-with="page">` |
+| a subtree | the inherited token `--ui-stack-with: page \| container` | `<ui-root stack-with="page">` sets it;  any ancestor's `style` too |
+
+- The element's attribute beats the token;  neither:  `container`.  The breakpoints are the same either way
+  (`mobile` < 768px, `tablet` 768..991px, `computer` >= 992px, `large screen` 1200..1919px, `widescreen` >= 1920px),
+  measured on the element's own width (`@container`) or the screen's (`@media`, `media.css`).
+- On `<ui-grid>` (`stackable`, `doubling`, per-device widths, `reversed`;  its rows and columns follow it),
+  `<ui-cards>` (`stackable`, `doubling`), `<ui-steps>` (stacking, `stackable="tablet"`), `<ui-form>` (its rows of
+  fields;  `<ui-fields>` follow it), `<ui-items>` (stacking, the tablet image width), `<ui-statistics>` (`stackable`).
+- `<ui-table>` keeps its own `stack-by="viewport | container"` (viewport by default, as Fomantic) and
+  `--ui-table-stack-by`;  without either it follows `--ui-stack-with` (`page` ~== `viewport`).
+- Already screen-based, nothing to switch:  `stackable` menus, button groups and horizontal segments, and `only`
+  (device visibility) on grids.
+- The docs site sets `<ui-root stack-with="page">` on every page, so its examples lay out as on fomantic-ui.com
+  whatever the docs column's width.
+- How a sheet does it (`ui-grid.css` "Responsive" is the full version):
+  - the attribute is a PRIVATE CLASS on the element's root (`stack-with-page` / `stack-with-container`, from
+    `UIT.StackClasses`), never a host state:  a `:state()` rule left WebKit's viewport media queries stale
+    (`ui-table.css`'s `stack-by`)
+  - rules whose subject is the ROOT are written four times:  `@container (<range>)` and `@media (<range>)`, each
+    once for the token (`@container [not] style(--ui-stack-with: page)`, read from the host, with `:not()` the other
+    class) and once for the attribute (its class, under the opposite token query), so exactly one copy matches
+  - what the parts (columns, items, fields) read is a FLAG the root works out once (`--_grid-range`,
+    `--_items-narrow`) or a switch it declares (`--_ui-form-stack-with`), queried with `@container style()`:  a
+    box can't style-query its own custom properties, only its ancestors'
+  - the sheet `@import`s `media.css` (`@custom-media`, Lightning CSS)
 
 ## Themes
 

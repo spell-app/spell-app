@@ -22,6 +22,11 @@
 @layer ui.components.docs-tokens.types {
   :host {
     display: block;
+    /*
+     * Its tables stack by their OWN width (a narrow docs column), unless the page says `page`
+     * (`<ui-root stack-with="page">`):  the table's own region token, as a page would set it.
+     */
+    --ui-table-stack-by: var(--ui-stack-with, container);
   }
   :host([hidden]) {
     display: none;

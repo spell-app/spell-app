@@ -18,7 +18,11 @@ yarn site:new getting-started --title "Getting started" --summary "One line."   
 - It refuses to overwrite;  `--force` regenerates (and loses your content:  don't).
 - What you get (DON'T change it;  it is the template's, `packages/docs/templates/spell-ui-docs.html`):
   - `<head>`:  the scheme script, `../_assets/site.css`, `../_assets/site.js`
-  - `<spell-site-header>`, `<ui-root icons="fa7-brands, fomantic" display="immediately">`
+  - `<spell-site-header>`, `<ui-root class="site" stack-with="page" icons="fa7-brands, fomantic"
+    display="immediately">`:  `stack-with="page"` makes every `stackable` / `doubling` example inside (grid, cards,
+    steps, form rows, items, statistics, token tables) stack by the SCREEN, as on fomantic-ui.com, not by the
+    ~755px docs column (D40).  So keep Fomantic's markup:  no `unstackable` to stop a desktop stack, and no
+    `stack-with` on an example unless it is ABOUT `stack-with`
   - header + footer as `<ui-include page-styles>` of `_parts/header.html` / `_parts/footer.html`
   - the nav column, the masthead (title, summary, status label unless done, source / bug / Fomantic links, the
     family's `<ui-docs-themes for>`)

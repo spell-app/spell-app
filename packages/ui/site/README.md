@@ -48,6 +48,10 @@ Every page loads (`../` from `components/`):
 (`src/docs-components/`), on first use.  The doc-only elements read `_data/components.json` (`SiteData`), never the
 vocabularies.
 
+Every page's root is `<ui-root class="site" stack-with="page" ...>`:  stacking examples (`stackable`, `doubling`,
+steps, form rows, items, token tables) stack by the SCREEN, as on fomantic-ui.com, not by the narrower docs column
+(`docs/theming.md` "Stacking").
+
 ## Making a page
 
 From `packages/ui`:

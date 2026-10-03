@@ -21,7 +21,7 @@
   </head>
   <body class="ui-typography">
     <spell-site-header root="../../../.."></spell-site-header>
-    <ui-root class="site" icons="fa7-brands, fomantic" display="immediately">
+    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
       <ui-include class="site-header" source="../_parts/header.html" page-styles>
         <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
       </ui-include>
@@ -82,7 +82,6 @@
 
                 <ui-header level="2" dividing id="how-it-works">Usage</ui-header>
 
-                <!-- GAP I49:  a stackable grid stacks inside the docs column on desktop, so this one isn't stackable. -->
                 <ui-docs-example header="How To Use">
                   <p slot="description">
                     Visibility reports an element's position on screen: wrap the content in
@@ -95,7 +94,7 @@
                     <code>IntersectionObserver</code>, with no scroll listener. The table beside the demo is filled by
                     this page's script from the events.</ui-message
                   >
-                  <ui-grid columns="2">
+                  <ui-grid columns="2" stackable>
                     <ui-column>
                       <ui-visibility id="visibility-demo" once="false" continuous>
                         <ui-segment>

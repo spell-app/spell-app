@@ -11,6 +11,7 @@ import type {
 import { expectAccessible } from "$/ui/test/a11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
+import { Viewport } from "$/ui/test/viewport"
 
 import "$/ui/components/ui-form"
 import "$/ui/components/ui-input"
@@ -185,6 +186,28 @@ describe("<ui-form> layout", () => {
     )
     expect(b!.top).toBeGreaterThan(a!.top)
     expect(c!.top).toBe(d!.top)
+  })
+
+  it('`stack-with="page"` stacks rows by the SCREEN;  the token too, and the attribute beats it', async () => {
+    const row = `<ui-fields widths="2"><ui-field>A</ui-field><ui-field>B</ui-field></ui-fields>`
+    const wrapper = await ElementFixture.render<HTMLElement>(
+      `<div style="width: 500px"><ui-form stack-with="page"><form>${row}</form></ui-form>` +
+        `<div style="--ui-stack-with: page"><ui-form><form>${row}</form></ui-form>` +
+        `<ui-form stack-with="container"><form>${row}</form></ui-form></div></div>`
+    )
+    const forms = [...wrapper.querySelectorAll("ui-form")]
+    expect(forms[0]!.shadowRoot!.querySelector("[part~=form]")!.className).toBe("ui form stack-with-page")
+    /** Whether `host`'s row is stacked. */
+    const stacked = (host: Element) => {
+      const [a, b] = [...host.querySelectorAll("ui-field")].map((field) =>
+        field.shadowRoot!.querySelector("[part~=field]")!.getBoundingClientRect()
+      )
+      return b!.top > a!.top
+    }
+    await Viewport.resize(1200)
+    await expect.poll(() => forms.map(stacked)).toEqual([false, false, true])
+    await Viewport.resize(500)
+    await expect.poll(() => forms.map(stacked)).toEqual([true, true, true])
   })
 
   it("makes its controls fill the field", async () => {

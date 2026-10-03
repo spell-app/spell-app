@@ -309,6 +309,10 @@ every entry below that date was fixed or disproven;  what's left:
   page leaves that sheet's `@media` results stale, so a transient component added later (toast, modal) renders at the
   old breakpoint.  Reproduced only through Playwright's viewport resize;  the toast / popup tests now render before
   resizing.  Possible fix:  one hidden persistent adopter per sheet.  Prove on a real device rotation.  (2026-10-01)
+  - Same family, seen again (2026-10-03, `stack-with="page"`):  a `<ui-grid>` inserted and the viewport resized
+    BEFORE its style was ever resolved kept `--_grid-range: mobile` at 1200px in WebKit, even with other grids alive;
+    a `getComputedStyle()` or one frame before the resize fixed it (`test/viewport.ts` waits a frame).  A real page
+    paints before any resize, so probably test-only.  Prove:  insert + `page.viewport()` with no frame between.
 - `src/elements/MenuOptions.test.ts` "filters 5000 cold options in under 50 ms":  failed once in a full
   `yarn test:all` in webkit, passes 3 / 3 alone.  A wall-clock budget under 3-browser load;  maybe skip budgets under
   `UI_TEST_ALL`, as CI skips the dropdown's 16 ms one.  (2026-10-01)

@@ -54,6 +54,9 @@
 
 @layer ui.components.statistic.types, ui.components.statistic.content, ui.components.statistic.variations, ui.components.statistic.states;
 
+/* Breakpoints (`@custom-media`), inlined at build time:  `stack-with="page"`. */
+@import "../../styles/media.css";
+
 /*******************************
            Statistic
 *******************************/
@@ -319,10 +322,35 @@
 
   /* Stackable:  below 768px of the group, one full-width statistic per row. */
   @container ui-statistics (width < 768px) {
-    .ui.stackable.statistics {
-      --_statistics-stacked: 1;
-      width: auto;
-      margin-inline: 0;
+    @container not style(--ui-stack-with: page) {
+      .ui.stackable.statistics:not(.stack-with-page) {
+        --_statistics-stacked: 1;
+        width: auto;
+        margin-inline: 0;
+      }
+    }
+    @container style(--ui-stack-with: page) {
+      .ui.stackable.statistics.stack-with-container {
+        --_statistics-stacked: 1;
+        width: auto;
+        margin-inline: 0;
+      }
+    }
+  }
+  @media (--ui-mobile) {
+    @container style(--ui-stack-with: page) {
+      .ui.stackable.statistics:not(.stack-with-container) {
+        --_statistics-stacked: 1;
+        width: auto;
+        margin-inline: 0;
+      }
+    }
+    @container not style(--ui-stack-with: page) {
+      .ui.stackable.statistics.stack-with-page {
+        --_statistics-stacked: 1;
+        width: auto;
+        margin-inline: 0;
+      }
     }
   }
   @container style(--_statistics-stacked: 1) {

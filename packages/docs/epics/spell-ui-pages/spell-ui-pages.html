@@ -24,7 +24,11 @@
         <ui-sticky class="spell-h1"
           ><header class="spell-page-head">
             <h1>Spell UI Pages</h1>
-            <span class="plan-step"><ui-label color="green" icon="check">DONE</ui-label></span>
+            <span class="plan-step"
+              ><ui-label basic color="grey" icon="circle outline" href="#p11"
+                >next: P11 · Menu Appearance</ui-label
+              ></span
+            >
           </header></ui-sticky
         >
         <ui-list class="plan-meta">
@@ -61,7 +65,7 @@
               12 agents to do this.<br />I'm going to bed soon, let's make this plan snappy.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 14h 30m-19h 30m in all, 0m left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 18h-25h in all, 2h 30m-3h 30m left</p>
           <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
             <ui-list bulleted>
               <ui-item
@@ -652,7 +656,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="9" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="10" total="12" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -697,7 +701,9 @@
                 ><b>Files:</b> packages/ui/src/docs-components/, scripts/gen-root-catalog.ts, vite.config.ts</ui-item
               ><ui-item icon="flask"><b>Verify:</b> unit tests per element; yarn gen:root; yarn ts</ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item
-              ><ui-item icon="compass"><b>Judgement calls:</b>  <a href="#j4">J4</a> <a href="#j6">J6</a></ui-item></ui-list
+              ><ui-item icon="compass"
+                ><b>Judgement calls:</b> <a href="#j4">J4</a> <a href="#j6">J6</a></ui-item
+              ></ui-list
             >
           </ui-section>
           <ui-section
@@ -721,7 +727,7 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> pilot page renders on the page server, no console errors, Chrome side-by-side</ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item
-              ><ui-item icon="compass"><b>Judgement calls:</b>  <a href="#j7">J7</a></ui-item></ui-list
+              ><ui-item icon="compass"><b>Judgement calls:</b> <a href="#j7">J7</a></ui-item></ui-list
             >
           </ui-section>
           <ui-section
@@ -744,7 +750,7 @@
               ><ui-item icon="folder"><b>Files:</b> packages/ui/site/components/*.html</ui-item
               ><ui-item icon="flask"><b>Verify:</b> each page loads clean; spot checks in Chrome</ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 3-4h</ui-item
-              ><ui-item icon="compass"><b>Judgement calls:</b>  <a href="#j8">J8</a></ui-item></ui-list
+              ><ui-item icon="compass"><b>Judgement calls:</b> <a href="#j8">J8</a></ui-item></ui-list
             >
           </ui-section>
           <ui-section
@@ -764,7 +770,8 @@
                 as ui-* HTML</ui-item
               ><ui-item icon="folder"><b>Files:</b> packages/ui/site/*.html</ui-item
               ><ui-item icon="flask"><b>Verify:</b> each page loads clean</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item><ui-item icon="compass"><b>Judgement calls:</b>  <a href="#j8">J8</a></ui-item></ui-list
+              ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item
+              ><ui-item icon="compass"><b>Judgement calls:</b> <a href="#j8">J8</a></ui-item></ui-list
             >
           </ui-section>
           <ui-section
@@ -787,7 +794,10 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> every theme on kitchen-sink; yarn test:visual default theme unchanged</ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 3-4h</ui-item
-              ><ui-item icon="compass"><b>Judgement calls:</b>  <a href="#j1">J1</a> <a href="#j2">J2</a> <a href="#j3">J3</a> <a href="#j5">J5</a> <a href="#j6">J6</a></ui-item></ui-list
+              ><ui-item icon="compass"
+                ><b>Judgement calls:</b> <a href="#j1">J1</a> <a href="#j2">J2</a> <a href="#j3">J3</a>
+                <a href="#j5">J5</a> <a href="#j6">J6</a></ui-item
+              ></ui-list
             >
           </ui-section>
           <ui-section
@@ -831,7 +841,16 @@
               ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p9" data-phase="9" data-status="done" header="P9 · Doc Review" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p9"
+            data-phase="9"
+            data-status="done"
+            header="P9 · Doc Review"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -839,6 +858,66 @@
               ><ui-item icon="folder"><b>Files:</b> packages/docs/</ui-item
               ><ui-item icon="flask"><b>Verify:</b> yarn plan-doc check; check-spell on the durable doc</ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p10" data-phase="10" data-status="done" header="P10 · Stack With" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> stack-with="container|page" on every stacking element +
+                <ui-root stack-with> page-wide (I49); docs site uses page</ui-root></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/ui/src/components/ui-{grid,card,step,form,items,root}/, site/_parts or
+                template</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> family tests; site:check --all; card / form / step pages no longer stacked on desktop;
+                visual baselines unchanged by default</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p11"
+            data-phase="11"
+            data-status="todo"
+            header="P11 · Menu Appearance"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> appearance + alignment on
+                <ui-menu>
+                  /
+                  <ui-tabs
+                    >, equal division from children (I24); the same equal attribute on buttons / statistics / steps /
+                    fields</ui-tabs
+                  ></ui-menu
+                ></ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/ui/src/components/ui-{menu,tab,button,statistic,step,form}/</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> family tests; site tabs segmented + fluid; visual baselines unchanged by
+                default</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p12"
+            data-phase="12"
+            data-status="todo"
+            header="P12 · Doc Review 2"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"><b>Goal:</b> durable doc + plan doc true to P10-P11</ui-item
+              ><ui-item icon="folder"><b>Files:</b> packages/docs/spell-ui-pages.html</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> check-spell</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 30m</ui-item></ui-list
             >
           </ui-section></ui-section
         >
@@ -1829,6 +1908,38 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="d40" data-status="decided"
+              ><a class="plan-id" href="#d40">D40</a>
+              <span class="plan-title">I49: stack-with="container|page", per element AND page-wide</span></ui-item
+            ><ui-item id="d41" data-status="decided"
+              ><a class="plan-id" href="#d41">D41</a>
+              <span class="plan-title">I24: appearance="..." on &lt;ui-menu&gt; AND &lt;ui-tabs&gt;</span></ui-item
+            ><ui-item id="d42" data-status="decided"
+              ><a class="plan-id" href="#d42">D42</a>
+              <span class="plan-title">I24: alignment="fluid|left|center|right" places the items</span></ui-item
+            ><ui-item id="q1" data-status="done"
+              ><a class="plan-id" href="#q1">Q1</a>
+              <span class="plan-title"
+                >Name for 'equally divided' (every child the same width, counted from the children)</span
+              >
+              <a class="plan-answer" href="#d43">→ D43</a></ui-item
+            ><ui-item id="d43" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d43">D43</a>
+                  <span class="plan-title"
+                    >equal: &lt;ui-tabs equal&gt;, &lt;ui-buttons equal&gt; ... (old counts stay as aliases) (<a
+                      href="#q1"
+                      >Q1</a
+                    >)</span
+                  ></ui-title
+                ><ui-content
+                  ><p class="meta">
+                    Answers <a href="#q1">Q1</a>: Name for 'equally divided' (every child the same width, counted from
+                    the children)
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1998,6 +2109,104 @@
                     <a href="../../../ui/docs/status.md" target="src-packages-ui-docs-status-md"
                       ><code>status.md</code></a
                     >; one commit (df8ca0bf) over splitting by hand.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j9" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j9">J9</a>
+                  <span class="plan-title"
+                    >stack-with: rows / columns follow their grid, &lt;ui-fields&gt; their form -- no attribute on
+                    parts</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose <code>stack-with</code> on the OWNERS only (<code>&lt;ui-grid&gt;</code>,
+                    <code>&lt;ui-cards&gt;</code>, <code>&lt;ui-steps&gt;</code>, <code>&lt;ui-form&gt;</code>,
+                    <code>&lt;ui-items&gt;</code>, <code>&lt;ui-statistics&gt;</code>) over one on
+                    <code>&lt;ui-row&gt;</code> / <code>&lt;ui-fields&gt;</code> too, because a part measured
+                    differently from its owner mixes two ranges in one layout (a page-mode row in a container-mode
+                    grid), and each grid root works out its range ONCE for everything inside it
+                    (<code>--_grid-range</code>). Rows' own <code>stackable</code> / <code>doubling</code> /
+                    <code>reversed</code> follow the grid's range.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j10" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j10">J10</a>
+                  <span class="plan-title"
+                    >stack-with=page moves ALL of a grid's responsive words to the screen; only stays viewport</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose to switch <code>stackable</code>, <code>doubling</code>, per-device widths AND
+                    <code>reversed</code> together (Fomantic's are all screen-based) over switching stacking alone,
+                    because they share one range per grid: a page-mode stack with container-mode
+                    <code>width-mobile</code> would draw a mobile column inside a desktop layout.
+                    <code>only</code> (device visibility) stays viewport-based in both modes, as before.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j11" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j11">J11</a>
+                  <span class="plan-title"
+                    >Tables keep stack-by (viewport default); they follow --ui-stack-with when they have no
+                    stack-by</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose to leave <code>&lt;ui-table stack-by="viewport|container"&gt;</code> and
+                    <code>--ui-table-stack-by</code> as they are (viewport by default, Fomantic's) and let the table
+                    fall back to the page-wide <code>--ui-stack-with</code> (<code>page</code> ~==
+                    <code>viewport</code>) over adding a second attribute, <code>stack-with</code>, that would mean the
+                    same thing. <code>&lt;ui-docs-tokens&gt;</code> no longer hard-codes
+                    <code>stack-by="container"</code>: its host sets
+                    <code>--ui-table-stack-by: var(--ui-stack-with, container)</code>, so its tables stay
+                    container-based unless the page says <code>page</code> (fixes I58 on the site).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j12" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j12">J12</a>
+                  <span class="plan-title"
+                    >stack-with as a private class + token style query, rules written per way; root sets the token in
+                    its own sheet</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose the table's proven mechanism (a private class <code>stack-with-page</code> /
+                    <code>-container</code> on the root, the inherited token <code>--ui-stack-with</code> read with
+                    <code>@container style()</code>, the root-subject rules written four times:
+                    <code>@container</code> / <code>@media</code> x token / class, each copy guarded so exactly one
+                    matches) over a host <code>:state()</code> switch, which would have halved the duplication but left
+                    WebKit's viewport media queries stale (PAPERCUTS, 2026-10-01). What parts read is a flag the root
+                    works out once (<code>--_grid-range</code>, <code>--_items-narrow</code>,
+                    <code>--_ui-form-stack-with</code>). <code>&lt;ui-root stack-with&gt;</code> writes the token in its
+                    own constructed sheet (<code>RootBox</code>, beside <code>--ui-scale</code>), not a state either.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j13" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j13">J13</a>
+                  <span class="plan-title">Menus, button groups, horizontal segments get no stack-with</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Their <code>stackable</code> was already screen-based (<code>@media</code>, as Fomantic), so
+                    <code>page</code> is what they do; chose to leave them over adding a <code>container</code> mode
+                    nobody asked for. Documented in
+                    <a href="../../../ui/docs/theming.md" target="src-packages-ui-docs-theming-md"
+                      ><code>docs/theming.md</code></a
+                    >
+                    "Stacking".
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -3736,7 +3945,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="i49" data-status="open"
+            ><ui-item id="i49" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i49">I49</a>
@@ -3921,7 +4130,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="i58" data-status="open"
+            ><ui-item id="i58" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i58">I58</a>
@@ -4415,7 +4624,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="i82" data-status="open"
+            ><ui-item id="i82" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i82">I82</a>
@@ -5420,6 +5629,26 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="i131" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i131">I131</a>
+                  <span class="plan-title"
+                    >Gap: &lt;ui-steps&gt; a three-step row wraps its third step onto a second line at 1440px (docs
+                    column)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Seen by P10 on
+                    <a
+                      href="../../../ui/site/components/ui-step.html"
+                      target="src-packages-ui-site-components-ui-step-html"
+                      ><code>site/components/ui-step.html</code></a
+                    >: not stacking (I82 is fixed), the steps' content is wider than a third of the ~755px column.
+                    Fomantic's steps shrink their text; ours keep their min width.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -6123,6 +6352,87 @@
                   ><ui-date><time datetime="2026-10-03T12:52-04:00">2026-10-03 12:52</time></ui-date> Judgement calls
                   moved to their own section (J1-J8); the 'Review:' todos T1-T5, T8, T10 they replace are
                   closed</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T13:19-04:00">2026-10-03 13:19</time></ui-date> P10 added: Stack
+                  With</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T13:19-04:00">2026-10-03 13:19</time></ui-date> P11 added: Menu
+                  Appearance</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T13:19-04:00">2026-10-03 13:19</time></ui-date> P12 added: Doc
+                  Review 2</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T13:20-04:00">2026-10-03 13:20</time></ui-date> Q1 answered: D43
+                  equal: &lt;ui-tabs equal&gt;, &lt;ui-buttons equal&gt; ... (old counts stay as aliases)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T13:20-04:00">2026-10-03 13:20</time></ui-date> P10
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T14:00-04:00">2026-10-03 14:00</time></ui-date> I49 closed: Gap:
+                  stackable / doubling &lt;ui-grid&gt; and &lt;ui-cards&gt; stack inside the docs column on
+                  desktop</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T14:00-04:00">2026-10-03 14:00</time></ui-date> I58 closed: Gap:
+                  &lt;ui-docs-tokens&gt; tables stack to cards inside the docs column on desktop</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T14:00-04:00">2026-10-03 14:00</time></ui-date> I82 closed: Gap:
+                  &lt;ui-steps&gt; stack by default inside the docs column on desktop (I49's root)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T14:01-04:00">2026-10-03 14:01</time></ui-date> P10: stack-with
+                  built (D40); site roots say page; closed I49, I58, I82 (seen at 1440px: cards / grid / steps / form
+                  rows / token tables no longer stack); I129 (horizontal cards are 400px wide) and I45 (divider in a
+                  stacked grid) stay open: not the container query</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T14:02-04:00">2026-10-03 14:02</time></ui-date> P10
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T14:03-04:00">2026-10-03 14:03</time></ui-date> P10 done:
+                  stack-with=container|page on grid, cards, steps, form, items, statistics, root (token); docs site uses
+                  page; I49, I58, I82 closed; checks: ui review, visual 72 unchanged, site:check --all 66 OK</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

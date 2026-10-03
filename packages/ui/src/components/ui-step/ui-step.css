@@ -68,6 +68,9 @@
 
 @layer ui.components.step.types, ui.components.step.content, ui.components.step.variations, ui.components.step.states;
 
+/* Breakpoints (`@custom-media`), inlined at build time:  `stack-with="page"`. */
+@import "../../styles/media.css";
+
 /*******************************
             Steps
 *******************************/
@@ -415,25 +418,99 @@
   /* Below 768px of the group (992px for `tablet stackable`), unless `unstackable`:  one step per row.  Attached
      corners (below) still win, as in Fomantic. */
   @container ui-steps (width < 768px) {
-    .ui.steps:not(.unstackable, .circular) {
-      --_ui-steps-layout: stacked;
-      --_ui-steps-column: 1;
-      --_ui-steps-first-radius: var(--_ui-steps-radius) var(--_ui-steps-radius) 0 0;
-      --_ui-steps-last-radius: 0 0 var(--_ui-steps-radius) var(--_ui-steps-radius);
-      display: inline-flex;
-      flex-direction: column;
-      overflow: visible;
+    @container not style(--ui-stack-with: page) {
+      .ui.steps:not(.unstackable, .circular):not(.stack-with-page) {
+        --_ui-steps-layout: stacked;
+        --_ui-steps-column: 1;
+        --_ui-steps-first-radius: var(--_ui-steps-radius) var(--_ui-steps-radius) 0 0;
+        --_ui-steps-last-radius: 0 0 var(--_ui-steps-radius) var(--_ui-steps-radius);
+        display: inline-flex;
+        flex-direction: column;
+        overflow: visible;
+      }
+    }
+    @container style(--ui-stack-with: page) {
+      .ui.steps:not(.unstackable, .circular).stack-with-container {
+        --_ui-steps-layout: stacked;
+        --_ui-steps-column: 1;
+        --_ui-steps-first-radius: var(--_ui-steps-radius) var(--_ui-steps-radius) 0 0;
+        --_ui-steps-last-radius: 0 0 var(--_ui-steps-radius) var(--_ui-steps-radius);
+        display: inline-flex;
+        flex-direction: column;
+        overflow: visible;
+      }
+    }
+  }
+  @media (--ui-mobile) {
+    @container style(--ui-stack-with: page) {
+      .ui.steps:not(.unstackable, .circular):not(.stack-with-container) {
+        --_ui-steps-layout: stacked;
+        --_ui-steps-column: 1;
+        --_ui-steps-first-radius: var(--_ui-steps-radius) var(--_ui-steps-radius) 0 0;
+        --_ui-steps-last-radius: 0 0 var(--_ui-steps-radius) var(--_ui-steps-radius);
+        display: inline-flex;
+        flex-direction: column;
+        overflow: visible;
+      }
+    }
+    @container not style(--ui-stack-with: page) {
+      .ui.steps:not(.unstackable, .circular).stack-with-page {
+        --_ui-steps-layout: stacked;
+        --_ui-steps-column: 1;
+        --_ui-steps-first-radius: var(--_ui-steps-radius) var(--_ui-steps-radius) 0 0;
+        --_ui-steps-last-radius: 0 0 var(--_ui-steps-radius) var(--_ui-steps-radius);
+        display: inline-flex;
+        flex-direction: column;
+        overflow: visible;
+      }
     }
   }
   @container ui-steps (width < 992px) {
-    .ui[class*="tablet stackable"].steps:not(.circular) {
-      --_ui-steps-layout: stacked;
-      --_ui-steps-column: 1;
-      --_ui-steps-first-radius: var(--_ui-steps-radius) var(--_ui-steps-radius) 0 0;
-      --_ui-steps-last-radius: 0 0 var(--_ui-steps-radius) var(--_ui-steps-radius);
-      display: inline-flex;
-      flex-direction: column;
-      overflow: visible;
+    @container not style(--ui-stack-with: page) {
+      .ui[class*="tablet stackable"].steps:not(.circular):not(.stack-with-page) {
+        --_ui-steps-layout: stacked;
+        --_ui-steps-column: 1;
+        --_ui-steps-first-radius: var(--_ui-steps-radius) var(--_ui-steps-radius) 0 0;
+        --_ui-steps-last-radius: 0 0 var(--_ui-steps-radius) var(--_ui-steps-radius);
+        display: inline-flex;
+        flex-direction: column;
+        overflow: visible;
+      }
+    }
+    @container style(--ui-stack-with: page) {
+      .ui[class*="tablet stackable"].steps:not(.circular).stack-with-container {
+        --_ui-steps-layout: stacked;
+        --_ui-steps-column: 1;
+        --_ui-steps-first-radius: var(--_ui-steps-radius) var(--_ui-steps-radius) 0 0;
+        --_ui-steps-last-radius: 0 0 var(--_ui-steps-radius) var(--_ui-steps-radius);
+        display: inline-flex;
+        flex-direction: column;
+        overflow: visible;
+      }
+    }
+  }
+  @media (--ui-mobile), (--ui-tablet) {
+    @container style(--ui-stack-with: page) {
+      .ui[class*="tablet stackable"].steps:not(.circular):not(.stack-with-container) {
+        --_ui-steps-layout: stacked;
+        --_ui-steps-column: 1;
+        --_ui-steps-first-radius: var(--_ui-steps-radius) var(--_ui-steps-radius) 0 0;
+        --_ui-steps-last-radius: 0 0 var(--_ui-steps-radius) var(--_ui-steps-radius);
+        display: inline-flex;
+        flex-direction: column;
+        overflow: visible;
+      }
+    }
+    @container not style(--ui-stack-with: page) {
+      .ui[class*="tablet stackable"].steps:not(.circular).stack-with-page {
+        --_ui-steps-layout: stacked;
+        --_ui-steps-column: 1;
+        --_ui-steps-first-radius: var(--_ui-steps-radius) var(--_ui-steps-radius) 0 0;
+        --_ui-steps-last-radius: 0 0 var(--_ui-steps-radius) var(--_ui-steps-radius);
+        display: inline-flex;
+        flex-direction: column;
+        overflow: visible;
+      }
     }
   }
 

@@ -18,7 +18,7 @@
   </head>
   <body class="ui-typography">
     <spell-site-header root="../../../.."></spell-site-header>
-    <ui-root class="site" icons="fa7-brands, fomantic" display="immediately">
+    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
       <ui-include class="site-header" source="../_parts/header.html" page-styles>
         <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
       </ui-include>
@@ -73,8 +73,7 @@
                   Variations, Field Variations, Group Variations).  `<ui-form>` wraps a NATIVE `<form>` (`method="dialog"` here, so a
                   valid submit doesn't leave the page);  each `<label for>` names its control.  Fomantic's 250-country lists are
                   shortened to twenty.  `GAP I<n>` comments mark examples a widget can't render yet (plan-doc issues).
-                  GAP I49:  rows stack below 768px of FORM width, and this column is ~755px on a 1440px screen, so multi-field rows
-                  show stacked there (side by side on wider screens).
+                  The site's root says `stack-with="page"`:  rows stack below 768px of the SCREEN, as Fomantic's.
                 -->
 
                 <ui-header level="2" dividing id="types">Types</ui-header>
@@ -304,8 +303,8 @@
                 <ui-docs-example header="Fields">
                   <p slot="description">A set of fields can appear grouped together: <code>&lt;ui-fields&gt;</code>.</p>
                   <ui-message slot="description" state="positive" size="small"
-                    >Field groups automatically receive responsive styling, swapping to one field per row on narrow
-                    forms: below 768px of the FORM's width, so in this column on most screens. Add
+                    >Field groups automatically receive responsive styling, swapping to one field per row below 768px
+                    of the FORM's width, or of the screen with <code>stack-with="page"</code> (as on this site). Add
                     <code>unstackable</code> to keep a row.</ui-message
                   >
                   <ui-form>

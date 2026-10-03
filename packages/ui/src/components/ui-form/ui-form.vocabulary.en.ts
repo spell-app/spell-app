@@ -47,6 +47,15 @@ export const formVocabulary = {
     { name: "disabled", kind: "keyOnly", description: "Nothing inside can be used (`inert`)." },
     { name: "unstackable", kind: "keyOnly", description: "Rows of fields never stack on narrow forms." },
     {
+      name: "stack-with",
+      kind: "enum",
+      values: UIT.STACK_WITH_VALUES,
+      description:
+        "What its rows of fields stack by:  `container` (the default) -- the form's own width;  `page` -- " +
+        "the screen's, as in Fomantic.  Its `<ui-fields>` follow it.  Unset:  the page-wide " +
+        "`--ui-stack-with` token decides (`<ui-root stack-with>`)."
+    },
+    {
       name: "on",
       kind: "enum",
       values: ["submit", "blur", "change"],

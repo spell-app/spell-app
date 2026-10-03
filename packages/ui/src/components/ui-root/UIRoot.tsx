@@ -55,6 +55,8 @@ import rootCSS from "./ui-root.css?inline"
  *   inside (`RootSettings.generation`).
  * - Theme, size, box:  `:state(light | dark)`, `:state(box)`, `:state(fixed)` in `ui-root.css`;  width, height and the
  *   subtree's `--ui-scale` in the root's own sheet (`RootBox`).
+ * - `stack-with`:  the subtree's `--ui-stack-with` token (also in `RootBox`), which every stacking element without a
+ *   `stack-with` of its own follows (`UIT.STACK_WITH_TOKEN`).
  ****************/
 export class UIRoot extends UIElement<RootVocabulary> {
   @proto static vocabulary = rootVocabulary
@@ -202,7 +204,13 @@ export class UIRoot extends UIElement<RootVocabulary> {
     )
     const box = new RootBox(this.host.renderRoot)
     createEffect(
-      () => RootBox.css({ width: this.attrs.width, height: this.attrs.height, size: this.attrs.size }),
+      () =>
+        RootBox.css({
+          width: this.attrs.width,
+          height: this.attrs.height,
+          size: this.attrs.size,
+          stackWith: this.attrs.stackWith
+        }),
       (css) => box.set(css)
     )
   }
