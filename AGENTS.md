@@ -95,6 +95,22 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
   that session to finish, then merge `main` in and carry on by itself.
 - Say so in one line ("isolated in worktree <name> (branch <name>), open in its own window, <pkg> ⎇ <name>").
 
+## Changelog
+
+- `packages/docs/changelog.html` -- what the repo shipped, newest first.  MUST be kept up to date by every `/isolate`
+  and `/epic`:
+  - `/epic`:  at its Doc Review, add the entry to "2. In worktrees";  when it merges into `main`, move it under
+    its month in "3. Merged into main"
+  - `/isolate done`:  before merging into `main`, add an entry for what the branch shipped (skip a branch with
+    nothing worth a reader's time:  typo fixes, a papercut)
+- An entry:  one nested `<ui-section id="<epic or worktree name>" header="YYYY-MM-DD · Title">` under its month,
+  newest first (the page's header comment has the markup):
+  - a `spell-meta` list with LINKS:  the plan doc (`epics/<name>/<name>.html`, `target="<name>"`), the durable
+    doc, the branch
+  - EVERYTHING it shipped, one bullet each, by phase when there are phases -- not a summary
+- Then finish the page as `packages/docs/AGENTS.md` says ("Finishing a page"), and bump its footer's date and
+  commit.
+
 ## Solid 2
 
 - `spell`'s editor app, runners and web components are Solid 2 (`2.0.0-rc.13`, every package, one copy at the root)

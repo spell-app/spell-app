@@ -155,6 +155,8 @@ turn to end, and the stub doc keeps the kickoff prompt safe whatever happens to 
     doc's own card:  `yarn plan-doc` doesn't touch the index in a worktree (until now the main server listed it
     under "Running epics")
 - The plan doc stays in `epics/` as the record:  every phase done.
+- Changelog:  add the epic's entry to `packages/docs/changelog.html` ("Changelog" in the root's `AGENTS.md`), linking
+  the plan doc and the durable doc;  under "3. Merged into main" if "Finish" below merges it, else "2. In worktrees".
 - Then leave the worktree:  follow `.claude/skills/isolate/SKILL.md`, "Finish".  Right after its step 4
   (`handoff --back`), still in the worktree:  `yarn plan-doc open <name>` one last time, so the doc follows the
   session back to its package's window (the worktree's window closes).
