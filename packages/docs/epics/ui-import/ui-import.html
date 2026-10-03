@@ -25,8 +25,8 @@
           ><header class="spell-page-head">
             <h1>UI Import</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p5"
-                >next: P5 · Markdown Element</ui-label
+              ><ui-label basic color="grey" icon="circle outline" href="#p6"
+                >next: P6 · Server Save + Docs</ui-label
               ></span
             >
           </header></ui-sticky
@@ -69,7 +69,7 @@
               language.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 11h-15h 30m in all, 4h 30m-6h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 11h-15h 30m in all, 2h 30m-3h left</p>
           <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
             <ul>
               <li>
@@ -677,7 +677,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="4" total="7" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="5" total="7" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -751,6 +751,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p4"
             data-phase="4"
             data-status="done"
@@ -776,13 +777,13 @@
           <ui-section
             id="p5"
             data-phase="5"
-            data-status="todo"
+            data-status="done"
             header="P5 · Markdown Element"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> <code>&lt;ui-markdown&gt;</code>: marked GFM, sanitize (setHTML / DOMPurify), fences -&gt;
@@ -1094,7 +1095,41 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ></ui-list
+            ><ui-item id="d20" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d20">D20</a>
+                  <span class="plan-title"
+                    >Markdown is sanitized by DOMPurify in EVERY browser, not Element.setHTML() where it exists (Q1 said
+                    DOMPurify only where setHTML is missing)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Measured in Chromium 153: <code>setHTML()</code>'s default sanitizer drops task-list checkboxes,
+                    images, heading ids and <code>language-*</code> classes; Safari has none. One sanitizer gives the
+                    same output everywhere; DOMPurify (~11 kB) stays in the lazy chunk.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d21" data-status="decided"
+              ><a class="plan-id" href="#d21">D21</a>
+              <span class="plan-title"
+                >DOMPurify runs with SANITIZE_DOM off: heading ids like elements / forms survive (DOM clobbering can't
+                reach a shadow root)</span
+              > </ui-item
+            ><ui-item id="d22" data-status="decided"
+              ><a class="plan-id" href="#d22">D22</a>
+              <span class="plan-title"
+                >Task-list checkboxes are labelled with their item's text (marked leaves them unlabelled: axe
+                critical)</span
+              > </ui-item
+            ><ui-item id="d23" data-status="decided"
+              ><a class="plan-id" href="#d23">D23</a>
+              <span class="plan-title"
+                >&lt;ui-markdown&gt;'s heading-offset property is headingLevelOffset: WebKit's native
+                HTMLElement.headingOffset (HTML's new headingoffset) can't be shadowed</span
+              >
+            </ui-item></ui-list
           >
         </ui-section>
 
@@ -1165,6 +1200,18 @@
               <span class="plan-title"
                 >The spell bundle is committed: regenerate (yarn gen:spell in packages/ui) after changing spell's
                 grammar, or ui colours with the old one</span
+              > </ui-item
+            ><ui-item id="c13" data-status="open"
+              ><a class="plan-id" href="#c13">C13</a>
+              <span class="plan-title"
+                >Inline &lt;script type=text/markdown&gt; (or text/plain) can't contain &lt;/script&gt;: it ends the
+                script. Use source, or set content</span
+              > </ui-item
+            ><ui-item id="c14" data-status="open"
+              ><a class="plan-id" href="#c14">C14</a>
+              <span class="plan-title"
+                >Headings inside markdown join the page outline: heading-offset fits them under the page's own (axe
+                heading-order)</span
               >
             </ui-item></ui-list
           >
@@ -1437,6 +1484,27 @@
                   ><ui-date><time datetime="2026-10-02T20:49-04:00">2026-10-02 20:49</time></ui-date> P4 done:
                   SP.SpellHighlighter + pre-compiled spell.en.js (138 kB gz), language=spell in
                   &lt;ui-code&gt;</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T20:49-04:00">2026-10-02 20:49</time></ui-date> P5
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T21:07-04:00">2026-10-02 21:07</time></ui-date> P5
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T21:07-04:00">2026-10-02 21:07</time></ui-date> P5 done:
+                  &lt;ui-markdown&gt;, 19 tests, Mac visual baselines; full local visual run (591) passes</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
