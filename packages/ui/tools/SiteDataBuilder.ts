@@ -13,9 +13,7 @@ import {
   type SiteFamily,
   type SitePageSeed,
   type SitePagesFile,
-  type SiteStatus,
-  type SiteTag,
-  type SiteTokenSeed
+  type SiteTag
 } from "../src/docs-components/docs-components.types.ts"
 import type { AttributeSpec, ComponentVocabulary, ValueSetName } from "../src/vocabulary/vocabulary.types.ts"
 
@@ -27,10 +25,9 @@ import type { AttributeSpec, ComponentVocabulary, ValueSetName } from "../src/vo
  * - Reads the vocabulary FILES (`import()` each `<tag>.vocabulary.en.ts`), as `yarn gen:root` does:
  *   `ComponentDefinitions` needs Vite's `import.meta.glob`.  Components from `src/components/`, doc-only elements
  *   from `src/docs-components/`.
- * - pages.json:  a family missing from it is SEEDED, once, from the Astro page it had
- *   (`site/src/content/components/<folder>.mdx`:  frontmatter `title` / `summary` / `status`, and its `<CssTokens>`
- *   or `<TokenTable>` props), else from its vocabulary (title from the tag, summary its description, `done`).  After
- *   that the file is the source:  the MDX can go (plan P7).
+ * - pages.json:  a family missing from it is SEEDED, once, from its vocabulary (title from the tag, summary its
+ *   description, `done`);  after that the file is the source.  The first seeds came from the old Astro site's MDX
+ *   pages (frontmatter + token-table props), deleted with it (epic `spell-ui-pages`, P7).
  * - Also the FOUNDATION tokens, grouped (`foundation`, `tools/FoundationTokens.ts`), for the theming page's tables.
  * - And the theme sheets (`themes`, `tools/ThemeFamilies.ts`):  title and the families each touches, for
  *   `<ui-docs-themes>`;  titles are pages.json's `themes`, seeded once per new sheet.
@@ -281,63 +278,15 @@ export class SiteDataBuilder {
     }
   }
 
-  /** A new family's facts:  from its old Astro page if it has one, else from its vocabulary. */
+  /** A new family's facts, from its vocabulary. */
   private seedFamily(folder: string, tags: RawTag[]): SitePageSeed {
     const main = tags.find((entry) => entry.tag === folder) ?? tags[0]!
-    const fallback: SitePageSeed = {
+    return {
       title: SiteDataBuilder.nameOf(main.tag),
       summary: main.description ?? "",
       status: "done",
       ...(folder === "ui-parts" && { mainTag: "ui-header" })
     }
-    const mdx = join(this.root, "site", "src", "content", "components", `${folder}.mdx`)
-    if (!existsSync(mdx)) return fallback
-    const text = readFileSync(mdx, "utf8")
-    const front = SiteDataBuilder.frontmatter(text)
-    const tokens = SiteDataBuilder.tokenSeed(text)
-    return {
-      title: front.title ?? fallback.title,
-      summary: front.summary ?? fallback.summary,
-      status: (STATUSES.includes(front.status as SiteStatus) ? front.status : "done") as SiteStatus,
-      ...(folder === "ui-parts" && { mainTag: "ui-header" }),
-      ...(tokens && { tokens })
-    }
-  }
-
-  /** An MDX page's `key: value` frontmatter. */
-  private static frontmatter(text: string): Record<string, string> {
-    const block = /^---\n([\s\S]*?)\n---/.exec(text)?.[1] ?? ""
-    const fields: Record<string, string> = {}
-    for (const line of block.split("\n")) {
-      const match = /^(\w+):\s*(.*)$/.exec(line)
-      if (match) fields[match[1]!] = match[2]!.replace(/^["']|["']$/g, "").trim()
-    }
-    return fields
-  }
-
-  /**
-   * The token-table props an MDX page passed:  `<CssTokens prefixes={[...]} defaults={{...}} />`, or a hand-written
-   * `<TokenTable tokens={[...]} />` (as `list`);  `undefined` when it passed none.
-   * - The props are JS literals in our own committed pages, evaluated as such (seeding only, once per family).
-   */
-  private static tokenSeed(text: string): SiteTokenSeed | undefined {
-    const table = /<TokenTable\s+tokens=\{(\[[\s\S]*?\])\}\s*\/>/.exec(text)?.[1]
-    if (table) return { list: SiteDataBuilder.literal(table) as SiteTokenSeed["list"] }
-    const props = /<CssTokens\b([\s\S]*?)\/>/.exec(text)?.[1]
-    if (!props) return undefined
-    const prefixes = /prefixes=\{(\[[\s\S]*?\])\}/.exec(props)?.[1]
-    const defaults = /defaults=\{(\{[\s\S]*?\})\}/.exec(props)?.[1]
-    if (!prefixes && !defaults) return undefined
-    return {
-      ...(prefixes && { prefixes: SiteDataBuilder.literal(prefixes) as string[] }),
-      ...(defaults && { defaults: SiteDataBuilder.literal(defaults) as Record<string, string> })
-    }
-  }
-
-  /** A JS literal from one of our MDX pages, as a value. */
-  private static literal(source: string): unknown {
-    // oxlint-disable-next-line no-implied-eval -- seeding from our own committed MDX, once:  the props are JS literals
-    return new Function(`return (${source})`)()
   }
 }
 
@@ -349,6 +298,3 @@ const UI_ROOT = fileURLToPath(new URL("../", import.meta.url))
 
 /** Value sets an attribute kind means when its spec names none. */
 const DEFAULT_SETS: Partial<Record<string, ValueSetName>> = { color: "hues", size: "sizes", width: "widths" }
-
-/** Valid `status` values. */
-const STATUSES: readonly SiteStatus[] = ["planned", "in-progress", "done"]

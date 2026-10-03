@@ -100,7 +100,11 @@
                     <td>Spell UI</td>
                     <td><code>/ui/</code></td>
                     <td class="no negative">no</td>
-                    <td>static pages, <code>packages/ui/site/</code> mounted at <code>/ui/</code></td>
+                    <td>
+                      static pages,
+                      <a href="../ui/site/" target="src-packages-ui-site"><code>packages/ui/site/</code></a> mounted at
+                      <code>/ui/</code>
+                    </td>
                   </tr>
                   <tr>
                     <td>Epics</td>
@@ -449,7 +453,11 @@
             <p>
               Browser code, <code>$/server/site</code>: bundled into the docs'
               <a href="_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"><code>spell-ui.js</code></a>
-              and Spell UI's site bundle (<code>packages/ui/site/_assets/site.js</code>).
+              and Spell UI's site bundle (<a
+                href="../ui/site/_assets/site.js"
+                target="src-packages-ui-site-assets-site-js"
+                ><code>packages/ui/site/_assets/site.js</code></a
+              >).
             </p>
             <ul>
               <li>
@@ -649,17 +657,19 @@
               </li>
               <li>
                 The pages load ONE committed bundle, <code>_assets/site.js</code> + <code>site.css</code>, built by
-                <code>yarn site:build</code> in <code>packages/ui</code>: no dev server, no build step to view a page.
+                <code>yarn site:build</code> in <a href="../ui/" target="src-packages-ui"><code>packages/ui</code></a
+                >: no dev server, no build step to view a page.
               </li>
               <li>
-                Live like the docs: the folder is watched (not <code>_src/</code>, the bundle's entry, or the old Astro
-                <code>src/</code>); a page reloads when it or any CSS / JS changes, so a rebuilt bundle reloads every
-                page. The section editor works on them too: their <code>SPELL_SERVER.file</code> is
-                <code>/packages/ui/site/...</code>.
+                Live like the docs: the folder is watched (not <code>_src/</code>, the bundle's entry); a page reloads
+                when it or any CSS / JS changes, so a rebuilt bundle reloads every page. <code>yarn site:dev</code> in
+                <a href="../ui/" target="src-packages-ui"><code>packages/ui</code></a> rebuilds the bundle on every
+                source edit, so a library change shows up live. The section editor works on them too: their
+                <code>SPELL_SERVER.file</code> is <code>/packages/ui/site/...</code>.
               </li>
               <li>
-                Until 2026-10-02 this proxied <code>astro dev</code> (<code>AstroProxy</code>); the Astro site still
-                runs on its own with <code>yarn site:dev</code> in <code>packages/ui</code>, until it's deleted.
+                Until 2026-10-02 this proxied <code>astro dev</code> (<code>AstroProxy</code>); the Astro site was
+                deleted on 2026-10-03 (epic <code>spell-ui-pages</code>, P7).
               </li>
             </ol>
           </ui-section>
@@ -1055,10 +1065,15 @@ export default goalsRoutes</code></pre>
                     <th>why</th>
                   </tr>
                   <tr>
-                    <td><code>/ui/</code> serves <code>packages/ui/site/</code> as static pages</td>
+                    <td>
+                      <code>/ui/</code> serves
+                      <a href="../ui/site/" target="src-packages-ui-site"><code>packages/ui/site/</code></a> as static
+                      pages
+                    </td>
                     <td>
                       over proxying <code>astro dev</code> (until 2026-10-02): no second process, no build step to view;
-                      cost: <code>yarn site:build</code> after a library change
+                      cost: <code>yarn site:build</code> after a library change (or <code>yarn site:dev</code> while
+                      working)
                     </td>
                   </tr>
                   <tr>
@@ -1157,11 +1172,13 @@ export default goalsRoutes</code></pre>
             <ul>
               <li>
                 <code>/ui/</code> shows the COMMITTED bundle: a library change shows only after
-                <code>yarn site:build</code> in <code>packages/ui</code>.
+                <code>yarn site:build</code> in <a href="../ui/" target="src-packages-ui"><code>packages/ui</code></a
+                >.
               </li>
               <li>
-                <code>_assets/icon-packs</code> is a symlink into <code>packages/ui/src/icons/</code>: served fine, but
-                a static deploy must copy through it.
+                <code>_assets/icon-packs</code> is a symlink into
+                <a href="../ui/src/icons/" target="src-packages-ui-src-icons"><code>packages/ui/src/icons/</code></a
+                >: served fine, but a static deploy must copy through it.
               </li>
             </ul>
           </ui-section>

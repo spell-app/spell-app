@@ -2,8 +2,8 @@
  * Loose constants, types and helpers of `<ui-step>`:  its element classes and native fallback import them from here.
  */
 
-// pure data (vocabularies / types) never import `$/ui/core` by value:  it loads the element layer, which the
-// docs site evaluates on the server (`astro dev`), where Solid's client APIs throw
+// pure data (vocabularies / types) never import `$/ui/core` by value:  it loads the element layer, which node
+// can't (`yarn site:data` / `yarn gen:root` import every vocabulary through tsx:  no `?inline` css, no JSX)
 import * as UIT from "$/ui/components/components.types"
 import { stepVocabulary } from "./ui-step.vocabulary.en"
 

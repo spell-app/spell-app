@@ -14,7 +14,7 @@ import {
  * Pretty-prints an HTML fragment for `<ui-docs-example>`'s code pane (`ExampleSource`).
  * - Why re-indent, not show the markup as found:  it comes from `innerHTML`, indented however the page around it
  *   was (and a `<ui-include>`d part, or a live tree, has no indentation of its own), so it's rebuilt to one style.
- * - From the Astro site's `site/src/lib/HtmlFormatter.ts` (which goes with the Astro site, plan P7), plus:
+ * - From the old Astro site's `HtmlFormatter` (deleted with it, epic `spell-ui-pages` P7), plus:
  *   - whitespace inside an opening tag collapses to one space (an author's attributes over several lines)
  *   - `<ui-code>` and `<ui-markdown>` keep their content verbatim, like `<pre>`:  it's code / markdown text
  * - Deliberately small, not a full HTML parser:  examples are hand-written, well-formed fragments.

@@ -6,8 +6,8 @@ import type { SiteToken, SiteTokenSeed, SiteTokenType } from "../src/docs-compon
 
 /**
  * The public CSS tokens of one family, read from its sheets:  the token table of its docs page (`yarn site:data`).
- * - Ported from the Astro site's `CssTokens.astro` (which goes with the Astro site, plan P7):  the same rows, plus a
- *   `type` for each.
+ * - Ported from the old Astro site's `CssTokens` table (deleted with it, epic `spell-ui-pages` P7):  the same rows,
+ *   plus a `type` for each.
  * - A sheet never declares its public tokens (`docs/theming.md` "Component tokens").  Two kinds of rows:
  *   - ALIASED tokens, the ones a variation swaps:  `--_ui-button-radius: var(--ui-button-radius, var(--ui-radius))`.
  *     The public name, its default, the comment right above as the description, unless it's a group header

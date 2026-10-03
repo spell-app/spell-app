@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Spell UI Pages</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p7">next: P7 · Retire Astro</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p8">next: P8 · Gap Report</ui-label></span
             >
           </header></ui-sticky
         >
@@ -63,7 +63,7 @@
               12 agents to do this.<br />I'm going to bed soon, let's make this plan snappy.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 14h 30m-19h 30m in all, 3h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 14h 30m-19h 30m in all, 2h left</p>
           <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
             <ui-list bulleted>
               <ui-item
@@ -226,7 +226,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="6" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="7" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -319,6 +319,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p5"
             data-phase="5"
             data-status="done"
@@ -359,8 +360,8 @@
               ><ui-item icon="clock"><b>Estimate:</b> 3-4h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p7" data-phase="7" data-status="todo" header="P7 · Retire Astro" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p7" data-phase="7" data-status="done" header="P7 · Retire Astro" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> Delete the Astro site, MDX, site.css, AstroProxy; site:* scripts for the static site; docs
@@ -1302,6 +1303,84 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="d37" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d37">D37</a>
+                  <span class="plan-title"
+                    >P7: yarn site:dev is now a watch build of the site bundle + the page server</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <a href="../../../ui/scripts/site-dev.ts" target="src-packages-ui-scripts-site-dev-ts"
+                      ><code>scripts/site-dev.ts</code></a
+                    >: runs <code>yarn site:bundle</code> (clean
+                    <a href="../../_assets/" target="src-packages-docs-assets"><code>_assets/</code></a
+                    >, icon-packs link), <code>yarn server ensure</code>, prints the <code>/ui/</code> URL, then Vite's
+                    watch build with
+                    <a href="../../../ui/vite.site.config.ts" target="src-packages-ui-vite-site-config-ts"
+                      ><code>vite.site.config.ts</code></a
+                    >. Every <a href="../../../ui/src/" target="src-packages-ui-src"><code>src/</code></a> /
+                    <a href="../../../ui/site/_src/" target="src-packages-ui-site-src"><code>site/_src/</code></a> edit
+                    rebuilds <a href="../../_assets/" target="src-packages-docs-assets"><code>_assets/</code></a> and
+                    the page server's live reload reloads open pages. Not watched: <code>site:data</code> /
+                    <code>site:index</code> / <code>site:kitchen</code>. A watch rebuild doesn't clear
+                    <a href="../../_assets/" target="src-packages-docs-assets"><code>_assets/</code></a
+                    >, so stale hashed chunks can linger: <code>yarn site:build</code> before committing. Why not
+                    removed: without it a library change needs a manual rebuild per edit; why not a Vite dev server: the
+                    pages load the committed bundle, so watching that same build shows exactly what gets committed.
+                    <code>site:preview</code> dropped. Documented in
+                    <a href="../../../ui/AGENTS.md" target="src-packages-ui-agents-md"
+                      ><code>packages/ui/AGENTS.md</code></a
+                    >
+                    and
+                    <a href="../../../ui/site/README.md" target="src-packages-ui-site-readme-md"
+                      ><code>site/README.md</code></a
+                    >.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d38" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d38">D38</a>
+                  <span class="plan-title">P7: vocabularies stay pure data, with a new reason</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The rule that vocabularies / types files import <code>$/ui/core</code> for types only (<a
+                      href="../../../ui/test/vocabularies.test.ts"
+                      target="src-packages-ui-test-vocabularies-test-ts"
+                      ><code>test/vocabularies.test.ts</code></a
+                    >) was justified by <code>astro dev</code>'s server render. It still holds:
+                    <code>yarn site:data</code> and <code>yarn gen:root</code> <code>import()</code> every vocabulary in
+                    node through tsx, and the element layer can't load there (checked: importing
+                    <a href="../../../ui/src/core.ts" target="src-packages-ui-src-core-ts"><code>src/core.ts</code></a>
+                    under tsx fails on the first <code>?inline</code> / <code>.css</code> import). Comments in the 10
+                    files, the test and
+                    <a href="../../../ui/AGENTS.md" target="src-packages-ui-agents-md"
+                      ><code>packages/ui/AGENTS.md</code></a
+                    >
+                    now give that reason.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d39" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d39">D39</a>
+                  <span class="plan-title">P7: pages.json seeds new families from the vocabulary only</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>SiteDataBuilder.seedFamily()</code> read the old MDX page's frontmatter and token-table props;
+                    with the MDX gone that code (frontmatter, tokenSeed, literal, STATUSES) is deleted and a new family
+                    is seeded from its vocabulary (title from the tag, summary its description, <code>done</code>).
+                    Every existing family is already in
+                    <a href="../../../ui/site/_data/pages.json" target="src-packages-ui-site-data-pages-json"
+                      ><code>site/_data/pages.json</code></a
+                    >, so <code>yarn site:data</code> reports unchanged.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1705,6 +1784,79 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="c21" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c21">C21</a>
+                  <span class="plan-title">P7: site:build changed committed output that HEAD had stale</span> </ui-title
+                ><ui-content
+                  ><p>
+                    After deleting Astro, <code>yarn site:build</code> rewrote (a)
+                    <a href="../../../ui/site/kitchen-sink.html" target="src-packages-ui-site-kitchen-sink-html"
+                      ><code>site/kitchen-sink.html</code></a
+                    >: the committed copy had been re-wrapped by oxfmt, but oxfmt ignores
+                    <code>ui/site/**/*.html</code> now, so the generator's unwrapped lines are canonical (<code
+                      >site:kitchen --check</code
+                    >
+                    would otherwise fail); (b) <code>_assets/site.js</code> + <code>ui-docs-example.js</code>:
+                    <code>HtmlFormatter</code> moved from <code>site.js</code> into the
+                    <code>ui-docs-example</code> chunk. Rebuilt twice: deterministic, so the HEAD bundle was simply
+                    older than its source. <code>site:check --all</code> passes on the new output.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c22" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c22">C22</a>
+                  <span class="plan-title">P7: Astro mentions kept on purpose</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Left as history, not live instructions: dated entries in
+                    <a href="../../../../PAPERCUTS.md" target="src-papercuts-md"><code>PAPERCUTS.md</code></a> /
+                    <a href="../../../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
+                      ><code>SUSPECTED-BUGS.md</code></a
+                    >, the epic's own briefs (<a
+                      href="BRIEF.md"
+                      target="src-packages-docs-epics-spell-ui-pages-brief-md"
+                      ><code>BRIEF.md</code></a
+                    >,
+                    <a href="P4-AGENT.md" target="src-packages-docs-epics-spell-ui-pages-p4-agent-md"
+                      ><code>P4-AGENT.md</code></a
+                    >),
+                    <a href="../../../ui/docs/plan-promote-solid.md" target="src-packages-ui-docs-plan-promote-solid-md"
+                      ><code>docs/plan-promote-solid.md</code></a
+                    >, the finished codemods
+                    <a href="../../../../scripts/rename-aliases.mjs" target="src-scripts-rename-aliases-mjs"
+                      ><code>scripts/rename-aliases.mjs</code></a
+                    >
+                    and
+                    <a href="../../../ui/scripts/rename-families.ts" target="src-packages-ui-scripts-rename-families-ts"
+                      ><code>packages/ui/scripts/rename-families.ts</code></a
+                    >
+                    (a NOTE added), provenance comments ("the old Astro page", "same keys as the Astro site") in pages
+                    and docs-components, and
+                    <a href="../../server.html" target="src-packages-docs-server-html"><code>server.html</code></a
+                    >'s decision tables.
+                    <a href="../../../server/src/proxy.ts" target="src-packages-server-src-proxy-ts"
+                      ><code>packages/server/src/proxy.ts</code></a
+                    >
+                    (<code>proxyTo</code> / <code>proxyUpgrade</code>) has no caller left but stays as library code.
+                    <a href="PAGES.md" target="src-packages-docs-epics-spell-ui-pages-pages-md"
+                      ><code>PAGES.md</code></a
+                    >
+                    now points at the old MDX through <code>git show df8ca0bf:...</code>. Goals pages (<a
+                      href="../../../../goals/spell/docs/"
+                      target="src-goals-spell-docs"
+                      ><code>goals/spell/docs</code></a
+                    >,
+                    <a href="../../../../goals/spell/spell-ui/" target="src-goals-spell-spell-ui"
+                      ><code>goals/spell/spell-ui</code></a
+                    >): only their factual "Astro site, 53 pages" lines were updated; docs Q2 / R2 (Owen's open question
+                    / risk naming Astro) untouched.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1905,6 +2057,17 @@
                       ><code>status.md</code></a
                     >; chose one commit over splitting by hand. (J8)
                   </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t11" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t11">T11</a>
+                  <span class="plan-title"
+                    >packages/server/src/proxy.ts has no caller since AstroProxy went</span
+                  > </ui-title
+                ><ui-content
+                  ><p>Kept by P7 (generic, tested). Delete or keep as a reusable piece: Owen's call.</p></ui-content
                 ></ui-accordion
               ></ui-item
             ></ui-list
@@ -5202,6 +5365,28 @@
                   component pages + 7 foundation pages, 1608 live examples, ~100 gaps logged, ~20 widget fixes; checks:
                   site:check --all 66/66 OK, ui review 4400 tests, local visual 13 examples updated after
                   review</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T11:28-04:00">2026-10-03 11:28</time></ui-date> P7
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T11:51-04:00">2026-10-03 11:51</time></ui-date> P7
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T11:51-04:00">2026-10-03 11:51</time></ui-date> P7 done: Astro
+                  site, MDX, workspace and 330 lockfile packages gone; site:dev = bundle watch + page server; every live
+                  reference updated; checks: ui review 4400, server 70, site:check --all OK</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

@@ -16,7 +16,6 @@
     "packages/core",
     "packages/server",
     "packages/ui",
-    "packages/ui/site",
     "packages/util"
   ],
   "scripts": {
