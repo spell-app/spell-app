@@ -16,6 +16,9 @@ import { existsSync } from "fs"
 import { join } from "path"
 import * as vscode from "vscode"
 
+/** The page's iframe's sandbox:  Simple Browser's.  Scripts need the webview's `enableScripts` too. */
+const SANDBOX = "allow-scripts allow-forms allow-same-origin allow-downloads"
+
 /****************
  * ### `DocView`
  * The view's provider, and the page it shows.
@@ -75,7 +78,7 @@ export class DocView implements vscode.WebviewViewProvider {
   static html(url: string | undefined): string {
     const csp = "default-src 'none'; style-src 'unsafe-inline'; frame-src http://127.0.0.1:* http://localhost:*"
     const body = url
-      ? `<iframe src="${escapeAttribute(url)}" allow="clipboard-read; clipboard-write"></iframe>`
+      ? `<iframe src="${escapeAttribute(url)}" sandbox="${SANDBOX}" allow="clipboard-read; clipboard-write"></iframe>`
       : `<p>No docs page yet:  <code>yarn docs:open --vs</code>, or <code>/spell-docs</code>.</p>`
     return `<!doctype html>
 <html>
@@ -92,9 +95,14 @@ export class DocView implements vscode.WebviewViewProvider {
 </html>`
   }
 
-  /** VS Code shows the view:  render the page asked for, else the docs index. */
+  /**
+   * VS Code shows the view:  render the page asked for, else the docs index.
+   * - MUST `enableScripts`:  without it the webview's frame is sandboxed WITHOUT `allow-scripts`, and the page's
+   *   iframe inherits that, so no `ui-*` element ever defines itself
+   */
   async resolveWebviewView(view: vscode.WebviewView): Promise<void> {
     DocView.view = view
+    view.webview.options = { enableScripts: true }
     view.onDidDispose(() => {
       if (DocView.view === view) DocView.view = undefined
     })
