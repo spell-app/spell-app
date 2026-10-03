@@ -24,9 +24,7 @@
         <ui-sticky class="spell-h1"
           ><header class="spell-page-head">
             <h1>Commands: CLI, skills, yarn</h1>
-            <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p6">next: P6 · Doc Review</ui-label></span
-            >
+            <span class="plan-step"><ui-label color="green" icon="check">DONE</ui-label></span>
           </header></ui-sticky
         >
         <ui-list class="plan-meta">
@@ -70,7 +68,7 @@
               you create a new yarn script to solve some problem. Instruct it to keep that doc up to date.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 7h-12h in all, 30m-1h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 7h-12h in all, 0m left</p>
           <ui-section id="o1" header="1.1 What exists today" sticky collapsible dividing>
             <p>Three ways to make the repo do something, grown separately:</p>
             <ui-table celled compact striped unstackable>
@@ -210,21 +208,32 @@
               </li>
               <li>
                 Data:
-                <a href="../../templates/commands.json" target="src-packages-docs-templates-commands-json"
-                  ><code>commands.json</code></a
+                <a href="../../dev/commands/commands.json" target="src-packages-docs-dev-commands-commands-json"
+                  ><code>packages/docs/dev/commands/commands.json</code></a
                 >
                 beside it, the list of operations; the page fetches it from the page server and draws the tables (<a
                   href="#d4"
                   >D4</a
                 >). A new template,
                 <a href="../../templates/commands.html" target="src-packages-docs-templates-commands-html"
-                  ><code>templates/commands.html</code></a
+                  ><code>packages/docs/templates/commands.html</code></a
                 >, makes more such pages (<a href="#p1">P1</a>).
               </li>
               <li>
-                Rows: OPERATIONS ("start the servers", "merge a worktree into main"), grouped by family (worktrees,
-                sessions, plan docs, goals, docs, servers, build, check, spell language ...). ~80 rows; the copied
-                8-script yarn block one row per script (<a href="#d7">D7</a>).
+                Rows: OPERATIONS ("start the servers", "merge a worktree into main"), in 13 families (worktrees,
+                sessions, park, plan docs, goals, docs, servers, build, checks, spell language, the CLI, ui tooling,
+                codemods). 227 rows, not the ~80 planned (<a href="#t4">T4</a>); the copied 8-script yarn block one row
+                per script (<a href="#d7">D7</a>).
+              </li>
+              <li>
+                Built: the page also holds the surfaces (how each adds a command), oddities, 5. Target, 6. Roadmap
+                (R1-R10), 7. Why, 8. Limits; <code>spell dev commands check</code> keeps the JSON honest (<a href="#p4"
+                  >P4</a
+                >);
+                <a href="../../dev/commands/commands.md" target="src-packages-docs-dev-commands-commands-md"
+                  ><code>commands.md</code></a
+                >
+                beside it is the agents' rules (<a href="#p5">P5</a>).
               </li>
               <li>
                 Columns: op · CLI · skill · yarn · runs (the tool doing the work) · target (<a href="#d6">D6</a>). Each
@@ -360,7 +369,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="5" total="6" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="6" total="6" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -459,7 +468,16 @@
               ><ui-item icon="gavel"><b>Judgement calls:</b> <a href="#t7">T7</a></ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p5" data-phase="5" data-status="done" header="P5 · AGENTS Rule" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p5"
+            data-phase="5"
+            data-status="done"
+            header="P5 · AGENTS Rule"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -471,8 +489,8 @@
               ><ui-item icon="clock"><b>Estimate:</b> 30m-1h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p6" data-phase="6" data-status="todo" header="P6 · Doc Review" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p6" data-phase="6" data-status="done" header="P6 · Doc Review" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> Prune plan doc; summary/Overview true to what was built; decisions to page Why, caveats to
@@ -1283,6 +1301,35 @@ missing from commands.html:
                   ><ui-date><time datetime="2026-10-03T00:34-04:00">2026-10-03 00:34</time></ui-date> P5 done: root
                   AGENTS.md read-first line + Commands section, packages/docs/dev/commands/commands.md (agent rules),
                   pointer in packages/cli/AGENTS.md; checks: doc-links ok, check-spell ok</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:35-04:00">2026-10-03 00:35</time></ui-date> P6
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:36-04:00">2026-10-03 00:36</time></ui-date> P6
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:36-04:00">2026-10-03 00:36</time></ui-date> P6 done: commands
+                  page gains 7. Why and 8. Limits; plan doc Overview true to what was built; checks: check-spell ok (30
+                  headings), plan-doc check ok, commands:check 208/208. isolate Finish left for Owen (T1)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:36-04:00">2026-10-03 00:36</time></ui-date> Bedtime done: 6
+                  done, 0 WIP, 0 skipped</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
