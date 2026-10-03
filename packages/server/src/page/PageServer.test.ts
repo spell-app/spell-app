@@ -66,6 +66,9 @@ describe("PageServer", () => {
 
   beforeAll(async () => {
     mkdirSync(join(root, "docs"))
+    mkdirSync(join(root, "packages", "ui", "site", "_assets"), { recursive: true })
+    writeFileSync(join(root, "packages", "ui", "site", "button.html"), "<!doctype html><head></head><p>UI</p>\n")
+    writeFileSync(join(root, "packages", "ui", "site", "_assets", "site.js"), "export {}\n")
     writeFileSync(join(root, "package.json"), JSON.stringify({ pageServer: { watch: ["docs"] } }))
     writeFileSync(page, PAGE)
     server = await new PageServer({ root }).start({ port: 0, routes: false })
@@ -106,6 +109,29 @@ describe("PageServer", () => {
     const answer = await ask(port, "GET", "/packages/docs/plans/x/x.html?a=1")
     expect(answer.status).toBe(302)
     expect(answer.headers.location).toBe("/packages/docs/epics/x/x.html?a=1")
+  })
+
+  it("serves Spell UI's docs, packages/ui/site/, at /ui/:  live pages, assets as is", async () => {
+    const page = await ask(port, "GET", "/ui/button.html")
+    expect(page.status).toBe(200)
+    expect(page.text).toContain("<p>UI</p>")
+    expect(page.text).toContain(`<script src="/_server/live.js" defer></script>`)
+    const served = JSON.parse(/window\.SPELL_SERVER = (.*?)<\/script>/.exec(page.text)![1]!) as SRV.ServerConfig
+    expect(served.file).toBe("/packages/ui/site/button.html")
+    const script = await ask(port, "GET", "/ui/_assets/site.js")
+    expect(script.status).toBe(200)
+    expect(script.headers["content-type"]).toMatch(/javascript/)
+    expect((await ask(port, "GET", "/ui")).status).toBe(301)
+    expect((await ask(port, "GET", "/ui/missing.html")).status).toBe(404)
+  })
+
+  it("reloads /ui/ pages when their files change", async () => {
+    const events = await listen(port)
+    const changed = events.next("change", "/packages/ui/site/button.html")
+    await new Promise((done) => setTimeout(done, 100))
+    writeFileSync(join(root, "packages", "ui", "site", "button.html"), "<!doctype html><head></head><p>UI 2</p>\n")
+    expect(await changed).toEqual({ path: "/packages/ui/site/button.html" })
+    events.close()
   })
 
   it("refuses foreign hosts", async () => {

@@ -58,7 +58,8 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
         + `aka` (other libraries' / everyday names:  `ui-modal`:  `dialog`, `lightbox`).  A NEW TAG MUST fill both;
         `src/components/component-definitions.ts` rolls them up (the docs' component browser) and
         `test/component-definitions.test.ts` fails on a tag without them.  A new or moved tag also needs `yarn gen:root`
-        (`<ui-root>`'s catalog of tag => family;  `test/root-catalog.test.ts` fails while it's stale).  Live:  `UIButton.describe()`
+        (`<ui-root>`'s catalog of tag => family;  `test/root-catalog.test.ts` fails while it's stale) and `yarn site:data`
+        (the docs site's data;  `tools/SiteDataBuilder.test.ts` fails while it's stale).  Live:  `UIButton.describe()`
     - `ui-<name>.types.ts` -- the folder's loose constants, types and shared vocabulary pieces (nothing top-level
       stays loose in an element / fallback / helper file);  a helper function becomes a private static on the one class
       that uses it, else a static on a small class here.  Constants used by SEVERAL folders live in
@@ -76,6 +77,14 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
       `examples/elements/*.html` -- the same examples as `ui-*` ELEMENT markup (axe in `ui-<name>.test.tsx`,
       `yarn dev`, `yarn test:visual`);  `examples/elements/<example>.visual.ts` -- optional OPEN states for the
       visual tests (`docs/visual-testing.md`)
+  - `src/docs-components/ui-docs-<name>/` -- DOC-ONLY element families (`<ui-docs-example>`, `<ui-docs-api>` ...):  the
+    widgets the docs site is built from, laid out and written EXACTLY like a component family (same files, same
+    rules), but NOT components:  no lib entry, not in `ComponentDefinitions.all` / the component list
+    (`ComponentDefinitions.docs`), every tag filed under the `documentation` topic.  `<ui-root>` knows them (`yarn gen:root`
+    scans this folder too;  `RootLoader` has a second literal glob for it).  A family that renders other widgets in
+    its shadow root imports their families in its barrel, and adds their tags to `DocsJSXTags`.  They read the site's
+    data through `SiteData` (`site/_data/components.json`), NEVER the vocabularies.  The barrel's header says how to
+    add one
   - `src/core.ts`, `src/forms.ts` -- the two SHARED lib entries (`@spell-app/ui/core`, `@spell-app/ui/forms`):  `core` is
     the element core + the foundation JS every family needs;  `forms` what only form controls with a VALUE need
     (`FormElement`, `FormHost`, `Validator`, `MenuOptions`).  Component files import shared code ONLY through
@@ -95,10 +104,24 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
     vendoring, import-map smoke pages (framework hosts), LOC, report tables, the HMR end-to-end test;
     `tools/demo/` is the `yarn dev` site;  `tools/visual/` the visual tests;  results go to `tools/results/`
     (git-ignored)
-  - `site/` -- Astro docs site, modelled on Fomantic's docs, on the live components
+  - `site/` -- the docs site, modelled on Fomantic's docs, served at `/ui/` by the page server (a static folder,
+    live-reloading;  `packages/server`'s `UI_SITE`).  Being rebuilt as plain `.html` pages (epic `spell-ui-pages`);
+    the Astro site (`astro.config.mjs`, `src/`, `yarn site:dev`) stays until that epic's P7 deletes it:
+    - `*.html`, `components/ui-<name>.html` -- the pages;  `images/` -- Fomantic's docs images
+    - `_assets/` -- GENERATED, committed:  the site bundle (`yarn site:bundle`):  `site.js` + `site.css` (what every
+      page loads:  `<link rel="stylesheet" href="_assets/site.css">` + `<script type="module" src="_assets/site.js">`,
+      `../_assets/` from `components/`), each family a lazy chunk, `icon-packs` a symlink to `src/icons/icon-packs`.
+      NEVER edit
+    - `_src/` -- the bundle's entry (`site.ts`:  what's in it and why) and the site's layout-glue CSS (`site.css`);
+      config `vite.site.config.ts`
+    - `_data/` -- `components.json`, GENERATED, committed (`yarn site:data`;  shape `SiteDataFile` in
+      `src/docs-components/docs-components.types.ts`), and `pages.json`, hand-kept per-family facts it reads (title,
+      summary, status, token-table overrides)
+    - `_parts/` -- shared header / footer, pulled in with `<ui-include>`
   - `docs/` -- design docs (`plan.md`, `grammar.md`, `theming.md`, `translation.md`, `icons.md`, `fallback.md`,
     `runtime.md`) and the generated `report.md`
-  - `scripts/` -- generators (`gen-styles.ts`, `gen-icons.ts`, `gen-root-catalog.ts`, `gen-spell.ts`)
+  - `scripts/` -- generators (`gen-styles.ts`, `gen-icons.ts`, `gen-root-catalog.ts`, `gen-spell.ts`, `gen-site-data.ts`)
+    and the site bundle's build (`site-bundle.ts`)
   - `src/languages/` -- GENERATED, committed:  `spell.<lang>.js`, spell's pre-compiled highlighter for
     `<ui-code language="spell">` (`yarn gen:spell`;  the root `AGENTS.md`'s one `ui` -> spell exception).  NEVER edit;
     lint and format skip it
@@ -128,7 +151,9 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   - `yarn fork <script>`, `yarn fork:install`, `yarn fork:build` -- the fork's own scripts.  Its `dist/` is only
     needed by `yarn vendor` / `yarn measure`, which build it when stale (`tools/ForkBuild.ts`);  dev, tests,
     the site and the library build use its source
-  - `yarn site:dev`, `yarn site:build`
+  - `yarn site:build` ~== `yarn site:data` (`site/_data/components.json`) + `yarn site:bundle` (`site/_assets/`, sizes
+    printed):  rerun after changing a vocabulary, a family sheet or any source the site shows, and commit the output.
+    `yarn site:dev` / `site:preview` / `site:check` are the old Astro site's
   - Use `yarn tsc`, not `npx tsc`:  yarn picks the workspace's TypeScript 7.  (The `@typescript/typescript6` that
     `vite-plugin-dts` needs once linked `.bin/tsc` as TypeScript 6;  with hoisting the root `.bin/tsc` is 7 today,
     but that's luck of the hoister -- see the root's `PAPERCUTS.md`, `## ui`.)

@@ -309,6 +309,11 @@ every entry below that date was fixed or disproven;  what's left:
   its setup reads a signal in an effect's APPLY (or `onSettled`):  that read won't re-run it.  Harmless if the value
   never changes after;  a missed update if it does.  Prove:  dev build, break on the warning, read the stack.
   (2026-10-02)
+- `src/docs-components/ui-docs-example/UIDocsExample.tsx` ~line 81:  the code button is a `<ui-button>` given
+  `aria-expanded` / `aria-controls` on its HOST, but `<ui-button>` forwards only `aria-label` to its inner `<button>`,
+  so assistive tech probably never hears the pane open / closed (and `aria-controls` can't cross the shadow root
+  anyway).  `<ui-item>` got the same forwarding for `aria-expanded` on 2026-10-03 (`<ui-docs-nav>`).  Prove:  read the
+  inner button's attributes in the docs example test;  fix by forwarding `aria-expanded` in `UIButton`.  (2026-10-03)
 
 ### 3. Styling / CSS
 
@@ -341,6 +346,14 @@ every entry below that date was fixed or disproven;  what's left:
   short (seen in the app's chooser, `ProjectMenu`:  137 / 128 / 191px items in a 193px `fluid` menu).  Probably wants
   `width: 100%` (and `text-align: start`) on a vertical menu's button items.  The app's `ProjectDropdown.css` does it
   (HACK).  Prove:  the "Link items demo" in `examples/elements/content.html`.  (2026-10-02, solid-migration P8)
+- `src/components/ui-menu/ui-menu.css` `secondary`:  `secondary` is ALSO a colour alias, so the generic remap
+  (`colors.css`, `.ui.secondary { --ui-color: var(--ui-secondary) ... }`) runs on every `.ui.secondary.menu` root and
+  its items inherit it:  an uncoloured secondary menu's active item reads `--ui-color-text` (black's text) and a
+  secondary pointing underline `--ui-color` (black), whatever `--ui-menu-active-color` / `-border-color` say.  Hidden
+  in our default look (black ~== the selected text colour);  shows when a theme recolours them (`themes/chubby.css`
+  undoes the remap, HACK).  Same suspicion for `secondary` segments / buttons groups etc.  Prove:
+  `<ui-menu secondary pointing><ui-item active>A</ui-item></ui-menu>` with `--ui-menu-active-color: red` on `:root`:
+  the item stays black.  (2026-10-02, spell-ui-pages P6, T2)
 - `src/components/ui-dropdown/UIDropdown.tsx` `label()`:  a host `aria-label` never reaches the combobox (only
   `placeholder` / `text` / `name` do), so an icon-only dropdown (no text, an `icon` slot) has no accessible name.  The app's
   `<MoreMenu>` ("...") is one.  (2026-10-02, solid-migration P6)

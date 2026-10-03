@@ -34,6 +34,8 @@
     "**/src/languages/spell.*.js",
     "**/site/dist/**",
     "**/site/**/*.mdx",
+    "**/ui/site/_assets/**",
+    "**/ui/site/_data/**",
     "**/site/.astro/**",
     "**/vendor/**",
     "**/packages/*/dist/**",

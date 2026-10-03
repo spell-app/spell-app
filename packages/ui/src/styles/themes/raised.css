@@ -1,0 +1,95 @@
+/*
+ * Raised theme:  port of Fomantic's `themes/raised` (buttons with a 3D bottom edge), `@layer ui.theme`.
+ * - A DELTA on `classic.css`:  the loader (`ThemeSheets`) registers `classic` + this sheet, on the page and in every
+ *   component shadow root (`shadow: true`), so the class-grammar half reaches the button's inner box.
+ * - Touches:  button only.
+ * - Two halves:  `:root` tokens (`--ui-button-*`), then class-grammar overrides for what has no token (the edge,
+ *   the gradient).
+ * - The look the overrides paint is held in theme-private tokens (`--_raised-*`), declared on `:root` so they
+ *   INHERIT:  a variation that owns its look (basic, inverted, tertiary) or a colour resets them on the button OR
+ *   its group, and a group's members follow through `<slot>`.  The edge rules still read the button's own
+ *   `--_button-edge*` first, so `attached` and the basic hairline keep theirs.
+ * - Dark scheme:  Fomantic had none.  The fill is a `light-dark()` pair whose dark half is the default recipe;  the
+ *   edge is the border colour, which flips by itself.
+ * - NOT ported:
+ *   - `@verticalAlign: middle`:  a HOST property (`<ui-button>` is `inline-flex`, baseline-aligned);  a theme sheet
+ *     can't single out one element's `:host`
+ *   - the `@shadowOffset` extra bottom padding (0.15em) that keeps the text centred above the edge
+ */
+
+@layer ui.theme {
+  /*******************************
+              Tokens
+  *******************************/
+
+  :root {
+    --ui-button-background: light-dark(oklch(0.979 0 0), oklch(from var(--ui-ink) l c h / 0.08));
+    --ui-button-radius: 0.4em;
+    --ui-button-padding-block: 1em;
+    --ui-button-padding-inline: 2em;
+
+    /* Theme-private:  the plain look */
+    --_raised-image: linear-gradient(transparent, oklch(0 0 0 / 0.05));
+    --_raised-ring: 0 0 0 1px var(--ui-border-color) inset;
+    --_raised-edge: 0 -0.3em 0 0 var(--ui-border-color) inset;
+  }
+
+  /*******************************
+             Overrides
+  *******************************/
+
+  /* Coloured:  flat fill, the bottom edge only. */
+  .ui:is(
+      .primary,
+      .secondary,
+      .red,
+      .orange,
+      .yellow,
+      .olive,
+      .green,
+      .teal,
+      .blue,
+      .violet,
+      .purple,
+      .pink,
+      .brown,
+      .grey,
+      .black,
+      .positive,
+      .negative,
+      .info,
+      .warning,
+      .success,
+      .error
+    ):is(.button, .buttons) {
+    --_raised-image: none;
+    --_raised-ring: 0 0 #0000;
+  }
+  /* Variations with a look of their own:  none of it. */
+  .ui:is(.basic, .inverted, .tertiary):is(.button, .buttons) {
+    --_raised-image: none;
+    --_raised-ring: 0 0 #0000;
+    --_raised-edge: 0 0 #0000;
+  }
+
+  /* Plain:  a hairline ring plus a 0.3em inset bottom edge;  pressing flattens it, `active` keeps the ring. */
+  .ui.button:not(.labeled:not(.icon), :disabled, .disabled) {
+    background-image: var(--_raised-image);
+    box-shadow: var(--_button-edge, var(--_raised-ring), var(--_raised-edge)), var(--_ui-buttons-divider, 0 0 #0000);
+  }
+  .ui.button:not(.labeled:not(.icon), :disabled, .disabled):is(:hover, :focus-visible) {
+    box-shadow:
+      var(--_button-edge-hover, var(--_button-edge, var(--_raised-ring), var(--_raised-edge))),
+      var(--_ui-buttons-divider, 0 0 #0000);
+  }
+  .ui.button:not(.labeled:not(.icon), :disabled, .disabled):active {
+    box-shadow:
+      var(--_button-edge-down, var(--_button-edge-hover, var(--_button-edge, 0 0 #0000))),
+      var(--_ui-buttons-divider, 0 0 #0000);
+  }
+  .ui.active.button:not(.labeled:not(.icon), :disabled, .disabled) {
+    background-image: none;
+    box-shadow:
+      var(--_button-edge-active, var(--_button-edge, var(--_raised-ring))), var(--_ui-buttons-divider, 0 0 #0000);
+  }
+}

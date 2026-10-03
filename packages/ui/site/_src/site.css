@@ -1,0 +1,10 @@
+/*
+ * The Spell UI site's own CSS:  LAYOUT GLUE ONLY (grid areas, widths), bundled after `@spell-app/ui`'s page
+ * foundation into `_assets/site.css`.
+ * - Everything visible is a `<ui-*>` widget:  a rule here that changes a LOOK is a widget gap -- record it as a plan
+ *   issue (`Gap:  <ui-tag> <what's missing>`) instead.
+ * - In `@layer ui.app`, the page's own layer:  above the components, so a layout rule wins without `!important`.
+ */
+
+@layer ui.app {
+}

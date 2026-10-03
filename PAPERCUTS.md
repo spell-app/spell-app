@@ -890,6 +890,26 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   `$/ui` bundle.  Chromium and Firefox have no such property, so unit tests passed. · Name the property something
   else (`property: "headingLevelOffset"`);  a `property` equal to the camelCased name doesn't count as a rename.
   Found by loading the fixture in Playwright's WebKit and logging `pageerror`. · ui
+- 2026-10-02 · Playwright screenshots of `yarn dev` (`tools/demo/`) randomly lost the theme just applied, or never
+  rendered:  parallel agents writing `src/styles/themes/*.css` made Vite log "`<x>.css` is shared by 58 element
+  modules:  full reload", which reloaded the page mid-script;  and `ThemeSheets.apply("rtl")` threw "isn't a theme"
+  because the running server's `import.meta.glob` result predated the new sheet. · Restart the dev server after
+  adding a sheet, and re-run a shot that looks unthemed;  under parallel agents, prefer asserting in a vitest
+  browser test. · ui
+- 2026-10-02 · The site bundle (`yarn site:bundle`) loaded `_assets/ui-docs-example.js` (200, no error), yet
+  `<ui-docs-example>` stayed undefined;  every test passed.  `package.json` `sideEffects` listed only
+  `./src/components/*/index.ts`, so rolldown dropped the new `src/docs-components/*/index.ts` barrel's `define()` call
+  (vitest doesn't tree-shake). · Add the folder's barrels to `sideEffects`;  a new folder of side-effect barrels needs
+  the same.  Found by `import()`ing the chunk in the page and checking `customElements.get()`. · ui
+- 2026-10-03 · Needed to SEE a docs element without the site bundle (the lead builds it once):  vitest browser's
+  `page.screenshot({ path })` into the scratchpad failed "Access denied" (`server.fs`), and a relative `path` resolves
+  against the TEST FILE's folder (`../../../../.cache/x.png` from `src/docs-components/ui-docs-nav/` landed in
+  `packages/.cache/`, outside the ignored `packages/ui/.cache/`). · A throwaway `*.test.tsx` beside the element:
+  render, `await` its hosts, `page.screenshot({ path: "<n x ../>.cache/x.png", element })`, then `Read` the PNG;
+  `console.log` from a browser test is swallowed, so dump values with `throw new Error(...)`.  Delete both after. · ui
+- 2026-10-03 · `yarn plan-doc add ... "<ui-docs-nav> ..."` with the title pre-escaped (`&lt;ui-docs-nav&gt;`) stored
+  `&amp;lt;` -- the script escapes titles itself (details are raw HTML), and there's no retitle command. · Pass tags
+  in titles RAW;  escape only inside `--details`. · ui / docs
 
 ## app
 
@@ -1093,6 +1113,15 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   started `/clear` -> `/epic` -> `/bedtime`, only slash commands (`<command-name>`, skipped as harness text). ·
   `session.py`'s `prompt_text` now reads a slash command as `/name args`, and a title alone keeps a session
   listed. · claude-code
+- 2026-10-02 · A `/bedtime` session fanned out 5 background agents, then ended its turn:  the pending window
+  `handoff` moved the session to the worktree's window, which RESTARTED its process, and every background agent
+  stopped ("didn't finish before the previous session ended") with nothing saved but what was already on disk.
+  The night was lost until Owen typed "restart". · Never end a turn with background agents running while a
+  `handoff` is pending:  do the handoff turn first (or wait for the agents in the foreground);  stopped agents
+  resume with `SendMessage` to their id, transcript intact. · claude-code
+- 2026-10-02 · `yarn plan-doc ...` failed with `Couldn't find a script named "plan-doc"` run from `packages/ui`,
+  though `/epic`'s cheat sheet says "from anywhere in the repo":  only the root (and `packages/docs`) define it. ·
+  Run it from the worktree root. · claude-code
 
 ## vscode
 

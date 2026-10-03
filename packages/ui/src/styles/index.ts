@@ -14,6 +14,8 @@
  * - NOTE: `ComponentTokens` is left out too -- test / build time only (`test/component-tokens.test.ts`,
  *   `yarn tokens:alias`, the docs site's `CssTokens`).  Import its leaf file.
  * - NOTE: no namespace:  sheet names carry a `CSS` suffix and the vocabulary exports are data.
+ * - Themes:  `ThemeSheets` (`./themes`) loads `themes/*.css` LAZILY, one chunk per sheet, and applies one
+ *   (`ThemeSheets.apply("material")`);  only `classic` and `dark` are also here as text, statically.
  */
 
 import layersCSS from "./layers.css?inline"
@@ -30,6 +32,7 @@ import darkThemeCSS from "./themes/dark.css?inline"
 
 export * from "./styles.types"
 export * from "./styles.vocabulary.en"
+export * from "./themes"
 
 export {
   layersCSS,

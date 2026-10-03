@@ -25,7 +25,9 @@
           ><header class="spell-page-head">
             <h1>Spell UI Pages</h1>
             <span class="plan-step"
-              ><ui-label basic color="orange" icon="circle half stroke" href="#p2">P2 · Docs Components</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p3"
+                >next: P3 · Template &amp; Shell</ui-label
+              ></span
             >
           </header></ui-sticky
         >
@@ -41,7 +43,7 @@
           >
           <ui-item icon="calendar"
             >Started <time id="plan-started">2026-10-02</time>, updated
-            <time id="plan-updated">2026-10-02</time></ui-item
+            <time id="plan-updated">2026-10-03</time></ui-item
           >
         </ui-list>
 
@@ -63,7 +65,7 @@
               12 agents to do this.<br />I'm going to bed soon, let's make this plan snappy.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 14h 30m-19h 30m in all, 14h-19h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 14h 30m-19h 30m in all, 9h-12h left</p>
           <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
             <ui-list bulleted>
               <ui-item
@@ -225,11 +227,12 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="1" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="3" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
           <ui-section
+            collapsed
             id="p1"
             data-phase="1"
             data-status="done"
@@ -250,15 +253,16 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p2"
             data-phase="2"
-            data-status="active"
+            data-status="done"
             header="P2 · Docs Components"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle half stroke" color="orange"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> Solid elements in packages/ui/src/docs-components/: ui-docs-example, ui-docs-api,
@@ -332,8 +336,8 @@
               ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p6" data-phase="6" data-status="todo" header="P6 · Themes Port" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p6" data-phase="6" data-status="done" header="P6 · Themes Port" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> All 25 Fomantic themes as token sheets in src/styles/themes/<name
@@ -501,13 +505,951 @@
                   ></ui-title
                 ><ui-content><p>Fomantic-UI and its docs are MIT-licensed.</p></ui-content></ui-accordion
               ></ui-item
+            ><ui-item id="d13" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d13">D13</a>
+                  <span class="plan-title">Theme joypixels: not ported (remote CDN images)</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic's <code>joypixels</code> theme is only
+                    <code>@emojiPath: https://cdn.jsdelivr.net/joypixels/assets/9.0/png/unicode/128/</code> plus ~3,800
+                    per-emoji <code>background-image</code> rules. Decided NOT acceptable for a theme sheet: (1) a
+                    stylesheet that makes third-party requests on every emoji (privacy, offline, CSP), (2) JoyPixels'
+                    free licence needs attribution and its own notice says self-hosting may need another licence, (3)
+                    ~400 KB of per-emoji CSS, (4) <code>&lt;ui-emoji&gt;</code> renders the native glyph with no
+                    per-emoji hook, by design (<a
+                      href="../../../ui/src/components/ui-emoji/ui-emoji.css"
+                      target="src-packages-ui-src-components-ui-emoji-ui-emoji-css"
+                      ><code>ui-emoji.css</code></a
+                    >
+                    header). No <code>joypixels.css</code> is written, so the theme list doesn't offer a no-op. The
+                    right shape is an opt-in emoji IMAGE set, like icon packs: see the <code>&lt;ui-emoji&gt;</code> gap
+                    issue.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d14" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d14">D14</a>
+                  <span class="plan-title">Theme resetcss: in @layer ui.reset, page-only</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Eric Meyer's reset in <code>ui.theme</code> would beat
+                    <a href="../../../ui/src/styles/typography.css" target="src-packages-ui-src-styles-typography-css"
+                      ><code>typography.css</code></a
+                    >
+                    (<code>ui.base</code>) and
+                    <a href="../../../ui/src/styles/native.css" target="src-packages-ui-src-styles-native-css"
+                      ><code>native.css</code></a
+                    >
+                    (<code>ui.components</code>); Fomantic loads its reset FIRST and styles on top. So
+                    <a
+                      href="../../../ui/src/styles/themes/resetcss.css"
+                      target="src-packages-ui-src-styles-themes-resetcss-css"
+                      ><code>resetcss.css</code></a
+                    >
+                    is the one sheet in <code>@layer ui.reset</code>, and every selector starts at <code>:root</code> so
+                    the copy adopted into shadow roots (<code>shadow: true</code>) matches nothing (a
+                    <code>div { padding: 0 }</code> there would strip component boxes).
+                    <a
+                      href="../../../ui/src/styles/themes/themes.test.ts"
+                      target="src-packages-ui-src-styles-themes-themes-test-ts"
+                      ><code>themes.test.ts</code></a
+                    >'s layer test got a <code>LAYER_EXCEPTIONS</code> map (<code>resetcss: ui.reset</code>).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d15" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d15">D15</a>
+                  <span class="plan-title"
+                    >P6: ThemeSheets API -- classic is the base, dark is a scheme, two UI.styles slots</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>ThemeSheets.apply(name | undefined, styles?)</code> in
+                    <a
+                      href="../../../ui/src/styles/themes/themes.ts"
+                      target="src-packages-ui-src-styles-themes-themes-ts"
+                      ><code>packages/ui/src/styles/themes/themes.ts</code></a
+                    >, exported from <code>$/ui/styles</code>. <code>names</code> = the Fomantic themes only;
+                    <code>sheets</code> = every sheet. <code>classic</code> is the base (applied with every Fomantic
+                    theme, or alone via <code>apply('classic')</code>); <code>dark</code> is a colour scheme, not a
+                    look: not in <code>names</code>, <code>apply('dark')</code> throws. The docs switcher offers default
+                    / classic / names, plus a separate light / dark / system switch. Two <code>UI.styles</code> names,
+                    <code>classic</code> and <code>theme</code>, both <code>{ page: true, shadow: true }</code>.
+                    <code>register(name, '')</code> now UNREGISTERS (was: an empty sheet left adopted).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d16" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d16">D16</a>
+                  <span class="plan-title"
+                    >P6: themes re-check --ui-&lt;hue&gt;-on for their palettes (WCAG AA), even where Fomantic showed
+                    white</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    theming.md says a theme that changes a base must re-check its <code>-on</code>. The GH theme's light
+                    blue / green / orange and most of Material's mid-tone hues fail 4.5:1 with white, so they take ink
+                    text (<code>var(--ui-ink-on-light)</code>), unlike fomantic-ui.com. Purple and black keep white.
+                    Revisit if Owen prefers fidelity over contrast for themes.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d17" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d17">D17</a>
+                  <span class="plan-title"
+                    >Themes: Google fonts a theme imports are bundled as woff2 beside its sheet</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    bookish (Karma 400/700) and instagram (Montserrat, variable) <code>@import</code>ed Google Fonts CSS
+                    in Fomantic. A constructable sheet can't <code>@import</code>, so T3 downloaded the latin woff2
+                    files into
+                    <a href="../../../ui/src/styles/themes/bookish/" target="src-packages-ui-src-styles-themes-bookish"
+                      ><code>src/styles/themes/bookish/</code></a
+                    >
+                    and <code>instagram/</code> (with each font's <code>OFL.txt</code>) and declared
+                    <code>@font-face</code> outside the layer, referenced relatively (Vite rewrites the url, tested with
+                    <code>document.fonts.load</code>). Themes that NAME a font without importing it (flat: Open Sans;
+                    classic: Lato) still load nothing, as before.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d18" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d18">D18</a>
+                  <span class="plan-title"
+                    >Theme duo: ported as intended, though a no-op in Fomantic 2.9.4</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic 2.9.4's <code>loader.less</code> paints every arc <code>currentColor</code> with
+                    transparent sides at <code>.ui.ui.ui.loader::after</code> specificity, beating duo's
+                    <code>@shapeBorderColor</code>: fomantic-ui.com shows a plain loader.
+                    <a href="../../../ui/src/styles/themes/duo.css" target="src-packages-ui-src-styles-themes-duo-css"
+                      ><code>duo.css</code></a
+                    >
+                    draws the ring the theme's variables describe (primary top/right, secondary bottom/left), skipping
+                    coloured and elastic loaders.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d19" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d19">D19</a>
+                  <span class="plan-title">Themes may write a component's private variation tokens</span> </ui-title
+                ><ui-content
+                  ><p>
+                    A Fomantic variable that themes a VARIATION (secondary menu, styled accordion, basic button) has no
+                    public token to set: the variation writes the component's private alias itself
+                    (<code>--_ui-menu-active-background</code>, <code>--_button-weight</code>). Theme sheets (package
+                    code, pinned by
+                    <a
+                      href="../../../ui/src/styles/themes/themes.test.ts"
+                      target="src-packages-ui-src-styles-themes-themes-test-ts"
+                      ><code>themes.test.ts</code></a
+                    >) may write those on the variation's box in their overrides half, and may READ
+                    <code>--_button-edge*</code> so a variation keeps its own look. Their own looks travel in
+                    theme-private tokens (<code>--_raised-ring</code> ...) declared on <code>:root</code> so groups hand
+                    them to members. Pages still theme with public tokens only. (T2, P6)
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d20" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d20">D20</a>
+                  <span class="plan-title"
+                    >P2: doc-only elements live in src/docs-components/, known to &lt;ui-root&gt; by folder name</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>ComponentDefinitions.docs</code> lists them (never <code>all</code>, so the component list and
+                    <code>byTag()</code> leave them out); new topic <code>documentation</code> (no component uses it;
+                    tests count docs tags for topic coverage). <code>yarn gen:root</code> scans both folders; the
+                    catalog entry stays <code>{ folder }</code>, and <code>RootLoader</code> has a SECOND literal
+                    <code>import.meta.glob</code> (<code>../../docs-components/*/index.ts</code>) it tries after the
+                    components'. Chose this over a <code>root</code> field in the catalog: folder names can't collide
+                    (<code>ui-docs-</code> prefix).
+                    <a href="../../../../package.json" target="src-package-json"><code>package.json</code></a>
+                    <code>sideEffects</code> lists the docs barrels (without it rolldown silently dropped
+                    <code>define()</code>). JSX: <code>DocsJSXTags</code> names the <code>ui-*</code> tags docs elements
+                    render (an index signature would clash with app's, TS2374).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d21" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d21">D21</a>
+                  <span class="plan-title"
+                    >P2: components.json from the vocabularies + sheets; pages.json is the durable home of title /
+                    summary / status</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>yarn site:data</code> (<a
+                      href="../../../ui/scripts/gen-site-data.ts"
+                      target="src-packages-ui-scripts-gen-site-data-ts"
+                      ><code>scripts/gen-site-data.ts</code></a
+                    >
+                    over
+                    <a href="../../../ui/tools/SiteDataBuilder.ts" target="src-packages-ui-tools-sitedatabuilder-ts"
+                      ><code>tools/SiteDataBuilder.ts</code></a
+                    >
+                    +
+                    <a href="../../../ui/tools/FamilyTokens.ts" target="src-packages-ui-tools-familytokens-ts"
+                      ><code>tools/FamilyTokens.ts</code></a
+                    >) writes
+                    <a href="../../../ui/site/_data/components.json" target="src-packages-ui-site-data-components-json"
+                      ><code>site/_data/components.json</code></a
+                    >
+                    (shape <code>SiteDataFile</code> in
+                    <a
+                      href="../../../ui/src/docs-components/docs-components.types.ts"
+                      target="src-packages-ui-src-docs-components-docs-components-types-ts"
+                      ><code>src/docs-components/docs-components.types.ts</code></a
+                    >): <code>topics</code> (id + title), <code>components</code> and <code>docs</code> (every tag:
+                    names, folder, mainTag, href, topics, aka, attributes with values resolved + <code>valueSet</code>,
+                    slots, events, parts, states, texts) and <code>families</code> (title, summary, status, tags, tokens
+                    with a guessed <code>type</code>). Token rows are the Astro <code>CssTokens.astro</code> logic,
+                    moved. Hand-kept facts live in
+                    <a href="../../../ui/site/_data/pages.json" target="src-packages-ui-site-data-pages-json"
+                      ><code>site/_data/pages.json</code></a
+                    >: seeded ONCE per family from its MDX frontmatter and <code>&lt;CssTokens&gt;</code> /
+                    <code>&lt;TokenTable&gt;</code> props, then the source (so P7 can delete the MDX). Both committed,
+                    2-space JSON, skipped by oxfmt;
+                    <a
+                      href="../../../ui/tools/SiteDataBuilder.test.ts"
+                      target="src-packages-ui-tools-sitedatabuilder-test-ts"
+                      ><code>tools/SiteDataBuilder.test.ts</code></a
+                    >
+                    fails while stale. 573 KB raw / 80 KB gz: pretty-printing as asked; fetched once per page.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d22" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d22">D22</a>
+                  <span class="plan-title"
+                    >P2: one committed site bundle, site/_assets/, icon packs symlinked not copied</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>yarn site:bundle</code> (<a
+                      href="../../../ui/scripts/site-bundle.ts"
+                      target="src-packages-ui-scripts-site-bundle-ts"
+                      ><code>scripts/site-bundle.ts</code></a
+                    >,
+                    <a href="../../../ui/vite.site.config.ts" target="src-packages-ui-vite-site-config-ts"
+                      ><code>vite.site.config.ts</code></a
+                    >
+                    on <code>baseConfig()</code>) builds
+                    <a href="../../../ui/site/_src/site.ts" target="src-packages-ui-site-src-site-ts"
+                      ><code>site/_src/site.ts</code></a
+                    >
+                    as an APP build, <code>base: './'</code>, minified, no sourcemaps. Pages load
+                    <code>&lt;link rel=stylesheet href=_assets/site.css&gt;</code> +
+                    <code>&lt;script type=module src=_assets/site.js&gt;</code> (<code>../_assets/</code> from
+                    <code>components/</code>). <code>site.css</code> = UI's
+                    <a href="../../../ui/src/styles/ui.css" target="src-packages-ui-src-styles-ui-css"
+                      ><code>ui.css</code></a
+                    >
+                    foundation +
+                    <a href="../../../ui/site/_src/site.css" target="src-packages-ui-site-src-site-css"
+                      ><code>site/_src/site.css</code></a
+                    >
+                    (P3's layout glue goes THERE, not in
+                    <a href="../../_assets/" target="src-packages-docs-assets"><code>_assets/</code></a
+                    >). Stable names: <code>site.js</code>, <code>&lt;family&gt;.js</code> per barrel,
+                    <code>emoji/&lt;set&gt;/&lt;letter&gt;.js</code>; other chunks hashed.
+                    <code>BuiltInPacks.base</code> and <code>SiteData.url</code> are set from the entry's own URL.
+                    <code>_assets/icon-packs</code> is a SYMLINK to <code>../../src/icons/icon-packs</code> (8.7 MB,
+                    2,170 files): committing a copy would double them; a static deploy must <code>cp -RL</code>.
+                    <code>yarn site:build</code> = site:data + site:bundle (replaces the Astro build script;
+                    site:dev/preview/check untouched). <code>window.UI</code> exposed. Packs: the bundle adds none;
+                    pages pick with <code>&lt;ui-root icons="fa7-brands, fomantic"&gt;</code> (P3's template should).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d23" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d23">D23</a>
+                  <span class="plan-title"
+                    >P2: /ui/ is a static mount of packages/ui/site/; AstroProxy deleted</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>PageServer</code> mounts <code>UI_SITE</code> (<a
+                      href="../../../server/src/page/page.types.ts"
+                      target="src-packages-server-src-page-page-types-ts"
+                      ><code>page.types.ts</code></a
+                    >) at <code>/ui</code>, watched for live reload (not <code>_src/</code> or the Astro
+                    <a href="../../../ui/src/" target="src-packages-ui-src"><code>src/</code></a
+                    >); pages get <code>SPELL_SERVER</code> + the live client like docs, so the section editor works.
+                    Deleted <code>AstroProxy.ts</code> rather than leave it unhooked (dead code, its docs had to change
+                    anyway); the Astro site still runs alone with <code>yarn site:dev</code>.
+                    <code>yarn serve</code> (<a href="../../../../scripts/serve.mjs" target="src-scripts-serve-mjs"
+                      ><code>scripts/serve.mjs</code></a
+                    >) now checks <code>/ui/_assets/site.js</code> answers; <code>/spell-serve</code> skill and
+                    <a href="../../server.html" target="src-packages-docs-server-html"
+                      ><code>packages/docs/server.html</code></a
+                    >
+                    updated. Small fix in <code>StaticHandler</code>: a mount's bare prefix (<code>/ui</code>) now 301s
+                    to <code>/ui/</code> (it served the index at the slashless URL, breaking relative links), with a
+                    test.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d24" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d24">D24</a>
+                  <span class="plan-title"
+                    >P2: &lt;ui-docs-example&gt; reads its source template &gt; page snapshot &gt; live markup</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The family loads lazily, so its children may already be upgraded. <code>ExampleSource.of()</code>:
+                    (1) a <code>&lt;template&gt;</code> child is shown EXACTLY and stamped out live (on a microtask,
+                    outside the render); (2) else the snapshot
+                    <a href="../../../ui/site/_src/snapshot.ts" target="src-packages-ui-site-src-snapshot-ts"
+                      ><code>site/_src/snapshot.ts</code></a
+                    >
+                    takes of every undefined <code>ui-docs-example</code> as the bundle's FIRST module, before any
+                    family loads (on <code>globalThis</code> under a registered symbol); (3) else live
+                    <code>innerHTML</code> minus runtime attributes (<code>data-ui-animation</code>,
+                    <code>data-ui-hidden-by-animation</code>). Shadow roots never show in <code>innerHTML</code>. Then
+                    <code>description</code>-slot children dropped and <code>HtmlFormatter</code> (copied from the Astro
+                    site; whitespace in tags collapsed, <code>=""</code> dropped, <code>ui-code</code>/<code
+                      >ui-markdown</code
+                    >
+                    verbatim) re-indents. Limits: (3) can't tell an author's <code>tabindex</code> from a roving one,
+                    nor undo other light-DOM writes (use a template); <code>innerHTML</code> normalises quotes/entities.
+                    Look: header row (<code>ui-header</code> + circular basic <code>ui-button icon=code</code>),
+                    description (attr with backticks as code, or slot), demo <code>ui-segment</code> (basic + unpadded
+                    closed; <code>attached=top</code> open), code pane
+                    <code>ui-segment attached=bottom secondary</code> with <code>ui-code copy</code>. Attributes:
+                    header, description, level (4), code (open state, auto-controlled, <code>ui-toggle</code>), language
+                    (html), bare, variation.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d25" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d25">D25</a>
+                  <span class="plan-title"
+                    >Theme fonts: bundle exactly what Fomantic's theme @import-ed</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Bundled (woff2 + OFL beside the sheet): bookish (Karma), instagram (Montserrat), material (Roboto,
+                    variable), chubby (Source Sans 3 under Fomantic's name Source Sans Pro, variable). Not bundled, as
+                    in Fomantic (it named the font without loading it): flat (Open Sans), fomantic-classic (Open Sans
+                    headers), rtl (Noto Kufi Arabic). So C6's and C8's 'not loaded' parts are fixed.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d26" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d26">D26</a>
+                  <span class="plan-title"
+                    >&lt;ui-docs-api&gt;: fragment links scroll by script; tables match the Astro VocabularyTable plus
+                    more</span
+                  > </ui-title
+                ><ui-content
+                  ><ul>
+                    <li>
+                      Ids inside a shadow root aren't fragment targets, so
+                      <code>components/ui-button.html#ui-or</code> can't land natively:
+                      <code>&lt;ui-docs-api family&gt;</code> scrolls to <code>location.hash</code> once its tables (and
+                      their widgets) have drawn, and on every <code>hashchange</code> while connected.
+                      <code>:target</code> styling isn't possible.
+                    </li>
+                    <li>
+                      Tables: Attributes (name + aliases / property / not-reflected notes, kind, values, default,
+                      description), Properties (the <code>json</code> attributes), Events (detail, cancelable), Slots,
+                      Parts, States, Texts -- the Astro <code>VocabularyTable</code>'s set;
+                      <code>ApiTable.astro</code> (custom-elements manifest) never had data. Each table titled by a
+                      <code>&lt;ui-header&gt;</code> with a one-line note (how events travel, <code>::part()</code>,
+                      <code>:state()</code>).
+                    </li>
+                    <li>
+                      Values as <code>&lt;ui-labels size=mini&gt;</code>: hues painted in their own colour, a numeric
+                      run (<code>widths</code>) as one <code>1 … 16</code> label, the shared set named under them.
+                    </li>
+                    <li>
+                      Phone width: <code>stackable stack-by="container"</code> (Fomantic's stacked rows, by the table's
+                      own width).
+                    </li>
+                    <li>
+                      Kind labels (<code>keyOnly</code> =&gt; boolean ...) are English constants: the data's
+                      descriptions are English anyway; titles / headers / messages are vocabulary texts.
+                    </li>
+                    <li>Emits <code>ui-render { tags }</code> once drawn (tests, a page's table of contents).</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d27" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d27">D27</a>
+                  <span class="plan-title"
+                    >Foundation tokens join the site data; &lt;ui-docs-tokens&gt; playground writes the preview, or
+                    :root</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>components.json</code> gains <code>foundation</code>: groups (typography, sizes, spacing,
+                    radii, text, surfaces, borders, palette, brand, semantic, scheme, shadows, motion, stacking,
+                    breakpoints) read by
+                    <a href="../../../ui/tools/FoundationTokens.ts" target="src-packages-ui-tools-foundationtokens-ts"
+                      ><code>tools/FoundationTokens.ts</code></a
+                    >
+                    from the GENERATED sheets' <code>:root</code> blocks (not the style vocabulary: names and values
+                    come out of <code>StyleGenerator</code>), each token described by a per-group name rule (the
+                    generated sheets carry no comments); ~390 rows. <code>&lt;ui-docs-tokens global&gt;</code> draws a
+                    table per group, <code>groups=</code> picks some, a filter input narrows them. Playground: an input
+                    COLUMN in the token table (no separate form), setting the token inline on the preview's box in the
+                    shadow root (children inherit through the slot), or on <code>:root</code> with
+                    <code>target="page"</code> (the old <code>TokenPlayground.astro</code>'s behaviour);
+                    <code>tokens="--ui-font-size --ui-blue*"</code> picks the rows, so the theming page's three-control
+                    playground is
+                    <code
+                      >&lt;ui-docs-tokens global playground target="page" tokens="--ui-font-size --ui-radius
+                      --ui-blue"&gt;</code
+                    >. Also <code>FamilyTokens.typeOf</code> now types state-suffixed colour names
+                    (<code>-color-hover</code>) and semantic / text-role values as colours (+16 swatches).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d28" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d28">D28</a>
+                  <span class="plan-title"
+                    >ui-docs-themes: dropdown + scheme buttons on ThemePreference</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>&lt;ui-docs-themes&gt;</code> (P2): a
+                    <code>&lt;ui-dropdown floating scrolling button&gt;</code> of slotted <code>&lt;ui-item&gt;</code>s
+                    (Default = our look, Classic, divider, header <em>Fomantic themes</em>, every
+                    <code>ThemeSheets.names</code> by title), its text through the dropdown's <code>trigger</code> slot
+                    (<code>GitHub theme</code>), plus a <code>&lt;ui-buttons basic icon&gt;</code> of sun / moon /
+                    desktop. Attributes: <code>for</code> (a tag), <code>show</code> (both | theme | scheme),
+                    <code>size</code>, <code>inverted</code>; event <code>ui-change { theme?, scheme }</code> (the inner
+                    dropdown's is stopped); states <code>themed</code>, <code>dark</code>. The look lives in
+                    <code>ThemePreference</code> (<a
+                      href="../../../ui/src/docs-components/ThemePreference.ts"
+                      target="src-packages-ui-src-docs-components-themepreference-ts"
+                      ><code>src/docs-components/ThemePreference.ts</code></a
+                    >): localStorage in try/catch, kept in memory too, every picker on a page in step via
+                    <code>subscribe()</code>. Keys: <code>spell-ui-site:scheme</code> (the Astro site's, kept) and
+                    <code>spell-ui-site:theme</code> (new; replaces Astro's <code>spell-ui-site:classic</code>).
+                    <a href="../../../ui/site/_src/site.ts" target="src-packages-ui-site-src-site-ts"
+                      ><code>site/_src/site.ts</code></a
+                    >
+                    calls <code>ThemePreference.restore()</code> as it evaluates; <code>$/ui/styles</code> is a dynamic
+                    import there, so <code>site.js</code> only grows by ~2 KB, and each theme sheet is still its own
+                    lazy chunk (checked with a scratch site build). Why a dropdown, not <code>&lt;ui-select&gt;</code>:
+                    Fomantic's picker is a floating button dropdown.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d29" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d29">D29</a>
+                  <span class="plan-title">Theme families derived at build time into components.json</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <a href="../../../ui/tools/ThemeFamilies.ts" target="src-packages-ui-tools-themefamilies-ts"
+                      ><code>tools/ThemeFamilies.ts</code></a
+                    >
+                    (run by <code>yarn site:data</code>) reads every <code>src/styles/themes/*.css</code> and writes
+                    <code>components.json</code> <code>themes: [{ name, title, families, global }]</code>. A sheet
+                    touches a family through a class-grammar compound naming a noun
+                    (<code>.ui.labeled.icon.button</code>: a noun that is an attribute of another noun's tag is a
+                    modifier), a tag selector, or a declared <code>--ui-&lt;tag&gt;-*</code> token;
+                    <code>global</code> means it re-declares a foundation token on <code>:root</code> or styles page
+                    markup. Titles are hand-kept in <code>pages.json</code> <code>themes</code> (seeded from each
+                    sheet's header comment). <code>for</code> lists only themes touching that family, like Fomantic's
+                    per-page <em>N Themes</em>; site-wide-only themes (systemfont, rtl, resetcss) aren't listed under
+                    any <code>for</code>. Why build time: reading the sheets in the browser would load every theme chunk
+                    to fill one menu. Pinned in
+                    <a
+                      href="../../../ui/tools/SiteDataBuilder.test.ts"
+                      target="src-packages-ui-tools-sitedatabuilder-test-ts"
+                      ><code>tools/SiteDataBuilder.test.ts</code></a
+                    >.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d30" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d30">D30</a>
+                  <span class="plan-title"
+                    >&amp;lt;ui-docs-nav&amp;gt;: API, organization and what it remembers</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Built as
+                    <a
+                      href="../../../ui/src/docs-components/ui-docs-nav/"
+                      target="src-packages-ui-src-docs-components-ui-docs-nav"
+                      ><code>src/docs-components/ui-docs-nav/</code></a
+                    >. Decisions taken while Owen slept:
+                  </p>
+                  <ul>
+                    <li>
+                      <b>Shape</b>: ONE <code>&lt;ui-menu vertical inverted fluid&gt;</code> (the nav landmark) in a
+                      scroll box (<code>part="nav"</code>, the dark fill below a short menu too). Items:
+                      <code>header</code> slot, top links in bold (Overview, Getting started, Grammar), a Components
+                      item (header + count label + A-Z / Topics <code>&lt;ui-buttons&gt;</code>, then the search
+                      <code>&lt;ui-input&gt;</code>), Favourites, the list, Foundation, <code>footer</code> slot.
+                    </li>
+                    <li>
+                      <b>Attributes</b>: <code>current</code> (a tag, or a page file name without <code>.html</code>;
+                      default: the page own file name), <code>base</code> (default: the site root above
+                      <code>SiteData</code>, so links are absolute), <code>view</code> (<code>az</code> |
+                      <code>topics</code>, reflected; default the remembered one), <code>size</code> (medium: our 16px
+                      menu is already bigger than Fomantic <code>big</code> on 14px). Host
+                      <code>aria-label</code> renames the landmark (two navs on a page).
+                    </li>
+                    <li>
+                      <b>Events</b>: <code>ui-navigate { href, page }</code> (plain left click on a link, cancelable: a
+                      flyout closes on it, a router can veto), <code>ui-change { view }</code>,
+                      <code>ui-favorite { tag, favorite, favorites }</code>. The inner menu <code>ui-select</code> is
+                      stopped at the nav. Names in code are American (<code>favorite</code>, like <code>color</code>),
+                      display text British (Favourites).
+                    </li>
+                    <li>
+                      <b>Host API for P3 (flyout / sidebar)</b>: <code>focusSearch()</code>,
+                      <code>revealCurrent()</code> (scrolls the nearest scroll container up the flat tree, never the
+                      page; call after opening a flyout: a hidden nav cannot measure), <code>favorites</code>,
+                      <code>listed</code> (promise). <code>/</code> focuses search while the nav is visible. Height:
+                      <code>--ui-docs-nav-height</code> (default 100%: fills a sized parent) /
+                      <code>--ui-docs-nav-max-height</code>.
+                    </li>
+                    <li>
+                      <b>Remembered</b> (wrapped <code>localStorage</code>, the SAME keys as the Astro
+                      <code>ComponentBrowser</code>, so viewers keep theirs): favourites, view, open topics. Topics
+                      start CLOSED (as Astro); on load, the current page first topic opens if no open topic holds it
+                      (not remembered; closing it sticks). While searching every topic with a match opens; a toggle
+                      closes one for that search only.
+                    </li>
+                    <li>
+                      <b>Rows</b>: a link <code>&lt;ui-item&gt;</code> (yellow status <code>&lt;ui-label&gt;</code> for
+                      in-progress / planned) plus a <code>toggle tertiary</code> star <code>&lt;ui-button&gt;</code>, in
+                      a two-column grid via the sub-menu <code>::part(menu)</code>. Only main tags can be current (as
+                      Astro). Docs-only tags never listed.
+                    </li>
+                    <li>
+                      <b>Data</b>: no new fields; added <code>SiteData.root()</code>. Measured on the real data: A-Z ~40
+                      ms to listed (~200 elements), the worst case (Topics, searching e, ~765 elements) ~120 ms.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d31" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d31">D31</a>
+                  <span class="plan-title"
+                    >&lt;ui-docs-nav&gt;: API, organization and what it remembers</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Built as
+                    <a
+                      href="../../../ui/src/docs-components/ui-docs-nav/"
+                      target="src-packages-ui-src-docs-components-ui-docs-nav"
+                      ><code>src/docs-components/ui-docs-nav/</code></a
+                    >. Decisions taken while Owen slept:
+                  </p>
+                  <ul>
+                    <li>
+                      <b>Shape</b>: ONE <code>&lt;ui-menu vertical inverted fluid&gt;</code> (the nav landmark) in a
+                      scroll box (<code>part="nav"</code>, the dark fill below a short menu too). Items:
+                      <code>header</code> slot, top links in bold (Overview, Getting started, Grammar), a Components
+                      item (header + count label + A-Z / Topics <code>&lt;ui-buttons&gt;</code>, then the search
+                      <code>&lt;ui-input&gt;</code>), Favourites, the list, Foundation, <code>footer</code> slot.
+                    </li>
+                    <li>
+                      <b>Attributes</b>: <code>current</code> (a tag, or a page file name without <code>.html</code>;
+                      default: the page own file name), <code>base</code> (default: the site root above
+                      <code>SiteData</code>, so links are absolute), <code>view</code> (<code>az</code> |
+                      <code>topics</code>, reflected; default the remembered one), <code>size</code> (medium: our 16px
+                      menu is already bigger than Fomantic <code>big</code> on 14px). Host
+                      <code>aria-label</code> renames the landmark (two navs on a page).
+                    </li>
+                    <li>
+                      <b>Events</b>: <code>ui-navigate { href, page }</code> (plain left click on a link, cancelable: a
+                      flyout closes on it, a router can veto), <code>ui-change { view }</code>,
+                      <code>ui-favorite { tag, favorite, favorites }</code>. The inner menu <code>ui-select</code> is
+                      stopped at the nav. Names in code are American (<code>favorite</code>, like <code>color</code>),
+                      display text British (Favourites).
+                    </li>
+                    <li>
+                      <b>Host API for P3 (flyout / sidebar)</b>: <code>focusSearch()</code>,
+                      <code>revealCurrent()</code> (scrolls the nearest scroll container up the flat tree, never the
+                      page; call after opening a flyout: a hidden nav cannot measure), <code>favorites</code>,
+                      <code>listed</code> (promise). <code>/</code> focuses search while the nav is visible. Height:
+                      <code>--ui-docs-nav-height</code> (default 100%: fills a sized parent) /
+                      <code>--ui-docs-nav-max-height</code>.
+                    </li>
+                    <li>
+                      <b>Remembered</b> (wrapped <code>localStorage</code>, the SAME keys as the Astro
+                      <code>ComponentBrowser</code>, so viewers keep theirs): favourites, view, open topics. Topics
+                      start CLOSED (as Astro); on load, the current page first topic opens if no open topic holds it
+                      (not remembered; closing it sticks). While searching every topic with a match opens; a toggle
+                      closes one for that search only.
+                    </li>
+                    <li>
+                      <b>Rows</b>: a link <code>&lt;ui-item&gt;</code> (yellow status <code>&lt;ui-label&gt;</code> for
+                      in-progress / planned) plus a <code>toggle tertiary</code> star <code>&lt;ui-button&gt;</code>, in
+                      a two-column grid via the sub-menu <code>::part(menu)</code>. Only main tags can be current (as
+                      Astro). Docs-only tags never listed.
+                    </li>
+                    <li>
+                      <b>Data</b>: no new fields; added <code>SiteData.root()</code>. Measured on the real data: A-Z ~40
+                      ms to listed (~200 elements), the worst case (Topics, searching e, ~765 elements) ~120 ms.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
 
         <ui-section id="caveats" header="4. Caveats" sticky collapsible dividing>
           <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
-          <ui-list class="plan-items" data-kind="caveat" divided relaxed></ui-list>
+          <ui-list class="plan-items" data-kind="caveat" divided relaxed
+            ><ui-item id="c1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c1">C1</a>
+                  <span class="plan-title">Theme famfamfam: sizes and the unknown-flag cell not ported</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The sprite is a fixed 16 x 11 cell: <code>&lt;ui-flag size="large"&gt;</code> under famfamfam stays
+                    16 x 11 (as in Fomantic, whose famfamfam <code>@size-map</code> is empty). Fomantic's default cell
+                    (<code>-108px -1976px</code>) for an <code>i.flag</code> naming no country isn't drawn: our unknown
+                    flag stays an empty, unnamed box. Countries the sprite lacks (<code>xk</code>, <code>ss</code>,
+                    <code>un</code>, rainbow, pirate) keep their emoji. Sprite copied to
+                    <a
+                      href="../../../ui/src/styles/themes/famfamfam/flags.png"
+                      target="src-packages-ui-src-styles-themes-famfamfam-flags-png"
+                      ><code>src/styles/themes/famfamfam/flags.png</code></a
+                    >; 244 Fomantic rules -&gt; 244 codes.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c2">C2</a>
+                  <span class="plan-title">Theme rtl: the RTL build and the Kufi font not ported</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic's <code>rtl</code> theme is only fonts; its RTL layout is a separate RTLCSS build used with
+                    <code>&lt;html dir=rtl&gt;</code>.
+                    <a href="../../../ui/src/styles/themes/rtl.css" target="src-packages-ui-src-styles-themes-rtl-css"
+                      ><code>rtl.css</code></a
+                    >
+                    ports the font stack (Droid Arabic Kufi is now Noto Kufi Arabic; both named) and adds
+                    <code>direction: rtl</code> on <code>:root</code> (inherits into every shadow root). NOT ported: (1)
+                    the Google Fonts <code>@import</code>: constructed sheets ignore <code>@import</code> and themes
+                    load no font; (2) the flipped build: see the physical-properties gap issue; (3)
+                    <code>:dir(rtl)</code> rules (accordion, section) follow the <code>dir</code> attribute, not CSS
+                    <code>direction</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c3">C3</a>
+                  <span class="plan-title">Theme fixed-width: page grid widths not ported</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic's <code>fixed-width/collections/grid.variables</code> sets <code>page grid</code> widths
+                    (960 / 1180 / 1300px). Our grid has no <code>page</code> grid (<a
+                      href="../../../ui/src/components/ui-grid/ui-grid.css"
+                      target="src-packages-ui-src-components-ui-grid-ui-grid-css"
+                      ><code>ui-grid.css</code></a
+                    >
+                    points to <code>&lt;ui-container&gt;</code>), whose widths are its own. Only the modal half is
+                    ported (<a
+                      href="../../../ui/src/styles/themes/fixed-width.css"
+                      target="src-packages-ui-src-styles-themes-fixed-width-css"
+                      ><code>fixed-width.css</code></a
+                    >).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c4">C4</a>
+                  <span class="plan-title"
+                    >Themes (T3): some overrides write a component's private switches</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Where a Fomantic variable has no public token, T3's sheets write the component's own private
+                    plumbing from <code>ui.theme</code>: fixed-width <code>--_modal-width</code> /
+                    <code>--_modal-ratio</code> / <code>--_ui-modal-header-size</code>, instagram
+                    <code>--_card-border-shadow</code> (hover ring), colored <code>--_checkbox-*</code>, bookish
+                    <code>--_ui-icon-owner-align</code>, flat a style-query flag <code>--_flat-form</code>. A rename of
+                    those privates in the component breaks the theme silently;
+                    <a
+                      href="../../../ui/src/styles/themes/themes.test.ts"
+                      target="src-packages-ui-src-styles-themes-themes-test-ts"
+                      ><code>themes.test.ts</code></a
+                    >
+                    covers one computed style per theme.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c5">C5</a>
+                  <span class="plan-title"
+                    >Theme GH (src/themes/git-hub): octicons icon font, Dropdown caret font, page min-width,
+                    breakpoints, size ladders, vertical-step chevron not ported</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Icons are SVG packs (an octicons PACK would restore the look); breakpoints are build-time
+                    <code>@custom-media</code>; sizes are ratios (the button medium scales all sizes). List: the sheet's
+                    header comment, "NOT ported".
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c6">C6</a>
+                  <span class="plan-title"
+                    >Theme material: Material Icons font, text-selection highlight, body font size, header icon offset
+                    not ported; Roboto not loaded</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic <code>@import</code>ed Roboto from Google Fonts; a runtime sheet drops
+                    <code>@import</code>, so the page must load Roboto. List:
+                    <a
+                      href="../../../ui/src/styles/themes/material.css"
+                      target="src-packages-ui-src-styles-themes-material-css"
+                      ><code>packages/ui/src/styles/themes/material.css</code></a
+                    >
+                    header, "NOT ported".
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c7" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c7">C7</a>
+                  <span class="plan-title"
+                    >Theme fomantic-classic: card.overrides, table @boxShadow, button group offsets, loading background
+                    not ported; Open Sans not loaded</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>card.overrides</code> holds variables, not rules (Fomantic compiles it to nothing);
+                    <code>@boxShadow: @subtleGradient</code> is invalid CSS. List:
+                    <a
+                      href="../../../ui/src/styles/themes/fomantic-classic.css"
+                      target="src-packages-ui-src-styles-themes-fomantic-classic-css"
+                      ><code>packages/ui/src/styles/themes/fomantic-classic.css</code></a
+                    >
+                    header.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c8" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c8">C8</a>
+                  <span class="plan-title"
+                    >Theme chubby: Source Sans Pro import, form dropdown 2px borders, menu arrow size not ported</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    No <code>@import</code> in a constructable (shadow-root) sheet, so the font is named, not loaded.
+                    <code>&lt;ui-dropdown&gt;</code> has no border-width token and can't see its form (padding IS
+                    ported). The pointing arrow's size / border are fixed in
+                    <a
+                      href="../../../ui/src/components/ui-menu/ui-menu.css"
+                      target="src-packages-ui-src-components-ui-menu-ui-menu-css"
+                      ><code>ui-menu.css</code></a
+                    >. The nested styled accordion's active-title rule applies to every nested accordion. See the sheet
+                    header.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c9" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c9">C9</a>
+                  <span class="plan-title">Theme basic: icon font not ported</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic's basic theme ships its own icon FONT and glyph map; our icons are SVG packs drawn by
+                    <code>&lt;ui-icon&gt;</code>, so a basic icon look would be an icon pack, not a theme sheet.
+                    <code>icon.overrides</code> spacing targets <code>i.icon</code> markup we don't render.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c10" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c10">C10</a>
+                  <span class="plan-title">Theme twitter: Twemoji emoji sprites not ported</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>&lt;ui-emoji&gt;</code> draws the platform emoji font on purpose (no CDN, no 3,800 rules);
+                    Twemoji SVGs would be an opt-in emoji registry, not a theme sheet.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c11" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c11">C11</a>
+                  <span class="plan-title"
+                    >Theme amazon: page min width and 1049px breakpoints not ported</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>@custom-media</code> breakpoints are inlined at build time (<a
+                      href="../../../ui/src/styles/media.css"
+                      target="src-packages-ui-src-styles-media-css"
+                      ><code>media.css</code></a
+                    >), so no sheet can move them; <code>@linkHoverUnderline</code> is moot (<a
+                      href="../../../ui/src/styles/typography.css"
+                      target="src-packages-ui-src-styles-typography-css"
+                      ><code>typography.css</code></a
+                    >
+                    always underlines).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c12" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c12">C12</a>
+                  <span class="plan-title"
+                    >Theme raised: vertical-align middle and the shadow-offset padding not ported</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>@verticalAlign</code> is a HOST property a theme can't single out; the 0.15em extra bottom
+                    padding above the edge is left out.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c13" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c13">C13</a>
+                  <span class="plan-title">docs' spell-ui.js now inlines the docs families too</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>RootLoader</code>'s second glob makes
+                    <a href="../../../ui/dist/" target="src-packages-ui-dist"><code>dist/</code></a> hold
+                    <code>ui-docs-example</code> (22.6 KB raw, 7.3 KB gz), which
+                    <a href="../../scripts/bundle-spell-ui.js" target="src-packages-docs-scripts-bundle-spell-ui-js"
+                      ><code>packages/docs/scripts/bundle-spell-ui.js</code></a
+                    >
+                    inlines like any family; it will grow with ui-docs-api/tokens/nav/themes. The docs bundle builds
+                    (checked, then restored: not regenerated here). If it matters, stub
+                    <code>docs-components</code> chunks out of it the way <code>LAZY</code> stubs the engines, or make
+                    them lazy scripts.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c14" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c14">C14</a>
+                  <span class="plan-title">Committed site bundle churns on every rebuild</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <a href="../../../ui/site/_assets/" target="src-packages-ui-site-assets"
+                      ><code>site/_assets/</code></a
+                    >: 143 files, 3.3 MB (960 KB gz), eager 345 KB (85 KB gz: <code>site.js</code> 92 KB +
+                    <code>UIElement</code> chunk 109 KB + <code>site.css</code> 120 KB ...); biggest lazy: spell
+                    highlighter 458 KB, <code>UIRuntime</code> 171 KB, highlight.js 145 KB. Family chunks have stable
+                    names, shared chunks are hashed, so a library change renames a few files. Theme sheets' fonts and
+                    images (<code>karma-*.woff2</code>,
+                    <a
+                      href="../../../ui/src/styles/themes/instagram/montserrat.woff2"
+                      target="src-packages-ui-src-styles-themes-instagram-montserrat-woff2"
+                      ><code>montserrat.woff2</code></a
+                    >,
+                    <a
+                      href="../../../ui/src/styles/themes/famfamfam/flags.png"
+                      target="src-packages-ui-src-styles-themes-famfamfam-flags-png"
+                      ><code>flags.png</code></a
+                    >) land in <a href="../../_assets/" target="src-packages-docs-assets"><code>_assets/</code></a> too.
+                    Rebuild + commit with every phase that changes
+                    <a href="../../../ui/src/" target="src-packages-ui-src"><code>packages/ui/src</code></a
+                    >.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c15" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c15">C15</a>
+                  <span class="plan-title">Most family tokens have no description in components.json</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>FamilyTokens</code> takes a token's description from the sheet comment right above its alias;
+                    many families comment GROUPS of tokens, not each one (<code>ui-button</code>: none of 43 has a
+                    description). <code>&lt;ui-docs-tokens&gt;</code> drops the Description column when no row has one.
+                    Writing per-token comments in the sheets is the fix (a docs pass per family).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c16" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c16">C16</a>
+                  <span class="plan-title">Themes can't apply before first paint</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The scheme is re-applied synchronously by the inline <code>&lt;head&gt;</code> script, but a THEME
+                    is a lazy chunk (plus the runtime), so a page with a stored theme may show the default look for a
+                    frame. <code>restore()</code> starts the load as <code>site.js</code> evaluates, beside the
+                    families' own chunks, so components usually render themed; page text (<code>ui-typography</code>,
+                    native markup) is what may flash. Fixing it would mean blocking render or inlining every theme.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
         </ui-section>
 
         <ui-section id="todos" header="5. Todos" sticky collapsible dividing>
@@ -518,8 +1460,7 @@
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t1">T1</a>
-                  <span class="plan-title">Review: P6 themes ported in parallel with P2</span>
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                  <span class="plan-title">Review: P6 themes ported in parallel with P2</span> </ui-title
                 ><ui-content
                   ><p>
                     Chose to start the theme agents while P2 runs (separate files:
@@ -536,8 +1477,7 @@
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t2">T2</a>
-                  <span class="plan-title">Review: Fomantic themes load ON TOP of classic</span>
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                  <span class="plan-title">Review: Fomantic themes load ON TOP of classic</span> </ui-title
                 ><ui-content
                   ><p>
                     Fomantic themes are deltas on Fomantic's default look; ours is
@@ -554,8 +1494,7 @@
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t3">T3</a>
-                  <span class="plan-title">Review: Fomantic's classic theme named fomantic-classic</span>
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                  <span class="plan-title">Review: Fomantic's classic theme named fomantic-classic</span> </ui-title
                 ><ui-content
                   ><p>
                     Our
@@ -564,7 +1503,13 @@
                       target="src-packages-ui-src-styles-themes-classic-css"
                       ><code>classic.css</code></a
                     >
-                    is already Fomantic's DEFAULT look; chose <code>fomantic-classic.css</code> over renaming ours. (J3)
+                    is already Fomantic's DEFAULT look; chose
+                    <a
+                      href="../../../ui/src/styles/themes/fomantic-classic.css"
+                      target="src-packages-ui-src-styles-themes-fomantic-classic-css"
+                      ><code>fomantic-classic.css</code></a
+                    >
+                    over renaming ours. (J3)
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -572,12 +1517,14 @@
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t4">T4</a>
-                  <span class="plan-title">Review: ui-docs-* read a generated components.json</span>
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                  <span class="plan-title">Review: ui-docs-* read a generated components.json</span> </ui-title
                 ><ui-content
                   ><p>
-                    Chose a committed <code>site/_data/components.json</code> (from the vocabularies,
-                    <code>yarn site:data</code>) over importing vocabularies in the elements:
+                    Chose a committed
+                    <a href="../../../ui/site/_data/components.json" target="src-packages-ui-site-data-components-json"
+                      ><code>site/_data/components.json</code></a
+                    >
+                    (from the vocabularies, <code>yarn site:data</code>) over importing vocabularies in the elements:
                     <code>ComponentDefinitions</code> is ~325 KB of source and <code>&lt;ui-root&gt;</code>'s glob would
                     drag it into docs'
                     <a href="../../_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
@@ -590,13 +1537,68 @@
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#t5">T5</a>
-                  <span class="plan-title">Review: theme overrides reach shadow roots via UI.styles shadow:true</span>
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                  <span class="plan-title"
+                    >Review: theme overrides reach shadow roots via UI.styles shadow:true</span
+                  > </ui-title
                 ><ui-content
                   ><p>
                     Fomantic <code>.overrides</code> are class-grammar CSS; ours render that grammar INSIDE shadow
                     roots. Chose a new <code>register(..., { shadow: true })</code> that adopts a sheet into every
                     shadow root (like the app stylesheet) over tokens-only themes (would drop most overrides). (J5)
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t6">T6</a>
+                  <span class="plan-title"
+                    >P3 template: inline ThemePreference.HEAD_SCRIPT, place the theme pickers</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    For the page template (<code>packages/docs/templates/spell-ui-docs.html</code>) and
+                    <code>_parts/</code>:
+                  </p>
+                  <ul>
+                    <li>
+                      In <code>&lt;head&gt;</code>, BEFORE the <code>_assets/site.css</code> link:
+                      <code>&lt;script&gt;</code> holding <code>ThemePreference.HEAD_SCRIPT</code> verbatim (re-applies
+                      <code>ui-light</code> / <code>ui-dark</code> on <code>&lt;html&gt;</code> before first paint):
+                      <code
+                        >try{var
+                        s=localStorage.getItem("spell-ui-site:scheme");if(s==="light"||s==="dark")document.documentElement.classList.add("ui-"+s)}catch(e){}</code
+                      >. Also <code>&lt;meta name="color-scheme" content="light dark"&gt;</code>.
+                    </li>
+                    <li>
+                      The header's <code>&lt;ui-menu inverted&gt;</code>:
+                      <code
+                        >&lt;ui-item position="right"&gt;&lt;ui-docs-themes inverted
+                        size="small"&gt;&lt;/ui-docs-themes&gt;&lt;/ui-item&gt;</code
+                      >.
+                    </li>
+                    <li>
+                      A component page's masthead (Fomantic's <em>N Themes</em>):
+                      <code>&lt;ui-docs-themes for="ui-&lt;name&gt;" show="theme"&gt;</code>.
+                    </li>
+                    <li>
+                      Nothing else: <code>site.js</code> restores the theme itself
+                      (<code>ThemePreference.restore()</code>).
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t7" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t7">T7</a>
+                  <span class="plan-title">Linux visual baselines for ui-menu / ui-list (I13 icon fix)</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Updated local-darwin baselines only (no Docker here):
+                    <code>yarn test:visual --grep menu/content,menu/variations,list/content,list/types --update</code>
+                    on a machine with Docker. Reviewed: icon menus were EMPTY before, list icons oversized; both now 1em
+                    glyphs.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -606,7 +1608,380 @@
 
         <ui-section id="issues" header="6. Issues" sticky collapsible dividing>
           <ui-icon slot="icon" name="bug"></ui-icon>
-          <ui-list class="plan-items" data-kind="issue" divided relaxed></ui-list>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed
+            ><ui-item id="i1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i1">I1</a>
+                  <span class="plan-title"
+                    >Gap: &lt;ui-emoji&gt; no image emoji sets (JoyPixels, Twemoji)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic's <code>joypixels</code> theme (and its default Twemoji) draw emoji as images from a CDN.
+                    <code>&lt;ui-emoji&gt;</code> only draws the platform's native glyph, so a consistent cross-platform
+                    look (Windows!) can't be themed in. Proposal: an opt-in image registry on <code>EmojiData</code>,
+                    like <code>UI.icons</code> packs: codepoint -&gt; URL with a configurable
+                    <code>base</code> (self-hosted or jsDelivr), the element rendering <code>&lt;img alt&gt;</code> when
+                    a set is active. Not a theme: needs element + runtime work. What I did: skipped the theme (see the
+                    joypixels decision).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i2" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i2">I2</a>
+                  <span class="plan-title">Gap: &lt;ui-flag&gt; no hook for sprite flag themes</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic's <code>famfamfam</code> theme positions a sprite per <code>i.flag.fr</code>; our shadow
+                    root rendered <code>&lt;span class="ui flag"&gt;🇫🇷&lt;/span&gt;</code>, no country in the class.
+                    FIXED: <code>UIFlag.extraClasses()</code> (and the fallback) emit the resolved code after the noun,
+                    <code>ui large flag fr</code> / <code>ui flag gb-eng</code> (Fomantic's own grammar); tests and the
+                    vocabulary / css headers updated. No look change.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i3">I3</a>
+                  <span class="plan-title"
+                    >Gap: component sheets use physical properties, so RTL only half-mirrors</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Under <code>direction: rtl</code> (the <code>rtl</code> theme, or <code>dir=rtl</code>) text, flex
+                    and grid order flip, but 445 physical declarations (<code>margin-left</code>, <code>left:</code>,
+                    <code>float</code>, <code>text-align: left</code>, corner radii ...) in 40 component sheets don't.
+                    Most: list 108, menu 43, label 31, button 31, slider 26, dropdown 16, checkbox 16, step 15, parts
+                    15, segment / rail / grid 10. Seen in screenshots: icon inputs keep the icon on its physical side
+                    (over the text), corner labels and the loading spinner don't move, labeled-icon buttons keep the
+                    icon on the right. Fix: convert component sheets to logical properties (where Fomantic's
+                    <code>left</code> / <code>right</code> words mean physical sides, e.g. <code>left floated</code>,
+                    keep them physical), family by family, with an RTL visual-test pass; not a theme job. One instance
+                    fixed now: see the invisible-checkbox issue.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i4" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i4">I4</a>
+                  <span class="plan-title"
+                    >Gap: &lt;ui-checkbox invisible&gt; adds 100,000px of scroll under RTL</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>.ui.invisible.checkbox &gt; input { left: -99999px }</code>: in a right-to-left page that's
+                    overflow on the SCROLLABLE side, so the checkbox demo page became 100,795px wide. FIXED:
+                    <code>inset-inline-start: -99999px</code> (same in LTR). Test in
+                    <a
+                      href="../../../ui/src/styles/themes/themes.test.ts"
+                      target="src-packages-ui-src-styles-themes-themes-test-ts"
+                      ><code>themes.test.ts</code></a
+                    >
+                    (<code>rtl</code>).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i5">I5</a>
+                  <span class="plan-title">secondary menus pick up the secondary COLOUR remap</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>.ui.secondary</code> is a colour alias too, so every <code>.ui.secondary.menu</code> root
+                    re-points <code>--ui-color*</code> to black, and its active item / pointing underline ignore
+                    <code>--ui-menu-active-*</code>. Hidden in our default look; <code>themes/chubby.css</code> undoes
+                    it (HACK). Logged in SUSPECTED-BUGS.md (ui). Fix belongs in
+                    <a
+                      href="../../../ui/src/components/ui-menu/ui-menu.css"
+                      target="src-packages-ui-src-components-ui-menu-ui-menu-css"
+                      ><code>ui-menu.css</code></a
+                    >
+                    (and check segment / buttons).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i6">I6</a>
+                  <span class="plan-title">Gap: &lt;ui-markdown&gt; no inline mode</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>&lt;ui-docs-api&gt;</code> descriptions hold markdown-ish backticks.
+                    <code>&lt;ui-markdown&gt;</code> always renders a block <code>&lt;article&gt;</code> of
+                    <code>&lt;p&gt;</code>s (no <code>inline</code> attribute), and one per table cell would be hundreds
+                    of elements per page. Did instead: a small safe splitter, <code>InlineCode</code> (<a
+                      href="../../../ui/src/docs-components/ui-docs-api/InlineCode.ts"
+                      target="src-packages-ui-src-docs-components-ui-docs-api-inlinecode-ts"
+                      ><code>src/docs-components/ui-docs-api/InlineCode.ts</code></a
+                    >, CommonMark code-span rules, text nodes only), drawing <code>&lt;code&gt;</code>. A real fix:
+                    <code>&lt;ui-markdown inline&gt;</code> (phrasing content only, no wrapper) -- and still too heavy
+                    per cell, so the splitter would stay.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i7" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i7">I7</a>
+                  <span class="plan-title"
+                    >Gap: &lt;ui-table&gt; unstyled inside another element's shadow root</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>&lt;ui-table&gt;</code> styles its light-DOM <code>&lt;table&gt;</code> with a PAGE sheet
+                    (<code>UI.styles.register('table', css, { page: true })</code>), which only reaches
+                    <code>document.adoptedStyleSheets</code>. A <code>&lt;ui-table&gt;</code> rendered in a docs
+                    element's shadow root gets a bare table. Did instead: <code>&lt;ui-docs-api&gt;</code> lists
+                    <code>table: tableCSS</code> in its own <code>styles</code> (same registry name, so the same sheet
+                    object is adopted into its root). Fix: <code>UITable</code> also adopts its sheet into
+                    <code>host.getRootNode()</code> when that's a ShadowRoot (needs an additive <code>Styles</code> API:
+                    <code>adoptInto</code> replaces a root's list). Every docs element composing
+                    <code>&lt;ui-table&gt;</code> must do the same until then.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i8" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i8">I8</a>
+                  <span class="plan-title"
+                    >Gap: &lt;ui-header href level&gt; fails axe (a role=heading)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    A linked page header renders <code>&lt;a role="heading" aria-level&gt;</code> (<a
+                      href="../../../ui/src/components/ui-parts/UIHeader.tsx"
+                      target="src-packages-ui-src-components-ui-parts-uiheader-tsx"
+                      ><code>UIHeader.tsx</code></a
+                    >, deliberate: the link carries the class grammar), and axe reports
+                    <code>aria-allowed-role</code> on it. <code>&lt;ui-docs-api family&gt;</code>'s tag headers link to
+                    themselves (<code>#ui-or</code>). Did instead:
+                    <code>&lt;ui-header level dividing&gt;&lt;a href="#ui-or"&gt;...&lt;/a&gt;&lt;/ui-header&gt;</code>,
+                    plus two lines in its sheet keeping the link in the header colour. Fix: render
+                    <code>&lt;hN class="ui header"&gt;&lt;a&gt;</code> for <code>href</code> +
+                    <code>level</code> (touches
+                    <a
+                      href="../../../ui/src/components/ui-parts/ui-parts.css"
+                      target="src-packages-ui-src-components-ui-parts-ui-parts-css"
+                      ><code>ui-parts.css</code></a
+                    >'s <code>a.ui.header</code> rules, tests, visual baselines: not a 15-minute local fix).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i9" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i9">I9</a>
+                  <span class="plan-title">Gap: no inline &lt;code&gt; look inside shadow roots</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The foundation's inline <code>code</code> look is <code>ui-typography</code>'s, a PAGE sheet (<a
+                      href="../../../ui/src/styles/typography.css"
+                      target="src-packages-ui-src-styles-typography-css"
+                      ><code>typography.css</code></a
+                    >) never adopted into shadow roots, and no widget draws inline code.
+                    <code>&lt;ui-docs-api&gt;</code> (and <code>&lt;ui-docs-example&gt;</code>'s description) style
+                    <code>&lt;code&gt;</code> by hand in their own sheets, copying typography's rule. Fix: a
+                    <code>.ui-code</code>-ish utility in the foundation (adopted everywhere), or an inline mode on
+                    <code>&lt;ui-code&gt;</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i10" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i10">I10</a>
+                  <span class="plan-title"
+                    >Gap: &lt;ui-input type="color"&gt; shows only the native swatch: no hex / OKLCH text, no
+                    alpha</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic has no colour input; <code>&lt;ui-docs-tokens playground&gt;</code> needs one for colour
+                    tokens. <code>&lt;ui-input type="color"&gt;</code> is the native picker in Fomantic's input box: it
+                    takes <code>#rrggbb</code> only, so an OKLCH / <code>light-dark()</code> / translucent token can't
+                    be typed or kept, and the value isn't shown as text. What I did: <code>ColorProbe</code> resolves
+                    the token where it's used and flattens it onto <code>--ui-background</code> to seed the picker; a
+                    picked colour overrides the token as an opaque hex. A fix belongs in
+                    <code>&lt;ui-input&gt;</code> (a <code>color</code> type with a text field beside the swatch, or a
+                    <code>&lt;ui-color&gt;</code> picker), not a 15-minute job.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i11" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i11">I11</a>
+                  <span class="plan-title">Gap: &lt;ui-dropdown&gt; no basic button look</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Fomantic's per-page theme picker is <code>ui floating scrolling dropdown basic button</code>.
+                    <code>&lt;ui-dropdown button&gt;</code> has no <code>basic</code> attribute (not in its vocabulary),
+                    so <code>&lt;ui-docs-themes for&gt;</code> shows a filled grey button instead of the outlined one.
+                    What I did: pass <code>basic</code> anyway (ignored today, picked up once it exists); in the header
+                    it's <code>inverted</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i12" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i12">I12</a>
+                  <span class="plan-title">Gap: &lt;ui-buttons&gt; no single-choice (radio) group</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The light / dark / system buttons are one choice of three (Fomantic: <code>ui buttons</code> with
+                    one <code>active</code>). <code>&lt;ui-button&gt;</code> only sets <code>aria-pressed</code> with
+                    <code>toggle</code>, and a toggle un-presses on a second click and turns the positive colour, so it
+                    doesn't fit. What I did: <code>active</code> on the chosen button (looks right),
+                    <code>role=group</code> + <code>aria-label</code> on the group, <code>aria-label</code> +
+                    <code>title</code> per button; a screen reader can't tell which scheme is chosen. Wanted: e.g.
+                    <code>&lt;ui-buttons choice&gt;</code> giving radio semantics (<code>role=radiogroup</code>,
+                    <code>aria-checked</code>, arrow keys) over <code>active</code>. The native fallback uses
+                    <code>aria-pressed</code> buttons.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i13" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i13">I13</a>
+                  <span class="plan-title">Gap: &lt;ui-item&gt; icon shorthand drew nothing (0 x 0)</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Found building <code>&lt;ui-docs-nav&gt;</code> (topic toggles with
+                    <code>icon="angle right"</code>): every <code>&lt;ui-item icon&gt;</code> in a menu or list drew a 0
+                    x 0 glyph.
+                    <a
+                      href="../../../ui/src/components/ui-item/ui-item.css"
+                      target="src-packages-ui-src-components-ui-item-ui-item-css"
+                      ><code>ui-item.css</code></a
+                    >
+                    sized <code>.item &gt; .icon &gt; svg</code>, but the shorthand glyph is the FALLBACK of
+                    <code>&lt;slot name="icon"&gt;</code>, so a grandchild: the pitfall
+                    <a
+                      href="../../../ui/src/components/ui-button/ui-button.css"
+                      target="src-packages-ui-src-components-ui-button-ui-button-css"
+                      ><code>ui-button.css</code></a
+                    >
+                    documents.
+                  </p>
+                  <p>
+                    <b>Fixed</b> (local, 1 line): <code>.item &gt; .icon svg</code> /
+                    <code>.item &gt; .icon ::slotted(svg)</code>;
+                    <a
+                      href="../../../ui/src/components/ui-item/ui-item.test.tsx"
+                      target="src-packages-ui-src-components-ui-item-ui-item-test-tsx"
+                      ><code>ui-item.test.tsx</code></a
+                    >
+                    now checks the glyph has a height. CAVEAT: menu / list / item visual baselines with icon shorthands
+                    will change: <code>yarn test:visual --grep "menu|list|item" --update</code> after reviewing the
+                    diffs (not run: Docker, and the lead runs the visual pass).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i14" data-status="done"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i14">I14</a>
+                  <span class="plan-title"
+                    >Gap: &lt;ui-item&gt; could not be a disclosure (no aria-expanded)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    <code>&lt;ui-docs-nav&gt;</code> topic toggles open and close a group of rows below them (WAI-ARIA
+                    disclosure: a <code>&lt;button aria-expanded&gt;</code>). A
+                    <code>&lt;ui-item link&gt;</code> renders that <code>&lt;button&gt;</code> in its shadow root, but
+                    only the host <code>aria-label</code> reached it. Fomantic has <code>accordion menu</code> for this;
+                    <code>&lt;ui-accordion&gt;</code> can not hold a sub-menu (it is a barrier: the menu inside would
+                    become a second nav landmark).
+                  </p>
+                  <p>
+                    <b>Fixed</b> (local): the host <code>aria-expanded</code> is forwarded to a
+                    <code>&lt;button&gt;</code> box (<code>HostAttribute</code>, as <code>aria-label</code>); test in
+                    <a
+                      href="../../../ui/src/components/ui-item/ui-item.test.tsx"
+                      target="src-packages-ui-src-components-ui-item-ui-item-test-tsx"
+                      ><code>ui-item.test.tsx</code></a
+                    >.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i15" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i15">I15</a>
+                  <span class="plan-title"
+                    >Gap: &lt;ui-menu&gt; no collapsible group item (Fomantic accordion menu)</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The nav Topics view wants Fomantic <code>.item &gt; .header + .menu</code> groups that open and
+                    close. An item that is a <code>&lt;button&gt;</code> cannot hold its sub-menu (interactive content
+                    in a button), and <code>&lt;ui-accordion&gt;</code> is a part barrier. What
+                    <code>&lt;ui-docs-nav&gt;</code> does instead: per topic a toggle item (<code>link</code>,
+                    <code>aria-expanded</code>, an angle icon, a count label), then, while open, a SECOND item
+                    (<code>fitted="vertically"</code>) holding the sub-menu; the divider between the two is hidden from
+                    the nav sheet with <code>.topic-rows::part(item)::before { display: none }</code>. A real fix: a
+                    menu item that renders a header button plus its sub-menu (e.g.
+                    <code>&lt;ui-item type="group" collapsible&gt;</code>), or <code>&lt;ui-accordion menu&gt;</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i16" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i16">I16</a>
+                  <span class="plan-title"
+                    >Gap: &lt;ui-menu vertical&gt; leaves a link (button) item shrink-wrapped</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    A <code>&lt;ui-item link&gt;</code> renders a <code>&lt;button&gt;</code>; in a vertical menu the
+                    item box is <code>display: block</code> but a block button does not stretch, so its hover fill, the
+                    right-floated icon and the click target stop at the text (seen on the nav topic toggles). Workaround
+                    in
+                    <a
+                      href="../../../ui/src/docs-components/ui-docs-nav/ui-docs-nav.css"
+                      target="src-packages-ui-src-docs-components-ui-docs-nav-ui-docs-nav-css"
+                      ><code>ui-docs-nav.css</code></a
+                    >: <code>--ui-menu-item-width: 100%</code> on the menu. Fix in
+                    <a
+                      href="../../../ui/src/components/ui-menu/ui-menu.css"
+                      target="src-packages-ui-src-components-ui-menu-ui-menu-css"
+                      ><code>ui-menu.css</code></a
+                    >: <code>.ui.vertical.menu { --_ui-menu-item-width: 100% }</code> (needs the menu visual baselines
+                    updated).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="i17" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i17">I17</a>
+                  <span class="plan-title">Gap: &lt;ui-buttons&gt; no single-choice (segmented) group</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The nav A-Z / Topics switch is two buttons of which exactly one is pressed, announced as such.
+                    <code>toggle</code> gives <code>aria-pressed</code>, but a toggle owns its state: clicking the
+                    pressed one un-presses it (and <code>ui-toggle</code> is not cancelable), and its pressed look is
+                    the positive green. What the nav does: <code>toggle</code> buttons, the pressed one re-set to
+                    <code>active</code> inside its <code>ui-toggle</code> (so <code>Controlled.request()</code> keeps
+                    the host value), and the <code>--ui-button-toggle-*</code> tokens pointed at a light overlay. A fix:
+                    <code>&lt;ui-buttons value&gt;</code> / a radio-group mode (Fomantic has none either; its docs use
+                    plain <code>active</code> buttons).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
         </ui-section>
 
         <ui-section id="log" header="7. Log" sticky collapsible dividing>
@@ -711,6 +2086,172 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T22:35-04:00">2026-10-02 22:35</time></ui-date> P2
                   active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T23:01-04:00">2026-10-02 23:01</time></ui-date> Parked at
+                  67a646c9: P1 done, P2 + P6 agents stopped at 22:41; next: /unpark, re-run P2 and P6</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T23:07-04:00">2026-10-02 23:07</time></ui-date> Resumed: merged
+                  main at 93abde40, no conflicts, ui checks pass; with Owen, not bedtime; next: re-run P2 +
+                  P6</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T23:12-04:00">2026-10-02 23:12</time></ui-date> P6: UI.styles
+                  shadow:true + ThemeSheets ready -- `ThemeSheets.apply(name)` in
+                  `packages/ui/src/styles/themes/themes.ts` (exported from `$/ui/styles`), harness + generic cases in
+                  `themes.test.ts` (append a describe per theme)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T23:22-04:00">2026-10-02 23:22</time></ui-date> I2 closed: Gap:
+                  &lt;ui-flag&gt; no hook for sprite flag themes</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T23:22-04:00">2026-10-02 23:22</time></ui-date> I4 closed: Gap:
+                  &lt;ui-checkbox invisible&gt; adds 100,000px of scroll under RTL</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T23:22-04:00">2026-10-02 23:22</time></ui-date> I2 closed: Gap:
+                  &lt;ui-flag&gt; no hook for sprite flag themes</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T23:22-04:00">2026-10-02 23:22</time></ui-date> T4 themes:
+                  famfamfam, resetcss, rtl, systemfont written (joypixels skipped, D13); cases appended to
+                  themes.test.ts</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T23:23-04:00">2026-10-02 23:23</time></ui-date> T3 themes ported:
+                  flat, fixed-width, bookish, colored, duo, pulsar, striped, timeline, gmail, instagram (11 cases in
+                  themes.test.ts, all pass); C3, C4, D17, D18</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T23:23-04:00">2026-10-02 23:23</time></ui-date> P6 T1: ported GH
+                  (git-hub), material, fomantic-classic; porting recipe in packages/ui/docs/theming.md; theme tests +
+                  yarn ts + yarn build pass (each theme a lazy chunk)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T23:26-04:00">2026-10-02 23:26</time></ui-date> T2: themes chubby,
+                  basic, bootstrap3, amazon, raised, round, twitter ported (src/styles/themes/), cases appended to
+                  themes.test.ts (green)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T23:36-04:00">2026-10-02 23:36</time></ui-date> P2 infra (agent):
+                  docs-components plumbing, yarn site:data (components.json 573 KB, pages.json seed), yarn site:bundle
+                  (site/_assets: eager 345 KB / 85 KB gz, 143 files 3.3 MB), /ui/ static on the page server (AstroProxy
+                  deleted), &lt;ui-docs-example&gt;; checks: ui + server yarn review pass, yarn build + docs bundle
+                  build, Playwright smoke clean (D20-D24, C13-C14)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T23:39-04:00">2026-10-02 23:39</time></ui-date> P6: all 4 theme
+                  agents done (24 sheets, joypixels skipped); Roboto + Source Sans bundled; theme tests
+                  50/50</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T23:56-04:00">2026-10-02 23:56</time></ui-date> P2:
+                  &lt;ui-docs-tokens&gt; built (family / tag / global, live swatches, playground with preview or page
+                  target, filter); hit the existing gaps &lt;ui-table&gt; in a shadow root and inline &lt;code&gt; look
+                  (same workarounds as &lt;ui-docs-api&gt;).</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T23:57-04:00">2026-10-02 23:57</time></ui-date> P2 ui-docs-themes
+                  built: theme dropdown + scheme buttons on ThemePreference (stored per viewer, restored by site.ts),
+                  for= filter from components.json themes (tools/ThemeFamilies.ts); 24 element tests + 2 builder cases
+                  green, yarn build ok, scratch site build: each theme its own lazy chunk (D28, D29, T6, C16,
+                  gaps)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:01-04:00">2026-10-03 00:01</time></ui-date> D30 closed:
+                  &amp;lt;ui-docs-nav&amp;gt;: API, organization and what it remembers</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:01-04:00">2026-10-03 00:01</time></ui-date> I13 closed: Gap:
+                  &lt;ui-item&gt; icon shorthand drew nothing (0 x 0)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:01-04:00">2026-10-03 00:01</time></ui-date> I14 closed: Gap:
+                  &lt;ui-item&gt; could not be a disclosure (no aria-expanded)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:01-04:00">2026-10-03 00:01</time></ui-date> P2
+                  &lt;ui-docs-nav&gt; built (src/docs-components/ui-docs-nav/, 40 tests): D31; gaps I13 + I14 fixed in
+                  &lt;ui-item&gt; (icon glyph 0 x 0, aria-expanded), I15-I17 open. D30 is D31 with its title escaped
+                  twice (plan-doc escapes titles itself: pass raw &lt;tags&gt;), closed.</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:04-04:00">2026-10-03 00:04</time></ui-date> P2
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:05-04:00">2026-10-03 00:05</time></ui-date> P6
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:05-04:00">2026-10-03 00:05</time></ui-date> P2 + P6 done: 5
+                  ui-docs-* elements, site data + committed bundle, /ui/ static; 24 themes + ThemeSheets; checks: ui
+                  review 4364 tests, server 70, theme 50, local visual menu/list updated</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
