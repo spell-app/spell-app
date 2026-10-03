@@ -8,7 +8,9 @@ import { SRV } from "$/server"
  * Edits pages IN PLACE, for the page server:  `/_server/page`.
  * - `GET ?path=<url path>[&id=<id>][&parent=<tag>][&inner=1]`:  the page's source (or one element's), and its
  *   `ETag`
- * - `PUT ?path=`:  the whole page;  body `text/html`, or JSON `{ html }`
+ * - `PUT ?path=`:  the whole file;  body `text/*` (`text/html`, `text/plain` ...), or JSON `{ html }`
+ *   - a page, or any TEXT file (`TEXT_FILE`:  `.md`, `.ts`, `.css`, `.spell` ...;  not `.json`):  what `<ui-code>` /
+ *     `<ui-markdown>` save through `SPELL_SERVER.saveFile()`
  * - `PATCH ?path=`:  one element by `id`;  body JSON `{ id, html, inner?, parent? }`
  * - `parent`:  a tag name, e.g. `section`:  the nearest such ANCESTOR of `#id` instead -- a docs section has no
  *   `id` of its own, but its heading does
@@ -17,12 +19,22 @@ import { SRV } from "$/server"
  *   file stays as it was, so diffs show only the edit
  * - safety:
  *   - writes need the `Guard` token and same origin
- *   - `.html` under the root only, through `resolveInside()` (no dot files, no `..`)
+ *   - under the root only, through `resolveInside()` (no dot files, no `..`):  `.html` for `PATCH`, any
+ *     `TEXT_FILE` for `GET` / `PUT`
  *   - `If-Match` MUST be the `ETag` the page was served with:  if the file changed since (an editor, an agent),
  *     409, and the caller reloads;  missing:  428
  *   - written under `FileLock`, atomically (temp file + rename)
  */
 export class PageEditor {
+  /** Files `PATCH` edits:  pages. */
+  static readonly PAGE_FILE = /\.html?$/i
+
+  /**
+   * Files `GET` / `PUT` read and write:  pages and the text files the source elements show.
+   * - NOT `.json`:  config (`package.json` holds the page server's own), not content
+   */
+  static readonly TEXT_FILE = /\.(html?|md|markdown|txt|ts|tsx|js|mjs|cjs|jsx|css|spell|ya?ml|svg)$/i
+
   /** folder pages live under */
   readonly root: string
 
@@ -40,7 +52,7 @@ export class PageEditor {
 
   /** answer `GET`:  `{ path, etag, html }` */
   private async read(request: SRV.Request, reply: SRV.Reply): Promise<void> {
-    const { path, file } = this.pageFile(request)
+    const { path, file } = this.pageFile(request, PageEditor.TEXT_FILE)
     const source = await readFile(file, "utf8")
     const etag = SRV.StaticHandler.etagOf(await stat(file))
     const id = one(request.query.id)
@@ -51,7 +63,7 @@ export class PageEditor {
 
   /** answer `PUT` / `PATCH`:  `{ path, etag }`, the file's new `ETag` */
   private async write(request: SRV.Request, reply: SRV.Reply, how: "put" | "patch"): Promise<void> {
-    const { path, file } = this.pageFile(request)
+    const { path, file } = this.pageFile(request, how === "put" ? PageEditor.TEXT_FILE : PageEditor.PAGE_FILE)
     const expected = request.get("if-match")
     if (!expected) throw new SRV.HttpError(428, "If-Match required:  send the ETag the page was served with")
     const body = request.body as string | { html?: unknown; id?: unknown; inner?: unknown; parent?: unknown }
@@ -66,7 +78,7 @@ export class PageEditor {
       let next: string
       if (how === "put") {
         next = typeof body === "string" ? body : typeof body.html === "string" ? body.html : ""
-        if (!next.trim()) throw new SRV.HttpError(400, "no html to write")
+        if (!next.trim()) throw new SRV.HttpError(400, "nothing to write")
       } else {
         if (typeof body !== "object" || typeof body.id !== "string" || typeof body.html !== "string")
           throw new SRV.HttpError(400, "PATCH body must be JSON { id, html, inner?, parent? }")
@@ -81,15 +93,18 @@ export class PageEditor {
     reply.set("Cache-Control", "no-store").json({ path, etag })
   }
 
-  /** the page a request names in `?path=`:  an `.html` file under the root, or an `HttpError` */
-  private pageFile(request: SRV.Request): { path: string; file: string } {
+  /** the file a request names in `?path=`:  one under the root that `allowed` matches, or an `HttpError` */
+  private pageFile(request: SRV.Request, allowed: RegExp): { path: string; file: string } {
     const asked = one(request.query.path)
     if (!asked) throw new SRV.HttpError(400, "?path= required, e.g. /packages/docs/index.html")
     const path = asked.startsWith("/") ? asked : `/${asked}`
     const resolved = SRV.resolveInside(this.root, path, { index: false })
     if ("status" in resolved) throw new SRV.HttpError(resolved.status, resolved.message)
-    if ("redirect" in resolved || !/\.html?$/i.test(resolved.file))
-      throw new SRV.HttpError(400, `not an .html page:  ${path}`)
+    if ("redirect" in resolved || !allowed.test(resolved.file))
+      throw new SRV.HttpError(
+        400,
+        `can't edit ${path}:  ${allowed === PageEditor.PAGE_FILE ? "not an .html page" : "not a text file"}`
+      )
     return { path, file: resolved.file }
   }
 }

@@ -1,4 +1,5 @@
 import {
+  SOURCE_ERROR_KINDS,
   SourceError,
   type SourceLoadOptions,
   type SourceSaveRequest,
@@ -123,7 +124,12 @@ export class Sources {
       result = await this.saver({ ...request, url })
     } catch (error) {
       if (error instanceof SourceError) throw error
-      throw new SourceError("save", `Can't save ${url}:  ${(error as Error)?.message ?? error}`)
+      const { kind, message, status } = (error ?? {}) as { kind?: unknown; message?: unknown; status?: unknown }
+      const text = `Can't save ${url}:  ${typeof message === "string" ? message : error}`
+      if (SOURCE_ERROR_KINDS.includes(kind as never)) {
+        throw new SourceError(kind as SourceError["kind"], text, typeof status === "number" ? status : undefined)
+      }
+      throw new SourceError("save", text)
     }
     if (request.fragment) this.cache.delete(url)
     else this.cache.set(url, Promise.resolve({ url, text: request.text, etag: result.etag }))

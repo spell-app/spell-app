@@ -165,6 +165,43 @@ describe("PageServer", () => {
     events.close()
   })
 
+  it("serves a script's fetch() the file AS IS:  no injected tags", async () => {
+    const fetched = await ask(port, "GET", "/docs/page.html", { headers: { "sec-fetch-dest": "empty" } })
+    expect(fetched.text).toBe(readFileSync(page, "utf8"))
+    expect(fetched.headers.etag).toBeTruthy()
+  })
+
+  it("puts a whole TEXT file (what <ui-code> / <ui-markdown> save);  never .json or a binary", async () => {
+    const notes = join(root, "docs", "notes.md")
+    writeFileSync(notes, "# Notes\n")
+    const etag = (await ask(port, "GET", "/docs/notes.md")).headers.etag as string
+    const answer = await ask(port, "PUT", "/_server/page?path=/docs/notes.md", {
+      headers: writeHeaders(etag, "text/plain; charset=utf-8"),
+      body: "# Notes\n\nSaved.\n"
+    })
+    expect(answer.status).toBe(200)
+    expect(readFileSync(notes, "utf8")).toBe("# Notes\n\nSaved.\n")
+    expect(JSON.parse(answer.text).etag).not.toBe(etag)
+    const stale = await ask(port, "PUT", "/_server/page?path=/docs/notes.md", {
+      headers: writeHeaders(etag, "text/plain"),
+      body: "lost"
+    })
+    expect(stale.status).toBe(409)
+    writeFileSync(join(root, "docs", "logo.png"), "x")
+    const binary = await ask(port, "PUT", "/_server/page?path=/docs/logo.png", {
+      headers: writeHeaders(etag, "text/plain"),
+      body: "x"
+    })
+    expect(binary.status).toBe(400)
+  })
+
+  it("patches pages only:  a text file has no elements to replace", async () => {
+    const etag = (await ask(port, "GET", "/docs/notes.md")).headers.etag as string
+    const body = JSON.stringify({ id: "x", html: "<p>x</p>" })
+    const answer = await ask(port, "PATCH", "/_server/page?path=/docs/notes.md", { headers: writeHeaders(etag), body })
+    expect(answer.status).toBe(400)
+  })
+
   it("on stop, removes its own pid file, never another server's", async () => {
     const file = join(root, ".spell-server.json")
     const mine = readFileSync(file, "utf8")

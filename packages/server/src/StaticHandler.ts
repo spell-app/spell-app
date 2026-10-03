@@ -14,6 +14,9 @@ import { SRV, type FileTransform, type Handler, type HtmlTransform, type Mount }
  * - hooks:
  *   - `transforms[".ts"]`:  rewrites a file by extension, e.g. `ui`'s smoke server turns `.ts` into JavaScript
  *   - `html`:  rewrites every `.html` page in turn, e.g. inject an import map or `window.SPELL_SERVER`
+ *   - NOT for a script's `fetch()` (`Sec-Fetch-Dest: empty`):  it gets the file AS IS.  Why:  `<ui-include>` /
+ *     `<ui-code>` / `<ui-markdown>` show a file and save it back, and must never see (or write) the injected
+ *     live-reload tags.  Navigations, `<script>`s and module imports still get the hooks.
  * - nothing matched or file missing:  `next()`, so routes after it (an SPA fallback) still get a turn
  */
 export class StaticHandler {
@@ -62,7 +65,8 @@ export class StaticHandler {
     const ext = extname(file).toLowerCase()
     const transform = this.transforms[ext]
     const isHtml = ext === ".html" || ext === ".htm"
-    if (!transform && !(isHtml && this.html.length)) {
+    const raw = request.get("sec-fetch-dest") === "empty"
+    if (raw || (!transform && !(isHtml && this.html.length))) {
       reply.type(SRV.typeFor(file))
       return reply.sendFile(file, { dotfiles: "allow" })
     }

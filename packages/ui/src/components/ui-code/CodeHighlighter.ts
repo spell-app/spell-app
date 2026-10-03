@@ -14,6 +14,12 @@ import type { CodeEngine } from "./CodeEngine"
  * - Fails with a `render` `SourceError` for a language nobody knows (or a variant that won't load).
  ****************/
 export class CodeHighlighter {
+  /**
+   * Imports the engine module;  replaceable, e.g. by a bundle that can't keep `import()`s (the docs' classic
+   * script loads it as a script of its own).  Read once, on the first highlight.
+   */
+  static engineLoader: () => Promise<{ CodeEngine: { instance: CodeEngine } }> = () => import("./CodeEngine")
+
   /** The engine's import, started once. */
   private static engine?: Promise<CodeEngine>
 
@@ -22,7 +28,7 @@ export class CodeHighlighter {
 
   /** highlight.js, loaded on first use. */
   static load(): Promise<CodeEngine> {
-    return (CodeHighlighter.engine ??= import("./CodeEngine").then((module) => module.CodeEngine.instance))
+    return (CodeHighlighter.engine ??= CodeHighlighter.engineLoader().then((module) => module.CodeEngine.instance))
   }
 
   /** `code` as HTML, coloured as `language`, or as its best guess when `language` is absent. */

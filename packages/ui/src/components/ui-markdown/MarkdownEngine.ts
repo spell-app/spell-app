@@ -1,6 +1,9 @@
 import DOMPurify from "dompurify"
 import { Marked, type Tokens } from "marked"
 
+// Import directly:  see the class docs
+import { SourceError } from "$/ui/runtime/runtime.types"
+
 import type { MarkdownHeading, MarkdownOptions, MarkdownResult } from "./ui-markdown.types"
 
 /****************
@@ -14,6 +17,13 @@ import type { MarkdownHeading, MarkdownOptions, MarkdownResult } from "./ui-mark
  *   platform's `Element.setHTML()`:  by default it drops task-list checkboxes, images, heading ids and code-language
  *   classes, and it differs by browser (none in Safari).
  * - Returns a fragment of this document;  the element turns code blocks into `<ui-code>` and resolves URLs.
+ * - NEVER a value import but marked, DOMPurify and `SourceError`:  the docs bundler builds this file ALONE into a
+ *   classic script (`MarkdownRenderer.engineLoader`).
+ * - Imports `SourceError` straight from `$/ui/runtime/runtime.types` (built into `core.js`), and USES it:  a lazy
+ *   chunk that needs Rolldown's helpers (`__name`, from `keepNames`) without depending on core makes Rolldown split
+ *   them into a `rolldown-runtime-<hash>.js` EVERY page loads (`yarn measure`'s `runtimeChunks`;  see
+ *   `runtime/TemporalPolyfill.ts`).  Straight, not through `$/ui/core`:  the docs bundler builds this file alone, and
+ *   `runtime.types` is all it may pull in.
  ****************/
 export class MarkdownEngine {
   /** The one engine. */
@@ -38,6 +48,7 @@ export class MarkdownEngine {
       }
     })
     const html = marked.parse(text, { async: false })
+    if (typeof html !== "string") throw new SourceError("render", "marked rendered asynchronously")
     const fragment = options.trusted
       ? document.createRange().createContextualFragment(html)
       : // `SANITIZE_DOM` off:  it drops ids that shadow DOM properties (`id="elements"`, `id="forms"`), to stop DOM

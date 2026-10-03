@@ -554,7 +554,9 @@ export type SourceSaveResult = {
  * Writes text back to where it came from;  `UI.sources.saver`.
  * - `ui` ships none:  it can't know the server.  The page server's lives in `$/server` (`SPELL_SERVER.saveFile`),
  *   registered by the docs runtime.
- * - MUST throw `SourceError` (`conflict` for a 409 / 412, `save` otherwise) on failure.
+ * - MUST throw on failure:  a `SourceError` (`conflict` for a 409 / 412, `save` otherwise), or -- from code that
+ *   can't import it (a page's classic script) -- any object with a `kind` of `SourceErrorKind`, a `message` and
+ *   maybe a `status`.
  */
 export type SourceSaver = (request: SourceSaveRequest) => Promise<SourceSaveResult>
 
@@ -569,6 +571,17 @@ export type SourceSaver = (request: SourceSaveRequest) => Promise<SourceSaveResu
  * - `render`:  the text arrived but the element couldn't show it (bad markdown, unknown language ...)
  */
 export type SourceErrorKind = "load" | "cross-origin" | "file-protocol" | "save" | "conflict" | "no-saver" | "render"
+
+/** Every `SourceErrorKind`, for checking one that arrives as data (a saver's thrown `{ kind }`). */
+export const SOURCE_ERROR_KINDS: readonly SourceErrorKind[] = [
+  "load",
+  "cross-origin",
+  "file-protocol",
+  "save",
+  "conflict",
+  "no-saver",
+  "render"
+]
 
 /**
  * Thrown by `UI.sources` (and savers) when a source can't be loaded or saved;  `kind` says why.

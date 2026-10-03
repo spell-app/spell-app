@@ -11,9 +11,6 @@ export type Vocabulary = typeof codeVocabulary
 /** `language` meaning "no colouring". */
 export const TEXT = "text"
 
-/** highlight.js's name for no colouring. */
-export const PLAINTEXT = "plaintext"
-
 /** Class of each line's span inside `<code>`. */
 export const LINE_CLASS = "line"
 
