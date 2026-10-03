@@ -24,9 +24,7 @@
         <ui-sticky class="spell-h1"
           ><header class="spell-page-head">
             <h1>Vite+</h1>
-            <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p4">next: P4 · Doc Review</ui-label></span
-            >
+            <span class="plan-step"><ui-label color="green" icon="check">DONE</ui-label></span>
           </header></ui-sticky
         >
         <ui-list class="plan-meta">
@@ -46,17 +44,20 @@
         <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
           <ui-icon slot="icon" name="lightbulb"></ui-icon>
           <p class="plan-summary lede">
-            Move the repo to Vite+ 1.0.0 (<code>vite-plus</code>, command <code>vp</code>, shipped 2026-09-28, MIT),
-            taking its pinned tool versions across the board (<a href="#d1">D1</a>). We already run every tool it
-            bundles, so the gain is mostly <code>vp run</code> (cached workspace tasks) and one dep instead of five.
+            Moved the repo to Vite+ 1.0.0 (<code>vite-plus</code>, command <code>vp</code>, MIT) with its pinned tool
+            versions across the board (<a href="#d1">D1</a>) and Node 24; every check as on <code>main</code>. Gain: one
+            dep instead of five, root scripts in parallel (<code>yarn ts</code> 6.0s to 3.1s); its cache is unsafe until
+            inputs are explicit (<a href="#i1">I1</a>). Durable doc:
+            <a href="../../vite-plus.html" target="src-packages-docs-vite-plus-html">vite-plus.html</a>.
           </p>
+
           <blockquote class="plan-prompt">
             <p>
               Upgrade to new vite+ latest. What gets better? Any reasons not to?<br />I'm going to bed soon, so keep
               this snappy
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 2h 20m-2h 50m in all, 20m left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 2h 20m-2h 50m in all, 0m left</p>
           <ui-section id="o1" header="1.1 What Vite+ is" sticky collapsible dividing>
             <p>One CLI, <code>vp</code>, wrapping tools we already use one by one:</p>
             <ul>
@@ -219,7 +220,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="3" total="4" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="4" total="4" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -269,7 +270,16 @@
               ><ui-item icon="clock"><b>Estimate:</b> 30m</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p3" data-phase="3" data-status="done" header="P3 · Rollout" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p3"
+            data-phase="3"
+            data-status="done"
+            header="P3 · Rollout"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -282,8 +292,8 @@
               ></ui-list
             >
           </ui-section>
-          <ui-section id="p4" data-phase="4" data-status="todo" header="P4 · Doc Review" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p4" data-phase="4" data-status="done" header="P4 · Doc Review" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"><b>Goal:</b> durable doc, prune, finish worktree</ui-item
               ><ui-item icon="folder"><b>Files:</b> packages/docs/vite-plus.html</ui-item
@@ -403,13 +413,13 @@
         <ui-section id="caveats" header="4. Caveats" sticky collapsible dividing>
           <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
           <ui-list class="plan-items" data-kind="caveat" divided relaxed
-            ><ui-item id="c1" data-status="open"
+            ><ui-item id="c1" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#c1">C1</a>
                   <span class="plan-title"
                     >oxlint 1.85 lacks 1.86 false-positive fixes; --max-warnings 0 may turn review red</span
-                  ></ui-title
+                  > </ui-title
                 ><ui-content
                   ><p>
                     Lost fixes: <code>require-await</code> + <code>await using</code>;
@@ -631,8 +641,13 @@
               ><a class="plan-id" href="#t11">T11</a>
               <span class="plan-title"
                 >Owen: format the 63 files main leaves unformatted, then add a root check script (vp check)</span
-              >
-            </ui-item></ui-list
+              > </ui-item
+            ><ui-item id="t12" data-status="open"
+              ><a class="plan-id" href="#t12">T12</a>
+              <span class="plan-title"
+                >Owen: merge vite-plus into main (/isolate done), then yarn install + yarn vscode from main</span
+              ></ui-item
+            ></ui-list
           >
         </ui-section>
 
@@ -805,6 +820,42 @@
                   test:packages / review on vp run over @spell-app/*, AGENTS.md Toolchain section, READMEs Node 24.11;
                   checks: yarn ts 3.1s + fails on planted error, yarn test:packages 262s, all 11 packages ran, only
                   main's cli serve failure</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T23:24-04:00">2026-10-02 23:24</time></ui-date> P4
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T23:26-04:00">2026-10-02 23:26</time></ui-date> C1 closed: oxlint
+                  1.85 lacks 1.86 false-positive fixes; --max-warnings 0 may turn review red</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T23:26-04:00">2026-10-02 23:26</time></ui-date> P4
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T23:26-04:00">2026-10-02 23:26</time></ui-date> P4 done: durable
+                  doc packages/docs/vite-plus.html (check-spell ok), C1 closed (0 new warnings), summary true to build;
+                  worktree NOT left (bedtime: no merge / ExitWorktree)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T23:26-04:00">2026-10-02 23:26</time></ui-date> Bedtime done: 4
+                  done, 0 WIP, 0 skipped</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
