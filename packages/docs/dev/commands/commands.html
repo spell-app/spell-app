@@ -32,7 +32,8 @@
             first)</ui-item
           >
           <ui-item icon="flag"
-            >Status: <ui-label size="mini" color="orange">inventory + target</ui-label> moves not made yet</ui-item
+            >Status: <ui-label size="mini" color="orange">inventory + target</ui-label> R4 built, R3 and R5 in part
+            (2026-10-03)</ui-item
           >
           <ui-item icon="folder"
             >Data:
@@ -438,6 +439,13 @@ description: Start the spell web servers of this checkout that aren't running --
           </ui-section>
 
           <ui-section id="odd-helpers" header="4.3 Repeated helpers" sticky collapsible dividing>
+            <ui-message state="positive" size="tiny" header="Fixed 2026-10-03">
+              <p>
+                The python scripts are gone: one TypeScript module,
+                <a href="../../../cli/src/dev/" target="src-packages-cli-src-dev"><code>packages/cli/src/dev/</code></a
+                >, holds each helper once. What was repeated:
+              </p>
+            </ui-message>
             <ul>
               <li>reading Claude's session registry, "is it alive", its folder: 4 python scripts</li>
               <li>
@@ -725,7 +733,8 @@ description: Start the spell web servers of this checkout that aren't running --
                   <td>R3</td>
                   <td>
                     <code>spell dev worktree ...</code>: status, name-check, carry (tagged stash), merge-check,
-                    merge-main, merge (one policy), remove, cleanup; skills call it
+                    merge-main, merge (one policy), remove, cleanup; skills call it. <b>Built:</b> <code>list</code>,
+                    <code>status</code> (2026-10-03)
                   </td>
                   <td>
                     <a href="#worktrees-check-a-worktree-name-is-free">name check</a>,
@@ -738,8 +747,8 @@ description: Start the spell web servers of this checkout that aren't running --
                 <tr id="r4">
                   <td>R4</td>
                   <td>
-                    One session module: <code>spell dev session ...</code> and <code>stock</code>; the python scripts
-                    shrink to fallbacks
+                    One session module: <code>spell dev session ...</code> and <code>stock</code>. <b>Built</b>
+                    (2026-10-03): the python scripts are gone, no fallbacks
                   </td>
                   <td>
                     <a href="#sessions-list-running-sessions-and-where-they-run">list</a>,
@@ -751,7 +760,9 @@ description: Start the spell web servers of this checkout that aren't running --
                 <tr id="r5">
                   <td>R5</td>
                   <td>
-                    Notes: <code>spell dev park note ...</code>, <code>bedtime note ...</code>, <code>park wait</code>
+                    Notes: <code>spell dev park note ...</code>, <code>bedtime note ...</code>, <code>park wait</code>.
+                    <b>Built:</b> <code>park list</code>, <code>candidates</code>, <code>wait</code> (2026-10-03); the
+                    notes still prose
                   </td>
                   <td>
                     <a href="#park-write-a-parked-note">PARKED note</a>,
@@ -844,6 +855,20 @@ description: Start the spell web servers of this checkout that aren't running --
               script in one package shouldn't fail another's checks. The AGENTS rule says to run it.
             </li>
             <li>
+              <b>One language: the python tools ported to TypeScript</b> (2026-10-03, Owen). They live in
+              <a href="../../../cli/src/dev/" target="src-packages-cli-src-dev"><code>packages/cli/src/dev/</code></a
+              >, node built-ins only, so a lean <code>spell dev</code> entry stays possible; each port was compared with
+              the python on live data before it was deleted.
+              <a href="../../scripts/doc-links.js" target="src-packages-docs-scripts-doc-links-js"
+                ><code>doc-links.js</code></a
+              >
+              is plain Node, not a Python imitation: same page edits, plainer messages.
+            </li>
+            <li>
+              <b><code>session</code> and <code>worktrees</code> moved into the repo.</b> They were user-level skills,
+              but tied to this repo all along; now they call <code>spell dev</code> like the rest.
+            </li>
+            <li>
               <b>Package scripts stay in yarn.</b> Tool-native scripts already have a good home; wrapping them adds
               ~0.5s a call. <code>spell dev check</code> (<a href="#r7">R7</a>) orchestrates them instead.
             </li>
@@ -873,8 +898,17 @@ description: Start the spell web servers of this checkout that aren't running --
               checkout's. In a worktree, <code>node packages/cli/bin/spell.mjs</code> runs its own.
             </li>
             <li>
-              The CLI takes ~0.5s to start (<code>tsx</code> compiles on each run): it adds up in a skill that calls it
-              often, until <a href="#r10">R10</a>.
+              The CLI takes ~0.6s to start (<code>tsx</code> compiles on each run), where the python took ~0.05s: it
+              adds up in a skill that calls it often (<code>/whassup</code>, <code>/wtf</code>), until
+              <a href="#r10">R10</a>.
+            </li>
+            <li>
+              Skills need <code>spell</code> on the PATH (<code>yarn cli:install</code>, once per machine), and it runs
+              the LINKED checkout's code: a <code>spell dev</code> command added on a branch exists for skills only once
+              merged.
+            </li>
+            <li>
+              <code>spell dev session open</code> was checked by reading, not run: running it opens a VS Code tab.
             </li>
             <li>The marks are judgement: "could" vs "couldn't really" is an opinion, written down.</li>
             <li>The check sees names, not meaning: it can't tell that a row's marks or target went stale.</li>

@@ -24,11 +24,7 @@
         <ui-sticky class="spell-h1"
           ><header class="spell-page-head">
             <h1>Commands: CLI, skills, yarn</h1>
-            <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p12"
-                >next: P12 · Doc Review Again</ui-label
-              ></span
-            >
+            <span class="plan-step"><ui-label color="green" icon="check">DONE</ui-label></span>
           </header></ui-sticky
         >
         <ui-list class="plan-meta">
@@ -53,7 +49,8 @@
               ><code>packages/docs/dev/commands/</code></a
             >, maps every operation to CLI / skill / yarn / the tool that runs it. Then one naming scheme (noun then
             verb, repo tools under <code>spell dev</code>), a roadmap toward "CLI drives everything", a drift check and
-            an AGENTS rule that keeps the page current.
+            an AGENTS rule that keeps the page current; then every python tool ported to TypeScript, the skills calling
+            <code>spell dev</code> (<a href="#o5">1.5</a>).
           </p>
           <blockquote class="plan-prompt">
             <p>
@@ -72,7 +69,7 @@
               you create a new yarn script to solve some problem. Instruct it to keep that doc up to date.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 13h-19h 30m in all, 30m left (P11 not estimated)</p>
+          <p class="plan-estimate"><b>Estimate:</b> 13h-19h 30m in all, 0m left (P11 not estimated)</p>
           <ui-section id="o1" header="1.1 What exists today" sticky collapsible dividing>
             <p>Three ways to make the repo do something, grown separately:</p>
             <ui-table celled compact striped unstackable>
@@ -369,11 +366,87 @@
               </li>
             </ul>
           </ui-section>
+
+          <ui-section id="o5" header="1.5 The python port" sticky collapsible dividing>
+            <p>Added the morning after (<a href="#d10">D10</a>-<a href="#d12">D12</a>): one language for every tool.</p>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Was</th>
+                    <th>Now</th>
+                    <th>Checked</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>session.py</code>, <code>transcript.py</code></td>
+                    <td>
+                      <code>spell dev session list|find|open|title|window|transcript</code> (<a href="#p7">P7</a>)
+                    </td>
+                    <td>byte-identical on 120 sessions; digests drop subagent reports (<a href="#t9">T9</a>)</td>
+                  </tr>
+                  <tr>
+                    <td><code>status.py</code>, <code>worktrees.py</code></td>
+                    <td>
+                      <code>spell dev worktree list|status</code>, <code>spell dev park list|candidates|wait</code> (<a
+                        href="#p8"
+                        >P8</a
+                      >)
+                    </td>
+                    <td>identical JSON on 7 names; wait's exits 0 / 2 / 3</td>
+                  </tr>
+                  <tr>
+                    <td><code>whassup.py</code></td>
+                    <td><code>spell dev stock</code> (<a href="#p9">P9</a>)</td>
+                    <td>identical, bar live sessions' clocks</td>
+                  </tr>
+                  <tr>
+                    <td><code>doc-links.py</code></td>
+                    <td>
+                      <a href="../../scripts/doc-links.js" target="src-packages-docs-scripts-doc-links-js"
+                        ><code>doc-links.js</code></a
+                      >, plain Node (<a href="#p10">P10</a>)
+                    </td>
+                    <td>page edits identical on 45 pages (<a href="#t10">T10</a>)</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <ul>
+              <li>
+                Code:
+                <a href="../../../cli/src/dev/" target="src-packages-cli-src-dev"><code>packages/cli/src/dev/</code></a>
+                (<a href="../../../cli/src/dev/sessions.ts" target="src-packages-cli-src-dev-sessions-ts"
+                  ><code>sessions.ts</code></a
+                >,
+                <a href="../../../cli/src/dev/transcript.ts" target="src-packages-cli-src-dev-transcript-ts"
+                  ><code>transcript.ts</code></a
+                >,
+                <a href="../../../cli/src/dev/worktrees.ts" target="src-packages-cli-src-dev-worktrees-ts"
+                  ><code>worktrees.ts</code></a
+                >,
+                <a href="../../../cli/src/dev/parking.ts" target="src-packages-cli-src-dev-parking-ts"
+                  ><code>parking.ts</code></a
+                >,
+                <a href="../../../cli/src/dev/stock.ts" target="src-packages-cli-src-dev-stock-ts"
+                  ><code>stock.ts</code></a
+                >), node built-ins only
+              </li>
+              <li>
+                Skills call <code>spell dev</code>; <code>/session</code> and <code>/worktrees</code> moved into
+                <a href="../../../../.claude/skills/" target="src-claude-skills"><code>.claude/skills</code></a> (<a
+                  href="#p11"
+                  >P11</a
+                >); the <code>~/.claude</code> copies are Owen's to delete (<a href="#t8">T8</a>)
+              </li>
+            </ul>
+          </ui-section>
         </ui-section>
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="11" total="12" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="12" total="12" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -600,6 +673,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p11"
             data-phase="11"
             data-status="done"
@@ -623,13 +697,13 @@
           <ui-section
             id="p12"
             data-phase="12"
-            data-status="todo"
+            data-status="done"
             header="P12 · Doc Review Again"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> Plan doc and commands page true to the port; Why / Limits updated</ui-item
@@ -1725,6 +1799,35 @@ missing from commands.html:
                   .claude/skills; status.py, whassup.py, transcript.py deleted; commands page + json updated; checks: no
                   python left in skills or docs scripts, commands:check 212/212, check-spell ok. ~/.claude copies left
                   for Owen (T8)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:17-04:00">2026-10-03 10:17</time></ui-date> P12
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:18-04:00">2026-10-03 10:18</time></ui-date> P12
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:18-04:00">2026-10-03 10:18</time></ui-date> P12 done: commands
+                  page: roadmap progress (R4 built, R3/R5 in part), Why + Limits for the port, helpers marked fixed;
+                  plan doc Overview 1.5; checks: check-spell ok, doc-links ok, commands:check 212/212</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:19-04:00">2026-10-03 10:19</time></ui-date> Bedtime done
+                  (second run): P7-P12 done, 0 WIP, 0 skipped</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
