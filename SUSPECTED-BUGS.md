@@ -276,6 +276,11 @@ Disproven (2026-10-01):  the "empty strip" under an open multiple-selection drop
 the open menu floats over.  The "mini images at full width" were the static `ui avatar images` group, hit by a bare
 `.avatar img { width: 100% }` in `ui-parts.css` (fixed).  `--ui-form-equal-width` / `-unstackable` were already private.
 Parts inside a lone `<ui-event>` / `<ui-comment>` read the owner switches only in style queries, so unset is fine.
+Fixed 2026-10-02 (seo, agent E):  the shadow-root-only-child margins (segments, menu, steps, statistics, ad), the
+size-container hosts that kept a margin from collapsing (table, celled grid, fluid / circular steps, statistics), and the
+item `icon` shorthand's glyph (list 20px wide, menu 0 x 0:  `.icon > svg` never reached the slot's fallback).
+Disproven (2026-10-02):  card/content and card/types match class grammar (parity <= 0.14%);  grid/variations' remaining
+gap is consecutive grids (`.ui.grid + .grid`), left out on purpose in `ui-grid.css`.
 Swept 2026-10-01 (branch `worktree-ui-component-creation`, plan doc `packages/docs/epics/ui-component-creation/`):
 every entry below that date was fixed or disproven;  what's left:
 
@@ -353,6 +358,28 @@ every entry below that date was fixed or disproven;  what's left:
   its root's top margin from collapsing with the heading above:  element markup shows a bigger gap than class grammar
   (grid/types +16px under the celled grid, grid/variations several sections, card/content and card/types one each).
   Fix per owner, as `ui-items.css` did (`:host(:state(items))` carries the outer margin).  (2026-10-01)
+- `src/server/` static render of `ui-step/examples/elements/variations.html`:  the static page is 1713px tall where class
+  grammar is 1810 and the elements 1809;  the whole gap is the last example, `<ui-steps circular vertical>`, whose
+  steps are cut short / overlap in the static output.  Prove:  `yarn test:visual --static --browsers chrome --grep
+  step`, `ui-step/variations` diff.  (2026-10-02)
+- `src/components/ui-list/ui-list.css` class grammar:  an item of an `.icon` box plus BARE text (`<div class="item">
+  <span class="icon">svg</span> Inline Text</div>`) drops the text BELOW the icon (the table-cell icon gets an anonymous
+  table, the text an anonymous block);  Fomantic keeps it beside (`i.icon:only-child`), and so do the elements (the
+  slot is the next cell).  So the static render does it too.  `ui-list/content` parity (7.5%) is only that.  (2026-10-02)
+- `src/components/ui-table/ui-table.css` outer margin:  the host (and a static render's scroller) use a fixed `1em`,
+  not `--ui-table-margin` (which only the light-DOM table reads, where `:first-child` / `:last-child` zero it).  So the
+  public token never moves an element table.  Prove:  set `--ui-table-margin: 3em` on a `<ui-table>`, measure.
+  (2026-10-02)
+
+- `src/components/ui-tab/UITabs.tsx` / `src/styles/colors.css`:  `<ui-tabs inverted pointing secondary>` fills its
+  inverted panes grey:  `secondary` (a MENU look word on the tabs root) also matches colors.css's `.ui.secondary` colour
+  remap, so the root sets `--ui-color: var(--ui-secondary)`, which inherits through the panes' `<slot>` into each
+  `.ui.inverted.tab.segment` (`--_segment-bg: var(--ui-color, ...)`).  Class grammar and the static render
+  (`yarn test:visual --static --grep ui-tab`, `ui-tab/variations` "Inverted") keep the plain inverted background.
+  Prove:  computed `--ui-color` on the tabs root's `<slot>` there.  (2026-10-02)
+- `src/components/ui-tab/ui-tab.css` vertical tabs:  `examples/elements/variations.html` "Vertical" says the pane
+  "will always match the tab height", but the element pane's segment is content-high:  the HOST is the stretched flex
+  item, its `.ui.tab` box isn't.  The static render (root = flex item) does stretch.  (2026-10-02)
 - `src/components/ui-items/ui-items.css`:  the outer margin now sits on the host, in the host's UNSCALED font size, so a
   sized group's `1.5em` margin uses 16px.  Unmeasured.  (2026-10-01)
 - `src/components/ui-list/ui-list.css`:  a raw slotted `<img>` followed by `<ui-content>` still puts the content below:  a
@@ -360,16 +387,6 @@ every entry below that date was fixed or disproven;  what's left:
 - `src/components/ui-label/ui-label.css`:  a plain CLASS-GRAMMAR `.ui.label` inside a coloured ancestor still takes the
   ancestor's colour (Fomantic doesn't);  `<ui-label>` elements are fixed (host reset).  (2026-10-01)
 
-- `src/components/ui-menu/ui-menu.css` / `ui-item.css`:  `<ui-item icon="lightbulb">` with no text, inside
-  `<ui-menu vertical text>` (with or without `icon`), draws its `<svg>` 0 x 0:  the `.icon` box and the svg both
-  compute `width` / `height` `0px`, though the svg's rule says `height: 1em`.  Seen in the docs rail
-  (`packages/docs/_assets/spell-doc-runtime.js` `buildRail()`, which now slots a `<ui-icon>` instead).  Prove:  that
-  markup in a menu example, measure the svg.  (2026-10-01)
-  - Wider than that (2026-10-02, solid-migration P6):  EVERY menu item's `icon` shorthand, text or not, horizontal
-    too -- `<ui-menu><ui-item link icon="pencil">Plain</ui-item></ui-menu>`:  the `.icon` span computes `display: flex`,
-    span and svg `0 x 0`.  `ui`'s own baseline shows it:  `test/visual/baselines/local-darwin/chromium/ui-menu/
-    content-light.png`, "Icons and a dropdown item":  "Inbox" (`icon="inbox"`) has no icon, "Mail" (a slotted
-    `<ui-icon>`) has one.  The app's `<Action>` slots a `<ui-icon>` too (`packages/app/src/solid/Actions.tsx`, HACK).
 - `src/components/ui-menu/ui-menu.css`:  `<ui-menu inverted color="violet">` items draw DARK text on the violet fill;
   Fomantic's inverted coloured menu has white text.  Plain `<ui-menu inverted>` is right (light on dark).  Prove:  that
   markup, `getComputedStyle()` of `::part(item)`'s `color`.  (2026-10-02, solid-migration P6)
@@ -489,6 +506,10 @@ every entry below that date was fixed or disproven;  what's left:
   `<Project>.scopes.js` or `--against <ref>` become bogus `<project>` / `<ref>` elements (oxfmt then indents them as
   tags).  Escape them as text -- or document that they're HTML, as `--details` is.  Prove:
   `yarn plan-doc add-phase x "A" --goal "write <Project>.js"`, then look at the `#p1` body.
+- Every plan doc's phase "Estimate" line has a blank icon:  `PHASE_FIELDS` in `scripts/plan-doc.js` gives it
+  `clock`, which isn't in `ICONS` in `scripts/bundle-spell-ui.js` (only `clock rotate left` is).  Prove:
+  `node scripts/check-spell.js epics/isolate-changes/isolate-changes.html` notes "5 icon(s) with no <svg> drawn",
+  all `ui-item[clock]`.  Fix:  add `solid/clock` to `ICONS`, then `yarn docs:update`.
 
 ## server
 

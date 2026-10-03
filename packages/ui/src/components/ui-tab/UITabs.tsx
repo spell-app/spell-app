@@ -23,7 +23,7 @@ import menuCSS from "$/ui/components/ui-menu/ui-menu.css?inline"
 import tabCSS from "./ui-tab.css?inline"
 import { MENU_NOUN } from "./ui-tab.types"
 import type { TabsVocabulary, TabOwner, TabPaneState } from "./ui-tab.types"
-import { NONE, TABLIST, TAB, HASHCHANGE, POPSTATE, TAB_SELECTOR, PANE_NOUN } from "./ui-tab.types"
+import { NONE, TABLIST, TAB, HASHCHANGE, POPSTATE, TAB_SELECTOR, PANE_NOUN, PANE_ID } from "./ui-tab.types"
 import {
   VERTICAL,
   TRUE,
@@ -84,6 +84,13 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
   /** Builds the tab list's classes:  this vocabulary's words, Fomantic's noun `menu`. */
   @proto static menuBuilder = new ClassBuilder({ ...tabsVocabulary, noun: MENU_NOUN })
 
+  /**
+   * Options of a memo that reads OTHER elements' controllers:  `lazy` on a server only.
+   * - Why:  a server memo computes ONCE, and a static render (`$/ui/server`) builds controllers in document order,
+   *   so an eager memo here would see panes without controllers;  lazy, it first computes at render time.
+   */
+  static readonly serverLazy = { lazy: isServer }
+
   ////////////////
   // ## State
   ////////////////
@@ -95,7 +102,7 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
   readonly ariaLabel = new HostAttribute(this.host, ARIA_LABEL)
 
   /** Pane hosts among the children (upgraded or not);  notifies on every read of the children. */
-  readonly panes = new Cell<readonly UIHost[]>(isServer ? [] : this.readPanes(), { equals: false })
+  readonly panes = new Cell<readonly UIHost[]>(this.readPanes(), { equals: false })
 
   /** Value of the pane ON SCREEN:  follows `selectedValue()`, inside a View Transition when there is one. */
   readonly shownValue = new Cell<string | undefined>(undefined)
@@ -116,13 +123,20 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
   // ## Derived state
   ////////////////
 
-  /** Upgraded panes, in order:  the tabs. */
+  /**
+   * Upgraded panes, in order:  the tabs.
+   * - `lazy` on a server, as are the memos below that read the panes' controllers (`serverLazy`).
+   */
   readonly tabs = createMemo(() => this.panes.get().filter((pane) => pane.controller instanceof UITab), {
-    equals: UITabs.sameList
+    equals: UITabs.sameList,
+    ...UITabs.serverLazy
   })
 
   /** Each tab's value:  its `value`, else its index. */
-  readonly values = createMemo(() => this.tabs().map((pane, index) => UITabs.tab(pane).attrs.value ?? String(index)))
+  readonly values = createMemo(
+    () => this.tabs().map((pane, index) => UITabs.tab(pane).attrs.value ?? String(index)),
+    UITabs.serverLazy
+  )
 
   /** The selected value (see class docs). */
   readonly selectedValue = createMemo((): string | undefined => {
@@ -133,13 +147,13 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
     const chosen = tabs.findIndex((tab) => tab.ownSelected() && !tab.attrs.disabled)
     const first = chosen >= 0 ? chosen : tabs.findIndex((tab) => !tab.attrs.disabled)
     return first >= 0 ? values[first] : undefined
-  })
+  }, UITabs.serverLazy)
 
   /** Index of the selected tab, or -1. */
-  readonly selectedIndex = createMemo(() => this.values().indexOf(this.selectedValue() ?? NONE))
+  readonly selectedIndex = createMemo(() => this.values().indexOf(this.selectedValue() ?? NONE), UITabs.serverLazy)
 
   /** The pane on screen. */
-  readonly displayed = createMemo(() => this.shownValue.get() ?? this.selectedValue())
+  readonly displayed = createMemo(() => this.shownValue.get() ?? this.selectedValue(), UITabs.serverLazy)
 
   /** The tab list's edge:  `top` / `bottom` when `attached` (bare ~== `top`);  never while `vertical`. */
   readonly menuEdge = createMemo((): "top" | "bottom" | undefined => {
@@ -241,7 +255,12 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
     )
   }
 
-  /** One tab:  a `<button role="tab">` in the menu's item grammar, controlling `pane`. */
+  /**
+   * One tab:  a `<button role="tab">` in the menu's item grammar, controlling `pane`.
+   * - `aria-controls`:  element reflection in a browser;  in a server render (`$/ui/server`), the pane's id.
+   *   SIDE EFFECT there:  gives the pane (the render's parsed copy) an id if it has none, which the static output
+   *   keeps.
+   */
   private renderTab(pane: UIHost, index: Accessor<number>): JSX.Element {
     const tab = UITabs.tab(pane)
     const selected = () => index() === this.selectedIndex()
@@ -255,6 +274,7 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
         part={this.part("tab")}
         aria-selected={selected() ? TRUE : FALSE}
         aria-disabled={tab.attrs.disabled ? TRUE : undefined}
+        aria-controls={isServer ? UI.ids.ensure(pane, PANE_ID) : undefined}
         onClick={(event: MouseEvent) => this.select(pane, event)}
       >
         <Show when={glyph.svg()}>
@@ -433,7 +453,8 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
 
   /** Queue `refreshPanes()` once:  it writes a signal, so never from the tracked scope that asked. */
   private queueRefresh() {
-    if (this.refreshQueued) return
+    // a server render reads every pane before it renders, and writes nothing after
+    if (isServer || this.refreshQueued) return
     this.refreshQueued = true
     queueMicrotask(() => {
       this.refreshQueued = false

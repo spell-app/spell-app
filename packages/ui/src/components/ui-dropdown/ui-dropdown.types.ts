@@ -22,6 +22,9 @@ export const ID_PREFIX = "ui-dropdown"
 /** Placeholder in the `addItem` text. */
 export const VALUE_PLACEHOLDER = "{value}"
 
+/** Hidden input carrying the value in a static server render:  `type`. */
+export const HIDDEN = "hidden"
+
 /**
  * Class words of the markup contract (`ui-dropdown.css`) -- grammar, not attributes, so not in the vocabulary.
  * - NOTE: `active` === chosen, `selected` === highlighted:  Fomantic's meanings.

@@ -189,6 +189,16 @@ describe("<ui-list> items adopt ui-list.css and style by owner", () => {
     expect(content.getBoundingClientRect().left).toBeGreaterThanOrEqual(icon.getBoundingClientRect().right - 1)
   })
 
+  it("draws the `icon` shorthand's glyph 1em high, its width from its aspect (not the cell's 20px)", async () => {
+    const { items } = await list("", `<ui-item icon="location dot">Address</ui-item>`)
+    const icon = boxOf(items[0]!).querySelector(".icon")!
+    await expect.poll(() => icon.querySelector("svg path")).not.toBeNull()
+    const glyph = icon.querySelector("svg")!.getBoundingClientRect()
+    expect(glyph.height).toBeCloseTo(16, 0)
+    // `location dot` is 384 x 512
+    expect(glyph.width).toBeCloseTo(12, 0)
+  })
+
   it("keeps plain text beside the `icon` shorthand", async () => {
     const { items } = await list("", `<ui-item icon="circle question">Inline Text</ui-item>`)
     const icon = boxOf(items[0]!).querySelector(".icon")!

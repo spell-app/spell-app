@@ -35,7 +35,7 @@ export class UIProgress extends UIElement<typeof progressVocabulary> {
   @proto static delegatesFocus = false
 
   /** Host text (slotted label), re-read when it changes. */
-  readonly hostText = new Cell(isServer ? "" : (this.host.textContent ?? "").trim())
+  readonly hostText = new Cell((this.host.textContent ?? "").trim())
 
   /** The numbers, from `value` / `total` / `percent` / `precision`. */
   readonly numbers = createMemo(
@@ -128,7 +128,8 @@ export class UIProgress extends UIElement<typeof progressVocabulary> {
 
   /** Adds the internals (ARIA value, range, name) and the change events. */
   mount(): JSX.Element {
-    createEffect(
+    // `hostEffect`:  a server render (`$/ui/server`) applies it too
+    this.hostEffect(
       () => (this.loaded() ? this.aria() : undefined),
       (aria) => {
         if (!aria) return

@@ -4,7 +4,8 @@
  * - `start` / `ensure` -- start it in the background if it isn't running;  prints JSON `{ base, port, pid, root,
  *   launched }`
  * - `stop` -- stop it;  `status` -- JSON, or exit 1 when not running
- * - `url <file>` -- `ensure`, then print the URL that serves `file`
+ * - `url <file>` -- `ensure`, then print the URL that serves `file`;  a worktree's file:  on the MAIN checkout's
+ *   server (`/worktrees/<w>/...`) when that one runs and serves worktrees (`SRV.mainServerUrl()`)
  * - `--root <dir>`:  the checkout (default:  the one holding the folder `yarn` ran in, `INIT_CWD`)
  * - Runs under `tsx` with THIS package's `tsconfig.json`, so `$/...` aliases resolve:  a background server is
  *   started the same way (`TSX_TSCONFIG_PATH`), whatever folder it's started from.
@@ -47,8 +48,12 @@ async function main(args: string[]): Promise<void> {
     case "url": {
       const file = rest.find((arg) => !arg.startsWith("--") && arg !== flag(rest, "--root"))
       if (!file) throw new Error("usage:  yarn server url <file>")
+      const absolute = resolve(process.env.INIT_CWD ?? process.cwd(), file)
+      // a worktree's file:  the MAIN checkout's server, when it serves worktrees, so every link is on one port
+      const main = await SRV.mainServerUrl(absolute)
+      if (main) return console.log(main)
       const { base } = await PageServer.ensure(root, port)
-      const path = relative(root, resolve(process.env.INIT_CWD ?? process.cwd(), file))
+      const path = relative(root, absolute)
       return console.log(`${base}/${path.split(sep).map(encodeURIComponent).join("/")}`)
     }
     default:

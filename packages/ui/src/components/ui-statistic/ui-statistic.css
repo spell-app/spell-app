@@ -90,6 +90,15 @@
     display: block;
     container: ui-statistics / inline-size;
   }
+  /*
+   * A group's outer top margin sits on the HOST:  a size container is its own formatting context, so a margin on
+   * the root inside it never collapses with the heading above, as class grammar's does.  `:state(spaced)`:  the
+   * group keeps Fomantic's `1em` (not `horizontal`, no `widths`, whose roots zero it).  The root's own top margin is
+   * always `0` in the shadow root (`.ui.statistics:first-child` below:  it is an only child there).
+   */
+  :host(:state(spaced):not(:first-child)) {
+    margin-block-start: 1em;
+  }
   :host([hidden]) {
     display: none;
   }
@@ -159,6 +168,21 @@
     }
     :host(:last-child) > .ui.statistic,
     .ui.statistic:last-child {
+      margin-bottom: 0;
+    }
+    /*
+     * Shadow DOM:  the root is always an only child, so the class-grammar `:first-child` / `:last-child` above
+     * always match there;  the HOST's position decides instead:  the full margin back, then the edges it loses.
+     * - `:not([data-ui])`:  a static server render's root (`$/ui/server`) is a real child, which the rules above
+     *   already space as class grammar.
+     */
+    :host(:not(:nth-child(n + 2 of :state(statistic)))) > .ui.statistic:not([data-ui]) {
+      margin: var(--_ui-statistic-margin);
+    }
+    :host(:first-child:not(:nth-child(n + 2 of :state(statistic)))) > .ui.statistic:not([data-ui]) {
+      margin-top: 0;
+    }
+    :host(:last-child:not(:nth-child(n + 2 of :state(statistic)))) > .ui.statistic:not([data-ui]) {
       margin-bottom: 0;
     }
   }
@@ -283,6 +307,10 @@
   :host(:last-child) > .ui.floated.statistic,
   .ui.floated.statistic:last-child {
     margin-bottom: 0;
+  }
+  /* Shadow DOM:  the root is always a last child (above), so the HOST's position decides. */
+  :host(:not(:last-child)) > .ui.floated.statistic:not([data-ui]) {
+    margin-bottom: var(--_ui-statistic-row-spacing);
   }
 
   /* Evenly divided:  each member at least 1/N of the row. */

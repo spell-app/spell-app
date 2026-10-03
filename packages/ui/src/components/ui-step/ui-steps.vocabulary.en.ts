@@ -96,7 +96,16 @@ export const stepsVocabulary = {
   slots: [{ name: "", description: "`<ui-step>`s." }],
   parts: [{ name: "steps", description: "The group box (an `<ol>`)." }],
   states: [
-    { name: "steps", description: "ALWAYS set:  the host is a block and the size container `stackable` answers." }
+    { name: "steps", description: "ALWAYS set:  the host is a block and the size container `stackable` answers." },
+    {
+      name: "block",
+      description:
+        "Set while the group is block-level (`fluid`, or `circular` and not `vertical`):  the HOST carries its outer margin, so it collapses with the content above."
+    },
+    {
+      name: "circular",
+      description: "Set while `circular`:  with `block`, the host keeps both margins, even first or last."
+    }
   ],
   texts: []
 } as const satisfies ComponentVocabulary

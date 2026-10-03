@@ -22,6 +22,22 @@ export type MomentFields = {
   minute?: number
 }
 
+/**
+ * A moment's fields, all of them:  what formatting reads (`CalendarDates.epoch()`).
+ * - A `Moment` is one;  a server render builds one from the ISO value by hand (`CalendarDates.isoFields()`),
+ *   without `Temporal`.
+ */
+export type MomentLike = Required<MomentFields>
+
+/** ISO forms a server render reads by hand, by calendar type (`CalendarDates.isoFields()`). */
+export const ISO_FORMS: Record<UIT.CalendarType, RegExp> = {
+  year: /^(\d{1,6})$/,
+  month: /^(\d{4,6})-(\d{2})$/,
+  date: /^(\d{4,6})-(\d{2})-(\d{2})$/,
+  datetime: /^(\d{4,6})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/,
+  time: /^(\d{2}):(\d{2})/
+}
+
 /** Options of `CalendarDates.modes()`:  the `disable-*` attributes. */
 export type ModeOptions = {
   disableMinute?: boolean
@@ -204,6 +220,9 @@ export const DEFAULT_POSITION = "bottom left"
 
 /** `UI.ids` prefix. */
 export const ID_PREFIX = "ui-calendar"
+
+/** Hidden input carrying an inline calendar's value in a static server render:  `type`. */
+export const HIDDEN = "hidden"
 
 /** Inline custom property naming the field's anchor (`ui-calendar.css`). */
 export const ANCHOR_PROPERTY = "--_ui-calendar-anchor"

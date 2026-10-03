@@ -1,6 +1,8 @@
+import { isServer } from "@solidjs/web"
+
 import { UIT } from "$/ui/core"
 
-import { WINDOW } from "./ui-root.types"
+import { SERVER_LENGTH, WINDOW } from "./ui-root.types"
 
 /****************
  * ### `RootBox`
@@ -10,7 +12,7 @@ import { WINDOW } from "./ui-root.types"
  *   inline `style`:  the host's `style` attribute is the author's.  Not a host state either:  the token is read by
  *   style queries inside `@media`, which a `:state()` rule left stale in WebKit (`UIT.STACK_WITH_CLASS`).
  * - Lengths are checked with `CSS.supports()`, `stack-with` against its values, so an attribute can never inject
- *   other declarations.
+ *   other declarations;  a static server render (no `CSS` in node) checks lengths against `SERVER_LENGTH` instead.
  ****************/
 export class RootBox {
   /** Created on first use (never on the server). */
@@ -61,6 +63,7 @@ export class RootBox {
     const trimmed = value?.trim()
     if (!trimmed) return undefined
     if (trimmed === WINDOW) return viewport
+    if (isServer) return SERVER_LENGTH.test(trimmed) ? trimmed : undefined
     return CSS.supports(property, trimmed) ? trimmed : undefined
   }
 }

@@ -19,8 +19,13 @@ export class UIStatistics extends UIElement<typeof statisticsVocabulary> {
   @proto static styles = { statistic: statisticCSS }
   @proto static delegatesFocus = false
 
+  /**
+   * `statistics` always;  `spaced` unless `horizontal` or `widths`, whose roots have no top margin.
+   * - Why:  the host is a size container (its own formatting context), so the group's top margin sits on the HOST
+   *   to collapse with the content above, as class grammar's does (`ui-statistic.css`).
+   */
   protected hostStates() {
-    return { statistics: true }
+    return { statistics: true, spaced: !this.attrs.horizontal && !this.attrs.widths }
   }
 
   /** `stack-with`'s class (`UIT.StackClasses`). */

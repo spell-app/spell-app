@@ -43,6 +43,9 @@ import {
  * - `ui-valid` / `ui-invalid` fire per field validated;  `values` / `validate()` / `isValid()` / `reset()` /
  *   `clear()` are on the host (`UIFormHost`).
  * - `prevent-leaving`:  a `beforeunload` guard while the values differ from those at connect / reset / success.
+ * - Static server render (`$/ui/server`):  a `<form>` slotted inside it MERGES into the root, which becomes
+ *   `<form class="ui … form">` with the author's attributes (`mergedForm`):  Fomantic's own markup, so the form's
+ *   rules reach its fields and messages, and the page still submits natively.  A form around it stays as it is.
  ****************/
 export class UIForm extends UIElement<Vocabulary> {
   @proto static vocabulary = formVocabulary
@@ -68,6 +71,12 @@ export class UIForm extends UIElement<Vocabulary> {
 
   /** Validation deferred to after the controls settle, by field. */
   private readonly pending = new Set<string>()
+
+  /**
+   * Server render only:  attributes of the author's `<form>` merged into the root, `undefined` when there's none.
+   * - SIDE EFFECT:  unwraps that form in the host's light DOM, so its children fill the root's slot.
+   */
+  private readonly mergedForm = isServer ? UIForm.unwrapForm(this.host) : undefined
 
   ////////////////
   // ## Element hooks
@@ -106,6 +115,7 @@ export class UIForm extends UIElement<Vocabulary> {
   ////////////////
 
   render(): JSX.Element {
+    if (this.mergedForm) return this.formRoot(this.mergedForm)
     return (
       <div
         class={this.classes()}
@@ -115,6 +125,22 @@ export class UIForm extends UIElement<Vocabulary> {
       >
         <slot />
       </div>
+    )
+  }
+
+  /** Server render:  the root as the author's `<form>`, its attributes kept, its class after ours. */
+  private formRoot(attributes: Record<string, string>): JSX.Element {
+    const { class: authorClass, ...rest } = attributes
+    return (
+      <form
+        {...rest}
+        class={[this.classes(), authorClass]}
+        part={this.part("form")}
+        inert={this.attrs.disabled || this.attrs.loading}
+        aria-busy={this.attrs.loading ? "true" : undefined}
+      >
+        <slot />
+      </form>
     )
   }
 
@@ -364,6 +390,18 @@ export class UIForm extends UIElement<Vocabulary> {
   private focusFirst(identifiers: readonly string[]) {
     const field = this.fields.fields().find((candidate) => identifiers.includes(candidate.identifier))
     ;(field?.controls[0] as HTMLElement | undefined)?.focus()
+  }
+
+  /**
+   * Server render:  the author's `<form>`, when it is the host's only element child, unwrapped (its children take
+   * its place);  returns its attributes, else `undefined`.
+   */
+  private static unwrapForm(host: Element): Record<string, string> | undefined {
+    const [form, ...others] = host.children
+    if (!form || others.length || form.localName !== FORM) return undefined
+    const attributes = Object.fromEntries([...form.attributes].map(({ name, value }) => [name, value]))
+    form.replaceWith(...form.childNodes)
+    return attributes
   }
 
   /** Put a control back to its starting value (no native form to reset it). */

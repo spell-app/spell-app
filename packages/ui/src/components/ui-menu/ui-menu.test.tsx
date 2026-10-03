@@ -185,6 +185,32 @@ describe("<ui-menu> semantics", () => {
     expect(box.querySelector("[part~=icon]")).not.toBeNull()
   })
 
+  it.each([
+    ["", "Inbox"],
+    ["vertical text", ""]
+  ])(
+    "<ui-menu %s> draws an item's `icon` shorthand 1em high (the glyph is the icon slot's fallback)",
+    async (attributes, text) => {
+      const { items } = await menu(attributes, `<ui-item href="#i" icon="inbox" aria-label="Inbox">${text}</ui-item>`)
+      const icon = boxOf(items[0]!).querySelector("[part~=icon]")!
+      await expect.poll(() => icon.querySelector("svg path")).not.toBeNull()
+      const glyph = icon.querySelector("svg")!.getBoundingClientRect()
+      expect(glyph.height).toBeCloseTo(16, 0)
+      expect(glyph.width).toBeGreaterThan(0)
+    }
+  )
+
+  it("keeps a top-level menu's 1em vertical margins by its HOST's position (the root is an only child)", async () => {
+    const holder = await ElementFixture.render(
+      `<div><h4>Heading</h4><ui-menu aria-label="A">${LINKS}</ui-menu><ui-menu aria-label="B">${LINKS}</ui-menu></div>`
+    )
+    const [first, second] = [...holder.querySelectorAll<UIHost>("ui-menu")].map((host) =>
+      getComputedStyle(host.shadowRoot!.querySelector("[part~=menu]")!)
+    )
+    expect([first!.marginTop, first!.marginBottom]).toEqual(["16px", "16px"])
+    expect([second!.marginTop, second!.marginBottom]).toEqual(["16px", "0px"])
+  })
+
   it("renders a nested <ui-menu> as a sub-menu:  no `ui`, its position, its items owned", async () => {
     const { host } = await menu(
       "",

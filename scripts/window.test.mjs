@@ -175,7 +175,7 @@ test("resume():  opens the session in the target window, then closes its tab, or
     assert.deepEqual(await Window.resume(tab, "isolate-me"), expected)
     assert.deepEqual(seen.splice(0), [
       ["/open-session", { sessionId: SESSION }],
-      ["/close-session-tab", { title: "isolate-me" }]
+      ["/close-session-tab", { titles: ["isolate-me"] }]
     ])
     // a doc asked for while the move was pending:  shown beside the session, before the old tab closes
     const show = { file: "/plan.html", hash: "p2" }
@@ -183,8 +183,17 @@ test("resume():  opens the session in the target window, then closes its tab, or
     assert.deepEqual(seen.splice(0), [
       ["/open-session", { sessionId: SESSION }],
       ["/show-doc", show],
-      ["/close-session-tab", { title: "isolate-me" }]
+      ["/close-session-tab", { titles: ["isolate-me"] }]
     ])
+    // a prompt to type into the new tab, and every title the old tab may show
+    assert.equal((await Window.resume({ ...tab, prompt: "continue" }, ["iso", "Claude's title"])).closed, true)
+    assert.deepEqual(seen.splice(0), [
+      ["/open-session", { sessionId: SESSION, prompt: "continue" }],
+      ["/close-session-tab", { titles: ["iso", "Claude's title"] }]
+    ])
+    // no title at all:  the old tab can't be found, so stays
+    assert.equal((await Window.resume(tab)).closed, false)
+    assert.deepEqual(seen.splice(0), [["/open-session", { sessionId: SESSION }]])
     const window = { ...tab, close: "window", remove }
     assert.equal((await Window.resume(window)).closed, true)
     assert.deepEqual(seen.splice(0), [
@@ -208,7 +217,9 @@ test("handoff():  records the move, keyed by session;  needs a session and the w
     const handoff = Window.handoff(name, SESSION)
     assert.equal(handoff.to, Window.worktreeFile(name))
     assert.equal(handoff.close, "tab")
+    assert.equal(handoff.prompt, null)
     assert.deepEqual(JSON.parse(readFileSync(Window.handoffFile(SESSION), "utf8")), handoff)
+    assert.equal(Window.handoff(name, SESSION, { prompt: "continue" }).prompt, "continue")
     // not in the worktree's window:  nothing to move back
     assert.equal(Window.handoff(name, SESSION, { back: true }), null)
     const worktree = { pid: process.ppid, port: 1, token: "t", folders: [], workspaceFile: Window.worktreeFile(name) }

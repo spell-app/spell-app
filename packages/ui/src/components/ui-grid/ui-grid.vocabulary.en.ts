@@ -122,6 +122,11 @@ export const gridVocabulary = {
   events: [],
   slots: [{ name: "", description: "`<ui-row>`s and `<ui-column>`s." }],
   parts: [{ name: "grid", description: "The grid box (the flex container)." }],
-  states: [],
+  states: [
+    {
+      name: "celled",
+      description: "Set while `celled` with its outer box (not `internally`):  the HOST carries the box's outer margin."
+    }
+  ],
   texts: []
 } as const satisfies ComponentVocabulary

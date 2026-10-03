@@ -5251,7 +5251,12 @@
           "description": "The grid box (the flex container)."
         }
       ],
-      "states": [],
+      "states": [
+        {
+          "name": "celled",
+          "description": "Set while `celled` with its outer box (not `internally`):  the HOST carries the box's outer margin."
+        }
+      ],
       "texts": [],
       "mainTag": "ui-grid",
       "main": true,
@@ -12149,6 +12154,10 @@
         {
           "name": "statistics",
           "description": "ALWAYS set:  the group's host is a block and the `ui-statistics` container."
+        },
+        {
+          "name": "spaced",
+          "description": "Set unless `horizontal` or `widths`:  the group keeps Fomantic's 1em top margin, which the HOST carries (so it collapses with the content above)."
         }
       ],
       "texts": [],
@@ -12459,6 +12468,14 @@
         {
           "name": "steps",
           "description": "ALWAYS set:  the host is a block and the size container `stackable` answers."
+        },
+        {
+          "name": "block",
+          "description": "Set while the group is block-level (`fluid`, or `circular` and not `vertical`):  the HOST carries its outer margin, so it collapses with the content above."
+        },
+        {
+          "name": "circular",
+          "description": "Set while `circular`:  with `block`, the host keeps both margins, even first or last."
         }
       ],
       "texts": [],
@@ -12980,7 +12997,20 @@
           "description": "Box around the slotted table;  scrolls (a focusable, named region) with `scrolling` / `overflowing`."
         }
       ],
-      "states": [],
+      "states": [
+        {
+          "name": "attached",
+          "description": "Set while `attached` (any edge):  the host drops the outer margin it carries."
+        },
+        {
+          "name": "attached-top",
+          "description": "Set while `attached` is `top`:  the host keeps only its top margin."
+        },
+        {
+          "name": "attached-bottom",
+          "description": "Set while `attached` is `bottom`:  the host keeps only its bottom margin."
+        }
+      ],
       "texts": [
         {
           "key": "label",

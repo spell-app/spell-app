@@ -68,7 +68,12 @@ export const statisticsVocabulary = {
   slots: [{ name: "", description: "`<ui-statistic>`s." }],
   parts: [{ name: "group", description: "The group box." }],
   states: [
-    { name: "statistics", description: "ALWAYS set:  the group's host is a block and the `ui-statistics` container." }
+    { name: "statistics", description: "ALWAYS set:  the group's host is a block and the `ui-statistics` container." },
+    {
+      name: "spaced",
+      description:
+        "Set unless `horizontal` or `widths`:  the group keeps Fomantic's 1em top margin, which the HOST carries (so it collapses with the content above)."
+    }
   ],
   texts: []
 } as const satisfies ComponentVocabulary

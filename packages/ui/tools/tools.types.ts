@@ -309,3 +309,84 @@ export type IconPackReport = {
   /** unsafe files indexed anyway (`unsafe: "allow"`), with why */
   allowed: IconPackProblem[]
 }
+
+////////////////
+// ## Static pages (`StaticDocument`, `spell static`)
+////////////////
+
+/** How `StaticDocument.render()` treats one page's stylesheet. */
+export type StaticDocumentOptions = {
+  /**
+   * Link the stylesheet at this URL, relative to the page (`page.static.css`).
+   * - Left out:  the page's stylesheet goes INLINE, in a `<style>`.
+   */
+  href?: string
+  /**
+   * One stylesheet for several pages, built once they've all rendered (`StaticDocument.stylesheet()`):  no `css` in
+   * the result, and what pages adopt adds up from page to page.
+   * - MUST come with `href`.
+   */
+  shared?: boolean
+  /** Minify the stylesheet (`StaticDocument.minify()`);  default `true`. */
+  minify?: boolean
+  /**
+   * The page's file (absolute):  its LOCAL linked stylesheets are read from beside it and rewritten for the static
+   * output (`StaticDocument.inlineLinkedSheets()`).  Left out:  links stay as they are.
+   */
+  input?: string
+  /** Where the page is written (absolute):  `url()`s in an inlined sheet are made relative to it;  default `input`. */
+  output?: string
+}
+
+/** One page `StaticDocument.render()` turned static. */
+export type StaticDocumentResult = {
+  /** the whole document */
+  html: string
+  /** its own stylesheet, as linked or inlined;  none when `shared` */
+  css?: StaticStylesheetResult
+  /** `ui-*` tags rendered, e.g. `ui-card` */
+  tags: string[]
+  /** `ui-*` tags left as they were, with how many:  no family for them in `StaticCatalog` (`ui-code`) */
+  unrendered: Record<string, number>
+  /** each element-loading `<script>` / `<link rel="modulepreload">` removed:  its `src` / `href`, or `inline` */
+  dropped: string[]
+  /** each local linked stylesheet rewritten and inlined (`StaticDocument.inlineLinkedSheets()`):  its `href` */
+  inlined: string[]
+}
+
+/**
+ * What `server.ssrLoadModule(StaticRenderer.DOCUMENT)` resolves to:  `StaticDocument`'s API.
+ * - Why a type of its own:  `packages/cli` can't type-check `StaticDocument.ts` itself, which reaches every family's
+ *   Solid JSX.
+ */
+export type StaticDocumentModule = {
+  StaticDocument: {
+    render(html: string, options?: StaticDocumentOptions): Promise<StaticDocumentResult>
+    stylesheet(tags: Iterable<string>, minify?: boolean, coverage?: StaticCoverage): StaticStylesheetResult
+  }
+}
+
+/** A static stylesheet, as `StaticDocument.stylesheet()` built it. */
+export type StaticStylesheetResult = {
+  /** the CSS, minified unless asked not to */
+  text: string
+  /** its size before minifying, in bytes */
+  fullSize: number
+  /** why minifying fell back to stripping comments and blank lines, if it did */
+  minifyFallback?: string
+  /** what it covers:  every tag it styles and what they adopt -- for the next run to build on */
+  coverage: StaticCoverage
+}
+
+/**
+ * What a shared stylesheet covers, so a later run that renders only SOME of its pages still builds one that styles
+ * them all (`spell static` keeps it in the sheet's first line).
+ */
+export type StaticCoverage = {
+  /** every tag the sheet styles, e.g. `ui-card` */
+  tags: string[]
+  /** sheet name => nouns seen adopting it (`StaticRender.sheetUsage.users`) */
+  users: Record<string, string[]>
+  /** adoption orders seen (`StaticRender.sheetUsage.orders`) */
+  orders: string[][]
+}

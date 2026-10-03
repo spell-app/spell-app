@@ -396,6 +396,18 @@
                   </tr>
                   <tr>
                     <td>
+                      <a href="../server/src/mainServer.ts" target="src-packages-server-src-mainserver-ts"
+                        ><code>mainServer.ts</code></a
+                      >
+                    </td>
+                    <td>
+                      <code>mainServerUrl(file)</code>: a worktree's file on the MAIN checkout's server
+                      (<code>/worktrees/&lt;w&gt;/...</code>), when it runs and serves worktrees;
+                      <code>worktreePath(file)</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
                       <a href="../server/src/WebServer.ts" target="src-packages-server-src-webserver-ts"
                         ><code>WebServer.ts</code></a
                       >
@@ -435,6 +447,15 @@
                   ><code>PageEditor.ts</code></a
                 >
                 -- <code>/_server/page</code>: read, replace or patch a page's source
+              </li>
+              <li>
+                <a href="../server/src/page/RunningEpics.ts" target="src-packages-server-src-page-runningepics-ts"
+                  ><code>RunningEpics.ts</code></a
+                >
+                -- running epics' plan docs on the main checkout's server: <code>/worktrees/&lt;w&gt;/</code>,
+                <code>/_server/epics</code>, and the docs index's "Running epics" section (<a href="#running-epics-flow"
+                  >Running epics</a
+                >)
               </li>
               <li>
                 <a href="../server/src/page/cli.ts" target="src-packages-server-src-page-cli-ts"><code>cli.ts</code></a>
@@ -690,7 +711,11 @@
                 </ul>
               </li>
               <li>
-                <code>DocPreview</code> finds the file's checkout: the folder holding
+                A worktree's file: the MAIN checkout's page server first, when it runs and serves worktrees
+                (<code>SRV.mainServerUrl()</code>), so a running epic's plan doc shows on the one port every link uses.
+              </li>
+              <li>
+                Else <code>DocPreview</code> finds the file's checkout: the folder holding
                 <a href="../../.git" target="src-git"><code>.git</code></a> above it. Pages are served from the root,
                 since docs link all over the repo.
               </li>
@@ -711,6 +736,41 @@
                 scripts that open docs start it first.
               </li>
             </ul>
+          </ui-section>
+
+          <ui-section id="running-epics-flow" header="Running epics" sticky collapsible dividing>
+            <p>
+              An epic's plan doc lives in its worktree until it merges, and each worktree has its own page server. The
+              main checkout's server shows them all anyway:
+            </p>
+            <ol>
+              <li>
+                <code>/worktrees/&lt;w&gt;/...</code> serves worktree <code>&lt;w&gt;</code>'s files (a
+                <code>StaticHandler</code> mount on <code>.claude/worktrees</code>; dot files still 403). A plan doc's
+                relative assets resolve inside its own worktree.
+              </li>
+              <li>
+                <code>/_server/epics</code> lists them, as JSON: each worktree's own epic (named like the worktree), and
+                any epic the main checkout lacks. Copies of epics merged before the worktree was cut are skipped.
+              </li>
+              <li>
+                The docs index's <code>&lt;!-- running-epics --&gt;</code> marker becomes a "Running epics" section on
+                each request: one card per epic, its badge the active phase, "planning", a count, or "done". None
+                running, or opened from disk: nothing.
+              </li>
+              <li>
+                A worktree's plan doc changing reloads its page and the index (one recursive watch on
+                <code>.claude/worktrees</code>).
+              </li>
+              <li>
+                <code>yarn server url</code> and the VS Code preview hand out these URLs for a worktree's file
+                (<code>SRV.mainServerUrl()</code>), so every link is on port 4747.
+              </li>
+              <li>
+                <code>yarn plan-doc</code> doesn't rewrite the committed index inside a worktree: two worktrees doing so
+                conflicted on merge. The epic's card comes with Doc Review's <code>yarn docs:index</code>.
+              </li>
+            </ol>
           </ui-section>
 
           <ui-section id="spell-serve" header="spell serve" sticky collapsible dividing>
@@ -1165,6 +1225,24 @@ export default goalsRoutes</code></pre>
               <li>"Open in VS Code" opens in the LAST FOCUSED VS Code window, not this session's.</li>
               <li>The header's theme toggle and the Spell UI site's can disagree.</li>
               <li>The editor has no site header, and the Editor tab leaves the page server's origin.</li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="limits-epics" header="Running epics" sticky collapsible dividing>
+            <ul>
+              <li>
+                No edit mode on a worktree's page through the main server: <code>PageEditor</code> refuses dot paths
+                too. The worktree's own server edits it.
+              </li>
+              <li>
+                A main server started before this code (an old checkout, not restarted) has no
+                <code>/worktrees/</code>: <code>mainServerUrl()</code> checks <code>/_server/epics</code> first, and
+                links fall back to the worktree's own server.
+              </li>
+              <li>
+                Phases are read by pattern (the server is a leaf: no HTML parser): a plan doc whose phase tags lose
+                <code>data-phase</code> / <code>data-status</code> shows as "planning".
+              </li>
             </ul>
           </ui-section>
 

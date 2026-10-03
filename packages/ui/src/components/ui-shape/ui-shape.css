@@ -170,6 +170,13 @@
   :host(:state(inactive)) {
     display: none;
   }
+  /*
+   * Its face too, for a server render (`$/ui/server`), whose root is host and face at once:  there the host rule's
+   * `display` is dropped (it was the host box's).  In the element it changes nothing:  the host is already hidden.
+   */
+  :host(:state(inactive)) > .side {
+    display: none;
+  }
 
   /* Animating:  the box turns, the incoming side is staged absolutely over it. */
   .ui.shape.animating .sides {
