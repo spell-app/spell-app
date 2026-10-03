@@ -6,7 +6,7 @@
     <title>How Spell Docs Work</title>
     <meta
       name="description"
-      content="How spell's docs are built and written -- pages on @spell-app/ui, templates, the docs index -- and how /plan-doc keeps a live plan doc for each planning session."
+      content="How spell's docs are built and written -- pages on @spell-app/ui, templates, the docs index -- and how /epic keeps a live plan doc for each planning session."
     />
     <link rel="stylesheet" href="../_assets/spell-doc.css" />
   </head>
@@ -17,14 +17,14 @@
         <h1>How Spell Docs Work</h1>
         <p class="lede">
           Spell's docs are plain HTML pages that render with @spell-app/ui, open straight from disk, and come in a few
-          kinds, each with a template. Planning sessions get their own kind: a live plan doc that <code>/plan-doc</code>
+          kinds, each with a template. Planning sessions get their own kind: a live plan doc that <code>/epic</code>
           keeps current while the work happens.
         </p>
         <ul>
           <li>Written for: anyone writing a doc, or running a planning session with Claude Code</li>
           <li>
             The rules, for agents: <a href="../AGENTS.md" target="src-packages-docs-agents-md">AGENTS.md</a> and
-            <a href="../templates/plans/plan-doc.md" target="src-packages-docs-templates-plans-plan-doc-md"
+            <a href="../templates/epics/plan-doc.md" target="src-packages-docs-templates-epics-plan-doc-md"
               >plan-doc.md</a
             >. The mechanics, distilled:
             <a href="spell-docs.md" target="src-packages-docs-spell-docs-spell-docs-md">spell-docs.md</a>.
@@ -43,7 +43,7 @@
             </li>
             <li>Start every page from a template: durable doc, cheat sheet or plan.</li>
             <li>
-              <code>/plan-doc &lt;name&gt;</code> runs a planning session in its own worktree and keeps a plan doc that
+              <code>/epic &lt;name&gt;</code> runs a planning session in its own worktree and keeps a plan doc that
               shows phases, open questions, issues, caveats and decisions as they change.
             </li>
             <li>The last phase of every plan turns the plan doc into durable docs.</li>
@@ -84,11 +84,11 @@
                   <td>plan doc</td>
                   <td>one planning session, kept live</td>
                   <td>
-                    <a href="../templates/plans/plan.html" target="src-packages-docs-templates-plans-plan-html"
-                      ><code>templates/plans/plan.html</code></a
+                    <a href="../templates/epics/plan.html" target="src-packages-docs-templates-epics-plan-html"
+                      ><code>templates/epics/plan.html</code></a
                     >
                   </td>
-                  <td><code>plans/&lt;name&gt;/&lt;name&gt;.html</code></td>
+                  <td><code>epics/&lt;name&gt;/&lt;name&gt;.html</code></td>
                 </tr>
               </tbody>
             </table>
@@ -201,7 +201,7 @@
           </ui-message>
         </ui-section>
 
-        <ui-section id="5-plan-docs" header="5. Plan docs and /plan-doc" sticky collapsible dividing>
+        <ui-section id="5-plan-docs" header="5. Plan docs and /epic" sticky collapsible dividing>
           <p>
             A plan doc is a planning session's live record: the plan, what's done, what's open. You read it in Chrome
             while Claude Code works; its tab reloads whenever the session moves to a new stage.
@@ -213,8 +213,8 @@
                 <ui-content>
                   <ui-header>name</ui-header>
                   <ui-description>
-                    <code>/plan-doc &lt;name&gt;</code>. If a doc, folder or worktree of that name exists, reuse it or
-                    pick another name.
+                    <code>/epic &lt;name&gt;</code>. If a doc, folder or worktree of that name exists, reuse it or pick
+                    another name.
                   </ui-description>
                 </ui-content>
               </ui-card>
@@ -312,7 +312,7 @@
             </ul>
             <ui-message state="positive" header="An example">
               <p>
-                <a href="../plans/docs-workspace/docs-workspace.html" target="docs-workspace"
+                <a href="../epics/docs-workspace/docs-workspace.html" target="docs-workspace"
                   >The plan doc for this docs workspace</a
                 >, built with the same tooling.
               </p>

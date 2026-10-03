@@ -32,6 +32,9 @@ export class PageServer {
   /** Spell UI's docs, `astro dev` behind `/ui/` */
   readonly astro: AstroProxy
 
+  /** run once listening, from route modules */
+  private listenings: (() => unknown)[] = []
+
   /** run on `stop()`, from route modules */
   private stops: (() => unknown)[] = []
 
@@ -60,6 +63,11 @@ export class PageServer {
     })
     const router = this.web.router
     router.get("/", (_request, reply) => reply.redirect("/packages/docs/index.html"))
+    // plan docs moved from `plans/` to `epics/` (2026-10-02):  old links and open tabs still land.  302:  a 301 would
+    // be cached for good, and a worktree not yet merged still serves `plans/` itself
+    router.get("/packages/docs/plans/*", (request, reply) =>
+      reply.redirect(request.originalUrl.replace("/packages/docs/plans/", "/packages/docs/epics/"))
+    )
     router.get("/_server/ping", (_request, reply) => reply.set("Cache-Control", "no-store").json(this.info))
     // NOTE: no body parsing here:  each route parses its own (the app's `/api` is JSON5), and the proxy streams
     this.astro = new AstroProxy(this.root)
@@ -68,7 +76,7 @@ export class PageServer {
   }
 
   /**
-   * Load the route modules, start watching, listen, and write the pid file.
+   * Load the route modules, start watching, listen, write the pid file, then run route modules' `onListening`s.
    * - `port`:  wanted port (default `DEFAULT_PORT`);  taken:  any free one
    * - `routes`:  load route modules (default `true`;  tests turn it off)
    * - `pidFile`:  write `.spell-server.json` (default `true`)
@@ -81,6 +89,10 @@ export class PageServer {
     const { port: actual } = await this.web.listen({ port })
     this.info.port = actual
     if (pidFile) this.pidFile.write(this.info)
+    for (const start of this.listenings)
+      await Promise.resolve(start()).catch((error: unknown) => {
+        console.error("page server:  a route module's onListening failed:", error)
+      })
     return this
   }
 
@@ -124,6 +136,7 @@ export class PageServer {
         live: this.web.live!,
         web: this.web,
         info: this.info,
+        onListening: (start) => this.listenings.push(start),
         onStop: (stop) => this.stops.push(stop)
       })
     } catch (error) {

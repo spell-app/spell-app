@@ -1,0 +1,48 @@
+---
+title: Code
+tag: ui-code
+status: done
+summary: Code shows a block of source code coloured by its language, from the element's own text or a file on this site.
+---
+
+import Example from "../../components/Example.astro"
+import Section from "../../components/Section.astro"
+import Variation from "../../components/Variation.astro"
+// The file shown is `site/public/examples/sample.json`, served at `/ui/examples/`.
+// Code with quotes goes in as a JS string (`{'...'}`):  MDX's typographer would curl them.
+
+<Section title="Types">
+  <Example title="Code" description="Code colours its own text as `language`:  any highlight.js name or alias (`ts`, `html`, `css`, `json`, `bash` ...).">
+    <ui-code language="ts">{'const greeting: string = "hello"'}</ui-code>
+  </Example>
+  <Example title="Guessed language" description="Without `language`, the language is guessed among the common ones;  `detectedLanguage` says which.">
+    <ui-code source="/ui/examples/sample.json"></ui-code>
+  </Example>
+  <Example title="Spell" description="`language=&quot;spell&quot;` colours spell with spell's own parser, loaded the first time a page shows spell.">
+    <ui-code language="spell">a pile is a list of cards</ui-code>
+  </Example>
+</Section>
+
+<Section title="Variations">
+  <Variation title="Line numbers" description="`line-numbers` numbers the lines, from `start`.">
+    <ui-code language="json" source="/ui/examples/sample.json" line-numbers start="10"></ui-code>
+  </Variation>
+  <Variation title="Wrapping" description="`wrap` wraps long lines;  by default they scroll.">
+    <ui-code language="bash" wrap>{'echo "a long line that wraps once the box is too narrow to hold it, instead of scrolling sideways"'}</ui-code>
+  </Variation>
+  <Variation title="Copy button" description="`copy` adds a button that copies the code.">
+    <ui-code language="bash" copy>yarn add @spell-app/ui</ui-code>
+  </Variation>
+</Section>
+
+<Section title="Behaviour">
+  Write code with `<` or `&` in a `<script type="text/plain">` child:  its text is taken exactly.  Otherwise the
+  element's own text is used, dedented.  Or point `source` at a file of this site.
+
+  highlight.js loads lazily, with the first code shown.  `UI.code.register(name, language)` adds a language:  a
+  highlight.js grammar, a highlighter of your own returning `{ start, end, kind }` spans, or a `load()` that fetches
+  either on first use.  An unknown language shows plain text and fires a `ui-error` (`kind: "render"`).
+
+  Colours are `--ui-code-<group>` tokens (`keyword`, `string`, `number`, `comment`, `title`, `type`, `attr`, `meta`
+  ...), light and dark.
+</Section>

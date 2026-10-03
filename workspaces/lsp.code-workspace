@@ -1,0 +1,19 @@
+{
+  "folders": [
+    {
+      "path": "..",
+      "name": "spell-app"
+    },
+    {
+      "path": "../packages/lsp",
+      "name": "lsp"
+    }
+  ],
+  "settings": {
+    "workbench.colorTheme": "Red",
+    "files.exclude": {
+      "packages": true,
+      ".claude/worktrees": true
+    }
+  }
+}

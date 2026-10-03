@@ -1,7 +1,6 @@
 import { describe, test, expect, beforeEach } from "vitest"
-import { autoEffect, clearEffect } from "@risingstack/react-easy-state"
 
-import { raw } from "$/util"
+import { observe } from "$/util"
 import { spellCore, Thing, List, App } from "$/core"
 
 /**
@@ -159,7 +158,7 @@ describe("spellCore.things", () => {
   test("bumps `version` once, after a burst of things -- NOT as each registers", async () => {
     await settle()
     let runs = 0
-    const effect = autoEffect(() => {
+    const stop = observe(() => {
       spellCore.things.byType()
       runs++
     })
@@ -169,7 +168,7 @@ describe("spellCore.things", () => {
       await settle()
       expect(runs).toBe(2)
     } finally {
-      clearEffect(effect)
+      stop()
     }
   })
 
@@ -269,15 +268,15 @@ describe("spellCore.things", () => {
       expect(spellCore.things.all()).toHaveLength(2)
     })
 
-    test("a store proxy is known as the thing it stands for", () => {
+    test("a thing read from another's property IS that thing:  no proxies", () => {
       const queen = new Card({})
       const holder = new Card({})
       ;(holder as any).setProp("other", queen)
-      const proxy = (holder as any).getProp("other") as Card
-      expect(raw(proxy)).toBe(queen)
+      const other = observeRead(() => (holder as any).getProp("other") as Card)
+      expect(other).toBe(queen)
       spellCore.things.setTopLevel({ queen })
-      expect(spellCore.things.numberOf(proxy)).toBe(1)
-      expect(spellCore.things.nameOf(proxy)).toBe("queen")
+      expect(spellCore.things.numberOf(other)).toBe(1)
+      expect(spellCore.things.nameOf(other)).toBe("queen")
     })
 
     test("`isThing()` and `itemsOf()`", () => {
@@ -290,3 +289,13 @@ describe("spellCore.things", () => {
     })
   })
 })
+
+/** What `read()` returns when a reader reads it -- where `easy-state` used to hand out proxies. */
+function observeRead<T>(read: () => T): T {
+  let value!: T
+  const stop = observe(() => {
+    value = read()
+  })
+  stop()
+  return value
+}

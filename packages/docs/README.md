@@ -9,7 +9,7 @@ to read them.
 | ---------------------------- | ----------------------------------------------------------------------------- |
 | `<topic>/`                   | One doc per topic, e.g. `solid/solid-2.html`, plus its `experiments/`   |
 | `templates/`                 | Starting points for each kind of doc                                          |
-| `plans/`                     | Plan docs, one per `/plan-doc` session                                        |
+| `epics/`                     | Plan docs, one per `/epic` session                                        |
 | `spell-docs/`                | How the pages work, and the `@spell-app/ui` problems they turned up               |
 | `_assets/`                   | The shared stylesheet, page script and `@spell-app/ui` bundle every page loads    |
 | `scripts/`                   | The tooling                                                                   |

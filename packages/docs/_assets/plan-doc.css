@@ -1,6 +1,6 @@
 /*
- * Plan docs only (`plans/<name>/<name>.html`), on top of `spell-doc.css`.  Markup and ids:
- * `templates/plans/plan-doc.md`.  `scripts/plan-doc.js` writes most of what's styled here.
+ * Plan docs only (`epics/<name>/<name>.html`), on top of `spell-doc.css`.  Markup and ids:
+ * `templates/epics/plan-doc.md`.  `scripts/plan-doc.js` writes most of what's styled here.
  * - Status colors come from `<ui-icon color>` / `<ui-label color>` (UI's own tokens), not from here:  grey not
  *   done, orange in progress, green done.
  * - Folding, the section counts and the rail are every page's (`spell-doc.css`, `spell-doc-runtime.js`).

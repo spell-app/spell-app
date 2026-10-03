@@ -38,17 +38,20 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
   - `packages/cli/` (`@spell-app/cli`, `$/cli`, `CLI`) -- the `spell` command-line tool, running the spell-family
     packages' SOURCE through `tsx`.  See `packages/cli/AGENTS.md` and its `README.md`.
   - `packages/docs/` (`@spell-app/docs`) -- every package's docs:  hand-authored `.html` pages on `@spell-app/ui`,
-    their templates, the plan docs `/plan-doc` keeps, the experiments behind them and the tooling.
+    their templates, the plan docs `/epic` keeps, the experiments behind them and the tooling.
     Index:  `packages/docs/index.html`.  See `packages/docs/AGENTS.md`.
   - `packages/server/` (`@spell-app/server`, `$/server`, `SRV`) -- serving pages locally:  static folders, an
     Express-shaped router, live reload, ports, openers, a file lock, and the ONE page server per checkout
-    (`yarn server`) that serves docs, plans, goals and Spell UI docs.  See `packages/server/AGENTS.md`.
+    (`yarn server`) that serves docs, epics, goals and Spell UI docs.  See `packages/server/AGENTS.md`.
 - One change may touch several packages, but dependencies flow ONE way:
   `docs` -> anything (its experiments import any package;  nothing imports `docs`),
   `cli` -> `app` -> `lsp` -> `spell` -> `parser` / `core` -> `util`, and
   `ui` -> `solid-element` / `util`.  NEVER make `ui` or `solid-element` import `spell` or any package above it:
   `@spell-app/ui` lives on its own.
   - `server` is a LEAF (node built-ins only, imports no package):  ANY package may import it, `ui`'s tools too.
+  - The ONE exception:  `ui` ships spell's highlighter PRE-COMPILED, `packages/ui/src/languages/spell.<lang>.js`, a
+    committed bundle `yarn gen:spell` (in `packages/ui`) builds from `packages/spell/src/highlight/browser.ts`.  `ui`'s
+    source never imports `$/spell`;  regenerate after changing spell's grammar.
   - The direction is by convention, not enforced:  every alias works from every package.
 - ONE alias table, `tsconfig.base.json` at the repo root, read its header comment.  Every package's `tsconfig.json`
   extends it, so `$/parser` means the same file wherever it's compiled from.
@@ -60,27 +63,35 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 
 ## Worktrees
 
-- Owen works in one VS Code window per package, opened from `packages/<pkg>/<pkg>.code-workspace` (`yarn window
+- Owen works in one VS Code window per package, opened from `workspaces/<pkg>.code-workspace` (`yarn window
   init` writes missing ones;  each has its own theme).  Folder 1 is the REPO ROOT, folder 2 the package.  Why:  the
   Claude panel lists only the sessions saved under a window's FIRST folder, so every window lists every session.
   - So sessions start at the repo root:  read the package's `AGENTS.md` before working in a package.
-- Enter a worktree with `/isolate <name>` (`/plan-doc` does it too), or `EnterWorktree`.  The `WorktreeCreate` hook
+- Enter a worktree with `/isolate <name>` (`/epic` does it too), or `EnterWorktree`.  The `WorktreeCreate` hook
   (`.claude/hooks/worktree.mjs`) makes `.claude/worktrees/<name>` on branch `<name>` from local `main`, and keeps the
   session saved at the root (Claude's own worktrees move it, and it drops out of every window's list).
-- Show the worktree in the session's OWN window at once, from the worktree's root:
-  `node scripts/window.mjs add packages/<pkg> --name "<pkg> ⎇ <name>"`;  `... remove packages/<pkg>` on leaving.
-  It reaches the window the session runs in (the spell extension's `WindowBridge`), not the focused one.
-  Why:  Owen reviews in VS Code;  edits the window doesn't show are invisible there.
+- Open the worktree in its OWN new window at once, from the worktree's root:  `node scripts/window.mjs open <name>`;
+  `... close <name>` on leaving.  Then `... handoff <name>`:  when the turn ends, the session moves to that window,
+  in an editor tab (never the sidebar), and its old tab closes (the `Stop` hook, `.claude/hooks/handoff.mjs`).
+  - The window:  `workspaces/ongoing/<name>.code-workspace` (git-ignored), the package window's theme with a title
+    bar tinted per worktree.  Folders:  the MAIN repo root first (so its Claude panel lists every session), then the
+    worktree's `packages/<pkg>` (`<pkg> ⎇ <name>`) and root (`spell-app ⎇ <name>`).
+  - Why:  Owen reviews in VS Code;  edits a window doesn't show are invisible there.
   - `node`, not `yarn window`:  `yarn` runs no script in a worktree before its `yarn install`.
-  - Relative paths resolve from the current folder:  `packages/<pkg>` is the worktree's copy.
+  - A doc shown while the move is pending (`yarn plan-doc open`, `window.mjs show`) waits, then shows beside the
+    session in the window it moved to.
 - NEVER `code --add` / `--remove` (the focused window;  a one-folder window restarts its extensions, Claude panel
-  included), `code -n` (a new window) or `code -r` (restarts the session).
+  included) or `code -r` (restarts the session).  `code <file>.code-workspace` only through `window.mjs open`.
 - Leave with `ExitWorktree` `keep`;  the hook's `remove` never deletes uncommitted or unmerged work.
-- Say so in one line ("isolated in worktree <name> (branch <name>), shown in your window as <pkg> ⎇ <name>").
+- Shelve a session's work while another session changes what it depends on:  `/park` (a WIP commit in its own
+  worktree, plus a `PARKED-<name>.md` note), `/unpark` to pick it back up, or `/wait-for <other>` to wait for
+  that session to finish, then merge `main` in and carry on by itself.
+- Say so in one line ("isolated in worktree <name> (branch <name>), open in its own window, <pkg> ⎇ <name>").
 
 ## Solid 2
 
-- `spell` is moving from React to Solid 2 (`2.0.0-rc.13`;  `@spell-app/ui` still pins rc.11) on `@spell-app/ui`.
+- `spell`'s editor app, runners and web components are Solid 2 (`2.0.0-rc.13`, every package, one copy at the root)
+  on `@spell-app/ui`;  compiled spell still draws with React, for now (`CODE-DEBT.md`, "app").
   Solid 2 is NEITHER React NOR Solid 1.
 - The rules:  `packages/docs/solid/solid-2.md` (see the top of this file).  NOT `@`-imported on purpose:
   it loads only when the task needs it.  Claude also has the `solid-2` skill (`.claude/skills/solid-2/`), which

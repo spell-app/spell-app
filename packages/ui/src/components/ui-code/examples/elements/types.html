@@ -1,0 +1,27 @@
+<!-- `src/components/ui-code/examples/types.html` as element markup. -->
+<div class="ui-stack">
+  <section>
+    <h4>Code</h4>
+    <ui-code language="typescript">
+      <script type="text/plain">
+        const greeting = "hello"
+        // one line each
+      </script>
+    </ui-code>
+  </section>
+
+  <section>
+    <h4>Line numbers, wrapping, a copy button</h4>
+    <ui-code language="bash" line-numbers start="10" wrap copy>
+      <script type="text/plain">
+        echo "line ten"
+        echo "a long line that wraps once the box is too narrow to hold it, hanging past the line number"
+      </script>
+    </ui-code>
+  </section>
+
+  <section>
+    <h4>From a file, language guessed</h4>
+    <ui-code source="/src/components/ui-code/examples/sources/sample.json" line-numbers></ui-code>
+  </section>
+</div>

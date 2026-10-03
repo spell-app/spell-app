@@ -1,7 +1,7 @@
 # How the doc pages work
 
 The mechanics behind every page in `packages/docs`:  what loads, what the runtime builds, what the checks check.
-For people:  `spell-docs.html` beside this explains the concept and `/plan-doc`;  this is the distilled version.
+For people:  `spell-docs.html` beside this explains the concept and `/epic`;  this is the distilled version.
 How to WRITE a page (headings, widgets, code, links):  `../AGENTS.md`.  The scripts are the truth where this drifts.
 
 @spell-app/ui is unfinished, and these pages are also a test of it.  Work around a UI problem here when that's

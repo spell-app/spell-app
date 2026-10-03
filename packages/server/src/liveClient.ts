@@ -9,7 +9,7 @@
  * - `file`:  URL path of the FILE served, e.g. `/packages/docs/index.html` for `/packages/docs/`
  * - `etag`:  the file's `ETag` when served, for `If-Match` on edits
  * - `root`:  absolute folder served;  `branch` / `worktree`:  of that checkout, when known
- * - `editPage`:  added by `liveClient()`
+ * - `editPage`, `saveFile`:  added by `liveClient()`
  */
 export type ServerConfig = {
   port: number
@@ -22,7 +22,16 @@ export type ServerConfig = {
   worktree?: string
   edit?: string
   editPage?: (edit: PageEdit) => Promise<PageEditResult>
+  saveFile?: (save: FileSave) => Promise<PageEditResult>
 }
+
+/**
+ * One save of a whole file (`PUT /_server/page`), or of one element of a page (`fragment`:  its `id`, `PATCH`).
+ * - `path`:  URL path of the file, e.g. `/packages/docs/notes.md`
+ * - `etag`:  the version it was edited from (the `ETag` it was fetched with);  REQUIRED by the server
+ * - what `<ui-include>` / `<ui-code>` / `<ui-markdown>` save through (`UI.sources.saver`, set by the docs runtime)
+ */
+export type FileSave = { path: string; text: string; etag?: string; fragment?: string }
 
 /**
  * One edit of the page's own file, through `PATCH /_server/page`.
@@ -70,6 +79,22 @@ export function liveClient(): void {
     })
     const body = (await answer.json().catch(() => ({}))) as { etag?: string; error?: string }
     if (answer.ok) etag = body.etag
+    return { ok: answer.ok, status: answer.status, etag: body.etag, error: body.error }
+  }
+
+  config.saveFile = async ({ path, text, etag: version, fragment }) => {
+    const url = `${config.edit ?? "/_server/page"}?path=${encodeURIComponent(path)}`
+    const answer = await fetch(url, {
+      method: fragment ? "PATCH" : "PUT",
+      headers: {
+        "content-type": fragment ? "application/json" : "text/plain; charset=utf-8",
+        "x-server-token": config.token,
+        ...(version && { "if-match": version })
+      },
+      body: fragment ? JSON.stringify({ id: fragment, html: text }) : text
+    })
+    const body = (await answer.json().catch(() => ({}))) as { etag?: string; error?: string }
+    if (answer.ok && path === config.file) etag = body.etag
     return { ok: answer.ok, status: answer.status, etag: body.etag, error: body.error }
   }
 

@@ -10,7 +10,7 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
 
 - `@spell-app/ui` is Fomantic UI reborn as `ui-*` custom elements on a modern CSS foundation:  Fomantic's
   vocabulary (`ui small primary basic icon button`), shadow DOM, `@layer`s, OKLCH tokens, accessibility built in.
-  Usable from any framework or plain HTML.  Built on **Solid 2** (`solid-js` / `@solidjs/web` `2.0.0-rc.11`,
+  Usable from any framework or plain HTML.  Built on **Solid 2** (`solid-js` / `@solidjs/web` `2.0.0-rc.13`,
   pinned exactly) through our fork of its custom-element layer, `@spell-app/solid-element`.
 - The approved design is `docs/plan.md`.  Read "Decisions" and "Architecture" there BEFORE adding a component
   or runtime service.  `docs/report.md` is the generated status report (bundle, perf, hosts, HMR, fallbacks).
@@ -33,7 +33,7 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   - `src/runtime/` (`UI`) -- the shared `UI` runtime, ONE instance per page (`globalThis.UI ??= new UIRuntime()`).
     Components call `UI.load()` on connect, which dynamic-imports this chunk once.  Services are classes:
     `Browser` (sniffing + `UI.browser.supports` flags), `Keyboard`, `Overlays`, `Focus`, `Styles`, `Vocabulary`,
-    `I18n`, `Transitions`, `Ids`, `Toasts`, `Modals`, `Api`, `IconPacks` (`UI.icons`)
+    `I18n`, `Transitions`, `Ids`, `Toasts`, `Modals`, `Api`, `IconPacks` (`UI.icons`), `Sources` (`UI.sources`)
   - `src/icons/` -- the icon PACK format (`IconPackIndex`, `IconName`, `BuiltInPacks`) and the built-in packs
     (`icon-packs/<id>/`:  SVG files + `pack.js`);  loading and caching are the runtime's (`UI.icons`);  packs are built by
     `tools/IconPackBuilder.ts` (`yarn icons:pack`);  see `docs/icons.md`
@@ -42,7 +42,8 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
     - the Solid layer:  `UIHost` / `FormHost` (host base classes), `UIElement` (the CONTROLLER base:  one instance
       per element, `render()` returns JSX), `ElementDefinition` (vocabulary => the fork's props), `FormElement`,
       `Controlled`, `Cell`, `SlotContent`, `HostAttribute`, `PartContext` + `ContentPart` (owner context),
-      `IconGlyph`, and the dev-only `HotDefinitions` (NOT in the barrel)
+      `IconGlyph`, `SourceElement` + `SourceHost` (the base of the elements that show a text file:  `source`, inline
+      text, loading / error look, `save()`), and the dev-only `HotDefinitions` (NOT in the barrel)
   - `src/components/ui-<name>/` -- one folder per component FAMILY, named after its main tag (`ui-button/`);  the
     family's own files carry the same name (`ui-button.css`):
     - `UI<Name>.tsx` (or `.ts` without JSX) -- one element class per file:  `UIButton.tsx`, `UIButtons.tsx`,
@@ -101,7 +102,10 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
   - `site/` -- Astro docs site, modelled on Fomantic's docs, on the live components
   - `docs/` -- design docs (`plan.md`, `grammar.md`, `theming.md`, `translation.md`, `icons.md`, `fallback.md`,
     `runtime.md`) and the generated `report.md`
-  - `scripts/` -- generators (`gen-styles.ts`, `gen-icons.ts`)
+  - `scripts/` -- generators (`gen-styles.ts`, `gen-icons.ts`, `gen-root-catalog.ts`, `gen-spell.ts`)
+  - `src/languages/` -- GENERATED, committed:  `spell.<lang>.js`, spell's pre-compiled highlighter for
+    `<ui-code language="spell">` (`yarn gen:spell`;  the root `AGENTS.md`'s one `ui` -> spell exception).  NEVER edit;
+    lint and format skip it
   - `reference/Fomantic-UI/` -- READ-ONLY, git-ignored clone of Fomantic for porting.  NEVER edit or import it.
 - Commands:
   - `yarn review` -- tsc (root, node configs, the fork) + oxlint `--fix` + oxfmt + every test (`ssr`, `browser`,

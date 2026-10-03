@@ -1,38 +1,37 @@
-// Common imports
-import { createRoot } from "react-dom/client"
+import { render } from "@solidjs/web"
 
 // Import parser bits
 import "$/parser"
 import { editor } from "$/app/editor"
-import { UI, ErrorNotice, Notice } from "$/app/ui"
-
-import { Routes } from "./pages/routes"
+import { ErrorNotice, Notice, addAppIconsPageWide } from "$/app/solid"
+import { Routes } from "$/app/pages/routes"
 
 // Use the below to set up methods/etc in the browser for hacking
 import "./debug"
+// Solid follows spell cells:  BEFORE anything renders
+import "$/app/solid/cellsBridge"
 
 // Programs run on the runtime `editor` loads -- start loading it now.  It registers the `UI` / `SUI` tags spell JSX
-// draws with, NOT the editor's `UI` barrel.  NEVER import `$/core` here:  see `spellRuntime.ts`.
+// draws with, NOT the editor's `$/app/solid`.  NEVER import `$/core` here:  see `spellRuntime.ts`.
 void editor.loadRuntime()
 
+// The editor's icon names are Fomantic's, page-wide too:  its dialogs open on `<body>`, outside `index.html`'s `<ui-root>`.
+void addAppIconsPageWide()
+
 /**
- * Mount app into `#react-root`.
- * - `<Routes>` picks `ProjectChooser`/`SpellEditor`/`SpellRunner` by URL.
- * - `<UI.ModalRoot>`/`<Notice>`/`<ErrorNotice>` render `editor.modals`/`editor.notice`/`editor.error`.
+ * Draw the app, in Solid, into `#app-root` (inside `index.html`'s `<ui-root icons="fomantic">`).
+ * - `<Routes>` picks `<ProjectChooser>` / `<SpellEditor>` / `<SpellRunner>` by URL.
+ * - `<Notice>` / `<ErrorNotice>` show `editor.notice` / `editor.error` over every page.  Dialogs need no root:  each
+ *   `editor.alert()` / `choose()` ... opens its own `<ui-modal>`.
+ * - A running program draws with REACT, in its own root on `<AppRoot>`'s element:  see `editor.setAppRoot()`.
  */
-function renderApp() {
-  const container = document.getElementById("react-root")!
-  const root = createRoot(container)
-  root.render(
+render(
+  () => (
     <>
       <Routes />
-      <UI.ModalRoot />
       <Notice />
       <ErrorNotice />
     </>
-  )
-}
-
-renderApp()
-
-// module.hot.accept(renderApp);
+  ),
+  document.getElementById("app-root")!
+)

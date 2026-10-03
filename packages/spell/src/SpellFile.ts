@@ -1,4 +1,4 @@
-import { TextFile, batch, raw } from "$/util"
+import { TextFile, batch } from "$/util"
 import { P } from "$/parser"
 import { SP } from "$/spell"
 
@@ -80,12 +80,9 @@ export class SpellFile extends TextFile {
     return this.derived("project", () => new SP.SpellProject(this.projectId))
   }
 
-  /**
-   * Does our project parse us, i.e. are we active in its `project.json`?
-   * - `raw(this)`:  we may be called through a store proxy, and `spellFiles` are the real files.
-   */
+  /** Does our project parse us, i.e. are we active in its `project.json`? */
   get isActive(): boolean {
-    return this.project.spellFiles.includes(raw(this))
+    return this.project.spellFiles.includes(this)
   }
 
   /**

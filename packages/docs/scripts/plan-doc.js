@@ -1,7 +1,7 @@
 /**
- * `yarn plan-doc <command> <name> ...`:  edit the structured parts of a plan doc, `plans/<name>/<name>.html`.
- * Rules, ids and markup:  `templates/plans/plan-doc.md`.  Used by the `/plan-doc` skill and its agents.
- * - Commands:  `new`, `add-phase`, `phase`, `add`, `close`, `reopen`, `log`, `prompt`, `summary`, `check`,
+ * `yarn plan-doc <command> <name> ...`:  edit the structured parts of a plan doc, `epics/<name>/<name>.html`.
+ * Rules, ids and markup:  `templates/epics/plan-doc.md`.  Used by the `/epic` skill and its agents.
+ * - Commands:  `new`, `add-phase`, `phase`, `estimate`, `add`, `close`, `reopen`, `log`, `prompt`, `summary`, `check`,
  *   `open`, `migrate` (`node scripts/plan-doc.js` with no command lists them).
  * - Every edit:  takes the doc's lock (parallel agents queue instead of clobbering each other), parses it with
  *   linkedom, changes it through `PlanDoc`, stamps "updated", writes it, then tidies it (link targets, oxfmt).
@@ -22,7 +22,7 @@ import { DOCS, openInVSCode, serialize, tidy } from "./pages.js"
 import { convertSections, createElement } from "./to-ui-section.js"
 
 /** The template `new` copies, relative to `DOCS`. */
-const TEMPLATE = "templates/plans/plan.html"
+const TEMPLATE = "templates/epics/plan.html"
 
 /** Phase status -> its icon and color (UI's `color` attribute, so themes and dark mode just work). */
 export const STATUS = {
@@ -75,11 +75,16 @@ const DECISIONS_NOTE =
   "Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why: settled, " +
   "don't re-argue without new facts. An answered question sits just above its decision."
 
-/** A phase body's fields:  label and icon. */
+/**
+ * A phase body's fields:  label and icon.
+ * - `Estimate`:  wall-clock time for Claude to do the phase, agents included, Owen's review not;  `30m`, `2h`,
+ *   `1h30m`, `1-2h`.  The Overview totals them (`updateEstimate()`).
+ */
 const PHASE_FIELDS = [
   ["Goal", "bullseye"],
   ["Files", "folder"],
-  ["Verify", "flask"]
+  ["Verify", "flask"],
+  ["Estimate", "clock"]
 ]
 
 ////////////////
@@ -123,14 +128,16 @@ export class PlanDoc {
   ////////////////
 
   /**
-   * Every phase, in order:  `{ n, name, status }`, from the phase sections in `#phases`.
+   * Every phase, in order:  `{ n, name, status, estimate }`, from the phase sections in `#phases`.
+   * - `estimate`:  its Estimate field's text;  `undefined` while missing or `TBD`
    * - docs not yet migrated also have a phase LIST (`.plan-phases`) under `#plan`:  `check()` keeps the two in step
    */
   get phases() {
     return this.phaseSections.map((section) => ({
       n: Number(section.getAttribute("data-phase")),
       name: phaseName(titleText(section)),
-      status: section.getAttribute("data-status") ?? "todo"
+      status: section.getAttribute("data-status") ?? "todo",
+      estimate: estimateText(section)
     }))
   }
 
@@ -156,16 +163,17 @@ export class PlanDoc {
 
   /**
    * Append phase `name` (2-4 words) to `#phases` (and an old doc's phase list);  returns its number.
-   * - `goal` / `files` / `verify`:  its body's bullets, as HTML;  omitted ones get a placeholder to fill in
+   * - `goal` / `files` / `verify` / `estimate`:  its body's bullets, as HTML;  omitted ones get a placeholder to
+   *   fill in
    * - `<ui-section id="p3" data-phase data-status header="P3 · Name" ...>`, its status icon slotted;  old markup:
    *   `section.s3` > `ui-sticky.spell-h3` > `h3#p3`
    */
-  addPhase(name, { goal, files, verify } = {}) {
+  addPhase(name, { goal, files, verify, estimate } = {}) {
     const section = this.section("phases")
     const n = this.phases.length + 1
     const label = `P${n} · ${name}`
     this.addOldListEntry(n, label)
-    const values = { Goal: goal, Files: files, Verify: verify }
+    const values = { Goal: goal, Files: files, Verify: verify, Estimate: estimate }
     const body = PHASE_FIELDS.map(
       ([field, glyph]) => `<ui-item icon="${glyph}"><b>${field}:</b>  ${values[field] ?? "TBD"}</ui-item>`
     )
@@ -190,7 +198,52 @@ ${list}`
       section.append(phase)
     }
     this.updateProgress()
+    this.updateEstimate()
     return n
+  }
+
+  /**
+   * Set phase `n`'s estimate (`2h`, `1-2h`), adding the field to a phase made before it existed;  then the
+   * Overview's total.
+   */
+  setEstimate(n, estimate) {
+    const section = this.phaseSection(n)
+    const body = section.querySelector(":scope > .plan-phase-body")
+    if (!body) throw new PlanDocError(`phase ${n} has no body (\`.plan-phase-body\`)`)
+    const html = `<b>Estimate:</b>  ${text(estimate)}`
+    const field = estimateField(section)
+    if (field) field.innerHTML = html
+    else if (body.localName === "ui-list") body.append(this.fragment(`<ui-item icon="clock">${html}</ui-item>`))
+    else body.append(this.fragment(`<li>${html}</li>`))
+    this.updateEstimate()
+  }
+
+  /**
+   * The Overview's total, `p.plan-estimate`, just below the summary and the prompt:  every phase's estimate added
+   * up, and what's left (phases not done).
+   * - an estimate that won't parse (`TBD`, "a day") is named as not counted
+   * - no phase estimated:  no total
+   */
+  updateEstimate() {
+    let line = this.document.querySelector("p.plan-estimate")
+    const phases = this.phases
+    const counted = phases.map((phase) => ({ ...phase, range: parseDuration(phase.estimate) }))
+    const estimated = counted.filter((phase) => phase.range)
+    if (!estimated.length) return line?.remove()
+    const total = sumRanges(estimated.map((phase) => phase.range))
+    const left = sumRanges(estimated.filter((phase) => phase.status !== "done").map((phase) => phase.range))
+    const missing = counted.filter((phase) => !phase.range).map((phase) => `P${phase.n}`)
+    let html = `<b>Estimate:</b>  ${formatRange(total)} in all, ${formatRange(left)} left`
+    if (missing.length) html += ` (${missing.join(", ")} not estimated)`
+    if (!line) {
+      line = this.element("p", { class: "plan-estimate" })
+      const overview = this.section("overview")
+      const above =
+        overview.querySelector(":scope > blockquote.plan-prompt") ?? overview.querySelector(":scope > .plan-summary")
+      if (above) above.after(this.document.createTextNode("\n"), line)
+      else prependContent(overview, line)
+    }
+    line.innerHTML = html
   }
 
   /** A doc not yet migrated keeps its phase list under `#plan` in step:  append phase `n` to it. */
@@ -237,6 +290,7 @@ ${list}`
       this.foldDonePhases(n)
     } else setFolded(section, false)
     this.updateProgress()
+    this.updateEstimate()
     this.log(`P${n} ${status}`)
   }
 
@@ -448,6 +502,10 @@ ${list}`
       phases,
       active: phases.find((phase) => phase.status === "active"),
       next: phases.find((phase) => phase.status === "todo"),
+      estimate: this.document
+        .querySelector("p.plan-estimate")
+        ?.textContent.replace(/^Estimate:\s*/, "")
+        .trim(),
       open
     }
   }
@@ -905,6 +963,75 @@ function phaseName(label) {
   return label.replace(/^\s*P\d+\s*·\s*/, "").trim()
 }
 
+/** Phase `section`'s Estimate field (`ui-item[icon=clock]`, or an old doc's `li`), if any. */
+function estimateField(section) {
+  const body = section.querySelector(":scope > .plan-phase-body")
+  return Array.from(body?.children ?? []).find((item) => /^Estimate:/.test(item.textContent.trim()))
+}
+
+/** Phase `section`'s estimate, as text;  `undefined` while missing or `TBD`. */
+function estimateText(section) {
+  const value = estimateField(section)
+    ?.textContent.trim()
+    .replace(/^Estimate:\s*/, "")
+  return value && value !== "TBD" ? value : undefined
+}
+
+/**
+ * An estimate as minutes, `{ min, max }`;  `undefined` when it won't parse.
+ * - `30m`, `45 min`, `2h`, `1.5h`, `1h30m`, `~2h`;  a range:  `1-2h`, `30m-1h`
+ */
+export function parseDuration(estimate) {
+  const value = estimate?.toLowerCase().replace(/~/g, "").trim()
+  if (!value) return undefined
+  const range = value.match(/^([\d.]+)\s*-\s*([\d.]+)\s*(h|m|min)$/)
+  if (range) return { min: toMinutes(range[1], range[3]), max: toMinutes(range[2], range[3]) }
+  const ends = value.split(/\s*-\s*/)
+  if (ends.length > 2) return undefined
+  const [min, max] = ends.map(sumUnits)
+  if (min === undefined || (ends.length === 2 && max === undefined)) return undefined
+  return { min, max: max ?? min }
+}
+
+/** `1h30m` -> 90;  `undefined` unless the whole of `value` is hours and minutes. */
+function sumUnits(value) {
+  const parts = Array.from(value.matchAll(/([\d.]+)\s*(h|min|m)(?![a-z])\s*/g))
+  if (
+    !parts.length ||
+    parts
+      .map((part) => part[0])
+      .join("")
+      .trim() !== value.trim()
+  )
+    return undefined
+  return parts.reduce((total, part) => total + toMinutes(part[1], part[2]), 0)
+}
+
+/** `count` `unit`s (`h` / `m` / `min`) in minutes. */
+function toMinutes(count, unit) {
+  return Math.round(Number(count) * (unit === "h" ? 60 : 1))
+}
+
+/** `ranges` added up. */
+function sumRanges(ranges) {
+  return ranges.reduce((total, range) => ({ min: total.min + range.min, max: total.max + range.max }), {
+    min: 0,
+    max: 0
+  })
+}
+
+/** `{ min: 60, max: 150 }` -> `1h-2h 30m`;  one value when they're equal. */
+function formatRange({ min, max }) {
+  return min === max ? formatMinutes(min) : `${formatMinutes(min)}-${formatMinutes(max)}`
+}
+
+/** 90 -> `1h 30m`, 45 -> `45m`, 120 -> `2h`, 0 -> `0m`. */
+function formatMinutes(total) {
+  const hours = Math.floor(total / 60)
+  const rest = total % 60
+  return [hours && `${hours}h`, (rest || !hours) && `${rest}m`].filter(Boolean).join(" ")
+}
+
 /** Escape for HTML text. */
 function text(value) {
   return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
@@ -934,10 +1061,11 @@ export function isoDate(date = new Date()) {
 ////////////////
 
 /** Usage, printed with no command or a bad one. */
-const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/docs/plans/<name>/<name>.html)
+const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  packages/docs/epics/<name>/<name>.html)
   new <name> [--title "Title"] [--prompt "text" | --prompt-file path]
                                                    copy the template, fill it in, update the docs index
-  add-phase <name> "Short Name" [--goal html] [--files html] [--verify html]
+  add-phase <name> "Short Name" [--goal html] [--files html] [--verify html] [--estimate 2h]
+  estimate <name> <N> "1-2h"                       set a phase's estimate;  the Overview's total follows
   phase <name> <N> todo|active|done [--no-open]    set a phase's status;  done drops its UPDATE markers;
                                                    reloads the doc's VS Code tab
   add <name> question|caveat|issue|todo|decision "title" [--details html]    prints the new id
@@ -982,6 +1110,12 @@ function main(argv) {
       reindex()
       // a new stage:  show it to the user (their tab reloads), unless told not to
       return flags.noOpen ? undefined : openInVSCode(file)
+    case "estimate":
+      return edit(file, (plan) => {
+        const n = Number(need(rest[0], "a phase number"))
+        plan.setEstimate(n, need(rest[1], "the estimate"))
+        plan.log(`P${n} estimate:  ${rest[1]}`)
+      })
     case "add": {
       const id = edit(file, (plan) => plan.addItem(need(rest[0], "a kind"), need(rest[1], "a title"), flags))
       return console.log(id.toUpperCase())
@@ -1055,7 +1189,7 @@ function usage() {
 /** The doc of plan `name`;  names are lower-kebab-case, as the folder and file. */
 function docPath(name) {
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(name)) throw new PlanDocError(`name "${name}" must be lower-kebab-case`)
-  return join(DOCS, "plans", name, `${name}.html`)
+  return join(DOCS, "epics", name, `${name}.html`)
 }
 
 /** The plan doc at `file`, parsed. */
@@ -1141,8 +1275,9 @@ function printSummary(summary, json) {
   const lines = [`${summary.title}`]
   for (const phase of summary.phases) {
     const mark = { todo: "[ ]", active: "[~]", done: "[x]" }[phase.status] ?? "[?]"
-    lines.push(`  ${mark} P${phase.n} · ${phase.name}`)
+    lines.push(`  ${mark} P${phase.n} · ${phase.name}${phase.estimate ? `  (${phase.estimate})` : ""}`)
   }
+  if (summary.estimate) lines.push(`estimate:  ${summary.estimate}`)
   if (summary.next) lines.push(`next:  P${summary.next.n} · ${summary.next.name}`)
   for (const kind of OPEN_KINDS) {
     const open = summary.open[kind]

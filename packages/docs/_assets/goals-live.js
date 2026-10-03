@@ -15,7 +15,9 @@
 ;(function () {
   /** goals' routes on this server, when it has them:  `{ api, token }` */
   const SERVER =
-    window.GOALS_SERVER && window.SPELL_SERVER ? { ...window.GOALS_SERVER, token: window.SPELL_SERVER.token } : undefined
+    window.GOALS_SERVER && window.SPELL_SERVER
+      ? { ...window.GOALS_SERVER, token: window.SPELL_SERVER.token }
+      : undefined
   const body = document.body
   const SET = body.dataset.set
   const TOPIC = body.dataset.topic

@@ -1,13 +1,13 @@
 # @spell-app/solid-element
 
 Custom elements for Solid 2.  A fork of [`@solidjs/element`](https://github.com/solidjs/solid/tree/next/packages/element)
-(2.0.0-rc.11) and [`component-register`](https://github.com/ryansolid/component-register) (0.8.8), both MIT,
+(2.0.0-rc.11;  its code is unchanged in rc.13) and [`component-register`](https://github.com/ryansolid/component-register) (0.8.8), both MIT,
 (c) Ryan Carniato, merged into one TypeScript package and fixed.  The API is a SUPERSET of `@solidjs/element`:
 existing code keeps working, and every addition is opt-in through a 4th `options` argument or a richer prop
 definition.  Each fix lives in its own module with its own test file, so each can become one upstream PR --
 see [`UPSTREAM.md`](./UPSTREAM.md).
 
-- Peer dependencies:  `solid-js` and `@solidjs/web`, `2.0.0-rc.11` (pinned:  the RCs still churn).
+- Peer dependencies:  `solid-js` and `@solidjs/web`, `2.0.0-rc.13` (pinned:  the RCs still churn).
 - Size:  4.73 kB min + gzip 9 with every export, vs 2.13 kB for `@solidjs/element` + `component-register`
   (`yarn measure`).  The HMR helpers are ~0.3 kB of that, and only when imported;  the dev-only code behind
   `import.meta.hot` is 0 bytes in a build.
@@ -71,7 +71,7 @@ Every element gets, besides one accessor per prop ON THE PROTOTYPE:
 | `formAssociated` | -- | `static formAssociated = true`;  implies `internals`. |
 | `internals` | `false` | Attach `element.internals` (custom states, ARIA). |
 | `keepAlive` | `false` | Keep the reactive root across disconnect / reconnect;  props keep flowing while detached. |
-| `errorBoundary` | `true` | Wrap the render in `createErrorBoundary`. |
+| `errorBoundary` | `true` | Wrap the render in an `<Errored>` boundary. |
 | `onError(element, error)` | one `console.error` | An error escaped the component.  Runs outside any owner:  may write signals. |
 | `fallback(element, error)` | nothing | Replacement content (nodes, text or JSX) rendered into the render root. |
 | `errorEvent` | -- | Also dispatch a cancelable `CustomEvent` of this name, `detail: { error }` (e.g. `"ui-error"`);  cancelling skips `onError` and `fallback`. |

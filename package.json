@@ -58,9 +58,9 @@
   },
   "packageManager": "yarn@4.18.0",
   "resolutions": {
-    "solid-js": "2.0.0-rc.11",
-    "@solidjs/web": "2.0.0-rc.11",
-    "@solidjs/signals": "2.0.0-rc.11",
-    "@solidjs/element": "2.0.0-rc.11"
+    "solid-js": "2.0.0-rc.13",
+    "@solidjs/web": "2.0.0-rc.13",
+    "@solidjs/signals": "2.0.0-rc.13",
+    "@solidjs/element": "2.0.0-rc.13"
   }
 }

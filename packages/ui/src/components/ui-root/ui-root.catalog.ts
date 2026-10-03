@@ -32,6 +32,7 @@ export const ROOT_CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
   },
   "ui-cards": { folder: "ui-card" },
   "ui-checkbox": { folder: "ui-checkbox", skeleton: { display: "inline", width: "6em", height: "1.25em" } },
+  "ui-code": { folder: "ui-code", skeleton: { parts: [{ shape: "paragraph", lines: 5 }] } },
   "ui-column": { folder: "ui-grid" },
   "ui-comment": {
     folder: "ui-comment",
@@ -75,6 +76,7 @@ export const ROOT_CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
   "ui-icons": { folder: "ui-icon", skeleton: { display: "inline", width: "1em", height: "1em" } },
   "ui-image": { folder: "ui-image", skeleton: { width: "10em", parts: [{ shape: "image", ratio: "square" }] } },
   "ui-images": { folder: "ui-image" },
+  "ui-include": { folder: "ui-include", skeleton: { parts: [{ shape: "paragraph", lines: 4 }] } },
   "ui-input": { folder: "ui-input", skeleton: { display: "inline", width: "14em", height: "2.5em" } },
   "ui-item": { folder: "ui-item" },
   "ui-items": {
@@ -90,6 +92,10 @@ export const ROOT_CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
   "ui-labels": { folder: "ui-label" },
   "ui-list": { folder: "ui-list", skeleton: { parts: [{ shape: "paragraph", lines: 3 }] } },
   "ui-loader": { folder: "ui-loader" },
+  "ui-markdown": {
+    folder: "ui-markdown",
+    skeleton: { parts: [{ shape: "header" }, { shape: "paragraph", lines: 4 }] }
+  },
   "ui-menu": { folder: "ui-menu", skeleton: { height: "3em" } },
   "ui-message": { folder: "ui-message", skeleton: { parts: [{ shape: "header" }, { shape: "line", length: "long" }] } },
   "ui-meta": { folder: "ui-parts" },

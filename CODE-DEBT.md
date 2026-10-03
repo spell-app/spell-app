@@ -57,7 +57,7 @@ One `###` heading per item, under its package's `##` section, `---` between item
 - **Fix**: leaves should not import their own barrel as a value.  Use `import type { P }` where
   only types are needed, and import base classes directly from their defining files.  This is
   already the documented convention in `AGENTS.md` -- it is just not applied consistently.
-  NOTE: the obvious partial fixes do not work.  `AST.tsx` needs `P.Match` and three `Scope`
+  NOTE: the obvious partial fixes do not work.  `AST.ts` needs `P.Match` and three `Scope`
   subclasses at runtime, but `Match.ts` and the scope files import the barrel as a value
   themselves, so importing them directly only relocates the cycle.  This is all-or-nothing.
 - **Pinned at**: `BROKEN_ENTRIES` in `packages/parser/src/barrel.test.ts` -- `$/parser/rules`,
@@ -113,32 +113,6 @@ One `###` heading per item, under its package's `##` section, `---` between item
 
 ---
 
-### Store proxies stand in for the real objects
-
-`SP` objects (`SpellProject`, `SpellFile`...) keep their state in `react-easy-state` stores.  Read INSIDE a
-reaction -- a `view()` render, an `autoEffect()`, an `observe()` -- a store hands back a tracking PROXY of any
-nested object, and a cache filled there keeps the proxy.
-
-- **Cost**:
-  - identity breaks:  a proxy is not `===` the real object, so `includes()`, `Map` / `WeakMap` keys and `===`
-    all miss.  Found when `project.activeImports`, filled during a render, made `file.isActive` false for
-    every file, and the app editor's references / rename / cross-file definition came back empty.
-  - speed:  anything walked through a proxy inside a reaction registers every read.  Monaco's text model,
-    reached through the store inside an `observe()`, never finished.
-- **Cause**:  `@nx-js/observer-util` wraps nested objects lazily, only while a reaction is running (see
-  `isInsideRender()` in `util/extend.ts`).  `derivedFrom()` caches keep whatever they were computed with.
-- **Fix**:  keep non-state objects out of stores, and have caches store raw values -- e.g. `raw()` in
-  `derivedFrom()` -- or stop computing caches inside reactions.  Then drop the `raw()` calls below.
-- **Pinned at**:
-  - `SpellProject.spellFiles` and `SpellFile.isActive` unwrap with `raw()`
-  - `SpellModels.modelFor()` unwraps the file it's given;  it and `SpellModels` follow files with `observe()`,
-    touching Monaco only in microtasks OUTSIDE the reaction
-  - `editor.getInputEditor()`:  the Monaco editor lives outside the store (`packages/app/src/editor.ts`)
-  - `SpellModels.#toSave` and `editor.onFileEdited()` compare by `path`
-
-
----
-
 ### Review:  editor features added by Claude, 2026-09-27 / 28
 
 Everything below went in over two long sessions, tested (vitest, tsc, lint, a headless-Chromium run of the app,
@@ -157,7 +131,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
     - parser support:  `Rule.declares` / `getDeclaration()`, `highlightAs` (`packages/parser/src/rules/Rule.ts`,
       `rules.types.ts`, and `@proto static highlightAs` on `Keyword` / `Symbol` / spell base rules),
       `TypeScope.getOrStub()` / `claim()` / `declareProperty()`, `P.TokenFormatter` (`packages/parser/src/tokenizer/`)
-    - docstrings:  `Block.getDocComments()`, `ASTDocComment` / `ASTBannerComment` (`packages/parser/src/ast/AST.tsx`),
+    - docstrings:  `Block.getDocComments()`, `ASTDocComment` / `ASTBannerComment` (`packages/parser/src/ast/AST.ts`),
       `Block.ts` + `Block.test.ts`
   - **Scripts** (`eab5832`):  `start:*` renames, `yarn stop` (`package.json`, `Dockerfile.*`, `DOCKER.md`,
     `CODEBASE_INDEX.md`).  NOTE: `yarn stop` also kills the language server VS Code started.
@@ -173,7 +147,7 @@ parser speed test) but NOT yet reviewed line by line.  Check each area, then del
       `InputEditor.tsx`, `OutputEditor.tsx`, `ui/index.ts`, `ui.types.ts`, `pages/SpellEditor.tsx`, `debug.ts`
     - `src/types/monaco-internals.d.ts`, `src/util/Observable.ts` (`raw()`), `package.json` / `yarn.lock` (deps)
     - removed:  `packages/app/src/ui/CodeMirror*`, `codemirror-classes.txt`, `SpellFile.offsetForPosition` / `positionForOffset`
-    - see "Store proxies stand in for the real objects" above for the workarounds this needed
+    - its store-proxy workarounds (`raw()` ...) went with `easy-state` (solid-migration P11)
   - **Expecting mode:  what can come next** (in `95cbc54`, plus what's staged after it)
     - new `packages/parser/src/Expectations.ts` (+ test), `P.Expectation` (`parser.types.ts`), `Parser.expectedAfter()`
     - hooks in `packages/parser/src/rules/Sequence.ts` (incl. `allowRunOut`, `within`), `Choice.ts`, `Repeat.ts`, `Subrule.ts`
@@ -463,7 +437,7 @@ knowingly kept:
 
 - **`util/src/spell/` is the old `~/util`, whole.**
   - **Cost**:  `parser` and `core` depend on lodash, `chalk`, `pluralize`, `query-string` and the React-era
-    state libraries (`@nx-js/observer-util`, `@risingstack/react-easy-state`) for a handful of helpers each;  a
+    state code (spell cells, and React for `view()` -- `easy-state` went in P11) for a handful of helpers each;  a
     published `@spell-app/parser` would drag them in.  They sit in `util`'s `package.json`, beside the generic helpers
     `ui` bundles, and `ui`'s util barrel must import the generic files one by one to keep them out.
   - **Cause**:  `~/util` mixed generic helpers (`string`, `assert`, `paths`) with reactive state (`Observable`,
@@ -537,7 +511,7 @@ knowingly kept:
   ...) and `index.js`;  both branches of `check-spell.js`.  Each runtime change must be checked against both.
 - **Cause** -- the goals pages (`templates/goals/`, the repo root's `goals/`) are generated and edited by the goals
   tooling (`yarn goals`, the `/goals*` skills, `goals-live.js`), which reads and writes the old markup;  migrating
-  them is its own task.  `plans/cli-additions` is another session's live plan, deliberately left old until that
+  them is its own task.  `epics/cli-additions` is another session's live plan, deliberately left old until that
   session runs `yarn plan-doc migrate cli-additions`.
 - **Fix** -- move the goals templates and tooling to `<ui-section>` (`scripts/to-ui-section.js` `convertSections()`
   does the markup), migrate `cli-additions`, then delete the HEADINGS branch of `spell-doc-runtime.js`
@@ -546,3 +520,25 @@ knowingly kept:
 - **Pinned at** -- `packages/docs/_assets/spell-doc-runtime.js` (header:  SECTIONS / HEADINGS), `_assets/spell-doc.css`
   ("The goals pages' markup"), `scripts/plan-doc.js` ("Sections, either markup"), `scripts/fixtures/plan-2026-09-30.html`,
   `AGENTS.md` "Writing a page" / "Templates".
+
+---
+
+## app
+
+### React for spell programs, beside the app's Solid
+
+- **Cost**: two renderers in `app`'s builds.  The app's own UI is Solid (migration P6-P8, P9 pinned it React-free),
+  but compiled spell still draws with React + `semantic-ui-react` (`core`'s `Thing` / `List` / `App`, the forms
+  `F`, `SUIPassThroughs`):  `spell-runtime.js` ships React, every `vite*.config.ts` runs both JSX plugins, and the
+  React `.tsx` files must say so.  A React file missing its marker compiles as Solid:  `tsc` usually catches it,
+  else it fails at runtime.  `$/util`'s `view()` (the cells-to-React bridge) keeps React a dependency of `util`.
+- **Cause**: moving compiled spell to Solid ("Core + JSX Emit":  `core`'s `element()` on `@solidjs/h`, the parser's
+  JSX emit, spell projects to `<ui-*>`) was split off the migration (`packages/docs/epics/solid-migration/`, D9,
+  todo T2).  Solid is the DEFAULT JSX (`tsconfig.json` `jsxImportSource: "@solidjs/web"`);  React files carry
+  `/** @jsxImportSource react */` on their first line, which both TypeScript and `reactFiles()`
+  (`packages/app/vite.shared.ts`) read.
+- **Fix**: the Core + JSX Emit work;  then delete `@vitejs/plugin-react`, `reactFiles()`, `view()`, the forms /
+  pass-throughs and the React deps.
+- **Pinned at**: `packages/app/vite.shared.ts` (`REACT_DIRS`, `REACT_MARKER`);  the marker in each React `.tsx` of
+  `packages/app/src/ui/forms/`, `packages/core/src`;  `packages/app/src/build.test.ts` (the app's chunks hold no
+  React, `spell-runtime.js`'s do);  `packages/app/src/solid.test.tsx`.

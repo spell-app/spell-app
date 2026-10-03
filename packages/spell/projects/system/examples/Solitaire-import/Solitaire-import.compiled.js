@@ -19,8 +19,9 @@ export class Game extends App {
     property: "score", of: "Game", datatype: "number",
     defined: "/Solitaire.spell:166-196",
   } */
+  static { this.declareProp('score', { type: 'number' }) }
   get score() { return this.getProp('score') }
-  set score(value) { this.setProp('score', value, { type: 'number' }) }
+  set score(value) { this.setProp('score', value) }
 
   //## actions
 

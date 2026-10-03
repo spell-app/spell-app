@@ -1,145 +1,290 @@
-import { isObservable, observable, raw } from "@nx-js/observer-util"
-import { batch } from "@risingstack/react-easy-state"
+import _get from "lodash/get"
+import _has from "lodash/has"
 import _set from "lodash/set"
 import _unset from "lodash/unset"
 
 import { hasOwnProp } from "$/util/class"
 
+import { isTrackingCells } from "./cells"
+import { Cell } from "./Cell"
+import { Derived } from "./Derived"
+import { HAS_SCHEMA, schemaOf, type PropInfo } from "./Schema"
+
 /** Export all `extend` functionality as a barrel. */
 export * as extend from "./extend"
 
 /**
- * Per-object `props`/`state` storage, keyed by object identity rather than a property on
- * `target` itself.
- * - Lets us attach reactive `props`/`state` to any object without mutating its shape directly.
- * - `WeakMap` means entries are garbage-collected along with `target` -- no manual cleanup needed.
- * - MUST be keyed by the RAW object, never a proxy -- see `extendedFor()`.
- * - NOTE: `derived` data is NOT kept here -- see `derivedFor()`, which stores directly on `target`.
+ * Reactive `props` and `state` for any object, on spell cells (`cells.ts`).
+ * - Each object keeps its values in its own RECORDS, `Map`s -- the ONLY truth, read and written synchronously:  a
+ *   read right after a write sees it.  Cells only say who read what, and tell them when it changes.
+ * - `props` are its public properties:  `keys()` / `toJSON()` list them, in the order they were first set.  `state`
+ *   is transient, internal, e.g. a `Task`'s `status`, and never listed.
+ * - Kept ON the object, under symbols -- `Object.keys()`, JSON and the Thing Explorer's plain-field scan don't see
+ *   them.  `Observable` makes them as it's constructed (one shape for every instance);  any other object gets them
+ *   on first use.
+ * - Values are NOT made reactive themselves:  no proxies, so `===` holds everywhere.  A list or plain object a prop
+ *   holds is the same object;  changing it IN PLACE notifies nobody -- set the prop to a new one.  Spell's `List`s
+ *   copy on write, so a program's lists are fine.
  */
-export const EXTEND_MAP = new WeakMap<any, Record<string, any>>()
 
-/** Lazily-created `props`/`state` storage for one object, as tracked in `EXTEND_MAP`. */
-export type ExtendedData = {
-  /** Reactive public `props` -- raw `map` plus the `observer-util` `$store` proxy over it -- see `newStore()`. */
-  props?: { map: Record<string, any>; $store: Record<string, any> }
-  /** Reactive private `state` -- raw `map` plus the `observer-util` `$store` proxy over it -- see `newStore()`. */
-  state?: { map: Record<string, any>; $store: Record<string, any> }
+////////////////
+// ## Records
+////////////////
+
+/** Prop values, by name, in the order they were first set -- see `keysOf()`. */
+export const PROPS = Symbol("props")
+/** State values, by name. */
+export const STATE = Symbol("state")
+/** Cells of props someone read, by name -- made on first tracked read. */
+export const PROP_CELLS = Symbol("propCells")
+/** Cells of state someone read, by name -- made on first tracked read. */
+export const STATE_CELLS = Symbol("stateCells")
+/** Cell of the props' key SET -- changed only when a key comes or goes, see `keysOf()`. */
+export const KEYS = Symbol("keys")
+/** Memoized derived values, by name -- see `derive()`. */
+export const DERIVED = Symbol("derived")
+
+/** What `extend` keeps on an object, under the symbols above. */
+export type Extended = {
+  [PROPS]: Map<string, unknown>
+  [STATE]: Map<string, unknown> | null
+  [PROP_CELLS]: Map<string, Cell> | null
+  [STATE_CELLS]: Map<string, Cell> | null
+  [KEYS]: Cell | null
+  [DERIVED]: Map<string, Derived> | null
 }
 
 /**
- * Set up `ExtendedData` for the `target` object.
- * - MUST `raw()` first.  Reading an object out of a reactive store *while a `view()` is rendering*
- *   hands you an `observer-util` proxy of it, not the instance -- so `target` here is a different
- *   key than the one `Observable`'s constructor used.  Key on the proxy and we build a SECOND,
- *   disconnected `props`/`state` pair: reads in a component and reads in plain code then see
- *   different values for the same object.  See `assertCanCreateStore()`.
+ * `target`'s records, made if it has none -- non-enumerable, so they never show.
+ * - `Observable` makes its own as it's constructed, so this is the slow path for other objects.
  */
-export function extendedFor(target: any): ExtendedData {
-  target = raw(target)
-  if (!EXTEND_MAP.has(target)) EXTEND_MAP.set(target, {})
-  return EXTEND_MAP.get(target)!
+export function extendedFor(target: any): Extended {
+  if (target[PROPS]) return target
+  for (const key of [STATE, PROP_CELLS, STATE_CELLS, KEYS, DERIVED]) {
+    Object.defineProperty(target, key, { value: null, writable: true, configurable: true })
+  }
+  Object.defineProperty(target, PROPS, { value: new Map(), writable: true, configurable: true })
+  return target
 }
 
 /**
- * Eagerly set up `ExtendedData` for `target`, for whichever of `"derived" | "props" | "state"`
- * are named in `what`.
- * - Needed before assigning props/state on a fresh instance -- e.g. `Observable`'s constructor
- *   calls this before `Object.assign(this, props)`, so the reactive getters/setters already exist.
+ * DEPRECATED:  a no-op kept for callers of the `easy-state` era -- records are made on first use, see `extendedFor()`.
+ * - `what` is ignored.
  */
-export function initializeExtended(target: any, ...what: Array<"derived" | "props" | "state">) {
+export function initializeExtended(target: any, ..._what: Array<"derived" | "props" | "state">) {
   extendedFor(target)
-  if (what.includes("derived")) derivedFor(target)
-  if (what.includes("props")) propsFor(target, true)
-  if (what.includes("state")) stateFor(target, true)
 }
 
 ////////////////
-// ## Store safety
+// ## Props
 ////////////////
 
 /**
- * Are we currently inside a `view()` render?
- * - `observer-util` only wraps a nested object in a proxy while a reaction is running, and a
- *   `view()` render IS a reaction -- so we probe for that behaviour.
- * - NOTE: would be one call to `hasRunningReaction()`, but `observer-util` doesn't export it.
- * - MUST build a throwaway probe per call.  `observer-util` caches the wrapper it hands back, so a
- *   shared probe would keep answering `true` forever once any reaction had touched it.
+ * Prop `property` of `target`, tracked:  a reader re-runs when it changes, even if it's unset now.
+ * - Unset:  `initializer()`'s value, stored once per object -- else what its class's schema declares:  its `init`,
+ *   stored the same way, or its `default`, NOT stored.  See `PropInfo`.
+ * - An initializer is called with `this` ~== `target`, and its value stored WITHOUT notifying the prop's readers:
+ *   nobody can have read another value.  The key set does change, so `keysOf()` readers hear of it.
  */
-function isInsideRender(): boolean {
-  return isObservable(observable({ nested: {} }).nested)
+export function getProp<T>(target: any, property: string): T | undefined
+export function getProp<T>(target: any, property: string, initializer?: () => T): T
+export function getProp<T>(target: any, property: string, initializer?: () => T) {
+  const extended = extendedFor(target)
+  if (isTrackingCells()) cellOf(extended, PROP_CELLS, property).read()
+  const record = extended[PROPS]
+  if (record.has(property)) return record.get(property)
+  let info: PropInfo | undefined
+  if (!initializer) {
+    info = declared(target, property)
+    initializer = info?.init as (() => T) | undefined
+    if (!initializer) return info?.default
+  }
+  const value = initializer.call(target)
+  if (value === undefined) return info?.default
+  record.set(property, value)
+  extended[KEYS]?.changed()
+  return value
 }
 
 /**
- * A new `$store` over `map`:  `observer-util`'s `observable()`, NEVER `react-easy-state`'s `store()`.
- * - `store()` quietly turns into a `useMemo()` when called while a `view()` function component renders --
- *   and throws in a `view()` class component's.  An object's own store is NOT that component's:  as a hook
- *   it'd appear on some renders and not others, and React kills the tree with "Rendered more hooks than
- *   during the previous render", or error #301 -- pointing at the component, not at us.
- * - Objects ARE made mid-render, e.g. a list `spellCore.map()` makes in a `to draw`, or a computed property
- *   the Thing Explorer reads.  So their stores must be plain.
- * - `map` is plain data, with no methods for `store()` to batch.
+ * Set prop `property` of `target` to `value` -- returns `value`.
+ * - `undefined` deletes it instead, see `deleteProp()`.
+ * - `===` its current value:  nothing happens, nobody's notified.
+ * - Overwriting keeps its place in `keysOf()`;  a new key goes last.
  */
-function newStore(map: Record<string, any>): Record<string, any> {
-  return observable(map)
+export function setProp<T>(target: any, property: string, value: T): T {
+  storeProp(target, property, value)
+  return value
 }
 
 /**
- * Throw if we're about to build a `$store` LAZILY mid-render -- NOT from its object's constructor.
- * - Building one lazily means someone reached an `Observable` whose `props`/`state` weren't set up by its
- *   constructor -- typically keyed on a proxy of it, see `extendedFor()`:  a second, disconnected store.
- * - Dev only:  the probe costs an allocation, and in production limping beats a white screen.
- * - NEVER test this with `process.env.NODE_ENV` -- `vite.config.ts` replaces `process.env` with
- *   `{}` for the browser, so it reads `undefined` there and the guard would stay armed in prod.
+ * Set prop `property` of `target` to `value`, as `setProp()` -- returns whether it CHANGED.
+ * - For `Observable.setProp()`, which checks the type of a changed value only.
  */
-function assertCanCreateStore(target: any, which: "props" | "state") {
-  if (import.meta.env?.PROD) return
-  if (!isInsideRender()) return
-  throw new Error(
-    `extend.${which}For(): refusing to create a reactive '${which}' store for ` +
-      `${target?.constructor?.name || typeof target} during a view() render -- ` +
-      `react-easy-state would turn it into a stray React hook.  ` +
-      `Call extend.initializeExtended() on it before rendering.`
-  )
+export function storeProp(target: any, property: string, value: unknown): boolean {
+  if (value === undefined) return deleteProp(target, property)
+  const extended = extendedFor(target)
+  const record = extended[PROPS]
+  const added = !record.has(property)
+  if (!added && record.get(property) === value) return false
+  record.set(property, value)
+  extended[PROP_CELLS]?.get(property)?.changed()
+  if (added) extended[KEYS]?.changed()
+  return true
+}
+
+/** Delete prop `property` of `target`:  it leaves `keysOf()`, and a later set appends it.  Returns whether it was set. */
+export function deleteProp(target: any, property: string): boolean {
+  const extended = extendedFor(target)
+  if (!extended[PROPS].delete(property)) return false
+  extended[PROP_CELLS]?.get(property)?.changed()
+  extended[KEYS]?.changed()
+  return true
+}
+
+/**
+ * A plain object whose own keys are reactive props:  each a getter / setter over `getProp()` / `setProp()`.
+ * - SHALLOW:  what a key holds isn't made reactive -- set the key to a new value.
+ * - Getters and functions of `init` are copied as they are:  `this` in them is the new object, so they read its
+ *   reactive keys.
+ * - For class-less state with a few keys, e.g. a test's fake.  A class with `@prop`s says more.
+ */
+export function reactiveObject<T extends object>(init: T): T {
+  const target = {} as T
+  for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(init))) {
+    if (descriptor.get || descriptor.set || typeof descriptor.value === "function") {
+      Object.defineProperty(target, key, descriptor)
+      continue
+    }
+    Object.defineProperty(target, key, {
+      get: () => getProp(target, key),
+      set: (value) => setProp(target, key, value),
+      enumerable: true,
+      configurable: true
+    })
+    setProp(target, key, descriptor.value)
+  }
+  return target
+}
+
+/** Set several `props` of `target`, in order.  NOTE: no batching needed:  readers re-run once anyway, later. */
+export function setProps(target: any, props: Record<string, any>) {
+  for (const [property, value] of Object.entries(props)) setProp(target, property, value)
+}
+
+/**
+ * Names of `target`'s props, in the order they were first set -- tracked:  a reader re-runs when a key comes or
+ * goes, NOT when a value changes.
+ * - A `Map`, so `"2"` and `"10"` keep their places:  a plain object would hoist integer-like keys to the front.
+ */
+export function keysOf(target: any): string[] {
+  const extended = extendedFor(target)
+  if (isTrackingCells()) (extended[KEYS] ??= new Cell()).read()
+  return [...extended[PROPS].keys()]
+}
+
+/**
+ * `target`'s props as a plain object -- e.g. its `toJSON()`.
+ * - Tracks the key SET, as `keysOf()`;  NOT each value.
+ * - NOTE: a plain object hoists integer-like keys (`"2"`, `"10"`) to the front:  `keysOf()` is the order.
+ */
+export function getProps(target: any): Record<string, any> {
+  const extended = extendedFor(target)
+  if (isTrackingCells()) (extended[KEYS] ??= new Cell()).read()
+  return Object.fromEntries(extended[PROPS])
+}
+
+////////////////
+// ## State
+////////////////
+
+/**
+ * State `property` of `target`, tracked -- `initializer()`'s value if unset, stored silently as `getProp()`'s.
+ * - `property` is a top-level name:  a dotted path in `setState()` changes the object under its first part.
+ */
+export function getState<T>(target: any, property: string): T | undefined
+export function getState<T>(target: any, property: string, initializer?: () => T): T
+export function getState<T>(target: any, property: string, initializer?: () => T) {
+  const extended = extendedFor(target)
+  if (isTrackingCells()) cellOf(extended, STATE_CELLS, property).read()
+  const record = (extended[STATE] ??= new Map())
+  if (record.has(property)) return record.get(property)
+  if (!initializer) return undefined
+  const value = initializer.call(target)
+  if (value !== undefined) record.set(property, value)
+  return value
+}
+
+/**
+ * Set state `property` of `target` to `value` -- returns `value`.
+ * - `undefined` deletes it.  `===` its current value:  nothing happens.
+ * - `property` may be a dotted path, e.g. `loadState.isDirty`:  sets it IN the object under `loadState` (made if
+ *   missing), and notifies `loadState`'s readers.
+ */
+export function setState<T>(target: any, property: string, value: T): T {
+  const extended = extendedFor(target)
+  const record = (extended[STATE] ??= new Map())
+  const dot = property.indexOf(".")
+  if (dot === -1) {
+    if (value === undefined) {
+      if (record.delete(property)) extended[STATE_CELLS]?.get(property)?.changed()
+    } else if (!record.has(property) || record.get(property) !== value) {
+      record.set(property, value)
+      extended[STATE_CELLS]?.get(property)?.changed()
+    }
+    return value
+  }
+  const top = property.slice(0, dot)
+  const path = property.slice(dot + 1)
+  let holder = record.get(top) as object | undefined
+  if (value === undefined) {
+    if (!holder || !_has(holder, path)) return value
+    _unset(holder, path)
+  } else {
+    if (holder && _get(holder, path) === value) return value
+    if (!holder) record.set(top, (holder = {}))
+    _set(holder, path, value)
+  }
+  extended[STATE_CELLS]?.get(top)?.changed()
+  return value
+}
+
+/**
+ * Clear state `properties` of `target` -- all of it if none are named.
+ * - Dotted paths clear inside their top-level object, as `setState()`.
+ */
+export function resetState(target: any, ...properties: string[]) {
+  const extended = extendedFor(target)
+  const record = extended[STATE]
+  if (!record) return
+  if (properties.length === 0) properties = [...record.keys()]
+  for (const property of properties) setState(target, property, undefined)
 }
 
 ////////////////
 // ## Derived
 ////////////////
 
-// /** `@derived` decorator. */
-// export function derived(target: any, context: DecoratorContext) {
-//   if (context.kind !== "getter") {
-//     throw new CustomError({
-//       message: `@derived decorator must be called with a getter`,
-//       context: target,
-//       activity: `@dervied ${String(context.name)}`,
-//       params: context
-//     })
-//   }
-//   return () => getDerived(target, context.name, context.access.get as () => any)
-// }
-
 /**
- * Return raw `derived` map for `target` object.
- * - SIDE EFFECT: defines a non-enumerable `__derived__` property directly on `target` if missing --
- *   unlike `props`/`state`, this is stored on `target` itself rather than in `EXTEND_MAP`.
- * - `raw()` for the same reason `extendedFor()` does.  A non-writable non-configurable property
- *   already reads through a proxy unchanged, so this is belt-and-braces -- but relying on that
- *   invariant silently is how the `props`/`state` bug hid for so long.
+ * Memoized derived value `name` of `target`:  `fn()`, re-computed only when what it read changes -- and its readers
+ * re-run only when its value REALLY changes (`===`).  See `Derived`.
+ * - `fn` is called with `this` ~== `target`.  It MUST be pure:  read cells, write nothing.
+ * - The `fn` of the FIRST call is kept:  pass the same one every time, e.g. from a getter.
  */
-function derivedFor(target: any) {
-  target = raw(target)
-  if (!target.__derived__) {
-    Object.defineProperty(target, "__derived__", { value: {} })
-  }
-  return target.__derived__
+export function derive<T>(target: any, name: string, fn: (this: any) => T): T {
+  const extended = extendedFor(target)
+  const derived = (extended[DERIVED] ??= new Map())
+  let value = derived.get(name)
+  if (!value) derived.set(name, (value = new Derived(fn, target)))
+  return value.get() as T
 }
 
 /**
- * Return cached `property` for `target`, calling `getter()` to get initial value.
+ * Cached `property` of `target`:  `getter()` once, then the same value every time -- NOT reactive.
  * - To reset the value:
  *   - Call `clearDerived(target)` to reset all derived properties.
  *   - Call `clearDerived(target, property)` to reset just that property.
+ * - NOTE: a different thing from `derive()`:  this never re-computes by itself.
  */
 export function getDerived<T>(target: any, property: string, getter: () => T): T {
   const derived = derivedFor(target)
@@ -148,8 +293,7 @@ export function getDerived<T>(target: any, property: string, getter: () => T): T
 }
 
 /**
- * Return cached `property` for `target`,
- * calling `getter()` to get initial value or whenever `dependencies` change.
+ * Cached `property` of `target`, calling `getter()` to get initial value or whenever `dependencies` change.
  * - To reset the value:
  *   - Call `this.clearDerived()` to reset all derived properties.
  *   - Call `this.clearDerived(property)` to reset just that property.
@@ -181,131 +325,13 @@ export function clearDerived(target: any, ...properties: string[]) {
 }
 
 ////////////////
-// ## Props
-////////////////
-
-/**
- * Return raw `props` map for `target` object.
- * - `constructing`:  from its constructor, via `initializeExtended()` -- so NOT checked by `assertCanCreateStore()`.
- * - SIDE EFFECT: on first call, also defines a non-enumerable `$props` property on `target`
- *   pointing at the raw (non-reactive) map, for debugging/inspection.
- */
-function propsFor(target: any, constructing = false) {
-  const extended = extendedFor(target)
-  if (!extended.props) {
-    if (!constructing) assertCanCreateStore(target, "props")
-    const map = {}
-    extended.props = { map, $store: newStore(map) }
-    // DEBUG: expose raw map as `$props` for inspection
-    Object.defineProperty(target, "$props", { value: map })
-  }
-  return extended.props
-}
-
-/** Return current `props` for `target` as a non-reactive object. */
-export function getProps(target: any) {
-  return propsFor(target).map
-}
-
-/** Return reactive `property`, defaulting to `initializer` if never set. */
-export function getProp<T>(target: any, property: string): T | undefined
-export function getProp<T>(target: any, property: string, initializer?: () => T): T
-export function getProp<T>(target: any, property: string, initializer?: () => T) {
-  const props = propsFor(target)
-  if (!hasOwnProp(props.map, property) && initializer) {
-    props.map[property] = initializer.call(target)
-  }
-  return props.$store[property]
-}
-
-/**
- * Set reactive `property` to `value`.
- * - If `value` is `undefined`, deletes the property instead.
- */
-export function setProp<T>(target: any, property: string, value: T) {
-  const props = propsFor(target)
-  if (value === undefined) delete props.$store[property]
-  else props.$store[property] = value
-  return value
-}
-/** Set multiple reactive `props` at once, in a single `batch()` so reactive consumers only re-run once. */
-export function setProps(target: any, props: Record<string, any>) {
-  batch(() => {
-    Object.entries(props).forEach(([prop, value]) => setProp(target, prop, value))
-  })
-}
-
-////////////////
-// ## State
-////////////////
-
-// /** `@state` decorator. */
-// export function state<T>(target: any, context: DecoratorContext) {
-//   if (context.kind !== "getter") {
-//     throw new CustomError({
-//       message: `@state decorator must be called with a getter`,
-//       context: target,
-//       activity: `@state ${String(context.name)}`,
-//       params: context
-//     })
-//   }
-//   return () => getState(target, context.name, context.access.get as () => T)
-// }
-
-/** Return raw `state` map for `target` object -- `constructing` as for `propsFor()`. */
-function stateFor(target: any, constructing = false) {
-  const extended = extendedFor(target)
-  if (!extended.state) {
-    if (!constructing) assertCanCreateStore(target, "state")
-    const map = {}
-    extended.state = { map, $store: newStore(map) }
-    Object.defineProperty(target, "$state", { value: map })
-  }
-  return extended.state
-}
-
-/** Return reactive `property`, defaulting to `initializer` if never set. */
-export function getState<T>(target: any, property: string): T | undefined
-export function getState<T>(target: any, property: string, initializer?: () => T): T
-export function getState<T>(target: any, property: string, initializer?: () => T) {
-  const state = stateFor(target)
-  if (!hasOwnProp(state.map, property) && initializer) {
-    state.map[property] = initializer.call(target)
-  }
-  return state.$store[property]
-}
-
-/**
- * Set reactive `property` to `value`.
- * - If `value` is `undefined`, deletes the property instead.
- */
-export function setState<T>(target: any, property: string, value: T) {
-  const { $store } = stateFor(target)
-  if (value === undefined) _unset($store, property)
-  else _set($store, property, value)
-  return value
-}
-
-/**
- * Clear reactive state `properties` of target.
- * - By default we clear state entirely.
- * - Pass specific string `properties` path(s) to clear just those.
- * - `properties` can be dotted paths!
- */
-export function resetState<T>(target: any, ...properties: string[]) {
-  const state = stateFor(target)
-  if (properties.length === 0) properties = Object.keys(state.map)
-  batch(() => {
-    properties.forEach((property) => _unset(state.$store, property))
-  })
-}
-
-////////////////
 // ## Override
 ////////////////
+
 /**
  * Override getter defined for `property` on `target`, returning explicit `value` instead.
  * - NOTE: can call this repeatedly -- each call replaces the previous override.
+ * - NOT reactive:  a plain own property.
  */
 export function overrideProp(target: any, property: string, value: any) {
   Object.defineProperty(target, property, {
@@ -363,4 +389,33 @@ export function dependenciesMatch(list1: any[], list2: any[]) {
     if (item1 !== item2) return false
   }
   return true
+}
+
+////////////////
+// ## Helpers
+////////////////
+
+/** Cell of `property` in `extended`'s `which` cells, made if need be. */
+function cellOf(extended: Extended, which: typeof PROP_CELLS | typeof STATE_CELLS, property: string): Cell {
+  const cells = (extended[which] ??= new Map())
+  let cell = cells.get(property)
+  if (!cell) cells.set(property, (cell = new Cell()))
+  return cell
+}
+
+/** What `target`'s class declares about `property` -- `undefined` if undeclared, or `target` isn't an `Observable`. */
+function declared(target: any, property: string): PropInfo | undefined {
+  const Class = target.constructor
+  return Class?.[HAS_SCHEMA] ? schemaOf(Class).info(property) : undefined
+}
+
+/**
+ * `getDerived()`'s cache for `target`.
+ * - SIDE EFFECT:  defines a non-enumerable `__derived__` property directly on `target` if missing.
+ */
+function derivedFor(target: any) {
+  if (!target.__derived__) {
+    Object.defineProperty(target, "__derived__", { value: {} })
+  }
+  return target.__derived__
 }

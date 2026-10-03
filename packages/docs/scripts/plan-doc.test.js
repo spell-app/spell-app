@@ -4,7 +4,7 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import { DOCS } from "./pages.js"
-import { PlanDoc, PlanDocError, timeTag } from "./plan-doc.js"
+import { PlanDoc, PlanDocError, parseDuration, timeTag } from "./plan-doc.js"
 import { convertSections } from "./to-ui-section.js"
 
 /** When the tests' edits happen:  local 2026-10-01 09:05. */
@@ -12,7 +12,7 @@ const NOW = new Date(2026, 9, 1, 9, 5)
 
 /** A fresh plan doc from the real template, so the tests break when the template drifts from the script. */
 function freshPlan() {
-  return PlanDoc.parse(readFileSync(join(DOCS, "templates/plans/plan.html"), "utf8"), NOW)
+  return PlanDoc.parse(readFileSync(join(DOCS, "templates/epics/plan.html"), "utf8"), NOW)
 }
 
 /** A plan doc in the layout before 2026-10-01 (`#plan` with a phase list, `ol.plan-items`):  the old template. */
@@ -73,7 +73,12 @@ describe("PlanDoc phases", () => {
       '<ui-section id="p2" data-phase="2" data-status="todo" header="P2 · Runtime + Index" sticky collapsible dividing>'
     )
     const body = plan.document.querySelector('ui-section[data-phase="2"] > ui-list.plan-phase-body')
-    expect(Array.from(body.children, (item) => item.getAttribute("icon"))).toEqual(["bullseye", "folder", "flask"])
+    expect(Array.from(body.children, (item) => item.getAttribute("icon"))).toEqual([
+      "bullseye",
+      "folder",
+      "flask",
+      "clock"
+    ])
     expect(body.textContent).toContain("sidebar from headings")
     expect(plan.check()).toEqual([])
   })
@@ -169,6 +174,61 @@ describe("PlanDoc phases", () => {
     plan.setPhase(1, "done")
     expect(plan.updateMarkers(1)).toHaveLength(0)
     expect(plan.updateMarkers(2)).toHaveLength(1)
+  })
+})
+
+describe("PlanDoc estimates", () => {
+  /** The Overview's total line, as text. */
+  function total(plan) {
+    return plan.document.querySelector("#overview > p.plan-estimate")?.textContent
+  }
+
+  it("parses hours, minutes and ranges", () => {
+    expect(parseDuration("30m")).toEqual({ min: 30, max: 30 })
+    expect(parseDuration("45 min")).toEqual({ min: 45, max: 45 })
+    expect(parseDuration("~1.5h")).toEqual({ min: 90, max: 90 })
+    expect(parseDuration("1h30m")).toEqual({ min: 90, max: 90 })
+    expect(parseDuration("1-2h")).toEqual({ min: 60, max: 120 })
+    expect(parseDuration("30m-1h")).toEqual({ min: 30, max: 60 })
+    for (const bad of [undefined, "", "TBD", "a day", "2 hours-ish", "1h-2h-3h"]) {
+      expect(parseDuration(bad)).toBeUndefined()
+    }
+  })
+
+  it("totals the phases' estimates in the Overview, and what's left", () => {
+    const plan = freshPlan()
+    plan.addPhase("One", { estimate: "1h" })
+    expect(plan.phases[0].estimate).toBe("1h")
+    expect(total(plan)).toBe("Estimate:  1h in all, 1h left")
+    plan.addPhase("Two", { estimate: "30m-1h" })
+    plan.addPhase("Three")
+    expect(total(plan)).toBe("Estimate:  1h 30m-2h in all, 1h 30m-2h left (P3 not estimated)")
+    plan.setPhase(1, "done")
+    expect(total(plan)).toBe("Estimate:  1h 30m-2h in all, 30m-1h left (P3 not estimated)")
+    plan.setEstimate(3, "15m")
+    expect(plan.phases[2].estimate).toBe("15m")
+    expect(total(plan)).toBe("Estimate:  1h 45m-2h 15m in all, 45m-1h 15m left")
+    expect(plan.summary().estimate).toBe("1h 45m-2h 15m in all, 45m-1h 15m left")
+    expect(plan.check()).toEqual([])
+  })
+
+  it("goes below the summary and the prompt;  none without an estimate", () => {
+    const plan = freshPlan()
+    plan.setPrompt("make it so")
+    plan.addPhase("One")
+    expect(total(plan)).toBeUndefined()
+    plan.setEstimate(1, "2h")
+    expect(plan.document.querySelector("blockquote.plan-prompt").nextElementSibling.className).toBe("plan-estimate")
+  })
+
+  it("adds the field to a phase made without one", () => {
+    const plan = freshPlan()
+    plan.addPhase("One")
+    plan.document.querySelector('#p1 ui-item[icon="clock"]').remove()
+    expect(plan.phases[0].estimate).toBeUndefined()
+    plan.setEstimate(1, "1h")
+    expect(plan.document.querySelector('#p1 ui-item[icon="clock"]').textContent).toBe("Estimate:  1h")
+    expect(() => plan.setEstimate(9, "1h")).toThrow(PlanDocError)
   })
 })
 

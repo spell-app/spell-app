@@ -1,6 +1,8 @@
 /**
  * Lets a Claude Code session (or any script it runs) talk to ITS OWN VS Code window:  add or remove a folder
- * (a worktree), show a doc in Simple Browser.  The client is the repo root's `scripts/window.mjs` (`yarn window`).
+ * (a worktree), show a doc in Simple Browser, close the session's tab;  or to a worktree's window
+ * (`yarn window open`):  open the session there, close the window.  The client is the repo root's
+ * `scripts/window.mjs` (`yarn window`).
  * - Why not a `vscode://` URI:  macOS hands it to whichever window is FOCUSED, often not the session's.
  * - How a session finds its window:  by PID.  A session's process tree is `claude` -> `Code Helper (Plugin)` (the
  *   window's EXTENSION HOST, one per window) -> `Code`, and this code runs in that extension host.  So
@@ -14,8 +16,13 @@
  *   answers `{ ok: true, ... }`, or `{ ok: false, error }` with a 4xx / 5xx status.  Ops:
  *   - `add-folder { path, name? }`:  add `path` as the window's last folder;  already there:  ok, no-op
  *   - `remove-folder { path }`:  remove it;  never folder 0 (the repo root);  not there:  ok, no-op
- *   - `show-doc { file }`:  `DocPreview.show(file)`
- * - NEVER adds a folder unless the window was opened from a SAVED workspace file (`packages/<pkg>/<pkg>.code-workspace`):
+ *   - `show-doc { file, hash? }`:  `DocPreview.show(file, hash)`;  `hash` an id on the page to land on
+ *   - `close-window {}`:  close this window, just after answering (`/isolate done` closes the worktree's window)
+ *   - `open-session { sessionId }`:  open Claude Code session `sessionId` in an editor tab (never the sidebar);
+ *     `/isolate` hands its session to the worktree's window this way
+ *   - `close-session-tab { title }`:  close the ONE Claude Code tab labelled `title`;  none or several:  ok,
+ *     `closed: false`.  Closing the tab ends that tab's `claude` process.
+ * - NEVER adds a folder unless the window was opened from a SAVED workspace file (`workspaces/<pkg>.code-workspace`):
  *   in a one-folder or untitled window, the change re-opens the window as a new workspace, which restarts every
  *   extension -- including the Claude panel whose session asked.  `remove-folder` has no such rule:  it only ever
  *   takes away a folder `add-folder` put there.
@@ -34,6 +41,15 @@ import { DocPreview } from "./DocPreview"
 
 /** Largest request body accepted, in bytes:  ops carry a path or two. */
 const MAX_BODY = 64 * 1024
+
+/** A Claude Code session id:  a uuid. */
+const SESSION_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/** The Claude Code extension's editor tabs' webview type;  VS Code prefixes it (`mainThreadWebview-...`). */
+const CLAUDE_PANEL = "claudeVSCodePanel"
+
+/** Longest Claude tab label before it's cut, `…` included (extension 2.1.287). */
+const TAB_TITLE_LENGTH = 25
 
 /****************
  * ### `WindowBridge`
@@ -166,9 +182,21 @@ export class WindowBridge {
       case "show-doc": {
         const file = path(body, "file")
         if (!existsSync(file) || !statSync(file).isFile()) throw new BridgeError(404, `no file '${file}'`)
-        await DocPreview.show(file)
+        await DocPreview.show(file, typeof body.hash === "string" ? body.hash : undefined)
         return { file }
       }
+      case "close-window":
+        // after the reply is on its way:  closing ends this extension host, and the server with it
+        setTimeout(() => void vscode.commands.executeCommand("workbench.action.closeWindow"), 200)
+        return { closing: true }
+      case "open-session": {
+        const sessionId = typeof body.sessionId === "string" ? body.sessionId : ""
+        if (!SESSION_ID.test(sessionId)) throw new BridgeError(400, `bad session id '${sessionId}'`)
+        await vscode.commands.executeCommand("claude-vscode.primaryEditor.open", sessionId)
+        return { sessionId }
+      }
+      case "close-session-tab":
+        return WindowBridge.closeSessionTab(typeof body.title === "string" ? body.title : "")
       default:
         throw new BridgeError(404, `unknown op '${op}'`)
     }
@@ -185,7 +213,7 @@ export class WindowBridge {
       throw new BridgeError(
         409,
         "this window isn't a saved workspace:  adding a folder would restart its extensions (and the Claude panel)." +
-          "  Open it from packages/<pkg>/<pkg>.code-workspace."
+          "  Open it from workspaces/<pkg>.code-workspace."
       )
     }
     if (!existsSync(folder) || !statSync(folder).isDirectory()) throw new BridgeError(404, `no folder '${folder}'`)
@@ -210,6 +238,26 @@ export class WindowBridge {
       throw new BridgeError(500, `VS Code refused to remove '${folder}'`)
     }
     return { removed: true, path: folder }
+  }
+
+  /**
+   * `close-session-tab`:  close the Claude Code tab labelled `title`, if exactly one is.
+   * - HACK:  a Claude tab says nothing of its session but its label, the session's title cut to
+   *   `TAB_TITLE_LENGTH` characters with a trailing `…`
+   */
+  static async closeSessionTab(title: string): Promise<Record<string, unknown>> {
+    if (!title) throw new BridgeError(400, "no title")
+    const tabs = vscode.window.tabGroups.all
+      .flatMap((group) => group.tabs)
+      .filter(
+        (tab) =>
+          tab.input instanceof vscode.TabInputWebview &&
+          tab.input.viewType.endsWith(CLAUDE_PANEL) &&
+          tabShows(tab.label, title)
+      )
+    if (tabs.length !== 1) return { closed: false, matches: tabs.length }
+    await vscode.window.tabGroups.close(tabs[0])
+    return { closed: true }
   }
 
   /** Index of `folder` among the window's folders, or -1. */
@@ -291,4 +339,14 @@ function readBody(request: IncomingMessage): Promise<Record<string, unknown>> {
 function reply(response: ServerResponse, status: number, body: Record<string, unknown>): void {
   response.writeHead(status, { "Content-Type": "application/json; charset=utf-8" })
   response.end(JSON.stringify(body))
+}
+
+/**
+ * Whether a Claude tab labelled `label` shows session title `title`.
+ * - the label is the title, or its first `TAB_TITLE_LENGTH - 1` characters plus `…`
+ */
+function tabShows(label: string, title: string): boolean {
+  const full = title.trim()
+  if (label === full) return true
+  return full.length > TAB_TITLE_LENGTH && label === `${full.substring(0, TAB_TITLE_LENGTH - 1)}…`
 }

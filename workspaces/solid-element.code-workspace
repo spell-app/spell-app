@@ -1,0 +1,19 @@
+{
+  "folders": [
+    {
+      "path": "..",
+      "name": "spell-app"
+    },
+    {
+      "path": "../packages/solid-element",
+      "name": "solid-element"
+    }
+  ],
+  "settings": {
+    "workbench.colorTheme": "Solarized Light",
+    "files.exclude": {
+      "packages": true,
+      ".claude/worktrees": true
+    }
+  }
+}
