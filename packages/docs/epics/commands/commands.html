@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Commands: CLI, skills, yarn</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p3">next: P3 · Target Scheme</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p4">next: P4 · Drift Check</ui-label></span
             >
           </header></ui-sticky
         >
@@ -70,7 +70,7 @@
               you create a new yarn script to solve some problem. Instruct it to keep that doc up to date.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 7h-12h in all, 3h-6h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 7h-12h in all, 2h-4h left</p>
           <ui-section id="o1" header="1.1 What exists today" sticky collapsible dividing>
             <p>Three ways to make the repo do something, grown separately:</p>
             <ui-table celled compact striped unstackable>
@@ -349,7 +349,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="2" total="6" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="3" total="6" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -380,6 +380,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p2"
             data-phase="2"
             data-status="done"
@@ -401,15 +402,18 @@
               ><ui-item icon="gavel"><b>Judgement calls:</b> <a href="#t4">T4</a></ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p3" data-phase="3" data-status="todo" header="P3 · Target Scheme" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p3" data-phase="3" data-status="done" header="P3 · Target Scheme" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> Page sections Target (layering, spell dev, noun-verb) and Roadmap; a target on every
                 row</ui-item
               ><ui-item icon="folder"><b>Files:</b> dev/commands/commands.html, commands.json</ui-item
               ><ui-item icon="flask"><b>Verify:</b> no row without a target; roadmap links to rows</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
+              ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item
+              ><ui-item icon="gavel"
+                ><b>Judgement calls:</b> <a href="#t5">T5</a> <a href="#t6">T6</a></ui-item
+              ></ui-list
             >
           </ui-section>
           <ui-section id="p4" data-phase="4" data-status="todo" header="P4 · Drift Check" sticky collapsible dividing>
@@ -988,6 +992,36 @@ missing from commands.html:
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="t5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t5">T5</a>
+                  <span class="plan-title">Review: package scripts stay in yarn</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <b>Chose:</b> each package's tool-native scripts (<code>ts lint format test build gen:*</code>,
+                    vite, astro) STAY yarn scripts; only repo / cross-package actions move to <code>spell dev</code>,
+                    with yarn aliases. <b>Over:</b> routing every script through the CLI (<code>spell dev ts ui</code>):
+                    more uniform, but wraps tools that already have a good home and adds ~0.5s per call.
+                    <code>spell dev check</code> (R7 on the commands page) orchestrates them instead.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t6">T6</a>
+                  <span class="plan-title">Review: noun names plan-doc, server --all, stock</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <b>Chose:</b> keep <code>plan-doc</code> as the noun (yarn and CLI already say it), over a shorter
+                    <code>plan</code>; one <code>server</code> noun with <code>start --all</code> for every server, over
+                    a plural <code>servers</code> (singular / plural is the same trap as today's <code>serve</code> /
+                    <code>server</code>); <code>stock</code> for take-stock (<code>/whassup</code>), over
+                    <code>status</code> (taken by <code>worktree status</code>).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1132,6 +1166,28 @@ missing from commands.html:
                   ><ui-date><time datetime="2026-10-03T00:21-04:00">2026-10-03 00:21</time></ui-date> P2 done:
                   dev/commands/commands.html + commands.json, 227 operations in 13 families; checks: every one of 205
                   yarn / CLI / skill names covered, none stale; check-spell ok; doc-links ok</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:22-04:00">2026-10-03 00:22</time></ui-date> P3
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:27-04:00">2026-10-03 00:27</time></ui-date> P3
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:27-04:00">2026-10-03 00:27</time></ui-date> P3 done: page
+                  sections 5. Target (layers, names, yarn renames) and 6. Roadmap R1-R10; a target on all 227 rows, 161
+                  linking to roadmap rows; checks: check-spell ok, no broken in-page links, docs lint green</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
