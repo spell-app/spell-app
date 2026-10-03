@@ -15,8 +15,8 @@ before he picks it in a modal.
   - **Hung or parked** (`stalled`):  `/park`ed, a `/bedtime` report not gone through, a busy session gone silent
     20 min, a question unanswered 30 min, work untouched 6 hours with no session, a plan with phases left and nothing
     working on it, a `park:` stash left behind
-  - **Dead, still hanging on** (`dead`):  merged or empty worktrees and branches, sessions idle 24 hours or never
-    used, window files for a worktree that's gone
+  - **Dead, still hanging on** (`dead`):  merged or empty worktrees and branches, sessions idle 24 hours (6 outside
+    a worktree) or never used, window files for a worktree that's gone
 - Each item comes with its `actions`;  `commands` are plain shell lines, `[]` means a step Claude takes.
 
 ## 1. Take stock
@@ -40,6 +40,7 @@ For each picked group, AskUserQuestion, multiSelect, ONE question per item (4 pe
 - question:  "<n>. <kind> <name>:  <why, short>",  header:  the name, cut to 12 characters
 - options:  its `actions` (label as given;  description:  the commands, or what Claude will do), then "Leave it".
   More than 3 actions:  the first 3 (the script lists them most useful first), then "Leave it".
+- skip this session's own item (`this: true`):  there's nothing to do to it from here
 - nothing picked but "Leave it" for every item:  say so and skip to step 5
 
 ## 4. Do 'em
