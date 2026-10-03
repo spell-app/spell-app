@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Spell UI Pages</title>
+    <meta name="description" content="Plan doc:  Spell UI Pages." />
+    <link rel="stylesheet" href="../../_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../_assets/plan-doc.css" />
+  </head>
+  <body class="spell-doc-page plan-doc" data-plan="spell-ui-pages">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../../index.html" target="src-packages-docs-index-html"
+            >Docs</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section href="../../index.html#epics" target="src-packages-docs-index-html"
+            >Epics</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section active>Spell UI Pages</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <ui-sticky class="spell-h1"
+          ><header class="spell-page-head">
+            <h1>Spell UI Pages</h1>
+            <span class="plan-step"
+              ><ui-label basic color="grey" icon="circle outline" href="#p1"
+                >next: P1 · Fomantic Reference</ui-label
+              ></span
+            >
+          </header></ui-sticky
+        >
+        <ui-list class="plan-meta">
+          <ui-item icon="code branch"
+            >Plan doc for <code>/epic spell-ui-pages</code>, branch <code>spell-ui-pages</code></ui-item
+          >
+          <ui-item icon="folder"
+            >Worktree:
+            <a href="../../../../" target="src-"
+              ><code>/Users/owen/www/spell-app/spell-app/.claude/worktrees/spell-ui-pages</code></a
+            ></ui-item
+          >
+          <ui-item icon="calendar"
+            >Started <time id="plan-started">2026-10-02</time>, updated
+            <time id="plan-updated">2026-10-02</time></ui-item
+          >
+        </ui-list>
+
+        <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
+          <ui-icon slot="icon" name="lightbulb"></ui-icon>
+          <p class="plan-summary lede">
+            Replace Spell UI's Astro doc site with hand-authored HTML pages built only from <code>&lt;ui-*&gt;</code>
+            widgets plus new doc-only <code>&lt;ui-docs-*&gt;</code> elements, carrying Fomantic's text, examples and
+            images, and log every widget gap that shows up.  Port Fomantic's 25 themes into our token-sheet themes,
+            picked from the page header.
+          </p>
+          <blockquote class="plan-prompt">
+            <p>
+              The spell/ui doc pages are ugly.<br />Re-do them in the style of the Fomantic UI ones. Use their
+              examples/images/text/style.<br />Use `&lt;ui-*` widgets for absolutely everything. We can use this to see
+              where the gaps are in the widgets.<br />Note that I prefer our sidebar organization where all components
+              are listed together and broken by topics.<br />The way spell/ui switches top tabs on some of the pages is
+              good.<br />Let's go ahead and copy in their themes as well, but using our system.<br />You can use up to
+              12 agents to do this.<br />I'm going to bed soon, let's make this plan snappy.
+            </p>
+          </blockquote>
+          <p class="plan-estimate"><b>Estimate:</b> 14h 30m-19h 30m in all, 14h 30m-19h 30m left</p>
+          <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
+            <ui-list bulleted>
+              <ui-item><code>packages/ui/site/</code>:  the site, plain <code>.html</code>, served at <code>/ui/</code> by the page server (<a href="#d7">D7</a>)
+                <ui-list>
+                  <ui-item><code>index.html</code>, foundation pages (getting-started, grammar, theming, utilities, icons, kitchen-sink)</ui-item>
+                  <ui-item><code>components/ui-&lt;name&gt;.html</code>:  one per tag</ui-item>
+                  <ui-item><code>_parts/*.html</code>:  shared header / footer, pulled in by <code>&lt;ui-include&gt;</code> (<a href="#d8">D8</a>)</ui-item>
+                  <ui-item><code>_assets/</code>:  the COMMITTED ui bundle;  <code>images/</code>:  Fomantic's avatars, wireframes, logo</ui-item>
+                </ui-list>
+              </ui-item>
+              <ui-item><code>packages/docs/templates/spell-ui-docs.html</code>:  the page template (<a href="#d1">D1</a>)</ui-item>
+              <ui-item><code>packages/ui/src/docs-components/ui-docs-*</code>:  doc-only Solid elements;  <code>&lt;ui-root&gt;</code> lazy-loads them, the component list doesn't show them (<a href="#d2">D2</a>)</ui-item>
+              <ui-item><code>packages/ui/src/styles/themes/&lt;name&gt;.css</code>:  one token sheet per Fomantic theme (<a href="#d5">D5</a>)</ui-item>
+              <ui-item><code>packages/ui/reference/</code> (git-ignored):  Fomantic-UI 2.9.4 and Fomantic-UI-Docs clones, the source of text, examples, images and themes</ui-item>
+            </ui-list>
+          </ui-section>
+          <ui-section id="o2" header="1.2 A page" sticky collapsible dividing>
+            <ui-list bulleted>
+              <ui-item><code>&lt;ui-root&gt;</code> around everything:  loads each family on first use</ui-item>
+              <ui-item>header (<code>&lt;ui-menu&gt;</code>) with <code>&lt;ui-docs-themes&gt;</code>:  theme picker + light / dark / system</ui-item>
+              <ui-item>left:  <code>&lt;ui-docs-nav&gt;</code>, every component listed together, grouped by topic, with search</ui-item>
+              <ui-item>masthead:  title, summary, top tabs in the icons-page segmented style (<a href="#d4">D4</a>):  Examples / Usage / API / Theming</ui-item>
+              <ui-item>body:  Fomantic's sections (Types, Content, States, Variations, Groups), each example a <code>&lt;ui-docs-example&gt;</code> (live markup + its source in <code>&lt;ui-code&gt;</code>), prose in <code>&lt;ui-markdown&gt;</code></ui-item>
+              <ui-item>API / Theming tabs:  <code>&lt;ui-docs-api&gt;</code>, <code>&lt;ui-docs-tokens&gt;</code>, built from the tag's vocabulary</ui-item>
+            </ui-list>
+          </ui-section>
+          <ui-section id="o3" header="1.3 Widget gaps" sticky collapsible dividing>
+            <p>
+              Every Fomantic example or bit of chrome a <code>&lt;ui-*&gt;</code> widget can't do becomes an issue
+              (<a href="#d6">D6</a>);  <a href="#p8">P8 · Gap Report</a> rolls them into one table.
+            </p>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
+          <ui-icon slot="icon" name="layer group"></ui-icon>
+          <ui-progress class="plan-progress" value="0" total="9" bar-text="ratio" size="small" color="green"
+            >phases done</ui-progress
+          >
+
+          <ui-section
+            id="p1"
+            data-phase="1"
+            data-status="todo"
+            header="P1 · Fomantic Reference"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> Clone Fomantic-UI 2.9.4 + Fomantic-UI-Docs into packages/ui/reference/; copy avatar /
+                wireframe / logo images to site/images/; map Fomantic doc pages to our 58 tags</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/ui/reference/ (git-ignored), packages/ui/site/images/</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> mapping table in the plan doc; images present</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 30m</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p2"
+            data-phase="2"
+            data-status="todo"
+            header="P2 · Docs Components"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> Solid elements in packages/ui/src/docs-components/: ui-docs-example, ui-docs-api,
+                ui-docs-tokens, ui-docs-nav, ui-docs-themes; ui-root's catalog knows them; not in the component
+                docs</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/ui/src/docs-components/, scripts/gen-root-catalog.ts, vite.config.ts</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> unit tests per element; yarn gen:root; yarn ts</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p3"
+            data-phase="3"
+            data-status="todo"
+            header="P3 · Template & Shell"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> packages/docs/templates/spell-ui-docs.html; shared parts via ui-include; committed ui
+                bundle in site/_assets; page server serves /ui/ from packages/ui/site; pilot page ui-button,
+                self-reviewed vs fomantic-ui.com</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/docs/templates/, packages/ui/site/, packages/server/src/page/</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> pilot page renders on the page server, no console errors, Chrome side-by-side</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 2-3h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p4"
+            data-phase="4"
+            data-status="todo"
+            header="P4 · Component Pages"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> Every site/components/ui-<name
+                  >.html from the template, Fomantic structure, text, examples and images in ui-* markup; gaps logged as
+                  issues</name
+                ></ui-item
+              ><ui-item icon="folder"><b>Files:</b> packages/ui/site/components/*.html</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> each page loads clean; spot checks in Chrome</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 3-4h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p5"
+            data-phase="5"
+            data-status="todo"
+            header="P5 · Foundation Pages"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> index, getting-started, grammar, theming, utilities, icons, kitchen-sink, components index
+                as ui-* HTML</ui-item
+              ><ui-item icon="folder"><b>Files:</b> packages/ui/site/*.html</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> each page loads clean</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p6" data-phase="6" data-status="todo" header="P6 · Themes Port" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> All 25 Fomantic themes as token sheets in src/styles/themes/<name
+                  >.css; picker lists them; theming.md porting recipe</name
+                ></ui-item
+              ><ui-item icon="folder"><b>Files:</b> packages/ui/src/styles/themes/, packages/ui/docs/theming.md</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> every theme on kitchen-sink; yarn test:visual default theme unchanged</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 3-4h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p7" data-phase="7" data-status="todo" header="P7 · Retire Astro" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> Delete the Astro site, MDX, site.css, AstroProxy; site:* scripts for the static site; docs
+                updated</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/ui/site/, packages/server/src/page/, AGENTS.md files</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> yarn review in ui and server; /ui/ still serves</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p8" data-phase="8" data-status="todo" header="P8 · Gap Report" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> Gap table (widget, missing feature, Fomantic example, workaround); SUSPECTED-BUGS; yarn
+                review; yarn test:visual</ui-item
+              ><ui-item icon="folder"><b>Files:</b> plan doc, SUSPECTED-BUGS.md</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> checks green or recorded</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p9" data-phase="9" data-status="todo" header="P9 · Doc Review" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> Prune the plan doc; durable doc packages/docs/spell-ui-pages.html</ui-item
+              ><ui-item icon="folder"><b>Files:</b> packages/docs/</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> yarn plan-doc check; check-spell on the durable doc</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
+            >
+          </ui-section></ui-section
+        >
+
+        <ui-section id="decisions" header="3. Questions & Decisions" sticky collapsible dividing>
+          <ui-icon slot="icon" name="gavel"></ui-icon>
+          <p class="meta">
+            Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why:
+            settled, don't re-argue without new facts. An answered question sits just above its decision.
+          </p>
+          <ui-list class="plan-items" data-kind="decision" divided relaxed
+            ><ui-item id="d1" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d1">D1</a>
+                  <span class="plan-title"
+                    >Astro + MDX out: pure HTML pages from a spell-ui-docs template</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Owen, in plan review. Islands via <code>&lt;ui-include&gt;</code>, prose via
+                    <code>&lt;ui-markdown&gt;</code>, every code sample in <code>&lt;ui-code&gt;</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d2" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d2">D2</a>
+                  <span class="plan-title"
+                    >Doc-only widgets are ui-docs-* Solid elements in packages/ui/src/docs-components/</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Owen. <code>&lt;ui-root&gt;</code> knows them; NOT listed in the normal component docs; integration
+                    decided later.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d3" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d3">D3</a>
+                  <span class="plan-title">Merged ui-import into main first</span></ui-title
+                ><ui-content
+                  ><p>
+                    Owen (Q1). Done 2026-10-02: main fast-forwarded to 01d6018a; spell-ui-pages branches from it.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d4" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d4">D4</a>
+                  <span class="plan-title">Top tabs: icons-page segmented switcher style</span></ui-title
+                ><ui-content><p>Owen (Q2). Examples / Usage / API / Theming per page.</p></ui-content></ui-accordion
+              ></ui-item
+            ><ui-item id="d5" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d5">D5</a>
+                  <span class="plan-title">Port all 25 Fomantic themes</span></ui-title
+                ><ui-content><p>Owen (Q3).</p></ui-content></ui-accordion
+              ></ui-item
+            ><ui-item id="d6" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d6">D6</a>
+                  <span class="plan-title">Widget gaps: log as issues, fix only tiny local ones</span></ui-title
+                ><ui-content
+                  ><p>Owen (Q4). Fix inline only when &lt; ~15 min and local to one widget.</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d7" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d7">D7</a>
+                  <span class="plan-title"
+                    >Pages in packages/ui/site, served at /ui/, loading a COMMITTED ui bundle</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Owen (Q5 + bedtime). Like docs' spell-ui.js: generated, checked in, no build step to view.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d8" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d8">D8</a> <span class="plan-title">Islands = ui-include</span></ui-title
+                ><ui-content
+                  ><p>
+                    Owen (Q6): his <code>&lt;ui-import&gt;</code> meant <code>&lt;ui-include&gt;</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d9" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d9">D9</a>
+                  <span class="plan-title">Pilot page self-reviewed, then fan out</span></ui-title
+                ><ui-content><p>Owen (bedtime). No morning review gate before P4.</p></ui-content></ui-accordion
+              ></ui-item
+            ><ui-item id="d10" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d10">D10</a>
+                  <span class="plan-title">P7 deletes the Astro site on the branch</span></ui-title
+                ><ui-content><p>Owen (bedtime). Old site stays on main until merge.</p></ui-content></ui-accordion
+              ></ui-item
+            ><ui-item id="d11" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d11">D11</a> <span class="plan-title">Up to 12 agents</span></ui-title
+                ><ui-content><p>Owen's prompt overrides the default 5.</p></ui-content></ui-accordion
+              ></ui-item
+            ><ui-item id="d12" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d12">D12</a>
+                  <span class="plan-title"
+                    >Fomantic (MIT) text and images copied, with attribution in the footer</span
+                  ></ui-title
+                ><ui-content><p>Fomantic-UI and its docs are MIT-licensed.</p></ui-content></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="caveats" header="4. Caveats" sticky collapsible dividing>
+          <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
+          <ui-list class="plan-items" data-kind="caveat" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="todos" header="5. Todos" sticky collapsible dividing>
+          <ui-icon slot="icon" name="list check"></ui-icon>
+          <p class="meta">For later: not caveats, not issues.</p>
+          <ui-list class="plan-items" data-kind="todo" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="issues" header="6. Issues" sticky collapsible dividing>
+          <ui-icon slot="icon" name="bug"></ui-icon>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="log" header="7. Log" sticky collapsible dividing>
+          <ui-icon slot="icon" name="clock rotate left"></ui-icon>
+          <p class="meta">Plan changes, oldest first, local time.</p>
+          <ui-feed class="plan-log" size="small">
+            <ui-event icon="pen to square">
+              <ui-content>
+                <ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:32-04:00">2026-10-02 22:32</time></ui-date> plan doc
+                  created</ui-summary
+                >
+              </ui-content>
+            </ui-event>
+            <ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:33-04:00">2026-10-02 22:33</time></ui-date> P1 added: Fomantic
+                  Reference</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:33-04:00">2026-10-02 22:33</time></ui-date> P2 added: Docs
+                  Components</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:33-04:00">2026-10-02 22:33</time></ui-date> P3 added: Template
+                  &amp; Shell</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:33-04:00">2026-10-02 22:33</time></ui-date> P4 added:
+                  Component Pages</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:33-04:00">2026-10-02 22:33</time></ui-date> P5 added:
+                  Foundation Pages</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:33-04:00">2026-10-02 22:33</time></ui-date> P6 added: Themes
+                  Port</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:33-04:00">2026-10-02 22:33</time></ui-date> P7 added: Retire
+                  Astro</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:33-04:00">2026-10-02 22:33</time></ui-date> P8 added: Gap
+                  Report</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:33-04:00">2026-10-02 22:33</time></ui-date> P9 added: Doc
+                  Review</ui-summary
+                ></ui-content
+              ></ui-event
+            ></ui-feed
+          >
+        </ui-section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../_assets/spell-ui.js"></script>
+  </body>
+</html>
