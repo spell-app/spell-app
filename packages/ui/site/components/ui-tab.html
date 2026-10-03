@@ -66,7 +66,7 @@
               </ui-sticky>
             </ui-rail>
 
-            <ui-tabs id="site-tabs" class="site-tabs" history basic compact>
+            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
               <ui-tab value="examples" label="Examples">
                 <!--
                   EXAMPLES:  Fomantic's page, section by section, in its order (Types, Content, States, Variations,
@@ -125,6 +125,17 @@
                   </ui-tabs>
                 </ui-docs-example>
 
+                <ui-docs-example
+                  header="Segmented"
+                  description='The tabs can be a segmented control:  `appearance="segmented"`, the selected tab filled with the primary colour (or `color`).  `appearance` takes the menu&apos;s looks;  the booleans above are its aliases.'
+                >
+                  <ui-tabs appearance="segmented" aria-label="Segmented demo">
+                    <ui-tab label="Examples">Examples pane</ui-tab>
+                    <ui-tab label="Usage">Usage pane</ui-tab>
+                    <ui-tab label="API">API pane</ui-tab>
+                  </ui-tabs>
+                </ui-docs-example>
+
                 <ui-header level="2" dividing id="states">States</ui-header>
 
                 <ui-docs-example
@@ -161,7 +172,8 @@
 
                 <ui-header level="2" dividing id="variations">Variations</ui-header>
 
-                <!-- GAP I51:  no centered tab item (Fomantic's `center item`);  the Two tab sits in line. -->
+                <!-- GAP I51:  no centered tab item (Fomantic's `center item`);  the Two tab sits in line.  `alignment="center"`
+                     centres the whole tab list, not one tab between its neighbours. -->
                 <ui-docs-example header="Centered Item" description="A tab can have center aligned items.">
                   <ui-tabs tabular attached aria-label="Centered demo">
                     <ui-tab label="One">
@@ -221,9 +233,33 @@
                 </ui-docs-example>
 
                 <ui-docs-example
-                  header="Compact"
-                  description="The tab menu can be only as wide as its tabs:  a segmented switch."
+                  header="Alignment"
+                  description='`alignment` places the tabs:  `left`, `center` or `right` packs them at that end;  `fluid` makes them fill the row.  A segmented tab list moves as a whole.'
                 >
+                  <ui-tabs appearance="segmented" alignment="center" aria-label="Centered demo, segmented">
+                    <ui-tab label="Day">Today's numbers</ui-tab>
+                    <ui-tab label="Week">This week's numbers</ui-tab>
+                    <ui-tab label="Month">This month's numbers</ui-tab>
+                  </ui-tabs>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Equal"
+                  description='`equal` makes every tab the same width, from the tabs themselves:  each as wide as the widest, or, with `alignment="fluid"`, an equal share of the row (Fomantic&apos;s `four item` tab menu, without the count).  This site&apos;s own tabs are `appearance="segmented" alignment="fluid" equal`.'
+                >
+                  <ui-tabs appearance="segmented" equal aria-label="Equal demo">
+                    <ui-tab label="Bio">Biography</ui-tab>
+                    <ui-tab label="Photos and videos">Pictures</ui-tab>
+                    <ui-tab label="Friends">Friends</ui-tab>
+                  </ui-tabs>
+                  <ui-tabs pointing secondary alignment="fluid" equal aria-label="Equal fluid demo">
+                    <ui-tab label="Bio">Biography</ui-tab>
+                    <ui-tab label="Photos and videos">Pictures</ui-tab>
+                    <ui-tab label="Friends">Friends</ui-tab>
+                  </ui-tabs>
+                </ui-docs-example>
+
+                <ui-docs-example header="Compact" description="The tab menu can be only as wide as its tabs.">
                   <ui-tabs compact aria-label="Compact demo">
                     <ui-tab label="Day">Today's numbers</ui-tab>
                     <ui-tab label="Week">This week's numbers</ui-tab>

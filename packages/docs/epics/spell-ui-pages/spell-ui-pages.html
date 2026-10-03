@@ -25,9 +25,7 @@
           ><header class="spell-page-head">
             <h1>Spell UI Pages</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p11"
-                >next: P11 · Menu Appearance</ui-label
-              ></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p12">next: P12 · Doc Review 2</ui-label></span
             >
           </header></ui-sticky
         >
@@ -65,7 +63,7 @@
               12 agents to do this.<br />I'm going to bed soon, let's make this plan snappy.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 18h-25h in all, 2h 30m-3h 30m left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 18h-25h in all, 30m left</p>
           <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
             <ui-list bulleted>
               <ui-item
@@ -656,7 +654,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="10" total="12" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="11" total="12" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -860,7 +858,16 @@
               ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p10" data-phase="10" data-status="done" header="P10 · Stack With" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p10"
+            data-phase="10"
+            data-status="done"
+            header="P10 · Stack With"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -878,13 +885,13 @@
           <ui-section
             id="p11"
             data-phase="11"
-            data-status="todo"
+            data-status="done"
             header="P11 · Menu Appearance"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> appearance + alignment on
@@ -2210,6 +2217,131 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="j14" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j14">J14</a>
+                  <span class="plan-title"
+                    >P11: appearance is one valueOnly word (its value IS the class); five values, no vertical / basic /
+                    combo values</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose <code>appearance</code> as <code>kind: "valueOnly"</code> with exactly
+                    <code>tabular | pointing | secondary | text | segmented</code> over an enum the element maps onto
+                    the boolean words, because the value then IS the class word: the booleans stay aliases with
+                    identical classes, the native fallbacks need no code, and the menu sheet keys on the same words.
+                    Left out: <code>vertical</code> (an orientation every look combines with), <code>basic</code> (<code
+                      >&lt;ui-tabs basic&gt;</code
+                    >
+                    is the panes'), and combined values such as <code>secondary pointing</code> (write
+                    <code>appearance="pointing" secondary</code>).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j15" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j15">J15</a>
+                  <span class="plan-title"
+                    >P11: alignment packs items in a full-width bar; a segmented menu moves as a whole</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose <code>alignment="left|center|right"</code> as <code>justify-content</code> inside the bar
+                    (which keeps spanning the row: a tabular rule, a boxed menu) and <code>fluid</code> as items growing
+                    from their own width (<code>flex: 1 1 auto</code>), over shrinking every bar to its items and moving
+                    it, because a tab rule or toolbar box across the row is the usual centred-tabs look. A
+                    <code>segmented</code> menu IS its items (it hugs them), so for it <code>alignment</code> moves the
+                    whole group (auto margins) and <code>fluid</code> spreads it. Emitted as
+                    <code>&lt;value&gt; aligned</code> (Fomantic's phrase shape); ignored when <code>vertical</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j16" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j16">J16</a>
+                  <span class="plan-title"
+                    >P11: equal packs as a grid of 1fr columns on the group root, so a packed equal bar hugs its
+                    items</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose, for <code>equal</code> without <code>fluid</code> / <code>alignment="fluid"</code>,
+                    <code>display: grid; grid-auto-columns: 1fr; grid-auto-flow: column; width: fit-content</code> on
+                    the group ROOT over an inner grid box inside a full-width bar, because
+                    <code>&lt;ui-tabs&gt;</code> draws its tab buttons straight into the tablist (no slot to turn into
+                    the grid) and a wrapper would change every tab set's DOM and ARIA tree. Costs: a packed
+                    <code>equal tabular</code> bar's rule ends at its last tab; a packed
+                    <code>&lt;ui-buttons equal&gt;</code>'s <code>&lt;ui-or&gt;</code> takes a column of its own (use
+                    <code>fluid</code>). With fluid, every child is <code>flex: 1 1 0</code>. Flexbox alone can't size
+                    items to the widest without a count.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j17" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j17">J17</a>
+                  <span class="plan-title"
+                    >P11: equal on statistics / fields shares the row; on buttons / steps it hugs unless fluid; fields
+                    reuse equal width</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose per family by what the group already is: <code>&lt;ui-statistics&gt;</code> and
+                    <code>&lt;ui-fields&gt;</code> span their row (no <code>fluid</code> attribute), so
+                    <code>equal</code> there means one row, an equal share each; <code>&lt;ui-buttons&gt;</code> and
+                    <code>&lt;ui-steps&gt;</code> hug their children, so <code>equal</code> means each as wide as the
+                    widest, and <code>equal fluid</code> an equal share. <code>&lt;ui-fields equal&gt;</code> emits
+                    Fomantic's own <code>equal width</code> (an exact alias of <code>widths="equal"</code>, no new CSS);
+                    elsewhere the word is <code>equal</code>, and the rules leave out <code>.width</code> so the older
+                    <code>equal width</code> keeps its fill. Not for vertical / circular steps or horizontal statistics
+                    (their children already line up).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j18" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j18">J18</a>
+                  <span class="plan-title"
+                    >P11: site tabs are appearance=segmented alignment=fluid equal; the icons pack switcher stays
+                    ui-buttons, now equal</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose <code>appearance="segmented" alignment="fluid" equal</code> for every page's top tabs (and the
+                    template) over the old icons page's hugging switch, because the phase's Verify line says segmented +
+                    fluid, it is Fomantic's own four-equal-tabs docs menu, and four equal tabs fit the 390px phone width
+                    (site:check: no overflow). The icons page's pack switcher is a single CHOICE, not navigation or a
+                    menubar, so <code>&lt;ui-menu appearance="segmented"&gt;</code> doesn't fit its semantics; it stays
+                    <code>&lt;ui-buttons&gt;</code> with <code>equal</code> (hugging, as the old page's segmented
+                    switch) instead of <code>width="3"</code>. I12 / I17 stay open: <code>segmented</code> gives the
+                    look, not radio semantics (<code>role=radiogroup</code>, <code>aria-checked</code>).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j19" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j19">J19</a>
+                  <span class="plan-title"
+                    >P11: segmented look details: strong border, a menu's margins, the selected item's focus ring in its
+                    on-colour</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose for <code>segmented</code>: <code>--ui-border-color-strong</code> border and dividers,
+                    button-like item padding, inner corners <code>radius - border</code> on the fill, the ordinary menu
+                    margins (not <code>compact</code>'s zero), and a new private
+                    <code>--_ui-menu-active-focus-color</code> (public <code>--ui-menu-active-focus-color</code>) so the
+                    focus ring on the filled item is its on-colour, over the focus colour, because the default focus
+                    colour IS the primary fill and would vanish on it. Inverted: the dark surface, the fill kept.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -3415,7 +3547,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item id="i24" data-status="open"
+            ><ui-item id="i24" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i24">I24</a>
@@ -6433,6 +6565,46 @@
                   ><ui-date><time datetime="2026-10-03T14:03-04:00">2026-10-03 14:03</time></ui-date> P10 done:
                   stack-with=container|page on grid, cards, steps, form, items, statistics, root (token); docs site uses
                   page; I49, I58, I82 closed; checks: ui review, visual 72 unchanged, site:check --all 66 OK</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T14:04-04:00">2026-10-03 14:04</time></ui-date> P11
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T14:38-04:00">2026-10-03 14:38</time></ui-date> I24 closed: Gap:
+                  &lt;ui-tabs&gt; no equal-width items and no filled selected tab</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T14:38-04:00">2026-10-03 14:38</time></ui-date> P11 Menu
+                  Appearance built: appearance (tabular|pointing|secondary|text|segmented) + alignment
+                  (fluid|left|center|right) on ui-menu / ui-tabs, equal on menu / tabs / buttons / statistics / steps /
+                  fields (old counts kept as aliases); site tabs segmented fluid equal; I24 closed, I12 / I17 / I51 stay
+                  open (J14-J19)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T14:41-04:00">2026-10-03 14:41</time></ui-date> P11
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T14:41-04:00">2026-10-03 14:41</time></ui-date> P11 done:
+                  appearance (+ segmented) and alignment on ui-menu / ui-tabs, equal on menu / tabs / buttons /
+                  statistics / steps / fields; site tabs segmented; I24 closed; checks: ui review 4455, site:check --all
+                  67 OK, visual 87 pass (existing baselines unchanged)</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

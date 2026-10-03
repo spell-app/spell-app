@@ -108,8 +108,9 @@
                 </script>
               </ui-markdown>
 
-              <!-- GAP I17:  no single-choice button group:  the page script moves `primary` / `active` between the pack buttons. -->
-              <ui-buttons id="icon-packs" width="3" aria-label="Icon pack">
+              <!-- GAP I17:  no single-choice button group:  the page script moves `primary` / `active` between the pack buttons.
+                   Not `<ui-menu appearance="segmented">`:  a menu is navigation (links) or a menubar, not a choice. -->
+              <ui-buttons id="icon-packs" equal aria-label="Icon pack">
                 <ui-button primary active data-pack="fa7-free">FA7 Free</ui-button>
                 <ui-button data-pack="fa7-brands">FA7 Brands</ui-button>
                 <ui-button data-pack="fomantic">Fomantic</ui-button>

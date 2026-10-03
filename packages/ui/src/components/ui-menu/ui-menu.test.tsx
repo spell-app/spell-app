@@ -40,6 +40,40 @@ function styleOf(item: Element) {
   return getComputedStyle(boxOf(item))
 }
 
+/** Width of the box `bar()` renders a menu in. */
+const WIDTH = 800
+
+/** Three link items of very different widths, the second selected. */
+const UNEVEN =
+  `<ui-item href="#a">A</ui-item>` +
+  `<ui-item href="#b" selected>A much longer item</ui-item>` +
+  `<ui-item href="#c">C</ui-item>`
+
+/** Render one `<ui-menu>` in a `WIDTH`-wide box;  returns it, its root and its item hosts. */
+async function bar(attributes = "", items = LINKS) {
+  const box = await ElementFixture.render(
+    `<div style="width: ${WIDTH}px"><ui-menu aria-label="Test" ${attributes}>${items}</ui-menu></div>`
+  )
+  const host = box.querySelector<UIHost>("ui-menu")!
+  const root = host.shadowRoot!.querySelector<HTMLElement>("[part~=menu]")!
+  return { host, root, items: [...host.querySelectorAll<UIHost>("ui-item")] }
+}
+
+/** Width from the first item box's left edge to the last one's right edge. */
+function span(items: Element[]): number {
+  return boxOf(items.at(-1)!).getBoundingClientRect().right - boxOf(items[0]!).getBoundingClientRect().left
+}
+
+/** `value` (a CSS colour, tokens allowed) as computed on a probe in the document. */
+function colorOf(value: string): string {
+  const probe = document.createElement("span")
+  probe.style.color = value
+  document.body.append(probe)
+  const color = getComputedStyle(probe).color
+  probe.remove()
+  return color
+}
+
 describe("<ui-menu> classes", () => {
   it.each([
     ["", "ui menu"],
@@ -65,7 +99,13 @@ describe("<ui-menu> classes", () => {
     ['fixed="bottom"', "ui bottom fixed menu"],
     ['items="3"', "ui three item menu"],
     ['items="equal"', "ui equal width menu"],
-    ["interactive", "ui menu"]
+    ["interactive", "ui menu"],
+    ['appearance="segmented"', "ui segmented menu"],
+    ['appearance="tabular"', "ui tabular menu"],
+    ['appearance="pointing" secondary', "ui pointing secondary menu"],
+    ['alignment="center"', "ui center aligned menu"],
+    ['alignment="fluid" equal', "ui equal fluid aligned menu"],
+    ["equal", "ui equal menu"]
   ])("<ui-menu %s>", async (attributes, classes) => {
     const { root } = await menu(attributes)
     expect(root.className).toBe(classes)
@@ -427,6 +467,89 @@ describe("<ui-menu> ui-select", () => {
     boxOf(items[1]!).click()
     await userEvent.click(boxOf(items[2]!))
     expect(details.map(({ value }) => value)).toEqual(["a", "a", "s"])
+  })
+})
+
+describe("<ui-menu> appearance, alignment, equal", () => {
+  it("takes the look as one word:  the boolean words stay aliases with the same classes", async () => {
+    for (const [attributes, alias] of [
+      ['appearance="tabular"', "tabular"],
+      ['appearance="pointing"', "pointing"],
+      ['appearance="secondary"', "secondary"],
+      ['appearance="text"', "text"]
+    ]) {
+      const { root } = await menu(attributes!)
+      const { root: aliased } = await menu(alias!)
+      expect(root.className).toBe(aliased.className)
+    }
+  })
+
+  it("segmented:  a bordered group hugging its items, the selected one filled with the primary colour", async () => {
+    const { root, items } = await bar('appearance="segmented"')
+    const box = styleOf(items[1]!)
+    expect(getComputedStyle(root).borderTopStyle).toBe("solid")
+    expect(root.clientWidth).toBeCloseTo(span(items), -0.5)
+    expect(box.backgroundColor).toBe(colorOf("var(--ui-primary)"))
+    expect(box.color).toBe(colorOf("var(--ui-primary-on)"))
+    expect(styleOf(items[0]!).backgroundColor).not.toBe(box.backgroundColor)
+  })
+
+  it("segmented:  `color` fills the selected item and picks its on-colour", async () => {
+    const { items } = await bar('appearance="segmented" color="teal"')
+    expect(styleOf(items[1]!).backgroundColor).toBe(colorOf("var(--ui-teal)"))
+    expect(styleOf(items[1]!).color).toBe(colorOf("var(--ui-teal-on)"))
+  })
+
+  it("alignment packs the items at an end of a full-width bar", async () => {
+    for (const [alignment, side] of [
+      ["left", "left"],
+      ["center", "center"],
+      ["right", "right"]
+    ] as const) {
+      const { root, items } = await bar(`alignment="${alignment}"`)
+      const bounds = root.getBoundingClientRect()
+      expect(bounds.width).toBe(WIDTH)
+      const first = boxOf(items[0]!).getBoundingClientRect()
+      const last = boxOf(items.at(-1)!).getBoundingClientRect()
+      const before = first.left - bounds.left
+      const after = bounds.right - last.right
+      if (side === "left") expect(before).toBeLessThan(2)
+      if (side === "right") expect(after).toBeLessThan(2)
+      if (side === "center") expect(Math.abs(before - after)).toBeLessThan(2)
+    }
+  })
+
+  it('alignment="fluid" fills the bar;  a segmented group moves as a whole', async () => {
+    const fluid = await bar('alignment="fluid"')
+    expect(span(fluid.items)).toBeCloseTo(fluid.root.clientWidth, -0.5)
+    const centered = await bar('appearance="segmented" alignment="center"')
+    const bounds = centered.root.getBoundingClientRect()
+    const parent = centered.root.getRootNode() as ShadowRoot
+    const outer = parent.host.parentElement!.getBoundingClientRect()
+    expect(bounds.width).toBeLessThan(WIDTH / 2)
+    expect(Math.abs(bounds.left - outer.left - (outer.right - bounds.right))).toBeLessThan(2)
+  })
+
+  it("equal, packed:  every item as wide as the widest, the bar hugging them", async () => {
+    const { root, items } = await bar("equal", UNEVEN)
+    const widths = items.map((item) => boxOf(item).getBoundingClientRect().width)
+    const natural = await bar("", UNEVEN)
+    const widest = Math.max(...natural.items.map((item) => boxOf(item).getBoundingClientRect().width))
+    for (const width of widths) expect(width).toBeCloseTo(widest, -0.5)
+    expect(root.getBoundingClientRect().width).toBeLessThan(WIDTH)
+  })
+
+  it('equal + alignment="fluid":  an equal share of the bar each', async () => {
+    const { root, items } = await bar('equal alignment="fluid"', UNEVEN)
+    const share = root.clientWidth / items.length
+    for (const item of items) expect(boxOf(item).getBoundingClientRect().width).toBeCloseTo(share, -0.5)
+  })
+
+  it('`items="3"` / `items="equal"` keep their count-based fill', async () => {
+    const { root, items } = await bar('items="equal"', UNEVEN)
+    expect(root.className).toBe("ui equal width menu")
+    expect(getComputedStyle(root).display).toBe("flex")
+    expect(span(items)).toBeCloseTo(root.clientWidth, -0.5)
   })
 })
 

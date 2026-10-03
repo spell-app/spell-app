@@ -52,8 +52,9 @@ import {
  *     </div>
  *
  * - The tab list is drawn from the panes' `label` / `icon` in THIS shadow root, styled by `ui-menu.css` (adopted as is:
- *   the static `.ui.menu .item` rules), so the look words (`tabular`, `pointing secondary`, `text`, `vertical`,
- *   `inverted`, sizes, colours) are the menu's, one class grammar, no second copy of the menu sheet.
+ *   the static `.ui.menu .item` rules), so the look words (`appearance`, or the boolean aliases `tabular`, `pointing
+ *   secondary`, `text`;  `vertical`, `inverted`, `alignment`, `equal`, sizes, colours) are the menu's, one class
+ *   grammar, no second copy of the menu sheet.
  * - Owner of the panes (`ownsParts:  tab`, `TabOwner`):  each asks `paneState()` whether it's shown, which edge it
  *   joins, and how it looks.
  * - Selection:  `value` is auto-controlled -- a click (or, `automatic`, an arrow key) dispatches the cancelable
@@ -147,11 +148,15 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
     return attached === BOTTOM ? BOTTOM : TOP
   })
 
+  /** Where the tabs sit (`alignment`);  none while `vertical`, whose tabs fill their column. */
+  readonly alignment = createMemo(() => (this.attrs.vertical ? undefined : this.attrs.alignment))
+
   /** Tab list classes:  the look words with the noun `menu`. */
   readonly menuClasses = createMemo(() =>
     this.menuBuilder.build({
       size: this.attrs.size,
       color: this.attrs.color,
+      appearance: this.attrs.appearance,
       tabular: this.attrs.tabular,
       pointing: this.attrs.pointing,
       secondary: this.attrs.secondary,
@@ -160,6 +165,8 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
       vertical: this.attrs.vertical,
       fluid: this.attrs.fluid,
       compact: this.attrs.compact,
+      equal: this.attrs.equal,
+      alignment: this.alignment(),
       attached: this.menuEdge()
     })
   )
@@ -195,6 +202,7 @@ export class UITabs extends UIElement<TabsVocabulary> implements TabOwner {
 
   protected classValue(name: AttributeName<TabsVocabulary>): unknown {
     if (name === "attached") return this.menuEdge()
+    if (name === "alignment") return this.alignment()
     return super.classValue(name)
   }
 

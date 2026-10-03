@@ -66,7 +66,7 @@
               </ui-sticky>
             </ui-rail>
 
-            <ui-tabs id="site-tabs" class="site-tabs" history basic compact>
+            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
               <ui-tab value="examples" label="Examples">
                 <!--
                   EXAMPLES:  Fomantic's button page, section by section, in its order (Types, Groups, Content, States,
@@ -528,6 +528,23 @@
                   <ui-buttons width="3">
                     <ui-button>Overview</ui-button>
                     <ui-button>Specs</ui-button>
+                    <ui-button>Support</ui-button>
+                  </ui-buttons>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Equal"
+                  description='`equal` makes every button the same width, counted from the buttons themselves:  each as wide as the widest, the group hugging them;  with `fluid`, an equal share of the row each.  `width="3"` above is the older, count-based spelling of `equal fluid`.'
+                >
+                  <ui-buttons equal>
+                    <ui-button>Overview</ui-button>
+                    <ui-button>Specifications</ui-button>
+                    <ui-button>Support</ui-button>
+                  </ui-buttons>
+                  <ui-divider></ui-divider>
+                  <ui-buttons equal fluid basic>
+                    <ui-button>Overview</ui-button>
+                    <ui-button>Specifications</ui-button>
                     <ui-button>Support</ui-button>
                   </ui-buttons>
                 </ui-docs-example>

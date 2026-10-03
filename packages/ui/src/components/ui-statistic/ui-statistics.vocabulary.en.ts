@@ -48,11 +48,20 @@ export const statisticsVocabulary = {
         "stack-with>`)."
     },
     {
+      name: "equal",
+      kind: "keyOnly",
+      description:
+        "Every statistic the same width, from the statistics themselves (no count):  one row, an equal share of " +
+        "it each (the group spans its row).  Not with `horizontal` (a column)."
+    },
+    {
       name: "widths",
       kind: "width",
       widthClass: "",
       values: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
-      description: 'Divides each row evenly between N statistics:  `widths="3"` => `three statistics`.'
+      description:
+        'Older, count-based alias of `equal`:  divides each row evenly between N statistics (`widths="3"` => ' +
+        "`three statistics`), wrapping after N."
     }
   ],
   events: [],

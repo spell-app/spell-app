@@ -48,6 +48,14 @@ function three(attributes = "", width?: number) {
   return width ? `<div style="width: ${width}px">${steps}</div>` : steps
 }
 
+/** Three steps of uneven titles in `<ui-steps attributes>`, in a 900px box. */
+function uneven(attributes: string) {
+  return (
+    `<div style="width: 900px"><ui-steps ${attributes}><ui-step header="A"></ui-step>` +
+    `<ui-step selected header="A much longer step"></ui-step><ui-step header="C"></ui-step></ui-steps></div>`
+  )
+}
+
 describe("<ui-steps> classes", () => {
   it.each([
     ["", "ui steps"],
@@ -273,6 +281,35 @@ describe("<ui-steps> layouts", () => {
     expect(getComputedStyle(teal!, "::before").borderTopColor).toBe(hue("teal"))
     expect(getComputedStyle(orange!, "::before").borderTopColor).toBe(hue("orange"))
     expect(getComputedStyle(plain!, "::before").borderTopColor).not.toBe(hue("teal"))
+  })
+})
+
+describe("<ui-steps equal>", () => {
+  it("every step as wide as the widest, the group hugging them", async () => {
+    const natural = stepRoots(await ElementFixture.render(uneven("unstackable")))
+    const widest = Math.max(...natural.map((step) => step.getBoundingClientRect().width))
+    const box = await ElementFixture.render(uneven("equal unstackable"))
+    const root = box.querySelector("ui-steps")!.shadowRoot!.firstElementChild as HTMLElement
+    expect(root.className).toBe("ui equal unstackable steps")
+    for (const step of stepRoots(box)) expect(step.getBoundingClientRect().width).toBeCloseTo(widest, -0.5)
+    expect(root.getBoundingClientRect().width).toBeLessThan(900)
+  })
+
+  it("`equal fluid`:  an equal share of the row each", async () => {
+    const box = await ElementFixture.render(uneven("equal fluid unstackable"))
+    const root = box.querySelector("ui-steps")!.shadowRoot!.firstElementChild as HTMLElement
+    const steps = stepRoots(box)
+    const share = root.clientWidth / steps.length
+    for (const step of steps) expect(step.getBoundingClientRect().width).toBeCloseTo(share, -0.5)
+  })
+
+  it("stacks below 768px of the group all the same", async () => {
+    const box = await ElementFixture.render(
+      `<div style="width: 500px"><ui-steps equal><ui-step header="A"></ui-step>` +
+        `<ui-step header="B"></ui-step></ui-steps></div>`
+    )
+    const [a, b] = stepRoots(box).map((step) => step.getBoundingClientRect())
+    expect(b!.top).toBeGreaterThanOrEqual(a!.bottom - 1)
   })
 })
 
