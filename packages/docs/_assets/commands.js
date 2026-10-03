@@ -6,12 +6,14 @@
  *   draws, then adds `spell-ui.js` (same folder), whatever happened.
  * - The data:  `<page>.json` (`body[data-commands]` overrides), fetched, so the page needs the PAGE SERVER
  *   (`yarn docs:open <page>`);  from `file://` it shows a notice where the tables go.
- * - JSON:  `{ families: [{ id, title, icon?, intro?, rows: [Row] }] }`;  `Row`:
+ * - JSON:  `{ families: [{ id, title, icon?, intro?, rows: [Row] }] }` (a family `id` shares the page's id space:  never
+ *   reuse a hand-written section's);  `Row`:
  *   - `op` -- the operation, in words;  `id?` -- anchor, default `<family id>-<slug of op>`
  *   - `cli`, `skill`, `yarn` -- `{ mark, names?, note? }`:  `mark` one of `same` (✓, under the shared name),
  *     `other` (≈, another name), `could` (○, doesn't but could), `no` (—, couldn't really);  `names` the commands:
  *     `spell compile`, `/epic`, `<package> <script>` (`root plan-doc`, `ui gen:icons`)
  *   - `runs` -- the tool doing the work (`scripts/window.mjs`, `status.py`, `prose`);  `target`, `notes` -- text
+ *   - in `target`, a roadmap id in parens, `(R3)`, links to `#r3`:  the page's roadmap rows carry those ids
  *   - text fields:  `` `code` `` becomes `<code>`;  everything else is escaped
  * - Placeholders the template holds, all optional:  `[data-commands-families]` (the families go in it, as nested
  *   `<ui-section>`s numbered after its parent section), `[data-commands-stats]` (a `ui-statistics`),
@@ -108,7 +110,7 @@
     const id = row.id ?? `${family.id}-${slug(row.op)}`
     const notes = row.notes ? `<div class="commands-notes">${text(row.notes)}</div>` : ""
     const cells = SURFACES.map(([key]) => cellHTML(row[key])).join("")
-    return `<tr id="${attr(id)}"><td><b>${text(row.op)}</b>${notes}</td>${cells}<td>${text(row.runs ?? "")}</td><td>${text(row.target ?? "")}</td></tr>`
+    return `<tr id="${attr(id)}"><td><b>${text(row.op)}</b>${notes}</td>${cells}<td>${text(row.runs ?? "")}</td><td>${roadmapLinks(text(row.target ?? ""))}</td></tr>`
   }
 
   /** One surface's cell:  its mark, the names, the note. */
@@ -209,6 +211,11 @@
     return escape(String(value)).replace(/`([^`]+)`/g, "<code>$1</code>")
   }
 
+  /** Escaped `html` with each roadmap id in parens, `(R3)`, linked to its row, `#r3`. */
+  function roadmapLinks(html) {
+    return html.replace(/\((R\d+)\)/g, (_, id) => `(<a href="#${id.toLowerCase()}">${id}</a>)`)
+  }
+
   /** `value` safe in an attribute. */
   function attr(value) {
     return escape(String(value)).replace(/"/g, "&quot;")
@@ -223,7 +230,6 @@
   function slug(value) {
     return String(value)
       .toLowerCase()
-      .replace(/<[^>]*>|`/g, "")
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "")
   }

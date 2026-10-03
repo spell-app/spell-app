@@ -22,7 +22,8 @@
             "note": "from the main checkout only"
           },
           "runs": "`EnterWorktree` -> `.claude/hooks/worktree.mjs create`",
-          "notes": "Hook branches from LOCAL `main`, names branch `<name>` (Claude's own adds `worktree-`), reuses an existing worktree / branch."
+          "notes": "Hook branches from LOCAL `main`, names branch `<name>` (Claude's own adds `worktree-`), reuses an existing worktree / branch.",
+          "target": "(R3) `spell dev worktree new <name>`;  Claude still moves the session with `EnterWorktree`"
         },
         {
           "op": "Lower-kebab-case a name",
@@ -38,7 +39,8 @@
             "mark": "could"
           },
           "runs": "skill prose;  `plan-doc.js` only rejects non-kebab names",
-          "notes": "Fourth layer.  `worktree.mjs` allows `[A-Za-z0-9._-]`:  looser than the skills' rule."
+          "notes": "Fourth layer.  `worktree.mjs` allows `[A-Za-z0-9._-]`:  looser than the skills' rule.",
+          "target": "(R3) `spell dev worktree name-check <name>` kebab-cases;  hook `worktree.mjs` shares the rule"
         },
         {
           "op": "Check a worktree name is free",
@@ -55,7 +57,8 @@
             "mark": "could"
           },
           "runs": "`git worktree list`, `git branch` + prose",
-          "notes": "Fourth layer, duplicated in two skills.  Hit:  modal \"Reuse\" / \"Different name\"."
+          "notes": "Fourth layer, duplicated in two skills.  Hit:  modal \"Reuse\" / \"Different name\".",
+          "target": "(R3) `spell dev worktree name-check <name> --json`:  worktree, branch, plan doc;  /isolate /epic call it"
         },
         {
           "op": "Carry uncommitted edits into a new worktree",
@@ -73,7 +76,8 @@
             "note": "mechanics only"
           },
           "runs": "`git stash` + prose",
-          "notes": "Bare `git stash pop` in both skills:  can pop another session's stash (shared stack).  `/park` pushes `-m park:<name>` but still pops bare."
+          "notes": "Bare `git stash pop` in both skills:  can pop another session's stash (shared stack).  `/park` pushes `-m park:<name>` but still pops bare.",
+          "target": "(R3) `spell dev worktree carry <name> <files>`:  tagged stash, applied by sha;  skill picks files"
         },
         {
           "op": "Install dependencies if missing",
@@ -91,7 +95,8 @@
             "note": "yarn runs no script in a worktree before `yarn install`"
           },
           "runs": "`yarn install` + prose",
-          "notes": "Resume also reinstalls when `yarn.lock` or workspaces changed in the merge."
+          "notes": "Resume also reinstalls when `yarn.lock` or workspaces changed in the merge.",
+          "target": "(R3) `spell dev worktree new` / `merge-main` run `yarn install` when missing or lockfile changed"
         },
         {
           "op": "Report uncommitted and unmerged work",
@@ -108,7 +113,8 @@
             "mark": "could"
           },
           "runs": "`git status --short`, `git log main..HEAD`;  `whassup.py`, `status.py` (`ahead`)",
-          "notes": "Three implementations:  skill prose, `whassup.py`, `status.py`."
+          "notes": "Three implementations:  skill prose, `whassup.py`, `status.py`.",
+          "target": "(R3) `spell dev worktree status [name] --json`;  /isolate /whassup /wtf call it"
         },
         {
           "op": "Check a branch merges cleanly",
@@ -125,7 +131,8 @@
             "mark": "could"
           },
           "runs": "`git merge-tree --write-tree --name-only main HEAD` + prose",
-          "notes": "Fourth layer, copied into `/isolate`, `/park` Resume, `/whassup` merge."
+          "notes": "Fourth layer, copied into `/isolate`, `/park` Resume, `/whassup` merge.",
+          "target": "(R3) `spell dev worktree merge-check <name> --json`;  /isolate /unpark /wait-for /whassup call it"
         },
         {
           "op": "Merge main into a worktree",
@@ -143,7 +150,8 @@
             "note": "clean merges only"
           },
           "runs": "`git merge main` + prose",
-          "notes": "Package moves on `main` show as rename / delete conflicts:  park Resume says follow the move and fix aliases."
+          "notes": "Package moves on `main` show as rename / delete conflicts:  park Resume says follow the move and fix aliases.",
+          "target": "(R3) `spell dev worktree merge-main`:  clean merges only;  conflicts go back to Claude"
         },
         {
           "op": "Run checks for the packages a branch touches",
@@ -161,7 +169,8 @@
             "note": "root `ts` / `test` run EVERY package;  no touched-only script"
           },
           "runs": "`git diff --name-only main...HEAD` -> `yarn ts`, `yarn test` per package",
-          "notes": "Fourth layer."
+          "notes": "Fourth layer.",
+          "target": "(R7) `spell dev check --touched`;  park Resume, /isolate, /bedtime call it"
         },
         {
           "op": "Merge a worktree into main",
@@ -178,7 +187,8 @@
             "mark": "could"
           },
           "runs": "`git merge --ff-only <name>` (`/isolate`) or `git merge --no-edit <branch>` (`whassup.py`)",
-          "notes": "DRIFT:  `/isolate` fast-forwards only;  `whassup.py` makes a merge commit, while its docstring says \"as `/isolate done` would\"."
+          "notes": "DRIFT:  `/isolate` fast-forwards only;  `whassup.py` makes a merge commit, while its docstring says \"as `/isolate done` would\".",
+          "target": "(R3) `spell dev worktree merge <name>`:  ONE policy;  /isolate /whassup /wakeup call it"
         },
         {
           "op": "Leave a worktree",
@@ -195,7 +205,8 @@
             "mark": "no"
           },
           "runs": "`window.mjs handoff --back`, then `ExitWorktree keep`",
-          "notes": "Never `remove` unasked;  the hook's `remove` refuses without `discard_changes`."
+          "notes": "Never `remove` unasked;  the hook's `remove` refuses without `discard_changes`.",
+          "target": "stays:  Claude-only (`ExitWorktree keep`);  after (R2) `spell dev window handoff --back`"
         },
         {
           "op": "Remove a finished worktree and its branch",
@@ -212,7 +223,8 @@
             "mark": "could"
           },
           "runs": "`git worktree remove` + `git branch -d`;  `worktree.mjs remove` hook",
-          "notes": "`whassup.py` uses `-D` for squashed-in branches;  the skill checks `git cherry` first."
+          "notes": "`whassup.py` uses `-D` for squashed-in branches;  the skill checks `git cherry` first.",
+          "target": "(R3) `spell dev worktree remove <name>`:  `git cherry` before `-D`;  /isolate /whassup call it"
         },
         {
           "op": "Throw away a worktree's work",
@@ -228,7 +240,8 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`git worktree remove --force`, `git branch -D` (`whassup.py`)"
+          "runs": "`git worktree remove --force`, `git branch -D` (`whassup.py`)",
+          "target": "(R3) `spell dev worktree remove <name> --discard`;  /whassup confirms twice first"
         },
         {
           "op": "Find worktrees safe to clean up",
@@ -245,7 +258,8 @@
             "mark": "could"
           },
           "runs": "`/isolate`:  parses `worktrees.py` TEXT + `git`;  `whassup.py` `dead` group",
-          "notes": "Two rules for \"dead\":  `/isolate` prose vs `whassup.py`."
+          "notes": "Two rules for \"dead\":  `/isolate` prose vs `whassup.py`.",
+          "target": "(R3) `spell dev worktree cleanup --json`:  ONE \"dead\" rule;  /isolate /whassup call it"
         },
         {
           "op": "List worktrees and the session in each",
@@ -260,7 +274,8 @@
             "mark": "could"
           },
           "runs": "`~/.claude/skills/worktrees/scripts/worktrees.py`",
-          "notes": "`/worktrees` is a user skill (`~/.claude/skills`), not in the repo."
+          "notes": "`/worktrees` is a user skill (`~/.claude/skills`), not in the repo.",
+          "target": "(R3) `spell dev worktree list --json`;  user skill /worktrees calls it, `worktrees.py` fallback"
         },
         {
           "op": "Tell whether a session is in a worktree",
@@ -276,7 +291,8 @@
             "mark": "could"
           },
           "runs": "skill prose;  main-root lookup duplicated in `window.mjs`, `session.py`, `status.py`, `worktree.mjs`",
-          "notes": "Fourth layer."
+          "notes": "Fourth layer.",
+          "target": "(R3) `spell dev worktree status --json` (no name:  this checkout);  one main-root lookup"
         }
       ]
     },
@@ -302,7 +318,8 @@
             "note": "`open <name> [--pkg]`;  skills call `node scripts/window.mjs`"
           },
           "runs": "`scripts/window.mjs open`",
-          "notes": "Skills skip `yarn window`:  a fresh worktree has no `node_modules`, and yarn runs no script there."
+          "notes": "Skills skip `yarn window`:  a fresh worktree has no `node_modules`, and yarn runs no script there.",
+          "target": "(R2) `spell dev window open <name>`;  `node scripts/window.mjs` stays pre-install fallback"
         },
         {
           "op": "Close a worktree's window",
@@ -319,7 +336,8 @@
             "names": ["root window"],
             "note": "`close <name>`"
           },
-          "runs": "`scripts/window.mjs close`"
+          "runs": "`scripts/window.mjs close`",
+          "target": "(R2) `spell dev window close <name>`;  /whassup calls it"
         },
         {
           "op": "Move a session to another window",
@@ -338,7 +356,8 @@
             "note": "`handoff <name> [--back]`"
           },
           "runs": "`scripts/window.mjs handoff` -> `Stop` hook `.claude/hooks/handoff.mjs`",
-          "notes": "Moves when the turn ends.  Old tab found by title:  two sessions with one title leave it open."
+          "notes": "Moves when the turn ends.  Old tab found by title:  two sessions with one title leave it open.",
+          "target": "(R2) `spell dev window handoff <name> [--back]`;  `Stop` hook `handoff.mjs` does the move"
         },
         {
           "op": "Reopen a moved session in its new window",
@@ -355,7 +374,8 @@
             "note": "`resume <record> [--title]`, hook-only"
           },
           "runs": "`scripts/window.mjs resume`, started detached by `handoff.mjs`",
-          "notes": "Log:  `~/.spell/windows/handoffs/<session id>.log`."
+          "notes": "Log:  `~/.spell/windows/handoffs/<session id>.log`.",
+          "target": "stays:  hook-only (`window.mjs resume`, started by `handoff.mjs`)"
         },
         {
           "op": "Say which window this session runs in",
@@ -372,7 +392,8 @@
             "names": ["root window"],
             "note": "`which`"
           },
-          "runs": "`scripts/window.mjs which`"
+          "runs": "`scripts/window.mjs which`",
+          "target": "(R2) `spell dev window which --json`;  /unpark calls it"
         },
         {
           "op": "Add or remove a folder in this window",
@@ -390,7 +411,8 @@
             "note": "`add <path>` / `remove <path>`"
           },
           "runs": "`scripts/window.mjs add|remove`",
-          "notes": "Legacy:  worktrees now get their own window."
+          "notes": "Legacy:  worktrees now get their own window.",
+          "target": "(R2) `spell dev window add|remove` via passthrough;  legacy, candidate to drop"
         },
         {
           "op": "Show a doc in VS Code's doc preview",
@@ -409,7 +431,8 @@
             "note": "`show <file>`;  also `root plan-doc` `open`"
           },
           "runs": "`scripts/window.mjs show` (`Window.show`), from `packages/docs/scripts/pages.js` `openInVSCode`",
-          "notes": "Waits for a pending handoff, then shows in the new window."
+          "notes": "Waits for a pending handoff, then shows in the new window.",
+          "target": "(R2) `spell dev window show <file>`;  `plan-doc open`, `goals open-vs` call it"
         },
         {
           "op": "Write missing package window files",
@@ -426,7 +449,8 @@
             "note": "`init`"
           },
           "runs": "`scripts/window.mjs init`",
-          "notes": "Never overwrites:  themes are Owen's."
+          "notes": "Never overwrites:  themes are Owen's.",
+          "target": "(R2) `spell dev window init`;  yarn `window:init` aliases it"
         },
         {
           "op": "List running sessions and where they run",
@@ -442,7 +466,8 @@
             "mark": "could"
           },
           "runs": "`worktrees.py`, `session.py list`, `whassup.py`",
-          "notes": "Session registry / alive / ancestors code copied in four Python scripts."
+          "notes": "Session registry / alive / ancestors code copied in four Python scripts.",
+          "target": "(R4) `spell dev session list --json`;  one registry module replaces four Python copies"
         },
         {
           "op": "Find a saved session by words or id",
@@ -458,7 +483,8 @@
             "mark": "could"
           },
           "runs": "`session.py list <words>`;  `transcript.py --find <name>`;  `status.py`",
-          "notes": "Three name matchers:  title vs worktree vs both."
+          "notes": "Three name matchers:  title vs worktree vs both.",
+          "target": "(R4) `spell dev session find <words>`:  ONE matcher;  /session /wtf call it"
         },
         {
           "op": "Open a session in VS Code's Claude panel",
@@ -474,7 +500,8 @@
             "mark": "could"
           },
           "runs": "`session.py open` -> `vscode://anthropic.claude-code/open`",
-          "notes": "A terminal or Desktop session is refused."
+          "notes": "A terminal or Desktop session is refused.",
+          "target": "(R4) `spell dev session open <id>`;  /session /whassup call it"
         },
         {
           "op": "Title this session",
@@ -491,7 +518,8 @@
             "mark": "no"
           },
           "runs": "`session.py name` queues it;  `~/.claude/hooks/session-title.mjs` applies it",
-          "notes": "Lands on the NEXT prompt.  Undocumented hook output (`sessionTitle`, CLI 2.1.287)."
+          "notes": "Lands on the NEXT prompt.  Undocumented hook output (`sessionTitle`, CLI 2.1.287).",
+          "target": "(R4) `spell dev session title [title]` queues it;  hook applies;  /session calls it"
         },
         {
           "op": "Message another session",
@@ -507,7 +535,8 @@
           "yarn": {
             "mark": "no"
           },
-          "runs": "`SendMessage`"
+          "runs": "`SendMessage`",
+          "target": "stays:  Claude-only (`SendMessage`)"
         },
         {
           "op": "End a running session",
@@ -522,7 +551,8 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`kill <pid>` (`whassup.py`)"
+          "runs": "`kill <pid>` (`whassup.py`)",
+          "target": "(R4) `spell dev session end <id>`:  never its own pid;  /whassup calls it"
         },
         {
           "op": "Digest another session's transcript",
@@ -537,7 +567,8 @@
             "mark": "could"
           },
           "runs": "`.claude/skills/wtf/scripts/transcript.py <id>`",
-          "notes": "Prompts, last reply, waiting question."
+          "notes": "Prompts, last reply, waiting question.",
+          "target": "(R4) `spell dev session transcript <id> --json`;  /wtf calls it"
         },
         {
           "op": "Say where we are",
@@ -553,7 +584,8 @@
           "yarn": {
             "mark": "no"
           },
-          "runs": "`transcript.py`, `worktrees.py`, `plan-doc summary --json`, `server url` + prose"
+          "runs": "`transcript.py`, `worktrees.py`, `plan-doc summary --json`, `server url` + prose",
+          "target": "stays:  skill judgement (/wtf);  data from `spell dev session status <name> --json`"
         },
         {
           "op": "Answer another session's waiting question",
@@ -568,7 +600,8 @@
           "yarn": {
             "mark": "no"
           },
-          "runs": "AskUserQuestion, then `SendMessage`, else a paste block"
+          "runs": "AskUserQuestion, then `SendMessage`, else a paste block",
+          "target": "stays:  Claude-only (modal + `SendMessage`);  question from `spell dev session transcript`"
         },
         {
           "op": "Take stock of everything open",
@@ -586,7 +619,8 @@
             "note": "report only"
           },
           "runs": "`.claude/skills/whassup/scripts/whassup.py`",
-          "notes": "Refused git lines from a worktree session get listed to paste."
+          "notes": "Refused git lines from a worktree session get listed to paste.",
+          "target": "(R4) `spell dev stock --json`;  /whassup keeps picks and actions"
         },
         {
           "op": "Ask Owen to leave plan mode first",
@@ -602,7 +636,8 @@
             "mark": "no"
           },
           "runs": "skill prose",
-          "notes": "Fourth layer:  plan mode blocks `EnterWorktree`."
+          "notes": "Fourth layer:  plan mode blocks `EnterWorktree`.",
+          "target": "stays:  Claude-only (plan mode blocks `EnterWorktree`);  one shared skill line"
         },
         {
           "op": "Keep worktree sessions listed in every window",
@@ -617,7 +652,8 @@
             "mark": "no"
           },
           "runs": "`.claude/hooks/worktree.mjs create|remove`",
-          "notes": "Fires on `EnterWorktree`, `claude -w`, agent isolation.  Remove keeps dirty or unmerged work."
+          "notes": "Fires on `EnterWorktree`, `claude -w`, agent isolation.  Remove keeps dirty or unmerged work.",
+          "target": "stays:  hook-only (`WorktreeCreate` / `WorktreeRemove` -> `worktree.mjs`)"
         }
       ]
     },
@@ -642,7 +678,8 @@
             "note": "mechanics only"
           },
           "runs": "`git` + `status.py` + prose",
-          "notes": "Running `/park` is the go-ahead to commit the WIP commit."
+          "notes": "Running `/park` is the go-ahead to commit the WIP commit.",
+          "target": "stays:  /park judgement;  calls (R3) `worktree new` / `carry`, (R5) `park commit`, `park note new`"
         },
         {
           "op": "Tell another session to park",
@@ -658,7 +695,8 @@
             "mark": "no"
           },
           "runs": "`status.py <other>`, then `SendMessage`",
-          "notes": "Never parks another session's files from here."
+          "notes": "Never parks another session's files from here.",
+          "target": "stays:  Claude-only (`SendMessage`);  target from `spell dev session status <other>`"
         },
         {
           "op": "Make a WIP commit",
@@ -674,7 +712,8 @@
             "mark": "could"
           },
           "runs": "`git add -A`, `git commit` + prose",
-          "notes": "Two WIP message formats."
+          "notes": "Two WIP message formats.",
+          "target": "(R5) `spell dev park commit <name>`:  ONE `WIP` message format for /park and /bedtime"
         },
         {
           "op": "Write a PARKED note",
@@ -690,7 +729,8 @@
             "mark": "could"
           },
           "runs": "skill prose:  `PARKED-<name>.md` at the worktree root",
-          "notes": "Fourth layer.  Gitignored, so lost with the worktree."
+          "notes": "Fourth layer.  Gitignored, so lost with the worktree.",
+          "target": "(R5) `spell dev park note new <name>`:  `PARKED-<name>.md` skeleton from template"
         },
         {
           "op": "Change a PARKED note's state",
@@ -707,7 +747,8 @@
             "mark": "could"
           },
           "runs": "skill prose;  read by `status.py`, `whassup.py`",
-          "notes": "Fourth layer."
+          "notes": "Fourth layer.",
+          "target": "(R5) `spell dev park note resume|wait <target>`;  /wait-for /unpark call it"
         },
         {
           "op": "List parked work",
@@ -721,7 +762,8 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`status.py --parked`"
+          "runs": "`status.py --parked`",
+          "target": "(R5) `spell dev park list --json`;  /unpark /whassup call it"
         },
         {
           "op": "Say where a name stands",
@@ -737,7 +779,8 @@
             "mark": "could"
           },
           "runs": "`.claude/skills/park/scripts/status.py <name>`",
-          "notes": "Resolves worktree, branch, plan doc, sessions.  `/wtf` resolves names by prose, same rule."
+          "notes": "Resolves worktree, branch, plan doc, sessions.  `/wtf` resolves names by prose, same rule.",
+          "target": "(R4) `spell dev session status <name> --json`;  replaces `status.py <name>`;  /wtf too"
         },
         {
           "op": "List the names that exist",
@@ -753,7 +796,8 @@
             "mark": "could"
           },
           "runs": "skill prose (worktrees, plan docs)",
-          "notes": "Fourth layer."
+          "notes": "Fourth layer.",
+          "target": "(R4) `spell dev stock --json` names;  /wtf lists them on an unknown name"
         },
         {
           "op": "List what could be waited for",
@@ -768,7 +812,8 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`status.py --candidates`"
+          "runs": "`status.py --candidates`",
+          "target": "(R5) `spell dev park candidates --json`;  `/wait-for ?` modal reads it"
         },
         {
           "op": "Wait until another session finishes",
@@ -785,7 +830,8 @@
             "note": "poll only"
           },
           "runs": "`status.py --wait <name>` in a background Bash",
-          "notes": "Gives up after ~2h (exit 2, restarted).  Dies with the session."
+          "notes": "Gives up after ~2h (exit 2, restarted).  Dies with the session.",
+          "target": "(R5) `spell dev park wait <name>` in background Bash;  /wait-for calls it"
         },
         {
           "op": "Pick parked work back up",
@@ -801,7 +847,8 @@
           "yarn": {
             "mark": "no"
           },
-          "runs": "park Resume:  `git merge-tree`, `git merge main`, checks + prose"
+          "runs": "park Resume:  `git merge-tree`, `git merge main`, checks + prose",
+          "target": "stays:  /unpark judgement;  calls (R3) `merge-check` / `merge-main`, (R7) `check --touched`, (R5) `park note resume`"
         },
         {
           "op": "Check this is the parked work's window",
@@ -816,7 +863,8 @@
             "mark": "could"
           },
           "runs": "`window.mjs which` vs `workspaces/ongoing/<name>.code-workspace`",
-          "notes": "Fourth layer."
+          "notes": "Fourth layer.",
+          "target": "(R2) `spell dev window which <name>`:  yes / no;  /unpark /wait-for call it"
         },
         {
           "op": "Nudge a waiting session",
@@ -831,7 +879,8 @@
           "yarn": {
             "mark": "no"
           },
-          "runs": "`status.py` (target finished?), then `SendMessage`"
+          "runs": "`status.py` (target finished?), then `SendMessage`",
+          "target": "stays:  Claude-only (`SendMessage`);  \"finished?\" from `spell dev session status <name>`"
         },
         {
           "op": "Apply or drop a leftover park stash",
@@ -846,7 +895,8 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`git stash apply|drop` by sha (`whassup.py`)"
+          "runs": "`git stash apply|drop` by sha (`whassup.py`)",
+          "target": "(R3) `spell dev worktree carry apply|drop <name>` by tag / sha;  /whassup calls it"
         },
         {
           "op": "Log parking in the plan doc",
@@ -864,7 +914,8 @@
             "names": ["root plan-doc", "docs plan-doc"],
             "note": "`log`"
           },
-          "runs": "`packages/docs/scripts/plan-doc.js log`"
+          "runs": "`packages/docs/scripts/plan-doc.js log`",
+          "target": "(R1) `spell dev plan-doc log`;  /park /unpark call it"
         },
         {
           "op": "Run plan phases unattended overnight",
@@ -880,7 +931,8 @@
             "mark": "no"
           },
           "runs": "prose + `plan-doc phase|log|add|check|open`",
-          "notes": "Picks phases and asks everything up-front, then never asks.  Never merges."
+          "notes": "Picks phases and asks everything up-front, then never asks.  Never merges.",
+          "target": "stays:  /bedtime judgement (Owen-only);  calls `spell dev plan-doc ...`, (R5) `bedtime note ...`"
         },
         {
           "op": "Commit after each phase",
@@ -897,7 +949,8 @@
             "mark": "could"
           },
           "runs": "`git commit` + prose",
-          "notes": "Fourth layer.  Repo convention outside `/bedtime` too."
+          "notes": "Fourth layer.  Repo convention outside `/bedtime` too.",
+          "target": "(R1) `spell dev plan-doc phase <P> done --commit`:  `P<n>:  <Name> -- <summary>`"
         },
         {
           "op": "Record judgement calls for review",
@@ -916,7 +969,8 @@
             "names": ["root plan-doc", "docs plan-doc"],
             "note": "`add`"
           },
-          "runs": "`plan-doc.js add` + prose"
+          "runs": "`plan-doc.js add` + prose",
+          "target": "(R1) `spell dev plan-doc add todo \"Review: ...\"`;  (R5) `bedtime note` lists `J<k>`"
         },
         {
           "op": "Write the morning plan",
@@ -932,7 +986,8 @@
             "mark": "could"
           },
           "runs": "skill prose:  `MORNING-<name>.md` at the worktree root",
-          "notes": "Fourth layer.  Gitignored;  the plan doc is the record."
+          "notes": "Fourth layer.  Gitignored;  the plan doc is the record.",
+          "target": "(R5) `spell dev bedtime note new <name>`;  `bedtime note phase` per phase"
         },
         {
           "op": "Leave bedtime mode and review the night",
@@ -947,7 +1002,8 @@
             "mark": "no"
           },
           "runs": "prose:  `MORNING-<name>.md` `active` -> `done`, then asks to delete",
-          "notes": "`whassup.py` flags un-reviewed morning plans."
+          "notes": "`whassup.py` flags un-reviewed morning plans.",
+          "target": "stays:  /wakeup judgement;  (R5) `spell dev bedtime note done` flips state"
         }
       ]
     },
@@ -974,7 +1030,8 @@
             "note": "`new`"
           },
           "runs": "`packages/docs/scripts/plan-doc.js new`",
-          "notes": "Also updates the docs index."
+          "notes": "Also updates the docs index.",
+          "target": "(R1) `spell dev plan-doc new`;  yarn `plan-doc` aliases it"
         },
         {
           "op": "Add a phase",
@@ -993,7 +1050,8 @@
             "names": ["root plan-doc", "docs plan-doc"],
             "note": "`add-phase`"
           },
-          "runs": "`packages/docs/scripts/plan-doc.js add-phase`"
+          "runs": "`packages/docs/scripts/plan-doc.js add-phase`",
+          "target": "(R1) `spell dev plan-doc add-phase`;  yarn `plan-doc` aliases it"
         },
         {
           "op": "Change a phase's estimate",
@@ -1012,7 +1070,8 @@
             "note": "`estimate`"
           },
           "runs": "`packages/docs/scripts/plan-doc.js estimate`",
-          "notes": "Overview total follows."
+          "notes": "Overview total follows.",
+          "target": "(R1) `spell dev plan-doc estimate`;  yarn `plan-doc` aliases it"
         },
         {
           "op": "Set a phase's status",
@@ -1031,7 +1090,8 @@
             "note": "`phase`"
           },
           "runs": "`packages/docs/scripts/plan-doc.js phase`",
-          "notes": "`done` drops UPDATE markers;  reloads the doc's tab unless `--no-open`."
+          "notes": "`done` drops UPDATE markers;  reloads the doc's tab unless `--no-open`.",
+          "target": "(R1) `spell dev plan-doc phase`;  yarn `plan-doc` aliases it"
         },
         {
           "op": "Add a question, caveat, issue, todo or decision",
@@ -1050,7 +1110,8 @@
             "note": "`add`"
           },
           "runs": "`packages/docs/scripts/plan-doc.js add`",
-          "notes": "Subagents get the cheat sheet in their prompt."
+          "notes": "Subagents get the cheat sheet in their prompt.",
+          "target": "(R1) `spell dev plan-doc add`;  yarn `plan-doc` aliases it"
         },
         {
           "op": "Answer a question",
@@ -1070,7 +1131,8 @@
             "note": "`decide`"
           },
           "runs": "`packages/docs/scripts/plan-doc.js decide`",
-          "notes": "`plan-doc.js` header's command list omits `decide`."
+          "notes": "`plan-doc.js` header's command list omits `decide`.",
+          "target": "(R1) `spell dev plan-doc decide`;  yarn `plan-doc` aliases it;  USAGE lists it"
         },
         {
           "op": "Close or reopen an item",
@@ -1090,7 +1152,8 @@
             "note": "`close`"
           },
           "runs": "`packages/docs/scripts/plan-doc.js close`",
-          "notes": "Strike, never delete."
+          "notes": "Strike, never delete.",
+          "target": "(R1) `spell dev plan-doc close|reopen`;  yarn `plan-doc` aliases it"
         },
         {
           "op": "Log a line in the plan doc",
@@ -1108,7 +1171,8 @@
             "names": ["root plan-doc", "docs plan-doc"],
             "note": "`log`"
           },
-          "runs": "`packages/docs/scripts/plan-doc.js log`"
+          "runs": "`packages/docs/scripts/plan-doc.js log`",
+          "target": "(R1) `spell dev plan-doc log`;  yarn `plan-doc` aliases it"
         },
         {
           "op": "Set the kickoff prompt",
@@ -1127,7 +1191,8 @@
             "names": ["root plan-doc", "docs plan-doc"],
             "note": "`prompt`"
           },
-          "runs": "`packages/docs/scripts/plan-doc.js prompt`"
+          "runs": "`packages/docs/scripts/plan-doc.js prompt`",
+          "target": "(R1) `spell dev plan-doc prompt --file`;  yarn `plan-doc` aliases it"
         },
         {
           "op": "Migrate an older plan doc",
@@ -1145,7 +1210,8 @@
             "names": ["root plan-doc", "docs plan-doc"],
             "note": "`migrate`"
           },
-          "runs": "`packages/docs/scripts/plan-doc.js migrate`"
+          "runs": "`packages/docs/scripts/plan-doc.js migrate`",
+          "target": "(R1) `spell dev plan-doc migrate`;  yarn `plan-doc` aliases it"
         },
         {
           "op": "Summarize a plan",
@@ -1164,7 +1230,8 @@
             "names": ["root plan-doc", "docs plan-doc"],
             "note": "`summary`"
           },
-          "runs": "`packages/docs/scripts/plan-doc.js summary`"
+          "runs": "`packages/docs/scripts/plan-doc.js summary`",
+          "target": "(R1) `spell dev plan-doc summary --json`;  /epic /wtf /bedtime read it"
         },
         {
           "op": "Check a plan doc",
@@ -1183,7 +1250,8 @@
             "note": "`check`"
           },
           "runs": "`packages/docs/scripts/plan-doc.js check`",
-          "notes": "Ids, links, phases, then `check-spell.js` in a browser."
+          "notes": "Ids, links, phases, then `check-spell.js` in a browser.",
+          "target": "(R1) `spell dev plan-doc check`;  yarn `plan-doc` aliases it"
         },
         {
           "op": "Show a plan doc in VS Code",
@@ -1203,7 +1271,8 @@
             "note": "`open`"
           },
           "runs": "`packages/docs/scripts/plan-doc.js open`",
-          "notes": "DRIFT:  USAGE says \"beside the editor\";  `/epic` says right side bar (set by `spell.docPreview.location`)."
+          "notes": "DRIFT:  USAGE says \"beside the editor\";  `/epic` says right side bar (set by `spell.docPreview.location`).",
+          "target": "(R1) `spell dev plan-doc open` -> (R2) `window show`;  USAGE and /epic agree on placement"
         },
         {
           "op": "Run a planning session",
@@ -1218,7 +1287,8 @@
             "mark": "no"
           },
           "runs": "prose:  name, isolate, explore, plan mode, fill doc, phases, Doc Review",
-          "notes": "Was `/plan-doc` until 2026-10-02."
+          "notes": "Was `/plan-doc` until 2026-10-02.",
+          "target": "stays:  skill judgement (/epic)"
         },
         {
           "op": "Hand-write the Overview and UPDATE markers",
@@ -1233,7 +1303,8 @@
             "mark": "no"
           },
           "runs": "prose, rules in `packages/docs/templates/epics/plan-doc.md`",
-          "notes": "Fourth layer.  `plan-doc phase done` strips the markers."
+          "notes": "Fourth layer.  `plan-doc phase done` strips the markers.",
+          "target": "stays:  skill judgement (/epic);  `spell dev plan-doc phase done` strips markers"
         },
         {
           "op": "Turn a plan doc into durable docs",
@@ -1251,7 +1322,8 @@
             "note": "`docs:new durable <page>`"
           },
           "runs": "`packages/docs/scripts/new-page.js` + prose",
-          "notes": "Overview -> body, decisions -> Why, caveats -> Limits."
+          "notes": "Overview -> body, decisions -> Why, caveats -> Limits.",
+          "target": "(R2) `spell dev docs new durable <page>`;  /epic Doc Review writes the body"
         },
         {
           "op": "Find a session's plan doc",
@@ -1267,7 +1339,8 @@
             "mark": "could"
           },
           "runs": "skill prose + `status.py`",
-          "notes": "Fourth layer.  Old branches keep it under `plans/<name>/`."
+          "notes": "Fourth layer.  Old branches keep it under `plans/<name>/`.",
+          "target": "(R4) `spell dev session status <name> --json` (`plan` field);  /wtf /wait-for read it"
         },
         {
           "op": "Get a doc's URL on the page server",
@@ -1285,7 +1358,8 @@
             "note": "`server url <ABSOLUTE path>`"
           },
           "runs": "`packages/server/src/page/cli.ts url`",
-          "notes": "Relative path resolves wrongly (SUSPECTED-BUGS, server).  Run in the doc's own checkout."
+          "notes": "Relative path resolves wrongly (SUSPECTED-BUGS, server).  Run in the doc's own checkout.",
+          "target": "(R2) `spell dev server url <file>`:  resolves relative paths;  /epic /wtf call it"
         },
         {
           "op": "Say which phase is done and what's next",
@@ -1302,7 +1376,8 @@
             "mark": "could"
           },
           "runs": "prose + `plan-doc summary`",
-          "notes": "Fourth layer."
+          "notes": "Fourth layer.",
+          "target": "stays:  skill prose (/epic /wtf);  data from `spell dev plan-doc summary --json`"
         }
       ]
     },
@@ -1329,7 +1404,8 @@
             "names": ["root goals"],
             "note": "`sets`"
           },
-          "runs": "`goals/_tools/goals.js sets`"
+          "runs": "`goals/_tools/goals.js sets`",
+          "target": "(R1) `spell dev goals sets`;  yarn `goals` aliases it"
         },
         {
           "op": "Make a goal set active",
@@ -1348,7 +1424,8 @@
             "names": ["root goals"],
             "note": "`use`"
           },
-          "runs": "`goals/_tools/goals.js use`"
+          "runs": "`goals/_tools/goals.js use`",
+          "target": "(R1) `spell dev goals use <set>`;  yarn `goals` aliases it"
         },
         {
           "op": "Resolve a target",
@@ -1367,7 +1444,8 @@
             "note": "`resolve`"
           },
           "runs": "`goals/_tools/goals.js resolve`",
-          "notes": "`maybe:` choices go into a modal."
+          "notes": "`maybe:` choices go into a modal.",
+          "target": "(R1) `spell dev goals resolve`;  yarn `goals` aliases it"
         },
         {
           "op": "Summarize a set or topic",
@@ -1385,7 +1463,8 @@
             "names": ["root goals"],
             "note": "`summary`"
           },
-          "runs": "`goals/_tools/goals.js summary`"
+          "runs": "`goals/_tools/goals.js summary`",
+          "target": "(R1) `spell dev goals summary`;  yarn `goals` aliases it"
         },
         {
           "op": "List waiting thoughts",
@@ -1404,7 +1483,8 @@
             "note": "`thoughts`"
           },
           "runs": "`goals/_tools/goals.js thoughts`",
-          "notes": "`--all` includes digested ones."
+          "notes": "`--all` includes digested ones.",
+          "target": "(R1) `spell dev goals thoughts [--all]`;  yarn `goals` aliases it"
         },
         {
           "op": "Create a goal set or topic",
@@ -1423,7 +1503,8 @@
             "note": "`new-set`"
           },
           "runs": "`goals/_tools/goals.js new-set`",
-          "notes": "`new-set <set>`, `new <set/topic>`.  Skill `could`:  `/goals new`."
+          "notes": "`new-set <set>`, `new <set/topic>`.  Skill `could`:  `/goals new`.",
+          "target": "(R1) `spell dev goals new-set|new`;  yarn `goals` aliases it"
         },
         {
           "op": "Add a goal, idea, question, risk, decision or work item",
@@ -1441,7 +1522,8 @@
             "names": ["root goals"],
             "note": "`add`"
           },
-          "runs": "`goals/_tools/goals.js add`"
+          "runs": "`goals/_tools/goals.js add`",
+          "target": "(R1) `spell dev goals add`;  yarn `goals` aliases it"
         },
         {
           "op": "Close or reopen an item",
@@ -1461,7 +1543,8 @@
             "note": "`close`"
           },
           "runs": "`goals/_tools/goals.js close`",
-          "notes": "Never delete."
+          "notes": "Never delete.",
+          "target": "(R1) `spell dev goals close|reopen`;  yarn `goals` aliases it"
         },
         {
           "op": "Log a history entry",
@@ -1479,7 +1562,8 @@
             "names": ["root goals"],
             "note": "`log`"
           },
-          "runs": "`goals/_tools/goals.js log`"
+          "runs": "`goals/_tools/goals.js log`",
+          "target": "(R1) `spell dev goals log`;  yarn `goals` aliases it"
         },
         {
           "op": "Set a topic's status",
@@ -1498,7 +1582,8 @@
             "note": "`status`"
           },
           "runs": "`goals/_tools/goals.js status`",
-          "notes": "`draft|dialog|agreed|building|shipped`."
+          "notes": "`draft|dialog|agreed|building|shipped`.",
+          "target": "(R1) `spell dev goals status`;  yarn `goals` aliases it"
         },
         {
           "op": "Jot a thought on a page",
@@ -1517,7 +1602,8 @@
             "note": "`thought`"
           },
           "runs": "`goals/_tools/goals.js thought`",
-          "notes": "Also the page's bubble buttons, through `goals/_tools/goalsRoutes.ts` on the page server."
+          "notes": "Also the page's bubble buttons, through `goals/_tools/goalsRoutes.ts` on the page server.",
+          "target": "(R1) `spell dev goals thought`;  yarn `goals` aliases it"
         },
         {
           "op": "Mark a thought digested",
@@ -1535,7 +1621,8 @@
             "names": ["root goals"],
             "note": "`digest`"
           },
-          "runs": "`goals/_tools/goals.js digest`"
+          "runs": "`goals/_tools/goals.js digest`",
+          "target": "(R1) `spell dev goals digest`;  yarn `goals` aliases it"
         },
         {
           "op": "Rewrite contents pages",
@@ -1553,7 +1640,8 @@
             "note": "`index`"
           },
           "runs": "`goals/_tools/goals.js index`",
-          "notes": "Cards and numbers between markers."
+          "notes": "Cards and numbers between markers.",
+          "target": "(R1) `spell dev goals index`;  yarn `goals` aliases it"
         },
         {
           "op": "Check goals pages",
@@ -1572,7 +1660,8 @@
             "names": ["root goals"],
             "note": "`check`"
           },
-          "runs": "`goals/_tools/goals.js check`"
+          "runs": "`goals/_tools/goals.js check`",
+          "target": "(R1) `spell dev goals check`;  yarn `goals` aliases it"
         },
         {
           "op": "Run or start the goals server",
@@ -1591,7 +1680,8 @@
             "note": "`server`"
           },
           "runs": "`goals/_tools/goals.js server`",
-          "notes": "`serve` foreground, `server start|stop|status`.  Same page server and pid file as `root server`:  duplicate commands."
+          "notes": "`serve` foreground, `server start|stop|status`.  Same page server and pid file as `root server`:  duplicate commands.",
+          "target": "(R2) `spell dev server start|stop|status`;  `goals server` / `serve` dropped as duplicates"
         },
         {
           "op": "Open a goals page in the browser",
@@ -1610,7 +1700,8 @@
             "note": "`open`"
           },
           "runs": "`goals/_tools/goals.js open`",
-          "notes": "Starts the page server if need be."
+          "notes": "Starts the page server if need be.",
+          "target": "(R1) `spell dev goals open`:  starts page via (R2) `server start`;  /goals-open calls it"
         },
         {
           "op": "Open a goals page in VS Code",
@@ -1629,7 +1720,8 @@
             "note": "`open-vs`"
           },
           "runs": "`goals/_tools/goals.js open-vs`",
-          "notes": "Not in VS Code:  falls back to `open`."
+          "notes": "Not in VS Code:  falls back to `open`.",
+          "target": "(R1) `spell dev goals open-vs` -> (R2) `window show`;  /goals-open-vs calls it"
         },
         {
           "op": "Talk through a goal with Claude",
@@ -1648,7 +1740,8 @@
             "note": "`talk`"
           },
           "runs": "`goals.js talk` -> `claude /goals` (`launch.js`)",
-          "notes": "`talk` launches Claude on `/goals`;  `--window` in a new terminal."
+          "notes": "`talk` launches Claude on `/goals`;  `--window` in a new terminal.",
+          "target": "(R1) `spell dev goals talk [--window]`;  yarn `goals` aliases it"
         },
         {
           "op": "Digest new thoughts",
@@ -1667,7 +1760,8 @@
             "note": "`update`"
           },
           "runs": "`goals.js update` -> `claude /goals-update` (`launch.js`)",
-          "notes": "`--print` headless:  questions become `Q` items."
+          "notes": "`--print` headless:  questions become `Q` items.",
+          "target": "(R1) `spell dev goals update [--print]`;  yarn `goals` aliases it"
         },
         {
           "op": "Check Claude Code is installed and logged in",
@@ -1685,7 +1779,8 @@
             "names": ["root goals"],
             "note": "`claude`"
           },
-          "runs": "`goals/_tools/goals.js claude`"
+          "runs": "`goals/_tools/goals.js claude`",
+          "target": "(R1) `spell dev goals claude`;  yarn `goals` aliases it"
         },
         {
           "op": "List goals commands",
@@ -1703,7 +1798,8 @@
             "note": "`help`"
           },
           "runs": "`goals/_tools/goals.js help`",
-          "notes": "`help` works but isn't in its own USAGE;  `spell goals` with no args runs it."
+          "notes": "`help` works but isn't in its own USAGE;  `spell goals` with no args runs it.",
+          "target": "(R1) `spell dev goals help` (bare `spell dev goals` too);  USAGE lists it"
         },
         {
           "op": "Record a decision",
@@ -1720,7 +1816,8 @@
             "mark": "could"
           },
           "runs": "`goals.js add decision` + `close Q` + `log --icon gavel`",
-          "notes": "Fourth layer:  3-step chain.  `plan-doc` has `decide`;  goals doesn't."
+          "notes": "Fourth layer:  3-step chain.  `plan-doc` has `decide`;  goals doesn't.",
+          "target": "(R6) `spell dev goals decide`:  add decision + close question + log;  /goals /goals-update call it"
         },
         {
           "op": "Keep the agent notes in step with the page",
@@ -1737,7 +1834,8 @@
             "mark": "could"
           },
           "runs": "skill prose:  `<set>/<topic>/<topic>.md`",
-          "notes": "Fourth layer.  Same ids by hand:  drifts."
+          "notes": "Fourth layer.  Same ids by hand:  drifts.",
+          "target": "(R6) `spell dev goals notes sync`:  writes `.md` from the page;  skills stop hand-editing"
         },
         {
           "op": "Find the goals folder",
@@ -1757,7 +1855,8 @@
             "note": "always the repo root's"
           },
           "runs": "`goals/_skills/goals/scripts/goals.sh`;  `goalsCommand.ts` `findGoals()`",
-          "notes": "Three rules:  `goals.sh` also searches DOWN and exits 3 on several;  `spell goals` doesn't."
+          "notes": "Three rules:  `goals.sh` also searches DOWN and exits 3 on several;  `spell goals` doesn't.",
+          "target": "(R1) nearest-checkout lookup:  ONE rule;  `goals.sh` calls `spell dev goals`"
         },
         {
           "op": "Hand ready work to an agent",
@@ -1772,7 +1871,8 @@
           "yarn": {
             "mark": "no"
           },
-          "runs": "`Agent` + `goals.js status building`"
+          "runs": "`Agent` + `goals.js status building`",
+          "target": "stays:  Claude-only (`Agent`);  then `spell dev goals status building`"
         },
         {
           "op": "Test the goals page routes",
@@ -1788,7 +1888,8 @@
             "names": ["root goals:test"]
           },
           "runs": "`node --test goals/_tools/goalsRoutes.test.ts` under `tsx`",
-          "notes": "Not in root `test` (vitest over packages):  `goals/` isn't a package and uses `node --test`."
+          "notes": "Not in root `test` (vitest over packages):  `goals/` isn't a package and uses `node --test`.",
+          "target": "(R7) `spell dev check` also runs `node --test goals/_tools/goalsRoutes.test.ts`"
         }
       ]
     },
@@ -1813,7 +1914,8 @@
             "names": ["root docs:update", "docs docs:update"]
           },
           "runs": "`scripts/update.js`:  `bundle-spell-ui.js`, `index.js`, `doc-links.py --check`, `check-spell.js`",
-          "notes": "Screenshots land in a temp folder nobody looks at unless told."
+          "notes": "Screenshots land in a temp folder nobody looks at unless told.",
+          "target": "(R2) `spell dev docs update`;  yarn `docs:update` aliases it"
         },
         {
           "op": "Bundle Spell UI into `_assets/spell-ui.js` for docs",
@@ -1829,7 +1931,8 @@
             "note": "only via `docs:update`;  alone:  `node scripts/bundle-spell-ui.js`"
           },
           "runs": "`scripts/bundle-spell-ui.js` (esbuild;  builds fork + ui first)",
-          "notes": "A new page icon needs adding to `ICONS` here, then a rebuild."
+          "notes": "A new page icon needs adding to `ICONS` here, then a rebuild.",
+          "target": "(R2) step of `spell dev docs update`;  alone:  `node scripts/bundle-spell-ui.js` stays"
         },
         {
           "op": "Rewrite the docs index lists",
@@ -1846,7 +1949,8 @@
             "mark": "same",
             "names": ["root docs:index", "docs docs:index"]
           },
-          "runs": "`scripts/index.js` (between `index:start` / `index:end` markers)"
+          "runs": "`scripts/index.js` (between `index:start` / `index:end` markers)",
+          "target": "(R2) `spell dev docs index`;  yarn `docs:index` aliases it;  /epic calls it"
         },
         {
           "op": "Start a docs page from a template",
@@ -1864,7 +1968,8 @@
             "names": ["root docs:new", "docs docs:new"]
           },
           "runs": "`scripts/new-page.js` (then tidies + `index.js`)",
-          "notes": "Plan docs refused here:  `plan-doc new`.  Copies a sibling `.json` too (`commands`)."
+          "notes": "Plan docs refused here:  `plan-doc new`.  Copies a sibling `.json` too (`commands`).",
+          "target": "(R2) `spell dev docs new`;  yarn `docs:new` aliases it;  /epic calls it"
         },
         {
           "op": "Show a docs page in Chrome",
@@ -1880,7 +1985,8 @@
             "mark": "same",
             "names": ["root docs:open", "docs docs:open"]
           },
-          "runs": "`scripts/open.js` -> `pages.js` `openInChrome()`"
+          "runs": "`scripts/open.js` -> `pages.js` `openInChrome()`",
+          "target": "(R2) `spell dev docs open`;  yarn `docs:open` aliases it"
         },
         {
           "op": "Show a docs page in VS Code's doc preview",
@@ -1898,7 +2004,8 @@
             "note": "`--vs`"
           },
           "runs": "`scripts/open.js` -> `pages.js` `openInVSCode()` -> extension `DocPreview`",
-          "notes": "One preview shared with `plan-doc open`.  /spell-docs runs `yarn serve` first."
+          "notes": "One preview shared with `plan-doc open`.  /spell-docs runs `yarn serve` first.",
+          "target": "(R2) `spell dev docs open --vs`;  /spell-docs calls it"
         },
         {
           "op": "Find the closest page when a page name misses",
@@ -1915,7 +2022,8 @@
             "mark": "could",
             "note": "`docs:open` could print near misses"
           },
-          "runs": "skill prose + `ls packages/docs`"
+          "runs": "skill prose + `ls packages/docs`",
+          "target": "(R2) `spell dev docs open` suggests near misses;  /spell-docs puts them in a modal"
         },
         {
           "op": "Check one page in a real browser, with screenshots",
@@ -1931,7 +2039,8 @@
             "mark": "could",
             "note": "unscripted:  `node scripts/check-spell.js <page>`;  all pages via `docs:update`"
           },
-          "runs": "`scripts/check-spell.js` (Playwright)"
+          "runs": "`scripts/check-spell.js` (Playwright)",
+          "target": "(R2) `spell dev docs check <page>` (links + browser)"
         },
         {
           "op": "Link source references in a page",
@@ -1946,7 +2055,8 @@
             "note": "unscripted:  `python3 scripts/doc-links.py <page>`"
           },
           "runs": "`scripts/doc-links.py`",
-          "notes": "Only Python tool in docs;  every other script is node."
+          "notes": "Only Python tool in docs;  every other script is node.",
+          "target": "(R2) step 1 of `spell dev docs finish <page>`"
         },
         {
           "op": "Check a page's links resolve",
@@ -1961,7 +2071,8 @@
             "names": ["root docs:update", "docs docs:update"],
             "note": "all pages only;  one page:  `doc-links.py --check`"
           },
-          "runs": "`scripts/doc-links.py --check`"
+          "runs": "`scripts/doc-links.py --check`",
+          "target": "(R2) `spell dev docs check <page>` (links + browser)"
         },
         {
           "op": "Finish a page:  link, format, check links, check in browser, re-index",
@@ -1979,7 +2090,8 @@
             "note": "`docs docs:finish <page>`"
           },
           "runs": "prose in `packages/docs/AGENTS.md` (\"Finishing a page\"):  `doc-links.py`, `oxfmt`, `check-spell.js`, `index.js`",
-          "notes": "Five-step sequence lives only in prose;  strong CLI / script candidate."
+          "notes": "Five-step sequence lives only in prose;  strong CLI / script candidate.",
+          "target": "(R2) `spell dev docs finish <page>`;  /epic calls it"
         },
         {
           "op": "Turn a finished plan doc into durable docs",
@@ -1995,7 +2107,8 @@
             "mark": "no"
           },
           "runs": "`docs:new durable` + prose (Overview -> body, decisions -> Why, caveats -> Limits)",
-          "notes": "Judgement:  rewriting, not copying."
+          "notes": "Judgement:  rewriting, not copying.",
+          "target": "stays:  /epic judgement;  `spell dev docs new durable` starts the page"
         }
       ]
     },
@@ -2021,7 +2134,8 @@
             "names": ["root serve"]
           },
           "runs": "`scripts/serve.mjs`:  `yarn server ensure`, waits for editor record, fetches `/ui/` to wake astro",
-          "notes": "`root serve` vs `root server` vs `ui serve`:  three different things, one-letter apart."
+          "notes": "`root serve` vs `root server` vs `ui serve`:  three different things, one-letter apart.",
+          "target": "(R2) `spell dev server start --all`;  (R8) yarn `serve` -> `server:start --all`;  /spell-serve calls it"
         },
         {
           "op": "Start the page server in the background",
@@ -2040,7 +2154,8 @@
             "note": "`start` or `ensure`:  aliases"
           },
           "runs": "`packages/server/src/page/cli.ts` -> `PageServer.ensure()`",
-          "notes": "`start` and `ensure` do exactly the same thing."
+          "notes": "`start` and `ensure` do exactly the same thing.",
+          "target": "(R2) `spell dev server start`;  yarn `server:start` aliases it;  `ensure` folds in"
         },
         {
           "op": "Run the page server in the foreground",
@@ -2057,7 +2172,8 @@
             "names": ["root server", "server server"],
             "note": "`serve`"
           },
-          "runs": "`PageServer.start()` + `SRV.untilInterrupted()`"
+          "runs": "`PageServer.start()` + `SRV.untilInterrupted()`",
+          "target": "(R2) `spell dev server start --foreground`;  (R8) yarn `server serve` -> `server:start --foreground`"
         },
         {
           "op": "Stop the page server (and its editor and astro)",
@@ -2075,7 +2191,8 @@
             "names": ["root server", "server server"],
             "note": "`stop`"
           },
-          "runs": "`SRV.PidFile.stop()`"
+          "runs": "`SRV.PidFile.stop()`",
+          "target": "(R2) `spell dev server stop`;  yarn `server:stop` aliases it;  /spell-serve calls it"
         },
         {
           "op": "Check whether the page server is running",
@@ -2093,7 +2210,8 @@
             "names": ["root server", "server server"],
             "note": "`status`:  JSON, exit 1 if not"
           },
-          "runs": "`SRV.PidFile.status()`"
+          "runs": "`SRV.PidFile.status()`",
+          "target": "(R2) `spell dev server status --json`;  yarn `server:status` aliases it"
         },
         {
           "op": "Print a file's URL on the page server",
@@ -2112,7 +2230,8 @@
             "note": "`url <file>`, ensures first"
           },
           "runs": "`page/cli.ts` `url` -> `PageServer.ensure()`",
-          "notes": "Relative paths resolve from `INIT_CWD`:  skills insist on ABSOLUTE paths."
+          "notes": "Relative paths resolve from `INIT_CWD`:  skills insist on ABSOLUTE paths.",
+          "target": "(R2) `spell dev server url <file>`;  yarn `server:url` aliases it;  skills call it"
         },
         {
           "op": "Open the spell editor in a browser",
@@ -2129,7 +2248,8 @@
             "names": ["app start"],
             "note": "`--headless`:  prints URL, no browser"
           },
-          "runs": "`serveCommand.ts` -> `PageServer.ensure()` + `SRV.openBrowser()`"
+          "runs": "`serveCommand.ts` -> `PageServer.ensure()` + `SRV.openBrowser()`",
+          "target": "stays:  spell-language command `spell serve [target]`;  starts servers via `spell dev server start`"
         },
         {
           "op": "Restart the page server and editor",
@@ -2147,7 +2267,8 @@
             "names": ["app start"]
           },
           "runs": "`yarn` (install) + `yarn workspace @spell-app/server server stop` + `spell serve --headless`",
-          "notes": "`app start` also runs `yarn install` and kills a page server other sessions may be using."
+          "notes": "`app start` also runs `yarn install` and kills a page server other sessions may be using.",
+          "target": "(R2) `spell dev server restart` (new verb);  app `start` aliases it;  /spell-serve advises it"
         },
         {
           "op": "Stop stray vite / tsx processes of the app",
@@ -2162,7 +2283,8 @@
             "names": ["app stop"]
           },
           "runs": "`packages/app/scripts/stop.mjs` (`ps` + `lsof`, SIGTERM;  spares the language server)",
-          "notes": "Docstring stale:  mentions `yarn start`'s `concurrently`, an express server, `src/lsp/server.ts`."
+          "notes": "Docstring stale:  mentions `yarn start`'s `concurrently`, an express server, `src/lsp/server.ts`.",
+          "target": "stays:  app package script `stop`;  fix its stale docstring"
         },
         {
           "op": "Diagnose a server that didn't come up",
@@ -2179,7 +2301,8 @@
             "mark": "could",
             "note": "`serve.mjs` names the log, doesn't show it"
           },
-          "runs": "skill prose + `.spell-server.log` / `.editor.log` / `.astro.log`"
+          "runs": "skill prose + `.spell-server.log` / `.editor.log` / `.astro.log`",
+          "target": "(R2) `spell dev server start` prints the log tail on failure"
         },
         {
           "op": "Run the editor's vite dev server alone",
@@ -2194,7 +2317,8 @@
             "mark": "other",
             "names": ["app start:dev"]
           },
-          "runs": "`vite`"
+          "runs": "`vite`",
+          "target": "(R8) rename app `start:dev` -> `dev`"
         },
         {
           "op": "Run the app's API server alone (port 3001)",
@@ -2211,7 +2335,8 @@
             "note": "`:prod` = no watch"
           },
           "runs": "`tsx watch src/server/index.ts` / `tsx src/server/index.ts`",
-          "notes": "Likely dead since the page server took the API;  `:prod` unused."
+          "notes": "Likely dead since the page server took the API;  `:prod` unused.",
+          "target": "(R8) rename app `start:server` -> `server:dev`;  delete `start:server:prod` (dead)"
         },
         {
           "op": "Preview the built app",
@@ -2225,7 +2350,8 @@
             "mark": "other",
             "names": ["app preview"]
           },
-          "runs": "`vite preview`"
+          "runs": "`vite preview`",
+          "target": "stays:  tool-native package script"
         },
         {
           "op": "Run the language server over stdio",
@@ -2241,7 +2367,8 @@
             "names": ["lsp start:lsp"]
           },
           "runs": "`tsx src/server.ts --stdio`",
-          "notes": "VS Code extension starts it itself;  script is for debugging."
+          "notes": "VS Code extension starts it itself;  script is for debugging.",
+          "target": "(R8) rename lsp `start:lsp` -> `lsp:start`;  (R10) then `spell lsp`"
         },
         {
           "op": "Run Spell UI's demo dev server",
@@ -2255,7 +2382,8 @@
             "mark": "other",
             "names": ["ui dev"]
           },
-          "runs": "`vite --open /tools/demo/index.html`"
+          "runs": "`vite --open /tools/demo/index.html`",
+          "target": "stays:  tool-native package script"
         },
         {
           "op": "Serve Spell UI's smoke and host pages for a person",
@@ -2270,7 +2398,8 @@
             "names": ["ui serve"]
           },
           "runs": "`tsx tools/cli.ts serve` -> `SmokeRunner.serve()`",
-          "notes": "Needs `ui vendor` first.  Same name as `root serve`, unrelated."
+          "notes": "Needs `ui vendor` first.  Same name as `root serve`, unrelated.",
+          "target": "stays:  ui package tooling;  name clash ends when (R8) root `serve` goes"
         },
         {
           "op": "Preview Spell UI's built library",
@@ -2284,7 +2413,8 @@
             "mark": "other",
             "names": ["ui preview"]
           },
-          "runs": "`vite preview`"
+          "runs": "`vite preview`",
+          "target": "stays:  tool-native package script"
         },
         {
           "op": "Run Spell UI's docs site (astro dev)",
@@ -2303,7 +2433,8 @@
             "note": "also `root serve`, behind the page server"
           },
           "runs": "`astro dev`;  page server starts it on first `/ui/` request (`AstroProxy`)",
-          "notes": "Two ways in:  standalone `site:dev` port vs page server `/ui/`."
+          "notes": "Two ways in:  standalone `site:dev` port vs page server `/ui/`.",
+          "target": "stays:  tool-native `site:dev`;  (R2) `spell dev server start --all` wakes `/ui/`"
         },
         {
           "op": "Preview Spell UI's built docs site",
@@ -2317,7 +2448,8 @@
             "mark": "other",
             "names": ["ui site:preview", "ui-site preview"]
           },
-          "runs": "`astro preview`"
+          "runs": "`astro preview`",
+          "target": "stays:  tool-native package script"
         },
         {
           "op": "Show icons as pictures in a browser",
@@ -2332,7 +2464,8 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`iconsCommand.ts` -> `packages/cli/src/serve.ts` (`SRV.WebServer`) + `SRV.openBrowser()`"
+          "runs": "`iconsCommand.ts` -> `packages/cli/src/serve.ts` (`SRV.WebServer`) + `SRV.openBrowser()`",
+          "target": "stays:  `spell icons --open`"
         },
         {
           "op": "Run a compiled project's UI in a browser",
@@ -2348,7 +2481,8 @@
             "mark": "could"
           },
           "runs": "`runInBrowser.ts` -> `serve.ts` (`SRV.WebServer`), own throwaway server",
-          "notes": "Third little server besides the page server and icons gallery."
+          "notes": "Third little server besides the page server and icons gallery.",
+          "target": "stays:  spell-language command `spell run --browser`"
         }
       ]
     },
@@ -2371,7 +2505,8 @@
             "mark": "other",
             "names": ["app build"]
           },
-          "runs": "`tsc && vite build` -> `dist/`"
+          "runs": "`tsc && vite build` -> `dist/`",
+          "target": "stays:  tool-native package script (app `build`)"
         },
         {
           "op": "Build the VS Code runner bundle (`dist-runner/`)",
@@ -2386,7 +2521,8 @@
             "names": ["app build:runner"],
             "note": "`vscode build` runs it too"
           },
-          "runs": "`vite build` x2 (`vite.solid.config.ts`, `vite.runner.config.ts`)"
+          "runs": "`vite build` x2 (`vite.solid.config.ts`, `vite.runner.config.ts`)",
+          "target": "stays:  tool-native app `build:runner`;  `spell dev vscode build` runs it"
         },
         {
           "op": "Build the `<spell-app>` / `<spell-editor>` web components",
@@ -2400,7 +2536,8 @@
             "mark": "same",
             "names": ["app build:element"]
           },
-          "runs": "`vite build` x3 (solid, element, editor configs) -> `dist-element/`"
+          "runs": "`vite build` x3 (solid, element, editor configs) -> `dist-element/`",
+          "target": "stays:  tool-native app `build:element`"
         },
         {
           "op": "Clean the app's build outputs",
@@ -2415,7 +2552,8 @@
             "names": ["app clean"]
           },
           "runs": "`rm -rf ./.cache ./build`",
-          "notes": "Drift:  builds write `dist/`, `dist-runner/`, `dist-element/`;  `clean` removes none of them."
+          "notes": "Drift:  builds write `dist/`, `dist-runner/`, `dist-element/`;  `clean` removes none of them.",
+          "target": "stays:  tool-native app `clean`;  fix to remove `dist*`"
         },
         {
           "op": "Build the Spell UI library",
@@ -2430,7 +2568,8 @@
             "names": ["ui build"]
           },
           "runs": "`tsc && vite build` -> `dist/`",
-          "notes": "`bundle-spell-ui.js` runs it, falling back to `vite build` alone if `tsc` fails."
+          "notes": "`bundle-spell-ui.js` runs it, falling back to `vite build` alone if `tsc` fails.",
+          "target": "stays:  tool-native package script"
         },
         {
           "op": "Clean Spell UI's outputs",
@@ -2444,7 +2583,8 @@
             "mark": "other",
             "names": ["ui clean"]
           },
-          "runs": "`rm -rf` caches, `dist`, `vendor`, test results, `tools/frameworks/solid/dist`"
+          "runs": "`rm -rf` caches, `dist`, `vendor`, test results, `tools/frameworks/solid/dist`",
+          "target": "stays:  tool-native package script"
         },
         {
           "op": "Build the solid-element fork",
@@ -2460,7 +2600,8 @@
             "note": "ui alias `fork:build`"
           },
           "runs": "`vite build` + `vite build -c vite.node.config.ts`",
-          "notes": "`ForkBuild.ensure()` rebuilds it when stale before `ui vendor` / `ui measure`."
+          "notes": "`ForkBuild.ensure()` rebuilds it when stale before `ui vendor` / `ui measure`.",
+          "target": "stays:  tool-native package script;  ui `fork:build` alias stays"
         },
         {
           "op": "Build Spell UI's docs site",
@@ -2474,7 +2615,8 @@
             "mark": "other",
             "names": ["ui site:build", "ui-site build"]
           },
-          "runs": "`astro build`"
+          "runs": "`astro build`",
+          "target": "stays:  tool-native package script"
         },
         {
           "op": "Bundle the VS Code extension",
@@ -2490,7 +2632,8 @@
             "note": "root one also installs deps and packages"
           },
           "runs": "`packages/vscode/build.mjs` (esbuild)",
-          "notes": "SIDE EFFECT:  builds `app build:runner`.  Fails unless version matches spell's."
+          "notes": "SIDE EFFECT:  builds `app build:runner`.  Fails unless version matches spell's.",
+          "target": "(R2) `spell dev vscode build`;  root `vscode:build` aliases it"
         },
         {
           "op": "Package the extension as a `.vsix`",
@@ -2505,7 +2648,8 @@
             "names": ["vscode package"],
             "note": "also inside `root vscode:build`"
           },
-          "runs": "`vsce package`"
+          "runs": "`vsce package`",
+          "target": "stays:  tool-native vscode `package`;  `spell dev vscode build` runs it"
         },
         {
           "op": "Install the extension into VS Code",
@@ -2520,7 +2664,8 @@
             "names": ["vscode install-extension", "root vscode:install"],
             "note": "dash vs colon"
           },
-          "runs": "`code --install-extension spell-language.vsix --force`"
+          "runs": "`code --install-extension spell-language.vsix --force`",
+          "target": "(R2) `spell dev vscode install`;  (R8) rename vscode `install-extension` -> `extension:install`"
         },
         {
           "op": "Build, package and install the extension in one go",
@@ -2538,7 +2683,8 @@
             "names": ["root vscode"]
           },
           "runs": "`yarn vscode:build && yarn vscode:install`",
-          "notes": "Memory rule:  NEVER from a branch behind `main`;  nothing enforces it."
+          "notes": "Memory rule:  NEVER from a branch behind `main`;  nothing enforces it.",
+          "target": "(R2) `spell dev vscode`;  root `vscode` aliases it;  skills call it"
         },
         {
           "op": "Type-check the VS Code extension",
@@ -2554,7 +2700,8 @@
             "note": "every other package calls it `ts`"
           },
           "runs": "`tsc --noEmit -p packages/vscode` from the repo root",
-          "notes": "Root `yarn ts` / `review` skip it:  vscode isn't a workspace."
+          "notes": "Root `yarn ts` / `review` skip it:  vscode isn't a workspace.",
+          "target": "(R8) rename vscode `check` -> `ts`;  `spell dev vscode check` calls it;  (R9) root `ts` covers it"
         },
         {
           "op": "Put `spell` on the PATH",
@@ -2570,7 +2717,8 @@
             "names": ["cli cli:install"]
           },
           "runs": "`packages/cli/scripts/install-cli.mjs` (symlink to `bin/spell.mjs`)",
-          "notes": "Links ONE checkout;  `plan-doc` / `goals` then search upward for the nearest one."
+          "notes": "Links ONE checkout;  `plan-doc` / `goals` then search upward for the nearest one.",
+          "target": "(R2) `spell dev cli install` relinks;  yarn `cli:install` keeps the bootstrap script"
         },
         {
           "op": "Run `spell` from source without installing it",
@@ -2586,7 +2734,8 @@
             "names": ["cli spell"]
           },
           "runs": "`node bin/spell.mjs`",
-          "notes": "Likely dead since `cli:install`."
+          "notes": "Likely dead since `cli:install`.",
+          "target": "(R8) delete:  dead"
         },
         {
           "op": "Write scope packs for `<spell-app>`'s Type Explorer",
@@ -2603,7 +2752,8 @@
             "names": ["lsp scopes"]
           },
           "runs": "`packages/lsp/src/scopes.ts` -> `SpellDiskWorkspace.writeScopes()`",
-          "notes": "`--builtins` overwrites hand edits in `spellCore.scopes.js`."
+          "notes": "`--builtins` overwrites hand edits in `spellCore.scopes.js`.",
+          "target": "stays:  lsp package script `scopes` (`--builtins`);  `spell compile` writes project packs"
         },
         {
           "op": "Generate the custom-elements manifest",
@@ -2618,7 +2768,8 @@
             "names": ["ui manifest"]
           },
           "runs": "`custom-elements-manifest analyze`",
-          "notes": "Output unused, uncommitted;  `docs/plan.md` wants VS Code custom data from it someday."
+          "notes": "Output unused, uncommitted;  `docs/plan.md` wants VS Code custom data from it someday.",
+          "target": "stays:  ui package tooling (output unused)"
         },
         {
           "op": "Vendor Solid peers for the smoke pages",
@@ -2632,7 +2783,8 @@
             "mark": "other",
             "names": ["ui vendor"]
           },
-          "runs": "`tsx tools/cli.ts vendor` -> `PeerVendor` (`vendor/importmap.json`)"
+          "runs": "`tsx tools/cli.ts vendor` -> `PeerVendor` (`vendor/importmap.json`)",
+          "target": "stays:  ui package tooling"
         }
       ]
     },
@@ -2669,7 +2821,8 @@
             ]
           },
           "runs": "`tsc` + `oxlint --fix` + `oxfmt` + `vitest run`;  root:  `yarn workspaces foreach -A run review`",
-          "notes": "WRITES files:  runs `lint:fix` and `format`, not their check forms.  solid-element, ui-site, vscode have none;  root skips them."
+          "notes": "WRITES files:  runs `lint:fix` and `format`, not their check forms.  solid-element, ui-site, vscode have none;  root skips them.",
+          "target": "(R7) `spell dev check [--fix]`;  (R9) root `review` aliases it, covers solid-element / vscode / ui-site"
         },
         {
           "op": "Type-check a package",
@@ -2700,7 +2853,8 @@
             "note": "solid-element `tsc` and vscode `check` are other names for it"
           },
           "runs": "`tsc` (usually twice:  `tsconfig.json` + `tsconfig.node.json`)",
-          "notes": "spell's runs `yarn tsc` (the binary);  docs, cli one config;  ui adds `yarn fork tsc`.  Root `ts` skips vscode (not a workspace)."
+          "notes": "spell's runs `yarn tsc` (the binary);  docs, cli one config;  ui adds `yarn fork tsc`.  Root `ts` skips vscode (not a workspace).",
+          "target": "(R9) root `ts` covers solid-element, vscode, ui-site;  (R8) solid-element `tsc` / vscode `check` -> `ts`"
         },
         {
           "op": "Type-check the Spell UI docs site",
@@ -2715,7 +2869,8 @@
             "names": ["ui-site check", "ui site:check"]
           },
           "runs": "`astro check`",
-          "notes": "astro, not `tsc`.  Named `check` like vscode's `tsc` script.  In no `review`, not reached by root `ts`."
+          "notes": "astro, not `tsc`.  Named `check` like vscode's `tsc` script.  In no `review`, not reached by root `ts`.",
+          "target": "(R9) ui-site `ts` runs `astro check`;  root `ts` covers it"
         },
         {
           "op": "Lint a package",
@@ -2743,7 +2898,8 @@
             ]
           },
           "runs": "`oxlint --report-unused-disable-directives --max-warnings 0`",
-          "notes": "Folders differ:  cli, spell lint everything;  docs `scripts _assets`;  server `src test`;  ui `src test scripts tools` + fork.  No root `lint`."
+          "notes": "Folders differ:  cli, spell lint everything;  docs `scripts _assets`;  server `src test`;  ui `src test scripts tools` + fork.  No root `lint`.",
+          "target": "stays:  tool-native package script;  (R9) copies made identical;  `spell dev check` runs it"
         },
         {
           "op": "Lint a package and fix what can be fixed",
@@ -2770,7 +2926,8 @@
             ]
           },
           "runs": "`oxlint --fix`",
-          "notes": "ui's also runs the fork's NON-fix `lint`, so fork problems fail but never get fixed.  solid-element has none."
+          "notes": "ui's also runs the fork's NON-fix `lint`, so fork problems fail but never get fixed.  solid-element has none.",
+          "target": "stays:  tool-native;  (R9) fix ui's fork non-fix lint;  `spell dev check --fix` runs it"
         },
         {
           "op": "Format a package's code",
@@ -2798,7 +2955,8 @@
             ]
           },
           "runs": "`oxfmt .`",
-          "notes": "solid-element uses its own `.oxfmtrc.json`;  no `review` reaches it, so the fork is never formatted by a review.  No root `format`."
+          "notes": "solid-element uses its own `.oxfmtrc.json`;  no `review` reaches it, so the fork is never formatted by a review.  No root `format`.",
+          "target": "stays:  tool-native;  (R9) review reaches solid-element;  `spell dev check --fix` runs it"
         },
         {
           "op": "Check formatting without writing",
@@ -2826,7 +2984,8 @@
             ]
           },
           "runs": "`oxfmt --check .`",
-          "notes": "Nothing calls it:  `review` formats instead.  CI-shaped, but there's no CI."
+          "notes": "Nothing calls it:  `review` formats instead.  CI-shaped, but there's no CI.",
+          "target": "stays:  tool-native;  (R7) `spell dev check` runs it (no `--fix`)"
         },
         {
           "op": "Run a package's tests",
@@ -2855,7 +3014,8 @@
             ]
           },
           "runs": "`vitest run`",
-          "notes": "ui:  `ssr` project, then `browser`, then `test:fork`.  docs:  `--passWithNoTests`."
+          "notes": "ui:  `ssr` project, then `browser`, then `test:fork`.  docs:  `--passWithNoTests`.",
+          "target": "stays:  tool-native package script;  (R7) `spell dev check` runs it"
         },
         {
           "op": "Run every package's tests from the root",
@@ -2872,7 +3032,8 @@
             "note": "`test`:  one vitest run, each package a project.  `test:packages`:  each package's own `test`, in turn"
           },
           "runs": "`vitest run` on root `vitest.config.ts` / `yarn workspaces foreach -A run test`",
-          "notes": "Two ways, same goal, names don't say which.  Neither runs `node --test` suites (`root goals:test`, `scripts/window.test.mjs`)."
+          "notes": "Two ways, same goal, names don't say which.  Neither runs `node --test` suites (`root goals:test`, `scripts/window.test.mjs`).",
+          "target": "stays:  root `test` (one vitest run);  (R7) `spell dev check` replaces `test:packages`"
         },
         {
           "op": "Re-run tests on every change",
@@ -2901,7 +3062,8 @@
             ]
           },
           "runs": "`vitest` (watch mode)",
-          "notes": "solid-element has none."
+          "notes": "solid-element has none.",
+          "target": "stays:  tool-native package script"
         },
         {
           "op": "Browse tests in vitest's web UI",
@@ -2917,7 +3079,8 @@
             "names": ["app test:ui", "spell test:ui", "ui test:ui"]
           },
           "runs": "`vitest --ui`",
-          "notes": "`test:ui` sounds like testing ui;  it means vitest's UI.  Only 3 packages have it."
+          "notes": "`test:ui` sounds like testing ui;  it means vitest's UI.  Only 3 packages have it.",
+          "target": "stays:  tool-native package script (vitest's UI)"
         },
         {
           "op": "Measure test coverage",
@@ -2932,7 +3095,8 @@
             "names": ["spell test:coverage"]
           },
           "runs": "`vitest run --coverage`",
-          "notes": "Likely broken:  no `@vitest/coverage-v8` (or istanbul provider) installed.  spell only."
+          "notes": "Likely broken:  no `@vitest/coverage-v8` (or istanbul provider) installed.  spell only.",
+          "target": "(R8) delete:  dead (no coverage provider)"
         },
         {
           "op": "Check compiled output against the fixture snapshots",
@@ -2948,7 +3112,8 @@
             "names": ["spell test:fixtures"]
           },
           "runs": "`vitest run src/test/fixtures.test.ts`",
-          "notes": "Each `projects/test/` project vs its `<Project>.snapshot.js`.  Also runs in spell's `yarn test`."
+          "notes": "Each `projects/test/` project vs its `<Project>.snapshot.js`.  Also runs in spell's `yarn test`.",
+          "target": "(R8) delete `test:fixtures`:  dead;  spell `test` already runs it"
         },
         {
           "op": "Accept new fixture snapshots",
@@ -2965,7 +3130,8 @@
             "names": ["spell test:fixtures:bless"]
           },
           "runs": "`vitest run src/test/fixtures.test.ts --update=all`",
-          "notes": "After a deliberate change only;  read the diff (spell `AGENTS.md`)."
+          "notes": "After a deliberate change only;  read the diff (spell `AGENTS.md`).",
+          "target": "(R8) rename spell `test:fixtures:bless` -> `fixtures:bless`"
         },
         {
           "op": "Test the window registry (`scripts/window.mjs`)",
@@ -2980,7 +3146,8 @@
             "note": "`root window:test`, like `root goals:test`"
           },
           "runs": "`node --test scripts/window.test.mjs`, by hand",
-          "notes": "Unscripted, and root vitest doesn't find it.  Nothing reminds anyone to run it."
+          "notes": "Unscripted, and root vitest doesn't find it.  Nothing reminds anyone to run it.",
+          "target": "(R8) add root `window:test`, like `goals:test`;  (R7) `spell dev check` runs it"
         },
         {
           "op": "Time the parser's rule tests",
@@ -2998,7 +3165,8 @@
             "note": "`spell speed`"
           },
           "runs": "`spell speed` -> `src/runner/speedTest.mts` -> `SP.spellParser.speedTest()`, fresh process per run",
-          "notes": "Rule (memory, AGENTS):  run on every parser change and report both sides."
+          "notes": "Rule (memory, AGENTS):  run on every parser change and report both sides.",
+          "target": "stays:  spell-language command `spell speed`"
         },
         {
           "op": "Compare parser speed against a commit",
@@ -3014,7 +3182,8 @@
             "mark": "could"
           },
           "runs": "`spell speed --against <ref>`:  temp `git worktree`, linked `node_modules`, turns run by run",
-          "notes": "Drift:  the speed-test memory still spells out the manual `__speedtest.ts` + worktree recipe this replaced."
+          "notes": "Drift:  the speed-test memory still spells out the manual `__speedtest.ts` + worktree recipe this replaced.",
+          "target": "stays:  spell-language command `spell speed --against <ref>`;  fix speed-test memory"
         },
         {
           "op": "Run the checks of the packages a change touched",
@@ -3032,7 +3201,8 @@
             "note": "`yarn workspaces foreach --since=main run ts`"
           },
           "runs": "`git diff --name-only main...HEAD` -> folders -> `yarn ts` + `yarn test` in each, by hand",
-          "notes": "Three skills, three wordings (branch touches / conflicts touch / touched).  None runs `lint` or `format`."
+          "notes": "Three skills, three wordings (branch touches / conflicts touch / touched).  None runs `lint` or `format`.",
+          "target": "(R7) `spell dev check --touched`;  /park /isolate /bedtime call it"
         }
       ]
     },
@@ -3057,7 +3227,8 @@
             "note": "`--compile <projectId...>`, then writes scope packs"
           },
           "runs": "`CLI.compileCommand` -> `SpellProject.compile()`;  writes `<Project>.compiled.js`",
-          "notes": "VS Code:  the language server compiles after each clean save.  The app compiles too."
+          "notes": "VS Code:  the language server compiles after each clean save.  The app compiles too.",
+          "target": "stays:  spell-language command `spell compile`"
         },
         {
           "op": "Print a project's compiled javascript without writing it",
@@ -3073,7 +3244,8 @@
             "mark": "could"
           },
           "runs": "`SpellProject.compile(scope, { save: false })`",
-          "notes": "VS Code:  Show Compiled JavaScript (`spell.showCompiled`).  `spell describe --compiled` for one thing."
+          "notes": "VS Code:  Show Compiled JavaScript (`spell.showCompiled`).  `spell describe --compiled` for one thing.",
+          "target": "stays:  spell-language command `spell compile --stdout`"
         },
         {
           "op": "Recompile the projects a project imports",
@@ -3089,7 +3261,8 @@
             "mark": "could"
           },
           "runs": "`spell compile --force`",
-          "notes": "Without it, an imported project's stale `.compiled.js` is used as is."
+          "notes": "Without it, an imported project's stale `.compiled.js` is used as is.",
+          "target": "stays:  spell-language command `spell compile --force`"
         },
         {
           "op": "Write a project's scope pack (`<Project>.scopes.js`)",
@@ -3107,7 +3280,8 @@
             "note": "`--builtins`:  core's pack, yarn only"
           },
           "runs": "`SpellDiskWorkspace.writeScopes()`",
-          "notes": "Three writers:  CLI, `lsp scopes`, the language server."
+          "notes": "Three writers:  CLI, `lsp scopes`, the language server.",
+          "target": "stays:  `spell compile` / `spell watch`;  `--builtins` stays lsp `scopes`"
         },
         {
           "op": "Check spell projects for errors",
@@ -3123,7 +3297,8 @@
             "mark": "could"
           },
           "runs": "`CLI.checkCommand`:  `path:line:col  message` per error",
-          "notes": "Spell LANGUAGE errors, not `yarn ts`.  VS Code:  live diagnostics."
+          "notes": "Spell LANGUAGE errors, not `yarn ts`.  VS Code:  live diagnostics.",
+          "target": "stays:  spell-language command `spell check`"
         },
         {
           "op": "Describe what a file or project declares",
@@ -3139,7 +3314,8 @@
             "mark": "could"
           },
           "runs": "Type Explorer data (`ScopeExplorer`) as text",
-          "notes": "VS Code:  hover, outline.  App:  Type Explorer."
+          "notes": "VS Code:  hover, outline.  App:  Type Explorer.",
+          "target": "stays:  spell-language command `spell describe`"
         },
         {
           "op": "Browse a project in a full-screen Type Explorer",
@@ -3155,7 +3331,8 @@
             "mark": "could"
           },
           "runs": "Ink TUI;  `o` opens `$SPELL_EDITOR -g path:line`",
-          "notes": "Needs a real terminal;  reads the project once."
+          "notes": "Needs a real terminal;  reads the project once.",
+          "target": "stays:  spell-language command `spell explore`"
         },
         {
           "op": "Run a project",
@@ -3171,7 +3348,8 @@
             "mark": "could"
           },
           "runs": "`src/runner/runProject.ts` in a child node;  UI projects open `<spell-app>` in a browser",
-          "notes": "VS Code:  Run Project (`spell.runProject`).  First UI run builds `app build:element`."
+          "notes": "VS Code:  Run Project (`spell.runProject`).  First UI run builds `app build:element`.",
+          "target": "stays:  spell-language command `spell run`"
         },
         {
           "op": "Run a project's spell tests (`to test ...`)",
@@ -3187,7 +3365,8 @@
             "mark": "could"
           },
           "runs": "`src/runner/runProject.ts`, finds `test_*` exports",
-          "notes": "Not vitest:  same word as `yarn test`, different thing."
+          "notes": "Not vitest:  same word as `yarn test`, different thing.",
+          "target": "stays:  spell-language command `spell test`"
         },
         {
           "op": "Recompile projects on every save",
@@ -3203,7 +3382,8 @@
             "mark": "could"
           },
           "runs": "`fs.watch` on project folders, rebuilds importers too",
-          "notes": "macOS saves arrive as `rename`;  watch reads disk instead (`PAPERCUTS.md`)."
+          "notes": "macOS saves arrive as `rename`;  watch reads disk instead (`PAPERCUTS.md`).",
+          "target": "stays:  spell-language command `spell watch`"
         },
         {
           "op": "Re-check projects on every save, writing nothing",
@@ -3218,7 +3398,8 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`spell watch --check-only`"
+          "runs": "`spell watch --check-only`",
+          "target": "stays:  spell-language command `spell watch --check-only`"
         },
         {
           "op": "Re-run a project's spell tests on every save",
@@ -3233,7 +3414,8 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`spell watch --test [--name]`"
+          "runs": "`spell watch --test [--name]`",
+          "target": "stays:  spell-language command `spell watch --test` ~== `spell test --watch`"
         },
         {
           "op": "Format .spell files",
@@ -3249,7 +3431,8 @@
             "note": "`yarn format` is oxfmt, for TS only"
           },
           "runs": "`SpellLanguageService.formatting()`",
-          "notes": "VS Code:  Format Document.  Never writes in `projects/test/`."
+          "notes": "VS Code:  Format Document.  Never writes in `projects/test/`.",
+          "target": "stays:  spell-language command `spell format`"
         },
         {
           "op": "Check .spell formatting without writing",
@@ -3264,7 +3447,8 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`spell format --check`"
+          "runs": "`spell format --check`",
+          "target": "stays:  spell-language command `spell format --check`"
         },
         {
           "op": "List project roots, or a root's projects",
@@ -3280,7 +3464,8 @@
             "mark": "could"
           },
           "runs": "`CLI.projectsCommand`:  the app's roots",
-          "notes": "Names to type, e.g. `@examples/Solitaire`."
+          "notes": "Names to type, e.g. `@examples/Solitaire`.",
+          "target": "stays:  spell-language command `spell projects`"
         },
         {
           "op": "Show how spell reads a line",
@@ -3295,7 +3480,8 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`SP.spellParser`:  match tree, then javascript"
+          "runs": "`SP.spellParser`:  match tree, then javascript",
+          "target": "stays:  spell-language command `spell parse`"
         },
         {
           "op": "Parse spell a line at a time (REPL)",
@@ -3310,7 +3496,8 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "Ink TUI over `spell parse`;  piped:  reads stdin"
+          "runs": "Ink TUI over `spell parse`;  piped:  reads stdin",
+          "target": "stays:  spell-language command `spell repl`"
         },
         {
           "op": "Explain what a word means to spell",
@@ -3326,7 +3513,8 @@
             "mark": "could"
           },
           "runs": "rules the word names or starts;  `--in`:  project declarations",
-          "notes": "VS Code:  hover shows the `--in` half."
+          "notes": "VS Code:  hover shows the `--in` half.",
+          "target": "stays:  spell-language command `spell explain`"
         },
         {
           "op": "Make a new spell project",
@@ -3342,7 +3530,8 @@
             "mark": "could"
           },
           "runs": "writes `<name>/project.json` + starter `<name>.spell`",
-          "notes": "Refuses a non-empty folder."
+          "notes": "Refuses a non-empty folder.",
+          "target": "stays:  spell-language command `spell new`"
         }
       ]
     },
@@ -3366,7 +3555,8 @@
             "names": ["cli cli:install"]
           },
           "runs": "`scripts/install-cli.mjs`:  symlink to `bin/spell.mjs` in the first writable PATH folder",
-          "notes": "Links ONE checkout (main);  rerun after moving it.  `SPELL_BIN_DIR` overrides.  Not `npm link`."
+          "notes": "Links ONE checkout (main);  rerun after moving it.  `SPELL_BIN_DIR` overrides.  Not `npm link`.",
+          "target": "(R2) `spell dev cli install` relinks;  yarn `cli:install` keeps the bootstrap script"
         },
         {
           "op": "Run `spell` without installing it",
@@ -3381,7 +3571,8 @@
             "names": ["cli spell"]
           },
           "runs": "`node bin/spell.mjs` -> `tsx` -> `src/main.ts`",
-          "notes": "Runs with cwd `packages/cli`, so relative targets and `@workspace` resolve there:  near useless.  `node packages/cli/bin/spell.mjs` works."
+          "notes": "Runs with cwd `packages/cli`, so relative targets and `@workspace` resolve there:  near useless.  `node packages/cli/bin/spell.mjs` works.",
+          "target": "(R8) delete:  dead"
         },
         {
           "op": "List the commands, or one command's options",
@@ -3397,7 +3588,8 @@
             "mark": "no"
           },
           "runs": "commander `outputHelp()`",
-          "notes": "`spell goals help` / bare `spell plan-doc` list their own."
+          "notes": "`spell goals help` / bare `spell plan-doc` list their own.",
+          "target": "stays:  `spell help`"
         },
         {
           "op": "Print the version",
@@ -3412,7 +3604,8 @@
             "mark": "no"
           },
           "runs": "`__PACKAGE_VERSION__` from `$/spell/node/packageVersion.node`",
-          "notes": "Prints the PARSER's version, not the CLI's."
+          "notes": "Prints the PARSER's version, not the CLI's.",
+          "target": "stays:  `spell --version` flag;  should print the CLI's version"
         },
         {
           "op": "Find which checkout `spell` runs",
@@ -3427,7 +3620,8 @@
             "mark": "no"
           },
           "runs": "`type -a spell` + `readlink`, by hand (README)",
-          "notes": "Matters with worktrees:  most commands run main's source;  `plan-doc` / `goals` find the nearest checkout."
+          "notes": "Matters with worktrees:  most commands run main's source;  `plan-doc` / `goals` find the nearest checkout.",
+          "target": "(R1) `spell --version` prints the checkout it runs from"
         },
         {
           "op": "Start the language server",
@@ -3443,7 +3637,8 @@
             "names": ["lsp start:lsp"]
           },
           "runs": "`tsx src/server.ts --stdio`;  VS Code spawns the repo's `tsx` on it directly",
-          "notes": "T1:  extension spawns `spell lsp`;  skip `consoleGuard`;  `yarn vscode` after."
+          "notes": "T1:  extension spawns `spell lsp`;  skip `consoleGuard`;  `yarn vscode` after.",
+          "target": "(R10) `spell lsp`;  (R8) lsp `start:lsp` -> `lsp:start` meanwhile"
         },
         {
           "op": "Bundle the CLI into one file",
@@ -3459,7 +3654,8 @@
             "note": "`cli build`"
           },
           "runs": "nothing yet;  needs `keepNames`, aliases, `__PACKAGE_VERSION__`, `environment.ts` fix",
-          "notes": "README TODO still names the `~` alias, which no longer exists."
+          "notes": "README TODO still names the `~` alias, which no longer exists.",
+          "target": "(R10) single-file bundle;  cli `build` package script"
         },
         {
           "op": "Publish the CLI to npm",
@@ -3475,7 +3671,8 @@
             "note": "changesets, fixed group"
           },
           "runs": "nothing yet",
-          "notes": "Depends on T2."
+          "notes": "Depends on T2.",
+          "target": "later:  cli-additions T3, after R10"
         },
         {
           "op": "Cut a release (version bump, tag, changelog)",
@@ -3489,7 +3686,8 @@
             "mark": "could"
           },
           "runs": "nothing, anywhere",
-          "notes": "No release scripts in any of the 14 `package.json` files."
+          "notes": "No release scripts in any of the 14 `package.json` files.",
+          "target": "outside the scheme:  no release process planned"
         },
         {
           "op": "Add a new CLI command",
@@ -3504,7 +3702,8 @@
             "mark": "no"
           },
           "runs": "by hand:  command file, barrel line, `program.command(...)` in `main.ts`",
-          "notes": "Passthroughs (`goals`, `plan-doc`) follow a second pattern:  `allowUnknownOption` + `spawnSync`."
+          "notes": "Passthroughs (`goals`, `plan-doc`) follow a second pattern:  `allowUnknownOption` + `spawnSync`.",
+          "target": "stays:  by hand;  `spell dev` passthroughs share one pattern"
         }
       ]
     },
@@ -3526,7 +3725,8 @@
             "mark": "other",
             "names": ["ui gen:styles"]
           },
-          "runs": "`scripts/gen-styles.ts` (`StyleGenerator`, then oxfmt)"
+          "runs": "`scripts/gen-styles.ts` (`StyleGenerator`, then oxfmt)",
+          "target": "stays:  ui package tooling"
         },
         {
           "op": "Regenerate icon packs from Font Awesome",
@@ -3541,7 +3741,8 @@
             "names": ["ui gen:icons"]
           },
           "runs": "`scripts/gen-icons.ts` -> `IconPackBuilder`",
-          "notes": "Deletes and rewrites every pack:  MUST run in a worktree while tests run elsewhere."
+          "notes": "Deletes and rewrites every pack:  MUST run in a worktree while tests run elsewhere.",
+          "target": "stays:  ui package tooling"
         },
         {
           "op": "Regenerate emoji name data",
@@ -3555,7 +3756,8 @@
             "mark": "other",
             "names": ["ui gen:emoji"]
           },
-          "runs": "`scripts/gen-emoji.ts` (emojibase + Fomantic reference)"
+          "runs": "`scripts/gen-emoji.ts` (emojibase + Fomantic reference)",
+          "target": "stays:  ui package tooling"
         },
         {
           "op": "Regenerate the `<ui-root>` catalog",
@@ -3570,7 +3772,8 @@
             "names": ["ui gen:root"]
           },
           "runs": "`scripts/gen-root-catalog.ts`",
-          "notes": "`test/root-catalog.test.ts` fails while stale:  the only reminder."
+          "notes": "`test/root-catalog.test.ts` fails while stale:  the only reminder.",
+          "target": "stays:  ui package tooling"
         },
         {
           "op": "Regenerate ui's pre-compiled spell highlighter",
@@ -3586,7 +3789,8 @@
             "names": ["ui gen:spell"]
           },
           "runs": "`scripts/gen-spell.ts` (esbuild of `packages/spell/src/highlight/browser.ts`)",
-          "notes": "Nothing flags a stale bundle after a grammar change;  only AGENTS prose."
+          "notes": "Nothing flags a stale bundle after a grammar change;  only AGENTS prose.",
+          "target": "stays:  ui package tooling;  rerun after spell grammar changes"
         },
         {
           "op": "Convert a family's tokens to private aliases",
@@ -3602,7 +3806,8 @@
             "note": "dry run unless `--write`"
           },
           "runs": "`scripts/alias-tokens.ts` -> `ComponentTokens.convert()`",
-          "notes": "Colon name reads verb:noun backwards vs `gen:*`."
+          "notes": "Colon name reads verb:noun backwards vs `gen:*`.",
+          "target": "stays:  ui package tooling (`tokens:alias` is already noun:verb)"
         },
         {
           "op": "Build an icon pack from a folder of SVGs",
@@ -3616,7 +3821,8 @@
             "mark": "other",
             "names": ["ui icons:pack"]
           },
-          "runs": "`tsx tools/cli.ts icons:pack` -> `IconPackBuilder`"
+          "runs": "`tsx tools/cli.ts icons:pack` -> `IconPackBuilder`",
+          "target": "stays:  ui package tooling"
         },
         {
           "op": "Find icons by name, alias or keyword",
@@ -3630,7 +3836,8 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`packages/cli/src/iconSearch.ts` over ui's packs"
+          "runs": "`packages/cli/src/iconSearch.ts` over ui's packs",
+          "target": "stays:  `spell icons`"
         },
         {
           "op": "Measure bundle sizes",
@@ -3645,7 +3852,8 @@
             "names": ["ui measure", "solid-element measure"]
           },
           "runs": "`BundleMeasure` (`tools/cli.ts measure`);  fork:  `scripts/measure.ts`",
-          "notes": "Both write `measure-results.json`;  runtimes differ (tsx vs `node --experimental-strip-types`)."
+          "notes": "Both write `measure-results.json`;  runtimes differ (tsx vs `node --experimental-strip-types`).",
+          "target": "stays:  ui / solid-element package tooling"
         },
         {
           "op": "Count lines of code",
@@ -3659,7 +3867,8 @@
             "mark": "could",
             "note": "unscripted:  `tsx tools/cli.ts loc`;  runs inside `ui report`"
           },
-          "runs": "`LocCount` -> `loc-results.json`"
+          "runs": "`LocCount` -> `loc-results.json`",
+          "target": "stays:  ui package tooling, inside ui `report`"
         },
         {
           "op": "Rewrite `docs/report.md`'s generated tables",
@@ -3673,7 +3882,8 @@
             "mark": "other",
             "names": ["ui report"]
           },
-          "runs": "`tsx tools/cli.ts report`:  `LocCount` then `ReportTables`"
+          "runs": "`tsx tools/cli.ts report`:  `LocCount` then `ReportTables`",
+          "target": "stays:  ui package tooling"
         },
         {
           "op": "Check `dist/` declarations resolve for a consumer",
@@ -3688,7 +3898,8 @@
             "names": ["ui smoke"],
             "note": "only inside smoke;  alone:  `tsx tools/cli.ts declarations`"
           },
-          "runs": "`DeclarationCheck`"
+          "runs": "`DeclarationCheck`",
+          "target": "stays:  ui package tooling, inside ui `smoke`"
         },
         {
           "op": "Smoke-test the built library in host pages",
@@ -3703,7 +3914,8 @@
             "names": ["ui smoke"]
           },
           "runs": "`vite build` + `declarations` + `SmokeRunner` (headless chromium)",
-          "notes": "Needs `ui vendor` first;  not chained, throws if `vendor/importmap.json` missing."
+          "notes": "Needs `ui vendor` first;  not chained, throws if `vendor/importmap.json` missing.",
+          "target": "stays:  ui package tooling"
         },
         {
           "op": "Screenshot every demo-page example",
@@ -3717,7 +3929,8 @@
             "mark": "other",
             "names": ["ui screenshots"]
           },
-          "runs": "`tools/screenshots.ts` (vite + Playwright) -> `.cache/screenshots/`"
+          "runs": "`tools/screenshots.ts` (vite + Playwright) -> `.cache/screenshots/`",
+          "target": "stays:  ui package tooling"
         },
         {
           "op": "Run visual regression tests",
@@ -3731,7 +3944,8 @@
             "mark": "same",
             "names": ["ui test:visual"]
           },
-          "runs": "`tools/visual/cli.ts` -> `VisualRunner`"
+          "runs": "`tools/visual/cli.ts` -> `VisualRunner`",
+          "target": "stays:  ui package tooling (visual tests)"
         },
         {
           "op": "Update visual baselines",
@@ -3745,7 +3959,8 @@
             "mark": "same",
             "names": ["ui test:visual:update"]
           },
-          "runs": "`tools/visual/cli.ts --update`"
+          "runs": "`tools/visual/cli.ts --update`",
+          "target": "stays:  ui package tooling (visual tests)"
         },
         {
           "op": "Test hot reload end to end",
@@ -3759,7 +3974,8 @@
             "mark": "same",
             "names": ["ui test:hmr"]
           },
-          "runs": "`tools/hmr.e2e.ts` (edits real files, restores, checks `git diff --quiet`)"
+          "runs": "`tools/hmr.e2e.ts` (edits real files, restores, checks `git diff --quiet`)",
+          "target": "stays:  ui package tooling"
         },
         {
           "op": "Run every browser test across all families",
@@ -3774,7 +3990,8 @@
             "names": ["ui test:all"]
           },
           "runs": "`vitest` ssr + browser with `UI_TEST_ALL=1`",
-          "notes": "Skips `test:fork`, which plain `ui test` runs:  \"all\" is less than all."
+          "notes": "Skips `test:fork`, which plain `ui test` runs:  \"all\" is less than all.",
+          "target": "stays:  ui package tooling"
         },
         {
           "op": "Install Playwright browsers",
@@ -3789,7 +4006,8 @@
             "names": ["ui test:browsers"]
           },
           "runs": "`playwright install chromium firefox webkit`",
-          "notes": "Named like a test;  only installs."
+          "notes": "Named like a test;  only installs.",
+          "target": "(R8) rename ui `test:browsers` -> `browsers:install`"
         },
         {
           "op": "Browse tests in vitest's UI",
@@ -3803,7 +4021,8 @@
             "mark": "same",
             "names": ["app test:ui", "spell test:ui", "ui test:ui"]
           },
-          "runs": "`vitest --ui`"
+          "runs": "`vitest --ui`",
+          "target": "stays:  tool-native package script (vitest's UI)"
         },
         {
           "op": "Test the solid-element fork from ui",
@@ -3817,7 +4036,8 @@
             "mark": "other",
             "names": ["ui test:fork"]
           },
-          "runs": "`yarn fork test` ~== `yarn workspace @spell-app/solid-element test`"
+          "runs": "`yarn fork test` ~== `yarn workspace @spell-app/solid-element test`",
+          "target": "stays:  ui package script"
         },
         {
           "op": "Run any fork script from ui",
@@ -3831,7 +4051,8 @@
             "mark": "other",
             "names": ["ui fork"]
           },
-          "runs": "`yarn workspace @spell-app/solid-element <script>`"
+          "runs": "`yarn workspace @spell-app/solid-element <script>`",
+          "target": "stays:  ui package script"
         },
         {
           "op": "Install dependencies (for the fork)",
@@ -3846,7 +4067,8 @@
             "names": ["ui fork:install"]
           },
           "runs": "`yarn install`",
-          "notes": "Misleading:  plain workspace-wide `yarn install`, nothing fork-specific."
+          "notes": "Misleading:  plain workspace-wide `yarn install`, nothing fork-specific.",
+          "target": "(R8) delete ui `fork:install`:  plain `yarn install`"
         },
         {
           "op": "Type-check Spell UI's docs site",
@@ -3861,7 +4083,8 @@
             "names": ["ui site:check", "ui-site check"]
           },
           "runs": "`astro check`",
-          "notes": "Not part of `ui ts` / `ui review`."
+          "notes": "Not part of `ui ts` / `ui review`.",
+          "target": "(R9) ui-site `ts` runs `astro check`;  root `ts` covers it"
         }
       ]
     },
@@ -3883,7 +4106,8 @@
             "mark": "no"
           },
           "runs": "`scripts/move-packages.mjs` + data `scripts/package-moves.json`",
-          "notes": "Phase 4, done.  Dead:  candidate for deletion."
+          "notes": "Phase 4, done.  Dead:  candidate for deletion.",
+          "target": "(R8) delete:  dead (migration done)"
         },
         {
           "op": "Rename import aliases and the npm scope",
@@ -3897,7 +4121,8 @@
             "mark": "no"
           },
           "runs": "`scripts/rename-aliases.mjs`",
-          "notes": "Done (`$/` aliases, `@spell-app/*`).  Dead."
+          "notes": "Done (`$/` aliases, `@spell-app/*`).  Dead.",
+          "target": "(R8) delete:  dead (migration done)"
         },
         {
           "op": "Rename ui family folders to `ui-<family>`",
@@ -3911,7 +4136,8 @@
             "mark": "no"
           },
           "runs": "`packages/ui/scripts/rename-families.ts`",
-          "notes": "Plan P13, done.  Dead."
+          "notes": "Plan P13, done.  Dead.",
+          "target": "(R8) delete:  dead (migration done)"
         },
         {
           "op": "Convert old section markup to `<ui-section>`",
@@ -3929,7 +4155,8 @@
             "note": "`migrate`;  other pages:  `node scripts/to-ui-section.js`"
           },
           "runs": "`packages/docs/scripts/to-ui-section.js` `convertSections()`",
-          "notes": "Still live:  `plan-doc.js` imports it.  Refuses goals pages."
+          "notes": "Still live:  `plan-doc.js` imports it.  Refuses goals pages.",
+          "target": "(R1) `spell dev plan-doc migrate`;  `to-ui-section.js` stays (imported)"
         }
       ]
     }
