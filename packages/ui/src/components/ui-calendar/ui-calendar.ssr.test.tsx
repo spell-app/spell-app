@@ -17,12 +17,15 @@ describe("ui-calendar (static render)", () => {
 
   it("renders the field with the formatted value, the ISO value in a hidden input", () => {
     const html = StaticRender.fragment(
-      `<ui-calendar type="date" name="due" value="2026-09-30" placeholder="Due"></ui-calendar>`
+      `<ui-calendar id="due" type="date" name="due" value="2026-09-30" placeholder="Due"></ui-calendar>`
     )
     expect(html).toMatch(/^<div [^>]*class="ui calendar"[^>]*><div class="ui left icon input" part="input"><input /)
     const field = html.match(/<input [^>]*part="control"[^>]*>/)?.[0] ?? ""
     expect(field).toContain(`value="September 30, 2026"`)
-    expect(field).toContain(`data-ui-control=""`)
+    // the flattener's mark, used and dropped:  the host's id went to the field, not the root
+    expect(field).toContain(`id="due"`)
+    expect(html.match(/^<div [^>]*>/)?.[0]).not.toContain(` id=`)
+    expect(html).not.toContain("data-ui-control")
     expect(field).not.toContain(`name=`)
     expect(html).toContain(`<input type="hidden" name="due" value="2026-09-30">`)
     expect(html).toMatch(/<div [^>]*class="ui calendar popup bottom left"[^>]*popover="manual"[^>]*role="dialog"/)
@@ -45,6 +48,29 @@ describe("ui-calendar (static render)", () => {
   it("renders an inline calendar's box and hidden value", () => {
     const html = StaticRender.fragment(`<ui-calendar inline type="date" name="day" value="2026-09-30"></ui-calendar>`)
     expect(html).toMatch(/^<div [^>]*data-state="inline"[^>]*class="ui calendar"[^>]*><div class="calendar"/)
+    expect(html).toContain(`<input type="hidden" name="day" value="2026-09-30">`)
+  })
+})
+
+/**
+ * With `Temporal` loaded first (`StaticRender.prepare()` => `UICalendar.preload()`), as a static page render does:  the
+ * inline picker renders in full (seo plan, T7).
+ * - Its own `describe`, AFTER the ones above:  once loaded, the polyfill stays for the rest of the file.
+ */
+describe("ui-calendar (static render, Temporal preloaded)", () => {
+  const source = `<ui-calendar inline type="date" name="day" value="2026-09-30"></ui-calendar>`
+
+  beforeAll(async () => {
+    StaticRender.define(UICalendar)
+    await StaticRender.prepare(source)
+  })
+
+  it("renders an inline picker's header and day grid, the value's cell selected", () => {
+    const html = StaticRender.fragment(source)
+    expect(html).toMatch(/<table [^>]*role="grid"/)
+    expect(html).toContain("September 2026")
+    expect(html.match(/role="gridcell"/g)?.length).toBeGreaterThanOrEqual(28)
+    expect(html).toMatch(/<td [^>]*aria-selected="true"[^>]*>/)
     expect(html).toContain(`<input type="hidden" name="day" value="2026-09-30">`)
   })
 })

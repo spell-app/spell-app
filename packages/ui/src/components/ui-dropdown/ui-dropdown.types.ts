@@ -22,13 +22,6 @@ export const ID_PREFIX = "ui-dropdown"
 /** Placeholder in the `addItem` text. */
 export const VALUE_PLACEHOLDER = "{value}"
 
-/**
- * Marks the combobox in a static server render (`$/ui/server`), for the flattener:  the host's `id` and ARIA names
- * belong there, so a `<label for>` the host's id labels it.
- * - TODO: one shared constant (`UIT`) once `StaticFlattener` reads it (seo plan, P3).
- */
-export const STATIC_CONTROL = "data-ui-control"
-
 /** Hidden input carrying the value in a static server render:  `type`. */
 export const HIDDEN = "hidden"
 

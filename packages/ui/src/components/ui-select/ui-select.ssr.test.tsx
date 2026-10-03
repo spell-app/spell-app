@@ -33,12 +33,19 @@ describe("ui-select (static render)", () => {
     expect(html).not.toContain("<slot")
   })
 
-  it("selects the placeholder while nothing is chosen", () => {
+  it("selects the placeholder while nothing is chosen, disabled so a static form submits nothing for it", () => {
     const html = StaticRender.fragment(
       `<ui-select placeholder="Gender"><ui-item value="m">Male</ui-item><ui-item value="f">Female</ui-item></ui-select>`
     )
-    expect(html).toMatch(/<option class="placeholder" part="placeholder" value="" selected>Gender<\/option>/)
+    expect(html).toMatch(/<option class="placeholder" part="placeholder" value="" selected disabled>Gender<\/option>/)
     expect(html.match(/ selected/g)).toHaveLength(1)
+  })
+
+  it("leaves the placeholder enabled once a value is chosen", () => {
+    const html = StaticRender.fragment(
+      `<ui-select placeholder="Gender" value="f"><ui-item value="m">Male</ui-item><ui-item value="f">Female</ui-item></ui-select>`
+    )
+    expect(html).toMatch(/<option class="placeholder" part="placeholder" value="">Gender<\/option>/)
   })
 
   it("groups options under header items, and takes options from the JSON attribute", () => {

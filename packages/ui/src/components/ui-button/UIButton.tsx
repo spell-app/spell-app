@@ -4,6 +4,7 @@ import { isServer, type JSX } from "@solidjs/web"
 import { Cell, IconGlyph, proto, SlotContent, type AttributeName, UI, UIElement, UIT } from "$/ui/core"
 
 import { buttonVocabulary } from "./ui-button.vocabulary.en"
+import { DEFAULT_TYPE, FORM_ATTRIBUTES } from "./ui-button.types"
 import { ButtonFallback } from "./ui-button.fallback"
 import { Invoker } from "./Invoker"
 
@@ -23,6 +24,8 @@ import buttonCSS from "./ui-button.css?inline"
  *   `commandfor` names in the host's own tree (re-resolved when the attribute changes, and at click time, for a
  *   target that arrived late).  Browsers without invokers (`UI.browser.supports.invokers`) get `Invoker.run()`.
  * - Icons come from the page's icon packs (`IconGlyph`) asynchronously;  the `.icon` box is sized by CSS, so the SVG arriving shifts nothing.
+ * - Static server render (`$/ui/server`):  the inner `<button>` IS the submitter -- the host's `type`, `name`,
+ *   `value`, `form*` attributes -- so a no-JS form submits as the element would (`nativeType()`, `staticControl()`).
  ****************/
 export class UIButton extends UIElement<typeof buttonVocabulary> {
   @proto static vocabulary = buttonVocabulary
@@ -139,16 +142,17 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
               this.control = element
               this.resolveInvoker()
             }}
-            type="button"
+            type={this.nativeType()}
             class={this.classes()}
             part={this.part("button")}
             disabled={this.isDisabled()}
+            {...this.staticControl()}
             aria-pressed={
               this.attrs.toggle && !this.hasStateText() ? (this.active.get() ? "true" : "false") : undefined
             }
             aria-busy={this.attrs.loading ? "true" : undefined}
             aria-label={this.ariaLabel.get() ?? undefined}
-            command={this.invokers() ? this.attrs.command : undefined}
+            command={isServer || this.invokers() ? this.attrs.command : undefined}
             onClick={this.onClick}
           >
             {content()}
@@ -171,6 +175,37 @@ export class UIButton extends UIElement<typeof buttonVocabulary> {
         </a>
       </Show>
     )
+  }
+
+  /**
+   * The inner `<button>`'s `type`:  `button` in a browser, where a click submits / resets through `internals.form`
+   * (`onClick`);  the host's `type` in a server render (`$/ui/server`), where no script runs, so a static form's
+   * `<button type="submit">` submits it natively.
+   */
+  private nativeType(): "button" | "submit" | "reset" {
+    return isServer ? (this.attrs.type ?? DEFAULT_TYPE) : DEFAULT_TYPE
+  }
+
+  /**
+   * Server render only:  what a native submitter carries -- `name`, `value`, the host's own `form` / `formaction` ...
+   * (`FORM_ATTRIBUTES`) -- and the `STATIC_CONTROL` mark (the host's `id` and ARIA names go there, under a joined
+   * label too);  `{}` in a browser, where the HOST submits (`submit()`).
+   * - Also `commandfor` as written (with `command`, rendered on a server too):  a static page's invoker, for the
+   *   server's no-JS pass (`$/ui/server`) to point at its target;  a browser sets `commandForElement` instead.
+   */
+  private staticControl(): Record<string, unknown> {
+    if (!isServer) return {}
+    const native: Record<string, unknown> = {
+      [UIT.STATIC_CONTROL]: "",
+      name: this.attrs.name,
+      value: this.attrs.value,
+      commandfor: this.attrs.commandfor
+    }
+    for (const name of FORM_ATTRIBUTES) {
+      const value = this.host.getAttribute(name)
+      if (value !== null) native[name] = value
+    }
+    return native
   }
 
   /** Icon + text (the state text, else the slot), or the two `.content` boxes of an `animated` button. */

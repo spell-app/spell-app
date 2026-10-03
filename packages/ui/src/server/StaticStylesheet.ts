@@ -1,10 +1,10 @@
 import postcss, { AtRule, type ChildNode, type Container, type Document, type Rule } from "postcss"
 
-import { pageCSS, resetCSS } from "$/ui/styles"
+import { foundationCSS, nativeCSS, resetCSS, typographyCSS } from "$/ui/styles"
 
 import type { StaticFamily, StaticSheetUsage } from "./server.types"
 import { ServerRuntime } from "./ServerRuntime"
-import { StaticPageStyles } from "./StaticPageStyles"
+import { REACH, StaticPageStyles } from "./StaticPageStyles"
 import { StaticSelectors, type StaticSelectorOptions } from "./StaticSelectors"
 
 /****************
@@ -12,7 +12,8 @@ import { StaticSelectors, type StaticSelectorOptions } from "./StaticSelectors"
  * The ONE stylesheet a static page (`StaticRender`) links:  the page foundation, then every family's sheets
  * rewritten for light DOM, each kept to its own component.
  * - Order:
- *   1. `@layer page, ui;`:  a page's own CSS goes in `@layer page`, so components win where both set a property
+ *   1. `@layer ui-slotted, page, ui;`:  `::slotted()` rules first (they lost to the page in a shadow root);  a
+ *      page's own CSS goes in `@layer page`, so components win where both set a property
  *      (unlayered page CSS would beat every `ui.*` layer)
  *   2. `pageCSS`:  layers, tokens, colors ... typography, native, as a page with elements gets them, less the
  *      shadow-only selectors (`page()`)
@@ -39,26 +40,34 @@ export class StaticStylesheet {
    *     declared where it first appears, and a later layer wins, as a later-adopted sheet did in a shadow root
    */
   static build(families: Iterable<StaticFamily>, usage?: StaticSheetUsage): string {
-    const sheets = new Map<string, { css: string; nouns: Set<string> }>()
+    // `nouns`:  the `data-ui` kinds of the roots a sheet styles;  `words`:  their class-grammar nouns (`.ui.<noun>`)
+    const sheets = new Map<string, { css: string; nouns: Set<string>; words: Set<string> }>()
     const tags = new Map<string, string>()
-    for (const { Class, definition } of families) {
-      tags.set(definition.tag, definition.vocabulary.noun)
+    for (const { Class, definition, kind } of families) {
+      tags.set(definition.tag, kind)
       for (const [name, css] of Object.entries(Class.prototype.styles)) {
         let sheet = sheets.get(name)
-        if (!sheet) sheets.set(name, (sheet = { css, nouns: new Set() }))
-        sheet.nouns.add(definition.vocabulary.noun)
+        if (!sheet) sheets.set(name, (sheet = { css, nouns: new Set(), words: new Set() }))
+        sheet.nouns.add(kind)
+        sheet.words.add(definition.vocabulary.noun)
       }
     }
     for (const [name, nouns] of usage?.users ?? []) for (const noun of nouns) sheets.get(name)?.nouns.add(noun)
     const parts = [
       PAGE_LAYERS,
-      ...pageCSS.map((sheet) => StaticStylesheet.page(sheet)),
+      ...foundationCSS.map((sheet) => StaticStylesheet.page(sheet)),
+      ...[typographyCSS, nativeCSS].map((sheet) => StaticStylesheet.page(sheet, { pageOnly: true })),
       StaticStylesheet.scope(resetCSS, "[data-ui]")
     ]
     for (const name of StaticStylesheet.ordered([...sheets.keys()], usage?.orders.values() ?? [])) {
-      const { css, nouns } = sheets.get(name)!
-      // also class-grammar markup the page wrote itself (`<button class="ui button">`), as a page sheet styled it
-      const roots = [...nouns].flatMap((noun) => [`[data-ui="${noun}"]`, `.ui.${noun}:not([data-ui])`]).join(", ")
+      const { css, nouns, words } = sheets.get(name)!
+      // also class-grammar markup the PAGE wrote (`<button class="ui button">`), as a page sheet styled it -- never a
+      // component's own markup (the calendar's `<table class="ui table">`):  outside every component, or author
+      // content slotted into one (`AUTHOR`)
+      const roots = [
+        ...[...nouns].map((noun) => `[data-ui="${noun}"]`),
+        ...[...words].map((word) => `.ui.${word}:not([data-ui])${AUTHOR}`)
+      ].join(", ")
       const listItems = [...nouns].some((noun) => LIST_OWNERS.has(noun))
       parts.push(`/* ${name} */\n${StaticStylesheet.scope(css, `:is(${roots})`, { listItems, tags })}`)
     }
@@ -104,12 +113,17 @@ export class StaticStylesheet {
    * A page sheet without its shadow-only selectors (`:host`, `::slotted`, `:state()`), which never match on a page:
    * the foundation's `:host` token defaults, `reset.css`.
    */
-  static page(css: string): string {
+  static page(css: string, { pageOnly = false }: { pageOnly?: boolean } = {}): string {
     const sheet = postcss.parse(css)
     sheet.walkRules((rule) => {
-      const selectors = rule.selectors.filter((selector) => !SHADOW_ONLY.test(selector))
+      if (StaticPageStyles.inKeyframes(rule)) return
+      // `pageOnly` sheets (typography, native) were never adopted into shadow roots:  they keep out of components'
+      // own markup (`REACH`);  the foundation (tokens, utilities ...) was, so it reaches everywhere
+      const selectors = rule.selectors
+        .filter((selector) => !SHADOW_ONLY.test(selector))
+        .map((selector) => (pageOnly ? StaticSelectors.onSubject(selector, REACH) : selector))
       if (!selectors.length) rule.remove()
-      else if (selectors.length !== rule.selectors.length) rule.selectors = selectors
+      else rule.selectors = selectors
     })
     sheet.walkAtRules((rule) => {
       if (rule.nodes && !rule.nodes.length) rule.remove()
@@ -119,21 +133,26 @@ export class StaticStylesheet {
 
   /**
    * `css` rewritten for light DOM, its rules wrapped in `@scope (<root>) to (<limit>)`.
-   * - Host-only rules move to `@layer ui.reset`, the first layer:  what the host set (token resets, `color`), the
-   *   root's own rules overrode, being another element;  on the SAME element now, any later layer must still win.
+   * - Host-only rules move to `@layer ui.reset`, the first `ui` layer:  what the host set (token resets, `color`),
+   *   the root's own rules overrode, being another element;  on the SAME element now, any later layer must still win.
+   * - `::slotted()` rules move to `@layer ui-slotted`, before `page`:  in a shadow root they lost to the page's CSS
+   *   and to the slotted component's own rules.
    */
   static scope(css: string, root: string, options: StaticSelectorOptions = {}): string {
     const sheet = postcss.parse(css)
-    const hostRules: HostRule[] = []
-    sheet.walkRules((rule) => StaticStylesheet.rewriteRule(rule, options, hostRules))
-    if (hostRules.length) sheet.append(StaticStylesheet.hostLayer(hostRules))
+    const moved = new Map<string, MovedRule[]>([
+      [HOST_LAYER, []],
+      [SLOTTED_LAYER, []]
+    ])
+    sheet.walkRules((rule) => StaticStylesheet.rewriteRule(rule, options, moved))
+    for (const [layer, rules] of moved) if (rules.length) sheet.append(StaticStylesheet.movedLayer(layer, rules))
     StaticStylesheet.wrap(sheet, `(${root}) to (${LIMIT})`)
     return sheet.toString()
   }
 
-  /** `@layer ui.reset { ... }` of `rules`, each inside clones of its conditional at-rules (`@media` ...). */
-  private static hostLayer(rules: readonly HostRule[]): AtRule {
-    const layer = new AtRule({ name: "layer", params: HOST_LAYER })
+  /** `@layer <name> { ... }` of `rules`, each inside clones of its conditional at-rules (`@media` ...). */
+  private static movedLayer(name: string, rules: readonly MovedRule[]): AtRule {
+    const layer = new AtRule({ name: "layer", params: name })
     for (const { rule, parent } of rules) {
       let node: ChildNode = rule
       for (let ancestor = parent; ancestor?.type === "atrule"; ancestor = ancestor.parent) {
@@ -148,23 +167,35 @@ export class StaticStylesheet {
   /**
    * Rewrite one rule's selectors.
    * - Host-only selectors (`:host(X)` alone) go to a copy of the rule without `display` (that was the host
-   *   box's, never the root's, and the class-grammar twins beside them keep theirs), collected in `hostRules`.
+   *   box's, never the root's, and the class-grammar twins beside them keep theirs), for `ui.reset`.
+   * - `::slotted()` selectors go to a copy for `ui-slotted`.
+   * - Both collected in `moved`, by layer.
    */
-  private static rewriteRule(rule: Rule, options: StaticSelectorOptions, hostRules: HostRule[]) {
+  private static rewriteRule(rule: Rule, options: StaticSelectorOptions, moved: Map<string, MovedRule[]>) {
     if (rule.parent?.type === "atrule" && (rule.parent as AtRule).name.endsWith("keyframes")) return
     const kept: string[] = []
     const hostOnly: string[] = []
+    const slotted: string[] = []
+    // rules ON a slot:  boxless (no `display`), slotted layer
+    const slots: string[] = []
     for (const selector of rule.selectors) {
       const result = StaticSelectors.rewrite(selector, options)
-      ;(result.hostOnly ? hostOnly : kept).push(...result.selectors)
+      const bucket = result.hostOnly ? (result.slotted ? slots : hostOnly) : result.slotted ? slotted : kept
+      bucket.push(...result.selectors)
     }
-    if (hostOnly.length) {
-      const copy = rule.clone({ selectors: [...new Set(hostOnly)] })
-      copy.walkDecls("display", (declaration) => void declaration.remove())
-      if (copy.nodes.length) hostRules.push({ rule: copy, parent: rule.parent })
-    }
+    StaticStylesheet.move(rule, hostOnly, true, moved.get(HOST_LAYER)!)
+    StaticStylesheet.move(rule, slots, true, moved.get(SLOTTED_LAYER)!)
+    StaticStylesheet.move(rule, slotted, false, moved.get(SLOTTED_LAYER)!)
     if (kept.length) rule.selectors = [...new Set(kept)]
     else rule.remove()
+  }
+
+  /** A copy of `rule` for `selectors` (if any) into `into`;  `boxless`:  without `display` (a host's, a slot's). */
+  private static move(rule: Rule, selectors: readonly string[], boxless: boolean, into: MovedRule[]) {
+    if (!selectors.length) return
+    const copy = rule.clone({ selectors: [...new Set(selectors)] })
+    if (boxless) copy.walkDecls("display", (declaration) => void declaration.remove())
+    if (copy.nodes.length) into.push({ rule: copy, parent: rule.parent })
   }
 
   /**
@@ -201,19 +232,29 @@ export class StaticStylesheet {
   }
 }
 
-/** A host-only rule's copy, and where the original sat (for its `@media` / `@container` ancestry). */
-type HostRule = {
+/** A moved rule's copy, and where the original sat (for its `@media` / `@container` ancestry). */
+type MovedRule = {
   /** The copy, detached. */
   rule: Rule
   /** The original's parent. */
   parent: Container | Document | undefined
 }
 
+/**
+ * Markup the page wrote, not a component's render:  outside every component root, or slotted author content (itself
+ * or inside it).
+ * - NOTE:  approximate:  a component rendered inside slotted author content counts as the page's too.
+ */
+const AUTHOR = ":is(:not([data-ui] *), [data-ui-slotted]:not([data-ui]), [data-ui-slotted]:not([data-ui]) *)"
+
 /** Layer host-only rules move to:  the first, so every component rule on the root beats them. */
 const HOST_LAYER = "ui.reset"
 
+/** Layer `::slotted()` rules move to:  before the page's, as they lost to it in a shadow root. */
+const SLOTTED_LAYER = "ui-slotted"
+
 /** Layer order a static page starts with:  the page's own CSS before every `ui.*` layer. */
-const PAGE_LAYERS = "@layer page, ui;"
+const PAGE_LAYERS = "@layer ui-slotted, page, ui;"
 
 /** Where a component's scope stops:  author content's insides, and other components' insides. */
 const LIMIT = "[data-ui-slotted]:not([data-ui]) > *, :scope [data-ui] > *"
@@ -234,4 +275,4 @@ const HIDDEN = `[hidden]:not([hidden="until-found"]) {\n  display: none;\n}`
 const SHADOW_ONLY = /:host|::slotted|:state\(/
 
 /** At-rules that may sit inside `@scope`. */
-const SCOPABLE_AT_RULES = new Set(["media", "container", "supports"])
+const SCOPABLE_AT_RULES = new Set(["media", "container", "supports", "starting-style"])

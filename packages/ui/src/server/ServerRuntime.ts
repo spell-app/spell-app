@@ -3,12 +3,19 @@ import { fileURLToPath } from "node:url"
 
 import { DEFAULT_ICON_PACK } from "$/ui/icons"
 import { Vocabulary } from "$/ui/vocabulary"
-import { RUNTIME_KEY, RUNTIME_VERSION, type IconPacks as IconPacksType, type RuntimeGlobal, type UIRuntime } from "$/ui/runtime"
+import {
+  RUNTIME_KEY,
+  RUNTIME_VERSION,
+  type IconPacks as IconPacksType,
+  type RuntimeGlobal,
+  type UIRuntime
+} from "$/ui/runtime"
 import { Browser } from "$/ui/runtime/Browser"
 import { I18n } from "$/ui/runtime/I18n"
 import { IconPacks } from "$/ui/runtime/IconPacks"
-import { Ids } from "$/ui/runtime/Ids"
 import { IconGlyph } from "$/ui/elements"
+
+import { ServerIds } from "./ServerIds"
 
 /****************
  * ### `ServerRuntime`
@@ -66,7 +73,7 @@ export class ServerRuntime {
       ready: Promise.resolve(),
       load: () => Promise.resolve(runtime),
       browser,
-      ids: new Ids(),
+      ids: new ServerIds(),
       i18n: new I18n({ locale: "en", browser }),
       vocabulary: new Vocabulary(),
       icons: new IconPacks(),

@@ -22,9 +22,10 @@ export class StaticSelectors {
    *   each child combinator also matches through the wrapper (`A > B` => `A > B` and `A > [data-ui-li] > B`).
    */
   static rewrite(selector: string, { listItems = false, tags }: StaticSelectorOptions = {}): StaticSelectorResult {
-    let slotted = selector.includes("::slotted(")
-    // `slot::slotted(X)` (X assigned to THIS slot) is just X now
-    let text = selector.trim().replace(SLOT_THEN_SLOTTED, "$1::slotted(")
+    const fromSlotted = selector.includes("::slotted(")
+    let slotted = fromSlotted
+    // `slot::slotted(X)` / `.x::slotted(X)` (X assigned to THAT slot) is just X now:  the slot is gone
+    let text = selector.trim().replace(COMPOUND_THEN_SLOTTED, "$1::slotted(")
     text = StaticSelectors.replaceFunction(text, "::slotted", (inner, before) => {
       const target = StaticSelectors.slottedTarget(inner.trim(), tags)
       return before.trim() === "" ? `:scope > ${target}` : target
@@ -34,7 +35,11 @@ export class StaticSelectors {
     const slotSubject = SLOT_SUBJECT.test(text)
     if (HAS_SLOT.test(text)) slotted = true
     text = text.replace(SLOT_ELEMENT, `$1${SLOTTED}`)
-    const result = text.startsWith(":host") ? StaticSelectors.rewriteHost(text) : { selectors: [text], hostOnly: false }
+    const result: StaticSelectorResult = text.startsWith(":host")
+      ? StaticSelectors.rewriteHost(text)
+      : { selectors: [text], hostOnly: false, slotted: false }
+    // a rule ON the slot is boxless like a host's, but reached the slotted nodes only by inheritance:  slotted layer
+    result.slotted = (fromSlotted && !result.hostOnly) || slotSubject
     result.hostOnly ||= slotSubject
     if (listItems) result.selectors = result.selectors.flatMap((each) => StaticSelectors.throughListItems(each))
     result.selectors = result.selectors.map((each) => StaticSelectors.anchor(each, slotted))
@@ -66,7 +71,21 @@ export class StaticSelectors {
    *   or `slot` (`slotted`) targets exactly those:  `:where(:scope, *)`.
    */
   private static anchor(selector: string, slotted: boolean): string {
-    if (selector.includes(":scope")) return selector
+    // the subject IS the root already (`:scope:is(...)`);  a `:scope` further left (`:scope *`) doesn't count
+    if (selector.slice(StaticSelectors.subjectStart(selector)).includes(":scope")) return selector
+    return StaticSelectors.onSubject(selector, slotted ? ANCHOR_SLOTTED : ANCHOR)
+  }
+
+  /** `selector` with `suffix` (a zero-specificity `:where(...)`) added to its subject, before a pseudo-element. */
+  static onSubject(selector: string, suffix: string): string {
+    const subject = StaticSelectors.subjectStart(selector)
+    const pseudo = StaticSelectors.pseudoElementIndex(selector.slice(subject))
+    const at = pseudo < 0 ? selector.length : subject + pseudo
+    return selector.slice(0, at) + suffix + selector.slice(at)
+  }
+
+  /** Where `selector`'s subject (last compound) starts:  after its last top-level combinator. */
+  private static subjectStart(selector: string): number {
     let depth = 0
     let subject = 0
     for (let index = 0; index < selector.length; index++) {
@@ -75,9 +94,7 @@ export class StaticSelectors {
       else if (char === ")" || char === "]") depth--
       else if (depth === 0 && COMBINATOR_START.test(char)) subject = index + 1
     }
-    const pseudo = StaticSelectors.pseudoElementIndex(selector.slice(subject))
-    const at = pseudo < 0 ? selector.length : subject + pseudo
-    return selector.slice(0, at) + (slotted ? ANCHOR_SLOTTED : ANCHOR) + selector.slice(at)
+    return subject
   }
 
   /**
@@ -97,10 +114,53 @@ export class StaticSelectors {
    * item's position now.
    */
   private static wrapperPosition(selector: string): string {
-    return selector.replace(WRAPPED_COMPOUND, (_match, compound: string) => {
-      const positions = compound.match(POSITION) ?? []
-      return `${LIST_ITEM}${positions.join("")} > ${compound.replace(POSITION, "") || "*"}`
-    })
+    const step = `${LIST_ITEM} > `
+    let result = ""
+    let rest = selector
+    for (let at = rest.indexOf(step); at >= 0; at = rest.indexOf(step)) {
+      const { compound, tail } = StaticSelectors.firstCompound(rest.slice(at + step.length))
+      const { moved, kept } = StaticSelectors.splitPositions(compound)
+      result += `${rest.slice(0, at)}${LIST_ITEM}${moved} > ${kept || "*"}`
+      rest = tail
+    }
+    return result + rest
+  }
+
+  /**
+   * `compound`'s top-level position pseudo-classes (`:first-child`, or `:not()` of positions only), and the rest.
+   * - Only whole pseudo-classes move:  `:not(:first-child)` moves as a unit, never leaving an empty `:not()`.
+   */
+  private static splitPositions(compound: string): { moved: string; kept: string } {
+    let moved = ""
+    let kept = ""
+    let index = 0
+    while (index < compound.length) {
+      const pseudo = compound[index] === ":" && compound[index + 1] !== ":"
+      let end = index + 1
+      if (pseudo) {
+        while (end < compound.length && /[\w-]/.test(compound[end]!)) end++
+        if (compound[end] === "(") end = StaticSelectors.closingParen(compound, end) + 1
+      } else {
+        while (end < compound.length && compound[end] !== ":") {
+          if (compound[end] === "(" || compound[end] === "[") {
+            end =
+              compound[end] === "(" ? StaticSelectors.closingParen(compound, end) + 1 : compound.indexOf("]", end) + 1
+          } else end++
+        }
+      }
+      const segment = compound.slice(index, end)
+      if (pseudo && StaticSelectors.isPosition(segment)) moved += segment
+      else kept += segment
+      index = end
+    }
+    return { moved, kept }
+  }
+
+  /** `segment` (one pseudo-class) tests only position:  `:first-child`, `:not(:first-child, :last-child)`. */
+  private static isPosition(segment: string): boolean {
+    if (POSITION_ONE.test(segment)) return true
+    const inner = /^:not\((.*)\)$/.exec(segment)?.[1]
+    return !!inner && inner.split(",").every((part) => POSITION_ONE.test(part.trim()))
   }
 
   /** `selector` and its variants with each top-level `>` also stepping over a list item wrapper (at most 3). */
@@ -134,15 +194,20 @@ export class StaticSelectors {
     }
     // a COMPONENT root only:  class-grammar markup (a scope root too, `.ui.label:not([data-ui])`) never had a host
     const host = `${HOST}${condition}`
-    if (!rest.trim()) return { selectors: [host], hostOnly: true }
-    if (StaticSelectors.pseudoElementIndex(rest) === 0) return { selectors: [host + rest], hostOnly: false }
+    if (!rest.trim()) return { selectors: [host], hostOnly: true, slotted: false }
+    if (StaticSelectors.pseudoElementIndex(rest) === 0)
+      return { selectors: [host + rest], hostOnly: false, slotted: false }
     const trimmed = rest.trimStart()
     if (trimmed.startsWith(">")) {
       const { compound, tail } = StaticSelectors.firstCompound(trimmed.slice(1).trimStart())
-      return { selectors: [host + StaticSelectors.merge(compound) + tail], hostOnly: false }
+      return { selectors: [host + StaticSelectors.merge(compound) + tail], hostOnly: false, slotted: false }
     }
     const { compound, tail } = StaticSelectors.firstCompound(trimmed)
-    return { selectors: [`${host} ${trimmed}`, host + StaticSelectors.merge(compound) + tail], hostOnly: false }
+    return {
+      selectors: [`${host} ${trimmed}`, host + StaticSelectors.merge(compound) + tail],
+      hostOnly: false,
+      slotted: false
+    }
   }
 
   /** `compound` as `:is(...)` to merge onto `:scope`, its pseudo-element (`::before`) kept outside. */
@@ -182,11 +247,17 @@ export class StaticSelectors {
     return -1
   }
 
-  /** Index of the `)` matching the `(` at `open`. */
+  /** Index of the `)` matching the `(` at `open`;  quoted strings (`[x="("]`) are skipped. */
   private static closingParen(text: string, open: number): number {
     let depth = 0
     for (let index = open; index < text.length; index++) {
-      if (text[index] === "(") depth++
+      const char = text[index]!
+      if (char === '"' || char === "'") {
+        index = text.indexOf(char, index + 1)
+        if (index < 0) break
+        continue
+      }
+      if (char === "(") depth++
       else if (text[index] === ")" && --depth === 0) return index
     }
     throw new Error(`StaticSelectors:  unbalanced parentheses in ${text}`)
@@ -227,6 +298,11 @@ export type StaticSelectorResult = {
   selectors: string[]
   /** A rule on the host box alone (`:host(X)`):  `display` there is the host's, never the root's. */
   hostOnly: boolean
+  /**
+   * From `::slotted()`:  in a shadow root such a rule lost to the page's CSS and to the slotted component's own
+   * rules, so the stylesheet puts it in a layer before `page`.
+   */
+  slotted: boolean
 }
 
 /** Options for `StaticSelectors.rewrite()`. */
@@ -255,11 +331,11 @@ const LIST_ITEM = "[data-ui-li]"
 /** A pseudo-element at the start of the text:  `::x`, or a legacy single-colon one. */
 const PSEUDO_ELEMENT = /^(?:::|:(?:before|after|first-line|first-letter)(?![\w-]))/
 
+/** ONE position pseudo-class, whole. */
+const POSITION_ONE = /^:(?:first-child|last-child|only-child|nth-child\([^()]*\)|nth-last-child\([^()]*\))$/
+
 /** Position pseudo-classes:  they test siblings, which a list item wrapper takes away. */
 const POSITION = /:(?:first-child|last-child|only-child|nth-child\([^()]*\)|nth-last-child\([^()]*\))/g
-
-/** `[data-ui-li] > <compound>` in a list-item variant;  the compound has no spaces (no `:is(a, b)` with commas). */
-const WRAPPED_COMPOUND = /\[data-ui-li\] > ([^\s>+~,]+)/g
 
 /** Child combinators per selector that get a list-item variant:  2^n selectors, so kept small. */
 const MAX_LIST_ITEM_STEPS = 3
@@ -276,5 +352,5 @@ const HAS_SLOT = /(^|[\s>+~(,])slot(?![\w-])/
 /** `slot` as the SUBJECT:  in the last compound. */
 const SLOT_SUBJECT = /(^|[\s>+~(,])slot(?![\w-])[^\s>+~]*$/
 
-/** `slot::slotted(`:  the slotted node is the subject, not the slot. */
-const SLOT_THEN_SLOTTED = /(^|[\s>+~(,])slot::slotted\(/g
+/** A compound before `::slotted(` (`slot`, `.icon`):  it described the slot, which is gone. */
+const COMPOUND_THEN_SLOTTED = /(^|[\s>+~(,])[^\s>+~(,]+::slotted\(/g

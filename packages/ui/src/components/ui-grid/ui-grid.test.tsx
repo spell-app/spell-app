@@ -226,6 +226,33 @@ describe("<ui-grid> layout across shadow roots", () => {
   })
 })
 
+describe("<ui-grid celled> outer margin", () => {
+  it("sits on the HOST, so it collapses with the heading above as class grammar's does", async () => {
+    const box = await inBox(
+      900,
+      `<h4 style="margin: 0 0 10px">Heading</h4><ui-grid celled><ui-column>a</ui-column></ui-grid>` +
+        `<ui-grid celled="internally"><ui-column>b</ui-column></ui-grid>`
+    )
+    const [celled, internally] = [...box.querySelectorAll("ui-grid")]
+    expect(celled!.matches(":state(celled)")).toBe(true)
+    expect(getComputedStyle(celled!).marginTop).toBe("16px")
+    expect(getComputedStyle(rootOf(celled!)).marginTop).toBe("0px")
+    // max(10px, 16px), not their sum
+    expect(
+      rootOf(celled!).getBoundingClientRect().top - box.querySelector("h4")!.getBoundingClientRect().bottom
+    ).toBeCloseTo(16, 0)
+    expect(internally!.matches(":state(celled)")).toBe(false)
+    expect(getComputedStyle(internally!).marginTop).toBe("0px")
+  })
+
+  it("keeps the margin on the root of a grid slotted into a grid (a `display: contents` host)", async () => {
+    const box = await inBox(900, `<ui-grid><ui-grid celled><ui-column>a</ui-column></ui-grid></ui-grid>`)
+    const inner = box.querySelectorAll("ui-grid")[1]!
+    expect(getComputedStyle(inner).display).toBe("contents")
+    expect(getComputedStyle(rootOf(inner)).marginTop).toBe("16px")
+  })
+})
+
 describe("<ui-grid> tokens from outside", () => {
   /** The inner box's margin left. */
   function measure(host: Element): string {

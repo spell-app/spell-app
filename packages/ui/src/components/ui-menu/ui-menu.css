@@ -225,6 +225,13 @@
   .ui.menu:last-child {
     --_menu-margin-bottom: 0;
   }
+  /* Shadow DOM:  a top-level root is always an only child, so the HOST's position decides (as `ui-segment.css`). */
+  :host(:not(:first-child)) > .ui.menu {
+    --_menu-margin-top: initial;
+  }
+  :host(:not(:last-child)) > .ui.menu {
+    --_menu-margin-bottom: initial;
+  }
   /* Items' components aren't scaled twice. */
   .ui.menu slot {
     --ui-scale: initial;

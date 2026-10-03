@@ -242,6 +242,42 @@ describe("<ui-steps> layouts", () => {
   })
 })
 
+describe("<ui-steps> outer margin", () => {
+  /** Two groups after a 10px-margin heading in a 900px box;  returns the heading, the hosts and their roots. */
+  async function twoGroups(attributes: string) {
+    const holder = await ElementFixture.render(
+      `<div style="width: 900px"><h4 style="margin: 0 0 10px">Heading</h4>` +
+        `${three(attributes)}${three(attributes)}</div>`
+    )
+    const hosts = [...holder.querySelectorAll<UIHost>("ui-steps")]
+    const roots = hosts.map((host) => host.shadowRoot!.firstElementChild as HTMLElement)
+    return { heading: holder.querySelector("h4")!, hosts, roots }
+  }
+
+  it("keeps an inline group's 1em margins on its root, by the HOST's position (the root is an only child)", async () => {
+    const { heading, roots } = await twoGroups("unstackable")
+    expect([getComputedStyle(roots[0]!).marginTop, getComputedStyle(roots[0]!).marginBottom]).toEqual(["16px", "16px"])
+    expect(getComputedStyle(roots[1]!).marginBottom).toBe("0px")
+    // an inline-flex group's margin never collapses, as in class grammar:  10px + 16px
+    expect(roots[0]!.getBoundingClientRect().top - heading.getBoundingClientRect().bottom).toBeCloseTo(26, 0)
+  })
+
+  it("puts a block-level (fluid) group's margins on its HOST, so they collapse with the heading's", async () => {
+    const { heading, hosts, roots } = await twoGroups("fluid unstackable")
+    expect(hosts[0]!.matches(":state(block)")).toBe(true)
+    expect(getComputedStyle(roots[0]!).marginTop).toBe("0px")
+    expect([getComputedStyle(hosts[0]!).marginTop, getComputedStyle(hosts[1]!).marginBottom]).toEqual(["16px", "0px"])
+    // max(10px, 16px), not their sum
+    expect(roots[0]!.getBoundingClientRect().top - heading.getBoundingClientRect().bottom).toBeCloseTo(16, 0)
+  })
+
+  it("keeps a circular group's margins on its host, even as the last child", async () => {
+    const { hosts } = await twoGroups("circular")
+    expect(hosts[1]!.matches(":state(block):state(circular)")).toBe(true)
+    expect(getComputedStyle(hosts[1]!).marginBottom).toBe("16px")
+  })
+})
+
 describe("<ui-steps> tokens from outside", () => {
   const RED = "rgb(255, 0, 0)"
   /** Three steps, content as a slotted part in the first. */

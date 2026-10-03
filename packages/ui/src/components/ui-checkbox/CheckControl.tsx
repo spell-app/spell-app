@@ -10,21 +10,14 @@ import {
   type AttributeName,
   type FieldValue,
   type StateName,
-  type ValidationResult
+  type ValidationResult,
+  UIT
 } from "$/ui/core"
 import { ControlLabels, FormElement } from "$/ui/forms"
 
 import { CheckboxFallback } from "./ui-checkbox.fallback"
 import { CheckHost } from "./CheckHost"
-import {
-  CHECKBOX,
-  CHECKED,
-  CheckVocabulary,
-  CommonAttributes,
-  DEFAULT_VALUE,
-  ID_PREFIX,
-  STATIC_CONTROL
-} from "./ui-checkbox.types"
+import { CHECKBOX, CHECKED, CheckVocabulary, CommonAttributes, DEFAULT_VALUE, ID_PREFIX } from "./ui-checkbox.types"
 
 import checkboxCSS from "./ui-checkbox.css?inline"
 
@@ -211,7 +204,7 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
   protected staticControl(): Record<string, unknown> {
     if (!isServer) return {}
     const { name, value } = this.common
-    return { [STATIC_CONTROL]: "", name, value, checked: this.isSelected() }
+    return { [UIT.STATIC_CONTROL]: "", name, value, checked: this.isSelected() }
   }
 
   render(): JSX.Element {

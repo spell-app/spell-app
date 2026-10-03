@@ -12,4 +12,13 @@ import { GridPart } from "./GridPart"
  ****************/
 export class UIGrid extends GridPart<typeof gridVocabulary> {
   @proto static vocabulary = gridVocabulary
+
+  /**
+   * `celled` while celled with its outer box (not `internally`).
+   * - Why:  the host is a size container (its own formatting context), so that box's outer margin sits on the
+   *   HOST, to collapse with the content above as class grammar's does (`ui-grid.css`).
+   */
+  protected hostStates() {
+    return { celled: this.attrs.celled === true }
+  }
 }

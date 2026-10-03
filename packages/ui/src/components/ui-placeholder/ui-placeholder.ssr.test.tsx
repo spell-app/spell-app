@@ -23,10 +23,10 @@ describe("ui-placeholder static render", () => {
     expect(sorted(html)).toBe(
       sorted(
         `<div data-ui="placeholder" aria-hidden="true" data-state="placeholder" class="ui placeholder" ` +
-          `part="placeholder"><div data-ui-slotted="" data-ui="header" class="image header" part="header">` +
-          `<div data-ui-slotted="" data-ui="line" class="line" part="line"></div></div>` +
-          `<div data-ui-slotted="" data-ui="paragraph" class="paragraph" part="paragraph">` +
-          `<div data-ui-slotted="" data-ui="line" class="short line" part="line"></div></div></div>`
+          `part="placeholder"><div data-ui-slotted="" data-ui="placeholder-header" class="image header" part="header">` +
+          `<div data-ui-slotted="" data-ui="placeholder-line" class="line" part="line"></div></div>` +
+          `<div data-ui-slotted="" data-ui="placeholder-paragraph" class="paragraph" part="paragraph">` +
+          `<div data-ui-slotted="" data-ui="placeholder-line" class="short line" part="line"></div></div></div>`
       )
     )
   })

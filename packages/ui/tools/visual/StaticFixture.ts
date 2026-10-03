@@ -41,6 +41,7 @@ export class StaticFixture {
     const load = ELEMENTS[`/src/components/${family}/examples/elements/${name}.html`]
     if (!load) throw new Error(`no element example "${id}"`)
     const source = await load()
+    await StaticRender.prepare(source)
     const html = StaticRender.fragment(source)
     StaticFixture.verify(id, source, html)
     return html

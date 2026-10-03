@@ -664,6 +664,22 @@
     margin: 0;
     box-shadow: none;
   }
+  /*
+   * Shadow DOM:  a celled grid's outer margin sits on the HOST (`:state(celled)`, not `internally`):  the host is
+   * a size container, its own formatting context, so a margin on the root would never collapse with the heading
+   * above, as class grammar's does.
+   * - Not when the host is `display: contents` (a grid slotted into a grid or row:  the root's margin is the one
+   *   that counts), nor in a static render, whose root replaces the host (`:not([data-ui])`).
+   */
+  :host(:state(celled)) {
+    --_ui-grid-celled-margin: var(--ui-grid-celled-margin, 1em 0);
+    margin: var(--_ui-grid-celled-margin);
+  }
+  @container not style(--_grid-child-host: contents) {
+    :host(:state(celled)) > .ui.celled.grid:not([data-ui]) {
+      margin: 0;
+    }
+  }
 
   /* Vertically aligned:  columns sit at the top / middle / bottom of the line. */
   .ui[class*="top aligned"]:is(.grid, .row) {

@@ -897,6 +897,10 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   `$/ui` bundle.  Chromium and Firefox have no such property, so unit tests passed. · Name the property something
   else (`property: "headingLevelOffset"`);  a `property` equal to the camelCased name doesn't count as a rename.
   Found by loading the fixture in Playwright's WebKit and logging `pageerror`. · ui
+- 2026-10-02 · Several agents running `yarn test:visual` in ONE worktree:  each run rewrites `tools/results/visual/`
+  (`parity.md`, `static-parity.md`, Playwright's `output/` is emptied first), so a report or diff image read a minute
+  later belonged to another agent's run, or was gone. · Copy the report to the scratchpad right after each run, and
+  read diff images before starting the next run. · ui
 
 ## app
 

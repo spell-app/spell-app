@@ -53,7 +53,6 @@ import {
   PREVIOUS_ICON,
   RANGE,
   SPACE,
-  STATIC_CONTROL,
   TABLE,
   TITLE,
   TODAY,
@@ -95,6 +94,17 @@ export class UICalendar extends FormElement<Vocabulary> {
   @proto static vocabulary = calendarVocabulary
   @proto static styles = { input: inputCSS, calendar: calendarCSS }
   @proto static Fallback = CalendarFallback
+
+  /**
+   * Load `Temporal` before a static server render, so its pickers render in full (header, grid, cells):  the render
+   * is synchronous, and node has no `Temporal`, so `UI.i18n` loads `temporal-polyfill` (`loadTemporal()`).
+   * - Called by `StaticRender.prepare(html)` (`$/ui/server`) for a page with this tag;  NEVER in a browser, where
+   *   the constructor loads it after first paint, as before.
+   * - NOTE: "today" (highlight, starting page) is then the RENDER's day.
+   */
+  static preload(): Promise<unknown> {
+    return UI.i18n.loadTemporal()
+  }
 
   ////////////////
   // ## State
@@ -363,7 +373,7 @@ export class UICalendar extends FormElement<Vocabulary> {
 
   /** Server render only (`$/ui/server`):  the field's `STATIC_CONTROL` mark;  `{}` in a browser. */
   private staticControl(): Record<string, unknown> {
-    return isServer ? { [STATIC_CONTROL]: "" } : {}
+    return isServer ? { [UIT.STATIC_CONTROL]: "" } : {}
   }
 
   /**

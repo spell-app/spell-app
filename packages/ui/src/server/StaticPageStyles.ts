@@ -1,4 +1,6 @@
-import postcss from "postcss"
+import postcss, { type AtRule, type Rule } from "postcss"
+
+import { StaticSelectors } from "./StaticSelectors"
 
 /****************
  * ### `StaticPageStyles`
@@ -7,6 +9,9 @@ import postcss from "postcss"
  * - `H::part(p)` => `H[part~="p"]` (the part is the root, which replaced the host) and `H [part~="p"]` (deeper)
  * - `:state(x)` => `[data-state~="x"]`, the flattener's attribute for host states
  * - `ui-card` (a rendered family's tag) => `[data-ui="card"]`:  the tag is gone, its root carries the noun
+ * - every other subject gets `REACH`:  page CSS never reached a component's own markup (the shadow boundary kept it
+ *   out), only roots (the hosts), slotted author content, and everything outside components.  `h2 { border }` must
+ *   not draw on a section's internal heading.
  * - Layers, order and specificity otherwise as written:  a `::part()` rule beat the shadow sheets, and an
  *   unlayered page rule beats every `ui.*` layer.
  * - NOTE: approximate for `::part()`:  the shadow boundary limited it to H's own parts, `H [part~="p"]` also
@@ -17,9 +22,15 @@ export class StaticPageStyles {
   static rewrite(css: string, tags: ReadonlyMap<string, string>): string {
     const sheet = postcss.parse(css)
     sheet.walkRules((rule) => {
+      if (StaticPageStyles.inKeyframes(rule)) return
       rule.selectors = [...new Set(rule.selectors.flatMap((selector) => StaticPageStyles.selector(selector, tags)))]
     })
     return sheet.toString()
+  }
+
+  /** A keyframe step (`from`, `50%`), not a selector. */
+  static inKeyframes(rule: Rule): boolean {
+    return rule.parent?.type === "atrule" && (rule.parent as AtRule).name.endsWith("keyframes")
   }
 
   /** One page selector => its static equivalents. */
@@ -30,7 +41,7 @@ export class StaticPageStyles {
       return noun ? `${before}[data-ui="${noun}"]` : match
     })
     const part = PART.exec(text)
-    if (!part) return [text]
+    if (!part) return [StaticSelectors.onSubject(text, REACH)]
     const host = text.slice(0, part.index)
     const names = part[1]!.trim().split(/\s+/)
     const attribute = names.map((name) => `[part~="${name}"]`).join("")
@@ -38,6 +49,12 @@ export class StaticPageStyles {
     return [`${host}${attribute}${after}`, `${host} ${attribute}${after}`]
   }
 }
+
+/**
+ * What page CSS could reach:  outside every component, component roots (were hosts), slotted author content.
+ * - Zero specificity (`:where()`).  NOTE:  approximate:  a component rendered inside slotted content is reachable too.
+ */
+export const REACH = ":where(:not([data-ui] *), [data-ui], [data-ui-slotted], [data-ui-slotted] *)"
 
 /** `:state(name)`. */
 const STATE = /:state\(([^()]*)\)/g

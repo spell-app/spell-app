@@ -15,9 +15,10 @@ describe("ui-input (static render)", () => {
     StaticRender.define(UIInput, UITextarea)
   })
 
-  it("renders the native input with its name, value and constraints, marked for the flattener", () => {
+  it("renders the native input with its name, value and constraints, the host's id and ARIA names on it", () => {
     const html = StaticRender.fragment(
-      `<ui-input name="email" type="email" value="a@b.c" placeholder="E-mail" required fluid></ui-input>`
+      `<ui-input id="mail" aria-describedby="hint" name="email" type="email" value="a@b.c" placeholder="E-mail" ` +
+        `required fluid></ui-input>`
     )
     expect(html).toMatch(/^<div [^>]*class="ui fluid input"[^>]*><input [^>]*><\/div>$/)
     const input = html.match(/<input [^>]*>/)?.[0] ?? ""
@@ -28,10 +29,14 @@ describe("ui-input (static render)", () => {
       `value="a@b.c"`,
       `placeholder="E-mail"`,
       ` required`,
-      `data-ui-control=""`
+      `id="mail"`,
+      `aria-describedby="hint"`
     ]) {
       expect(input).toContain(attribute)
     }
+    // the flattener's mark, used and dropped:  the ids went to the control, not the root
+    expect(html.match(/^<div [^>]*>/)?.[0]).not.toMatch(/ id=|aria-describedby/)
+    expect(html).not.toContain("data-ui-control")
   })
 
   it("renders states:  disabled control, loading box with its icon box", () => {

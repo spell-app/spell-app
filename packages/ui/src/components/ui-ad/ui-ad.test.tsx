@@ -144,6 +144,19 @@ describe("<ui-ad> tokens from outside", () => {
   })
 })
 
+describe("<ui-ad> outer margin", () => {
+  it("keeps 1em vertical margins between siblings:  the HOST's position decides (the root is an only child)", async () => {
+    const holder = await ElementFixture.render(
+      `<div><h4>Heading</h4><ui-ad unit="small square"></ui-ad><ui-ad unit="small square"></ui-ad></div>`
+    )
+    const [middle, last] = [...holder.querySelectorAll<UIHost>("ui-ad")].map((host) =>
+      getComputedStyle(host.shadowRoot!.firstElementChild!)
+    )
+    expect([middle!.marginTop, middle!.marginBottom]).toEqual(["16px", "16px"])
+    expect([last!.marginTop, last!.marginBottom]).toEqual(["0px", "0px"])
+  })
+})
+
 describe("<ui-ad> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {
     const root = await ElementFixture.render(EXAMPLES[path]!)

@@ -286,11 +286,15 @@ export class UISelect extends FormElement<SelectVocabulary> {
   /**
    * Server render only:  `selected` on the option of `value` while it's chosen (`""`:  the placeholder, while
    * nothing is);  `{}` in a browser, where `syncSelect()` sets it.
+   * - The placeholder is also `disabled` while chosen:  a disabled option isn't submitted, so a static form sends
+   *   no `name=` for it, as the element sends nothing without a value.  NOTE: a no-JS reader can't go back to it.
    */
   private staticOption(value: string): Record<string, unknown> {
     if (!isServer) return {}
     const values = this.values()
-    return { selected: value === "" ? !values.length : values.includes(value) }
+    if (value !== "") return { selected: values.includes(value) }
+    const required = this.attrs.required && this.attrs.placeholder !== undefined
+    return { selected: !values.length, disabled: required || !values.length }
   }
 
   /**

@@ -314,6 +314,40 @@ describe("<ui-statistics>", () => {
   })
 })
 
+describe("<ui-statistic> outer margins", () => {
+  it("re-decides a standalone statistic's margins by its HOST's position (the root is always an only child)", async () => {
+    const holder = await ElementFixture.render(
+      `<div><div><h4>Heading</h4><ui-statistic value="1"></ui-statistic><ui-statistic value="2"></ui-statistic></div>` +
+        `<div><ui-statistic value="3"></ui-statistic><p>After</p></div></div>`
+    )
+    const [first, second, lone] = [...holder.querySelectorAll<UIHost>("ui-statistic")].map((host) =>
+      getComputedStyle(host.shadowRoot!.firstElementChild!)
+    )
+    expect([first!.marginTop, first!.marginBottom]).toEqual(["16px", "16px"])
+    // after another statistic:  beside it, as Fomantic's `.ui.statistic + .ui.statistic`
+    expect([second!.marginTop, second!.marginBottom, second!.marginLeft]).toEqual(["0px", "0px", "24px"])
+    expect([lone!.marginTop, lone!.marginBottom]).toEqual(["0px", "16px"])
+  })
+
+  it("puts a group's top margin on its HOST, so it collapses with the heading's;  none when horizontal", async () => {
+    const holder = await ElementFixture.render(
+      `<div style="width: 900px"><h4 style="margin: 0 0 10px">Heading</h4>` +
+        `<ui-statistics><ui-statistic value="1"></ui-statistic></ui-statistics>` +
+        `<ui-statistics horizontal><ui-statistic value="2"></ui-statistic></ui-statistics></div>`
+    )
+    const [group, horizontal] = [...holder.querySelectorAll<UIHost>("ui-statistics")]
+    expect(group!.matches(":state(spaced)")).toBe(true)
+    expect(getComputedStyle(group!).marginTop).toBe("16px")
+    expect(getComputedStyle(group!.shadowRoot!.firstElementChild!).marginTop).toBe("0px")
+    expect(group!.getBoundingClientRect().top - holder.querySelector("h4")!.getBoundingClientRect().bottom).toBeCloseTo(
+      16,
+      0
+    )
+    expect(horizontal!.matches(":state(spaced)")).toBe(false)
+    expect(getComputedStyle(horizontal!).marginTop).toBe("0px")
+  })
+})
+
 describe("<ui-statistic> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {
     const root = await ElementFixture.render(EXAMPLES[path]!)

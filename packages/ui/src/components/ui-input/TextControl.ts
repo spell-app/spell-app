@@ -15,7 +15,7 @@ import {
   UIT
 } from "$/ui/core"
 import { ControlLabels, FormElement } from "$/ui/forms"
-import { NATIVE_FLAGS, VALID, FILE_TYPE, STATIC_CONTROL, type CommonAttributes } from "./ui-input.types"
+import { NATIVE_FLAGS, VALID, FILE_TYPE, type CommonAttributes } from "./ui-input.types"
 
 /****************
  * ### `TextControl`
@@ -197,7 +197,7 @@ export abstract class TextControl<V extends ComponentVocabulary = ComponentVocab
    */
   protected staticControl(): Record<string, unknown> {
     if (!isServer) return {}
-    return { [STATIC_CONTROL]: "", name: this.common.name, value: this.value() || undefined }
+    return { [UIT.STATIC_CONTROL]: "", name: this.common.name, value: this.value() || undefined }
   }
 
   /** Copy the control's validity into `nativeValidity`. */

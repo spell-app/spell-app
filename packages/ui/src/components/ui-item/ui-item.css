@@ -71,13 +71,19 @@
 *******************************/
 
 @layer ui.components.item.content {
-  /* The icon box:  the glyph at text size in the text colour;  owners set spacing and alignment. */
+  /*
+   * The icon box:  the glyph at text size in the text colour;  owners set spacing and alignment.
+   * - `.icon > slot > svg`:  in the shadow root the shorthand's glyph is the `icon` slot's FALLBACK, a child of the
+   *   `<slot>`, not of `.icon`;  `.icon > svg` alone matched only static markup, so element glyphs were sized by
+   *   their box (a list's 1.55em cell:  20px wide, a tall glyph 27px high;  a menu's flex box:  0 x 0).
+   */
   .item > .icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
   }
   .item > .icon > ::slotted(svg),
+  .item > .icon > slot > svg,
   .item > .icon > svg {
     width: auto;
     height: 1em;

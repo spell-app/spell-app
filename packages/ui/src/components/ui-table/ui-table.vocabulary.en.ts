@@ -184,7 +184,14 @@ export const tableVocabulary = {
         "Box around the slotted table;  scrolls (a focusable, named region) with `scrolling` / `overflowing`."
     }
   ],
-  states: [],
+  states: [
+    { name: "attached", description: "Set while `attached` (any edge):  the host drops the outer margin it carries." },
+    { name: "attached-top", description: "Set while `attached` is `top`:  the host keeps only its top margin." },
+    {
+      name: "attached-bottom",
+      description: "Set while `attached` is `bottom`:  the host keeps only its bottom margin."
+    }
+  ],
   texts: [
     {
       key: "label",

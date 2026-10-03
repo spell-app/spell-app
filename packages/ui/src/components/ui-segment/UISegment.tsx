@@ -1,4 +1,4 @@
-import { Show, createEffect } from "solid-js"
+import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { proto, UIElement, UIT } from "$/ui/core"
@@ -29,7 +29,7 @@ export class UISegment extends UIElement<typeof segmentVocabulary> {
   constructor(...args: ConstructorParameters<typeof UIElement>) {
     super(...args)
     const { internals } = this.host
-    createEffect(
+    this.hostEffect(
       () => [this.attrs.loading, this.attrs.disabled] as const,
       ([loading, disabled]) => {
         internals.ariaBusy = loading ? TRUE : null

@@ -15,7 +15,9 @@ describe("ui-search (static render)", () => {
   })
 
   it("renders the input with the query and its form name, the results closed", () => {
-    const html = StaticRender.fragment(`<ui-search name="q" value="spell" placeholder="Search..."></ui-search>`)
+    const html = StaticRender.fragment(
+      `<ui-search id="find" name="q" value="spell" placeholder="Search..."></ui-search>`
+    )
     expect(html).toMatch(/^<div [^>]*class="ui search"[^>]*><div class="ui icon input" part="input"><input /)
     const input = html.match(/<input [^>]*>/)?.[0] ?? ""
     for (const attribute of [
@@ -24,10 +26,13 @@ describe("ui-search (static render)", () => {
       `value="spell"`,
       `placeholder="Search..."`,
       `aria-expanded="false"`,
-      `data-ui-control=""`
+      `id="find"`
     ]) {
       expect(input).toContain(attribute)
     }
+    // the flattener's mark, used and dropped:  the host's id went to the input, not the root
+    expect(html.match(/^<div [^>]*>/)?.[0]).not.toContain(` id=`)
+    expect(html).not.toContain("data-ui-control")
     expect(html).toMatch(/<div [^>]*class="results" popover="manual" part="results"><\/div>/)
     expect(html).not.toContain("<ui-")
     expect(html).not.toContain("<slot")

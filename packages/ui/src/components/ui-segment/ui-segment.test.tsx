@@ -142,6 +142,19 @@ describe("<ui-segments>", () => {
     const { host } = await render(`<ui-segments piled><ui-segment>a</ui-segment></ui-segments>`)
     expect(host.matches(":state(piled)")).toBe(true)
   })
+
+  it("keeps 1em vertical margins by its HOST's position:  the root is always its shadow root's only child", async () => {
+    const wrapper = await ElementFixture.render(
+      `<div><h4>Heading</h4>` +
+        `<ui-segments><ui-segment>a</ui-segment></ui-segments>` +
+        `<ui-segments><ui-segment>b</ui-segment></ui-segments></div>`
+    )
+    const [first, second] = [...wrapper.querySelectorAll("ui-segments")].map((host) =>
+      getComputedStyle(host.shadowRoot!.firstElementChild!)
+    )
+    expect([first!.marginTop, first!.marginBottom]).toEqual(["16px", "16px"])
+    expect([second!.marginTop, second!.marginBottom]).toEqual(["16px", "0px"])
+  })
 })
 
 describe("<ui-segment> tokens from outside", () => {

@@ -18,6 +18,17 @@ export class StaticFlattener {
   /** Flatten every view into `document`, innermost first. */
   static flatten(document: Document, views: readonly StaticView[]) {
     for (let index = views.length - 1; index >= 0; index--) StaticFlattener.replace(document, views[index]!)
+    StaticFlattener.inParagraphs(document)
+  }
+
+  /**
+   * Every rendered `<div>` anywhere inside a `<p>` becomes a `<span>`:  the parser closes a `<p>` at a `<div>`, so
+   * `<p><ui-text><ui-label>` would split the paragraph (the direct-parent case is handled per root already).
+   */
+  private static inParagraphs(document: Document) {
+    for (const div of [...document.querySelectorAll("p div")]) {
+      if (div.closest("[data-ui]")) StaticFlattener.retag(document, div, "span")
+    }
   }
 
   /** Replace one element with its flattened content. */
@@ -28,6 +39,11 @@ export class StaticFlattener {
     for (const slot of [...content.querySelectorAll("slot")]) StaticFlattener.fill(slot, element)
     let root = content.firstElementChild
     if (root) root = StaticFlattener.listRoot(document, root)
+    // a `<div>` where only phrasing content may go (`<p>`, `<a>` ...) would end the paragraph when a browser parses
+    // the page:  a `<span>` (the element was an inline-level host there)
+    if (root?.localName === "div" && PHRASING_ONLY.has(element.parentElement?.localName ?? "")) {
+      root = StaticFlattener.retag(document, root, "span")
+    }
     let listItem = ServerHost.state(element)?.internals.role === "listitem"
     // a `<div>` item root BECOMES the `<li>`:  no wrapper, so `:first-child` / `.item + .item` still see the items
     if (root && listItem && RETAGGABLE.has(root.localName)) {
@@ -40,7 +56,7 @@ export class StaticFlattener {
         element,
         family.definition.attributes.map((each) => each.attribute)
       )
-    if (root) root.setAttribute("data-ui", family.definition.vocabulary.noun)
+    if (root) root.setAttribute("data-ui", family.kind)
     let outer: Element | undefined = root ?? undefined
     if (listItem) {
       // `data-ui-li`:  `display: contents` in the static stylesheet, so the root stays the group's layout child
@@ -103,15 +119,24 @@ export class StaticFlattener {
    */
   private static decorate(root: Element, host: Element, vocabulary: readonly string[]) {
     const skip = new Set([...vocabulary, "slot"])
+    // a form control's native element (marked by its render):  ids and names belong there, so `<label for>` and
+    // `aria-labelledby` reach the control a browser submits and focuses
+    const control = root.hasAttribute(CONTROL) ? root : root.querySelector(`[${CONTROL}]`)
     for (const { name, value } of [...host.attributes]) {
       if (skip.has(name)) continue
-      if (name === "class") root.setAttribute("class", `${root.getAttribute("class") ?? ""} ${value}`.trim())
+      if (control && CONTROL_ATTRIBUTES.has(name)) {
+        const current = control.getAttribute(name)
+        // the control's own id / label wins;  id lists merge (the host's hint AND the control's own text)
+        if (current === null) control.setAttribute(name, value)
+        else if (ID_LISTS.has(name))
+          control.setAttribute(name, [...new Set(`${value} ${current}`.split(/\s+/))].join(" "))
+      } else if (name === "class") root.setAttribute("class", `${root.getAttribute("class") ?? ""} ${value}`.trim())
       else if (name === "style") {
         const style = [root.getAttribute("style"), value].filter(Boolean).join(";")
         if (style) root.setAttribute("style", style)
-      }
-      else if (!root.hasAttribute(name)) root.setAttribute(name, value)
+      } else if (!root.hasAttribute(name)) root.setAttribute(name, value)
     }
+    control?.removeAttribute(CONTROL)
     const state = ServerHost.state(host)
     if (!state) return
     for (const name of state.states) if (name.startsWith("in-")) root.classList.add(name)
@@ -132,11 +157,51 @@ export class StaticFlattener {
   }
 }
 
+/** Marks a form control's native element in its render (`data-ui-control`):  the host's ids go there. */
+const CONTROL = "data-ui-control"
+
+/** Host attributes that name or label the CONTROL, so they move to it rather than the root. */
+const CONTROL_ATTRIBUTES = new Set(["id", "aria-label", "aria-labelledby", "aria-describedby"])
+
+/** Of those, the ones holding id lists:  merged when both the host and the control have one. */
+const ID_LISTS = new Set(["aria-labelledby", "aria-describedby"])
+
 /** Marks the `<li>` the flattener wraps a list item in. */
 const LIST_ITEM_ATTRIBUTE = "data-ui-li"
 
 /** List item roots that become the `<li>` itself;  others (`<article>`, `<a>`, `<button>`) are wrapped in one. */
 const RETAGGABLE = new Set(["div", "span"])
+
+/** Elements whose content model is phrasing only:  a `<div>` there breaks out when the page is parsed. */
+const PHRASING_ONLY = new Set([
+  "p",
+  "span",
+  "a",
+  "label",
+  "button",
+  "em",
+  "strong",
+  "small",
+  "b",
+  "i",
+  "u",
+  "s",
+  "q",
+  "code",
+  "abbr",
+  "cite",
+  "dfn",
+  "mark",
+  "sub",
+  "sup",
+  "time",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6"
+])
 
 /** Elements `<li>` may sit in. */
 const LIST_TAGS = new Set(["ul", "ol", "menu"])

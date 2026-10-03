@@ -14,8 +14,8 @@ describe("ui-slider (static render)", () => {
     StaticRender.define(UISlider)
   })
 
-  it("renders a thumb at its value, its ARIA values set, marked for the flattener", () => {
-    const html = StaticRender.fragment(`<ui-slider name="volume" value="5" max="10"></ui-slider>`)
+  it("renders a thumb at its value, its ARIA values set, the host's ARIA name on it", () => {
+    const html = StaticRender.fragment(`<ui-slider aria-label="Volume" name="volume" value="5" max="10"></ui-slider>`)
     expect(html).toMatch(/^<div [^>]*class="ui slider"[^>]*><div class="inner"/)
     const thumb = html.match(/<div [^>]*role="slider"[^>]*>/)?.[0] ?? ""
     for (const attribute of [
@@ -23,18 +23,21 @@ describe("ui-slider (static render)", () => {
       `aria-valuemax="10"`,
       `aria-valuenow="5"`,
       `style="--_slider-at:0.5"`,
-      `data-ui-control=""`
+      `aria-label="Volume"`
     ]) {
       expect(thumb).toContain(attribute)
     }
+    expect(html).not.toContain("data-ui-control")
     expect(html).toContain(`<input type="hidden" name="volume" value="5">`)
   })
 
-  it("renders a range:  two thumbs in a group, the group marked, two hidden inputs", () => {
-    const html = StaticRender.fragment(`<ui-slider range name="price" value="5" end="15"></ui-slider>`)
-    expect(html).toMatch(
-      /<div class="inner" role="group" style="--_slider-from:0.25;--_slider-to:0.75" data-ui-control/
-    )
+  it("renders a range:  two thumbs in a group, the group named by the host, two hidden inputs", () => {
+    const html = StaticRender.fragment(`<ui-slider id="price" range name="price" value="5" end="15"></ui-slider>`)
+    const group = html.match(/<div [^>]*class="inner"[^>]*>/)?.[0] ?? ""
+    expect(group).toContain(`style="--_slider-from:0.25;--_slider-to:0.75"`)
+    expect(group).toContain(`role="group"`)
+    expect(group).toContain(`id="price"`)
+    expect(html).not.toContain("data-ui-control")
     expect(html.match(/role="slider"/g)).toHaveLength(2)
     expect(html.match(/<input type="hidden"[^>]*>/g)).toEqual([
       `<input type="hidden" name="price" value="5">`,
