@@ -431,11 +431,6 @@ every entry below that date was fixed or disproven;  what's left:
 
 ### 1. Behavior bugs
 
-- `src/page/AstroProxy.ts` `start()` spawns `yarn astro dev`:  a page server launched by a `yarn` script
-  (`yarn server ensure`, which runs it detached) inherits a PATH whose `yarn` is a temporary shim
-  (`/var/folders/.../xfs-*/yarn`), gone once that script exits -- so the first `/ui` request may fail with
-  `/bin/sh: .../yarn: No such file or directory`.  Seen for the app's editor (2026-10-02), which now runs vite's
-  script under `process.execPath` instead (`packages/app/src/server/EditorServer.ts`);  `/ui` not checked.
 
 - `[V]` `src/page/cli.ts` `url`:  a RELATIVE `<file>` resolves against `packages/server`, not the folder `yarn
   server` ran in -- the root's `yarn server` runs `yarn workspace ... server`, whose nested yarn resets `INIT_CWD`.
