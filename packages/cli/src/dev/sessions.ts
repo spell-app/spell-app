@@ -217,16 +217,25 @@ export function projectSlug(path: string): string {
 
 /**
  * The transcript of session `id`, in any project folder;  `undefined` when there's none.
- * - one session's transcript can sit in two folders (copied when it moved):  the first found wins
+ * - one session's transcript can sit in two folders (copied when it moved):  the newest wins
  */
 export function transcriptOf(id: string, home = claudeHome()): string | undefined {
   const projects = join(home, "projects")
   if (!existsSync(projects)) return undefined
+  let newest: { path: string; mtime: number } | undefined
   for (const dir of readdirSync(projects)) {
     const path = join(projects, dir, `${id}.jsonl`)
-    if (existsSync(path)) return path
+    if (!existsSync(path)) continue
+    const mtime = statSync(path).mtimeMs
+    if (!newest || mtime > newest.mtime) newest = { path, mtime }
   }
-  return undefined
+  return newest?.path
+}
+
+/** The last `bytes` of session `id`'s transcript, as text;  "" when it has none. */
+export function transcriptTail(id: string, bytes: number, home = claudeHome()): string {
+  const path = transcriptOf(id, home)
+  return path ? readTail(path, bytes) : ""
 }
 
 /**

@@ -81,6 +81,30 @@ describe("parkedNotes()", () => {
   })
 })
 
+describe("takeStock()", () => {
+  const report = CLI.takeStock(MAIN)
+  const byKey = new Map(report.items.map((item) => [item.key, item]))
+
+  test("a parked worktree is stalled;  a merged branch is dead, with clean-up commands", () => {
+    expect(byKey.get("worktree:wip")).toMatchObject({ group: "stalled", ahead: 1 })
+    expect(byKey.get("worktree:wip")!.why).toEqual(["parked (parked):  halfway through P2"])
+    const done = byKey.get("branch:done")!
+    expect(done.group).toBe("dead")
+    expect(done.actions![0]).toEqual({ id: "remove", label: "delete the branch", commands: ["git branch -d done"] })
+  })
+  test("groups list every item once, in report order", () => {
+    expect([...report.groups.active, ...report.groups.stalled, ...report.groups.dead].sort()).toEqual(
+      [...byKey.keys()].sort()
+    )
+  })
+})
+
+describe("iso()", () => {
+  test("local time to the minute, with its offset", () => {
+    expect(CLI.iso(Date.now())).toMatch(/^\d{4}-\d\d-\d\dT\d\d:\d\d[+-]\d\d:\d\d$/)
+  })
+})
+
 /** `git <args>` in the throwaway repo. */
 function git(...args: string[]) {
   execFileSync("git", ["-C", MAIN, "-c", "user.name=t", "-c", "user.email=t@t", ...args], {

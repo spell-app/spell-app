@@ -219,6 +219,14 @@ export type ParkOptions = GlobalOptions & {
 }
 
 /**
+ * `spell dev stock` flags.
+ * - `json`:  print the report as JSON
+ */
+export type StockOptions = GlobalOptions & {
+  json?: boolean
+}
+
+/**
  * `spell new` flags.
  * - `in`:  make the project in this folder -- default `@user`'s, `projects/user/`
  */

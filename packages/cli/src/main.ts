@@ -287,6 +287,12 @@ dev
     )
   )
 
+dev
+  .command("stock")
+  .description("take stock:  worktrees, branches, sessions, parked work, plans -- in process, hung or parked, dead")
+  .option("--json", "print the report as JSON, with each action's shell lines")
+  .action((_options, command) => run(CLI.stockCommand, [], command.optsWithGlobals()))
+
 await program.parseAsync()
 
 /**
