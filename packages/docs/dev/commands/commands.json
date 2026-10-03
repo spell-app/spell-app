@@ -760,8 +760,11 @@
         {
           "op": "Take stock of everything open",
           "cli": {
-            "mark": "could",
-            "note": "report only:  `whassup.py`"
+            "mark": "other",
+            "names": [
+              "spell dev stock"
+            ],
+            "note": "`[--json]`:  the report;  /whassup does the picking and acting"
           },
           "skill": {
             "mark": "same",
@@ -774,9 +777,9 @@
             "mark": "could",
             "note": "report only"
           },
-          "runs": "`.claude/skills/whassup/scripts/whassup.py`",
+          "runs": "`packages/cli/src/dev/stock.ts` (`takeStock()`)",
           "notes": "Refused git lines from a worktree session get listed to paste.",
-          "target": "(R4) `spell dev stock --json`;  /whassup keeps picks and actions"
+          "target": "(R4) built:  `spell dev stock`;  /whassup switches in P11"
         },
         {
           "op": "Ask Owen to leave plan mode first",

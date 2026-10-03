@@ -26,6 +26,8 @@ export type RunningSession = {
   name?: string
   /** what a `waiting` session waits for, e.g. `permission` */
   waitingFor?: string
+  /** when the record last changed, in ms */
+  updatedAt?: number
 }
 
 /**
@@ -125,6 +127,91 @@ export type WaitCandidate = { name: string; label: string }
  * - `stopped`:  the first line under "## Where it stopped"
  */
 export type ParkedNote = { name: string; file: string; state: string; stopped: string }
+
+////////////////
+// ## Taking stock
+////////////////
+
+/**
+ * Everything open in the repo, grouped -- `takeStock()`, `spell dev stock`.
+ * - `groups`:  item keys per group, in report order
+ */
+export type StockReport = {
+  generated: string
+  main: string
+  groups: Record<StockGroup, string[]>
+  items: StockItem[]
+}
+
+/**
+ * - `active` -- in process:  a session working in it, or touched in the last `RECENT_HOURS`
+ * - `stalled` -- hung or parked:  `/park`ed, waiting, a busy session gone silent, a question nobody answered, work
+ *   untouched for `RECENT_HOURS`, a plan with phases left and nothing working on it
+ * - `dead` -- nothing of value left:  merged or empty worktrees and branches, sessions idle for `STALE_HOURS`
+ *   (`RECENT_HOURS` outside any worktree), window files with no worktree
+ */
+export type StockGroup = "active" | "stalled" | "dead"
+
+/**
+ * One thing open:  a worktree, branch, plan, session, stash or window file.
+ * - `key`:  `<kind>:<name>`;  `why`:  the reasons for its group, in words
+ * - `actions`:  what `/whassup` offers;  each action's `commands` are shell lines to run one by one from the MAIN
+ *   checkout, `[]` for a step Claude takes (open a session, `/wtf`, ask)
+ * - the other fields depend on `kind`:
+ *   - worktree / branch:  `worktree` ... `morning`;  `unique`:  commits whose patch isn't in `main` yet (not
+ *     squashed in);  `everCommitted`:  its reflog moved past "Created"
+ *   - plan:  `plan`, `planDone`;  session:  `lastTouched`;  stash:  `stash` (sha);  window:  `file`
+ */
+export type StockItem = {
+  key: string
+  kind: "worktree" | "branch" | "plan" | "session" | "stash" | "window"
+  name: string
+  group?: StockGroup
+  why?: string[]
+  actions?: StockAction[]
+  sessions: LiveSession[]
+  worktree?: string | null
+  branch?: string | null
+  ahead?: number
+  unique?: number
+  behind?: number
+  dirty?: number
+  everCommitted?: boolean
+  lastCommit?: string | null
+  lastTouched?: string | null
+  plan?: string | null
+  planDone?: boolean
+  parked?: { state: string; stopped: string; file: string } | null
+  morning?: { file: string } | null
+  stash?: string
+  file?: string
+}
+
+/** Something `/whassup` can do about an item. */
+export type StockAction = { id: string; label: string; commands: string[] }
+
+/**
+ * A running session, as `/whassup` sees it.
+ * - `state`:  the registry's `busy` / `idle` / `waiting`, or `hung` for `busy` with no transcript write for
+ *   `SILENT_MINUTES`
+ * - `question`:  an `AskUserQuestion` with no answer after it, `questionMin` minutes ago
+ * - `this`:  the session that ran the command;  `used`:  it has a transcript (got a prompt)
+ */
+export type LiveSession = {
+  id: string
+  name: string
+  pid: number
+  cwd: string
+  inRepo: boolean
+  where: string | null
+  state: string
+  lastActive: string
+  silentMin: number
+  question: string | null
+  questionMin: number
+  this: boolean
+  used: boolean
+}
 
 /** Entrypoints of LOCAL sessions:  web, cloud and SDK sessions are left out. */
 export const LOCAL_ENTRYPOINTS = new Set(["cli", "claude-vscode", "claude-desktop"])

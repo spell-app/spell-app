@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Commands: CLI, skills, yarn</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p9">next: P9 · Take Stock</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p10">next: P10 · Doc Links JS</ui-label></span
             >
           </header></ui-sticky
         >
@@ -70,7 +70,7 @@
               you create a new yarn script to solve some problem. Instruct it to keep that doc up to date.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 13h-19h 30m in all, 3h-3h 30m left (P11 not estimated)</p>
+          <p class="plan-estimate"><b>Estimate:</b> 13h-19h 30m in all, 1h 30m left (P11 not estimated)</p>
           <ui-section id="o1" header="1.1 What exists today" sticky collapsible dividing>
             <p>Three ways to make the repo do something, grown separately:</p>
             <ui-table celled compact striped unstackable>
@@ -371,7 +371,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="8" total="12" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="9" total="12" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -534,6 +534,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p8"
             data-phase="8"
             data-status="done"
@@ -554,8 +555,8 @@
               ><ui-item icon="clock"><b>Estimate:</b> 1h30m-2h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p9" data-phase="9" data-status="todo" header="P9 · Take Stock" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p9" data-phase="9" data-status="done" header="P9 · Take Stock" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> Port whassup.py: spell dev stock [--json], same groups, thresholds and actions</ui-item
@@ -1626,6 +1627,29 @@ missing from commands.html:
                   worktree list|status, spell dev park list|candidates|wait (src/dev/worktrees.ts, parking.ts); checks:
                   worktree list identical to worktrees.py, status of 7 names + park list + candidates identical JSON to
                   status.py, wait exits 0/2/3 checked; cli review green (134 tests); commands:check 211/211</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:02-04:00">2026-10-03 10:02</time></ui-date> P9
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:07-04:00">2026-10-03 10:07</time></ui-date> P9
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:08-04:00">2026-10-03 10:08</time></ui-date> P9 done: spell dev
+                  stock [--json] (src/dev/stock.ts); checks: groups and every item identical to whassup.py --json bar
+                  live-session clock drift, text report identical bar a minute; cli review green (137 tests);
+                  commands:check 212/212</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
