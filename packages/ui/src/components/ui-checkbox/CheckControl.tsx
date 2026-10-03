@@ -1,5 +1,5 @@
 import { createEffect, untrack } from "solid-js"
-import type { JSX } from "@solidjs/web"
+import { isServer, type JSX } from "@solidjs/web"
 
 import {
   Cell,
@@ -16,7 +16,15 @@ import { ControlLabels, FormElement } from "$/ui/forms"
 
 import { CheckboxFallback } from "./ui-checkbox.fallback"
 import { CheckHost } from "./CheckHost"
-import { CHECKBOX, CHECKED, CheckVocabulary, CommonAttributes, DEFAULT_VALUE, ID_PREFIX } from "./ui-checkbox.types"
+import {
+  CHECKBOX,
+  CHECKED,
+  CheckVocabulary,
+  CommonAttributes,
+  DEFAULT_VALUE,
+  ID_PREFIX,
+  STATIC_CONTROL
+} from "./ui-checkbox.types"
 
 import checkboxCSS from "./ui-checkbox.css?inline"
 
@@ -83,9 +91,12 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
     return this.attrs as unknown as CommonAttributes
   }
 
-  /** Chosen now?  Tracked. */
+  /**
+   * Chosen now?  Tracked.
+   * - Server render:  `checked` in markup counts at once (a browser applies it a microtask late).
+   */
   isSelected(): boolean {
-    return !!this.selectedState.get()
+    return !!this.selectedState.get() || (isServer && this.initial)
   }
 
   isDisabled(): boolean {
@@ -192,8 +203,20 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
     return false
   }
 
+  /**
+   * Server render only (`$/ui/server`):  what the native input needs to submit without JS -- `name`, `value`,
+   * `checked` -- and the `STATIC_CONTROL` mark;  `{}` in a browser, where the HOST submits (`ElementInternals`)
+   * and an effect sets `checked`.
+   */
+  protected staticControl(): Record<string, unknown> {
+    if (!isServer) return {}
+    const { name, value } = this.common
+    return { [STATIC_CONTROL]: "", name, value, checked: this.isSelected() }
+  }
+
   render(): JSX.Element {
-    this.inputId = UI.ids.next(ID_PREFIX)
+    // server render:  the host's id, so its `<label for>`s label the input (the flattener moves it there)
+    this.inputId = (isServer && this.host.id) || UI.ids.next(ID_PREFIX)
     return (
       <div class={this.classes()} part={this.part("checkbox" as never)}>
         <input
@@ -208,6 +231,7 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
           aria-readonly={this.common.readonly && this.inputType() === CHECKBOX ? "true" : undefined}
           aria-label={this.hasText() ? undefined : this.labels.name()}
           aria-invalid={this.touched.get() && !this.validation().valid ? "true" : undefined}
+          {...this.staticControl()}
           onClick={this.onClick}
           onChange={this.onChange}
           onKeyDown={this.onKeyDown}

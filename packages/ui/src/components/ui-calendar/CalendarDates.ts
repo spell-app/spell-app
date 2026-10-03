@@ -1,7 +1,7 @@
 import type { Temporal } from "temporal-polyfill"
 
 import type { TemporalAPI, UIT } from "$/ui/core"
-import { MODES, ModeOptions, Moment, MomentFields, YEAR } from "./ui-calendar.types"
+import { ISO_FORMS, MODES, ModeOptions, Moment, MomentFields, MomentLike, YEAR } from "./ui-calendar.types"
 
 /****************
  * ### `CalendarDates`
@@ -197,11 +197,24 @@ export class CalendarDates {
    * Milliseconds for `Intl.DateTimeFormat` with `timeZone: "UTC"`:  the moment's fields, unshifted.
    * - `setUTCFullYear`, not `Date.UTC()`, which maps years 0-99 to 19xx.
    */
-  static epoch(moment: Moment): number {
+  static epoch(moment: MomentLike): number {
     const date = new Date(0)
     date.setUTCFullYear(moment.year, moment.month - 1, moment.day)
     date.setUTCHours(moment.hour, moment.minute, 0, 0)
     return date.getTime()
+  }
+
+  /**
+   * Server render:  the fields of ISO `text` for `type`, read by hand (no `Temporal` there), for FORMATTING only;
+   * `undefined` when it isn't that type's ISO form.  Unused parts are zero (a time's date:  1970-01-01).
+   */
+  static isoFields(text: string, type: UIT.CalendarType): MomentLike | undefined {
+    const match = ISO_FORMS[type].exec(text.trim())
+    if (!match) return undefined
+    const numbers = match.slice(1).map(Number)
+    if (type === "time") return { year: 1970, month: 1, day: 1, hour: numbers[0]!, minute: numbers[1]! }
+    const [year = 1970, month = 1, day = 1, hour = 0, minute = 0] = numbers
+    return { year, month, day, hour, minute }
   }
 
   /** A `Date`'s local fields, to the minute. */

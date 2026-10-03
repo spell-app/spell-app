@@ -21,6 +21,13 @@ export type SearchMatcherOptions = {
   ignoreDiacritics?: boolean
 }
 
+/**
+ * Marks the NATIVE control in a static server render (`$/ui/server`), for the flattener:  the host's `id` and ARIA
+ * names belong there, so a `<label for>` the host's id labels the control.
+ * - TODO: one shared constant (`UIT`) once `StaticFlattener` reads it (seo plan, P3).
+ */
+export const STATIC_CONTROL = "data-ui-control"
+
 /** Fields searched by default. */
 export const DEFAULT_FIELDS = ["title", "description"]
 

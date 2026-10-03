@@ -175,8 +175,12 @@
     --_ui-step-circular-title-background: var(--ui-step-circular-title-background, var(--ui-surface));
   }
 
-  /* Group:  a bordered row of steps. */
+  /* Group:  a bordered row of steps.
+     - `container: none`:  the root is never the size container (its host is, or in static markup its parent);  a
+       static server render (`$/ui/server`) moves the host's `container` onto the root, where inline-size
+       containment would shrink the inline-flex group to nothing. */
   .ui.steps {
+    container: none;
     box-sizing: border-box;
     display: inline-flex;
     flex-flow: row wrap;

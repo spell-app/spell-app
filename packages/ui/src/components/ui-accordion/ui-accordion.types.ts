@@ -37,6 +37,9 @@ export const ARROW_UP = "ArrowUp"
 export const HOME = "Home"
 export const END = "End"
 
+/** Slot assignment by name, in a server render (`UIAccordion.panelSlot()`). */
+export const SLOT_ATTRIBUTE = "slot"
+
 /** Canonical tag of a title child (`parts`:  another family, not imported). */
 export const TITLE_TAG = "ui-title"
 

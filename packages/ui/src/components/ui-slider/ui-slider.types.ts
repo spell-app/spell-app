@@ -60,6 +60,16 @@ export const TO = "--_slider-to"
 /** Roles and ARIA values. */
 export const SLIDER = "slider"
 
+/**
+ * Marks the thumb (a range's group) in a static server render (`$/ui/server`), for the flattener:  the host's `id`
+ * and ARIA names belong there.
+ * - TODO: one shared constant (`UIT`) once `StaticFlattener` reads it (seo plan, P3).
+ */
+export const STATIC_CONTROL = "data-ui-control"
+
+/** Hidden input carrying the value in a static server render:  `type`. */
+export const HIDDEN = "hidden"
+
 /** Keys. */
 export const ARROW_UP = "ArrowUp"
 export const ARROW_LEFT = "ArrowLeft"

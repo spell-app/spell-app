@@ -3,6 +3,8 @@ import postcss, { AtRule, type ChildNode, type Container, type Document, type Ru
 import { pageCSS, resetCSS } from "$/ui/styles"
 
 import type { StaticFamily, StaticSheetUsage } from "./server.types"
+import { ServerRuntime } from "./ServerRuntime"
+import { StaticPageStyles } from "./StaticPageStyles"
 import { StaticSelectors, type StaticSelectorOptions } from "./StaticSelectors"
 
 /****************
@@ -38,7 +40,9 @@ export class StaticStylesheet {
    */
   static build(families: Iterable<StaticFamily>, usage?: StaticSheetUsage): string {
     const sheets = new Map<string, { css: string; nouns: Set<string> }>()
+    const tags = new Map<string, string>()
     for (const { Class, definition } of families) {
+      tags.set(definition.tag, definition.vocabulary.noun)
       for (const [name, css] of Object.entries(Class.prototype.styles)) {
         let sheet = sheets.get(name)
         if (!sheet) sheets.set(name, (sheet = { css, nouns: new Set() }))
@@ -53,9 +57,14 @@ export class StaticStylesheet {
     ]
     for (const name of StaticStylesheet.ordered([...sheets.keys()], usage?.orders.values() ?? [])) {
       const { css, nouns } = sheets.get(name)!
-      const roots = [...nouns].map((noun) => `[data-ui="${noun}"]`).join(", ")
+      // also class-grammar markup the page wrote itself (`<button class="ui button">`), as a page sheet styled it
+      const roots = [...nouns].flatMap((noun) => [`[data-ui="${noun}"]`, `.ui.${noun}:not([data-ui])`]).join(", ")
       const listItems = [...nouns].some((noun) => LIST_OWNERS.has(noun))
-      parts.push(`/* ${name} */\n${StaticStylesheet.scope(css, `:is(${roots})`, { listItems })}`)
+      parts.push(`/* ${name} */\n${StaticStylesheet.scope(css, `:is(${roots})`, { listItems, tags })}`)
+    }
+    // page sheets components registered while rendering (`ui-dimmer.page.css`):  page CSS, unscoped
+    for (const [name, css] of ServerRuntime.pageSheets) {
+      if (!sheets.has(name)) parts.push(`/* ${name} (page) */\n${StaticPageStyles.rewrite(css, tags)}`)
     }
     parts.push(LIST_ITEMS, HIDDEN)
     return parts.join("\n\n")

@@ -292,15 +292,46 @@ every entry below that date was fixed or disproven;  what's left:
 
 ### 3. Styling / CSS
 
+- `src/components/ui-item/ui-item.css` `.item > .icon > svg { width: auto; height: 1em }` doesn't hold in a
+  `<ui-list>`'s items:  every icon SVG is 20px WIDE (the box) and its height follows the aspect, so a tall glyph
+  (`location dot`, 384x512) is 27px, taller than the text.  The static render (`yarn test:visual --static --grep
+  ui-list`, `ui-list/types`) draws them all 1em high, as the comment says.  Find what sets the width in the shadow
+  root.  (2026-10-02)
 - `src/components/ui-segment/ui-segment.css` `.ui.segments:first-child` / `:last-child`:  a `<ui-segments>` root is
   ALWAYS its shadow root's only child, so both rules always zero its vertical margins;  `.ui.segment` compensates
   with `:host(:not(:first-child))`, groups don't.  So element groups sit flush where Fomantic's class grammar (and
   the static render, `yarn test:visual --static`) gives them 1em.  Prove:  `yarn test:visual --parity --grep
   segment`, `ui-segment/groups`.  Fix needs new visual baselines.  Seen in the seo plan (I8).  (2026-10-02)
+- `src/components/ui-step/ui-step.css` `.ui.steps:first-child` / `:last-child`, `ui-statistic.css`
+  `.ui.statistics:first-child` and the standalone `.ui.statistic:first-child` / `:last-child` / `+ .ui.statistic`,
+  `ui-ad.css` `.ui.ad:first-child` / `:last-child`:  the same as segments -- each shares its body with a
+  `:host(:first-child) > ...` twin, but the root is ALWAYS its shadow root's only child, so the class-grammar half
+  always matches:  element step groups, statistics and ads never get their 1em vertical margins (and stacked
+  standalone statistics lose their spacing), where Fomantic's class grammar and the static render keep them.
+  Prove:  `yarn test:visual --static --browsers chrome --grep step,statistic,ad` (every group 16px lower statically,
+  ui-step/types 14%, ui-statistic/types 12%, ui-ad/variations 3%).  Fix needs new visual baselines.  (2026-10-02)
+- `src/components/ui-menu/ui-menu.css` `.ui.menu:first-child` / `:last-child`:  the same as segments -- a top-level
+  `<ui-menu>`'s root is its shadow root's only child, so every element menu has NO vertical margins (computed 0 / 0;
+  Fomantic's class grammar and the static render give 1em between menus, e.g. a pointing menu above a secondary
+  pointing one, two tabular menus, stacked vertical menus).  Prove:  `yarn test:visual --static --grep ui-menu`,
+  `ui-menu/types` (5.6%) and `variations` (14%) are only that.  Fix needs new visual baselines.  (2026-10-02)
+- `src/components/ui-table/ui-table.css` `.scroller { margin-block: 1em }`:  as grid / card below, the scroller's margin
+  sits inside the size-container host, so it never collapses with the heading above:  every element table is 16px lower
+  than class grammar's (and the static render's).  `ui-table/*` static parity (10-19%) is only that, accumulated.  Fix
+  as `ui-items.css` did:  the outer margin on the host.  (2026-10-02)
 - `src/components/ui-grid/ui-grid.css`, `ui-card.css`:  as `items` was (fixed 2026-10-01), a size-container group host keeps
   its root's top margin from collapsing with the heading above:  element markup shows a bigger gap than class grammar
   (grid/types +16px under the celled grid, grid/variations several sections, card/content and card/types one each).
   Fix per owner, as `ui-items.css` did (`:host(:state(items))` carries the outer margin).  (2026-10-01)
+- `src/components/ui-tab/UITabs.tsx` / `src/styles/colors.css`:  `<ui-tabs inverted pointing secondary>` fills its
+  inverted panes grey:  `secondary` (a MENU look word on the tabs root) also matches colors.css's `.ui.secondary` colour
+  remap, so the root sets `--ui-color: var(--ui-secondary)`, which inherits through the panes' `<slot>` into each
+  `.ui.inverted.tab.segment` (`--_segment-bg: var(--ui-color, ...)`).  Class grammar and the static render
+  (`yarn test:visual --static --grep ui-tab`, `ui-tab/variations` "Inverted") keep the plain inverted background.
+  Prove:  computed `--ui-color` on the tabs root's `<slot>` there.  (2026-10-02)
+- `src/components/ui-tab/ui-tab.css` vertical tabs:  `examples/elements/variations.html` "Vertical" says the pane
+  "will always match the tab height", but the element pane's segment is content-high:  the HOST is the stretched flex
+  item, its `.ui.tab` box isn't.  The static render (root = flex item) does stretch.  (2026-10-02)
 - `src/components/ui-items/ui-items.css`:  the outer margin now sits on the host, in the host's UNSCALED font size, so a
   sized group's `1.5em` margin uses 16px.  Unmeasured.  (2026-10-01)
 - `src/components/ui-list/ui-list.css`:  a raw slotted `<img>` followed by `<ui-content>` still puts the content below:  a

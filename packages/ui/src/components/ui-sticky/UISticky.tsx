@@ -1,5 +1,5 @@
 import { createEffect } from "solid-js"
-import type { JSX } from "@solidjs/web"
+import { isServer, type JSX } from "@solidjs/web"
 
 import { Cell, proto, StickyWatch, UIElement, UIT, type StickyWatchState } from "$/ui/core"
 
@@ -96,17 +96,22 @@ export class UISticky extends UIElement<StickyVocabulary> {
 
   render(): JSX.Element {
     this.effects()
+    const box = (
+      <div
+        ref={(element) => (this.box = element)}
+        class={this.classes()}
+        part={this.part("sticky")}
+        style={this.boxStyle()}
+      >
+        <slot />
+      </div>
+    )
+    // a server render (`$/ui/server`):  the box alone, the root;  CSS sticks it, nothing observes
+    if (isServer) return box
     return (
       <>
         <div ref={(element) => (this.topSentinel = element)} class={SENTINEL} aria-hidden="true" />
-        <div
-          ref={(element) => (this.box = element)}
-          class={this.classes()}
-          part={this.part("sticky")}
-          style={this.boxStyle()}
-        >
-          <slot />
-        </div>
+        {box}
         <div ref={(element) => (this.bottomSentinel = element)} class={BOTTOM_SENTINEL} aria-hidden="true" />
       </>
     )

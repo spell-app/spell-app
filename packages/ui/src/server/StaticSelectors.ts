@@ -9,7 +9,10 @@
  * - `:host(X)` alone => `:scope:is(X)`, flagged `hostOnly`:  its `display` is the host box's, not the root's
  * - `:state(x)` => `[data-state~="x"]`, the flattener's attribute for host states
  * - `::slotted(X)` => `X`:  slotted nodes are now plain children where the slot was;  alone, `:scope > X`
- * - `slot` (the element) => `*`:  its token resets reach the assigned children, as inheritance through the slot did
+ * - `slot` (the element) => `[data-ui-slotted]`:  its token resets reach the assigned nodes, as inheritance through
+ *   the slot did;  a rule ON the slot is flagged `hostOnly` (boxless:  first layer, no `display`)
+ * - every subject is anchored (`anchor()`):  it may be the root, and only `::slotted()` / `slot` subjects may be
+ *   slotted
  * - Anything else (class grammar) is kept as written.
  ****************/
 export class StaticSelectors {
@@ -18,25 +21,51 @@ export class StaticSelectors {
    * - `listItems`:  the sheet of a group whose items the flattener wraps in `<li data-ui-li>` (cards, list ...):
    *   each child combinator also matches through the wrapper (`A > B` => `A > B` and `A > [data-ui-li] > B`).
    */
-  static rewrite(selector: string, { listItems = false }: StaticSelectorOptions = {}): StaticSelectorResult {
-    let text = StaticSelectors.replaceFunction(selector.trim(), "::slotted", (inner, before) =>
-      before.trim() === "" ? `:scope > ${inner}` : inner
-    )
+  static rewrite(selector: string, { listItems = false, tags }: StaticSelectorOptions = {}): StaticSelectorResult {
+    let slotted = selector.includes("::slotted(")
+    // `slot::slotted(X)` (X assigned to THIS slot) is just X now
+    let text = selector.trim().replace(SLOT_THEN_SLOTTED, "$1::slotted(")
+    text = StaticSelectors.replaceFunction(text, "::slotted", (inner, before) => {
+      const target = StaticSelectors.slottedTarget(inner.trim(), tags)
+      return before.trim() === "" ? `:scope > ${target}` : target
+    })
     text = StaticSelectors.replaceFunction(text, ":state", (inner) => `[data-state~="${inner.trim()}"]`)
-    text = text.replace(SLOT_ELEMENT, "$1*")
+    // the slot element:  its resets reached the assigned nodes by inheritance;  a rule ON it is boxless, like a host's
+    const slotSubject = SLOT_SUBJECT.test(text)
+    if (HAS_SLOT.test(text)) slotted = true
+    text = text.replace(SLOT_ELEMENT, `$1${SLOTTED}`)
     const result = text.startsWith(":host") ? StaticSelectors.rewriteHost(text) : { selectors: [text], hostOnly: false }
+    result.hostOnly ||= slotSubject
     if (listItems) result.selectors = result.selectors.flatMap((each) => StaticSelectors.throughListItems(each))
-    result.selectors = result.selectors.map((each) => StaticSelectors.anchor(each))
+    result.selectors = result.selectors.map((each) => StaticSelectors.anchor(each, slotted))
     return result
   }
 
   /**
-   * `selector` able to match the scope's ROOT:  inside `@scope`, a selector without `:scope` is read as
-   * `:scope <selector>`, a descendant, so `.ui.card` would never match the card's own root.
-   * - Adds `:where(:scope, *)` to its subject (before a pseudo-element):  no specificity, still within the scope's
-   *   root and limit.
+   * What `::slotted(X)` reaches statically:  slotted nodes are plain children now.
+   * - A native type (`img`) never matched a slotted COMPONENT (its host was `ui-image`), whose root may now be an
+   *   `<img>`:  `:not([data-ui])`.
+   * - A `ui-*` type => that family's root (`[data-ui="<noun>"]`), from `tags`;  unknown tags are kept (match nothing).
    */
-  private static anchor(selector: string): string {
+  private static slottedTarget(inner: string, tags: ReadonlyMap<string, string> | undefined): string {
+    const tag = /^ui-[\w-]+/.exec(inner)?.[0]
+    if (tag) {
+      const noun = tags?.get(tag)
+      return noun ? `[data-ui="${noun}"]${inner.slice(tag.length)}` : inner
+    }
+    return /^[a-z]/.test(inner) ? `${inner}:not([data-ui])` : inner
+  }
+
+  /**
+   * `selector` able to match the scope's ROOT, and only what the shadow tree held.
+   * - Inside `@scope`, a selector without `:scope` is read as `:scope <selector>`, a descendant, so `.ui.card`
+   *   would never match the card's own root:  its subject (before a pseudo-element) gets `:where(:scope, ...)`,
+   *   which adds no specificity and stays within the scope's root and limit.
+   * - A shadow selector never reached slotted nodes (author content, other components):  `:where(:scope,
+   *   :not([data-ui-slotted]))` keeps it to the root and the component's own markup.  A selector from `::slotted()`
+   *   or `slot` (`slotted`) targets exactly those:  `:where(:scope, *)`.
+   */
+  private static anchor(selector: string, slotted: boolean): string {
     if (selector.includes(":scope")) return selector
     let depth = 0
     let subject = 0
@@ -48,7 +77,7 @@ export class StaticSelectors {
     }
     const pseudo = StaticSelectors.pseudoElementIndex(selector.slice(subject))
     const at = pseudo < 0 ? selector.length : subject + pseudo
-    return selector.slice(0, at) + ANCHOR + selector.slice(at)
+    return selector.slice(0, at) + (slotted ? ANCHOR_SLOTTED : ANCHOR) + selector.slice(at)
   }
 
   /**
@@ -103,7 +132,8 @@ export class StaticSelectors {
       condition = `:is(${StaticSelectors.hostPosition(rest.slice(1, end))})`
       rest = rest.slice(end + 1)
     }
-    const host = `:scope${condition}`
+    // a COMPONENT root only:  class-grammar markup (a scope root too, `.ui.label:not([data-ui])`) never had a host
+    const host = `${HOST}${condition}`
     if (!rest.trim()) return { selectors: [host], hostOnly: true }
     if (StaticSelectors.pseudoElementIndex(rest) === 0) return { selectors: [host + rest], hostOnly: false }
     const trimmed = rest.trimStart()
@@ -203,10 +233,21 @@ export type StaticSelectorResult = {
 export type StaticSelectorOptions = {
   /** The sheet's group wraps its items in `<li data-ui-li>`:  child combinators also step over the wrapper. */
   listItems?: boolean
+  /** Rendered tag => noun (`ui-segments` => `segments`), for `::slotted(ui-x)`. */
+  tags?: ReadonlyMap<string, string>
 }
 
-/** Makes a selector without `:scope` match the scope root too (`anchor()`). */
-const ANCHOR = ":where(:scope, *)"
+/** What `:host` becomes:  the scope root, when it is a component root (no specificity added). */
+const HOST = ":scope:where([data-ui])"
+
+/** Makes a shadow selector without `:scope` match the scope root too, never slotted nodes (`anchor()`). */
+const ANCHOR = ":where(:scope, :not([data-ui-slotted]))"
+
+/** `ANCHOR` for a selector aimed at slotted nodes (`::slotted()`, `slot`):  they carry `data-ui-slotted`. */
+const ANCHOR_SLOTTED = ":where(:scope, *)"
+
+/** What the `slot` element becomes:  the nodes assigned to it. */
+const SLOTTED = "[data-ui-slotted]"
 
 /** The flattener's list item wrapper. */
 const LIST_ITEM = "[data-ui-li]"
@@ -228,3 +269,12 @@ const COMBINATOR_START = /[\s>+~]/
 
 /** `slot` as a type selector:  at the start, after a combinator or `(` / `,`. */
 const SLOT_ELEMENT = /(^|[\s>+~(,])slot(?![\w-])/g
+
+/** `SLOT_ELEMENT`, not global:  for `.test()`, which a `g` regex would make stateful. */
+const HAS_SLOT = /(^|[\s>+~(,])slot(?![\w-])/
+
+/** `slot` as the SUBJECT:  in the last compound. */
+const SLOT_SUBJECT = /(^|[\s>+~(,])slot(?![\w-])[^\s>+~]*$/
+
+/** `slot::slotted(`:  the slotted node is the subject, not the slot. */
+const SLOT_THEN_SLOTTED = /(^|[\s>+~(,])slot::slotted\(/g
