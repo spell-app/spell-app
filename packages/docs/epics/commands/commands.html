@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Commands: CLI, skills, yarn</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p10">next: P10 · Doc Links JS</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p11">next: P11 · Skills Switch</ui-label></span
             >
           </header></ui-sticky
         >
@@ -70,7 +70,7 @@
               you create a new yarn script to solve some problem. Instruct it to keep that doc up to date.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 13h-19h 30m in all, 1h 30m left (P11 not estimated)</p>
+          <p class="plan-estimate"><b>Estimate:</b> 13h-19h 30m in all, 30m left (P11 not estimated)</p>
           <ui-section id="o1" header="1.1 What exists today" sticky collapsible dividing>
             <p>Three ways to make the repo do something, grown separately:</p>
             <ui-table celled compact striped unstackable>
@@ -371,7 +371,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="9" total="12" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="10" total="12" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -555,7 +555,16 @@
               ><ui-item icon="clock"><b>Estimate:</b> 1h30m-2h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p9" data-phase="9" data-status="done" header="P9 · Take Stock" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p9"
+            data-phase="9"
+            data-status="done"
+            header="P9 · Take Stock"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -568,13 +577,13 @@
           <ui-section
             id="p10"
             data-phase="10"
-            data-status="todo"
+            data-status="done"
             header="P10 · Doc Links JS"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> Port packages/docs/scripts/doc-links.py to doc-links.js (docs scripts are node)</ui-item
@@ -583,7 +592,8 @@
                 it</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> same output and same edits as the python on every page; docs lint / test green</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
+              ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item
+              ><ui-item icon="gavel"><b>Judgement calls:</b>  <a href="#t10">T10</a></ui-item></ui-list
             >
           </ui-section>
           <ui-section
@@ -1292,6 +1302,21 @@ missing from commands.html:
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="t10" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t10">T10</a>
+                  <span class="plan-title">Review: doc-links.js rewritten as plain Node</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The first port was byte-identical but ~220 of its 576 lines imitated Python (<code>os.path</code>,
+                    <code>repr</code>, Python's Unicode regex classes, invalid-entity rules). <b>Chose:</b> rewrite as
+                    plain Node (375 lines), keeping every page edit byte-identical on all 45 pages and the same 13
+                    <code>--check</code> problems; console messages now read as plain text, not Python sets / lists.
+                    <b>Over:</b> keeping the exact messages. Python-only character handling no page uses is gone.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1650,6 +1675,29 @@ missing from commands.html:
                   stock [--json] (src/dev/stock.ts); checks: groups and every item identical to whassup.py --json bar
                   live-session clock drift, text report identical bar a minute; cli review green (137 tests);
                   commands:check 212/212</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:08-04:00">2026-10-03 10:08</time></ui-date> P10
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:15-04:00">2026-10-03 10:15</time></ui-date> P10
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:15-04:00">2026-10-03 10:15</time></ui-date> P10 done:
+                  packages/docs/scripts/doc-links.js (plain Node, 375 lines) + doc-links.test.js; doc-links.py deleted;
+                  callers switched (pages.js, update.js, goals.js); checks: page edits byte-identical on 45 pages, same
+                  --check problems, docs lint/ts/test green (48)</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

@@ -157,19 +157,19 @@ Docs for every package:  hand-authored `.html` pages rendered with `@spell-app/u
 
 - Every reference to a file, folder or external page is a link that opens a NEW TAB with its own named target per
   destination (re-clicks reuse that tab).
-  - `python3 scripts/doc-links.py <page>` links `<code>path</code>` references and targets existing links
+  - `node scripts/doc-links.js <page>` links `<code>path</code>` references and targets existing links
     (idempotent).  Paths resolve against the page's folder, its `experiments/`, the repo root, `packages/`, and
     `#name/...` aliases.
-  - `python3 scripts/doc-links.py --check <page>` must pass:  every local link resolves, one target per destination,
+  - `node scripts/doc-links.js --check <page>` must pass:  every local link resolves, one target per destination,
     no nested links.
 
 ## Finishing a page
 
 In this order, from `packages/docs`:
 
-1. `python3 scripts/doc-links.py <page>`
+1. `node scripts/doc-links.js <page>`
 2. `yarn oxfmt <page>` (`yarn format` would reformat it anyway)
-3. `python3 scripts/doc-links.py --check <page>`
+3. `node scripts/doc-links.js --check <page>`
 4. `node scripts/check-spell.js <page>` must pass -- and LOOK at its four screenshots:  the checks can't see
    overlap, clipping or bad wrapping
 5. `yarn docs:index` when the page is new, renamed, or its `<title>` / description changed
@@ -177,7 +177,7 @@ In this order, from `packages/docs`:
 ## Scripts
 
 - `yarn docs:update` (`scripts/update.js`) -- rebuild the bundle from the LATEST UI, `docs:index`, then
-  `doc-links.py --check` and `check-spell.js` on every page.  `--skip-ui-build` reuses `../ui/dist`;  `--no-check` skips the browser.
+  `doc-links.js --check` and `check-spell.js` on every page.  `--skip-ui-build` reuses `../ui/dist`;  `--no-check` skips the browser.
 - `scripts/bundle-spell-ui.js` -- builds UI (fork + `yarn build`), bundles `_assets/spell-ui.js`.
 - `yarn docs:index` (`scripts/index.js`) -- rewrites the lists in `index.html`.
 - `yarn docs:new` (`scripts/new-page.js`) -- a page from a template, at any depth.
@@ -187,11 +187,12 @@ In this order, from `packages/docs`:
   `serialize()`, `openInChrome()`, `openInVSCode()` (plan docs:  the doc preview through the spell extension's
   `DocPreview`).
 - `scripts/check-spell.js <page> [outDir]` -- Playwright, from `file://` (from the page server when the page says
-  `data-spell-needs-server`):  fails on console errors, undefined / unrendered `ui-*`, contents vs sections, phone-width overflow, top-level titles that don't stick, a section that won't fold /
-  unfold or forgets its fold on reload, a drawer that won't open;  writes screenshots.
+  `data-spell-needs-server`):  fails on console errors, undefined / unrendered `ui-*`, contents vs sections,
+  phone-width overflow, top-level titles that don't stick, a section that won't fold / unfold or forgets its fold
+  on reload, a drawer that won't open;  writes screenshots.
 - `scripts/to-ui-section.js <page>...` -- converts old `section.s2|s3` pages to `<ui-section>` (ids kept);  its
   `convertSections()` is also `plan-doc.js` `migrate`'s last step.  Idempotent;  refuses goals pages.
-- `scripts/doc-links.py` -- see "Links".
+- `scripts/doc-links.js` -- see "Links".  Text and regexes, not a DOM:  it edits only what it links.
 - A @spell-app/ui problem:  fix it in `packages/ui` when it's a real `ui` bug (the same change may touch both), else work
   around it here;  either way, add it to `spell-docs/spell-ui-findings.md`.
 
