@@ -62,6 +62,7 @@ Every command takes one or more targets:
 | `spell serve [target]` | Runs everything -- the spell app's editor (vite, hot reload) and this checkout's page server (`yarn server`:  the app's `/api`, which saves files to disk, plus docs, epics, goals and Spell UI) -- and opens the editor on `target` in your browser, until `Ctrl-C`.  `--port <n>` (the editor's;  default 3000), `--headless`. |
 | `spell plan-doc <command> <name> ...` | Edits a plan doc (`packages/docs/epics/<name>/<name>.html`) as the `/epic` skill does:  `yarn plan-doc` from anywhere, in the nearest checkout (a worktree's, when run in one).  `spell plan-doc` alone lists its commands, e.g. `summary <name>`, `phase <name> 2 done`. |
 | `spell icons [query]` | Finds `@spell-app/ui` icons by name, alias or keyword:  name, pack, other names.  `--pack <id>`, `--json`.  `--open` shows them as pictures in your browser (click one to copy its name), until `Ctrl-C`. |
+| `spell static <pages...>` | `@spell-app/ui` pages as plain HTML for crawlers and no-JS readers:  each `ui-*` element rendered to light DOM (no shadow DOM), the scripts that load the elements removed.  Writes `page.static.html` beside `page.html`, and the stylesheet it needs, minified, as `page.static.css` beside that.  `-o <file>` (one page) or `-o <folder>` (several), `--inline` (a `<style>` instead), `--css <file>` (one stylesheet for every page), `--no-minify`.  A folder:  every `.html` in it. |
 | `spell compile <targets...>` | Writes each project's `<Project>.compiled.js`, and with no errors its scope pack `<Project>.scopes.js`.  `--stdout` prints it and writes nothing.  `--force` recompiles the projects it imports, too.  A `.spell` file prints its javascript. |
 | `spell check <targets...>` | Lists errors on stdout as `path:line:col  message`.  `--json` for a JSON list. |
 | `spell describe <target> [name] [member]` | What the Type Explorer shows, as text.  E.g. `spell describe Card.spell Card color`.  `--compiled`, `--inherited`, `--json`. |
@@ -93,6 +94,7 @@ Every command takes one or more targets:
 
 - `compile` writes `<Project>.compiled.js`, as the app does.  With no errors, also `<Project>.scopes.js`, as the
   language server does.  `--stdout` writes neither.  `watch` the same after each rebuild, unless `--check-only`.
+- `static` writes `<page>.static.html` and `<page>.static.css` beside each page, or where `-o` / `--css` say.
 - `check`, `describe`, `explore`, `run` and `test` write nothing of their own.  But if a project imports one that
   has NEVER been compiled, it's compiled first, which writes that project's `.compiled.js`.  Parsing fails without it.
 - An imported project's existing `.compiled.js` is used as is, even if its sources changed since.  Compile it first.
@@ -132,6 +134,27 @@ Every command takes one or more targets:
   `packages/app`.
 - Opens only projects in the app's roots (`spell projects`):  a project in some other folder opens the chooser.
 - Their output is hidden unless `--verbose`, or one fails.
+
+### `static`
+
+- Renders through `@spell-app/ui`'s static server render (`$/ui/server`, plan doc `packages/docs/epics/seo/seo.html`)
+  in a child process, `src/runner/renderStatic.ts`, on an SSR-only Vite server (`ui/tools/StaticRenderer.ts`):  `ui`'s
+  Solid JSX must compile for the server, which `tsx` can't.  Each run starts Vite and compiles every family, so a page
+  takes about 3 seconds;  several pages share one run.
+- Renders the families in `StaticCatalog` (`ui/src/server/`);  any other `ui-*` tag (`ui-code`, `ui-markdown` ...)
+  stays as it is, and is listed on stderr.
+- Removes a `<script>` (or `<link rel="modulepreload">`) whose `src` or text names `@spell-app/ui`, `$/ui`, `ui`'s
+  `src/` / `dist/`, a family folder, or the docs' `spell-ui.js` bundle:  the elements must not load on a static page,
+  or they'd show the content twice.  Other scripts stay, import maps too.
+- Links the stylesheet FIRST in `<head>`, before the page's own CSS:  its `@layer ui-slotted, page, ui;` sets the layer
+  order before a page sheet names a `ui.*` layer.
+- Rewrites the page's own `<style>`s for the flattened output (`ui-card` => `[data-ui="card"]`, `::part()`,
+  `:state()`), but NOT its linked stylesheets:  page CSS in a `.css` file that targets `ui-*` tags or `::part()`
+  doesn't apply to the static page.
+- Each page's stylesheet holds only the families it uses;  with `--css` the one stylesheet covers every page's.
+- Minified by Lightning CSS, which keeps `@scope`, `@layer`, `:where()` and `light-dark()` (nothing is lowered).  If
+  it can't parse the stylesheet, comments and blank lines are stripped instead, with a warning.
+- Never overwrites a page:  `-o` naming the input is refused.  Outputs are overwritten without asking.
 
 ### `speed`
 
