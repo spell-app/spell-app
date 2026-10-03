@@ -37,7 +37,8 @@
     "goals:test": "TSX_TSCONFIG_PATH=goals/tsconfig.json node --import tsx --test goals/_tools/goalsRoutes.test.ts",
     "window": "node scripts/window.mjs",
     "server": "yarn workspace @spell-app/server server",
-    "serve": "node scripts/serve.mjs"
+    "serve": "node scripts/serve.mjs",
+    "commands:check": "node packages/cli/bin/spell.mjs dev commands check"
   },
   "pageServer": {
     "routes": [

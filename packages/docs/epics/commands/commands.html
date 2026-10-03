@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Commands: CLI, skills, yarn</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p4">next: P4 · Drift Check</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p5">next: P5 · AGENTS Rule</ui-label></span
             >
           </header></ui-sticky
         >
@@ -70,7 +70,7 @@
               you create a new yarn script to solve some problem. Instruct it to keep that doc up to date.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 7h-12h in all, 2h-4h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 7h-12h in all, 1h-2h left</p>
           <ui-section id="o1" header="1.1 What exists today" sticky collapsible dividing>
             <p>Three ways to make the repo do something, grown separately:</p>
             <ui-table celled compact striped unstackable>
@@ -349,7 +349,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="3" total="6" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="4" total="6" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -402,7 +402,16 @@
               ><ui-item icon="gavel"><b>Judgement calls:</b> <a href="#t4">T4</a></ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p3" data-phase="3" data-status="done" header="P3 · Target Scheme" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p3"
+            data-phase="3"
+            data-status="done"
+            header="P3 · Target Scheme"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -416,8 +425,8 @@
               ></ui-list
             >
           </ui-section>
-          <ui-section id="p4" data-phase="4" data-status="todo" header="P4 · Drift Check" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p4" data-phase="4" data-status="done" header="P4 · Drift Check" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> spell dev commands [check] [--json]: lists yarn scripts, CLI commands, skills from source;
@@ -426,7 +435,8 @@
                 ><b>Files:</b> packages/cli/src/commands/commandsCommand.ts, main.ts, cli.types.ts, test; root yarn
                 commands:check</ui-item
               ><ui-item icon="flask"><b>Verify:</b> cli yarn review green; delete a JSON row and check names it</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item></ui-list
+              ><ui-item icon="clock"><b>Estimate:</b> 1-2h</ui-item
+              ><ui-item icon="gavel"><b>Judgement calls:</b> <a href="#t7">T7</a></ui-item></ui-list
             >
           </ui-section>
           <ui-section id="p5" data-phase="5" data-status="todo" header="P5 · AGENTS Rule" sticky collapsible dividing>
@@ -1022,6 +1032,26 @@ missing from commands.html:
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="t7" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t7">T7</a>
+                  <span class="plan-title">Review: drift check reads main.ts as text</span> </ui-title
+                ><ui-content
+                  ><p>
+                    <code>spell dev commands</code> finds CLI commands by matching <code>program.command(...)</code> /
+                    <code>dev.command(...)</code> in the checkout's
+                    <a href="../../../cli/src/main.ts" target="src-packages-cli-src-main-ts"
+                      ><code>packages/cli/src/main.ts</code></a
+                    >. <b>Chose:</b> the source text, because the checkout checked (a worktree) may not be the one
+                    <code>spell</code> runs from. <b>Over:</b> walking this process's commander program: exact, but
+                    checks the WRONG checkout's commands from a worktree. Cost: a receiver must be named
+                    <code>program</code> or <code>dev</code> (noted in
+                    <a href="../../../cli/src/main.ts" target="src-packages-cli-src-main-ts"><code>main.ts</code></a
+                    >).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1188,6 +1218,29 @@ missing from commands.html:
                   ><ui-date><time datetime="2026-10-03T00:27-04:00">2026-10-03 00:27</time></ui-date> P3 done: page
                   sections 5. Target (layers, names, yarn renames) and 6. Roadmap R1-R10; a target on all 227 rows, 161
                   linking to roadmap rows; checks: check-spell ok, no broken in-page links, docs lint green</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:28-04:00">2026-10-03 00:28</time></ui-date> P4
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:33-04:00">2026-10-03 00:33</time></ui-date> P4
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:33-04:00">2026-10-03 00:33</time></ui-date> P4 done: spell dev
+                  group + spell dev commands [list|check] [--json], CLI.findCheckout() (plan-doc uses it too), root yarn
+                  commands:check; checks: cli review green (122 tests), 208 commands all on the page, a removed row and
+                  a bogus name both flagged</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

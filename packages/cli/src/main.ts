@@ -223,6 +223,25 @@ program
   // everything after `plan-doc`, raw:  its `--goal` / `--estimate` ... are the tool's, not ours
   .action(() => run(CLI.planDocCommand, process.argv.slice(process.argv.indexOf("plan-doc") + 1), {}))
 
+/**
+ * `spell dev <noun> <verb>`:  the repo's OWN tools (worktrees, docs, servers ...), as opposed to the spell language.
+ * - The plan for them, and every command the repo has:  `packages/docs/dev/commands/commands.html`
+ * - Each finds the nearest checkout from the current folder (`CLI.findCheckout()`), so it works in a worktree
+ * - NOTE: `commandsCommand` reads the `dev.command(...)` calls in this file's TEXT:  keep the receiver named `dev`
+ */
+const dev = program
+  .command("dev")
+  .description("the repo's own tools -- worktrees, docs, servers ...:  packages/docs/dev/commands")
+
+dev
+  .command("commands")
+  .description("every yarn script, spell command and skill, against the commands page -- check exits 1 on a gap")
+  .argument("[verb]", "list (default):  each command, ✓ if the page names it;  check:  only the gaps")
+  .option("--json", "print every command, and the gaps, as JSON")
+  .action((verb: string | undefined, _options, command) =>
+    run(CLI.commandsCommand, verb ? [verb] : [], command.optsWithGlobals())
+  )
+
 await program.parseAsync()
 
 /**

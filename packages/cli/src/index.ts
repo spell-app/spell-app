@@ -9,6 +9,7 @@
 export * as CLI from "."
 export * from "./cli.types"
 
+export * from "./findCheckout"
 export * from "./resolveTarget"
 export * from "./CliSession"
 export * from "./scopeTree"

@@ -15,6 +15,8 @@
  *   - `runs` -- the tool doing the work (`scripts/window.mjs`, `status.py`, `prose`);  `target`, `notes` -- text
  *   - in `target`, a roadmap id in parens, `(R3)`, links to `#r3`:  the page's roadmap rows carry those ids
  *   - text fields:  `` `code` `` becomes `<code>`;  everything else is escaped
+ * - `sources` (top level, optional):  what `spell dev commands` counts:  `userSkills` (in `~/.claude/skills`),
+ *   `ignore` (commands that need no row);  ignored here
  * - Placeholders the template holds, all optional:  `[data-commands-families]` (the families go in it, as nested
  *   `<ui-section>`s numbered after its parent section), `[data-commands-stats]` (a `ui-statistics`),
  *   `[data-commands-filter]` (a `ui-input`:  hides rows without every typed word)
