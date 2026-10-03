@@ -1039,3 +1039,13 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   hand (solid-migration's P5) it handed out `P10` again:  two `#p10` sections, and `check` didn't flag it. ·
   Renumbered the new one by hand (`p11`) and moved it;  `add-phase` should use max id + 1, and `check` should fail
   on duplicate ids. · docs
+- 2026-10-02 · `yarn plan-doc check` failed "fold:  #overview unfolded, but its content is not visible" after an
+  UPDATE `<ui-message>` went first in `#overview`, as `plan-doc.md` says ("just before" the changed block):
+  `check-spell.js` `foldState()` tests the FIRST unslotted child with `checkVisibility()`, which is `false` for a
+  `display: contents` host such as `<ui-message>`. · Put the summary's UPDATE note just AFTER `p.plan-summary`;
+  `foldState()` should skip `display: contents` children (or test their first box). · docs
+- 2026-10-02 · `doc-links.py --check` failed on a plan doc with "target ... shared by" `solid/solid-2.md` and
+  `solid/SOLID-2.md`:  on macOS's case-insensitive disk an old name (`<code>docs/solid/SOLID-2.md</code>`, kept as
+  history) resolves, so `doc-links.py` links it to a second path for the same file;  unlinking it by hand gets
+  re-linked on the next run. · Wrote the old name as plain text;  `doc-links.py` should resolve paths
+  case-sensitively (compare against the real directory listing). · docs
