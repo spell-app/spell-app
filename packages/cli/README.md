@@ -148,9 +148,10 @@ Every command takes one or more targets:
   or they'd show the content twice.  Other scripts stay, import maps too.
 - Links the stylesheet FIRST in `<head>`, before the page's own CSS:  its `@layer ui-slotted, page, ui;` sets the layer
   order before a page sheet names a `ui.*` layer.
-- Rewrites the page's own `<style>`s for the flattened output (`ui-card` => `[data-ui="card"]`, `::part()`,
-  `:state()`), but NOT its linked stylesheets:  page CSS in a `.css` file that targets `ui-*` tags or `::part()`
-  doesn't apply to the static page.
+- Rewrites the page's own CSS for the flattened output (`ui-card` => `[data-ui="card"]`, `::part()`, `:state()`):
+  its `<style>`s, and each LOCAL linked stylesheet the rewrite changes, inlined in its place as a
+  `<style data-static-from="...">` (relative `url()`s rebased).  Remote sheets, `@import`s and sheets that don't
+  parse stay as they are:  their `ui-*` / `::part()` rules don't apply to the static page.
 - Each page's stylesheet holds only the families it uses;  with `--css` the one stylesheet covers every page's.
 - Minified by Lightning CSS, which keeps `@scope`, `@layer`, `:where()` and `light-dark()` (nothing is lowered).  If
   it can't parse the stylesheet, comments and blank lines are stripped instead, with a warning.
