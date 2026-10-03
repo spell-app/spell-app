@@ -8,7 +8,8 @@ description: Take stock of everything open in this repo -- worktrees, branches, 
 Owen has lots going at once:  show it all in one screen, sort it, and clean up what he picks.  Nothing changes
 before he picks it in a modal.
 
-- `whassup.py`:  `python3 .claude/skills/whassup/scripts/whassup.py [--json]`, from the repo root or any worktree.
+- `spell dev stock [--json]`, from the repo root or any worktree:  the report (its logic and thresholds:
+  `packages/cli/src/dev/stock.ts`).
   Read-only.  Its docstring says what it looks at and how it groups.
 - The three groups (the script's names in brackets):
   - **In process** (`active`):  a session working in it, or touched in the last 6 hours
@@ -21,7 +22,7 @@ before he picks it in a modal.
 
 ## 1. Take stock
 
-1. Run `whassup.py --json`.
+1. Run `spell dev stock --json`.
 2. Reply with the three groups, in the order above, as numbered lists (Owen refers to items by number:  1, 2 ... in
    the first group, carrying on in the next).  Per item:  its kind and name in bold (`worktree seo`, `session SVG
    from image`), then its `why` in plain words.  An empty group:  one line, "nothing".
@@ -76,7 +77,7 @@ In the order Owen will want to see them:  quick looks (`wtf`, `open`, `answer`) 
 
 ## 5. Where we stand
 
-1. Run `whassup.py --json` again.
+1. Run `spell dev stock --json` again.
 2. One line per item whose group changed or that went away ("**worktree ui-import**:  dead -> gone"), then the three
    groups again, as in step 1.  Commands refused in step 4:  listed last, ready to paste.
 3. Stop there:  no second "What's next?" unless Owen asks.

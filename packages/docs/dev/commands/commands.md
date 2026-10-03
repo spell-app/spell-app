@@ -32,6 +32,8 @@ yarn scripts do.  READ this before adding, renaming or removing a CLI command, a
   commands check"`).
 - Package-local tool CLIs stay (`packages/ui/tools/cli.ts`).  Claude-only steps stay in skills (`EnterWorktree`,
   `SendMessage`, modals).
+- One language:  tools are TypeScript (`packages/cli/src/dev/` for `spell dev`) or node JS (`packages/docs/scripts`),
+  never python or shell scripts.
 
 ## Names
 
