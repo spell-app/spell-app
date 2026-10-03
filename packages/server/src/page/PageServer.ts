@@ -1,16 +1,16 @@
 import { spawnSync } from "node:child_process"
 import { existsSync, readFileSync, statSync } from "node:fs"
-import { basename, dirname, join, resolve } from "node:path"
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path"
 import { fileURLToPath, pathToFileURL } from "node:url"
 
 import { SRV, type ServerInfo } from "$/server"
-import { AstroProxy, PageEditor, type PageServerSettings, type RouteModule } from "$/server/page"
+import { AstroProxy, PageEditor, RunningEpics, type PageServerSettings, type RouteModule } from "$/server/page"
 
 /**
  * THE page server:  one per checkout (the main one, and each worktree), serving the whole repo on one port.
  * - docs, plan docs, goals, Spell UI docs and (once `app` is in) the editor, all live-reloading
  * - `/` -> the docs index;  `/_server/ping` -> `ServerInfo`;  `/_server/page` -> `PageEditor`;  `/ui/` -> Spell UI's
- *   docs (`AstroProxy`)
+ *   docs (`AstroProxy`);  `/worktrees/<w>/` and `/_server/epics` -> running epics' plan docs (`RunningEpics`)
  * - route modules (`RouteModule`) from the root `package.json`'s `"pageServer"` add the rest, e.g. goals' buttons
  * - port:  `DEFAULT_PORT` (4747) if free, else any;  the real one goes in `<root>/.spell-server.json`, where
  *   `yarn server ensure` and the openers find it
@@ -31,6 +31,9 @@ export class PageServer {
 
   /** Spell UI's docs, `astro dev` behind `/ui/` */
   readonly astro: AstroProxy
+
+  /** running epics' plan docs, from the worktrees */
+  readonly epics: RunningEpics
 
   /** run once listening, from route modules */
   private listenings: (() => unknown)[] = []
@@ -57,6 +60,8 @@ export class PageServer {
         root: this.root,
         branch: this.info.branch,
         worktree: this.info.worktree,
+        // a worktree's page served from here (`/worktrees/<w>/`):  ITS branch and name, for the header's badge
+        ...worktreeOf(served.file, this.root),
         edit: "/_server/page",
         etag: SRV.StaticHandler.etagOf(statSync(served.file))
       })
@@ -73,6 +78,7 @@ export class PageServer {
     this.astro = new AstroProxy(this.root)
     if (this.astro.exists) this.astro.route(this.web)
     new PageEditor(this.root).route(router, this.web.guard)
+    this.epics = new RunningEpics(this.root).route(this.web)
   }
 
   /**
@@ -85,6 +91,7 @@ export class PageServer {
     const settings = this.settings()
     for (const dir of settings.watch ?? ["packages/docs"])
       this.web.live!.watch(join(this.root, dir), { ignore: /(^|\/)(scripts|experiments)\// })
+    this.epics.watch(this.web.live!)
     if (routes) for (const path of settings.routes ?? []) await this.loadRoutes(path)
     const { port: actual } = await this.web.listen({ port })
     this.info.port = actual
@@ -100,6 +107,7 @@ export class PageServer {
   async stop(): Promise<void> {
     for (const stop of this.stops) await Promise.resolve(stop()).catch(() => {})
     this.astro.stop()
+    this.epics.close()
     this.pidFile.removeIfOurs()
     await this.web.close()
   }
@@ -170,6 +178,22 @@ export function findRoot(start: string): string | undefined {
     if (dirname(dir) === dir) return undefined
   }
 }
+
+/**
+ * Branch and worktree name of the worktree `file` is in, when it's under `<root>/.claude/worktrees/`;  else `{}`.
+ * - cached per worktree:  every page served asks
+ */
+function worktreeOf(file: string, root: string): { branch?: string; worktree?: string } {
+  const inside = relative(join(root, ".claude", "worktrees"), file)
+  if (!inside || inside.startsWith("..") || isAbsolute(inside)) return {}
+  const name = inside.split(sep)[0]!
+  let found = WORKTREES.get(name)
+  if (!found) WORKTREES.set(name, (found = checkout(join(root, ".claude", "worktrees", name))))
+  return found
+}
+
+/** `worktreeOf()`'s cache, by worktree name. */
+const WORKTREES = new Map<string, { branch?: string; worktree?: string }>()
 
 /** Branch and worktree name of the checkout at `root`, when git knows. */
 function checkout(root: string): { branch?: string; worktree?: string } {

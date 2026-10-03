@@ -22,6 +22,13 @@ The h1 sits in a sticky header, `<ui-sticky class="spell-h1"><header class="spel
 label at its right (`.plan-step`, written by the script):  the active phase (orange), else `DONE` (green) once every
 phase is, else the next phase (grey).
 
+Below the meta lines, while planning:  the "Plan hung?" notice, `ui-message.plan-hung`.
+- How to restart a hung plan:  a new session in the worktree's window, `/epic <name>`, "Reuse".  Plus the kickoff
+  prompt in a `ui-code.plan-hung-prompt` with a copy button (`setPrompt()` keeps it in step with the Overview's
+  quote).
+- Why:  `/epic` writes this stub doc BEFORE planning, so the prompt survives a hung or lost session.
+- The script removes it once any phase leaves `todo`;  never add it back by hand.
+
 ## Sections (ids are fixed)
 
 | Section | id | What |
@@ -32,7 +39,8 @@ phase is, else the next phase (grey).
 | 4. Caveats | `#caveats` | limits and risks we accept |
 | 5. Todos | `#todos` | later work that isn't a caveat or an issue |
 | 6. Issues | `#issues` | problems found, open until fixed |
-| 7. Log | `#log` | one-liners of plan changes, stamped with local date and time |
+| 7. To test | `#tests` | what Owen checks by hand before merging:  each a step and what should happen (`add <name> test`);  `close` one once it passes |
+| 8. Log | `#log` | one-liners of plan changes, stamped with local date and time |
 
 - Every section is a `<ui-section>` (markup below):  its title sticks, it folds from its chevron (the reader's folds
   are remembered per page), a rule runs under its title.
@@ -64,7 +72,7 @@ Section markup (the template's;  a hand-written Overview sub-section is the same
 
 ## Ids:  short, so they're easy to say in chat
 
-- Items:  `q1` questions, `c1` caveats, `i1` issues, `t1` todos, `d1` decisions.  Shown as `Q1`, `C1` ...
+- Items:  `q1` questions, `c1` caveats, `i1` issues, `t1` todos, `v1` tests ("verify":  `t` is taken), `d1` decisions.  Shown as `Q1`, `C1` ...
 - Phases:  `p1` ...  Shown as `P1 · Short Name`:  a 2-4 word name, so "start P2" is unambiguous.
 - Link to them in prose:  `<a href="#i2">I2</a>`.  `yarn plan-doc check` fails on a link to a missing id.
 
@@ -196,12 +204,12 @@ decide from WITHOUT asking back:  in the item's details, or an Overview sub-sect
 | `new <name> [--title "..."] [--prompt "..." \| --prompt-file <path>]` | copy the template to `epics/<name>/<name>.html`, fill it (the prompt that started the plan goes in the Overview), update the docs index |
 | `add-phase <name> "Short Name" [--goal ...] [--files ...] [--verify ...]` | append a phase to the list and to `#phases` |
 | `phase <name> <N> todo\|active\|done [--no-open]` | set a phase's status;  `done` removes its UPDATE markers;  reloads the doc's VS Code tab |
-| `add <name> question\|caveat\|issue\|todo\|decision "<title>" [--details "<html>"]` | append an item, print its id |
+| `add <name> question\|caveat\|issue\|todo\|test\|decision "<title>" [--details "<html>"]` | append an item, print its id |
 | `close <name> <id>` / `reopen <name> <id>` | strike / unstrike an item |
 | `decide <name> <Q id> "<decision>" [--details "<html>"]` | answer a question:  a new decision (prints its id), the question struck and moved just above it |
 | `log <name> "<text>"` | add a timestamped line to the log |
 | `prompt <name> "<text>"` / `prompt <name> --file <path>` | set (replace) the prompt quoted in the Overview;  `""` removes it |
 | `migrate <name>` | bring an older doc (before 2026-10-01, or with `section.s2` markup) into this layout (prints what changed;  "already current" otherwise) |
-| `summary <name> [--json]` | open questions, issues, caveats, todos, and the next phase |
+| `summary <name> [--json]` | open questions, issues, caveats, todos, tests, and the next phase |
 | `check <name>` | ids unique, every `#id` link resolves, every phase has a status, then `check-spell.js` |
 | `open <name>` | show the doc rendered in VS Code (Simple Browser, beside the editor), reusing its tab and reloading it;  needs the spell extension (`yarn vscode`) |

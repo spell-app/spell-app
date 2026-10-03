@@ -1115,6 +1115,33 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   started `/clear` -> `/epic` -> `/bedtime`, only slash commands (`<command-name>`, skipped as harness text). ·
   `session.py`'s `prompt_text` now reads a slash command as `/name args`, and a title alone keeps a session
   listed. · claude-code
+- 2026-10-02 · `vscode://anthropic.claude-code/open?session=2ae3516d...` opened an idle tab of a DIFFERENT session
+  (`f09af4f3`, the one `/clear` had replaced):  `2ae3516d`'s transcript was saved under the worktree's project
+  folder (`...--claude-worktrees-ui-import/`), not the repo root's, which is where the window's panel looks. ·
+  Copy the `.jsonl` (and its sidecar folder) into `~/.claude/projects/-Users-owen-www-spell-app-spell-app/`, then
+  open it again;  `session.py open` now treats the two copies as one session. · claude-code
+- 2026-10-02 · After merging `ui-import` into `main`, `yarn ts` in `packages/app` failed:  `Cannot find module
+  'highlight.js/lib/languages/...'` from `ui`'s `CodeEngine.ts`.  The branch added a dependency, and the main
+  checkout's `node_modules` was never reinstalled. · `yarn install` at the root after merging a branch that
+  changes any `package.json`. · claude-code
+- 2026-10-02 · In a worktree session, read-only commands were refused too:  a `for` loop over `git rev-list`, a
+  `time ( ... )` subshell, and a `grep ... .gitignore` chained after `ls` ("names git in a form too complex").  The
+  check is on the command TEXT, so even a file name with `git` in it trips it. · One plain command per Bash call;
+  loops and git calls over other branches go in a Python script (`/whassup`'s `whassup.py`). · tooling
+- 2026-10-03 · More worktree-session refusals:  `sed -n "$(grep -n ... | cut -d: -f1),+30p"` (a computed value where
+  an option may stand) and `python3 -c "...open('$HOME/...')"` (a program computed from a variable). · Read with
+  `Read` and its `offset`;  spell paths out, or put the script in a scratchpad file. · tooling
+- 2026-10-03 · Testing what a `UserPromptSubmit` hook gets for a typed slash command, without running the skill. ·
+  `claude -p "/epic x text" --settings <file> --permission-mode plan`, the settings holding one hook that saves
+  its stdin and answers `{"decision":"block"}`:  the input has the raw prompt and `permission_mode`. · claude-code
+- 2026-10-03 · `/isolate` "didn't switch" the session:  the move waits for the turn to end, and `/epic` kept the
+  same turn going (`yarn install`, the doc, exploring, plan mode), so the new window sat empty for minutes. · The
+  skills end the turn right after `window.mjs handoff`, and do the rest in the new window (`--prompt continue`
+  types the next message in). · claude-code
+- 2026-10-03 · After a move, the old tab stayed open, looking live (5 of 7 moves;  ~20 tabs titled `ui-import`):
+  it's found by its label, and a new session has none (`no tabs titled ''`), while sessions opened in a worktree's
+  window share that worktree's title. · `.claude/hooks/prompt-gate.mjs` renames the session on `/isolate|epic|unpark
+  <name>` before Claude runs, and blocks those inside another worktree. · claude-code
 
 ## vscode
 
