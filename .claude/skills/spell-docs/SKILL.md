@@ -16,6 +16,7 @@ argument-hint: "[page]"
      the editor instead.
    - Its title bar:  docs index, reload, open in the browser.
    - Mid-move to a worktree's window (`/isolate`, `/epic`):  shown there once the session has moved.
+   - Not running in VS Code (a CLI session in another terminal):  Chrome, as `yarn docs:open` without `--vs`.
 2. `no page <page>`:  `ls packages/docs` (and the folder it named), offer the closest in AskUserQuestion, run again.
 3. Nothing shows up (it fell back to the `vscode://` link, or the window has no bridge):  `yarn vscode`, reload
    the window, try again.  Meanwhile `yarn docs:open [page]` shows it in Chrome.
