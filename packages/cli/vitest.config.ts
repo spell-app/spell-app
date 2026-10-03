@@ -1,4 +1,4 @@
-import { defineConfig } from "vitest/config"
+import { defineConfig } from "vite-plus"
 
 // The parser's SOURCE runs in our tests, so it needs the parser's own vite plugins
 import { standardDecorators } from "../../vite.decorators.ts"
