@@ -25,9 +25,7 @@
           ><header class="spell-page-head">
             <h1>Vite+</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p2"
-                >next: P2 · Measure + Decide</ui-label
-              ></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p3">next: P3 · Rollout</ui-label></span
             >
           </header></ui-sticky
         >
@@ -58,7 +56,7 @@
               this snappy
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 2h 20m-2h 50m in all, 1h 20m-1h 50m left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 2h 20m-2h 50m in all, 50m-1h 20m left</p>
           <ui-section id="o1" header="1.1 What Vite+ is" sticky collapsible dividing>
             <p>One CLI, <code>vp</code>, wrapping tools we already use one by one:</p>
             <ul>
@@ -160,15 +158,81 @@
               </li>
             </ol>
           </ui-section>
+          <ui-section id="o5" header="1.5 Measured (P2)" sticky collapsible dividing>
+            <p>Worktree, M-series Mac, Node 24. Baseline: same checks on <code>main</code>'s tools first.</p>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>what</th>
+                    <th>before</th>
+                    <th>Vite+</th>
+                    <th>note</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>every package's ts / lint / format:check / test</td>
+                    <td colspan="2">same results</td>
+                    <td class="yes positive">only failures already on <code>main</code></td>
+                  </tr>
+                  <tr>
+                    <td>oxfmt 0.71 -&gt; 0.70 churn</td>
+                    <td class="num right aligned">-</td>
+                    <td class="num right aligned">4 files</td>
+                    <td>rewraps at the 120-col edge</td>
+                  </tr>
+                  <tr>
+                    <td>oxlint 1.86 -&gt; 1.85 new warnings</td>
+                    <td class="num right aligned">-</td>
+                    <td class="num right aligned">0</td>
+                    <td class="yes positive"><a href="#c1">C1</a> didn't bite</td>
+                  </tr>
+                  <tr>
+                    <td>type check, all packages</td>
+                    <td class="num right aligned">6.0s <code>yarn ts</code></td>
+                    <td class="num right aligned">7.8s cold, 0.6s cached</td>
+                    <td class="no negative">cache UNSAFE: <a href="#i1">I1</a></td>
+                  </tr>
+                  <tr>
+                    <td>tests, all packages (2 runs)</td>
+                    <td class="num right aligned">318-345s one by one</td>
+                    <td class="num right aligned">270-276s <code>vp run -r test</code></td>
+                    <td class="meh warning">
+                      cli's 240s suite caps it; <code>-r</code> also ran the root's all-in-one <code>test</code>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>app build / build:element / <code>yarn vscode</code></td>
+                    <td colspan="2">ok</td>
+                    <td class="yes positive">vite-plus-core builds</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+            <p>
+              Verdict: adopt (<a href="#d6">D6</a>: everything green as on <code>main</code>). The win is small:
+              parallel package runs now, a safe cache only once <a href="#i1">I1</a> is fixed with explicit inputs.
+            </p>
+          </ui-section>
         </ui-section>
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="1" total="4" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="2" total="4" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
-          <ui-section id="p1" data-phase="1" data-status="done" header="P1 · Spike Migrate" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p1"
+            data-phase="1"
+            data-status="done"
+            header="P1 · Spike Migrate"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"><b>Goal:</b> vite-plus 1.0.0 in, Node 24, every root script green</ui-item
@@ -188,13 +252,13 @@
           <ui-section
             id="p2"
             data-phase="2"
-            data-status="todo"
+            data-status="done"
             header="P2 · Measure + Decide"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> time yarn foreach vs vp run (cold + warm cache); size of oxfmt churn; list
@@ -322,6 +386,11 @@
               ><a class="plan-id" href="#d8">D8</a>
               <span class="plan-title"
                 >Fold .oxlintrc.json / .oxfmtrc.json into lint / fmt blocks of vite.config.ts</span
+              > </ui-item
+            ><ui-item id="d9" data-status="decided"
+              ><a class="plan-id" href="#d9">D9</a>
+              <span class="plan-title"
+                >P2 verdict: adopt. Every check as on main; parallel vp run now, cached tasks only after I1</span
               >
             </ui-item></ui-list
           >
@@ -528,7 +597,30 @@
 
         <ui-section id="issues" header="6. Issues" sticky collapsible dividing>
           <ui-icon slot="icon" name="bug"></ui-icon>
-          <ui-list class="plan-items" data-kind="issue" divided relaxed></ui-list>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed
+            ><ui-item id="i1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#i1">I1</a>
+                  <span class="plan-title"
+                    >vp run --cache replays a stale 'TSC PASSED': file tracking misses TS 7's native tsc</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Planted <code>const x: number = 'nope'</code> in
+                    <a href="../../../parser/src/index.ts" target="src-packages-parser-src-index-ts"
+                      ><code>packages/parser/src/index.ts</code></a
+                    >; <code>yarn vp run --cache -F @spell-app/parser ts</code> said
+                    <code>Cache hit - output replayed</code> and <code>TSC PASSED</code>. Inputs default to
+                    auto-tracking which files the process reads; <code>tsc</code> here is TS 7 (Go), whose reads it
+                    doesn't see. Fix: explicit <code>run.tasks.&lt;name&gt;.cache.input</code> globs, including the
+                    packages a package's <code>tsc</code> reads through <code>$/</code> aliases; NEVER
+                    <code>--cache</code> on plain scripts.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
         </ui-section>
 
         <ui-section id="log" header="7. Log" sticky collapsible dividing>
@@ -627,6 +719,28 @@
                   1.0.0 via vp migrate, Node 24, lint/fmt in vite.lint.ts; checks: every package's
                   ts/lint/format:check/test as on main (baseline), app build + build:element + yarn vscode
                   ok</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T22:55-04:00">2026-10-02 22:55</time></ui-date> P2
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T23:18-04:00">2026-10-02 23:18</time></ui-date> P2
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T23:18-04:00">2026-10-02 23:18</time></ui-date> P2 done: churn 4
+                  files (7eea0c8e), 0 new lint warnings, ts 6.0s -&gt; 0.6s cached but cache unsafe (I1), tests 318-345s
+                  -&gt; 270-276s with vp run -r; verdict adopt</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
