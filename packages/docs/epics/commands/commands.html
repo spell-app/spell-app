@@ -24,7 +24,9 @@
         <ui-sticky class="spell-h1"
           ><header class="spell-page-head">
             <h1>Commands: CLI, skills, yarn</h1>
-            <span class="plan-step"><ui-label color="green" icon="check">DONE</ui-label></span>
+            <span class="plan-step"
+              ><ui-label basic color="grey" icon="circle outline" href="#p7">next: P7 · Session Module</ui-label></span
+            >
           </header></ui-sticky
         >
         <ui-list class="plan-meta">
@@ -68,7 +70,7 @@
               you create a new yarn script to solve some problem. Instruct it to keep that doc up to date.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 7h-12h in all, 0m left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 13h-19h 30m in all, 6h-7h 30m left (P11 not estimated)</p>
           <ui-section id="o1" header="1.1 What exists today" sticky collapsible dividing>
             <p>Three ways to make the repo do something, grown separately:</p>
             <ui-table celled compact striped unstackable>
@@ -369,7 +371,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="6" total="6" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="6" total="12" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -498,6 +500,117 @@
               ><ui-item icon="folder"><b>Files:</b> plan doc, dev/commands/commands.html</ui-item
               ><ui-item icon="flask"><b>Verify:</b> plan-doc check; check-spell on the page</ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 30m-1h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p7"
+            data-phase="7"
+            data-status="todo"
+            header="P7 · Session Module"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> Port session.py, transcript.py and the registry / title helpers to TS: spell dev session
+                list, find, title, open, transcript, status</ui-item
+              ><ui-item icon="folder"><b>Files:</b> packages/cli/src/dev/ (sessions), commands, main.ts, tests</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> JSON output matches the python scripts on live data; cli review green</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1h30m-2h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p8"
+            data-phase="8"
+            data-status="todo"
+            header="P8 · Worktree And Park"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> Port status.py and worktrees.py: spell dev worktree status, list; spell dev park list,
+                wait, candidates</ui-item
+              ><ui-item icon="folder"><b>Files:</b> packages/cli/src/dev/, commands, main.ts, tests</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> JSON matches status.py / worktrees.py on live data; --wait exit codes kept; cli review
+                green</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1h30m-2h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p9" data-phase="9" data-status="todo" header="P9 · Take Stock" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> Port whassup.py: spell dev stock [--json], same groups, thresholds and actions</ui-item
+              ><ui-item icon="folder"><b>Files:</b> packages/cli/src/dev/, commands, main.ts, tests</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> JSON matches whassup.py on live data; cli review green</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1h30m-2h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p10"
+            data-phase="10"
+            data-status="todo"
+            header="P10 · Doc Links JS"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> Port packages/docs/scripts/doc-links.py to doc-links.js (docs scripts are node)</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/docs/scripts/doc-links.js, pages.js, update.js, docs AGENTS.md, skills that name
+                it</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> same output and same edits as the python on every page; docs lint / test green</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p11"
+            data-phase="11"
+            data-status="todo"
+            header="P11 · Skills Switch"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> Skills call spell dev; session and worktrees skills move into .claude/skills; python
+                deleted; commands page updated</ui-item
+              ><ui-item icon="folder"><b>Files:</b> .claude/skills/*, commands.json, commands.html</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> no python3 left in skills or docs scripts; commands:check passes; each skill's commands
+                run</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1-1h30m</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            id="p12"
+            data-phase="12"
+            data-status="todo"
+            header="P12 · Doc Review Again"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> Plan doc and commands page true to the port; Why / Limits updated</ui-item
+              ><ui-item icon="folder"><b>Files:</b> plan doc, dev/commands/*</ui-item
+              ><ui-item icon="flask"><b>Verify:</b> plan-doc check; check-spell; commands:check</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 30m</ui-item></ui-list
             >
           </ui-section></ui-section
         >
@@ -906,6 +1019,51 @@ missing from commands.html:
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="d10" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d10">D10</a>
+                  <span class="plan-title">Port the python tools to TypeScript, in this epic</span></ui-title
+                ><ui-content
+                  ><p>
+                    Owen (2026-10-03): one language for every tool. <code>status.py</code>, <code>whassup.py</code>,
+                    <code>transcript.py</code>, <code>session.py</code>, <code>worktrees.py</code> become
+                    <code>spell dev session|worktree|park|stock</code>;
+                    <a href="../../scripts/doc-links.py" target="src-packages-docs-scripts-doc-links-py"
+                      ><code>doc-links.py</code></a
+                    >
+                    becomes <code>doc-links.js</code>. Phases P7-P12 in this epic, over a separate epic. Cost accepted:
+                    ~0.6s per <code>spell</code> call vs ~0.05s for python.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d11" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d11">D11</a>
+                  <span class="plan-title">TS tools live inside packages/cli</span></ui-title
+                ><ui-content
+                  ><p>
+                    Owen's pick over a new <code>packages/dev</code>. Code in <code>packages/cli/src/dev/</code>,
+                    flattened into <code>$/cli</code>. Node built-ins only: no spell import, so a lean
+                    <code>spell dev</code> entry stays possible later.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d12" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d12">D12</a>
+                  <span class="plan-title">session and worktrees skills move into the repo</span></ui-title
+                ><ui-content
+                  ><p>
+                    From <code>~/.claude/skills/</code> to
+                    <a href="../../../../.claude/skills/" target="src-claude-skills"><code>.claude/skills/</code></a
+                    >, calling <code>spell dev session</code> / <code>spell dev worktree list</code>. The user-level
+                    copies are Owen's to delete (outside the repo): two skills with one name would clash.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1087,6 +1245,17 @@ missing from commands.html:
                     <code>program</code> or <code>dev</code> (noted in
                     <a href="../../../cli/src/main.ts" target="src-packages-cli-src-main-ts"><code>main.ts</code></a
                     >).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="t8" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t8">T8</a>
+                  <span class="plan-title">Delete ~/.claude/skills/session and worktrees after P11</span></ui-title
+                ><ui-content
+                  ><p>
+                    Once the repo copies exist (P11): outside the worktree, so Owen's call, not bedtime's.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -1330,6 +1499,55 @@ missing from commands.html:
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-03T00:36-04:00">2026-10-03 00:36</time></ui-date> Bedtime done: 6
                   done, 0 WIP, 0 skipped</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T09:45-04:00">2026-10-03 09:45</time></ui-date> P7 added: Session
+                  Module</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T09:45-04:00">2026-10-03 09:45</time></ui-date> P8 added: Worktree
+                  And Park</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T09:45-04:00">2026-10-03 09:45</time></ui-date> P9 added: Take
+                  Stock</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T09:45-04:00">2026-10-03 09:45</time></ui-date> P10 added: Doc
+                  Links JS</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T09:45-04:00">2026-10-03 09:45</time></ui-date> P11 added: Skills
+                  Switch</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T09:45-04:00">2026-10-03 09:45</time></ui-date> P12 added: Doc
+                  Review Again</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T09:45-04:00">2026-10-03 09:45</time></ui-date> Owen (morning):
+                  port the python tools to TS in this epic (D10-D12); phases P7-P12 added</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
