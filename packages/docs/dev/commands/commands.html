@@ -832,9 +832,87 @@ description: Start the spell web servers of this checkout that aren't running --
           </ui-table>
         </ui-section>
 
+        <ui-section id="7-why" header="7. Why" sticky collapsible dividing>
+          <ui-icon slot="icon" name="gavel"></ui-icon>
+          <p>Decided in epic <code>commands</code> (2026-10-02), with Owen; the plan doc has each one's details.</p>
+          <ul>
+            <li>
+              <b>Doc, rule and roadmap first; moves later.</b> Owen reviews the scheme before renames ripple through
+              skills, docs and habit; each move is its own small epic.
+            </li>
+            <li>
+              <b>Repo tools under <code>spell dev</code>.</b> <code>spell</code> is headed for npm as the spell-language
+              tool; a separate noun keeps repo tooling out of its way, over flat top-level commands or a second binary.
+            </li>
+            <li>
+              <b>Noun then verb.</b> Groups in help and tab-completion; the same words in CLI and yarn (<code
+                >server start</code
+              >
+              / <code>server:start</code>).
+            </li>
+            <li>
+              <b>Data in JSON, drawn by the page server.</b> Owen's choice: plain JSON is easy to edit and to check,
+              over a JS data file or tables written into the HTML. Cost: no <code>file://</code> view (<a
+                href="#8-limits"
+                >8. Limits</a
+              >).
+            </li>
+            <li>
+              <b>Rows are operations, not commands.</b> A gap shows as an empty cell; one command may serve several
+              rows. Fine-grained: each subcommand and each copied script its own row.
+            </li>
+            <li>
+              <b>A <i>runs</i> column.</b> The roadmap is mostly about moving the tool behind a command into the CLI, so
+              the tool is shown.
+            </li>
+            <li>
+              <b>Drift check by hand.</b> <code>yarn commands:check</code> is in no <code>review</code>: a new yarn
+              script in one package shouldn't fail another's checks. The AGENTS rule says to run it.
+            </li>
+            <li>
+              <b>Package scripts stay in yarn.</b> Tool-native scripts already have a good home; wrapping them adds
+              ~0.5s a call. <code>spell dev check</code> (<a href="#r7">R7</a>) orchestrates them instead.
+            </li>
+            <li>
+              <b
+                >The check reads
+                <a href="../../../cli/src/main.ts" target="src-packages-cli-src-main-ts"><code>main.ts</code></a> as
+                text.</b
+              >
+              From a worktree, the checkout checked may not be the one <code>spell</code> runs from.
+            </li>
+          </ul>
+        </ui-section>
+
+        <ui-section id="8-limits" header="8. Limits" sticky collapsible dividing>
+          <ui-icon slot="icon" name="flag"></ui-icon>
+          <ul>
+            <li>
+              The tables need the page server: from <code>file://</code> the page shows a notice where they go (<code
+                >yarn docs:open dev/commands/commands.html</code
+              >).
+            </li>
+            <li>The filter hides rows and empty families, not their entries in the contents column.</li>
+            <li>
+              <code>spell</code> is linked to ONE checkout (<code>yarn cli:install</code>);
+              <code>spell dev</code> commands find the nearest checkout themselves, but their CODE is the linked
+              checkout's. In a worktree, <code>node packages/cli/bin/spell.mjs</code> runs its own.
+            </li>
+            <li>
+              The CLI takes ~0.5s to start (<code>tsx</code> compiles on each run): it adds up in a skill that calls it
+              often, until <a href="#r10">R10</a>.
+            </li>
+            <li>The marks are judgement: "could" vs "couldn't really" is an opinion, written down.</li>
+            <li>The check sees names, not meaning: it can't tell that a row's marks or target went stale.</li>
+          </ul>
+        </ui-section>
+
         <footer class="spell-doc-footer">
           <ui-divider></ui-divider>
-          <p class="meta">Last checked 2026-10-03 against branch <code>main</code>.</p>
+          <p class="meta">
+            Last checked 2026-10-03 against branch <code>commands</code>: <code>yarn commands:check</code> passes (208
+            commands).
+          </p>
         </footer>
       </main>
     </div>
