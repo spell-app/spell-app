@@ -90,7 +90,8 @@ name to park this session under.
 
 Used by `/unpark` (after its window check) and by `/wait-for` when the wait ends.  In the worktree:
 
-1. Read `PARKED-<name>.md`:  goal, where it stopped, next steps.
+1. Read `PARKED-<name>.md`:  goal, where it stopped, next steps.  Check the session's name
+   (`.claude/skills/isolate/SKILL.md`, "Session name").
 2. Bring in the new `main`, the same way as `.claude/skills/isolate/SKILL.md` "Finish" steps 2-3:
    - `git log --oneline HEAD..main` empty:  nothing new, go on to step 4
    - `git merge-tree --write-tree --name-only main HEAD`:  exit 0, `git merge main`;  exit 1, conflicts:

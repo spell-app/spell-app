@@ -64,8 +64,25 @@ The turn after step 6, whatever Owen sends (`continue`, typed in by the move, or
 1. Old tab still open in the old window (its title didn't match):  say so in one line, close it by hand;  the log
    is `~/.spell/windows/handoffs/<session id>.log`.
 2. No `node_modules/` at the worktree's root:  `yarn install` (a few seconds).
-3. Carry on:  the saved prompt `~/.spell/prompts/<name>.md` if any (then delete it), the work under way
+3. Check the session's name ("Session name" below).
+4. Carry on:  the saved prompt `~/.spell/prompts/<name>.md` if any (then delete it), the work under way
    (mid-session), or `/epic`'s next step.  Nothing to carry on with:  one line, "ready in `<name>`".
+
+## Session name
+
+The session MUST stay titled `<name>`:  the handoff finds its old tab by title, and Owen finds it in the panel's
+list by name.  It drifts:  Claude's own title ("Doc-plan SEO") wins when the hook never ran (a plain-words
+"isolate as ...", a resumed or reopened session), or Owen renamed it.
+- Check, and rename if needed, whenever an isolated or epic session STARTS or RESUMES work:
+  - "Continue" above (the first turn in the new window)
+  - each `/epic` phase start ("5. Each phase", step 1;  Doc Review is a phase too)
+  - `.claude/skills/park/SKILL.md` "Resume" (`/unpark`, `/wait-for`), and `/wakeup`
+  - Owen reopening the session to carry on ("start P3", "continue")
+- How:  `python3 ~/.claude/skills/session/scripts/session.py name <name>`.  It checks first:  already `<name>`
+  (or queued), it does nothing;  else it queues `<name>`, which lands on Owen's NEXT prompt.
+  - renamed:  one line, "session renamed `<name>` (was "<old>");  shows on your next message"
+  - `session.py title` shows the current title, and any queued one
+- `<name>`:  the worktree's (`.claude/worktrees/<name>`), which is the branch's and the plan doc's.
 
 ## Finish:  `/isolate done`
 

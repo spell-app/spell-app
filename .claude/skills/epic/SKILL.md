@@ -119,7 +119,8 @@ turn to end, and the stub doc keeps the kickoff prompt safe whatever happens to 
 
 ## 5. Each phase
 
-1. `yarn plan-doc phase <name> <N> active`
+1. `yarn plan-doc phase <name> <N> active`, and check the session's name (`.claude/skills/isolate/SKILL.md`,
+   "Session name").
 2. Do the work.  Record as you go, not at the end:
    - found a problem:  `add ... issue`;  a limit we accept:  `add ... caveat`;  a choice:  `add ... decision`
    - something only Owen can check (a live window, a click, a look):  `add ... test "<step>" --details "<p>what
