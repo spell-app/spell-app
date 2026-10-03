@@ -6,7 +6,7 @@
 /**
  * One PROPERTY of the site:  a part with its own home page, switched between in the site header.
  * - `path`:  home page, relative to the repo root (`packages/docs/index.html`), or server-absolute (`/ui/`)
- * - `serverOnly`:  only exists when served by the page server (`/ui/` proxies `astro dev`;  `/editor/` is the app)
+ * - `serverOnly`:  only exists when served by the page server (`/ui/` is `packages/ui/site/`, mounted there;  `/editor/` is the app)
  * - `match`:  whether a page path (`location.pathname`) belongs to this property;  the FIRST match wins
  */
 export type SiteProperty = {

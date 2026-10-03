@@ -1,0 +1,15 @@
+<!-- `<ui-docs-nav>`:  the docs site's sidebar, as a page template puts it in its left column (and a narrow flyout). -->
+<div class="ui-cluster ui-gap-l" style="align-items: flex-start">
+  <ui-docs-nav base="#/" current="ui-button" style="width: 16em; --ui-docs-nav-height: 30em"></ui-docs-nav>
+
+  <ui-docs-nav
+    base="#/"
+    current="ui-input"
+    view="topics"
+    size="small"
+    aria-label="Documentation, by topic"
+    style="width: 13em; --ui-docs-nav-height: 30em"
+  >
+    <b slot="header">Spell UI</b>
+  </ui-docs-nav>
+</div>

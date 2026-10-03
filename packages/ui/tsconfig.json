@@ -19,8 +19,20 @@
     "jsxImportSource": "@solidjs/web",
     "types": ["vite/client"]
   },
-  "include": ["src", "test", "tools"],
+  "include": ["src", "test", "tools", "site/_src"],
   // `packages/` are their own projects (own `tsconfig.json`, `yarn fork tsc`);  files the root imports from them
   // are still checked here
-  "exclude": ["site", "packages", "node_modules", "dist", "vendor", "tools/frameworks/solid/dist"]
+  // `site/`:  only `site/_src` (the site bundle's entry);  the Astro site (`site/src`) has its own tsconfig
+  "exclude": [
+    "site/src",
+    "site/dist",
+    "site/.astro",
+    "site/node_modules",
+    "site/_assets",
+    "packages",
+    "node_modules",
+    "dist",
+    "vendor",
+    "tools/frameworks/solid/dist"
+  ]
 }

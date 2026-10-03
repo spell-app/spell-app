@@ -22,7 +22,7 @@ import { itemVocabulary } from "./ui-item.vocabulary.en"
 import { ItemFallback } from "./ui-item.fallback"
 
 import itemCSS from "./ui-item.css?inline"
-import { DIVIDER, COLOR_CLASS_PREFIX, DIV, SEPARATOR, IMAGE_CLASS, type RootTag } from "./ui-item.types"
+import { ARIA_EXPANDED, DIVIDER, COLOR_CLASS_PREFIX, DIV, SEPARATOR, IMAGE_CLASS, type RootTag } from "./ui-item.types"
 
 /****************
  * ### `<ui-item>`
@@ -42,7 +42,8 @@ import { DIVIDER, COLOR_CLASS_PREFIX, DIV, SEPARATOR, IMAGE_CLASS, type RootTag 
  *   the owner hasn't yet, and re-adopted when the owner changes.
  * - Semantics:  host role from the owner (`listitem`);  root role from the owner (`menuitem` in a menubar);
  *   selected => `aria-current` (the owner's value, `page`, on a link;  `true` otherwise);  the host's
- *   `aria-label` names the box (an icon-only item).
+ *   `aria-label` names the box (an icon-only item);  its `aria-expanded` goes to a `<button>` box (a disclosure:  a
+ *   menu item that opens a group below it).
  * - `active` is an ALIAS of `selected` (Fomantic's word), read from the host attribute.
  * - A part (`isPart`):  transparent to other parts' climbs, so a `<ui-header>` inside an item in a list is the
  *   LIST's header (`.ui.list > .item > .content > .header`).
@@ -67,6 +68,9 @@ export class UIItem extends UIElement<typeof itemVocabulary> implements Conditio
 
   /** Host `aria-label`, forwarded to the item box:  an icon-only item needs a name. */
   readonly ariaLabel = new HostAttribute(this.host, UIT.ARIA_LABEL)
+
+  /** Host `aria-expanded`, forwarded to a `<button>` box:  an item that shows and hides something (a disclosure). */
+  readonly ariaExpanded = new HostAttribute(this.host, ARIA_EXPANDED)
 
   ////////////////
   // ## Derived state
@@ -207,6 +211,9 @@ export class UIItem extends UIElement<typeof itemVocabulary> implements Conditio
         aria-disabled={this.attrs.disabled && !(disabledButton() && !this.itemContext()?.role) ? "true" : undefined}
         aria-current={this.current()}
         aria-label={this.ariaLabel.get() ?? undefined}
+        aria-expanded={
+          this.tag() === UIT.BUTTON ? ((this.ariaExpanded.get() as "true" | "false" | null) ?? undefined) : undefined
+        }
         data-value={this.attrs.value}
       >
         <Show when={this.imageSrc()}>

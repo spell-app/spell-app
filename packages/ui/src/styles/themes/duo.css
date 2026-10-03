@@ -1,0 +1,61 @@
+/*
+ * duo theme:  Fomantic's `duo` theme, a two-colour loader ring (primary and secondary halves), `@layer ui.theme`.
+ * - A DELTA on `classic.css` (`ThemeSheets.apply("duo")` registers `classic` + this sheet).
+ * - Touches ONE component:  `<ui-loader>` (`.ui.loader`).  Its shadow root renders
+ *   `<div class="ui [size] [color] ... loader">`, the arc being the root's `::after`.
+ * - `loader.variables`:
+ *   - `@shapeBorderColor` -> the arc's four border colours:  top / right `--ui-primary`, bottom / left
+ *     `--ui-secondary`, so the whole ring turns (Fomantic's default is a quarter arc on a faint track)
+ *   - `@invertedShapeBorderColor` -> the same with the `-inverted` roles, on an `inverted` loader
+ * - NOTE: in Fomantic 2.9.4 this theme is a no-op:  `loader.less` later paints every arc `currentColor` with
+ *   transparent sides, at `.ui.ui.ui.loader::after` specificity, which beats `@shapeBorderColor`.  We port the
+ *   look the theme INTENDS (its variables), not what 2.9.4 renders.
+ * - A COLOURED loader (`color="red"`) keeps its one-colour arc, as in Fomantic, where the colour rules came after
+ *   the shape:  the rules skip every hue class (`ValueSets.hues`).
+ * - NOT ported:  the elastic loader's arcs (Fomantic's elastic rules beat the shape colours too).  A loader
+ *   inside a static `.ui.dimmer` (inverted by the dimmer, not by a class) keeps the default inverted arc.
+ */
+
+@layer ui.theme {
+  .ui.loader:not(
+      .elastic,
+      .primary,
+      .secondary,
+      .red,
+      .orange,
+      .yellow,
+      .olive,
+      .green,
+      .teal,
+      .blue,
+      .violet,
+      .purple,
+      .pink,
+      .brown,
+      .grey,
+      .black
+    )::after {
+    border-color: var(--ui-primary) var(--ui-primary) var(--ui-secondary) var(--ui-secondary);
+  }
+  .ui.inverted.loader:not(
+      .elastic,
+      .primary,
+      .secondary,
+      .red,
+      .orange,
+      .yellow,
+      .olive,
+      .green,
+      .teal,
+      .blue,
+      .violet,
+      .purple,
+      .pink,
+      .brown,
+      .grey,
+      .black
+    )::after {
+    border-color: var(--ui-primary-inverted) var(--ui-primary-inverted) var(--ui-secondary-inverted)
+      var(--ui-secondary-inverted);
+  }
+}

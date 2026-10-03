@@ -1,0 +1,28 @@
+/*
+ * systemfont theme:  Fomantic's `systemfont` theme, the platform's own UI font instead of Lato, `@layer ui.theme`.
+ * - A DELTA on `classic.css` (`ThemeSheets.apply("systemfont")` registers `classic` + this sheet):  classic's 14px
+ *   base, palette and radii stay;  only the type changes.
+ * - Tokens (Fomantic's `site.variables`):
+ *   - `@pageFont` / `@headerFont: @fallbackFonts` -> `--ui-font-family` / `--ui-font-family-heading`:  Fomantic's
+ *     fallback stack, which is classic's stack without Lato
+ *   - `@bold: 600` -> `--ui-font-weight-bold`:  system fonts look heavy at 700
+ *   - `@fontName: ""`, `@importGoogleFonts: false`, `@importFonts: false`:  nothing to port, we load no font
+ * - Overrides (Fomantic's `reset.overrides`):  `b, strong` at the bold weight, on the page AND in every shadow root
+ *   (slotted text is styled by the page, a component's own `<b>` by the root's copy).
+ * - Touches every component with text;  nothing component-specific.  Nothing left out.
+ */
+
+@layer ui.theme {
+  :root {
+    --ui-font-family:
+      system-ui, -apple-system, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans",
+      "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --ui-font-family-heading: var(--ui-font-family);
+    --ui-font-weight-bold: 600;
+  }
+
+  b,
+  strong {
+    font-weight: var(--ui-font-weight-bold);
+  }
+}

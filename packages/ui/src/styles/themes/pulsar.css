@@ -1,0 +1,53 @@
+/*
+ * pulsar theme:  Fomantic's `pulsar` theme, a primary-coloured loader that fades in, whirls and fades out,
+ * `@layer ui.theme`.
+ * - A DELTA on `classic.css` (`ThemeSheets.apply("pulsar")` registers `classic` + this sheet).
+ * - Touches ONE component:  `<ui-loader>` (`.ui.loader`).  Its shadow root renders
+ *   `<div class="ui [size] [color] ... loader">`, the arc being the root's `::after`.
+ * - Tokens (`loader.variables`):
+ *   - `@loaderSpeed: 2s` -> `--ui-loader-speed` (so `slow` / `fast` stay ratios of it)
+ *   - `@loaderLineColor` / `@invertedLoaderLineColor` -> `--ui-loader-line-color` / `-inverted-line-color`:
+ *     the primary colour (a coloured loader keeps its hue:  the arc reads `--ui-color` first)
+ * - Overrides (`loader.overrides`):  the arc's animation becomes `ui-theme-pulsar`, five turns per cycle with
+ *   the opacity rising and falling.  Only the animation NAME is swapped, so `indeterminate` (reverse, slower) and
+ *   the speeds still apply;  `elastic` keeps its own animation (Fomantic's elastic rules won there too).
+ * - NOTE: in shadow roots, reduced motion stops every animation (`reset.css`), this one included.
+ * - Nothing left out.
+ */
+
+@layer ui.theme {
+  :root {
+    --ui-loader-speed: 2s;
+    --ui-loader-line-color: var(--ui-primary);
+    --ui-loader-inverted-line-color: var(--ui-primary-inverted);
+  }
+
+  .ui.loader:not(.elastic)::after {
+    animation-name: ui-theme-pulsar;
+  }
+
+  @keyframes ui-theme-pulsar {
+    0% {
+      rotate: 0turn;
+      opacity: 0;
+    }
+    20% {
+      rotate: 1turn;
+    }
+    40% {
+      rotate: 740deg;
+      opacity: 1;
+    }
+    60% {
+      rotate: 1120deg;
+      opacity: 1;
+    }
+    80% {
+      rotate: 4turn;
+    }
+    100% {
+      rotate: 5turn;
+      opacity: 0;
+    }
+  }
+}

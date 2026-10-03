@@ -5,6 +5,5 @@
  */
 export * from "./page.types"
 
-export * from "./AstroProxy"
 export * from "./PageEditor"
 export * from "./PageServer"

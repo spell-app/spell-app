@@ -138,12 +138,15 @@ declare module "@solidjs/web/types/jsx.js" {
   // NOTE: `interface`, not `type`:  declaration merging is the only way to add a custom tag to Solid's JSX
   namespace JSX {
     interface IntrinsicElements {
+      // NOTE: the one `ui-dropdown` JSX type in `ui`'s program:  the docs elements (`src/docs-components/`) render
+      // it too, with Fomantic's class words (`floating`, `button` ...), hence the index signature
       "ui-dropdown": JSX.HTMLAttributes<HTMLElement> & {
         selection?: boolean
         placeholder?: string
         "prop:options"?: readonly Option[]
         "prop:value"?: string
         "prop:open"?: boolean
+        [attribute: string]: unknown
       }
     }
   }
