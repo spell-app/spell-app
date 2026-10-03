@@ -1093,6 +1093,15 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   started `/clear` -> `/epic` -> `/bedtime`, only slash commands (`<command-name>`, skipped as harness text). ·
   `session.py`'s `prompt_text` now reads a slash command as `/name args`, and a title alone keeps a session
   listed. · claude-code
+- 2026-10-02 · `vscode://anthropic.claude-code/open?session=2ae3516d...` opened an idle tab of a DIFFERENT session
+  (`f09af4f3`, the one `/clear` had replaced):  `2ae3516d`'s transcript was saved under the worktree's project
+  folder (`...--claude-worktrees-ui-import/`), not the repo root's, which is where the window's panel looks. ·
+  Copy the `.jsonl` (and its sidecar folder) into `~/.claude/projects/-Users-owen-www-spell-app-spell-app/`, then
+  open it again;  `session.py open` now treats the two copies as one session. · claude-code
+- 2026-10-02 · After merging `ui-import` into `main`, `yarn ts` in `packages/app` failed:  `Cannot find module
+  'highlight.js/lib/languages/...'` from `ui`'s `CodeEngine.ts`.  The branch added a dependency, and the main
+  checkout's `node_modules` was never reinstalled. · `yarn install` at the root after merging a branch that
+  changes any `package.json`. · claude-code
 - 2026-10-02 · In a worktree session, read-only commands were refused too:  a `for` loop over `git rev-list`, a
   `time ( ... )` subshell, and a `grep ... .gitignore` chained after `ls` ("names git in a form too complex").  The
   check is on the command TEXT, so even a file name with `git` in it trips it. · One plain command per Bash call;
