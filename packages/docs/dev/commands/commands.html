@@ -64,9 +64,8 @@
                   same 8 copied into 10 packages
                 </li>
                 <li>
-                  skills: 12 in the repo, 7 more in <code>~/.claude/skills</code> that it uses (the goals ones are
-                  symlinks into
-                  <a href="../../../../goals/_skills/" target="src-goals-skills"><code>goals/_skills</code></a
+                  skills: 14 in the repo, 5 more in <code>~/.claude/skills</code> that it uses (the goals ones, symlinks
+                  into <a href="../../../../goals/_skills/" target="src-goals-skills"><code>goals/_skills</code></a
                   >)
                 </li>
               </ul>
@@ -79,8 +78,8 @@
               >,
               <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
                 ><code>plan-doc.js</code></a
-              >, <code>goals.js</code>, five python scripts), and steps that live only in a skill's PROSE, redone by
-              hand every run. The <b>runs</b> column shows which.
+              >, <code>goals.js</code>, and until 2026-10-03 five python scripts, now <code>spell dev</code>), and steps
+              that live only in a skill's PROSE, redone by hand every run. The <b>runs</b> column shows which.
             </li>
             <li>
               Target: the CLI drives everything; skills keep only judgement and dialog, yarn scripts become short
@@ -187,7 +186,9 @@
               <li>
                 Also in play: <code>~/.claude/skills</code>'s <code>goals*</code> (symlinks into this repo's
                 <a href="../../../../goals/_skills/" target="src-goals-skills"><code>goals/_skills</code></a
-                >), <code>session</code> and <code>worktrees</code> (user-level python the repo's skills call)
+                >), and, until 2026-10-03, <code>session</code> and <code>worktrees</code> (now in
+                <a href="../../../../.claude/skills/" target="src-claude-skills"><code>.claude/skills</code></a
+                >, on <code>spell dev</code>)
               </li>
               <li>
                 Hooks (<a href="../../../../.claude/settings.json" target="src-claude-settings-json"
@@ -325,46 +326,19 @@ description: Start the spell web servers of this checkout that aren't running --
                   </tr>
                   <tr>
                     <td>
-                      <a
-                        href="../../../../.claude/skills/park/scripts/status.py"
-                        target="src-claude-skills-park-scripts-status-py"
-                        ><code>.claude/skills/park/scripts/status.py</code></a
+                      <a href="../../../cli/src/dev/" target="src-packages-cli-src-dev"
+                        ><code>packages/cli/src/dev/</code></a
                       >
                     </td>
-                    <td><code>/park</code>, <code>/unpark</code>, <code>/wait-for</code>, <code>whassup.py</code></td>
-                    <td>status of a worktree / plan / session by name; waits</td>
-                  </tr>
-                  <tr>
                     <td>
-                      <a
-                        href="../../../../.claude/skills/whassup/scripts/whassup.py"
-                        target="src-claude-skills-whassup-scripts-whassup-py"
-                        ><code>.claude/skills/whassup/scripts/whassup.py</code></a
-                      >
+                      <code>spell dev session|worktree|park|stock</code>; <code>/session</code>,
+                      <code>/worktrees</code>, <code>/park</code>, <code>/unpark</code>, <code>/wait-for</code>,
+                      <code>/whassup</code>, <code>/wtf</code>, <code>/isolate</code>
                     </td>
-                    <td><code>/whassup</code></td>
-                    <td>takes stock and classifies</td>
-                  </tr>
-                  <tr>
                     <td>
-                      <a
-                        href="../../../../.claude/skills/wtf/scripts/transcript.py"
-                        target="src-claude-skills-wtf-scripts-transcript-py"
-                        ><code>.claude/skills/wtf/scripts/transcript.py</code></a
-                      >
+                      sessions (find, open, title, digest), where sessions work, where a name stands, waiting, taking
+                      stock. Was five python scripts, ported 2026-10-03
                     </td>
-                    <td><code>/wtf</code></td>
-                    <td>digests a session transcript</td>
-                  </tr>
-                  <tr>
-                    <td><code>~/.claude/skills/session/scripts/session.py</code></td>
-                    <td><code>/session</code></td>
-                    <td>finds, opens and titles sessions</td>
-                  </tr>
-                  <tr>
-                    <td><code>~/.claude/skills/worktrees/scripts/worktrees.py</code></td>
-                    <td><code>/worktrees</code>, <code>/isolate done</code></td>
-                    <td>sessions per worktree</td>
                   </tr>
                 </tbody>
               </table>
@@ -621,8 +595,8 @@ description: Start the spell web servers of this checkout that aren't running --
                       <a href="../../scripts/check-spell.js" target="src-packages-docs-scripts-check-spell-js"
                         ><code>check-spell.js</code></a
                       >,
-                      <a href="../../scripts/doc-links.py" target="src-packages-docs-scripts-doc-links-py"
-                        ><code>doc-links.py</code></a
+                      <a href="../../scripts/doc-links.js" target="src-packages-docs-scripts-doc-links-js"
+                        ><code>doc-links.js</code></a
                       >, "Finishing a page"
                     </td>
                   </tr>

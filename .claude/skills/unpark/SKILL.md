@@ -13,7 +13,7 @@ finds what to resume and makes sure it happens in the right place.
 
 - `$ARGUMENTS` given:  `.claude/worktrees/<name>/PARKED-<name>.md`.  Missing:  say so, then the list below.
 - None, and this session is in a worktree with a `PARKED-*.md`:  that one.
-- Else `python3 .claude/skills/park/scripts/status.py --parked`:
+- Else `spell dev park list`:
   - none:  say "nothing parked" and stop
   - one:  use it, naming it in the reply
   - several:  AskUserQuestion "Which parked work?", one option per entry, labelled `<name>`, description its
@@ -21,7 +21,7 @@ finds what to resume and makes sure it happens in the right place.
 
 ## 2. Parked by a session that's still open
 
-`python3 .claude/skills/park/scripts/status.py <name>`:  a session in `sessions` with `running: true`, other than
+`spell dev worktree status <name>`:  a session in `sessions` with `running: true`, other than
 this one.  AskUserQuestion:
 
 - "Tell it to unpark (Recommended)":  `SendMessage` to it:  "Run `/unpark <name>` (asked by `<this session>`)."

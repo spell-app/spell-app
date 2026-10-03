@@ -25,7 +25,9 @@
           ><header class="spell-page-head">
             <h1>Commands: CLI, skills, yarn</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p11">next: P11 · Skills Switch</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p12"
+                >next: P12 · Doc Review Again</ui-label
+              ></span
             >
           </header></ui-sticky
         >
@@ -371,7 +373,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="10" total="12" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="11" total="12" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -575,6 +577,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p10"
             data-phase="10"
             data-status="done"
@@ -593,19 +596,19 @@
               ><ui-item icon="flask"
                 ><b>Verify:</b> same output and same edits as the python on every page; docs lint / test green</ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item
-              ><ui-item icon="gavel"><b>Judgement calls:</b>  <a href="#t10">T10</a></ui-item></ui-list
+              ><ui-item icon="gavel"><b>Judgement calls:</b> <a href="#t10">T10</a></ui-item></ui-list
             >
           </ui-section>
           <ui-section
             id="p11"
             data-phase="11"
-            data-status="todo"
+            data-status="done"
             header="P11 · Skills Switch"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> Skills call spell dev; session and worktrees skills move into .claude/skills; python
@@ -1698,6 +1701,30 @@ missing from commands.html:
                   packages/docs/scripts/doc-links.js (plain Node, 375 lines) + doc-links.test.js; doc-links.py deleted;
                   callers switched (pages.js, update.js, goals.js); checks: page edits byte-identical on 45 pages, same
                   --check problems, docs lint/ts/test green (48)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:16-04:00">2026-10-03 10:16</time></ui-date> P11
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:17-04:00">2026-10-03 10:17</time></ui-date> P11
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:17-04:00">2026-10-03 10:17</time></ui-date> P11 done: skills
+                  call spell dev (isolate, park, unpark, wait-for, whassup, wtf); session + worktrees skills moved into
+                  .claude/skills; status.py, whassup.py, transcript.py deleted; commands page + json updated; checks: no
+                  python left in skills or docs scripts, commands:check 212/212, check-spell ok. ~/.claude copies left
+                  for Owen (T8)</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

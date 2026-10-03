@@ -51,7 +51,7 @@ worktree, its branch and the session share one name.  `/epic` runs these steps t
 0. Not in a worktree (the session's folder isn't under `.claude/worktrees/`):  say so in one line, then offer to
    clean up:
    - candidates:  each `.claude/worktrees/<name>` that
-     - no session is in:  under "No session in" from `python3 ~/.claude/skills/worktrees/scripts/worktrees.py`.
+     - no session is in:  under "No session in" from `spell dev worktree list`.
        Why:  a fresh worktree has nothing outside `main` either, but its session is still using it.
      - has nothing uncommitted (`git -C .claude/worktrees/<name> status --short`;  fine from the main checkout)
      - has nothing outside `main` (`git log --oneline main..<branch>` empty)

@@ -102,6 +102,9 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
   `packages/docs/dev/commands/commands.md`, then SUGGEST, before building:  where it belongs, its name, what it
   replaces, which roadmap move it advances.
 - MUST keep the page true in the same change:  `commands.json`, then `yarn commands:check`.
+- Tools are TypeScript (or node JS in `packages/docs/scripts`), never python:  one language.  Skills reach them as
+  `spell dev ...`:  `spell` is `yarn cli:install`'s link, made once per machine;  without it,
+  `node packages/cli/bin/spell.mjs dev ...` from a checkout's root.
 
 ## Solid 2
 

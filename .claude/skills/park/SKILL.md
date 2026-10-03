@@ -13,15 +13,15 @@ note.  `/unpark` picks it up by hand;  `/wait-for <other>` waits for another ses
 - PARKED note:  `PARKED-<name>.md` at the worktree root (gitignored, never committed).  First line
   `<!-- park: <state> -->`, `<state>` one of `parked`, `waiting:<target>`, `resumed`.  It's how a compacted or
   reopened session knows it's parked.
-- `status.py`:  `python3 .claude/skills/park/scripts/status.py`, run from the repo root or a worktree (read its
-  docstring).
+- Status:  `spell dev worktree status <name>` (JSON:  where a worktree / branch / plan / session stands), and
+  `spell dev park list|candidates|wait`, from the repo root or a worktree (`spell help dev`).
 - Running `/park` IS Owen's go-ahead to commit the WIP commit:  no "stage, then ask".  Nothing else gets committed.
 - Style:  caveman lite, as in `/epic`.
 
 ## Park this session:  `/park` (or `/park <name>` naming this session)
 
 `$ARGUMENTS` empty, or the name of this session's worktree:  park THIS session.  Any other name that matches a
-session (`status.py <name>` lists one in `sessions`):  "Park another session" below.  Matches nothing:  it's the
+session (`spell dev worktree status <name>` lists one in `sessions`):  "Park another session" below.  Matches nothing:  it's the
 name to park this session under.
 
 0. In plan mode:  ask Owen to leave it (shift+tab) first, as in `.claude/skills/isolate/SKILL.md`, "Start", step 0.
@@ -75,7 +75,7 @@ name to park this session under.
 
 ## Park another session:  `/park <other>`
 
-1. `python3 .claude/skills/park/scripts/status.py <other>`:  its `sessions`.
+1. `spell dev worktree status <other>`:  its `sessions`.
 2. One running (`running: true`):  `SendMessage` to it:  "Run `/park` now (asked by session `<this session's
    title or id>`).  Reply when parked, with the worktree name."  Several running:  AskUserQuestion, which.
 3. None running:  say so in one line and offer `/session <other>` to reopen it, then `/park` there.  NEVER park

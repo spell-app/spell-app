@@ -1,9 +1,5 @@
 {
   "sources": {
-    "userSkills": [
-      "session",
-      "worktrees"
-    ],
     "ignore": [
       "/solid-2"
     ]
@@ -146,8 +142,8 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`git status --short`, `git log main..HEAD`;  `whassup.py`, `status.py` (`ahead`)",
-          "notes": "Three implementations:  skill prose, `whassup.py`, `status.py`.",
+          "runs": "`git status --short`, `git log main..HEAD`;  `spell dev stock`, `spell dev worktree status` (`ahead`)",
+          "notes": "Three implementations:  skill prose, `spell dev stock`, `spell dev worktree status`.",
           "target": "(R3) `spell dev worktree status [name] --json`;  /isolate /whassup /wtf call it"
         },
         {
@@ -238,8 +234,8 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`git merge --ff-only <name>` (`/isolate`) or `git merge --no-edit <branch>` (`whassup.py`)",
-          "notes": "DRIFT:  `/isolate` fast-forwards only;  `whassup.py` makes a merge commit, while its docstring says \"as `/isolate done` would\".",
+          "runs": "`git merge --ff-only <name>` (`/isolate`) or `git merge --no-edit <branch>` (`spell dev stock`)",
+          "notes": "DRIFT:  `/isolate` fast-forwards only;  `spell dev stock` makes a merge commit, while its docstring says \"as `/isolate done` would\".",
           "target": "(R3) `spell dev worktree merge <name>`:  ONE policy;  /isolate /whassup /wakeup call it"
         },
         {
@@ -281,7 +277,7 @@
             "mark": "could"
           },
           "runs": "`git worktree remove` + `git branch -d`;  `worktree.mjs remove` hook",
-          "notes": "`whassup.py` uses `-D` for squashed-in branches;  the skill checks `git cherry` first.",
+          "notes": "`spell dev stock` uses `-D` for squashed-in branches;  the skill checks `git cherry` first.",
           "target": "(R3) `spell dev worktree remove <name>`:  `git cherry` before `-D`;  /isolate /whassup call it"
         },
         {
@@ -300,7 +296,7 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`git worktree remove --force`, `git branch -D` (`whassup.py`)",
+          "runs": "`git worktree remove --force`, `git branch -D` (`spell dev stock`)",
           "target": "(R3) `spell dev worktree remove <name> --discard`;  /whassup confirms twice first"
         },
         {
@@ -320,8 +316,8 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`/isolate`:  parses `worktrees.py` TEXT + `git`;  `whassup.py` `dead` group",
-          "notes": "Two rules for \"dead\":  `/isolate` prose vs `whassup.py`.",
+          "runs": "`/isolate`:  parses `spell dev worktree list` TEXT + `git`;  `spell dev stock` `dead` group",
+          "notes": "Two rules for \"dead\":  `/isolate` prose vs `spell dev stock`.",
           "target": "(R3) `spell dev worktree cleanup --json`:  ONE \"dead\" rule;  /isolate /whassup call it"
         },
         {
@@ -345,7 +341,7 @@
           },
           "runs": "`packages/cli/src/dev/worktrees.ts` (`sessionPlaces()`)",
           "notes": "`/worktrees` is a user skill (`~/.claude/skills`), not in the repo.",
-          "target": "(R3) built:  `spell dev worktree list`;  /worktrees and /isolate switch in P11"
+          "target": "(R3) built:  `spell dev worktree list`;  /worktrees and /isolate call it"
         },
         {
           "op": "Tell whether a session is in a worktree",
@@ -365,7 +361,7 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "skill prose;  main-root lookup duplicated in `window.mjs`, `session.py`, `status.py`, `worktree.mjs`",
+          "runs": "skill prose;  main-root lookup duplicated in `window.mjs`, `spell dev session`, `spell dev worktree status`, `worktree.mjs`",
           "notes": "Fourth layer.",
           "target": "(R3) `spell dev worktree status --json` (no name:  this checkout);  one main-root lookup"
         }
@@ -582,9 +578,9 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`packages/cli/src/dev/sessions.ts` (`savedSessions()`, `runningSessions()`);  still `worktrees.py`, `whassup.py`",
+          "runs": "`packages/cli/src/dev/sessions.ts` (`savedSessions()`, `runningSessions()`);  still `spell dev worktree list`, `spell dev stock`",
           "notes": "Session registry / alive / ancestors code copied in four Python scripts.",
-          "target": "(R4) built:  `spell dev session list`;  `worktree list` and `stock` next (P8, P9)"
+          "target": "(R4) built:  `spell dev session list`;  /session calls it"
         },
         {
           "op": "Find a saved session by words or id",
@@ -601,14 +597,14 @@
               "/session",
               "/wtf"
             ],
-            "note": "`/wtf` via `transcript.py --find`"
+            "note": "`/wtf` via `spell dev session find`"
           },
           "yarn": {
             "mark": "could"
           },
           "runs": "`packages/cli/src/dev/sessions.ts` (`savedSessions()`, `sessionsNamed()`)",
           "notes": "Three name matchers:  title vs worktree vs both.",
-          "target": "(R4) built:  `spell dev session list <words>` / `find <name>`;  skills switch in P11"
+          "target": "(R4) built:  `spell dev session list <words>` / `find <name>`;  skills call it"
         },
         {
           "op": "Open a session in VS Code's Claude panel",
@@ -632,7 +628,7 @@
           },
           "runs": "`sessionCommand.ts` -> `vscode://anthropic.claude-code/open?session=...&windowId=...`",
           "notes": "A terminal or Desktop session is refused.",
-          "target": "(R4) built:  `spell dev session open`;  /session /whassup switch in P11"
+          "target": "(R4) built:  `spell dev session open`;  /session /whassup call it"
         },
         {
           "op": "Title this session",
@@ -655,7 +651,7 @@
           },
           "runs": "`queueTitle()` writes `~/.claude/session-titles/<id>`;  `~/.claude/hooks/session-title.mjs` applies it",
           "notes": "Lands on the NEXT prompt.  Undocumented hook output (`sessionTitle`, CLI 2.1.287).",
-          "target": "(R4) built:  `spell dev session title`;  /session switches in P11"
+          "target": "(R4) built:  `spell dev session title`;  /session calls it"
         },
         {
           "op": "Message another session",
@@ -694,7 +690,7 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`kill <pid>` (`whassup.py`)",
+          "runs": "`kill <pid>` (`spell dev stock`)",
           "target": "(R4) `spell dev session end <id>`:  never its own pid;  /whassup calls it"
         },
         {
@@ -717,7 +713,7 @@
           },
           "runs": "`packages/cli/src/dev/transcript.ts` (`digestTranscript()`)",
           "notes": "Prompts, last reply, waiting question.",
-          "target": "(R4) built:  `spell dev session transcript`;  /wtf switches in P11"
+          "target": "(R4) built:  `spell dev session transcript`;  /wtf calls it"
         },
         {
           "op": "Say where we are",
@@ -735,7 +731,7 @@
           "yarn": {
             "mark": "no"
           },
-          "runs": "`transcript.py`, `worktrees.py`, `plan-doc summary --json`, `server url` + prose",
+          "runs": "`spell dev session transcript`, `spell dev worktree list`, `plan-doc summary --json`, `server url` + prose",
           "target": "stays:  skill judgement (/wtf);  data from `spell dev session status <name> --json`"
         },
         {
@@ -779,7 +775,7 @@
           },
           "runs": "`packages/cli/src/dev/stock.ts` (`takeStock()`)",
           "notes": "Refused git lines from a worktree session get listed to paste.",
-          "target": "(R4) built:  `spell dev stock`;  /whassup switches in P11"
+          "target": "(R4) built:  `spell dev stock`;  /whassup calls it"
         },
         {
           "op": "Ask Owen to leave plan mode first",
@@ -843,7 +839,7 @@
             "mark": "could",
             "note": "mechanics only"
           },
-          "runs": "`git` + `status.py` + prose",
+          "runs": "`git` + `spell dev worktree status` + prose",
           "notes": "Running `/park` is the go-ahead to commit the WIP commit.",
           "target": "stays:  /park judgement;  calls (R3) `worktree new` / `carry`, (R5) `park commit`, `park note new`"
         },
@@ -862,7 +858,7 @@
           "yarn": {
             "mark": "no"
           },
-          "runs": "`status.py <other>`, then `SendMessage`",
+          "runs": "`spell dev worktree status <other>`, then `SendMessage`",
           "notes": "Never parks another session's files from here.",
           "target": "stays:  Claude-only (`SendMessage`);  target from `spell dev session status <other>`"
         },
@@ -924,7 +920,7 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "skill prose;  read by `status.py`, `whassup.py`",
+          "runs": "skill prose;  read by `spell dev worktree status`, `spell dev stock`",
           "notes": "Fourth layer.",
           "target": "(R5) `spell dev park note resume|wait <target>`;  /wait-for /unpark call it"
         },
@@ -948,7 +944,7 @@
             "mark": "could"
           },
           "runs": "`packages/cli/src/dev/parking.ts` (`parkedNotes()`)",
-          "target": "(R5) built:  `spell dev park list`;  /unpark /whassup switch in P11"
+          "target": "(R5) built:  `spell dev park list`;  /unpark /whassup call it"
         },
         {
           "op": "Say where a name stands",
@@ -973,7 +969,7 @@
           },
           "runs": "`packages/cli/src/dev/worktrees.ts` (`nameStatus()`)",
           "notes": "Resolves worktree, branch, plan doc, sessions.  `/wtf` resolves names by prose, same rule.",
-          "target": "(R3) built:  `spell dev worktree status <name>`;  /park /unpark /wait-for /wtf switch in P11"
+          "target": "(R3) built:  `spell dev worktree status <name>`;  /park /unpark /wait-for /wtf call it"
         },
         {
           "op": "List the names that exist",
@@ -1014,7 +1010,7 @@
             "mark": "could"
           },
           "runs": "`packages/cli/src/dev/parking.ts` (`waitCandidates()`)",
-          "target": "(R5) built:  `spell dev park candidates`;  /wait-for switches in P11"
+          "target": "(R5) built:  `spell dev park candidates`;  /wait-for calls it"
         },
         {
           "op": "Wait until another session finishes",
@@ -1037,7 +1033,7 @@
           },
           "runs": "`packages/cli/src/dev/parking.ts` (`waitFor()`), in a background Bash",
           "notes": "Gives up after ~2h (exit 2, restarted).  Dies with the session.",
-          "target": "(R5) built:  `spell dev park wait`;  /wait-for switches in P11"
+          "target": "(R5) built:  `spell dev park wait`;  /wait-for calls it"
         },
         {
           "op": "Pick parked work back up",
@@ -1092,7 +1088,7 @@
           "yarn": {
             "mark": "no"
           },
-          "runs": "`status.py` (target finished?), then `SendMessage`",
+          "runs": "`spell dev worktree status` (target finished?), then `SendMessage`",
           "target": "stays:  Claude-only (`SendMessage`);  \"finished?\" from `spell dev session status <name>`"
         },
         {
@@ -1110,7 +1106,7 @@
           "yarn": {
             "mark": "could"
           },
-          "runs": "`git stash apply|drop` by sha (`whassup.py`)",
+          "runs": "`git stash apply|drop` by sha (`spell dev stock`)",
           "target": "(R3) `spell dev worktree carry apply|drop <name>` by tag / sha;  /whassup calls it"
         },
         {
@@ -1240,7 +1236,7 @@
             "mark": "no"
           },
           "runs": "prose:  `MORNING-<name>.md` `active` -> `done`, then asks to delete",
-          "notes": "`whassup.py` flags un-reviewed morning plans.",
+          "notes": "`spell dev stock` flags un-reviewed morning plans.",
           "target": "stays:  /wakeup judgement;  (R5) `spell dev bedtime note done` flips state"
         }
       ]
@@ -1686,12 +1682,12 @@
               "/wtf",
               "/wait-for"
             ],
-            "note": "prose;  `status.py` `plan`"
+            "note": "prose;  `spell dev worktree status` `plan`"
           },
           "yarn": {
             "mark": "could"
           },
-          "runs": "skill prose + `status.py`",
+          "runs": "skill prose + `spell dev worktree status`",
           "notes": "Fourth layer.  Old branches keep it under `plans/<name>/`.",
           "target": "(R4) `spell dev session status <name> --json` (`plan` field);  /wtf /wait-for read it"
         },
