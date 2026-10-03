@@ -1,0 +1,3937 @@
+{
+  "families": [
+    {
+      "id": "worktrees",
+      "title": "Worktrees & branches",
+      "icon": "code branch",
+      "intro": "Git worktrees under `.claude/worktrees/<name>`, one branch each:  made, checked, merged, removed.  Mostly skill prose today.",
+      "rows": [
+        {
+          "op": "Create or enter a worktree",
+          "cli": {
+            "mark": "could",
+            "note": "`spell dev worktree new <name>`;  Claude still needs `EnterWorktree` to move the session"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/isolate", "/epic", "/park", "/unpark", "/bedtime"],
+            "note": "`EnterWorktree`;  `/bedtime` only via isolate"
+          },
+          "yarn": {
+            "mark": "could",
+            "note": "from the main checkout only"
+          },
+          "runs": "`EnterWorktree` -> `.claude/hooks/worktree.mjs create`",
+          "notes": "Hook branches from LOCAL `main`, names branch `<name>` (Claude's own adds `worktree-`), reuses an existing worktree / branch."
+        },
+        {
+          "op": "Lower-kebab-case a name",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/isolate", "/epic", "/park"],
+            "note": "prose"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "skill prose;  `plan-doc.js` only rejects non-kebab names",
+          "notes": "Fourth layer.  `worktree.mjs` allows `[A-Za-z0-9._-]`:  looser than the skills' rule."
+        },
+        {
+          "op": "Check a worktree name is free",
+          "cli": {
+            "mark": "could",
+            "note": "`spell dev name-free <name>`:  worktree, branch, `worktree-<name>`, plan doc"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/isolate", "/epic"],
+            "note": "`/epic` adds plan-doc paths"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`git worktree list`, `git branch` + prose",
+          "notes": "Fourth layer, duplicated in two skills.  Hit:  modal \"Reuse\" / \"Different name\"."
+        },
+        {
+          "op": "Carry uncommitted edits into a new worktree",
+          "cli": {
+            "mark": "could",
+            "note": "mechanics only;  which files are whose needs Claude"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/isolate", "/park"],
+            "note": "`/isolate` asks first;  `/park` carries this session's files only"
+          },
+          "yarn": {
+            "mark": "could",
+            "note": "mechanics only"
+          },
+          "runs": "`git stash` + prose",
+          "notes": "Bare `git stash pop` in both skills:  can pop another session's stash (shared stack).  `/park` pushes `-m park:<name>` but still pops bare."
+        },
+        {
+          "op": "Install dependencies if missing",
+          "cli": {
+            "mark": "could",
+            "note": "`spell` itself needs the main checkout's `node_modules`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/isolate", "/epic", "/unpark", "/wait-for"],
+            "note": "`/isolate` step 7, park Resume step 3"
+          },
+          "yarn": {
+            "mark": "no",
+            "note": "yarn runs no script in a worktree before `yarn install`"
+          },
+          "runs": "`yarn install` + prose",
+          "notes": "Resume also reinstalls when `yarn.lock` or workspaces changed in the merge."
+        },
+        {
+          "op": "Report uncommitted and unmerged work",
+          "cli": {
+            "mark": "could",
+            "note": "`spell dev worktree status`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/isolate", "/whassup", "/wtf"],
+            "note": "`/isolate done` step 1"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`git status --short`, `git log main..HEAD`;  `whassup.py`, `status.py` (`ahead`)",
+          "notes": "Three implementations:  skill prose, `whassup.py`, `status.py`."
+        },
+        {
+          "op": "Check a branch merges cleanly",
+          "cli": {
+            "mark": "could",
+            "note": "`git merge-tree` exit code, conflicting files"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/isolate", "/whassup", "/unpark", "/wait-for"],
+            "note": "`/isolate done` step 2, park Resume step 2"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`git merge-tree --write-tree --name-only main HEAD` + prose",
+          "notes": "Fourth layer, copied into `/isolate`, `/park` Resume, `/whassup` merge."
+        },
+        {
+          "op": "Merge main into a worktree",
+          "cli": {
+            "mark": "could",
+            "note": "clean merges only;  conflicts need Claude"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/isolate", "/unpark", "/wait-for"],
+            "note": "conflicts resolved keeping both sides' intent"
+          },
+          "yarn": {
+            "mark": "could",
+            "note": "clean merges only"
+          },
+          "runs": "`git merge main` + prose",
+          "notes": "Package moves on `main` show as rename / delete conflicts:  park Resume says follow the move and fix aliases."
+        },
+        {
+          "op": "Run checks for the packages a branch touches",
+          "cli": {
+            "mark": "could",
+            "note": "`spell dev check --touched`;  `spell check` checks spell projects, not packages"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/unpark", "/wait-for", "/isolate", "/bedtime"],
+            "note": "park Resume step 3"
+          },
+          "yarn": {
+            "mark": "could",
+            "note": "root `ts` / `test` run EVERY package;  no touched-only script"
+          },
+          "runs": "`git diff --name-only main...HEAD` -> `yarn ts`, `yarn test` per package",
+          "notes": "Fourth layer."
+        },
+        {
+          "op": "Merge a worktree into main",
+          "cli": {
+            "mark": "could",
+            "note": "`spell dev worktree merge <name>`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/isolate", "/whassup", "/wakeup"],
+            "note": "`/isolate done`;  `/wakeup` runs its steps"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`git merge --ff-only <name>` (`/isolate`) or `git merge --no-edit <branch>` (`whassup.py`)",
+          "notes": "DRIFT:  `/isolate` fast-forwards only;  `whassup.py` makes a merge commit, while its docstring says \"as `/isolate done` would\"."
+        },
+        {
+          "op": "Leave a worktree",
+          "cli": {
+            "mark": "no",
+            "note": "`ExitWorktree` is Claude-only"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/isolate", "/epic"],
+            "note": "`/isolate done`;  `/epic` Doc Review calls it"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "`window.mjs handoff --back`, then `ExitWorktree keep`",
+          "notes": "Never `remove` unasked;  the hook's `remove` refuses without `discard_changes`."
+        },
+        {
+          "op": "Remove a finished worktree and its branch",
+          "cli": {
+            "mark": "could",
+            "note": "`spell dev worktree remove <name>`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/isolate", "/whassup"],
+            "note": "`/isolate done` cleanup;  `/whassup` remove"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`git worktree remove` + `git branch -d`;  `worktree.mjs remove` hook",
+          "notes": "`whassup.py` uses `-D` for squashed-in branches;  the skill checks `git cherry` first."
+        },
+        {
+          "op": "Throw away a worktree's work",
+          "cli": {
+            "mark": "could",
+            "note": "behind a confirm"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/whassup"],
+            "note": "`discard`, asks twice"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`git worktree remove --force`, `git branch -D` (`whassup.py`)"
+        },
+        {
+          "op": "Find worktrees safe to clean up",
+          "cli": {
+            "mark": "could",
+            "note": "`spell dev worktree list --dead`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/isolate", "/whassup"],
+            "note": "`/isolate done` outside a worktree"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`/isolate`:  parses `worktrees.py` TEXT + `git`;  `whassup.py` `dead` group",
+          "notes": "Two rules for \"dead\":  `/isolate` prose vs `whassup.py`."
+        },
+        {
+          "op": "List worktrees and the session in each",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/worktrees", "/whassup"]
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`~/.claude/skills/worktrees/scripts/worktrees.py`",
+          "notes": "`/worktrees` is a user skill (`~/.claude/skills`), not in the repo."
+        },
+        {
+          "op": "Tell whether a session is in a worktree",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/isolate", "/park", "/bedtime", "/unpark"],
+            "note": "prose:  folder under `.claude/worktrees/`"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "skill prose;  main-root lookup duplicated in `window.mjs`, `session.py`, `status.py`, `worktree.mjs`",
+          "notes": "Fourth layer."
+        }
+      ]
+    },
+    {
+      "id": "sessions",
+      "title": "Sessions & windows",
+      "icon": "desktop",
+      "intro": "VS Code windows per package and worktree (`scripts/window.mjs`), Claude sessions, and the hooks that move and title them.",
+      "rows": [
+        {
+          "op": "Open a worktree's own VS Code window",
+          "cli": {
+            "mark": "could",
+            "note": "`spell dev window open <name>`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/isolate", "/epic", "/unpark"]
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root window"],
+            "note": "`open <name> [--pkg]`;  skills call `node scripts/window.mjs`"
+          },
+          "runs": "`scripts/window.mjs open`",
+          "notes": "Skills skip `yarn window`:  a fresh worktree has no `node_modules`, and yarn runs no script there."
+        },
+        {
+          "op": "Close a worktree's window",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/whassup", "/isolate"],
+            "note": "`/whassup` close / remove;  `/isolate done` via `handoff --back`"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root window"],
+            "note": "`close <name>`"
+          },
+          "runs": "`scripts/window.mjs close`"
+        },
+        {
+          "op": "Move a session to another window",
+          "cli": {
+            "mark": "no",
+            "note": "needs `$CLAUDE_CODE_SESSION_ID`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/isolate", "/epic", "/unpark"],
+            "note": "`handoff <name>`, `--back` on leaving"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root window"],
+            "note": "`handoff <name> [--back]`"
+          },
+          "runs": "`scripts/window.mjs handoff` -> `Stop` hook `.claude/hooks/handoff.mjs`",
+          "notes": "Moves when the turn ends.  Old tab found by title:  two sessions with one title leave it open."
+        },
+        {
+          "op": "Reopen a moved session in its new window",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no",
+            "note": "`Stop` hook only"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root window"],
+            "note": "`resume <record> [--title]`, hook-only"
+          },
+          "runs": "`scripts/window.mjs resume`, started detached by `handoff.mjs`",
+          "notes": "Log:  `~/.spell/windows/handoffs/<session id>.log`."
+        },
+        {
+          "op": "Say which window this session runs in",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/unpark"],
+            "note": "step 3, its `workspace` line"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root window"],
+            "note": "`which`"
+          },
+          "runs": "`scripts/window.mjs which`"
+        },
+        {
+          "op": "Add or remove a folder in this window",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/isolate"],
+            "note": "`remove`, for older sessions only"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root window"],
+            "note": "`add <path>` / `remove <path>`"
+          },
+          "runs": "`scripts/window.mjs add|remove`",
+          "notes": "Legacy:  worktrees now get their own window."
+        },
+        {
+          "op": "Show a doc in VS Code's doc preview",
+          "cli": {
+            "mark": "could",
+            "note": "`spell dev show <file>`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/goals-open-vs", "/epic", "/spell-docs"],
+            "note": "via `plan-doc open`, `goals open-vs`"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root window"],
+            "note": "`show <file>`;  also `root plan-doc` `open`"
+          },
+          "runs": "`scripts/window.mjs show` (`Window.show`), from `packages/docs/scripts/pages.js` `openInVSCode`",
+          "notes": "Waits for a pending handoff, then shows in the new window."
+        },
+        {
+          "op": "Write missing package window files",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "could",
+            "note": "none uses it;  AGENTS.md says run it by hand"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root window"],
+            "note": "`init`"
+          },
+          "runs": "`scripts/window.mjs init`",
+          "notes": "Never overwrites:  themes are Owen's."
+        },
+        {
+          "op": "List running sessions and where they run",
+          "cli": {
+            "mark": "could",
+            "note": "`spell dev sessions`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/worktrees", "/session", "/whassup"]
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`worktrees.py`, `session.py list`, `whassup.py`",
+          "notes": "Session registry / alive / ancestors code copied in four Python scripts."
+        },
+        {
+          "op": "Find a saved session by words or id",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/session", "/wtf"],
+            "note": "`/wtf` via `transcript.py --find`"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`session.py list <words>`;  `transcript.py --find <name>`;  `status.py`",
+          "notes": "Three name matchers:  title vs worktree vs both."
+        },
+        {
+          "op": "Open a session in VS Code's Claude panel",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/session", "/whassup"],
+            "note": "`/whassup` open action"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`session.py open` -> `vscode://anthropic.claude-code/open`",
+          "notes": "A terminal or Desktop session is refused."
+        },
+        {
+          "op": "Title this session",
+          "cli": {
+            "mark": "no",
+            "note": "Claude-session-only"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/session"],
+            "note": "`/session name`;  `/isolate` reminds to `/rename`"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "`session.py name` queues it;  `~/.claude/hooks/session-title.mjs` applies it",
+          "notes": "Lands on the NEXT prompt.  Undocumented hook output (`sessionTitle`, CLI 2.1.287)."
+        },
+        {
+          "op": "Message another session",
+          "cli": {
+            "mark": "no",
+            "note": "SendMessage is Claude-only"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/park", "/unpark", "/whassup", "/wtf"],
+            "note": "park / unpark / nudge / relay answers"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "`SendMessage`"
+        },
+        {
+          "op": "End a running session",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/whassup"],
+            "note": "`kill` action, never its own pid"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`kill <pid>` (`whassup.py`)"
+        },
+        {
+          "op": "Digest another session's transcript",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/wtf"]
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`.claude/skills/wtf/scripts/transcript.py <id>`",
+          "notes": "Prompts, last reply, waiting question."
+        },
+        {
+          "op": "Say where we are",
+          "cli": {
+            "mark": "no",
+            "note": "judgement and prose"
+          },
+          "skill": {
+            "mark": "same",
+            "names": ["/wtf"],
+            "note": "`/wtf <name>` for another session"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "`transcript.py`, `worktrees.py`, `plan-doc summary --json`, `server url` + prose"
+        },
+        {
+          "op": "Answer another session's waiting question",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/wtf", "/whassup"],
+            "note": "`/wtf <name>?`;  `/whassup` answer"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "AskUserQuestion, then `SendMessage`, else a paste block"
+        },
+        {
+          "op": "Take stock of everything open",
+          "cli": {
+            "mark": "could",
+            "note": "report only:  `whassup.py`"
+          },
+          "skill": {
+            "mark": "same",
+            "names": ["/whassup"],
+            "note": "picks and actions need Claude"
+          },
+          "yarn": {
+            "mark": "could",
+            "note": "report only"
+          },
+          "runs": "`.claude/skills/whassup/scripts/whassup.py`",
+          "notes": "Refused git lines from a worktree session get listed to paste."
+        },
+        {
+          "op": "Ask Owen to leave plan mode first",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/isolate", "/epic", "/park", "/bedtime"],
+            "note": "prose"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "skill prose",
+          "notes": "Fourth layer:  plan mode blocks `EnterWorktree`."
+        },
+        {
+          "op": "Keep worktree sessions listed in every window",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no",
+            "note": "`WorktreeCreate` / `WorktreeRemove` hooks"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "`.claude/hooks/worktree.mjs create|remove`",
+          "notes": "Fires on `EnterWorktree`, `claude -w`, agent isolation.  Remove keeps dirty or unmerged work."
+        }
+      ]
+    },
+    {
+      "id": "park",
+      "title": "Park, wait, bedtime",
+      "icon": "scroll",
+      "intro": "Shelving a session's work as a WIP commit plus a note, waiting on another session, and unattended overnight runs.",
+      "rows": [
+        {
+          "op": "Park this session's work",
+          "cli": {
+            "mark": "could",
+            "note": "mechanics only:  worktree, WIP commit, note skeleton"
+          },
+          "skill": {
+            "mark": "same",
+            "names": ["/park"]
+          },
+          "yarn": {
+            "mark": "could",
+            "note": "mechanics only"
+          },
+          "runs": "`git` + `status.py` + prose",
+          "notes": "Running `/park` is the go-ahead to commit the WIP commit."
+        },
+        {
+          "op": "Tell another session to park",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/park"],
+            "note": "`/park <other>`"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "`status.py <other>`, then `SendMessage`",
+          "notes": "Never parks another session's files from here."
+        },
+        {
+          "op": "Make a WIP commit",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/park", "/bedtime"],
+            "note": "`WIP (parked): ...`;  `/bedtime` `WIP P<n>: ...`"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`git add -A`, `git commit` + prose",
+          "notes": "Two WIP message formats."
+        },
+        {
+          "op": "Write a PARKED note",
+          "cli": {
+            "mark": "could",
+            "note": "skeleton from the template"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/park", "/wait-for"]
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "skill prose:  `PARKED-<name>.md` at the worktree root",
+          "notes": "Fourth layer.  Gitignored, so lost with the worktree."
+        },
+        {
+          "op": "Change a PARKED note's state",
+          "cli": {
+            "mark": "could",
+            "note": "`parked` / `waiting:<target>` / `resumed`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/wait-for", "/unpark", "/park"],
+            "note": "first line `<!-- park: <state> -->`"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "skill prose;  read by `status.py`, `whassup.py`",
+          "notes": "Fourth layer."
+        },
+        {
+          "op": "List parked work",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/unpark", "/whassup"]
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`status.py --parked`"
+        },
+        {
+          "op": "Say where a name stands",
+          "cli": {
+            "mark": "could",
+            "note": "`spell dev status <name>`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/park", "/unpark", "/wait-for", "/wtf"]
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`.claude/skills/park/scripts/status.py <name>`",
+          "notes": "Resolves worktree, branch, plan doc, sessions.  `/wtf` resolves names by prose, same rule."
+        },
+        {
+          "op": "List the names that exist",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/wtf"],
+            "note": "on an unknown name"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "skill prose (worktrees, plan docs)",
+          "notes": "Fourth layer."
+        },
+        {
+          "op": "List what could be waited for",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/wait-for"],
+            "note": "`/wait-for ?`"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`status.py --candidates`"
+        },
+        {
+          "op": "Wait until another session finishes",
+          "cli": {
+            "mark": "could",
+            "note": "poll only"
+          },
+          "skill": {
+            "mark": "same",
+            "names": ["/wait-for"]
+          },
+          "yarn": {
+            "mark": "could",
+            "note": "poll only"
+          },
+          "runs": "`status.py --wait <name>` in a background Bash",
+          "notes": "Gives up after ~2h (exit 2, restarted).  Dies with the session."
+        },
+        {
+          "op": "Pick parked work back up",
+          "cli": {
+            "mark": "no",
+            "note": "carrying on needs Claude"
+          },
+          "skill": {
+            "mark": "same",
+            "names": ["/unpark"],
+            "note": "also `/wait-for` when the wait ends"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "park Resume:  `git merge-tree`, `git merge main`, checks + prose"
+        },
+        {
+          "op": "Check this is the parked work's window",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/unpark", "/wait-for"]
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`window.mjs which` vs `workspaces/ongoing/<name>.code-workspace`",
+          "notes": "Fourth layer."
+        },
+        {
+          "op": "Nudge a waiting session",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/whassup"],
+            "note": "`nudge`"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "`status.py` (target finished?), then `SendMessage`"
+        },
+        {
+          "op": "Apply or drop a leftover park stash",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/whassup"],
+            "note": "`apply` / `drop`"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`git stash apply|drop` by sha (`whassup.py`)"
+        },
+        {
+          "op": "Log parking in the plan doc",
+          "cli": {
+            "mark": "same",
+            "names": ["spell plan-doc"],
+            "note": "`log`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/park", "/unpark"]
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root plan-doc", "docs plan-doc"],
+            "note": "`log`"
+          },
+          "runs": "`packages/docs/scripts/plan-doc.js log`"
+        },
+        {
+          "op": "Run plan phases unattended overnight",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "same",
+            "names": ["/bedtime"],
+            "note": "Owen-only:  `disable-model-invocation`"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "prose + `plan-doc phase|log|add|check|open`",
+          "notes": "Picks phases and asks everything up-front, then never asks.  Never merges."
+        },
+        {
+          "op": "Commit after each phase",
+          "cli": {
+            "mark": "could",
+            "note": "`plan-doc phase done --commit`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/bedtime"],
+            "note": "`P<n>:  <Name> -- <summary>`"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`git commit` + prose",
+          "notes": "Fourth layer.  Repo convention outside `/bedtime` too."
+        },
+        {
+          "op": "Record judgement calls for review",
+          "cli": {
+            "mark": "same",
+            "names": ["spell plan-doc"],
+            "note": "`add todo \"Review: ...\"`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/bedtime"],
+            "note": "`J<k>` in the morning plan"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root plan-doc", "docs plan-doc"],
+            "note": "`add`"
+          },
+          "runs": "`plan-doc.js add` + prose"
+        },
+        {
+          "op": "Write the morning plan",
+          "cli": {
+            "mark": "could",
+            "note": "skeleton"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/bedtime"]
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "skill prose:  `MORNING-<name>.md` at the worktree root",
+          "notes": "Fourth layer.  Gitignored;  the plan doc is the record."
+        },
+        {
+          "op": "Leave bedtime mode and review the night",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "same",
+            "names": ["/wakeup"]
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "prose:  `MORNING-<name>.md` `active` -> `done`, then asks to delete",
+          "notes": "`whassup.py` flags un-reviewed morning plans."
+        }
+      ]
+    },
+    {
+      "id": "plans",
+      "title": "Plan docs (epics)",
+      "icon": "map",
+      "intro": "Plan docs at `packages/docs/epics/<name>/<name>.html`:  structured edits through `plan-doc`, the rest in `/epic` prose.",
+      "rows": [
+        {
+          "op": "Start a plan doc",
+          "cli": {
+            "mark": "same",
+            "names": ["spell plan-doc"],
+            "note": "`new`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic"]
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root plan-doc", "docs plan-doc"],
+            "note": "`new`"
+          },
+          "runs": "`packages/docs/scripts/plan-doc.js new`",
+          "notes": "Also updates the docs index."
+        },
+        {
+          "op": "Add a phase",
+          "cli": {
+            "mark": "same",
+            "names": ["spell plan-doc"],
+            "note": "`add-phase`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic"],
+            "note": "after plan mode is approved"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root plan-doc", "docs plan-doc"],
+            "note": "`add-phase`"
+          },
+          "runs": "`packages/docs/scripts/plan-doc.js add-phase`"
+        },
+        {
+          "op": "Change a phase's estimate",
+          "cli": {
+            "mark": "same",
+            "names": ["spell plan-doc"],
+            "note": "`estimate`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic"]
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root plan-doc", "docs plan-doc"],
+            "note": "`estimate`"
+          },
+          "runs": "`packages/docs/scripts/plan-doc.js estimate`",
+          "notes": "Overview total follows."
+        },
+        {
+          "op": "Set a phase's status",
+          "cli": {
+            "mark": "same",
+            "names": ["spell plan-doc"],
+            "note": "`phase`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic", "/bedtime"]
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root plan-doc", "docs plan-doc"],
+            "note": "`phase`"
+          },
+          "runs": "`packages/docs/scripts/plan-doc.js phase`",
+          "notes": "`done` drops UPDATE markers;  reloads the doc's tab unless `--no-open`."
+        },
+        {
+          "op": "Add a question, caveat, issue, todo or decision",
+          "cli": {
+            "mark": "same",
+            "names": ["spell plan-doc"],
+            "note": "`add`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic", "/bedtime"]
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root plan-doc", "docs plan-doc"],
+            "note": "`add`"
+          },
+          "runs": "`packages/docs/scripts/plan-doc.js add`",
+          "notes": "Subagents get the cheat sheet in their prompt."
+        },
+        {
+          "op": "Answer a question",
+          "cli": {
+            "mark": "same",
+            "names": ["spell plan-doc"],
+            "note": "`decide`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic", "/wtf"],
+            "note": "`/wtf ?` in this session"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root plan-doc", "docs plan-doc"],
+            "note": "`decide`"
+          },
+          "runs": "`packages/docs/scripts/plan-doc.js decide`",
+          "notes": "`plan-doc.js` header's command list omits `decide`."
+        },
+        {
+          "op": "Close or reopen an item",
+          "cli": {
+            "mark": "same",
+            "names": ["spell plan-doc"],
+            "note": "`close`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic"],
+            "note": "`close` / `reopen`"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root plan-doc", "docs plan-doc"],
+            "note": "`close`"
+          },
+          "runs": "`packages/docs/scripts/plan-doc.js close`",
+          "notes": "Strike, never delete."
+        },
+        {
+          "op": "Log a line in the plan doc",
+          "cli": {
+            "mark": "same",
+            "names": ["spell plan-doc"],
+            "note": "`log`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic", "/park", "/unpark", "/bedtime"]
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root plan-doc", "docs plan-doc"],
+            "note": "`log`"
+          },
+          "runs": "`packages/docs/scripts/plan-doc.js log`"
+        },
+        {
+          "op": "Set the kickoff prompt",
+          "cli": {
+            "mark": "same",
+            "names": ["spell plan-doc"],
+            "note": "`prompt`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic"],
+            "note": "verbatim, via `--file`"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root plan-doc", "docs plan-doc"],
+            "note": "`prompt`"
+          },
+          "runs": "`packages/docs/scripts/plan-doc.js prompt`"
+        },
+        {
+          "op": "Migrate an older plan doc",
+          "cli": {
+            "mark": "same",
+            "names": ["spell plan-doc"],
+            "note": "`migrate`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic"]
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root plan-doc", "docs plan-doc"],
+            "note": "`migrate`"
+          },
+          "runs": "`packages/docs/scripts/plan-doc.js migrate`"
+        },
+        {
+          "op": "Summarize a plan",
+          "cli": {
+            "mark": "same",
+            "names": ["spell plan-doc"],
+            "note": "`summary`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic", "/wtf", "/bedtime"],
+            "note": "`--json` for phases and open items"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root plan-doc", "docs plan-doc"],
+            "note": "`summary`"
+          },
+          "runs": "`packages/docs/scripts/plan-doc.js summary`"
+        },
+        {
+          "op": "Check a plan doc",
+          "cli": {
+            "mark": "same",
+            "names": ["spell plan-doc"],
+            "note": "`check`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic", "/bedtime"]
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root plan-doc", "docs plan-doc"],
+            "note": "`check`"
+          },
+          "runs": "`packages/docs/scripts/plan-doc.js check`",
+          "notes": "Ids, links, phases, then `check-spell.js` in a browser."
+        },
+        {
+          "op": "Show a plan doc in VS Code",
+          "cli": {
+            "mark": "same",
+            "names": ["spell plan-doc"],
+            "note": "`open`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic", "/bedtime"],
+            "note": "every new stage"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root plan-doc", "docs plan-doc"],
+            "note": "`open`"
+          },
+          "runs": "`packages/docs/scripts/plan-doc.js open`",
+          "notes": "DRIFT:  USAGE says \"beside the editor\";  `/epic` says right side bar (set by `spell.docPreview.location`)."
+        },
+        {
+          "op": "Run a planning session",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "same",
+            "names": ["/epic"]
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "prose:  name, isolate, explore, plan mode, fill doc, phases, Doc Review",
+          "notes": "Was `/plan-doc` until 2026-10-02."
+        },
+        {
+          "op": "Hand-write the Overview and UPDATE markers",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic"]
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "prose, rules in `packages/docs/templates/epics/plan-doc.md`",
+          "notes": "Fourth layer.  `plan-doc phase done` strips the markers."
+        },
+        {
+          "op": "Turn a plan doc into durable docs",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic"],
+            "note": "Doc Review phase"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["root docs:new", "docs docs:new", "root docs:index", "docs docs:index"],
+            "note": "`docs:new durable <page>`"
+          },
+          "runs": "`packages/docs/scripts/new-page.js` + prose",
+          "notes": "Overview -> body, decisions -> Why, caveats -> Limits."
+        },
+        {
+          "op": "Find a session's plan doc",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/wtf", "/wait-for"],
+            "note": "prose;  `status.py` `plan`"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "skill prose + `status.py`",
+          "notes": "Fourth layer.  Old branches keep it under `plans/<name>/`."
+        },
+        {
+          "op": "Get a doc's URL on the page server",
+          "cli": {
+            "mark": "could",
+            "note": "`spell serve` prints no URLs"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic", "/wtf"]
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["root server", "server server"],
+            "note": "`server url <ABSOLUTE path>`"
+          },
+          "runs": "`packages/server/src/page/cli.ts url`",
+          "notes": "Relative path resolves wrongly (SUSPECTED-BUGS, server).  Run in the doc's own checkout."
+        },
+        {
+          "op": "Say which phase is done and what's next",
+          "cli": {
+            "mark": "could",
+            "note": "from `plan-doc summary`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic", "/wtf"],
+            "note": "linked `P1 complete.  Next is P2` line"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "prose + `plan-doc summary`",
+          "notes": "Fourth layer."
+        }
+      ]
+    },
+    {
+      "id": "goals",
+      "title": "Goals",
+      "icon": "bullseye",
+      "intro": "Goal sets in `goals/`:  a page per topic for people, a `.md` brief for agents.  Skills call `goals.sh`, which finds the goals folder.",
+      "rows": [
+        {
+          "op": "List goal sets",
+          "cli": {
+            "mark": "same",
+            "names": ["spell goals"],
+            "note": "`sets`"
+          },
+          "skill": {
+            "mark": "same",
+            "names": ["/goals"],
+            "note": "`/goals sets`"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root goals"],
+            "note": "`sets`"
+          },
+          "runs": "`goals/_tools/goals.js sets`"
+        },
+        {
+          "op": "Make a goal set active",
+          "cli": {
+            "mark": "same",
+            "names": ["spell goals"],
+            "note": "`use`"
+          },
+          "skill": {
+            "mark": "same",
+            "names": ["/goals"],
+            "note": "`/goals use <set>`;  also on naming another set"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root goals"],
+            "note": "`use`"
+          },
+          "runs": "`goals/_tools/goals.js use`"
+        },
+        {
+          "op": "Resolve a target",
+          "cli": {
+            "mark": "same",
+            "names": ["spell goals"],
+            "note": "`resolve`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/goals", "/goals-thought"]
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root goals"],
+            "note": "`resolve`"
+          },
+          "runs": "`goals/_tools/goals.js resolve`",
+          "notes": "`maybe:` choices go into a modal."
+        },
+        {
+          "op": "Summarize a set or topic",
+          "cli": {
+            "mark": "same",
+            "names": ["spell goals"],
+            "note": "`summary`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/goals"]
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root goals"],
+            "note": "`summary`"
+          },
+          "runs": "`goals/_tools/goals.js summary`"
+        },
+        {
+          "op": "List waiting thoughts",
+          "cli": {
+            "mark": "same",
+            "names": ["spell goals"],
+            "note": "`thoughts`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/goals", "/goals-update"]
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root goals"],
+            "note": "`thoughts`"
+          },
+          "runs": "`goals/_tools/goals.js thoughts`",
+          "notes": "`--all` includes digested ones."
+        },
+        {
+          "op": "Create a goal set or topic",
+          "cli": {
+            "mark": "same",
+            "names": ["spell goals"],
+            "note": "`new-set`"
+          },
+          "skill": {
+            "mark": "could",
+            "note": "no skill makes sets or topics"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root goals"],
+            "note": "`new-set`"
+          },
+          "runs": "`goals/_tools/goals.js new-set`",
+          "notes": "`new-set <set>`, `new <set/topic>`.  Skill `could`:  `/goals new`."
+        },
+        {
+          "op": "Add a goal, idea, question, risk, decision or work item",
+          "cli": {
+            "mark": "same",
+            "names": ["spell goals"],
+            "note": "`add`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/goals", "/goals-update"]
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root goals"],
+            "note": "`add`"
+          },
+          "runs": "`goals/_tools/goals.js add`"
+        },
+        {
+          "op": "Close or reopen an item",
+          "cli": {
+            "mark": "same",
+            "names": ["spell goals"],
+            "note": "`close`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/goals", "/goals-update"],
+            "note": "`close` / `reopen`"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root goals"],
+            "note": "`close`"
+          },
+          "runs": "`goals/_tools/goals.js close`",
+          "notes": "Never delete."
+        },
+        {
+          "op": "Log a history entry",
+          "cli": {
+            "mark": "same",
+            "names": ["spell goals"],
+            "note": "`log`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/goals", "/goals-update"]
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root goals"],
+            "note": "`log`"
+          },
+          "runs": "`goals/_tools/goals.js log`"
+        },
+        {
+          "op": "Set a topic's status",
+          "cli": {
+            "mark": "same",
+            "names": ["spell goals"],
+            "note": "`status`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/goals"]
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root goals"],
+            "note": "`status`"
+          },
+          "runs": "`goals/_tools/goals.js status`",
+          "notes": "`draft|dialog|agreed|building|shipped`."
+        },
+        {
+          "op": "Jot a thought on a page",
+          "cli": {
+            "mark": "same",
+            "names": ["spell goals"],
+            "note": "`thought`"
+          },
+          "skill": {
+            "mark": "same",
+            "names": ["/goals-thought"]
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root goals"],
+            "note": "`thought`"
+          },
+          "runs": "`goals/_tools/goals.js thought`",
+          "notes": "Also the page's bubble buttons, through `goals/_tools/goalsRoutes.ts` on the page server."
+        },
+        {
+          "op": "Mark a thought digested",
+          "cli": {
+            "mark": "same",
+            "names": ["spell goals"],
+            "note": "`digest`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/goals-update"]
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root goals"],
+            "note": "`digest`"
+          },
+          "runs": "`goals/_tools/goals.js digest`"
+        },
+        {
+          "op": "Rewrite contents pages",
+          "cli": {
+            "mark": "same",
+            "names": ["spell goals"],
+            "note": "`index`"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root goals"],
+            "note": "`index`"
+          },
+          "runs": "`goals/_tools/goals.js index`",
+          "notes": "Cards and numbers between markers."
+        },
+        {
+          "op": "Check goals pages",
+          "cli": {
+            "mark": "same",
+            "names": ["spell goals"],
+            "note": "`check`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/goals", "/goals-update"],
+            "note": "`--no-browser` mid-dialog"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root goals"],
+            "note": "`check`"
+          },
+          "runs": "`goals/_tools/goals.js check`"
+        },
+        {
+          "op": "Run or start the goals server",
+          "cli": {
+            "mark": "same",
+            "names": ["spell goals"],
+            "note": "`server`"
+          },
+          "skill": {
+            "mark": "could",
+            "note": "open commands start it"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root goals"],
+            "note": "`server`"
+          },
+          "runs": "`goals/_tools/goals.js server`",
+          "notes": "`serve` foreground, `server start|stop|status`.  Same page server and pid file as `root server`:  duplicate commands."
+        },
+        {
+          "op": "Open a goals page in the browser",
+          "cli": {
+            "mark": "same",
+            "names": ["spell goals"],
+            "note": "`open`"
+          },
+          "skill": {
+            "mark": "same",
+            "names": ["/goals-open"]
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root goals"],
+            "note": "`open`"
+          },
+          "runs": "`goals/_tools/goals.js open`",
+          "notes": "Starts the page server if need be."
+        },
+        {
+          "op": "Open a goals page in VS Code",
+          "cli": {
+            "mark": "same",
+            "names": ["spell goals"],
+            "note": "`open-vs`"
+          },
+          "skill": {
+            "mark": "same",
+            "names": ["/goals-open-vs"]
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root goals"],
+            "note": "`open-vs`"
+          },
+          "runs": "`goals/_tools/goals.js open-vs`",
+          "notes": "Not in VS Code:  falls back to `open`."
+        },
+        {
+          "op": "Talk through a goal with Claude",
+          "cli": {
+            "mark": "same",
+            "names": ["spell goals"],
+            "note": "`talk`"
+          },
+          "skill": {
+            "mark": "same",
+            "names": ["/goals"]
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root goals"],
+            "note": "`talk`"
+          },
+          "runs": "`goals.js talk` -> `claude /goals` (`launch.js`)",
+          "notes": "`talk` launches Claude on `/goals`;  `--window` in a new terminal."
+        },
+        {
+          "op": "Digest new thoughts",
+          "cli": {
+            "mark": "same",
+            "names": ["spell goals"],
+            "note": "`update`"
+          },
+          "skill": {
+            "mark": "same",
+            "names": ["/goals-update"]
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root goals"],
+            "note": "`update`"
+          },
+          "runs": "`goals.js update` -> `claude /goals-update` (`launch.js`)",
+          "notes": "`--print` headless:  questions become `Q` items."
+        },
+        {
+          "op": "Check Claude Code is installed and logged in",
+          "cli": {
+            "mark": "same",
+            "names": ["spell goals"],
+            "note": "`claude`"
+          },
+          "skill": {
+            "mark": "no",
+            "note": "tool's own preflight"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root goals"],
+            "note": "`claude`"
+          },
+          "runs": "`goals/_tools/goals.js claude`"
+        },
+        {
+          "op": "List goals commands",
+          "cli": {
+            "mark": "same",
+            "names": ["spell goals"],
+            "note": "`help`"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root goals"],
+            "note": "`help`"
+          },
+          "runs": "`goals/_tools/goals.js help`",
+          "notes": "`help` works but isn't in its own USAGE;  `spell goals` with no args runs it."
+        },
+        {
+          "op": "Record a decision",
+          "cli": {
+            "mark": "could",
+            "note": "`goals decide`, like `plan-doc decide`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/goals", "/goals-update"],
+            "note": "three commands"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`goals.js add decision` + `close Q` + `log --icon gavel`",
+          "notes": "Fourth layer:  3-step chain.  `plan-doc` has `decide`;  goals doesn't."
+        },
+        {
+          "op": "Keep the agent notes in step with the page",
+          "cli": {
+            "mark": "could",
+            "note": "generate `.md` decisions / work / questions from the page"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/goals", "/goals-update"],
+            "note": "hand-edited"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "skill prose:  `<set>/<topic>/<topic>.md`",
+          "notes": "Fourth layer.  Same ids by hand:  drifts."
+        },
+        {
+          "op": "Find the goals folder",
+          "cli": {
+            "mark": "other",
+            "names": ["spell goals"],
+            "note": "up from cwd, else this checkout"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/goals", "/goals-open", "/goals-open-vs", "/goals-thought", "/goals-update"],
+            "note": "via `goals.sh`"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["root goals"],
+            "note": "always the repo root's"
+          },
+          "runs": "`goals/_skills/goals/scripts/goals.sh`;  `goalsCommand.ts` `findGoals()`",
+          "notes": "Three rules:  `goals.sh` also searches DOWN and exits 3 on several;  `spell goals` doesn't."
+        },
+        {
+          "op": "Hand ready work to an agent",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/goals"],
+            "note": "step 6;  several phases:  suggests `/epic`"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "`Agent` + `goals.js status building`"
+        },
+        {
+          "op": "Test the goals page routes",
+          "cli": {
+            "mark": "could",
+            "note": "`spell test` runs spell tests only"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root goals:test"]
+          },
+          "runs": "`node --test goals/_tools/goalsRoutes.test.ts` under `tsx`",
+          "notes": "Not in root `test` (vitest over packages):  `goals/` isn't a package and uses `node --test`."
+        }
+      ]
+    },
+    {
+      "id": "docs",
+      "title": "Docs pages",
+      "icon": "book open",
+      "intro": "Hand-authored pages in `packages/docs`:  start, index, check, show.  Root `docs:*` scripts just wrap the docs package's.",
+      "rows": [
+        {
+          "op": "Rebuild docs' Spell UI bundle, re-index, check every page",
+          "cli": {
+            "mark": "could",
+            "note": "`spell docs update`"
+          },
+          "skill": {
+            "mark": "could",
+            "note": "would also LOOK at the screenshots"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root docs:update", "docs docs:update"]
+          },
+          "runs": "`scripts/update.js`:  `bundle-spell-ui.js`, `index.js`, `doc-links.py --check`, `check-spell.js`",
+          "notes": "Screenshots land in a temp folder nobody looks at unless told."
+        },
+        {
+          "op": "Bundle Spell UI into `_assets/spell-ui.js` for docs",
+          "cli": {
+            "mark": "could",
+            "note": "`spell docs bundle`"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "could",
+            "note": "only via `docs:update`;  alone:  `node scripts/bundle-spell-ui.js`"
+          },
+          "runs": "`scripts/bundle-spell-ui.js` (esbuild;  builds fork + ui first)",
+          "notes": "A new page icon needs adding to `ICONS` here, then a rebuild."
+        },
+        {
+          "op": "Rewrite the docs index lists",
+          "cli": {
+            "mark": "could",
+            "note": "`spell docs index`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic"],
+            "note": "Doc Review step, prose"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root docs:index", "docs docs:index"]
+          },
+          "runs": "`scripts/index.js` (between `index:start` / `index:end` markers)"
+        },
+        {
+          "op": "Start a docs page from a template",
+          "cli": {
+            "mark": "could",
+            "note": "`spell docs new`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic"],
+            "note": "Doc Review:  `docs:new durable`"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root docs:new", "docs docs:new"]
+          },
+          "runs": "`scripts/new-page.js` (then tidies + `index.js`)",
+          "notes": "Plan docs refused here:  `plan-doc new`.  Copies a sibling `.json` too (`commands`)."
+        },
+        {
+          "op": "Show a docs page in Chrome",
+          "cli": {
+            "mark": "could",
+            "note": "`spell docs open`"
+          },
+          "skill": {
+            "mark": "could",
+            "note": "`/spell-docs` is VS Code only;  falls back to Chrome outside it"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root docs:open", "docs docs:open"]
+          },
+          "runs": "`scripts/open.js` -> `pages.js` `openInChrome()`"
+        },
+        {
+          "op": "Show a docs page in VS Code's doc preview",
+          "cli": {
+            "mark": "could",
+            "note": "`spell docs open --vs`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/spell-docs"]
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["root docs:open", "docs docs:open"],
+            "note": "`--vs`"
+          },
+          "runs": "`scripts/open.js` -> `pages.js` `openInVSCode()` -> extension `DocPreview`",
+          "notes": "One preview shared with `plan-doc open`.  /spell-docs runs `yarn serve` first."
+        },
+        {
+          "op": "Find the closest page when a page name misses",
+          "cli": {
+            "mark": "could",
+            "note": "suggest in `spell docs open`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/spell-docs"],
+            "note": "step 2:  `ls`, then a modal"
+          },
+          "yarn": {
+            "mark": "could",
+            "note": "`docs:open` could print near misses"
+          },
+          "runs": "skill prose + `ls packages/docs`"
+        },
+        {
+          "op": "Check one page in a real browser, with screenshots",
+          "cli": {
+            "mark": "could",
+            "note": "`spell docs check <page>`"
+          },
+          "skill": {
+            "mark": "could",
+            "note": "checks can't see overlap:  someone must look"
+          },
+          "yarn": {
+            "mark": "could",
+            "note": "unscripted:  `node scripts/check-spell.js <page>`;  all pages via `docs:update`"
+          },
+          "runs": "`scripts/check-spell.js` (Playwright)"
+        },
+        {
+          "op": "Link source references in a page",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "could",
+            "note": "unscripted:  `python3 scripts/doc-links.py <page>`"
+          },
+          "runs": "`scripts/doc-links.py`",
+          "notes": "Only Python tool in docs;  every other script is node."
+        },
+        {
+          "op": "Check a page's links resolve",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["root docs:update", "docs docs:update"],
+            "note": "all pages only;  one page:  `doc-links.py --check`"
+          },
+          "runs": "`scripts/doc-links.py --check`"
+        },
+        {
+          "op": "Finish a page:  link, format, check links, check in browser, re-index",
+          "cli": {
+            "mark": "could",
+            "note": "`spell docs finish <page>`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic"],
+            "note": "points at `packages/docs/AGENTS.md` prose"
+          },
+          "yarn": {
+            "mark": "could",
+            "note": "`docs docs:finish <page>`"
+          },
+          "runs": "prose in `packages/docs/AGENTS.md` (\"Finishing a page\"):  `doc-links.py`, `oxfmt`, `check-spell.js`, `index.js`",
+          "notes": "Five-step sequence lives only in prose;  strong CLI / script candidate."
+        },
+        {
+          "op": "Turn a finished plan doc into durable docs",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic"],
+            "note": "Doc Review prose"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "`docs:new durable` + prose (Overview -> body, decisions -> Why, caveats -> Limits)",
+          "notes": "Judgement:  rewriting, not copying."
+        }
+      ]
+    },
+    {
+      "id": "servers",
+      "title": "Servers",
+      "icon": "plug",
+      "intro": "One page server per checkout (docs, epics, goals, `/api`);  the editor (vite) and Spell UI docs (astro) are its children.  Plus package-local dev servers.",
+      "rows": [
+        {
+          "op": "Start every server of this checkout and print their ports",
+          "cli": {
+            "mark": "other",
+            "names": ["spell serve"],
+            "note": "page server + editor only, no astro;  opens browser, foreground"
+          },
+          "skill": {
+            "mark": "same",
+            "names": ["/spell-serve"]
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root serve"]
+          },
+          "runs": "`scripts/serve.mjs`:  `yarn server ensure`, waits for editor record, fetches `/ui/` to wake astro",
+          "notes": "`root serve` vs `root server` vs `ui serve`:  three different things, one-letter apart."
+        },
+        {
+          "op": "Start the page server in the background",
+          "cli": {
+            "mark": "other",
+            "names": ["spell serve"],
+            "note": "starts it if needed, but stays in foreground"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/spell-serve"]
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root server", "server server"],
+            "note": "`start` or `ensure`:  aliases"
+          },
+          "runs": "`packages/server/src/page/cli.ts` -> `PageServer.ensure()`",
+          "notes": "`start` and `ensure` do exactly the same thing."
+        },
+        {
+          "op": "Run the page server in the foreground",
+          "cli": {
+            "mark": "other",
+            "names": ["spell serve"],
+            "note": "until Ctrl-C;  stops it only if it started it"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root server", "server server"],
+            "note": "`serve`"
+          },
+          "runs": "`PageServer.start()` + `SRV.untilInterrupted()`"
+        },
+        {
+          "op": "Stop the page server (and its editor and astro)",
+          "cli": {
+            "mark": "could",
+            "note": "`spell serve --stop`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/spell-serve"],
+            "note": "step 3 prose:  `yarn server stop`"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root server", "server server"],
+            "note": "`stop`"
+          },
+          "runs": "`SRV.PidFile.stop()`"
+        },
+        {
+          "op": "Check whether the page server is running",
+          "cli": {
+            "mark": "could",
+            "note": "`spell serve --status`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/spell-serve"],
+            "note": "via `yarn serve` rows"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root server", "server server"],
+            "note": "`status`:  JSON, exit 1 if not"
+          },
+          "runs": "`SRV.PidFile.status()`"
+        },
+        {
+          "op": "Print a file's URL on the page server",
+          "cli": {
+            "mark": "could",
+            "note": "`spell serve --url <file>`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/spell-docs", "/epic", "/wtf"],
+            "note": "prose:  link every doc named"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root server", "server server"],
+            "note": "`url <file>`, ensures first"
+          },
+          "runs": "`page/cli.ts` `url` -> `PageServer.ensure()`",
+          "notes": "Relative paths resolve from `INIT_CWD`:  skills insist on ABSOLUTE paths."
+        },
+        {
+          "op": "Open the spell editor in a browser",
+          "cli": {
+            "mark": "same",
+            "names": ["spell serve"],
+            "note": "`[target]` opens a project"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["app start"],
+            "note": "`--headless`:  prints URL, no browser"
+          },
+          "runs": "`serveCommand.ts` -> `PageServer.ensure()` + `SRV.openBrowser()`"
+        },
+        {
+          "op": "Restart the page server and editor",
+          "cli": {
+            "mark": "could",
+            "note": "`spell serve --restart`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/spell-serve"],
+            "note": "failure advice:  `yarn server stop`, then `yarn serve`"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["app start"]
+          },
+          "runs": "`yarn` (install) + `yarn workspace @spell-app/server server stop` + `spell serve --headless`",
+          "notes": "`app start` also runs `yarn install` and kills a page server other sessions may be using."
+        },
+        {
+          "op": "Stop stray vite / tsx processes of the app",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["app stop"]
+          },
+          "runs": "`packages/app/scripts/stop.mjs` (`ps` + `lsof`, SIGTERM;  spares the language server)",
+          "notes": "Docstring stale:  mentions `yarn start`'s `concurrently`, an express server, `src/lsp/server.ts`."
+        },
+        {
+          "op": "Diagnose a server that didn't come up",
+          "cli": {
+            "mark": "could",
+            "note": "print log tail on failure"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/spell-serve"],
+            "note": "step 2 prose"
+          },
+          "yarn": {
+            "mark": "could",
+            "note": "`serve.mjs` names the log, doesn't show it"
+          },
+          "runs": "skill prose + `.spell-server.log` / `.editor.log` / `.astro.log`"
+        },
+        {
+          "op": "Run the editor's vite dev server alone",
+          "cli": {
+            "mark": "no",
+            "note": "`spell serve` runs it as page server child"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["app start:dev"]
+          },
+          "runs": "`vite`"
+        },
+        {
+          "op": "Run the app's API server alone (port 3001)",
+          "cli": {
+            "mark": "no",
+            "note": "page server mounts the API"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["app start:server", "app start:server:prod"],
+            "note": "`:prod` = no watch"
+          },
+          "runs": "`tsx watch src/server/index.ts` / `tsx src/server/index.ts`",
+          "notes": "Likely dead since the page server took the API;  `:prod` unused."
+        },
+        {
+          "op": "Preview the built app",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["app preview"]
+          },
+          "runs": "`vite preview`"
+        },
+        {
+          "op": "Run the language server over stdio",
+          "cli": {
+            "mark": "could",
+            "note": "planned `spell lsp` (cli-additions T1)"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["lsp start:lsp"]
+          },
+          "runs": "`tsx src/server.ts --stdio`",
+          "notes": "VS Code extension starts it itself;  script is for debugging."
+        },
+        {
+          "op": "Run Spell UI's demo dev server",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui dev"]
+          },
+          "runs": "`vite --open /tools/demo/index.html`"
+        },
+        {
+          "op": "Serve Spell UI's smoke and host pages for a person",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui serve"]
+          },
+          "runs": "`tsx tools/cli.ts serve` -> `SmokeRunner.serve()`",
+          "notes": "Needs `ui vendor` first.  Same name as `root serve`, unrelated."
+        },
+        {
+          "op": "Preview Spell UI's built library",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui preview"]
+          },
+          "runs": "`vite preview`"
+        },
+        {
+          "op": "Run Spell UI's docs site (astro dev)",
+          "cli": {
+            "mark": "could",
+            "note": "`spell serve` could wake `/ui/` too"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/spell-serve"],
+            "note": "via page server `/ui/`"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui site:dev", "ui-site dev"],
+            "note": "also `root serve`, behind the page server"
+          },
+          "runs": "`astro dev`;  page server starts it on first `/ui/` request (`AstroProxy`)",
+          "notes": "Two ways in:  standalone `site:dev` port vs page server `/ui/`."
+        },
+        {
+          "op": "Preview Spell UI's built docs site",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui site:preview", "ui-site preview"]
+          },
+          "runs": "`astro preview`"
+        },
+        {
+          "op": "Show icons as pictures in a browser",
+          "cli": {
+            "mark": "other",
+            "names": ["spell icons"],
+            "note": "`--open`, until Ctrl-C"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`iconsCommand.ts` -> `packages/cli/src/serve.ts` (`SRV.WebServer`) + `SRV.openBrowser()`"
+        },
+        {
+          "op": "Run a compiled project's UI in a browser",
+          "cli": {
+            "mark": "other",
+            "names": ["spell run"],
+            "note": "auto when it needs a browser;  `--browser` forces"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`runInBrowser.ts` -> `serve.ts` (`SRV.WebServer`), own throwaway server",
+          "notes": "Third little server besides the page server and icons gallery."
+        }
+      ]
+    },
+    {
+      "id": "build",
+      "title": "Build & package",
+      "icon": "cubes",
+      "intro": "Bundles, the VS Code extension, the `spell` binary, generated packs.",
+      "rows": [
+        {
+          "op": "Build the spell app",
+          "cli": {
+            "mark": "could",
+            "note": "`spell build app`"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["app build"]
+          },
+          "runs": "`tsc && vite build` -> `dist/`"
+        },
+        {
+          "op": "Build the VS Code runner bundle (`dist-runner/`)",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["app build:runner"],
+            "note": "`vscode build` runs it too"
+          },
+          "runs": "`vite build` x2 (`vite.solid.config.ts`, `vite.runner.config.ts`)"
+        },
+        {
+          "op": "Build the `<spell-app>` / `<spell-editor>` web components",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["app build:element"]
+          },
+          "runs": "`vite build` x3 (solid, element, editor configs) -> `dist-element/`"
+        },
+        {
+          "op": "Clean the app's build outputs",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["app clean"]
+          },
+          "runs": "`rm -rf ./.cache ./build`",
+          "notes": "Drift:  builds write `dist/`, `dist-runner/`, `dist-element/`;  `clean` removes none of them."
+        },
+        {
+          "op": "Build the Spell UI library",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui build"]
+          },
+          "runs": "`tsc && vite build` -> `dist/`",
+          "notes": "`bundle-spell-ui.js` runs it, falling back to `vite build` alone if `tsc` fails."
+        },
+        {
+          "op": "Clean Spell UI's outputs",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui clean"]
+          },
+          "runs": "`rm -rf` caches, `dist`, `vendor`, test results, `tools/frameworks/solid/dist`"
+        },
+        {
+          "op": "Build the solid-element fork",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["solid-element build", "ui fork:build"],
+            "note": "ui alias `fork:build`"
+          },
+          "runs": "`vite build` + `vite build -c vite.node.config.ts`",
+          "notes": "`ForkBuild.ensure()` rebuilds it when stale before `ui vendor` / `ui measure`."
+        },
+        {
+          "op": "Build Spell UI's docs site",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui site:build", "ui-site build"]
+          },
+          "runs": "`astro build`"
+        },
+        {
+          "op": "Bundle the VS Code extension",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["vscode build", "root vscode:build"],
+            "note": "root one also installs deps and packages"
+          },
+          "runs": "`packages/vscode/build.mjs` (esbuild)",
+          "notes": "SIDE EFFECT:  builds `app build:runner`.  Fails unless version matches spell's."
+        },
+        {
+          "op": "Package the extension as a `.vsix`",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["vscode package"],
+            "note": "also inside `root vscode:build`"
+          },
+          "runs": "`vsce package`"
+        },
+        {
+          "op": "Install the extension into VS Code",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["vscode install-extension", "root vscode:install"],
+            "note": "dash vs colon"
+          },
+          "runs": "`code --install-extension spell-language.vsix --force`"
+        },
+        {
+          "op": "Build, package and install the extension in one go",
+          "cli": {
+            "mark": "could",
+            "note": "`spell vscode`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/spell-docs", "/epic"],
+            "note": "recovery / stage-end prose:  `yarn vscode`"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root vscode"]
+          },
+          "runs": "`yarn vscode:build && yarn vscode:install`",
+          "notes": "Memory rule:  NEVER from a branch behind `main`;  nothing enforces it."
+        },
+        {
+          "op": "Type-check the VS Code extension",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["vscode check"],
+            "note": "every other package calls it `ts`"
+          },
+          "runs": "`tsc --noEmit -p packages/vscode` from the repo root",
+          "notes": "Root `yarn ts` / `review` skip it:  vscode isn't a workspace."
+        },
+        {
+          "op": "Put `spell` on the PATH",
+          "cli": {
+            "mark": "no",
+            "note": "needs `spell` first"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["cli cli:install"]
+          },
+          "runs": "`packages/cli/scripts/install-cli.mjs` (symlink to `bin/spell.mjs`)",
+          "notes": "Links ONE checkout;  `plan-doc` / `goals` then search upward for the nearest one."
+        },
+        {
+          "op": "Run `spell` from source without installing it",
+          "cli": {
+            "mark": "no",
+            "note": "it IS the CLI"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["cli spell"]
+          },
+          "runs": "`node bin/spell.mjs`",
+          "notes": "Likely dead since `cli:install`."
+        },
+        {
+          "op": "Write scope packs for `<spell-app>`'s Type Explorer",
+          "cli": {
+            "mark": "other",
+            "names": ["spell compile", "spell watch"],
+            "note": "after each clean compile;  no `--builtins`"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["lsp scopes"]
+          },
+          "runs": "`packages/lsp/src/scopes.ts` -> `SpellDiskWorkspace.writeScopes()`",
+          "notes": "`--builtins` overwrites hand edits in `spellCore.scopes.js`."
+        },
+        {
+          "op": "Generate the custom-elements manifest",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui manifest"]
+          },
+          "runs": "`custom-elements-manifest analyze`",
+          "notes": "Output unused, uncommitted;  `docs/plan.md` wants VS Code custom data from it someday."
+        },
+        {
+          "op": "Vendor Solid peers for the smoke pages",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui vendor"]
+          },
+          "runs": "`tsx tools/cli.ts vendor` -> `PeerVendor` (`vendor/importmap.json`)"
+        }
+      ]
+    },
+    {
+      "id": "checks",
+      "title": "Typecheck, lint, format, test",
+      "icon": "check",
+      "intro": "The package checks:  one block of 8 scripts copied into 10 packages, plus root wrappers and a few one-offs.  `spell check` is NOT one of these:  it checks spell code.",
+      "rows": [
+        {
+          "op": "Run all of a package's checks (typecheck, lint, format, test)",
+          "cli": {
+            "mark": "could",
+            "note": "`spell dev review [pkg]`"
+          },
+          "skill": {
+            "mark": "could",
+            "note": "skills say `yarn ts` / `yarn test` in prose instead"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": [
+              "root review",
+              "app review",
+              "cli review",
+              "core review",
+              "docs review",
+              "lsp review",
+              "parser review",
+              "server review",
+              "spell review",
+              "ui review",
+              "util review"
+            ]
+          },
+          "runs": "`tsc` + `oxlint --fix` + `oxfmt` + `vitest run`;  root:  `yarn workspaces foreach -A run review`",
+          "notes": "WRITES files:  runs `lint:fix` and `format`, not their check forms.  solid-element, ui-site, vscode have none;  root skips them."
+        },
+        {
+          "op": "Type-check a package",
+          "cli": {
+            "mark": "could",
+            "note": "`spell dev ts`.  `spell check` is the spell LANGUAGE check, not this"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": [
+              "root ts",
+              "app ts",
+              "cli ts",
+              "core ts",
+              "docs ts",
+              "lsp ts",
+              "parser ts",
+              "server ts",
+              "spell ts",
+              "ui ts",
+              "util ts",
+              "solid-element tsc",
+              "vscode check"
+            ],
+            "note": "solid-element `tsc` and vscode `check` are other names for it"
+          },
+          "runs": "`tsc` (usually twice:  `tsconfig.json` + `tsconfig.node.json`)",
+          "notes": "spell's runs `yarn tsc` (the binary);  docs, cli one config;  ui adds `yarn fork tsc`.  Root `ts` skips vscode (not a workspace)."
+        },
+        {
+          "op": "Type-check the Spell UI docs site",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui-site check", "ui site:check"]
+          },
+          "runs": "`astro check`",
+          "notes": "astro, not `tsc`.  Named `check` like vscode's `tsc` script.  In no `review`, not reached by root `ts`."
+        },
+        {
+          "op": "Lint a package",
+          "cli": {
+            "mark": "could",
+            "note": "`spell dev lint`"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": [
+              "app lint",
+              "cli lint",
+              "core lint",
+              "docs lint",
+              "lsp lint",
+              "parser lint",
+              "server lint",
+              "spell lint",
+              "ui lint",
+              "util lint",
+              "solid-element lint"
+            ]
+          },
+          "runs": "`oxlint --report-unused-disable-directives --max-warnings 0`",
+          "notes": "Folders differ:  cli, spell lint everything;  docs `scripts _assets`;  server `src test`;  ui `src test scripts tools` + fork.  No root `lint`."
+        },
+        {
+          "op": "Lint a package and fix what can be fixed",
+          "cli": {
+            "mark": "could",
+            "note": "`spell dev lint --fix`"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": [
+              "app lint:fix",
+              "cli lint:fix",
+              "core lint:fix",
+              "docs lint:fix",
+              "lsp lint:fix",
+              "parser lint:fix",
+              "server lint:fix",
+              "spell lint:fix",
+              "ui lint:fix",
+              "util lint:fix"
+            ]
+          },
+          "runs": "`oxlint --fix`",
+          "notes": "ui's also runs the fork's NON-fix `lint`, so fork problems fail but never get fixed.  solid-element has none."
+        },
+        {
+          "op": "Format a package's code",
+          "cli": {
+            "mark": "could",
+            "note": "`spell dev format`;  `spell format` formats .spell files only"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": [
+              "app format",
+              "cli format",
+              "core format",
+              "docs format",
+              "lsp format",
+              "parser format",
+              "server format",
+              "spell format",
+              "ui format",
+              "util format",
+              "solid-element format"
+            ]
+          },
+          "runs": "`oxfmt .`",
+          "notes": "solid-element uses its own `.oxfmtrc.json`;  no `review` reaches it, so the fork is never formatted by a review.  No root `format`."
+        },
+        {
+          "op": "Check formatting without writing",
+          "cli": {
+            "mark": "could",
+            "note": "`spell dev format --check`"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": [
+              "app format:check",
+              "cli format:check",
+              "core format:check",
+              "docs format:check",
+              "lsp format:check",
+              "parser format:check",
+              "server format:check",
+              "spell format:check",
+              "ui format:check",
+              "util format:check",
+              "solid-element format:check"
+            ]
+          },
+          "runs": "`oxfmt --check .`",
+          "notes": "Nothing calls it:  `review` formats instead.  CI-shaped, but there's no CI."
+        },
+        {
+          "op": "Run a package's tests",
+          "cli": {
+            "mark": "could",
+            "note": "`spell dev test [pkg]`.  `spell test` runs spell code's `to test ...`"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": [
+              "root test",
+              "app test",
+              "cli test",
+              "core test",
+              "docs test",
+              "lsp test",
+              "parser test",
+              "server test",
+              "spell test",
+              "ui test",
+              "util test",
+              "solid-element test"
+            ]
+          },
+          "runs": "`vitest run`",
+          "notes": "ui:  `ssr` project, then `browser`, then `test:fork`.  docs:  `--passWithNoTests`."
+        },
+        {
+          "op": "Run every package's tests from the root",
+          "cli": {
+            "mark": "could",
+            "note": "`spell dev test`"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["root test", "root test:packages"],
+            "note": "`test`:  one vitest run, each package a project.  `test:packages`:  each package's own `test`, in turn"
+          },
+          "runs": "`vitest run` on root `vitest.config.ts` / `yarn workspaces foreach -A run test`",
+          "notes": "Two ways, same goal, names don't say which.  Neither runs `node --test` suites (`root goals:test`, `scripts/window.test.mjs`)."
+        },
+        {
+          "op": "Re-run tests on every change",
+          "cli": {
+            "mark": "could",
+            "note": "`spell dev test --watch`"
+          },
+          "skill": {
+            "mark": "no",
+            "note": "long-running, interactive"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": [
+              "root test:watch",
+              "app test:watch",
+              "cli test:watch",
+              "core test:watch",
+              "docs test:watch",
+              "lsp test:watch",
+              "parser test:watch",
+              "server test:watch",
+              "spell test:watch",
+              "ui test:watch",
+              "util test:watch"
+            ]
+          },
+          "runs": "`vitest` (watch mode)",
+          "notes": "solid-element has none."
+        },
+        {
+          "op": "Browse tests in vitest's web UI",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "no",
+            "note": "a browser UI for a person"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["app test:ui", "spell test:ui", "ui test:ui"]
+          },
+          "runs": "`vitest --ui`",
+          "notes": "`test:ui` sounds like testing ui;  it means vitest's UI.  Only 3 packages have it."
+        },
+        {
+          "op": "Measure test coverage",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["spell test:coverage"]
+          },
+          "runs": "`vitest run --coverage`",
+          "notes": "Likely broken:  no `@vitest/coverage-v8` (or istanbul provider) installed.  spell only."
+        },
+        {
+          "op": "Check compiled output against the fixture snapshots",
+          "cli": {
+            "mark": "could",
+            "note": "`spell dev fixtures`"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["spell test:fixtures"]
+          },
+          "runs": "`vitest run src/test/fixtures.test.ts`",
+          "notes": "Each `projects/test/` project vs its `<Project>.snapshot.js`.  Also runs in spell's `yarn test`."
+        },
+        {
+          "op": "Accept new fixture snapshots",
+          "cli": {
+            "mark": "could",
+            "note": "`spell dev fixtures --bless`"
+          },
+          "skill": {
+            "mark": "could",
+            "note": "bless, then read the diff:  judgement"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["spell test:fixtures:bless"]
+          },
+          "runs": "`vitest run src/test/fixtures.test.ts --update=all`",
+          "notes": "After a deliberate change only;  read the diff (spell `AGENTS.md`)."
+        },
+        {
+          "op": "Test the window registry (`scripts/window.mjs`)",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "could",
+            "note": "`root window:test`, like `root goals:test`"
+          },
+          "runs": "`node --test scripts/window.test.mjs`, by hand",
+          "notes": "Unscripted, and root vitest doesn't find it.  Nothing reminds anyone to run it."
+        },
+        {
+          "op": "Time the parser's rule tests",
+          "cli": {
+            "mark": "same",
+            "names": ["spell speed"],
+            "note": "`[module]`, `--runs`, `--json`"
+          },
+          "skill": {
+            "mark": "could",
+            "note": "`/bedtime` prose says run it on parser changes"
+          },
+          "yarn": {
+            "mark": "could",
+            "note": "`spell speed`"
+          },
+          "runs": "`spell speed` -> `src/runner/speedTest.mts` -> `SP.spellParser.speedTest()`, fresh process per run",
+          "notes": "Rule (memory, AGENTS):  run on every parser change and report both sides."
+        },
+        {
+          "op": "Compare parser speed against a commit",
+          "cli": {
+            "mark": "same",
+            "names": ["spell speed"],
+            "note": "`--against HEAD`"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`spell speed --against <ref>`:  temp `git worktree`, linked `node_modules`, turns run by run",
+          "notes": "Drift:  the speed-test memory still spells out the manual `__speedtest.ts` + worktree recipe this replaced."
+        },
+        {
+          "op": "Run the checks of the packages a change touched",
+          "cli": {
+            "mark": "could",
+            "note": "`spell dev check --changed [main]`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/park", "/isolate", "/bedtime"],
+            "note": "prose:  `/park`'s Resume (also `/unpark`, `/wait-for`), `/isolate done` on conflicts, `/bedtime` each phase"
+          },
+          "yarn": {
+            "mark": "could",
+            "note": "`yarn workspaces foreach --since=main run ts`"
+          },
+          "runs": "`git diff --name-only main...HEAD` -> folders -> `yarn ts` + `yarn test` in each, by hand",
+          "notes": "Three skills, three wordings (branch touches / conflicts touch / touched).  None runs `lint` or `format`."
+        }
+      ]
+    },
+    {
+      "id": "spell",
+      "title": "Spell language",
+      "icon": "language",
+      "intro": "Working on spell code itself:  only the `spell` CLI does these;  VS Code's extension does some live.  `spell speed`:  see Typecheck, lint, format, test;  `spell help`:  see The CLI itself.",
+      "rows": [
+        {
+          "op": "Compile a project to javascript",
+          "cli": {
+            "mark": "same",
+            "names": ["spell compile"]
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["lsp scopes"],
+            "note": "`--compile <projectId...>`, then writes scope packs"
+          },
+          "runs": "`CLI.compileCommand` -> `SpellProject.compile()`;  writes `<Project>.compiled.js`",
+          "notes": "VS Code:  the language server compiles after each clean save.  The app compiles too."
+        },
+        {
+          "op": "Print a project's compiled javascript without writing it",
+          "cli": {
+            "mark": "same",
+            "names": ["spell compile"],
+            "note": "`--stdout`;  a `.spell` file prints by default"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`SpellProject.compile(scope, { save: false })`",
+          "notes": "VS Code:  Show Compiled JavaScript (`spell.showCompiled`).  `spell describe --compiled` for one thing."
+        },
+        {
+          "op": "Recompile the projects a project imports",
+          "cli": {
+            "mark": "same",
+            "names": ["spell compile"],
+            "note": "`--force`"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`spell compile --force`",
+          "notes": "Without it, an imported project's stale `.compiled.js` is used as is."
+        },
+        {
+          "op": "Write a project's scope pack (`<Project>.scopes.js`)",
+          "cli": {
+            "mark": "other",
+            "names": ["spell compile", "spell watch"],
+            "note": "on each clean compile"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["lsp scopes"],
+            "note": "`--builtins`:  core's pack, yarn only"
+          },
+          "runs": "`SpellDiskWorkspace.writeScopes()`",
+          "notes": "Three writers:  CLI, `lsp scopes`, the language server."
+        },
+        {
+          "op": "Check spell projects for errors",
+          "cli": {
+            "mark": "same",
+            "names": ["spell check"],
+            "note": "`--json`;  exits 1 on errors"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`CLI.checkCommand`:  `path:line:col  message` per error",
+          "notes": "Spell LANGUAGE errors, not `yarn ts`.  VS Code:  live diagnostics."
+        },
+        {
+          "op": "Describe what a file or project declares",
+          "cli": {
+            "mark": "same",
+            "names": ["spell describe"],
+            "note": "`[name] [member]`, `--inherited`, `--compiled`, `--json`"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "Type Explorer data (`ScopeExplorer`) as text",
+          "notes": "VS Code:  hover, outline.  App:  Type Explorer."
+        },
+        {
+          "op": "Browse a project in a full-screen Type Explorer",
+          "cli": {
+            "mark": "same",
+            "names": ["spell explore"]
+          },
+          "skill": {
+            "mark": "no",
+            "note": "full-screen terminal UI"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "Ink TUI;  `o` opens `$SPELL_EDITOR -g path:line`",
+          "notes": "Needs a real terminal;  reads the project once."
+        },
+        {
+          "op": "Run a project",
+          "cli": {
+            "mark": "same",
+            "names": ["spell run"],
+            "note": "`--browser` / `--no-browser`"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`src/runner/runProject.ts` in a child node;  UI projects open `<spell-app>` in a browser",
+          "notes": "VS Code:  Run Project (`spell.runProject`).  First UI run builds `app build:element`."
+        },
+        {
+          "op": "Run a project's spell tests (`to test ...`)",
+          "cli": {
+            "mark": "same",
+            "names": ["spell test"],
+            "note": "`--name`, `--watch`"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`src/runner/runProject.ts`, finds `test_*` exports",
+          "notes": "Not vitest:  same word as `yarn test`, different thing."
+        },
+        {
+          "op": "Recompile projects on every save",
+          "cli": {
+            "mark": "same",
+            "names": ["spell watch"]
+          },
+          "skill": {
+            "mark": "no",
+            "note": "long-running, interactive"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`fs.watch` on project folders, rebuilds importers too",
+          "notes": "macOS saves arrive as `rename`;  watch reads disk instead (`PAPERCUTS.md`)."
+        },
+        {
+          "op": "Re-check projects on every save, writing nothing",
+          "cli": {
+            "mark": "same",
+            "names": ["spell watch"],
+            "note": "`--check-only`"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`spell watch --check-only`"
+        },
+        {
+          "op": "Re-run a project's spell tests on every save",
+          "cli": {
+            "mark": "same",
+            "names": ["spell watch", "spell test"],
+            "note": "`spell watch --test` ~== `spell test --watch`"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`spell watch --test [--name]`"
+        },
+        {
+          "op": "Format .spell files",
+          "cli": {
+            "mark": "same",
+            "names": ["spell format"]
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "could",
+            "note": "`yarn format` is oxfmt, for TS only"
+          },
+          "runs": "`SpellLanguageService.formatting()`",
+          "notes": "VS Code:  Format Document.  Never writes in `projects/test/`."
+        },
+        {
+          "op": "Check .spell formatting without writing",
+          "cli": {
+            "mark": "same",
+            "names": ["spell format"],
+            "note": "`--check`;  exits 1 if any would change"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`spell format --check`"
+        },
+        {
+          "op": "List project roots, or a root's projects",
+          "cli": {
+            "mark": "same",
+            "names": ["spell projects"],
+            "note": "`--json`"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`CLI.projectsCommand`:  the app's roots",
+          "notes": "Names to type, e.g. `@examples/Solitaire`."
+        },
+        {
+          "op": "Show how spell reads a line",
+          "cli": {
+            "mark": "same",
+            "names": ["spell parse"],
+            "note": "`--rule`, `--in`, `--json`"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`SP.spellParser`:  match tree, then javascript"
+        },
+        {
+          "op": "Parse spell a line at a time (REPL)",
+          "cli": {
+            "mark": "same",
+            "names": ["spell repl"]
+          },
+          "skill": {
+            "mark": "no",
+            "note": "interactive"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "Ink TUI over `spell parse`;  piped:  reads stdin"
+        },
+        {
+          "op": "Explain what a word means to spell",
+          "cli": {
+            "mark": "same",
+            "names": ["spell explain"],
+            "note": "`--in <target>`, `--json`"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "rules the word names or starts;  `--in`:  project declarations",
+          "notes": "VS Code:  hover shows the `--in` half."
+        },
+        {
+          "op": "Make a new spell project",
+          "cli": {
+            "mark": "same",
+            "names": ["spell new"],
+            "note": "`--in <folder>`, default `@user`"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "writes `<name>/project.json` + starter `<name>.spell`",
+          "notes": "Refuses a non-empty folder."
+        }
+      ]
+    },
+    {
+      "id": "cli",
+      "title": "The CLI itself",
+      "icon": "terminal",
+      "intro": "Getting `spell` onto a machine and keeping it there.  Runs source through `tsx`, no build, no release.",
+      "rows": [
+        {
+          "op": "Put `spell` on your PATH",
+          "cli": {
+            "mark": "no",
+            "note": "can't run before it's installed"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["cli cli:install"]
+          },
+          "runs": "`scripts/install-cli.mjs`:  symlink to `bin/spell.mjs` in the first writable PATH folder",
+          "notes": "Links ONE checkout (main);  rerun after moving it.  `SPELL_BIN_DIR` overrides.  Not `npm link`."
+        },
+        {
+          "op": "Run `spell` without installing it",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["cli spell"]
+          },
+          "runs": "`node bin/spell.mjs` -> `tsx` -> `src/main.ts`",
+          "notes": "Runs with cwd `packages/cli`, so relative targets and `@workspace` resolve there:  near useless.  `node packages/cli/bin/spell.mjs` works."
+        },
+        {
+          "op": "List the commands, or one command's options",
+          "cli": {
+            "mark": "same",
+            "names": ["spell help"],
+            "note": "~== `--help`;  unknown command exits 2"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "commander `outputHelp()`",
+          "notes": "`spell goals help` / bare `spell plan-doc` list their own."
+        },
+        {
+          "op": "Print the version",
+          "cli": {
+            "mark": "other",
+            "note": "`spell --version`:  a flag, not a command"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "`__PACKAGE_VERSION__` from `$/spell/node/packageVersion.node`",
+          "notes": "Prints the PARSER's version, not the CLI's."
+        },
+        {
+          "op": "Find which checkout `spell` runs",
+          "cli": {
+            "mark": "could",
+            "note": "`spell --version` could print the checkout path"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "`type -a spell` + `readlink`, by hand (README)",
+          "notes": "Matters with worktrees:  most commands run main's source;  `plan-doc` / `goals` find the nearest checkout."
+        },
+        {
+          "op": "Start the language server",
+          "cli": {
+            "mark": "could",
+            "note": "`spell lsp`:  planned, cli-additions T1"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["lsp start:lsp"]
+          },
+          "runs": "`tsx src/server.ts --stdio`;  VS Code spawns the repo's `tsx` on it directly",
+          "notes": "T1:  extension spawns `spell lsp`;  skip `consoleGuard`;  `yarn vscode` after."
+        },
+        {
+          "op": "Bundle the CLI into one file",
+          "cli": {
+            "mark": "could",
+            "note": "cli-additions T2"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "could",
+            "note": "`cli build`"
+          },
+          "runs": "nothing yet;  needs `keepNames`, aliases, `__PACKAGE_VERSION__`, `environment.ts` fix",
+          "notes": "README TODO still names the `~` alias, which no longer exists."
+        },
+        {
+          "op": "Publish the CLI to npm",
+          "cli": {
+            "mark": "could",
+            "note": "cli-additions T3"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "could",
+            "note": "changesets, fixed group"
+          },
+          "runs": "nothing yet",
+          "notes": "Depends on T2."
+        },
+        {
+          "op": "Cut a release (version bump, tag, changelog)",
+          "cli": {
+            "mark": "could"
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "nothing, anywhere",
+          "notes": "No release scripts in any of the 14 `package.json` files."
+        },
+        {
+          "op": "Add a new CLI command",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "could",
+            "note": "scaffold `src/commands/<name>Command.ts` + barrel + `main.ts`"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "by hand:  command file, barrel line, `program.command(...)` in `main.ts`",
+          "notes": "Passthroughs (`goals`, `plan-doc`) follow a second pattern:  `allowUnknownOption` + `spawnSync`."
+        }
+      ]
+    },
+    {
+      "id": "ui-tools",
+      "title": "UI tooling",
+      "icon": "palette",
+      "intro": "`@spell-app/ui`'s own generators, measurements and browser tests.  `ui` lives on its own:  the `spell` CLI has no business here, bar icon search.",
+      "rows": [
+        {
+          "op": "Regenerate style sheets from the vocabulary",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui gen:styles"]
+          },
+          "runs": "`scripts/gen-styles.ts` (`StyleGenerator`, then oxfmt)"
+        },
+        {
+          "op": "Regenerate icon packs from Font Awesome",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui gen:icons"]
+          },
+          "runs": "`scripts/gen-icons.ts` -> `IconPackBuilder`",
+          "notes": "Deletes and rewrites every pack:  MUST run in a worktree while tests run elsewhere."
+        },
+        {
+          "op": "Regenerate emoji name data",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui gen:emoji"]
+          },
+          "runs": "`scripts/gen-emoji.ts` (emojibase + Fomantic reference)"
+        },
+        {
+          "op": "Regenerate the `<ui-root>` catalog",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui gen:root"]
+          },
+          "runs": "`scripts/gen-root-catalog.ts`",
+          "notes": "`test/root-catalog.test.ts` fails while stale:  the only reminder."
+        },
+        {
+          "op": "Regenerate ui's pre-compiled spell highlighter",
+          "cli": {
+            "mark": "could",
+            "note": "spell grammar changes start in spell"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui gen:spell"]
+          },
+          "runs": "`scripts/gen-spell.ts` (esbuild of `packages/spell/src/highlight/browser.ts`)",
+          "notes": "Nothing flags a stale bundle after a grammar change;  only AGENTS prose."
+        },
+        {
+          "op": "Convert a family's tokens to private aliases",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui tokens:alias"],
+            "note": "dry run unless `--write`"
+          },
+          "runs": "`scripts/alias-tokens.ts` -> `ComponentTokens.convert()`",
+          "notes": "Colon name reads verb:noun backwards vs `gen:*`."
+        },
+        {
+          "op": "Build an icon pack from a folder of SVGs",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui icons:pack"]
+          },
+          "runs": "`tsx tools/cli.ts icons:pack` -> `IconPackBuilder`"
+        },
+        {
+          "op": "Find icons by name, alias or keyword",
+          "cli": {
+            "mark": "same",
+            "names": ["spell icons"]
+          },
+          "skill": {
+            "mark": "could"
+          },
+          "yarn": {
+            "mark": "could"
+          },
+          "runs": "`packages/cli/src/iconSearch.ts` over ui's packs"
+        },
+        {
+          "op": "Measure bundle sizes",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["ui measure", "solid-element measure"]
+          },
+          "runs": "`BundleMeasure` (`tools/cli.ts measure`);  fork:  `scripts/measure.ts`",
+          "notes": "Both write `measure-results.json`;  runtimes differ (tsx vs `node --experimental-strip-types`)."
+        },
+        {
+          "op": "Count lines of code",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "could",
+            "note": "unscripted:  `tsx tools/cli.ts loc`;  runs inside `ui report`"
+          },
+          "runs": "`LocCount` -> `loc-results.json`"
+        },
+        {
+          "op": "Rewrite `docs/report.md`'s generated tables",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui report"]
+          },
+          "runs": "`tsx tools/cli.ts report`:  `LocCount` then `ReportTables`"
+        },
+        {
+          "op": "Check `dist/` declarations resolve for a consumer",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui smoke"],
+            "note": "only inside smoke;  alone:  `tsx tools/cli.ts declarations`"
+          },
+          "runs": "`DeclarationCheck`"
+        },
+        {
+          "op": "Smoke-test the built library in host pages",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui smoke"]
+          },
+          "runs": "`vite build` + `declarations` + `SmokeRunner` (headless chromium)",
+          "notes": "Needs `ui vendor` first;  not chained, throws if `vendor/importmap.json` missing."
+        },
+        {
+          "op": "Screenshot every demo-page example",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui screenshots"]
+          },
+          "runs": "`tools/screenshots.ts` (vite + Playwright) -> `.cache/screenshots/`"
+        },
+        {
+          "op": "Run visual regression tests",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["ui test:visual"]
+          },
+          "runs": "`tools/visual/cli.ts` -> `VisualRunner`"
+        },
+        {
+          "op": "Update visual baselines",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["ui test:visual:update"]
+          },
+          "runs": "`tools/visual/cli.ts --update`"
+        },
+        {
+          "op": "Test hot reload end to end",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["ui test:hmr"]
+          },
+          "runs": "`tools/hmr.e2e.ts` (edits real files, restores, checks `git diff --quiet`)"
+        },
+        {
+          "op": "Run every browser test across all families",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui test:all"]
+          },
+          "runs": "`vitest` ssr + browser with `UI_TEST_ALL=1`",
+          "notes": "Skips `test:fork`, which plain `ui test` runs:  \"all\" is less than all."
+        },
+        {
+          "op": "Install Playwright browsers",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui test:browsers"]
+          },
+          "runs": "`playwright install chromium firefox webkit`",
+          "notes": "Named like a test;  only installs."
+        },
+        {
+          "op": "Browse tests in vitest's UI",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["app test:ui", "spell test:ui", "ui test:ui"]
+          },
+          "runs": "`vitest --ui`"
+        },
+        {
+          "op": "Test the solid-element fork from ui",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui test:fork"]
+          },
+          "runs": "`yarn fork test` ~== `yarn workspace @spell-app/solid-element test`"
+        },
+        {
+          "op": "Run any fork script from ui",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui fork"]
+          },
+          "runs": "`yarn workspace @spell-app/solid-element <script>`"
+        },
+        {
+          "op": "Install dependencies (for the fork)",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui fork:install"]
+          },
+          "runs": "`yarn install`",
+          "notes": "Misleading:  plain workspace-wide `yarn install`, nothing fork-specific."
+        },
+        {
+          "op": "Type-check Spell UI's docs site",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["ui site:check", "ui-site check"]
+          },
+          "runs": "`astro check`",
+          "notes": "Not part of `ui ts` / `ui review`."
+        }
+      ]
+    },
+    {
+      "id": "migrations",
+      "title": "One-off codemods",
+      "icon": "history",
+      "intro": "Repo-wide rewrites that already ran;  kept on disk, no scripts.  Likely dead, bar `to-ui-section.js`.",
+      "rows": [
+        {
+          "op": "Move `packages/spell/src` folders into workspace packages",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "`scripts/move-packages.mjs` + data `scripts/package-moves.json`",
+          "notes": "Phase 4, done.  Dead:  candidate for deletion."
+        },
+        {
+          "op": "Rename import aliases and the npm scope",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "`scripts/rename-aliases.mjs`",
+          "notes": "Done (`$/` aliases, `@spell-app/*`).  Dead."
+        },
+        {
+          "op": "Rename ui family folders to `ui-<family>`",
+          "cli": {
+            "mark": "no"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "no"
+          },
+          "runs": "`packages/ui/scripts/rename-families.ts`",
+          "notes": "Plan P13, done.  Dead."
+        },
+        {
+          "op": "Convert old section markup to `<ui-section>`",
+          "cli": {
+            "mark": "other",
+            "names": ["spell plan-doc"],
+            "note": "`migrate`:  plan docs only"
+          },
+          "skill": {
+            "mark": "no"
+          },
+          "yarn": {
+            "mark": "other",
+            "names": ["root plan-doc", "docs plan-doc"],
+            "note": "`migrate`;  other pages:  `node scripts/to-ui-section.js`"
+          },
+          "runs": "`packages/docs/scripts/to-ui-section.js` `convertSections()`",
+          "notes": "Still live:  `plan-doc.js` imports it.  Refuses goals pages."
+        }
+      ]
+    }
+  ]
+}

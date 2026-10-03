@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Commands</title>
+    <meta
+      name="description"
+      content="Every operation the spell CLI, the Claude skills and the yarn scripts can do, side by side, and where each should live."
+    />
+    <link rel="stylesheet" href="../../_assets/spell-doc.css" />
+  </head>
+  <body class="spell-doc-page" data-spell-needs-server>
+    <spell-site-header root="../../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../../index.html" target="src-packages-docs-index-html"
+            >Docs</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section active>Commands</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <h1>Commands</h1>
+        <p class="lede">
+          Every operation the <code>spell</code> CLI, the Claude skills and the yarn scripts can do, side by side: which
+          does it, under what name, and where it should live.
+        </p>
+        <ui-list class="spell-meta">
+          <ui-item icon="user"
+            >Written for: Owen and agents, about to add a CLI command, a skill or a yarn script (the root
+            <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a> sends them here
+            first)</ui-item
+          >
+          <ui-item icon="flag"
+            >Status: <ui-label size="mini" color="orange">inventory + target</ui-label> moves not made yet</ui-item
+          >
+          <ui-item icon="folder"
+            >Data:
+            <a href="commands.json" target="src-packages-docs-dev-commands-commands-json"><code>commands.json</code></a>
+            beside this page, drawn by the page server</ui-item
+          >
+        </ui-list>
+
+        <ui-section id="1-summary" header="1. Summary" sticky collapsible dividing>
+          <ui-icon slot="icon" name="lightbulb"></ui-icon>
+          <ui-statistics class="spell-stats" size="mini" data-commands-stats></ui-statistics>
+          <ul>
+            <li>
+              Three ways to make the repo do something, grown apart:
+              <ul>
+                <li>
+                  <code>spell</code> CLI: 20 commands, mostly the spell language; two pass straight through to repo
+                  tools (<code>spell plan-doc</code>, <code>spell goals</code>)
+                </li>
+                <li>
+                  yarn: 170 scripts in 14
+                  <a href="../../../../package.json" target="src-package-json"><code>package.json</code></a> files; the
+                  same 8 copied into 10 packages
+                </li>
+                <li>
+                  skills: 12 in the repo, 7 more in <code>~/.claude/skills</code> that it uses (the goals ones are
+                  symlinks into
+                  <a href="../../../../goals/_skills/" target="src-goals-skills"><code>goals/_skills</code></a
+                  >)
+                </li>
+              </ul>
+            </li>
+            <li>
+              Behind them, a fourth layer with no name: the tools that do the work (<a
+                href="../../../../scripts/window.mjs"
+                target="src-scripts-window-mjs"
+                ><code>scripts/window.mjs</code></a
+              >,
+              <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
+                ><code>plan-doc.js</code></a
+              >, <code>goals.js</code>, five python scripts), and steps that live only in a skill's PROSE, redone by
+              hand every run. The <b>runs</b> column shows which.
+            </li>
+            <li>
+              Target: the CLI drives everything; skills keep only judgement and dialog, yarn scripts become short
+              aliases (<a href="#5-target">5. Target</a>, <a href="#6-roadmap">6. Roadmap</a>).
+            </li>
+            <li>
+              Rows are OPERATIONS, not commands: a gap shows as an empty cell, and one command can serve several rows.
+            </li>
+          </ul>
+          <ui-table celled compact unstackable>
+            <table>
+              <thead>
+                <tr>
+                  <th>Mark</th>
+                  <th>Means</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="yes positive">✓ <code>name</code></td>
+                  <td>does it, under the shared name</td>
+                </tr>
+                <tr>
+                  <td class="meh warning">≈ <code>name</code></td>
+                  <td>does it, under another name</td>
+                </tr>
+                <tr>
+                  <td>○</td>
+                  <td>doesn't, but could</td>
+                </tr>
+                <tr>
+                  <td class="no negative">—</td>
+                  <td>couldn't really</td>
+                </tr>
+              </tbody>
+            </table>
+          </ui-table>
+        </ui-section>
+
+        <ui-section id="2-operations" header="2. Operations" sticky collapsible dividing>
+          <ui-icon slot="icon" name="list check"></ui-icon>
+          <div class="spell-filter">
+            <ui-input
+              icon="search"
+              placeholder="Filter operations"
+              aria-label="Filter operations"
+              data-commands-filter
+            ></ui-input>
+          </div>
+          <div data-commands-families></div>
+        </ui-section>
+
+        <ui-section id="3-surfaces" header="3. The surfaces" sticky collapsible dividing>
+          <ui-icon slot="icon" name="book open"></ui-icon>
+          <p>How each one works, and how a new command is added to it.</p>
+
+          <ui-section id="cli" header="3.1 The spell CLI" sticky collapsible dividing>
+            <ul>
+              <li>
+                <a href="../../../cli/" target="src-packages-cli"><code>packages/cli</code></a
+                >: commander, running every package's SOURCE through <code>tsx</code> (no build; ~0.5s to start)
+              </li>
+              <li>
+                <code>yarn cli:install</code> symlinks <code>spell</code> onto your PATH, pointing at ONE checkout;
+                <code>spell plan-doc</code> / <code>spell goals</code> look upward for the nearest checkout instead, so
+                they work in a worktree
+              </li>
+              <li>
+                Conventions: results on stdout, progress on stderr; <code>--json</code> on 7 commands; exit
+                <code>0</code> ok, <code>1</code> errors, <code>2</code> bad command line
+              </li>
+              <li>
+                A new command: <code>src/commands/&lt;name&gt;Command.ts</code>, exporting
+                <code>(session, args, options) =&gt; Promise&lt;exitCode&gt;</code>; add it to the barrel, an options
+                type to
+                <a href="../../../cli/src/cli.types.ts" target="src-packages-cli-src-cli-types-ts"
+                  ><code>cli.types.ts</code></a
+                >, and a block to
+                <a href="../../../cli/src/main.ts" target="src-packages-cli-src-main-ts"><code>main.ts</code></a
+                >:
+              </li>
+            </ul>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>packages/cli/src/main.ts · 7 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-ts">program
+  .command("projects")
+  .description("list the project roots -- or, given one, the projects in it")
+  .argument("[root]", "a project root, e.g. @library or @user")
+  .option("--json", "print the list as JSON")
+  .action((root: string | undefined, _options, command) =>
+    run(CLI.projectsCommand, root ? [root] : [], command.optsWithGlobals())
+  )</code></pre>
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+
+          <ui-section id="skills" header="3.2 Skills" sticky collapsible dividing>
+            <ul>
+              <li>
+                <code>.claude/skills/&lt;name&gt;/SKILL.md</code>: prose Claude follows, front matter saying when to use
+                it; helpers in its <a href="../../../../scripts/" target="src-scripts"><code>scripts/</code></a>
+              </li>
+              <li>
+                Also in play: <code>~/.claude/skills</code>'s <code>goals*</code> (symlinks into this repo's
+                <a href="../../../../goals/_skills/" target="src-goals-skills"><code>goals/_skills</code></a
+                >), <code>session</code> and <code>worktrees</code> (user-level python the repo's skills call)
+              </li>
+              <li>
+                Hooks (<a href="../../../../.claude/settings.json" target="src-claude-settings-json"
+                  ><code>.claude/settings.json</code></a
+                >): <code>WorktreeCreate</code> / <code>WorktreeRemove</code> (<a
+                  href="../../../../.claude/hooks/worktree.mjs"
+                  target="src-claude-hooks-worktree-mjs"
+                  ><code>.claude/hooks/worktree.mjs</code></a
+                >), <code>Stop</code> (<a
+                  href="../../../../.claude/hooks/handoff.mjs"
+                  target="src-claude-hooks-handoff-mjs"
+                  ><code>.claude/hooks/handoff.mjs</code></a
+                >, moves a session between windows)
+              </li>
+              <li>
+                A skill is a WORKFLOW (<code>/isolate</code>, <code>/park</code>), not an operation: it keeps its short
+                name, and should call one command per repo action
+              </li>
+            </ul>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>.claude/skills/spell-serve/SKILL.md · 7 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-markdown">---
+name: spell-serve
+description: Start the spell web servers of this checkout that aren't running -- ...  Use for `/spell-serve`, or when Owen says "start the servers" ...
+---
+
+# /spell-serve
+
+1. From the checkout this session is in (a worktree has its OWN servers):  `yarn serve` (`scripts/serve.mjs`).</code></pre>
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+
+          <ui-section id="yarn" header="3.3 yarn scripts" sticky collapsible dividing>
+            <ul>
+              <li>
+                Each package's <a href="../../../../package.json" target="src-package-json"><code>package.json</code></a
+                >; the root's <code>ts</code> / <code>test</code> / <code>review</code> run every package's
+              </li>
+              <li>
+                <a href="../../../vscode/" target="src-packages-vscode"><code>packages/vscode</code></a> is its own yarn
+                project: the root's <code>vscode*</code> scripts reach it
+              </li>
+              <li>
+                The block copied into 10 packages (here <code>parser</code>'s), with small drift between copies (<a
+                  href="#4-oddities"
+                  >4. Oddities</a
+                >):
+              </li>
+            </ul>
+            <ui-accordion class="spell-code" styled open="0">
+              <ui-title>packages/parser/package.json · 10 lines</ui-title>
+              <ui-content>
+                <pre><code class="language-json">"/////// CORRECTNESS": "",
+"review": "yarn ts &amp;&amp; yarn lint:fix &amp;&amp; yarn format &amp;&amp; yarn test &amp;&amp; echo '== REVIEW PASSED ...'",
+"ts": "echo '... RUNNING TSC' &amp;&amp; tsc &amp;&amp; tsc -p tsconfig.node.json &amp;&amp; echo '&lt;&lt; TSC PASSED'",
+"lint": "echo ... &amp;&amp; oxlint --report-unused-disable-directives --max-warnings 0 src &amp;&amp; echo ...",
+"lint:fix": "echo ... &amp;&amp; oxlint --fix src &amp;&amp; echo ...",
+"format": "echo ... &amp;&amp; oxfmt . &amp;&amp; echo ...",
+"format:check": "oxfmt --check .",
+"/////// TESTING": "",
+"test": "echo '... RUNNING TESTS' &amp;&amp; vitest run &amp;&amp; echo '&lt;&lt; TESTS PASSED'",
+"test:watch": "vitest"</code></pre>
+              </ui-content>
+            </ui-accordion>
+          </ui-section>
+
+          <ui-section id="tools" header="3.4 The tools behind them" sticky collapsible dividing>
+            <ui-table celled compact striped unstackable>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Tool</th>
+                    <th>Reached by</th>
+                    <th>Does</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <a href="../../../../scripts/window.mjs" target="src-scripts-window-mjs"
+                        ><code>scripts/window.mjs</code></a
+                      >
+                    </td>
+                    <td><code>yarn window</code>, skills (as <code>node</code>)</td>
+                    <td>VS Code windows per worktree, moving sessions between them</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="../../../../scripts/serve.mjs" target="src-scripts-serve-mjs"
+                        ><code>scripts/serve.mjs</code></a
+                      >
+                    </td>
+                    <td><code>yarn serve</code>, <code>/spell-serve</code></td>
+                    <td>starts this checkout's web servers</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="../../../server/src/page/cli.ts" target="src-packages-server-src-page-cli-ts"
+                        ><code>packages/server/src/page/cli.ts</code></a
+                      >
+                    </td>
+                    <td><code>yarn server</code>, <code>spell serve</code> (as a library)</td>
+                    <td>the page server</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
+                        ><code>packages/docs/scripts/plan-doc.js</code></a
+                      >
+                    </td>
+                    <td><code>yarn plan-doc</code>, <code>spell plan-doc</code>, <code>/epic</code></td>
+                    <td>plan doc edits</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="../../../../goals/_tools/goals.js" target="src-goals-tools-goals-js"
+                        ><code>goals/_tools/goals.js</code></a
+                      >
+                    </td>
+                    <td>
+                      <code>yarn goals</code>, <code>spell goals</code>, <code>goals.sh</code>, <code>/goals*</code>
+                    </td>
+                    <td>goals pages</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a href="../../../ui/tools/cli.ts" target="src-packages-ui-tools-cli-ts"
+                        ><code>packages/ui/tools/cli.ts</code></a
+                      >
+                    </td>
+                    <td>ui's <code>vendor</code>, <code>measure</code>, <code>smoke</code> ...</td>
+                    <td>ui's package tooling</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a
+                        href="../../../../.claude/skills/park/scripts/status.py"
+                        target="src-claude-skills-park-scripts-status-py"
+                        ><code>.claude/skills/park/scripts/status.py</code></a
+                      >
+                    </td>
+                    <td><code>/park</code>, <code>/unpark</code>, <code>/wait-for</code>, <code>whassup.py</code></td>
+                    <td>status of a worktree / plan / session by name; waits</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a
+                        href="../../../../.claude/skills/whassup/scripts/whassup.py"
+                        target="src-claude-skills-whassup-scripts-whassup-py"
+                        ><code>.claude/skills/whassup/scripts/whassup.py</code></a
+                      >
+                    </td>
+                    <td><code>/whassup</code></td>
+                    <td>takes stock and classifies</td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <a
+                        href="../../../../.claude/skills/wtf/scripts/transcript.py"
+                        target="src-claude-skills-wtf-scripts-transcript-py"
+                        ><code>.claude/skills/wtf/scripts/transcript.py</code></a
+                      >
+                    </td>
+                    <td><code>/wtf</code></td>
+                    <td>digests a session transcript</td>
+                  </tr>
+                  <tr>
+                    <td><code>~/.claude/skills/session/scripts/session.py</code></td>
+                    <td><code>/session</code></td>
+                    <td>finds, opens and titles sessions</td>
+                  </tr>
+                  <tr>
+                    <td><code>~/.claude/skills/worktrees/scripts/worktrees.py</code></td>
+                    <td><code>/worktrees</code>, <code>/isolate done</code></td>
+                    <td>sessions per worktree</td>
+                  </tr>
+                </tbody>
+              </table>
+            </ui-table>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="4-oddities" header="4. Oddities" sticky collapsible dividing>
+          <ui-icon slot="icon" name="bug"></ui-icon>
+
+          <ui-section id="odd-yarn" header="4.1 yarn" sticky collapsible dividing>
+            <ul>
+              <li>
+                Names:
+                <ul>
+                  <li>
+                    colon vs dash: <code>docs:new</code> beside <code>plan-doc</code>, vscode's
+                    <code>install-extension</code>
+                  </li>
+                  <li>
+                    noun:verb vs verb:noun: <code>docs:new</code>, <code>icons:pack</code> beside
+                    <code>start:server</code>, <code>build:runner</code>, <code>gen:icons</code>
+                  </li>
+                  <li>
+                    typecheck has three names: <code>ts</code>, <code>tsc</code> (solid-element),
+                    <code>check</code> (vscode; ui-site's <code>check</code> is astro's)
+                  </li>
+                  <li>
+                    <code>serve</code> (root: every server), <code>server</code> (the page server), ui
+                    <code>serve</code> (smoke pages): three things
+                  </li>
+                </ul>
+              </li>
+              <li>
+                Wrong or misleading:
+                <ul>
+                  <li>
+                    <code>test:browsers</code> installs browsers; <code>fork:install</code> is plain
+                    <code>yarn install</code>
+                  </li>
+                  <li>
+                    ui <code>lint:fix</code> runs the fork's NON-fix lint; solid-element has no <code>lint:fix</code>,
+                    <code>ts</code> or <code>review</code>, so the root's skip it
+                  </li>
+                  <li>
+                    copies drift: <code>;</code> vs <code>&amp;&amp;</code> after the echo (cli, spell),
+                    <code>yarn tsc</code> vs <code>tsc</code> (spell)
+                  </li>
+                </ul>
+              </li>
+              <li>
+                Pure wrappers: root <code>docs:*</code>, <code>plan-doc</code>, <code>server</code>; ui
+                <code>site:*</code>, <code>test:fork</code>, <code>fork:build</code>
+              </li>
+              <li>
+                Never referenced: app <code>start:server:prod</code>, spell <code>test:coverage</code> /
+                <code>test:fixtures</code>, cli <code>spell</code>
+              </li>
+              <li>
+                Runtimes differ: <code>node</code>, <code>tsx</code>, <code>node --import tsx</code> with
+                <code>TSX_TSCONFIG_PATH</code>, <code>node --experimental-strip-types</code>
+              </li>
+              <li>No release / publish / version script anywhere</li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="odd-skills" header="4.2 Logic only in skill prose" sticky collapsible dividing>
+            <p>Steps no script does: Claude redoes them by hand each run, and they drift between skills.</p>
+            <ul>
+              <li>name collision check (<code>/isolate</code>, <code>/epic</code>)</li>
+              <li>
+                carrying edits into a worktree: <code>/isolate</code> uses a bare <code>git stash pop</code>, which the
+                shared-stash rule forbids
+              </li>
+              <li>
+                merge readiness (<code>git merge-tree</code> exit codes), merging <code>main</code> in, checks for the
+                packages touched (<code>/isolate</code>, <code>/park</code>, <code>/bedtime</code>)
+              </li>
+              <li>
+                merging into <code>main</code>: <code>/isolate</code> says <code>--ff-only</code>, <code>/whassup</code>
+                <code>--no-edit</code>
+              </li>
+              <li>
+                cleanup candidates: <code>/isolate done</code> parses <code>worktrees.py</code>'s text, while
+                <code>whassup.py</code> computes the same in code
+              </li>
+              <li>
+                PARKED and MORNING notes: templates, state headers, edits (<code>/park</code>, <code>/wait-for</code>,
+                <code>/bedtime</code>, <code>/wakeup</code>)
+              </li>
+              <li>
+                a goals decision takes 3 commands (<code>add decision</code>, <code>close</code>, <code>log</code>); the
+                topic's <code>.md</code> notes are synced by hand
+              </li>
+              <li>modal plumbing everywhere: 4 options per question, "Recommended" first</li>
+            </ul>
+          </ui-section>
+
+          <ui-section id="odd-helpers" header="4.3 Repeated helpers" sticky collapsible dividing>
+            <ul>
+              <li>reading Claude's session registry, "is it alive", its folder: 4 python scripts</li>
+              <li>
+                a session's title: 3 times (<code>status.py</code>, <code>handoff.mjs</code>, <code>session.py</code>)
+              </li>
+              <li>the main checkout from a worktree (<code>git rev-parse --git-common-dir</code>): 5 scripts</li>
+              <li>"is a question waiting": <code>transcript.py</code> and <code>whassup.py</code></li>
+            </ul>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="5-target" header="5. Target" sticky collapsible dividing>
+          <ui-icon slot="icon" name="compass"></ui-icon>
+          <p>Where commands should live, and what they're called.</p>
+        </ui-section>
+
+        <ui-section id="6-roadmap" header="6. Roadmap" sticky collapsible dividing>
+          <ui-icon slot="icon" name="route"></ui-icon>
+          <p>The moves toward the target, in order.</p>
+        </ui-section>
+
+        <footer class="spell-doc-footer">
+          <ui-divider></ui-divider>
+          <p class="meta">Last checked 2026-10-03 against branch <code>main</code>.</p>
+        </footer>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../_assets/commands.js"></script>
+  </body>
+</html>
