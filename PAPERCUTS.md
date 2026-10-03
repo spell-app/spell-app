@@ -994,6 +994,10 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   `--goal` / `--files` / `--verify` are HTML (unlike `add`'s title, which is escaped), so a goal saying
   `<ui-code>` became a real element. · Write `&lt;ui-code&gt;` (or `<code>&lt;...&gt;</code>`) in `add-phase`
   options;  the epic skill's cheat sheet shows them as `..`, not `html`. · docs
+- 2026-10-02 · `yarn review` in `packages/docs` rewrote all 53 `_assets/emoji/<set>/<letter>.js` (quoted keys -> bare):
+  `yarn format` (`oxfmt .`) formats the GENERATED emoji chunks, and the bundler writes them back quoted on every
+  `bundle-spell-ui.js` run, so the two fight. · Not fixed:  `git checkout -- packages/docs/_assets/emoji` after a
+  review;  the fix is an `ignorePatterns` entry for `**/docs/_assets/emoji/**` (as `_assets/lazy/` has). · docs
 
 ## claude-code
 

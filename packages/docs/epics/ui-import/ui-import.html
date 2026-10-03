@@ -24,9 +24,7 @@
         <ui-sticky class="spell-h1"
           ><header class="spell-page-head">
             <h1>UI Import</h1>
-            <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p7">next: P7 · Doc Review</ui-label></span
-            >
+            <span class="plan-step"><ui-label color="green" icon="check">DONE</ui-label></span>
           </header></ui-sticky
         >
         <ui-list class="plan-meta">
@@ -67,7 +65,7 @@
               language.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 11h-15h 30m in all, 1h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 11h-15h 30m in all, 0m left</p>
           <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing>
             <ul>
               <li>
@@ -196,15 +194,23 @@
                 <a href="../../../server/src/liveClient.ts" target="src-packages-server-src-liveclient-ts"
                   ><code>liveClient.ts</code></a
                 >, registered by
-                <a href="../../_assets/spell-doc-runtime.js" target="src-packages-docs-assets-spell-doc-runtime-js"
-                  ><code>docs/_assets/spell-doc-runtime.js</code></a
-                >.
+                <a href="../../_assets/spell-ui-sources.js" target="src-packages-docs-assets-spell-ui-sources-js"
+                  ><code>packages/docs/_assets/spell-ui-sources.js</code></a
+                >; a saver that can't import <code>SourceError</code> throws <code>{ kind, message, status }</code> (<a
+                  href="#d28"
+                  >D28</a
+                >).
               </li>
               <li>
                 Server (<a href="#d3">D3</a>): <code>PageEditor</code>'s <code>PUT /_server/page</code> widened from
                 <code>.html</code> to text files (<code>.md</code>, <code>.ts</code>, <code>.tsx</code>,
-                <code>.js</code>, <code>.css</code>, <code>.json</code>, <code>.spell</code>, <code>.txt</code>): same
-                token, same-origin, ETag and <code>FileLock</code> rules.
+                <code>.js</code>, <code>.css</code>, <code>.spell</code>, <code>.txt</code>, <code>.yaml</code>,
+                <code>.svg</code>; NOT <code>.json</code>, <a href="#d25">D25</a>): same token, same-origin, ETag and
+                <code>FileLock</code> rules. <code>PATCH</code> (one element by <code>id</code>) stays pages-only.
+              </li>
+              <li>
+                A script's <code>fetch()</code> (<code>Sec-Fetch-Dest: empty</code>) gets files AS IS, without the
+                injected live-reload tags (<a href="#d24">D24</a>): what an include shows and saves is the file.
               </li>
             </ul>
             <h4 id="o3-api">Shared API (all three elements)</h4>
@@ -408,15 +414,20 @@
 
           <ui-section id="o5" sticky collapsible dividing>
             <span slot="header">1.5 <code>&lt;ui-code&gt;</code></span>
+
             <ul>
               <li>
                 <code>&lt;ui-code language="ts" source="..." line-numbers&gt;</code>, or inline. Shadow
                 <code>&lt;pre&gt;&lt;code class="hljs language-x"&gt;</code>.
               </li>
               <li>
-                highlight.js 11.12 core (~8 kB) lazily, plus a detect set (~10 languages, ~20 kB: ts, js, html, css,
-                json, bash, markdown, python, yaml) when <code>language</code> is missing; other languages lazily by
-                name from a fixed <code>import.meta.glob</code> list.
+                highlight.js 11.12 in ONE lazy chunk, <code>CodeEngine</code> (54 kB gzipped, <a href="#c15">C15</a>): a
+                detect set of 9 languages (ts, js, html, css, json, bash, markdown, python, yaml) to guess from, 21 more
+                registered by name on first use. One chunk: a chunk per language would split Rolldown's runtime off (<a
+                  href="#d27"
+                  >D27</a
+                >). <code>CodeHighlighter.engineLoader</code> can load it some other way (the docs' classic script,
+                <a href="#d26">D26</a>).
               </li>
               <li>
                 Colours: <code>.hljs-*</code> classes -&gt; <code>--ui-code-*</code> tokens, light / dark; the docs'
@@ -430,17 +441,21 @@
                   <li>
                     <a href="../../../spell/src/highlight/" target="src-packages-spell-src-highlight"
                       ><code>packages/spell/src/highlight/</code></a
-                    >: <code>SP.highlightSpans(text)</code> parses with <code>SP.spellParser</code> and maps each rule's
-                    <code>highlightAs</code>; tokenize-only on a parse error
+                    >: <code>SP.SpellHighlighter.spans(text)</code>: token colours, then a best-effort parse refining
+                    them by each rule's <code>highlightAs</code> (<a href="#d19">D19</a>)
                   </li>
                   <li>
-                    <code>yarn gen:spell</code> (in <code>ui</code>) bundles it with esbuild into a COMMITTED file,
-                    <code>packages/ui/src/languages/spell.&lt;lang&gt;.js</code> (<a href="#d15">D15</a>, like icon
-                    packs): <code>ui</code> builds without building spell; loaded lazily when first asked for
+                    <code>yarn gen:spell</code> (in <code>ui</code>) bundles it with esbuild (<code>keepNames</code>,
+                    react-dom stubbed) into COMMITTED files,
+                    <code>packages/ui/src/languages/spell.&lt;lang&gt;.bundle.js</code> and the wrapper
+                    <code>SpellLanguage</code> loads, <code>spell.&lt;lang&gt;.ts</code> (138 kB gzipped,
+                    <a href="#c11">C11</a>) (<a href="#d15">D15</a>, like icon packs): <code>ui</code> builds without
+                    building spell; loaded lazily when first asked for
                   </li>
                   <li>
                     <code>language="spell"</code> ~== <code>spell/en</code>; <code>spell/es</code> loads Spanish. No
-                    translation yet: error naming it (<a href="#c7">C7</a>)
+                    translation yet: the code stays plain, with a <code>ui-error</code> naming it (<a href="#c7">C7</a>,
+                    <a href="#d17">D17</a>)
                   </li>
                   <li>not in the detect set (<a href="#c5">C5</a>)</li>
                 </ul>
@@ -533,6 +548,7 @@
 
           <ui-section id="o6" sticky collapsible dividing>
             <span slot="header">1.6 <code>&lt;ui-markdown&gt;</code></span>
+
             <ul>
               <li>
                 <code>&lt;ui-markdown source="readme.md"&gt;</code>, or inline (<code
@@ -546,8 +562,10 @@
                 >).
               </li>
               <li>
-                Sanitized every render: <code>Element.setHTML()</code> where supported, else DOMPurify 3.4 (~11 kB,
-                lazy). <code>trusted</code> skips it.
+                Sanitized every render by DOMPurify 3.4, in every browser (<a href="#d20">D20</a>:
+                <code>setHTML()</code>'s defaults drop task checkboxes, images, heading ids and code classes), with
+                <code>SANITIZE_DOM</code> off so ids survive (<a href="#d21">D21</a>). <code>trusted</code> skips it.
+                marked + DOMPurify are one lazy chunk, <code>MarkdownEngine</code> (28 kB gzipped).
               </li>
               <li>
                 Fences -&gt; <code>&lt;ui-code language="x"&gt;</code> (<a href="#d9">D9</a>); no info string:
@@ -555,7 +573,11 @@
               </li>
               <li>
                 Shadow DOM, GitHub-like sheet on ui tokens; heading ids are GitHub slugs, so <code>#anchor</code> works;
-                relative links / images resolve against <code>source</code>.
+                relative links / images resolve against <code>source</code>. Task-list checkboxes are labelled by their
+                item's text (<a href='\"#d22\"' target="src-packages-docs-epics-ui-import-quot">D22</a>);
+                <code>#id</code> links scroll inside the shadow root. The <code>heading-offset</code> PROPERTY is
+                <code>headingLevelOffset</code> (<a href="#d23">D23</a>: WebKit has a native
+                <code>headingOffset</code>).
               </li>
               <li>
                 Engine behind <code>MarkdownRenderer</code> (<code>render(text) -&gt; DocumentFragment</code>,
@@ -675,7 +697,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="6" total="7" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="7" total="7" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -795,6 +817,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             id="p6"
             data-phase="6"
             data-status="done"
@@ -817,8 +840,8 @@
               ><ui-item icon="clock"><b>Estimate:</b> 1.5-2h</ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p7" data-phase="7" data-status="todo" header="P7 · Doc Review" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p7" data-phase="7" data-status="done" header="P7 · Doc Review" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> Prune; durable doc packages/docs/ui-import.html (Overview -&gt; body, decisions -&gt; Why,
@@ -1236,12 +1259,12 @@
                 >Docs bundle inlines lazy import()s: P6 must keep the engine chunks lazy or spell-ui.js grows ~50
                 kB</span
               > </ui-item
-            ><ui-item id="c5" data-status="open"
+            ><ui-item id="c5" data-status="done"
               ><a class="plan-id" href="#c5">C5</a>
               <span class="plan-title"
                 >Spell highlight bundle is the whole parser + spell rules (likely 100s of kB): loads only for
                 language=spell; not in auto-detect</span
-              ></ui-item
+              > </ui-item
             ><ui-item id="c6" data-status="open"
               ><a class="plan-id" href="#c6">C6</a>
               <span class="plan-title"
@@ -1619,6 +1642,36 @@
               ><ui-content
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-02T21:22-04:00">2026-10-02 21:22</time></ui-date> P6
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T21:22-04:00">2026-10-02 21:22</time></ui-date> P7
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T21:24-04:00">2026-10-02 21:24</time></ui-date> C5 closed: Spell
+                  highlight bundle is the whole parser + spell rules (likely 100s of kB): loads only for language=spell;
+                  not in auto-detect</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T21:26-04:00">2026-10-02 21:26</time></ui-date> P7: durable doc
+                  packages/docs/ui-import/ui-import.html (live examples, Why, Limits, the parser analysis); Overview
+                  made true to what was built</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-02T21:26-04:00">2026-10-02 21:26</time></ui-date> P7
                   done</ui-summary
                 ></ui-content
               ></ui-event
