@@ -47,9 +47,20 @@ export class StaticInteractions {
     }
   }
 
-  /** The button a popover's controls point at (`aria-controls`) toggles it natively. */
+  /**
+   * The button a popover's controls point at (`aria-controls`) toggles it natively;  a tooltip (hover / focus, no
+   * zero-JS way to open) lends its text to the element it describes (`aria-describedby`) as a native `title`, as the
+   * element's own fallback does.
+   */
   private static popover(document: Document, popover: Element) {
     const id = popover.id
+    if (popover.getAttribute("role") === "tooltip") {
+      const text = (popover.textContent ?? "").replace(/\s+/g, " ").trim()
+      for (const target of document.querySelectorAll("[aria-describedby]")) {
+        if (!(target.getAttribute("aria-describedby") ?? "").split(/\s+/).includes(id)) continue
+        if (text && !target.hasAttribute("title")) target.setAttribute("title", text)
+      }
+    }
     // tokens compared in code, not a selector:  an id may hold quotes
     for (const button of document.querySelectorAll("button[aria-controls]")) {
       if (!(button.getAttribute("aria-controls") ?? "").split(/\s+/).includes(id)) continue

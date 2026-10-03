@@ -95,16 +95,22 @@ export class StaticDocument {
    *   comments and blank lines (`minifyFallback` says why).
    */
   static minify(css: string): Omit<StaticStylesheetResult, "fullSize"> {
-    try {
-      const { code } = transform({ filename: "page.static.css", code: Buffer.from(css), minify: true })
-      return { text: code.toString() }
-    } catch (error) {
-      const text = css
-        .replace(/\/\*[\s\S]*?\*\//g, "")
-        .replace(/\s*\n\s*/g, "\n")
-        .trim()
-      return { text, minifyFallback: error instanceof Error ? error.message : String(error) }
-    }
+    // sheet by sheet (`StaticStylesheet` heads each with `/* name */`):  one rule Lightning CSS can't parse
+    // (`ui-popup.anchored.css`'s `@container anchored(...)`) falls back for ITS sheet only, not the whole page's
+    const failures: string[] = []
+    const parts = css.split(SHEET_START).map((part) => {
+      try {
+        return transform({ filename: "page.static.css", code: Buffer.from(part), minify: true }).code.toString()
+      } catch (error) {
+        failures.push(error instanceof Error ? error.message : String(error))
+        return part
+          .replace(/\/\*[\s\S]*?\*\//g, "")
+          .replace(/\s*\n\s*/g, "\n")
+          .trim()
+      }
+    })
+    const text = parts.join("\n")
+    return failures.length ? { text, minifyFallback: failures.join(";  ") } : { text }
   }
 
   ////////////////
@@ -195,3 +201,6 @@ export class StaticDocument {
 
 /** A `url(...)` in CSS:  its quote (or none) and its URL. */
 const URL = /url\(\s*(['"]?)([^'")]+)\1\s*\)/g
+
+/** Where each sheet of a `StaticStylesheet.build()` result starts:  its name-comment heading (`/\* ui-card ...`). */
+const SHEET_START = /\n\n(?=\/\* [\w.-]+(?: \(page\))? \*\/\n)/

@@ -23,6 +23,7 @@ describe("StaticInteractions (JavaScript off)", { timeout: 30_000 }, () => {
         <ui-actions><ui-button id="ok" approve>OK</ui-button></ui-actions>
       </ui-modal>
       <p><ui-button id="target">More</ui-button><ui-popup on="click" content="Popup text"></ui-popup></p>
+      <p><ui-button id="hovered">Hover me</ui-button><ui-popup content="Tooltip text"></ui-popup></p>
       <ui-accordion>
         <ui-title id="q1">First</ui-title><ui-content>One</ui-content>
         <ui-title id="q2">Second</ui-title><ui-content>Two</ui-content>
@@ -62,6 +63,10 @@ describe("StaticInteractions (JavaScript off)", { timeout: 30_000 }, () => {
     await expect.poll(() => popup.evaluate((element) => element.matches(":popover-open"))).toBe(false)
     await page.locator("#target").dispatchEvent("click")
     await expect.poll(() => popup.evaluate((element) => element.matches(":popover-open"))).toBe(true)
+  })
+
+  it("gives a hover popup's target the popup's text as its title", async () => {
+    expect(await page.locator("#hovered").getAttribute("title")).toBe("Tooltip text")
   })
 
   it("opens accordion panels natively", async () => {
