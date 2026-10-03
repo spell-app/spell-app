@@ -9,10 +9,13 @@ Usage (from `packages/docs`):
 - existing `<a href>` without a target gets one (external:  per URL;  sibling docs:  per file)
 - `--check` verifies:  every local href resolves INSIDE the repo, every non-anchor link has a target, one target per
   destination (`target="_self"`, a same-tab link, is exempt from the last)
+  - a missing target git IGNORES is fine:  runtime files (`.spell-server.json`) and local clones
+    (`packages/ui/reference/`) exist only on some machines, or while a server runs
 """
 
 import os
 import re
+import subprocess
 import sys
 import html
 
@@ -167,6 +170,12 @@ def linkify(path):
     print(f"{os.path.basename(path)}:  linked {linked} code spans;  unresolved path-like:  {sorted(unresolved)}")
 
 
+def git_ignored(dest):
+    """Whether git ignores `dest`:  a local-only or runtime file, fine to be missing here."""
+    run = subprocess.run(["git", "-C", MONOREPO, "check-ignore", "-q", dest], capture_output=True)
+    return run.returncode == 0
+
+
 def check(path):
     s = open(path).read()
     doc_dir = os.path.dirname(os.path.abspath(path))
@@ -183,7 +192,8 @@ def check(path):
         href = html.unescape(href.group(1))
         dest = href if re.match(r"https?://", href) else os.path.normpath(os.path.join(doc_dir, href.split("#")[0]))
         if not dest.startswith("http") and not os.path.exists(dest):
-            problems.append(f"missing:  {href}")
+            if not git_ignored(dest):
+                problems.append(f"missing:  {href}")
         elif not dest.startswith("http") and os.path.commonpath([dest, MONOREPO]) != MONOREPO:
             problems.append(f"outside repo:  {href}")
         if not target:

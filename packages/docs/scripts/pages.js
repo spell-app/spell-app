@@ -15,8 +15,11 @@ export const DOCS = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 /** The checkout this file is in:  the repo, or a worktree of it. */
 export const ROOT = resolve(DOCS, "../..")
 
-/** Folders that hold no pages. */
-const SKIP_DIRS = new Set(["_assets", "scripts", "node_modules", "experiments"])
+/**
+ * Folders that hold no pages.
+ * - `examples`:  fragments a page includes (`ui-import/examples/part.html`), not pages:  no sections, no contents
+ */
+const SKIP_DIRS = new Set(["_assets", "scripts", "node_modules", "experiments", "examples"])
 
 /** Every `.html` page under `dir` (default:  all of them), sorted, skipping tooling folders. */
 export function findPages(dir = DOCS) {

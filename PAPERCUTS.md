@@ -1085,6 +1085,12 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   history) resolves, so `doc-links.py` links it to a second path for the same file;  unlinking it by hand gets
   re-linked on the next run. · Wrote the old name as plain text;  `doc-links.py` should resolve paths
   case-sensitively (compare against the real directory listing). · docs
+- 2026-10-03 · `yarn docs:update` failed its link check on every run, so its page checks never ran:  links to
+  gitignored runtime files (`.spell-server.json`, `goals/.server.json`) and local clones (`packages/ui/reference/`)
+  count as "missing" in any checkout without them, plus one renamed skill and one deleted file.  Past those, the
+  check crashed on `ui-import/examples/part.html`, an include fragment `findPages()` took for a page. ·
+  `doc-links.py --check` accepts a missing target git ignores;  `findPages()` skips `examples/`;  the two real
+  links fixed. · docs
 
 ## claude-code
 
