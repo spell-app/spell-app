@@ -25,7 +25,7 @@
           ><header class="spell-page-head">
             <h1>Commands: CLI, skills, yarn</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle outline" href="#p5">next: P5 · AGENTS Rule</ui-label></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p6">next: P6 · Doc Review</ui-label></span
             >
           </header></ui-sticky
         >
@@ -70,7 +70,7 @@
               you create a new yarn script to solve some problem. Instruct it to keep that doc up to date.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 7h-12h in all, 1h-2h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 7h-12h in all, 30m-1h left</p>
           <ui-section id="o1" header="1.1 What exists today" sticky collapsible dividing>
             <p>Three ways to make the repo do something, grown separately:</p>
             <ui-table celled compact striped unstackable>
@@ -266,7 +266,13 @@
             </ui-table>
             <ul>
               <li>Also: a legend, counts, the oddities list, and how each surface adds a command (real code).</li>
-              <li>Agent rules distilled beside it: <code>commands.md</code> (see <a href="#o4">1.4</a>).</li>
+              <li>
+                Agent rules distilled beside it:
+                <a href="../../dev/commands/commands.md" target="src-packages-docs-dev-commands-commands-md"
+                  ><code>commands.md</code></a
+                >
+                (see <a href="#o4">1.4</a>).
+              </li>
             </ul>
           </ui-section>
 
@@ -331,7 +337,12 @@
               <li>
                 Triggers: Owen asks for a new skill or CLI command, or Claude is about to add a yarn script. Then:
                 <ol>
-                  <li>read <code>packages/docs/dev/commands/commands.md</code></li>
+                  <li>
+                    read
+                    <a href="../../dev/commands/commands.md" target="src-packages-docs-dev-commands-commands-md"
+                      ><code>packages/docs/dev/commands/commands.md</code></a
+                    >
+                  </li>
                   <li>suggest where it belongs (CLI first), its name under the scheme, and what it would replace</li>
                   <li>
                     update
@@ -349,7 +360,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="4" total="6" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="5" total="6" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -425,7 +436,16 @@
               ></ui-list
             >
           </ui-section>
-          <ui-section id="p4" data-phase="4" data-status="done" header="P4 · Drift Check" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p4"
+            data-phase="4"
+            data-status="done"
+            header="P4 · Drift Check"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -439,8 +459,8 @@
               ><ui-item icon="gavel"><b>Judgement calls:</b> <a href="#t7">T7</a></ui-item></ui-list
             >
           </ui-section>
-          <ui-section id="p5" data-phase="5" data-status="todo" header="P5 · AGENTS Rule" sticky collapsible dividing>
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+          <ui-section id="p5" data-phase="5" data-status="done" header="P5 · AGENTS Rule" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> Root AGENTS.md Commands section + READ-first line; distilled commands.md; pointer in cli
@@ -1241,6 +1261,28 @@ missing from commands.html:
                   group + spell dev commands [list|check] [--json], CLI.findCheckout() (plan-doc uses it too), root yarn
                   commands:check; checks: cli review green (122 tests), 208 commands all on the page, a removed row and
                   a bogus name both flagged</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:33-04:00">2026-10-03 00:33</time></ui-date> P5
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:34-04:00">2026-10-03 00:34</time></ui-date> P5
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T00:34-04:00">2026-10-03 00:34</time></ui-date> P5 done: root
+                  AGENTS.md read-first line + Commands section, packages/docs/dev/commands/commands.md (agent rules),
+                  pointer in packages/cli/AGENTS.md; checks: doc-links ok, check-spell ok</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
