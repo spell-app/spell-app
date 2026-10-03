@@ -1,7 +1,7 @@
 import { Show, omit } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Actions, InDropdown, on, type UIElementAttributes } from "$/app/solid"
+import { Actions, on, type UIElementAttributes } from "$/app/solid"
 
 import "./chrome.css"
 
@@ -112,7 +112,6 @@ export function Spring(props: UIElementAttributes) {
  * - Choosing an item CLICKS it, so an `<Action>`'s `onClick` runs whether it's in a menu or here;  the dropdown
  *   keeps no value (`ui-change` resets it), so the trigger stays the icon.
  * - Items are found by `value`, else text:  give same-titled items distinct `value`s.
- * - Provides `InDropdown`, so `<Action>`s inside render as dropdown data (see `<Action>`).
  * - `stub`:  a disabled placeholder item with the icon instead, e.g. while the real menu isn't built yet.
  * - `item` (default `true`):  wrapped in a `<ui-item>`, to sit in a menu.
  ****************/
@@ -140,7 +139,7 @@ export function MoreMenu(props: MoreMenuProps) {
     return (
       <ui-dropdown {...rest} class={["MoreMenu", props.class]} ref={on<{ value: string }>("ui-change", choose)}>
         <ui-icon slot="icon" name={icon()} />
-        <InDropdown value={true}>{props.children}</InDropdown>
+        {props.children}
       </ui-dropdown>
     )
   }

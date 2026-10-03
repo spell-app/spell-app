@@ -38,11 +38,11 @@ describe("spell static", () => {
     run = spellStatic(["page.html"])
   }, SLOW)
 
-  test("writes page.static.html and page.static.css beside the page", () => {
+  test("writes page.static.html beside the page, and the folder's ui.static.css", () => {
     expect(run.stderr).toContain("page.html -> page.static.html")
     expect(run.status).toBe(0)
-    expect(run.stdout.trim()).toBe("page.static.html")
-    expect(existsSync(resolve(TEMP, "page.static.css"))).toBe(true)
+    expect(run.stdout.trim().split("\n")).toEqual(["page.static.html", "ui.static.css"])
+    expect(existsSync(resolve(TEMP, "ui.static.css"))).toBe(true)
   })
 
   test("the page has no elements left:  no ui-* tags, no slots, every family rendered", () => {
@@ -64,31 +64,52 @@ describe("spell static", () => {
 
   test("links the stylesheet first in <head>, before the page's own CSS", () => {
     const head = read("page.static.html").split("</head>")[0]!
-    const link = head.indexOf('href="page.static.css"')
+    const link = head.indexOf('href="ui.static.css"')
     expect(link).toBeGreaterThan(-1)
     expect(link).toBeLessThan(head.indexOf('href="site.css"'))
     // the page's own <style>, rewritten for the flattened output
     expect(head).toContain('[data-ui="card"][part~="header"]')
   })
 
-  test("the stylesheet is scoped, layered and minified", () => {
-    const css = read("page.static.css")
+  test("the stylesheet is scoped, layered and minified, and says what it covers", () => {
+    const css = read("ui.static.css")
     expect(css).toContain("@scope")
     expect(css).toContain("@layer")
     expect(css).toContain(":where(")
     expect(css).not.toMatch(/\n\s*\n/)
-    expect(run.stderr).toMatch(/css [\d.]+ kB from [\d.]+ kB/)
+    expect(run.stderr).toMatch(/ui\.static\.css {2}[\d.]+ kB from [\d.]+ kB/)
+    expect(CLI.readCoverage(resolve(TEMP, "ui.static.css"))!.tags).toEqual(
+      expect.arrayContaining(["ui-button", "ui-card", "ui-modal", "ui-segment"])
+    )
   })
 
   test(
-    "--inline:  the stylesheet in a <style>, no file",
+    "re-rendering ONE page keeps what the folder's sheet covered for the others",
     () => {
-      copyFileSync(FIXTURE, resolve(TEMP, "inline.html"))
-      const { status } = spellStatic(["inline.html", "--inline", "-o", "inline-out.html"])
+      mkdirSync(resolve(TEMP, "cache"), { recursive: true })
+      copyFileSync(FIXTURE, resolve(TEMP, "cache", "full.html"))
+      writeFileSync(resolve(TEMP, "cache", "small.html"), "<!doctype html><p>x</p><ui-label>New</ui-label>")
+      expect(spellStatic(["cache"]).status).toBe(0)
+      const before = CLI.readCoverage(resolve(TEMP, "cache", "ui.static.css"))!.tags
+      expect(before).toEqual(expect.arrayContaining(["ui-card", "ui-label"]))
+      expect(spellStatic(["cache/small.html"]).status).toBe(0)
+      const after = CLI.readCoverage(resolve(TEMP, "cache", "ui.static.css"))!.tags
+      expect(after).toEqual(before)
+      expect(read("cache/ui.static.css")).toContain("[data-ui=card]")
+    },
+    SLOW
+  )
+
+  test(
+    "--inline-css:  the stylesheet in a <style>, no file",
+    () => {
+      mkdirSync(resolve(TEMP, "inline"), { recursive: true })
+      copyFileSync(FIXTURE, resolve(TEMP, "inline", "inline.html"))
+      const { status } = spellStatic(["inline/inline.html", "--inline-css", "-o", "inline/inline-out.html"])
       expect(status).toBe(0)
-      const head = read("inline-out.html").split("</head>")[0]!
+      const head = read("inline/inline-out.html").split("</head>")[0]!
       expect(head).toMatch(/<style>@layer[^<]*@scope/)
-      expect(existsSync(resolve(TEMP, "inline-out.static.css"))).toBe(false)
+      expect(existsSync(resolve(TEMP, "inline", "ui.static.css"))).toBe(false)
     },
     SLOW
   )
@@ -104,7 +125,7 @@ describe("spell static", () => {
       )
       const { status, stdout } = spellStatic(["site", "-o", "out", "--css", "out/site.css"])
       expect(status).toBe(0)
-      expect(stdout.trim().split("\n")).toEqual(["out/a.html", "out/nested/b.html"])
+      expect(stdout.trim().split("\n")).toEqual(["out/a.html", "out/nested/b.html", "out/site.css"])
       expect(read("out/a.html")).toContain('href="site.css"')
       expect(read("out/nested/b.html")).toContain('href="../site.css"')
       // one sheet for both pages' families (minified:  attribute values unquoted)
@@ -116,11 +137,11 @@ describe("spell static", () => {
   )
 
   test(
-    "--inline with --css is a usage error",
+    "--inline-css with --css is a usage error",
     () => {
-      const { status, stderr } = spellStatic(["page.html", "--inline", "--css", "x.css"])
+      const { status, stderr } = spellStatic(["page.html", "--inline-css", "--css", "x.css"])
       expect(status).toBe(CLI.EXIT.USAGE)
-      expect(stderr).toContain("--inline and --css")
+      expect(stderr).toContain("--inline-css and --css")
     },
     SLOW
   )
@@ -151,9 +172,14 @@ describe("staticPages()", () => {
   })
 })
 
-describe("cssFile()", () => {
-  test("beside the page", () => {
-    expect(CLI.cssFile("/a/page.static.html")).toBe("/a/page.static.css")
-    expect(CLI.cssFile("/a/out.html")).toBe("/a/out.static.css")
+describe("coverageLine() / readCoverage()", () => {
+  test("round-trip through a sheet's first line;  a sheet without one covers nothing", () => {
+    const coverage = { tags: ["ui-card"], users: { list: ["item", "list"] }, orders: [["item", "list"]] }
+    const path = resolve(TEMP, "covered.css")
+    writeFileSync(path, `${CLI.coverageLine(coverage)}\n.x{}`)
+    expect(CLI.readCoverage(path)).toEqual(coverage)
+    writeFileSync(path, ".x{}")
+    expect(CLI.readCoverage(path)).toBeUndefined()
+    expect(CLI.readCoverage(resolve(TEMP, "no-such.css"))).toBeUndefined()
   })
 })

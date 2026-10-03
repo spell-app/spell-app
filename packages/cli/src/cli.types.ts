@@ -3,7 +3,12 @@
  * - Runtime-light:  `import type` only, plus the small `CliError` class and `EXIT` codes.
  */
 import type { SP } from "$/spell"
-import type { StaticDocumentOptions, StaticDocumentResult, StaticStylesheetResult } from "$/ui/tools/tools.types"
+import type {
+  StaticCoverage,
+  StaticDocumentOptions,
+  StaticDocumentResult,
+  StaticStylesheetResult
+} from "$/ui/tools/tools.types"
 
 ////////////////
 // ## Targets
@@ -191,7 +196,7 @@ export type IconsOptions = GlobalOptions & {
  */
 export type StaticOptions = GlobalOptions & {
   output?: string
-  inline?: boolean
+  inlineCss?: boolean
   css?: string
   minify?: boolean
 }
@@ -238,19 +243,34 @@ export type RunReport = {
 }
 
 /**
+ * One shared stylesheet of a `spell static` job:  where it goes, the pages that link it (indices in the job), and
+ * what the sheet already there covered (its first line), for the build to keep.
+ */
+export type StaticSheetJob = {
+  path: string
+  pages: number[]
+  coverage?: StaticCoverage
+}
+
+/**
  * What `spell static` and its child process, `runner/renderStatic.ts`, say to each other over IPC, in order:
  * - `ready`:  child to parent, once its Vite server is up
- * - `job`:  parent to child, once:  each page's HTML and stylesheet options;  `shared`:  build ONE stylesheet for
- *   them all afterwards, `minify`d or not
+ * - `job`:  parent to child, once:  each page's HTML and stylesheet options, and the shared stylesheets (`sheets`)
+ *   to build afterwards, `minify`d or not
  * - `page`:  child to parent, one per page in `job` order (`index`):  its `result`, or the `error` that stopped it
- * - `stylesheet`:  child to parent, after the pages, for a `shared` job
+ * - `stylesheet`:  child to parent, after the pages, one per `sheets` entry (`path`)
  * - `done`, or `failed` with the error that stopped the whole job
  */
 export type StaticMessage =
   | { kind: "ready" }
-  | { kind: "job"; pages: { html: string; options: StaticDocumentOptions }[]; shared: boolean; minify: boolean }
+  | {
+      kind: "job"
+      pages: { html: string; options: StaticDocumentOptions }[]
+      sheets: StaticSheetJob[]
+      minify: boolean
+    }
   | { kind: "page"; index: number; result?: StaticDocumentResult; error?: string }
-  | { kind: "stylesheet"; result: StaticStylesheetResult }
+  | { kind: "stylesheet"; path: string; result: StaticStylesheetResult }
   | { kind: "done" }
   | { kind: "failed"; error: string }
 

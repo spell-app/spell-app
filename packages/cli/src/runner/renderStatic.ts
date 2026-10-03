@@ -6,7 +6,7 @@
  *   (`StaticRenderer`, the same setup as `yarn test:visual --static`).  A separate process keeps Vite, the server
  *   `UI` runtime it installs on `globalThis` and its console out of the CLI.
  * - Talks in `CLI.StaticMessage`s:  says `ready` once Vite is up, takes ONE `job`, answers a `page` per page (in
- *   order), then the `stylesheet` if the job shares one, then `done`, and exits.
+ *   order), then a `stylesheet` per shared sheet, then `done`, and exits.
  * - NEVER imports `$/cli`'s values:  this process needs only `ui`.
  */
 import { StaticRenderer } from "$/ui/tools/StaticRenderer"
@@ -23,18 +23,20 @@ async function run(job: CLI.StaticMessage) {
   try {
     if (job.kind !== "job") throw new Error(`renderStatic:  expected a job, got ${job.kind}`)
     const module = (await server.ssrLoadModule(StaticRenderer.DOCUMENT)) as StaticDocumentModule
-    const tags = new Set<string>()
+    const tags: string[][] = []
     for (const [index, page] of job.pages.entries()) {
       try {
         const result = await module.StaticDocument.render(page.html, page.options)
-        for (const tag of result.tags) tags.add(tag)
+        tags[index] = result.tags
         await send({ kind: "page", index, result })
       } catch (error) {
         await send({ kind: "page", index, error: describe(error) })
       }
     }
-    if (job.shared) {
-      await send({ kind: "stylesheet", result: module.StaticDocument.stylesheet(tags, job.minify) })
+    for (const sheet of job.sheets) {
+      const used = sheet.pages.flatMap((index) => tags[index] ?? [])
+      const result = module.StaticDocument.stylesheet(used, job.minify, sheet.coverage)
+      await send({ kind: "stylesheet", path: sheet.path, result })
     }
     await send({ kind: "done" })
   } catch (error) {

@@ -15,7 +15,12 @@ import postcss from "postcss"
 
 import { StaticCatalog, StaticPageStyles, StaticRender, StaticStylesheet } from "$/ui/server"
 
-import type { StaticDocumentOptions, StaticDocumentResult, StaticStylesheetResult } from "./tools.types.ts"
+import type {
+  StaticCoverage,
+  StaticDocumentOptions,
+  StaticDocumentResult,
+  StaticStylesheetResult
+} from "./tools.types.ts"
 
 /****************
  * ### `StaticDocument`
@@ -78,14 +83,29 @@ export class StaticDocument {
   /**
    * The stylesheet for `tags`' families, after every page that uses them has rendered.
    * - `minify` (default `true`):  `minify()`.
+   * - `coverage`:  what an earlier run's sheet covered (its tags, what they adopted):  merged in, so the sheet keeps
+   *   styling pages this run didn't render.  The result's `coverage` is the union.
    */
-  static stylesheet(tags: Iterable<string>, minify = true): StaticStylesheetResult {
+  static stylesheet(tags: Iterable<string>, minify = true, coverage?: StaticCoverage): StaticStylesheetResult {
     StaticDocument.define()
-    const families = [...new Set(tags)].map((tag) => StaticRender.families.get(tag)!).filter(Boolean)
-    const full = StaticStylesheet.build(families, StaticRender.sheetUsage)
+    const usage = StaticRender.sheetUsage
+    for (const [name, nouns] of Object.entries(coverage?.users ?? {})) {
+      let set = usage.users.get(name)
+      if (!set) usage.users.set(name, (set = new Set()))
+      for (const noun of nouns) set.add(noun)
+    }
+    for (const order of coverage?.orders ?? []) usage.orders.set(order.join(" "), order)
+    const all = [...new Set([...tags, ...(coverage?.tags ?? [])])].filter((tag) => StaticRender.families.has(tag))
+    const families = all.map((tag) => StaticRender.families.get(tag)!)
+    const full = StaticStylesheet.build(families, usage)
+    const covered: StaticCoverage = {
+      tags: all.sort(),
+      users: Object.fromEntries([...usage.users].map(([name, nouns]) => [name, [...nouns].sort()])),
+      orders: [...usage.orders.values()].map((order) => [...order])
+    }
     const fullSize = Buffer.byteLength(full)
-    if (!minify) return { text: full, fullSize }
-    return { ...StaticDocument.minify(full), fullSize }
+    if (!minify) return { text: full, fullSize, coverage: covered }
+    return { ...StaticDocument.minify(full), fullSize, coverage: covered }
   }
 
   /**
@@ -94,7 +114,7 @@ export class StaticDocument {
    * - Strict:  a rule it can't parse fails the minify rather than being dropped.  Then it falls back to stripping
    *   comments and blank lines (`minifyFallback` says why).
    */
-  static minify(css: string): Omit<StaticStylesheetResult, "fullSize"> {
+  static minify(css: string): Omit<StaticStylesheetResult, "fullSize" | "coverage"> {
     // sheet by sheet (`StaticStylesheet` heads each with `/* name */`):  one rule Lightning CSS can't parse
     // (`ui-popup.anchored.css`'s `@container anchored(...)`) falls back for ITS sheet only, not the whole page's
     const failures: string[] = []
