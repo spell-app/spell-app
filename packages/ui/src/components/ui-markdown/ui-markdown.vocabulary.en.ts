@@ -10,8 +10,8 @@ import * as UIT from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-markdown>`
- * GitHub-flavoured markdown, rendered:  the element's own text or a `source` file, sanitized, its code blocks as
- * `<ui-code>`;  `editable` adds Write / Preview tabs.
+ * GitHub-flavoured markdown, rendered:  the element's own text or a `source` file, its code blocks as `<ui-code>`;
+ * `sanitized` runs it through DOMPurify, `editable` adds Write / Preview tabs.
  ****************/
 export const markdownVocabulary = {
   tag: "ui-markdown",
@@ -46,10 +46,11 @@ export const markdownVocabulary = {
         "markdown engine (`@spell-app/markdown`, its own lazy chunk).  Each edit is a `ui-change`;  `save()` writes it."
     },
     {
-      name: "trusted",
+      name: "sanitized",
       kind: "boolean",
       description:
-        "Skip sanitizing, keeping raw HTML as written (`<ui-*>` elements, scripts' tags ...).  ONLY for text you wrote."
+        "Sanitize the rendered markup with DOMPurify (its own lazy chunk, loaded only then):  no scripts, event " +
+        "handlers or `javascript:` links.  Set it for text you didn't write;  without it, raw HTML is kept as written."
     }
   ],
   events: [

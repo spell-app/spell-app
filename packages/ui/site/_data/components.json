@@ -7460,9 +7460,9 @@
           "description": "Write / Preview tabs:  a text box for the markdown, and its preview, drawn with `ui-*` elements by spell's markdown engine (`@spell-app/markdown`, its own lazy chunk).  Each edit is a `ui-change`;  `save()` writes it."
         },
         {
-          "name": "trusted",
+          "name": "sanitized",
           "kind": "boolean",
-          "description": "Skip sanitizing, keeping raw HTML as written (`<ui-*>` elements, scripts' tags ...).  ONLY for text you wrote."
+          "description": "Sanitize the rendered markup with DOMPurify (its own lazy chunk, loaded only then):  no scripts, event handlers or `javascript:` links.  Set it for text you didn't write;  without it, raw HTML is kept as written."
         }
       ],
       "slots": [],

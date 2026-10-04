@@ -1,12 +1,14 @@
 import type { MarkdownEngine } from "./MarkdownEngine"
+import type { MarkdownSanitizer } from "./MarkdownSanitizer"
 import type { MDEngine } from "./MDEngine"
 
 /****************
  * ### `MarkdownRenderer`
  * What `<ui-markdown>` asks to render:  loads an engine on first use, each in its own lazy chunk.
- * - `load()`:  marked + DOMPurify (`MarkdownEngine`), for plain `<ui-markdown>`.
+ * - `load()`:  marked (`MarkdownEngine`), for plain `<ui-markdown>`.
  * - `loadMD()`:  spell's engine (`MDEngine`, on `@spell-app/markdown`'s bundle), for `<ui-markdown editable>`.
- * - The element only knows `render(text, options) -> { fragment, headings }` (`MarkdownRendering`).
+ * - `loadSanitizer()`:  DOMPurify (`MarkdownSanitizer`), only for `sanitized`.
+ * - The element only knows `render(text, options) -> { html, headings }` (`MarkdownRendering`).
  ****************/
 export class MarkdownRenderer {
   /**
@@ -22,11 +24,19 @@ export class MarkdownRenderer {
    */
   static mdLoader: () => Promise<{ MDEngine: { instance: MDEngine } }> = () => import("./MDEngine")
 
+  /**
+   * Imports `MarkdownSanitizer`;  replaceable as `engineLoader` (the docs' classic script loads it as a script of its
+   * own).
+   */
+  static sanitizerLoader: () => Promise<{ MarkdownSanitizer: { instance: MarkdownSanitizer } }> = () =>
+    import("./MarkdownSanitizer")
+
   /** The engines' imports, each started once. */
   private static engine?: Promise<MarkdownEngine>
   private static md?: Promise<MDEngine>
+  private static sanitizer?: Promise<MarkdownSanitizer>
 
-  /** marked + DOMPurify, loaded on first use. */
+  /** marked, loaded on first use. */
   static load(): Promise<MarkdownEngine> {
     return (MarkdownRenderer.engine ??= MarkdownRenderer.engineLoader().then(
       (module) => module.MarkdownEngine.instance
@@ -36,5 +46,12 @@ export class MarkdownRenderer {
   /** Spell's engine, loaded on first use. */
   static loadMD(): Promise<MDEngine> {
     return (MarkdownRenderer.md ??= MarkdownRenderer.mdLoader().then((module) => module.MDEngine.instance))
+  }
+
+  /** DOMPurify, loaded on first use. */
+  static loadSanitizer(): Promise<MarkdownSanitizer> {
+    return (MarkdownRenderer.sanitizer ??= MarkdownRenderer.sanitizerLoader().then(
+      (module) => module.MarkdownSanitizer.instance
+    ))
   }
 }

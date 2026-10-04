@@ -1,5 +1,3 @@
-import DOMPurify from "dompurify"
-
 import engine from "./MDBundle"
 import type { MarkdownOptions, MarkdownRendering, MarkdownResult } from "./ui-markdown.types"
 
@@ -17,9 +15,9 @@ import "$/ui/components/ui-table"
  * - Draws with `ui-*` elements (`ui-header`, `ui-list`, `ui-table`, `ui-message` alerts, `ui-checkbox` tasks ...),
  *   so this chunk defines those families;  `ui-code` and `ui-message` come with the element's barrel.
  * - The engine is the PRE-COMPILED bundle (`MDBundle`, `yarn gen:markdown`):  `ui` never imports `$/markdown`.
- * - Sanitized with DOMPurify unless `trusted`, as marked's output is, but letting `ui-*` tags through with any
- *   attribute but an `on*` handler.
- * - Why not plain `<ui-markdown>` too:  the bundle is ~3.5x marked + DOMPurify (plan doc, P7);  until it's slimmer,
+ * - Returns MARKUP, never sanitized, as marked's engine does:  the element sanitizes it when `sanitized` (`MarkdownSanitizer`), keeping
+ *   `ui-*` tags.
+ * - Why not plain `<ui-markdown>` too:  the bundle is ~3.5x marked + DOMPurify (plan doc, P7;  I6);  until it's slimmer,
  *   only the editable one pays for it.
  ****************/
 export class MDEngine implements MarkdownRendering {
@@ -28,29 +26,6 @@ export class MDEngine implements MarkdownRendering {
 
   /** `text` rendered as `options` say. */
   render(text: string, options: MarkdownOptions): MarkdownResult {
-    const { html, headings } = engine.render(text, {
-      ui: true,
-      breaks: options.breaks,
-      headingOffset: options.headingOffset
-    })
-    const fragment = options.trusted
-      ? document.createRange().createContextualFragment(html)
-      : // `SANITIZE_DOM` off:  see `MarkdownEngine`
-        DOMPurify.sanitize(html, {
-          RETURN_DOM_FRAGMENT: true,
-          SANITIZE_DOM: false,
-          CUSTOM_ELEMENT_HANDLING: {
-            tagNameCheck: UI_TAG,
-            attributeNameCheck: (name: string) => !HANDLER.test(name),
-            allowCustomizedBuiltInElements: false
-          }
-        })
-    return { fragment, headings }
+    return engine.render(text, { ui: true, breaks: options.breaks, headingOffset: options.headingOffset })
   }
 }
-
-/** Custom elements the preview keeps. */
-const UI_TAG = /^ui-[a-z-]+$/
-
-/** Event-handler attributes, never kept. */
-const HANDLER = /^on/i
