@@ -2,13 +2,14 @@ import { describe, expect, it } from "vitest"
 
 import { MD, type SpecExample } from "$/markdown"
 
+import { comparableHTML } from "./spec.types"
 import spec from "./gfm-spec.json"
 
 /**
  * The GFM spec, example by example:  how many pass, per section.
  * - Pinned in a snapshot:  a regression (fewer passing) fails;  a gain fails too, until the snapshot is updated
  *   (`vitest -u`) -- read the diff first, it's the progress report.
- * - Compares normalized HTML (`comparable()`):  whitespace between tags and line ends don't count.
+ * - Compares normalized HTML (`comparableHTML()`):  whitespace between tags and line ends don't count.
  * - `disabled` examples (cmark-gfm doesn't run them either) are left out.
  */
 describe("GFM spec", () => {
@@ -35,13 +36,8 @@ describe("GFM spec", () => {
 /** Does `MD.toHTML()` render `example` as the spec says?  A throw counts as a fail. */
 function passes(example: SpecExample) {
   try {
-    return comparable(MD.toHTML(example.markdown)) === comparable(example.html)
+    return comparableHTML(MD.toHTML(example.markdown)) === comparableHTML(example.html)
   } catch {
     return false
   }
-}
-
-/** `html` with line ends and whitespace between tags dropped, so only content and structure compare. */
-function comparable(html: string) {
-  return html.replace(/\r\n?/g, "\n").replace(/>\s+</g, "><").trim()
 }

@@ -1819,6 +1819,7 @@ __metadata:
     oxfmt: "npm:^0.71.0"
     oxlint: "npm:^1.86.0"
     oxlint-tsgolint: "npm:^7.0.2003"
+    tsx: "npm:4.20.3"
     typescript: "npm:^7.0.2"
     vite: "npm:^8.3.1"
     vitest: "npm:^5.0.2"

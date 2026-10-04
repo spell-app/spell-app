@@ -1,8 +1,9 @@
+import { MD } from "$/markdown"
+
 /**
- * `MD.toHTML(markdown)` -- markdown to PLAIN HTML, as the GFM spec spells it.
- * - TODO: P3 (blocks) and P4 (inlines) build the real one;  until then nothing renders, so the spec harness
- *   reports 0 passes per section.
+ * `MD.toHTML(markdown)` -- markdown to PLAIN HTML, as the GFM spec spells it:  blocks, then their markup, then HTML.
+ * - TODO: P4 plugs inline parsing in;  until then inline text is drawn as it is (escaped).
  */
-export function toHTML(_markdown: string): string {
-  return ""
+export function toHTML(markdown: string): string {
+  return MD.markupToHTML(MD.renderBlocks(MD.BlockScanner.parse(markdown)))
 }
