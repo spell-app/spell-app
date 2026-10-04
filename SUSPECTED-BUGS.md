@@ -429,6 +429,12 @@ every entry below that date was fixed or disproven;  what's left:
 - `site/` masthead `<ui-docs-themes for>`:  a family with no Fomantic theme (embed, nag, flyout) shows a
   `0 themes` picker, and one with a single theme `1 themes` (I71);  maybe hide the picker at 0.
   (2026-10-03, epic `spell-ui-pages` P4)
+- `src/docs-components/ui-docs-api/` tables:  on a component page loaded on the Examples tab, switching to API (a
+  click, or `tabs.value = "api"`) shows every table STACKED (each row's cells one under another, header cells in a
+  column) at 1400px;  loaded straight on `#api` they're normal columns.  Looks like the tables decide to stack while
+  their pane is hidden (width 0) and don't re-decide when it shows.  Prove:  load `components/ui-button.html`, set
+  `document.querySelector("#site-tabs").value = "api"`, screenshot;  compare with `ui-button.html#api`.  (2026-10-04,
+  epic `ui-docs-rework` P6)
 
 ### 4. Types / API surface
 

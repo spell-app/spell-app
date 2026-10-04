@@ -57,324 +57,367 @@
               root loads the `fomantic` and `fa7-brands` packs, so Fomantic's names (`help`, `dont`, `add`, `home`)
               work here as written.
             -->
-            <ui-header level="2" dividing id="types">Types</ui-header>
-
-            <ui-message size="small"
-              >The icon set -- every icon with its name, by category, searchable -- is on the
-              <a href="../icons.html">Icons</a> page. Icons are Font Awesome 7 Free SVG files, one per icon, loaded
-              on first use.</ui-message
-            >
-
-            <ui-docs-example
-              header="Icon"
-              description="An icon is a glyph used to represent something else.  `name` is its name in words;  solid is the default set."
-            >
-              <ui-icon name="house"></ui-icon>
-              <ui-icon name="users"></ui-icon>
-              <ui-icon name="cloud"></ui-icon>
-              <ui-icon name="puzzle piece"></ui-icon>
-              <ui-icon name="heart"></ui-icon>
-            </ui-docs-example>
-
-            <ui-docs-example
-              header="Outline"
-              description="An `outline` word (or the `outline` attribute) names the regular icon."
-            >
-              <ui-icon name="heart outline"></ui-icon>
-              <ui-icon name="bell outline"></ui-icon>
-              <ui-icon name="envelope" outline></ui-icon>
-              <ui-icon name="circle outline"></ui-icon>
-            </ui-docs-example>
-
-            <ui-docs-example
-              header="Brands"
-              description="Brand logos come in the `fa7-brands` pack, which a `<ui-root icons>` adds (this page has it)."
-            >
-              <ui-icon name="github"></ui-icon>
-              <ui-icon name="discord"></ui-icon>
-              <ui-icon name="medium"></ui-icon>
-              <ui-icon name="mastodon"></ui-icon>
-            </ui-docs-example>
-
-            <ui-docs-example
-              header="Inline with text"
-              description="An icon sits on the text baseline, one line tall."
-            >
-              <p><ui-icon name="circle info"></ui-icon>Icons sit on the text baseline, one line tall.</p>
-            </ui-docs-example>
-
-            <ui-header level="2" dividing id="states">States</ui-header>
-
-            <ui-docs-example header="Disabled" description="An icon can show that it is disabled.">
-              <ui-icon name="users" disabled></ui-icon>
-            </ui-docs-example>
-
-            <!-- GAP I23:  Fomantic's `notched circle` draws nothing;  the pack's name is `circle notched`. -->
-            <ui-docs-example header="Loading" description="An icon can be used as a simple loader.">
-              <ui-icon name="spinner" loading></ui-icon>
-              <ui-icon name="circle notched" loading></ui-icon>
-              <ui-icon name="asterisk" loading></ui-icon>
-            </ui-docs-example>
-
-            <ui-header level="2" dividing id="variations">Variations</ui-header>
-
-            <ui-docs-example
-              header="Fitted"
-              description="An icon can be fitted, without any space to the left or right of it."
-            >
-              Tight spacing
-              <ui-icon name="help" fitted></ui-icon>
-              Tight spacing
-            </ui-docs-example>
-
-            <ui-docs-example header="Size" description="An icon can vary in size.">
-              <ui-icon name="home" size="mini"></ui-icon>
-              <ui-icon name="home" size="tiny"></ui-icon>
-              <ui-icon name="home" size="small"></ui-icon>
-              <br />
-              <ui-icon name="home"></ui-icon>
-              <br />
-              <ui-icon name="home" size="large"></ui-icon>
-              <br />
-              <ui-icon name="home" size="big"></ui-icon>
-              <br />
-              <ui-icon name="home" size="huge"></ui-icon>
-              <br />
-              <ui-icon name="home" size="massive"></ui-icon>
-            </ui-docs-example>
-
-            <ui-docs-example header="Link">
-              <p slot="description">An icon can be formatted as a link.</p>
-              <ui-message slot="description" size="small"
-                ><code>link</code> is only the look (dimmed until hovered, a pointer cursor): wrap the icon in a
-                real <code>&lt;a&gt;</code> or <code>&lt;button&gt;</code> for interaction.</ui-message
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-message size="small"
+                >The icon set -- every icon with its name, by category, searchable -- is on the
+                <a href="../icons.html">Icons</a> page. Icons are Font Awesome 7 Free SVG files, one per icon, loaded
+                on first use.</ui-message
               >
-              <ui-icon name="close" link></ui-icon>
-              <ui-icon name="help" link></ui-icon>
-            </ui-docs-example>
 
-            <ui-docs-example header="Flipped" description="An icon can be flipped.">
-              <ui-icon name="cloud" flipped="horizontally"></ui-icon>
-              <ui-icon name="cloud" flipped="vertically"></ui-icon>
-            </ui-docs-example>
+              <ui-section id="examples-types-icon" header="Icon" sticky collapsible dividing>
+                <ui-docs-example
+                  description="An icon is a glyph used to represent something else.  `name` is its name in words;  solid is the default set."
+                >
+                  <ui-icon name="house"></ui-icon>
+                  <ui-icon name="users"></ui-icon>
+                  <ui-icon name="cloud"></ui-icon>
+                  <ui-icon name="puzzle piece"></ui-icon>
+                  <ui-icon name="heart"></ui-icon>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example
-              header="Rotated"
-              description="An icon can be rotated:  `clockwise`, `counterclockwise`, or `halfway` (180°)."
-            >
-              <ui-icon name="cloud" rotated="clockwise"></ui-icon>
-              <ui-icon name="cloud" rotated="counterclockwise"></ui-icon>
-              <ui-icon name="cloud" rotated="halfway"></ui-icon>
-            </ui-docs-example>
+              <ui-section id="examples-types-outline" header="Outline" sticky collapsible dividing>
+                <ui-docs-example description="An `outline` word (or the `outline` attribute) names the regular icon.">
+                  <ui-icon name="heart outline"></ui-icon>
+                  <ui-icon name="bell outline"></ui-icon>
+                  <ui-icon name="envelope" outline></ui-icon>
+                  <ui-icon name="circle outline"></ui-icon>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example header="Circular" description="An icon can be formatted to appear circular.">
-              <ui-icon name="users" circular></ui-icon>
-              <ui-icon name="users" color="teal" circular></ui-icon>
-              <ui-icon name="users" circular inverted></ui-icon>
-              <ui-icon name="users" color="teal" circular inverted></ui-icon>
-            </ui-docs-example>
-            <ui-docs-example header="Circular Colored">
-              <p slot="description">The circular color can appear in the same color as the icon itself.</p>
-              <ui-message slot="description" size="small" class="site-not-ported"
-                >Not ported: the <code>colored</code> word -- a coloured circular or bordered icon's ring always
-                follows its colour.</ui-message
+              <ui-section id="examples-types-brands" header="Brands" sticky collapsible dividing>
+                <ui-docs-example
+                  description="Brand logos come in the `fa7-brands` pack, which a `<ui-root icons>` adds (this page has it)."
+                >
+                  <ui-icon name="github"></ui-icon>
+                  <ui-icon name="discord"></ui-icon>
+                  <ui-icon name="medium"></ui-icon>
+                  <ui-icon name="mastodon"></ui-icon>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-inline-with-text" header="Inline with text" sticky collapsible dividing>
+                <ui-docs-example description="An icon sits on the text baseline, one line tall.">
+                  <p><ui-icon name="circle info"></ui-icon>Icons sit on the text baseline, one line tall.</p>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+                <ui-docs-example description="An icon can show that it is disabled.">
+                  <ui-icon name="users" disabled></ui-icon>
+                </ui-docs-example>
+              </ui-section>
+
+              <!-- GAP I23:  Fomantic's `notched circle` draws nothing;  the pack's name is `circle notched`. -->
+              <ui-section id="examples-states-loading" header="Loading" sticky collapsible dividing>
+                <ui-docs-example description="An icon can be used as a simple loader.">
+                  <ui-icon name="spinner" loading></ui-icon>
+                  <ui-icon name="circle notched" loading></ui-icon>
+                  <ui-icon name="asterisk" loading></ui-icon>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-fitted" header="Fitted" sticky collapsible dividing>
+                <ui-docs-example description="An icon can be fitted, without any space to the left or right of it.">
+                  Tight spacing
+                  <ui-icon name="help" fitted></ui-icon>
+                  Tight spacing
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+                <ui-docs-example description="An icon can vary in size.">
+                  <ui-icon name="home" size="mini"></ui-icon>
+                  <ui-icon name="home" size="tiny"></ui-icon>
+                  <ui-icon name="home" size="small"></ui-icon>
+                  <br />
+                  <ui-icon name="home"></ui-icon>
+                  <br />
+                  <ui-icon name="home" size="large"></ui-icon>
+                  <br />
+                  <ui-icon name="home" size="big"></ui-icon>
+                  <br />
+                  <ui-icon name="home" size="huge"></ui-icon>
+                  <br />
+                  <ui-icon name="home" size="massive"></ui-icon>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-link" header="Link" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">An icon can be formatted as a link.</p>
+                  <ui-message slot="description" size="small"
+                    ><code>link</code> is only the look (dimmed until hovered, a pointer cursor): wrap the icon in a
+                    real <code>&lt;a&gt;</code> or <code>&lt;button&gt;</code> for interaction.</ui-message
+                  >
+                  <ui-icon name="close" link></ui-icon>
+                  <ui-icon name="help" link></ui-icon>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-flipped" header="Flipped" sticky collapsible dividing>
+                <ui-docs-example description="An icon can be flipped.">
+                  <ui-icon name="cloud" flipped="horizontally"></ui-icon>
+                  <ui-icon name="cloud" flipped="vertically"></ui-icon>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-rotated" header="Rotated" sticky collapsible dividing>
+                <ui-docs-example
+                  description="An icon can be rotated:  `clockwise`, `counterclockwise`, or `halfway` (180°)."
+                >
+                  <ui-icon name="cloud" rotated="clockwise"></ui-icon>
+                  <ui-icon name="cloud" rotated="counterclockwise"></ui-icon>
+                  <ui-icon name="cloud" rotated="halfway"></ui-icon>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-circular" header="Circular" sticky collapsible dividing>
+                <ui-docs-example description="An icon can be formatted to appear circular.">
+                  <ui-icon name="users" circular></ui-icon>
+                  <ui-icon name="users" color="teal" circular></ui-icon>
+                  <ui-icon name="users" circular inverted></ui-icon>
+                  <ui-icon name="users" color="teal" circular inverted></ui-icon>
+                </ui-docs-example>
+              </ui-section>
+              <ui-section
+                id="examples-variations-circular-colored"
+                header="Circular Colored"
+                sticky
+                collapsible
+                dividing
               >
-              <ui-icon name="users" color="red" circular></ui-icon>
-              <ui-icon name="users" color="green" circular></ui-icon>
-              <ui-icon name="users" color="blue" circular></ui-icon>
-            </ui-docs-example>
+                <ui-docs-example>
+                  <p slot="description">The circular color can appear in the same color as the icon itself.</p>
+                  <ui-message slot="description" size="small" class="site-not-ported"
+                    >Not ported: the <code>colored</code> word -- a coloured circular or bordered icon's ring always
+                    follows its colour.</ui-message
+                  >
+                  <ui-icon name="users" color="red" circular></ui-icon>
+                  <ui-icon name="users" color="green" circular></ui-icon>
+                  <ui-icon name="users" color="blue" circular></ui-icon>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example header="Bordered">
-              <p slot="description">An icon can be formatted to appear bordered.</p>
-              <ui-message slot="description" state="info" size="small"
-                >In Fomantic <code>0.x.x</code> bordered was formerly known as <code>squared</code>.</ui-message
+              <ui-section id="examples-variations-bordered" header="Bordered" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">An icon can be formatted to appear bordered.</p>
+                  <ui-message slot="description" state="info" size="small"
+                    >In Fomantic <code>0.x.x</code> bordered was formerly known as <code>squared</code>.</ui-message
+                  >
+                  <ui-icon name="users" bordered></ui-icon>
+                  <ui-icon name="users" color="teal" bordered></ui-icon>
+                  <ui-icon name="users" color="black" bordered inverted></ui-icon>
+                  <ui-icon name="users" color="teal" bordered inverted></ui-icon>
+                </ui-docs-example>
+              </ui-section>
+              <ui-section
+                id="examples-variations-bordered-colored"
+                header="Bordered Colored"
+                sticky
+                collapsible
+                dividing
               >
-              <ui-icon name="users" bordered></ui-icon>
-              <ui-icon name="users" color="teal" bordered></ui-icon>
-              <ui-icon name="users" color="black" bordered inverted></ui-icon>
-              <ui-icon name="users" color="teal" bordered inverted></ui-icon>
-            </ui-docs-example>
-            <ui-docs-example
-              header="Bordered Colored"
-              description="The bordered color appears in the same color as the icon itself."
-            >
-              <ui-icon name="users" color="red" bordered></ui-icon>
-              <ui-icon name="users" color="green" bordered></ui-icon>
-              <ui-icon name="users" color="blue" bordered></ui-icon>
-            </ui-docs-example>
+                <ui-docs-example description="The bordered color appears in the same color as the icon itself.">
+                  <ui-icon name="users" color="red" bordered></ui-icon>
+                  <ui-icon name="users" color="green" bordered></ui-icon>
+                  <ui-icon name="users" color="blue" bordered></ui-icon>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example header="Colored" description="An icon can be formatted with different colors.">
-              <ui-icon name="users" color="primary"></ui-icon>
-              <ui-icon name="users" color="secondary"></ui-icon>
-              <ui-icon name="users" color="red"></ui-icon>
-              <ui-icon name="users" color="orange"></ui-icon>
-              <ui-icon name="users" color="yellow"></ui-icon>
-              <ui-icon name="users" color="olive"></ui-icon>
-              <ui-icon name="users" color="green"></ui-icon>
-              <ui-icon name="users" color="teal"></ui-icon>
-              <ui-icon name="users" color="blue"></ui-icon>
-              <ui-icon name="users" color="violet"></ui-icon>
-              <ui-icon name="users" color="purple"></ui-icon>
-              <ui-icon name="users" color="pink"></ui-icon>
-              <ui-icon name="users" color="brown"></ui-icon>
-              <ui-icon name="users" color="grey"></ui-icon>
-              <ui-icon name="users" color="black"></ui-icon>
-            </ui-docs-example>
+              <ui-section id="examples-variations-colored" header="Colored" sticky collapsible dividing>
+                <ui-docs-example description="An icon can be formatted with different colors.">
+                  <ui-icon name="users" color="primary"></ui-icon>
+                  <ui-icon name="users" color="secondary"></ui-icon>
+                  <ui-icon name="users" color="red"></ui-icon>
+                  <ui-icon name="users" color="orange"></ui-icon>
+                  <ui-icon name="users" color="yellow"></ui-icon>
+                  <ui-icon name="users" color="olive"></ui-icon>
+                  <ui-icon name="users" color="green"></ui-icon>
+                  <ui-icon name="users" color="teal"></ui-icon>
+                  <ui-icon name="users" color="blue"></ui-icon>
+                  <ui-icon name="users" color="violet"></ui-icon>
+                  <ui-icon name="users" color="purple"></ui-icon>
+                  <ui-icon name="users" color="pink"></ui-icon>
+                  <ui-icon name="users" color="brown"></ui-icon>
+                  <ui-icon name="users" color="grey"></ui-icon>
+                  <ui-icon name="users" color="black"></ui-icon>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example header="Inverted" description="An icon can have its colors inverted for contrast.">
-              <ui-segment inverted>
-                <ui-icon name="users" inverted></ui-icon>
-                <ui-icon name="users" color="primary" inverted></ui-icon>
-                <ui-icon name="users" color="secondary" inverted></ui-icon>
-                <ui-icon name="users" color="red" inverted></ui-icon>
-                <ui-icon name="users" color="orange" inverted></ui-icon>
-                <ui-icon name="users" color="yellow" inverted></ui-icon>
-                <ui-icon name="users" color="olive" inverted></ui-icon>
-                <ui-icon name="users" color="green" inverted></ui-icon>
-                <ui-icon name="users" color="teal" inverted></ui-icon>
-                <ui-icon name="users" color="blue" inverted></ui-icon>
-                <ui-icon name="users" color="violet" inverted></ui-icon>
-                <ui-icon name="users" color="purple" inverted></ui-icon>
-                <ui-icon name="users" color="pink" inverted></ui-icon>
-                <ui-icon name="users" color="brown" inverted></ui-icon>
-                <ui-icon name="users" color="grey" inverted></ui-icon>
-              </ui-segment>
-            </ui-docs-example>
+              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+                <ui-docs-example description="An icon can have its colors inverted for contrast.">
+                  <ui-segment inverted>
+                    <ui-icon name="users" inverted></ui-icon>
+                    <ui-icon name="users" color="primary" inverted></ui-icon>
+                    <ui-icon name="users" color="secondary" inverted></ui-icon>
+                    <ui-icon name="users" color="red" inverted></ui-icon>
+                    <ui-icon name="users" color="orange" inverted></ui-icon>
+                    <ui-icon name="users" color="yellow" inverted></ui-icon>
+                    <ui-icon name="users" color="olive" inverted></ui-icon>
+                    <ui-icon name="users" color="green" inverted></ui-icon>
+                    <ui-icon name="users" color="teal" inverted></ui-icon>
+                    <ui-icon name="users" color="blue" inverted></ui-icon>
+                    <ui-icon name="users" color="violet" inverted></ui-icon>
+                    <ui-icon name="users" color="purple" inverted></ui-icon>
+                    <ui-icon name="users" color="pink" inverted></ui-icon>
+                    <ui-icon name="users" color="brown" inverted></ui-icon>
+                    <ui-icon name="users" color="grey" inverted></ui-icon>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-            <ui-header level="2" dividing id="groups">Groups</ui-header>
+            <ui-section id="examples-groups" header="Groups" sticky collapsible dividing>
+              <ui-section id="examples-groups-icons" header="Icons" sticky collapsible dividing>
+                <ui-docs-example
+                  description="Several icons can be used together as a group:  `<ui-icons>`, the first icon the base, the rest stacked on it."
+                >
+                  <ui-icons size="huge">
+                    <ui-icon name="circle outline" size="big"></ui-icon>
+                    <ui-icon name="user"></ui-icon>
+                  </ui-icons>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-icons size="huge">
+                    <ui-icon name="dont" size="big" color="red"></ui-icon>
+                    <ui-icon name="user" color="black"></ui-icon>
+                  </ui-icons>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example
-              header="Icons"
-              description="Several icons can be used together as a group:  `<ui-icons>`, the first icon the base, the rest stacked on it."
-            >
-              <ui-icons size="huge">
-                <ui-icon name="circle outline" size="big"></ui-icon>
-                <ui-icon name="user"></ui-icon>
-              </ui-icons>
-            </ui-docs-example>
-            <ui-docs-example>
-              <ui-icons size="huge">
-                <ui-icon name="dont" size="big" color="red"></ui-icon>
-                <ui-icon name="user" color="black"></ui-icon>
-              </ui-icons>
-            </ui-docs-example>
+              <ui-section id="examples-groups-corner-icon" header="Corner Icon" sticky collapsible dividing>
+                <ui-docs-example description="A group of icons can display a smaller corner icon.">
+                  <ui-icons size="huge">
+                    <ui-icon name="puzzle"></ui-icon>
+                    <ui-icon name="add" corner></ui-icon>
+                  </ui-icons>
+                </ui-docs-example>
+                <ui-docs-example
+                  description="`corner` takes `top left`, `top right`, `bottom left` or `bottom right` (bare `corner`)."
+                >
+                  <ui-icons size="huge">
+                    <ui-icon name="puzzle"></ui-icon>
+                    <ui-icon name="add" corner="top left"></ui-icon>
+                  </ui-icons>
+                  <ui-icons size="huge">
+                    <ui-icon name="puzzle"></ui-icon>
+                    <ui-icon name="add" corner="top right"></ui-icon>
+                  </ui-icons>
+                  <ui-icons size="huge">
+                    <ui-icon name="puzzle"></ui-icon>
+                    <ui-icon name="add" corner="bottom left"></ui-icon>
+                  </ui-icons>
+                  <ui-icons size="huge">
+                    <ui-icon name="puzzle"></ui-icon>
+                    <ui-icon name="add" corner="bottom right"></ui-icon>
+                  </ui-icons>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-header level="2">
+                    <ui-icons size="large">
+                      <ui-icon name="twitter"></ui-icon>
+                      <ui-icon name="add" inverted corner></ui-icon>
+                    </ui-icons>
+                    Add on Twitter
+                  </ui-header>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example header="Corner Icon" description="A group of icons can display a smaller corner icon.">
-              <ui-icons size="huge">
-                <ui-icon name="puzzle"></ui-icon>
-                <ui-icon name="add" corner></ui-icon>
-              </ui-icons>
-            </ui-docs-example>
-            <ui-docs-example
-              description="`corner` takes `top left`, `top right`, `bottom left` or `bottom right` (bare `corner`)."
-            >
-              <ui-icons size="huge">
-                <ui-icon name="puzzle"></ui-icon>
-                <ui-icon name="add" corner="top left"></ui-icon>
-              </ui-icons>
-              <ui-icons size="huge">
-                <ui-icon name="puzzle"></ui-icon>
-                <ui-icon name="add" corner="top right"></ui-icon>
-              </ui-icons>
-              <ui-icons size="huge">
-                <ui-icon name="puzzle"></ui-icon>
-                <ui-icon name="add" corner="bottom left"></ui-icon>
-              </ui-icons>
-              <ui-icons size="huge">
-                <ui-icon name="puzzle"></ui-icon>
-                <ui-icon name="add" corner="bottom right"></ui-icon>
-              </ui-icons>
-            </ui-docs-example>
-            <ui-docs-example>
-              <ui-header level="2">
-                <ui-icons size="large">
-                  <ui-icon name="twitter"></ui-icon>
-                  <ui-icon name="add" inverted corner></ui-icon>
-                </ui-icons>
-                Add on Twitter
-              </ui-header>
-            </ui-docs-example>
-
-            <ui-docs-example
-              header="Bordered and circular groups"
-              description="The ring surrounds the whole group."
-            >
-              <ui-icons size="big" bordered>
-                <ui-icon name="user"></ui-icon>
-                <ui-icon name="cog" corner></ui-icon>
-              </ui-icons>
-              <ui-icons size="big" circular>
-                <ui-icon name="user"></ui-icon>
-                <ui-icon name="cog" corner="top right"></ui-icon>
-              </ui-icons>
-              <ui-icons size="big" circular inverted>
-                <ui-icon name="user"></ui-icon>
-                <ui-icon name="cog" inverted corner></ui-icon>
-              </ui-icons>
-            </ui-docs-example>
+              <ui-section
+                id="examples-groups-bordered-and-circular-groups"
+                header="Bordered and circular groups"
+                sticky
+                collapsible
+                dividing
+              >
+                <ui-docs-example description="The ring surrounds the whole group.">
+                  <ui-icons size="big" bordered>
+                    <ui-icon name="user"></ui-icon>
+                    <ui-icon name="cog" corner></ui-icon>
+                  </ui-icons>
+                  <ui-icons size="big" circular>
+                    <ui-icon name="user"></ui-icon>
+                    <ui-icon name="cog" corner="top right"></ui-icon>
+                  </ui-icons>
+                  <ui-icons size="big" circular inverted>
+                    <ui-icon name="user"></ui-icon>
+                    <ui-icon name="cog" inverted corner></ui-icon>
+                  </ui-icons>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
           </ui-tab>
 
           <ui-tab value="usage" label="Usage">
-            <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                `name` is the only thing an icon needs: one name per icon, words separated by spaces (Font Awesome's dashed
-                `circle-check` works too). A trailing `outline` names the regular icon; `lucide:bell` asks one pack.
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  `name` is the only thing an icon needs: one name per icon, words separated by spaces (Font Awesome's dashed
+                  `circle-check` works too). A trailing `outline` names the regular icon; `lucide:bell` asks one pack.
 
-                - Icons also work as the `icon` attribute of other components (`<ui-button icon="download">`), where they share
-                  this name resolution.
-                - Words go in the icon's own order: `arrow right`, not Fomantic's `right arrow` (a name that isn't in any pack
-                  draws nothing).
-                - `<ui-icons>` groups icons: the first is the base glyph, the rest stack on it; `corner` puts a small badge on
-                  a corner.
-                - Icons have no events.
-              </script>
-            </ui-markdown>
+                  - Icons also work as the `icon` attribute of other components (`<ui-button icon="download">`), where they share
+                    this name resolution.
+                  - Words go in the icon's own order: `arrow right`, not Fomantic's `right arrow` (a name that isn't in any pack
+                    draws nothing).
+                  - `<ui-icons>` groups icons: the first is the base glyph, the rest stack on it; `corner` puts a small badge on
+                    a corner.
+                  - Icons have no events.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-            <ui-header level="2" dividing id="packs">Icon packs</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                A pack is a folder of SVG files plus a `pack.js` index; the page's packs are shared by every component. Font
-                Awesome 7 Free (solid + regular) is the default. Add more for a subtree with `<ui-root icons>`, a
-                comma-separated list of built-in ids or `pack.js` URLs (the last pack wins a name; a nested root adds to its
-                outer root's packs).
-              </script>
-            </ui-markdown>
-            <ui-code language="html">
-              <script type="text/plain">
-                <ui-root icons="fa7-brands">...</ui-root>                      <!-- every brand logo -->
-                <ui-root icons="fomantic">...</ui-root>                        <!-- Fomantic's names -->
-                <ui-root icons="fa7-free, /icons/lucide/pack.js">...</ui-root> <!-- your own pack, after the default -->
-                <ui-root icons="fomantic" assets="/assets/ui/">...</ui-root>   <!-- built-ins load from /assets/ui/icon-packs/ -->
-              </script>
-            </ui-code>
-            <ui-markdown>
-              <script type="text/markdown">
-                A page without a root adds them from JS: `UI.icons.use("fa7-brands")`, with `{ prefix, base, only }` options.
-                Turn any folder of SVGs into a pack with `yarn icons:pack <folder> --id <id>`.
-              </script>
-            </ui-markdown>
+            <ui-section id="usage-icon-packs" header="Icon packs" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A pack is a folder of SVG files plus a `pack.js` index; the page's packs are shared by every component. Font
+                  Awesome 7 Free (solid + regular) is the default. Add more for a subtree with `<ui-root icons>`, a
+                  comma-separated list of built-in ids or `pack.js` URLs (the last pack wins a name; a nested root adds to its
+                  outer root's packs).
+                </script>
+              </ui-markdown>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <ui-root icons="fa7-brands">...</ui-root>                      <!-- every brand logo -->
+                  <ui-root icons="fomantic">...</ui-root>                        <!-- Fomantic's names -->
+                  <ui-root icons="fa7-free, /icons/lucide/pack.js">...</ui-root> <!-- your own pack, after the default -->
+                  <ui-root icons="fomantic" assets="/assets/ui/">...</ui-root>   <!-- built-ins load from /assets/ui/icon-packs/ -->
+                </script>
+              </ui-code>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A page without a root adds them from JS: `UI.icons.use("fa7-brands")`, with `{ prefix, base, only }` options.
+                  Turn any folder of SVGs into a pack with `yarn icons:pack <folder> --id <id>`.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-            <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                An icon takes no focus and handles no keys, `link` or not: the `<a>` or `<button>` around it does.
-              </script>
-            </ui-markdown>
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  An icon takes no focus and handles no keys, `link` or not: the `<a>` or `<button>` around it does.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-            <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                - An icon is decorative by default: `aria-hidden="true"` on the host, so screen readers skip it.
-                - Give a meaningful icon a `label`: the host becomes `role="img"` with that `aria-label`. Same for a
-                  `<ui-icons>` group.
-                - An icon that is the only content of a control (`<ui-button icon="cloud">`) needs the name on the control, not
-                  the icon.
-                - `link` is only the look: wrap the icon in a real `<a>` or `<button>` for interaction.
-                - Without JavaScript the native fallback keeps the box (size, colour, ring), the `role` and the `label`, but not
-                  the glyph: the SVG needs the icon data.
-              </script>
-            </ui-markdown>
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - An icon is decorative by default: `aria-hidden="true"` on the host, so screen readers skip it.
+                  - Give a meaningful icon a `label`: the host becomes `role="img"` with that `aria-label`. Same for a
+                    `<ui-icons>` group.
+                  - An icon that is the only content of a control (`<ui-button icon="cloud">`) needs the name on the control, not
+                    the icon.
+                  - `link` is only the look: wrap the icon in a real `<a>` or `<button>` for interaction.
+                  - Without JavaScript the native fallback keeps the box (size, colour, ring), the `role` and the `label`, but not
+                    the glyph: the SVG needs the icon data.
+                </script>
+              </ui-markdown>
+            </ui-section>
           </ui-tab>
 
           <ui-tab value="api" label="API">
@@ -382,39 +425,41 @@
           </ui-tab>
 
           <ui-tab value="theming" label="Theming">
-            <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                Theme with the public `--ui-icon-*` tokens: set one on the element, on any ancestor (a `<ui-icons>` group,
-                `:root`), or on the box through `::part(icon)`. They inherit into the shadow root, where the sheet reads each
-                through a private alias, so nothing inside blocks them.
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Theme with the public `--ui-icon-*` tokens: set one on the element, on any ancestor (a `<ui-icons>` group,
+                  `:root`), or on the box through `::part(icon)`. They inherit into the shadow root, where the sheet reads each
+                  through a private alias, so nothing inside blocks them.
 
-                - Size tokens (`--ui-icon-size-huge` ...) rescale a whole step; `circular` and `bordered` replace the width and
-                  height (`--ui-icon-circular-size`, `--ui-icon-bordered-size`).
-                - The glyph takes `currentColor`, so `color` on the icon or its parent works too.
-                - Never set the `--_ui-*` names: they're the sheet's private plumbing.
-              </script>
-            </ui-markdown>
-            <ui-code language="css">
-              <script type="text/plain">
-                :root {
-                  --ui-icon-distance: 0.5em;
-                }
-                .toolbar {
-                  --ui-icon-size-large: 1.25;
-                }
-              </script>
-            </ui-code>
-            <ui-markdown>Edit a value below to try it.</ui-markdown>
-            <ui-docs-tokens family="ui-icon" playground></ui-docs-tokens>
+                  - Size tokens (`--ui-icon-size-huge` ...) rescale a whole step; `circular` and `bordered` replace the width and
+                    height (`--ui-icon-circular-size`, `--ui-icon-bordered-size`).
+                  - The glyph takes `currentColor`, so `color` on the icon or its parent works too.
+                  - Never set the `--_ui-*` names: they're the sheet's private plumbing.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  :root {
+                    --ui-icon-distance: 0.5em;
+                  }
+                  .toolbar {
+                    --ui-icon-size-large: 1.25;
+                  }
+                </script>
+              </ui-code>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-icon" playground></ui-docs-tokens>
+            </ui-section>
 
-            <ui-header level="2" dividing id="themes">Themes</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                No Fomantic theme restyles icons (Fomantic's own page lists only the default theme). To change the glyphs
-                themselves, add another icon pack (Usage tab).
-              </script>
-            </ui-markdown>
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  No Fomantic theme restyles icons (Fomantic's own page lists only the default theme). To change the glyphs
+                  themselves, add another icon pack (Usage tab).
+                </script>
+              </ui-markdown>
+            </ui-section>
           </ui-tab>
         </ui-tabs>
       </ui-container>

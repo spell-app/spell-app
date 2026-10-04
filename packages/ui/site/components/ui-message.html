@@ -56,391 +56,418 @@
               extras (Content, Centered, Inverted).  A slotted `<ui-header>` styles itself for the message it sits in;  the
               `header` attribute is the shorthand.
             -->
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-message" header="Message" sticky collapsible dividing>
+                <ui-docs-example description="A basic message.">
+                  <ui-message>
+                    <ui-header>Changes in Service</ui-header>
+                    <p>
+                      We just updated our privacy policy here to better service our customers. We recommend reviewing
+                      the changes.
+                    </p>
+                  </ui-message>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-header level="2" dividing id="types">Types</ui-header>
+              <ui-section id="examples-types-list-message" header="List Message" sticky collapsible dividing>
+                <ui-docs-example description="A message with a list.  `header` is the shorthand for a header.">
+                  <ui-message header="New Site Features">
+                    <ul>
+                      <li>You can now have cover images on blog pages</li>
+                      <li>Drafts will now auto-save while writing</li>
+                    </ul>
+                  </ui-message>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example header="Message" description="A basic message.">
-              <ui-message>
-                <ui-header>Changes in Service</ui-header>
-                <p>
-                  We just updated our privacy policy here to better service our customers. We recommend reviewing
-                  the changes.
-                </p>
-              </ui-message>
-            </ui-docs-example>
+              <ui-section id="examples-types-icon-message" header="Icon Message" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A message can contain an icon:  the `icon` attribute takes a name, the `icon` slot any markup."
+                >
+                  <ui-message icon="inbox" header="Have you heard about our mailing list?">
+                    <p>Get the best news in your e-mail every day.</p>
+                  </ui-message>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-message header="Just one second">
+                    <ui-icon slot="icon" name="circle notch" loading></ui-icon>
+                    <p>We're fetching that content for you.</p>
+                  </ui-message>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example
-              header="List Message"
-              description="A message with a list.  `header` is the shorthand for a header."
-            >
-              <ui-message header="New Site Features">
-                <ul>
-                  <li>You can now have cover images on blog pages</li>
-                  <li>Drafts will now auto-save while writing</li>
-                </ul>
-              </ui-message>
-            </ui-docs-example>
+              <ui-section id="examples-types-dismissable-block" header="Dismissable Block" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A message that the user can choose to hide: <code>dismissible</code> adds a close button.
+                  </p>
+                  <ui-message slot="description" state="info" size="small"
+                    >Unlike Fomantic's, the close button works by itself: it fires the cancelable
+                    <code>ui-dismiss</code>, then the message sets <code>hidden</code> on itself (see the Usage tab).
+                    Reload the page to bring it back.</ui-message
+                  >
+                  <ui-message dismissible header="Welcome back!">
+                    <p>This is a special notification which you can dismiss if you're bored with it.</p>
+                  </ui-message>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-            <ui-docs-example
-              header="Icon Message"
-              description="A message can contain an icon:  the `icon` attribute takes a name, the `icon` slot any markup."
-            >
-              <ui-message icon="inbox" header="Have you heard about our mailing list?">
-                <p>Get the best news in your e-mail every day.</p>
-              </ui-message>
-            </ui-docs-example>
-            <ui-docs-example>
-              <ui-message header="Just one second">
-                <ui-icon slot="icon" name="circle notch" loading></ui-icon>
-                <p>We're fetching that content for you.</p>
-              </ui-message>
-            </ui-docs-example>
+            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
+              <ui-section id="examples-content-header" header="Header" sticky collapsible dividing>
+                <ui-docs-example description="A message can contain a header:  a slotted `<ui-header>`.">
+                  <ui-message>
+                    <ui-header>Email Confirmed</ui-header>
+                    <p>You're all signed up for the newsletter</p>
+                  </ui-message>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example header="Dismissable Block">
-              <p slot="description">
-                A message that the user can choose to hide: <code>dismissible</code> adds a close button.
-              </p>
-              <ui-message slot="description" state="info" size="small"
-                >Unlike Fomantic's, the close button works by itself: it fires the cancelable
-                <code>ui-dismiss</code>, then the message sets <code>hidden</code> on itself (see the Usage tab).
-                Reload the page to bring it back.</ui-message
+              <ui-section id="examples-content-list" header="List" sticky collapsible dividing>
+                <ui-docs-example description="A message can contain a list of items:  a plain `<ul>`.">
+                  <ui-message>
+                    <ul>
+                      <li>No header, just a list</li>
+                      <li>It is a list of items</li>
+                    </ul>
+                  </ui-message>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+              <ui-section id="examples-states-hidden" header="Hidden" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A message can be hidden:  the standard `hidden` attribute.  The message below is in the example, unseen."
+                >
+                  <ui-message hidden>
+                    <p>You can't see me</p>
+                  </ui-message>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-states-visible" header="Visible" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">A message can be set to visible to force itself to be shown.</p>
+                  <ui-message size="small" slot="description" class="site-not-ported"
+                    >Not ported: the <code>visible</code> class -- a message without <code>hidden</code> is always
+                    shown.</ui-message
+                  >
+                  <ui-message>
+                    <p>You can always see me</p>
+                  </ui-message>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-center-aligned" header="Center Aligned" sticky collapsible dividing>
+                <ui-docs-example description='A message can be displayed center aligned:  `text-align="center"`.'>
+                  <ui-message text-align="center" header="New Version is available!">
+                    <p>When are you going to update?</p>
+                  </ui-message>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-right-aligned" header="Right Aligned" sticky collapsible dividing>
+                <ui-docs-example description='A message can be displayed right aligned:  `text-align="right"`.'>
+                  <ui-message text-align="right" header="New Version is available!">
+                    <p>When are you going to update?</p>
+                  </ui-message>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-centered" header="Centered" sticky collapsible dividing>
+                <ui-docs-example description="`centered` centres the text and an icon together with the content.">
+                  <ui-message centered icon="envelope" header="Centered icon">
+                    <p>Icon and content centred together.</p>
+                  </ui-message>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-floating" header="Floating" sticky collapsible dividing>
+                <ui-docs-example description="A message can float above content that it is related to.">
+                  <ui-message floating>
+                    <p>Way to go!</p>
+                  </ui-message>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-compact" header="Compact" sticky collapsible dividing>
+                <ui-docs-example description="A message can only take up the width of its content.">
+                  <ui-message compact>
+                    <p>Get all the best inventions in your e-mail every day. Sign up now!</p>
+                  </ui-message>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-attached" header="Attached" sticky collapsible dividing>
+                <ui-docs-example
+                  description='A message can be formatted to attach itself to other content:  `attached` joins the content below, `attached="bottom"` the content above.'
+                >
+                  <ui-message attached header="Welcome to our site!">
+                    <p>Fill out the form below to sign-up for a new account</p>
+                  </ui-message>
+                  <ui-segment attached>
+                    <ui-form>
+                      <form>
+                        <ui-fields widths="2">
+                          <ui-field>
+                            <label for="message-attached-first">First Name</label>
+                            <ui-input id="message-attached-first" placeholder="First Name"></ui-input>
+                          </ui-field>
+                          <ui-field>
+                            <label for="message-attached-last">Last Name</label>
+                            <ui-input id="message-attached-last" placeholder="Last Name"></ui-input>
+                          </ui-field>
+                        </ui-fields>
+                        <ui-field>
+                          <label for="message-attached-user">Username</label>
+                          <ui-input id="message-attached-user" placeholder="Username"></ui-input>
+                        </ui-field>
+                        <ui-field>
+                          <label for="message-attached-password">Password</label>
+                          <ui-input id="message-attached-password" type="password"></ui-input>
+                        </ui-field>
+                        <ui-field inline>
+                          <ui-checkbox name="terms">I agree to the terms and conditions</ui-checkbox>
+                        </ui-field>
+                        <ui-button color="blue" type="submit">Submit</ui-button>
+                      </form>
+                    </ui-form>
+                  </ui-segment>
+                  <ui-message attached="bottom" state="warning" icon="help">
+                    Already signed up? <a href="#login">Login here</a> instead.
+                  </ui-message>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-warning" header="Warning" sticky collapsible dividing>
+                <ui-docs-example
+                  description='A message may be formatted to display warning messages:  `state="warning"`.'
+                >
+                  <ui-message state="warning" dismissible header="You must register before you can do that!">
+                    Visit our registration page, then try again
+                  </ui-message>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-info" header="Info" sticky collapsible dividing>
+                <ui-docs-example description="A message may be formatted to display information.">
+                  <ui-message state="info" dismissible header="Was this what you wanted?">
+                    <ul>
+                      <li>It's good to see you again.</li>
+                      <li>Did you know it's been a while?</li>
+                    </ul>
+                  </ui-message>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section
+                id="examples-variations-positive-success"
+                header="Positive / Success"
+                sticky
+                collapsible
+                dividing
               >
-              <ui-message dismissible header="Welcome back!">
-                <p>This is a special notification which you can dismiss if you're bored with it.</p>
-              </ui-message>
-            </ui-docs-example>
+                <ui-docs-example>
+                  <p slot="description">A message may be formatted to display a positive message.</p>
+                  <ui-message slot="description" state="info" size="small" icon="attention"
+                    >Positive / success and negative / error messages use the same colours by default, but each has its
+                    own colour token that a theme can tell apart.</ui-message
+                  >
+                  <ui-message state="positive" dismissible header="You are eligible for a reward">
+                    <p>Go to your <b>special offers</b> page to see now.</p>
+                  </ui-message>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-message state="success" dismissible header="Your user registration was successful.">
+                    <p>You may now log-in with the username you have chosen</p>
+                  </ui-message>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-header level="2" dividing id="content">Content</ui-header>
+              <ui-section id="examples-variations-negative-error" header="Negative / Error" sticky collapsible dividing>
+                <ui-docs-example description="A message may be formatted to display a negative message.">
+                  <ui-message state="negative" dismissible header="We're sorry we can't apply that discount">
+                    <p>That offer has expired</p>
+                  </ui-message>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-message state="error" dismissible header="There were some errors with your submission">
+                    <ul>
+                      <li>You must include both a upper and lower case letters in your password.</li>
+                      <li>You need to select your home country.</li>
+                    </ul>
+                  </ui-message>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example
-              header="Header"
-              description="A message can contain a header:  a slotted `<ui-header>`."
-            >
-              <ui-message>
-                <ui-header>Email Confirmed</ui-header>
-                <p>You're all signed up for the newsletter</p>
-              </ui-message>
-            </ui-docs-example>
+              <ui-section id="examples-variations-colored" header="Colored" sticky collapsible dividing>
+                <ui-docs-example description="A message can be formatted to be different colors.">
+                  <ui-message color="red">Red</ui-message>
+                  <ui-message color="orange">Orange</ui-message>
+                  <ui-message color="yellow">Yellow</ui-message>
+                  <ui-message color="olive">Olive</ui-message>
+                  <ui-message color="green">Green</ui-message>
+                  <ui-message color="teal">Teal</ui-message>
+                  <ui-message color="blue">Blue</ui-message>
+                  <ui-message color="violet">Violet</ui-message>
+                  <ui-message color="purple">Purple</ui-message>
+                  <ui-message color="pink">Pink</ui-message>
+                  <ui-message color="brown">Brown</ui-message>
+                  <ui-message color="black">Black</ui-message>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example header="List" description="A message can contain a list of items:  a plain `<ul>`.">
-              <ui-message>
-                <ul>
-                  <li>No header, just a list</li>
-                  <li>It is a list of items</li>
-                </ul>
-              </ui-message>
-            </ui-docs-example>
+              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+                <ui-docs-example description="A message can have different sizes.">
+                  <ui-message size="mini">This is a mini message.</ui-message>
+                  <ui-message size="tiny">This is a tiny message.</ui-message>
+                  <ui-message size="small">This is a small message.</ui-message>
+                  <ui-message size="large">This is large</ui-message>
+                  <ui-message size="big">This is big</ui-message>
+                  <ui-message size="huge">This is huge</ui-message>
+                  <ui-message size="massive">This is massive</ui-message>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-header level="2" dividing id="states">States</ui-header>
-
-            <ui-docs-example
-              header="Hidden"
-              description="A message can be hidden:  the standard `hidden` attribute.  The message below is in the example, unseen."
-            >
-              <ui-message hidden>
-                <p>You can't see me</p>
-              </ui-message>
-            </ui-docs-example>
-
-            <ui-docs-example header="Visible">
-              <p slot="description">A message can be set to visible to force itself to be shown.</p>
-              <ui-message size="small" slot="description" class="site-not-ported"
-                >Not ported: the <code>visible</code> class -- a message without <code>hidden</code> is always
-                shown.</ui-message
-              >
-              <ui-message>
-                <p>You can always see me</p>
-              </ui-message>
-            </ui-docs-example>
-
-            <ui-header level="2" dividing id="variations">Variations</ui-header>
-
-            <ui-docs-example
-              header="Center Aligned"
-              description='A message can be displayed center aligned:  `text-align="center"`.'
-            >
-              <ui-message text-align="center" header="New Version is available!">
-                <p>When are you going to update?</p>
-              </ui-message>
-            </ui-docs-example>
-
-            <ui-docs-example
-              header="Right Aligned"
-              description='A message can be displayed right aligned:  `text-align="right"`.'
-            >
-              <ui-message text-align="right" header="New Version is available!">
-                <p>When are you going to update?</p>
-              </ui-message>
-            </ui-docs-example>
-
-            <ui-docs-example
-              header="Centered"
-              description="`centered` centres the text and an icon together with the content."
-            >
-              <ui-message centered icon="envelope" header="Centered icon">
-                <p>Icon and content centred together.</p>
-              </ui-message>
-            </ui-docs-example>
-
-            <ui-docs-example
-              header="Floating"
-              description="A message can float above content that it is related to."
-            >
-              <ui-message floating>
-                <p>Way to go!</p>
-              </ui-message>
-            </ui-docs-example>
-
-            <ui-docs-example header="Compact" description="A message can only take up the width of its content.">
-              <ui-message compact>
-                <p>Get all the best inventions in your e-mail every day. Sign up now!</p>
-              </ui-message>
-            </ui-docs-example>
-
-            <ui-docs-example
-              header="Attached"
-              description='A message can be formatted to attach itself to other content:  `attached` joins the content below, `attached="bottom"` the content above.'
-            >
-              <ui-message attached header="Welcome to our site!">
-                <p>Fill out the form below to sign-up for a new account</p>
-              </ui-message>
-              <ui-segment attached>
-                <ui-form>
-                  <form>
-                    <ui-fields widths="2">
-                      <ui-field>
-                        <label for="message-attached-first">First Name</label>
-                        <ui-input id="message-attached-first" placeholder="First Name"></ui-input>
-                      </ui-field>
-                      <ui-field>
-                        <label for="message-attached-last">Last Name</label>
-                        <ui-input id="message-attached-last" placeholder="Last Name"></ui-input>
-                      </ui-field>
-                    </ui-fields>
-                    <ui-field>
-                      <label for="message-attached-user">Username</label>
-                      <ui-input id="message-attached-user" placeholder="Username"></ui-input>
-                    </ui-field>
-                    <ui-field>
-                      <label for="message-attached-password">Password</label>
-                      <ui-input id="message-attached-password" type="password"></ui-input>
-                    </ui-field>
-                    <ui-field inline>
-                      <ui-checkbox name="terms">I agree to the terms and conditions</ui-checkbox>
-                    </ui-field>
-                    <ui-button color="blue" type="submit">Submit</ui-button>
-                  </form>
-                </ui-form>
-              </ui-segment>
-              <ui-message attached="bottom" state="warning" icon="help">
-                Already signed up? <a href="#login">Login here</a> instead.
-              </ui-message>
-            </ui-docs-example>
-
-            <ui-docs-example
-              header="Warning"
-              description='A message may be formatted to display warning messages:  `state="warning"`.'
-            >
-              <ui-message state="warning" dismissible header="You must register before you can do that!">
-                Visit our registration page, then try again
-              </ui-message>
-            </ui-docs-example>
-
-            <ui-docs-example header="Info" description="A message may be formatted to display information.">
-              <ui-message state="info" dismissible header="Was this what you wanted?">
-                <ul>
-                  <li>It's good to see you again.</li>
-                  <li>Did you know it's been a while?</li>
-                </ul>
-              </ui-message>
-            </ui-docs-example>
-
-            <ui-docs-example header="Positive / Success">
-              <p slot="description">A message may be formatted to display a positive message.</p>
-              <ui-message slot="description" state="info" size="small" icon="attention"
-                >Positive / success and negative / error messages use the same colours by default, but each has its
-                own colour token that a theme can tell apart.</ui-message
-              >
-              <ui-message state="positive" dismissible header="You are eligible for a reward">
-                <p>Go to your <b>special offers</b> page to see now.</p>
-              </ui-message>
-            </ui-docs-example>
-            <ui-docs-example>
-              <ui-message state="success" dismissible header="Your user registration was successful.">
-                <p>You may now log-in with the username you have chosen</p>
-              </ui-message>
-            </ui-docs-example>
-
-            <ui-docs-example
-              header="Negative / Error"
-              description="A message may be formatted to display a negative message."
-            >
-              <ui-message state="negative" dismissible header="We're sorry we can't apply that discount">
-                <p>That offer has expired</p>
-              </ui-message>
-            </ui-docs-example>
-            <ui-docs-example>
-              <ui-message state="error" dismissible header="There were some errors with your submission">
-                <ul>
-                  <li>You must include both a upper and lower case letters in your password.</li>
-                  <li>You need to select your home country.</li>
-                </ul>
-              </ui-message>
-            </ui-docs-example>
-
-            <ui-docs-example header="Colored" description="A message can be formatted to be different colors.">
-              <ui-message color="red">Red</ui-message>
-              <ui-message color="orange">Orange</ui-message>
-              <ui-message color="yellow">Yellow</ui-message>
-              <ui-message color="olive">Olive</ui-message>
-              <ui-message color="green">Green</ui-message>
-              <ui-message color="teal">Teal</ui-message>
-              <ui-message color="blue">Blue</ui-message>
-              <ui-message color="violet">Violet</ui-message>
-              <ui-message color="purple">Purple</ui-message>
-              <ui-message color="pink">Pink</ui-message>
-              <ui-message color="brown">Brown</ui-message>
-              <ui-message color="black">Black</ui-message>
-            </ui-docs-example>
-
-            <ui-docs-example header="Size" description="A message can have different sizes.">
-              <ui-message size="mini">This is a mini message.</ui-message>
-              <ui-message size="tiny">This is a tiny message.</ui-message>
-              <ui-message size="small">This is a small message.</ui-message>
-              <ui-message size="large">This is large</ui-message>
-              <ui-message size="big">This is big</ui-message>
-              <ui-message size="huge">This is huge</ui-message>
-              <ui-message size="massive">This is massive</ui-message>
-            </ui-docs-example>
-
-            <ui-docs-example
-              header="Inverted"
-              description="A message can use the dark scheme;  a coloured one keeps its hue in the text."
-            >
-              <ui-message inverted header="Inverted">
-                <p>The dark scheme.</p>
-              </ui-message>
-              <ui-message color="red" inverted header="Inverted red">
-                <p>Keeps its hue in the text.</p>
-              </ui-message>
-              <ui-message state="positive" inverted icon="envelope" header="Inverted positive">
-                <p>With an icon.</p>
-              </ui-message>
-            </ui-docs-example>
+              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A message can use the dark scheme;  a coloured one keeps its hue in the text."
+                >
+                  <ui-message inverted header="Inverted">
+                    <p>The dark scheme.</p>
+                  </ui-message>
+                  <ui-message color="red" inverted header="Inverted red">
+                    <p>Keeps its hue in the text.</p>
+                  </ui-message>
+                  <ui-message state="positive" inverted icon="envelope" header="Inverted positive">
+                    <p>With an icon.</p>
+                  </ui-message>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
           </ui-tab>
 
           <ui-tab value="usage" label="Usage">
             <!-- USAGE:  how to use it (content, dismissing, forms), events, keyboard, accessibility, frameworks. -->
-            <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                The content is whatever you slot: paragraphs, a list, a `<ui-header>`, plain text.
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The content is whatever you slot: paragraphs, a list, a `<ui-header>`, plain text.
 
-                - `header` is the shorthand for a header above the content; a slotted `<ui-header>` is the rich version.
-                - `icon` names an icon shown large beside the content; the `icon` slot takes any markup (a spinning
-                  `<ui-icon loading>`).
-                - `state` picks the consequence (`positive`, `success`, `negative`, `error`, `warning`, `info`); `color` any hue.
-                  Both tint the surface, border and text.
-                - `attached` joins the message to the segment or form below it; `attached="bottom"` to the one above.
-              </script>
-            </ui-markdown>
+                  - `header` is the shorthand for a header above the content; a slotted `<ui-header>` is the rich version.
+                  - `icon` names an icon shown large beside the content; the `icon` slot takes any markup (a spinning
+                    `<ui-icon loading>`).
+                  - `state` picks the consequence (`positive`, `success`, `negative`, `error`, `warning`, `info`); `color` any hue.
+                    Both tint the surface, border and text.
+                  - `attached` joins the message to the segment or form below it; `attached="bottom"` to the one above.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-            <ui-header level="2" dividing id="events">Events</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                A `dismissible` message fires the cancelable `ui-dismiss` when its close button is used (`detail.originalEvent`
-                is the click). Unless a handler cancels it, the message sets `hidden` on itself. It never removes itself, so a
-                framework that rendered it still owns the node; remove `hidden` to show it again.
-              </script>
-            </ui-markdown>
-            <ui-code language="js">
-              <script type="text/plain">
-                const message = document.querySelector("ui-message[dismissible]")
-                message.addEventListener("ui-dismiss", (event) => {
-                  event.preventDefault() // keep it on screen
-                  message.remove() // ... or take it out yourself
-                })
-              </script>
-            </ui-code>
+            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A `dismissible` message fires the cancelable `ui-dismiss` when its close button is used (`detail.originalEvent`
+                  is the click). Unless a handler cancels it, the message sets `hidden` on itself. It never removes itself, so a
+                  framework that rendered it still owns the node; remove `hidden` to show it again.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const message = document.querySelector("ui-message[dismissible]")
+                  message.addEventListener("ui-dismiss", (event) => {
+                    event.preventDefault() // keep it on screen
+                    message.remove() // ... or take it out yourself
+                  })
+                </script>
+              </ui-code>
+            </ui-section>
 
-            <ui-header level="2" dividing id="forms">In a form</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                Inside a `<ui-form>`, a message with a `state` shows only while the form is in that state: an `error` message
-                appears when validation fails, a `success` one when the form is set to `success` (live examples on the Form
-                page).
-              </script>
-            </ui-markdown>
+            <ui-section id="usage-in-a-form" header="In a form" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Inside a `<ui-form>`, a message with a `state` shows only while the form is in that state: an `error` message
+                  appears when validation fails, a `success` one when the form is set to `success` (live examples on the Form
+                  page).
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-            <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                - The close button of a `dismissible` message is a real `<button>`: **Tab** reaches it, **Enter** or **Space**
-                  dismisses.
-                - Nothing else in a message takes focus unless you slot something focusable (a link).
-              </script>
-            </ui-markdown>
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - The close button of a `dismissible` message is a real `<button>`: **Tab** reaches it, **Enter** or **Space**
+                    dismisses.
+                  - Nothing else in a message takes focus unless you slot something focusable (a link).
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-            <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                - A message has no role of its own, because most messages are part of the page. A message you insert to announce
-                  something should carry `role="status"` (or `role="alert"` when it is urgent), set by the page.
-                - The close button of a `dismissible` message is a real `<button>` named "Dismiss" (translatable), and a tab stop.
-                - The icon is decoration: it is hidden from assistive technology, so say what it means in the text.
-                - A `state` or `color` is never the only signal: write the meaning in the header or text as well.
-                - Without JavaScript the native fallback renders the same markup with a working close button (it still fires
-                  `ui-dismiss` and hides the message). It drops the `icon` glyph (a slotted icon still shows) and the close
-                  button's glyph, which becomes a `×`, and the "Dismiss" name stays English.
-              </script>
-            </ui-markdown>
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - A message has no role of its own, because most messages are part of the page. A message you insert to announce
+                    something should carry `role="status"` (or `role="alert"` when it is urgent), set by the page.
+                  - The close button of a `dismissible` message is a real `<button>` named "Dismiss" (translatable), and a tab stop.
+                  - The icon is decoration: it is hidden from assistive technology, so say what it means in the text.
+                  - A `state` or `color` is never the only signal: write the meaning in the header or text as well.
+                  - Without JavaScript the native fallback renders the same markup with a working close button (it still fires
+                    `ui-dismiss` and hides the message). It drops the `icon` glyph (a slotted icon still shows) and the close
+                    button's glyph, which becomes a `×`, and the "Dismiss" name stays English.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-            <ui-header level="2" dividing id="frameworks">Framework usage</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                Listen for `ui-dismiss`, and cancel it when your framework should decide whether the message stays.
-              </script>
-            </ui-markdown>
-            <ui-header level="4" id="framework-react">React 19</ui-header>
-            <ui-code language="jsx">
-              <script type="text/plain">
-                {shown && (
-                  <ui-message
-                    dismissible
-                    header="Saved"
-                    onui-dismiss={(event) => {
-                      event.preventDefault()
-                      setShown(false)
-                    }}
-                  />
-                )}
-              </script>
-            </ui-code>
-            <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
-            <ui-code language="html">
-              <script type="text/plain">
-                <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
-                <ui-message v-if="shown" dismissible header="Saved" @ui-dismiss.prevent="shown = false" />
-              </script>
-            </ui-code>
-            <ui-header level="4" id="framework-solid">Solid 2</ui-header>
-            <ui-code language="jsx">
-              <script type="text/plain">
-                // no `on:` namespace:  listen through a ref
-                <Show when={shown()}>
-                  <ui-message
-                    dismissible
-                    header="Saved"
-                    ref={(el) =>
-                      el.addEventListener("ui-dismiss", (event) => {
+            <ui-section id="usage-framework-usage" header="Framework usage" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Listen for `ui-dismiss`, and cancel it when your framework should decide whether the message stays.
+                </script>
+              </ui-markdown>
+              <ui-header level="4" id="framework-react">React 19</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  {shown && (
+                    <ui-message
+                      dismissible
+                      header="Saved"
+                      onui-dismiss={(event) => {
                         event.preventDefault()
                         setShown(false)
-                      })
-                    }
-                  />
-                </Show>
-              </script>
-            </ui-code>
+                      }}
+                    />
+                  )}
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                  <ui-message v-if="shown" dismissible header="Saved" @ui-dismiss.prevent="shown = false" />
+                </script>
+              </ui-code>
+              <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+              <ui-code language="jsx">
+                <script type="text/plain">
+                  // no `on:` namespace:  listen through a ref
+                  <Show when={shown()}>
+                    <ui-message
+                      dismissible
+                      header="Saved"
+                      ref={(el) =>
+                        el.addEventListener("ui-dismiss", (event) => {
+                          event.preventDefault()
+                          setShown(false)
+                        })
+                      }
+                    />
+                  </Show>
+                </script>
+              </ui-code>
+            </ui-section>
           </ui-tab>
 
           <ui-tab value="api" label="API">
@@ -450,49 +477,51 @@
 
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-            <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                Theme with the public `--ui-message-*` tokens: set one on the element, on any ancestor (`:root` for every
-                message), or on the box through `::part(message)`. They inherit into the shadow root, where the sheet reads each
-                through a private alias, so nothing inside blocks them. A slotted header reads `--ui-message-header-font-size`
-                from the message. Style the other pieces with `::part()`: `icon`, `content`, `header` and `close`.
-              </script>
-            </ui-markdown>
-            <ui-code language="css">
-              <script type="text/plain">
-                :root {
-                  --ui-message-radius: 0;
-                }
-                ui-message.notice {
-                  --ui-message-padding: 1.5em 2em;
-                }
-                ui-message::part(close) {
-                  opacity: 1;
-                }
-              </script>
-            </ui-code>
-            <ui-message state="info" size="small">
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
               <ui-markdown>
                 <script type="text/markdown">
-                  `state` and `color` are colour remaps: they re-point `--ui-color` and its tints, so a theme recolours every
-                  positive or red message by setting `--ui-positive` / `--ui-red`. Never set the `--_ui-*` names: they're the
-                  sheet's private plumbing.
+                  Theme with the public `--ui-message-*` tokens: set one on the element, on any ancestor (`:root` for every
+                  message), or on the box through `::part(message)`. They inherit into the shadow root, where the sheet reads each
+                  through a private alias, so nothing inside blocks them. A slotted header reads `--ui-message-header-font-size`
+                  from the message. Style the other pieces with `::part()`: `icon`, `content`, `header` and `close`.
                 </script>
               </ui-markdown>
-            </ui-message>
-            <ui-markdown>Edit a value below to try it.</ui-markdown>
-            <ui-docs-tokens family="ui-message" playground></ui-docs-tokens>
+              <ui-code language="css">
+                <script type="text/plain">
+                  :root {
+                    --ui-message-radius: 0;
+                  }
+                  ui-message.notice {
+                    --ui-message-padding: 1.5em 2em;
+                  }
+                  ui-message::part(close) {
+                    opacity: 1;
+                  }
+                </script>
+              </ui-code>
+              <ui-message state="info" size="small">
+                <ui-markdown>
+                  <script type="text/markdown">
+                    `state` and `color` are colour remaps: they re-point `--ui-color` and its tints, so a theme recolours every
+                    positive or red message by setting `--ui-positive` / `--ui-red`. Never set the `--_ui-*` names: they're the
+                    sheet's private plumbing.
+                  </script>
+                </ui-markdown>
+              </ui-message>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-message" playground></ui-docs-tokens>
+            </ui-section>
 
-            <ui-header level="2" dividing id="themes">Themes</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
-                theme to the whole site.
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                  theme to the whole site.
 
-                Themes that restyle messages: GitHub and Gmail.
-              </script>
-            </ui-markdown>
+                  Themes that restyle messages: GitHub and Gmail.
+                </script>
+              </ui-markdown>
+            </ui-section>
           </ui-tab>
         </ui-tabs>
       </ui-container>

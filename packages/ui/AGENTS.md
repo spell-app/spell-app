@@ -173,6 +173,9 @@ Types / Exports, Imports -- are in the repo root's `AGENTS.md`:  READ it FIRST. 
     (`packages/docs/templates/spell-ui-docs.html`, `scripts/site-new.ts`):  `site/components/<main tag>.html` for a
     tag, else `site/<page>.html`;  title / summary / status from `site/_data/pages.json`.  How to write one:
     `packages/docs/epics/spell-ui-pages/PAGES.md`
+  - `yarn site:sections [--check] [page...]` -- `scripts/site-sections.ts`:  nests every page's flat level 2 / 3
+    headers and headed examples into `<ui-section>`s and writes (or fixes) their ids, `<tab>-<section>-<example>`;
+    idempotent.  `site:index`, `site:kitchen` and `site:new` run it on what they write
   - `yarn site:check <page...> | --all` -- `tools/SiteCheck.ts`:  loads pages from the page server (Playwright),
     fails on console errors, 404s, undefined / unrendered `ui-*`, missing tabs, an empty toc, phone-width overflow,
     a nav flyout that won't open;  screenshots in `tools/results/site-check/`.  LOOK at them

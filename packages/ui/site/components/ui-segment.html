@@ -55,684 +55,758 @@
               EXAMPLES:  Fomantic's segment page, section by section, in its order (Types, Groups, States, Variations).
               - Fomantic's `<img class="ui wireframe image">` => `<ui-image src>`.
             -->
-            <ui-header level="2" dividing id="types">Types</ui-header>
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-segment" header="Segment" sticky collapsible dividing>
+                <ui-docs-example description="A segment of content.">
+                  <ui-segment>
+                    <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example header="Segment" description="A segment of content.">
-              <ui-segment>
-                <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
-              </ui-segment>
-            </ui-docs-example>
-
-            <!-- GAP I59:  the placeholder doesn't centre its buttons / fields (Fomantic:  centred blocks, an `inline` row). -->
-            <ui-docs-example
-              header="Placeholder Segment"
-              description="A segment can be used to reserve space for conditionally displayed content."
-            >
-              <ui-segment placeholder>
-                <ui-header icon>
-                  <ui-icon name="file pdf outline"></ui-icon>
-                  No documents are listed for this customer.
-                </ui-header>
-                <ui-button primary>Add Document</ui-button>
-              </ui-segment>
-            </ui-docs-example>
-            <ui-docs-example>
-              <ui-message slot="description" state="info" size="small"
-                >To put buttons side by side in a placeholder (Fomantic's <code>inline</code> wrapper), group them
-                in a <code>&lt;ui-buttons&gt;</code>.</ui-message
+              <!-- GAP I59:  the placeholder doesn't centre its buttons / fields (Fomantic:  centred blocks, an `inline` row). -->
+              <ui-section
+                id="examples-types-placeholder-segment"
+                header="Placeholder Segment"
+                sticky
+                collapsible
+                dividing
               >
-              <ui-segment placeholder>
-                <ui-header icon>
-                  <ui-icon name="search"></ui-icon>
-                  We don't have any documents matching your query
-                </ui-header>
-                <ui-buttons spaced>
-                  <ui-button primary>Clear Query</ui-button>
-                  <ui-button>Add Document</ui-button>
-                </ui-buttons>
-              </ui-segment>
-            </ui-docs-example>
-            <!-- GAP I45:  Fomantic's grid is `stackable`, but a stacked grid keeps the divider vertical and clips the form (phones):  left out. -->
-            <ui-docs-example>
-              <ui-segment placeholder>
-                <ui-grid columns="2" text-align="center">
-                  <ui-divider vertical>Or</ui-divider>
-                  <ui-row vertical-align="middle">
-                    <ui-column>
-                      <ui-header icon>
-                        <ui-icon name="search"></ui-icon>
-                        Find Country
-                      </ui-header>
-                      <ui-search placeholder="Search countries..."></ui-search>
-                    </ui-column>
-                    <ui-column>
-                      <ui-header icon>
-                        <ui-icon name="world"></ui-icon>
-                        Add New Country
-                      </ui-header>
-                      <ui-button primary>Create</ui-button>
-                    </ui-column>
-                  </ui-row>
-                </ui-grid>
-              </ui-segment>
-            </ui-docs-example>
+                <ui-docs-example
+                  description="A segment can be used to reserve space for conditionally displayed content."
+                >
+                  <ui-segment placeholder>
+                    <ui-header icon>
+                      <ui-icon name="file pdf outline"></ui-icon>
+                      No documents are listed for this customer.
+                    </ui-header>
+                    <ui-button primary>Add Document</ui-button>
+                  </ui-segment>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-message slot="description" state="info" size="small"
+                    >To put buttons side by side in a placeholder (Fomantic's <code>inline</code> wrapper), group them
+                    in a <code>&lt;ui-buttons&gt;</code>.</ui-message
+                  >
+                  <ui-segment placeholder>
+                    <ui-header icon>
+                      <ui-icon name="search"></ui-icon>
+                      We don't have any documents matching your query
+                    </ui-header>
+                    <ui-buttons spaced>
+                      <ui-button primary>Clear Query</ui-button>
+                      <ui-button>Add Document</ui-button>
+                    </ui-buttons>
+                  </ui-segment>
+                </ui-docs-example>
+                <!-- GAP I45:  Fomantic's grid is `stackable`, but a stacked grid keeps the divider vertical and clips the form (phones):  left out. -->
+                <ui-docs-example>
+                  <ui-segment placeholder>
+                    <ui-grid columns="2" text-align="center">
+                      <ui-divider vertical>Or</ui-divider>
+                      <ui-row vertical-align="middle">
+                        <ui-column>
+                          <ui-header icon>
+                            <ui-icon name="search"></ui-icon>
+                            Find Country
+                          </ui-header>
+                          <ui-search placeholder="Search countries..."></ui-search>
+                        </ui-column>
+                        <ui-column>
+                          <ui-header icon>
+                            <ui-icon name="world"></ui-icon>
+                            Add New Country
+                          </ui-header>
+                          <ui-button primary>Create</ui-button>
+                        </ui-column>
+                      </ui-row>
+                    </ui-grid>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example header="Raised" description="A segment may be formatted to raise above the page.">
-              <ui-segment raised>
-                <p>
-                  Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-                  Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit
-                  amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo.
-                </p>
-              </ui-segment>
-            </ui-docs-example>
+              <ui-section id="examples-types-raised" header="Raised" sticky collapsible dividing>
+                <ui-docs-example description="A segment may be formatted to raise above the page.">
+                  <ui-segment raised>
+                    <p>
+                      Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+                      Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit
+                      amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo.
+                    </p>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example
-              header="Stacked"
-              description='A segment can be formatted to show it contains multiple pages:  `stacked="tall"` shows two.'
-            >
-              <ui-segment stacked>
-                <p>
-                  Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-                  Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit
-                  amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo.
-                </p>
-              </ui-segment>
-            </ui-docs-example>
-            <ui-docs-example>
-              <ui-segment stacked="tall">
-                <p>
-                  Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-                  Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit
-                  amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo.
-                </p>
-              </ui-segment>
-            </ui-docs-example>
+              <ui-section id="examples-types-stacked" header="Stacked" sticky collapsible dividing>
+                <ui-docs-example
+                  description='A segment can be formatted to show it contains multiple pages:  `stacked="tall"` shows two.'
+                >
+                  <ui-segment stacked>
+                    <p>
+                      Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+                      Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit
+                      amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo.
+                    </p>
+                  </ui-segment>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-segment stacked="tall">
+                    <p>
+                      Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+                      Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit
+                      amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo.
+                    </p>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example header="Piled">
-              <p slot="description">A segment can be formatted to look like a pile of pages.</p>
-              <ui-message slot="description" state="info" size="small"
-                >Fomantic's piled segments need a <code>z-index</code> on their offset container; a
-                <code>&lt;ui-segment piled&gt;</code> makes its own host the stacking context the pages sit behind,
-                so nothing is needed.</ui-message
+              <ui-section id="examples-types-piled" header="Piled" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">A segment can be formatted to look like a pile of pages.</p>
+                  <ui-message slot="description" state="info" size="small"
+                    >Fomantic's piled segments need a <code>z-index</code> on their offset container; a
+                    <code>&lt;ui-segment piled&gt;</code> makes its own host the stacking context the pages sit behind,
+                    so nothing is needed.</ui-message
+                  >
+                  <ui-segment piled>
+                    <ui-header level="4">A header</ui-header>
+                    <p>
+                      Te eum doming eirmod, nominati pertinacia argumentum ad his. Ex eam alia facete scriptorem, est
+                      autem aliquip detraxit at. Usu ocurreret referrentur at, cu epicurei appellantur vix. Cum ea
+                      laoreet recteque electram, eos choro alterum definiebas in. Vim dolorum definiebas an. Mei ex
+                      natum rebum iisque.
+                    </p>
+                    <p>
+                      Audiam quaerendum eu sea, pro omittam definiebas ex. Te est latine definitiones. Quot wisi nulla
+                      ex duo. Vis sint solet expetenda ne, his te phaedrum referrentur consectetuer. Id vix fabulas
+                      oporteat, ei quo vide phaedrum, vim vivendum maiestatis in.
+                    </p>
+                    <p>
+                      Eu quo homero blandit intellegebat. Incorrupte consequuntur mei id. Mei ut facer dolores
+                      adolescens, no illum aperiri quo, usu odio brute at. Qui te porro electram, ea dico facete utroque
+                      quo. Populo quodsi te eam, wisi everti eos ex, eum elitr altera utamur at. Quodsi convenire
+                      mnesarchum eu per, quas minimum postulant per id.
+                    </p>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-types-vertical-segment" header="Vertical Segment" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A vertical segment formats content to be aligned as part of a vertical group."
+                >
+                  <ui-segment vertical>
+                    <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                  <ui-segment vertical>
+                    <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                  <ui-segment vertical>
+                    <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-groups" header="Groups" sticky collapsible dividing>
+              <ui-section id="examples-groups-segments" header="Segments" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A group of segments can be formatted to appear together:  `<ui-segments>`."
+                >
+                  <ui-segments>
+                    <ui-segment><p>Top</p></ui-segment>
+                    <ui-segment><p>Middle</p></ui-segment>
+                    <ui-segment><p>Middle</p></ui-segment>
+                    <ui-segment><p>Middle</p></ui-segment>
+                    <ui-segment><p>Bottom</p></ui-segment>
+                  </ui-segments>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-segments basic>
+                    <ui-segment><p>Top</p></ui-segment>
+                    <ui-segment><p>Middle</p></ui-segment>
+                    <ui-segment><p>Middle</p></ui-segment>
+                    <ui-segment><p>Middle</p></ui-segment>
+                    <ui-segment><p>Bottom</p></ui-segment>
+                  </ui-segments>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-segments>
+                    <ui-segment><p>Top</p></ui-segment>
+                    <ui-segment color="red"><p>Middle</p></ui-segment>
+                    <ui-segment color="blue"><p>Middle</p></ui-segment>
+                    <ui-segment color="green"><p>Middle</p></ui-segment>
+                    <ui-segment color="yellow"><p>Bottom</p></ui-segment>
+                  </ui-segments>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-segments>
+                    <ui-segment><p>Top</p></ui-segment>
+                    <ui-segment secondary><p>Secondary Content</p></ui-segment>
+                  </ui-segments>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-groups-nested-segments" header="Nested Segments" sticky collapsible dividing>
+                <ui-docs-example description="A group of segments can be nested in another group of segments.">
+                  <ui-segments>
+                    <ui-segment><p>Top</p></ui-segment>
+                    <ui-segments>
+                      <ui-segment><p>Nested Top</p></ui-segment>
+                      <ui-segment><p>Nested Middle</p></ui-segment>
+                      <ui-segment><p>Nested Bottom</p></ui-segment>
+                    </ui-segments>
+                    <ui-segment><p>Middle</p></ui-segment>
+                    <ui-segments horizontal>
+                      <ui-segment><p>Top</p></ui-segment>
+                      <ui-segment><p>Middle</p></ui-segment>
+                      <ui-segment><p>Bottom</p></ui-segment>
+                    </ui-segments>
+                    <ui-segment><p>Bottom</p></ui-segment>
+                  </ui-segments>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section
+                id="examples-groups-horizontal-segments"
+                header="Horizontal Segments"
+                sticky
+                collapsible
+                dividing
               >
-              <ui-segment piled>
-                <ui-header level="4">A header</ui-header>
-                <p>
-                  Te eum doming eirmod, nominati pertinacia argumentum ad his. Ex eam alia facete scriptorem, est
-                  autem aliquip detraxit at. Usu ocurreret referrentur at, cu epicurei appellantur vix. Cum ea
-                  laoreet recteque electram, eos choro alterum definiebas in. Vim dolorum definiebas an. Mei ex
-                  natum rebum iisque.
-                </p>
-                <p>
-                  Audiam quaerendum eu sea, pro omittam definiebas ex. Te est latine definitiones. Quot wisi nulla
-                  ex duo. Vis sint solet expetenda ne, his te phaedrum referrentur consectetuer. Id vix fabulas
-                  oporteat, ei quo vide phaedrum, vim vivendum maiestatis in.
-                </p>
-                <p>
-                  Eu quo homero blandit intellegebat. Incorrupte consequuntur mei id. Mei ut facer dolores
-                  adolescens, no illum aperiri quo, usu odio brute at. Qui te porro electram, ea dico facete utroque
-                  quo. Populo quodsi te eam, wisi everti eos ex, eum elitr altera utamur at. Quodsi convenire
-                  mnesarchum eu per, quas minimum postulant per id.
-                </p>
-              </ui-segment>
-            </ui-docs-example>
+                <ui-docs-example description="A segment group can appear horizontally.">
+                  <ui-segments horizontal>
+                    <ui-segment><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image></ui-segment>
+                    <ui-segment><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image></ui-segment>
+                    <ui-segment><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image></ui-segment>
+                  </ui-segments>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-segments horizontal basic>
+                    <ui-segment><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image></ui-segment>
+                    <ui-segment><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image></ui-segment>
+                    <ui-segment><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image></ui-segment>
+                  </ui-segments>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example
-              header="Vertical Segment"
-              description="A vertical segment formats content to be aligned as part of a vertical group."
-            >
-              <ui-segment vertical>
-                <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
-              </ui-segment>
-              <ui-segment vertical>
-                <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
-              </ui-segment>
-              <ui-segment vertical>
-                <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
-              </ui-segment>
-            </ui-docs-example>
-
-            <ui-header level="2" dividing id="groups">Groups</ui-header>
-
-            <ui-docs-example
-              header="Segments"
-              description="A group of segments can be formatted to appear together:  `<ui-segments>`."
-            >
-              <ui-segments>
-                <ui-segment><p>Top</p></ui-segment>
-                <ui-segment><p>Middle</p></ui-segment>
-                <ui-segment><p>Middle</p></ui-segment>
-                <ui-segment><p>Middle</p></ui-segment>
-                <ui-segment><p>Bottom</p></ui-segment>
-              </ui-segments>
-            </ui-docs-example>
-            <ui-docs-example>
-              <ui-segments basic>
-                <ui-segment><p>Top</p></ui-segment>
-                <ui-segment><p>Middle</p></ui-segment>
-                <ui-segment><p>Middle</p></ui-segment>
-                <ui-segment><p>Middle</p></ui-segment>
-                <ui-segment><p>Bottom</p></ui-segment>
-              </ui-segments>
-            </ui-docs-example>
-            <ui-docs-example>
-              <ui-segments>
-                <ui-segment><p>Top</p></ui-segment>
-                <ui-segment color="red"><p>Middle</p></ui-segment>
-                <ui-segment color="blue"><p>Middle</p></ui-segment>
-                <ui-segment color="green"><p>Middle</p></ui-segment>
-                <ui-segment color="yellow"><p>Bottom</p></ui-segment>
-              </ui-segments>
-            </ui-docs-example>
-            <ui-docs-example>
-              <ui-segments>
-                <ui-segment><p>Top</p></ui-segment>
-                <ui-segment secondary><p>Secondary Content</p></ui-segment>
-              </ui-segments>
-            </ui-docs-example>
-
-            <ui-docs-example
-              header="Nested Segments"
-              description="A group of segments can be nested in another group of segments."
-            >
-              <ui-segments>
-                <ui-segment><p>Top</p></ui-segment>
-                <ui-segments>
-                  <ui-segment><p>Nested Top</p></ui-segment>
-                  <ui-segment><p>Nested Middle</p></ui-segment>
-                  <ui-segment><p>Nested Bottom</p></ui-segment>
-                </ui-segments>
-                <ui-segment><p>Middle</p></ui-segment>
-                <ui-segments horizontal>
-                  <ui-segment><p>Top</p></ui-segment>
-                  <ui-segment><p>Middle</p></ui-segment>
-                  <ui-segment><p>Bottom</p></ui-segment>
-                </ui-segments>
-                <ui-segment><p>Bottom</p></ui-segment>
-              </ui-segments>
-            </ui-docs-example>
-
-            <ui-docs-example header="Horizontal Segments" description="A segment group can appear horizontally.">
-              <ui-segments horizontal>
-                <ui-segment><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image></ui-segment>
-                <ui-segment><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image></ui-segment>
-                <ui-segment><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image></ui-segment>
-              </ui-segments>
-            </ui-docs-example>
-            <ui-docs-example>
-              <ui-segments horizontal basic>
-                <ui-segment><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image></ui-segment>
-                <ui-segment><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image></ui-segment>
-                <ui-segment><ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image></ui-segment>
-              </ui-segments>
-            </ui-docs-example>
-
-            <ui-docs-example
-              header="Horizontal equal width Segments"
-              description="A horizontal segment group can automatically divide segments to be equal width."
-            >
-              <ui-segments horizontal equal-width>
-                <ui-segment>Segment One</ui-segment>
-                <ui-segment>Segment Two with a lot of additional content</ui-segment>
-                <ui-segment>Segment Three</ui-segment>
-              </ui-segments>
-            </ui-docs-example>
-
-            <ui-docs-example
-              header="Horizontal wrapping Segments"
-              description="A horizontal segment group can automatically wrap their segments on smaller screens."
-            >
-              <ui-segments horizontal wrapping>
-                <ui-segment>Segment One</ui-segment>
-                <ui-segment>Segment Two</ui-segment>
-                <ui-segment>Segment Three</ui-segment>
-                <ui-segment>Segment Four</ui-segment>
-                <ui-segment>Segment Five</ui-segment>
-                <ui-segment>Segment Six</ui-segment>
-                <ui-segment>Segment Seven</ui-segment>
-                <ui-segment>Segment Eight</ui-segment>
-              </ui-segments>
-            </ui-docs-example>
-            <ui-docs-example
-              description="Fomantic's `horizontal stackable segments` (deprecated there since 2.9.3) still works:  the group stacks on phones."
-            >
-              <ui-segments horizontal stackable>
-                <ui-segment>Segment One</ui-segment>
-                <ui-segment>Segment Two</ui-segment>
-                <ui-segment>Segment Three</ui-segment>
-              </ui-segments>
-            </ui-docs-example>
-
-            <ui-docs-example header="Raised Segments" description="A group of segments can be raised.">
-              <ui-segments raised>
-                <ui-segment><p>Top</p></ui-segment>
-                <ui-segment><p>Middle</p></ui-segment>
-                <ui-segment><p>Bottom</p></ui-segment>
-              </ui-segments>
-            </ui-docs-example>
-
-            <ui-docs-example header="Stacked Segments" description="A group of segments can be stacked.">
-              <ui-segments stacked>
-                <ui-segment><p>Top</p></ui-segment>
-                <ui-segment><p>Middle</p></ui-segment>
-                <ui-segment><p>Bottom</p></ui-segment>
-              </ui-segments>
-            </ui-docs-example>
-
-            <ui-docs-example header="Piled Segments" description="A group of segments can be piled.">
-              <ui-segments piled>
-                <ui-segment><p>Top</p></ui-segment>
-                <ui-segment><p>Middle</p></ui-segment>
-                <ui-segment><p>Bottom</p></ui-segment>
-              </ui-segments>
-            </ui-docs-example>
-
-            <ui-header level="2" dividing id="states">States</ui-header>
-
-            <ui-docs-example header="Disabled" description="A segment may show its content is disabled.">
-              <ui-segment disabled>
-                <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
-              </ui-segment>
-            </ui-docs-example>
-
-            <ui-docs-example header="Loading" description="A segment may show its content is being loaded.">
-              <ui-segment loading>
-                <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-              </ui-segment>
-            </ui-docs-example>
-            <!-- GAP I46:  no `double` loader and no `usual` (default-colour) loader on a coloured loading segment. -->
-            <ui-docs-example>
-              <p slot="description">
-                The loader inherits the color of the segment. Fomantic's <code>usual</code> keeps the loader its
-                default colour while the segment still gets its colour, and <code>double</code> draws a double
-                loader: neither exists yet, so this shows a plain loader on a brown segment.
-              </p>
-              <ui-segment color="brown" loading>
-                <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
-              </ui-segment>
-            </ui-docs-example>
-
-            <ui-header level="2" dividing id="variations">Variations</ui-header>
-
-            <ui-docs-example header="Inverted" description="A segment can have its colors inverted for contrast.">
-              <ui-segment inverted>
-                <p>I'm here to tell you something, and you will probably read me first.</p>
-              </ui-segment>
-            </ui-docs-example>
-
-            <ui-docs-example header="Attached">
-              <p slot="description">A segment can be attached to other content on a page.</p>
-              <ui-message slot="description" state="info" size="small"
-                >Attached segments are designed to be used with other <code>attached</code> variations like an
-                attached <code>&lt;ui-header&gt;</code> or an attached <code>&lt;ui-message&gt;</code>.</ui-message
+              <ui-section
+                id="examples-groups-horizontal-equal-width-segments"
+                header="Horizontal equal width Segments"
+                sticky
+                collapsible
+                dividing
               >
-              <ui-segment attached="top">
-                <p>This segment is on top</p>
-              </ui-segment>
-              <ui-segment attached>
-                <p>This segment is attached on both sides</p>
-              </ui-segment>
-              <ui-segment attached="bottom">
-                <p>This segment is on bottom</p>
-              </ui-segment>
-            </ui-docs-example>
-            <ui-docs-example>
-              <ui-header level="5" attached="top">Dogs</ui-header>
-              <ui-segment attached>
-                <p>Dogs are one type of animal</p>
-              </ui-segment>
-              <ui-header level="5" attached>Cats</ui-header>
-              <ui-segment attached>
-                <p>Cats are thought of as being related to dogs, but only humans think this.</p>
-              </ui-segment>
-              <ui-header level="5" attached>Lions</ui-header>
-              <ui-segment attached>
-                <p>Humans don't think of lions as being like cats, but they are.</p>
-              </ui-segment>
-              <ui-message attached="bottom" state="warning">
-                <ui-icon name="warning"></ui-icon>
-                You've reached the end of this content segment!
-              </ui-message>
-            </ui-docs-example>
+                <ui-docs-example
+                  description="A horizontal segment group can automatically divide segments to be equal width."
+                >
+                  <ui-segments horizontal equal-width>
+                    <ui-segment>Segment One</ui-segment>
+                    <ui-segment>Segment Two with a lot of additional content</ui-segment>
+                    <ui-segment>Segment Three</ui-segment>
+                  </ui-segments>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example
-              header="Seamless attached"
-              description="A segment can be seamless attached removing the related sides border.  This is especially useful with a vertical tabbed menu."
-            >
-              <ui-segments horizontal>
-                <ui-segment seamless attached="left" text-align="right">
-                  <p>This segment is seamless left attached</p>
-                </ui-segment>
-                <ui-segment seamless attached="right">
-                  <p>This segment is seamless right attached</p>
-                </ui-segment>
-              </ui-segments>
-            </ui-docs-example>
-
-            <ui-docs-example header="Padded" description="A segment can increase its padding.">
-              <ui-segment padded>
-                <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
-              </ui-segment>
-            </ui-docs-example>
-            <ui-docs-example>
-              <ui-segment padded="very">
-                <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
-              </ui-segment>
-            </ui-docs-example>
-
-            <ui-docs-example
-              header="Fitted"
-              description="A segment can remove its padding, vertically or horizontally."
-            >
-              <ui-segment fitted>
-                <p>Fitted Segment</p>
-              </ui-segment>
-              <ui-segment fitted="horizontally">
-                <p>Horizontally fitted segment</p>
-              </ui-segment>
-              <ui-segment fitted="vertically">
-                <p>Vertically fitted segment</p>
-              </ui-segment>
-            </ui-docs-example>
-
-            <ui-docs-example
-              header="Compact"
-              description="A segment may take up only as much space as is necessary."
-            >
-              <ui-segment compact>
-                <p>Pellentesque habitant morbi</p>
-              </ui-segment>
-            </ui-docs-example>
-            <ui-docs-example>
-              <ui-segments compact>
-                <ui-segment><p>Pellentesque habitant morbi</p></ui-segment>
-                <ui-segment><p>Pellentesque habitant morbi</p></ui-segment>
-              </ui-segments>
-            </ui-docs-example>
-
-            <ui-docs-example header="Colored" description="A segment can be colored.">
-              <ui-segment color="red">Red</ui-segment>
-              <ui-segment color="orange">Orange</ui-segment>
-              <ui-segment color="yellow">Yellow</ui-segment>
-              <ui-segment color="olive">Olive</ui-segment>
-              <ui-segment color="green">Green</ui-segment>
-              <ui-segment color="teal">Teal</ui-segment>
-              <ui-segment color="blue">Blue</ui-segment>
-              <ui-segment color="violet">Violet</ui-segment>
-              <ui-segment color="purple">Purple</ui-segment>
-              <ui-segment color="pink">Pink</ui-segment>
-              <ui-segment color="brown">Brown</ui-segment>
-              <ui-segment color="grey">Grey</ui-segment>
-              <ui-segment color="black">Black</ui-segment>
-            </ui-docs-example>
-            <ui-docs-example description="These colors can be inverted.">
-              <ui-segment color="red" inverted>Red</ui-segment>
-              <ui-segment color="orange" inverted>Orange</ui-segment>
-              <ui-segment color="yellow" inverted>Yellow</ui-segment>
-              <ui-segment color="olive" inverted>Olive</ui-segment>
-              <ui-segment color="green" inverted>Green</ui-segment>
-              <ui-segment color="teal" inverted>Teal</ui-segment>
-              <ui-segment color="blue" inverted>Blue</ui-segment>
-              <ui-segment color="violet" inverted>Violet</ui-segment>
-              <ui-segment color="purple" inverted>Purple</ui-segment>
-              <ui-segment color="pink" inverted>Pink</ui-segment>
-              <ui-segment color="brown" inverted>Brown</ui-segment>
-              <ui-segment color="grey" inverted>Grey</ui-segment>
-              <ui-segment color="black" inverted>Black</ui-segment>
-            </ui-docs-example>
-
-            <ui-docs-example
-              header="Emphasis"
-              description="A segment can be formatted to appear more or less noticeable."
-            >
-              <ui-segment>
-                <p>I'm here to tell you something, and you will probably read me first.</p>
-              </ui-segment>
-              <ui-segment secondary>
-                <p>I am pretty noticeable but you might check out other content before you look at me.</p>
-              </ui-segment>
-              <ui-segment tertiary>
-                <p>If you notice me you must be looking very hard.</p>
-              </ui-segment>
-            </ui-docs-example>
-            <ui-docs-example description="Inverted colors may also be more or less noticeable.">
-              <ui-segment inverted>
-                <p>I'm here to tell you something, and you will probably read me first.</p>
-              </ui-segment>
-              <ui-segment secondary inverted>
-                <p>I am pretty noticeable but you might check out other content before you look at me.</p>
-              </ui-segment>
-              <ui-segment tertiary inverted>
-                <p>If you notice me you must be looking very hard.</p>
-              </ui-segment>
-            </ui-docs-example>
-            <!-- GAP I60:  `secondary` / `tertiary` drop the red of an inverted red segment. -->
-            <ui-docs-example>
-              <ui-segment inverted color="red">
-                <p>I'm here to tell you something, and you will probably read me first.</p>
-              </ui-segment>
-              <ui-segment secondary inverted color="red">
-                <p>I am pretty noticeable but you might check out other content before you look at me.</p>
-              </ui-segment>
-              <ui-segment tertiary inverted color="red">
-                <p>If you notice me you must be looking very hard.</p>
-              </ui-segment>
-            </ui-docs-example>
-
-            <ui-docs-example header="Circular">
-              <p slot="description">A segment can be circular.</p>
-              <ui-message slot="description" state="info" size="small"
-                >A circular segment will most likely have to have its content manually sized to be equal width and
-                height, otherwise it will flow to the size of your content. The host is
-                <code>display: contents</code>, so size the box through <code>::part(segment)</code> (see the Usage
-                tab).</ui-message
+              <ui-section
+                id="examples-groups-horizontal-wrapping-segments"
+                header="Horizontal wrapping Segments"
+                sticky
+                collapsible
+                dividing
               >
-              <ui-segment circular>
-                <ui-header level="2">
-                  Buy Now
-                  <ui-header>$10.99</ui-header>
-                </ui-header>
-              </ui-segment>
-              <ui-segment inverted circular>
-                <ui-header level="2" inverted>
-                  Buy Now
-                  <ui-header>$10.99</ui-header>
-                </ui-header>
-              </ui-segment>
-            </ui-docs-example>
+                <ui-docs-example
+                  description="A horizontal segment group can automatically wrap their segments on smaller screens."
+                >
+                  <ui-segments horizontal wrapping>
+                    <ui-segment>Segment One</ui-segment>
+                    <ui-segment>Segment Two</ui-segment>
+                    <ui-segment>Segment Three</ui-segment>
+                    <ui-segment>Segment Four</ui-segment>
+                    <ui-segment>Segment Five</ui-segment>
+                    <ui-segment>Segment Six</ui-segment>
+                    <ui-segment>Segment Seven</ui-segment>
+                    <ui-segment>Segment Eight</ui-segment>
+                  </ui-segments>
+                </ui-docs-example>
+                <ui-docs-example
+                  description="Fomantic's `horizontal stackable segments` (deprecated there since 2.9.3) still works:  the group stacks on phones."
+                >
+                  <ui-segments horizontal stackable>
+                    <ui-segment>Segment One</ui-segment>
+                    <ui-segment>Segment Two</ui-segment>
+                    <ui-segment>Segment Three</ui-segment>
+                  </ui-segments>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example header="Clearing" description="A segment can clear floated content.">
-              <ui-segment clearing>
-                <ui-button floated="right">Floated</ui-button>
-              </ui-segment>
-            </ui-docs-example>
+              <ui-section id="examples-groups-raised-segments" header="Raised Segments" sticky collapsible dividing>
+                <ui-docs-example description="A group of segments can be raised.">
+                  <ui-segments raised>
+                    <ui-segment><p>Top</p></ui-segment>
+                    <ui-segment><p>Middle</p></ui-segment>
+                    <ui-segment><p>Bottom</p></ui-segment>
+                  </ui-segments>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example
-              header="Floated"
-              description="A segment can appear to the left or right of other content."
-            >
-              <ui-segment floated="right">
-                <p>This segment will appear to the right</p>
-              </ui-segment>
-              <ui-segment floated="left">
-                <p>This segment will appear to the left</p>
-              </ui-segment>
-            </ui-docs-example>
+              <ui-section id="examples-groups-stacked-segments" header="Stacked Segments" sticky collapsible dividing>
+                <ui-docs-example description="A group of segments can be stacked.">
+                  <ui-segments stacked>
+                    <ui-segment><p>Top</p></ui-segment>
+                    <ui-segment><p>Middle</p></ui-segment>
+                    <ui-segment><p>Bottom</p></ui-segment>
+                  </ui-segments>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example header="Text Alignment" description="A segment can have its text aligned to a side.">
-              <ui-segment text-align="right">Right</ui-segment>
-              <ui-segment text-align="left">Left</ui-segment>
-              <ui-segment text-align="center">Center</ui-segment>
-            </ui-docs-example>
+              <ui-section id="examples-groups-piled-segments" header="Piled Segments" sticky collapsible dividing>
+                <ui-docs-example description="A group of segments can be piled.">
+                  <ui-segments piled>
+                    <ui-segment><p>Top</p></ui-segment>
+                    <ui-segment><p>Middle</p></ui-segment>
+                    <ui-segment><p>Bottom</p></ui-segment>
+                  </ui-segments>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-            <ui-docs-example header="Basic" description="A basic segment has no special formatting.">
-              <ui-segment basic>
-                <p>
-                  Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-                  Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit
-                  amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo.
-                </p>
-              </ui-segment>
-            </ui-docs-example>
+            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+                <ui-docs-example description="A segment may show its content is disabled.">
+                  <ui-segment disabled>
+                    <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example header="Scrolling">
-              <p slot="description">
-                A scrolling segment has a predefined height to allow its content to be scrollable.
-              </p>
-              <ui-message slot="description" size="small"
-                >Add <code>resizable</code> to a scrolling segment and a native resize handle appears at its bottom
-                right.</ui-message
+              <ui-section id="examples-states-loading" header="Loading" sticky collapsible dividing>
+                <ui-docs-example description="A segment may show its content is being loaded.">
+                  <ui-segment loading>
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                </ui-docs-example>
+                <!-- GAP I46:  no `double` loader and no `usual` (default-colour) loader on a coloured loading segment. -->
+                <ui-docs-example>
+                  <p slot="description">
+                    The loader inherits the color of the segment. Fomantic's <code>usual</code> keeps the loader its
+                    default colour while the segment still gets its colour, and <code>double</code> draws a double
+                    loader: neither exists yet, so this shows a plain loader on a brown segment.
+                  </p>
+                  <ui-segment color="brown" loading>
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
+
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-inverted" header="Inverted" sticky collapsible dividing>
+                <ui-docs-example description="A segment can have its colors inverted for contrast.">
+                  <ui-segment inverted>
+                    <p>I'm here to tell you something, and you will probably read me first.</p>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-attached" header="Attached" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">A segment can be attached to other content on a page.</p>
+                  <ui-message slot="description" state="info" size="small"
+                    >Attached segments are designed to be used with other <code>attached</code> variations like an
+                    attached <code>&lt;ui-header&gt;</code> or an attached <code>&lt;ui-message&gt;</code>.</ui-message
+                  >
+                  <ui-segment attached="top">
+                    <p>This segment is on top</p>
+                  </ui-segment>
+                  <ui-segment attached>
+                    <p>This segment is attached on both sides</p>
+                  </ui-segment>
+                  <ui-segment attached="bottom">
+                    <p>This segment is on bottom</p>
+                  </ui-segment>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-header level="5" attached="top">Dogs</ui-header>
+                  <ui-segment attached>
+                    <p>Dogs are one type of animal</p>
+                  </ui-segment>
+                  <ui-header level="5" attached>Cats</ui-header>
+                  <ui-segment attached>
+                    <p>Cats are thought of as being related to dogs, but only humans think this.</p>
+                  </ui-segment>
+                  <ui-header level="5" attached>Lions</ui-header>
+                  <ui-segment attached>
+                    <p>Humans don't think of lions as being like cats, but they are.</p>
+                  </ui-segment>
+                  <ui-message attached="bottom" state="warning">
+                    <ui-icon name="warning"></ui-icon>
+                    You've reached the end of this content segment!
+                  </ui-message>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section
+                id="examples-variations-seamless-attached"
+                header="Seamless attached"
+                sticky
+                collapsible
+                dividing
               >
-              <ui-segment scrolling>
-                <p>
-                  Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-                  Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit
-                  amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo.
-                </p>
-                <p>
-                  Te eum doming eirmod, nominati pertinacia argumentum ad his. Ex eam alia facete scriptorem, est
-                  autem aliquip detraxit at. Usu ocurreret referrentur at, cu epicurei appellantur vix. Cum ea
-                  laoreet recteque electram, eos choro alterum definiebas in. Vim dolorum definiebas an. Mei ex
-                  natum rebum iisque.
-                </p>
-                <p>
-                  Audiam quaerendum eu sea, pro omittam definiebas ex. Te est latine definitiones. Quot wisi nulla
-                  ex duo. Vis sint solet expetenda ne, his te phaedrum referrentur consectetuer. Id vix fabulas
-                  oporteat, ei quo vide phaedrum, vim vivendum maiestatis in.
-                </p>
-                <p>
-                  Eu quo homero blandit intellegebat. Incorrupte consequuntur mei id. Mei ut facer dolores
-                  adolescens, no illum aperiri quo, usu odio brute at. Qui te porro electram, ea dico facete utroque
-                  quo. Populo quodsi te eam, wisi everti eos ex, eum elitr altera utamur at. Quodsi convenire
-                  mnesarchum eu per, quas minimum postulant per id.
-                </p>
-                <p>
-                  Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-                  Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit
-                  amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo.
-                </p>
-                <p>
-                  Te eum doming eirmod, nominati pertinacia argumentum ad his. Ex eam alia facete scriptorem, est
-                  autem aliquip detraxit at. Usu ocurreret referrentur at, cu epicurei appellantur vix. Cum ea
-                  laoreet recteque electram, eos choro alterum definiebas in. Vim dolorum definiebas an. Mei ex
-                  natum rebum iisque.
-                </p>
-                <p>
-                  Audiam quaerendum eu sea, pro omittam definiebas ex. Te est latine definitiones. Quot wisi nulla
-                  ex duo. Vis sint solet expetenda ne, his te phaedrum referrentur consectetuer. Id vix fabulas
-                  oporteat, ei quo vide phaedrum, vim vivendum maiestatis in.
-                </p>
-                <p>
-                  Eu quo homero blandit intellegebat. Incorrupte consequuntur mei id. Mei ut facer dolores
-                  adolescens, no illum aperiri quo, usu odio brute at. Qui te porro electram, ea dico facete utroque
-                  quo. Populo quodsi te eam, wisi everti eos ex, eum elitr altera utamur at. Quodsi convenire
-                  mnesarchum eu per, quas minimum postulant per id.
-                </p>
-              </ui-segment>
-            </ui-docs-example>
-            <ui-docs-example
-              description="A scrolling segment optionally supports predefined heights `long`, `very long`, `short` and `very short`."
-            >
-              <ui-segment scrolling="very short" resizable>
-                <p>
-                  Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
-                  Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit
-                  amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo.
-                </p>
-                <p>
-                  Te eum doming eirmod, nominati pertinacia argumentum ad his. Ex eam alia facete scriptorem, est
-                  autem aliquip detraxit at. Usu ocurreret referrentur at, cu epicurei appellantur vix. Cum ea
-                  laoreet recteque electram, eos choro alterum definiebas in. Vim dolorum definiebas an. Mei ex
-                  natum rebum iisque.
-                </p>
-                <p>
-                  Audiam quaerendum eu sea, pro omittam definiebas ex. Te est latine definitiones. Quot wisi nulla
-                  ex duo. Vis sint solet expetenda ne, his te phaedrum referrentur consectetuer. Id vix fabulas
-                  oporteat, ei quo vide phaedrum, vim vivendum maiestatis in.
-                </p>
-                <p>
-                  Eu quo homero blandit intellegebat. Incorrupte consequuntur mei id. Mei ut facer dolores
-                  adolescens, no illum aperiri quo, usu odio brute at. Qui te porro electram, ea dico facete utroque
-                  quo. Populo quodsi te eam, wisi everti eos ex, eum elitr altera utamur at. Quodsi convenire
-                  mnesarchum eu per, quas minimum postulant per id.
-                </p>
-              </ui-segment>
-            </ui-docs-example>
+                <ui-docs-example
+                  description="A segment can be seamless attached removing the related sides border.  This is especially useful with a vertical tabbed menu."
+                >
+                  <ui-segments horizontal>
+                    <ui-segment seamless attached="left" text-align="right">
+                      <p>This segment is seamless left attached</p>
+                    </ui-segment>
+                    <ui-segment seamless attached="right">
+                      <p>This segment is seamless right attached</p>
+                    </ui-segment>
+                  </ui-segments>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example header="Size" description="A segment can vary in size.">
-              <ui-segment size="mini">Mini</ui-segment>
-              <ui-segment size="tiny">Tiny</ui-segment>
-              <ui-segment size="small">Small</ui-segment>
-              <ui-segment size="large">Large</ui-segment>
-              <ui-segment size="big">Big</ui-segment>
-              <ui-segment size="huge">Huge</ui-segment>
-              <ui-segment size="massive">Massive</ui-segment>
-            </ui-docs-example>
+              <ui-section id="examples-variations-padded" header="Padded" sticky collapsible dividing>
+                <ui-docs-example description="A segment can increase its padding.">
+                  <ui-segment padded>
+                    <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-segment padded="very">
+                    <ui-image src="../images/wireframe/short-paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-fitted" header="Fitted" sticky collapsible dividing>
+                <ui-docs-example description="A segment can remove its padding, vertically or horizontally.">
+                  <ui-segment fitted>
+                    <p>Fitted Segment</p>
+                  </ui-segment>
+                  <ui-segment fitted="horizontally">
+                    <p>Horizontally fitted segment</p>
+                  </ui-segment>
+                  <ui-segment fitted="vertically">
+                    <p>Vertically fitted segment</p>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-compact" header="Compact" sticky collapsible dividing>
+                <ui-docs-example description="A segment may take up only as much space as is necessary.">
+                  <ui-segment compact>
+                    <p>Pellentesque habitant morbi</p>
+                  </ui-segment>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-segments compact>
+                    <ui-segment><p>Pellentesque habitant morbi</p></ui-segment>
+                    <ui-segment><p>Pellentesque habitant morbi</p></ui-segment>
+                  </ui-segments>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-colored" header="Colored" sticky collapsible dividing>
+                <ui-docs-example description="A segment can be colored.">
+                  <ui-segment color="red">Red</ui-segment>
+                  <ui-segment color="orange">Orange</ui-segment>
+                  <ui-segment color="yellow">Yellow</ui-segment>
+                  <ui-segment color="olive">Olive</ui-segment>
+                  <ui-segment color="green">Green</ui-segment>
+                  <ui-segment color="teal">Teal</ui-segment>
+                  <ui-segment color="blue">Blue</ui-segment>
+                  <ui-segment color="violet">Violet</ui-segment>
+                  <ui-segment color="purple">Purple</ui-segment>
+                  <ui-segment color="pink">Pink</ui-segment>
+                  <ui-segment color="brown">Brown</ui-segment>
+                  <ui-segment color="grey">Grey</ui-segment>
+                  <ui-segment color="black">Black</ui-segment>
+                </ui-docs-example>
+                <ui-docs-example description="These colors can be inverted.">
+                  <ui-segment color="red" inverted>Red</ui-segment>
+                  <ui-segment color="orange" inverted>Orange</ui-segment>
+                  <ui-segment color="yellow" inverted>Yellow</ui-segment>
+                  <ui-segment color="olive" inverted>Olive</ui-segment>
+                  <ui-segment color="green" inverted>Green</ui-segment>
+                  <ui-segment color="teal" inverted>Teal</ui-segment>
+                  <ui-segment color="blue" inverted>Blue</ui-segment>
+                  <ui-segment color="violet" inverted>Violet</ui-segment>
+                  <ui-segment color="purple" inverted>Purple</ui-segment>
+                  <ui-segment color="pink" inverted>Pink</ui-segment>
+                  <ui-segment color="brown" inverted>Brown</ui-segment>
+                  <ui-segment color="grey" inverted>Grey</ui-segment>
+                  <ui-segment color="black" inverted>Black</ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-emphasis" header="Emphasis" sticky collapsible dividing>
+                <ui-docs-example description="A segment can be formatted to appear more or less noticeable.">
+                  <ui-segment>
+                    <p>I'm here to tell you something, and you will probably read me first.</p>
+                  </ui-segment>
+                  <ui-segment secondary>
+                    <p>I am pretty noticeable but you might check out other content before you look at me.</p>
+                  </ui-segment>
+                  <ui-segment tertiary>
+                    <p>If you notice me you must be looking very hard.</p>
+                  </ui-segment>
+                </ui-docs-example>
+                <ui-docs-example description="Inverted colors may also be more or less noticeable.">
+                  <ui-segment inverted>
+                    <p>I'm here to tell you something, and you will probably read me first.</p>
+                  </ui-segment>
+                  <ui-segment secondary inverted>
+                    <p>I am pretty noticeable but you might check out other content before you look at me.</p>
+                  </ui-segment>
+                  <ui-segment tertiary inverted>
+                    <p>If you notice me you must be looking very hard.</p>
+                  </ui-segment>
+                </ui-docs-example>
+                <!-- GAP I60:  `secondary` / `tertiary` drop the red of an inverted red segment. -->
+                <ui-docs-example>
+                  <ui-segment inverted color="red">
+                    <p>I'm here to tell you something, and you will probably read me first.</p>
+                  </ui-segment>
+                  <ui-segment secondary inverted color="red">
+                    <p>I am pretty noticeable but you might check out other content before you look at me.</p>
+                  </ui-segment>
+                  <ui-segment tertiary inverted color="red">
+                    <p>If you notice me you must be looking very hard.</p>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-circular" header="Circular" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">A segment can be circular.</p>
+                  <ui-message slot="description" state="info" size="small"
+                    >A circular segment will most likely have to have its content manually sized to be equal width and
+                    height, otherwise it will flow to the size of your content. The host is
+                    <code>display: contents</code>, so size the box through <code>::part(segment)</code> (see the Usage
+                    tab).</ui-message
+                  >
+                  <ui-segment circular>
+                    <ui-header level="2">
+                      Buy Now
+                      <ui-header>$10.99</ui-header>
+                    </ui-header>
+                  </ui-segment>
+                  <ui-segment inverted circular>
+                    <ui-header level="2" inverted>
+                      Buy Now
+                      <ui-header>$10.99</ui-header>
+                    </ui-header>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-clearing" header="Clearing" sticky collapsible dividing>
+                <ui-docs-example description="A segment can clear floated content.">
+                  <ui-segment clearing>
+                    <ui-button floated="right">Floated</ui-button>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-floated" header="Floated" sticky collapsible dividing>
+                <ui-docs-example description="A segment can appear to the left or right of other content.">
+                  <ui-segment floated="right">
+                    <p>This segment will appear to the right</p>
+                  </ui-segment>
+                  <ui-segment floated="left">
+                    <p>This segment will appear to the left</p>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-text-alignment" header="Text Alignment" sticky collapsible dividing>
+                <ui-docs-example description="A segment can have its text aligned to a side.">
+                  <ui-segment text-align="right">Right</ui-segment>
+                  <ui-segment text-align="left">Left</ui-segment>
+                  <ui-segment text-align="center">Center</ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-basic" header="Basic" sticky collapsible dividing>
+                <ui-docs-example description="A basic segment has no special formatting.">
+                  <ui-segment basic>
+                    <p>
+                      Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+                      Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit
+                      amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo.
+                    </p>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-scrolling" header="Scrolling" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A scrolling segment has a predefined height to allow its content to be scrollable.
+                  </p>
+                  <ui-message slot="description" size="small"
+                    >Add <code>resizable</code> to a scrolling segment and a native resize handle appears at its bottom
+                    right.</ui-message
+                  >
+                  <ui-segment scrolling>
+                    <p>
+                      Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+                      Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit
+                      amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo.
+                    </p>
+                    <p>
+                      Te eum doming eirmod, nominati pertinacia argumentum ad his. Ex eam alia facete scriptorem, est
+                      autem aliquip detraxit at. Usu ocurreret referrentur at, cu epicurei appellantur vix. Cum ea
+                      laoreet recteque electram, eos choro alterum definiebas in. Vim dolorum definiebas an. Mei ex
+                      natum rebum iisque.
+                    </p>
+                    <p>
+                      Audiam quaerendum eu sea, pro omittam definiebas ex. Te est latine definitiones. Quot wisi nulla
+                      ex duo. Vis sint solet expetenda ne, his te phaedrum referrentur consectetuer. Id vix fabulas
+                      oporteat, ei quo vide phaedrum, vim vivendum maiestatis in.
+                    </p>
+                    <p>
+                      Eu quo homero blandit intellegebat. Incorrupte consequuntur mei id. Mei ut facer dolores
+                      adolescens, no illum aperiri quo, usu odio brute at. Qui te porro electram, ea dico facete utroque
+                      quo. Populo quodsi te eam, wisi everti eos ex, eum elitr altera utamur at. Quodsi convenire
+                      mnesarchum eu per, quas minimum postulant per id.
+                    </p>
+                    <p>
+                      Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+                      Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit
+                      amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo.
+                    </p>
+                    <p>
+                      Te eum doming eirmod, nominati pertinacia argumentum ad his. Ex eam alia facete scriptorem, est
+                      autem aliquip detraxit at. Usu ocurreret referrentur at, cu epicurei appellantur vix. Cum ea
+                      laoreet recteque electram, eos choro alterum definiebas in. Vim dolorum definiebas an. Mei ex
+                      natum rebum iisque.
+                    </p>
+                    <p>
+                      Audiam quaerendum eu sea, pro omittam definiebas ex. Te est latine definitiones. Quot wisi nulla
+                      ex duo. Vis sint solet expetenda ne, his te phaedrum referrentur consectetuer. Id vix fabulas
+                      oporteat, ei quo vide phaedrum, vim vivendum maiestatis in.
+                    </p>
+                    <p>
+                      Eu quo homero blandit intellegebat. Incorrupte consequuntur mei id. Mei ut facer dolores
+                      adolescens, no illum aperiri quo, usu odio brute at. Qui te porro electram, ea dico facete utroque
+                      quo. Populo quodsi te eam, wisi everti eos ex, eum elitr altera utamur at. Quodsi convenire
+                      mnesarchum eu per, quas minimum postulant per id.
+                    </p>
+                  </ui-segment>
+                </ui-docs-example>
+                <ui-docs-example
+                  description="A scrolling segment optionally supports predefined heights `long`, `very long`, `short` and `very short`."
+                >
+                  <ui-segment scrolling="very short" resizable>
+                    <p>
+                      Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
+                      Vestibulum tortor quam, feugiat vitae, ultricies eget, tempor sit amet, ante. Donec eu libero sit
+                      amet quam egestas semper. Aenean ultricies mi vitae est. Mauris placerat eleifend leo.
+                    </p>
+                    <p>
+                      Te eum doming eirmod, nominati pertinacia argumentum ad his. Ex eam alia facete scriptorem, est
+                      autem aliquip detraxit at. Usu ocurreret referrentur at, cu epicurei appellantur vix. Cum ea
+                      laoreet recteque electram, eos choro alterum definiebas in. Vim dolorum definiebas an. Mei ex
+                      natum rebum iisque.
+                    </p>
+                    <p>
+                      Audiam quaerendum eu sea, pro omittam definiebas ex. Te est latine definitiones. Quot wisi nulla
+                      ex duo. Vis sint solet expetenda ne, his te phaedrum referrentur consectetuer. Id vix fabulas
+                      oporteat, ei quo vide phaedrum, vim vivendum maiestatis in.
+                    </p>
+                    <p>
+                      Eu quo homero blandit intellegebat. Incorrupte consequuntur mei id. Mei ut facer dolores
+                      adolescens, no illum aperiri quo, usu odio brute at. Qui te porro electram, ea dico facete utroque
+                      quo. Populo quodsi te eam, wisi everti eos ex, eum elitr altera utamur at. Quodsi convenire
+                      mnesarchum eu per, quas minimum postulant per id.
+                    </p>
+                  </ui-segment>
+                </ui-docs-example>
+              </ui-section>
+
+              <ui-section id="examples-variations-size" header="Size" sticky collapsible dividing>
+                <ui-docs-example description="A segment can vary in size.">
+                  <ui-segment size="mini">Mini</ui-segment>
+                  <ui-segment size="tiny">Tiny</ui-segment>
+                  <ui-segment size="small">Small</ui-segment>
+                  <ui-segment size="large">Large</ui-segment>
+                  <ui-segment size="big">Big</ui-segment>
+                  <ui-segment size="huge">Huge</ui-segment>
+                  <ui-segment size="massive">Massive</ui-segment>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
           </ui-tab>
 
           <ui-tab value="usage" label="Usage">
             <!-- USAGE:  how to use it (attributes in practice, events, framework snippets), keyboard, accessibility. -->
-            <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                Wrap content in `<ui-segment>`, and add attributes for the look: `<ui-segment raised padded="very" attached="top">`
-                renders `ui raised very padded top attached segment`.
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Wrap content in `<ui-segment>`, and add attributes for the look: `<ui-segment raised padded="very" attached="top">`
+                  renders `ui raised very padded top attached segment`.
 
-                - Group segments in `<ui-segments>`: the group draws one box with dividers, and its words (`horizontal`,
-                  `raised`, `stacked`, `piled`, `compact`, `basic`, `size` ...) apply to the whole group. Groups nest.
-                - The host is `display: contents` and the box lives on the `segment` part, so margins collapse, floats float and
-                  attached headers / labels line up exactly as with Fomantic's markup.
-                - A coloured or large segment recolours / resizes only its own box: the slot resets the colour and size tokens
-                  for nested content, as in Fomantic.
-                - `inverted` switches everything inside to the dark scheme (headers, labels, dividers, parts follow with no
-                  inverted attribute of their own).
-                - Segments have no events.
-              </script>
-            </ui-markdown>
+                  - Group segments in `<ui-segments>`: the group draws one box with dividers, and its words (`horizontal`,
+                    `raised`, `stacked`, `piled`, `compact`, `basic`, `size` ...) apply to the whole group. Groups nest.
+                  - The host is `display: contents` and the box lives on the `segment` part, so margins collapse, floats float and
+                    attached headers / labels line up exactly as with Fomantic's markup.
+                  - A coloured or large segment recolours / resizes only its own box: the slot resets the colour and size tokens
+                    for nested content, as in Fomantic.
+                  - `inverted` switches everything inside to the dark scheme (headers, labels, dividers, parts follow with no
+                    inverted attribute of their own).
+                  - Segments have no events.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-            <ui-header level="2" dividing id="sizing">Sizing the box</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                Size and shape a segment with `::part(segment)`, since the host has no box of its own. A `circular` segment is
-                round only when its box is square:
-              </script>
-            </ui-markdown>
-            <ui-code language="html">
-              <script type="text/plain">
-                <ui-segment id="buy-now" circular>
-                  <ui-header level="2">Buy Now<ui-header>$10.99</ui-header></ui-header>
-                </ui-segment>
-                <style>
-                  #buy-now::part(segment) {
-                    width: 175px;
-                    height: 175px;
-                  }
-                </style>
-              </script>
-            </ui-code>
+            <ui-section id="usage-sizing-the-box" header="Sizing the box" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Size and shape a segment with `::part(segment)`, since the host has no box of its own. A `circular` segment is
+                  round only when its box is square:
+                </script>
+              </ui-markdown>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <ui-segment id="buy-now" circular>
+                    <ui-header level="2">Buy Now<ui-header>$10.99</ui-header></ui-header>
+                  </ui-segment>
+                  <style>
+                    #buy-now::part(segment) {
+                      width: 175px;
+                      height: 175px;
+                    }
+                  </style>
+                </script>
+              </ui-code>
+            </ui-section>
 
-            <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                - A segment itself takes no keys; the controls inside work as usual.
-                - A `scrolling` segment is a tab stop, so its overflow scrolls with the arrow keys, **Page Up** / **Page Down**
-                  and **Home** / **End** without a mouse.
-              </script>
-            </ui-markdown>
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - A segment itself takes no keys; the controls inside work as usual.
+                  - A `scrolling` segment is a tab stop, so its overflow scrolls with the arrow keys, **Page Up** / **Page Down**
+                    and **Home** / **End** without a mouse.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-            <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                - A segment is a layout box with no role. Use a landmark inside, or `role="region"` with an `aria-label`.
-                - `loading` sets `aria-busy` and shows a visually hidden `role="status"` "Loading…" message (translatable).
-                - `disabled` sets `aria-disabled` and, as in Fomantic, only dims and blocks pointer events: disable the controls
-                  inside too.
-                - A `scrolling` segment is a keyboard stop, so its overflow can be scrolled without a mouse.
-                - Without JavaScript the native fallback renders the same `ui segment` element around a slot; only the dark
-                  colour-scheme tokens of `inverted` segments are lost.
-              </script>
-            </ui-markdown>
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - A segment is a layout box with no role. Use a landmark inside, or `role="region"` with an `aria-label`.
+                  - `loading` sets `aria-busy` and shows a visually hidden `role="status"` "Loading…" message (translatable).
+                  - `disabled` sets `aria-disabled` and, as in Fomantic, only dims and blocks pointer events: disable the controls
+                    inside too.
+                  - A `scrolling` segment is a keyboard stop, so its overflow can be scrolled without a mouse.
+                  - Without JavaScript the native fallback renders the same `ui segment` element around a slot; only the dark
+                    colour-scheme tokens of `inverted` segments are lost.
+                </script>
+              </ui-markdown>
+            </ui-section>
           </ui-tab>
 
           <ui-tab value="api" label="API">
@@ -742,43 +816,45 @@
 
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-            <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                Theme with the public `--ui-segment-*` tokens: set one on the element, on any ancestor (a `<ui-segments>` group,
-                `:root`), or on the box through `::part(segment)`. They inherit into the shadow root, where the sheet reads each
-                through a private alias, so nothing inside blocks them. Set on a `<ui-segments>`, they reach its segments.
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Theme with the public `--ui-segment-*` tokens: set one on the element, on any ancestor (a `<ui-segments>` group,
+                  `:root`), or on the box through `::part(segment)`. They inherit into the shadow root, where the sheet reads each
+                  through a private alias, so nothing inside blocks them. Set on a `<ui-segments>`, they reach its segments.
 
-                - Variations build on them: `padded` swaps in `--ui-segment-padded`, `padded="very"` `--ui-segment-very-padded`.
-                - `--ui-segment-scrolling-height` replaces the viewport-based height of `scrolling` segments at every width.
-                - The group's own `--_ui-segments-*` tokens, and every `--_segment-*` / `--_ui-segment-*` name, are private
-                  plumbing: never set them.
-              </script>
-            </ui-markdown>
-            <ui-code language="css">
-              <script type="text/plain">
-                /* square segments in one group */
-                ui-segments.cards {
-                  --ui-segment-radius: 0;
-                }
-                /* taller scrolling segments everywhere */
-                :root {
-                  --ui-segment-scrolling-height: 20em;
-                }
-              </script>
-            </ui-code>
-            <ui-markdown>Edit a value below to try it.</ui-markdown>
-            <ui-docs-tokens family="ui-segment" playground></ui-docs-tokens>
+                  - Variations build on them: `padded` swaps in `--ui-segment-padded`, `padded="very"` `--ui-segment-very-padded`.
+                  - `--ui-segment-scrolling-height` replaces the viewport-based height of `scrolling` segments at every width.
+                  - The group's own `--_ui-segments-*` tokens, and every `--_segment-*` / `--_ui-segment-*` name, are private
+                    plumbing: never set them.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  /* square segments in one group */
+                  ui-segments.cards {
+                    --ui-segment-radius: 0;
+                  }
+                  /* taller scrolling segments everywhere */
+                  :root {
+                    --ui-segment-scrolling-height: 20em;
+                  }
+                </script>
+              </ui-code>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-segment" playground></ui-docs-tokens>
+            </ui-section>
 
-            <ui-header level="2" dividing id="themes">Themes</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
-                theme to the whole site.
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                  theme to the whole site.
 
-                Themes that restyle segments: GitHub.
-              </script>
-            </ui-markdown>
+                  Themes that restyle segments: GitHub.
+                </script>
+              </ui-markdown>
+            </ui-section>
           </ui-tab>
         </ui-tabs>
       </ui-container>

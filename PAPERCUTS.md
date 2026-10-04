@@ -942,6 +942,10 @@ One section per package, oldest first.  Entries before 2026-09-30 are from when 
   (`parity.md`, `static-parity.md`, Playwright's `output/` is emptied first), so a report or diff image read a minute
   later belonged to another agent's run, or was gone. · Copy the report to the scratchpad right after each run, and
   read diff images before starting the next run. · ui
+- 2026-10-04 · `yarn site:check` failed a page with `HTTP 404 ... /ui/_assets/site.js` (and then every in-page check
+  on it):  another agent ran `yarn site:bundle` in the same worktree meanwhile, and the build empties `_assets/`
+  before writing it again. · Rerun the page once the other build is done;  agents sharing a worktree:  say before
+  rebuilding the bundle, and don't run `site:check --all` across someone's rebuild. · ui
 
 ## app
 

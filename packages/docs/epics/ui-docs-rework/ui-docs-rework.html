@@ -25,9 +25,7 @@
           ><header class="spell-page-head">
             <h1>Spell UI Docs Rework</h1>
             <span class="plan-step"
-              ><ui-label basic color="orange" icon="circle half stroke" href="#p6"
-                >P6 · Sections &amp; Ids</ui-label
-              ></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p7">next: P7 · Page Split</ui-label></span
             >
           </header></ui-sticky
         >
@@ -81,7 +79,7 @@
               icon which shows the current state, clicking it switches it.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 19h-26h in all, 8h-11h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 19h-26h in all, 5h-7h left</p>
           <ui-section id="o1" header="1.1 Today" sticky collapsible dividing>
             <p>Where the site stands, so the rest reads against it.</p>
             <ui-table celled compact striped unstackable>
@@ -440,7 +438,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="5" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="6" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -553,7 +551,16 @@
               ></ui-list
             >
           </ui-section>
-          <ui-section id="p5" data-phase="5" data-status="done" header="P5 · Theme Overlay" sticky collapsible dividing>
+          <ui-section
+            collapsed
+            id="p5"
+            data-phase="5"
+            data-status="done"
+            header="P5 · Theme Overlay"
+            sticky
+            collapsible
+            dividing
+          >
             <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -573,13 +580,13 @@
           <ui-section
             id="p6"
             data-phase="6"
-            data-status="active"
+            data-status="done"
             header="P6 · Sections & Ids"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle half stroke" color="orange"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b> nested ui-sections with nested ids (#examples-types-emphasis), sticky tabs, TOC from
@@ -589,7 +596,12 @@
                 sticky, SiteCheck.ts, PAGES.md, template</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> deep link lands unfolded on reload and from another page; site:check</ui-item
-              ><ui-item icon="clock"><b>Estimate:</b> 3-4h</ui-item></ui-list
+              ><ui-item icon="clock"><b>Estimate:</b> 3-4h</ui-item
+              ><ui-item icon="compass"
+                ><b>Judgement calls:</b> <a href="#j30">J30</a> <a href="#j31">J31</a> <a href="#j32">J32</a>
+                <a href="#j33">J33</a> <a href="#j34">J34</a> <a href="#j35">J35</a> <a href="#j36">J36</a>
+                <a href="#j37">J37</a></ui-item
+              ></ui-list
             >
           </ui-section>
           <ui-section id="p7" data-phase="7" data-status="todo" header="P7 · Page Split" sticky collapsible dividing>
@@ -1574,6 +1586,174 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item id="j30" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j30">J30</a>
+                  <span class="plan-title"
+                    >P6: pages without tabs start their ids at the section's slug (#general-usage); the home page stays
+                    flat</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose: on index-less pages with an <code>article.site-article</code> (getting-started, grammar,
+                    theming, utilities, icons, kitchen sink, the component index), a top-level section's id is just the
+                    slug of its header, nested ones add theirs (<code>#general-usage-descriptive-attributes</code>), so
+                    most old top-level links there keep working unchanged. Other options: a fixed prefix
+                    (<code>#page-...</code>), or the page's name. The home page (<a
+                      href="../../index.html"
+                      target="src-packages-docs-index-html"
+                      ><code>index.html</code></a
+                    >) is a landing page whose headers sit inside grids and segments, not straight in the article: the
+                    converter only reads a content root's DIRECT children, so it stays as it was.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j31" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j31">J31</a>
+                  <span class="plan-title"
+                    >P6: an example's section holds it and the header-less examples right after it; anything else goes
+                    back to the parent section</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose: <code>&lt;ui-docs-example header=X&gt;</code> becomes
+                    <code>&lt;ui-section id="&lt;parent&gt;-x" header=X&gt;</code> around the example (its
+                    <code>header</code> removed, <code>description</code> kept); following header-less examples
+                    (Fomantic's <code>.another.example</code>) join that section; any other content (a markdown
+                    paragraph, a not-ported message) closes it and lands in the enclosing section. Comments go with the
+                    node they precede (a GAP note before an example lands just before that example's section); a
+                    generator marker (<code>&lt;!-- kitchen:start --&gt;</code>) closes every section and stays at the
+                    root. Alternative: put trailing prose in the example's section too.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j32" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j32">J32</a>
+                  <span class="plan-title"
+                    >P6: old hashes land by suffix; the URL is rewritten to the new id</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose, when a hash isn't an element id: (1) <code>&lt;tab&gt;-&lt;hash&gt;</code> for each pane
+                    (<code>#types</code> =&gt; <code>#examples-types</code>), (2) the first page section whose id ends
+                    with <code>-&lt;hash&gt;</code> (an example's old slug: <code>#vertical-divider</code> =&gt;
+                    <code>#examples-types-vertical-divider</code>), (3) a tag of the family (<code>#ui-or</code>) =&gt;
+                    the API tab, at that tag's tables. The URL then says the new id (<code>history.replaceState</code>).
+                    Not mapped: 169 old header ids that weren't their header's slug (<code>#usage-basics</code> for
+                    "Using it" is now <code>#usage-using-it</code>; <code>#frameworks</code> for "Framework usage"): the
+                    site isn't deployed, so only in-site links used them, and the 33 prose links among those were
+                    rewritten to the new ids (demo links like <code>href="#label"</code> left alone). Alternative: keep
+                    each old id as an alias attribute in the markup.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j33" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j33">J33</a>
+                  <span class="plan-title"
+                    >P6: sticky tabs on a background band; top-level titles' offset measured in JS</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose: <code>.site-tabs::part(menu)</code> is <code>position: sticky</code> at
+                    <code>var(--site-top)</code>, above the section titles (<code>--ui-z-sticky</code> + 1), with an 8px
+                    band of page background (<code>box-shadow</code>, <code>--site-tabs-band</code>) hiding what scrolls
+                    under its rounded corners. Top-level sections' <code>offset</code> (px: it also feeds their
+                    <code>StickyWatch</code>) is set by
+                    <a href="../../../ui/site/_src/SiteSections.ts" target="src-packages-ui-site-src-sitesections-ts"
+                      ><code>site/_src/SiteSections.ts</code></a
+                    >
+                    from the bar's measured height + the band + <code>--site-top</code> (read through a hidden fixed
+                    probe, so a <code>calc()</code> there still resolves), again when the bar or window resizes.
+                    Alternative: a CSS variable for the offset, which <code>&lt;ui-section&gt;</code> can't take (its
+                    <code>offset</code> is a number). Also: stuck titles take the page's background (<code
+                      >--ui-section-sticky-background: var(--ui-background)</code
+                    >), not the surface's, which showed as white bands on the tinted Spell page.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j34" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j34">J34</a>
+                  <span class="plan-title"
+                    >P6: folds start open, are remembered per page; a landing's unfold isn't saved</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose (like the docs runtime): the reader's fold / unfold (a cancelable <code>ui-open</code> /
+                    <code>ui-close</code> from a page section) is saved in <code>localStorage</code> under
+                    <code>spell-ui-site:folds:&lt;path&gt;</code>, restored on every visit (before the sections draw on
+                    a first load; without animation after a swap). Everything else starts OPEN (Owen asked for
+                    collapsible, not collapsed). A deep link into a folded section unfolds it for that visit only:
+                    find-in-page and landings are never saved, so the reader's fold comes back next time. Alternative:
+                    save the landing's unfold too.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j35" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j35">J35</a>
+                  <span class="plan-title"
+                    >P6: a header-less example's code button sits beside its description</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    With the example's name now on its section's title, every example is header-less, and its code
+                    button took a row of its own above the description. Changed
+                    <a
+                      href="../../../ui/src/docs-components/ui-docs-example/ui-docs-example.css"
+                      target="src-packages-ui-src-docs-components-ui-docs-example-ui-docs-example-css"
+                      ><code>ui-docs-example.css</code></a
+                    >: a header-less example WITH a description puts the button at the top right, beside the description
+                    (which keeps 3em clear for it); without a description the button keeps its row (it would cover the
+                    demo). Also helps Fomantic's <code>.another.example</code> continuations. Alternative: move the
+                    button into the section's <code>actions</code> slot (needs the example to render it in light DOM).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j36" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j36">J36</a>
+                  <span class="plan-title">P6: the converter also fixes ids; the generators run it</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Beyond the brief: <code>yarn site:sections</code> also re-derives the id of every EXISTING page
+                    section from its nesting, so renaming a header (or moving a section) and rerunning fixes the ids,
+                    and <code>site:check</code>'s nesting failure has a one-command fix. <code>yarn site:index</code>,
+                    <code>yarn site:kitchen</code> and <code>yarn site:new</code> run it on what they write (flat), so
+                    their <code>--check</code> stays clean; the component index's ids changed from
+                    <code>#topic-basic</code> to <code>#basic</code> (no link used them). The template is written as
+                    sections; <code>site:new</code> re-derives its ids for the page's title.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="j37" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j37">J37</a>
+                  <span class="plan-title"
+                    >P6: the toc nests as deep as the sections, opening along the way to the entry in view</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Chose: <code>&lt;ui-docs-toc&gt;</code> lists top-level <code>&lt;ui-section&gt;</code>s as its
+                    sections and what each nests (sections, examples, level 3 headers) as entries, as a tree; a level
+                    opens when the entry in view is in it (as the top level already did), or always with
+                    <code>expanded</code>. Entries inside a folded section are skipped when following the scroll. Level
+                    2 headers / headed examples outside sections are listed as before. Alternative: list every level
+                    open at once (long on ui-table, ui-grid).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -1730,6 +1910,54 @@
                     Seen in the P3 swap screenshot (a nav click at 1440px): a 2px blue outline round the whole page
                     column after the router swaps the main. Probably the router's focus move after a swap meeting
                     <code>:focus-visible</code>; lead's lane (SiteRouter).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c11" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c11">C11</a>
+                  <span class="plan-title"
+                    >P6: on phones the stuck stack (top bar, tabs, two titles) takes about a fifth of the screen</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Every section is <code>sticky</code>, so on a 390px phone the top bar + tabs' bar + a section title
+                    + an example title stay on screen while reading (about 360 of 1690px in the site-check shot of
+                    ui-button). Fine at one or two levels; a deeper page would stack more. Option: titles stick on wide
+                    screens only (<code>site.css</code> could drop the nested ones' stickiness below 768px).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c12" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c12">C12</a>
+                  <span class="plan-title">P6: a cold deep link can jump twice</span> </ui-title
+                ><ui-content
+                  ><p>
+                    On a first load with a hash, <code>&lt;ui-docs-toc&gt;</code> still scrolls to its target itself
+                    (<code>scrollIntoView</code>, a frame after the root is ready), then <code>SiteSections</code> lands
+                    it on its exact line 2 frames later (and again at 400ms unless the reader moved), so the page can
+                    show the toc's position for a frame or two, ~45px off. Swaps and in-page links land once. Option: a
+                    toc attribute that leaves landing to the page.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c13" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c13">C13</a>
+                  <span class="plan-title"
+                    >P6: demo stickies on the ui-sticky / ui-rail pages stick under the stuck section titles</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Their examples' <code>&lt;ui-sticky offset="64"&gt;</code> was set for the old fixed header; now the
+                    tabs' bar and section titles are stuck at the top (about 95px on a nested example), so a demo sticky
+                    at 64px slides under them. The kitchen sink's own theme bar was fixed:
+                    <code>class="site-sticky-bar"</code>, which <code>SiteSections</code> stacks between the tabs and
+                    the titles. The demos' offsets are the examples' code, left alone.
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
@@ -2113,6 +2341,30 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T03:39-04:00">2026-10-04 03:39</time></ui-date> P5
                   done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:39-04:00">2026-10-04 03:39</time></ui-date> P5 done:
+                  ui-docs-themes as a sun / moon flip + palette overlay (themes, Match system); one scheme key for every
+                  site; checks: ui review passed, server 84 tests, a flip carries between docs and Spell UI</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:58-04:00">2026-10-04 03:58</time></ui-date> P6
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T03:58-04:00">2026-10-04 03:58</time></ui-date> P6 done: 1749
+                  nested ui-sections with nested ids on 65 pages (site:sections converter), sticky tabs + section
+                  titles, landing incl. old hashes, toc nests sections; checks: ui review passed (4505 browser),
+                  site:check --all 66 OK</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

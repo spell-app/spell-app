@@ -30,7 +30,8 @@ site/
     ui-<name>.html      one page per component family, named for its main tag
   _parts/               layout.html:  EVERY page's chrome (top bar, nav, `<ui-root>`), written once;  footer.html
   _src/                 site.ts (the bundle's entry:  what's in it and why), snapshot.ts, SiteShell.ts (mounts the
-                        layout), SiteRouter.ts (swaps pages), site.css (layout glue only)
+                        layout), SiteRouter.ts (swaps pages), SiteSections.ts (sticky offsets, folds, landing on a
+                        hash), site.css (layout glue only)
   _assets/              GENERATED, committed:  the bundle (`site.js`, `site.css`, a lazy chunk per family);
                         `icon-packs` is a SYMLINK to `../../src/icons/icon-packs`.  NEVER edit
   _data/                components.json, icons.json (GENERATED, committed);  pages.json (hand-kept per-family facts)
@@ -77,8 +78,14 @@ yarn site:new getting-started --title "Getting started" --summary "One line."   
   `_data/pages.json` (fix a summary THERE, then `yarn site:data`).  It refuses to overwrite (`--force`).
 - How to write one (sources, examples, usage, theming, gaps):  `packages/docs/epics/spell-ui-pages/PAGES.md`.  The
   model page:  `components/ui-button.html`.
-- An example is a `<ui-docs-example header description>` around live markup:  it shows the markup's own source,
-  re-indented, so write the markup once.
+- Content is nested `<ui-section id header sticky collapsible dividing>`s:  a section per topic, a section per
+  example inside it.  Their titles stick below the tabs' bar (which sticks too), they fold (folds remembered per
+  page, everything starts open), and their ids spell out the nesting:  `#examples-types-emphasis` opens the Examples
+  tab, unfolds what hides it and lands its title just below the stuck ones (`_src/SiteSections.ts`).  Old hashes
+  still land (`#types`, `#emphasis`).  Write flat headers and headed examples, then `yarn site:sections` nests them
+  and writes the ids (rerun it after renaming a header).
+- An example is a `<ui-docs-example description>` around live markup, inside its section:  it shows the markup's own
+  source, re-indented, so write the markup once.
 - `<ui-*>` for everything visible;  `_src/site.css` is layout glue only (grid areas, widths, sticky offsets).
 
 ## Building
@@ -101,7 +108,8 @@ From `packages/ui`:
 
 From `packages/ui`:  `yarn site:check <page...>` or `yarn site:check --all` (`tools/SiteCheck.ts`) loads pages from
 the page server in Playwright, at desktop, phone and dark, and fails on console errors, 404s, undefined or
-unrendered `ui-*` tags, missing tabs, an empty "On this page", phone-width overflow, a nav flyout that won't open.
+unrendered `ui-*` tags, missing tabs, an empty "On this page", phone-width overflow, a nav flyout that won't open,
+a section id that doesn't follow its nesting, a flat level 2 header, a deep link that doesn't land.
 Screenshots go to `tools/results/site-check/`:  LOOK at them.
 
 ## Deploying

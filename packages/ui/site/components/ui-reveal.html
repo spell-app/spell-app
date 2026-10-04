@@ -61,275 +61,294 @@
               - Fomantic's `ui small image` contents => `<ui-image size="small">`;  its `ui small fade reveal image` (the images
                 ARE the contents) => plain `<img width height>` in the slots.
             -->
-            <ui-header level="2" dividing id="types">Types</ui-header>
+            <ui-section id="examples-types" header="Types" sticky collapsible dividing>
+              <ui-section id="examples-types-fade" header="Fade" sticky collapsible dividing>
+                <ui-docs-example description="An element can disappear to reveal content below.">
+                  <ui-reveal fade aria-label="Fade demo">
+                    <ui-image slot="visible" size="small" src="../images/wireframe/square-image.png" alt=""></ui-image>
+                    <ui-image slot="hidden" size="small" src="../images/avatar/large/ade.jpg" alt="Ade"></ui-image>
+                  </ui-reveal>
+                </ui-docs-example>
+                <ui-docs-example description="The images can be the contents themselves.">
+                  <ui-reveal fade aria-label="Fade demo, images as contents">
+                    <img slot="visible" src="../images/wireframe/square-image.png" alt="" width="150" height="150" />
+                    <img slot="hidden" src="../images/avatar/large/ade.jpg" alt="Ade" width="150" height="150" />
+                  </ui-reveal>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example header="Fade" description="An element can disappear to reveal content below.">
-              <ui-reveal fade aria-label="Fade demo">
-                <ui-image slot="visible" size="small" src="../images/wireframe/square-image.png" alt=""></ui-image>
-                <ui-image slot="hidden" size="small" src="../images/avatar/large/ade.jpg" alt="Ade"></ui-image>
-              </ui-reveal>
-            </ui-docs-example>
-            <ui-docs-example description="The images can be the contents themselves.">
-              <ui-reveal fade aria-label="Fade demo, images as contents">
-                <img slot="visible" src="../images/wireframe/square-image.png" alt="" width="150" height="150" />
-                <img slot="hidden" src="../images/avatar/large/ade.jpg" alt="Ade" width="150" height="150" />
-              </ui-reveal>
-            </ui-docs-example>
+              <ui-section id="examples-types-move" header="Move" sticky collapsible dividing>
+                <ui-docs-example
+                  description="An element can move in a direction to reveal content:  bare `move` moves left;  `move` also takes `right`, `up` or `down`."
+                >
+                  <ui-reveal move aria-label="Move demo">
+                    <ui-image slot="visible" size="small" src="../images/wireframe/square-image.png" alt=""></ui-image>
+                    <ui-image slot="hidden" size="small" src="../images/avatar/large/chris.jpg" alt="Chris"></ui-image>
+                  </ui-reveal>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-reveal move="right" aria-label="Move right demo">
+                    <ui-image slot="visible" size="small" src="../images/wireframe/square-image.png" alt=""></ui-image>
+                    <ui-image slot="hidden" size="small" src="../images/avatar/large/jenny.jpg" alt="Jenny"></ui-image>
+                  </ui-reveal>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-reveal move="up" aria-label="Move up demo">
+                    <ui-image slot="visible" size="small" src="../images/wireframe/square-image.png" alt=""></ui-image>
+                    <ui-image
+                      slot="hidden"
+                      size="small"
+                      src="../images/avatar/large/justen.jpg"
+                      alt="Justen"
+                    ></ui-image>
+                  </ui-reveal>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-reveal move="down" aria-label="Move down demo">
+                    <ui-image slot="visible" size="small" src="../images/wireframe/square-image.png" alt=""></ui-image>
+                    <ui-image slot="hidden" size="small" src="../images/avatar/large/nan.jpg" alt="Nan"></ui-image>
+                  </ui-reveal>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example
-              header="Move"
-              description="An element can move in a direction to reveal content:  bare `move` moves left;  `move` also takes `right`, `up` or `down`."
-            >
-              <ui-reveal move aria-label="Move demo">
-                <ui-image slot="visible" size="small" src="../images/wireframe/square-image.png" alt=""></ui-image>
-                <ui-image slot="hidden" size="small" src="../images/avatar/large/chris.jpg" alt="Chris"></ui-image>
-              </ui-reveal>
-            </ui-docs-example>
-            <ui-docs-example>
-              <ui-reveal move="right" aria-label="Move right demo">
-                <ui-image slot="visible" size="small" src="../images/wireframe/square-image.png" alt=""></ui-image>
-                <ui-image slot="hidden" size="small" src="../images/avatar/large/jenny.jpg" alt="Jenny"></ui-image>
-              </ui-reveal>
-            </ui-docs-example>
-            <ui-docs-example>
-              <ui-reveal move="up" aria-label="Move up demo">
-                <ui-image slot="visible" size="small" src="../images/wireframe/square-image.png" alt=""></ui-image>
-                <ui-image
-                  slot="hidden"
-                  size="small"
-                  src="../images/avatar/large/justen.jpg"
-                  alt="Justen"
-                ></ui-image>
-              </ui-reveal>
-            </ui-docs-example>
-            <ui-docs-example>
-              <ui-reveal move="down" aria-label="Move down demo">
-                <ui-image slot="visible" size="small" src="../images/wireframe/square-image.png" alt=""></ui-image>
-                <ui-image slot="hidden" size="small" src="../images/avatar/large/nan.jpg" alt="Nan"></ui-image>
-              </ui-reveal>
-            </ui-docs-example>
+              <ui-section id="examples-types-rotate" header="Rotate" sticky collapsible dividing>
+                <ui-docs-example
+                  description='An element can rotate to reveal content below:  bare `rotate` turns right, `rotate="left"` turns left.'
+                >
+                  <ui-message slot="description" size="small" class="site-not-ported"
+                    >Not ported: Fomantic's <code>circular reveal image</code> coupling -- the reveal has no image look
+                    of its own, so put a <code>&lt;ui-image circular&gt;</code> in each content.</ui-message
+                  >
+                  <ui-reveal rotate aria-label="Rotate demo">
+                    <ui-image
+                      slot="visible"
+                      size="small"
+                      circular
+                      src="../images/wireframe/square-image.png"
+                      alt=""
+                    ></ui-image>
+                    <ui-image
+                      slot="hidden"
+                      size="small"
+                      circular
+                      src="../images/avatar/large/stevie.jpg"
+                      alt="Stevie"
+                    ></ui-image>
+                  </ui-reveal>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-reveal rotate="left" aria-label="Rotate left demo">
+                    <ui-image
+                      slot="visible"
+                      size="small"
+                      circular
+                      src="../images/wireframe/square-image.png"
+                      alt=""
+                    ></ui-image>
+                    <ui-image
+                      slot="hidden"
+                      size="small"
+                      circular
+                      src="../images/avatar/large/veronika.jpg"
+                      alt="Veronika"
+                    ></ui-image>
+                  </ui-reveal>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example
-              header="Rotate"
-              description='An element can rotate to reveal content below:  bare `rotate` turns right, `rotate="left"` turns left.'
-            >
-              <ui-message slot="description" size="small" class="site-not-ported"
-                >Not ported: Fomantic's <code>circular reveal image</code> coupling -- the reveal has no image look
-                of its own, so put a <code>&lt;ui-image circular&gt;</code> in each content.</ui-message
-              >
-              <ui-reveal rotate aria-label="Rotate demo">
-                <ui-image
-                  slot="visible"
-                  size="small"
-                  circular
-                  src="../images/wireframe/square-image.png"
-                  alt=""
-                ></ui-image>
-                <ui-image
-                  slot="hidden"
-                  size="small"
-                  circular
-                  src="../images/avatar/large/stevie.jpg"
-                  alt="Stevie"
-                ></ui-image>
-              </ui-reveal>
-            </ui-docs-example>
-            <ui-docs-example>
-              <ui-reveal rotate="left" aria-label="Rotate left demo">
-                <ui-image
-                  slot="visible"
-                  size="small"
-                  circular
-                  src="../images/wireframe/square-image.png"
-                  alt=""
-                ></ui-image>
-                <ui-image
-                  slot="hidden"
-                  size="small"
-                  circular
-                  src="../images/avatar/large/veronika.jpg"
-                  alt="Veronika"
-                ></ui-image>
-              </ui-reveal>
-            </ui-docs-example>
+              <ui-section id="examples-types-slide" header="Slide" sticky collapsible dividing>
+                <ui-docs-example
+                  description="Both contents can slide to swap places:  bare `slide` slides left;  `slide` also takes `right`, `up` or `down`."
+                >
+                  <ui-reveal slide aria-label="Slide demo">
+                    <ui-image slot="visible" size="small" src="../images/wireframe/square-image.png" alt=""></ui-image>
+                    <ui-image
+                      slot="hidden"
+                      size="small"
+                      src="../images/avatar/large/elliot.jpg"
+                      alt="Elliot"
+                    ></ui-image>
+                  </ui-reveal>
+                  <ui-reveal slide="up" aria-label="Slide up demo">
+                    <ui-image slot="visible" size="small" src="../images/wireframe/square-image.png" alt=""></ui-image>
+                    <ui-image slot="hidden" size="small" src="../images/avatar/large/helen.jpg" alt="Helen"></ui-image>
+                  </ui-reveal>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-            <ui-docs-example
-              header="Slide"
-              description="Both contents can slide to swap places:  bare `slide` slides left;  `slide` also takes `right`, `up` or `down`."
-            >
-              <ui-reveal slide aria-label="Slide demo">
-                <ui-image slot="visible" size="small" src="../images/wireframe/square-image.png" alt=""></ui-image>
-                <ui-image
-                  slot="hidden"
-                  size="small"
-                  src="../images/avatar/large/elliot.jpg"
-                  alt="Elliot"
-                ></ui-image>
-              </ui-reveal>
-              <ui-reveal slide="up" aria-label="Slide up demo">
-                <ui-image slot="visible" size="small" src="../images/wireframe/square-image.png" alt=""></ui-image>
-                <ui-image slot="hidden" size="small" src="../images/avatar/large/helen.jpg" alt="Helen"></ui-image>
-              </ui-reveal>
-            </ui-docs-example>
+            <ui-section id="examples-content" header="Content" sticky collapsible dividing>
+              <ui-section id="examples-content-visible-content" header="Visible Content" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">
+                    A reveal may contain content that is visible before interaction: its <code>visible</code> slot.
+                  </p>
+                  <ui-message slot="description" state="info" size="small"
+                    >Visible and hidden content should be the same aspect ratio.</ui-message
+                  >
+                  <ui-reveal fade aria-label="Visible content demo">
+                    <img slot="visible" src="../images/avatar/large/ade.jpg" alt="Ade" width="150" height="150" />
+                    <img slot="hidden" src="../images/wireframe/square-image.png" alt="" width="150" height="150" />
+                  </ui-reveal>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-header level="2" dividing id="content">Content</ui-header>
+              <ui-section id="examples-content-hidden-content" header="Hidden Content" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A reveal may contain content that is hidden before user interaction:  its `hidden` slot."
+                >
+                  <ui-reveal fade aria-label="Hidden content demo">
+                    <img slot="visible" src="../images/wireframe/square-image.png" alt="" width="150" height="150" />
+                    <img slot="hidden" src="../images/avatar/large/ade.jpg" alt="Ade" width="150" height="150" />
+                  </ui-reveal>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-            <ui-docs-example header="Visible Content">
-              <p slot="description">
-                A reveal may contain content that is visible before interaction: its <code>visible</code> slot.
-              </p>
-              <ui-message slot="description" state="info" size="small"
-                >Visible and hidden content should be the same aspect ratio.</ui-message
-              >
-              <ui-reveal fade aria-label="Visible content demo">
-                <img slot="visible" src="../images/avatar/large/ade.jpg" alt="Ade" width="150" height="150" />
-                <img slot="hidden" src="../images/wireframe/square-image.png" alt="" width="150" height="150" />
-              </ui-reveal>
-            </ui-docs-example>
+            <ui-section id="examples-states" header="States" sticky collapsible dividing>
+              <ui-section id="examples-states-active" header="Active" sticky collapsible dividing>
+                <ui-docs-example>
+                  <p slot="description">An active reveal displays its hidden content.</p>
+                  <ui-message slot="description" state="info" size="small"
+                    >Setting <code>active</code> shows the hidden content programmatically, without hover or
+                    focus.</ui-message
+                  >
+                  <ui-reveal active move aria-label="Active demo">
+                    <ui-image slot="visible" size="small" src="../images/wireframe/square-image.png" alt=""></ui-image>
+                    <ui-image slot="hidden" size="small" src="../images/avatar/large/nan.jpg" alt="Nan"></ui-image>
+                  </ui-reveal>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example
-              header="Hidden Content"
-              description="A reveal may contain content that is hidden before user interaction:  its `hidden` slot."
-            >
-              <ui-reveal fade aria-label="Hidden content demo">
-                <img slot="visible" src="../images/wireframe/square-image.png" alt="" width="150" height="150" />
-                <img slot="hidden" src="../images/avatar/large/ade.jpg" alt="Ade" width="150" height="150" />
-              </ui-reveal>
-            </ui-docs-example>
+              <ui-section id="examples-states-disabled" header="Disabled" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A disabled reveal will not animate when hovered or focused, and is not a tab stop."
+                >
+                  <ui-reveal disabled move>
+                    <ui-image slot="visible" size="small" src="../images/wireframe/square-image.png" alt=""></ui-image>
+                    <ui-image slot="hidden" size="small" src="../images/avatar/large/chris.jpg" alt="Chris"></ui-image>
+                  </ui-reveal>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-header level="2" dividing id="states">States</ui-header>
+              <ui-section id="examples-states-focusable-content" header="Focusable content" sticky collapsible dividing>
+                <ui-docs-example
+                  description="When the content holds a link, button or field, that control takes the focus and reveals it;  the reveal adds no tab stop of its own.  Tab to it."
+                >
+                  <ui-reveal move="up">
+                    <ui-image slot="visible" size="small" src="../images/wireframe/square-image.png" alt=""></ui-image>
+                    <a slot="hidden" href="#focusable-content"
+                      ><ui-image size="small" src="../images/avatar/large/laura.jpg" alt="Laura's profile"></ui-image
+                    ></a>
+                  </ui-reveal>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
 
-            <ui-docs-example header="Active">
-              <p slot="description">An active reveal displays its hidden content.</p>
-              <ui-message slot="description" state="info" size="small"
-                >Setting <code>active</code> shows the hidden content programmatically, without hover or
-                focus.</ui-message
-              >
-              <ui-reveal active move aria-label="Active demo">
-                <ui-image slot="visible" size="small" src="../images/wireframe/square-image.png" alt=""></ui-image>
-                <ui-image slot="hidden" size="small" src="../images/avatar/large/nan.jpg" alt="Nan"></ui-image>
-              </ui-reveal>
-            </ui-docs-example>
+            <ui-section id="examples-variations" header="Variations" sticky collapsible dividing>
+              <ui-section id="examples-variations-instant" header="Instant" sticky collapsible dividing>
+                <ui-docs-example description="An element can show its content without delay.">
+                  <ui-reveal instant move aria-label="Instant demo">
+                    <ui-image slot="visible" size="small" src="../images/wireframe/square-image.png" alt=""></ui-image>
+                    <ui-image slot="hidden" size="small" src="../images/avatar/large/chris.jpg" alt="Chris"></ui-image>
+                  </ui-reveal>
+                </ui-docs-example>
+              </ui-section>
 
-            <ui-docs-example
-              header="Disabled"
-              description="A disabled reveal will not animate when hovered or focused, and is not a tab stop."
-            >
-              <ui-reveal disabled move>
-                <ui-image slot="visible" size="small" src="../images/wireframe/square-image.png" alt=""></ui-image>
-                <ui-image slot="hidden" size="small" src="../images/avatar/large/chris.jpg" alt="Chris"></ui-image>
-              </ui-reveal>
-            </ui-docs-example>
-
-            <ui-docs-example
-              header="Focusable content"
-              description="When the content holds a link, button or field, that control takes the focus and reveals it;  the reveal adds no tab stop of its own.  Tab to it."
-            >
-              <ui-reveal move="up">
-                <ui-image slot="visible" size="small" src="../images/wireframe/square-image.png" alt=""></ui-image>
-                <a slot="hidden" href="#focusable-content"
-                  ><ui-image size="small" src="../images/avatar/large/laura.jpg" alt="Laura's profile"></ui-image
-                ></a>
-              </ui-reveal>
-            </ui-docs-example>
-
-            <ui-header level="2" dividing id="variations">Variations</ui-header>
-
-            <ui-docs-example header="Instant" description="An element can show its content without delay.">
-              <ui-reveal instant move aria-label="Instant demo">
-                <ui-image slot="visible" size="small" src="../images/wireframe/square-image.png" alt=""></ui-image>
-                <ui-image slot="hidden" size="small" src="../images/avatar/large/chris.jpg" alt="Chris"></ui-image>
-              </ui-reveal>
-            </ui-docs-example>
-
-            <ui-docs-example
-              header="Visible"
-              description="A reveal can keep its overflowing content visible instead of clipping it, as the rotating corner here."
-            >
-              <ui-reveal visible rotate aria-label="Visible demo">
-                <ui-image
-                  slot="visible"
-                  size="small"
-                  circular
-                  src="../images/wireframe/square-image.png"
-                  alt=""
-                ></ui-image>
-                <ui-image
-                  slot="hidden"
-                  size="small"
-                  circular
-                  src="../images/avatar/large/tom.jpg"
-                  alt="Tom"
-                ></ui-image>
-              </ui-reveal>
-            </ui-docs-example>
+              <ui-section id="examples-variations-visible" header="Visible" sticky collapsible dividing>
+                <ui-docs-example
+                  description="A reveal can keep its overflowing content visible instead of clipping it, as the rotating corner here."
+                >
+                  <ui-reveal visible rotate aria-label="Visible demo">
+                    <ui-image
+                      slot="visible"
+                      size="small"
+                      circular
+                      src="../images/wireframe/square-image.png"
+                      alt=""
+                    ></ui-image>
+                    <ui-image
+                      slot="hidden"
+                      size="small"
+                      circular
+                      src="../images/avatar/large/tom.jpg"
+                      alt="Tom"
+                    ></ui-image>
+                  </ui-reveal>
+                </ui-docs-example>
+              </ui-section>
+            </ui-section>
           </ui-tab>
 
           <ui-tab value="usage" label="Usage">
             <!-- USAGE:  how to use it (attributes in practice, events, framework snippets), keyboard, accessibility. -->
-            <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                A reveal shows its `visible` slot and hides its `hidden` slot underneath. On hover, while it holds keyboard focus,
-                or while `active` is set, the visible content moves, fades, rotates or slides away to show the hidden one.
+            <ui-section id="usage-using-it" header="Using it" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  A reveal shows its `visible` slot and hides its `hidden` slot underneath. On hover, while it holds keyboard focus,
+                  or while `active` is set, the visible content moves, fades, rotates or slides away to show the hidden one.
 
-                - The box is as big as the hidden content, with the visible content laid over it: give both the same size.
-                - Anything you put in the reveal without a slot joins the visible content.
-                - Pick one type: `fade`, `move`, `rotate` or `slide`, each with its direction (`move="up"`, `rotate="left"`).
-                - `size` (`mini` ... `massive`) sets the text size of both contents; widgets inside keep their own `size`.
-                - `instant` drops the short delay before the swap; `disabled` stops it.
-                - Under the user's reduced-motion setting the swap is instant (no movement, no delay), with the same end state.
-              </script>
-            </ui-markdown>
-            <ui-code language="html">
-              <script type="text/plain">
-                <ui-reveal move="up" aria-label="Team member">
-                  <ui-image slot="visible" size="small" src="placeholder.png" alt=""></ui-image>
-                  <ui-image slot="hidden" size="small" src="ade.jpg" alt="Ade"></ui-image>
-                </ui-reveal>
-              </script>
-            </ui-code>
+                  - The box is as big as the hidden content, with the visible content laid over it: give both the same size.
+                  - Anything you put in the reveal without a slot joins the visible content.
+                  - Pick one type: `fade`, `move`, `rotate` or `slide`, each with its direction (`move="up"`, `rotate="left"`).
+                  - `size` (`mini` ... `massive`) sets the text size of both contents; widgets inside keep their own `size`.
+                  - `instant` drops the short delay before the swap; `disabled` stops it.
+                  - Under the user's reduced-motion setting the swap is instant (no movement, no delay), with the same end state.
+                </script>
+              </ui-markdown>
+              <ui-code language="html">
+                <script type="text/plain">
+                  <ui-reveal move="up" aria-label="Team member">
+                    <ui-image slot="visible" size="small" src="placeholder.png" alt=""></ui-image>
+                    <ui-image slot="hidden" size="small" src="ade.jpg" alt="Ade"></ui-image>
+                  </ui-reveal>
+                </script>
+              </ui-code>
+            </ui-section>
 
-            <ui-header level="2" dividing id="events">Events</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                Reveals have no events of their own. Set `active` from your own code to reveal one without hover.
-              </script>
-            </ui-markdown>
-            <ui-code language="js">
-              <script type="text/plain">
-                const reveal = document.querySelector("ui-reveal")
-                document.querySelector("#show-profile").addEventListener("click", () => reveal.toggleAttribute("active"))
-              </script>
-            </ui-code>
+            <ui-section id="usage-events" header="Events" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Reveals have no events of their own. Set `active` from your own code to reveal one without hover.
+                </script>
+              </ui-markdown>
+              <ui-code language="js">
+                <script type="text/plain">
+                  const reveal = document.querySelector("ui-reveal")
+                  document.querySelector("#show-profile").addEventListener("click", () => reveal.toggleAttribute("active"))
+                </script>
+              </ui-code>
+            </ui-section>
 
-            <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                - **Tab** focuses the reveal, which reveals it (`:focus-within`); **Tab** away hides it again.
-                - When the content holds a link, button or field, **Tab** lands on that control instead, and its focus reveals
-                  the reveal: no second stop.
-                - A `disabled` reveal is skipped.
-              </script>
-            </ui-markdown>
+            <ui-section id="usage-keyboard" header="Keyboard" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - **Tab** focuses the reveal, which reveals it (`:focus-within`); **Tab** away hides it again.
+                  - When the content holds a link, button or field, **Tab** lands on that control instead, and its focus reveals
+                    the reveal: no second stop.
+                  - A `disabled` reveal is skipped.
+                </script>
+              </ui-markdown>
+            </ui-section>
 
-            <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                - "Hidden" is visual only: both contents stay in the accessibility tree, so a screen reader reads the visible
-                  content, then the hidden one, at any time. Give each image its own `alt` (empty for a decorative placeholder).
-                - When the content has no control of its own, the reveal is a tab stop: a `role="group"` named by the
-                  `aria-label` you put on the host, with a focus ring.
-                - When the content holds a link, button or field, that control's own focus reveals it and the reveal adds no
-                  extra tab stop. A `<ui-button>` inside is not detected yet (its control renders later), so the reveal keeps its
-                  stop then.
-                - A `disabled` reveal is not a tab stop and never reveals.
-                - Under reduced motion the swap is instant, with no movement.
-                - Without JavaScript the native fallback renders the same boxes and slots, so hover, focus and `active` still
-                  reveal. It is always a tab stop (unless disabled), even around a focusable control, and it doesn't pass on the
-                  host's `aria-label`.
-              </script>
-            </ui-markdown>
+            <ui-section id="usage-accessibility" header="Accessibility" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  - "Hidden" is visual only: both contents stay in the accessibility tree, so a screen reader reads the visible
+                    content, then the hidden one, at any time. Give each image its own `alt` (empty for a decorative placeholder).
+                  - When the content has no control of its own, the reveal is a tab stop: a `role="group"` named by the
+                    `aria-label` you put on the host, with a focus ring.
+                  - When the content holds a link, button or field, that control's own focus reveals it and the reveal adds no
+                    extra tab stop. A `<ui-button>` inside is not detected yet (its control renders later), so the reveal keeps its
+                    stop then.
+                  - A `disabled` reveal is not a tab stop and never reveals.
+                  - Under reduced motion the swap is instant, with no movement.
+                  - Without JavaScript the native fallback renders the same boxes and slots, so hover, focus and `active` still
+                    reveal. It is always a tab stop (unless disabled), even around a focusable control, and it doesn't pass on the
+                    host's `aria-label`.
+                </script>
+              </ui-markdown>
+            </ui-section>
           </ui-tab>
 
           <ui-tab value="api" label="API">
@@ -339,45 +358,47 @@
 
           <ui-tab value="theming" label="Theming">
             <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
-            <ui-header level="2" dividing id="tokens">Tokens</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                Theme with the public `--ui-reveal-*` tokens: set one on the element, on any ancestor (a gallery, `:root`), or on
-                the reveal's box through `::part(reveal)`. They inherit into the shadow root, where the sheet reads each through a
-                private alias, so nothing inside blocks them.
+            <ui-section id="theming-tokens" header="Tokens" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  Theme with the public `--ui-reveal-*` tokens: set one on the element, on any ancestor (a gallery, `:root`), or on
+                  the reveal's box through `::part(reveal)`. They inherit into the shadow root, where the sheet reads each through a
+                  private alias, so nothing inside blocks them.
 
-                - The two contents are `::part(visible)` and `::part(hidden)`; they read the reveal's tokens, so set tokens on the
-                  reveal (or above it), not on them.
-                - `--ui-reveal-transition` is the whole `transition` shorthand, built from the delay, duration and easing tokens:
-                  set it only to replace all three.
-                - Never set the `--_ui-reveal-*` names: they're the sheet's private plumbing.
-              </script>
-            </ui-markdown>
-            <ui-code language="css">
-              <script type="text/plain">
-                /* every reveal on the page */
-                :root {
-                  --ui-reveal-duration: 0.8s;
-                }
-                /* one gallery */
-                .team {
-                  --ui-reveal-delay: 0s;
-                }
-                ui-reveal::part(hidden) {
-                  border-radius: var(--ui-radius);
-                }
-              </script>
-            </ui-code>
-            <ui-markdown>Edit a value below to try it.</ui-markdown>
-            <ui-docs-tokens family="ui-reveal" playground></ui-docs-tokens>
+                  - The two contents are `::part(visible)` and `::part(hidden)`; they read the reveal's tokens, so set tokens on the
+                    reveal (or above it), not on them.
+                  - `--ui-reveal-transition` is the whole `transition` shorthand, built from the delay, duration and easing tokens:
+                    set it only to replace all three.
+                  - Never set the `--_ui-reveal-*` names: they're the sheet's private plumbing.
+                </script>
+              </ui-markdown>
+              <ui-code language="css">
+                <script type="text/plain">
+                  /* every reveal on the page */
+                  :root {
+                    --ui-reveal-duration: 0.8s;
+                  }
+                  /* one gallery */
+                  .team {
+                    --ui-reveal-delay: 0s;
+                  }
+                  ui-reveal::part(hidden) {
+                    border-radius: var(--ui-radius);
+                  }
+                </script>
+              </ui-code>
+              <ui-markdown>Edit a value below to try it.</ui-markdown>
+              <ui-docs-tokens family="ui-reveal" playground></ui-docs-tokens>
+            </ui-section>
 
-            <ui-header level="2" dividing id="themes">Themes</ui-header>
-            <ui-markdown>
-              <script type="text/markdown">
-                No Fomantic theme restyles reveals (Fomantic's own reveal page lists only its default theme), so the theme picker
-                above has nothing to switch; the one in the header still applies a theme to the whole site.
-              </script>
-            </ui-markdown>
+            <ui-section id="theming-themes" header="Themes" sticky collapsible dividing>
+              <ui-markdown>
+                <script type="text/markdown">
+                  No Fomantic theme restyles reveals (Fomantic's own reveal page lists only its default theme), so the theme picker
+                  above has nothing to switch; the one in the header still applies a theme to the whole site.
+                </script>
+              </ui-markdown>
+            </ui-section>
           </ui-tab>
         </ui-tabs>
       </ui-container>

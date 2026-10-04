@@ -3,6 +3,7 @@ import { RootLoader } from "$/ui/components/ui-root/RootLoader"
 import { ExampleSource } from "$/ui/docs-components/ui-docs-example/ExampleSource"
 import { NavIndex } from "$/ui/docs-components/ui-docs-nav/NavIndex"
 
+import { SiteSections } from "./SiteSections"
 import { SiteShell } from "./SiteShell"
 
 /****************
@@ -214,6 +215,8 @@ export class SiteRouter {
     const main = this.content.querySelector("main#main")
     if (main) SiteRouter.runScripts(main)
     this.followPage()
+    // the nav flyout (narrow screens) closes, as a full load would have closed it
+    document.querySelector("ui-flyout#site-nav-flyout[open]")?.removeAttribute("open")
     // `<spell-site-header>` re-draws:  its title and "open in VS Code" link
     document.dispatchEvent(new Event(SiteRouter.PAGE_EVENT))
   }
@@ -237,24 +240,28 @@ export class SiteRouter {
     if (toc !== old) old.replaceWith(toc)
   }
 
-  /** Scroll to `url`'s hash (unfolding what the tabs and toc unfold), to `scrollY`, or to the top;  focus `main`. */
-  private land(url: URL, scrollY?: number): void {
+  /**
+   * The page's sections shown (folds, sticky offsets:  `SiteSections`), then land:  on `url`'s hash (its tab
+   * selected, the sections around it unfolded, just below the stuck titles;  old hashes too), on `scrollY` (back /
+   * forward), or at the top;  focus `main`.
+   * - `first`:  the page's first load, from `site.ts`, BEFORE `<ui-root>` is defined:  saved folds go in before the
+   *   sections draw, the landing waits for the root to be ready;  focus and a hash-less scroll stay the browser's.
+   * - A hash that is a pane's value (`#usage`):  the tabs show that pane themselves (`<ui-tabs history>`).
+   */
+  land(url: URL, scrollY?: number, first = false): void {
     const main = this.content.querySelector<HTMLElement>("main#main")
-    if (main && !main.hasAttribute("tabindex")) main.tabIndex = -1
-    main?.focus({ preventScroll: true })
+    if (!main) return
+    SiteSections.instance.show(main, first)
+    if (!first) {
+      if (!main.hasAttribute("tabindex")) main.tabIndex = -1
+      main.focus({ preventScroll: true })
+    }
     if (scrollY !== undefined) {
       scrollTo(0, scrollY)
       return
     }
-    if (url.hash) {
-      window.dispatchEvent(new HashChangeEvent("hashchange", { newURL: url.href }))
-      const target = document.getElementById(decodeURIComponent(url.hash.slice(1)))
-      if (target) {
-        requestAnimationFrame(() => target.scrollIntoView())
-        return
-      }
-    }
-    scrollTo(0, 0)
+    if (url.hash && SiteSections.instance.land(main, url.hash)) return
+    if (!first) scrollTo(0, 0)
   }
 
   ////////////////

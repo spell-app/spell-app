@@ -6,7 +6,7 @@ import { Cell, proto, UIElement } from "$/ui/core"
 import { docsTocVocabulary } from "./ui-docs-toc.vocabulary.en"
 import { DocsTocFallback } from "./ui-docs-toc.fallback"
 import { TocIndex } from "./TocIndex"
-import { DEFAULT_SIZE, type DocsTocVocabulary, type TocSection } from "./ui-docs-toc.types"
+import { DEFAULT_SIZE, type DocsTocVocabulary, type TocEntry, type TocSection } from "./ui-docs-toc.types"
 
 import tocCSS from "./ui-docs-toc.css?inline"
 
@@ -16,8 +16,10 @@ import tocCSS from "./ui-docs-toc.css?inline"
  * `<div class="ui [size] toc" part="toc">` holding an optional `<ui-header part="header">` and ONE
  * `<ui-menu vertical text fluid part="menu">` (the landmark) of section links;  under the section in view, an item
  * holding a `<ui-menu part="entries">` of its entries' links.
- * - Lists the FOLLOWED content (`for`;  a `<ui-tabs>`:  its shown pane) by `TocIndex.scan()`:  level 2 headings are
- *   sections, examples with a `header` and level 3 headings their entries.  Light DOM only.
+ * - Lists the FOLLOWED content (`for`;  a `<ui-tabs>`:  its shown pane) by `TocIndex.scan()`:  level 2 headings and
+ *   top-level `<ui-section>`s are sections, examples with a `header` and level 3 headings their entries;  what a
+ *   `<ui-section>` nests (sections, examples, headings) are ITS entries, as deep as it goes, each level opening on
+ *   the way to the entry in view.  Light DOM only.
  * - SIDE EFFECT:  gives each listed heading / example without an `id` one (a slug of its text), so its link works.
  * - Follows the scroll:  the entry whose top passed the reading line (`TocIndex.current()`) is `selected`, its
  *   section opens;  `ui-change { value }` when that changes.
@@ -41,8 +43,11 @@ export class UIDocsToc extends UIElement<DocsTocVocabulary> {
   /** Id of the entry in view. */
   readonly currentId = new Cell<string | undefined>(undefined)
 
-  /** Id of the section holding the entry in view. */
-  readonly currentSection = createMemo(() => TocIndex.sectionOf(this.sections.get(), this.currentId.get())?.id)
+  /** Ids from the top-level section down to the entry in view:  the entries open on the way. */
+  readonly currentPath = createMemo(() => TocIndex.pathTo(this.sections.get(), this.currentId.get()))
+
+  /** Id of the top-level section holding the entry in view. */
+  readonly currentSection = createMemo(() => this.currentPath()[0])
 
   /** Scheduled frame of a pending scan / follow, if any. */
   private frame = 0
@@ -92,7 +97,6 @@ export class UIDocsToc extends UIElement<DocsTocVocabulary> {
 
   /** One section's link, and its entries while it's open. */
   private renderSection(section: TocSection): JSX.Element {
-    const open = () => !!section.entries.length && (!!this.attrs.expanded || this.currentSection() === section.id)
     return (
       <>
         <ui-item
@@ -103,11 +107,24 @@ export class UIDocsToc extends UIElement<DocsTocVocabulary> {
         >
           {section.text}
         </ui-item>
-        <Show when={open()}>
-          <ui-item class="entries" fitted="vertically">
-            <ui-menu part={this.part("entries")} vertical="" text="" fluid="" size={this.size()}>
-              <For each={section.entries}>
-                {(entry) => (
+        {this.renderEntries(section)}
+      </>
+    )
+  }
+
+  /**
+   * `parent`'s entries, while it's open (`expanded`, or on the way to the entry in view):  a menu of their links,
+   * each followed by its own entries the same way (nested `<ui-section>`s).
+   */
+  private renderEntries(parent: TocEntry): JSX.Element {
+    const open = () => !!parent.entries.length && (!!this.attrs.expanded || this.currentPath().includes(parent.id))
+    return (
+      <Show when={open()}>
+        <ui-item class="entries" fitted="vertically">
+          <ui-menu part={this.part("entries")} vertical="" text="" fluid="" size={this.size()}>
+            <For each={parent.entries}>
+              {(entry) => (
+                <>
                   <ui-item
                     part={this.part("entry")}
                     href={`#${entry.id}`}
@@ -115,12 +132,13 @@ export class UIDocsToc extends UIElement<DocsTocVocabulary> {
                   >
                     {entry.text}
                   </ui-item>
-                )}
-              </For>
-            </ui-menu>
-          </ui-item>
-        </Show>
-      </>
+                  {this.renderEntries(entry)}
+                </>
+              )}
+            </For>
+          </ui-menu>
+        </ui-item>
+      </Show>
     )
   }
 
@@ -196,7 +214,7 @@ export class UIDocsToc extends UIElement<DocsTocVocabulary> {
     const root = followed?.tabs ? TocIndex.shownPane(followed.tabs) : followed?.root
     const sections = root ? TocIndex.scan(root, this.reserved(followed?.tabs)) : []
     this.sections.set(sections)
-    this.emit("ui-render", { ids: sections.flatMap((section) => [section.id, ...section.entries.map((e) => e.id)]) })
+    this.emit("ui-render", { ids: TocIndex.flatten(sections).map((entry) => entry.id) })
     this.follow(sections)
   }
 
