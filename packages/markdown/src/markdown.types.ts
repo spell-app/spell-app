@@ -22,6 +22,18 @@ export type MarkdownOptions = {
   tagfilter?: boolean
 }
 
+/** `MD.render()`'s options:  the GFM extensions, plus how it draws -- `<ui-markdown>`'s attributes map onto these. */
+export type RenderOptions = MarkdownOptions & {
+  /** `ui-*` elements (default) or plain HTML tags. */
+  ui?: boolean
+  /** GitHub slug ids on headings (default on), so `[see](#setup)` links work. */
+  headingIds?: boolean
+  /** Shift every heading's level by this much, clamped to 1-6. */
+  headingOffset?: number
+  /** A line end inside a paragraph is a `<br>` (GitHub comments), not a space. */
+  breaks?: boolean
+}
+
 // ## Spec
 
 /** One GFM spec example, as `src/spec/gfm-spec.json` holds it. */

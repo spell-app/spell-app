@@ -1,53 +1,114 @@
 import { P } from "$/parser"
-import { MD, type Block } from "$/markdown"
+import { MD, type Block, type MarkdownHeading } from "$/markdown"
 
 /**
- * An `MD.Block` tree => `P.Markup`, in PLAIN HTML tags -- what the GFM spec expects.
+ * An `MD.Block` tree => `P.Markup`:  PLAIN HTML tags (what the GFM spec expects), or `ui-*` elements (`ui: true`).
  * - `inline` draws a leaf's text (a paragraph's, a heading's, a table cell's):  inline parsing plugs in there.
  *   Default:  the text, whitespace around line ends tidied (`plainInline()`).
  * - Tight list items draw their paragraphs without `<p>`.
+ * - GitHub's extras, both modes:  task list items (`- [x] done`) and alerts (`> [!NOTE]`).
+ * - SIDE EFFECT:  pushes every heading onto `options.headings`, if given.
  */
-export function renderBlocks(
-  block: Block,
-  inline: InlineRenderer = plainInline,
-  options: { tagfilter?: boolean } = {}
-): P.Markup {
-  const { tagfilter = true } = options
-  return draw(block, false)
+export function renderBlocks(block: Block, inline: InlineRenderer = plainInline, options: BlockOptions = {}): P.Markup {
+  const { tagfilter = true, ui = false, headingIds = false, headingOffset = 0, headings } = options
+  const h = P.render.h
+  const ids = new Map<string, number>()
+  return draw(block, false, false)
 
-  /** `block` as markup;  `tight`:  inside a tight list's item. */
-  function draw(block: Block, tight: boolean): P.Markup {
-    const children = () => block.children.map((child) => draw(child, tight))
+  /** `block` as markup;  `tight`:  inside a tight list's item;  `inOrdered`:  inside an ordered `ui-list`. */
+  function draw(block: Block, tight: boolean, inOrdered: boolean): P.Markup {
+    const children = (childTight = tight) => block.children.map((child) => draw(child, childTight, inOrdered))
     switch (block.kind) {
       case "document":
         return children()
       case "blockquote":
-        return P.render.h("blockquote", {}, ...block.children.map((child) => draw(child, false)))
-      case "list": {
-        const ordered = block.list!.type === "ordered"
-        const start = ordered && block.list!.start !== 1 ? block.list!.start : undefined
-        return P.render.h(ordered ? "ol" : "ul", { start }, ...block.children.map((item) => draw(item, !!block.tight)))
-      }
+        return drawBlockquote(block, inOrdered)
+      case "list":
+        return drawList(block, inOrdered)
       case "item":
-        return P.render.h("li", {}, ...block.children.map((child) => draw(child, tight)))
+        return drawItem(block, tight, inOrdered)
       case "paragraph": {
-        const content = inline(paragraphText(block.lines))
-        return tight ? content : P.render.h("p", {}, content)
+        const content = inline(MD.paragraphText(block.lines))
+        return tight ? content : h("p", {}, content)
       }
       case "heading":
-        return P.render.h(`h${block.level}`, {}, inline(paragraphText(block.lines)))
+        return drawHeading(block)
       case "thematic_break":
-        return P.render.h("hr", {})
+        return ui ? h("ui-divider", {}) : h("hr", {})
       case "code": {
         const language = block.info ? MD.unescapeString(block.info).split(/\s+/)[0] : ""
         const text = block.lines.length ? `${block.lines.join("\n")}\n` : ""
-        return P.render.h("pre", {}, P.render.h("code", { class: language ? `language-${language}` : undefined }, text))
+        // `ui-code` reads its text content;  the copy button, as `<ui-markdown>` gave its code blocks
+        if (ui) return h("ui-code", { language: language || undefined, copy: "" }, text.replace(/\n$/, ""))
+        return h("pre", {}, h("code", { class: language ? `language-${language}` : undefined }, text))
       }
-      case "html":
-        return MD.raw(tagfilter ? MD.tagFilter(block.lines.join("\n")) : block.lines.join("\n"))
+      case "html": {
+        const html = block.lines.join("\n")
+        return MD.raw(tagfilter ? MD.tagFilter(html) : html)
+      }
       case "table":
         return drawTable(block)
     }
+  }
+
+  /** A heading:  its level shifted by `headingOffset` (1-6);  with `headingIds`, GitHub's slug as its id. */
+  function drawHeading(block: Block): P.Markup {
+    const level = Math.min(6, Math.max(1, block.level! + headingOffset))
+    const text = MD.paragraphText(block.lines)
+    const content = inline(text)
+    let id: string | undefined
+    if (headingIds || headings) {
+      const plain = P.render.toText(content)
+      id = headingIds ? MD.uniqueSlug(MD.slug(plain), ids) : undefined
+      headings?.push({ level, text: plain, id: id ?? "" })
+    }
+    return ui ? h("ui-header", { level, id }, content) : h(`h${level}`, { id }, content)
+  }
+
+  /** A quote, or a GitHub alert (`> [!NOTE]` on its first line). */
+  function drawBlockquote(block: Block, inOrdered: boolean): P.Markup {
+    const alert = MD.alertOf(block)
+    const children = (alert?.children ?? block.children).map((child) => draw(child, false, inOrdered))
+    if (!alert) return ui ? h("ui-segment", { secondary: "" }, ...children) : h("blockquote", {}, ...children)
+    const { kind, title } = alert
+    if (ui) {
+      const { state, color, icon } = MD.ALERT_LOOKS[kind]!
+      return h("ui-message", { state, color, icon, header: title }, ...children)
+    }
+    return h(
+      "div",
+      { class: `markdown-alert markdown-alert-${kind}` },
+      h("p", { class: "markdown-alert-title" }, title),
+      ...children
+    )
+  }
+
+  /**
+   * A list.  `ui`:  `ui-list bulleted` / `ordered`, each ordered item numbered by `value` (`ui-list` has no `start`).
+   * - A bullet list inside an ordered `ui-list` stays a plain `<ul>`:  `ui-list` would number it `1.1`.
+   */
+  function drawList(block: Block, inOrdered: boolean): P.Markup {
+    const { type, start = 1 } = block.list!
+    const ordered = type === "ordered"
+    const items = block.children.map((item, i) => {
+      const drawn = draw(item, !!block.tight, inOrdered || (ui && ordered)) as P.MarkupElement
+      if (ui && ordered && drawn.tag === "ui-item") drawn.attrs.value = `${start + i}.`
+      return drawn
+    })
+    if (ui && !(inOrdered && !ordered)) return h("ui-list", { [ordered ? "ordered" : "bulleted"]: "" }, ...items)
+    return h(ordered ? "ol" : "ul", { start: ordered && start !== 1 ? start : undefined }, ...items)
+  }
+
+  /** A list item;  a task item (`[ ]` / `[x]` first) gets a read-only checkbox. */
+  function drawItem(block: Block, tight: boolean, inOrdered: boolean): P.Markup {
+    const task = MD.taskOf(block)
+    const children = (task?.children ?? block.children).map((child) => draw(child, tight, inOrdered))
+    const tag = ui && !(block.parent?.list?.type === "bullet" && inOrdered) ? "ui-item" : "li"
+    if (!task) return h(tag, {}, ...children)
+    const box = ui
+      ? h("ui-checkbox", { readonly: "", checked: task.checked ? "" : undefined })
+      : h("input", { type: "checkbox", disabled: "", checked: task.checked ? "" : undefined })
+    return h(tag, { class: "task-list-item" }, box, " ", ...children)
   }
 
   /** A GFM table:  the header row, then a `<tbody>` when there are body rows;  cells padded / cut to the header's count. */
@@ -55,24 +116,35 @@ export function renderBlocks(
     const align = table.align ?? []
     const row = (line: string, tag: "th" | "td") => {
       const cells = MD.tableCells(line)
-      return P.render.h(
-        "tr",
-        {},
-        ...align.map((columnAlign, i) => P.render.h(tag, { align: columnAlign }, inline(cells[i] ?? "")))
-      )
+      return h("tr", {}, ...align.map((columnAlign, i) => h(tag, { align: columnAlign }, inline(cells[i] ?? ""))))
     }
     const [header, , ...rows] = table.lines
-    return P.render.h(
+    const native = h(
       "table",
       {},
-      P.render.h("thead", {}, row(header!, "th")),
-      rows.length ? P.render.h("tbody", {}, ...rows.map((line) => row(line, "td"))) : null
+      h("thead", {}, row(header!, "th")),
+      rows.length ? h("tbody", {}, ...rows.map((line) => row(line, "td"))) : null
     )
+    return ui ? h("ui-table", { celled: "" }, native) : native
   }
 }
 
 /** Draws a leaf's inline text as markup. */
 export type InlineRenderer = (text: string) => P.Markup
+
+/** How `renderBlocks()` draws. */
+export type BlockOptions = {
+  /** GFM tagfilter on raw HTML blocks (default on). */
+  tagfilter?: boolean
+  /** `ui-*` elements instead of plain tags. */
+  ui?: boolean
+  /** Give headings GitHub's slug ids (`Getting started!` => `getting-started`, repeats numbered). */
+  headingIds?: boolean
+  /** Shift every heading's level by this much, clamped to 1-6. */
+  headingOffset?: number
+  /** Collects every heading, in order:  the outline. */
+  headings?: MarkdownHeading[]
+}
 
 /** A paragraph's lines as one text:  each line's leading spaces gone, the whole trimmed. */
 export function paragraphText(lines: string[]) {
