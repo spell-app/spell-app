@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="../../_assets/spell-doc.css" />
     <link rel="stylesheet" href="../../_assets/plan-doc.css" />
   </head>
-  <body data-recent-since="2026-10-04T12:34:30-04:00" class="spell-doc-page plan-doc" data-plan="review-review">
+  <body data-recent-since="2026-10-04T14:13:40-04:00" class="spell-doc-page plan-doc" data-plan="review-review">
     <spell-site-header root="../../../.."></spell-site-header>
     <div class="spell-doc">
       <main class="spell-doc-main">
@@ -25,8 +25,8 @@
           ><header class="spell-page-head">
             <h1>Epic: Review Review</h1>
             <span class="plan-step"
-              ><ui-label basic color="grey" icon="circle right" href="#p5" title="Next:  P5 · Item Actions"
-                >P5</ui-label
+              ><ui-label basic color="grey" icon="circle right" href="#p6" title="Next:  P6 · Claude Side"
+                >P6</ui-label
               ></span
             >
           </header></ui-sticky
@@ -189,7 +189,7 @@
               </blockquote></ui-content
             ></ui-accordion
           >
-          <p class="plan-estimate"><b>Estimate:</b> 20h-29h in all, 11h-16h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 20h-29h in all, 8h-12h left</p>
           <ui-section id="o1" header="1.1 The new review loop" sticky collapsible dividing>
             <p>What a review looks like once this epic is done, step by step:</p>
             <ol>
@@ -385,7 +385,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="4" total="10" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="5" total="10" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -739,6 +739,7 @@
             >
           </ui-section>
           <ui-section
+            collapsed
             badge="2-3h"
             id="p4"
             data-phase="4"
@@ -798,6 +799,20 @@
                   <li>Durable docs start with one standard "Plan doc" link; plan docs link their durable doc.</li>
                   <li>Closed and decided items keep their old wording: P8 rewrites those.</li>
                 </ul></ui-item
+              ><ui-item icon="code branch" class="plan-commits"
+                ><b>Commits:</b>
+                <ul class="plan-commit-list">
+                  <li data-sha="7b48bdf3e46dbd6d6454d14c44b3b938e91a15f0">
+                    <a
+                      class="plan-commit"
+                      href="https://github.com/spell-app/spell-app/commit/7b48bdf3e46dbd6d6454d14c44b3b938e91a15f0"
+                      target="github"
+                      >7b48bdf</a
+                    >
+                    plan docs as &lt;name&gt;.plan.html, decisions inside their questions, every doc migrated, open
+                    items rewritten
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b>
                 <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
@@ -834,13 +849,13 @@
             badge="3-4h"
             id="p5"
             data-phase="5"
-            data-status="todo"
+            data-status="done"
             header="P5 · Item Actions"
             sticky
             collapsible
             dividing
           >
-            <ui-icon slot="icon" name="circle outline" color="grey"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
                 ><b>Goal:</b>
@@ -856,9 +871,51 @@
                     reloads, kept in an inbox file beside the doc (<a href="#d1">D1</a>).
                   </li>
                 </ul></ui-item
+              ><ui-item icon="circle check"
+                ><b>Done:</b>
+                <ul>
+                  <li>
+                    Where to see it: every item's line ends in a round ellipsis button; its menu offers Approve (green),
+                    Add to todo (violet), Add Details (blue), Revisit (orange) and Clear. The button takes the mark's
+                    color: filled while unsent, outlined once sent. Nothing scrolls.
+                  </li>
+                  <li>
+                    Revisit opens a note box under the item, a grey check ("soon") over a blue send ("now"); an unsaved
+                    note survives a reload.
+                  </li>
+                  <li>
+                    Open questions' option cards get a "Choose" pill: the pick frames the card orange and shows its
+                    letter on the item's button.
+                  </li>
+                  <li>
+                    The page header's round paper plane turns blue while marks wait to be sent; a click hands them over.
+                    Add Details and "revisit now" don't wait for it.
+                  </li>
+                  <li>
+                    With no Claude session reviewing the doc, a notice says the mark waits for the next
+                    <code>/epic review</code> (D6). Claude acting on the marks is P6.
+                  </li>
+                  <li>
+                    The marks live in <code>epics/&lt;name&gt;/&lt;name&gt;.inbox.json</code> (git-ignored, J22),
+                    through the page server's <code>/api/review/...</code> routes;
+                    <code>yarn plan-doc inbox &lt;name&gt;</code> shows them.
+                  </li>
+                  <li>
+                    Also built: <code>&lt;ui-sections collapsing&gt;</code> in
+                    <a href="../../../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a>
+                    (T2): every section inside folds, folded ones touch. Not yet used in plan docs.
+                  </li>
+                  <li>
+                    Not tried by hand in VS Code yet: V10-V13 (menu near the bottom of the side bar, Revisit draft after
+                    a reload, Choose then send, keyboard).
+                  </li>
+                </ul></ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b> new <code>_assets/review.js</code> and css, new
-                <code>scripts/reviewRoutes.ts</code> (registered in the root
+                <a href="../../scripts/reviewRoutes.ts" target="src-packages-docs-scripts-reviewroutes-ts"
+                  ><code>scripts/reviewRoutes.ts</code></a
+                >
+                (registered in the root
                 <a href="../../../../package.json" target="src-package-json"><code>package.json</code></a
                 >),
                 <a href="../../scripts/plan-doc.js" target="src-packages-docs-scripts-plan-doc-js"
@@ -867,6 +924,12 @@
                 (<code>inbox</code>)</ui-item
               ><ui-item icon="flask"
                 ><b>Verify:</b> Route tests; Playwright clicks through the menu; marks survive a live reload</ui-item
+              ><ui-item icon="list check" class="plan-to-review"
+                ><b>To review:</b> <a href="#j22">J22</a>, <a href="#j23">J23</a>, <a href="#j24">J24</a>,
+                <a href="#j25">J25</a>, <a href="#j26">J26</a>, <a href="#j27">J27</a>, <a href="#j28">J28</a>,
+                <a href="#j29">J29</a>, <a href="#j30">J30</a>, <a href="#j31">J31</a>, <a href="#j32">J32</a>,
+                <a href="#c7">C7</a>, <a href="#v10">V10</a>, <a href="#v11">V11</a>, <a href="#v12">V12</a>,
+                <a href="#v13">V13</a></ui-item
               ></ui-list
             >
           </ui-section>
@@ -2500,6 +2563,475 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T17:07:53-04:00"
+              id="j22"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j22">J22</a>
+                  <span class="plan-title">Review inboxes are git-ignored, not committed</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Each plan doc's inbox (<code>epics/&lt;name&gt;/&lt;name&gt;.inbox.json</code>, where your page
+                    marks wait for Claude) is ignored by git (<a href="../../../../.gitignore" target="src-gitignore"
+                      ><code>.gitignore</code></a
+                    >: <code>packages/docs/epics/*/*.inbox.json*</code>, its lock and temp file too).
+                  </p>
+                  <ul>
+                    <li>
+                      It is hand-off state, not the record: what Claude makes of a mark (an approval, a todo, a picked
+                      option) is written into the plan doc, which is committed.
+                    </li>
+                    <li>
+                      It changes on every click (marks, <code>sent</code>, <code>working</code>,
+                      <code>listening</code>): committed, every click would show in Source Control and conflict on
+                      merges.
+                    </li>
+                    <li>Same call as scratch details pages and their answers (ignored).</li>
+                    <li>
+                      Rejected: committing it, so pending marks travel with the branch. They rarely outlive a session:
+                      P6 deletes marks as it applies them.
+                    </li>
+                  </ul>
+                  <p>
+                    Example: you approve J3 and pick B on Q8, then close VS Code. The marks stay in
+                    <a
+                      href="review-review.inbox.json"
+                      target="src-packages-docs-epics-review-review-review-review-inbox-json"
+                      ><code>review-review.inbox.json</code></a
+                    >
+                    on this machine for the next <code>/epic review</code>; <code>git status</code> never shows the
+                    file.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>No inbox noise in commits or Source Control.</li>
+                    <li>
+                      Marks not yet applied are lost if the worktree is removed: P6's clean-up (<code
+                        >/isolate done</code
+                      >, worktree remove) should check <code>yarn plan-doc inbox &lt;name&gt;</code> first.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T17:07:54-04:00"
+              id="j23"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j23">J23</a>
+                  <span class="plan-title"
+                    >Add Details and revisit now never count as unsent; inbox times to the millisecond</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The send button counts only marks that wait for "send to Claude". An immediate request (Add Details,
+                    revisit now) is handed over the moment you click it (the inbox's <code>now</code> queue), so it
+                    never counts as unsent, even though its mark is newer than the last send.
+                  </p>
+                  <ul>
+                    <li>
+                      The contract said "marks newer than <code>sent</code> are unsent", with no exception. Taken
+                      literally, clicking Add Details would turn the send button blue ("Send 1 mark to Claude") for a
+                      request Claude already has.
+                    </li>
+                    <li>
+                      One helper decides it:
+                      <a href="../../scripts/inbox.js" target="src-packages-docs-scripts-inbox-js"
+                        ><code>inbox.js</code></a
+                      >
+                      <code>unsentMarks()</code> (and <code>isImmediate()</code>); <code>yarn plan-doc inbox</code> uses
+                      it. The page should count the same way.
+                    </li>
+                    <li>
+                      Times in the inbox (<code>at</code>, <code>sent</code>, <code>since</code>) carry milliseconds:
+                      <code>2026-10-04T17:07:20.473-04:00</code>. To the second, a mark made in the same second as a
+                      send would pass for sent.
+                    </li>
+                  </ul>
+                  <p>
+                    Example: you approve J3, click Add Details on I2, then pick B on Q8. The send button says "Send 2
+                    marks" (J3, Q8); I2 shows its spinner instead.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>The send button turns blue only for marks a send would actually deliver.</li>
+                    <li>Times are still ISO with an offset: <code>Date.parse()</code> reads them as before.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T17:07:55-04:00"
+              id="j24"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j24">J24</a>
+                  <span class="plan-title">The inbox file comes and goes; one queued request per item</span> </ui-title
+                ><ui-content
+                  ><p>
+                    Three small rules for the inbox file (<a
+                      href="../../scripts/inbox.js"
+                      target="src-packages-docs-scripts-inbox-js"
+                      ><code>scripts/inbox.js</code></a
+                    >) the contract left open.
+                  </p>
+                  <ul>
+                    <li>
+                      The file is deleted once nothing is in it (no marks, no <code>now</code> requests, no agents at
+                      work, nobody listening): "absent until the first mark" holds both ways.
+                    </li>
+                    <li>
+                      Clicking Add Details (or revisit now) twice on one item queues ONE request: the second replaces
+                      the first, with its newer note.
+                    </li>
+                    <li>
+                      Changing an item's immediate mark to one that waits for a send (revisit now, then revisit soon),
+                      or clearing it, drops its queued request: you changed your mind before Claude took it.
+                    </li>
+                    <li>
+                      Marks may only name items of that plan doc: <code>&lt;ui-item&gt;</code>s with an id and a status,
+                      read from the doc on each request (a phase like <code>p1</code> is a 400).
+                    </li>
+                  </ul>
+                  <p>
+                    Example: revisit now on T1 with "what else?", then Clear before Claude starts: the mark and the
+                    queued request both go, and with nothing else marked the file is deleted.
+                  </p>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>No stale empty inbox files beside plan docs; no duplicate agents from a double click.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T17:14:32-04:00"
+              id="j25"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j25">J25</a>
+                  <span class="plan-title"
+                    >T2: a section opts out of a collapsing group with collapsible="false"</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Inside <code>&lt;ui-sections collapsing&gt;</code> every section folds by default; one that must not
+                    fold says so with the attribute it already has, set to <code>"false"</code>, not with a new word.
+                  </p>
+                  <ul>
+                    <li>
+                      Why: the library reads <code>"false"</code> / <code>"no"</code> as false on every boolean (Vue
+                      writes <code>open="false"</code>), and <code>&lt;ui-modal closable="false"</code> already turns
+                      off a default this way. A new word (<code>static</code>, <code>fixed</code>) would be one more
+                      name to learn for one case.
+                    </li>
+                    <li>
+                      The section tells "absent" (take the group default) from <code>"false"</code> (off) by reading the
+                      raw attribute; a section without the attribute takes the NEAREST group default, at any depth.
+                    </li>
+                    <li>
+                      Sub-sections of an opted-out section still follow the group: the opt-out is for that one section,
+                      not its subtree.
+                    </li>
+                    <li>
+                      Catch: from code, <code>section.collapsible = false</code> REMOVES the attribute (booleans never
+                      reflect as <code>"false"</code>), which brings the group default back; use
+                      <code>setAttribute("collapsible", "false")</code>. Noted in the code.
+                    </li>
+                  </ul>
+                  <pre><code class="language-html">&lt;ui-sections collapsing&gt;
+  &lt;ui-section header="Install"&gt;...&lt;/ui-section&gt;                          &lt;!-- folds --&gt;
+  &lt;ui-section header="Changelog" collapsible="false"&gt;...&lt;/ui-section&gt;  &lt;!-- never folds --&gt;
+&lt;/ui-sections&gt;</code></pre>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>No new attribute name; <code>collapsible</code> means the same everywhere.</li>
+                    <li>Opting out from JS needs <code>setAttribute</code>, not the property.</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T17:15:20-04:00"
+              id="j26"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j26">J26</a>
+                  <span class="plan-title"
+                    >T2: an open section in a collapsing group sits flush under the title above, with its space
+                    below</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    In a collapsing group, an OPEN section sits flush under the title above it and keeps its usual space
+                    (1.5em, <code>--ui-section-margin</code>) only BELOW its content.
+                  </p>
+                  <ul>
+                    <li>Folded next to folded: no space at all, so a run of folded titles reads as one accordion.</li>
+                    <li>
+                      Open after folded: no space above its title, so a title never jumps down under the pointer when it
+                      is clicked open; only what is below it moves.
+                    </li>
+                    <li>
+                      After an open one (folded or open): the usual 1.5em, so its content ends with breathing room.
+                    </li>
+                    <li>
+                      A section that can't fold (<code>collapsible="false"</code>) keeps its normal space on both sides.
+                    </li>
+                    <li>
+                      Boxes (<code>bordered</code>, <code>styled</code>) overlap by the border width, so two stacked
+                      boxes draw one line, not two. Each box keeps its own rounded corners and shadow: stacked styled
+                      sections look like touching cards, not one accordion box with square inner corners.
+                    </li>
+                    <li>
+                      The other way: space on BOTH sides of an open section (symmetric, but the clicked title moves down
+                      1.5em); or no space at all, open or folded (a pure accordion).
+                    </li>
+                  </ul>
+                  <pre><code class="language-html">&lt;ui-sections collapsing&gt;
+  &lt;ui-section header="Overview" collapsed&gt;...&lt;/ui-section&gt;   &lt;!-- folded:  touching --&gt;
+  &lt;ui-section header="Install" collapsed&gt;...&lt;/ui-section&gt;
+  &lt;ui-section header="Configure"&gt;...&lt;/ui-section&gt;            &lt;!-- open:  flush above, 1.5em below --&gt;
+  &lt;ui-section header="Deploy" collapsed&gt;...&lt;/ui-section&gt;
+&lt;/ui-sections&gt;</code></pre>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>Opening a section never moves its own title.</li>
+                    <li>An open section's content is separated from the next title, not from its own.</li>
+                    <li>Stacked styled sections are touching cards with one shared edge.</li>
+                  </ul>
+                </ui-content></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T17:15:21-04:00"
+              id="j27"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j27">J27</a>
+                  <span class="plan-title"
+                    >T2: plain &lt;ui-sections&gt; changes nothing in its sections; the nearest group decides</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    A plain <code>&lt;ui-sections&gt;</code> (no <code>collapsing</code>) changes nothing in its
+                    sections: it is a block spaced as one section would be, and the nearest group always decides the
+                    default.
+                  </p>
+                  <ul>
+                    <li>
+                      Spacing: the group takes a section's margin (1.5em, 0 when first / last in its parent), so a group
+                      after a paragraph keeps the same gap a lone section would.
+                    </li>
+                    <li>
+                      Nearest wins: a plain group inside a collapsing one turns the default OFF for the sections in it
+                      (JS and CSS both read the nearest group).
+                    </li>
+                    <li>
+                      Levels and sticky stacks carry through a group: a section in a group in a section is still nested
+                      (h3 under an h2).
+                    </li>
+                    <li>
+                      No other attributes for now (no <code>collapsed</code> to start every section folded, no exclusive
+                      "one open at a time"); easy to add if wanted.
+                    </li>
+                  </ul>
+                  <pre><code class="language-html">&lt;ui-sections collapsing&gt;
+  &lt;ui-section header="A"&gt;                    &lt;!-- folds --&gt;
+    &lt;ui-sections&gt;
+      &lt;ui-section header="B"&gt;...&lt;/ui-section&gt;  &lt;!-- doesn't:  the plain group is nearer --&gt;
+    &lt;/ui-sections&gt;
+  &lt;/ui-section&gt;
+&lt;/ui-sections&gt;</code></pre>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>Wrapping sections in a plain group is safe: nothing about them changes.</li>
+                    <li>The plain group is how to switch the default off for one subtree.</li>
+                  </ul>
+                </ui-content></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T17:16:20-04:00"
+              id="j28"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j28">J28</a>
+                  <span class="plan-title"
+                    >A pick shows on its item's button as the letter, in Revisit's orange</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Picking an option card marks the whole item (one mark per item), so its ellipsis button changes too:
+                    an orange circle showing the letter, instead of a fifth color.
+                  </p>
+                  <ul>
+                    <li>Orange matches the picked card's frame (the contract's "picked, not yet sent" orange).</li>
+                    <li>
+                      Revisit is orange too: the letter, and the tooltip ("Picked B" vs "Revisit soon"), tell them
+                      apart.
+                    </li>
+                    <li>
+                      Example: choose B on Q7, and Q7's line ends in an orange <b>B</b> instead of the grey ellipsis.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>picks read at a glance on the item line, even with the card folded</li>
+                    <li>if you'd rather picks had their own color (teal), it's one CSS line</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T17:16:36-04:00"
+              id="j29"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j29">J29</a>
+                  <span class="plan-title">Marks already with Claude show outlined, unsent ones filled</span> </ui-title
+                ><ui-content
+                  ><p>
+                    An item's button is FILLED in its action's color while the mark waits for Send, and OUTLINED (a ring
+                    in that color) once Claude has it, the same rule as the page header's send button.
+                  </p>
+                  <ul>
+                    <li>Sent: made before the last Send to Claude.</li>
+                    <li>
+                      Add Details and revisit now count as sent at once: they go straight to the now queue, so they
+                      never turn the send button blue (as the store's <code>unsentMarks()</code> counts).
+                    </li>
+                    <li>
+                      Example: approve J1 (green, filled), press Send: J1's button becomes a green ring; Add Details on
+                      J5 is a blue ring straight away.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>you can see which marks still need a Send without opening anything</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T17:16:37-04:00"
+              id="j30"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j30">J30</a>
+                  <span class="plan-title"
+                    >The ellipsis keeps a fixed spot at the end of the item's line</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The button is placed at the far right of the line, in room the line keeps free for it, rather than
+                    as one more item among the labels.
+                  </p>
+                  <ul>
+                    <li>
+                      As one of the extras, it would wrap to a row of its own with the labels on a narrow side bar.
+                    </li>
+                    <li>
+                      Placed this way, it stays on the title's row at every width, and a long title wraps beside it,
+                      never under it.
+                    </li>
+                    <li>The room grows by one spinner's width while Claude works on the item.</li>
+                    <li>
+                      Example: at 280px, J1's three-line title wraps in its column, its button centred at the right.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>every button lines up in one column down the right edge, whatever the width</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T17:16:39-04:00"
+              id="j31"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j31">J31</a>
+                  <span class="plan-title"
+                    >What an item can't show goes in a notice at the bottom of the window</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Messages with no natural home on the item (nobody listening, a save that failed, Send with nothing
+                    to send) show for six seconds in a dark line at the bottom of the window.
+                  </p>
+                  <ul>
+                    <li>Fixed in the window: it never pushes the page or scrolls it.</li>
+                    <li>
+                      No session listening (D6): the notice after Add Details or revisit now, the tooltips of those
+                      actions and of Send, and a still, dashed ring beside the item's button while its request waits in
+                      the queue.
+                    </li>
+                    <li>
+                      Example: Add Details on J5 with no /epic review running: "No Claude session is reviewing this doc:
+                      this waits for the next /epic review", and a dashed ring beside J5's blue button.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>you're told once, where you're looking, and the item keeps showing it's waiting</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="attention"
+              data-changed="2026-10-04T17:16:40-04:00"
+              id="j32"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#j32">J32</a>
+                  <span class="plan-title"
+                    >A Revisit note you haven't saved reopens its box after a reload</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The note is kept as you type (in the browser, per page and item); after a reload, every item with an
+                    unsaved note opens its box again with the text.
+                  </p>
+                  <ul>
+                    <li>
+                      Escape closes the box and keeps the note; the check or send button saves it and forgets the draft;
+                      Clear in the menu drops both.
+                    </li>
+                    <li>Example: start typing on J3, VS Code restarts: J3's box is open again with your text.</li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>a half-written question is never lost, and never sent until you press a button</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -2626,6 +3158,49 @@
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
+            ><ui-item
+              data-state="open"
+              data-changed="2026-10-04T17:15:23-04:00"
+              id="c7"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c7">C7</a>
+                  <span class="plan-title"
+                    >T2: &lt;ui-sections&gt; is not in the docs bundle until it is rebuilt</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The docs bundle (<a href="../../_assets/spell-ui.js" target="src-packages-docs-assets-spell-ui-js"
+                      ><code>packages/docs/_assets/spell-ui.js</code></a
+                    >) does not have <code>&lt;ui-sections&gt;</code> yet: it was built in
+                    <a href="../../../ui/" target="src-packages-ui"><code>packages/ui</code></a> only, and
+                    <code>yarn build</code> ran there last, for the bundle rebuild.
+                  </p>
+                  <ul>
+                    <li>
+                      Plan docs and docs pages can use it once
+                      <a href="../../scripts/bundle-spell-ui.js" target="src-packages-docs-scripts-bundle-spell-ui-js"
+                        ><code>scripts/bundle-spell-ui.js</code></a
+                      >
+                      runs again.
+                    </li>
+                    <li>
+                      Visual baselines for the new <code>groups</code> example exist for <code>local-darwin</code> only
+                      (chromium, firefox, webkit); <code>linux</code> waits on Docker, as for every family.
+                    </li>
+                    <li>
+                      Using it in plan docs (the phases list, or every section) is a separate decision (T2's follow-up).
+                    </li>
+                  </ul>
+                  <pre><code class="language-html">&lt;ui-sections collapsing&gt; ... &lt;/ui-sections&gt;</code></pre>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>Rebuild the docs bundle before any doc uses the tag.</li>
+                  </ul>
+                </ui-content></ui-accordion
+              ></ui-item
             ></ui-list
           >
         </ui-section>
@@ -2677,6 +3252,47 @@
                   <p><b>Net effect:</b></p>
                   <ul>
                     <li>the Review tab becomes a small review app: pick an epic, see what's pending, open the doc</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="recent"
+              data-changed="2026-10-04T17:18:32-04:00"
+              id="t2"
+              data-status="done"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t2">T2</a>
+                  <span class="plan-title"
+                    >A &lt;ui-sections collapsing&gt; container: folded sections stacked with no space between</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Owen, 2026-10-04: a new @spell-app/ui element that holds a run of sections which fold, packed tight.
+                  </p>
+                  <ul>
+                    <li>
+                      <code>&lt;ui-sections collapsing&gt;</code> around a run of <code>&lt;ui-section&gt;</code>s:
+                      every section in it folds, and folded ones stack with no space between them (an accordion's look,
+                      with sections' sticky titles).
+                    </li>
+                    <li>
+                      The sections under it, sub-sections included, take collapsing from the parent by default: no
+                      <code>collapsible</code> on each one.
+                    </li>
+                    <li>
+                      Built in <a href="../../../ui/" target="src-packages-ui"><code>packages/ui</code></a> by its own
+                      agent during P5; using it in plan docs (e.g. the phases list, or every section) is a follow-up to
+                      decide.
+                    </li>
+                  </ul>
+                  <p><b>Net effect:</b></p>
+                  <ul>
+                    <li>
+                      a page can write <code>&lt;ui-sections collapsing&gt;</code> once instead of
+                      <code>collapsible</code> on every section, and folded sections no longer leave gaps
+                    </li>
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
@@ -3009,6 +3625,83 @@
                       redirect while the old file exists.
                     </li>
                   </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="open"
+              data-changed="2026-10-04T17:16:49-04:00"
+              id="v10"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v10">V10</a>
+                  <span class="plan-title"
+                    >In the Review side bar, open an item's ... menu near the bottom of the view, then pick
+                    Approve</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    The menu opens above the button (no room below), nothing scrolls; the button turns filled green and
+                    the send button in the page header turns blue.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="open"
+              data-changed="2026-10-04T17:16:50-04:00"
+              id="v11"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v11">V11</a>
+                  <span class="plan-title">Revisit an item, type a note, then reload the side bar view</span> </ui-title
+                ><ui-content
+                  ><p>
+                    The box is open again with your note. The grey check saves it (orange button); the blue send asks
+                    for it now (spinner, then the dashed ring and the 'No Claude session' notice while no /epic review
+                    runs).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="open"
+              data-changed="2026-10-04T17:16:52-04:00"
+              id="v12"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v12">V12</a>
+                  <span class="plan-title"
+                    >Choose an option on an open question's card, then press the paper plane</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Choose turns to Chosen and the card is framed orange, without unfolding it; the item's button shows
+                    the letter. After the paper plane: it's an outlined blue ring, tooltip 'Sent: waiting for Claude',
+                    and the item buttons become rings.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item
+              data-state="open"
+              data-changed="2026-10-04T17:16:54-04:00"
+              id="v13"
+              data-status="open"
+              data-phase="5"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v13">V13</a>
+                  <span class="plan-title"
+                    >Keyboard: Tab to an item's ... button, Enter, arrow keys, Escape</span
+                  > </ui-title
+                ><ui-content
+                  ><p>
+                    Enter opens the menu with its first (or current) row focused and the item stays folded; arrows move
+                    between rows; Escape closes it and focus returns to the button.
+                  </p></ui-content
                 ></ui-accordion
               ></ui-item
             ></ui-list
@@ -3554,6 +4247,43 @@
                   .plan.html rename, decisions merged into questions in every doc, every doc migrated and its open items
                   rewritten (4 agents), canceled status; checks: docs scripts 112, plan-doc check on 14 docs,
                   docs:update (every page's browser check) ok</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:32-04:00">2026-10-04 16:32</time></ui-date> P4 merged into
+                  main (5fbf19b8); main's page server restarted (old plan-doc URLs redirect)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T16:58-04:00">2026-10-04 16:58</time></ui-date> P5
+                  active</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T17:18-04:00">2026-10-04 17:18</time></ui-date> P5
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T17:18-04:00">2026-10-04 17:18</time></ui-date> T2 closed: A
+                  &lt;ui-sections collapsing&gt; container: folded sections stacked with no space between</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T17:18-04:00">2026-10-04 17:18</time></ui-date> P5 done: item
+                  action menus, Revisit box, Choose pills, send-to-Claude button, the review inbox and its routes,
+                  &lt;ui-sections collapsing&gt;; checks: docs scripts 138, ui 4571 browser + 218 server, check-spell,
+                  check-live, check-review ok</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

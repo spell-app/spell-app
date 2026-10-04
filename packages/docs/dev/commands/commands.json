@@ -1254,6 +1254,27 @@
           "target": "(R1) `spell dev plan-doc summary --json`;  /epic /wtf /bedtime read it"
         },
         {
+          "op": "Show a plan doc's review inbox",
+          "cli": {
+            "mark": "same",
+            "names": ["spell plan-doc"],
+            "note": "`inbox`"
+          },
+          "skill": {
+            "mark": "other",
+            "names": ["/epic"],
+            "note": "`review`:  the marks Owen left on the page"
+          },
+          "yarn": {
+            "mark": "same",
+            "names": ["root plan-doc", "docs plan-doc"],
+            "note": "`inbox [--json]`"
+          },
+          "runs": "`packages/docs/scripts/plan-doc.js inbox` (reads `scripts/inbox.js`'s `<name>.inbox.json`)",
+          "notes": "The page writes the inbox through the page server (`scripts/reviewRoutes.ts`);  `wait | apply | clear` come with P6 of `review-review`.",
+          "target": "(R1) `spell dev plan-doc inbox --json`;  /epic review reads it"
+        },
+        {
           "op": "Check a plan doc",
           "cli": {
             "mark": "same",
