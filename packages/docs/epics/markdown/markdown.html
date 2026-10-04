@@ -25,9 +25,7 @@
           ><header class="spell-page-head">
             <h1>Markdown on the parser</h1>
             <span class="plan-step"
-              ><ui-label basic color="orange" icon="circle half stroke" href="#p2"
-                >P2 · Rulex &amp; Tokenizer</ui-label
-              ></span
+              ><ui-label basic color="grey" icon="circle outline" href="#p3">next: P3 · Block Structure</ui-label></span
             >
           </header></ui-sticky
         >
@@ -84,11 +82,13 @@
               preview editor); scope = useful GFM subset first.
             </p>
           </blockquote>
-          <p class="plan-estimate"><b>Estimate:</b> 27h-40h in all, 25h-37h left</p>
+          <p class="plan-estimate"><b>Estimate:</b> 27h-40h in all, 20h-30h left</p>
           <ui-section id="o1" header="1.1 Shape" sticky collapsible dividing collapsed>
             <p>
-              New package <code>packages/markdown</code> (<code>@spell-app/markdown</code>, <code>$/markdown</code>,
-              <code>MD</code>) -- see <a href="#q1">Q1</a>. Depends on <code>parser</code> + <code>util</code> only.
+              New package
+              <a href="../../../markdown/" target="src-packages-markdown"><code>packages/markdown</code></a>
+              (<code>@spell-app/markdown</code>, <code>$/markdown</code>, <code>MD</code>) -- see <a href="#q1">Q1</a>.
+              Depends on <code>parser</code> + <code>util</code> only.
             </p>
             <ui-steps class="spell-steps" ordered>
               <ui-step
@@ -210,7 +210,8 @@
             <ul>
               <li>
                 Corpus: GFM spec examples (cmark-gfm <code>spec.txt</code>, ~670), vendored as JSON fixtures in
-                <code>packages/markdown</code>.
+                <a href="../../../markdown/" target="src-packages-markdown"><code>packages/markdown</code></a
+                >.
               </li>
               <li>
                 Pass rate per spec section, pinned in a snapshot: a regression fails the test, a gain updates it. No
@@ -252,7 +253,7 @@
 
         <ui-section id="phases" header="2. Phases" sticky collapsible dividing collapsed>
           <ui-icon slot="icon" name="layer group"></ui-icon>
-          <ui-progress class="plan-progress" value="1" total="9" bar-text="ratio" size="small" color="green"
+          <ui-progress class="plan-progress" value="2" total="9" bar-text="ratio" size="small" color="green"
             >phases done</ui-progress
           >
 
@@ -304,14 +305,14 @@
           <ui-section
             id="p2"
             data-phase="2"
-            data-status="active"
+            data-status="done"
             header="P2 · Rulex & Tokenizer"
             sticky
             collapsible
             dividing
             collapsed
           >
-            <ui-icon slot="icon" name="circle half stroke" color="orange"></ui-icon>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
 
             <ui-list class="plan-phase-body"
               ><ui-item icon="bullseye"
@@ -330,11 +331,13 @@
                   <li><code>toRulexSyntax()</code> escapes, and keeps the spacing (<a href="#d14">D14</a>)</li>
                   <li><code>Tokenizer</code> arrow fields -&gt; methods, so a subclass can override</li>
                 </ol>
-                Then <code>packages/markdown</code> workspace + alias;
-                <code>MD.MarkdownTokenizer</code> (<code>WhitespacePolicy.LEADING_ONLY</code>, so <code>\s</code> sees
-                each token's whitespace; Unicode words; each punctuation char its own <code>SymbolToken</code>; no
-                quotes / comments / JSX / numbers; backslash escapes; <code>\r\n</code> normalised; no
-                <code>¬</code>/<code>∆</code> rewrite); GFM spec harness. Rulex doc updated with each change.</ui-item
+                Then
+                <a href="../../../markdown/" target="src-packages-markdown"><code>packages/markdown</code></a> workspace
+                + alias; <code>MD.MarkdownTokenizer</code> (<code>WhitespacePolicy.LEADING_ONLY</code>, so
+                <code>\s</code> sees each token's whitespace; Unicode words; each punctuation char its own
+                <code>SymbolToken</code>; no quotes / comments / JSX / numbers; backslash escapes;
+                <code>\r\n</code> normalised; no <code>¬</code>/<code>∆</code> rewrite); GFM spec harness. Rulex doc
+                updated with each change.</ui-item
               ><ui-item icon="folder"
                 ><b>Files:</b>
                 <a href="../../../parser/src/rulex/" target="src-packages-parser-src-rulex"
@@ -344,9 +347,18 @@
                   ><code>packages/parser/src/rules/</code></a
                 >
                 (<code>Literals</code>, <code>Sequence</code>, <code>Repeat</code>), spell rules that gain a space;
-                <code>packages/markdown/</code> (package.json, tsconfig, vitest config, AGENTS.md,
+                <a href="../../../markdown/" target="src-packages-markdown"><code>packages/markdown/</code></a>
+                (package.json, tsconfig, vitest config, AGENTS.md,
                 <a href="../../../ui/src/index.ts" target="src-packages-ui-src-index-ts"><code>src/index.ts</code></a
-                >, <code>MarkdownTokenizer.ts</code>, <code>markdown.types.ts</code>, <code>spec/</code>);
+                >,
+                <a
+                  href="../../../markdown/src/MarkdownTokenizer.ts"
+                  target="src-packages-markdown-src-markdowntokenizer-ts"
+                  ><code>MarkdownTokenizer.ts</code></a
+                >,
+                <a href="../../../markdown/src/markdown.types.ts" target="src-packages-markdown-src-markdown-types-ts"
+                  ><code>markdown.types.ts</code></a
+                >, <code>spec/</code>);
                 <a href="../../rulex/rulex.html" target="src-packages-docs-rulex-rulex-html"
                   ><code>packages/docs/rulex/rulex.html</code></a
                 >;
@@ -364,6 +376,7 @@
                 ><b>Verify:</b> Tokenizer unit tests; parser + spell tests green;
                 <code>SP.spellParser.speedTest()</code> diff AND HEAD; spec harness runs (0% pass, by section,
                 snapshot)</ui-item
+              ><ui-item icon="compass"><b>Judgement calls:</b> <a href="#j1">J1</a> <a href="#j2">J2</a></ui-item
               ><ui-item icon="clock"><b>Estimate:</b> 5-7h</ui-item></ui-list
             >
           </ui-section>
@@ -593,8 +606,9 @@
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#q10">Q10</a>
-                  <span class="plan-title">Round trip: should toRulexSyntax() print spacing as written?</span>
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                  <span class="plan-title"
+                    >Round trip: should toRulexSyntax() print spacing as written?</span
+                  > </ui-title
                 ><ui-content
                   ><p>
                     After P2.3 a rule knows its spacing, but printing it back as syntax drops it:
@@ -620,7 +634,8 @@
                       ><ui-segment
                         ><ui-label attached="top">New package (recommended)</ui-label>
                         <p>
-                          <code>packages/markdown</code>, <code>$/markdown</code>, <code>MD</code>. Own
+                          <a href="../../../markdown/" target="src-packages-markdown"><code>packages/markdown</code></a
+                          >, <code>$/markdown</code>, <code>MD</code>. Own
                           <a href="../../../../AGENTS.md" target="src-agents-md"><code>AGENTS.md</code></a
                           >, tests, spec fixtures.
                         </p>
@@ -1321,8 +1336,7 @@
                   ><a class="plan-id" href="#d21">D21</a>
                   <span class="plan-title"
                     >P2.1 diff: RulexTokenizer (plain, digits-only) + Tokenizer.rewriteFixtureChars</span
-                  >
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                  > </ui-title
                 ><ui-content
                   ><p>Review gate (<a href="#d7">D7</a>) for <a href="#d19">D19</a> + <a href="#d20">D20</a>.</p>
                   <ul>
@@ -1354,8 +1368,9 @@
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#d22">D22</a>
-                  <span class="plan-title">P2.2 diff: RulexParser.compile() throws on leftover syntax tokens</span>
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                  <span class="plan-title"
+                    >P2.2 diff: RulexParser.compile() throws on leftover syntax tokens</span
+                  > </ui-title
                 ><ui-content
                   ><p>
                     Review gate (<a href="#d7">D7</a>) for <a href="#d12">D12</a>. <code>RulexParser.compile()</code>:
@@ -1373,8 +1388,7 @@
                   ><a class="plan-id" href="#d23">D23</a>
                   <span class="plan-title"
                     >P2.2b diff: unescaped [ { ( only open a list / subrule / choice (fixes I5)</span
-                  >
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                  > </ui-title
                 ><ui-content
                   ><p>
                     Owen: fix I5 next. Review gate (<a href="#d7">D7</a>). <code>symbolRule</code>'s unescaped branch
@@ -1390,8 +1404,7 @@
                 ><ui-title
                   ><a class="plan-id" href="#q9">Q9</a>
                   <span class="plan-title">Spacing as written: how do a repeat's copies space?</span>
-                  <a class="plan-answer" href="#d24">→ D24</a>
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                  <a class="plan-answer" href="#d24">→ D24</a> </ui-title
                 ><ui-content
                   ><p>
                     Found designing P2.3. The rulex doc said a repeat's copies follow the spacing written after the
@@ -1449,8 +1462,7 @@
                   <span class="plan-title"
                     >A: a repeated SYMBOL's copies touch unless a space before the flag; other repeats space freely.
                     {space} / {spaces} replace \s (<a href="#q9">Q9</a>)</span
-                  >
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                  > </ui-title
                 ><ui-content
                   ><p>
                     Owen: "A, but have <code>{space}</code> rule which means single space character, and
@@ -1479,8 +1491,7 @@
                   ><a class="plan-id" href="#d25">D25</a>
                   <span class="plan-title"
                     >P2.3 diff: Rule.spacing (none / one / some), set by rulex from the syntax; {space} / {spaces}</span
-                  >
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                  > </ui-title
                 ><ui-content
                   ><p>
                     Review gate (<a href="#d7">D7</a>) for <a href="#d17">D17</a> + <a href="#d24">D24</a>. Smallest
@@ -1530,8 +1541,7 @@
                   <span class="plan-title"
                     >P2.4 diff: intervals {n} {n,m} {n,} -&gt; Repeat minCount / maxCount; Repeat counts copies, stops
                     at max</span
-                  >
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                  > </ui-title
                 ><ui-content
                   ><p>Review gate (<a href="#d7">D7</a>) for <a href="#d18">D18</a>.</p>
                   <ul>
@@ -1561,8 +1571,7 @@
                   <span class="plan-title"
                     >P2.5 diff: /i -&gt; Literal.caseInsensitive (keyword, or a choice that compiles to one
                     literal)</span
-                  >
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                  > </ui-title
                 ><ui-content
                   ><p>Review gate (<a href="#d7">D7</a>) for <a href="#d16">D16</a>.</p>
                   <ul>
@@ -1591,8 +1600,7 @@
                   ><a class="plan-id" href="#d28">D28</a>
                   <span class="plan-title"
                     >Bedtime (2026-10-04): P2 rest through P9, unattended; review gate relaxed</span
-                  >
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                  > </ui-title
                 ><ui-content
                   ><p>Owen's up-front answers:</p>
                   <ul>
@@ -1629,8 +1637,9 @@
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#j1">J1</a>
-                  <span class="plan-title">Round trip: escapes now print back; spacing doesn't (deferred, Q10)</span>
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                  <span class="plan-title"
+                    >Round trip: escapes now print back; spacing doesn't (deferred, Q10)</span
+                  > </ui-title
                 ><ui-content
                   ><p>
                     Chose to do D14 in two parts because the review gate is "tiny parser changes only" tonight (D28):
@@ -1657,8 +1666,7 @@
                   ><a class="plan-id" href="#j2">J2</a>
                   <span class="plan-title"
                     >Skipped "Tokenizer arrow fields -&gt; methods": the markdown tokenizer doesn't need it</span
-                  >
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                  > </ui-title
                 ><ui-content
                   ><p>
                     Chose to skip this planned P2 parser change: <code>MarkdownTokenizer</code> overrides
@@ -1714,8 +1722,7 @@
                   ><a class="plan-id" href="#c6">C6</a>
                   <span class="plan-title"
                     >In rulex syntax, a line-start #, --, // and quotes belong to the tokenizer</span
-                  >
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                  > </ui-title
                 ><ui-content
                   ><p>
                     Rulex reads its syntax with spell's tokenizer, so: <code>#</code> at the start becomes a heading
@@ -1739,14 +1746,18 @@
               <span class="plan-title"
                 >LSP checks in docstrings: broken #heading links, unknown `identifiers`</span
               ></ui-item
-            ><ui-item id="t2" data-status="open"
+            ><ui-item id="t2" data-status="done"
               ><a class="plan-id" href="#t2">T2</a>
               <span class="plan-title"
                 >End of P2: yarn gen:spell in packages/ui (the highlighter bundle carries the parser + spell grammar,
                 both changed)</span
+              > </ui-item
+            ><ui-item id="t3" data-status="open"
+              ><a class="plan-id" href="#t3">T3</a>
+              <span class="plan-title"
+                >GFM spec: odd edge cases are deferred (Owen, D28) -- list them here as P3/P4 find them</span
               >
-              <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-item
-            ></ui-list
+            </ui-item></ui-list
           >
         </ui-section>
 
@@ -1757,8 +1768,7 @@
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i1">I1</a>
-                  <span class="plan-title">Rulex silently drops the rest of a syntax it can't read</span>
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                  <span class="plan-title">Rulex silently drops the rest of a syntax it can't read</span> </ui-title
                 ><ui-content
                   ><p>
                     <code>rulex.compile()</code> (via <code>P.Rule.compileSyntax()</code>) never checks that every token
@@ -1807,8 +1817,7 @@
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i2">I2</a>
-                  <span class="plan-title">Whitespace is invisible to literal rules: ** matches * *</span>
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                  <span class="plan-title">Whitespace is invisible to literal rules: ** matches * *</span> </ui-title
                 ><ui-content
                   ><p>
                     Confirms the suspected bug (<a href="../../../../SUSPECTED-BUGS.md" target="src-suspected-bugs-md"
@@ -1850,8 +1859,7 @@
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i3">I3</a>
-                  <span class="plan-title">toRulexSyntax() round trip loses escapes</span>
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                  <span class="plan-title">toRulexSyntax() round trip loses escapes</span> </ui-title
                 ><ui-content
                   ><p>
                     <code>\[{text}\]\({url}\)</code> compiles fine, but prints back as
@@ -1871,8 +1879,7 @@
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i4">I4</a>
-                  <span class="plan-title">Rulex: 1.1.1 in a syntax crashes the compile (TypeError)</span>
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                  <span class="plan-title">Rulex: 1.1.1 in a syntax crashes the compile (TypeError)</span> </ui-title
                 ><ui-content
                   ><p>
                     <code>1.1.1</code> tokenizes as <code>Number(1.1) Number(0.1)</code>; compiling throws
@@ -1889,8 +1896,7 @@
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i5">I5</a>
-                  <span class="plan-title">Rulex: an unclosed [ { ( quietly becomes a literal symbol</span>
-                  <ui-label class="plan-update" size="mini" color="orange" data-phase="2">UPDATE</ui-label></ui-title
+                  <span class="plan-title">Rulex: an unclosed [ { ( quietly becomes a literal symbol</span> </ui-title
                 ><ui-content
                   ><p>
                     Found testing <a href="#d22">D22</a>. Rulex's <code>symbol</code> rule takes an unescaped
@@ -2213,6 +2219,30 @@
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T02:54-04:00">2026-10-04 02:54</time></ui-date> I3 closed:
                   toRulexSyntax() round trip loses escapes</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:57-04:00">2026-10-04 02:57</time></ui-date> T2 closed: End of
+                  P2: yarn gen:spell in packages/ui (the highlighter bundle carries the parser + spell grammar, both
+                  changed)</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:57-04:00">2026-10-04 02:57</time></ui-date> P2
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T02:57-04:00">2026-10-04 02:57</time></ui-date> P2 done: rulex
+                  (plain tokenizer, leftovers, unclosed openers, spacing as written + {space}/{spaces}, counts, /i,
+                  escapes print back) + packages/markdown (MarkdownTokenizer, GFM spec harness, 0/670); ui spell bundle
+                  regenerated; checks: parser 458, spell 788, lsp 96, markdown 6, ui-code 24 green</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed
