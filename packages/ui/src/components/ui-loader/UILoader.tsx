@@ -1,4 +1,4 @@
-import { createEffect, createMemo } from "solid-js"
+import { createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { proto, SlotContent, UIElement, UIT } from "$/ui/core"
@@ -41,8 +41,9 @@ export class UILoader extends UIElement<typeof loaderVocabulary> {
   }
 
   mount(): JSX.Element {
-    // here, not in the constructor:  the name reads `UI.i18n` (via `text()`), which exists once the runtime loads
-    createEffect(
+    // here, not in the constructor:  the name reads `UI.i18n` (via `text()`), which exists once the runtime loads;
+    // `hostEffect`:  a server render (`$/ui/server`) applies it too
+    this.hostEffect(
       () => (this.loaded() && !this.hasText() ? this.text("loading") : null),
       (label) => {
         this.host.internals.ariaLabel = label

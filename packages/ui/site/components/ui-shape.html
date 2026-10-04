@@ -1,0 +1,555 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Shape | Spell UI</title>
+    <meta name="description" content="A shape is a three dimensional object displayed on a two dimensional plane." />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var s = localStorage.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
+      <ui-include class="site-header" source="../_parts/header.html" page-styles>
+        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
+      </ui-include>
+
+      <div class="site-layout">
+        <aside class="site-nav">
+          <ui-docs-nav></ui-docs-nav>
+        </aside>
+
+        <main id="main" class="site-main">
+          <ui-segment vertical class="site-masthead">
+            <ui-container>
+              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-shape.html"
+                  icon="pen to square"
+                  aria-label="This page's source on GitHub"
+                  title="This page's source on GitHub"
+                ></ui-item>
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-shape%3A%20%20"
+                  icon="bug"
+                  aria-label="Report a bug"
+                  title="Report a bug"
+                ></ui-item>
+                <ui-item
+                  href="https://fomantic-ui.com/modules/shape.html"
+                  icon="up right from square"
+                  aria-label="Fomantic UI's original page"
+                  title="Fomantic UI's original page"
+                ></ui-item>
+              </ui-menu>
+              <ui-header level="1" class="site-title">
+                Shape
+                <ui-header>A shape is a three dimensional object displayed on a two dimensional plane.</ui-header>
+              </ui-header>
+              <ui-docs-themes for="ui-shape" show="theme" class="site-themes"></ui-docs-themes>
+            </ui-container>
+          </ui-segment>
+
+          <ui-container class="site-body">
+            <ui-rail position="right" class="site-rail">
+              <ui-sticky class="site-toc" offset="64">
+                <ui-docs-toc for="site-tabs" header="Shape"></ui-docs-toc>
+              </ui-sticky>
+            </ui-rail>
+
+            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+              <ui-tab value="examples" label="Examples">
+                <!--
+                  EXAMPLES:  Fomantic's shape page, its Definition tab (Types), our own Variations, then its Examples tab (More
+                  Examples).  The direction buttons turn each shape through invoker commands (`commandfor` + `command="--flip-up"`
+                  ...):  no script.
+                -->
+                <ui-header level="2" dividing id="types">Types</ui-header>
+
+                <ui-docs-example header="Shape">
+                  <p slot="description">
+                    A shape is a three dimensional object including any flat content as a side: one
+                    <code>&lt;ui-side&gt;</code> per face, in order.
+                  </p>
+                  <ui-shape id="shape-people">
+                    <ui-side>
+                      <ui-card image="../images/avatar/large/steve.jpg" alt="">
+                        <ui-content>
+                          <ui-header>Steve Jobes</ui-header>
+                          <ui-meta><a href="#acquaintances">Acquaintances</a></ui-meta>
+                          <ui-description>
+                            Steve Jobes is a fictional character designed to resemble someone familiar to readers.
+                          </ui-description>
+                        </ui-content>
+                        <ui-extra><ui-icon name="user"></ui-icon> 151 Friends · Joined in 2014</ui-extra>
+                      </ui-card>
+                    </ui-side>
+                    <ui-side>
+                      <ui-card image="../images/avatar/large/stevie.jpg" alt="">
+                        <ui-content>
+                          <ui-header href="#stevie">Stevie Feliciano</ui-header>
+                          <ui-meta><span>Joined in 2014</span></ui-meta>
+                          <ui-description>
+                            Stevie Feliciano is a library scientist living in New York City. She likes to spend her time
+                            reading, running, and writing.
+                          </ui-description>
+                        </ui-content>
+                        <ui-extra
+                          ><a href="#stevie-friends"><ui-icon name="user"></ui-icon> 22 Friends</a></ui-extra
+                        >
+                      </ui-card>
+                    </ui-side>
+                  </ui-shape>
+                  <ui-divider></ui-divider>
+                  <ui-buttons icon>
+                    <ui-button
+                      icon="long arrow alternate left"
+                      commandfor="shape-people"
+                      command="--flip-left"
+                      aria-label="Flip Left"
+                      title="Flip Left"
+                    ></ui-button>
+                    <ui-button
+                      icon="long arrow alternate up"
+                      commandfor="shape-people"
+                      command="--flip-up"
+                      aria-label="Flip Up"
+                      title="Flip Up"
+                    ></ui-button>
+                    <ui-button
+                      icon="long arrow alternate down"
+                      commandfor="shape-people"
+                      command="--flip-down"
+                      aria-label="Flip Down"
+                      title="Flip Down"
+                    ></ui-button>
+                    <ui-button
+                      icon="long arrow alternate right"
+                      commandfor="shape-people"
+                      command="--flip-right"
+                      aria-label="Flip Right"
+                      title="Flip Right"
+                    ></ui-button>
+                  </ui-buttons>
+                  <ui-buttons icon>
+                    <ui-button
+                      icon="retweet"
+                      commandfor="shape-people"
+                      command="--flip-over"
+                      aria-label="Flip Over"
+                      title="Flip Over"
+                    ></ui-button>
+                    <ui-button commandfor="shape-people" command="--flip-back" aria-label="Flip Back" title="Flip Back"
+                      ><ui-icon slot="icon" name="retweet" flipped></ui-icon
+                    ></ui-button>
+                  </ui-buttons>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Cube"
+                  description="A cube shape is formatted so that each side is the face of a cube:  `cube`."
+                >
+                  <ui-shape id="shape-cube" cube>
+                    <ui-side>1</ui-side>
+                    <ui-side>2</ui-side>
+                    <ui-side>3</ui-side>
+                    <ui-side>4</ui-side>
+                    <ui-side>5</ui-side>
+                    <ui-side>6</ui-side>
+                  </ui-shape>
+                  <ui-divider></ui-divider>
+                  <ui-buttons icon>
+                    <ui-button
+                      icon="long arrow alternate left"
+                      commandfor="shape-cube"
+                      command="--flip-left"
+                      aria-label="Flip Left"
+                      title="Flip Left"
+                    ></ui-button>
+                    <ui-button
+                      icon="long arrow alternate up"
+                      commandfor="shape-cube"
+                      command="--flip-up"
+                      aria-label="Flip Up"
+                      title="Flip Up"
+                    ></ui-button>
+                    <ui-button
+                      icon="long arrow alternate down"
+                      commandfor="shape-cube"
+                      command="--flip-down"
+                      aria-label="Flip Down"
+                      title="Flip Down"
+                    ></ui-button>
+                    <ui-button
+                      icon="long arrow alternate right"
+                      commandfor="shape-cube"
+                      command="--flip-right"
+                      aria-label="Flip Right"
+                      title="Flip Right"
+                    ></ui-button>
+                  </ui-buttons>
+                  <ui-buttons icon>
+                    <ui-button
+                      icon="retweet"
+                      commandfor="shape-cube"
+                      command="--flip-over"
+                      aria-label="Flip Over"
+                      title="Flip Over"
+                    ></ui-button>
+                    <ui-button commandfor="shape-cube" command="--flip-back" aria-label="Flip Back" title="Flip Back"
+                      ><ui-icon slot="icon" name="retweet" flipped></ui-icon
+                    ></ui-button>
+                  </ui-buttons>
+                </ui-docs-example>
+
+                <ui-docs-example header="Text">
+                  <p slot="description">
+                    A text shape is formatted to allow for sides of text to be displayed: <code>text</code>.
+                  </p>
+                  <ui-message slot="description" state="info" size="small" header="Using Shapes"
+                    >A shape's sides should have a set width and height, or text may reflow while it turns. Under
+                    reduced motion the sides swap at once.</ui-message
+                  >
+                  <ui-shape id="shape-text" text>
+                    <ui-side><ui-header>Did you know? This side starts visible.</ui-header></ui-side>
+                    <ui-side><ui-header>Help, its another side!</ui-header></ui-side>
+                    <ui-side><ui-header>This is the last side</ui-header></ui-side>
+                  </ui-shape>
+                  <ui-divider></ui-divider>
+                  <ui-buttons icon>
+                    <ui-button
+                      icon="long arrow alternate left"
+                      commandfor="shape-text"
+                      command="--flip-left"
+                      aria-label="Flip Left"
+                      title="Flip Left"
+                    ></ui-button>
+                    <ui-button
+                      icon="long arrow alternate up"
+                      commandfor="shape-text"
+                      command="--flip-up"
+                      aria-label="Flip Up"
+                      title="Flip Up"
+                    ></ui-button>
+                    <ui-button
+                      icon="long arrow alternate down"
+                      commandfor="shape-text"
+                      command="--flip-down"
+                      aria-label="Flip Down"
+                      title="Flip Down"
+                    ></ui-button>
+                    <ui-button
+                      icon="long arrow alternate right"
+                      commandfor="shape-text"
+                      command="--flip-right"
+                      aria-label="Flip Right"
+                      title="Flip Right"
+                    ></ui-button>
+                  </ui-buttons>
+                  <ui-buttons icon>
+                    <ui-button
+                      icon="retweet"
+                      commandfor="shape-text"
+                      command="--flip-over"
+                      aria-label="Flip Over"
+                      title="Flip Over"
+                    ></ui-button>
+                    <ui-button commandfor="shape-text" command="--flip-back" aria-label="Flip Back" title="Flip Back"
+                      ><ui-icon slot="icon" name="retweet" flipped></ui-icon
+                    ></ui-button>
+                  </ui-buttons>
+                </ui-docs-example>
+                <ui-docs-example
+                  description="A text shape is inline too:  a word that flips to another.  `active-index` picks the side shown first, from 0."
+                >
+                  <ui-button commandfor="shape-inline" command="--flip-down" icon="long arrow alternate down"
+                    >Flip down</ui-button
+                  >
+                  <p>
+                    Flip to
+                    <ui-shape id="shape-inline" text direction="down" active-index="1"
+                      ><ui-side>Scale</ui-side><ui-side>Fade</ui-side><ui-side>Flip</ui-side></ui-shape
+                    >
+                    transitions.
+                  </p>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="variations">Variations</ui-header>
+
+                <ui-docs-example
+                  header="Direction"
+                  description="`direction` says which way `--next`, `--previous`, `next()` and `previous()` turn:  `up`, `down`, `left` (the default), `right`, `over` or `back`."
+                >
+                  <ui-buttons>
+                    <ui-button commandfor="shape-dice" command="--previous" labeled icon="chevron left"
+                      >Previous</ui-button
+                    >
+                    <ui-button commandfor="shape-dice" command="--next" labeled="right" icon="chevron right"
+                      >Next</ui-button
+                    >
+                  </ui-buttons>
+                  <ui-divider hidden></ui-divider>
+                  <ui-shape id="shape-dice" cube direction="over">
+                    <ui-side>1</ui-side>
+                    <ui-side>2</ui-side>
+                    <ui-side>3</ui-side>
+                    <ui-side>4</ui-side>
+                  </ui-shape>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Duration"
+                  description="`duration` sets the length of a flip:  ms or a CSS time;  Fomantic's 0.6s by default."
+                >
+                  <ui-button commandfor="shape-slow" command="--next" icon="long arrow alternate right"
+                    >Slow flip</ui-button
+                  >
+                  <ui-divider hidden></ui-divider>
+                  <ui-shape id="shape-slow" cube direction="right" duration="1.5s">
+                    <ui-side>A</ui-side>
+                    <ui-side>B</ui-side>
+                  </ui-shape>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="more-examples">More Examples</ui-header>
+
+                <ui-docs-example header="Shape Types">
+                  <p slot="description">
+                    Shapes do not have to be regular or have their sides match up in length and width to animate
+                    correctly.
+                  </p>
+                  <ui-message slot="description" size="small" class="site-not-ported"
+                    >Not ported: the demo's Auto / Square / Irregular switch -- it swaps classes from Fomantic's docs
+                    stylesheet, not the shape's own.</ui-message
+                  >
+                  <ui-shape id="shape-leaves">
+                    <ui-side><ui-image src="../images/leaves/1.png" size="small" alt="A leaf"></ui-image></ui-side>
+                    <ui-side
+                      ><ui-image src="../images/leaves/3.png" size="small" alt="Another leaf"></ui-image
+                    ></ui-side>
+                    <ui-side
+                      ><ui-image src="../images/leaves/5.png" size="small" alt="A third leaf"></ui-image
+                    ></ui-side>
+                  </ui-shape>
+                  <ui-divider></ui-divider>
+                  <ui-buttons icon>
+                    <ui-button
+                      icon="long arrow alternate left"
+                      commandfor="shape-leaves"
+                      command="--flip-left"
+                      aria-label="Flip Left"
+                      title="Flip Left"
+                    ></ui-button>
+                    <ui-button
+                      icon="long arrow alternate up"
+                      commandfor="shape-leaves"
+                      command="--flip-up"
+                      aria-label="Flip Up"
+                      title="Flip Up"
+                    ></ui-button>
+                    <ui-button
+                      icon="long arrow alternate down"
+                      commandfor="shape-leaves"
+                      command="--flip-down"
+                      aria-label="Flip Down"
+                      title="Flip Down"
+                    ></ui-button>
+                    <ui-button
+                      icon="long arrow alternate right"
+                      commandfor="shape-leaves"
+                      command="--flip-right"
+                      aria-label="Flip Right"
+                      title="Flip Right"
+                    ></ui-button>
+                  </ui-buttons>
+                  <ui-buttons icon>
+                    <ui-button
+                      icon="retweet"
+                      commandfor="shape-leaves"
+                      command="--flip-over"
+                      aria-label="Flip Over"
+                      title="Flip Over"
+                    ></ui-button>
+                    <ui-button commandfor="shape-leaves" command="--flip-back" aria-label="Flip Back" title="Flip Back"
+                      ><ui-icon slot="icon" name="retweet" flipped></ui-icon
+                    ></ui-button>
+                  </ui-buttons>
+                </ui-docs-example>
+              </ui-tab>
+
+              <ui-tab value="usage" label="Usage">
+                <!-- USAGE:  how to use it (sides, flips, commands, methods, events), accessibility, framework snippets. -->
+                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    A shape's children are its sides: one `<ui-side>` per face, in order, as Fomantic's markup has a `.side` per
+                    face inside `.sides`. Only one shows at a time.
+
+                    - `active-index` (from 0) is the side shown. Changing it turns the shape the `direction` way to that side.
+                    - `direction` is `up`, `down`, `left` (the default), `right`, `over` or `back`. The attribute is `direction`, not
+                      `flip`: `flip()` is a method.
+                    - `cube` gives square grey faces; `text` sides of text.
+                    - `duration` is the length of a turn: ms (`600`) or a CSS time (`0.6s`).
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="commands">Invoker commands</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Turn a shape from a button with no script: `commandfor` is the shape's id, `command` what to do. Works on a
+                    native `<button>` and a `<ui-button>` alike.
+
+                    - `--next` / `--previous`: the next / previous side (both wrap round), the `direction` attribute's way.
+                    - `--flip-up`, `--flip-down`, `--flip-left`, `--flip-right`, `--flip-over`, `--flip-back`: the next side, THAT
+                      way (Fomantic's `flip up` ... behaviours).
+                  </script>
+                </ui-markdown>
+                <ui-code language="html">
+                  <script type="text/plain">
+                    <ui-button commandfor="dice" command="--flip-up" icon="long arrow alternate up" aria-label="Flip up"></ui-button>
+                    <ui-shape id="dice" cube>
+                      <ui-side>1</ui-side>
+                      <ui-side>2</ui-side>
+                    </ui-shape>
+                  </script>
+                </ui-code>
+
+                <ui-header level="2" dividing id="methods">Methods and events</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    The host has Fomantic's behaviours as methods, each resolving once the turn has finished (`true`), or `false`
+                    when there was nothing to do:
+
+                    - `flip(direction?, index?)` -- turn `direction` (default: the attribute's) to side `index` (default: the next).
+                    - `next()` / `previous()` -- the next / previous side, wrapping round.
+
+                    Each writes `activeIndex`, so it reflects. Flips queue, as Fomantic's did. `ui-change` fires once another side
+                    is shown (Fomantic's `onChange`), with `{ activeIndex, side, flip }`.
+                  </script>
+                </ui-markdown>
+                <ui-code language="js">
+                  <script type="text/plain">
+                    const dice = document.querySelector("#dice")
+                    await dice.next() // the next side, the `direction` way
+                    await dice.flip("back", 0) // back to the first side
+                    dice.addEventListener("ui-change", (event) => console.log(event.detail.activeIndex))
+                  </script>
+                </ui-code>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    The turn is Fomantic's own geometry, as a CSS transition; under reduced motion the sides swap at once, and
+                    `ui-change` fires all the same.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - Only the side shown is in the accessibility tree; the others are hidden.
+                    - The box that turns is a polite live region, so the new side is read out after a flip.
+                    - A shape has no keyboard of its own: turn it from real buttons (`commandfor`), so everyone can. Name icon-only
+                      buttons with `aria-label`.
+                    - If the element can't render, its native fallback shows every side, stacked: no flips, invoker commands or
+                      `ui-change`, and the methods resolve `false`.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="frameworks">Framework usage</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Bind `active-index` and listen for `ui-change`, or call the methods through a ref.
+                  </script>
+                </ui-markdown>
+                <ui-header level="4" id="framework-react">React 19</ui-header>
+                <ui-code language="jsx">
+                  <script type="text/plain">
+                    <ui-shape cube active-index={side} onui-change={(event) => setSide(event.detail.activeIndex)}>
+                      ...
+                    </ui-shape>
+                  </script>
+                </ui-code>
+                <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+                <ui-code language="html">
+                  <script type="text/plain">
+                    <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                    <ui-shape cube :active-index="side" @ui-change="(event) => (side = event.detail.activeIndex)">...</ui-shape>
+                  </script>
+                </ui-code>
+                <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+                <ui-code language="jsx">
+                  <script type="text/plain">
+                    // no `on:` namespace:  listen through a ref
+                    <ui-shape
+                      cube
+                      active-index={side()}
+                      ref={(el) => el.addEventListener("ui-change", (event) => setSide(event.detail.activeIndex))}
+                    >
+                      ...
+                    </ui-shape>
+                  </script>
+                </ui-code>
+              </ui-tab>
+
+              <ui-tab value="api" label="API">
+                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+                <ui-docs-api family="ui-shape"></ui-docs-api>
+              </ui-tab>
+
+              <ui-tab value="theming" label="Theming">
+                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Theme with the public `--ui-shape-*` tokens on the shape or any ancestor; `::part(shape)` works too. Style the
+                    pieces with `::part()`: `shape` (the stage, with the 3D perspective) and `sides` (the box that turns) on the
+                    shape, `side` (the face) on each `<ui-side>`.
+                  </script>
+                </ui-markdown>
+                <ui-code language="css">
+                  <script type="text/plain">
+                    ui-shape[cube] {
+                      --ui-shape-cube-size: 10em;
+                    }
+                    ui-side::part(side) {
+                      border-radius: 0.5em;
+                    }
+                  </script>
+                </ui-code>
+                <ui-message state="info" size="small">
+                  <ui-markdown>
+                    <script type="text/markdown">
+                      `duration` on a shape beats `--ui-shape-duration`. Never set the `--_ui-*` names (`--_ui-shape-type` is how
+                      the sides learn their shape's type): they're the sheet's private plumbing.
+                    </script>
+                  </ui-markdown>
+                </ui-message>
+                <ui-markdown>Edit a value below to try it.</ui-markdown>
+                <ui-docs-tokens family="ui-shape" playground></ui-docs-tokens>
+
+                <ui-header level="2" dividing id="themes">Themes</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    No Fomantic theme restyles the shape itself: Fomantic's own shape page lists only the default theme. The
+                    site-wide themes in the header (Material, GitHub, Dark ...) still restyle the cards, headers and images on its
+                    sides.
+                  </script>
+                </ui-markdown>
+              </ui-tab>
+            </ui-tabs>
+          </ui-container>
+
+          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
+        </main>
+      </div>
+    </ui-root>
+  </body>
+</html>

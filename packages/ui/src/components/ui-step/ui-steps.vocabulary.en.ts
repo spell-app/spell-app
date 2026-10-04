@@ -12,6 +12,7 @@
  *   `HTMLElement` property, as the popup's `header`) and `description`.
  */
 
+import * as UIT from "$/ui/components/components.types"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
@@ -46,6 +47,13 @@ export const stepsVocabulary = {
     },
     { name: "fluid", kind: "keyOnly", description: "Takes the full width of its container." },
     {
+      name: "equal",
+      kind: "keyOnly",
+      description:
+        "Every step the same width, from the steps themselves (no count):  each as wide as the widest;  with " +
+        "`fluid`, an equal share of the row each.  Not for `vertical` or `circular` steps (already alike)."
+    },
+    {
       name: "attached",
       kind: "keyOrValueAndKey",
       values: ["top", "bottom"],
@@ -54,20 +62,33 @@ export const stepsVocabulary = {
     {
       name: "unstackable",
       kind: "keyOnly",
-      description: "Never stacks;  by default steps stack below 768px of the GROUP's width (a container query)."
+      description:
+        "Never stacks;  by default steps stack below 768px of the group's width (or the screen's:  `stack-with`)."
     },
     {
       name: "stackable",
       kind: "valueAndKey",
       values: ["tablet"],
-      description: '`stackable="tablet"`:  stacks below 992px of the group\'s width, not just 768px.'
+      description:
+        "`stackable=\"tablet\"`:  stacks below 992px (of the group's width, or the screen's), not just 768px."
+    },
+    {
+      name: "stack-with",
+      kind: "enum",
+      values: UIT.STACK_WITH_VALUES,
+      description:
+        'What stacking (and `stackable="tablet"`) measures:  `container` (the default) -- the group\'s own ' +
+        "width;  `page` -- the screen's, as in Fomantic.  Unset:  the page-wide `--ui-stack-with` token " +
+        "decides (`<ui-root stack-with>`)."
     },
     {
       name: "widths",
       kind: "width",
       widthClass: "",
       values: ["1", "2", "3", "4", "5", "6", "7", "8"],
-      description: 'Divides the group evenly between N steps:  `widths="3"` => `three steps`.'
+      description:
+        'Older, count-based alias of `equal fluid`:  divides the group evenly between N steps (`widths="3"` => ' +
+        "`three steps`)."
     },
     { name: "inverted", kind: "keyOnly", description: "For dark backgrounds." }
   ],
@@ -75,7 +96,16 @@ export const stepsVocabulary = {
   slots: [{ name: "", description: "`<ui-step>`s." }],
   parts: [{ name: "steps", description: "The group box (an `<ol>`)." }],
   states: [
-    { name: "steps", description: "ALWAYS set:  the host is a block and the size container `stackable` answers." }
+    { name: "steps", description: "ALWAYS set:  the host is a block and the size container `stackable` answers." },
+    {
+      name: "block",
+      description:
+        "Set while the group is block-level (`fluid`, or `circular` and not `vertical`):  the HOST carries its outer margin, so it collapses with the content above."
+    },
+    {
+      name: "circular",
+      description: "Set while `circular`:  with `block`, the host keeps both margins, even first or last."
+    }
   ],
   texts: []
 } as const satisfies ComponentVocabulary

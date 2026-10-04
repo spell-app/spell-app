@@ -10,7 +10,8 @@ import { AppStylesheet } from "./AppStylesheet"
  *   2. the component's own sheets, as passed
  *   3. any sheets someone else put on the root (kept, not clobbered)
  *   4. utilities (`setUtilities()`, default `["utilities"]`)
- *   5. the app stylesheet (`#ui-app-stylesheet`) -- ALWAYS last, see `AppStylesheet`
+ *   5. `shadow: true` sheets (themes), in registration order
+ *   6. the app stylesheet (`#ui-app-stylesheet`) -- ALWAYS last, see `AppStylesheet`
  * - Unregistered names are skipped, not errors:  foundation / utilities may be registered after components
  *   connect, and every adopted root is re-pushed when they are.
  * - Roots are held WEAKLY, so a disconnected component's shadow root can be collected.
@@ -24,6 +25,8 @@ export class Styles {
   private readonly owned = new WeakSet<CSSStyleSheet>()
   /** names also pushed onto `document.adoptedStyleSheets` */
   private readonly pageNames = new Set<string>()
+  /** names also adopted into every shadow root, after utilities, see `StyleRegisterOptions.shadow` */
+  private readonly shadowNames = new Set<string>()
   /** page names `ui.css` already carries, see `StyleRegisterOptions.linked` */
   private readonly linkedNames = new Set<string>()
   /** foundation names, in order */
@@ -48,9 +51,19 @@ export class Styles {
    * - A `CSSStyleSheet`:  used as-is;  a different object for an existing name is swapped into every root.
    * - `page: true`:  also pushed onto `document.adoptedStyleSheets`, once;  with `linked: true` too, only while
    *   the page doesn't link `ui.css` (see `StyleRegisterOptions`).
+   * - `shadow: true`:  also adopted into EVERY shadow root `adoptInto()` knows, now and later, after utilities
+   *   (themes:  their class-grammar overrides must reach component markup).
+   * - `""` UNREGISTERS `name`:  dropped from the page, every shadow root and the registry (`has()` turns false),
+   *   whatever options it was registered with;  returns an empty, detached sheet.
+   * - NOTE: `page` / `shadow` / `linked` only ever ADD:  a later call without them keeps what an earlier one set.
    * - NOTE: `replaceSync` drops `@import` -- registered text MUST be self-contained.
    */
-  register(name: string, css: StyleSource, { page = false, linked = false }: StyleRegisterOptions = {}): CSSStyleSheet {
+  register(
+    name: string,
+    css: StyleSource,
+    { page = false, linked = false, shadow = false }: StyleRegisterOptions = {}
+  ): CSSStyleSheet {
+    if (css === "") return this.unregister(name)
     let sheet = this.sheets.get(name)
     let swapped = false
     if (typeof css === "string") {
@@ -77,8 +90,26 @@ export class Styles {
     } else if (swapped && this.pageNames.has(name)) {
       this.refreshPage()
     }
-    if (added || swapped) this.refreshRoots()
+    const newShadow = shadow && !this.shadowNames.has(name)
+    if (newShadow) this.shadowNames.add(name)
+    if (added || swapped || newShadow) this.refreshRoots()
     return sheet
+  }
+
+  /**
+   * Forget `name`:  off the page, out of every shadow root, out of the registry.
+   * - The old sheet stays in `owned`, so the re-pushes drop it rather than keep it as "foreign".
+   * - A root that lists it as a COMPONENT sheet keeps the name, so registering it again puts it back.
+   * - Returns an empty sheet nothing adopts, so `register()` keeps its return type.
+   */
+  private unregister(name: string): CSSStyleSheet {
+    const known = this.sheets.delete(name)
+    this.texts.delete(name)
+    this.linkedNames.delete(name)
+    this.shadowNames.delete(name)
+    if (this.pageNames.delete(name)) this.refreshPage()
+    if (known) this.refreshRoots()
+    return new CSSStyleSheet()
   }
 
   /** Sheet registered as `name`, if any. */
@@ -172,6 +203,7 @@ export class Styles {
       ...this.lookup(names),
       ...foreign,
       ...this.lookup(this.utilities),
+      ...this.lookup(this.shadowNames),
       ...(this.app ? [this.app.sheet] : [])
     ]
     root.adoptedStyleSheets = [...new Set(sheets)]

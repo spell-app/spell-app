@@ -1,4 +1,5 @@
 import { createEffect, createMemo, untrack, type Accessor } from "solid-js"
+import { isServer } from "@solidjs/web"
 
 import {
   Cell,
@@ -187,6 +188,16 @@ export abstract class TextControl<V extends ComponentVocabulary = ComponentVocab
       "aria-invalid":
         this.ariaInvalid.get() === "true" || (this.touched.get() && !this.validation().valid) ? "true" : undefined
     } as const
+  }
+
+  /**
+   * Server render only (`$/ui/server`):  what the native control needs to submit without JS -- `name` and the
+   * starting `value` -- and the `STATIC_CONTROL` mark;  `{}` in a browser, where the HOST submits
+   * (`ElementInternals`) and the effects keep the control in sync.
+   */
+  protected staticControl(): Record<string, unknown> {
+    if (!isServer) return {}
+    return { [UIT.STATIC_CONTROL]: "", name: this.common.name, value: this.value() || undefined }
   }
 
   /** Copy the control's validity into `nativeValidity`. */

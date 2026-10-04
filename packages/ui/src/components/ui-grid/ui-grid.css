@@ -37,7 +37,7 @@
  *   `::part(grid)` or in the app stylesheet reaches the grid and everything in it (`docs/theming.md` "Component
  *   tokens").
  *
- * ## Responsive:  container queries
+ * ## Responsive:  container queries, or the page (`stack-with`)
  * - The top-level `<ui-grid>` HOST is a block and the size container `ui-grid` (a grid root can't query its
  *   own width, and `reversed` / `stackable` change the root).  Static markup makes the grid's parent the
  *   container instead (`:has(> .ui.grid)`).
@@ -45,15 +45,26 @@
  *   the container has a name:  container names are tree-scoped, and a name set by `:host` lives in the grid's
  *   shadow tree, which a slotted column's own shadow tree can't see (WebKit enforces it;  Chromium / Firefox
  *   don't).  Page CSS may still query `ui-grid` by name.  Same in `ui-items.css`.
- * - Ranges mirror Fomantic's breakpoints, compared with the space the GRID is given, not the viewport:
- *   `mobile` < 768px, `tablet` 768..991px, `computer` >= 992px, `large screen` 1200..1919px,
- *   `widescreen` >= 1920px.  They drive `stackable`, `doubling`, `reversed` and the per-device widths.
- * - Trade-offs:  a sidebar grid stacks while the page is wide (the point);  a grid in a narrow page region
- *   reports "mobile" on a desktop;  the container has inline-size containment, so a grid that must size to its
- *   CONTENT (a flex / inline item with no width) collapses -- give it a width;  flags reach the columns through
- *   style queries (`@container style(--_grid-stackable: 1)`) nested in the size queries.
- * - `only` (`only="mobile tablet"`) stays VIEWPORT based (`@custom-media`, `media.css`):  it's device
- *   visibility, a statement about the page, not the grid's layout.
+ * - Ranges mirror Fomantic's breakpoints:  `mobile` < 768px, `tablet` 768..991px, `computer` >= 992px,
+ *   `large screen` 1200..1919px, `widescreen` >= 1920px.  They drive `stackable`, `doubling`, `reversed` and the
+ *   per-device widths -- ALL of them, so a grid's layout never mixes two ranges.
+ * - What they compare with (`stack-with`, decided 2026-10-03, D40 in the `spell-ui-pages` plan doc):
+ *   - `container` (the default):  the space the GRID is given (`@container`)
+ *   - `page`:  the screen (`@media`, `media.css`), as in Fomantic -- a docs page or app whose grids should lay out
+ *     like Fomantic's whatever column they sit in
+ *   - the attribute is a private class on the root (`stack-with-page` / `-container`:  never a host state, see
+ *     `ui-table.css`'s `stack-by`);  without one, the inherited token `--ui-stack-with: page | container` decides
+ *     (`<ui-root stack-with>` sets it), else `container`.  Rows and columns follow their grid.
+ * - How:  each grid ROOT works out its range ONCE (`--_grid-range: mobile | tablet | computer`,
+ *   `--_grid-large-screen`, `--_grid-widescreen`), by `@container` or by `@media`, and its rows and columns read
+ *   the inherited flags through style queries (`@container style(--_grid-range: mobile)`), with the old flags
+ *   (`--_grid-stackable` ...) nested inside.  Only the rules whose subject is the root itself (the range, a grid's
+ *   `reversed`) are written for both ways and both switches:  a box can't style-query its own custom properties.
+ * - Trade-offs (`container`):  a sidebar grid stacks while the page is wide (the point);  a grid in a narrow page
+ *   region reports "mobile" on a desktop (use `page` there);  the container has inline-size containment, so a grid
+ *   that must size to its CONTENT (a flex / inline item with no width) collapses -- give it a width.
+ * - `only` (`only="mobile tablet"`) stays VIEWPORT based (`@custom-media`, `media.css`), whatever `stack-with`
+ *   says:  it's device visibility, a statement about the page, not the grid's layout.
  *
  * - Colour:  a coloured row / column paints `--ui-color` behind contrast text.  Each root's `<slot>` resets the
  *   generic colour tokens, so an uncoloured column never paints its row's (or a wrapper's) colour and content
@@ -155,6 +166,10 @@
     --_grid-doubling: 0;
     --_grid-reverse: 0;
     --_grid-vreverse: 0;
+    /* the range ("Responsive"):  every root works out its own */
+    --_grid-range: initial;
+    --_grid-large-screen: 0;
+    --_grid-widescreen: 0;
     position: relative;
     box-sizing: border-box;
     display: flex;
@@ -664,6 +679,22 @@
     margin: 0;
     box-shadow: none;
   }
+  /*
+   * Shadow DOM:  a celled grid's outer margin sits on the HOST (`:state(celled)`, not `internally`):  the host is
+   * a size container, its own formatting context, so a margin on the root would never collapse with the heading
+   * above, as class grammar's does.
+   * - Not when the host is `display: contents` (a grid slotted into a grid or row:  the root's margin is the one
+   *   that counts), nor in a static render, whose root replaces the host (`:not([data-ui])`).
+   */
+  :host(:state(celled)) {
+    --_ui-grid-celled-margin: var(--ui-grid-celled-margin, 1em 0);
+    margin: var(--_ui-grid-celled-margin);
+  }
+  @container not style(--_grid-child-host: contents) {
+    :host(:state(celled)) > .ui.celled.grid:not([data-ui]) {
+      margin: 0;
+    }
+  }
 
   /* Vertically aligned:  columns sit at the top / middle / bottom of the line. */
   .ui[class*="top aligned"]:is(.grid, .row) {
@@ -777,12 +808,259 @@
   }
 
   /*
-   * Responsive, by the GRID's width (`ui-grid` container):  mobile < 768px, tablet 768..991px,
-   * computer >= 992px, large screen 1200..1919px, widescreen >= 1920px.
+   * Responsive:  every grid ROOT works out its RANGE -- mobile < 768px, tablet 768..991px, computer >= 992px,
+   * large screen 1200..1919px, widescreen >= 1920px -- and hands it to its rows and columns as inherited flags
+   * (`--_grid-range: mobile | tablet | computer`, `--_grid-large-screen: 1`, `--_grid-widescreen: 1`), which the
+   * style queries below read.  `stackable`, `doubling`, `reversed` and per-device widths all follow it.
+   * - Measured by `stack-with` (the attribute:  a private class on the root, `stack-with-page` /
+   *   `stack-with-container`), else by the page-wide token `--ui-stack-with` (inherited, queried on the host),
+   *   else `container`:
+   *   - `container` (the default):  the space the GRID gets (`@container`, the nearest size container)
+   *   - `page`:  the screen (`@media`, Fomantic's way), whatever the grid's own width
+   * - A root can't query its own flags, so the rules whose subject IS the grid root (its range, `reversed`) are
+   *   written four times:  per way (`@container` / `@media`), once for the token (`:not()` the other class) and once
+   *   for the attribute (its class), each guarded by the token so exactly ONE copy can match an element.
    */
 
-  /* Mobile */
+  /* Mobile:  by the grid's own width ... */
   @container (width < 768px) {
+    @container not style(--ui-stack-with: page) {
+      .ui.grid:not(.stack-with-page) {
+        --_grid-range: mobile;
+      }
+      .ui[class*="mobile reversed"].grid:not(.stack-with-page) {
+        --_grid-reverse: 1;
+        flex-direction: row-reverse;
+      }
+      .ui[class*="mobile vertically reversed"].grid:not(.stack-with-page),
+      .ui.stackable[class*="mobile reversed"].grid:not(.stack-with-page) {
+        --_grid-vreverse: 1;
+        flex-direction: column-reverse;
+      }
+    }
+    @container style(--ui-stack-with: page) {
+      .ui.grid.stack-with-container {
+        --_grid-range: mobile;
+      }
+      .ui[class*="mobile reversed"].grid.stack-with-container {
+        --_grid-reverse: 1;
+        flex-direction: row-reverse;
+      }
+      .ui[class*="mobile vertically reversed"].grid.stack-with-container,
+      .ui.stackable[class*="mobile reversed"].grid.stack-with-container {
+        --_grid-vreverse: 1;
+        flex-direction: column-reverse;
+      }
+    }
+  }
+  /* ... or the page's. */
+  @media (--ui-mobile) {
+    @container style(--ui-stack-with: page) {
+      .ui.grid:not(.stack-with-container) {
+        --_grid-range: mobile;
+      }
+      .ui[class*="mobile reversed"].grid:not(.stack-with-container) {
+        --_grid-reverse: 1;
+        flex-direction: row-reverse;
+      }
+      .ui[class*="mobile vertically reversed"].grid:not(.stack-with-container),
+      .ui.stackable[class*="mobile reversed"].grid:not(.stack-with-container) {
+        --_grid-vreverse: 1;
+        flex-direction: column-reverse;
+      }
+    }
+    @container not style(--ui-stack-with: page) {
+      .ui.grid.stack-with-page {
+        --_grid-range: mobile;
+      }
+      .ui[class*="mobile reversed"].grid.stack-with-page {
+        --_grid-reverse: 1;
+        flex-direction: row-reverse;
+      }
+      .ui[class*="mobile vertically reversed"].grid.stack-with-page,
+      .ui.stackable[class*="mobile reversed"].grid.stack-with-page {
+        --_grid-vreverse: 1;
+        flex-direction: column-reverse;
+      }
+    }
+  }
+
+  /* Tablet:  by the grid's own width ... */
+  @container (768px <= width < 992px) {
+    @container not style(--ui-stack-with: page) {
+      .ui.grid:not(.stack-with-page) {
+        --_grid-range: tablet;
+      }
+      .ui[class*="tablet reversed"].grid:not(.stack-with-page) {
+        --_grid-reverse: 1;
+        flex-direction: row-reverse;
+      }
+      .ui[class*="tablet vertically reversed"].grid:not(.stack-with-page) {
+        --_grid-vreverse: 1;
+        flex-direction: column-reverse;
+      }
+    }
+    @container style(--ui-stack-with: page) {
+      .ui.grid.stack-with-container {
+        --_grid-range: tablet;
+      }
+      .ui[class*="tablet reversed"].grid.stack-with-container {
+        --_grid-reverse: 1;
+        flex-direction: row-reverse;
+      }
+      .ui[class*="tablet vertically reversed"].grid.stack-with-container {
+        --_grid-vreverse: 1;
+        flex-direction: column-reverse;
+      }
+    }
+  }
+  /* ... or the page's. */
+  @media (--ui-tablet) {
+    @container style(--ui-stack-with: page) {
+      .ui.grid:not(.stack-with-container) {
+        --_grid-range: tablet;
+      }
+      .ui[class*="tablet reversed"].grid:not(.stack-with-container) {
+        --_grid-reverse: 1;
+        flex-direction: row-reverse;
+      }
+      .ui[class*="tablet vertically reversed"].grid:not(.stack-with-container) {
+        --_grid-vreverse: 1;
+        flex-direction: column-reverse;
+      }
+    }
+    @container not style(--ui-stack-with: page) {
+      .ui.grid.stack-with-page {
+        --_grid-range: tablet;
+      }
+      .ui[class*="tablet reversed"].grid.stack-with-page {
+        --_grid-reverse: 1;
+        flex-direction: row-reverse;
+      }
+      .ui[class*="tablet vertically reversed"].grid.stack-with-page {
+        --_grid-vreverse: 1;
+        flex-direction: column-reverse;
+      }
+    }
+  }
+
+  /* Computer:  by the grid's own width ... */
+  @container (width >= 992px) {
+    @container not style(--ui-stack-with: page) {
+      .ui.grid:not(.stack-with-page) {
+        --_grid-range: computer;
+      }
+      .ui[class*="computer reversed"].grid:not(.stack-with-page) {
+        --_grid-reverse: 1;
+        flex-direction: row-reverse;
+      }
+      .ui[class*="computer vertically reversed"].grid:not(.stack-with-page) {
+        --_grid-vreverse: 1;
+        flex-direction: column-reverse;
+      }
+    }
+    @container style(--ui-stack-with: page) {
+      .ui.grid.stack-with-container {
+        --_grid-range: computer;
+      }
+      .ui[class*="computer reversed"].grid.stack-with-container {
+        --_grid-reverse: 1;
+        flex-direction: row-reverse;
+      }
+      .ui[class*="computer vertically reversed"].grid.stack-with-container {
+        --_grid-vreverse: 1;
+        flex-direction: column-reverse;
+      }
+    }
+  }
+  /* ... or the page's. */
+  @media (--ui-computer) {
+    @container style(--ui-stack-with: page) {
+      .ui.grid:not(.stack-with-container) {
+        --_grid-range: computer;
+      }
+      .ui[class*="computer reversed"].grid:not(.stack-with-container) {
+        --_grid-reverse: 1;
+        flex-direction: row-reverse;
+      }
+      .ui[class*="computer vertically reversed"].grid:not(.stack-with-container) {
+        --_grid-vreverse: 1;
+        flex-direction: column-reverse;
+      }
+    }
+    @container not style(--ui-stack-with: page) {
+      .ui.grid.stack-with-page {
+        --_grid-range: computer;
+      }
+      .ui[class*="computer reversed"].grid.stack-with-page {
+        --_grid-reverse: 1;
+        flex-direction: row-reverse;
+      }
+      .ui[class*="computer vertically reversed"].grid.stack-with-page {
+        --_grid-vreverse: 1;
+        flex-direction: column-reverse;
+      }
+    }
+  }
+
+  /* Large screen:  by the grid's own width ... */
+  @container (1200px <= width < 1920px) {
+    @container not style(--ui-stack-with: page) {
+      .ui.grid:not(.stack-with-page) {
+        --_grid-large-screen: 1;
+      }
+    }
+    @container style(--ui-stack-with: page) {
+      .ui.grid.stack-with-container {
+        --_grid-large-screen: 1;
+      }
+    }
+  }
+  /* ... or the page's. */
+  @media (--ui-large-monitor) and (width < 1920px) {
+    @container style(--ui-stack-with: page) {
+      .ui.grid:not(.stack-with-container) {
+        --_grid-large-screen: 1;
+      }
+    }
+    @container not style(--ui-stack-with: page) {
+      .ui.grid.stack-with-page {
+        --_grid-large-screen: 1;
+      }
+    }
+  }
+
+  /* Widescreen:  by the grid's own width ... */
+  @container (width >= 1920px) {
+    @container not style(--ui-stack-with: page) {
+      .ui.grid:not(.stack-with-page) {
+        --_grid-widescreen: 1;
+      }
+    }
+    @container style(--ui-stack-with: page) {
+      .ui.grid.stack-with-container {
+        --_grid-widescreen: 1;
+      }
+    }
+  }
+  /* ... or the page's. */
+  @media (--ui-widescreen) {
+    @container style(--ui-stack-with: page) {
+      .ui.grid:not(.stack-with-container) {
+        --_grid-widescreen: 1;
+      }
+    }
+    @container not style(--ui-stack-with: page) {
+      .ui.grid.stack-with-page {
+        --_grid-widescreen: 1;
+      }
+    }
+  }
+
+  /* Rows and columns:  by the range their grid worked out. */
+
+  /* Mobile */
+  @container style(--_grid-range: mobile) {
     .ui[class*="one wide mobile"].column {
       --_grid-wide: 1;
     }
@@ -831,14 +1109,9 @@
     .ui[class*="sixteen wide mobile"].column {
       --_grid-wide: 16;
     }
-    .ui[class*="mobile reversed"]:is(.grid, .row) {
+    .ui[class*="mobile reversed"].row {
       --_grid-reverse: 1;
       flex-direction: row-reverse;
-    }
-    .ui[class*="mobile vertically reversed"].grid,
-    .ui.stackable[class*="mobile reversed"].grid {
-      --_grid-vreverse: 1;
-      flex-direction: column-reverse;
     }
     /* Doubling:  the halved (mobile) count. */
     .ui.doubling.row {
@@ -887,7 +1160,7 @@
   }
 
   /* Tablet */
-  @container (768px <= width < 992px) {
+  @container style(--_grid-range: tablet) {
     .ui[class*="one wide tablet"].column {
       --_grid-wide: 1;
     }
@@ -936,13 +1209,9 @@
     .ui[class*="sixteen wide tablet"].column {
       --_grid-wide: 16;
     }
-    .ui[class*="tablet reversed"]:is(.grid, .row) {
+    .ui[class*="tablet reversed"].row {
       --_grid-reverse: 1;
       flex-direction: row-reverse;
-    }
-    .ui[class*="tablet vertically reversed"].grid {
-      --_grid-vreverse: 1;
-      flex-direction: column-reverse;
     }
     /* Doubling:  the halved (tablet) count. */
     .ui.doubling.row {
@@ -964,7 +1233,7 @@
   }
 
   /* Computer and up */
-  @container (width >= 992px) {
+  @container style(--_grid-range: computer) {
     .ui[class*="one wide computer"].column {
       --_grid-wide: 1;
     }
@@ -1013,18 +1282,14 @@
     .ui[class*="sixteen wide computer"].column {
       --_grid-wide: 16;
     }
-    .ui[class*="computer reversed"]:is(.grid, .row) {
+    .ui[class*="computer reversed"].row {
       --_grid-reverse: 1;
       flex-direction: row-reverse;
-    }
-    .ui[class*="computer vertically reversed"].grid {
-      --_grid-vreverse: 1;
-      flex-direction: column-reverse;
     }
   }
 
   /* Large screen */
-  @container (1200px <= width < 1920px) {
+  @container style(--_grid-large-screen: 1) {
     .ui[class*="one wide large screen"].column {
       --_grid-wide: 1;
     }
@@ -1076,7 +1341,7 @@
   }
 
   /* Widescreen */
-  @container (width >= 1920px) {
+  @container style(--_grid-widescreen: 1) {
     .ui[class*="one wide widescreen"].column {
       --_grid-wide: 1;
     }

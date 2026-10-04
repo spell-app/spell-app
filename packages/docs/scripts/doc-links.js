@@ -9,9 +9,12 @@
  * - existing `<a href>` without a target gets one (external:  per URL;  sibling docs:  per file)
  * - `--check` verifies:  every local href resolves INSIDE the repo, every non-anchor link has a target, one target per
  *   destination (`target="_self"`, a same-tab link, is exempt from the last)
+ *   - a missing target version control IGNORES is fine:  runtime files and local clones exist only on some
+ *     machines, or while a server runs (`gitIgnored()`)
  * - Works on the page's TEXT with regexes, never a parsed DOM:  the edits touch only what they link, byte for byte.
  * - NOTE:  ported from `doc-links.py` on 2026-10-03;  makes the same edits to every page.
  */
+import { spawnSync } from "node:child_process"
 import { existsSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs"
 import { basename, dirname, join, relative, resolve as resolvePath } from "node:path"
 import { pathToFileURL } from "node:url"
@@ -286,6 +289,15 @@ function isDir(path) {
   }
 }
 
+/**
+ * Whether version control ignores `path`:  a local-only or runtime file (`.spell-server.json`, a local clone in
+ * `packages/ui/reference/`), fine to be missing here.
+ * - a folder MUST keep its trailing `/`:  a missing path can't match a folder-only rule (`ongoing/`) without it
+ */
+function gitIgnored(path) {
+  return spawnSync("git", ["-C", ROOT, "check-ignore", "-q", path]).status === 0
+}
+
 /** Whether `path`, absolute and normalised, is the repo root or inside it. */
 function insideRepo(path) {
   return path === ROOT || path.startsWith(`${ROOT}/`)
@@ -333,7 +345,9 @@ export function checkText(text, docDir) {
     const href = decodeEntities(hrefMatch[1])
     const local = !URL_START.test(href)
     const dest = local ? resolvePath(docDir, href.split("#")[0]) : href
-    if (local && !existsSync(dest)) problems.push(`missing:  ${href}`)
+    if (local && !existsSync(dest)) {
+      if (!gitIgnored(dest + (href.split("#")[0].endsWith("/") ? "/" : ""))) problems.push(`missing:  ${href}`)
+    }
     else if (local && !insideRepo(dest)) problems.push(`outside repo:  ${href}`)
     if (!target) {
       problems.push(`no target:  ${href}`)

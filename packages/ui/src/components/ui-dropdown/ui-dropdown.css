@@ -435,6 +435,11 @@
   .ui.multiple.search.dropdown > input.search {
     cursor: text;
   }
+  /* Its own stacking context, so the placeholder's `z-index: -1` (below the search input) stays ABOVE the box's
+     background;  without it the placeholder sank under the white box whenever an ancestor made the context. */
+  .ui.multiple.search.dropdown {
+    isolation: isolate;
+  }
   .ui.multiple.search.dropdown > .text {
     position: absolute;
     top: 0;

@@ -1,5 +1,5 @@
 import { createEffect } from "solid-js"
-import type { JSX } from "@solidjs/web"
+import { isServer, type JSX } from "@solidjs/web"
 
 import { Cell, proto, StickyWatch, UIElement, UIT, type StickyWatchState } from "$/ui/core"
 
@@ -82,22 +82,36 @@ export class UISticky extends UIElement<StickyVocabulary> {
   // ## Rendering
   ////////////////
 
+  /**
+   * The box's inline tokens:  top and bottom offsets.
+   * - A method, not an inline object:  Solid's server compile (rc.11) drops the `;` between an inline style
+   *   object's COMPUTED keys (`--a:1px--b:2`), and the browser then ignores both.
+   */
+  private boxStyle(): Record<string, string> {
+    return {
+      [OFFSET_PROPERTY]: `${this.attrs.offset ?? 0}px`,
+      [BOTTOM_OFFSET_PROPERTY]: `${this.attrs.bottomOffset ?? 0}px`
+    }
+  }
+
   render(): JSX.Element {
     this.effects()
+    const box = (
+      <div
+        ref={(element) => (this.box = element)}
+        class={this.classes()}
+        part={this.part("sticky")}
+        style={this.boxStyle()}
+      >
+        <slot />
+      </div>
+    )
+    // a server render (`$/ui/server`):  the box alone, the root;  CSS sticks it, nothing observes
+    if (isServer) return box
     return (
       <>
         <div ref={(element) => (this.topSentinel = element)} class={SENTINEL} aria-hidden="true" />
-        <div
-          ref={(element) => (this.box = element)}
-          class={this.classes()}
-          part={this.part("sticky")}
-          style={{
-            [OFFSET_PROPERTY]: `${this.attrs.offset ?? 0}px`,
-            [BOTTOM_OFFSET_PROPERTY]: `${this.attrs.bottomOffset ?? 0}px`
-          }}
-        >
-          <slot />
-        </div>
+        {box}
         <div ref={(element) => (this.bottomSentinel = element)} class={BOTTOM_SENTINEL} aria-hidden="true" />
       </>
     )

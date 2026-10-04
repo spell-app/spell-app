@@ -10,6 +10,8 @@
   // - From ANOTHER package, import the barrel only, except these entry points:  `$/parser/rulex` (opt-in),
   //   `$/parser/test` / `$/spell/test` (test helpers), `$/spell/node/...` (node-only:  environment, files on disk),
   //   `$/ui/tools/IconPackBuilder` (node-only:  `ui`'s icon pack builder, for the `spell` CLI),
+  //   `$/ui/tools/StaticRenderer` + `$/ui/tools/tools.types` (node-only:  `spell static`'s Vite server for `ui`'s
+  //   static render, and its types),
   //   and `$/util/class` etc. (`util`'s GENERIC files, imported one by one by `ui`'s `src/util/index.ts` only:  the
   //   `$/util` barrel also holds spell's heavy utilities, which `ui` must not bundle).
   // - NOTE: every alias works from every package.  The one-way dependency rule is by convention:

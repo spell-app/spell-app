@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Emoji | Spell UI</title>
+    <meta name="description" content="An emoji is a glyph used to represent something else." />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var s = localStorage.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
+      <ui-include class="site-header" source="../_parts/header.html" page-styles>
+        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
+      </ui-include>
+
+      <div class="site-layout">
+        <aside class="site-nav">
+          <ui-docs-nav></ui-docs-nav>
+        </aside>
+
+        <main id="main" class="site-main">
+          <ui-segment vertical class="site-masthead">
+            <ui-container>
+              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-emoji.html"
+                  icon="pen to square"
+                  aria-label="This page's source on GitHub"
+                  title="This page's source on GitHub"
+                ></ui-item>
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-emoji%3A%20%20"
+                  icon="bug"
+                  aria-label="Report a bug"
+                  title="Report a bug"
+                ></ui-item>
+                <ui-item
+                  href="https://fomantic-ui.com/elements/emoji.html"
+                  icon="up right from square"
+                  aria-label="Fomantic UI's original page"
+                  title="Fomantic UI's original page"
+                ></ui-item>
+              </ui-menu>
+              <ui-header level="1" class="site-title">
+                Emoji
+                <ui-header>An emoji is a glyph used to represent something else.</ui-header>
+              </ui-header>
+              <ui-docs-themes for="ui-emoji" show="theme" class="site-themes"></ui-docs-themes>
+            </ui-container>
+          </ui-segment>
+
+          <ui-container class="site-body">
+            <ui-rail position="right" class="site-rail">
+              <ui-sticky class="site-toc" offset="64">
+                <ui-docs-toc for="site-tabs" header="Emoji"></ui-docs-toc>
+              </ui-sticky>
+            </ui-rail>
+
+            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+              <ui-tab value="examples" label="Examples">
+                <!--
+                  EXAMPLES:  Fomantic's emoji page (its Definition tab:  General, States, Variations), plus our own extras (In text,
+                  Decorative, Fomantic's names).  Fomantic's names are translated to CLDR names (`:relaxed:` => `smiling_face`), the
+                  default set;  the last example keeps Fomantic's own.  Each emoji is the reader's platform glyph, so screenshots
+                  differ between systems.
+                -->
+                <ui-header level="2" dividing id="types">Types</ui-header>
+
+                <ui-message size="small" class="site-not-ported"
+                  >Not ported: Fomantic's <code>&lt;em data-emoji&gt;</code> images from a CDN (Twemoji, JoyPixels) --
+                  an emoji is the reader's own Unicode glyph, so there is no download and no per-emoji CSS (image sets:
+                  I1).</ui-message
+                >
+                <!-- GAP I48:  Fomantic's Emojis tab (every emoji, searchable) has no widget to render it. -->
+
+                <ui-docs-example
+                  header="Emoji"
+                  description="An emoji is a glyph used to represent something else.  `name` takes its CLDR name, Unicode's own."
+                >
+                  <p>
+                    <ui-emoji name="grinning_face_with_smiling_eyes"></ui-emoji>
+                    <ui-emoji name="face_with_tears_of_joy"></ui-emoji>
+                    <ui-emoji name="thumbs_up"></ui-emoji>
+                    <ui-emoji name="red_heart"></ui-emoji>
+                    <ui-emoji name="sun"></ui-emoji>
+                    <ui-emoji name="flag_united_states"></ui-emoji>
+                    <ui-emoji name="keycap_1"></ui-emoji>
+                    <ui-emoji name="woman_technologist"></ui-emoji>
+                  </p>
+                </ui-docs-example>
+
+                <ui-docs-example header="General">
+                  <p slot="description">You can provide the emoji's name with or without colons.</p>
+                  <ui-message slot="description" state="info" size="small"
+                    >A name is case-blind, and its words may be joined any way: <code>thumbs_up</code>,
+                    <code>thumbs up</code>, <code>thumbs-up</code>, <code>thumbsUp</code>, <code>thumbsup</code>. No
+                    build setting needed (Fomantic 2.10's <code>@variationEmojiNoColons</code>).</ui-message
+                  >
+                  <p>I <ui-emoji name=":heart_with_arrow:"></ui-emoji> Spell UI</p>
+                  <p>I <ui-emoji name="heart_with_arrow"></ui-emoji> Spell UI</p>
+                  <p>
+                    <ui-emoji name="grinning_face_with_smiling_eyes"></ui-emoji>
+                    <ui-emoji name=":grinning_face_with_smiling_eyes:"></ui-emoji>
+                    <ui-emoji name="Grinning Face With Smiling Eyes"></ui-emoji>
+                    <ui-emoji name="woman_technologist"></ui-emoji>
+                    <ui-emoji name=":woman_technologist:"></ui-emoji>
+                    <ui-emoji name="womanTechnologist"></ui-emoji>
+                  </p>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="In text"
+                  description="An emoji sits in running text at the size of the text.  `label` names one that means something else in context."
+                >
+                  <p>
+                    That was <ui-emoji name=":face_with_tears_of_joy:"></ui-emoji> hilarious, thanks
+                    <ui-emoji name="thumbs_up" label="Approved"></ui-emoji>
+                  </p>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Decorative"
+                  description="An empty `label` marks an emoji as decoration, hidden from assistive technology."
+                >
+                  <p><ui-emoji name="sparkles" label=""></ui-emoji> New features</p>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="states">States</ui-header>
+
+                <ui-docs-example header="Disabled" description="An emoji can show that it is disabled.">
+                  <ui-segment basic size="massive">
+                    <ui-emoji name="anguished_face" disabled></ui-emoji>
+                  </ui-segment>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Loading"
+                  description="An emoji can be used as a simple loader.  It stands still when the reader asks for reduced motion."
+                >
+                  <ui-segment basic size="massive">
+                    <ui-emoji name="baby_angel" loading></ui-emoji>
+                    <ui-emoji name="smiling_face_with_smiling_eyes" loading></ui-emoji>
+                    <ui-emoji name="beaming_face_with_smiling_eyes" loading></ui-emoji>
+                  </ui-segment>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="variations">Variations</ui-header>
+
+                <ui-docs-example header="Size">
+                  <p slot="description">An emoji can vary in size.</p>
+                  <ui-message slot="description" size="small"
+                    >Sizes are ratios of the surrounding text: <code>small</code> 1.5em, <code>large</code> 6em,
+                    <code>big</code> 7.5em. <code>medium</code> is the default, the size of the text -- NOT Fomantic's
+                    fixed 3em.</ui-message
+                  >
+                  <ui-segment basic>
+                    <ui-emoji name="smiling_face" size="small"></ui-emoji> Small
+                    <br />
+                    <ui-emoji name="smiling_face" size="medium"></ui-emoji> Medium
+                    <br />
+                    <ui-emoji name="smiling_face" size="large"></ui-emoji> Large
+                    <br />
+                    <ui-emoji name="smiling_face" size="big"></ui-emoji> Big
+                  </ui-segment>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Autosizing"
+                  description="If no specific size is given, every emoji is sized by the current element's font size."
+                >
+                  <ui-segment basic>
+                    <ui-header size="small">Within a header <ui-emoji name="smiling_face"></ui-emoji></ui-header>
+                    <ui-button size="large">Within a button <ui-emoji name="smiling_face"></ui-emoji></ui-button>
+                    <ui-divider hidden></ui-divider>
+                    <ui-label size="massive">Within a label <ui-emoji name="smiling_face"></ui-emoji></ui-label>
+                    <ui-divider hidden></ui-divider>
+                    <ui-text size="small" color="orange"
+                      >Within a text <ui-emoji name="smiling_face"></ui-emoji
+                    ></ui-text>
+                  </ui-segment>
+                </ui-docs-example>
+
+                <ui-docs-example header="Link">
+                  <p slot="description">An emoji can be formatted as a link.</p>
+                  <ui-message slot="description" size="small"
+                    ><code>link</code> is only the look, a pointer cursor: wrap the emoji in a
+                    <code>&lt;ui-button&gt;</code> or <code>&lt;a&gt;</code> that does the work, and name
+                    that.</ui-message
+                  >
+                  <ui-segment basic size="massive">
+                    <a href="#link" aria-label="React with a smile"
+                      ><ui-emoji name="slightly_smiling_face" link></ui-emoji
+                    ></a>
+                  </ui-segment>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="fomantic-names">Fomantic's names</ui-header>
+
+                <ui-docs-example header="Fomantic's names">
+                  <p slot="description">
+                    A page written for Fomantic's emoji list can keep its names: a
+                    <code>&lt;ui-root emoji="fomantic"&gt;</code> around them switches every emoji inside to Fomantic's
+                    set (<code>thumbsup</code>, <code>smile</code>, <code>flag_us</code>, <code>one</code> for the
+                    keycap), with Fomantic's meanings: <code>dog</code> is the dog's face there, the whole dog in CLDR.
+                  </p>
+                  <ui-message slot="description" size="small"
+                    >The two sets are never mixed inside a root, so the CLDR names stop working there. A page with no
+                    root switches page-wide from JS with <code>EmojiData.use("fomantic")</code>.</ui-message
+                  >
+                  <ui-root emoji="fomantic" display="immediately">
+                    <p>
+                      <ui-emoji name="smile"></ui-emoji>
+                      <ui-emoji name="thumbsup"></ui-emoji>
+                      <ui-emoji name="flag_us"></ui-emoji>
+                      <ui-emoji name="dog"></ui-emoji>
+                      <ui-emoji name=":relaxed:"></ui-emoji>
+                      <ui-emoji name=":cupid:"></ui-emoji>
+                    </p>
+                  </ui-root>
+                </ui-docs-example>
+              </ui-tab>
+
+              <ui-tab value="usage" label="Usage">
+                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    An emoji is the real Unicode character drawn by the reader's own emoji font, never an image: there is no image
+                    download and no per-emoji CSS, and it looks like the other emoji on their system.
+
+                    - `name` takes an emoji's CLDR shortcode, Unicode's own name for it (`thumbs_up`, `grinning_face_with_smiling_eyes`,
+                      `flag_united_states`, `rocket`).
+                    - A name is case-blind, may keep its `:colons:`, and its words may be joined any way: `thumbs_up`, `thumbs up`,
+                      `thumbs-up`, `thumbsUp` (handy from JS), `thumbsup`. An unknown name draws nothing.
+                    - These are the page's default NAME SET, `cldr`; Fomantic's names are another, and a page uses one set at a time.
+                    - No events: `link` is only a look.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="name-sets">Name sets and loading</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    The names load in small pieces, one per first letter, the first time a name starting with that letter is used;
+                    later emoji from the same piece draw at once. `EmojiData`, exported with the element, picks the name set,
+                    preloads a name or adds your own.
+
+                    - `<ui-root emoji="fomantic">` switches its subtree to Fomantic's names (the shortcodes Discord and JoyPixels
+                      use); emoji inside redraw when the root's `emoji` changes.
+                    - A switch from JS affects LATER lookups only: an emoji already drawn keeps its glyph, so switch before the first
+                      emoji draws.
+                  </script>
+                </ui-markdown>
+                <ui-code language="js">
+                  <script type="text/plain">
+                    import { EmojiData } from "@spell-app/ui/ui-emoji"
+
+                    EmojiData.use("fomantic") // later lookups use Fomantic's names;  "cldr" is the default
+                    EmojiData.register("approve", "👍") // <ui-emoji name="approve"> now draws 👍, in either set
+                    await EmojiData.get("tada") // loads the "t" names;  resolves to "🎉"
+                  </script>
+                </ui-code>
+
+                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    An emoji takes no focus and handles no keys, `link` or not: the `<button>` or `<a>` around it does.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - By default the emoji is plain text, so assistive technology reads the character's own Unicode name in the
+                      reader's language ("grinning face with smiling eyes").
+                    - `label="..."` makes it a `role="img"` named by the label: use it when the emoji stands for something else, as
+                      "Approved" does in the example.
+                    - An empty `label` marks it decorative (`aria-hidden`), for an emoji that only repeats nearby text. In a
+                      framework, write `label=""`: some (MDX, JSX) turn a bare attribute into `label="true"`, which would become its
+                      name.
+                    - An unknown name renders an empty box with no role, so nothing is announced.
+                    - `link` is only a look: the emoji takes no focus and does nothing on click. Put it inside a `<button>` or `<a>`
+                      and give that control a name.
+                    - `loading` spins the glyph, and stands still under reduced motion; `disabled` only dims it.
+                    - If the emoji can't render, its native fallback draws the same character with the same naming rules. It reads
+                      `name` and `label` once, so later changes to them are not shown.
+                  </script>
+                </ui-markdown>
+              </ui-tab>
+
+              <ui-tab value="api" label="API">
+                <ui-docs-api family="ui-emoji"></ui-docs-api>
+              </ui-tab>
+
+              <ui-tab value="theming" label="Theming">
+                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Theme with the public `--ui-emoji-*` tokens: set one on the element, on any ancestor (a region, `:root`), or on
+                    the emoji's box through `::part(emoji)`. They inherit into the shadow root, where the sheet reads each through a
+                    private alias, so nothing inside blocks them.
+
+                    - `--ui-emoji-font-family` picks the emoji font.
+                    - `--ui-emoji-size-small` / `-large` / `-big` are the size ratios.
+                    - Class-grammar `medium` is Fomantic's 3em emoji (fixed, not a token): the element treats `medium` as the default
+                      size.
+                    - Never set the `--_ui-*` names: they're the sheet's private plumbing.
+                  </script>
+                </ui-markdown>
+                <ui-code language="css">
+                  <script type="text/plain">
+                    /* every emoji on the page */
+                    :root {
+                      --ui-emoji-font-family: "Noto Color Emoji", sans-serif;
+                    }
+                    /* one region */
+                    .reactions {
+                      --ui-emoji-size-large: 4;
+                    }
+                  </script>
+                </ui-code>
+                <ui-markdown>Edit a value below to try it.</ui-markdown>
+                <ui-docs-tokens family="ui-emoji" playground></ui-docs-tokens>
+
+                <ui-header level="2" dividing id="themes">Themes</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    No theme restyles emoji. Fomantic's `joypixels` theme swaps its image set, which we don't have (image emoji
+                    sets: I1); to change the look, point `--ui-emoji-font-family` at another emoji font.
+                  </script>
+                </ui-markdown>
+              </ui-tab>
+            </ui-tabs>
+          </ui-container>
+
+          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
+        </main>
+      </div>
+    </ui-root>
+  </body>
+</html>

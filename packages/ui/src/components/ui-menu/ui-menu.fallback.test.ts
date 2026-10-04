@@ -42,4 +42,13 @@ describe("MenuFallback", () => {
     expect(subRoot.localName).toBe("div")
     await expectAccessible(host, AXE)
   })
+
+  it("keeps `appearance`, `alignment` and `equal` in the class grammar", () => {
+    const host = Fixture.render<StubHost>(
+      `<ui-menu appearance="segmented" alignment="center" equal aria-label="Views">` +
+        `<ui-item href="#a" selected>A</ui-item></ui-menu>`
+    )
+    const nav = FallbackStub.shadow(host).firstElementChild as HTMLElement
+    expect(nav.className).toBe("ui segmented equal center aligned menu")
+  })
 })

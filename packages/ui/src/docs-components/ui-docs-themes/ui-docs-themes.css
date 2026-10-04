@@ -1,0 +1,43 @@
+/*
+ * `<ui-docs-themes>`:  the docs site's look controls, built from `<ui-*>` widgets:  this sheet only LAYS THEM OUT.
+ * - Shadow markup contract:  `<div class="ui [size] [inverted] themes" part="controls">` holding the theme
+ *   `<ui-dropdown part="theme">` (its text in a `<span slot="trigger">`) and the scheme `<ui-buttons part="scheme">`
+ *   of three `<ui-button part="light|dark|system">`;  `show` leaves one out.  The native fallback renders the same
+ *   wrapper around a `<select part="theme">` and three `<button part="...">`.
+ * - The look is the widgets' own:  `basic` / `inverted` dropdown and buttons, sized by `size`.
+ * - Public tokens (`--ui-docs-themes-*`) are never declared:  each is read through a private alias
+ *   (`docs/theming.md` "Component tokens").
+ */
+
+@layer ui.components.docs-themes.types, ui.components.docs-themes.content, ui.components.docs-themes.variations, ui.components.docs-themes.states;
+
+@layer ui.components.docs-themes.types {
+  :host {
+    display: inline-block;
+    vertical-align: middle;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+
+  .ui.themes {
+    /* Space between the dropdown and the scheme buttons. */
+    --_ui-docs-themes-gap: var(--ui-docs-themes-gap, 0.5em);
+
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--_ui-docs-themes-gap);
+  }
+}
+
+@layer ui.components.docs-themes.content {
+  /* The buttons keep their own size;  the dropdown takes what's left on a narrow row. */
+  [part~="scheme"] {
+    flex: none;
+  }
+  [part~="theme"] {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+}

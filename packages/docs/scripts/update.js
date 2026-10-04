@@ -12,7 +12,7 @@
  *   5. `check-spell.js` on each page, screenshots in a temp folder -- checks every page, THEN fails if any did
  */
 import { spawnSync } from "node:child_process"
-import { mkdtempSync, statSync } from "node:fs"
+import { mkdtempSync, readFileSync, statSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join, relative } from "node:path"
 
@@ -41,6 +41,9 @@ const results = []
 if (check) {
   const shots = mkdtempSync(join(tmpdir(), "spell-docs-"))
   for (const output of pages) {
+    // a Spell UI site page (the `spell-ui-docs` template) loads the site bundle, not `spell-ui.js`:
+    // `yarn site:check` (packages/ui) checks those
+    if (readFileSync(join(DOCS, output), "utf8").includes("ui/site/_assets/site.js")) continue
     const outDir = join(shots, output.replace(/\.html$/, "").replaceAll("/", "--"))
     const run = step(`check ${output}`, "node", ["scripts/check-spell.js", output, outDir], {
       capture: true,

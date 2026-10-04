@@ -1,0 +1,136 @@
+/*
+ * `<ui-docs-nav>`:  Fomantic's docs sidebar (`server/files/stylesheets/docs.css` of Fomantic-UI-Docs, `.full.height >
+ * .toc` and `#toc`), built from `<ui-*>` widgets:  this sheet only LAYS THEM OUT (and points a few of their public
+ * tokens at the sidebar's needs).
+ * - Shadow markup contract:  `<div class="ui [size] nav" part="nav">` (the scroll box) around ONE
+ *   `<ui-menu vertical inverted fluid part="menu">`, whose children are `<ui-item>`s:
+ *   - link items (`[data-nav-link]`, a `<b>` in the top ones);  `.slotted` items around the `header` / `footer` slots
+ *   - `.tools`:  `<div class="heading">` holding a `<ui-header>` (with the count `<ui-label part="count">`) and the
+ *     `<ui-buttons part="views">`;  the search `<ui-input part="search">`;  a visually hidden `<span role=status>`
+ *   - `.group`:  an optional `<ui-header>` and a sub-menu `<ui-menu class="rows">` (`.favorites` for Favourites)
+ *   - `.topic`:  a toggle item (`link`, `aria-expanded`) holding the title and a `<ui-label class="count">`;  then,
+ *     while open, a `.group.topic-rows` item
+ *   - `.empty`:  "No components match"
+ * - A `.rows` sub-menu holds PAIRS:  a link `<ui-item>` (maybe with a `<ui-label class="status">`) and its star
+ *   `<ui-button class="star">`;  its `::part(menu)` is a two-column grid, so each pair is one row.
+ * - The dark background is the inverted menu's own fill (`--ui-surface` in the dark scheme);  the scroll box paints
+ *   it too, so a short menu in a tall sidebar has no light gap below it.
+ * - Public tokens (`--ui-docs-nav-*`) are never declared:  each is read through a private alias
+ *   (`docs/theming.md` "Component tokens").
+ */
+
+@layer ui.components.docs-nav.types, ui.components.docs-nav.content, ui.components.docs-nav.variations, ui.components.docs-nav.states;
+
+@layer ui.components.docs-nav.types {
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+
+  /* Tokens:  Fomantic's `.toc` measures. */
+  .ui.nav {
+    /* Height of the scroll box;  `100%` fills a sized parent (a fixed sidebar), else it grows with the menu. */
+    --_ui-docs-nav-height: var(--ui-docs-nav-height, 100%);
+    /* Tallest the scroll box grows before it scrolls, e.g. `100dvh` in a sticky column. */
+    --_ui-docs-nav-max-height: var(--ui-docs-nav-max-height, none);
+    /* Fill of the scroll box:  the inverted menu's. */
+    --_ui-docs-nav-background: var(--ui-docs-nav-background, var(--ui-surface));
+    /* Colour of a starred component's star. */
+    --_ui-docs-nav-star-color: var(--ui-docs-nav-star-color, var(--ui-yellow));
+    /* Opacity of an unstarred star at rest;  it brightens on its row's hover, as Fomantic's status dots do. */
+    --_ui-docs-nav-star-opacity: var(--ui-docs-nav-star-opacity, 0.35);
+
+    box-sizing: border-box;
+    height: var(--_ui-docs-nav-height);
+    max-height: var(--_ui-docs-nav-max-height);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    color-scheme: dark;
+    background: var(--_ui-docs-nav-background);
+    /* Fomantic's scrollbar:  invisible until hovered. */
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+  .ui.nav:hover {
+    scrollbar-color: oklch(from var(--ui-ink-on-dark) l c h / 0.25) oklch(from var(--ui-ink-on-dark) l c h / 0.1);
+  }
+
+  /*
+   * The menu:  square, flush with the box (Fomantic's `.toc .ui.menu`).
+   * - Full-width items:  a `link` item (a topic toggle) is a `<button>`, which a vertical menu leaves shrink-wrapped
+   *   (GAP, plan doc).
+   */
+  [part~="menu"] {
+    --ui-menu-radius: 0;
+    --ui-menu-item-width: 100%;
+    display: block;
+  }
+}
+
+@layer ui.components.docs-nav.content {
+  /* ## Components item:  header + count beside the view switch, then the search box. */
+  .heading {
+    display: flex;
+    gap: 0.5em;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .heading > ui-header {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+  .tools > [part~="search"] {
+    display: block;
+    margin-top: 0.75em;
+  }
+  /* The pressed view:  a light overlay, not a toggle's positive green (it's a choice, not an on / off). */
+  .heading > [part~="views"] {
+    flex: none;
+    --ui-button-toggle-background: oklch(from var(--ui-ink-on-dark) l c h / 0.2);
+    --ui-button-toggle-background-hover: oklch(from var(--ui-ink-on-dark) l c h / 0.25);
+    --ui-button-toggle-color: var(--ui-ink-on-dark);
+  }
+
+  /* ## Rows:  a link and its star per row. */
+  .rows::part(menu) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 0.25em;
+    align-items: center;
+  }
+  .rows > .star {
+    margin-inline-end: 0.75em;
+    opacity: var(--_ui-docs-nav-star-opacity);
+    transition: opacity 0.2s ease-out;
+    /* starred:  the glyph in the star colour, no fill */
+    --ui-button-toggle-background: transparent;
+    --ui-button-toggle-background-hover: transparent;
+    --ui-button-toggle-color: var(--_ui-docs-nav-star-color);
+  }
+  .rows > .star[active],
+  .rows > .star:hover,
+  .rows > .star:focus-within,
+  .rows > ui-item:hover + .star {
+    opacity: 1;
+  }
+
+  /* Badges and counts sit after the text (a `<ui-label>` host is `display: contents`:  its box is `::part(label)`). */
+  [part~="count"]::part(label),
+  .rows .status::part(label),
+  .topic > .count::part(label) {
+    margin-inline-start: 0.5em;
+    vertical-align: middle;
+  }
+
+  /* ## Topics:  the open topic's rows (a `fitted="vertically"` item) sit right under its toggle, no divider between. */
+  .topic-rows::part(item)::before {
+    display: none;
+  }
+
+  .empty {
+    font-style: italic;
+  }
+}

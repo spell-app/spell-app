@@ -1,5 +1,6 @@
 /**
- * `node --test scripts/window.test.mjs`:  how `Window.current()` finds a session's window, and `Window.request()`.
+ * `node --test scripts/window.test.mjs`:  how `Window.current()` finds a session's window, `Window.request()`,
+ * the worktree windows' moves, and `stay-check`'s advice.
  * - Registry entries go in a temp folder (`SPELL_WINDOWS_DIR`), never `~/.spell/windows`.
  * - The "window" is a stand-in:  our own parent pid (an ancestor, like a session's extension host), a `sleep`
  *   child (alive, but not an ancestor), or a pid that has exited.
@@ -12,7 +13,16 @@ import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 import { after, beforeEach, test } from "node:test"
 
-import { Window, mainRoot, tint } from "./window.mjs"
+import {
+  Window,
+  claudeSessions,
+  mainRoot,
+  parseLsof,
+  processTable,
+  stayAdvice,
+  tint,
+  worktreeOf
+} from "./window.mjs"
 
 /** The temp registry folder. */
 const dir = mkdtempSync(join(tmpdir(), "spell-windows-"))
@@ -175,7 +185,7 @@ test("resume():  opens the session in the target window, then closes its tab, or
     assert.deepEqual(await Window.resume(tab, "isolate-me"), expected)
     assert.deepEqual(seen.splice(0), [
       ["/open-session", { sessionId: SESSION }],
-      ["/close-session-tab", { title: "isolate-me" }]
+      ["/close-session-tab", { titles: ["isolate-me"] }]
     ])
     // a doc asked for while the move was pending:  shown beside the session, before the old tab closes
     const show = { file: "/plan.html", hash: "p2" }
@@ -183,8 +193,17 @@ test("resume():  opens the session in the target window, then closes its tab, or
     assert.deepEqual(seen.splice(0), [
       ["/open-session", { sessionId: SESSION }],
       ["/show-doc", show],
-      ["/close-session-tab", { title: "isolate-me" }]
+      ["/close-session-tab", { titles: ["isolate-me"] }]
     ])
+    // a prompt to type into the new tab, and every title the old tab may show
+    assert.equal((await Window.resume({ ...tab, prompt: "continue" }, ["iso", "Claude's title"])).closed, true)
+    assert.deepEqual(seen.splice(0), [
+      ["/open-session", { sessionId: SESSION, prompt: "continue" }],
+      ["/close-session-tab", { titles: ["iso", "Claude's title"] }]
+    ])
+    // no title at all:  the old tab can't be found, so stays
+    assert.equal((await Window.resume(tab)).closed, false)
+    assert.deepEqual(seen.splice(0), [["/open-session", { sessionId: SESSION }]])
     const window = { ...tab, close: "window", remove }
     assert.equal((await Window.resume(window)).closed, true)
     assert.deepEqual(seen.splice(0), [
@@ -208,7 +227,9 @@ test("handoff():  records the move, keyed by session;  needs a session and the w
     const handoff = Window.handoff(name, SESSION)
     assert.equal(handoff.to, Window.worktreeFile(name))
     assert.equal(handoff.close, "tab")
+    assert.equal(handoff.prompt, null)
     assert.deepEqual(JSON.parse(readFileSync(Window.handoffFile(SESSION), "utf8")), handoff)
+    assert.equal(Window.handoff(name, SESSION, { prompt: "continue" }).prompt, "continue")
     // not in the worktree's window:  nothing to move back
     assert.equal(Window.handoff(name, SESSION, { back: true }), null)
     const worktree = { pid: process.ppid, port: 1, token: "t", folders: [], workspaceFile: Window.worktreeFile(name) }
@@ -237,6 +258,68 @@ test("show():  while a move is pending, the doc waits for the target window;  th
   }
   // nothing pending, and no window:  `request()`'s error
   await assert.rejects(Window.show("/a.html", { sessionId: SESSION }), /no window/)
+})
+
+test("processTable() + claudeSessions():  a window's sessions are its extension host's `claude` children", () => {
+  const ps = [
+    "  100     1 /Applications/Visual Studio Code.app/Contents/MacOS/Code",
+    "  200   100 /Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Plugin).app/Contents/MacOS/Code Helper (Plugin)",
+    "  301   200 /Users/o/.vscode/extensions/anthropic.claude-code-2.1.288-darwin-arm64/resources/native-binary/claude",
+    "  302   200 /Users/o/.vscode/extensions/anthropic.claude-code-2.1.288-darwin-arm64/resources/native-binary/claude",
+    "  303   200 node",
+    "  400   999 /Users/o/.local/bin/claude"
+  ].join("\n")
+  const processes = processTable(ps)
+  assert.deepEqual(processes.get(200), {
+    ppid: 100,
+    command:
+      "/Applications/Visual Studio Code.app/Contents/Frameworks/Code Helper (Plugin).app/Contents/MacOS/Code Helper (Plugin)"
+  })
+  assert.deepEqual(claudeSessions(processes, 200), [301, 302])
+  assert.deepEqual(claudeSessions(processes, 999), [400])
+})
+
+test("parseLsof() + worktreeOf():  each session's folder, and the worktree it's in", () => {
+  const cwds = parseLsof("p301\nfcwd\nn/repo/.claude/worktrees/seo/packages/ui\np302\nfcwd\nn/repo\n")
+  assert.deepEqual([...cwds], [
+    [301, "/repo/.claude/worktrees/seo/packages/ui"],
+    [302, "/repo"]
+  ])
+  assert.equal(worktreeOf(cwds.get(301)), "seo")
+  assert.equal(worktreeOf(cwds.get(302)), null)
+  assert.equal(worktreeOf(null), null)
+})
+
+test("stayAdvice():  stay when it's the window's only session;  else a window of its own, saying why", () => {
+  const window = { pid: 200 }
+  const alone = stayAdvice({ window })
+  assert.equal(alone.recommend, "stay")
+  assert.equal(alone.reasons.length, 1)
+  assert.match(stayAdvice({ window, epic: true }).reasons.join(), /side bar/)
+
+  const shared = stayAdvice({
+    window,
+    others: [
+      { pid: 301, cwd: "/repo/.claude/worktrees/seo" },
+      { pid: 302, cwd: "/repo" }
+    ]
+  })
+  assert.equal(shared.recommend, "window")
+  assert.deepEqual(shared.others, [
+    { pid: 301, worktree: "seo" },
+    { pid: 302, worktree: null }
+  ])
+  assert.match(shared.reasons[0], /2 other sessions share this window \(worktree `seo`, the main checkout\)/)
+  assert.match(shared.reasons.join(), /Source Control/)
+
+  const main = stayAdvice({ window, others: [{ pid: 302, cwd: "/repo" }], epic: true })
+  assert.equal(main.recommend, "window")
+  assert.match(main.reasons[0], /^another session shares this window \(the main checkout\)/)
+  assert.doesNotMatch(main.reasons.join(), /Source Control/)
+  assert.match(main.reasons.join(), /plan doc/)
+
+  // no bridge:  a new window can't open, so staying is all there is
+  assert.equal(stayAdvice({ window: null, others: [{ pid: 302, cwd: "/repo" }] }).recommend, "stay")
 })
 
 /** Write a registry entry for `pid` with `folders`. */

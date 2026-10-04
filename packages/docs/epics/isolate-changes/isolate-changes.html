@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Isolate & Epic Changes</title>
+    <meta name="description" content="Plan doc:  Isolate & Epic Changes." />
+    <link rel="stylesheet" href="../../_assets/spell-doc.css" />
+    <link rel="stylesheet" href="../../_assets/plan-doc.css" />
+  </head>
+  <body class="spell-doc-page plan-doc" data-plan="isolate-changes">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-breadcrumb class="spell-crumbs" size="small" aria-label="Breadcrumb">
+          <ui-breadcrumb-section href="../../index.html" target="src-packages-docs-index-html"
+            >Docs</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section href="../../index.html#epics" target="src-packages-docs-index-html"
+            >Epics</ui-breadcrumb-section
+          >
+          <ui-breadcrumb-section active>Isolate &amp; Epic Changes</ui-breadcrumb-section>
+        </ui-breadcrumb>
+        <ui-sticky class="spell-h1"
+          ><header class="spell-page-head">
+            <h1>Isolate &amp; Epic Changes</h1>
+            <span class="plan-step"><ui-label color="green" icon="check">DONE</ui-label></span>
+          </header></ui-sticky
+        >
+        <ui-list class="plan-meta">
+          <ui-item icon="code branch"
+            >Plan doc for <code>/epic isolate-changes</code>, branch <code>main</code></ui-item
+          >
+          <ui-item icon="folder"
+            >Worktree:
+            <a href="../../../../" target="src-"><code>/Users/owen/www/spell-app/spell-app</code></a></ui-item
+          >
+          <ui-item icon="calendar"
+            >Started <time id="plan-started">2026-10-03</time>, updated
+            <time id="plan-updated">2026-10-03</time></ui-item
+          >
+        </ui-list>
+
+        <ui-section id="overview" header="1. Overview" sticky collapsible dividing>
+          <ui-icon slot="icon" name="lightbulb"></ui-icon>
+          <p class="plan-summary lede">
+            Get <code>/isolate</code> and <code>/epic</code> into their new window at once, renamed first, never from
+            inside another worktree or plan mode, and never losing the text typed. Then show every running epic's plan
+            doc from the main checkout's docs.
+          </p>
+          <blockquote class="plan-prompt">
+            <p>
+              The `/isolate` command will create a new window, but it doesn't seem to reliably switch the current
+              session into that. I think that may be part of the `/epic`? If so, move it back to `/isolate` portion --
+              get me in that new window ASAP. Anyway, that's been confusing, fix it.
+            </p>
+            <p>Also, doing an `/isolate` or `/epic` in another worktree is a bad idea, stop me from doing that.</p>
+            <p>
+              Can you `/rename` sessions (whatever you called it?) If so, as a standing rule in all scripts, when
+              starting / picking up / resuming / whatever an isolate or plan, rename the session to match. Do this
+              BEFORE doing anything else.
+            </p>
+            <p>
+              For a previous `/epic`, I think I messed you up when I ran that command and we were in plan mode. Is that
+              true? What I'd like in that case is, at worst: copy the plan text I entered. Stop planning. Present that
+              text to me with a copy button and tell me to start over. Make sure you don't lose the text! If you can
+              figure out something better, do that.
+            </p>
+            <p>
+              Finally, when in `/epic` mode, I'd love it if the plan docs for all running epics were available in main
+              spell docs rather than being in each epic's worktree. Is this feasible? And, write the stub of the plan
+              doc FIRST, before formulating the plan -- and at the top of that doc, have instructions to restart the
+              plan if it gets hung.
+            </p>
+          </blockquote>
+          <p class="plan-estimate"><b>Estimate:</b> 4h 45m-5h 45m in all, 0m left</p>
+          <ui-section id="o1" header="1.1 What was wrong" sticky collapsible dividing>
+            <ul>
+              <li>
+                The move to the worktree's window waits for the TURN to end (the <code>Stop</code> hook).
+                <code>/epic</code> kept the same turn going (install, doc, exploring, plan mode), so the move came late.
+              </li>
+              <li>
+                The old tab is found by its label, the session's title. New sessions had none (<code
+                  >no tabs titled ''</code
+                >, 5 of 7 moves), and sessions opened in a worktree's window shared its title (~20 tabs titled
+                <code>ui-import</code>).
+              </li>
+              <li>
+                3 runs of <code>/epic</code> in plan mode lost no text, but ran out of order: plan first, worktree and
+                doc after approval, the text only in the harness plan file until then.
+              </li>
+              <li>
+                Running epics' docs were only on their worktree's own server; main's refused
+                <a href="../../../../.claude/" target="src-claude"><code>.claude/</code></a
+                >.
+              </li>
+            </ul>
+          </ui-section>
+          <ui-section id="o2" header="1.2 /isolate now" sticky collapsible dividing>
+            <ol>
+              <li>
+                <a href="#p1">P1</a>:
+                <a href="../../../../.claude/hooks/prompt-gate.mjs" target="src-claude-hooks-prompt-gate-mjs"
+                  ><code>.claude/hooks/prompt-gate.mjs</code></a
+                >
+                sees the prompt first: renames the session, or blocks it (plan mode, another worktree), saving the text
+                to <code>~/.spell/prompts/&lt;name&gt;.md</code> (<a href="#d1">D1</a>).
+              </li>
+              <li>
+                Name, collisions, <code>EnterWorktree</code>, the worktree's window,
+                <code>handoff --prompt continue</code>.
+              </li>
+              <li>
+                <a href="#p2">P2</a>: the turn ends at once; the new tab opens with <code>continue</code> typed in.
+              </li>
+              <li>First turn there ("Continue"): <code>yarn install</code>, any saved text, carry on.</li>
+            </ol>
+          </ui-section>
+          <ui-section id="o3" header="1.3 /epic now" sticky collapsible dividing>
+            <ol>
+              <li>The hook, as above; the kickoff prompt saved before anything else.</li>
+              <li>
+                <a href="#p3">P3</a>: worktree, <code>yarn install</code> (~5s, <a href="#d6">D6</a>), the STUB doc with
+                the "Plan hung?" notice (restart steps, the prompt with a copy button), then the move.
+              </li>
+              <li>Planning happens in the new window; plan mode only after the stub and the move.</li>
+            </ol>
+          </ui-section>
+          <ui-section id="o4" header="1.4 Running epics" sticky collapsible dividing>
+            <ul>
+              <li>
+                <a href="#p4">P4</a>: main's page server serves <code>/worktrees/&lt;w&gt;/</code>, lists running epics
+                at <code>/_server/epics</code>, and fills the docs index's "Running epics" (<a href="#d8">D8</a>).
+              </li>
+              <li><code>SRV.mainServerUrl()</code>: <code>yarn server url</code> and the doc preview use port 4747.</li>
+              <li>
+                Durable doc:
+                <a href="../../server.html#running-epics-flow" target="src-packages-docs-server-html"
+                  >server.html, "Running epics"</a
+                >.
+              </li>
+            </ul>
+          </ui-section>
+        </ui-section>
+
+        <ui-section id="phases" header="2. Phases" sticky collapsible dividing>
+          <ui-icon slot="icon" name="layer group"></ui-icon>
+          <ui-progress class="plan-progress" value="5" total="5" bar-text="ratio" size="small" color="green"
+            >phases done</ui-progress
+          >
+
+          <ui-section
+            collapsed
+            id="p1"
+            data-phase="1"
+            data-status="done"
+            header="P1 · Prompt Gate"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> Rename the session first; block /isolate and /epic in plan mode or inside another
+                worktree, saving the text</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> .claude/hooks/prompt-gate.mjs, prompt-gate.test.mjs, .claude/settings.json,
+                ~/.claude/hooks/session-title.mjs, the isolate / epic / park / unpark skills</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> node --test .claude/hooks/prompt-gate.test.mjs (11); a headless claude -p probe in plan
+                mode</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 45m</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            collapsed
+            id="p2"
+            data-phase="2"
+            data-status="done"
+            header="P2 · Move First"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> /isolate ends its turn at the handoff; the new tab opens with continue typed in; the old
+                tab closes by any title</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> scripts/window.mjs, window.test.mjs, .claude/hooks/handoff.mjs,
+                packages/vscode/src/WindowBridge.ts, the isolate skill, AGENTS.md</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> node --test scripts/window.test.mjs (15); tsc on packages/vscode; yarn vscode</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1-1.5h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            collapsed
+            id="p3"
+            data-phase="3"
+            data-status="done"
+            header="P3 · Epic Stub First"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> /epic saves the prompt, writes the stub plan doc with a Plan hung? notice, then moves;
+                planning happens in the new window</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/docs/scripts/plan-doc.js, plan-doc.test.js, templates/epics/plan.html,
+                plan-doc.md, the epic skill</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> plan-doc tests (29); a throwaway doc through check-spell, screenshot</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section
+            collapsed
+            id="p4"
+            data-phase="4"
+            data-status="done"
+            header="P4 · Central Epic Docs"
+            sticky
+            collapsible
+            dividing
+          >
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"
+                ><b>Goal:</b> The main page server serves every worktree and lists running epics on the docs index;
+                links on one port</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/server/src/page/RunningEpics.ts, PageServer.ts, cli.ts, src/mainServer.ts,
+                packages/vscode/src/DocPreview.ts, packages/docs/index.html</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> packages/server yarn test (76) and yarn review; a probe server over the real
+                checkout</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 1.5-2h</ui-item></ui-list
+            >
+          </ui-section>
+          <ui-section id="p5" data-phase="5" data-status="done" header="P5 · Doc Review" sticky collapsible dividing>
+            <ui-icon slot="icon" name="circle check" color="green"></ui-icon>
+            <ui-list class="plan-phase-body"
+              ><ui-item icon="bullseye"><b>Goal:</b> Durable docs and rules true to what was built</ui-item
+              ><ui-item icon="folder"
+                ><b>Files:</b> packages/docs/server.html, AGENTS.md, packages/server/AGENTS.md, the epic skill,
+                PAPERCUTS.md, changelog.html</ui-item
+              ><ui-item icon="flask"
+                ><b>Verify:</b> doc-links --check, check-spell on server.html and changelog.html</ui-item
+              ><ui-item icon="clock"><b>Estimate:</b> 30m</ui-item></ui-list
+            >
+          </ui-section></ui-section
+        >
+
+        <ui-section id="decisions" header="3. Questions & Decisions" sticky collapsible dividing>
+          <ui-icon slot="icon" name="gavel"></ui-icon>
+          <p class="meta">
+            Open questions first: waiting on you, each also asked in Claude Code. Then what was decided, and why:
+            settled, don't re-argue without new facts. An answered question sits just above its decision.
+          </p>
+          <ui-list class="plan-items" data-kind="decision" divided relaxed
+            ><ui-item id="d1" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d1">D1</a>
+                  <span class="plan-title">Plan mode: block the prompt, save its text, pick it up later</span></ui-title
+                ><ui-content
+                  ><p>
+                    Chosen over letting Claude plan in plan mode and build after approval (what the last 3 runs did):
+                    plan mode can't make the worktree, and until approval the text lived only in the harness plan file.
+                    The block quotes the text back, so it can be copied, and <code>/epic &lt;name&gt;</code> alone picks
+                    it up from <code>~/.spell/prompts/&lt;name&gt;.md</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d2" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d2">D2</a>
+                  <span class="plan-title">Work in worktree isolate-changes, not on main</span></ui-title
+                ><ui-content
+                  ><p>
+                    Owen's pick. Cost: the hooks only went live after the merge, so the live checks run after it (see To
+                    test).
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d3" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d3">D3</a>
+                  <span class="plan-title">Central epic docs (P4) in this pass</span></ui-title
+                ><ui-content><p>Owen's pick, over a separate /epic later.</p></ui-content></ui-accordion
+              ></ui-item
+            ><ui-item id="d4" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d4">D4</a>
+                  <span class="plan-title">The hook doesn't rename on /park or /wait-for</span></ui-title
+                ><ui-content
+                  ><p>
+                    Both may name ANOTHER session. <code>/park</code> renames itself from its skill;
+                    <code>/wait-for</code> doesn't rename.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d5" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d5">D5</a>
+                  <span class="plan-title">Several tabs with one title: left open, logged</span></ui-title
+                ><ui-content
+                  ><p>
+                    The plan hoped to pick the old tab by session id, through the Claude extension's
+                    <code>sessionPanels</code> map; another extension can't reach it. Renaming on submit prevents the
+                    shared titles instead.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d6" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d6">D6</a>
+                  <span class="plan-title"
+                    >/epic runs yarn install before the stub doc; no --checkout flag</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Measured: <code>yarn install</code> in a fresh worktree takes ~5s, so the planned
+                    <code>plan-doc --checkout</code> (run main's copy against the worktree) wasn't worth it.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d7" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d7">D7</a>
+                  <span class="plan-title"
+                    >/epic with a name only: isolate first, ask for the plan in the new window</span
+                  ></ui-title
+                ><ui-content
+                  ><p>It used to reply 'send the plan' in the old window, then move later.</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d8" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d8">D8</a>
+                  <span class="plan-title">Running epics rendered by the server, not in the browser</span></ui-title
+                ><ui-content
+                  ><p>
+                    An html hook fills the index's <code>&lt;!-- running-epics --&gt;</code> marker on each request: no
+                    change to the docs bundle, no browser code. <code>/_server/epics</code> still serves the JSON.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d9" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d9">D9</a>
+                  <span class="plan-title">plan-doc doesn't reindex inside a worktree</span></ui-title
+                ><ui-content
+                  ><p>
+                    Each phase change rewrote the committed
+                    <a href="../../index.html" target="src-packages-docs-index-html"><code>index.html</code></a
+                    >, so two epics' branches conflicted there on merge. Running epics show live instead; the card comes
+                    with Doc Review's <code>yarn docs:index</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="caveats" header="4. Caveats" sticky collapsible dividing>
+          <ui-icon slot="icon" name="triangle exclamation"></ui-icon>
+          <ui-list class="plan-items" data-kind="caveat" divided relaxed
+            ><ui-item id="c1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c1">C1</a>
+                  <span class="plan-title"
+                    >The new extension runs only in windows opened or reloaded since 2026-10-03</span
+                  ></ui-title
+                ><ui-content
+                  ><p>Reloading a window restarts its Claude sessions: reload when convenient.</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c2">C2</a>
+                  <span class="plan-title">The new tab's continue is typed in, not sent</span></ui-title
+                ><ui-content
+                  ><p>
+                    The Claude extension's <code>initialPrompt</code> fills the input: Owen presses enter.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c3">C3</a>
+                  <span class="plan-title">Plain-word triggers rename on the NEXT prompt</span></ui-title
+                ><ui-content
+                  ><p>
+                    'isolate as foo' never reaches the hook, so the skill queues the title (<code>session.py name</code
+                    >); it lands on the next prompt or on resume, maybe too late for the old tab's close.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c4">C4</a>
+                  <span class="plan-title">No edit mode on a worktree's doc through the main server</span></ui-title
+                ><ui-content
+                  ><p><code>PageEditor</code> refuses dot paths too; the worktree's own server edits it.</p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="c5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#c5">C5</a>
+                  <span class="plan-title"
+                    >Main's page server needs a restart after a merge to serve worktrees</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Until then <code>SRV.mainServerUrl()</code> sees no <code>/_server/epics</code> and links fall back
+                    to the worktree's own server.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="todos" header="5. Todos" sticky collapsible dividing>
+          <ui-icon slot="icon" name="list check"></ui-icon>
+          <p class="meta">For later: not caveats, not issues.</p>
+          <ui-list class="plan-items" data-kind="todo" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="issues" header="6. Issues" sticky collapsible dividing>
+          <ui-icon slot="icon" name="bug"></ui-icon>
+          <ui-list class="plan-items" data-kind="issue" divided relaxed></ui-list>
+        </ui-section>
+
+        <ui-section id="tests" header="7. To test" sticky collapsible dividing>
+          <ui-icon slot="icon" name="flask"></ui-icon>
+          <p class="meta">
+            What to check by hand before merging: each a step, and what should happen. Struck through once it passes.
+          </p>
+          <ui-list class="plan-items" data-kind="test" divided relaxed
+            ><ui-item id="v1" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v1">V1</a>
+                  <span class="plan-title">/isolate tmp-x from a package window</span></ui-title
+                ><ui-content
+                  ><p>
+                    The tab is renamed <code>tmp-x</code> at once; the turn ends within seconds; a new tinted window
+                    opens with the session in a tab and <code>continue</code> typed in; the old tab closes (<code
+                      >~/.spell/windows/handoffs/&lt;id&gt;.log</code
+                    >
+                    doesn't say 'left its old tab open'). Enter on <code>continue</code>: <code>yarn install</code>,
+                    then 'ready in tmp-x'.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v2" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v2">V2</a>
+                  <span class="plan-title"
+                    >/isolate tmp-y do a thing, from a new session in tmp-x's window</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Blocked: 'You're in worktree tmp-x'; the text quoted back and saved in
+                    <code>~/.spell/prompts/tmp-y.md</code>. Then <code>/isolate tmp-y</code> from a package window:
+                    after the move it carries on with 'do a thing' and deletes the file.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v3" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v3">V3</a>
+                  <span class="plan-title">/epic tmp-z some text, with plan mode on</span></ui-title
+                ><ui-content
+                  ><p>
+                    Blocked: 'Plan mode is on', the text quoted and saved. Leave plan mode, <code>/epic tmp-z</code>: it
+                    uses the saved prompt, makes the worktree and the stub doc, moves, ends the turn. The doc shows
+                    'Plan hung?' with the prompt and a working Copy button.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v4" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v4">V4</a>
+                  <span class="plan-title">Running epics on the main docs index</span></ui-title
+                ><ui-content
+                  ><p>
+                    <code>http://127.0.0.1:4747/packages/docs/index.html</code>: 'Running epics' lists tmp-z, blue
+                    'planning'; its link opens <code>/worktrees/tmp-z/...</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v5" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v5">V5</a>
+                  <span class="plan-title">Live reload of a running epic</span></ui-title
+                ><ui-content
+                  ><p>
+                    In tmp-z: <code>yarn plan-doc add-phase tmp-z Test</code>, then <code>phase tmp-z 1 active</code>:
+                    the doc reloads by itself, the index badge turns 'P1 · Test', the 'Plan hung?' notice goes.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v6" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v6">V6</a>
+                  <span class="plan-title">yarn server url in a worktree gives port 4747</span></ui-title
+                ><ui-content
+                  ><p>
+                    In tmp-z: <code>yarn server url "$PWD/packages/docs/epics/tmp-z/tmp-z.html"</code> prints
+                    <code>127.0.0.1:4747/worktrees/tmp-z/...</code>.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="v7" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#v7">V7</a>
+                  <span class="plan-title">/isolate done in each test worktree, then remove them</span></ui-title
+                ><ui-content
+                  ><p>
+                    'Leave unmerged': the session moves back, the worktree's window closes. Then
+                    <code>git worktree remove .claude/worktrees/&lt;name&gt;</code> and
+                    <code>git branch -D &lt;name&gt;</code> for tmp-x, tmp-y, tmp-z.
+                  </p></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
+          >
+        </ui-section>
+
+        <ui-section id="log" header="8. Log" sticky collapsible dividing>
+          <ui-icon slot="icon" name="clock rotate left"></ui-icon>
+          <p class="meta">Plan changes, oldest first, local time.</p>
+          <ui-feed class="plan-log" size="small">
+            <ui-event icon="pen to square">
+              <ui-content>
+                <ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:06-04:00">2026-10-03 10:06</time></ui-date> plan doc
+                  created</ui-summary
+                >
+              </ui-content>
+            </ui-event>
+            <ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:07-04:00">2026-10-03 10:07</time></ui-date> P1 added: Prompt
+                  Gate</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:07-04:00">2026-10-03 10:07</time></ui-date> P2 added: Move
+                  First</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:07-04:00">2026-10-03 10:07</time></ui-date> P3 added: Epic
+                  Stub First</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:07-04:00">2026-10-03 10:07</time></ui-date> P4 added: Central
+                  Epic Docs</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:07-04:00">2026-10-03 10:07</time></ui-date> P5 added: Doc
+                  Review</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:07-04:00">2026-10-03 10:07</time></ui-date> P1
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:07-04:00">2026-10-03 10:07</time></ui-date> P2
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:07-04:00">2026-10-03 10:07</time></ui-date> P3
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:07-04:00">2026-10-03 10:07</time></ui-date> P4
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:07-04:00">2026-10-03 10:07</time></ui-date> P5
+                  done</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-03T10:08-04:00">2026-10-03 10:08</time></ui-date> Written after the
+                  fact (2026-10-03): the work ran in plan mode + /isolate isolate-changes, merged at 0f01f883; changelog
+                  013925e5</ui-summary
+                ></ui-content
+              ></ui-event
+            ></ui-feed
+          >
+        </ui-section>
+      </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="../../_assets/spell-ui.js"></script>
+  </body>
+</html>

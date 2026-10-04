@@ -1,0 +1,1541 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Menu | Spell UI</title>
+    <meta name="description" content="A menu displays grouped navigation actions." />
+    <!-- Before first paint:  the viewer's colour scheme (`ThemePreference.HEAD_SCRIPT`, as oxfmt lays it out).  The theme itself is restored by site.js. -->
+    <script>
+      try {
+        var s = localStorage.getItem("spell-ui-site:scheme")
+        if (s === "light" || s === "dark") document.documentElement.classList.add("ui-" + s)
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" href="../_assets/site.css" />
+    <script type="module" src="../_assets/site.js"></script>
+  </head>
+  <body class="ui-typography">
+    <spell-site-header root="../../../.."></spell-site-header>
+    <ui-root class="site" stack-with="page" icons="fa7-brands, fomantic" display="immediately">
+      <ui-include class="site-header" source="../_parts/header.html" page-styles>
+        <ui-menu inverted class="site-header-placeholder"><ui-item>Spell UI</ui-item></ui-menu>
+      </ui-include>
+
+      <div class="site-layout">
+        <aside class="site-nav">
+          <ui-docs-nav></ui-docs-nav>
+        </aside>
+
+        <main id="main" class="site-main">
+          <ui-segment vertical class="site-masthead">
+            <ui-container>
+              <ui-menu icon floated="right" class="site-page-links" aria-label="About this page">
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/blob/main/packages/ui/site/components/ui-menu.html"
+                  icon="pen to square"
+                  aria-label="This page's source on GitHub"
+                  title="This page's source on GitHub"
+                ></ui-item>
+                <ui-item
+                  href="https://github.com/spell-app/spell-app/issues/new?title=ui-menu%3A%20%20"
+                  icon="bug"
+                  aria-label="Report a bug"
+                  title="Report a bug"
+                ></ui-item>
+                <ui-item
+                  href="https://fomantic-ui.com/collections/menu.html"
+                  icon="up right from square"
+                  aria-label="Fomantic UI's original page"
+                  title="Fomantic UI's original page"
+                ></ui-item>
+              </ui-menu>
+              <ui-header level="1" class="site-title">
+                Menu
+                <ui-header>A menu displays grouped navigation actions.</ui-header>
+              </ui-header>
+              <ui-docs-themes for="ui-menu" show="theme" class="site-themes"></ui-docs-themes>
+            </ui-container>
+          </ui-segment>
+
+          <ui-container class="site-body">
+            <ui-rail position="right" class="site-rail">
+              <ui-sticky class="site-toc" offset="64">
+                <ui-docs-toc for="site-tabs" header="Menu"></ui-docs-toc>
+              </ui-sticky>
+            </ui-rail>
+
+            <ui-tabs id="site-tabs" class="site-tabs" history basic appearance="segmented" alignment="fluid" equal>
+              <ui-tab value="examples" label="Examples">
+                <!--
+                  EXAMPLES:  Fomantic's menu page, section by section, in its order (Types, Content, States, Variations), plus our
+                  own extras (Menubar, Floated).  A menu holds the GENERIC `<ui-item>`;  a `<ui-menu>` inside a menu is a sub-menu.
+                  Every top-level menu is a `<nav>` landmark, so each example names its menu with its own `aria-label`.
+                  `GAP I<n>` comments mark examples a widget can't render yet (plan-doc issues).
+                -->
+
+                <ui-header level="2" dividing id="types">Types</ui-header>
+
+                <ui-docs-example header="Menu">
+                  <p slot="description">
+                    A menu. <code>items</code> divides its width evenly between that many items:
+                    <code>items="3"</code> is Fomantic's <code>three item menu</code>.
+                  </p>
+                  <ui-menu items="3" aria-label="Sections">
+                    <ui-item href="#editorials" selected>Editorials</ui-item>
+                    <ui-item href="#reviews">Reviews</ui-item>
+                    <ui-item href="#events">Upcoming Events</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <!-- GAP I69:  opened, the popup collapses its `<ui-grid>` to a sliver. -->
+                <!-- GAP I53:  Fomantic's `ui right dropdown item` is a dropdown that IS the item;  ours is a `<ui-dropdown>` (a select) inside an item. -->
+                <ui-docs-example>
+                  <ui-message slot="description" state="info" size="small"
+                    >Menus can hold dropdowns and popups: a <code>&lt;ui-dropdown&gt;</code> inside an item, a
+                    <code>&lt;ui-popup&gt;</code> after the item it opens from. See the Dropdown and Popup
+                    pages.</ui-message
+                  >
+                  <ui-menu text aria-label="School">
+                    <ui-item><ui-image src="../images/new-school.jpg" alt="New School" size="mini"></ui-image></ui-item>
+                    <ui-item link>Browse Courses<ui-icon name="dropdown"></ui-icon></ui-item>
+                    <ui-popup on="click" flowing basic position="bottom left">
+                      <ui-grid columns="3" relaxed divided>
+                        <ui-column>
+                          <ui-header level="4">Business</ui-header>
+                          <ui-list link>
+                            <ui-item href="#design">Design &amp; Urban Ecologies</ui-item>
+                            <ui-item href="#fashion">Fashion Design</ui-item>
+                            <ui-item href="#fine-art">Fine Art</ui-item>
+                            <ui-item href="#strategic">Strategic Design</ui-item>
+                          </ui-list>
+                        </ui-column>
+                        <ui-column>
+                          <ui-header level="4">Liberal Arts</ui-header>
+                          <ui-list link>
+                            <ui-item href="#anthropology">Anthropology</ui-item>
+                            <ui-item href="#economics">Economics</ui-item>
+                            <ui-item href="#media">Media Studies</ui-item>
+                            <ui-item href="#philosophy">Philosophy</ui-item>
+                          </ui-list>
+                        </ui-column>
+                        <ui-column>
+                          <ui-header level="4">Social Sciences</ui-header>
+                          <ui-list link>
+                            <ui-item href="#food">Food Studies</ui-item>
+                            <ui-item href="#journalism">Journalism</ui-item>
+                            <ui-item href="#non-profit">Non Profit Management</ui-item>
+                          </ui-list>
+                        </ui-column>
+                      </ui-grid>
+                    </ui-popup>
+                    <ui-menu position="right">
+                      <ui-item>
+                        <ui-dropdown text="More" aria-label="More">
+                          <ui-item value="applications">Applications</ui-item>
+                          <ui-item value="international">International Students</ui-item>
+                          <ui-item value="scholarships">Scholarships</ui-item>
+                        </ui-dropdown>
+                      </ui-item>
+                    </ui-menu>
+                  </ui-menu>
+                </ui-docs-example>
+                <!-- GAP I53:  the wrench dropdown's nested `New` sub-menu, divider and header have no `<ui-dropdown>` equivalent (a select, not an action menu). -->
+                <ui-docs-example>
+                  <ui-menu attached="top" aria-label="Toolbar">
+                    <ui-item>
+                      <ui-dropdown aria-label="File">
+                        <ui-icon slot="trigger" name="wrench"></ui-icon>
+                        <ui-item value="open">Open...</ui-item>
+                        <ui-item value="save">Save...</ui-item>
+                        <ui-item value="permissions">Edit Permissions</ui-item>
+                        <ui-item type="divider"></ui-item>
+                        <ui-item type="header">Export</ui-item>
+                        <ui-item value="share">Share...</ui-item>
+                      </ui-dropdown>
+                    </ui-item>
+                    <ui-menu position="right">
+                      <ui-item>
+                        <ui-search category placeholder="Search animals..." aria-label="Search animals"></ui-search>
+                      </ui-item>
+                    </ui-menu>
+                  </ui-menu>
+                  <ui-segment attached="bottom">
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Secondary Menu"
+                  description='A menu can adjust its appearance to de-emphasize its contents.  A nested `<ui-menu position="right">` holds the items at the far end.'
+                >
+                  <ui-menu secondary aria-label="Secondary">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                    <ui-menu position="right">
+                      <ui-item>
+                        <ui-input icon="search" placeholder="Search..." aria-label="Search"></ui-input>
+                      </ui-item>
+                      <ui-item href="#logout">Logout</ui-item>
+                    </ui-menu>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Pointing"
+                  description="A menu can point to show its relationship to nearby content.  With `secondary` the active item is underlined."
+                >
+                  <ui-menu pointing aria-label="Pointing">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                    <ui-menu position="right">
+                      <ui-item>
+                        <ui-input transparent icon="search" placeholder="Search..." aria-label="Search"></ui-input>
+                      </ui-item>
+                    </ui-menu>
+                  </ui-menu>
+                  <ui-segment>
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-menu secondary pointing aria-label="Secondary pointing">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                    <ui-menu position="right">
+                      <ui-item href="#logout">Logout</ui-item>
+                    </ui-menu>
+                  </ui-menu>
+                  <ui-segment>
+                    <ui-image src="../images/wireframe/media-paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                </ui-docs-example>
+
+                <ui-docs-example header="Tabbed">
+                  <p slot="description">
+                    A menu can be formatted to show tabs of information: <code>tabular</code> (Fomantic 2.10 renamed it
+                    <code>tabbed</code>). For tabs that switch their content, use <code>&lt;ui-tabs&gt;</code>.
+                  </p>
+                  <ui-menu tabular aria-label="Tabbed">
+                    <ui-item href="#bio" selected>Bio</ui-item>
+                    <ui-item href="#photos">Photos</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-menu tabular attached="top" aria-label="Tabbed, attached top">
+                    <ui-item href="#bio" selected>Bio</ui-item>
+                    <ui-item href="#photos">Photos</ui-item>
+                    <ui-menu position="right">
+                      <ui-item>
+                        <ui-input
+                          transparent
+                          icon="search"
+                          placeholder="Search users..."
+                          aria-label="Search users"
+                        ></ui-input>
+                      </ui-item>
+                    </ui-menu>
+                  </ui-menu>
+                  <ui-segment attached="bottom">
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-segment attached="top">
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                  <ui-menu tabular attached="bottom" aria-label="Tabbed, attached bottom">
+                    <ui-item href="#active-project" selected>Active Project</ui-item>
+                    <ui-item href="#project-2">Project #2</ui-item>
+                    <ui-item href="#project-3">Project #3</ui-item>
+                    <ui-menu position="right">
+                      <ui-item href="#new-tab" icon="add">New Tab</ui-item>
+                    </ui-menu>
+                  </ui-menu>
+                </ui-docs-example>
+                <!-- GAP I79:  the stretched column doesn't grow its `<ui-segment>`, so the segment doesn't match the tabs' height. -->
+                <ui-docs-example>
+                  <ui-message slot="description" state="info" size="small"
+                    >To make a vertical tabbed menu appear seamlessly attached to the related segment, use left / right
+                    <code>attached</code> grid columns and a <code>seamless attached</code> segment.</ui-message
+                  >
+                  <ui-grid>
+                    <ui-column width="4" attached="left">
+                      <ui-menu vertical fluid tabular aria-label="Vertical tabbed">
+                        <ui-item href="#bio" selected>Bio</ui-item>
+                        <ui-item href="#pics">Pics</ui-item>
+                        <ui-item href="#companies">Companies</ui-item>
+                        <ui-item href="#links">Links</ui-item>
+                      </ui-menu>
+                    </ui-column>
+                    <ui-column width="12" stretched attached="right">
+                      <ui-segment seamless attached="right">
+                        This is an stretched grid column. This segment will always match the tab height
+                      </ui-segment>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+                <ui-docs-example
+                  description="`position=&quot;right&quot;` opens a vertical tabbed menu's tabs to the left, for a menu on the content's right."
+                >
+                  <ui-grid>
+                    <ui-column width="12" stretched attached="left">
+                      <ui-segment seamless attached="left">
+                        This is an stretched grid column. This segment will always match the tab height
+                      </ui-segment>
+                    </ui-column>
+                    <ui-column width="4" attached="right">
+                      <ui-menu vertical fluid tabular position="right" aria-label="Vertical tabbed, right">
+                        <ui-item href="#bio" selected>Bio</ui-item>
+                        <ui-item href="#pics">Pics</ui-item>
+                        <ui-item href="#companies">Companies</ui-item>
+                        <ui-item href="#links">Links</ui-item>
+                      </ui-menu>
+                    </ui-column>
+                  </ui-grid>
+                </ui-docs-example>
+
+                <ui-docs-example header="Text" description="A menu can be formatted for text content.">
+                  <ui-menu text aria-label="Sort">
+                    <ui-item type="header">Sort By</ui-item>
+                    <ui-item href="#closest" selected>Closest</ui-item>
+                    <ui-item href="#comments">Most Comments</ui-item>
+                    <ui-item href="#popular">Most Popular</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Segmented"
+                  description='A menu can be a segmented control, a bordered group of joined items:  `appearance="segmented"`.  The selected item is filled with the primary colour, or the menu&apos;s `color`.'
+                >
+                  <ui-menu appearance="segmented" aria-label="View, segmented">
+                    <ui-item href="#list" selected>List</ui-item>
+                    <ui-item href="#grid">Grid</ui-item>
+                    <ui-item href="#map">Map</ui-item>
+                  </ui-menu>
+                  <ui-divider hidden></ui-divider>
+                  <ui-menu appearance="segmented" color="teal" aria-label="Range, segmented">
+                    <ui-item href="#day">Day</ui-item>
+                    <ui-item href="#week" selected>Week</ui-item>
+                    <ui-item href="#month">Month</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example
+                  header="Appearance"
+                  description='The look is one word:  `appearance="tabular | pointing | secondary | text | segmented"`.  The older booleans (`<ui-menu pointing>`, `secondary` ...) stay as aliases, and combine:  `appearance="pointing" secondary` ~== `secondary pointing`.'
+                >
+                  <ui-menu appearance="pointing" secondary aria-label="Profile, underlined">
+                    <ui-item href="#bio" selected>Bio</ui-item>
+                    <ui-item href="#photos">Photos</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <!-- GAP I81:  the item labels sit inline after the text, not floated right. -->
+                <ui-docs-example header="Vertical Menu">
+                  <p slot="description">A vertical menu displays elements vertically.</p>
+                  <ui-message slot="description" state="warning" size="small"
+                    >A vertical menu's width defaults to an arbitrary size. To have it fit your content more precisely
+                    use <code>fluid</code> in a <code>&lt;ui-grid&gt;</code> column.</ui-message
+                  >
+                  <ui-menu vertical aria-label="Mail">
+                    <ui-item href="#inbox" color="teal" selected>
+                      Inbox
+                      <ui-label color="teal" pointing="left">1</ui-label>
+                    </ui-item>
+                    <ui-item href="#spam">
+                      Spam
+                      <ui-label>51</ui-label>
+                    </ui-item>
+                    <ui-item href="#updates">
+                      Updates
+                      <ui-label>1</ui-label>
+                    </ui-item>
+                    <ui-item>
+                      <ui-input
+                        transparent
+                        icon="search"
+                        placeholder="Search mail..."
+                        aria-label="Search mail"
+                      ></ui-input>
+                    </ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-menu secondary vertical aria-label="Account">
+                    <ui-item href="#account" selected>Account</ui-item>
+                    <ui-item href="#settings">Settings</ui-item>
+                    <ui-item>
+                      <ui-dropdown text="Display Options" aria-label="Display Options">
+                        <ui-item type="header">Text Size</ui-item>
+                        <ui-item value="small">Small</ui-item>
+                        <ui-item value="medium">Medium</ui-item>
+                        <ui-item value="large">Large</ui-item>
+                      </ui-dropdown>
+                    </ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-menu vertical text aria-label="Sort, vertical">
+                    <ui-item type="header">Sort By</ui-item>
+                    <ui-item href="#closest" selected>Closest</ui-item>
+                    <ui-item href="#comments">Most Comments</ui-item>
+                    <ui-item href="#popular">Most Popular</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-menu vertical pointing aria-label="Vertical pointing">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-menu secondary vertical pointing aria-label="Secondary vertical pointing">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Pagination"
+                  description="A pagination menu is specially formatted to present links to pages of content.  Its items are interactive, so one without `href` is a button."
+                >
+                  <ui-menu pagination aria-label="Pages">
+                    <ui-item href="#page-1" selected>1</ui-item>
+                    <ui-item disabled>...</ui-item>
+                    <ui-item href="#page-10">10</ui-item>
+                    <ui-item href="#page-11">11</ui-item>
+                    <ui-item href="#page-12">12</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Menubar"
+                  description="`interactive` makes an application menubar instead of a navigation landmark:  one Tab stop, arrow keys between the items.  Try it with the keyboard."
+                >
+                  <ui-menu interactive aria-label="Editor">
+                    <ui-item link value="file">File</ui-item>
+                    <ui-item link value="edit" selected>Edit</ui-item>
+                    <ui-item link value="view">View</ui-item>
+                    <ui-item link value="help" disabled>Help</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="content">Content</ui-header>
+
+                <ui-docs-example
+                  header="Header"
+                  description='A menu item may include a header or may itself be a header:  `type="header"` makes an item a header.'
+                >
+                  <ui-menu aria-label="Company">
+                    <ui-item type="header">Our Company</ui-item>
+                    <ui-item href="#about">About Us</ui-item>
+                    <ui-item href="#jobs">Jobs</ui-item>
+                    <ui-item href="#locations">Locations</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example
+                  description="A `<ui-header>` inside an item heads a vertical menu's group, a sub-menu."
+                >
+                  <ui-menu vertical aria-label="Products">
+                    <ui-item>
+                      <ui-header>Products</ui-header>
+                      <ui-menu>
+                        <ui-item href="#enterprise">Enterprise</ui-item>
+                        <ui-item href="#consumer">Consumer</ui-item>
+                      </ui-menu>
+                    </ui-item>
+                    <ui-item>
+                      <ui-header>CMS Solutions</ui-header>
+                      <ui-menu>
+                        <ui-item href="#rails">Rails</ui-item>
+                        <ui-item href="#python">Python</ui-item>
+                        <ui-item href="#php">PHP</ui-item>
+                      </ui-menu>
+                    </ui-item>
+                    <ui-item>
+                      <ui-header>Hosting</ui-header>
+                      <ui-menu>
+                        <ui-item href="#shared">Shared</ui-item>
+                        <ui-item href="#dedicated">Dedicated</ui-item>
+                      </ui-menu>
+                    </ui-item>
+                    <ui-item>
+                      <ui-header>Support</ui-header>
+                      <ui-menu>
+                        <ui-item href="#email-support">E-mail Support</ui-item>
+                        <ui-item href="#faqs">FAQs</ui-item>
+                      </ui-menu>
+                    </ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example header="Text" description="A vertical menu item can include any type of text content.">
+                  <ui-menu vertical aria-label="Offers">
+                    <ui-item href="#promotions">
+                      <ui-header level="4">Promotions</ui-header>
+                      <p>Check out our new promotions</p>
+                    </ui-item>
+                    <ui-item href="#coupons">
+                      <ui-header level="4">Coupons</ui-header>
+                      <p>Check out our collection of coupons</p>
+                    </ui-item>
+                    <ui-item href="#rebates">
+                      <ui-header level="4">Rebates</ui-header>
+                      <p>Visit our rebate forum for information on claiming rebates</p>
+                    </ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example header="Input" description="A menu item can contain an input inside of it.">
+                  <ui-menu aria-label="Navigate">
+                    <ui-item>
+                      <ui-input icon="search" placeholder="Search..." aria-label="Search"></ui-input>
+                    </ui-item>
+                    <ui-item position="right">
+                      <ui-input placeholder="Navigate to..." aria-label="Navigate to">
+                        <ui-button slot="action">Go</ui-button>
+                      </ui-input>
+                    </ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example header="Button" description="A menu item can contain a button inside of it.">
+                  <ui-menu aria-label="Account actions">
+                    <ui-item><ui-button primary>Sign up</ui-button></ui-item>
+                    <ui-item><ui-button>Log-in</ui-button></ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Link Item"
+                  description="A menu may contain a link item, or an item formatted as if it is a link:  `href` renders a link, `link` a button for actions you handle in script."
+                >
+                  <ui-menu vertical aria-label="Links">
+                    <ui-item href="https://www.google.com">Visit Google</ui-item>
+                    <ui-item link>Javascript Link</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example header="Dropdown Item" description="An item may contain a nested menu in a dropdown.">
+                  <ui-menu vertical aria-label="Categories">
+                    <ui-item>
+                      <ui-dropdown text="Categories" aria-label="Categories">
+                        <ui-item value="electronics">Electronics</ui-item>
+                        <ui-item value="automotive">Automotive</ui-item>
+                        <ui-item value="home">Home</ui-item>
+                      </ui-dropdown>
+                    </ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <!-- GAP I69:  opened, the `fluid` popup collapses its `<ui-grid>` to a sliver, not the menu's width. -->
+                <ui-docs-example
+                  header="Popup Menu"
+                  description="A menu item may show a large menu, or additional content using a popup:  a `<ui-popup>` right after the item opens from it."
+                >
+                  <ui-menu aria-label="Shop">
+                    <ui-item link>Browse<ui-icon name="dropdown"></ui-icon></ui-item>
+                    <ui-popup on="click" fluid position="bottom left">
+                      <ui-grid columns="4" relaxed divided>
+                        <ui-column>
+                          <ui-header level="4">Fabrics</ui-header>
+                          <ui-list link>
+                            <ui-item href="#cashmere">Cashmere</ui-item>
+                            <ui-item href="#linen">Linen</ui-item>
+                            <ui-item href="#cotton">Cotton</ui-item>
+                            <ui-item href="#viscose">Viscose</ui-item>
+                          </ui-list>
+                        </ui-column>
+                        <ui-column>
+                          <ui-header level="4">Size</ui-header>
+                          <ui-list link>
+                            <ui-item href="#small">Small</ui-item>
+                            <ui-item href="#medium">Medium</ui-item>
+                            <ui-item href="#large">Large</ui-item>
+                            <ui-item href="#plus">Plus Sizes</ui-item>
+                          </ui-list>
+                        </ui-column>
+                        <ui-column>
+                          <ui-header level="4">Colored</ui-header>
+                          <ui-list link>
+                            <ui-item href="#neutrals">Neutrals</ui-item>
+                            <ui-item href="#brights">Brights</ui-item>
+                            <ui-item href="#pastels">Pastels</ui-item>
+                          </ui-list>
+                        </ui-column>
+                        <ui-column>
+                          <ui-header level="4">Types</ui-header>
+                          <ui-list link>
+                            <ui-item href="#knitwear">Knitwear</ui-item>
+                            <ui-item href="#outerwear">Outerwear</ui-item>
+                            <ui-item href="#pants">Pants</ui-item>
+                            <ui-item href="#shoes">Shoes</ui-item>
+                          </ui-list>
+                        </ui-column>
+                      </ui-grid>
+                    </ui-popup>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example header="Search" description="A menu can contain a search input.">
+                  <ui-menu aria-label="Animals">
+                    <ui-item>
+                      <ui-search category placeholder="Search animals..." aria-label="Search animals"></ui-search>
+                    </ui-item>
+                  </ui-menu>
+                  <ui-segment>
+                    <ui-image src="../images/wireframe/paragraph.png" alt=""></ui-image>
+                  </ui-segment>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Menu"
+                  description='A menu may contain another menu group in the same level as menu items:  `position="right"` pushes it to the far end.'
+                >
+                  <ui-menu aria-label="Site">
+                    <ui-item href="#browse">Browse</ui-item>
+                    <ui-item href="#submit">Submit</ui-item>
+                    <ui-menu position="right">
+                      <ui-item href="#signup">Sign Up</ui-item>
+                      <ui-item href="#help">Help</ui-item>
+                    </ui-menu>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Sub Menu"
+                  description="A menu item may contain another menu nested inside that acts as a grouped sub-menu."
+                >
+                  <ui-menu vertical aria-label="Sub menu">
+                    <ui-item>
+                      <ui-input placeholder="Search..." aria-label="Search"></ui-input>
+                    </ui-item>
+                    <ui-item>
+                      Home
+                      <ui-menu>
+                        <ui-item href="#search" selected>Search</ui-item>
+                        <ui-item href="#add">Add</ui-item>
+                        <ui-item href="#remove">Remove</ui-item>
+                      </ui-menu>
+                    </ui-item>
+                    <ui-item href="#browse" icon="grid layout">Browse</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item>
+                      <ui-dropdown text="More" aria-label="More">
+                        <ui-item value="profile" icon="edit">Edit Profile</ui-item>
+                        <ui-item value="language" icon="globe">Choose Language</ui-item>
+                        <ui-item value="settings" icon="settings">Account Settings</ui-item>
+                      </ui-dropdown>
+                    </ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="states">States</ui-header>
+
+                <ui-docs-example header="Hover">
+                  <p slot="description">A menu item can be hovered.</p>
+                  <ui-message slot="description" state="warning" size="small"
+                    >Menu items are only hoverable if they are links (<code>href</code>) or buttons
+                    (<code>link</code>).</ui-message
+                  >
+                  <ui-menu compact aria-label="Hover">
+                    <ui-item href="#link">A link</ui-item>
+                    <ui-item link>div Link</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Active"
+                  description="A menu item can be active:  `selected` is the attribute;  Fomantic's `active` works too."
+                >
+                  <ui-menu compact aria-label="Active">
+                    <ui-item selected>Link</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example header="Disabled" description="A menu item can be disabled.">
+                  <ui-menu compact aria-label="Disabled">
+                    <ui-item disabled>Link</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-header level="2" dividing id="variations">Variations</ui-header>
+
+                <ui-docs-example header="Fixed">
+                  <p slot="description">
+                    A menu can be fixed to a side of its context: <code>fixed="top"</code>, <code>bottom</code>,
+                    <code>left</code> or <code>right</code> (with <code>vertical</code> for the sides).
+                  </p>
+                  <ui-message slot="description" state="info" size="small"
+                    >A fixed menu sticks to the browser viewport, so this example is code only. For a menu that sticks
+                    only while scrolling past, use <code>&lt;ui-sticky&gt;</code>.</ui-message
+                  >
+                  <ui-code slot="description" language="html">
+                    <script type="text/plain">
+                      <ui-menu fixed="top" aria-label="Site">
+                        <ui-item><ui-image src="logo.png" alt="Logo" size="mini"></ui-image></ui-item>
+                        <ui-item href="#features">Features</ui-item>
+                        <ui-item href="#testimonials">Testimonials</ui-item>
+                        <ui-item href="#sign-in">Sign-in</ui-item>
+                      </ui-menu>
+                      <ui-menu fixed="left" vertical aria-label="Sections">...</ui-menu>
+                    </script>
+                  </ui-code>
+                </ui-docs-example>
+
+                <ui-docs-example header="Stackable">
+                  <p slot="description">A menu can stack at mobile resolutions.</p>
+                  <ui-message slot="description" state="info" size="small"
+                    >Stackable menus are intended to be used with only simple menu content.</ui-message
+                  >
+                  <ui-menu stackable aria-label="Stackable">
+                    <ui-item><ui-image src="../images/logo.png" alt="Logo" size="mini"></ui-image></ui-item>
+                    <ui-item href="#features">Features</ui-item>
+                    <ui-item href="#testimonials">Testimonials</ui-item>
+                    <ui-item href="#sign-in">Sign-in</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Inverted"
+                  description="A menu may have its colors inverted to show greater contrast."
+                >
+                  <ui-menu inverted aria-label="Inverted">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-menu inverted vertical aria-label="Inverted vertical">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-menu inverted vertical pointing aria-label="Inverted vertical pointing">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-segment inverted>
+                    <ui-menu inverted secondary aria-label="Inverted secondary">
+                      <ui-item href="#home" selected>Home</ui-item>
+                      <ui-item href="#messages">Messages</ui-item>
+                      <ui-item href="#friends">Friends</ui-item>
+                    </ui-menu>
+                  </ui-segment>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-segment inverted>
+                    <ui-menu inverted secondary pointing aria-label="Inverted secondary pointing">
+                      <ui-item href="#home" selected>Home</ui-item>
+                      <ui-item href="#messages">Messages</ui-item>
+                      <ui-item href="#friends">Friends</ui-item>
+                    </ui-menu>
+                  </ui-segment>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Colored"
+                  description="Additional colors can be specified:  an item's `color` tints it while selected."
+                >
+                  <ui-menu aria-label="Colors, warm">
+                    <ui-item href="#red" color="red" selected>Red</ui-item>
+                    <ui-item href="#orange" color="orange">Orange</ui-item>
+                    <ui-item href="#yellow" color="yellow">Yellow</ui-item>
+                    <ui-item href="#olive" color="olive">Olive</ui-item>
+                    <ui-item href="#green" color="green">Green</ui-item>
+                    <ui-item href="#teal" color="teal">Teal</ui-item>
+                  </ui-menu>
+                  <ui-menu aria-label="Colors, cool">
+                    <ui-item href="#blue" color="blue">Blue</ui-item>
+                    <ui-item href="#violet" color="violet">Violet</ui-item>
+                    <ui-item href="#purple" color="purple">Purple</ui-item>
+                    <ui-item href="#pink" color="pink">Pink</ui-item>
+                    <ui-item href="#brown" color="brown">Brown</ui-item>
+                    <ui-item href="#grey" color="grey">Grey</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example description="The menu's `color` tints its active item.">
+                  <ui-menu color="red" items="3" aria-label="Red">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                  <ui-menu color="orange" items="3" aria-label="Orange">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                  <ui-menu color="yellow" items="3" aria-label="Yellow">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                  <ui-menu color="olive" items="3" aria-label="Olive">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                  <ui-menu color="green" items="3" aria-label="Green">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                  <ui-menu color="teal" items="3" aria-label="Teal">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                  <ui-menu color="blue" items="3" aria-label="Blue">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                  <ui-menu color="violet" items="3" aria-label="Violet">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                  <ui-menu color="purple" items="3" aria-label="Purple">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                  <ui-menu color="pink" items="3" aria-label="Pink">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                  <ui-menu color="brown" items="3" aria-label="Brown">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                  <ui-menu color="grey" items="3" aria-label="Grey">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example description="These colors can also be inverted.">
+                  <ui-menu inverted aria-label="Inverted colors, warm">
+                    <ui-item href="#red" color="red" selected>Red</ui-item>
+                    <ui-item href="#orange" color="orange">Orange</ui-item>
+                    <ui-item href="#yellow" color="yellow">Yellow</ui-item>
+                    <ui-item href="#olive" color="olive">Olive</ui-item>
+                    <ui-item href="#green" color="green">Green</ui-item>
+                    <ui-item href="#teal" color="teal">Teal</ui-item>
+                  </ui-menu>
+                  <ui-menu inverted aria-label="Inverted colors, cool">
+                    <ui-item href="#blue" color="blue">Blue</ui-item>
+                    <ui-item href="#violet" color="violet">Violet</ui-item>
+                    <ui-item href="#purple" color="purple">Purple</ui-item>
+                    <ui-item href="#pink" color="pink">Pink</ui-item>
+                    <ui-item href="#brown" color="brown">Brown</ui-item>
+                    <ui-item href="#grey" color="grey">Grey</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example description="An `inverted` menu with a `color` is filled with it.">
+                  <ui-menu inverted color="red" items="3" aria-label="Inverted red">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                  <ui-menu inverted color="orange" items="3" aria-label="Inverted orange">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                  <ui-menu inverted color="yellow" items="3" aria-label="Inverted yellow">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                  <ui-menu inverted color="olive" items="3" aria-label="Inverted olive">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                  <ui-menu inverted color="green" items="3" aria-label="Inverted green">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                  <ui-menu inverted color="teal" items="3" aria-label="Inverted teal">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                  <ui-menu inverted color="blue" items="3" aria-label="Inverted blue">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                  <ui-menu inverted color="violet" items="3" aria-label="Inverted violet">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                  <ui-menu inverted color="purple" items="3" aria-label="Inverted purple">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                  <ui-menu inverted color="pink" items="3" aria-label="Inverted pink">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                  <ui-menu inverted color="brown" items="3" aria-label="Inverted brown">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                  <ui-menu inverted color="grey" items="3" aria-label="Inverted grey">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-item href="#friends">Friends</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Icons"
+                  description="A menu may have just icons.  An icon-only item needs an `aria-label`."
+                >
+                  <ui-menu icon aria-label="Media">
+                    <ui-item href="#games" icon="gamepad" aria-label="Games"></ui-item>
+                    <ui-item href="#channels" icon="video camera" aria-label="Channels"></ui-item>
+                    <ui-item href="#videos" icon="video play" aria-label="Videos"></ui-item>
+                  </ui-menu>
+                  <ui-divider hidden></ui-divider>
+                  <ui-menu vertical icon aria-label="Media, vertical">
+                    <ui-item href="#games" icon="gamepad" aria-label="Games"></ui-item>
+                    <ui-item href="#channels" icon="video camera" aria-label="Channels"></ui-item>
+                    <ui-item href="#videos" icon="video play" aria-label="Videos"></ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Labeled Icon"
+                  description="A menu may have labeled icons:  `labeled` puts a large icon above each item's text."
+                >
+                  <ui-menu labeled icon aria-label="Media, labeled">
+                    <ui-item href="#games" icon="gamepad">Games</ui-item>
+                    <ui-item href="#channels" icon="video camera">Channels</ui-item>
+                    <ui-item href="#videos" icon="video play">Videos</ui-item>
+                  </ui-menu>
+                  <ui-divider hidden></ui-divider>
+                  <ui-menu vertical labeled icon aria-label="Media, labeled vertical">
+                    <ui-item href="#games" icon="gamepad">Games</ui-item>
+                    <ui-item href="#channels" icon="video camera">Channels</ui-item>
+                    <ui-item href="#videos" icon="video play">Videos</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Fluid"
+                  description="A vertical menu may take the size of its container.  (A horizontal menu does this by default.)"
+                >
+                  <ui-menu fluid vertical aria-label="Activities">
+                    <ui-item href="#run">Run</ui-item>
+                    <ui-item href="#walk">Walk</ui-item>
+                    <ui-item href="#bike">Bike</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Compact"
+                  description="A menu can take up only the space necessary to fit its content."
+                >
+                  <ui-menu compact aria-label="Media, compact">
+                    <ui-item href="#games" icon="gamepad">Games</ui-item>
+                    <ui-item href="#channels" icon="video camera">Channels</ui-item>
+                    <ui-item href="#videos" icon="video play">Videos</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-menu compact vertical labeled icon aria-label="Media, compact vertical">
+                    <ui-item href="#games" icon="gamepad">Games</ui-item>
+                    <ui-item href="#channels" icon="video camera">Channels</ui-item>
+                    <ui-item href="#videos" icon="video play">Videos</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Evenly Divided"
+                  description='A menu may divide its items evenly by either using `items="equal"` ...'
+                >
+                  <ui-menu items="equal" aria-label="Listing, equal">
+                    <ui-item href="#buy">Buy</ui-item>
+                    <ui-item href="#sell">Sell</ui-item>
+                    <ui-item href="#rent">Rent</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example description='... or by declaring a fixed number of items like `items="3"`.'>
+                  <ui-menu items="3" aria-label="Listing, three">
+                    <ui-item href="#buy">Buy</ui-item>
+                    <ui-item href="#sell">Sell</ui-item>
+                    <ui-item href="#rent">Rent</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Equal"
+                  description='`equal` makes every item the same width, counted from the items themselves:  each as wide as the widest, the menu hugging them.  `items="3"` / `items="equal"` above are the older, count-based spellings.'
+                >
+                  <ui-menu equal aria-label="Listing, equal items">
+                    <ui-item href="#buy">Buy</ui-item>
+                    <ui-item href="#sell" selected>Sell your home</ui-item>
+                    <ui-item href="#rent">Rent</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example description='With `alignment="fluid"`, each equal item takes an equal share of the bar.'>
+                  <ui-menu equal alignment="fluid" aria-label="Listing, equal fluid">
+                    <ui-item href="#buy">Buy</ui-item>
+                    <ui-item href="#sell" selected>Sell your home</ui-item>
+                    <ui-item href="#rent">Rent</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Alignment"
+                  description='`alignment` places the items:  `left`, `center` or `right` packs them at that end of the bar;  `fluid` makes them fill it.'
+                >
+                  <ui-menu alignment="center" aria-label="Sections, centered">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#docs">Docs</ui-item>
+                    <ui-item href="#blog">Blog</ui-item>
+                  </ui-menu>
+                  <ui-menu alignment="fluid" aria-label="Sections, fluid">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#docs">Documentation</ui-item>
+                    <ui-item href="#blog">Blog</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example description="A segmented menu is its items, so it moves as a whole.">
+                  <ui-menu appearance="segmented" alignment="right" aria-label="View, right">
+                    <ui-item href="#list" selected>List</ui-item>
+                    <ui-item href="#grid">Grid</ui-item>
+                  </ui-menu>
+                  <ui-menu appearance="segmented" alignment="fluid" equal aria-label="View, fluid">
+                    <ui-item href="#list" selected>List</ui-item>
+                    <ui-item href="#grid">Grid</ui-item>
+                    <ui-item href="#map">Map</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Pointing vertical"
+                  description="A vertical menu can point to content adjacent to itself to show ownership."
+                >
+                  <ui-menu pointing vertical aria-label="Site sections">
+                    <ui-item href="#title">Site Title</ui-item>
+                    <ui-item>
+                      <b>Grouped Section</b>
+                      <ui-menu>
+                        <ui-item href="#sub-1">Subsection 1</ui-item>
+                        <ui-item href="#sub-2" selected>Subsection 2</ui-item>
+                        <ui-item href="#sub-3">Subsection 3</ui-item>
+                      </ui-menu>
+                    </ui-item>
+                    <ui-item>
+                      <ui-dropdown text="Dropdown" aria-label="Dropdown">
+                        <ui-item value="1">Choice 1</ui-item>
+                        <ui-item value="2">Choice 2</ui-item>
+                        <ui-item value="3">Choice 3</ui-item>
+                      </ui-dropdown>
+                    </ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example header="Attached" description="A menu may be attached to other content segments.">
+                  <ui-menu tabular attached="top" aria-label="Attached tabs">
+                    <ui-item href="#tab-1" selected>Tab 1</ui-item>
+                    <ui-item href="#tab-2">Tab 2</ui-item>
+                  </ui-menu>
+                  <ui-segment attached="bottom">
+                    There are many variations of passages of Lorem Ipsum available, but the majority have suffered
+                    alteration in some form, by injected humour, or randomized words which don't look even slightly
+                    believable.
+                  </ui-segment>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-menu attached="top" aria-label="Attached top">
+                    <ui-item href="#section-1" selected>Section 1</ui-item>
+                    <ui-item href="#section-2">Section 2</ui-item>
+                  </ui-menu>
+                  <ui-segment attached>
+                    There are many variations of passages of Lorem Ipsum available, but the majority have suffered
+                    alteration in some form, by injected humour, or randomized words which don't look even slightly
+                    believable.
+                  </ui-segment>
+                  <ui-menu attached="bottom" aria-label="Attached bottom">
+                    <ui-item href="#section-1" selected>Section 1</ui-item>
+                    <ui-item href="#section-2">Section 2</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example header="Size" description="A menu can vary in size.">
+                  <ui-menu size="mini" aria-label="Mini">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-menu position="right">
+                      <ui-item>
+                        <ui-dropdown text="Language" size="mini" aria-label="Language">
+                          <ui-item value="en">English</ui-item>
+                          <ui-item value="ru">Russian</ui-item>
+                          <ui-item value="es">Spanish</ui-item>
+                        </ui-dropdown>
+                      </ui-item>
+                      <ui-item><ui-button primary size="mini">Sign Up</ui-button></ui-item>
+                    </ui-menu>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-menu size="tiny" aria-label="Tiny">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-menu position="right">
+                      <ui-item>
+                        <ui-dropdown text="Language" size="tiny" aria-label="Language">
+                          <ui-item value="en">English</ui-item>
+                          <ui-item value="ru">Russian</ui-item>
+                          <ui-item value="es">Spanish</ui-item>
+                        </ui-dropdown>
+                      </ui-item>
+                      <ui-item><ui-button primary size="tiny">Sign Up</ui-button></ui-item>
+                    </ui-menu>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-menu size="small" aria-label="Small">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-menu position="right">
+                      <ui-item>
+                        <ui-dropdown text="Language" size="small" aria-label="Language">
+                          <ui-item value="en">English</ui-item>
+                          <ui-item value="ru">Russian</ui-item>
+                          <ui-item value="es">Spanish</ui-item>
+                        </ui-dropdown>
+                      </ui-item>
+                      <ui-item><ui-button primary size="small">Sign Up</ui-button></ui-item>
+                    </ui-menu>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-menu size="large" aria-label="Large">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-menu position="right">
+                      <ui-item>
+                        <ui-dropdown text="Language" size="large" aria-label="Language">
+                          <ui-item value="en">English</ui-item>
+                          <ui-item value="ru">Russian</ui-item>
+                          <ui-item value="es">Spanish</ui-item>
+                        </ui-dropdown>
+                      </ui-item>
+                      <ui-item><ui-button primary size="large">Sign Up</ui-button></ui-item>
+                    </ui-menu>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-menu size="huge" aria-label="Huge">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-menu position="right">
+                      <ui-item>
+                        <ui-dropdown text="Language" size="huge" aria-label="Language">
+                          <ui-item value="en">English</ui-item>
+                          <ui-item value="ru">Russian</ui-item>
+                          <ui-item value="es">Spanish</ui-item>
+                        </ui-dropdown>
+                      </ui-item>
+                      <ui-item><ui-button primary size="huge">Sign Up</ui-button></ui-item>
+                    </ui-menu>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-menu size="massive" aria-label="Massive">
+                    <ui-item href="#home" selected>Home</ui-item>
+                    <ui-item href="#messages">Messages</ui-item>
+                    <ui-menu position="right">
+                      <ui-item>
+                        <ui-dropdown text="Language" size="massive" aria-label="Language">
+                          <ui-item value="en">English</ui-item>
+                          <ui-item value="ru">Russian</ui-item>
+                          <ui-item value="es">Spanish</ui-item>
+                        </ui-dropdown>
+                      </ui-item>
+                      <ui-item><ui-button primary size="massive">Sign Up</ui-button></ui-item>
+                    </ui-menu>
+                  </ui-menu>
+                </ui-docs-example>
+                <!-- GAP I81:  the labels don't float right, and the input keeps the page size in a mini menu. -->
+                <ui-docs-example description="A vertical menu can also vary in size.">
+                  <ui-menu size="mini" vertical aria-label="Mail, mini">
+                    <ui-item href="#inbox" selected><ui-label color="green">1</ui-label>Inbox</ui-item>
+                    <ui-item href="#spam"><ui-label>51</ui-label>Spam</ui-item>
+                    <ui-item href="#updates"><ui-label>1</ui-label>Updates</ui-item>
+                    <ui-item>
+                      <ui-input icon="search" placeholder="Search mail..." aria-label="Search mail"></ui-input>
+                    </ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-menu size="small" vertical aria-label="Mail, small">
+                    <ui-item href="#inbox" selected><ui-label size="small" color="green">1</ui-label>Inbox</ui-item>
+                    <ui-item href="#spam"><ui-label size="small">51</ui-label>Spam</ui-item>
+                    <ui-item href="#updates"><ui-label size="small">1</ui-label>Updates</ui-item>
+                    <ui-item>
+                      <ui-input icon="search" placeholder="Search mail..." aria-label="Search mail"></ui-input>
+                    </ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-menu size="large" vertical aria-label="Mail, large">
+                    <ui-item href="#inbox" selected><ui-label size="small" color="green">1</ui-label>Inbox</ui-item>
+                    <ui-item href="#spam"><ui-label size="small">51</ui-label>Spam</ui-item>
+                    <ui-item href="#updates"><ui-label size="small">1</ui-label>Updates</ui-item>
+                    <ui-item>
+                      <ui-input icon="search" placeholder="Search mail..." aria-label="Search mail"></ui-input>
+                    </ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-menu size="massive" vertical aria-label="Mail, massive">
+                    <ui-item href="#inbox" selected><ui-label size="small" color="green">1</ui-label>Inbox</ui-item>
+                    <ui-item href="#spam"><ui-label size="small">51</ui-label>Spam</ui-item>
+                    <ui-item href="#updates"><ui-label size="small">1</ui-label>Updates</ui-item>
+                    <ui-item>
+                      <ui-input icon="search" placeholder="Search mail..." aria-label="Search mail"></ui-input>
+                    </ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-header level="3" id="items">Items</ui-header>
+
+                <ui-docs-example
+                  header="Fitted"
+                  description="A menu item or menu can remove element padding, vertically or horizontally."
+                >
+                  <ui-menu aria-label="Fitted">
+                    <ui-item fitted>No padding whatsoever</ui-item>
+                    <ui-item fitted="horizontally">No horizontal padding</ui-item>
+                    <ui-item fitted="vertically">No vertical padding</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example header="Borderless" description="A menu item or menu can have no borders.">
+                  <ui-menu borderless aria-label="Borderless">
+                    <ui-item href="#1">1</ui-item>
+                    <ui-item href="#2">2</ui-item>
+                    <ui-item href="#3">3</ui-item>
+                    <ui-item href="#4">4</ui-item>
+                    <ui-item href="#5">5</ui-item>
+                    <ui-item href="#6">6</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Floated"
+                  description="A menu can appear to the left or right of other content."
+                >
+                  <ui-segment basic clearing>
+                    <ui-menu floated="right" compact aria-label="Floated">
+                      <ui-item href="#1">1</ui-item>
+                      <ui-item href="#2">2</ui-item>
+                    </ui-menu>
+                  </ui-segment>
+                </ui-docs-example>
+
+                <ui-docs-example header="Centered">
+                  <p slot="description">A menu can be shown centered.</p>
+                  <ui-menu centered aria-label="Page tools">
+                    <ui-item href="#edit" icon="edit" aria-label="Edit"></ui-item>
+                    <ui-item href="#bug" icon="bug" aria-label="Report a bug"></ui-item>
+                    <ui-item href="#github" icon="github alternate" aria-label="GitHub"></ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+                <ui-docs-example>
+                  <ui-menu centered pagination aria-label="Pages, centered">
+                    <ui-item href="#page-1" selected>1</ui-item>
+                    <ui-item disabled>...</ui-item>
+                    <ui-item href="#page-10">10</ui-item>
+                    <ui-item href="#page-11">11</ui-item>
+                    <ui-item href="#page-12">12</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Centered Fluid"
+                  description="A menu can be shown centered and fluid at the same time."
+                >
+                  <ui-menu centered fluid aria-label="Page tools, fluid">
+                    <ui-item href="#edit" icon="edit" aria-label="Edit"></ui-item>
+                    <ui-item href="#bug" icon="bug" aria-label="Report a bug"></ui-item>
+                    <ui-item href="#github" icon="github alternate" aria-label="GitHub"></ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example header="Wrapping">
+                  <p slot="description">Menu items can automatically wrap on responsive layouts.</p>
+                  <ui-message slot="description" state="info" size="small"
+                    >The optional <code>wrapped</code> word squares the corners where the lines meet. CSS can't tell
+                    whether items actually wrap, so set it when you know they do.</ui-message
+                  >
+                  <ui-menu inverted wrapped color="green" wrapping aria-label="Numbers">
+                    <ui-item href="#1" selected>One</ui-item>
+                    <ui-item href="#2">Two</ui-item>
+                    <ui-item href="#3">Three</ui-item>
+                    <ui-item href="#4">Four</ui-item>
+                    <ui-item href="#5">Five</ui-item>
+                    <ui-item href="#6">Six</ui-item>
+                    <ui-item href="#7">Seven</ui-item>
+                    <ui-item href="#8">Eight</ui-item>
+                    <ui-item href="#9">Nine</ui-item>
+                    <ui-item href="#10">Ten</ui-item>
+                    <ui-item href="#11">Eleven</ui-item>
+                    <ui-item href="#12">Twelve</ui-item>
+                    <ui-item href="#13">Thirteen</ui-item>
+                    <ui-item href="#14">Fourteen</ui-item>
+                    <ui-item href="#15">Fifteen</ui-item>
+                    <ui-item href="#16">Sixteen</ui-item>
+                    <ui-item href="#17">Seventeen</ui-item>
+                    <ui-item href="#18">Eighteen</ui-item>
+                    <ui-item href="#19">Nineteen</ui-item>
+                    <ui-item href="#20">Twenty</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+
+                <ui-docs-example
+                  header="Centered Fluid Wrapping"
+                  description="By combining `centered`, `fluid` and `wrapping` you could create a menu similar to wrapping button groups."
+                >
+                  <ui-menu inverted wrapped color="blue" centered fluid wrapping aria-label="Numbers, centered">
+                    <ui-item href="#1" selected>One</ui-item>
+                    <ui-item href="#2">Two</ui-item>
+                    <ui-item href="#3">Three</ui-item>
+                    <ui-item href="#4">Four</ui-item>
+                    <ui-item href="#5">Five</ui-item>
+                    <ui-item href="#6">Six</ui-item>
+                    <ui-item href="#7">Seven</ui-item>
+                    <ui-item href="#8">Eight</ui-item>
+                    <ui-item href="#9">Nine</ui-item>
+                    <ui-item href="#10">Ten</ui-item>
+                    <ui-item href="#11">Eleven</ui-item>
+                    <ui-item href="#12">Twelve</ui-item>
+                    <ui-item href="#13">Thirteen</ui-item>
+                    <ui-item href="#14">Fourteen</ui-item>
+                    <ui-item href="#15">Fifteen</ui-item>
+                    <ui-item href="#16">Sixteen</ui-item>
+                    <ui-item href="#17">Seventeen</ui-item>
+                    <ui-item href="#18">Eighteen</ui-item>
+                    <ui-item href="#19">Nineteen</ui-item>
+                    <ui-item href="#20">Twenty</ui-item>
+                  </ui-menu>
+                </ui-docs-example>
+              </ui-tab>
+
+              <ui-tab value="usage" label="Usage">
+                <!-- USAGE:  items, sub-menus, the two kinds of menu, events, keyboard, accessibility, frameworks. -->
+                <ui-header level="2" dividing id="usage-basics">Using it</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    A menu's children are the one generic `<ui-item>`: the menu tells each item how to render, so there is no
+                    `ui-menu-item`.
+
+                    - An item with `href` is a link; with `link`, or in a `link`, `pagination` or `interactive` menu, it is a button;
+                      otherwise a plain block that can hold text, inputs, buttons or a dropdown.
+                    - `selected` marks the current item (Fomantic's `active` works too); `disabled` greys it out.
+                    - `type="header"` makes an item a header; a `<ui-header>` inside an item heads a vertical menu's group.
+                    - A `<ui-menu>` inside a menu (directly, or inside an item) is a sub-menu: `position` places it (`right` for
+                      Fomantic's right menu), and its items look like the outer menu's.
+                    - `items="3"` divides the width evenly between three items; `items="equal"` between however many there are.
+                  </script>
+                </ui-markdown>
+                <ui-code language="html">
+                  <script type="text/plain">
+                    <ui-menu secondary pointing aria-label="Account">
+                      <ui-item href="/" selected>Home</ui-item>
+                      <ui-item href="/messages">Messages</ui-item>
+                      <ui-menu position="right">
+                        <ui-item href="/logout" icon="sign out">Logout</ui-item>
+                      </ui-menu>
+                    </ui-menu>
+                  </script>
+                </ui-code>
+
+                <ui-header level="2" dividing id="kinds">Navigation or menubar</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    A menu comes in two kinds.
+
+                    - By default it is site navigation: a `<nav>` landmark of links, the `selected` one marked as the current page.
+                    - `interactive` makes it an application menubar instead, for commands: one Tab stop, arrow keys between the items
+                      (live example: Menubar, on the Examples tab).
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="events">Events</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    `ui-select` fires when a link or button item is activated (click, Enter or Space).
+
+                    - `detail.value` is the item's `value`, else its text; `detail.item` is the `<ui-item>`.
+                    - Only the top menu fires it, for sub-menu items too.
+                    - The menu never moves `selected` itself:
+                  </script>
+                </ui-markdown>
+                <ui-code language="js">
+                  <script type="text/plain">
+                    const menu = document.querySelector("ui-menu[interactive]")
+                    menu.addEventListener("ui-select", (event) => {
+                      for (const item of menu.querySelectorAll("ui-item")) {
+                        item.toggleAttribute("selected", item === event.detail.item)
+                      }
+                    })
+                  </script>
+                </ui-code>
+
+                <ui-header level="2" dividing id="keyboard">Keyboard</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    A navigation menu keeps the browser's own keys: **Tab** moves through its links and buttons, **Enter** follows
+                    them. An `interactive` menubar:
+
+                    - **Tab** enters the menubar on the selected (else first) item; **Tab** again leaves.
+                    - **Arrow Right** / **Arrow Left**: next / previous item, wrapping at the ends (flipped right-to-left).
+                    - **Arrow Down** / **Arrow Up**: next / previous item in a `vertical` menubar.
+                    - **Home** / **End**: first / last item.
+                    - **Enter** / **Space**: activate the item (`ui-select`).
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="accessibility">Accessibility</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    - By default the shadow root holds a `<nav>` landmark. Name it with `aria-label` on the `<ui-menu>`: two
+                      navigation menus on one page need different names. The `selected` link item is `aria-current="page"`.
+                    - In a `link` or `pagination` menu the items without `href` are `<button>`s; a selected button item is
+                      `aria-current="true"`.
+                    - `interactive` renders a `role="menubar"` (with `aria-orientation="vertical"` when `vertical`), named the same
+                      way. Each item's box is a `menuitem` and the item element itself has `role="none"`. The arrow keys skip
+                      disabled items.
+                    - `type="header"` items are plain text, not links or menu items.
+                    - An icon-only item needs a name: put `aria-label` on the `<ui-item>`.
+                    - `disabled` removes a link's `href` (and sets `aria-disabled`), disables a button, and marks a menu item
+                      `aria-disabled`.
+                    - If the element can't render, its native fallback keeps the same `<nav>` (or sub-menu `<div>`) with the same
+                      class words, so the menu still looks right and its links work. It drops `ui-select` and the menubar: an
+                      `interactive` menu becomes a plain `<nav>` with no arrow keys or `menuitem` roles.
+                  </script>
+                </ui-markdown>
+
+                <ui-header level="2" dividing id="frameworks">Framework usage</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Define the elements first, then listen for `ui-select` with your framework's custom-event syntax.
+                  </script>
+                </ui-markdown>
+                <ui-header level="4" id="framework-react">React 19</ui-header>
+                <ui-code language="jsx">
+                  <script type="text/plain">
+                    <ui-menu interactive aria-label="Editor" onui-select={(event) => run(event.detail.value)}>
+                      ...
+                    </ui-menu>
+                  </script>
+                </ui-code>
+                <ui-header level="4" id="framework-vue">Vue 3.5</ui-header>
+                <ui-code language="html">
+                  <script type="text/plain">
+                    <!-- compilerOptions.isCustomElement = (tag) => tag.startsWith("ui-") -->
+                    <ui-menu interactive aria-label="Editor" @ui-select="(event) => run(event.detail.value)">...</ui-menu>
+                  </script>
+                </ui-code>
+                <ui-header level="4" id="framework-solid">Solid 2</ui-header>
+                <ui-code language="jsx">
+                  <script type="text/plain">
+                    // no `on:` namespace:  listen through a ref
+                    <ui-menu
+                      interactive
+                      aria-label="Editor"
+                      ref={(el) => el.addEventListener("ui-select", (event) => run(event.detail.value))}
+                    >
+                      ...
+                    </ui-menu>
+                  </script>
+                </ui-code>
+              </ui-tab>
+
+              <ui-tab value="api" label="API">
+                <!-- API:  generated from the vocabularies (`site/_data/components.json`);  nothing to write. -->
+                <ui-docs-api family="ui-menu"></ui-docs-api>
+              </ui-tab>
+
+              <ui-tab value="theming" label="Theming">
+                <!-- THEMING:  the family's tokens, live, plus how to set them and which themes touch it. -->
+                <ui-header level="2" dividing id="tokens">Tokens</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    Theme with the public `--ui-menu-*` tokens: set one on the element, on any ancestor (a header, `:root`), or on
+                    the menu's box through `::part(menu)`. The items read them from the menu, so set them there or above, not on an
+                    item. Style an item's box with `ui-item::part(item)`.
+                  </script>
+                </ui-markdown>
+                <ui-code language="css">
+                  <script type="text/plain">
+                    ui-menu {
+                      --ui-menu-radius: 0;
+                      --ui-menu-item-padding: 0.75em 1.5em;
+                    }
+                    /* one menu's current item */
+                    ui-menu.site-nav {
+                      --ui-menu-active-background: var(--ui-primary);
+                      --ui-menu-active-color: white;
+                    }
+                  </script>
+                </ui-code>
+                <ui-message state="info" size="small">
+                  <ui-markdown>
+                    <script type="text/markdown">
+                      A variation (`secondary`, `tabular`, `text` ...) swaps its own values in over yours, so set a token for one
+                      variation on a selector that names it: `ui-menu[secondary] { ... }`. `--ui-menu-active-first-radius` /
+                      `--ui-menu-active-last-radius` default to the menu's own corners on that side, by layout. Never set the
+                      `--_ui-*` names: they're the sheet's private plumbing.
+                    </script>
+                  </ui-markdown>
+                </ui-message>
+                <ui-markdown>Edit a value below to try it.</ui-markdown>
+                <ui-docs-tokens family="ui-menu" playground></ui-docs-tokens>
+
+                <ui-header level="2" dividing id="themes">Themes</ui-header>
+                <ui-markdown>
+                  <script type="text/markdown">
+                    The theme picker above lists the Fomantic themes that restyle this component; the one in the header applies a
+                    theme to the whole site.
+
+                    Themes that restyle menus: Chubby, GitHub and Material.
+                  </script>
+                </ui-markdown>
+              </ui-tab>
+            </ui-tabs>
+          </ui-container>
+
+          <ui-include class="site-footer" source="../_parts/footer.html" page-styles load="visible"></ui-include>
+        </main>
+      </div>
+    </ui-root>
+  </body>
+</html>

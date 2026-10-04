@@ -1,4 +1,4 @@
-import { Show, createEffect, createMemo } from "solid-js"
+import { Show, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { IconGlyph, PartContext, proto, SlotContent, type UIHost, UIElement, UIT } from "$/ui/core"
@@ -60,8 +60,8 @@ export class UIFeedEvent extends UIElement<typeof eventVocabulary> {
   constructor(...args: ConstructorParameters<typeof UIElement>) {
     super(...args)
     const { internals } = this.host
-    // SIDE EFFECT:  a list item in a feed
-    createEffect(
+    // SIDE EFFECT:  a list item in a feed;  a host effect, so a static server render gets the role too (its `<li>`)
+    this.hostEffect(
       () => (this.context.owner.get() ? UIT.LISTITEM : null),
       (role) => {
         internals.role = role

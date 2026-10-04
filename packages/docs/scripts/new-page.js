@@ -4,8 +4,7 @@
  *   `yarn plan-doc new`
  * - SIDE EFFECT:  a template with a JSON beside it (`commands.json`) copies that too, as `<page>.json`
  * - `<page>`:  where it goes, relative to `packages/docs`, e.g. `parser/parser.html` or `glossary.html`
- * - Fixes the `_assets` and `index.html` paths for the page's depth:  templates assume one folder deep, a top-level
- *   page is zero.  Likewise the site header's `root` (the path up to the repo root:  `packages/docs` is two more).
+ * - Fixes the `_assets` and `index.html` paths, and the site header's `root`, for the page's depth (`atDepth()`).
  * - Sets `<title>`, the `h1`, the breadcrumb's last section and the description;  drops the template's how-to
  *   comment;  refuses to overwrite.
  * - Then tidies the page and updates the docs index, so it's listed at once.
@@ -16,7 +15,7 @@ import { basename, dirname, join, relative } from "node:path"
 
 import { parseHTML } from "linkedom"
 
-import { DOCS, serialize, tidy } from "./pages.js"
+import { DOCS, atDepth, serialize, tidy } from "./pages.js"
 
 const { positional, flags } = parseArgs(process.argv.slice(2))
 const [templateArg, page] = positional
@@ -29,13 +28,8 @@ if (!existsSync(join(DOCS, template))) fail(`no template ${template}`)
 const file = join(DOCS, page)
 if (existsSync(file)) fail(`${page} already exists`)
 
-const depth = page.split("/").length - 1
-const up = "../".repeat(depth)
 const title = flags.title ?? "Short Title"
-const html = readFileSync(join(DOCS, template), "utf8")
-  .replace(/((?:href|src)=")(?:\.\.\/)*(_assets\/|index\.html)/g, `$1${up}$2`)
-  .replace(/(<spell-site-header\b[^>]*?\broot=")[^"]*"/, `$1${up}../.."`)
-  .replace(/\n\s*<!--\s*TEMPLATE:[\s\S]*?-->/, "")
+const html = atDepth(readFileSync(join(DOCS, template), "utf8"), page.split("/").length - 1)
 const { document } = parseHTML(html)
 document.querySelector("title").textContent = title
 document.querySelector("h1").textContent = title

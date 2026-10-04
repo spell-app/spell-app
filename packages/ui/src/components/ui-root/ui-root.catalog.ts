@@ -51,6 +51,48 @@ export const ROOT_CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
   "ui-detail": { folder: "ui-parts" },
   "ui-dimmer": { folder: "ui-dimmer" },
   "ui-divider": { folder: "ui-divider", skeleton: { height: "0.25em" } },
+  "ui-docs-api": {
+    folder: "ui-docs-api",
+    skeleton: {
+      parts: [
+        { shape: "line", length: "short" },
+        { shape: "paragraph", lines: 5 }
+      ]
+    }
+  },
+  "ui-docs-example": {
+    folder: "ui-docs-example",
+    skeleton: { parts: [{ shape: "header" }, { shape: "paragraph", lines: 2 }] }
+  },
+  "ui-docs-nav": {
+    folder: "ui-docs-nav",
+    skeleton: {
+      width: "15em",
+      parts: [
+        { shape: "paragraph", lines: 3 },
+        { shape: "paragraph", lines: 8 }
+      ]
+    }
+  },
+  "ui-docs-themes": { folder: "ui-docs-themes", skeleton: { display: "inline", width: "16em", height: "2.5em" } },
+  "ui-docs-toc": {
+    folder: "ui-docs-toc",
+    skeleton: {
+      parts: [
+        { shape: "line", length: "short" },
+        { shape: "paragraph", lines: 6 }
+      ]
+    }
+  },
+  "ui-docs-tokens": {
+    folder: "ui-docs-tokens",
+    skeleton: {
+      parts: [
+        { shape: "line", length: "short" },
+        { shape: "paragraph", lines: 5 }
+      ]
+    }
+  },
   "ui-dropdown": { folder: "ui-dropdown", skeleton: { display: "inline", width: "14em", height: "2.5em" } },
   "ui-embed": { folder: "ui-embed", skeleton: { width: "28em", height: "15.75em" } },
   "ui-emoji": { folder: "ui-emoji", skeleton: { display: "inline", width: "1em", height: "1em" } },

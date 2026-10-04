@@ -51,11 +51,17 @@ export class RootSettings {
     return undefined
   }
 
-  /** `element`'s parent in the flat tree:  its slot, else its parent, else its shadow root's host;  `null` at the top. */
+  /**
+   * `element`'s parent in the flat tree:  its slot, else its parent, else its shadow root's host;  `null` at the top.
+   * - No `ShadowRoot` global:  the server render climbs linkedom elements in node (`$/ui/server`).
+   */
   static parentOf(element: Element): Element | null {
     if (element.assignedSlot) return element.assignedSlot
     if (element.parentElement) return element.parentElement
-    const root = element.getRootNode()
-    return root instanceof ShadowRoot ? root.host : null
+    const root = element.getRootNode() as Partial<ShadowRoot>
+    return root.nodeType === DOCUMENT_FRAGMENT_NODE && root.host ? root.host : null
   }
 }
+
+/** `Node.DOCUMENT_FRAGMENT_NODE`, without the `Node` global. */
+const DOCUMENT_FRAGMENT_NODE = 11

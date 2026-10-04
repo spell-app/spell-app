@@ -334,7 +334,7 @@ description: Start the spell web servers of this checkout that aren't running --
                     <td>
                       <code>spell dev session|worktree|park|stock</code>; <code>/session</code>,
                       <code>/worktrees</code>, <code>/park</code>, <code>/unpark</code>, <code>/wait-for</code>,
-                      <code>/whassup</code>, <code>/wtf</code>, <code>/isolate</code>
+                      <code>/worktrees</code>, <code>/wtf</code>, <code>/isolate</code>
                     </td>
                     <td>
                       sessions (find, open, title, digest), where sessions work, where a name stands, waiting, taking
@@ -419,7 +419,8 @@ description: Start the spell web servers of this checkout that aren't running --
                 packages touched (<code>/isolate</code>, <code>/park</code>, <code>/bedtime</code>)
               </li>
               <li>
-                merging into <code>main</code>: <code>/isolate</code> says <code>--ff-only</code>, <code>/whassup</code>
+                merging into <code>main</code>: <code>/isolate</code> says <code>--ff-only</code>,
+                <code>/whassup</code> (now <code>/worktrees</code>)
                 <code>--no-edit</code>
               </li>
               <li>
@@ -428,7 +429,7 @@ description: Start the spell web servers of this checkout that aren't running --
               </li>
               <li>
                 PARKED and MORNING notes: templates, state headers, edits (<code>/park</code>, <code>/wait-for</code>,
-                <code>/bedtime</code>, <code>/wakeup</code>)
+                <code>/bedtime</code>, its morning report (an "Overnight" section in the plan doc since 2026-10-03))
               </li>
               <li>
                 a goals decision takes 3 commands (<code>add decision</code>, <code>close</code>, <code>log</code>); the
@@ -541,7 +542,7 @@ description: Start the spell web servers of this checkout that aren't running --
                       <code>cleanup</code> <code>list</code>
                     </td>
                     <td>
-                      prose in <code>/isolate</code> <code>/epic</code> <code>/park</code> <code>/whassup</code>
+                      prose in <code>/isolate</code> <code>/epic</code> <code>/park</code> <code>/worktrees</code>
                       <code>/wtf</code>; <code>status.py</code>; <code>worktrees.py</code>
                     </td>
                   </tr>
@@ -577,7 +578,10 @@ description: Start the spell web servers of this checkout that aren't running --
                   <tr>
                     <td><code>bedtime</code></td>
                     <td><code>note new|phase|done</code></td>
-                    <td>MORNING-note prose (<code>/bedtime</code>, <code>/wakeup</code>)</td>
+                    <td>
+                      MORNING-note prose (<code>/bedtime</code>, its morning report (an "Overnight" section in the plan
+                      doc since 2026-10-03))
+                    </td>
                   </tr>
                   <tr>
                     <td><code>plan-doc</code></td>
@@ -899,7 +903,7 @@ description: Start the spell web servers of this checkout that aren't running --
             </li>
             <li>
               The CLI takes ~0.6s to start (<code>tsx</code> compiles on each run), where the python took ~0.05s: it
-              adds up in a skill that calls it often (<code>/whassup</code>, <code>/wtf</code>), until
+              adds up in a skill that calls it often (<code>/worktrees</code>, <code>/wtf</code>), until
               <a href="#r10">R10</a>.
             </li>
             <li>

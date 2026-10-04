@@ -193,7 +193,8 @@
       var(--_ui-segments-shadow, var(--_segment-shadow, var(--_ui-segment-shadow)));
     color: var(--_segment-fg, var(--_ui-segment-color));
     font-size: calc(var(--ui-font-size) * var(--ui-scale, 1));
-    text-align: var(--_segment-text-align, start);
+    /* Inherits unless aligned:  Fomantic's segment sets none, so a `right aligned` grid column reaches its text. */
+    text-align: var(--_segment-text-align, inherit);
   }
   /* Spacing between neighbours:  none before the first, none after the last. */
   .ui.segment:first-child {
@@ -393,6 +394,16 @@
   }
   .ui.segments:last-child {
     margin-bottom: 0;
+  }
+  /*
+   * Shadow DOM:  the root is always an only child, so the HOST's position decides (as `.ui.segment` above).
+   * - `--_segments-margin`:  a nested group's `0` still wins.
+   */
+  :host(:not(:first-child)) > .ui.segments {
+    margin-top: var(--_segments-margin, var(--_ui-segment-margin));
+  }
+  :host(:not(:last-child)) > .ui.segments {
+    margin-bottom: var(--_segments-margin, var(--_ui-segment-margin));
   }
 
   /* Children:  one box, hairlines between them;  only the outer corners round. */

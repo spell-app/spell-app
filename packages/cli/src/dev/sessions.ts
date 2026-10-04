@@ -287,6 +287,12 @@ export function queueTitle(id: string, title: string, home = claudeHome()): void
   writeFileSync(join(home, "session-titles", id), title)
 }
 
+/** The title queued for session `id`'s next prompt (`queueTitle()`), or `null`. */
+export function queuedTitle(id: string, home = claudeHome()): string | null {
+  const file = join(home, "session-titles", id)
+  return existsSync(file) ? readFileSync(file, "utf8").trim() : null
+}
+
 /**
  * The VS Code window id hosting process `pid` (or an ancestor), or `undefined`.
  * - the extension host above a Claude panel session keeps log files open under `.../logs/<stamp>/window<n>/exthost/`

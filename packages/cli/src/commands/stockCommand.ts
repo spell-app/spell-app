@@ -1,12 +1,14 @@
 import { CLI } from "$/cli"
 
 /**
- * `spell dev stock [--json]`:  take stock of everything open in this repo -- worktrees, branches, running sessions,
- * parked and `/bedtime` work, plans with phases left, stashes and window files left behind -- sorted into "in
- * process", "hung or parked" and "dead, still hanging on", each with what `/whassup` can do about it.  Read-only.
- * - text:  one section per group, an item per line with its reasons, then its actions (`> id:  label`)
- * - `--json`:  `{ generated, main, groups, items }`, each action with the shell lines it runs
- * - The logic, and the thresholds:  `src/dev/stock.ts`.  Was `whassup.py`.
+ * `spell dev stock [--json]`:  every running session and where it works, then everything open in this repo --
+ * worktrees, branches, parked and `/bedtime` work, plans with phases left, stashes and window files left behind --
+ * sorted into "in process", "hung or parked" and "dead, still hanging on", each with what `/worktrees` can do about
+ * it.  Read-only.
+ * - text:  the sessions table (`CLI.sessionTable()`), then one section per group, an item per line with its
+ *   reasons, then its actions (`> id:  label`)
+ * - `--json`:  `{ generated, main, sessions, idle, groups, items }`, each action with the shell lines it runs
+ * - The logic, and the thresholds:  `src/dev/stock.ts`.  Was `whassup.py`, then `worktrees.py` (`/worktrees`).
  */
 export async function stockCommand(
   session: CLI.CliSession,
@@ -18,6 +20,7 @@ export async function stockCommand(
     session.out(JSON.stringify(report, null, 2))
     return CLI.EXIT.OK
   }
+  for (const line of CLI.sessionTable(report.sessions, report.idle)) session.out(line)
   const items = new Map(report.items.map((item) => [item.key, item]))
   for (const group of ["active", "stalled", "dead"] as const) {
     const keys = report.groups[group]

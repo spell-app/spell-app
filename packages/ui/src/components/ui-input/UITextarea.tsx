@@ -37,6 +37,7 @@ export class UITextarea extends TextControl<typeof textareaVocabulary> {
           readonly={this.attrs.readonly}
           {...this.constraints()}
           {...this.controlAria()}
+          {...this.staticControl()}
           onInput={this.onInput}
           onChange={this.onChange}
           onFocus={this.onFocus}

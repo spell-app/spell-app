@@ -215,3 +215,12 @@ ui-section:has(> ui-list.plan-items:empty)::after {
   font-family: var(--spell-mono);
   color: var(--spell-muted);
 }
+
+/* Open | All (`spell-doc.css`):  the first item still shown (none shown above it) drops its divider line, as a list's first item does */
+.spell-doc-main
+  ui-section[data-show="open"]
+  .plan-items
+  > :not([data-status="done"]):not(:not([data-status="done"]) ~ *) {
+  --_ui-list-item-border-width: 0;
+  --ui-list-item-border-width: 0;
+}

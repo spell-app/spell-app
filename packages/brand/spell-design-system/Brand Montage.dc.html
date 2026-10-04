@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="styles.css">
+<style>body{margin:0;background:#F2F2FE;overflow-x:hidden}</style>
+</helmet>
+<div style="width:100%;height:{{ outerH }};overflow:hidden;background:#F2F2FE">
+<a data-backlink="1" href="Design%20System.dc.html" target="_top" style="position:fixed;right:16px;bottom:16px;z-index:100;display:flex;align-items:center;gap:8px;height:34px;padding:0 16px 0 12px;border-radius:999px;background:var(--surface-inverse);color:var(--text-inverse);box-shadow:var(--shadow-lg);font:500 13px/1 var(--font-sans);text-decoration:none;white-space:nowrap" style-hover="text-decoration:none;filter:brightness(1.1)"><i class="fa-solid fa-arrow-left"></i>Design System</a>
+<div data-screen-label="Montage" style="position:relative;width:1600px;height:1600px;transform-origin:0 0;transform:scale({{ scale }});background:#F2F2FE;overflow:hidden;font-family:var(--font-sans)">
+  <svg width="1600" height="1600" viewBox="0 0 1600 1600" aria-hidden="true" style="position:absolute;inset:0;display:block;pointer-events:none">
+    <path d="M0,0 H640 C600,46 530,70 462,118 C380,176 330,262 240,330 C168,384 82,410 0,424 Z" fill="#DDD6FD"></path>
+    <path d="M1600,120 C1500,150 1418,232 1386,340 C1352,458 1396,560 1478,616 C1520,644 1562,652 1600,648 Z" fill="#DDD6FD"></path>
+    <path d="M0,1478 C90,1486 176,1520 236,1572 C246,1581 254,1590 262,1600 H0 Z" fill="#DDD6FD"></path>
+    <path d="M1600,1470 C1520,1478 1440,1508 1376,1556 C1358,1570 1344,1584 1332,1600 H1600 Z" fill="#DDD6FD"></path>
+  </svg>
+
+  <div style="position:relative;height:500px;display:grid;place-items:center">
+    <img src="assets/logo/spell-lockup-tagline-aubergine.svg" alt="Spell — All magic, no fuss." style="height:250px;display:block">
+  </div>
+
+  <div style="position:relative;display:grid;grid-template-columns:1fr 1fr;gap:32px;padding:0 32px">
+    <sc-for list="{{ themes }}" as="t" hint-placeholder-count="0">
+      <div data-theme="{{ t.mode }}" style="height:600px;border-radius:28px;background:var(--bg-canvas);box-shadow:var(--shadow-lg);border:1px solid var(--border-subtle);display:grid;grid-template-columns:168px minmax(0,1fr);overflow:hidden">
+        <aside style="background:var(--bg-sunken);border-right:1px solid var(--border-subtle);padding:24px 12px;display:flex;flex-direction:column;gap:20px">
+          <span role="img" aria-label="Spell" style="display:block;height:34px;margin:0 8px;background:url('{{ t.lockup }}') left center/contain no-repeat"></span>
+          <nav style="display:flex;flex-direction:column;gap:4px">
+            <sc-for list="{{ t.nav }}" as="n" hint-placeholder-count="0">
+              <span style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:12px;background:{{ n.bg }};color:{{ n.fg }};font:500 15px/1 var(--font-sans)"><i class="{{ n.icon }}" style="font-size:16px;width:18px"></i>{{ n.label }}</span>
+            </sc-for>
+          </nav>
+        </aside>
+        <div style="padding:28px 24px;display:grid;grid-template-columns:minmax(0,1fr) 236px;gap:20px;align-items:start;min-width:0">
+          <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="font:700 28px/1.1 var(--font-serif);letter-spacing:-0.01em;color:var(--text-strong)">Build your app</div>
+              <div style="font:400 14px/1.5 var(--font-sans);color:var(--text-muted)">Describe what you want, and Spell turns it into a working app.</div>
+            </div>
+            <div style="background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:16px;box-shadow:var(--shadow-sm);padding:16px 16px 12px;display:flex;flex-direction:column;gap:8px">
+              <div style="font:400 16px/1.5 var(--font-serif);color:var(--text-body)">Create a habit tracker app with add, done and streaks.</div>
+              <span style="align-self:flex-end;width:34px;height:34px;border-radius:50%;background:var(--accent);color:var(--text-on-accent);display:grid;place-items:center;font-size:14px"><i class="fa-solid fa-arrow-right"></i></span>
+            </div>
+            <div style="background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:16px;box-shadow:var(--shadow-sm);padding:18px;display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;align-items:center;gap:10px;font:400 17px/1.2 var(--font-serif);color:var(--text-strong)"><i class="fa-solid fa-wand-magic-sparkles"></i>Building your app…</div>
+              <sc-for list="{{ steps }}" as="s" hint-placeholder-count="0">
+                <div style="display:flex;align-items:center;gap:12px;font:400 15px/1.2 var(--font-sans);color:var(--text-body)"><span style="width:20px;height:20px;border-radius:50%;flex:none;display:grid;place-items:center;background:{{ s.bg }};color:var(--text-on-accent);font-size:10px"><i class="{{ s.icon }}"></i></span>{{ s.label }}</div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="border-radius:30px;background:{{ t.phoneBg }};border:1px solid var(--border-subtle);box-shadow:var(--shadow-md);padding:14px 12px;display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;justify-content:space-between;padding:0 8px;font:600 11px/1 var(--font-sans);color:var(--text-strong)"><span>9:41</span><span style="display:flex;gap:4px;font-size:11px"><i class="fa-solid fa-signal"></i><i class="fa-solid fa-wifi"></i><i class="fa-solid fa-battery-full"></i></span></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:4px 0"><i class="fa-solid fa-seedling" style="font-size:24px;color:var(--accent)"></i><span style="font:700 19px/1.1 var(--font-serif);color:var(--text-strong)">Habit Tracker</span></div>
+            <div style="background:var(--surface-card);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:9px;box-shadow:var(--shadow-xs)">
+              <span style="font:700 15px/1 var(--font-serif);color:var(--text-strong)">Today</span>
+              <sc-for list="{{ habits }}" as="h" hint-placeholder-count="0">
+                <span style="display:flex;align-items:center;gap:9px;font:400 14px/1.2 var(--font-serif);color:var(--text-body)"><span style="width:17px;height:17px;border-radius:50%;display:grid;place-items:center;background:{{ h.bg }};box-shadow:{{ h.ring }};color:var(--text-on-accent);font-size:9px"><i class="{{ h.icon }}"></i></span>{{ h.name }}</span>
+              </sc-for>
+              <span style="height:34px;border-radius:999px;background:var(--accent);color:var(--text-on-accent);display:grid;place-items:center;font:500 14px/1 var(--font-serif);margin-top:2px">+ Add habit</span>
+            </div>
+            <div style="background:var(--surface-card);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;box-shadow:var(--shadow-xs)">
+              <span style="font:700 14px/1 var(--font-serif);color:var(--text-strong)">Streak</span>
+              <span style="display:flex;align-items:center;gap:6px;font:400 20px/1 var(--font-serif);color:var(--text-strong)"><i class="fa-solid fa-bolt" style="color:var(--spark);font-size:16px"></i>5 days</span>
+              <span style="display:flex;gap:6px"><sc-for list="{{ dots }}" as="d" hint-placeholder-count="0"><span style="width:14px;height:14px;border-radius:50%;background:{{ d.bg }}"></span></sc-for></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="position:relative;display:grid;grid-template-columns:repeat(5,1fr) 1.7fr 2fr 1fr;gap:16px 20px;padding:40px 32px 0;align-items:start">
+    <div style="grid-column:1 / span 5;grid-row:1;padding-top:12px;font:700 14px/1 var(--font-sans);letter-spacing:0.06em;text-transform:uppercase;color:var(--text-strong)">Brand palette</div>
+    <sc-for list="{{ swatches }}" as="w" hint-placeholder-count="0">
+      <div style="grid-row:2;display:flex;flex-direction:column;align-items:center;gap:10px">
+        <span style="width:100%;aspect-ratio:1;border-radius:18px;background:{{ w.hex }};box-shadow:inset 0 0 0 1px rgba(43,47,63,.06), var(--shadow-sm)"></span>
+        <span style="font:700 16px/1.1 var(--font-serif);color:var(--text-strong);text-align:center">{{ w.name }}</span>
+        <span style="font:400 13px/1 var(--font-mono);color:var(--text-muted)">{{ w.hex }}</span>
+      </div>
+    </sc-for>
+    <div style="grid-row:1 / span 2;position:relative;height:300px;border-radius:20px;background:var(--spell-ivory);overflow:hidden;display:grid;place-items:center;box-shadow:var(--shadow-sm)">
+      <div style="position:absolute;left:-40px;bottom:-110px;width:280px;height:180px;background:var(--violet-150);border-radius:50%"></div>
+      <img src="assets/logo/spell-lockup-tagline-aubergine.svg" alt="" style="position:relative;width:78%;display:block">
+    </div>
+    <div style="grid-row:1 / span 2;position:relative;height:300px;border-radius:20px;background:var(--spell-aubergine);overflow:hidden;padding:32px;box-sizing:border-box;box-shadow:var(--shadow-sm)">
+      <div style="position:absolute;right:-80px;bottom:-120px;width:300px;height:240px;background:var(--violet-300);border-radius:60% 40% 0 0 / 70% 60% 0 0"></div>
+      <div style="position:relative;white-space:nowrap;font:400 34px/1.02 var(--font-serif);letter-spacing:-0.01em;color:#fff">Magical tech<br>to realize<br>your visions.</div>
+    </div>
+    <div style="grid-row:1 / span 2;height:300px;border-radius:20px;background:var(--violet-100);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;box-shadow:var(--shadow-sm)">
+      <span style="width:66%;aspect-ratio:1;border-radius:22.5%;background:#fff;box-shadow:inset 0 0 0 1px var(--border-default), var(--shadow-md);display:grid;place-items:center"><span role="img" aria-label="App icon" style="display:block;width:72%;aspect-ratio:1;background:url('assets/logo/logo-mark-aubergine.svg') center/contain no-repeat"></span></span>
+      <span style="width:66%;aspect-ratio:1;border-radius:22.5%;background:var(--spell-aubergine);box-shadow:var(--shadow-md);display:grid;place-items:center"><span role="img" aria-label="App icon, reversed" style="display:block;width:72%;aspect-ratio:1;background:url('assets/logo/logo-mark-white.svg') center/contain no-repeat"></span></span>
+    </div>
+  </div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { w: typeof window !== 'undefined' ? window.innerWidth : 1600 };
+  componentDidMount() { this.onR = () => this.setState({ w: window.innerWidth }); window.addEventListener('resize', this.onR); this.onR(); }
+  componentWillUnmount() { window.removeEventListener('resize', this.onR); }
+  renderVals() {
+    const scale = Math.min(1, this.state.w / 1600);
+    const navDef = [['Build', 'fa-solid fa-wand-magic-sparkles'], ['Your Apps', 'fa-regular fa-calendar'], ['Templates', 'fa-solid fa-table-cells-large'], ['Settings', 'fa-solid fa-gear']];
+    const themes = ['light', 'dark'].map(mode => ({
+      mode, lockup: mode === 'dark' ? 'assets/logo/spell-lockup-white.svg' : 'assets/logo/spell-lockup-aubergine.svg',
+      phoneBg: mode === 'dark' ? 'var(--surface-raised)' : 'var(--surface-warm)',
+      nav: navDef.map(([label, icon], i) => ({ label, icon, bg: i === 0 ? (mode === 'dark' ? 'var(--violet-600)' : 'var(--surface-selected)') : 'transparent', fg: i === 0 ? (mode === 'dark' ? '#fff' : 'var(--text-accent)') : 'var(--text-body)' }))
+    }));
+    const steps = ['Planning structure', 'Creating screens', 'Adding functionality', 'Finalizing your app'].map((label, i) => ({ label, icon: i < 3 ? 'fa-solid fa-check' : '', bg: i < 3 ? 'var(--accent)' : 'var(--accent-soft-hover)' }));
+    const habits = [['Drink water', true], ['Read', false], ['Move body', false]].map(([name, d]) => ({ name, icon: d ? 'fa-solid fa-check' : '', bg: d ? 'var(--accent)' : 'transparent', ring: d ? 'none' : 'inset 0 0 0 1.5px var(--border-strong)' }));
+    const dots = [1, 1, 1, 1, 0].map(on => ({ bg: on ? 'var(--accent)' : 'var(--accent-soft-hover)' }));
+    const css = typeof document !== 'undefined' ? getComputedStyle(document.documentElement) : null;
+    const v = (name, fb) => ((css && css.getPropertyValue(name).trim()) || fb).toUpperCase();
+    const swatches = [['Aubergine', '--violet-900', '#2A1D60'], ['Purple', '--violet-600', '#6550CA'], ['House of Owen', '--brand-500', '#8E96B5'], ['Lavender', '--violet-150', '#E0DFFF'], ['Ivory', '--accent-150', '#F1E7D4']].map(([name, t, fb]) => ({ name, hex: v(t, fb) }));
+    return { scale: String(scale), outerH: (1600 * scale) + 'px', themes, steps, habits, dots, swatches };
+  }
+}
+</script>
+</body>
+</html>

@@ -18,10 +18,12 @@
  *   - `remove-folder { path }`:  remove it;  never folder 0 (the repo root);  not there:  ok, no-op
  *   - `show-doc { file, hash? }`:  `DocPreview.show(file, hash)`;  `hash` an id on the page to land on
  *   - `close-window {}`:  close this window, just after answering (`/isolate done` closes the worktree's window)
- *   - `open-session { sessionId }`:  open Claude Code session `sessionId` in an editor tab (never the sidebar);
- *     `/isolate` hands its session to the worktree's window this way
- *   - `close-session-tab { title }`:  close the ONE Claude Code tab labelled `title`;  none or several:  ok,
- *     `closed: false`.  Closing the tab ends that tab's `claude` process.
+ *   - `open-session { sessionId, prompt? }`:  open Claude Code session `sessionId` in an editor tab (never the
+ *     sidebar), `prompt` typed into its input (not sent:  Owen presses enter);  `/isolate` hands its session to
+ *     the worktree's window this way
+ *   - `close-session-tab { titles }`:  close the ONE Claude Code tab labelled with the first of `titles` that
+ *     exactly one tab shows;  none (or only several-tab matches):  ok, `closed: false`, `matches` per title.
+ *     Closing the tab ends that tab's `claude` process.  (`{ title }`, one title, still works.)
  * - NEVER adds a folder unless the window was opened from a SAVED workspace file (`workspaces/<pkg>.code-workspace`):
  *   in a one-folder or untitled window, the change re-opens the window as a new workspace, which restarts every
  *   extension -- including the Claude panel whose session asked.  `remove-folder` has no such rule:  it only ever
@@ -192,11 +194,15 @@ export class WindowBridge {
       case "open-session": {
         const sessionId = typeof body.sessionId === "string" ? body.sessionId : ""
         if (!SESSION_ID.test(sessionId)) throw new BridgeError(400, `bad session id '${sessionId}'`)
-        await vscode.commands.executeCommand("claude-vscode.primaryEditor.open", sessionId)
+        // 2nd argument:  the extension's `initialPrompt` (2.1.287), typed in, not sent
+        const prompt = typeof body.prompt === "string" && body.prompt ? body.prompt : undefined
+        await vscode.commands.executeCommand("claude-vscode.primaryEditor.open", sessionId, prompt)
         return { sessionId }
       }
-      case "close-session-tab":
-        return WindowBridge.closeSessionTab(typeof body.title === "string" ? body.title : "")
+      case "close-session-tab": {
+        const titles = Array.isArray(body.titles) ? body.titles : [body.title]
+        return WindowBridge.closeSessionTab(titles.filter((title): title is string => typeof title === "string"))
+      }
       default:
         throw new BridgeError(404, `unknown op '${op}'`)
     }
@@ -241,23 +247,27 @@ export class WindowBridge {
   }
 
   /**
-   * `close-session-tab`:  close the Claude Code tab labelled `title`, if exactly one is.
+   * `close-session-tab`:  close the Claude Code tab labelled with the first of `titles` exactly one tab shows.
    * - HACK:  a Claude tab says nothing of its session but its label, the session's title cut to
    *   `TAB_TITLE_LENGTH` characters with a trailing `…`
+   * - several titles:  the label may be the session's `/rename` title or Claude's own, whichever the tab caught
+   * - a title several tabs show (sessions opened from one worktree's window share it):  never guessed between
    */
-  static async closeSessionTab(title: string): Promise<Record<string, unknown>> {
-    if (!title) throw new BridgeError(400, "no title")
-    const tabs = vscode.window.tabGroups.all
+  static async closeSessionTab(titles: string[]): Promise<Record<string, unknown>> {
+    titles = titles.map((title) => title.trim()).filter(Boolean)
+    if (!titles.length) throw new BridgeError(400, "no title")
+    const claudeTabs = vscode.window.tabGroups.all
       .flatMap((group) => group.tabs)
-      .filter(
-        (tab) =>
-          tab.input instanceof vscode.TabInputWebview &&
-          tab.input.viewType.endsWith(CLAUDE_PANEL) &&
-          tabShows(tab.label, title)
-      )
-    if (tabs.length !== 1) return { closed: false, matches: tabs.length }
-    await vscode.window.tabGroups.close(tabs[0])
-    return { closed: true }
+      .filter((tab) => tab.input instanceof vscode.TabInputWebview && tab.input.viewType.endsWith(CLAUDE_PANEL))
+    const matches: Record<string, number> = {}
+    for (const title of titles) {
+      const tabs = claudeTabs.filter((tab) => tabShows(tab.label, title))
+      matches[title] = tabs.length
+      if (tabs.length !== 1) continue
+      await vscode.window.tabGroups.close(tabs[0])
+      return { closed: true, title }
+    }
+    return { closed: false, matches }
   }
 
   /** Index of `folder` among the window's folders, or -1. */

@@ -22,6 +22,7 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
   - `LiveReload` + `liveClient.ts` -- SSE live reload, and the page-side client (`/_server/live.js`, `editPage()`)
   - `Guard` -- `Host` check, per-run token, same-origin writes
   - `PidFile` -- a background server's `<root>/.spell-server.json`:  status, ensure, stop
+  - `mainServer.ts` -- `mainServerUrl()`:  a worktree's file on the MAIN checkout's page server
   - `proxy.ts` -- `proxyTo()` / `proxyUpgrade()`:  HTTP and websockets to another local server
   - `WebServer` -- all of the above on `node:http`
   - `untilInterrupted.ts` -- run until `Ctrl-C`
@@ -29,8 +30,10 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
   anything may import it -- `ui`'s tools and site, `spell/node`, `cli`, `app`, `docs`, `goals`, the VS Code
   extension.
 - NOT in the barrel, opt-in by path:
-  - `$/server/page/...` -- the page server (one per checkout), its CLI (`yarn server`), page edits;  may use deps
-    (`parse5`)
+  - `$/server/page/...` -- the page server (one per checkout), its CLI (`yarn server`), page edits, running epics
+    (`RunningEpics`:  the main checkout's server shows every worktree's plan doc);  may use deps (`parse5`).  It serves
+    the repo at `/`, and Spell UI's docs, `packages/ui/site/`, as static pages at `/ui/` (`UI_SITE`, `page.types.ts`;
+    no dev server:  they load the committed bundle `yarn site:build` writes)
   - `$/server/site/...` -- browser code:  the site header every page shows
   - `$/server/test/...` -- test helpers (`serveHandler`, `ask`)
 - Commands:  `yarn review`, `yarn ts`, `yarn lint`, `yarn format`, `yarn test` (node).

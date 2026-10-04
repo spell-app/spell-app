@@ -1,0 +1,107 @@
+/*
+ * Fomantic-classic theme:  port of Fomantic's OWN `src/themes/classic/` (Semantic UI 1.x's glossy look:  gradients,
+ * embossed edges), `@layer ui.theme`.  Renamed:  our `classic.css` is Fomantic's DEFAULT look, which this sits on.
+ * - Applied ON TOP of `classic.css` (`ThemeSheets.apply("fomantic-classic")`):  only the differences live here.
+ * - Two halves:  tokens on `:root` (they inherit into shadow roots), then class-grammar overrides, which reach
+ *   component markup because the theme is adopted into every shadow root too (`docs/theming.md` "Themes").
+ * - Touches:  button, header, table, progress, card.
+ * - Loads no font:  headers ask for Open Sans;  add it yourself, or the stack falls back to Arial.
+ * - Dark scheme:  Fomantic had none.  Fills are `light-dark()` pairs whose dark half keeps the default recipe;
+ *   gradients and inset shadows are alpha overlays, so they read on either scheme.
+ * - NOT ported:
+ *   - `card.overrides`:  holds VARIABLES, not rules (an `item.variables` pasted into the wrong file);  Fomantic
+ *     compiles it to nothing, so there's nothing to port
+ *   - `table.variables` `@boxShadow: @subtleGradient`:  a gradient as a box-shadow, invalid CSS that Fomantic's
+ *     browsers dropped too
+ *   - `button.variables` group offsets (`@groupButtonOffset`, `@verticalGroupOffset`):  our groups draw one border
+ *     plus dividers instead of overlapping children (`ui-button.css`)
+ *   - `button.variables` `@loadingBackgroundColor`:  our loading button keeps its fill under the spinner
+ */
+
+@layer ui.theme {
+  :root {
+    /* ## Header */
+    --ui-font-family-heading: "Open Sans", Arial, sans-serif;
+    --ui-header-block-background: linear-gradient(transparent, oklch(0 0 0 / 0.05))
+      light-dark(oklch(0.985 0.002 0), var(--ui-surface-strong));
+
+    /* ## Button */
+    --ui-button-padding-block: 0.8em;
+    --ui-button-padding-inline: 1.5em;
+    --ui-button-background: light-dark(oklch(0.985 0 0), oklch(from var(--ui-ink) l c h / 0.08));
+    --ui-button-background-down: light-dark(oklch(0.958 0 0), oklch(from var(--ui-ink) l c h / 0.18));
+    --ui-button-background-active: light-dark(oklch(0.888 0 0), oklch(from var(--ui-ink) l c h / 0.16));
+    --ui-button-labeled-icon-background: oklch(0 0 0 / 0.05);
+
+    /* ## Table */
+    --ui-table-header-background: linear-gradient(transparent, oklch(0 0 0 / 0.05)) var(--ui-surface-muted);
+    --ui-table-footer-background: oklch(from var(--ui-ink) l c h / 0.05);
+
+    /* ## Progress */
+    --ui-progress-background: oklch(from var(--ui-ink) l c h / 0.05);
+    --ui-progress-bar-background: light-dark(oklch(0.627 0 0), oklch(0.55 0 0));
+
+    /* ## Card */
+    --ui-card-extra-padding: 0.75em 1em;
+    --ui-card-extra-divider: oklch(0 0 0 / 0.05);
+  }
+
+  /* ## Button:  a glossy gradient over the fill, a hairline ring, pressed-in states */
+  .ui.button:not(.basic, .inverted, .tertiary) {
+    background-image: linear-gradient(oklch(0 0 0 / 0), oklch(0 0 0 / 0.09));
+    box-shadow: inset 0 0 0 1px var(--ui-border-color);
+  }
+  .ui.button:not(.basic, .inverted, .tertiary):hover {
+    background-image: linear-gradient(oklch(0 0 0 / 0), oklch(0 0 0 / 0.13));
+  }
+  .ui.button:not(.basic, .inverted, .tertiary):focus-visible {
+    background-image: none;
+    box-shadow:
+      inset 0 0 1px oklch(0.703 0.127 243.9 / 0.8),
+      0 0 3px 2px oklch(0.703 0.127 243.9 / 0.8);
+  }
+  .ui.button:not(.basic, .inverted, .tertiary):active,
+  .ui.active.button:not(.basic, .inverted, .tertiary) {
+    background-image: none;
+    box-shadow:
+      inset 0 0 0 1px oklch(0 0 0 / 0.1),
+      inset 0 1px 4px 0 oklch(0 0 0 / 0.1);
+  }
+  /* Labeled icon:  the icon block is set off by an inner edge */
+  .ui.labeled.icon.button:not(.right) > .icon {
+    box-shadow: inset -1px 0 0 0 var(--ui-border-color);
+  }
+  .ui.right.labeled.icon.button > .icon {
+    box-shadow: inset 1px 0 0 0 var(--ui-border-color);
+  }
+
+  /* ## Header:  a block header gets the subtle shadow (`@blockBoxShadow`) */
+  .ui.block.header {
+    box-shadow: 0 1px 2px 0 var(--ui-border-color);
+  }
+
+  /* ## Table:  a shadowed header, a lifted footer;  `<ui-table>` renders a light-DOM `<table>` (a page sheet) */
+  :is(.ui.table, :where(ui-table) > table) > thead {
+    box-shadow: 0 1px 2px 0 var(--ui-border-color);
+  }
+  :is(.ui.table, :where(ui-table) > table) > tfoot > tr > :is(th, td) {
+    box-shadow: 0 -1px 1px 0 oklch(0 0 0 / 0.05);
+  }
+
+  /* ## Progress:  a framed, inset track around a glossy bar */
+  .ui.progress:not(.attached) {
+    padding: 0.2143em;
+    border: var(--ui-border-width) solid var(--ui-border-color);
+    box-shadow: inset 0 0 4px oklch(0 0 0 / 0.1);
+  }
+  .ui.progress .bar {
+    background-image: linear-gradient(transparent, oklch(0 0 0 / 0.05));
+  }
+
+  /* ## Card:  a tinted, glossy extra content strip */
+  :host(:state(in-card)) > .extra,
+  .in-card.extra {
+    background: linear-gradient(transparent, oklch(0 0 0 / 0.05)) light-dark(oklch(0.985 0 0), var(--ui-surface-muted));
+    box-shadow: 0 1px 1px oklch(0 0 0 / 0.15);
+  }
+}

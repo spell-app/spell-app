@@ -73,9 +73,27 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
 - Enter a worktree with `/isolate <name>` (`/epic` does it too), or `EnterWorktree`.  The `WorktreeCreate` hook
   (`.claude/hooks/worktree.mjs`) makes `.claude/worktrees/<name>` on branch `<name>` from local `main`, and keeps the
   session saved at the root (Claude's own worktrees move it, and it drops out of every window's list).
-- Open the worktree in its OWN new window at once, from the worktree's root:  `node scripts/window.mjs open <name>`;
-  `... close <name>` on leaving.  Then `... handoff <name>`:  when the turn ends, the session moves to that window,
-  in an editor tab (never the sidebar), and its old tab closes (the `Stop` hook, `.claude/hooks/handoff.mjs`).
+- New window, or stay?  `node scripts/window.mjs stay-check` recommends one, with reasons, and Owen picks in a
+  modal (`.claude/skills/isolate/SKILL.md`, "Start", step 2b).  Staying is fine when the session is its window's
+  only one.
+  - A session that stays:  same tab, only its folder changes;  its changes show in Source Control, since every
+    package window has `git.detectWorktrees` on (each worktree its own repo there).
+  - NEVER add a worktree's folders to a package window (`window.mjs add`):  VS Code writes them into
+    `workspaces/<pkg>.code-workspace`, and they stay there after the worktree is gone (three did, by 2026-10-03).
+    Nobody sees them:  those files are `skip-worktree` in the main checkout, so Owen's theme changes never show
+    as changes either.
+  - A branch that changes those files merges onto `main` only once the flag is off:  back up the local files,
+    `git update-index --no-skip-worktree`, `git checkout --` them, merge, write the local edits back on top, set the
+    flag again (`PAPERCUTS.md`, "claude-code").
+- A new window:  open it at once, from the worktree's root:  `node scripts/window.mjs open <name>`.
+  On leaving (`/isolate done`), the session does NOT move back:  it stays in that window, which Owen closes
+  (`... close <name>` closes it and deletes its file).  Then `... handoff <name> --prompt continue`:  when the turn ends, the session
+  moves to that window, in an editor tab (never the sidebar), `continue` typed into it, and its old tab closes
+  (the `Stop` hook, `.claude/hooks/handoff.mjs`).
+  - So END THE TURN right after `handoff`:  the rest (`yarn install` ...) happens in the new window.
+  - The old tab is found by the session's title.  The `UserPromptSubmit` hook `.claude/hooks/prompt-gate.mjs`
+    renames the session on `/isolate <name>`, `/epic <name>` and `/unpark <name>`.  It also blocks those prompts in
+    plan mode or inside another worktree, saving their text to `~/.spell/prompts/<name>.md` first.
   - The window:  `workspaces/ongoing/<name>.code-workspace` (git-ignored), the package window's theme with a title
     bar tinted per worktree.  Folders:  the MAIN repo root first (so its Claude panel lists every session), then the
     worktree's `packages/<pkg>` (`<pkg> ⎇ <name>`) and root (`spell-app ⎇ <name>`).
@@ -83,13 +101,33 @@ FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either produce
   - `node`, not `yarn window`:  `yarn` runs no script in a worktree before its `yarn install`.
   - A doc shown while the move is pending (`yarn plan-doc open`, `window.mjs show`) waits, then shows beside the
     session in the window it moved to.
+  - A running epic's plan doc is on the MAIN checkout's page server too (`/worktrees/<w>/...`), listed in the docs
+    index's Epics section, with the merged ones;  `yarn server url` gives that URL (`packages/docs/server.html`,
+    "Running epics").
 - NEVER `code --add` / `--remove` (the focused window;  a one-folder window restarts its extensions, Claude panel
   included) or `code -r` (restarts the session).  `code <file>.code-workspace` only through `window.mjs open`.
 - Leave with `ExitWorktree` `keep`;  the hook's `remove` never deletes uncommitted or unmerged work.
 - Shelve a session's work while another session changes what it depends on:  `/park` (a WIP commit in its own
   worktree, plus a `PARKED-<name>.md` note), `/unpark` to pick it back up, or `/wait-for <other>` to wait for
   that session to finish, then merge `main` in and carry on by itself.
-- Say so in one line ("isolated in worktree <name> (branch <name>), open in its own window, <pkg> ⎇ <name>").
+- Say so in one line ("isolated in worktree <name> (branch <name>), open in its own window, <pkg> ⎇ <name>", or
+  "..., staying in this window").
+
+## Changelog
+
+- `packages/docs/changelog.html` -- what the repo shipped, newest first.  MUST be kept up to date by every `/isolate`
+  and `/epic`:
+  - `/epic`:  at its Doc Review, add the entry to "2. In worktrees";  when it merges into `main`, move it under
+    its month in "3. Merged into main"
+  - `/isolate done`:  before merging into `main`, add an entry for what the branch shipped (skip a branch with
+    nothing worth a reader's time:  typo fixes, a papercut)
+- An entry:  one nested `<ui-section id="<epic or worktree name>" header="YYYY-MM-DD · Title">` under its month,
+  newest first (the page's header comment has the markup):
+  - a `spell-meta` list with LINKS:  the plan doc (`epics/<name>/<name>.html`, `target="<name>"`), the durable
+    doc, the branch
+  - EVERYTHING it shipped, one bullet each, by phase when there are phases -- not a summary
+- Then finish the page as `packages/docs/AGENTS.md` says ("Finishing a page"), and bump its footer's date and
+  commit.
 
 ## Commands
 

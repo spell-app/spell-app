@@ -1,4 +1,3 @@
-import { createEffect } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { IconGlyph, PartContext, proto, UIElement, UIT } from "$/ui/core"
@@ -35,7 +34,7 @@ export class UIIcon extends UIElement<typeof iconVocabulary> {
   constructor(...args: ConstructorParameters<typeof UIElement>) {
     super(...args)
     const { internals } = this.host
-    createEffect(
+    this.hostEffect(
       () => this.attrs.label,
       (label) => {
         internals.role = label ? UIT.IMG : null

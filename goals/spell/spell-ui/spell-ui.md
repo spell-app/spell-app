@@ -12,7 +12,7 @@ Fomantic UI reborn as ui-* web components on Solid 2:  the parts the app, the do
 ## Context
 
 - **The most finished piece of spell:**  53 component families, 92 `ui-*` tags, about 3,600 browser tests,
-  accessibility checks, server rendering, themes, and an Astro docs site (not deployed).
+  accessibility checks, server rendering, themes, and a docs site of plain HTML pages (not deployed).
 - **Release prep is on a branch:**  a changelog, a passing `npm publish --dry-run`, a kitchen-sink page.
 - **Before it ships:**  a stale README, no `repository` field, Linux visual baselines blocked on Docker, four
   WebKit failures, and families over their size budget.
@@ -27,7 +27,7 @@ Fomantic UI reborn as ui-* web components on Solid 2:  the parts the app, the do
   four WebKit failures waiting on Owen.
 - **Translation:**  a contract is designed (`<ie-tarjeta color="rojo">` ~== `<ui-card color="red">`), not built
   (`packages/ui/docs/translation.md`).
-- **Docs:**  `packages/ui/site` (Astro, 53 component pages), not deployed.
+- **Docs:**  `packages/ui/site` (plain HTML pages, 58 component pages), not deployed.
 
 ## Decisions (settled -- don't relitigate)
 

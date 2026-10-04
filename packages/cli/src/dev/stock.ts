@@ -18,7 +18,7 @@ export const STOCK_TITLES: Record<CLI.StockGroup, string> = {
 }
 
 /**
- * Everything open in the repo at `main`, sorted into groups, for `/whassup` (was `whassup.py`).  Read-only.
+ * Everything open in the repo at `main`, sorted into groups, for `/worktrees` (was `whassup.py`, then `worktrees.py`).  Read-only.
  * - looks at:  worktrees and branches;  running Claude sessions, in this repo or anywhere on the machine;  `/park`
  *   notes and `/bedtime` reports in worktrees;  plan docs with phases left;  `park:<name>` stashes left behind;
  *   window files (`workspaces/ongoing/<name>.code-workspace`) with no worktree
@@ -27,6 +27,18 @@ export const STOCK_TITLES: Record<CLI.StockGroup, string> = {
 export function takeStock(main = CLI.mainRoot()): CLI.StockReport {
   const sessions = liveSessions(main)
   const items: CLI.StockItem[] = []
+  // every plan doc in one tool run, not one each
+  const epicsDir = join(main, "packages", "docs", "epics")
+  const planNames = existsSync(epicsDir)
+    ? readdirSync(epicsDir).filter((name) => statSync(join(epicsDir, name)).isDirectory())
+    : []
+  const every = [...planNames.sort(), ...worktreeNames(main).map((it) => it.name)]
+  CLI.planSummaries(
+    every
+      .map((name) => CLI.planFile(name, join(main, ".claude", "worktrees", name), main))
+      .filter((file): file is string => !!file),
+    main
+  )
   const claimed = new Set<string>()
   for (const { name, path, branch } of worktreeNames(main))
     items.push(checkoutItem(main, name, path, branch, sessions, claimed))
@@ -52,7 +64,7 @@ export function takeStock(main = CLI.mainRoot()): CLI.StockReport {
   const groups = { active: [] as string[], stalled: [] as string[], dead: [] as string[] }
   for (const group of ["active", "stalled", "dead"] as const)
     groups[group] = items.filter((item) => item.group === group).map((item) => item.key)
-  return { generated: iso(Date.now()), main, groups, items }
+  return { generated: iso(Date.now()), main, sessions, idle: idleWorktrees(sessions, main), groups, items }
 }
 
 ////////////////
@@ -351,7 +363,7 @@ function describeSessions(item: CLI.StockItem): string {
 // ## Sessions
 ////////////////
 
-/** Every running session on the machine, as `/whassup` sees it -- see `LiveSession`. */
+/** Every running session on the machine, as `/worktrees` sees it -- see `LiveSession`. */
 export function liveSessions(main = CLI.mainRoot()): CLI.LiveSession[] {
   const mine = CLI.ancestorPids()
   const found: CLI.LiveSession[] = []
@@ -363,14 +375,20 @@ export function liveSessions(main = CLI.mainRoot()): CLI.LiveSession[] {
     const silent = Math.floor((Date.now() - mtime) / 60_000)
     const state = record.status ?? "?"
     const asked = pendingQuestion(tail)
+    const place = cwd && existsSync(cwd) ? CLI.checkoutOf(cwd) : { label: "(not in git)", branch: "", inside: cwd }
     found.push({
       id: record.sessionId,
       name: CLI.sessionTitle(record.sessionId) || record.name || record.sessionId.slice(0, 8),
+      agent: record.name ?? null,
       pid: record.pid,
       cwd,
       inRepo: inFolder(cwd, main),
       where: CLI.ENTRYPOINT_PLACES[record.entrypoint ?? ""] ?? record.entrypoint ?? null,
+      checkout: place.label,
+      branch: place.branch,
+      folder: place.inside,
       state: state === "busy" && silent >= SILENT_MINUTES ? "hung" : state,
+      waitingFor: record.waitingFor ?? null,
       lastActive: iso(mtime),
       silentMin: silent,
       question: asked?.question ?? null,
@@ -380,6 +398,41 @@ export function liveSessions(main = CLI.mainRoot()): CLI.LiveSession[] {
     })
   }
   return found
+}
+
+/**
+ * The sessions as a text table (title, agent, id, status, where, worktree, branch, folder;  `<- this` marks the
+ * one that ran it), then the worktrees no session is in, then a blank line:  `spell dev worktree list`, and the top
+ * of `spell dev stock`'s report.
+ */
+export function sessionTable(sessions: CLI.LiveSession[], idle: CLI.IdleWorktree[]): string[] {
+  const head = ["session", "agent", "id", "status", "where", "worktree", "branch", "folder"]
+  const rows = sessions.map((session) => [
+    `${session.name}${session.this ? "  <- this" : ""}`,
+    session.agent ?? "",
+    session.id.slice(0, 8),
+    `${session.state}${session.waitingFor ? ` (${session.waitingFor})` : ""}`,
+    session.where ?? "?",
+    session.checkout,
+    session.branch,
+    session.folder
+  ])
+  const widths = head.map((_, column) => Math.max(...[head, ...rows].map((row) => row[column].length)))
+  const lines = [head, widths.map((width) => "-".repeat(width)), ...rows].map((row) =>
+    row
+      .map((cell, column) => cell.padEnd(widths[column]))
+      .join("  ")
+      .trimEnd()
+  )
+  if (idle.length) lines.push("", "No session in:", ...idle.map((it) => `  ${it.path}  [${it.branch}]`))
+  return [...lines, ""]
+}
+
+/** Each worktree under `.claude/worktrees/` that no session in `sessions` works in. */
+export function idleWorktrees(sessions: CLI.LiveSession[], main = CLI.mainRoot()): CLI.IdleWorktree[] {
+  return worktreeNames(main)
+    .filter(({ path }) => !sessions.some((session) => inFolder(session.cwd, path)))
+    .map(({ path, branch }) => ({ path, branch }))
 }
 
 /** An `AskUserQuestion` in transcript text `tail` with no answer after it:  its first question, minutes ago. */

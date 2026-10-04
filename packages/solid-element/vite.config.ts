@@ -12,7 +12,7 @@ export default defineConfig({
     sourcemap: false,
     minify: false,
     lib: {
-      entry: { index: "src/index.ts" },
+      entry: { index: "src/index.ts", server: "src/server.ts" },
       formats: ["es"]
     },
     rolldownOptions: {

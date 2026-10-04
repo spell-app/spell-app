@@ -6,8 +6,13 @@ import { TAG_PREFIX } from "./ui-root.types"
  * - A LITERAL glob, so each becomes a literal `import()`:  the lib build reuses each family's own entry chunk
  *   (`ui-card.js`), and the docs' single-file bundle (`packages/docs/scripts/bundle-spell-ui.js`) inlines them.
  * - The root's own folder is left out:  it is loaded already.
+ * - The doc-only `<ui-docs-*>` families (`src/docs-components/`) are a second literal glob, `DOCS_FAMILIES`;  the
+ *   catalog names a family by folder alone (`folder: "ui-docs-example"`), so `load()` tries both.
  */
 const FAMILIES = import.meta.glob(["../*/index.ts", "!../ui-root/index.ts"])
+
+/** The doc-only families' barrels, lazy like `FAMILIES`:  `../../docs-components/ui-docs-example/index.ts` => its `import()`. */
+const DOCS_FAMILIES = import.meta.glob("../../docs-components/*/index.ts")
 
 /****************
  * ### `RootLoader`
@@ -28,7 +33,7 @@ export class RootLoader {
   static load(folder: string): Promise<void> {
     let load = RootLoader.loads.get(folder)
     if (!load) {
-      const importer = FAMILIES[`../${folder}/index.ts`]
+      const importer = FAMILIES[`../${folder}/index.ts`] ?? DOCS_FAMILIES[`../../docs-components/${folder}/index.ts`]
       load = importer ? importer().then(() => undefined) : Promise.reject(new Error(`no family "${folder}"`))
       RootLoader.loads.set(folder, load)
     }

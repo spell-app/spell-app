@@ -22,17 +22,27 @@ The h1 sits in a sticky header, `<ui-sticky class="spell-h1"><header class="spel
 label at its right (`.plan-step`, written by the script):  the active phase (orange), else `DONE` (green) once every
 phase is, else the next phase (grey).
 
+Below the meta lines, while planning:  the "Plan hung?" notice, `ui-message.plan-hung`.
+- How to restart a hung plan:  a new session in the worktree's window, `/epic <name>`, "Reuse".  Plus the kickoff
+  prompt in a `ui-code.plan-hung-prompt` with a copy button (`setPrompt()` keeps it in step with the Overview's
+  quote).
+- Why:  `/epic` writes this stub doc BEFORE planning, so the prompt survives a hung or lost session.
+- The script removes it once any phase leaves `todo`;  never add it back by hand.
+
 ## Sections (ids are fixed)
 
 | Section | id | What |
 |---|---|---|
+| Overnight · `<date>` | `#overnight` | TEMPORARY, unnumbered, above the Overview:  a `/bedtime` run's report (summary, a line per phase, problems), `data-bedtime="active"` while it runs, `"done"` after.  Only `yarn plan-doc overnight` writes it;  `/epic review` removes it once the night's judgement calls are reviewed.  Nothing in it is only there:  calls, problems and todos are items, phases are log lines |
 | 1. Overview | `#overview` | 2-sentence summary (`p.plan-summary lede`), the prompt that started the plan (`blockquote.plan-prompt`), the total estimate (`p.plan-estimate`, written by the script), then the substance in numbered sub-sections (`#o1` "1.1 Structure" ...):  becomes durable docs |
 | 2. Phases | `#phases` | progress bar, then one sub-section per phase (`#p1` ...):  goal, files, verify, estimate |
 | 3. Questions & Decisions | `#decisions` | open questions first (waiting on the user;  each also asked with AskUserQuestion), then what was decided and why:  settled unless new facts arrive.  `decide` answers a question:  the decision goes at the end, the struck question just above it |
-| 4. Caveats | `#caveats` | limits and risks we accept |
-| 5. Todos | `#todos` | later work that isn't a caveat or an issue |
-| 6. Issues | `#issues` | problems found, open until fixed |
-| 7. Log | `#log` | one-liners of plan changes, stamped with local date and time |
+| 4. Judgement calls | `#judgements` | choices Claude made WITHOUT the user (a `/bedtime` run, an agent mid-phase):  title the choice, details "chose X over Y because Z" + the options;  open until the user reviews it, `close` = accepted, disagreement becomes a question.  Every one ALSO linked from its phase's body (`<ui-item icon="compass"><b>Judgement calls:</b>  <a href="#j2">J2</a></ui-item>`) |
+| 5. Caveats | `#caveats` | limits and risks we accept |
+| 6. Todos | `#todos` | later work that isn't a caveat or an issue |
+| 7. Issues | `#issues` | problems found, open until fixed |
+| 8. To test | `#tests` | what Owen checks by hand before merging:  each a step and what should happen (`add <name> test`);  `close` one once it passes |
+| 9. Log | `#log` | one-liners of plan changes, stamped with local date and time |
 
 - Every section is a `<ui-section>` (markup below):  its title sticks, it folds from its chevron (the reader's folds
   are remembered per page), a rule runs under its title.
@@ -60,11 +70,15 @@ Section markup (the template's;  a hand-written Overview sub-section is the same
 - `header` is the title;  a title with markup is a `<span slot="header">` first inside instead (`1.2 The <code>x</code>
   API`)
 - every section `sticky collapsible dividing`;  `collapsed` starts it folded
+- in the browser, EVERY section of a plan doc starts folded (`spell-doc-runtime.js` `wireSectionFolds()`), unless
+  the reader opened or closed it before:  Owen opens what he wants.  `collapsed` in the markup still matters for
+  pages opened from disk without the runtime, and for the script's own bookkeeping.  A link to any id inside
+  (`#q3`, `#p2`) unfolds the sections around it and lands on it
 - NEVER change an `id`:  the items, the log and other docs link to them
 
 ## Ids:  short, so they're easy to say in chat
 
-- Items:  `q1` questions, `c1` caveats, `i1` issues, `t1` todos, `d1` decisions.  Shown as `Q1`, `C1` ...
+- Items:  `q1` questions, `j1` judgement calls, `c1` caveats, `i1` issues, `t1` todos, `v1` tests ("verify":  `t` is taken), `d1` decisions.  Shown as `Q1`, `J1`, `C1` ...
 - Phases:  `p1` ...  Shown as `P1 · Short Name`:  a 2-4 word name, so "start P2" is unambiguous.
 - Link to them in prose:  `<a href="#i2">I2</a>`.  `yarn plan-doc check` fails on a link to a missing id.
 
@@ -134,6 +148,23 @@ With details, the item's line IS the panel's title (it opens on a click, or on a
 - docs made before 2026-10-01 have `ol.plan-items` of `<li>`s with a "details" panel, and a phase list under
   `#plan`;  the script still edits those, and `migrate` converts them
 
+Review marks (`/epic review`, and any session that talks an item through with Owen;  `review`, `defer`, `queue`,
+`unqueue` write them):
+
+```html
+<ui-item id="i4" data-status="open" data-reviewed="2026-10-03" data-queued="2026-10-03" data-work="Skip short sections">
+  <ui-accordion class="plan-item">
+    <ui-title><a class="plan-id" href="#i4">I4</a> <span class="plan-title">One line</span> <ui-label class="plan-review" size="mini" basic color="blue" title="Skip short sections">to do</ui-label></ui-title>
+    ...
+```
+
+- `data-reviewed`:  gone through with Owen, that day.  `data-deferred`:  put off for now;  still not reviewed.
+  `data-queued` + `data-work`:  work a review decided on, not started yet;  the next review offers it first.
+- the label shows the strongest:  "to do" (blue), else "deferred" (grey, its date on hover), else "reviewed 10-03" (green)
+- REVIEWED also counts:  struck (`done`), `decided`, or linked (`href="#i4"`) from a decision's details.  So a doc
+  reviewed before the marks existed isn't all "not reviewed".
+- the outcome goes in the log (`I4 reviewed:  accepted`), not on the item
+
 Log line (in `#log`'s `<ui-feed class="plan-log">`;  a `<ul>` of `<time>` + text before 2026-10-01):
 
 ```html
@@ -191,17 +222,29 @@ decide from WITHOUT asking back:  in the item's details, or an Overview sub-sect
 
 ## Commands (`yarn plan-doc ...`, from anywhere in the repo)
 
+Every command but `new` edits the epic's LIVE doc wherever it is:  its own worktree's
+(`.claude/worktrees/<name>`), else the main checkout's, else the first worktree that has it.  Never the copy a
+worktree took of an epic merged before it was cut:  editing that would fork the record.
+
 | Command | Does |
 |---|---|
 | `new <name> [--title "..."] [--prompt "..." \| --prompt-file <path>]` | copy the template to `epics/<name>/<name>.html`, fill it (the prompt that started the plan goes in the Overview), update the docs index |
 | `add-phase <name> "Short Name" [--goal ...] [--files ...] [--verify ...]` | append a phase to the list and to `#phases` |
 | `phase <name> <N> todo\|active\|done [--no-open]` | set a phase's status;  `done` removes its UPDATE markers;  reloads the doc's VS Code tab |
-| `add <name> question\|caveat\|issue\|todo\|decision "<title>" [--details "<html>"]` | append an item, print its id |
+| `add <name> question\|judgement\|caveat\|issue\|todo\|test\|decision "<title>" [--details "<html>"]` | append an item, print its id |
 | `close <name> <id>` / `reopen <name> <id>` | strike / unstrike an item |
 | `decide <name> <Q id> "<decision>" [--details "<html>"]` | answer a question:  a new decision (prints its id), the question struck and moved just above it |
 | `log <name> "<text>"` | add a timestamped line to the log |
 | `prompt <name> "<text>"` / `prompt <name> --file <path>` | set (replace) the prompt quoted in the Overview;  `""` removes it |
 | `migrate <name>` | bring an older doc (before 2026-10-01, or with `section.s2` markup) into this layout (prints what changed;  "already current" otherwise) |
-| `summary <name> [--json]` | open questions, issues, caveats, todos, and the next phase |
+| `overnight <name> start "P3-P6" [--branch b]` / `phase <N> "text"` / `problem "text"` / `done "summary"` / `remove` | a `/bedtime` run's Overnight section (`/bedtime`'s cheat sheet) |
+| `review <name> <id> ["outcome"]` | mark an item reviewed today;  the outcome goes in the log |
+| `defer <name> <id>` | put an item off:  dated, still not reviewed |
+| `queue <name> <id> "work"` / `unqueue <name> <id>` | work a review decided on, waiting / started or dropped |
+| `items <name> [--section <s>] [--filter unreviewed\|open\|reviewed\|queued\|all] [--json]` | what a review walks:  where reviews stand, the to-do list, each section's counts and items |
+| `items <name> --section <s> --spec <file>` | `/epic review`'s item picker as a details page spec (`yarn details new --from`):  a checkbox per open item, the not-reviewed ones ticked, each labelled by its id |
+| `list [--json]` | every epic in main and the worktrees:  in progress / done, not reviewed / all |
+| `backfill <name> \| --all [--apply]` | one-off:  items not reviewed that Owen named in a past session of the epic (his message, or a modal he answered);  a dry run unless `--apply`, which marks them dated that day (`scripts/review-backfill.js`) |
+| `summary <name> [--json]` | open questions, judgement calls, issues, caveats, todos, tests, and the next phase |
 | `check <name>` | ids unique, every `#id` link resolves, every phase has a status, then `check-spell.js` |
 | `open <name>` | show the doc rendered in VS Code (Simple Browser, beside the editor), reusing its tab and reloading it;  needs the spell extension (`yarn vscode`) |

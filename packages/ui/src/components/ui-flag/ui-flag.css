@@ -1,7 +1,9 @@
 /*
  * `<ui-flag>`:  port of Fomantic's `flag.less` + `flag.variables` -- the box and size rules only.
  * - Shadow markup contract (class grammar on semantic elements):
- *   `<span class="ui [size] flag" part="flag" role="img" aria-label="France">🇫🇷</span>`
+ *   `<span class="ui [size] flag fr" part="flag" role="img" aria-label="France">🇫🇷</span>`
+ *   - the resolved code is a class word too (Fomantic's `fr flag`):  nothing here reads it, a sprite theme does
+ *     (`themes/famfamfam.css`)
  *   - the glyph is the Unicode flag emoji the element computes from `country` (see `ui-flag.vocabulary.en.ts`:
  *     regional-indicator pairs, `flagEmoji` sequences, `flagAliases`);  the label comes from
  *     `Intl.DisplayNames` (type `region`), or the vocabulary's texts for non-country flags

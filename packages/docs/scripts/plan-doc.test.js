@@ -4,7 +4,7 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 import { DOCS } from "./pages.js"
-import { PlanDoc, PlanDocError, parseDuration, timeTag } from "./plan-doc.js"
+import { PlanDoc, PlanDocError, parseDuration, pickerSpec, timeTag } from "./plan-doc.js"
 import { convertSections } from "./to-ui-section.js"
 
 /** When the tests' edits happen:  local 2026-10-01 09:05. */
@@ -40,7 +40,17 @@ function folds(plan) {
 describe("PlanDoc layout", () => {
   it("has the sections in order, as <ui-section>s with icons, the h1 in a sticky header, no #plan", () => {
     const plan = freshPlan()
-    expect(sectionIds(plan)).toEqual(["overview", "phases", "decisions", "caveats", "todos", "issues", "log"])
+    expect(sectionIds(plan)).toEqual([
+      "overview",
+      "phases",
+      "decisions",
+      "judgements",
+      "caveats",
+      "todos",
+      "issues",
+      "tests",
+      "log"
+    ])
     expect(headers(plan)[2]).toBe("3. Questions & Decisions")
     for (const section of plan.document.querySelectorAll("main > ui-section")) {
       expect(section.querySelector(':scope > ui-icon[slot="icon"]')).not.toBeNull()
@@ -245,6 +255,21 @@ describe("PlanDoc items", () => {
     expect(plan.check()).toEqual([])
   })
 
+  it("files a judgement call (J1) in #judgements;  open until closed;  summary lists it after questions", () => {
+    const plan = freshPlan()
+    expect(
+      plan.addItem("judgement", "nav starts on Topics", { details: "<p>chose ... over ... because ...</p>" })
+    ).toBe("j1")
+    const item = plan.document.getElementById("j1")
+    expect(item.closest("ui-section").id).toBe("judgements")
+    expect(item.getAttribute("data-status")).toBe("open")
+    expect(Object.keys(plan.summary().open)).toEqual(["question", "judgement", "issue", "caveat", "todo", "test"])
+    expect(plan.summary().open.judgement.map((open) => open.id)).toEqual(["j1"])
+    plan.setItem("j1", "done")
+    expect(plan.summary().open.judgement).toEqual([])
+    expect(plan.check()).toEqual([])
+  })
+
   it("titles an item's details panel with the item's line, not 'details'", () => {
     const plan = freshPlan()
     plan.addItem("decision", "padding tokens stay public (Q8)", { details: "<p>why</p>" })
@@ -339,6 +364,47 @@ describe("PlanDoc prompt", () => {
     plan.setPrompt("again")
     expect(plan.document.querySelector(".plan-summary + blockquote.plan-prompt").textContent).toBe("again")
   })
+
+  it('copies it into the "Plan hung?" notice, exact, with a copy button;  the notice goes once a phase starts', () => {
+    const plan = freshPlan()
+    const copy = () => plan.document.querySelector("ui-message.plan-hung > ui-code.plan-hung-prompt[copy]")
+    plan.setPrompt("make <h1> & co\n\nline 3 </script> x")
+    expect(copy().querySelector("script").textContent).toBe("make <h1> & co\n\nline 3 <\\/script> x")
+    expect(plan.toString()).toContain("make <h1> & co")
+    plan.setPrompt("")
+    expect(copy()).toBeNull()
+    plan.setPrompt("again")
+    expect(plan.document.querySelectorAll("ui-code.plan-hung-prompt").length).toBe(1)
+    plan.addPhase("First")
+    plan.setPhase(1, "todo")
+    expect(plan.document.querySelector("ui-message.plan-hung")).not.toBeNull()
+    plan.setPhase(1, "active")
+    expect(plan.document.querySelector("ui-message.plan-hung")).toBeNull()
+    // and with it gone, a new prompt doesn't bring it back
+    plan.setPrompt("later")
+    expect(copy()).toBeNull()
+  })
+})
+
+describe("PlanDoc tests", () => {
+  it("adds a test to 'To test' (V1), open until closed;  summary counts it", () => {
+    const plan = freshPlan()
+    const id = plan.addItem("test", "/isolate tmp-x moves within seconds")
+    expect(id).toBe("v1")
+    expect(plan.document.getElementById("v1").parentElement.closest("ui-section").id).toBe("tests")
+    expect(plan.summary().open.test.map((item) => item.id)).toEqual(["v1"])
+    plan.setItem("v1", "done")
+    expect(plan.summary().open.test).toEqual([])
+  })
+
+  it("adds the section to a doc from before it, just above the Log, renumbered", () => {
+    const plan = freshPlan()
+    plan.document.getElementById("tests").remove()
+    expect(headers(plan).at(-1)).toBe("9. Log")
+    plan.addItem("test", "x")
+    expect(sectionIds(plan).slice(-2)).toEqual(["tests", "log"])
+    expect(headers(plan).slice(-2)).toEqual(["8. To test", "9. Log"])
+  })
 })
 
 describe("PlanDoc migrate", () => {
@@ -369,10 +435,22 @@ describe("PlanDoc migrate", () => {
     const plan = filledOldPlan()
     const changes = plan.migrate()
     expect(changes.length).toBeGreaterThan(3)
-    expect(sectionIds(plan)).toEqual(["overview", "phases", "decisions", "caveats", "todos", "issues", "log"])
+    expect(sectionIds(plan)).toEqual([
+      "overview",
+      "phases",
+      "decisions",
+      "judgements",
+      "caveats",
+      "todos",
+      "issues",
+      "tests",
+      "log"
+    ])
     expect(headers(plan)[0]).toBe("1. Overview")
     expect(headers(plan)[2]).toBe("3. Questions & Decisions")
-    expect(headers(plan)[6]).toBe("7. Log")
+    expect(headers(plan)[3]).toBe("4. Judgement calls")
+    expect(headers(plan)[7]).toBe("8. To test")
+    expect(headers(plan)[8]).toBe("9. Log")
     // every section a <ui-section>, each top-level one with its icon;  `#phases-section` gone
     expect(plan.document.querySelector("section, h2, h3, ui-sticky.spell-h2, ui-sticky.spell-h3")).toBeNull()
     expect(plan.document.getElementById("phases-section")).toBeNull()
@@ -447,6 +525,15 @@ describe("PlanDoc summary, check, output", () => {
     expect(summary.open.issue).toEqual([])
   })
 
+  it("reads a doc that predates a kind's section, without adding it", () => {
+    const plan = oldPlan()
+    const before = plan.toString()
+    const summary = plan.summary()
+    expect(summary.open.judgement).toEqual([])
+    expect(summary.open.test).toEqual([])
+    expect(plan.toString()).toBe(before)
+  })
+
   it("check finds broken links and duplicate ids", () => {
     const plan = freshPlan()
     plan.require("#o1").insertAdjacentHTML("afterend", '<p id="o1">see <a href="#i7">I7</a></p>')
@@ -465,9 +552,213 @@ describe("PlanDoc summary, check, output", () => {
   })
 })
 
+describe("PlanDoc review", () => {
+  /** States of `kind`'s section, by id, under `filter`. */
+  function states(plan, kind, filter) {
+    const section = plan.reviewSections({ filter }).find((s) => s.kind === kind)
+    return Object.fromEntries(section.items.map((item) => [item.id, item.state]))
+  }
+
+  /** The review label's text on item `id`, or `null`. */
+  function label(plan, id) {
+    return plan.document.getElementById(id).querySelector(".plan-review")?.textContent ?? null
+  }
+
+  it("marks reviewed, deferred and to do, each with a dated label", () => {
+    const plan = freshPlan()
+    for (const title of ["one", "two", "three", "four"]) plan.addItem("issue", title, { details: "<p>x</p>" })
+    expect(plan.review("I1")).toBe("one")
+    plan.defer("i2")
+    plan.queue("i3", "fix it")
+    expect(states(plan, "issue", "all")).toEqual({ I1: "reviewed", I2: "deferred", I3: "queued", I4: "outstanding" })
+    expect(label(plan, "i1")).toBe("reviewed 10-01")
+    expect(label(plan, "i2")).toBe("deferred")
+    expect(label(plan, "i3")).toBe("to do")
+    expect(plan.document.getElementById("i3").getAttribute("data-work")).toBe("fix it")
+    expect(label(plan, "i4")).toBeNull()
+    // the label sits in the panel's title, right after the id
+    expect(plan.document.querySelector("#i1 ui-title > .plan-id + .plan-review + .plan-title")).not.toBeNull()
+  })
+
+  it("review clears deferred;  unqueue leaves it reviewed;  relabeling leaves one label, no extra spaces", () => {
+    const plan = freshPlan()
+    plan.addItem("caveat", "one")
+    plan.defer("c1")
+    plan.review("c1")
+    expect(plan.document.getElementById("c1").hasAttribute("data-deferred")).toBe(false)
+    plan.queue("c1", "do it")
+    plan.unqueue("c1")
+    expect(states(plan, "caveat", "all")).toEqual({ C1: "reviewed" })
+    const item = plan.document.getElementById("c1")
+    expect(item.querySelectorAll(".plan-review").length).toBe(1)
+    expect(item.innerHTML).not.toMatch(/ {2}<ui-label/)
+  })
+
+  it("counts struck, decided, and items a decision links to as reviewed", () => {
+    const plan = freshPlan()
+    plan.addItem("caveat", "linked")
+    plan.addItem("caveat", "struck")
+    plan.addItem("caveat", "neither")
+    plan.setItem("c2", "done")
+    plan.addItem("decision", "accept it", { details: '<p>see <a href="#c1">C1</a></p>' })
+    expect(states(plan, "caveat", "all")).toEqual({ C1: "reviewed", C2: "reviewed", C3: "outstanding" })
+  })
+
+  it("filters:  unreviewed (default), open, reviewed, queued;  counts what isn't reviewed", () => {
+    const plan = freshPlan()
+    for (const title of ["a", "b", "c", "d"]) plan.addItem("todo", title)
+    plan.review("t1")
+    plan.defer("t2")
+    plan.queue("t3", "build it")
+    plan.setItem("t1", "done")
+    const ids = (filter) => Object.keys(states(plan, "todo", filter))
+    expect(ids()).toEqual(["T2", "T4"])
+    expect(ids("open")).toEqual(["T2", "T3", "T4"])
+    expect(ids("reviewed")).toEqual(["T1", "T3"])
+    expect(ids("queued")).toEqual(["T3"])
+    const todos = plan.reviewSections().find((s) => s.kind === "todo")
+    expect([todos.notReviewed, todos.total]).toEqual([2, 4])
+    expect(() => plan.reviewSections({ filter: "nope" })).toThrow(PlanDocError)
+  })
+
+  it("sections in page order;  Questions holds questions, never decisions", () => {
+    const plan = freshPlan()
+    plan.addItem("question", "which?")
+    plan.decide("q1", "this one")
+    plan.addItem("question", "and?")
+    const sections = plan.reviewSections({ filter: "all" })
+    expect(sections.map((s) => s.label)).toEqual([
+      "Questions",
+      "Judgement calls",
+      "Caveats",
+      "Todos",
+      "Issues",
+      "To test"
+    ])
+    expect(sections[0].items.map((item) => [item.id, item.state])).toEqual([
+      ["Q2", "outstanding"],
+      ["Q1", "reviewed"]
+    ])
+  })
+
+  it("finds the recommended option:  a label first, then a bold lead, never a table cell", () => {
+    const plan = freshPlan()
+    plan.addItem("question", "pick", {
+      details:
+        "<table><tr><td>yes (recommended)</td></tr></table>" +
+        '<ui-segment><ui-label attached="top">A. Mark + links (recommended)</ui-label><p>why</p></ui-segment>'
+    })
+    plan.addItem("question", "bold", { details: "<p><b>Skip short sections (recommended)</b>:  cheap</p>" })
+    plan.addItem("question", "none", { details: "<p>no idea yet</p>" })
+    plan.addItem("question", "bare")
+    const items = plan.reviewSections().find((s) => s.kind === "question").items
+    expect(items.map((item) => item.recommendation)).toEqual(["A. Mark + links", "Skip short sections", null, null])
+  })
+
+  it("picker spec:  a checkbox per open item, labelled by id, its whole text, its state a badge", () => {
+    const plan = freshPlan()
+    const details =
+      '<p>why:  see <a href="#c1">C1</a> and <a href="../../scripts/x.js">x.js</a></p><ul><li>more</li></ul>'
+    for (const title of ["one", "two", "three", "struck"]) plan.addItem("issue", title, { details })
+    plan.review("i2")
+    plan.defer("i3")
+    plan.setItem("i4", "done")
+    const section = plan.reviewSections({ filter: "open" }).find((s) => s.kind === "issue")
+    const spec = pickerSpec(plan, "/r/docs/epics/demo/demo.html", section, plan.reviewStatus(), "/r/docs/details")
+    const [question] = spec.questions
+    expect([spec.bare, question.multiple, question.selectAll, question.filter, question.moreDetails]).toEqual([
+      true,
+      true,
+      true,
+      true,
+      true
+    ])
+    expect(question.options.map((o) => [o.letter, o.checked, o.done, o.state.icon, o.state.label])).toEqual([
+      ["I1", true, false, "circle outline", "Not reviewed yet"],
+      ["I2", false, true, "circle check", "Reviewed 2026-10-01"],
+      ["I3", true, false, "circle pause", "Deferred 2026-10-01"]
+    ])
+    // the whole text, its links made to work from the page's folder;  no fold
+    expect(question.options[0].body).toBe(
+      '<p>why:  see <a href="../epics/demo/demo.html#c1">C1</a> and <a href="../scripts/x.js">x.js</a></p><ul><li>more</li></ul>'
+    )
+    expect(question.options[0].details).toBeUndefined()
+    expect(question.title).toBe("Issues (2/4)")
+    expect(spec.askedBy).toBe("<code>/epic review demo</code>")
+  })
+
+  it("status:  last review date and count, deferred, the to-do list", () => {
+    const plan = freshPlan()
+    expect(plan.reviewStatus()).toEqual({ last: null, reviewedThen: 0, deferred: 0, queued: [] })
+    plan.addItem("issue", "one")
+    plan.addItem("issue", "two")
+    plan.addItem("issue", "three")
+    plan.review("i1")
+    plan.queue("i2", "fix it")
+    plan.defer("i3")
+    expect(plan.reviewStatus()).toEqual({
+      last: "2026-10-01",
+      reviewedThen: 2,
+      deferred: 1,
+      queued: [{ id: "I2", title: "two", work: "fix it", queued: "2026-10-01" }]
+    })
+  })
+})
+
 describe("timeTag", () => {
   it("shows local date and time, and carries the offset in datetime", () => {
     const tag = timeTag(NOW)
     expect(tag).toMatch(/^<time datetime="2026-10-01T09:05[+-]\d\d:\d\d">2026-10-01 09:05<\/time>$/)
+  })
+})
+
+describe("PlanDoc overnight", () => {
+  it("start:  an unnumbered section above the Overview, active, with empty lists", () => {
+    const plan = freshPlan()
+    expect(plan.overnight).toBe(null)
+    plan.startOvernight("P3-P6", "seo")
+    expect(sectionIds(plan)[0]).toBe("overnight")
+    expect(plan.overnight).toBe("active")
+    expect(plan.summary().overnight).toBe("active")
+    const section = plan.document.getElementById("overnight")
+    expect(section.getAttribute("header")).toBe("Overnight · 2026-10-01")
+    expect(section.querySelector(".overnight-summary").textContent).toContain("Running P3-P6 unattended on branch seo")
+    expect(section.querySelectorAll(".overnight-none").length).toBe(2)
+  })
+
+  it("phase and problem lines:  placeholders go, ids link to items the doc has", () => {
+    const plan = freshPlan()
+    const judgement = plan.addItem("judgement", "Kept the old parser", {})
+    plan.startOvernight("P1")
+    plan.overnightPhase(1, `abc1234 built it;  ${judgement.toUpperCase()}, J99`)
+    plan.overnightProblem("tests flaky")
+    const phases = plan.document.querySelector(".overnight-phases")
+    expect(phases.querySelector(".overnight-none")).toBe(null)
+    expect(phases.innerHTML).toContain(`<a href="#${judgement}">${judgement.toUpperCase()}</a>`)
+    expect(phases.innerHTML).toContain("J99")
+    expect(phases.innerHTML).not.toContain('href="#j99"')
+    expect(plan.document.querySelector(".overnight-problems").textContent.trim()).toBe("tests flaky")
+  })
+
+  it("done, then remove;  a second start replaces the first;  lines need a start", () => {
+    const plan = freshPlan()
+    expect(() => plan.overnightProblem("x")).toThrow(PlanDocError)
+    plan.startOvernight("P1")
+    plan.startOvernight("P2")
+    expect(plan.document.querySelectorAll("#overnight").length).toBe(1)
+    plan.finishOvernight("2 done, 1 WIP")
+    expect(plan.overnight).toBe("done")
+    expect(plan.document.querySelector(".overnight-summary").textContent).toBe("2 done, 1 WIP")
+    expect(plan.removeOvernight()).toBe(true)
+    expect(plan.overnight).toBe(null)
+    expect(plan.removeOvernight()).toBe(false)
+  })
+
+  it("migrate's section ordering leaves it on top", () => {
+    const plan = freshPlan()
+    plan.startOvernight("P1")
+    plan.orderSections()
+    expect(sectionIds(plan)[0]).toBe("overnight")
+    expect(plan.document.getElementById("overnight").getAttribute("header")).toBe("Overnight · 2026-10-01")
   })
 })

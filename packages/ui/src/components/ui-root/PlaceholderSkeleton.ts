@@ -8,7 +8,6 @@ import { placeholderImageVocabulary } from "../ui-placeholder/ui-placeholder-ima
 import { placeholderLineVocabulary } from "../ui-placeholder/ui-placeholder-line.vocabulary.en"
 import { placeholderParagraphVocabulary } from "../ui-placeholder/ui-placeholder-paragraph.vocabulary.en"
 import { placeholderVocabulary } from "../ui-placeholder/ui-placeholder.vocabulary.en"
-import "../ui-placeholder/index"
 
 import { DEFAULT_LINES, HEADER_LINES, type RootSkeleton } from "./ui-root.types"
 
@@ -17,7 +16,8 @@ import { DEFAULT_LINES, HEADER_LINES, type RootSkeleton } from "./ui-root.types"
  * What `<ui-root display="skeleton">` draws while its components load:  one `<ui-placeholder>` per described element
  * (`ComponentVocabulary.skeleton`), in page order, stacked (inline ones side by side).  `UIRoot.Skeleton`, so an app
  * swaps the look with one assignment or a subclass (`UIRoot.Skeleton = MySkeleton`).
- * - Imports the `ui-placeholder` family STATICALLY (with `ui-loader`, the only families a root never loads on demand).
+ * - The `ui-placeholder` family is imported STATICALLY, by the root's barrel (`index.ts`;  with `ui-loader`, the only
+ *   families a root never loads on demand).
  * - Built with the DOM, not JSX:  Solid's JSX has no types for our tags.  Sizes go through the placeholder's public
  *   tokens (`--ui-placeholder-max-width`, `--ui-placeholder-image-height`), so its own sheet draws them.
  * - The element's `size` scales its skeleton (`--ui-scale`), and `fluid` fills the width.

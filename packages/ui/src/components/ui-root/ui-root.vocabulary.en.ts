@@ -6,6 +6,7 @@
  * - Design:  `packages/docs/epics/ui-component-creation/ui-component-creation.html`, Overview 3.5 and D51-D68.
  */
 
+import * as UIT from "$/ui/components/components.types"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 
 /****************
@@ -48,6 +49,15 @@ export const rootVocabulary = {
     },
     { name: "theme", kind: "enum", values: ["light", "dark"], description: "Colour scheme of everything inside." },
     { name: "size", kind: "size", description: "Size of everything inside, `mini` ... `massive`." },
+    {
+      name: "stack-with",
+      kind: "enum",
+      values: UIT.STACK_WITH_VALUES,
+      description:
+        "What stacking layouts inside measure (`stackable`, `doubling` ... on grids, cards, steps, forms, items, " +
+        "statistics;  tables' `stack-by`):  `container` -- each element's own width (their default);  `page` -- the " +
+        "screen's, as in Fomantic.  Sets the `--ui-stack-with` token;  an element's own `stack-with` wins."
+    },
     {
       name: "width",
       kind: "string",
