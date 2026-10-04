@@ -5,7 +5,7 @@ waiting to be worked in, and the tools that keep it all consistent.  As the root
 
 - Start at `index.html` (every goal set), or a set's own `<set>/index.html`.  `yarn goals open` shows them served
   live;  they also open straight from disk.
-- The /goals skills (`_skills/`, linked into `~/.claude/skills/`) drive dialogs, thoughts and updates.
+- The /goals skills (`_skills/`, linked into the repo's `.claude/skills/`) drive dialogs, thoughts and updates.
 - Built in this repo, meant for any project later:  keep paths relative, and project specifics in the preferences.
 
 ## Layout
