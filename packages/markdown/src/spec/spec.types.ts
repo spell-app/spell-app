@@ -1,3 +1,16 @@
+import type { MarkdownOptions, SpecExample } from "$/markdown"
+
+// ## Options
+
+/**
+ * The options a spec example runs with:  GFM's autolinks and tagfilter extensions only for their own examples,
+ * since core examples say bare URLs AREN'T links and `<script>` IS raw HTML.  (cmark-gfm's spec runner does the
+ * same;  tables and strikethrough change nothing core, so they stay on.)
+ */
+export function specOptions(example: SpecExample): MarkdownOptions {
+  return { autolinks: example.extension === "autolink", tagfilter: example.extension === "tagfilter" }
+}
+
 // ## Comparing
 
 /** Block-level tags:  whitespace next to them doesn't change what a page shows. */

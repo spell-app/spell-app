@@ -300,15 +300,29 @@ export class BlockScanner {
     return 2
   }
 
-  /** `===` / `---` under a paragraph:  rulex `setext_underline`;  the paragraph becomes a heading. */
+  /**
+   * `===` / `---` under a paragraph:  rulex `setext_underline`;  the paragraph becomes a heading.
+   * - Link reference definitions at the paragraph's start aren't heading text:  they stay a paragraph of their own
+   *   (for `MD.extractReferences()`), and if that's ALL it was, the underline is just text.
+   */
   startSetextHeading(container: Block): number {
     if (this.indented || container.kind !== "paragraph" || !this.isLine("setext_underline")) return 0
+    const content = `${container.lines.join("\n")}\n`
+    const definitions = referencesLength(content)
+    if (definitions && !/\S/.test(content.slice(definitions))) return 0
     this.closeUnmatchedBlocks()
     const heading = MD.newBlock("heading", container.startLine, container.parent)
     heading.level = this.peek(this.nextNonspace) === "=" ? 1 : 2
-    heading.lines = container.lines
     const siblings = container.parent!.children
-    siblings[siblings.indexOf(container)] = heading
+    if (definitions) {
+      container.lines = lines(content.slice(0, definitions))
+      heading.lines = lines(content.slice(definitions))
+      container.open = false
+      siblings.splice(siblings.indexOf(container) + 1, 0, heading)
+    } else {
+      heading.lines = container.lines
+      siblings[siblings.indexOf(container)] = heading
+    }
     this.tip = heading
     this.advanceOffset(this.line.length - this.offset, false)
     return 2
@@ -559,6 +573,24 @@ function endsWithBlankLine(block: Block | undefined) {
     if (block.lastLineBlank) return true
   }
   return false
+}
+
+/** How long the link reference definitions at the start of `content` are (0:  none). */
+function referencesLength(content: string) {
+  const parser = new MD.InlineParser()
+  let length = 0
+  for (
+    let next: number;
+    content.slice(length).startsWith("[") && (next = parser.parseReference(content.slice(length), {}));
+  ) {
+    length += next
+  }
+  return length
+}
+
+/** `text`'s lines, its last line end dropped. */
+function lines(text: string) {
+  return text.replace(/\n$/, "").split("\n")
 }
 
 /** A delimiter cell's alignment:  `:--` left, `:-:` center, `--:` right. */

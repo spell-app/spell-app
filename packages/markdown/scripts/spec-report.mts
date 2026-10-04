@@ -5,7 +5,7 @@
  */
 import { MD, type SpecExample } from "$/markdown"
 
-import { comparableHTML } from "$/markdown/spec/spec.types"
+import { comparableHTML, specOptions } from "$/markdown/spec/spec.types"
 
 import spec from "../src/spec/gfm-spec.json" with { type: "json" }
 
@@ -17,7 +17,7 @@ for (const example of examples) {
   const entry = bySection.get(example.section) ?? { passed: 0, failed: [] }
   let got = ""
   try {
-    got = MD.toHTML(example.markdown)
+    got = MD.toHTML(example.markdown, specOptions(example))
   } catch (error) {
     got = `THROWS ${(error as Error).message}`
   }

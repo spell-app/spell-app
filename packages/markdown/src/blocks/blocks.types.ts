@@ -70,7 +70,8 @@ export type TableAlign = "left" | "center" | "right" | undefined
 
 /**
  * A table row's cells:  split at `|` (not `\|`), the outer pipes optional, each cell trimmed.
- * - `\|` stays in the cell's text as is:  inline parsing unescapes it.
+ * - `\|` becomes a plain `|` in the cell's text -- even inside a code span (GFM 4.10), so it's done here, before
+ *   inline parsing.
  */
 export function tableCells(row: string): string[] {
   let text = row.trim()
@@ -80,7 +81,7 @@ export function tableCells(row: string): string[] {
   let cell = ""
   for (let i = 0; i < text.length; i++) {
     if (text[i] === "\\" && text[i + 1] === "|") {
-      cell += "\\|"
+      cell += "|"
       i++
     } else if (text[i] === "|") {
       cells.push(cell.trim())

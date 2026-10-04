@@ -3,4 +3,5 @@
  */
 export * from "./render.types"
 export * from "./renderBlocks"
+export * from "./renderInlines"
 export * from "./markupToHTML"
