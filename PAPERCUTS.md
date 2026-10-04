@@ -1221,6 +1221,10 @@ Entries before 2026-09-30 are from when the command line lived in the parser rep
   skill ran `yarn plan-doc open` BEFORE `window.mjs handoff`, and `Window.show()` defers to the new window only
   while a move is pending (handoff logs:  no "showed ..." line). · `/epic` "2. Session" now hands off first, then
   opens the doc, and checks it printed "shows in ... once this session moves there". · claude-code
+- 2026-10-03 · In a worktree session, Bash refused `a && b && git ...` chains and even a multi-line `sed -i`
+  ("too complex to verify that it stays inside the worktree"), and Edit refused the main checkout's git-ignored
+  `workspaces/ongoing/<name>.code-workspace`. · One plain command per Bash call;  for a multi-line edit, a node
+  script in the scratchpad.  Files outside the worktree:  ask Owen to edit them. · claude-code
 
 ## vscode
 

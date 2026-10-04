@@ -64,6 +64,7 @@ When the session already has work under way ("make this a plan doc"), carry it o
 
 All in the FIRST turn, in this order, then the turn ends.  Why:  the move to the worktree's window waits for the
 turn to end, and the stub doc keeps the kickoff prompt safe whatever happens to this session.
+0. Where:  isolate's "Start", step 2b, with `stay-check --epic`:  a new window, or stay in this one.
 1. Isolate:  read `.claude/skills/isolate/SKILL.md` and follow "Start", step 3 (and step 0 mid-session), with this
    `<name>` (a skill can't invoke another):  `EnterWorktree`.
 2. `yarn install` in the worktree (a few seconds:  `yarn plan-doc` needs it).
@@ -83,6 +84,9 @@ turn to end, and the stub doc keeps the kickoff prompt safe whatever happens to 
 6. Isolate "Start", step 6:  END THE TURN.  Last line:  "moving to `<pkg> ⎇ <name>`:  press enter on `continue`
    there" (no plan yet:  "send the plan there").
 7. Next turn, in the new window:  isolate's "Continue" step 1 (old tab), then "3. Plan".
+
+Staying in this window (step 0):  skip steps 4 and 6.  Step 5's `plan-doc open` shows the doc in THIS window's side
+bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  the last line asks for it, here.
 
 ## 3. Plan
 
@@ -168,7 +172,8 @@ turn to end, and the stub doc keeps the kickoff prompt safe whatever happens to 
   the plan doc and the durable doc;  under "3. Merged into main" if "Finish" below merges it, else "2. In worktrees".
 - Then leave the worktree:  follow `.claude/skills/isolate/SKILL.md`, "Finish".  Right after its step 4
   (`handoff --back`), still in the worktree:  `yarn plan-doc open <name>` one last time, so the doc follows the
-  session back to its package's window (the worktree's window closes).
+  session back to its package's window (the worktree's window closes).  A session that stayed:  no move, and the
+  doc is already here.
 - Last line of the reply:  "All done ..." (see the top).
 
 ## Cheat sheet (`yarn plan-doc ...`, from anywhere in the repo)

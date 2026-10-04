@@ -37,8 +37,10 @@ this one.  AskUserQuestion:
 
 - This window:  `node scripts/window.mjs which`, its `workspace` line.
 - `<name>`'s window file:  `workspaces/ongoing/<name>.code-workspace` in the main checkout.
-- Different (or no window file):  AskUserQuestion "This window isn't `<name>`'s.  Open it in a new window?":
-  - "Open new window (Recommended)":
+- Different (or no window file):  `node scripts/window.mjs stay-check` first, then AskUserQuestion "This window
+  isn't `<name>`'s.  Open it in a new window?", its reasons in the question, the option it recommends first with
+  "(Recommended)" (`.claude/skills/isolate/SKILL.md`, "Start", step 2b):
+  - "Open new window":
     1. not yet in the worktree:  `EnterWorktree` with `path: ".claude/worktrees/<name>"`
     2. `node scripts/window.mjs open <name>` (`--pkg <pkg>` when this isn't a package window), then
        `node scripts/window.mjs handoff <name>`, both from the worktree's root, as `.claude/skills/isolate/SKILL.md`
