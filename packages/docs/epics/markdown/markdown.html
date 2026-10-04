@@ -1774,7 +1774,8 @@
                       gone, since that is now the default.
                     </li>
                     <li>
-                      A new <code>sanitized</code> attribute sanitizes with DOMPurify, which is now its own lazy chunk (<a
+                      A new <code>sanitized</code> attribute sanitizes with DOMPurify, which is now its own lazy chunk
+                      (<a
                         href="../../../ui/src/components/ui-markdown/MarkdownSanitizer.ts"
                         target="src-packages-ui-src-components-ui-markdown-markdownpurifier-ts"
                         ><code>MarkdownSanitizer.ts</code></a
@@ -1798,6 +1799,50 @@
                     <li>marked's chunk: 26.2 kB gz before (marked + DOMPurify), <b>14.2 kB gz</b> now.</li>
                     <li>DOMPurify: 12.4 kB gz, paid only by a <code>sanitized</code> element.</li>
                     <li>Text you did not write needs <code>sanitized</code> (see the caveat).</li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ><ui-item id="d31" data-status="decided"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#d31">D31</a>
+                  <span class="plan-title"
+                    >Spell's markdown bundle slimmed at bundle time: 88.3 -&gt; 59.4 kB gz</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    Owen, 2026-10-04, picking "Slim spell's bundle (I6)". The cuts are all in
+                    <a href="../../../ui/scripts/gen-markdown.ts" target="src-packages-ui-scripts-gen-markdown-ts"
+                      ><code>packages/ui/scripts/gen-markdown.ts</code></a
+                    >, so markdown, the parser and util run in node exactly as before.
+                  </p>
+                  <ul>
+                    <li>
+                      <b>Entities:</b> <code>entities</code>' 52 kB table swapped for the browser's own decoder (a
+                      <code>&lt;textarea&gt;</code>): -23 kB gz. The browser also decodes legacy names without their
+                      <code>;</code> (<code>&amp;notit;</code> would become <code>¬it;</code>), so a result longer than
+                      one character that ends in <code>;</code> keeps the text as written.
+                    </li>
+                    <li>
+                      <b>lodash:</b> swapped for <code>lodash-es</code>, side-effect free, so helpers nothing calls drop
+                      out: -4 kB gz.
+                    </li>
+                    <li><b>chalk:</b> stubbed (no colours in a page): -2 kB gz.</li>
+                  </ul>
+                  <p>
+                    Checked: the bundle in Chromium renders <b>exactly</b> what <code>MD.render()</code> renders in node
+                    for all 670 GFM spec examples plus entity edge cases, plain and <code>ui-*</code> output alike; spec
+                    670/670 in the browser. A <code>ui</code> browser test pins the entity cases.
+                  </p>
+                  <p><b>Net effect</b></p>
+                  <ul>
+                    <li>
+                      The editable preview's chunk: 88.3 kB gz before, <b>59.4 kB gz</b> now, about 4× marked's 14.2 kB.
+                    </li>
+                    <li>
+                      Left, needing source changes: util's barrel (pluralize, lodash's deburr / clone / isEqual) and the
+                      parser's AST classes (31 kB raw), both reached through barrels.
+                    </li>
                   </ul></ui-content
                 ></ui-accordion
               ></ui-item
@@ -2357,8 +2402,42 @@
               ><a class="plan-id" href="#t7">T7</a>
               <span class="plan-title"
                 >Merge markdown into main (/isolate done or /epic finish): bedtime never merges</span
-              >
-            </ui-item></ui-list
+              > </ui-item
+            ><ui-item id="t8" data-status="open"
+              ><ui-accordion class="plan-item"
+                ><ui-title
+                  ><a class="plan-id" href="#t8">T8</a>
+                  <span class="plan-title"
+                    >Slim spell's bundle further: util's barrel and the parser's AST</span
+                  ></ui-title
+                ><ui-content
+                  ><p>
+                    After <a href="#d31">D31</a>, spell's markdown bundle is 59.4 kB gz, about 4× marked's 14.2 kB.
+                    What's left comes in through barrels, so cutting it means changing source, not the bundler:
+                  </p>
+                  <ul>
+                    <li>
+                      <code>$/util</code>'s barrel: <code>pluralize</code> (6 kB raw) and lodash's <code>deburr</code> /
+                      <code>clone</code> / <code>isEqual</code> helpers, reached from
+                      <a href="../../../parser/src/parser.types.ts" target="src-packages-parser-src-parser-types-ts"
+                        ><code>parser.types.ts</code></a
+                      >.
+                    </li>
+                    <li>
+                      The parser's AST classes (<code>ast/AST.ts</code>, 31 kB raw): in the
+                      <code>$/parser</code> barrel, though markdown never builds an AST.
+                    </li>
+                  </ul>
+                  <p><b>Net effect</b></p>
+                  <ul>
+                    <li>
+                      Maybe ~45 kB gz after both; worth it only if plain <code>&lt;ui-markdown&gt;</code> should switch
+                      from marked.
+                    </li>
+                  </ul></ui-content
+                ></ui-accordion
+              ></ui-item
+            ></ui-list
           >
         </ui-section>
 
@@ -2518,7 +2597,7 @@
                   </p></ui-content
                 ></ui-accordion
               ></ui-item
-            ><ui-item data-reviewed="2026-10-04" id="i6" data-status="open"
+            ><ui-item data-reviewed="2026-10-04" id="i6" data-status="done"
               ><ui-accordion class="plan-item"
                 ><ui-title
                   ><a class="plan-id" href="#i6">I6</a>
@@ -3202,8 +3281,24 @@
               ><ui-content
                 ><ui-summary
                   ><ui-date><time datetime="2026-10-04T19:26-04:00">2026-10-04 19:26</time></ui-date> I6 reviewed: Owen
-                  chose: sanitized opt-in, DOMPurify lazy (D30). marked's chunk 26.2 -&gt; 14.2 kB gz. The MD bundle itself
-                  (88 kB gz) is not slimmed: I6 stays open for that.</ui-summary
+                  chose: sanitized opt-in, DOMPurify lazy (D30). marked's chunk 26.2 -&gt; 14.2 kB gz. The MD bundle
+                  itself (88 kB gz) is not slimmed: I6 stays open for that.</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:43-04:00">2026-10-04 19:43</time></ui-date> I6 closed: MD
+                  bundle is 88 kB gz, 3.5x marked + DOMPurify (25 kB): slim it before swapping plain
+                  &lt;ui-markdown&gt;?</ui-summary
+                ></ui-content
+              ></ui-event
+            ><ui-event icon="pen to square"
+              ><ui-content
+                ><ui-summary
+                  ><ui-date><time datetime="2026-10-04T19:43-04:00">2026-10-04 19:43</time></ui-date> I6 reviewed: Done
+                  at bundle time: D30 (sanitized opt-in, marked 26.2 -&gt; 14.2 kB gz) and D31 (spell's bundle 88.3
+                  -&gt; 59.4 kB gz). The rest needs source changes: T8.</ui-summary
                 ></ui-content
               ></ui-event
             ></ui-feed

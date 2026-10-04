@@ -6,6 +6,7 @@ import { ElementFixture } from "$/ui/test/ElementFixture"
 
 import { MarkdownEngine } from "./MarkdownEngine"
 import { MarkdownRenderer } from "./MarkdownRenderer"
+import { MDEngine } from "./MDEngine"
 import type { UIMarkdownHost } from "./UIMarkdownHost"
 
 import "$/ui/components/ui-markdown"
@@ -271,6 +272,18 @@ describe("MarkdownEngine.slug()", () => {
     ["Ünïcode wörds", "ünïcode-wörds"]
   ])("%s => %s", (text, slug) => {
     expect(MarkdownEngine.slug(text)).toBe(slug)
+  })
+})
+
+describe("MDEngine (md.bundle.js)", () => {
+  // the bundle decodes with the browser's <textarea>, not `entities`' table (`gen-markdown.ts`, I6)
+  it("decodes entities as the spec does:  whole references only, unknown ones kept", () => {
+    const { html } = MDEngine.instance.render("&notit; &amp; &semi; &#0; &NotEqualTilde; &Afr; &nope; &copy", {
+      breaks: false,
+      headingOffset: 0,
+      sanitized: false
+    })
+    expect(html).toContain("&amp;notit; &amp; ; � ≂̸ \u{1D504} &amp;nope; &amp;copy")
   })
 })
 
