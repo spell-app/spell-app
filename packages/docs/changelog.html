@@ -78,70 +78,6 @@
             <li>Each moves to section 3, with plan-doc links, when it merges.</li>
           </ul>
 
-          <ui-section id="details" header="details · done 2026-10-03, not merged" sticky collapsible dividing>
-            <ui-list class="spell-meta">
-              <ui-item icon="map"
-                >Plan doc: <a href="epics/details/details.html" target="details">epics/details/details.html</a></ui-item
-              >
-              <ui-item icon="book open"
-                >Durable doc: <a href="details.html" target="src-packages-docs-details-html">Details Pages</a></ui-item
-              >
-              <ui-item icon="code branch">Branch <code>details</code>, built overnight (<code>/bedtime</code>)</ui-item>
-            </ui-list>
-            <ul>
-              <li>
-                P1 · Answer Endpoint: <code>POST /api/details/answer</code> (route module
-                <a href="scripts/detailsRoutes.ts" target="src-packages-docs-scripts-detailsroutes-ts"
-                  ><code>packages/docs/scripts/detailsRoutes.ts</code></a
-                >) writes a details page's answer beside it; <code>StaticHandler.resolve()</code> maps a URL path to its
-                file through the mounts.
-              </li>
-              <li>
-                P2 · Page Template:
-                <a href="templates/details.html" target="src-packages-docs-templates-details-html"
-                  ><code>templates/details.html</code></a
-                >,
-                <a href="_assets/details.js" target="src-packages-docs-assets-details-js"
-                  ><code>_assets/details.js</code></a
-                >
-                /
-                <a href="_assets/details.css" target="src-packages-docs-assets-details-css"><code>details.css</code></a
-                >: option cards on
-                <a href="../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> (radio or
-                checkbox, Recommended, folding details), Other, notes, Send; locked once sent, Change answer;
-                <code>GET /api/details/answer</code>. Route modules adding <code>/api/...</code> must come before
-                <a href="../app/src/server/appRoutes.ts" target="src-packages-app-src-server-approutes-ts"
-                  ><code>appRoutes.ts</code></a
-                >.
-              </li>
-              <li>
-                P3 · Details CLI: <code>yarn details new | show --wait | wait | answer | list | sweep</code>; the
-                waiter, run in the background, exits with the answer and wakes the session.
-                <code>atDepth()</code> shared with <code>docs:new</code>;
-                <a href="details/" target="src-packages-docs-details"><code>details/</code></a> folders kept out of the
-                index and checks.
-              </li>
-              <li>
-                P4 · Skill and Rule:
-                <a href="../../.claude/skills/details/SKILL.md" target="src-claude-skills-details-skill-md"
-                  ><code>.claude/skills/details/SKILL.md</code></a
-                >, a root <a href="CLAUDE.md" target="src-packages-docs-claude-md"><code>CLAUDE.md</code></a> line, and
-                the first real page,
-                <a
-                  href="epics/details/details/morning-review.html"
-                  target="src-packages-docs-epics-details-details-morning-review-html"
-                  ><code>epics/details/details/morning-review.html</code></a
-                >.
-              </li>
-              <li>P5 · Doc Review: the durable doc, the page server doc's route module list.</li>
-              <li>
-                P6 · Sidebar Links: <code>yarn docs:link</code> prints a side bar link and a
-                <code>(_browser_)</code> one, both through <code>GET /api/docs/show</code>; pages land on the id meant,
-                unfolded; details pages open with a "Where we are" box; the skills link pages this way.
-              </li>
-            </ul>
-          </ui-section>
-
           <ui-section id="vite-plus" header="vite-plus · done 2026-10-02" sticky collapsible dividing>
             <ui-list class="spell-meta">
               <ui-item icon="code branch">Branch <code>vite-plus</code>, worktree only, deliberately unmerged</ui-item>
@@ -204,6 +140,81 @@
           <ui-icon slot="icon" name="flag checkered"></ui-icon>
 
           <ui-section id="2026-10" header="October 2026" sticky collapsible dividing>
+            <ui-section
+              id="details"
+              header="2026-10-03 · Details pages:  questions answered in the side bar"
+              sticky
+              collapsible
+              dividing
+            >
+              <ui-list class="spell-meta">
+                <ui-item icon="map"
+                  >Plan doc:
+                  <a href="epics/details/details.html" target="details">epics/details/details.html</a></ui-item
+                >
+                <ui-item icon="book open"
+                  >Durable doc:
+                  <a href="details.html" target="src-packages-docs-details-html">Details Pages</a></ui-item
+                >
+                <ui-item icon="code branch"
+                  >Branch <code>details</code>, P1-P5 built overnight (<code>/bedtime</code>)</ui-item
+                >
+              </ui-list>
+              <ul>
+                <li>
+                  P1 · Answer Endpoint: <code>POST /api/details/answer</code> (route module
+                  <a href="scripts/detailsRoutes.ts" target="src-packages-docs-scripts-detailsroutes-ts"
+                    ><code>packages/docs/scripts/detailsRoutes.ts</code></a
+                  >) writes a details page's answer beside it; <code>StaticHandler.resolve()</code> maps a URL path to
+                  its file through the mounts.
+                </li>
+                <li>
+                  P2 · Page Template:
+                  <a href="templates/details.html" target="src-packages-docs-templates-details-html"
+                    ><code>templates/details.html</code></a
+                  >,
+                  <a href="_assets/details.js" target="src-packages-docs-assets-details-js"
+                    ><code>_assets/details.js</code></a
+                  >
+                  /
+                  <a href="_assets/details.css" target="src-packages-docs-assets-details-css"
+                    ><code>details.css</code></a
+                  >: option cards on
+                  <a href="../ui/README.md" target="src-packages-ui-readme-md"><code>@spell-app/ui</code></a> (radio or
+                  checkbox, Recommended, folding details), Other, notes, Send; locked once sent, Change answer;
+                  <code>GET /api/details/answer</code>. Route modules adding <code>/api/...</code> must come before
+                  <a href="../app/src/server/appRoutes.ts" target="src-packages-app-src-server-approutes-ts"
+                    ><code>appRoutes.ts</code></a
+                  >.
+                </li>
+                <li>
+                  P3 · Details CLI: <code>yarn details new | show --wait | wait | answer | list | sweep</code>; the
+                  waiter, run in the background, exits with the answer and wakes the session.
+                  <code>atDepth()</code> shared with <code>docs:new</code>;
+                  <a href="details/" target="src-packages-docs-details"><code>details/</code></a> folders kept out of
+                  the index and checks.
+                </li>
+                <li>
+                  P4 · Skill and Rule:
+                  <a href="../../.claude/skills/details/SKILL.md" target="src-claude-skills-details-skill-md"
+                    ><code>.claude/skills/details/SKILL.md</code></a
+                  >, a root <a href="CLAUDE.md" target="src-packages-docs-claude-md"><code>CLAUDE.md</code></a> line,
+                  and the first real page,
+                  <a
+                    href="epics/details/details/morning-review.html"
+                    target="src-packages-docs-epics-details-details-morning-review-html"
+                    ><code>epics/details/details/morning-review.html</code></a
+                  >.
+                </li>
+                <li>P5 · Doc Review: the durable doc, the page server doc's route module list.</li>
+                <li>
+                  P6 · Sidebar Links: <code>yarn docs:link</code> prints a side bar link and a
+                  <code>(_browser_)</code> one, both through <code>GET /api/docs/show</code>; pages land on the id
+                  meant, unfolded; details pages open with a "Where we are" box; the skills link pages this way.
+                </li>
+              </ul>
+            </ui-section>
+
             <ui-section id="seo" header="2026-10-01 → 10-03 · Static pages for SEO" sticky collapsible dividing>
               <ui-list class="spell-meta">
                 <ui-item icon="code branch"
